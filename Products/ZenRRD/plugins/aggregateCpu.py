@@ -47,11 +47,11 @@ for d, _, fs in os.walk(perf):
     if not devicePat.match(d): continue
     parts = []
     for f in fs:
-	for n in 'Wait System User'.split():
-	    if f.find('ssCpuRaw' + n) >= 0:
-	        parts.append(f)
+        for n in 'Wait System User'.split():
+            if f.find('ssCpuRaw' + n) >= 0:
+                parts.append(f)
     if len(parts) == 3:
-	parts.sort()
+        parts.sort()
         rfiles.append( (d, parts) )
 ifiles = []
 for d, _, fs in os.walk(perf):

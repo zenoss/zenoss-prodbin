@@ -26,9 +26,9 @@ class StandardErrorMessage(Migrate.Step):
     version = Migrate.Version(0, 23, 0)
 
     def cutover(self, dmd):
-    	''' Remove index_html and replace with a python script that will
-    	    redirect to /zport/dmd/
-    	'''
+        ''' Remove index_html and replace with a python script that will
+            redirect to /zport/dmd/
+        '''
         app = dmd.getPhysicalRoot()
         if app.hasObject('standard_error_message'):
             app._delObject('standard_error_message')

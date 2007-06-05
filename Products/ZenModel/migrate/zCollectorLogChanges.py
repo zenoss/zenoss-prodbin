@@ -27,7 +27,7 @@ class zCollectorLogChanges(Migrate.Step):
         # Set zCollectorLogChanges defaults
         if not dmd.Devices.hasProperty("zCollectorLogChanges"):
             dmd.Devices._setProperty("zCollectorLogChanges", 
-										True, type="boolean")
+                                                                                True, type="boolean")
         else:
             dmd.Devices.zCollectorLogChanges = True
         

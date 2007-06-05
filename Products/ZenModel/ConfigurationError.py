@@ -13,7 +13,7 @@
 
 
 class ConfigurationError(Exception):
-	pass
+        pass
 
 
 

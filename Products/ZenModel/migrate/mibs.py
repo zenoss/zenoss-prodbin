@@ -31,8 +31,8 @@ class Mibs(Migrate.Step):
         if hasattr(dmd, 'Mibs'):
             return
 
-	from Testing.ZopeTestCase.ZopeLite import installProduct
-	installProduct('PluginIndexes', 1)
+        from Testing.ZopeTestCase.ZopeLite import installProduct
+        installProduct('PluginIndexes', 1)
 
         from Products.ZenModel.MibOrganizer import manage_addMibOrganizer
         manage_addMibOrganizer(dmd, 'Mibs')

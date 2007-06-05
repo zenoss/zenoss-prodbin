@@ -16,11 +16,11 @@ class TwoPointOhObjects(Migrate.Step):
 
 
     def _loopback(self, dmd):
-	dmd.Devices.manage_addRRDTemplate('softwareLoopback')
+        dmd.Devices.manage_addRRDTemplate('softwareLoopback')
 
     def _zCommandPath(self, dmd):
-	import os
-	self.zCommandPath = os.path.join(os.environ['ZENHOME'], 'libexec')
+        import os
+        self.zCommandPath = os.path.join(os.environ['ZENHOME'], 'libexec')
 
 
     def _cleanupClass(self, dmd):

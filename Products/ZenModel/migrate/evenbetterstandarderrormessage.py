@@ -17,8 +17,8 @@ class EvenBetterStandardErrorMessage(Migrate.Step):
     version = Migrate.Version(2, 0, 0)
 
     def cutover(self, dmd):
-    	''' try/except to better handle access restrictions
-    	'''
+        ''' try/except to better handle access restrictions
+        '''
         app = dmd.getPhysicalRoot()
         if app.hasObject('standard_error_message'):
             app._delObject('standard_error_message')

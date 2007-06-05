@@ -37,7 +37,7 @@ class zeneventlog(Base):
     def __init__(self):
         Base.__init__(self)
         self.devices = {}
-	self.manager = getfqdn()
+        self.manager = getfqdn()
         self.start()
 
     def updateDevices(self, devices):

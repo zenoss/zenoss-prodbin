@@ -52,7 +52,7 @@ class XTest(CmdBase):
     # Sample event and corresponding clear event used by several methods.
     sampleEvent = dict(device='Sample device',
                         summary='Test event at %s' % time.time(),
-			eventClass=Status_Perf,
+                        eventClass=Status_Perf,
                         severity=4,
                         component='Sample component')
     sampleClear = sampleEvent.copy()

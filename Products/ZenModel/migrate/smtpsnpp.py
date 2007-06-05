@@ -28,7 +28,7 @@ def parseconfig(options):
     lines = open(options.configfile).readlines()
     for line in lines:
         if line.lstrip().startswith('#'): continue
-	if line.strip() == '': continue
+        if line.strip() == '': continue
         key, value = line.split(None, 1)
         value = value.rstrip('\r\n')
         key = key.lower()

@@ -144,7 +144,7 @@ class ImportRM(ZCmdBase, ContentHandler):
                 if type(firstElement) in types.StringTypes:
                     proptype = 'string'
             except (TypeError, IndexError):
-		proptype = 'string'
+                proptype = 'string'
         if proptype == "date":
             try: value = float(value)
             except ValueError: pass

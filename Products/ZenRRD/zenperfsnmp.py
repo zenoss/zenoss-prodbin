@@ -418,7 +418,7 @@ class zenperfsnmp(SnmpDaemon):
             p.lastChange = last
             write(self.pickleName(deviceName), cPickle.dumps(snmpTargets))
 
-	for name, oid, path, dsType, createCmd, minmax, thresholds in oidData:
+        for name, oid, path, dsType, createCmd, minmax, thresholds in oidData:
             createCmd = createCmd.strip()
             oid = '.' + str(oid.lstrip('.'))
             d = p.oidMap.setdefault(oid, OidData())

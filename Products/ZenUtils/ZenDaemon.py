@@ -106,32 +106,32 @@ class ZenDaemon(CmdBase):
         except OSError, e:
             raise Exception, "%s [%d]" % (e.strerror, e.errno)
 
-        if (pid == 0):	# The first child.
+        if (pid == 0):  # The first child.
             os.setsid()
             try:
-                pid = os.fork()	# Fork a second child.
+                pid = os.fork() # Fork a second child.
             except OSError, e:
                 raise Exception, "%s [%d]" % (e.strerror, e.errno)
 
-            if (pid == 0):	# The second child.
+            if (pid == 0):      # The second child.
                 os.chdir(WORKDIR)
                 os.umask(UMASK)
             else:
-                os._exit(0)	# Exit parent (the first child) of the second child.
+                os._exit(0)     # Exit parent (the first child) of the second child.
         else:
-            os._exit(0)	# Exit parent of the first child.
+            os._exit(0) # Exit parent of the first child.
 
         # Iterate through and close all stdin/out/err
         for fd in range(0, MAXFD):
             try:
                 os.close(fd)
-            except OSError:	# ERROR, fd wasn't open to begin with (ignored)
+            except OSError:     # ERROR, fd wasn't open to begin with (ignored)
                 pass
 
-        os.open(REDIRECT_TO, os.O_RDWR)	# standard input (0)
+        os.open(REDIRECT_TO, os.O_RDWR) # standard input (0)
         # Duplicate standard input to standard output and standard error.
-        os.dup2(0, 1)			# standard output (1)
-        os.dup2(0, 2)			# standard error (2)
+        os.dup2(0, 1)                   # standard output (1)
+        os.dup2(0, 2)                   # standard error (2)
         if os.path.exists(self.zenvar):
             myname = sys.argv[0].split(os.sep)[-1] + ".pid"
             self.pidfile = os.path.join(self.zenvar, myname)

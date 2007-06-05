@@ -34,7 +34,7 @@ class HPCPUMap(SnmpPlugin):
 
     snmpGetTableMaps = (
         GetTableMap('cpuTable', '.1.3.6.1.4.1.232.1.2.2.1.1', cpucols),
- 	    GetTableMap('cacheTable', '1.3.6.1.4.1.232.1.2.2.3.1', cachecols), 
+            GetTableMap('cacheTable', '1.3.6.1.4.1.232.1.2.2.3.1', cachecols), 
     )
 
 

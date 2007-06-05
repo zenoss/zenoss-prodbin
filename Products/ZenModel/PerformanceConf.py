@@ -378,8 +378,8 @@ class PerformanceConf(Monitor, StatusColor):
         renderurl = str(self.renderurl)
         if renderurl.startswith("http"):
             url = basicAuthUrl(str(self.renderuser), 
-			       str(self.renderpass), 
-			       renderurl)
+                               str(self.renderpass), 
+                               renderurl)
             server = xmlrpclib.Server(url)
         else:
             server = self.getObjByPath(renderurl)

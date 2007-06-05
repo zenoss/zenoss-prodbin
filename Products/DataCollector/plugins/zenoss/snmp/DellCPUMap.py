@@ -36,7 +36,7 @@ class DellCPUMap(SnmpPlugin):
 
     snmpGetTableMaps = (
         GetTableMap('cpuTable', '.1.3.6.1.4.1.674.10892.1.1100.30.1', cpucols),
- 	    GetTableMap('cacheTable', 
+            GetTableMap('cacheTable', 
                     '.1.3.6.1.4.1.674.10892.1.1100.40.1', cachecols),
     )
 

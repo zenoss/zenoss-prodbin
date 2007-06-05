@@ -54,8 +54,8 @@ class Render(resource.Resource):
                     def error(reason):
                         log.error("Unable to fetch graph: %s", reason)
                         request.finish()
-		    if not self.renderers.get(listener, False):
-               		raise Exception("Renderer %s unavailable" % listener)
+                    if not self.renderers.get(listener, False):
+                        raise Exception("Renderer %s unavailable" % listener)
                     d = listener.callRemote(command, **args)
                     d.addCallbacks(write, error)
                     return server.NOT_DONE_YET

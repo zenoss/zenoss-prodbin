@@ -63,7 +63,7 @@ class ZenTableState:
         self.sortRule = "cmp"
         self.onlyMonitored = 0
         self.defaultBatchSize = defaultBatchSize
-       	self.batchSize = defaultBatchSize
+        self.batchSize = defaultBatchSize
         self.start = 0
         self.lastindex = 0
         self.filter = ""

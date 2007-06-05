@@ -181,9 +181,9 @@ class SyslogProcessor(object):
             evt.eventClassKey = evt.component
         if hasattr(evt, 'eventClassKey'): 
             slog.debug("eventClassKey=%s", evt.eventClassKey)
-	    try:
+            try:
                 evt.eventClassKey = evt.eventClassKey.decode('latin-1')
-	    except:
+            except:
                 evt.eventClassKey = evt.eventClassKey.decode('utf-8')
         else:
             slog.debug("no eventClassKey assigned")

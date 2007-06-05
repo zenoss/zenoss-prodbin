@@ -68,7 +68,7 @@ class ZenTcpClient(protocol.ClientFactory):
 
     def clientConnectionLost(self, connector, reason):
         log.debug("lost: %s", reason.getErrorMessage())
-	if self.deferred:
+        if self.deferred:
             self.deferred.callback(self)
         self.deferred = None
 
@@ -77,7 +77,7 @@ class ZenTcpClient(protocol.ClientFactory):
         log.debug("failed: %s", reason.getErrorMessage())
         log.debug(reason.type)
         self.msg = "ip service '%s' is down" % self.cfg.component
-	if self.deferred:
+        if self.deferred:
             self.deferred.callback(self)
         self.deferred = None
 

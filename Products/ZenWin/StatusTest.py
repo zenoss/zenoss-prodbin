@@ -61,7 +61,7 @@ class StatusTest(WMI):
 
     def run(self):
         try:
-	    if not self.debug: pythoncom.CoInitialize()
+            if not self.debug: pythoncom.CoInitialize()
             try:
                 self.failed = False
                 log.debug("device:%s user:%s", self.name, self.user)
@@ -81,7 +81,7 @@ class StatusTest(WMI):
                 self.sendFail()
         finally:
             self.close()
-	    if not self.debug: pythoncom.CoUninitialize()
+            if not self.debug: pythoncom.CoUninitialize()
 
 
     def runplugins(self):

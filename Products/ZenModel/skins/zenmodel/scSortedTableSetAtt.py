@@ -35,4 +35,4 @@ if request.has_key(attrib):
     sortedTableState[attrib] = request[attrib]
 session[tableName] = sortedTableState
 
-return sortedTableState[attrib]	
+return sortedTableState[attrib] 

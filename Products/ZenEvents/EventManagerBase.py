@@ -595,7 +595,7 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
         """Return devices with WMI connection failures.
         """
         where="severity>=3 and (eventClass = '%s' or eventClass = '%s')" % (
-								Status_Wmi_Conn, Status_Ping)
+                                                                Status_Wmi_Conn, Status_Ping)
         return self.getDeviceIssues(where=where,state=state,limit=limit)
         
 
