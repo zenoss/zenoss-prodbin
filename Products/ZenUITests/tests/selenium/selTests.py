@@ -18,7 +18,7 @@
 # Adam Modlin
 #
 import unittest, time, re
-import jsUtils
+import testUtils
 import sys
 
 from selenium import selenium
@@ -34,7 +34,7 @@ class selTests(unittest.TestCase):
         """Run at the start of each test.
          """
         self.verificationErrors = []
-        self.selenium = selenium("localhost", 4444, "*firefox", "http://seltest1:8080")
+        self.selenium = selenium("selserver", 4444, "*firefox", "http://seltest1:8080")
         self.selenium.start()
         self.login()
     
@@ -82,19 +82,19 @@ class selTests(unittest.TestCase):
 #                                                               #
 #################################################################
 
-    def testAll(self):
+    def _testAll(self):
         """Run all the tests.
         """
-        #self._testEvents()              #working
-        #self._testDevices()             #working
+        self._testEvents()              #working
+        self._testDevices()             #working
         #self._testServices()           #unimplemented
         #self._testProcesses()          #unimplemented
         #self._testProducts()           #unimplemented
         
-        #self._testSystems()             #working
-        #self._testGroups()              #working
-        #self._testLocations()           #working
-        #self._testReports()             #working
+        self._testSystems()             #working
+        self._testGroups()              #working
+        self._testLocations()           #working
+        self._testReports()             #working
         
         #self._testMonitors()           #unimplemented
         #self._testMibs()               #unimplemented
@@ -118,7 +118,7 @@ class selTests(unittest.TestCase):
         
 ################################################        
         
-    def _testEvents(self):
+    def testEvents(self):
         """Run tests on the Events page.
         """
         self.waitForElement("link=Events")
@@ -131,7 +131,7 @@ class selTests(unittest.TestCase):
         #self.deleteDialog(deleteType="EventMappinglistremoveInstances", deleteMethod="removeInstances:method",
         #                            pathsList="ids:list", form_name="mappings") 
 
-    def _testDevices(self):
+    def testDevices(self):
         """Run tests on the Devices page
         """
         self.waitForElement("link=Devices")
@@ -174,7 +174,7 @@ class selTests(unittest.TestCase):
 
 ################################################
 
-    def _testSystems(self):
+    def testSystems(self):
         """Run tests on the Systems page.
         """
         self.waitForElement("link=Systems")
@@ -185,7 +185,7 @@ class selTests(unittest.TestCase):
         self.deleteDialog()
         self.selenium.wait_for_page_to_load("30000")
         
-    def _testGroups(self):
+    def testGroups(self):
         """Run tests on the Groups page.
         """
         self.waitForElement("link=Groups")
@@ -196,7 +196,7 @@ class selTests(unittest.TestCase):
         self.deleteDialog()
         self.selenium.wait_for_page_to_load("30000")
         
-    def _testLocations(self):
+    def testLocations(self):
         """Run tests on the Locations page.
         """
         self.waitForElement("link=Locations")
@@ -207,7 +207,7 @@ class selTests(unittest.TestCase):
         self.deleteDialog()
         self.selenium.wait_for_page_to_load("30000")
         
-    def _testReports(self):
+    def testReports(self):
         """Run tests on the Reports page.
         """
         self.waitForElement("link=Reports")
@@ -228,7 +228,7 @@ class selTests(unittest.TestCase):
         """Run tests on the Mibs page
         """
         
-    def _testAddEditDeleteDevice(self, deviceIp, classPath):
+    def testAddEditDeleteDevice(self, deviceIp="tilde.zenoss.loc", classPath="/Discovered"):
         """Runs tests on the Add Device page.
         """
         # Device is added and you are on device page
@@ -251,25 +251,21 @@ class selTests(unittest.TestCase):
         
         # Add, Modify, and Delete an IpInterface
         self.addDialog(addType="IpInterfaceaddIpInterface", addMethod="addIpInterface:method", fieldId="new_id")
-        self.selenium.wait_for_page_to_load("30000")
-        self.waitForElement("zmanage_editProperties:method")
-        self.selenium.click("zmanage_editProperties:method")
         # future: enter stuff in fields
         # Delete the ipinterface
-        self.waitForElement("link=Delete")
-        self.selenium.click("link=Delete")
-        self.waitForElement("manage_deleteComponent:method")
+        self.waitForElement("//div/div[2]/ul/li[1]/a")
+        self.selenium.click("//div/div[2]/ul/li[1]/a")
+        self.waitForElement("dialog_cancel")
         self.selenium.click("manage_deleteComponent:method")
         self.selenium.wait_for_page_to_load("30000")
-
+        
         # Add OSProcess
         self.addDialog(addType="link=Add OSProcess...")
-        self.selenium.wait_for_page_to_load("30000")
         # future: enter stuff in fields
         # Delete OSProcess
         self.waitForElement("link=Delete")
         self.selenium.click("link=Delete")
-        self.waitForElement("manage_deleteComponent:method")
+        self.waitForElement("dialog_cancel")
         self.selenium.click("manage_deleteComponent:method")
         self.selenium.wait_for_page_to_load("30000")
         
@@ -277,19 +273,19 @@ class selTests(unittest.TestCase):
         self.addDialog(addType="link=Add File System...")
         #future: enter stuff in fields
         #Delete Filesystem
-        self.waitForElement("link=Delete")
-        self.selenium.click("link=Delete")
-        self.waitForElement("manage_deleteComponent:method")
+        self.waitForElement("//div/div[2]/ul/li[1]/a")
+        self.selenium.click("//div/div[2]/ul/li[1]/a")
+        self.waitForElement("dialog_cancel")
         self.selenium.click("manage_deleteComponent:method")
-        self.selenium.wait_for_page_to_load("30000")
+        #self.selenium.wait_for_page_to_load("30000")
         
         # Add IP Route
-        self.addDialog(addType="link=Add Route...", fieldId2="nexthopid", overrideString="127.0.0.1/8")
-        
+        #self.addDialog(addType="link=Add Route...", fieldId2="nexthopid", overrideString="127.0.0.1/8")
+   
         # Delete the Device
         self.waitForElement("link=Delete Device...")
         self.selenium.click("link=Delete Device...")
-        self.waitForElement("deleteDevice:method")
+        self.waitForElement("dialog_cancel")
         self.selenium.click("deleteDevice:method")
         self.selenium.wait_for_page_to_load("30000")
         
@@ -334,31 +330,32 @@ class selTests(unittest.TestCase):
                     fieldId2=None, overrideString="testingString"):
         """Test the addDialog functionality.
         """
+        self.waitForElement(addType)
         self.selenium.click(addType)
-        #time.sleep(1)
+        self.waitForElement("dialog_cancel")
         self.type_keys(fieldId, overrideString)
         if fieldId2 != None:
             self.waitForElement(fieldId2)
             self.type_keys(fieldId2, overrideString)
         self.selenium.click(addMethod)
-        #time.sleep(1)
+        self.selenium.wait_for_page_to_load("30000")
         
     def deleteDialog(self, deleteType="OrganizerlistremoveOrganizers", deleteMethod="manage_deleteOrganizers:method", 
-                        pathsList="organizerPaths:list", form_name="subdeviceForm"):
+                        pathsList="organizerPaths:list", form_name="subdeviceForm", stringVal="testingString"):
         """Test the deleteOrganizer functionality.
         """
-        self.waitForElement(jsUtils.getByValue(pathsList, KEYSEQUENCE, form_name))
-        self.selenium.click(jsUtils.getByValue(pathsList, KEYSEQUENCE, form_name))
+        self.waitForElement(jsUtils.getByValue(pathsList, stringVal, form_name))
+        self.selenium.click(jsUtils.getByValue(pathsList, stringVal, form_name))
         self.waitForElement(deleteType)
         self.selenium.click(deleteType)
         self.waitForElement(deleteMethod)
         self.selenium.click(deleteMethod)
 
-    def moveEventClassMappings(self, pathsList="ids:list", form_name="mappings", moveTo="/Unknown"):
+    def moveEventClassMappings(self, pathsList="ids:list", form_name="mappings", moveTo="/Unknown", stringval="testingString"):
         """Test moving an EventClassMapping to /Unknown.
         """
-        self.waitForElement(jsUtils.getByValue(pathsList, KEYSEQUENCE, form_name))
-        self.selenium.click(jsUtils.getByValue(pathsList, KEYSEQUENCE, form_name))
+        self.waitForElement(jsUtils.getByValue(pathsList, stringVal, form_name))
+        self.selenium.click(jsUtils.getByValue(pathsList, stringVal, form_name))
         self.waitForElement("EventmappinglistmoveInstances")
         self.selenium.click("EventMappinglistmoveInstances")
         self.waitForElement("moveInstances:method")
