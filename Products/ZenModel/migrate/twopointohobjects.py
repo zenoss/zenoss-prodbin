@@ -5,14 +5,20 @@ from Products.ZenModel.DeviceClass import manage_addDeviceClass
 class TwoPointOhObjects(Migrate.Step):
     version = Migrate.Version(2, 0, 0)
 
+    def ignoreMissing(self, function, *args):
+        try:
+            function(*args)
+        except AttributeError:
+            pass
+
     def cutover(self, dmd):
-        self._loopback(dmd)
-        self._zCommandPath(dmd)
-        self._cleanupClass(dmd)
-        self._cmdClass(dmd)
-        self._pingClass(dmd)
-        self._scanClass(dmd)
-        self._eventClasses(dmd)
+        self.ignoreMissing(self._loopback, dmd)
+        self.ignoreMissing(self._zCommandPath, dmd)
+        self.ignoreMissing(self._cleanupClass, dmd)
+        self.ignoreMissing(self._cmdClass, dmd)
+        self.ignoreMissing(self._pingClass, dmd)
+        self.ignoreMissing(self._scanClass, dmd)
+        self.ignoreMissing(self._eventClasses, dmd)
 
 
     def _loopback(self, dmd):
@@ -20,8 +26,7 @@ class TwoPointOhObjects(Migrate.Step):
 
     def _zCommandPath(self, dmd):
         import os
-        self.zCommandPath = os.path.join(os.environ['ZENHOME'], 'libexec')
-
+        dmd.Devices.zCommandPath = os.path.join(os.environ['ZENHOME'], 'libexec')
 
     def _cleanupClass(self, dmd):
         d = [d.id for d in dmd.Devices.Server.Linux.getSubDevices()]
