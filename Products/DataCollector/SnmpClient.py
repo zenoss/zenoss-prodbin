@@ -15,14 +15,13 @@ import socket
 import logging
 log = logging.getLogger("zen.SnmpClient")
 
+from twisted.internet import reactor, error, defer
+from twisted.python import failure
 try:
     from pynetsnmp.twistedsnmp import snmpprotocol, AgentProxy
 except ImportError:
     from twistedsnmp import snmpprotocol
     from twistedsnmp.agentproxy import AgentProxy
-
-from twisted.internet import reactor, error, defer
-from twisted.python import failure
 
 import Globals
 

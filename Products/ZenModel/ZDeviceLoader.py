@@ -28,11 +28,11 @@ from AccessControl import Permissions as permissions
 
 from OFS.SimpleItem import SimpleItem
 
+from Device import manage_createDevice
 from Products.ZenUtils.Utils import setWebLoggingStream, clearWebLoggingStream
 from Products.ZenUtils.Exceptions import ZentinelException
 from Products.ZenModel.Exceptions import DeviceExistsError, NoSnmp
 from ZenModelItem import ZenModelItem
-from Device import manage_createDevice
 
 
 def manage_addZDeviceLoader(context, id="", REQUEST = None):

@@ -29,11 +29,6 @@ import socket
 import logging
 log = logging.getLogger("zen.Device")
 
-try:
-    from pynetsnmp.SnmpSession import SnmpSession
-except:
-    from Products.DataCollector.SnmpSession import SnmpSession
-
 from _mysql_exceptions import OperationalError
 
 from Products.ZenStatus import pingtree
@@ -158,6 +153,11 @@ def findCommunity(context, ip, devicePath,
                   community="", port=None, version='v1'):
     """Find the snmp community for an ip address using zSnmpCommunities.
     """
+    try:
+        from pynetsnmp.SnmpSession import SnmpSession
+    except:
+        from Products.DataCollector.SnmpSession import SnmpSession
+
     devroot = context.getDmdRoot('Devices').createOrganizer(devicePath)
     communities = []
     if community: communities.append(community)
