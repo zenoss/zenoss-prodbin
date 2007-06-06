@@ -81,6 +81,8 @@ class TwoPointOhObjects(Migrate.Step):
                     if elt == 'Blocked':
                         cls.zEventSeverity = ZenEventClasses.Warning
                         cls.zEventAction = 'status'
+		    elif val == "/Change":
+			cls.zEventAction = 'history'
                 except Exception, ex:
                     pass
                 root = root._getOb(elt)
