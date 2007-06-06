@@ -34,12 +34,12 @@ class TwoPointOhObjects(Migrate.Step):
         if not hasattr(dmd.Devices.Server, 'Cmd'):
             manage_addDeviceClass(dmd.Devices.Server, 'Cmd')
             cmd = dmd.Devices.Server.Cmd
-            ping.description = ''
-            ping.zPingMonitorIgnore = True
-            ping.zSnmpMonitorIgnore = True
-            ping.zWmiMonitorIgnore = True
-            ping.zXmlRpcMonitorIgnore = True
-            ping.manage_addRRDTemplate('Device')
+            cmd.description = ''
+            cmd.zPingMonitorIgnore = True
+            cmd.zSnmpMonitorIgnore = True
+            cmd.zWmiMonitorIgnore = True
+            cmd.zXmlRpcMonitorIgnore = True
+            cmd.manage_addRRDTemplate('Device')
             
         
     def _pingClass(self, dmd):

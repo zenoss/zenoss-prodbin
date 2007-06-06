@@ -30,24 +30,56 @@ class zCollectorPlugins(Migrate.Step):
                     'zenoss.snmp.RouteMap',
                 )
 
-        if not hasattr(aq_base(dmd.Devices.Server),'zCollectorPlugins'):
-            dmd.Devices.Server._setProperty("zCollectorPlugins", 
-                (
-                    'zenoss.snmp.NewDeviceMap',
-                    'zenoss.snmp.DeviceMap',
-                    'zenoss.snmp.DellDeviceMap',
-                    'zenoss.snmp.HPDeviceMap',
-                    'zenoss.snmp.InterfaceMap',
-                    'zenoss.snmp.RouteMap',
-                    'zenoss.snmp.IpServiceMap',
-                    'zenoss.snmp.HRFileSystemMap',
-                    'zenoss.snmp.HRSWInstalledMap',
-                    'zenoss.snmp.HRSWRunMap',
-                    'zenoss.snmp.CpuMap',
-                    'zenoss.snmp.DellCPUMap',
-                    'zenoss.snmp.HPCPUMap',
-                    'zenoss.snmp.DellPCIMap',
-                ), type = 'lines')
+        try:
+            pow = dmd.Devices.getOrganizer("/Power")
+            if not hasattr(aq_base(pow),'zCollectorPlugins'):
+                pow._setProperty("zCollectorPlugins", 
+                    (
+                        'zenoss.snmp.NewDeviceMap',
+                        'zenoss.snmp.DeviceMap',
+                        'zenoss.snmp.APCDeviceMap',
+                        'zenoss.snmp.PowerwareDeviceMap',
+                    ), type = 'lines')
+        except KeyError: pass
+
+        try:
+            rc = dmd.Devices.getOrganizer("/Network/Router/Cisco")
+            if not hasattr(aq_base(rc),'zCollectorPlugins'):
+                rc._setProperty('zCollectorPlugins',
+                    (
+                        'zenoss.snmp.NewDeviceMap',
+                        'zenoss.snmp.DeviceMap',
+                        'zenoss.snmp.CiscoMap',
+                        'zenoss.snmp.InterfaceMap',
+                        'zenoss.snmp.CiscoHSRP',
+                        'zenoss.snmp.RouteMap',
+                    ), type = 'lines')
+        except: pass
+
+        try:
+            
+            serv = dmd.Devices.getOrganizer("/Server")
+            if not hasattr(aq_base(serv),'zCollectorPlugins'):
+                serv._setProperty("zCollectorPlugins", 
+                    (
+                        'zenoss.snmp.NewDeviceMap',
+                        'zenoss.snmp.DeviceMap',
+                        'zenoss.snmp.DellDeviceMap',
+                        'zenoss.snmp.HPDeviceMap',
+                        'zenoss.snmp.InterfaceMap',
+                        'zenoss.snmp.RouteMap',
+                        'zenoss.snmp.IpServiceMap',
+                        'zenoss.snmp.HRFileSystemMap',
+                        'zenoss.snmp.HRSWInstalledMap',
+                        'zenoss.snmp.HRSWRunMap',
+                        'zenoss.snmp.CpuMap',
+                        'zenoss.snmp.DellCPUMap',
+                        'zenoss.snmp.HPCPUMap',
+                        'zenoss.snmp.DellPCIMap',
+                    ), type = 'lines')
+        except KeyError: 
+#!!!!!!!! No /Server class we have nothing more to do. !!!!!!!!!!!!!!
+            return
 
         if not dmd.Devices.Server._getOb('Scan',False):
             scan = DeviceClass('Scan')
@@ -81,65 +113,49 @@ class zCollectorPlugins(Migrate.Step):
                     'zenoss.cmd.darwin.swap',
                 ), type = 'lines')
 
+        try:
+            lin = dmd.Devices.getOrganizer("/Server/Linux")
+            if not hasattr(aq_base(lin), 'zCollectorPlugins'):
+                lin._setProperty("zCollectorPlugins", 
+                    (
+                        'zenoss.snmp.NewDeviceMap',
+                        'zenoss.snmp.DeviceMap',
+                        'zenoss.snmp.DellDeviceMap',
+                        'zenoss.snmp.HPDeviceMap',
+                        'zenoss.snmp.InterfaceMap',
+                        'zenoss.snmp.RouteMap',
+                        'zenoss.snmp.IpServiceMap',
+                        'zenoss.snmp.HRFileSystemMap',
+                        'zenoss.snmp.HRSWRunMap',
+                        'zenoss.snmp.CpuMap',
+                        'zenoss.snmp.DellCPUMap',
+                        'zenoss.snmp.DellPCIMap',
+                        'zenoss.snmp.HPCPUMap',
+                    ), type = 'lines')
+        except KeyError: pass
 
-        if not hasattr(aq_base(dmd.Devices.Server.Linux), 'zCollectorPlugins'):
-            dmd.Devices.Server.Linux._setProperty("zCollectorPlugins", 
-                (
-                    'zenoss.snmp.NewDeviceMap',
-                    'zenoss.snmp.DeviceMap',
-                    'zenoss.snmp.DellDeviceMap',
-                    'zenoss.snmp.HPDeviceMap',
-                    'zenoss.snmp.InterfaceMap',
-                    'zenoss.snmp.RouteMap',
-                    'zenoss.snmp.IpServiceMap',
-                    'zenoss.snmp.HRFileSystemMap',
-                    'zenoss.snmp.HRSWRunMap',
-                    'zenoss.snmp.CpuMap',
-                    'zenoss.snmp.DellCPUMap',
-                    'zenoss.snmp.DellPCIMap',
-                    'zenoss.snmp.HPCPUMap',
-                ), type = 'lines')
-
-        if not hasattr(aq_base(dmd.Devices.Server.Windows),'zCollectorPlugins'):
-            dmd.Devices.Server.Windows._setProperty("zCollectorPlugins", 
-                (
-                    'zenoss.snmp.NewDeviceMap',
-                    'zenoss.snmp.DeviceMap',
-                    'zenoss.snmp.DellDeviceMap',
-                    'zenoss.snmp.HPDeviceMap',
-                    'zenoss.snmp.InterfaceMap',
-                    'zenoss.snmp.RouteMap',
-                    'zenoss.snmp.IpServiceMap',
-                    'zenoss.snmp.HRFileSystemMap',
-                    'zenoss.snmp.HRSWInstalledMap',
-                    'zenoss.snmp.HRSWRunMap',
-                    'zenoss.snmp.CpuMap',
-                    'zenoss.snmp.DellCPUMap',
-                    'zenoss.snmp.DellPCIMap',
-                    'zenoss.snmp.HPCPUMap',
-                    'zenoss.snmp.InformantHardDiskMap',
-                ), type = 'lines')
-            
-        if not hasattr(aq_base(dmd.Devices.Power),'zCollectorPlugins'):
-            dmd.Devices.Power._setProperty("zCollectorPlugins", 
-                (
-                    'zenoss.snmp.NewDeviceMap',
-                    'zenoss.snmp.DeviceMap',
-                    'zenoss.snmp.APCDeviceMap',
-                    'zenoss.snmp.PowerwareDeviceMap',
-                ), type = 'lines')
-
-        if not hasattr(aq_base(dmd.Devices.Network.Router.Cisco),
-            'zCollectorPlugins'):
-            dmd.Devices.Network.Router.Cisco._setProperty('zCollectorPlugins',
-                (
-                    'zenoss.snmp.NewDeviceMap',
-                    'zenoss.snmp.DeviceMap',
-                    'zenoss.snmp.CiscoMap',
-                    'zenoss.snmp.InterfaceMap',
-                    'zenoss.snmp.CiscoHSRP',
-                    'zenoss.snmp.RouteMap',
-                ), type = 'lines')
+        try:
+            win = dmd.Devices.getOrganizer("/Server/Windows")
+            if not hasattr(aq_base(win),'zCollectorPlugins'):
+                win._setProperty("zCollectorPlugins", 
+                    (
+                        'zenoss.snmp.NewDeviceMap',
+                        'zenoss.snmp.DeviceMap',
+                        'zenoss.snmp.DellDeviceMap',
+                        'zenoss.snmp.HPDeviceMap',
+                        'zenoss.snmp.InterfaceMap',
+                        'zenoss.snmp.RouteMap',
+                        'zenoss.snmp.IpServiceMap',
+                        'zenoss.snmp.HRFileSystemMap',
+                        'zenoss.snmp.HRSWInstalledMap',
+                        'zenoss.snmp.HRSWRunMap',
+                        'zenoss.snmp.CpuMap',
+                        'zenoss.snmp.DellCPUMap',
+                        'zenoss.snmp.DellPCIMap',
+                        'zenoss.snmp.HPCPUMap',
+                        'zenoss.snmp.InformantHardDiskMap',
+                    ), type = 'lines')
+        except: pass
 
 zCollectorPlugins()
  

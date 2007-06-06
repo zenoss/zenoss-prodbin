@@ -20,12 +20,6 @@ $Id:$
 '''
 import Migrate
 
-def getDeviceClasses(deviceClass, deviceClasses=[]):
-    deviceClasses.append(deviceClass)
-    for child in deviceClass.children():
-        getDeviceClasses(child, deviceClasses)
-    return deviceClasses
-    
 class zWmiMonitorProperty(Migrate.Step):
     version = Migrate.Version(2, 0, 0)
 
@@ -36,14 +30,17 @@ class zWmiMonitorProperty(Migrate.Step):
             dmd.Devices._setProperty("zWmiMonitorIgnore", True, type="boolean")
         else:
             dmd.Devices.zWmiMonitorIgnore = True
-        
-        if not dmd.Devices.Server.Windows.hasProperty("zWmiMonitorIgnore"):
-            dmd.Devices.Server.Windows._setProperty("zWmiMonitorIgnore", False, type="boolean")
-        else:
-            dmd.Devices.Server.Windows.zWmiMonitorIgnore = False
+
+        try:
+            win = dmd.Devices.getOrganizer("/Server/Windows")
+            if not win.hasProperty("zWmiMonitorIgnore"):
+                win._setProperty("zWmiMonitorIgnore", False, type="boolean")
+            else:
+                win.zWmiMonitorIgnore = False
+        except KeyError: pass
         
         # Delete misspelled zProp
-        for dc in getDeviceClasses(dmd.Devices, []):
+        for dc in dmd.Devices.getSubOrganizers():
             if dc.hasProperty('zWmiMonitorIgoner'):
                 dc._delProperty('zWmiMonitorIgoner')
 
