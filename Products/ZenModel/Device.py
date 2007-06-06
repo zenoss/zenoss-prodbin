@@ -1027,8 +1027,8 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable, Admini
         """set the performance monitor for this device if newPerformanceMonitor
         is passed in create it"""
         if newPerformanceMonitor:
-            self.dmd.RenderServer.moveRRDFiles(self.id,
-                newPerformanceMonitor, performanceMonitor, REQUEST)
+            #self.dmd.RenderServer.moveRRDFiles(self.id,
+            #    newPerformanceMonitor, performanceMonitor, REQUEST)
             performanceMonitor = newPerformanceMonitor
         
         obj = self.getDmdRoot("Monitors").getPerformanceMonitor(
