@@ -1,14 +1,35 @@
+###########################################################################
+#
+# This program is part of Zenoss Core, an open source monitoring platform.
+# Copyright (C) 2007, Zenoss Inc.
+#
+# This program is free software; you can redistribute it and/or modify it
+# under the terms of the GNU General Public License version 2 as published by
+# the Free Software Foundation.
+#
+# For complete information please visit: http://www.zenoss.com/oss/
+#
+###########################################################################
+
+#
+# Contained below is the class that tests various actions related to
+# modification of a specific device instance.
+#
+# Adam Modlin and Nate Avers
+#
+
 import unittest
 
 from selTestBase import selTestBase
 
-class testSingleDevice(selTestBase):
+class DeviceInstanceTest(selTestBase):
     """
-    Perform tests on adding, editing, and deleting devices
+    Perform tests on adding, editing, and deleting devices.
     """
     
-    def testAddEditDeleteDevice(self, deviceIp="tilde.zenoss.loc", classPath="/Discovered"):
-        """Runs tests on the Add Device page.
+    def testSingleDevice(self, deviceIp="tilde.zenoss.loc", classPath="/Discovered"):
+        """
+        Runs tests on the Add Device page.
         """
         # Device is added and you are on device page
         self.waitForElement("link=Add Device")
