@@ -25,7 +25,7 @@ class TwoPointOhObjects(Migrate.Step):
 
     def _cleanupClass(self, dmd):
         d = [d.id for d in dmd.Devices.Server.Linux.getSubDevices()]
-        dmd.Devices.moveDevices('/Server/Linux', d)
+        if d: dmd.Devices.moveDevices('/Server/Linux', d)
         for name in ['RedHat', 'Ubuntu']:
             if getattr(dmd.Devices.Server.Linux, name, False):
                 dmd.Devices.Server.Linux.manage_deleteOrganizers([name])
