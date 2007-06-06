@@ -27,9 +27,6 @@ from sets import Set
 
 log = logging.getLogger("zen.zenprocess")
 
-from twisted.internet import reactor, defer
-from twisted.python import failure
-
 try:
     from pynetsnmp.twistedsnmp import AgentProxy
     from pynetsnmp.tableretriever import TableRetriever
@@ -38,6 +35,9 @@ except ImportError:
     warnings.warn("Using python-based snmp enging")
     from twistedsnmp.agentproxy import AgentProxy
     from twistedsnmp.tableretriever import TableRetriever
+
+from twisted.internet import reactor, defer
+from twisted.python import failure
 
 import Globals
 from Products.ZenUtils.Driver import drive, driveLater

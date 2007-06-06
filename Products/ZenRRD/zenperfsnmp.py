@@ -29,8 +29,6 @@ log = logging.getLogger("zen.zenperfsnmp")
 from sets import Set
 import cPickle
 
-from twisted.internet import reactor, defer
-
 try:
     from pynetsnmp.twistedsnmp import AgentProxy
 except ImportError:
@@ -41,6 +39,8 @@ if not hasattr(AgentProxy, 'open'):
     def ignore(self): pass
     AgentProxy.open = ignore
     AgentProxy.close = ignore
+
+from twisted.internet import reactor, defer
 
 import Globals
 from Products.ZenUtils.Chain import Chain
