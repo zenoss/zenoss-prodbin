@@ -87,3 +87,4 @@ import addWinService
 import convertOSSSoftwareClass
 import zCollectorLogChanges
 import twopointohobjects
+import addexpectregex
