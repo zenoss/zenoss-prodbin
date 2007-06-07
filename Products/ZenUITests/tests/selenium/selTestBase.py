@@ -38,7 +38,7 @@ class selTestBase(unittest.TestCase):
         Run at the start of each test.
         """
         self.verificationErrors = []
-        self.selenium = selenium("selserver", 4444, "*firefox", "http://seltest1:8080")
+        self.selenium = selenium("localhost", 4444, "*firefox", "http://seltest1:8080")
         self.selenium.start()
         self.login()
     
@@ -100,17 +100,17 @@ class selTestBase(unittest.TestCase):
         self.selenium.click("manage_editUserSettings:method")
 
     def addDialog(self, addType="OrganizerlistaddOrganizer", addMethod="dialog_submit", fieldId="new_id",
-                    fieldId2=None, overrideString="testingString"):
+                    fieldId2=None, testData="testingString"):
         """
         Test the addDialog functionality.
         """
         self.waitForElement(addType)
         self.selenium.click(addType)
         self.waitForElement("dialog_cancel")
-        self.type_keys(fieldId, overrideString)
+        self.type_keys(fieldId, testData)
         if fieldId2 != None:
             self.waitForElement(fieldId2)
-            self.type_keys(fieldId2, overrideString)
+            self.type_keys(fieldId2, testData)
         self.selenium.click(addMethod)
         self.selenium.wait_for_page_to_load("30000")
         
@@ -125,6 +125,7 @@ class selTestBase(unittest.TestCase):
         self.selenium.click(deleteType)
         self.waitForElement(deleteMethod)
         self.selenium.click(deleteMethod)
+        self.selenium.wait_for_page_to_load("30000")
 
     
     def waitForElement(self, locator, timeout=15):
@@ -152,4 +153,4 @@ class selTestBase(unittest.TestCase):
         Because Selenium lies about what functions it actually has.
         """
         for x in keyseq:
-            self.selenium.key_press(locator, str(ord(x)))	
+            self.selenium.key_press(locator, x)	
