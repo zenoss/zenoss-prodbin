@@ -34,11 +34,15 @@ class ZenTcpTest(protocol.Protocol):
 
     def connectionMade(self):
         log.debug("connect to: %s" % self.transport.getPeer().host)
+        self.factory.msg = "pass"
         sendString = self.factory.cfg.sendString
         if sendString:
             log.debug("sending: %s" % sendString)
             self.transport.write(sendString)
-            reactor.callLater(self.factory.timeout,
+            reactor.callLater(self.factory.cfg.timeout,
+                              self.transport.loseConnection)
+        elif self.factory.cfg.expectRegex:    
+            reactor.callLater(self.factory.cfg.timeout,
                               self.transport.loseConnection)
         else:
             self.transport.loseConnection()
