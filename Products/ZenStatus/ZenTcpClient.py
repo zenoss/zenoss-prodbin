@@ -18,7 +18,7 @@ Error types:
     3. bad value - value returned did not match expectRegex
 
 """
-
+import re
 import logging
 log = logging.getLogger("zen.ZenTcpClient")
 
@@ -32,26 +32,46 @@ from Products.ZenHub.services.StatusConfig import ServiceConfig
 
 class ZenTcpTest(protocol.Protocol):
 
+    defer = None
+    data = ""
+
     def connectionMade(self):
         log.debug("connect to: %s" % self.transport.getPeer().host)
         self.factory.msg = "pass"
-        sendString = self.factory.cfg.sendString
-        if sendString:
-            log.debug("sending: %s" % sendString)
-            self.transport.write(sendString)
-            reactor.callLater(self.factory.cfg.timeout,
-                              self.transport.loseConnection)
-        elif self.factory.cfg.expectRegex:    
-            reactor.callLater(self.factory.cfg.timeout,
-                              self.transport.loseConnection)
+        self.cfg = self.factory.cfg
+        if self.cfg.sendString:
+            log.debug("sending: %s" % self.cfg.sendString)
+            self.transport.write(self.cfg.sendString)
+        if self.cfg.expectRegex:    
+            self.defer = reactor.callLater(self.cfg.timeout, self.expectTimeout)
         else:
-            self.transport.loseConnection()
+            self.loseConnection()
+
 
     def dataReceived(self, data):
         log.debug("data: %s", data)
-        self.factory.expect(data)
+        self.data += data
+        if self.cfg.expectRegex and re.search(self.cfg.expectRegex, data):
+            self.loseConnection()
+
+
+    def expectTimeout(self):
+        msg = "IP Service %s TIMEOUT waiting for '%s'" % (
+                    self.cfg.component, self.cfg.expectRegex)
+        self.factory.msg = msg
+        self.loseConnection()
+
+
+    def loseConnection(self):
+        log.debug("close: %s port: %s" % self.transport.addr)
+        self.data = ""
+        try:
+            self.defer.cancel()
+        except:
+            self.defer = None
         self.transport.loseConnection()
 
+        
         
 class ZenTcpClient(protocol.ClientFactory):
     protocol = ZenTcpTest
@@ -61,14 +81,6 @@ class ZenTcpClient(protocol.ClientFactory):
     def __init__(self, svc, status):
         self.cfg = svc
         self.status = status
-
-    def expect(self, data):
-        import re
-        if self.cfg.expectRegex and not re.search(self.cfg.expectRegex, data):
-            self.msg = "bad return expected:'%s' received:'%s'" % (
-                        self.cfg.expectRegex, data)
-        log.debug(self.msg)
-
 
     def clientConnectionLost(self, connector, reason):
         log.debug("lost: %s", reason.getErrorMessage())
@@ -80,28 +92,27 @@ class ZenTcpClient(protocol.ClientFactory):
     def clientConnectionFailed(self, connector, reason):
         log.debug("failed: %s", reason.getErrorMessage())
         log.debug(reason.type)
-        self.msg = "ip service '%s' is down" % self.cfg.component
+        self.msg = "IP Service %s is down" % self.cfg.component
         if self.deferred:
             self.deferred.callback(self)
         self.deferred = None
 
 
     def getEvent(self):
+        log.debug("status:%s msg:%s", self.status, self.msg)
         if self.msg == "pass" and self.status > 0:
             self.status = sev = 0
-            self.msg = "device:%s service:%s back up" % (
-                        self.cfg.device, self.cfg.component)
+            self.msg = "IP Service %s back up" % self.cfg.component
             log.info(self.msg)
         elif self.msg != "pass":
             self.status += 1
             sev = self.cfg.failSeverity
-            self.msg = "device:%s service:%s is down" % (
-                        self.cfg.device, self.cfg.component)
             log.warn(self.msg)
         else:
             return None
         return dict(device=self.cfg.device, 
                     component=self.cfg.component, 
+                    eventKey = self.cfg.component,
                     ipAddress=self.cfg.ip, 
                     summary=self.msg, 
                     severity=sev,
