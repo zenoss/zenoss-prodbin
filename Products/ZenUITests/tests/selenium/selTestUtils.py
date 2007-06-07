@@ -26,6 +26,12 @@ def getByValue (listName, value, formName="subdeviceForm"):
     return "dom=function fun (){var ha = document.forms.%s.elements['%s']; if (!ha.length)  ha=Array(ha); for (i = 0; i < ha.length; i++) {if (ha[i].value=='%s') return ha[i];}}; fun ()" %(formName, listName, value) 
 
 
+def slashToUnder(stringVal):
+    for i in range(len(stringVal)):
+        if stringVal[i] =='/':
+            stringVal = stringVal[:i] + '_' + stringVal[i+1:]
+    
+    return stringVal
 
 
 class TimeoutError(Exception):

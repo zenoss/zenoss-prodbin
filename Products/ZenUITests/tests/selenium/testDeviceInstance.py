@@ -49,11 +49,9 @@ class DeviceInstanceTest(selTestBase):
         self.selenium.click("link=OS")
         self.selenium.wait_for_page_to_load("30000")
         
-        #self.doIpInterface()
-        #self.doOSProcess()
-        #self.doFileSystem()
-        import pdb
-        pdb.set_trace()
+        self.doIpInterface()
+        self.doOSProcess()
+        self.doFileSystem()
         self.doIpRoute()
    
         # Delete the Device
@@ -105,7 +103,18 @@ class DeviceInstanceTest(selTestBase):
                           deleteMethod="deleteIpRouteEntries:method",
                           pathsList="componentNames:list",
                           form_name="ipRouteEntryListForm",
-                          stringVal="127.0.0.1/8")
+                          testData="127.0.0.1/8")
+    
+    def doIpService(self):
+            self.addDialog(addType="link=Add IpService...", fieldId2="port", testData="1234")
+            
+            #now, edit some of the fields
+            
+            #then delete the Ip Service
+            self.waitForElement("link=Delete")
+            self.selenium.click("link=Delete")
+            self.waitForElement("dialog_cancel")
+            self.selenium.click("manage_deleteComponent:method")
         
         
 if __name__ == "__main__":

@@ -19,7 +19,7 @@
 
 import sys, time, re
 import unittest
-from testUtils import *
+from selTestUtils import *
 
 from selenium import selenium
 
@@ -107,20 +107,23 @@ class selTestBase(unittest.TestCase):
         self.waitForElement(addType)
         self.selenium.click(addType)
         self.waitForElement("dialog_cancel")
-        self.type_keys(fieldId, testData)
+        #self.type_keys(fieldId, testData)
+        self.selenium.type(fieldId, testData)
         if fieldId2 != None:
             self.waitForElement(fieldId2)
-            self.type_keys(fieldId2, testData)
+            #self.type_keys(fieldId2, testData)
+            self.selenium.type(fieldId2, testData)
         self.selenium.click(addMethod)
         self.selenium.wait_for_page_to_load("30000")
         
     def deleteDialog(self, deleteType="OrganizerlistremoveOrganizers", deleteMethod="manage_deleteOrganizers:method", 
-                        pathsList="organizerPaths:list", form_name="subdeviceForm", stringVal="testingString"):
+                        pathsList="organizerPaths:list", form_name="subdeviceForm", testData="testingString"):
         """
         Test the deleteOrganizer functionality.
         """
-        self.waitForElement(getByValue(pathsList, stringVal, form_name))
-        self.selenium.click(getByValue(pathsList, stringVal, form_name))
+        testData = slashToUnder(testData)
+        self.waitForElement(getByValue(pathsList, testData, form_name))
+        self.selenium.click(getByValue(pathsList, testData, form_name))
         self.waitForElement(deleteType)
         self.selenium.click(deleteType)
         self.waitForElement(deleteMethod)
