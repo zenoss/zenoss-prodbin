@@ -78,6 +78,28 @@ class selTestBase(unittest.TestCase):
         self.selenium.wait_for_page_to_load("30000")
         self.waitForElement("link=Logout")
         self.selenium.click("link=Logout")
+        
+    def addDevice(self, deviceIp="tilde.zenoss.loc", classPath="/Discovered"):
+        # Device is added and you are on device page
+        self.waitForElement("link=Add Device")
+        self.selenium.click("link=Add Device")
+        self.selenium.wait_for_page_to_load("30000")
+        self.waitForElement("loadDevice:method")
+        self.selenium.type("deviceName", deviceIp)
+        self.selenium.select("devicePath", "label=" + classPath)
+        self.selenium.click("loadDevice:method")
+        self.selenium.wait_for_page_to_load("30000")
+        self.waitForElement("link=" + deviceIp)
+        self.selenium.click("link=" + deviceIp)
+        self.selenium.wait_for_page_to_load("30000")
+        
+    def deleteDevice(self):
+        # Delete the Device
+        self.waitForElement("link=Delete Device...")
+        self.selenium.click("link=Delete Device...")
+        self.waitForElement("dialog_cancel")
+        self.selenium.click("deleteDevice:method")
+        self.selenium.wait_for_page_to_load("30000")
 
     def addUser(self, username="testingString", email="nosuchemail@zenoss.com", defaultAdminRole="Administrator", ):
         """
