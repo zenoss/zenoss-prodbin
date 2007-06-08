@@ -109,7 +109,7 @@ class Service(OSComponent, Commandable, ZenPackable):
         if not msg: msg.append("No action needed")
         if REQUEST:
             REQUEST['message'] = ", ".join(msg)
-            return self.callZenScreen(REQUEST)
+            return self.callZenScreen(REQUEST, redirect=True)
 
 
     def getUserCommandTargets(self):

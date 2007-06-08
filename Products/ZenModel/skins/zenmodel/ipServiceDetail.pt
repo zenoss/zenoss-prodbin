@@ -1,7 +1,7 @@
 <tal:block metal:use-macro="here/templates/macros/page2">
 <tal:block metal:fill-slot="contentPane">
 
-<form method=post 
+<form method="post" 
     tal:define="manager here/isManager;
                 userCreated here/isUserCreated"
     tal:attributes="action string:${here/absolute_url_path}">
