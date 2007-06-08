@@ -1,3 +1,4 @@
+#!/usr/bin/python
 ###########################################################################
 #
 # This program is part of Zenoss Core, an open source monitoring platform.

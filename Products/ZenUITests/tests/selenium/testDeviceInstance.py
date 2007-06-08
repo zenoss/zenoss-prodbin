@@ -1,3 +1,4 @@
+#!/usr/bin/python
 ###########################################################################
 #
 # This program is part of Zenoss Core, an open source monitoring platform.
@@ -43,21 +44,21 @@ class DeviceInstanceTest(selTestBase):
     #    """
     #    Runs tests on a device instance.
     #    """
-        #self.addDevice()
+    #    self.addDevice()
    
         # Edit Device
-        #self.waitForElement("link=OS")
-        #self.selenium.click("link=OS")
-        #self.selenium.wait_for_page_to_load("30000")
+    #    self.waitForElement("link=OS")
+    #    self.selenium.click("link=OS")
+    #    self.selenium.wait_for_page_to_load("30000")
         
-        #self.doIpInterface()
-        #self.doOSProcess()
-        #self.doFileSystem()
-        #self.doIpRoute()
-        #self.doIpService()
-        #self.doWinService()
+    #    self.doIpInterface()
+    #    self.doOSProcess()
+    #    self.doFileSystem()
+    #    self.doIpRoute()
+    #    self.doIpService()
+    #    self.doWinService()
         
-        #self.deleteDevice()
+    #    self.deleteDevice()
     
         
     # Add, Modify, and Delete an IpInterface
@@ -198,6 +199,20 @@ class DeviceInstanceTest(selTestBase):
         self.selenium.click("link=Delete")
         self.waitForElement("dialog_cancel")
         self.selenium.click("manage_deleteComponent:method")
+        
+    def _testChangeDeviceClass(self):
+        self.waitForElement("link=Change Class...")
+        self.selenium.click("link=Change Class...")
+        
+        self.waitForElement("moveDevices:method")
+        self.selenium.select("moveTarget", "label=/Server/Linux")
+        self.selenium.click("moveDevices:method")
+        self.selenium.wait_for_page_to_load("30000")
+        
+        self.waitForElement("link=Linux") # Ensures we're on the right page
+        self.waitForElement("link=tilde.zenoss.loc")
+        self.click("link=tilde.zenoss.loc")
+        self.selenium.wait_for_page_to_load("30000")
         
         
 if __name__ == "__main__":
