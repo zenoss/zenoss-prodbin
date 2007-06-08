@@ -112,7 +112,6 @@ class ZenTcpClient(protocol.ClientFactory):
             return None
         return dict(device=self.cfg.device, 
                     component=self.cfg.component, 
-                    eventKey = self.cfg.component,
                     ipAddress=self.cfg.ip, 
                     summary=self.msg, 
                     severity=sev,
