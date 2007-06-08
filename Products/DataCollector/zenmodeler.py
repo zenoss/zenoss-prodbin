@@ -146,7 +146,7 @@ class ZenModeler(ZCmdBase):
         """Start command collection client.
         """
         client = None
-        clientType = 'unknown'
+        clientType = 'snmp'
         hostname = device.id
         try:
             plugins = self.selectPlugins(device,"command")
