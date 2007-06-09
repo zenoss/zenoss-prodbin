@@ -56,7 +56,6 @@ defaultPromptTimeout = 10
 defaultCommandTimeout = 20
 defaultLoginRegex = 'ogin:.$'
 defaultPasswordRegex = 'assword:'
-defaultEnableRegex = 'assword:'
 defaultEnable = False
 defaultTermLength = False
 
@@ -89,13 +88,13 @@ class TelnetClientProtocol(telnet.Telnet):
     bytes = ''
     lastwrite = ''
     result = ''
+    buffer = ""
 
     def connectionMade(self):
         self.factory.myprotocol = self #bogus hack
         self.hostname = self.factory.hostname
         log.info("connected to device %s" % self.hostname)
-        self.setTimeout(self.factory.loginTimeout, self.loginTimeout)
-        self.startTimeout()        
+        self.startTimeout(self.factory.loginTimeout, self.loginTimeout)
         self.protocol = telnet.TelnetProtocol()
 
     # the following functions turn off all telnet options
@@ -144,7 +143,6 @@ class TelnetClientProtocol(telnet.Telnet):
         """I call a method that looks like 'telnet_*' where '*' is filled
         in by the current mode. telnet_* methods should return a string which
         will become the new mode."""
-        self.cancelTimeout()
         line = re.sub("\r\n|\r", "\n", line) #convert \r\n to \n
         #if server is echoing take it out
         if self.lastwrite.startswith(line):
@@ -152,8 +150,8 @@ class TelnetClientProtocol(telnet.Telnet):
             line = ''
         elif line.find(self.lastwrite) == 0: 
             line = line[len(self.lastwrite):]
+        log.debug("mode = %s", self.mode)
         self.mode = getattr(self, "telnet_"+self.mode)(line)
-        if not self.mode == 'Done': self.startTimeout()
 
     def dataReceived(self, data):
         telnet.Telnet.dataReceived(self, data)
@@ -165,16 +163,12 @@ class TelnetClientProtocol(telnet.Telnet):
     def applicationDataReceived(self, bytes):
         self.bytes += bytes
 
-    def startTimeout(self):
-        if self.timeout > 0:
-            self.timeoutID = reactor.callLater(self.timeout, self.timeoutfunc) 
 
-    def setTimeout(self, timeout, timeoutfunc=None):
-        self.timeout = timeout
-        if not timeoutfunc:
-            self.timeoutfunc = self.defaultTimeout
-        else:
-            self.timeoutfunc = timeoutfunc
+    def startTimeout(self, timeout=1, timeoutfunc=None):
+        self.cancelTimeout() 
+        if timeoutfunc is None: timeoutfunc = self.defaultTimeout
+        self.timeoutID = reactor.callLater(timeout, timeoutfunc) 
+
 
     def cancelTimeout(self):
         if self.timeoutID: self.timeoutID.cancel()
@@ -185,14 +179,17 @@ class TelnetClientProtocol(telnet.Telnet):
         self.transport.loseConnection()
         if self.factory.commandsFinished():
             self.factory.clientFinished()
+        regex = self.factory.modeRegex.get(self.mode, "")
         log.warn("dropping connection to %s: "
-            "state '%s' timeout %.1f seconds regex '%s' buffer '%s'" % 
-            (self.factory.hostname, self.mode, self.timeout, 
-            self.factory.modeRegex[self.mode], self.buffer))
+            "state '%s' timeout %.1f seconds regex '%s' buffer '%s'",
+            self.factory.hostname, self.mode, self.timeout,regex,self.buffer)
+
                                                     
 
-    def loginTimeout(self):
-        if self.factory.loginTries == 1:
+    def loginTimeout(self, loginTries=0):
+        if loginTries == 0:
+            loginTries = self.factory.loginTries
+        elif loginTries == 1:
             self.transport.loseConnection()
             self.factory.clientFinished()
             log.warn("login to device %s failed" % self.hostname)
@@ -221,15 +218,18 @@ class TelnetClientProtocol(telnet.Telnet):
 
     def telnet_Password(self, data):
         "Called when the password prompt is received"
+        if not re.search(self.factory.passwordRegex, data): # look for pw prompt
+            return 'Password'
         log.debug("sending password %s" % self.factory.password)
         self.write(self.factory.password + '\n')
-        self.setTimeout(self.factory.promptTimeout)
+        self.startTimeout(self.factory.promptTimeout)
         return 'FindPrompt'
 
 
     def telnet_Enable(self, data):
         "change to enable mode on cisco"
         self.write('enable\n')
+        self.startTimeout(self.factory.loginTimeout, self.loginTimeout)
         return "Password"
 
 
@@ -238,31 +238,30 @@ class TelnetClientProtocol(telnet.Telnet):
         if not data.strip(): return 'FindPrompt'
         if re.search(self.factory.loginRegex, data): # login failed
             return self.telnet_Login(data)
-        if self.enabled == 0:
-            if data.find(self.commandPrompt) > -1:
-                self.transport.loseConnection()
-                log.warn("enable on %s failed" % self.factory.hostname)
-            else:
-                self.enabled += 1
         self.p1 = data
         if self.p1 == self.p2:
+            self.cancelTimeout() # promptTimeout
             self.commandPrompt = self.p1
             log.debug("found command prompt '%s'" % self.p1)
             self.factory.modeRegex['Command'] = re.escape(self.p1) + "$"
             self.factory.modeRegex['SendCommand'] = re.escape(self.p1) + "$"
-            if self.factory.enable and self.enabled < 1:
-                self.enabled += 1
+            if self.factory.enable:
+                self.factory.enable = False
                 return self.telnet_Enable("")
             else:
                 self.scCallLater = reactor.callLater(1.0, 
-                                        self.telnet_SendCommand, "")
-                return "SendCommand"
+                    self.telnet_SendCommand, "")
+                return "ClearPromptData"
         self.p2 = self.p1
         self.p1 = ""
         log.debug("sending \\n")
-        self.write("\n")
+        reactor.callLater(.1, self.write, "\n")
         return 'FindPrompt' 
 
+    def telnet_ClearPromptData(self, data):
+        if self.scCallLater: self.scCallLater.cancel()
+        self.scCallLater = reactor.callLater(1.0, self.telnet_SendCommand, "")
+        return "ClearPromptData"
 
     def telnet_SendCommand(self, data):
         "Get a command of the command stack and send it"
@@ -270,7 +269,7 @@ class TelnetClientProtocol(telnet.Telnet):
             self.scCallLater.cancel()
         log.debug("sending command '%s'" % self.curCommand())
         self.write(self.curCommand() + '\n')
-        self.setTimeout(self.factory.commandTimeout)
+        self.startTimeout(self.factory.commandTimeout)
         self.mode = 'Command'
         return 'Command'
         
@@ -279,8 +278,11 @@ class TelnetClientProtocol(telnet.Telnet):
         """process the data from a sent command
         if there are no more commands move to final state"""
         self.result += data
-        if self.result.find(self.commandPrompt) < 0:
+        if not self.result.endswith(self.commandPrompt):
+            log.debug("prompt '%s' not found", self.commandPrompt)
+            log.debug("line ends wth '%s'", data[-5:])
             return 'Command'
+        self.cancelTimeout()
         data, self.result = self.result, ''
         log.debug("command = %s" % self.curCommand())
         log.debug("data=%s" % data)
@@ -296,7 +298,7 @@ class TelnetClientProtocol(telnet.Telnet):
 
 
     def curCommand(self):
-        return self.factory.commands[self.factory.cmdindex]
+        return self.factory._commands[self.factory.cmdindex]
 
     
 class TelnetClient(CollectorClient.CollectorClient):
@@ -318,7 +320,6 @@ class TelnetClient(CollectorClient.CollectorClient):
             defaultCommandTimeout = options.commandTimeout
             defaultLoginRegex = options.loginRegex
             defaultPasswordRegex = options.passwordRegex
-            defaultEnableRegex = options.enableRegex
             defaultEnable = options.enable
             defaultTermLength = options.termlen
 
@@ -329,8 +330,6 @@ class TelnetClient(CollectorClient.CollectorClient):
                         'zTelnetLoginRegex', defaultLoginRegex)
             self.passwordRegex = getattr(device, 
                         'zTelnetPasswordRegex', defaultPasswordRegex)
-            self.enableRegex = getattr(device, 
-                        'zTelnetEnableRegex', defaultEnableRegex)
             self.enable = getattr(device, 
                         'zTelnetEnable', defaultEnable)
             self.termlen = getattr(device, 
@@ -339,7 +338,6 @@ class TelnetClient(CollectorClient.CollectorClient):
             self.promptTimeout = defaultPromptTimeout
             self.loginRegex = defaultLoginRegex
             self.passwordRegex = defaultPasswordRegex
-            self.enableRegex = defaultEnableRegex
             self.enable = defaultEnable
             self.termlen = defaultTermLength
 
@@ -351,13 +349,8 @@ class TelnetClient(CollectorClient.CollectorClient):
         """Start telnet collection.
         """
         if self.termlen:
-            self.commands.insert(0, "terminal length 0")
-        if check(self.ip):
-            reactor.connectTCP(self.ip, self.port, self)
-        else:
-            raise NoServerFound, \
-                "Telnet server not found on %s port %s" % (
-                                self.hostname, self.port)
+            self._commands.insert(0, "terminal length 0")
+        reactor.connectTCP(self.ip, self.port, self)
 
 
     def Command(self, commands):
@@ -366,6 +359,17 @@ class TelnetClient(CollectorClient.CollectorClient):
         if self.myprotocol.mode != "Command": 
             self.myprotocol.telnet_SendCommand("")
 
+
+    def clientConnectionFailed(self, connector, reason):
+        """if we don't connect let the modeler know"""
+        log.warn(reason.getErrorMessage())
+        self.clientFinished()
+       
+
+    def clientFinished(self):
+        CollectorClient.CollectorClient.clientFinished(self)
+        if __name__ == "__main__":
+            reactor.stop()
 
 
 def buildOptions(parser=None, usage=None):
@@ -389,14 +393,6 @@ def buildOptions(parser=None, usage=None):
     parser.add_option('--termlen',
                 dest='termlen', action='store_true', default=False,
                 help='enter send terminal length 0 on a cisco device')
-    parser.add_option('--enablePause',
-                dest='enablePause', type='float',
-                #default = defaultEnablePause,
-                help = 'time to wait before sending enable command')
-    parser.add_option('--enableRegex',
-                dest='enableRegex',
-                default = defaultEnableRegex,
-                help='regex that will find the enable password prompt')
     return parser
 
 
@@ -409,10 +405,11 @@ def main():
         options.password = getpass.getpass("%s@%s's password: " % 
                         (options.username, options.hostname))
     logging.basicConfig(level=10)
+    commands = [("test", c) for c in options.commands]
     client = TelnetClient(options.hostname,
                           socket.gethostbyname(options.hostname),
                           options.port,
-                          commands=options.commands, options=options)
+                          commands=commands, options=options)
     client.run()
     def stop():
         if client.commandsFinished():

@@ -101,7 +101,7 @@ class ZenModeler(ZCmdBase):
             name = plugin.name()
             try:
                 if not plugin.condition(device, self.log):
-                   self.log.debug("condition failed %s on %s",name,device.id) 
+                    self.log.debug("condition failed %s on %s",name,device.id) 
                 elif ignoreTest(name):
                     self.log.debug("ignoring %s on %s",name, device.id)
                 elif name in names and not self.options.collectPlugins:
@@ -152,7 +152,7 @@ class ZenModeler(ZCmdBase):
             plugins = self.selectPlugins(device,"command")
             commands = map(lambda x: (x.name(), x.command), plugins)
             if not commands:
-                self.log.warn("no cmd plugins found for %s" % hostname)
+                self.log.info("no cmd plugins found for %s" % hostname)
                 return 
             protocol = getattr(device, 'zCommandProtocol', defaultProtocol)
             commandPort = getattr(device, 'zCommandPort', defaultPort)
@@ -194,7 +194,7 @@ class ZenModeler(ZCmdBase):
             hostname = device.id
             plugins = self.selectPlugins(device,"snmp")
             if not plugins:
-                self.log.warn("no snmp plugins found for %s" % hostname)
+                self.log.info("no snmp plugins found for %s" % hostname)
                 return 
             if self.checkCollection(device):
                 self.log.info('snmp collection device %s' % hostname)
@@ -235,7 +235,7 @@ class ZenModeler(ZCmdBase):
             hostname = device.id
             plugins = self.selectPlugins(device, "portscan")
             if not plugins:
-                self.log.warn("no portscan plugins found for %s" % hostname)
+                self.log.info("no portscan plugins found for %s" % hostname)
                 return
             if self.checkCollection(device):
                 self.log.info('portscan collection device %s' % hostname)
@@ -249,7 +249,7 @@ class ZenModeler(ZCmdBase):
         except (SystemExit, KeyboardInterrupt): raise
         except:
             self.log.exception("error opening portscanclient")
-        self.addClient(client, timeout, 'snmp', device.id)
+        self.addClient(client, timeout, 'portscan', device.id)
 
 
     def checkCollection(self, device):
