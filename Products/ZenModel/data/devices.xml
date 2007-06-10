@@ -53,7 +53,7 @@ False
 True
 </property>
 <property visible="True" type="boolean" id="zXmlRpcMonitorIgnore" >
-False
+True
 </property>
 <property visible="True" type="float" id="zStatusConnectTimeout" >
 15.0
@@ -2758,6 +2758,9 @@ True
 <property visible="True" type="lines" id="zCollectorPlugins" >
 ('zenoss.portscan.IpServiceMap',)
 </property>
+<property visible="True" type="boolean" id="zSnmpMonitorIgnore" >
+True
+</property>
 <tomanycont id='rrdTemplates'>
 <object id='Device' module='Products.ZenModel.RRDTemplate' class='RRDTemplate'>
 <property type="text" id="description" mode="w" >
@@ -2769,6 +2772,9 @@ Blank device template.  No collection on port scanned devices.
 <object id='Cmd' module='Products.ZenModel.DeviceClass' class='DeviceClass'>
 <property visible="True" type="lines" id="zCollectorPlugins" >
 ('zenoss.cmd.uname', 'zenoss.cmd.df', 'zenoss.cmd.linux.ifconfig', 'zenoss.cmd.linux.memory', 'zenoss.cmd.linux.netstat_an', 'zenoss.cmd.linux.netstat_rn', 'zenoss.cmd.linux.process', 'zenoss.cmd.darwin.cpu', 'zenoss.cmd.darwin.ifconfig', 'zenoss.cmd.darwin.memory', 'zenoss.cmd.darwin.netstat_an', 'zenoss.cmd.darwin.process', 'zenoss.cmd.darwin.swap')
+</property>
+<property visible="True" type="boolean" id="zSnmpMonitorIgnore" >
+True
 </property>
 <tomanycont id='rrdTemplates'>
 <object id='Device' module='Products.ZenModel.RRDTemplate' class='RRDTemplate'>
