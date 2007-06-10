@@ -4273,9 +4273,6 @@ True
 <object id='KVM' module='Products.ZenModel.DeviceClass' class='DeviceClass'>
 </object>
 <object id='Ping' module='Products.ZenModel.DeviceClass' class='DeviceClass'>
-<property visible="True" type="boolean" id="zXmlRpcMonitorIgnore" >
-True
-</property>
 <property visible="True" type="boolean" id="zSnmpMonitorIgnore" >
 True
 </property>
