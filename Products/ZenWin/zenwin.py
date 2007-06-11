@@ -141,7 +141,7 @@ class zenwin(Base):
                 self.log.debug("Codes: %r %r %r %r %r %r" % info)
                 scode = abs(scode)
             if scode != TIMEOUT_CODE:
-                self.deviceDown(srec, str(e))
+                self.deviceDown(srec, '%d: %s' % (code, txt))
 
     def processLoop(self):
         for device in self.devices:

@@ -81,7 +81,7 @@ class zenwinmodeler(Base):
                     scode = abs(scode)
                     if descr: wmsg = descr.strip()
                 msg += "%d: %s" % (scode, wmsg)
-                self.sendFail(name, msg)
+                self.sendFail(name, msg, Status_Wmi_Conn, Event.Error)
             except:
                 self.sendFail(name)
 

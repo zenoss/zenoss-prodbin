@@ -35,7 +35,7 @@ try:
     from pynetsnmp.twistedsnmp import AgentProxy
 except ImportError:
     import warnings
-    warnings.warn("Using python-based snmp enging")
+    warnings.warn("Using python-based snmp engine")
     from twistedsnmp.agentproxy import AgentProxy
 if not hasattr(AgentProxy, 'open'):
     def ignore(self): pass
