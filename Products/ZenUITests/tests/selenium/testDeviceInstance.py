@@ -163,7 +163,7 @@ class DeviceInstanceTest(selTestBase):
         self.selenium.click("manage_editService:method")
         self.selenium.wait_for_page_to_load("30000")
         #bug workaround
-        self.selenium.click("manage_editService:method")
+        self.selenium.click("link=2345")
         self.selenium.wait_for_page_to_load("30000")
             
         #then delete the Ip Service
@@ -191,7 +191,7 @@ class DeviceInstanceTest(selTestBase):
         self.selenium.click("manage_editService:method")
         self.selenium.wait_for_page_to_load("30000")
         #bug workaround
-        self.selenium.click("manage_editService:method")
+        self.selenium.click("link=testingString2")
         self.selenium.wait_for_page_to_load("30000")
         
         #then delete the WinService
@@ -200,7 +200,7 @@ class DeviceInstanceTest(selTestBase):
         self.waitForElement("dialog_cancel")
         self.selenium.click("manage_deleteComponent:method")
         
-    def _testChangeDeviceClass(self):
+    def testChangeDeviceClass(self):
         self.waitForElement("link=Change Class...")
         self.selenium.click("link=Change Class...")
         
@@ -209,10 +209,30 @@ class DeviceInstanceTest(selTestBase):
         self.selenium.click("moveDevices:method")
         self.selenium.wait_for_page_to_load("30000")
         
-        self.waitForElement("link=Linux") # Ensures we're on the right page
-        self.waitForElement("link=tilde.zenoss.loc")
-        self.click("link=tilde.zenoss.loc")
+        self.assert_(self.selenium.is_element_present("link=Linux"))
+        self.selenium.click("link=tilde.zenoss.loc")
+        
+        
+    def testRenameDevice(self):
+        self.waitForElement("link=Rename Device...")
+        self.selenium.click("link=Rename Device...")
+        
+        self.waitForElement("dialog_submit")
+        self.selenium.type("new_id", "testDevice")
+        self.selenium.click("dialog_submit")
         self.selenium.wait_for_page_to_load("30000")
+        self.assert_(self.selenium.is_element_present("link=testDevice"))
+        
+    def testResetIP(self):
+        self.waitForElement("link=Reset IP...")
+        self.selenium.click("link=Reset IP...")
+        
+        self.waitForElement("dialog_submit")
+        self.selenium.type("new_id", "1.2.3.4")
+        self.selenium.click("dialog_submit")
+        self.selenium.wait_for_page_to_load("30000")
+        self.assert_(self.selenium.is_text_present("1.2.3.4"))
+        
         
         
 if __name__ == "__main__":
