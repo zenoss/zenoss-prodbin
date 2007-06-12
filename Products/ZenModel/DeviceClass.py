@@ -694,8 +694,8 @@ class DeviceClass(DeviceOrganizer, ZenPackable):
         # Status monitor properites
         devs._setProperty("zSnmpMonitorIgnore", False, type="boolean")
         devs._setProperty("zPingMonitorIgnore", False, type="boolean")
-        devs._setProperty("zWmiMonitorIgnore", False, type="boolean")
-        devs._setProperty("zXmlRpcMonitorIgnore", False, type="boolean")
+        devs._setProperty("zWmiMonitorIgnore", True, type="boolean")
+        devs._setProperty("zXmlRpcMonitorIgnore", True, type="boolean")
         devs._setProperty("zStatusConnectTimeout", 15.0, type="float")
 
         # DataCollector properties
