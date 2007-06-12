@@ -81,20 +81,23 @@ class zCollectorPlugins(Migrate.Step):
 #!!!!!!!! No /Server class we have nothing more to do. !!!!!!!!!!!!!!
             return
 
+        # Setup the /Server/Scan class
         if not dmd.Devices.Server._getOb('Scan',False):
             scan = DeviceClass('Scan')
             dmd.Devices.Server._setObject('Scan',scan)
-
         if not hasattr(aq_base(dmd.Devices.Server.Scan), 'zCollectorPlugins'):
             dmd.Devices.Server.Scan._setProperty("zCollectorPlugins", 
                 (
                     'zenoss.portscan.IpServiceMap',
                 ), type = 'lines')
-        
+        if not hasattr(aq_base(dmd.Devices.Server.Scan), 'zSnmpMonitorIgnore'):
+            dmd.Devices.Server.Scan._setProperty(
+                    "zSnmpMonitorIgnore", True, type='boolean')
+       
+        # Setup the /Server/Cmd class
         if not dmd.Devices.Server._getOb('Cmd',False):
             cmd = DeviceClass('Cmd')
             dmd.Devices.Server._setObject('Cmd', cmd)
-
         if not hasattr(aq_base(dmd.Devices.Server.Cmd), 'zCollectorPlugins'):
             dmd.Devices.Server.Cmd._setProperty("zCollectorPlugins", 
                 (
@@ -112,6 +115,9 @@ class zCollectorPlugins(Migrate.Step):
                     'zenoss.cmd.darwin.process',
                     'zenoss.cmd.darwin.swap',
                 ), type = 'lines')
+        if not hasattr(aq_base(dmd.Devices.Server.Cmd), 'zSnmpMonitorIgnore'):
+            dmd.Devices.Server.Cmd._setProperty(
+                    "zSnmpMonitorIgnore", True, type='boolean')
 
         try:
             lin = dmd.Devices.getOrganizer("/Server/Linux")
