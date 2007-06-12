@@ -24,11 +24,11 @@ import unittest
 from selTestBase import selTestBase
 
 class DeviceInstanceTest(selTestBase):
-    """
-    Perform tests on adding, editing, and deleting devices.
-    """
+    """Perform tests on adding, editing, and deleting devices."""
     
     def setUp(self):
+        """Customized setUp for device instance tests."""
+        
         selTestBase.setUp(self)
         
         self.addDevice()
@@ -37,6 +37,8 @@ class DeviceInstanceTest(selTestBase):
         self.selenium.wait_for_page_to_load("30000")
         
     def tearDown(self):
+        """Customized tearDown for device instance tests."""
+        
         self.deleteDevice()
         selTestBase.tearDown(self)
     
@@ -61,12 +63,13 @@ class DeviceInstanceTest(selTestBase):
     #    self.deleteDevice()
     
         
-    # Add, Modify, and Delete an IpInterface
     def testIpInterface(self):
-        self.addDialog(addType="IpInterfaceaddIpInterface", addMethod="addIpInterface:method", fieldId="new_id")
+        """Adds, edits, and deletes an Ip Interface under a specific device."""
+        
+        self.addDialog(addType="IpInterfaceaddIpInterface", addMethod="addIpInterface:method")
+        self.assert_(self.selenium.is_element_present("link=testingString"))
         
         # now, edit some fields
-        self.waitForElement("zmanage_editProperties:method")
         self.selenium.type("interfaceName", "testingString2")
         self.selenium.type("macaddress", "AA:AA:AA:AA:AA:AA:AA:AA")
         self.selenium.type("ips:lines", "127.0.0.1")
@@ -84,19 +87,21 @@ class DeviceInstanceTest(selTestBase):
         self.selenium.wait_for_page_to_load("30000")
         
         # Then, delete the IpInterface
-        self.waitForElement("//div/div[2]/ul/li[1]/a")
         self.selenium.click("//div/div[2]/ul/li[1]/a")
         self.waitForElement("dialog_cancel")
         self.selenium.click("manage_deleteComponent:method")
-        self.selenium.wait_for_page_to_load("30000")
+        # Assertion below fails for unknown reason.
+        #self.assert_(not self.selenium.is_element_present("link=testingString"))
         
-    # Add, Modify, and Delete an OSProcess
     def testOSProcess(self):
+        """Adds, edits, and deletes an OS Process under a specific device."""
+        
         self.addDialog(addType="link=Add OSProcess...")
+        self.assert_(self.selenium.is_element_present("link=testingString"))
         
         # Enter new data in form
-        self.waitForElement("manage_editOSProcess:method")
         self.selenium.type("name", "testingString2")
+        
         self.selenium.select("zMonitor:boolean", "label=False")
         self.selenium.select("zAlertOnRestart:boolean", "label=True")
         self.selenium.select("zFailSeverity:int", "label=Critical")
@@ -105,17 +110,19 @@ class DeviceInstanceTest(selTestBase):
         self.selenium.wait_for_page_to_load("30000")
 
         # Then, delete OSProcess
-        self.waitForElement("link=Delete")
         self.selenium.click("link=Delete")
         self.waitForElement("dialog_cancel")
         self.selenium.click("manage_deleteComponent:method")
-        self.selenium.wait_for_page_to_load("30000")
+        # Assertion below fails for unknown reason.
+        #self.assert_(not self.selenium.is_element_present("link=testingString"))
         
-    # Add, Modify, and Delete a FileSystem
     def testFileSystem(self):
-        self.addDialog(addType="link=Add File System...")
+        """Adds, edits, and deletes a File System under a sepcific device."""
         
-        #future: enter stuff in fields
+        self.addDialog(addType="link=Add File System...")
+        self.assert_(self.selenium.is_element_present("link=testingString"))
+        
+        # Edit FileSystem fields
         self.selenium.type("mount", "testingString2")
         self.selenium.type("storageDevice", "testingString")
         self.selenium.type("type", "testingString")
@@ -129,26 +136,33 @@ class DeviceInstanceTest(selTestBase):
         self.selenium.click("manage_editFileSystem:method")
         self.selenium.wait_for_page_to_load("30000")
         
-        #Delete Filesystem
-        self.waitForElement("//div/div[2]/ul/li[1]/a")
+        # Delete Filesystem
         self.selenium.click("//div/div[2]/ul/li[1]/a")
         self.waitForElement("dialog_cancel")
         self.selenium.click("manage_deleteComponent:method")
+        # Assertion below fails for unknown reason.
+        #self.assert_(not self.selenium.is_element_present("link=testingString"))
         
-    # Add, Modify, and Delete an IP Route
     def testIpRoute(self):
+        """Adds and deletes an IP Route under a sepcific device (no editing available)."""
+        
         self.addDialog(addType="link=Add Route...", fieldId2="nexthopid", testData="127.0.0.1/8")
+        self.assert_(self.selenium.is_text_present("127.0.0.1/8 (None)"))
         
         self.deleteDialog(deleteType="IpRouteEntrydeleteIpRouteEntries",
                           deleteMethod="deleteIpRouteEntries:method",
                           pathsList="componentNames:list",
                           form_name="ipRouteEntryListForm",
                           testData="127.0.0.1/8")
+        self.assert_(not self.selenium.is_text_present("127.0.0.1/8 (None)"))
     
     def testIpService(self):
+        """Adds, edits, and deletes an Ip Service under a sepcific device."""
+        
         self.addDialog(addType="link=Add IpService...", fieldId2="port", testData="1234")
+        self.assert_(self.selenium.is_element_present("link=1234"))
             
-        #now, edit some of the fields
+        # now, edit some of the fields
         self.selenium.type("id", "2345")
         self.selenium.type("port", "2345")
         self.selenium.type("ipaddresses:lines", "127.0.0.1")
@@ -162,20 +176,24 @@ class DeviceInstanceTest(selTestBase):
         
         self.selenium.click("manage_editService:method")
         self.selenium.wait_for_page_to_load("30000")
-        #bug workaround
+        
+        # bug workaround
         self.selenium.click("link=2345")
         self.selenium.wait_for_page_to_load("30000")
             
-        #then delete the Ip Service
-        self.waitForElement("link=Delete")
+        # then delete the Ip Service
         self.selenium.click("link=Delete")
         self.waitForElement("dialog_cancel")
         self.selenium.click("manage_deleteComponent:method")
+        # TODO: add an assert statement concerning the ip service's deletion.
             
     def testWinService(self):
-        self.addDialog(addType="link=Add WinService...", fieldId2="description")
+        """Adds, edits, and deletes a Win Service under a sepcific device."""
         
-        #now, edit some of the fields
+        self.addDialog(addType="link=Add WinService...", fieldId2="description")
+        self.assert_(self.selenium.is_element_present("link=testingString"))
+        
+        # now, edit some of the fields
         self.selenium.type("id", "testingString2")
         self.selenium.type("description", "testingString2")
         self.selenium.type("serviceType", "test")
@@ -190,18 +208,20 @@ class DeviceInstanceTest(selTestBase):
         
         self.selenium.click("manage_editService:method")
         self.selenium.wait_for_page_to_load("30000")
-        #bug workaround
+        
+        # bug workaround
         self.selenium.click("link=testingString2")
         self.selenium.wait_for_page_to_load("30000")
         
-        #then delete the WinService
-        self.waitForElement("link=Delete")
+        # then delete the WinService
         self.selenium.click("link=Delete")
         self.waitForElement("dialog_cancel")
         self.selenium.click("manage_deleteComponent:method")
+        self.assert_(not self.selenium.is_text_present("Win Services"))
         
     def testChangeDeviceClass(self):
-        self.waitForElement("link=Change Class...")
+        """Tests changing the device class of a device."""
+        
         self.selenium.click("link=Change Class...")
         
         self.waitForElement("moveDevices:method")
@@ -214,7 +234,8 @@ class DeviceInstanceTest(selTestBase):
         
         
     def testRenameDevice(self):
-        self.waitForElement("link=Rename Device...")
+        """Tests renaming a device."""
+        
         self.selenium.click("link=Rename Device...")
         
         self.waitForElement("dialog_submit")
@@ -224,7 +245,8 @@ class DeviceInstanceTest(selTestBase):
         self.assert_(self.selenium.is_element_present("link=testDevice"))
         
     def testResetIP(self):
-        self.waitForElement("link=Reset IP...")
+        """Tests setting a new IP address for a device."""
+        
         self.selenium.click("link=Reset IP...")
         
         self.waitForElement("dialog_submit")

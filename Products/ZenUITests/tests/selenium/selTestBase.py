@@ -121,7 +121,7 @@ class selTestBase(unittest.TestCase):
         self.type_keys("sndpassword")
         self.selenium.click("manage_editUserSettings:method")
 
-    def addDialog(self, addType="OrganizerlistaddOrganizer", addMethod="dialog_submit", fieldId="new_id",
+    def addDialog(self, addType, addMethod="dialog_submit", fieldId="new_id",
                     fieldId2=None, testData="testingString"):
         """
         Test the addDialog functionality.
@@ -129,11 +129,9 @@ class selTestBase(unittest.TestCase):
         self.waitForElement(addType)
         self.selenium.click(addType)
         self.waitForElement("dialog_cancel")
-        #self.type_keys(fieldId, testData)
         self.selenium.type(fieldId, testData)
         if fieldId2 != None:
             self.waitForElement(fieldId2)
-            #self.type_keys(fieldId2, testData)
             self.selenium.type(fieldId2, testData)
         self.selenium.click(addMethod)
         self.selenium.wait_for_page_to_load("30000")
