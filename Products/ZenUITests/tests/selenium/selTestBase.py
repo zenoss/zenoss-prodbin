@@ -79,7 +79,7 @@ class selTestBase(unittest.TestCase):
         self.waitForElement("link=Logout")
         self.selenium.click("link=Logout")
         
-    def addDevice(self, deviceIp="tilde.zenoss.loc", classPath="/Discovered"):
+    def addDevice(self, deviceIp="build.zenoss.loc", classPath="/Server/Linux"):
         # Device is added and you are on device page
         self.waitForElement("link=Add Device")
         self.selenium.click("link=Add Device")
@@ -121,7 +121,7 @@ class selTestBase(unittest.TestCase):
         self.type_keys("sndpassword")
         self.selenium.click("manage_editUserSettings:method")
 
-    def addDialog(self, addType, addMethod="dialog_submit", fieldId="new_id",
+    def _addDialog(self, addType="OrganizerlistaddOrganizer", addMethod="dialog_submit", fieldId="new_id",
                     fieldId2=None, testData="testingString"):
         """
         Test the addDialog functionality.
@@ -131,8 +131,22 @@ class selTestBase(unittest.TestCase):
         self.waitForElement("dialog_cancel")
         self.selenium.type(fieldId, testData)
         if fieldId2 != None:
-            self.waitForElement(fieldId2)
             self.selenium.type(fieldId2, testData)
+        self.selenium.click(addMethod)
+        self.selenium.wait_for_page_to_load("30000")
+    
+    def addDialog(self, addType="OrganizerlistaddOrganizer", addMethod="dialog_submit", **textFields):
+        
+        self.waitForElement(addType)
+        self.selenium.click(addType)
+#        self.editFields(submitMethod=addMethod, fields=textFields)
+        self.waitForElement(addMethod)
+        for key in textFields.keys():
+            value = textFields[key]
+            if value[0] == "text":
+               self.selenium.type(key, value[1])
+            elif value[0] == "select":
+                self.selenium.select(key, value[1])
         self.selenium.click(addMethod)
         self.selenium.wait_for_page_to_load("30000")
         
@@ -176,4 +190,20 @@ class selTestBase(unittest.TestCase):
         Because Selenium lies about what functions it actually has.
         """
         for x in keyseq:
-            self.selenium.key_press(locator, x)	
+            self.selenium.key_press(locator, x)
+            
+"""    def editFields(self, submitMethod, **fields):
+        Consolidate form editing.
+        
+        self.waitForElement(submitMethod)
+        
+        for key in fields.keys():
+            value = fields[key]
+            if value[0] == "text":
+                self.selenium.type(key, value[1])
+            elif value[0] == "select":
+                self.selenium.select(key, value[1])
+        
+        self.selenium.click(submitMethod)
+        self.selenium.wait_for_page_to_load("30000")"""
+        

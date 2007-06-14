@@ -66,10 +66,12 @@ class DeviceInstanceTest(selTestBase):
     def testIpInterface(self):
         """Adds, edits, and deletes an Ip Interface under a specific device."""
         
-        self.addDialog(addType="IpInterfaceaddIpInterface", addMethod="addIpInterface:method")
+        self.addDialog(addType="IpInterfaceaddIpInterface", addMethod="addIpInterface:method",
+                       new_id=("text", "testingString")
+                      )
         self.assert_(self.selenium.is_element_present("link=testingString"))
         
-        # now, edit some fields
+        # now, edit some fields  
         self.selenium.type("interfaceName", "testingString2")
         self.selenium.type("macaddress", "AA:AA:AA:AA:AA:AA:AA:AA")
         self.selenium.type("ips:lines", "127.0.0.1")
@@ -96,7 +98,7 @@ class DeviceInstanceTest(selTestBase):
     def testOSProcess(self):
         """Adds, edits, and deletes an OS Process under a specific device."""
         
-        self.addDialog(addType="link=Add OSProcess...")
+        self.addDialog(addType="link=Add OSProcess...", new_id=("text", "testingString"))
         self.assert_(self.selenium.is_element_present("link=testingString"))
         
         # Enter new data in form
@@ -119,7 +121,7 @@ class DeviceInstanceTest(selTestBase):
     def testFileSystem(self):
         """Adds, edits, and deletes a File System under a sepcific device."""
         
-        self.addDialog(addType="link=Add File System...")
+        self.addDialog(addType="link=Add File System...", new_id=("text", "testingString"))
         self.assert_(self.selenium.is_element_present("link=testingString"))
         
         # Edit FileSystem fields
@@ -146,20 +148,25 @@ class DeviceInstanceTest(selTestBase):
     def testIpRoute(self):
         """Adds and deletes an IP Route under a sepcific device (no editing available)."""
         
-        self.addDialog(addType="link=Add Route...", fieldId2="nexthopid", testData="127.0.0.1/8")
-        self.assert_(self.selenium.is_text_present("127.0.0.1/8 (None)"))
+        self.addDialog(addType="link=Add Route...", new_id=("text", "127.0.0.1/8"),
+                       nexthopid=("text", "127.0.0.1"), routeproto=("select", "label=local"),
+                       routetype=("select", "label=direct")
+                      )
+        self.assert_(self.selenium.is_text_present("127.0.0.1 (None)"))
         
         self.deleteDialog(deleteType="IpRouteEntrydeleteIpRouteEntries",
                           deleteMethod="deleteIpRouteEntries:method",
                           pathsList="componentNames:list",
                           form_name="ipRouteEntryListForm",
                           testData="127.0.0.1/8")
-        self.assert_(not self.selenium.is_text_present("127.0.0.1/8 (None)"))
+        self.assert_(not self.selenium.is_text_present("127.0.0.1 (None)"))
     
     def testIpService(self):
         """Adds, edits, and deletes an Ip Service under a sepcific device."""
         
-        self.addDialog(addType="link=Add IpService...", fieldId2="port", testData="1234")
+        self.addDialog(addType="link=Add IpService...", new_id=("text", "1234"),
+                       port=("text", "1234"), protocol=("select", "label=tcp")
+                      )
         self.assert_(self.selenium.is_element_present("link=1234"))
             
         # now, edit some of the fields
@@ -190,7 +197,9 @@ class DeviceInstanceTest(selTestBase):
     def testWinService(self):
         """Adds, edits, and deletes a Win Service under a sepcific device."""
         
-        self.addDialog(addType="link=Add WinService...", fieldId2="description")
+        self.addDialog(addType="link=Add WinService...", new_id=("text", "testingString"),
+                       description=("text", "testingString")
+                      )
         self.assert_(self.selenium.is_element_present("link=testingString"))
         
         # now, edit some of the fields
@@ -225,12 +234,12 @@ class DeviceInstanceTest(selTestBase):
         self.selenium.click("link=Change Class...")
         
         self.waitForElement("moveDevices:method")
-        self.selenium.select("moveTarget", "label=/Server/Linux")
+        self.selenium.select("moveTarget", "label=/Discovered")
         self.selenium.click("moveDevices:method")
         self.selenium.wait_for_page_to_load("30000")
         
-        self.assert_(self.selenium.is_element_present("link=Linux"))
-        self.selenium.click("link=tilde.zenoss.loc")
+        self.assert_(self.selenium.is_element_present("link=Discovered"))
+        self.selenium.click("link=build.zenoss.loc")
         
         
     def testRenameDevice(self):
