@@ -32,7 +32,7 @@ class LocationsTest(selTestBase):
         self.waitForElement("link=Locations")
         self.selenium.click("link=Locations")
         self.selenium.wait_for_page_to_load("30000")
-        self.addDialog()
+        self.addDialog(new_id=("text", "testingString"))
         self.selenium.wait_for_page_to_load("30000")
         self.deleteDialog()
         self.selenium.wait_for_page_to_load("30000")

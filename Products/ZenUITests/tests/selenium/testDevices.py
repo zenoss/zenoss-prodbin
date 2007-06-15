@@ -36,7 +36,7 @@ class DevicesTest(selTestBase):
         self.selenium.click("link=Devices")
         self.waitForElement("link=Templates")
         self.selenium.click("link=Templates")
-        self.addDialog(addType="TemplatesaddTemplate")
+        self.addDialog(addType="TemplatesaddTemplate", new_id=("text", "testingString"))
         self.deleteDialog(deleteType="TemplatesdeleteTemplates", deleteMethod="manage_deleteRRDTemplates:method",
                             pathsList="ids:list", form_name="templates")
         

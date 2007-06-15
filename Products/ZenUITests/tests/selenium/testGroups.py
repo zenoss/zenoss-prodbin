@@ -33,7 +33,7 @@ class GroupsTest(selTestBase):
         self.waitForElement("link=Groups")
         self.selenium.click("link=Groups")
         self.selenium.wait_for_page_to_load("30000")
-        self.addDialog()
+        self.addDialog(new_id=("text", "testingString"))
         self.selenium.wait_for_page_to_load("30000")
         self.deleteDialog()
         self.selenium.wait_for_page_to_load("30000")

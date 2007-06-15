@@ -34,7 +34,7 @@ class SystemsTest(selTestBase):
         self.waitForElement("link=Systems")
         self.selenium.click("link=Systems")
         self.selenium.wait_for_page_to_load("30000")
-        self.addDialog()
+        self.addDialog(new_id=("text", "testingString"))
         self.selenium.wait_for_page_to_load("30000")
         self.deleteDialog()
         self.selenium.wait_for_page_to_load("30000")

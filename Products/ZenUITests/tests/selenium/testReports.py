@@ -32,7 +32,7 @@ class ReportsTest(selTestBase):
         self.waitForElement("link=Reports")
         self.selenium.click("link=Reports")
         self.selenium.wait_for_page_to_load("30000")
-        self.addDialog(addType="ReportClasslistaddReportClass")
+        self.addDialog(addType="ReportClasslistaddReportClass", new_id=("text", "testingString"))
         self.selenium.wait_for_page_to_load("30000")
         self.deleteDialog(deleteType="ReportClasslistdeleteReportClasses", form_name="reportClassForm")
         self.selenium.wait_for_page_to_load("30000")

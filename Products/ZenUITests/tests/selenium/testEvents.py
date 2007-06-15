@@ -35,12 +35,8 @@ class EventsTest(selTestBase):
         self.waitForElement("link=Events")
         self.selenium.click("link=Events")
         self.selenium.wait_for_page_to_load("30000")
-        self.addDialog()
+        self.addDialog(new_id=("text", "testingString"))
         self.deleteDialog(form_name="subclasses")
-        #self.addDialog(addType="EventMappinglistaddInstance")
-        #self.moveEventClassMappings()   This is currently broken
-        #self.deleteDialog(deleteType="EventMappinglistremoveInstances", deleteMethod="removeInstances:method",
-        #                            pathsList="ids:list", form_name="mappings") 
         
     def moveEventClassMappings(self, pathsList="ids:list", form_name="mappings", moveTo="/Unknown", stringval="testingString"):
         """
