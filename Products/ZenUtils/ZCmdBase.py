@@ -51,6 +51,8 @@ class ZCmdBase(ZenDaemon):
                     self.log.warning("Deleting corrupted cache %s" % cache)
                     os.unlink(cache)
                     self.zeoConnect()
+                else: 
+                    raise
         self.poollock = Lock()
         self.getDataRoot()
         self.login()
