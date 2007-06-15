@@ -50,7 +50,7 @@ class POPProtocol(POP3Client):
         log.info('logging in...')
         login = self.login(self.factory.user, self.factory.passwd)
         login.addCallback(self._loggedIn)
-#        login.addErrback(self._loggedIn)
+        login.addErrback(self._loggedIn)
 
         login.chainDeferred(self.factory.deferred)
 
@@ -195,6 +195,10 @@ class ZenMail(MailDaemon):
                                dest='poppass', 
                                default="poppass",
                                help="POP password to auth using")
+        self.parser.add_option('--useFileDescriptor',
+                               dest='fd', 
+                               default="-1",
+                               help="File descriptor to use for listening")
 
 
 
