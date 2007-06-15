@@ -45,19 +45,16 @@ class POPProtocol(POP3Client):
 
     def serverGreeting(self, greeting):
         log.info('server greeting received.')
-        POP3Client.serverGreeting(self, greeting)
-
         log.info('logging in...')
+
         login = self.login(self.factory.user, self.factory.passwd)
         login.addCallback(self._loggedIn)
-        login.addErrback(self._loggedIn)
-
-        login.chainDeferred(self.factory.deferred)
-
+        login.addErrback(self.factory.deferred.errback)
+ 
 
     def _loggedIn(self, result):
         log.info('logged in')
-        self.retrieveAndParse()
+        return self.retrieveAndParse()
 
 
     def retrieveAndParse(self):
@@ -112,19 +109,12 @@ class POPFactory(protocol.ClientFactory):
 
 class MailDaemon(EventServer, RRDDaemon):
     # seconds
-    snmpCycleInterval = 1 * 60
-    heartBeatTimeout = snmpCycleInterval * 3
+    cycleInterval = 1 * 60
 
-    properties = RRDDaemon.properties + ('snmpCycleInterval',)
-    
     def __init__(self, name):
         EventServer.__init__(self)
         RRDDaemon.__init__(self, name)
         
-    def setPropertyItems(self, items):
-        RRDDaemon.setPropertyItems(self, items)
-        self.heartBeatTimeout = self.snmpCycleInterval * 3
-
 
 class ZenMail(MailDaemon):
     name = 'zenmail'
@@ -139,7 +129,7 @@ class ZenMail(MailDaemon):
         popuser = self.options.popuser
         poppasswd = self.options.poppass
         usessl = self.options.usessl
-        cycletime = self.snmpCycleInterval
+        cycletime = self.options.cycletime
 
         log.info("creating POPFactory.")
         log.info("credentials user: %s; pass: %s" % (popuser, len(poppasswd) * '*'))
@@ -156,19 +146,12 @@ class ZenMail(MailDaemon):
             reactor.connectTCP(host, port, self.factor)
 
 
-    def startUpdateConfig(self, driver):
-        'Periodically ask the Zope server for performance monitor information.'
-        
-        log.info("fetching property items")
-        yield self.model().callRemote('propertyItems')
-        self.setPropertyItems(driver.next())
-
-        driveLater(self.configCycleInterval * 60, self.startUpdateConfig)
-
-
     def handleError(self, error):
         log.error(error)
         log.error(error.getErrorMessage())
+
+        # FIXME: if not options.cycle...
+        self.finish()
 
 
     def buildOptions(self):
@@ -195,6 +178,10 @@ class ZenMail(MailDaemon):
                                dest='poppass', 
                                default="zenoss",
                                help="POP password to auth using")
+        self.parser.add_option('--cycletime',
+                               dest='cycletime',
+                               default=60,
+                               help="Frequency (in secs) to poll POP server")
         self.parser.add_option('--useFileDescriptor',
                                dest='fd', 
                                default="-1",
