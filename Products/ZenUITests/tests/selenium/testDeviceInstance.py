@@ -42,26 +42,6 @@ class DeviceInstanceTest(selTestBase):
         self.deleteDevice()
         selTestBase.tearDown(self)
     
-    #def testSingleDevice(self):
-    #    """
-    #    Runs tests on a device instance.
-    #    """
-    #    self.addDevice()
-   
-        # Edit Device
-    #    self.waitForElement("link=OS")
-    #    self.selenium.click("link=OS")
-    #    self.selenium.wait_for_page_to_load("30000")
-        
-    #    self.doIpInterface()
-    #    self.doOSProcess()
-    #    self.doFileSystem()
-    #    self.doIpRoute()
-    #    self.doIpService()
-    #    self.doWinService()
-        
-    #    self.deleteDevice()
-    
         
     def testIpInterface(self):
         """Adds, edits, and deletes an Ip Interface under a specific device."""
@@ -92,8 +72,9 @@ class DeviceInstanceTest(selTestBase):
         self.selenium.click("//div/div[2]/ul/li[1]/a")
         self.waitForElement("dialog_cancel")
         self.selenium.click("manage_deleteComponent:method")
-        # Assertion below fails for unknown reason.
-        #self.assert_(not self.selenium.is_element_present("link=testingString"))
+        self.selenium.wait_for_page_to_load("30000")
+        
+        self.assert_(not self.selenium.is_element_present("link=testingString2"))
         
     def testOSProcess(self):
         """Adds, edits, and deletes an OS Process under a specific device."""
@@ -115,8 +96,9 @@ class DeviceInstanceTest(selTestBase):
         self.selenium.click("link=Delete")
         self.waitForElement("dialog_cancel")
         self.selenium.click("manage_deleteComponent:method")
-        # Assertion below fails for unknown reason.
-        #self.assert_(not self.selenium.is_element_present("link=testingString"))
+        self.selenium.wait_for_page_to_load("30000")
+        
+        self.assert_(not self.selenium.is_element_present("link=testingString2"))
         
     def testFileSystem(self):
         """Adds, edits, and deletes a File System under a sepcific device."""
@@ -142,8 +124,9 @@ class DeviceInstanceTest(selTestBase):
         self.selenium.click("//div/div[2]/ul/li[1]/a")
         self.waitForElement("dialog_cancel")
         self.selenium.click("manage_deleteComponent:method")
-        # Assertion below fails for unknown reason.
-        #self.assert_(not self.selenium.is_element_present("link=testingString"))
+        self.selenium.wait_for_page_to_load("30000")
+        
+        self.assert_(not self.selenium.is_element_present("link=testingString2"))
         
     def testIpRoute(self):
         """Adds and deletes an IP Route under a sepcific device (no editing available)."""
