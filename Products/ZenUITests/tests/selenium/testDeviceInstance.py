@@ -44,7 +44,7 @@ class DeviceInstanceTest(selTestBase):
     
         
     def testIpInterface(self):
-        """Adds, edits, and deletes an Ip Interface under a specific device."""
+        """Add, edit, and delete an Ip Interface under a specific device."""
         
         self.addDialog(addType="IpInterfaceaddIpInterface", addMethod="addIpInterface:method",
                        new_id=("text", "testingString")
@@ -77,7 +77,7 @@ class DeviceInstanceTest(selTestBase):
         self.assert_(not self.selenium.is_element_present("link=testingString2"))
         
     def testOSProcess(self):
-        """Adds, edits, and deletes an OS Process under a specific device."""
+        """Add, edit, and delete an OS Process under a specific device."""
         
         self.addDialog(addType="link=Add OSProcess...", new_id=("text", "testingString"))
         self.assert_(self.selenium.is_element_present("link=testingString"))
@@ -101,7 +101,7 @@ class DeviceInstanceTest(selTestBase):
         self.assert_(not self.selenium.is_element_present("link=testingString2"))
         
     def testFileSystem(self):
-        """Adds, edits, and deletes a File System under a sepcific device."""
+        """Add, edit, and delete a File System under a sepcific device."""
         
         self.addDialog(addType="link=Add File System...", new_id=("text", "testingString"))
         self.assert_(self.selenium.is_element_present("link=testingString"))
@@ -129,7 +129,7 @@ class DeviceInstanceTest(selTestBase):
         self.assert_(not self.selenium.is_element_present("link=testingString2"))
         
     def testIpRoute(self):
-        """Adds and deletes an IP Route under a sepcific device (no editing available)."""
+        """Add and delete an IP Route under a sepcific device (no editing available)."""
         
         self.addDialog(addType="link=Add Route...", new_id=("text", "127.0.0.1/8"),
                        nexthopid=("text", "127.0.0.1"), routeproto=("select", "label=local"),
@@ -145,7 +145,7 @@ class DeviceInstanceTest(selTestBase):
         self.assert_(not self.selenium.is_text_present("127.0.0.1 (None)"))
     
     def testIpService(self):
-        """Adds, edits, and deletes an Ip Service under a sepcific device."""
+        """Add, edit, and delete an Ip Service under a sepcific device."""
         
         self.addDialog(addType="link=Add IpService...", new_id=("text", "1234"),
                        port=("text", "1234"), protocol=("select", "label=tcp")
@@ -178,7 +178,7 @@ class DeviceInstanceTest(selTestBase):
         # TODO: add an assert statement concerning the ip service's deletion.
             
     def testWinService(self):
-        """Adds, edits, and deletes a Win Service under a sepcific device."""
+        """Add, edit, and delete a Win Service under a sepcific device."""
         
         self.addDialog(addType="link=Add WinService...", new_id=("text", "testingString"),
                        description=("text", "testingString")
@@ -212,7 +212,7 @@ class DeviceInstanceTest(selTestBase):
         self.assert_(not self.selenium.is_text_present("Win Services"))
         
     def testChangeDeviceClass(self):
-        """Tests changing the device class of a device."""
+        """Test changing the device class of a device."""
         
         self.selenium.click("link=Change Class...")
         
@@ -226,7 +226,7 @@ class DeviceInstanceTest(selTestBase):
         
         
     def testRenameDevice(self):
-        """Tests renaming a device."""
+        """Test renaming a device."""
         
         self.selenium.click("link=Rename Device...")
         
@@ -237,7 +237,7 @@ class DeviceInstanceTest(selTestBase):
         self.assert_(self.selenium.is_element_present("link=testDevice"))
         
     def testResetIP(self):
-        """Tests setting a new IP address for a device."""
+        """Test setting a new IP address for a device."""
         
         self.selenium.click("link=Reset IP...")
         
@@ -247,6 +247,36 @@ class DeviceInstanceTest(selTestBase):
         self.selenium.wait_for_page_to_load("30000")
         self.assert_(self.selenium.is_text_present("1.2.3.4"))
         
+    def testLockDevice(self):
+        """Test locking a device against deletes and updates."""
+        
+        # First, test lock against updates (and deletes).
+        self.selenium.click("link=Lock...")
+        self.waitForElement("dialog_cancel")
+        self.selenium.click("lockFromUpdates:method")
+        self.selenium.wait_for_page_to_load("30000")
+        self.assert_(self.selenium.is_element_present("//img[@src='locked-update-icon.png']"))
+        self.assert_(self.selenium.is_element_present("//img[@src='locked-delete-icon.png']"))
+        
+        self.selenium.click("link=Lock...") # Unlocking the device now.
+        self.waitForElement("dialog_cancel")
+        self.selenium.click("unlock:method")
+        self.selenium.wait_for_page_to_load("30000")
+        self.assert_(not self.selenium.is_element_present("//img[@src='locked-update-icon.png']"))
+        self.assert_(not self.selenium.is_element_present("//img[@src='locked-delete-icon.png']"))
+        
+        # Then, test lock against deletes only.
+        self.selenium.click("link=Lock...")
+        self.waitForElement("dialog_cancel")
+        self.selenium.click("lockFromDeletion:method")
+        self.selenium.wait_for_page_to_load("30000")
+        self.assert_(self.selenium.is_element_present("//img[@src='locked-delete-icon.png']"))
+        
+        self.selenium.click("link=Lock...") # Unlocking the device now.
+        self.waitForElement("dialog_cancel")
+        self.selenium.click("unlock:method")
+        self.selenium.wait_for_page_to_load("30000")
+        self.assert_(not self.selenium.is_element_present("//img[@src='locked-delete-icon.png']"))
         
         
 if __name__ == "__main__":
