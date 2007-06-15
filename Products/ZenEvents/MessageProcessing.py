@@ -94,6 +94,7 @@ class MessageProcessor(object):
         event = self.buildEventClassKey(event)
         log.info('sending event...')
         self.zem.sendEvent(event)
+        log.info('event sent.')
 
 
     def enrich(self, event, subject):
