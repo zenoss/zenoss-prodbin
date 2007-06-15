@@ -38,7 +38,7 @@ class selTestBase(unittest.TestCase):
         Run at the start of each test.
         """
         self.verificationErrors = []
-        self.selenium = selenium("localhost", 4444, "*firefox", "http://seltest1:8080")
+        self.selenium = selenium("selserver", 4444, "*firefox", "http://seltest1:8080")
         self.selenium.start()
         self.login()
     
