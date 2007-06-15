@@ -42,7 +42,6 @@ class POPProtocol(POP3Client):
     allowInsecureLogin = True
     timeout = 15
 
-
     def serverGreeting(self, greeting):
         log.info('server greeting received.')
         log.info('logging in...')
@@ -74,7 +73,11 @@ class POPProtocol(POP3Client):
             d.addCallback(self._gotMessageLines)
             retreivers.append(d)
 
-        return defer.DeferredList(retreivers).addCallback(self._finished)
+        deferreds = defer.DeferredList(retreivers) 
+        if self.factory.cycle:
+            return deferreds.addCallback(self._finished)
+        else:
+            return deferreds.addCallback(self.factory.scanComplete)
 
 
     def _gotMessageLines(self, messageLines):
@@ -83,7 +86,7 @@ class POPProtocol(POP3Client):
 
 
     def _finished(self, downloadResults):
-        log.info('calling retrieveAndParse in %d seconds.' % self.factory.cycletime)
+        log.info('sleeping for %d seconds.' % self.factory.cycletime)
         reactor.callLater(self.factory.cycletime, self.retrieveAndParse)
 
     
@@ -91,12 +94,14 @@ class POPProtocol(POP3Client):
 class POPFactory(protocol.ClientFactory):
     protocol = POPProtocol
 
-    def __init__(self, user, passwd, processor, cycletime):
+    def __init__(self, user, passwd, processor, cycletime, cycle, finish):
         self.user = user
         self.passwd = passwd
         self.processor = processor
         self.cycletime = cycletime
+        self.cycle = cycle
         self.deferred = defer.Deferred()
+        self.finish = finish
 
 
     def handleMessage(self, messageData):
@@ -106,11 +111,12 @@ class POPFactory(protocol.ClientFactory):
     def clientConnectionFailed(self, connection, reason):
         self.deferred.errback(reason)
 
+    def scanComplete(self, results):
+        log.info("scan complete")
+        self.finish()
+
 
 class MailDaemon(EventServer, RRDDaemon):
-    # seconds
-    cycleInterval = 1 * 60
-
     def __init__(self, name):
         EventServer.__init__(self)
         RRDDaemon.__init__(self, name)
@@ -129,12 +135,14 @@ class ZenMail(MailDaemon):
         popuser = self.options.popuser
         poppasswd = self.options.poppass
         usessl = self.options.usessl
-        cycletime = self.options.cycletime
+        cycletime = int(self.options.cycletime)
+        cycle = int(self.options.cycle)
 
         log.info("creating POPFactory.")
         log.info("credentials user: %s; pass: %s" % (popuser, len(poppasswd) * '*'))
-        self.factory = POPFactory(popuser, poppasswd, self.processor, cycletime)
-
+        self.factory = POPFactory(popuser, poppasswd, 
+                                  self.processor, cycletime, cycle, 
+                                  self._finish)
         log.info("connecting to pop server: %s:%s" % (host, port))
         self.factory.deferred.addErrback(self.handleError)
         
@@ -143,7 +151,7 @@ class ZenMail(MailDaemon):
             reactor.connectSSL(host, port, self.factory, ClientContextFactory())
         else:
             log.info("connceting to server using plaintext")
-            reactor.connectTCP(host, port, self.factor)
+            reactor.connectTCP(host, port, self.factory)
 
 
     def handleError(self, error):
@@ -153,6 +161,8 @@ class ZenMail(MailDaemon):
         # FIXME: if not options.cycle...
         self.finish()
 
+    def _finish(self):
+        self.finish()
 
     def buildOptions(self):
         EventServer.buildOptions(self)
