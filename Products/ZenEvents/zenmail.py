@@ -189,11 +189,11 @@ class ZenMail(MailDaemon):
                                help="POP port to auth against")
         self.parser.add_option('--popuser',
                                dest='popuser', 
-                               default="popuser",
+                               default="zenoss",
                                help="POP user to auth using")
         self.parser.add_option('--poppass',
                                dest='poppass', 
-                               default="poppass",
+                               default="zenoss",
                                help="POP password to auth using")
         self.parser.add_option('--useFileDescriptor',
                                dest='fd', 
