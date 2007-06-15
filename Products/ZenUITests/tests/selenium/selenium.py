@@ -1,4 +1,3 @@
-
 """
 Copyright 2006 ThoughtWorks, Inc.
 

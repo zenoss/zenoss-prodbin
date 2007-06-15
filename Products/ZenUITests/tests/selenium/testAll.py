@@ -13,7 +13,7 @@
 ###########################################################################
 
 #
-# Contained below is 
+# Contained below is a convenience file for calling all tests.
 #
 # Adam Modlin and Nate Avers
 #
