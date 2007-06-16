@@ -161,7 +161,7 @@ padding-right:20px;margin-left:20px;}</style>
 <tal:block tal:condition="python:hasattr(here, 'getMenus')">
 <div class="littlemenu" tal:attributes="id menu_id"
     tal:define="menuitems python:here.getMenus(menu_id, here);
-                pathtrans here/REQUEST/PATH_TRANSLATED;
+                pathtrans here/absolute_url_path;
                 basepath python:test(
                       pathtrans.endswith(template.id),
                       '/'.join(pathtrans.split('/')[:-1]),
