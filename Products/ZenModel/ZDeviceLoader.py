@@ -168,7 +168,7 @@ class ZDeviceLoader(ZenModelItem,SimpleItem):
     def setOSProduct(self, newOSProductName, osManufacturer, REQUEST=None):
         """set the productName of this device"""
         self.getDmdRoot("Manufacturers").createSoftwareProduct(
-                                        newOSProductName, osManufacturer)
+                                        newOSProductName, osManufacturer, isOS=True)
         if REQUEST:
             REQUEST['osProductName'] = newOSProductName
             return self.callZenScreen(REQUEST)

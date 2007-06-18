@@ -177,11 +177,13 @@ class ManufacturerRoot(ZenModelBase, PrimaryPathBTreeFolder2, ZenPacker):
         return self._getProduct(prodName, manufacturer, HardwareClass, **kwargs)
 
 
-    def createSoftwareProduct(self, prodName, manufacturer="Unknown", **kwargs):
+    def createSoftwareProduct(self, prodName, manufacturer="Unknown", isOS=False, **kwargs):
         """Return and create if nesseary a SoftwareClass object.
         """
         from Products.ZenModel.SoftwareClass import SoftwareClass
-        return self._getProduct(prodName, manufacturer, SoftwareClass, **kwargs)
+        prod = self._getProduct(prodName, manufacturer, SoftwareClass, **kwargs)
+        prod.isOS = isOS
+        return prod
 
 
     def _getProduct(self, prodName, manufacturer, factory, **kwargs):

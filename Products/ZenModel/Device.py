@@ -995,7 +995,7 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable, Admini
         """set the productName of this device"""
         if newOSProductName:
             self.getDmdRoot("Manufacturers").createSoftwareProduct(
-                                        newOSProductName, osManufacturer)
+                                        newOSProductName, osManufacturer, isOS=True)
         if REQUEST:
             if newOSProductName:
                 REQUEST['message'] = "OS Product set"

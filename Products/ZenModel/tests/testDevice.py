@@ -34,7 +34,7 @@ class TestDevice(ZenModelBaseTest):
         man = self.dmd.Manufacturers
         man.createManufacturer('Apple')
         man.createSoftwareProduct('Macos 10.4.1', 'Apple',
-            productKey='Darwin 8.1.0')
+            productKey='Darwin 8.1.0', isOS=True)
         man.createManufacturer('HP')
         man.createHardwareProduct('ProLiant 800', 'HP',
             productKey='ProLiant 800')
