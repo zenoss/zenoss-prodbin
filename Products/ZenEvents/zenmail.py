@@ -168,9 +168,10 @@ class ZenMail(MailDaemon):
         EventServer.buildOptions(self)
         self.parser.add_option('--usessl',
                                dest='usessl',
-                               default=0,
-                               type="int",
+                               default=False,
+                               action="store_true",
                                help="Use SSL when connecting to POP server")
+
         self.parser.add_option('--pophost',
                                dest='pophost', 
                                default="pop.zenoss.com",
