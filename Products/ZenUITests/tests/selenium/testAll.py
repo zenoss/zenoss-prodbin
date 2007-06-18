@@ -22,25 +22,25 @@ import unittest
 
 #from selTestBase import selTestBase
 
-import testDeviceInstance
-import testDevices
-import testEvents
-import testGroups
-import testLocations
-import testReports
-import testSystems
+#import testDeviceInstance
+#import testDevices
+#import testEvents
+#import testGroups
+#import testLocations
+#import testReports
+#import testSystems
 
 
 loader = unittest.TestLoader()
 runner = unittest.TextTestRunner(verbosity = 2) # Enables detailed output.
 
-testAll = loader.loadTestsFromNames(["testDeviceInstance.DeviceInstanceOsTabTest",
-                                     "testDeviceInstance.DeviceInstanceManageDeviceTest",
-                                     "testDevices.DevicesTest",
-                                     "testEvents.EventsTest",
-                                     "testGroups.GroupsTest",
-                                     "testLocations.LocationsTest",
-                                     "testReports.ReportsTest",
-                                     "testSystems.SystemsTest"])
+testAll = loader.loadTestsFromNames(["TestDeviceInstance.TestDeviceInstanceOsTab",
+                                     "TestDeviceInstance.TestDeviceInstanceManageDevice",
+                                     "TestDevices.TestDevices",
+                                     "TestEvents.TestEvents",
+                                     "TestGroups.TestGroups",
+                                     "TestLocations.TestLocations",
+                                     "TestReports.TestReports",
+                                     "TestSystems.TestSystems"])
                                      
 result = runner.run(testAll)

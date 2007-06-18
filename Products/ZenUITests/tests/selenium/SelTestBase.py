@@ -27,7 +27,7 @@ USER        =   "admin"
 PASS        =   "zenoss"
 HOST        =   "seltest1"
 
-class selTestBase(unittest.TestCase):
+class SelTestBase(unittest.TestCase):
     """
     Base class for Zenoss Selenium tests.
     All test classes should inherit this.

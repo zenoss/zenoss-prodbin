@@ -20,9 +20,9 @@
 
 import unittest
 
-from selTestBase import selTestBase
+from SelTestBase import SelTestBase
 
-class SystemsTest(selTestBase):
+class TestSystems(SelTestBase):
     """
     Defines a class that runs tests under the Systems heading.
     """

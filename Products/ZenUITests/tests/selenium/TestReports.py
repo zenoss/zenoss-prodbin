@@ -21,9 +21,9 @@
 
 import unittest
 
-from selTestBase import selTestBase
+from SelTestBase import SelTestBase
 
-class ReportsTest(selTestBase):
+class TestReports(SelTestBase):
     """Defines an object that runs tests under the Reports heading."""
     
     def testReportOrganizer(self):

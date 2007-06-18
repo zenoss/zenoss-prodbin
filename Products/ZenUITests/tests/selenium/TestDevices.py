@@ -21,9 +21,9 @@
 
 import unittest
 
-from selTestBase import selTestBase
+from SelTestBase import SelTestBase
 
-class DevicesTest(selTestBase):
+class TestDevices(SelTestBase):
     """
     Defines an object that runs tests against a Device Class.
     """

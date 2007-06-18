@@ -21,9 +21,9 @@
 
 import unittest
 
-from selTestBase import selTestBase
+from SelTestBase import SelTestBase
 
-class EventsTest(selTestBase):
+class TestEvents(SelTestBase):
     """
     Defines an object that runs tests under the Events heading.
     """

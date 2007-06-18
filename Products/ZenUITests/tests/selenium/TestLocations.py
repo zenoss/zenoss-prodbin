@@ -14,28 +14,29 @@
 
 #
 # Contained below is the class that tests elements located under
-# the "Groups" Browse By subheading.
+# the "Locations" Browse By subheading.
 #
 # Adam Modlin and Nate Avers
 #
 
 import unittest
 
-from selTestBase import selTestBase
+from SelTestBase import SelTestBase
 
-class GroupsTest(selTestBase):
-    """Defines a class that runs tests under the Groups heading."""
-
-    def testGroupOrganizer(self):
-        """Run tests on the Groups page."""
+class TestLocations(SelTestBase):
+    """Defines an object that runs tests under the Locations heading."""
+    
+    def testLocationOrganizer(self):
+        """Run tests on the Locations page."""
         
-        self.waitForElement("link=Groups")
-        self.selenium.click("link=Groups")
+        self.waitForElement("link=Locations")
+        self.selenium.click("link=Locations")
         self.selenium.wait_for_page_to_load("30000")
         self.addDialog(new_id=("text", "testingString"))
         self.selenium.wait_for_page_to_load("30000")
         self.deleteDialog()
         self.selenium.wait_for_page_to_load("30000")
+
         
 if __name__ == "__main__":
     unittest.main()
