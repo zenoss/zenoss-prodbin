@@ -21,7 +21,7 @@
 
 import unittest
 
-from selTestBase import selTestBase
+from SelTestBase import SelTestBase
 
 class TestEventManager(SelTestBase):
     """Defines a class that runs tests under the Event Manager heading."""

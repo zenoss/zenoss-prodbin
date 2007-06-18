@@ -32,9 +32,6 @@ class TestDeviceInstanceBase(SelTestBase):
         SelTestBase.setUp(self)
         
         self.addDevice()
-        self.waitForElement("link=OS")
-        self.selenium.click("link=OS")
-        self.selenium.wait_for_page_to_load("30000")
         
     def tearDown(self):
         """Customized tearDown for device instance tests."""
@@ -46,6 +43,15 @@ class TestDeviceInstanceBase(SelTestBase):
 class TestDeviceInstanceOsTab(TestDeviceInstanceBase):
     """Test additon, editing, and deletion of IpInterface, IpRouteEntry, etc."""
     
+    def setUp(self):
+        """Customized setUp for testing under the OS tab."""
+        
+        TestDeviceInstanceBase.setUp(self)
+
+        self.waitForElement("link=OS")
+        self.selenium.click("link=OS")
+        self.selenium.wait_for_page_to_load("30000")
+        
     def testIpInterface(self):
         """Add, edit, and delete an Ip Interface under a specific device."""
         
@@ -282,8 +288,16 @@ class TestDeviceInstanceManageDevice(TestDeviceInstanceBase):
         self.waitForElement("dialog_cancel")
         self.selenium.click("unlock:method")
         self.selenium.wait_for_page_to_load("30000")
-        self.assert_(not self.selenium.is_element_present("//img[@src='locked-delete-icon.png']"))
-        
-        
+        self.assert_(not self.selenium.is_element_present("//img[@src='locked-delete-icon.png']"))	
+
+    def testClearHeartbeats(self):
+        """Test clearing a device's heartbeats."""
+
+        self.selenium.click("link=Clear Heartbeats...")
+        self.waitForElement("dialog_cancel")
+        self.selenium.click("manage_deleteHeartbeat:method")
+        self.selenium.wait_for_page_to_load("30000")
+        self.assert_(self.selenium.is_text_present("Cleared heartbeat events for build.zenoss.loc"))
+
 if __name__ == "__main__":
     unittest.main()

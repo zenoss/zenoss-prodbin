@@ -20,16 +20,6 @@
 
 import unittest
 
-#from selTestBase import selTestBase
-
-#import testDeviceInstance
-#import testDevices
-#import testEvents
-#import testGroups
-#import testLocations
-#import testReports
-#import testSystems
-
 
 loader = unittest.TestLoader()
 runner = unittest.TextTestRunner(verbosity = 2) # Enables detailed output.
