@@ -66,6 +66,8 @@ class POPProtocol(POP3Client):
     def _gotMessageSizes(self, sizes):
         log.info('messages to retrieve: %d' % len(sizes))
 
+        self.sizes = sizes
+
         retreivers = []
         for i in range(len(sizes)):
             log.info('retrieving message #%d...' % i)
@@ -74,6 +76,8 @@ class POPProtocol(POP3Client):
             retreivers.append(d)
 
         deferreds = defer.DeferredList(retreivers) 
+        deferreds.addCallback(self._delete)
+
         if self.factory.cycle:
             return deferreds.addCallback(self._finished)
         else:
@@ -83,6 +87,18 @@ class POPProtocol(POP3Client):
     def _gotMessageLines(self, messageLines):
         log.info('passing message up to factory')
         self.factory.handleMessage("\r\n".join(messageLines))
+
+    def _delete(self, results):
+        if not self.factory.nodelete:
+            deleters = []
+            for index in range(len(self.sizes)):
+                log.info('deleting message  #%d...' % index)
+                d = self.delete(index)
+                deleters.append(d)
+
+        import pdb; pdb.set_trace()
+        deferreds = defer.DeferredList(deleters)
+        return deferreds
 
 
     def _finished(self, downloadResults):
@@ -94,13 +110,15 @@ class POPProtocol(POP3Client):
 class POPFactory(protocol.ClientFactory):
     protocol = POPProtocol
 
-    def __init__(self, user, passwd, processor, cycletime, cycle, finish):
+    def __init__(self, user, passwd, 
+                 processor, cycletime, cycle, nodelete, finish):
         self.user = user
         self.passwd = passwd
         self.processor = processor
         self.cycletime = cycletime
         self.cycle = cycle
         self.deferred = defer.Deferred()
+        self.nodelete = nodelete
         self.finish = finish
 
 
@@ -137,11 +155,12 @@ class ZenMail(MailDaemon):
         usessl = self.options.usessl
         cycletime = int(self.options.cycletime)
         cycle = int(self.options.cycle)
+        nodelete = int(self.options.nodelete)
 
         log.info("creating POPFactory.")
         log.info("credentials user: %s; pass: %s" % (popuser, len(poppasswd) * '*'))
         self.factory = POPFactory(popuser, poppasswd, 
-                                  self.processor, cycletime, cycle, 
+                                  self.processor, cycletime, cycle, nodelete,
                                   self._finish)
         log.info("connecting to pop server: %s:%s" % (host, port))
         self.factory.deferred.addErrback(self.handleError)
@@ -171,7 +190,11 @@ class ZenMail(MailDaemon):
                                default=False,
                                action="store_true",
                                help="Use SSL when connecting to POP server")
-
+        self.parser.add_option('--nodelete',
+                               dest='nodelete',
+                               default=False,
+                               action="store_true",
+                               help="Leave messages on POP server")
         self.parser.add_option('--pophost',
                                dest='pophost', 
                                default="pop.zenoss.com",
