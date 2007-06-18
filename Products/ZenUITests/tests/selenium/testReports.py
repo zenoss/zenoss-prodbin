@@ -27,8 +27,8 @@ class ReportsTest(selTestBase):
     """Defines an object that runs tests under the Reports heading."""
     
     def testReportOrganizer(self):
-        """Run tests on the Reports page.
-        """
+        """Run tests on the Reports page."""
+        
         self.waitForElement("link=Reports")
         self.selenium.click("link=Reports")
         self.selenium.wait_for_page_to_load("30000")

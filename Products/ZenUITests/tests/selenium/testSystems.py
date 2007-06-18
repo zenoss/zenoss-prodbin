@@ -28,9 +28,8 @@ class SystemsTest(selTestBase):
     """
 
     def testSystemOrganizer(self):
-        """
-        Run tests on the Systems page.
-        """
+        """Run tests on the Systems page."""
+        
         self.waitForElement("link=Systems")
         self.selenium.click("link=Systems")
         self.selenium.wait_for_page_to_load("30000")

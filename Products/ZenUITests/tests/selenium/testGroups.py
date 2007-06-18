@@ -27,9 +27,8 @@ class GroupsTest(selTestBase):
     """Defines a class that runs tests under the Groups heading."""
 
     def testGroupOrganizer(self):
-        """
-        Run tests on the Groups page.
-        """
+        """Run tests on the Groups page."""
+        
         self.waitForElement("link=Groups")
         self.selenium.click("link=Groups")
         self.selenium.wait_for_page_to_load("30000")

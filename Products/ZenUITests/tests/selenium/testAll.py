@@ -32,9 +32,10 @@ import testSystems
 
 
 loader = unittest.TestLoader()
-runner = unittest.TextTestRunner(verbosity = 2)
+runner = unittest.TextTestRunner(verbosity = 2) # Enables detailed output.
 
-testAll = loader.loadTestsFromNames(["testDeviceInstance.DeviceInstanceTest",
+testAll = loader.loadTestsFromNames(["testDeviceInstance.DeviceInstanceOsTabTest",
+                                     "testDeviceInstance.DeviceInstanceManageDeviceTest",
                                      "testDevices.DevicesTest",
                                      "testEvents.EventsTest",
                                      "testGroups.GroupsTest",
@@ -43,7 +44,3 @@ testAll = loader.loadTestsFromNames(["testDeviceInstance.DeviceInstanceTest",
                                      "testSystems.SystemsTest"])
                                      
 result = runner.run(testAll)
-
-        
-#if __name__ == "__main__":
-#    unittest.main()

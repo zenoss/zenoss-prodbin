@@ -23,8 +23,8 @@ import unittest
 
 from selTestBase import selTestBase
 
-class DeviceInstanceTest(selTestBase):
-    """Perform tests on adding, editing, and deleting devices."""
+class DeviceInstanceTestBase(selTestBase):
+    """Base class for performing tests on specific device instances."""
     
     def setUp(self):
         """Customized setUp for device instance tests."""
@@ -43,6 +43,9 @@ class DeviceInstanceTest(selTestBase):
         selTestBase.tearDown(self)
     
         
+class DeviceInstanceOsTabTest(DeviceInstanceTestBase):
+    """Test additon, editing, and deletion of IpInterface, IpRouteEntry, etc."""
+    
     def testIpInterface(self):
         """Add, edit, and delete an Ip Interface under a specific device."""
         
@@ -210,6 +213,9 @@ class DeviceInstanceTest(selTestBase):
         self.waitForElement("dialog_cancel")
         self.selenium.click("manage_deleteComponent:method")
         self.assert_(not self.selenium.is_text_present("Win Services"))
+        
+class DeviceInstanceManageDeviceTest(DeviceInstanceTestBase):
+    """Test functionality related to managing the device itself."""
         
     def testChangeDeviceClass(self):
         """Test changing the device class of a device."""

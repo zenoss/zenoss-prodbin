@@ -29,9 +29,8 @@ class EventsTest(selTestBase):
     """
 
     def testEventClass(self):
-        """
-        Run tests on the Events page.
-        """
+        """Run tests on the Events page."""
+
         self.waitForElement("link=Events")
         self.selenium.click("link=Events")
         self.selenium.wait_for_page_to_load("30000")
@@ -39,9 +38,8 @@ class EventsTest(selTestBase):
         self.deleteDialog(form_name="subclasses")
         
     def moveEventClassMappings(self, pathsList="ids:list", form_name="mappings", moveTo="/Unknown", stringval="testingString"):
-        """
-        Test moving an EventClassMapping to /Unknown.
-        """
+        """Test moving an EventClassMapping to /Unknown."""
+        
         self.waitForElement(getByValue(pathsList, stringVal, form_name))
         self.selenium.click(getByValue(pathsList, stringVal, form_name))
         self.waitForElement("EventmappinglistmoveInstances")

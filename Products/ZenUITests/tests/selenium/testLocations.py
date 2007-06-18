@@ -27,8 +27,8 @@ class LocationsTest(selTestBase):
     """Defines an object that runs tests under the Locations heading."""
     
     def testLocationOrganizer(self):
-        """Run tests on the Locations page.
-        """
+        """Run tests on the Locations page."""
+        
         self.waitForElement("link=Locations")
         self.selenium.click("link=Locations")
         self.selenium.wait_for_page_to_load("30000")
