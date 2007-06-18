@@ -1,4 +1,4 @@
-7###########################################################################
+###########################################################################
 #
 # This program is part of Zenoss Core, an open source monitoring platform.
 # Copyright (C) 2007, Zenoss Inc.
@@ -54,7 +54,6 @@ class InterfaceMap(SnmpPlugin):
         # Interface Description
         GetTableMap('ifalias', '.1.3.6.1.2.1.31.1.1.1',
                 {
-                '.1': 'id',
                 '.18' : 'description',
                 '.15' : 'highSpeed',
                 }
@@ -79,6 +78,8 @@ class InterfaceMap(SnmpPlugin):
         for ifidx, data in ifalias.items():
             if not iftable.has_key(ifidx): continue
             iftable[ifidx]['description'] = data.get('description', '')
+            # if we collect ifAlias name use it
+            # this is in the map subclass InterfaceAliasMap
             id = data.get('id', None)
             if id:
                 iftable[ifidx]['id'] = id
