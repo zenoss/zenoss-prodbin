@@ -31,6 +31,7 @@ testAll = loader.loadTestsFromNames(["TestDeviceInstance.TestDeviceInstanceOsTab
                                      "TestGroups.TestGroups",
                                      "TestLocations.TestLocations",
                                      "TestReports.TestReports",
-                                     "TestSystems.TestSystems"])
+                                     "TestSystems.TestSystems"
+                                     "TestEventManager.TestEventManager"])
                                      
 result = runner.run(testAll)
