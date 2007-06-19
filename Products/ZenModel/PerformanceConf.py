@@ -180,12 +180,13 @@ class PerformanceConf(Monitor, StatusColor):
         for dev in self.devices():
             if devices and dev.id not in devices: continue
             dev = dev.primaryAq()
-            if dev.snmpMonitorDevice():
-                try:
-                    result.append(dev.getSnmpOidTargets())
-                except POSError: raise
-                except:
-                    log.exception("device %s", dev.id)
+            try:
+                config = dev.getSnmpOidTargets()
+                if config:
+                    result.append(config)
+            except POSError: raise
+            except:
+                log.exception("device %s", dev.id)
         return result
 
     def getDeviceUpdates(self, devices):
