@@ -47,10 +47,6 @@ class DeviceMap(SnmpPlugin):
             return 
         om = self.objectMap(getdata)
 
-        if om.snmpOid.find('.1.3.6.1.4.1.9') == 0:
-            match = self.ciscoVersion.search(om.snmpDescr)
-            if match: om.osVersion = match.group('ver')
-
         # allow for custom parse of DeviceMap data
         scDeviceMapParse = getattr(device, 'scDeviceMapParse', None)
         if scDeviceMapParse:
