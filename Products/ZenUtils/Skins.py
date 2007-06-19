@@ -56,6 +56,7 @@ def registerSkin(self, base, positionAfter='custom'):
 def unregisterSkin(self, base, positionAfter='custom'):
     """setup the skins in a product"""
     layers = skinDirs(base)
+    if layers is None: return
     try:
         from Products.CMFCore.utils import getToolByName
         skinstool = getToolByName(self, 'portal_skins')
