@@ -1,0 +1,76 @@
+#leftPane ul li {
+    height: 1em;
+}
+
+#contentPane {
+    position: relative;
+    z-index: 1;
+}
+
+table.zentable {
+    z-index: 5000;
+}
+div.tabletitlecontainer {
+    height:;
+    background: transparent url(img/titlebar_bg.gif) repeat-x top left;
+}
+
+div.contextmenuitems,
+div.menu {
+    z-index: 5000;
+    zoom: 1;
+}
+
+#tabsPane table {
+    table-layout: auto;
+}
+
+table.zentable {
+    z-index: 5000;
+}
+td.tabtablecap {
+    padding: 0px 10px;
+}
+
+div#gridcontainer {
+    overflow:visible;
+}
+
+table.innerzentable {
+    position: relative;
+    top: 1px;
+}
+div#contextmenu_btn {
+    position: relative;
+    top: 10px;
+    width: 52px;
+    z-index: 3000;
+}
+
+#rightPane,
+table.tabtable,
+#tabsPane {
+    z-index: 3000;
+    position: relative;
+}
+
+td.tabletitleselected div.tabcenter a.tabletitle {
+    position: relative;
+    top: -3px;
+}
+
+table.tabtable td.tabletitleselected div.tablinehider {
+    bottom: -1px;
+    width: 100%;
+    margin: 0;
+    padding: 0;
+    height: 4px;
+    border: 2px solid black;
+    border-width: 0px 1px;
+}
+
+div.dialog_container {
+    _height:1%;
+    overflow: visible;
+    width: 30%;
+}

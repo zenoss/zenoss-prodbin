@@ -134,9 +134,13 @@
     <script src="js/zenui.js"></script>
     <script src="js/zenutils.js"></script>
     <script src="javascript/menus.js"></script>
-    <!--[if IE]>
+    <!--[if IE 7]>
         <link rel="stylesheet" type="text/css" title="zenoss"
             href="zenoss_ie.css" >
+    <![endif]-->
+    <!--[if IE 6]>
+        <link rel="stylesheet" type="text/css" title="zenoss"
+            href="zenoss_ie6.css" >
     <![endif]-->
 </tal:block>
 
