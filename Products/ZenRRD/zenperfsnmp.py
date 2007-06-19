@@ -348,7 +348,7 @@ class zenperfsnmp(SnmpDaemon):
             if proxy.ip in ips:
                 log.warning("Warning: device %s has a duplicate address %s",
                             name, proxy.ip)
-            ips.add(ips)
+            ips.add(proxy.ip)
         self.log.info('Configured %d of %d devices',
                       len(deviceNames), len(self.proxies))
 
@@ -601,7 +601,7 @@ class zenperfsnmp(SnmpDaemon):
 
     def connected(self):
         "Run forever, fetching and storing"
-        d = drive(zpf.startUpdateConfig)
+        d = drive(self.startUpdateConfig)
         d.addCallbacks(self.scanCycle, self.errorStop)
 
 
