@@ -45,7 +45,7 @@ class ZenModeler(ZCmdBase):
     generateEvents = True
     
     def __init__(self,noopts=0,app=None,single=False,
-                threaded=True,keeproot=False):
+                 threaded=None,keeproot=False):
         ZCmdBase.__init__(self, noopts, app, keeproot)
         
         if self.options.daemon:
@@ -62,6 +62,8 @@ class ZenModeler(ZCmdBase):
         if self.options.device:
             self.single = True
         self.threaded = threaded
+        if self.threaded is None:
+            self.threaded = not self.options.nothread
         self.cycletime = self.options.cycletime*60
         self.collage = self.options.collage / 1440.0
         self.clients = []
@@ -327,6 +329,9 @@ class ZenModeler(ZCmdBase):
         self.parser.add_option('--debug',
                 dest='debug', action="store_true", default=False,
                 help="don't fork threads for processing")
+        self.parser.add_option('--nothread',
+                dest='nothread', action="store_true", default=False,
+                help="do not use threads when applying updates")
         self.parser.add_option('--parallel', dest='parallel', 
                 type='int', default=defaultParallel,
                 help="number of devices to collect from in parallel")
