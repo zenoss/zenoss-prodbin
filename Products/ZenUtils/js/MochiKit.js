@@ -599,10 +599,10 @@ catch(e){
 return "["+typeof (o)+"]";
 }
 if(typeof (o)=="function"){
-o=_d8.replace(/^\s+/,"");
-var idx=o.indexOf("{");
+_d8=_d8.replace(/^\s+/,"").replace(/\s+/g," ");
+var idx=_d8.indexOf("{");
 if(idx!=-1){
-o=o.substr(0,idx)+"{...}";
+_d8=_d8.substr(0,idx)+"{...}";
 }
 }
 return _d8;
@@ -857,7 +857,7 @@ var v=o[k];
 if(typeof (v)=="function"){
 continue;
 }else{
-if(typeof (v)!="string"&&typeof (v.length)=="number"){
+if(MochiKit.Base.isArrayLike(v)){
 for(var i=0;i<v.length;i++){
 _129.push(k);
 _12a.push(v[i]);
@@ -1599,7 +1599,7 @@ throw MochiKit.Iter.StopIteration;
 return rval;
 }};
 }});
-MochiKit.Iter.EXPORT_OK=["iteratorRegistry","arrayLikeIter","hasIterateNext","iterateNextIter",];
+MochiKit.Iter.EXPORT_OK=["iteratorRegistry","arrayLikeIter","hasIterateNext","iterateNextIter"];
 MochiKit.Iter.EXPORT=["StopIteration","registerIteratorFactory","iter","count","cycle","repeat","next","izip","ifilter","ifilterfalse","islice","imap","applymap","chain","takewhile","dropwhile","tee","list","reduce","range","sum","exhaust","forEach","every","sorted","reversed","some","iextend","groupby","groupby_as_array"];
 MochiKit.Iter.__new__=function(){
 var m=MochiKit.Base;
@@ -2146,7 +2146,7 @@ MochiKit.Format.percentFormat=function(_270){
 return MochiKit.Format.twoDigitFloat(100*_270)+"%";
 };
 MochiKit.Format.EXPORT=["truncToFixed","roundToFixed","numberFormatter","formatLocale","twoDigitAverage","twoDigitFloat","percentFormat","lstrip","rstrip","strip"];
-MochiKit.Format.LOCALE={en_US:{separator:",",decimal:".",percent:"%"},de_DE:{separator:".",decimal:",",percent:"%"},fr_FR:{separator:" ",decimal:",",percent:"%"},"default":"en_US"};
+MochiKit.Format.LOCALE={en_US:{separator:",",decimal:".",percent:"%"},de_DE:{separator:".",decimal:",",percent:"%"},pt_BR:{separator:".",decimal:",",percent:"%"},fr_FR:{separator:" ",decimal:",",percent:"%"},"default":"en_US"};
 MochiKit.Format.EXPORT_OK=[];
 MochiKit.Format.EXPORT_TAGS={":all":MochiKit.Format.EXPORT,":common":MochiKit.Format.EXPORT};
 MochiKit.Format.__new__=function(){
@@ -2464,6 +2464,7 @@ req.open(opts.method,url,true);
 if(req.overrideMimeType&&opts.mimeType){
 req.overrideMimeType(opts.mimeType);
 }
+req.setRequestHeader("X-Requested-With","XMLHttpRequest");
 if(opts.headers){
 var _2a9=opts.headers;
 if(!m.isArrayLike(_2a9)){
@@ -5215,7 +5216,11 @@ self._disconnect(_536[i]);
 var self=MochiKit.Signal;
 var E=self.Event;
 if(!_53c){
+if(typeof (func.im_self)=="undefined"){
 return MochiKit.Base.bind(func,obj);
+}else{
+return func;
+}
 }
 obj=obj||src;
 if(typeof (func)=="string"){
