@@ -49,7 +49,6 @@ class zenwinmodeler(Base):
     def processLoop(self):
         """For each device collect service info and send to server.
         """
-        self.log.error("devices %r", self.devices);
         for lastChange, name, user, passwd, sev, url in self.devices:
             if self.options.device and name != self.options.device:
                 continue
