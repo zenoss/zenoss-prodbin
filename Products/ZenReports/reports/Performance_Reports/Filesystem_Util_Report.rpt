@@ -57,7 +57,7 @@
     </tr>
     </tal:block>
     <tr>
-        <td colspan="0" class="tableheader" align='center'>
+        <td colspan="6" class="tableheader" align='center'>
         <form metal:use-macro="here/zenTableNavigation/macros/navtool"/>
         </td>
     </tr>

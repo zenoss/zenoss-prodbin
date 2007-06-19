@@ -79,7 +79,7 @@
             </td>
         </tr>
         <tr>
-            <td colspan="0" class="tableheader" align='center'>
+            <td colspan="3" class="tableheader" align='center'>
                 <form metal:use-macro="here/zenTableNavigation/macros/navtool"></form>
             </td>
         </tr>

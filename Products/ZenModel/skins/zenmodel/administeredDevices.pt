@@ -28,7 +28,7 @@
             
     
     <tr tal:define="message request/message | string:">
-        <td class=tableheader colspan=5 tal:content="message" />
+        <td class=tableheader colspan=4 tal:content="message" />
     </tr>
     <tr>
         <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
@@ -80,12 +80,12 @@
   </tr>
   </tal:block>
   <tr>
-    <td colspan="0" class="tableheader">
+    <td colspan="4" class="tableheader">
         <span metal:use-macro="here/zenTableNavigation/macros/navbody" />
     </td>
   </tr>
     <tr tal:condition="editable">
-    <td class="tableheader" colspan="5">
+    <td class="tableheader" colspan="4">
         <input class="tableheader" type='text' name="name"/>
         <select class='tableheader' name='type'>
             <option value='device'>Device</option>

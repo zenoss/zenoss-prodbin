@@ -112,7 +112,7 @@
   </tal:block>
   
   <tr>
-    <td colspan="0" class="tableheader">
+    <td colspan="4" class="tableheader">
         <form metal:use-macro="here/zenTableNavigation/macros/navtool"></form>
     </td>
   </tr>

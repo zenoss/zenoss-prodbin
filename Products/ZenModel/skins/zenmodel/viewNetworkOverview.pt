@@ -133,7 +133,7 @@ tal:define="tabletitle string:Network;">
   </tr>
   </tal:block>
   <tr>
-    <td colspan="0" class="tableheader" align='center'>
+    <td colspan="5" class="tableheader" align='center'>
         <span metal:use-macro="here/zenTableNavigation/macros/navbody" />
     </td>
   </tr>
@@ -221,7 +221,7 @@ tal:define="tabletitle string:Network;">
     </td>
     </tr>
   <tr>
-    <td colspan="0" class="tableheader">
+    <td colspan="6" class="tableheader">
         <span metal:use-macro="here/zenTableNavigation/macros/navbody" />
     </td>
   </tr>

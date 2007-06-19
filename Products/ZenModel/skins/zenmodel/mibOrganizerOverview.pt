@@ -51,7 +51,7 @@ Optional titlebar stuff
     </tr>
     </tal:block>
     <tr>
-        <td colspan="0" class="tableheader">
+        <td colspan="3" class="tableheader">
             <span metal:use-macro="here/zenTableNavigation/macros/navbody" />
         </td>
     </tr>
@@ -113,7 +113,7 @@ Optional titlebar stuff
         <td class="tablevalues" tal:content="mib/notificationCount"/>
     </tr>
     <tr>
-        <td colspan="0" class="tableheader">
+        <td colspan="4" class="tableheader">
             <span metal:use-macro="here/zenTableNavigation/macros/navbody" />
         </td>
     </tr>

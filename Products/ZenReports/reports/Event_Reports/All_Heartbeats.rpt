@@ -34,7 +34,7 @@
         <td class="tablevalues" align=center tal:content="heart/dtime"/>
     </tr>
     <tr>
-        <td colspan="0" class="tableheader">
+        <td colspan="3" class="tableheader">
             <span metal:use-macro="here/zenTableNavigation/macros/navtool" />
         </td>
     </tr>

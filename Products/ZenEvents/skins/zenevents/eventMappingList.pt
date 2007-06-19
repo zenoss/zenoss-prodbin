@@ -50,7 +50,7 @@
             align="center">0</td>
     </tr>
     </tal:block>
-    <tr><td class="tableheader" colspan="0">
+    <tr><td class="tableheader" colspan="4">
     <form metal:use-macro="here/zenTableNavigation/macros/navpagenofilter2"/>
     </td></tr>
 </tal:block>

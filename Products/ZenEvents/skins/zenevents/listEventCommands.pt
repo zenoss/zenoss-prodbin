@@ -28,7 +28,7 @@
         <!-- BEGIN TABLE CONTENTS -->
             
   <tr>
-    <th class="tableheader" colspan="5">Commands triggered by events:</th>
+    <th class="tableheader" colspan="4">Commands triggered by events:</th>
   </tr>
     <tr>
     <th tal:replace="structure python:zem.getTableHeader(
@@ -57,13 +57,13 @@
   </tal:block>
 
   <tr>
-      <td colspan="0" class="tableheader">
+      <td colspan="4" class="tableheader">
           <span metal:use-macro="here/zenTableNavigation/macros/navbody"/>
       </td>
   </tr>
 
   <tr>
-      <td class="tableheader" align="left" colspan="5">
+      <td class="tableheader" align="left" colspan="4">
           <input class="tablevalues" size="25" name="id" />
           <input class="tableheader" type="submit" value=" Add "
                name="manage_addCommand:method" />

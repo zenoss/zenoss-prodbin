@@ -128,7 +128,7 @@
     </tal:block>
     </tal:block>
     <tr>
-        <td colspan="0" class="tableheader" align='center'>
+        <td colspan="6" class="tableheader" align='center'>
             <span metal:use-macro="here/zenTableNavigation/macros/navbody" />
         </td>
     </tr>
@@ -176,7 +176,7 @@
     <span metal:use-macro="here/deviceMacros/macros/snmpStatus" />
 </tr>
 <tr>
-    <td colspan="0" class="tableheader" align='center'>
+    <td colspan="6" class="tableheader" align='center'>
         <form metal:use-macro="here/zenTableNavigation/macros/navtool"></form>
     </td>
 </tr>
@@ -208,7 +208,7 @@
     
     <span metal:define-macro="fullDevListBody" tal:omit-tag="">
     <tr>
-        <td colspan="0" class="tableheader" align='center'>
+        <td colspan="5" class="tableheader" align='center'>
             <form metal:use-macro="here/zenTableNavigation/macros/navfilter"></form>
         </td>
     </tr>
@@ -266,7 +266,7 @@
         </td>
     </tr>
     <tr>
-        <td colspan="0" class="tableheader" align='center'>
+        <td colspan="5" class="tableheader" align='center'>
             <form metal:use-macro="here/zenTableNavigation/macros/navpagenofilter2">
             </form>
         </td>
