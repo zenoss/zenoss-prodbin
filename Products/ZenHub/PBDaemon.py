@@ -59,7 +59,7 @@ DEFAULT_HUB_HOST = 'localhost'
 DEFAULT_HUB_PORT = PB_PORT
 DEFAULT_HUB_USERNAME = 'admin'
 DEFAULT_HUB_PASSWORD = 'zenoss'
-DEFAULT_HUB_MONITOR = getfqdn()
+DEFAULT_HUB_MONITOR = 'localhost'
 
 class HubDown(Exception): pass
 
