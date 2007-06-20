@@ -430,20 +430,22 @@ class zenprocess(SnmpDaemon):
             self.clearSnmpError(device.name, summary)
             
         procs = []
-        parts = zip(sorted(results[NAMETABLE].items()),
-                    sorted(results[PATHTABLE].items()),
-                    sorted(results[ARGSTABLE].items()))
-        for namePart, pathPart, argsPart in parts:
-            oid, name = namePart
-            namepid = int(oid.split('.')[-1])
-            oid, path = pathPart
-            pathpid = int(oid.split('.')[-1])
-            oid, args = argsPart
-            argpid = int(oid.split('.')[-1])
-            if namepid == argpid == pathpid:
+        names, paths, args = {}, {}, {}
+        def extract(dictionary, oid, value):
+            pid = int(oid.split('.')[-1])
+            dictionary[pid] = value
+        for row in results[NAMETABLE].items():
+            extract(names, *row)
+        for row in results[PATHTABLE].items():
+            extract(paths, *row)
+        for row in results[ARGSTABLE].items():
+            extract(args,  *row)
+        for i, path in paths.items():
+            if i in names and i in args:
+                name = names[i]
                 if path and path.find('\\') == -1:
                     name = path
-                procs.append( (namepid, (name, args) ) )
+                procs.append( (i, (name, args[i]) ) )
         # look for changes in pids
         before = Set(device.pids.keys())
         after = {}
