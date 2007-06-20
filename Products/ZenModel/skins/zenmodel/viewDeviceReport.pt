@@ -18,6 +18,7 @@
 
 <form method="post" tal:attributes="action here/absolute_url_path">
 <input type="hidden" name="zenScreenName" tal:attributes="value template/id"/>
+<input type="hidden" name="tableName" tal:attributes="value tableName"/>
 
 
         <tal:block tal:define=" 
@@ -38,7 +39,6 @@
         <tal:block metal:fill-slot="zentablecontents">
         <!-- BEGIN TABLE CONTENTS -->
             
-    <input type="hidden" name="tableName" tal:attributes="value tableName"/>
     
     <tr>
         <tal:block tal:repeat="head here/reportHeaders"
