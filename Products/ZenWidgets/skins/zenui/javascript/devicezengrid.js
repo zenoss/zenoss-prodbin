@@ -200,6 +200,7 @@ DeviceZenGrid.prototype = {
         }, this));
         statuslock = this.lock.acquire();
         statuslock.addCallback(bind(function(r){
+            this.refresh();
             if (this.lock.locked) this.lock.release();
         }, this));
         this.addMouseWheelListening();
