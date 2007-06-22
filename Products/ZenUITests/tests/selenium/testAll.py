@@ -19,19 +19,26 @@
 #
 
 import unittest
+import re
+import os
 
+
+def findTest(str):
+    """Returns module names from filenames of the form "TestSomething.py" """
+    exp = re.compile("^Test\w+\.py$")
+    match = exp.match(str)
+    if match is not None:
+        return match.group()[:-3] # Strip off the ".py" to get module name
+    else:
+        return None
 
 loader = unittest.TestLoader()
 runner = unittest.TextTestRunner(verbosity = 2) # Enables detailed output.
 
-testAll = loader.loadTestsFromNames(["TestDeviceInstance.TestDeviceInstanceOsTab",
-                                     "TestDeviceInstance.TestDeviceInstanceManageDevice",
-                                     "TestDevices.TestDevices",
-                                     "TestEvents.TestEvents",
-                                     "TestGroups.TestGroups",
-                                     "TestLocations.TestLocations",
-                                     "TestReports.TestReports",
-                                     "TestSystems.TestSystems"
-                                     "TestEventManager.TestEventManager"])
+directoryContents = os.listdir(".") # must be run within the test directory
+# List comprehension of all test module names, according to findTest
+testTargets = [findTest(x) for x in directoryContents if findTest(x) is not None]
+
+testAll = loader.loadTestsFromNames(testTargets)
                                      
 result = runner.run(testAll)

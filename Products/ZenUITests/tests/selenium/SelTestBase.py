@@ -139,7 +139,6 @@ class SelTestBase(unittest.TestCase):
         
         self.waitForElement(addType)
         self.selenium.click(addType)
-#        self.editFields(submitMethod=addMethod, fields=textFields)
         self.waitForElement(addMethod)
         for key in textFields.keys():
             value = textFields[key]
@@ -191,19 +190,4 @@ class SelTestBase(unittest.TestCase):
         """
         for x in keyseq:
             self.selenium.key_press(locator, x)
-            
-"""    def editFields(self, submitMethod, **fields):
-        Consolidate form editing.
-        
-        self.waitForElement(submitMethod)
-        
-        for key in fields.keys():
-            value = fields[key]
-            if value[0] == "text":
-                self.selenium.type(key, value[1])
-            elif value[0] == "select":
-                self.selenium.select(key, value[1])
-        
-        self.selenium.click(submitMethod)
-        self.selenium.wait_for_page_to_load("30000")"""
         

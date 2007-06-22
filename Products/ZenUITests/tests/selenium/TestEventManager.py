@@ -123,7 +123,7 @@ class TestEventManager(SelTestBase):
         self.waitForElement("manage_addCommand:method")
         self.selenium.type("id", "testingString")
         self.selenium.click("manage_addCommand:method")
-        self.getByValue (listName, value, formName="clauseForm")
+        getByValue ("ids:list", "testingString", formName="clauseForm")
         self.waitForElement("manage_deleteCommands:method")
         self.selenium.click("manage_deleteCommands:method")
     
