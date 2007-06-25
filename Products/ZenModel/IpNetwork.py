@@ -224,6 +224,7 @@ class IpNetwork(DeviceOrganizer):
     def fullIpList(self):
         """Return a list of all ips in this network.
         """
+        if (self.netmask == 32): return [self.id]
         ipnumb = numbip(self.id)
         maxip = math.pow(2,32-self.netmask)
         start = int(ipnumb+1)

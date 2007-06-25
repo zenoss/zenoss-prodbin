@@ -195,7 +195,8 @@ class ZenDisc(ZenModeler):
         if self.options.net:
             for net in self.options.net:
                 try:
-                    netobj = self.dmd.Networks._getNet(net) 
+                    #netobj = self.dmd.Networks._getNet(net) 
+                    netobj = self.dmd.Networks.getSubNetwork(net)
                     if not netobj:
                         raise SystemExit("network %s not found in dmd" % net)
                     for ip in self.discoverIps((netobj,)):
