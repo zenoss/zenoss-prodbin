@@ -107,7 +107,7 @@ class ImportRM(ZCmdBase, ContentHandler):
         id = attrs.get('id')
         obj = None
         try:
-            if callable(self.context().id):
+            if id.startswith("/"):
                 obj = getObjByPath(self.app, id)
             else:
                 obj = self.context()._getOb(id)
