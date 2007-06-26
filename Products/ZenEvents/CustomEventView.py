@@ -120,7 +120,7 @@ class CustomEventView(ZenModelRM, EventFilter):
         """Return the current event list for this managed entity.
         """
         kwargs = locals(); del kwargs['self']
-        return self.getEventManager().getJSONEventsInfo(self.dmd.Events, **kwargs)
+        return self.getEventManager().getJSONEventsInfo(self, **kwargs)
 
 
     def getJSONHistoryEventsInfo(self, offset=0, count=50, fields=[], 
@@ -131,14 +131,13 @@ class CustomEventView(ZenModelRM, EventFilter):
         """Return the current event list for this managed entity.
         """
         kwargs = locals(); del kwargs['self']
-        return self.getEventHistory().getJSONEventsInfo(self.dmd.Events, **kwargs)
-
+        return self.getEventHistory().getJSONEventsInfo(self, **kwargs)
 
     def getJSONFields(self, history=False):
         """Return the current event list for this managed entity.
         """
-        if history: return self.getEventHistory().getJSONFields(self.dmd.Events)
-        else: return self.getEventManager().getJSONFields(self.dmd.Events)
+        if history: return self.getEventHistory().getJSONFields(self)
+        else: return self.getEventManager().getJSONFields(self)
 
     def getResultFields(self):
         if self.resultFields:

@@ -270,7 +270,8 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
         return self.lookupManagedEntityResultFields(context.event_key)
 
     def getEventListME(self, me, **kwargs):
-        where = self.lookupManagedEntityWhere(me)
+        where = kwargs.get('where', None) or self.lookupManagedEntityWhere(me)
+        if kwargs.has_key('where'): del kwargs['where']
         try:
             resultFields = kwargs['resultFields']; del kwargs['resultFields']
         except KeyError: 
@@ -997,8 +998,16 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
                           orderby='', **kwargs):
         """ Event data in JSON format.
         """
-        fields = self.lookupManagedEntityResultFields(context.event_key)
-        data, totalCount = self.getEventListME(context, 
+        if hasattr(context, 'getResultFields'):
+            fields = context.getResultFields()
+        else:
+            if hasattr(context, 'event_key'): base = context
+            else: base = self.dmd.Events
+            fields = self.lookupManagedEntityResultFields(base.event_key)
+        if hasattr(context, 'getWhere'):
+            where = context.getWhere()
+        else: where = None
+        data, totalCount = self.getEventListME(context, where=where,
             offset=offset, rows=count, resultFields=fields,
             getTotalCount=getTotalCount, filter=filter, severity=severity,
             state=state, orderby=orderby, startdate=startdate, enddate=enddate)
@@ -1008,7 +1017,12 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
 
     security.declareProtected('View','getJSONFields')
     def getJSONFields(self, context):
-        fields = self.lookupManagedEntityResultFields(context.event_key)
+        if hasattr(context, 'getResultFields'):
+            fields = context.getResultFields()
+        else:
+            if hasattr(context, 'event_key'): base = context
+            else: base = self.dmd.Events
+            fields = self.lookupManagedEntityResultFields(base.event_key)
         lens = map(self.getAvgFieldLength, fields)
         total = sum(lens)
         lens = map(lambda x:x/total*100, lens)
