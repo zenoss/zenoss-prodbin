@@ -60,8 +60,8 @@ class zeneventlog(Base):
                                     eventClass=Status_Wmi_Conn,
                                     agent=self.agent,
                                     severity=Event.Error,
-                                    manager=self.manager))
-
+                                    manager=self.manager,
+                                    component=self.name))
 
     def remote_deleteDevice(self, device):
         if device in self.devices:

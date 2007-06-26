@@ -117,7 +117,8 @@ class zenwinmodeler(Base):
                    eventClass=evtclass, 
                    device=name,
                    severity=sev,
-                   agent=self.agent)
+                   agent=self.agent,
+                   component=self.name)
         self.sendEvent(evt)
         self.log.exception(msg)
         self.failed = True

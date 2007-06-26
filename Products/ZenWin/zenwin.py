@@ -163,7 +163,8 @@ class zenwin(Base):
                             eventClass=Status_Wmi_Conn,
                             device=device.name,
                             severity=Event.Error,
-                            agent=self.agent))
+                            agent=self.agent,
+                            component=self.name))
         self.wmiprobs.append(device.name)
         self.log.warning("WMI Connection to %s went down" % device.name)
 
@@ -176,7 +177,8 @@ class zenwin(Base):
                                 eventClass=Status_Wmi_Conn,
                                 device=device.name,
                                 severity=Event.Clear,
-                                agent=self.agent))
+                                agent=self.agent,
+                                component=self.name))
 
     def updateConfig(self, cfg):
         Base.updateConfig(self, cfg)
