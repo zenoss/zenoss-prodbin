@@ -1,7 +1,6 @@
 <tal:block metal:use-macro="here/templates/macros/page2">
 <tal:block metal:fill-slot="contentPane">
-<form name="templates" method="post" 
-	tal:attributes="action here/absolute_url_path">
+<form name="templates" method="post" action="">
 
 <tal:block metal:define-macro="rrdtemplatelist"
     tal:define="
@@ -43,7 +42,7 @@
             <a tal:attributes="href temp/getPrimaryUrlPath" 
                 tal:content="temp/getId">name</a>
         </td>
-        <td>
+        <td tal:condition="temp/deviceClass">
             <a tal:attributes="href string:${temp/deviceClass/getPrimaryHref}/perfConfig"
                 tal:content="temp/getRRDPath">/Devices/Server</a>
         </td>
