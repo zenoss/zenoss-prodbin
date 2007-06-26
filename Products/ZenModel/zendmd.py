@@ -84,22 +84,6 @@ if __name__ == '__main__':
         '''Logs out.'''
         noSecurityManager()
 
-    def addDevicesTest(numDevices=40000, prefix="d"):
-        '''Add 40,000 devices'''
-        from Device import Device
-        import time
-        context = zendmd.dmd.Devices.Devices
-        print 'Started %s' % time.ctime()
-        for i in range(0, numDevices):
-            if not i % 5000: transaction.commit()
-            if not i % 1000: print 'At %s: %s' % (i, time.ctime())
-            id = '%s%s' % (prefix, i)
-            d = Device(id)
-            d.setManageIp('192.168.1.1')
-            context._setObject(id, d)
-        transaction.commit()
-        print 'Ended %s' % time.ctime()
-    
     def grepdir(obj, regex="", exact=""):
         if regex:
             import re
