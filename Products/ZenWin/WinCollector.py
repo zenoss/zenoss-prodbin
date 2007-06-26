@@ -3799,9 +3799,9 @@ class WinCollector(Base):
     def printComErrorMessage(self, ex):
         code, error, msg = self.parseComError(ex)
         if code and error and msg:
-            return '%s: %s: %s' % (code, error, msg)
+            return '%s: %s (%s)' % (error, msg, code)
         elif code:
-            return '%s: Could not map this code to a com_error'
+            return 'Could not map the error code %s to a com_error' % code
         else:
             return None
         
