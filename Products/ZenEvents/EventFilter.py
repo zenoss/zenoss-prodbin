@@ -110,7 +110,7 @@ Modes = """
             {text:"<=",value:"<="},
             {text:"=",value:"="},
             {text:">",value:">"},
-            {text:">=",value:">"}],
+            {text:">=",value:">="}],
    cselect:[{text:"<",value:"<"},
             {text:"<=",value:"<="},
             {text:"=",value:"="},
