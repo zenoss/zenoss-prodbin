@@ -156,7 +156,9 @@ class zenwin(Base):
     def deviceDown(self, device, message):
         if device.name in self.watchers:
             del self.watchers[device.name]
-        msg = "WMI error talking to %s: %s" % (device.name, message)
+        msg = self.printComErrorMessage(message)
+        if not msg:
+            msg = "WMI connect error on %s: %s" % (device.name, message)
         self.sendEvent(dict(summary=msg,
                             eventClass=Status_Wmi_Conn,
                             device=device.name,

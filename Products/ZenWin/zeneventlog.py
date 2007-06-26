@@ -51,7 +51,9 @@ class zeneventlog(Base):
                     continue
                 self.devices[name] = self.getWatcher(name,user,passwd,sev)
             except Exception, ex:
-                msg = summary='WMI connect error on %s: %s' % (name, ex)
+                msg = self.printComErrorMessage(ex)
+                if not msg:
+                    msg = 'WMI connect error on %s: %s' % (name, str(ex))
                 self.log.exception(msg)
                 self.sendEvent(dict(summary=msg,
                                     device=name,

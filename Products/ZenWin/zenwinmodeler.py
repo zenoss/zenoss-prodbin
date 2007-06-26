@@ -23,7 +23,7 @@ import pywintypes
 import Globals
 from WinCollector import WinCollector as Base
 from Products.ZenEvents.ZenEventClasses import \
-     Heartbeat, Status_WinService, Status_Wmi
+     Heartbeat, Status_WinService, Status_Wmi, Status_Wmi_Conn
 from Products.ZenUtils.Utils import prepId
 
 from Products.ZenEvents import Event
@@ -72,14 +72,16 @@ class zenwinmodeler(Base):
                 d.addErrback(self.error)
             except (SystemExit, KeyboardInterrupt): raise
             except pywintypes.com_error, e:
-                msg = "WMI error talking to %s " % name
-                code, txt, info, param = e
-                wmsg = "%s: %s" % (abs(code), txt)
-                if info:
-                    wcode, source, descr, hfile, hcont, scode = info
-                    scode = abs(scode)
-                    if descr: wmsg = descr.strip()
-                msg += "%d: %s" % (scode, wmsg)
+                msg = self.printComErrorMessage(e)
+                if not msg:
+                    msg = "WMI connect error on %s: %s" % (name)
+                    code, txt, info, param = e
+                    wmsg = "%s: %s" % (abs(code), txt)
+                    if info:
+                        wcode, source, descr, hfile, hcont, scode = info
+                        scode = abs(scode)
+                        if descr: wmsg = descr.strip()
+                    msg += "%d: %s" % (scode, wmsg)
                 self.sendFail(name, msg, Status_Wmi_Conn, Event.Error)
             except:
                 self.sendFail(name)
