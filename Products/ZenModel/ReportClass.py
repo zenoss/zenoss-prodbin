@@ -120,5 +120,14 @@ class ReportClass(Organizer, ZenPackable):
             REQUEST['message'] = "Device reports moved"
             REQUEST['RESPONSE'].redirect(target.getPrimaryUrlPath())
     
+
+    def exportXmlHook(self, ofile, ignorerels):
+        """patch to export all device components
+        """
+        from Acquisition import aq_base
+        for o in self.reports():
+            if hasattr(aq_base(o), 'exportXml'):
+                o.exportXml(ofile, ignorerels)
      
+
 InitializeClass(ReportClass)
