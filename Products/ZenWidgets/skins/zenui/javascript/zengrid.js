@@ -444,6 +444,11 @@ ZenGrid.prototype = {
             setStyle(cells[i], {'cursor':'pointer'});
             connect(cells[i], 'onclick', this.toggleSortOrder);
         }
+        setStyle(cells[isManager?1:0], {
+            'background':'#aaa url(img/arrow.u.gif) right no-repeat',
+            'color':'black'
+        });
+        this.lastparams['orderby']='device ASC';
     },
     toggleSortOrder: function(e) {
         var cell = e.src();
@@ -455,27 +460,31 @@ ZenGrid.prototype = {
             switch(this.lastparams['orderby']) {
                 case (f + ' ASC'):
                     setStyle(cell, {
-                        'background':'#888 url(img/arrow.d.gif) right no-repeat',
-                        'color':'white'
+                        'background':'#aaa url(img/arrow.d.gif) right no-repeat',
+                        'color':'black'
                     });
                     this.refreshWithParams({'orderby': f + ' DESC'});
                     return;
                 case (f + ' DESC'):
                     clearcell(cell);
+                    setStyle(headcells[isManager?1:0], {
+                        'background':'#aaa url(img/arrow.u.gif) right no-repeat',
+                        'color':'black'
+                    });
                     this.refreshWithParams({'orderby': ''});
                     return;
                 default:
                     setStyle(cell, {
-                        'background':'#888 url(img/arrow.u.gif) right no-repeat',
-                        'color':'white'
+                        'background':'#aaa url(img/arrow.u.gif) right no-repeat',
+                        'color':'black'
                     });
                     this.refreshWithParams({'orderby':f + ' ASC'});
                     return;
             }
         } else {
             setStyle(cell, {
-                'background':'#888 url(img/arrow.u.gif) right no-repeat',
-                'color':'white'
+                'background':'#aaa url(img/arrow.u.gif) right no-repeat',
+                'color':'black'
             });
             this.refreshWithParams({'orderby':f + ' ASC'});
         }

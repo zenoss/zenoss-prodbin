@@ -399,6 +399,13 @@ DeviceZenGrid.prototype = {
             setStyle(cells[i], {'cursor':'pointer'});
             connect(cells[i], 'onclick', this.toggleSortOrder);
         }
+        setStyle(cells[isManager?1:0], {
+            'background':'#aaa url(img/arrow.u.gif) right no-repeat',
+            'color':'black'
+        });
+        var f = fieldmap[cell.getElementsByTagName('div')[0].innerHTML];
+        this.lastparams['orderby']='id';
+        this.lastparams['orderdir']='asc';
     },
     toggleSortOrder: function(e) {
         var fieldmap = {
@@ -419,20 +426,24 @@ DeviceZenGrid.prototype = {
             switch(this.lastparams['orderdir']) {
                 case ('asc'):
                     setStyle(cell, {
-                        'background':'#888 url(img/arrow.d.gif) right no-repeat',
-                        'color':'white'
+                        'background':'#aaa url(img/arrow.d.gif) right no-repeat',
+                        'color':'black'
                     });
                     this.refreshWithParams({'orderby':f, 'orderdir':'desc'});
                     return;
                 case ('desc'):
                     clearcell(cell);
+                    setStyle(headcells[isManager?1:0], {
+                        'background':'#aaa url(img/arrow.u.gif) right no-repeat',
+                        'color':'black'
+                    });
                     this.refreshWithParams({'orderby':'id','orderdir':'asc'});
                     return;
             }
         } else {
             setStyle(cell, {
-                'background':'#888 url(img/arrow.u.gif) right no-repeat',
-                'color':'white'
+                'background':'#aaa url(img/arrow.u.gif) right no-repeat',
+                'color':'black'
             });
             this.refreshWithParams({'orderby':f , 'orderdir':'asc'});
         }
