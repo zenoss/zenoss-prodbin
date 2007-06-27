@@ -129,7 +129,7 @@ class DmdBuilder:
     def buildUserCommands(self):
         for id, cmd in (
                 ('ping', 'ping -c2 ${device/manageIp}'),
-                ('traceroute', 'traceroute -q1 -w2 ${device/manageIp}'),
+                ('traceroute', 'traceroute -q 1 -w 2 ${device/manageIp}'),
                 ('DNS forward', 'host ${device/manageIp}'),
                 ('DNS reverse', 'host ${device/id}'),
                 ('snmpwalk', 'snmpwalk -v1 -c${device/zSnmpCommunity}'

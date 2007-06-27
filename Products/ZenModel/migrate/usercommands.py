@@ -51,7 +51,7 @@ class UserCommands(Migrate.Step):
 
         # Add built-in commands
         commands = (('ping', 'ping -c2 ${device/manageIp}'),
-                    ('traceroute', 'traceroute -q1 -w2 ${device/manageIp}'),
+                    ('traceroute', 'traceroute -q 1 -w 2 ${device/manageIp}'),
                     ('DNS forward', 'host ${device/id}'),
                     ('DNS reverse', 'host ${device/manageIp}'),
                     ('snmpwalk', 'snmpwalk -v1 -c${device/zSnmpCommunity}'
