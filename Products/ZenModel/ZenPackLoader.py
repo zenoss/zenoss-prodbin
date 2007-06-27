@@ -145,6 +145,14 @@ class ZPLReport(ZPLObject):
 class ZPLDaemons(ZenPackLoader):
 
     name = "Daemons"
+    
+    extensionsToIgnore = ('.svn-base', '.pyc' '~')
+    def filter(self, f):
+        for ext in self.extensionsToIgnore:
+            if f.endswith(ext):
+                return False
+        return True
+
 
     def binPath(self, daemon):
         return os.path.join(os.environ['ZENHOME'],
@@ -152,19 +160,23 @@ class ZPLDaemons(ZenPackLoader):
                             os.path.basename(daemon))
 
     def load(self, pack, app):
-        for fs in findFiles(pack, 'daemons'):
+        for fs in findFiles(pack, 'daemons', filter=self.filter):
             os.chmod(fs, 0755)
+            path = self.binPath(fs)
+            if os.path.isfile(path):
+                os.remove(path)
             os.symlink(fs, self.binPath(fs))
 
     def unload(self, pack, app):
-        for fs in findFiles(pack, 'daemons'):
+        for fs in findFiles(pack, 'daemons', filter=self.filter):
             try:
                 os.remove(self.binPath(fs))
             except OSError:
                 pass
 
     def list(self, pack, app):
-        return [branchAfter(d, 'daemons') for d in findFiles(pack, 'daemons')]
+        return [branchAfter(d, 'daemons') 
+                for d in findFiles(pack, 'daemons', filter=self.filter)]
 
 
 class ZPLModelers(ZenPackLoader):
