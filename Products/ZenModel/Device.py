@@ -359,7 +359,7 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable, Admini
 
     def getRRDTemplates(self):
         if not self.zDeviceTemplates:
-            return ManagedEntity.getRRDTemplates()
+            return ManagedEntity.getRRDTemplates(self)
         result = []
         for name in self.zDeviceTemplates:
             template = self.getRRDTemplateByName(name)
