@@ -494,11 +494,10 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable, Admini
         if not dev.snmpMonitorDevice(): return None
         oids = []
         max = getattr(self, 'zMaxOIDPerRequest')
-        if not self.zSnmpMonitorIgnore:
-            oids = (super(Device, self).getSnmpOidTargets())
-            for o in self.os.getMonitoredComponents():
-                if o.meta_type != "OSProcess":
-                    oids.extend(o.getSnmpOidTargets())
+        oids = (super(Device, self).getSnmpOidTargets())
+        for o in self.os.getMonitoredComponents():
+            if o.meta_type != "OSProcess":
+                oids.extend(o.getSnmpOidTargets())
         return (float(self.getLastChange()), self.getSnmpConnInfo(), oids, max)
 
 
@@ -688,6 +687,7 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable, Admini
             try: ip = socket.gethostbyname(self.id)
             except socket.error: ip = ""
         self.manageIp = ip
+        self.index_object()
         if REQUEST:
             if ip: REQUEST['message'] = "Manage IP set"
             else: REQUEST['message'] = "Not a valid IP"
@@ -899,13 +899,15 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable, Admini
         """Set a device's production state as an integer.
         """
         self.productionState = int(state)
+        self.index_object()
         try:
             zem = self.dmd.ZenEventManager
             conn = zem.connect()
             try:
                 curs = conn.cursor()
-                curs.execute("update status set prodState=%d where device='%s'" % (
-                                self.productionState, self.id))
+                curs.execute(
+                    "update status set prodState=%d where device='%s'" % (
+                    self.productionState, self.id))
             finally: zem.close(conn)
         except OperationalError:
             log.exception("failed to update events with new prodState")
