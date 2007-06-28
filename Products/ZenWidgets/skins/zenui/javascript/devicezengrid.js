@@ -403,7 +403,6 @@ DeviceZenGrid.prototype = {
             'background':'#aaa url(img/arrow.u.gif) right no-repeat',
             'color':'black'
         });
-        var f = fieldmap[cell.getElementsByTagName('div')[0].innerHTML];
         this.lastparams['orderby']='id';
         this.lastparams['orderdir']='asc';
     },
@@ -452,7 +451,6 @@ DeviceZenGrid.prototype = {
     },
     refreshWidths: function() {
         var widths = this.getColLengths();
-        log(widths);
         var parentwidth = getElementDimensions(this.viewport).w;
         this.abswidths = new Array();
         for (i=0;i<widths.length;i++) {

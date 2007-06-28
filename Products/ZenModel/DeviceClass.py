@@ -239,6 +239,7 @@ class DeviceClass(DeviceOrganizer, ZenPackable):
              'setSystems':'systemPaths',
              'setLocation':'locationPath',
              'setPerformanceMonitor':'performanceMonitor',
+             'setStatusMonitors':'statusMonitors',
              'moveDevices':'moveTarget',
              'removeDevices':'',
              'setProdState':'state',
