@@ -292,7 +292,7 @@ class DeviceClass(DeviceOrganizer, ZenPackable):
             user = getattr(dev,'zWinUser','')
             passwd = getattr(dev, 'zWinPassword', '')
             sev = getattr(dev, 'zWinEventlogMinSeverity', '')
-            devinfo.append((dev.id,user,passwd,sev,dev.absolute_url()))
+            devinfo.append((dev.id, str(user), str(passwd), sev, dev.absolute_url()))
         return starttime, devinfo
     
     
@@ -314,7 +314,7 @@ class DeviceClass(DeviceOrganizer, ZenPackable):
             if not svcs and not dev.zWinEventlog: continue
             user = getattr(dev,'zWinUser','')
             passwd = getattr(dev, 'zWinPassword', '')
-            svcinfo.append((dev.id, user, passwd, svcs))
+            svcinfo.append((dev.id, str(user), str(passwd), svcs))
         return svcinfo
 
 

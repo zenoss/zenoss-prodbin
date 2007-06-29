@@ -45,8 +45,8 @@ class WmiConfig(HubService):
             sev = getattr(dev, 'zWinEventlogMinSeverity', '')
             devinfo.append((dev._lastChange,
                             dev.id,
-                            user,
-                            passwd,
+                            str(user),
+                            str(passwd),
                             sev,
                             dev.absolute_url()))
         return devinfo
@@ -71,7 +71,7 @@ class WmiConfig(HubService):
             if not svcs and not dev.zWinEventlog: continue
             user = getattr(dev,'zWinUser','')
             passwd = getattr(dev, 'zWinPassword', '')
-            svcinfo.append((dev.id, user, passwd, svcs))
+            svcinfo.append((dev.id, str(user), str(passwd), svcs))
         return svcinfo
 
     def remote_getConfig(self):
