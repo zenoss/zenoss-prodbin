@@ -1037,6 +1037,7 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable, Admini
         obj = self.getDmdRoot("Monitors").getPerformanceMonitor(
                                                     performanceMonitor)
         self.addRelation("perfServer", obj)
+        self.setLastChange()
                 
         if REQUEST:
             REQUEST['message'] = "Set Performance %s at time:" % performanceMonitor
@@ -1049,6 +1050,7 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable, Admini
         """
         objGetter = self.getDmdRoot("Monitors").getStatusMonitor
         self._setRelations("monitors", objGetter, statusMonitors)
+        self.setLastChange()
 
 
     security.declareProtected('Change Device', 'addStatusMonitor')
@@ -1057,6 +1059,7 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable, Admini
         if newStatusMonitor:
             mon = self.getDmdRoot("Monitors").getStatusMonitor(newStatusMonitor)
             self.addRelation("monitors", mon)
+            self.setLastChange()
         if REQUEST:
             if newStatusMonitor:
                 REQUEST['message'] = "Added Monitor %s at time:" % \
