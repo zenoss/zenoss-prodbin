@@ -365,6 +365,8 @@ class ZenActions(ZCmdBase):
     def mainbody(self):
         """main loop to run actions.
         """
+        from twisted.internet.process import reapAllProcesses
+        reapAllProcesses()
         zem = self.dmd.ZenEventManager
         self.loadActionRules()
         self.eventCommands(zem)
