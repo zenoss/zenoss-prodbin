@@ -37,5 +37,10 @@ class EventService(HubService):
     def remote_getDevicePingIssues(self, *args, **kwargs):
         return self.zem.getDevicePingIssues(*args, **kwargs)
 
+
+    def remote_getDeviceIssues(self, *args, **kwargs):
+        return self.zem.getDeviceIssues(*args, **kwargs)
+
+
     def remote_getWmiConnIssues(self):
         return self.zem.getWmiConnIssues()
