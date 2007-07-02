@@ -32,7 +32,8 @@ class ZenPackCmd(ZenScriptBase):
             elif os.path.isdir(self.options.installPackName):
                 packName = self.copyDir(self.options.installPackName)
             else:
-                self.stop('%s does not appear to be a valid file or directory.')
+                self.stop('%s does not appear to be a valid file or directory.'
+                          % self.options.installPackName)
             self.install(packName)
 
         elif self.options.removePackName:
