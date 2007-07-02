@@ -38,6 +38,10 @@ log = logging.getLogger("zen.mail")
 
 
 class POPProtocol(POP3Client):
+    ''' protocol that is responsible for conversing with a pop server
+    after a connection has been established.  downloads messages (and
+    deletes them by default), and passes the messages back up to the
+    factory to process (and turn into events)'''
 
     allowInsecureLogin = True
     timeout = 15
@@ -88,6 +92,7 @@ class POPProtocol(POP3Client):
         log.info('passing message up to factory')
         self.factory.handleMessage("\r\n".join(messageLines))
 
+
     def _delete(self, results):
         if not self.factory.nodelete:
             deleters = []
@@ -96,7 +101,6 @@ class POPProtocol(POP3Client):
                 d = self.delete(index)
                 deleters.append(d)
 
-        import pdb; pdb.set_trace()
         deferreds = defer.DeferredList(deleters)
         return deferreds
 
@@ -108,6 +112,9 @@ class POPProtocol(POP3Client):
     
     
 class POPFactory(protocol.ClientFactory):
+    ''' factory that stores the configuration the protocol uses to do it's
+    job.'''
+    
     protocol = POPProtocol
 
     def __init__(self, user, passwd, 
@@ -128,6 +135,7 @@ class POPFactory(protocol.ClientFactory):
 
     def clientConnectionFailed(self, connection, reason):
         self.deferred.errback(reason)
+
 
     def scanComplete(self, results):
         log.info("scan complete")
@@ -157,8 +165,8 @@ class ZenMail(MailDaemon):
         cycle = int(self.options.cycle)
         nodelete = int(self.options.nodelete)
 
-        log.info("creating POPFactory.")
-        log.info("credentials user: %s; pass: %s" % (popuser, len(poppasswd) * '*'))
+        log.info("credentials user: %s; pass: %s" % (popuser, 
+                                                     len(poppasswd) * '*'))
         self.factory = POPFactory(popuser, poppasswd, 
                                   self.processor, cycletime, cycle, nodelete,
                                   self._finish)
@@ -177,11 +185,12 @@ class ZenMail(MailDaemon):
         log.error(error)
         log.error(error.getErrorMessage())
 
-        # FIXME: if not options.cycle...
         self.finish()
+
 
     def _finish(self):
         self.finish()
+
 
     def buildOptions(self):
         EventServer.buildOptions(self)
