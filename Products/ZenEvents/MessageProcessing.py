@@ -57,6 +57,7 @@ class MessageProcessor(object):
     def process(self, messageStr):
         message = email.message_from_string(messageStr)
         fromAddr = message.get('From').split('@')[1][:-1]
+        fromAddr = fromAddr.split(' ')[0]
         try:
             fromIp = socket.gethostbyname(fromAddr)
         except socket.gaierror, e:
