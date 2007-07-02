@@ -83,6 +83,7 @@ class PBDaemon(ZenDaemon, pb.Referenceable):
         for evt in self.startEvent, self.stopEvent:
             evt.update(dict(component=self.name, device=getfqdn()))
         self.initialConnect = defer.Deferred()
+        self.stopped = False
 
 
     def gotPerspective(self, perspective):
@@ -187,7 +188,8 @@ class PBDaemon(ZenDaemon, pb.Referenceable):
             pass
 
     def stop(self):
-        if reactor.running:
+        if reactor.running and not self.stopped:
+            self.stopped = True
             if 'EventService' in self.services:
                 self.sendEvent(self.stopEvent)
                 # give the reactor some time to send the shutdown event
