@@ -12,10 +12,11 @@
 
 . $ZENHOME/bin/zenfunctions
 
-SUDO="$ZENHOME/bin/zensocket --listen=25 -- "
+SUDO="$ZENHOME/bin/zensocket --listen --proto=tcp --port=25 -- "
 PRGHOME=$ZENHOME/Products/ZenEvents
 PRGNAME=zenmail.py
 CFGFILE=$CFGDIR/zenmail.conf
 PIDFILE=$VARDIR/$PRGNAME.pid
 
-generic "$@" --useFileDescriptor='$privilegedSocket'
+#generic "$@" --useFileDescriptor='$privilegedSocket'
+generic "$@"
