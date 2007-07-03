@@ -132,6 +132,9 @@ class MaintenanceWindow(ZenModelRM):
         "Provide the list of REPEAT options"
         return self.REPEAT
 
+    def getTargetId(self):
+        return self.target().id
+
     # Nice methods used by the GUI for presentation purposes
     def niceDuration(self):
         """Return a human readable version of the duration in
