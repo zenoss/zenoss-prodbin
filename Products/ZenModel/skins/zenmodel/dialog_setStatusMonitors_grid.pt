@@ -1,0 +1,24 @@
+<h2>Set Status Monitors</h2>
+<br/>
+<p style="text-align:center;font-size:0.8em;">
+Status Monitor:&nbsp;<select class="tablevalues" id="statusMonitors" 
+        name="statusMonitors"
+        tal:define="
+        crks python:here.getDmdRoot('Monitors').getStatusMonitorNames();
+        curcrk here/getStatusServerName | request/StatusMonitors |
+            string:localhost" multiple>
+            <option tal:repeat="crk crks" 
+                tal:attributes="value crk; 
+                    selected python:curcrk and crk in curcrk"
+                tal:content="crk">localhost</option>
+        </select>
+</p>
+<div id="dialog_buttons">
+<input type="submit" name="setStatusMonitors:method" value="OK"
+    onclick="devZenGrid.setDeviceBatchProps('setStatusMonitors',
+        map(function(x){return x.value}, 
+            filter(function(x){return x.selected},
+                   $('statusMonitors').options)))"/>
+<input id="dialog_cancel" type="button" value="Cancel"
+        onclick="$('dialog').hide()"/>
+</div>
