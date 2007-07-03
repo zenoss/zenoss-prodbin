@@ -121,7 +121,7 @@ class ZenMail(EventServer, RRDDaemon):
         if self.options.useFileDescriptor != -1:
             self.useUdpFileDescriptor(int(self.options.useFileDescriptor))
         else:
-            reactor.listenTCP(2525, self.factory)
+            reactor.listenTCP(self.options.listenPort, self.factory)
             reactor.run()
 
 
