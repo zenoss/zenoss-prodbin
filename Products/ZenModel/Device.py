@@ -491,7 +491,7 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable, Admini
          (snmpcommunity, snmpversion, snmptimeout, snmptries)
          [(name, oid, path, type, createCmd, thresholds),])
         """
-        if not dev.snmpMonitorDevice(): return None
+        if not self.snmpMonitorDevice(): return None
         oids = []
         max = getattr(self, 'zMaxOIDPerRequest')
         oids = (super(Device, self).getSnmpOidTargets())
