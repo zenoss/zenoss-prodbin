@@ -1,0 +1,25 @@
+<tal:block metal:define-macro="body">
+<h2>Set Status Monitors</h2>
+<br/>
+<p style="text-align:center;font-size:0.8em;">
+Status Monitors:&nbsp;<select class="tablevalues" name="statusMonitors"
+        tal:define="
+        crks python:here.getDmdRoot('Monitors').getStatusMonitorNames();
+        curcrk here/getStatusMonitorNames | request/statusMonitors |
+            string:localhost" multiple>
+            <option tal:repeat="crk crks" 
+                tal:attributes="value crk; 
+                    selected python:curcrk and crk in curcrk"
+                tal:content="crk">localhost</option>
+        </select>
+</p>
+</tal:block>
+<div id="dialog_buttons">
+<input type="submit" name="setStatusMonitors:method" value="OK"
+    tal:attributes="onclick string:return $$('dialog').submit_form(
+                        '${here/getPrimaryUrlPath}')" />
+<input tal:attributes="id string:dialog_cancel;
+                        type string:button;
+                        value string:Cancel;
+                        onclick string:$$('dialog').hide()" />
+</div>
