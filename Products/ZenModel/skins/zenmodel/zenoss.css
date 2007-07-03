@@ -1,5 +1,5 @@
 body {
-    background: white;
+    background: #8f8f8f;
     color: black;
     font-family:  Verdana, Arial, Helvetica, sans-serif;
     font-size:  9pt;
@@ -28,7 +28,7 @@ input,textarea {
 }
 
 #infoBar {
-    background: #ff9 url('img/infobar_bg.gif') top left repeat-x ;
+    background: #A1AFC4 url('img/infobar_bg.gif') top left repeat-x ;
     border-bottom: 1px solid #444;
     height: 25px;
     line-height: 25px;
@@ -176,7 +176,7 @@ div.logo {
 	left: 0px;
     top: 107px;
 	width: 115px;
-    background-color: #fefee2;
+    background: transparent url('img/paneToggle_bg.gif') top right repeat-y;
     border-right: 1px solid black;
 }
 
@@ -185,9 +185,10 @@ div.logo {
     padding: 5px 10px;
     font-weight: bold;
     font-size: 100%;
-    color: black;
+    color: white;
     border-top: 1px outset black;
     border-bottom: 1px inset black;
+    background: #444;
 }
 
 #leftPane ul {
@@ -205,8 +206,8 @@ div.logo {
 
 #leftPane ul li a {
     text-decoration: none;
-    color: black;
-    font-size: 115%;
+    color: white;
+    font-size: 105%;
     display: block;
     padding-top: 2px;
     padding-bottom: 2px;
@@ -214,9 +215,12 @@ div.logo {
     margin: 0px;
 }
 	
-#leftPane ul li a.selected ,
 #leftPane ul li a:hover {
-    background-color: #ff9;
+    background-color: black;
+}
+
+#leftPane ul li a.selected {
+    background-color: black;
 }
 
 #rightPane
@@ -569,7 +573,7 @@ a.tabletitleselected:hover {
     font-family: Verdana, Arial, Helvetica, sans-serif;
     color: #000040; 
     font-weight: normal; 
-    background-color: #fff;
+    background-color: #EEE;
 }
 td.tablevalues {  
     font-family: Verdana, Arial, Helvetica, sans-serif;
@@ -691,7 +695,7 @@ a.tablevalues:active {
 /* ALTERNATING ROWS */
 .odd,
 .odd a.tablevalues,
-.odd td.tablevalues { background-color: #fefee2 }
+.odd td.tablevalues { background-color: #ddd }
 
 .rainbow {
     padding:0px;
@@ -734,7 +738,7 @@ a.tablevalues:active {
     border-right: 1px solid black;
     z-index: 4000;
     cursor: pointer;
-    background: #fefee2 ;
+    background: transparent url('img/paneToggle_bg.gif') top right no-repeat;
 }
 
 .temp_filterbox {
