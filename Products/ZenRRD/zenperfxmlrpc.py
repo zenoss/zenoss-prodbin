@@ -37,8 +37,8 @@ from Products.ZenModel.PerformanceConf import performancePath
 from Products.ZenEvents import Event
 from Products.ZenEvents.ZenEventClasses import Status_XmlRpc, Perf_XmlRpc
 
-from RRDUtil import RRDUtil
-from RRDDaemon import RRDDaemon, Threshold
+from Products.ZenRRD.RRDUtil import RRDUtil
+from Products.ZenRRD.RRDDaemon import RRDDaemon, Threshold
 
 from FileCleanup import FileCleanup
 
