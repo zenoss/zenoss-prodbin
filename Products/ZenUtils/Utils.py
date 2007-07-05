@@ -398,10 +398,10 @@ def basicAuthUrl(username, password, url):
 
 
 def prepId(id, subchar='_'):
-    """Make an id with valid url characters. Subs [^a-zA-Z0-9-_~,.$\(\)# ]
+    """Make an id with valid url characters. Subs [^a-zA-Z0-9-_,.$\(\) ]
     with subchar.  If id then starts with subchar it is removed.
     """
-    _prepId = re.compile(r'[^a-zA-Z0-9-_,.$ ]').sub
+    _prepId = re.compile(r'[^a-zA-Z0-9-_,.$\(\) ]').sub
     _cleanend = re.compile(r"%s+$" % subchar).sub
     if id is None: 
         raise ValueError('Ids can not be None')
