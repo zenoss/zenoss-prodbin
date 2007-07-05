@@ -77,7 +77,7 @@ class ZenBackup(ZenBackupBase):
                                             (index and '_%s' % index) or '')
         backupDir = os.path.join(self.zenhome, 'backups')
         if not os.path.exists(backupDir):
-            os.mkdir(backupDir)
+            os.mkdir(backupDir, 0750)
         for i in range(MAX_UNIQUE_NAME_ATTEMPTS):
             name = os.path.join(backupDir, getName(i))
             if not os.path.exists(name):
@@ -179,7 +179,7 @@ class ZenBackup(ZenBackupBase):
         # Create temp backup dir
         rootTempDir = self.getTempDir()
         tempDir = os.path.join(rootTempDir, BACKUP_DIR)
-        os.mkdir(tempDir)
+        os.mkdir(tempDir, 0750)
         
         # Save options to a file for use during restore
         if self.options.saveSettings:
@@ -200,7 +200,7 @@ class ZenBackup(ZenBackupBase):
         # backup zopedb
         self.msg('Backing up zeo database.')
         repozoDir = os.path.join(tempDir, 'repozo')
-        os.mkdir(repozoDir)
+        os.mkdir(repozoDir, 0750)
         cmd = ('%s --backup --full ' % 
                 self.getRepozoPath() +
                 '--repository %s --file %s/var/Data.fs' %

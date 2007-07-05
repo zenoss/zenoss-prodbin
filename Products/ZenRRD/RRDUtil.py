@@ -40,7 +40,7 @@ class RRDUtil:
             log.debug("create new rrd %s", filename)
             dirname = os.path.dirname(filename)
             if not os.path.exists(dirname):
-                os.makedirs(dirname)
+                os.makedirs(dirname, 0750)
 
             min, max = map(_checkUndefined, (min, max))
             dataSource = 'DS:%s:%s:%d:%s:%s' % ('ds0', rrdType,

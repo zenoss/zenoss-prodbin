@@ -15,7 +15,7 @@ import time
 
 TMPDIR='/tmp/renderserver'
 if not os.path.exists(TMPDIR):
-    os.makedirs(TMPDIR)
+    os.makedirs(TMPDIR, 0750)
 
 colors = [s.strip()[1:] for s in '''
 #00FF99

@@ -131,7 +131,7 @@ class HtmlGenerator(object):
     def getFileName(self, cls, outdir=True):
         filename = os.path.join(self.outdir, self.getHref(cls))
         dirname = os.path.dirname(filename)
-        if not os.path.isdir(dirname): os.makedirs(dirname)
+        if not os.path.isdir(dirname): os.makedirs(dirname, 0750)
         return filename
                                     
 

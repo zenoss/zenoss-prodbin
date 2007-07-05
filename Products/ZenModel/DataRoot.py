@@ -467,14 +467,14 @@ class DataRoot(ZenModelRM, OrderedFolder, Commandable, ZenMenuable):
         import os
         zp = os.path.join(os.environ['ZENHOME'], 'Products', id)
         if not os.path.isdir(zp):
-            os.makedirs(zp)
+            os.makedirs(zp, 0750)
             for d in ['objects', 'skins', 'modeler/plugins',
                       'reports', 'daemons']:
-                os.makedirs(os.path.join(zp, d))
+                os.makedirs(os.path.join(zp, d), 0750)
         skinsDir = os.path.join(zp, 'skins')
         skinsDir2 = os.path.join(skinsDir, id)
         if not os.path.isdir(skinsDir2):
-            os.makedirs(skinsDir2)
+            os.makedirs(skinsDir2, 0750)
         registerDirectory(skinsDir, globals())
         # Install in order to register the skins directory
         pack.install(self.getPhysicalRoot())

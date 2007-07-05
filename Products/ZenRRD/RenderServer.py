@@ -99,7 +99,7 @@ class RenderServer(RRDToolItem):
         graph = self.getGraph(id, ftype, REQUEST)
         if not graph:
             if not os.path.exists(self.tmpdir):
-                os.makedirs(self.tmpdir)
+                os.makedirs(self.tmpdir, 0750)
             filename = "%s/graph-%s" % (self.tmpdir,id)
             if remoteUrl:
                 f = open(filename, "w")

@@ -60,7 +60,7 @@ MAX_SNMP_REQUESTS = 20
 
 def makeDirs(dir):
     if not os.path.exists(dir):
-        os.makedirs(dir)
+        os.makedirs(dir, 0750)
 
 def read(fname):
     if os.path.exists(fname):

@@ -123,11 +123,11 @@ class ZenPackCmd(ZenScriptBase):
             if name.endswith('~'): continue
             if name.endswith('/'):
                 if not os.path.exists(fullname):
-                    os.makedirs(fullname)
+                    os.makedirs(fullname, 0750)
             else:
                 base = os.path.dirname(fullname)
                 if not os.path.isdir(base):
-                    os.makedirs(base)
+                    os.makedirs(base, 0750)
                 file(fullname, 'wb').write(zf.read(name))
         return packName
         

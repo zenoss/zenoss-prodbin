@@ -191,7 +191,7 @@ class zenperfxmlrpc(RRDDaemon):
         self.methodsRequested = 0
         perfRoot = performancePath('')
         if not os.path.exists(perfRoot):
-            os.makedirs(perfRoot)
+            os.makedirs(perfRoot, 0750)
         self.fileCleanup = FileCleanup(perfRoot, '.*\\.rrd$')
         self.fileCleanup.process = self.cleanup
         self.fileCleanup.start()

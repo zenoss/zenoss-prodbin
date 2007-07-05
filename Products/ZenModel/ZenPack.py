@@ -101,13 +101,13 @@ class ZenPack(ZenModelRM):
         xml.write("</objects>\n")
         path = zenPackPath(self.id, 'objects')
         if not os.path.isdir(path):
-            os.mkdir(path)
+            os.mkdir(path, 0750)
         objects = file(os.path.join(path, 'objects.xml'), 'w')
         objects.write(xml.getvalue())
         objects.close()
         path = zenPackPath(self.id, 'skins')
         if not os.path.isdir(path):
-            os.makeDirs(path)
+            os.makeDirs(path, 0750)
         init = zenPackPath(self.id, '__init__.py')
         if not os.path.isfile(init):
             fp = file(init, 'w')
@@ -131,7 +131,7 @@ class ZenPack(ZenPackBase):
         zenhome = os.getenv('ZENHOME')
         path = os.path.join(zenhome, 'export')
         if not os.path.isdir(path):
-            os.makeDirs(path)
+            os.makeDirs(path, 0750)
         from zipfile import ZipFile, ZIP_DEFLATED
         zf = ZipFile(os.path.join(path, '%s.zip' % self.id), 'w', ZIP_DEFLATED)
         base = zenPackPath()

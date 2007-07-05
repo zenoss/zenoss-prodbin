@@ -33,6 +33,6 @@ class ImportExportFilesystem(Migrate.Step):
         for directory in ['import', 'export']:
             path = os.path.join(zenhome, directory)
             if not os.path.exists(path):
-                os.mkdir(path)
+                os.mkdir(path, 0750)
 
 ImportExportFilesystem()
