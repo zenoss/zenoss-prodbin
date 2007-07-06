@@ -53,6 +53,9 @@ class ZenDaemon(CmdBase):
         self.zenhome = os.path.join(os.environ['ZENHOME'])
         self.zenvar = os.path.join(self.zenhome, "var")
         if not noopts:
+            # These handlers do not get called if run as daemon.  In that
+            # case twisted's handlers are called instead.
+            # See ticket #1757
             signal.signal(signal.SIGINT, self.sigTerm)
             signal.signal(signal.SIGTERM, self.sigTerm)
             signal.signal(signal.SIGHUP, self.sigTerm)
@@ -144,6 +147,8 @@ class ZenDaemon(CmdBase):
 
 
     def sigTerm(self, *unused):
+        # This probably won't be called when running as daemon.
+        # See ticket #1757
         stop = getattr(self, "stop", None)
         if callable(stop): stop()
         if self.pidfile and os.path.exists(self.pidfile):
