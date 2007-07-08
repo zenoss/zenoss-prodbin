@@ -833,6 +833,7 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable, Admini
             log.info("setting os manufacturer to %s productName to %s"
                             % (osManufacturer, osProductName))
             self.os.setProduct(osProductName, osManufacturer)
+            self.os.productClass().isOS = True
         else:
             self.os.productClass.removeRelation()
 
