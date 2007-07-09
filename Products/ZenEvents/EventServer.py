@@ -95,11 +95,11 @@ class EventServer(ZCmdBase):
         self.transport = transport
         transport.startReading()
 
-    def useTcpFileDescriptor(self, fd):
+    def useTcpFileDescriptor(self, fd, factory):
         import os, socket
         for i in range(19800, 19999):
             try:
-                p = reactor.listenTCP(i, self.factory)
+                p = reactor.listenTCP(i, factory)
                 os.dup2(fd, p.socket.fileno())
                 p.socket.listen(p.backlog)
                 p.socket.setblocking(False)
