@@ -95,6 +95,20 @@ class EventServer(ZCmdBase):
         self.transport = transport
         transport.startReading()
 
+    def useTcpFileDescriptor(self, fd):
+        import os, socket
+        for i in range(19800, 19999):
+            try:
+                p = reactor.listenTCP(i, self.factory)
+                os.dup2(fd, p.socket.fileno())
+                p.socket.listen(p.backlog)
+                p.socket.setblocking(False)
+                os.close(fd)
+                return p
+            except socket.error:
+                pass
+        raise socket.error("Unable to find an open socket to listen on")
+
     def reportCycle(self):
         if self.options.statcycle:
             self.report()

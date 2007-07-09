@@ -130,7 +130,7 @@ class ZenMail(EventServer, RRDDaemon):
         self.factory = SMTPFactory(self.processor)
 
         if self.options.useFileDescriptor != -1:
-            self.useUdpFileDescriptor(int(self.options.useFileDescriptor))
+            self.useTcpFileDescriptor(int(self.options.useFileDescriptor))
         else:
             log.info("listening on port: %d" % self.options.listenPort)
             reactor.listenTCP(self.options.listenPort, self.factory)
