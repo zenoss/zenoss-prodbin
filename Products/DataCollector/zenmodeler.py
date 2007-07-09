@@ -330,7 +330,7 @@ class ZenModeler(ZCmdBase):
                 dest='debug', action="store_true", default=False,
                 help="don't fork threads for processing")
         self.parser.add_option('--nothread',
-                dest='nothread', action="store_true", default=False,
+                dest='nothread', action="store_true", default=True,
                 help="do not use threads when applying updates")
         self.parser.add_option('--parallel', dest='parallel', 
                 type='int', default=defaultParallel,
