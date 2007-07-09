@@ -29,6 +29,7 @@ from zope.interface import implements
 from Products.ZenRRD.RRDDaemon import RRDDaemon
 
 from email.Header import Header
+import email
 
 from MessageProcessing import MessageProcessor
 
@@ -36,21 +37,29 @@ import logging
 log = logging.getLogger("zen.mail")
 
 
-class MessageWriter(object):
+class ZenossEventPoster(object):
     implements(smtp.IMessage)
 
-    def __init__(self):
+    def __init__(self, delivery):
         self.lines = []
+        self.delivery = delivery
 
 
     def lineReceived(self, line):
         self.lines.append(line)
 
 
+    def postEvent(self, messageStr):
+        message = email.message_from_string(messageStr)
+        
+        import pdb; pdb.set_trace()
+
     def eomReceived(self):
         log.info('message data completed.')
         self.lines.append('')
         messageData = '\n'.join(self.lines)
+
+        self.postEvent(messageData)
 
         if True:
             return defer.succeed(None)
@@ -71,11 +80,13 @@ class ZenossDelivery(object):
 
 
     def receivedHeader(self, helo, origin, recipients):
-        myHostname, clientIP = helo
+        myHostname, self.clientIP = helo
+        date = smtp.rfc822date()
+
         headerValue = 'by %s from %s with ESMTP ; %s' % (
-            myHostname, clientIP, smtp.rfc822date())
+            myHostname, self.clientIP, date)
         
-        log.info('relayed (or sent directly) from: %s' % clientIP)
+        log.info('relayed (or sent directly) from: %s' % self.clientIP)
         
         header = 'Received: %s' % Header(headerValue)
         return header
@@ -83,11 +94,11 @@ class ZenossDelivery(object):
 
     def validateTo(self, user):
         log.info('to: %s' % user.dest)
-        return self.makeMessageWriter
+        return self.makePoster
 
 
-    def makeMessageWriter(self):
-        return MessageWriter()
+    def makePoster(self):
+        return ZenossEventPoster(self)
 
 
     def validateFrom(self, helo, originAddress):
@@ -116,11 +127,12 @@ class ZenMail(EventServer, RRDDaemon):
         self.changeUser()
         self.processor = MessageProcessor(self.dmd.ZenEventManager)
 
-        self.factory = SMTPFactory()
+        self.factory = SMTPFactory(self.processor)
 
         if self.options.useFileDescriptor != -1:
             self.useUdpFileDescriptor(int(self.options.useFileDescriptor))
         else:
+            log.info("listening on port: %d" % self.options.listenPort)
             reactor.listenTCP(self.options.listenPort, self.factory)
             reactor.run()
 
@@ -145,7 +157,7 @@ class ZenMail(EventServer, RRDDaemon):
                                help="File descriptor to use for listening")
         self.parser.add_option('--listenPort',
                                dest='listenPort', 
-                               default="2525",
+                               default="25",
                                type="int",
                                help="Alternative listen port to use")
 
