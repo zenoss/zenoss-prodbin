@@ -64,6 +64,7 @@ C="$C zenmodeler"
 C="$C zenperfsnmp"
 C="$C zencommand"
 C="$C zenprocess"
+#C="$C zenmail"
 if [ -f $ZENHOME/lib/python/pywmi.py ]
 then
     C="$C zenwin"
