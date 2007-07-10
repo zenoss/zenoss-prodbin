@@ -23,19 +23,6 @@ from Globals import InitializeClass
 from Products.ZenEvents.ZenEventClasses import Cmd_Fail
 
 
-#def manage_addRRDDataSource(context, id, dsClassName, dsType, REQUEST = None):
-#    """make a RRDDataSource"""
-#    raise '####### HEY #####'
-#    for dsClass in 
-#    ds = RRDDataSource(id)
-#    context._setObject(ds.id, ds)
-#    if REQUEST is not None:
-#        REQUEST['RESPONSE'].redirect(context.absolute_url()+'/manage_main')
-                                     
-
-#addRRDDataSource = DTMLFile('dtml/addRRDDataSource',globals())
-
-
 def checkOid(oid):
     import string
     for c in string.whitespace:
@@ -46,10 +33,6 @@ def checkOid(oid):
     if len(numbers) < 3:
         raise ValueError("OID too short")
     return oid
-
-
-
-#class RRDDataSourceError(Exception): pass
 
 
 class BasicDataSource(RRDDataSource.RRDDataSource):

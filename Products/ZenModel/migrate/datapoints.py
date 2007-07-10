@@ -100,7 +100,7 @@ class DataPoints(Migrate.Step):
             try:
                 ds = destTemplate.datasources._getOb(n.id)
             except AttributeError:
-                destTemplate.manage_addRRDDataSource(n.id)
+                destTemplate.manage_addRRDDataSource(n.id, dsOption='COMMAND')
                 ds = destTemplate.datasources._getOb(n.id)
                 ds.sourcetype = 'COMMAND'
             if ds.sourcetype in ('NAGIOS', 'COMMAND'):

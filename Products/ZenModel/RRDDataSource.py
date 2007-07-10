@@ -33,14 +33,12 @@ from ZenModelRM import ZenModelRM
 from ZenPackable import ZenPackable
 
 
-#def manage_addRRDDataSource(context, id, dsClassName, dsType, REQUEST = None):
-#    """make a RRDDataSource"""
-#    raise '####### HEY #####'
-#    for dsClass in 
-#    ds = RRDDataSource(id)
-#    context._setObject(ds.id, ds)
-#    if REQUEST is not None:
-#        REQUEST['RESPONSE'].redirect(context.absolute_url()+'/manage_main')
+def manage_addRRDDataSource(context, id, dsOption, REQUEST = None):
+   """make a RRDDataSource"""
+   ds = context.getDataSourceInstance(id, dsOption, REQUEST=None)
+   context._setObject(ds.id, ds)
+   if REQUEST is not None:
+       REQUEST['RESPONSE'].redirect(context.absolute_url()+'/manage_main')
                                      
 
 #addRRDDataSource = DTMLFile('dtml/addRRDDataSource',globals())
