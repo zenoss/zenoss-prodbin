@@ -103,6 +103,7 @@ class EventServer(ZCmdBase):
                 os.dup2(fd, p.socket.fileno())
                 p.socket.listen(p.backlog)
                 p.socket.setblocking(False)
+                p.socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
                 os.close(fd)
                 return p
             except socket.error:
