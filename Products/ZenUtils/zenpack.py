@@ -54,27 +54,22 @@ class ZenPackCmd(ZenScriptBase):
 
 
     def install(self, packName):
-                    
-        if self.options.force:
-            try:
-                self.dmd.packs._delObject(packName)
-            except AttributeError:
-                pass
+
         try:
             zp = self.dmd.packs._getOb(packName)
-            self.stop('A ZenPack "%s" already exists' % packName)
+            self.log.info('Upgrading %s' % packName)
+            zp.upgrade(self.app)
         except AttributeError:
-            pass
-        try:
-            module =  __import__('Products.' + packName, globals(), {}, [''])
-            zp = module.ZenPack(packName)
-        except (ImportError, AttributeError), ex:
-            self.log.debug("Unable to find custom ZenPack (%s), "
-                           "defaulting to ZenPackBase",
-                           ex)
-            zp = ZenPackBase(packName)
-        self.dmd.packs._setObject(packName, zp)
-        zp.install(self.app)
+            try:
+                module =  __import__('Products.' + packName, globals(), {}, [''])
+                zp = module.ZenPack(packName)
+            except (ImportError, AttributeError), ex:
+                self.log.debug("Unable to find custom ZenPack (%s), "
+                               "defaulting to ZenPackBase",
+                               ex)
+                zp = ZenPackBase(packName)
+            self.dmd.packs._setObject(packName, zp)
+            zp.install(self.app)
         transaction.commit()
 
 
@@ -100,7 +95,11 @@ class ZenPackCmd(ZenScriptBase):
                 else:
                     self.log.debug('Removing dir "%s"' % d)
                     os.rmdir(path)
-        os.rmdir(root)
+        if os.path.exists(root):
+            if os.path.islink(root):
+                os.remove(root)
+            else:
+                os.rmdir(root)
         cleanupSkins(self.dmd)
 
 
@@ -113,8 +112,6 @@ class ZenPackCmd(ZenScriptBase):
         name = zf.namelist()[0]
         packName = name.split('/')[0]
         root = zenPackPath(packName)
-        if os.path.isdir(root) and not self.options.force:
-            self.stop("%s already exists" % root)
         self.log.debug('Extracting ZenPack "%s"' % packName)
         for name in zf.namelist():
             fullname = os.path.join(os.environ['ZENHOME'], 'Products', name)
@@ -154,15 +151,9 @@ class ZenPackCmd(ZenScriptBase):
                             ' not copying.')
             return packName
         
-        # destSrc isn't in Products, but a directory for this pack
-        # already exists there.  Panic unless --force.
-        if os.path.isdir(root) and not self.options.force:
-            self.stop('%s already exists' % root)
-            
         # Copy the source dir over to Products
         self.log.debug('Copying %s' % packName)
-        #result = os.system('cp -r %s $ZENHOME/Products/' % srcDir)
-        result = os.system('rsync -rlC %s $ZENHOME/Products' % srcDir)
+        result = os.system('cp -r %s $ZENHOME/Products/' % srcDir)
         if result == -1:
             self.stop('Error copying %s to $ZENHOME/Products' % srcDir)
         
@@ -189,11 +180,6 @@ class ZenPackCmd(ZenScriptBase):
                                action="store_true",
                                default=False,
                                help="name of the pack to remove")
-        self.parser.add_option('--force',
-                               dest='force',
-                               action="store_true",
-                               default=False,
-                               help="ignore an existing pack installation")
         ZenScriptBase.buildOptions(self)
 
 if __name__ == '__main__':

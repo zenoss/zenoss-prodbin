@@ -17,6 +17,10 @@ from Products.ZenModel.ZenModelRM import ZenModelRM
 from Products.ZenModel import interfaces
 from Products.ZenRelations.RelSchema import *
 from Products.ZenUtils.Utils import importClass
+from Products.ZenModel.migrate import Migrate
+from Products.ZenUtils.Version import getVersionTupleFromString
+from Products.ZenModel.migrate.Migrate import Version
+
 import transaction
 
 import os
@@ -38,6 +42,13 @@ def eliminateDuplicates(objs):
     return result
 
 
+class ZenPackMigration:
+    version = Version(0, 0, 0)
+    
+    def migrate(self, pack): pass
+    
+    def recover(self, pack): pass
+
 class ZenPack(ZenModelRM):
     '''The root of all ZenPacks: has no implementation,
     but sits here to be the target of the Relation'''
@@ -46,6 +57,7 @@ class ZenPack(ZenModelRM):
     author = ''
     organization = ''
     url = ''
+    version = '0.1'
 
     _properties = ZenModelRM._properties + (
         {'id':'objectPaths','type':'lines','mode':'w'},
@@ -169,9 +181,6 @@ def zenPackPath(*parts):
 
 class ZenPackBase(ZenPack):
 
-    author = ''
-    organization = ''
-    version = '0.1'
 
     _properites = (
         dict(id='author',       type='string', mode='w'),
@@ -181,7 +190,7 @@ class ZenPackBase(ZenPack):
     
     zope.interface.implements(interfaces.IZenPack)
     loaders = (ZPLObject(), ZPLReport(), ZPLDaemons(), ZPLSkins(),
-                ZPLDataSources(), ZPLLibraries())
+                ZPLDataSources(), ZPLLibraries(), ZPLAbout())
 
     def __init__(self, id):
         ZenPack.__init__(self, id)
@@ -195,10 +204,51 @@ class ZenPackBase(ZenPack):
             loader.load(self, app)
 
 
+    def upgrade(self, app):
+        for loader in self.loaders:
+            loader.upgrade(self, app)
+        self.migrate()
+
+
     def remove(self, app):
         for loader in self.loaders:
             loader.unload(self, app)
 
+    def migrate(self):
+        import sys
+        instances = []
+        # find all the migrate modules
+        root = self.path("migrate")
+        for p, ds, fs in os.walk(root):
+            for f in fs:
+                if f.endswith('.py') and not f.startswith("__"):
+                    path = os.path.join(p[len(root) + 1:], f)
+                    log.debug("Loading %s", path)
+                    sys.path.insert(0, p)
+                    try:
+                        try:
+                            c = importClass(path[:-3].replace("/", "."))
+                            instances.append(c())
+                        finally:
+                            sys.path.remove(p)
+                    except ImportError, ex:
+                        log.exception("Problem loading migration step %s", path)
+        # sort them by version number
+        instances.sort()
+        # install those that are newer than our pack version
+        current = getVersionTupleFromString(self.version)
+        recover = []
+        try:
+            for instance in instances:
+                if instance.version >= current:
+                    recover.append(instance)
+                    instance.migrate(self)
+        except Exception, ex:
+            # give the pack a chance to recover from problems
+            recover.reverse()
+            for r in recover:
+                r.recover()
+            raise ex
 
     def list(self, app):
         result = []

@@ -58,6 +58,9 @@ class ZenPackLoader:
     def list(self, pack, app):
         "List the items that would be loaded from the given (unpacked) ZenPack"
 
+    def upgrade(self, pack, app):
+        "Run an upgrade on an existing pack"
+
 from xml.sax import saxutils, make_parser
 from xml.sax.handler import ContentHandler
 
@@ -137,6 +140,8 @@ class ZPLReport(ZPLObject):
         rl.options.force = True
         rl.loadDirectory(pack.path('reports'))
 
+    def upgrade(self, pack, app):
+        self.load(pack, app)
 
     def list(self, pack, app):
         return [branchAfter(r, 'reports') for r in findFiles(pack, 'reports')]
@@ -163,9 +168,12 @@ class ZPLDaemons(ZenPackLoader):
         for fs in findFiles(pack, 'daemons', filter=self.filter):
             os.chmod(fs, 0755)
             path = self.binPath(fs)
-            if os.path.isfile(path):
+            if os.path.exists(path):
                 os.remove(path)
             os.symlink(fs, self.binPath(fs))
+
+    def upgrade(self, pack, app):
+        self.load(pack, app)
 
     def unload(self, pack, app):
         for fs in findFiles(pack, 'daemons', filter=self.filter):
@@ -230,3 +238,31 @@ class ZPLLibraries(ZenPackLoader):
         if os.path.isdir(d):
             return [l for l in os.listdir(d)]
         return []
+
+class ZPLAbout(ZenPackLoader):
+
+    name = "About"
+
+    def getAttributeValues(self, pack):
+        about = pack.path('about.txt')
+        result = []
+        if os.path.exists(about):
+            for line in open(about):
+                line = line.strip()
+                if line == '' or line.startswith('#'): continue
+                try:
+                    name, value = line.split(None, 1)
+                    result.append( (name, value) )
+                except ValueError:
+                    log.warning('Could not parse line "%s"', line)
+        return result
+
+    def load(self, pack, app):
+        for name, value in self.getAttributeValues(pack):
+            setattr(pack, name, value)
+
+    def upgrade(self, pack, app):
+        self.load(pack, app)
+
+    def list(self, pack, app):
+        return [('%s %s' % av) for av in self.getAttributeValues(pack)]
