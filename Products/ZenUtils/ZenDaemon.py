@@ -29,7 +29,7 @@ from CmdBase import CmdBase
 
 # Daemon creation code below based on Recipe by Chad J. Schroeder
 # File mode creation mask of the daemon.
-UMASK = 0
+UMASK = 0022
 # Default working directory for the daemon.
 WORKDIR = "/"
 
