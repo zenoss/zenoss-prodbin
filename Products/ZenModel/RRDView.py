@@ -300,14 +300,17 @@ class RRDView(object):
         return oids
 
 
-    def getDataSourceCommands(self):
+    def getDataSourceCommands(self, dsName=None):
         """Return list of command definitions.
         """
         result = []
         for templ in self.getRRDTemplates():
             threshs = self.getThresholds(templ)
             basepath = self.rrdPath()
-            dataSources = templ.getRRDDataSources('COMMAND')
+            if dsName:
+                dataSources = [x for x in templ.datasources() if x.id==dsName]
+            else:
+                dataSources = templ.getRRDDataSources('COMMAND')
             for ds in dataSources:
                 if not ds.enabled: continue
                 points = []
