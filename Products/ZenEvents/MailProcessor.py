@@ -12,7 +12,7 @@
 ###########################################################################
 #! /usr/bin/env python 
 
-import email, socket, time, rfc822
+import email, socket, time, rfc822, types
 import calendar
 from datetime import tzinfo, timedelta, datetime
 
@@ -49,13 +49,15 @@ class FixedOffset(tzinfo):
         return ZERO
 
 
+
 class MessageProcessor(object):
     def __init__(self, zem): 
         self.zem = zem
 
-
     def process(self, messageStr):
         message = email.message_from_string(messageStr)
+        self.message = message
+
         fromAddr = message.get('From').split('@')[1][:-1]
         fromAddr = fromAddr.split(' ')[0]
         try:
@@ -88,7 +90,14 @@ class MessageProcessor(object):
 
         event = MailEvent(device=fromAddr, ipAddress=fromIp, rcvtime=secs)
 
-        body = message.get_payload()
+        payloads = message.get_payload()
+        payload = 'This is the default message'
+        if type(payloads) == types.ListType:
+            payload = payloads[0].get_payload()
+        if type(payloads) == types.StringType:
+            payload = payloads
+
+        body = payload
         event.summary = body
         self.enrich(event, subject)
 
@@ -117,3 +126,16 @@ class MessageProcessor(object):
         else:
             log.debug("no eventClassKey assigned")
         return evt
+
+
+class POPProcessor(MessageProcessor):
+    def __init__(self, zem): 
+        MessageProcessor.__init__(self, zem)
+
+
+class MailProcessor(MessageProcessor):
+    def __init__(self, zem): 
+        MessageProcessor.__init__(self, zem)
+    
+
+    
