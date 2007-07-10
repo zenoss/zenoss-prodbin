@@ -31,7 +31,7 @@ from Products.ZenRRD.RRDDaemon import RRDDaemon
 from Products.ZenUtils.Driver import drive, driveLater
 
 
-from MessageProcessing import MessageProcessor
+from MailProcessor import POPProcessor
 
 import logging
 log = logging.getLogger("zen.pop3")
@@ -150,7 +150,7 @@ class ZenPOP3(EventServer, RRDDaemon):
         RRDDaemon.__init__(self, ZenPOP3.name)
 
         self.changeUser()
-        self.processor = MessageProcessor(self.dmd.ZenEventManager)
+        self.processor = POPProcessor(self.dmd.ZenEventManager)
         host = self.options.pophost
         port = self.options.popport
         popuser = self.options.popuser
