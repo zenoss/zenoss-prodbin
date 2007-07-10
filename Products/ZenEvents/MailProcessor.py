@@ -51,6 +51,9 @@ class FixedOffset(tzinfo):
 
 
 class MessageProcessor(object):
+    '''Base class for parsing email messages that are retrieved via POP or
+    received via SMTP.'''
+
     def __init__(self, zem): 
         self.zem = zem
 
@@ -129,11 +132,19 @@ class MessageProcessor(object):
 
 
 class POPProcessor(MessageProcessor):
+    '''Extension point for messages received via POP.  If you need to
+    override the behavior of "process" you should do so by
+    implementing it here.'''
+
     def __init__(self, zem): 
         MessageProcessor.__init__(self, zem)
 
 
 class MailProcessor(MessageProcessor):
+    '''Extension point for messages received via SMTP.  If you need to
+    override the behavior of "process" you should do so by
+    implementing it here.'''
+
     def __init__(self, zem): 
         MessageProcessor.__init__(self, zem)
     
