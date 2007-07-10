@@ -71,6 +71,7 @@
         batch python:here.ZenTableManager.getBatch(tableName,objects); 
         tabletitle string:Data Sources;
 		menu_id string:DataSource_list;">
+    <input type='hidden' name='tableName' tal:attributes="value tableName" />
         <tal:block metal:use-macro="here/zenuimacros/macros/zentable">
 
         <!--====Optional titlebar slots=============
@@ -86,7 +87,6 @@
         <tal:block metal:fill-slot="zentablecontents">
         <!-- BEGIN TABLE CONTENTS -->
             
-    <input type='hidden' name='tableName' tal:attributes="value tableName" />
     <tal:block metal:define-macro="dsbody">
     <tr>
         <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
@@ -139,6 +139,7 @@
         batch python:here.ZenTableManager.getBatch(tableName,objects); 
         tabletitle string:Thresholds;
 		menu_id string:Threshold_list">
+    <input type='hidden' name='tableName' tal:attributes="value tableName" />
         <tal:block metal:use-macro="here/zenuimacros/macros/zentable">
 
         <!--====Optional titlebar slots=============
@@ -154,7 +155,6 @@
         <tal:block metal:fill-slot="zentablecontents">
         <!-- BEGIN TABLE CONTENTS -->
             
-    <input type='hidden' name='tableName' tal:attributes="value tableName" />
     <tal:block metal:define-macro="threshbody">
     <tr>
         <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
@@ -211,6 +211,7 @@
                                                 sortedHeader='sequence'); 
         tabletitle string:Graphs;
 		menu_id string:Graph_list">
+    <input type='hidden' name='tableName' tal:attributes="value tableName" />
         <tal:block metal:use-macro="here/zenuimacros/macros/zentable">
 
         <!--====Optional titlebar slots=============
@@ -226,7 +227,6 @@
         <tal:block metal:fill-slot="zentablecontents">
         <!-- BEGIN TABLE CONTENTS -->
             
-    <input type='hidden' name='tableName' tal:attributes="value tableName" />
     <tal:block metal:define-macro="graphbody">
     <tr>
         <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
