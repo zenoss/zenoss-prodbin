@@ -31,7 +31,7 @@ from Products.ZenRRD.RRDDaemon import RRDDaemon
 from email.Header import Header
 import email
 
-from MessageProcessing import MessageProcessor
+from MailProcessor import MailProcessor
 
 import logging
 log = logging.getLogger("zen.mail")
@@ -40,9 +40,9 @@ log = logging.getLogger("zen.mail")
 class ZenossEventPoster(object):
     implements(smtp.IMessage)
 
-    def __init__(self, delivery):
+    def __init__(self, processor):
         self.lines = []
-        self.delivery = delivery
+        self.processor = processor
 
 
     def lineReceived(self, line):
@@ -51,8 +51,8 @@ class ZenossEventPoster(object):
 
     def postEvent(self, messageStr):
         message = email.message_from_string(messageStr)
-        
-        import pdb; pdb.set_trace()
+        self.processor.process(messageStr)
+
 
     def eomReceived(self):
         log.info('message data completed.')
@@ -75,8 +75,8 @@ class ZenossEventPoster(object):
 class ZenossDelivery(object):
     implements(smtp.IMessageDelivery)
 
-    def __init__(self):
-        pass
+    def __init__(self, processor):
+        self.processor = processor
 
 
     def receivedHeader(self, helo, origin, recipients):
@@ -98,7 +98,7 @@ class ZenossDelivery(object):
 
 
     def makePoster(self):
-        return ZenossEventPoster(self)
+        return ZenossEventPoster(self.processor)
 
 
     def validateFrom(self, helo, originAddress):
@@ -111,7 +111,7 @@ class SMTPFactory(protocol.ServerFactory):
         self.processor = processor
 
     def buildProtocol(self, addr):
-        delivery = ZenossDelivery()
+        delivery = ZenossDelivery(self.processor)
         smtpProtocol = smtp.SMTP(delivery)
         smtpProtocol.factory = self
         return smtpProtocol
@@ -125,7 +125,7 @@ class ZenMail(EventServer, RRDDaemon):
         RRDDaemon.__init__(self, ZenMail.name)
 
         self.changeUser()
-        self.processor = MessageProcessor(self.dmd.ZenEventManager)
+        self.processor = MailProcessor(self.dmd.ZenEventManager)
 
         self.factory = SMTPFactory(self.processor)
 
