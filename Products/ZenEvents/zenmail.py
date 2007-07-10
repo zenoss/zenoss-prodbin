@@ -107,8 +107,8 @@ class ZenossDelivery(object):
     
     
 class SMTPFactory(protocol.ServerFactory):
-    def __init__(self):
-        pass
+    def __init__(self, processor):
+        self.processor = processor
 
     def buildProtocol(self, addr):
         delivery = ZenossDelivery()
