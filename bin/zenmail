@@ -18,5 +18,9 @@ PRGNAME=zenmail.py
 CFGFILE=$CFGDIR/zenmail.conf
 PIDFILE=$VARDIR/$PRGNAME.pid
 
-#generic "$@" --useFileDescriptor='$privilegedSocket'
-generic "$@"
+# don't go for privieged ports and instead just start up with app defaults
+#generic "$@"
+
+# listen on the privileged port 25
+generic "$@" --useFileDescriptor='$privilegedSocket'
+
