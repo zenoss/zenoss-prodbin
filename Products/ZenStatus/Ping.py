@@ -135,9 +135,7 @@ class Ping(object):
         """Take a pingjob and send an ICMP packet for it"""
         #### sockets with bad addresses fail
         try:
-            pkt = icmp.Packet()
-            pkt.type = icmp.ICMP_ECHO
-            pkt.id = self.procId
+            pkt = icmp.Packet(icmp.ICMP_ECHO, self.procId)
             pkt.seq = pingJob.sent
             pkt.data = self.pktdata 
             buf = pkt.assemble()
@@ -160,18 +158,18 @@ class Ping(object):
             try:
                 data = self.pingsocket.recv(1024)
                 if not data: return
-                ipreply = ip.Packet(data)
-                icmppkt = icmp.Packet(ipreply.data)
+                ipreply = ip.disassemble(data)
+                icmppkt = icmp.disassemble(ipreply.data)
                 sip =  ipreply.src
-                if (icmppkt.type == icmp.ICMP_ECHOREPLY and 
-                    icmppkt.id == self.procId and self.jobqueue.has_key(sip)):
+                if (icmppkt.get_type() == icmp.ICMP_ECHOREPLY and 
+                    icmppkt.get_code() == self.procId and self.jobqueue.has_key(sip)):
                     plog.debug("echo reply pkt %s %s", sip, icmppkt)
                     self.pingJobSucceed(self.jobqueue[sip])
-                elif icmppkt.type == icmp.ICMP_UNREACH:
+                elif icmppkt.get_type() == icmp.ICMP_UNREACH:
                     plog.debug("host unreachable pkt %s %s", sip, icmppkt)
                     try:
-                        origpkt = ip.Packet(icmppkt.data)
-                        origicmp = icmp.Packet(origpkt.data)
+                        origpkt = ip.disassemble(icmppkt.data)
+                        origicmp = icmp.disassemble(origpkt.data)
                         dip = origpkt.dst
                         if (origicmp.data == self.pktdata 
                             and self.jobqueue.has_key(dip)):

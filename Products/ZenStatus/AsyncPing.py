@@ -118,12 +118,8 @@ class Ping(object):
         """Take a pingjob and send an ICMP packet for it"""
         #### sockets with bad addresses fail
         try:
-            pkt = icmp.Packet()
-            pkt.type = icmp.ICMP_ECHO
-            pkt.id = self.procId
-            pkt.seq = pingJob.sent
-            pkt.data = self.pktdata 
-            buf = pkt.assemble()
+            pkt = icmp.Echo(self.procId, pingJob.sent, self.pktdata)
+            buf = icmp.assemble(pkt)
             pingJob.start = time.time()
             plog.debug("send icmp to '%s'", pingJob.ipaddr)
             self.pingsocket.sendto(buf, (pingJob.ipaddr, 0))
@@ -150,24 +146,24 @@ class Ping(object):
             try:
                 data, (host, port) = self.pingsocket.recvfrom(1024)
                 if not data: return
-                ipreply = ip.Packet(data)
+                ipreply = ip.disassemble(data)
                 try:
-                    icmppkt = icmp.Packet(ipreply.data)
+                    icmppkt = icmp.disassemble(ipreply.data)
                 except ValueError:
                     plog.debug("checksum failure on packet %r", ipreply.data)
-                    icmppkt = icmp.Packet(ipreply.data, 0)
+                    icmppkt = icmp.disassemble(ipreply.data, 0)
                 sip =  ipreply.src
-                if (icmppkt.type == icmp.ICMP_ECHOREPLY and 
-                    icmppkt.id == self.procId and
+                if (icmppkt.get_type() == icmp.ICMP_ECHOREPLY and 
+                    icmppkt.get_id() == self.procId and
                     self.jobqueue.has_key(sip)):
                     plog.debug("echo reply pkt %s %s", sip, icmppkt)
                     self.pingJobSucceed(self.jobqueue[sip])
-                elif icmppkt.type == icmp.ICMP_UNREACH:
+                elif icmppkt.get_type() == icmp.ICMP_UNREACH:
                     try:
-                        origpkt = ip.Packet(icmppkt.data)
+                        origpkt = ip.disassemble(icmppkt.data)
                         # ensure it was an ICMP packet
                         if origpkt.p == 1:
-                            origicmp = icmp.Packet(origpkt.data)
+                            origicmp = icmp.disassemble(origpkt.data)
                             dip = origpkt.dst
                             plog.debug("host unreachable pkt %s", dip)
                             if (origicmp.data == self.pktdata 
