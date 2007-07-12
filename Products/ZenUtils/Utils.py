@@ -196,7 +196,14 @@ def getObjByPath(base, path, restricted=0):
             if restricted:
                 next = guarded_getattr(obj, name, marker)
             else:
-                next = _getattr(obj, name, marker)
+                # This is a change from the standard traverse from zope
+                # it allows a path to use acquisition which is not what
+                # we want.  Our version will fail if one element of the
+                # path doesn't exist. -EAD
+                if hasattr(aq_base(obj), name):
+                    next = _getattr(obj, name, marker)
+                else:
+                    raise NotFound, name
             if next is marker:
                 try:
                     next=obj[name]
