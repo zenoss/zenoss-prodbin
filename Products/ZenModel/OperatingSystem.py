@@ -147,10 +147,10 @@ class OperatingSystem(Software):
         for route in self.getRouteObjs():
             ip = route.getNextHopIp()
             log.debug("target %s next hop %s", route.getTarget(), ip)
-            if ip == target:
+            if ip == target.getManageIp():
                 ippath.append(ip)
                 return ippath
-            if route.matchTarget(target):
+            if route.matchTarget(target.getManageIp()):
                 nextdev = route.getNextHopDevice()
                 break
         else:
@@ -160,13 +160,13 @@ class OperatingSystem(Software):
             if default:
                 ip = default.getNextHopIp()
                 nextdev = default.getNextHopDevice()
-        if nextdev == self.device() or ip=="0.0.0.0":
-            ippath.append(target)
+        if target == nextdev or ip=="0.0.0.0":
+            ippath.append(target.id)
             return ippath
         if nextdev:
             ippath.append(ip)
             return nextdev.traceRoute(target, ippath)
-        raise TraceRouteGap("unable to trace to %s, gap at %s" % (target,
+        raise TraceRouteGap("unable to trace to %s, gap at %s" % (target.id,
                             self.getDeviceName()))
 
 

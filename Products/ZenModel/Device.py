@@ -438,10 +438,9 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable, Admini
     
     def traceRoute(self, target, ippath=None):
         if ippath is None: ippath=[]
-        if not isip(target):
+        if type(target) in types.StringTypes:
             target = self.findDevice(target)
             if not target: raise ValueError("target %s not found in dmd",target)
-            target = target.getManageIp()
         return self.os.traceRoute(target, ippath)
 
 
