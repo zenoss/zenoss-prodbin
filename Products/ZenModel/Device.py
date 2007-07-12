@@ -31,7 +31,6 @@ log = logging.getLogger("zen.Device")
 
 from _mysql_exceptions import OperationalError
 
-from Products.ZenStatus import pingtree
 from Products.ZenUtils.Graphics import NetworkGraph
 from Products.ZenUtils.Utils import setWebLoggingStream, clearWebLoggingStream
 from Products.ZenUtils import Time
@@ -755,6 +754,7 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable, Admini
     security.declareProtected('View', 'getRouterGraph')
     def getRouterGraph(self):
         '''get a graph representing the relative routers'''
+        from Products.ZenStatus import pingtree
         node = pingtree.buildTree(self)
         g = NetworkGraph(node=node, parentName=self.id)
         #g.format = 'svg'
@@ -767,6 +767,7 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable, Admini
         get a graph representing the relative routers as well as the
         networks
         '''
+        from Products.ZenStatus import pingtree
         node = pingtree.buildTree(self)
         g = NetworkGraph(node=node, parentName=self.id)
         #g.format = 'svg'
