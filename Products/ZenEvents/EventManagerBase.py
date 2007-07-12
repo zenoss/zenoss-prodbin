@@ -270,8 +270,11 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
         return self.lookupManagedEntityResultFields(context.event_key)
 
     def getEventListME(self, me, **kwargs):
-        where = kwargs.get('where', None) or self.lookupManagedEntityWhere(me)
-        if kwargs.has_key('where'): del kwargs['where']
+        where = ""
+        if hasattr(me, 'getWhere'):
+            where = me.getWhere()
+        else:
+            where = self.lookupManagedEntityWhere(me)
         try:
             resultFields = kwargs['resultFields']; del kwargs['resultFields']
         except KeyError: 
@@ -1004,10 +1007,7 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
             if hasattr(context, 'event_key'): base = context
             else: base = self.dmd.Events
             fields = self.lookupManagedEntityResultFields(base.event_key)
-        if hasattr(context, 'getWhere'):
-            where = context.getWhere()
-        else: where = None
-        data, totalCount = self.getEventListME(context, where=where,
+        data, totalCount = self.getEventListME(context, 
             offset=offset, rows=count, resultFields=fields,
             getTotalCount=getTotalCount, filter=filter, severity=severity,
             state=state, orderby=orderby, startdate=startdate, enddate=enddate)

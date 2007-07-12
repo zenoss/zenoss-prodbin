@@ -228,12 +228,6 @@ class DataRoot(ZenModelRM, OrderedFolder, Commandable, ZenMenuable):
         ZenModelRM.__init__(self, id, title)
 
 
-    def getResultFields(self):
-        """Result fields for dashboard.
-        """
-        return ('device','summary','lastTime','count')
-       
-
     def getEventCount(self, **kwargs):
         """Return the current event list for this managed entity.
         """
