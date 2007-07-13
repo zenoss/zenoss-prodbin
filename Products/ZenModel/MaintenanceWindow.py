@@ -349,14 +349,16 @@ class MaintenanceWindow(ZenModelRM):
     def target(self):
         return self.productionState().primaryAq()
 
+    def setProdState(self, target, state):
+        kw = {}
+        from Products.ZenModel.DeviceOrganizer import DeviceOrganizer
+        if isinstance(target, DeviceOrganizer):
+            kw = dict(isOrganizer=True)
+        self.target().setProdState(state, **kw)
+
     def begin(self, now = None):
         "hook for entering the Maintenance Window: call if you override"
-        target = self.target()
-        if target.meta_type == 'Device':
-            target.setProdState(self.startProductionState)
-        else:
-            target.setProdState(self.startProductionState, None, True)
-
+        self.setProdState(self.target(), self.startProductionState)
         if not now:
             now = time.time()
         self.started = now
@@ -365,7 +367,7 @@ class MaintenanceWindow(ZenModelRM):
     def end(self):
         "hook for leaving the Maintenance Window: call if you override"
         self.started = None
-        self.target().setProdState(self.stopProductionState)
+        self.setProdState(self.target(), self.stopProductionState)
 
 
     def execute(self, now = None):
