@@ -181,7 +181,9 @@ def zenPackPath(*parts):
 
 class ZenPackBase(ZenPack):
 
-    _properites = (
+    requires = ()
+
+    _properties = (
         dict(id='author',       type='string', mode='w'),
         dict(id='organization', type='string', mode='w'),
         dict(id='version',      type='string', mode='w'),
