@@ -351,7 +351,12 @@ class MaintenanceWindow(ZenModelRM):
 
     def begin(self, now = None):
         "hook for entering the Maintenance Window: call if you override"
-        self.target().setProdState(self.startProductionState)
+        target = self.target()
+        if target.meta_type == 'Device':
+            target.setProdState(self.startProductionState)
+        else:
+            target.setProdState(self.startProductionState, None, True)
+
         if not now:
             now = time.time()
         self.started = now
