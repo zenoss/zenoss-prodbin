@@ -418,10 +418,11 @@ class zenperfsnmp(SnmpDaemon):
             p.lastChange = last
             write(self.pickleName(deviceName), cPickle.dumps(snmpTargets))
 
+        oidMap, p.oidMap = p.oidMap, {}
         for name, oid, path, dsType, createCmd, minmax, thresholds in oidData:
             createCmd = createCmd.strip()
             oid = '.' + str(oid.lstrip('.'))
-            d = p.oidMap.setdefault(oid, OidData())
+            p.oidMap[oid] = d = oidMap.setdefault(oid, OidData())
             d.update(name, path, dsType, createCmd, minmax, thresholds)
         self.proxies[deviceName] = p
 
