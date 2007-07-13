@@ -134,6 +134,7 @@
     <script src="js/zenui.js"></script>
     <script src="js/zenutils.js"></script>
     <script src="javascript/menus.js"></script>
+    <script src="javascript/zgdagent.js"></script>
     <!--[if IE 7]>
         <link rel="stylesheet" type="text/css" title="zenoss"
             href="zenoss_ie.css" >
