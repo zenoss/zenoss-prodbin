@@ -252,6 +252,10 @@ class ZPLAbout(ZenPackLoader):
                 if line == '' or line.startswith('#'): continue
                 try:
                     name, value = line.split(None, 1)
+                    try:
+                        value = eval(value)
+                    except:
+                        pass
                     result.append( (name, value) )
                 except ValueError:
                     log.warning('Could not parse line "%s"', line)

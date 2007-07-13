@@ -56,6 +56,7 @@ class ZenPackCmd(ZenScriptBase):
 
     def install(self, packName):
 
+        zp = None
         try:
             zp = self.dmd.packs._getOb(packName)
             self.log.info('Upgrading %s' % packName)
@@ -71,12 +72,24 @@ class ZenPackCmd(ZenScriptBase):
                 zp = ZenPackBase(packName)
             self.dmd.packs._setObject(packName, zp)
             zp.install(self.app)
+        if zp:
+            for required in zp.requires:
+                try:
+                    self.packs._getOb(required)
+                except:
+                    self.log.error("Pack %s requires pack %s: not installing",
+                                   packName, required)
+                    return
         transaction.commit()
-
 
     def remove(self, packName):
         self.log.debug('Removing Pack "%s"' % packName)
         foundIt = False
+        for pack in self.dmd.packs():
+            if packName in pack.requires:
+                self.log.error("Pack %s depends on pack %s, not removing",
+                               pack.id, packName)
+                return
         zp = None
         try:
             zp = self.dmd.packs._getOb(packName)

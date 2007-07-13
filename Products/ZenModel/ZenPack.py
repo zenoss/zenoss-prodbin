@@ -181,7 +181,6 @@ def zenPackPath(*parts):
 
 class ZenPackBase(ZenPack):
 
-
     _properites = (
         dict(id='author',       type='string', mode='w'),
         dict(id='organization', type='string', mode='w'),
@@ -193,6 +192,7 @@ class ZenPackBase(ZenPack):
                 ZPLDataSources(), ZPLLibraries(), ZPLAbout())
 
     def __init__(self, id):
+        self.requires = []
         ZenPack.__init__(self, id)
 
     def path(self, *args):
