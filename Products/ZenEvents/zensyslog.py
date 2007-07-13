@@ -123,7 +123,7 @@ class ZenSyslog(DatagramProtocol, EventServer):
 
     def gotHostname(self, response, data):
         "send the resolved address, if possible, and the event via the thread"
-        if isinstance(response, failure.Failure):
+        if isinstance(response, failure.Failure) or len(response[0]) == 0:
             self.q.put( (data[1],) + data )
         else:
             self.q.put( (str(response[0][0].payload.name),) + data )
