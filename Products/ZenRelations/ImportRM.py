@@ -138,6 +138,8 @@ class ImportRM(ZCmdBase, ContentHandler):
         self.log.debug("setting object %s att %s type %s value %s" 
                             % (obj.id, name, proptype, value))
         value = value.strip()
+        try: value = str(value)
+        except UnicodeEncodeError: pass
         if proptype == 'selection':
             try:
                 firstElement = getattr(obj, name)[0]
