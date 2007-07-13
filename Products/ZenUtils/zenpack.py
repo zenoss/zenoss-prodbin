@@ -22,6 +22,7 @@ import os, sys
 
 class ZenPackCmd(ZenScriptBase):
     "Manage ZenPacks"
+    
 
     def run(self):
         "Execute the user's request"
@@ -75,31 +76,19 @@ class ZenPackCmd(ZenScriptBase):
 
     def remove(self, packName):
         self.log.debug('Removing Pack "%s"' % packName)
+        foundIt = False
         zp = None
         try:
             zp = self.dmd.packs._getOb(packName)
         except AttributeError, ex:
-            self.stop('There is no ZenPack named "%s"' % packName)
-        zp.remove(self.app)
-        self.dmd.packs._delObject(packName)
+            # Pack not in zeo, might still exist in filesystem
+            self.log.debug('No ZenPack named %s in zeo' % packName)
+        if zp:
+            zp.remove(self.app)
+            self.dmd.packs._delObject(packName)
         root = zenPackPath(packName)
-        for p, ds, fs in os.walk(root, topdown=False):
-            for f in fs:
-                self.log.debug('Removing file "%s"' % f)
-                os.remove(os.path.join(p, f))
-            for d in ds:
-                path = os.path.join(p, d)
-                if os.path.islink(path):
-                    self.log.debug('Removing link "%s"' % d)
-                    os.remove(path)
-                else:
-                    self.log.debug('Removing dir "%s"' % d)
-                    os.rmdir(path)
-        if os.path.exists(root):
-            if os.path.islink(root):
-                os.remove(root)
-            else:
-                os.rmdir(root)
+        self.log.debug('Removing %s' % root)
+        os.system('rm -rf %s' % root)
         cleanupSkins(self.dmd)
 
 
@@ -179,7 +168,8 @@ class ZenPackCmd(ZenScriptBase):
                                dest='list',
                                action="store_true",
                                default=False,
-                               help="name of the pack to remove")
+                               help="list installed zenpacks"
+                                    " and associated files")
         ZenScriptBase.buildOptions(self)
 
 if __name__ == '__main__':
