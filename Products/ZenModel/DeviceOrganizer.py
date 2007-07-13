@@ -168,15 +168,13 @@ class DeviceOrganizer(Organizer, DeviceManagerBase, Commandable, ZenMenuable,
             status += group.snmpStatus()
         return status
 
+
     def _buildDeviceList(self, deviceNames):
         """Build a device list for set methods"""
-        if deviceNames is None:
-            devices = self.getSubDevices()
-        else:
-            if type(deviceNames) == type(''): 
-                deviceNames = (deviceNames,)
-            devices = [ self.findDevice(dn) for dn in deviceNames ]
-        return devices
+        if isinstance(deviceNames, basestring):
+            deviceNames = [deviceNames]
+        return [d for d in self.getSubDevices()
+                if deviceNames is None or d.getPrimaryId() in deviceNames]
 
 
     def setProdState(self, state, deviceNames=None, 
