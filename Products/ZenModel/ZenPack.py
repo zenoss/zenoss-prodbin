@@ -93,6 +93,9 @@ class ZenPack(ZenModelRM):
           },
         )
 
+    packZProperties = [
+        ]
+
 
     def path(self, *args):
         return zenPackPath(self.id, *args)
@@ -101,17 +104,21 @@ class ZenPack(ZenModelRM):
     def install(self, app):
         for loader in self.loaders:
             loader.load(self, app)
+        self.createZProperties(app)
 
 
     def upgrade(self, app):
         for loader in self.loaders:
             loader.upgrade(self, app)
+        self.createZProperties(app)
         self.migrate()
 
 
     def remove(self, app):
         for loader in self.loaders:
             loader.unload(self, app)
+        self.removeZProperties(app)
+        
 
     def migrate(self):
         import sys
@@ -156,6 +163,17 @@ class ZenPack(ZenModelRM):
             result.append((loader.name,
                            [item for item in loader.list(self, app)]))
         return result
+        
+        
+    def createZProperties(self, app):
+        for name, value, pType in self.packZProperties:
+            if not app.zport.dmd.Devices.hasProperty(name):
+                app.zport.dmd.Devices._setProperty(name, value, pType)
+        
+        
+    def removeZProperties(self, app):
+        for name, value, pType in self.packZProperties:
+            app.zport.dmd.Devices._delProperty(name)
 
 
     def manage_deletePackable(self, packables=(), REQUEST=None):
