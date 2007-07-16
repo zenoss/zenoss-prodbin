@@ -252,7 +252,6 @@ class DeviceClass(DeviceOrganizer, ZenPackable):
         argdict['deviceNames'] = self.getDeviceBatch(selectstatus, 
                                   goodevids, badevids, offset, count, 
                                   filter, orderby, orderdir)
-        print 'argdict: ', argdict
         return action(**argdict)
 
 

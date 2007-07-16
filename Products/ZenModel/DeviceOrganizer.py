@@ -174,7 +174,7 @@ class DeviceOrganizer(Organizer, DeviceManagerBase, Commandable, ZenMenuable,
         if isinstance(deviceNames, basestring):
             deviceNames = [deviceNames]
         return [d for d in self.getSubDevices()
-                if deviceNames is None or d.getPrimaryId() in deviceNames]
+                if deviceNames is None or d.id in deviceNames]
 
 
     def setProdState(self, state, deviceNames=None, 
