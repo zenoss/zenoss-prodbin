@@ -235,7 +235,7 @@ registerDirectory("skins", globals())
                 values = dict(parser.items(CONFIG_SECTION_ABOUT))
             except ConfigParser.Error:
                 pass
-        values.update(dict([(p[id], str(getattr(self, p[id], '')))
+        values.update(dict([(p['id'], str(getattr(self, p['id'], '')))
                         for p in self._properties]))
         fp = file(about, 'w')
         try:
