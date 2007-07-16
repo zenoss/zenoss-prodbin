@@ -5312,6 +5312,9 @@ the nodes to the network.
 </object>
 </object>
 <object id='Change' module='Products.ZenEvents.EventClass' class='EventClass'>
+<property visible="True" type="string" id="zEventAction" >
+history
+</property>
 <object id='Add' module='Products.ZenEvents.EventClass' class='EventClass'>
 <object id='Blocked' module='Products.ZenEvents.EventClass' class='EventClass'>
 </object>
