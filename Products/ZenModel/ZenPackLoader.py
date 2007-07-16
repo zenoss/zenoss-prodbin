@@ -18,8 +18,12 @@ from Products.ZenReports.ReportLoader import ReportLoader
 from Products.ZenUtils.Utils import getObjByPath
 
 import os
+import ConfigParser
 import logging
 log = logging.getLogger('zen.ZPLoader')
+
+CONFIG_FILE = 'about.txt'
+CONFIG_SECTION_ABOUT = 'about'
 
 def findFiles(pack, directory, filter=None):
     result = []
@@ -242,31 +246,25 @@ class ZPLLibraries(ZenPackLoader):
 class ZPLAbout(ZenPackLoader):
 
     name = "About"
-
+    
     def getAttributeValues(self, pack):
-        about = pack.path('about.txt')
+        about = pack.path(CONFIG_FILE)
         result = []
         if os.path.exists(about):
-            for line in open(about):
-                line = line.strip()
-                if line == '' or line.startswith('#'): continue
-                try:
-                    name, value = line.split(None, 1)
-                    try:
-                        value = eval(value)
-                    except:
-                        pass
-                    result.append( (name, value) )
-                except ValueError:
-                    log.warning('Could not parse line "%s"', line)
+            parser = ConfigParser.SafeConfigParser()
+            parser.read(about)
+            result = parser.items(CONFIG_SECTION_ABOUT)
         return result
+
 
     def load(self, pack, app):
         for name, value in self.getAttributeValues(pack):
             setattr(pack, name, value)
 
+
     def upgrade(self, pack, app):
         self.load(pack, app)
+
 
     def list(self, pack, app):
         return [('%s %s' % av) for av in self.getAttributeValues(pack)]

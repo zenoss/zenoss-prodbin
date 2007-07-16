@@ -20,6 +20,7 @@ from Products.ZenUtils.Utils import importClass
 from Products.ZenModel.migrate import Migrate
 from Products.ZenUtils.Version import getVersionTupleFromString
 from Products.ZenModel.migrate.Migrate import Version
+from Products.ZenModel.ZenPackLoader import *
 
 import transaction
 
@@ -49,6 +50,7 @@ class ZenPackMigration:
     
     def recover(self, pack): pass
 
+
 class ZenPack(ZenModelRM):
     '''The root of all ZenPacks: has no implementation,
     but sits here to be the target of the Relation'''
@@ -59,10 +61,16 @@ class ZenPack(ZenModelRM):
     url = ''
     version = '0.1'
 
+    requires = ()
+
+    loaders = (ZPLObject(), ZPLReport(), ZPLDaemons(), ZPLSkins(),
+                ZPLDataSources(), ZPLLibraries(), ZPLAbout())
+                
     _properties = ZenModelRM._properties + (
         {'id':'objectPaths','type':'lines','mode':'w'},
         {'id':'author', 'type':'string', 'mode':'w'},
         {'id':'organization', 'type':'string', 'mode':'w'},
+        {'id':'version', 'type':'string', 'mode':'w'},
         {'id':'url', 'type':'string', 'mode':'w'},
     )
     
@@ -85,117 +93,6 @@ class ZenPack(ZenModelRM):
           },
         )
 
-    def remove(self, app=None):
-        pass
-
-    def manage_deletePackable(self, packables=(), REQUEST=None):
-        "Delete objects from this ZenPack"
-        from sets import Set
-        packables = Set(packables)
-        for obj in self.packables():
-            if obj.getPrimaryUrlPath() in packables:
-                self.packables.removeRelation(obj)
-        if REQUEST: 
-            return self.callZenScreen(REQUEST)
-
-    def manage_exportPack(self, REQUEST=None):
-        "Export the ZenPack to the /export directory"
-        from StringIO import StringIO
-        from Acquisition import aq_base
-        xml = StringIO()
-        xml.write("""<?xml version="1.0"?>\n""")
-        xml.write("<objects>\n")
-        packables = eliminateDuplicates(self.packables())
-        for obj in packables:
-            obj = aq_base(obj)
-            xml.write('<!-- %r -->\n' % (obj.getPrimaryPath(),))
-            obj.exportXml(xml,['devices','networks', 'pack'],True)
-        xml.write("</objects>\n")
-        path = zenPackPath(self.id, 'objects')
-        if not os.path.isdir(path):
-            os.mkdir(path, 0750)
-        objects = file(os.path.join(path, 'objects.xml'), 'w')
-        objects.write(xml.getvalue())
-        objects.close()
-        path = zenPackPath(self.id, 'skins')
-        if not os.path.isdir(path):
-            os.makeDirs(path, 0750)
-        init = zenPackPath(self.id, '__init__.py')
-        if not os.path.isfile(init):
-            fp = file(init, 'w')
-            fp.write(
-'''
-import Globals
-from Products.CMFCore.DirectoryView import registerDirectory
-registerDirectory("skins", globals())
-
-from Products.ZenModel.ZenPack import ZenPackBase
-
-class ZenPack(ZenPackBase):
-    author = %r
-    organization = %r
-    version = %r
-
-# register any other classes here
-''' % (self.author, self.organization, self.version))
-
-            fp.close()
-        zenhome = os.getenv('ZENHOME')
-        path = os.path.join(zenhome, 'export')
-        if not os.path.isdir(path):
-            os.makeDirs(path, 0750)
-        from zipfile import ZipFile, ZIP_DEFLATED
-        zf = ZipFile(os.path.join(path, '%s.zip' % self.id), 'w', ZIP_DEFLATED)
-        base = zenPackPath()
-        for p, ds, fd in os.walk(zenPackPath(self.id)):
-            if p.split('/')[-1].startswith('.'): continue
-            for f in fd:
-                if f.startswith('.'): continue
-                if f.endswith('.pyc'): continue
-                filename = os.path.join(p, f)
-                zf.write(filename, filename[len(base)+1:])
-        zf.close()
-        if REQUEST:
-            REQUEST['message'] = '%s has been exported' % self.id
-            return self.callZenScreen(REQUEST)
-
-
-    def getDataSourceClasses(self):
-        dsClasses = []
-        for path, dirs, files in os.walk(self.path('datasources')):
-            dirs[:] = [d for d in dirs if not d.startswith('.')]
-            for f in files:
-                if not f.startswith('.') \
-                        and f.endswith('.py') \
-                        and not f == '__init__.py':
-                    parts = path.split('/') + [f[:-3]]
-                    parts = parts[parts.index('Products'):]
-                    dsClasses.append(importClass('.'.join(parts)))
-        return dsClasses
-
-
-from Products.ZenModel.ZenPackLoader import *
-
-def zenPackPath(*parts):
-    return os.path.join(os.environ['ZENHOME'], 'Products', *parts)
-
-class ZenPackBase(ZenPack):
-
-    requires = ()
-
-    _properties = (
-        dict(id='author',       type='string', mode='w'),
-        dict(id='organization', type='string', mode='w'),
-        dict(id='version',      type='string', mode='w'),
-        )        
-    
-    zope.interface.implements(interfaces.IZenPack)
-    loaders = (ZPLObject(), ZPLReport(), ZPLDaemons(), ZPLSkins(),
-                ZPLDataSources(), ZPLLibraries(), ZPLAbout())
-
-    def __init__(self, id):
-        self.requires = []
-        ZenPack.__init__(self, id)
 
     def path(self, *args):
         return zenPackPath(self.id, *args)
@@ -252,12 +149,125 @@ class ZenPackBase(ZenPack):
                 r.recover()
             raise ex
 
+
     def list(self, app):
         result = []
         for loader in self.loaders:
             result.append((loader.name,
                            [item for item in loader.list(self, app)]))
         return result
+
+
+    def manage_deletePackable(self, packables=(), REQUEST=None):
+        "Delete objects from this ZenPack"
+        from sets import Set
+        packables = Set(packables)
+        for obj in self.packables():
+            if obj.getPrimaryUrlPath() in packables:
+                self.packables.removeRelation(obj)
+        if REQUEST: 
+            return self.callZenScreen(REQUEST)
+
+    def manage_exportPack(self, REQUEST=None):
+        "Export the ZenPack to the /export directory"
+        from StringIO import StringIO
+        from Acquisition import aq_base
+        xml = StringIO()
         
+        # Write out packable objects
+        xml.write("""<?xml version="1.0"?>\n""")
+        xml.write("<objects>\n")
+        packables = eliminateDuplicates(self.packables())
+        for obj in packables:
+            obj = aq_base(obj)
+            xml.write('<!-- %r -->\n' % (obj.getPrimaryPath(),))
+            obj.exportXml(xml,['devices','networks', 'pack'],True)
+        xml.write("</objects>\n")
+        path = zenPackPath(self.id, 'objects')
+        if not os.path.isdir(path):
+            os.mkdir(path, 0750)
+        objects = file(os.path.join(path, 'objects.xml'), 'w')
+        objects.write(xml.getvalue())
+        objects.close()
+        
+        # Create skins dir if not there
+        path = zenPackPath(self.id, 'skins')
+        if not os.path.isdir(path):
+            os.makeDirs(path, 0750)
+            
+        # Create __init__.py
+        init = zenPackPath(self.id, '__init__.py')
+        if not os.path.isfile(init):
+            fp = file(init, 'w')
+            fp.write(
+'''
+import Globals
+from Products.CMFCore.DirectoryView import registerDirectory
+registerDirectory("skins", globals())
+''')
+            fp.close()
+        
+        # Create about.txt
+        about = zenPackPath(self.id, CONFIG_FILE)
+        values = {}
+        parser = ConfigParser.SafeConfigParser()
+        if os.path.isfile(about):
+            try:
+                parser.read(about)
+                values = dict(parser.items(CONFIG_SECTION_ABOUT))
+            except ConfigParser.Error:
+                pass
+        values.update(dict([(p[id], str(getattr(self, p[id], '')))
+                        for p in self._properties]))
+        fp = file(about, 'w')
+        try:
+            parser.write(fp)
+        finally:
+            fp.close()
+
+        # Create the zip file
+        zenhome = os.getenv('ZENHOME')
+        path = os.path.join(zenhome, 'export')
+        if not os.path.isdir(path):
+            os.makeDirs(path, 0750)
+        from zipfile import ZipFile, ZIP_DEFLATED
+        zf = ZipFile(os.path.join(path, '%s.zip' % self.id), 'w', ZIP_DEFLATED)
+        base = zenPackPath()
+        for p, ds, fd in os.walk(zenPackPath(self.id)):
+            if p.split('/')[-1].startswith('.'): continue
+            for f in fd:
+                if f.startswith('.'): continue
+                if f.endswith('.pyc'): continue
+                filename = os.path.join(p, f)
+                zf.write(filename, filename[len(base)+1:])
+        zf.close()
+        if REQUEST:
+            REQUEST['message'] = '%s has been exported' % self.id
+            return self.callZenScreen(REQUEST)
+
+
+    def getDataSourceClasses(self):
+        dsClasses = []
+        for path, dirs, files in os.walk(self.path('datasources')):
+            dirs[:] = [d for d in dirs if not d.startswith('.')]
+            for f in files:
+                if not f.startswith('.') \
+                        and f.endswith('.py') \
+                        and not f == '__init__.py':
+                    parts = path.split('/') + [f[:-3]]
+                    parts = parts[parts.index('Products'):]
+                    dsClasses.append(importClass('.'.join(parts)))
+        return dsClasses
+
+
+def zenPackPath(*parts):
+    return os.path.join(os.environ['ZENHOME'], 'Products', *parts)
+
+
+# ZenPackBase is here for backwards compatibility with older installed
+# zenpacks that used it.  ZenPackBase was rolled into ZenPack when we
+# started using about.txt files instead of ZenPack subclasses to set
+# zenpack metadata.
+ZenPackBase = ZenPack
 
 InitializeClass(ZenPack)

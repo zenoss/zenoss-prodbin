@@ -13,12 +13,13 @@
 __doc__ = "Manage ZenPacks"
 
 import Globals
-from Products.ZenModel.ZenPack import ZenPackBase, zenPackPath
+from Products.ZenModel.ZenPack import ZenPack, zenPackPath
 from Products.ZenUtils.ZenScriptBase import ZenScriptBase
 from Products.ZenUtils.Utils import cleanupSkins
 import transaction
 
 import os, sys
+import os.path
 
 class ZenPackCmd(ZenScriptBase):
     "Manage ZenPacks"
@@ -31,7 +32,10 @@ class ZenPackCmd(ZenScriptBase):
             if os.path.isfile(self.options.installPackName):
                 packName = self.extract(self.options.installPackName)
             elif os.path.isdir(self.options.installPackName):
-                packName = self.copyDir(self.options.installPackName)
+                if self.options.link:
+                    packName = self.linkDir(self.options.installPackName)
+                else:
+                    packName = self.copyDir(self.options.installPackName)
             else:
                 self.stop('%s does not appear to be a valid file or directory.'
                           % self.options.installPackName)
@@ -67,9 +71,9 @@ class ZenPackCmd(ZenScriptBase):
                 zp = module.ZenPack(packName)
             except (ImportError, AttributeError), ex:
                 self.log.debug("Unable to find custom ZenPack (%s), "
-                               "defaulting to ZenPackBase",
+                               "defaulting to generic ZenPack",
                                ex)
-                zp = ZenPackBase(packName)
+                zp = ZenPack(packName)
             self.dmd.packs._setObject(packName, zp)
             zp.install(self.app)
         if zp:
@@ -160,6 +164,42 @@ class ZenPackCmd(ZenScriptBase):
             self.stop('Error copying %s to $ZENHOME/Products' % srcDir)
         
         return packName
+
+
+    def linkDir(self, srcDir):
+        '''Symlink the srcDir into Products
+        Return the name.
+        '''
+        import pdb; pdb.set_trace()
+        # Normalize srcDir to not end with slash
+        if srcDir.endswith('/'):
+            srcDir = srcDir[:-1]
+            
+        # Need absolute path for links
+        srcDir = os.path.abspath(srcDir)
+        
+        if not os.path.isdir(srcDir):
+            self.stop('Specified directory does not appear to exist: %s' %
+                        srcDir)
+        
+        # Determine name of pack and it's destination directory                
+        packName = os.path.split(srcDir)[1]
+        root = zenPackPath(packName)
+        
+        # Continue without copying if the srcDir is already in Products
+        if os.path.exists(root) and os.path.samefile(root, srcDir):
+            self.log.debug('Directory already in $ZENHOME/Products,'
+                            ' not copying.')
+            return packName
+        
+        cmd = 'rm -rf $ZENHOME/Products/%s' % packName
+        r = os.system(cmd)
+        cmd = 'mkdir $ZENHOME/Products/%s' % packName
+        r = os.system(cmd)
+        cmd = 'ln -s %s/* $ZENHOME/Products/%s/' % (srcDir, packName)
+        r = os.system(cmd)
+        
+        return packName
         
 
     def stop(self, why):
@@ -183,6 +223,12 @@ class ZenPackCmd(ZenScriptBase):
                                default=False,
                                help="list installed zenpacks"
                                     " and associated files")
+        self.parser.add_option('--link',
+                               dest='link',
+                               action="store_true",
+                               default=False,
+                               help="symlink the zenpack dir instead of"
+                                    " copying to $ZENHOME/Products")
         ZenScriptBase.buildOptions(self)
 
 if __name__ == '__main__':

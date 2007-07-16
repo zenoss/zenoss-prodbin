@@ -452,8 +452,8 @@ class DataRoot(ZenModelRM, OrderedFolder, Commandable, ZenMenuable):
                           version="",
                           REQUEST = None):
         """make a new ZenPack"""
-        from ZenPack import ZenPackBase
-        pack = ZenPackBase(id)
+        from ZenPack import ZenPack
+        pack = ZenPack(id)
         pack.author = author
         pack.organization = organization
         pack.version = version

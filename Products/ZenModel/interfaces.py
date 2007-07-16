@@ -40,24 +40,6 @@ class IDeviceManager:
         Remove devices from this DeviceManager.
         """
 
-
-class IZenPack(zope.interface.Interface):
-    "Interface for ZenPack additions"
-
-    id = zope.interface.Attribute("The name of the ZenPack")
-
-    def install(zcmd):
-        "Add whatever is necessary to be included into Zenoss"
-
-    def remove(zcmd):
-        "Extricate yourself from Zenoss"
-        
-    def list(zcmd):
-        """List of all the parts loaded by this ZenPack in this form:
-        [('ExtensionType', ['name', 'name', 'name']),
-         ('ExtensionType', ['name', 'name', 'name']),
-        ...]
-        """
         
 class IReport(zope.interface.Interface):
 
