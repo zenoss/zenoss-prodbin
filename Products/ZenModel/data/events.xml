@@ -1,10 +1,10 @@
 <?xml version="1.0"?>
 <objects>
 <object id='/zport/dmd/Events' module='Products.ZenEvents.EventClass' class='EventClass'>
-<property  visible="True" type="string" id="zEventAction" >
+<property visible="True" type="string" id="zEventAction" >
 status
 </property>
-<property  visible="True" type="int" id="zEventSeverity" >
+<property visible="True" type="int" id="zEventSeverity" >
 -1
 </property>
 <object id='Status' module='Products.ZenEvents.EventClass' class='EventClass'>
@@ -34,7 +34,6 @@ Check the Username and Password on the specified service to make sure it is corr
 <property visible="True" type="int" id="zEventSeverity" >
 4
 </property>
-<toone id='eventClass' objid='/zport/dmd/Events/Status/WinService'/>
 </object>
 <object id='Service Control Manager_7038' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
 <property type="string" id="eventClassKey" mode="w" >
@@ -58,7 +57,6 @@ Check the Username and Password on the specified service to make sure it is corr
 <property visible="True" type="int" id="zEventSeverity" >
 4
 </property>
-<toone id='eventClass' objid='/zport/dmd/Events/Status/WinService'/>
 </object>
 </tomanycont>
 </object>
@@ -71,6 +69,18 @@ Check the Username and Password on the specified service to make sure it is corr
 <object id='zenwinmodeler' module='Products.ZenEvents.EventClass' class='EventClass'>
 </object>
 <object id='XmlRpc' module='Products.ZenEvents.EventClass' class='EventClass'>
+</object>
+<object id='Heartbeat' module='Products.ZenEvents.EventClass' class='EventClass'>
+</object>
+<object id='Nagios' module='Products.ZenEvents.EventClass' class='EventClass'>
+</object>
+<object id='OSProcess' module='Products.ZenEvents.EventClass' class='EventClass'>
+</object>
+<object id='Perf' module='Products.ZenEvents.EventClass' class='EventClass'>
+</object>
+<object id='Update' module='Products.ZenEvents.EventClass' class='EventClass'>
+</object>
+<object id='Web' module='Products.ZenEvents.EventClass' class='EventClass'>
 </object>
 </object>
 <object id='Unknown' module='Products.ZenEvents.EventClass' class='EventClass'>
@@ -103,7 +113,6 @@ For more information, click http://www.microsoft.com/contentredirect.asp.
 <property visible="True" type="string" id="zEventAction" >
 status
 </property>
-<toone id='eventClass' objid='/zport/dmd/Events/Security/Login'/>
 </object>
 <object id='MSExchangeIS Mailbox Store_1011' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
 <property type="string" id="eventClassKey" mode="w" >
@@ -124,7 +133,6 @@ For more information, click http://www.microsoft.com/contentredirect.asp.
 <property visible="True" type="string" id="zEventAction" >
 status
 </property>
-<toone id='eventClass' objid='/zport/dmd/Events/Security/Login'/>
 </object>
 <object id='defaultmapping' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
 <property type="string" id="eventClassKey" mode="w" >
@@ -142,7 +150,6 @@ defaultmapping
 <property type="text" id="explanation" mode="w" >
 \d+ \S+ \S+ SEV=\d+ (?P&lt;component&gt;\S+) RPT=\d+ \S+ (?P&lt;summary&gt;.*)
 </property>
-<toone id='eventClass' objid='/zport/dmd/Events/Security/Login'/>
 </object>
 </tomanycont>
 <object id='BadPass' module='Products.ZenEvents.EventClass' class='EventClass'>
@@ -163,7 +170,6 @@ bad password attempt for '(?P&lt;eventKey&gt;\w+)'
 <property type="string" id="example" mode="w" >
 bad password attempt for 'root'
 </property>
-<toone id='eventClass' objid='/zport/dmd/Events/Security/Login/BadPass'/>
 </object>
 <object id='sshd' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
 <property type="string" id="eventClassKey" mode="w" >
@@ -178,7 +184,6 @@ Failed password for (?P&lt;eventKey&gt;\S+) from (?P&lt;remoteIp&gt;\S+) port (?
 <property type="string" id="example" mode="w" >
 Failed password for edahl from 10.2.1.11 port 53529 ssh2
 </property>
-<toone id='eventClass' objid='/zport/dmd/Events/Security/Login/BadPass'/>
 </object>
 </tomanycont>
 </object>
@@ -202,7 +207,6 @@ For additional information specific to this message please visit the Microsoft O
 <property visible="True" type="int" id="zEventSeverity" >
 4
 </property>
-<toone id='eventClass' objid='/zport/dmd/Events/Security/Login/Fail'/>
 </object>
 <object id='W3SVC_100' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
 <property type="string" id="eventClassKey" mode="w" >
@@ -219,7 +223,6 @@ For additional information specific to this message please visit the Microsoft O
 <property visible="True" type="int" id="zEventSeverity" >
 3
 </property>
-<toone id='eventClass' objid='/zport/dmd/Events/Security/Login/Fail'/>
 </object>
 <object id='dropbear' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
 <property type="string" id="eventClassKey" mode="w" >
@@ -234,7 +237,6 @@ exit before auth \(user '(?P&lt;eventKey&gt;\S+)', (?P&lt;failures&gt;\S+) fails
 <property type="string" id="example" mode="w" >
 exit before auth (user 'root', 3 fails): Max auth tries reached - user root
 </property>
-<toone id='eventClass' objid='/zport/dmd/Events/Security/Login/Fail'/>
 </object>
 <object id='remote(pam_unix)' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
 <property type="string" id="eventClassKey" mode="w" >
@@ -246,7 +248,6 @@ remote(pam_unix)
 <property type="string" id="example" mode="w" >
 bad username []
 </property>
-<toone id='eventClass' objid='/zport/dmd/Events/Security/Login/Fail'/>
 </object>
 </tomanycont>
 </object>
@@ -269,7 +270,6 @@ sudo
 <property type="string" id="example" mode="w" >
 edahl : TTY=pts/4 ; PWD=/home/edahl ; USER=root ; COMMAND=/bin/su -
 </property>
-<toone id='eventClass' objid='/zport/dmd/Events/Security/Sudo'/>
 </object>
 </tomanycont>
 </object>
@@ -295,7 +295,6 @@ Child connection from 10.2.1.11:55107
 <property visible="True" type="string" id="zEventAction" >
 history
 </property>
-<toone id='eventClass' objid='/zport/dmd/Events/Security/Conn/Open'/>
 </object>
 <object id='sshd_pam_unix' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
 <property type="string" id="eventClassKey" mode="w" >
@@ -310,7 +309,6 @@ session opened for user (?P&lt;eventKey&gt;\S+) by \(uid=(?P&lt;uid&gt;\d+)\)
 <property type="string" id="example" mode="w" >
 session opened for user edahl by (uid=500)
 </property>
-<toone id='eventClass' objid='/zport/dmd/Events/Security/Conn/Open'/>
 </object>
 <object id='ultravnc' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
 <property type="string" id="eventClassKey" mode="w" >
@@ -325,7 +323,6 @@ ultravnc_1
 <property type="string" id="example" mode="w" >
 29/11/2005 16:12 Connection received from 10.2.1.11
 </property>
-<toone id='eventClass' objid='/zport/dmd/Events/Security/Conn/Open'/>
 </object>
 </tomanycont>
 </object>
@@ -347,7 +344,6 @@ exit before auth \(user '(?P&lt;eventKey&gt;\w+)'.*: Exited normally
 <property type="string" id="example" mode="w" >
 exit before auth (user 'root', 1 fails): Exited normally
 </property>
-<toone id='eventClass' objid='/zport/dmd/Events/Security/Conn/Close'/>
 </object>
 <object id='dropbear_reset' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
 <property type="string" id="eventClassKey" mode="w" >
@@ -362,7 +358,6 @@ dropbear
 <property type="string" id="example" mode="w" >
 exit before auth: error reading: Connection reset by peer
 </property>
-<toone id='eventClass' objid='/zport/dmd/Events/Security/Conn/Close'/>
 </object>
 <object id='sshd_pam_unix' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
 <property type="string" id="eventClassKey" mode="w" >
@@ -377,7 +372,6 @@ session closed for user (?P&lt;eventKey&gt;\S+)
 <property type="string" id="example" mode="w" >
 session closed for user edahl
 </property>
-<toone id='eventClass' objid='/zport/dmd/Events/Security/Conn/Close'/>
 </object>
 <object id='ultravnc' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
 <property type="string" id="eventClassKey" mode="w" >
@@ -392,7 +386,6 @@ ultravnc_3
 <property type="string" id="example" mode="w" >
 29/11/2005 16:16 Client 10.2.1.11 disconnected
 </property>
-<toone id='eventClass' objid='/zport/dmd/Events/Security/Conn/Close'/>
 </object>
 </tomanycont>
 </object>
@@ -412,7 +405,6 @@ Update to computer HOSTNAME of virus definition file 80209g failed. Status 20000
 <property visible="True" type="string" id="zEventAction" >
 history
 </property>
-<toone id='eventClass' objid='/zport/dmd/Events/Security/Virus'/>
 </object>
 <object id='Symantec AntiVirus_46' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
 <property type="string" id="eventClassKey" mode="w" >
@@ -427,7 +419,6 @@ Security Risk Found!Threat: Trojan.Dropper in File: G:\AHSInstall\TouchWorks 10.
 <property visible="True" type="int" id="zEventSeverity" >
 3
 </property>
-<toone id='eventClass' objid='/zport/dmd/Events/Security/Virus'/>
 </object>
 <object id='Symantec AntiVirus_5' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
 <property type="string" id="eventClassKey" mode="w" >
@@ -442,7 +433,6 @@ Threat Found!Threat: Trojan.Dropper in File: c:\speedtest\touchworks 10.1.1 cd.p
 <property visible="True" type="int" id="zEventSeverity" >
 3
 </property>
-<toone id='eventClass' objid='/zport/dmd/Events/Security/Virus'/>
 </object>
 <object id='Symantec AntiVirus_51' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
 <property type="string" id="eventClassKey" mode="w" >
@@ -457,7 +447,6 @@ Security Risk Found!Threat: Trojan.Dropper in File: G:\AHSInstall\TouchWorks 10.
 <property visible="True" type="int" id="zEventSeverity" >
 3
 </property>
-<toone id='eventClass' objid='/zport/dmd/Events/Security/Virus'/>
 </object>
 </tomanycont>
 </object>
@@ -479,7 +468,6 @@ CSMon Message: Service CSAuth has been suspended for a configured function to pr
 <property visible="True" type="int" id="zEventSeverity" >
 1
 </property>
-<toone id='eventClass' objid='/zport/dmd/Events/Security/Auth'/>
 </object>
 <object id='SNMP-3-AUTHFAIL' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
 <property type="string" id="eventClassKey" mode="w" >
@@ -494,7 +482,6 @@ Authentication failure for SNMP req from host (?P&lt;eventKey&gt;\S+)
 <property type="string" id="example" mode="w" >
 Authentication failure for SNMP req from host 10.120.100.10
 </property>
-<toone id='eventClass' objid='/zport/dmd/Events/Security/Auth'/>
 </object>
 <object id='snmp_authenticationFailure' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
 <property type="string" id="eventClassKey" mode="w" >
@@ -509,7 +496,6 @@ snmp trap snmp_authenticationFailure from 10.115.100.22
 <property visible="True" type="int" id="zEventSeverity" >
 3
 </property>
-<toone id='eventClass' objid='/zport/dmd/Events/Security/Auth'/>
 </object>
 </tomanycont>
 </object>
@@ -532,7 +518,6 @@ CROND
 <property type="string" id="example" mode="w" >
 (root) CMD (run-parts /etc/cron.hourly)
 </property>
-<toone id='eventClass' objid='/zport/dmd/Events/Ignore'/>
 </object>
 <object id='RadOncNS5XP' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
 <property type="string" id="eventClassKey" mode="w" >
@@ -544,7 +529,6 @@ RadOncNS5XP
 <property type="string" id="rule" mode="w" >
 evt.priority&gt;4
 </property>
-<toone id='eventClass' objid='/zport/dmd/Events/Ignore'/>
 </object>
 <object id='Server Agents_1126' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
 <property type="string" id="eventClassKey" mode="w" >
@@ -562,7 +546,6 @@ Chassis: '0'
 
 [SNMP TRAP: 6032 in CPQHLTH.MIB]
 </property>
-<toone id='eventClass' objid='/zport/dmd/Events/Ignore'/>
 </object>
 <object id='anacron' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
 <property type="string" id="eventClassKey" mode="w" >
@@ -577,7 +560,6 @@ Updated timestamp for job
 <property type="string" id="example" mode="w" >
 Updated timestamp for job `cron.daily' to 2005-12-13
 </property>
-<toone id='eventClass' objid='/zport/dmd/Events/Ignore'/>
 </object>
 <object id='defaultmapping' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
 <property type="string" id="eventClassKey" mode="w" >
@@ -592,7 +574,6 @@ message repeated \d+ times
 <property type="string" id="example" mode="w" >
 message repeated 2 times
 </property>
-<toone id='eventClass' objid='/zport/dmd/Events/Ignore'/>
 </object>
 <object id='defaultmapping_local7' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
 <property type="string" id="eventClassKey" mode="w" >
@@ -604,7 +585,6 @@ defaultmapping
 <property type="string" id="rule" mode="w" >
 getattr(evt, 'facility', None)=="local7" and getattr(evt, 'priority', 0)&gt;4
 </property>
-<toone id='eventClass' objid='/zport/dmd/Events/Ignore'/>
 </object>
 <object id='kernel' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
 <property type="string" id="eventClassKey" mode="w" >
@@ -616,7 +596,6 @@ kernel
 <property type="string" id="rule" mode="w" >
 evt.priority&gt;4
 </property>
-<toone id='eventClass' objid='/zport/dmd/Events/Ignore'/>
 </object>
 <object id='kernel_capture_card' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
 <property type="string" id="eventClassKey" mode="w" >
@@ -631,7 +610,6 @@ Setting full NTSC height|Hpsc: 0x00001|ivtv: Got DMA-done
 <property type="string" id="example" mode="w" >
 Setting full NTSC height
 </property>
-<toone id='eventClass' objid='/zport/dmd/Events/Ignore'/>
 </object>
 <object id='sendmail' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
 <property type="string" id="eventClassKey" mode="w" >
@@ -643,7 +621,6 @@ sendmail
 <property type="string" id="rule" mode="w" >
 evt.priority&gt;5
 </property>
-<toone id='eventClass' objid='/zport/dmd/Events/Ignore'/>
 </object>
 <object id='syslog' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
 <property type="string" id="eventClassKey" mode="w" >
@@ -658,7 +635,6 @@ Time update:
 <property type="string" id="example" mode="w" >
 Time update: 20051208 18:13:13
 </property>
-<toone id='eventClass' objid='/zport/dmd/Events/Ignore'/>
 </object>
 </tomanycont>
 <object id='Win' module='Products.ZenEvents.EventClass' class='EventClass'>
@@ -673,7 +649,6 @@ Autoenrollment_13
 <property type="string" id="example" mode="w" >
 Automatic certificate enrollment for local system failed to enroll for one Domain Controller certificate (0x80070005). Access is denied.
 </property>
-<toone id='eventClass' objid='/zport/dmd/Events/Ignore/Win'/>
 </object>
 <object id='ClusSvc_1123' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
 <property type="string" id="eventClassKey" mode="w" >
@@ -685,7 +660,6 @@ ClusSvc_1123
 <property type="string" id="example" mode="w" >
 The node lost communication with cluster node 'HOSTNAME' on network 'private'.
 </property>
-<toone id='eventClass' objid='/zport/dmd/Events/Ignore/Win'/>
 </object>
 <object id='DirXML Remote Loader_1' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
 <property type="string" id="eventClassKey" mode="w" >
@@ -703,7 +677,6 @@ Message : Code(-9039) Element &amp;lt;parent&gt; does not have a valid associati
 &lt;object-dn&gt;CN=Kane MD\, Dean,CN=Users,DC=mmcnt,DC=mhs,DC=med (org\Users\Internal\Inactive Users\dkane)&lt;/object-dn&gt;
 &lt;component&gt;Publisher&lt;/component&gt;
 </property>
-<toone id='eventClass' objid='/zport/dmd/Events/Ignore/Win'/>
 </object>
 <object id='FileMaker Server 7_94' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
 <property type="string" id="eventClassKey" mode="w" >
@@ -715,7 +688,6 @@ FileMaker Server 7_94
 <property type="string" id="example" mode="w" >
 Client "NURSI-T15-8821" opening database "Newborns 2005" as "etuttle".
 </property>
-<toone id='eventClass' objid='/zport/dmd/Events/Ignore/Win'/>
 </object>
 <object id='Kerberos_3' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
 <property type="string" id="eventClassKey" mode="w" >
@@ -727,7 +699,6 @@ Kerberos_3
 <property type="string" id="example" mode="w" >
 A Kerberos Error Message was received: on logon session Client Time: Server Time: 14:57:1.0000 1/24/2006 Z Error Code: 0xd KDC_ERR_BADOPTION Extended Error: 0xc00000bb KLIN(0) Client Realm: Client Name: Server Realm: MMCNT.MHS.MED Server Name: host/mmcdc4.mmcnt.mhs.med Target Name: host/mmcdc4.mmcnt.mhs.med@MMCNT.MHS.MED Error Text: File: 9 Line: ae0 Error Data is in record data.
 </property>
-<toone id='eventClass' objid='/zport/dmd/Events/Ignore/Win'/>
 </object>
 <object id='Kerberos_4' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
 <property type="string" id="eventClassKey" mode="w" >
@@ -739,7 +710,6 @@ Kerberos_4
 <property type="string" id="example" mode="w" >
 The kerberos client received a KRB_AP_ERR_MODIFIED error from the server PR-1S-8CA7$.  The target name used was cifs/NURSI-1P-396A.mmcnt.mhs.med. This indicates that the password used to encrypt the kerberos service ticket is different than that on the target server. Commonly, this is due to identically named  machine accounts in the target realm (MMCNT.MHS.MED), and the client realm.   Please contact your system administrator.
 </property>
-<toone id='eventClass' objid='/zport/dmd/Events/Ignore/Win'/>
 </object>
 <object id='MSExchangeDSAccess_2110' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
 <property type="string" id="eventClassKey" mode="w" >
@@ -751,7 +721,6 @@ MSExchangeDSAccess_2110
 <property type="string" id="example" mode="w" >
 Process STORE.EXE (PID=2456). Could not bind to DS server smmhsdc1.mhs.med, error 55 at port 389.   For more information, click http://www.microsoft.com/contentredirect.asp.
 </property>
-<toone id='eventClass' objid='/zport/dmd/Events/Ignore/Win'/>
 </object>
 <object id='MSExchangeDSAccess_2115' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
 <property type="string" id="eventClassKey" mode="w" >
@@ -763,7 +732,6 @@ MSExchangeDSAccess_2115
 <property type="string" id="example" mode="w" >
 Process INETINFO.EXE (PID=1328). DSAccess needs to close a connection to the Domain Controller mmcdc3.mmcnt.mhs.med due to error 0x80040920.   For more information, click http://www.microsoft.com/contentredirect.asp.
 </property>
-<toone id='eventClass' objid='/zport/dmd/Events/Ignore/Win'/>
 </object>
 <object id='MSExchangeIS Mailbox Store_1173' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
 <property type="string" id="eventClassKey" mode="w" >
@@ -775,7 +743,6 @@ MSExchangeIS Mailbox Store_1173
 <property type="string" id="example" mode="w" >
 Error 0x6bb deleting unused restricted view from folder 1-C8EA27F on database "First Storage Group\Mailbox Store (MHSMAIL1)". Microsoft Exchange Information Store will try to delete the view again at the next maintenance interval.   For more information, click http://www.microsoft.com/contentredirect.asp.
 </property>
-<toone id='eventClass' objid='/zport/dmd/Events/Ignore/Win'/>
 </object>
 <object id='MSExchangeTransport_3005' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
 <property type="string" id="eventClassKey" mode="w" >
@@ -787,7 +754,6 @@ MSExchangeTransport_3005
 <property type="string" id="example" mode="w" >
 A non-delivery report with a status code of 4.4.6 was generated for recipient rfc822;wagner@vassurg.com (Message-ID &lt;PFEHIDJJJCDMBAJGMEKGLHHEOEAA.d.peacockix@knsacs.com&gt;). Cause: The maximum hop count was exceeded for this message. This non-delivery report can also be caused if a looping condition exists between sending and receiving servers that are not in the same Exchange organization. In this situation, the message bounces back and forth until the hop count is exceeded. A configuration error in the e-mail system can also cause the message to bounce between two servers or to be forwarded between two recipients. Solution: The maximum hop count is a property set on each virtual server and you can manually override it. The default maximum hop count is 15. Also, check for any situations that might cause loops between servers.
 </property>
-<toone id='eventClass' objid='/zport/dmd/Events/Ignore/Win'/>
 </object>
 <object id='MetaframeEvents_1106' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
 <property type="string" id="eventClassKey" mode="w" >
@@ -799,7 +765,6 @@ MetaframeEvents_1106
 <property type="string" id="example" mode="w" >
 Client printer auto-creation failed.  The driver could not be installed. Possible reasons for the failure: The driver is not in the list of drivers on the server. The driver cannot be located. The driver has not been mapped. Client name: (MMCNT-banthon2) Printer: (Client\MMCNT-banthon2#\Plant Ops - Kyocera Mita KM-1650 KX - 10.116.2.203)  Printer driver: (Kyocera Mita KM-1650 KX)
 </property>
-<toone id='eventClass' objid='/zport/dmd/Events/Ignore/Win'/>
 </object>
 <object id='NETLOGON_5722' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
 <property type="string" id="eventClassKey" mode="w" >
@@ -808,7 +773,6 @@ NETLOGON_5722
 <property type="int" id="sequence" mode="w" >
 0
 </property>
-<toone id='eventClass' objid='/zport/dmd/Events/Ignore/Win'/>
 </object>
 <object id='NETLOGON_5723' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
 <property type="string" id="eventClassKey" mode="w" >
@@ -820,7 +784,6 @@ NETLOGON_5723
 <property type="string" id="example" mode="w" >
 The session setup from computer 'PAY-DOC1-D785' failed because the security database does not contain a trust account 'PAY-DOC1-D785$' referenced by the specified computer.    USER ACTION   If this is the first occurrence of this event for the specified computer and account, this may be a transient issue that doesn't require any action at this time. Otherwise, the following steps may be taken to resolve this problem:    If 'PAY-DOC1-D785$' is a legitimate machine account for the computer 'PAY-DOC1-D785', then 'PAY-DOC1-D785' should be rejoined to the domain.    If 'PAY-DOC1-D785$' is a legitimate interdomain trust account, then the trust should be recreated.    Otherwise, assuming that 'PAY-DOC1-D785$' is not a legitimate account, the following action should be taken on 'PAY-DOC1-D785':    If 'PAY-DOC1-D785' is a Domain Controller, then the trust associated with 'PAY-DOC1-D785$' should be deleted.    If 'PAY-DOC1-D785' is not a Domain Controller, it should be disjoin
 </property>
-<toone id='eventClass' objid='/zport/dmd/Events/Ignore/Win'/>
 </object>
 <object id='NETLOGON_5805' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
 <property type="string" id="eventClassKey" mode="w" >
@@ -832,7 +795,6 @@ NETLOGON_5805
 <property type="string" id="example" mode="w" >
 The session setup from the computer HLTHMDXTRAIN failed to authenticate. The following error occurred: %%5
 </property>
-<toone id='eventClass' objid='/zport/dmd/Events/Ignore/Win'/>
 </object>
 <object id='NETLOGON_5807' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
 <property type="string" id="eventClassKey" mode="w" >
@@ -844,7 +806,6 @@ NETLOGON_5807
 <property type="string" id="example" mode="w" >
 During the past 4.00 hours there have been 12 connections to this Domain Controller from client machines whose IP addresses don't map to any of the existing sites in the enterprise. Those clients, therefore, have undefined sites and may connect to any Domain Controller including those that are in far distant locations from the clients. A client's site is determined by the mapping of its subnet to one of the existing sites. To move the above clients to one of the sites, please consider creating subnet object(s) covering the above IP addresses with mapping to one of the existing sites. The names and IP addresses of the clients in question have been logged on this computer in the following log file 'SystemRoot\debug\netlogon.log' and, potentially, in the log file 'SystemRoot\debug\netlogon.bak' created if the former log becomes full. The log(s) may contain additional unrelated debugging information. To filter out the needed information, please search for lines which
 </property>
-<toone id='eventClass' objid='/zport/dmd/Events/Ignore/Win'/>
 </object>
 <object id='Print_2' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
 <property type="string" id="eventClassKey" mode="w" >
@@ -856,7 +817,6 @@ Print_2
 <property type="string" id="example" mode="w" >
 NT AUTHORITY\SYSTEM Printer Client\MMCNT-hmendenh#\Color Printer (Work Area) - 10.116.2.201 was created.
 </property>
-<toone id='eventClass' objid='/zport/dmd/Events/Ignore/Win'/>
 </object>
 <object id='Print_20' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
 <property type="string" id="eventClassKey" mode="w" >
@@ -868,7 +828,6 @@ Print_20
 <property type="string" id="example" mode="w" >
 Printer Driver HP LaserJet 4000 Series PCL for Windows NT x86 Version-3 was added or updated. Files:- UNIDRV.DLL, UNIDRVUI.DLL, HPLJ4000.GPD, UNIDRV.HLP, UNIRES.DLL, PCL5ERES.DLL, HPC4500U.DLL, TTFSUB.GPD, hplj5si.hlp, STDNAMES.GPD.
 </property>
-<toone id='eventClass' objid='/zport/dmd/Events/Ignore/Win'/>
 </object>
 <object id='Print_3' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
 <property type="string" id="eventClassKey" mode="w" >
@@ -880,7 +839,6 @@ Print_3
 <property type="string" id="example" mode="w" >
 NT AUTHORITY\SYSTEM  Printer Client\MMCNT-hmendenh#\HP Laserjet 2100 PCL 6 - 10.116.2.18 was deleted.
 </property>
-<toone id='eventClass' objid='/zport/dmd/Events/Ignore/Win'/>
 </object>
 <object id='Print_4' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
 <property type="string" id="eventClassKey" mode="w" >
@@ -892,7 +850,6 @@ Print_4
 <property type="string" id="example" mode="w" >
 NT AUTHORITY\SYSTEM  Printer Client\MMCNT-hmendenh#\HP Laserjet 2100 PCL 6 - 10.116.2.18 is pending deletion.
 </property>
-<toone id='eventClass' objid='/zport/dmd/Events/Ignore/Win'/>
 </object>
 <object id='Print_8' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
 <property type="string" id="eventClassKey" mode="w" >
@@ -904,7 +861,6 @@ Print_8
 <property type="string" id="example" mode="w" >
 NT AUTHORITY\SYSTEM  Printer Client\MMCNT-hmendenh#\HP Laserjet 2100 PCL 6 - 10.116.2.18 was purged.
 </property>
-<toone id='eventClass' objid='/zport/dmd/Events/Ignore/Win'/>
 </object>
 <object id='Remote Storage_3037' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
 <property type="string" id="eventClassKey" mode="w" >
@@ -916,7 +872,6 @@ Remote Storage_3037
 <property type="string" id="example" mode="w" >
 Remote Storage failed to recall file &lt;\\AMICASARCH\F$\DICOMImageArchive\2005\06\25\1.3.12.2.1107.5.4.4.1075.5.0.2350209711421538.zip&gt;. User has hit the runaway recall limit. (0x81060016)
 </property>
-<toone id='eventClass' objid='/zport/dmd/Events/Ignore/Win'/>
 </object>
 <object id='Removable Storage Service_102' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
 <property type="string" id="eventClassKey" mode="w" >
@@ -928,7 +883,6 @@ Removable Storage Service_102
 <property type="string" id="example" mode="w" >
 Unable to register COM class objects.
 </property>
-<toone id='eventClass' objid='/zport/dmd/Events/Ignore/Win'/>
 </object>
 <object id='Symantec AntiVirus_6' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
 <property type="string" id="eventClassKey" mode="w" >
@@ -940,7 +894,6 @@ Symantec AntiVirus_6
 <property type="string" id="example" mode="w" >
 Could not scan 492 files inside D:\Symantec SMTP 4.x\Symantec_Mail_Security_for_SMTP_4.1.9.35_Win_Sol.zip due to extraction errors encountered by the Decomposer Engines.
 </property>
-<toone id='eventClass' objid='/zport/dmd/Events/Ignore/Win'/>
 </object>
 <object id='Symantec Mail Security for SMTP_2' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
 <property type="string" id="eventClassKey" mode="w" >
@@ -952,7 +905,6 @@ Symantec Mail Security for SMTP_2
 <property type="string" id="example" mode="w" >
 Error 0 receiving data from remote host. (80.69.58.237)
 </property>
-<toone id='eventClass' objid='/zport/dmd/Events/Ignore/Win'/>
 </object>
 <object id='TermServDevices_1106' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
 <property type="string" id="eventClassKey" mode="w" >
@@ -964,7 +916,6 @@ TermServDevices_1106
 <property type="string" id="example" mode="w" >
 The printer could not be installed.
 </property>
-<toone id='eventClass' objid='/zport/dmd/Events/Ignore/Win'/>
 </object>
 <object id='TermServDevices_1111' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
 <property type="string" id="eventClassKey" mode="w" >
@@ -976,7 +927,6 @@ TermServDevices_1111
 <property type="string" id="example" mode="w" >
 Driver ActiveTouch Document Loader required for printer ActiveTouch Document Loader is unknown. Contact the administrator to install the driver before you log in again.
 </property>
-<toone id='eventClass' objid='/zport/dmd/Events/Ignore/Win'/>
 </object>
 <object id='dirxml remote loader_1' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
 <property type="string" id="eventClassKey" mode="w" >
@@ -988,7 +938,6 @@ dirxml remote loader_1
 <property type="string" id="example" mode="w" >
 %256: \ID_VAULT\org\services\DirXML\Driver-Set\NewADDriver %257: Subscriber Channel %258: \ID_VAULT\org\Users\Groups\AD\MetaFrame Users %259: &lt;ldap-err ldap-rc="68" ldap-rc-name="LDAP_ALREADY_EXISTS"&gt; &lt;client-err ldap-rc="68" ldap-rc-name="LDAP_ALREADY_EXISTS"&gt;Already Exists&lt;/client-err&gt; &lt;server-err&gt;00000562: UpdErr: DSID-031A0F4F, problem 6005 (ENTRY_EXISTS), data 0 &lt;/server-err&gt; &lt;server-err-ex win32-rc="1378"/&gt; &lt;/ldap-err&gt;
 </property>
-<toone id='eventClass' objid='/zport/dmd/Events/Ignore/Win'/>
 </object>
 <object id='excdo_8206' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
 <property type="string" id="eventClassKey" mode="w" >
@@ -1000,7 +949,6 @@ excdo_8206
 <property type="string" id="example" mode="w" >
 Calendaring agent failed with error code 0x80070057 while saving appointment.   For more information, click http://www.microsoft.com/contentredirect.asp.
 </property>
-<toone id='eventClass' objid='/zport/dmd/Events/Ignore/Win'/>
 </object>
 <object id='excdo_8230' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
 <property type="string" id="eventClassKey" mode="w" >
@@ -1012,7 +960,6 @@ excdo_8230
 <property type="string" id="example" mode="w" >
 An inconsistency was detected in jweiland@mdmercy.com: /Calendar/OR 9 Progress Meeting.EML.  The calendar is being repaired.  If other errors occur with this calendar, please view the calendar using Microsoft Outlook Web Access.  If a problem persists, please recreate the calendar or the containing mailbox.   For more information, click http://www.microsoft.com/contentredirect.asp.
 </property>
-<toone id='eventClass' objid='/zport/dmd/Events/Ignore/Win'/>
 </object>
 <object id='excdo_8263' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
 <property type="string" id="eventClassKey" mode="w" >
@@ -1024,7 +971,6 @@ excdo_8263
 <property type="string" id="example" mode="w" >
 The recurring appointment expansion in mailbox O'Connor, Sr Aine has taken too long. Some recurring appointment instances may not be visible at this time. To ensure that the calendar view is correct, please refresh the calendar view in Microsoft Outlook Web Access.   For more information, click http://www.microsoft.com/contentredirect.asp.
 </property>
-<toone id='eventClass' objid='/zport/dmd/Events/Ignore/Win'/>
 </object>
 <object id='general_1173' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
 <property type="string" id="eventClassKey" mode="w" >
@@ -1036,7 +982,6 @@ general_1173
 <property type="string" id="example" mode="w" >
 NT AUTHORITY\ANONYMOUS LOGON  Internal event: Active Directory has encountered the following exception and associated parameters.    Exception: e0010004  Parameter: 0    Additional Data  Error value: -1603  Internal ID: 2050344
 </property>
-<toone id='eventClass' objid='/zport/dmd/Events/Ignore/Win'/>
 </object>
 <object id='msexchangeactivesyncnotify_10306' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
 <property type="string" id="eventClassKey" mode="w" >
@@ -1048,7 +993,6 @@ msexchangeactivesyncnotify_10306
 <property type="string" id="example" mode="w" >
 OMA Categorizer dropped the message with message ID '&lt;c2b7606a703bbd44940f3cd8462068f5-b3c0e6d@OMA&gt;', Recipient 'cjeng@mdmercy.com'.  The global notifications to user specified SMTP addresses is disabled.
 </property>
-<toone id='eventClass' objid='/zport/dmd/Events/Ignore/Win'/>
 </object>
 <object id='msexchangeis_9554' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
 <property type="string" id="eventClassKey" mode="w" >
@@ -1060,7 +1004,6 @@ msexchangeis_9554
 <property type="string" id="example" mode="w" >
 Unable to update Mailbox SD in the DS. Mailbox Guid: 5e727f25-357b-4cd9-9714-d7159348b196. Error Code 0x8004010f   For more information, click http://www.microsoft.com/contentredirect.asp.
 </property>
-<toone id='eventClass' objid='/zport/dmd/Events/Ignore/Win'/>
 </object>
 <object id='msexchangeis_9646' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
 <property type="string" id="eventClassKey" mode="w" >
@@ -1072,7 +1015,6 @@ msexchangeis_9646
 <property type="string" id="example" mode="w" >
 Mapi session "/o=Mercy Medical Center/ou=MMCNT/cn=Recipients/cn=PVizzard"  exceeded the maximum of 32 objects of type "session".   For more information, click http://www.microsoft.com/contentredirect.asp.
 </property>
-<toone id='eventClass' objid='/zport/dmd/Events/Ignore/Win'/>
 </object>
 <object id='msexchangesa_5008' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
 <property type="string" id="eventClassKey" mode="w" >
@@ -1084,7 +1026,6 @@ msexchangesa_5008
 <property type="string" id="example" mode="w" >
 The message tracking log file G:\Program Files\Exchsrvr\MHSMAILlog\20060120.log was deleted.   For more information, click http://www.microsoft.com/contentredirect.asp.
 </property>
-<toone id='eventClass' objid='/zport/dmd/Events/Ignore/Win'/>
 </object>
 <object id='msexchangesa_9040' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
 <property type="string" id="eventClassKey" mode="w" >
@@ -1096,7 +1037,6 @@ msexchangesa_9040
 <property type="string" id="example" mode="w" >
 NSPI Proxy encountered an error while receiving a packet. The target Domain Controller or the network or a client might be down. The winsock subsystem returned the error:[0x2746]. The circuit that received this error is being closed.   For more information, click http://www.microsoft.com/contentredirect.asp.
 </property>
-<toone id='eventClass' objid='/zport/dmd/Events/Ignore/Win'/>
 </object>
 <object id='msexchangesa_9234' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
 <property type="string" id="eventClassKey" mode="w" >
@@ -1108,7 +1048,6 @@ msexchangesa_9234
 <property type="string" id="example" mode="w" >
 Referral Interface was not able to find an msExchExchangeServer object with legacyExchangeDN '/o=Mercy Medical Center/ou=MMCNT/cn=Configuration/cn=Servers/cn=MMC_MAIL'  in the Active Directory.   For more information, click http://www.microsoft.com/contentredirect.asp.
 </property>
-<toone id='eventClass' objid='/zport/dmd/Events/Ignore/Win'/>
 </object>
 <object id='msexchangetransport_327' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
 <property type="string" id="eventClassKey" mode="w" >
@@ -1120,7 +1059,6 @@ msexchangetransport_327
 <property type="string" id="example" mode="w" >
 The following call : EcLocallyDeliverMsg to the store failed. Error code : -2147024891 (Message-ID &lt;C2B7606A703BBD44940F3CD8462068F506E0DB5D@MHSMAIL1.mmcnt.mhs.med&gt; will be NDR'd).  MDB : c423a872-af66-4188-9417-867ecd674fce. FID : b-1549FB. MID : 1-6E0DB5D. File : .   For more information, click http://www.microsoft.com/contentredirect.asp.
 </property>
-<toone id='eventClass' objid='/zport/dmd/Events/Ignore/Win'/>
 </object>
 <object id='norton antivirus_6' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
 <property type="string" id="eventClassKey" mode="w" >
@@ -1132,7 +1070,6 @@ norton antivirus_6
 <property type="string" id="example" mode="w" >
 Scan could not access path C:\pagefile.sys
 </property>
-<toone id='eventClass' objid='/zport/dmd/Events/Ignore/Win'/>
 </object>
 <object id='replication_1232' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
 <property type="string" id="eventClassKey" mode="w" >
@@ -1144,7 +1081,6 @@ replication_1232
 <property type="string" id="example" mode="w" >
 NT AUTHORITY\ANONYMOUS LOGON  Active Directory attempted to perform a remote procedure call (RPC) to the following server.  The call timed out and was cancelled.    Server: 56fedf38-c8c0-4328-a453-a12a8b9c08ea._msdcs.mhs.med  Call Timeout (Mins): 5  Thread ID: 408    Additional Data  Internal ID: 5001047
 </property>
-<toone id='eventClass' objid='/zport/dmd/Events/Ignore/Win'/>
 </object>
 <object id='service_102' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
 <property type="string" id="eventClassKey" mode="w" >
@@ -1156,7 +1092,6 @@ service_102
 <property type="string" id="example" mode="w" >
 Unable to register COM class objects.
 </property>
-<toone id='eventClass' objid='/zport/dmd/Events/Ignore/Win'/>
 </object>
 <object id='smtp_2' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
 <property type="string" id="eventClassKey" mode="w" >
@@ -1165,7 +1100,6 @@ smtp_2
 <property type="int" id="sequence" mode="w" >
 0
 </property>
-<toone id='eventClass' objid='/zport/dmd/Events/Ignore/Win'/>
 </object>
 <object id='smtpsvc_5000' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
 <property type="string" id="eventClassKey" mode="w" >
@@ -1177,7 +1111,6 @@ smtpsvc_5000
 <property type="string" id="example" mode="w" >
 The message file 'E:\Program Files\Exchsrvr\Mailroot\vsi 1\Queue\NTFS_609ee2d701c5f09d00099d1d.EML'  in the queue directory 'E:\Program Files\Exchsrvr\Mailroot\vsi 1\Queue' is corrupt and has not been enumerated.
 </property>
-<toone id='eventClass' objid='/zport/dmd/Events/Ignore/Win'/>
 </object>
 <object id='store_1025' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
 <property type="string" id="eventClassKey" mode="w" >
@@ -1189,7 +1122,6 @@ store_1025
 <property type="string" id="example" mode="w" >
 An error occurred on database "First Storage Group\Public Folder Store (MHSMAIL1)".  Function name or description of problem: Restrict/SetSearchCriteria Error: -1102 Warning: fail to apply search optimization to folder (FID 1-3B3C7)   Retrying without optimization.   For more information, click http://www.microsoft.com/contentredirect.asp.
 </property>
-<toone id='eventClass' objid='/zport/dmd/Events/Ignore/Win'/>
 </object>
 <object id='store_1173' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
 <property type="string" id="eventClassKey" mode="w" >
@@ -1201,7 +1133,6 @@ store_1173
 <property type="string" id="example" mode="w" >
 Error 0x6bb deleting unused restricted view from folder 1-C604C2D on database "First Storage Group\Mailbox Store (MHSMAIL1)". Microsoft Exchange Information Store will try to delete the view again at the next maintenance interval. For more information, click http://www.microsoft.com/contentredirect.asp.
 </property>
-<toone id='eventClass' objid='/zport/dmd/Events/Ignore/Win'/>
 </object>
 <object id='store_1211' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
 <property type="string" id="eventClassKey" mode="w" >
@@ -1213,7 +1144,6 @@ store_1211
 <property type="string" id="example" mode="w" >
 User ibryant@mdmercy.com used ROWLIST_REPLACE to delete all rules in folder 1-8B9EDD6. 12 rules got deleted and 11 rules were added.   For more information, click http://www.microsoft.com/contentredirect.asp.
 </property>
-<toone id='eventClass' objid='/zport/dmd/Events/Ignore/Win'/>
 </object>
 </tomanycont>
 </object>
@@ -1239,7 +1169,6 @@ defaultmapping
 <property visible="True" type="None" id="zEvent_timeout" >
 1400
 </property>
-<toone id='eventClass' objid='/zport/dmd/Events/Heartbeat'/>
 </object>
 <object id='evtsys' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
 <property type="string" id="eventClassKey" mode="w" >
@@ -1254,7 +1183,6 @@ evtsys
 <property visible="True" type="None" id="zEvent_timeout" >
 2500
 </property>
-<toone id='eventClass' objid='/zport/dmd/Events/Heartbeat'/>
 </object>
 </tomanycont>
 </object>
@@ -1283,7 +1211,6 @@ FileMaker Database Engine started.
 <property visible="True" type="int" id="zEventSeverity" >
 0
 </property>
-<toone id='eventClass' objid='/zport/dmd/Events/App/Start'/>
 </object>
 <object id='FileMaker Server 7_418' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
 <property type="string" id="eventClassKey" mode="w" >
@@ -1298,7 +1225,6 @@ Opening database "Newborns 1997 Jul-Dec"...
 <property visible="True" type="int" id="zEventSeverity" >
 0
 </property>
-<toone id='eventClass' objid='/zport/dmd/Events/App/Start'/>
 </object>
 <object id='FileMaker Server 7_486' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
 <property type="string" id="eventClassKey" mode="w" >
@@ -1313,7 +1239,6 @@ FileMaker Server started.
 <property visible="True" type="int" id="zEventSeverity" >
 0
 </property>
-<toone id='eventClass' objid='/zport/dmd/Events/App/Start'/>
 </object>
 <object id='SNMP Informant_0' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
 <property type="string" id="eventClassKey" mode="w" >
@@ -1328,7 +1253,6 @@ SNMP Informant Standard SNMP agent started
 <property visible="True" type="int" id="zEventSeverity" >
 2
 </property>
-<toone id='eventClass' objid='/zport/dmd/Events/App/Start'/>
 </object>
 <object id='ntsyslog' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
 <property type="string" id="eventClassKey" mode="w" >
@@ -1343,7 +1267,6 @@ Service started.
 <property type="string" id="example" mode="w" >
 Service started.
 </property>
-<toone id='eventClass' objid='/zport/dmd/Events/App/Start'/>
 </object>
 </tomanycont>
 </object>
@@ -1365,7 +1288,6 @@ Closing database "Newborns 2001 Jul-Dec"...
 <property visible="True" type="int" id="zEventSeverity" >
 4
 </property>
-<toone id='eventClass' objid='/zport/dmd/Events/App/Stop'/>
 </object>
 <object id='FileMaker Server 7_168' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
 <property type="string" id="eventClassKey" mode="w" >
@@ -1380,7 +1302,6 @@ Database "Newborns 2001 Jan-Jun" closed.
 <property visible="True" type="int" id="zEventSeverity" >
 4
 </property>
-<toone id='eventClass' objid='/zport/dmd/Events/App/Stop'/>
 </object>
 <object id='FileMaker Server 7_412' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
 <property type="string" id="eventClassKey" mode="w" >
@@ -1395,7 +1316,6 @@ FileMaker Database Engine stopped.
 <property visible="True" type="int" id="zEventSeverity" >
 4
 </property>
-<toone id='eventClass' objid='/zport/dmd/Events/App/Stop'/>
 </object>
 <object id='FileMaker Server 7_490' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
 <property type="string" id="eventClassKey" mode="w" >
@@ -1410,7 +1330,6 @@ FileMaker Server stopped.
 <property visible="True" type="int" id="zEventSeverity" >
 4
 </property>
-<toone id='eventClass' objid='/zport/dmd/Events/App/Stop'/>
 </object>
 <object id='Service Control Manager_7034' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
 <property type="string" id="eventClassKey" mode="w" >
@@ -1422,7 +1341,6 @@ Service Control Manager_7034
 <property visible="True" type="int" id="zEventSeverity" >
 3
 </property>
-<toone id='eventClass' objid='/zport/dmd/Events/App/Stop'/>
 </object>
 <object id='ntsyslog' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
 <property type="string" id="eventClassKey" mode="w" >
@@ -1437,7 +1355,6 @@ Service shutdown.
 <property type="string" id="example" mode="w" >
 Service shutdown.
 </property>
-<toone id='eventClass' objid='/zport/dmd/Events/App/Stop'/>
 </object>
 </tomanycont>
 </object>
@@ -1456,7 +1373,6 @@ Warning: IIS log failed to write entry,   Script timed out. The maximum amount o
 <property visible="True" type="int" id="zEventSeverity" >
 3
 </property>
-<toone id='eventClass' objid='/zport/dmd/Events/App/Failed'/>
 </object>
 <object id='Application Error_1000' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
 <property type="string" id="eventClassKey" mode="w" >
@@ -1471,7 +1387,6 @@ Faulting application inserverD.exe, version 5.41.2.0, faulting module ntdll.dll,
 <property visible="True" type="int" id="zEventSeverity" >
 3
 </property>
-<toone id='eventClass' objid='/zport/dmd/Events/App/Failed'/>
 </object>
 <object id='Application Hang_1002' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
 <property type="string" id="eventClassKey" mode="w" >
@@ -1486,7 +1401,6 @@ Hanging application Copy of WorkRules.exe, version 1.0.0.7, hang module hungapp,
 <property visible="True" type="int" id="zEventSeverity" >
 3
 </property>
-<toone id='eventClass' objid='/zport/dmd/Events/App/Failed'/>
 </object>
 <object id='Application Popup_26' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
 <property type="string" id="eventClassKey" mode="w" >
@@ -1507,7 +1421,6 @@ Place Media "MHS805" into drive or library unit
 <property visible="True" type="int" id="zEventSeverity" >
 3
 </property>
-<toone id='eventClass' objid='/zport/dmd/Events/App/Failed'/>
 </object>
 <object id='BROWSER_8032' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
 <property type="string" id="eventClassKey" mode="w" >
@@ -1523,7 +1436,6 @@ The backup browser is stopping.
 <property visible="True" type="int" id="zEventSeverity" >
 4
 </property>
-<toone id='eventClass' objid='/zport/dmd/Events/App/Failed'/>
 </object>
 <object id='Cloudmark Server Edition_2011' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
 <property type="string" id="eventClassKey" mode="w" >
@@ -1543,7 +1455,6 @@ Zanti, Debra
 <property visible="True" type="int" id="zEventSeverity" >
 4
 </property>
-<toone id='eventClass' objid='/zport/dmd/Events/App/Failed'/>
 </object>
 <object id='EventLog_6000' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
 <property type="string" id="eventClassKey" mode="w" >
@@ -1558,7 +1469,6 @@ The Application log file is full.
 <property visible="True" type="int" id="zEventSeverity" >
 4
 </property>
-<toone id='eventClass' objid='/zport/dmd/Events/App/Failed'/>
 </object>
 <object id='MisysReports' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
 <property type="string" id="eventClassKey" mode="w" >
@@ -1570,7 +1480,6 @@ MisysReports
 <property type="string" id="example" mode="w" >
 tsm: /dev/tty0: 3004-034 TSM: All possible term settings tried unsuccessfully.
 </property>
-<toone id='eventClass' objid='/zport/dmd/Events/App/Failed'/>
 </object>
 <object id='MultiView License Manager_114' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
 <property type="string" id="eventClassKey" mode="w" >
@@ -1585,7 +1494,6 @@ The Slave License Manager (CTXPS03) did not respond within the specified timeout
 <property visible="True" type="int" id="zEventSeverity" >
 3
 </property>
-<toone id='eventClass' objid='/zport/dmd/Events/App/Failed'/>
 </object>
 <object id='NETLOGON_5719' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
 <property type="string" id="eventClassKey" mode="w" >
@@ -1615,7 +1523,6 @@ in the specified domain.
 <property visible="True" type="int" id="zEventSeverity" >
 4
 </property>
-<toone id='eventClass' objid='/zport/dmd/Events/App/Failed'/>
 </object>
 <object id='Norton AntiVirus_6' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
 <property type="string" id="eventClassKey" mode="w" >
@@ -1627,7 +1534,6 @@ Norton AntiVirus_6
 <property type="string" id="example" mode="w" >
 Scan could not access path C:\RECYCLER\S-1-5-21-1953108385-1836779210-1757479407-15306\Dc231.ENC
 </property>
-<toone id='eventClass' objid='/zport/dmd/Events/App/Failed'/>
 </object>
 <object id='Remote Storage_4002' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
 <property type="string" id="eventClassKey" mode="w" >
@@ -1642,7 +1548,6 @@ Media &lt;MHS809/RS-AMICASARCH-8&gt; cannot be mounted into a drive. Media is no
 <property visible="True" type="int" id="zEventSeverity" >
 4
 </property>
-<toone id='eventClass' objid='/zport/dmd/Events/App/Failed'/>
 </object>
 <object id='Remote Storage_6021' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
 <property type="string" id="eventClassKey" mode="w" >
@@ -1657,7 +1562,6 @@ An error was detected doing Data Transfer for &lt;Demand Recall&gt; on AMICASARC
 <property visible="True" type="int" id="zEventSeverity" >
 3
 </property>
-<toone id='eventClass' objid='/zport/dmd/Events/App/Failed'/>
 </object>
 <object id='Server Agents_1562' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
 <property type="string" id="eventClassKey" mode="w" >
@@ -1673,7 +1577,6 @@ Error: Unable to initialize agent on non-ProLiant system.
 
 Cause: The System Information Agent only operates on ProLiant systems.
 </property>
-<toone id='eventClass' objid='/zport/dmd/Events/App/Failed'/>
 </object>
 <object id='Service Control Manager_7031' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
 <property type="string" id="eventClassKey" mode="w" >
@@ -1688,7 +1591,6 @@ The SNMP Service service terminated unexpectedly.  It has done this 1 time(s).  
 <property visible="True" type="int" id="zEventSeverity" >
 3
 </property>
-<toone id='eventClass' objid='/zport/dmd/Events/App/Failed'/>
 </object>
 <object id='Srv_2022' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
 <property type="string" id="eventClassKey" mode="w" >
@@ -1706,7 +1608,6 @@ in the registry.
 <property visible="True" type="int" id="zEventSeverity" >
 5
 </property>
-<toone id='eventClass' objid='/zport/dmd/Events/App/Failed'/>
 </object>
 <object id='USER32_1073' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
 <property type="string" id="eventClassKey" mode="w" >
@@ -1721,7 +1622,6 @@ The attempt by user MMCNT\Ngensys to restart/shutdown computer CALLPILOTWEB fail
 <property visible="True" type="int" id="zEventSeverity" >
 3
 </property>
-<toone id='eventClass' objid='/zport/dmd/Events/App/Failed'/>
 </object>
 <object id='W3SVC_101' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
 <property type="string" id="eventClassKey" mode="w" >
@@ -1735,7 +1635,6 @@ The server was unable to add the virtual root '/Altiris/Packages/{80364610-d332-
 
 For additional information specific to this message please visit the Microsoft Online Support site located at: http://www.microsoft.com/contentredirect.asp.
 </property>
-<toone id='eventClass' objid='/zport/dmd/Events/App/Failed'/>
 </object>
 <object id='Winlogon_1218' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
 <property type="string" id="eventClassKey" mode="w" >
@@ -1753,7 +1652,6 @@ Domain: MMCNT
 <property visible="True" type="int" id="zEventSeverity" >
 3
 </property>
-<toone id='eventClass' objid='/zport/dmd/Events/App/Failed'/>
 </object>
 <object id='Winlogon_1219' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
 <property type="string" id="eventClassKey" mode="w" >
@@ -1769,7 +1667,6 @@ Error: The RPC server is unavailable.
 <property visible="True" type="int" id="zEventSeverity" >
 4
 </property>
-<toone id='eventClass' objid='/zport/dmd/Events/App/Failed'/>
 </object>
 </tomanycont>
 </object>
@@ -1788,7 +1685,6 @@ succeeded
 <property type="string" id="example" mode="w" >
 succeeded
 </property>
-<toone id='eventClass' objid='/zport/dmd/Events/App/Reload'/>
 </object>
 </tomanycont>
 </object>
@@ -1813,7 +1709,6 @@ CROND
 <property type="text" id="explanation" mode="w" >
 (mythtv) CMD (/usr/bin/mythfilldatabase&gt;/dev/null 2&gt;&amp;1)
 </property>
-<toone id='eventClass' objid='/zport/dmd/Events/App/Log'/>
 </object>
 <object id='pmta' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
 <property type="string" id="eventClassKey" mode="w" >
@@ -1822,7 +1717,6 @@ pmta
 <property type="int" id="sequence" mode="w" >
 0
 </property>
-<toone id='eventClass' objid='/zport/dmd/Events/App/Log'/>
 </object>
 <object id='postfix_smtpd' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
 <property type="string" id="eventClassKey" mode="w" >
@@ -1837,7 +1731,6 @@ warning: (?P&lt;eventKey&gt;\S+):
 <property type="string" id="example" mode="w" >
 warning: 68.33.51.29: hostname pcp0010796240pcs.anapol01.md.comcast.net verification failed: Host not found
 </property>
-<toone id='eventClass' objid='/zport/dmd/Events/App/Log'/>
 </object>
 <object id='procmail' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
 <property type="string" id="eventClassKey" mode="w" >
@@ -1855,7 +1748,6 @@ Descriptor 1 was not open
 <property visible="True" type="int" id="zEventSeverity" >
 2
 </property>
-<toone id='eventClass' objid='/zport/dmd/Events/App/Log'/>
 </object>
 </tomanycont>
 </object>
@@ -1874,7 +1766,6 @@ The recurring appointment expansion in mailbox Stalder, Jim has taken too long. 
 
 For more information, click http://www.microsoft.com/contentredirect.asp.
 </property>
-<toone id='eventClass' objid='/zport/dmd/Events/App/Email'/>
 </object>
 <object id='MSExchangeIS Mailbox Store_1029' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
 <property type="string" id="eventClassKey" mode="w" >
@@ -1893,7 +1784,6 @@ The distinguished name of the owning mailbox is /O=MERCY MEDICAL CENTER/OU=MMCNT
 
 For more information, click http://www.microsoft.com/contentredirect.asp.
 </property>
-<toone id='eventClass' objid='/zport/dmd/Events/App/Email'/>
 </object>
 <object id='MSExchangeIS Mailbox Store_1032' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
 <property type="string" id="eventClassKey" mode="w" >
@@ -1911,7 +1801,6 @@ For more information, click http://www.microsoft.com/contentredirect.asp.
 <property visible="True" type="int" id="zEventSeverity" >
 1
 </property>
-<toone id='eventClass' objid='/zport/dmd/Events/App/Email'/>
 </object>
 <object id='MSExchangeSA_9320' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
 <property type="string" id="eventClassKey" mode="w" >
@@ -1929,7 +1818,6 @@ entries are affected, event logging for the offline address list generator must 
 
 For more information, click http://www.microsoft.com/contentredirect.asp.
 </property>
-<toone id='eventClass' objid='/zport/dmd/Events/App/Email'/>
 </object>
 <object id='MSExchangeSA_9323' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
 <property type="string" id="eventClassKey" mode="w" >
@@ -1946,7 +1834,6 @@ Entry 'Nangpal, Alpana' has invalid or expired e-mail certificates.  These certi
 
 For more information, click http://www.microsoft.com/contentredirect.asp.
 </property>
-<toone id='eventClass' objid='/zport/dmd/Events/App/Email'/>
 </object>
 <object id='smtpsvc_5000' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
 <property type="string" id="eventClassKey" mode="w" >
@@ -1961,7 +1848,6 @@ The message file '.*'  in the queue directory '(?P&lt;eventkey&gt;.*)' is corrup
 <property type="string" id="example" mode="w" >
 The message file 'E:\Program Files\Exchsrvr\Mailroot\vsi 1\Queue\NTFS_584fe40801c5f24800007253.EML'  in the queue directory 'E:\Program Files\Exchsrvr\Mailroot\vsi 1\Queue' is corrupt and has not been enumerated.
 </property>
-<toone id='eventClass' objid='/zport/dmd/Events/App/Email'/>
 </object>
 </tomanycont>
 <object id='Loop' module='Products.ZenEvents.EventClass' class='EventClass'>
@@ -1982,7 +1868,6 @@ msexchangetransport_3005
 <property type="string" id="example" mode="w" >
 A non-delivery report with a status code of 4.4.6 was generated for recipient rfc822;holland@hcmt.com (Message-ID &lt;281720.5566209930204.043952489222.LALP.3314@septuagenarian&gt; ). Cause: The maximum hop count was exceeded for this message. This non-delivery report can also be caused if a looping condition exists between sending and receiving servers that are not in the same Exchange organization. In this situation, the message bounces back and forth until the hop count is exceeded. A configuration error in the e-mail system can also cause the message to bounce between two servers or to be forwarded between two recipients. Solution: The maximum hop count is a property set on each virtual server and you can manually override it. The default maximum hop count is 15. Also, check for any situations that might cause loops between servers.
 </property>
-<toone id='eventClass' objid='/zport/dmd/Events/App/Email/Loop'/>
 </object>
 </tomanycont>
 </object>
@@ -2002,7 +1887,6 @@ Client "NURSI-T15-8821" no longer responding; connection closed. (10.120.30.17)
 <property visible="True" type="int" id="zEventSeverity" >
 2
 </property>
-<toone id='eventClass' objid='/zport/dmd/Events/App/Conn'/>
 </object>
 <object id='FileMaker Server 7_518' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
 <property type="string" id="eventClassKey" mode="w" >
@@ -2017,7 +1901,6 @@ Administrator connected: "administrator" (10.120.100.230).
 <property visible="True" type="int" id="zEventSeverity" >
 3
 </property>
-<toone id='eventClass' objid='/zport/dmd/Events/App/Conn'/>
 </object>
 <object id='FileMaker Server 7_520' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
 <property type="string" id="eventClassKey" mode="w" >
@@ -2032,7 +1915,6 @@ Administrator disconnected: "administrator".
 <property visible="True" type="int" id="zEventSeverity" >
 3
 </property>
-<toone id='eventClass' objid='/zport/dmd/Events/App/Conn'/>
 </object>
 <object id='MSFTPSVC_10' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
 <property type="string" id="eventClassKey" mode="w" >
@@ -2044,7 +1926,6 @@ MSFTPSVC_10
 <property type="string" id="example" mode="w" >
 User gbyam at host 68.50.179.209 has timed-out after 900 seconds of inactivity.
 </property>
-<toone id='eventClass' objid='/zport/dmd/Events/App/Conn'/>
 </object>
 </tomanycont>
 <object id='Max' module='Products.ZenEvents.EventClass' class='EventClass'>
@@ -2065,7 +1946,6 @@ The terminal server has exceeded the maximum number of allowed connections.
 <property visible="True" type="int" id="zEventSeverity" >
 3
 </property>
-<toone id='eventClass' objid='/zport/dmd/Events/App/Conn/Max'/>
 </object>
 <object id='termservice_1013' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
 <property type="string" id="eventClassKey" mode="w" >
@@ -2077,7 +1957,6 @@ termservice_1013
 <property type="string" id="example" mode="w" >
 The terminal server has exceeded the maximum number of allowed connections.
 </property>
-<toone id='eventClass' objid='/zport/dmd/Events/App/Conn/Max'/>
 </object>
 </tomanycont>
 </object>
@@ -2094,7 +1973,6 @@ IMAService_3615
 <property type="text" id="explanation" mode="w" >
 Presentation Server Failed to Connect to DataStore
 </property>
-<toone id='eventClass' objid='/zport/dmd/Events/App/Citrix'/>
 </object>
 <object id='IMAService_3622' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
 <property type="string" id="eventClassKey" mode="w" >
@@ -2110,7 +1988,6 @@ An unknown failure occurred while connecting to the database.
 <property visible="True" type="int" id="zEventSeverity" >
 3
 </property>
-<toone id='eventClass' objid='/zport/dmd/Events/App/Citrix'/>
 </object>
 <object id='MetaFrameEvents_1103' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
 <property type="string" id="eventClassKey" mode="w" >
@@ -2128,7 +2005,6 @@ Printer driver: (Microsoft Office Document Image Writer Driver)
 <property visible="True" type="int" id="zEventSeverity" >
 3
 </property>
-<toone id='eventClass' objid='/zport/dmd/Events/App/Citrix'/>
 </object>
 <object id='MetaFrameEvents_1106' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
 <property type="string" id="eventClassKey" mode="w" >
@@ -2149,7 +2025,6 @@ Printer driver: (HP LaserJet 4000 PCL 5e)
 <property visible="True" type="int" id="zEventSeverity" >
 2
 </property>
-<toone id='eventClass' objid='/zport/dmd/Events/App/Citrix'/>
 </object>
 </tomanycont>
 </object>
@@ -2172,7 +2047,6 @@ BACKUP failed to complete the command BACKUP LOG datarepo WITH NO_LOG
 <property visible="True" type="int" id="zEventSeverity" >
 2
 </property>
-<toone id='eventClass' objid='/zport/dmd/Events/App/Job'/>
 </object>
 <object id='MSSQLSERVER_17177' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
 <property type="string" id="eventClassKey" mode="w" >
@@ -2187,7 +2061,6 @@ This instance of SQL Server has been using a process id of 1104 since 5/11/2006 
 <property visible="True" type="int" id="zEventSeverity" >
 3
 </property>
-<toone id='eventClass' objid='/zport/dmd/Events/App/Job'/>
 </object>
 <object id='SQLSERVERAGENT_208' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
 <property type="string" id="eventClassKey" mode="w" >
@@ -2205,7 +2078,6 @@ SQL Server Scheduled Job 'Transaction Log Backup Job for DB Maintenance Plan 'Da
 <property type="text" id="explanation" mode="w" >
 SQL Server Scheduled Job Failed
 </property>
-<toone id='eventClass' objid='/zport/dmd/Events/App/Job'/>
 </object>
 <object id='WUSyncService_104' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
 <property type="string" id="eventClassKey" mode="w" >
@@ -2238,7 +2110,6 @@ For more information about administering a server running Software Update Servic
 <property visible="True" type="int" id="zEventSeverity" >
 3
 </property>
-<toone id='eventClass' objid='/zport/dmd/Events/App/Job'/>
 </object>
 </tomanycont>
 <object id='Fail' module='Products.ZenEvents.EventClass' class='EventClass'>
@@ -2258,7 +2129,6 @@ This error may be caused by a failure of your computer hardware or network conne
 <property visible="True" type="int" id="zEventSeverity" >
 3
 </property>
-<toone id='eventClass' objid='/zport/dmd/Events/App/Job/Fail'/>
 </object>
 <object id='Print_6161' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
 <property type="string" id="eventClassKey" mode="w" >
@@ -2273,7 +2143,6 @@ The document Default Report Title owned by lmarcinke failed to print on printer 
 <property visible="True" type="int" id="zEventSeverity" >
 2
 </property>
-<toone id='eventClass' objid='/zport/dmd/Events/App/Job/Fail'/>
 </object>
 <object id='SQLSERVERAGENT_322' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
 <property type="string" id="eventClassKey" mode="w" >
@@ -2288,7 +2157,6 @@ The data portion of event 19002 from MSSQLSERVER is invalid.
 <property visible="True" type="int" id="zEventSeverity" >
 3
 </property>
-<toone id='eventClass' objid='/zport/dmd/Events/App/Job/Fail'/>
 </object>
 <object id='Schedule_7901' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
 <property type="string" id="eventClassKey" mode="w" >
@@ -2301,7 +2169,6 @@ Schedule_7901
 The At1.job command failed to start due to the following error: 
 General access denied error
 </property>
-<toone id='eventClass' objid='/zport/dmd/Events/App/Job/Fail'/>
 </object>
 </tomanycont>
 </object>
@@ -2321,7 +2188,6 @@ General access denied error
 <property visible="True" type="int" id="zEventSeverity" >
 2
 </property>
-<toone id='eventClass' objid='/zport/dmd/Events/App/Info'/>
 </object>
 </tomanycont>
 </object>
@@ -2337,7 +2203,6 @@ WinVNC4_1
 <property type="string" id="example" mode="w" >
 SConnection: Assuming compatibility with version 3.3
 </property>
-<toone id='eventClass' objid='/zport/dmd/Events/App/VNC'/>
 </object>
 </tomanycont>
 </object>
@@ -2356,7 +2221,6 @@ Document 199, Microsoft Word - May_4[1]._2006.doc owned by ed2 was printed on ED
 <property visible="True" type="int" id="zEventSeverity" >
 1
 </property>
-<toone id='eventClass' objid='/zport/dmd/Events/App/Print'/>
 </object>
 <object id='Print_13' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
 <property type="string" id="eventClassKey" mode="w" >
@@ -2368,7 +2232,6 @@ Print_13
 <property type="string" id="example" mode="w" >
 Document 116, Remote Downlevel Document owned by fnigrin was deleted on BARUB1.
 </property>
-<toone id='eventClass' objid='/zport/dmd/Events/App/Print'/>
 </object>
 <object id='Print_15' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
 <property type="string" id="eventClassKey" mode="w" >
@@ -2383,7 +2246,6 @@ Form 8x13 was added.
 <property visible="True" type="int" id="zEventSeverity" >
 1
 </property>
-<toone id='eventClass' objid='/zport/dmd/Events/App/Print'/>
 </object>
 <object id='Print_42' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
 <property type="string" id="eventClassKey" mode="w" >
@@ -2395,7 +2257,6 @@ Print_42
 <property type="string" id="example" mode="w" >
 Printer HP DeskJet 830C/832C (from IT-LAPT-A098) in session 1 was successfully unpublished.
 </property>
-<toone id='eventClass' objid='/zport/dmd/Events/App/Print'/>
 </object>
 <object id='Print_47' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
 <property type="string" id="eventClassKey" mode="w" >
@@ -2407,7 +2268,6 @@ Print_47
 <property type="string" id="example" mode="w" >
 The Printer represented by PrintQueue LDAP://CN=MRIDG-1M-A4B1-Kyocera Mita KM-5035 KX,CN=MRIDG-1M-A4B1,CN=Computers,DC=mercyridge,DC=com cannot be found: 709.
 </property>
-<toone id='eventClass' objid='/zport/dmd/Events/App/Print'/>
 </object>
 <object id='Print_9' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
 <property type="string" id="eventClassKey" mode="w" >
@@ -2422,7 +2282,6 @@ Printer __ed_server_MNT/NIGEL-TABLET/Session 2 was set.
 <property visible="True" type="int" id="zEventSeverity" >
 2
 </property>
-<toone id='eventClass' objid='/zport/dmd/Events/App/Print'/>
 </object>
 </tomanycont>
 </object>
@@ -2441,7 +2300,6 @@ LaunchMediSpan.vbs: Medi-Span update completed.
 <property visible="True" type="int" id="zEventSeverity" >
 2
 </property>
-<toone id='eventClass' objid='/zport/dmd/Events/App/Install'/>
 </object>
 </tomanycont>
 </object>
@@ -2461,7 +2319,6 @@ Host 00:12:F0:77:75:83 in vlan 5 is flapping between port Fa3/5 and port Fa3/2
 <property visible="True" type="int" id="zEventSeverity" >
 3
 </property>
-<toone id='eventClass' objid='/zport/dmd/Events/Net'/>
 </object>
 <object id='CDP-4-DUPLEX_MISMATCH' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
 <property type="string" id="eventClassKey" mode="w" >
@@ -2476,7 +2333,6 @@ duplex mismatch discovered on FastEthernet0/47 (not half duplex), with AP-SH-GRN
 <property visible="True" type="int" id="zEventSeverity" >
 3
 </property>
-<toone id='eventClass' objid='/zport/dmd/Events/Net'/>
 </object>
 <object id='Microsoft ISA Server Control_15104' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
 <property type="string" id="eventClassKey" mode="w" >
@@ -2488,7 +2344,6 @@ Microsoft ISA Server Control_15104
 <property type="string" id="example" mode="w" >
 ISA Server detected a well-known port scan attack from Internet Protocol (IP) address 225.230.230.234. A well-known port is any port in the range of 1-2048. For more information about this event, see ISA Server Help.
 </property>
-<toone id='eventClass' objid='/zport/dmd/Events/Net'/>
 </object>
 <object id='Microsoft ISA Server Control_15105' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
 <property type="string" id="eventClassKey" mode="w" >
@@ -2505,7 +2360,6 @@ For more information about this event, see ISA Server Help.
 <property visible="True" type="int" id="zEventSeverity" >
 3
 </property>
-<toone id='eventClass' objid='/zport/dmd/Events/Net'/>
 </object>
 <object id='SNMP-3-CPUHOG' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
 <property type="string" id="eventClassKey" mode="w" >
@@ -2520,7 +2374,6 @@ Processing GetBulk of ciscoFlashPartitionEntry.5.1.1
 <property visible="True" type="int" id="zEventSeverity" >
 2
 </property>
-<toone id='eventClass' objid='/zport/dmd/Events/Net'/>
 </object>
 <object id='SYS-3-CPUHOG' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
 <property type="string" id="eventClassKey" mode="w" >
@@ -2535,7 +2388,6 @@ Task ran for 7797 msec (0/0), process = IP SNMP, PC = 80235E3C.
 <property visible="True" type="int" id="zEventSeverity" >
 2
 </property>
-<toone id='eventClass' objid='/zport/dmd/Events/Net'/>
 </object>
 <object id='defaultmapping' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
 <property type="string" id="eventClassKey" mode="w" >
@@ -2553,7 +2405,6 @@ getattr(evt,'facility',False)=='local7' and evt.summary.find('Traceback')&gt;-1
 <property visible="True" type="int" id="zEventSeverity" >
 2
 </property>
-<toone id='eventClass' objid='/zport/dmd/Events/Net'/>
 </object>
 </tomanycont>
 <object id='Dhcp' module='Products.ZenEvents.EventClass' class='EventClass'>
@@ -2571,7 +2422,6 @@ Scope, 10.120.75.0, is 83 percent full with only 31 IP addresses remaining.
 <property visible="True" type="int" id="zEventSeverity" >
 2
 </property>
-<toone id='eventClass' objid='/zport/dmd/Events/Net/Dhcp'/>
 </object>
 <object id='DhcpServer_1041' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
 <property type="string" id="eventClassKey" mode="w" >
@@ -2588,7 +2438,6 @@ addresses, or there are no active interfaces.
 <property visible="True" type="int" id="zEventSeverity" >
 3
 </property>
-<toone id='eventClass' objid='/zport/dmd/Events/Net/Dhcp'/>
 </object>
 </tomanycont>
 <object id='Ack' module='Products.ZenEvents.EventClass' class='EventClass'>
@@ -2609,7 +2458,6 @@ sending ACK of (?P&lt;eventKey&gt;\S+) to (?P&lt;macaddress&gt;\S+)
 <property type="string" id="example" mode="w" >
 sending ACK of 10.2.1.100 to 00:0d:93:7e:96:7f
 </property>
-<toone id='eventClass' objid='/zport/dmd/Events/Net/Dhcp/Ack'/>
 </object>
 </tomanycont>
 </object>
@@ -2628,7 +2476,6 @@ received REQUEST for (?P&lt;eventKey&gt;\S+) from (?P&lt;macaddress&gt;\S+)
 <property type="string" id="example" mode="w" >
 received REQUEST for 10.2.1.100 from 00:0d:93:7e:96:7f
 </property>
-<toone id='eventClass' objid='/zport/dmd/Events/Net/Dhcp/Request'/>
 </object>
 </tomanycont>
 </object>
@@ -2647,7 +2494,6 @@ Lease of (?P&lt;eventKey&gt;\S+) obtained, lease time (?P&lt;leaseTime&gt;\d+)
 <property type="string" id="example" mode="w" >
 Lease of 68.33.51.29 obtained, lease time 343822
 </property>
-<toone id='eventClass' objid='/zport/dmd/Events/Net/Dhcp/Obtained'/>
 </object>
 </tomanycont>
 </object>
@@ -2666,7 +2512,6 @@ W32Time_22
 <property type="string" id="example" mode="w" >
 The time provider NtpServer encountered an error while digitally signing the  NTP response for peer 10.120.61.24:123.  NtpServer cannot provide secure (signed) time to the client and will ignore the request. The error was: The specified user does not exist. (0x80070525)
 </property>
-<toone id='eventClass' objid='/zport/dmd/Events/Net/Time'/>
 </object>
 </tomanycont>
 </object>
@@ -2685,7 +2530,6 @@ CPQTeamMP_449
 <property visible="True" type="int" id="zEventSeverity" >
 3
 </property>
-<toone id='eventClass' objid='/zport/dmd/Events/Net/Link'/>
 </object>
 <object id='LINK-3-UPDOWN' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
 <property type="string" id="eventClassKey" mode="w" >
@@ -2703,7 +2547,6 @@ Interface FastEthernet0/48, changed state to down
 <property visible="True" type="int" id="zEventSeverity" >
 2
 </property>
-<toone id='eventClass' objid='/zport/dmd/Events/Net/Link'/>
 </object>
 <object id='LINK-3-UPDOWN_ADMIN_DOWN' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
 <property type="string" id="eventClassKey" mode="w" >
@@ -2721,7 +2564,6 @@ Interface Foreign Exchange Station 0/2/0, changed state to Administrative Shutdo
 <property visible="True" type="int" id="zEventSeverity" >
 2
 </property>
-<toone id='eventClass' objid='/zport/dmd/Events/Net/Link'/>
 </object>
 <object id='LINK-3-UPDOWN_UP' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
 <property type="string" id="eventClassKey" mode="w" >
@@ -2739,7 +2581,6 @@ Interface FastEthernet0/48, changed state to up
 <property visible="True" type="int" id="zEventSeverity" >
 0
 </property>
-<toone id='eventClass' objid='/zport/dmd/Events/Net/Link'/>
 </object>
 <object id='NIC Agents_1285' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
 <property type="string" id="eventClassKey" mode="w" >
@@ -2751,7 +2592,6 @@ NIC Agents_1285
 <property visible="True" type="int" id="zEventSeverity" >
 3
 </property>
-<toone id='eventClass' objid='/zport/dmd/Events/Net/Link'/>
 </object>
 <object id='q57w2k_4' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
 <property type="string" id="eventClassKey" mode="w" >
@@ -2766,7 +2606,6 @@ HP Gb Server Adapter:  Network Link Down
 <property visible="True" type="int" id="zEventSeverity" >
 3
 </property>
-<toone id='eventClass' objid='/zport/dmd/Events/Net/Link'/>
 </object>
 <object id='snmp_linkDown' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
 <property type="string" id="eventClassKey" mode="w" >
@@ -2777,7 +2616,6 @@ snmp_linkDown
 </property>
 <property type="string" id="example" mode="w" >
 snmp trap snmp_linkDown from 172.24.253.2
-
 </property>
 <property type="text" id="explanation" mode="w" >
 has key for ifIndex for all traps.  Some (from cisco) have the IfDescr which give s us a good name for the interface
@@ -2786,7 +2624,6 @@ has key for ifIndex for all traps.  Some (from cisco) have the IfDescr which giv
 evt.component = getattr(evt, 'ifIndex', 0)
 evt.component = getattr(evt ,'ifDescr', evt.component)
 </property>
-<toone id='eventClass' objid='/zport/dmd/Events/Net/Link'/>
 </object>
 <object id='snmp_linkUp' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
 <property type="string" id="eventClassKey" mode="w" >
@@ -2808,7 +2645,6 @@ evt.component = getattr(evt ,'ifDescr', evt.component)
 <property visible="True" type="int" id="zEventSeverity" >
 0
 </property>
-<toone id='eventClass' objid='/zport/dmd/Events/Net/Link'/>
 </object>
 </tomanycont>
 </object>
@@ -2824,7 +2660,6 @@ Dhcp_1005
 <property type="text" id="explanation" mode="w" >
 IP Address is already in use on network - Duplicate Ips
 </property>
-<toone id='eventClass' objid='/zport/dmd/Events/Net/Conflict'/>
 </object>
 <object id='NetBT_4319' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
 <property type="string" id="eventClassKey" mode="w" >
@@ -2839,7 +2674,6 @@ A duplicate name has been detected on the TCP network. The IP address of the mac
 <property visible="True" type="int" id="zEventSeverity" >
 4
 </property>
-<toone id='eventClass' objid='/zport/dmd/Events/Net/Conflict'/>
 </object>
 </tomanycont>
 </object>
@@ -2855,7 +2689,6 @@ DNS_3000
 <property type="string" id="example" mode="w" >
 The DNS server has encountered numerous run-time events. To determine the initial cause of these run-time events, examine the DNS server event log entries that precede this event. To prevent the DNS server from filling the event log too quickly, subsequent events with Event IDs higher than 3000 will be suppressed until events are no longer being generated at a high rate.
 </property>
-<toone id='eventClass' objid='/zport/dmd/Events/Net/NS'/>
 </object>
 <object id='DNS_6525' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
 <property type="string" id="eventClassKey" mode="w" >
@@ -2870,7 +2703,6 @@ A zone transfer request for the secondary zone mercymed.org was refused by the m
 <property visible="True" type="int" id="zEventSeverity" >
 4
 </property>
-<toone id='eventClass' objid='/zport/dmd/Events/Net/NS'/>
 </object>
 <object id='DNS_6527' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
 <property type="string" id="eventClassKey" mode="w" >
@@ -2885,7 +2717,6 @@ Zone mercymed.org expired before it could obtain a successful zone transfer or u
 <property visible="True" type="int" id="zEventSeverity" >
 2
 </property>
-<toone id='eventClass' objid='/zport/dmd/Events/Net/NS'/>
 </object>
 <object id='DNS_9999' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
 <property type="string" id="eventClassKey" mode="w" >
@@ -2903,7 +2734,6 @@ encountered in the last 15 minute interval.
 <property visible="True" type="string" id="zEventAction" >
 status
 </property>
-<toone id='eventClass' objid='/zport/dmd/Events/Net/NS'/>
 </object>
 <object id='NETLOGON_5789' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
 <property type="string" id="eventClassKey" mode="w" >
@@ -2921,7 +2751,6 @@ The parameter is incorrect.
 <property visible="True" type="int" id="zEventSeverity" >
 3
 </property>
-<toone id='eventClass' objid='/zport/dmd/Events/Net/NS'/>
 </object>
 <object id='Wins_4102' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
 <property type="string" id="eventClassKey" mode="w" >
@@ -2936,7 +2765,6 @@ The connection was aborted by the remote WINS. Remote WINS may not be configured
 <property visible="True" type="int" id="zEventSeverity" >
 3
 </property>
-<toone id='eventClass' objid='/zport/dmd/Events/Net/NS'/>
 </object>
 </tomanycont>
 </object>
@@ -2952,7 +2780,6 @@ SPANTREE_VLAN_SW-2-MAX_INSTANCE
 <property type="string" id="example" mode="w" >
 Platform limit of 64 STP instances exceeded. No instance created for VLAN71 (port Gi0/2).
 </property>
-<toone id='eventClass' objid='/zport/dmd/Events/Net/SpanTree'/>
 </object>
 </tomanycont>
 </object>
@@ -2976,7 +2803,6 @@ Automatic certificate enrollment for local system failed to enroll for one Domai
 <property visible="True" type="int" id="zEventSeverity" >
 2
 </property>
-<toone id='eventClass' objid='/zport/dmd/Events/Win/NetBios'/>
 </object>
 <object id='BROWSER_8021' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
 <property type="string" id="eventClassKey" mode="w" >
@@ -2991,7 +2817,6 @@ The browser was unable to retrieve a list of servers from the browser master \\M
 <property visible="True" type="string" id="zEventAction" >
 history
 </property>
-<toone id='eventClass' objid='/zport/dmd/Events/Win/NetBios'/>
 </object>
 <object id='Userenv_1000' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
 <property type="string" id="eventClassKey" mode="w" >
@@ -3003,7 +2828,6 @@ Userenv_1000
 <property type="string" id="example" mode="w" >
 Windows cannot obtain the domain controller name for your computer network. Return value (59).
 </property>
-<toone id='eventClass' objid='/zport/dmd/Events/Win/NetBios'/>
 </object>
 </tomanycont>
 </object>
@@ -3022,7 +2846,6 @@ Cloudmark Server Edition cannot establish a connection to the Exchange server.
 <property visible="True" type="int" id="zEventSeverity" >
 4
 </property>
-<toone id='eventClass' objid='/zport/dmd/Events/Win/Exchange'/>
 </object>
 <object id='MSExchangeIS_9646' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
 <property type="string" id="eventClassKey" mode="w" >
@@ -3040,7 +2863,6 @@ Mapi session "/o=Mercy Medical Center/ou=MMCNT/cn=Recipients/cn=scadmin" exceede
 <property visible="True" type="int" id="zEventSeverity" >
 5
 </property>
-<toone id='eventClass' objid='/zport/dmd/Events/Win/Exchange'/>
 </object>
 <object id='MSExchangeIS_9665' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
 <property type="string" id="eventClassKey" mode="w" >
@@ -3052,7 +2874,6 @@ MSExchangeIS_9665
 <property type="string" id="example" mode="w" >
 The memory settings for this server are not optimal for Exchange. For more information, click http://support.microsoft.com?kbid=815372
 </property>
-<toone id='eventClass' objid='/zport/dmd/Events/Win/Exchange'/>
 </object>
 <object id='MSExchangeMGMT_3' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
 <property type="string" id="eventClassKey" mode="w" >
@@ -3067,7 +2888,6 @@ The Microsoft Exchange Management service has started
 <property visible="True" type="int" id="zEventSeverity" >
 2
 </property>
-<toone id='eventClass' objid='/zport/dmd/Events/Win/Exchange'/>
 </object>
 </tomanycont>
 </object>
@@ -3092,7 +2912,6 @@ Eventlog to Syslog Service Started: Version 3.4.1
 <property type="text" id="explanation" mode="w" >
 All evtsys log messages except heartbeat go here
 </property>
-<toone id='eventClass' objid='/zport/dmd/Events/Win/evtsys'/>
 </object>
 </tomanycont>
 </object>
@@ -3116,7 +2935,6 @@ history
 <property visible="True" type="int" id="zEventSeverity" >
 1
 </property>
-<toone id='eventClass' objid='/zport/dmd/Events/Win/AD'/>
 </object>
 <object id='DirXML Remote Loader_2' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
 <property type="string" id="eventClassKey" mode="w" >
@@ -3135,7 +2953,6 @@ This error has been reported 1980 times in a row since first logged.
 <property visible="True" type="int" id="zEventSeverity" >
 3
 </property>
-<toone id='eventClass' objid='/zport/dmd/Events/Win/AD'/>
 </object>
 <object id='MRxSmb_8003' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
 <property type="string" id="eventClassKey" mode="w" >
@@ -3152,7 +2969,6 @@ The master browser is stopping or an election is being forced.
 <property visible="True" type="string" id="zEventAction" >
 history
 </property>
-<toone id='eventClass' objid='/zport/dmd/Events/Win/AD'/>
 </object>
 <object id='MSExchangeAL_8270' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
 <property type="string" id="eventClassKey" mode="w" >
@@ -3177,7 +2993,6 @@ For more information, click http://www.microsoft.com/contentredirect.asp.
 <property visible="True" type="int" id="zEventSeverity" >
 3
 </property>
-<toone id='eventClass' objid='/zport/dmd/Events/Win/AD'/>
 </object>
 <object id='MSExchangeIS_9548' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
 <property type="string" id="eventClassKey" mode="w" >
@@ -3195,7 +3010,6 @@ For more information, click http://www.microsoft.com/contentredirect.asp.
 <property visible="True" type="int" id="zEventSeverity" >
 2
 </property>
-<toone id='eventClass' objid='/zport/dmd/Events/Win/AD'/>
 </object>
 <object id='Userenv_1006' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
 <property type="string" id="eventClassKey" mode="w" >
@@ -3210,7 +3024,6 @@ Windows cannot bind to MMCNT.MHS.MED domain. (Invalid Credentials). Group Policy
 <property visible="True" type="int" id="zEventSeverity" >
 3
 </property>
-<toone id='eventClass' objid='/zport/dmd/Events/Win/AD'/>
 </object>
 <object id='Userenv_1030' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
 <property type="string" id="eventClassKey" mode="w" >
@@ -3225,7 +3038,6 @@ Windows cannot query for the list of Group Policy objects. Check the event log f
 <property visible="True" type="int" id="zEventSeverity" >
 3
 </property>
-<toone id='eventClass' objid='/zport/dmd/Events/Win/AD'/>
 </object>
 </tomanycont>
 </object>
@@ -3247,7 +3059,6 @@ User Enrolled in Password Recovery Service The user account DOMAIN\user has been
 <property visible="True" type="int" id="zEventSeverity" >
 2
 </property>
-<toone id='eventClass' objid='/zport/dmd/Events/Win/PWMgr'/>
 </object>
 <object id='Password Manager_200' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
 <property type="string" id="eventClassKey" mode="w" >
@@ -3259,7 +3070,6 @@ Password Manager_200
 <property type="string" id="example" mode="w" >
 Password changed There were errors changing the password for the user account DOMAIN\user. Password was in an invalid format
 </property>
-<toone id='eventClass' objid='/zport/dmd/Events/Win/PWMgr'/>
 </object>
 </tomanycont>
 </object>
@@ -3278,7 +3088,6 @@ Windows SharePoint Services 2.0_1000
 <property visible="True" type="string" id="zEventAction" >
 drop
 </property>
-<toone id='eventClass' objid='/zport/dmd/Events/Win/SharePoint'/>
 </object>
 </tomanycont>
 </object>
@@ -3299,7 +3108,6 @@ The application-specific permission settings do not grant Local Activation permi
 <property visible="True" type="string" id="zEventAction" >
 history
 </property>
-<toone id='eventClass' objid='/zport/dmd/Events/Win/DCOM'/>
 </object>
 </tomanycont>
 </object>
@@ -3319,7 +3127,6 @@ Security Update for Exchange Server 2003 (KB916803) was installed.
 <property visible="True" type="int" id="zEventSeverity" >
 2
 </property>
-<toone id='eventClass' objid='/zport/dmd/Events/Win/WindowsUpdate/Success'/>
 </object>
 <object id='MDAC_4377' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
 <property type="string" id="eventClassKey" mode="w" >
@@ -3334,7 +3141,6 @@ MDAC 2.71 Hotfix KB911562 was installed.
 <property visible="True" type="int" id="zEventSeverity" >
 2
 </property>
-<toone id='eventClass' objid='/zport/dmd/Events/Win/WindowsUpdate/Success'/>
 </object>
 <object id='NtServicePack_4377' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
 <property type="string" id="eventClassKey" mode="w" >
@@ -3349,7 +3155,6 @@ Windows Server 2003 Hotfix KB911567 was installed.
 <property visible="True" type="int" id="zEventSeverity" >
 2
 </property>
-<toone id='eventClass' objid='/zport/dmd/Events/Win/WindowsUpdate/Success'/>
 </object>
 <object id='OutlookExpress6_4377' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
 <property type="string" id="eventClassKey" mode="w" >
@@ -3364,7 +3169,6 @@ Windows 2000 Hotfix KB911567-OE6SP1-20060316.165634 was installed.
 <property visible="True" type="int" id="zEventSeverity" >
 2
 </property>
-<toone id='eventClass' objid='/zport/dmd/Events/Win/WindowsUpdate/Success'/>
 </object>
 <object id='Windows Update Agent_19' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
 <property type="string" id="eventClassKey" mode="w" >
@@ -3379,7 +3183,6 @@ Installation Successful: Windows successfully installed the following update: Wi
 <property visible="True" type="int" id="zEventSeverity" >
 2
 </property>
-<toone id='eventClass' objid='/zport/dmd/Events/Win/WindowsUpdate/Success'/>
 </object>
 <object id='WindowsUpdateAgent_19' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
 <property type="string" id="eventClassKey" mode="w" >
@@ -3394,7 +3197,6 @@ Installation Successful: Windows successfully installed the following update: Se
 <property visible="True" type="int" id="zEventSeverity" >
 2
 </property>
-<toone id='eventClass' objid='/zport/dmd/Events/Win/WindowsUpdate/Success'/>
 </object>
 </tomanycont>
 </object>
@@ -3431,7 +3233,6 @@ For troubleshooting information, see the Microsoft Software Update Services Depl
 <property visible="True" type="int" id="zEventSeverity" >
 3
 </property>
-<toone id='eventClass' objid='/zport/dmd/Events/Win/WindowsUpdate/Failure'/>
 </object>
 <object id='Windows Update Agent_16' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
 <property type="string" id="eventClassKey" mode="w" >
@@ -3446,7 +3247,6 @@ Unable to Connect: Windows is unable to connect to the automatic updates service
 <property visible="True" type="int" id="zEventSeverity" >
 3
 </property>
-<toone id='eventClass' objid='/zport/dmd/Events/Win/WindowsUpdate/Failure'/>
 </object>
 <object id='Windows Update Agent_20' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
 <property type="string" id="eventClassKey" mode="w" >
@@ -3461,7 +3261,6 @@ Installation Failure: Windows failed to install the following update with error 
 <property visible="True" type="int" id="zEventSeverity" >
 3
 </property>
-<toone id='eventClass' objid='/zport/dmd/Events/Win/WindowsUpdate/Failure'/>
 </object>
 <object id='WindowsUpdateAgent_16' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
 <property type="string" id="eventClassKey" mode="w" >
@@ -3476,7 +3275,6 @@ Unable to Connect: Windows is unable to connect to the automatic updates service
 <property visible="True" type="int" id="zEventSeverity" >
 3
 </property>
-<toone id='eventClass' objid='/zport/dmd/Events/Win/WindowsUpdate/Failure'/>
 </object>
 <object id='WindowsUpdateAgent_20' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
 <property type="string" id="eventClassKey" mode="w" >
@@ -3491,7 +3289,6 @@ Installation Failure: Windows failed to install the following update with error 
 <property visible="True" type="int" id="zEventSeverity" >
 3
 </property>
-<toone id='eventClass' objid='/zport/dmd/Events/Win/WindowsUpdate/Failure'/>
 </object>
 </tomanycont>
 </object>
@@ -3510,7 +3307,6 @@ Installation Ready: The following updates are downloaded and ready for installat
 <property visible="True" type="int" id="zEventSeverity" >
 2
 </property>
-<toone id='eventClass' objid='/zport/dmd/Events/Win/WindowsUpdate/Pending'/>
 </object>
 </tomanycont>
 </object>
@@ -3536,7 +3332,6 @@ This is often caused by services running as a user account, try configuring the 
 <property visible="True" type="string" id="zEventAction" >
 history
 </property>
-<toone id='eventClass' objid='/zport/dmd/Events/Win/Userenv'/>
 </object>
 <object id='Userenv_1524' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
 <property type="string" id="eventClassKey" mode="w" >
@@ -3551,7 +3346,6 @@ Windows cannot unload your classes registry file - it is still in use by other a
 <property visible="True" type="string" id="zEventAction" >
 history
 </property>
-<toone id='eventClass' objid='/zport/dmd/Events/Win/Userenv'/>
 </object>
 </tomanycont>
 </object>
@@ -3570,7 +3364,6 @@ The shell stopped unexpectedly and Explorer.exe was restarted.
 <property visible="True" type="int" id="zEventSeverity" >
 3
 </property>
-<toone id='eventClass' objid='/zport/dmd/Events/Win/Shell'/>
 </object>
 </tomanycont>
 </object>
@@ -3590,7 +3383,6 @@ Virus definition and content license for Symantec Mail Security for Microsoft Ex
 <property type="string" id="example" mode="w" >
 Virus definition and content license for Symantec Mail Security for Microsoft Exchange on server MHSMAILCL1 will expire on 3/14/2006.
 </property>
-<toone id='eventClass' objid='/zport/dmd/Events/License'/>
 </object>
 </tomanycont>
 </object>
@@ -3603,7 +3395,6 @@ Server Administrator_1306
 <property type="int" id="sequence" mode="w" >
 0
 </property>
-<toone id='eventClass' objid='/zport/dmd/Events/HW'/>
 </object>
 <object id='Server Agents_1090' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
 <property type="string" id="eventClassKey" mode="w" >
@@ -3623,7 +3414,6 @@ again.
 <property visible="True" type="int" id="zEventSeverity" >
 3
 </property>
-<toone id='eventClass' objid='/zport/dmd/Events/HW'/>
 </object>
 </tomanycont>
 <object id='Store' module='Products.ZenEvents.EventClass' class='EventClass'>
@@ -3671,7 +3461,6 @@ Status Codes:
 <property visible="True" type="int" id="zEventSeverity" >
 4
 </property>
-<toone id='eventClass' objid='/zport/dmd/Events/HW/Store'/>
 </object>
 <object id='CPQCISSE_24625' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
 <property type="string" id="eventClassKey" mode="w" >
@@ -3686,7 +3475,6 @@ Physical Drive inserted, on Box 1 and Bay 5 of Embedded Controller.
 <property visible="True" type="int" id="zEventSeverity" >
 3
 </property>
-<toone id='eventClass' objid='/zport/dmd/Events/HW/Store'/>
 </object>
 <object id='CPQCISSE_24644' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
 <property type="string" id="eventClassKey" mode="w" >
@@ -3702,7 +3490,6 @@ Failure Code: 0x07.
 <property visible="True" type="int" id="zEventSeverity" >
 4
 </property>
-<toone id='eventClass' objid='/zport/dmd/Events/HW/Store'/>
 </object>
 <object id='QDLT32_7' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
 <property type="string" id="eventClassKey" mode="w" >
@@ -3717,7 +3504,6 @@ The device, \Device\Tape0, has a bad block.
 <property visible="True" type="int" id="zEventSeverity" >
 3
 </property>
-<toone id='eventClass' objid='/zport/dmd/Events/HW/Store'/>
 </object>
 <object id='Server Administrator_2048' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
 <property type="string" id="eventClassKey" mode="w" >
@@ -3732,7 +3518,6 @@ Device failed:  Array Disk 0:1 Controller 0, Channel 0
 <property visible="True" type="int" id="zEventSeverity" >
 4
 </property>
-<toone id='eventClass' objid='/zport/dmd/Events/HW/Store'/>
 </object>
 <object id='Server Administrator_2049' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
 <property type="string" id="eventClassKey" mode="w" >
@@ -3747,7 +3532,6 @@ Array disk removed:  Array Disk 0:1 Controller 0, Channel 0
 <property visible="True" type="int" id="zEventSeverity" >
 3
 </property>
-<toone id='eventClass' objid='/zport/dmd/Events/HW/Store'/>
 </object>
 <object id='Server Administrator_2057' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
 <property type="string" id="eventClassKey" mode="w" >
@@ -3762,7 +3546,6 @@ Virtual disk degraded: Virtual Disk 0 (Virtual Disk 0) Controller 0 (PERC 4e/Di)
 <property visible="True" type="int" id="zEventSeverity" >
 4
 </property>
-<toone id='eventClass' objid='/zport/dmd/Events/HW/Store'/>
 </object>
 <object id='Server Administrator_2083' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
 <property type="string" id="eventClassKey" mode="w" >
@@ -3777,7 +3560,6 @@ Array disk Rebuild failed: Array Disk 0:1 Controller 0, Channel 0
 <property visible="True" type="int" id="zEventSeverity" >
 4
 </property>
-<toone id='eventClass' objid='/zport/dmd/Events/HW/Store'/>
 </object>
 <object id='Server Administrator_2094' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
 <property type="string" id="eventClassKey" mode="w" >
@@ -3792,7 +3574,6 @@ Predictive Failure reported:  Array Disk 0:1 Controller 0, Channel 0
 <property visible="True" type="int" id="zEventSeverity" >
 4
 </property>
-<toone id='eventClass' objid='/zport/dmd/Events/HW/Store'/>
 </object>
 <object id='Server Administrator_2123' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
 <property type="string" id="eventClassKey" mode="w" >
@@ -3807,7 +3588,6 @@ Redundancy lost: Virtual Disk 0 (Virtual Disk 0) Controller 0 (PERC 4e/Di)
 <property visible="True" type="int" id="zEventSeverity" >
 4
 </property>
-<toone id='eventClass' objid='/zport/dmd/Events/HW/Store'/>
 </object>
 <object id='Server Administrator_2124' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
 <property type="string" id="eventClassKey" mode="w" >
@@ -3822,7 +3602,6 @@ Redundancy normal: Virtual Disk 0 (Virtual Disk 0) Controller 0 (PERC 4e/Di)
 <property visible="True" type="int" id="zEventSeverity" >
 0
 </property>
-<toone id='eventClass' objid='/zport/dmd/Events/HW/Store'/>
 </object>
 <object id='Storage Agents_1145' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
 <property type="string" id="eventClassKey" mode="w" >
@@ -3845,7 +3624,6 @@ CPQFCA.MIB]
 <property visible="True" type="int" id="zEventSeverity" >
 4
 </property>
-<toone id='eventClass' objid='/zport/dmd/Events/HW/Store'/>
 </object>
 <object id='Storage Agents_1146' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
 <property type="string" id="eventClassKey" mode="w" >
@@ -3865,7 +3643,6 @@ status values: 1=other, 2=unconfigured, 3=ok, 4=threshExceeded,
 <property visible="True" type="int" id="zEventSeverity" >
 4
 </property>
-<toone id='eventClass' objid='/zport/dmd/Events/HW/Store'/>
 </object>
 <object id='cpqcissm_11' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
 <property type="string" id="eventClassKey" mode="w" >
@@ -3880,7 +3657,6 @@ The driver detected a controller error on \Device\Scsi\cpqcissm1.
 <property visible="True" type="int" id="zEventSeverity" >
 4
 </property>
-<toone id='eventClass' objid='/zport/dmd/Events/HW/Store'/>
 </object>
 </tomanycont>
 <object id='FiberChannel' module='Products.ZenEvents.EventClass' class='EventClass'>
@@ -3904,7 +3680,6 @@ Fail the Supervisor over to the Standby sup.  To do this, Login to the Switch th
 <property visible="True" type="int" id="zEventSeverity" >
 4
 </property>
-<toone id='eventClass' objid='/zport/dmd/Events/HW/Store/FiberChannel'/>
 </object>
 <object id='StorageAgents_1215_up' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
 <property type="string" id="eventClassKey" mode="w" >
@@ -3922,7 +3697,6 @@ Fibre Channel Controller Status Change. The Fibre Channel Controller in Slot 3 h
 <property visible="True" type="int" id="zEventSeverity" >
 0
 </property>
-<toone id='eventClass' objid='/zport/dmd/Events/HW/Store/FiberChannel'/>
 </object>
 </tomanycont>
 </object>
@@ -3942,7 +3716,6 @@ C6KPWR-SP-2-PSFAIL
 <property type="string" id="example" mode="w" >
 power supply 1 output failed.
 </property>
-<toone id='eventClass' objid='/zport/dmd/Events/HW/Power'/>
 </object>
 <object id='C6KPWR-SP-4-PSREDUNDANTBOTHSUPPLY' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
 <property type="string" id="eventClassKey" mode="w" >
@@ -3957,7 +3730,6 @@ in power-redundancy mode, system is operating on both power supplies.
 <property visible="True" type="int" id="zEventSeverity" >
 0
 </property>
-<toone id='eventClass' objid='/zport/dmd/Events/HW/Power'/>
 </object>
 <object id='Server Administrator_1304' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
 <property type="string" id="eventClassKey" mode="w" >
@@ -3972,7 +3744,6 @@ Redundancy regained Redundancy unit: BMC PS Redundancy Chassis location: Main Sy
 <property visible="True" type="int" id="zEventSeverity" >
 0
 </property>
-<toone id='eventClass' objid='/zport/dmd/Events/HW/Power'/>
 </object>
 <object id='Server Administrator_1352' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
 <property type="string" id="eventClassKey" mode="w" >
@@ -3987,7 +3758,6 @@ Power supply returned to normal Sensor location: PS 1 Status Chassis location: M
 <property visible="True" type="int" id="zEventSeverity" >
 0
 </property>
-<toone id='eventClass' objid='/zport/dmd/Events/HW/Power'/>
 </object>
 <object id='Server Administrator_1354' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
 <property type="string" id="eventClassKey" mode="w" >
@@ -4004,7 +3774,6 @@ Previous state was: OK (Normal)
 Power Supply type: AC
 Power Supply state: Presence detected, Failure detected, AC lost
 </property>
-<toone id='eventClass' objid='/zport/dmd/Events/HW/Power'/>
 </object>
 <object id='Server Agents_1118' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
 <property type="string" id="eventClassKey" mode="w" >
@@ -4024,7 +3793,6 @@ Chassis: '0'; Bay: '2'
 <property visible="True" type="int" id="zEventSeverity" >
 0
 </property>
-<toone id='eventClass' objid='/zport/dmd/Events/HW/Power'/>
 </object>
 <object id='Server Agents_1125' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
 <property type="string" id="eventClassKey" mode="w" >
@@ -4036,7 +3804,6 @@ Server Agents_1125
 <property type="string" id="example" mode="w" >
 System Information Agent: Health: The Fault Tolerant Power Supply Sub-system is in a failed state. Restore power or replace the failed power supply. Chassis: '0'; Bay: '2' [SNMP TRAP: 6050 in CPQHLTH.MIB]
 </property>
-<toone id='eventClass' objid='/zport/dmd/Events/HW/Power'/>
 </object>
 <object id='configChangeSNMP' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
 <property type="string" id="eventClassKey" mode="w" >
@@ -4051,7 +3818,6 @@ snmp trap configChangeSNMP from 10.115.100.16
 <property visible="True" type="int" id="zEventSeverity" >
 3
 </property>
-<toone id='eventClass' objid='/zport/dmd/Events/HW/Power'/>
 </object>
 <object id='cpqasm2_4154' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
 <property type="string" id="eventClassKey" mode="w" >
@@ -4063,7 +3829,6 @@ cpqasm2_4154
 <property type="string" id="example" mode="w" >
 The power sub-system is no longer redundant.
 </property>
-<toone id='eventClass' objid='/zport/dmd/Events/HW/Power'/>
 </object>
 <object id='cpqasm2_4157' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
 <property type="string" id="eventClassKey" mode="w" >
@@ -4078,7 +3843,6 @@ The power sub-system is now in a redundant state.
 <property visible="True" type="int" id="zEventSeverity" >
 0
 </property>
-<toone id='eventClass' objid='/zport/dmd/Events/HW/Power'/>
 </object>
 <object id='cpqasm2_4173' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
 <property type="string" id="eventClassKey" mode="w" >
@@ -4090,7 +3854,6 @@ cpqasm2_4173
 <property type="string" id="example" mode="w" >
 Power supply #2 has failed.
 </property>
-<toone id='eventClass' objid='/zport/dmd/Events/HW/Power'/>
 </object>
 <object id='cpqasm_4157' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
 <property type="string" id="eventClassKey" mode="w" >
@@ -4105,7 +3868,6 @@ The Compaq System Management Driver has detected that the power sub-system is re
 <property visible="True" type="int" id="zEventSeverity" >
 0
 </property>
-<toone id='eventClass' objid='/zport/dmd/Events/HW/Power'/>
 </object>
 </tomanycont>
 <object id='UPS' module='Products.ZenEvents.EventClass' class='EventClass'>
@@ -4123,7 +3885,6 @@ snmp trap accessViolationHTTP from 10.115.100.22
 <property type="text" id="transform" mode="w" >
 evt.summary = evt.mtrapargsString
 </property>
-<toone id='eventClass' objid='/zport/dmd/Events/HW/Power/UPS'/>
 </object>
 <object id='noBatteries' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
 <property type="string" id="eventClassKey" mode="w" >
@@ -4135,7 +3896,6 @@ noBatteries
 <property type="string" id="example" mode="w" >
 snmp trap noBatteries from 10.120.12.10
 </property>
-<toone id='eventClass' objid='/zport/dmd/Events/HW/Power/UPS'/>
 </object>
 <object id='passwordChange' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
 <property type="string" id="eventClassKey" mode="w" >
@@ -4150,7 +3910,6 @@ snmp trap passwordChange from 10.115.100.8
 <property visible="True" type="int" id="zEventSeverity" >
 3
 </property>
-<toone id='eventClass' objid='/zport/dmd/Events/HW/Power/UPS'/>
 </object>
 <object id='powerRestored' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
 <property type="string" id="eventClassKey" mode="w" >
@@ -4168,7 +3927,6 @@ evt.summary = evt.mtrapargsString
 <property visible="True" type="int" id="zEventSeverity" >
 0
 </property>
-<toone id='eventClass' objid='/zport/dmd/Events/HW/Power/UPS'/>
 </object>
 <object id='upsBatteryNeedsReplacement' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
 <property type="string" id="eventClassKey" mode="w" >
@@ -4183,7 +3941,6 @@ snmp trap upsBatteryNeedsReplacement from 10.115.100.15
 <property visible="True" type="int" id="zEventSeverity" >
 4
 </property>
-<toone id='eventClass' objid='/zport/dmd/Events/HW/Power/UPS'/>
 </object>
 <object id='upsBatteryReplaced' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
 <property type="string" id="eventClassKey" mode="w" >
@@ -4201,7 +3958,6 @@ evt.summary = evt.mtrapargsString
 <property visible="True" type="int" id="zEventSeverity" >
 0
 </property>
-<toone id='eventClass' objid='/zport/dmd/Events/HW/Power/UPS'/>
 </object>
 <object id='upsDiagnosticsFailed' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
 <property type="string" id="eventClassKey" mode="w" >
@@ -4219,7 +3975,6 @@ evt.summary = evt.mtrapargsString
 <property visible="True" type="int" id="zEventSeverity" >
 3
 </property>
-<toone id='eventClass' objid='/zport/dmd/Events/HW/Power/UPS'/>
 </object>
 <object id='upsDiagnosticsPassed' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
 <property type="string" id="eventClassKey" mode="w" >
@@ -4237,7 +3992,6 @@ evt.summary = evt.mtrapargsString
 <property visible="True" type="int" id="zEventSeverity" >
 0
 </property>
-<toone id='eventClass' objid='/zport/dmd/Events/HW/Power/UPS'/>
 </object>
 <object id='upsOnBattery' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
 <property type="string" id="eventClassKey" mode="w" >
@@ -4255,7 +4009,6 @@ evt.summary = evt.mtrapargsString
 <property visible="True" type="int" id="zEventSeverity" >
 5
 </property>
-<toone id='eventClass' objid='/zport/dmd/Events/HW/Power/UPS'/>
 </object>
 <object id='xupstdOnBattery' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
 <property type="string" id="eventClassKey" mode="w" >
@@ -4267,7 +4020,6 @@ xupstdOnBattery
 <property visible="True" type="int" id="zEventSeverity" >
 5
 </property>
-<toone id='eventClass' objid='/zport/dmd/Events/HW/Power/UPS'/>
 </object>
 </tomanycont>
 <object id='SmartBoost' module='Products.ZenEvents.EventClass' class='EventClass'>
@@ -4285,7 +4037,6 @@ snmp trap smartBoostOff from 10.115.100.15
 <property visible="True" type="int" id="zEventSeverity" >
 0
 </property>
-<toone id='eventClass' objid='/zport/dmd/Events/HW/Power/UPS/SmartBoost'/>
 </object>
 <object id='smartBoostOn' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
 <property type="string" id="eventClassKey" mode="w" >
@@ -4300,7 +4051,6 @@ snmp trap smartBoostOn from 10.115.100.15
 <property visible="True" type="int" id="zEventSeverity" >
 3
 </property>
-<toone id='eventClass' objid='/zport/dmd/Events/HW/Power/UPS/SmartBoost'/>
 </object>
 </tomanycont>
 </object>
@@ -4317,7 +4067,6 @@ C6KPWR-SP-4-PSFAIL
 <property type="string" id="example" mode="w" >
 power supply 1 output failed.
 </property>
-<toone id='eventClass' objid='/zport/dmd/Events/HW/Power/PowerLoss'/>
 </object>
 <object id='C6KPWR-SP-4-PSOK' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
 <property type="string" id="eventClassKey" mode="w" >
@@ -4332,7 +4081,6 @@ power supply 1 turned on.
 <property visible="True" type="int" id="zEventSeverity" >
 0
 </property>
-<toone id='eventClass' objid='/zport/dmd/Events/HW/Power/PowerLoss'/>
 </object>
 <object id='C6KPWR-SP-4-PSREDUNDANTONESUPPLY' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
 <property type="string" id="eventClassKey" mode="w" >
@@ -4344,7 +4092,6 @@ C6KPWR-SP-4-PSREDUNDANTONESUPPLY
 <property type="string" id="example" mode="w" >
 in power-redundancy mode, system is operating on one power supply.
 </property>
-<toone id='eventClass' objid='/zport/dmd/Events/HW/Power/PowerLoss'/>
 </object>
 </tomanycont>
 </object>
@@ -4364,7 +4111,6 @@ Primary Adapter does not sense any Probes: Intel(R) PRO/1000 MT Network Connecti
 <property visible="True" type="int" id="zEventSeverity" >
 3
 </property>
-<toone id='eventClass' objid='/zport/dmd/Events/HW/Network'/>
 </object>
 <object id='iANSMiniport_42' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
 <property type="string" id="eventClassKey" mode="w" >
@@ -4380,7 +4126,6 @@ The adapter cannot process the remote management features and be a member of a n
 <property visible="True" type="int" id="zEventSeverity" >
 3
 </property>
-<toone id='eventClass' objid='/zport/dmd/Events/HW/Network'/>
 </object>
 <object id='kernel' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
 <property type="string" id="eventClassKey" mode="w" >
@@ -4392,7 +4137,6 @@ kernel
 <property type="string" id="example" mode="w" >
 mtrr: type mismatch for f0000000,1000000 old: write-back new: write-combining
 </property>
-<toone id='eventClass' objid='/zport/dmd/Events/HW/Network'/>
 </object>
 <object id='system-config-network' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
 <property type="string" id="eventClassKey" mode="w" >
@@ -4407,7 +4151,6 @@ ln //etc/sysconfig/networking/devices//ifcfg-eth1 //etc/sysconfig/networking/pro
 <property visible="True" type="int" id="zEventSeverity" >
 3
 </property>
-<toone id='eventClass' objid='/zport/dmd/Events/HW/Network'/>
 </object>
 </tomanycont>
 <object id='TeamDown' module='Products.ZenEvents.EventClass' class='EventClass'>
@@ -4425,7 +4168,6 @@ Team #0: The last adapter has lost link.  Team network connection has been lost.
 <property visible="True" type="int" id="zEventSeverity" >
 3
 </property>
-<toone id='eventClass' objid='/zport/dmd/Events/HW/Network/TeamDown'/>
 </object>
 <object id='iANSMiniport_17' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
 <property type="string" id="eventClassKey" mode="w" >
@@ -4440,7 +4182,6 @@ Team #0: An adapter has re-established link. Team network connection has been re
 <property visible="True" type="int" id="zEventSeverity" >
 0
 </property>
-<toone id='eventClass' objid='/zport/dmd/Events/HW/Network/TeamDown'/>
 </object>
 </tomanycont>
 </object>
@@ -4466,7 +4207,6 @@ in that configuration.
 <property visible="True" type="int" id="zEventSeverity" >
 4
 </property>
-<toone id='eventClass' objid='/zport/dmd/Events/HW/Network/AdapterDown'/>
 </object>
 <object id='CPQTeamMP_436' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
 <property type="string" id="eventClassKey" mode="w" >
@@ -4481,7 +4221,6 @@ HP Network Team #1: A previously failed Network Link's receive status has been r
 <property visible="True" type="int" id="zEventSeverity" >
 0
 </property>
-<toone id='eventClass' objid='/zport/dmd/Events/HW/Network/AdapterDown'/>
 </object>
 <object id='iANSMiniport_11' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
 <property type="string" id="eventClassKey" mode="w" >
@@ -4496,7 +4235,6 @@ Adapter link down: Intel(R) PRO/1000 MB Dual Port Network Connection
 <property visible="True" type="int" id="zEventSeverity" >
 4
 </property>
-<toone id='eventClass' objid='/zport/dmd/Events/HW/Network/AdapterDown'/>
 </object>
 <object id='iANSMiniport_13' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
 <property type="string" id="eventClassKey" mode="w" >
@@ -4511,7 +4249,6 @@ The Intel(R) PRO/1000 MB Dual Port Network Connectio... has been deactivated fro
 <property visible="True" type="int" id="zEventSeverity" >
 4
 </property>
-<toone id='eventClass' objid='/zport/dmd/Events/HW/Network/AdapterDown'/>
 </object>
 <object id='iANSMiniport_14' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
 <property type="string" id="eventClassKey" mode="w" >
@@ -4526,7 +4263,6 @@ Secondary Adapter has rejoined the Team: Intel(R) PRO/1000 MT Network Connection
 <property visible="True" type="int" id="zEventSeverity" >
 0
 </property>
-<toone id='eventClass' objid='/zport/dmd/Events/HW/Network/AdapterDown'/>
 </object>
 <object id='iANSMiniport_15' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
 <property type="string" id="eventClassKey" mode="w" >
@@ -4541,7 +4277,6 @@ Adapter link up: Intel(R) PRO/1000 MB Dual Port Network Connection
 <property visible="True" type="int" id="zEventSeverity" >
 0
 </property>
-<toone id='eventClass' objid='/zport/dmd/Events/HW/Network/AdapterDown'/>
 </object>
 </tomanycont>
 </object>
@@ -4565,7 +4300,6 @@ Temperature sensor value (in Degrees Celsius): 11.0
 <property visible="True" type="int" id="zEventSeverity" >
 0
 </property>
-<toone id='eventClass' objid='/zport/dmd/Events/HW/Temperature'/>
 </object>
 <object id='Server Administrator_1053' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
 <property type="string" id="eventClassKey" mode="w" >
@@ -4584,7 +4318,6 @@ Temperature sensor value (in Degrees Celsius): 10.0
 <property visible="True" type="int" id="zEventSeverity" >
 4
 </property>
-<toone id='eventClass' objid='/zport/dmd/Events/HW/Temperature'/>
 </object>
 <object id='Server Agents_1091' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
 <property type="string" id="eventClassKey" mode="w" >
@@ -4601,7 +4334,6 @@ a thermal anomaly and has just become operational again.
 <property visible="True" type="int" id="zEventSeverity" >
 0
 </property>
-<toone id='eventClass' objid='/zport/dmd/Events/HW/Temperature'/>
 </object>
 <object id='cpqasm2_4111' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
 <property type="string" id="eventClassKey" mode="w" >
@@ -4617,7 +4349,6 @@ either resulting from the system overheating, or from the loss of cooling.
 <property visible="True" type="int" id="zEventSeverity" >
 4
 </property>
-<toone id='eventClass' objid='/zport/dmd/Events/HW/Temperature'/>
 </object>
 </tomanycont>
 <object id='Fan' module='Products.ZenEvents.EventClass' class='EventClass'>
@@ -4635,7 +4366,6 @@ the fan in power supply 1 has failed
 <property visible="True" type="int" id="zEventSeverity" >
 4
 </property>
-<toone id='eventClass' objid='/zport/dmd/Events/HW/Temperature/Fan'/>
 </object>
 <object id='C6KENV-SP-4-PSFANOK' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
 <property type="string" id="eventClassKey" mode="w" >
@@ -4650,7 +4380,6 @@ the fan in power supply 1 is OK
 <property visible="True" type="int" id="zEventSeverity" >
 0
 </property>
-<toone id='eventClass' objid='/zport/dmd/Events/HW/Temperature/Fan'/>
 </object>
 <object id='Server Agents_1130' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
 <property type="string" id="eventClassKey" mode="w" >
@@ -4671,7 +4400,6 @@ Chassis: '0'; Fan: '1'
 <property visible="True" type="int" id="zEventSeverity" >
 4
 </property>
-<toone id='eventClass' objid='/zport/dmd/Events/HW/Temperature/Fan'/>
 </object>
 <object id='cpqasm2_4118' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
 <property type="string" id="eventClassKey" mode="w" >
@@ -4687,7 +4415,6 @@ A required processor fan (fan #1) has failed.  Environment Abnormality Auto Shut
 <property visible="True" type="int" id="zEventSeverity" >
 4
 </property>
-<toone id='eventClass' objid='/zport/dmd/Events/HW/Temperature/Fan'/>
 </object>
 </tomanycont>
 </object>
@@ -4711,7 +4438,6 @@ Exit code = 1 (Failure)
 <property visible="True" type="int" id="zEventSeverity" >
 3
 </property>
-<toone id='eventClass' objid='/zport/dmd/Events/HW/Management'/>
 </object>
 <object id='hplopts_5' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
 <property type="string" id="eventClassKey" mode="w" >
@@ -4726,7 +4452,6 @@ iLO interface not responding. Restarting interface.
 <property visible="True" type="int" id="zEventSeverity" >
 3
 </property>
-<toone id='eventClass' objid='/zport/dmd/Events/HW/Management'/>
 </object>
 </tomanycont>
 </object>
@@ -4747,7 +4472,6 @@ Possible memory module event cause:Single bit error logging disabled
 <property visible="True" type="int" id="zEventSeverity" >
 4
 </property>
-<toone id='eventClass' objid='/zport/dmd/Events/HW/Memory'/>
 </object>
 </tomanycont>
 </object>
@@ -4769,7 +4493,6 @@ evt.summary=evt.drsAlertMessage
 <property visible="True" type="int" id="zEventSeverity" >
 3
 </property>
-<toone id='eventClass' objid='/zport/dmd/Events/HW/Blade'/>
 </object>
 <object id='alertDrscSEL80percentFull' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
 <property type="string" id="eventClassKey" mode="w" >
@@ -4787,7 +4510,6 @@ evt.summary=evt.drsAlertMessage
 <property visible="True" type="int" id="zEventSeverity" >
 4
 </property>
-<toone id='eventClass' objid='/zport/dmd/Events/HW/Blade'/>
 </object>
 <object id='alertDrscSELCritical' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
 <property type="string" id="eventClassKey" mode="w" >
@@ -4806,7 +4528,6 @@ evt.component=evt.split()[0]
 <property visible="True" type="int" id="zEventSeverity" >
 5
 </property>
-<toone id='eventClass' objid='/zport/dmd/Events/HW/Blade'/>
 </object>
 <object id='alertDrscSELNormal' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
 <property type="string" id="eventClassKey" mode="w" >
@@ -4825,7 +4546,6 @@ evt.component=evt.split()[0]
 <property visible="True" type="int" id="zEventSeverity" >
 0
 </property>
-<toone id='eventClass' objid='/zport/dmd/Events/HW/Blade'/>
 </object>
 <object id='alertDrscSELWarning' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
 <property type="string" id="eventClassKey" mode="w" >
@@ -4844,7 +4564,6 @@ evt.component=evt.split()[0]
 <property visible="True" type="int" id="zEventSeverity" >
 4
 </property>
-<toone id='eventClass' objid='/zport/dmd/Events/HW/Blade'/>
 </object>
 </tomanycont>
 </object>
@@ -4866,7 +4585,6 @@ daemon.error
 <property type="string" id="example" mode="w" >
 [ID 243332 daemon.error] log sense failed on Drive2 (device 2, /dev/rmt/2cbn): No such file or directory (2)
 </property>
-<toone id='eventClass' objid='/zport/dmd/Events/HW/Backup'/>
 </object>
 <object id='avrd_drop' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
 <property type="string" id="eventClassKey" mode="w" >
@@ -4878,7 +4596,6 @@ avrd
 <property visible="True" type="string" id="zEventAction" >
 drop
 </property>
-<toone id='eventClass' objid='/zport/dmd/Events/HW/Backup'/>
 </object>
 <object id='bptm_drop' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
 <property type="string" id="eventClassKey" mode="w" >
@@ -4890,7 +4607,6 @@ bptm
 <property visible="True" type="string" id="zEventAction" >
 drop
 </property>
-<toone id='eventClass' objid='/zport/dmd/Events/HW/Backup'/>
 </object>
 <object id='ltid_drop' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
 <property type="string" id="eventClassKey" mode="w" >
@@ -4902,7 +4618,6 @@ ltid
 <property visible="True" type="string" id="zEventAction" >
 drop
 </property>
-<toone id='eventClass' objid='/zport/dmd/Events/HW/Backup'/>
 </object>
 <object id='tldcd_drop' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
 <property type="string" id="eventClassKey" mode="w" >
@@ -4914,7 +4629,6 @@ tldcd
 <property visible="True" type="string" id="zEventAction" >
 drop
 </property>
-<toone id='eventClass' objid='/zport/dmd/Events/HW/Backup'/>
 </object>
 <object id='vmd' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
 <property type="string" id="eventClassKey" mode="w" >
@@ -4935,7 +4649,6 @@ PROBLEM REGEX (was empty) -- limit this to just error events
 <property visible="True" type="int" id="zEventSeverity" >
 4
 </property>
-<toone id='eventClass' objid='/zport/dmd/Events/HW/Backup'/>
 </object>
 <object id='vmd_drop' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
 <property type="string" id="eventClassKey" mode="w" >
@@ -4947,7 +4660,6 @@ vmd
 <property visible="True" type="string" id="zEventAction" >
 drop
 </property>
-<toone id='eventClass' objid='/zport/dmd/Events/HW/Backup'/>
 </object>
 </tomanycont>
 <object id='Tape Drive' module='Products.ZenEvents.EventClass' class='EventClass'>
@@ -4968,7 +4680,6 @@ daemon.error
 <property visible="True" type="int" id="zEventSeverity" >
 4
 </property>
-<toone id='eventClass' objid='/zport/dmd/Events/HW/Backup/Tape Drive'/>
 </object>
 </tomanycont>
 </object>
@@ -4990,7 +4701,6 @@ daemon.error.*MEDIUM NOT PRESENT
 <property visible="True" type="int" id="zEventSeverity" >
 4
 </property>
-<toone id='eventClass' objid='/zport/dmd/Events/HW/Backup/Tape Media'/>
 </object>
 </tomanycont>
 </object>
@@ -5012,7 +4722,6 @@ daemon.error
 <property visible="True" type="int" id="zEventSeverity" >
 4
 </property>
-<toone id='eventClass' objid='/zport/dmd/Events/HW/Backup/Robot'/>
 </object>
 <object id='tldd' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
 <property type="string" id="eventClassKey" mode="w" >
@@ -5030,7 +4739,6 @@ daemon.error
 <property visible="True" type="int" id="zEventSeverity" >
 4
 </property>
-<toone id='eventClass' objid='/zport/dmd/Events/HW/Backup/Robot'/>
 </object>
 </tomanycont>
 </object>
@@ -5052,7 +4760,6 @@ daemon.error
 <property visible="True" type="int" id="zEventSeverity" >
 4
 </property>
-<toone id='eventClass' objid='/zport/dmd/Events/HW/Backup/SCSI'/>
 </object>
 </tomanycont>
 </object>
@@ -5073,7 +4780,6 @@ Interface (?P&lt;component&gt;\S+), undefined entry point
 <property type="string" id="example" mode="w" >
 Interface FastEthernet3/6, undefined entry point
 </property>
-<toone id='eventClass' objid='/zport/dmd/Events/Cisco'/>
 </object>
 </tomanycont>
 <object id='FW' module='Products.ZenEvents.EventClass' class='EventClass'>
@@ -5091,7 +4797,6 @@ defaultmapping
 <property type="string" id="example" mode="w" >
 1313851 03/30/2006 14:01:28.540 SEV=3 SNMP/6 RPT=1026 10.128.5.173 Received SNMP request with unsupported community string 'public'
 </property>
-<toone id='eventClass' objid='/zport/dmd/Events/Cisco/FW'/>
 </object>
 </tomanycont>
 </object>
@@ -5117,7 +4822,6 @@ Configured from console by (?P&lt;username&gt;\S+) \S+ ((?P&lt;remoteIp&gt;\S+))
 <property type="string" id="example" mode="w" >
 Configured from console by username onvty1 (1.1.1.1)
 </property>
-<toone id='eventClass' objid='/zport/dmd/Events/Config'/>
 </object>
 <object id='sendmail' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
 <property type="string" id="eventClassKey" mode="w" >
@@ -5132,7 +4836,6 @@ unable to qualify my own domain name (MisysReports) -- using short name
 <property visible="True" type="int" id="zEventSeverity" >
 3
 </property>
-<toone id='eventClass' objid='/zport/dmd/Events/Config'/>
 </object>
 </tomanycont>
 </object>
@@ -5151,7 +4854,6 @@ Error: 0, Severity: 19, State: 0 language_exec: Process 54 generated an access v
 <property type="text" id="explanation" mode="w" >
 Fatal DB Error
 </property>
-<toone id='eventClass' objid='/zport/dmd/Events/DB'/>
 </object>
 </tomanycont>
 <object id='Filemaker' module='Products.ZenEvents.EventClass' class='EventClass'>
@@ -5175,7 +4877,6 @@ history
 <property visible="True" type="int" id="zEventSeverity" >
 3
 </property>
-<toone id='eventClass' objid='/zport/dmd/Events/DB/Filemaker'/>
 </object>
 <object id='FileMaker Server 7_22' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
 <property type="string" id="eventClassKey" mode="w" >
@@ -5190,7 +4891,6 @@ Client "NURSI-T15-8821" closing a connection.
 <property visible="True" type="string" id="zEventAction" >
 history
 </property>
-<toone id='eventClass' objid='/zport/dmd/Events/DB/Filemaker'/>
 </object>
 <object id='FileMaker Server 7_601' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
 <property type="string" id="eventClassKey" mode="w" >
@@ -5205,7 +4905,6 @@ Client "PEDS-T17-2ACD" opening database "Newborns 2004 All" as "Guest".
 <property visible="True" type="string" id="zEventAction" >
 history
 </property>
-<toone id='eventClass' objid='/zport/dmd/Events/DB/Filemaker'/>
 </object>
 <object id='FileMaker Server 7_98' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
 <property type="string" id="eventClassKey" mode="w" >
@@ -5220,7 +4919,6 @@ Client "NURSI-T15-8821" closing database "Newborns 2005" as "etuttle".
 <property visible="True" type="string" id="zEventAction" >
 history
 </property>
-<toone id='eventClass' objid='/zport/dmd/Events/DB/Filemaker'/>
 </object>
 </tomanycont>
 </object>
@@ -5244,7 +4942,6 @@ Array Controller [Embedded] has failed.
 
 Failure Code: 0x0d.
 </property>
-<toone id='eventClass' objid='/zport/dmd/Events/Storage'/>
 </object>
 <object id='Storage Agents_1202' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
 <property type="string" id="eventClassKey" mode="w" >
@@ -5253,7 +4950,6 @@ Storage Agents_1202
 <property type="int" id="sequence" mode="w" >
 0
 </property>
-<toone id='eventClass' objid='/zport/dmd/Events/Storage'/>
 </object>
 <object id='VxSvc_PercPro_509' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
 <property type="string" id="eventClassKey" mode="w" >
@@ -5265,7 +4961,6 @@ VxSvc_PercPro_509
 <property type="text" id="explanation" mode="w" >
 PERC 3/DC Controller, Virtual Disk degraded
 </property>
-<toone id='eventClass' objid='/zport/dmd/Events/Storage'/>
 </object>
 <object id='VxSvc_PercPro_580' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
 <property type="string" id="eventClassKey" mode="w" >
@@ -5280,7 +4975,6 @@ PERC 3/Di Controller (?P&lt;eventKey&gt;\S+) , battery low.
 <property type="string" id="example" mode="w" >
 PERC 3/Di Controller 0 , battery low.
 </property>
-<toone id='eventClass' objid='/zport/dmd/Events/Storage'/>
 </object>
 </tomanycont>
 <object id='Full' module='Products.ZenEvents.EventClass' class='EventClass'>
@@ -5301,7 +4995,6 @@ An attempt was made to start or restart the job &lt;Remote Storage Validate F&gt
 <property visible="True" type="int" id="zEventSeverity" >
 5
 </property>
-<toone id='eventClass' objid='/zport/dmd/Events/Storage/Full'/>
 </object>
 <object id='Srv_2013' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
 <property type="string" id="eventClassKey" mode="w" >
@@ -5316,7 +5009,6 @@ The C: disk is at or near capacity.  You may need to delete some files.
 <property visible="True" type="int" id="zEventSeverity" >
 2
 </property>
-<toone id='eventClass' objid='/zport/dmd/Events/Storage/Full'/>
 </object>
 </tomanycont>
 </object>
@@ -5332,7 +5024,6 @@ EmcpBase_100
 <property type="text" id="explanation" mode="w" >
 Fiber Channel Bus is Dead
 </property>
-<toone id='eventClass' objid='/zport/dmd/Events/Storage/SAN'/>
 </object>
 <object id='EmcpBase_106' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
 <property type="string" id="eventClassKey" mode="w" >
@@ -5344,7 +5035,6 @@ EmcpBase_106
 <property type="text" id="explanation" mode="w" >
 Killing Fiber Channel Bus
 </property>
-<toone id='eventClass' objid='/zport/dmd/Events/Storage/SAN'/>
 </object>
 </tomanycont>
 </object>
@@ -5364,7 +5054,6 @@ syslog: Cannot send broadcast packet
 <property visible="True" type="int" id="zEventSeverity" >
 2
 </property>
-<toone id='eventClass' objid='/zport/dmd/Events/OS'/>
 </object>
 </tomanycont>
 <object id='Reboot' module='Products.ZenEvents.EventClass' class='EventClass'>
@@ -5379,7 +5068,6 @@ EventLog_6008
 <property type="text" id="explanation" mode="w" >
 Previous Shutdown was unexpected
 </property>
-<toone id='eventClass' objid='/zport/dmd/Events/OS/Reboot'/>
 </object>
 </tomanycont>
 </object>
@@ -5398,7 +5086,6 @@ The server was unable to allocate from the system nonpaged pool because the pool
 <property visible="True" type="int" id="zEventSeverity" >
 4
 </property>
-<toone id='eventClass' objid='/zport/dmd/Events/OS/Pagefile'/>
 </object>
 <object id='Srv_2020' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
 <property type="string" id="eventClassKey" mode="w" >
@@ -5413,7 +5100,6 @@ The server was unable to allocate from the system paged pool because the pool wa
 <property visible="True" type="int" id="zEventSeverity" >
 4
 </property>
-<toone id='eventClass' objid='/zport/dmd/Events/OS/Pagefile'/>
 </object>
 </tomanycont>
 </object>
@@ -5436,7 +5122,6 @@ getattr(evt, 'agent', '') == 'zeneventlog' and getattr(evt, 'severity',0) == 1
 <property type="text" id="explanation" mode="w" >
 Archive Eventlog events that have severity == debug(1)
 </property>
-<toone id='eventClass' objid='/zport/dmd/Events/Archive'/>
 </object>
 <object id='defaultmapping_FileMaker' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
 <property type="string" id="eventClassKey" mode="w" >
@@ -5454,7 +5139,6 @@ By Default map all FileMaker events to Archive and set severity = 2
 <property visible="True" type="int" id="zEventSeverity" >
 2
 </property>
-<toone id='eventClass' objid='/zport/dmd/Events/Archive'/>
 </object>
 </tomanycont>
 </object>
@@ -5468,6 +5152,8 @@ By Default map all FileMaker events to Archive and set severity = 2
 <object id='Memory' module='Products.ZenEvents.EventClass' class='EventClass'>
 </object>
 <object id='Filesystem' module='Products.ZenEvents.EventClass' class='EventClass'>
+</object>
+<object id='XmlRpc' module='Products.ZenEvents.EventClass' class='EventClass'>
 </object>
 </object>
 <object id='Environ' module='Products.ZenEvents.EventClass' class='EventClass'>
@@ -5488,7 +5174,6 @@ evt.eventKey=getattr(evt,"ims-trap-chan","")
 <property visible="True" type="int" id="zEventSeverity" >
 3
 </property>
-<toone id='eventClass' objid='/zport/dmd/Events/Environ'/>
 </object>
 <object id='environment-alarm-trap-major' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
 <property type="string" id="eventClassKey" mode="w" >
@@ -5507,7 +5192,6 @@ evt.summary = evt.eventKey + " " + getattr(evt, 'ims-trap-status')
 <property visible="True" type="int" id="zEventSeverity" >
 5
 </property>
-<toone id='eventClass' objid='/zport/dmd/Events/Environ'/>
 </object>
 <object id='environment-alarm-trap-normal' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
 <property type="string" id="eventClassKey" mode="w" >
@@ -5529,7 +5213,6 @@ evt.summary = evt.eventKey + " " + getattr(evt, 'ims-trap-status')
 <property visible="True" type="int" id="zEventSeverity" >
 0
 </property>
-<toone id='eventClass' objid='/zport/dmd/Events/Environ'/>
 </object>
 </tomanycont>
 </object>
@@ -5551,7 +5234,6 @@ server cluster nodes.
 <property visible="True" type="int" id="zEventSeverity" >
 4
 </property>
-<toone id='eventClass' objid='/zport/dmd/Events/Cluster'/>
 </object>
 </tomanycont>
 <object id='Heartbeat' module='Products.ZenEvents.EventClass' class='EventClass'>
@@ -5569,7 +5251,6 @@ The interface for cluster node 'CFEMARCL2' on network 'Private' is operational (
 <property visible="True" type="int" id="zEventSeverity" >
 0
 </property>
-<toone id='eventClass' objid='/zport/dmd/Events/Cluster/Heartbeat'/>
 </object>
 <object id='ClusSvc_1126' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
 <property type="string" id="eventClassKey" mode="w" >
@@ -5592,7 +5273,6 @@ hubs, switches, or bridges.
 <property visible="True" type="int" id="zEventSeverity" >
 4
 </property>
-<toone id='eventClass' objid='/zport/dmd/Events/Cluster/Heartbeat'/>
 </object>
 <object id='ClusSvc_1128' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
 <property type="string" id="eventClassKey" mode="w" >
@@ -5608,7 +5288,6 @@ attached to the network can communicate using it.
 <property visible="True" type="int" id="zEventSeverity" >
 0
 </property>
-<toone id='eventClass' objid='/zport/dmd/Events/Cluster/Heartbeat'/>
 </object>
 <object id='ClusSvc_1130' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
 <property type="string" id="eventClassKey" mode="w" >
@@ -5628,9 +5307,40 @@ the nodes to the network.
 <property visible="True" type="int" id="zEventSeverity" >
 4
 </property>
-<toone id='eventClass' objid='/zport/dmd/Events/Cluster/Heartbeat'/>
 </object>
 </tomanycont>
+</object>
+</object>
+<object id='Change' module='Products.ZenEvents.EventClass' class='EventClass'>
+<object id='Add' module='Products.ZenEvents.EventClass' class='EventClass'>
+<object id='Blocked' module='Products.ZenEvents.EventClass' class='EventClass'>
+</object>
+</object>
+<object id='Remove' module='Products.ZenEvents.EventClass' class='EventClass'>
+<object id='Blocked' module='Products.ZenEvents.EventClass' class='EventClass'>
+</object>
+</object>
+<object id='Set' module='Products.ZenEvents.EventClass' class='EventClass'>
+<object id='Blocked' module='Products.ZenEvents.EventClass' class='EventClass'>
+</object>
+</object>
+</object>
+<object id='Cmd' module='Products.ZenEvents.EventClass' class='EventClass'>
+<object id='Fail' module='Products.ZenEvents.EventClass' class='EventClass'>
+</object>
+<object id='Ok' module='Products.ZenEvents.EventClass' class='EventClass'>
+</object>
+</object>
+<object id='Users' module='Products.ZenEvents.EventClass' class='EventClass'>
+<object id='edahl' module='Products.ZenEvents.EventClass' class='EventClass'>
+<object id='zenoss' module='Products.ZenEvents.EventClass' class='EventClass'>
+<object id='Products' module='Products.ZenEvents.EventClass' class='EventClass'>
+<object id='ZenEvents' module='Products.ZenEvents.EventClass' class='EventClass'>
+<object id='ZenEventClasses.pyc' module='Products.ZenEvents.EventClass' class='EventClass'>
+</object>
+</object>
+</object>
+</object>
 </object>
 </object>
 </object>
