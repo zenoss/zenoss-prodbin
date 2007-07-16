@@ -79,22 +79,14 @@ class ZenModelBase(object):
     def prepId(self, id, subchar='_'):
         return globalPrepId(id, subchar)
 
-    def checkValidId(self, id):
+    def checkValidId(self, id, prep_id = False):
         """Checks a valid id
         """
-        new_id = unquote(id)              # Convert Ids
-        new_id = new_id.replace('/', '_') # Ids may have /
-        new_id = new_id.lstrip('_')       # Ids cannot start with an underscore
+        new_id = id
+        if prep_id: new_id = self.prepId(id)
         try: 
             globalCheckValidId(self, new_id)
-            try:
-                globalCheckValidId(self, self.prepId(id=new_id))
-                if hasattr(self.aq_self, self.prepId(id=new_id)):
-                    return "The id: %s is already being used." % self.prepId(id=new_id)
-                else:
-                    return True
-            except:
-                return str(sys.exc_info()[1])
+            return True
         except:
             return str(sys.exc_info()[1])
         
