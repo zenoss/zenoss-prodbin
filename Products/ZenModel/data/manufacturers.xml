@@ -1,6 +1,118 @@
 <?xml version="1.0"?>
 <objects>
 <object id='/zport/dmd/Manufacturers' module='Products.ZenModel.ManufacturerRoot' class='ManufacturerRoot'>
+
+<object id='Debian' module='Products.ZenModel.Manufacturer' class='Manufacturer'>
+<property type="string" id="url" mode="w" >
+http://www.debian.org/
+</property>
+<tomanycont id='products'>
+<object id='Etch' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
+<property type="string" id="name" mode="w" >
+Etch
+</property>
+<property type="lines" id="productKeys" mode="w" >
+["Debian GNU/Linux 4.0 ('etch')"]
+</property>
+<property type="string" id="description" mode="w" >
+Debian GNU/Linux 4.0 (a.k.a. etch) was released April 8th, 2007.
+http://www.debian.org/releases/etch/
+</property>
+<property type="boolean" id="isOS" mode="w" >
+True
+</property>
+</object>
+<object id='Lenny' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
+<property type="string" id="name" mode="w" >
+Lenny
+</property>
+<property type="lines" id="productKeys" mode="w" >
+['Debian GNU/Linux']
+</property>
+<property type="string" id="description" mode="w" >
+'Lenny' is the next major Debian release after 'etch' and is not released yet.
+</property>
+<property type="boolean" id="isOS" mode="w" >
+True
+</property>
+</object>
+<object id='Sarge' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
+<property type="string" id="name" mode="w" >
+Sarge
+</property>
+<property type="lines" id="productKeys" mode="w" >
+["Debian GNU/Linux 3.1 ('sarge')"]
+</property>
+<property type="string" id="description" mode="w" >
+Debian GNU/Linux 3.1 (a.k.a. sarge) was released on 6th of June, 2005.
+http://www.debian.org/releases/sarge/
+</property>
+<property type="boolean" id="isOS" mode="w" >
+True
+</property>
+</object>
+<object id='Woody' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
+<property type="string" id="name" mode="w" >
+Woody
+</property>
+<property type="lines" id="productKeys" mode="w" >
+["Debian GNU/Linux 3.0 ('woody')"]
+</property>
+<property type="string" id="description" mode="w" >
+Debian GNU/Linux 3.0 (a.k.a. woody) was released on 19th of July, 2002.
+http://www.debian.org/releases/woody/
+</property>
+<property type="boolean" id="isOS" mode="w" >
+True
+</property>
+</object>
+<object id='stable' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
+<property type="string" id="name" mode="w" >
+stable
+</property>
+<property type="lines" id="productKeys" mode="w" >
+['Debian GNU/Linux']
+</property>
+<property type="string" id="description" mode="w" >
+The 'stable' distribution contains the latest officially released distribution of Debian.
+http://www.debian.org/releases/stable/
+</property>
+<property type="boolean" id="isOS" mode="w" >
+True
+</property>
+</object>
+<object id='testing' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
+<property type="string" id="name" mode="w" >
+testing or sid
+</property>
+<property type="lines" id="productKeys" mode="w" >
+['Debian GNU/Linux']
+</property>
+<property type="string" id="description" mode="w" >
+The 'testing' distribution contains packages that haven't been accepted into a 'stable' release yet, but they are in the queue for that.
+http://www.debian.org/releases/testing/
+</property>
+<property type="boolean" id="isOS" mode="w" >
+True
+</property>
+</object>
+<object id='unstable' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
+<property type="string" id="name" mode="w" >
+unstable
+</property>
+<property type="lines" id="productKeys" mode="w" >
+['Debian GNU/Linux']
+</property>
+<property type="string" id="description" mode="w" >
+The 'unstable' distribution is where active development of Debian occurs. Generally, this distribution is run by developers and those who like to live on the edge.
+http://www.debian.org/releases/unstable/
+</property>
+<property type="boolean" id="isOS" mode="w" >
+True
+</property>
+</object>
+</tomanycont>
+</object>
 <object id='ADP' module='Products.ZenModel.Manufacturer' class='Manufacturer'>
 <tomanycont id='products'>
 <object id='ADP Data Collection Manager _Enterprise eTIME' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
