@@ -30,6 +30,8 @@ log = logging.getLogger("zen.ApplyDataMap")
 
 zenmarker = "__ZENMARKER__"
 
+_notAscii = dict.fromkeys(range(128,256), u'?')
+
 class ApplyDataMap(object):
 
     def __init__(self, datacollector=None):
@@ -38,6 +40,8 @@ class ApplyDataMap(object):
 
     def logChange(self, device, compname, eventClass, msg):
         if not getattr(device, 'zCollectorLogChanges', True): return
+        if type(msg) == type(u''):
+            msg = msg.translate(_notAscii)
         self.logEvent(device, compname, eventClass, msg, Event.Info)
 
 
