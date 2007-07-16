@@ -170,7 +170,6 @@ class ZenPackCmd(ZenScriptBase):
         '''Symlink the srcDir into Products
         Return the name.
         '''
-        import pdb; pdb.set_trace()
         # Normalize srcDir to not end with slash
         if srcDir.endswith('/'):
             srcDir = srcDir[:-1]
