@@ -26,6 +26,7 @@ import time
 import sys
 import select
 import logging
+import signal
 log = logging.getLogger("zen.zentestcommand")
 
 import Globals
