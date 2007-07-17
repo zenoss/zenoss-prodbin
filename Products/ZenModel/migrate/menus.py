@@ -37,7 +37,7 @@ ZenPackItems = dict(
     )
 
 class MenuRelations(Migrate.Step):
-    version = Migrate.Version(2, 0, 0)
+    version = Migrate.Version(2, 0, 3)
 
     def cutover(self, dmd):
         dmd.buildRelations()
