@@ -168,7 +168,7 @@ Dialog.Box.prototype = {
         f.appendChild(this.box);
         return true;
     },
-    submit_form_and_check: function(action, formname) {
+    submit_form_and_check: function(action, formname, prep_id) {
         var errmsg = $('errmsg');
         var input = $('new_id');
         var label = $('new_id_label');
@@ -176,12 +176,11 @@ Dialog.Box.prototype = {
         var submit = $('dialog_submit');
         var path = $('checkValidIdPath').value
         var myform = formname?document.forms[formname]:this.form;
-
         errmsg.innerHTML = "";
         Morph(input, {"style": {"color": "black"}});
         Morph(label, {"style": {"color": "white"}});
-
-        var d = doSimpleXMLHttpRequest(path+'/checkValidId', {'id':new_id});
+        var d = doSimpleXMLHttpRequest(path+'/checkValidId',
+            {'id':new_id, 'prep_id':prep_id});
 
         d.addCallback(bind(function (r) { 
             if (r.responseText == 'True') { 
