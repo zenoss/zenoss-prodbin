@@ -235,8 +235,13 @@ registerDirectory("skins", globals())
                 values = dict(parser.items(CONFIG_SECTION_ABOUT))
             except ConfigParser.Error:
                 pass
-        values.update(dict([(p['id'], str(getattr(self, p['id'], '')))
-                        for p in self._properties]))
+        current = [(p['id'], str(getattr(self, p['id'], '') or ''))
+                    for p in self._properties]
+        values.update(dict(current))
+        if not parser.has_section(CONFIG_SECTION_ABOUT):
+            parser.add_section(CONFIG_SECTION_ABOUT)
+        for key, value in values.items():
+            parser.set(CONFIG_SECTION_ABOUT, key, value)
         fp = file(about, 'w')
         try:
             parser.write(fp)
