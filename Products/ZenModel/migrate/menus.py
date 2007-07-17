@@ -1275,13 +1275,8 @@ class MenuRelations(Migrate.Step):
                      'id': 'addZenPack',
                      'isdialog': True,
                      'ordering': 1.02,
-                     'permissions': ('Manage DMD',)},
-                  {  'action': 'dialog_removeZenPacks',
-                     'description': 'Delete ZenPack...',
-                     'id': 'removeZenPack',
-                     'isdialog': True,
-                     'ordering': 1.01,
-                     'permissions': ('Manage DMD',)}]})
+                     'permissions': ('Manage DMD',)}]}
+)
             
             
 MenuRelations()
