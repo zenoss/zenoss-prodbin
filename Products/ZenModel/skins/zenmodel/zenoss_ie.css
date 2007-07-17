@@ -25,7 +25,7 @@ th.tabletitle {
 }
 
 div.tabletitlecontainer {
-    height:;
+    height:25px;
     background: transparent url(img/titlebar_bg.gif) repeat-x top left;
 }
 
@@ -43,7 +43,6 @@ div.zentable_selectionbar {
 }
 
 .tabletitletext {
-    display: block;
     height: 25px;
 }
 
