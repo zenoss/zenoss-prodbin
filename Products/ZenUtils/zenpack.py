@@ -105,7 +105,10 @@ class ZenPackCmd(ZenScriptBase):
             self.dmd.packs._delObject(packName)
         root = zenPackPath(packName)
         self.log.debug('Removing %s' % root)
-        os.system('rm -rf %s' % root)
+        recurse = ""
+        if os.path.isdir(root):
+            recurse = "r"
+        os.system('rm -%sf %s' % (recurse, root))
         cleanupSkins(self.dmd)
 
 
@@ -190,12 +193,11 @@ class ZenPackCmd(ZenScriptBase):
             self.log.debug('Directory already in $ZENHOME/Products,'
                             ' not copying.')
             return packName
-        
-        cmd = 'rm -rf $ZENHOME/Products/%s' % packName
+      
+        targetdir = "$ZENHOME/Products/%s" % packName
+        cmd = 'test -d %s && rm -rf %s' % (targetdir, targetdir)
         r = os.system(cmd)
-        cmd = 'mkdir $ZENHOME/Products/%s' % packName
-        r = os.system(cmd)
-        cmd = 'ln -s %s/* $ZENHOME/Products/%s/' % (srcDir, packName)
+        cmd = 'ln -s %s $ZENHOME/Products' % srcDir
         r = os.system(cmd)
         
         return packName
