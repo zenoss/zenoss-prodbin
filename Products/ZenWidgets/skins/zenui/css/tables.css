@@ -31,12 +31,12 @@ table.innerzentable tr td {
     line-height: 14px;
     padding: 2px;
     border: 1px solid black;
-    border-top: medium none;
     position: relative;
     z-index: 1;
     top: -2px;
     text-align: left;
     background: transparent url('img/stripe.png');
+    margin-top: -1px;
 }
 
 .zentable_selectionbar ul {
