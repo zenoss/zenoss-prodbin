@@ -1,5 +1,6 @@
 <h2>Remove ZenPacks</h2>
-<br/><br/>
+<br/>
+<!-- Temporarily modified so as not to force a migrate
 <p>
 Are you sure you want to remove these ZenPacks?<br/>
 </p>
@@ -9,6 +10,18 @@ Are you sure you want to remove these ZenPacks?<br/>
     value="OK"
     tal:attributes="onclick string:return $$('dialog').submit_form(
                         '${here/absolute_url_path}')" />
+-->
+
+<div style="text-align:center;">
+<p> There are many complexities involved in ZenPack deletion.
+<p>Please review the Admin Guide for more information.
+<p>Deletion may be performed at the command line.
+</div>
+
+<div id="dialog_buttons">
+<input type="submit" name="removeZenPacks:method"
+    value="OK"
+    tal:attributes="onclick string:$$('dialog_cancel').click()" />
 <input id="dialog_cancel" type="button" value="Cancel"
 onclick="$('dialog').hide()"/>
 </div>
