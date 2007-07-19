@@ -796,7 +796,7 @@ DeviceZenGrid.prototype = {
              }
         qs = update(qs, this.lastparams);
         $('dialog').hide();
-        if (!(selectstatus='none' && goodevids.length==0)) {
+        if (!(selectstatus=='none' && goodevids.length==0)) {
             this.showLoading();
             d = doXHR(url, {queryString:qs}); 
             d.addCallback(bind(
