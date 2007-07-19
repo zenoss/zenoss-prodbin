@@ -415,7 +415,14 @@ class DeviceOrganizer(Organizer, DeviceManagerBase, Commandable, ZenMenuable,
             idquery = ~In('id', badevids)
         else:
             idquery = In('id', goodevids)
+        filterquery = Or(
+            MatchRegexp('id', filter),
+            MatchRegexp('getDeviceIp', filter),
+            MatchRegexp('getProdState', filter),
+            MatchRegexp('getDeviceClassPath', filter)
+        )
         query = Eq('getPhysicalPath', self.absolute_url_path()) & idquery
+        query = query & filterquery
         catalog = getattr(self, self.default_catalog)
         objects = catalog.evalAdvancedQuery(query)
         return [x['id'] for x in objects]
