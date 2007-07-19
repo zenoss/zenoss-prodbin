@@ -82,7 +82,7 @@ class ZenModelBase(object):
     def checkValidId(self, id, prep_id = False):
         """Checks a valid id
         """
-        new_id = id
+        new_id = unquote(id)
         if prep_id: new_id = self.prepId(id)
         try: 
             globalCheckValidId(self, new_id)
