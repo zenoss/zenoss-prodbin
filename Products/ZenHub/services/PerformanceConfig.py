@@ -65,7 +65,7 @@ class PerformanceConfig(HubService):
 
         # the PerformanceConf changed
         from Products.ZenModel.PerformanceConf import PerformanceConf
-        if isinstance(object, PerformanceConf):
+        if isinstance(object, PerformanceConf) and object.id == self.instance:
             for listener in self.listeners:
                 listener.callRemote('setPropertyItems', object.propertyItems())
                 devices = [
