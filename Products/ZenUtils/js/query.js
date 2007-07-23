@@ -1,5 +1,6 @@
 
-// Code adapted from Trac http://trac.edgewall.org/
+// Code adapted from Trac http://trac.edgewall.org/ a copy of which
+// can be found in the same directory as this file.
 
 // Convenience function for the nearest ancestor element with a specific tag
 // name
