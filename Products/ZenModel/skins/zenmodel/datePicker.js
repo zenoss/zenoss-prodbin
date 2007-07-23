@@ -1,4 +1,12 @@
 /**
+ *
+ * This code appears to be an older version of the copy of
+ * datepicker.js now published here:
+ * 
+ * http://www.koders.com/javascript/fid86E32B297AF1B18FD34BE4DFBBEC957048EA6ADA.aspx
+ *
+ */
+/**
 This is a JavaScript library that will allow you to easily add some basic DHTML
 drop-down datepicker functionality to your forms and pages. This script is not as
 full-featured as others you may find on the Internet, but it's free, it's easy to
