@@ -448,7 +448,6 @@ ZenGrid.prototype = {
             'background':'#aaa url(img/arrow.u.gif) right no-repeat',
             'color':'black'
         });
-        this.lastparams['orderby']='device ASC';
     },
     toggleSortOrder: function(e) {
         var cell = e.src();
