@@ -42,6 +42,12 @@ addEventClassInst = DTMLFile('dtml/addEventClassInst',globals())
 
 class EventClassPropertyMixin(object):
 
+    transform = ''
+
+    _properties = (
+        {'id':'transform', 'type':'text', 'mode':'w'},
+        )
+
     def applyValues(self, evt):
         """Modify event with values taken from dict Inst.
         Any non-None property values are applied to the event.
@@ -55,7 +61,23 @@ class EventClassPropertyMixin(object):
         return evt
 
     def applyTransform(self, evt, device):
-        return evt
+        if not self.transform: return evt
+        try:
+            variables = {'evt':evt, 'device':device}
+            exec(self.transform, variables)
+        except Exception, ex:
+            log.error("Error transforming EventClassInst %s (%s)", self.id, ex)
+        return variables['evt']
+
+
+    def testTransformStyle(self):
+        """Test our transform by compiling it.
+        """
+        try:
+            if self.transform:
+                compile(self.transform, "<string>", "exec")
+        except:
+            return "color:#FF0000;"
 
 
 # Why is this a subclass of EventView?
@@ -72,16 +94,13 @@ class EventClassInst(EventClassPropertyMixin, ZenModelRM, EventView,
 
     actions = ("status", "history", "heartbeat", "drop")
 
-    transform = ''
-
-    _properties = (
+    _properties = EventClassPropertyMixin._properties + (
         {'id':'eventClassKey', 'type':'string', 'mode':'w'},
         {'id':'sequence', 'type':'int', 'mode':'w'},
         {'id':'rule', 'type':'string', 'mode':'w'},
         {'id':'regex', 'type':'string', 'mode':'w'},
         {'id':'example', 'type':'string', 'mode':'w'},
         {'id':'explanation', 'type':'text', 'mode':'w'},
-        {'id':'transform', 'type':'text', 'mode':'w'},
         {'id':'resolution', 'type':'text', 'mode':'w'},
         )
 
@@ -198,16 +217,6 @@ class EventClassInst(EventClassPropertyMixin, ZenModelRM, EventView,
         evt.eventClassMapping = '%s/%s' % (self.getEventClass(), self.id)
         return EventClassPropertyMixin.applyValues(self, evt)
 
-    def applyTransform(self, evt, device):
-        if not self.transform: return evt
-        try:
-            variables = {'evt':evt, 'device':device}
-            exec(self.transform, variables)
-        except Exception, ex:
-            log.error("Error transforming EventClassInst %s (%s)", self.id, ex)
-        return variables['evt']
-
-
     def ruleOrRegex(self, limit=None):
         """Return the rule if it exists else return the regex.
         limit limits the number of characters returned.
@@ -256,16 +265,6 @@ class EventClassInst(EventClassPropertyMixin, ZenModelRM, EventView,
         try:
             if self.rule:
                 compile(self.rule, "<string>", "eval")
-        except:
-            return "color:#FF0000;"
-
-
-    def testTransformStyle(self):
-        """Test our transform by compiling it.
-        """
-        try:
-            if self.transform:
-                compile(self.transform, "<string>", "exec")
         except:
             return "color:#FF0000;"
 

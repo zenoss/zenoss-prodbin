@@ -49,13 +49,14 @@ def manage_addEventClass(context, id="Events", REQUEST=None):
 
 addEventClass = DTMLFile('dtml/addEventClass',globals())
 
-
 class EventClass(EventClassPropertyMixin, Organizer, ManagedEntity, ZenPackable):
     """
     EventClass organizer
     """
 
     isInTree = True
+
+    transform = ''
 
     meta_type = "EventClass" #FIXME - this is wrong just temp perserving data
     event_key = "EventClass"
@@ -67,6 +68,11 @@ class EventClass(EventClassPropertyMixin, Organizer, ManagedEntity, ZenPackable)
     _relations = ZenPackable._relations + (
         ("instances", ToManyCont(ToOne,"Products.ZenEvents.EventClassInst","eventClass")),
         )
+
+
+    _properties = Organizer._properties + \
+                  EventClassPropertyMixin._properties + \
+                  ({'id':'transform', 'type':'text', 'mode':'w'},)
 
 
     # Screen action bindings (and tab definitions)
@@ -108,6 +114,11 @@ class EventClass(EventClassPropertyMixin, Organizer, ManagedEntity, ZenPackable)
                 { 'id'            : 'config'
                 , 'name'          : 'zProperties'
                 , 'action'        : 'zPropertyEdit'
+                , 'permissions'   : ("Change Device",)
+                },
+                { 'id'            : 'transform'
+                , 'name'          : 'Transform'
+                , 'action'        : 'editEventClassTransform'
                 , 'permissions'   : ("Change Device",)
                 },
                 { 'id'            : 'viewHistory'
@@ -256,7 +267,21 @@ class EventClass(EventClassPropertyMixin, Organizer, ManagedEntity, ZenPackable)
         edict._setProperty("zEventClearClasses", [], type="lines")
         edict._setProperty("zEventAction", "status")
         edict._setProperty("zEventSeverity", -1, type="int")
-        #edict._setProperty("zEventProperties", [], type="lines")
+
+    def testTransformStyle(self):
+        """Test our transform by compiling it.
+        """
+        try:
+            if self.transform:
+                compile(self.transform, "<string>", "exec")
+        except:
+            return "color:#FF0000;"
+
+    def manage_editEventClassTransform(self, transform = '', REQUEST=None):
+        "Save the transform"
+        self.transform = transform
+        if REQUEST: return self.callZenScreen(REQUEST)
+
 
     def getEventSeverities(self):
         """Return a list of tuples of severities [('Warning', 3), ...] 

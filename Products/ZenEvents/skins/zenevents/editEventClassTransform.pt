@@ -1,0 +1,50 @@
+<tal:block metal:use-macro="here/templates/macros/page2">
+  <tal:block metal:fill-slot="contentPane">
+
+    <form method=post tal:attributes="action string:${here/absolute_url_path}">
+      <input type="hidden" name="zenScreenName" 
+	     tal:attributes="value template/id" /> 
+
+      <tal:block tal:define="tabletitle python:request.get('message','')">
+	<tal:block metal:use-macro="here/zenuimacros/macros/zentable">
+
+	  <!--====Optional titlebar slots=============
+
+	      <tal:block metal:fill-slot="filterslot">
+	      </tal:block>
+	      
+	      <tal:block metal:fill-slot="menuslot">
+	      </tal:block>
+
+	      ==========================================-->
+
+	  <tal:block metal:fill-slot="zentablecontents">
+	    <!-- BEGIN TABLE CONTENTS -->
+	    <tr>
+	      <td class="tableheader" colspan="2">Transform</td>
+	    </tr>
+	    <tr>
+	      <td class="tablevalues" colspan="2">
+		<textarea class="tablevalues" rows=25 cols=80
+			  tal:attributes="style here/testTransformStyle"
+			  name="transform:text" 
+			  tal:content="here/transform">
+		</textarea>
+	      </td>
+	    </tr>
+	    <tr>
+		<td align="left"  class="tableheader" colspan="2">
+		    <input class="tableheader" type="submit" value=" Save "
+			name="manage_editEventClassTransform:method" />
+		</td>
+	    </tr>
+
+	    <!-- END TABLE CONTENTS -->
+	  </tal:block>
+	</tal:block>
+      </tal:block>
+
+    </form>
+
+  </tal:block>
+</tal:block>
