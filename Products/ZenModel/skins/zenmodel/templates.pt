@@ -74,6 +74,9 @@
  ====================================================== -->
 <tal:block metal:define-macro="page2">
     <html metal:use-macro="here/templates/macros/page1" >
+        <tal:block metal:fill-slot="head-local">
+        <tal:block metal:define-slot="head-local"/>
+        </tal:block>
         <tal:block metal:fill-slot="breadcrumbs">
             <div id="breadCrumbPane">
             <tal:block metal:define-slot="breadcrumbs">
