@@ -40,6 +40,7 @@ class BasicDataSource(RRDDataSource.RRDDataSource):
     sourcetypes = ('SNMP', 'XMLRPC', 'COMMAND')
     
     sourcetype = 'SNMP'
+    eventClass = Cmd_Fail
     oid = ''
     xmlrpcURL = ''
     xmlrpcUsername = ''
@@ -121,10 +122,6 @@ class BasicDataSource(RRDDataSource.RRDDataSource):
                 except ValueError:
                     REQUEST['message'] = "%s is an invalid OID" % oid 
                     return self.callZenScreen(REQUEST)
-                    
-            if REQUEST.get('sourcetype') == 'COMMAND':
-                if REQUEST.form.get('eventClass', '/') == '/':
-                    REQUEST.form['eventClass'] = Cmd_Fail
         return RRDDataSource.RRDDataSource.zmanage_editProperties(
                                                                 self, REQUEST)
 
