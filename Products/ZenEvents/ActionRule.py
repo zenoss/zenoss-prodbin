@@ -188,6 +188,10 @@ class ActionRule(ZenModelRM, EventFilter):
             clause = WhereClause.fromFormVariables(self.genMeta(), REQUEST.form)
             if clause:
                 REQUEST.form['where'] = clause
+            else:
+                REQUEST['message'] = 'You must have at least one criteria' \
+                    ' in an Alerting Rule.'
+                return self.callZenScreen(REQUEST)
         return self.zmanage_editProperties(REQUEST)
 
 
