@@ -14,6 +14,7 @@
 import types
 
 from random import choice
+from copy import copy
 
 from Globals import DTMLFile
 from Globals import InitializeClass
@@ -116,8 +117,9 @@ class UserSettingsManager(ZenModelRM):
     def getAllUserSettings(self):
         """Return list user settings objects.
         """
-        return filter(lambda u: u.id != "admin",
-                    self.objectValues(spec="UserSettings"))
+        # This code used to filter out the admin user.
+        # See ticket #1615 for why it no longer does.
+        return [o for o in self.objectValues(spec="UserSettings")]
             
 
     def getAllUserSettingsNames(self, filtNames=()):
