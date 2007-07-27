@@ -60,7 +60,6 @@ class StatusMonitorConf(Monitor, StatusColor):
     snmpTimeOut=3.0
     snmpTries=2
     cycleInterval=60
-    snmpCycleInterval=60
     configCycleInterval=20
     maxFailures = 1440
     cycleFailWarn = 2
@@ -73,7 +72,6 @@ class StatusMonitorConf(Monitor, StatusColor):
         {'id':'snmpTimeOut','type':'float','mode':'w'},
         {'id':'snmpTries','type':'int','mode':'w'},
         {'id':'cycleInterval','type':'int','mode':'w'},
-        {'id':'snmpCycleInterval','type':'int','mode':'w'},
         {'id':'cycleFailWarn','type':'int','mode':'w'},
         {'id':'cycleFailCritical','type':'int','mode':'w'},
         {'id':'configCycleInterval','type':'int','mode':'w'},
@@ -155,11 +153,6 @@ class StatusMonitorConf(Monitor, StatusColor):
     def getCycleInterval(self):
         '''get the number of seconds between  sweeps'''
         return self.cycleInterval
-
-    security.declareProtected('View','getSnmpCycleInterval')
-    def getSnmpCycleInterval(self):
-        '''get the number of seconds between snmp sweeps'''
-        return self.snmpCycleInterval
 
     security.declareProtected('View','getConfigCycleInterval')
     def getConfigCycleInterval(self):
