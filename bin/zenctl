@@ -10,11 +10,9 @@
 #
 # For complete information please visit: http://www.zenoss.com/oss/
 #############################################################################
-
 #
 # chkconfig: 2345 80 30
 #
-
 # zenctl        This init.d script starts and stops Zenoss
 #               
 # description: Zenoss is a monitoring program written by Zenoss, Inc.
