@@ -11,6 +11,9 @@
                 batch python:here.ZenTableManager.getBatch(tableName,objects); 
                 tabletitle string:Active Periods;
                 menu_id string:ActionRuleWindow_list">
+            
+    <input type='hidden' name='tableName' tal:attributes="value tableName" />
+    
         <tal:block metal:use-macro="here/zenuimacros/macros/zentable">
 
         <!--====Optional titlebar slots=============
@@ -25,9 +28,6 @@
 
         <tal:block metal:fill-slot="zentablecontents">
         <!-- BEGIN TABLE CONTENTS -->
-            
-    <input type='hidden' name='tableName' tal:attributes="value tableName" />
-    
     <tr>
         <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
                     tableName,'primarySortKey','Name','cmp')">
