@@ -57,6 +57,9 @@
         batch python:here.ZenTableManager.getBatch(tableName,objects); 
         tabletitle string:OID Mappings;
         menu_id string:OIDMappings">
+            
+    <input type='hidden' name='tableName' tal:attributes="value tableName" />
+    
         <tal:block metal:use-macro="here/zenuimacros/macros/zentable">
 
         <!--====Optional titlebar slots=============
@@ -71,9 +74,6 @@
 
         <tal:block metal:fill-slot="zentablecontents">
         <!-- BEGIN TABLE CONTENTS -->
-            
-    <input type='hidden' name='tableName' tal:attributes="value tableName" />
-    
     <tr>
         <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
                     tableName,'getId','Name')"/>
@@ -116,6 +116,9 @@
         batch python:here.ZenTableManager.getBatch(tableName,objects);
         tabletitle string:Traps;
         menu_id string:Traps">
+            
+    <input type='hidden' name='tableName' tal:attributes="value tableName" />
+    
         <tal:block metal:use-macro="here/zenuimacros/macros/zentable">
 
         <!--====Optional titlebar slots=============
@@ -130,9 +133,6 @@
 
         <tal:block metal:fill-slot="zentablecontents">
         <!-- BEGIN TABLE CONTENTS -->
-            
-    <input type='hidden' name='tableName' tal:attributes="value tableName" />
-    
     <tr>
         <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
                     tableName,'getId','Name')"/>
