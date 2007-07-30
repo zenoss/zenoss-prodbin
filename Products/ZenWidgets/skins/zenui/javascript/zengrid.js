@@ -453,7 +453,7 @@ ZenGrid.prototype = {
         var cell = e.src();
         var f = cell.getElementsByTagName('div')[0].innerHTML;
         var headcells = this.headers.getElementsByTagName('td');
-        var clearcell = function(cell){setStyle(cell,{'background':null,'color':null})}
+        var clearcell = function(cell){setStyle(cell,{'background':'','color':''})}
         map(clearcell, headcells);
         if (this.lastparams) {
             switch(this.lastparams['orderby']) {
