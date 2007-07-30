@@ -79,6 +79,12 @@ table.tabtable,
     z-index: 3000;
 }
 
+#settings div.searchbox {
+    top: -12px;
+}
+#settings div.searchbox input {
+    margin-top: 2px !important;
+}
 
 #tabsPane table td.contextmenutab .menu {
     width: 52px;
