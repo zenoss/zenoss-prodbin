@@ -184,9 +184,10 @@ DeviceZenGrid.prototype = {
         this.lastOffset = 0;
         this.lastPixelOffset = this.lastPixelOffset || 0;
         var isMSIE//@cc_on=1;
-        this.rowSizePlus = this.rowHeight+(isMSIE?5:3);
+        this.rowSizePlus = this.rowHeight+(isMSIE?3:3);
         this.buildHTML();
         this.selectstatus = 'none';
+        this.viewportHeight = null;
         this.clearFirst = false;
         this.lock = new DeferredLock();
         this.scrollTimeout = null;
@@ -195,7 +196,8 @@ DeviceZenGrid.prototype = {
         fieldlock.addCallback(this.refreshFields);
         updatelock = this.lock.acquire();
         updatelock.addCallback(bind(function(r){
-            this.resizeTable();
+            var isMSIE//@cc_on=1;
+            /*if (!isMSIE)*/ this.resizeTable();
             if (this.lock.locked) this.lock.release();
         }, this));
         statuslock = this.lock.acquire();
@@ -205,7 +207,12 @@ DeviceZenGrid.prototype = {
         }, this));
         this.addMouseWheelListening();
         connect(this.scrollbar, 'onscroll', this.handleScroll);
-        connect(currentWindow(), 'onresize', this.resizeTable);
+        connect(currentWindow(), 'onresize', bind(function(){
+            newheight = getViewportDimensions().h;
+            if (this.viewportHeight != newheight) {
+                this.resizeTable();
+            }
+        }, this));
     },
     turnRefreshOn: function() {
         var time = $('refreshRate').value;
@@ -498,8 +505,7 @@ DeviceZenGrid.prototype = {
         var myoffset = numrows*(32-this.rowHeight);
         if (scrollHeight <= 0) 
             setElementDimensions(this.scrollbar, {h:0});
-        else if
-            (scrollHeight<=getElementDimensions(this.zgtable).h-myoffset-2) {
+        else if (scrollHeight<=getElementDimensions(this.zgtable).h-myoffset-2) {
             setStyle(this.scrollbar, {'display':'none'});
         } else {
             setElementDimensions(this.scrollbar, {h:scrollHeight});
@@ -656,6 +662,9 @@ DeviceZenGrid.prototype = {
         setStyle(this.scrollbar.getElementsByTagName('div')[0],
             {'height':String(parseInt(scrlheight)) + 'px'}
         );
+        var isMSIE//@cc_on=1;
+        if (isMSIE) 
+            setStyle(this.scrollbar, {'height':this.rowToPixel(this.numRows)+'px'});
     },
     rowToPixel: function(row) {
         return row * (this.rowSizePlus);
@@ -757,6 +766,7 @@ DeviceZenGrid.prototype = {
         this.setTableNumRows( Math.min( this.numRows, this.buffer.totalRows));
         this.refreshTable(this.lastOffset);
         this.updateStatusBar(this.lastOffset);
+        this.viewportHeight = getViewportDimensions().h;
     },
     resizeColumn: function(index, fromindex, pixeldiff) {
         var cols = this.colgroup.getElementsByTagName('col');

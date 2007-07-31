@@ -205,13 +205,14 @@ ZenGrid.prototype = {
         this.clearFirst = false;
         this.lock = new DeferredLock();
         this.scrollTimeout = null;
+        this.viewportHeight = null;
         this.loadingbox = new ZenGridLoadingMsg('Loading...');
-        //this.showLoading();
         fieldlock = this.lock.acquire();
         fieldlock.addCallback(this.refreshFields);
         updatelock = this.lock.acquire();
         updatelock.addCallback(bind(function(r){
-            this.resizeTable();
+            var isMSIE//@cc_on=1;
+            if (!isMSIE) this.resizeTable();
             if (this.lock.locked) this.lock.release();
         }, this));
         statuslock = this.lock.acquire();
@@ -221,7 +222,12 @@ ZenGrid.prototype = {
         }, this));
         this.addMouseWheelListening();
         connect(this.scrollbar, 'onscroll', this.handleScroll);
-        connect(currentWindow(), 'onresize', this.resizeTable);
+        connect(currentWindow(), 'onresize', bind(function(){
+            newheight = getViewportDimensions().h;
+            if (this.viewportHeight != newheight) {
+                this.resizeTable();
+            }
+        }, this));
     },
     turnRefreshOn: function() {
         var time = $('refreshRate').value;
@@ -811,6 +817,7 @@ ZenGrid.prototype = {
         this.setTableNumRows( Math.min( this.numRows, this.buffer.totalRows));
         this.refreshTable(this.lastOffset);
         this.updateStatusBar(this.lastOffset);
+        this.viewportHeight = getViewportDimensions().h;
     },
     resizeColumn: function(index, fromindex, pixeldiff) {
         var cols = this.colgroup.getElementsByTagName('col');
