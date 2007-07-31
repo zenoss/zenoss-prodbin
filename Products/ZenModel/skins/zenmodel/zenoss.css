@@ -742,10 +742,9 @@ a.tablevalues:active {
 }
 
 .temp_filterbox {
-    height: 25px;
+    height: 28px;
     position: absolute;
     right: 50px;
     top: 0px;
     z-index: 2007;
 }
-

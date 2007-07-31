@@ -18,12 +18,20 @@ th.tabletitle {
 .temp_filterbox {
     position: absolute;
     right: 50px;
-    top: 0px;
+    top: -7px;
     z-index: 2007;
     padding: 0px;
     height: 25px;
 }
 
+.temp_filterbox .filterbox {
+    top: 9px;
+    left: 10px;
+}
+
+.temp_filterbox .filterbox input {
+    margin-top: -2px;
+}
 div.tabletitlecontainer {
     height:25px;
     background: transparent url(img/titlebar_bg.gif) repeat-x top left;
