@@ -16,9 +16,9 @@
     <link rel="stylesheet" type="text/css"
         href="/zport/portal_skins/zenevents.css" />
     <script type="text/javascript" 
-        src="/zport/portal_skins/zenmodelfuncs.js"></script>
-    <script type="text/javascript" 
         src="/zport/js/MochiKit.js"></script>
+    <script type="text/javascript" 
+        src="/zport/portal_skins/zenmodelfuncs.js"></script>
 </head>
 <tal:block metal:define-macro="eventTabs">
 <div id="tabsPane">
