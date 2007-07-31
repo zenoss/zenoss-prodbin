@@ -75,12 +75,15 @@ div.event_detail {
 div.cell_inner {
     background-color: transparent;
     padding:0 3px;margin:0;
-    overflow:hidden;
+    overflow: hidden;
     height: 32px;
     white-space: normal;
     font-size: 12px;
     line-height: 132%;
     vertical-align: middle;
+    /* These are for IE */
+    word-wrap: break-word;
+    word-break: break-all;
 }
 
 tr.even td.cell,

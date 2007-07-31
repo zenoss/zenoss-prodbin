@@ -387,6 +387,10 @@ ZenGrid.prototype = {
         this.lastOffset = offset;
         this.scrollbar.scrollTop = this.rowToPixel(offset);
         var inRange = this.buffer.isInRange(offset);
+        var isMSIE//@cc_on=1;
+        if (isMSIE) setStyle(this.zgtable, 
+            {'table-layout':'fixed'}
+        );
         if (inRange) {
             this.populateTable(this.buffer.getRows(offset, this.numRows));
             if (offset > lastOffset) {
@@ -429,8 +433,8 @@ ZenGrid.prototype = {
         if (isManager) {
             var cb = '<input type="checkbox" style="visibility:hidden"/>';
             stuffz[0].innerHTML = cb;
+            setStyle(stuffz[0], {'width':'20px'});
         }
-        setStyle(stuffz[0], {'width':'20px'});
         setStyle(stuffz[stuffz.length-1], {'width':'32px'});
     },
     getColgroup: function() {
@@ -440,6 +444,8 @@ ZenGrid.prototype = {
             return createDOM( 'col', {width: w+'%'}, null)
         }, widths);
         updateNodeAttributes(cols[0], {width:'0*'});
+        var isMSIE//@cc_on=1;
+        if (isMSIE) updateNodeAttributes(cols[0], {width:'26px'});
         updateNodeAttributes(cols[cols.length-1], {width:'32'});
         colgroup = createDOM('colgroup', {span:widths.length, height:'32px'}, 
             cols);
