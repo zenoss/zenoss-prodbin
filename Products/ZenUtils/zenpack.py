@@ -17,7 +17,10 @@ from Products.ZenModel.ZenPack import ZenPack, zenPackPath
 from Products.ZenUtils.ZenScriptBase import ZenScriptBase
 from Products.ZenUtils.Utils import cleanupSkins
 import transaction
-
+from zipfile import ZipFile
+from StringIO import StringIO
+import ConfigParser
+from Products.ZenModel.ZenPackLoader import CONFIG_FILE, CONFIG_SECTION_ABOUT
 import os, sys
 import os.path
 
@@ -29,6 +32,8 @@ class ZenPackCmd(ZenScriptBase):
         "Execute the user's request"
         self.connect()
         if self.options.installPackName:
+            if not self.preInstallCheck():
+                self.stop('%s not installed' % self.options.installPackName)
             if os.path.isfile(self.options.installPackName):
                 packName = self.extract(self.options.installPackName)
             elif os.path.isdir(self.options.installPackName):
@@ -56,6 +61,45 @@ class ZenPackCmd(ZenScriptBase):
                         print '    %s' % item
             
         transaction.commit()
+
+
+    def preInstallCheck(self):
+        ''' Check that prerequisite zenpacks are installed.
+        Return True if no prereqs specified or if they are present.
+        False otherwise.
+        '''
+        if os.path.isfile(self.options.installPackName):
+            zf = ZipFile(self.options.installPackName)
+            for name in zf.namelist():
+                if name.endswith == '/%s' % CONFIG_FILE:
+                    sio = StringIO(zf.read())
+            else:
+                return True
+        else:
+            name = os.path.join(self.options.installPackName, CONFIG_FILE)
+            if os.path.isfile(name):
+                fp = open(name)
+                sio = StringIO(fp.read())
+                fp.close()
+            else:
+                return True
+                
+        parser = ConfigParser.SafeConfigParser()
+        parser.readfp(sio, name)
+        if parser.has_section(CONFIG_SECTION_ABOUT) \
+            and parser.has_option(CONFIG_SECTION_ABOUT, 'requires'):
+            requires = eval(parser.get(CONFIG_SECTION_ABOUT, 'requires'))
+            if not isinstance(requires, list):
+                requires = [zp.strip() for zp in requires.split(',')]
+            missing = [zp for zp in requires 
+                        if zp not in self.dataroot.packs.objectIds()]
+            if missing:
+                self.log.error('ZenPack %s was not installed because'
+                                % self.options.installPackName
+                                + ' it requires the following ZenPack(s): %s'
+                                % ', '.join(missing))
+                return False
+        return True
 
 
     def install(self, packName):
@@ -114,7 +158,6 @@ class ZenPackCmd(ZenScriptBase):
 
     def extract(self, fname):
         "Unpack a ZenPack, and return the name"
-        from zipfile import ZipFile
         if not os.path.isfile(fname):
             self.stop('Unable to open file "%s"' % fname)
         zf = ZipFile(fname)

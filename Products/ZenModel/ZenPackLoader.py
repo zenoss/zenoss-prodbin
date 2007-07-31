@@ -253,7 +253,14 @@ class ZPLAbout(ZenPackLoader):
         if os.path.exists(about):
             parser = ConfigParser.SafeConfigParser()
             parser.read(about)
-            result = parser.items(CONFIG_SECTION_ABOUT)
+            result = []
+            for key, value in parser.items(CONFIG_SECTION_ABOUT):
+                try:
+                    value = eval(value)
+                except:
+                    # Blanket exception catchers like this are evil.
+                    pass
+                result.append((key, value))
         return result
 
 
