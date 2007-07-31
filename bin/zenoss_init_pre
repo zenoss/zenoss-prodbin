@@ -30,7 +30,7 @@ export MYSQLUSER="**MYSQL_USERNAME**"
 export MYSQLPASS="**MYSQL_PASSWD**"
 export MYSQLEVENTDB="**MYSQL_DATABASE**"
 export ZOPEPASSWORD="**ZOPE_PASSWD**"
-export ZOPEHOME=${ZENHOME}
+export ZOPEHOME="**ZOPEHOME**"
 
 # load the installation functions
 . ${ZENHOME}/bin/shared-functions.sh
