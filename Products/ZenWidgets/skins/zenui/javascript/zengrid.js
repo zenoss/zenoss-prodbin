@@ -366,6 +366,10 @@ ZenGrid.prototype = {
             'count': bufSize,
             'getTotalCount': 1
         });
+        var isMSIE//@cc_on=1;
+        if (isMSIE) {
+            qs.ms= new Date().getTime();
+        }
         var d = loadJSONDoc(url, qs);
         d.addErrback(bind(function(x) { 
             callLater(5, bind(function(){

@@ -298,6 +298,10 @@ DeviceZenGrid.prototype = {
         qs = update(this.lastparams, {
                 'offset':this.buffer.startPos,
                 'count':this.buffer.size });
+        var isMSIE//@cc_on=1;
+        if (isMSIE) {
+            qs.ms= new Date().getTime();
+        }
         var d = loadJSONDoc(this.url, qs);
         d.addErrback(bind(function(x) { 
             callLater(5, bind(function(){
