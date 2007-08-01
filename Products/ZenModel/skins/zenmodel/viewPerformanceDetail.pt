@@ -53,17 +53,7 @@ var ZenGraphs = new Array();
     </tal:block>
     </tal:block>
 <script>
-// Don't load pretty graphs if IE
-if (!document.all) {
     document.write('<\/script><script src="zenrrdzoom.js"><\/script><script>');
-} else {
-    resetGraphs = function(drange) {
-        $('drange_select').form.submit();
-    };
-    $('linkcheck').parentNode.removeChild($('linkcheck'));
-    $('linkcheck_label').parentNode.removeChild($('linkcheck_label'));
-}
-
 </script>
 
 <!-- END TABLE CONTENTS -->

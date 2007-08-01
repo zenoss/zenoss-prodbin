@@ -7,7 +7,6 @@
 #####################################################
 */
 
-if (typeof(isie)=='undefined') var isie = navigator.userAgent.indexOf('MSIE') != -1;
 var zoom_factor = 1.5;
 var pan_factor = 3; // Fraction of graph to move
 var drange_re = /&drange=([0-9]*)/;
@@ -47,27 +46,41 @@ Date.prototype.toPretty = function() {
 
 
 var table = function(obj, newme) {
+    return "<table id='"+obj.id+"_table'"+
+    "><tbody id='"+obj.id+"_tbody'></tbody></table>"
+    /*
+    return TABLE({'id':obj.id + '_table'},
+    TBODY({'id':obj.id + '_tbody'}, 
+    null));
+    */
+}
+var firstrow = function(obj, newme) {
     _height = function(o) {
 	return String(getElementDimensions(o).h + 14)+'px'; 
     };
-    return TABLE({'id':obj.id + '_table'},
-    TBODY({'id':obj.id + '_tbody'},
-    [TR(null,[TD({'rowspan':'2','style':'background-color:lightgrey;'
-    },INPUT({'type':'button',
-    'id':obj.id + '_panl','style':'border:1px solid grey;' + 
-    'cursor:pointer','value':'<', 'onfocus':'this.blur();'},"<")),
-    TD({'rowspan':'2'},newme),TD({'rowspan':'2','style':'background-color:lightgrey;'
-    },INPUT({'type':'button',
-    'id':obj.id + '_panr','style':'border:1px solid grey;'+
-    'cursor:pointer','value':'>','onfocus':'this.blur();'},">")),
-    TD({'id' : obj.id + '_zin','style':'cursor:pointer;background-color:grey;'+
-    'width:3em;text-align:center;' +'border:1px solid grey;'},
-    IMG({'src':'zoomin.gif'}, "Z+"))]),TR(null,
-        TD({'id': obj.id + '_zout',
-            'style':'cursor:pointer;width:3em;'+'text-align:center;'+'border:1px solid grey;'},
-        IMG({'src':'zoomout.gif'}, "Z-")))]));
+    return TR({'style':'height:80px;'},[
+    TD({'rowSpan':1,'style':'background:#ddd none;min-height:1%;'},
+    INPUT({'type':'button',
+    'id':obj.id + '_panl','style':'border:1px solid #aaa;width:3em;'+ 
+    'cursor:pointer','value':'<', 'onfocus':'this.blur();'},null)),
+    TD({'rowSpan':1}, newme),
+    TD({'rowSpan':1, 'style':'background:#ddd none;' },
+    INPUT({'type':'button',
+    'id':obj.id + '_panr','style':'border:1px solid #aaa;'+
+    'cursor:pointer;width:3em;','value':'>','onfocus':'this.blur();'},null)),
+    TD({'style':'width:3em;'},
+    DIV({'style':'width:3em;height:100%;min-height:164px;'},
+    DIV({'id' : obj.id + '_zin','style':'cursor:pointer;background-color:#aaa;'+
+    'width:3em;text-align:center;border:1px solid #aaa;vertical-align:middle;'+
+    'background:#aaa url(zoomin.gif) center center no-repeat;height:50%;'+
+    'min-height:82px;', 
+    'valign':'middle'},''),
+    DIV({'id':obj.id +'_zout','style':'cursor:pointer;background-color:#aaa;'+
+    'width:3em;text-align:center;border:1px solid #aaa;height:50%;'+
+    'background:transparent url(zoomout.gif) center center no-repeat;'+
+    'min-height:82px;', 
+    'valign':'middle'}, '')))]);
 }
-
 
 ZenRRDGraph = Class.create();
 ZenRRDGraph.prototype = {
@@ -81,7 +94,7 @@ ZenRRDGraph.prototype = {
         this.setDates();
         this.buildTables();
         this.registerListeners();
-	this.loadImage();
+	    this.loadImage();
     },
 
     updateFromUrl: function() {
@@ -224,7 +237,13 @@ ZenRRDGraph.prototype = {
         newme.src = this.url;
         newme.style.cursor = 'crosshair';
         var t = table(this.obj, newme);
-        this.obj.parentNode.appendChild(t);
+        var f = firstrow(this.obj, newme);
+        var old = this.obj.parentNode.innerHTML;
+        var objid = this.obj.id;
+        this.obj.parentNode.innerHTML = old+t;
+        this.obj = $(objid);
+        var tb = $(this.obj.id + '_tbody');
+        tb.appendChild(f);
         this.obj.parentNode.removeChild(this.obj);
         this.obj = newme;
         this.zin = $(this.obj.id + '_zin');
@@ -234,14 +253,14 @@ ZenRRDGraph.prototype = {
     },
 
     zoom_in : function() {
-        this.zin.style.backgroundColor = 'grey';
-        this.zout.style.backgroundColor = 'transparent';
+        setStyle(this.zin, {'background':'#aaa url(zoomin.gif) center center no-repeat'});
+        setStyle(this.zout, {'background':'transparent url(zoomout.gif) center center no-repeat'});
         if (this.zoom_factor < 1) this.zoom_factor=1/this.zoom_factor;
     },
 
     zoom_out: function() {
-        this.zin.style.backgroundColor = 'transparent';
-        this.zout.style.backgroundColor = 'grey';
+        setStyle(this.zin, {'background':'transparent url(zoomin.gif) center center no-repeat'});
+        setStyle(this.zout, {'background':'#aaa url(zoomout.gif) center center no-repeat'});
         if (this.zoom_factor > 1) this.zoom_factor=1/this.zoom_factor;
     },
 
@@ -343,7 +362,7 @@ ZenGraphQueue.prototype = {
     zoom_in: function(e) {
         for (g in this.graphs) {
             graph = this.graphs[g];
-            graph.zoom_in.bind(graph)(e);
+            bind(graph.zoom_in, graph)(e);
         }
     },
     zoom_out: function(e) {
@@ -382,14 +401,10 @@ function linkGraphs(bool) {
 }
 
 function resetGraphs(drange) {
-    if (!isie) {
-        var end = 0;
-        var start = Number(drange);
-        var drange = Number(drange);
-        ZenQueue.updateAll([drange, start, end]);
-    } else {
-        document.href = document.href;
-    }
+    var end = 0;
+    var start = Number(drange);
+    var drange = Number(drange);
+    ZenQueue.updateAll([drange, start, end]);
 }
 
 function registerGraph(id) {
