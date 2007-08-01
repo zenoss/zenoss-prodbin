@@ -94,7 +94,7 @@ ZenRRDGraph.prototype = {
         this.setDates();
         this.buildTables();
         this.registerListeners();
-	    this.loadImage();
+        this.loadImage();
     },
 
     updateFromUrl: function() {
@@ -265,20 +265,24 @@ ZenRRDGraph.prototype = {
     },
 
     loadImage : function() {
-        this.buffer = new Image();
-        var obj = this.obj;
-        var onSuccess = function(e) {
-            if (this.obj.src!=this.url) {
-                this.obj.src = this.url;
-            };
-	    var myh = getElementDimensions(this.obj).h;
-	    setElementDimensions(this.panl, {'h':myh});
-	    setElementDimensions(this.panr, {'h':myh});
-            disconnectAll(this.buffer);
-            delete this.buffer;
-        };
-        var x = connect(this.buffer, 'onload', bind(onSuccess, this));
-        this.buffer.src = this.url;
+        checkurl = this.url+'&getImage=';
+        var onSuccess = bind(function(r) {
+            if (r.responseText=='True') {
+                if (this.obj.src!=this.url) {
+                    this.obj.src = this.url;
+                };
+            }
+        }, this);
+        var setHeights = bind(function(e) {
+            var myh = getElementDimensions(this.obj).h;
+            setElementDimensions(this.panl, {'h':myh});
+            setElementDimensions(this.panr, {'h':myh});
+        }, this);
+        var x = connect(this.obj, 'onload', setHeights);
+        if (this.url!=this.obj.src) {
+            defr = doXHR(checkurl)
+            defr.addCallback(onSuccess)
+        }
     },
 
     registerListeners : function() {
@@ -414,8 +418,14 @@ function registerGraph(id) {
 function zenRRDInit() {
     ZenQueue = new ZenGraphQueue();
     for (graphid in ZenGraphs) {  // ZenGraphs is set in the template
-        graph = new ZenRRDGraph($(ZenGraphs[graphid]));
-        ZenQueue.add(graph);
+        try {
+            graph = new ZenRRDGraph($(ZenGraphs[graphid]));
+            ZenQueue.add(graph);
+        } catch(e) { 
+           mydiv = DIV({'style':'height:100px;width:300px;'},
+            'There was a problem rendering this graph.');
+           swapDOM($(ZenGraphs[graphid]), mydiv);
+        }
     }
 }
 

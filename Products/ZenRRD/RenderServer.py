@@ -81,10 +81,9 @@ class RenderServer(RRDToolItem):
         self.tmpdir = tmpdir
         self.cachetimeout = cachetimeout
 
-
     security.declareProtected('View', 'render')
     def render(self, gopts=None, start=None, end=None, drange=None, remoteUrl=None, width=None,
-                ftype='PNG', REQUEST=None):
+                ftype='PNG', getImage=True, REQUEST=None):
         """render a graph and return it"""
         gopts = zlib.decompress(urlsafe_b64decode(gopts))
         gopts = gopts.split('|')
@@ -123,7 +122,12 @@ class RenderServer(RRDToolItem):
                     raise
             self.addGraph(id, filename)
             graph = self.getGraph(id, ftype, REQUEST)
-        return graph 
+        if getImage: 
+            return graph
+        else: 
+            response = REQUEST.RESPONSE
+            response.setHeader('Content-Type', 'text/plain')
+            return bool(graph)
 
     
     def deleteRRDFiles(self, device, 
