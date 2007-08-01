@@ -423,7 +423,8 @@ function zenRRDInit() {
             ZenQueue.add(graph);
         } catch(e) { 
            mydiv = DIV({'style':'height:100px;width:300px;'},
-            'There was a problem rendering this graph.');
+            "There was a problem rendering this graph. If you've just added "+
+            'this device, template or datapoint, please wait half an hour for data to be collected.');
            swapDOM($(ZenGraphs[graphid]), mydiv);
         }
     }
