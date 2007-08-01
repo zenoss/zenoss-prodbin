@@ -210,7 +210,10 @@ class ZenHub(ZCmdBase):
             kw['device'] = getfqdn()
         if not 'component' in kw:
             kw['component'] = self.name
-        self.zem.sendEvent(Event(**kw))
+        try:
+            self.zem.sendEvent(Event(**kw))
+        except:
+            self.log.exception("Unable to send an event")
 
 
     def loadChecker(self):
