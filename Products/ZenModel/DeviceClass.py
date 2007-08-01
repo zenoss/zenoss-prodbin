@@ -210,7 +210,10 @@ class DeviceClass(DeviceOrganizer, ZenPackable):
             if not isinstance(REQUEST, FakeRequest):
                 REQUEST['RESPONSE'].redirect(target.getPrimaryUrlPath())
             else:
-                return self.callZenScreen(REQUEST)
+                if REQUEST.has_key('oneKeyValueSoInstanceIsntEmptyAndEvalToFalse'):
+                    return REQUEST['message']
+                else:
+                    return self.callZenScreen(REQUEST)
 
 
     def removeDevices(self, deviceNames=None, REQUEST=None):
@@ -222,7 +225,10 @@ class DeviceClass(DeviceOrganizer, ZenPackable):
             dev.deleteDevice()
         if REQUEST:
             REQUEST['message'] = "Devices deleted"
-            return self.callZenScreen(REQUEST)
+            if REQUEST.has_key('oneKeyValueSoInstanceIsntEmptyAndEvalToFalse'):
+                return REQUEST['message']
+            else:
+                return self.callZenScreen(REQUEST)
 
 
     security.declareProtected('Change Device', 'setDeviceBatchProps')

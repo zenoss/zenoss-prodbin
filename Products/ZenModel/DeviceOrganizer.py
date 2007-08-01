@@ -190,8 +190,10 @@ class DeviceOrganizer(Organizer, DeviceManagerBase, Commandable, ZenMenuable,
         if REQUEST:
             statename = self.convertProdState(state)
             REQUEST['message'] = "Production State set to %s" % statename
-            return self.callZenScreen(REQUEST)
-
+            if REQUEST.has_key('oneKeyValueSoInstanceIsntEmptyAndEvalToFalse'):
+                return REQUEST['message']
+            else:
+                return self.callZenScreen(REQUEST)
             
     def setPriority(self, priority, deviceNames=None, 
                     isOrganizer=False, REQUEST=None):
@@ -205,7 +207,10 @@ class DeviceOrganizer(Organizer, DeviceManagerBase, Commandable, ZenMenuable,
         if REQUEST:
             priname = self.convertPriority(priority)
             REQUEST['message'] = "Priority set to %s" % priname 
-            return self.callZenScreen(REQUEST)
+            if REQUEST.has_key('oneKeyValueSoInstanceIsntEmptyAndEvalToFalse'):
+                return REQUEST['message']
+            else:
+                return self.callZenScreen(REQUEST)
 
     
     def setStatusMonitors(self, statusMonitors=None, deviceNames=None, 
@@ -222,8 +227,10 @@ class DeviceOrganizer(Organizer, DeviceManagerBase, Commandable, ZenMenuable,
         if REQUEST: 
             REQUEST['message'] = "Status monitor set to %s" % (
                                     statusMonitors)
-            return self.callZenScreen(REQUEST)
-
+            if REQUEST.has_key('oneKeyValueSoInstanceIsntEmptyAndEvalToFalse'):
+                return REQUEST['message']
+            else:
+                return self.callZenScreen(REQUEST)
 
     def setPerformanceMonitor(self, performanceMonitor=None, deviceNames=None, 
                                 isOrganizer=False, REQUEST=None):
@@ -239,7 +246,10 @@ class DeviceOrganizer(Organizer, DeviceManagerBase, Commandable, ZenMenuable,
         if REQUEST: 
             REQUEST['message'] = "Performance monitor set to %s" % (
                                     performanceMonitor)
-            return self.callZenScreen(REQUEST)
+            if REQUEST.has_key('oneKeyValueSoInstanceIsntEmptyAndEvalToFalse'):
+                return REQUEST['message']
+            else:
+                return self.callZenScreen(REQUEST)
   
 
     def setGroups(self, groupPaths=None, deviceNames=None, 
@@ -253,7 +263,10 @@ class DeviceOrganizer(Organizer, DeviceManagerBase, Commandable, ZenMenuable,
             dev.setGroups(groupPaths)
         if REQUEST: 
             REQUEST['message'] = "Groups set to %s" % ", ".join(groupPaths)
-            return self.callZenScreen(REQUEST)
+            if REQUEST.has_key('oneKeyValueSoInstanceIsntEmptyAndEvalToFalse'):
+                return REQUEST['message']
+            else:
+                return self.callZenScreen(REQUEST)
 
 
     def setSystems(self, systemPaths=None, deviceNames=None, 
@@ -267,7 +280,10 @@ class DeviceOrganizer(Organizer, DeviceManagerBase, Commandable, ZenMenuable,
             dev.setSystems(systemPaths)
         if REQUEST: 
             REQUEST['message'] = "Systems set to %s" % ", ".join(systemPaths)
-            return self.callZenScreen(REQUEST)
+            if REQUEST.has_key('oneKeyValueSoInstanceIsntEmptyAndEvalToFalse'):
+                return REQUEST['message']
+            else:
+                return self.callZenScreen(REQUEST)
 
     def setLocation(self, locationPath="", deviceNames=None,
                     isOrganizer=False, REQUEST=None):
@@ -279,7 +295,10 @@ class DeviceOrganizer(Organizer, DeviceManagerBase, Commandable, ZenMenuable,
             dev.setLocation(locationPath)
         if REQUEST: 
             REQUEST['message'] = "Location set to %s" % locationPath
-            return self.callZenScreen(REQUEST)
+            if REQUEST.has_key('oneKeyValueSoInstanceIsntEmptyAndEvalToFalse'):
+                return REQUEST['message']
+            else:
+                return self.callZenScreen(REQUEST)
 
     def unlockDevices(self, deviceNames=None, isOrganizer=False, REQUEST=None):
         """Unlock devices"""
@@ -290,7 +309,10 @@ class DeviceOrganizer(Organizer, DeviceManagerBase, Commandable, ZenMenuable,
             dev.unlock()
         if REQUEST:
             REQUEST['message'] = "Devices unlocked"
-            return self.callZenScreen(REQUEST)
+            if REQUEST.has_key('oneKeyValueSoInstanceIsntEmptyAndEvalToFalse'):
+                return REQUEST['message']
+            else:
+                return self.callZenScreen(REQUEST)
 
     def lockDevicesFromDeletion(self, deviceNames=None, 
                     sendEventWhenBlocked=None, isOrganizer=False, REQUEST=None):
@@ -302,7 +324,10 @@ class DeviceOrganizer(Organizer, DeviceManagerBase, Commandable, ZenMenuable,
             dev.lockFromDeletion(sendEventWhenBlocked)
         if REQUEST:
             REQUEST['message'] = "Devices locked from deletion"
-            return self.callZenScreen(REQUEST)
+            if REQUEST.has_key('oneKeyValueSoInstanceIsntEmptyAndEvalToFalse'):
+                return REQUEST['message']
+            else:
+                return self.callZenScreen(REQUEST)
 
     def lockDevicesFromUpdates(self, deviceNames=None, 
                 sendEventWhenBlocked=None, isOrganizer=False, REQUEST=None):
@@ -314,7 +339,10 @@ class DeviceOrganizer(Organizer, DeviceManagerBase, Commandable, ZenMenuable,
             dev.lockFromUpdates(sendEventWhenBlocked)
         if REQUEST:
             REQUEST['message'] = "Devices locked from updates and deletion"
-            return self.callZenScreen(REQUEST)
+            if REQUEST.has_key('oneKeyValueSoInstanceIsntEmptyAndEvalToFalse'):
+                return REQUEST['message']
+            else:
+                return self.callZenScreen(REQUEST)
 
     def manage_snmpCommunity(self, REQUEST=None):
         """reset Community on all devices in this Organizer.
