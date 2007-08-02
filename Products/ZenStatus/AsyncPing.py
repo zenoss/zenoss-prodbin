@@ -160,15 +160,11 @@ class Ping(object):
                     self.pingJobSucceed(self.jobqueue[sip])
                 elif icmppkt.get_type() == icmp.ICMP_UNREACH:
                     try:
-                        origpkt = ip.disassemble(icmppkt.data)
-                        # ensure it was an ICMP packet
-                        if origpkt.p == 1:
-                            origicmp = icmp.disassemble(origpkt.data)
-                            dip = origpkt.dst
-                            plog.debug("host unreachable pkt %s", dip)
-                            if (origicmp.data == self.pktdata 
-                                and self.jobqueue.has_key(dip)):
-                                self.pingJobFail(self.jobqueue[dip])
+                        origpkt = icmppkt.get_embedded_ip()
+                        dip = origpkt.dst
+                        if (origpkt.data.find(self.pktdata) > -1
+                            and self.jobqueue.has_key(dip)):
+                            self.pingJobFail(self.jobqueue[dip])
                     except ValueError, ex:
                         plog.warn("failed to parse host unreachable packet")
                 else:

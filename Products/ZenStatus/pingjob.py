@@ -137,7 +137,7 @@ class PingMonitor:
         pkt._id = self._id
         pkt.seq = target.sent()
         pkt.data = 'Confmon connectivity test'
-        buf = pkt.assemble()
+        buf = icmp.assemble(pkt)
         target.start(time.time())
         #### sockets with bad addresses fail
         try:

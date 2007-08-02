@@ -135,10 +135,8 @@ class Ping(object):
         """Take a pingjob and send an ICMP packet for it"""
         #### sockets with bad addresses fail
         try:
-            pkt = icmp.Packet(icmp.ICMP_ECHO, self.procId)
-            pkt.seq = pingJob.sent
-            pkt.data = self.pktdata 
-            buf = pkt.assemble()
+            pkt = icmp.Echo(id=self.procId, seq=pingJob.sent, data=self.pktdata)
+            buf = icmp.assemble(pkt)
             pingJob.start = time.time()
             plog.debug("send icmp to '%s'", pingJob.ipaddr)
             self.pingsocket.sendto(buf, (pingJob.ipaddr, 0))
@@ -148,6 +146,7 @@ class Ping(object):
         except Exception, e:
             pingJob.rtt = -1
             pingJob.message = "%s sendto error %s" % (pingJob.ipaddr, e)
+            log.debug("Error sending ping: %s", e)
             if hasattr(self, "reportPingJob"):
                 self.reportPingJob(pingJob)
 
@@ -162,20 +161,19 @@ class Ping(object):
                 icmppkt = icmp.disassemble(ipreply.data)
                 sip =  ipreply.src
                 if (icmppkt.get_type() == icmp.ICMP_ECHOREPLY and 
-                    icmppkt.get_code() == self.procId and self.jobqueue.has_key(sip)):
+                    icmppkt.get_id() == self.procId and self.jobqueue.has_key(sip)):
                     plog.debug("echo reply pkt %s %s", sip, icmppkt)
                     self.pingJobSucceed(self.jobqueue[sip])
                 elif icmppkt.get_type() == icmp.ICMP_UNREACH:
                     plog.debug("host unreachable pkt %s %s", sip, icmppkt)
                     try:
-                        origpkt = ip.disassemble(icmppkt.data)
-                        origicmp = icmp.disassemble(origpkt.data)
+                        origpkt = icmppkt.get_embedded_ip()
                         dip = origpkt.dst
-                        if (origicmp.data == self.pktdata 
+                        if (origpkt.data.find(self.pktdata) > -1 
                             and self.jobqueue.has_key(dip)):
                             self.pingJobFail(self.jobqueue[dip])
                     except ValueError:
-                        plog.warn("failed to parse host unreachable packet")
+                        plog.exception("failed to parse host unreachable packet")
                 else:
                     plog.debug("unexpected pkt %s %s", sip, icmppkt)
             except (SystemExit, KeyboardInterrupt): raise
