@@ -138,3 +138,7 @@ div#gridcontainer {
     position: relative;
     z-index: 1;
 }
+
+div.devmovemenuitems ul.zenMenu li a:hover {
+    background-color: #aaa;
+}
