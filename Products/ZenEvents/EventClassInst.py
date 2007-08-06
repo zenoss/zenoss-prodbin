@@ -58,6 +58,9 @@ class EventClassPropertyMixin(object):
         if sev >= 0:
             if evt.severity > 0:
                 evt.severity = sev
+        resolution = getattr(self, 'resolution', '')
+        explanation = getattr(self, 'explanation', '')
+        evt.updateFromDict({'resolution':resolution,'explanation':explanation})
         return evt
 
     def applyTransform(self, evt, device):
