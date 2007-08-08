@@ -189,7 +189,6 @@ class RRDDataPoint(ZenModelRM, ZenPackable):
     
     def _summary(self, src, format="%5.2lf%s", ongraph=1):
         """Add the standard summary opts to a graph"""
-        format = "%5.2lf%s"
         gopts = []
         funcs = ("LAST", "AVERAGE", "MAX")
         tags = ("cur\:", "avg\:", "max\:")
