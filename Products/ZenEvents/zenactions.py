@@ -60,7 +60,7 @@ class EventCommandProtocol(ProcessProtocol):
         self.timeout = None
 
     def processEnded(self, reason):
-        self.server.log.info("Command finished: %s" % reason)
+        self.server.log.debug("Command finished: %s" % reason)
         code = 1
         try:
             code = reason.value.exitCode
