@@ -478,7 +478,7 @@ def localIpCheck(context, ip):
 
 def localInterfaceCheck(context, intname):
     """Test to see if ips on an in should not be included in the network map."""
-    return re.search(getattr(context, 'zLoaclInterfaceNames', '^$'), intname)
+    return re.search(getattr(context, 'zLocalInterfaceNames', '^$'), intname)
 
 
 def cmpClassNames(obj, classnames):
