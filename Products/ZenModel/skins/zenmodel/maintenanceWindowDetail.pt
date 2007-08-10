@@ -121,7 +121,8 @@
 	    <select class="tablevalues" name="stopProductionState:int"
 		    tal:define="
 		    pstates here/getProdStateConversions;
-		    curstate here/stopProductionState | python:1000">
+		    curstate here/stopProductionState | python:-99">
+        <option value="-99">Original</option>
 		<option tal:repeat="pstate pstates" 
 		    tal:attributes="value python:pstate[1]; 
 			selected python:curstate == pstate[1]"

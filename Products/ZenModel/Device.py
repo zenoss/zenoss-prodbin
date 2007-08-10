@@ -206,6 +206,7 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable, Admini
 
     manageIp = ""
     productionState = 1000
+    previousProductionState = 1000
     snmpAgent = ""
     snmpDescr = ""
     snmpOid = ""
@@ -899,6 +900,9 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable, Admini
     def setProdState(self, state, REQUEST=None):
         """Set a device's production state as an integer.
         """
+        if state == -99: state = self.previousProductionState
+        self.previousProductionState = self.productionState
+
         self.productionState = int(state)
         self.index_object()
         try:

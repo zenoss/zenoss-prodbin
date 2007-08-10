@@ -69,7 +69,7 @@ class MaintenanceWindow(ZenModelRM):
     duration = 60
     repeat = 'Never'
     startProductionState = 300
-    stopProductionState = 1000
+    stopProductionState = -99
     enabled = True
     skip = 1
  
@@ -155,6 +155,8 @@ class MaintenanceWindow(ZenModelRM):
 
     def niceStopProductionState(self):
         "Return a string version of the stopProductionState"
+        if self.stopProductionState == -99:
+            return 'Original'
         return self.convertProdState(self.stopProductionState)
 
     def niceStartHour(self):
@@ -173,8 +175,8 @@ class MaintenanceWindow(ZenModelRM):
                                      durationHours='00',
                                      durationMinutes='00',
                                      repeat='Never',
-                                     startProductionState=1000,
-                                     stopProductionState=300,
+                                     startProductionState=300,
+                                     stopProductionState=-99,
                                      enabled=True,
                                      skip=1,
                                      REQUEST=None,
@@ -440,8 +442,8 @@ if __name__=='__main__':
                                      durationHours='1',
                                      durationMinutes='1',
                                      repeat='Weekly',
-                                     startProductionState=1000,
-                                     stopProductionState=300,
+                                     startProductionState=300,
+                                     stopProductionState=-99,
                                      enabled=True,
                                      REQUEST=r)
 
@@ -451,8 +453,8 @@ if __name__=='__main__':
     assert m.start == t - 12
     assert m.duration == 24*60+61
     assert m.repeat == 'Weekly'
-    assert m.startProductionState == 1000
-    assert m.stopProductionState == 300
+    assert m.startProductionState == 300
+    assert m.stopProductionState == -99
 
 DeviceMaintenanceWindow = MaintenanceWindow
 OrganizerMaintenanceWindow = MaintenanceWindow
