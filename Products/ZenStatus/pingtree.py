@@ -241,7 +241,11 @@ def buildTree(root, rootnode=None, devs=None, memo=None):
                 ndev = route.getNextHopDevice()
                 if ndev: 
                     if rootnode.hasDev(ndev.id): continue
-                    nrnode = rnode.addRouter(route.getNextHopIp(),ndev.id,
+                    if route.getNextHopDevice():
+                        nextHopIp = route.getNextHopDevice().manageIp
+                    else:
+                        nextHopIp = route.getNextHopIp()
+                    nrnode = rnode.addRouter(nextHopIp,ndev.id,
                                                 getStatus(ndev))
                     log.debug("create rnode: %s", nrnode)
                     nextdevs.append((ndev, nrnode))
