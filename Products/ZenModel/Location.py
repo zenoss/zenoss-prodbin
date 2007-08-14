@@ -60,5 +60,8 @@ class Location(DeviceOrganizer, ZenPackable):
         )
 
     security = ClassSecurityInfo()
+
+    def getChildLinks(self):
+        return self.dmd.ZenLinkManager.getChildLinks(self)
     
 InitializeClass(Location)

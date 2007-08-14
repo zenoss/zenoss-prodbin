@@ -20,10 +20,10 @@ __version__ = "$Revision: 1.3 $"[11:-2]
 
 from Products.ManagableIndex import FieldIndex, KeywordIndex, PathIndex
 
-def makeCaseInsensitiveFieldIndex(indexName):
+def makeCaseInsensitiveFieldIndex(indexName, termType='ustring'):
     index = FieldIndex(indexName)
     index.PrenormalizeTerm = 'value/lower'
-    index.TermType = 'ustring'
+    index.TermType = termType
     return index
 
 def makeCaseInsensitiveKeywordIndex(indexName):

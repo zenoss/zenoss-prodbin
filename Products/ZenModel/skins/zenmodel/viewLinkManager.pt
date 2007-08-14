@@ -1,0 +1,62 @@
+<tal:block metal:use-macro="here/templates/macros/page2">
+<tal:block metal:fill-slot="breadcrumbs">Device List</tal:block>
+<tal:block metal:fill-slot="contentPane">
+
+<form method="POST" tal:attributes="action request/URL; name string:viewLinkManager"
+    tal:define="
+        tableName string:linkManager;
+        tblcolspan string:6;
+">
+<input type="hidden" name="zenScreenName" tal:attributes="value template/id"/>
+<input type='hidden' name='notabs' 
+        tal:condition="python:getattr(request, 'notabs', False)"
+        tal:attributes="value string:1" />
+<input type="hidden" name="tableName" tal:attributes="value tableName"/>
+<tal:block tal:define="tabletitle string:Link Manager;
+                        menu_id string:LinkManager_list">
+<tal:block metal:use-macro="here/zenuimacros/macros/zentable">
+
+<tal:block metal:fill-slot="filterslot">
+<div class="filterbox"
+     tal:define=" tableName tableName | nothing;
+                 ts python:test(
+                  tableName, here.ZenTableManager.getTableState(tableName), 
+                  request);
+                 message request/SESSION/message | nothing;">
+<input type="text" name="filter" id="filter"
+    onfocus="select(this)"
+    tal:attributes="value ts/filter | string:;"/>
+</div>
+</tal:block>
+
+<tal:block metal:fill-slot="zentablecontents">
+
+<!-- BEGIN TABLE CONTENTS -->
+
+    <tr><td>
+    <link type="text/css" rel="stylesheet" href="css/zengrid.css"/>
+    <script type="text/javascript"
+    src="/zport/javascript/linkzengrid.js"></script>
+
+    <div id="gridcontainer" style="width:100%;"> </div>
+    <script tal:content="string:
+    var LinkZenGridBuffer, LinkZenGrid;
+    addLoadEvent( function() {
+        LinkZenGridBuffer = new LinkZenGridBuffer();
+        LinkZenGrid = new LinkZenGrid('gridcontainer',
+            'getJSONLinkInfo', 'mygrid', LinkZenGridBuffer,
+            '${here/absolute_url_path}');
+        connect('filter', 'onkeydown', LinkZenGrid.doEventLivesearch);
+    });"></script>
+    </td></tr>
+
+<!-- END TABLE CONTENTS -->
+
+</tal:block>
+</tal:block>
+</tal:block>
+
+</form>
+
+</tal:block>
+</tal:block>

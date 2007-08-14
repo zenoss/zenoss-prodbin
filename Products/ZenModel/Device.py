@@ -1432,5 +1432,13 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable, Admini
             return cmp(a.id.lower(), b.id.lower())
         templates.sort(cmpTemplates)
         return templates
+
+    def getLinks(self):
+        """ Returns all Links on this Device's interfaces """
+        ifaces = self.os.interfaces()
+        links = []
+        for iface in ifaces: 
+            links.extend(iface.links())
+        return links
          
 InitializeClass(Device)

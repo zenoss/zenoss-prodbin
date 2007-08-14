@@ -396,6 +396,7 @@ class IpInterface(OSComponent):
         if (item == self or item == self.device()
             or getattr(item, "_operation", -1) < 1):
             OSComponent.manage_beforeDelete(self, item, container)
+    
 
 
 InitializeClass(IpInterface)
