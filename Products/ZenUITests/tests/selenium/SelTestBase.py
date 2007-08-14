@@ -19,13 +19,18 @@
 
 import sys, time, re
 import unittest
-from selTestUtils import *
+from util.selTestUtils import *
 
-from selenium import selenium
+from util.selenium import selenium
 
-USER        =   "admin"
-PASS        =   "zenoss"
-HOST        =   "seltest1"
+### BEGIN GLOBAL DEFS ###
+HOST        =   "zenosst"               # Zenoss instance to test
+USER        =   "admin"                 # Username for HOST
+PASS        =   "zenoss"                # Password for HOST
+SERVER      =   "selserver"             # Hosts the selenium jar file
+TARGET      =   "testtarget.zenoss.loc" # Added/deleted in HOST
+BROWSER     =   "*firefox"              # Can also be "*iexplore"
+### END GLOBAL DEFS ###
 
 class SelTestBase(unittest.TestCase):
     """
@@ -38,7 +43,7 @@ class SelTestBase(unittest.TestCase):
         Run at the start of each test.
         """
         self.verificationErrors = []
-        self.selenium = selenium("selserver", 4444, "*firefox", "http://seltest1:8080")
+        self.selenium = selenium(SERVER, 4444, BROWSER, "http://%s:8080" %HOST)
         self.selenium.start()
         self.login()
     
@@ -59,6 +64,7 @@ class SelTestBase(unittest.TestCase):
 #                                                               #
 #################################################################
 
+    # Function borrowed from example code. CITATION NEEDED.
     def login (self):
         """
         Logs selenium into the Zenoss Instance.
@@ -79,7 +85,9 @@ class SelTestBase(unittest.TestCase):
         self.waitForElement("link=Logout")
         self.selenium.click("link=Logout")
         
-    def addDevice(self, deviceIp="build.zenoss.loc", classPath="/Server/Linux"):
+    # FAILS if device at deviceIp is already present in Zenoss test target.
+    def addDevice(self, deviceIp=TARGET, classPath="/Server/Linux"):
+        """Adds a test target device to Zenoss."""
         # Device is added and you are on device page
         self.waitForElement("link=Add Device")
         self.selenium.click("link=Add Device")
@@ -94,7 +102,7 @@ class SelTestBase(unittest.TestCase):
         self.selenium.wait_for_page_to_load("30000")
         
     def deleteDevice(self):
-        # Delete the Device
+        """Delete the test target device from Zenoss test instance."""
         self.waitForElement("link=Delete Device...")
         self.selenium.click("link=Delete Device...")
         self.waitForElement("dialog_cancel")
@@ -121,6 +129,8 @@ class SelTestBase(unittest.TestCase):
         self.type_keys("sndpassword")
         self.selenium.click("manage_editUserSettings:method")
 
+# Included for historical reasons. The following method addDialog replaces
+# this functionality.
     def _addDialog(self, addType="OrganizerlistaddOrganizer", addMethod="dialog_submit", fieldId="new_id",
                     fieldId2=None, testData="testingString"):
         """
@@ -135,30 +145,44 @@ class SelTestBase(unittest.TestCase):
         self.selenium.click(addMethod)
         self.selenium.wait_for_page_to_load("30000")
     
+
+    # The textFields dictionary is organized as follows:
+    # Keys are the name of the input field.
+    # Values are a tuple:
+    #   First element is the type of input field (either "text" or "select")
+    #   Second element is the value that should be entered in the input field.
     def addDialog(self, addType="OrganizerlistaddOrganizer", addMethod="dialog_submit", **textFields):
+        """Fills in an AJAX dialog."""
         
-        self.waitForElement(addType)
+        self.waitForElement(addType) # Bring up the dialog.
         self.selenium.click(addType)
-        self.waitForElement(addMethod)
-        for key in textFields.keys():
+        self.waitForElement(addMethod) # Wait till dialog is finished loading.
+        for key in textFields.keys(): # Enter all the values.
             value = textFields[key]
             if value[0] == "text":
                self.selenium.type(key, value[1])
             elif value[0] == "select":
                 self.selenium.select(key, value[1])
-        self.selenium.click(addMethod)
-        self.selenium.wait_for_page_to_load("30000")
+        self.selenium.click(addMethod) # Submit form.
+        self.selenium.wait_for_page_to_load("30000") # Wait for page refresh.
         
     def deleteDialog(self, deleteType="OrganizerlistremoveOrganizers", deleteMethod="manage_deleteOrganizers:method", 
                         pathsList="organizerPaths:list", form_name="subdeviceForm", testData="testingString"):
         """
         Test the deleteOrganizer functionality.
         """
-        testData = slashToUnder(testData)
+        # Since Zenoss converts slashes to underscores, do the same.
+        testData = testData.replace('/', '_')
+
+        # Find the desired element in a checkbox selection.
         self.waitForElement(getByValue(pathsList, testData, form_name))
         self.selenium.click(getByValue(pathsList, testData, form_name))
+
+        # Bring up the delete dialog.
         self.waitForElement(deleteType)
         self.selenium.click(deleteType)
+
+        # Wait for and click the delete button. Wait for page refresh.
         self.waitForElement(deleteMethod)
         self.selenium.click(deleteMethod)
         self.selenium.wait_for_page_to_load("30000")
@@ -184,10 +208,11 @@ class SelTestBase(unittest.TestCase):
             raise e
 
         
+    # Included for historical reasons.
+    # This functionality no longer seems to be necessary.
     def type_keys(self, locator, keyseq="testingString"):
         """
         Because Selenium lies about what functions it actually has.
         """
         for x in keyseq:
             self.selenium.key_press(locator, x)
-        

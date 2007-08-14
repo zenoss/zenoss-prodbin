@@ -21,7 +21,7 @@
 
 import unittest
 
-from SelTestBase import SelTestBase
+from SelTestBase import SelTestBase,TARGET
 
 class TestDeviceInstanceBase(SelTestBase):
     """Base class for performing tests on specific device instances."""
@@ -137,21 +137,21 @@ class TestDeviceInstanceOsTab(TestDeviceInstanceBase):
         
         self.assert_(not self.selenium.is_element_present("link=testingString2"))
         
-    def testIpRoute(self):
-        """Add and delete an IP Route under a sepcific device (no editing available)."""
-        
-        self.addDialog(addType="link=Add Route...", new_id=("text", "127.0.0.1/8"),
-                       nexthopid=("text", "127.0.0.1"), routeproto=("select", "label=local"),
-                       routetype=("select", "label=direct")
-                      )
-        self.assert_(self.selenium.is_text_present("127.0.0.1 (None)"))
-        
-        self.deleteDialog(deleteType="IpRouteEntrydeleteIpRouteEntries",
-                          deleteMethod="deleteIpRouteEntries:method",
-                          pathsList="componentNames:list",
-                          form_name="ipRouteEntryListForm",
-                          testData="127.0.0.1/8")
-        self.assert_(not self.selenium.is_text_present("127.0.0.1 (None)"))
+#    def testIpRoute(self):
+#        """Add and delete an IP Route under a sepcific device (no editing available)."""
+#        
+#        self.addDialog(addType="link=Add Route...", new_id=("text", "127.0.0.1"),
+#                       nexthopid=("text", "127.0.0.1"), routeproto=("select", "label=local"),
+#                       routetype=("select", "label=direct")
+#                      )
+#        self.assert_(self.selenium.is_text_present("127.0.0.1 (None)"))
+#        
+#        self.deleteDialog(deleteType="IpRouteEntrydeleteIpRouteEntries",
+#                          deleteMethod="deleteIpRouteEntries:method",
+#                          pathsList="componentNames:list",
+#                          form_name="ipRouteEntryListForm",
+#                          testData="127.0.0.1/8")
+#        self.assert_(not self.selenium.is_text_present("127.0.0.1 (None)"))
     
     def testIpService(self):
         """Add, edit, and delete an Ip Service under a sepcific device."""
@@ -234,7 +234,7 @@ class TestDeviceInstanceManageDevice(TestDeviceInstanceBase):
         self.selenium.wait_for_page_to_load("30000")
         
         self.assert_(self.selenium.is_element_present("link=Discovered"))
-        self.selenium.click("link=build.zenoss.loc")
+        self.selenium.click("link=%s" %TARGET)
         
         
     def testRenameDevice(self):
@@ -297,7 +297,7 @@ class TestDeviceInstanceManageDevice(TestDeviceInstanceBase):
         self.waitForElement("dialog_cancel")
         self.selenium.click("manage_deleteHeartbeat:method")
         self.selenium.wait_for_page_to_load("30000")
-        self.assert_(self.selenium.is_text_present("Cleared heartbeat events for build.zenoss.loc"))
+        self.assert_(self.selenium.is_text_present("Cleared heartbeat events for %s" %TARGET))
 
 if __name__ == "__main__":
     unittest.main()

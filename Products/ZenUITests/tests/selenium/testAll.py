@@ -21,7 +21,9 @@
 import unittest
 import re
 import os
+import smtplib
 
+from util.selTestUtils import replaceChar
 
 def findTest(str):
     """Returns module names from filenames of the form "TestSomething.py" """
@@ -33,12 +35,26 @@ def findTest(str):
         return None
 
 loader = unittest.TestLoader()
-runner = unittest.TextTestRunner(verbosity = 2) # Enables detailed output.
+runner = unittest.TextTestRunner(verbosity = 0) # Enables detailed output.
 
-directoryContents = os.listdir(".") # must be run within the test directory
+subDirs = os.walk('.') # Recursively get subdirectories and their contents.
+testTargets = []
+
+for dir in subDirs:
+    rootDir = dir[0]
+    fileList = dir[2]
+    
+    for file in fileList:
+        modName = findTest(file)
+        if modName is not None:
+            modName = ((rootDir + '/')[2:] + modName).replace('/', '.')
+            testTargets.append(modName)
+
+# The following lines will run all tests in the current directory only.
+# directoryContents = os.listdir(".") # must be run within the test directory
 # List comprehension of all test module names, according to findTest
-testTargets = [findTest(x) for x in directoryContents if findTest(x) is not None]
+# testTargets = [findTest(x) for x in directoryContents if findTest(x) is not None]
 
-testAll = loader.loadTestsFromNames(testTargets)
+testAll = loader.loadTestsFromNames(testTargets) # Load test modules
                                      
 result = runner.run(testAll)
