@@ -64,7 +64,10 @@ class SelTestBase(unittest.TestCase):
 #                                                               #
 #################################################################
 
-    # Function borrowed from example code. CITATION NEEDED.
+    # Function borrowed from example code on openqa.org.
+    # Reference:
+    #   http://svn.openqa.org/fisheye/viewrep/~raw,r=HEAD/selenium-rc/
+    #   trunk/clients/python/test_default_server.py
     def login (self):
         """
         Logs selenium into the Zenoss Instance.
