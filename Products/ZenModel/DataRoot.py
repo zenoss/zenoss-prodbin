@@ -78,6 +78,7 @@ class DataRoot(ZenModelRM, OrderedFolder, Commandable, ZenMenuable):
     smtpPass = ''
     smtpUseTLS = 0
     emailFrom = ''
+    iconMap = {}
 
     _properties=(
         {'id':'title', 'type': 'string', 'mode':'w'},
@@ -491,6 +492,21 @@ class DataRoot(ZenModelRM, OrderedFolder, Commandable, ZenMenuable):
         ''' Extract the zenpack name from the broken module
         '''
         return pack.__class__.__module__.split('.')[1]
+
+    def getIconPath(self, meta_type):
+        """ Retrieve the appropriate image path associated
+            with a given object type.
+        """
+        default = '/zport/dmd/img/icons/noicon.png'
+        icon = self.iconMap.get(meta_type, default)
+        return icon
+
+    def setIconPath(self, meta_type, iconPath, REQUEST=None):
+        """ Set the icon path for an object type.
+        """
+        self.iconMap[meta_type] = iconPath
+        if REQUEST is not None:
+            return self.callZenScreen(REQUEST, redirect=True)
 
 
 InitializeClass(DataRoot)

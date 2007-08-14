@@ -295,7 +295,6 @@ class ZenModelBase(object):
         v = getattr(aq_base(self), name, '__ZENMARKER__')
         return v != '__ZENMARKER__'
 
-
     security.declareProtected('View', 'helpLink')
     def helpLink(self):
         '''return a link to the objects help file'''
@@ -322,6 +321,10 @@ class ZenModelBase(object):
             return true;" onMouseOut="window.status=''; return true;">Help!</a>
             """ % (url, url)
 
+    security.declareProtected('View', 'getIconPath')
+    def getIconPath(self):
+        """ Return the icon associated with this object """
+        return self.dmd.getIconPath(self.meta_type)
 
 
 InitializeClass(ZenModelBase)
