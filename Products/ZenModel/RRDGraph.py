@@ -197,6 +197,7 @@ class RRDGraph(ZenModelRM):
         self._v_threshidx = len(self.colors)
         threshs = []
         for thresh in template.thresholds():
+            if not thresh.canGraph(self): continue
             for dsname in thresh.dsnames:
                 if dsname in self.dsnames:
                     threshs.append(thresh)

@@ -14,6 +14,23 @@ log = logging.getLogger('zen.MinMaxCheck')
 
 from sets import Set
 
+def rpneval(value, rpn):
+    """totally bogus rpn valuation only works with one level stack"""
+    if value is None: return value
+    operators = ('+','-','*','/')
+    rpn = rpn.split(',')
+    operator = ''
+    for i in range(len(rpn)):
+        symbol = rpn.pop()
+        symbol = symbol.strip()
+        if symbol in operators:
+            operator = symbol
+        else:
+            expr = str(value) + operator + symbol
+            value = eval(expr)
+    return value
+
+
 class MinMaxThreshold(ThresholdClass):
     
     minval = ""
@@ -178,30 +195,25 @@ class MinMaxThresholdInstance(ThresholdInstance):
                              severity=Event.Clear)]
         return []
 
+
     def getGraphElements(self, template, gopts, namespace, color):
         """Produce a visual indication on the graph of where the
         threshold applies."""
         ns = namespace
         n = self.minimum
         x = self.maximum
-        path = self.context().path(self.dataPointNames[0])
         apoint = template.getRRDDataPoint(self.dataPointNames[0])
-        rpn = ''
         if apoint.rpn:
-            rpn = "," + apoint.rpn
+            n = rpneval(n, apoint.rpn)
+            x = rpneval(x, apoint.rpn)
         result = []
-        adef = ns + 'ds0'
         if n:
             result += [
-                "DEF:n%s=%s:ds0:AVERAGE" % (adef, path),
-                "CDEF:cn%s=n%s,UN,%s,%s,IF%s" % (adef, adef, n, n, rpn),
-                "LINE1:cn%s%s:%s\\j" % (adef, color, self.getMinLabel()),
+                "HRULE:%s%s:%s\\j" % (n, color, self.getMinLabel()),
                 ]
         if x:
             result += [
-                "DEF:x%s=%s:ds0:AVERAGE" % (adef, path),
-                "CDEF:cx%s=x%s,UN,%s,%s,IF%s" % (adef, adef, x, x, rpn),
-                "LINE1:cx%s%s:%s\\j" % (adef, color, self.getMaxLabel())
+                "HRULE:%s%s:%s\\j" % (x, color, self.getMaxLabel())
             ]
         return gopts + result
 

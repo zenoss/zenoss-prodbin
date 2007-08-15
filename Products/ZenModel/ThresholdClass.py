@@ -65,11 +65,11 @@ class ThresholdClass(ZenModelRM, ZenPackable):
         """
 
         
-    def canGraph(self):
+    def canGraph(self, graph):
         """Returns true if instances of this ThresholdClass can be
         placed on a users' graph"""
-        return True
-    
+        return len(graph.custom) == 0
+
 
     def sync(self, eventManager, instances):
         "update instances with state from the event manager"
