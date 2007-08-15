@@ -20,14 +20,10 @@ import time
 
 
 def getByValue (listName, value, formName="subdeviceForm"):
-    """
-    Handles checkbox selections.
-    """
+    """Handles checkbox selections"""
     return "dom=function fun (){var ha = document.forms.%s.elements['%s']; if (!ha.length)  ha=Array(ha); for (i = 0; i < ha.length; i++) {if (ha[i].value=='%s') return ha[i];}}; fun ()" %(formName, listName, value) 
 
 class TimeoutError(Exception):
-    """
-    This will be thrown when an element is not found
-    on a page and times out.
-    """
+    """This will be thrown when an element is not found
+        on a page and times out."""
     pass

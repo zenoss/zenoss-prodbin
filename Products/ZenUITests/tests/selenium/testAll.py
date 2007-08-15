@@ -23,7 +23,12 @@ import re
 import os
 import smtplib
 
-from util.selTestUtils import replaceChar
+######## BEGIN GLOBAL DEFS ########
+SERVER   = "localhost"
+FROMADDR = "testsuite@localhost"
+TOADDR   = "root@localhost"
+SUBJECT  = "Selenium Test Suite Results - "
+######### END GLOBAL DEFS #########
 
 def findTest(str):
     """Returns module names from filenames of the form "TestSomething.py" """
@@ -35,7 +40,7 @@ def findTest(str):
         return None
 
 loader = unittest.TestLoader()
-runner = unittest.TextTestRunner(verbosity = 0) # Enables detailed output.
+runner = unittest.TextTestRunner(verbosity = 2) # Enables detailed output.
 
 subDirs = os.walk('.') # Recursively get subdirectories and their contents.
 testTargets = []
@@ -56,5 +61,30 @@ for dir in subDirs:
 # testTargets = [findTest(x) for x in directoryContents if findTest(x) is not None]
 
 testAll = loader.loadTestsFromNames(testTargets) # Load test modules
-                                     
 result = runner.run(testAll)
+
+if len(result.errors) > 0 or len(result.failures) > 0:
+    messageHeader = "From: %s\nTo: %s\nSubject: %s\n\n"\
+                    %(FROMADDR, TOADDR, SUBJECT + "Problems Encountered")
+else:
+    messageHeader = "From: %s\nTo: %s\nSubject: %s\n\n"\
+                    %(FROMADDR, TOADDR, SUBJECT + "All ok!")
+messageBody = ""
+
+for error in result.errors:
+    messageBody += "%s: ERROR\n" %error[0].shortDescription()
+    messageBody += '-'*75 + '\n'
+    messageBody += error[1]
+    messageBody += '-'*75 + '\n\n'
+
+messageBody += "\n\n"
+
+for failure in result.failures:
+    messageBody += "%s: FAILURE" %failure[0].shortDescription()
+    messageBody += '-'*75 + '\n'
+    messageBody += failure[1] + '\n\n'
+    messageBody += '-'*75 + '\n'
+
+mailServer = smtplib.SMTP(SERVER)
+mailServer.sendmail(FROMADDR, TOADDR, messageHeader + messageBody)
+mailServer.quit()

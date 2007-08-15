@@ -33,24 +33,18 @@ BROWSER     =   "*firefox"              # Can also be "*iexplore"
 ### END GLOBAL DEFS ###
 
 class SelTestBase(unittest.TestCase):
-    """
-    Base class for Zenoss Selenium tests.
-    All test classes should inherit this.
-    """
+    """Base class for Zenoss Selenium tests.
+        All test classes should inherit this."""
 	
     def setUp(self):
-        """
-        Run at the start of each test.
-        """
+        """Run at the start of each test"""
         self.verificationErrors = []
         self.selenium = selenium(SERVER, 4444, BROWSER, "http://%s:8080" %HOST)
         self.selenium.start()
         self.login()
     
     def tearDown(self):
-        """
-        Run at the end of each test.
-        """
+        """Run at the end of each test"""
         self.logout()
         self.selenium.stop()
         self.assertEqual([], self.verificationErrors)
@@ -69,9 +63,7 @@ class SelTestBase(unittest.TestCase):
     #   http://svn.openqa.org/fisheye/viewrep/~raw,r=HEAD/selenium-rc/
     #   trunk/clients/python/test_default_server.py
     def login (self):
-        """
-        Logs selenium into the Zenoss Instance.
-        """
+        """Logs selenium into the Zenoss Instance"""
         self.selenium.open("/zport/acl_users/cookieAuthHelper/login_form?came_from=http%%3A//%s%%3A8080/zport/dmd" %HOST)
         self.selenium.wait_for_page_to_load("30000")
         self.waitForElement("__ac_password")
@@ -81,16 +73,14 @@ class SelTestBase(unittest.TestCase):
         self.selenium.wait_for_page_to_load("30000")
         
     def logout(self):
-        """
-        Logs out of the Zenoss instance
-        """
+        """Logs out of the Zenoss instance"""
         self.selenium.wait_for_page_to_load("30000")
         self.waitForElement("link=Logout")
         self.selenium.click("link=Logout")
         
     # FAILS if device at deviceIp is already present in Zenoss test target.
     def addDevice(self, deviceIp=TARGET, classPath="/Server/Linux"):
-        """Adds a test target device to Zenoss."""
+        """Adds a test target device to Zenoss"""
         # Device is added and you are on device page
         self.waitForElement("link=Add Device")
         self.selenium.click("link=Add Device")
@@ -105,7 +95,7 @@ class SelTestBase(unittest.TestCase):
         self.selenium.wait_for_page_to_load("30000")
         
     def deleteDevice(self):
-        """Delete the test target device from Zenoss test instance."""
+        """Delete the test target device from Zenoss test instance"""
         self.waitForElement("link=Delete Device...")
         self.selenium.click("link=Delete Device...")
         self.waitForElement("dialog_cancel")
@@ -113,9 +103,7 @@ class SelTestBase(unittest.TestCase):
         self.selenium.wait_for_page_to_load("30000")
 
     def addUser(self, username="testingString", email="nosuchemail@zenoss.com", defaultAdminRole="Administrator", ):
-        """
-        Test the addUser functionality
-        """
+        """Test the addUser functionality"""
         self.waitForElement("link=Settings")
         self.selenium.click("link=Settings")
         self.selenium.wait_for_page_to_load("30000")
@@ -136,9 +124,7 @@ class SelTestBase(unittest.TestCase):
 # this functionality.
     def _addDialog(self, addType="OrganizerlistaddOrganizer", addMethod="dialog_submit", fieldId="new_id",
                     fieldId2=None, testData="testingString"):
-        """
-        Test the addDialog functionality.
-        """
+        """Test the addDialog functionality"""
         self.waitForElement(addType)
         self.selenium.click(addType)
         self.waitForElement("dialog_cancel")
@@ -171,9 +157,7 @@ class SelTestBase(unittest.TestCase):
         
     def deleteDialog(self, deleteType="OrganizerlistremoveOrganizers", deleteMethod="manage_deleteOrganizers:method", 
                         pathsList="organizerPaths:list", form_name="subdeviceForm", testData="testingString"):
-        """
-        Test the deleteOrganizer functionality.
-        """
+        """Test the deleteOrganizer functionality"""
         # Since Zenoss converts slashes to underscores, do the same.
         testData = testData.replace('/', '_')
 
@@ -192,11 +176,9 @@ class SelTestBase(unittest.TestCase):
 
     
     def waitForElement(self, locator, timeout=15):
-        """
-        Waits until a given element on a page is present.
-        Throws a TimeoutException if too much time has
-        passed.
-        """
+        """Waits until a given element on a page is present.
+           Throws a TimeoutException if too much time has
+           passed."""
         i = 0
         try:
             while not self.selenium.is_element_present(locator):
@@ -214,8 +196,6 @@ class SelTestBase(unittest.TestCase):
     # Included for historical reasons.
     # This functionality no longer seems to be necessary.
     def type_keys(self, locator, keyseq="testingString"):
-        """
-        Because Selenium lies about what functions it actually has.
-        """
+        """Because Selenium lies about what functions it actually has"""
         for x in keyseq:
             self.selenium.key_press(locator, x)

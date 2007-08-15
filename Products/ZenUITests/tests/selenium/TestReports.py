@@ -24,10 +24,10 @@ import unittest
 from SelTestBase import SelTestBase
 
 class TestReports(SelTestBase):
-    """Defines an object that runs tests under the Reports heading."""
+    """Defines an object that runs tests under the Reports heading"""
     
     def testReportOrganizer(self):
-        """Run tests on the Reports page."""
+        """Run tests on the Reports page"""
         
         self.waitForElement("link=Reports")
         self.selenium.click("link=Reports")

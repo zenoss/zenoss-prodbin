@@ -24,27 +24,27 @@ import unittest
 from SelTestBase import SelTestBase,TARGET
 
 class TestDeviceInstanceBase(SelTestBase):
-    """Base class for performing tests on specific device instances."""
+    """Base class for performing tests on specific device instances"""
     
     def setUp(self):
-        """Customized setUp for device instance tests."""
+        """Customized setUp for device instance tests"""
         
         SelTestBase.setUp(self)
         
         self.addDevice()
         
     def tearDown(self):
-        """Customized tearDown for device instance tests."""
+        """Customized tearDown for device instance tests"""
         
         self.deleteDevice()
         SelTestBase.tearDown(self)
     
         
 class TestDeviceInstanceOsTab(TestDeviceInstanceBase):
-    """Test additon, editing, and deletion of IpInterface, IpRouteEntry, etc."""
+    """Test additon, editing, and deletion of IpInterface, IpRouteEntry, etc"""
     
     def setUp(self):
-        """Customized setUp for testing under the OS tab."""
+        """Customized setUp for testing under the OS tab"""
         
         TestDeviceInstanceBase.setUp(self)
 
@@ -53,7 +53,7 @@ class TestDeviceInstanceOsTab(TestDeviceInstanceBase):
         self.selenium.wait_for_page_to_load("30000")
         
     def testIpInterface(self):
-        """Add, edit, and delete an Ip Interface under a specific device."""
+        """Add, edit, and delete an Ip Interface under a specific device"""
         
         self.addDialog(addType="IpInterfaceaddIpInterface", addMethod="addIpInterface:method",
                        new_id=("text", "testingString")
@@ -86,7 +86,7 @@ class TestDeviceInstanceOsTab(TestDeviceInstanceBase):
         self.assert_(not self.selenium.is_element_present("link=testingString2"))
         
     def testOSProcess(self):
-        """Add, edit, and delete an OS Process under a specific device."""
+        """Add, edit, and delete an OS Process under a specific device"""
         
         self.addDialog(addType="link=Add OSProcess...", new_id=("text", "testingString"))
         self.assert_(self.selenium.is_element_present("link=testingString"))
@@ -110,7 +110,7 @@ class TestDeviceInstanceOsTab(TestDeviceInstanceBase):
         self.assert_(not self.selenium.is_element_present("link=testingString2"))
         
     def testFileSystem(self):
-        """Add, edit, and delete a File System under a sepcific device."""
+        """Add, edit, and delete a File System under a sepcific device"""
         
         self.addDialog(addType="link=Add File System...", new_id=("text", "testingString"))
         self.assert_(self.selenium.is_element_present("link=testingString"))
@@ -138,7 +138,7 @@ class TestDeviceInstanceOsTab(TestDeviceInstanceBase):
         self.assert_(not self.selenium.is_element_present("link=testingString2"))
         
 #    def testIpRoute(self):
-#        """Add and delete an IP Route under a sepcific device (no editing available)."""
+#        """Add and delete an IP Route under a sepcific device (no editing available)"""
 #        
 #        self.addDialog(addType="link=Add Route...", new_id=("text", "127.0.0.1"),
 #                       nexthopid=("text", "127.0.0.1"), routeproto=("select", "label=local"),
@@ -154,7 +154,7 @@ class TestDeviceInstanceOsTab(TestDeviceInstanceBase):
 #        self.assert_(not self.selenium.is_text_present("127.0.0.1 (None)"))
     
     def testIpService(self):
-        """Add, edit, and delete an Ip Service under a sepcific device."""
+        """Add, edit, and delete an Ip Service under a sepcific device"""
         
         self.addDialog(addType="link=Add IpService...", new_id=("text", "1234"),
                        port=("text", "1234"), protocol=("select", "label=tcp")
@@ -187,7 +187,7 @@ class TestDeviceInstanceOsTab(TestDeviceInstanceBase):
         # TODO: add an assert statement concerning the ip service's deletion.
             
     def testWinService(self):
-        """Add, edit, and delete a Win Service under a sepcific device."""
+        """Add, edit, and delete a Win Service under a sepcific device"""
         
         self.addDialog(addType="link=Add WinService...", new_id=("text", "testingString"),
                        description=("text", "testingString")
@@ -221,10 +221,10 @@ class TestDeviceInstanceOsTab(TestDeviceInstanceBase):
         self.assert_(not self.selenium.is_text_present("Win Services"))
         
 class TestDeviceInstanceManageDevice(TestDeviceInstanceBase):
-    """Test functionality related to managing the device itself."""
+    """Test functionality related to managing the device itself"""
         
     def testChangeDeviceClass(self):
-        """Test changing the device class of a device."""
+        """Test changing the device class of a device"""
         
         self.selenium.click("link=Change Class...")
         
@@ -238,7 +238,7 @@ class TestDeviceInstanceManageDevice(TestDeviceInstanceBase):
         
         
     def testRenameDevice(self):
-        """Test renaming a device."""
+        """Test renaming a device"""
         
         self.selenium.click("link=Rename Device...")
         
@@ -249,7 +249,7 @@ class TestDeviceInstanceManageDevice(TestDeviceInstanceBase):
         self.assert_(self.selenium.is_element_present("link=testDevice"))
         
     def testResetIP(self):
-        """Test setting a new IP address for a device."""
+        """Test setting a new IP address for a device"""
         
         self.selenium.click("link=Reset IP...")
         
@@ -260,7 +260,7 @@ class TestDeviceInstanceManageDevice(TestDeviceInstanceBase):
         self.assert_(self.selenium.is_text_present("1.2.3.4"))
         
     def testLockDevice(self):
-        """Test locking a device against deletes and updates."""
+        """Test locking a device against deletes and updates"""
         
         # First, test lock against updates (and deletes).
         self.selenium.click("link=Lock...")
@@ -291,7 +291,7 @@ class TestDeviceInstanceManageDevice(TestDeviceInstanceBase):
         self.assert_(not self.selenium.is_element_present("//img[@src='locked-delete-icon.png']"))	
 
     def testClearHeartbeats(self):
-        """Test clearing a device's heartbeats."""
+        """Test clearing a device's heartbeats"""
 
         self.selenium.click("link=Clear Heartbeats...")
         self.waitForElement("dialog_cancel")

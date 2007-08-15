@@ -24,12 +24,10 @@ import unittest
 from SelTestBase import SelTestBase
 
 class TestEvents(SelTestBase):
-    """
-    Defines an object that runs tests under the Events heading.
-    """
+    """Defines an object that runs tests under the Events heading"""
 
     def testEventClass(self):
-        """Run tests on the Events page."""
+        """Run tests on the Events page"""
 
         self.waitForElement("link=Events")
         self.selenium.click("link=Events")
@@ -38,7 +36,7 @@ class TestEvents(SelTestBase):
         self.deleteDialog(form_name="subclasses")
         
     def moveEventClassMappings(self, pathsList="ids:list", form_name="mappings", moveTo="/Unknown", stringval="testingString"):
-        """Test moving an EventClassMapping to /Unknown."""
+        """Test moving an EventClassMapping to /Unknown"""
         
         self.waitForElement(getByValue(pathsList, stringVal, form_name))
         self.selenium.click(getByValue(pathsList, stringVal, form_name))

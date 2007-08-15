@@ -24,12 +24,10 @@ import unittest
 from SelTestBase import SelTestBase
 
 class TestDevices(SelTestBase):
-    """
-    Defines an object that runs tests against a Device Class.
-    """
+    """Defines an object that runs tests against a Device Class"""
     
     def testDeviceClass(self):
-        """Run tests on the Devices page."""
+        """Run tests on the Devices page"""
         self.waitForElement("link=Devices")
         self.selenium.click("link=Devices")
         self.waitForElement("link=Templates")

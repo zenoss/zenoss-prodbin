@@ -23,12 +23,10 @@ import unittest
 from SelTestBase import SelTestBase
 
 class TestSystems(SelTestBase):
-    """
-    Defines a class that runs tests under the Systems heading.
-    """
+    """Defines a class that runs tests under the Systems heading"""
 
     def testSystemOrganizer(self):
-        """Run tests on the Systems page."""
+        """Run tests on the Systems page"""
         
         self.waitForElement("link=Systems")
         self.selenium.click("link=Systems")

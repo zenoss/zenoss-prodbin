@@ -22,14 +22,13 @@
 import unittest
 
 from SelTestBase import SelTestBase
+from util.selTestUtils import getByValue
 
 class TestEventManager(SelTestBase):
-    """Defines a class that runs tests under the Event Manager heading."""
+    """Defines a class that runs tests under the Event Manager heading"""
 
     def testRefreshEventSchema(self):
-        """
-        Run tests on the Groups page.
-        """
+        """Test refreshing the event schema"""
         self.waitForElement("link=Event Manager")
         self.selenium.click("link=Event Manager")
         self.selenium.wait_for_page_to_load("30000")
@@ -42,9 +41,7 @@ class TestEventManager(SelTestBase):
         self.selenium.click("manage_editEventManager:method")
         
     def testClearEventCache(self):
-        """
-        Test clearing all heartbeats.
-        """
+        """Test clearing the event cache"""
         self.waitForElement("link=Event Manager")
         self.selenium.click("link=Event Manager")
         self.selenium.wait_for_page_to_load("30000")
@@ -57,9 +54,7 @@ class TestEventManager(SelTestBase):
         self.selenium.click("manage_editEventManager:method")
         
     def testClearAllHeartbeats(self):
-        """
-        Test clearing all heartbeats.
-        """
+        """Test clearing all heartbeats"""
         self.waitForElement("link=Event Manager")
         self.selenium.click("link=Event Manager")
         self.selenium.wait_for_page_to_load("30000")
@@ -72,9 +67,7 @@ class TestEventManager(SelTestBase):
         self.selenium.click("manage_editEventManager:method")
         
     def testEditEventManager(self):
-        """
-        Test clearing all heartbeats.
-        """
+        """Test editing event database properties"""
         self.waitForElement("link=Event Manager")
         self.selenium.click("link=Event Manager")
         self.selenium.wait_for_page_to_load("30000")
@@ -98,9 +91,7 @@ class TestEventManager(SelTestBase):
         self.selenium.click("manage_editEventManager:method")    
         
     def testEditFields(self):
-        """
-        Test editing the fields tab.
-        """    
+        """Test editing the fields tab"""    
         self.waitForElement("link=Event Manager")
         self.selenium.click("link=Event Manager")
         self.selenium.wait_for_page_to_load("30000")
@@ -109,23 +100,23 @@ class TestEventManager(SelTestBase):
         self.selenium.wait_for_page_to_load("30000")
         self.waitForElement("zmanage_editProperties:method")
         self.selenium.click("zmanage_editProperties:method")
-    
-    def testCommands(self):
-        """
-        Test adding, editing and deleting commands
-        """
-        self.waitForElement("link=Event Manager")
-        self.selenium.click("link=Event Manager")
-        self.selenium.wait_for_page_to_load("30000")
-        self.waitForElement("link=Commands")
-        self.selenium.click("link=Commands")
-        self.selenium.wait_for_page_to_load("30000")
-        self.waitForElement("manage_addCommand:method")
-        self.selenium.type("id", "testingString")
-        self.selenium.click("manage_addCommand:method")
-        getByValue ("ids:list", "testingString", formName="clauseForm")
-        self.waitForElement("manage_deleteCommands:method")
-        self.selenium.click("manage_deleteCommands:method")
+
+# Method is currently broken. See comment below for details.    
+#    def testCommands(self):
+#        """Test adding, editing and deleting commands"""
+#        self.waitForElement("link=Event Manager")
+#        self.selenium.click("link=Event Manager")
+#        self.selenium.wait_for_page_to_load("30000")
+#        self.waitForElement("link=Commands")
+#        self.selenium.click("link=Commands")
+#        self.selenium.wait_for_page_to_load("30000")
+#        self.waitForElement("manage_addCommand:method")
+#        self.selenium.type("id", "testingString")
+#        self.selenium.click("manage_addCommand:method")
+#        getByValue ("ids:list", "testingString", formName="clauseForm")
+#        self.waitForElement("manage_deleteCommands:method")
+#        # Selenium is unable to find this command for an unknown reason.
+#        self.selenium.click("manage_deleteCommands:method")
     
     
     

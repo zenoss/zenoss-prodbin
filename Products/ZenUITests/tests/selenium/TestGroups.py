@@ -24,10 +24,10 @@ import unittest
 from SelTestBase import SelTestBase
 
 class TestGroups(SelTestBase):
-    """Defines a class that runs tests under the Groups heading."""
+    """Defines a class that runs tests under the Groups heading"""
 
     def testGroupOrganizer(self):
-        """Run tests on the Groups page."""
+        """Run tests on the Groups page"""
         
         self.waitForElement("link=Groups")
         self.selenium.click("link=Groups")

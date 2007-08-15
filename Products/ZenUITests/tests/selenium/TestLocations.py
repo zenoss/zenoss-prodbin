@@ -24,10 +24,10 @@ import unittest
 from SelTestBase import SelTestBase
 
 class TestLocations(SelTestBase):
-    """Defines an object that runs tests under the Locations heading."""
+    """Defines an object that runs tests under the Locations heading"""
     
     def testLocationOrganizer(self):
-        """Run tests on the Locations page."""
+        """Run tests on the Locations page"""
         
         self.waitForElement("link=Locations")
         self.selenium.click("link=Locations")
