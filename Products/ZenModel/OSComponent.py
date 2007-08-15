@@ -22,7 +22,7 @@ class OSComponent(DeviceComponent, ManagedEntity, Linkable):
     """
     isUserCreatedFlag = False
 
-    _relations = Linkable._relations
+    _relations = ManagedEntity._relations + Linkable._relations
     
     def setUserCreateFlag(self):
         self.isUserCreatedFlag = True
