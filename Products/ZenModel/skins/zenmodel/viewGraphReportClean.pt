@@ -1,38 +1,54 @@
+<tal:block metal:use-macro="here/templates/macros/pageClean">
+
+<tal:block metal:fill-slot="head-local">
+<style>
+<!--
+body {
+    background: #ffffff;
+    color: black;
+    font-family:  Verdana, Arial, Helvetica, sans-serif;
+    font-size:  9pt;
+    margin: 0px;
+}
+
+#contentPane {
+    border: 0px;
+    background-color: #ffffff;
+}
+
+#reportTitle {
+    text-align: center;
+    font-size: 16pt;
+}
+-->
+</style>
+</tal:block>
 
 
-<tal:block tal:define="tableName string:graphreport;
-    tabletitle here/id;
-    drange python: here.ZenTableManager.setReqTableState(
-    tableName,'drange',129600)">
-    <input type='hidden' name='tableName' tal:attributes="value tableName" />
-<tal:block metal:use-macro="here/zenuimacros/macros/zentable">
+<tal:block metal:fill-slot="contentPane">
 
-
-<tal:block metal:fill-slot="zentablecontents">
-
-<!-- BEGIN TABLE CONTENTS -->
-
-    <tal:block tal:repeat="graph python:here.getGraphs(drange=drange)">
-    <tal:block tal:define="graphid string:graph_${repeat/graph/index}">
-        <tr><td class="tableheader" tal:content="graph/title">title 
-		<tal:dummy tal:replace="graph/url"/></td></tr>
-        <tr><td class="tablevalues">
+<table border="0">
+    <tr>
+        <td id="reportTitle" colspan="2">
+            <tal:dummy tal:replace="here/id"/><br />&nbsp;
+    </tr>   
+    <tr tal:repeat="element here/getElements">
+        <td valign="top">
+            Device:
+            <tal:dummy tal:replace="element/deviceId"/><br />
+            Component: 
+            <tal:dummmy tal:replace="element/getComponentDesc"/><br />
+            Graph: 
+            <tal:dummy tal:replace="element/graphId"/><br />
+            <tal:dummy tal:replace="structure element/getComments"/>
+        </td>
+        <td tal:define="i repeat/element/index;
+                        graphSrc python:request['graph_%s' % i]">
             <img src="_" 
-            tal:attributes="src graph/url;
-                            id graphid"/>
-            <script language="javascript" type="text/javascript"
-            tal:content="string:ZenGraphs[ZenGraphs.length]='${graphid}';"></script>
-            </td>
-
-        </tr>
-    </tal:block>
-    </tal:block>
-<script>
-    document.write('<\/script><script src="zenrrdzoom.js"><\/script><script>');
-</script>
-
-<!-- END TABLE CONTENTS -->
-
+                tal:attributes="src graphSrc" />
+        </td>
+    </tr>
+</table>
 </tal:block>
-</tal:block>
+
 </tal:block>

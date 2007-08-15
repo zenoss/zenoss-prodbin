@@ -1,0 +1,68 @@
+<tal:block metal:use-macro="here/templates/macros/page2">
+<tal:block metal:fill-slot="contentPane">
+
+<form method="post"
+    tal:attributes="action string:${here/absolute_url_path}">
+    <input type="hidden" name="zenScreenName" 
+        tal:attributes="value template/id" /> 
+
+
+        <tal:block tal:define="tabletitle string: Graph Report Element">
+        <tal:block metal:use-macro="here/zenuimacros/macros/zentable">
+
+        <tal:block metal:fill-slot="zentablecontents">
+        <!-- BEGIN TABLE CONTENTS -->
+            
+    <tr>
+        <td class="tableheader">Name</td>
+        <td class="tablevalues" tal:condition="here/isManager">
+            <input class="tablevalues" type="text" name="newId" size="40"
+                tal:attributes="value here/id" />
+        </td>
+        <td class="tablevalues" tal:condition="not:here/isManager"
+            tal:content="here/id"/>
+    </tr>
+    <tr>
+        <td class="tableheader">Device</td>
+        <td class="tablevalues" tal:content="here/deviceId"/>
+    </tr>
+    <tr>
+        <td class="tableheader">Component</td>
+        <td class="tablevalues" tal:content="here/componentPath"/>
+    </tr>
+    <tr>
+        <td class="tableheader">Graph</td>
+        <td class="tablevalues" tal:content="here/graphId"/>
+    </tr>
+    <tr>
+        <td class="tableheader">Comments</td>
+        <td class="tablevalues" tal:condition="here/isManager">
+            <textarea class="tablevalues" name="comments" rows="12" cols="60"
+                tal:content="here/comments"></textarea>
+        </td>
+        <td class="tablevalues" tal:condition="not:here/isManager"
+            tal:content="here/comments"/>
+    <tr>
+        <td class="tableheader">Evaluated Comments</td>
+        <td class="tablevalues">
+            <tal:dummy tal:replace="here/getComments"/>
+        </td>
+    </tr>
+    <tr>
+        <td class="tableheader">
+        </td>
+        <td class="tableheader" colspan="3">
+            <input class="tableheader" type="submit" value=" Save "
+                name="zmanage_editProperties:method" />
+        </td>
+    </tr>
+
+        <!-- END TABLE CONTENTS -->
+
+        </tal:block>
+        </tal:block>
+        </tal:block>
+</form>
+
+</tal:block>
+</tal:block>

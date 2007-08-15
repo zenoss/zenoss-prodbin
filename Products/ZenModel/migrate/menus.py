@@ -37,7 +37,7 @@ ZenPackItems = dict(
     )
 
 class MenuRelations(Migrate.Step):
-    version = Migrate.Version(2, 0, 5)
+    version = Migrate.Version(2, 1, 0)
 
     def cutover(self, dmd):
         dmd.buildRelations()
@@ -988,9 +988,16 @@ class MenuRelations(Migrate.Step):
                     'isdialog': True,
                     'ordering': 90.0,
                     'permissions': ('Change Device',)},
+                 {  'action': 'dialog_addGraphReport',
+                    'allowed_classes': ('ReportClass',),
+                    'description': 'Add Graph Report...',
+                    'id': 'addGraphReport',
+                    'isdialog': True,
+                    'ordering': 90.0,
+                    'permissions': ('Change Device',)},
                  {  'action': 'dialog_deleteReports',
                     'allowed_classes': ('ReportClass',),
-                    'description': 'Delete Device Reports...',
+                    'description': 'Delete Reports...',
                     'id': 'deleteDeviceReports',
                     'isdialog': True,
                     'ordering': 80.0,

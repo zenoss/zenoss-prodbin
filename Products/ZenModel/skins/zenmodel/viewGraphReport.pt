@@ -6,6 +6,7 @@
 
 <tal:block tal:replace="structure string:<script language=&quot;javascript&quot; type=&quot;text/javascript&quot;>
 var absoluteUrlPath = &quot;${here/absolute_url_path}&quot;;
+var reportId = &quot;${here/getPrimaryId}&quot;;
 </script>" />
 
 <script language="javascript" type="text/javascript">
@@ -13,13 +14,9 @@ var ZenGraphs = new Array();
 
 function printable() {
     var url = absoluteUrlPath + '/viewGraphReportClean';
-    var first = true;
     for (i=0; i < ZenGraphs.length; i++) {
-        if (first)
-            z = '?';
-        else
-            z = '&';
-        url = url + z + 'graph=' + escape(ZenGraphs[i].url);
+        var graph = document.getElementById('graph_' + i);
+        url += (i?'&':'?') + 'graph_' + i + '=' + escape(graph.src);
     }
     parent.location.href = url;
 }

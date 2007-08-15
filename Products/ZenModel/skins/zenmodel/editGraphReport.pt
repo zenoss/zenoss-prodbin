@@ -3,9 +3,9 @@
 
 <script type="text/javascript" src="/zport/js/MochiKit.js"></script>
 <script type="text/javascript">
+    
     function updateSelect(widget, options) {
-        widget.options.length = 0;
-        for (var i = 0; i < options.length; i++) {
+        for (var i = widget.length; i < options.length; i++) {
             widget.options[i] = new Option(options[i],options[i], false, false);
         }
     }
@@ -13,23 +13,38 @@
     function getDeviceList() {
         var filter = document.getElementById('deviceFilter');
         var widget = document.getElementById('deviceId');
-        var url = '/zport/dmd/Devices/getDeviceNames'
+        var url = '/zport/dmd/Devices/jsonGetDeviceNames'
         var d = loadJSONDoc(url, {'query': filter.value});
+        widget.options.length = 0;
         d.addBoth(updateSelect, widget);
     }
     
     function getComponentList() {
         var deviceWidget = document.getElementById('deviceId');
         var compWidget = document.getElementById('componentPath');
-        var url = '/zport/dmd/Devices/gotComponentPaths';
-        var d = loadJSONDoc(url, {'query': deviceWidget.value});
+        var url = '/zport/dmd/Devices/jsonGetComponentPaths';
+        var d = loadJSONDoc(url, {'deviceId': deviceWidget.value});
+        compWidget.options.length = 0;
+        //compWidget.options[0] = new Option(deviceWidget.value,
+        //    '', false, false);
         d.addBoth(updateSelect, compWidget);
     }
-    
-    
+
+    function getGraphList() {
+        var deviceWidget = document.getElementById('deviceId');
+        var compWidget = document.getElementById('componentPath');
+        var graphWidget = document.getElementById('graphIds');
+        var url = '/zport/dmd/Devices/jsonGetGraphIds';
+        var d = loadJSONDoc(url, 
+        {'deviceId': deviceWidget.value, 'componentPath': compWidget.value});
+        graphWidget.options.length = 0;
+        d.addBoth(updateSelect, graphWidget);
+    }
+        
+    addLoadEvent(getDeviceList)
 </script>
 
-<form method=post 
+<form method="post"
     tal:attributes="action string:${here/absolute_url_path}">
     <input type="hidden" name="zenScreenName" 
         tal:attributes="value template/id" /> 
@@ -67,7 +82,7 @@
 </form>
 <br />
 
-<form method="get" 
+<form method="post" 
     tal:condition="here/isManager"
     tal:attributes="action string:${here/absolute_url_path}"
     tal:define="curDevice request/deviceId | nothing;
@@ -84,51 +99,41 @@
         <!-- BEGIN TABLE CONTENTS -->            
     <tr>
         <td class="tableheader">Device</td>
-        <td class="tablevalues"
-            tal:define="curFilter request/deviceFilter | nothing">
+        <td class="tablevalues">
             <input class="tablevalues" type="text" name="deviceFilter"
-                 id="deviceFilter" size="20" tal:attributes="value curFilter"/>
+                 id="deviceFilter" size="20" />
             <input class="tableheader" type="button" value="Filter" 
-                name="filter" />
+                name="filter" onClick="getDeviceList()" />
             <br />
             <select class="tablevalues" name="deviceId" id="deviceId" size="8"
-            tal:define="devices python:here.getFilteredDeviceList(curFilter)">
-                <option tal:repeat="device devices"
-                    tal:attributes="value device/id;
-                    selected python:device.id == curDevice;"
-                    tal:content="device/id"></option>
+                onChange="getComponentList(); getGraphList()">
             </select>
-            <input class="tableheader" type="submit" 
-                name="selectDevice:method" value="Select" />
         </td>
 	
     </tr>
     <tr>
         <td class="tableheader">Component</td>
         <td class="tablevalues">
-            <select class="tablevalues" name="componentPath" size="8"
+            <select class="tablevalues" name="componentPath" size="6"
                 id="componentPath"
-                tal:define="comps python:here.getComponentOptions(curDevice)">
-                <option tal:repeat="comp comps"
-                    tal:attributes="value comp;
-                    selected python:comp == curComponent;"
-                    tal:content="comp"></option>
+                onChange="getGraphList()">
             </select>
-            <input class="tableheader" type="submit" 
-                name="selectComponent:method" value="Select" />
         </td>
     </tr>
     <tr>
         <td class="tableheader">Graph</td>
         <td class="tablevalues">
-            <select class="tablevalues" name="graphIds:list" size="8"
-                tal:define="
-                graphs python:here.getAvailableGraphs(curDevice, curComponent);"
-                >
-                <option tal:repeat="graph graphs"
-                    tal:attributes="value graph/id"
-                    tal:content="graph/id"></option>
+            <select class="tablevalues" name="graphIds:list" size="6"
+                id="graphIds"
+                multiple="1">
             </select>
+        </td>
+    </tr>
+    <tr>
+        <td class="tableheader">Comments</td>
+        <td class="tablevalues">
+            <textarea class="tablevalues" name="comments" rows="2" cols="60"
+                tal:attributes="content here/comments"></textarea>
         </td>
     </tr>
     <tr>
@@ -171,9 +176,12 @@
         <th tal:condition="here/isManager"
 	    tal:replace="structure python:here.ZenTableManager.getTableHeader(
                     tableName,'sequence','Seq')"/>
-        <th tal:condition="here/isManager" class="tableheader"/>
         <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
-                    tableName,'getComponentDesc','Device/Component')"/>
+                    tableName,'id','Name')"/>
+        <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
+                    tableName,'deviceId','Device')"/>
+        <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
+                    tableName,'getComponentDesc','Component')"/>
         <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
                     tableName,'graphId','Graph')"/>
     </tr>
@@ -185,11 +193,14 @@
                 type="hidden" name="origseq:list"
                 tal:attributes="value element/sequence" />
         </td>
-        <td valign="top" tal:condition="here/isManager">
-            <input 
+        <td valign="top">
+            <input tal:condition="here/isManager"
                 type="checkbox" name="ids:list" 
                 tal:attributes="value element/getId"/>
+            <a tal:attributes="href element/getPrimaryUrlPath" 
+                tal:content="element/getId">name</a>
         </td>
+        <td valign="top" tal:content="element/deviceId"/>
         <td valign="top" tal:content="element/getComponentDesc"/>
         <td valign="top" tal:content="element/graphId"/>
     </tr>

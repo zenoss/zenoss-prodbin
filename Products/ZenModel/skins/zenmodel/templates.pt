@@ -69,6 +69,29 @@
                 
 
 <!-- ======================================================
+    pageClean - page template that has none of the ornamentation
+    of the regular templates
+ ====================================================== -->
+<tal:block metal:define-macro="pageClean">
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" 
+    "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+    <head>
+        <tal:block metal:use-macro="here/templates/macros/head1"/>
+        <tal:block metal:define-slot="head-local"/>
+    </head>
+	<body>
+        <div id="contentPane">
+            <tal:block metal:define-slot="contentPane">
+                CONTENT GOES HERE
+            </tal:block>
+        </div>
+    </body>
+</html>
+</tal:block>
+
+
+<!-- ======================================================
     Page2 - page template that adds standard
         breadCrumb and nav tabs automatically
  ====================================================== -->

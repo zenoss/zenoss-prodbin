@@ -17,11 +17,25 @@ from ZenModelRM import ZenModelRM
 from Products.ZenRelations.RelSchema import *
 from GraphReportElement import GraphReportElement
 
+def manage_addGraphReport(context, id, REQUEST = None):
+    ''' Create a new GraphReport
+    '''
+    gr = GraphReport(id)
+    context._setObject(gr.id, gr)
+    if REQUEST is not None:
+        REQUEST['RESPONSE'].redirect(context.absolute_url()+'/manage_main')
+                                     
+#addGraphReport = DTMLFile('dtml/addRRDGraph',globals())
+
+
 class GraphReport(ZenModelRM):
 
     meta_type = "GraphReport"
+    
+    comments = ''
 
     _properties = ZenModelRM._properties + (
+        {'id':'comments', 'type':'text', 'mode':'w'},
     )
 
     _relations =  (
@@ -59,13 +73,16 @@ class GraphReport(ZenModelRM):
                 thing = getattr(thing, part)
         return thing
 
+
     security.declareProtected('Manage DMD', 'manage_addGraphElement')
     def manage_addGraphElement(self, deviceId='', componentPath='', graphIds=(), 
                                                             REQUEST=None):
         ''' Add a new graph report element
         '''
         def GetId(deviceId, componentPath, graphId):
-            root = '%s-%s-%s' % (deviceId, '/'.join(componentPath), graphId)
+            component = componentPath.split('/')[-1]
+            parts = [p for p in (deviceId, component, graphId) if p]
+            root = ' '.join(parts)
             candidate = self.prepId(root)
             i = 2
             while candidate in self.elements.objectIds():
@@ -80,8 +97,11 @@ class GraphReport(ZenModelRM):
                 graph = thing.getGraph(graphId)
                 if graph:            
                     newId = GetId(deviceId, componentPath, graphId)
-                    ge = GraphReportElement(newId, thing, graph, 
-                                            len(self.elements()))
+                    ge = GraphReportElement(newId)
+                    ge.deviceId = deviceId
+                    ge.componentPath = componentPath
+                    ge.graphId = graphId
+                    ge.sequence = len(self.elements())
                     self.elements._setObject(ge.id, ge)
             
         if REQUEST:
@@ -112,57 +132,43 @@ class GraphReport(ZenModelRM):
         return resequence(self, self.elements(), seqmap, origseq, REQUEST)
     
 
-    security.declareProtected('Manage DMD', 'selectDevice')
-    def selectDevice(self, REQUEST=None):
-        ''' Do nothing for now
-        '''
-        return self.callZenScreen(REQUEST)
-
-
-    security.declareProtected('Manage DMD', 'selectComponent')
-    def selectComponent(self, REQUEST=None):
-        ''' Do nothing for now
-        '''
-        return self.callZenScreen(REQUEST)
-
-
-    security.declareProtected('Manage DMD', 'getFilteredDeviceList')
-    def getFilteredDeviceList(self, filter=''):
-        ''' Return list of devices matching the device filter field
-        '''
-        def cmpDevice(a, b):
-            return cmp(a.id, b.id)
-        if filter:
-            devices = self.dmd.Devices.searchDevices(filter)
-        else:
-            devices = self.dmd.Devices.getSubDevices()
-        devices.sort(cmpDevice)
-        return devices
-
-
-    def getComponentOptions(self, deviceId):
-        ''' Return options for the component selection list
-        '''
-        d = self.dmd.Devices.findDevice(deviceId)
-        if d:
-            dPathLen = len(d.getPrimaryId()) + 1
-            comps = d.getMonitoredComponents()
-            paths = [c.getPrimaryId()[dPathLen:] for c in comps]
-            return paths
-        return []
-
-
-    def getAvailableGraphs(self, deviceId, componentPath=''):
-        ''' Return the graph ids of the given device/component
-        '''
-        graphs = []
-        thing = self.getThing(deviceId, componentPath)
-        if thing:
-            for t in thing.getRRDTemplates():
-                graphs += t.getGraphs()
-        return graphs
-
-
+    # security.declareProtected('Manage DMD', 'getFilteredDeviceList')
+    # def getFilteredDeviceList(self, filter=''):
+    #     ''' Return list of devices matching the device filter field
+    #     '''
+    #     def cmpDevice(a, b):
+    #         return cmp(a.id, b.id)
+    #     if filter:
+    #         devices = self.dmd.Devices.searchDevices(filter)
+    #     else:
+    #         devices = self.dmd.Devices.getSubDevices()
+    #     devices.sort(cmpDevice)
+    #     return devices
+    # 
+    # 
+    # def getComponentOptions(self, deviceId):
+    #     ''' Return options for the component selection list
+    #     '''
+    #     d = self.dmd.Devices.findDevice(deviceId)
+    #     if d:
+    #         dPathLen = len(d.getPrimaryId()) + 1
+    #         comps = d.getMonitoredComponents()
+    #         paths = [c.getPrimaryId()[dPathLen:] for c in comps]
+    #         return paths
+    #     return []
+    
+    
+    # def getAvailableGraphs(self, deviceId, componentPath=''):
+    #     ''' Return the graph ids of the given device/component
+    #     '''
+    #     graphs = []
+    #     thing = self.getThing(deviceId, componentPath)
+    #     if thing:
+    #         for t in thing.getRRDTemplates():
+    #             graphs += t.getGraphs()
+    #     return graphs
+    # 
+    # 
     def getGraphs(self, drange=None):
         """get the default graph list for this object"""
         def cmpGraphs(a, b):
@@ -176,6 +182,16 @@ class GraphReport(ZenModelRM):
                 })
         graphs.sort(cmpGraphs)
         return graphs
+    
+    
+    def getElements(self):
+        """get the ordered elements
+        """
+        def cmpElements(a, b):
+            return cmp(a.sequence, b.sequence)
+        elements = [e for e in self.elements()]
+        elements.sort(cmpElements)
+        return elements
 
 
 InitializeClass(GraphReport)

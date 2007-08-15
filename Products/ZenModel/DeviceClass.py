@@ -400,8 +400,8 @@ class DeviceClass(DeviceOrganizer, ZenPackable):
             log.warn("bad path '%s' in index deviceSearch", ret[0].getPrimaryId)
 
 
-    security.declareProtected('View', 'getDeviceNames')
-    def getDeviceNames(self, query=''):
+    security.declareProtected('View', 'jsonGetDeviceNames')
+    def jsonGetDeviceNames(self, query=''):
         ''' Return a list of all device names that match the filter.
         '''
         def cmpDevice(a, b):
@@ -414,8 +414,8 @@ class DeviceClass(DeviceOrganizer, ZenPackable):
         return simplejson.dumps([d.id for d in devices])
 
 
-    security.declareProtected('View', 'getComponentPaths')
-    def getComponentPaths(self, deviceId):
+    security.declareProtected('View', 'jsonGetComponentPaths')
+    def jsonGetComponentPaths(self, deviceId):
         ''' Return a list of all component names that match the device
         '''
         d = self.findDevice(deviceId)
@@ -427,6 +427,28 @@ class DeviceClass(DeviceOrganizer, ZenPackable):
         else:
             paths = []
         return simplejson.dumps(paths)
+        
+        
+    security.declareProtected('View', 'jsonGetGraphIds')
+    def jsonGetGraphIds(self, deviceId, componentPath):
+        ''' Get a list of the graphs available for the given device
+        and component.
+        '''
+        graphIds = []
+        thing = self.findDevice(deviceId)
+        if thing:
+            if not componentPath: componentPath = ''
+            parts = componentPath.split('/')
+            for part in parts:
+                if part:
+                    if hasattr(thing, part):
+                        thing = getattr(thing, part)
+                    else:
+                        break
+            else:
+                for t in thing.getRRDTemplates():
+                    graphIds += [g.id for g in t.getGraphs()]
+        return simplejson.dumps(graphIds)
 
 
     def findDevicePingStatus(self, devicename):

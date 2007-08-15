@@ -47,7 +47,7 @@ class ReportClass(Organizer, ZenPackable):
     dmdRootName = "Reports"
     portal_type = meta_type = "ReportClass"
 
-    sub_meta_types = ("ReportClass", "Report", 'DeviceReport')
+    sub_meta_types = ("ReportClass", "Report", 'DeviceReport', 'GraphReport')
 
     _relations = Organizer._relations + ZenPackable._relations
     

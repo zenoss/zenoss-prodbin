@@ -15,17 +15,33 @@ from Globals import InitializeClass
 from AccessControl import ClassSecurityInfo
 from ZenModelRM import ZenModelRM
 from Products.ZenRelations.RelSchema import *
+from Products.ZenUtils.ZenTales import talesCompile, getEngine
+
+
+def manage_addGraphReportElement(context, id, REQUEST = None):
+    """make a RRDGraph"""
+    element = GraphReportElement(id)
+    context._setObject(element.id, element)
+    if REQUEST is not None:
+        REQUEST['RESPONSE'].redirect(context.absolute_url()+'/manage_main')
+
 
 class GraphReportElement(ZenModelRM):
     
     meta_type = 'GraphReportElement'
     
     deviceId = ''
-    componentPath = ()
+    componentPath = ''
     graphId = ''
     sequence = 0
+    comments = ''
         
     _properties = ZenModelRM._properties + (
+        {'id':'deviceId', 'type':'string', 'mode':'w'},
+        {'id':'componentPath', 'type':'string', 'mode':'w'},
+        {'id':'graphId', 'type':'string', 'mode':'w'},
+        {'id':'sequence', 'type':'int', 'mode':'w'},
+        {'id':'comments', 'type':'text', 'mode':'w'},
     )
 
     _relations =  ZenModelRM._relations + (
@@ -47,17 +63,6 @@ class GraphReportElement(ZenModelRM):
         )
 
     security = ClassSecurityInfo()
-
-
-    def __init__(self, id, component, graph, sequence, 
-                    title=None, buildRelations=True):
-        ZenModelRM.__init__(self, id, title, buildRelations)
-        device = component.device()
-        self.deviceId = device.id
-        self.componentPath = component.getPrimaryPath()[
-                                                len(device.getPrimaryPath()):]
-        self.graphId = graph.id
-        self.sequence = sequence
     
     
     def getDesc(self):
@@ -65,6 +70,12 @@ class GraphReportElement(ZenModelRM):
         
     
     def getComponentDesc(self):
+        
+        if isinstance(self.componentPath, tuple):
+            self.componentPath = '/'.join(self.componentPath)
+        
+        return self.componentPath.split('/')[-1]
+        
         comp = self.getComponent()
         if comp:
             parts = [''] + list(comp.getPrimaryPath()[3:]) \
@@ -73,12 +84,33 @@ class GraphReportElement(ZenModelRM):
         else:
             desc = '%s: missing' % self.deviceId
         return desc
+        
+    
+    def getComments(self):
+        ''' Returns tales-evaluated comments
+        '''
+        dev = self.getDevice()
+        comp = self.getComponent()
+        graph = self.getGraph()
+        compiled = talesCompile('string:' + self.comments)
+        e = {'dev':dev, 'device': dev, 
+                'comp': comp, 'component':comp,
+                'graph': graph}
+        result = compiled(getEngine().getContext(e))
+        if isinstance(result, Exception):
+            result = 'Error: %s' % str(result)
+        return result
 
         
+    def getDevice(self):
+        return self.dmd.Devices.findDevice(self.deviceId)
+
+
     def getComponent(self):
-        component = self.dmd.Devices.findDevice(self.deviceId)
-        for part in self.componentPath:
-            component = getattr(component, part)
+        component = self.getDevice()
+        for part in self.componentPath.split('/'):
+            if part:
+                component = getattr(component, part)
         return component
         
         

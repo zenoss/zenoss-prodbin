@@ -51,6 +51,8 @@ productNames = (
     "DeviceReport",
     "ExpansionCard",
     "FileSystem",
+    "GraphReport",
+    "GraphReportElement",
     "HardDisk",
     "Hardware",
     "HardwareClass",
