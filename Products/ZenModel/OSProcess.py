@@ -95,12 +95,9 @@ class OSProcess(OSComponent, Commandable, ZenPackable):
     def getOSProcessConf(self):
         """Return information used to monitor this process.
         """
-        thresholds = {}
-        for templ in self.getRRDTemplates():
-            thresholds.update(self.getThresholds(templ))
         ignoreParams = getattr(self.osProcessClass(), 'ignoreParameters', False)
         return (self.id, self.name(), ignoreParams,
-                self.alertOnRestart(), self.getFailSeverity(), thresholds)
+                self.alertOnRestart(), self.getFailSeverity())
 
                     
     def setOSProcessClass(self, procKey):

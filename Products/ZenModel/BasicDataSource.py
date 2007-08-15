@@ -37,27 +37,16 @@ def checkOid(oid):
 
 class BasicDataSource(RRDDataSource.RRDDataSource):
 
-    sourcetypes = ('SNMP', 'XMLRPC', 'COMMAND')
+    sourcetypes = ('SNMP', 'COMMAND')
     
     sourcetype = 'SNMP'
     eventClass = Cmd_Fail
     oid = ''
-    xmlrpcURL = ''
-    xmlrpcUsername = ''
-    xmlrpcPassword = ''
-    xmlrpcMethodName = ''
-    # [[param1, int], [param2, string], ...]
-    xmlrpcMethodParameters = []
 
     usessh = False
 
     _properties = RRDDataSource.RRDDataSource._properties + (
         {'id':'oid', 'type':'string', 'mode':'w'},
-        {'id':'xmlrpcURL', 'type':'string', 'mode':'w'},
-        {'id':'xmlrpcUsername', 'type':'string', 'mode':'w'},
-        {'id':'xmlrpcPassword', 'type':'string', 'mode':'w'},
-        {'id':'xmlrpcMethodName', 'type':'string', 'mode':'w'},
-        {'id':'xmlrpcMethodParameters', 'type':'lines', 'mode':'w'},
         {'id':'usessh', 'type':'boolean', 'mode':'w'},
         )
 
@@ -85,8 +74,6 @@ class BasicDataSource(RRDDataSource.RRDDataSource):
     def getDescription(self):
         if self.sourcetype == "SNMP":
             return self.oid
-        if self.sourcetype == "XMLRPC":
-            return self.xmlrpcURL+" ("+self.xmlrpcMethodName+")"
         if self.sourcetype == "COMMAND":
             if self.usessh:
                 return self.commandTemplate + " over SSH"
@@ -99,17 +86,6 @@ class BasicDataSource(RRDDataSource.RRDDataSource):
         if self.sourcetype == 'COMMAND':
             return True
         return False
-
-
-    def getXmlRpcMethodParameters(self):
-        """Return the list of all parameters as a list.
-           ["param1 (type)", "param2 (type)", ...]
-        """
-        params = []
-        for param in self.xmlrpcMethodParameters: 
-            p = "%s (%s)" % (param[0], param[1])
-            params.append(p)
-        return params
 
 
     def zmanage_editProperties(self, REQUEST=None):

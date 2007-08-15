@@ -37,11 +37,6 @@ from socket import getfqdn
 
 PB_PORT = 8789
 
-DEFAULT_HUB_HOST = 'localhost'
-DEFAULT_HUB_PORT = PB_PORT
-DEFAULT_HUB_USERNAME = 'zenoss'
-DEFAULT_HUB_PASSWORD = 'zenoss'
-
 startEvent = {
     'eventClass': App_Start, 
     'summary': 'started',
@@ -207,6 +202,7 @@ class PBDaemon(ZenDaemon, pb.Referenceable):
         event = event.copy()
         event['agent'] = self.name
         event.update(kw)
+        self.log.debug("Sending event %r", event)
         def errback(error, event):
             # If we get an error when sending an event we add it back to the 
             # queue.  This is great if the eventservice is just temporarily

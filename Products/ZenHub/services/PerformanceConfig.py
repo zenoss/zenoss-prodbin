@@ -12,6 +12,9 @@
 ###########################################################################
 #! /usr/bin/env python 
 
+import Globals
+from Products.ZenEvents.ZenEventClasses import Status_Snmp
+
 from Products.ZenHub.HubService import HubService
 
 from Products.ZenModel.Device import Device
@@ -28,18 +31,54 @@ class PerformanceConfig(HubService):
         self.config = self.dmd.Monitors.Performance._getOb(self.instance)
         self.procrastinator = Procrastinate(self.pushConfig)
 
+
     def remote_propertyItems(self):
         return self.config.propertyItems()
+
         
-    def remote_getSnmpStatus(self, *args, **kwargs):
-        return self.config.getSnmpStatus(*args, **kwargs)
+    def remote_getSnmpStatus(self, devname=None):
+        "Return the failure counts for Snmp" 
+        result = []
+        counts = {}
+        try:
+            # get all the events with /Status/Snmp
+            conn = self.zem.connect()
+            try:
+                curs = conn.cursor()
+                cmd = ('SELECT device, sum(count)  ' +
+                       '  FROM status ' +
+                       ' WHERE eventClass = "%s"' % Status_Snmp)
+                if devname:
+                    cmd += ' AND device = "%s"' % devname
+                cmd += ' GROUP BY device'
+                curs.execute(cmd);
+                counts = dict([(d, int(c)) for d, c in curs.fetchall()])
+            finally:
+                self.zem.close(conn)
+        except Exception, ex:
+            self.log.exception('Unable to get Snmp Status')
+            raise
+        if devname:
+            return [(devname, counts.get(devname, 0))]
+        return [(dev.id, counts.get(dev.id, 0)) for dev in self.config.devices()]
+
 
     def remote_getDefaultRRDCreateCommand(self, *args, **kwargs):
         return self.config.getDefaultRRDCreateCommand(*args, **kwargs)
 
+
+    def remote_getThresholdClasses(self):
+        from Products.ZenModel.MinMaxThreshold import MinMaxThreshold
+        classes = [MinMaxThreshold]
+        for pack in self.dmd.packs():
+            classes += pack.getThresholdClasses()
+        return map(lambda c: c.__module__, classes)
+
+
     def notifyAll(self, device):
         if device.perfServer.getRelatedId() == self.instance:
             self.procrastinator.doLater(device)
+
 
     def pushConfig(self, device):
         deferreds = []
@@ -51,13 +90,16 @@ class PerformanceConfig(HubService):
                 deferreds.append(self.sendDeviceConfig(listener, cfg))
         return defer.DeferredList(deferreds)
 
+
     def getDeviceConfig(self, device):
         "How to get the config for a device"
         return None
 
+
     def sendDeviceConfig(self, listener, config):
         "How to send the config to a device, probably via callRemote"
         pass
+
 
     def update(self, object):
         if not self.listeners:
@@ -94,6 +136,7 @@ class PerformanceConfig(HubService):
                 break
 
             object = aq_parent(object)
+
 
     def deleted(self, obj):
         for listener in self.listeners:

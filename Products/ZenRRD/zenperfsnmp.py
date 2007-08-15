@@ -50,7 +50,6 @@ from Products.ZenEvents import Event
 from Products.ZenEvents.ZenEventClasses import Perf_Snmp, Status_Snmp
 
 from Products.ZenRRD.RRDUtil import RRDUtil
-from Products.ZenRRD.ThresholdManager import Threshold, ThresholdManager
 from SnmpDaemon import SnmpDaemon
 
 from FileCleanup import FileCleanup
@@ -208,17 +207,12 @@ class SnmpStatus:
 
 
 class OidData:
-    def __init__(self):
-        self.thresholds = ThresholdManager()
-
-    def update(self, name, path, dataStorageType, rrdCreateCommand, minmax,
-               thresholds):
+    def update(self, name, path, dataStorageType, rrdCreateCommand, minmax):
         self.name = name
         self.path = path
         self.dataStorageType = dataStorageType
         self.rrdCreateCommand = rrdCreateCommand
         self.minmax = minmax
-        self.thresholds.update(thresholds)
 
 
 class zenperfsnmp(SnmpDaemon):
@@ -258,7 +252,10 @@ class zenperfsnmp(SnmpDaemon):
         for d in ds:
             config = read(self.pickleName(d))
             if config:
-                self.updateDeviceConfig(cPickle.loads(config))
+                try:
+                    self.updateDeviceConfig(cPickle.loads(config))
+                except Exception, ex:
+                    self.log.debug("Ignoring updateDeviceConfigFailure: %s", ex)
 
     def cleanup(self, fullPath):
         self.log.warning("Deleting old RRD file: %s", fullPath)
@@ -296,6 +293,10 @@ class zenperfsnmp(SnmpDaemon):
         self.setPropertyItems(driver.next())
 
         driveLater(self.configCycleInterval * 60, self.startUpdateConfig)
+
+        log.info("getting threshold classes")
+        yield self.model().callRemote('getThresholdClasses')
+        self.remote_updateThresholdClasses(driver.next())
         
         log.info("checking for outdated configs")
         current = [(k, v.lastChange) for k, v in self.proxies.items()]
@@ -324,9 +325,9 @@ class zenperfsnmp(SnmpDaemon):
     def updateDeviceList(self, responses, requested):
         'Update the config for devices devices'
         deviceNames = Set()
-        for snmpTargets in responses:
-            self.updateDeviceConfig(snmpTargets)
-            deviceNames.add(snmpTargets[1][0])
+        for lastUpdate, connInfo, thresholds, oids in responses:
+            self.updateDeviceConfig((lastUpdate, connInfo, thresholds, oids))
+            deviceNames.add(connInfo[0])
 
         # stop collecting those no longer in the list
         doomed = Set(requested) - deviceNames
@@ -400,8 +401,8 @@ class zenperfsnmp(SnmpDaemon):
 
     def updateDeviceConfig(self, snmpTargets):
         'Save the device configuration and create an SNMP proxy to talk to it'
-        last, identity, oidData, maxOIDs = snmpTargets
-        deviceName, hostPort, snmpConfig = identity
+        last, identity, thresholds, oidData = snmpTargets
+        deviceName, hostPort, snmpConfig, maxOIDs = identity
 
         if not oidData: return
         (ip, port)= hostPort
@@ -419,12 +420,13 @@ class zenperfsnmp(SnmpDaemon):
             write(self.pickleName(deviceName), cPickle.dumps(snmpTargets))
 
         oidMap, p.oidMap = p.oidMap, {}
-        for name, oid, path, dsType, createCmd, minmax, thresholds in oidData:
+        for name, oid, path, dsType, createCmd, minmax in oidData:
             createCmd = createCmd.strip()
             oid = '.' + str(oid.lstrip('.'))
             p.oidMap[oid] = d = oidMap.setdefault(oid, OidData())
-            d.update(name, path, dsType, createCmd, minmax, thresholds)
+            d.update(name, path, dsType, createCmd, minmax)
         self.proxies[deviceName] = p
+        self.thresholds.updateList(thresholds)
 
 
     def scanCycle(self, *unused):
@@ -596,9 +598,8 @@ class zenperfsnmp(SnmpDaemon):
                               oidData.rrdCreateCommand,
                               min=min, max=max)
 
-        for threshold in oidData.thresholds:
-            threshold.check(device, oidData.name, oid, value,
-                            self.sendThresholdEvent)
+        for ev in self.thresholds.check(oidData.path[1:], time.time(), value):
+            self.sendThresholdEvent(**ev)
 
     def connected(self):
         "Run forever, fetching and storing"

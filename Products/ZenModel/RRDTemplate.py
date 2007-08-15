@@ -66,7 +66,7 @@ class RRDTemplate(ZenModelRM, ZenPackable):
         ("deviceClass", ToOne(ToManyCont,"Products.ZenModel.DeviceClass", "rrdTemplates")),
         ("datasources", ToManyCont(ToOne,"Products.ZenModel.RRDDataSource", "rrdTemplate")),
         ("graphs", ToManyCont(ToOne,"Products.ZenModel.RRDGraph", "rrdTemplate")),
-        ("thresholds", ToManyCont(ToOne,"Products.ZenModel.RRDThreshold", "rrdTemplate")),
+        ("thresholds", ToManyCont(ToOne,"Products.ZenModel.ThresholdClass", "rrdTemplate")),
         )
 
 
@@ -177,38 +177,6 @@ class RRDTemplate(ZenModelRM, ZenPackable):
         return ds
 
 
-    security.declareProtected('Add Method Parameter', 'manage_addMethodParameter')
-    def manage_addMethodParameter(self, newId, paramValue, paramType, REQUEST=None):
-        """Add a method parameter.
-        """
-        if not paramValue: return
-        ds = self.datasources._getOb(newId)
-        try:
-            #from RRDDataSource import convertMethodParameter
-            convertMethodParameter(paramValue, paramType)
-        except ValueError:
-            REQUEST['message'] = "ERROR: %s could not be stored as type: %s" % (paramValue, paramType)
-            return ds.callZenScreen(REQUEST)
-        parameters = ds.xmlrpcMethodParameters
-        parameters.append([paramValue, paramType])
-        ds._setPropValue('xmlrpcMethodParameters', parameters)
-        ds = self.datasources._getOb(newId)
-        # save all the attributes on the page when the user clicks the add
-        # parameter button so that other changes they have made are saved
-        return ds.zmanage_editProperties(REQUEST)
-
-
-    security.declareProtected('Delete Method Parameter', 'manage_deleteMethodParameter')
-    def manage_deleteMethodParameter(self, newId, REQUEST=None):
-        """Delete the last method parameter.
-        """
-        ds = self.datasources._getOb(newId)
-        parameters = ds.xmlrpcMethodParameters
-        parameters.pop()
-        ds._setPropValue('xmlrpcMethodParameters', parameters)
-        return ds.zmanage_editProperties(REQUEST)
-
-
     def manage_deleteRRDDataSources(self, ids=(), REQUEST=None):
         """Delete RRDDataSources from this DeviceClass 
         """
@@ -244,12 +212,12 @@ class RRDTemplate(ZenModelRM, ZenPackable):
 
 
     security.declareProtected('Add DMD Objects', 'manage_addRRDThreshold')
-    def manage_addRRDThreshold(self, id, REQUEST=None):
+    def manage_addRRDThreshold(self, id, thresholdClassName, REQUEST=None):
         """Add an RRDThreshold to this DeviceClass.
         """
         from RRDThreshold import RRDThreshold
         if not id: return self.callZenScreen(REQUEST)
-        org = RRDThreshold(id)
+        org = self.getThresholdClass(id, thresholdClassName)
         self.thresholds._setObject(org.id, org)
         if REQUEST:
             if org:
@@ -355,6 +323,25 @@ class RRDTemplate(ZenModelRM, ZenPackable):
             raise ConfigurationError('Cannot find datasource class'
                         ' for %s' % dsOption)
         return ds
+
+
+    def getThresholdClasses(self):
+        from Products.ZenModel.MinMaxThreshold import MinMaxThreshold
+        thresholdClasses = [MinMaxThreshold]
+        for zp in self.dmd.packs():
+            thresholdClasses += zp.getThresholdClasses()
+        return map(lambda x: (x, x.__name__), thresholdClasses)
+        
+        
+    def getThresholdClass(self, id, thresholdClassName):
+        ''' Given one of the dsOptions returned by getDataSourceOptions)
+        return an instance of the that RRDDataSource subclass.
+        '''
+        for c, name in self.getThresholdClasses():
+            if thresholdClassName == c.__name__:
+                return c(id)
+        raise ConfigurationError('Cannot find threshold class %s' %
+                                 thresholdClassName)
 
 
 InitializeClass(RRDTemplate)

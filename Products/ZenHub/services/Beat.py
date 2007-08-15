@@ -10,7 +10,6 @@
 # For complete information please visit: http://www.zenoss.com/oss/
 #
 ###########################################################################
-#! /usr/bin/env python 
 
 from HubService import HubService
 from twisted.internet import reactor
@@ -18,6 +17,8 @@ from twisted.spread import pb
 import time
 
 class Beat(HubService):
+    """Example service which sends a simple heartbeat to keep a client
+    connection alive."""
 
     def __init__(self, dmd, instance):
         HubService.__init__(self, dmd, instance)

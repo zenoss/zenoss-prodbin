@@ -32,7 +32,7 @@ from Products.ZenUtils.Driver import drive, driveLater
 from Products.ZenEvents import Event
 
 from Products.ZenRRD.RRDDaemon import RRDDaemon
-from Products.ZenRRD.ThresholdManager import Threshold, ThresholdManager
+from Products.ZenRRD.Thresholds import Thresholds
 from Products.ZenRRD.RRDUtil import RRDUtil
 from Products.DataCollector.SshClient import SshClient
 
@@ -345,13 +345,7 @@ class Cmd:
         self.command = str(cfg.command)
         self.points, before = {}, self.points
         for p in cfg.points:
-            index = p[0]
-            threshs = p[-1]
-            middle = p[1:-1]
-            values = before.get(index, [ThresholdManager()])
-            m = values[-1]
-            m.update(threshs)
-            self.points[index] = list(middle) + [m]
+            self.points[p[0]] = p[1:]
 
 class Options:
     loginTries=1
@@ -416,7 +410,8 @@ class zencommand(RRDDaemon):
             (lastChange, device, ipAddress, port,
              username, password,
              loginTimeout, commandTimeout, 
-             keyPath, maxOids, commandPart) = c
+             keyPath, maxOids, commandPart, threshs) = c
+            self.thresholds.updateList(threshs)
             if self.options.device and self.options.device != device:
                 continue
             for cmd in commandPart:
@@ -551,15 +546,13 @@ class zencommand(RRDDaemon):
             label = parts.group(1).replace("''", "'")
             value = float(parts.group(3))
             if cmd.points.has_key(label):
-                path, type, command, (minv, maxv),thresholds = cmd.points[label]
+                path, type, command, (minv, maxv) = cmd.points[label]
                 log.debug("storing %s = %s in: %s" % (label, value, path))
-                value = self.rrd.save(path, value, type, command, cmd.cycleTime,
-                                      minv, maxv)
+                value = self.rrd.save(path, value, type, command,
+                                      cmd.cycleTime, minv, maxv)
                 log.debug("rrd save result: %s" % value)
-                for t in thresholds:
-                    t.check(cmd.device, cmd.component, cmd.eventKey, value,
-                            self.sendThresholdEvent)
-
+                for ev in self.thresholds.check(path, time.time(), value):
+                    self.sendThresholdEvent(**ev)
 
     def fetchConfig(self):
         def doFetchConfig(driver):
@@ -569,6 +562,9 @@ class zencommand(RRDDaemon):
                 
                 yield self.model().callRemote('getDefaultRRDCreateCommand')
                 createCommand = driver.next()
+
+                yield self.model().callRemote('getThresholdClasses')
+                self.remote_updateThresholdClasses(driver.next())
 
                 devices = []
                 if self.options.device:

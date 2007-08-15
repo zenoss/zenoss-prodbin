@@ -125,7 +125,8 @@ class ZenModelRM(ZenModelBase, RelationshipManager, Historical, ZenPacker):
             server = xmlrpclib.ProxyServer(url)
             msg = "Item has been exported to: %s. Note that you will need to "
             msg += "login at Zenoss.net and publish this template in order to "
-            msg += "share it with others. Exported at " % url
+            msg += "share it with others. Exported at "
+            msg %= url
         # open file
         exportFile = open(filename, 'w+')
         # export object to file

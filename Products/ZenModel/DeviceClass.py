@@ -521,6 +521,8 @@ class DeviceClass(DeviceOrganizer, ZenPackable):
         rrdts.extend(self.rrdTemplates())
         for dev in self.devices():
             rrdts += dev.objectValues('RRDTemplate')
+            for comps in dev.getDeviceComponents():
+                rrdts += comps.objectValues('RRDTemplate')
         for child in self.children():
             child.getAllRRDTemplates(rrdts)
         return rrdts
@@ -731,7 +733,6 @@ class DeviceClass(DeviceOrganizer, ZenPackable):
         devs._setProperty("zSnmpMonitorIgnore", False, type="boolean")
         devs._setProperty("zPingMonitorIgnore", False, type="boolean")
         devs._setProperty("zWmiMonitorIgnore", True, type="boolean")
-        devs._setProperty("zXmlRpcMonitorIgnore", True, type="boolean")
         devs._setProperty("zStatusConnectTimeout", 15.0, type="float")
 
         # DataCollector properties

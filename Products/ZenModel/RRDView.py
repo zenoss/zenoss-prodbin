@@ -283,15 +283,18 @@ class RRDView(object):
         if not d: return "/Devices/" + self.id
         skip = len(d.getPrimaryPath()) - 1
         return '/Devices/' + '/'.join(self.getPrimaryPath()[skip:])
+
+    def fullRRDPath(self):
+        from PerformanceConf import performancePath
+        return performancePath(self.rrdPath())
         
     def getSnmpOidTargets(self):
         """Return a list of (name, oid, path, type, createCmd, thresholds)
         that define monitorable"""
         oids = []
-        if self.snmpIgnore(): return oids 
+        if self.snmpIgnore(): return (oids, [])
         basepath = self.rrdPath()
         for templ in self.getRRDTemplates():
-            threshs = self.getThresholds(templ)
             for ds in templ.getRRDDataSources("SNMP"):
                 if not ds.enabled: continue
                 oid = ds.oid
@@ -305,9 +308,8 @@ class RRDView(object):
                                  "/".join((basepath, dp.name())),
                                  dp.rrdtype,
                                  dp.createCmd,
-                                 (dp.rrdmin, dp.rrdmax),
-                                 threshs.get(dp.name(),[])))
-        return oids
+                                 (dp.rrdmin, dp.rrdmax)))
+        return (oids, self.getThresholdInstances('SNMP'))
 
 
     def getDataSourceCommands(self, dsName=None):
@@ -315,7 +317,6 @@ class RRDView(object):
         """
         result = []
         for templ in self.getRRDTemplates():
-            threshs = self.getThresholds(templ)
             basepath = self.rrdPath()
             if dsName:
                 dataSources = [x for x in templ.datasources() if x.id==dsName]
@@ -330,59 +331,30 @@ class RRDView(object):
                          "/".join((basepath, dp.name())),
                          dp.rrdtype,
                          dp.createCmd,
-                         (dp.rrdmin, dp.rrdmax),
-                         threshs.get(dp.name(),[])))
+                         (dp.rrdmin, dp.rrdmax)))
                 key = ds.eventKey or ds.id
                 result.append( (getattr(ds, 'usessh', False), 
                                 ds.cycletime, ds.component,
                                 ds.eventClass, key, ds.severity,
                                 ds.getCommand(self), points) )
+        return (result, self.getThresholdInstances('COMMAND'))
+
+
+    def getThresholdInstances(self, dsType):
+        result = []
+        for template in self.getRRDTemplates():
+            # if the template refers to a data source name of the right type
+            # include it
+            names = []
+            for ds in template.getRRDDataSources(dsType):
+                for dp in ds.datapoints():
+                    names.append(dp.name())
+            for threshold in template.thresholds():
+                for ds in threshold.dsnames:
+                    if ds in names:
+                        result.append(threshold.createThresholdInstance(self))
+                        break
         return result
-
-
-    def getXmlRpcTargets(self):
-        """Return a list of XMLRPC targets in the form
-        [(name, url, methodName, methodParameters, path, type, 
-        createCmd, thresholds),...]
-        """
-        targets = []
-        '''TODO this should probably be xmlrpcIgnore()'''
-        '''Either snmpIgnore always returns false or it gets overridden
-        and returns true if the device is operationally down. It is not
-        clear what needs to be done here for the xmlrpc code.'''
-        if self.snmpIgnore(): return targets
-        basepath = self.rrdPath()
-        try:
-            for templ in self.getRRDTemplates():
-                threshs = self.getThresholds(templ)
-                for ds in templ.getRRDDataSources("XMLRPC"):
-                    if not ds.enabled: continue
-                    url = talesEval('string:' + ds.xmlrpcURL, self.device())
-                    username = ds.xmlrpcUsername
-                    password = ds.xmlrpcPassword
-                    methodName = ds.xmlrpcMethodName
-                    methodParameters = ds.xmlrpcMethodParameters
-                    cname = self.meta_type != "Device" \
-                                and self.viewName() or ds.id
-                    points = []
-                    for dp in ds.getRRDDataPoints():
-                        points.append(
-                            (dp.id,
-                             "/".join((basepath, dp.name())),
-                             dp.rrdtype,
-                             dp.createCmd,
-                             (dp.rrdmin, dp.rrdmax),
-                             threshs.get(dp.name(),[])))
-                    targets.append((cname,
-                                    url,
-                                    (username, password),
-                                    methodName,
-                                    methodParameters,
-                                    points))
-        except RRDObjectNotFound, e:
-            log.warn(e)
-        return targets
-
 
     def makeLocalRRDTemplate(self, templateName=None, REQUEST=None):
         """Make a local copy of our RRDTemplate if one doesn't exist.

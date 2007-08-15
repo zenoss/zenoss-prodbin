@@ -160,11 +160,11 @@
         <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
                     tableName,'getId','Name')"/>
         <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
+                    tableName,'getTypeName','Type')"/>
+        <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
                     tableName,'dsnames','Data Sources')"/>
         <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
                     tableName,'severity','Severity')"/>
-        <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
-                    tableName,'escalateCount','Escalate Count')"/>
         <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
                     tableName,'enabled','Enabled')"/>
     </tr>
@@ -178,9 +178,9 @@
                 tal:content="thresh/getId">name</a>
             <tal:block tal:condition="not:editable" tal:content="thresh/getId"/>
         </td>
+        <td tal:content="thresh/getTypeName"/>
         <td tal:content="python:', '.join(thresh.dsnames)"/>
         <td tal:content="thresh/getSeverityString"/>
-        <td tal:content="thresh/escalateCount"/>
         <td tal:content="thresh/enabled"/>
     </tr>
     <tr>

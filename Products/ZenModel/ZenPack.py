@@ -268,10 +268,9 @@ registerDirectory("skins", globals())
             REQUEST['message'] = '%s has been exported' % self.id
             return self.callZenScreen(REQUEST)
 
-
-    def getDataSourceClasses(self):
+    def _getClassesByPath(self, name):
         dsClasses = []
-        for path, dirs, files in os.walk(self.path('datasources')):
+        for path, dirs, files in os.walk(self.path(name)):
             dirs[:] = [d for d in dirs if not d.startswith('.')]
             for f in files:
                 if not f.startswith('.') \
@@ -281,6 +280,12 @@ registerDirectory("skins", globals())
                     parts = parts[parts.index('Products'):]
                     dsClasses.append(importClass('.'.join(parts)))
         return dsClasses
+
+    def getDataSourceClasses(self):
+        return self._getClassesByPath('datasources')
+
+    def getThresholdClasses(self):
+        return self._getClassesByPath('thresholds')
 
 
 def zenPackPath(*parts):

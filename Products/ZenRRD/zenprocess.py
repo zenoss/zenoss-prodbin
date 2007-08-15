@@ -48,7 +48,6 @@ from Products.ZenEvents import Event
 from Products.ZenEvents.ZenEventClasses import Status_Snmp, Status_OSProcess
 
 from Products.ZenRRD.RRDUtil import RRDUtil
-from Products.ZenRRD.ThresholdManager import Threshold, ThresholdManager
 from SnmpDaemon import SnmpDaemon
 
 HOSTROOT  ='.1.3.6.1.2.1.25'
@@ -61,7 +60,6 @@ CPU       = PERFROOT + '.1.1.1.'        # note trailing dot
 MEM       = PERFROOT + '.1.1.2.'        # note trailing dot
 
 PARALLEL_JOBS = 10
-MAX_OIDS_PER_REQUEST = 40
 
 WRAP=0xffffffffL
 
@@ -133,7 +131,6 @@ class Process:
 
     def __init__(self):
         self.pids = {}
-        self.thresholds = {}
 
     def match(self, name, args):
         if self.name is None:
@@ -181,6 +178,7 @@ class Device:
     lastScan = 0.
     snmpStatus = 0
     lastChange = 0
+    maxOidsPerRequest = 40
 
     def __init__(self):
         # map process name to Process object above
@@ -215,8 +213,7 @@ class Device:
     
     def updateConfig(self, processes):
         unused = Set(self.processes.keys())
-        for name, originalName, ignoreParameters, \
-                restart, severity, thresholds \
+        for name, originalName, ignoreParameters, restart, severity \
                 in processes:
             unused.discard(name)
             p = self.processes.setdefault(name, Process())
@@ -225,13 +222,9 @@ class Device:
             p.ignoreParameters = ignoreParameters
             p.restart = restart
             p.severity = severity
-            p.thresholds, before = {}, p.thresholds
-            for name, threshes in thresholds:
-                m = before.get(name, ThresholdManager())
-                m.update(threshes)
-                p.thresholds[name] = m
         for name in unused:
             del self.processes[name]
+
 
     def get(self, oids):
         return self.proxy.get(oids, self.timeout, self.tries)
@@ -241,7 +234,7 @@ class Device:
         t = TableRetriever(self.proxy, oids,
                            timeout=self.timeout,
                            retryCount=self.tries,
-                           maxRepetitions=MAX_OIDS_PER_REQUEST / len(oids))
+                           maxRepetitions=self.maxOidsPerRequest / len(oids))
         return t()
 
 
@@ -275,6 +268,9 @@ class zenprocess(SnmpDaemon):
 
             self.rrd = RRDUtil(createCommand, self.processCycleInterval)
 
+            yield self.model().callRemote('getThresholdClasses')
+            self.remote_updateThresholdClasses(driver.next())
+        
             devices = []
             if self.options.device:
                 devices = [self.options.device]
@@ -330,7 +326,8 @@ class zenprocess(SnmpDaemon):
     def updateDevices(self, cfgs, fetched):
         names = Set()
         for cfg in cfgs:
-            lastChange, (name, addr, snmpConf), procs = cfg
+            lastChange, snmpConf, procs, thresholds = cfg
+            name, addr, snmpConf, maxOidsPerRequest = snmpConf
             community, version, timeout, tries = snmpConf
             names.add(name)
             d = self._devices.setdefault(name, Device())
@@ -341,12 +338,13 @@ class zenprocess(SnmpDaemon):
             d.version = version
             d.timeout = timeout
             d.tries = tries
+            d.maxOidsPerRequest = maxOidsPerRequest
             d.updateConfig(procs)
             d.protocol = self.snmpPort.protocol
+            self.thresholds.updateList(thresholds)
         for doomed in Set(fetched) - names:
             if doomed in self._devices:
                 del self._devices[doomed]
-    
 
     def start(self, driver):
         'Read the basic config needed to do anything'
@@ -544,7 +542,7 @@ class zenprocess(SnmpDaemon):
         if not oids:
             return defer.succeed(([], device))
         
-        d = Chain(device.get, iter(chunk(oids, MAX_OIDS_PER_REQUEST))).run()
+        d = Chain(device.get, iter(chunk(oids, device.maxOidsPerRequest))).run()
         d.addBoth(self.storePerfStats, device)
         return d
 
@@ -584,10 +582,8 @@ class zenprocess(SnmpDaemon):
         path = 'Devices/%s/os/processes/%s/%s' % (deviceName, pidName, statName)
         value = self.rrd.save(path, value, rrdType, min=min, max=max)
 
-        thresholds = self._devices[deviceName].processes[pidName].thresholds
-        for t in thresholds.get(statName,[]):
-            t.check(deviceName, pidName, statName, value,
-                    self.sendThresholdEvent)
+        for ev in self.thresholds.check('/' + path, time.time(), value):
+            self.sendThresholdEvent(**ev)
             
 
     def heartbeat(self, *unused):

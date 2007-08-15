@@ -6,6 +6,13 @@
 <input id="new_id" name="id">
 <input type="hidden" id="checkValidIdPath" 
         tal:attributes="value here/absolute_url_path"><br/>
+Type:&nbsp;<select name='thresholdClassName'>
+        <option tal:repeat="klass here/getThresholdClasses"
+                tal:attributes="value python:klass[1]" 
+                tal:content="python: klass[1]" />
+</select>
+</p>
+<br/>
 <div align="center">
 <input tal:attributes="id string:dialog_submit;
         type string:submit;

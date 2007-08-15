@@ -166,6 +166,7 @@ class RRDThreshold(ZenModelRM, ZenPackable):
                 return "%0.2f%s" % (number, power)
         return "%.2f%s" % (number, powers[-1])
 
+
     def getSeverityString(self):
         return self.ZenEventManager.getSeverityString(self.severity)
 

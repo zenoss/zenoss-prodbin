@@ -15,7 +15,7 @@ from ZenModelRM import ZenModelRM
 from Products.ZenRelations.RelSchema import *
 
 
-class ZenPackable:
+class ZenPackable(object):
     "mix-in allows an object to be referenced by a ZenPack"
 
     meta_type = "ZenPackable"

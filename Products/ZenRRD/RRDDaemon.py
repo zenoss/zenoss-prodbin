@@ -1,3 +1,4 @@
+#! /usr/bin/env python 
 ###########################################################################
 #
 # This program is part of Zenoss Core, an open source monitoring platform.
@@ -10,7 +11,6 @@
 # For complete information please visit: http://www.zenoss.com/oss/
 #
 ###########################################################################
-#! /usr/bin/env python 
 
 __doc__='''RRDDaemon
 
@@ -32,7 +32,8 @@ from twisted.internet import reactor, defer
 from twisted.python import failure
 
 from Products.ZenHub.PBDaemon import FakeRemote, PBDaemon as Base
-from Products.ZenRRD.ThresholdManager import ThresholdManager, Threshold
+from Products.ZenRRD.Thresholds import Thresholds
+
 
 BAD_SEVERITY=Event.Warning
 
@@ -55,17 +56,28 @@ class RRDDaemon(Base):
     configCycleInterval = 20            # minutes
     rrd = None
     shutdown = False
+    thresholds = None
 
     def __init__(self, name):
         self.events = []
         self.name = name
         Base.__init__(self)
         evt = self.heartbeatevt.copy()
+        self.thresholds = Thresholds()
         self.heartbeatevt.update(dict(component=name,
                                       device=socket.getfqdn()))
 
     def getDevicePingIssues(self):
         return self.eventService().callRemote('getDevicePingIssues')
+
+    def remote_updateThresholdClasses(self, classes):
+        from Products.ZenUtils.Utils import importClass
+        self.log.debug("Loading classes %s", classes)
+        for c in classes:
+            try:
+                importClass(c)
+            except ImportError:
+                log.exception("Unable to import class %s", c)
 
     def remote_setPropertyItems(self, items):
         self.log.debug("Async update of collection properties")
@@ -90,6 +102,7 @@ class RRDDaemon(Base):
     def sendThresholdEvent(self, **kw):
         "Send the right event class for threshhold events"
         self.sendEvent({}, **kw)
+
 
     def heartbeat(self, *unused):
         'if cycling, send a heartbeat, else, shutdown'

@@ -465,10 +465,11 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable, Admini
         return cmps
 
     def getSnmpConnInfo(self):
-        return (self.id, 
+        return (self.id,
                 (self.manageIp, self.zSnmpPort),
                 (self.zSnmpCommunity, self.zSnmpVer,
-                 self.zSnmpTimeout, self.zSnmpTries))
+                 self.zSnmpTimeout, self.zSnmpTries),
+                self.zMaxOIDPerRequest)
 
 
     def getOSProcessConf(self):
@@ -476,28 +477,38 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable, Admini
         """
         if not self.snmpMonitorDevice():
             return None
-        procs = [ o.getOSProcessConf() for o in self.os.processes() \
-                  if o.monitored() ]
+        procs = [p for p in self.os.processes() if p.monitored()]
         if not procs:
             return None
-        return (float(self.getLastChange()), self.getSnmpConnInfo(), procs)
+        config = [ p.getOSProcessConf() for p in procs ]
+        threshs = [t for p in procs for t in p.getThresholdInstances('SNMP')]
+        return (float(self.getLastChange()),
+                self.getSnmpConnInfo(),
+                config,
+                threshs)
 
 
     def getSnmpOidTargets(self):
         """Return information for snmp collection on this device in the form
+        (lastChangeTimeInSecs,
         (devname,
-         (ip, snmpport),
-         (snmpcommunity, snmpversion, snmptimeout, snmptries)
-         [(name, oid, path, type, createCmd, thresholds),])
+           (ip, snmpport),
+           (snmpcommunity, snmpversion, snmptimeout, snmptries)),
+         [threshold,],
+         [(name, oid, path, type, createCmd),]),
+         zMaxOIDPerRequest
         """
         if not self.snmpMonitorDevice(): return None
-        oids = []
-        max = getattr(self, 'zMaxOIDPerRequest')
-        oids = (super(Device, self).getSnmpOidTargets())
+        oids, threshs = (super(Device, self).getSnmpOidTargets())
         for o in self.os.getMonitoredComponents():
             if o.meta_type != "OSProcess":
-                oids.extend(o.getSnmpOidTargets())
-        return (float(self.getLastChange()), self.getSnmpConnInfo(), oids, max)
+                o, t = o.getSnmpOidTargets()
+                oids.extend(o)
+                threshs.extend(t)
+        return (float(self.getLastChange()),
+                self.getSnmpConnInfo(),
+                threshs,
+                oids)
 
 
     def getDataSourceCommands(self):
@@ -505,17 +516,19 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable, Admini
         (device, user, pass [(cmdinfo,),...])
         """
         if not self.monitorDevice():
-            return None
-        cmds = (super(Device, self).getDataSourceCommands())
+            return []
+        cmds, threshs = (super(Device, self).getDataSourceCommands())
         for o in self.getMonitoredComponents():
-            cmds.extend(o.getDataSourceCommands())
+            c, t = o.getDataSourceCommands()
+            cmds.extend(c)
+            threshs.extend(t)
         if cmds:
             return (float(self.getLastChange()),
                     self.id, self.getManageIp(), self.zCommandPort,
                     self.zCommandUsername, self.zCommandPassword,
                     self.zCommandLoginTimeout, self.zCommandCommandTimeout,
                     self.zKeyPath,self.zMaxOIDPerRequest,
-                    cmds)
+                    cmds, threshs)
 
 
     def getXmlRpcTargets(self):

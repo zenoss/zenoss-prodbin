@@ -72,7 +72,7 @@ class EventFilter(object):
             agent=Select("Agent",[(x, x) for x in
             "zentrap", "zenprocess", "zenstatus", 
             "zenperfsnmp", "zensyslog", "zenxevent",
-            "zenmodeler","zenperfxmlrpc","zenping",
+            "zenmodeler","zenping",
             "zenactions","zencommand"]),
             facility=Select("Facility",[
             "auth","authpriv","cron","daemon","kern","lpr","mail",

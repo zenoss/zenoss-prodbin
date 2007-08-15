@@ -191,42 +191,27 @@ class RRDGraph(ZenModelRM):
             gopts += dp.graphOpts(rrdfile, defcolor, deftype, summary, multiid)
         return gopts
 
-
     def thresholds(self, gopts, context, template):
         """Add the hrule commands for any thresholds in this graph.
         """
         self._v_threshidx = len(self.colors)
-        allthreshs = template.thresholds()
         threshs = []
-        for thresh in allthreshs:
+        for thresh in template.thresholds():
             for dsname in thresh.dsnames:
                 if dsname in self.dsnames:
                     threshs.append(thresh)
                     break
         if threshs: gopts.append("COMMENT:Data Thresholds\j")
-        for thresh in threshs:
-            if thresh.meta_type == 'RRDThreshold':
-                minvalue = thresh.getGraphMinval(context)
-                label = thresh.getMinLabel(context)
-                self.threshLine(gopts, minvalue, context, label)
-                maxvalue = thresh.getGraphMaxval(context)
-                label = thresh.getMaxLabel(context)
-                self.threshLine(gopts, maxvalue, context, label)
+        for i, thresh in enumerate(threshs):
+            t = thresh.createThresholdInstance(context)
+            color = self.getthreshcolor()
+            gopts = t.getGraphElements(template, gopts, 'thresh%d' % i, color)
+        import logging
+        log = logging.getLogger("debug")
+        log.error('%r' % gopts)
         return gopts
 
 
-    def threshLine(self, gopts, value, context, label):
-        if value is None: return gopts
-        value = str(value)
-        gopts.append("HRULE:%s%s:%s" % (str(value), 
-                     self.getthreshcolor(), label))
-        #VDEF can't do full rpn expression yet still need HRULE
-        #gopts.append("VDEF:th%s=%s" % (self._v_threshidx, value))
-        #gopts.append("LINE1:th%#%s:%s" % (self._v_threshidx,
-        #    self.getthreshcolor(), thresh.getMaxLabel(context)))
-        return gopts
-
-    
     gelement = re.compile("^LINE|^AREA|^STACK", re.I).search
     def addSummary(self, gopts):
         """Add summary labels for all graphed elements in gopts.

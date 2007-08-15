@@ -19,10 +19,10 @@ Provides RRD services to zenhub clients.
 import os.path
 from HubService import HubService
 from Products.ZenRRD.RRDUtil import RRDUtil
-from Products.ZenRRD.ThresholdManager import ThresholdManager, Threshold
+from Products.ZenRRD.Thresholds import Thresholds
+import time
 import logging
 log = logging.getLogger("zenhub")
-
 
 class RRDService(HubService):
 
@@ -31,13 +31,11 @@ class RRDService(HubService):
         HubService.__init__(self, dmd, instance)
         # rrd is a dictionary of RRDUtil instances
         self.rrd = {}
-        # counts is a dictionary of integers tracking how many times
-        # each threshold has been exceeded sequentially.
-        self.counts = {}
-        
-    
+        self.thresholds = Thresholds()
+
+
     def remote_writeRRD(self, devId, compType, compId, dpName, value):
-        ''' Write the given data to it's rrd file.
+        '''Write the given data to its rrd file.
         Also check any thresholds and send events if value is out of bounds.
         '''
         log.debug('Writing %s %s' % (dpName, value))
@@ -54,12 +52,12 @@ class RRDService(HubService):
             rrd = RRDUtil(rrdCreateCmd, dp.datasource.cycletime)
             self.rrd[rrdKey] = rrd
         value = rrd.save(os.path.join(dev.rrdPath(), dp.name()),
-                        value, 
-                        dp.rrdtype,
-                        rrdCreateCmd,
-                        dp.datasource.cycletime,
-                        dp.rrdmin,
-                        dp.rrdmax)
+                         value, 
+                         dp.rrdtype,
+                         rrdCreateCmd,
+                         dp.datasource.cycletime,
+                         dp.rrdmin,
+                         dp.rrdmax)
         self.checkThresholds(dev, dp, value)
         return value
 
@@ -95,56 +93,15 @@ class RRDService(HubService):
             return
         # Loop through the enabled thresholds on the template containing
         # this datapoint.
-        for t in [t for t in dp.datasource.rrdTemplate.thresholds()
-                    if t.enabled and dp.name() in t.dsnames]:
-            log.debug('Checking %s value of %s against threshold %s: %s:%s' %
-                (dp.name(), value, t.id, t.getMinval(dev), t.getMaxval(dev)))
-            countKey = (dev.getPrimaryPath(), dp.getPrimaryPath(), t.id)
-            count = self.counts.setdefault(countKey, 0)
-            limit = None
-            how = None
-            maxv = t.getMaxval(dev)
-            if maxv is not None and value > maxv:
-                log.debug('threshold exceeded')
-                limit = maxv
-                how = 'exceeded'
-            else:
-                minv = t.getMinval(dev)
-                if minv is not None and value < minv:
-                    log.debug('threshold not met')
-                    limit = minv
-                    how = 'not met'
-            # Only need to take action if threshold was exceeded or if it was
-            # previously exceeded.
-            if how or count:
-                if dev.meta_type == 'Device':
-                    devId = dev.id
-                    compId = ''
-                else:
-                    devId = dev.device().id
-                    compId = dev.id
-                if how:
-                    self.counts[countKey] += 1
-                    severity = t.severity
-                    if t.escalateCount and count >= t.escalateCount:
-                        severity += 1
-                    summary = ('%s %s threshold of %s %s:' %
-                                (devId, dp.name(), limit, how) +
-                                ' current value %.2f' % float(value))
-                else:
-                    self.counts[countKey] = 0
-                    severity = 0
-                    summary = ('%s %s threshold restored' %
-                                (devId, dp.name()) +
-                                ' current value: %.2f' % float(value))
-                self.zem.sendEvent(dict(
-                                device=devId,
-                                summary=summary,
-                                eventClass=t.eventClass,
-                                eventKey=dp.name(),
-                                component=compId,
-                                severity=severity))
-
-
-
-
+        thresholds = [t for t in dp.datasource.rrdTemplate.thresholds()]
+        thresholds = [t for t in thresholds if t.enabled]
+        thresholds = [t for t in thresholds if dp.name() in t.dsnames]
+        for t in thresholds:
+            log.debug('Checking %s value of %s against threshold %s' %
+                      (dp.name(), value, t.id))
+            ti = t.createThresholdInstance(dev)
+            self.thresholds.update(ti)
+            for ev in self.thresholds.check(ti.context().fileKey(dp.name()),
+                                            time.time(),
+                                            value):
+                self.zem.sendEvent(ev)

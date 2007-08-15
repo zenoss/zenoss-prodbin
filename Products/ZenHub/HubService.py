@@ -13,10 +13,12 @@
 from twisted.spread import pb
 
 import logging
-log = logging.getLogger("zenhub")
+hubLog = logging.getLogger("zenhub")
 
 
 class HubService(pb.Referenceable):
+
+    log = hubLog
 
     def __init__(self, dmd, instance):
         self.dmd = dmd
@@ -32,11 +34,11 @@ class HubService(pb.Referenceable):
 
     def addListener(self, remote):
         remote.notifyOnDisconnect(self.removeListener)
-        log.info("adding listener")
+        self.log.info("adding listener")
         self.listeners.append(remote)
 
     def removeListener(self, listener):
-        log.warning("removing listener")
+        self.log.warning("removing listener")
         try:
             self.listeners.remove(listener)
         except ValueError:

@@ -21,7 +21,6 @@ $Id: PerformanceConf.py,v 1.30 2004/04/06 18:16:30 edahl Exp $"""
 __version__ = "$Revision: 1.30 $"[11:-2]
 
 import os
-import glob
 import zlib
 import transaction
 import logging
@@ -41,8 +40,6 @@ except ImportError, ex:
 
 import xmlrpclib
 
-from sets import Set
-
 from ZODB.POSException import POSError
 from AccessControl import ClassSecurityInfo
 from Globals import DTMLFile
@@ -55,7 +52,6 @@ from Products.ZenRelations.RelSchema import *
 
 from Products.ZenUtils.Exceptions import ZentinelException
 from Products.ZenUtils.Utils import basicAuthUrl
-
 from Products.ZenEvents.ZenEventClasses import Status_Snmp
 
 from Monitor import Monitor
@@ -63,9 +59,12 @@ from StatusColor import StatusColor
 
 from ZenDate import ZenDate
 
-PERF_ROOT = os.path.join(os.environ['ZENHOME'], "perf")
+PERF_ROOT=None
 
 def performancePath(target):
+    global PERF_ROOT
+    if PERF_ROOT is None:
+        PERF_ROOT = os.path.join(os.environ['ZENHOME'], "perf")
     if target.startswith("/"): target = target[1:]
     return os.path.join(PERF_ROOT, target)
 
@@ -167,150 +166,6 @@ class PerformanceConf(Monitor, StatusColor):
           },
         )
 
-    security.declareProtected('View','getDevices')
-    def getDevices(self, devices=None):
-        """Return information for snmp collection on all devices in the form
-        (devname, ip, snmpport, snmpcommunity [(oid, path, type),])"""
-        if devices:
-            if not isinstance(devices, list):
-                devices = Set([devices])
-            else:
-                devices = Set(devices)
-        result = []
-        for dev in self.devices():
-            if devices and dev.id not in devices: continue
-            dev = dev.primaryAq()
-            try:
-                config = dev.getSnmpOidTargets()
-                if config:
-                    result.append(config)
-            except POSError: raise
-            except:
-                log.exception("device %s", dev.id)
-        return result
-
-    def getDeviceUpdates(self, devices):
-        """Return a list of devices that have changed.
-        Takes a list of known devices and the time of last known change.
-        The result is a list of devices that have changed,
-        or not in the list."""
-        lastChanged = dict(devices)
-        new = Set()
-        all = Set()
-        for dev in self.devices():
-            dev = dev.primaryAq()
-            if dev.snmpMonitorDevice():
-                all.add(dev.id)
-                if lastChanged.get(dev.id, 0) < float(dev.getLastChange()):
-                    new.add(dev.id)
-        deleted = Set(lastChanged.keys()) - all
-        return list(new | deleted)
-
-    security.declareProtected('View','getDevices')
-    def getSnmpStatus(self, devname=None):
-        "Return the failure counts for Snmp" 
-        result = []
-        counts = {}
-        try:
-            # get all the events with /Status/Snmp
-            zem = self.dmd.ZenEventManager
-            conn = zem.connect()
-            try:
-                curs = conn.cursor()
-                cmd = ('SELECT device, sum(count)  ' +
-                       '  FROM status ' +
-                       ' WHERE eventClass = "%s"' % Status_Snmp)
-                if devname:
-                    cmd += ' AND device = "%s"' % devname
-                cmd += ' GROUP BY device'
-                curs.execute(cmd);
-                counts = dict([(d, int(c)) for d, c in curs.fetchall()])
-            finally: zem.close(conn)
-        except Exception, ex:
-            log.exception('Unable to get Snmp Status')
-            raise
-        if devname:
-            return [(devname, counts.get(devname, 0))]
-        return [(dev.id, counts.get(dev.id, 0)) for dev in self.devices()]
-
-
-    def getProcessStatus(self, device=None):
-        "Get the known process status from the Event Manager"
-        from Products.ZenEvents.ZenEventClasses import Status_OSProcess
-        zem = self.dmd.ZenEventManager
-        down = {}
-        conn = zem.connect()
-        try:
-            curs = conn.cursor()
-            query = ("SELECT device, component, count"
-                    "  FROM status"
-                    " WHERE eventClass = '%s'" % Status_OSProcess)
-            if device:
-                query += " AND device = '%s'" % device
-            curs.execute(query)
-            for device, component, count in curs.fetchall():
-                down[device] = (component, count)
-        finally: zem.close(conn)
-        result = []
-        for dev in self.devices():
-            try:
-                component, count = down[dev.id]
-                result.append( (dev.id, component, count) )
-            except KeyError:
-                pass
-        return result
-
-    def getOSProcessConf(self, devices = None):
-        '''Get the OS Process configuration for all devices.
-        '''
-        result = []
-        for dev in self.devices():
-            if devices and dev.id not in devices:
-                continue
-            dev = dev.primaryAq()
-            try:
-                procinfo = dev.getOSProcessConf()
-                if procinfo:
-                    result.append(procinfo)
-            except POSError: raise
-            except:
-                log.exception("device %s", dev.id)
-        return result
-
-
-    def getDataSourceCommands(self, devices = None):
-        '''Get the command configuration for all devices.
-        '''
-        result = []
-        for dev in self.devices():
-            if devices and dev.id not in devices: continue
-            dev = dev.primaryAq()
-            try:
-                cmdinfo = dev.getDataSourceCommands()
-                if not cmdinfo: continue
-                result.append(cmdinfo)
-            except POSError: raise
-            except:
-                log.exception("device %s", dev.id)
-        return result
-        
-
-    def getXmlRpcDevices(self, devname=None):
-        '''Get the XMLRPC configuration for all devices.
-        '''
-        result = []
-        for dev in self.devices():
-            if devname and dev.id != devname: continue
-            dev = dev.primaryAq()
-            if dev.monitorDevice() and dev.getXmlRpcStatus() != -1:
-                try:
-                    result.append(dev.getXmlRpcTargets())
-                except POSError: raise
-                except:
-                    log.exception("device %s", dev.id)
-        return result
-
-
     security.declareProtected('View','getDefaultRRDCreateCommand')
     def getDefaultRRDCreateCommand(self):
         """Get the default RRD Create Command, as a string.
@@ -336,7 +191,6 @@ class PerformanceConf(Monitor, StatusColor):
                 width = o.split('=')[1].strip()
                 continue
             ngopts.append(o)
-        import base64
         gopts = urlsafe_b64encode(zlib.compress('|'.join(ngopts), 9))
         url = "%s/render?gopts=%s&drange=%d&width=%s" % (
                 self.renderurl,gopts,drange, width)
