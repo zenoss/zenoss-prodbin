@@ -32,9 +32,10 @@ class ThresholdClass(ZenModelRM, ZenPackable):
     dsnames = []
     enabled = True
 
-    def __init__(self, id):
+    def __init__(self, id, buildRelations=True):
         self.id = id
-        self.buildRelations()
+        if buildRelations:
+            self.buildRelations()
 
     _properties = (
         {'id':'dsnames', 'type':'lines', 'mode':'w'},
