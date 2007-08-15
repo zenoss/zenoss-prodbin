@@ -1,0 +1,38 @@
+
+
+<tal:block tal:define="tableName string:graphreport;
+    tabletitle here/id;
+    drange python: here.ZenTableManager.setReqTableState(
+    tableName,'drange',129600)">
+    <input type='hidden' name='tableName' tal:attributes="value tableName" />
+<tal:block metal:use-macro="here/zenuimacros/macros/zentable">
+
+
+<tal:block metal:fill-slot="zentablecontents">
+
+<!-- BEGIN TABLE CONTENTS -->
+
+    <tal:block tal:repeat="graph python:here.getGraphs(drange=drange)">
+    <tal:block tal:define="graphid string:graph_${repeat/graph/index}">
+        <tr><td class="tableheader" tal:content="graph/title">title 
+		<tal:dummy tal:replace="graph/url"/></td></tr>
+        <tr><td class="tablevalues">
+            <img src="_" 
+            tal:attributes="src graph/url;
+                            id graphid"/>
+            <script language="javascript" type="text/javascript"
+            tal:content="string:ZenGraphs[ZenGraphs.length]='${graphid}';"></script>
+            </td>
+
+        </tr>
+    </tal:block>
+    </tal:block>
+<script>
+    document.write('<\/script><script src="zenrrdzoom.js"><\/script><script>');
+</script>
+
+<!-- END TABLE CONTENTS -->
+
+</tal:block>
+</tal:block>
+</tal:block>

@@ -1,0 +1,89 @@
+<tal:block metal:use-macro="here/templates/macros/page2">
+<tal:block metal:fill-slot="contentPane">
+
+<form method="post"
+    tal:attributes="action string:${here/absolute_url_path}/${template/id}">
+
+<tal:block tal:replace="structure string:<script language=&quot;javascript&quot; type=&quot;text/javascript&quot;>
+var absoluteUrlPath = &quot;${here/absolute_url_path}&quot;;
+</script>" />
+
+<script language="javascript" type="text/javascript">
+var ZenGraphs = new Array();
+
+function printable() {
+    var url = absoluteUrlPath + '/viewGraphReportClean';
+    var first = true;
+    for (i=0; i < ZenGraphs.length; i++) {
+        if (first)
+            z = '?';
+        else
+            z = '&';
+        url = url + z + 'graph=' + escape(ZenGraphs[i].url);
+    }
+    parent.location.href = url;
+}
+</script>
+
+
+<tal:block tal:define="tableName string:graphreport;
+    tabletitle here/id;
+    drange python: here.ZenTableManager.setReqTableState(
+    tableName,'drange',129600)">
+    <input type='hidden' name='tableName' tal:attributes="value tableName" />
+<tal:block metal:use-macro="here/zenuimacros/macros/zentable">
+
+<tal:block metal:fill-slot="filterslot">
+        &nbsp;&nbsp;&nbsp;&nbsp;Range
+        <select class="tableheader" name="drange:int"
+            onchange="resetGraphs(this.value)"
+            id="drange_select">
+            <option tal:repeat="r here/performanceDateRanges" 
+                tal:content='python:r[0]' 
+                tal:attributes="value python:r[1]; 
+                                selected python:r[1]==drange"/>
+        </select>
+    <input class="tableheader" type="button" value="Reset"
+    onclick="resetGraphs($('drange_select').value);"
+    style="margin-left:2em;"/>
+    <span style="margin-left:2em;" id="linkcheck_label">Link graphs?</span>
+    <input type="checkbox" style="border:1px solid black;padding-top:0.5em;" 
+           checked onchange="linkGraphs(this.checked)" id="linkcheck"/>
+    &nbsp;&nbsp;&nbsp;&nbsp;
+    <input class="tableheader" type="button" value="Printable"
+    onclick="printable()"
+    style="margin-left:2em;"/>
+</tal:block>
+
+<tal:block metal:fill-slot="zentablecontents">
+
+<!-- BEGIN TABLE CONTENTS -->
+
+    <tal:block tal:repeat="graph python:here.getGraphs(drange=drange)">
+    <tal:block tal:define="graphid string:graph_${repeat/graph/index}">
+        <tr><td class="tableheader" tal:content="graph/title">title 
+		<tal:dummy tal:replace="graph/url"/></td></tr>
+        <tr><td class="tablevalues">
+            <img src="_" 
+            tal:attributes="src graph/url;
+                            id graphid"/>
+            <script language="javascript" type="text/javascript"
+            tal:content="string:ZenGraphs[ZenGraphs.length]='${graphid}';"></script>
+            </td>
+
+        </tr>
+    </tal:block>
+    </tal:block>
+<script>
+    document.write('<\/script><script src="zenrrdzoom.js"><\/script><script>');
+</script>
+
+<!-- END TABLE CONTENTS -->
+
+</tal:block>
+</tal:block>
+</tal:block>
+
+</form>
+</tal:block>
+</tal:block>

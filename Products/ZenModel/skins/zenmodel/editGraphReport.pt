@@ -1,0 +1,208 @@
+<tal:block metal:use-macro="here/templates/macros/page2">
+<tal:block metal:fill-slot="contentPane">
+
+<script type="text/javascript" src="/zport/js/MochiKit.js"></script>
+<script type="text/javascript">
+    function updateSelect(widget, options) {
+        widget.options.length = 0;
+        for (var i = 0; i < options.length; i++) {
+            widget.options[i] = new Option(options[i],options[i], false, false);
+        }
+    }
+    
+    function getDeviceList() {
+        var filter = document.getElementById('deviceFilter');
+        var widget = document.getElementById('deviceId');
+        var url = '/zport/dmd/Devices/getDeviceNames'
+        var d = loadJSONDoc(url, {'query': filter.value});
+        d.addBoth(updateSelect, widget);
+    }
+    
+    function getComponentList() {
+        var deviceWidget = document.getElementById('deviceId');
+        var compWidget = document.getElementById('componentPath');
+        var url = '/zport/dmd/Devices/gotComponentPaths';
+        var d = loadJSONDoc(url, {'query': deviceWidget.value});
+        d.addBoth(updateSelect, compWidget);
+    }
+    
+    
+</script>
+
+<form method=post 
+    tal:attributes="action string:${here/absolute_url_path}">
+    <input type="hidden" name="zenScreenName" 
+        tal:attributes="value template/id" /> 
+
+
+        <tal:block tal:define="tabletitle string: Graph Report">
+        <tal:block metal:use-macro="here/zenuimacros/macros/zentable">
+
+        <tal:block metal:fill-slot="zentablecontents">
+        <!-- BEGIN TABLE CONTENTS -->
+            
+    <tr>
+        <td class="tableheader">Name</td>
+        <td class="tablevalues" tal:condition="here/isManager">
+            <input class="tablevalues" type="text" name="newId" size="40"
+                tal:attributes="value here/id" />
+        </td>
+        <td class="tablevalues" tal:condition="not:here/isManager"
+            tal:content="here/id"/>
+    </tr>
+    <tr>
+        <td class="tableheader">
+        </td>
+        <td class="tableheader" colspan="3">
+            <input class="tableheader" type="submit" value=" Save "
+                name="zmanage_editProperties:method" />
+        </td>
+    </tr>
+
+        <!-- END TABLE CONTENTS -->
+
+        </tal:block>
+        </tal:block>
+        </tal:block>
+</form>
+<br />
+
+<form method="get" 
+    tal:condition="here/isManager"
+    tal:attributes="action string:${here/absolute_url_path}"
+    tal:define="curDevice request/deviceId | nothing;
+                curComponent request/componentPath | nothing;"
+    >
+    <input type="hidden" name="zenScreenName" 
+        tal:attributes="value template/id" /> 
+
+
+        <tal:block tal:define="tabletitle string:Add New Graph">
+        <tal:block metal:use-macro="here/zenuimacros/macros/zentable">
+
+        <tal:block metal:fill-slot="zentablecontents">
+        <!-- BEGIN TABLE CONTENTS -->            
+    <tr>
+        <td class="tableheader">Device</td>
+        <td class="tablevalues"
+            tal:define="curFilter request/deviceFilter | nothing">
+            <input class="tablevalues" type="text" name="deviceFilter"
+                 id="deviceFilter" size="20" tal:attributes="value curFilter"/>
+            <input class="tableheader" type="button" value="Filter" 
+                name="filter" />
+            <br />
+            <select class="tablevalues" name="deviceId" id="deviceId" size="8"
+            tal:define="devices python:here.getFilteredDeviceList(curFilter)">
+                <option tal:repeat="device devices"
+                    tal:attributes="value device/id;
+                    selected python:device.id == curDevice;"
+                    tal:content="device/id"></option>
+            </select>
+            <input class="tableheader" type="submit" 
+                name="selectDevice:method" value="Select" />
+        </td>
+	
+    </tr>
+    <tr>
+        <td class="tableheader">Component</td>
+        <td class="tablevalues">
+            <select class="tablevalues" name="componentPath" size="8"
+                id="componentPath"
+                tal:define="comps python:here.getComponentOptions(curDevice)">
+                <option tal:repeat="comp comps"
+                    tal:attributes="value comp;
+                    selected python:comp == curComponent;"
+                    tal:content="comp"></option>
+            </select>
+            <input class="tableheader" type="submit" 
+                name="selectComponent:method" value="Select" />
+        </td>
+    </tr>
+    <tr>
+        <td class="tableheader">Graph</td>
+        <td class="tablevalues">
+            <select class="tablevalues" name="graphIds:list" size="8"
+                tal:define="
+                graphs python:here.getAvailableGraphs(curDevice, curComponent);"
+                >
+                <option tal:repeat="graph graphs"
+                    tal:attributes="value graph/id"
+                    tal:content="graph/id"></option>
+            </select>
+        </td>
+    </tr>
+    <tr>
+        <td class="tableheader">
+        </td>
+        <td class="tableheader" colspan="3">
+            <input class="tableheader" type="submit" value=" Add To Report "
+                name="manage_addGraphElement:method" />
+        </td>
+    </tr>
+
+        <!-- END TABLE CONTENTS -->
+
+        </tal:block>
+        </tal:block>
+        </tal:block>
+</form>
+<br />
+
+<form tal:attributes="method string:post;
+                action here/absolute_url_path;
+                name string:graphReportElementListform">
+<input type="hidden" name="zenScreenName" tal:attributes="value template/id"/>
+
+
+        <tal:block tal:define="tableName string:graphReportElementList; 
+        objects here/elements;
+        batch python:here.ZenTableManager.getBatch(tableName,objects,
+                                                sortedHeader='sequence'); 
+        tabletitle string:Graphs;
+		menu_id string:GraphReportElement_list">
+    <input type='hidden' name='tableName' tal:attributes="value tableName" />
+        <tal:block metal:use-macro="here/zenuimacros/macros/zentable">
+
+        <tal:block metal:fill-slot="zentablecontents">
+        <!-- BEGIN TABLE CONTENTS -->
+            
+    <tal:block>
+    <tr>
+        <th tal:condition="here/isManager"
+	    tal:replace="structure python:here.ZenTableManager.getTableHeader(
+                    tableName,'sequence','Seq')"/>
+        <th tal:condition="here/isManager" class="tableheader"/>
+        <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
+                    tableName,'getComponentDesc','Device/Component')"/>
+        <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
+                    tableName,'graphId','Graph')"/>
+    </tr>
+    <tr class="tablevalues" tal:repeat="element batch">
+        <td valign="top" tal:condition="here/isManager">
+            <input type="text" name="seqmap:list" size="2" 
+		tal:attributes="value element/sequence"/>
+            <input
+                type="hidden" name="origseq:list"
+                tal:attributes="value element/sequence" />
+        </td>
+        <td valign="top" tal:condition="here/isManager">
+            <input 
+                type="checkbox" name="ids:list" 
+                tal:attributes="value element/getId"/>
+        </td>
+        <td valign="top" tal:content="element/getComponentDesc"/>
+        <td valign="top" tal:content="element/graphId"/>
+    </tr>
+    </tal:block>
+
+        <!-- END TABLE CONTENTS -->
+
+        </tal:block>
+        </tal:block>
+        </tal:block>
+        
+</form>
+
+
+</tal:block>
+</tal:block>

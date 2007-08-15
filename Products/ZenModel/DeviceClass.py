@@ -23,6 +23,7 @@ import time
 import urllib
 from glob import glob
 import transaction
+import simplejson
 import logging
 log = logging.getLogger('zen.DeviceClass')
 
@@ -342,7 +343,7 @@ class DeviceClass(DeviceOrganizer, ZenPackable):
         names = zcatalog.evalAdvancedQuery(query)
         if ips:
             names += ips
-        if len(names) == 1:
+        if REQUEST and len(names) == 1:
             raise Redirect(urllib.quote(names[0].getPrimaryId))
         return self._convertResultsToObj(names)
    
@@ -397,6 +398,35 @@ class DeviceClass(DeviceOrganizer, ZenPackable):
             return devobj
         except KeyError:
             log.warn("bad path '%s' in index deviceSearch", ret[0].getPrimaryId)
+
+
+    security.declareProtected('View', 'getDeviceNames')
+    def getDeviceNames(self, query=''):
+        ''' Return a list of all device names that match the filter.
+        '''
+        def cmpDevice(a, b):
+            return cmp(a.id, b.id)
+        if query:
+            devices = self.searchDevices(query)
+        else:
+            devices = self.getSubDevices()
+        devices.sort(cmpDevice)
+        return simplejson.dumps([d.id for d in devices])
+
+
+    security.declareProtected('View', 'getComponentPaths')
+    def getComponentPaths(self, deviceId):
+        ''' Return a list of all component names that match the device
+        '''
+        d = self.findDevice(deviceId)
+        if d:
+            dPathLen = len(d.getPrimaryId()) + 1
+            comps = d.getMonitoredComponents()
+            paths = [c.getPrimaryId()[dPathLen:] for c in comps]
+            paths.sort()
+        else:
+            paths = []
+        return simplejson.dumps(paths)
 
 
     def findDevicePingStatus(self, devicename):

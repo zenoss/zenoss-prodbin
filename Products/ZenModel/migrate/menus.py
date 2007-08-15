@@ -37,7 +37,7 @@ ZenPackItems = dict(
     )
 
 class MenuRelations(Migrate.Step):
-    version = Migrate.Version(2, 0, 3)
+    version = Migrate.Version(2, 0, 5)
 
     def cutover(self, dmd):
         dmd.buildRelations()
@@ -383,6 +383,18 @@ class MenuRelations(Migrate.Step):
                    'ordering': 90.0,
                    'permissions': ('Change Device',)},
                 {  'action': "javascript:submitFormToMethod('graphList', 'manage_resequenceRRDGraphs')",
+                   'description': 'Re-sequence Graphs',
+                   'id': 'resequenceGraphs',
+                   'ordering': 80.0,
+                   'permissions': ('Change Device',)}],
+'GraphReportElement_list': [ 
+                {  'action': 'dialog_deleteGraphReportElement',
+                   'description': 'Delete Graph...',
+                   'id': 'deleteGraph',
+                   'isdialog': True,
+                   'ordering': 90.0,
+                   'permissions': ('Change Device',)},
+                {  'action': "javascript:submitFormToMethod('graphReportElementListform', 'manage_resequenceGraphReportElements')",
                    'description': 'Re-sequence Graphs',
                    'id': 'resequenceGraphs',
                    'ordering': 80.0,

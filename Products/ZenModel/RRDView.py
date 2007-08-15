@@ -201,6 +201,16 @@ class RRDView(object):
                 except ConfigurationError:
                     pass
         return graphs
+        
+        
+    def getGraph(self, graphId):
+        ''' Fetch a graph by id.  if not found return None
+        '''
+        for t in self.getRRDTemplates():
+            for g in t.getGraphs():
+                if g.id == graphId:
+                    return g
+        return None
             
     
     def getRRDTemplateName(self):

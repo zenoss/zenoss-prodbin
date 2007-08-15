@@ -81,7 +81,7 @@ class ReportClass(Organizer, ZenPackable):
     def reports(self):
         """Return list of report instances.
         """
-        return [ r for r in self.objectValues(spec=('Report','DeviceReport')) ]
+        return [ r for r in self.objectValues(spec=('Report','DeviceReport','GraphReport')) ]
 
         
     def countReports(self):
@@ -102,6 +102,19 @@ class ReportClass(Organizer, ZenPackable):
             self._setObject(id, dr)
         if REQUEST:
             REQUEST['message'] = "Device report created"
+            return self.callZenScreen(REQUEST)
+
+
+    security.declareProtected('Manage DMD', 'manage_addGraphReport')
+    def manage_addGraphReport(self, id, REQUEST=None):
+        """Add an graph report to this object.
+        """
+        if id:
+            from Products.ZenModel.GraphReport import GraphReport
+            gr = GraphReport(id)
+            self._setObject(id, gr)
+        if REQUEST:
+            REQUEST['message'] = "Graph report created"
             return self.callZenScreen(REQUEST)
 
     
