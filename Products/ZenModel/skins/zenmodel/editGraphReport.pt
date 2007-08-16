@@ -66,6 +66,15 @@
             tal:content="here/id"/>
     </tr>
     <tr>
+        <td class="tableheader">Comments</td>
+        <td class="tablevalues" tal:condition="here/isManager">
+            <textarea class="tablevalues" name="comments" rows="4" cols="60"
+                tal:content="here/comments"></textarea>
+        </td>
+        <td class="tablevalues" tal:condition="not:here/isManager"
+            tal:content="here/comments"/>
+    </tr>
+    <tr>
         <td class="tableheader">
         </td>
         <td class="tableheader" colspan="3">
@@ -127,13 +136,6 @@
                 id="graphIds"
                 multiple="1">
             </select>
-        </td>
-    </tr>
-    <tr>
-        <td class="tableheader">Comments</td>
-        <td class="tablevalues">
-            <textarea class="tablevalues" name="comments" rows="2" cols="60"
-                tal:attributes="content here/comments"></textarea>
         </td>
     </tr>
     <tr>

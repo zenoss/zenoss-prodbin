@@ -42,10 +42,11 @@
         </td>
         <td class="tablevalues" tal:condition="not:here/isManager"
             tal:content="here/comments"/>
+    </tr>
     <tr>
         <td class="tableheader">Evaluated Comments</td>
         <td class="tablevalues">
-            <tal:dummy tal:replace="here/getComments"/>
+            <tal:dummy tal:replace="structure here/getComments"/>
         </td>
     </tr>
     <tr>

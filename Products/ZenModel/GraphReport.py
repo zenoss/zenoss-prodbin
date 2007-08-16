@@ -16,6 +16,7 @@ from AccessControl import ClassSecurityInfo
 from ZenModelRM import ZenModelRM
 from Products.ZenRelations.RelSchema import *
 from GraphReportElement import GraphReportElement
+from Products.ZenUtils.ZenTales import talesCompile, getEngine
 
 def manage_addGraphReport(context, id, REQUEST = None):
     ''' Create a new GraphReport
@@ -32,7 +33,7 @@ class GraphReport(ZenModelRM):
 
     meta_type = "GraphReport"
     
-    comments = ''
+    comments = '${report/id}'
 
     _properties = ZenModelRM._properties + (
         {'id':'comments', 'type':'text', 'mode':'w'},
@@ -132,43 +133,18 @@ class GraphReport(ZenModelRM):
         return resequence(self, self.elements(), seqmap, origseq, REQUEST)
     
 
-    # security.declareProtected('Manage DMD', 'getFilteredDeviceList')
-    # def getFilteredDeviceList(self, filter=''):
-    #     ''' Return list of devices matching the device filter field
-    #     '''
-    #     def cmpDevice(a, b):
-    #         return cmp(a.id, b.id)
-    #     if filter:
-    #         devices = self.dmd.Devices.searchDevices(filter)
-    #     else:
-    #         devices = self.dmd.Devices.getSubDevices()
-    #     devices.sort(cmpDevice)
-    #     return devices
-    # 
-    # 
-    # def getComponentOptions(self, deviceId):
-    #     ''' Return options for the component selection list
-    #     '''
-    #     d = self.dmd.Devices.findDevice(deviceId)
-    #     if d:
-    #         dPathLen = len(d.getPrimaryId()) + 1
-    #         comps = d.getMonitoredComponents()
-    #         paths = [c.getPrimaryId()[dPathLen:] for c in comps]
-    #         return paths
-    #     return []
-    
-    
-    # def getAvailableGraphs(self, deviceId, componentPath=''):
-    #     ''' Return the graph ids of the given device/component
-    #     '''
-    #     graphs = []
-    #     thing = self.getThing(deviceId, componentPath)
-    #     if thing:
-    #         for t in thing.getRRDTemplates():
-    #             graphs += t.getGraphs()
-    #     return graphs
-    # 
-    # 
+    security.declareProtected('View', 'getComments')
+    def getComments(self):
+        ''' Returns tales-evaluated comments
+        '''
+        compiled = talesCompile('string:' + self.comments)
+        e = {'rpt': self, 'report': self}
+        result = compiled(getEngine().getContext(e))
+        if isinstance(result, Exception):
+            result = 'Error: %s' % str(result)
+        return result
+
+
     def getGraphs(self, drange=None):
         """get the default graph list for this object"""
         def cmpGraphs(a, b):

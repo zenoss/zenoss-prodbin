@@ -30,17 +30,13 @@ body {
 <table border="0">
     <tr>
         <td id="reportTitle" colspan="2">
-            <tal:dummy tal:replace="here/id"/><br />&nbsp;
+            <tal:dummy tal:replace="structure here/getComments"/>
+            <br />&nbsp;
+        </td>
     </tr>   
     <tr tal:repeat="element here/getElements">
         <td valign="top">
-            Device:
-            <tal:dummy tal:replace="element/deviceId"/><br />
-            Component: 
-            <tal:dummmy tal:replace="element/getComponentDesc"/><br />
-            Graph: 
-            <tal:dummy tal:replace="element/graphId"/><br />
-            <tal:dummy tal:replace="structure element/getComments"/>
+            <tal:dummy tal:replace="structure element/getComments" />
         </td>
         <td tal:define="i repeat/element/index;
                         graphSrc python:request['graph_%s' % i]">

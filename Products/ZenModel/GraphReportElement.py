@@ -34,7 +34,7 @@ class GraphReportElement(ZenModelRM):
     componentPath = ''
     graphId = ''
     sequence = 0
-    comments = ''
+    comments = 'Device: ${dev/id}<br />\nComponent: ${comp/id}<br />\n${graph/id}'
         
     _properties = ZenModelRM._properties + (
         {'id':'deviceId', 'type':'string', 'mode':'w'},
