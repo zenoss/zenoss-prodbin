@@ -31,11 +31,11 @@ class TestGroups(SelTestBase):
         
         self.waitForElement("link=Groups")
         self.selenium.click("link=Groups")
-        self.selenium.wait_for_page_to_load("30000")
+        self.selenium.wait_for_page_to_load(self.WAITTIME)
         self.addDialog(new_id=("text", "testingString"))
-        self.selenium.wait_for_page_to_load("30000")
+        self.selenium.wait_for_page_to_load(self.WAITTIME)
         self.deleteDialog()
-        self.selenium.wait_for_page_to_load("30000")
+        self.selenium.wait_for_page_to_load(self.WAITTIME)
         
 if __name__ == "__main__":
     unittest.main()

@@ -31,11 +31,11 @@ class TestReports(SelTestBase):
         
         self.waitForElement("link=Reports")
         self.selenium.click("link=Reports")
-        self.selenium.wait_for_page_to_load("30000")
+        self.selenium.wait_for_page_to_load(self.WAITTIME)
         self.addDialog(addType="ReportClasslistaddReportClass", new_id=("text", "testingString"))
-        self.selenium.wait_for_page_to_load("30000")
+        self.selenium.wait_for_page_to_load(self.WAITTIME)
         self.deleteDialog(deleteType="ReportClasslistdeleteReportClasses", form_name="reportClassForm")
-        self.selenium.wait_for_page_to_load("30000")
+        self.selenium.wait_for_page_to_load(self.WAITTIME)
         
 if __name__ == "__main__":
     unittest.main()

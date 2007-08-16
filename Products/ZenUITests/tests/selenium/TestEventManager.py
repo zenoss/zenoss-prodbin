@@ -31,12 +31,12 @@ class TestEventManager(SelTestBase):
         """Test refreshing the event schema"""
         self.waitForElement("link=Event Manager")
         self.selenium.click("link=Event Manager")
-        self.selenium.wait_for_page_to_load("30000")
+        self.selenium.wait_for_page_to_load(self.WAITTIME)
         self.waitForElement("link=Refresh Event Schema...")
         self.selenium.click("link=Refresh Event Schema...")    
         self.waitForElement("manage_refreshConversions:method")
         self.selenium.click("manage_refreshConversions:method")
-        self.selenium.wait_for_page_to_load("30000")
+        self.selenium.wait_for_page_to_load(self.WAITTIME)
         self.waitForElement("manage_editEventManager:method")
         self.selenium.click("manage_editEventManager:method")
         
@@ -44,12 +44,12 @@ class TestEventManager(SelTestBase):
         """Test clearing the event cache"""
         self.waitForElement("link=Event Manager")
         self.selenium.click("link=Event Manager")
-        self.selenium.wait_for_page_to_load("30000")
+        self.selenium.wait_for_page_to_load(self.WAITTIME)
         self.waitForElement("link=Clear Event Cache...")
         self.selenium.click("link=Clear Event Cache...")
         self.waitForElement("manage_clearCache:method")
         self.selenium.click("manage_clearCache:method")
-        self.selenium.wait_for_page_to_load("30000")
+        self.selenium.wait_for_page_to_load(self.WAITTIME)
         self.waitForElement("manage_editEventManager:method")
         self.selenium.click("manage_editEventManager:method")
         
@@ -57,12 +57,12 @@ class TestEventManager(SelTestBase):
         """Test clearing all heartbeats"""
         self.waitForElement("link=Event Manager")
         self.selenium.click("link=Event Manager")
-        self.selenium.wait_for_page_to_load("30000")
+        self.selenium.wait_for_page_to_load(self.WAITTIME)
         self.waitForElement("link=Clear All Heartbeats...")
         self.selenium.click("link=Clear All Heartbeats...")
         self.waitForElement("manage_clearHeartbeats:method")
         self.selenium.click("manage_clearHeartbeats:method")
-        self.selenium.wait_for_page_to_load("30000")
+        self.selenium.wait_for_page_to_load(self.WAITTIME)
         self.waitForElement("manage_editEventManager:method")
         self.selenium.click("manage_editEventManager:method")
         
@@ -70,7 +70,7 @@ class TestEventManager(SelTestBase):
         """Test editing event database properties"""
         self.waitForElement("link=Event Manager")
         self.selenium.click("link=Event Manager")
-        self.selenium.wait_for_page_to_load("30000")
+        self.selenium.wait_for_page_to_load(self.WAITTIME)
         #Edit the Event Manager
         self.waitForElement("history_clearthresh:int")
         self.selenium.type("timeout:int", "19")
@@ -79,7 +79,7 @@ class TestEventManager(SelTestBase):
         self.selenium.type("history_clearthresh:int", "19")
         self.waitForElement("manage_editEventManager:method")
         self.selenium.click("manage_editEventManager:method")
-        self.selenium.wait_for_page_to_load("30000")
+        self.selenium.wait_for_page_to_load(self.WAITTIME)
         #Change back to initial values
         self.waitForElement("history_clearthresh:int")
         self.waitForElement("manage_editEventManager:method")
@@ -94,10 +94,10 @@ class TestEventManager(SelTestBase):
         """Test editing the fields tab"""    
         self.waitForElement("link=Event Manager")
         self.selenium.click("link=Event Manager")
-        self.selenium.wait_for_page_to_load("30000")
+        self.selenium.wait_for_page_to_load(self.WAITTIME)
         self.waitForElement("link=Fields")
         self.selenium.click("link=Fields")
-        self.selenium.wait_for_page_to_load("30000")
+        self.selenium.wait_for_page_to_load(self.WAITTIME)
         self.waitForElement("zmanage_editProperties:method")
         self.selenium.click("zmanage_editProperties:method")
 
@@ -106,10 +106,10 @@ class TestEventManager(SelTestBase):
 #        """Test adding, editing and deleting commands"""
 #        self.waitForElement("link=Event Manager")
 #        self.selenium.click("link=Event Manager")
-#        self.selenium.wait_for_page_to_load("30000")
+#        self.selenium.wait_for_page_to_load(self.WAITTIME)
 #        self.waitForElement("link=Commands")
 #        self.selenium.click("link=Commands")
-#        self.selenium.wait_for_page_to_load("30000")
+#        self.selenium.wait_for_page_to_load(self.WAITTIME)
 #        self.waitForElement("manage_addCommand:method")
 #        self.selenium.type("id", "testingString")
 #        self.selenium.click("manage_addCommand:method")

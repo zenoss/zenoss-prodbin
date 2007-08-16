@@ -50,7 +50,7 @@ class TestDeviceInstanceOsTab(TestDeviceInstanceBase):
 
         self.waitForElement("link=OS")
         self.selenium.click("link=OS")
-        self.selenium.wait_for_page_to_load("30000")
+        self.selenium.wait_for_page_to_load(self.WAITTIME)
         
     def testIpInterface(self):
         """Add, edit, and delete an Ip Interface under a specific device"""
@@ -75,13 +75,13 @@ class TestDeviceInstanceOsTab(TestDeviceInstanceBase):
         self.selenium.select("monitor:boolean", "label=False")
         
         self.selenium.click("zmanage_editProperties:method")
-        self.selenium.wait_for_page_to_load("30000")
+        self.selenium.wait_for_page_to_load(self.WAITTIME)
         
         # Then, delete the IpInterface
         self.selenium.click("//div/div[2]/ul/li[1]/a")
         self.waitForElement("dialog_cancel")
         self.selenium.click("manage_deleteComponent:method")
-        self.selenium.wait_for_page_to_load("30000")
+        self.selenium.wait_for_page_to_load(self.WAITTIME)
         
         self.assert_(not self.selenium.is_element_present("link=testingString2"))
         
@@ -99,13 +99,13 @@ class TestDeviceInstanceOsTab(TestDeviceInstanceBase):
         self.selenium.select("zFailSeverity:int", "label=Critical")
         
         self.selenium.click("manage_editOSProcess:method")
-        self.selenium.wait_for_page_to_load("30000")
+        self.selenium.wait_for_page_to_load(self.WAITTIME)
 
         # Then, delete OSProcess
         self.selenium.click("link=Delete")
         self.waitForElement("dialog_cancel")
         self.selenium.click("manage_deleteComponent:method")
-        self.selenium.wait_for_page_to_load("30000")
+        self.selenium.wait_for_page_to_load(self.WAITTIME)
         
         self.assert_(not self.selenium.is_element_present("link=testingString2"))
         
@@ -127,13 +127,13 @@ class TestDeviceInstanceOsTab(TestDeviceInstanceBase):
         self.selenium.select("monitor:boolean", "label=False")
         
         self.selenium.click("manage_editFileSystem:method")
-        self.selenium.wait_for_page_to_load("30000")
+        self.selenium.wait_for_page_to_load(self.WAITTIME)
         
         # Delete Filesystem
         self.selenium.click("//div/div[2]/ul/li[1]/a")
         self.waitForElement("dialog_cancel")
         self.selenium.click("manage_deleteComponent:method")
-        self.selenium.wait_for_page_to_load("30000")
+        self.selenium.wait_for_page_to_load(self.WAITTIME)
         
         self.assert_(not self.selenium.is_element_present("link=testingString2"))
         
@@ -174,11 +174,11 @@ class TestDeviceInstanceOsTab(TestDeviceInstanceBase):
         self.selenium.select("severity:int", "label=Error")
         
         self.selenium.click("manage_editService:method")
-        self.selenium.wait_for_page_to_load("30000")
+        self.selenium.wait_for_page_to_load(self.WAITTIME)
         
         # bug workaround
         self.selenium.click("link=2345")
-        self.selenium.wait_for_page_to_load("30000")
+        self.selenium.wait_for_page_to_load(self.WAITTIME)
             
         # then delete the Ip Service
         self.selenium.click("link=Delete")
@@ -208,11 +208,11 @@ class TestDeviceInstanceOsTab(TestDeviceInstanceBase):
         self.selenium.select("acceptStop:boolean", "label=True")
         
         self.selenium.click("manage_editService:method")
-        self.selenium.wait_for_page_to_load("30000")
+        self.selenium.wait_for_page_to_load(self.WAITTIME)
         
         # bug workaround
         self.selenium.click("link=testingString2")
-        self.selenium.wait_for_page_to_load("30000")
+        self.selenium.wait_for_page_to_load(self.WAITTIME)
         
         # then delete the WinService
         self.selenium.click("link=Delete")
@@ -231,7 +231,7 @@ class TestDeviceInstanceManageDevice(TestDeviceInstanceBase):
         self.waitForElement("moveDevices:method")
         self.selenium.select("moveTarget", "label=/Discovered")
         self.selenium.click("moveDevices:method")
-        self.selenium.wait_for_page_to_load("30000")
+        self.selenium.wait_for_page_to_load(self.WAITTIME)
         
         self.assert_(self.selenium.is_element_present("link=Discovered"))
         self.selenium.click("link=%s" %TARGET)
@@ -245,7 +245,7 @@ class TestDeviceInstanceManageDevice(TestDeviceInstanceBase):
         self.waitForElement("dialog_submit")
         self.selenium.type("new_id", "testDevice")
         self.selenium.click("dialog_submit")
-        self.selenium.wait_for_page_to_load("30000")
+        self.selenium.wait_for_page_to_load(self.WAITTIME)
         self.assert_(self.selenium.is_element_present("link=testDevice"))
         
     def testResetIP(self):
@@ -256,7 +256,7 @@ class TestDeviceInstanceManageDevice(TestDeviceInstanceBase):
         self.waitForElement("dialog_submit")
         self.selenium.type("new_id", "1.2.3.4")
         self.selenium.click("dialog_submit")
-        self.selenium.wait_for_page_to_load("30000")
+        self.selenium.wait_for_page_to_load(self.WAITTIME)
         self.assert_(self.selenium.is_text_present("1.2.3.4"))
         
     def testLockDevice(self):
@@ -266,14 +266,14 @@ class TestDeviceInstanceManageDevice(TestDeviceInstanceBase):
         self.selenium.click("link=Lock...")
         self.waitForElement("dialog_cancel")
         self.selenium.click("lockFromUpdates:method")
-        self.selenium.wait_for_page_to_load("30000")
+        self.selenium.wait_for_page_to_load(self.WAITTIME)
         self.assert_(self.selenium.is_element_present("//img[@src='locked-update-icon.png']"))
         self.assert_(self.selenium.is_element_present("//img[@src='locked-delete-icon.png']"))
         
         self.selenium.click("link=Lock...") # Unlocking the device now.
         self.waitForElement("dialog_cancel")
         self.selenium.click("unlock:method")
-        self.selenium.wait_for_page_to_load("30000")
+        self.selenium.wait_for_page_to_load(self.WAITTIME)
         self.assert_(not self.selenium.is_element_present("//img[@src='locked-update-icon.png']"))
         self.assert_(not self.selenium.is_element_present("//img[@src='locked-delete-icon.png']"))
         
@@ -281,13 +281,13 @@ class TestDeviceInstanceManageDevice(TestDeviceInstanceBase):
         self.selenium.click("link=Lock...")
         self.waitForElement("dialog_cancel")
         self.selenium.click("lockFromDeletion:method")
-        self.selenium.wait_for_page_to_load("30000")
+        self.selenium.wait_for_page_to_load(self.WAITTIME)
         self.assert_(self.selenium.is_element_present("//img[@src='locked-delete-icon.png']"))
         
         self.selenium.click("link=Lock...") # Unlocking the device now.
         self.waitForElement("dialog_cancel")
         self.selenium.click("unlock:method")
-        self.selenium.wait_for_page_to_load("30000")
+        self.selenium.wait_for_page_to_load(self.WAITTIME)
         self.assert_(not self.selenium.is_element_present("//img[@src='locked-delete-icon.png']"))	
 
     def testClearHeartbeats(self):
@@ -296,7 +296,7 @@ class TestDeviceInstanceManageDevice(TestDeviceInstanceBase):
         self.selenium.click("link=Clear Heartbeats...")
         self.waitForElement("dialog_cancel")
         self.selenium.click("manage_deleteHeartbeat:method")
-        self.selenium.wait_for_page_to_load("30000")
+        self.selenium.wait_for_page_to_load(self.WAITTIME)
         self.assert_(self.selenium.is_text_present("Cleared heartbeat events for %s" %TARGET))
 
 if __name__ == "__main__":

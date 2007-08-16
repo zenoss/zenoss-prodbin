@@ -31,11 +31,11 @@ class TestLocations(SelTestBase):
         
         self.waitForElement("link=Locations")
         self.selenium.click("link=Locations")
-        self.selenium.wait_for_page_to_load("30000")
+        self.selenium.wait_for_page_to_load(self.WAITTIME)
         self.addDialog(new_id=("text", "testingString"))
-        self.selenium.wait_for_page_to_load("30000")
+        self.selenium.wait_for_page_to_load(self.WAITTIME)
         self.deleteDialog()
-        self.selenium.wait_for_page_to_load("30000")
+        self.selenium.wait_for_page_to_load(self.WAITTIME)
 
         
 if __name__ == "__main__":

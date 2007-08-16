@@ -30,6 +30,7 @@ PASS        =   "zenoss"                # Password for HOST
 SERVER      =   "selserver"             # Hosts the selenium jar file
 TARGET      =   "testtarget.zenoss.loc" # Added/deleted in HOST
 BROWSER     =   "*firefox"              # Can also be "*iexplore"
+WAITTIME    =   "30000"                 # Time to wait for page loads in milliseconds
 ### END GLOBAL DEFS ###
 
 class SelTestBase(unittest.TestCase):
@@ -38,6 +39,7 @@ class SelTestBase(unittest.TestCase):
 	
     def setUp(self):
         """Run at the start of each test"""
+        self.WAITTIME = WAITTIME
         self.verificationErrors = []
         self.selenium = selenium(SERVER, 4444, BROWSER, "http://%s:8080" %HOST)
         self.selenium.start()
@@ -65,34 +67,43 @@ class SelTestBase(unittest.TestCase):
     def login (self):
         """Logs selenium into the Zenoss Instance"""
         self.selenium.open("/zport/acl_users/cookieAuthHelper/login_form?came_from=http%%3A//%s%%3A8080/zport/dmd" %HOST)
-        self.selenium.wait_for_page_to_load("30000")
+        self.selenium.wait_for_page_to_load(self.WAITTIME)
         self.waitForElement("__ac_password")
         self.selenium.type("__ac_name", USER)
         self.selenium.type("__ac_password", PASS)
         self.selenium.click("//input[@value='Submit']")
-        self.selenium.wait_for_page_to_load("30000")
+        self.selenium.wait_for_page_to_load(self.WAITTIME)
         
     def logout(self):
         """Logs out of the Zenoss instance"""
-        self.selenium.wait_for_page_to_load("30000")
+        self.selenium.wait_for_page_to_load(self.WAITTIME)
         self.waitForElement("link=Logout")
         self.selenium.click("link=Logout")
         
     # FAILS if device at deviceIp is already present in Zenoss test target.
     def addDevice(self, deviceIp=TARGET, classPath="/Server/Linux"):
         """Adds a test target device to Zenoss"""
-        # Device is added and you are on device page
+        # First, make sure the device isn't already in the system.
+        self.assert_(self.selenium.is_element_present("query"))
+        self.selenium.type("query", deviceIp)
+        self.selenium.submit("searchform")
+        self.selenium.wait_for_page_to_load(self.WAITTIME)
+        if self.selenium.is_element_present("link=%s" %deviceIp):
+            self.selenium.click("link=%s" %deviceIp)
+            self.selenium.wait_for_page_to_load(self.WAITTIME)
+            self.deleteDevice()
+            
         self.waitForElement("link=Add Device")
         self.selenium.click("link=Add Device")
-        self.selenium.wait_for_page_to_load("30000")
+        self.selenium.wait_for_page_to_load(self.WAITTIME)
         self.waitForElement("loadDevice:method")
         self.selenium.type("deviceName", deviceIp)
         self.selenium.select("devicePath", "label=" + classPath)
         self.selenium.click("loadDevice:method")
-        self.selenium.wait_for_page_to_load("30000")
+        self.selenium.wait_for_page_to_load(self.WAITTIME)
         self.waitForElement("link=" + deviceIp)
         self.selenium.click("link=" + deviceIp)
-        self.selenium.wait_for_page_to_load("30000")
+        self.selenium.wait_for_page_to_load(self.WAITTIME)
         
     def deleteDevice(self):
         """Delete the test target device from Zenoss test instance"""
@@ -100,40 +111,25 @@ class SelTestBase(unittest.TestCase):
         self.selenium.click("link=Delete Device...")
         self.waitForElement("dialog_cancel")
         self.selenium.click("deleteDevice:method")
-        self.selenium.wait_for_page_to_load("30000")
+        self.selenium.wait_for_page_to_load(self.WAITTIME)
 
     def addUser(self, username="testingString", email="nosuchemail@zenoss.com", defaultAdminRole="Administrator", ):
         """Test the addUser functionality"""
         self.waitForElement("link=Settings")
         self.selenium.click("link=Settings")
-        self.selenium.wait_for_page_to_load("30000")
+        self.selenium.wait_for_page_to_load(self.WAITTIME)
         self.selenium.click("link=Users")
-        self.selenium.wait_for_page_to_load("30000")
+        self.selenium.wait_for_page_to_load(self.WAITTIME)
         self.waitForElement("UserlistaddUser")
         self.addDialog(addType="UserlistaddUser", fieldId2="email")
         self.selenium.click("link=testingString")
-        self.selenium.wait_for_page_to_load("30000")
+        self.selenium.wait_for_page_to_load(self.WAITTIME)
         self.selenium.add_selection("roles:list", "label=Manager")
         self.selenium.remove_selection("roles:list", "label=ZenUser")
         self.waitForElement("manage_editUserSettings:method")
         self.type_keys("password")
         self.type_keys("sndpassword")
         self.selenium.click("manage_editUserSettings:method")
-
-# Included for historical reasons. The following method addDialog replaces
-# this functionality.
-    def _addDialog(self, addType="OrganizerlistaddOrganizer", addMethod="dialog_submit", fieldId="new_id",
-                    fieldId2=None, testData="testingString"):
-        """Test the addDialog functionality"""
-        self.waitForElement(addType)
-        self.selenium.click(addType)
-        self.waitForElement("dialog_cancel")
-        self.selenium.type(fieldId, testData)
-        if fieldId2 != None:
-            self.selenium.type(fieldId2, testData)
-        self.selenium.click(addMethod)
-        self.selenium.wait_for_page_to_load("30000")
-    
 
     # The textFields dictionary is organized as follows:
     # Keys are the name of the input field.
@@ -153,7 +149,7 @@ class SelTestBase(unittest.TestCase):
             elif value[0] == "select":
                 self.selenium.select(key, value[1])
         self.selenium.click(addMethod) # Submit form.
-        self.selenium.wait_for_page_to_load("30000") # Wait for page refresh.
+        self.selenium.wait_for_page_to_load(self.WAITTIME) # Wait for page refresh.
         
     def deleteDialog(self, deleteType="OrganizerlistremoveOrganizers", deleteMethod="manage_deleteOrganizers:method", 
                         pathsList="organizerPaths:list", form_name="subdeviceForm", testData="testingString"):
@@ -172,7 +168,7 @@ class SelTestBase(unittest.TestCase):
         # Wait for and click the delete button. Wait for page refresh.
         self.waitForElement(deleteMethod)
         self.selenium.click(deleteMethod)
-        self.selenium.wait_for_page_to_load("30000")
+        self.selenium.wait_for_page_to_load(self.WAITTIME)
 
     
     def waitForElement(self, locator, timeout=15):

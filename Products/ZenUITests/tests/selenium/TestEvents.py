@@ -31,7 +31,7 @@ class TestEvents(SelTestBase):
 
         self.waitForElement("link=Events")
         self.selenium.click("link=Events")
-        self.selenium.wait_for_page_to_load("30000")
+        self.selenium.wait_for_page_to_load(self.WAITTIME)
         self.addDialog(new_id=("text", "testingString"))
         self.deleteDialog(form_name="subclasses")
         
