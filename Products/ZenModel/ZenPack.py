@@ -63,7 +63,7 @@ class ZenPack(ZenModelRM):
 
     requires = ()
 
-    loaders = (ZPLObject(), ZPLReport(), ZPLDaemons(), ZPLSkins(),
+    loaders = (ZPLObject(), ZPLReport(), ZPLDaemons(), ZPLBin(), ZPLSkins(),
                 ZPLDataSources(), ZPLLibraries(), ZPLAbout())
                 
     _properties = ZenModelRM._properties + (
