@@ -166,6 +166,7 @@ class ZenSyslog(DatagramProtocol, EventServer):
         self.parser.add_option('--useFileDescriptor',
                                dest='useFileDescriptor',
                                type='int',
+                               help="Read from an existing connection rather opening a new port.",
                                default=None)
 
 

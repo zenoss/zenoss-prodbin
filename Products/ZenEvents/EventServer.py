@@ -199,6 +199,7 @@ class EventServer(ZCmdBase):
         self.parser.add_option('--statcycle',
                                dest='statcycle',
                                type='int',
+                               help='Number of seconds between the writing of statistics',
                                default=0)
 
     def _wakeUpReactorAndHandleSignals(self):

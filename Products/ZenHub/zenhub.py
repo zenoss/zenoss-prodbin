@@ -271,14 +271,17 @@ class ZenHub(ZCmdBase):
                                '-x',
                                dest='xmlrpcport',
                                type='int',
+                               help='Port to use for XML-based Remote Procedure Calls (RPC)',
                                default=XML_RPC_PORT)
         self.parser.add_option('--pbport', 
                                dest='pbport',
                                type='int',
+                               help='Port to use for Twisted's pb service',
                                default=PB_PORT)
         self.parser.add_option('--passwd', 
                                dest='passwordfile',
                                type='string',
+                               help='File where passwords are stored',
                                default=os.path.join(os.environ['ZENHOME'],
                                                     'etc','hubpasswd'))
         

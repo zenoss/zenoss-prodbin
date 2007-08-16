@@ -196,10 +196,12 @@ class ZenTrap(EventServer, snmpprotocol.SNMPProtocol):
     def buildOptions(self):
         EventServer.buildOptions(self)
         self.parser.add_option('--trapport', '-t',
+                               help='Listen for SNMP traps on this port rather than the default',
                                dest='trapport', type='int', default=TRAP_PORT)
         self.parser.add_option('--useFileDescriptor',
                                dest='useFileDescriptor',
                                type='int',
+                               help="Read from an existing connection rather opening a new port.",
                                default=None)
 
 
