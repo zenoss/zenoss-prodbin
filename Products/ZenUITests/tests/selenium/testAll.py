@@ -21,19 +21,20 @@
 import unittest
 import re
 import os
+import sys
 import smtplib
 
 ######## BEGIN GLOBAL DEFS ########
-SERVER   = "localhost"
-FROMADDR = "testsuite@localhost"
-TOADDR   = "root@localhost"
-SUBJECT  = "Selenium Test Suite Results - "
+MAILSERVER  = "%s" %sys.argv[1]
+FROMADDR    = "testsuite@%s" %(sys.argv[1].split('.', 1)[1])
+TOADDR      = "%s@%s" %(sys.argv[2], (sys.argv[1].split('.', 1)[1]))
+SUBJECT     = "Selenium Test Suite Results - "
+TESTFMT     = re.compile("^Test\w+\.py$")
 ######### END GLOBAL DEFS #########
 
 def findTest(str):
     """Returns module names from filenames of the form "TestSomething.py" """
-    exp = re.compile("^Test\w+\.py$")
-    match = exp.match(str)
+    match = TESTFMT.match(str)
     if match is not None:
         return match.group()[:-3] # Strip off the ".py" to get module name
     else:
@@ -85,6 +86,6 @@ for failure in result.failures:
     messageBody += failure[1] + '\n\n'
     messageBody += '-'*75 + '\n'
 
-mailServer = smtplib.SMTP(SERVER)
+mailServer = smtplib.SMTP(MAILSERVER)
 mailServer.sendmail(FROMADDR, TOADDR, messageHeader + messageBody)
 mailServer.quit()
