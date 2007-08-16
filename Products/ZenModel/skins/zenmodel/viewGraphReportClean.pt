@@ -15,10 +15,6 @@ body {
     border: 0px;
     background-color: #ffffff;
 }
-
-#reportTitle {
-    text-align: center;
-    font-size: 16pt;
 }
 -->
 </style>
@@ -29,7 +25,7 @@ body {
 
 <table border="0">
     <tr>
-        <td id="reportTitle" colspan="2">
+        <td colspan="2">
             <tal:dummy tal:replace="structure here/getComments"/>
             <br />&nbsp;
         </td>

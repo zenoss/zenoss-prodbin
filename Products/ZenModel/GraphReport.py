@@ -25,15 +25,14 @@ def manage_addGraphReport(context, id, REQUEST = None):
     context._setObject(gr.id, gr)
     if REQUEST is not None:
         REQUEST['RESPONSE'].redirect(context.absolute_url()+'/manage_main')
-                                     
-#addGraphReport = DTMLFile('dtml/addRRDGraph',globals())
 
 
 class GraphReport(ZenModelRM):
 
     meta_type = "GraphReport"
     
-    comments = '${report/id}'
+    comments = '<span style="font-size: 16pt;">' + \
+                    '${report/id}</span>'
 
     _properties = ZenModelRM._properties + (
         {'id':'comments', 'type':'text', 'mode':'w'},
