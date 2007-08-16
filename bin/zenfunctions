@@ -111,6 +111,16 @@ help() {
     exec $PYTHON $PRGHOME/$PRGNAME -h
 }
 
+
+
+genconf() {
+    #
+    # Create a suitable default configuration file
+    #
+    exec $PYTHON $PRGHOME/$PRGNAME --genconf
+}
+
+
 generic() {
     case "$CMD" in
       run)
@@ -131,8 +141,35 @@ generic() {
       help)
 	    help
 	    ;;
+      genconf)
+	    genconf
+	    ;;
       *)
-	    echo $"Usage: $0 {run|start|stop|restart|status|help}"
+	    cat - <<HELP
+Usage: $0 {run|start|stop|restart|status|help|genconf} [options]
+
+  where the commands are:
+
+    run     - start the program but don't put it in the background.
+              NB: This mode is good for debugging.
+
+    start   - start the program in daemon mode -- running in the background,
+              detached from the shell
+
+    stop    - stop the program
+
+    restart - stop and then start the program
+              NB: Sometimes the start command will run before the daemon
+                  has terminated.  If this happens just re-run the command.
+
+    status  - Check the status of a daemon.  This will print the current
+              process nuber if it is running.
+
+    help    - display the options available for the daemon
+
+    genconf - create an example configuration file with default settings 
+
+HELP
 	    exit 1
     esac
     exit $?
