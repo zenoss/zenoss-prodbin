@@ -63,6 +63,7 @@
     </tr>
      </tbody>
 
+     <tal:block tal:condition="python:hasattr(here, 'address')">
      <tr tal:condition="python:here.id != here.dmdRootName">
         <td class="tableheader">Address 
                 <span tal:condition="here/isManager"> 
@@ -96,6 +97,7 @@
         </td>
     </tr>
     </tbody>
+    </tal:block>
 <!-- END TABLE CONTENTS -->
 
 </tal:block>
