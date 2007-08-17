@@ -82,12 +82,12 @@ class RenderServer(RRDToolItem):
         self.cachetimeout = cachetimeout
 
     security.declareProtected('View', 'render')
-    def render(self, gopts=None, start=None, end=None, drange=None, remoteUrl=None, width=None,
-                ftype='PNG', getImage=True, REQUEST=None):
+    def render(self, gopts=None, start=None, end=None, drange=None, 
+               remoteUrl=None, width=None, ftype='PNG', getImage=True, 
+               comment=None, REQUEST=None):
         """render a graph and return it"""
         gopts = zlib.decompress(urlsafe_b64decode(gopts))
         gopts = gopts.split('|')
-        gopts = [g for g in gopts if g]
         gopts.append('--width=%s' % width)
         if start:
             gopts.append('--start=%s' % start)
@@ -109,6 +109,7 @@ class RenderServer(RRDToolItem):
                 #gopts.insert(0, "--lazy")
                 end = int(time.time())-300
                 start = end - drange
+                gopts.insert(0, 'COMMENT:%s\\c' % comment)
                 gopts.insert(0, '--end=%d' % end)
                 gopts.insert(0, '--start=%d' % start)
                 gopts.insert(0, filename)

@@ -14,7 +14,7 @@ var end_re = /&end=now-([0-9]*)s/;
 var width_re  = /&width=([0-9]*)/;
 var height_re = /--height%3D([0-9]*)%7C/;
 var start_re = /&start=end-([0-9]*)s/;
-var comment_re = /COMMENT%3A.*?%5Cc%7C/;
+var comment_re = /&comment=.*$/;
 var dashes_re = /(--.*?%7C)([^\-])/;
 
 var linked_mode = 1;
@@ -197,7 +197,8 @@ ZenRRDGraph.prototype = {
         var com_ctr = "\\t\\t\\t\\t to \\t\\t\\t";
         comment = comment || this.sDate + com_ctr + this.eDate;
         comment = comment.replace(/:/g, '\\:');
-        this.comment = escape("COMMENT:" + comment + "\\c|");
+        //this.comment = escape("COMMENT:" + comment + "\\c|");
+        this.comment = escape(comment);
     },
     
     setUrl : function() {
@@ -214,11 +215,11 @@ ZenRRDGraph.prototype = {
         newurl = newurl.replace(drange_re, "&drange=" + String(this.drange));
         this.setDates();
         this.setComment();
-        //dashes = dashes_re.exec(newurl);
-        //comurl = newurl.replace(dashes[1], dashes[1] + this.comment);
-        //newurl = newurl.match(comment_re)?
-                 //newurl.replace(comment_re, this.comment):
-                 //comurl;
+        if (newurl.match(comment_re)) {
+            newurl = newurl.replace(comment_re, "&comment=" + this.comment);
+        } else {
+            newurl = newurl + "&comment=" + this.comment;
+        }
         this.url = newurl;
     },
 
