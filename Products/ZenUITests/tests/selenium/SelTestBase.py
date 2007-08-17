@@ -83,7 +83,7 @@ class SelTestBase(unittest.TestCase):
     def addDevice(self, deviceIp=TARGET, classPath="/Server/Linux"):
         """Adds a test target device to Zenoss"""
         # First, make sure the device isn't already in the system.
-        self.assert_(self.selenium.is_element_present("query"))
+        self.waitForElement("query")
         self.selenium.type("query", deviceIp)
         self.selenium.submit("searchform")
         self.selenium.wait_for_page_to_load(self.WAITTIME)
@@ -91,7 +91,8 @@ class SelTestBase(unittest.TestCase):
             self.selenium.click("link=%s" %deviceIp)
             self.selenium.wait_for_page_to_load(self.WAITTIME)
             self.deleteDevice()
-            
+        
+        # Then add the device and navigate to its top level page.   
         self.waitForElement("link=Add Device")
         self.selenium.click("link=Add Device")
         self.selenium.wait_for_page_to_load(self.WAITTIME)
@@ -112,6 +113,7 @@ class SelTestBase(unittest.TestCase):
         self.selenium.click("deleteDevice:method")
         self.selenium.wait_for_page_to_load(self.WAITTIME)
 
+    # Not actually sure where this is used.
     def addUser(self, username="testingString", email="nosuchemail@zenoss.com", defaultAdminRole="Administrator", ):
         """Test the addUser functionality"""
         self.waitForElement("link=Settings")
