@@ -119,8 +119,11 @@ class PerformanceConfig(HubService):
         from Products.ZenModel.ZenPack import ZenPack
         if isinstance(object, ZenPack):
             for listener in self.listeners:
-                listener.callRemote('updateThresholdClasses',
-                                    self.remote_getThresholdClasses())
+                try:
+                    listener.callRemote('updateThresholdClasses',
+                                        self.remote_getThresholdClasses())
+                except Exception, ex:
+                    log.exception("Error notifying a listener of new classes")
 
         # device has been changed:
         if isinstance(object, Device):
