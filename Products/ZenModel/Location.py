@@ -29,19 +29,21 @@ from Products.ZenRelations.RelSchema import *
 from DeviceOrganizer import DeviceOrganizer
 from ZenPackable import ZenPackable
 
+import urllib, urllib2
 
-def manage_addLocation(context, id, description = "", REQUEST = None):
+
+def manage_addLocation(context, id, description = "", 
+                       address="", REQUEST = None):
     """make a Location"""
     loc = Location(id, description)
     context._setObject(id, loc)
     loc.description = description
+    loc.address = address
     if REQUEST is not None:
-        REQUEST['RESPONSE'].redirect(context.absolute_url()
-                                     +'/manage_main') 
+        REQUEST['RESPONSE'].redirect(context.absolute_url() +'/manage_main') 
 
 
 addLocation = DTMLFile('dtml/addLocation',globals())
-
 
 
 class Location(DeviceOrganizer, ZenPackable):
@@ -52,16 +54,72 @@ class Location(DeviceOrganizer, ZenPackable):
     # Organizer configuration
     dmdRootName = "Locations"
 
+    address = '' 
+
     portal_type = meta_type = event_key = 'Location'
     
+    _properties = DeviceOrganizer._properties + (
+        {'id':'address','type':'string','mode':'w'},
+    )
+
     _relations = DeviceOrganizer._relations + ZenPackable._relations + (
         ("devices", ToMany(ToOne,"Products.ZenModel.Device","location")),
         ("networks", ToMany(ToOne,"Products.ZenModel.IpNetwork","location")),
-        )
+    )
 
     security = ClassSecurityInfo()
 
     def getChildLinks(self):
         return self.dmd.ZenLinkManager.getChildLinks(self)
+
+    def getGeomapData(self):
+        """ Returns node info ready for Google Maps """
+        address = self.address
+        summary = self.getEventSummary()
+        colors = 'red orange yellow green green'.split()
+        color = 'green'
+        for i in range(5):
+            if summary[i][1]+summary[i][2]>0:
+                color = colors[i]
+                break
+        link = self.absolute_url_path()
+        return [address, color, link]
+
+    def getChildGeomapData(self):
+        """ Returns geomap info on child nodes """
+        allnodes = []
+        data = []
+        children = self.children()
+        allnodes.extend(children)
+        data = [x.getGeomapData() for x in allnodes]
+        if not data: data = [self.getGeomapData()]
+        return data
+
+    def getSecondaryNodes(self):
+        """ Returns geomap info on cousin nodes that should be
+            included in the view due to outside linking.
+        """
+        data = []
+        children = self.children()
+        olddata = self.getChildGeomapData()
+        for child in children:
+            childlinks = child.getLinks(recursive=False)
+            for link in childlinks:
+                gdata = link.getGeomapData(child, full=True)
+                if gdata is not None:
+                    for datum in gdata:
+                        if (datum not in olddata and 
+                            data!=self.getGeomapData()):
+                            data.append(datum)
+        return data
     
+# Add the Map tab
+Location.factory_type_information[0]['actions'] += (
+    { 'id'    : 'geomap'
+    , 'name'  : 'Map'
+    , 'action': 'locationGeoMap'
+    , 'permissions': (permissions.view,)
+    },
+)
+
 InitializeClass(Location)

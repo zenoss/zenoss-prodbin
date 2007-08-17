@@ -172,5 +172,23 @@ class LinkManager(ZenModelRM):
                    for x in linkList]
         return simplejson.dumps((results, totalCount))
 
+    def getChildLinks(self, context):
+        """ Returns all links under a given Organizer, aggregated """
+        from sets import Set
+        result = Set([])
+        severities = {}
+        siblings = context.children()
+        for sibling in siblings:
+            links = sibling.getLinks()
+            for x in links:
+                severities[x.getGeomapData(sibling)] = max(
+                    x.getStatus(),
+                    severities.get(x.getGeomapData(sibling), 0)
+                ) 
+            result.update([x.getGeomapData(sibling) for x in links])
+        addresses = [x for x in list(result) if x]
+        severities = [severities[x] for x in addresses]
+        return map(list, zip(map(list, addresses), severities))
+
 
 InitializeClass(LinkManager)

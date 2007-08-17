@@ -140,6 +140,15 @@
             tal:content="python: '\n'.join(here.administrativeRoles)"></textarea>
       </td>
     </tr>
+    <tr>
+     <td class="tableheader" align="left">Google Maps API Key 
+         <a href="javascript:popupMapHelp()" style="font-size:80%">Help</a>
+     </td>
+     <td class="tablevalues">
+       <input class="tablevalues" name="geomapapikey"
+           tal:attributes="value here/geomapapikey"/>
+     </td>
+   </tr>
 
     <tr>
         <td class="tableheader"></td>

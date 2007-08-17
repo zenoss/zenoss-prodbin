@@ -61,6 +61,40 @@
                 onclick="javascript:toggleElement('descriptioneditform')"/>
         </td>
     </tr>
+     </tbody>
+
+     <tr tal:condition="python:here.id != here.dmdRootName">
+        <td class="tableheader">Address 
+                <span tal:condition="here/isManager"> 
+            <a style="color:darkgrey;text-decoration:none;"
+               href="javascript:toggleElement('addresseditform')">[Edit]</a>
+        </span>
+ </td>
+        <td class="tablevalues" colspan='5'>
+        <span
+            tal:content="structure python:here.address.replace('\n','<br/>')"/>
+            <br tal:condition="here/address"  />
+    </tr>
+        <tbody id="addresseditform" tal:condition="here/isManager" 
+            visible="1" style="display:none;">
+    <tr>
+        <td class="tableheader">New Address</td>
+        <td class="tablevalues" colspan='5'> 
+            <textarea tal:condition="here/isManager" name="address"
+                    rows="4" cols="50" tal:content="here/address"/>
+            <tal:block tal:condition="not: here/isManager"
+                    tal:replace="here/address" />
+     </tr>
+    <tr>
+        <td class="tableheader" align="left">
+        </td>
+        <td align="left" class="tableheader" colspan='5'>
+            <input class="tableheader" type="submit" value=" Save "
+                name="zmanage_editProperties:method:method" />
+            <input class="tableheader" type="button" value=" Cancel "
+                onclick="javascript:toggleElement('addresseditform')"/>
+        </td>
+    </tr>
     </tbody>
 <!-- END TABLE CONTENTS -->
 

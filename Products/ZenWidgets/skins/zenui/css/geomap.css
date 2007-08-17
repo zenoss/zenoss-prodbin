@@ -1,0 +1,10 @@
+#geomapcontainer {
+    border:1px solid black;
+}
+
+#geomaperrormsg {
+    text-align:center;
+    font-size:2em;
+    height:400px;
+    background-color:white;
+}

@@ -79,6 +79,8 @@ class DataRoot(ZenModelRM, OrderedFolder, Commandable, ZenMenuable):
     smtpUseTLS = 0
     emailFrom = ''
     iconMap = {}
+    geomapapikey = ''
+    geocache = ''
 
     _properties=(
         {'id':'title', 'type': 'string', 'mode':'w'},
@@ -103,6 +105,8 @@ class DataRoot(ZenModelRM, OrderedFolder, Commandable, ZenMenuable):
         {'id':'smtpPass', 'type': 'string', 'mode':'w'},
         {'id':'smtpUseTLS', 'type': 'int', 'mode':'w'},
         {'id':'emailFrom', 'type': 'string', 'mode':'w'},
+        {'id':'geomapapikey', 'type': 'string', 'mode':'w'},
+        {'id':'geocache', 'type': 'string', 'mode':'w'},
         )
 
     _relations =  (
@@ -507,6 +511,13 @@ class DataRoot(ZenModelRM, OrderedFolder, Commandable, ZenMenuable):
         self.iconMap[meta_type] = iconPath
         if REQUEST is not None:
             return self.callZenScreen(REQUEST, redirect=True)
+
+    def setGeocodeCache(self, REQUEST=None):
+        """ Store a JSON representation of
+            the Google Maps geocode cache
+        """
+        cache = REQUEST._file.read()
+        self.geocache = cache
 
 
 InitializeClass(DataRoot)
