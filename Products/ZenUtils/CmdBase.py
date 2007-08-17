@@ -243,10 +243,10 @@ be seen on the display."""
 
     def parseOptions(self):
 
-        self.parser.add_option( "", "--genconf", action="store_true",
+        self.parser.add_option("--genconf",
+                               action="store_true",
+                               default=False,
                                help="Generate a template configuration file" )
-
-        self.parser.set_default( "genconf", "false" )
 
         if self.noopts:
             args = []
