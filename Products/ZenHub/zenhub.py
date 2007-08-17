@@ -276,7 +276,7 @@ class ZenHub(ZCmdBase):
         self.parser.add_option('--pbport', 
                                dest='pbport',
                                type='int',
-                               help='Port to use for Twisted's pb service',
+                               help="Port to use for Twisted's pb service",
                                default=PB_PORT)
         self.parser.add_option('--passwd', 
                                dest='passwordfile',
