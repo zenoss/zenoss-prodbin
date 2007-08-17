@@ -23,6 +23,7 @@ import re
 import os
 import sys
 import smtplib
+import StringIO
 
 ######## BEGIN GLOBAL DEFS ########
 MAILSERVER  = "%s" %sys.argv[1]
@@ -40,8 +41,9 @@ def findTest(str):
     else:
         return None
 
+testout = StringIO.StringIO('')
 loader = unittest.TestLoader()
-runner = unittest.TextTestRunner(verbosity = 2) # Enables detailed output.
+runner = unittest.TextTestRunner(stream = testout,  verbosity = 2) # Enables detailed output.
 
 subDirs = os.walk('.') # Recursively get subdirectories and their contents.
 testTargets = []
@@ -56,11 +58,6 @@ for dir in subDirs:
             modName = ((rootDir + '/')[2:] + modName).replace('/', '.')
             testTargets.append(modName)
 
-# The following lines will run all tests in the current directory only.
-# directoryContents = os.listdir(".") # must be run within the test directory
-# List comprehension of all test module names, according to findTest
-# testTargets = [findTest(x) for x in directoryContents if findTest(x) is not None]
-
 testAll = loader.loadTestsFromNames(testTargets) # Load test modules
 result = runner.run(testAll)
 
@@ -70,22 +67,8 @@ if len(result.errors) > 0 or len(result.failures) > 0:
 else:
     messageHeader = "From: %s\nTo: %s\nSubject: %s\n\n"\
                     %(FROMADDR, TOADDR, SUBJECT + "All ok!")
-messageBody = ""
-
-for error in result.errors:
-    messageBody += "%s: ERROR\n" %error[0].shortDescription()
-    messageBody += '-'*75 + '\n'
-    messageBody += error[1]
-    messageBody += '-'*75 + '\n\n'
-
-messageBody += "\n\n"
-
-for failure in result.failures:
-    messageBody += "%s: FAILURE" %failure[0].shortDescription()
-    messageBody += '-'*75 + '\n'
-    messageBody += failure[1] + '\n\n'
-    messageBody += '-'*75 + '\n'
 
 mailServer = smtplib.SMTP(MAILSERVER)
-mailServer.sendmail(FROMADDR, TOADDR, messageHeader + messageBody)
+# mailServer.sendmail(FROMADDR, TOADDR, messageHeader + messageBody)
+mailServer.sendmail(FROMADDR, TOADDR, messageHeader + testout.getvalue())
 mailServer.quit()
