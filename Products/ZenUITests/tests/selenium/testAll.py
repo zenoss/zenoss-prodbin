@@ -27,7 +27,7 @@ import smtplib
 ######## BEGIN GLOBAL DEFS ########
 MAILSERVER  = "%s" %sys.argv[1]
 FROMADDR    = "testsuite@%s" %(sys.argv[1].split('.', 1)[1])
-TOADDR      = "%s@%s" %(sys.argv[2], (sys.argv[1].split('.', 1)[1]))
+TOADDR      = "%s" %sys.argv[2]
 SUBJECT     = "Selenium Test Suite Results - "
 TESTFMT     = re.compile("^Test\w+\.py$")
 ######### END GLOBAL DEFS #########

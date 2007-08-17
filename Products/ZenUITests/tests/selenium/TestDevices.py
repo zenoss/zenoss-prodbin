@@ -36,5 +36,32 @@ class TestDevices(SelTestBase):
         self.deleteDialog(deleteType="TemplatesdeleteTemplates", deleteMethod="manage_deleteRRDTemplates:method",
                             pathsList="ids:list", form_name="templates")
         
+    def testEditZProperty(self):
+        """Test changing zCommandProtocol in /Server from ssh to telnet and back"""
+        
+        # Navigate to zProperites page of /Server
+        self.selenium.click("link=Devices")
+        self.selenium.wait_for_page_to_load(self.WAITTIME)
+        self.selenium.click("link=Server")
+        self.selenium.wait_for_page_to_load(self.WAITTIME)
+        self.selenium.click("link=zProperties")
+        self.selenium.wait_for_page_to_load(self.WAITTIME)
+        
+        # Enter new value and make sure everything's ok
+        self.selenium.type("zCommandProtocol:string", "telnet")
+        self.selenium.click("saveZenProperties:method")
+        self.selenium.wait_for_page_to_load(self.WAITTIME)
+        self.assert_(self.selenium.get_value("zCommandProtocol:string") == "telnet")
+        # Hardcoding table row is gross, but don't have the javascript to find it by value
+        self.assert_(self.selenium.get_table("zPropertiesConfiguration.13.3") == "/Server")
+        
+        # Change it back and make sure everything's the way it was
+        self.selenium.select("propname", "zCommandProtocol")
+        self.selenium.click("deleteZenProperty:method")
+        self.selenium.wait_for_page_to_load(self.WAITTIME)
+        self.assert_(self.selenium.get_value("zCommandProtocol:string") == "ssh")
+        # Ditto gross
+        self.assert_(self.selenium.get_table("zPropertiesConfiguration.13.3") == "/")
+        
 if __name__ == "__main__":
     unittest.main()

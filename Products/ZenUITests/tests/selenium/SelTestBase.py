@@ -76,7 +76,6 @@ class SelTestBase(unittest.TestCase):
         
     def logout(self):
         """Logs out of the Zenoss instance"""
-        self.selenium.wait_for_page_to_load(self.WAITTIME)
         self.waitForElement("link=Logout")
         self.selenium.click("link=Logout")
         
@@ -175,11 +174,11 @@ class SelTestBase(unittest.TestCase):
         """Waits until a given element on a page is present.
            Throws a TimeoutException if too much time has
            passed."""
-        i = 0
+        i = 0.0
         try:
             while not self.selenium.is_element_present(locator):
-                time.sleep(1)
-                i += 1
+                time.sleep(0.25)
+                i += 0.25
                 if i >= timeout:
                     raise TimeoutError("Timed out waiting for " + locator)
         except TimeoutError, e:
