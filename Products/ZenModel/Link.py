@@ -103,22 +103,4 @@ class Link(ZenModelRM):
         zem = self.dmd.ZenEventManager
         return max(map(zem.getMaxSeverity, eps))
 
-    def getGeomapData(self, context):
-        """ Return the addresses of the endpoints
-            aggregated for the generation of the context
-        """
-        color = '#00FF00'
-        generation = len(context.getPrimaryPath())
-        def getancestoraddress(endpoint):
-            loc = endpoint.device().location()
-            path = loc.getPrimaryPath()
-            path = '/'.join(path[:generation])
-            ancestor = self.dmd.getObjByPath(path)
-            return ancestor.description
-        result = map(getancestoraddress, self.endpoints())
-        if result[0]==result[1]: return None
-        result.sort()
-        return tuple(result)
-
-
 InitializeClass(Link)

@@ -455,12 +455,15 @@ class DeviceOrganizer(Organizer, DeviceManagerBase, Commandable, ZenMenuable,
         objects = catalog.evalAdvancedQuery(query)
         return [x['id'] for x in objects]
 
-    def getLinks(self):
+    def getLinks(self, recursive=True):
         """ Return all Links on all interfaces on all
             Devices in this Organizer
         """
         links = []
-        devices = self.getSubDevices()
+        if recursive:
+            devices = self.getSubDevices()
+        else:
+            devices = self.devices()
         for device in devices:
             links.extend(device.getLinks())
         return links

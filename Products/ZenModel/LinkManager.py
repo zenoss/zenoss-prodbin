@@ -121,35 +121,16 @@ class LinkManager(ZenModelRM):
     security.declareProtected('Change Device', 'getNodeLinks')
     def getNodeLinks(self, node):
         """ Returns all links associated with a given Linkable """
-        return node.links()
+        try:
+            return node.links()
+        except AttributeError:
+            return node.getLinks(recursive=False)
 
     security.declareProtected('View', 'getLinkedNodes')
     def getLinkedNodes(self, node):
         """ Returns all nodes linked to a given Linkable """
         nlinks = self.getNodeLinks(node)
         return map(lambda x:x.getOtherEndpoint(node), nlinks)
-
-    security.declareProtected('View', 'getLinkedNodes')
-    def getChildLinks(self, context):
-        """ Returns all links under a given Organizer, aggregated """
-        from sets import Set
-        result = Set([])
-        severities = {}
-        siblings = context.children()
-        for sibling in siblings:
-            links = sibling.getLinks()
-            for x in links:
-                severities[x.getGeomapData(sibling)] = max(
-                    x.getStatus(),
-                    severities.get(x.getGeomapData(sibling), 0)
-                ) 
-            result.update([x.getGeomapData(sibling) for x in links])
-        addresses = [x for x in list(result) if x]
-        severities = [severities[x] for x in addresses]
-        return map(list, zip(map(list, addresses), severities))
-
-    def getSecondaryNodeData(self, context):
-        links = context.getLinks()
 
     def query_catalog(self, indxname, querystr=""):
         zcat = self._getCatalog()
