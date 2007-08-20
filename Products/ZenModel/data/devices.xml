@@ -841,7 +841,7 @@ True
 </object>
 </tomanycont>
 <tomanycont id='thresholds'>
-<object id='Utilization 75 perc' module='Products.ZenModel.RRDThreshold' class='RRDThreshold'>
+<object id='Utilization 75 perc' module='Products.ZenModel.MinMaxThreshold' class='MinMaxThreshold'>
 <property type="lines" id="dsnames" mode="w" >
 ['ifInOctets_ifInOctets', 'ifOutOctets_ifOutOctets']
 </property>
@@ -1461,7 +1461,7 @@ True
 </object>
 </tomanycont>
 <tomanycont id='thresholds'>
-<object id='CPU' module='Products.ZenModel.RRDThreshold' class='RRDThreshold'>
+<object id='CPU' module='Products.ZenModel.MinMaxThreshold' class='MinMaxThreshold'>
 <property type="lines" id="dsnames" mode="w" >
 ['cpu5min_cpu5min']
 </property>
@@ -2151,7 +2151,7 @@ True
 </object>
 </tomanycont>
 <tomanycont id='thresholds'>
-<object id='CPU Utilization' module='Products.ZenModel.RRDThreshold' class='RRDThreshold'>
+<object id='CPU Utilization' module='Products.ZenModel.MinMaxThreshold' class='MinMaxThreshold'>
 <property type="lines" id="dsnames" mode="w" >
 ['ssCpuRawIdle_ssCpuRawIdle']
 </property>
@@ -2266,7 +2266,7 @@ True
 </object>
 </tomanycont>
 <tomanycont id='thresholds'>
-<object id='Free Space 90 Percent' module='Products.ZenModel.RRDThreshold' class='RRDThreshold'>
+<object id='Free Space 90 Percent' module='Products.ZenModel.MinMaxThreshold' class='MinMaxThreshold'>
 <property type="lines" id="dsnames" mode="w" >
 ['usedBlocks_usedBlocks']
 </property>
@@ -2599,7 +2599,7 @@ True
 </object>
 </tomanycont>
 <tomanycont id='thresholds'>
-<object id='CPU Utilization over 90' module='Products.ZenModel.RRDThreshold' class='RRDThreshold'>
+<object id='CPU Utilization over 90' module='Products.ZenModel.MinMaxThreshold' class='MinMaxThreshold'>
 <property type="lines" id="dsnames" mode="w" >
 ['cpuPercentProcessorTime_cpuPercentProcessorTime']
 </property>
@@ -3388,7 +3388,7 @@ True
 </object>
 </tomanycont>
 <tomanycont id='thresholds'>
-<object id='CPU Utilization' module='Products.ZenModel.RRDThreshold' class='RRDThreshold'>
+<object id='CPU Utilization' module='Products.ZenModel.MinMaxThreshold' class='MinMaxThreshold'>
 <property type="lines" id="dsnames" mode="w" >
 ['cpu_ssCpuRawIdle']
 </property>
@@ -3627,7 +3627,7 @@ True
 </object>
 </tomanycont>
 <tomanycont id='thresholds'>
-<object id='Free Space 90 Percent' module='Products.ZenModel.RRDThreshold' class='RRDThreshold'>
+<object id='Free Space 90 Percent' module='Products.ZenModel.MinMaxThreshold' class='MinMaxThreshold'>
 <property type="lines" id="dsnames" mode="w" >
 ['disk_usedBlocks']
 </property>
@@ -3937,7 +3937,7 @@ True
 </object>
 </tomanycont>
 <tomanycont id='thresholds'>
-<object id='Utilization 75 perc' module='Products.ZenModel.RRDThreshold' class='RRDThreshold'>
+<object id='Utilization 75 perc' module='Products.ZenModel.MinMaxThreshold' class='MinMaxThreshold'>
 <property type="lines" id="dsnames" mode="w" >
 ['ifInOctets_ifInOctets', 'ifOutOctets_ifOutOctets']
 </property>
