@@ -58,15 +58,18 @@ class XmlRpcService(xmlrpc.XMLRPC):
         '''Return the performance configurations for the monitor name and data
         source provided. '''
 
-        def toDict(device, ds):
+        def toDict(device, ds, dps=[]):
             '''marshall the fields from the datasource into a dictionary and
             ignore everything that is not a primitive'''
 
             vals = {}
-            for key in ds.__dict__.keys():
-                val = ds.__dict__[key]
+            vals['dps'] = []
+            for key, val in ds.__dict__.items():
                 if type(val) in XmlRpcService.PRIMITIVES:
                     vals[key] = val
+
+            for dp in dps:
+                vals['dps'].append(dp.id)
 
             vals['device'] = device.id
             return vals
@@ -84,7 +87,31 @@ class XmlRpcService(xmlrpc.XMLRPC):
             for template in device.getRRDTemplates():
                 for ds in template.getRRDDataSources():
                     if ds.sourcetype == dstype:
-                        result.append(toDict(device, ds))
+                        result.append(toDict(device, ds, ds.datapoints()))
 
         return result
 
+
+    def xmlrpc_writeRRD(self, devId, compType, compId, dpName, value):
+        pass
+
+
+    def xmlrpc_getPerformanceConfig(self, monitor):
+        ''' returns the performance configuration for the monitor provided, or
+        {} if no collector with the name provided is located.'''
+
+        result = {}
+        fields = ['configCycleInterval', 'statusCycleInterval', 
+                  'processCycleInterval', 'perfsnmpCycleInterval', 
+                  'eventlogCycleInterval', 'renderurl', 'renderpass', 
+                  'renderuser', 'winCycleInterval', 'winmodelerCycleInterval']
+
+        # get the performance conf (if it exists)
+        conf = getattr(self.dmd.Monitors.Performance, monitor, None)
+        if conf is None:
+            return result
+
+        for field in fields:
+            result[field] = getattr(conf, field, None)
+            
+        return result
