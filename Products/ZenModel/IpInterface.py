@@ -390,6 +390,16 @@ class IpInterface(OSComponent):
         return self.operStatus > 1
 
 
+    def niceSpeed(self):
+        if not self.speed:
+            return 'Unknown'
+        speed = self.speed
+        for unit in ('bps', 'Kbps', 'Mbps', 'Gbps'):
+            if speed < 1000: break
+            speed /= 1000
+        return "%.1f%s" % (speed, unit)
+
+
     def manage_beforeDelete(self, item, container):
         """Unindex this interface after it is deleted.
         """

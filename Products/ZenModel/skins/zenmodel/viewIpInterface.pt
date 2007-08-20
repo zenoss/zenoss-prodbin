@@ -93,7 +93,7 @@
       </td>
       <td class="tableheader" align=left>Speed</td>
       <td class="tablevalues" tal:condition="not:editable" 
-                            tal:content="here/speed">100000000</td>
+                            tal:content="here/niceSpeed">100000000</td>
       <td class="tablevalues" tal:condition="editable">
           <input tal:attributes="class string:tablevalues; 
                             name string:speed; 
