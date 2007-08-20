@@ -10,7 +10,7 @@
         }
     }
     
-    function getDeviceList() {
+    function getDeviceList(e) {
         var filter = document.getElementById('deviceFilter');
         var widget = document.getElementById('deviceId');
         var url = '/zport/dmd/Devices/jsonGetDeviceNames'
@@ -25,8 +25,6 @@
         var url = '/zport/dmd/Devices/jsonGetComponentPaths';
         var d = loadJSONDoc(url, {'deviceId': deviceWidget.value});
         compWidget.options.length = 0;
-        //compWidget.options[0] = new Option(deviceWidget.value,
-        //    '', false, false);
         d.addBoth(updateSelect, compWidget);
     }
 
@@ -41,10 +39,49 @@
         d.addBoth(updateSelect, graphWidget);
     }
         
+    function connectZenWebTextareas() {
+        var resizeArea = function(area) {
+            var vDims = getViewportDimensions();
+            var vPos = getViewportPosition();
+            var aDims = getElementDimensions(area);
+            var aPos = getElementPosition(area);
+            var rightedge_area = aDims.w + aPos.x;
+            var rightedge_vp = vDims.w + vPos.x;
+            aDims.w += rightedge_vp-rightedge_area-50;
+            setElementDimensions(area, aDims);
+        }
+        connect(currentWindow(), 'onresize', function(e) {
+            map(resizeArea, $$('textarea'));
+        });
+        map(resizeArea, $$('textarea'));
+    }
+    
+    function handleDeviceKeys(e) {
+        keyString = e.key().string;
+        if (keyString == 'KEY_ENTER') {
+            // Populate the device list based on the filter
+            getDeviceList();
+        }
+    }
+    
+    function makeConnections() {
+        // This is what keeps the return/enter key in the device filter
+        // field from submitting the form.
+        $('addGraphForm').onsubmit = function() {return false;}
+    
+        connect('saveReportBtn', 'onclick', $('editReportForm'), 'submit');
+        connect('deviceFilter', 'onkeydown', handleDeviceKeys);
+        connect('filterButton', 'onclick', getDeviceList);
+        connect('addGraphBtn', 'onclick', $('addGraphForm'), 'submit');
+    }
+    
+    addLoadEvent(makeConnections);
     addLoadEvent(getDeviceList)
+    addLoadEvent(connectZenWebTextareas);
 </script>
 
-<form method="post"
+
+<form method="post" id="editReportForm"
     tal:attributes="action string:${here/absolute_url_path}">
     <input type="hidden" name="zenScreenName" 
         tal:attributes="value template/id" /> 
@@ -78,8 +115,10 @@
         <td class="tableheader">
         </td>
         <td class="tableheader" colspan="3">
-            <input class="tableheader" type="submit" value=" Save "
-                name="zmanage_editProperties:method" />
+            <input type="hidden" name="zmanage_editProperties:method"
+                value="1" />
+            <input class="tableheader" type="button" value=" Save "
+                id="saveReportBtn" name="nothing" />
         </td>
     </tr>
 
@@ -91,7 +130,7 @@
 </form>
 <br />
 
-<form method="post" 
+<form method="get" id="addGraphForm"
     tal:condition="here/isManager"
     tal:attributes="action string:${here/absolute_url_path}"
     tal:define="curDevice request/deviceId | nothing;
@@ -111,8 +150,8 @@
         <td class="tablevalues">
             <input class="tablevalues" type="text" name="deviceFilter"
                  id="deviceFilter" size="20" />
-            <input class="tableheader" type="button" value="Filter" 
-                name="filter" onClick="getDeviceList()" />
+            <input class="tableheader" type="button" value="Filter"
+                id="filterButton" name="filter" />
             <br />
             <select class="tablevalues" name="deviceId" id="deviceId" size="8"
                 onChange="getComponentList(); getGraphList()">
@@ -142,8 +181,11 @@
         <td class="tableheader">
         </td>
         <td class="tableheader" colspan="3">
-            <input class="tableheader" type="submit" value=" Add To Report "
-                name="manage_addGraphElement:method" />
+            <input type="hidden" name="manage_addGraphElement:method"
+                value="1" />
+            <input class="tableheader" type="button" id="addGraphBtn" 
+                value=" Add Graph to Report "
+                name="nothing" />
         </td>
     </tr>
 
@@ -183,7 +225,7 @@
         <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
                     tableName,'deviceId','Device')"/>
         <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
-                    tableName,'getComponentDesc','Component')"/>
+                    tableName,'componentPath','Component')"/>
         <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
                     tableName,'graphId','Graph')"/>
     </tr>
@@ -203,7 +245,7 @@
                 tal:content="element/getId">name</a>
         </td>
         <td valign="top" tal:content="element/deviceId"/>
-        <td valign="top" tal:content="element/getComponentDesc"/>
+        <td valign="top" tal:content="element/componentPath"/>
         <td valign="top" tal:content="element/graphId"/>
     </tr>
     </tal:block>

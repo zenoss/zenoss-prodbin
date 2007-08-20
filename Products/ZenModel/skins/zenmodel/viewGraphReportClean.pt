@@ -22,7 +22,6 @@ body {
 
 
 <tal:block metal:fill-slot="contentPane">
-
 <table border="0">
     <tr>
         <td colspan="2">
@@ -35,12 +34,13 @@ body {
             <tal:dummy tal:replace="structure element/getComments" />
         </td>
         <td tal:define="i repeat/element/index;
-                        graphSrc python:request['graph_%s' % i]">
+                key python: 'graph_%s' % i;
+                graphSrc python:request.has_key(key) and request[key] or ''">
             <img src="_" 
                 tal:attributes="src graphSrc" />
         </td>
     </tr>
 </table>
-</tal:block>
 
+</tal:block>
 </tal:block>

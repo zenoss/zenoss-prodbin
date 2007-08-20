@@ -1,6 +1,29 @@
 <tal:block metal:use-macro="here/templates/macros/page2">
 <tal:block metal:fill-slot="contentPane">
 
+<script>
+function connectZenWebTextareas() {
+    var resizeArea = function(area) {
+        var vDims = getViewportDimensions();
+        var vPos = getViewportPosition();
+        var aDims = getElementDimensions(area);
+        var aPos = getElementPosition(area);
+        var rightedge_area = aDims.w + aPos.x;
+        var rightedge_vp = vDims.w + vPos.x;
+        //var bottomedge_area = aDims.h + aPos.y;
+        //var bottomedge_vp = vDims.h + vPos.y;
+        aDims.w += rightedge_vp-rightedge_area-50;
+        //aDims.h += bottomedge_vp-bottomedge_area-43;
+        setElementDimensions(area, aDims);
+    }
+    connect(currentWindow(), 'onresize', function(e) {
+        map(resizeArea, $$('textarea'));
+    });
+    map(resizeArea, $$('textarea'));
+}
+addLoadEvent(connectZenWebTextareas);
+</script>
+
 <form method="post"
     tal:attributes="action string:${here/absolute_url_path}">
     <input type="hidden" name="zenScreenName" 
@@ -33,6 +56,21 @@
     <tr>
         <td class="tableheader">Graph</td>
         <td class="tablevalues" tal:content="here/graphId"/>
+    </tr>
+    <tr>
+        <td class="tableheader">Summary</td>
+        <td class="tablevalues" tal:condition="here/isManager">
+            <textarea class="tablevalues" name="summary" rows="4" cols="60"
+                tal:content="here/summary"></textarea>
+        </td>
+        <td class="tablevalues" tal:condition="not:here/isManager"
+            tal:content="here/comments"/>
+    </tr>
+    <tr>
+        <td class="tableheader">Evaluated Summary</td>
+        <td class="tablevalues">
+            <tal:dummy tal:replace="structure here/getSummary"/>
+        </td>
     </tr>
     <tr>
         <td class="tableheader">Comments</td>

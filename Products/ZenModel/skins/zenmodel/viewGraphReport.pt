@@ -1,24 +1,38 @@
 <tal:block metal:use-macro="here/templates/macros/page2">
 <tal:block metal:fill-slot="contentPane">
 
-<form method="post"
-    tal:attributes="action string:${here/absolute_url_path}/${template/id}">
-
 <tal:block tal:replace="structure string:<script language=&quot;javascript&quot; type=&quot;text/javascript&quot;>
 var absoluteUrlPath = &quot;${here/absolute_url_path}&quot;;
 var reportId = &quot;${here/getPrimaryId}&quot;;
 </script>" />
 
+<form method="post" target="_blank" id="printableForm" tal:attributes=" 
+        action python:here.absolute_url_path() + '/viewGraphReportClean';">
+</form>
+ 
+<form method="post"
+    tal:attributes="action string:${here/absolute_url_path}/${template/id}">
+
 <script language="javascript" type="text/javascript">
 var ZenGraphs = new Array();
 
-function printable() {
-    var url = absoluteUrlPath + '/viewGraphReportClean';
+function CreateFormField(theForm, name, value) {
+    var newField = document.createElement('INPUT');
+    newField.setAttribute('type', 'HIDDEN');
+    newField.setAttribute('name', name);
+    newField.setAttribute('value', value);
+    theForm.appendChild(newField);
+}
+
+function ShowPrintable() {
+    printableForm = document.getElementById('printableForm');
+    while (printableForm.hasChildNodes())
+        printableForm.removeChild(printableForm.firstChild);
     for (i=0; i < ZenGraphs.length; i++) {
         var graph = document.getElementById('graph_' + i);
-        url += (i?'&':'?') + 'graph_' + i + '=' + escape(graph.src);
+        CreateFormField(printableForm, 'graph_' + i, graph.src);
     }
-    parent.location.href = url;
+    printableForm.submit();
 }
 </script>
 
@@ -48,7 +62,7 @@ function printable() {
            checked onchange="linkGraphs(this.checked)" id="linkcheck"/>
     &nbsp;&nbsp;&nbsp;&nbsp;
     <input class="tableheader" type="button" value="Printable"
-    onclick="printable()"
+    onclick="ShowPrintable()"
     style="margin-left:2em;"/>
 </tal:block>
 
@@ -56,18 +70,22 @@ function printable() {
 
 <!-- BEGIN TABLE CONTENTS -->
 
-    <tal:block tal:repeat="graph python:here.getGraphs(drange=drange)">
-    <tal:block tal:define="graphid string:graph_${repeat/graph/index}">
-        <tr><td class="tableheader" tal:content="graph/title">title 
-		<tal:dummy tal:replace="graph/url"/></td></tr>
-        <tr><td class="tablevalues">
-            <img src="_" 
-            tal:attributes="src graph/url;
-                            id graphid"/>
-            <script language="javascript" type="text/javascript"
-            tal:content="string:ZenGraphs[ZenGraphs.length]='${graphid}';"></script>
+    <tal:block tal:repeat="element here/getElements">
+    <tal:block tal:define="graphUrl element/getGraphUrl;
+                            graphid string:graph_${repeat/element/index}">
+        <tr>
+            <td class="tableheader" tal:content="structure element/getSummary">
+                summary 
+		        <tal:dummy tal:replace="graphUrl"/>
+		    </td>
+		</tr>
+        <tr>
+            <td class="tablevalues">
+                <img src="_" tal:attributes="src graphUrl; id graphid"/>
+                <script language="javascript" type="text/javascript"
+                tal:content="string:ZenGraphs[ZenGraphs.length]='${graphid}';">
+                </script>
             </td>
-
         </tr>
     </tal:block>
     </tal:block>

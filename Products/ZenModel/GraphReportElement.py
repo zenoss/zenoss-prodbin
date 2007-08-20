@@ -34,13 +34,21 @@ class GraphReportElement(ZenModelRM):
     componentPath = ''
     graphId = ''
     sequence = 0
-    comments = 'Device: ${dev/id}<br />\nComponent: ${comp/id}<br />\n${graph/id}'
+    summary = ('Device: ${dev/id}\n'
+                '&nbsp;&nbsp;\n'
+                'Component: ${comp/id}\n'
+                '&nbsp;&nbsp;\n'
+                'Graph: ${graph/id}\n')
+    comments = ('Device: ${dev/id}<br />\n'
+                'Component: ${comp/id}<br />\n'
+                '${graph/id}')
         
     _properties = ZenModelRM._properties + (
         {'id':'deviceId', 'type':'string', 'mode':'w'},
         {'id':'componentPath', 'type':'string', 'mode':'w'},
         {'id':'graphId', 'type':'string', 'mode':'w'},
         {'id':'sequence', 'type':'int', 'mode':'w'},
+        {'id':'summary', 'type':'text', 'mode':'w'},
         {'id':'comments', 'type':'text', 'mode':'w'},
     )
 
@@ -65,34 +73,31 @@ class GraphReportElement(ZenModelRM):
     security = ClassSecurityInfo()
     
     
-    def getDesc(self):
-        return '%s    %s' % (self.graphId, self.getComponentDesc())
+    # def getDesc(self):
+    #     return '%s    %s' % (self.graphId, self.getComponentDesc())
         
     
-    def getComponentDesc(self):
+    # def getComponentDesc(self):
+    #     if isinstance(self.componentPath, tuple):
+    #         self.componentPath = '/'.join(self.componentPath)
+    #     
+    #     return self.componentPath.split('/')[-1]
+    #     
+    #     comp = self.getComponent()
+    #     if comp:
+    #         parts = [''] + list(comp.getPrimaryPath()[3:]) \
+    #                         + list(self.componentPath)
+    #         desc = '/'.join(parts)
+    #     else:
+    #         desc = '%s: missing' % self.deviceId
+    #     return desc
         
-        if isinstance(self.componentPath, tuple):
-            self.componentPath = '/'.join(self.componentPath)
         
-        return self.componentPath.split('/')[-1]
-        
-        comp = self.getComponent()
-        if comp:
-            parts = [''] + list(comp.getPrimaryPath()[3:]) \
-                            + list(self.componentPath)
-            desc = '/'.join(parts)
-        else:
-            desc = '%s: missing' % self.deviceId
-        return desc
-        
-    
-    def getComments(self):
-        ''' Returns tales-evaluated comments
-        '''
+    def talesEval(self, text):
         dev = self.getDevice()
         comp = self.getComponent()
         graph = self.getGraph()
-        compiled = talesCompile('string:' + self.comments)
+        compiled = talesCompile('string:' + text)
         e = {'dev':dev, 'device': dev, 
                 'comp': comp, 'component':comp,
                 'graph': graph}
@@ -100,6 +105,17 @@ class GraphReportElement(ZenModelRM):
         if isinstance(result, Exception):
             result = 'Error: %s' % str(result)
         return result
+        
+    
+    def getSummary(self):
+        ''' Returns tales-evaluated summary
+        '''
+        return self.talesEval(self.summary)
+
+    def getComments(self):
+        ''' Returns tales-evaluated comments
+        '''
+        return self.talesEval(self.comments)
 
         
     def getDevice(self):
@@ -112,8 +128,8 @@ class GraphReportElement(ZenModelRM):
             if part:
                 component = getattr(component, part)
         return component
-        
-        
+
+
     def getGraph(self):
         graph = self.getComponent().getGraph(self.graphId)
         return graph

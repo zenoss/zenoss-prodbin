@@ -17,6 +17,7 @@ from ZenModelRM import ZenModelRM
 from Products.ZenRelations.RelSchema import *
 from GraphReportElement import GraphReportElement
 from Products.ZenUtils.ZenTales import talesCompile, getEngine
+from DateTime import DateTime
 
 def manage_addGraphReport(context, id, REQUEST = None):
     ''' Create a new GraphReport
@@ -31,8 +32,14 @@ class GraphReport(ZenModelRM):
 
     meta_type = "GraphReport"
     
-    comments = '<span style="font-size: 16pt;">' + \
-                    '${report/id}</span>'
+    comments = (
+        '<div style="float: right;"><img src="img/onwhitelogo.png"></div>\n'
+        '<div style="font-size: 16pt;">${report/id}</div>\n'
+        '<div style="font-size:12pt;">${now/aDay} ${now/aMonth} ${now/day},'
+        ' ${now/year}<br />\n'
+        '${now/AMPMMinutes}\n'
+        '</div>\n'
+        '<div style="clear: both" />')
 
     _properties = ZenModelRM._properties + (
         {'id':'comments', 'type':'text', 'mode':'w'},
@@ -137,26 +144,26 @@ class GraphReport(ZenModelRM):
         ''' Returns tales-evaluated comments
         '''
         compiled = talesCompile('string:' + self.comments)
-        e = {'rpt': self, 'report': self}
+        e = {'rpt': self, 'report': self, 'now':DateTime()}
         result = compiled(getEngine().getContext(e))
         if isinstance(result, Exception):
             result = 'Error: %s' % str(result)
         return result
 
 
-    def getGraphs(self, drange=None):
-        """get the default graph list for this object"""
-        def cmpGraphs(a, b):
-            return cmp(a['sequence'], b['sequence'])
-        graphs = []
-        for element in self.elements():
-            graphs.append({
-                'title': element.getDesc(),
-                'url': element.getGraphUrl(),
-                'sequence': element.sequence,
-                })
-        graphs.sort(cmpGraphs)
-        return graphs
+    # def getGraphs(self, drange=None):
+    #     """get the default graph list for this object"""
+    #     def cmpGraphs(a, b):
+    #         return cmp(a['sequence'], b['sequence'])
+    #     graphs = []
+    #     for element in self.elements():
+    #         graphs.append({
+    #             'title': element.getDesc(),
+    #             'url': element.getGraphUrl(),
+    #             'sequence': element.sequence,
+    #             })
+    #     graphs.sort(cmpGraphs)
+    #     return graphs
     
     
     def getElements(self):
