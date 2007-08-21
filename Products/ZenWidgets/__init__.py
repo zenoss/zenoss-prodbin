@@ -37,3 +37,6 @@ def initialize(registrar):
         constructors = (manage_addZenTableManager,),
         icon = "ZenTableManager_icon.gif"
     )
+
+# Enable gzip compression of static files
+import FileGzipper
