@@ -6,7 +6,11 @@ function ZenossLocationCache() {
 ZenossLocationCache.prototype = new GGeocodeCache();
 ZenossLocationCache.prototype.reset = function() {
     GGeocodeCache.prototype.reset.call(this);
-    var mycache = geocodecache.v;
+    if (geocodecache) {
+      var mycache = geocodecache.v;
+    } else {
+      var mycache = [];
+    }
     for (var i in mycache) { 
         this.put(mycache[i].name, mycache[i]);
     }
