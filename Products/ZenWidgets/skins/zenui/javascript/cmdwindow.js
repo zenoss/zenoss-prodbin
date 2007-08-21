@@ -64,6 +64,7 @@ PollingDialog.prototype = {
         }, this);
         this.dialog.addKeyListener(27, killdialog, did, this.dialog);
         this.dialog.addButton('Close', killdialog, did, this.dialog);
+        this.dialog.on('hide', killdialog);
         this.dialog.show();
         this.fetch(did, url);
         refreshRate = parseInt(refreshRate);
@@ -79,7 +80,6 @@ PollingDialog.prototype = {
     destroy: function(did, dialog){
         if (dialog.caller) dialog.caller.cancel();
         dialog.destroy();
-        removeElement(did);
     }
 
 }
