@@ -124,7 +124,7 @@ div.logo {
     list-style-type: none;
     margin-left: 0px;
     position: relative;
-    top: 25px;
+    top: 38px;
 }
 
 #settings ul li {
@@ -143,18 +143,20 @@ div.logo {
 }
 
 #settings div.searchbox {
-    background: transparent url('img/search_box_bg.gif') center right no-repeat;
+    background: transparent url('img/search_box_bg.gif') top right no-repeat;
     width: 160px;
     position: absolute;
-    top: -5px;
+    top: 2px;
+    padding: 6px;
+    /*top: -5px;*/
     right: 5px;
     height: 100%;
 }
 #settings div.searchbox input[type="text"]{
     background: transparent none no-repeat;
     border: medium none;
-    margin-top: -2px;
-    margin-left: 55px;
+    margin-top: -11px;
+    margin-left: 60px;
     color: #444;
     width: 90px;
 }

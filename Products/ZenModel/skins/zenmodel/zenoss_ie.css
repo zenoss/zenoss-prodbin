@@ -88,10 +88,11 @@ table.tabtable,
 }
 
 #settings div.searchbox {
-    top: -12px;
+    top: 2px;
 }
-#settings div.searchbox input {
-    margin-top: 2px !important;
+#settings div.searchbox input[type="text"] {
+    margin-top: -30px;
+    margin-left: 62px;
 }
 
 #tabsPane table td.contextmenutab .menu {
@@ -132,6 +133,10 @@ div#gridcontainer {
 
 #settings li span{
     padding: 8px 10px;
+}
+
+#settings ul {
+    top: 22px;
 }
 
 #contentPane {

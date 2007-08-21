@@ -306,7 +306,7 @@ var removeElementAutoCompletes = function() {
 }
 
 addLoadEvent(removeElementAutoCompletes);
-addLoadEvent(applyBrowserSpecificStyles);
+//addLoadEvent(applyBrowserSpecificStyles);
 addLoadEvent(addSelectionBar);
 addLoadEvent(checkForCollapsed);
 log("Left pane toggle javascript loaded.");

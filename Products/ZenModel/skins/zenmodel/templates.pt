@@ -154,6 +154,10 @@
         href="css/dialog.css"/>
     <link rel="stylesheet" type="text/css" title="zenoss"
         href="css/filterbox.css"/>
+    <link rel="stylesheet" type="text/css" 
+        href="resources/css/ext-all.css"/>
+    <link rel="stylesheet" type="text/css" 
+        href="resources/css/xtheme-vista.css"/>
     <script type="text/javascript" src="js/MochiKit.js"></script>
     <script type="text/javascript" src="zenmodelfuncs.js"></script>
     <script src="javascript/selection.js"></script>
@@ -203,8 +207,8 @@
     <div class="searchbox">
     <form action="/zport/dmd/deviceSearchResults" method="POST"
 		name="searchform">
-        <span style="position:relative;left:-70px;font-size:80%;
-                     top:14px;color:#bbb;">Device/IP Search</span>
+        <span style="position:relative;left:-50px;font-size:80%;
+                     top:2px;color:#bbb;">Device/IP Search</span>
         <input type="text" name="query" 
             onkeypress="submitViaEnter(event)"
             onclick="select(this.value)"
