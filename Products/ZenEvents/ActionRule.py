@@ -60,6 +60,7 @@ class ActionRule(ZenModelRM, EventFilter):
             "<a href=\"%(ackUrl)s\">Acknowledge</a>\n" \
             "<a href=\"%(deleteUrl)s\">Delete</a>\n" \
             "<a href=\"%(eventsUrl)s\">Device Events</a>\n"
+    sendClear = True
     clearFormat = "[zenoss] CLEAR: %(device)s %(clearOrEventSummary)s"
     clearBody =  \
             "Event: '%(summary)s'\n" \
@@ -77,6 +78,7 @@ class ActionRule(ZenModelRM, EventFilter):
         {'id':'where', 'type':'text', 'mode':'w'},
         {'id':'format', 'type':'text', 'mode':'w'},
         {'id':'body', 'type':'text', 'mode':'w'},
+        {'id':'sendClear', 'type':'boolean', 'mode':'w'},
         {'id':'clearFormat', 'type':'text', 'mode':'w'},
         {'id':'clearBody', 'type':'text', 'mode':'w'},
         {'id':'delay', 'type':'int', 'mode':'w'},

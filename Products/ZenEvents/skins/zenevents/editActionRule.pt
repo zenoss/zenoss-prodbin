@@ -50,6 +50,16 @@
   </td>
 </tr>
 <tr>
+  <td class="tableheader">Send clear messages</td>
+  <td class="tablevalues">
+    <select class="tablevalues" name="sendClear:boolean">
+        <option tal:repeat="e python:(True,False)" tal:content="e"
+                tal:attributes="value e; selected python:e==here.sendClear"/>
+    </select>
+  </td>
+  <td class="tablevalues" colspan="2"></td>
+</tr>
+<tr>
 <td class="tableheader" colspan="6">Where</td>
 </tr>
 

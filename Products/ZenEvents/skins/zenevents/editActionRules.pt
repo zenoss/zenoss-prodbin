@@ -36,6 +36,8 @@
                             tableName,'action','Action')"/>
     <th tal:replace="structure python:zem.getTableHeader(
                             tableName,'enabled','Enabled')"/>
+    <th tal:replace="structure python:zem.getTableHeader(
+                            tableName,'sendClear','Send Clear')"/>
     </tr>
     <tal:block tal:repeat="action batch">
     <tr tal:define="odd repeat/action/odd"
@@ -51,10 +53,11 @@
         <td class="tablevalues" tal:content="action/delay"/>
         <td class="tablevalues" tal:content="action/action"/>
         <td class="tablevalues" tal:content="action/enabled"/>
+        <td class="tablevalues" tal:content="action/sendClear"/>
     </tr>
     </tal:block>
     <tr>
-        <td colspan="4" class="tableheader">
+        <td colspan="5" class="tableheader">
             <span metal:use-macro="here/zenTableNavigation/macros/navbody"/>
         </td>
     </tr>
