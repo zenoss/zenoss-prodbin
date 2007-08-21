@@ -3,6 +3,9 @@ var Class={create:function(){ return function(){ this.__init__.apply(this, argum
 function ZenossLocationCache() {
     GGeocodeCache.apply(this);
 }
+
+Ext.QuickTips.init();
+
 ZenossLocationCache.prototype = new GGeocodeCache();
 ZenossLocationCache.prototype.reset = function() {
     GGeocodeCache.prototype.reset.call(this);
@@ -78,7 +81,7 @@ ZenGeoMap.prototype = {
             lock2.release();
         }, this));
     },
-    addMarker: function(address, color, clicklink){
+    addMarker: function(address, color, clicklink, summarytext){
         var d = this.lock.acquire();
         d.addCallback(bind(function(){
         if (this.cache.get(address)==null) this.dirtycache = true;
@@ -92,6 +95,12 @@ ZenGeoMap.prototype = {
                     GEvent.addListener(marker, "click", function(){
                        location.href = clicklink});
                     this.map.addOverlay(marker);
+                    var markerimg = marker.Oj
+                    Ext.QuickTips.register({
+                        target: markerimg,
+                        title: address,
+                        text: summarytext
+                    });
                     this.bounds.extend(p);
                     this.lock.release();
                 }
@@ -120,13 +129,13 @@ function geomap_initialize(){
     for (i=0;i<nodedata.length;i++) {
         var node = nodedata[i];
         if (node[0].length>0) 
-            x.addMarker(node[0], node[1], node[2]);
+            x.addMarker(node[0], node[1], node[2], node[3]);
     }
     x.showAllMarkers();
     for (i=0;i<secondarynodedata.length;i++) {
         var node = secondarynodedata[i];
         if (node[0].length>0) 
-            x.addMarker(node[0], node[1], node[2]);
+            x.addMarker(node[0], node[1], node[2], node[3]);
     }
     for (j=0;j<linkdata.length;j++) {
         x.addPolyline(linkdata[j]);

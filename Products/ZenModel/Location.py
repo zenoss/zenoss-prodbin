@@ -72,6 +72,12 @@ class Location(DeviceOrganizer, ZenPackable):
     def getChildLinks(self):
         return self.dmd.ZenLinkManager.getChildLinks(self)
 
+    def numMappableChildren(self):
+        children = self.children()
+        return len(
+            filter(lambda x:getattr(x, 'address', None), children)
+        )
+
     def getGeomapData(self):
         """ Returns node info ready for Google Maps """
         address = self.address
@@ -83,10 +89,15 @@ class Location(DeviceOrganizer, ZenPackable):
                 color = colors[i]
                 break
         link = self.absolute_url_path()
-        linkToMap = len(self.children())
+        linkToMap = self.numMappableChildren()
         if linkToMap: 
             link+='/locationGeoMap'
-        return [address, color, link]
+        summarytext = """
+            Subdevices: %s
+            Mappable Children: %s
+        """ % (len(self.getSubDevices()), self.numMappableChildren())
+
+        return [address, color, link, summarytext]
 
     def getChildGeomapData(self):
         """ Returns geomap info on child nodes """
