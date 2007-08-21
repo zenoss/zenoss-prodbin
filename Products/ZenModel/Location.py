@@ -83,6 +83,9 @@ class Location(DeviceOrganizer, ZenPackable):
                 color = colors[i]
                 break
         link = self.absolute_url_path()
+        linkToMap = len(self.children())
+        if linkToMap: 
+            link+='/locationGeoMap'
         return [address, color, link]
 
     def getChildGeomapData(self):

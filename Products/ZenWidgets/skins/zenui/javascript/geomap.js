@@ -86,7 +86,7 @@ ZenGeoMap.prototype = {
                 } else {
                     var marker = this.Dot(p, color);
                     GEvent.addListener(marker, "click", function(){
-                       location.href = clicklink+'/locationGeoMap'});
+                       location.href = clicklink});
                     this.map.addOverlay(marker);
                     this.bounds.extend(p);
                     this.lock.release();
