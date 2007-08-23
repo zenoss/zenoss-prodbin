@@ -69,7 +69,7 @@ from Exceptions import *
 
 def manage_createDevice(context, deviceName, devicePath="/Discovered",
             tag="", serialNumber="",
-            zSnmpCommunity="", zSnmpPort=161, zSnmpVer="v1",
+            zSnmpCommunity="", zSnmpPort=161, zSnmpVer="",
             rackSlot=0, productionState=1000, comments="",
             hwManufacturer="", hwProductName="",
             osManufacturer="", osProductName="",
@@ -102,6 +102,7 @@ def manage_createDevice(context, deviceName, devicePath="/Discovered",
                         findCommunity(context, ip, devicePath,
                                       zSnmpCommunity, zSnmpPort, zSnmpVer)
         log.debug("device community = %s", zSnmpCommunity)
+        log.debug("device version = %s", zSnmpVer)
         log.debug("device name = %s", snmpname)
         if not deviceName:
             try:
@@ -149,8 +150,8 @@ def manage_createDevice(context, deviceName, devicePath="/Discovered",
 
 
 def findCommunity(context, ip, devicePath, 
-                  community="", port=None, version='v1'):
-    """Find the snmp community for an ip address using zSnmpCommunities.
+                  community="", port=None, version=None):
+    """Find the SNMP community and version for an p address using zSnmpCommunities.
     """
     try:
         from pynetsnmp.SnmpSession import SnmpSession
@@ -162,23 +163,31 @@ def findCommunity(context, ip, devicePath,
     if community: communities.append(community)
     communities.extend(getattr(devroot, "zSnmpCommunities", []))
     if not port: port = getattr(devroot, "zSnmpPort", 161)
+    versions = ('v2c', 'v1')
+    if version: versions = (version)
     timeout = getattr(devroot, "zSnmpTimeout", 2)
     session = SnmpSession(ip, timeout=timeout, port=port)
     sysTableOid = '.1.3.6.1.2.1.1'
     oid = '.1.3.6.1.2.1.1.5.0'
     goodcommunity = ""
+    goodversion = ""
     devname = ""
-    for community in communities:
-        session.community = community
-        try:
-            devname = session.get(oid).values()[0]
-            goodcommunity = session.community
-            break
-        except (SystemExit, KeyboardInterrupt, POSError): raise
-        except: pass #keep trying until we run out
+    for version in versions:
+        session.setVersion(version)
+        for community in communities:
+            session.community = community
+            try:
+                devname = session.get(oid).values()[0]
+                goodcommunity = session.community
+                goodversion = version
+                break
+            except (SystemExit, KeyboardInterrupt, POSError): raise
+            except: pass #keep trying until we run out
+        if goodcommunity:
+	        break
     else:
         raise NoSnmp("no snmp found for ip = %s" % ip)
-    return (goodcommunity, port, version, devname)
+    return (goodcommunity, port, goodversion, devname)
 
 def manage_addDevice(context, id, REQUEST = None):
     """make a device"""
@@ -813,7 +822,7 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable, Admini
     security.declareProtected('Change Device', 'manage_editDevice')
     def manage_editDevice(self,
                 tag="", serialNumber="",
-                zSnmpCommunity="", zSnmpPort=161, zSnmpVer="v1",
+                zSnmpCommunity="", zSnmpPort=161, zSnmpVer="",
                 rackSlot=0, productionState=1000, comments="",
                 hwManufacturer="", hwProductName="",
                 osManufacturer="", osProductName="",

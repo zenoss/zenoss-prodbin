@@ -93,11 +93,6 @@ class ZDeviceLoader(ZenModelItem,SimpleItem):
         xmlrpc = False
         if REQUEST and REQUEST['CONTENT_TYPE'].find('xml') > -1:
             xmlrpc = True
-        if zSnmpVer is None:
-            try:
-                zSnmpVer = str(self.Devices.getOrganizer(devicePath).zSnmpVer)
-            except AttributeError:
-                zSnmpVer = 'v1'
         if not deviceName: return self.callZenScreen(REQUEST)
         device = None
         if REQUEST and not xmlrpc:
