@@ -1131,11 +1131,11 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
         return self.severityConversions
 
     def getSeverityString(self, severity):
-        """Return a list of tuples of severities [('Warning', 3), ...] 
+        """Return a string representation of the severity.
         """
         try:
             return self.severities[severity]
-        except IndexError:
+        except KeyError:
             return "Unknown"
 
     def getPriorities(self):
