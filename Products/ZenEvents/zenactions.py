@@ -446,6 +446,10 @@ class ZenActions(ZCmdBase):
         fmt, body = self.format(action, data, clear)
         msg = fmt % data
         recipient = action.getAddress()
+        if not recipient:
+            self.log.warning('failed to page %s on rule %s: %s',
+                action.getUser().id, action.id, 'Unspecified address.')
+            return True
         
         result, errorMsg = Utils.sendPage(recipient, msg,
                                     self.dmd.snppHost,self.dmd.snppPort)
@@ -466,6 +470,11 @@ class ZenActions(ZCmdBase):
         from email.MIMEText import MIMEText
         from email.MIMEMultipart import MIMEMultipart
         addr = action.getAddress()
+        if not addr:
+            self.log.warning('failed to email %s on rule %s: %s',
+                action.getUser().id, action.id, 'Unspecified address.')
+            return True
+        
         fmt, htmlbody = self.format(action, data, clear)
         htmlbody = htmlbody.replace('\n','<br/>\n')
         body = self.stripTags(htmlbody)
