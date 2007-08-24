@@ -36,7 +36,7 @@ class PObjectCache(SimpleItem):
     def __init__(self, id, timeout=20, clearthresh=20):
         self.id = id
         self.timeout = timeout
-        self.clearthresh = clearthresh
+        self.clearcount = self.clearthresh = clearthresh
         self.cache = {}
 
     

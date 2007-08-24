@@ -310,7 +310,10 @@ class RenderServer(RRDToolItem):
         """add graph to temporary folder"""
         cache = self.setupCache()
         graph = self._loadfile(filename)
-        if graph: cache.addToCache(id, graph)
+        if graph: 
+            cache.addToCache(id, graph)
+            os.remove(filename)
+        cache.cleanCache()
 
 
     def getGraph(self, id, ftype, REQUEST):
