@@ -45,11 +45,17 @@ class InterfaceMap(SnmpPlugin):
                  '.7': 'adminStatus',
                  '.8': 'operStatus'}
         ),
-        # Ip table
-        GetTableMap('iptable', '.1.3.6.1.2.1.4.20.1',
+        # ipAddrTable is the better way to get IP addresses
+        GetTableMap('ipAddrTable', '.1.3.6.1.2.1.4.20.1',
                 {'.1': 'ipAddress',
                  '.2': 'ifindex',
                  '.3': 'netmask'}
+        ),
+        # Use the ipNetToMediaTable as a backup to the ipAddrTable
+        GetTableMap('ipNetToMediaTable', '.1.3.6.1.2.1.4.22.1',
+                {'.1': 'ifindex',
+                 '.3': 'ipaddress',
+                 '.4': 'iptype'}
         ),
         # Interface Description
         GetTableMap('ifalias', '.1.3.6.1.2.1.31.1.1.1',
@@ -68,7 +74,8 @@ class InterfaceMap(SnmpPlugin):
         getdata, tabledata = results
         log.info('processing %s for device %s', self.name(), device.id)
         rm = self.relMap()
-        iptable = tabledata.get("iptable")
+        iptable = tabledata.get("ipAddrTable") \
+            or tabledata.get("ipNetToMediaTable")
         iftable = tabledata.get("iftable")
         ifalias = tabledata.get("ifalias")
         if iptable is None or iftable is None: return
@@ -94,6 +101,12 @@ class InterfaceMap(SnmpPlugin):
         for ip, row in iptable.items():
             #FIXME - not getting ifindex back from HP printer
             if not row.has_key("ifindex"): continue
+
+            # Fix data up if it is from the ipNetToMediaTable.
+            if len(ip.split('.')) == 5:
+                if row['iptype'] != 1: continue
+                ip = '.'.join(ip.split('.')[1:])
+                row['netmask'] = '255.255.255.0'
             strindex = str(row['ifindex'])
             if not omtable.has_key(strindex) and not iftable.has_key(strindex):
                 log.warn("skipping %s points to missing ifindex %s",
