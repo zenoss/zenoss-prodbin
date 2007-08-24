@@ -166,7 +166,8 @@ def findCommunity(context, ip, devicePath,
     versions = ('v2c', 'v1')
     if version: versions = (version)
     timeout = getattr(devroot, "zSnmpTimeout", 2)
-    session = SnmpSession(ip, timeout=timeout, port=port)
+    retries = getattr(devroot, "zSnmpTries", 2)
+    session = SnmpSession(ip, timeout=timeout, port=port, retries=retries)
     sysTableOid = '.1.3.6.1.2.1.1'
     oid = '.1.3.6.1.2.1.1.5.0'
     goodcommunity = ""
