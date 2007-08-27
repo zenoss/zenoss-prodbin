@@ -34,7 +34,7 @@ def _get_related(node):
     elif node.meta_type=='Device':
         children = _fromDeviceToNetworks(node)
     else:
-        raise NotImplemented
+        raise NotImplementedError
     return children
 
 def _sortedpair(x,y):
