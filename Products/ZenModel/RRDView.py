@@ -280,9 +280,9 @@ class RRDView(object):
 
     def rrdPath(self):
         d = self.device()
-        if not d: return "/Devices/" + self.id
+        if not d: return "Devices/" + self.id
         skip = len(d.getPrimaryPath()) - 1
-        return '/Devices/' + '/'.join(self.getPrimaryPath()[skip:])
+        return 'Devices/' + '/'.join(self.getPrimaryPath()[skip:])
 
     def fullRRDPath(self):
         from PerformanceConf import performancePath
