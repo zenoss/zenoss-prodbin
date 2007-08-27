@@ -66,6 +66,8 @@ from DeviceHW import DeviceHW
 
 from ZenStatus import ZenStatus
 from Exceptions import *
+from Products.ZenUtils.Utils import edgesToXML
+from Products.ZenUtils import NetworkTree
 
 def manage_createDevice(context, deviceName, devicePath="/Discovered",
             tag="", serialNumber="",
@@ -1458,10 +1460,14 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable, Admini
 
     def getLinks(self):
         """ Returns all Links on this Device's interfaces """
-        ifaces = self.os.interfaces()
-        links = []
-        for iface in ifaces: 
-            links.extend(iface.links())
-        return links
-         
+        for iface in self.os.interfaces.objectValuesGen():
+            for link in iface.links.objectValuesGen():
+                yield link
+
+    security.declareProtected('View', 'getXMLEdges')
+    def getXMLEdges(self, depth=1):
+        """ Gets XML """
+        edges = NetworkTree.get_edges(self, depth)
+        return edgesToXML(edges)
+
 InitializeClass(Device)

@@ -520,3 +520,26 @@ def cleanupSkins(dmd):
     layers = ps._objects
     layers = filter(lambda x:getattr(ps, x['id'], False), layers)
     ps._objects = tuple(layers)
+
+def edgesToXML(edges):
+    nodet = '<Node id="%s" prop="%s"/>'
+    edget = '<Edge fromID="%s" toID="%s"/>'
+    xmlels = []
+    nodeels = []
+    edgeels = []
+    for a, b in edges:
+        node1 = nodet % (a, a)
+        node2 = nodet % (b, b)
+        edge1 = edget % (a, b)
+        if node1 not in nodeels: nodeels.append(node1)
+        if node2 not in nodeels: nodeels.append(node2)
+        if edge1 not in edgeels: edgeels.append(edge1)
+    xmlels.append('<Nodes>')
+    xmlels.extend(nodeels)
+    xmlels.append('</Nodes>')
+    xmlels.append('<Edges>')
+    xmlels.extend(edgeels)
+    xmlels.append('</Edges>')
+    xmldoc = "<graph>%s</graph>" % ''.join(list(xmlels))
+    return xmldoc
+

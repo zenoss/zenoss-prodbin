@@ -44,6 +44,8 @@ from DeviceOrganizer import DeviceOrganizer
 from Products.ZenModel.Exceptions import *
 
 from Products.ZenUtils.Utils import setWebLoggingStream, clearWebLoggingStream
+from Products.ZenUtils import NetworkTree
+from Products.ZenUtils.Utils import edgesToXML
 
 def manage_addIpNetwork(context, id, netmask=24, REQUEST = None):
     """make a IpNetwork"""
@@ -482,6 +484,12 @@ class IpNetwork(DeviceOrganizer):
             Navigate to network <a href=%s>%s</a></td></tr>""" 
             % (self.absolute_url(), self.id))
         response.write("</table></body></html>")
+
+    security.declareProtected('View', 'getXMLEdges')
+    def getXMLEdges(self, depth=1):
+        """ Gets XML """
+        edges = NetworkTree.get_edges(self, depth)
+        return edgesToXML(edges)
 
 
 InitializeClass(IpNetwork)

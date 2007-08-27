@@ -122,7 +122,7 @@ class LinkManager(ZenModelRM):
     def getNodeLinks(self, node):
         """ Returns all links associated with a given Linkable """
         try:
-            return node.links()
+            return node.links.objectValuesGen()
         except AttributeError:
             return node.getLinks(recursive=False)
 
