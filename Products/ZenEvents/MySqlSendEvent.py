@@ -185,6 +185,7 @@ class MySqlSendEventMixin:
         """
         Apply event attributes from device context.
         """
+        if not hasattr(evt, 'ipAddress'): evt.ipAddress = device.manageIp
         evt.prodState = device.productionState
         evt.Location = device.getLocationName()
         evt.DeviceClass  = device.getDeviceClassName()
