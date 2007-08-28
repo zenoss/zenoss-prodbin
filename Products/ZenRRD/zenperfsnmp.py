@@ -422,9 +422,12 @@ class zenperfsnmp(SnmpDaemon):
         oidMap, p.oidMap = p.oidMap, {}
         for name, oid, path, dsType, createCmd, minmax in oidData:
             createCmd = createCmd.strip()
-            oid = '.' + str(oid.lstrip('.'))
-            p.oidMap[oid] = d = oidMap.setdefault(oid, OidData())
-            d.update(name, path, dsType, createCmd, minmax)
+            oid = str(oid).strip('.')
+            # beware empty oids
+            if oid:
+                oid = '.' + oid
+                p.oidMap[oid] = d = oidMap.setdefault(oid, OidData())
+                d.update(name, path, dsType, createCmd, minmax)
         self.proxies[deviceName] = p
         self.thresholds.updateList(thresholds)
 
@@ -592,13 +595,13 @@ class zenperfsnmp(SnmpDaemon):
         if not oidData: return
 
         min, max = oidData.minmax
-        value = self.rrd.save(oidData.path[1:],
+        value = self.rrd.save(oidData.path,
                               value,
                               oidData.dataStorageType,
                               oidData.rrdCreateCommand,
                               min=min, max=max)
 
-        for ev in self.thresholds.check(oidData.path[1:], time.time(), value):
+        for ev in self.thresholds.check(oidData.path, time.time(), value):
             self.sendThresholdEvent(**ev)
 
     def connected(self):

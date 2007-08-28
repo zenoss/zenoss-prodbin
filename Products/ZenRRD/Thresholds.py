@@ -29,14 +29,18 @@ class Thresholds:
             del self.thresholds[doomed.key()]
             ctx = doomed.context()
             for dp in doomed.dataPoints():
-                del self.map[ctx.fileKey(dp)]
+                lst = self.map[ctx.fileKey(dp)]
+                if (threshold, dp) in lst:
+                    lst.remove( (threshold, dp) )
+                if not lst:
+                    del self.map[ctx.fileKey(dp)]
         return doomed
 
     def add(self, threshold):
         self.thresholds[threshold.key()] = threshold
         ctx = threshold.context()
         for dp in threshold.dataPoints():
-            self.map.setdefault(ctx.fileKey(dp), []).append(threshold)
+            self.map.setdefault(ctx.fileKey(dp), []).append((threshold, dp))
         
     def update(self, threshold):
         "Store a threshold instance for future computation"
@@ -57,8 +61,8 @@ class Thresholds:
         result = []
         if filename in self.map:
             log.debug("Checking value %s on %s", value, filename)
-            for t in self.map[filename]:
-                result += t.checkRaw(filename, timeAt, value)
+            for t, dp in self.map[filename]:
+                result += t.checkRaw(dp, timeAt, value)
         return result
 
 def test():

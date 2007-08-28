@@ -182,7 +182,7 @@ class PerformanceConf(Monitor, StatusColor):
     def performanceGraphUrl(self, context, targetpath, targettype,
                             view, drange):
         """set the full path of the target and send to view"""
-        targetpath = performancePath(targetpath[1:])
+        targetpath = performancePath(targetpath)
         gopts =  view.graphOpts(context, targetpath, targettype)
         ngopts = []
         width = 0
