@@ -519,5 +519,22 @@ class DataRoot(ZenModelRM, OrderedFolder, Commandable, ZenMenuable):
         cache = REQUEST._file.read()
         self.geocache = cache
 
+    def getXMLEdges(self, objid, depth=1):
+        """ Get the XML representation of network nodes
+            and edges using the obj with objid as a root
+        """
+        import urllib
+        objid = urllib.unquote(objid)
+        try:
+            obj = self.Devices.findDevice(objid)
+        except: obj=None
+        if not obj:
+            obj = self.Networks.getNet(objid)
+        if not obj:
+            raise NotImplementedError
+        return obj.getXMLEdges(int(depth))
+
+        
+
 
 InitializeClass(DataRoot)

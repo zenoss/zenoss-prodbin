@@ -291,7 +291,6 @@ class IpNetwork(DeviceOrganizer):
             nets.extend(subgroup.getSubNetworks())
         return nets
 
-
     security.declareProtected('Change Network', 'addIpAddress')
     def addIpAddress(self, ip, netmask=24):
         """add ip to this network and return it"""
