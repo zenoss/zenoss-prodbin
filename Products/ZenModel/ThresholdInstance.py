@@ -26,7 +26,7 @@ class ThresholdContext(pb.Copyable, pb.RemoteCopy):
     
     def __init__(self, context):
         self.deviceName = context.device().id
-        self.componentName = context.id
+        self.componentName = context.name()
         if self.componentName == self.deviceName:
             self.componentName = ''
         self.rrdPath = context.rrdPath()
