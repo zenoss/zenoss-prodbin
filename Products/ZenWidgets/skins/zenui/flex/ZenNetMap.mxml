@@ -1,0 +1,141 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Application xmlns:mx="http://www.adobe.com/2006/mxml" xmlns:local="*" xmlns:fc="http://www.adobe.com/2006/fc"
+	 layout="absolute"
+	 creationComplete="setup()" backgroundGradientColors="[#ffffff,#ffffff]">
+	
+	<fc:Roamer id="roamer" bottom="0" 
+		itemRenderer="XMLItemView"
+		repulsionFactor="{repulsion.value}" 
+		maxDistanceFromCurrent="{maxDistanceFromCurrent.value}" 
+		itemLimit="200"
+		autoFit="{autoFit.selected}"
+        tidyHistory="true"
+		motionThreshold="0.3"
+		right="0" left="0" top="0">
+
+		<fc:removeItemEffect>
+			<mx:Fade alphaFrom="1" alphaTo="0" duration="500"/>				
+		</fc:removeItemEffect>
+		
+		<fc:addItemEffect>
+			<mx:Fade alphaFrom="0" alphaTo="1" duration="500"/>
+		</fc:addItemEffect>
+	</fc:Roamer>
+    <mx:Text fontSize="9" x="10" y="300" width="65" height="300" id="messagebox"/>
+	<mx:HSlider x="10" y="30" width="133" id="maxDistanceFromCurrent"
+        value="3" minimum="1" maximum="10" 
+		liveDragging="true" snapInterval="1" height="25"/>
+	<mx:Label x="10" y="50" text="Degrees of Separation" fontSize="9"
+    textAlign="left" color="#000000"/>
+	<mx:HSlider x="11" y="130" width="133" id="repulsion" value="{roamer.repulsionFactor}" minimum="0.01" maximum="1.5" liveDragging="true"/>
+	<mx:Label x="11" y="150" text="Repulsion" fontSize="9" width="133"
+    textAlign="center" color="#000000"/>
+	<mx:CheckBox selected="false" id="autoFit" x="11" y="180" label="Fit nodes to window" color="#000000" change="roamer.refresh()"/>
+	<mx:Button id="fromSmallDataButton" x="10" y="260" label="Refresh Network Data" 
+		click="initialData.send();" width="137" fontSize="9"/>
+
+	<mx:HTTPService id="initialData" url="../getXMLEdges"
+        showBusyCursor="true" resultFormat="e4x" 
+        result="gotData(['Node','Edge','fromID','toID'], event)">
+    </mx:HTTPService>
+	<mx:HTTPService id="moreData" url="/zport/dmd/getXMLEdges"
+        showBusyCursor="true" resultFormat="e4x" 
+        result="updateData(event)">
+        <mx:request>
+            <depth>2</depth>
+            <objid>{_nextItemName}</objid>
+        </mx:request>
+    </mx:HTTPService>
+
+	
+	<mx:Label x="150" y="121" text="*" color="#dddddd" id="currentDataIndicator"/>
+	<mx:Script>
+		<![CDATA[
+			import com.adobe.flex.extras.controls.springgraph.SpringGraph;
+			import mx.rpc.events.ResultEvent;
+            import mx.collections.XMLListCollection;
+			import com.adobe.flex.extras.controls.springgraph.Item;
+			import com.adobe.flex.extras.controls.springgraph.Graph;
+
+
+            [Bindable]private var _nextItemName:String;
+            /*
+            [Bindable]private var _nodeList:XMLList;
+            */
+            [Bindable]private var _nodeList:XML;
+            [Bindable]private var _currentItemID:String;
+            [Bindable]private var _history:Array;
+
+            private function log(msg:String): void {
+                messagebox.text += msg + "\n";
+            }
+
+			private function setup(): void {
+				initialData.send();
+                roamer.motionThreshold = 0.3;
+				roamer.repulsionFactor = 1.0;
+				roamer.showHistory = true;
+                log("Ready to go!");
+			}
+			
+			private function gotData(xmlNames: Array, event: ResultEvent): void {
+				roamer.resetHistory();
+				roamer.resetShowHide();
+				roamer.xmlNames = xmlNames;
+                /*
+                _nodeList = XMLList(XML(event.result));
+                roamer.dataProvider = XML(_nodeList.toXMLString());
+                */
+                _nodeList = XML(event.result);
+                roamer.dataProvider = _nodeList;
+			}
+
+			private function updateData(event: ResultEvent): void {
+                /*
+                _nodeList.appendChild(XML(event.result));
+                */
+                var mylist:XMLList = XMLList(event.result);
+                var nodelist:XMLList = mylist.Node;
+                var edgelist:XMLList = mylist.Edge;
+                for each (var item:XML in nodelist) {
+                    var id:String = item.@id;
+                    if (roamer.dataProvider.find(id)==null) {
+                        _nodeList.appendChild(item);
+                    }
+                };
+                for each (var edge:XML in edgelist) {
+                    _nodeList.appendChild(edge);
+                };
+                /*
+                _history = roamer.history;
+                */
+                roamer.setDataProvider(_nodeList, _currentItemID);
+                /*
+                for (var i:int=0; i<_history.length; i++) {
+                    var histitem:Item = _history[i];
+                    if (histitem!=null) {
+                        var histid:String = histitem.id;
+                        log(histid);
+                        var curitem:Item = roamer.dataProvider.find(histid);
+                        if (curitem!=null) {
+                            roamer.showItem(curitem);
+                        }
+                    }
+                }
+                */
+			}
+			
+			public function itemDoubleClick(event: Event): void {
+                if (roamer.dataProvider.numLinks(event.currentTarget.data)<=1) {
+                    _nextItemName = event.currentTarget.data.data.@prop;
+                    _currentItemID = event.currentTarget.data.data.@id;
+                    moreData.send()
+                } else {
+                    roamer.currentItem = event.currentTarget.data;
+                }
+			}
+		
+
+		]]>
+	</mx:Script>
+</mx:Application>

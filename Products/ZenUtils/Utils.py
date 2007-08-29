@@ -522,14 +522,14 @@ def cleanupSkins(dmd):
     ps._objects = tuple(layers)
 
 def edgesToXML(edges):
-    nodet = '<Node id="%s" prop="%s"/>'
+    nodet = '<Node id="%s" prop="%s" icon="%s"/>'
     edget = '<Edge fromID="%s" toID="%s"/>'
     xmlels = []
     nodeels = []
     edgeels = []
     for a, b in edges:
-        node1 = nodet % (a, a)
-        node2 = nodet % (b, b)
+        node1 = nodet % (a, a, 'network.png')
+        node2 = nodet % (b, b, 'router.png')
         edge1 = edget % (a, b)
         if node1 not in nodeels: nodeels.append(node1)
         if node2 not in nodeels: nodeels.append(node2)
