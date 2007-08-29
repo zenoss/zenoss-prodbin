@@ -167,7 +167,7 @@ class RRDDataSource(ZenModelRM, ZenPackable):
                 else:
                     for d in self.deviceClass.obj.getSubDevicesGen():
                         perfConf = d.getPerformanceServer()
-                        perfConf.deleteRRDFiles(device=d, datapoint=dp.name())
+                        perfConf.deleteRRDFiles(device=d.id, datapoint=dp.name())
         
                 clean(self.graphs, dp.name())
                 clean(self.thresholds, dp.name())
