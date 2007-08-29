@@ -497,20 +497,14 @@ class DataRoot(ZenModelRM, OrderedFolder, Commandable, ZenMenuable):
         '''
         return pack.__class__.__module__.split('.')[1]
 
-    def getIconPath(self, meta_type):
+    def getIconPath(self, obj):
         """ Retrieve the appropriate image path associated
-            with a given object type.
+            with a given object.
         """
-        default = '/zport/dmd/img/icons/noicon.png'
-        icon = self.iconMap.get(meta_type, default)
-        return icon
-
-    def setIconPath(self, meta_type, iconPath, REQUEST=None):
-        """ Set the icon path for an object type.
-        """
-        self.iconMap[meta_type] = iconPath
-        if REQUEST is not None:
-            return self.callZenScreen(REQUEST, redirect=True)
+        try:
+            return obj.primaryAq().zIcon 
+        except AttributeError:
+            return '/zport/dmd/img/icons/noicon.png'
 
     def setGeocodeCache(self, REQUEST=None):
         """ Store a JSON representation of

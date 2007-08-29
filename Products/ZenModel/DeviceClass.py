@@ -795,6 +795,9 @@ class DeviceClass(DeviceOrganizer, ZenPackable):
         devs._setProperty("zWinEventlogMinSeverity", 2, type="int")
         devs._setProperty("zWinEventlog", False, type="boolean")
 
+        # Icon path
+        devs._setProperty("zIcon", "/zport/dmd/img/icons/noicon.png")
+
 
     def zenPropertyOptions(self, propname):
         "Provide a set of default options for a ZProperty"

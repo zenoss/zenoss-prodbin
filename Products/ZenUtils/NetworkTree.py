@@ -20,17 +20,21 @@ def _fromDeviceToNetworks(dev):
             else:
                 yield net
 
-def _fromNetworkToDevices(net):
+def _fromNetworkToDevices(net, devclass):
     for ip in net.ipaddresses():
         dev = ip.device()
         if dev is None:
             continue
+        dcp = dev.getDeviceClassPath()
+        if not ( dcp.startswith(devclass) or 
+            dcp.startswith('/Network/Router')):
+            continue
         else:
             yield dev
 
-def _get_related(node):
+def _get_related(node, devclass='/'):
     if node.meta_type=='IpNetwork':
-        children = _fromNetworkToDevices(node)
+        children = _fromNetworkToDevices(node, devclass)
     elif node.meta_type=='Device':
         children = _fromDeviceToNetworks(node)
     else:
@@ -58,8 +62,13 @@ def _get_connections(rootnode, depth=1, pairs=[]):
                     for n in _get_connections(childnode, depth-1, pairs):
                         yield n
 
-def get_edges(rootnode, depth=1):
+def get_edges(rootnode, depth=1, withIcons=False):
     """ Returns some edges """
     g = _get_connections(rootnode, depth, [])
     for nodea, nodeb in g:
-        yield (nodea.id, nodeb.id)
+        if withIcons:
+            yield ((nodea.id, nodea.getIconPath()),
+                   (nodeb.id, nodeb.getIconPath()))
+        else:
+            yield (nodea.id, nodeb.id)
+

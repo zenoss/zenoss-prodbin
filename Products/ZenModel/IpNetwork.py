@@ -388,7 +388,7 @@ class IpNetwork(DeviceOrganizer):
         nets._setProperty("zDefaultNetworkTree", (24,32), type="lines")
         nets._setProperty("zAutoDiscover", True, type="boolean")
         nets._setProperty("zPingFailThresh", 168, type="int")
-                          
+        nets._setProperty("zIcon", "/zport/dmd/img/icons/network.png")
 
 
     def reIndex(self):
@@ -487,8 +487,12 @@ class IpNetwork(DeviceOrganizer):
     security.declareProtected('View', 'getXMLEdges')
     def getXMLEdges(self, depth=1):
         """ Gets XML """
-        edges = NetworkTree.get_edges(self, depth)
+        edges = NetworkTree.get_edges(self, depth, withIcons=True)
         return edgesToXML(edges)
+
+    def getIconPath(self):
+        """ gets icon """
+        return self.dmd.getIconPath(self)
 
 
 InitializeClass(IpNetwork)

@@ -528,9 +528,9 @@ def edgesToXML(edges):
     nodeels = []
     edgeels = []
     for a, b in edges:
-        node1 = nodet % (a, a, 'network.png')
-        node2 = nodet % (b, b, 'router.png')
-        edge1 = edget % (a, b)
+        node1 = nodet % (a[0], a[0], a[1])
+        node2 = nodet % (b[0], b[0], b[1])
+        edge1 = edget % (a[0], b[0])
         if node1 not in nodeels: nodeels.append(node1)
         if node2 not in nodeels: nodeels.append(node2)
         if edge1 not in edgeels: edgeels.append(edge1)

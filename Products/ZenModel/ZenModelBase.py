@@ -324,7 +324,7 @@ class ZenModelBase(object):
     security.declareProtected('View', 'getIconPath')
     def getIconPath(self):
         """ Return the icon associated with this object """
-        return self.dmd.getIconPath(self.meta_type)
+        return self.dmd.getIconPath(self)
 
 
 InitializeClass(ZenModelBase)

@@ -4,10 +4,9 @@
 	backgroundAlpha="0"
 	filters="{calcFilters(app().roamer.currentItem, data as Item)}">	
 	
-    <mx:Image id="img1" source="/zport/dmd/img/icons/{data.data.@icon}" 
-        height="55" width="55" x="10" y="0"/>
+    <mx:Image id="img1" source="/zport/dmd/img/icons/{data.data.@icon}"/>
 	<mx:Text fontSize="10" fontWeight="bold" text="{data.data.@prop}"
-    color="#000000" width="65" selectable="false" x="0" y="20"/>	
+    color="#000000" width="70" selectable="false"/>	
 
 	<mx:Script>
 		<![CDATA[
