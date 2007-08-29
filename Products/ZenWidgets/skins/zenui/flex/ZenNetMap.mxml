@@ -21,28 +21,38 @@
 			<mx:Fade alphaFrom="0" alphaTo="1" duration="500"/>
 		</fc:addItemEffect>
 	</fc:Roamer>
-    <mx:Text fontSize="9" x="10" y="300" width="65" height="300" id="messagebox"/>
-	<mx:HSlider x="10" y="30" width="133" id="maxDistanceFromCurrent"
-        value="3" minimum="1" maximum="10" 
-		liveDragging="true" snapInterval="1" height="25"/>
-	<mx:Label x="10" y="50" text="Degrees of Separation" fontSize="9"
-    textAlign="left" color="#000000"/>
-	<mx:HSlider x="11" y="130" width="133" id="repulsion" value="{roamer.repulsionFactor}" minimum="0.01" maximum="1.5" liveDragging="true"/>
-	<mx:Label x="11" y="150" text="Repulsion" fontSize="9" width="133"
-    textAlign="center" color="#000000"/>
-	<mx:CheckBox selected="false" id="autoFit" x="11" y="180" label="Fit nodes to window" color="#000000" change="roamer.refresh()"/>
-	<mx:Button id="fromSmallDataButton" x="10" y="260" label="Refresh Network Data" 
-		click="initialData.send();" width="137" fontSize="9"/>
+    <mx:HBox x="0" y="0" backgroundAlpha="0.8" width="100%"
+    backgroundColor="0x444444" verticalAlign="middle" horizontalAlign="center">
+    <mx:VBox horizontalAlign="center">
+	<mx:HSlider width="133" id="maxDistanceFromCurrent"
+        value="2" minimum="1" maximum="4" 
+		liveDragging="true" snapInterval="1"/>
+	<mx:Label text="Number of Hops" fontSize="9" 
+              textAlign="center" color="#ffffff"/>
+    </mx:VBox>
+    <mx:VBox horizontalAlign="center">
+	<mx:HSlider width="133" id="repulsion" value="{roamer.repulsionFactor}" minimum="0.01" maximum="1.5" liveDragging="true"/>
+	<mx:Label text="Repulsion" fontSize="9" width="133" textAlign="center"
+    color="#ffffff"/>
+    </mx:VBox>
+	<mx:CheckBox selected="false" id="autoFit" label="Fit to window"
+    color="#ffffff" change="roamer.refresh()"/>
+	<mx:Button id="fromSmallDataButton" label="Reset"
+		click="initialData.send();" width="70" fontSize="9"/>
+    </mx:HBox>
 
 	<mx:HTTPService id="initialData" url="../getXMLEdges"
         showBusyCursor="true" resultFormat="e4x" 
         result="gotData(['Node','Edge','fromID','toID'], event)">
+        <mx:request>
+            <depth>{maxDistanceFromCurrent.value}</depth>
+        </mx:request>
     </mx:HTTPService>
 	<mx:HTTPService id="moreData" url="/zport/dmd/getXMLEdges"
         showBusyCursor="true" resultFormat="e4x" 
         result="updateData(event)">
         <mx:request>
-            <depth>2</depth>
+            <depth>{maxDistanceFromCurrent.value}</depth>
             <objid>{_nextItemName}</objid>
         </mx:request>
     </mx:HTTPService>
@@ -66,14 +76,13 @@
             [Bindable]private var _currentItemID:String;
             [Bindable]private var _history:Array;
 
-            private function log(msg:String): void {
-                messagebox.text += msg + "\n";
+            public function log(msg:String): void {
             }
 
 			private function setup(): void {
 				initialData.send();
                 roamer.motionThreshold = 0.3;
-				roamer.repulsionFactor = 1.0;
+				roamer.repulsionFactor = 0.5;
 				roamer.showHistory = true;
                 log("Ready to go!");
 			}

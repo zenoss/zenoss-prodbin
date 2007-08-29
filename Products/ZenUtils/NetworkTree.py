@@ -64,11 +64,23 @@ def _get_connections(rootnode, depth=1, pairs=[]):
 
 def get_edges(rootnode, depth=1, withIcons=False):
     """ Returns some edges """
+    depth = int(depth)
     g = _get_connections(rootnode, depth, [])
+    def getColor(node):
+        if node.meta_type=='IpNetwork': 
+            return '0xffffff'
+        summary = node.getEventSummary()
+        colors = '0xff0000 0xff8c00 0xffd700 0x228b22 0x228b22'.split()
+        color = '0x00ff00'
+        for i in range(5):
+            if summary[i][1]+summary[i][2]>0:
+                color = colors[i]
+                break
+        return color
     for nodea, nodeb in g:
         if withIcons:
-            yield ((nodea.id, nodea.getIconPath()),
-                   (nodeb.id, nodeb.getIconPath()))
+            yield ((nodea.id, nodea.getIconPath(), getColor(nodea)),
+                   (nodeb.id, nodeb.getIconPath(), getColor(nodeb)))
         else:
             yield (nodea.id, nodeb.id)
 
