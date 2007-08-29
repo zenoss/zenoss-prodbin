@@ -1,0 +1,51 @@
+<tal:block metal:use-macro="here/templates/macros/page2">
+
+<tal:block metal:fill-slot="head-local">
+    <script>
+        function maximizeMapHeight() {
+            mapdiv = $('netmapcontainer');
+            mapoffset = getElementPosition(mapdiv).y;
+            maxbottom = getViewportDimensions().h;
+            newdims = {'h':maxbottom-mapoffset-32};
+            setElementDimensions(mapdiv, newdims);
+        }
+        function doFullScreen() {
+            mapdiv = $('netmapcontainer');
+            vpdims = getViewportDimensions();
+            vppos = getViewportPosition();
+            oldstyle = getStyle(mapdiv, 'position');
+            olddims = getElementDimensions(mapdiv);
+            oldpos = getElementPosition(mapdiv);
+            setStyle(mapdiv, {'position':'absolute','zIndex':'200000'});
+            vpdims = {'h':vpdims.h-30, 'w':vpdims.w-15};
+            setElementDimensions(mapdiv, vpdims);
+            setElementPosition(mapdiv, vppos);
+        }
+        function returnFromFull(oldpos, olddims, oldstyle) {
+
+        }
+        connect(currentWindow(), 'onresize', maximizeMapHeight);
+        addLoadEvent(maximizeMapHeight);
+    </script>
+</tal:block>
+
+<tal:block metal:fill-slot="breadCrumbPane">
+    /<a tal:attributes="
+        href string:${here/absolute_url_path}/${template/id}">Network Map
+    </a>
+</tal:block>
+
+<tal:block metal:fill-slot="contentPane">
+<div id="netmapcontainer" 
+     style="position:relative; height:400px; 
+            border:1px solid black;">
+    <object width="100%" height="100%">
+        <param name="movie" value="flex/ZenNetMap.swf">
+        <embed src="flex/ZenNetMap.swf" width="100%" height="100%"></embed>
+    </object>
+</div>
+
+</tal:block>
+
+</tal:block>
+

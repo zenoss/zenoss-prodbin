@@ -309,6 +309,11 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable, Admini
                 , 'action'        : 'viewDevicePerformance'
                 , 'permissions'   : (permissions.view, )
                 },
+                { 'id'            : 'viewNetworkMap'
+                , 'name'          : 'Network Map'
+                , 'action'        : 'viewNetworkMap'
+                , 'permissions'   : (permissions.view, )
+                },
 #                { 'id'            : 'perfConf'
 #                , 'name'          : 'PerfConf'
 #                , 'action'        : 'objTemplates'

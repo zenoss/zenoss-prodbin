@@ -120,6 +120,12 @@ class IpNetwork(DeviceOrganizer):
                 , 'permissions'   : (
                   permissions.view, )
                 },
+                { 'id'            : 'viewNetworkMap'
+                , 'name'          : 'Network Map'
+                , 'action'        : 'viewNetworkMap'
+                , 'permissions'   : (
+                  permissions.view, )
+                },
             )
           },
         )

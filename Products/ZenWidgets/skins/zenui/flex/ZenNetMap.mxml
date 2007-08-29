@@ -41,7 +41,7 @@
 		click="initialData.send();" width="70" fontSize="9"/>
     </mx:HBox>
 
-	<mx:HTTPService id="initialData" url="../getXMLEdges"
+	<mx:HTTPService id="initialData" url="getXMLEdges"
         showBusyCursor="true" resultFormat="e4x" 
         result="gotData(['Node','Edge','fromID','toID'], event)">
         <mx:request>
