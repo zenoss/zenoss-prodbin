@@ -214,6 +214,29 @@ class ZPLBin(ZenPackLoader):
                 for d in findFiles(pack, 'bin', filter=self.filter)]
 
 
+class ZPLLibExec(ZenPackLoader):
+
+    name = "LibExec"
+    
+    extensionsToIgnore = ('.svn-base', '.pyc' '~')
+    def filter(self, f):
+        for ext in self.extensionsToIgnore:
+            if f.endswith(ext):
+                return False
+        return True
+
+    def load(self, pack, app):
+        for fs in findFiles(pack, 'libexec', filter=self.filter):
+            os.chmod(fs, 0755)
+
+    def upgrade(self, pack, app):
+        self.load(pack, app)
+
+    def list(self, pack, app):
+        return [branchAfter(d, 'libexec') 
+                for d in findFiles(pack, 'libexec', filter=self.filter)]
+
+
 class ZPLModelers(ZenPackLoader):
 
     name = "Modeler Plugins"

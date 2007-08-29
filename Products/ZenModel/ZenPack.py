@@ -63,8 +63,8 @@ class ZenPack(ZenModelRM):
 
     requires = ()
 
-    loaders = (ZPLObject(), ZPLReport(), ZPLDaemons(), ZPLBin(), ZPLSkins(),
-                ZPLDataSources(), ZPLLibraries(), ZPLAbout())
+    loaders = (ZPLObject(), ZPLReport(), ZPLDaemons(), ZPLBin(), ZPLLibExec(),
+                ZPLSkins(), ZPLDataSources(), ZPLLibraries(), ZPLAbout())
                 
     _properties = ZenModelRM._properties + (
         {'id':'objectPaths','type':'lines','mode':'w'},
