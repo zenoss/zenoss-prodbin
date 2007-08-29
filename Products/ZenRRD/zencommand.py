@@ -552,6 +552,9 @@ class zencommand(RRDDaemon):
                                       cmd.cycleTime, minv, maxv)
                 log.debug("rrd save result: %s" % value)
                 for ev in self.thresholds.check(path, time.time(), value):
+                    ev['eventKey'] = cmd.eventKey
+                    ev['eventClass'] = cmd.eventClass
+                    ev['component'] = cmd.component
                     self.sendThresholdEvent(**ev)
 
     def fetchConfig(self):
