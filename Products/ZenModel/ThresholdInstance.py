@@ -28,7 +28,7 @@ class ThresholdContext(pb.Copyable, pb.RemoteCopy):
         self.deviceName = context.device().id
         try:
             self.componentName = context.name()
-        except:
+        except AttributeError:
             self.componentName = context.id
         if self.componentName == self.deviceName:
             self.componentName = ''
