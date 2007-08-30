@@ -55,14 +55,14 @@ class StatusConfig(HubService):
         return [x for x in status.items() if x[0][0] in devices]
 
     def remote_services(self, configpath):
-        smc = self.dmd.getObjByPath(configpath.lstrip('/'))
         result = []
-        for svc in smc.getSubComponents("IpService"):
-            dev = svc.device()
+        for dev in self.config.devices():
             if not dev.monitorDevice(): continue
-            if svc.getProtocol() != "tcp": continue
-            result.append(ServiceConfig(svc))
+            for svc in dev.getMonitoredComponents(collector='zenstatus'):
+                if svc.getProtocol() != "tcp": continue
+                result.append(ServiceConfig(svc))
         return result
+
         
     def update(self, object):
         if not self.listeners: return

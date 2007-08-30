@@ -45,6 +45,7 @@ class WinService(Service):
     serviceType = ""
     startMode = ""
     startName = ""
+    collectors = ('zenwin',)
    
     _properties = Service._properties + (
         {'id': 'acceptPause', 'type':'boolean', 'mode':'w'},

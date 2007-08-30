@@ -90,4 +90,5 @@ import twopointohobjects
 import addexpectregex
 import linkables
 import thresholds
+import componentIndex
 import zIcon

@@ -462,24 +462,28 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable, Admini
         return self.os.traceRoute(target, ippath)
 
 
-    def getMonitoredComponents(self):
+    def getMonitoredComponents(self, collector=None, type=None):
         """Return list of monitored DeviceComponents on this device.
         """
-        return [c for c in self.getDeviceComponents() if c.monitored()]
+        return self.getDeviceComponents(monitored=True, 
+                                        collector=collector, type=type)
 
 
-    def getDeviceComponents(self):
+    def getDeviceComponents(self, monitored=None, collector=None, type=None):
         """Return list of all DeviceComponents on this device.
         """
-        cmps = []
-        cmps.extend(self.os.ipservices())
-        cmps.extend(self.os.winservices())
-        cmps.extend(self.os.interfaces())
-        cmps.extend(self.os.filesystems())
-        cmps.extend(self.os.processes())
-        cmps.extend(self.os.routes())
-        cmps.extend(self.hw.harddisks())
-        return cmps
+        query = {
+            'getParentDeviceName':self.id,
+            }
+        if collector is not None:
+            query['getCollectors'] = collector
+        if monitored is not None:
+            query['monitored'] = monitored
+        if type is not None:
+            query['meta_type'] = type
+        brains = self.componentSearch(query)
+        return [c.getObject() for c in brains]
+
 
     def getSnmpConnInfo(self):
         return (self.id,
@@ -494,7 +498,7 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable, Admini
         """
         if not self.snmpMonitorDevice():
             return None
-        procs = [p for p in self.os.processes() if p.monitored()]
+        procs = self.getMonitoredComponents(collector='zenprocess')
         if not procs:
             return None
         config = [ p.getOSProcessConf() for p in procs ]
@@ -517,11 +521,10 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable, Admini
         """
         if not self.snmpMonitorDevice(): return None
         oids, threshs = (super(Device, self).getSnmpOidTargets())
-        for o in self.os.getMonitoredComponents():
-            if o.meta_type != "OSProcess":
-                o, t = o.getSnmpOidTargets()
-                oids.extend(o)
-                threshs.extend(t)
+        for o in self.os.getMonitoredComponents(collector="zenperfsnmp"):
+            o, t = o.getSnmpOidTargets()
+            oids.extend(o)
+            threshs.extend(t)
         return (float(self.getLastChange()),
                 self.getSnmpConnInfo(),
                 threshs,
@@ -535,7 +538,7 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable, Admini
         if not self.monitorDevice():
             return []
         cmds, threshs = (super(Device, self).getDataSourceCommands())
-        for o in self.getMonitoredComponents():
+        for o in self.getMonitoredComponents(collector="zencommand"):
             c, t = o.getDataSourceCommands()
             cmds.extend(c)
             threshs.extend(t)

@@ -65,6 +65,8 @@ class IpService(Service):
     port = 0 
     protocol = ""
 
+    collectors = ('zenstatus',)
+
     _properties = (
         {'id':'port', 'type':'int', 'mode':'', 'setter': 'setPort'},
         {'id':'protocol', 'type':'string', 'mode':'', 'setter': 'setProtocol'},

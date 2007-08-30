@@ -34,6 +34,8 @@ class DeviceComponent(Lockable):
 
     default_catalog = "componentSearch"
 
+    collectors = ('zenperfsnmp', 'zencommand', 'zenwinperf')
+
     security = ClassSecurityInfo()
 
 
@@ -63,6 +65,12 @@ class DeviceComponent(Lockable):
         """Return the monitored status of this component. Default is False.
         """
         return self.monitor
+
+
+    def getCollectors(self):
+        """Return list of collectors that want to monitor this component
+        """
+        return self.collectors
 
 
     def getInstDescription(self):

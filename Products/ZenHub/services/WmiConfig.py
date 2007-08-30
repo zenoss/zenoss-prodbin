@@ -57,22 +57,22 @@ class WmiConfig(HubService):
         """
         svcinfo = []
         allsvcs = {}
-        for s in self.dmd.Devices.getSubComponents("WinService"):
-            svcs=allsvcs.setdefault(s.hostname(),{})
-            name = s.name()
-            if type(name) == type(u''):
-                name = name.encode(s.zCollectorDecoding)
-            svcs[name] = (s.getStatus(), s.getAqProperty('zFailSeverity'))
         for dev in self.config.devices():
             dev = dev.primaryAq()
             if not dev.monitorDevice(): continue
             if getattr(dev, 'zWmiMonitorIgnore', False): continue
-            svcs = allsvcs.get(dev.getId(), {})
+            svcs = {}
+            for s in dev.getMonitoredComponenets(type='WinService'):
+                name = s.name()
+                if type(name) == type(u''):
+                    name = name.encode(s.zCollectorDecoding)
+                svcs[name] = (s.getStatus(), s.getAqProperty('zFailSeverity'))
             if not svcs and not dev.zWinEventlog: continue
             user = getattr(dev,'zWinUser','')
             passwd = getattr(dev, 'zWinPassword', '')
             svcinfo.append((dev.id, str(user), str(passwd), svcs))
         return svcinfo
+
 
     def remote_getConfig(self):
         return self.config.propertyItems()

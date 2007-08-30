@@ -43,7 +43,9 @@ from Products.PageTemplates.PageTemplateFile import PageTemplateFile
 from Products.ZenRelations.RelSchema import *
 from Products.ZenUtils.Search import makeCaseSensitiveFieldIndex
 from Products.ZenUtils.Search import makeCaseInsensitiveFieldIndex
+from Products.ZenUtils.Search import makeCaseInsensitiveKeywordIndex
 from Products.ZenUtils.Search import makePathIndex
+
 from Products.ZenUtils.FakeRequest import FakeRequest
 
 from RRDTemplate import RRDTemplate
@@ -690,6 +692,10 @@ class DeviceClass(DeviceOrganizer, ZenPackable):
         zcat = self._getOb("componentSearch")
         cat = zcat._catalog
         cat.addIndex('meta_type', makeCaseInsensitiveFieldIndex('meta_type'))
+        cat.addIndex('getParentDeviceName',
+            makeCaseInsensitiveFieldIndex('getParentDeviceName'))
+        cat.addIndex('getCollectors',
+            makeCaseInsensitiveKeywordIndex('getCollectors'))
         # XXX still using regular FieldIndex here for now, since this contains
         # binary information
         zcat.addIndex('monitored', 'FieldIndex')
