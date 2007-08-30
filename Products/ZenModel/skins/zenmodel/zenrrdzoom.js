@@ -298,21 +298,20 @@ ZenRRDGraph.prototype = {
     },
 
     clearListeners : function() {
-        for (l in this.listeners) {
+        for (l=0;l<this.listeners.length;l++){
             disconnect(this.listeners[l]);
         }
     }
 
 }
 
-
 ZenGraphQueue = Class.create();
 
 ZenGraphQueue.prototype = {
-    graphs : new Array(),
-    __init__: function(graphs) {
-        for (g in graphs) {
-            graph = graphs[g];
+    graphs : [],
+    __init__: function() {
+        for (var g=0; g<this.graphs.length; g++) {
+            graph = this.graphs[g];
             this.add.bind(this)(graph);
         }
     },
@@ -321,7 +320,7 @@ ZenGraphQueue.prototype = {
         this.registerListeners(graph);
     },
     reset: function(graph) {
-        for (g in this.graphs) {
+        for (g=0; g<graphs.length; g++) {
             this.registerListeners(this.graphs[g]);
         }
     },
@@ -339,7 +338,7 @@ ZenGraphQueue.prototype = {
         graph.registerListeners();
     },
     removeAll: function() {
-        for (g in this.graphs) {
+        for (g=0; g<this.graphs.length; g++) {
             this.remove(this.graphs[g]);
         }
     },
@@ -347,8 +346,9 @@ ZenGraphQueue.prototype = {
         var end = vars[2];
         var start = vars[1];
         var drange = vars[0];
-        for (g in this.graphs) {
-            x = this.graphs[g];
+        for (var i=0; i<this.graphs.length; i++) {
+            var x = this.graphs[i];
+            var blah;
             x.end = end;
             x.start = start;
             x.drange = drange;
@@ -365,31 +365,31 @@ ZenGraphQueue.prototype = {
         this.updateAll(vars);
     },
     zoom_in: function(e) {
-        for (g in this.graphs) {
+        for (g=0; g<this.graphs.length; g++) {
             graph = this.graphs[g];
             bind(graph.zoom_in, graph)(e);
         }
     },
     zoom_out: function(e) {
-        for (g in this.graphs) {
+        for (g=0; g<this.graphs.length; g++) {
             graph = this.graphs[g];
             graph.zoom_out.bind(graph)(e);
         }
     },
     pan_left: function(e) {
-        for (g in this.graphs) {
+        for (g=0; g<this.graphs.length; g++) {
             graph = this.graphs[g];
             graph.pan_left.bind(graph)(e);
         }
     },
     pan_right: function(e) {
-        for (g in this.graphs) {
+        for (g=0; g<this.graphs.length; g++) {
             graph = this.graphs[g];
             graph.pan_right.bind(graph)(e);
         }
     },
     find_graph: function(obj) {
-        for (g in this.graphs) {
+        for (g=0; g<this.graphs.length; g++) {
             if (this.graphs[g].obj==obj) return g;
         }
     }
@@ -418,7 +418,7 @@ function registerGraph(id) {
 
 function zenRRDInit() {
     ZenQueue = new ZenGraphQueue();
-    for (graphid in ZenGraphs) {  // ZenGraphs is set in the template
+    for (var graphid=0; graphid<ZenGraphs.length; graphid++) {
         try {
             graph = new ZenRRDGraph($(ZenGraphs[graphid]));
             ZenQueue.add(graph);
