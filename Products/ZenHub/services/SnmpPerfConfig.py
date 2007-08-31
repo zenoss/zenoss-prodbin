@@ -31,14 +31,21 @@ class SnmpPerfConfig(PerformanceConfig):
         for dev in self.config.devices():
             if devices and dev.id not in devices: continue
             dev = dev.primaryAq()
-            try:
-                targets = dev.getSnmpOidTargets()
-                if targets:
-                    snmp.append(targets)
-            except POSError: raise
-            except:
-                self.log.exception("device %s", dev.id)
+            if dev.snmpMonitorDevice():
+                snmp.append(dev.id)
         return snmp
+
+
+    def remote_getDeviceConfigs(self, devices):
+        result = []
+        for d in devices:
+            device = self.dmd.Devices.findDevice(d)
+            if device:
+                config = device.getSnmpOidTargets()
+                if config:
+                    result.append(config)
+        return result
+
 
     def remote_getDeviceUpdates(self, devices):
         """Return a list of devices that have changed.

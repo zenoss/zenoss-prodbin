@@ -1,3 +1,4 @@
+#! /usr/bin/env python 
 ###########################################################################
 #
 # This program is part of Zenoss Core, an open source monitoring platform.
@@ -10,7 +11,6 @@
 # For complete information please visit: http://www.zenoss.com/oss/
 #
 ###########################################################################
-#! /usr/bin/env python 
 
 __doc__='''zenperfsnmp
 
@@ -56,6 +56,7 @@ from FileCleanup import FileCleanup
 
 MAX_OIDS_PER_REQUEST = 40
 MAX_SNMP_REQUESTS = 20
+DEVICE_LOAD_CHUNK_SIZE = 20
 
 def makeDirs(dir):
     if not os.path.exists(dir):
@@ -306,52 +307,70 @@ class zenperfsnmp(SnmpDaemon):
         if self.options.device:
             devices = [self.options.device]
 
-        log.info("fetching configs for %r", devices)
+        log.info("fetching configs for %s", repr(devices)[0:800]+'...')
         yield self.model().callRemote('getDevices', devices)
-        self.updateDeviceList(driver.next(), devices)
+        updatedDevices = driver.next()
 
-        log.info("fetching snmp status")
-        yield self.model().callRemote('getSnmpStatus', self.options.device)
-        self.updateSnmpStatus(driver.next())
-        
         log.info("fetching default RRDCreateCommand")
         yield self.model().callRemote('getDefaultRRDCreateCommand')
         createCommand = driver.next()
 
         self.rrd = RRDUtil(createCommand, self.perfsnmpCycleInterval)
         
+        log.info("fetching snmp status")
+        yield self.model().callRemote('getSnmpStatus', self.options.device)
+        self.updateSnmpStatus(driver.next())
+
+        # Kick off the device load
+        log.info("Initiating incremental device load")
+        d = self.updateDeviceList(updatedDevices, devices)
+        def report(result):
+            if result:
+                log.error("Error loading devices: %s", result)
+        d.addBoth(report)
+
 
 
     def updateDeviceList(self, responses, requested):
         'Update the config for devices devices'
-        deviceNames = Set()
-        for lastUpdate, connInfo, thresholds, oids in responses:
-            self.updateDeviceConfig((lastUpdate, connInfo, thresholds, oids))
-            deviceNames.add(connInfo[0])
+        def fetchDevices(driver):
+            deviceNames = Set()
+            length = len(responses)
+            log.debug("Fetching configs for %d devices", length)
+            for devices in chunk(responses, DEVICE_LOAD_CHUNK_SIZE):
+                log.debug("Fetching config for %s", devices)
+                yield self.model().callRemote('getDeviceConfigs', devices)
+                for response in driver.next():
+                    self.updateDeviceConfig(response)
+                for d in devices:
+                    deviceNames.add(d)
+            log.debug("Finished fetching configs for %d devices", length)
 
-        # stop collecting those no longer in the list
-        doomed = Set(requested) - deviceNames
-        if self.options.device:
-            self.log.debug('Gathering performance data for %s ' %
-                           self.options.device)
-            doomed = Set(self.proxies.keys())
-            doomed.discard(self.options.device)
-        for name in doomed:
-            self.log.info('removing device %s' % name)
-            if name in self.proxies:
-                del self.proxies[name]
-            config = self.pickleName(name)
-            unlink(config)
-            # we could delete the RRD files, too
+            # stop collecting those no longer in the list
+            doomed = Set(requested) - deviceNames
+            if self.options.device:
+                self.log.debug('Gathering performance data for %s ' %
+                               self.options.device)
+                doomed = Set(self.proxies.keys())
+                doomed.discard(self.options.device)
+            for name in doomed:
+                self.log.info('removing device %s' % name)
+                if name in self.proxies:
+                    del self.proxies[name]
+                config = self.pickleName(name)
+                unlink(config)
+                # we could delete the RRD files, too
 
-        ips = Set()
-        for name, proxy in self.proxies.items():
-            if proxy.ip in ips:
-                log.warning("Warning: device %s has a duplicate address %s",
-                            name, proxy.ip)
-            ips.add(proxy.ip)
-        self.log.info('Configured %d of %d devices',
-                      len(deviceNames), len(self.proxies))
+            ips = Set()
+            for name, proxy in self.proxies.items():
+                if proxy.ip in ips:
+                    log.warning("Warning: device %s has a duplicate address %s",
+                                name, proxy.ip)
+                ips.add(proxy.ip)
+            self.log.info('Configured %d of %d devices',
+                          len(deviceNames), len(self.proxies))
+            yield defer.succeed(None)
+        return drive(fetchDevices)
 
 
     def updateAgentProxy(self,
