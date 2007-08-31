@@ -120,12 +120,6 @@ class IpNetwork(DeviceOrganizer):
                 , 'permissions'   : (
                   permissions.view, )
                 },
-                { 'id'            : 'viewNetworkMap'
-                , 'name'          : 'Network Map'
-                , 'action'        : 'viewNetworkMap'
-                , 'permissions'   : (
-                  permissions.view, )
-                },
             )
           },
         )
@@ -491,10 +485,12 @@ class IpNetwork(DeviceOrganizer):
         response.write("</table></body></html>")
 
     security.declareProtected('View', 'getXMLEdges')
-    def getXMLEdges(self, depth=1):
+    def getXMLEdges(self, depth=1, filter='/', start=""):
         """ Gets XML """
-        edges = NetworkTree.get_edges(self, depth, withIcons=True)
-        return edgesToXML(edges)
+        if not start: start=self.id
+        edges = NetworkTree.get_edges(self, depth, 
+                                      withIcons=True, filter=filter)
+        return edgesToXML(edges, start)
 
     def getIconPath(self):
         """ gets icon """

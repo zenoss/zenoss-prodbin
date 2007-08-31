@@ -348,7 +348,6 @@ ZenGraphQueue.prototype = {
         var drange = vars[0];
         for (var i=0; i<this.graphs.length; i++) {
             var x = this.graphs[i];
-            var blah;
             x.end = end;
             x.start = start;
             x.drange = drange;

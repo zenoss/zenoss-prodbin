@@ -32,9 +32,9 @@ def _fromNetworkToDevices(net, devclass):
         else:
             yield dev
 
-def _get_related(node, devclass='/'):
+def _get_related(node, filter='/'):
     if node.meta_type=='IpNetwork':
-        children = _fromNetworkToDevices(node, devclass)
+        children = _fromNetworkToDevices(node, filter)
     elif node.meta_type=='Device':
         children = _fromDeviceToNetworks(node)
     else:
@@ -47,25 +47,26 @@ def _sortedpair(x,y):
     l.sort(cmpf)
     return tuple(l)
 
-def _get_connections(rootnode, depth=1, pairs=[]):
+def _get_connections(rootnode, depth=1, pairs=[], filter='/'):
     """ Depth-first search of the network tree emanating from
         rootnode, returning (network, device) edges.
     """
     if depth:
-        for node in _get_related(rootnode):
+        for node in _get_related(rootnode, filter):
             sorted = _sortedpair(rootnode, node)
             pair = [x.id for x in sorted]
             if pair not in pairs:
                 pairs.append(pair)
                 yield sorted
-                for childnode in _get_related(node):
-                    for n in _get_connections(childnode, depth-1, pairs):
+                for childnode in _get_related(node, filter):
+                    for n in _get_connections(
+                        childnode, depth-1, pairs, filter):
                         yield n
 
-def get_edges(rootnode, depth=1, withIcons=False):
+def get_edges(rootnode, depth=1, withIcons=False, filter='/'):
     """ Returns some edges """
     depth = int(depth)
-    g = _get_connections(rootnode, depth, [])
+    g = _get_connections(rootnode, depth, [], filter)
     def getColor(node):
         if node.meta_type=='IpNetwork': 
             return '0xffffff'

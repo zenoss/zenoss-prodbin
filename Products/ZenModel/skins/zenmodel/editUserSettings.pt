@@ -131,6 +131,13 @@ function ConfirmPagerTest() {
       </td>
     </tr>
     <tr>
+      <td class="tableheader" align="left">Network Map Start Object</td>
+      <td class="tablevalues">
+        <input class="tablevalues" type="text" name="netMapStartObject" 
+            tal:attributes="value here/netMapStartObject" />
+      </td>
+    </tr>
+    <tr>
         <td class=tableheader align="left" >
         </td>
         <td align="left"  class="tableheader" colspan=3>

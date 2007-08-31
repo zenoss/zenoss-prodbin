@@ -309,11 +309,6 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable, Admini
                 , 'action'        : 'viewDevicePerformance'
                 , 'permissions'   : (permissions.view, )
                 },
-                { 'id'            : 'viewNetworkMap'
-                , 'name'          : 'Network Map'
-                , 'action'        : 'viewNetworkMap'
-                , 'permissions'   : (permissions.view, )
-                },
 #                { 'id'            : 'perfConf'
 #                , 'name'          : 'PerfConf'
 #                , 'action'        : 'objTemplates'
@@ -1473,10 +1468,12 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable, Admini
                 yield link
 
     security.declareProtected('View', 'getXMLEdges')
-    def getXMLEdges(self, depth=3):
+    def getXMLEdges(self, depth=3, filter="/", start=""):
         """ Gets XML """
-        edges = NetworkTree.get_edges(self, depth, withIcons=True)
-        return edgesToXML(edges)
+        if not start: start=self.id
+        edges = NetworkTree.get_edges(self, depth, 
+                                      withIcons=True, filter=filter)
+        return edgesToXML(edges, start)
 
 
 InitializeClass(Device)

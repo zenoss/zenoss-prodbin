@@ -346,6 +346,7 @@ class UserSettings(ZenModelRM):
     dashboardRefresh = 30
     dashboardTimeout = 25
     dashboardOrganizer = 'Devices' 
+    netMapStartObject = ''
     
     _properties = ZenModelRM._properties + (
         {'id':'email', 'type':'string', 'mode':'w'},
@@ -360,6 +361,7 @@ class UserSettings(ZenModelRM):
         {'id':'dashboardRefresh', 'type':'int', 'mode':'w'},
         {'id':'dashboardTimeout', 'type':'int', 'mode':'w'},
         {'id':'dashboardOrganizer', 'type':'string', 'mode':'w'},
+        {'id':'netMapStartObject', 'type':'string', 'mode':'w'},
     )
  
 

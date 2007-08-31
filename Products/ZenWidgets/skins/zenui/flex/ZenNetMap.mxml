@@ -6,7 +6,7 @@
 	<fc:Roamer id="roamer" bottom="0" 
 		itemRenderer="XMLItemView"
 		repulsionFactor="{repulsion.value}" 
-		maxDistanceFromCurrent="{maxDistanceFromCurrent.value}" 
+		maxDistanceFromCurrent="{maxDistanceFromCurrent.value + 1}" 
 		itemLimit="200"
 		autoFit="{autoFit.selected}"
         tidyHistory="true"
@@ -22,7 +22,27 @@
 		</fc:addItemEffect>
 	</fc:Roamer>
     <mx:HBox x="0" y="0" backgroundAlpha="0.8" width="100%"
-    backgroundColor="0x444444" verticalAlign="middle" horizontalAlign="center">
+        backgroundColor="0x444444" verticalAlign="middle" 
+        paddingTop="5" paddingLeft="5" paddingRight="5"
+        paddingBottom="5"
+        horizontalAlign="left">
+    <mx:VBox horizontalAlign="left"
+        paddingBottom="10" paddingRight="10" >
+    <mx:Label text="Starting Device" fontSize="9" textAlign="center"
+        color="#ffffff"/>
+    <mx:TextInput id="objidsearch" fontSize="9" height="20" text="{_startingObject}" width="150"/>
+    </mx:VBox>
+    <mx:VBox horizontalAlign="left"
+        paddingBottom="10" paddingRight="10" >
+    <mx:Label text="Device Class Filter" fontSize="9" textAlign="center"
+        color="#ffffff"/>
+    <mx:ComboBox dataProvider="{getDeviceClasses()}" fontSize="9" height="20"
+        width="170"
+        close="_selectedClass=ComboBox(event.target).selectedItem.data"/>
+    </mx:VBox>
+	<mx:Button id="fromSmallDataButton" label="Refresh" height="30"
+		click="refreshData();" width="70" fontSize="9"/>
+    <mx:Spacer width="100%"/>
     <mx:VBox horizontalAlign="center">
 	<mx:HSlider width="133" id="maxDistanceFromCurrent"
         value="2" minimum="1" maximum="4" 
@@ -37,26 +57,29 @@
     </mx:VBox>
 	<mx:CheckBox selected="false" id="autoFit" label="Fit to window"
     color="#ffffff" change="roamer.refresh()"/>
-	<mx:Button id="fromSmallDataButton" label="Reset"
-		click="initialData.send();" width="70" fontSize="9"/>
     </mx:HBox>
 
-	<mx:HTTPService id="initialData" url="getXMLEdges"
+	<mx:HTTPService id="initialData"
+        url="/zport/dmd/getXMLEdges"
         showBusyCursor="true" resultFormat="e4x" 
+        fault="badHTTPRequest();"
         result="gotData(['Node','Edge','fromID','toID'], event)">
         <mx:request>
+            <objid>{objidsearch.text?objidsearch.text:_nextItemName}</objid>
             <depth>{maxDistanceFromCurrent.value}</depth>
+            <filter>{_selectedClass}</filter>
         </mx:request>
     </mx:HTTPService>
 	<mx:HTTPService id="moreData" url="/zport/dmd/getXMLEdges"
         showBusyCursor="true" resultFormat="e4x" 
+        fault="badHTTPRequest();"
         result="updateData(event)">
         <mx:request>
             <depth>{maxDistanceFromCurrent.value}</depth>
             <objid>{_nextItemName}</objid>
+            <filter>{_selectedClass}</filter>
         </mx:request>
     </mx:HTTPService>
-
 	
 	<mx:Label x="150" y="121" text="*" color="#dddddd" id="currentDataIndicator"/>
 	<mx:Script>
@@ -66,44 +89,41 @@
             import mx.collections.XMLListCollection;
 			import com.adobe.flex.extras.controls.springgraph.Item;
 			import com.adobe.flex.extras.controls.springgraph.Graph;
+            import flash.external.ExternalInterface;
 
 
             [Bindable]private var _nextItemName:String;
-            /*
-            [Bindable]private var _nodeList:XMLList;
-            */
             [Bindable]private var _nodeList:XML;
-            [Bindable]private var _currentItemID:String;
             [Bindable]private var _history:Array;
-
-            public function log(msg:String): void {
-            }
+            [Bindable]private var _isFullScreen:Boolean = false;
+            [Bindable]private var _selectedClass:String;
+            [Bindable]private var _startingObject:String = getInitialObject();
 
 			private function setup(): void {
 				initialData.send();
                 roamer.motionThreshold = 0.3;
 				roamer.repulsionFactor = 0.5;
 				roamer.showHistory = true;
-                log("Ready to go!");
 			}
 			
 			private function gotData(xmlNames: Array, event: ResultEvent): void {
 				roamer.resetHistory();
 				roamer.resetShowHide();
 				roamer.xmlNames = xmlNames;
-                /*
-                _nodeList = XMLList(XML(event.result));
-                roamer.dataProvider = XML(_nodeList.toXMLString());
-                */
                 _nodeList = XML(event.result);
-                roamer.dataProvider = _nodeList;
+                var startobj:String = _nodeList.Start.@name;
+                _nodeList.replace('Start', "");
+                //roamer.dataProvider = _nodeList;
+                roamer.setDataProvider(_nodeList, startobj);
 			}
 
+            private function refreshData(): void {
+                initialData.send();
+            }
+
 			private function updateData(event: ResultEvent): void {
-                /*
-                _nodeList.appendChild(XML(event.result));
-                */
                 var mylist:XMLList = XMLList(event.result);
+                var startobj:String = mylist.Start.@name;
                 var nodelist:XMLList = mylist.Node;
                 var edgelist:XMLList = mylist.Edge;
                 for each (var item:XML in nodelist) {
@@ -115,34 +135,50 @@
                 for each (var edge:XML in edgelist) {
                     _nodeList.appendChild(edge);
                 };
-                /*
-                _history = roamer.history;
-                */
-                roamer.setDataProvider(_nodeList, _currentItemID);
-                /*
-                for (var i:int=0; i<_history.length; i++) {
-                    var histitem:Item = _history[i];
-                    if (histitem!=null) {
-                        var histid:String = histitem.id;
-                        log(histid);
-                        var curitem:Item = roamer.dataProvider.find(histid);
-                        if (curitem!=null) {
-                            roamer.showItem(curitem);
-                        }
-                    }
-                }
-                */
+                roamer.setDataProvider(_nodeList, startobj);
 			}
+
+            private function badHTTPRequest(): void {
+    
+            }
 			
 			public function itemDoubleClick(event: Event): void {
                 if (roamer.dataProvider.numLinks(event.currentTarget.data)<=1) {
                     _nextItemName = event.currentTarget.data.data.@prop;
-                    _currentItemID = event.currentTarget.data.data.@id;
                     moreData.send()
                 } else {
                     roamer.currentItem = event.currentTarget.data;
                 }
 			}
+
+            public function getDeviceClasses(): Array {
+                var result:Array = [{data:"/",label:"/"}];
+                if (ExternalInterface.available) {
+                    result = ExternalInterface.call("getDevClassList");
+                }
+                return result;
+            }
+            public function getInitialObject(): String {
+                var initobj:String = ExternalInterface.call("getInitialObjId");
+                if (initobj.length<1) {
+                    initobj = '192.168.1.0';
+                }
+                _nextItemName = initobj;
+                return initobj;
+            }
+            public function toggleFullScreenMode(): void {
+                if (ExternalInterface.available) {
+                    var x:String = ExternalInterface.call("toggleFullScreen");
+                }
+            }
+
+            /* Access MochiKit's own console log function */
+            public function log(msg:String): void {
+                if (ExternalInterface.available) {
+                    ExternalInterface.call("log", msg);
+                }
+            }
+
 		
 
 		]]>

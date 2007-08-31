@@ -1,7 +1,17 @@
-<tal:block metal:use-macro="here/templates/macros/page2">
+<tal:block metal:use-macro="here/templates/macros/page1">
 
 <tal:block metal:fill-slot="head-local">
+    <script tal:define="classlist python:[dict(label=x,data=x) for x in 
+                        here.dmd.Devices.deviceMoveTargets()];
+                        initobj python:here.dmd.ZenUsers.getUserSettings(
+                                       )['netMapStartObject']"
+        tal:content="string:
+       var _deviceClasses = ${classlist};
+       var _initialObjId = '${initobj}';
+    "></script>
     <script>
+        var oldpos, olddims, oldstyle;
+        var fullscreen = false;
         function maximizeMapHeight() {
             mapdiv = $('netmapcontainer');
             mapoffset = getElementPosition(mapdiv).y;
@@ -17,12 +27,34 @@
             olddims = getElementDimensions(mapdiv);
             oldpos = getElementPosition(mapdiv);
             setStyle(mapdiv, {'position':'absolute','zIndex':'200000'});
-            vpdims = {'h':vpdims.h-30, 'w':vpdims.w-15};
+            vpdims = {'h':vpdims.h-8, 'w':vpdims.w-5};
             setElementDimensions(mapdiv, vpdims);
             setElementPosition(mapdiv, vppos);
+            log('doing full screen...');
         }
-        function returnFromFull(oldpos, olddims, oldstyle) {
-
+        function undoFullScreen() {
+            mapdiv = $('netmapcontainer');
+            setStyle(mapdiv, oldstyle);
+            setElementPosition(mapdiv, oldpos);
+            setElementDimensions(mapdiv, olddims);
+            log('undoing full screen...');
+        }
+        function toggleFullScreen() {
+            if (fullscreen) {
+                undoFullScreen();
+                fullscreen = false;
+                return "Full Screen Mode";
+            } else {
+                doFullScreen();
+                fullscreen = true;
+                return "Return to Normal Size";
+            }
+        }
+        function getDevClassList() {
+            return _deviceClasses;
+        }
+        function getInitialObjId() {
+            return _initialObjId;
         }
         connect(currentWindow(), 'onresize', maximizeMapHeight);
         addLoadEvent(maximizeMapHeight);

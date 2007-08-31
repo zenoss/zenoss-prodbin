@@ -521,10 +521,10 @@ def cleanupSkins(dmd):
     layers = filter(lambda x:getattr(ps, x['id'], False), layers)
     ps._objects = tuple(layers)
 
-def edgesToXML(edges):
+def edgesToXML(edges, start=""):
     nodet = '<Node id="%s" prop="%s" icon="%s" color="%s"/>'
     edget = '<Edge fromID="%s" toID="%s"/>'
-    xmlels = []
+    xmlels = ['<Start name="%s"/>' % start]
     nodeels = []
     edgeels = []
     for a, b in edges:

@@ -4,17 +4,19 @@
     height="70"
 	backgroundColor="0xffffff"
 	backgroundAlpha="0"
-    creationComplete="creationComplete()"
-	filters="{calcFilters(app().roamer.currentItem, data as Item)}">	
+    creationComplete="creationComplete()" >
 	
+	
+    <local:Outline id="outline" x="15" y="0"
+        filters="{calcFilters(app().roamer.currentItem, data as Item)}"/>	
     <local:Circle id="circle" x="15" y="0"/>
     <mx:Image id="img1" source="/zport/dmd/img/icons/{data.data.@icon}"
         horizontalAlign="center"
         verticalAlign="center"
         x="23" y="0" height="55" width="54"/>
 	<mx:Label fontSize="10" fontWeight="bold" text="{data.data.@prop}"
-        height="20"
-        x="5" y="50" color="#000000" width="90" selectable="false"
+        height="20" x="5" y="50" color="#000000" 
+        width="90" selectable="false"
         textAlign="center"/>	
 
 	<mx:Script>
@@ -23,20 +25,30 @@
 			import com.adobe.flex.extras.controls.springgraph.Graph;
 			import com.adobe.flex.extras.controls.springgraph.Item;
 			import mx.core.Application;
-
+            import mx.events.ToolTipEvent;
+            import PanelToolTip;
+            
 			private var created: Boolean = false;
+
+            private function createCustomTip(title:String, body:String,
+                                             event:ToolTipEvent):void {
+                var ptt:PanelToolTip = new PanelToolTip();
+                ptt.title = data.data.@prop;
+                ptt.bodyText = body;
+                event.toolTip = ptt;
+            }
+
 
 			public function doubleClick(event: Event): void {
 				app().itemDoubleClick(event);
 			}
-			
+
 			private function app(): ZenNetMap {
 				return Application.application as ZenNetMap;
 			}
 
             private function applyData(): void {
                 var color:int=data.data.@color;
-                app().log(color as String);
                 circle.color = color;
             }
 
@@ -48,32 +60,12 @@
 			
 			private function calcFilters(currentItem: Item, item: Item): Array {
 				if(app().roamer.currentItem == item) {
-					return [new GlowFilter(0xFFFF00, 0.0, 8, 8, 2, 1, false, false)];
-				} else if(app().roamer.hasBeenCurrentItem(item)) {
-					return [new GlowFilter(0x0000FF, 0.0, 6, 6, 2, 1, false, false)];
+					return [new GlowFilter(0x2222FF, 1, 8, 8, 6, 1)];
 				} else {
 					return null;
 				}
 			}
-			
-			/* This function gets called whenever the graph's current item changes,
-			 * or when our data changes, to calculate a color based on our distance
-			 * from the current item. 
-			 */
-			 /* backgroundColor="{calcColor(app().roamer.currentItem, data as Item)}"
-			 
-			private function calcColor(currentItem: Item, item: Item): int {
-				switch (app().roamer.distance(currentItem, item)) {
-					case 0:
-						return 0x5555ee;
-					//default:
-					case 1:
-						return 0x7777bb;
-					default:
-						return 0x999999;
-				}
-			}
-			*/
+
 		]]>
 	</mx:Script>				
 </mx:Canvas>

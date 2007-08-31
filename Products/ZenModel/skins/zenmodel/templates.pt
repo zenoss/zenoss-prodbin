@@ -284,7 +284,7 @@ style="position:relative;">
         <li><a href="/zport/dmd/Dashboard">Dashboard</a></li>
         <li><a href="/zport/dmd/Events/viewEvents?notabs=1">Event Console</a></li>
         <li><a href="/zport/dmd/Devices/deviceList?notabs=1">Device List</a></li>
-        <li><a href="/zport/dmd/Networks">Networks</a></li>
+        <li><a href="/zport/dmd/viewNetworkMap">Network Map</a></li>
     </ul>
     <p id="mainviews">Classes</p>
     <ul>
@@ -300,6 +300,7 @@ style="position:relative;">
         <li><a href="/zport/dmd/Systems">Systems</a></li>
         <li><a href="/zport/dmd/Groups">Groups</a></li>
         <li><a href="/zport/dmd/Locations">Locations</a></li>
+        <li><a href="/zport/dmd/Networks">Networks</a></li>
         <li><a href="/zport/dmd/Reports">Reports</a></li>
     </ul>
 
