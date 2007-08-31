@@ -1468,7 +1468,7 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable, Admini
                 yield link
 
     security.declareProtected('View', 'getXMLEdges')
-    def getXMLEdges(self, depth=3, filter="/", start=""):
+    def getXMLEdges(self, depth=3, filter="/", start=()):
         """ Gets XML """
         if not start: start=self.id
         edges = NetworkTree.get_edges(self, depth, 

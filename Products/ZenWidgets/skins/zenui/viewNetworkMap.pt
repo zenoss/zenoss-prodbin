@@ -56,6 +56,11 @@
         function getInitialObjId() {
             return _initialObjId;
         }
+        function goToDeviceSearch(objid) {
+            url = '/zport/dmd/goToStatusPage?objid=' + escape(objid);
+            log(url);
+            location.href = url;
+        }
         connect(currentWindow(), 'onresize', maximizeMapHeight);
         addLoadEvent(maximizeMapHeight);
     </script>

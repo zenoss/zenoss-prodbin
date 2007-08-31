@@ -513,6 +513,28 @@ class DataRoot(ZenModelRM, OrderedFolder, Commandable, ZenMenuable):
         cache = REQUEST._file.read()
         self.geocache = cache
 
+    def goToStatusPage(self, objid, REQUEST=None):
+        """ Find a device or network and redirect 
+            to its status page.
+        """
+        import urllib
+        objid = urllib.unquote(objid)
+        try:
+            devid = objid
+            if not devid.endswith('*'): devid += '*'
+            obj = self.Devices.findDevice(devid)
+        except: 
+            obj=None
+        if not obj:
+            try:
+                obj = self.Networks.getNet(objid)
+            except IpAddressError:
+                return None
+        if not obj: return None
+        if REQUEST is not None:
+            REQUEST['RESPONSE'].redirect(obj.getPrimaryUrlPath())
+
+
     def getXMLEdges(self, objid, depth=1, filter="/"):
         """ Get the XML representation of network nodes
             and edges using the obj with objid as a root
@@ -520,12 +542,15 @@ class DataRoot(ZenModelRM, OrderedFolder, Commandable, ZenMenuable):
         import urllib
         objid = urllib.unquote(objid)
         try:
-            obj = self.Devices.findDevice(objid)
+            devid = objid
+            if not devid.endswith('*'): devid += '*'
+            obj = self.Devices.findDevice(devid)
         except: obj=None
         if not obj:
             obj = self.Networks.getNet(objid)
         if not obj:
             raise NotImplementedError
-        return obj.getXMLEdges(int(depth), filter, start=obj.id)
+        return obj.getXMLEdges(int(depth), filter, 
+                               start=(obj.id,obj.getPrimaryUrlPath()))
 
 InitializeClass(DataRoot)

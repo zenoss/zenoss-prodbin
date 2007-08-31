@@ -485,7 +485,7 @@ class IpNetwork(DeviceOrganizer):
         response.write("</table></body></html>")
 
     security.declareProtected('View', 'getXMLEdges')
-    def getXMLEdges(self, depth=1, filter='/', start=""):
+    def getXMLEdges(self, depth=1, filter='/', start=()):
         """ Gets XML """
         if not start: start=self.id
         edges = NetworkTree.get_edges(self, depth, 

@@ -22,27 +22,33 @@
 		</fc:addItemEffect>
 	</fc:Roamer>
     <mx:HBox x="0" y="0" backgroundAlpha="0.8" width="100%"
-        backgroundColor="0x444444" verticalAlign="middle" 
+        backgroundColor="0x444444" verticalAlign="top" 
         paddingTop="5" paddingLeft="5" paddingRight="5"
-        paddingBottom="5"
+        paddingBottom="0"
         horizontalAlign="left">
     <mx:VBox horizontalAlign="left"
-        paddingBottom="10" paddingRight="10" >
-    <mx:Label text="Starting Device" fontSize="9" textAlign="center"
-        color="#ffffff"/>
-    <mx:TextInput id="objidsearch" fontSize="9" height="20" text="{_startingObject}" width="150"/>
+        paddingBottom="3" paddingRight="10" >
+    <mx:Label text="Selected Device or Network" fontSize="9" textAlign="center"
+        color="#ffffff" height="15"/>
+    <mx:TextInput enter="refreshData();" id="objidsearch" fontSize="9"
+        height="21" text="{_nextItemName?_nextItemName:_startingObject}" width="150"/>
+    <mx:LinkButton label="Go to Status Page" height="15" id="gotobutton"
+                   fontSize="9" click="goToStatusPage()"/>
     </mx:VBox>
     <mx:VBox horizontalAlign="left"
-        paddingBottom="10" paddingRight="10" >
+        paddingBottom="3" paddingRight="10" >
     <mx:Label text="Device Class Filter" fontSize="9" textAlign="center"
-        color="#ffffff"/>
+        color="#ffffff" height="15"/>
     <mx:ComboBox dataProvider="{getDeviceClasses()}" fontSize="9" height="20"
-        width="170"
+        width="170" enter="refreshData();"
         close="_selectedClass=ComboBox(event.target).selectedItem.data"/>
     </mx:VBox>
+    <mx:VBox paddingTop="15">
 	<mx:Button id="fromSmallDataButton" label="Refresh" height="30"
 		click="refreshData();" width="70" fontSize="9"/>
+    </mx:VBox>
     <mx:Spacer width="100%"/>
+    <mx:HBox paddingTop="10">
     <mx:VBox horizontalAlign="center">
 	<mx:HSlider width="133" id="maxDistanceFromCurrent"
         value="2" minimum="1" maximum="4" 
@@ -55,8 +61,11 @@
 	<mx:Label text="Repulsion" fontSize="9" width="133" textAlign="center"
     color="#ffffff"/>
     </mx:VBox>
+    <mx:VBox paddingTop="10">
 	<mx:CheckBox selected="false" id="autoFit" label="Fit to window"
     color="#ffffff" change="roamer.refresh()"/>
+    </mx:VBox>
+    </mx:HBox>
     </mx:HBox>
 
 	<mx:HTTPService id="initialData"
@@ -81,7 +90,6 @@
         </mx:request>
     </mx:HTTPService>
 	
-	<mx:Label x="150" y="121" text="*" color="#dddddd" id="currentDataIndicator"/>
 	<mx:Script>
 		<![CDATA[
 			import com.adobe.flex.extras.controls.springgraph.SpringGraph;
@@ -98,6 +106,7 @@
             [Bindable]private var _isFullScreen:Boolean = false;
             [Bindable]private var _selectedClass:String;
             [Bindable]private var _startingObject:String = getInitialObject();
+            [Bindable]private var _startUrl:String;
 
 			private function setup(): void {
 				initialData.send();
@@ -112,9 +121,11 @@
 				roamer.xmlNames = xmlNames;
                 _nodeList = XML(event.result);
                 var startobj:String = _nodeList.Start.@name;
+                var _startUrl:String = _nodeList.Start.@url;
                 _nodeList.replace('Start', "");
                 //roamer.dataProvider = _nodeList;
                 roamer.setDataProvider(_nodeList, startobj);
+                objidsearch.text = roamer.currentItem.data.@prop;
 			}
 
             private function refreshData(): void {
@@ -124,6 +135,7 @@
 			private function updateData(event: ResultEvent): void {
                 var mylist:XMLList = XMLList(event.result);
                 var startobj:String = mylist.Start.@name;
+                var _startUrl:String = mylist.Start.@url;
                 var nodelist:XMLList = mylist.Node;
                 var edgelist:XMLList = mylist.Edge;
                 for each (var item:XML in nodelist) {
@@ -136,6 +148,7 @@
                     _nodeList.appendChild(edge);
                 };
                 roamer.setDataProvider(_nodeList, startobj);
+                objidsearch.text = roamer.currentItem.data.@prop;
 			}
 
             private function badHTTPRequest(): void {
@@ -148,6 +161,7 @@
                     moreData.send()
                 } else {
                     roamer.currentItem = event.currentTarget.data;
+                    objidsearch.text = event.currentTarget.data.data.@prop;
                 }
 			}
 
@@ -176,6 +190,14 @@
             public function log(msg:String): void {
                 if (ExternalInterface.available) {
                     ExternalInterface.call("log", msg);
+                }
+            }
+
+            public function goToStatusPage(): void {
+                if (objidsearch.text) {
+                    if (ExternalInterface.available) {
+                        ExternalInterface.call("goToDeviceSearch", objidsearch.text);
+                    }
                 }
             }
 
