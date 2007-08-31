@@ -549,7 +549,7 @@ class DataRoot(ZenModelRM, OrderedFolder, Commandable, ZenMenuable):
         if not obj:
             obj = self.Networks.getNet(objid)
         if not obj:
-            raise NotImplementedError
+            return '<graph><Start name="%s"/></graph>' % objid
         return obj.getXMLEdges(int(depth), filter, 
                                start=(obj.id,obj.getPrimaryUrlPath()))
 

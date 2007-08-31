@@ -106,7 +106,6 @@
             [Bindable]private var _isFullScreen:Boolean = false;
             [Bindable]private var _selectedClass:String;
             [Bindable]private var _startingObject:String = getInitialObject();
-            [Bindable]private var _startUrl:String;
 
 			private function setup(): void {
 				initialData.send();
@@ -120,12 +119,14 @@
 				roamer.resetShowHide();
 				roamer.xmlNames = xmlNames;
                 _nodeList = XML(event.result);
+                //log(_nodeList.toXMLString());
                 var startobj:String = _nodeList.Start.@name;
-                var _startUrl:String = _nodeList.Start.@url;
+                //log(startobj);
                 _nodeList.replace('Start', "");
                 //roamer.dataProvider = _nodeList;
                 roamer.setDataProvider(_nodeList, startobj);
-                objidsearch.text = roamer.currentItem.data.@prop;
+                if (roamer.currentItem)
+                    objidsearch.text = roamer.currentItem.data.@prop;
 			}
 
             private function refreshData(): void {
@@ -135,7 +136,6 @@
 			private function updateData(event: ResultEvent): void {
                 var mylist:XMLList = XMLList(event.result);
                 var startobj:String = mylist.Start.@name;
-                var _startUrl:String = mylist.Start.@url;
                 var nodelist:XMLList = mylist.Node;
                 var edgelist:XMLList = mylist.Edge;
                 for each (var item:XML in nodelist) {
