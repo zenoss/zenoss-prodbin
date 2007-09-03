@@ -36,7 +36,7 @@ tal:define="types here/os/routeTypeMap">
         type string:submit;
         value string:OK;
         onclick string:return $$('dialog').submit_form_and_check(
-                                                '${here/absolute_url}')"
+                                                '${here/absolute_url}', '', 1)"
                         name="addIpRouteEntry:method" />
 <input tal:attributes="id string:dialog_cancel;
                         type string:button;
