@@ -282,7 +282,8 @@ class ZenActions(ZCmdBase):
             data['eventUrl'] = self.getUrl(evid)
             severity = data.get('severity', -1)
             data['severityString'] = zem.getSeverityString(severity)
-            if context.sendClear: action(context, data, True)
+            if getattr(context, 'sendClear', True):
+                action(context, data, True)
             delcmd = self.clearstate % (evid, userid, context.getId())
             self.execute(delcmd)
 
