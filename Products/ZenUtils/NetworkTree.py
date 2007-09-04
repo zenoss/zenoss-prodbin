@@ -11,6 +11,8 @@
 #
 ###########################################################################
 
+from Products.ZenModel.Link import ILink
+
 def _fromDeviceToNetworks(dev):
     for iface in dev.os.interfaces():
         for ip in iface.ipaddresses():
@@ -84,4 +86,74 @@ def get_edges(rootnode, depth=1, withIcons=False, filter='/'):
                    (nodeb.id, nodeb.getIconPath(), getColor(nodeb)))
         else:
             yield (nodea.id, nodeb.id)
+
+def getDeviceNetworkLinks(rootdevice):
+    """ Returns network links to other devices """
+    visited = []
+    ifaces = rootdevice.os.interfaces()
+    ifaceids = [x.id for x in ifaces]
+    for iface in ifaces:
+        for ip in iface.ipaddresses.objectValuesGen():
+            for ipsib in ip.network().ipaddresses.objectValuesGen():
+                ifacesib = ipsib.interface()
+                if ifacesib is None: continue
+                if (ifacesib.id in visited or 
+                    ifacesib.id in ifaceids): 
+                    continue
+                visited.append(ifacesib.id)
+                link = NetworkLink()
+                link.setEndpoints(iface, ifacesib)
+                yield link
+
+
+class NetworkLink(ILink):
+    """ Represents a link between two IpInterfaces
+        related by network connectivity.
+        Not a persistent object, so not managed
+        by a LinkManager. 
+        Implements Products.ZenModel.Link.ILink.
+    """
+
+    OSI_layer = '3'
+    pointa = None
+    pointb = None
+
+    def setEndpoints(self, pointa, pointb):
+        self.pointa = pointa
+        self.pointb = pointb
+        self.endpoints = (pointa, pointb)
+
+    def getEndpoints(self):
+        return self.endpoints
+
+    def getStatus(self):
+        eps = self.endpoints
+        if max([ep.getPingStatus() for ep in eps]) > 0:
+            return 5
+        zem = eps[0].dmd.ZenEventManager
+        return max(map(zem.getMaxSeverity, eps))
+
+    def getGeomapData(self, context, full=False):
+        """ Return the addresses of the endpoints
+            aggregated for the generation of the context
+        """
+        dmd = context.dmd
+        generation = len(context.getPrimaryPath())
+        def getancestoraddress(endpoint):
+            loc = endpoint.device().location()
+            if loc is None: return 
+            path = loc.getPrimaryPath()
+            path = '/'.join(path[:generation])
+            ancestor = dmd.getObjByPath(path)
+            if full:
+                return ancestor.getGeomapData()
+            else:
+                return ancestor.address
+        result = map(getancestoraddress, self.endpoints)
+        result = filter(lambda x:x, result)
+        if len(result) < 2: return None
+        if result[0]==result[1]: return None
+        result.sort()
+        return tuple(result)
+
 

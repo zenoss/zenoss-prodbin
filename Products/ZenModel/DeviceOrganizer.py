@@ -459,12 +459,13 @@ class DeviceOrganizer(Organizer, DeviceManagerBase, Commandable, ZenMenuable,
         """ Return all Links on all interfaces on all
             Devices in this Organizer
         """
+        alllinks = []
         if recursive:
             devices = self.getSubDevicesGen()
         else:
             devices = self.devices.objectValuesGen()
         for device in devices:
-            for link in device.getLinks():
-                yield link
+            alllinks.extend(list(device.getLinks()))
+        return alllinks
 
 InitializeClass(DeviceOrganizer)

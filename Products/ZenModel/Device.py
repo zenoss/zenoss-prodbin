@@ -1461,11 +1461,17 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable, Admini
         templates.sort(cmpTemplates)
         return templates
 
-    def getLinks(self):
+    security.declareProtected('View', 'getXMLEdges')
+    def getLinks(self, OSI_layer='3'):
         """ Returns all Links on this Device's interfaces """
-        for iface in self.os.interfaces.objectValuesGen():
-            for link in iface.links.objectValuesGen():
+        if OSI_layer=='3': 
+            from Products.ZenUtils.NetworkTree import getDeviceNetworkLinks
+            for link in getDeviceNetworkLinks(self):
                 yield link
+        else:
+            for iface in self.os.interfaces.objectValuesGen():
+                for link in iface.links.objectValuesGen():
+                    yield link
 
     security.declareProtected('View', 'getXMLEdges')
     def getXMLEdges(self, depth=3, filter="/", start=()):

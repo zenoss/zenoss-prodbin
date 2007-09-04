@@ -29,11 +29,11 @@ class Linkable:
 
     def getEndpointName(self):
         """ Returns a unique endpoint name """
-        pass
+        raise NotImplementedError
 
     def isInLocation(self, context):
         """ Checks if Linkable is in given Location """
-        pass
+        raise NotImplementedError
 
     def unlink(self):
         """ Removes all links associated with a Linkable """
