@@ -9,7 +9,8 @@
     editable here/isManager;
     tableName string:deviceadminroles;
     batch python:here.ZenTableManager.getBatch(tableName,objects); 
-    tabletitle string:Administered Devices">
+    tabletitle string:Administered Objects;
+    menu_id string:AdministeredObjects_list">
     <input type='hidden' name='tableName' tal:attributes="value tableName" />
         <tal:block metal:use-macro="here/zenuimacros/macros/zentable">
 
@@ -84,25 +85,6 @@
         <span metal:use-macro="here/zenTableNavigation/macros/navbody" />
     </td>
   </tr>
-    <tr tal:condition="editable">
-    <td class="tableheader" colspan="4">
-        <input class="tableheader" type='text' name="name"/>
-        <select class='tableheader' name='type'>
-            <option value='device'>Device</option>
-            <option value='system'>System</option>
-            <option value='group'>Group</option>
-            <option value='location'>Location</option>
-        </select>
-        <input class="tableheader" type="submit" 
-            name="manage_addAdministrativeRole:method" value=" Add " /> 
-        |
-        <input class="tableheader" type="submit" 
-            name="manage_editAdministrativeRoles:method" value=" Save " /> 
-        |
-        <input class="tableheader" type="submit" 
-            name="manage_deleteAdministrativeRole:method" value=" Delete " />
-    </td>
-    </tr>
 
         <!-- END TABLE CONTENTS -->
 

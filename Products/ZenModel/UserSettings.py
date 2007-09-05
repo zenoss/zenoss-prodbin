@@ -554,7 +554,9 @@ class UserSettings(ZenModelRM):
         roleNames = [ r.id for r in mobj.adminRoles() ]
         if self.id in roleNames:
             if REQUEST:
-                REQUEST['message'] = "Role exists on %s %s" % (type, name)
+                REQUEST['message'] = \
+                "Administrative Role for %s %s for user %s already exists" % \
+                    (type, name, self.id)
                 return self.callZenScreen(REQUEST)
             else: return
         ar = AdministrativeRole(self.id)
@@ -565,7 +567,9 @@ class UserSettings(ZenModelRM):
         ar = mobj.adminRoles._getOb(self.id)
         ar.userSetting.addRelation(self)
         if REQUEST:
-            REQUEST['message'] = "Administrative Role Added for %s" % name
+            REQUEST['message'] = \
+            "Administrative Role for %s %s for user %s added" % \
+                (type, name, self.id) 
             return self.callZenScreen(REQUEST)
 
 
