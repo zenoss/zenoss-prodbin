@@ -33,7 +33,6 @@
     </tr>
     <tal:block tal:repeat="temp batch">                    
     <tr tal:define="odd repeat/temp/odd;
-                    lnames here/rrdTemplates/objectIds;
                     editable python:temp.isEditable(here);"
         tal:attributes="class python:'tablevalues ' + test(odd,'odd','even')">
         <td>
