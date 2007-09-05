@@ -1,0 +1,15 @@
+<h2>Delete Objects From ZenPack</h2>
+
+<p>
+Are you sure you want to delete these objects from the ZenPack?<br/>
+</p>
+<br/>
+<div id="dialog_buttons">
+<input type="submit" name="manage_deletePackable:method" value="OK"
+        tal:attributes="onclick string:return $$('dialog').submit_form(
+                               '${here/absolute_url}')" />
+<input tal:attributes="id string:dialog_cancel;
+        type string:button;
+        value string:Cancel;
+        onclick string:$$('dialog').hide()" />
+</div>

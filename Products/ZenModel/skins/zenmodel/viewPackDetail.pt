@@ -10,7 +10,8 @@
       <input type="hidden" name="tableName" tal:attributes="value tableName"/>
       
 
-        <tal:block tal:define=" tabletitle string:Objects">
+        <tal:block tal:define="tabletitle string:Objects in ZenPack; 
+                               menu_id string:ZenPack;">
         <tal:block metal:use-macro="here/zenuimacros/macros/zentable">
 
         <!--====Optional titlebar slots=============
@@ -34,14 +35,6 @@
 	      <a tal:attributes="href obj/getPrimaryUrlPath" 
 	         tal:content="obj/getPrimaryUrlPath"/>
 	    </td>
-	</tr>
-	<tr>
-	  <td class="tableheader">
-            <input class="tableheader" type="submit" 
-		   name="manage_deletePackable:method" value=" Delete " />
-            |
-            <input class="tableheader" type="submit" 
-		   name="manage_exportPack:method" value=" Export " />
 	</tr>
 	<tr>
 	  <td class="tableheader" align='center'>

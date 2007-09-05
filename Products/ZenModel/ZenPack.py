@@ -184,6 +184,7 @@ class ZenPack(ZenModelRM):
             if obj.getPrimaryUrlPath() in packables:
                 self.packables.removeRelation(obj)
         if REQUEST: 
+            REQUEST['message'] = 'Deleted objects from ZenPack %s' % self.id 
             return self.callZenScreen(REQUEST)
 
     def manage_exportPack(self, REQUEST=None):
