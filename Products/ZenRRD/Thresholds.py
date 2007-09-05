@@ -30,8 +30,8 @@ class Thresholds:
             ctx = doomed.context()
             for dp in doomed.dataPoints():
                 lst = self.map[ctx.fileKey(dp)]
-                if (threshold, dp) in lst:
-                    lst.remove( (threshold, dp) )
+                if (doomed, dp) in lst:
+                    lst.remove( (doomed, dp) )
                 if not lst:
                     del self.map[ctx.fileKey(dp)]
         return doomed
@@ -44,7 +44,7 @@ class Thresholds:
         
     def update(self, threshold):
         "Store a threshold instance for future computation"
-        log.debug("Updating threshold %r", threshold.key)
+        log.debug("Updating threshold %r", threshold.key())
         doomed = self.remove(threshold)
         if doomed:
             threshold.count = doomed.count
@@ -53,8 +53,7 @@ class Thresholds:
     def updateList(self, thresholds):
         "Store a threshold instance for future computation"
         for threshold in thresholds:
-            self.remove(threshold)
-            self.add(threshold)
+            self.update(threshold)
 
     def check(self, filename, timeAt, value):
         "Check a given threshold based on an updated value"
