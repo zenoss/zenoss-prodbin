@@ -1,3 +1,4 @@
+#! /usr/bin/env python 
 ###########################################################################
 #
 # This program is part of Zenoss Core, an open source monitoring platform.
@@ -10,7 +11,8 @@
 # For complete information please visit: http://www.zenoss.com/oss/
 #
 ###########################################################################
-#! /usr/bin/env python 
+
+DEFAULT_HTTP_PORT = 8091
 
 import Globals
 
@@ -18,6 +20,9 @@ from Products.ZenHub.PBDaemon import PBDaemon
 from Products.ZenModel.PerformanceConf import performancePath
 from RenderServer import RenderServer as OrigRenderServer
 from Products.ZenUtils.ObjectCache import ObjectCache
+
+from twisted.web import resource, server
+from twisted.internet import reactor
 
 import os
 
@@ -31,7 +36,23 @@ class RenderServer(OrigRenderServer):
             self.cache = ObjectCache()
             self.cache.initCache()
         return self.cache
-    
+
+class HttpRender(resource.Resource):
+
+    isLeaf = True
+
+    def render_GET(self, request):
+        args = request.args.copy()
+        for k, v in args.items():
+            if len(v) == 1:
+                args[k] = v[0]
+        command = request.postpath[-1]
+        zr.log.debug("Processing %s request" % command)
+        args.setdefault('ftype', 'PNG')
+        ftype = args['ftype']
+        del args['ftype']
+        request.setHeader('Content-type', 'image/%s' % ftype)
+        return getattr(zr, 'remote_' + command)(**args)
 
 class zenrender(PBDaemon):
 
@@ -69,7 +90,17 @@ class zenrender(PBDaemon):
     def remote_currentValues(self, *args, **kw):
         return self.rs.currentValues(*args, **kw)
 
+    def buildOptions(self):
+        PBDaemon.buildOptions(self)
+        self.parser.add_option('--http-port',
+                               dest='httpport',
+                               default=DEFAULT_HTTP_PORT,
+                               help='Port zenrender listens on for http'
+                               'render requests.  Default is %s.' %
+                               DEFAULT_HTTP_PORT)
+
 
 if __name__ == '__main__':
     zr = zenrender()
+    reactor.listenTCP(int(zr.options.httpport), server.Site(HttpRender()))
     zr.run()
