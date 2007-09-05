@@ -60,6 +60,7 @@ from Commandable import Commandable
 from Lockable import Lockable
 from MaintenanceWindowable import MaintenanceWindowable
 from AdministrativeRoleable import AdministrativeRoleable
+from ZenMenuable import ZenMenuable
 
 from OperatingSystem import OperatingSystem
 from DeviceHW import DeviceHW
@@ -204,7 +205,7 @@ def manage_addDevice(context, id, REQUEST = None):
 addDevice = DTMLFile('dtml/addDevice',globals())
 
 
-class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable, AdministrativeRoleable):
+class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable, AdministrativeRoleable, ZenMenuable):
     """
     Device is a key class within zenoss.  It represents the combination of
     computer hardware running an operating system.

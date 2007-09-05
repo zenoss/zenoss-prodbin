@@ -57,7 +57,8 @@ class ZentinelPortal ( PortalObjectBase ):
         Return true if user is authenticated and has Manager role.
         """
         user = self.dmd.ZenUsers.getUser()
-        if user: return user.has_role("Manager")
+        if user: 
+            return user.has_role("Manager") or user.has_role(ZEN_MANAGER_ROLE)
 
 
     def has_role(self, role, userid=None):

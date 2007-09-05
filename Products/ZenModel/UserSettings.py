@@ -32,6 +32,7 @@ from Products.ZenRelations.RelSchema import *
 from Products.ZenModel.AdministrativeRole import AdministrativeRole
 from Products.ZenUtils import Time
 
+from ZenossSecurity import ZEN_MANAGER_ROLE
 from ZenModelRM import ZenModelRM
 import Products.ZenUtils.Utils as Utils
 

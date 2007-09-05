@@ -11,6 +11,13 @@
 #
 ###########################################################################
 
-ZEN_COMMON = 'ZenCommon'
+# Zenoss Roles
 ZEN_USER_ROLE = 'ZenUser'
 ZEN_MANAGER_ROLE = 'ZenManager'
+
+# Zenoss Permissions
+ZEN_COMMON = 'ZenCommon'
+ZEN_CHANGE_DEVICE = 'Change Device'
+ZEN_MANAGE_DMD = 'Manage DMD'
+ZEN_DELETE = "Delete objects"
+ZEN_ADD = 'Add DMD Objects'

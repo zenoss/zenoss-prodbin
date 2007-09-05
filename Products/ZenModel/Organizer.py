@@ -29,6 +29,7 @@ from Products.ZenUtils.Exceptions import ZenPathError, ZentinelException
 from EventView import EventView
 from ZenModelRM import ZenModelRM
 from ZenPackable import ZenPackable
+from ZenossSecurity import ZEN_COMMON
         
 class Organizer(ZenModelRM, EventView):
     """
@@ -182,12 +183,14 @@ class Organizer(ZenModelRM, EventView):
         return self.getDmdRoot(self.dmdRootName).getObjByPath(path) 
 
 
+    security.declareProtected(ZEN_COMMON, "getOrganizerName")
     def getOrganizerName(self):
         """Return the DMD path of an Organizer without its dmdSubRel names."""
         return self.getPrimaryDmdId(self.dmdRootName)
     getDmdKey = getOrganizerName
 
 
+    security.declareProtected(ZEN_COMMON, "getOrganizerNames")
     def getOrganizerNames(self, addblank=False):
         """Return the DMD paths of all Organizers below this instance."""
         groupNames = []
