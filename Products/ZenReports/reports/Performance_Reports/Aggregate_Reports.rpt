@@ -4,13 +4,13 @@
 </tal:block>
 <tal:block metal:fill-slot="contentPane">
 
-<script type="text/javascript" src="/zport/js/FormCollect.js"></script>
 <script language="javascript">
 function getImage(form)
 {
     var img = document.getElementById(form.name.value + ":image");
     var now = new Date();
-    img.src = form.action + "?" + FormCollect(form) + '&u=' + now.getTime();
+    contents = formContents(form);
+    img.src = form.action + "?" + queryString(contents) + '&u=' + now.getTime();
 }
 
 function toggleForm(image)
