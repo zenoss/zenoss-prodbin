@@ -348,7 +348,10 @@ class IpInterface(OSComponent):
             links = []
             for addr in addrs:
                 if hasattr(aq_base(addr), 'network'):
-                    links.append(addr.network.getPrimaryLink())
+                    if self.checkLink('View', addr.network()):
+                        links.append(addr.network.getPrimaryLink())
+                    else:    
+                        links.append(addr.network.getRelatedId())
                 else:
                     links.append("")
             return "<br/>".join(links)

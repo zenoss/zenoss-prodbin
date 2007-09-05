@@ -37,6 +37,9 @@ from Products.ZenUtils.Utils import getObjByPath
 
 from Products.ZenUtils.Utils import prepId as globalPrepId
 
+from ZenossSecurity import ZEN_COMMON
+
+
 # Custom device properties start with c
 iscustprop = re.compile("^c[A-Z]").search
 
@@ -154,6 +157,15 @@ class ZenModelBase(object):
         """Return the value of a zProperty on this object
         """
         return getattr(self, zpropname)
+
+
+    security.declareProtected(ZEN_COMMON, 'checkLink')
+    def checkLink(self, permission, robject):
+        """Look to see if user has privleges on remote object.
+        """
+        user = getSecurityManager().getUser()
+        return user.has_permission(permission, robject.primaryAq())
+
 
 
     security.declareProtected('View', 'zentinelTabs')

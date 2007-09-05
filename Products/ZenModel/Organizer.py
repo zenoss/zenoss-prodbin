@@ -20,7 +20,7 @@ __version__ = "$Revision: 1.6 $"[11:-2]
 
 from Globals import InitializeClass
 from Acquisition import aq_parent
-from AccessControl import ClassSecurityInfo
+from AccessControl import ClassSecurityInfo, getSecurityManager
 
 from Products.ZenRelations.RelSchema import *
 from Products.ZenUtils.Utils import travAndColl
@@ -194,7 +194,9 @@ class Organizer(ZenModelRM, EventView):
     def getOrganizerNames(self, addblank=False):
         """Return the DMD paths of all Organizers below this instance."""
         groupNames = []
-        groupNames.append(self.getOrganizerName())
+        user = getSecurityManager().getUser()
+        if user.has_permission("View",self):
+            groupNames.append(self.getOrganizerName())
         for subgroup in self.children():
             groupNames.extend(subgroup.getOrganizerNames())
         if self.id == self.dmdRootName: 

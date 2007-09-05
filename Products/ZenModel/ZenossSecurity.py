@@ -19,5 +19,6 @@ ZEN_MANAGER_ROLE = 'ZenManager'
 ZEN_COMMON = 'ZenCommon'
 ZEN_CHANGE_DEVICE = 'Change Device'
 ZEN_MANAGE_DMD = 'Manage DMD'
+ZEN_UPDATE = "ZenUpdate"
 ZEN_DELETE = "Delete objects"
 ZEN_ADD = 'Add DMD Objects'
