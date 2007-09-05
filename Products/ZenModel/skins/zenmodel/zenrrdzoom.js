@@ -7,6 +7,9 @@
 #####################################################
 */
 
+
+
+
 var zoom_factor = 1.5;
 var pan_factor = 3; // Fraction of graph to move
 var drange_re = /&drange=([0-9]*)/;
@@ -34,6 +37,50 @@ Function.prototype.bind = function(obj) {
         return method.apply(obj, arguments);
         };
     return temp;
+}
+
+
+var FakeXHR = Class.create();
+FakeXHR.prototype = {
+    __init__: function(id) {
+        bindMethods(this);
+        this.id = id;
+        this.makeIFrame();
+        this.lock = new DeferredLock();
+        this.callback = function(r){noop()};
+        this.deferreds = {};
+    },
+    makeIFrame: function() {
+        if (!this.IFrameProxy) {
+            var iframe = createDOM(
+                'iframe',
+                {
+                    id:this.id+'IFrameProxy',
+                    style:'position:absolute;visibility:hidden;',
+                },
+                null
+            );
+            currentDocument().body.appendChild(iframe);
+            this.IFrameProxy = iframe;
+        }
+    },
+    getData: function(url) {
+        this.deferreds[url] = this.lock.acquire();
+        this.deferreds[url].addCallback(bind(function(){
+            this.IFrameProxy.contentDocument.location.replace(url);
+        }, this));
+    },
+    registerResponse: function(response) {
+        this.callback(response);
+        this.lock.release();
+    },
+    getFakeXHR: function() {
+        var myfunc = bind(function(url, callback) {
+            this.callback = callback;
+            this.getData(url);
+        }, this);
+        return myfunc;
+    }
 }
 
 
@@ -94,6 +141,8 @@ ZenRRDGraph.prototype = {
         this.setDates();
         this.buildTables();
         this.registerListeners();
+        this.fakeXHR = new FakeXHR();
+        this.doFakeXHR = this.fakeXHR.getFakeXHR();
         this.loadImage();
     },
 
@@ -266,7 +315,7 @@ ZenRRDGraph.prototype = {
     },
 
     loadImage : function() {
-        checkurl = this.url+'&getImage=';
+        checkurl = this.url+'&getImage=&graphid='+this.obj.id;
         var onSuccess = bind(function(r) {
             if (r.responseText=='True') {
                 if (this.obj.src!=this.url) {
@@ -281,8 +330,7 @@ ZenRRDGraph.prototype = {
         }, this);
         var x = connect(this.obj, 'onload', setHeights);
         if (this.url!=this.obj.src) {
-            defr = doXHR(checkurl)
-            defr.addCallback(onSuccess)
+            defr = this.doFakeXHR(checkurl, onSuccess);
         }
     },
 
@@ -388,6 +436,7 @@ ZenGraphQueue.prototype = {
         }
     },
     find_graph: function(obj) {
+        var obj = $(obj);
         for (g=0; g<this.graphs.length; g++) {
             if (this.graphs[g].obj==obj) return g;
         }
@@ -415,8 +464,9 @@ function registerGraph(id) {
     var graph = new ZenRRDGraph($(id));
 }
 
+var fakexhr;
 function zenRRDInit() {
-    ZenQueue = new ZenGraphQueue();
+    var ZenQueue = new ZenGraphQueue();
     for (var graphid=0; graphid<ZenGraphs.length; graphid++) {
         try {
             graph = new ZenRRDGraph($(ZenGraphs[graphid]));
@@ -428,6 +478,13 @@ function zenRRDInit() {
            swapDOM($(ZenGraphs[graphid]), mydiv);
         }
     }
+    fakexhr = {
+        registerResponse: function(r) {
+            var graph = ZenQueue.find_graph(r.graphid);
+            graph = ZenQueue.graphs[graph];
+            graph.fakeXHR.registerResponse(r);
+        }
+    };
 }
 
 addLoadEvent(zenRRDInit);

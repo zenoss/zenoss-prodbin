@@ -84,7 +84,7 @@ class RenderServer(RRDToolItem):
     security.declareProtected('View', 'render')
     def render(self, gopts=None, start=None, end=None, drange=None, 
                remoteUrl=None, width=None, ftype='PNG', getImage=True, 
-               comment=None, REQUEST=None):
+               graphid='', comment=None, REQUEST=None):
         """render a graph and return it"""
         gopts = zlib.decompress(urlsafe_b64decode(gopts))
         gopts = gopts.split('|')
@@ -127,8 +127,15 @@ class RenderServer(RRDToolItem):
             return graph
         else: 
             response = REQUEST.RESPONSE
-            response.setHeader('Content-Type', 'text/plain')
-            return bool(graph)
+            response.setHeader('Content-Type', 'text/html')
+            return """
+            <script>
+            try {
+                var p = window.parent;
+                p.fakexhr.registerResponse({responseText:'%s',graphid:'%s'});
+            } catch(e) { var i; }
+            </script>
+            """ % (str(bool(graph)), graphid)
 
     
     def deleteRRDFiles(self, device, 
