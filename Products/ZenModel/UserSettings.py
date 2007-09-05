@@ -248,7 +248,11 @@ class UserSettingsManager(ZenModelRM):
         # appropriate methods
         # 
         # XXX this needs to be reviewed when new plugins are added, such as the
-        # LDAP plugin
+        # LDAP plugin 
+        if 'admin' in userids:
+            REQUEST['message'] = "Cannot delete admin user. No users were deleted."
+            return self.callZenScreen(REQUEST)
+            
         ifaces = [interfaces.plugins.IUserAdderPlugin]
         getPlugins = self.acl_users.plugins.listPlugins
         plugins = [ getPlugins(x)[0][1] for x in ifaces ]
