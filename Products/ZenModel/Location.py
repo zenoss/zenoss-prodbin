@@ -67,6 +67,41 @@ class Location(DeviceOrganizer, ZenPackable):
         ("networks", ToMany(ToOne,"Products.ZenModel.IpNetwork","location")),
     )
 
+    # Screen action bindings (and tab definitions)
+    factory_type_information = (
+        {
+            'immediate_view' : 'deviceOrganizerStatus',
+            'actions'        :
+            (
+                { 'id'            : 'status'
+                , 'name'          : 'Status'
+                , 'action'        : 'deviceOrganizerStatus'
+                , 'permissions'   : (permissions.view,)
+                },
+                { 'id'            : 'events'
+                , 'name'          : 'Events'
+                , 'action'        : 'viewEvents'
+                , 'permissions'   : (permissions.view,)
+                },
+                { 'id'            : 'historyEvents'
+                , 'name'          : 'History'
+                , 'action'        : 'viewHistoryEvents'
+                , 'permissions'   : (permissions.view,)
+                },
+                { 'id'            : 'manage'
+                , 'name'          : 'Administration'
+                , 'action'        : 'deviceOrganizerManage'
+                , 'permissions'   : ('Manage DMD',)
+                },
+                { 'id'            : 'geomap'
+                , 'name'          : 'Map'
+                , 'action'        : 'locationGeoMap'
+                , 'permissions'   : (permissions.view,)
+                },
+            )
+         },
+        )
+
     security = ClassSecurityInfo()
 
     def getChildLinks(self):
@@ -127,13 +162,4 @@ class Location(DeviceOrganizer, ZenPackable):
                             data.append(datum)
         return data
     
-# Add the Map tab
-Location.factory_type_information[0]['actions'] += (
-    { 'id'    : 'geomap'
-    , 'name'  : 'Map'
-    , 'action': 'locationGeoMap'
-    , 'permissions': (permissions.view,)
-    },
-)
-
 InitializeClass(Location)
