@@ -115,6 +115,8 @@ class PortalGenerator:
     def setupPermissions(self, p):
         # Set up some suggested role to permission mappings.
         mp = p.manage_permission
+        mp('Change Device', ['ZenManager', 'Owner','Manager',],     1)
+        mp('Manage DMD', ['ZenManager', 'Owner','Manager',],     1)
         mp('Delete objects', [ZEN_MANAGER_ROLE, 'Owner','Manager',],     1)
         mp('Add DMD Objects', [ZEN_MANAGER_ROLE, 'Owner','Manager',],     1)
         mp('View',[ZEN_USER_ROLE,ZEN_MANAGER_ROLE,'Manager','Owner'])
