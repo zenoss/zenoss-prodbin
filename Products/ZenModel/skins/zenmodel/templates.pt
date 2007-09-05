@@ -67,6 +67,12 @@
 </tal:block>
                 
                 
+<!-- ======================================================
+    Pointer to new leftPane macro
+ ====================================================== -->
+<tal:block metal:define-macro="leftPane">
+    <tal:block metal:use-macro="here/leftPane/macros/leftPane"/>
+</tal:block>
 
 <!-- ======================================================
     pageClean - page template that has none of the ornamentation
