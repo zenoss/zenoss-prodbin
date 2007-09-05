@@ -21,6 +21,7 @@ $Id: Device.py,v 1.121 2004/04/23 19:11:58 edahl Exp $"""
 
 __version__ = "$Revision: 1.121 $"[11:-2]
 
+import os
 import sys
 import re
 import time
@@ -28,6 +29,7 @@ import types
 import socket
 import logging
 log = logging.getLogger("zen.Device")
+from popen2 import Popen4
 
 from _mysql_exceptions import OperationalError
 
@@ -1258,19 +1260,20 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable, Admini
             dlh = dlh[:idx]
             response.write(str(dlh[:idx]))
             handler = setWebLoggingStream(response)
-            
-        from Products.DataCollector.zenmodeler import ZenModeler
-        sc = ZenModeler(noopts=1,app=self.getPhysicalRoot(),single=True)
+        
         try:
-            sc.options.force = True
-            sc.generateEvents = generateEvents
-            sc.collectSingle(self)
-            sc.reactorLoop()
-        except:
-            log.exception('exception collecting data for device %s',self.id)
-            sc.stop()
-        else:
-            log.info('collected snmp information for device %s',self.id)
+            zm = os.path.join(os.environ['ZENHOME'], 'bin', 'zenmodeler') 
+            zenmodelerCmd = '%s run --now -F -d %s' % (zm, self.id) 
+            log.info('Executing command: %s' % zenmodelerCmd) 
+            f = Popen4(zenmodelerCmd) 
+            while 1: 
+                s = f.fromchild.readline() 
+                if not s: break 
+                else: log.info(s) 
+        except (SystemExit, KeyboardInterrupt): raise 
+        except ZentinelException, e: 
+            log.critical(e) 
+        except: raise 
                             
         if REQUEST and setlog:
             response.write(self.loggingFooter())
