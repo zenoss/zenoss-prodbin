@@ -50,10 +50,14 @@
         <td class=tableheader align=left width=25%>
             Interface
         </td>
-        <td class="tablevalues" align="left"
-            tal:content="here/getInterfaceName">
-            intname
-        </td>
+            <td class="tablevalues" align="left"> 
+                    <a href="_"  
+                    tal:condition="here/interface" 
+                    tal:attributes="href python:here.interface().getPrimaryUrlPath()" 
+                    tal:content="python:here.interface().name()">eth0</a> 
+                    <span tal:condition="not:here/interface"  
+                        tal:content="here/getInterfaceName" />
+            </td>
     </tr>
 
         <!-- END TABLE CONTENTS -->

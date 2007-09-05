@@ -205,9 +205,13 @@ tal:define="tabletitle string:Network;">
         <span tal:condition="not: ip/getDeviceUrl" 
             tal:content="ip/getDeviceName" />
     </td>
-    <td class="tablevalues" align="left"
-        tal:content="ip/getInterfaceName">
-        intname
+        <td class="tablevalues" align="left"> 
+            <a href="_"  
+            tal:condition="ip/interface" 
+            tal:attributes="href python:ip.interface().getPrimaryUrlPath()" 
+            tal:content="python:ip.interface().name()">eth0</a> 
+            <span tal:condition="not:ip/interface"  
+                tal:content="ip/getInterfaceName" />
     </td>
     <td tal:define="status ip/getPingStatus"
         tal:attributes="class python:ip.getStatusCssClass(status)"
