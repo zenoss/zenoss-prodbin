@@ -40,25 +40,27 @@ class Render(resource.Resource):
         for k, v in args.items():
             if len(v) == 1:
                 args[k] = v[0]
-        if True:
-                    listener = request.postpath[-2]
-                    command = request.postpath[-1]
-                    args.setdefault('ftype', 'PNG')
-                    ftype = args['ftype']
-                    del args['ftype']
-                    request.setHeader('Content-type', 'image/%s' % ftype)
-                    def write(result):
-                        if result:
-                            request.write(result)
-                        request.finish()
-                    def error(reason):
-                        log.error("Unable to fetch graph: %s", reason)
-                        request.finish()
-                    if not self.renderers.get(listener, False):
-                        raise Exception("Renderer %s unavailable" % listener)
-                    d = listener.callRemote(command, **args)
-                    d.addCallbacks(write, error)
-                    return server.NOT_DONE_YET
+
+        listener = request.postpath[-2]
+        command = request.postpath[-1]
+        args.setdefault('ftype', 'PNG')
+        ftype = args['ftype']
+        del args['ftype']
+        request.setHeader('Content-type', 'image/%s' % ftype)
+        def write(result):
+            if result:
+                request.write(result)
+            request.finish()
+        def error(reason):
+            log.error("Unable to fetch graph: %s", reason)
+            request.finish()
+        import pdb; pdb.set_trace()
+        renderer = self.renderers.get(listener, False)
+        if not renderer or not renderer.listeners:
+            raise Exception("Renderer %s unavailable" % listener)
+        d = renderer.listeners[0].callRemote(command, **args)
+        d.addCallbacks(write, error)
+        return server.NOT_DONE_YET
 
     def render_POST(self, request):
         "Deal with XML-RPC requests"
