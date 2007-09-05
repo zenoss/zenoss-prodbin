@@ -197,6 +197,12 @@ class ZenPropertyManager(PropertyManager):
         """
         rootnode = self.getZenRootNode()
         ptype = rootnode.getPropertyType(propname)
+        if ptype == 'lines': 
+            dedupedList = [] 
+            for x in propvalue: 
+                if x not in dedupedList: 
+                    dedupedList.append(x) 
+            propvalue = dedupedList
         if getattr(aq_base(self), propname, zenmarker) != zenmarker:
             self._updateProperty(propname, propvalue)
         else:
