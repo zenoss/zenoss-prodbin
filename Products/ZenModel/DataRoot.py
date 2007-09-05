@@ -42,6 +42,7 @@ import socket
 from AccessControl import Permissions as permissions
 
 from ZenModelRM import ZenModelRM
+from ZenossSecurity import ZEN_COMMON
 
 def manage_addDataRoot(context, id, title = None, REQUEST = None):
     """make a device"""
@@ -81,6 +82,7 @@ class DataRoot(ZenModelRM, OrderedFolder, Commandable, ZenMenuable):
     iconMap = {}
     geomapapikey = ''
     geocache = ''
+    version = ""
 
     _properties=(
         {'id':'title', 'type': 'string', 'mode':'w'},
@@ -231,6 +233,8 @@ class DataRoot(ZenModelRM, OrderedFolder, Commandable, ZenMenuable):
 
     def __init__(self, id, title=None):
         ZenModelRM.__init__(self, id, title)
+        from ZVersion import VERSION
+        self.version = "Zenoss " + VERSION
 
 
     def getEventCount(self, **kwargs):
@@ -247,14 +251,14 @@ class DataRoot(ZenModelRM, OrderedFolder, Commandable, ZenMenuable):
         map(lambda x: x.exportXml(ofile, ignorerels), self.getDmdRoots())
             
     
-    security.declareProtected('View', 'getProdStateConversions')
+    security.declareProtected(ZEN_COMMON, 'getProdStateConversions')
     def getProdStateConversions(self):
         """getProdStateConversions() -> return a list of tuples 
         for prodstat select edit box"""
         return self.getConversions(self.prodStateConversions)
 
     
-    security.declareProtected('View', 'convertProdState')
+    security.declareProtected(ZEN_COMMON, 'convertProdState')
     def convertProdState(self, prodState):
         '''convert a numeric production state to a
         textual representation using the prodStateConversions
@@ -262,33 +266,33 @@ class DataRoot(ZenModelRM, OrderedFolder, Commandable, ZenMenuable):
         return self.convertAttribute(prodState, self.prodStateConversions)
 
 
-    security.declareProtected('View', 'getStatusConversions')
+    security.declareProtected(ZEN_COMMON, 'getStatusConversions')
     def getStatusConversions(self):
         """get text strings for status field"""
         return self.getConversions(self.statusConversions)
 
 
-    security.declareProtected('View', 'convertStatus')
+    security.declareProtected(ZEN_COMMON, 'convertStatus')
     def convertStatus(self, status):
         """get text strings for status field"""
         return self.convertAttribute(status, self.statusConversions)
 
-    security.declareProtected('View', 'getPriorityConversions')
+    security.declareProtected(ZEN_COMMON, 'getPriorityConversions')
     def getPriorityConversions(self):
         return self.getConversions(self.priorityConversions)
 
-    security.declareProtected('View', 'convertPriority')
+    security.declareProtected(ZEN_COMMON, 'convertPriority')
     def convertPriority(self, priority):
         return self.convertAttribute(priority, self.priorityConversions)
 
-    security.declareProtected('View', 'getInterfaceStateConversions')
+    security.declareProtected(ZEN_COMMON, 'getInterfaceStateConversions')
     def getInterfaceStateConversions(self):
         """get text strings for interface status"""
         if hasattr(self, 'interfaceStateConversions'):
             return self.getConversions(self.interfaceStateConversions)
 
 
-    security.declareProtected('View', 'convertAttribute')
+    security.declareProtected(ZEN_COMMON, 'convertAttribute')
     def convertAttribute(self, numbValue, conversions):
         '''convert a numeric production state to a
         textual representation using the prodStateConversions
@@ -302,7 +306,7 @@ class DataRoot(ZenModelRM, OrderedFolder, Commandable, ZenMenuable):
         return numbValue
 
 
-    security.declareProtected('View', 'getConversions')
+    security.declareProtected(ZEN_COMMON, 'getConversions')
     def getConversions(self, attribute):
         """get the text list of itmes that convert to ints"""
         convs = []

@@ -26,7 +26,7 @@ from Products.PluggableAuthService import PluggableAuthService
 
 from Products import ZenModel
 
-ZENOSS_ROLES = ['ZenUser', 'ZenMonitor']
+ZENOSS_ROLES = ['ZenUser', 'ZenManager']
 
 
 def backupACLUserFolder(context):

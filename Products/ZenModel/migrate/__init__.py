@@ -92,3 +92,4 @@ import linkables
 import thresholds
 import componentIndex
 import zIcon
+import zenmanagerrole

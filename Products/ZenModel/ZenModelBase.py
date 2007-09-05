@@ -147,8 +147,15 @@ class ZenModelBase(object):
             curDir = curDir.aq_parent
         links.reverse()
         return links
-    
-    
+   
+
+    security.declareProtected('View', 'getZ')
+    def getZ(self, zpropname):
+        """Return the value of a zProperty on this object
+        """
+        return getattr(self, zpropname)
+
+
     security.declareProtected('View', 'zentinelTabs')
     def zentinelTabs(self, templateName):
         """Return a list of hashs that define the screen tabs for this object.

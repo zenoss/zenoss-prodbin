@@ -31,6 +31,8 @@ from Products.CMFCore.utils import getToolByName
 
 from Products.ZenUtils import Security
 
+from ZenossSecurity import ZEN_COMMON, ZEN_MANAGER_ROLE, ZEN_USER_ROLE
+
 
 class ZentinelPortal ( PortalObjectBase ):
     """
@@ -106,32 +108,17 @@ class PortalGenerator:
 
     def setupRoles(self, p):
         # Set up the suggested roles.
-        #p.getPhysicalRoot().__ac_roles__ += ('ZenUser', 'ZenMonitor',)
-        p.__ac_roles__ += ('ZenUser', 'ZenMonitor',)
+        p.__ac_roles__ += (ZEN_USER_ROLE, ZEN_MANAGER_ROLE,)
 
 
     def setupPermissions(self, p):
         # Set up some suggested role to permission mappings.
         mp = p.manage_permission
-        mp('Access Transient Objects',['ZenUser', 'ZenMonitor', 'Manager',], 1)
-        mp('Access session data',['ZenUser', 'ZenMonitor', 'Manager',], 1)
-        mp('Access contents information',
-                ['ZenUser', 'ZenMonitor', 'Manager',], 1)
-        mp('Mail forgotten password',['ZenUser', 'ZenMonitor', 'Manager',], 1)
-        mp('Query Vocabulary',['ZenUser', 'ZenMonitor', 'Manager',], 1)
-        mp('Search ZCatalog',['ZenUser', 'ZenMonitor', 'Manager',], 1)
-        mp('View',['ZenUser','ZenMonitor','Manager','Owner'])
-        mp('View History',['ZenUser', 'ZenMonitor', 'Manager',], 1)
-        mp('Set own password',['ZenUser', 'ZenMonitor', 'Manager',], 1)
-        mp('Set own properties',['ZenUser','ZenMonitor','Manager',], 1)
-        mp('List undoable changes',['ZenUser','ZenMonitor','Manager',], 1)
-        mp('Change Settings', ['Owner','Manager',],     1)
-
-        mp('Manage Device Status',['ZenMonitor','Manager',], 1)
-
-        mp('Add DMD Objects', ['Owner','Manager',],     1)
-        #mp('Delete DMD Objects', ['Owner','Manager',],     1)
-        mp('Delete objects', ['Owner','Manager',],     1)
+        mp('Delete objects', [ZEN_MANAGER_ROLE, 'Owner','Manager',],     1)
+        mp('Add DMD Objects', [ZEN_MANAGER_ROLE, 'Owner','Manager',],     1)
+        mp('View',[ZEN_USER_ROLE,ZEN_MANAGER_ROLE,'Manager','Owner'])
+        mp('View History',[ZEN_USER_ROLE, ZEN_MANAGER_ROLE, 'Manager',], 1)
+        mp(ZEN_COMMON,[ZEN_USER_ROLE, ZEN_MANAGER_ROLE,'Manager', 'Owner'], 1)
 
 
     def setupDefaultSkins(self, p):

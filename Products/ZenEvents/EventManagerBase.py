@@ -44,6 +44,7 @@ from EventCommand import EventCommand
 from Exceptions import *
 
 from Products.ZenModel.ZenModelRM import ZenModelRM
+from Products.ZenModel.ZenossSecurity import ZEN_COMMON
 from Products.ZenRelations.RelSchema import *
 from Products.ZenUtils import Time
 from Products.ZenUtils.FakeRequest import FakeRequest
@@ -1124,7 +1125,7 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
         """
         return self.eventActions
 
-    security.declareProtected('View','getSeverities')
+    security.declareProtected(ZEN_COMMON,'getSeverities')
     def getSeverities(self):
         """Return a list of tuples of severities [('Warning', 3), ...] 
         """
