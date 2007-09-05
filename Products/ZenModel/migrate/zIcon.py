@@ -33,6 +33,13 @@ class zIconProperty(Migrate.Step):
         if not dmd.Devices.Server.hasProperty('zIcon'):
             dmd.Devices.Server._setProperty(
                 "zIcon", "/zport/dmd/img/icons/server.png")
+        if not dmd.Devices.Server.Windows.hasProperty('zIcon'):
+            dmd.Devices.Server.Windows._setProperty(
+                "zIcon", "/zport/dmd/img/icons/server-windows.png")
+        if not dmd.Devices.Server.Linux.hasProperty('zIcon'):
+            dmd.Devices.Server.Linux._setProperty(
+                "zIcon", "/zport/dmd/img/icons/server-linux.png")
+              
 
 
 zIconProperty()
