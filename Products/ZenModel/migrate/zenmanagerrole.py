@@ -19,6 +19,8 @@ __version__ = "$Revision$"[11:-2]
 
 import Migrate
 
+from Products.ZenModel.ZenossSecurity import ZEN_COMMON
+
 class ZenManagerRole(Migrate.Step):
 
     version = Migrate.Version(2, 1, 0)
@@ -30,6 +32,8 @@ class ZenManagerRole(Migrate.Step):
         if "ZenManager" in rm.listRoleIds(): return
         rm.addRole("ZenManager")
         mp = zport.manage_permission
+        mp('Change Device', ['ZenManager', 'Owner','Manager',],     1)
+        mp('Manage DMD', ['ZenManager', 'Owner','Manager',],     1)
         mp('Delete objects', ['ZenManager', 'Owner','Manager',],     1)
         mp('Add DMD Objects', ['ZenManager', 'Owner','Manager',],     1)
         mp('View',['ZenUser','ZenManager','Manager','Owner'])
