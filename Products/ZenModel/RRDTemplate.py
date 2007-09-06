@@ -96,8 +96,8 @@ class RRDTemplate(ZenModelRM, ZenPackable):
     def isEditable(self, context):
         """Is this template editable in context.
         """
-        return (self.isManager() and 
-                (context == self or context.isLocalName(self.id)))
+        return ((context == self or context.isLocalName(self.id))
+                and self.isManager(obj=self))
 
     
     def getGraphs(self):

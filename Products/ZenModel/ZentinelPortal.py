@@ -51,28 +51,28 @@ class ZentinelPortal ( PortalObjectBase ):
     def __init__( self, id, title='' ):
         PortalObjectBase.__init__( self, id, title )
 
-    
-    def isManager(self):
+
+    def isManager(self, obj=None):
         """
         Return true if user is authenticated and has Manager role.
         """
         user = self.dmd.ZenUsers.getUser()
         if user: 
-            return user.has_role("Manager") or user.has_role(ZEN_MANAGER_ROLE)
+            return user.has_role(("Manager", ZEN_MANAGER_ROLE), obj)
 
 
-    def has_role(self, role, userid=None):
+    def has_role(self, role, userid=None, obj=None):
         """Check to see of a user has a role.
         """
         user = self.dmd.ZenUsers.getUser(userid)
-        if user: return user.has_role(role)
+        if user: return user.has_role(role, obj)
 
 
-    def has_permission(self, perm, userid=None):
+    def has_permission(self, perm, userid=None, obj=None):
         """Check to see of a user has a permission.
         """
         user = self.dmd.ZenUsers.getUser(userid)
-        if user: return user.has_permission(perm)
+        if user: return user.has_permission(perm, obj)
 
 
 

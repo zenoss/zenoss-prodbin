@@ -348,7 +348,7 @@ class IpInterface(OSComponent):
             links = []
             for addr in addrs:
                 if hasattr(aq_base(addr), 'network'):
-                    if self.checkLink('View', addr.network()):
+                    if self.checkRemotePerm('View', addr.network()):
                         links.append(addr.network.getPrimaryLink())
                     else:    
                         links.append(addr.network.getRelatedId())

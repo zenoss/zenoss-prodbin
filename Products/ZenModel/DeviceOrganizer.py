@@ -37,6 +37,8 @@ from Products.AdvancedQuery import MatchRegexp, Eq, Or, In
 from Products.ZenRelations.RelSchema import *
 import simplejson
 
+from ZenossSecurity import ZEN_COMMON
+
 class DeviceOrganizer(Organizer, DeviceManagerBase, Commandable, ZenMenuable, 
                         MaintenanceWindowable, AdministrativeRoleable):
     """
@@ -89,24 +91,30 @@ class DeviceOrganizer(Organizer, DeviceManagerBase, Commandable, ZenMenuable,
             ToOne, 'Products.ZenModel.ZenMenu', 'menuable')),
        ) 
 
+    security.declareProtected(ZEN_COMMON, "getSubDevices")
     def getSubDevices(self, devfilter=None, devrel="devices"):
         """get all the devices under an instance of a DeviceGroup"""
-        devices = getattr(self, devrel, None)
-        if not devices:
+        devrelobj = getattr(self, devrel, None)
+        if not devrelobj:
             raise AttributeError, "%s not found on %s" % (devrel, self.id)
-        devices = filter(devfilter, devices())
+
+        devices = [ dev for dev in devrelobj() 
+                        if self.checkRemotePerm("View", dev)]
+        devices = filter(devfilter, devices)
         for subgroup in self.children():
             devices.extend(subgroup.getSubDevices(devfilter, devrel))
         return devices
 
 
+    security.declareProtected("View", "getSubDevicesGen")
     def getSubDevicesGen(self, devrel="devices"):
         """get all the devices under and instance of a DeviceGroup"""
-        devices = getattr(self, devrel, None)
-        if not devices: 
+        devrelobj = getattr(self, devrel, None)
+        if not devrelobj: 
             raise AttributeError, "%s not found on %s" % (devrel, self.id)
-        for dev in devices.objectValuesGen():
-            yield dev
+        for dev in devrelobj.objectValuesGen():
+            if self.checkRemotePerm("View", dev):
+                yield dev
         for subgroup in self.children():
             for dev in subgroup.getSubDevicesGen(devrel):
                 yield dev

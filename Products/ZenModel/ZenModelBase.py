@@ -144,9 +144,10 @@ class ZenModelBase(object):
                 continue
             if not getattr(aq_base(curDir),"getPrimaryUrlPath", False):
                 break
-            links.append(
-                (curDir.getPrimaryUrlPath(),
-                curDir.id))
+            #FIXME
+            url = self.checkRemotePerm("View", curDir)   \
+                    and curDir.getPrimaryUrlPath() or ""
+            links.append((url, curDir.id))
             curDir = curDir.aq_parent
         links.reverse()
         return links
@@ -159,8 +160,8 @@ class ZenModelBase(object):
         return getattr(self, zpropname)
 
 
-    security.declareProtected(ZEN_COMMON, 'checkLink')
-    def checkLink(self, permission, robject):
+    security.declareProtected(ZEN_COMMON, 'checkRemotePerm')
+    def checkRemotePerm(self, permission, robject):
         """Look to see if user has privleges on remote object.
         """
         user = getSecurityManager().getUser()

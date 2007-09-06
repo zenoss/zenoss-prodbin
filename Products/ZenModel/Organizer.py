@@ -65,10 +65,12 @@ class Organizer(ZenModelRM, EventView):
         """see IDeviceManager"""
         return self.getDmdRoot(self.dmdRootName).getOrganizer(moveTargetName)
 
-    
+   
+    security.declareProtected(ZEN_COMMON, "children")
     def children(self, sort=False):
         """Return children of our organizer who have same type as parent."""
         kids = self.objectValues(spec=self.meta_type)
+        kids = [ kid for kid in kids if self.checkRemotePerm("View", kid)]
         if sort: kids.sort(lambda x,y: cmp(x.primarySortKey(), 
                                            y.primarySortKey()))
         return kids
@@ -79,6 +81,7 @@ class Organizer(ZenModelRM, EventView):
         return self.objectIds(spec=self.meta_type)
 
 
+    security.declareProtected(ZEN_COMMON, "countChildren")
     def countChildren(self):
         """Return a count of all our contained children."""
         count = len(self.objectIds(spec=self.meta_type))
@@ -216,6 +219,7 @@ class Organizer(ZenModelRM, EventView):
         return catalog
 
 
+    security.declareProtected(ZEN_COMMON, "getSubOrganizers")
     def getSubOrganizers(self):
         """build a list of all organizers below this one"""
         orgs = self.children()
