@@ -51,7 +51,10 @@ class HttpRender(resource.Resource):
         args.setdefault('ftype', 'PNG')
         ftype = args['ftype']
         del args['ftype']
-        request.setHeader('Content-type', 'image/%s' % ftype)
+        if ftype=='html':
+            request.setHeader('Content-type', 'text/html')
+        else:
+            request.setHeader('Content-type', 'image/%s' % ftype)
         return getattr(zr, 'remote_' + command)(**args)
 
 class zenrender(PBDaemon):

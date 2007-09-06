@@ -46,7 +46,10 @@ class Render(resource.Resource):
         args.setdefault('ftype', 'PNG')
         ftype = args['ftype']
         del args['ftype']
-        request.setHeader('Content-type', 'image/%s' % ftype)
+        if ftype.lower()=='html':
+            request.setHeader('Content-type', 'text/html')
+        else:
+            request.setHeader('Content-type', 'image/%s' % ftype)
         def write(result):
             if result:
                 request.write(result)
@@ -54,7 +57,6 @@ class Render(resource.Resource):
         def error(reason):
             log.error("Unable to fetch graph: %s", reason)
             request.finish()
-        import pdb; pdb.set_trace()
         renderer = self.renderers.get(listener, False)
         if not renderer or not renderer.listeners:
             raise Exception("Renderer %s unavailable" % listener)

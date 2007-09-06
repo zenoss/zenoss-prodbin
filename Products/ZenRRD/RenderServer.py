@@ -126,16 +126,11 @@ class RenderServer(RRDToolItem):
         if getImage: 
             return graph
         else: 
-            response = REQUEST.RESPONSE
-            response.setHeader('Content-Type', 'text/html')
             return """
             <script>
-            try {
-                var p = window.parent;
-                p.fakexhr.registerResponse({responseText:'%s',graphid:'%s'});
-            } catch(e) { var i; }
+                parent.location.hash = '%s:%s;';
             </script>
-            """ % (str(bool(graph)), graphid)
+            """ % (graphid, str(bool(graph)))
 
     
     def deleteRRDFiles(self, device, 

@@ -67,12 +67,22 @@ FakeXHR.prototype = {
     getData: function(url) {
         this.deferreds[url] = this.lock.acquire();
         this.deferreds[url].addCallback(bind(function(){
-            this.IFrameProxy.contentDocument.location.replace(url);
+            this.IFrameProxy.onload = this.registerResponse;
+            this.IFrameProxy.src = url;
         }, this));
     },
-    registerResponse: function(response) {
+    registerResponse: function() {
+        var response = document.location.hash;
+        window.history.go(-1);
+        response = response.replace('#','');
+        response = response.replace(';','');
+        parts = response.split(':');
+        response = {
+            graphid: parts[0],
+            responseText: parts[1]
+        };
         this.callback(response);
-        this.lock.release();
+        if (this.lock.locked) this.lock.release();
     },
     getFakeXHR: function() {
         var myfunc = bind(function(url, callback) {
@@ -141,7 +151,7 @@ ZenRRDGraph.prototype = {
         this.setDates();
         this.buildTables();
         this.registerListeners();
-        this.fakeXHR = new FakeXHR();
+        this.fakeXHR = new FakeXHR(this.obj.id);
         this.doFakeXHR = this.fakeXHR.getFakeXHR();
         this.loadImage();
     },
@@ -315,7 +325,7 @@ ZenRRDGraph.prototype = {
     },
 
     loadImage : function() {
-        checkurl = this.url+'&getImage=&graphid='+this.obj.id;
+        checkurl = this.url+'&getImage=&graphid='+this.obj.id+'&ftype=html';
         var onSuccess = bind(function(r) {
             if (r.responseText=='True') {
                 if (this.obj.src!=this.url) {
@@ -464,9 +474,17 @@ function registerGraph(id) {
     var graph = new ZenRRDGraph($(id));
 }
 
-var fakexhr;
+var ZenQueue = new ZenGraphQueue();
+var fakexhr = {
+    registerResponse: function(r) {
+        log('response received from'+r.responseText);
+        var graph = ZenQueue.find_graph(r.graphid);
+        graph = ZenQueue.graphs[graph];
+        graph.fakeXHR.registerResponse(r);
+    }
+};
+
 function zenRRDInit() {
-    var ZenQueue = new ZenGraphQueue();
     for (var graphid=0; graphid<ZenGraphs.length; graphid++) {
         try {
             graph = new ZenRRDGraph($(ZenGraphs[graphid]));
@@ -478,13 +496,6 @@ function zenRRDInit() {
            swapDOM($(ZenGraphs[graphid]), mydiv);
         }
     }
-    fakexhr = {
-        registerResponse: function(r) {
-            var graph = ZenQueue.find_graph(r.graphid);
-            graph = ZenQueue.graphs[graph];
-            graph.fakeXHR.registerResponse(r);
-        }
-    };
 }
 
 addLoadEvent(zenRRDInit);
