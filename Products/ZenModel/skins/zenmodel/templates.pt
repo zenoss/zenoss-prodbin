@@ -160,10 +160,6 @@
         href="css/dialog.css"/>
     <link rel="stylesheet" type="text/css" title="zenoss"
         href="css/filterbox.css"/>
-    <link rel="stylesheet" type="text/css" 
-        href="resources/css/ext-all.css"/>
-    <link rel="stylesheet" type="text/css" 
-        href="resources/css/xtheme-vista.css"/>
     <script type="text/javascript" src="js/MochiKit.js"></script>
     <script type="text/javascript" src="zenmodelfuncs.js"></script>
     <script src="javascript/selection.js"></script>
@@ -171,11 +167,6 @@
     <script src="js/zenutils.js"></script>
     <script src="javascript/menus.js"></script>
     <script src="javascript/zgdagent.js"></script>
-    <!--
-    <script src="javascript/ext-base.js"></script>
-    <script src="javascript/ext-all.js"></script>
-    <script src="javascript/cmdwindow.js"></script>
-    -->
     <!--[if IE 7]>
         <link rel="stylesheet" type="text/css" title="zenoss"
             href="zenoss_ie.css" >
