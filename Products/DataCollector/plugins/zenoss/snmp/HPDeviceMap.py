@@ -20,6 +20,7 @@ class HPDeviceMap(SnmpPlugin):
     maptype = "HPDeviceMap" 
 
     snmpGetMap = GetMap({ 
+        '.1.3.6.1.4.1.232.2.2.2.1.0' : 'setHWSerialNumber',
         '.1.3.6.1.4.1.232.2.2.4.2.0' : 'setHWProductKey',
         '.1.3.6.1.4.1.232.11.2.2.1.0': 'setOSProductKey',
          })
