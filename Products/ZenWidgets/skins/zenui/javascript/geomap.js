@@ -4,7 +4,7 @@ function ZenossLocationCache() {
     GGeocodeCache.apply(this);
 }
 
-Ext.QuickTips.init();
+//Ext.QuickTips.init();
 
 ZenossLocationCache.prototype = new GGeocodeCache();
 ZenossLocationCache.prototype.reset = function() {
@@ -96,11 +96,13 @@ ZenGeoMap.prototype = {
                        location.href = clicklink});
                     this.map.addOverlay(marker);
                     var markerimg = marker.Oj
+                    /*
                     Ext.QuickTips.register({
                         target: markerimg,
                         title: address,
                         text: summarytext
                     });
+                    */
                     this.bounds.extend(p);
                     this.lock.release();
                 }
