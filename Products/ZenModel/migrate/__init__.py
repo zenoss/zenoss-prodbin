@@ -93,3 +93,5 @@ import thresholds
 import componentIndex
 import zIcon
 import zenmanagerrole
+import zenpackmenus
+import adminobjectmenus
