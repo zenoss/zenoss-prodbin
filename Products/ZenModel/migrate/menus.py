@@ -1248,13 +1248,20 @@ class MenuRelations(Migrate.Step):
                    'isdialog': True,
                    'ordering': 2.0,
                    'permissions': ('Change Device',)}],
-'ZenPack_list': [  {  'action': 'dialog_addZenPack',
-                     'description': 'Create a ZenPack...',
+'ZenPack_list': [  
+                {   'action': 'dialog_addZenPack',
+                    'description': 'Create a ZenPack...',
                      'id': 'addZenPack',
                      'isdialog': True,
                      'ordering': 1.02,
-                     'permissions': ('Manage DMD',)}]}   
-)
+                     'permissions': ('Manage DMD',)},
+                {   'action': 'dialog_removeZenPacks', 
+                    'description': 'Delete ZenPack...', 
+                    'id': 'removeZenPack', 
+                    'isdialog': True, 
+                    'ordering': 1.01, 
+                    'permissions': ('Manage DMD',)}],
+            })
             
             
 MenuRelations()
