@@ -186,13 +186,14 @@ class ActionRule(ZenModelRM, EventFilter):
         if not self.enabled:
             self._clearAlertState()
         import WhereClause
-        if REQUEST and not REQUEST.form.has_key('where'):
+        if REQUEST.form.has_key('onRulePage') \
+                and not REQUEST.form.has_key('where'):
             clause = WhereClause.fromFormVariables(self.genMeta(), REQUEST.form)
             if clause:
                 REQUEST.form['where'] = clause
             else:
                 REQUEST['message'] = 'You must have at least one criteria' \
-                    ' in an Alerting Rule.'
+                        ' in an Alerting Rule.'
                 return self.callZenScreen(REQUEST)
         return self.zmanage_editProperties(REQUEST)
 
