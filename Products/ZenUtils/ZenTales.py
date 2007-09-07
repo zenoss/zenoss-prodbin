@@ -15,12 +15,21 @@ from Products.PageTemplates.Expressions import getEngine
 from DateTime import DateTime
 
 _compiled = {}
-def talesEval(express, context):
+
+def talesEvalStr(express, context, extra=None):
+    return talesEval('string:%s' % expression, context, extra)
+
+def talesEval(express, context, extra=None):
     """Perform a TALES eval on the express using context.
     """
-    compiled = talesCompile(express)    
-    res = compiled(getEngine().getContext(
-        {'here':context, 'nothing':None, 'now': DateTime() }))
+    compiled = talesCompile(express)
+    contextDict = { 'here':context, 
+                    'nothing':None,
+                    'now': DateTime(),
+                    }
+    if isinstance(extra, dict):
+        contextDict.update(extra)
+    res = compiled(getEngine().getContext(contextDict))
     if isinstance(res, Exception):
         raise res
     return res

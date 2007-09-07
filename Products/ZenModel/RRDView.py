@@ -39,7 +39,7 @@ class RRDView(object):
     Mixin to provide hooks to RRD management functions
     """
 
-    def getRRDGraphUrl(self, graph, drange=None, template=None):
+    def getGraphDefUrl(self, graph, drange=None, template=None):
         """resolve template and graph names to objects 
         and pass to graph performance"""
         if not drange: drange = self.defaultDateRange
@@ -47,13 +47,11 @@ class RRDView(object):
         if template:
             templates = [template]
         if type(graph) in types.StringTypes:
-            def getGraph(templates, graphName):
-                for t in templates:
-                    try:
-                        return t, t._getOb(graphName)
-                    except AttributeError:
-                        pass
-            template, graph = getGraph(templates, graph)
+            for t in templates:
+                if hasattr(t.graphDefs, graph):
+                    template = t
+                    graph = getattr(t.graphDefs, graph)
+                    break
         targetpath = self.rrdPath()
         objpaq = self.primaryAq()
         perfServer = objpaq.device().getPerformanceServer()
@@ -188,26 +186,26 @@ class RRDView(object):
             log.exception(ex)
         
     
-    def getDefaultGraphs(self, drange=None):
+    def getDefaultGraphDefs(self, drange=None):
         """get the default graph list for this object"""
         graphs = []
         for template in self.getRRDTemplates():
-            for g in template.getGraphs():
+            for g in template.getGraphDefs():
                 graph = {}
                 graph['title'] = g.getId()
                 try:
-                    graph['url'] = self.getRRDGraphUrl(g, drange, template)
+                    graph['url'] = self.getGraphDefUrl(g, drange, template)
                     graphs.append(graph)
                 except ConfigurationError:
                     pass
         return graphs
         
         
-    def getGraph(self, graphId):
+    def getGraphDef(self, graphId):
         ''' Fetch a graph by id.  if not found return None
         '''
         for t in self.getRRDTemplates():
-            for g in t.getGraphs():
+            for g in t.getGraphDefs():
                 if g.id == graphId:
                     return g
         return None
@@ -218,6 +216,7 @@ class RRDView(object):
         Override to create custom type selection.
         """
         return self.meta_type
+
 
     def getRRDFileName(self, dsname):
         """Look up an rrd file based on its data point name"""

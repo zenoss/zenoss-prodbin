@@ -1,6 +1,7 @@
 <tal:block metal:use-macro="here/templates/macros/page2">
 <tal:block metal:fill-slot="contentPane">
 
+<tal:block metal:define-macro="componentSelectorJS">
 <script type="text/javascript" src="/zport/js/MochiKit.js"></script>
 <script type="text/javascript">
     
@@ -17,6 +18,7 @@
         var d = loadJSONDoc(url, {'query': filter.value});
         widget.options.length = 0;
         d.addBoth(updateSelect, widget);
+        getComponentList();
     }
     
     function getComponentList() {
@@ -26,8 +28,29 @@
         var d = loadJSONDoc(url, {'deviceId': deviceWidget.value});
         compWidget.options.length = 0;
         d.addBoth(updateSelect, compWidget);
+        getGraphList()
     }
 
+    function handleDeviceKeys(e) {
+        keyString = e.key().string;
+        if (keyString == 'KEY_ENTER') {
+            // Populate the device list based on the filter
+            getDeviceList();
+        }
+    }
+
+    function connectDeviceFilter() {
+        connect('deviceFilter', 'onkeydown', handleDeviceKeys);
+        connect('filterButton', 'onclick', getDeviceList);
+    }
+
+    addLoadEvent(getDeviceList);
+    addLoadEvent(connectDeviceFilter);
+
+</script>
+</tal:block>
+
+<script type="text/javascript">
     function getGraphList() {
         var deviceWidget = document.getElementById('deviceId');
         var compWidget = document.getElementById('componentPath');
@@ -56,13 +79,6 @@
         map(resizeArea, $$('textarea'));
     }
     
-    function handleDeviceKeys(e) {
-        keyString = e.key().string;
-        if (keyString == 'KEY_ENTER') {
-            // Populate the device list based on the filter
-            getDeviceList();
-        }
-    }
     
     function makeConnections() {
         // This is what keeps the return/enter key in the device filter
@@ -70,13 +86,10 @@
         $('addGraphForm').onsubmit = function() {return false;}
     
         connect('saveReportBtn', 'onclick', $('editReportForm'), 'submit');
-        connect('deviceFilter', 'onkeydown', handleDeviceKeys);
-        connect('filterButton', 'onclick', getDeviceList);
         connect('addGraphBtn', 'onclick', $('addGraphForm'), 'submit');
     }
     
     addLoadEvent(makeConnections);
-    addLoadEvent(getDeviceList)
     addLoadEvent(connectZenWebTextareas);
 </script>
 
@@ -144,7 +157,9 @@
         <tal:block metal:use-macro="here/zenuimacros/macros/zentable">
 
         <tal:block metal:fill-slot="zentablecontents">
-        <!-- BEGIN TABLE CONTENTS -->            
+        <!-- BEGIN TABLE CONTENTS -->
+        
+    <tal:block metal:define-macro="componentSelector">
     <tr>
         <td class="tableheader">Device</td>
         <td class="tablevalues">
@@ -168,6 +183,8 @@
             </select>
         </td>
     </tr>
+    </tal:block>
+    
     <tr>
         <td class="tableheader">Graph</td>
         <td class="tablevalues">

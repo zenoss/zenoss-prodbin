@@ -1,0 +1,19 @@
+<tal:block metal:use-macro="here/templates/macros/page2">
+<tal:block metal:fill-slot="contentPane"
+        tal:define="tabletitle string:RRD Graph Commands">
+
+
+<tal:block metal:use-macro="here/zenuimacros/macros/zentable">
+<tal:block metal:fill-slot="zentablecontents">
+            
+    <tr>
+        <td class="tablevalues">
+            <pre tal:content="here/getFakeGraphCmds"></pre>
+        </td>
+    </tr>
+    
+</tal:block>
+</tal:block>
+
+</tal:block>
+</tal:block>

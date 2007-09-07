@@ -1,0 +1,308 @@
+<tal:block metal:define-macro="editGraphPoint">
+<tal:block metal:use-macro="here/templates/macros/page2">
+<tal:block metal:fill-slot="contentPane">
+
+<form method=post 
+    tal:attributes="action string:${here/absolute_url_path}">
+
+        <tal:block tal:define="message request/message | string:State at time:; 
+            tabletitle string:${message} ${here/getNowString}">
+        <tal:block metal:use-macro="here/zenuimacros/macros/zentable">
+
+
+        <tal:block metal:fill-slot="zentablecontents">
+        <!-- BEGIN TABLE CONTENTS -->
+            
+    <tr>
+        <td class="tableheader">Name</td>
+        <td class="tablevalues" tal:condition="here/isManager">
+            <input class="tablevalues" type="text" name="newId" size="40"
+                tal:attributes="value here/id" />
+        </td>
+        <td class="tablevalues" tal:condition="not:here/isManager"
+            tal:content="here/id"/>
+    </tr>
+    <tr>
+        <td class="tableheader">Type</td>
+        <td class="tablevalues" tal:content="here/getType"/>
+    </tr>
+    
+    <tr tal:condition="python: hasattr(here, 'draw')">
+      <td class="tableheader">Draw</td>
+      <td class="tablevalues" tal:condition="here/isManager">
+        <select class="tablevalues" name="draw:boolean">
+            <option tal:repeat="e python:(True,False)" tal:content="e"
+            tal:attributes="value e; selected python:e==here.draw"/>
+        </select>
+        </td>
+      <td class="tablevalues" tal:condition="not:here/isManager"
+        tal:content="here/draw"/>
+    </tr>
+
+    <tr tal:condition="python: hasattr(here, 'dpName')">
+        <td class="tableheader">DataPoint</td>
+        <td class="tablevalues" tal:content="here/dpName"/>
+    </tr>
+    
+    <tr tal:condition="python: hasattr(here, 'vname')">
+        <td class="tableheader">Vname</td>
+        <td class="tablevalues" tal:condition="here/isManager">
+            <input class="tablevalues" type="text" name="vname" size="40"
+                tal:attributes="value here/vname" />
+        </td>
+        <td class="tablevalues" tal:condition="not:here/isManager"
+            tal:content="here/vname"/>
+    </tr>
+
+    <tr tal:condition="python: hasattr(here, 'rrdFile')">
+        <td class="tableheader">RRD File</td>
+        <td class="tablevalues" tal:condition="here/isManager">
+        <input class="tablevalues" type="text" name="rrdFile" size="40"
+            tal:attributes="value here/rrdFile" />
+        </td>
+      <td class="tablevalues" tal:condition="not:here/isManager"
+        tal:content="here/rrdFile"/>
+    </tr>
+    <tr tal:condition="python: hasattr(here, 'dsName')">
+        <td class="tableheader">RRD DataSource</td>
+        <td class="tablevalues" tal:condition="here/isManager">
+        <input class="tablevalues" type="text" name="dsName" size="40"
+            tal:attributes="value here/dsName" />
+        </td>
+      <td class="tablevalues" tal:condition="not:here/isManager"
+        tal:content="here/dsName"/>
+    </tr>
+    
+    <tr tal:condition="python: hasattr(here, 'cFunc')">
+        <td class="tableheader">Consolidation</td>
+        <td class="tablevalues" tal:condition="here/isManager">
+        <input class="tablevalues" type="text" name="cFunc" size="40"
+            tal:attributes="value here/cFunc" />
+        </td>
+      <td class="tablevalues" tal:condition="not:here/isManager"
+        tal:content="here/cFunc"/>
+    </tr>
+    <tr tal:condition="python: hasattr(here, 'rpn')">
+        <td class="tableheader">RPN</td>
+        <td class="tablevalues" tal:condition="here/isManager">
+            <textarea class="tablevalues" rows="8" cols="60" name="rpn"
+                tal:attributes="value here/rpn"></textarea>
+        </td>
+      <td class="tablevalues" tal:condition="not:here/isManager"
+        tal:content="here/rpn"/>
+    </tr>
+    <tr tal:condition="python: hasattr(here, 'limit')">
+        <td class="tableheader">Limit</td>
+        <td class="tablevalues" tal:condition="here/isManager">
+        <input class="tablevalues" type="text" name="limit" size="40"
+            tal:attributes="value here/limit" />
+        </td>
+      <td class="tablevalues" tal:condition="not:here/isManager"
+        tal:content="here/limit"/>
+    </tr>
+
+    <tr tal:condition="python: hasattr(here, 'start')">
+        <td class="tableheader">Start</td>
+        <td class="tablevalues" tal:condition="here/isManager">
+        <input class="tablevalues" type="text" name="start" size="8"
+            tal:attributes="value here/start" />
+        </td>
+      <td class="tablevalues" tal:condition="not:here/isManager"
+        tal:content="here/start"/>
+    </tr>
+    <tr tal:condition="python: hasattr(here, 'end')">
+        <td class="tableheader">End</td>
+        <td class="tablevalues" tal:condition="here/isManager">
+        <input class="tablevalues" type="text" name="end" size="8"
+            tal:attributes="value here/end" />
+        </td>
+      <td class="tablevalues" tal:condition="not:here/isManager"
+        tal:content="here/end"/>
+    </tr>
+    <tr tal:condition="python: hasattr(here, 'step')">
+        <td class="tableheader">Step</td>
+        <td class="tablevalues" tal:condition="here/isManager">
+        <input class="tablevalues" type="text" name="step" size="8"
+            tal:attributes="value here/step" />
+        </td>
+      <td class="tablevalues" tal:condition="not:here/isManager"
+        tal:content="here/step"/>
+    </tr>
+    <tr tal:condition="python: hasattr(here, 'rFunc')">
+        <td class="tableheader">Reduce</td>
+        <td class="tablevalues" tal:condition="here/isManager">
+        <input class="tablevalues" type="text" name="rFunc" size="40"
+            tal:attributes="value here/rFunc" />
+        </td>
+      <td class="tablevalues" tal:condition="not:here/isManager"
+        tal:content="here/rFunc"/>
+    </tr>
+
+
+
+    <tr tal:condition="python: hasattr(here, 'lineType')">
+      <td class="tableheader">Line Type</td>
+      <td class="tablevalues" tal:condition="here/isManager">
+        <select class="tablevalues" name="lineType"
+        tal:define="curtype here/lineType">
+            <option tal:repeat="opt here/lineTypeOptions" 
+                tal:attributes="value python:opt[1]; 
+                    selected python:curtype == opt[1]"
+                tal:content="python:opt[0]"></option>
+        </select>
+        </td>
+      <td class="tablevalues" tal:condition="not:here/isManager"
+        tal:content="here/lineType"/>
+    </tr>
+    <tr tal:condition="python: hasattr(here, 'lineWidth')">
+        <td class="tableheader">Line Width</td>
+        <td class="tablevalues" tal:condition="here/isManager">
+        <input class="tablevalues" type="text" name="lineWidth" size="8"
+            tal:attributes="value here/lineWidth" />
+        </td>
+        <td class="tablevalues" tal:condition="not:here/isManager"
+            tal:content="here/lineWidth"/>
+    </tr>
+    <tr tal:condition="python: hasattr(here, 'stacked')">
+        <td class="tableheader">Stacked</td>
+        <td class="tablevalues" tal:condition="here/isManager">
+        <select class="tablevalues" name="stacked:boolean">
+            <option tal:repeat="e python:(True,False)" tal:content="e"
+            tal:attributes="value e; selected python:e==here.stacked"/>
+        </select>
+        </td>
+      <td class="tablevalues" tal:condition="not:here/isManager" 
+            tal:content="here/stacked"/>
+    </tr>
+    <tr tal:condition="python: hasattr(here, 'color')">
+        <td class="tableheader">Color</td>
+        <td class="tablevalues" tal:condition="here/isManager">
+        <input class="tablevalues" type="text" name="color" size="40"
+            tal:attributes="value here/color" />
+        </td>
+        <td class="tablevalues" tal:condition="not:here/isManager"
+            tal:content="here/color"/>
+    </tr>
+    <tr tal:condition="python: hasattr(here, 'format')">
+        <td class="tableheader">Format</td>
+        <td class="tablevalues" tal:condition="here/isManager">
+        <input class="tablevalues" type="text" name="format" size="40"
+            tal:attributes="value here/format" />
+        </td>
+      <td class="tablevalues" tal:condition="not:here/isManager"
+        tal:content="here/format"/>
+    </tr>
+    <tr tal:condition="python: hasattr(here, 'strftime')">
+        <td class="tableheader">Strftime</td>
+        <td class="tablevalues" tal:condition="here/isManager">
+        <input class="tablevalues" type="text" name="strftime" size="40"
+            tal:attributes="value here/strftime" />
+        </td>
+      <td class="tablevalues" tal:condition="not:here/isManager"
+        tal:content="here/strftime"/>
+    </tr>
+    <tr tal:condition="python: hasattr(here, 'text')">
+        <td class="tableheader">Text</td>
+        <td class="tablevalues" tal:condition="here/isManager">
+        <input class="tablevalues" type="text" name="text" size="40"
+            tal:attributes="value here/text" />
+        </td>
+      <td class="tablevalues" tal:condition="not:here/isManager"
+        tal:content="here/text"/>
+    </tr>
+    
+    <tr tal:condition="python: hasattr(here, 'time')">
+        <td class="tableheader">Time</td>
+        <td class="tablevalues" tal:condition="here/isManager">
+        <input class="tablevalues" type="text" name="time" size="8"
+            tal:attributes="value here/time" />
+        </td>
+      <td class="tablevalues" tal:condition="not:here/isManager"
+        tal:content="here/text"/>
+    </tr>
+    <tr tal:condition="python: hasattr(here, 'legend')">
+        <td class="tableheader">Legend</td>
+        <td class="tablevalues" tal:condition="here/isManager">
+        <input class="tablevalues" type="text" name="legend" size="40"
+            tal:attributes="value here/legend" />
+        </td>
+      <td class="tablevalues" tal:condition="not:here/isManager"
+        tal:content="here/legend"/>
+    </tr>
+
+    <tr tal:condition="python: hasattr(here, 'value')">
+        <td class="tableheader">Value</td>
+        <td class="tablevalues" tal:condition="here/isManager">
+        <input class="tablevalues" type="text" name="value" size="8"
+            tal:attributes="value here/value" />
+        </td>
+      <td class="tablevalues" tal:condition="not:here/isManager"
+        tal:content="here/value"/>
+    </tr>
+
+    <tr tal:condition="python: hasattr(here, 'alpha')">
+        <td class="tableheader">Alpha</td>
+        <td class="tablevalues" tal:condition="here/isManager">
+        <input class="tablevalues" type="text" name="alpha" size="8"
+            tal:attributes="value here/alpha" />
+        </td>
+      <td class="tablevalues" tal:condition="not:here/isManager"
+        tal:content="here/alpha"/>
+    </tr>
+    <tr tal:condition="python: hasattr(here, 'fraction')">
+        <td class="tableheader">Fraction</td>
+        <td class="tablevalues" tal:condition="here/isManager">
+        <input class="tablevalues" type="text" name="fraction" size="8"
+            tal:attributes="value here/fraction" />
+        </td>
+      <td class="tablevalues" tal:condition="not:here/isManager"
+        tal:content="here/fraction"/>
+    </tr>
+
+    <tr tal:condition="python: hasattr(here, 'offset')">
+        <td class="tableheader">Offset</td>
+        <td class="tablevalues" tal:condition="here/isManager">
+        <input class="tablevalues" type="text" name="offset" size="8"
+            tal:attributes="value here/offset" />
+        </td>
+      <td class="tablevalues" tal:condition="not:here/isManager"
+        tal:content="here/offset"/>
+    </tr>
+
+    <tr>
+        <td class=tableheader align="left" >
+        </td>
+        <td class="tableheader" colspan="2">
+            <input class="tableheader" type="submit" value=" Save "
+                name="manage_editProperties:method" />
+        </td>
+    </tr>
+    
+    <tr>
+        <td class="tableheader" colspan="2">
+            &nbsp;
+        </td>
+    </tr>
+    
+    <tr tal:condition="here/isManager">
+        <td class="tableheader">Available RRD Variables</td>
+      <td class="tablevalues"
+          tal:define="variables python:here.getRRDVariables(here.sequence)">
+          <tal:block tal:repeat="name variables"
+              tal:replace="structure string: ${name}<br />" />
+          <tal:block tal:condition="not: variables">
+              None
+          </tal:block>
+      </td>
+    </tr>
+
+        <!-- END TABLE CONTENTS -->
+
+        </tal:block>
+        </tal:block>
+        </tal:block>
+        
+</form>
+</tal:block>
+</tal:block>
+</tal:block>

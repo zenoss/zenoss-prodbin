@@ -76,8 +76,7 @@
         showfilterbox python:True;
         batch python:here.ZenTableManager.getBatch(tableName,objects); 
         tabletitle string:Reports;
-        menu_id string:Report_list"
-        tal:condition="objects">
+        menu_id string:Report_list">
         <tal:block metal:use-macro="here/zenuimacros/macros/zentable">
 
         <!--====Optional titlebar slots=============

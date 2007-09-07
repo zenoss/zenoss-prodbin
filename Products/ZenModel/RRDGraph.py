@@ -118,25 +118,19 @@ class RRDGraph(ZenModelRM):
         return crumbspath(self.rrdTemplate(), crumbs, -2)
 
 
-    def graphOpts(self, context, rrdfile, template):
+    def getGraphCmds(self, context, rrdfile, template):
         """build the graph opts for a single rrdfile"""
-        gopts = self.graphsetup()
+        cmds = self.graphsetup()
         if self.custom:
-            gopts = self.buildCustomDS(gopts, rrdfile, template)
+            cmds = self.buildCustomDS(cmds, rrdfile, template)
             res = talesEval("string:"+self.custom, context)
-            gopts.extend(res.split("\n"))
-            if self.hasSummary: gopts = self.addSummary(gopts)
+            cmds.extend(res.split("\n"))
+            if self.hasSummary:
+                 cmds = self.addSummary(cmds)
         else:
-            gopts = self.buildDS(gopts, rrdfile, template, self.summary)
-        gopts = self.thresholds(gopts, context, template)
-        return gopts
-
-    
-    def summaryOpts(self, context, rrdfile, template):
-        """build just the summary of graph data with no graph"""
-        gopts = []
-        self.buildDS(gopts, context, rrdfile, template, self.summary)
-        return gopts
+            cmds = self.buildDS(cmds, rrdfile, template, self.summary)
+        cmds = self.thresholds(cmds, context, template)
+        return cmds
 
 
     def graphsetup(self):

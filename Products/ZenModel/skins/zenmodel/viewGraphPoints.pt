@@ -1,0 +1,85 @@
+<tal:block metal:use-macro="here/templates/macros/page2">
+<tal:block metal:fill-slot="contentPane">
+
+
+<form tal:attributes="method string:post;
+                action here/absolute_url_path;
+                name string:graphPointList">
+<input type="hidden" name="zenScreenName" tal:attributes="value template/id"/>
+
+
+        <tal:block tal:define="tableName string:graphPointList; 
+        objects here/getGraphPoints;
+        batch python:here.ZenTableManager.getBatch(tableName,objects,
+                                                sortedHeader='sequence'); 
+        tabletitle string:Graph Points;
+		menu_id string:GraphPoint_list">
+    <input type='hidden' name='tableName' tal:attributes="value tableName" />
+        <tal:block metal:use-macro="here/zenuimacros/macros/zentable">
+
+        <!--====Optional titlebar slots=============
+
+            <tal:block metal:fill-slot="filterslot">
+            </tal:block>
+
+            <tal:block metal:fill-slot="menuslot">
+            </tal:block>
+
+            ==========================================-->
+
+        <tal:block metal:fill-slot="zentablecontents">
+        <!-- BEGIN TABLE CONTENTS -->
+            
+    <tal:block metal:define-macro="graphpointsbody">
+    <tr>
+        <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
+                    tableName,'sequence','Seq')"/>
+        <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
+                    tableName,'name','Name')"/>
+        <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
+                    tableName,'getDescription','Description')"/>
+        <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
+                    tableName,'linetype','Line Type')"/>
+        <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
+                    tableName,'color','Color')"/>
+    </tr>
+    <tr class="tablevalues" tal:repeat="graphPoint batch">
+        <td>
+            <input tal:condition="here/isManager" 
+                type="text" name="seqmap:list" size="2"
+                />
+            <input tal:condition="here/isManager"
+                type="hidden" name="origseq:list"
+                />
+            <span tal:condition="not:here/isManager" />
+        </td>
+        <td>
+            <input tal:condition="here/isManager" 
+                type="checkbox" name="ids:list" 
+                tal:attributes="value graphPoint/getId"/>
+            <a tal:condition="here/isManager"
+                tal:attributes="href graphPoint/getPrimaryUrlPath" 
+                tal:content="graphPoint/getId">name</a>
+            <tal:block tal:condition="not:here/isManager" 
+			tal:content="graphPoint/getId"/>
+        </td>
+        <td tal:content="graphPoint/linetype"/>
+        <td tal:content="graphPoint/color"/>
+    </tr>
+    <tr>
+        <td colspan="5" class="tableheader">
+            <span metal:use-macro="here/zenTableNavigation/macros/navbody"/>
+        </td>
+    </tr>
+    </tal:block>
+
+        <!-- END TABLE CONTENTS -->
+
+        </tal:block>
+        </tal:block>
+        </tal:block>
+        
+</form>
+
+</tal:block>
+</tal:block>

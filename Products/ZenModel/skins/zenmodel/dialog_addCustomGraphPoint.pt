@@ -1,0 +1,29 @@
+<h2>Add GraphPoint:</h2>
+<span id="errmsg" style="color:red;"></span>
+<br/>
+<p style="text-align:right;">
+<span id="new_id_label">ID:&nbsp;</span>
+<input id="new_id" name="new_id">
+<input type="hidden" name='customGP' value="1" />
+<input type="hidden" id="checkValidIdPath" 
+        tal:attributes="value here/absolute_url_path">
+<br />
+<select name="flavor">
+    <option tal:repeat="opt here/getGraphPointOptions"
+        tal:attributes="value python:opt[0]"
+        tal:content="python: opt[1]"></option>
+</select>
+<br/><br/>
+</p>
+<br>
+<div align="center">
+<input tal:attributes="id string:dialog_submit;
+        type string:submit;
+        value string:OK;
+        onclick string:return $$('dialog').submit_form_and_check('', 'graphPointList')"
+                        name="manage_addCustomGraphPoint:method" />
+<input tal:attributes="id string:dialog_cancel;
+                        type string:button;
+                        value string:Cancel;
+                        onclick string:$$('dialog').hide()" />
+</div>

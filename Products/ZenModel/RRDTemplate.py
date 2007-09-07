@@ -11,6 +11,7 @@
 #
 ###########################################################################
 
+import sys
 from Globals import DTMLFile
 from Globals import InitializeClass
 from AccessControl import ClassSecurityInfo, Permissions
@@ -62,11 +63,15 @@ class RRDTemplate(ZenModelRM, ZenPackable):
         {'id':'description', 'type':'text', 'mode':'w'},
         )
 
+    # The graphs relationship can be removed post 2.1.  It is needed
+    # by the graphDefinitionAndFriends migrate script for 2.1
+
     _relations =  ZenPackable._relations + (
         ("deviceClass", ToOne(ToManyCont,"Products.ZenModel.DeviceClass", "rrdTemplates")),
         ("datasources", ToManyCont(ToOne,"Products.ZenModel.RRDDataSource", "rrdTemplate")),
         ("graphs", ToManyCont(ToOne,"Products.ZenModel.RRDGraph", "rrdTemplate")),
         ("thresholds", ToManyCont(ToOne,"Products.ZenModel.ThresholdClass", "rrdTemplate")),
+        ("graphDefs", ToManyCont(ToOne,"Products.ZenModel.GraphDefinition", "rrdTemplate")),
         )
 
 
@@ -98,14 +103,20 @@ class RRDTemplate(ZenModelRM, ZenPackable):
         """
         return ((context == self or context.isLocalName(self.id))
                 and self.isManager(obj=self))
-
-    
-    def getGraphs(self):
-        """Return our graphs objects in proper order.
-        """
-        graphs = self.graphs()
-        graphs.sort(lambda x, y: cmp(x.sequence, y.sequence))
-        return graphs 
+        
+        
+    def getGraphDefs(self):
+        ''' Return an ordered list of the graph definitions
+        '''
+        def cmpGraphDefs(a, b):
+            try: a = int(a.sequence)
+            except ValueError: a = sys.maxint
+            try: b = int(b.sequence)
+            except ValueError: b = sys.maxint
+            return cmp(a, b)
+        graphDefs =  [g for g in self.graphDefs()]
+        graphDefs.sort(cmpGraphDefs)
+        return graphDefs
 
 
     def getRRDPath(self):
@@ -113,6 +124,12 @@ class RRDTemplate(ZenModelRM, ZenPackable):
         """
         return self.getPrimaryParent().getPrimaryDmdId(subrel="rrdTemplates")
    
+
+    def getGraphableThresholds(self):
+        ''' Return a list of names of graphable thresholds
+        '''
+        return [t for t in self.thresholds()]
+
 
     def getRRDDataPointNames(self):
         """Return the list of all datapoint names.
@@ -244,37 +261,34 @@ class RRDTemplate(ZenModelRM, ZenPackable):
             return self.callZenScreen(REQUEST)
 
 
-    security.declareProtected('Manage DMD', 'manage_addRRDGraph')
-    def manage_addRRDGraph(self, id="", REQUEST=None):
-        """Add an RRDGraph to our RRDTemplate.
+    security.declareProtected('Manage DMD', 'manage_addGraphDefinition')
+    def manage_addGraphDefinition(self, id="", REQUEST=None):
+        """Add a GraphDefinition to our RRDTemplate.
         """
-        from RRDGraph import RRDGraph
-        nextseq = 0
-        graphs = self.getGraphs()
-        if len(graphs) > 0:
-            nextseq = graphs[-1].sequence + 1
+        from GraphDefinition import GraphDefinition
+        graphs = self.getGraphDefs()
         graph = None
         if id:
-            graph = RRDGraph(id)
-            graph.sequence = nextseq
-            self.graphs._setObject(graph.id, graph)
+            graph = GraphDefinition(id)
+            graph.sequence = len(self.graphDefs())
+            self.graphDefs._setObject(graph.id, graph)
         if REQUEST:
             if graph:
                 REQUEST['message'] = 'Graph %s added' % graph.id
-                url = '%s/graphs/%s' % (self.getPrimaryUrlPath(), graph.id)
+                url = '%s/graphDefs/%s' % (self.getPrimaryUrlPath(), graph.id)
                 REQUEST['RESPONSE'].redirect(url)
             else:
                 return self.callZenScreen(REQUEST)
         return graph
         
 
-    security.declareProtected('Manage DMD', 'manage_deleteRRDGraphs')
-    def manage_deleteRRDGraphs(self, ids=(), REQUEST=None):
-        """Remove an RRDGraph from this RRDTemplate.
+    security.declareProtected('Manage DMD', 'manage_deleteGraphDefinitions')
+    def manage_deleteGraphDefinitions(self, ids=(), REQUEST=None):
+        """Remove GraphDefinitions from this RRDTemplate.
         """
         for id in ids:
-            self.graphs._delObject(id)
-            self.manage_resequenceRRDGraphs()
+            self.graphDefs._delObject(id)
+            self.manage_resequenceGraphDefs()
         if REQUEST:
             if len(ids) == 1:
                 REQUEST['message'] = 'Graph %s deleted.' % ids[0]
@@ -283,12 +297,13 @@ class RRDTemplate(ZenModelRM, ZenPackable):
             return self.callZenScreen(REQUEST)
 
 
-    security.declareProtected('Manage DMD', 'manage_resequenceRRDGraphs')
-    def manage_resequenceRRDGraphs(self, seqmap=(), origseq=(), REQUEST=None):
-        """Reorder the sequecne of the RRDGraphs.
+    security.declareProtected('Manage DMD', 'manage_resequenceGraphDefs')
+    def manage_resequenceGraphDefs(self, seqmap=(), origseq=(), REQUEST=None):
+        """Reorder the sequence of the GraphDefinitions.
         """
         from Products.ZenUtils.Utils import resequence
-        return resequence(self, self.getGraphs(), seqmap, origseq, REQUEST)
+        return resequence(self, self.getGraphDefs(), 
+                            seqmap, origseq, REQUEST)
 
 
     def getDataSourceClasses(self):

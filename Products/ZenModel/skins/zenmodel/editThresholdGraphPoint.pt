@@ -1,0 +1,74 @@
+<tal:block metal:use-macro="here/templates/macros/page2">
+<tal:block metal:fill-slot="contentPane">
+
+<form method=post 
+    tal:attributes="action string:${here/absolute_url_path}">
+
+        <tal:block tal:define="message request/message | string:State at time:; 
+            tabletitle string:${message} ${here/getNowString}">
+        <tal:block metal:use-macro="here/zenuimacros/macros/zentable">
+
+
+        <tal:block metal:fill-slot="zentablecontents">
+        <!-- BEGIN TABLE CONTENTS -->
+            
+    <tr>
+        <td class="tableheader">Name</td>
+        <td class="tablevalues" tal:condition="here/isManager">
+            <input class="tablevalues" type="text" name="newId" size="40"
+                tal:attributes="value here/id" />
+        </td>
+        <td class="tablevalues" tal:condition="not:here/isManager"
+            tal:content="here/id"/>
+    </tr>
+    <tr>
+        <td class="tableheader">Threshold</td>
+        <td class="tablevalues" tal:content="here/threshId"/>
+    </tr>
+    <tr>
+        <td class="tableheader">Draw</td>
+        <td class="tablevalues" tal:condition="here/isManager">
+        <select class="tablevalues" name="graph:boolean">
+            <option tal:repeat="e python:(True,False)" tal:content="e"
+            tal:attributes="value e; selected python:e==here.draw"/>
+        </select>
+        </td>
+      <td class="tablevalues" tal:condition="not:here/isManager" 
+            tal:content="here/Draw"/>
+    </tr>
+    <tr>
+        <td class="tableheader">Line Width</td>
+        <td class="tablevalues" tal:condition="here/isManager">
+        <input class="tablevalues" type="text" name="lineWidth" size="8"
+            tal:attributes="value here/lineWidth" />
+        </td>
+        <td class="tablevalues" tal:condition="not:here/isManager"
+            tal:content="here/lineWidth"/>
+    </tr>
+    <tr>
+        <td class="tableheader">Color</td>
+        <td class="tablevalues" tal:condition="here/isManager">
+        <input class="tablevalues" type="text" name="color" size="40"
+            tal:attributes="value here/color" />
+        </td>
+        <td class="tablevalues" tal:condition="not:here/isManager"
+            tal:content="here/color"/>
+    </tr>
+    <tr>
+        <td class=tableheader align="left" >
+        </td>
+        <td class="tableheader" colspan="2">
+            <input class="tableheader" type="submit" value=" Save "
+                name="zmanage_editProperties:method" />
+        </td>
+    </tr>
+
+        <!-- END TABLE CONTENTS -->
+
+        </tal:block>
+        </tal:block>
+        </tal:block>
+        
+</form>
+</tal:block>
+</tal:block>

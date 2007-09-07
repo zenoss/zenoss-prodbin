@@ -60,32 +60,30 @@ class RRDDataPoint(ZenModelRM, ZenPackable):
     meta_type = 'RRDDataPoint'
   
     rrdtypes = ('COUNTER', 'GAUGE', 'DERIVE', 'ABSOLUTE')
-    linetypes = ('', 'AREA', 'LINE')
     
     createCmd = ""
     rrdtype = 'GAUGE'
     isrow = True
-    rpn = ""
     rrdmin = None
     rrdmax = None
+    
+    ## These attributes can be removed post 2.1
+    ## They should remain in 2.1 so the migrate script works correctly
+    linetypes = ('', 'AREA', 'LINE')
+    rpn = ""
     color = ""
     linetype = ''
     limit = -1
     format = '%5.2lf%s'
+    
 
     _properties = (
         {'id':'rrdtype', 'type':'selection',
         'select_variable' : 'rrdtypes', 'mode':'w'},
         {'id':'createCmd', 'type':'text', 'mode':'w'},
         {'id':'isrow', 'type':'boolean', 'mode':'w'},
-        {'id':'rpn', 'type':'string', 'mode':'w'},
         {'id':'rrdmin', 'type':'string', 'mode':'w'},
         {'id':'rrdmax', 'type':'string', 'mode':'w'},
-        {'id':'limit', 'type':'long', 'mode':'w'},
-        {'id':'linetype', 'type':'selection', 
-        'select_variable' : 'linetypes', 'mode':'w'},
-        {'id':'color', 'type':'string', 'mode':'w'},
-        {'id':'format', 'type':'string', 'mode':'w'},
         )
 
 
@@ -120,100 +118,6 @@ class RRDDataPoint(ZenModelRM, ZenPackable):
         return crumbspath(self.rrdTemplate(), crumbs, -3)
 
 
-    def graphOpts(self, file, defaultcolor, defaulttype, summary, multiid=-1):
-        """build graph options for this datasource"""
-        graph = []
-        src = "ds%d" % self.getIndex()
-        dest = src
-        if multiid != -1: dest += str(multiid)
-        file = os.path.join(file, self.name()) + ".rrd"
-        graph.append("DEF:%s=%s:%s:AVERAGE" % (dest, file, 'ds0'))
-        src = dest
-
-        if self.rpn: 
-            dest = "rpn%d" % self.getIndex()
-            if multiid != -1: dest += str(multiid)
-            graph.append("CDEF:%s=%s,%s" % (dest, src, self.rpn))
-            src = dest
-
-        if self.limit > 0:
-            dest = "limit%d" % self.getIndex()
-            if multiid != -1: dest += str(multiid)
-            graph.append("CDEF:%s=%s,%s,GT,UNKN,%s,IF"%
-                        (dest,src,self.limit,src))
-            src = dest
-
-        color = defaultcolor
-        if self.color:
-            color = self.color
-        src += '#%s' % color.lstrip('#')
-        
-        if not self.linetype: type = defaulttype
-        else: type = self.linetype
-
-        if multiid != -1:
-            fname = os.path.basename(file)
-            if fname.find('.rrd') > -1: fname = fname[:-4]
-            name = "%s-%s" % (self.id, fname)
-        else: name = self.id
-
-        name += " " * (14-len(name))
-
-        graph.append(":".join((type, src, name,)))
-
-        if summary:
-            src,color=src.split('#')
-            graph.extend(self._summary(src, self.format, ongraph=1))
-        return graph
-
-
-   
-    def summary(self, file, format="%5.2lf%s"):
-        """return only arguments to generate summary"""
-        if self.getIndex() == -1: 
-            raise "DataPointError", "Not part of a TargetType"
-        graph = []
-        src = "ds%d" % self.getIndex()
-        dest = src
-        graph.append("DEF:%s=%s:%s:AVERAGE" % (dest, file, src))
-        src = dest
-
-        if self.rpn: 
-            dest = "rpn%d" % self.getIndex()
-            graph.append("CDEF:%s=%s,%s" % (dest, src, self.rpn))
-            src = dest
-
-        graph.extend(self._summary(src, self.format, ongraph=1))
-        return graph
-
-    
-    def _summary(self, src, format="%5.2lf%s", ongraph=1):
-        """Add the standard summary opts to a graph"""
-        gopts = []
-        funcs = ("LAST", "AVERAGE", "MAX")
-        tags = ("cur\:", "avg\:", "max\:")
-        for i in range(len(funcs)):
-            label = "%s%s" % (tags[i], format)
-            gopts.append(self.summElement(src, funcs[i], label, ongraph))
-        gopts[-1] += "\j"
-        return gopts
-
-    
-    def summElement(self, src, function, format="%5.2lf%s", ongraph=1):
-        """Make a single summary element"""
-        if ongraph: opt = "GPRINT"
-        else: opt = "PRINT"
-        return ":".join((opt, src, function, format))
-        
-
-    def setIndex(self, index):
-        self._v_index = index
-
-
-    def getIndex(self):
-        if not hasattr(self, '_v_index'):
-            self._v_index = -1
-        return self._v_index
 
     security.declareProtected('View', 'getPrimaryUrlPath')
     def getPrimaryUrlPath(self):

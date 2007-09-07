@@ -19,7 +19,8 @@ from Products.ZenUtils.ZenTales import talesCompile, getEngine
 
 
 def manage_addGraphReportElement(context, id, REQUEST = None):
-    """make a RRDGraph"""
+    """make a GraphReportElement
+    """
     element = GraphReportElement(id)
     context._setObject(element.id, element)
     if REQUEST is not None:
@@ -70,40 +71,30 @@ class GraphReportElement(ZenModelRM):
          },
         )
 
-    security = ClassSecurityInfo()
-    
-    
-    # def getDesc(self):
-    #     return '%s    %s' % (self.graphId, self.getComponentDesc())
-        
-    
-    # def getComponentDesc(self):
-    #     if isinstance(self.componentPath, tuple):
-    #         self.componentPath = '/'.join(self.componentPath)
-    #     
-    #     return self.componentPath.split('/')[-1]
-    #     
-    #     comp = self.getComponent()
-    #     if comp:
-    #         parts = [''] + list(comp.getPrimaryPath()[3:]) \
-    #                         + list(self.componentPath)
-    #         desc = '/'.join(parts)
-    #     else:
-    #         desc = '%s: missing' % self.deviceId
-    #     return desc
-        
+    security = ClassSecurityInfo()        
         
     def talesEval(self, text):
         dev = self.getDevice()
+        if not dev:
+            return 'Device %s could not be found' % self.deviceId
         comp = self.getComponent()
-        graph = self.getGraph()
+        if not comp:
+            return 'Component %s could not be found for %s' % (
+                        self.componentPath, self.deviceId)
+        graph = self.getGraphDef()
+        if not graph:
+            return 'Graph %s could not be found for %s' % (
+                        self.graphId, self.deviceId)
         compiled = talesCompile('string:' + text)
         e = {'dev':dev, 'device': dev, 
                 'comp': comp, 'component':comp,
                 'graph': graph}
-        result = compiled(getEngine().getContext(e))
-        if isinstance(result, Exception):
-            result = 'Error: %s' % str(result)
+        try:
+            result = compiled(getEngine().getContext(e))
+            if isinstance(result, Exception):
+                result = 'Error: %s' % str(result)
+        except Exception, e:
+            result = 'Error: %s' %  str(e)
         return result
         
     
@@ -130,15 +121,18 @@ class GraphReportElement(ZenModelRM):
         return component
 
 
-    def getGraph(self):
-        graph = self.getComponent().getGraph(self.graphId)
-        return graph
+    def getGraphDef(self):
+        graphDef = self.getComponent().getGraphDef(self.graphId)
+        return graphDef
 
 
     def getGraphUrl(self, drange=None):
         component = self.getComponent()
-        graph = component.getGraph(self.graphId)
-        return component.getRRDGraphUrl(graph, drange, graph.rrdTemplate())
+        graph = component.getGraphDef(self.graphId)
+        url = ''
+        if graph:
+            url = component.getGraphDefUrl(graph, drange, graph.rrdTemplate())
+        return url
 
 
 InitializeClass(GraphReportElement)

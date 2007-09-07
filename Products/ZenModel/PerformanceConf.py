@@ -183,7 +183,7 @@ class PerformanceConf(Monitor, StatusColor):
                             view, drange):
         """set the full path of the target and send to view"""
         targetpath = performancePath(targetpath)
-        gopts =  view.graphOpts(context, targetpath, targettype)
+        gopts =  view.getGraphCmds(context, targetpath)
         ngopts = []
         width = 0
         for o in gopts: 

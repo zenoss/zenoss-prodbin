@@ -433,7 +433,7 @@ class DeviceClass(DeviceOrganizer, ZenPackable):
         
     security.declareProtected('View', 'jsonGetGraphIds')
     def jsonGetGraphIds(self, deviceId, componentPath):
-        ''' Get a list of the graphs available for the given device
+        ''' Get a list of the graph defs available for the given device
         and component.
         '''
         graphIds = []
@@ -449,7 +449,7 @@ class DeviceClass(DeviceOrganizer, ZenPackable):
                         break
             else:
                 for t in thing.getRRDTemplates():
-                    graphIds += [g.id for g in t.getGraphs()]
+                    graphIds += [g.id for g in t.getGraphDefs()]
         return simplejson.dumps(graphIds)
 
 

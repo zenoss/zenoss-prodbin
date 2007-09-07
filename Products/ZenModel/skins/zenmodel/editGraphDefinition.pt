@@ -1,0 +1,198 @@
+<tal:block metal:use-macro="here/templates/macros/page2">
+<tal:block metal:fill-slot="contentPane">
+
+
+<form tal:attributes="method string:post;
+                action here/absolute_url_path;
+                name string:graphPointList">
+<input type="hidden" name="zenScreenName" tal:attributes="value template/id"/>
+
+
+        <tal:block tal:define="tableName string:graphPointList; 
+        objects here/getGraphPoints;
+        batch python:here.ZenTableManager.getBatch(tableName,objects,
+                                                sortedHeader='sequence'); 
+        tabletitle string:Graph Points;
+		menu_id string:GraphPoint_list">
+    <input type='hidden' name='tableName' tal:attributes="value tableName" />
+        <tal:block metal:use-macro="here/zenuimacros/macros/zentable">
+
+        <!--====Optional titlebar slots=============
+
+            <tal:block metal:fill-slot="filterslot">
+            </tal:block>
+
+            <tal:block metal:fill-slot="menuslot">
+            </tal:block>
+
+            ==========================================-->
+
+        <tal:block metal:fill-slot="zentablecontents">
+        <!-- BEGIN TABLE CONTENTS -->
+            
+    <tal:block metal:define-macro="graphpointsbody">
+    <tr>
+        <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
+                    tableName,'sequence','Seq')"/>
+        <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
+                    tableName,'name','Name')"/>
+        <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
+                    tableName,'getType','Type')"/>
+        <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
+                    tableName,'getDescription','Description')"/>
+    </tr>
+    <tr class="tablevalues" tal:repeat="graphPoint batch">
+        <td>
+            <input tal:condition="here/isManager" 
+                type="text" name="seqmap:list" size="2"
+                tal:attributes="value graphPoint/sequence"
+                />
+            <input tal:condition="here/isManager"
+                type="hidden" name="origseq:list"
+                tal:attributes="value graphPoint/sequence"
+                />
+            <span tal:condition="not:here/isManager" />
+        </td>
+        <td>
+            <input tal:condition="here/isManager" 
+                type="checkbox" name="ids:list" 
+                tal:attributes="value graphPoint/getId"/>
+            <a tal:condition="here/isManager"
+                tal:attributes="href graphPoint/getPrimaryUrlPath" 
+                tal:content="graphPoint/getId">name</a>
+            <tal:block tal:condition="not:here/isManager" 
+			tal:content="graphPoint/getId"/>
+        </td>
+        <td tal:content="graphPoint/getType" />
+        <td tal:content="graphPoint/getDescription" />
+    </tr>
+    </tal:block>
+
+        <!-- END TABLE CONTENTS -->
+
+        </tal:block>
+        </tal:block>
+        </tal:block>
+        
+</form>
+<br />
+
+<form method=post 
+    tal:attributes="action string:${here/absolute_url_path}">
+    <input type="hidden" name="zenScreenName" 
+        tal:attributes="value template/id" /> 
+
+
+        <tal:block tal:define="message request/message | string:State at time:; 
+        tabletitle string:${message} ${here/getNowString}">
+        <tal:block metal:use-macro="here/zenuimacros/macros/zentable">
+
+        <tal:block metal:fill-slot="zentablecontents">
+        <!-- BEGIN TABLE CONTENTS -->
+            
+    <tr>
+        <td class="tableheader">Name</td>
+        <td class="tablevalues" tal:condition="here/isManager">
+            <input class="tablevalues" type="text" name="newId" size="40"
+                tal:attributes="value here/id" />
+        </td>
+        <td class="tablevalues" tal:condition="not:here/isManager"
+            tal:content="here/id"/>
+    </tr>
+    <tr>
+        <td class="tableheader">Height</td>
+        <td class="tablevalues" tal:condition="here/isManager">
+        <input class="tablevalues" type="text" name="height:int" size="30"
+            tal:attributes="value here/height" />
+        </td>
+      <td class="tablevalues" tal:condition="not:here/isManager" 
+            tal:content="here/height"/>
+    </tr>
+    <tr>
+        <td class="tableheader">Width</td>
+        <td class="tablevalues" tal:condition="here/isManager">
+        <input class="tablevalues" type="text" name="width:int" size="30"
+            tal:attributes="value here/width" />
+        </td>
+      <td class="tablevalues" tal:condition="not:here/isManager" 
+            tal:content="here/width"/>
+    </tr>
+    <tr>
+        <td class="tableheader">Units</td>
+        <td class="tablevalues" tal:condition="here/isManager">
+        <input class="tablevalues" type="text" name="units" size="30"
+            tal:attributes="value here/units" />
+        </td>
+    </tr>
+    <tr>
+        <td class="tableheader">Log</td>
+        <td class="tablevalues" tal:condition="here/isManager">
+        <select class="tablevalues" name="log:boolean">
+            <option tal:repeat="e python:(True,False)" tal:content="e"
+            tal:attributes="value e; selected python:e==here.log"/>
+        </select>
+        </td>
+      <td class="tablevalues" tal:condition="not:here/isManager" 
+            tal:content="here/log"/>
+    </tr>
+    <tr>
+        <td class="tableheader">Base 1024</td>
+        <td class="tablevalues" tal:condition="here/isManager">
+        <select class="tablevalues" name="base:boolean">
+            <option tal:repeat="e python:(True,False)" tal:content="e"
+            tal:attributes="value e; selected python:e==here.base"/>
+        </select>
+        </td>
+        <td class="tablevalues" tal:condition="not:here/isManager" 
+            tal:content="here/base"/>
+    </tr>
+    <tr>
+        <td class="tableheader">Min Y</td>
+        <td class="tablevalues" tal:condition="here/isManager">
+        <input class="tablevalues" type="text" name="miny:int" size="30"
+            tal:attributes="value here/miny" />
+        </td>
+      <td class="tablevalues" tal:condition="not:here/isManager" 
+            tal:content="here/miny"/>
+    </tr>
+    <tr>
+        <td class="tableheader">Max Y</td>
+        <td class="tablevalues" tal:condition="here/isManager">
+        <input class="tablevalues" type="text" name="maxy:int" size="30"
+            tal:attributes="value here/maxy" />
+        </td>
+      <td class="tablevalues" tal:condition="not:here/isManager" 
+            tal:content="here/maxy"/>
+    </tr>
+    <tr>
+        <td class="tableheader">Has Summary</td>
+        <td class="tablevalues" tal:condition="here/isManager">
+        <select class="tablevalues" name="hasSummary:boolean">
+            <option tal:repeat="e python:(True,False)" tal:content="e"
+            tal:attributes="value e; selected python:e==here.hasSummary"/>
+        </select>
+        </td>
+      <td class="tablevalues" tal:condition="not:here/isManager" 
+            tal:content="here/hasSummary"/>
+    </tr>
+    <tr>
+        <td class="tableheader">
+        </td>
+        <td class="tableheader" colspan="3">
+            <input class="tableheader" type="submit" value=" Save "
+                name="zmanage_editProperties:method" />
+        </td>
+    </tr>
+
+        <!-- END TABLE CONTENTS -->
+
+        </tal:block>
+        </tal:block>
+        </tal:block>
+        
+
+</form>
+
+
+</tal:block>
+</tal:block>

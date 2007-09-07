@@ -37,7 +37,7 @@ ZenPackItems = dict(
     )
 
 class MenuRelations(Migrate.Step):
-    version = Migrate.Version(2, 1, 0)
+    version = Migrate.Version(2, 0, 0)
 
     def cutover(self, dmd):
         dmd.buildRelations()
@@ -383,18 +383,6 @@ class MenuRelations(Migrate.Step):
                    'ordering': 90.0,
                    'permissions': ('Change Device',)},
                 {  'action': "javascript:submitFormToMethod('graphList', 'manage_resequenceRRDGraphs')",
-                   'description': 'Re-sequence Graphs',
-                   'id': 'resequenceGraphs',
-                   'ordering': 80.0,
-                   'permissions': ('Change Device',)}],
-'GraphReportElement_list': [ 
-                {  'action': 'dialog_deleteGraphReportElement',
-                   'description': 'Delete Graph...',
-                   'id': 'deleteGraph',
-                   'isdialog': True,
-                   'ordering': 90.0,
-                   'permissions': ('Change Device',)},
-                {  'action': "javascript:submitFormToMethod('graphReportElementListform', 'manage_resequenceGraphReportElements')",
                    'description': 'Re-sequence Graphs',
                    'id': 'resequenceGraphs',
                    'ordering': 80.0,
@@ -988,23 +976,16 @@ class MenuRelations(Migrate.Step):
                     'isdialog': True,
                     'ordering': 90.0,
                     'permissions': ('Change Device',)},
-                 {  'action': 'dialog_addGraphReport',
-                    'allowed_classes': ('ReportClass',),
-                    'description': 'Add Graph Report...',
-                    'id': 'addGraphReport',
-                    'isdialog': True,
-                    'ordering': 89.0,
-                    'permissions': ('Change Device',)},
                  {  'action': 'dialog_deleteReports',
                     'allowed_classes': ('ReportClass',),
-                    'description': 'Delete Reports...',
+                    'description': 'Delete Device Reports...',
                     'id': 'deleteDeviceReports',
                     'isdialog': True,
                     'ordering': 80.0,
                     'permissions': ('Change Device',)},
                  {  'action': 'dialog_moveReports',
                     'allowed_classes': ('ReportClass',),
-                    'description': 'Move Reports...',
+                    'description': 'Move Device Reports...',
                     'id': 'moveDeviceReports',
                     'isdialog': True,
                     'ordering': 70.0,

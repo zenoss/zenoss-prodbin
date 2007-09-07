@@ -1,0 +1,73 @@
+<tal:block metal:use-macro="here/templates/macros/page2">
+<tal:block metal:fill-slot="contentPane">
+
+
+
+<form method=post 
+    tal:attributes="action string:${here/absolute_url_path}">
+    <input type="hidden" name="zenScreenName" 
+        tal:attributes="value template/id" /> 
+
+
+        <tal:block tal:define="message request/message | string:State at time:; 
+        tabletitle string:${message} ${here/getNowString}">
+        <tal:block metal:use-macro="here/zenuimacros/macros/zentable">
+
+        <tal:block metal:fill-slot="zentablecontents">
+        <!-- BEGIN TABLE CONTENTS -->
+            
+    <tr>
+        <td class="tableheader">Name</td>
+        <td class="tablevalues" tal:content="here/id"/>
+    </tr>
+    <tr>
+        <td class="tableheader">Custom</td>
+        <td class="tablevalues" tal:condition="here/isManager">
+        <textarea class="tablevalues" rows="24" cols="60"
+            name="custom:text" 
+            tal:content="here/custom">
+        </textarea>
+        </td>
+      <td class="tablevalues" colspan="3" 
+        tal:condition="not:here/isManager" 
+        tal:content="here/custom"/>
+    </tr>
+    <tr>
+        <td class="tableheader">
+        </td>
+        <td class="tableheader" colspan="3">
+            <input class="tableheader" type="submit" value=" Save "
+                name="zmanage_editProperties:method" />
+        </td>
+    </tr>
+
+    <tr>
+        <td class="tableheader" colspan="2">
+            &nbsp;
+        </td>
+    </tr>
+    
+    <tr tal:condition="here/isManager">
+        <td class="tableheader">Available RRD Variables</td>
+      <td class="tablevalues"
+          tal:define="variables python:here.getRRDVariables()">
+          <tal:block tal:repeat="name variables"
+              tal:replace="structure string: ${name}<br />" />
+          <tal:block tal:condition="not: variables">
+              None
+          </tal:block>
+      </td>
+    </tr>
+
+        <!-- END TABLE CONTENTS -->
+
+        </tal:block>
+        </tal:block>
+        </tal:block>
+        
+
+</form>
+
+
+</tal:block>
+</tal:block>

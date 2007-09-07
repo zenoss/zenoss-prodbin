@@ -95,3 +95,5 @@ import zIcon
 import zenmanagerrole
 import zenpackmenus
 import adminobjectmenus
+import graphDefinitionsAndFriends
+import graphReports

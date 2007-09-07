@@ -47,7 +47,8 @@ class ReportClass(Organizer, ZenPackable):
     dmdRootName = "Reports"
     portal_type = meta_type = "ReportClass"
 
-    sub_meta_types = ("ReportClass", "Report", 'DeviceReport', 'GraphReport')
+    sub_meta_types = ("ReportClass", "Report", 'DeviceReport', 'GraphReport',
+                        'FancyReport')
 
     _relations = Organizer._relations + ZenPackable._relations
     
@@ -81,7 +82,8 @@ class ReportClass(Organizer, ZenPackable):
     def reports(self):
         """Return list of report instances.
         """
-        return [ r for r in self.objectValues(spec=('Report','DeviceReport','GraphReport')) ]
+        return [ r for r in self.objectValues(
+                 spec=('Report','DeviceReport','GraphReport','FancyReport')) ]
 
         
     def countReports(self):
@@ -115,6 +117,19 @@ class ReportClass(Organizer, ZenPackable):
             self._setObject(id, gr)
         if REQUEST:
             REQUEST['message'] = "Graph report created"
+            return self.callZenScreen(REQUEST)
+
+
+    security.declareProtected('Manage DMD', 'manage_addFancyReport')
+    def manage_addFancyReport(self, id, REQUEST=None):
+        """Add an fancy report to this object.
+        """
+        if id:
+            from Products.ZenModel.FancyReport import FancyReport
+            fr = FancyReport(id)
+            self._setObject(id, fr)
+        if REQUEST:
+            REQUEST['message'] = "Fancy report created"
             return self.callZenScreen(REQUEST)
 
     

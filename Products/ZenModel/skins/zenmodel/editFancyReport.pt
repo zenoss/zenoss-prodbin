@@ -1,0 +1,159 @@
+<tal:block metal:use-macro="here/templates/macros/page2">
+<tal:block metal:fill-slot="contentPane">
+
+<form method=post 
+    tal:attributes="action string:${here/absolute_url_path}">
+    <input type="hidden" name="zenScreenName" 
+        tal:attributes="value template/id" /> 
+
+
+        <tal:block tal:define="message request/message | string:State at time:; 
+        tabletitle string:${message} ${here/getNowString}">
+        <tal:block metal:use-macro="here/zenuimacros/macros/zentable">
+
+        <tal:block metal:fill-slot="zentablecontents">
+        <!-- BEGIN TABLE CONTENTS -->
+            
+    <tr>
+        <td class="tableheader">Name</td>
+        <td class="tablevalues" tal:condition="here/isManager">
+            <input class="tablevalues" type="text" name="newId" size="40"
+                tal:attributes="value here/id" />
+        </td>
+        <td class="tablevalues" tal:condition="not:here/isManager"
+            tal:content="here/id"/>
+    </tr>
+    <tr>
+        <td class="tableheader">
+        </td>
+        <td class="tableheader" colspan="3">
+            <input class="tableheader" type="submit" value=" Save "
+                name="zmanage_editProperties:method" />
+        </td>
+    </tr>
+
+        <!-- END TABLE CONTENTS -->
+
+        </tal:block>
+        </tal:block>
+        </tal:block>
+        
+
+</form>
+<br />
+
+<form method=post 
+    tal:attributes="action string:${here/absolute_url_path}">
+    <input type="hidden" name="zenScreenName" 
+        tal:attributes="value template/id" /> 
+
+
+        <tal:block tal:define="
+            tabletitle string:Add New Group;
+		    menu_id string:AddGraphGroup;
+		    collections python:here.getCollections();
+		    graphDefs python:here.getGraphDefs();
+		    ">
+        <tal:block metal:use-macro="here/zenuimacros/macros/zentable">
+        <tal:block metal:fill-slot="zentablecontents">
+            
+    <tr>
+        <td class="tableheader">Collections</td>
+        <td class="tableheader">Graph Definitions</td>
+    </tr>
+    <tr>
+        <td class="tablevalues">
+            <select name="collectionId">
+                <option tal:repeat="col collections"
+                    tal:attributes="value col/id"
+                    tal:content="col/id"></option>
+            </select>
+        </td>
+        <td class="tablevalues">
+            <select name="graphDefId">
+                <option tal:repeat="gdef graphDefs"
+                    tal:attributes="value gdef/id"
+                    tal:content="gdef/id"></option>
+            </select>
+        </td>
+            
+    <tr>
+        <td class="tableheader">
+        </td>
+        <td class="tableheader" colspan="3">
+            <input class="tableheader" type="submit" value=" Save "
+                name="zmanage_editProperties:method" />
+        </td>
+    </tr>
+
+        <!-- END TABLE CONTENTS -->
+
+        </tal:block>
+        </tal:block>
+        </tal:block>
+        
+
+</form>
+
+
+<form tal:attributes="method string:post;
+                action here/absolute_url_path;
+                name string:graphGroupList">
+<input type="hidden" name="zenScreenName" tal:attributes="value template/id"/>
+
+        <tal:block tal:define="tableName string:graphGroupList; 
+        objects here/getGraphGroups;
+        batch python:here.ZenTableManager.getBatch(tableName,objects,
+                                                sortedHeader='sequence'); 
+        tabletitle string:Graph Groups;
+		menu_id string:GraphGroup_list">
+    <input type='hidden' name='tableName' tal:attributes="value tableName" />
+        <tal:block metal:use-macro="here/zenuimacros/macros/zentable">
+
+        <tal:block metal:fill-slot="zentablecontents">
+            
+    <tr>
+        <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
+                    tableName,'sequence','Seq')"/>
+        <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
+                    tableName,'name','Name')"/>
+        <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
+                    tableName,'getCollectionName','Collection')"/>
+        <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
+                    tableName,'getGraphDefName','Graph Definition')"/>
+    </tr>
+    <tr class="tablevalues" tal:repeat="graphPoint batch">
+        <td>
+            <input tal:condition="here/isManager" 
+                type="text" name="seqmap:list" size="2"
+                tal:attributes="value graphPoint/sequence"
+                />
+            <input tal:condition="here/isManager"
+                type="hidden" name="origseq:list"
+                tal:attributes="value graphPoint/sequence"
+                />
+            <span tal:condition="not:here/isManager" />
+        </td>
+        <td>
+            <input tal:condition="here/isManager" 
+                type="checkbox" name="ids:list" 
+                tal:attributes="value graphPoint/getId"/>
+            <a tal:condition="here/isManager"
+                tal:attributes="href graphPoint/getPrimaryUrlPath" 
+                tal:content="graphPoint/getId">name</a>
+            <tal:block tal:condition="not:here/isManager" 
+			tal:content="graphPoint/getId"/>
+        </td>
+        <td tal:content="graphPoint/getType" />
+        <td tal:content="graphPoint/getDescription" />
+    </tr>
+
+        </tal:block>
+        </tal:block>
+        </tal:block>
+        
+</form>
+
+
+</tal:block>
+</tal:block>

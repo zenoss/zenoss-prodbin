@@ -101,7 +101,7 @@ class GraphReport(ZenModelRM):
         thing = self.getThing(deviceId, componentPath)
         if thing:
             for graphId in graphIds:
-                graph = thing.getGraph(graphId)
+                graph = thing.getGraphDef(graphId)
                 if graph:            
                     newId = GetId(deviceId, componentPath, graphId)
                     ge = GraphReportElement(newId)

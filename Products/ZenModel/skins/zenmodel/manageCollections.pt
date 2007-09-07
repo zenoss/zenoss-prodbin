@@ -1,0 +1,52 @@
+<tal:block metal:use-macro="here/templates/macros/page2">
+<tal:block metal:fill-slot="contentPane"
+    tal:define="editable here/isManager">
+
+
+<form method="POST" tal:attributes="
+                action here/absolute_url_path;
+                name string:collectionList">
+<input type="hidden" name="zenScreenName" tal:attributes="value template/id"/>
+
+        <tal:block tal:define="tableName string:collectionList; 
+        objects here/getCollections;
+        batch python:here.ZenTableManager.getBatch(tableName,objects,
+                                                sortedHeader='getId'); 
+        tabletitle string:Collections;
+		menu_id string:collectionList">
+    <input type='hidden' name='tableName' tal:attributes="value tableName" />
+        <tal:block metal:use-macro="here/zenuimacros/macros/zentable">
+        <tal:block metal:fill-slot="zentablecontents">
+            
+    <tr>
+        <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
+                    tableName,'getId','Name')"/>
+        <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
+                    tableName,'getNumItems','Number of Objects')"/>
+    </tr>
+    <tr class="tablevalues" tal:repeat="col batch">
+        <td valign="top">
+            <input tal:condition="editable" 
+                type="checkbox" name="ids:list" 
+                tal:attributes="value col/getId"/>
+            <a tal:condition="editable"
+                tal:attributes="href col/getPrimaryUrlPath" 
+                tal:content="col/getId">name</a>
+            <tal:block tal:condition="not:editable" tal:content="col/getId"/>
+        </td>
+        <td valign="top" tal:content="col/getNumItems"/>
+    </tr>
+    <tr>
+        <td colspan="6" class="tableheader">
+            <span metal:use-macro="here/zenTableNavigation/macros/navbody"/>
+        </td>
+    </tr>
+
+        </tal:block>
+        </tal:block>
+        </tal:block>
+        
+</form>
+
+</tal:block>
+</tal:block>

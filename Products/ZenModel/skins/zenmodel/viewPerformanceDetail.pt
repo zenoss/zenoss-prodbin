@@ -38,7 +38,7 @@ var ZenGraphs = new Array();
 
 <!-- BEGIN TABLE CONTENTS -->
 
-    <tal:block tal:repeat="graph python:here.getDefaultGraphs(drange=drange)">
+    <tal:block tal:repeat="graph python:here.getDefaultGraphDefs(drange=drange)">
     <tal:block tal:define="graphid string:graph_${repeat/graph/index}">
         <tr><td class="tableheader" tal:content="graph/title">title</td></tr>
         <tr><td class="tablevalues">

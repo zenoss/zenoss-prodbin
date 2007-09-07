@@ -198,18 +198,19 @@
         
 
 </form>
-<br/>
+<br />
+
 <form tal:attributes="method string:post;
                 action here/absolute_url_path;
                 name string:graphList">
 <input type="hidden" name="zenScreenName" tal:attributes="value template/id"/>
 
 
-        <tal:block tal:define="tableName string:rrdgraphlist; 
-        objects here/getGraphs;
+        <tal:block tal:define="tableName string:graphdeflist; 
+        objects here/getGraphDefs;
         batch python:here.ZenTableManager.getBatch(tableName,objects,
                                                 sortedHeader='sequence'); 
-        tabletitle string:Graphs;
+        tabletitle string:Graph Definitions;
 		menu_id string:Graph_list">
     <input type='hidden' name='tableName' tal:attributes="value tableName" />
         <tal:block metal:use-macro="here/zenuimacros/macros/zentable">
@@ -227,14 +228,14 @@
         <tal:block metal:fill-slot="zentablecontents">
         <!-- BEGIN TABLE CONTENTS -->
             
-    <tal:block metal:define-macro="graphbody">
+    <tal:block metal:define-macro="graphdefbody">
     <tr>
         <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
                     tableName,'sequence','Seq')"/>
         <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
                     tableName,'getId','Name')"/>
         <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
-                    tableName,'dsnames','Data Sources')"/>
+                    tableName,'getGraphPointsNames','Graph Points')"/>
         <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
                     tableName,'units','Units')"/>
         <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
@@ -243,16 +244,18 @@
                     tableName,'width','Width')"/>
     </tr>
     <tr class="tablevalues" tal:repeat="graph batch">
-        <td>
+        <td valign="top">
             <input tal:condition="editable" 
                 type="text" name="seqmap:list" size="2"
-                tal:attributes="value graph/sequence"/>
+                tal:attributes="value graph/sequence"
+                />
             <input tal:condition="editable"
                 type="hidden" name="origseq:list"
-                tal:attributes="value graph/sequence" />
-            <span tal:condition="not:editable" tal:content="graph/sequence"/>
+                tal:attributes="value graph/sequence"
+                />
+            <span tal:condition="not:editable" />
         </td>
-        <td>
+        <td valign="top">
             <input tal:condition="editable" 
                 type="checkbox" name="ids:list" 
                 tal:attributes="value graph/getId"/>
@@ -261,14 +264,12 @@
                 tal:content="graph/getId">name</a>
             <tal:block tal:condition="not:editable" tal:content="graph/getId"/>
         </td>
-        <td>
-            <tal:block tal:repeat="ds graph/dsnames">
-                <tal:block tal:replace="ds" /><tal:block tal:condition="python: ds not in here.getRRDDataPointNames()"><span class='errorvalues'> (invalid)</span></tal:block><tal:block tal:condition="not: repeat/ds/end">, </tal:block>
-            </tal:block>
+        <td valign="top" 
+            tal:content="python: ','.join(graph.getGraphPointsNames())">
         </td>
-        <td tal:content="graph/units"/>
-        <td tal:content="graph/height"/>
-        <td tal:content="graph/width"/>
+        <td valign="top" tal:content="graph/units"/>
+        <td valign="top" tal:content="graph/height"/>
+        <td valign="top" tal:content="graph/width"/>
     </tr>
     <tr>
         <td colspan="6" class="tableheader">

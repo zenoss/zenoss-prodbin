@@ -82,7 +82,7 @@ class GraphElement(ZenModelRM):
     def getGraphUrl(self, dmd, drange):
         component = self.getComponent(dmd)
         graph = get
-        component.getRRDGraphUrl(g, drange, template)
+        component.getGraphDefUrl(g, drange, template)
 
 
 InitializeClass(GraphElement)

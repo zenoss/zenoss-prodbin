@@ -4,7 +4,7 @@
 </table>
 <br>
 <div align="center">
-<input type="submit" name="manage_deleteRRDGraphs:method"
+<input type="submit" name="manage_deleteGraphDefinitions:method"
    value="Delete"
    tal:attributes="onclick string:return $$('dialog').submit_form('', 'graphList')" />
 <input id="dialog_cancel" type="button" value="Cancel" 
