@@ -56,7 +56,7 @@ from FileCleanup import FileCleanup
 
 MAX_OIDS_PER_REQUEST = 40
 MAX_SNMP_REQUESTS = 20
-DEVICE_LOAD_CHUNK_SIZE = 20
+DEVICE_LOAD_CHUNK_SIZE = 2
 
 def makeDirs(dir):
     if not os.path.exists(dir):
