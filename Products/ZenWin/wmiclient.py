@@ -28,12 +28,19 @@ def refresh():
 class WMI(object):
 
 
-    def __init__(self, name=".", user="", passwd="", authority="",
+    def __init__(self,
+                 name=".",
+                 ip=None,
+                 user="",
+                 passwd="",
+                 authority="",
                  namespace="root\cimv2", locale="", flags=0, valueset=None):
         self.host = name
         if socket.getfqdn().lower() == name.lower(): 
             self.host = "."
             user = passwd = authority = ""
+        elif ip is not None:
+            self.host = ip
         self.name = name
         self.user = user
         self.passwd = passwd
@@ -46,9 +53,14 @@ class WMI(object):
 
     def connect(self):
         log.debug("connect to %s, user %s", self.host, self.user)
-        self._wmi = locator.ConnectServer(self.host,self.namespace,self.user,
-                                         self.passwd,self.locale,self.authority,
-                                         self.flags,self.valueset)
+        self._wmi = locator.ConnectServer(self.host,
+                                          self.namespace,
+                                          self.user,
+                                          self.passwd,
+                                          self.locale,
+                                          self.authority,
+                                          self.flags,
+                                          self.valueset)
 
     def close(self):
         if hasattr(self, '_wmi'):

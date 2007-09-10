@@ -49,7 +49,7 @@ class zenwinmodeler(Base):
     def processLoop(self):
         """For each device collect service info and send to server.
         """
-        for lastChange, name, user, passwd, sev, url in self.devices:
+        for lastChange, name, ip, user, passwd, sev, url in self.devices:
             if self.options.device and name != self.options.device:
                 continue
             if self.lastRead.get(name, 0) > lastChange:
@@ -60,7 +60,7 @@ class zenwinmodeler(Base):
                     self.log.warn("skipping %s has bad wmi state", name)
                     continue
                 self.log.info("collecting from %s using user %s", name, user)
-                svcs = self.getServices(name, user, passwd)
+                svcs = self.getServices(name, ip, user, passwd)
                 if not svcs: 
                     self.log.warn("failed collecting from %s", name)
                     continue
@@ -87,13 +87,13 @@ class zenwinmodeler(Base):
                 self.sendFail(name)
 
    
-    def getServices(self, name, user, passwd):
+    def getServices(self, name, ip, user, passwd):
         """Collect the service info and build datamap using WMI.
         """
         data = []
         attrs = ("acceptPause","acceptStop","name","caption",
                  "pathName","serviceType","startMode","startName")
-        dev = wmiclient.WMI(*map(str, (name, user, passwd)))
+        dev = wmiclient.WMI(*map(str, (name, ip, user, passwd)))
         dev.connect()
         wql = "select %s from Win32_Service" % (",".join(attrs))
         svcs = dev.query(wql)

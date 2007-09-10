@@ -16,7 +16,6 @@ import os
 import time
 import re
 from socket import getfqdn
-import pythoncom
 
 from twisted.internet import reactor, defer
 
@@ -25,10 +24,6 @@ from Products.ZenHub.PBDaemon import FakeRemote, PBDaemon as Base
 from Products.ZenEvents.ZenEventClasses import \
      Heartbeat, App_Start, App_Stop, Clear, Warning
 from Products.ZenUtils.Driver import drive, driveLater
-
-from StatusTest import StatusTest
-from WinServiceTest import WinServiceTest
-from WinEventlog import WinEventlog
 
 TIMEOUT_CODE = 2147209215
 RPC_ERROR_CODE = 2147023170
@@ -3688,7 +3683,7 @@ class WinCollector(Base):
             self.reconfigureTimeout.cancel()
         self.reconfigureTimeout = reactor.callLater(5, drive, self.reconfigure)
 
-    def remote_deleteDevice(self):
+    def remote_deleteDevice(self, device):
         pass
 
     def processLoop(self):

@@ -15,7 +15,6 @@ import sys
 import os
 import time
 from socket import getfqdn
-import pythoncom
 from wmiclient import WMI
 import pywintypes
 
@@ -27,14 +26,12 @@ from Products.ZenHub.services import WmiConfig
 from Products.ZenEvents.ZenEventClasses import Heartbeat, Status_Wmi_Conn, Status_WinService
 from Products.ZenEvents import Event
 
-from WinServiceTest import WinServiceTest
-from WinEventlog import WinEventlog
-
 ERRtimeout = 1726
 
 class StatusTest:
-    def __init__(self, name, username, password, services):
+    def __init__(self, name, ip, username, password, services):
         self.name = name
+        self.ip = ip
         self.username = username
         self.password = password
         self.services = dict([(k, v) for k, v in services.items()])
@@ -56,7 +53,6 @@ class zenwin(Base):
 
     def mkevt(self, devname, svcname, msg, sev):
         "Compose an event"
-        name = "WinServiceTest"
         evt = dict(summary=msg,
                    eventClass=Status_WinService,
                    device=devname,
@@ -92,7 +88,7 @@ class zenwin(Base):
             self.log.info("svc up %s, %s", srec.name, name)
 
     def _wmi(self, srec):
-        return WMI(str(srec.name), str(srec.username), str(srec.password))
+        return WMI(str(srec.name), srec.ip, str(srec.username), str(srec.password))
 
     def scanDevice(self, srec):
         if not srec.services:
@@ -186,10 +182,10 @@ class zenwin(Base):
 
     def updateDevices(self, devices):
         config = []
-        for n,u,p,s in devices:
+        for n,i,u,p,s in devices:
             if self.options.device and self.options.device != n:
                 continue
-            st = StatusTest(n, u, p, s)
+            st = StatusTest(n, i, u, p, s)
             config.append(st) 
         if devices:
             self.devices = config
