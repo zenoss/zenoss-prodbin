@@ -1,0 +1,53 @@
+#!/usr/bin/env python
+
+import socket
+from xmlrpclib import ServerProxy
+from optparse import OptionParser 
+XML_RPC_PORT = 8081
+
+sevconvert = {
+    "Critical" : 5,
+    "Error" : 4,
+    "Warn" : 3,
+    "Info" : 2,
+    "Debug" : 1,
+    "Clear" : 0
+}
+
+device = socket.getfqdn()
+if device.endswith('.'): device = device[:-1]
+
+parser = OptionParser(usage="usage: %prog [options] summary")
+parser.add_option("-d", "--device", dest="device", default=device,
+    help="device from which this event is sent, default: %default")
+parser.add_option("-p", "--component", dest="component", default="",
+    help="component from which this event is sent, default: ''")
+parser.add_option("-s", "--severity", dest="severity", default="Warn",
+    help="severity of this event: Critical, Error, Warn, Info, Debug, Clear")
+parser.add_option("-c", "--class", dest="eventClass", default=None,
+    help="event class for this event, default: ''")
+parser.add_option("--port", dest="port", default=XML_RPC_PORT,
+    help="xmlrpc server port, default: %default")
+parser.add_option("--server", dest="server", default="localhost",
+    help="xmlrpc server, default: %default")
+parser.add_option("--auth", dest="auth", default="admin:zenoss",
+    help="xmlrpc server auth, default: %default")
+
+
+opts, args = parser.parse_args()
+
+evt = {}
+if sevconvert.has_key(opts.severity):
+    evt['severity'] = sevconvert[opts.severity]
+else:
+    parser.error('unkown severity')
+evt['summary'] = " ".join(args)
+if not evt['summary']:
+    parser.error('no summary supplied') 
+evt['device'] = opts.device
+evt['component'] = opts.component
+if opts.eventClass:
+    evt['eventClass'] = opts.eventClass
+url = "http://%s@%s:%s" % (opts.auth, opts.server, opts.port)
+serv = ServerProxy(url)
+serv.sendEvent(evt)
