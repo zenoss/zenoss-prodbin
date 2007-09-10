@@ -63,7 +63,7 @@ class WmiConfig(HubService):
             if not dev.monitorDevice(): continue
             if getattr(dev, 'zWmiMonitorIgnore', False): continue
             svcs = {}
-            for s in dev.getMonitoredComponenets(type='WinService'):
+            for s in dev.getMonitoredComponents(type='WinService'):
                 name = s.name()
                 if type(name) == type(u''):
                     name = name.encode(s.zCollectorDecoding)
