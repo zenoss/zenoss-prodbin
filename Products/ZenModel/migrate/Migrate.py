@@ -42,12 +42,14 @@ class Version(VersionBase):
 def cleanup():
     "recursively remove all files ending with .pyc"
     import os
+    count = 0
     for p, d, fs in os.walk(os.path.join(os.environ['ZENHOME'], 'Products')):
         for f in fs: 
             if f.endswith('.pyc'):
                 fullPath = os.path.join(p, f)
-                log.debug('removing %s', fullPath)
                 os.remove(fullPath)
+                count += 1
+    log.debug('removed %d .pyc files from Products' % count)
 
 
 class Step:
