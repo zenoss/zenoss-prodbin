@@ -22,23 +22,17 @@ from zExceptions import NotFound
 from OSComponent import OSComponent
 from ZenPackable import ZenPackable
 
-def manage_addOSProcess(context, id, className, userCreated, REQUEST=None):
+def manage_addOSProcess(context, className, userCreated, REQUEST=None):
     """make an os process"""
+    id = className.split('/')[-1]
     context._setObject(id, OSProcess(id))
     osp = context._getOb(id)
     setattr(osp, 'procName', id)
-    if className == '/': className = ''
-    orgPath = "/Processes%s" % className
-    classPath = "%s/osProcessClasses/%s" % (orgPath, id)
-    try:
-        osp.getDmdObj(classPath)
-    except (KeyError, NotFound):
-        organizer = osp.getDmdObj(orgPath)
-        organizer.manage_addOSProcessClass(id)
-    osp.setOSProcessClass(classPath)
+    osp.setOSProcessClass(className)
     if userCreated: osp.setUserCreateFlag()
     if REQUEST is not None:
         REQUEST['RESPONSE'].redirect(context.absolute_url()+'/manage_main')
+    return osp
 
 class OSProcess(OSComponent, Commandable, ZenPackable):
     """Hardware object"""
@@ -121,8 +115,12 @@ class OSProcess(OSComponent, Commandable, ZenPackable):
         """Return an a link to the OSProcessClass.
         """
         proccl = self.osProcessClass()
-        if proccl: return "<a href='%s'>%s</a>" % (proccl.getPrimaryUrlPath(),
+        if proccl:
+            if self.checkRemotePerm("View", proccl): 
+                return "<a href='%s'>%s</a>" % (proccl.getPrimaryUrlPath(),
                                                 proccl.getOSProcessClassName())
+            else:
+                return proccl.getOSProcessClassName()
         return ""
 
         

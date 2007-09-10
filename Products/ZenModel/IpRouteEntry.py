@@ -242,10 +242,4 @@ class IpRouteEntry(OSComponent):
         return ""
 
 
-    def getInterfaceLink(self):
-        """Return a link to the interface"""
-        if self.interface(): return self.interface().getPrimaryUrlPath()
-        else: return ""
-
-
 InitializeClass(IpRouteEntry)

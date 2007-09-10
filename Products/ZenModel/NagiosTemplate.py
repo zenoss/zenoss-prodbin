@@ -106,10 +106,12 @@ class NagiosTemplate(ZenModelRM):
     def getNagiosTemplatePathLink(self):
         """Return alink path on which this template is defined.
         """
-        return "<a href='%s'>%s</a>" % (
+        if self.checkRemotePerm("View", self):
+            return "<a href='%s'>%s</a>" % (
                 self.getPrimaryUrlPath(), 
                 self.getNagiosTemplatePath())
-    
+        else:
+            return self.getNagiosTemplatePath()
     
     security.declareProtected('Add DMD Objects', 'manage_addNagiosCmd')
     def manage_addNagiosCmd(self, id, REQUEST=None):

@@ -377,7 +377,8 @@ class IpNetwork(DeviceOrganizer):
         """
         ip = self.findIp(ip)
         if ip:
-            return ip.getPrimaryUrlPath()
+            if ip.checkRemotePerm("View", ip):
+                return ip.getPrimaryUrlPath()
         return ""
 
 

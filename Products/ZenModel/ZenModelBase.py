@@ -96,7 +96,7 @@ class ZenModelBase(object):
     def getIdLink(self):
         """Return an A link to this object with its id as the name.
         """
-        return "<a href='%s'>%s</a>" % (self.getPrimaryUrlPath(), self.id)
+        return self.getLink()
 
 
     def callZenScreen(self, REQUEST, redirect=False):
@@ -130,8 +130,21 @@ class ZenModelBase(object):
         if not screenName: return self.REQUEST.URL
         return self.getPrimaryUrlPath() + "/" + screenName
 
-
-    security.declareProtected('View', 'breadCrumbs')
+    
+    def getLink(self, text=None, url=None, attrs={}):
+        if not text:
+            text = self.id
+        if not self.checkRemotePerm("View", self):
+            return text
+        if not url:
+            url = self.getPrimaryUrlPath()
+        if len(attrs):
+            return '<a href="%s" %s>%s</a>' % (url, 
+                ' '.join(['%s="%s"' % (x,y) for x,y in attrs.items()]), 
+                text)
+        else:
+            return '<a href="%s">%s</a>' % (url, text)
+     
     def breadCrumbs(self, terminator='dmd'):
         """Return the breadcrumb links for this object.
         [('url','id'), ...]
@@ -144,9 +157,9 @@ class ZenModelBase(object):
                 continue
             if not getattr(aq_base(curDir),"getPrimaryUrlPath", False):
                 break
-            #FIXME
-            url = self.checkRemotePerm("View", curDir)   \
-                    and curDir.getPrimaryUrlPath() or ""
+            url = ""
+            if self.checkRemotePerm("View", curDir):
+                url = curDir.getPrimaryUrlPath()
             links.append((url, curDir.id))
             curDir = curDir.aq_parent
         links.reverse()

@@ -33,11 +33,7 @@
     <span tal:repeat="filesystem batch">
     <tr>
         <td class=tablevalues>
-            <a class=tablevalues href="_"
-            tal:attributes="href python:filesystem.absolute_url()+
-                            '/viewPerformanceDetail'"
-            tal:content="filesystem/mount">
-            mount</a>
+            <tal:block tal:content="structure python:filesystem.getLink(text=filesystem.mount(), url='%s/viewPerformanceDetail' % filesystem.absolute_url(), attrs={'class':'tablevalues'})"/>
         </td>
     </tr>
     </span>
@@ -71,11 +67,7 @@
     <span tal:repeat="disk batch">
     <tr>
         <td class=tablevalues>
-            <a class=tablevalues href="_"
-            tal:attributes="href python:disk.absolute_url()+
-                            '/viewPerformanceDetail'"
-            tal:content="disk/description">
-            mount</a>
+            <tal:block tal:content="structure python:disk.getLink(text=disk.description(), url='%s/viewPerformanceDetail' % disk.absolute_url(), attrs={'class':'tablevalues'})"/>
         </td>
     </tr>
     </span>

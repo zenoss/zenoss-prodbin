@@ -335,7 +335,10 @@ class IpInterface(OSComponent):
             addr = self.ipaddresses.objectValuesAll()[0]
             if addr:
                 if hasattr(aq_base(addr), 'network'):
-                    return addr.network.getPrimaryLink()
+                    if self.checkRemotePerm("View", addr.network):
+                        return addr.network.getPrimaryLink()
+                    else:
+                        return addr.network.getRelatedId()
         else:
             return ""
    

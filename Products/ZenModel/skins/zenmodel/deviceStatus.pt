@@ -169,9 +169,7 @@
       </th>
       <td class="tablevalues" colspan="3">
       <span tal:repeat="item here/systems/objectValuesAll">
-          <a href="_" 
-          tal:attributes="href item/getPrimaryUrlPath"
-          tal:content="item/getOrganizerName">ID</a>
+          <tal:block tal:content="structure python:item.getLink(text=item.getOrganizerName())"/>
       </span>
       </td>
     </tr>
@@ -181,9 +179,7 @@
       </th>
       <td class="tablevalues" colspan="3">
       <span tal:repeat="item here/dhcpservers/objectValuesAll">
-          <a href="_" 
-          tal:attributes="href item/getPrimaryUrlPath"
-          tal:content="item/id">ID</a>
+          <tal:block tal:content="structure python:item.getLink()"/> 
       </span>
       </td>
     </tr>
@@ -194,9 +190,7 @@
       </th>
       <td class="tablevalues" colspan="3">
       <span tal:repeat="item here/dhcpubrclients/objectValuesAll">
-          <a href="_" 
-          tal:attributes="href item/getPrimaryUrlPath"
-          tal:content="item/id">ID></a>
+          <tal:block tal:content="structure python:item.getLink()"/>
       </span>
       </td>
     </tr>
@@ -206,9 +200,7 @@
       </th>
       <td class="tablevalues" colspan="3">
       <span tal:repeat="item here/groups/objectValuesAll">
-          <a href="_" 
-          tal:attributes="href item/getPrimaryUrlPath"
-          tal:content="item/getOrganizerName">ID</a>
+          <tal:block tal:content="structure python:item.getLink(text=item.getOrganizerName())"/>
       </span>
       </td>
     </tr>
@@ -218,9 +210,7 @@
       </th>
       <td class="tablevalues" colspan="3">
       <span tal:repeat="item here/monitors/objectValuesAll">
-          <a href="_" 
-          tal:attributes="href item/getPrimaryUrlPath"
-          tal:content="item/id">ID</a>
+          <tal:block tal:content="structure python:item.getLink(text=item.getOrganizerName())"/>
       </span>
       </td>
     </tr>

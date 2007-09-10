@@ -51,8 +51,11 @@ class DeviceResultInt:
         '''Get the primary link for the device'''
         d = self.device()
         if d:
-            return "<a href='%s/%s'>%s</a>" % (
-                d.getPrimaryUrlPath(), screen, d.getId())
+            if self.checkRemotePerm("View", d):
+                return "<a href='%s/%s'>%s</a>" % (
+                    d.getPrimaryUrlPath(), screen, d.getId())
+            else:
+                return d.getId()
         return ""
 
 

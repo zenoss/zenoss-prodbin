@@ -38,11 +38,9 @@
       <td class="tableheader" align=left>IP Addresses</td>
       <td class="tablevalues" colspan="3" tal:condition="not:editable">
           <span tal:repeat="ip here/getIpAddressObjs" omit-tag="">
-            <a class="tablevalues" 
-                tal:condition="python:hasattr(ip,'getIpAddress')"
-                tal:content="ip/getIpAddress"
-                tal:attributes="href ip/getPrimaryUrlPath">
-                10.2.1.1/24</a>
+            <tal:block 
+             tal:condition="python:hasattr(ip,'getIpAddress')"
+             tal:content="structure python:ip.getLink(text=ip.getIpAddress(), attrs={'class':'tablevalues'})"/>
             <span tal:condition="python:not hasattr(ip,'getIpAddress')"
                 tal:replace="ip">1.1.1.1/24</span>
           </span>

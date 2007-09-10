@@ -88,8 +88,12 @@ class Service(OSComponent, Commandable, ZenPackable):
         """Return an a link to the service class.
         """
         svccl = self.serviceclass()
-        if svccl: return "<a href='%s'>%s</a>" % (svccl.getPrimaryUrlPath(),
+        if svccl: 
+            if self.checkRemotePerm("View", svccl):
+                return "<a href='%s'>%s</a>" % (svccl.getPrimaryUrlPath(),
                                                 svccl.getServiceClassName())
+            else:
+                return svccl.getServiceClassName()
         return ""
 
 

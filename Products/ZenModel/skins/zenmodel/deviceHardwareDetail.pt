@@ -95,8 +95,7 @@
     <tr tal:define="odd repeat/disk/odd"
         tal:attributes="class python:test(odd, 'odd', 'even')">
       <td class="tablevalues">
-          <a class=tablevalues tal:content="disk/getId" 
-            tal:attributes="href disk/getPrimaryUrlPath">sd0</a>
+          <tal:block tal:content="structure python:disk.getLink(text=disk.getId())"/>
       </td>
       <td class="tablevalues" tal:content="disk/snmpindex"/>
     </tr>

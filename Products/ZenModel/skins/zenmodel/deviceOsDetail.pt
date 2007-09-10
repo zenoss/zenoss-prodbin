@@ -51,16 +51,13 @@
                 tal:attributes="value intf/getRelationshipManagerId"/>
       </td>
       <td class="tablevalues">
-      <a class=tablevalues tal:content="intf/viewName" 
-        tal:attributes="href intf/getPrimaryUrlPath">eth0</a>
+      <tal:block tal:content="structure python:intf.getLink(text=intf.viewName())"/>
       </td>
       <td class="tablevalues">
           <span tal:repeat="ip intf/getIpAddressObjs" omit-tag="">
-            <a class=tablevalues 
-                tal:condition="python:hasattr(ip,'getIpAddress')"
-                tal:content="ip/getIpAddress"
-                tal:attributes="href ip/getPrimaryUrlPath">
-                10.2.1.1/24</a>
+            <tal:block 
+             tal:condition="python:hasattr(ip,'getIpAddress')"
+             tal:content="structure python:ip.getLink(text=ip.getIpAddress(), attrs={'class':'tablevalues'})"/>
             <span tal:condition="python:not hasattr(ip,'getIpAddress')"
                 tal:replace="ip">1.1.1.1/24</span>
             <br/>
@@ -163,8 +160,8 @@
            <input type="checkbox" name="componentNames:list" 
                   tal:attributes="value srv/getRelationshipManagerId"/>
         </td>
-        <td class="tablevalues"><a class="tablevalues" tal:content="srv/caption"
-                tal:attributes="href srv/getPrimaryUrlPath">evtsys</a>
+        <td class="tablevalues">
+           <tal:block tal:content="structure python:srv.getLink(text=srv.caption(), attrs={'class':'tablevalues'})"/>
         </td>
         <td class="tablevalues" tal:content="srv/startMode"/>
         <td class="tablevalues" tal:content="srv/startName"/>
@@ -246,8 +243,7 @@ Optional titlebar stuff
         <td class="tablevalues" 
                 tal:content="structure proc/getOSProcessClassLink"/>
         <td class="tablevalues">
-        <a class="tablevalues" tal:content="python:proc.name()[:50]"
-                tal:attributes="href proc/getPrimaryUrlPath">evtsys</a>
+           <tal:block tal:content="structure python:proc.getLink(text=proc.name()[:50], attrs={'class':'tablevalues'})"/>
         </td>
         <td class="tablevalues" tal:content="proc/alertOnRestart"/>
         <td class="tablevalues" tal:content="proc/getFailSeverityString"/>
@@ -339,8 +335,8 @@ Optional titlebar stuff
            <input type="checkbox" name="componentNames:list" 
                   tal:attributes="value srv/getRelationshipManagerId"/>
         </td>
-        <td class="tablevalues"><a class="tablevalues" tal:content="srv/name"
-                tal:attributes="href srv/getPrimaryUrlPath">evtsys</a>
+        <td class="tablevalues">
+           <tal:block tal:content="structure python:srv.getLink(text=srv.name(), attrs={'class':'tablevalues'})"/>
         </td>
         <td class="tablevalues" tal:content="srv/protocol"/>
         <td class="tablevalues" tal:content="srv/port"/>
@@ -428,8 +424,7 @@ Optional titlebar stuff
                   tal:attributes="value fsys/getRelationshipManagerId"/>
       </td>
       <td class="tablevalues">
-          <a class=tablevalues tal:content="fsys/mount" 
-            tal:attributes="href fsys/getPrimaryUrlPath">sd0</a>
+          <tal:block tal:content="structure python:fsys.getLink(text=fsys.mount, attrs={'class':'tablevalues'})"/>
       </td>
       <td class="tablevalues"
         tal:content="fsys/totalBytesString">vol
@@ -509,9 +504,7 @@ Optional titlebar stuff
           (<span tal:replace="structure route/getNextHopDeviceLink"/>)
       </td>
       <td class="tablevalues">
-              <a tal:attributes="href route/getInterfaceLink;
-                                 class string:tablevalues"
-                 tal:content="route/getInterfaceName">eth0</a>
+         <tal:block tal:content="structure python:route.interface().getLink(text=route.getInterfaceName(), attrs={'class':'tablevalues'})"/>
       </td>
       <td class="tablevalues" tal:content="route/routeproto"/>
       <td class="tablevalues" tal:content="route/routetype"/>

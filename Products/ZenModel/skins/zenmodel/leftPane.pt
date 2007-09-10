@@ -5,17 +5,17 @@
     <p id="mainviews">Main Views</p>
     <ul>
         <li><a href="/zport/dmd/Dashboard">Dashboard</a></li>
-        <li><a href="/zport/dmd/Events/viewEvents?notabs=1">Event Console</a></li>
+        <li tal:condition="here/isManager"><a href="/zport/dmd/Events/viewEvents?notabs=1">Event Console</a></li>
         <li><a href="/zport/dmd/Devices/deviceList?notabs=1">Device List</a></li>
-        <li><a href="/zport/dmd/viewNetworkMap">Network Map</a></li>
+        <li tal:condition="here/isManager"><a href="/zport/dmd/viewNetworkMap">Network Map</a></li>
     </ul>
     <p id="mainviews">Classes</p>
     <ul>
-        <li><a href="/zport/dmd/Events">Events</a></li>
+        <li tal:condition="here/isManager"><a href="/zport/dmd/Events">Events</a></li>
         <li><a href="/zport/dmd/Devices">Devices</a></li>
         <li><a href="/zport/dmd/Services">Services</a></li>
         <li><a href="/zport/dmd/Processes">Processes</a></li>
-        <li><a href="/zport/dmd/Manufacturers">Products</a></li>
+        <li tal:condition="here/isManager"><a href="/zport/dmd/Manufacturers">Products</a></li>
     </ul>
 
     <p id="browseby">Browse By</p>

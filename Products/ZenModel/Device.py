@@ -642,8 +642,12 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable, Admini
         """Return an a link to the devices location.
         """
         loc = self.location()
-        if loc: return "<a href='%s'>%s</a>" % (loc.getPrimaryUrlPath(),
+        if loc: 
+            if self.checkRemotePerm("View", loc):
+                return "<a href='%s'>%s</a>" % (loc.getPrimaryUrlPath(),
                                                 loc.getOrganizerName())
+            else:
+                return loc.getOrganizerName()
         return ""
 
 
