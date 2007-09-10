@@ -18,6 +18,11 @@ from Products.ZenModel.GraphDefinition import GraphDefinition
 class GraphDefinitionsAndFriends(Migrate.Step):
     version = Migrate.Version(2, 1, 0)
     
+    def __init__(self):
+        Migrate.Step.__init__(self)
+        import thresholds
+        self.dependencies = [thresholds.thresholds]
+
 
     def cutover(self, dmd):
         

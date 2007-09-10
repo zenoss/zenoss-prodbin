@@ -39,4 +39,4 @@ class Thresholds(Migrate.Step):
                 log.debug("   %r", old)
                 self.replaceThreshold(t, old)
 
-Thresholds()
+thresholds = Thresholds()
