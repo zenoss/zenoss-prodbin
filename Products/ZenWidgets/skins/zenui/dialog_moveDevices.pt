@@ -5,14 +5,14 @@ To which class would you like to move these devices?<br/>
 <br/>
 <p style="text-align:center;">
 <select class="tableheader" name="moveTarget"
-    tal:define="targets here/deviceMoveTargets">
+    tal:define="targets here/dmd/Devices/deviceMoveTargets">
     <option value=""></option>
     <option tal:repeat="target targets"
         tal:content="target">/Thing</option>
 </select>
 </p>
 <div id="dialog_buttons">
-<input type="submit" name="moveDevices:method"
+<input type="submit" name="moveDevicesToClass:method"
     value="Move"
     tal:attributes="onclick string:return $$('dialog').submit_form(
                         '${here/absolute_url_path}')" />

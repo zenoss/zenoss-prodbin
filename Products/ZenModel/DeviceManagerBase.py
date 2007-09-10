@@ -23,24 +23,15 @@ class DeviceManagerBase:
     def deviceMoveTargets(self):
         """see IManageDevice"""
         raise NotImplementedError
-
-    def getDeviceMoveTarget(self, moveTargetName):
-        """see IManageDevice"""
-        return self.getDmdRoot(self.dmdRootName).getOrganizer(moveTargetName)
-
-
-    def moveDevices(self, moveTarget, deviceNames=None, REQUEST=None):
-        """see IManageDevice"""
-        if not moveTarget or not deviceNames: return self()
-        if type(deviceNames) == types.StringType: deviceNames = (deviceNames,)
-        target = self.getDeviceMoveTarget(moveTarget)
-        for devname in deviceNames:
-            dev = self.devices._getOb(devname)
-            self.devices.removeRelation(dev)
-            target.devices.addRelation(dev)
-        if REQUEST:
-            REQUEST['RESPONSE'].redirect(target.getPrimaryUrlPath())
     
+    def getDeviceClassMoveTarget(self, moveTargetName):
+        """see IManageDevice"""
+        return self.getDmdRoot('Devices').getOrganizer(moveTargetName)
+
+    def moveDevicesToClass(self, moveTarget, deviceNames=None, REQUEST=None):
+        """see IManageDevice"""
+        deviceNames = [x.split('/')[-1] for x in deviceNames]
+        return self.dmd.Devices.moveDevices(moveTarget, deviceNames, REQUEST)
 
     def removeDevices(self, deviceNames=None, REQUEST=None):
         """see IManageDevice"""
@@ -50,7 +41,39 @@ class DeviceManagerBase:
             self.devices._delObject(devname)
         if REQUEST: return self()
 
-
+    def setProdState(self, state, deviceNames=None, REQUEST=None):
+        """Set production state of all devices in this Organizer.
+        """
+        if deviceNames is None:
+            if REQUEST: REQUEST['message'] = "No Devices Selected"
+            return self.callZenScreen(REQUEST)
+        for devname in deviceNames:
+            dev = self.devices._getOb(devname)
+            dev.setProdState(state)
+        if REQUEST:
+            statename = self.convertProdState(state)
+            REQUEST['message'] = "Production State set to %s" % statename
+            if REQUEST.has_key('oneKeyValueSoInstanceIsntEmptyAndEvalToFalse'):
+                return REQUEST['message']
+            else:
+                return self.callZenScreen(REQUEST)
+                    
+    def setPriority(self, priority, deviceNames=None, REQUEST=None):
+        """Set prioirty of all devices in this Organizer."""
+        if not deviceNames:
+            if REQUEST: REQUEST['message'] = "No Devices Selected"
+            return self.callZenScreen(REQUEST)
+        for devname in deviceNames:
+            dev = self.devices._getOb(devname) 
+            dev.setPriority(priority)
+        if REQUEST:
+            priname = self.convertPriority(priority)
+            REQUEST['message'] = "Priority set to %s" % priname 
+            if REQUEST.has_key('oneKeyValueSoInstanceIsntEmptyAndEvalToFalse'):
+                return REQUEST['message']
+            else:
+                return self.callZenScreen(REQUEST)
+    
     def setGroups(self, groupPaths=None, deviceNames=None, REQUEST=None):
         """ Provide a method to set device groups from any organizer """
         if not groupPaths or not deviceNames: return self()
@@ -108,3 +131,42 @@ class DeviceManagerBase:
             dev.lockFromUpdates(sendEventWhenBlocked)
         if REQUEST:
             return self.callZenScreen(REQUEST)
+    
+    
+    def setStatusMonitors(self, statusMonitors=None, deviceNames=None, REQUEST=None):
+        """ Provide a method to set status monitors from any organizer """
+        if not statusMonitors:
+            if REQUEST: REQUEST['message'] = "No Monitor Selected"
+            return self.callZenScreen(REQUEST)
+        if deviceNames is None:
+            if REQUEST: REQUEST['message'] = "No Devices Selected"
+            return self.callZenScreen(REQUEST)
+        for devname in deviceNames:
+            dev = self.devices._getOb(devname)
+            dev.setStatusMonitors(statusMonitors)
+        if REQUEST: 
+            REQUEST['message'] = "Status monitor set to %s" % (
+                                    statusMonitors)
+            if REQUEST.has_key('oneKeyValueSoInstanceIsntEmptyAndEvalToFalse'):
+                return REQUEST['message']
+            else:
+                return self.callZenScreen(REQUEST)
+
+    def setPerformanceMonitor(self, performanceMonitor=None, deviceNames=None, REQUEST=None):
+        """ Provide a method to set performance monitor from any organizer """
+        if not performanceMonitor:
+            if REQUEST: REQUEST['message'] = "No Monitor Selected"
+            return self.callZenScreen(REQUEST)
+        if deviceNames is None and not isOrganizer:
+            if REQUEST: REQUEST['message'] = "No Devices Selected"
+            return self.callZenScreen(REQUEST)
+        for devname in deviceNames:
+            dev = self.devices._getOb(devname)
+            dev.setPerformanceMonitor(performanceMonitor)
+        if REQUEST: 
+            REQUEST['message'] = "Performance monitor set to %s" % (
+                                    performanceMonitor)
+            if REQUEST.has_key('oneKeyValueSoInstanceIsntEmptyAndEvalToFalse'):
+                return REQUEST['message']
+            else:
+                return self.callZenScreen(REQUEST) 
