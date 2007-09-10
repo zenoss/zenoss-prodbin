@@ -31,7 +31,7 @@ from Products.CMFCore.utils import getToolByName
 
 from Products.ZenUtils import Security
 
-from ZenossSecurity import ZEN_COMMON, ZEN_MANAGER_ROLE, ZEN_USER_ROLE
+from ZenossSecurity import *
 
 
 class ZentinelPortal ( PortalObjectBase ):
@@ -115,10 +115,11 @@ class PortalGenerator:
     def setupPermissions(self, p):
         # Set up some suggested role to permission mappings.
         mp = p.manage_permission
-        mp('Change Device', ['ZenManager', 'Owner','Manager',],     1)
-        mp('Manage DMD', ['ZenManager', 'Owner','Manager',],     1)
-        mp('Delete objects', [ZEN_MANAGER_ROLE, 'Owner','Manager',],     1)
-        mp('Add DMD Objects', [ZEN_MANAGER_ROLE, 'Owner','Manager',],     1)
+        mp(ZEN_CHANGE_SETTINGS, ['ZenManager', 'Owner','Manager',],     1)
+        mp(ZEN_CHANGE_DEVICE, ['ZenManager', 'Owner','Manager',],     1)
+        mp(ZEN_MANAGE_DMD, ['ZenManager', 'Owner','Manager',],     1)
+        mp(ZEN_DELETE, [ZEN_MANAGER_ROLE, 'Owner','Manager',],     1)
+        mp(ZEN_ADD, [ZEN_MANAGER_ROLE, 'Owner','Manager',],     1)
         mp('View',[ZEN_USER_ROLE,ZEN_MANAGER_ROLE,'Manager','Owner'])
         mp('View History',[ZEN_USER_ROLE, ZEN_MANAGER_ROLE, 'Manager',], 1)
         mp(ZEN_COMMON,[ZEN_USER_ROLE, ZEN_MANAGER_ROLE,'Manager', 'Owner'], 1)
