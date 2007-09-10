@@ -48,7 +48,6 @@ class DeviceOrganizer(Organizer, DeviceManagerBase, Commandable, ZenMenuable,
     
     security = ClassSecurityInfo()
 
-
     # Screen action bindings (and tab definitions)
     factory_type_information = (
         {
@@ -124,6 +123,11 @@ class DeviceOrganizer(Organizer, DeviceManagerBase, Commandable, ZenMenuable,
         devices = getattr(self, devrel, None)
         if not devices: 
             raise AttributeError, "%s not found on %s" % (devrel, self.id)
+
+
+    def getDevices(self):
+        return [ dev for dev in self.devices() 
+                    if self.checkRemotePerm("View", dev)]
 
     def getMonitoredComponents(self):
         """Return monitored components for devices within this DeviceOrganizer.

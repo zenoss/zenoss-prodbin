@@ -45,6 +45,10 @@ class AdministrativeRole(ZenModelRM):
         return self.userSetting().getPrimaryUrlPath()
 
 
+    def userid(self):
+        return self.userSetting().getId()
+
+
     def managedObjectName(self):
         mo = self.managedObject()
         if mo.meta_type == 'Device':

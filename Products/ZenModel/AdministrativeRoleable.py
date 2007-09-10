@@ -71,3 +71,7 @@ class AdministrativeRoleable:
             if delids:
                 REQUEST['message'] = "Administrative Roles Deleted"
             return self.callZenScreen(REQUEST)
+
+
+    def getAdminUserIds(self):
+        return [ ar.userid() for ar in self.adminRoles()]

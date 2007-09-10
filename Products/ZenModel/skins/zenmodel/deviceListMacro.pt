@@ -33,7 +33,7 @@
         src="/zport/portal_skins/zenmodel/submitViaEnter.js"></script>
 
 
-    <tal:block tal:define="objects python:list(here.devices.objectValuesAll());
+    <tal:block tal:define="objects here/getDevices;
         tableName string:devicelistmacro;
         showfilterbox python:True;
         menu_id string:Device_list;
