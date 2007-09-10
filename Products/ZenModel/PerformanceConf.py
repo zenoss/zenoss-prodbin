@@ -310,4 +310,27 @@ class PerformanceConf(Monitor, StatusColor):
         rs = self.getDmd().getParentNode().RenderServer
         rs.deleteRRDFiles(device, datasource, datapoint, remoteUrl)
 
+    def setPerformanceMonitor(self,
+                              performanceMonitor=None,
+                              deviceNames=None, 
+                              REQUEST=None):
+        """ Provide a method to set performance monitor from any organizer """
+        if not performanceMonitor:
+            if REQUEST: REQUEST['message'] = "No Monitor Selected"
+            return self.callZenScreen(REQUEST)
+        if deviceNames is None:
+            if REQUEST: REQUEST['message'] = "No Devices Selected"
+            return self.callZenScreen(REQUEST)
+        for devName in deviceNames:
+            dev = self.devices._getOb(devName)
+            dev = dev.primaryAq()
+            dev.setPerformanceMonitor(performanceMonitor)
+        if REQUEST: 
+            REQUEST['message'] = "Performance monitor set to %s" % (
+                                    performanceMonitor)
+            if REQUEST.has_key('oneKeyValueSoInstanceIsntEmptyAndEvalToFalse'):
+                return REQUEST['message']
+            else:
+                return self.callZenScreen(REQUEST)
+
 InitializeClass(PerformanceConf)
