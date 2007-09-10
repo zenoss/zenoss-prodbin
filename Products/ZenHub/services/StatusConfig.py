@@ -57,6 +57,7 @@ class StatusConfig(HubService):
     def remote_services(self, configpath):
         result = []
         for dev in self.config.devices():
+            dev = dev.primaryAq()
             if not dev.monitorDevice(): continue
             for svc in dev.getMonitoredComponents(collector='zenstatus'):
                 if svc.getProtocol() != "tcp": continue

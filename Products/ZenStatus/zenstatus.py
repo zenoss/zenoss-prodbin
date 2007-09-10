@@ -23,6 +23,9 @@ from Products.ZenUtils.Driver import drive, driveLater
 from Products.ZenStatus.ZenTcpClient import ZenTcpClient
 from Products.ZenEvents.ZenEventClasses import Heartbeat
 
+# required for pb.setUnjellyableForClass 
+import Products.ZenHub.services.StatusConfig
+
 from sets import Set
 
 class Status:
