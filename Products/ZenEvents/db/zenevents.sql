@@ -32,6 +32,7 @@ CREATE TABLE IF NOT EXISTS status
     clearid         char(25),
     DevicePriority  smallint(6) default 3,
     eventClassMapping varchar(128) default "",
+    endQuarantine   double default null,
     PRIMARY KEY ( dedupid ),
     Index evididx (evid),
     Index clearidx (clearid)
@@ -72,6 +73,7 @@ CREATE TABLE IF NOT EXISTS history
     clearid         char(25),
     DevicePriority  smallint(6) default 3,
     eventClassMapping varchar(128) default "",
+    endQuarantine   double default null,
     PRIMARY KEY ( evid ),
     INDEX device (device),
     INDEX firstTime (firstTime),
@@ -112,7 +114,8 @@ CREATE TRIGGER status_delete BEFORE DELETE ON status
             deletedTime=NULL,
             clearid=OLD.clearid,
             DevicePriority=OLD.DevicePriority,
-            eventClassMapping=OLD.eventClassMapping
+            eventClassMapping=OLD.eventClassMapping,
+            endQuarantine=OLD.endQuarantine
             ;
 
 
