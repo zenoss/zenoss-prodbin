@@ -70,11 +70,11 @@ class RRDDataPoint(ZenModelRM, ZenPackable):
     ## These attributes can be removed post 2.1
     ## They should remain in 2.1 so the migrate script works correctly
     linetypes = ('', 'AREA', 'LINE')
-    rpn = ""
+    # rpn = ""
     color = ""
     linetype = ''
-    limit = -1
-    format = '%5.2lf%s'
+    # limit = -1
+    # format = '%5.2lf%s'
     
 
     _properties = (
