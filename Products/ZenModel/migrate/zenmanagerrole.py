@@ -40,10 +40,24 @@ class ZenManagerRole(Migrate.Step):
         mp(ZEN_VIEW_HISTORY, [ZEN_USER_ROLE, ZEN_MANAGER_ROLE, MANAGER_ROLE,], 1)
         mp(ZEN_COMMON,[ZEN_USER_ROLE, ZEN_MANAGER_ROLE, MANAGER_ROLE, OWNER_ROLE], 1)
         mp(ZEN_CHANGE_SETTINGS, [ZEN_MANAGER_ROLE, MANAGER_ROLE, OWNER_ROLE], 1)
-        mp(ZEN_CHANGE_ALERTING_RULES, [ZEN_MANAGER_ROLE, MANAGER_ROLE, OWNER_ROLE], 1)
-        mp(ZEN_CHANGE_ADMIN_OBJECTS, [ZEN_MANAGER_ROLE, MANAGER_ROLE], 1)
-        mp(ZEN_CHANGE_EVENT_VIEWS, [ZEN_MANAGER_ROLE, MANAGER_ROLE], 1)
         
+        if ZEN_CHANGE_ALERTING_RULES in zport.possible_permissions():
+            mp(ZEN_CHANGE_ALERTING_RULES, [ZEN_MANAGER_ROLE, MANAGER_ROLE, OWNER_ROLE], 1)
+        else:
+            zport.__ac_permissions__=(
+                zport.__ac_permissions__+((ZEN_CHANGE_ALERTING_RULES,(),[ZEN_MANAGER_ROLE, MANAGER_ROLE, OWNER_ROLE]),))
+                
+        if ZEN_CHANGE_ADMIN_OBJECTS in zport.possible_permissions():
+            mp(ZEN_CHANGE_ADMIN_OBJECTS, [ZEN_MANAGER_ROLE, MANAGER_ROLE], 1)
+        else:
+            zport.__ac_permissions__=(
+                zport.__ac_permissions__+((ZEN_CHANGE_ADMIN_OBJECTS,(),[ZEN_MANAGER_ROLE, MANAGER_ROLE]),))
+                
+        if ZEN_CHANGE_EVENT_VIEWS in zport.possible_permissions():
+            mp(ZEN_CHANGE_EVENT_VIEWS, [ZEN_MANAGER_ROLE, MANAGER_ROLE], 1)
+        else:
+            zport.__ac_permissions__=(
+                zport.__ac_permissions__+((ZEN_CHANGE_EVENT_VIEWS,(),[ZEN_MANAGER_ROLE, MANAGER_ROLE]),))
 
 
 ZenManagerRole()
