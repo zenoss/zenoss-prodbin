@@ -158,6 +158,8 @@ class InterfaceMap(SnmpPlugin):
         if dontCollectIntTypes and re.search(dontCollectIntTypes, om.type):
             return None
         if hasattr(om, 'macaddress'): om.macaddress = self.asmac(om.macaddress)
+        # Handle misreported operStatus from Linux tun devices
+        if om.id.startswith('tun') and om.adminStatus == 1: om.operStatus = 1
         return om
    
 
