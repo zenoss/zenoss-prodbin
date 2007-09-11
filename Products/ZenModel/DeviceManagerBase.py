@@ -12,6 +12,7 @@
 ###########################################################################
 
 import types
+from ZenossSecurity import ZEN_VIEW
 
 class DeviceManagerBase:
     """
@@ -20,6 +21,10 @@ class DeviceManagerBase:
     to manage their device relations.
     """
 
+    def getDevices(self):
+        return [ dev for dev in self.devices() 
+                    if self.checkRemotePerm(ZEN_VIEW, dev)]
+                    
     def deviceMoveTargets(self):
         """see IManageDevice"""
         raise NotImplementedError

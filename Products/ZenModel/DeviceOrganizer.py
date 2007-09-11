@@ -125,10 +125,6 @@ class DeviceOrganizer(Organizer, DeviceManagerBase, Commandable, ZenMenuable,
             raise AttributeError, "%s not found on %s" % (devrel, self.id)
 
 
-    def getDevices(self):
-        return [ dev for dev in self.devices() 
-                    if self.checkRemotePerm("View", dev)]
-
     def getMonitoredComponents(self):
         """Return monitored components for devices within this DeviceOrganizer.
         """
@@ -188,6 +184,10 @@ class DeviceOrganizer(Organizer, DeviceManagerBase, Commandable, ZenMenuable,
         return [d for d in self.getSubDevices()
                 if deviceNames is None or d.id in deviceNames 
                 or d.getPrimaryId() in deviceNames]
+
+
+    def moveDevices(self, moveTarget, deviceNames=None, REQUEST=None):
+        return self.dmd.Devices.moveDevices(moveTarget, deviceNames, REQUEST)
 
 
     def setProdState(self, state, deviceNames=None, 

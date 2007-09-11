@@ -99,3 +99,4 @@ import graphDefinitionsAndFriends
 import graphReports
 import statusMonitorMenus
 import removeZenPackMenuItem
+import banClassesOnDeviceListMenus

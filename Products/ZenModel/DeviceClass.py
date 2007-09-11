@@ -220,7 +220,7 @@ class DeviceClass(DeviceOrganizer, ZenPackable):
 
 
     def removeDevices(self, deviceNames=None, REQUEST=None):
-        """see IManageDevice"""
+        """see IManageDevice overrides DeviceManagerBase.removeDevices"""
         if not deviceNames: return self()
         if type(deviceNames) in types.StringTypes: deviceNames = (deviceNames,)
         for devname in deviceNames:

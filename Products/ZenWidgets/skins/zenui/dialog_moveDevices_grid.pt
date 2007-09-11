@@ -5,7 +5,7 @@ To which class would you like to move these devices?<br/>
 <br/>
 <p style="text-align:center;">
 <select class="tableheader" name="moveTarget" id="moveTarget"
-    tal:define="targets here/deviceMoveTargets">
+    tal:define="targets here/dmd/Devices/deviceMoveTargets">
     <option value=""></option>
     <option tal:repeat="target targets"
         tal:content="target">/Thing</option>
