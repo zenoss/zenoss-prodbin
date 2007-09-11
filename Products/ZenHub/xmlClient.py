@@ -18,7 +18,7 @@ from socket import getfqdn
 from zenhub import XML_RPC_PORT
 
 def main():
-    proxy = ServerProxy('http://zenoss:zenoss@localhost:%d' % XML_RPC_PORT)
+    proxy = ServerProxy('http://admin:zenoss@localhost:%d' % XML_RPC_PORT)
     proxy.sendEvent(dict(summary='This is an event',
                          device=getfqdn(),
                          Class='/Status/Ping',
