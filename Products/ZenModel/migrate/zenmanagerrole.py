@@ -19,7 +19,7 @@ __version__ = "$Revision$"[11:-2]
 
 import Migrate
 
-from Products.ZenModel.ZenossSecurity import ZEN_COMMON
+from Products.ZenModel.ZenossSecurity import *
 
 class ZenManagerRole(Migrate.Step):
 
@@ -27,18 +27,23 @@ class ZenManagerRole(Migrate.Step):
 
     def cutover(self, dmd):
         zport = dmd.zport
-        zport.__ac_roles__ += ('ZenManager',)
+        zport.__ac_roles__ += (ZEN_MANAGER_ROLE,)
         rm = dmd.getPhysicalRoot().acl_users.roleManager
-        if "ZenManager" in rm.listRoleIds(): return
-        rm.addRole("ZenManager")
+        if not ZEN_MANAGER_ROLE in rm.listRoleIds():
+            rm.addRole(ZEN_MANAGER_ROLE)
         mp = zport.manage_permission
-        mp('Change Device', ['ZenManager', 'Owner','Manager',],     1)
-        mp('Manage DMD', ['ZenManager', 'Owner','Manager',],     1)
-        mp('Delete objects', ['ZenManager', 'Owner','Manager',],     1)
-        mp('Add DMD Objects', ['ZenManager', 'Owner','Manager',],     1)
-        mp('View',['ZenUser','ZenManager','Manager','Owner'])
-        mp('View History',['ZenUser', 'ZenManager', 'Manager',], 1)
-        mp(ZEN_COMMON,['ZenUser','ZenManager','Manager', 'Owner'], 1)
+        mp(ZEN_CHANGE_DEVICE, [ZEN_MANAGER_ROLE, OWNER_ROLE,MANAGER_ROLE,],     1)
+        mp(ZEN_MANAGE_DMD, [ZEN_MANAGER_ROLE, OWNER_ROLE,MANAGER_ROLE,],     1)
+        mp(ZEN_DELETE, [ZEN_MANAGER_ROLE, OWNER_ROLE,MANAGER_ROLE,],     1)
+        mp(ZEN_ADD, [ZEN_MANAGER_ROLE, OWNER_ROLE,MANAGER_ROLE,],     1)
+        mp(ZEN_VIEW, [ZEN_USER_ROLE,ZEN_MANAGER_ROLE,MANAGER_ROLE,OWNER_ROLE])
+        mp(ZEN_VIEW_HISTORY, [ZEN_USER_ROLE, ZEN_MANAGER_ROLE, MANAGER_ROLE,], 1)
+        mp(ZEN_COMMON,[ZEN_USER_ROLE, ZEN_MANAGER_ROLE, MANAGER_ROLE, OWNER_ROLE], 1)
+        mp(ZEN_CHANGE_SETTINGS, [ZEN_MANAGER_ROLE, MANAGER_ROLE, OWNER_ROLE], 1)
+        mp(ZEN_CHANGE_ALERTING_RULES, [ZEN_MANAGER_ROLE, MANAGER_ROLE, OWNER_ROLE], 1)
+        mp(ZEN_CHANGE_ADMIN_OBJECTS, [ZEN_MANAGER_ROLE, MANAGER_ROLE], 1)
+        mp(ZEN_CHANGE_EVENT_VIEWS, [ZEN_MANAGER_ROLE, MANAGER_ROLE], 1)
+        
 
 
 ZenManagerRole()

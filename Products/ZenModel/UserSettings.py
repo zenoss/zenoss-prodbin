@@ -32,7 +32,7 @@ from Products.ZenRelations.RelSchema import *
 from Products.ZenModel.AdministrativeRole import AdministrativeRole
 from Products.ZenUtils import Time
 
-from ZenossSecurity import ZEN_MANAGER_ROLE
+from ZenossSecurity import *
 from ZenModelRM import ZenModelRM
 import Products.ZenUtils.Utils as Utils
 
@@ -78,37 +78,37 @@ class UserSettingsManager(ZenModelRM):
                 { 'id'            : 'settings'
                 , 'name'          : 'Settings'
                 , 'action'        : '../editSettings'
-                , 'permissions'   : ( "Manage DMD", )
+                , 'permissions'   : ( ZEN_MANAGE_DMD, )
                 },
                 { 'id'            : 'manage'
                 , 'name'          : 'Commands'
                 , 'action'        : '../dataRootManage'
-                , 'permissions'   : ('Manage DMD',)
+                , 'permissions'   : (ZEN_MANAGE_DMD,)
                 },
                 { 'id'            : 'users'
                 , 'name'          : 'Users'
                 , 'action'        : 'manageUserFolder'
-                , 'permissions'   : ( 'Manage DMD', )
+                , 'permissions'   : ( ZEN_MANAGE_DMD, )
                 },
                 { 'id'            : 'packs'
                 , 'name'          : 'ZenPacks'
                 , 'action'        : '../viewZenPacks'
-                , 'permissions'   : ( "Manage DMD", )
+                , 'permissions'   : ( ZEN_MANAGE_DMD, )
                 },
                 { 'id'            : 'menus'
                 , 'name'          : 'Menus'
                 , 'action'        : '../editMenus'
-                , 'permissions'   : ( "Manage DMD", )
+                , 'permissions'   : ( ZEN_MANAGE_DMD, )
                 },
                 { 'id'            : 'daemons'
                 , 'name'          : 'Daemons'
                 , 'action'        : '../../About/zenossInfo'
-                , 'permissions'   : ( "Manage DMD", )
+                , 'permissions'   : ( ZEN_MANAGE_DMD, )
                 },
                 { 'id'            : 'versions'
                 , 'name'          : 'Versions'
                 , 'action'        : '../../About/zenossVersions'
-                , 'permissions'   : ( "Manage DMD", )
+                , 'permissions'   : ( ZEN_MANAGE_DMD, )
                 },
            )
          },
@@ -380,21 +380,21 @@ class UserSettings(ZenModelRM):
             'immediate_view' : 'editUserSettings',
             'actions'        :
             (
-                {'name'          : 'Edit',
+                {'name'         : 'Edit',
                 'action'        : 'editUserSettings',
-                'permissions'   : ("Change Settings",),
+                'permissions'   : (ZEN_CHANGE_SETTINGS,),
                 },
-                {'name'          : 'Administered Objects'
-                , 'action'        : 'administeredDevices'
-                , 'permissions'   : ( "Change Settings", )
+                {'name'         : 'Administered Objects', 
+                'action'        : 'administeredDevices', 
+                'permissions'   : (ZEN_CHANGE_ADMIN_OBJECTS,)
                 },
-                {'name'          : 'Event Views',
+                {'name'         : 'Event Views',
                 'action'        : 'editEventViews',
-                'permissions'   : ("Change Settings",),
+                'permissions'   : (ZEN_CHANGE_EVENT_VIEWS,),
                 },
-                {'name'          : 'Alerting Rules',
+                {'name'         : 'Alerting Rules',
                 'action'        : 'editActionRules',
-                'permissions'   : ("Change Settings",),
+                'permissions'   : (ZEN_CHANGE_ALERTING_RULES,),
                 },
             )
          },

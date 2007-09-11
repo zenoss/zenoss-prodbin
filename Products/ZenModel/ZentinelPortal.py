@@ -58,7 +58,7 @@ class ZentinelPortal ( PortalObjectBase ):
         """
         user = self.dmd.ZenUsers.getUser()
         if user: 
-            return user.has_role(("Manager", ZEN_MANAGER_ROLE), obj)
+            return user.has_role((MANAGER_ROLE, ZEN_MANAGER_ROLE), obj)
 
 
     def has_role(self, role, userid=None, obj=None):
@@ -115,15 +115,19 @@ class PortalGenerator:
     def setupPermissions(self, p):
         # Set up some suggested role to permission mappings.
         mp = p.manage_permission
-        mp(ZEN_CHANGE_SETTINGS, ['ZenManager', 'Owner','Manager',],     1)
-        mp(ZEN_CHANGE_DEVICE, ['ZenManager', 'Owner','Manager',],     1)
-        mp(ZEN_MANAGE_DMD, ['ZenManager', 'Owner','Manager',],     1)
-        mp(ZEN_DELETE, [ZEN_MANAGER_ROLE, 'Owner','Manager',],     1)
-        mp(ZEN_ADD, [ZEN_MANAGER_ROLE, 'Owner','Manager',],     1)
-        mp('View',[ZEN_USER_ROLE,ZEN_MANAGER_ROLE,'Manager','Owner'])
-        mp('View History',[ZEN_USER_ROLE, ZEN_MANAGER_ROLE, 'Manager',], 1)
-        mp(ZEN_COMMON,[ZEN_USER_ROLE, ZEN_MANAGER_ROLE,'Manager', 'Owner'], 1)
-
+        mp(ZEN_CHANGE_SETTINGS, [ZEN_MANAGER_ROLE, OWNER_ROLE, MANAGER_ROLE,], 1)
+        mp(ZEN_CHANGE_DEVICE, [ZEN_MANAGER_ROLE, OWNER_ROLE, MANAGER_ROLE,], 1)
+        mp(ZEN_MANAGE_DMD, [ZEN_MANAGER_ROLE, OWNER_ROLE, MANAGER_ROLE,], 1)
+        mp(ZEN_DELETE, [ZEN_MANAGER_ROLE, OWNER_ROLE, MANAGER_ROLE,], 1)
+        mp(ZEN_ADD, [ZEN_MANAGER_ROLE, OWNER_ROLE, MANAGER_ROLE,], 1)
+        mp(ZEN_VIEW, [ZEN_USER_ROLE, ZEN_MANAGER_ROLE, MANAGER_ROLE, OWNER_ROLE])
+        mp(ZEN_VIEW_HISTORY, [ZEN_USER_ROLE, ZEN_MANAGER_ROLE, MANAGER_ROLE,], 1)
+        mp(ZEN_COMMON, [ZEN_USER_ROLE, ZEN_MANAGER_ROLE,MANAGER_ROLE, OWNER_ROLE], 1)
+        mp(ZEN_CHANGE_ALERTING_RULES, [ZEN_MANAGER_ROLE, MANAGER_ROLE, OWNER_ROLE], 1)
+        mp(ZEN_CHANGE_ADMIN_OBJECTS, [ZEN_MANAGER_ROLE, MANAGER_ROLE], 1)
+        mp(ZEN_CHANGE_EVENT_VIEWS, [ZEN_MANAGER_ROLE, MANAGER_ROLE], 1)
+        
+        
 
     def setupDefaultSkins(self, p):
         from Products.CMFCore.DirectoryView import addDirectoryViews
