@@ -202,14 +202,16 @@ class ZenModelBase(object):
 
 
     security.declareProtected('Manage DMD', 'zmanage_editProperties')
-    def zmanage_editProperties(self, REQUEST=None):
+    def zmanage_editProperties(self, REQUEST=None, redirect=False):
         """Edit a ZenModel object and return its proper page template
         """
         self.manage_changeProperties(**REQUEST.form)
+        index_object = getattr(self, 'index_object', lambda self: None)
+        index_object()
         if REQUEST:
             from Products.ZenUtils.Time import SaveMessage
             REQUEST['message'] = SaveMessage()
-            return self.callZenScreen(REQUEST)
+            return self.callZenScreen(REQUEST) # , redirect=redirect)
 
 
     security.declareProtected('View', 'getPrimaryDmdId')

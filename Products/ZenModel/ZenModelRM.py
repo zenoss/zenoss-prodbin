@@ -75,11 +75,7 @@ class ZenModelRM(ZenModelBase, RelationshipManager, Historical, ZenPacker):
         redirect = False
         if REQUEST.form.has_key("newId"):
             redirect = self.rename(REQUEST.form["newId"])
-        self.manage_changeProperties(**REQUEST.form)
-        if REQUEST:
-            from Products.ZenUtils.Time import SaveMessage
-            REQUEST['message'] = SaveMessage()
-            return self.callZenScreen(REQUEST, redirect)
+        return ZenModelBase.zmanage_editProperties(self, REQUEST, redirect)
 
 
     def zmanage_addProperty(self, id, value, type, label, visible,
