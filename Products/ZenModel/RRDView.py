@@ -133,6 +133,7 @@ class RRDView(object):
                 if end:
                     gopts.append("--end=%d" % end)
             perfServer = self.device().getPerformanceServer()
+            vals = []
             if perfServer:
                 vals = perfServer.performanceCustomSummary(gopts)
                 if vals is None:
