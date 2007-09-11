@@ -25,6 +25,7 @@ from twisted.web import resource, server
 from twisted.internet import reactor
 
 import os
+import mimetypes
 
 class RenderServer(OrigRenderServer):
 
@@ -51,10 +52,9 @@ class HttpRender(resource.Resource):
         args.setdefault('ftype', 'PNG')
         ftype = args['ftype']
         del args['ftype']
-        if ftype=='html':
-            request.setHeader('Content-type', 'text/html')
-        else:
-            request.setHeader('Content-type', 'image/%s' % ftype)
+        mimetype = mimetypes.guess_type('.%s'%ftype)[0]
+        if not mimetype: mimetype = 'image/%s'%ftype
+        request.setHeader('Content-type', mimetype)
         return getattr(zr, 'remote_' + command)(**args)
 
 class zenrender(PBDaemon):

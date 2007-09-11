@@ -73,7 +73,7 @@ FakeXHR.prototype = {
     },
     registerResponse: function() {
         var response = document.location.hash;
-        window.history.go(-1);
+        //window.history.go(-1);
         response = response.replace('#','');
         response = response.replace(';','');
         parts = response.split(':');

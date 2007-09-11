@@ -24,6 +24,7 @@ import time
 import logging
 import urllib
 import zlib
+import mimetypes
 
 from AccessControl import ClassSecurityInfo
 from Globals import InitializeClass
@@ -105,7 +106,11 @@ class RenderServer(RRDToolItem):
                 f.write(urllib.urlopen(remoteUrl).read())
                 f.close()
             else:            
-                gopts.insert(0, "--imgformat=%s" % ftype)
+                if ftype.lower()=='html': 
+                    imgtype = 'PNG'
+                else:
+                    imgtype = ftype
+                gopts.insert(0, "--imgformat=%s" % imgtype)
                 #gopts.insert(0, "--lazy")
                 end = int(time.time())-300
                 start = end - drange
@@ -322,9 +327,11 @@ class RenderServer(RRDToolItem):
         """get a previously generated graph"""
         cache = self.setupCache()
         ftype = ftype.lower()
+        mimetype = mimetypes.guess_type('.%s'%ftype)[0]
+        if not mimetype: mimetype = 'image/%s' % ftype
         if REQUEST:
             response = REQUEST.RESPONSE
-            response.setHeader('Content-Type', 'image/%s'%ftype)
+            response.setHeader('Content-Type', mimetype)
         return cache.checkCache(id)
 
 

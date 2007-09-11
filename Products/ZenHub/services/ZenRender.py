@@ -18,6 +18,8 @@ from twisted.internet import reactor
 
 import xmlrpclib
 
+import mimetypes
+
 htmlResource = None
 
 import logging
@@ -46,10 +48,9 @@ class Render(resource.Resource):
         args.setdefault('ftype', 'PNG')
         ftype = args['ftype']
         del args['ftype']
-        if ftype.lower()=='html':
-            request.setHeader('Content-type', 'text/html')
-        else:
-            request.setHeader('Content-type', 'image/%s' % ftype)
+        mimetype = mimetypes.guess_type('.%s'%ftype)[0]
+        if not mimetype: mimetype = 'image/%s'%ftype
+        request.setHeader('Content-type', mimetype)
         def write(result):
             if result:
                 request.write(result)
