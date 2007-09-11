@@ -22,7 +22,6 @@ import re
 
 from AccessControl import ClassSecurityInfo
 from Globals import InitializeClass
-from AccessControl import Permissions as permissions
 from Acquisition import aq_parent
 
 from Organizer import Organizer
@@ -37,7 +36,7 @@ from Products.AdvancedQuery import MatchRegexp, Eq, Or, In
 from Products.ZenRelations.RelSchema import *
 import simplejson
 
-from ZenossSecurity import ZEN_COMMON
+from ZenossSecurity import *
 
 class DeviceOrganizer(Organizer, DeviceManagerBase, Commandable, ZenMenuable, 
                         MaintenanceWindowable, AdministrativeRoleable):
@@ -57,25 +56,22 @@ class DeviceOrganizer(Organizer, DeviceManagerBase, Commandable, ZenMenuable,
                 { 'id'            : 'status'
                 , 'name'          : 'Status'
                 , 'action'        : 'deviceOrganizerStatus'
-                , 'permissions'   : (
-                  permissions.view, )
+                , 'permissions'   : (ZEN_VIEW, )
                 },
                 { 'id'            : 'events'
                 , 'name'          : 'Events'
                 , 'action'        : 'viewEvents'
-                , 'permissions'   : (
-                  permissions.view, )
+                , 'permissions'   : (ZEN_VIEW, )
                 },
                 { 'id'            : 'historyEvents'
                 , 'name'          : 'History'
                 , 'action'        : 'viewHistoryEvents'
-                , 'permissions'   : (
-                  permissions.view, )
+                , 'permissions'   : (ZEN_VIEW, )
                 },
                 { 'id'            : 'manage'
                 , 'name'          : 'Administration'
                 , 'action'        : 'deviceOrganizerManage'
-                , 'permissions'   : ('Manage DMD',)
+                , 'permissions'   : (ZEN_MANAGE_DMD,)
                 },
             )
          },
@@ -98,21 +94,21 @@ class DeviceOrganizer(Organizer, DeviceManagerBase, Commandable, ZenMenuable,
             raise AttributeError, "%s not found on %s" % (devrel, self.id)
 
         devices = [ dev for dev in devrelobj() 
-                        if self.checkRemotePerm("View", dev)]
+                        if self.checkRemotePerm(ZEN_VIEW, dev)]
         devices = filter(devfilter, devices)
         for subgroup in self.children():
             devices.extend(subgroup.getSubDevices(devfilter, devrel))
         return devices
 
 
-    security.declareProtected("View", "getSubDevicesGen")
+    security.declareProtected(ZEN_VIEW, "getSubDevicesGen")
     def getSubDevicesGen(self, devrel="devices"):
         """get all the devices under and instance of a DeviceGroup"""
         devrelobj = getattr(self, devrel, None)
         if not devrelobj: 
             raise AttributeError, "%s not found on %s" % (devrel, self.id)
         for dev in devrelobj.objectValuesGen():
-            if self.checkRemotePerm("View", dev):
+            if self.checkRemotePerm(ZEN_VIEW, dev):
                 yield dev
         for subgroup in self.children():
             for dev in subgroup.getSubDevicesGen(devrel):
@@ -186,7 +182,17 @@ class DeviceOrganizer(Organizer, DeviceManagerBase, Commandable, ZenMenuable,
                 or d.getPrimaryId() in deviceNames]
 
 
-    def moveDevices(self, moveTarget, deviceNames=None, REQUEST=None):
+    def deviceClassMoveTargets(self):
+        """Return list of all organizers excluding our self."""
+        targets = filter(lambda x: x != self.getOrganizerName(),
+            self.dmd.Devices.getOrganizerNames())
+        targets.sort(lambda x,y: cmp(x.lower(), y.lower()))
+        return targets
+
+
+    def moveDevicesToClass(self, moveTarget, deviceNames=None, REQUEST=None):
+        """Move Devices from one DeviceClass to Another"""
+        deviceNames = [ x.split('/')[-1] for x in deviceNames ]
         return self.dmd.Devices.moveDevices(moveTarget, deviceNames, REQUEST)
 
 
@@ -236,9 +242,13 @@ class DeviceOrganizer(Organizer, DeviceManagerBase, Commandable, ZenMenuable,
             return self.callZenScreen(REQUEST)
         for dev in self._buildDeviceList(deviceNames):
             dev.setStatusMonitors(statusMonitors)
-        if REQUEST: 
-            REQUEST['message'] = "Status monitor set to %s" % (
-                                    statusMonitors)
+        if REQUEST:
+            if len(statusMonitors) == 1:
+                 REQUEST['message'] = "Status monitor set to %s" % statusMonitors
+            elif len(statusMonitors) > 1:
+                REQUEST['message'] = "Status monitor set to %s" % ", ".join(statusMonitors)
+            else:
+                REQUEST['message'] = "Status monitor unset"
             if REQUEST.has_key('oneKeyValueSoInstanceIsntEmptyAndEvalToFalse'):
                 return REQUEST['message']
             else:
@@ -273,8 +283,13 @@ class DeviceOrganizer(Organizer, DeviceManagerBase, Commandable, ZenMenuable,
         if not groupPaths: groupPaths = []
         for dev in self._buildDeviceList(deviceNames):
             dev.setGroups(groupPaths)
-        if REQUEST: 
-            REQUEST['message'] = "Groups set to %s" % ", ".join(groupPaths)
+        if REQUEST:
+            if len(groupPaths) == 1:
+                 REQUEST['message'] = "Groups set to %s" % groupPaths
+            elif len(groupPaths) > 1:
+                REQUEST['message'] = "Groups set to %s" % ", ".join(groupPaths)
+            else:
+                REQUEST['message'] = "Groups unset"
             if REQUEST.has_key('oneKeyValueSoInstanceIsntEmptyAndEvalToFalse'):
                 return REQUEST['message']
             else:
@@ -290,8 +305,13 @@ class DeviceOrganizer(Organizer, DeviceManagerBase, Commandable, ZenMenuable,
         if not systemPaths: systemPaths = []
         for dev in self._buildDeviceList(deviceNames):
             dev.setSystems(systemPaths)
-        if REQUEST: 
-            REQUEST['message'] = "Systems set to %s" % ", ".join(systemPaths)
+        if REQUEST:
+            if len(systemPaths) == 1:
+                 REQUEST['message'] = "Systems set to %s" % systemPaths
+            elif len(systemPaths) > 1:
+                REQUEST['message'] = "Systems set to %s" % ", ".join(systemPaths)
+            else:
+                REQUEST['message'] = "Systems unset"
             if REQUEST.has_key('oneKeyValueSoInstanceIsntEmptyAndEvalToFalse'):
                 return REQUEST['message']
             else:

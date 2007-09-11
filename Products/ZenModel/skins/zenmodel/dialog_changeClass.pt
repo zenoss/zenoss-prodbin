@@ -8,7 +8,7 @@
 <p>
 <select name="moveTarget"
         tal:define="
-        dcs device/deviceMoveTargets;
+        dcs device/deviceClassMoveTargets;
         curdc device/getDeviceClassName">
     <option tal:repeat="dc dcs" 
         tal:attributes="value dc; selected python:dc==curdc"
@@ -17,7 +17,7 @@
 </p>
 <br/>
 <div id="dialog_buttons">
-<input type="submit" name="moveDevices:method"
+<input type="submit" name="moveDevicesToClass:method"
       value="OK" />  
 <input tal:attributes="id string:dialog_cancel;
         type string:button;
