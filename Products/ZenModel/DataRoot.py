@@ -517,6 +517,10 @@ class DataRoot(ZenModelRM, OrderedFolder, Commandable, ZenMenuable):
         cache = REQUEST._file.read()
         self.geocache = cache
 
+    security.declareProtected(ZEN_COMMON, 'getGeoCache')
+    def getGeoCache(self, REQUEST=None):
+        return
+
     def goToStatusPage(self, objid, REQUEST=None):
         """ Find a device or network and redirect 
             to its status page.
