@@ -437,7 +437,7 @@ class IpNetwork(DeviceOrganizer):
         from popen2 import Popen4
         for organizerName in organizerPaths:
             try:
-                organizer = orgroot.getOrganizer(organizerName)
+                organizer = orgroot._getNet(organizerName)
                 import os
                 zd = os.path.join(os.environ['ZENHOME'], 'bin', 'zendisc')
                 zendiscCmd = "%s run --net=%s" % (zd, organizer.id)
