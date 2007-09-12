@@ -27,16 +27,17 @@ class ZenManagerRole(Migrate.Step):
 
     def cutover(self, dmd):
         zport = dmd.zport
-        zport.__ac_roles__ += (ZEN_MANAGER_ROLE,)
+        if not ZEN_MANAGER_ROLE in zport.__ac_roles__:
+            zport.__ac_roles__ += (ZEN_MANAGER_ROLE,)
         rm = dmd.getPhysicalRoot().acl_users.roleManager
         if not ZEN_MANAGER_ROLE in rm.listRoleIds():
             rm.addRole(ZEN_MANAGER_ROLE)
         mp = zport.manage_permission
-        mp(ZEN_CHANGE_DEVICE, [ZEN_MANAGER_ROLE, OWNER_ROLE,MANAGER_ROLE,],     1)
-        mp(ZEN_MANAGE_DMD, [ZEN_MANAGER_ROLE, OWNER_ROLE,MANAGER_ROLE,],     1)
-        mp(ZEN_DELETE, [ZEN_MANAGER_ROLE, OWNER_ROLE,MANAGER_ROLE,],     1)
-        mp(ZEN_ADD, [ZEN_MANAGER_ROLE, OWNER_ROLE,MANAGER_ROLE,],     1)
-        mp(ZEN_VIEW, [ZEN_USER_ROLE,ZEN_MANAGER_ROLE,MANAGER_ROLE,OWNER_ROLE])
+        mp(ZEN_CHANGE_DEVICE, [ZEN_MANAGER_ROLE, OWNER_ROLE,MANAGER_ROLE,], 1)
+        mp(ZEN_MANAGE_DMD, [ZEN_MANAGER_ROLE, OWNER_ROLE,MANAGER_ROLE,], 1)
+        mp(ZEN_DELETE, [ZEN_MANAGER_ROLE, OWNER_ROLE,MANAGER_ROLE,], 1)
+        mp(ZEN_ADD, [ZEN_MANAGER_ROLE, OWNER_ROLE,MANAGER_ROLE,], 1)
+        mp(ZEN_VIEW, [ZEN_USER_ROLE,ZEN_MANAGER_ROLE,MANAGER_ROLE,OWNER_ROLE], 1)
         mp(ZEN_VIEW_HISTORY, [ZEN_USER_ROLE, ZEN_MANAGER_ROLE, MANAGER_ROLE,], 1)
         mp(ZEN_COMMON,[ZEN_USER_ROLE, ZEN_MANAGER_ROLE, MANAGER_ROLE, OWNER_ROLE], 1)
         mp(ZEN_CHANGE_SETTINGS, [ZEN_MANAGER_ROLE, MANAGER_ROLE, OWNER_ROLE], 1)
