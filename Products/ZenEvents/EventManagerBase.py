@@ -44,7 +44,7 @@ from EventCommand import EventCommand
 from Exceptions import *
 
 from Products.ZenModel.ZenModelRM import ZenModelRM
-from Products.ZenModel.ZenossSecurity import ZEN_COMMON
+from Products.ZenModel.ZenossSecurity import ZEN_COMMON, ZEN_VIEW
 from Products.ZenRelations.RelSchema import *
 from Products.ZenUtils import Time
 from Products.ZenUtils.FakeRequest import FakeRequest
@@ -893,7 +893,7 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
         return startdate, enddate
     
    
-    security.declareProtected('View','getDashboardInfo')
+    security.declareProtected(ZEN_COMMON,'getDashboardInfo')
     def getDashboardInfo(self, simple=False, organizer='Devices', REQUEST=None):
         """Return a dictionary that has all info for the dashboard.
         """
@@ -923,9 +923,9 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
         for devname in devices:
             dev = devclass.findDevice(devname)
             if dev:
-                if dev.productionState < self.prodStateDashboardThresh:
-                    continue
-                if dev.priority < self.priorityDashboardThresh:
+                if (not self.checkRemotePerm(ZEN_VIEW, dev)
+                    or dev.productionState < self.prodStateDashboardThresh
+                    or dev.priority < self.priorityDashboardThresh):
                     continue
                 if simple:
                     alink = devname
@@ -934,6 +934,8 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
                         dev.getPrimaryUrlPath()+"/viewEvents", dev.id )
                 owners = ", ".join(dev.getEventOwnerList(severity=4))
                 evtsum = dev.getEventSummary(severity=4)
+            elif self.isRestricted():
+                continue
             else:
                 # handle event from device that isn't in dmd
                 alink = devname
