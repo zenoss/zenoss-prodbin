@@ -1,6 +1,58 @@
 <tal:block metal:use-macro="here/templates/macros/page2">
-<tal:block metal:fill-slot="contentPane">
+    
+<tal:block metal:fill-slot="head-local" 
+            tal:condition="not: exists: here/template">
+<script type="text/javascript">
+    
+    function updateSelect(widget, options) {
+        for (var i = widget.length; i < options.length; i++) {
+            widget.options[i] = new Option(options[i],options[i], false, false);
+        }
+    }
 
+    function getDpList(e) {
+        var filter = document.getElementById('dpFilter');
+        var widget = document.getElementById('dpNames');
+        var url = '/zport/dmd/Devices/jsonGetDataPointNames'
+        var d = loadJSONDoc(url, {'query': filter.value});
+        widget.options.length = 0;
+        d.addBoth(updateSelect, widget);
+    }
+
+    function handleDpKeys(e) {
+        keyString = String.fromCharCode(e.which)
+        //keyString = e.key().string;
+        if (keyString == 'KEY_ENTER') {
+            getDpList(e);
+        }
+    }
+
+    function connectFilter() {
+        alert('connecting');
+        connect('dpFilter', 'onkeydown', handleDpKeys);
+        connect('dpFilterBtn', 'onclick', getDpList);
+    }
+    
+    function initStuff() {
+        alert("init stuff");
+    }
+    
+    function showDPDialog() {
+    }
+
+    //addLoadEvent(connectFilter);
+    //addLoadEvent(getDpList);
+    
+    //connectFilter();
+    //getDpList();
+    //alert('yo');
+    
+</script>
+</tal:block>
+
+    
+    
+<tal:block metal:fill-slot="contentPane">
 
 <form tal:attributes="method string:post;
                 action here/absolute_url_path;

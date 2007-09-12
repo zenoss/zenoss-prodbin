@@ -262,23 +262,19 @@ class RRDTemplate(ZenModelRM, ZenPackable):
 
 
     security.declareProtected('Manage DMD', 'manage_addGraphDefinition')
-    def manage_addGraphDefinition(self, id="", REQUEST=None):
+    def manage_addGraphDefinition(self, new_id, REQUEST=None):
         """Add a GraphDefinition to our RRDTemplate.
         """
         from GraphDefinition import GraphDefinition
         graphs = self.getGraphDefs()
         graph = None
-        if id:
-            graph = GraphDefinition(id)
-            graph.sequence = len(self.graphDefs())
-            self.graphDefs._setObject(graph.id, graph)
+        graph = GraphDefinition(new_id)
+        graph.sequence = len(self.graphDefs())
+        self.graphDefs._setObject(graph.id, graph)
         if REQUEST:
-            if graph:
-                REQUEST['message'] = 'Graph %s added' % graph.id
-                url = '%s/graphDefs/%s' % (self.getPrimaryUrlPath(), graph.id)
-                REQUEST['RESPONSE'].redirect(url)
-            else:
-                return self.callZenScreen(REQUEST)
+            REQUEST['message'] = 'Graph %s added' % graph.id
+            url = '%s/graphDefs/%s' % (self.getPrimaryUrlPath(), graph.id)
+            REQUEST['RESPONSE'].redirect(url)
         return graph
         
 

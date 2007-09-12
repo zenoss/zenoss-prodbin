@@ -28,7 +28,7 @@
         var d = loadJSONDoc(url, {'deviceId': deviceWidget.value});
         compWidget.options.length = 0;
         d.addBoth(updateSelect, compWidget);
-        getGraphList()
+        getThirdList()
     }
 
     function handleDeviceKeys(e) {
@@ -51,7 +51,7 @@
 </tal:block>
 
 <script type="text/javascript">
-    function getGraphList() {
+    function getThirdList() {
         var deviceWidget = document.getElementById('deviceId');
         var compWidget = document.getElementById('componentPath');
         var graphWidget = document.getElementById('graphIds');
@@ -143,7 +143,7 @@
 </form>
 <br />
 
-<form method="get" id="addGraphForm"
+<form method="POST" id="addGraphForm"
     tal:condition="here/isManager"
     tal:attributes="action string:${here/absolute_url_path}"
     tal:define="curDevice request/deviceId | nothing;
@@ -161,7 +161,7 @@
         
     <tal:block metal:define-macro="componentSelector">
     <tr>
-        <td class="tableheader">Device</td>
+        <td class="tableheader" width="100" >Device</td>
         <td class="tablevalues">
             <input class="tablevalues" type="text" name="deviceFilter"
                  id="deviceFilter" size="20" />
@@ -169,7 +169,7 @@
                 id="filterButton" name="filter" />
             <br />
             <select class="tablevalues" name="deviceId" id="deviceId" size="8"
-                onChange="getComponentList(); getGraphList()">
+                onChange="getComponentList(); getThirdList()">
             </select>
         </td>
 	
@@ -179,7 +179,7 @@
         <td class="tablevalues">
             <select class="tablevalues" name="componentPath" size="6"
                 id="componentPath"
-                onChange="getGraphList()">
+                onChange="getThirdList()">
             </select>
         </td>
     </tr>

@@ -92,7 +92,24 @@ class ZenModelBase(object):
             return True
         except:
             return str(sys.exc_info()[1])
-        
+
+
+    def getUnusedId(self, relName, baseKey, extensionIter=None):
+        ''' Return a new id that is not already in use in the relationship.
+        If baseKey is not already in use, return that.  Otherwise append values
+        from extensionIter to baseKey until an used key is found.  The default
+        extensionIter appends integers starting with 2 and counting up.
+        '''
+        import itertools
+        if extensionIter is None:
+            extensionIter = itertools.count(2)
+        rel = getattr(self, relName)
+        candidate = baseKey
+        while candidate in rel.objectIds():
+            candidate = self.prepId('%s%s' % (baseKey, extensionIter.next()))
+        return candidate
+
+
     def getIdLink(self):
         """Return an A link to this object with its id as the name.
         """

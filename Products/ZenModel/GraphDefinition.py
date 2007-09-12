@@ -82,6 +82,8 @@ class GraphDefinition(ZenModelRM, ZenPackable):
     _relations =  (
         ("rrdTemplate", 
             ToOne(ToManyCont,"Products.ZenModel.RRDTemplate", "graphDefs")),
+        ('reportClass',
+            ToOne(ToManyCont, 'Products.ZenModel.FancyReport', 'graphDefs')),
         ('graphPoints', 
             ToManyCont(ToOne, 'Products.ZenModel.GraphPoint', 'graphDef')),
         )
@@ -169,9 +171,11 @@ class GraphDefinition(ZenModelRM, ZenPackable):
         """Return the breadcrumb links for this object add ActionRules list.
         [('url','id'), ...]
         """
-        from RRDTemplate import crumbspath
-        crumbs = super(GraphDefinition, self).breadCrumbs(terminator)
-        return crumbspath(self.rrdTemplate(), crumbs, -2)
+        if self.rrdTemplate():
+            from RRDTemplate import crumbspath
+            crumbs = super(GraphDefinition, self).breadCrumbs(terminator)
+            return crumbspath(self.rrdTemplate(), crumbs, -2)
+        return ZenModelRM.breadCrumbs(self, terminator)
         
 
     def checkValidId(self, id, prep_id = False):
@@ -252,7 +256,8 @@ class GraphDefinition(ZenModelRM, ZenPackable):
         cls = eval('%s.%s' % (flavor, flavor))
         gp = self.createGraphPoint(cls, new_id)
         if REQUEST:
-            REQUEST['message'] = '%s GraphPoint Added' % gp.getType()
+            url = '%s/graphPoints/%s' % (self.getPrimaryUrlPath(), gp.id)
+            REQUEST['RESPONSE'].redirect(url)
             return self.callZenScreen(REQUEST)
         return gp
 
@@ -265,9 +270,8 @@ class GraphDefinition(ZenModelRM, ZenPackable):
         from ThresholdGraphPoint import ThresholdGraphPoint
         newGps = []
         for dpName in dpNames:
-            dp = self.rrdTemplate().getRRDDataPoint(dpName)
-            gp = self.createGraphPoint(DataPointGraphPoint, dp.name())
-            gp.dpName = dp.name()
+            gp = self.createGraphPoint(DataPointGraphPoint, dpName)
+            gp.dpName = dpName
             newGps.append(gp)
         if includeThresholds:
             for dpName in dpNames:

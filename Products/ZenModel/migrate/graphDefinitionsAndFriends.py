@@ -14,6 +14,7 @@
 
 import Migrate
 from Products.ZenModel.GraphDefinition import GraphDefinition
+from Products.ZenModel.ConfigurationError import ConfigurationError
 
 class GraphDefinitionsAndFriends(Migrate.Step):
     version = Migrate.Version(2, 1, 0)
@@ -71,7 +72,8 @@ class GraphDefinitionsAndFriends(Migrate.Step):
         # RRDTemplate.graphDefs needs to be built
         numTemplates = 0
         numGraphs = 0
-        numDataPoints = 0
+        numDataPointsFound = 0
+        numDataPointsMissing = 0
         for template in dmd.Devices.getAllRRDTemplates():
             template.buildRelations()
                         
@@ -96,29 +98,36 @@ class GraphDefinitionsAndFriends(Migrate.Step):
                 graphDef.custom = rrdGraph.custom
                 isFirst = True
                 for dsName in rrdGraph.dsnames:
-                    dp = template.getRRDDataPoint(dsName)
+                    try:
+                        dp = template.getRRDDataPoint(dsName)
+                        numDataPointsFound += 1
+                    except ConfigurationError:
+                        dp = None
+                        numDataPointsMissing += 1
                     includeThresholds = not graphDef.custom                     
                     gp = graphDef.manage_addDataPointGraphPoints(
-                                        [dsName], includeThresholds)[0]                    
-                    gp.color = dp.color
-                    if graphDef.custom:
-                        gp.lineType = ''
-                    else:
-                        gp.lineType = dp.linetype or \
-                                        (isFirst and 'AREA') or 'LINE'
-                    gp.stacked = dp.linetype != 'LINE'
-                    gp.format = dp.format
-                    gp.limit = dp.limit
-                    gp.rpn = dp.rpn
+                                        [dsName], includeThresholds)
+                    if dp:
+                        gp.color = dp.color
+                        if graphDef.custom:
+                            gp.lineType = ''
+                        else:
+                            gp.lineType = dp.linetype or \
+                                            (isFirst and 'AREA') or 'LINE'
+                        gp.stacked = dp.linetype != 'LINE'
+                        gp.format = dp.format
+                        gp.limit = dp.limit
+                        gp.rpn = dp.rpn
                     isFirst = False
-                    numDataPoints += 1
             # Remove the rrdGraphs
             # Keep them for now, remove in 2.2
             #for graphId in template.graphs.objectIds():
             #    template.graphs._delObject(graphId)
             
-        print('processed %s templates, %s graphs, %s datapoints' % 
-                (numTemplates, numGraphs, numDataPoints))
+        print('processed %s templates, %s graphs, %s datapoints found, '
+                '%s datapoints missing' % 
+                (numTemplates, numGraphs, 
+                numDataPointsFound, numDataPointsMissing))
                 
 
 GraphDefinitionsAndFriends()

@@ -19,6 +19,7 @@ Collection is a grouping of devices and components.
 
 from AccessControl import Permissions
 from Globals import InitializeClass
+from AccessControl import ClassSecurityInfo, Permissions
 from Globals import DTMLFile
 from Products.ZenRelations.RelSchema import *
 from ZenModelRM import ZenModelRM
@@ -37,7 +38,7 @@ addCollection = DTMLFile('dtml/addCollection',globals())
 
 
 class Collection(ZenModelRM):
-    '''
+    ''' Holds an assortment of devices and/or components.
     '''
     
     meta_type = 'Collection'
@@ -46,10 +47,10 @@ class Collection(ZenModelRM):
         )
 
     _relations =  (
-        ('graphGroups', 
-            ToMany(ToMany,'Products.ZenModel.GraphGroup', 'collection')),
+        ('report',
+            ToOne(ToManyCont, 'Products.ZenModel.FancyReport', 'collections')),
         ('items',
-            ToMany(ToOne, 'Products.ZenModel.CollectionItem', 'collection')),
+            ToManyCont(ToOne, 'Products.ZenModel.CollectionItem', 'collection')),
         )
 
     factory_type_information = ( 
@@ -66,21 +67,80 @@ class Collection(ZenModelRM):
     },
     )
     
-    def manage_addCollectionItem(self, new_id, deviceId, compPath, 
-                                                    REQUEST=None):
+    security = ClassSecurityInfo()
+
+    security.declareProtected('Manage DMD', 'manage_addCollectionItem')
+    def manage_addCollectionItem(self, itemType,
+            deviceId='', compPath='', deviceClass='', system='',
+            group='', location='', recurse=False, REQUEST=None):
         ''' Create a new CollectionItem and add to this collection
         '''
         from CollectionItem import CollectionItem
-        item = CollectionItem(new_id, deviceId, compPath, len(self.items))
-        self.items._setObject(item.id, item)
+        ci = CollectionItem(self.getUnusedId('items', 'Item'))
+        if itemType == 'deviceClass':
+            ci.deviceOrganizer = '/Devices' + deviceClass
+        elif itemType == 'system':
+            ci.deviceOrganizer = '/Systems' + system
+        elif itemType == 'group':
+            ci.deviceOrganizer = '/Groups' + group
+        elif itemType == 'location':
+            ci.deviceOrganizer = '/Locations' + location
+        elif itemType == 'devcomp':
+            ci.deviceId = deviceId
+            ci.compPath = compPath
+            
+        if ci.deviceOrganizer:
+            ci.recurse = recurse
+        ci.sequence = len(self.items())
+        
+        self.items._setObject(ci.id, ci)
         if REQUEST:
             REQUEST['message'] = 'Item added'
-            self.callZenScreen(REQUEST)
+            return self.callZenScreen(REQUEST)
         return item
+
+
+    security.declareProtected('Manage DMD', 'manage_deleteCollectionItems')
+    def manage_deleteCollectionItems(self, ids=(), REQUEST=None):
+        ''' Delete collection items from this report
+        '''
+        for id in ids:
+            self.items._delObject(id)
+        #self.manage_resequenceCollectionItems()
+        if REQUEST:
+            REQUEST['message'] = 'Item%s deleted' % len(ids) > 1 and 's' or ''
+            return self.callZenScreen(REQUEST)
+
+
+    security.declareProtected('Manage DMD', 'manage_resequenceCollectionItems')
+    def manage_resequenceCollectionItems(self, seqmap=(), origseq=(), 
+                                                                REQUEST=None):
+        """Reorder the sequence of the items.
+        """
+        from Products.ZenUtils.Utils import resequence
+        return resequence(self, self.items(), seqmap, origseq, REQUEST)
+
+
+    security.declareProtected('Manage DMD', 'getItems')
+    def getItems(self):
+        ''' Return an ordered list of CollectionItems
+        '''
+        import sys
+        def cmpItems(a, b):
+            try: a = int(a.sequence)
+            except ValueError: a = sys.maxint
+            try: b = int(b.sequence)
+            except ValueError: b = sys.maxint
+            return cmp(a, b)
+        items =  self.items()[:]
+        items.sort(cmpItems)
+        return items
+        
 
     def getNumItems(self):
         ''' Return the number of collection items
         '''
         return len(self.items())
+
         
 InitializeClass(Collection)

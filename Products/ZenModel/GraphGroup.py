@@ -20,6 +20,7 @@ that form part of an UberReport.
 
 from AccessControl import Permissions
 from Globals import InitializeClass
+from AccessControl import ClassSecurityInfo
 from Products.ZenRelations.RelSchema import *
 from ZenModelRM import ZenModelRM
 
@@ -38,51 +39,76 @@ class GraphGroup(ZenModelRM):
     meta_type = 'GraphGroup'
    
     sequence = 0
+    collectionId = ''
+    graphDefId = ''
 
     _properties = (
         {'id':'sequence', 'type':'long', 'mode':'w'},
+        {'id':'collectionId', 'type':'string', 'mode':'w'},
+        {'id':'graphDefId', 'type':'string', 'mode':'w'},        
         )
 
     _relations =  (
         ('report', 
             ToOne(ToMany, 'Products.ZenModel.FancyReport', 'graphGroups')),
-        ('collection', 
-            ToOne(ToMany, 'Products.ZenModel.Collection', 'graphGroups')),
-        ('graphDef',
-            ToOne(ToMany, 'Products.ZenModel.GraphDefinition', 'graphGroups')),
         )
 
     factory_type_information = ( 
     { 
-        'immediate_view' : 'editCollection',
+        'immediate_view' : 'editGraphGroup',
         'actions'        :
         ( 
             { 'id'            : 'edit'
-            , 'name'          : 'Collection'
-            , 'action'        : 'editCollection'
+            , 'name'          : 'Graph Group'
+            , 'action'        : 'editGraphGroup'
             , 'permissions'   : ( Permissions.view, )
             },
         )
     },
     )
-    
-    def getCollectionName(self):
-        ''' Return the name of the collection
-        '''
-        if self.collection():
-            return self.collection().id
-        return ''
 
+    security = ClassSecurityInfo()
 
-    def getGraphDefinitionName(self):
-        ''' Return the name of the graphdef
-        '''
-        if self.graphDef():
-            return self.graphDef().id
-        return ''
-
-
+    def __init__(self, newId, collectionId='', graphDefId='', sequence=0,
+                                            title=None, buildRelations=True):
+        ZenModelRM.__init__(self, newId, title, buildRelations)
+        self.collectionId = collectionId
+        self.graphDefId = graphDefId
+        self.sequence = sequence
 
         
+    # security.declareProtected('Manage DMD', 'manage_chooseCollection')
+    # def manage_chooseCollection(self, collectionId, REQUEST):
+    #     ''' Set the collection or create a new one with the given id
+    #     '''
+    #     if collectionId in self.collections.objectIds():
+    #         self.collectionId = collectionId
+    #         REQUEST['RESPONSE'].redirect('%s/chooseGraphDef'
+    #             % self.getPrimaryUrlPath())
+    #     else:
+    #         from Collection import Collection
+    #         newId = self.getUniqueId('collections', collectionId)
+    #         col = Collection(newId)
+    #         self.collections._setObject(col.id, col)
+    #         REQUEST['RESPONSE'].redirect('%s/createCollection'
+    #             % self.getPrimaryUrlPath())
+
+    def getNewGraphDefUrl(self):
+        ''' Get the url for creating a new graph definition
+        '''
+        return ''
+
+
+    def getCollection(self):
+        ''' Return the referenced collection or None if it doesn't exist
+        '''
+        return getattr(self.collections, self.collectionId, None)
+
+
+    def getGraphDef(self):
+        ''' Return the referenced graphDef or None if it doesn't exist
+        '''
+        return getattr(self.graphDefs, self.graphDefId, None)
+
 
 InitializeClass(GraphGroup)

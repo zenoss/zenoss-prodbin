@@ -1,0 +1,12 @@
+<h2>Delete Collection:</h2>
+<table>
+<tr><td>Are you sure you want to delete the selected collection(s)?</td></tr>
+</table>
+<br>
+<div align="center">
+<input type="submit" name="manage_deleteCollections:method"
+   value="Delete"
+   tal:attributes="onclick string:return $$('dialog').submit_form('', 'collectionsForm')" />
+<input id="dialog_cancel" type="button" value="Cancel" 
+       onclick="$('dialog').hide()"/>
+</div>

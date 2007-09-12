@@ -3,7 +3,7 @@
 <br/>
 <p style="text-align:right;">
 <span id="new_id_label">ID:&nbsp;</span>
-<input id="new_id" name="id">
+<input id="new_id" name="new_id">
 <input type="hidden" id="checkValidIdPath" 
         tal:attributes="value here/absolute_url_path"><br/>
 </p>

@@ -36,6 +36,8 @@ class FancyReport(ZenModelRM):
     )
 
     _relations =  (
+        ('collections', 
+            ToManyCont(ToOne, 'Products.ZenModel.Collection', 'report')),
         ("graphGroups", 
             ToManyCont(ToOne,"Products.ZenModel.GraphGroup", "report")),
         )
@@ -60,24 +62,20 @@ class FancyReport(ZenModelRM):
     security = ClassSecurityInfo()
 
 
+    ### Graph Groups
+    
     security.declareProtected('Manage DMD', 'manage_addGraphGroup')
-    def manage_addGraphGroup(self, collectionId, graphDefId, REQUEST=None):
+    def manage_addGraphGroup(self, new_id, collectionId='', graphDefId='',
+                                                                REQUEST=None):
         ''' Add a new graph group
         '''
-        def GetId(root):
-            i = 2
-            while candidate in self.graphGroups.objectIds():
-                candidate = self.prepId('%s-%s' % (root, i))
-                i += 1
-            return candidate
         from GraphGroup import GraphGroup
-        newId = GetId('%s - %s' % (collectionId, graphDefId))
-        gg = GraphGroup(newId, collectionId, graphDefId)
-        gg.sequence = len(self.graphGroups())
+        gg = GraphGroup(new_id, collectionId, graphDefId, 
+                                            len(self.graphGroups()))
         self.graphGroups._setObject(gg.id, gg)
         if REQUEST:
-            REQUEST['RESPONSE'].redirect(gg.absolute_url())
-            return self.callZenScreen(REQUEST)
+            REQUEST['RESPONSE'].redirect(
+                '%s/graphGroups/%s' % (self.getPrimaryUrlPath(), gg.id))
         return gg
 
 
@@ -109,28 +107,43 @@ class FancyReport(ZenModelRM):
         groups = [g for g in self.graphGroups()]
         groups.sort(cmpGroups)
         return groups
-        
-        
+    
+    ### Collections
+
     security.declareProtected('Manage DMD', 'getCollections')
     def getCollections(self):
         ''' Return an alpha ordered list of available collections
         '''
         def cmpCollections(a, b):
             return cmp(a.id, b.id)
-        collections = [c for c in self.collections.objectValues()]
+        collections = self.collections()[:]
         collections.sort(cmpCollections)
         return collections
         
-        
-    security.declareProtected('Manage DMD', 'getGraphDefs')
-    def getGraphDefs(self):
-        ''' Return an alpha ordered list of available graphDefs
+
+    security.declareProtected('Manage DMD', 'manage_addCollection')
+    def manage_addCollection(self, new_id, REQUEST=None):
+        """Add a collection
+        """
+        from Collection import Collection
+        col = Collection(new_id)
+        self.collections._setObject(col.id, col)
+        if REQUEST:
+            url = '%s/collections/%s' % (self.getPrimaryUrlPath(), new_id)
+            REQUEST['RESPONSE'].redirect(url)
+        return col
+
+    security.declareProtected('Manage DMD', 'manage_deleteCollections')
+    def manage_deleteCollections(self, ids=(), REQUEST=None):
+        ''' Delete collections from this report
         '''
-        def cmpGraphDefs(a, b):
-            return cmp(a.id, b.id)
-        gdefs = [gd for fd in self.graphDefs.objectValues()]
-        gdefs.sort(cmpGraphDefs)
-        return gdefs
+        for id in ids:
+            self.collections._delObject(id)
+        if REQUEST:
+            REQUEST['message'] = 'Collection%s deleted' % len(ids) > 1 and 's' or ''
+            return self.callZenScreen(REQUEST)
+
+
 
 
 InitializeClass(FancyReport)

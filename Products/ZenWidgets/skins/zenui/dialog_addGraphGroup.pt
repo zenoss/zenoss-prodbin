@@ -1,30 +1,17 @@
-<h2>Add Group:</h2>
+<h2>Add a New Graph Group:</h2>
 <span id="errmsg" style="color:red;"></span>
 <br/>
 <p style="text-align:right;">
-Collections<br />
-<select name="collection"
-    tal:define="collections here/getCollections">
-    <option tal:repeat="col collections"
-        tal:attributes="value col/id"
-        tal:content="col/id"></option>
-</select>
-<br />
-Graph Definitions
-
-
-Type:&nbsp;<select name='dsOption'>
-        <option tal:repeat="option here/getDataSourceOptions"
-                tal:attributes="value python: option[1]" 
-                tal:content="python: option[0]" />
-</select>
+<span id="new_id_label">ID:&nbsp;</span>
+<input id="new_id" name="new_id">
+<input type="hidden" id="checkValidIdPath" 
+        tal:attributes="value here/absolute_url_path"><br/>
 </p>
-<br>
 <div align="center">
 <input tal:attributes="id string:dialog_submit;
         type string:submit;
         value string:OK;
-        onclick string:return $$('dialog').submit_form('', 'graphGroupList')"
+        onclick string:return $$('dialog').submit_form_and_check('', 'graphGroupForm')"
                         name="manage_addGraphGroup:method" />
 <input tal:attributes="id string:dialog_cancel;
                         type string:button;

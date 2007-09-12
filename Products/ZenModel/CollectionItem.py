@@ -50,11 +50,15 @@ class CollectionItem(ZenModelRM):
     sequence = 0
     deviceId = ''
     compPath = ''
+    deviceOrganizer = ''
+    recurse = False
     
     _properties = (
         {'id':'sequence', 'type':'long', 'mode':'w'},
         {'id':'deviceId', 'type':'string', 'mode':'w'},
         {'id':'compPath', 'type':'string', 'mode':'w'},
+        {'id':'deviceOrganizer', 'type':'string', 'mode':'w'},
+        {'id':'recurse', 'type':'boolean', 'mode':'w'},
         )
 
     _relations = ZenPackable._relations + (
@@ -75,24 +79,66 @@ class CollectionItem(ZenModelRM):
         },
     )
 
+    security = ClassSecurityInfo()
 
-    def __init__(self, id, deviceId, compPath, sequence, 
-                                            title=None, buildRelations=True):
+    def __init__(self, id, deviceId='', compPath='', deviceOrganizer='',
+                    recurse=False, sequence=0, title=None, buildRelations=True):
         ZenModelRM.__init__(self, id, title, buildRelations)
         self.deviceId = deviceId
         self.compPath = compPath
+        self.deviceOrganizer = deviceOrganizer
+        self.recurse = recurse
         self.sequence = sequence
 
 
-    def getDevice(self):
-        return self.dmd.Devices.findDevice(self.deviceId)
+    def getDesc(self):
+        ''' Return a string that represents this item
+        '''
+        if self.deviceId:
+            desc = self.deviceId
+            if self.compPath:
+                desc += '/%s' % self.compPath
+        elif self.deviceOrganizer:
+            desc = self.deviceOrganizer
+            if self.recurse:
+                desc += ' and suborganizers'
+        else:
+            desc = ''
+        return desc
 
 
-    def getComponent(self):
-        component = self.getDevice()
-        for part in self.compPath.split('/'):
-            if part:
-                component = getattr(component, part)
-        return component
+    def getDevicesAndComponents(self):
+        ''' Return a list of the devices and components referenced by this item
+        '''
+        stuff = []
+        if self.deviceId:
+            comp = self.dmd.Devices.findDevice(self.deviceId)
+            if comp and self.compPath:
+                for part in self.compPath.split('/'):
+                    if part:
+                        comp = getattr(comp, part, None)
+                        if not comp:
+                            break
+            if comp:
+                stuff = [comp]
+        elif self.deviceOrganizer:
+            try:
+                org = self.dmd.getObjByPath(self.deviceOrganizer.lstrip('/'))
+                if self.recurse:
+                    stuff = org.getSubDevices()
+                else:
+                    stuff = org.devices()
+            except KeyError:
+                pass
+        return stuff
+
+
+    def getNumDevicesAndComponents(self):
+        ''' Return the number of devices and components matched by this item
+        '''
+        things = self.getDevicesAndComponents()
+        return len(things)
+        
+        
 
 InitializeClass(CollectionItem)

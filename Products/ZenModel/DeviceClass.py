@@ -453,6 +453,22 @@ class DeviceClass(DeviceOrganizer, ZenPackable):
         return simplejson.dumps(graphIds)
 
 
+    security.declareProtected('View', 'jsonGetDataPointNames')
+    def jsonGetDataPointNames(self, pattern=''):
+        ''' Get a list of all datapoints from all templates that
+        match the filter.
+        '''
+        dps = []
+        for t in self.getAllRRDTemplates():
+            for ds in t.datasources():
+                dps += ds.datapoints()
+        matching = [dp.getPrimaryId()
+                    for dp in dps
+                    if not pattern
+                    or -1 < dp.getPrimaryId().find(pattern)]
+        return simplejson.dumps(matching)
+
+
     def findDevicePingStatus(self, devicename):
         """look up device in catalog and return its pingStatus"""
         dev = self.findDevice(devicename)

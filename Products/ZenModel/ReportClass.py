@@ -31,6 +31,7 @@ from Products.PageTemplates.PageTemplateFile import PageTemplateFile
 from Organizer import Organizer
 from Report import Report
 from ZenPackable import ZenPackable
+from Products.ZenRelations.RelSchema import *
 
 def manage_addReportClass(context, id, title = None, REQUEST = None):
     """make a device class"""
@@ -50,7 +51,11 @@ class ReportClass(Organizer, ZenPackable):
     sub_meta_types = ("ReportClass", "Report", 'DeviceReport', 'GraphReport',
                         'FancyReport')
 
-    _relations = Organizer._relations + ZenPackable._relations
+    _relations = Organizer._relations + ZenPackable._relations + (
+        ('graphDefs', 
+            ToManyCont(ToOne, 'Products.ZenModel.GraphDefinition', 'reportClass')),
+        )
+
     
     # Screen action bindings (and tab definitions)
     factory_type_information = ( 
@@ -124,13 +129,13 @@ class ReportClass(Organizer, ZenPackable):
     def manage_addFancyReport(self, id, REQUEST=None):
         """Add an fancy report to this object.
         """
-        if id:
-            from Products.ZenModel.FancyReport import FancyReport
-            fr = FancyReport(id)
-            self._setObject(id, fr)
+        from Products.ZenModel.FancyReport import FancyReport
+        fr = FancyReport(id)
+        self._setObject(id, fr)
         if REQUEST:
-            REQUEST['message'] = "Fancy report created"
-            return self.callZenScreen(REQUEST)
+            url = '%s/%s' % (self.getPrimaryUrlPath(), id)
+            REQUEST['RESPONSE'].redirect(url)
+        return fr
 
     
     def moveReports(self, moveTarget, ids=None, REQUEST=None):
@@ -157,5 +162,49 @@ class ReportClass(Organizer, ZenPackable):
             if hasattr(aq_base(o), 'exportXml'):
                 o.exportXml(ofile, ignorerels)
      
+    ### Graph Definitions
+         
+    security.declareProtected('Manage DMD', 'getGraphDefs')
+    def getGraphDefs(self):
+        ''' Return an ordered list of the graph definitions
+        '''
+        def cmpGraphDefs(a, b):
+            try: a = int(a.sequence)
+            except ValueError: a = sys.maxint
+            try: b = int(b.sequence)
+            except ValueError: b = sys.maxint
+            return cmp(a, b)
+        graphDefs =  self.graphDefs()[:]
+        graphDefs.sort(cmpGraphDefs)
+        return graphDefs
+
+
+    security.declareProtected('Manage DMD', 'manage_addGraphDefinition')
+    def manage_addGraphDefinition(self, new_id, REQUEST=None):
+        """Add a GraphDefinition 
+        """
+        from GraphDefinition import GraphDefinition
+        graph = GraphDefinition(new_id)
+        self.graphDefs._setObject(graph.id, graph)
+        if REQUEST:
+            url = '%s/graphDefs/%s' % (self.getPrimaryUrlPath(), graph.id)
+            REQUEST['RESPONSE'].redirect(url)
+        return graph
+        
+
+    security.declareProtected('Manage DMD', 'manage_deleteGraphDefinitions')
+    def manage_deleteGraphDefinitions(self, ids=(), REQUEST=None):
+        """Remove GraphDefinitions 
+        """
+        for id in ids:
+            self.graphDefs._delObject(id)
+            self.manage_resequenceGraphDefs()
+        if REQUEST:
+            if len(ids) == 1:
+                REQUEST['message'] = 'Graph %s deleted.' % ids[0]
+            elif len(ids) > 1:
+                REQUEST['message'] = 'Graphs %s deleted.' % ', '.join(ids)
+            return self.callZenScreen(REQUEST)
+
 
 InitializeClass(ReportClass)

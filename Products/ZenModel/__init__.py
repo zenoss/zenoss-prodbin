@@ -40,6 +40,8 @@ from Products.CMFCore.DirectoryView import registerDirectory
 confmon_globals = globals()
 
 productNames = (
+    "Collection",
+    "CollectionItem",
     "Classifier",
     "ClassifierEntry",
     "CPU",
@@ -50,6 +52,7 @@ productNames = (
     "DeviceHW",
     "DeviceReport",
     "ExpansionCard",
+    "FancyReport",
     "FileSystem",
     "GraphReport",
     "GraphReportElement",

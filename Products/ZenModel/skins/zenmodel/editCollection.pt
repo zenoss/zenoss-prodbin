@@ -1,7 +1,76 @@
 <tal:block metal:use-macro="here/templates/macros/page2">
 <tal:block metal:fill-slot="contentPane">
 
-<form method=post 
+<script type="text/javascript" src="/zport/js/MochiKit.js"></script>
+<script type="text/javascript">
+    
+    function updateSelect(widget, options) {
+        for (var i = widget.length; i < options.length; i++) {
+            widget.options[i] = new Option(options[i],options[i], false, false);
+        }
+    }
+    
+    function getDeviceList(e) {
+        var filter = document.getElementById('deviceFilter');
+        var widget = document.getElementById('deviceId');
+        var url = '/zport/dmd/Devices/jsonGetDeviceNames'
+        var d = loadJSONDoc(url, {'query': filter.value});
+        widget.options.length = 0;
+        d.addBoth(updateSelect, widget);
+        getComponentList();
+    }
+    
+    function getComponentList() {
+        var deviceWidget = document.getElementById('deviceId');
+        var compWidget = document.getElementById('componentPath');
+        var url = '/zport/dmd/Devices/jsonGetComponentPaths';
+        var d = loadJSONDoc(url, {'deviceId': deviceWidget.value});
+        compWidget.options.length = 0;
+        d.addBoth(updateSelect, compWidget);
+        getThirdList()
+    }
+
+    function handleDeviceKeys(e) {
+        keyString = e.key().string;
+        if (keyString == 'KEY_ENTER') {
+            // Populate the device list based on the filter
+            getDeviceList();
+        }
+    }
+    
+    function handleItemType(e) {
+        // show the appropriate controls for this type of collectionitem
+        // value of control is id of div to show
+        current = e.src().value;
+        
+        setDisplayForElement(current=='deviceClass' ? '':'none', 'deviceClass');
+        setDisplayForElement(current=='system' ? '':'none', 'system');
+        setDisplayForElement(current=='group' ? '':'none', 'group');
+        setDisplayForElement(current=='location' ? '':'none', 'location');
+        setDisplayForElement(current=='devcomp' ? '':'none', 'dev');
+        setDisplayForElement(current=='devcomp' ? '':'none', 'comp');
+        setDisplayForElement(current=='devcomp' ? 'none':'', 'recurse');
+    }
+    
+
+    function makeConnections() {
+        // This is what keeps the return/enter key in the device filter
+        // field from submitting the form.
+        $('addToCollectionForm').onsubmit = function() {return false;}
+    
+        connect('addToCollectionBtn', 'onclick',
+                $('addToCollectionForm'), 'submit');
+        connect('deviceFilter', 'onkeydown', handleDeviceKeys);
+        connect('filterButton', 'onclick', getDeviceList);
+        connect('itemType', 'onchange', handleItemType);
+    }
+
+    addLoadEvent(makeConnections);
+    
+</script>
+
+<form method="post"
+    id="editCollectionForm"
     tal:attributes="action string:${here/absolute_url_path}">
     <input type="hidden" name="zenScreenName" 
         tal:attributes="value template/id" /> 
@@ -25,7 +94,7 @@
         </td>
         <td class="tableheader" colspan="3">
             <input class="tableheader" type="submit" value=" Save "
-                name="zmanage_editProperties:method" />
+                name="zmanage_editProperties:method" id="saveCollectionBtn" />
         </td>
     </tr>
 
@@ -36,69 +105,182 @@
 </form>
 <br />
 
-<form tal:attributes="method string:post;
-                action here/absolute_url_path;
-                name string:graphPointList">
-<input type="hidden" name="zenScreenName" tal:attributes="value template/id"/>
 
+<form method="POST" id="addToCollectionForm"
+    tal:condition="here/isManager"
+    tal:attributes="action string:${here/absolute_url_path}">
+    <input type="hidden" name="zenScreenName" 
+        tal:attributes="value template/id" /> 
+        <tal:block tal:define="tabletitle string:Add To Collection">
+        <tal:block metal:use-macro="here/zenuimacros/macros/zentable">
+        <tal:block metal:fill-slot="zentablecontents">
+            
+    <tr>
+        <td class="tableheader" width="100">Item Type
+        </td>
+        <td class="tablevalue">
+            <select name="itemType" id="itemType">
+                <option value="deviceClass">Device Class</option>
+                <option value="system">System</option>
+                <option value="group">Group</option>
+                <option value="location">Location</option>
+                <option value="devcomp">Specific Device/Component</option>
+            </select>
+        </td>
+    </tr>
+    
+    <tr id="deviceClass" style="display: '';">
+        <td class="tableheader">
+            Device Class
+        </td>
+        <td class="tablevalue">
+            <select name="deviceClass">
+                <option tal:repeat="org here/Devices/getSubOrganizers"
+                    tal:attributes="value org/getOrganizerName"
+                    tal:content="org/getOrganizerName" />
+            </select>
+        <td>
+    </tr>
+    <tr id="system" style="display: none;">
+        <td class="tableheader">
+            System
+        </td>
+        <td class="tablevalue">
+            <select name="system">
+                <option tal:repeat="org here/Systems/getSubOrganizers"
+                    tal:attributes="value org/getOrganizerName"
+                    tal:content="org/getOrganizerName" />
+            </select>
+        </td>
+    </tr>
+    <tr id="group" style="display: none;">
+        <td class="tableheader">
+            Group
+        </td>
+        <td class="tablevalue">
+            <select name="group">
+                <option tal:repeat="org here/Groups/getSubOrganizers"
+                    tal:attributes="value org/getOrganizerName"
+                    tal:content="org/getOrganizerName" />
+            </select>
+        </td>
+    </tr>
+    <tr id="location" style="display: none;">
+        <td class="tableheader">
+            Location
+        </td>
+        <td class="tablevalue">
+            <select name="location">
+                <option tal:repeat="org here/Locations/getSubOrganizers"
+                    tal:attributes="value org/getOrganizerName"
+                    tal:content="org/getOrganizerName" />
+            </select>
+        </td>
+    </tr>
+    <tr id="recurse" style="display: '';">
+        <td class="tableheader">
+            Include Suborganizers?
+        </td>
+        <td class="tablevalue">
+            <select class="tablevalues" name="recurse:boolean">
+                <option tal:repeat="e python:(True,False)" tal:content="e"
+                        tal:attributes="value e;" />
+            </select>
+    </tr>
+    <tr id="dev" style="display: none;">
+        <td class="tableheader">
+            Device
+        </td>
+        <td class="tablevalue">
+            <input class="tablevalues" type="text" name="deviceFilter"
+                 id="deviceFilter" size="20" />
+            <input class="tableheader" type="button" value="Filter"
+                id="filterButton" name="filter" />
+            <br />
+            <select class="tablevalues" name="deviceId" id="deviceId" size="8">
+            </select><br />
+        </td>
+    </tr>
+    <tr id="comp" style="display: none;">
+        <td class="tableheader">
+            Component
+        </td>
+        <td class="tablevalue">
+            <select class="tablevalues" name="componentPath" size="6"
+                id="componentPath">
+            </select>
+        </td>
+    </tr>
 
-        <tal:block tal:define="tableName string:graphPointList; 
-        objects here/getGraphPoints;
+    <tr>
+        <td class="tableheader">
+        </td>
+        <td class="tableheader" colspan="3">
+            <input type="hidden" name="manage_addCollectionItem:method"
+                value="1" />
+            <input class="tableheader" type="button" 
+                value=" Add to Collection "
+                name="addToCollectionBtn"  id="addToCollectionBtn" />
+        </td>
+    </tr>
+    
+        </tal:block>
+        </tal:block>
+        </tal:block>  
+</form>
+<br />
+
+<form method="get" name="collectionItemForm"
+    tal:attributes="action here/absolute_url_path">
+    <input type="hidden" name="zenScreenName" tal:attributes="value template/id"/>
+    <tal:block tal:define="tableName string:collectionItemList; 
+        objects here/getItems;
         batch python:here.ZenTableManager.getBatch(tableName,objects,
                                                 sortedHeader='sequence'); 
-        tabletitle string:Graph Points;
-		menu_id string:GraphPoint_list">
+        tabletitle string:Collection Items;
+		menu_id string:collectionItemList">
     <input type='hidden' name='tableName' tal:attributes="value tableName" />
         <tal:block metal:use-macro="here/zenuimacros/macros/zentable">
 
-        <!--====Optional titlebar slots=============
-
-            <tal:block metal:fill-slot="filterslot">
-            </tal:block>
-
-            <tal:block metal:fill-slot="menuslot">
-            </tal:block>
-
-            ==========================================-->
-
         <tal:block metal:fill-slot="zentablecontents">
-        <!-- BEGIN TABLE CONTENTS -->
             
-    <tal:block metal:define-macro="graphpointsbody">
+    <tal:block>
     <tr>
         <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
                     tableName,'sequence','Seq')"/>
         <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
-                    tableName,'name','Name')"/>
+                    tableName,'getId','Name')"/>
         <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
-                    tableName,'getType','Type')"/>
+                    tableName,'getDesc','Item Description')"/>
         <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
-                    tableName,'getDescription','Description')"/>
+                    tableName,'getNumDevicesAndComponents','Number of'
+                    ' Devices/Components')"/>
     </tr>
-    <tr class="tablevalues" tal:repeat="graphPoint batch">
+    <tr class="tablevalues" tal:repeat="item batch">
         <td>
             <input tal:condition="here/isManager" 
                 type="text" name="seqmap:list" size="2"
-                tal:attributes="value graphPoint/sequence"
+                tal:attributes="value item/sequence"
                 />
             <input tal:condition="here/isManager"
                 type="hidden" name="origseq:list"
-                tal:attributes="value graphPoint/sequence"
+                tal:attributes="value item/sequence"
                 />
             <span tal:condition="not:here/isManager" />
         </td>
         <td>
             <input tal:condition="here/isManager" 
                 type="checkbox" name="ids:list" 
-                tal:attributes="value graphPoint/getId"/>
+                tal:attributes="value item/getId"/>
             <a tal:condition="here/isManager"
-                tal:attributes="href graphPoint/getPrimaryUrlPath" 
-                tal:content="graphPoint/getId">name</a>
-            <tal:block tal:condition="not:here/isManager" 
-			tal:content="graphPoint/getId"/>
+                tal:attributes="href item/getPrimaryUrlPath" 
+                tal:content="item/getId">name</a>
+            <tal:block tal:condition="not:here/isManager"
+                 tal:content="item/getId"/>
         </td>
-        <td tal:content="graphPoint/getType" />
-        <td tal:content="graphPoint/getDescription" />
+        <td tal:content="item/getDesc"></td>
+        <td tal:content="item/getNumDevicesAndComponents"></td>
+            
     </tr>
     </tal:block>
 
@@ -109,7 +291,6 @@
         </tal:block>
         
 </form>
-
 
 </tal:block>
 </tal:block>

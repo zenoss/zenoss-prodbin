@@ -1,18 +1,17 @@
-<h2>Add Collection</h2>
+<h2>Add a Collection:</h2>
 <span id="errmsg" style="color:red;"></span>
 <br/>
 <p style="text-align:right;">
 <span id="new_id_label">ID:&nbsp;</span>
-<input id="new_id" name="id">
+<input id="new_id" name="new_id">
 <input type="hidden" id="checkValidIdPath" 
-        tal:attributes="value here/getPrimaryUrlPath">
-<br/><br/>
+        tal:attributes="value here/absolute_url_path"><br/>
 </p>
-<div id="dialog_buttons">
+<div align="center">
 <input tal:attributes="id string:dialog_submit;
         type string:submit;
         value string:OK;
-        onclick string:return $$('dialog').submit_form_and_check('${here/getPrimaryUrlPath}', 'reportForm')"
+        onclick string:return $$('dialog').submit_form_and_check('', 'collectionsForm')"
                         name="manage_addCollection:method" />
 <input tal:attributes="id string:dialog_cancel;
                         type string:button;

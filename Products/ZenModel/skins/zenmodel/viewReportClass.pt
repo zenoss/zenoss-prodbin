@@ -79,16 +79,6 @@
         menu_id string:Report_list">
         <tal:block metal:use-macro="here/zenuimacros/macros/zentable">
 
-        <!--====Optional titlebar slots=============
-
-            <tal:block metal:fill-slot="filterslot">
-            </tal:block>
-
-            <tal:block metal:fill-slot="menuslot">
-            </tal:block>
-
-            ==========================================-->
-
         <tal:block metal:fill-slot="zentablecontents">
         <!-- BEGIN TABLE CONTENTS -->
             
@@ -124,5 +114,12 @@
         
 
 </form>
+<br />
+
+<tal:block tal:condition="python: here.getPrimaryId()=='/zport/dmd/Reports'">
+    <tal:block metal:use-macro="here/graphDefList/macros/graphDefList">
+    </tal:block>
+</tal:block>
+
 </tal:block>
 </tal:block>

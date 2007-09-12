@@ -1,20 +1,35 @@
+
 <h2>Add GraphPoint</h2>
 <span id="errmsg" style="color:red;"></span>
 <p style="text-align:left;">
 Data Points:&nbsp;<br />
-<select name='dpNames:list' multiple="1">
-        <option tal:repeat="option here/getDataPointOptions"
+
+<tal:block tal:condition="not: exists: here/template">
+    
+<input class="tablevalues" type="text" name="dpFilter"
+     id="dpFilter" size="20" onkeydown="handleDpKeys(event)"/>
+<input class="tableheader" type="button" value="Filter"
+    id="dpFilterBtn" name="dpFilterBtn" onclick="getDpList(event)"/>
+<br />
+
+</tal:block>
+
+<select id="dpNames" name='dpNames:list' multiple="1">
+    <option tal:condition="exists: here/template"
+                tal:repeat="option here/getDataPointOptions"
                 tal:attributes="value python: option[1]" 
                 tal:content="python: option[0]" />
 </select>
 <br />
+
 <input type="checkbox" name="includeThresholds" checked="1" />
 Include related thresholds
 <br/><br/>
+
 </p>
 <div id="dialog_buttons">
-<input type="submit" name="manage_addDataPointGraphPoints:method"
-    value="OK"
+<input type="hidden" name="manage_addDataPointGraphPoints:method" value="1" />
+<input type="button" name="nothing" value="OK"
     tal:attributes="onclick string:return $$('dialog').submit_form(
                         '${here/absolute_url_path}')" />
 <input id="dialog_cancel" type="button" value="Cancel"

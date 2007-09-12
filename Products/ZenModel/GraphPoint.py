@@ -81,9 +81,11 @@ class GraphPoint(ZenModelRM, ZenPackable):
         """Return the breadcrumb links for this object add ActionRules list.
         [('url','id'), ...]
         """
-        from RRDTemplate import crumbspath
-        crumbs = super(GraphPoint, self).breadCrumbs(terminator)
-        return crumbspath(self.graphDef(), crumbs, -3)
+        if self.graphDef.rrdTemplate():
+            from RRDTemplate import crumbspath
+            crumbs = super(GraphPoint, self).breadCrumbs(terminator)
+            return crumbspath(self.graphDef(), crumbs, -3)
+        return ZenModelRM.breadCrumbs(self, terminator)
         
         
     def manage_editProperties(self, REQUEST):

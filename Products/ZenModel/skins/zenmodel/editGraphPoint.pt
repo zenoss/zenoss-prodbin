@@ -86,7 +86,7 @@
         <td class="tableheader">RPN</td>
         <td class="tablevalues" tal:condition="here/isManager">
             <textarea class="tablevalues" rows="8" cols="60" name="rpn"
-                tal:attributes="value here/rpn"></textarea>
+                tal:content="here/rpn"></textarea>
         </td>
       <td class="tablevalues" tal:condition="not:here/isManager"
         tal:content="here/rpn"/>
@@ -233,7 +233,7 @@
     <tr tal:condition="python: hasattr(here, 'value')">
         <td class="tableheader">Value</td>
         <td class="tablevalues" tal:condition="here/isManager">
-        <input class="tablevalues" type="text" name="value" size="8"
+        <input class="tablevalues" type="text" name="value" size="40"
             tal:attributes="value here/value" />
         </td>
       <td class="tablevalues" tal:condition="not:here/isManager"
