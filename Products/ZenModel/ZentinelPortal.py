@@ -61,6 +61,12 @@ class ZentinelPortal ( PortalObjectBase ):
             return user.has_role((MANAGER_ROLE, ZEN_MANAGER_ROLE), obj)
 
 
+    def isRestricted(self, obj=None):
+        """Hook for restricted access
+        """
+        return False
+
+
     def has_role(self, role, userid=None, obj=None):
         """Check to see of a user has a role.
         """
@@ -73,7 +79,6 @@ class ZentinelPortal ( PortalObjectBase ):
         """
         user = self.dmd.ZenUsers.getUser(userid)
         if user: return user.has_permission(perm, obj)
-
 
 
 Globals.InitializeClass(ZentinelPortal)
