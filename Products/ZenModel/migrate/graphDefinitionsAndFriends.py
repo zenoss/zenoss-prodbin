@@ -85,6 +85,7 @@ class GraphDefinitionsAndFriends(Migrate.Step):
                 numGraphs += 1
                 graphDef = GraphDefinition(rrdGraph.id)
                 template.graphDefs._setObject(graphDef.id, graphDef)
+                graphDef = getattr(template.graphDefs, graphDef.id)
                 graphDef.sequence = rrdGraph.sequence
                 graphDef.height = rrdGraph.height
                 graphDef.width = rrdGraph.width
@@ -106,7 +107,7 @@ class GraphDefinitionsAndFriends(Migrate.Step):
                         numDataPointsMissing += 1
                     includeThresholds = not graphDef.custom                     
                     gp = graphDef.manage_addDataPointGraphPoints(
-                                        [dsName], includeThresholds)
+                                        [dsName], includeThresholds)[0]
                     if dp:
                         gp.color = dp.color
                         if graphDef.custom:
