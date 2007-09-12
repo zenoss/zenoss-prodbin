@@ -264,7 +264,8 @@ class RelationshipManager(PrimaryPathObjectManager, ZenPropertyManager):
         self.exportXmlProperties(ofile)
         self.exportXmlRelationships(ofile, ignorerels)
         exportHook = getattr(aq_base(self), 'exportXmlHook', None)
-        if exportHook and callable(exportHook): exportHook(ofile, ignorerels)
+        if exportHook and callable(exportHook): 
+            self.exportXmlHook(ofile, ignorerels)
         ofile.write("</object>\n")
 
 
