@@ -116,7 +116,7 @@
 </form>
 <br />
 
-<tal:block tal:condition="python: here.getPrimaryId()=='/zport/dmd/Reports'">
+<tal:block tal:condition="python: here.getPrimaryId()=='/zport/dmd/Reports' and here.isManager()">
     <tal:block metal:use-macro="here/graphDefList/macros/graphDefList">
     </tal:block>
 </tal:block>

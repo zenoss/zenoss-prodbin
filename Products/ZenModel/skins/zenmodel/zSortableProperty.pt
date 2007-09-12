@@ -30,9 +30,9 @@
       <th class="tableheader" align="center"
            tal:content="python: 'Path: ' + here.zenPropertyPath(prop)"/> 
     </tr><tr>
-      <td class="tablevalues" tal:condition="not: here/isManager"
+      <td class="tablevalues" tal:condition="python: not here.isManager(here)"
         tal:content="python: here.zenPropertyString(prop)"/>
-      <td class="tablevalues" tal:condition="here/isManager"
+      <td class="tablevalues" tal:condition="python: here.isManager(here)"
         tal:define="pvalue python:here.zenPropertyString(prop);
                     popts python:here.zenPropertyOptions(prop);">
 	    <span>
@@ -58,7 +58,7 @@
 		        class="sortable_list fieldlist">
 		      <li class="sortable_item fieldlist"
 			 tal:repeat="plugin python:
-			 [x for x in popts if x not in here.zCollectorPlugins]"
+			 [x for x in popts if x not in here.getZ('zCollectorPlugins')]"
 			 tal:content="plugin"/>
 		    </ul>
 		    <h5>Available fields (drag to other list to add)</h5>
@@ -71,7 +71,7 @@
 	    </span>
       </td>
     </tr>
-    <tr class="tableheader" tal:condition="here/isManager">
+    <tr class="tableheader" tal:condition="python: here.isManager(here)">
     <td colspan="5">
         <input type="hidden" name="propname" tal:attributes="value prop"/>
         <input type="hidden" name="prop" tal:attributes="value prop"/>

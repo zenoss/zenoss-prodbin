@@ -9,8 +9,9 @@
 
 <span metal:use-macro="here/templates/macros/contentSeparator"/>
 
+<tal:block tal:condition="here/isManager">
 <span metal:use-macro="here/deviceManagement/macros/adminRolesTable"/>
-
+</tal:block>
 
 </tal:block>
 </tal:block>

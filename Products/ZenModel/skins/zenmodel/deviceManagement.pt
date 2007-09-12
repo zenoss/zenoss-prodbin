@@ -18,7 +18,8 @@
     metal:define-macro="adminRolesTable">
 <input type="hidden" name="zenScreenName" tal:attributes="value template/id"/>
 
-<tal:block tal:define="
+<tal:block tal:condition="here/isManager"
+    tal:define="
     objects here/adminRoles/objectValuesAll;
     editable here/isManager;
     tableName string:deviceadminroles;

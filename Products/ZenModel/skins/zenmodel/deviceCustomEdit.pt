@@ -32,9 +32,11 @@
       <td class="tableheader" tal:define="label prop/label | prop/id">
       <tal:block tal:content="label"/>
       </td>
-      <td class="tablevalues" tal:condition="not: here/isManager"
+      <td class="tablevalues" 
+        tal:condition="python: not here.isManager(obj=here)"
         tal:content="python: here.zenPropertyString(prop['id'])"/>
-      <td class="tablevalues" tal:condition="here/isManager"
+      <td class="tablevalues" 
+        tal:condition="python: here.isManager(obj=here)"
         tal:define="ptype prop/type | string:string;
                     pname python:prop['id']+':'+ptype;
                     pvalue python: here.zenPropertyString(prop['id'])">
@@ -67,7 +69,7 @@
       </td>
       <td class="tablevalues" tal:content="prop/type"/> 
     </tr>
-    <tr class="tableheader" tal:condition="here/isManager">
+    <tr class="tableheader" tal:condition="python: here.isManager(obj=here)">
     <td colspan="4">
         <input class="tableheader" type="submit" 
             name="saveCustProperties:method" value=" Save " />
