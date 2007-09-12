@@ -37,7 +37,7 @@ from Products.ZenUtils.Utils import getObjByPath
 
 from Products.ZenUtils.Utils import prepId as globalPrepId
 
-from ZenossSecurity import ZEN_COMMON
+from ZenossSecurity import ZEN_COMMON, ZEN_MANAGE_DMD
 
 
 # Custom device properties start with c
@@ -333,6 +333,7 @@ class ZenModelBase(object):
                     if p.get('visible', True) ]
 
 
+    security.declareProtected(ZEN_MANAGE_DMD, 'saveCustProperties')
     def saveCustProperties(self, REQUEST):
         """Save custom properties from REQUEST.form.
         """

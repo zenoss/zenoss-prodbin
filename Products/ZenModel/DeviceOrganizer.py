@@ -92,10 +92,7 @@ class DeviceOrganizer(Organizer, DeviceManagerBase, Commandable, ZenMenuable,
         devrelobj = getattr(self, devrel, None)
         if not devrelobj:
             raise AttributeError, "%s not found on %s" % (devrel, self.id)
-
-        devices = [ dev for dev in devrelobj() 
-                        if self.checkRemotePerm(ZEN_VIEW, dev)]
-        devices = filter(devfilter, devices)
+        devices = filter(devfilter, devrelobj())
         for subgroup in self.children():
             devices.extend(subgroup.getSubDevices(devfilter, devrel))
         return devices
@@ -108,8 +105,7 @@ class DeviceOrganizer(Organizer, DeviceManagerBase, Commandable, ZenMenuable,
         if not devrelobj: 
             raise AttributeError, "%s not found on %s" % (devrel, self.id)
         for dev in devrelobj.objectValuesGen():
-            if self.checkRemotePerm(ZEN_VIEW, dev):
-                yield dev
+            yield dev
         for subgroup in self.children():
             for dev in subgroup.getSubDevicesGen(devrel):
                 yield dev
