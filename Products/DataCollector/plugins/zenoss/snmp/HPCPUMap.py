@@ -26,7 +26,10 @@ class HPCPUMap(SnmpPlugin):
         '.1': '_cpuidx',
         '.3': 'setProductKey',
         '.4': 'clockspeed',
+        '.5': 'null',
+        '.6': 'null',
         '.7': 'extspeed',
+        '.8': 'null',
         '.9': 'socket',
          }
 
@@ -34,7 +37,7 @@ class HPCPUMap(SnmpPlugin):
 
     snmpGetTableMaps = (
         GetTableMap('cpuTable', '.1.3.6.1.4.1.232.1.2.2.1.1', cpucols),
-            GetTableMap('cacheTable', '1.3.6.1.4.1.232.1.2.2.3.1', cachecols), 
+        GetTableMap('cacheTable', '1.3.6.1.4.1.232.1.2.2.3.1', cachecols), 
     )
 
 
@@ -44,16 +47,18 @@ class HPCPUMap(SnmpPlugin):
         getdata, tabledata = results
         cputable = tabledata.get("cpuTable")
         cachetable = tabledata.get("cacheTable")
-        if not cputable or not cachetable: return
+        if not cputable: return
         rm = self.relMap()
         cpumap = {}
         for cpu in cputable.values():
+            del cpu['null']
             om = self.objectMap(cpu)
             idx = getattr(om, 'socket', om._cpuidx)
             om.id = self.prepId("%s_%s" % (om.setProductKey,idx))
             cpumap[cpu['_cpuidx']] = om
             rm.append(om)
-        
+
+        if not cachetable: return rm
         for cache in cachetable.values():
             cpu = cpumap.get(cache['cpuidx'], None)
             if cpu is None: continue
