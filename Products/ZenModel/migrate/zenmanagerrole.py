@@ -24,7 +24,19 @@ from Products.ZenModel.ZenossSecurity import *
 class ZenManagerRole(Migrate.Step):
 
     version = Migrate.Version(2, 1, 0)
-
+    
+    def addPermissions(self, obj, permission, roles=[], acquire=0):
+        if not permission in obj.possible_permissions():
+            obj.__ac_permissions__=(
+                obj.__ac_permissions__+((permission,(),roles),))
+            
+        for permissionDir in obj.rolesOfPermission(permission):
+            if permissionDir['selected']:
+                if permissionDir['name'] not in roles:
+                    roles.append(permissionDir['name'])
+        obj.manage_permission(permission, roles, acquire)
+            
+            
     def cutover(self, dmd):
         zport = dmd.zport
         if not ZEN_MANAGER_ROLE in zport.__ac_roles__:
@@ -32,33 +44,17 @@ class ZenManagerRole(Migrate.Step):
         rm = dmd.getPhysicalRoot().acl_users.roleManager
         if not ZEN_MANAGER_ROLE in rm.listRoleIds():
             rm.addRole(ZEN_MANAGER_ROLE)
-        mp = zport.manage_permission
-        mp(ZEN_CHANGE_DEVICE, [ZEN_MANAGER_ROLE, OWNER_ROLE,MANAGER_ROLE,], 1)
-        mp(ZEN_MANAGE_DMD, [ZEN_MANAGER_ROLE, OWNER_ROLE,MANAGER_ROLE,], 1)
-        mp(ZEN_DELETE, [ZEN_MANAGER_ROLE, OWNER_ROLE,MANAGER_ROLE,], 1)
-        mp(ZEN_ADD, [ZEN_MANAGER_ROLE, OWNER_ROLE,MANAGER_ROLE,], 1)
-        mp(ZEN_VIEW, [ZEN_USER_ROLE,ZEN_MANAGER_ROLE,MANAGER_ROLE,OWNER_ROLE], 1)
-        mp(ZEN_VIEW_HISTORY, [ZEN_USER_ROLE, ZEN_MANAGER_ROLE, MANAGER_ROLE,], 1)
-        mp(ZEN_COMMON,[ZEN_USER_ROLE, ZEN_MANAGER_ROLE, MANAGER_ROLE, OWNER_ROLE], 1)
-        mp(ZEN_CHANGE_SETTINGS, [ZEN_MANAGER_ROLE, MANAGER_ROLE, OWNER_ROLE], 1)
         
-        if ZEN_CHANGE_ALERTING_RULES in zport.possible_permissions():
-            mp(ZEN_CHANGE_ALERTING_RULES, [ZEN_MANAGER_ROLE, MANAGER_ROLE, OWNER_ROLE], 1)
-        else:
-            zport.__ac_permissions__=(
-                zport.__ac_permissions__+((ZEN_CHANGE_ALERTING_RULES,(),[ZEN_MANAGER_ROLE, MANAGER_ROLE, OWNER_ROLE]),))
-                
-        if ZEN_CHANGE_ADMIN_OBJECTS in zport.possible_permissions():
-            mp(ZEN_CHANGE_ADMIN_OBJECTS, [ZEN_MANAGER_ROLE, MANAGER_ROLE], 1)
-        else:
-            zport.__ac_permissions__=(
-                zport.__ac_permissions__+((ZEN_CHANGE_ADMIN_OBJECTS,(),[ZEN_MANAGER_ROLE, MANAGER_ROLE]),))
-                
-        if ZEN_CHANGE_EVENT_VIEWS in zport.possible_permissions():
-            mp(ZEN_CHANGE_EVENT_VIEWS, [ZEN_MANAGER_ROLE, MANAGER_ROLE], 1)
-        else:
-            zport.__ac_permissions__=(
-                zport.__ac_permissions__+((ZEN_CHANGE_EVENT_VIEWS,(),[ZEN_MANAGER_ROLE, MANAGER_ROLE]),))
-
+        self.addPermissions(zport, ZEN_CHANGE_DEVICE, [ZEN_MANAGER_ROLE, OWNER_ROLE,MANAGER_ROLE,], 1)
+        self.addPermissions(zport, ZEN_MANAGE_DMD, [ZEN_MANAGER_ROLE, OWNER_ROLE,MANAGER_ROLE,], 1)
+        self.addPermissions(zport, ZEN_DELETE, [ZEN_MANAGER_ROLE, OWNER_ROLE,MANAGER_ROLE,], 1)
+        self.addPermissions(zport, ZEN_ADD, [ZEN_MANAGER_ROLE, OWNER_ROLE,MANAGER_ROLE,], 1)
+        self.addPermissions(zport, ZEN_VIEW, [ZEN_USER_ROLE,ZEN_MANAGER_ROLE,MANAGER_ROLE,OWNER_ROLE], 1)
+        self.addPermissions(zport, ZEN_VIEW_HISTORY, [ZEN_USER_ROLE, ZEN_MANAGER_ROLE, MANAGER_ROLE,], 1)
+        self.addPermissions(zport, ZEN_COMMON,[ZEN_USER_ROLE, ZEN_MANAGER_ROLE, MANAGER_ROLE, OWNER_ROLE], 1)
+        self.addPermissions(zport, ZEN_CHANGE_SETTINGS, [ZEN_MANAGER_ROLE, MANAGER_ROLE, OWNER_ROLE], 1)
+        self.addPermissions(zport, ZEN_CHANGE_ALERTING_RULES, [ZEN_MANAGER_ROLE, MANAGER_ROLE, OWNER_ROLE], 1) 
+        self.addPermissions(zport, ZEN_CHANGE_ADMIN_OBJECTS, [ZEN_MANAGER_ROLE, MANAGER_ROLE], 1)
+        self.addPermissions(zport, ZEN_CHANGE_EVENT_VIEWS, [ZEN_MANAGER_ROLE, MANAGER_ROLE], 1)
 
 ZenManagerRole()

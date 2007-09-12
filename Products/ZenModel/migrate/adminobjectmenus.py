@@ -17,54 +17,101 @@ import Globals
 import logging
 log = logging.getLogger("zen.migrate")
 
+from Products.ZenModel.ZenossSecurity import *
+
 class AdminObjectMenus(Migrate.Step):
     version = Migrate.Version(2, 1, 0)
 
     def cutover(self, dmd):
-        aolm = dmd.zenMenus.manage_addZenMenu('AdministeredObjects_list')
-        aolm.manage_addZenMenuItem( action='dialog_addAdministeredDevice', 
-            description='Add Device...', 
-            id='addAdministeredDevice', 
-            isdialog=True, 
-            ordering=90.4, 
-            permissions=('Manage DMD',))
-        aolm.manage_addZenMenuItem( action='dialog_addAdministeredSystem', 
-            description='Add System...', 
-            id='addAdministeredSystem', 
-            isdialog=True, 
-            ordering=90.3, 
-            permissions=('Manage DMD',))
-        aolm.manage_addZenMenuItem( action='dialog_addAdministeredGroup', 
-            description='Add Group...', 
-            id='addAdministeredGroup', 
-            isdialog=True, 
-            ordering=90.2, 
-            permissions=('Manage DMD',))
-        aolm.manage_addZenMenuItem( action='dialog_addAdministeredLocation', 
-            description='Add Location...', 
-            id='addAdministeredLocation', 
-            isdialog=True, 
-            ordering=90.1, 
-            permissions=('Manage DMD',))
-        aolm.manage_addZenMenuItem( action='dialog_deleteAdministeredObjects', 
-            description='Delete Administered Objects...', 
-            id='deleteAdministeredObjects', 
-            isdialog=True, 
-            ordering=80.0, 
-            permissions=('Manage DMD',))
-        aolm.manage_addZenMenuItem( action='dialog_saveAdministeredObjects', 
-            description='Save Administered Objects...', 
-            id='saveAdministeredObjects', 
-            isdialog=True, 
-            ordering=85.0, 
-            permissions=('Manage DMD',))  
-        usm = dmd.zenMenus.manage_addZenMenu('UserSettings')
-        usm.manage_addZenMenuItem( action='dialog_saveUserSettings', 
-            description='Save User Settings...', 
-            id='saveUserSettings', 
-            isdialog=True, 
-            ordering=0.0, 
-            permissions=('Manage DMD',))
-
-
+        
+        dmd.buildMenus({
+            'AdministeredObjects_list': [{ 
+               'action': 'dialog_addAdministeredDevice', 
+                'description': 'Add Device...', 
+                'id': 'addAdministeredDevice', 
+                'isdialog': True, 
+                'ordering': 90.4, 
+                'permissions': (ZEN_CHANGE_ADMIN_OBJECTS,)
+            },
+            {  'action': 'dialog_addAdministeredSystem', 
+                'description': 'Add System...', 
+                'id': 'addAdministeredSystem', 
+                'isdialog': True, 
+                'ordering': 90.3, 
+                'permissions': (ZEN_CHANGE_ADMIN_OBJECTS,)
+            },
+            {  'action': 'dialog_addAdministeredGroup', 
+                'description': 'Add Group...', 
+                'id': 'addAdministeredGroup', 
+                'isdialog': True, 
+                'ordering': 90.2, 
+                'permissions': (ZEN_CHANGE_ADMIN_OBJECTS,)
+            },
+            {  'action': 'dialog_addAdministeredLocation', 
+                'description': 'Add Location...', 
+                'id': 'addAdministeredLocation', 
+                'isdialog': True, 
+                'ordering': 90.1, 
+                'permissions': (ZEN_CHANGE_ADMIN_OBJECTS,)
+            },
+            {  'action': 'dialog_deleteAdministeredObjects', 
+                'description': 'Delete Administered Objects...', 
+                'id': 'deleteAdministeredObjects', 
+                'isdialog': True, 
+                'ordering': 80.0, 
+                'permissions': (ZEN_CHANGE_ADMIN_OBJECTS,)
+            },
+            {  'action': 'dialog_saveAdministeredObjects', 
+                'description': 'Save Administered Objects...', 
+                'id': 'saveAdministeredObjects', 
+                'isdialog': True, 
+                'ordering': 85.0, 
+                'permissions': (ZEN_CHANGE_ADMIN_OBJECTS,)
+            }],
+            'UserSettings': [{ 'action': 'dialog_saveUserSettings', 
+                'description': 'Save User Settings...', 
+                'id': 'saveUserSettings', 
+                'isdialog': True, 
+                'ordering': 0.0, 
+                'permissions': (ZEN_CHANGE_SETTINGS,) 
+            }],
+            'ActionRule_list': [  {  'action': 'dialog_addActionRule',
+                'description': 'Add Alerting Rule...',
+                'id': 'addActionRule',
+                'isdialog': True,
+                'ordering': 90.0,
+                'permissions': (ZEN_CHANGE_ALERTING_RULES,)},
+            {  'action': 'dialog_deleteActionRules',
+                'description': 'Delete Rules...',
+                'id': 'deleteActionRules',
+                'isdialog': True,
+                'ordering': 80.0,
+                'permissions': (ZEN_CHANGE_ALERTING_RULES,)}],
+           'ActionRuleWindow_list': [  {  'action': 'dialog_addActionRuleWindow',
+                'description': 'Add Rule Window...',
+                'id': 'addActionRuleWindow',
+                'isdialog': True,
+                'ordering': 90.0,
+                'permissions': (ZEN_CHANGE_ALERTING_RULES,)},
+           {  'action': 'dialog_deleteActionRuleWindows',
+                'description': 'Delete Rule Windows...',
+                'id': 'deleteActionRuleWindows',
+                'isdialog': True,
+                'ordering': 80.0,
+                'permissions': (ZEN_CHANGE_ALERTING_RULES,)}], 
+           'EventView_list': [  {  'action': 'dialog_addEventView',
+                'description': 'Add Event View...',
+                'id': 'addEventView',
+                'isdialog': True,
+                'ordering': 90.0,
+                'permissions': (ZEN_CHANGE_EVENT_VIEWS,)},
+           {  'action': 'dialog_deleteEventViews',
+                'description': 'Delete Event Views...',
+                'id': 'deleteEventViews',
+                'isdialog': True,
+                'ordering': 80.0,
+                'permissions': (ZEN_CHANGE_EVENT_VIEWS,)}],
+         })
+                                      
+                                      
 AdminObjectMenus()
