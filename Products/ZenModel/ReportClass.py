@@ -31,6 +31,7 @@ from Products.PageTemplates.PageTemplateFile import PageTemplateFile
 from Organizer import Organizer
 from Report import Report
 from ZenPackable import ZenPackable
+from ZenossSecurity import ZEN_MANAGE_DMD
 from Products.ZenRelations.RelSchema import *
 
 def manage_addReportClass(context, id, title = None, REQUEST = None):
@@ -164,7 +165,7 @@ class ReportClass(Organizer, ZenPackable):
      
     ### Graph Definitions
          
-    security.declareProtected('Manage DMD', 'getGraphDefs')
+    security.declareProtected(ZEN_MANAGE_DMD, 'getGraphDefs')
     def getGraphDefs(self):
         ''' Return an ordered list of the graph definitions
         '''
