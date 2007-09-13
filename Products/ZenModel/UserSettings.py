@@ -570,6 +570,8 @@ class UserSettings(ZenModelRM):
         mobj.adminRoles._setObject(self.id, ar)
         ar = mobj.adminRoles._getOb(self.id)
         ar.userSetting.addRelation(self)
+        if getattr(aq_base(mobj), 'index_object', False):
+            mobj.index_object()
         if REQUEST:
             REQUEST['message'] = \
             "Administrative Role for %s %s for user %s added" % \
@@ -611,7 +613,8 @@ class UserSettings(ZenModelRM):
             if delids:
                 REQUEST['message'] = "Administrative Roles Deleted"
             return self.callZenScreen(REQUEST)
-                          
+
+
     security.declareProtected('Change Settings', 'manage_emailTest')
     def manage_emailTest(self, REQUEST=None):
         ''' Send a test email to the given userid.

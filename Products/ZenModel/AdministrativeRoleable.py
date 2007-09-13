@@ -38,6 +38,8 @@ class AdministrativeRoleable:
             self.adminRoles._setObject(newId, ar)
             ar = self.adminRoles._getOb(newId)
             ar.userSetting.addRelation(us)
+            if getattr(self, 'index_object', False):
+                self.index_object()
         if REQUEST:
             if us:
                 REQUEST['message'] = "Administrative Role Added"
@@ -55,6 +57,8 @@ class AdministrativeRoleable:
             ar = self.adminRoles._getOb(id)
             if ar.role != role[i]: ar.role = role[i]
             if ar.level != level[i]: ar.level = level[i]
+        if getattr(self, 'index_object', False):
+            self.index_object()
         if REQUEST:
             REQUEST['message'] = "Administrative Roles Updated"
             return self.callZenScreen(REQUEST)
@@ -67,6 +71,8 @@ class AdministrativeRoleable:
             delids = [delids]
         for id in delids:
             self.adminRoles._delObject(id)
+        if getattr(self, 'index_object', False):
+            self.index_object()
         if REQUEST:
             if delids:
                 REQUEST['message'] = "Administrative Roles Deleted"
