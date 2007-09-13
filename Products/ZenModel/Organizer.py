@@ -67,10 +67,11 @@ class Organizer(ZenModelRM, EventView):
 
    
     security.declareProtected(ZEN_COMMON, "children")
-    def children(self, sort=False):
+    def children(self, sort=False, checkPerm=True):
         """Return children of our organizer who have same type as parent."""
         kids = self.objectValues(spec=self.meta_type)
-        kids = [ kid for kid in kids if self.checkRemotePerm("View", kid)]
+        if checkPerm:
+            kids = [ kid for kid in kids if self.checkRemotePerm("View", kid)]
         if sort: kids.sort(lambda x,y: cmp(x.primarySortKey(), 
                                            y.primarySortKey()))
         return kids
@@ -200,7 +201,7 @@ class Organizer(ZenModelRM, EventView):
         user = getSecurityManager().getUser()
         if user.has_permission("View",self):
             groupNames.append(self.getOrganizerName())
-        for subgroup in self.children():
+        for subgroup in self.children(checkPerm=False):
             groupNames.extend(subgroup.getOrganizerNames())
         if self.id == self.dmdRootName: 
             if addblank: groupNames.append("")
