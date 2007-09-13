@@ -372,6 +372,38 @@ class DeviceOrganizer(Organizer, DeviceManagerBase, Commandable, ZenMenuable,
             else:
                 return self.callZenScreen(REQUEST)
 
+
+    def manage_afterAdd(self, item, container):
+        """
+        """
+        super(DeviceOrganizer,self).manage_afterAdd(item, container)
+        self.index_object()
+
+
+    def manage_afterClone(self, item):
+        """Not really sure when this is called."""
+        super(DeviceOrganizer,self).manage_afterClone(item)
+        self.index_object()
+
+
+    def manage_beforeDelete(self, item, container):
+        """
+        """
+        super(DeviceOrganizer,self).manage_beforeDelete(item, container)
+        self.unindex_object()
+
+
+    def index_object(self):
+        """Index all of our sub devices.
+        """
+        for dev in self.getSubDevicesGen():
+            dev.primaryAq().index_object()
+
+    def unindex_object(self):
+        for dev in self.getSubDevicesGen():
+            dev.primaryAq().unindex_object()
+        
+
     def manage_snmpCommunity(self, REQUEST=None):
         """reset Community on all devices in this Organizer.
         """

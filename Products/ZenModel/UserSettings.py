@@ -343,7 +343,7 @@ class UserSettings(ZenModelRM):
     pager = ""
     defaultPageSize = 40
     defaultEventPageSize = 30
-    defaultAdminRole = "Administrator"
+    defaultAdminRole = "ZenUser"
     defaultAdminLevel = 1
     oncallStart = 0
     oncallEnd = 0
@@ -570,6 +570,7 @@ class UserSettings(ZenModelRM):
         mobj.adminRoles._setObject(self.id, ar)
         ar = mobj.adminRoles._getOb(self.id)
         ar.userSetting.addRelation(self)
+        mobj.manage_setLocalRoles(self.id, (ar.role),)
         if getattr(aq_base(mobj), 'index_object', False):
             mobj.index_object()
         if REQUEST:
@@ -590,7 +591,12 @@ class UserSettings(ZenModelRM):
         for ar in self.adminRoles():
             try: i = ids.index(ar.managedObjectName())
             except ValueError: continue
-            if ar.role != role[i]: ar.role = role[i]
+            if ar.role != role[i]: 
+                ar.role = role[i]
+                mobj = ar.managedObject()
+                mobj.manage_setLocalRoles(self.id, (ar.role),)
+                if getattr(aq_base(mobj), 'index_object', False):
+                    mobj.index_object()
             if ar.level != level[i]: ar.level = level[i]
         if REQUEST:
             if ids:
@@ -609,6 +615,9 @@ class UserSettings(ZenModelRM):
                 ar.userSetting.removeRelation()
                 mobj = ar.managedObject().primaryAq()
                 mobj.adminRoles._delObject(ar.id)
+                mobj.manage_delLocalRoles((self.id,))
+                if getattr(aq_base(mobj), 'index_object', False):
+                    mobj.index_object()
         if REQUEST:
             if delids:
                 REQUEST['message'] = "Administrative Roles Deleted"

@@ -68,7 +68,7 @@ Optional titlebar stuff
     </td>
     <td class="tablevalues">
     <select class="tablevalues" name="role"
-        tal:define="roles here/administrativeRoles">
+        tal:define="roles here/ZenUsers/getAllRoles">
         <option tal:repeat="role roles" tal:content="role"
             tal:attributes="selected python:mw.role==role"/>
     </select>

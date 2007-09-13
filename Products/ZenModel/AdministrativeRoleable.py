@@ -38,6 +38,7 @@ class AdministrativeRoleable:
             self.adminRoles._setObject(newId, ar)
             ar = self.adminRoles._getOb(newId)
             ar.userSetting.addRelation(us)
+            self.manage_setLocalRoles(newId, (ar.role),)
             if getattr(self, 'index_object', False):
                 self.index_object()
         if REQUEST:
@@ -55,7 +56,9 @@ class AdministrativeRoleable:
             level = [level]
         for i, id in enumerate(ids):
             ar = self.adminRoles._getOb(id)
-            if ar.role != role[i]: ar.role = role[i]
+            if ar.role != role[i]: 
+                ar.role = role[i]
+                self.manage_setLocalRoles(id, (ar.role),)
             if ar.level != level[i]: ar.level = level[i]
         if getattr(self, 'index_object', False):
             self.index_object()
@@ -71,13 +74,10 @@ class AdministrativeRoleable:
             delids = [delids]
         for id in delids:
             self.adminRoles._delObject(id)
+            self.manage_delLocalRoles((id,))
         if getattr(self, 'index_object', False):
             self.index_object()
         if REQUEST:
             if delids:
                 REQUEST['message'] = "Administrative Roles Deleted"
             return self.callZenScreen(REQUEST)
-
-
-    def getAdminUserIds(self):
-        return [ ar.userid() for ar in self.adminRoles()]
