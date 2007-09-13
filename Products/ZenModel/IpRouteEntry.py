@@ -37,6 +37,8 @@ log = logging.getLogger("zen.IpRouteEntry")
 
 def manage_addIpRouteEntry(context, dest, nexthopid, interface, routeproto, routetype, userCreated=None, REQUEST = None):
     """make a IpRouteEntry"""
+    routemask = 0
+    if dest.find("/") > -1: ip, routemask = dest.split("/",1)
     id = prepId(dest)
     d = IpRouteEntry(id)
     context._setObject(id, d)
@@ -47,6 +49,7 @@ def manage_addIpRouteEntry(context, dest, nexthopid, interface, routeproto, rout
     if userCreated: d.setUserCreateFlag()
     setattr(d, 'routeproto', routeproto)
     setattr(d, 'routetype', routetype)
+    setattr(d, 'routemask', routemask)
     
     if REQUEST is not None:
         REQUEST['RESPONSE'].redirect(context.absolute_url()

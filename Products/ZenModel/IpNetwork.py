@@ -135,7 +135,14 @@ class IpNetwork(DeviceOrganizer):
         self.netmask = maskToBits(netmask)
         self.description = description
 
-
+    
+    def checkValidId(self, id, prep_id = False):
+        """Checks a valid id
+        """
+        if id.find("/") > -1: id, netmask = id.split("/",1)
+        return super(IpNetwork, self).checkValidId(id, prep_id)
+    
+    
     def createNet(self, netip, netmask=0):
         """Return and create if nessesary netip.  netip in form 1.1.1.0/24 or
         with netmask passed as parameter.
