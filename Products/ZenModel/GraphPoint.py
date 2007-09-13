@@ -118,13 +118,55 @@ class GraphPoint(ZenModelRM, ZenPackable):
         return color
 
 
-    def getGraphCmds(self, cmds, context, rrdDir, addSummary, idx, multiid=-1):
+    def getThresholdColor(self, index):
+        color = self.color or self.colors[-1 * (index+1)]
+        color = '#%s' % color.lstrip('#')
+        return color
+
+
+    def getGraphCmds(self, cmds, context, rrdDir, addSummary, idx, 
+                    multiid=-1, prefix=''):
         ''' Build the graphing commands for this graphpoint
         '''
         return cmds
         
 
-    def getDsName(self, base, multiid=-1):
+    def getDsName(self, base, multiid=-1, prefix=''):
+        name = self.addPrefix(prefix, base)
         if multiid > -1:
-            return '%s_%s' % (base, multiid)
-        return base
+            name = '%s_%s' % (name, multiid)
+        return name
+
+
+    def addPrefix(self, prefix, base):
+        ''' If not base then return ''
+        elif prefix then return prefix_base
+        else return base
+        The result is rrd scrubbed
+        '''
+        s = base or ''
+        if s and prefix:
+            s = '_'.join((prefix, base))
+        s = self.scrubForRRD(s)
+        return s
+        
+
+    def scrubForRRD(self, value, namespace=None):
+        ''' scrub value so it is a valid rrd variable name.  If namespace
+        is provided then massage value as needed to avoid name conflicts
+        with items in namespace.
+        '''
+        import string
+        import itertools
+        def Scrub(c):
+            if c not in string.ascii_letters + string.digits + '_-':
+                c = '_'
+            return c            
+        value = ''.join([Scrub(c) for c in value])
+        if namespace:
+            postfixIter = itertools.count(2)
+            candidate = value
+            while candidate in namespace:
+                candidate = value + str(postfixIter.next())
+            value = candidate
+        return value

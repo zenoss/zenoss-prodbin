@@ -41,11 +41,13 @@ class GraphGroup(ZenModelRM):
     sequence = 0
     collectionId = ''
     graphDefId = ''
+    combineDevices = False
 
     _properties = (
         {'id':'sequence', 'type':'long', 'mode':'w'},
         {'id':'collectionId', 'type':'string', 'mode':'w'},
         {'id':'graphDefId', 'type':'string', 'mode':'w'},        
+        {'id':'combineDevices', 'type':'boolean', 'mode':'w'},        
         )
 
     _relations =  (
@@ -76,39 +78,46 @@ class GraphGroup(ZenModelRM):
         self.graphDefId = graphDefId
         self.sequence = sequence
 
-        
-    # security.declareProtected('Manage DMD', 'manage_chooseCollection')
-    # def manage_chooseCollection(self, collectionId, REQUEST):
-    #     ''' Set the collection or create a new one with the given id
-    #     '''
-    #     if collectionId in self.collections.objectIds():
-    #         self.collectionId = collectionId
-    #         REQUEST['RESPONSE'].redirect('%s/chooseGraphDef'
-    #             % self.getPrimaryUrlPath())
-    #     else:
-    #         from Collection import Collection
-    #         newId = self.getUniqueId('collections', collectionId)
-    #         col = Collection(newId)
-    #         self.collections._setObject(col.id, col)
-    #         REQUEST['RESPONSE'].redirect('%s/createCollection'
-    #             % self.getPrimaryUrlPath())
-
-    def getNewGraphDefUrl(self):
-        ''' Get the url for creating a new graph definition
-        '''
-        return ''
-
 
     def getCollection(self):
         ''' Return the referenced collection or None if it doesn't exist
         '''
-        return getattr(self.collections, self.collectionId, None)
+        return getattr(self.report.collections, self.collectionId, None)
 
 
     def getGraphDef(self):
         ''' Return the referenced graphDef or None if it doesn't exist
         '''
-        return getattr(self.graphDefs, self.graphDefId, None)
+        return self.report().getGraphDef(self.graphDefId)
+
+
+    def getCollectionUrl(self):
+        '''
+        '''
+        collection = self.getCollection()
+        url = None
+        if collection:
+            url = collection.getPrimaryUrlPath()
+        return url
+
+
+    def getGraphDefUrl(self):
+        '''
+        '''
+        graphDef = self.getGraphDef()
+        url = None
+        if graphDef:
+            url = graphDef.getPrimaryUrlPath()
+        return url
+
+
+    def zmanage_editProperties(self, REQUEST):
+        ''' Save then redirect back to the report
+        '''
+        self.manage_changeProperties(**REQUEST.form)
+        index_object = getattr(self, 'index_object', lambda self: None)
+        index_object()
+        REQUEST['RESPONSE'].redirect(self.report().getPrimaryUrlPath())
 
 
 InitializeClass(GraphGroup)

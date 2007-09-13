@@ -17,6 +17,8 @@ from ZenModelRM import ZenModelRM
 from Products.ZenRelations.RelSchema import *
 from Products.ZenUtils.ZenTales import talesCompile, getEngine
 from DateTime import DateTime
+from RRDView import GetRRDPath
+from PerformanceConf import performancePath
 
 def manage_addFancyReport(context, id, REQUEST = None):
     ''' Create a new FancyReport
@@ -44,7 +46,7 @@ class FancyReport(ZenModelRM):
 
     factory_type_information = ( 
         { 
-            'immediate_view' : 'editFancyReport',
+            'immediate_view' : 'viewFancyReport',
             'actions'        :
             ( 
                 {'name'          : 'Report',
@@ -144,6 +146,80 @@ class FancyReport(ZenModelRM):
             return self.callZenScreen(REQUEST)
 
 
+    ### Graph Defs
+
+    security.declareProtected('Manage DMD', 'getGraphDefs')
+    def getGraphDefs(self):
+        ''' Return an ordered list of the available graph definitions
+        '''
+        # Can't use acquisition becase the defs are all stored at the root
+        # ReportClass and not in the suborganizers.
+        rc = getattr(self.dmd.Reports, 'Fancy Reports', None)
+        return rc and rc.getGraphDefs() or []
+
+
+    def getGraphDef(self, graphDefId):
+        ''' Retrieve the given graph def
+        '''
+        rc = getattr(self.dmd.Reports, 'Fancy Reports', None)
+        if rc:
+            return getattr(rc.graphDefs, graphDefId, None)
+        return None
+
+
+    ### Graphing
+    
+
+    def getDefaultGraphDefs(self, drange=None):
+        ''' Construct the list of graph dicts for this report.
+        Similar in functionality to RRDView.getDefaultGraphDefs
+        '''
+        graphs = []
+        def AppendToGraphs(thing, cmds, title):
+            perfServer = thing.device().getPerformanceServer()
+            url = perfServer.buildGraphUrlFromCommands(
+                                        cmds, drange or self.defaultDateRange)
+            graphs.append({
+                'title': title,
+                'url': url,
+                })
+        
+        def GetThingTitle(thing, postfix=''):
+            title = thing.device().id
+            if thing != thing.device():
+                title += ' %s' % thing.id
+            if postfix:
+                title += ' - %s' % postfix
+            return title
+        
+        for gg in self.graphGroups():
+            collection = gg.getCollection()
+            things = collection and collection.getDevicesAndComponents()
+            graphDef = gg.getGraphDef()
+            if not things or not graphDef:
+                continue
+            if gg.combineDevices:
+                cmds = []
+                idxOffset = 0
+                for thing in things:
+                    cmds = graphDef.getGraphCmds(
+                                    thing.primaryAq(), 
+                                    performancePath(GetRRDPath(thing)), 
+                                    includeSetup = not cmds,
+                                    includeThresholds = not cmds,
+                                    cmds = cmds,
+                                    prefix = GetThingTitle(thing),
+                                    idxOffset=idxOffset)
+                    idxOffset += len(graphDef.graphPoints())
+                AppendToGraphs(things[0], cmds, gg.id)
+            else:
+                for thing in things:
+                    cmds = []
+                    cmds = graphDef.getGraphCmds(
+                                    thing.primaryAq(),
+                                    performancePath(GetRRDPath(thing)))
+                    AppendToGraphs(thing, cmds, GetThingTitle(thing))
+        return graphs
 
 
 InitializeClass(FancyReport)

@@ -53,12 +53,17 @@ class TickGraphPoint(GraphPoint):
         return 'TICK'
 
 
-    def getGraphCmds(self, cmds, context, rrdDir, addSummary, idx, multiid=-1):
+    def getGraphCmds(self, cmds, context, rrdDir, addSummary, idx, 
+                        multiid=-1, prefix=''):
         ''' Build the graphing commands for this graphpoint
         '''
+        if not self.vname:
+            return cmds
+            
+        legend = self.addPrefix(prefix, self.legend)
         return cmds + ['TICK:%s%s%s%s' % (
-                    self.vname,
-                    self.getColor(-1 * idx),
+                    self.addPrefix(prefix, self.vname),
+                    self.getThresholdColor(idx),
                     self.fraction and ':%s' % self.fraction or '',
-                    self.legend and ':%s' % self.legend or '')]
+                    legend and ':%s' % legend or '')]
 

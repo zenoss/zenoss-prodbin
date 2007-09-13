@@ -71,7 +71,7 @@ class Collection(ZenModelRM):
 
     security.declareProtected('Manage DMD', 'manage_addCollectionItem')
     def manage_addCollectionItem(self, itemType,
-            deviceId='', compPath='', deviceClass='', system='',
+            deviceId='', componentPath='', deviceClass='', system='',
             group='', location='', recurse=False, REQUEST=None):
         ''' Create a new CollectionItem and add to this collection
         '''
@@ -87,7 +87,7 @@ class Collection(ZenModelRM):
             ci.deviceOrganizer = '/Locations' + location
         elif itemType == 'devcomp':
             ci.deviceId = deviceId
-            ci.compPath = compPath
+            ci.compPath = componentPath
             
         if ci.deviceOrganizer:
             ci.recurse = recurse
@@ -141,6 +141,18 @@ class Collection(ZenModelRM):
         ''' Return the number of collection items
         '''
         return len(self.items())
+
+
+    def getDevicesAndComponents(self):
+        ''' Return a deduped list of devices and components represented
+        by this collection's collectionitems
+        '''
+        things = {}
+        for collectionItem in self.items():
+            devsAndComps = collectionItem.getDevicesAndComponents()
+            for devOrComp in devsAndComps:
+                things[devOrComp.getPrimaryId()] = devOrComp
+        return things.values()
 
         
 InitializeClass(Collection)

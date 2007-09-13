@@ -131,8 +131,20 @@
                  tal:content="graphGroup/getId"/>
 
         </td>
-        <td tal:content="graphGroup/collectionId" />
-        <td tal:content="graphGroup/graphDefId" />
+        <td>
+            <a  tal:condition="graphGroup/getCollectionUrl"
+                tal:attributes="href graphGroup/getCollectionUrl"
+                tal:content="graphGroup/collectionId" />
+            <span tal:condition="not: graphGroup/getCollectionUrl"
+                tal:content="string: ${graphGroup/collectionId} (missing)"/>
+        </td>
+        <td>
+            <a  tal:condition="graphGroup/getGraphDefUrl"
+                tal:attributes="href graphGroup/getGraphDefUrl"
+                tal:content="graphGroup/graphDefId" />
+            <span tal:condition="not: graphGroup/getGraphDefUrl"
+                tal:content="string: ${graphGroup/graphDefId} (missing)"/>
+        </td>
     </tr>
 
         </tal:block>

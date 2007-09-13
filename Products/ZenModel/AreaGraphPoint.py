@@ -53,14 +53,15 @@ class AreaGraphPoint(GraphPoint):
         return 'AREA'
 
 
-    def getGraphCmds(self, cmds, context, rrdDir, addSummary, idx, multiid=-1):
+    def getGraphCmds(self, cmds, context, rrdDir, addSummary, idx, 
+                        multiid=-1, prefix=''):
         ''' Build the graphing commands for this graphpoint
         '''
-        gopts = 'AREA:%s' % self.value
+        gopts = 'AREA:%s' % self.addPrefix(prefix, self.value)
         if self.color:
             gopts += '%s' % self.getColor(idx)
         if self.legend:
-            gopts += ':%s' % self.legend
+            gopts += ':%s' % self.addPrefix(prefix, legend)
         if self.stacked:
             gopts += ':STACK'
         return cmds + [gopts]

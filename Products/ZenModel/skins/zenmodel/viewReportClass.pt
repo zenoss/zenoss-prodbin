@@ -63,9 +63,11 @@
         </tal:block>
         
 
+<br />
 </form>
-<br>
-<form tal:attributes="method string:post;
+
+<form   tal:condition="python: here.getPrimaryId() != '/zport/dmd/Reports'"
+        tal:attributes="method string:post;
         name string:reportForm;
         action here/absolute_url_path">
 <input type="hidden" name="zenScreenName" tal:attributes="value template/id"/>
@@ -112,11 +114,10 @@
         </tal:block>
         </tal:block>
         
-
-</form>
 <br />
+</form>
 
-<tal:block tal:condition="python: here.getPrimaryId()=='/zport/dmd/Reports' and here.isManager()">
+<tal:block tal:condition="python: here.getPrimaryId()=='/zport/dmd/Reports/Fancy Reports' and here.isManager()">
     <tal:block metal:use-macro="here/graphDefList/macros/graphDefList">
     </tal:block>
 </tal:block>

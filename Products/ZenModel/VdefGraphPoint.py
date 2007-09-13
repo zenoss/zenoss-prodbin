@@ -49,9 +49,13 @@ class VdefGraphPoint(GraphPoint):
         return 'VDEF'
         
 
-    def getGraphCmds(self, cmds, context, rrdDir, addSummary, idx, multiid=-1):
+    def getGraphCmds(self, cmds, context, rrdDir, addSummary, idx, 
+                            multiid=-1, prefix=''):
         ''' Build the graphing commands for this graphpoint
         '''
+        if not self.rpn:
+            return cmds
+
         return cmds + ['VDEF:%s=%s' % (
-                        self.getDsName(self.id, multiid), self.rpn)]
+                        self.getDsName(self.id, multiid, prefix), self.rpn)]
 

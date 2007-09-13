@@ -78,7 +78,7 @@
 }
 .dbox_ml {
     background: transparent url(img/dbox/l.gif) repeat-y scroll 0pt 50%;
-    overflow: hidden;
+    overflow: visible;
     padding-left:4px;
 }
 .dbox_mc {
@@ -96,7 +96,7 @@
 }
 .dbox_mr {
     background: transparent url(img/dbox/r.gif) repeat-y scroll right center;
-    overflow: hidden;
+    overflow: visible;
     padding-right:4px;
 }
 .dbox_bl {

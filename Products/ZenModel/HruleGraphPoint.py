@@ -52,10 +52,12 @@ class HruleGraphPoint(GraphPoint):
         return 'HRULE'
 
 
-    def getGraphCmds(self, cmds, context, rrdDir, addSummary, idx, multiid=-1):
+    def getGraphCmds(self, cmds, context, rrdDir, addSummary, idx, 
+                        multiid=-1, prefix=''):
         ''' Build the graphing commands for this graphpoint
         '''
+        legend = self.addPrefix(prefix, self.legend)
         return cmds + ['HRULE:%s%s%s' % (
                     self.value or 0,
                     self.getColor(idx),
-                    self.legend and ':%s' % self.legend or '')]
+                    legend and ':%s' % legend or '')]

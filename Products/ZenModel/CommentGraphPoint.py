@@ -47,7 +47,8 @@ class CommentGraphPoint(GraphPoint):
         return 'COMMENT'
 
 
-    def getGraphCmds(self, cmds, context, rrdDir, addSummary, idx, multiid=-1):
+    def getGraphCmds(self, cmds, context, rrdDir, addSummary, idx, 
+                        multiid=-1, prefix=''):
         ''' Build the graphing commands for this graphpoint
         '''
         return cmds + ['COMMENT:%s' % self.text.replace(':', '\:')]

@@ -14,19 +14,24 @@
 
 import Migrate
 from Products.ZenModel.GraphDefinition import GraphDefinition
+from Products.ZenModel.FancyReportClass import FancyReportClass
 
 class FancyReports(Migrate.Step):
     version = Migrate.Version(2, 1, 0)
     
-
     def cutover(self, dmd):
         
-        # Build dmd.Reports.graphDefs
-        dmd.Reports.buildRelations()
-        
         # Build Reports/Fancy Reports
-        if not hasattr(dmd.Reports, 'Fancy Reports'):
-            dmd.Reports.manage_addReportClass('Fancy Reports')
+        import pdb; pdb.set_trace()
+        frc = getattr(dmd.Reports, 'Fancy Reports', None)
+        if frc:
+            if not isinstance(frc, FancyReportClass):
+                frc.__class__ = FancyReportClass
+        else:
+            frc = FancyReportClass('Fancy Reports')
+            dmd.Reports._setObject(frc.id, frc)
+        dmd.Reports.buildRelations()
+        dmd.Reports['Fancy Reports'].buildRelations()
         
         # Install sample fancy report?
         
@@ -34,7 +39,7 @@ class FancyReports(Migrate.Step):
         dmd.buildMenus({  
             'Report_list': [ 
                 {   'action': 'dialog_addFancyReport',
-                    'allowed_classes': ('ReportClass',),
+                    'allowed_classes': ('FancyReportClass',),
                     'description': 'Add Fancy Report...',
                     'id': 'addFancyReport',
                     'isdialog': True,

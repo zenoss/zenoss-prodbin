@@ -177,30 +177,37 @@ class PerformanceConf(Monitor, StatusColor):
                     RRA:MAX:0.5:288:600'''
         """
         return "\n".join(self.defaultRRDCreateCommand)
-        
 
-    def performanceGraphUrl(self, context, targetpath, targettype,
-                            view, drange):
-        """set the full path of the target and send to view"""
-        targetpath = performancePath(targetpath)
-        gopts =  view.getGraphCmds(context, targetpath)
-        ngopts = []
+
+    def buildGraphUrlFromCommands(self, gopts, drange):
+        ''' Return a url for the given graph options and date range
+        '''
+        newOpts = []
         width = 0
         for o in gopts: 
             if o.startswith('--width'): 
                 width = o.split('=')[1].strip()
                 continue
-            ngopts.append(o)
-        gopts = urlsafe_b64encode(zlib.compress('|'.join(ngopts), 9))
+            newOpts.append(o)
+        encodedOpts = urlsafe_b64encode(zlib.compress('|'.join(newOpts), 9))
         url = "%s/render?gopts=%s&drange=%d&width=%s" % (
-                self.renderurl,gopts,drange, width)
+                self.renderurl, encodedOpts, drange, width)
         if self.renderurl.startswith("proxy"):
             url = url.replace("proxy", "http")
             return  "/zport/RenderServer/render" \
                     "?remoteUrl=%s&gopts=%s&drange=%d&width=%s" % (
-                    url_quote(url),gopts,drange,width)
+                    url_quote(url), encodedOpts, drange, width)
         else:
             return url
+        
+        
+    def performanceGraphUrl(self, context, targetpath, targettype,
+                            view, drange):
+        """set the full path of the target and send to view"""
+        targetpath = performancePath(targetpath)
+        gopts =  view.getGraphCmds(context, targetpath)
+        return self.buildGraphUrlFromCommands(gopts, drange)
+ 
  
     def performanceMGraphUrl(self, context, targetsmap, view, drange):
         """set the full paths for all targts in map and send to view"""

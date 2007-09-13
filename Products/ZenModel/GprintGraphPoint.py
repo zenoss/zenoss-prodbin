@@ -52,11 +52,12 @@ class GprintGraphPoint(GraphPoint):
         return 'GPRINT'
 
 
-    def getGraphCmds(self, cmds, context, rrdDir, addSummary, idx, multiid=-1):
+    def getGraphCmds(self, cmds, context, rrdDir, addSummary, idx, 
+                        multiid=-1, prefix=''):
         ''' Build the graphing commands for this graphpoint
         '''
         return cmds + ['GPRINT:%s:%s%s' % (
-                    self.vname,
+                    self.addPrefix(prefix, self.vname),
                     (self.format or self.DEFAULT_FORMAT).replace(':', '\:'),
                     self.strftime and ':%s' % strftime or '')]
 

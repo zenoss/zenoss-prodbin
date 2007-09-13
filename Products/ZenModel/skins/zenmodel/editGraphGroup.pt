@@ -45,12 +45,23 @@
                             selected python:here.graphDefId==graphDef.id;"
                     tal:content="graphDef/id" />
             </select>
-            &nbsp;&nbsp;&nbsp;&nbsp;
-            <a href="">Create a new Graph Definition</a>
             </tal:block>
             
             <span tal:condition="not:here/isManager"
                 tal:content="here/graphDefId" />
+        </td>
+        <td class="tablevalues" tal:condition="not:here/isManager"
+            tal:content="here/id"/>
+    </tr>
+    <tr>
+        <td class="tableheader">Method</td>
+        <td class="tablevalues" tal:condition="here/isManager">
+            <select class="tablevalues" name="combineDevices:boolean">
+                <option tal:attributes="value python:False">Separate graph
+                    for each device</option>
+                <option tal:attributes="value python:True">All devices on
+                    single graph</option>
+            </select>
         </td>
         <td class="tablevalues" tal:condition="not:here/isManager"
             tal:content="here/id"/>

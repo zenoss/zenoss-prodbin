@@ -60,7 +60,8 @@ class ThresholdGraphPoint(GraphPoint):
         return dpNames
 
 
-    def getGraphCmds(self, cmds, context, rrdDir, addSummary, idx, multiid=-1):
+    def getGraphCmds(self, cmds, context, rrdDir, addSummary, idx, 
+                        multiid=-1, prefix=''):
         ''' Build the graphing commands for this graphpoint
         '''
         gopts = []
@@ -68,8 +69,8 @@ class ThresholdGraphPoint(GraphPoint):
             threshClass = self.getThreshClass()
             if threshClass:
                 threshInst = threshClass.createThresholdInstance(context)
-                namespace = self.id
-                color = self.getColor(-1 * self.sequence)
+                namespace = self.addPrefix(prefix, self.id)
+                color = self.getThresholdColor(idx)
                 gopts = threshInst.getGraphElements(
                             self.graphDef.rrdTemplate, gopts, namespace, color)
         return cmds + gopts

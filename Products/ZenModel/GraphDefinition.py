@@ -21,8 +21,9 @@ import sys
 from sets import Set
 import string
 
-from AccessControl import Permissions
 from Products.ZenRelations.RelSchema import *
+from Globals import InitializeClass
+from AccessControl import ClassSecurityInfo, Permissions
 from GraphPoint import GraphPoint
 from ZenModelRM import ZenModelRM
 from ZenPackable import ZenPackable
@@ -114,6 +115,7 @@ class GraphDefinition(ZenModelRM, ZenPackable):
     },
     )
 
+    security = ClassSecurityInfo()
 
     ## Basic stuff
 
@@ -265,6 +267,9 @@ class GraphDefinition(ZenModelRM, ZenPackable):
     def manage_addDataPointGraphPoints(self, dpNames, includeThresholds=False,
                                                 REQUEST=None):
         ''' Create new graph points
+        The migrate script graphDefinitions and friends depends on the first
+        element in newGps being the DataPointGraphPoint when only one
+        name is passed in dpNames.
         '''
         from DataPointGraphPoint import DataPointGraphPoint
         from ThresholdGraphPoint import ThresholdGraphPoint
@@ -364,23 +369,32 @@ class GraphDefinition(ZenModelRM, ZenPackable):
     ## Graphing Support
 
 
-    def getGraphCmds(self, context, rrdDir, multiid=-1, upToPoint=None):
+    def getGraphCmds(self, context, rrdDir, multiid=-1, upToPoint=None,
+            includeSetup=True, includeThresholds=True, 
+            prefix='', cmds=None, idxOffset=0):
         """build the graph opts for a single rrdfile"""
         from Products.ZenUtils.ZenTales import talesEval
-        cmds = self.graphsetup()
+        if not cmds:
+            cmds = []
+        if includeSetup:
+            cmds += self.graphsetup()
+        
         gpList = [gp for gp in self.getGraphPoints(includeThresholds=False)
                     if upToPoint is None or gp.sequence < upToPoint]
         for index, gp in enumerate(gpList):
             cmds = gp.getGraphCmds(cmds, context, rrdDir, 
-                                        self.hasSummary, index, multiid)
-        threshGps = [gp for gp in self.getThresholdGraphPoints()
-                    if upToPoint is None or gp.sequence < upToPoint]
-        if threshGps:
-            cmds.append("COMMENT:Data Thresholds\j")
-            for index, gp in enumerate(threshGps):
-                cmds = gp.getGraphCmds(cmds, context, rrdDir,
-                                        self.hasSummary, index, multiid)
-        if self.custom:
+                                        self.hasSummary, index+idxOffset,
+                                        multiid, prefix)
+        if includeThresholds:
+            threshGps = [gp for gp in self.getThresholdGraphPoints()
+                        if upToPoint is None or gp.sequence < upToPoint]
+            if threshGps:
+                cmds.append("COMMENT:Data Thresholds\j")
+                for index, gp in enumerate(threshGps):
+                    cmds = gp.getGraphCmds(cmds, context, rrdDir,
+                                        self.hasSummary, index+idxOffset,
+                                        multiid, prefix)
+        if self.custom and includeSetup:
             res = talesEval("string:"+self.custom, context)
             cmds.extend(res.split("\n"))
             #if self.hasSummary:
@@ -439,7 +453,42 @@ class GraphDefinition(ZenModelRM, ZenPackable):
             gopts.append('--base=1024')
         gopts = [str(o) for o in gopts]
         return gopts
-       
+
+    def getRelatedReports(self):
+        ''' Return a list of the names of the reports that reference this
+        graphDef.  This only applies to graphDefs in the /Reports tree,
+        not those living in an rrdtemplate.
+        '''
+        if self.rrdTemplate():
+            return []
+        
+        reports = []
+        reportClasses = [self.dmd.Reports] + self.dmd.Reports.getSubOrganizers()
+        for rc in reportClasses:
+            for r in rc.reports():
+                if r.meta_type == 'FancyReport':
+                    for gg in r.graphGroups():
+                        if gg.graphDefId == self.id:
+                            reports.append(r)
+                            break;
+        return reports
+
+
+    security.declareProtected('Manage DMD', 'getUniqueDpNames')
+    def getUniqueDpNames(self):
+        ''' Get a list of all unique datapoint names
+        '''
+        from sets import Set
+        dpNames = Set()
+        for t in self.dmd.Devices.getAllRRDTemplates():
+            for ds in t.datasources():
+                for dp in ds.datapoints():
+                    dpNames.add(dp.name())
+            if len(dpNames) > 100:
+                break
+        dpNames = list(dpNames)
+        dpNames.sort()
+        return dpNames
 
     # def buildCustomDS(self, cmds, rrdDir, template):
     #     """Build a list of DEF statements for the dpNames in this graph.
@@ -486,3 +535,5 @@ class GraphDefinition(ZenModelRM, ZenPackable):
     #         gopts.append("%s:%s:%s" % (opt, vdef, label))
     #     gopts[-1] += "\j"
     #     return gopts
+
+InitializeClass(GraphDefinition)

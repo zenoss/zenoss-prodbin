@@ -51,14 +51,15 @@ class ShiftGraphPoint(GraphPoint):
         return 'SHIFT'
 
 
-    def getGraphCmds(self, cmds, context, rrdDir, addSummary, idx, multiid=-1):
+    def getGraphCmds(self, cmds, context, rrdDir, addSummary, idx, 
+                        multiid=-1, prefix=''):
         ''' Build the graphing commands for this graphpoint
         '''
         if not (self.rrdFile and self.dsName and self.cFunc):
             return cmds
         
         extraContext = self.getTalesContext()
-        vname = talesEvalStr(self.vname, self, extraContext)
         offset = talesEvalStr(self.offset, self, extraContext)
 
-        return cmds + ['SHIFT:%s:%s' % (vname, offset or 0)]
+        return cmds + ['SHIFT:%s:%s' % (
+                            self.addPrefix(prefix, self.vname), offset or 0)]

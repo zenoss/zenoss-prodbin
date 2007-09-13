@@ -57,25 +57,26 @@ class DataPointGraphPoint(ComplexGraphPoint):
         return 'DataPoint'
 
 
-    def getGraphCmds(self, cmds, context, rrdDir, addSummary, idx, multiid=-1):
+    def getGraphCmds(self, cmds, context, rrdDir, addSummary, idx, 
+                        multiid=-1, prefix=''):
         ''' Build the graphing commands for this graphpoint
         '''
         graph = []
         
         # Create the base DEF
-        rawName = self.getDsName('%s-raw' % self.id, multiid)        
+        rawName = self.getDsName('%s-raw' % self.id, multiid, prefix)        
         rrdFile = os.path.join(rrdDir, self.dpName) + ".rrd"
         graph.append("DEF:%s=%s:%s:%s" % (rawName, rrdFile, 'ds0', self.cFunc))
 
         # If have rpn then create a new CDEF
         if self.rpn: 
-            rpnName = self.getDsName('%s-rpn' % self.id, multiid)
+            rpnName = self.getDsName('%s-rpn' % self.id, multiid, prefix)
             graph.append("CDEF:%s=%s,%s" % (rpnName, rawName, self.rpn))
 
         # If have limit then create a new CDEF
         if self.limit > -1:
             src = self.rpn and rpnName or rawName
-            limitName = self.getDsName('%s-limit' % self.id, multiid)
+            limitName = self.getDsName('%s-limit' % self.id, multiid, prefix)
             graph.append("CDEF:%s=%s,%s,GT,UNKN,%s,IF"%
                         (limitName,src,self.limit,src))
                         
@@ -87,7 +88,8 @@ class DataPointGraphPoint(ComplexGraphPoint):
             src = rawName
 
         # Create a cdef for the munged value        
-        graph.append('CDEF:%s=%s' % (self.id, src))
+        graph.append('CDEF:%s=%s' % 
+                            (self.getDsName(self.id, multiid, prefix), src))
 
         # Draw
         if self.lineType:
@@ -97,11 +99,16 @@ class DataPointGraphPoint(ComplexGraphPoint):
                 name = "%s-%s" % (self.id, fname)
             else:
                 name = self.dpName.split('_', 1)[-1]
-            graph.append('%s:%s%s:%s' % (
+                name = self.addPrefix(prefix, name)
+            drawCmd ='%s:%s%s:%s' % (
                         self.lineType,
                         src,
                         self.getColor(idx),
-                        name.ljust(14)))
+                        name.ljust(14))
+            if self.stacked:
+                drawCmd += ':STACK'
+            graph.append(drawCmd)
+            
             # Add summary
             if addSummary:
                 graph.extend(self._summary(src, self.format, ongraph=1))

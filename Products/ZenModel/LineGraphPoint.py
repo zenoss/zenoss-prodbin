@@ -55,14 +55,16 @@ class LineGraphPoint(GraphPoint):
         return 'LINE'
 
 
-    def getGraphCmds(self, cmds, context, rrdDir, addSummary, idx, multiid=-1):
+    def getGraphCmds(self, cmds, context, rrdDir, addSummary, idx, 
+                        multiid=-1, prefix=''):
         ''' Build the graphing commands for this graphpoint
         '''
-        gopts = 'LINE%s:%s' % ((self.lineWidth or ''), self.value)
+        value = self.addPrefix(prefix, self.value)
+        gopts = 'LINE%s:%s' % ((self.lineWidth or ''), value)
         if self.color:
             gopts += self.getColor(idx)
         if self.legend:
-            gopts += ':%s' % self.legend
+            gopts += ':%s' % self.addPrefix(prefix, self.legend)
         if self.stacked:
             gopts += ':STACK'
         return cmds + [gopts]

@@ -28,7 +28,7 @@
         var d = loadJSONDoc(url, {'deviceId': deviceWidget.value});
         compWidget.options.length = 0;
         d.addBoth(updateSelect, compWidget);
-        getThirdList()
+        getThirdList();
     }
 
     function handleDeviceKeys(e) {

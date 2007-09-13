@@ -62,7 +62,7 @@ class CollectionItem(ZenModelRM):
         )
 
     _relations = ZenPackable._relations + (
-        ('collection', ToOne(ToMany,'Products.ZenModel.Collection','items')),
+        ('collection', ToOne(ToManyCont,'Products.ZenModel.Collection','items')),
         )
     
     factory_type_information = ( 
@@ -91,45 +91,58 @@ class CollectionItem(ZenModelRM):
         self.sequence = sequence
 
 
-    def getDesc(self):
+    def getDesc(self, withLink=True):
         ''' Return a string that represents this item
         '''
+        thing = self.getRepresentedItem()
         if self.deviceId:
-            desc = self.deviceId
-            if self.compPath:
-                desc += '/%s' % self.compPath
-        elif self.deviceOrganizer:
-            desc = self.deviceOrganizer
+            if withLink and thing:
+                desc = '<a href="%s">%s%s</a>' % (thing.getPrimaryUrlPath(),
+                    self.deviceId, self.compPath)
+            else:
+                desc = '%s%s' % (self.deviceId, self.compPath)
+        else:
+            if withLink and thing:
+                desc = '<a href="%s">%s</a>' % (thing.getPrimaryUrlPath(),
+                    self.deviceOrganizer)
+            else:
+                desc = self.deviceOrganizer
             if self.recurse:
                 desc += ' and suborganizers'
-        else:
-            desc = ''
         return desc
+
+
+    def getRepresentedItem(self):
+        ''' Get the device organizer, component or device
+        that this collection item represents
+        '''
+        thing = None
+        if self.deviceId:
+            thing = self.dmd.Devices.findDevice(self.deviceId)
+            if self.compPath:
+                for part in self.compPath.split('/'):
+                    if part:
+                        thing = getattr(thing, part, None)
+                        if not thing:
+                            break
+        elif self.deviceOrganizer:
+            try:
+                thing = self.dmd.getObjByPath(self.deviceOrganizer.lstrip('/'))
+            except KeyError:
+                thing = None
+        return thing
 
 
     def getDevicesAndComponents(self):
         ''' Return a list of the devices and components referenced by this item
         '''
-        stuff = []
+        thing = self.getRepresentedItem()
         if self.deviceId:
-            comp = self.dmd.Devices.findDevice(self.deviceId)
-            if comp and self.compPath:
-                for part in self.compPath.split('/'):
-                    if part:
-                        comp = getattr(comp, part, None)
-                        if not comp:
-                            break
-            if comp:
-                stuff = [comp]
-        elif self.deviceOrganizer:
-            try:
-                org = self.dmd.getObjByPath(self.deviceOrganizer.lstrip('/'))
-                if self.recurse:
-                    stuff = org.getSubDevices()
-                else:
-                    stuff = org.devices()
-            except KeyError:
-                pass
+            stuff = [thing]
+        elif self.recurse:
+            stuff = thing.getSubDevices()
+        else:
+            stuff = thing.devices()
         return stuff
 
 

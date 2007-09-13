@@ -60,7 +60,8 @@ class DefGraphPoint(GraphPoint):
         return 'DEF'
 
 
-    def getGraphCmds(self, cmds, context, rrdDir, addSummary, idx, multiid=-1):
+    def getGraphCmds(self, cmds, context, rrdDir, addSummary, idx, 
+                            multiid=-1, prefix=''):
         ''' Build the graphing commands for this graphpoint
         '''
         from Products.ZenUtils.ZenTales import talesEvalStr
@@ -71,7 +72,7 @@ class DefGraphPoint(GraphPoint):
         extraContext['rrdDir'] = rrdDir
         rrdFile = talesEvalStr(self.rrdFile, self, extraContext)
             
-        dest = self.getDsName(self.id, multiid)
+        dest = self.getDsName(self.id, multiid, prefix)
         gopt = 'DEF:%s=%s:%s:%s' % (
                     dest,
                     rrdFile,

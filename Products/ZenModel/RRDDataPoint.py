@@ -124,10 +124,12 @@ class RRDDataPoint(ZenModelRM, ZenPackable):
         """get the physicalpath as a url"""
         return self.absolute_url_path()
 
+
     def name(self):
         """Include the data source name in our name,
         useful for lists of DataPoints"""
         return '%s%c%s' % (self.datasource().id, SEPARATOR, self.id)
+
 
     security.declareProtected('Manage DMD', 'zmanage_editProperties')
     def zmanage_editProperties(self, REQUEST=None):

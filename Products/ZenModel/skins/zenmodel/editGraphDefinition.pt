@@ -1,66 +1,55 @@
 <tal:block metal:use-macro="here/templates/macros/page2">
     
 <tal:block metal:fill-slot="head-local" 
-            tal:condition="not: exists: here/template">
+            tal:condition="not: exists: here/datapoints">
+
+<!-- YAHOO script lib files --> 
+<script type="text/javascript" src="/zport/dmd/yui/yahoo/yahoo-min.js" ></script>
+<link type="text/css" rel="stylesheet" href="/zport/dmd/yui/autocomplete/assets/skins/sam/autocomplete.css" /> 
+<script type="text/javascript" src="/zport/dmd/yui/yahoo-dom-event/yahoo-dom-event.js"></script>
+<script type="text/javascript" src="/zport/dmd/yui/animation/animation-min.js"></script>
+<script type="text/javascript" src="/zport/dmd/yui/autocomplete/autocomplete-min.js"></script>
+
+<tal:block tal:replace='structure string:<script type="text/javascript">' />
+<tal:block tal:replace="structure string:var dpNamesArray = [" />
+<tal:block tal:repeat="dpName here/getUniqueDpNames"
+            tal:replace="structure string:'${dpName}'," />
+<tal:block tal:replace="structure string:];</script>" />
 <script type="text/javascript">
+    var dpNamesDataSource = new YAHOO.widget.DS_JSArray(dpNamesArray);
+    dpNamesDataSource.queryMatchContains = true;
+    dpNamesDataSource.animVert = false;
+    dpNamesDataSource.animHoriz = false;
     
-    function updateSelect(widget, options) {
-        for (var i = widget.length; i < options.length; i++) {
-            widget.options[i] = new Option(options[i],options[i], false, false);
-        }
-    }
+    var dpNamesAutoComp = null;
 
-    function getDpList(e) {
-        var filter = document.getElementById('dpFilter');
-        var widget = document.getElementById('dpNames');
-        var url = '/zport/dmd/Devices/jsonGetDataPointNames'
-        var d = loadJSONDoc(url, {'query': filter.value});
-        widget.options.length = 0;
-        d.addBoth(updateSelect, widget);
-    }
+    function setupAutoComplete() {
+        if (!dpNamesAutoComp)
+            dpNamesAutoComp = new YAHOO.widget.AutoComplete("dpNamesInput", 
+                                    "dpNameContainer", dpNamesDataSource);
+            dpNamesAutoComp.maxResultsDisplayed = 20;
+            dpNamesAutoComp.forceSelection = false;
+            dpNamesAutoComp.typeAhead = false;
+    };
 
-    function handleDpKeys(e) {
-        keyString = String.fromCharCode(e.which)
-        //keyString = e.key().string;
-        if (keyString == 'KEY_ENTER') {
-            getDpList(e);
-        }
-    }
+    function teardownAutoComplete() {
+        if (dpNamesAutoComp)
+            dpNamesAutoComp = null;
+    };
 
-    function connectFilter() {
-        alert('connecting');
-        connect('dpFilter', 'onkeydown', handleDpKeys);
-        connect('dpFilterBtn', 'onclick', getDpList);
-    }
-    
-    function initStuff() {
-        alert("init stuff");
-    }
-    
-    function showDPDialog() {
-    }
-
-    //addLoadEvent(connectFilter);
-    //addLoadEvent(getDpList);
-    
-    //connectFilter();
-    //getDpList();
-    //alert('yo');
-    
 </script>
+
 </tal:block>
 
-    
-    
 <tal:block metal:fill-slot="contentPane">
 
 <form tal:attributes="method string:post;
                 action here/absolute_url_path;
                 name string:graphPointList">
+
 <input type="hidden" name="zenScreenName" tal:attributes="value template/id"/>
 
-
-        <tal:block tal:define="tableName string:graphPointList; 
+    <tal:block tal:define="tableName string:graphPointList; 
         objects here/getGraphPoints;
         batch python:here.ZenTableManager.getBatch(tableName,objects,
                                                 sortedHeader='sequence'); 
@@ -242,8 +231,41 @@
         </tal:block>
         </tal:block>
         
-
 </form>
+
+
+<tal:block tal:define="tableName string:usedInReportsList; 
+        objects here/getRelatedReports;
+        batch python:here.ZenTableManager.getBatch(tableName,objects,
+                                                sortedHeader='id'); 
+        tabletitle string:Used in These Reports">
+<tal:block metal:use-macro="here/zenuimacros/macros/zentable">
+<tal:block metal:fill-slot="zentablecontents">
+            
+    <tr>
+        <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
+                    tableName,'id','Report')"/>
+        <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
+                    tableName,'getOrganizerName','Class')"/>
+    </tr>
+    <tr class="tablevalues" tal:repeat="report batch">
+        <td> 
+            <a tal:attributes="href report/getPrimaryUrlPath"
+                tal:content="report/id">
+            </a>
+        </td>
+		<td class="tablevalues" align="left"
+            tal:define="path report/getOrganizerName">
+            <a href="" 
+                tal:attributes="href string:/zport/dmd/Reports${path}"
+                tal:content="path"></a>
+        </td>
+    </tr>
+
+</tal:block>
+</tal:block>
+</tal:block>
+<br />
 
 
 </tal:block>

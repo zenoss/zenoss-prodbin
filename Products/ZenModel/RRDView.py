@@ -31,6 +31,14 @@ CACHE_TIME = 60.
 
 _cache = Map.Locked(Map.Timed({}, CACHE_TIME))
 
+def GetRRDPath(deviceOrComponent):
+    d = deviceOrComponent.device()
+    if not d:
+        return "Devices/" + deviceOrComponent.id
+    skip = len(d.getPrimaryPath()) - 1
+    return 'Devices/' + '/'.join(deviceOrComponent.getPrimaryPath()[skip:])
+
+
 class RRDViewError(Exception): pass
 
 
@@ -279,10 +287,8 @@ class RRDView(object):
 
 
     def rrdPath(self):
-        d = self.device()
-        if not d: return "Devices/" + self.id
-        skip = len(d.getPrimaryPath()) - 1
-        return 'Devices/' + '/'.join(self.getPrimaryPath()[skip:])
+        return GetRRDPath(self)
+
 
     def fullRRDPath(self):
         from PerformanceConf import performancePath

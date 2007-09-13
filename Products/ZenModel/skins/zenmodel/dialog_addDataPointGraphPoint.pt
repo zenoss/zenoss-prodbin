@@ -1,19 +1,22 @@
 
 <h2>Add GraphPoint</h2>
 <span id="errmsg" style="color:red;"></span>
-<p style="text-align:left;">
-Data Points:&nbsp;<br />
 
-<tal:block tal:condition="not: exists: here/template">
-    
-<input class="tablevalues" type="text" name="dpFilter"
-     id="dpFilter" size="20" onkeydown="handleDpKeys(event)"/>
-<input class="tableheader" type="button" value="Filter"
-    id="dpFilterBtn" name="dpFilterBtn" onclick="getDpList(event)"/>
-<br />
-
+<tal:block tal:condition="not: exists: here/datapoints">
+<div style="text-align:left;" class="yui-skin-sam">
+DataPoint Name<br />
+<div id="dpNamesAutoComplete" style="color: black; position: relative; width: 30em">
+<input id="dpNamesInput" type="text" name="dpNames:list" size="40" 
+        onfocus="setupAutoComplete()" onblur="teardownAutoComplete()"/>
+<div id="dpNameContainer"></div>
+</div>
+</div>
+<br /><br />
 </tal:block>
 
+<tal:block tal:condition="exists: here/datapoints">
+<span style="text-align:left;">
+Data Points:&nbsp;<br />
 <select id="dpNames" name='dpNames:list' multiple="1">
     <option tal:condition="exists: here/template"
                 tal:repeat="option here/getDataPointOptions"
@@ -21,15 +24,14 @@ Data Points:&nbsp;<br />
                 tal:content="python: option[0]" />
 </select>
 <br />
-
 <input type="checkbox" name="includeThresholds" checked="1" />
 Include related thresholds
-<br/><br/>
+<br /><br />
+</span>
+</tal:block>
 
-</p>
 <div id="dialog_buttons">
-<input type="hidden" name="manage_addDataPointGraphPoints:method" value="1" />
-<input type="button" name="nothing" value="OK"
+<input type="submit" name="manage_addDataPointGraphPoints:method" value="OK"
     tal:attributes="onclick string:return $$('dialog').submit_form(
                         '${here/absolute_url_path}')" />
 <input id="dialog_cancel" type="button" value="Cancel"
