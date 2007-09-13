@@ -160,13 +160,6 @@
         href="css/dialog.css"/>
     <link rel="stylesheet" type="text/css" title="zenoss"
         href="css/filterbox.css"/>
-    <script type="text/javascript" src="js/MochiKit.js"></script>
-    <script type="text/javascript" src="zenmodelfuncs.js"></script>
-    <script src="javascript/selection.js"></script>
-    <script src="js/zenui.js"></script>
-    <script src="js/zenutils.js"></script>
-    <script src="javascript/menus.js"></script>
-    <script src="javascript/zgdagent.js"></script>
     <!--[if IE 7]>
         <link rel="stylesheet" type="text/css" title="zenoss"
             href="zenoss_ie.css" >
@@ -175,6 +168,17 @@
         <link rel="stylesheet" type="text/css" title="zenoss"
             href="zenoss_ie6.css" >
     <![endif]-->
+    <script type="text/javascript" src="js/MochiKit.js"></script>
+    <script type="text/javascript" src="zenmodelfuncs.js"></script>
+    <script src="javascript/selection.js"></script>
+    <script src="js/zenui.js"></script>
+    <script src="js/zenutils.js"></script>
+    <script src="javascript/menus.js"></script>
+    <script src="javascript/zgdagent.js"></script>
+    <script>var YAHOO_config={load:{base:'/zport/dmd/yui/'}};</script>
+    <script src="yui/yuiloader/yuiloader-beta-min.js"></script>
+    <script src="javascript/zenoss-core.js"></script>
+
 </tal:block>
 
 <!-- ======================================================

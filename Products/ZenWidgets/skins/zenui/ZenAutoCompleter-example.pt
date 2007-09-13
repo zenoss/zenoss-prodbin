@@ -1,0 +1,24 @@
+<tal:block metal:use-macro="here/templates/macros/page1">
+<tal:block metal:fill-slot="contentPane">
+
+<div id="myautocompleter" style="width:30em;position:relative;">
+</div>
+
+<script>
+
+function createAnAutocompleter() {
+    var q = new YAHOO.zenoss.zenautocomplete.ZenAutoComplete(
+        'locations', // Name for the cache
+        '/zport/dmd/Locations/getOrganizerNames', // URL from which to fetch JSON
+        'Zenoss Locations', // Label for the widget
+        'myautocompleter' // DOM element into which to put the thing
+    );
+}
+
+YAHOO.zenoss.loader.require(['zenautocomplete']);
+YAHOO.zenoss.loader.insert(createAnAutocompleter); // pass it a callback
+
+</script>
+
+</tal:block>
+</tal:block>
