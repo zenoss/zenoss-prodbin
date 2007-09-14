@@ -61,6 +61,8 @@ Dialog.Box.prototype = {
         setStyle(this.framework, {'position':'absolute'});
         removeElement(this.box);
         appendChildNodes($('dialog_content'), this.box);
+        this.loadEvents = {};
+        this.box.addLoadEvent = bind(this.addLoadEvent, this);
         this.box.show = bind(this.show, this);
         this.box.hide = bind(this.hide, this);
         this.box.fill = bind(this.fill, this);
@@ -72,6 +74,10 @@ Dialog.Box.prototype = {
             'position':'absolute',
             'z-index':'5001',
             'display':'none'});
+    },
+    addLoadEvent: function(id, func) {
+        if (!(id in this.loadEvents)) this.loadEvents[id] = [];
+        this.loadEvents[id].push(func);
     },
     makeDimBg: function() {
         if($('dialog_dim_bg')) {
@@ -141,11 +147,14 @@ Dialog.Box.prototype = {
         if (this.lock.locked) this.lock.release();
     },
     fetch: function(url) {
+        var urlsplit = url.split('/');
+        var id = urlsplit[urlsplit.length-1];
         var d = doSimpleXMLHttpRequest(url);
-        d.addCallback(bind(this.fill, this));
+        d.addCallback(method(this, function(req){this.fill(id, req)}));
     },
-    fill: function(request) {
+    fill: function(dialogid, request) {
         $('dialog_innercontent').innerHTML = request.responseText;
+        forEach(this.loadEvents[dialogid], function(f){f()});
         var elements = getFormElements($('dialog_innercontent'));
         var first = elements[0];
         var textboxes = elements[1];
@@ -157,7 +166,6 @@ Dialog.Box.prototype = {
             });
         }
         if (submits.length==1) map(connectTextboxes, textboxes);
-        log('Focusing first...');
         first.focus();
         if (this.lock.locked) this.lock.release();
     },
