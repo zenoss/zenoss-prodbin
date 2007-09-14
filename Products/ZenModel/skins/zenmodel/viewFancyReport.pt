@@ -1,0 +1,8 @@
+<tal:block metal:use-macro="here/templates/macros/page2">
+<tal:block metal:fill-slot="contentPane">
+
+<tal:block metal:use-macro="here/viewPerformanceDetail/macros/objectperf">
+</tal:block>
+
+</tal:block>
+</tal:block>
