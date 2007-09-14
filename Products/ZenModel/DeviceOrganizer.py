@@ -396,11 +396,11 @@ class DeviceOrganizer(Organizer, DeviceManagerBase, Commandable, ZenMenuable,
     def index_object(self):
         """Index all of our sub devices.
         """
-        for dev in self.getSubDevicesGen():
+        for dev in self.getSubDevices():
             dev.primaryAq().index_object()
 
     def unindex_object(self):
-        for dev in self.getSubDevicesGen():
+        for dev in self.getSubDevices():
             dev.primaryAq().unindex_object()
         
 
