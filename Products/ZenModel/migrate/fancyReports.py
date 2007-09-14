@@ -22,7 +22,6 @@ class FancyReports(Migrate.Step):
     def cutover(self, dmd):
         
         # Build Reports/Fancy Reports
-        import pdb; pdb.set_trace()
         frc = getattr(dmd.Reports, 'Fancy Reports', None)
         if frc:
             if not isinstance(frc, FancyReportClass):
