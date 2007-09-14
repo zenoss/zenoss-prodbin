@@ -934,8 +934,8 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
                         dev.getPrimaryUrlPath()+"/viewEvents", dev.id )
                 owners = ", ".join(dev.getEventOwnerList(severity=4))
                 evtsum = dev.getEventSummary(severity=4)
-            elif self.isRestricted():
-                continue
+#            elif self.isRestricted():
+#                continue
             else:
                 # handle event from device that isn't in dmd
                 alink = devname
