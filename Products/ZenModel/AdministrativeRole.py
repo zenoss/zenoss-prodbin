@@ -45,10 +45,6 @@ class AdministrativeRole(ZenModelRM):
         return self.userSetting().getPrimaryUrlPath()
 
 
-    def userid(self):
-        return self.userSetting().getId()
-
-    
     def managedObjectName(self):
         mo = self.managedObject()
         if mo.meta_type == 'Device':
@@ -62,7 +58,9 @@ class AdministrativeRole(ZenModelRM):
 
     def getEventSummary(self):
         return self.managedObject().getEventSummary()
-
+    
+    def managedObjectType(self):
+        return self.managedObject().meta_type
 
 DeviceAdministrativeRole = AdministrativeRole
 DevOrgAdministrativeRole = AdministrativeRole

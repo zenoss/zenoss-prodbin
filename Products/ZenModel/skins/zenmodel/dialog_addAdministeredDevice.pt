@@ -5,19 +5,14 @@
 <input type='hidden' name="type" value="device"/>
 <span id="errmsg" style="color:red;"></span>
 <br/>
-<p style="text-align:right;">
-<span id="new_id_label">Device:&nbsp;</span>
-<select class="tableheader" name="name"
-    tal:define="ds python:here.dmd.Devices.getDeviceBatch(selectstatus='all')">
-    <option tal:repeat="d ds" tal:content="d"/>
-</select>
+<div id="deviceLiveSearch" style="width:30em;position:relative;">
+</div>
 <br/><br/>
-</p>
 <div id="dialog_buttons">
 <input tal:attributes="id string:dialog_submit;
                         type string:submit;
                         value string:OK"
-                        name="manage_addAdministrativeRole:method" />
+                        name="manage_addAdministrativeRole:method"/>
 <input id="dialog_cancel" type="button" value="Cancel"
         onclick="$('dialog').hide()"/>
 </div>

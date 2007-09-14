@@ -121,7 +121,7 @@ class ZenMenuable:
             REQUEST['message'] = "Menu(s) Deleted"
             return self.callZenScreen(REQUEST)
     
-    security.declareProtected('View', 'getMenus')
+    #security.declareProtected('View', 'getMenus')
     def getMenus(self, menuids=None, context=None):
         """ Build menus for this context, acquiring ZenMenus
             which in turn acquire ZenMenuItems.
@@ -129,10 +129,9 @@ class ZenMenuable:
             Pass it a menuid for a list of menuitems, 
             a sequence of menuids for a dict of lists of items, 
             or nothing for a dict of all available menus.
-        """
+        """ 
         if not context: context=self
         menus = {}
-        user = getSecurityManager().getUser()
         if not isinstance(self, ZenMenuable): return None
         if isinstance(menuids, (str,unicode)): menuids=[menuids]
         mychain = aq_chain(context.primaryAq())
@@ -147,7 +146,7 @@ class ZenMenuable:
                     its = c.zenMenuItems()
                     while its:
                         i = its.pop()
-                        def permfilter(p): return user.has_permission(p,self)
+                        def permfilter(p): return self.checkRemotePerm(p,context)
                         permok = filter(permfilter,
                             getattr(i,'permissions',('',)))
                         if not permok \

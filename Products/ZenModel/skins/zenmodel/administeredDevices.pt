@@ -4,6 +4,24 @@
 <form method="post" tal:attributes="action here/absolute_url_path">
 <input type="hidden" name="zenScreenName" tal:attributes="value template/id"/>
 
+<script>
+
+function createAnAutocompleter(divId) {
+    var q = new YAHOO.zenoss.zenautocomplete.ZenAutoComplete(
+        'devices', // Name for the cache
+        '/zport/dmd/Devices/jsonGetDeviceNames', // URL from which to fetch JSON
+        'Devices', // Label for the widget
+        divId // DOM element into which to put the thing 
+    );
+    q.input.name = 'deviceName'
+}
+
+YAHOO.zenoss.loader.require(['zenautocomplete']);
+YAHOO.zenoss.loader.insert(); 
+// don't pass it a callback, calling it later manually
+$('dialog').addLoadEvent('dialog_addAdministeredDevice', function() { createAnAutocompleter('deviceLiveSearch') ;} )
+
+</script>
 
 <tal:block tal:define="objects here/adminRoles/objectValuesAll;
     editable here/isManager;
@@ -35,6 +53,8 @@
         <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
                     tableName,'managedObjectName','Name')"/>
         <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
+                                tableName,'managedObjectType','Type')"/>
+        <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
                     tableName,'role','Role')"/>
         <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
                     tableName,'level','Level')"/>
@@ -51,6 +71,7 @@
         <a tal:attributes="href ur/managedObjectLink"
             tal:content="ur/managedObjectName">somename</a>
     </td>
+    <td class="tablevalues" align="left" tal:content="ur/managedObjectType"/>
     <td class="tablevalues">
     <select class="tablevalues" name="role" tal:condition="editable"
         tal:define="roles here/getAllRoles">

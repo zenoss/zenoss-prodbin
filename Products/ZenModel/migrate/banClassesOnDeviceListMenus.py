@@ -17,7 +17,7 @@ import Globals
 import logging
 log = logging.getLogger("zen.migrate")
 
-from Products.ZenModel.ZenossSecurity import ZEN_CHANGE_DEVICE
+from Products.ZenModel.ZenossSecurity import *
 
 class BanClassesOnDeviceListMenus(Migrate.Step):
     version = Migrate.Version(2, 1, 0)
@@ -25,6 +25,36 @@ class BanClassesOnDeviceListMenus(Migrate.Step):
     def cutover(self, dmd):  
         # Build menus
         dmd.buildMenus({
+        'Manage': [  
+                    {  'action': 'dialog_changeClass',
+                       'allowed_classes': ('Device', 'OperatingSystem'),
+                       'description': 'Change Class...',
+                       'id': 'changeClass',
+                       'isdialog': True,
+                       'ordering': 85.0,
+                       'permissions': (ZEN_MANAGE_DMD,)},
+                    {  'action': 'dialog_renameDevice',
+                       'allowed_classes': ('Device', 'OperatingSystem'),
+                       'description': 'Rename Device...',
+                       'id': 'renameDevice',
+                       'isdialog': True,
+                       'ordering': 30.0,
+                       'permissions': (ZEN_MANAGE_DMD,)},
+                    {  'action': 'dialog_deleteDevice',
+                       'allowed_classes': ('Device', 'OperatingSystem'),
+                       'description': 'Delete Device...',
+                       'id': 'deleteDevice',
+                       'isdialog': True,
+                       'ordering': 4.0,
+                       'permissions': (ZEN_MANAGE_DMD,)},
+                    {  'action': 'dialog_clearHeartbeats',
+                       'allowed_classes': ('Device', 'OperatingSystem'),
+                       'description': 'Clear Heartbeats...',
+                       'id': 'clearHeartbeats',
+                       'isdialog': True,
+                       'ordering': 5.0,
+                       'permissions': (ZEN_MANAGE_DMD,)}],
+                       
         'Device_list': [  
                     {  'action': 'dialog_setProductionState',
                        'banned_classes': ['Monitor'],
@@ -46,7 +76,7 @@ class BanClassesOnDeviceListMenus(Migrate.Step):
                         'id': 'moveclass',
                         'isdialog': True,
                         'ordering': 50.0,
-                        'permissions': (ZEN_CHANGE_DEVICE,)},
+                        'permissions': (ZEN_MANAGE_DMD,)},
                      {  'action': 'dialog_setGroups',
                         'banned_classes': ['Monitor'],
                         'description': 'Set Groups...',
@@ -74,13 +104,13 @@ class BanClassesOnDeviceListMenus(Migrate.Step):
                        'id': 'setPerformanceMonitor',
                        'isdialog': True,
                        'ordering': 15.0,
-                       'permissions': (ZEN_CHANGE_DEVICE,)},
+                       'permissions': (ZEN_MANAGE_DMD,)},
                      {  'action': 'dialog_removeDevices',
                         'description': 'Delete devices...',
                         'id': 'removeDevices',
                         'isdialog': True,
                         'ordering': 10.0,
-                        'permissions': (ZEN_CHANGE_DEVICE,)},
+                        'permissions': (ZEN_MANAGE_DMD,)},
                      {  'action': 'dialog_lockDevices',
                         'banned_classes': ['Monitor'],
                         'description': 'Lock devices...',
@@ -94,7 +124,7 @@ class BanClassesOnDeviceListMenus(Migrate.Step):
                         'id': 'setStatusMonitors',
                         'isdialog': True,
                         'ordering': 11.0,
-                        'permissions': (ZEN_CHANGE_DEVICE,),
+                        'permissions': (ZEN_MANAGE_DMD,),
                     }],
         })
 

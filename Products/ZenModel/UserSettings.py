@@ -540,9 +540,11 @@ class UserSettings(ZenModelRM):
 
     
     #security.declareProtected('Change Settings', 'manage_addAdministrativeRole')
-    def manage_addAdministrativeRole(self, name, type='device', REQUEST=None):
+    def manage_addAdministrativeRole(self, name=None, type='device', REQUEST=None):
         "Add a Admin Role to this device"
         mobj = None
+        if not name:
+            name = getattr(REQUEST, 'deviceName')
         if type == 'device':
             mobj =self.getDmdRoot("Devices").findDevice(name)
         else:
