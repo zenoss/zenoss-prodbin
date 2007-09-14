@@ -63,6 +63,7 @@ Dialog.Box.prototype = {
         appendChildNodes($('dialog_content'), this.box);
         this.box.show = bind(this.show, this);
         this.box.hide = bind(this.hide, this);
+        this.box.fill = bind(this.fill, this);
         this.box.submit_form = bind(this.submit_form, this);
         this.box.submit_form_and_check = bind(this.submit_form_and_check, this);
         this.parentElem = this.box.parentNode;
