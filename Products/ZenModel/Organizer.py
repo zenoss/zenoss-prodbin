@@ -227,8 +227,41 @@ class Organizer(ZenModelRM, EventView):
         for child in self.children():
             orgs.extend(child.getSubOrganizers())
         return orgs
-
-
+                       
+    security.declareProtected(ZEN_COMMON, "getSubInstances")
+    def getSubInstanceIds(self, rel):
+        """get all the object instances under an relation of this org"""
+        relobj = getattr(self, rel, None)
+        if not relobj:
+            raise AttributeError, "%s not found on %s" % (rel, self.id)
+        objs = relobj.objectIds()
+        for suborg in self.children():
+            objs.extend(suborg.getSubInstanceIds(rel))
+        return objs
+        
+    security.declareProtected(ZEN_COMMON, "getSubInstances")
+    def getSubInstances(self, rel):
+        """get all the object instances under an relation of this org"""
+        relobj = getattr(self, rel, None)
+        if not relobj:
+            raise AttributeError, "%s not found on %s" % (rel, self.id)
+        objs = relobj()
+        for suborg in self.children():
+            objs.extend(suborg.getSubInstances(rel))
+        return objs
+        
+    security.declareProtected(ZEN_COMMON, "getSubInstancesGen")
+    def getSubInstancesGen(self, rel):
+        """get all the object instances under an relation of this org"""
+        relobj = getattr(self, rel, None)
+        if not relobj: 
+            raise AttributeError, "%s not found on %s" % (rel, self.id)
+        for obj in relobj.objectValuesGen():
+            yield obj
+        for suborg in self.children():
+            for obj in suborg.getSubInstancesGen(rel):
+                yield obj
+                    
     def exportXmlHook(self, ofile, ignorerels):
         """Add export of our child objects.
         """
