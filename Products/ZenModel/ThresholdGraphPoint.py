@@ -47,30 +47,51 @@ class ThresholdGraphPoint(GraphPoint):
         return 'Threshold'
 
 
-    def getMissingDPNames(self):
-        ''' Return a list of datapoint names that are used by this threshold
-        but not included in any graphpoint.
+    # def getMissingDPNames(self):
+    #     ''' Return a list of datapoint names that are used by this threshold
+    #     but not included in any graphpoint.
+    #     '''
+    #     threshClass = self.getThreshClass()
+    #     if threshClass:
+    #         dpNames = [dpName for dpName in threshClass.dsnames
+    #                     if not self.graphDef.isDataPointGraphed(dpName)]
+    #     else:
+    #         dpNames = []
+    #     return dpNames
+    
+        
+    def getRelatedGraphPoints(self):
+        ''' Return a dictiony where keys are the dp names from the
+        threshold and values are a DataPointGraphPoint for that dp or
+        None if a RPGP doesn't exist.  If multiple exist for any given
+        dp then return just the first one.
         '''
+        from DataPointGraphPoint import DataPointGraphPoint
+        related = {}
         threshClass = self.getThreshClass()
         if threshClass:
-            dpNames = [dpName for dpName in threshClass.dsnames
-                        if not self.graphDef.isDataPointGraphed(dpName)]
-        else:
-            dpNames = []
-        return dpNames
+            for dpName in threshClass.dsnames:
+                gps = self.graphDef.getDataPointGraphPoints(dpName)
+                if gps:
+                    gp = gps[0]
+                else:
+                    gp = None
+                related[dpName] = gp
+        return related
 
 
     def getGraphCmds(self, cmds, context, rrdDir, addSummary, idx, 
                         multiid=-1, prefix=''):
         ''' Build the graphing commands for this graphpoint
         '''
+        relatedGps = self.getRelatedGraphPoints()
         gopts = []
-        if not self.getMissingDPNames():
-            threshClass = self.getThreshClass()
-            if threshClass:
-                threshInst = threshClass.createThresholdInstance(context)
-                namespace = self.addPrefix(prefix, self.id)
-                color = self.getThresholdColor(idx)
-                gopts = threshInst.getGraphElements(
-                            self.graphDef.rrdTemplate, gopts, namespace, color)
+        threshClass = self.getThreshClass()
+        if threshClass:
+            threshInst = threshClass.createThresholdInstance(context)
+            namespace = self.addPrefix(prefix, self.id)
+            color = self.getThresholdColor(idx)
+            gopts = threshInst.getGraphElements(
+                        self.graphDef.rrdTemplate, gopts, namespace, 
+                        color, relatedGps)
         return cmds + gopts

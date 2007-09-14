@@ -453,20 +453,19 @@ class DeviceClass(DeviceOrganizer, ZenPackable):
         return simplejson.dumps(graphIds)
 
 
-    security.declareProtected('View', 'jsonGetDataPointNames')
-    def jsonGetDataPointNames(self, pattern=''):
-        ''' Get a list of all datapoints from all templates that
-        match the filter.
+    security.declareProtected('View', 'jsonGetUniqueDataPointNames')
+    def jsonGetUniqueDataPointNames(self):
+        ''' Get a list of unique datapoint names
         '''
-        dps = []
+        from sets import Set
+        dpNames = Set()
         for t in self.getAllRRDTemplates():
             for ds in t.datasources():
-                dps += ds.datapoints()
-        matching = [dp.getPrimaryId()
-                    for dp in dps
-                    if not pattern
-                    or -1 < dp.getPrimaryId().find(pattern)]
-        return simplejson.dumps(matching)
+                for dp in ds.datapoints():
+                    dpNames.add(dp.name())
+        dpNames = list(dpNames)
+        dpNames.sort()
+        return simplejson.dumps(dpNames)
 
 
     def findDevicePingStatus(self, devicename):
@@ -845,6 +844,7 @@ class DeviceClass(DeviceOrganizer, ZenPackable):
         if value is None:
             value = time.time()
         self._lastChange = float(value)
+
 
         
 InitializeClass(DeviceClass)

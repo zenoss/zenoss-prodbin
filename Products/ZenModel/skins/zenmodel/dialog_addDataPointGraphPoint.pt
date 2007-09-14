@@ -2,19 +2,12 @@
 <h2>Add GraphPoint</h2>
 <span id="errmsg" style="color:red;"></span>
 
-<tal:block tal:condition="not: exists: here/datapoints">
-<div style="text-align:left;" class="yui-skin-sam">
-DataPoint Name<br />
-<div id="dpNamesAutoComplete" style="color: black; position: relative; width: 30em">
-<input id="dpNamesInput" type="text" name="dpNames:list" size="40" 
-        onfocus="setupAutoComplete()" onblur="teardownAutoComplete()"/>
-<div id="dpNameContainer"></div>
-</div>
-</div>
+<tal:block tal:condition="not: exists: here/datasources">
+<div id="dpNameACDiv" style="width:30em;position:relative;"></div>
 <br /><br />
 </tal:block>
 
-<tal:block tal:condition="exists: here/datapoints">
+<tal:block tal:condition="exists: here/datasources">
 <span style="text-align:left;">
 Data Points:&nbsp;<br />
 <select id="dpNames" name='dpNames:list' multiple="1">

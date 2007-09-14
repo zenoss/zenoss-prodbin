@@ -84,7 +84,7 @@ class GraphDefinition(ZenModelRM, ZenPackable):
         ("rrdTemplate", 
             ToOne(ToManyCont,"Products.ZenModel.RRDTemplate", "graphDefs")),
         ('reportClass',
-            ToOne(ToManyCont, 'Products.ZenModel.FancyReport', 'graphDefs')),
+            ToOne(ToManyCont, 'Products.ZenModel.FancyReportClass', 'graphDefs')),
         ('graphPoints', 
             ToManyCont(ToOne, 'Products.ZenModel.GraphPoint', 'graphDef')),
         )
@@ -454,6 +454,16 @@ class GraphDefinition(ZenModelRM, ZenPackable):
         gopts = [str(o) for o in gopts]
         return gopts
 
+
+    def getDataPointGraphPoints(self, dpName):
+        ''' Return a list of DataPointGraphPoints that use the given dpName
+        '''
+        from DataPointGraphPoint import DataPointGraphPoint
+        return [gp for gp in self.graphPoints()
+                if isinstance(gp, DataPointGraphPoint)
+                and gp.dpName == dpName]
+        
+        
     def getRelatedReports(self):
         ''' Return a list of the names of the reports that reference this
         graphDef.  This only applies to graphDefs in the /Reports tree,
@@ -474,21 +484,21 @@ class GraphDefinition(ZenModelRM, ZenPackable):
         return reports
 
 
-    security.declareProtected('Manage DMD', 'getUniqueDpNames')
-    def getUniqueDpNames(self):
-        ''' Get a list of all unique datapoint names
-        '''
-        from sets import Set
-        dpNames = Set()
-        for t in self.dmd.Devices.getAllRRDTemplates():
-            for ds in t.datasources():
-                for dp in ds.datapoints():
-                    dpNames.add(dp.name())
-            if len(dpNames) > 100:
-                break
-        dpNames = list(dpNames)
-        dpNames.sort()
-        return dpNames
+    # security.declareProtected('Manage DMD', 'getUniqueDpNames')
+    # def getUniqueDpNames(self):
+    #     ''' Get a list of all unique datapoint names
+    #     '''
+    #     from sets import Set
+    #     dpNames = Set()
+    #     for t in self.dmd.Devices.getAllRRDTemplates():
+    #         for ds in t.datasources():
+    #             for dp in ds.datapoints():
+    #                 dpNames.add(dp.name())
+    #         if len(dpNames) > 100:
+    #             break
+    #     dpNames = list(dpNames)
+    #     dpNames.sort()
+    #     return dpNames
 
     # def buildCustomDS(self, cmds, rrdDir, template):
     #     """Build a list of DEF statements for the dpNames in this graph.

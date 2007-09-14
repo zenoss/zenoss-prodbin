@@ -43,13 +43,15 @@ class FancyReportClass(ReportClass):
 
     _relations = ReportClass._relations +  (
         ('graphDefs', 
-            ToManyCont(ToOne, 'Products.ZenModel.GraphDefinition', 'FancyReportClass')),
+            ToManyCont(ToOne, 'Products.ZenModel.GraphDefinition', 'reportClass')),
         )
     
     security = ClassSecurityInfo()
 
-    def manage_addFancyReportClass(self, id, title = None, REQUEST = None):
-        """make a device class"""
+    def manage_addReportClass(self, id, title = None, REQUEST = None):
+        ''' Create a new fancy report class
+        '''
+        import pdb; pdb.set_trace()
         dc = FancyReportClass(id, title)
         self._setObject(id, dc)
         if REQUEST:

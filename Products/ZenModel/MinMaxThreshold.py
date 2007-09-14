@@ -196,7 +196,7 @@ class MinMaxThresholdInstance(ThresholdInstance):
         return []
 
 
-    def getGraphElements(self, template, gopts, namespace, color):
+    def getGraphElements(self, template, gopts, namespace, color, relatedGps):
         """Produce a visual indication on the graph of where the
         threshold applies."""
         if not color.startswith('#'):
@@ -204,10 +204,10 @@ class MinMaxThresholdInstance(ThresholdInstance):
         ns = namespace
         n = self.minimum
         x = self.maximum
-        apoint = template.getRRDDataPoint(self.dataPointNames[0])
-        if getattr(apoint, 'rpn', ''):
-            n = rpneval(n, apoint.rpn)
-            x = rpneval(x, apoint.rpn)
+        gp = relatedGps[self.dataPointNames[0]]
+        if getattr(gp, 'rpn', ''):
+            n = rpneval(n, gp.rpn)
+            x = rpneval(x, gp.rpn)
         result = []
         if n:
             result += [

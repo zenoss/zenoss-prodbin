@@ -53,6 +53,7 @@ productNames = (
     "DeviceReport",
     "ExpansionCard",
     "FancyReport",
+    'FancyReportClass',
     "FileSystem",
     "GraphReport",
     "GraphReportElement",
