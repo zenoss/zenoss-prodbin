@@ -62,7 +62,9 @@ Dialog.Box.prototype = {
         removeElement(this.box);
         appendChildNodes($('dialog_content'), this.box);
         this.loadEvents = {};
+        this.unloadEvents = {};
         this.box.addLoadEvent = bind(this.addLoadEvent, this);
+        this.box.addUnloadEvent = bind(this.addUnloadEvent, this);
         this.box.show = bind(this.show, this);
         this.box.hide = bind(this.hide, this);
         this.box.fill = bind(this.fill, this);
@@ -78,6 +80,10 @@ Dialog.Box.prototype = {
     addLoadEvent: function(id, func) {
         if (!(id in this.loadEvents)) this.loadEvents[id] = [];
         this.loadEvents[id].push(func);
+    },
+    addUnloadEvent: function(id, func) {
+        if (!(id in this.unloadEvents)) this.unloadEvents[id] = [];
+        this.unloadEvents[id].push(func);
     },
     makeDimBg: function() {
         if($('dialog_dim_bg')) {
@@ -141,7 +147,10 @@ Dialog.Box.prototype = {
     },
     hide: function() {
         fade(this.dimbg, {duration:0.1});
+        if (this.curid in this.unloadEvents)
+            forEach(this.unloadEvents[this.curid], function(f){f()});
         this.box.innerHTML = this.defaultContent;
+        this.curid = null;
         hideElement(this.framework);
         this.moveBox('back');
         if (this.lock.locked) this.lock.release();
@@ -149,12 +158,14 @@ Dialog.Box.prototype = {
     fetch: function(url) {
         var urlsplit = url.split('/');
         var id = urlsplit[urlsplit.length-1];
+        this.curid = id;
         var d = doSimpleXMLHttpRequest(url);
         d.addCallback(method(this, function(req){this.fill(id, req)}));
     },
     fill: function(dialogid, request) {
         $('dialog_innercontent').innerHTML = request.responseText;
-        forEach(this.loadEvents[dialogid], function(f){f()});
+        if (dialogid in this.loadEvents)
+            forEach(this.loadEvents[dialogid], function(f){f()});
         var elements = getFormElements($('dialog_innercontent'));
         var first = elements[0];
         var textboxes = elements[1];
