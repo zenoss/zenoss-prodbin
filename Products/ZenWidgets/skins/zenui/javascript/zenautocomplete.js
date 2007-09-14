@@ -27,6 +27,7 @@ YAHOO.zenoss.zenautocomplete.ZenAutoComplete.prototype = {
         bindMethods(this);
         this.input = INPUT({'id':'results'+new Date().getTime()}, null);
         this.results = DIV({'id':'results'+new Date().getTime()}, null);
+        this.results.style.color = 'black';
         this.target = $(container);
         this.container = DIV({'class':'autocompleter-container'}, null);
         addElementClass(this.target, 'yui-skin-sam');
@@ -44,6 +45,9 @@ YAHOO.zenoss.zenautocomplete.ZenAutoComplete.prototype = {
             this.oAutoComp.typeAhead = false;
             this.oAutoComp.useShadow = true;
             this.oAutoComp.minQueryLength = 0;
+            this.oAutoComp.animVert = false;
+            this.oAutoComp.animHoriz = false;
+            
             var mythis = this;
             this.oAutoComp.textboxFocusEvent.subscribe(function(){
                 var sInputValue = mythis.input.value;

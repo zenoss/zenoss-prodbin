@@ -26,7 +26,7 @@ loader.addModule({
     name: "zenautocomplete",
     type: "js",
     fullpath: "/zport/dmd/javascript/zenautocomplete.js",
-    requires: ["autocomplete", "animation", "autocompleteskin"]
+    requires: ["autocomplete", "autocompleteskin"]
 });
 
 //Declare the Zenoss namespace
