@@ -22,7 +22,7 @@ class AnnoyingAlerts(Migrate.Step):
     version = Migrate.Version(2, 1, 0)
 
     def cutover(self, dmd):
-        conn = dmd.EventManager.connect()
+        conn = dmd.ZenEventManager.connect()
         c = conn.cursor()
         c.execute('describe alert_state')
         if 'lastTime' not in [x[0] for x in c.fetchall()]:
