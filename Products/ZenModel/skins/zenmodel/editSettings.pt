@@ -1,7 +1,34 @@
 <tal:block metal:use-macro="here/templates/macros/page2">
 <tal:block metal:fill-slot="contentPane">
 
-<script type="text/javascript" src="/zport/js/MochiKit.js"></script>
+<script>
+function popupMapHelp() {
+    mySimpleDialog = new YAHOO.widget.SimpleDialog("dlg", {
+        width: "30em",
+        fixedcenter: true,
+        modal:false,
+        visible:false,
+        draggable:true});
+    mySimpleDialog.setHeader("Google Maps API Key");
+    baseurl = currentWindow().location.href.replace(
+        '/zport/dmd/editSettings','');
+    mySimpleDialog.setBody(
+       "Accessing the free Google Maps API requires the " +
+       "specification of an API key linked to a base URL.  "+
+       "You can obtain a free API key from Google at <"+"a href='"+
+       "http://www.google.com/apis/maps/signup.html'>"+
+       "http://www.google.com/apis/maps/signup.html<"+"/a>. " +
+       "For your web site URL, use the base URL, <"+"em>including port<"+
+       "/em>, "+
+       "that you use to access your Zenoss instance "+
+       "(you used "+baseurl+" to access this instance).");
+    addElementClass(currentDocument().body, 'yui-skin-sam');
+    mySimpleDialog.render(currentDocument().body);
+    mySimpleDialog.show();
+}
+YAHOO.zenoss.loader.require(['container']);
+YAHOO.zenoss.loader.insert();
+</script>
 
 <form method=post tal:attributes="action string:${here/absolute_url_path}">
 <input type="hidden" name="zenScreenName" tal:attributes="value template/id" /> 
@@ -145,7 +172,7 @@
          <a href="javascript:popupMapHelp()" style="font-size:80%">Help</a>
      </td>
      <td class="tablevalues">
-       <input class="tablevalues" name="geomapapikey"
+       <input class="tablevalues" name="geomapapikey" size="50"
            tal:attributes="value here/geomapapikey"/>
      </td>
    </tr>
