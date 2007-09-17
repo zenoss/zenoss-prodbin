@@ -1,7 +1,49 @@
 <tal:block metal:use-macro="here/templates/macros/page2">
 <tal:block metal:fill-slot="contentPane">
 
+<tal:block tal:replace="structure string:<script language=&quot;javascript&quot; type=&quot;text/javascript&quot;>
+var absoluteUrlPath = &quot;${here/absolute_url_path}&quot;;
+var reportId = &quot;${here/getPrimaryId}&quot;;
+</script>" />
+
+<form method="post" target="_blank" id="printableForm" tal:attributes=" 
+        action python:here.absolute_url_path() + '/viewFancyReportClean';">
+</form>
+ 
+<script language="javascript" type="text/javascript">
+var ZenGraphs = new Array();
+
+function CreateFormField(theForm, name, value) {
+    var newField = document.createElement('INPUT');
+    newField.setAttribute('type', 'HIDDEN');
+    newField.setAttribute('name', name);
+    newField.setAttribute('value', value);
+    theForm.appendChild(newField);
+}
+
+function ShowPrintable() {
+    printableForm = document.getElementById('printableForm');
+    while (printableForm.hasChildNodes())
+        printableForm.removeChild(printableForm.firstChild);
+    for (i=0; i < ZenGraphs.length; i++) {
+        var graph = document.getElementById('graph_' + i);
+        CreateFormField(printableForm, 'graph_' + i, graph.src);
+        CreateFormField(printableForm, 'title_' + i, graph.title);
+    }
+    CreateFormField(printableForm, 'numGraphs', ZenGraphs.length);
+    printableForm.submit();
+}
+</script>
+
 <tal:block metal:use-macro="here/viewPerformanceDetail/macros/objectperf">
+
+    <tal:block metal:fill-slot="filterslot">
+        &nbsp;&nbsp;&nbsp;&nbsp;
+        <input class="tableheader" type="button" value="Printable"
+        onclick="ShowPrintable()"
+        style="margin-left:2em;"/>
+    </tal:block>
+
 </tal:block>
 
 </tal:block>

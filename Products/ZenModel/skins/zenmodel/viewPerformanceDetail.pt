@@ -32,6 +32,8 @@ var ZenGraphs = new Array();
     <span style="margin-left:2em;" id="linkcheck_label">Link graphs?</span>
     <input type="checkbox" style="border:1px solid black;padding-top:0.5em;" 
            checked onchange="linkGraphs(this.checked)" id="linkcheck"/>
+    <tal:block metal:define-slot="filterslot">
+    </tal:block>
 </tal:block>
 
 <tal:block metal:fill-slot="zentablecontents">
@@ -44,7 +46,8 @@ var ZenGraphs = new Array();
         <tr><td class="tablevalues">
             <img src="_" 
             tal:attributes="src graph/url;
-                            id graphid"/>
+                            id graphid;
+                            title graph/title;"/>
             <script language="javascript" type="text/javascript"
             tal:content="string:ZenGraphs[ZenGraphs.length]='${graphid}';"></script>
             </td>
