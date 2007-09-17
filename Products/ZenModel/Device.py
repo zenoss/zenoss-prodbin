@@ -1266,14 +1266,14 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable, Admini
             handler = setWebLoggingStream(response)
         
         try:
-            zm = os.path.join(os.environ['ZENHOME'], 'bin', 'zenmodeler') 
-            zenmodelerCmd = '%s run --now -F -d %s' % (zm, self.id) 
-            log.info('Executing command: %s' % zenmodelerCmd) 
+            zm = os.path.join(os.environ['ZENHOME'], 'bin', 'zenmodeler')
+            zenmodelerCmd = [zm, 'run', '--now', '-F', '-d', self.id]
+            log.info('Executing command: %s' % ' '.join(zenmodelerCmd)) 
             f = Popen4(zenmodelerCmd) 
             while 1: 
                 s = f.fromchild.readline() 
                 if not s: break 
-                else: log.info(s) 
+                else: log.info(s.rstrip()) 
         except (SystemExit, KeyboardInterrupt): raise 
         except ZentinelException, e: 
             log.critical(e) 

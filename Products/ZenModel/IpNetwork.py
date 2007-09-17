@@ -447,13 +447,13 @@ class IpNetwork(DeviceOrganizer):
                 organizer = orgroot._getNet(organizerName)
                 import os
                 zd = os.path.join(os.environ['ZENHOME'], 'bin', 'zendisc')
-                zendiscCmd = "%s run --net=%s" % (zd, organizer.id)
-                log.info('Executing command: %s' % zendiscCmd)
+                zendiscCmd = [zd, "run", '--net', organizer.id]
+                log.info('Executing command: %s' % ' '.join(zendiscCmd))
                 f = Popen4(zendiscCmd)
                 while 1:
                     s = f.fromchild.readline()
                     if not s: break
-                    else: log.info(s)
+                    log.info(s.rstrip())
             except (SystemExit, KeyboardInterrupt): raise
             except ZentinelException, e:
                 log.critical(e)
