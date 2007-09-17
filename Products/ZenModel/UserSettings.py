@@ -550,7 +550,8 @@ class UserSettings(ZenModelRM):
 
     
     #security.declareProtected('Change Settings', 'manage_addAdministrativeRole')
-    def manage_addAdministrativeRole(self, name=None, type='device', REQUEST=None):
+    def manage_addAdministrativeRole(self, name, type='device', 
+                                    role=None, REQUEST=None):
         "Add a Admin Role to this device"
         mobj = None
         if not name:
@@ -576,13 +577,15 @@ class UserSettings(ZenModelRM):
                 return self.callZenScreen(REQUEST)
             else: return
         ar = AdministrativeRole(self.id)
-        if self.defaultAdminRole:
+        if role is not None:
+            ar.role = role
+        else:
             ar.role = self.defaultAdminRole
-            ar.level = self.defaultAdminLevel
+        ar.level = self.defaultAdminLevel
         mobj.adminRoles._setObject(self.id, ar)
         ar = mobj.adminRoles._getOb(self.id)
         ar.userSetting.addRelation(self)
-        mobj.manage_setLocalRoles(self.id, (ar.role),)
+        mobj.manage_setLocalRoles(self.id, (ar.role,),)
         if getattr(aq_base(mobj), 'index_object', False):
             mobj.index_object()
         if REQUEST:
@@ -606,7 +609,7 @@ class UserSettings(ZenModelRM):
             if ar.role != role[i]: 
                 ar.role = role[i]
                 mobj = ar.managedObject()
-                mobj.manage_setLocalRoles(self.id, (ar.role),)
+                mobj.manage_setLocalRoles(self.id, (ar.role,),)
                 if getattr(aq_base(mobj), 'index_object', False):
                     mobj.index_object()
             if ar.level != level[i]: ar.level = level[i]

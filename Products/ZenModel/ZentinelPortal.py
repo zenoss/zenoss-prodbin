@@ -119,27 +119,34 @@ class PortalGenerator:
         mp(ZEN_MANAGE_DMD, [ZEN_MANAGER_ROLE, OWNER_ROLE, MANAGER_ROLE,], 1)
         mp(ZEN_DELETE, [ZEN_MANAGER_ROLE, OWNER_ROLE, MANAGER_ROLE,], 1)
         mp(ZEN_ADD, [ZEN_MANAGER_ROLE, OWNER_ROLE, MANAGER_ROLE,], 1)
-        mp(ZEN_VIEW, [ZEN_USER_ROLE, ZEN_MANAGER_ROLE, MANAGER_ROLE, OWNER_ROLE], 1)
-        mp(ZEN_VIEW_HISTORY, [ZEN_USER_ROLE, ZEN_MANAGER_ROLE, MANAGER_ROLE,], 1)
-        mp(ZEN_COMMON, [ZEN_USER_ROLE, ZEN_MANAGER_ROLE,MANAGER_ROLE, OWNER_ROLE], 1)
+        mp(ZEN_VIEW, [ZEN_USER_ROLE, ZEN_MANAGER_ROLE,
+                        MANAGER_ROLE, OWNER_ROLE])
+#        mp(ZEN_VIEW_HISTORY, [ZEN_USER_ROLE, ZEN_MANAGER_ROLE, 
+#                        MANAGER_ROLE, OWNER_ROLE], 1)
+        mp(ZEN_COMMON, ["Authenticated", ZEN_USER_ROLE, ZEN_MANAGER_ROLE,
+                        MANAGER_ROLE, OWNER_ROLE], 1)
 
         if ZEN_CHANGE_ALERTING_RULES in p.possible_permissions():
-            mp(ZEN_CHANGE_ALERTING_RULES, [ZEN_MANAGER_ROLE, MANAGER_ROLE, OWNER_ROLE], 1)
+            mp(ZEN_CHANGE_ALERTING_RULES, 
+                [ZEN_MANAGER_ROLE, MANAGER_ROLE, OWNER_ROLE], 1)
         else:
             p.__ac_permissions__=(
-                p.__ac_permissions__+((ZEN_CHANGE_ALERTING_RULES,(),[ZEN_MANAGER_ROLE, MANAGER_ROLE, OWNER_ROLE]),))
+                p.__ac_permissions__+((ZEN_CHANGE_ALERTING_RULES,(),
+                    [ZEN_MANAGER_ROLE, MANAGER_ROLE, OWNER_ROLE]),))
                 
         if ZEN_CHANGE_ADMIN_OBJECTS in p.possible_permissions():
             mp(ZEN_CHANGE_ADMIN_OBJECTS, [ZEN_MANAGER_ROLE, MANAGER_ROLE], 1)
         else:
             p.__ac_permissions__=(
-                p.__ac_permissions__+((ZEN_CHANGE_ADMIN_OBJECTS,(),[ZEN_MANAGER_ROLE, MANAGER_ROLE]),))
+                p.__ac_permissions__+((ZEN_CHANGE_ADMIN_OBJECTS,(),
+                    [ZEN_MANAGER_ROLE, MANAGER_ROLE]),))
                 
         if ZEN_CHANGE_EVENT_VIEWS in p.possible_permissions():
             mp(ZEN_CHANGE_EVENT_VIEWS, [ZEN_MANAGER_ROLE, MANAGER_ROLE], 1)
         else:
             p.__ac_permissions__=(
-                p.__ac_permissions__+((ZEN_CHANGE_EVENT_VIEWS,(),[ZEN_MANAGER_ROLE, MANAGER_ROLE]),))
+                p.__ac_permissions__+((ZEN_CHANGE_EVENT_VIEWS,(),
+                    [ZEN_MANAGER_ROLE, MANAGER_ROLE]),))
         
 
     def setupDefaultSkins(self, p):

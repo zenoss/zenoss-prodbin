@@ -38,7 +38,7 @@ class AdministrativeRoleable:
             self.adminRoles._setObject(newId, ar)
             ar = self.adminRoles._getOb(newId)
             ar.userSetting.addRelation(us)
-            self.manage_setLocalRoles(newId, (ar.role),)
+            self.manage_setLocalRoles(newId, (ar.role,),)
             if getattr(self, 'index_object', False):
                 self.index_object()
         if REQUEST:
@@ -58,7 +58,7 @@ class AdministrativeRoleable:
             ar = self.adminRoles._getOb(id)
             if ar.role != role[i]: 
                 ar.role = role[i]
-                self.manage_setLocalRoles(id, (ar.role),)
+                self.manage_setLocalRoles(id, (ar.role,),)
             if ar.level != level[i]: ar.level = level[i]
         if getattr(self, 'index_object', False):
             self.index_object()

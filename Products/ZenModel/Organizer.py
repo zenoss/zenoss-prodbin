@@ -209,7 +209,7 @@ class Organizer(ZenModelRM, EventView):
         """Return the DMD paths of all Organizers below this instance."""
         groupNames = []
         user = getSecurityManager().getUser()
-        if user.has_permission("View",self):
+        if user.has_permission("View", self):
             groupNames.append(self.getOrganizerName())
         for subgroup in self.children(checkPerm=False):
             groupNames.extend(subgroup.getOrganizerNames())
