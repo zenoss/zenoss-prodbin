@@ -260,19 +260,20 @@ class OperatingSystem(Software):
             return self.callZenScreen(REQUEST)
 
     def addWinService(self, 
-                        id, 
-                        description,
+                        className,
                         userCreated, 
                         REQUEST=None):
         """Add an WinService.
         """
-        manage_addWinService(self.winservices, 
-                                id, 
-                                description,
+        org = self.dmd.Services.WinService
+        wsc = org.find(org.parseServiceLiveSearchString(className))
+        ws = manage_addWinService(self.winservices, 
+                                wsc.id,
+                                wsc.description,
                                 userCreated=userCreated)
         if REQUEST: 
             REQUEST['message'] = 'WinService created'
-            REQUEST['RESPONSE'].redirect(self.winservices._getOb(id).absolute_url())
+            REQUEST['RESPONSE'].redirect(ws.absolute_url())
             return self.callZenScreen(REQUEST)
 
     def deleteWinServices(self, componentNames=[], REQUEST=None):
@@ -303,20 +304,13 @@ class OperatingSystem(Software):
             REQUEST['message'] = 'WinServices locked from updates and deletion'
             return self.callZenScreen(REQUEST)
 
-    def addOSProcess(self, 
-                        id, 
-                        className, 
-                        userCreated, 
-                        REQUEST=None):
+    def addOSProcess(self, className, userCreated, REQUEST=None):
         """Add an OSProcess.
         """
-        manage_addOSProcess(self.processes, 
-                            id, 
-                            className, 
-                            userCreated)
+        osp = manage_addOSProcess(self.processes, className, userCreated)
         if REQUEST:
             REQUEST['message'] = 'OSProcess created'
-            REQUEST['RESPONSE'].redirect(self.processes._getOb(id).absolute_url())
+            REQUEST['RESPONSE'].redirect(osp.absolute_url())
 
     def deleteOSProcesses(self, componentNames=[], REQUEST=None):
         """Delete OSProcesses"""
@@ -346,22 +340,19 @@ class OperatingSystem(Software):
             REQUEST['message'] = 'OSProcesses locked from updates and deletion'
             return self.callZenScreen(REQUEST)
 
-    def addIpService(self, 
-                    id, 
-                    protocol, 
-                    port, 
-                    userCreated, 
-                    REQUEST=None):
+    def addIpService(self, className, protocol, userCreated, REQUEST=None):
         """Add IpServices.
         """
-        manage_addIpService(self.ipservices, 
-                            id, 
-                            protocol, 
-                            port, 
+        org = self.dmd.Services.IpService
+        ipsc = org.find(org.parseServiceLiveSearchString(className))
+        ips = manage_addIpService(self.ipservices,
+                            ipsc.id,
+                            protocol,
+                            ipsc.port, 
                             userCreated=userCreated)
         if REQUEST:
             REQUEST['message'] = 'IpService created'
-            REQUEST['RESPONSE'].redirect(self.ipservices._getOb(id).absolute_url())
+            REQUEST['RESPONSE'].redirect(ips.absolute_url())
             return self.callZenScreen(REQUEST)
 
     def deleteIpServices(self, componentNames=[], REQUEST=None):

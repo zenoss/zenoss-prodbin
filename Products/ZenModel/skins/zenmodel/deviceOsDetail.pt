@@ -3,7 +3,35 @@
 
 <form method="post" tal:attributes="action here/absolute_url" 
     name="ipInterfaceListForm">
-    
+
+<script>
+
+function createIpServiceClassAutocompleter(divId) {
+var q = new YAHOO.zenoss.zenautocomplete.ZenAutoComplete(
+    'ipserviceclasses', // Name for the cache
+    '/zport/dmd/Services/IpService/getServiceLiveSearchList',
+    'Ip Service Class', // Label for the widget
+    divId // DOM element into which to put the thing 
+);
+q.input.name = 'className'
+}
+function createWinServiceClassAutocompleter(divId) {
+var q = new YAHOO.zenoss.zenautocomplete.ZenAutoComplete(
+    'winserviceclasses', // Name for the cache
+    '/zport/dmd/Services/WinService/getServiceLiveSearchList',
+    'Win Service Class', // Label for the widget
+    divId // DOM element into which to put the thing 
+);
+q.input.name = 'className'
+}
+
+YAHOO.zenoss.loader.require(['zenautocomplete']);
+YAHOO.zenoss.loader.insert(); 
+// don't pass it a callback, calling it later manually
+$('dialog').addLoadEvent('dialog_addIpService', function() { createIpServiceClassAutocompleter('ipServiceClassLiveSearch') ;} )
+$('dialog').addLoadEvent('dialog_addWinService', function() { createWinServiceClassAutocompleter('winServiceClassLiveSearch') ;} )
+</script>
+        
 <tal:block 
         tal:define="unused here/cacheComponents;
         tableName string:interfacelist;

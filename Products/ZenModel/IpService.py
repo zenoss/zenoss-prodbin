@@ -34,7 +34,6 @@ def manage_addIpService(context, id, protocol, port, userCreated=None, REQUEST=N
     s = IpService(id)
     context._setObject(id, s)
     s = context._getOb(id)
-    #setattr(s, 'name', id)
     setattr(s, 'protocol', protocol)
     setattr(s, 'port', int(port))
     args = {'protocol':protocol, 'port':int(port)}
@@ -43,7 +42,8 @@ def manage_addIpService(context, id, protocol, port, userCreated=None, REQUEST=N
     if REQUEST is not None:
         REQUEST['RESPONSE'].redirect(context.absolute_url()
                                      +'/manage_main') 
-
+    return s
+    
 addIpService = DTMLFile('dtml/addIpService',globals())
 
 

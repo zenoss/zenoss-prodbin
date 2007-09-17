@@ -244,5 +244,25 @@ class ServiceOrganizer(Organizer, Commandable, ZenPackable):
     def getUrlForUserCommands(self):
         return self.getPrimaryUrlPath() + '/serviceOrganizerManage'
 
+    
+    def getServiceLiveSearchList(self):
+        """ Get a list of id and descriptions for a live search
+        """
+        liveSearchList = []
+        for srv in self.getSubInstancesGen(rel='serviceclasses'):
+            if getattr(srv, 'description', None):
+                liveSearchList.append('%s [%s]' % (srv.id, srv.description))
+            else:
+                liveSearchList.append(srv.id)
+        return liveSearchList
+    
+    def parseServiceLiveSearchString(self, str):
+        """ Parse a string of id and description from a live search
+        """
+        id = str.split(' ')
+        if type(id) == types.TupleType:
+            id = id[0]
+        return id
+
 
 InitializeClass(ServiceOrganizer)

@@ -1,23 +1,21 @@
 <h2>Add IpService</h2>
 <input type="hidden" name="userCreated" value="True">
-<span id="errmsg" style="color:red;"></span>
 <br/>
-<p style="text-align:right;">
-<span id="new_id_label">ID:&nbsp;</span>
-<input id="new_id" name="id">
-<input type="hidden" id="checkValidIdPath" 
-        tal:attributes="value here/absolute_url">
+<div id="ipServiceClassLiveSearch" style="width:30em;position:relative;">
+</div>
 <br/><br/>
-Protocol:&nbsp;<select name="protocol">
+Protocol
+<br/>
+<select name="protocol">
 <option tal:repeat="e python:('udp','tcp')" tal:content="e"
     tal:attributes="value e"/>
-</select>&nbsp;&nbsp;Port:&nbsp;<input name="port" size="10">
-</p>
+</select>
+<br/><br/>
 <div id="dialog_buttons">
 <input tal:attributes="id string:dialog_submit;
         type string:submit;
         value string:OK;
-        onclick string:return $$('dialog').submit_form_and_check(
+        onclick string:return $$('dialog').submit_form(
                                                 '${here/absolute_url}')"
                         name="addIpService:method" />
 <input tal:attributes="id string:dialog_cancel;

@@ -33,6 +33,7 @@ def manage_addWinService(context, id, description, userCreated=None, REQUEST=Non
     if REQUEST is not None:
         REQUEST['RESPONSE'].redirect(context.absolute_url()
                                   +'/manage_main')
+    return s
                                                                                                            
 class WinService(Service):
     """Windows Service Class
