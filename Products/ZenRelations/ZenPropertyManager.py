@@ -247,5 +247,28 @@ class ZenPropertyManager(PropertyManager):
         """
         v = getattr(aq_base(self), propname, zenmarker)
         return v != zenmarker
-
+    
+    def isOverridden(self, propname):
+        """ Check that a property is being overridden somewhere below in the tree
+        """
+        for dev in self.getSubDevicesGen():
+            if dev.isLocal(propname) and dev is not self:
+                return True
+        for subclass in self.getSubOrganizers():
+            if subclass.isLocal(propname):
+                return True
+        return False
+    
+    def getOverriddenObjects(self, propname):
+        """ Get the objects that override a property somewhere below in the tree
+        """
+        objects = []
+        for dev in self.getSubDevicesGen():
+            if dev.isLocal(propname) and dev is not self:
+                objects.append(dev)
+        for subclass in self.getSubOrganizers():
+            if subclass.isLocal(propname):
+                objects.append(subclass)
+        return objects
+    
 InitializeClass(ZenPropertyManager)

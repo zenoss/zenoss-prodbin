@@ -1,0 +1,29 @@
+<tal:block metal:use-macro="here/templates/macros/page2">
+<tal:block metal:fill-slot="contentPane">
+<tal:block tal:define="tabletitle string:Overridden Objects;
+	               prop request/prop;
+	               orObjects python:here.getOverriddenObjects(prop)">
+<tal:block metal:use-macro="here/zenuimacros/macros/zentable">
+<tal:block metal:fill-slot="zentablecontents">
+
+<!-- BEGIN TABLE CONTENTS -->
+    <tr>
+      <th class="tableheader" align="center">Path</th>
+      <th class="tableheader" align="center">Name</th>
+      <th class="tableheader" align="center">Value</th>
+    </tr>
+    <tal:block tal:repeat="orObject orObjects"> 
+    <tr tal:define="odd repeat/orObject/odd"
+        tal:attributes="class python:test(odd, 'odd', 'even')">
+      <td class="tablevalues" tal:content="structure python:orObject.getLink(orObject.absolute_url_path(), '%s/zPropertyEdit' % orObject.absolute_url_path())"/>
+      <td class="tablevalues" tal:content="prop"/>
+      <td class="tablevalues" tal:content="python:getattr(orObject, prop)"/>
+    </tr>
+    </tal:block>
+<!-- END TABLE CONTENTS -->
+
+</tal:block>
+</tal:block>
+</tal:block>
+</tal:block>
+</tal:block>
