@@ -42,26 +42,5 @@ class RRDService(HubService):
 
         return self.rrdimpl.writeRRD(devId, compType, compId, dpName, value)
 
-
-    def getDefaultRRDCreateCommand(self, device):
-        return device.perfServer().getDefaultRRDCreateCommand()
-        
-
-    def getDeviceOrComponent(self, devId, compId, compType):
-        ''' If a compId is given then try to return that component.  If unable
-        to find it or if compId is not specified then try to return the
-        given device.  If unable to find then return None.
-        '''
-        d = None
-        device = self.dmd.Devices.findDevice(devId)
-        if device:
-            if compId:
-                for comp in device.getDeviceComponents():
-                    if comp.meta_type == compType and comp.id == compId:
-                        d = comp
-                        break
-            else:
-                d = device
-        return d
         
 
