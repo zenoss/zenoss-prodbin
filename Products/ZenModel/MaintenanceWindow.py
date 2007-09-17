@@ -70,6 +70,7 @@ class MaintenanceWindow(ZenModelRM):
     repeat = 'Never'
     startProductionState = 300
     stopProductionState = -99
+    stopProductionStates = {}
     enabled = True
     skip = 1
  
@@ -352,11 +353,19 @@ class MaintenanceWindow(ZenModelRM):
         return self.productionState().primaryAq()
 
     def setProdState(self, target, state):
-        kw = {}
+        devices = []
         from Products.ZenModel.DeviceOrganizer import DeviceOrganizer
         if isinstance(target, DeviceOrganizer):
-            kw = dict(isOrganizer=True)
-        self.target().setProdState(state, **kw)
+            for device in target.getSubDevices():
+                devices.append(device)
+        else:
+            devices.append(target)
+
+        for device in devices:
+            if state == -99: state = self.stopProductionStates[device.id]
+            self.stopProductionStates[device.id] = device.productionState
+            device.setProdState(state)
+
 
     def begin(self, now = None):
         "hook for entering the Maintenance Window: call if you override"
