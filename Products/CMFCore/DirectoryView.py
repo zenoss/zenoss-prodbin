@@ -272,6 +272,14 @@ class DirectoryInformation:
                                     ERROR,
                                     'Error setting permissions',
                                     error=exc_info())
+                    # This change adds the ability for all authenticated
+                    # Users to see page templates and other files
+                    # that are stored in the skins directories of our
+                    # products and zenpacks.  If you upgrade CMFCore
+                    # you will break this functionailty!!!!!
+                    # -EAD
+                    else:
+                        ob.manage_permission('View',('Authenticated',),1)
 
                     # only DTML Methods and Python Scripts can have proxy roles
                     if hasattr(ob, '_proxy_roles'):
