@@ -14,6 +14,8 @@ from twisted.web import xmlrpc
 
 import types
 
+from Products.ZenHub.services.RRDImpl import RRDImpl
+
 class XmlRpcService(xmlrpc.XMLRPC):
     # serializable types
     PRIMITIVES = [types.IntType, types.StringType, types.BooleanType,
@@ -24,6 +26,8 @@ class XmlRpcService(xmlrpc.XMLRPC):
         xmlrpc.XMLRPC.__init__(self)
         self.dmd = dmd
         self.zem = dmd.ZenEventManager
+        self.impl = RRDImpl(dmd)
+
 
     def xmlrpc_sendEvent(self, data):
         'XMLRPC requests are processed asynchronously in a thread'
@@ -93,7 +97,10 @@ class XmlRpcService(xmlrpc.XMLRPC):
 
 
     def xmlrpc_writeRRD(self, devId, compType, compId, dpName, value):
-        pass
+        self.impl.writeRRD(devId, compType, compId, dpName, value)
+
+        # return something for compliance with the XML-RPC specification
+        return ""
 
 
     def xmlrpc_getPerformanceConfig(self, monitor):
