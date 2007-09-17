@@ -10,12 +10,21 @@ from email.MIMEText import MIMEText
 from email.MIMEMultipart import MIMEMultipart
 from email.MIMEImage import MIMEImage
 
+import Globals
+from Products.ZenUtils.ZenScriptBase import ZenScriptBase
+from Products.ZenUtils import Utils
+
 def sibling(url, path):
     parts = list(urlparse(url))
     parts[2] = '/'.join(parts[2].split('/')[:-1] + [path])
     return urlunparse(parts[0:3] + ['', '',''])
 
 class Page(HTMLParser):
+    """Turn an html page into a mime-encoded multi-part email.
+    Turn the <title> into the subject and keep only the text of the
+    content pane.  Url references are turned into absolute references,
+    and images are sent with the page."""
+
     def __init__(self, user, passwd):
         HTMLParser.__init__(self)
         self.user = user
@@ -24,6 +33,8 @@ class Page(HTMLParser):
         self.id = 0
         self.images = {}
         self.contentPane = 0
+        self.inTitle = False
+        self.title = ''
 
     def fetchImage(self, url):
         return self.slurp(url).read()
@@ -61,6 +72,8 @@ class Page(HTMLParser):
 
     def handle_starttag(self, tag, attrs):
         tag = tag.upper()
+        if tag == 'TITLE':
+            self.inTitle = True
         if tag == 'IMG':
             attrs = self.updateSrc(attrs)
         if tag == 'A':
@@ -77,6 +90,8 @@ class Page(HTMLParser):
 
     def handle_endtag(self, tag):
         tag = tag.upper()
+        if tag == 'TITLE':
+            self.inTitle = False
         if self.contentPane:
             self.html.append('</%s>' % tag.upper())
         if tag == 'DIV':
@@ -86,6 +101,8 @@ class Page(HTMLParser):
     def handle_data(self, data):
         if self.contentPane:
             self.html.append(data)
+        if self.inTitle:
+            self.title += data
 
     def slurp(self, url):
         self.base = url.strip()
@@ -110,31 +127,84 @@ class Page(HTMLParser):
             img = MIMEImage(img, subtype)
             fname = url.rsplit('/', 1)[1]
             img.add_header('Content-ID', '<%s>' % name)
-            # img.add_header('Content-Disposition', 'inline; filename="%s"' % fname)
             msg.attach(img)
+        msg['Subject'] = self.title
         return msg
 
-def main():
-    url, user, passwd, smtpPasswd = sys.argv[1:5]
-    page = Page(user, passwd)
-    page.fetch(url)
-    msg = page.mail()
-    msg['Subject'] = 'This is a test'
-    msg['From'] = 'ecn@swcomplete.com'
-    msg['To'] = 'eric.newton@gmail.com'
-    import smtplib
-    server = smtplib.SMTP("smtp.gmail.com", 587)
-    server.ehlo()
-    server.starttls()
-    server.ehlo()
-    server.login('eric.newton', smtpPasswd)
-    server.sendmail('eric.newton@gmail.com', 'ecn@swcomplete.com', msg.as_string())
-    server.quit()
-    f = file('/home/ecn/Desktop/test.eml','wb')
-    f.write(msg.as_string())
-    f.close()
+class NoDestinationAddressForUser(Exception): pass
+class UnknownUser(Exception): pass
+
+class ReportMail(ZenScriptBase):
+
+    def run(self):
+        'Fetch a report by URL and post as a mime encoded email'
+        self.connect()
+        o = self.options
+        if not o.passwd and not o.url:
+            self.log.error("No zenoss password or url provided")
+            sys.exit(1)
+        try:
+            user = self.dmd.ZenUsers._getOb(o.user)
+        except AttributeError:
+            self.log.error("Unknown user %s" % o.user)
+            sys.exit(1)
+
+        if not o.addresses and user.email:
+            o.addresses = [user.email]
+        if not o.addresses:
+            self.log.error("No address for user %s" % o.user)
+            sys.exit(1)
+        page = Page(o.user, o.passwd)
+        page.fetch(o.url)
+        msg = page.mail()
+        if o.subject:
+            msg['Subject'] = o.subject
+        msg['From'] = o.fromAddress
+        msg['To'] = ', '.join(o.addresses)
+        result, errorMsg = Utils.sendEmail(msg,
+                                           self.dmd.smtpHost,
+                                           self.dmd.smtpPort,
+                                           self.dmd.smtpUseTLS,
+                                           self.dmd.smtpUser, 
+                                           self.dmd.smtpPass)
+        if result:
+            self.log.debug("sent email: %s to:%s", msg.as_string(), o.addresses)
+        else:
+            self.log.info("failed to send email to %s: %s %s",
+                          o.addresses, msg.as_string(), errorMsg)
+            sys.exit(1)
+        sys.exit(0)
+
+    def buildOptions(self):
+        ZenScriptBase.buildOptions(self)
+        self.parser.add_option('--url', '-u',
+                               dest='url',
+                               default=None,
+                               help='URL of report to send')
+        self.parser.add_option('--user', '-U',
+                               dest='user',
+                               default='admin',
+                               help="User to log into Zenoss")
+        self.parser.add_option('--passwd', '-p',
+                               dest='passwd', 
+                               help="Password to log into Zenoss")
+        self.parser.add_option('--address', '-a',
+                               dest='addresses',
+                               default=[],
+                               action='append',
+                               help='Email address destination '
+                               '(may be given more than once).  Default value'
+                               "comes from the user's profile.")
+        self.parser.add_option('--subject', '-s',
+                               dest='subject',
+                               default='',
+                               help='Subject line for email message.'
+                               'Default value is the title of the html page.')
+        self.parser.add_option('--from', '-f',
+                               dest='fromAddress',
+                               default='zenoss@localhost',
+                               help='Origination address')
+
 
 if __name__ == '__main__':
-    main()
-    sys.exit(0)
-
+    ReportMail().run()
