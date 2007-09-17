@@ -82,6 +82,7 @@ Portlet.prototype = {
         this.id = id;
         this.handleid = id+'_handle';
         this.isDirty = true;
+        this.title = title;
         this.render();
         this.setTitleText(title);
         this.setDatasource(datasource);
@@ -101,7 +102,8 @@ Portlet.prototype = {
     setTitleText: function(text) {
         if (this.titlecont) {
             if (!text) text = "My Portlet";
-            this.titlecont.innerHTML = this.title = text;
+            this.titlecont.innerHTML = text;
+            this.title = text;
         }
     },
     fill: function(contents) {
@@ -135,6 +137,8 @@ Portlet.prototype = {
     },
     saveSettings: function(settings) {
         this.refreshTime = settings['refreshTime'];
+        this.title = settings['title'];
+        this.setTitleText(this.title);
         for (setting in settings) {
             this.datasource[setting] = settings[setting];
         }
@@ -145,6 +149,7 @@ Portlet.prototype = {
     submitSettings: function(e, settings) {
         settings = settings || {};
         settings['refreshTime'] = this.refreshRateInput.value;
+        settings['title'] = this.titleInput.value;
         this.saveSettings(settings);
         this.toggleSettings('hide');
     },
@@ -165,12 +170,18 @@ Portlet.prototype = {
                                        'right:0;top:0;cursor:pointer'},'*');
             connect(this.settingsToggle, 'onclick', this.toggleSettings);
             this.refreshRateInput = INPUT({'value':this.refreshTime}, null);
+            this.titleInput = INPUT({'value':this.title}, null);
             this.settingsSlot = DIV({'id':this.id+'_customsettings', 
                 'class':'settings-controls'}, 
+               [
+                DIV({'class':'portlet-settings-control'}, [
+                DIV({'class':'control-label'}, 'Title'),
+                 this.titleInput
+               ]),
                DIV({'class':'portlet-settings-control'}, [
                 DIV({'class':'control-label'}, 'Refresh Rate'),
                  this.refreshRateInput
-               ]));
+               ])]);
             this.destroybutton = A(
                 {'class':'portlet-settings-control'}, 'Remove Portlet');
             this.savesettingsbutton = BUTTON(
@@ -754,6 +765,7 @@ GoogleMapsPortlet.prototype = {
     },
     submitSettings: function(e, settings) {
         baseLoc = this.locsearch.input.value;
+        if (baseLoc.length<1) baseLoc = this.datasource.baseLoc;
         this.locsearch.input.value = '';
         this.superclass.submitSettings(e, {'baseLoc':baseLoc});
     }
@@ -814,6 +826,7 @@ WatchListPortlet.prototype = {
     __init__: function(args) {
         args = args || {};
         id = 'id' in args? args.id : getUID('watchlist');
+        title = 'title' in args? args.title: "Object Watch List",
         datasource = 'datasource' in args? args.datasource :
             new YAHOO.zenoss.portlet.TableDatasource({
                 url:'/zport/dmd/ZenEventManager/getEntityListEventSummary',
@@ -822,7 +835,7 @@ WatchListPortlet.prototype = {
         refreshTime = 'refreshTime' in args? args.refreshTime: 0;
         this.superclass.__init__(
             {id:id, 
-             title:"Object Watch List", 
+             title:title,
              datasource:datasource,
              refreshTime: refreshTime,
              bodyHeight: bodyHeight
@@ -840,7 +853,7 @@ WatchListPortlet.prototype = {
         var postContent = this.datasource.postContent;
         var newob = this.locsearch.input.value;
         if (findValue(postContent, newob)<0) {
-            postContent.push(newob);
+            if (newob.length>0) postContent.push(newob);
             this.superclass.submitSettings(e, {'postContent':postContent});
         }
         this.locsearch.input.value = '';
