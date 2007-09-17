@@ -426,11 +426,9 @@ PortletContainer.prototype = {
         var columns = state.columns;
         var newcolumns = [];
         this.setLayout(layout);
-        for (i=0;i<columns.length;i++) {
-            var portlets = columns[i];
+        forEach (columns, function(portlets) {
             var thiscolumn = [];
-            for (j=0;j<portlets.length;j++) {
-                var portsettings = portlets[j];
+            forEach (portlets, function(portsettings) {
                 var dssettings = portsettings.datasource;
                 var dsklass = eval(dssettings.__class__);
                 var datasource = new dsklass(dssettings);
@@ -438,9 +436,9 @@ PortletContainer.prototype = {
                 var portklass = eval(portsettings.__class__);
                 var p = new portklass(portsettings);
                 thiscolumn.push(p);
-            }
+            });
             newcolumns.push(thiscolumn);
-        }
+        });
         this.fillColumns(newcolumns);
     },
     startRefresh: function() {
