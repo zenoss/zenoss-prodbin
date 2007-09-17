@@ -131,6 +131,7 @@ CREATE TABLE IF NOT EXISTS alert_state
     evid        char(25) not null,
     userid      varchar(64),
     rule        varchar(255),
+    lastSent    timestamp default now(),
     PRIMARY KEY ( evid, userid, rule )
 ) ENGINE=INNODB;
 

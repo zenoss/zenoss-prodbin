@@ -27,6 +27,7 @@ class EventCommand(ZenModelRM, Commandable, EventFilter, ZenPackable):
     clearCommand = ''
     enabled = False
     delay = 0
+    repeatTime = 0
     
     _properties = ZenModelRM._properties + (
         {'id':'command', 'type':'string', 'mode':'w'},
@@ -35,6 +36,7 @@ class EventCommand(ZenModelRM, Commandable, EventFilter, ZenPackable):
         {'id':'defaultTimeout', 'type':'int', 'mode':'w'},
         {'id':'enabled', 'type':'boolean', 'mode':'w'},
         {'id':'delay', 'type':'int', 'mode':'w'},
+        {'id':'repeatTime', 'type':'int', 'mode':'w'},
     )
     
     _relations =  ZenPackable._relations + (

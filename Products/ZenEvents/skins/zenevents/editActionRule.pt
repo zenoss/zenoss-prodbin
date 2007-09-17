@@ -57,7 +57,11 @@
                 tal:attributes="value e; selected python:e==here.sendClear"/>
     </select>
   </td>
-  <td class="tablevalues" colspan="2"></td>
+  <td class="tableheader">Repeat Time (secs)</td>
+  <td class="tablevalues">
+    <input class="tablevalues" type="text" name="repeatTime:int" size="5"
+        tal:attributes="value here/repeatTime" />
+  </td>
 </tr>
 <tr>
 <td class="tableheader" colspan="6">Where</td>

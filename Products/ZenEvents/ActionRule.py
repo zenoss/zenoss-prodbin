@@ -49,6 +49,7 @@ class ActionRule(ZenModelRM, EventFilter):
 
     where = "severity >= 4 and eventState = 0 and prodState = 1000"
     delay = 0
+    repeatTime = 0
     action = "email"
     format = "[zenoss] %(device)s %(summary)s"
     body =  "Device: %(device)s\n" \
@@ -86,6 +87,7 @@ class ActionRule(ZenModelRM, EventFilter):
             'select_variable': 'actionTypes',},
         {'id':'enabled', 'type':'boolean', 'mode':'w'},
         {'id':'targetAddr', 'type':'string', 'mode':'w'},
+        {'id':'repeatTime', 'type':'int', 'mode':'w'},
     )
 
     _relations = (

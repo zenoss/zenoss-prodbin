@@ -77,6 +77,8 @@ class EventCommandProtocol(ProcessProtocol):
         if self.timeout:
             self.timeout.cancel()
             self.timeout = None
+            summary="Timeout running: %s: %s" % (self.cmd.id,
+                                                 'command timed out')
         else:
             summary="Error running: %s: %s" % (self.cmd.id,
                                                'command timed out')
@@ -105,7 +107,10 @@ class ZenActions(ZCmdBase):
 
     lastCommand = None
 
-    addstate = "INSERT INTO alert_state VALUES ('%s', '%s', '%s')"
+    addstate = ("INSERT INTO alert_state "
+                "VALUES ('%s', '%s', '%s', NULL) "
+                "ON DUPLICATE KEY UPDATE lastSent = now()")
+    
 
     clearstate = ("DELETE FROM alert_state "
                   " WHERE evid='%s' "
@@ -120,7 +125,7 @@ class ZenActions(ZCmdBase):
     newsel = ("SELECT %s, evid FROM status WHERE "
               "%s AND evid NOT IN " 
               " (SELECT evid FROM alert_state "
-              "  WHERE userid='%s' AND rule='%s')")
+              "  WHERE userid='%s' AND rule='%s' %s)")
             
     clearsel = ("SELECT %s, h.evid FROM history h, alert_state a "
                 " WHERE h.evid=a.evid AND a.userid='%s' AND a.rule='%s'")
@@ -234,7 +239,10 @@ class ZenActions(ZCmdBase):
         nwhere = context.where.strip() or '1 = 1'
         if context.delay > 0:
             nwhere += " and firstTime + %s < UNIX_TIMESTAMP()" % context.delay
-        q = self.newsel % (",".join(fields), nwhere, userid, context.getId())
+        awhere = ''
+        if context.repeatTime:
+            awhere += ' and lastSent + %d > now() ' % context.repeatTime
+        q = self.newsel % (",".join(fields), nwhere, userid, context.getId(), awhere)
         for result in self.query(q):
             evid = result[-1]
             data = dict(zip(fields, map(zem.convert, fields, result[:-1])))

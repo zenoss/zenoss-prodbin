@@ -33,6 +33,8 @@
     <th tal:replace="structure python:zem.getTableHeader(
                             tableName,'delay','Delay')"/>
     <th tal:replace="structure python:zem.getTableHeader(
+                            tableName,'repeatTime','Repeat Time')"/>
+    <th tal:replace="structure python:zem.getTableHeader(
                             tableName,'action','Action')"/>
     <th tal:replace="structure python:zem.getTableHeader(
                             tableName,'enabled','Enabled')"/>
@@ -51,6 +53,10 @@
         <td class="tablevalues" tal:condition="not:here/iseditable"
             tal:content="action/getId"/>
         <td class="tablevalues" tal:content="action/delay"/>
+        <td class="tablevalues" tal:content="string:Does not repeat" 
+	    tal:condition="action/repeatTime"/>
+        <td class="tablevalues" tal:content="action/repeatTime" 
+	    tal:condition="not:action/repeatTime"/>
         <td class="tablevalues" tal:content="action/action"/>
         <td class="tablevalues" tal:content="action/enabled"/>
         <td class="tablevalues" tal:content="action/sendClear"/>

@@ -28,13 +28,17 @@
         <!-- BEGIN TABLE CONTENTS -->
             
   <tr>
-    <th class="tableheader" colspan="4">Commands triggered by events:</th>
+    <th class="tableheader" colspan="6">Commands triggered by events:</th>
   </tr>
     <tr>
     <th tal:replace="structure python:zem.getTableHeader(
                             tableName,'primarySortKey','Name')"/>
     <th tal:replace="structure python:zem.getTableHeader(
-                            tableName,'delay','Enabled')"/>
+                            tableName,'enabled','Enabled')"/>
+    <th tal:replace="structure python:zem.getTableHeader(
+                            tableName,'delay','Delay')"/>
+    <th tal:replace="structure python:zem.getTableHeader(
+                            tableName,'repeatTime','Repeat time')"/>
     <th tal:replace="structure python:zem.getTableHeader(
                             tableName,'action','Command')"/>
     <th tal:replace="structure python:zem.getTableHeader(
@@ -50,7 +54,10 @@
         <a tal:attributes='href command/getPrimaryUrlPath' 
            tal:content="command/id"/>
     </td>
-    <td class="tablevalues" tal:content="python:command.enabled"/>
+    <td class="tablevalues" tal:content="command/enabled"/>
+    <td class="tablevalues" tal:content="command/delay"/>
+    <td class="tablevalues" tal:content="command/repeatTime" tal:condition="command/repeatTime"/>
+    <td class="tablevalues" tal:content="string:Does not repeat" tal:condition="not:command/repeatTime"/>
     <td class="tablevalues" tal:content="command/command"/>
     <td class="tablevalues" tal:content="command/where"/>
   </tr>
@@ -63,7 +70,7 @@
   </tr>
 
   <tr>
-      <td class="tableheader" align="left" colspan="4">
+      <td class="tableheader" align="left" colspan="6">
           <input class="tablevalues" size="25" name="id" />
           <input class="tableheader" type="submit" value=" Add "
                name="manage_addCommand:method" />
