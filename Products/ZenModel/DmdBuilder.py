@@ -60,6 +60,7 @@ from Products.ZenEvents.MySqlEventManager import manage_addMySqlEventManager
 from Products.ZenEvents.EventClass import manage_addEventClass
 from Products.CMFCore.DirectoryView import manage_addDirectoryView
 from Products.ZenModel.UserSettings import manage_addUserSettingsManager
+from Products.ZenModel.LinkManager import manage_addLinkManager
 
 classifications = {
     'Devices':          DeviceClass,
@@ -169,5 +170,6 @@ class DmdBuilder:
                                     evtdb=self.evtdb, 
                                     history=True)
         manage_addUserSettingsManager(self.dmd)
+        manage_addLinkManager(self.dmd)
         manage_addIpNetwork(self.dmd, "Networks")
 
