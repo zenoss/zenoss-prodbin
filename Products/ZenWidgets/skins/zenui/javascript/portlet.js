@@ -165,7 +165,6 @@ Portlet.prototype = {
                                        'right:0;top:0;cursor:pointer'},'*');
             connect(this.settingsToggle, 'onclick', this.toggleSettings);
             this.refreshRateInput = INPUT({'value':this.refreshTime}, null);
-            log(this.refreshTime);
             this.settingsSlot = DIV({'id':this.id+'_customsettings', 
                 'class':'settings-controls'}, 
                DIV({'class':'portlet-settings-control'}, [
