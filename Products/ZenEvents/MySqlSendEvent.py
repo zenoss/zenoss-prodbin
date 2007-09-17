@@ -259,7 +259,7 @@ class MySqlSendEventMixin:
         var = [] 
         for field, value in detaildict.items():
             if type(value) in types.StringTypes:
-                value = self.escape(value)
+                value = self.escape(decode(self.dmd.Devices, value))
             var.append("('%s','%s','%s')" % (evid, field, value)) 
         insert += ",".join(var)        
         return insert
