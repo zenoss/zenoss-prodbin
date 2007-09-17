@@ -31,7 +31,7 @@ from Products.PageTemplates.PageTemplateFile import PageTemplateFile
 from Organizer import Organizer
 from Report import Report
 from ZenPackable import ZenPackable
-from ZenossSecurity import ZEN_MANAGE_DMD
+from ZenossSecurity import ZEN_MANAGE_DMD, ZEN_COMMON
 from Products.ZenRelations.RelSchema import *
 
 def manage_addReportClass(context, id, title = None, REQUEST = None):
@@ -49,7 +49,10 @@ class ReportClass(Organizer, ZenPackable):
     dmdRootName = "Reports"
     portal_type = meta_type = "ReportClass"
 
-    sub_meta_types = ("ReportClass", "Report", 'DeviceReport', 'GraphReport')
+    sub_meta_types = ("ReportClass", "Report", 'DeviceReport', 'GraphReport', 
+                    'FancyReportClass')
+
+    child_meta_type = (meta_type, 'FancyReportClass')
 
     _relations = Organizer._relations + ZenPackable._relations
 
@@ -71,6 +74,30 @@ class ReportClass(Organizer, ZenPackable):
         )
     
     security = ClassSecurityInfo()
+
+    security.declareProtected(ZEN_COMMON, "children")
+    def children(self, sort=False, checkPerm=True, spec=None):
+        """Return children of our organizer who have same type as parent."""
+        if spec is None:
+            spec = self.child_meta_type
+        return Organizer.children(self, sort=sort, 
+                                    checkPerm=checkPerm, spec=spec)
+
+
+    def childIds(self, spec=None):
+        """Return Ids of children within our organizer."""
+        if spec is None:
+            spec = self.child_meta_type
+        return Organizer.childIds(self, spec=spec)
+
+
+    security.declareProtected(ZEN_COMMON, "countChildren")
+    def countChildren(self, spec=None):
+        """Return a count of all our contained children."""
+        if spec is None:
+            spec = self.child_meta_type
+        return Organizer.countChildren(self, spec=spec)
+
 
     def manage_addReportClass(self, id, title = None, REQUEST = None):
         """make a device class"""

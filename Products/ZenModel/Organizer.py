@@ -71,9 +71,11 @@ class Organizer(ZenModelRM, EventView):
         return self.getDmdRoot(self.dmdRootName).getOrganizer(moveTargetName)
    
     security.declareProtected(ZEN_COMMON, "children")
-    def children(self, sort=False, checkPerm=True):
+    def children(self, sort=False, checkPerm=True, spec=None):
         """Return children of our organizer who have same type as parent."""
-        kids = self.objectValues(spec=self.meta_type)
+        if spec is None:
+            spec = self.meta_type
+        kids = self.objectValues(spec=spec)
         if checkPerm:
             kids = [ kid for kid in kids if self.checkRemotePerm("View", kid)]
         if sort: kids.sort(lambda x,y: cmp(x.primarySortKey(), 
@@ -81,17 +83,21 @@ class Organizer(ZenModelRM, EventView):
         return kids
 
 
-    def childIds(self):
+    def childIds(self, spec=None):
         """Return Ids of children within our organizer."""
-        return self.objectIds(spec=self.meta_type)
+        if spec is None:
+            spec = self.meta_type
+        return self.objectIds(spec=spec)
 
 
     security.declareProtected(ZEN_COMMON, "countChildren")
-    def countChildren(self):
+    def countChildren(self, spec=None):
         """Return a count of all our contained children."""
-        count = len(self.objectIds(spec=self.meta_type))
-        for child in self.children():
-            count += child.countChildren()
+        if spec is None:
+            spec = self.meta_type
+        count = len(self.objectIds(spec=spec))
+        for child in self.children(spec=spec):
+            count += child.countChildren(spec=spec)
         return count
         
 

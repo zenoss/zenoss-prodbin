@@ -15,6 +15,7 @@
 import Migrate
 from Products.ZenModel.GraphDefinition import GraphDefinition
 from Products.ZenModel.FancyReportClass import FancyReportClass
+from AccessControl import Permissions
 
 class FancyReports(Migrate.Step):
     version = Migrate.Version(2, 1, 0)
@@ -22,80 +23,84 @@ class FancyReports(Migrate.Step):
     def cutover(self, dmd):
         
         # Build Reports/Fancy Reports
-        frc = getattr(dmd.Reports, 'Fancy Reports', None)
+        frc = getattr(dmd.Reports, 'Multi-Graph Reports', None)
         if frc:
             if not isinstance(frc, FancyReportClass):
                 frc.__class__ = FancyReportClass
         else:
-            frc = FancyReportClass('Fancy Reports')
+            frc = FancyReportClass('Multi-Graph Reports')
             dmd.Reports._setObject(frc.id, frc)
         dmd.Reports.buildRelations()
-        dmd.Reports['Fancy Reports'].buildRelations()
+        dmd.Reports['Multi-Graph Reports'].buildRelations()
         
         # Install sample fancy report?
         
-        # Install new menus
-        dmd.buildMenus({  
-            'Report_list': [ 
-                {   'action': 'dialog_addFancyReport',
-                    'allowed_classes': ('FancyReportClass',),
-                    'description': 'Add Fancy Report...',
-                    'id': 'addFancyReport',
-                    'isdialog': True,
-                    'ordering': 88.0,
-                    'permissions': ('Change Device',),
-                },
-                ],
-            'collectionList': [ 
-                {   'action': 'dialog_addCollection',
-                    'description': 'Add Collection...',
-                    'id': 'addCollection',
-                    'isdialog': True,
-                    'ordering': 88.0,
-                    'permissions': ('Change Device',),
-                },
-                {   'action': 'dialog_deleteCollections',
-                    'description': 'Delete Collections...',
-                    'id': 'deleteCollections',
-                    'isdialog': True,
-                    'ordering': 87.0,
-                    'permissions': ('Change Device',),
-                },
-                ],
-            'collectionItemList': [ 
-                {   'action': 'dialog_deleteCollectionItems',
-                    'description': 'Delete Items...',
-                    'id': 'deleteCollectionItems',
-                    'isdialog': True,
-                    'ordering': 88.0,
-                    'permissions': ('Change Device',),
-                },
-                {  'action': "javascript:submitFormToMethod('collectionItemForm', 'manage_resequenceCollectionItems')",
-                   'description': 'Re-sequence Items',
-                   'id': 'resequenceCollectionItem',
-                   'ordering': 87.0,
-                   'permissions': ('Change Device',),
-                },
-                ],
-            'GraphGroup_list': [ 
-                {  'action': 'dialog_addGraphGroup',
-                   'description': 'Add Group...',
-                   'id': 'addGraphGroup',
-                   'isdialog': True,
-                   'ordering': 90.0,
-                   'permissions': ('Change Device',)},
-                {  'action': 'dialog_deleteGraphGroups',
-                   'description': 'Delete Group...',
-                   'id': 'deleteGraphGroups',
-                   'isdialog': True,
-                   'ordering': 89.0,
-                   'permissions': ('Change Device',)},
-                {  'action': "javascript:submitFormToMethod('graphGroupForm', 'manage_resequenceGraphGroups')",
-                   'description': 'Re-sequence Groups',
-                   'id': 'resequenceGraphGroups',
-                   'ordering': 88.0,
-                   'permissions': ('Change Device',)}],
-        })
+        # Get rid of old Fancy Report menus
+        reportList = getattr(dmd.zenMenus, 'Report_list')
+        if hasattr(reportList, 'addFancyReport'):
+            reportList.manage_deleteZenMenuItem(('addFancyReport',))
+        reportList.manage_addZenMenuItem( 
+                id='addFancyReport',
+                description='Add Multi-Graph Report...', 
+                action='dialog_addFancyReport', 
+                permissions=('Change Device',), 
+                isdialog=True, 
+                allowed_classes=('FancyReportClass',),
+                ordering=88.0)        
+        
+        if hasattr(dmd.zenMenus, 'collectionList'):
+            dmd.zenMenus._delObject('collectionList')
+        collectionList = dmd.zenMenus.manage_addZenMenu('collectionList')
+        collectionList.manage_addZenMenuItem(
+                id='addCollection',
+                description='Add Collection...', 
+                action='dialog_addCollection', 
+                permissions=('Change Device',), 
+                isdialog=True, 
+                ordering=88.0)
+        collectionList.manage_addZenMenuItem(
+                id='deleteCollections',
+                description='Delete Collections...', 
+                action='dialog_deleteCollections', 
+                permissions=('Change Device',), 
+                isdialog=True, 
+                ordering=87.0)
+
+        if hasattr(dmd.zenMenus, 'collectionItemList'):
+            dmd.zenMenus._delObject('collectionItemList')
+        collectionList = dmd.zenMenus.manage_addZenMenu('collectionItemList')
+        collectionList.manage_addZenMenuItem(
+                id='deleteCollectionItems',
+                description='Delete Items...', 
+                action='dialog_deleteCollectionItems', 
+                permissions=('Change Device',), 
+                isdialog=True, 
+                ordering=88.0)
+        collectionList.manage_addZenMenuItem(
+                id='resequenceCollectionItem',
+                description='Re-sequence Items', 
+                action="javascript:submitFormToMethod('collectionItemForm', 'manage_resequenceCollectionItems')", 
+                permissions=('Change Device',), 
+                isdialog=True, 
+                ordering=87.0)
+
+        if hasattr(dmd.zenMenus, 'GraphGroup_list'):
+            dmd.zenMenus._delObject('GraphGroup_list')
+        collectionList = dmd.zenMenus.manage_addZenMenu('GraphGroup_list')
+        collectionList.manage_addZenMenuItem(
+                id='addGraphGroup',
+                description='Add Group...', 
+                action='dialog_addGraphGroup', 
+                permissions=('Change Device',), 
+                isdialog=True, 
+                ordering=89.0)
+        collectionList.manage_addZenMenuItem(
+                id='resequenceCollectionItem',
+                description='Re-sequence Items', 
+                action="javascript:submitFormToMethod('graphGroupForm', 'manage_resequenceGraphGroups')", 
+                permissions=('Change Device',), 
+                isdialog=True, 
+                ordering=88.0)
 
 
 FancyReports()
