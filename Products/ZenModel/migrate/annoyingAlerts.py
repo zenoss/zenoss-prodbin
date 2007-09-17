@@ -25,8 +25,8 @@ class AnnoyingAlerts(Migrate.Step):
         conn = dmd.ZenEventManager.connect()
         c = conn.cursor()
         c.execute('describe alert_state')
-        if 'lastTime' not in [x[0] for x in c.fetchall()]:
+        if 'lastSent' not in [x[0] for x in c.fetchall()]:
             c.execute('alter table alert_state '
-                      'add column (lastTime timestamp default now())')
+                      'add column (lastSent timestamp default now())')
             
 AnnoyingAlerts()
