@@ -30,6 +30,8 @@ class RRDUtil:
              min='U', max='U'):
         import rrdtool, os
 
+        if value is None: return None
+
         if cycleTime is None:
             cycleTime = self.defaultCycleTime
 
