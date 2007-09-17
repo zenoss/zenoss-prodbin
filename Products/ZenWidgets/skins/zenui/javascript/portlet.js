@@ -743,6 +743,7 @@ GoogleMapsPortlet.prototype = {
             datasource:datasource, bodyHeight:bodyHeight}
         );
         this.buildSettingsPane();
+        this.resizehandle.style.height="10px";
     },
     buildSettingsPane: function() {
         s = this.settingsSlot;
