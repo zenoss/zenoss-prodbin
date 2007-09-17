@@ -27,12 +27,10 @@ class GraphDefinitionsAndFriends(Migrate.Step):
 
     def cutover(self, dmd):
         
-        # Build Reports/Fancy Reports
+        # Build Reports/Graph Reports
         if not hasattr(dmd.Reports, 'Graph Reports'):
             dmd.Reports.manage_addReportClass('Graph Reports')
-        
-        # Install sample fancy report?
-        
+                
         # Install new menus
         dmd.buildMenus({  
             'GraphPoint_list': [ 

@@ -11,9 +11,9 @@
 #
 ###########################################################################
 
-__doc__='''FancyReportClass
+__doc__='''MultiGraphReportClass
 
-FancyReportClass contain FancyReports.
+MultiGraphReportClass contain MultiGraphReports.
 '''
 
 from AccessControl import ClassSecurityInfo
@@ -24,22 +24,22 @@ from ZenossSecurity import ZEN_MANAGE_DMD
 from Globals import InitializeClass
 
 
-def manage_addFancyReportClass(context, id, title = None, REQUEST = None):
-    ''' Construct a new fancyreportclass
+def manage_addMultiGraphReportClass(context, id, title = None, REQUEST = None):
+    ''' Construct a new MultiGraphreportclass
     '''
-    frc = FancyReportClass(id, title)
+    frc = MultiGraphReportClass(id, title)
     context._setObject(id, frc)
     if REQUEST is not None:
         REQUEST['message'] = "Report organizer created"
         REQUEST['RESPONSE'].redirect(context.absolute_url() + '/manage_main') 
 
-addFancyReportClass = DTMLFile('dtml/addFancyReportClass',globals())
+addMultiGraphReportClass = DTMLFile('dtml/addMultiGraphReportClass',globals())
 
-class FancyReportClass(ReportClass):
+class MultiGraphReportClass(ReportClass):
 
-    portal_type = meta_type = "FancyReportClass"
+    portal_type = meta_type = "MultiGraphReportClass"
 
-    sub_meta_types = ('FancyReportClass', 'FancyReport')
+    sub_meta_types = ('MultiGraphReportClass', 'MultiGraphReport')
 
     _relations = ReportClass._relations +  (
         ('graphDefs', 
@@ -49,25 +49,25 @@ class FancyReportClass(ReportClass):
     security = ClassSecurityInfo()
 
     def manage_addReportClass(self, id, title = None, REQUEST = None):
-        ''' Create a new fancy report class
+        ''' Create a new MultiGraph report class
         '''
         import pdb; pdb.set_trace()
-        dc = FancyReportClass(id, title)
+        dc = MultiGraphReportClass(id, title)
         self._setObject(id, dc)
         if REQUEST:
             REQUEST['message'] = "Report organizer created"
             return self.callZenScreen(REQUEST)
 
 
-    security.declareProtected('Manage DMD', 'manage_addFancyReport')
-    def manage_addFancyReport(self, id, REQUEST=None):
-        """Add an fancy report to this object.
+    security.declareProtected('Manage DMD', 'manage_addMultiGraphReport')
+    def manage_addMultiGraphReport(self, id, REQUEST=None):
+        """Add an MultiGraph report to this object.
         """
-        from Products.ZenModel.FancyReport import FancyReport
-        fr = FancyReport(id)
+        from Products.ZenModel.MultiGraphReport import MultiGraphReport
+        fr = MultiGraphReport(id)
         self._setObject(id, fr)
         if REQUEST:
-            url = '%s/%s/editFancyReport' % (self.getPrimaryUrlPath(), id)
+            url = '%s/%s/editMultiGraphReport' % (self.getPrimaryUrlPath(), id)
             REQUEST['RESPONSE'].redirect(url)
         return fr
 
@@ -118,4 +118,4 @@ class FancyReportClass(ReportClass):
 
 
 
-InitializeClass(FancyReportClass)
+InitializeClass(MultiGraphReportClass)

@@ -84,7 +84,7 @@ class GraphDefinition(ZenModelRM, ZenPackable):
         ("rrdTemplate", 
             ToOne(ToManyCont,"Products.ZenModel.RRDTemplate", "graphDefs")),
         ('reportClass',
-            ToOne(ToManyCont, 'Products.ZenModel.FancyReportClass', 'graphDefs')),
+            ToOne(ToManyCont, 'Products.ZenModel.MultiGraphReportClass', 'graphDefs')),
         ('graphPoints', 
             ToManyCont(ToOne, 'Products.ZenModel.GraphPoint', 'graphDef')),
         )
@@ -476,7 +476,7 @@ class GraphDefinition(ZenModelRM, ZenPackable):
         reportClasses = [self.dmd.Reports] + self.dmd.Reports.getSubOrganizers()
         for rc in reportClasses:
             for r in rc.reports():
-                if r.meta_type == 'FancyReport':
+                if r.meta_type == 'MultiGraphReport':
                     for gg in r.graphGroups():
                         if gg.graphDefId == self.id:
                             reports.append(r)

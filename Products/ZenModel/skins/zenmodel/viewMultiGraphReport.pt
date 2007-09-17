@@ -7,7 +7,7 @@ var reportId = &quot;${here/getPrimaryId}&quot;;
 </script>" />
 
 <form method="post" target="_blank" id="printableForm" tal:attributes=" 
-        action python:here.absolute_url_path() + '/viewFancyReportClean';">
+        action python:here.absolute_url_path() + '/viewMultiGraphReportClean';">
 </form>
  
 <script language="javascript" type="text/javascript">

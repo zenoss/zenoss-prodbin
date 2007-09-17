@@ -48,7 +48,7 @@ class Collection(ZenModelRM):
 
     _relations =  (
         ('report',
-            ToOne(ToManyCont, 'Products.ZenModel.FancyReport', 'collections')),
+            ToOne(ToManyCont, 'Products.ZenModel.MultiGraphReport', 'collections')),
         ('items',
             ToManyCont(ToOne, 'Products.ZenModel.CollectionItem', 'collection')),
         )

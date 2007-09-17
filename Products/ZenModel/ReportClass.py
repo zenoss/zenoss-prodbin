@@ -50,9 +50,9 @@ class ReportClass(Organizer, ZenPackable):
     portal_type = meta_type = "ReportClass"
 
     sub_meta_types = ("ReportClass", "Report", 'DeviceReport', 'GraphReport', 
-                    'FancyReportClass')
+                    'MultiGraphReportClass')
 
-    child_meta_type = (meta_type, 'FancyReportClass')
+    child_meta_type = (meta_type, 'MultiGraphReportClass')
 
     _relations = Organizer._relations + ZenPackable._relations
 
@@ -112,7 +112,7 @@ class ReportClass(Organizer, ZenPackable):
         """Return list of report instances.
         """
         return [ r for r in self.objectValues(
-                 spec=('Report','DeviceReport','GraphReport','FancyReport')) ]
+                 spec=('Report','DeviceReport','GraphReport','MultiGraphReport')) ]
 
         
     def countReports(self):

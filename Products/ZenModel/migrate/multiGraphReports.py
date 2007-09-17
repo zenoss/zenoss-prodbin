@@ -14,38 +14,36 @@
 
 import Migrate
 from Products.ZenModel.GraphDefinition import GraphDefinition
-from Products.ZenModel.FancyReportClass import FancyReportClass
+from Products.ZenModel.MultiGraphReportClass import MultiGraphReportClass
 from AccessControl import Permissions
 
-class FancyReports(Migrate.Step):
+class MultiGraphReports(Migrate.Step):
     version = Migrate.Version(2, 1, 0)
     
     def cutover(self, dmd):
         
-        # Build Reports/Fancy Reports
+        # Build Reports/MultiGraph Reports
         frc = getattr(dmd.Reports, 'Multi-Graph Reports', None)
         if frc:
-            if not isinstance(frc, FancyReportClass):
-                frc.__class__ = FancyReportClass
+            if not isinstance(frc, MultiGraphReportClass):
+                frc.__class__ = MultiGraphReportClass
         else:
-            frc = FancyReportClass('Multi-Graph Reports')
+            frc = MultiGraphReportClass('Multi-Graph Reports')
             dmd.Reports._setObject(frc.id, frc)
         dmd.Reports.buildRelations()
         dmd.Reports['Multi-Graph Reports'].buildRelations()
-        
-        # Install sample fancy report?
-        
-        # Get rid of old Fancy Report menus
+                
+        # Get rid of old  Report menus
         reportList = getattr(dmd.zenMenus, 'Report_list')
-        if hasattr(reportList, 'addFancyReport'):
-            reportList.manage_deleteZenMenuItem(('addFancyReport',))
+        if hasattr(reportList, 'addMultiGraphReport'):
+            reportList.manage_deleteZenMenuItem(('addMultiGraphReport',))
         reportList.manage_addZenMenuItem( 
-                id='addFancyReport',
+                id='addMultiGraphReport',
                 description='Add Multi-Graph Report...', 
-                action='dialog_addFancyReport', 
+                action='dialog_addMultiGraphReport', 
                 permissions=('Change Device',), 
                 isdialog=True, 
-                allowed_classes=('FancyReportClass',),
+                allowed_classes=('MultiGraphReportClass',),
                 ordering=88.0)        
         
         if hasattr(dmd.zenMenus, 'collectionList'):
@@ -103,4 +101,4 @@ class FancyReports(Migrate.Step):
                 ordering=88.0)
 
 
-FancyReports()
+MultiGraphReports()

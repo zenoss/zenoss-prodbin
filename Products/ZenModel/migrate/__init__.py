@@ -99,7 +99,7 @@ import graphDefinitionsAndFriends
 import graphReports
 import statusMonitorMenus
 import removeZenPackMenuItem
-import fancyReports
+import multiGraphReports
 import removeZenPackMenuItem
 import banClassesOnDeviceListMenus
 import banClassesOnAddToZenPackMenuItem

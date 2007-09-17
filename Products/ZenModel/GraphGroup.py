@@ -52,7 +52,7 @@ class GraphGroup(ZenModelRM):
 
     _relations =  (
         ('report', 
-            ToOne(ToMany, 'Products.ZenModel.FancyReport', 'graphGroups')),
+            ToOne(ToMany, 'Products.ZenModel.MultiGraphReport', 'graphGroups')),
         )
 
     factory_type_information = ( 

@@ -20,18 +20,18 @@ from DateTime import DateTime
 from RRDView import GetRRDPath
 from PerformanceConf import performancePath
 
-def manage_addFancyReport(context, id, REQUEST = None):
-    ''' Create a new FancyReport
+def manage_addMultiGraphReport(context, id, REQUEST = None):
+    ''' Create a new MultiGraphReport
     '''
-    gr = FancyReport(id)
+    gr = MultiGraphReport(id)
     context._setObject(gr.id, gr)
     if REQUEST is not None:
         REQUEST['RESPONSE'].redirect(context.absolute_url()+'/manage_main')
 
 
-class FancyReport(ZenModelRM):
+class MultiGraphReport(ZenModelRM):
 
-    meta_type = "FancyReport"
+    meta_type = "MultiGraphReport"
     
 
     _properties = ZenModelRM._properties + (
@@ -46,15 +46,15 @@ class FancyReport(ZenModelRM):
 
     factory_type_information = ( 
         { 
-            'immediate_view' : 'viewFancyReport',
+            'immediate_view' : 'viewMultiGraphReport',
             'actions'        :
             ( 
                 {'name'          : 'Report',
-                'action'        : 'viewFancyReport',
+                'action'        : 'viewMultiGraphReport',
                 'permissions'   : ("View",),
                 },
                 {'name'          : 'Edit',
-                'action'        : 'editFancyReport',
+                'action'        : 'editMultiGraphReport',
                 'permissions'   : ("Manage DMD",),
                 },
             )
@@ -154,14 +154,14 @@ class FancyReport(ZenModelRM):
         '''
         # Can't use acquisition becase the defs are all stored at the root
         # ReportClass and not in the suborganizers.
-        rc = getattr(self.dmd.Reports, 'Fancy Reports', None)
+        rc = getattr(self.dmd.Reports, 'Multi-Graph Reports', None)
         return rc and rc.getGraphDefs() or []
 
 
     def getGraphDef(self, graphDefId):
         ''' Retrieve the given graph def
         '''
-        rc = getattr(self.dmd.Reports, 'Fancy Reports', None)
+        rc = getattr(self.dmd.Reports, 'Multi-Graph Reports', None)
         if rc:
             return getattr(rc.graphDefs, graphDefId, None)
         return None
@@ -222,4 +222,4 @@ class FancyReport(ZenModelRM):
         return graphs
 
 
-InitializeClass(FancyReport)
+InitializeClass(MultiGraphReport)
