@@ -37,7 +37,7 @@ from Acquisition import aq_base, aq_parent, aq_chain
 from AccessControl import ClassSecurityInfo
 from AccessControl import Permissions as permissions
 
-from Products.AdvancedQuery import MatchGlob
+from Products.AdvancedQuery import MatchGlob, Or, Eq
 from Products.PageTemplates.PageTemplateFile import PageTemplateFile
 
 from Products.ZenRelations.RelSchema import *
@@ -327,26 +327,22 @@ class DeviceClass(DeviceOrganizer, ZenPackable):
 
 
     security.declareProtected('View', 'searchDevices')
-    def searchDevices(self, query=None, REQUEST=None):
+    def searchDevices(self, queryString='', REQUEST=None):
         """Returns the concatenation of a device name, ip and mac
         search on the list of devices.
         """
         zcatalog = self._getCatalog()
-        if not query or not zcatalog:
+        if not queryString or not zcatalog:
             return []
-        if not query.endswith("*"):
-            query+="*"
-        ips = None 
-        query = MatchGlob('id', query)
-        try:
-            ips = self.Networks.ipSearch.evalAdvancedQuery(query)
-        except AttributeError:
-            pass
-        names = zcatalog.evalAdvancedQuery(query)
-        if ips:
-            names += ips
+        glob = queryString.rtrim('*') + '*'
+        query = Or(MatchGlob('id', glob), Eq('getDeviceIp', queryString))
+        names = zcatalog.evalAdvancedQuery(queryString)
         if REQUEST and len(names) == 1:
             raise Redirect(urllib.quote(names[0].getPrimaryId))
+        try:
+            names += self.Networks.ipSearch.evalAdvancedQuery(glob)
+        except AttributeError:
+            pass
         return self._convertResultsToObj(names)
    
 
@@ -381,19 +377,21 @@ class DeviceClass(DeviceOrganizer, ZenPackable):
                 
         return devices
 
+    def _findDevice(self, devicename):
+        query = Or(MatchGlob('id', devicename), Eq('getDeviceIp', devicename))
+        return self._getCatalog().evalAdvancedQuery(query)
+
 
     def findDevicePath(self, devicename):
         """look up a device and return its path"""
-        query = MatchGlob('id', devicename)
-        ret = self._getCatalog().evalAdvancedQuery(query)
+        ret = self._findDevice(devicename)
         if not ret: return ""
         return ret[0].getPrimaryId
 
 
     def findDevice(self, devicename):
         """look up device in catalog and return it"""
-        query = MatchGlob('id', devicename)
-        ret = self._getCatalog().evalAdvancedQuery(query)
+        ret = self._findDevice(devicename)
         if not ret: return None
         try:
             devobj = self.getObjByPath(ret[0].getPrimaryId)
