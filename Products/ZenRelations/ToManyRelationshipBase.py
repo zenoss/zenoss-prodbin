@@ -76,12 +76,12 @@ class ToManyRelationshipBase(
     
     def _setOb(self, id, obj): 
         """don't use attributes in relations"""
-        pass
+        raise NotImplementedError
         
   
     def _delOb(self, id):
         """don't use attributes in relations"""
-        pass
+        raise NotImplementedError
 
 
     def _getOb(self, id, default=zenmarker):
