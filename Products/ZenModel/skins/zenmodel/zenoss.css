@@ -4,6 +4,7 @@ body {
     font-family:  Verdana, Arial, Helvetica, sans-serif;
     font-size:  9pt;
     margin: 0px;
+    text-align: left;
 }
 
 input,textarea {
@@ -749,4 +750,50 @@ a.tablevalues:active {
     right: 50px;
     top: 0px;
     z-index: 2007;
+}
+
+
+div.evpill-green,
+div.evpill-yellow,
+div.evpill-blue,
+div.evpill-orange,
+div.evpill-red {
+    width:50px;
+    height:24px;
+    background: transparent url('img/eventpill-tiles-60dpi.png') 
+        0px 0px no-repeat;
+    line-height:24px;
+    font-weight: bold;
+    text-align: center;
+    font-size: 15px;
+    margin: 0px auto;
+    cursor: hand; cursor: pointer;
+}
+
+div.evpill-red    { background-position: 0px 0px; color: white; }
+div.evpill-orange { background-position: 0px -24px; }
+div.evpill-yellow { background-position: 0px -48px; }
+div.evpill-blue   { background-position: 0px -72px; }
+div.evpill-green  { background-position: 0px -96px; }
+
+a.prettylink {
+    text-decoration: none;
+    font-size: 1.2em;
+    padding-left: 35px;
+    line-height: 28px;
+}
+
+table.zenportlet img.device-icon,
+img.device-icon {
+    height: 28px;
+    vertical-align: middle;
+    text-decoration: none;
+    border: medium none;
+}
+table.zenportlet div.device-icon-container,
+div.device-icon-container {
+    float: left;
+    width: 35px;
+    text-align: right;
+    padding-right: 10px;
 }

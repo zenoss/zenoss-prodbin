@@ -1,10 +1,4 @@
-var Class={
-    create:function(){
-        return function(){
-            this.__init__.apply(this,arguments);
-        }
-    }
-}
+var Class = YAHOO.zenoss.Class;
 
 function getFormElements(parentbox) {
     var firstElement;
@@ -224,4 +218,3 @@ Dialog.Box.prototype = {
     }
 }
 
-log("Dialog javascript loaded.")

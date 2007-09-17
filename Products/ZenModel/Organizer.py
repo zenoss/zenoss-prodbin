@@ -22,6 +22,8 @@ from Globals import InitializeClass
 from Acquisition import aq_parent
 from AccessControl import ClassSecurityInfo, getSecurityManager
 
+import simplejson
+
 from Products.ZenRelations.RelSchema import *
 from Products.ZenUtils.Utils import travAndColl
 from Products.ZenUtils.Exceptions import ZenPathError, ZentinelException
@@ -60,11 +62,13 @@ class Organizer(ZenModelRM, EventView):
         return filter(lambda x: x != myname, 
                     self.getDmdRoot(self.dmdRootName).getOrganizerNames())
 
+    def childMoveTargetsJSON(self):
+        """ JSON of above function """
+        return simplejson.dumps(self.childMoveTargets());
 
     def getChildMoveTarget(self, moveTargetName): 
         """see IDeviceManager"""
         return self.getDmdRoot(self.dmdRootName).getOrganizer(moveTargetName)
-
    
     security.declareProtected(ZEN_COMMON, "children")
     def children(self, sort=False, checkPerm=True):

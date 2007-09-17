@@ -1,0 +1,153 @@
+div.zenoss-portlet {
+    margin: 1em 0.25em;
+}
+table.zenportlet * {
+    margin: 0;
+    padding: 0;
+}
+table.zenportlet {
+    height:100%;
+    width: 100%;
+    table-layout: fixed;
+    margin: 0;
+    padding: 0;
+}
+table.zenportlet td.portlet-header {
+    height:25px;
+}
+table.zenportlet td.portlet-body {
+    padding: 0; margin: 0;
+}
+table.zenportlet div.tabletitle-container {
+    height: 25px;
+    border-bottom: 1px solid black;
+    position: relative;
+}
+table.zenportlet div.tabletitle-left {
+    height:100%;
+    padding-left: 20px;
+    background: transparent url(img/titlebar_left_corner.png) 
+                top left no-repeat;
+}
+table.zenportlet div.tabletitle-right {
+    height:100%;
+    padding-right: 20px;
+    background: transparent url(img/titlebar_right_corner.png) 
+                top right no-repeat;
+}
+table.zenportlet div.tabletitle-center {
+    position: relative;
+    color: white;
+    font-weight: bold;
+    height:25px;
+    line-height:25px;
+    background: transparent url(img/titlebar_bg.gif) 
+                top repeat-x;
+}
+table.zenportlet div.portlet-body {
+    margin-top: -2px;
+    background-color: #bbb;
+    border: 1px solid black;
+    border-top: medium none;
+    padding: 0;
+    overflow: auto;
+}
+table.zenportlet div.resize-handle {
+    height:3px;
+    width:100%;
+    cursor:s-resize;
+}
+table.zenportlet div.resize-handle:hover {
+    background-color: #888;
+}
+div.portlet-settings {
+    background-color: #ffffe0;
+    margin-top: -2px;
+    border: 1px solid black;
+    border-top: medium none;
+    /*padding: 7px 6px;*/
+    position: relative;
+}
+div.portlet-body table.yui-dt-table {
+    width: 100%;
+    border: medium none;
+}
+div.tinylink-container {
+    padding: 0;
+    margin: 0;
+    height: 6pt;
+    text-align: right;
+    width: 100%;
+    display: block;
+}
+a.tinylink {
+    padding: 0;
+    padding-right: 10px;
+    margin: 0;
+    color: darkblue;
+    font-size: 8pt;
+    line-height: 6pt;
+    text-decoration: none;
+    cursor: hand;
+    cursor: pointer;
+}
+a.tinylink:hover {
+    color: orange;
+}
+div.column-layout-button {
+    width: 50px;
+    height: 70px;
+    background-position: middle middle;
+    background-repeat: no-repeat;
+    line-height: 70px;
+}
+#portletContainer.yui-skin-sam .yui-dialog .ft .button-group {
+    text-align: center;
+}
+
+div.autocompleter-container {
+    width: 20em;
+    position: relative;
+    padding: 0;
+    margin: 0;
+}
+
+table.zenportlet div.portlet-settings .portlet-settings-control {
+    margin: 10px 1em;
+    position: relative;
+    min-height:25px;
+}
+table.zenportlet div.portlet-settings button.portlet-settings-control {
+    display: block;
+}
+div.control-label {
+    font-size: 9px;
+    color: #888;
+}
+div.settings-controls {
+    float: left;
+}
+a.removerowlink {
+    float: left;
+    line-height:28px;
+    color: #aaa;
+    padding-right: 10px;
+    cursor: hand; cursor: pointer;
+}
+a.removerowlink:hover {
+    color: #f00;
+}
+a.portlet-settings-control {
+    display: block;
+    text-align: center;
+    padding-left: 10px;
+    font-size: 80%;
+    color: blue;
+    line-height: 25px;
+    cursor: hand; cursor: pointer;
+    text-decoration: underline;
+}
+
+div.buttonslot {
+    float: right;
+}

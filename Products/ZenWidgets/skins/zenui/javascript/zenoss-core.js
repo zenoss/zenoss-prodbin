@@ -19,14 +19,13 @@ loader.addModule({
     fullpath: "/zport/dmd/javascript/portlet.js",
     requires: ["dragdrop", "event", "dom", "animation", 
                "datasource", "datatable", "datatablesamskin",
-               "container", "button", "autocomplete",
-               "autocompleteskin"]
+               "container", "button","zenautocomplete"]
 });
 loader.addModule({
     name: "zenautocomplete",
     type: "js",
     fullpath: "/zport/dmd/javascript/zenautocomplete.js",
-    requires: ["autocomplete", "autocompleteskin"]
+    requires: ["autocomplete", "animation", "autocompleteskin"]
 });
 
 //Declare the Zenoss namespace
@@ -41,8 +40,20 @@ YAHOO.zenoss.loader = loader;
 var Class={
     create:function(){
         return function(){
+            bindMethods(this);
             this.__init__.apply(this,arguments);
         } 
+    }
+}
+
+YAHOO.zenoss.Class = Class;
+
+
+function bindMethodsTo(src, scope) {
+    for (var property in src) {
+        if (typeof src[property]=='function') {
+            src[property] = method(scope, src[property]);
+        }
     }
 }
 
@@ -51,18 +62,16 @@ var Class={
 var Subclass={
     create: function(klass){
         return function() {
+            this.superclass = {};
             for (var property in klass.prototype) {
-                if (property=='__init__' ||
-                    property=='__class__' ) continue;
-                this[property] = klass.prototype[property];
+                if (!(property in this))
+                    this[property] = klass.prototype[property];
+                    this.superclass[property] = klass.prototype[property];
             }
-            this.superclass = {
-                constructor: klass,
-                __init__: method(this, klass.prototype.__init__)
-            };
             bindMethods(this);
+            bindMethodsTo(this.superclass, this);
             this.__init__.apply(this, arguments);
         }
     }
 }
-
+YAHOO.zenoss.Subclass = Subclass;

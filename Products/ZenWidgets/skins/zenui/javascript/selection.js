@@ -50,4 +50,3 @@ function connectCheckboxListeners() {
 }
 
 addLoadEvent(connectCheckboxListeners);
-log("Checkbox javascript loaded.");

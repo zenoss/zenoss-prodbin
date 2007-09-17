@@ -16,110 +16,34 @@
 </tal:block>
 
 <tal:block metal:fill-slot="contentPane">
-    <style>
-    .thin,.noack,.acked {text-align:center}
-    </style>
-    <script type="text/javascript" src="/zport/js/MochiKit.js"></script>
-    <script type="text/javascript" src="/zport/js/zenutils.js"></script>
-    <script tal:define="userSettings python:here.ZenUsers.getUserSettings()"
-        tal:content="string:
-            var dashparams = {'organizer':'${userSettings/dashboardOrganizer}'};
-            var refresh = ${userSettings/dashboardRefresh};
-            var timeout = ${userSettings/dashboardTimeout};
-    "></script>
-    <script type="text/javascript">
-        var dashurl='/zport/dmd/ZenEventManager/getDashboardInfo'
-    </script>
-    <script type="text/javascript" src="dashboard.js"></script>
-    <table width=100%>
-   <tr>
-
-
-
-    <!-- Top Left -->
-    <td rowspan="2" width="50%" valign="top">
-
-
-<!-- Begin Systems Portlet -->
-
-<tal:block tal:define="userSettings python:here.ZenUsers.getUserSettings();
-    tabletitle string: ${userSettings/dashboardOrganizer} Summary">
-<tal:block metal:use-macro="here/zenuimacros/macros/zentable">
-<div metal:fill-slot="zentablecontents" tal:omit-tag="">
-                <tr>
-                    <th class="tableheader" tal:content="
-                        python:userSettings.dashboardOrganizer[:-1]"></th>
-                    <th class="tableheader">Critical</th>
-                    <th class="tableheader">Error</th>
-                    <th class="tableheader">Warn</th>
-                    <th class="tableheader">Info</th>
-                    <th class="tableheader">Debug</th>
-                </tr>
-</div>
-<tal:block metal:fill-slot="zentableextra">
-            <tbody id="systemevents"></tbody>
-</tal:block>
-</tal:block>
-</tal:block>
-
-<!-- End Systems Portlet -->
-
-    </td>
-    <td valign="top">
-        
-<!-- Begin Devices Portlet -->
-
-<tal:block tal:define="
-tabletitle string:Device Issues">
-<tal:block metal:use-macro="here/zenuimacros/macros/zentable">
-<div metal:fill-slot="zentablecontents" tal:omit-tag="">
-            <tr>
-                <th class="tableheader">Name</th>
-                <th class="tableheader">Acked By</th>
-                <th class="tableheader">Critical</th>
-                <th class="tableheader">Error</th>
-            </tr>
-</div>
-<tal:block metal:fill-slot="zentableextra">
-            <tbody id="deviceevents">
-            </tbody>
-</tal:block>
-</tal:block>
-</tal:block>
-
-<!-- End Devices Portlet -->
-
-    </td>
-    </tr>
-    <tr>
-     <td valign="bottom">
-	    
-<tal:block tal:define="tabletitle string:Zenoss Issues">
-<tal:block metal:use-macro="here/zenuimacros/macros/zentable">
-
-<div metal:fill-slot="zentablecontents" tal:omit-tag="">
-
-<!-- BEGIN TABLE CONTENTS -->
-    <tr>
-        <th class="tableheader">Device</th>
-        <th class="tableheader">Component</th>
-        <th class="tableheader">Seconds</th>
-    </tr>
-</div>
-<!-- END TABLE CONTENTS -->
-
-<tal:block metal:fill-slot="zentableextra">
-    <tbody id="heartbeat">
-    </tbody>
-</tal:block>
-
-</tal:block>
-</tal:block>
-
-
-
-</td></tr>
-
-    </table>
+<div id="testthingy" style="width:30em;position:relative;"></div>
+<div id="portletContainer"></div>
+<script tal:define="settings python:here.ZenUsers.getUserSettings();
+                    json settings/dashboardState | string:null"
+    tal:content="string:
+    var state = '${settings/dashboardState}';
+    if(state) var dashboardState = evalJSON(state);
+"></script>
+<script>
+// Initialization of dashboard portlets
+var ContainerObject;
+function initDashboardPortlets() {
+    ContainerObject = new YAHOO.zenoss.portlet.PortletContainer(
+        'portletContainer');
+    if (dashboardState) {
+        ContainerObject.restore(dashboardState);
+    } else {
+        ContainerObject.setLayout('2coleq', false);
+        p1 = new YAHOO.zenoss.portlet.GoogleMapsPortlet({id:'googlemaps'});
+        p2 = new YAHOO.zenoss.portlet.DeviceIssuesPortlet({id:'devissues'});
+        p3 = new YAHOO.zenoss.portlet.HeartbeatsPortlet({id:'heartbeats'});
+        ContainerObject.leftCol().addPortlet(p1);
+        ContainerObject.middleCol().addPortlet(p2);
+        ContainerObject.rightCol().addPortlet(p3);
+    }
+}
+YAHOO.zenoss.loader.require(['portlet']);
+YAHOO.zenoss.loader.insert(initDashboardPortlets);
+</script>
 </tal:block>
 </tal:block>

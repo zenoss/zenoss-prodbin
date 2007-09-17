@@ -23,13 +23,7 @@ var dashes_re = /(--.*?%7C)([^\-])/;
 var linked_mode = 1;
 var ZenQueue;
 
-var Class={
-    create:function(){
-        return function(){
-            this.__init__.apply(this,arguments);
-        }
-    }
-}
+var Class = YAHOO.zenoss.Class;
 
 Function.prototype.bind = function(obj) {
     var method = this;

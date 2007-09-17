@@ -1,11 +1,4 @@
-
-var Class={
-    create:function(){
-        return function(){
-            this.__init__.apply(this,arguments);
-        }
-    }
-}
+var Class = YAHOO.zenoss.Class;
 
 var isManager = true;
 

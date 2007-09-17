@@ -156,4 +156,3 @@ var registerMenu = function(button, menu) {
 }
 
 
-log('Menu javascript loaded.');

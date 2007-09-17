@@ -175,6 +175,14 @@ class UserSettingsManager(ZenModelRM):
                 folder.manage_setLocalRoles(userid, ("Owner",))
         return folder
 
+    def setDashboardState(self, userid=None, REQUEST=None):
+        """ Store a user's portlets and layout. If userid is not passed
+            set the state for the current user.
+        """
+        user = self.getUserSettings(userid)
+        state = REQUEST._file.read()
+        user.dashboardState = state
+        return True
 
     def getUserSettingsUrl(self, userid=None):
         """Return the url to the current user's folder.
@@ -348,6 +356,7 @@ class UserSettings(ZenModelRM):
     oncallStart = 0
     oncallEnd = 0
     escalationMinutes = 0
+    dashboardState = ''
     dashboardRefresh = 30
     dashboardTimeout = 25
     dashboardOrganizer = 'Devices' 
@@ -363,6 +372,7 @@ class UserSettings(ZenModelRM):
         {'id':'oncallStart', 'type':'int', 'mode':'w'},
         {'id':'oncallEnd', 'type':'int', 'mode':'w'},
         {'id':'escalationMinutes', 'type':'int', 'mode':'w'},
+        {'id':'dashboardState', 'type':'string', 'mode':'w'},
         {'id':'dashboardRefresh', 'type':'int', 'mode':'w'},
         {'id':'dashboardTimeout', 'type':'int', 'mode':'w'},
         {'id':'dashboardOrganizer', 'type':'string', 'mode':'w'},
@@ -696,6 +706,7 @@ class UserSettings(ZenModelRM):
         for o in self.objectValues():
             if hasattr(aq_base(o), 'exportXml'):
                 o.exportXml(ofile, ignorerels)
+
 
 
 InitializeClass(UserSettingsManager)

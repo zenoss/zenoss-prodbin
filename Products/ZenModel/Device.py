@@ -1489,5 +1489,17 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable, Admini
                                       withIcons=True, filter=filter)
         return edgesToXML(edges, start)
 
+    security.declareProtected('View', 'getPrettyLink')
+    def getPrettyLink(self):
+        """ Gets a link to this device, plus an icon """
+        template = ("<a href='%s' class='prettylink'>"
+                    "<div class='device-icon-container'> "
+                    "<img class='device-icon' src='%s'/> "
+                    "</div>%s</a>")
+        icon = self.getIconPath()
+        href = self.getPrimaryUrlPath()
+        name = self.id
+        return template % (href, icon, name)
+
 
 InitializeClass(Device)

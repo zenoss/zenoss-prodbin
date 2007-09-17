@@ -1,0 +1,54 @@
+<html><body>
+<script type="text/javascript" src="js/MochiKit.js"></script>
+<script> var YAHOO_config={load:{base: '/zport/dmd/yui/'}};</script>
+<script src="/zport/dmd/yui/yuiloader/yuiloader-beta-min.js"></script>
+<script src="/zport/dmd/yui/yahoo/yahoo-min.js"></script>
+<script src="/zport/dmd/javascript/zenoss-core.js"></script>
+<link type="text/css" rel="stylesheet" href='css/geomap.css'/>
+<style>
+body {margin:0;padding:0}
+div#geomapcontainer { margin:0;padding:0;border:medium none; }
+</style>
+<style type="text/css">
+v\:* {
+  behavior:url(#default#VML);
+}
+</style>
+<script type="text/javascript"
+    tal:condition="here/dmd/geomapapikey"
+    tal:define="apikey here/dmd/geomapapikey"
+    tal:attributes="
+        src string:http://maps.google.com/maps?file=api&v=2&key=${apikey};
+"></script>
+<script tal:content="string:
+    var geocodecache;
+    var nodedata = ${here/getChildGeomapData};
+    var linkdata = ${here/getChildLinks};
+    var secondarynodedata = ${here/getSecondaryNodes};
+    var cachestring = '${here/dmd/geocache}';
+    if (cachestring) geocodecache = evalJSON(cachestring);
+"></script>
+<script>
+    function maximizeMapHeight() {
+        mapdiv = $('geomapcontainer');
+        mapoffset = getElementPosition(mapdiv).y;
+        maxbottom = getViewportDimensions().h;
+        newdims = {'h':maxbottom-mapoffset};
+        setElementDimensions(mapdiv, newdims);
+    }
+    connect(currentWindow(), 'onresize', maximizeMapHeight);
+    addLoadEvent(maximizeMapHeight);
+</script>
+<script type="text/javascript" src="javascript/geomap-2.1.js"> </script>
+<div id="geomapcontainer">
+
+    <!-- Google Maps javascript adds map here -->
+
+    <div tal:condition="python:not here.dmd.geomapapikey" id="geomaperrormsg">
+        You haven't yet specified a Google Maps API key. <br/>
+        Please go to the 
+        <a href="/zport/dmd/editSettings">Settings</a> 
+        page to set one up.
+    </div>
+
+</div></body></html>

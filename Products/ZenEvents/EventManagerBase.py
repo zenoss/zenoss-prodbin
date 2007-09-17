@@ -21,6 +21,7 @@ import time
 import types
 import random
 import simplejson
+import re
 random.seed()
 import logging
 log = logging.getLogger("zen.Events")
@@ -402,6 +403,67 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
             log.exception("event summary for %s failed" % me.getDmdKey())
             raise
 
+    def getEventPillME(self, me, number=1, showGreen=False):
+        """ Return a list of HTML strings representing the events
+            with the worst severity on an object
+        """ 
+        try:
+            summary =[x[2] for x in self.getEventSummaryME(me, 0)]
+            colors = "red orange yellow blue green".split()
+            results = zip(colors, [me.getPrimaryUrlPath()]*5, summary)
+            template = '<div class="evpill-%s" onclick="location.href=\'%s/viewEvents\'">%s</div>'
+            pills = []
+            for result in results:
+                if (result[2]): 
+                    pills.append(template % result)
+                elif (result[0]=='green' and showGreen):
+                    color, path, summary = result
+                    summary = ' '
+                    result = (color, path, summary)
+                    pills.append(template % result)
+                if len(pills)==number: return pills
+            return pills
+        except:
+            log.exception("event summary for %s failed" % me.getDmdKey())
+            raise
+
+    def getEntityListEventSummary(self, entities=[], REQUEST=None):
+        """ Given a list of URLs, return a list of event summaries,
+            sorted by severity
+        """
+        if not entities:
+            try: entities = simplejson.loads(str(REQUEST._file.read()), 
+                                             encoding='ascii')
+            except: entities = []
+        def getob(e):
+            e = str(e)
+            try:
+                if not e.startswith('/zport/dmd'):
+                    bigdev = '/zport/dmd' + e
+                return self.dmd.unrestrictedTraverse(bigdev)
+            except KeyError: 
+                return self.dmd.Devices.findDevice(e)
+        entities = filter(lambda x:x is not None, map(getob, entities))
+        mydict = {'columns':[], 'data':[]}
+        mydict['columns'] = ['Object', 'Events']
+        getcolor = re.compile(r'class=\"evpill-(.*?)\"', re.S|re.I|re.M).search
+        colors = "red orange yellow blue green".split()
+        def pillcompare(a,b):
+            a, b = map(lambda x:getcolor(x[1]), (a, b))
+            def getindex(x):
+                try: return colors.index(x.groups()[0])
+                except AttributeError: return 5
+            a, b = map(getindex, (a, b))
+            return cmp(a, b)
+        devdata = []
+        for ent in entities:
+            alink = ent.getPrettyLink()
+            pill = self.getEventPillME(ent, showGreen=True)
+            if type(pill)==type([]): pill = pill[0]
+            devdata.append([alink, pill])
+        devdata.sort(pillcompare)
+        mydict['data'] = [{'Object':x[0],'Events':x[1]} for x in devdata]
+        return simplejson.dumps(mydict)
 
     def getEventSummary(self, where="", severity=1, state=1, prodState=None):
         """
@@ -914,12 +976,45 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
         return data
 
 
+    def getDeviceIssuesJSON(self):
+        """ Get devices with issues in a form suitable
+            for a portlet on the dashboard.
+        """
+        mydict = {'columns':[], 'data':[]}
+        mydict['columns'] = ['Device', 'Events']
+        deviceinfo = self.getDeviceDashboard()
+        for alink, pill in deviceinfo:
+            mydict['data'].append({'Device':alink, 
+                                   'Events':pill})
+        return simplejson.dumps(mydict)
+
+    def getHeartbeatIssuesJSON(self):
+        """ Get heartbeat issues in a form suitable
+            for a portlet on the dashboard.
+        """
+        mydict = {'columns':[], 'data':[]}
+        mydict['columns'] = ['Device', 'Daemon', 'Seconds']
+        heartbeats = self.getHeartbeat()
+        for Device, Daemon, Seconds, dummy in heartbeats:
+            mydict['data'].append({'Device':Device,
+                'Daemon':Daemon, 'Seconds':Seconds})
+        return simplejson.dumps(mydict)
+        
     def getDeviceDashboard(self, simple=False):
         """return device info for bad device to dashboard"""
         devices = [d[0] for d in self.getDeviceIssues(
-                            severity=4, state=1, limit=100)]
+                            severity=2, state=1, limit=100)]
         devdata = []
         devclass = self.getDmdRoot("Devices")
+        getcolor = re.compile(r'class=\"evpill-(.*?)\"', re.S|re.I|re.M).search
+        colors = "red orange yellow blue green".split()
+        def pillcompare(a,b):
+            a, b = map(lambda x:getcolor(x[1]), (a, b))
+            def getindex(x):
+                try: return colors.index(x.groups()[0])
+                except AttributeError: return 5
+            a, b = map(getindex, (a, b))
+            return cmp(a, b)
         for devname in devices:
             dev = devclass.findDevice(devname)
             if dev:
@@ -927,24 +1022,12 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
                     or dev.productionState < self.prodStateDashboardThresh
                     or dev.priority < self.priorityDashboardThresh):
                     continue
-                if simple:
-                    alink = devname
-                else:
-                    alink = "<a href='%s'>%s</a>" % (
-                        dev.getPrimaryUrlPath()+"/viewEvents", dev.id )
-                owners = ", ".join(dev.getEventOwnerList(severity=4))
-                evtsum = dev.getEventSummary(severity=4)
-#            elif self.isRestricted():
-#                continue
-            else:
-                # handle event from device that isn't in dmd
-                alink = devname
-                owners = ""
-                evtsum = self.getEventSummary("device='%s'"%devname,severity=4)
-            evts = [alink, owners]
-            evts.extend(map(evtprep, evtsum))
-            devdata.append(evts)
-        devdata.sort()
+                if simple: alink = devname
+                else: alink = dev.getPrettyLink()
+                pill = self.getEventPillME(dev)[0]
+                evts = [alink,pill]
+                devdata.append(evts)
+        devdata.sort(pillcompare)
         return devdata
 
 

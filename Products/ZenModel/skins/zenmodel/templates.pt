@@ -148,6 +148,8 @@
     <link rel="shortcut icon"
           href="/zport/dmd/favicon.ico"
           type="image/x-icon"/>
+    <link rel="stylesheet" type="text/css" 
+          href="yui/grids/grids-min.css"/>
     <link rel="stylesheet" type="text/css" title="zenoss"
         href="/zport/portal_skins/zenoss.css" >
     <link rel="stylesheet" type="text/css" title="zenoss"
@@ -160,6 +162,8 @@
         href="css/dialog.css"/>
     <link rel="stylesheet" type="text/css" title="zenoss"
         href="css/filterbox.css"/>
+    <link rel="stylesheet" type="text/css" title="zenoss"
+        href="css/portlets.css"/>
     <!--[if IE 7]>
         <link rel="stylesheet" type="text/css" title="zenoss"
             href="zenoss_ie.css" >
@@ -169,15 +173,16 @@
             href="zenoss_ie6.css" >
     <![endif]-->
     <script type="text/javascript" src="js/MochiKit.js"></script>
+    <script> var YAHOO_config={load:{base: '/zport/dmd/yui/'}};</script>
+    <script src="/zport/dmd/yui/yuiloader/yuiloader-beta-min.js"></script>
+    <script src="javascript/zenoss-core.js"></script>
     <script type="text/javascript" src="zenmodelfuncs.js"></script>
     <script src="javascript/selection.js"></script>
     <script src="js/zenui.js"></script>
     <script src="js/zenutils.js"></script>
     <script src="javascript/menus.js"></script>
     <script src="javascript/zgdagent.js"></script>
-    <script>var YAHOO_config={load:{base:'/zport/dmd/yui/'}};</script>
-    <script src="yui/yuiloader/yuiloader-beta-min.js"></script>
-    <script src="javascript/zenoss-core.js"></script>
+
 
 </tal:block>
 

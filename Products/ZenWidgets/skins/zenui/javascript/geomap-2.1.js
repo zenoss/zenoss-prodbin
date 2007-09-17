@@ -83,6 +83,7 @@ ZenGeoMap.prototype = {
         var d = this.lock.acquire();
         d.addCallback(bind(function(){
         if (this.cache.get(address)==null) this.dirtycache = true;
+        clicklink = clicklink.replace('locationGeoMap', 'simpleLocationGeoMap');
         this.geocoder.getLatLng(
             address,
             bind(function(p){
@@ -91,7 +92,13 @@ ZenGeoMap.prototype = {
                 } else {
                     var marker = this.Dot(p, color);
                     GEvent.addListener(marker, "click", function(){
-                       location.href = clicklink});
+                        if (clicklink.search('ocationGeoMap')>0){
+                           location.href = clicklink;
+                        } else {
+                            currentWindow().parent.location.href = clicklink
+                        }
+
+                       });
                     this.map.addOverlay(marker);
                     var markerimg = marker.Oj
                     /*

@@ -528,4 +528,23 @@ class DeviceOrganizer(Organizer, DeviceManagerBase, Commandable, ZenMenuable,
             alllinks.extend(list(device.getLinks()))
         return alllinks
 
+
+    security.declareProtected('View', 'getIconPath')
+    def getIconPath(self):
+        """ Override the zProperty icon path and return a folder
+        """
+        return "/zport/dmd/img/icons/folder.png"
+
+    security.declareProtected('View', 'getPrettyLink')
+    def getPrettyLink(self):
+        """ Gets a link to this object, plus an icon """
+        template = ("<a href='%s' class='prettylink'>"
+                    "<div class='device-icon-container'> "
+                    "<img class='device-icon' src='%s'/> "
+                    "</div>%s</a>")
+        icon = self.getIconPath()
+        href = self.getPrimaryUrlPath()
+        name = self.getPrimaryUrlPath().replace('/zport/dmd','')
+        return template % (href, icon, name)
+
 InitializeClass(DeviceOrganizer)
