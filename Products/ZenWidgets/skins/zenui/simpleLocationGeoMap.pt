@@ -47,7 +47,8 @@ v\:* {
     <div tal:condition="python:not here.dmd.geomapapikey" id="geomaperrormsg">
         You haven't yet specified a Google Maps API key. <br/>
         Please go to the 
-        <a href="/zport/dmd/editSettings">Settings</a> 
+        <a href="/zport/dmd/editSettings"
+           onclick="currentWindow().parent.location.href=this.href">Settings</a> 
         page to set one up.
     </div>
 
