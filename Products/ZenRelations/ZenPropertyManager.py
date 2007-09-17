@@ -252,7 +252,7 @@ class ZenPropertyManager(PropertyManager):
         """ Check that a property is being overridden somewhere below in the tree
         """
         for dev in self.getSubDevicesGen():
-            if dev.isLocal(propname) and dev is not self:
+            if dev.isLocal(propname) and dev != self:
                 return True
         for subclass in self.getSubOrganizers():
             if subclass.isLocal(propname):
@@ -264,7 +264,7 @@ class ZenPropertyManager(PropertyManager):
         """
         objects = []
         for dev in self.getSubDevicesGen():
-            if dev.isLocal(propname) and dev is not self:
+            if dev.isLocal(propname) and dev != self:
                 objects.append(dev)
         for subclass in self.getSubOrganizers():
             if subclass.isLocal(propname):

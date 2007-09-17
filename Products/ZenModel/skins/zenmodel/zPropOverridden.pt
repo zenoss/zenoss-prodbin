@@ -12,6 +12,11 @@
       <th class="tableheader" align="center">Name</th>
       <th class="tableheader" align="center">Value</th>
     </tr>
+    <tr>
+      <td class="tablevalues" tal:content="structure python:here.getLink(here.absolute_url_path(), '%s/zPropertyEdit' % here.absolute_url_path())"/>
+      <td class="tablevalues" tal:content="prop"/>
+      <td class="tablevalues" tal:content="python:getattr(here, prop)"/>
+    </tr>
     <tal:block tal:repeat="orObject orObjects"> 
     <tr tal:define="odd repeat/orObject/odd"
         tal:attributes="class python:test(odd, 'odd', 'even')">
