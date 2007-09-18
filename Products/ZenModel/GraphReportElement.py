@@ -127,6 +127,8 @@ class GraphReportElement(ZenModelRM):
 
 
     def getGraphUrl(self, drange=None):
+        ''' Return the url for the graph
+        '''
         component = self.getComponent()
         graph = component.getGraphDef(self.graphId)
         url = ''
