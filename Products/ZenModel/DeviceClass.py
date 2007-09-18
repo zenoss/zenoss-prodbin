@@ -334,7 +334,7 @@ class DeviceClass(DeviceOrganizer, ZenPackable):
         zcatalog = self._getCatalog()
         if not queryString or not zcatalog:
             return []
-        glob = queryString.rtrim('*') + '*'
+        glob = queryString.rstrip('*') + '*'
         query = Or(MatchGlob('id', glob), Eq('getDeviceIp', queryString))
         names = zcatalog.evalAdvancedQuery(queryString)
         if REQUEST and len(names) == 1:
