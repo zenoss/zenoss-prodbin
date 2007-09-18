@@ -88,7 +88,7 @@ class GraphGroup(ZenModelRM):
     def getGraphDef(self):
         ''' Return the referenced graphDef or None if it doesn't exist
         '''
-        return self.report().getGraphDef(self.graphDefId)
+        return getattr(self.report().graphDefs, self.graphDefId, None)
 
 
     def getCollectionUrl(self):
