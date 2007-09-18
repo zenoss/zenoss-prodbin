@@ -49,7 +49,7 @@ class ZenManagerRole(Migrate.Step):
         self.addPermissions(zport, ZEN_MANAGE_DMD, [ZEN_MANAGER_ROLE, OWNER_ROLE,MANAGER_ROLE,], 1)
         self.addPermissions(zport, ZEN_DELETE, [ZEN_MANAGER_ROLE, OWNER_ROLE,MANAGER_ROLE,], 1)
         self.addPermissions(zport, ZEN_ADD, [ZEN_MANAGER_ROLE, OWNER_ROLE,MANAGER_ROLE,], 1)
-        self.addPermissions(zport, ZEN_VIEW, [ZEN_USER_ROLE,ZEN_MANAGER_ROLE,MANAGER_ROLE,OWNER_ROLE], 1)
+        self.addPermissions(zport, ZEN_VIEW, [ZEN_USER_ROLE,ZEN_MANAGER_ROLE,MANAGER_ROLE,OWNER_ROLE])
         self.addPermissions(zport, ZEN_VIEW_HISTORY, [ZEN_USER_ROLE, ZEN_MANAGER_ROLE, MANAGER_ROLE,], 1)
         self.addPermissions(zport, ZEN_COMMON,[ZEN_USER_ROLE, ZEN_MANAGER_ROLE, MANAGER_ROLE, OWNER_ROLE], 1)
         self.addPermissions(zport, ZEN_CHANGE_SETTINGS, [ZEN_MANAGER_ROLE, MANAGER_ROLE, OWNER_ROLE], 1)
