@@ -62,7 +62,7 @@ class Page(HTMLParser):
             if v not in self.images:
                 self.id += 1
                 v = self.absolute(v)
-                self.images[v] = ('img%d.gif' % self.id, self.fetchImage(v))
+                self.images[v] = ('img%d.png' % self.id, self.fetchImage(v))
             v, _ = self.images[v]
             return 'cid:%s' % v
         return self.alter(attrs, 'src', cache)
@@ -122,7 +122,7 @@ class Page(HTMLParser):
         for url, (name, img) in self.images.items():
             ctype, encoding = mimetypes.guess_type(url)
             if ctype == None:
-                ctype = 'application/octet-stream'
+                ctype = 'image/png'
             maintype, subtype = ctype.split('/', 1)
             img = MIMEImage(img, subtype)
             fname = url.rsplit('/', 1)[1]
