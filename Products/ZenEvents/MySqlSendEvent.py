@@ -120,7 +120,7 @@ class MySqlSendEventMixin:
                 if clearcls:
                     rows = execute(curs, self.buildClearUpdate(event, clearcls))
                     if not rows:
-                        return
+                        return ''
                     insert = ('insert into log '
                               '(evid, userName, text) '
                               'select evid, "admin", "auto cleared"'
