@@ -27,6 +27,6 @@ class AnnoyingAlerts(Migrate.Step):
         c.execute('describe alert_state')
         if 'lastSent' not in [x[0] for x in c.fetchall()]:
             c.execute('alter table alert_state '
-                      'add column (lastSent timestamp default now())')
+                      'add column (lastSent timestamp)')
             
 AnnoyingAlerts()
