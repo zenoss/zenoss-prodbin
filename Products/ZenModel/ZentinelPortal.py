@@ -123,29 +123,25 @@ class PortalGenerator:
                         MANAGER_ROLE, OWNER_ROLE])
         mp(ZEN_COMMON, ["Authenticated", ZEN_USER_ROLE, ZEN_MANAGER_ROLE,
                         MANAGER_ROLE, OWNER_ROLE], 1)
-
-        if ZEN_CHANGE_ALERTING_RULES in p.possible_permissions():
-            mp(ZEN_CHANGE_ALERTING_RULES, 
-                [ZEN_MANAGER_ROLE, MANAGER_ROLE, OWNER_ROLE], 1)
-        else:
-            p.__ac_permissions__=(
-                p.__ac_permissions__+((ZEN_CHANGE_ALERTING_RULES,(),
-                    [ZEN_MANAGER_ROLE, MANAGER_ROLE, OWNER_ROLE]),))
-                
-        if ZEN_CHANGE_ADMIN_OBJECTS in p.possible_permissions():
-            mp(ZEN_CHANGE_ADMIN_OBJECTS, [ZEN_MANAGER_ROLE, MANAGER_ROLE], 1)
-        else:
-            p.__ac_permissions__=(
-                p.__ac_permissions__+((ZEN_CHANGE_ADMIN_OBJECTS,(),
-                    [ZEN_MANAGER_ROLE, MANAGER_ROLE]),))
-                
-        if ZEN_CHANGE_EVENT_VIEWS in p.possible_permissions():
-            mp(ZEN_CHANGE_EVENT_VIEWS, [ZEN_MANAGER_ROLE, MANAGER_ROLE], 1)
-        else:
-            p.__ac_permissions__=(
-                p.__ac_permissions__+((ZEN_CHANGE_EVENT_VIEWS,(),
-                    [ZEN_MANAGER_ROLE, MANAGER_ROLE]),))
-        
+        mp(ZEN_CHANGE_ALERTING_RULES, 
+            [ZEN_MANAGER_ROLE, MANAGER_ROLE, OWNER_ROLE], 1)
+        mp(ZEN_CHANGE_ADMIN_OBJECTS, [ZEN_MANAGER_ROLE, MANAGER_ROLE], 1)
+        mp(ZEN_CHANGE_EVENT_VIEWS, [ZEN_MANAGER_ROLE, MANAGER_ROLE], 1)
+        mp(ZEN_ADMIN_DEVICE, [ZEN_MANAGER_ROLE, MANAGER_ROLE], 1)
+        mp(ZEN_MANAGE_DEVICE, [ZEN_MANAGER_ROLE, MANAGER_ROLE], 1)
+        mp(ZEN_ZPROPERTIES_EDIT, [ZEN_MANAGER_ROLE, MANAGER_ROLE], 1)
+        mp(ZEN_ZPROPERTIES_VIEW, 
+            [ZEN_MANAGER_ROLE, MANAGER_ROLE, ZEN_USER_ROLE], 1)
+        mp(ZEN_EDIT_LOCAL_TEMPLATES, [ZEN_MANAGER_ROLE, MANAGER_ROLE], 1)
+        mp(ZEN_DEFINE_COMMANDS_EDIT, [ZEN_MANAGER_ROLE, MANAGER_ROLE], 1)
+        mp(ZEN_DEFINE_COMMANDS_VIEW, 
+            [ZEN_MANAGER_ROLE, MANAGER_ROLE, ZEN_USER_ROLE], 1)  
+        mp(ZEN_MAINTENANCE_WINDOW_EDIT, [ZEN_MANAGER_ROLE, MANAGER_ROLE], 1)
+        mp(ZEN_MAINTENANCE_WINDOW_VIEW, 
+            [ZEN_MANAGER_ROLE, MANAGER_ROLE, ZEN_USER_ROLE], 1)
+        mp(ZEN_ADMINISTRATORS_EDIT, [ZEN_MANAGER_ROLE, MANAGER_ROLE], 1)
+        mp(ZEN_ADMINISTRATORS_VIEW, 
+            [ZEN_MANAGER_ROLE, MANAGER_ROLE, ZEN_USER_ROLE], 1)
 
     def setupDefaultSkins(self, p):
         from Products.CMFCore.DirectoryView import addDirectoryViews

@@ -20,14 +20,44 @@ MANAGER_ROLE = 'Manager'
 
 # Zenoss Permissions
 ZEN_COMMON = 'ZenCommon'
-ZEN_CHANGE_DEVICE = 'Change Device'
-ZEN_CHANGE_SETTINGS = 'Change Settings'
-ZEN_CHANGE_ALERTING_RULES = 'Change Alerting Rules'
-ZEN_CHANGE_EVENT_VIEWS = 'Change Event Views'
-ZEN_CHANGE_ADMIN_OBJECTS = 'Change Admin Objects'
 ZEN_MANAGE_DMD = 'Manage DMD'
 ZEN_UPDATE = "ZenUpdate"
 ZEN_DELETE = "Delete objects"
 ZEN_ADD = 'Add DMD Objects'
+
 ZEN_VIEW = 'View'
 ZEN_VIEW_HISTORY = 'View History'
+ZEN_VIEW_MODIFICATIONS='View Modifications'
+
+# User Settings
+ZEN_CHANGE_SETTINGS = 'Change Settings'
+ZEN_CHANGE_ALERTING_RULES = 'Change Alerting Rules'
+ZEN_CHANGE_EVENT_VIEWS = 'Change Event Views'
+ZEN_CHANGE_ADMIN_OBJECTS = 'Change Admin Objects'
+
+# Device
+ZEN_CHANGE_DEVICE = 'Change Device'
+# Change Class, Rename, Delete Device, Reset IP
+ZEN_ADMIN_DEVICE='Admin Device'
+# Model, Lock, Reset Community, Push Changes, Clear Heartbeats
+ZEN_MANAGE_DEVICE='Manage Device'
+# Existing permission for setLastPollSnmpUpTime, getLastPollSnmpUpTime
+ZEN_MANAGE_DEVICE_STATUS='Manage Device Status'
+
+# Run Commands
+#ZEN_COLLECTOR_PLUGINS_EDIT='Collector Plugins Edit'
+#ZEN_COLLECTOR_PLUGINS_VIEW='Collector Plugins View'
+ZEN_ZPROPERTIES_EDIT='zProperties Edit'
+ZEN_ZPROPERTIES_VIEW='zProperties View'
+ZEN_EDIT_LOCAL_TEMPLATES='Edit Local Templates'
+
+# Administrate
+ZEN_DEFINE_COMMANDS_EDIT='Define Commands Edit'
+ZEN_DEFINE_COMMANDS_VIEW='Define Commands View'
+ZEN_MAINTENANCE_WINDOW_EDIT='Maintenance Windows Edit'
+ZEN_MAINTENANCE_WINDOW_VIEW='Maintenance Windows View'
+ZEN_ADMINISTRATORS_EDIT='Administrators Edit'
+ZEN_ADMINISTRATORS_VIEW='Administrators View' 
+
+
+

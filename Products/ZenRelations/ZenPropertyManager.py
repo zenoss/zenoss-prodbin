@@ -19,7 +19,8 @@ from Globals import DTMLFile
 from Globals import InitializeClass
 from Acquisition import aq_base, aq_chain
 from ZPublisher.Converters import type_converters
-
+from Products.ZenModel.ZenossSecurity import *
+from AccessControl import ClassSecurityInfo
 from Exceptions import zenmarker
 
 iszprop = re.compile("^z[A-Z]").search
@@ -40,7 +41,7 @@ class ZenPropertyManager(PropertyManager):
     ZenProperties all have the same prefix which is defined by iszprop
     this can be overridden in a subclass.
     """
-
+    security = ClassSecurityInfo()
     
     manage_propertiesForm=DTMLFile('dtml/properties', globals(),
                                    property_extensible_schema__=1)
@@ -96,6 +97,7 @@ class ZenPropertyManager(PropertyManager):
 
 
     _onlystars = re.compile("^\*+$").search
+    security.declareProtected(ZEN_ZPROPERTIES_EDIT, 'manage_editProperties')
     def manage_editProperties(self, REQUEST):
         """
         Edit object properties via the web.
@@ -123,7 +125,7 @@ class ZenPropertyManager(PropertyManager):
         """sub class must implement to use zenProperties."""
         raise NotImplementedError
 
-
+    security.declareProtected(ZEN_ZPROPERTIES_VIEW, 'zenPropertyIds')
     def zenPropertyIds(self, all=True, pfilt=iszprop):
         """
         Return list of device tree property names. 
@@ -141,13 +143,13 @@ class ZenPropertyManager(PropertyManager):
         props.sort()
         return props
 
-
+    security.declareProtected(ZEN_ZPROPERTIES_VIEW, 'zenPropertyItems')
     def zenPropertyItems(self):
         """Return list of (id, value) tuples of zenProperties.
         """
         return map(lambda x: (x, getattr(self, x)), self.zenPropertyIds())
 
-
+    security.declareProtected(ZEN_ZPROPERTIES_VIEW, 'zenPropertyMap')
     def zenPropertyMap(self, pfilt=iszprop):
         """Return property mapping of device tree properties."""
         rootnode = self.getZenRootNode()
@@ -157,7 +159,7 @@ class ZenPropertyManager(PropertyManager):
         pmap.sort(lambda x, y: cmp(x['id'], y['id']))
         return pmap
             
-
+    security.declareProtected(ZEN_ZPROPERTIES_VIEW, 'zenPropertyString')
     def zenPropertyString(self, id):
         """Return the value of a device tree property as a string"""
         value = getattr(self, id, "")
@@ -169,27 +171,27 @@ class ZenPropertyManager(PropertyManager):
             value = "*"*len(value)
         return value
 
-
+    security.declareProtected(ZEN_ZPROPERTIES_VIEW, 'zenPropIsPassword')
     def zenPropIsPassword(self, id):
         """Is this field a password field.
         """
         return id.endswith("assword")
 
-
+    security.declareProtected(ZEN_ZPROPERTIES_VIEW, 'zenPropertyPath')
     def zenPropertyPath(self, id):
         """Return the primaryId of where a device tree property is found."""
         for obj in aq_chain(self):
             if getattr(aq_base(obj), id, zenmarker) != zenmarker:
                 return obj.getPrimaryId(self.getZenRootNode().getId())
 
-
+    security.declareProtected(ZEN_ZPROPERTIES_VIEW, 'zenPropertyType')
     def zenPropertyType(self, id):
         """Return the type of this property."""
         ptype = self.getZenRootNode().getPropertyType(id)
         if not ptype: ptype = "string"
         return ptype
 
-    
+    security.declareProtected(ZEN_ZPROPERTIES_EDIT, 'setZenProperty')
     def setZenProperty(self, propname, propvalue, REQUEST=None):
         """
         Add or set the propvalue of the property propname on this node of 
@@ -212,7 +214,7 @@ class ZenPropertyManager(PropertyManager):
             self._setProperty(propname, propvalue, type=ptype)
         if REQUEST: return self.callZenScreen(REQUEST)
 
-
+    security.declareProtected(ZEN_ZPROPERTIES_EDIT, 'saveZenProperties')
     def saveZenProperties(self, pfilt=iszprop, REQUEST=None):
         """Save all ZenProperties found in the REQUEST.form object.
         """
@@ -228,7 +230,7 @@ class ZenPropertyManager(PropertyManager):
 
         return self.callZenScreen(REQUEST)
 
-    
+    security.declareProtected(ZEN_ZPROPERTIES_EDIT, 'deleteZenProperty')
     def deleteZenProperty(self, propname=None, REQUEST=None):
         """
         Delete device tree properties from the this DeviceClass object.
@@ -237,17 +239,19 @@ class ZenPropertyManager(PropertyManager):
             self._delProperty(propname)
         if REQUEST: return self.callZenScreen(REQUEST)
 
-
+    security.declareProtected(ZEN_ZPROPERTIES_VIEW, 'zenPropertyOptions')
     def zenPropertyOptions(self, propname):
         "Provide a set of default options for a ZProperty"
         return []
-
+    
+    security.declareProtected(ZEN_ZPROPERTIES_VIEW, 'isLocal')
     def isLocal(self, propname):
         """Check to see if a name is local to our current context.
         """
         v = getattr(aq_base(self), propname, zenmarker)
         return v != zenmarker
     
+    security.declareProtected(ZEN_ZPROPERTIES_VIEW, 'isOverridden')
     def isOverridden(self, propname):
         """ Check that a property is being overridden somewhere below in the tree
         """
@@ -259,6 +263,7 @@ class ZenPropertyManager(PropertyManager):
                 return True
         return False
     
+    security.declareProtected(ZEN_ZPROPERTIES_VIEW, 'getOverriddenObjects')
     def getOverriddenObjects(self, propname):
         """ Get the objects that override a property somewhere below in the tree
         """

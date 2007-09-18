@@ -19,7 +19,7 @@ log = logging.getLogger("zen.ActionRule")
 from Globals import InitializeClass
 from Globals import DTMLFile
 from AccessControl import ClassSecurityInfo
-from AccessControl import Permissions as permissions
+from Products.ZenModel.ZenossSecurity import * 
 from Acquisition import aq_parent
 
 from Products.ZenModel.ZenModelRM import ZenModelRM
@@ -108,17 +108,17 @@ class ActionRule(ZenModelRM, EventFilter):
                 { 'id'            : 'edit'
                 , 'name'          : 'Edit'
                 , 'action'        : 'editActionRule'
-                , 'permissions'   : ("Change Settings",)
+                , 'permissions'   : (ZEN_CHANGE_ALERTING_RULES,)
                 },
                 { 'id'            : 'message'
                 , 'name'          : 'Message'
                 , 'action'        : 'editActionRuleMessage'
-                , 'permissions'   : ("Change Settings",)
+                , 'permissions'   : (ZEN_CHANGE_ALERTING_RULES,)
                 },
                 { 'id'            : 'schedule'
                 , 'name'          : 'Schedule'
                 , 'action'        : 'editActionRuleSchedule'
-                , 'permissions'   : ("Change Settings",)
+                , 'permissions'   : (ZEN_CHANGE_ALERTING_RULES,)
                 },
             )
          },
@@ -181,7 +181,7 @@ class ActionRule(ZenModelRM, EventFilter):
         return self.getUser().getId()
 
     
-    security.declareProtected('Change Settings', 'manage_editActionRule')
+    security.declareProtected(ZEN_CHANGE_ALERTING_RULES, 'manage_editActionRule')
     def manage_editActionRule(self, REQUEST=None):
         """Update user settings.
         """
@@ -264,8 +264,7 @@ class ActionRule(ZenModelRM, EventFilter):
             return "Never"
         return w.repeat
         
-
-    security.declareProtected('Change Settings', 'manage_addActionRuleWindow')
+    security.declareProtected(ZEN_CHANGE_ALERTING_RULES, 'manage_addActionRuleWindow')
     def manage_addActionRuleWindow(self, newId, REQUEST=None):
         "Add a ActionRule Window to this device"
         if newId:
@@ -275,7 +274,7 @@ class ActionRule(ZenModelRM, EventFilter):
         if REQUEST:
             return self.callZenScreen(REQUEST)
                           
-    security.declareProtected('Change Settings', 'manage_deleteActionRuleWindow')
+    security.declareProtected(ZEN_CHANGE_ALERTING_RULES, 'manage_deleteActionRuleWindow')
     def manage_deleteActionRuleWindow(self, windowIds, REQUEST=None):
         "Delete a ActionRule Window to this device"
         import types

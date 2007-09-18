@@ -420,7 +420,7 @@ class UserSettings(ZenModelRM):
         return ()
 
 
-    security.declareProtected('Change Settings', 'updatePropsFromDict')
+    security.declareProtected(ZEN_CHANGE_SETTINGS, 'updatePropsFromDict')
     def updatePropsFromDict(self, propdict):
         props = self.propertyIds()
         for k, v in propdict.items():
@@ -435,7 +435,7 @@ class UserSettings(ZenModelRM):
         return user.has_role("Manager") or owner == user
 
 
-    security.declareProtected('Change Settings', 'manage_editUserSettings')
+    security.declareProtected(ZEN_CHANGE_SETTINGS, 'manage_editUserSettings')
     def manage_editUserSettings(self, password=None, sndpassword=None,
                                 roles=None, domains=None,
                                 REQUEST=None, **kw):
@@ -509,7 +509,7 @@ class UserSettings(ZenModelRM):
         else:
             return user
 
-    security.declareProtected('Change Settings', 'manage_addActionRule')
+    security.declareProtected(ZEN_CHANGE_ALERTING_RULES, 'manage_addActionRule')
     def manage_addActionRule(self, id=None, REQUEST=None):
         """Add an action rule to this object.
         """
@@ -530,7 +530,8 @@ class UserSettings(ZenModelRM):
     def getActionRules(self):
         return self.objectValues(spec=ActionRule.meta_type)
 
-    security.declareProtected('Change Settings', 'manage_addCustomEventView')
+    security.declareProtected(ZEN_CHANGE_EVENT_VIEWS, 
+        'manage_addCustomEventView')
     def manage_addCustomEventView(self, id=None, REQUEST=None):
         """Add an action rule to this object.
         """
@@ -549,7 +550,8 @@ class UserSettings(ZenModelRM):
             return self.callZenScreen(REQUEST)
 
     
-    #security.declareProtected('Change Settings', 'manage_addAdministrativeRole')
+    security.declareProtected(ZEN_CHANGE_ADMIN_OBJECTS, 
+        'manage_addAdministrativeRole')
     def manage_addAdministrativeRole(self, name=None, type='device', 
                                     role=None, REQUEST=None):
         "Add a Admin Role to this device"
@@ -595,8 +597,10 @@ class UserSettings(ZenModelRM):
             return self.callZenScreen(REQUEST)
 
 
-    #security.declareProtected('Change Settings','manage_editAdministrativeRoles')
-    def manage_editAdministrativeRoles(self, ids=(), role=(), level=(), REQUEST=None):
+    security.declareProtected(ZEN_CHANGE_ADMIN_OBJECTS,
+        'manage_editAdministrativeRoles')
+    def manage_editAdministrativeRoles(self, ids=(), role=(), level=(), 
+        REQUEST=None):
         """Edit list of admin roles.
         """
         if type(ids) in types.StringTypes:
@@ -619,7 +623,8 @@ class UserSettings(ZenModelRM):
             return self.callZenScreen(REQUEST)
         
 
-    #security.declareProtected('Change Settings','manage_deleteAdministrativeRole')
+    security.declareProtected(ZEN_CHANGE_ADMIN_OBJECTS,
+        'manage_deleteAdministrativeRole')
     def manage_deleteAdministrativeRole(self, delids=(), REQUEST=None):
         "Delete a admin role to this device"
         import types
@@ -639,7 +644,7 @@ class UserSettings(ZenModelRM):
             return self.callZenScreen(REQUEST)
 
 
-    security.declareProtected('Change Settings', 'manage_emailTest')
+    security.declareProtected(ZEN_CHANGE_SETTINGS, 'manage_emailTest')
     def manage_emailTest(self, REQUEST=None):
         ''' Send a test email to the given userid.
         '''
@@ -677,7 +682,7 @@ class UserSettings(ZenModelRM):
             return msg
 
 
-    security.declareProtected('Change Settings', 'manage_pagerTest')
+    security.declareProtected(ZEN_CHANGE_SETTINGS, 'manage_pagerTest')
     def manage_pagerTest(self, REQUEST=None):
         ''' Send a test page 
         '''

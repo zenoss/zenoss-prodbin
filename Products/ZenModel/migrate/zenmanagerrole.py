@@ -45,16 +45,50 @@ class ZenManagerRole(Migrate.Step):
         if not ZEN_MANAGER_ROLE in rm.listRoleIds():
             rm.addRole(ZEN_MANAGER_ROLE)
         
-        self.addPermissions(zport, ZEN_CHANGE_DEVICE, [ZEN_MANAGER_ROLE, OWNER_ROLE,MANAGER_ROLE,], 1)
-        self.addPermissions(zport, ZEN_MANAGE_DMD, [ZEN_MANAGER_ROLE, OWNER_ROLE,MANAGER_ROLE,], 1)
-        self.addPermissions(zport, ZEN_DELETE, [ZEN_MANAGER_ROLE, OWNER_ROLE,MANAGER_ROLE,], 1)
-        self.addPermissions(zport, ZEN_ADD, [ZEN_MANAGER_ROLE, OWNER_ROLE,MANAGER_ROLE,], 1)
-        self.addPermissions(zport, ZEN_VIEW, [ZEN_USER_ROLE,ZEN_MANAGER_ROLE,MANAGER_ROLE,OWNER_ROLE])
-        self.addPermissions(zport, ZEN_VIEW_HISTORY, [ZEN_USER_ROLE, ZEN_MANAGER_ROLE, MANAGER_ROLE,], 1)
-        self.addPermissions(zport, ZEN_COMMON,[ZEN_USER_ROLE, ZEN_MANAGER_ROLE, MANAGER_ROLE, OWNER_ROLE], 1)
-        self.addPermissions(zport, ZEN_CHANGE_SETTINGS, [ZEN_MANAGER_ROLE, MANAGER_ROLE, OWNER_ROLE], 1)
-        self.addPermissions(zport, ZEN_CHANGE_ALERTING_RULES, [ZEN_MANAGER_ROLE, MANAGER_ROLE, OWNER_ROLE], 1) 
-        self.addPermissions(zport, ZEN_CHANGE_ADMIN_OBJECTS, [ZEN_MANAGER_ROLE, MANAGER_ROLE], 1)
-        self.addPermissions(zport, ZEN_CHANGE_EVENT_VIEWS, [ZEN_MANAGER_ROLE, MANAGER_ROLE], 1)
+        self.addPermissions(zport, ZEN_CHANGE_DEVICE, 
+            [ZEN_MANAGER_ROLE, OWNER_ROLE,MANAGER_ROLE,], 1)
+        self.addPermissions(zport, ZEN_MANAGE_DMD, 
+            [ZEN_MANAGER_ROLE, OWNER_ROLE,MANAGER_ROLE,], 1)
+        self.addPermissions(zport, ZEN_DELETE, 
+            [ZEN_MANAGER_ROLE, OWNER_ROLE,MANAGER_ROLE,], 1)
+        self.addPermissions(zport, ZEN_ADD, 
+            [ZEN_MANAGER_ROLE, OWNER_ROLE,MANAGER_ROLE,], 1)
+        self.addPermissions(zport, ZEN_VIEW, 
+            [ZEN_USER_ROLE,ZEN_MANAGER_ROLE,MANAGER_ROLE,OWNER_ROLE])
+        self.addPermissions(zport, ZEN_VIEW_HISTORY, 
+            [ZEN_USER_ROLE, ZEN_MANAGER_ROLE, MANAGER_ROLE,], 1)
+        self.addPermissions(zport, ZEN_COMMON,
+            [ZEN_USER_ROLE, ZEN_MANAGER_ROLE, MANAGER_ROLE, OWNER_ROLE], 1)
+        self.addPermissions(zport, ZEN_CHANGE_SETTINGS, 
+            [ZEN_MANAGER_ROLE, MANAGER_ROLE, OWNER_ROLE], 1)
+        self.addPermissions(zport, ZEN_CHANGE_ALERTING_RULES, 
+            [ZEN_MANAGER_ROLE, MANAGER_ROLE, OWNER_ROLE], 1) 
+        self.addPermissions(zport, ZEN_CHANGE_ADMIN_OBJECTS, 
+            [ZEN_MANAGER_ROLE, MANAGER_ROLE], 1)
+        self.addPermissions(zport, ZEN_CHANGE_EVENT_VIEWS, 
+            [ZEN_MANAGER_ROLE, MANAGER_ROLE], 1)
+        self.addPermissions(zport, ZEN_ADMIN_DEVICE, 
+            [ZEN_MANAGER_ROLE, MANAGER_ROLE], 1)
+        self.addPermissions(zport, ZEN_MANAGE_DEVICE, 
+            [ZEN_MANAGER_ROLE, MANAGER_ROLE], 1)
+        self.addPermissions(zport, ZEN_ZPROPERTIES_EDIT, 
+            [ZEN_MANAGER_ROLE, MANAGER_ROLE], 1)
+        self.addPermissions(zport, ZEN_ZPROPERTIES_VIEW, 
+            [ZEN_MANAGER_ROLE, MANAGER_ROLE], 1)
+        self.addPermissions(zport, ZEN_EDIT_LOCAL_TEMPLATES, 
+            [ZEN_MANAGER_ROLE, MANAGER_ROLE], 1)
+        self.addPermissions(zport, ZEN_DEFINE_COMMANDS_EDIT, 
+            [ZEN_MANAGER_ROLE, MANAGER_ROLE], 1)
+        self.addPermissions(zport, ZEN_DEFINE_COMMANDS_VIEW, 
+            [ZEN_MANAGER_ROLE, MANAGER_ROLE], 1)  
+        self.addPermissions(zport, ZEN_MAINTENANCE_WINDOW_EDIT, 
+            [ZEN_MANAGER_ROLE, MANAGER_ROLE], 1)
+        self.addPermissions(zport, ZEN_MAINTENANCE_WINDOW_VIEW, 
+            [ZEN_MANAGER_ROLE, MANAGER_ROLE], 1)
+        self.addPermissions(zport, ZEN_ADMINISTRATORS_EDIT, 
+            [ZEN_MANAGER_ROLE, MANAGER_ROLE], 1)
+        self.addPermissions(zport, ZEN_ADMINISTRATORS_VIEW, 
+            [ZEN_MANAGER_ROLE, MANAGER_ROLE], 1)
+        
 
 ZenManagerRole()

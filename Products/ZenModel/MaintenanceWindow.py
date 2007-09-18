@@ -26,6 +26,7 @@ import time
 import Globals
 
 from AccessControl import ClassSecurityInfo
+from ZenossSecurity import *
 from AccessControl import Permissions
 from ZenModelRM import ZenModelRM
 from Products.ZenRelations.RelSchema import *
@@ -166,7 +167,7 @@ class MaintenanceWindow(ZenModelRM):
     def niceStartMinute(self):
         return time.localtime(self.start)[4]
 
-    security.declareProtected('Change Maintenance Window',
+    security.declareProtected(ZEN_MAINTENANCE_WINDOW_EDIT,
                               'manage_editMaintenanceWindow')
     def manage_editMaintenanceWindow(self,
                                      startDate='',
@@ -269,7 +270,7 @@ class MaintenanceWindow(ZenModelRM):
         return self.next(now - self.duration * 60 + 1)
 
 
-    security.declareProtected('View', 'breadCrumbs')
+    security.declareProtected(ZEN_VIEW, 'breadCrumbs')
     def breadCrumbs(self, terminator='dmd'):
         "fix up breadCrumbs to add a link back to the Manage tab"
         bc = super(MaintenanceWindow, self).breadCrumbs(terminator)
@@ -351,7 +352,8 @@ class MaintenanceWindow(ZenModelRM):
 
     def target(self):
         return self.productionState().primaryAq()
-
+    
+    security.declareProtected(ZEN_MAINTENANCE_WINDOW_EDIT, 'setProdState')
     def setProdState(self, target, state):
         devices = []
         from Products.ZenModel.DeviceOrganizer import DeviceOrganizer

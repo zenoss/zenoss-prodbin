@@ -1,10 +1,11 @@
-<form method="post" tal:attributes="action here/absolute_url_path" 
+<form method="post" tal:attributes="action here/absolute_url_path"
+      tal:condition="python:here.has_permission('Maintenance Windows View')"
       metal:define-macro="maintenanceWindows">
 <input type="hidden" name="zenScreenName" tal:attributes="value template/id"/>
 
 
 <tal:block tal:define="
-    objects here/maintenanceWindows/objectValuesAll;
+    objects here/getMaintenanceWindows;
     tableName string:devicemaintenancewindow;
     batch python:here.ZenTableManager.getBatch(tableName,objects);
     tabletitle string:Maintenance Windows;

@@ -19,6 +19,7 @@ Mixin class for classes that need a relationship back from UserCommand.
 
 from Globals import InitializeClass
 from AccessControl import ClassSecurityInfo
+from ZenossSecurity import *
 from UserCommand import UserCommand
 from Acquisition import aq_base, aq_parent, aq_chain
 from Products.PageTemplates.Expressions import getEngine
@@ -43,7 +44,7 @@ class Commandable:
 
     security = ClassSecurityInfo()
 
-    security.declareProtected('Change Device', 'manage_addUserCommand')
+    security.declareProtected(ZEN_DEFINE_COMMANDS_EDIT, 'manage_addUserCommand')
     def manage_addUserCommand(self, newId=None, desc='', cmd='', REQUEST=None):
         "Add a UserCommand to this device"
         uc = None
@@ -64,7 +65,8 @@ class Commandable:
         return uc
 
          
-    security.declareProtected('Change Device', 'manage_deleteUserCommand')
+    security.declareProtected(ZEN_DEFINE_COMMANDS_EDIT, 
+        'manage_deleteUserCommand')
     def manage_deleteUserCommand(self, ids=(), REQUEST=None):
         "Delete User Command(s) to this device"
         import types
@@ -78,7 +80,8 @@ class Commandable:
             REQUEST['message'] = "Command(s) Deleted"
             return self.callZenScreen(REQUEST)
 
-
+    security.declareProtected(ZEN_DEFINE_COMMANDS_EDIT, 
+        'manage_editUserCommand')
     def manage_editUserCommand(self, commandId, REQUEST=None):
         ''' Want to redirect back to management tab after a save
         '''
@@ -88,7 +91,7 @@ class Commandable:
         return self.redirectToUserCommands(REQUEST)
         
 
-    security.declareProtected('Change Device', 'manage_doUserCommand')
+    security.declareProtected(ZEN_CHANGE_DEVICE, 'manage_doUserCommand')
     def manage_doUserCommand(self, commandId=None, REQUEST=None):
         ''' Execute a UserCommand. If REQUEST then
         wrap output in proper zenoss html page.
@@ -171,7 +174,20 @@ class Commandable:
         return res
 
 
-    security.declareProtected('View', 'getUserCommands')
+    security.declareProtected(ZEN_VIEW, 'getUserCommandIds')
+    def getUserCommandIds(self): 
+        ''' Get the user command ids available in this context
+        '''
+        commandIds = []
+        mychain = self.getAqChainForUserCommands()
+        mychain.reverse()
+        for obj in mychain:
+            if getattr(aq_base(obj), 'userCommands', None):
+                for c in obj.userCommands():
+                    commandIds.append(c.id)
+        return commandIds
+        
+    security.declareProtected(ZEN_DEFINE_COMMANDS_VIEW, 'getUserCommands')
     def getUserCommands(self, asDict=False):
         ''' Get the user commands available in this context
         '''
@@ -221,7 +237,7 @@ class Commandable:
             url = ''
         return url  
 
-
+    security.declareProtected(ZEN_DEFINE_COMMANDS_VIEW, 'getUserCommand')
     def getUserCommand(self, commandId):
         ''' Returns the command from the current context if it exists
         '''

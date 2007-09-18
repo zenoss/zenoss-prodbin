@@ -19,12 +19,21 @@ Created by Marc Irlandez on 2007-04-05.
 import types
 from AccessControl import ClassSecurityInfo
 from Products.ZenModel.AdministrativeRole import AdministrativeRole
+from Globals import InitializeClass
+from ZenossSecurity import *
 
 class AdministrativeRoleable:
     
     security = ClassSecurityInfo()
 
-    security.declareProtected('Change Device', 'manage_addAdministrativeRole')
+    security.declareProtected(ZEN_ADMINISTRATORS_VIEW, 
+        'getAdministrativeRoles')
+    def getAdministrativeRoles(self):
+        "Get the Admin Roles on this device"
+        return self.adminRoles.objectValuesAll()
+        
+    security.declareProtected(ZEN_ADMINISTRATORS_EDIT, 
+        'manage_addAdministrativeRole')
     def manage_addAdministrativeRole(self, newId=None, REQUEST=None):
         "Add a Admin Role to this device"
         us = None
@@ -46,7 +55,8 @@ class AdministrativeRoleable:
                 REQUEST['message'] = "Administrative Role Added"
             return self.callZenScreen(REQUEST)
 
-
+    security.declareProtected(ZEN_ADMINISTRATORS_EDIT, 
+        'manage_editAdministrativeRoles')
     def manage_editAdministrativeRoles(self, ids=(), role=(), level=(), REQUEST=None):
         """Edit list of admin roles.
         """
@@ -67,7 +77,8 @@ class AdministrativeRoleable:
             return self.callZenScreen(REQUEST)
 
 
-    security.declareProtected('Change Device','manage_deleteAdministrativeRole')
+    security.declareProtected(ZEN_ADMINISTRATORS_EDIT,
+        'manage_deleteAdministrativeRole')
     def manage_deleteAdministrativeRole(self, delids=(), REQUEST=None):
         "Delete a admin role to this device"
         if type(delids) in types.StringTypes:
@@ -81,3 +92,6 @@ class AdministrativeRoleable:
             if delids:
                 REQUEST['message'] = "Administrative Roles Deleted"
             return self.callZenScreen(REQUEST)
+
+
+InitializeClass(AdministrativeRoleable)

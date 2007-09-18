@@ -1,16 +1,17 @@
 <form method="post" tal:attributes="action here/absolute_url_path"
     metal:define-macro="userCommandsTable"
-    tal:define="objects here/userCommands/objectValuesAll;
-    editable here/isManager;
-    showfilterbox python:True;
-    tableName string:userCommands;
-    batch python:here.ZenTableManager.getBatch(tableName,objects);
-    menu_id string:UserCommand_list">
+    tal:condition="python:here.has_permission('Define Commands View')">
 <input type="hidden" name="zenScreenName" tal:attributes="value template/id"/>
 <input type='hidden' name='tableName' tal:attributes="value tableName" />
 
 
-<tal:block tal:define="tabletitle string:Define Commands">
+<tal:block tal:define="tabletitle string:Define Commands;
+        objects here/getUserCommands;
+        editable here/isManager;
+        showfilterbox python:True;
+        tableName string:userCommands;
+        batch python:here.ZenTableManager.getBatch(tableName,objects);
+        menu_id string:UserCommand_list">
 <tal:block metal:use-macro="here/zenuimacros/macros/zentable">
 
 <!--==================== 
@@ -32,8 +33,8 @@ Optional titlebar stuff
                     tableName,'primarySortKey','Name')"/>
         <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
                     tableName,'role','Description')"/>
-			        <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
-			                    tableName,'role','Command')"/>
+        <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
+                    tableName,'role','Command')"/>
   </tr>
     <tal:block tal:repeat="uc batch">
   <tr tal:define="odd repeat/uc/odd"
@@ -78,10 +79,10 @@ Optional titlebar stuff
     </td>
     <td class="tableheader">
         <select class="tableheader" name="commandId">
-            <option tal:repeat="uc here/getUserCommands"
-                    tal:attributes="value uc/getId;
-                        selected python:getattr(request,'commandId',None)==uc.id"
-                    tal:content="uc/getId" />
+            <option tal:repeat="cid here/getUserCommandIds"
+                    tal:attributes="value cid;
+                        selected python:getattr(request,'commandId',None)==cid"
+                    tal:content="cid" />
         </select>
         &nbsp;&nbsp;
         <input class="tableheader" type="submit" 
@@ -90,10 +91,10 @@ Optional titlebar stuff
 </tr>
 
 
-<li metal:define-macro="runCommandMenu"
-    tal:define="commands here/getUserCommands"
+<tal:block metal:define-macro="runCommandMenu"
     tal:condition="python:here.isManager() and here.meta_type in
     ['DeviceClass','Device','Location','DeviceGroup','System']">
+<li tal:define="commandIds here/getUserCommandIds">
 <form name="command_proxy" method="post"
 tal:define="mypath here/getPrimaryUrlPath"
 tal:attributes="action string:${mypath}/manage_doUserCommand">
@@ -112,13 +113,14 @@ function submitCommandForm(commandId) {
         <div class="menu_top_rounded">&nbsp;</div>
         <div class="menu_bottom">&nbsp;</div>
         <ul>
-        <li tal:repeat="item commands">
+        <li tal:repeat="commandId commandIds">
         <a tal:attributes="
-            href string:javascript:submitCommandForm('${item/getId}');"
-            tal:content="item/getId">command</a>
+            href string:javascript:submitCommandForm('${commandId}');"
+            tal:content="commandId">command</a>
         </li>
         </ul>
         </div>
 <script>registerSubmenu('RunCommands_parent','RunCommands_submenu');
 </script>
 </li>
+</tal:block>

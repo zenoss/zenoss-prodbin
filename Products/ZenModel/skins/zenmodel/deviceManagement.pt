@@ -15,12 +15,12 @@
 
 <br/>
 <form method="post" tal:attributes="action here/absolute_url_path"
+    tal:condition="python:here.has_permission('Administrators View')"
     metal:define-macro="adminRolesTable">
 <input type="hidden" name="zenScreenName" tal:attributes="value template/id"/>
 
-<tal:block tal:condition="here/isManager"
-    tal:define="
-    objects here/adminRoles/objectValuesAll;
+<tal:block tal:define="
+    objects here/getAdministrativeRoles;
     editable here/isManager;
     tableName string:deviceadminroles;
     tabletitle string:Administrators;
