@@ -336,7 +336,7 @@ class DeviceClass(DeviceOrganizer, ZenPackable):
             return []
         glob = queryString.rstrip('*') + '*'
         query = Or(MatchGlob('id', glob), Eq('getDeviceIp', queryString))
-        names = zcatalog.evalAdvancedQuery(queryString)
+        names = zcatalog.evalAdvancedQuery(query)
         if REQUEST and len(names) == 1:
             raise Redirect(urllib.quote(names[0].getPrimaryId))
         try:
