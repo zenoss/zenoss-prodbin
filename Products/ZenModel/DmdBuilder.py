@@ -48,6 +48,7 @@ from Products.ZenModel.ServiceOrganizer import ServiceOrganizer
 from Products.ZenModel.System import System
 from Products.ZenModel.MonitorClass import MonitorClass
 from Products.ZenModel.ReportClass import ReportClass
+from Products.ZenModel.MultiGraphReportClass import MultiGraphReportClass
 from Products.ZenModel.DataRoot import DataRoot
 from Products.ZenModel.ZDeviceLoader import manage_addZDeviceLoader
 from Products.ZenModel.ZenossInfo import manage_addZenossInfo
@@ -151,10 +152,26 @@ class DmdBuilder:
                     dr.createCatalog()
 
 
+    def buildReportClasses(self):
+        if not hasattr(self.dmd.Reports, 'Device Reports'):
+            rc = DeviceReportClass('Device Reports')
+            self.dmd.Reports._setObj(rc.id, rc)
+        if not hasattr(self.dmd.Reports, 'Custom Device Reports'):
+            rc = CustomDeviceReportClass('Custom Device Reports')
+            self.dmd.Reports._setObj(rc.id, rc)
+        if not hasattr(self.dmd.Reports, 'Graph Reports'):
+            rc = GraphReportClass('Graph Reports')
+            self.dmd.Reports._setObj(rc.id, rc)
+        if not hasattr(self.dmd.Reports, 'Multi-Graph Reports'):
+            rc = MultiGraphReportClass('Multi-Graph Reports')
+            self.dmd.Reports._setObj(rc.id, rc)
+
+
     def build(self):
         self.buildRoots()
         self.buildMonitors()
         self.buildUserCommands()
+        self.buildReportClasses()
         manage_addEventClass(self.dmd)
         manage_addZDeviceLoader(self.dmd)
         manage_addZenTableManager(self.portal)

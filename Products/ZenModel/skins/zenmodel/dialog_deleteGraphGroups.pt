@@ -1,12 +1,12 @@
 <h2>Delete Graph Groups:</h2>
 <table>
-<tr><td>Are you sure you want to delete the selected graph groups(s)?</td></tr>
+<tr><td>Are you sure you want to delete the selected graph group(s)?</td></tr>
 </table>
 <br>
 <div align="center">
 <input type="submit" name="manage_deleteGraphGroups:method"
    value="Delete"
-   tal:attributes="onclick string:return $$('dialog').submit_form('', 'graphGroupForm')" />
+   tal:attributes="onclick string:return $$('dialog').submit_form('', 'graphGroupList')" />
 <input id="dialog_cancel" type="button" value="Cancel" 
        onclick="$('dialog').hide()"/>
 </div>

@@ -104,3 +104,4 @@ import removeZenPackMenuItem
 import banClassesOnDeviceListMenus
 import banClassesOnAddToZenPackMenuItem
 import annoyingAlerts
+import baseReportClasses

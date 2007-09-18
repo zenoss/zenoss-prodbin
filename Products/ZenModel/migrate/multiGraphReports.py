@@ -17,6 +17,10 @@ from Products.ZenModel.GraphDefinition import GraphDefinition
 from Products.ZenModel.MultiGraphReportClass import MultiGraphReportClass
 from AccessControl import Permissions
 
+# graphReports is using buildMenus so we let it go first before we modify
+# some of the same menus.
+import graphReports
+
 class MultiGraphReports(Migrate.Step):
     version = Migrate.Version(2, 1, 0)
     

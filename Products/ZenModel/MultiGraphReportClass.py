@@ -39,24 +39,17 @@ class MultiGraphReportClass(ReportClass):
 
     portal_type = meta_type = "MultiGraphReportClass"
 
-    sub_meta_types = ('MultiGraphReportClass', 'MultiGraphReport')
-
     _relations = ReportClass._relations +  (
         ('graphDefs', 
             ToManyCont(ToOne, 'Products.ZenModel.GraphDefinition', 'reportClass')),
         )
     
     security = ClassSecurityInfo()
-
-    def manage_addReportClass(self, id, title = None, REQUEST = None):
-        ''' Create a new MultiGraph report class
+    
+    def getReportClass(self):
+        ''' Return the class to instantiate for new report classes
         '''
-        import pdb; pdb.set_trace()
-        dc = MultiGraphReportClass(id, title)
-        self._setObject(id, dc)
-        if REQUEST:
-            REQUEST['message'] = "Report organizer created"
-            return self.callZenScreen(REQUEST)
+        return MultiGraphReportClass
 
 
     security.declareProtected('Manage DMD', 'manage_addMultiGraphReport')

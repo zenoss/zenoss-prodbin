@@ -49,13 +49,10 @@ class ReportClass(Organizer, ZenPackable):
     dmdRootName = "Reports"
     portal_type = meta_type = "ReportClass"
 
-    sub_meta_types = ("ReportClass", "Report", 'DeviceReport', 'GraphReport', 
-                    'MultiGraphReportClass')
-
-    child_meta_type = (meta_type, 'MultiGraphReportClass')
+    #sub_meta_types = ("ReportClass", "Report", 'DeviceReport', 'GraphReport', 
+    #                'MultiGraphReportClass')
 
     _relations = Organizer._relations + ZenPackable._relations
-
     
     # Screen action bindings (and tab definitions)
     factory_type_information = ( 
@@ -77,31 +74,34 @@ class ReportClass(Organizer, ZenPackable):
 
     security.declareProtected(ZEN_COMMON, "children")
     def children(self, sort=False, checkPerm=True, spec=None):
-        """Return children of our organizer who have same type as parent."""
-        if spec is None:
-            spec = self.child_meta_type
-        return Organizer.children(self, sort=sort, 
-                                    checkPerm=checkPerm, spec=spec)
+        ''' Return all objects that are instances of ReportClass
+        '''
+        kids = [o for o in self.objectValues() if isinstance(o, ReportClass)]
+        if checkPerm:
+            kids = [kid for kid in kids if self.checkRemotePerm("View", kid)]
+        if sort: kids.sort(lambda x,y: cmp(x.primarySortKey(), 
+                                           y.primarySortKey()))
+        return kids
 
 
     def childIds(self, spec=None):
         """Return Ids of children within our organizer."""
-        if spec is None:
-            spec = self.child_meta_type
-        return Organizer.childIds(self, spec=spec)
+        return [k.id for k in self.children()]
 
 
     security.declareProtected(ZEN_COMMON, "countChildren")
     def countChildren(self, spec=None):
         """Return a count of all our contained children."""
-        if spec is None:
-            spec = self.child_meta_type
-        return Organizer.countChildren(self, spec=spec)
+        count = len(self.childIds())
+        for child in self.children():
+            count += child.countChildren()
+        return count
 
 
     def manage_addReportClass(self, id, title = None, REQUEST = None):
         """make a device class"""
-        dc = ReportClass(id, title)
+        rClass = self.getReportClass()
+        dc = rClass(id, title)
         self._setObject(id, dc)
         if REQUEST:
             REQUEST['message'] = "Report organizer created"
@@ -122,19 +122,6 @@ class ReportClass(Organizer, ZenPackable):
             count += child.countReports()
         return count
         
-
-    security.declareProtected('Manage DMD', 'manage_addDeviceReport')
-    def manage_addDeviceReport(self, id, REQUEST=None):
-        """Add an action rule to this object.
-        """
-        if id:
-            from Products.ZenModel.DeviceReport import DeviceReport
-            dr = DeviceReport(id)
-            self._setObject(id, dr)
-        if REQUEST:
-            REQUEST['message'] = "Device report created"
-            return self.callZenScreen(REQUEST)
-
 
     security.declareProtected('Manage DMD', 'manage_addGraphReport')
     def manage_addGraphReport(self, id, REQUEST=None):
