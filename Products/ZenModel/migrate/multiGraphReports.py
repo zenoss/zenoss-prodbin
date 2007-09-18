@@ -107,12 +107,19 @@ class MultiGraphReports(Migrate.Step):
                 isdialog=True, 
                 ordering=89.0)
         collectionList.manage_addZenMenuItem(
+                id='deleteGraphGroups',
+                description='Delete Group...', 
+                action='dialog_deleteGraphGroups', 
+                permissions=('Change Device',), 
+                isdialog=True, 
+                ordering=88.0)
+        collectionList.manage_addZenMenuItem(
                 id='resequenceCollectionItem',
                 description='Re-sequence Items', 
                 action="javascript:submitFormToMethod('graphGroupForm', 'manage_resequenceGraphGroups')", 
                 permissions=('Change Device',), 
                 isdialog=True, 
-                ordering=88.0)
+                ordering=87.0)
 
 
 MultiGraphReports()
