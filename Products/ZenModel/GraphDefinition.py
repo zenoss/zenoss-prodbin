@@ -378,13 +378,9 @@ class GraphDefinition(ZenModelRM, ZenPackable):
             cmds = []
         if includeSetup:
             cmds += self.graphsetup()
-        
-        gpList = [gp for gp in self.getGraphPoints(includeThresholds=False)
-                    if upToPoint is None or gp.sequence < upToPoint]
-        for index, gp in enumerate(gpList):
-            cmds = gp.getGraphCmds(cmds, context, rrdDir, 
-                                        self.hasSummary, index+idxOffset,
-                                        multiid, prefix)
+
+        # Have to draw thresholds before data so that thresholds won't
+        # obscure data (especially if threshold uses TICK)
         if includeThresholds:
             threshGps = [gp for gp in self.getThresholdGraphPoints()
                         if upToPoint is None or gp.sequence < upToPoint]
@@ -392,6 +388,13 @@ class GraphDefinition(ZenModelRM, ZenPackable):
                 cmds.append("COMMENT:Data Thresholds\j")
                 for index, gp in enumerate(threshGps):
                     cmds = gp.getGraphCmds(cmds, context, rrdDir,
+                                        self.hasSummary, index+idxOffset,
+                                        multiid, prefix)
+
+        gpList = [gp for gp in self.getGraphPoints(includeThresholds=False)
+                    if upToPoint is None or gp.sequence < upToPoint]
+        for index, gp in enumerate(gpList):
+            cmds = gp.getGraphCmds(cmds, context, rrdDir, 
                                         self.hasSummary, index+idxOffset,
                                         multiid, prefix)
         if self.custom and includeSetup:
