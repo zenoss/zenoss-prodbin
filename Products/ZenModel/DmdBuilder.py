@@ -158,16 +158,16 @@ class DmdBuilder:
     def buildReportClasses(self):
         if not hasattr(self.dmd.Reports, 'Device Reports'):
             rc = DeviceReportClass('Device Reports')
-            self.dmd.Reports._setObj(rc.id, rc)
+            self.dmd.Reports._setObject(rc.id, rc)
         if not hasattr(self.dmd.Reports, 'Custom Device Reports'):
             rc = CustomDeviceReportClass('Custom Device Reports')
-            self.dmd.Reports._setObj(rc.id, rc)
+            self.dmd.Reports._setObject(rc.id, rc)
         if not hasattr(self.dmd.Reports, 'Graph Reports'):
             rc = GraphReportClass('Graph Reports')
-            self.dmd.Reports._setObj(rc.id, rc)
+            self.dmd.Reports._setObject(rc.id, rc)
         if not hasattr(self.dmd.Reports, 'Multi-Graph Reports'):
             rc = MultiGraphReportClass('Multi-Graph Reports')
-            self.dmd.Reports._setObj(rc.id, rc)
+            self.dmd.Reports._setObject(rc.id, rc)
 
 
     def build(self):
