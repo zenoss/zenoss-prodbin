@@ -48,6 +48,9 @@ from Products.ZenModel.ServiceOrganizer import ServiceOrganizer
 from Products.ZenModel.System import System
 from Products.ZenModel.MonitorClass import MonitorClass
 from Products.ZenModel.ReportClass import ReportClass
+from Products.ZenModel.DeviceReportClass import DeviceReportClass
+from Products.ZenModel.CustomDeviceReportClass import CustomDeviceReportClass
+from Products.ZenModel.GraphReportClass import GraphReportClass
 from Products.ZenModel.MultiGraphReportClass import MultiGraphReportClass
 from Products.ZenModel.DataRoot import DataRoot
 from Products.ZenModel.ZDeviceLoader import manage_addZDeviceLoader
