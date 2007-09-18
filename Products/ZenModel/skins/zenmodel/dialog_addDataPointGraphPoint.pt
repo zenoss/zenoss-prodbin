@@ -11,7 +11,7 @@
 <span style="text-align:left;">
 Data Points:&nbsp;<br />
 <select id="dpNames" name='dpNames:list' multiple="1">
-    <option tal:condition="exists: here/template"
+    <option tal:condition="exists: here/rrdTemplate"
                 tal:repeat="option here/getDataPointOptions"
                 tal:attributes="value python: option[1]" 
                 tal:content="python: option[0]" />
