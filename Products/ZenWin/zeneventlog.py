@@ -42,14 +42,14 @@ class zeneventlog(Base):
 
     def updateDevices(self, devices):
         """get the config data from server"""
-        for lastTime, name, user, passwd, sev, url in devices:
+        for lastTime, name, ip, user, passwd, sev, url in devices:
             try:
                 if name in self.wmiprobs: 
                     self.log.info('wmi prob on %s skipping', name)
                     continue
                 if name in self.devices:
                     continue
-                self.devices[name] = self.getWatcher(name,user,passwd,sev)
+                self.devices[name] = self.getWatcher(name, ip, user,passwd,sev)
             except Exception, ex:
                 msg = self.printComErrorMessage(ex)
                 if not msg:
@@ -67,10 +67,10 @@ class zeneventlog(Base):
         if device in self.devices:
             del self.devices[device]
     
-    def getWatcher(self, name, user, passwd, minSeverity):
+    def getWatcher(self, name, ip, user, passwd, minSeverity):
        """Setup WMI connection to monitored server. 
        """
-       c = wmiclient.WMI(*map(str, (name, user, passwd) ))
+       c = wmiclient.WMI(*map(str, (name, ip, user, passwd) ))
        c.connect()
        wql = """SELECT * FROM __InstanceCreationEvent where """\
                """TargetInstance ISA 'Win32_NTLogEvent' """\
