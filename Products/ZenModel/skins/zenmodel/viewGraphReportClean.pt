@@ -35,7 +35,7 @@ body {
         </td>
         <td tal:define="i repeat/element/index;
                 key python: 'graph_%s' % i;
-                graphSrc python:request.has_key(key) and request[key] or element/getGraphUrl">
+                graphSrc python:request.has_key(key) and request[key] or element.getGraphUrl()">
             <img src="_" 
                 tal:attributes="src graphSrc" />
         </td>
