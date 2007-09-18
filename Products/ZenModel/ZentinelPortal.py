@@ -114,15 +114,13 @@ class PortalGenerator:
     def setupPermissions(self, p):
         # Set up some suggested role to permission mappings.
         mp = p.manage_permission
-        mp(ZEN_CHANGE_SETTINGS, [ZEN_MANAGER_ROLE, OWNER_ROLE, MANAGER_ROLE,], 1)
+        mp(ZEN_CHANGE_SETTINGS,[ZEN_MANAGER_ROLE, OWNER_ROLE, MANAGER_ROLE,], 1)
         mp(ZEN_CHANGE_DEVICE, [ZEN_MANAGER_ROLE, OWNER_ROLE, MANAGER_ROLE,], 1)
         mp(ZEN_MANAGE_DMD, [ZEN_MANAGER_ROLE, OWNER_ROLE, MANAGER_ROLE,], 1)
         mp(ZEN_DELETE, [ZEN_MANAGER_ROLE, OWNER_ROLE, MANAGER_ROLE,], 1)
         mp(ZEN_ADD, [ZEN_MANAGER_ROLE, OWNER_ROLE, MANAGER_ROLE,], 1)
         mp(ZEN_VIEW, [ZEN_USER_ROLE, ZEN_MANAGER_ROLE,
                         MANAGER_ROLE, OWNER_ROLE])
-#        mp(ZEN_VIEW_HISTORY, [ZEN_USER_ROLE, ZEN_MANAGER_ROLE, 
-#                        MANAGER_ROLE, OWNER_ROLE], 1)
         mp(ZEN_COMMON, ["Authenticated", ZEN_USER_ROLE, ZEN_MANAGER_ROLE,
                         MANAGER_ROLE, OWNER_ROLE], 1)
 
