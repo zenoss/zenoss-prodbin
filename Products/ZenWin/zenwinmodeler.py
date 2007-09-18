@@ -44,7 +44,7 @@ class zenwinmodeler(Base):
         self.start()
 
     def remote_deleteDevice(self, device):
-        self.devices = [d for d in self.devices if d.name != device]
+        self.devices = [d for d in self.devices if d[1] != device]
     
     def processLoop(self):
         """For each device collect service info and send to server.
