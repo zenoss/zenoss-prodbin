@@ -83,10 +83,13 @@ class GraphDefinition(ZenModelRM, ZenPackable):
     _relations =  (
         ("rrdTemplate", 
             ToOne(ToManyCont,"Products.ZenModel.RRDTemplate", "graphDefs")),
-        ('reportClass',
-            ToOne(ToManyCont, 'Products.ZenModel.MultiGraphReportClass', 'graphDefs')),
+        ('report',
+            ToOne(ToManyCont, 'Products.ZenModel.MultiGraphReport', 'graphDefs')),
         ('graphPoints', 
             ToManyCont(ToOne, 'Products.ZenModel.GraphPoint', 'graphDef')),
+        # Remove this relationship after version 2.1
+        ('reportClass',
+            ToOne(ToManyCont, 'Products.ZenModel.MultiGraphReportClass', 'graphDefs')),
         )
 
 
@@ -467,24 +470,6 @@ class GraphDefinition(ZenModelRM, ZenPackable):
                 and gp.dpName == dpName]
         
         
-    def getRelatedReports(self):
-        ''' Return a list of the names of the reports that reference this
-        graphDef.  This only applies to graphDefs in the /Reports tree,
-        not those living in an rrdtemplate.
-        '''
-        if self.rrdTemplate():
-            return []
-        
-        reports = []
-        reportClasses = [self.dmd.Reports] + self.dmd.Reports.getSubOrganizers()
-        for rc in reportClasses:
-            for r in rc.reports():
-                if r.meta_type == 'MultiGraphReport':
-                    for gg in r.graphGroups():
-                        if gg.graphDefId == self.id:
-                            reports.append(r)
-                            break;
-        return reports
 
 
     # security.declareProtected('Manage DMD', 'getUniqueDpNames')

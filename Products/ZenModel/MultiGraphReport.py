@@ -19,6 +19,7 @@ from Products.ZenUtils.ZenTales import talesCompile, getEngine
 from DateTime import DateTime
 from RRDView import GetRRDPath
 from PerformanceConf import performancePath
+from ZenossSecurity import ZEN_MANAGE_DMD
 
 def manage_addMultiGraphReport(context, id, REQUEST = None):
     ''' Create a new MultiGraphReport
@@ -42,6 +43,8 @@ class MultiGraphReport(ZenModelRM):
             ToManyCont(ToOne, 'Products.ZenModel.Collection', 'report')),
         ("graphGroups", 
             ToManyCont(ToOne,"Products.ZenModel.GraphGroup", "report")),
+        ('graphDefs', 
+            ToManyCont(ToOne, 'Products.ZenModel.GraphDefinition', 'report')),
         )
 
     factory_type_information = ( 
@@ -146,16 +149,21 @@ class MultiGraphReport(ZenModelRM):
             return self.callZenScreen(REQUEST)
 
 
-    ### Graph Defs
-
-    security.declareProtected('Manage DMD', 'getGraphDefs')
+    ### Graph Definitions
+         
+    security.declareProtected(ZEN_MANAGE_DMD, 'getGraphDefs')
     def getGraphDefs(self):
-        ''' Return an ordered list of the available graph definitions
+        ''' Return an ordered list of the graph definitions
         '''
-        # Can't use acquisition becase the defs are all stored at the root
-        # ReportClass and not in the suborganizers.
-        rc = getattr(self.dmd.Reports, 'Multi-Graph Reports', None)
-        return rc and rc.getGraphDefs() or []
+        def cmpGraphDefs(a, b):
+            try: a = int(a.sequence)
+            except ValueError: a = sys.maxint
+            try: b = int(b.sequence)
+            except ValueError: b = sys.maxint
+            return cmp(a, b)
+        graphDefs =  self.graphDefs()[:]
+        graphDefs.sort(cmpGraphDefs)
+        return graphDefs
 
 
     def getGraphDef(self, graphDefId):
@@ -166,6 +174,41 @@ class MultiGraphReport(ZenModelRM):
             return getattr(rc.graphDefs, graphDefId, None)
         return None
 
+
+    security.declareProtected('Manage DMD', 'manage_addGraphDefinition')
+    def manage_addGraphDefinition(self, new_id, REQUEST=None):
+        """Add a GraphDefinition 
+        """
+        from GraphDefinition import GraphDefinition
+        graph = GraphDefinition(new_id)
+        self.graphDefs._setObject(graph.id, graph)
+        if REQUEST:
+            url = '%s/graphDefs/%s' % (self.getPrimaryUrlPath(), graph.id)
+            REQUEST['RESPONSE'].redirect(url)
+        return graph
+        
+
+    security.declareProtected('Manage DMD', 'manage_deleteGraphDefinitions')
+    def manage_deleteGraphDefinitions(self, ids=(), REQUEST=None):
+        """Remove GraphDefinitions 
+        """
+        for id in ids:
+            self.graphDefs._delObject(id)
+            self.manage_resequenceGraphDefs()
+        if REQUEST:
+            if len(ids) == 1:
+                REQUEST['message'] = 'Graph %s deleted.' % ids[0]
+            elif len(ids) > 1:
+                REQUEST['message'] = 'Graphs %s deleted.' % ', '.join(ids)
+            return self.callZenScreen(REQUEST)
+
+
+    security.declareProtected('Manage DMD', 'manage_resequenceGraphDefs')
+    def manage_resequenceGraphDefs(self, seqmap=(), origseq=(), REQUEST=None):
+        ''' Reorder the sequence of the GraphDefinitions.
+        '''
+        from Products.ZenUtils.Utils import resequence
+        return resequence(self, self.getGraphDefs(), seqmap, origseq, REQUEST)
 
     ### Graphing
     

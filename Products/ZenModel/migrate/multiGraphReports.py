@@ -35,7 +35,17 @@ class MultiGraphReports(Migrate.Step):
             frc = MultiGraphReportClass('Multi-Graph Reports')
             dmd.Reports._setObject(frc.id, frc)
         dmd.Reports.buildRelations()
-        dmd.Reports['Multi-Graph Reports'].buildRelations()
+        
+        # Get rid of the graphDefs relation on MultiGraphReportClass
+        # and add to the reports
+        def BuildRelationsOnReports(reportClass):
+            reportClass.buildRelations()
+            for report in reportClass.reports():
+                report.buildRelations()
+            for subClass in reportClass.children():
+                BuildRelationsOnReports(subClass)
+        BuildRelationsOnReports(dmd.Reports['Multi-Graph Reports'])
+        
                 
         # Get rid of old  Report menus
         reportList = getattr(dmd.zenMenus, 'Report_list')

@@ -84,6 +84,11 @@
 </form>
 <br />
 
+<tal:block metal:use-macro="here/graphDefList/macros/graphDefList">
+</tal:block>
+<br />
+
+
 <form method="POST" name="graphGroupForm"
     tal:attributes="action here/absolute_url_path">
     <input type="hidden" name="zenScreenName" t

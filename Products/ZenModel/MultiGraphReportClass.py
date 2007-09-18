@@ -39,6 +39,7 @@ class MultiGraphReportClass(ReportClass):
 
     portal_type = meta_type = "MultiGraphReportClass"
 
+    # Remove this relationship after version 2.1
     _relations = ReportClass._relations +  (
         ('graphDefs', 
             ToManyCont(ToOne, 'Products.ZenModel.GraphDefinition', 'reportClass')),
@@ -63,52 +64,6 @@ class MultiGraphReportClass(ReportClass):
             url = '%s/%s/editMultiGraphReport' % (self.getPrimaryUrlPath(), id)
             REQUEST['RESPONSE'].redirect(url)
         return fr
-
-    
-    ### Graph Definitions
-         
-    security.declareProtected(ZEN_MANAGE_DMD, 'getGraphDefs')
-    def getGraphDefs(self):
-        ''' Return an ordered list of the graph definitions
-        '''
-        def cmpGraphDefs(a, b):
-            try: a = int(a.sequence)
-            except ValueError: a = sys.maxint
-            try: b = int(b.sequence)
-            except ValueError: b = sys.maxint
-            return cmp(a, b)
-        graphDefs =  self.graphDefs()[:]
-        graphDefs.sort(cmpGraphDefs)
-        return graphDefs
-
-
-    security.declareProtected('Manage DMD', 'manage_addGraphDefinition')
-    def manage_addGraphDefinition(self, new_id, REQUEST=None):
-        """Add a GraphDefinition 
-        """
-        from GraphDefinition import GraphDefinition
-        graph = GraphDefinition(new_id)
-        self.graphDefs._setObject(graph.id, graph)
-        if REQUEST:
-            url = '%s/graphDefs/%s' % (self.getPrimaryUrlPath(), graph.id)
-            REQUEST['RESPONSE'].redirect(url)
-        return graph
-        
-
-    security.declareProtected('Manage DMD', 'manage_deleteGraphDefinitions')
-    def manage_deleteGraphDefinitions(self, ids=(), REQUEST=None):
-        """Remove GraphDefinitions 
-        """
-        for id in ids:
-            self.graphDefs._delObject(id)
-            self.manage_resequenceGraphDefs()
-        if REQUEST:
-            if len(ids) == 1:
-                REQUEST['message'] = 'Graph %s deleted.' % ids[0]
-            elif len(ids) > 1:
-                REQUEST['message'] = 'Graphs %s deleted.' % ', '.join(ids)
-            return self.callZenScreen(REQUEST)
-
 
 
 InitializeClass(MultiGraphReportClass)

@@ -117,10 +117,5 @@
 <br />
 </form>
 
-<tal:block tal:condition="python: here.getPrimaryId()=='/zport/dmd/Reports/Multi-Graph Reports' and here.isManager()">
-    <tal:block metal:use-macro="here/graphDefList/macros/graphDefList">
-    </tal:block>
-</tal:block>
-
 </tal:block>
 </tal:block>

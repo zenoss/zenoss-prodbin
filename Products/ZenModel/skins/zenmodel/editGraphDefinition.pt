@@ -214,39 +214,5 @@ $('dialog').addLoadEvent('dialog_addDataPointGraphPoint', createDpNameAC);
 </form>
 
 
-<tal:block tal:define="tableName string:usedInReportsList; 
-        objects here/getRelatedReports;
-        batch python:here.ZenTableManager.getBatch(tableName,objects,
-                                                sortedHeader='id'); 
-        tabletitle string:Used in These Reports">
-<tal:block metal:use-macro="here/zenuimacros/macros/zentable">
-<tal:block metal:fill-slot="zentablecontents">
-            
-    <tr>
-        <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
-                    tableName,'id','Report')"/>
-        <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
-                    tableName,'getOrganizerName','Class')"/>
-    </tr>
-    <tr class="tablevalues" tal:repeat="report batch">
-        <td> 
-            <a tal:attributes="href report/getPrimaryUrlPath"
-                tal:content="report/id">
-            </a>
-        </td>
-		<td class="tablevalues" align="left"
-            tal:define="path report/getOrganizerName">
-            <a href="" 
-                tal:attributes="href string:/zport/dmd/Reports${path}"
-                tal:content="path"></a>
-        </td>
-    </tr>
-
-</tal:block>
-</tal:block>
-</tal:block>
-<br />
-
-
 </tal:block>
 </tal:block>
