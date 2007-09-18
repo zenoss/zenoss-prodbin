@@ -87,7 +87,8 @@ class XmlRpcService(xmlrpc.XMLRPC):
             return result
 
         # loop over devices that use the performance monitor
-        for device in conf.devices._objects:
+        for device in conf.devices():
+            device = device.primaryAq()
             for template in device.getRRDTemplates():
                 for ds in template.getRRDDataSources():
                     if ds.sourcetype == dstype:
