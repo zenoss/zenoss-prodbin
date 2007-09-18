@@ -113,19 +113,21 @@ class MySqlSendEventMixin:
             curs = conn.cursor()
             evid = guid.generate()
             event.evid = evid
+            rows = 0
             if event.severity == 0:
                 event._action = "history"
                 clearcls = event.clearClasses()
                 if clearcls:
                     rows = execute(curs, self.buildClearUpdate(event, clearcls))
-                    if rows:
-                        insert = ('insert into log '
-                                  '(evid, userName, text) '
-                                  'select evid, "admin", "auto cleared"'
-                                  ' from status where clearid = "%s"'  % evid)
-                        execute(curs, insert)
-                        delete = 'DELETE FROM status WHERE clearid IS NOT NULL'
-                        execute(curs, delete)
+                    if not rows:
+                        return
+                    insert = ('insert into log '
+                              '(evid, userName, text) '
+                              'select evid, "admin", "auto cleared"'
+                              ' from status where clearid = "%s"'  % evid)
+                    execute(curs, insert)
+                    delete = 'DELETE FROM status WHERE clearid IS NOT NULL'
+                    execute(curs, delete)
             stmt = self.buildStatusInsert(statusdata, event._action, evid)
             rescount = execute(curs, stmt)
             if detaildata and rescount == 1:
