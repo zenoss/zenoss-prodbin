@@ -1,14 +1,23 @@
 <h2>Add GraphPoint</h2>
 <span id="errmsg" style="color:red;"></span>
-<br/>
-<p style="text-align:left;">
+
+<tal:block tal:condition="not: exists: here/datasources">
+<div id="threshNameACDiv" style="width:30em;position:relative;"></div>
+<br /><br />
+</tal:block>
+
+
+<tal:block tal:condition="exists: here/datasources">
+<span style="text-align:left;">
 Thresholds:&nbsp;<select name='threshNames:list' multiple="1">
         <option tal:repeat="option here/getThresholdOptions"
                 tal:attributes="value python: option[1]" 
                 tal:content="python: option[0]" />
 </select>
 <br/><br/>
-</p>
+</span>
+</tal:block>
+
 <div id="dialog_buttons">
 <input tal:attributes="id string:dialog_submit;
         type string:submit;

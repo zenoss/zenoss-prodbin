@@ -24,6 +24,10 @@
     padding: 0;
 }
 
+.dialog_container div.control-label {
+    color: white;
+    font-size: 12px;
+}
 
 .dialog input,
 .dialog select{

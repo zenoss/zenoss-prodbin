@@ -49,6 +49,8 @@ YAHOO.zenoss.zenautocomplete.ZenAutoComplete.prototype = {
             this.results, this.oACDS);
         this.oAutoComp.typeAhead = false;
         this.oAutoComp.useShadow = true;
+        this.oAutoComp.animVert = false;
+        this.oAutoComp.animHoriz = false;
         this.oAutoComp.minQueryLength = 0;
         var mythis = this;
         this.oAutoComp.textboxFocusEvent.subscribe(function(){

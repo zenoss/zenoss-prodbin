@@ -18,7 +18,19 @@ function createDpNameAC() {
     dpNameAC.input.name = 'dpNames:list';
 }
 
+function createThreshNameAC() {
+    var threshNameAC = new YAHOO.zenoss.zenautocomplete.ZenAutoComplete(
+        'threshNames',
+        '/zport/dmd/Devices/jsonGetUniqueThresholdNames', 
+        'Threshold Name', // Label for the widget
+        'threshNameACDiv' // DOM element into which to put the thing
+    );
+    threshNameAC.input.name = 'threshNames:list';
+}
+
+
 $('dialog').addLoadEvent('dialog_addDataPointGraphPoint', createDpNameAC);
+$('dialog').addLoadEvent('dialog_addThresholdGraphPoint', createThreshNameAC);
 
 </script>
 </tal:block>

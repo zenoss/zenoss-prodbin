@@ -111,6 +111,7 @@ div.autocompleter-container {
     position: relative;
     padding: 0;
     margin: 0;
+    color: black;
 }
 
 table.zenportlet div.portlet-settings .portlet-settings-control {
