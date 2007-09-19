@@ -1,13 +1,16 @@
 #! /bin/sh
 
+echo 'Running migrate'
+zenmigrate run -v 10
+
 echo 'Dumping...\c'
 echo 'menus...\c'
-zendmd >/dev/null 2>&1  <<EOF
+zendmd <<EOF
 fp = open('menus.xml', 'w')
 fp.write('''<?xml version="1.0"?>
 <objects>
 <object id='/zport/dmd' module='Products.ZenModel.DataRoot' class='DataRoot'>
-'''
+''')
 dmd.zenMenus.exportXml(fp)
 fp.write('</object></objects>\n')
 fp.close()
