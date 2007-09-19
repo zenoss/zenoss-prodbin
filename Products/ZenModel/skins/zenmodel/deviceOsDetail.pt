@@ -532,7 +532,11 @@ Optional titlebar stuff
           (<span tal:replace="structure route/getNextHopDeviceLink"/>)
       </td>
       <td class="tablevalues">
-         <tal:block tal:content="structure python:route.interface().getLink(text=route.getInterfaceName(), attrs={'class':'tablevalues'})"/>
+         <tal:block
+          tal:condition="python:route.interface()"
+          tal:content="structure python:route.interface().getLink(
+                text=route.getInterfaceName(), 
+                attrs={'class':'tablevalues'})"/>
       </td>
       <td class="tablevalues" tal:content="route/routeproto"/>
       <td class="tablevalues" tal:content="route/routetype"/>
