@@ -287,7 +287,7 @@
         <div tal:condition="not:here/comments">&nbsp;</div>
     </dd>
     <dt>Links</dt>
-    <dd><div style="font-size:90%" tal:content="here/getExpandedLinks">
+    <dd><div style="font-size:90%" tal:content="structure here/getExpandedLinks">
         x</div>
         <div tal:condition="not:here/getExpandedLinks">&nbsp;</div>
         </dd>
