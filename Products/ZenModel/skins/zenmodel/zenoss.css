@@ -861,6 +861,7 @@ table.zentable-modified {
 .yui-t1 {
     height: 16em;
     font-size: 10pt;
+    min-width: 500px;
 }
 .yui-t1 .yui-z {
     width: 50px;
@@ -868,13 +869,13 @@ table.zentable-modified {
 }
 
 .yui-t1 .yui-z2 {
-    width: 300px;
+    width: 275px;
     background-color: #f2f2f2;
     padding: 1em 20px;
     height: 14em;
 }
 .yui-t1 .yui-z3 {
-    margin-left: 430px;
+    margin-left: 405px;
     float: none;
     width: auto; 
     height: 16em;
