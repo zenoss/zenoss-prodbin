@@ -24,6 +24,7 @@ from AccessControl import ClassSecurityInfo
 
 from Products.ZenModel.ZenModelRM import ZenModelRM
 from Products.ZenUtils.Utils import importClass
+from Products.ZenModel.ZenossSecurity import *
 
 import os
 import sys
@@ -32,7 +33,7 @@ class ReportServer(ZenModelRM):
     security = ClassSecurityInfo()
     security.setDefaultAccess('allow')
 
-    security.declareProtected('View', 'plugin')
+    security.declareProtected(ZEN_COMMON, 'plugin')
     def plugin(self, name, REQUEST):
         "Run a plugin to generate the report object"
         dmd = self.dmd
