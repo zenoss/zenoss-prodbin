@@ -89,7 +89,7 @@
         <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
                     tableName,'primarySortKey','Name')"/>
         <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
-                    tableName,'description','Description')"/>
+                    tableName,'title','Title')"/>
     </tr>
     <tal:block tal:repeat="rpt batch" tal:omit-tag="">
     <tr tal:define="odd repeat/rpt/odd"
@@ -99,7 +99,7 @@
             tal:attributes="value rpt/id"/>
       <a tal:attributes="href rpt/getPrimaryUrlPath" tal:content="rpt/id"></a>
       </td>
-      <td class="tablevalues" tal:content="rpt/description"/>
+      <td class="tablevalues" tal:content="python: rpt.title or rpt.id"/>
     </tr>
     </tal:block>
     <tr>
