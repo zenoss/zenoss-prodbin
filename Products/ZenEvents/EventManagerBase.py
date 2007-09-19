@@ -426,7 +426,7 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
             return pills
         except:
             log.exception("event summary for %s failed" % me.getDmdKey())
-            raise
+            return None
 
     def getDeviceComponentEventSummary(self, device, REQUEST=None):
         """ Given a device, return a summary of component event stati
@@ -1103,7 +1103,10 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
                     continue
                 if simple: alink = devname
                 else: alink = dev.getPrettyLink()
-                pill = self.getEventPillME(dev)[0]
+                try: 
+                    pill = self.getEventPillME(dev)[0]
+                except IndexError: 
+                    pill = ''
                 evts = [alink,pill]
                 devdata.append(evts)
         devdata.sort(pillcompare)
