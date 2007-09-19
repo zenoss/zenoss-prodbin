@@ -432,7 +432,8 @@ class UserSettings(ZenModelRM):
         """
         owner = self.getOwner()
         user = getSecurityManager().getUser()
-        return user.has_role("Manager") or owner == user
+        return user.has_role("Manager") or \
+               owner.getUserName() == user.getUserName()
 
 
     security.declareProtected(ZEN_CHANGE_SETTINGS, 'manage_editUserSettings')
