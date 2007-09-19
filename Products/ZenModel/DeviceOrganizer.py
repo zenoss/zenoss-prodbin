@@ -536,7 +536,7 @@ class DeviceOrganizer(Organizer, DeviceManagerBase, Commandable, ZenMenuable,
         return "/zport/dmd/img/icons/folder.png"
 
     security.declareProtected('View', 'getPrettyLink')
-    def getPrettyLink(self):
+    def getPrettyLink(self, shortDesc=False):
         """ Gets a link to this object, plus an icon """
         template = ("<a href='%s' class='prettylink'>"
                     "<div class='device-icon-container'> "
@@ -544,7 +544,12 @@ class DeviceOrganizer(Organizer, DeviceManagerBase, Commandable, ZenMenuable,
                     "</div>%s</a>")
         icon = self.getIconPath()
         href = self.getPrimaryUrlPath()
-        name = self.getPrimaryUrlPath().replace('/zport/dmd','')
+        if shortDesc: 
+            if self.id in ["Locations","Systems","Groups","Devices"]:
+                name = '/'+self.id
+            else:
+                name = '.../'+self.id
+        else: name = self.getPrimaryUrlPath().replace('/zport/dmd','')
         return template % (href, icon, name)
 
 InitializeClass(DeviceOrganizer)

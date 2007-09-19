@@ -781,7 +781,9 @@ div.evpill-grey   { background-position: 0px -120px; }
 a.prettylink {
     text-decoration: none;
     font-size: 1.2em;
+    /*
     padding-left: 35px;
+    */
     line-height: 28px;
 }
 
@@ -856,6 +858,11 @@ div.tabletitle-center {
 }
 table.zentable-modified {
     width:100%;
+}
+
+div.zentable-modified-column {
+    padding: 1em;
+    height:100%;
 }
 
 .yui-t1 {
@@ -935,4 +942,15 @@ dl.faux-table .first {
 #component-event-table a.prettylink {
     font-size: 1.2em;
     padding-left: 10px;
+}
+dl.faux-table a.prettylink {
+    font-size: 90%;
+    line-height: 23px; 
+}
+dl.faux-table a.prettylink img {
+    height:20px;
+}
+dl.faux-table a.prettylink div.device-icon-container {
+    height: 20px;
+    width: 25px;
 }

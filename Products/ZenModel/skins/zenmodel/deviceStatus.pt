@@ -83,7 +83,6 @@
             function makeComponentDataTable() {
                 var columns = compevsum.columns;
                 var data = compevsum.data;
-                forEach(data, function(x){log((x['Component']))});
                 var mycolumndefs = map(function(x){
                     return {key:x,sortable:true,resizeable:true}}, columns);
                 var dataSource = new YAHOO.util.DataSource(data);
@@ -111,10 +110,193 @@
 
 <tal:block tal:define=" tabletitle string:Device; "
     metal:define-macro="deviceOverview">
-<tal:block metal:use-macro="here/zenuimacros/macros/zentable">
+<tal:block metal:use-macro="here/zenuimacros/macros/zentable-slidingdoors">
+<tal:block metal:fill-slot="title">Device Information</tal:block>
+<tal:block metal:fill-slot="body">
+<div class="yui-gb zentable-modified">
+    <div class="yui-u first">
+        <div class="zentable-modified-column">
+            Organizers
+            <dl class="faux-table">
+                <dt class="first">Location</dt>
+                <dd class="first">
+                <tal:block tal:condition="python:here.location()">
+                <div tal:define=" link python:here.location().getPrettyLink(
+                                        shortDesc=True)"
+                    tal:content="structure link"/>
+                </tal:block>
+                <div tal:condition="python:not here.location()">None</div>
+                </dd>
+                <dt>Groups</dt>
+                <dd>
+                <tal:block tal:repeat="item here/groups/objectValuesAll">
+                <div tal:define="link python:item.getPrettyLink(
+                                        shortDesc=True)"
+                    tal:content="structure link"/>
+                </tal:block>
+                <div tal:condition="not:here/groups/objectValuesAll">
+                None
+                </div>
+                </dd>
+                <dt>Systems</dt>
+                <dd>
+                <tal:block tal:repeat="item here/systems/objectValuesAll">
+                <div tal:define="link python:item.getPrettyLink(
+                                        shortDesc=True)"
+                    tal:content="structure link"/>
+                </tal:block>
+                <div tal:condition="not:here/systems/objectValuesAll">
+                None
+                </div>
+                </dd>
+                <dt>Status Monitors</dt>
+                <dd>
+                  <div tal:repeat="item here/monitors/objectValuesAll">
+                      <tal:block tal:content="structure python:item.getLink(
+                                                text=item.getOrganizerName())"/>
+                  </div>
+                  <div tal:condition="not:here/monitors/objectValuesAll">
+                  None</div>
+                </dd>
+                <dt>Perf Server</dt>
+                <dd>
+                    <span tal:replace="structure python: 
+                        here.perfServer.getPrimaryLink()">
+                      performance server
+                    </span>
+                    <span tal:condition="not:here/perfServer/getPrimaryLink">
+                        None
+                    </span>
+                </dd>
+
+
+
+                <tal:block tal:condition="python:hasattr(here, 'dhcpservers')">
+                <dt>DHCP Helpers</dt>
+                <dd>
+                    <div tal:repeat="item here/dhcpservers/objectValuesAll">
+                    <tal:block tal:content="structure python:item.getLink()"/>
+                </div>
+                </dd>
+                </tal:block>
+                <tal:block tal:condition="python:hasattr(here,'termserver')
+                                                 and here.termserver()">
+                <dt>Terminal Server</dt>
+                <dd>
+                <span tal:content="structure here/termserver/getPrimaryLink"/>
+                <a class="tablevalues" href=_
+                tal:attributes="href python:'telnet:'+
+                                             here.termserver().getId()">
+                (telnet)</a>
+                </dd>
+                </tal:block>
+                <tal:block tal:condition="python:hasattr(here, 
+                                                         'dhcpubrclients')">
+                <dt>UBR Clients</dt>
+                <dd>
+                    <div tal:repeat="item here/dhcpubrclients/objectValuesAll">
+                    <tal:block tal:content="structure python:item.getLink()"/>
+                </div>
+                </dd>
+                </tal:block>
+            </dl>
+        </div>
+    </div>
+    <div class="yui-u">
+        <div class="zentable-modified-column">
+            SNMP Information
+            <dl class="faux-table">
+                <dt class="first">sysName</dt>
+                <dd class="first"> 
+                    <div style="font-size:90%" 
+                         tal:content="here/snmpSysName">x</div>
+                </dd>
+                <dt>Location</dt>
+                <dd><div style="font-size:90%"
+                    tal:content="here/snmpLocation">x</div></dd>
+                <tal:block tal:condition="here/snmpAgent">
+                <dt>Agent</dt>
+                <dd><div style="font-size:90%"
+                    tal:content="here/snmpAgent">x</div></dd>
+                </tal:block>
+            </dl>
+        </div>
+    </div>
+    <div class="yui-u">
+        <div class="zentable-modified-column" style="background-color:#f2f2f2">
+            OS
+            <dl class="faux-table">
+                <dt class="first">Tag #</dt>
+                <dd class="first"> 
+                    <div tal:content="here/hw/tag">x</div>
+                    <div tal:condition="not:here/hw/tag">&nbsp;</div>
+                </dd>
+                <dt>Serial #</dt>
+                <dd>
+                    <div tal:content="here/hw/serialNumber">x</div>
+                    <div tal:condition="not:here/hw/serialNumber">&nbsp;</div>
+                </dd>
+                <dt>HW Make</dt>
+                <dd>
+                    <div tal:content="structure
+                    here/hw/getManufacturerLink">&nbsp;</div>
+                    <div tal:condition="not:here/hw/getManufacturerLink">&nbsp;
+                    </div>
+                </dd>
+                <dt>HW Model</dt>
+                <dd>
+                    <div tal:content="structure here/hw/productClass/getPrimaryLink">x
+                    </div>
+                   <div tal:condition="not:here/hw/productClass/getPrimaryLink">
+                    &nbsp;
+                   </div>
+                </dd>
+                <dt>OS Make</dt>
+                <dd>
+                    <div tal:content="structure here/os/getManufacturerLink">x
+                    </div>
+                   <div tal:condition="not:here/os/getManufacturerLink">
+                    &nbsp;
+                   </div>
+                </dd>
+                <dt>OS Version</dt>
+                <dd>
+                    <div tal:content="
+                        structure here/os/productClass/getPrimaryLink">x
+                    </div>
+                   <div tal:condition="not:here/os/productClass/getPrimaryLink">
+                        &nbsp;
+                   </div>
+                </dd>
+                <dt>Rack Slot</dt>
+                <dd>
+                    <div tal:content="structure here/rackSlot">x</div>
+                   <div tal:condition="not:string:${here/rackSlot}">&nbsp;</div>
+                </dd>
+            </dl>
+        </div>
+    </div>
+</div>
+<div style="border-top:1px solid #aaa;background-color:#f2f2f2;">
+    <dl class="faux-table">
+    <dt class="first">SNMP Descr</dt>
+    <dd class="first"><div style="font-size:90%" 
+                tal:content="here/snmpDescr">x</div></dd>
+    <dt>Comments</dt>
+    <dd><div style="font-size:90%" tal:content="here/comments">x</div>
+        <div tal:condition="not:here/comments">&nbsp;</div>
+    </dd>
+    <dt>Links</dt>
+    <dd><div style="font-size:90%" tal:content="here/getExpandedLinks">
+        x</div>
+        <div tal:condition="not:here/getExpandedLinks">&nbsp;</div>
+        </dd>
+    </dl>
+</div>
+</tal:block>
+<!--
 <tal:block metal:fill-slot="zentablecontents">
 
-<!-- BEGIN TABLE CONTENTS -->
     <tr>
       <th class="tableheader">SNMP sysName</th>
       <td colspan='3' class="tablevalues" tal:content="here/snmpSysName"/>
@@ -170,99 +352,10 @@
       <td class="tableheader">Links</td>
       <td class="tablevalues" colspan="3" tal:content="structure here/getExpandedLinks" />
     </tr>
-<!-- END TABLE CONTENTS -->
-
+-->
 </tal:block>
 </tal:block>
-</tal:block>
 
-<span metal:use-macro="here/templates/macros/contentSeparator"/>
-
-<tal:block tal:define="tabletitle string:Related Organizers"
-    metal:define-macro="deviceLinks">
-<tal:block metal:use-macro="here/zenuimacros/macros/zentable">
-
-<tal:block metal:fill-slot="zentablecontents">
-
-<!-- BEGIN TABLE CONTENTS -->
-    <tr tal:condition="python: hasattr(here, 'termserver') 
-                        and here.termserver()">
-        <th class="tableheader">Terminal Server</th>
-        <td class="tablevalues" colspan=3>
-            <span tal:content="structure here/termserver/getPrimaryLink"/>
-            <a class="tablevalues" href=_
-            tal:attributes="href python:'telnet:'+here.termserver().getId()">
-            (telnet)</a>
-        </td>
-    </tr>
-    <tr>
-      <th class="tableheader">
-        Systems
-      </th>
-      <td class="tablevalues" colspan="3">
-      <span tal:repeat="item here/systems/objectValuesAll">
-          <tal:block tal:content="structure python:item.getLink(text=item.getOrganizerName())"/>
-      </span>
-      </td>
-    </tr>
-    <tr tal:condition="python: hasattr(here, 'dhcpservers')">
-      <th class="tableheader">
-        DHCP Helper Servers
-      </th>
-      <td class="tablevalues" colspan="3">
-      <span tal:repeat="item here/dhcpservers/objectValuesAll">
-          <tal:block tal:content="structure python:item.getLink()"/> 
-      </span>
-      </td>
-    </tr>
-    <tr tal:condition="python: hasattr(here, 'dhcpubrclients') and 
-            here.dhcpubrclients.countObjects()">
-      <th class="tableheader">
-        UBR Clients
-      </th>
-      <td class="tablevalues" colspan="3">
-      <span tal:repeat="item here/dhcpubrclients/objectValuesAll">
-          <tal:block tal:content="structure python:item.getLink()"/>
-      </span>
-      </td>
-    </tr>
-    <tr>
-      <th class="tableheader">
-        Groups
-      </th>
-      <td class="tablevalues" colspan="3">
-      <span tal:repeat="item here/groups/objectValuesAll">
-          <tal:block tal:content="structure python:item.getLink(text=item.getOrganizerName())"/>
-      </span>
-      </td>
-    </tr>
-    <tr>
-      <th class="tableheader">
-        Status Monitors
-      </th>
-      <td class="tablevalues" colspan="3">
-      <span tal:repeat="item here/monitors/objectValuesAll">
-          <tal:block tal:content="structure python:item.getLink(text=item.getOrganizerName())"/>
-      </span>
-      </td>
-    </tr>
-    <tr>
-      <th class="tableheader">
-        Performance Server
-      </th>
-      <td class="tablevalues" colspan="3">
-        <span tal:replace="structure python: 
-            here.perfServer.getPrimaryLink()">
-          performance server
-        </span>
-      </td>
-    </tr>
-
-<!-- END TABLE CONTENTS -->
-
-</tal:block>
-</tal:block>
-</tal:block>
 
 </tal:block>
 </tal:block>
