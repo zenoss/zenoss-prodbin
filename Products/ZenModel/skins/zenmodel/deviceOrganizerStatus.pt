@@ -22,7 +22,7 @@
 <tr>
           <td class="tableheader" align="left">Events</td>
           <td class="tablevalues rainbow" align="left">
-            <table metal:use-macro="here/deviceStatus/macros/eventrainbow" />
+            <table metal:use-macro="here/rainbows/macros/eventrainbow" />
           </td>
           <th class="tableheader" align="left">Sub Count</th>
           <td class="tablevalues" tal:content="here/countChildren">100</td>

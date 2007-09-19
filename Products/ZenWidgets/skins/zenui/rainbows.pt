@@ -1,0 +1,33 @@
+<tal:block metal:define-macro="vertical">
+<tal:block tal:define="
+    zem python:here.ZenEventManager;
+    colors python:'red orange yellow blue grey green'.split();
+    summaries python:[x[2] for x in zem.getEventSummaryME(here, 0)]">
+    <div class="vertical-rainbow" onclick="location.href='viewEvents'">
+        <tal:block tal:repeat="evnum python:summaries[:-1]">
+        <div tal:define="color python:colors[repeat['evnum'].index]"
+            tal:attributes="class string:evpill-${color}">
+            <span tal:content="evnum">0</span>
+            <div tal:condition="python:int(evnum)==0">
+            </div>
+        </div>
+        </tal:block>
+    </div>
+</tal:block>
+</tal:block>
+
+<table width='100%' metal:define-macro="eventrainbow"
+    tal:on-error="structure string: 
+        <span class='errorvalues'>Events unavailable</span>"
+    tal:define="
+        default  python:1;
+        severity severity | default">
+    <tr>
+        <td align=center width=16%
+        tal:repeat="evt python:here.getEventSummary(severity=severity)"
+        tal:attributes="class python:test(evt[1]-evt[2]>=0, 
+                        evt[0]+' empty', evt[0])">
+            <span tal:replace="python:'%d/%d' % (evt[1],evt[2])"/>
+        </td>
+  </tr>
+</table>

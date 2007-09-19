@@ -1504,5 +1504,9 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable, Admini
         name = self.id
         return template % (href, icon, name)
 
+    def getDeviceComponentEventSummary(self):
+        """ Gets datatable-ready string of components and summaries """
+        return self.dmd.ZenEventManager.getDeviceComponentEventSummary(self)
+
 
 InitializeClass(Device)

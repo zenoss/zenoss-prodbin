@@ -252,6 +252,39 @@ mypath python:test(item.action.startswith('javascript'),
     </table>
 </tal:block>
 
+<!--================================================
+        New Zentable macro, with sliding doors
+=================================================-->
+<tal:block metal:define-macro="zentable-slidingdoors">
+<div class="zentable-modified">
+    <table class="zentable-modified">
+        <tr>
+            <td class="zentable-header">
+                <div class="tabletitle-container">
+                    <div class="tabletitle-left">
+                        <div class="tabletitle-right">
+                            <div class="tabletitle-center">
+                            <tal:block metal:define-slot="title">
+                                Table Title
+                            </tal:block>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td class="zentable-body">
+                <div class="zentable-body">
+                <tal:block metal:define-slot="body">
+                    Here's some body.
+                </tal:block>
+                </div>
+            </td>
+        </tr>
+    </table>
+</div>
+</tal:block>
 
 <!--=================================================
     Javascript utilities that are easier with templating
@@ -290,4 +323,6 @@ var goExport = function() {
 
 ">s</script>
 </tal:block>
+
+
 

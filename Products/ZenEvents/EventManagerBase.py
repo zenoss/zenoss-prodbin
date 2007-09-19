@@ -52,6 +52,7 @@ from Products.ZenUtils.FakeRequest import FakeRequest
 from Products.ZenEvents.ZenEventClasses import Status_Ping, Status_Wmi_Conn
 import StringIO
 import csv
+from sets import Set
 
 from ZenEventClasses import Unknown
 
@@ -127,7 +128,7 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
     DeviceWhere = "\"device = '%s'\" % me.getDmdKey()"
     DeviceResultFields = ("component", "eventClass", "summary", "firstTime",
                             "lastTime", "count" )
-    ComponentWhere = "component = '%s'"
+    ComponentWhere = "\"component = '%s'\" % me.getDmdKey()"
     ComponentResultFields = ("eventClass", "summary", "firstTime",
                             "lastTime", "count" )
     IpAddressWhere = "\"ipAddress='%s'\" % (me.getId())" 
@@ -426,6 +427,84 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
         except:
             log.exception("event summary for %s failed" % me.getDmdKey())
             raise
+
+    def getDeviceComponentEventSummary(self, device, REQUEST=None):
+        """ Given a device, return a summary of component event stati
+            sorted by severity
+        """
+        mydict = {'columns':[], 'data':[]}
+        mydict['columns'] = ['Component Type', 'Events']
+        getcolor = re.compile(r'class=\"evpill-(.*?)\"', re.S|re.I|re.M).search
+        devdata = []
+        query = { 'getParentDeviceName':device.id, 'monitored':True }
+        brains = device.componentSearch(query)
+        metatypes = Set([x.meta_type for x in brains])
+        resultdict = {}
+        for mt in metatypes: resultdict[mt] = {}
+        evpilltemplate = ('<div class="evpill-%s" onclick="location.href'
+                          '=\'%s/viewEvents\'">%s</div>')
+        linktemplate = ("<a href='%s' class='prettylink'>"
+                        "<div class='device-icon-container'>%s "
+                        "</div>%s</a>")
+        colors = "green grey blue yellow orange red".split()
+        indent = "&nbsp;"*8
+        def getcompfrombrains(id):
+            for comp in brains:
+                compid = comp.getPrimaryId.split('/')[-1]
+                if compid==id: return comp.getPrimaryId, comp.meta_type
+            return None, None
+        for event in self.getEventListME(device):
+            if not len(event.component): continue
+            id, metatype = getcompfrombrains(event.component)
+            if id is None or metatype is None: 
+                id, metatype = event.component, 'Unknown'
+            tally = resultdict.setdefault(metatype, 
+                            {'sev':event.severity, 
+                             'components': {id: (event.severity, 1, id)}})
+            tally.setdefault('sev', event.severity)
+            tally.setdefault('components', {id: (event.severity, 0, id)})
+            if tally['sev'] < event.severity: tally['sev'] = event.severity
+            comp = tally['components'].setdefault(id, (event.severity, 0, id))
+            comptotal = tally['components'][id][1]
+            compsev = tally['components'][id][0]
+            newsev = compsev
+            if event.severity > compsev: newsev = event.severity
+            tally['components'][id] = (newsev, comptotal+1, id)
+        r = resultdict
+        categorysort = [(r[x]['sev'],len(r[x]['components']), x,
+                         r[x]['components'].values()) for x in r if r[x]]
+        categorysort.sort(); categorysort.reverse()
+        categorysort.extend([(0, 0, x, []) for x in r if not r[x]])
+        for bunch in categorysort:
+            catsev, catnum, catname, comps = bunch
+            catlink = 'os'
+            catcolor = colors[catsev]
+            evpill = evpilltemplate % (catcolor, 
+                                    device.getPrimaryUrlPath(),
+                                    '')
+            if catnum: evpill = ''
+            devdata.append((linktemplate % (catlink, '', catname), evpill))
+            comps.sort()
+            for comp in comps:
+                compsev, compnum, complink = comp
+                compcolor = colors[compsev]
+                if not complink.startswith('/zport'): 
+                    compname = complink
+                    complink = 'os'
+                else: 
+                    compname = complink.split('/')[-1]
+                if not compname: continue
+                compname = "<strong>%s</strong>" % compname
+                devdata.append(
+                    (linktemplate % (complink, '', indent+compname),
+                     evpilltemplate % (compcolor, 
+                                       device.getPrimaryUrlPath(), 
+                                       compnum)
+                    )
+                )
+        mydict['data'] = [{'Component Type':x[0],
+                           'Events':x[1]} for x in devdata]
+        return simplejson.dumps(mydict)
 
     def getEntityListEventSummary(self, entities=[], REQUEST=None):
         """ Given a list of URLs, return a list of event summaries,

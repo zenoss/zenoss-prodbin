@@ -105,3 +105,4 @@ import banClassesOnDeviceListMenus
 import banClassesOnAddToZenPackMenuItem
 import annoyingAlerts
 import baseReportClasses
+import component_metadata

@@ -757,6 +757,7 @@ div.evpill-green,
 div.evpill-yellow,
 div.evpill-blue,
 div.evpill-orange,
+div.evpill-grey,
 div.evpill-red {
     width:50px;
     height:24px;
@@ -775,6 +776,7 @@ div.evpill-orange { background-position: 0px -24px; }
 div.evpill-yellow { background-position: 0px -48px; }
 div.evpill-blue   { background-position: 0px -72px; }
 div.evpill-green  { background-position: 0px -96px; }
+div.evpill-grey   { background-position: 0px -120px; }
 
 a.prettylink {
     text-decoration: none;
@@ -796,4 +798,140 @@ div.device-icon-container {
     width: 35px;
     text-align: right;
     padding-right: 10px;
+}
+
+div.vertical-rainbow {
+    width: 50px;
+}
+
+div.vertical-rainbow > div {
+    position: relative;
+    margin: auto;
+    width: 50px;
+}
+div.vertical-rainbow > div > div {
+    position: absolute;
+    top: 0;
+    left: 0;
+    height:100%;
+    width:100%;
+    background-color: white;
+    opacity: .60;
+    z-index: 2;
+}
+
+div.zentable-body {
+    border: 1px solid black;
+    border-top: medium none;
+    background-color: white;
+    margin-top: -4px;
+}
+
+div.tabletitle-container {
+    height: 25px;
+    border-bottom: 1px solid black;
+    position: relative;
+}
+
+div.tabletitle-left {
+    height:100%;
+    padding-left: 20px;
+    background: transparent url(img/titlebar_left_corner.png) 
+                top left no-repeat;
+}
+div.tabletitle-right {
+    height:100%;
+    padding-right: 20px;
+    background: transparent url(img/titlebar_right_corner.png) 
+                top right no-repeat;
+}
+div.tabletitle-center {
+    position: relative;
+    color: white;
+    font-weight: bold;
+    height:25px;
+    line-height:25px;
+    background: transparent url(img/titlebar_bg.gif) 
+                top repeat-x;
+}
+table.zentable-modified {
+    width:100%;
+}
+
+.yui-t1 {
+    height: 16em;
+    font-size: 10pt;
+}
+.yui-t1 .yui-z {
+    width: 50px;
+    padding: 1em 20px;
+}
+
+.yui-t1 .yui-z2 {
+    width: 300px;
+    background-color: #f2f2f2;
+    padding: 1em 20px;
+    height: 14em;
+}
+.yui-t1 .yui-z3 {
+    margin-left: 430px;
+    float: none;
+    width: auto; 
+    height: 16em;
+}
+
+ul.inline-ul {
+    list-style-type: none;
+    margin: 0; padding: 0;
+}
+ul.inline-ul li {
+    display: inline;
+    padding: 0px 10px;
+    margin: 0px;
+}
+ul.inline-ul li span.bigtext {
+    font-size: 110%;
+    font-weight: bold;
+}
+dl.faux-table {
+    padding: 0;
+    margin: 0;
+    font-size: 9pt;
+    border-bottom: 1px dotted #aaa;
+}
+
+dl.faux-table dt, dl.faux-table dd {
+    border-top: 1px dotted #aaa;
+    line-height: 1.7em;
+    padding: 0; margin: 0;
+}
+
+dl.faux-table dt {
+    font-size: 0.9em;
+    text-align: right;
+    width: 7em;
+    color: #222;
+    white-space: nowrap;
+}
+dl.faux-table dd {
+    border-top-width:0.0568182;
+    font-size: 1em;
+    margin-top: -1.6431819em;
+    margin-left: 7.2em;
+}
+dl.faux-table .first {
+    border: medium none;
+    padding-top: 1px;
+}
+
+#component-event-table .yui-dt-table {
+    width: 100%;
+    height:100%;
+}
+#component-event-table .yui-dt-table td {
+    padding: 1px 10px;
+}
+#component-event-table a.prettylink {
+    font-size: 1.2em;
+    padding-left: 10px;
 }

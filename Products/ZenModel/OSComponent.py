@@ -90,3 +90,20 @@ class OSComponent(DeviceComponent, ManagedEntity, Linkable):
         """
         here = self.device().getLocationName()
         return here.startswith(context.getLocationName())
+
+    def getIconPath(self):
+        """ Override the device's zProperty and return
+            an icon based on the class name
+        """
+        return "/zport/dmd/img/icons/%s.png" % self.meta_type.lower()
+
+    def getPrettyLink(self):
+        """ Gets a link to this object, plus an icon """
+        template = ("<a href='%s' class='prettylink'>"
+                    "<div class='device-icon-container'> "
+                    "<img class='device-icon' src='%s'/> "
+                    "</div>%s</a>")
+        icon = self.getIconPath()
+        href = self.getPrimaryUrlPath()
+        name = self.id
+        return template % (href, icon, name)

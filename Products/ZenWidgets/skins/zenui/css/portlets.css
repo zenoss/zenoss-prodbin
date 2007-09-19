@@ -50,7 +50,8 @@ table.zenportlet div.portlet-body {
     border: 1px solid black;
     border-top: medium none;
     padding: 0;
-    overflow: auto;
+    overflow-x: hidden;
+    overflow-y: auto;
 }
 table.zenportlet div.resize-handle {
     height:3px;

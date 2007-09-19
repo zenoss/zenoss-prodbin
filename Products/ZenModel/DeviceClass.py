@@ -713,6 +713,7 @@ class DeviceClass(DeviceOrganizer, ZenPackable):
         # binary information
         zcat.addIndex('monitored', 'FieldIndex')
         zcat.addColumn('getPrimaryId')
+        zcat.addColumn('meta_type')
         
 
     def reIndex(self):
