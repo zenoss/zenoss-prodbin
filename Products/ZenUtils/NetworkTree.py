@@ -91,16 +91,16 @@ def getDeviceNetworkLinks(rootdevice):
     """ Returns network links to other devices """
     visited = []
     ifaces = rootdevice.os.interfaces()
-    ifaceids = [x.id for x in ifaces]
+    ifaceids = [x.getPrimaryId() for x in ifaces]
     for iface in ifaces:
         for ip in iface.ipaddresses.objectValuesGen():
             for ipsib in ip.network().ipaddresses.objectValuesGen():
                 ifacesib = ipsib.interface()
                 if ifacesib is None: continue
-                if (ifacesib.id in visited or 
-                    ifacesib.id in ifaceids): 
+                if (ifacesib.getPrimaryId() in visited or 
+                    ifacesib.getPrimaryId() in ifaceids): 
                     continue
-                visited.append(ifacesib.id)
+                visited.append(ifacesib.getPrimaryId())
                 link = NetworkLink()
                 link.setEndpoints(iface, ifacesib)
                 yield link
