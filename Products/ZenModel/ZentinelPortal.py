@@ -61,17 +61,19 @@ class ZentinelPortal ( PortalObjectBase ):
             return user.has_role((MANAGER_ROLE, ZEN_MANAGER_ROLE), obj)
 
 
-    def has_role(self, role, userid=None, obj=None):
+    def has_role(self, role, obj=None):
         """Check to see of a user has a role.
         """
-        user = self.dmd.ZenUsers.getUser(userid)
+        if obj is None: obj = self
+        user = getSecurityManager().getUser()
         if user: return user.has_role(role, obj)
 
 
-    def has_permission(self, perm, userid=None, obj=None):
+    def has_permission(self, perm, obj=None):
         """Check to see of a user has a permission.
         """
-        user = self.dmd.ZenUsers.getUser(userid)
+        if obj is None: obj = self
+        user = getSecurityManager().getUser()
         if user: return user.has_permission(perm, obj)
 
 
