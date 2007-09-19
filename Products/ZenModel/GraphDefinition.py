@@ -314,9 +314,9 @@ class GraphDefinition(ZenModelRM, ZenPackable):
         from ThresholdGraphPoint import ThresholdGraphPoint
         newGps = []
         for threshName in threshNames:
-            thresh = getattr(self.rrdTemplate.thresholds, threshName)
+            #thresh = getattr(self.rrdTemplate.thresholds, threshName)
             gp = self.createGraphPoint(ThresholdGraphPoint, threshName)
-            gp.threshId = thresh.id
+            gp.threshId = threshName
             newGps.append(gp)
         if REQUEST:
             REQUEST['message'] = '%s Graph Point%s added' % (len(newGps),
