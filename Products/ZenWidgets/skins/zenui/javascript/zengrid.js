@@ -409,7 +409,8 @@ ZenGrid.prototype = {
         popLock.addCallback(bind(function() {
             if (this.lock.locked) this.lock.release();
             this.updateStatusBar(offset);
-            this.populateTable(this.buffer.getRows(offset, this.numRows));
+            if(this.numRows+offset!=this.buffer.totalRows)
+                this.populateTable(this.buffer.getRows(offset, this.numRows));
         }, this));
     },
     getBlankRow: function(indx) {
@@ -578,18 +579,18 @@ ZenGrid.prototype = {
             //this.clearTable();
             this.setTableNumRows(tableLength);
         }
-        rows = this.rowEls;
+        var rows = this.rowEls;
         disconnectAllTo(this.markAsChecked);
-        for (i=0;i<rows.length&&i<data.length;i++) {
-            var mydata = data[i];
-            setElementClass(rows[i], mydata[mydata.length-1])
+        for (var numrows=0;numrows<rows.length&&numrows<data.length;numrows++) {
+            var mydata = data[numrows];
+            setElementClass(rows[numrows], mydata[mydata.length-1])
             var evid = mydata[mydata.length-2];
             var chkbox = '<input type="checkbox" name="evids:list" ';
             if (this.shouldBeChecked(evid, mydata[mydata.length-1])) 
                 chkbox+='checked ';
             chkbox += 'value="'+evid+'" id="'+evid+'"/>';
-            var yo = rows[i].getElementsByTagName('td');
-            var divs = rows[i].getElementsByTagName('div');
+            var yo = rows[numrows].getElementsByTagName('td');
+            var divs = rows[numrows].getElementsByTagName('div');
             var firstcol = yo[0];
             if (isManager) {
                 mydata = concat([''],mydata);
@@ -606,7 +607,7 @@ ZenGrid.prototype = {
             connect(divs[yo.length-1], 'onclick', geteventwindow(this.zem, evid));
             divs[yo.length-1].title = "View detailed information" + 
                 " about this event."
-            for (j=isManager?1:0;j<yo.length-1;j++) {
+            for (var j=isManager?1:0;j<yo.length-1;j++) {
                 var cellwidth = this.abswidths[j]
                 divs[j].innerHTML = unescape(mydata[j]);
                 yo[j].title = scrapeText(divs[j]);
@@ -834,7 +835,6 @@ ZenGrid.prototype = {
         var toval = this.fieldMapping[tofield];
         var fromfield = this.fields[fromindex][0];
         var fromval = this.fieldMapping[fromfield];
-        log(neww, toval, fromval);
         neww = oldint-neww;
         if (toval-neww<0) neww=toval;
         else if (fromval+neww<0) neww=-fromval;
@@ -914,4 +914,3 @@ ZenGrid.prototype = {
     }
 }
 
-log('ZenGrid javascript loaded.');

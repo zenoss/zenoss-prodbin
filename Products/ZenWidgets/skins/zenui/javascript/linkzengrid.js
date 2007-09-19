@@ -352,7 +352,8 @@ LinkZenGrid.prototype = {
         popLock.addCallback(bind(function() {
             if (this.lock.locked) this.lock.release();
             this.updateStatusBar(offset);
-            this.populateTable(this.buffer.getRows(offset, this.numRows));
+            if (offset+this.numRows!=this.buffer.totalRows)
+                this.populateTable(this.buffer.getRows(offset, this.numRows));
         }, this));
     },
     getBlankRow: function(indx) {
@@ -799,6 +800,4 @@ LinkZenGrid.prototype = {
         }
     }
 }
-
-log('ZenGrid javascript loaded.');
 
