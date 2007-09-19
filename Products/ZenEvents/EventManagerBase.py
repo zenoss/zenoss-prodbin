@@ -477,7 +477,7 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
         categorysort.extend([(0, 0, x, []) for x in r if not r[x]])
         for bunch in categorysort:
             catsev, catnum, catname, comps = bunch
-            catlink = 'os'
+            catlink = './os'
             catcolor = colors[catsev]
             evpill = evpilltemplate % (catcolor, 
                                     device.getPrimaryUrlPath(),
@@ -490,7 +490,7 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
                 compcolor = colors[compsev]
                 if not complink.startswith('/zport'): 
                     compname = complink
-                    complink = 'os'
+                    complink = './os'
                 else: 
                     compname = complink.split('/')[-1]
                 if not compname: continue
