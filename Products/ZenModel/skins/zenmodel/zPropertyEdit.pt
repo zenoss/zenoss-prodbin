@@ -22,7 +22,8 @@
       <th class="tableheader" align="center">Value</th>
       <th class="tableheader" align="center">Type</th>
       <th class="tableheader" align="center">Path</th>
-      <th class="tableheader" align="center">Overridden</th>
+      <th class="tableheader" align="center"
+               tal:condition="python:False">Overridden</th>
     </tr>
     <tal:block tal:repeat="prop props"> 
     <tr tal:define="odd repeat/prop/odd"
@@ -98,7 +99,7 @@
         tal:content="python: here.zenPropertyPath(prop)"> 
         /Devices/Servers
       </td>
-      <td class="tablevalues">
+      <td class="tablevalues" tal:condition="python:False">
         <tal:block tal:condition="python: here.isOverridden(prop)">
                 <a tal:attributes="href python:'%s/zPropOverridden?prop=%s' % (here.absolute_url(), prop)">View Overriding Objects</a>
         </tal:block>
