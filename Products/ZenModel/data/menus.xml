@@ -15,7 +15,7 @@ dialog_addActionRuleWindow
 True
 </property>
 <property type="lines" id="permissions" mode="w" >
-('Manage DMD',)
+('Change Alerting Rules',)
 </property>
 <property type="boolean" id="isdialog" mode="w" >
 True
@@ -35,7 +35,7 @@ dialog_deleteActionRuleWindows
 True
 </property>
 <property type="lines" id="permissions" mode="w" >
-('Manage DMD',)
+('Change Alerting Rules',)
 </property>
 <property type="boolean" id="isdialog" mode="w" >
 True
@@ -59,7 +59,7 @@ dialog_addActionRule
 True
 </property>
 <property type="lines" id="permissions" mode="w" >
-('Manage DMD',)
+('Change Alerting Rules',)
 </property>
 <property type="boolean" id="isdialog" mode="w" >
 True
@@ -79,7 +79,7 @@ dialog_deleteActionRules
 True
 </property>
 <property type="lines" id="permissions" mode="w" >
-('Manage DMD',)
+('Change Alerting Rules',)
 </property>
 <property type="boolean" id="isdialog" mode="w" >
 True
@@ -274,6 +274,130 @@ True
 </property>
 <property type="float" id="ordering" mode="w" >
 20.0
+</property>
+</object>
+</tomanycont>
+</object>
+<object id='AdministeredObjects_list' module='Products.ZenModel.ZenMenu' class='ZenMenu'>
+<tomanycont id='zenMenuItems'>
+<object id='addAdministeredDevice' module='Products.ZenModel.ZenMenuItem' class='ZenMenuItem'>
+<property type="text" id="description" mode="w" >
+Add Device...
+</property>
+<property type="text" id="action" mode="w" >
+dialog_addAdministeredDevice
+</property>
+<property type="boolean" id="isglobal" mode="w" >
+True
+</property>
+<property type="lines" id="permissions" mode="w" >
+('Change Admin Objects',)
+</property>
+<property type="boolean" id="isdialog" mode="w" >
+True
+</property>
+<property type="float" id="ordering" mode="w" >
+90.4
+</property>
+</object>
+<object id='addAdministeredGroup' module='Products.ZenModel.ZenMenuItem' class='ZenMenuItem'>
+<property type="text" id="description" mode="w" >
+Add Group...
+</property>
+<property type="text" id="action" mode="w" >
+dialog_addAdministeredGroup
+</property>
+<property type="boolean" id="isglobal" mode="w" >
+True
+</property>
+<property type="lines" id="permissions" mode="w" >
+('Change Admin Objects',)
+</property>
+<property type="boolean" id="isdialog" mode="w" >
+True
+</property>
+<property type="float" id="ordering" mode="w" >
+90.2
+</property>
+</object>
+<object id='addAdministeredLocation' module='Products.ZenModel.ZenMenuItem' class='ZenMenuItem'>
+<property type="text" id="description" mode="w" >
+Add Location...
+</property>
+<property type="text" id="action" mode="w" >
+dialog_addAdministeredLocation
+</property>
+<property type="boolean" id="isglobal" mode="w" >
+True
+</property>
+<property type="lines" id="permissions" mode="w" >
+('Change Admin Objects',)
+</property>
+<property type="boolean" id="isdialog" mode="w" >
+True
+</property>
+<property type="float" id="ordering" mode="w" >
+90.1
+</property>
+</object>
+<object id='addAdministeredSystem' module='Products.ZenModel.ZenMenuItem' class='ZenMenuItem'>
+<property type="text" id="description" mode="w" >
+Add System...
+</property>
+<property type="text" id="action" mode="w" >
+dialog_addAdministeredSystem
+</property>
+<property type="boolean" id="isglobal" mode="w" >
+True
+</property>
+<property type="lines" id="permissions" mode="w" >
+('Change Admin Objects',)
+</property>
+<property type="boolean" id="isdialog" mode="w" >
+True
+</property>
+<property type="float" id="ordering" mode="w" >
+90.3
+</property>
+</object>
+<object id='deleteAdministeredObjects' module='Products.ZenModel.ZenMenuItem' class='ZenMenuItem'>
+<property type="text" id="description" mode="w" >
+Delete Administered Objects...
+</property>
+<property type="text" id="action" mode="w" >
+dialog_deleteAdministeredObjects
+</property>
+<property type="boolean" id="isglobal" mode="w" >
+True
+</property>
+<property type="lines" id="permissions" mode="w" >
+('Change Admin Objects',)
+</property>
+<property type="boolean" id="isdialog" mode="w" >
+True
+</property>
+<property type="float" id="ordering" mode="w" >
+80.0
+</property>
+</object>
+<object id='saveAdministeredObjects' module='Products.ZenModel.ZenMenuItem' class='ZenMenuItem'>
+<property type="text" id="description" mode="w" >
+Save Administered Objects...
+</property>
+<property type="text" id="action" mode="w" >
+dialog_saveAdministeredObjects
+</property>
+<property type="boolean" id="isglobal" mode="w" >
+True
+</property>
+<property type="lines" id="permissions" mode="w" >
+('Change Admin Objects',)
+</property>
+<property type="boolean" id="isdialog" mode="w" >
+True
+</property>
+<property type="float" id="ordering" mode="w" >
+85.0
 </property>
 </object>
 </tomanycont>
@@ -636,6 +760,26 @@ True
 80.0
 </property>
 </object>
+<object id='setStatusMonitors_grid' module='Products.ZenModel.ZenMenuItem' class='ZenMenuItem'>
+<property type="text" id="description" mode="w" >
+Set Status Monitors...
+</property>
+<property type="text" id="action" mode="w" >
+dialog_setStatusMonitors_grid
+</property>
+<property type="boolean" id="isglobal" mode="w" >
+True
+</property>
+<property type="lines" id="permissions" mode="w" >
+('Change Device',)
+</property>
+<property type="boolean" id="isdialog" mode="w" >
+True
+</property>
+<property type="float" id="ordering" mode="w" >
+15.0
+</property>
+</object>
 <object id='setSystems_grid' module='Products.ZenModel.ZenMenuItem' class='ZenMenuItem'>
 <property type="text" id="description" mode="w" >
 Set Systems...
@@ -671,7 +815,10 @@ dialog_lockDevices
 True
 </property>
 <property type="lines" id="permissions" mode="w" >
-('Change Device',)
+('Manage Device',)
+</property>
+<property type="lines" id="banned_classes" mode="w" >
+['Monitor']
 </property>
 <property type="boolean" id="isdialog" mode="w" >
 True
@@ -691,7 +838,10 @@ dialog_moveDevices
 True
 </property>
 <property type="lines" id="permissions" mode="w" >
-('Change Device',)
+('Manage DMD',)
+</property>
+<property type="lines" id="banned_classes" mode="w" >
+['Monitor']
 </property>
 <property type="boolean" id="isdialog" mode="w" >
 True
@@ -711,7 +861,7 @@ dialog_removeDevices
 True
 </property>
 <property type="lines" id="permissions" mode="w" >
-('Change Device',)
+('Manage DMD',)
 </property>
 <property type="boolean" id="isdialog" mode="w" >
 True
@@ -733,6 +883,9 @@ True
 <property type="lines" id="permissions" mode="w" >
 ('Change Device',)
 </property>
+<property type="lines" id="banned_classes" mode="w" >
+['Monitor']
+</property>
 <property type="boolean" id="isdialog" mode="w" >
 True
 </property>
@@ -753,6 +906,9 @@ True
 <property type="lines" id="permissions" mode="w" >
 ('Change Device',)
 </property>
+<property type="lines" id="banned_classes" mode="w" >
+['Monitor']
+</property>
 <property type="boolean" id="isdialog" mode="w" >
 True
 </property>
@@ -771,7 +927,10 @@ dialog_setPerformanceMonitor
 True
 </property>
 <property type="lines" id="permissions" mode="w" >
-('Change Device',)
+('Manage DMD',)
+</property>
+<property type="lines" id="banned_classes" mode="w" >
+['StatusMonitorConf']
 </property>
 <property type="boolean" id="isdialog" mode="w" >
 True
@@ -793,6 +952,9 @@ True
 <property type="lines" id="permissions" mode="w" >
 ('Change Device',)
 </property>
+<property type="lines" id="banned_classes" mode="w" >
+['Monitor']
+</property>
 <property type="boolean" id="isdialog" mode="w" >
 True
 </property>
@@ -813,11 +975,34 @@ True
 <property type="lines" id="permissions" mode="w" >
 ('Change Device',)
 </property>
+<property type="lines" id="banned_classes" mode="w" >
+['Monitor']
+</property>
 <property type="boolean" id="isdialog" mode="w" >
 True
 </property>
 <property type="float" id="ordering" mode="w" >
 80.0
+</property>
+</object>
+<object id='setStatusMonitors' module='Products.ZenModel.ZenMenuItem' class='ZenMenuItem'>
+<property type="text" id="description" mode="w" >
+Set Status Monitors...
+</property>
+<property type="text" id="action" mode="w" >
+dialog_setStatusMonitors
+</property>
+<property type="boolean" id="isglobal" mode="w" >
+True
+</property>
+<property type="lines" id="permissions" mode="w" >
+('Change Device',)
+</property>
+<property type="boolean" id="isdialog" mode="w" >
+True
+</property>
+<property type="float" id="ordering" mode="w" >
+16.0
 </property>
 </object>
 <object id='setSystems' module='Products.ZenModel.ZenMenuItem' class='ZenMenuItem'>
@@ -832,6 +1017,9 @@ True
 </property>
 <property type="lines" id="permissions" mode="w" >
 ('Change Device',)
+</property>
+<property type="lines" id="banned_classes" mode="w" >
+['Monitor']
 </property>
 <property type="boolean" id="isdialog" mode="w" >
 True
@@ -959,6 +1147,29 @@ True
 80.0
 </property>
 </object>
+<object id='setStatusMonitors' module='Products.ZenModel.ZenMenuItem' class='ZenMenuItem'>
+<property type="text" id="description" mode="w" >
+Set Status Monitors...
+</property>
+<property type="text" id="action" mode="w" >
+dialog_setStatusMonitors_global
+</property>
+<property type="boolean" id="isglobal" mode="w" >
+True
+</property>
+<property type="lines" id="permissions" mode="w" >
+('Change Device',)
+</property>
+<property type="lines" id="allowed_classes" mode="w" >
+['DeviceClass', 'DeviceGroup', 'Location', 'System']
+</property>
+<property type="boolean" id="isdialog" mode="w" >
+True
+</property>
+<property type="float" id="ordering" mode="w" >
+15.0
+</property>
+</object>
 <object id='setSystems' module='Products.ZenModel.ZenMenuItem' class='ZenMenuItem'>
 <property type="text" id="description" mode="w" >
 Set Systems...
@@ -1081,7 +1292,7 @@ dialog_addEventView
 True
 </property>
 <property type="lines" id="permissions" mode="w" >
-('Manage DMD',)
+('Change Event Views',)
 </property>
 <property type="boolean" id="isdialog" mode="w" >
 True
@@ -1101,7 +1312,7 @@ dialog_deleteEventViews
 True
 </property>
 <property type="lines" id="permissions" mode="w" >
-('Manage DMD',)
+('Change Event Views',)
 </property>
 <property type="boolean" id="isdialog" mode="w" >
 True
@@ -1256,6 +1467,218 @@ True
 </property>
 <property type="float" id="ordering" mode="w" >
 2.0
+</property>
+</object>
+</tomanycont>
+</object>
+<object id='GraphGroup_list' module='Products.ZenModel.ZenMenu' class='ZenMenu'>
+<tomanycont id='zenMenuItems'>
+<object id='addGraphGroup' module='Products.ZenModel.ZenMenuItem' class='ZenMenuItem'>
+<property type="text" id="description" mode="w" >
+Add Group...
+</property>
+<property type="text" id="action" mode="w" >
+dialog_addGraphGroup
+</property>
+<property type="boolean" id="isglobal" mode="w" >
+True
+</property>
+<property type="lines" id="permissions" mode="w" >
+('Change Device',)
+</property>
+<property type="boolean" id="isdialog" mode="w" >
+True
+</property>
+<property type="float" id="ordering" mode="w" >
+89.0
+</property>
+</object>
+<object id='deleteGraphGroups' module='Products.ZenModel.ZenMenuItem' class='ZenMenuItem'>
+<property type="text" id="description" mode="w" >
+Delete Group...
+</property>
+<property type="text" id="action" mode="w" >
+dialog_deleteGraphGroups
+</property>
+<property type="boolean" id="isglobal" mode="w" >
+True
+</property>
+<property type="lines" id="permissions" mode="w" >
+('Change Device',)
+</property>
+<property type="boolean" id="isdialog" mode="w" >
+True
+</property>
+<property type="float" id="ordering" mode="w" >
+88.0
+</property>
+</object>
+<object id='resequenceCollectionItem' module='Products.ZenModel.ZenMenuItem' class='ZenMenuItem'>
+<property type="text" id="description" mode="w" >
+Re-sequence Items
+</property>
+<property type="text" id="action" mode="w" >
+javascript:submitFormToMethod('graphGroupForm', 'manage_resequenceGraphGroups')
+</property>
+<property type="boolean" id="isglobal" mode="w" >
+True
+</property>
+<property type="lines" id="permissions" mode="w" >
+('Change Device',)
+</property>
+<property type="boolean" id="isdialog" mode="w" >
+True
+</property>
+<property type="float" id="ordering" mode="w" >
+87.0
+</property>
+</object>
+</tomanycont>
+</object>
+<object id='GraphPoint_list' module='Products.ZenModel.ZenMenu' class='ZenMenu'>
+<tomanycont id='zenMenuItems'>
+<object id='addGPCustom' module='Products.ZenModel.ZenMenuItem' class='ZenMenuItem'>
+<property type="text" id="description" mode="w" >
+Add Custom...
+</property>
+<property type="text" id="action" mode="w" >
+dialog_addCustomGraphPoint
+</property>
+<property type="boolean" id="isglobal" mode="w" >
+True
+</property>
+<property type="lines" id="permissions" mode="w" >
+('Change Device',)
+</property>
+<property type="boolean" id="isdialog" mode="w" >
+True
+</property>
+<property type="float" id="ordering" mode="w" >
+90.49
+</property>
+</object>
+<object id='addGPFromDataPoint' module='Products.ZenModel.ZenMenuItem' class='ZenMenuItem'>
+<property type="text" id="description" mode="w" >
+Add DataPoint...
+</property>
+<property type="text" id="action" mode="w" >
+dialog_addDataPointGraphPoint
+</property>
+<property type="boolean" id="isglobal" mode="w" >
+True
+</property>
+<property type="lines" id="permissions" mode="w" >
+('Change Device',)
+</property>
+<property type="boolean" id="isdialog" mode="w" >
+True
+</property>
+<property type="float" id="ordering" mode="w" >
+90.5
+</property>
+</object>
+<object id='addGPFromThreshold' module='Products.ZenModel.ZenMenuItem' class='ZenMenuItem'>
+<property type="text" id="description" mode="w" >
+Add Threshold...
+</property>
+<property type="text" id="action" mode="w" >
+dialog_addThresholdGraphPoint
+</property>
+<property type="boolean" id="isglobal" mode="w" >
+True
+</property>
+<property type="lines" id="permissions" mode="w" >
+('Change Device',)
+</property>
+<property type="boolean" id="isdialog" mode="w" >
+True
+</property>
+<property type="float" id="ordering" mode="w" >
+90.49
+</property>
+</object>
+<object id='deleteGraphPoint' module='Products.ZenModel.ZenMenuItem' class='ZenMenuItem'>
+<property type="text" id="description" mode="w" >
+Delete GraphPoint...
+</property>
+<property type="text" id="action" mode="w" >
+dialog_deleteGraphPoint
+</property>
+<property type="boolean" id="isglobal" mode="w" >
+True
+</property>
+<property type="lines" id="permissions" mode="w" >
+('Change Device',)
+</property>
+<property type="boolean" id="isdialog" mode="w" >
+True
+</property>
+<property type="float" id="ordering" mode="w" >
+90.0
+</property>
+</object>
+<object id='resequenceGraphPoints' module='Products.ZenModel.ZenMenuItem' class='ZenMenuItem'>
+<property type="text" id="description" mode="w" >
+Re-sequence GraphPoints
+</property>
+<property type="text" id="action" mode="w" >
+javascript:submitFormToMethod('graphPointList', 'manage_resequenceGraphPoints')
+</property>
+<property type="boolean" id="isglobal" mode="w" >
+True
+</property>
+<property type="lines" id="permissions" mode="w" >
+('Change Device',)
+</property>
+<property type="boolean" id="isdialog" mode="w" >
+False
+</property>
+<property type="float" id="ordering" mode="w" >
+80.0
+</property>
+</object>
+</tomanycont>
+</object>
+<object id='GraphReportElement_list' module='Products.ZenModel.ZenMenu' class='ZenMenu'>
+<tomanycont id='zenMenuItems'>
+<object id='deleteGraph' module='Products.ZenModel.ZenMenuItem' class='ZenMenuItem'>
+<property type="text" id="description" mode="w" >
+Delete Graph...
+</property>
+<property type="text" id="action" mode="w" >
+dialog_deleteGraphReportElement
+</property>
+<property type="boolean" id="isglobal" mode="w" >
+True
+</property>
+<property type="lines" id="permissions" mode="w" >
+('Change Device',)
+</property>
+<property type="boolean" id="isdialog" mode="w" >
+True
+</property>
+<property type="float" id="ordering" mode="w" >
+90.0
+</property>
+</object>
+<object id='resequenceGraphs' module='Products.ZenModel.ZenMenuItem' class='ZenMenuItem'>
+<property type="text" id="description" mode="w" >
+Re-sequence Graphs
+</property>
+<property type="text" id="action" mode="w" >
+javascript:submitFormToMethod('graphReportElementListform', 'manage_resequenceGraphReportElements')
+</property>
+<property type="boolean" id="isglobal" mode="w" >
+True
+</property>
+<property type="lines" id="permissions" mode="w" >
+('Change Device',)
+</property>
+<property type="boolean" id="isdialog" mode="w" >
+True
+</property>
+<property type="float" id="ordering" mode="w" >
+80.0
 </property>
 </object>
 </tomanycont>
@@ -1684,7 +2107,7 @@ dialog_changeClass
 True
 </property>
 <property type="lines" id="permissions" mode="w" >
-('Change Device',)
+('Admin Device',)
 </property>
 <property type="lines" id="allowed_classes" mode="w" >
 ['Device', 'OperatingSystem']
@@ -1698,22 +2121,22 @@ True
 </object>
 <object id='clearHeartbeats' module='Products.ZenModel.ZenMenuItem' class='ZenMenuItem'>
 <property type="text" id="description" mode="w" >
-Clear Heartbeats
+Clear Heartbeats...
 </property>
 <property type="text" id="action" mode="w" >
-manage_deleteHeartbeat
+dialog_clearHeartbeats
 </property>
 <property type="boolean" id="isglobal" mode="w" >
 True
 </property>
 <property type="lines" id="permissions" mode="w" >
-('Change Device',)
+('Manage Device',)
 </property>
 <property type="lines" id="allowed_classes" mode="w" >
 ['Device', 'OperatingSystem']
 </property>
 <property type="boolean" id="isdialog" mode="w" >
-False
+True
 </property>
 <property type="float" id="ordering" mode="w" >
 5.0
@@ -1730,7 +2153,7 @@ dialog_deleteDevice
 True
 </property>
 <property type="lines" id="permissions" mode="w" >
-('Change Device',)
+('Admin Device',)
 </property>
 <property type="lines" id="allowed_classes" mode="w" >
 ['Device', 'OperatingSystem']
@@ -1753,7 +2176,7 @@ dialog_lockDevices
 True
 </property>
 <property type="lines" id="permissions" mode="w" >
-('Change Device',)
+('Manage Device',)
 </property>
 <property type="lines" id="allowed_classes" mode="w" >
 ['DeviceClass']
@@ -1776,7 +2199,7 @@ dialog_lock
 True
 </property>
 <property type="lines" id="permissions" mode="w" >
-('Change Device',)
+('Manage Device',)
 </property>
 <property type="lines" id="allowed_classes" mode="w" >
 ['Device', 'OperatingSystem', 'WinService', 'FileSystem', 'HardDisk', 'IpInterface', 'IpService', 'OSProcess', 'IpRouteEntry']
@@ -1799,7 +2222,7 @@ collectDevice
 True
 </property>
 <property type="lines" id="permissions" mode="w" >
-('Change Device',)
+('Manage Device',)
 </property>
 <property type="lines" id="allowed_classes" mode="w" >
 ['Device', 'OperatingSystem']
@@ -1822,7 +2245,7 @@ pushConfig
 True
 </property>
 <property type="lines" id="permissions" mode="w" >
-('Change Device',)
+('Manage Device',)
 </property>
 <property type="lines" id="allowed_classes" mode="w" >
 ['DeviceClass', 'Device']
@@ -1845,7 +2268,7 @@ Push Changes
 True
 </property>
 <property type="lines" id="permissions" mode="w" >
-('Change Device',)
+('Manage Device',)
 </property>
 <property type="lines" id="allowed_classes" mode="w" >
 ['OperatingSystem']
@@ -1868,7 +2291,7 @@ dialog_renameDevice
 True
 </property>
 <property type="lines" id="permissions" mode="w" >
-('Change Device',)
+('Admin Device',)
 </property>
 <property type="lines" id="allowed_classes" mode="w" >
 ['Device', 'OperatingSystem']
@@ -1891,7 +2314,7 @@ manage_snmpCommunity
 True
 </property>
 <property type="lines" id="permissions" mode="w" >
-('Change Device',)
+('Manage Device',)
 </property>
 <property type="lines" id="allowed_classes" mode="w" >
 ['Device', 'OperatingSystem', 'DeviceClass']
@@ -1914,7 +2337,7 @@ dialog_resetIp
 True
 </property>
 <property type="lines" id="permissions" mode="w" >
-('Change Device',)
+('Admin Device',)
 </property>
 <property type="lines" id="allowed_classes" mode="w" >
 ['Device', 'OperatingSystem', 'DeviceClass']
@@ -2184,6 +2607,9 @@ True
 <property type="lines" id="permissions" mode="w" >
 ('View',)
 </property>
+<property type="lines" id="banned_classes" mode="w" >
+['DeviceGroup', 'IpNetwork', 'Location', 'System']
+</property>
 <property type="lines" id="allowed_classes" mode="w" >
 ['ZenPackable']
 </property>
@@ -2205,7 +2631,7 @@ zSortableProperty?prop=zCollectorPlugins
 True
 </property>
 <property type="lines" id="permissions" mode="w" >
-('Change Device',)
+('zProperties View',)
 </property>
 <property type="lines" id="allowed_classes" mode="w" >
 ['Device', 'DeviceClass']
@@ -2297,7 +2723,7 @@ deviceManagement
 True
 </property>
 <property type="lines" id="permissions" mode="w" >
-('Change Device',)
+('Manage Device',)
 </property>
 <property type="lines" id="allowed_classes" mode="w" >
 ['Device', 'DeviceClass']
@@ -2320,7 +2746,7 @@ Administration
 True
 </property>
 <property type="lines" id="permissions" mode="w" >
-('Change Device',)
+('Manage Device',)
 </property>
 <property type="lines" id="allowed_classes" mode="w" >
 ['OperatingSystem']
@@ -2435,7 +2861,7 @@ viewHistory
 True
 </property>
 <property type="lines" id="permissions" mode="w" >
-('Change Device',)
+('View History',)
 </property>
 <property type="lines" id="allowed_classes" mode="w" >
 ['Device', 'System', 'DeviceGroup', 'Location', 'DeviceClass']
@@ -2458,7 +2884,7 @@ Modifications
 True
 </property>
 <property type="lines" id="permissions" mode="w" >
-('Change Device',)
+('View History',)
 </property>
 <property type="lines" id="allowed_classes" mode="w" >
 ['OperatingSystem']
@@ -2481,7 +2907,7 @@ zPropertyEdit
 True
 </property>
 <property type="lines" id="permissions" mode="w" >
-('View',)
+('zProperties View',)
 </property>
 <property type="lines" id="allowed_classes" mode="w" >
 ['Device']
@@ -2504,7 +2930,7 @@ zProperties
 True
 </property>
 <property type="lines" id="permissions" mode="w" >
-('View',)
+('zProperties View',)
 </property>
 <property type="lines" id="allowed_classes" mode="w" >
 ['OperatingSystem']
@@ -2768,6 +3194,9 @@ True
 </property>
 <property type="lines" id="permissions" mode="w" >
 ('View',)
+</property>
+<property type="lines" id="allowed_classes" mode="w" >
+['DeviceClass']
 </property>
 <property type="boolean" id="isdialog" mode="w" >
 True
@@ -3072,13 +3501,59 @@ True
 ('Change Device',)
 </property>
 <property type="lines" id="allowed_classes" mode="w" >
-['ReportClass']
+['CustomDeviceReportClass']
 </property>
 <property type="boolean" id="isdialog" mode="w" >
 True
 </property>
 <property type="float" id="ordering" mode="w" >
 90.0
+</property>
+</object>
+<object id='addGraphReport' module='Products.ZenModel.ZenMenuItem' class='ZenMenuItem'>
+<property type="text" id="description" mode="w" >
+Add Graph Report...
+</property>
+<property type="text" id="action" mode="w" >
+dialog_addGraphReport
+</property>
+<property type="boolean" id="isglobal" mode="w" >
+True
+</property>
+<property type="lines" id="permissions" mode="w" >
+('Change Device',)
+</property>
+<property type="lines" id="allowed_classes" mode="w" >
+['GraphReportClass']
+</property>
+<property type="boolean" id="isdialog" mode="w" >
+True
+</property>
+<property type="float" id="ordering" mode="w" >
+89
+</property>
+</object>
+<object id='addMultiGraphReport' module='Products.ZenModel.ZenMenuItem' class='ZenMenuItem'>
+<property type="text" id="description" mode="w" >
+Add Multi-Graph Report...
+</property>
+<property type="text" id="action" mode="w" >
+dialog_addMultiGraphReport
+</property>
+<property type="boolean" id="isglobal" mode="w" >
+True
+</property>
+<property type="lines" id="permissions" mode="w" >
+('Change Device',)
+</property>
+<property type="lines" id="allowed_classes" mode="w" >
+['MultiGraphReportClass']
+</property>
+<property type="boolean" id="isdialog" mode="w" >
+True
+</property>
+<property type="float" id="ordering" mode="w" >
+88.0
 </property>
 </object>
 <object id='addToZenPack' module='Products.ZenModel.ZenMenuItem' class='ZenMenuItem'>
@@ -3103,7 +3578,7 @@ True
 </object>
 <object id='deleteDeviceReports' module='Products.ZenModel.ZenMenuItem' class='ZenMenuItem'>
 <property type="text" id="description" mode="w" >
-Delete Device Reports...
+Delete Reports...
 </property>
 <property type="text" id="action" mode="w" >
 dialog_deleteReports
@@ -3115,7 +3590,7 @@ True
 ('Change Device',)
 </property>
 <property type="lines" id="allowed_classes" mode="w" >
-['ReportClass']
+['CustomDeviceReportClass', 'GraphReportClass', 'MultiGraphReportClass']
 </property>
 <property type="boolean" id="isdialog" mode="w" >
 True
@@ -3126,7 +3601,7 @@ True
 </object>
 <object id='moveDeviceReports' module='Products.ZenModel.ZenMenuItem' class='ZenMenuItem'>
 <property type="text" id="description" mode="w" >
-Move Device Reports...
+Move Reports...
 </property>
 <property type="text" id="action" mode="w" >
 dialog_moveReports
@@ -3725,6 +4200,30 @@ True
 </object>
 </tomanycont>
 </object>
+<object id='UserSettings' module='Products.ZenModel.ZenMenu' class='ZenMenu'>
+<tomanycont id='zenMenuItems'>
+<object id='saveUserSettings' module='Products.ZenModel.ZenMenuItem' class='ZenMenuItem'>
+<property type="text" id="description" mode="w" >
+Save User Settings...
+</property>
+<property type="text" id="action" mode="w" >
+dialog_saveUserSettings
+</property>
+<property type="boolean" id="isglobal" mode="w" >
+True
+</property>
+<property type="lines" id="permissions" mode="w" >
+('Change Settings',)
+</property>
+<property type="boolean" id="isdialog" mode="w" >
+True
+</property>
+<property type="float" id="ordering" mode="w" >
+0.0
+</property>
+</object>
+</tomanycont>
+</object>
 <object id='User_list' module='Products.ZenModel.ZenMenu' class='ZenMenu'>
 <tomanycont id='zenMenuItems'>
 <object id='addToZenPack' module='Products.ZenModel.ZenMenuItem' class='ZenMenuItem'>
@@ -3853,6 +4352,50 @@ True
 </object>
 </tomanycont>
 </object>
+<object id='ZenPack' module='Products.ZenModel.ZenMenu' class='ZenMenu'>
+<tomanycont id='zenMenuItems'>
+<object id='deleteFromZenPack' module='Products.ZenModel.ZenMenuItem' class='ZenMenuItem'>
+<property type="text" id="description" mode="w" >
+Delete from ZenPack...
+</property>
+<property type="text" id="action" mode="w" >
+dialog_deletePackable
+</property>
+<property type="boolean" id="isglobal" mode="w" >
+True
+</property>
+<property type="lines" id="permissions" mode="w" >
+('Manage DMD',)
+</property>
+<property type="boolean" id="isdialog" mode="w" >
+True
+</property>
+<property type="float" id="ordering" mode="w" >
+1.02
+</property>
+</object>
+<object id='exportZenPack' module='Products.ZenModel.ZenMenuItem' class='ZenMenuItem'>
+<property type="text" id="description" mode="w" >
+Export ZenPack...
+</property>
+<property type="text" id="action" mode="w" >
+dialog_exportPack
+</property>
+<property type="boolean" id="isglobal" mode="w" >
+True
+</property>
+<property type="lines" id="permissions" mode="w" >
+('Manage DMD',)
+</property>
+<property type="boolean" id="isdialog" mode="w" >
+True
+</property>
+<property type="float" id="ordering" mode="w" >
+1.01
+</property>
+</object>
+</tomanycont>
+</object>
 <object id='ZenPack_list' module='Products.ZenModel.ZenMenu' class='ZenMenu'>
 <tomanycont id='zenMenuItems'>
 <object id='addZenPack' module='Products.ZenModel.ZenMenuItem' class='ZenMenuItem'>
@@ -3875,12 +4418,12 @@ True
 1.02
 </property>
 </object>
-<object id='removeZenPack' module='Products.ZenModel.ZenMenuItem' class='ZenMenuItem'>
+<object id='deleteZenPack' module='Products.ZenModel.ZenMenuItem' class='ZenMenuItem'>
 <property type="text" id="description" mode="w" >
-Delete ZenPack...
+Delete ZenPacks...
 </property>
 <property type="text" id="action" mode="w" >
-dialog_removeZenPacks
+dialog_deleteZenPacks
 </property>
 <property type="boolean" id="isglobal" mode="w" >
 True
@@ -3893,6 +4436,94 @@ True
 </property>
 <property type="float" id="ordering" mode="w" >
 1.01
+</property>
+</object>
+</tomanycont>
+</object>
+<object id='collectionItemList' module='Products.ZenModel.ZenMenu' class='ZenMenu'>
+<tomanycont id='zenMenuItems'>
+<object id='deleteCollectionItems' module='Products.ZenModel.ZenMenuItem' class='ZenMenuItem'>
+<property type="text" id="description" mode="w" >
+Delete Items...
+</property>
+<property type="text" id="action" mode="w" >
+dialog_deleteCollectionItems
+</property>
+<property type="boolean" id="isglobal" mode="w" >
+True
+</property>
+<property type="lines" id="permissions" mode="w" >
+('Change Device',)
+</property>
+<property type="boolean" id="isdialog" mode="w" >
+True
+</property>
+<property type="float" id="ordering" mode="w" >
+88.0
+</property>
+</object>
+<object id='resequenceCollectionItem' module='Products.ZenModel.ZenMenuItem' class='ZenMenuItem'>
+<property type="text" id="description" mode="w" >
+Re-sequence Items
+</property>
+<property type="text" id="action" mode="w" >
+javascript:submitFormToMethod('collectionItemForm', 'manage_resequenceCollectionItems')
+</property>
+<property type="boolean" id="isglobal" mode="w" >
+True
+</property>
+<property type="lines" id="permissions" mode="w" >
+('Change Device',)
+</property>
+<property type="boolean" id="isdialog" mode="w" >
+True
+</property>
+<property type="float" id="ordering" mode="w" >
+87.0
+</property>
+</object>
+</tomanycont>
+</object>
+<object id='collectionList' module='Products.ZenModel.ZenMenu' class='ZenMenu'>
+<tomanycont id='zenMenuItems'>
+<object id='addCollection' module='Products.ZenModel.ZenMenuItem' class='ZenMenuItem'>
+<property type="text" id="description" mode="w" >
+Add Collection...
+</property>
+<property type="text" id="action" mode="w" >
+dialog_addCollection
+</property>
+<property type="boolean" id="isglobal" mode="w" >
+True
+</property>
+<property type="lines" id="permissions" mode="w" >
+('Change Device',)
+</property>
+<property type="boolean" id="isdialog" mode="w" >
+True
+</property>
+<property type="float" id="ordering" mode="w" >
+88.0
+</property>
+</object>
+<object id='deleteCollections' module='Products.ZenModel.ZenMenuItem' class='ZenMenuItem'>
+<property type="text" id="description" mode="w" >
+Delete Collections...
+</property>
+<property type="text" id="action" mode="w" >
+dialog_deleteCollections
+</property>
+<property type="boolean" id="isglobal" mode="w" >
+True
+</property>
+<property type="lines" id="permissions" mode="w" >
+('Change Device',)
+</property>
+<property type="boolean" id="isdialog" mode="w" >
+True
+</property>
+<property type="float" id="ordering" mode="w" >
+87.0
 </property>
 </object>
 </tomanycont>
@@ -3962,5 +4593,4 @@ True
 </tomanycont>
 </object>
 </tomanycont>
-</object>
-</objects>
+</object></objects>

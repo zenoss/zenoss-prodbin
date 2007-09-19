@@ -2608,6 +2608,10 @@ HP Gb Server Adapter:  Network Link Down
 </property>
 </object>
 <object id='snmp_linkDown' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="text" id="transform" mode="w" >
+evt.component = getattr(evt, 'ifIndex', 0)
+evt.component = getattr(evt ,'ifDescr', evt.component)
+</property>
 <property type="string" id="eventClassKey" mode="w" >
 snmp_linkDown
 </property>
@@ -2620,12 +2624,12 @@ snmp trap snmp_linkDown from 172.24.253.2
 <property type="text" id="explanation" mode="w" >
 has key for ifIndex for all traps.  Some (from cisco) have the IfDescr which give s us a good name for the interface
 </property>
+</object>
+<object id='snmp_linkUp' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
 <property type="text" id="transform" mode="w" >
 evt.component = getattr(evt, 'ifIndex', 0)
 evt.component = getattr(evt ,'ifDescr', evt.component)
 </property>
-</object>
-<object id='snmp_linkUp' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
 <property type="string" id="eventClassKey" mode="w" >
 snmp_linkUp
 </property>
@@ -2637,10 +2641,6 @@ snmp trap snmp_linkUp from 172.25.96.7
 </property>
 <property type="text" id="explanation" mode="w" >
 has key for ifIndex for all traps.  Some (from cisco) have the IfDescr which give s us a good name for the interface
-</property>
-<property type="text" id="transform" mode="w" >
-evt.component = getattr(evt, 'ifIndex', 0)
-evt.component = getattr(evt ,'ifDescr', evt.component)
 </property>
 <property visible="True" type="int" id="zEventSeverity" >
 0
@@ -3873,6 +3873,9 @@ The Compaq System Management Driver has detected that the power sub-system is re
 <object id='UPS' module='Products.ZenEvents.EventClass' class='EventClass'>
 <tomanycont id='instances'>
 <object id='accessViolationHTTP' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="text" id="transform" mode="w" >
+evt.summary = evt.mtrapargsString
+</property>
 <property type="string" id="eventClassKey" mode="w" >
 accessViolationHTTP
 </property>
@@ -3881,9 +3884,6 @@ accessViolationHTTP
 </property>
 <property type="string" id="example" mode="w" >
 snmp trap accessViolationHTTP from 10.115.100.22
-</property>
-<property type="text" id="transform" mode="w" >
-evt.summary = evt.mtrapargsString
 </property>
 </object>
 <object id='noBatteries' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
@@ -3912,6 +3912,9 @@ snmp trap passwordChange from 10.115.100.8
 </property>
 </object>
 <object id='powerRestored' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="text" id="transform" mode="w" >
+evt.summary = evt.mtrapargsString
+</property>
 <property type="string" id="eventClassKey" mode="w" >
 powerRestored
 </property>
@@ -3920,9 +3923,6 @@ powerRestored
 </property>
 <property type="string" id="example" mode="w" >
 snmp trap powerRestored from 10.120.88.7
-</property>
-<property type="text" id="transform" mode="w" >
-evt.summary = evt.mtrapargsString
 </property>
 <property visible="True" type="int" id="zEventSeverity" >
 0
@@ -3943,6 +3943,9 @@ snmp trap upsBatteryNeedsReplacement from 10.115.100.15
 </property>
 </object>
 <object id='upsBatteryReplaced' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="text" id="transform" mode="w" >
+evt.summary = evt.mtrapargsString
+</property>
 <property type="string" id="eventClassKey" mode="w" >
 upsBatteryReplaced
 </property>
@@ -3952,14 +3955,14 @@ upsBatteryReplaced
 <property type="string" id="example" mode="w" >
 UPS: Bad battery condition cleared.
 </property>
-<property type="text" id="transform" mode="w" >
-evt.summary = evt.mtrapargsString
-</property>
 <property visible="True" type="int" id="zEventSeverity" >
 0
 </property>
 </object>
 <object id='upsDiagnosticsFailed' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="text" id="transform" mode="w" >
+evt.summary = evt.mtrapargsString
+</property>
 <property type="string" id="eventClassKey" mode="w" >
 upsDiagnosticsFailed
 </property>
@@ -3969,14 +3972,14 @@ upsDiagnosticsFailed
 <property type="string" id="example" mode="w" >
 UPS: Failed internal diagnostic self-test.
 </property>
-<property type="text" id="transform" mode="w" >
-evt.summary = evt.mtrapargsString
-</property>
 <property visible="True" type="int" id="zEventSeverity" >
 3
 </property>
 </object>
 <object id='upsDiagnosticsPassed' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="text" id="transform" mode="w" >
+evt.summary = evt.mtrapargsString
+</property>
 <property type="string" id="eventClassKey" mode="w" >
 upsDiagnosticsPassed
 </property>
@@ -3986,14 +3989,14 @@ upsDiagnosticsPassed
 <property type="string" id="example" mode="w" >
 UPS: Passed internal self-test.
 </property>
-<property type="text" id="transform" mode="w" >
-evt.summary = evt.mtrapargsString
-</property>
 <property visible="True" type="int" id="zEventSeverity" >
 0
 </property>
 </object>
 <object id='upsOnBattery' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="text" id="transform" mode="w" >
+evt.summary = evt.mtrapargsString
+</property>
 <property type="string" id="eventClassKey" mode="w" >
 upsOnBattery
 </property>
@@ -4002,9 +4005,6 @@ upsOnBattery
 </property>
 <property type="string" id="example" mode="w" >
 snmp trap upsOnBattery from 10.120.88.7
-</property>
-<property type="text" id="transform" mode="w" >
-evt.summary = evt.mtrapargsString
 </property>
 <property visible="True" type="int" id="zEventSeverity" >
 5
@@ -4478,6 +4478,9 @@ Possible memory module event cause:Single bit error logging disabled
 <object id='Blade' module='Products.ZenEvents.EventClass' class='EventClass'>
 <tomanycont id='instances'>
 <object id='alertDrscAuthError' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="text" id="transform" mode="w" >
+evt.summary=evt.drsAlertMessage
+</property>
 <property type="string" id="eventClassKey" mode="w" >
 alertDrscAuthError
 </property>
@@ -4487,14 +4490,14 @@ alertDrscAuthError
 <property type="string" id="example" mode="w" >
 Message: Web login fail.
 </property>
-<property type="text" id="transform" mode="w" >
-evt.summary=evt.drsAlertMessage
-</property>
 <property visible="True" type="int" id="zEventSeverity" >
 3
 </property>
 </object>
 <object id='alertDrscSEL80percentFull' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="text" id="transform" mode="w" >
+evt.summary=evt.drsAlertMessage
+</property>
 <property type="string" id="eventClassKey" mode="w" >
 alertDrscSEL80percentFull
 </property>
@@ -4504,14 +4507,15 @@ alertDrscSEL80percentFull
 <property type="string" id="example" mode="w" >
 Message: The DRAC/MC system event log is 80% full.
 </property>
-<property type="text" id="transform" mode="w" >
-evt.summary=evt.drsAlertMessage
-</property>
 <property visible="True" type="int" id="zEventSeverity" >
 4
 </property>
 </object>
 <object id='alertDrscSELCritical' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="text" id="transform" mode="w" >
+evt.summary=evt.drsAlertMessage
+evt.component=evt.split()[0]
+</property>
 <property type="string" id="eventClassKey" mode="w" >
 alertDrscSELCritical
 </property>
@@ -4521,15 +4525,15 @@ alertDrscSELCritical
 <property type="string" id="example" mode="w" >
 DRAC/MC-2 module sensor detected a nonrecoverable event.
 </property>
-<property type="text" id="transform" mode="w" >
-evt.summary=evt.drsAlertMessage
-evt.component=evt.split()[0]
-</property>
 <property visible="True" type="int" id="zEventSeverity" >
 5
 </property>
 </object>
 <object id='alertDrscSELNormal' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="text" id="transform" mode="w" >
+evt.summary=evt.drsAlertMessage
+evt.component=evt.split()[0]
+</property>
 <property type="string" id="eventClassKey" mode="w" >
 alertDrscSELNormal
 </property>
@@ -4539,15 +4543,15 @@ alertDrscSELNormal
 <property type="string" id="example" mode="w" >
 DRAC/MC-2 module sensor presence was detected.
 </property>
-<property type="text" id="transform" mode="w" >
-evt.summary=evt.drsAlertMessage
-evt.component=evt.split()[0]
-</property>
 <property visible="True" type="int" id="zEventSeverity" >
 0
 </property>
 </object>
 <object id='alertDrscSELWarning' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="text" id="transform" mode="w" >
+evt.summary=evt.drsAlertMessage
+evt.component=evt.split()[0]
+</property>
 <property type="string" id="eventClassKey" mode="w" >
 alertDrscSELWarning
 </property>
@@ -4556,10 +4560,6 @@ alertDrscSELWarning
 </property>
 <property type="string" id="example" mode="w" >
 Server-10 module sensor was removed.
-</property>
-<property type="text" id="transform" mode="w" >
-evt.summary=evt.drsAlertMessage
-evt.component=evt.split()[0]
 </property>
 <property visible="True" type="int" id="zEventSeverity" >
 4
@@ -5159,6 +5159,9 @@ By Default map all FileMaker events to Archive and set severity = 2
 <object id='Environ' module='Products.ZenEvents.EventClass' class='EventClass'>
 <tomanycont id='instances'>
 <object id='diagnostic-alarm-trap-node' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="text" id="transform" mode="w" >
+evt.eventKey=getattr(evt,"ims-trap-chan","")
+</property>
 <property type="string" id="eventClassKey" mode="w" >
 diagnostic-alarm-trap-node
 </property>
@@ -5168,14 +5171,15 @@ diagnostic-alarm-trap-node
 <property type="string" id="example" mode="w" >
 snmp trap diagnostic-alarm-trap-node from 10.120.100.139
 </property>
-<property type="text" id="transform" mode="w" >
-evt.eventKey=getattr(evt,"ims-trap-chan","")
-</property>
 <property visible="True" type="int" id="zEventSeverity" >
 3
 </property>
 </object>
 <object id='environment-alarm-trap-major' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="text" id="transform" mode="w" >
+evt.eventKey = getattr(evt, 'ims-trap-chan') + " " + getattr(evt, 'ims-trap-env-type')
+evt.summary = evt.eventKey + " " + getattr(evt, 'ims-trap-status')
+</property>
 <property type="string" id="eventClassKey" mode="w" >
 environment-alarm-trap-major
 </property>
@@ -5185,15 +5189,15 @@ environment-alarm-trap-major
 <property type="string" id="example" mode="w" >
 snmp trap environment-alarm-trap-major from 10.120.100.139
 </property>
-<property type="text" id="transform" mode="w" >
-evt.eventKey = getattr(evt, 'ims-trap-chan') + " " + getattr(evt, 'ims-trap-env-type')
-evt.summary = evt.eventKey + " " + getattr(evt, 'ims-trap-status')
-</property>
 <property visible="True" type="int" id="zEventSeverity" >
 5
 </property>
 </object>
 <object id='environment-alarm-trap-normal' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="text" id="transform" mode="w" >
+evt.eventKey = getattr(evt, 'ims-trap-chan') + " " + getattr(evt, 'ims-trap-env-type')
+evt.summary = evt.eventKey + " " + getattr(evt, 'ims-trap-status')
+</property>
 <property type="string" id="eventClassKey" mode="w" >
 environment-alarm-trap-normal
 </property>
@@ -5205,10 +5209,6 @@ Burk DataCenter Temperature 73.0
 </property>
 <property type="text" id="explanation" mode="w" >
 These traps dedup on ims4000 channel name plus sensor type.  There are only two mappings one for bad (this one) and one for good (normal).
-</property>
-<property type="text" id="transform" mode="w" >
-evt.eventKey = getattr(evt, 'ims-trap-chan') + " " + getattr(evt, 'ims-trap-env-type')
-evt.summary = evt.eventKey + " " + getattr(evt, 'ims-trap-status')
 </property>
 <property visible="True" type="int" id="zEventSeverity" >
 0
