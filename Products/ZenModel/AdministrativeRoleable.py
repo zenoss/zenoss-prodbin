@@ -57,7 +57,8 @@ class AdministrativeRoleable:
 
     security.declareProtected(ZEN_ADMINISTRATORS_EDIT, 
         'manage_editAdministrativeRoles')
-    def manage_editAdministrativeRoles(self, ids=(), role=(), level=(), REQUEST=None):
+    def manage_editAdministrativeRoles(self, ids=(), role=(), 
+                                        level=(), REQUEST=None):
         """Edit list of admin roles.
         """
         if type(ids) in types.StringTypes:
@@ -84,7 +85,8 @@ class AdministrativeRoleable:
         if type(delids) in types.StringTypes:
             delids = [delids]
         for id in delids:
-            self.adminRoles._delObject(id)
+            if self.adminRoles._getOb(id):
+                self.adminRoles._delObject(id)
             self.manage_delLocalRoles((id,))
         if getattr(self, 'index_object', False):
             self.index_object()
