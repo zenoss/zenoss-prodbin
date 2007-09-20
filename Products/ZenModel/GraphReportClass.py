@@ -26,7 +26,7 @@ from Globals import InitializeClass
 def manage_addGraphReportClass(context, id, title = None, REQUEST = None):
     ''' Construct a new GraphReportclass
     '''
-    rc = DeviceReportClass(id, title)
+    rc = GraphReportClass(id, title)
     context._setObject(rc.id, rc)
     if REQUEST is not None:
         REQUEST['message'] = "Report organizer created"

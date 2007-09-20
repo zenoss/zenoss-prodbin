@@ -26,7 +26,7 @@ from ZenModelRM import ZenModelRM
 def manage_addDeviceReport(context, id, title = None, REQUEST = None):
     """Add a DeviceReport
     """
-    dc = DeviceReprot(id, title)
+    dc = DeviceReport(id, title)
     context._setObject(id, dc)
     if REQUEST is not None:
         REQUEST['message'] = "Device report created"

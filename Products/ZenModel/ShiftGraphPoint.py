@@ -28,7 +28,7 @@ def manage_addShiftGraphPoint(context, id, REQUEST = None):
     '''
     if REQUEST:
         REQUEST['message'] = 'That operation is not supported.'
-        self.callZenScreen(REQUEST)
+        context.callZenScreen(REQUEST)
 
 
 class ShiftGraphPoint(GraphPoint):

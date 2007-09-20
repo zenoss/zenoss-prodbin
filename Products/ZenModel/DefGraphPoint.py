@@ -26,7 +26,7 @@ def manage_addDefGraphPoint(context, id, REQUEST = None):
     '''
     if REQUEST:
         REQUEST['message'] = 'That operation is not supported.'
-        self.callZenScreen(REQUEST)
+        context.callZenScreen(REQUEST)
 
 
 class DefGraphPoint(GraphPoint):

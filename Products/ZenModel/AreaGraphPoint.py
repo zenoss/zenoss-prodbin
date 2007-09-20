@@ -26,7 +26,7 @@ def manage_addAreaGraphPoint(context, id, REQUEST = None):
     '''
     if REQUEST:
         REQUEST['message'] = 'That operation is not supported.'
-        self.callZenScreen(REQUEST)
+        context.callZenScreen(REQUEST)
 
 
 class AreaGraphPoint(GraphPoint):
@@ -61,7 +61,7 @@ class AreaGraphPoint(GraphPoint):
         if self.color:
             gopts += '%s' % self.getColor(idx)
         if self.legend:
-            gopts += ':%s' % self.addPrefix(prefix, legend)
+            gopts += ':%s' % self.addPrefix(prefix, self.legend)
         if self.stacked:
             gopts += ':STACK'
         return cmds + [gopts]

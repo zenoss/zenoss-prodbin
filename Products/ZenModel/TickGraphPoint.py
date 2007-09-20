@@ -26,7 +26,7 @@ def manage_addTickGraphPoint(context, id, REQUEST = None):
     '''
     if REQUEST:
         REQUEST['message'] = 'That operation is not supported.'
-        self.callZenScreen(REQUEST)
+        context.callZenScreen(REQUEST)
 
 
 class TickGraphPoint(GraphPoint):

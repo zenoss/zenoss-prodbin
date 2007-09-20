@@ -26,7 +26,7 @@ def manage_addPrintGraphPoint(context, id, REQUEST = None):
     '''
     if REQUEST:
         REQUEST['message'] = 'That operation is not supported.'
-        self.callZenScreen(REQUEST)
+        context.callZenScreen(REQUEST)
 
 
 class PrintGraphPoint(GraphPoint):
@@ -58,5 +58,5 @@ class PrintGraphPoint(GraphPoint):
         return cmds + ['PRINT:%s:%s%s' % (
                     self.addPrefix(prefix, self.vname),
                     (self.format or self.DEFAULT_FORMAT).replace(':', '\:'),
-                    self.strftime and ':%s' % strftime or '')]
+                    self.strftime and ':%s' % self.strftime or '')]
 

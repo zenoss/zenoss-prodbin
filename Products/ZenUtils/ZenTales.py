@@ -16,8 +16,9 @@ from DateTime import DateTime
 
 _compiled = {}
 
-def talesEvalStr(express, context, extra=None):
+def talesEvalStr(expression, context, extra=None):
     return talesEval('string:%s' % expression, context, extra)
+
 
 def talesEval(express, context, extra=None):
     """Perform a TALES eval on the express using context.
