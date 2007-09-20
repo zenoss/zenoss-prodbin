@@ -25,18 +25,9 @@
 			import com.adobe.flex.extras.controls.springgraph.Graph;
 			import com.adobe.flex.extras.controls.springgraph.Item;
 			import mx.core.Application;
-            import mx.events.ToolTipEvent;
-            import PanelToolTip;
             
 			private var created: Boolean = false;
 
-            private function createCustomTip(title:String, body:String,
-                                             event:ToolTipEvent):void {
-                var ptt:PanelToolTip = new PanelToolTip();
-                ptt.title = data.data.@prop;
-                ptt.bodyText = body;
-                event.toolTip = ptt;
-            }
 
 
 			public function doubleClick(event: Event): void {
