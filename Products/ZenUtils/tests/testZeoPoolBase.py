@@ -10,7 +10,6 @@
 # For complete information please visit: http://www.zenoss.com/oss/
 #
 ###########################################################################
-import pdb
 import unittest
 import Globals
 import transaction
@@ -40,7 +39,6 @@ class ZeoPoolBaseTest(unittest.TestCase):
         app._p_jar.close()
         del app
         zpb.closeAll()
-        #pdb.set_trace()
         app = zpb.getConnection()
         app.unrestrictedTraverse("/zport/dmd")
         
