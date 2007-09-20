@@ -255,12 +255,15 @@ class ZenPropertyManager(PropertyManager):
     def isOverridden(self, propname):
         """ Check that a property is being overridden somewhere below in the tree
         """
-        for dev in self.getSubDevicesGen():
-            if dev.isLocal(propname) and dev != self:
-                return True
-        for subclass in self.getSubOrganizers():
-            if subclass.isLocal(propname):
-                return True
+        if hasattr(aq_base(self), 'getSubInstances'):
+            for (rel, relobj) in self._relations:
+                for inst in self.getSubInstances(rel):
+                    if inst.isLocal(propname) and inst != self:
+                        return True
+            for suborg in self.children():
+                if suborg.isLocal(propname) \
+                or suborg.isOverridden(propname):
+                    return True
         return False
     
     security.declareProtected(ZEN_ZPROPERTIES_VIEW, 'getOverriddenObjects')
@@ -268,12 +271,19 @@ class ZenPropertyManager(PropertyManager):
         """ Get the objects that override a property somewhere below in the tree
         """
         objects = []
-        for dev in self.getSubDevicesGen():
-            if dev.isLocal(propname) and dev != self:
-                objects.append(dev)
-        for subclass in self.getSubOrganizers():
-            if subclass.isLocal(propname):
-                objects.append(subclass)
+        if hasattr(aq_base(self), 'getSubInstances'):
+            for (rel, relobj) in self._relations:
+                for inst in self.getSubInstances(rel):
+                    if inst.isLocal(propname) \
+                    and inst != self \
+                    and inst not in objects:
+                        objects.append(inst)
+            for suborg in self.children():
+                if suborg.isLocal(propname):
+                    objects.append(suborg)
+                for inst in suborg.getOverriddenObjects(propname):
+                    if inst not in objects:
+                        objects.append(inst)
         return objects
     
 InitializeClass(ZenPropertyManager)

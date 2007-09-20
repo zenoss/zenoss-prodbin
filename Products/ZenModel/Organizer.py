@@ -259,6 +259,7 @@ class Organizer(ZenModelRM, EventView):
         if not relobj:
             raise AttributeError, "%s not found on %s" % (rel, self.id)
         objs = relobj()
+        if not objs: objs = []
         for suborg in self.children():
             objs.extend(suborg.getSubInstances(rel))
         return objs
