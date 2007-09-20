@@ -125,15 +125,20 @@ Portlet.prototype = {
         connect(myDataTable, 'onfocus', myDataTable.blur);
     },
     toggleSettings: function(state) {
-        if (this.settingsPane.style.display=='none'||state=='show') {
+        var show = method(this, function() {
             this.body.style.marginTop = '-2px';
             showElement(this.settingsPane);
             this.PortletContainer.setContainerHeight();
-        } else {
-            hideElement(this.settingsPane||state=='hide');
+        });
+        var hide = method(this, function() {
+            hideElement(this.settingsPane);
             this.body.style.marginTop = '-4px';
             this.PortletContainer.setContainerHeight();
-        }
+        });
+        if (state=='hide') hide();
+        else if (state=='show') show();
+        else if (this.settingsPane.style.display=='none') show();
+        else if (this.settingsPane.style.display=='block') hide();
     },
     saveSettings: function(settings) {
         this.refreshTime = settings['refreshTime'];
@@ -148,7 +153,7 @@ Portlet.prototype = {
     },
     submitSettings: function(e, settings) {
         settings = settings || {};
-        settings['refreshTime'] = this.refreshRateInput.value;
+        settings['refreshTime'] = this.refreshRateInput.value || 0;
         settings['title'] = this.titleInput.value;
         this.saveSettings(settings);
         this.toggleSettings('hide');
@@ -847,8 +852,9 @@ WatchListPortlet.prototype = {
             'Zenoss Objects', s);
         addElementClass(this.locsearch.container, 'portlet-settings-control');
     },
-    submitSettings: function(e) {
-        var postContent = this.datasource.postContent;
+    submitSettings: function(e, settings) {
+        var postContent = settings?settings.postContent:
+                          this.datasource.postContent;
         var newob = this.locsearch.input.value;
         if (findValue(postContent, newob)<0) {
             if (newob.length>0) postContent.push(newob);
@@ -886,7 +892,7 @@ WatchListPortlet.prototype = {
         var name = regex = data.match(/<\/div>(.*?)<\/a>/)[1];
         myarray = this.datasource.postContent;
         myarray.splice(findValue(myarray, name), 1);
-        this.saveSettings({'postContent':myarray});
+        this.submitSettings(null, {'postContent':myarray});
     }
 }
 YAHOO.zenoss.portlet.WatchListPortlet = WatchListPortlet;

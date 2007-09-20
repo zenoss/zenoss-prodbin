@@ -543,7 +543,7 @@ class DeviceOrganizer(Organizer, DeviceManagerBase, Commandable, ZenMenuable,
                 "<img class='device-icon' src='%s'/> " 
                 "</div>") % self.getIconPath()
         href = self.getPrimaryUrlPath()
-        name = self.getOrganizerName()
+        name = self.getPrimaryDmdId()
         if noicon: icon=''
         if shortDesc: name = self.id
         return template % (href, icon, name)
