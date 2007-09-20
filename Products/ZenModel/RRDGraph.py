@@ -16,6 +16,13 @@ __doc__="""RRDGraph
 RRDGraph defines the global options for an rrdtool graph.
 """
 
+###########################################################################
+#
+# RRDGraph is deprecated.  GraphDefinition is now used in its place.
+# RRDGraph.py can be removed from zenoss post 2.1
+#
+###########################################################################
+
 import os
 import re
 import time
