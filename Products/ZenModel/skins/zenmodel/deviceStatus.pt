@@ -113,7 +113,7 @@
 <tal:block metal:use-macro="here/zenuimacros/macros/zentable-slidingdoors">
 <tal:block metal:fill-slot="title">Device Information</tal:block>
 <tal:block metal:fill-slot="body">
-<div class="yui-gb zentable-modified">
+<div class="yui-g zentable-modified">
     <div class="yui-u first">
         <div class="zentable-modified-column">
             Organizers
@@ -122,7 +122,7 @@
                 <dd class="first">
                 <tal:block tal:condition="python:here.location()">
                 <div tal:define=" link python:here.location().getPrettyLink(
-                                        shortDesc=True)"
+                                        noicon=True)"
                     tal:content="structure link"/>
                 </tal:block>
                 <div tal:condition="python:not here.location()">None</div>
@@ -131,7 +131,7 @@
                 <dd>
                 <tal:block tal:repeat="item here/groups/objectValuesAll">
                 <div tal:define="link python:item.getPrettyLink(
-                                        shortDesc=True)"
+                                        noicon=True)"
                     tal:content="structure link"/>
                 </tal:block>
                 <div tal:condition="not:here/groups/objectValuesAll">
@@ -142,7 +142,7 @@
                 <dd>
                 <tal:block tal:repeat="item here/systems/objectValuesAll">
                 <div tal:define="link python:item.getPrettyLink(
-                                        shortDesc=True)"
+                                        noicon=True)"
                     tal:content="structure link"/>
                 </tal:block>
                 <div tal:condition="not:here/systems/objectValuesAll">
@@ -203,26 +203,6 @@
         </div>
     </div>
     <div class="yui-u">
-        <div class="zentable-modified-column">
-            SNMP Information
-            <dl class="faux-table">
-                <dt class="first">sysName</dt>
-                <dd class="first"> 
-                    <div style="font-size:90%" 
-                         tal:content="here/snmpSysName">x</div>
-                </dd>
-                <dt>Location</dt>
-                <dd><div style="font-size:90%"
-                    tal:content="here/snmpLocation">x</div></dd>
-                <tal:block tal:condition="here/snmpAgent">
-                <dt>Agent</dt>
-                <dd><div style="font-size:90%"
-                    tal:content="here/snmpAgent">x</div></dd>
-                </tal:block>
-            </dl>
-        </div>
-    </div>
-    <div class="yui-u">
         <div class="zentable-modified-column" style="background-color:#f2f2f2">
             OS
             <dl class="faux-table">
@@ -273,6 +253,19 @@
                     <div tal:content="structure here/rackSlot">x</div>
                    <div tal:condition="not:string:${here/rackSlot}">&nbsp;</div>
                 </dd>
+                <dt>sysName</dt>
+                <dd> 
+                    <div style="font-size:90%" 
+                         tal:content="here/snmpSysName">x</div>
+                </dd>
+                <dt>Location</dt>
+                <dd><div style="font-size:90%"
+                    tal:content="here/snmpLocation">x</div></dd>
+                <tal:block tal:condition="here/snmpAgent">
+                <dt>Agent</dt>
+                <dd><div style="font-size:90%"
+                    tal:content="here/snmpAgent">x</div></dd>
+                </tal:block>
             </dl>
         </div>
     </div>
