@@ -147,7 +147,12 @@ class MinMaxThresholdInstance(ThresholdInstance):
         """A new datapoint has been collected, use the given _raw_
         value to re-evalue the threshold."""
         result = []
-        cycleTime, rrdType = self.rrdInfoCache(dataPoint)
+        if value is None: return result
+        try:
+            cycleTime, rrdType = self.rrdInfoCache(dataPoint)
+        except Exception:
+            log.error('Unable to read RRD file for %s' % dataPoint)
+            return result
         if rrdType != 'GAUGE':
             startStop, names, values = \
                        rrdtool.fetch(self.context().path(dataPoint), 'AVERAGE',
