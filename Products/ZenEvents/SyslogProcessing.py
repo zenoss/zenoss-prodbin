@@ -49,6 +49,8 @@ r"(?P<component>\S+)\[(?P<pid>\d+)\]: (?P<summary>.*)",
 # unix syslog without pid
 r"(?P<component>\S+): (?P<summary>.*)",
 
+# adtran devices
+r"^(?P<deviceModel>[^\[]+)\[(?P<deviceManufacturer>ADTRAN)\]:(?P<component>[^\|]+\|\d+\|\d+)\|(?P<summary>.*)"
 ) 
 
 # compile regex parsers on load
