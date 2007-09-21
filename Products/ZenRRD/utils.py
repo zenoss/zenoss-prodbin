@@ -22,7 +22,7 @@ __version__ = "$Revision: 1.9 $"[11:-2]
 from sets import Set
 from Acquisition import aq_chain
 
-from Exceptions import RRDObjectNotFound
+from Exceptions import RRDObjectNotFound, TooManyArgs
 
 def loadargs(obj, args):
     """Load data into a RRD Object"""
