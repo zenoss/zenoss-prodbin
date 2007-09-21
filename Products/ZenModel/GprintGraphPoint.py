@@ -59,5 +59,5 @@ class GprintGraphPoint(GraphPoint):
         return cmds + ['GPRINT:%s:%s%s' % (
                     self.addPrefix(prefix, self.vname),
                     (self.format or self.DEFAULT_FORMAT).replace(':', '\:'),
-                    self.strftime and ':%s' % strftime or '')]
+                    self.strftime and ':%s' % self.strftime or '')]
 
