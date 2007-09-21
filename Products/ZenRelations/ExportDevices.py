@@ -70,7 +70,7 @@ class ExportDevices(ZCmdBase):
             except AttributeError: pass
             else:
                 devs = filter(keepDevice, devs)
-                map(dev.parentNode.removeChild, devs)
+                map(node.parentNode.removeChild, devs)
 
         def clearProps(node):
             try: props = node.getElementsByTagName('property')
