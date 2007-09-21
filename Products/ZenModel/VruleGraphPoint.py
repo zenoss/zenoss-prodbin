@@ -59,6 +59,6 @@ class VruleGraphPoint(GraphPoint):
             return cmds
         gopts = 'VRULE:%s%s' % (self.time, self.getColor(idx))
         if self.legend:
-            gopts += ':%s' % self.addPrefix(prefix, legend)
+            gopts += ':%s' % self.addPrefix(prefix, self.legend)
         return cmds + [gopts]
 
