@@ -202,7 +202,7 @@ Defines an object that runs Selenium commands.
     
     def get_boolean_array(self, verb, args):
         boolarr = self.get_string_array(verb, args)
-        for i in range(len(boolarr)):
+        for i, boolstr in enumerate(boolarr):
             if ("true" == boolstr):
                 boolarr[i] = True
                 continue
