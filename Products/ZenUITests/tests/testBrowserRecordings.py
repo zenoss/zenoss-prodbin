@@ -27,7 +27,6 @@ def convertFilesToSuite(filenames):
     return unittest.TestSuite(suites)
 
 def test_suite():
-    #import pdb; pdb.set_trace()
     from Products import ZenUITests
     basePath = ZenUITests.__path__[0]
     filenames = glob('%s/tests/TestGen4Web/*.xml' % basePath)
