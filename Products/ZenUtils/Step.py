@@ -74,11 +74,11 @@ class Test:
 
 
     def sequence(self):
-        d1 = foo(1)
+        d1 = self.foo(1)
         print 'yielding d1 from sequence'
         yield d1
         r1 = d1.result
-        d2 = foo(r1 + 1)
+        d2 = self.foo(r1 + 1)
         print 'yielding d2 from sequence'
         yield d2
         r2 = d2.result
