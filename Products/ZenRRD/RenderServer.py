@@ -224,6 +224,7 @@ class RenderServer(RRDToolItem):
             dmd = self.dmd
             m = os.path.join(os.environ['ZENHOME'],
                              'Products/ZenRRD/plugins/%s.py' % name)
+            graph = None
             exec open(m)
             return graph
         except Exception, ex:
