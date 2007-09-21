@@ -59,7 +59,7 @@ class TestEvents(SelTestBase):
         """Test adding an event and moving it to history"""
             
         
-    def moveEventClassMappings(self, pathsList="ids:list", form_name="mappings", moveTo="/Unknown", stringval="testingString"):
+    def moveEventClassMappings(self, pathsList="ids:list", form_name="mappings", moveTo="/Unknown", stringVal="testingString"):
         """Test moving an EventClassMapping to /Unknown"""
         
         self.waitForElement(getByValue(pathsList, stringVal, form_name))
