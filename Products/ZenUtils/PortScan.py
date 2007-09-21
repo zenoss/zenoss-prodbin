@@ -82,7 +82,7 @@ class Scanner(object):
         dl = []
         semaphore = defer.DeferredSemaphore(self.queueCount)
         if self.portList:
-            ports = portList
+            ports = self.portList
         else:
             ports = range(*self.portRange)
         for host in self.hosts:
