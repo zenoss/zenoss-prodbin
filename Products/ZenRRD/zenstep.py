@@ -107,7 +107,7 @@ class UpdateStep(ZCmdBase):
         monitor = monitors._getOb(self.options.monitor)
         self.defaultRRDCommand = monitor.getDefaultRRDCreateCommand()
         if self.options.filename:
-            self.process(filename)
+            self.process(self.options.filename)
         else:
             for root, dirs, files in os.walk(self.options.root):
                 for filename in files:
