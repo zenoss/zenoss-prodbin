@@ -118,6 +118,7 @@ class ZenModelRM(ZenModelBase, RelationshipManager, Historical, ZenPacker):
             # get https URL for user space at Zenoss.net
             url = 'https://%s:%s@zenoss.net/'
             # build XML-RPC proxy object for publishing to Zenoss.net
+            import xmlrpclib
             server = xmlrpclib.ProxyServer(url)
             msg = "Item has been exported to: %s. Note that you will need to "
             msg += "login at Zenoss.net and publish this template in order to "
