@@ -108,7 +108,7 @@ class ZenActions(ZCmdBase):
     lastCommand = None
 
     addstate = ("INSERT INTO alert_state "
-                "VALUES ('%s', '%s', '%s', NULL, now()) "
+                "VALUES ('%s', '%s', '%s', NULL) "
                 "ON DUPLICATE KEY UPDATE lastSent = now()")
     
 
