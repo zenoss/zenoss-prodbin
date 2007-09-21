@@ -123,7 +123,7 @@ class PerformanceConfig(HubService):
                     listener.callRemote('updateThresholdClasses',
                                         self.remote_getThresholdClasses())
                 except Exception, ex:
-                    log.exception("Error notifying a listener of new classes")
+                    self.log.exception("Error notifying a listener of new classes")
 
         # device has been changed:
         if isinstance(object, Device):
