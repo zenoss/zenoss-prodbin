@@ -55,7 +55,7 @@ class Record:
         return self.values.get(name)
 
     def percent(self, partial, total):
-        return percent(partial, total, decimals)
+        return percent(partial, total)
 
     def percentString(self, n, decimals=0):
         return percentString(n, decimals)
