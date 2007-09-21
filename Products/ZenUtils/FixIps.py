@@ -13,6 +13,7 @@
 from Products.ZenUtils.Utils import getSubObjects
 
 from Products.ZenUtils.ZCmdBase import ZCmdBase
+from transaction import get_transaction
 
 class FixIps(ZCmdBase):
 
