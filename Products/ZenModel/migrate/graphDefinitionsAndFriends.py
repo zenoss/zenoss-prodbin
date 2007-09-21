@@ -67,6 +67,11 @@ class GraphDefinitionsAndFriends(Migrate.Step):
             })
 
             
+        # Change the action on the Re-sequence Graphs menu item
+        reseqMenuItem = dmd.zenMenus.Graph_list.zenMenuItems.resequenceGraphs
+        reseqMenuItem.action = reseqMenuItem.action.replace(
+                                                'RRDGraphs', 'GraphDefs')
+
         # RRDTemplate.graphDefs needs to be built
         numTemplates = 0
         numGraphs = 0

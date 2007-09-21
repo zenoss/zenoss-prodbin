@@ -181,6 +181,7 @@ class MultiGraphReport(ZenModelRM):
         """
         from GraphDefinition import GraphDefinition
         graph = GraphDefinition(new_id)
+        graph.sequence = len(self.graphDefs())
         self.graphDefs._setObject(graph.id, graph)
         if REQUEST:
             url = '%s/graphDefs/%s' % (self.getPrimaryUrlPath(), graph.id)
