@@ -77,7 +77,7 @@ class RRDDaemon(Base):
             try:
                 importClass(c)
             except ImportError:
-                log.exception("Unable to import class %s", c)
+                self.log.exception("Unable to import class %s", c)
 
     def remote_setPropertyItems(self, items):
         self.log.debug("Async update of collection properties")
