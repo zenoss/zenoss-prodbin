@@ -57,7 +57,7 @@ class OSComponent(DeviceComponent, ManagedEntity, Linkable):
         if REQUEST is not None:
             REQUEST['RESPONSE'].redirect(url)
 
-    def manage_updateComponent(context, datamap, REQUEST=None):
+    def manage_updateComponent(self, datamap, REQUEST=None):
         """
         Update OSComponent
         """
