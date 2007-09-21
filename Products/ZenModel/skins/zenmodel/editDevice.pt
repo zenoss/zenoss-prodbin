@@ -21,7 +21,8 @@
         <span tal:content="string:${message} ${here/getNowString}"
                 style="margin-left:20px;"/>
 </tal:block>
-<tal:block metal:fill-slot="zentablecontents">
+<tal:block metal:fill-slot="zentablecontents"
+        tal:define="submitViaEnter string:return submitViaEnter(event,'manage_editDevice')">
 
 <!-- BEGIN TABLE CONTENTS -->
     <span metal:use-macro="here/addDevice/macros/body" />
