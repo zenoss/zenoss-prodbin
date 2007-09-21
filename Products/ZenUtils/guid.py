@@ -10,7 +10,7 @@
 # For complete information please visit: http://www.zenoss.com/oss/
 #
 ###########################################################################
-import math, sys, time, random, threading
+import math, sys, time, random, threading, socket
 
 make_hexip = lambda ip: ''.join(["%02x" % long(i) for i in ip.split('.')]) 
   
