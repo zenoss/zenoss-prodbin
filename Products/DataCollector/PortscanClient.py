@@ -113,8 +113,7 @@ def buildOptions(parser=None, usage=None):
 
     if not parser:
         from optparse import OptionParser
-        parser = OptionParser(usage=usage, 
-                                   version="%prog " + __version__)
+        parser = OptionParser(usage=usage)
     # XXX this function may need options later, so we'll keep this here
     # as a reminder for now
     #parser.add_option('--snmpCommunity',
