@@ -15,6 +15,7 @@ from twisted.web import xmlrpc
 import types
 
 from Products.ZenHub.services.RRDImpl import RRDImpl
+from Products.DataCollector.ApplyDataMap import ApplyDataMap
 
 class XmlRpcService(xmlrpc.XMLRPC):
     # serializable types
