@@ -180,12 +180,20 @@ class LinkManager(ZenModelRM):
         siblings = context.children()
         for sibling in siblings:
             links = sibling.getLinks()
+            loc = sibling.getPrimaryId()
+            def hasForeignEndpoint(link):
+                locs = map(lambda x:x.device().location(), link.getEndpoints())
+                if len(filter(lambda x:x, locs))<2: return False
+                bools = map(lambda x:x.getPrimaryId().startswith(loc), locs)
+                return not (bools[0] and bools[1])
+            links = filter(hasForeignEndpoint, links)
             for x in links:
-                severities[x.getGeomapData(sibling)] = max(
+                geomapdata = x.getGeomapData(sibling)
+                severities[geomapdata] = max(
                     x.getStatus(),
-                    severities.get(x.getGeomapData(sibling), 0)
+                    severities.get(geomapdata, 0)
                 ) 
-            result.update([x.getGeomapData(sibling) for x in links])
+                result.add(geomapdata)
         addresses = [x for x in list(result) if x]
         severities = [severities[x] for x in addresses]
         return map(list, zip(map(list, addresses), severities))

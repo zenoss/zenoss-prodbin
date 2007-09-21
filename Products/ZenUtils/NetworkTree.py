@@ -90,7 +90,7 @@ def get_edges(rootnode, depth=1, withIcons=False, filter='/'):
 def getDeviceNetworkLinks(rootdevice):
     """ Returns network links to other devices """
     visited = []
-    ifaces = rootdevice.os.interfaces()
+    ifaces = rootdevice.os.interfaces.objectValuesGen()
     ifaceids = [x.getPrimaryId() for x in ifaces]
     for iface in ifaces:
         for ip in iface.ipaddresses.objectValuesGen():
@@ -131,7 +131,7 @@ class NetworkLink(ILink):
         if max([ep.getPingStatus() for ep in eps]) > 0:
             return 5
         zem = eps[0].dmd.ZenEventManager
-        return max(map(zem.getMaxSeverity, eps))
+        return zem.getMaxSeverity(eps)
 
     def getGeomapData(self, context, full=False):
         """ Return the addresses of the endpoints
