@@ -127,28 +127,55 @@ ZenGeoMap.prototype = {
         }
         this.dirtycache = false;
         this.lock.release();
+    },
+    doDraw: function(results) {
+        var x = this;
+        var nodedata = results.nodedata;
+        var linkdata = results.linkdata;
+        var secondarynodedata = results.secondarynodedata;
+        for (i=0;i<nodedata.length;i++) {
+            var node = nodedata[i];
+            if (node[0].length>0) 
+                x.addMarker(node[0], node[1], node[2], node[3]);
+        }
+        x.showAllMarkers();
+        for (i=0;i<secondarynodedata.length;i++) {
+            var node = secondarynodedata[i];
+            if (node[0].length>0) 
+                x.addMarker(node[0], node[1], node[2], node[3]);
+        }
+        for (j=0;j<linkdata.length;j++) {
+            x.addPolyline(linkdata[j]);
+        }
+        d = x.lock.acquire();
+        d.addCallback(x.saveCache);
+    },
+    refresh: function() {
+        this.map.clearOverlays();
+        var results = {
+            'nodedata':[],
+            'linkdata':[],
+            'secondarynodedata':[]
+        };
+        var myd = loadJSONDoc('getChildGeomapData');
+        myd.addCallback(function(x){results['nodedata'] = x});
+        var myd2 = loadJSONDoc('getChildLinks');
+        myd2.addCallback(function(x){results['linkdata'] = x});
+        var myd3 = loadJSONDoc('getSecondaryNodes');
+        myd3.addCallback(function(x){results['secondarynodedata'] = x});
+        var bigd = new DeferredList([myd, myd2, myd3], false, false, true);
+        bigd.addCallback(method(this, function(){this.doDraw(results)}));
     }
 }
 
 function geomap_initialize(){
     var x = new ZenGeoMap($('geomapcontainer'));
     connect(currentWindow(), 'onunload', GUnload);
-    for (i=0;i<nodedata.length;i++) {
-        var node = nodedata[i];
-        if (node[0].length>0) 
-            x.addMarker(node[0], node[1], node[2], node[3]);
-    }
-    x.showAllMarkers();
-    for (i=0;i<secondarynodedata.length;i++) {
-        var node = secondarynodedata[i];
-        if (node[0].length>0) 
-            x.addMarker(node[0], node[1], node[2], node[3]);
-    }
-    for (j=0;j<linkdata.length;j++) {
-        x.addPolyline(linkdata[j]);
-    }
-    d = x.lock.acquire();
-    d.addCallback(x.saveCache);
+    var portlet_id = currentWindow().frameElement.parentNode.id.replace(
+        '_body', '');
+    var pobj = currentWindow().parent.ContainerObject.portlets[portlet_id];
+    pobj.mapobject = x;
+    x.refresh();
 }
 
 addLoadEvent(geomap_initialize);

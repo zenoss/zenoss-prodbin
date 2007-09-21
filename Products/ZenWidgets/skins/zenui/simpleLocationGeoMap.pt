@@ -22,9 +22,6 @@ v\:* {
 "></script>
 <script tal:content="string:
     var geocodecache;
-    var nodedata = ${here/getChildGeomapData};
-    var linkdata = ${here/getChildLinks};
-    var secondarynodedata = ${here/getSecondaryNodes};
     var cachestring = '${here/dmd/geocache}';
     if (cachestring) geocodecache = evalJSON(cachestring);
 "></script>

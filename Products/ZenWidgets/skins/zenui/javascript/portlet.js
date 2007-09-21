@@ -748,6 +748,7 @@ GoogleMapsPortlet.prototype = {
         bodyHeight = 'bodyHeight' in args? args.bodyHeight : 400;
         title = 'title' in args? args.title: "Locations";
         refreshTime = 'refreshTime' in args? args.refreshTime : 0;
+        this.mapobject = null;
         var datasource = 'datasource' in args? 
             args.datasource:
             new YAHOO.zenoss.portlet.GoogleMapsDatasource(
@@ -771,6 +772,11 @@ GoogleMapsPortlet.prototype = {
         if (baseLoc.length<1) baseLoc = this.datasource.baseLoc;
         this.locsearch.input.value = '';
         this.superclass.submitSettings(e, {'baseLoc':baseLoc});
+    },
+    startRefresh: function(firsttime) {
+        if (!firsttime) this.mapobject.refresh();
+        if (this.refreshTime>0)
+            this.calllater = callLater(this.refreshTime, this.startRefresh);
     }
 }
 YAHOO.zenoss.portlet.GoogleMapsPortlet = GoogleMapsPortlet;

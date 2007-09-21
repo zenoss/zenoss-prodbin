@@ -105,6 +105,7 @@ class Location(DeviceOrganizer, ZenPackable):
     security = ClassSecurityInfo()
 
     def getChildLinks(self):
+        """ Returns child link data ready for GMaps """
         return self.dmd.ZenLinkManager.getChildLinks(self)
 
     def numMappableChildren(self):
