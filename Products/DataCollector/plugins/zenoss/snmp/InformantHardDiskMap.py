@@ -42,6 +42,6 @@ class InformantHardDiskMap(SnmpPlugin):
             om = self.objectMap(disk)
             if om.id == "_Total": continue
             om.id = self.prepId(om.id)
-            om.snmpindex = oid
+            om.snmpindex = oid.lstrip('.')
             rm.append(om)
         return rm
