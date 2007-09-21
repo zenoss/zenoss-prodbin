@@ -19,6 +19,9 @@ from Products.ZenEvents.ZenEventClasses import Status_Ping
 from Products.ZenUtils.Utils import localIpCheck
 from AsyncPing import PingJob
 
+gDevicemap = {}
+gNetsmap = {}
+gAllnodes = {}
 
 def initglobals(devname):
     global gAllnodes, gNetsmap, gDevicemap
