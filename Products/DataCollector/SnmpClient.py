@@ -31,6 +31,7 @@ from Products.ZenUtils.Driver import drive
 global defaultTries, defaultTimeout
 defaultTries = 2
 defaultTimeout = 1
+defaultSnmpCommunity = 'public'
 
 DEFAULT_MAX_OIDS_BACK = 40
 
@@ -183,8 +184,7 @@ def buildOptions(parser=None, usage=None):
 
     if not parser:
         from optparse import OptionParser
-        parser = OptionParser(usage=usage, 
-                                   version="%prog " + __version__)
+        parser = OptionParser(usage=usage)
   
     parser.add_option('--snmpCommunity',
                 dest='snmpCommunity',
