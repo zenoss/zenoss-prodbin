@@ -133,6 +133,7 @@ ZenGeoMap.prototype = {
         var nodedata = results.nodedata;
         var linkdata = results.linkdata;
         var secondarynodedata = results.secondarynodedata;
+        this.map.clearOverlays();
         for (i=0;i<nodedata.length;i++) {
             var node = nodedata[i];
             if (node[0].length>0) 
@@ -151,7 +152,6 @@ ZenGeoMap.prototype = {
         d.addCallback(x.saveCache);
     },
     refresh: function() {
-        this.map.clearOverlays();
         var results = {
             'nodedata':[],
             'linkdata':[],
