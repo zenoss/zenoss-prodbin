@@ -138,7 +138,7 @@ def getObjByPath(base, path, restricted=0):
         base = base.getPhysicalRoot()
         if (restricted 
             and not securityManager.validate(None, None, None, base)):
-            raise Unauthorized, name
+            raise Unauthorized, base
 
     obj = base
     while path:
