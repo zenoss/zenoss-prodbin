@@ -27,6 +27,8 @@ from Products.ZenUtils.Utils import getSubObjectsMemo
 
 from ZCmdBase import ZCmdBase
 
+from transaction import get_transaction
+
 class ToManyRebuildKeys(ZCmdBase):
 
     def rebuild(self):
