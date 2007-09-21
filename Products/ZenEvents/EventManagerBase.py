@@ -128,7 +128,8 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
     DeviceWhere = "\"device = '%s'\" % me.getDmdKey()"
     DeviceResultFields = ("component", "eventClass", "summary", "firstTime",
                             "lastTime", "count" )
-    ComponentWhere = "\"component = '%s'\" % me.getDmdKey()"
+    ComponentWhere = ("\"(device = '%s' and component = '%s')\""
+                      " % (me.device().getDmdKey(), me.getDmdKey())")
     ComponentResultFields = ("eventClass", "summary", "firstTime",
                             "lastTime", "count" )
     IpAddressWhere = "\"ipAddress='%s'\" % (me.getId())" 
@@ -909,10 +910,10 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
 
     def getMaxSeverity(self, me):
         """ Returns the severity of the most severe event. """
-        where = self.lookupManagedEntityWhere(me.device())
-        if me.event_key == 'Component':
-            where = self._wand(where, "%s = '%s'", 
-                               self.componentField, me.id)
+        if type(me)!=type([]): me = [me]
+        where = self.lookupManagedEntityWhere(me[0])
+        for obj in me[1:]:
+            where += ' or %s' % self.lookupManagedEntityWhere(obj)
         select = "select max(%s) from %s where " % (self.severityField, 
             self.statusTable)
         query = select + where
