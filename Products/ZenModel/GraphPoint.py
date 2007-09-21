@@ -113,12 +113,14 @@ class GraphPoint(ZenModelRM, ZenPackable):
     ## Graphing Support
     
     def getColor(self, index):
+        index %= len(self.colors)
         color = self.color or self.colors[index]
         color = '#%s' % color.lstrip('#')
         return color
 
 
     def getThresholdColor(self, index):
+        index %= len(self.colors)
         color = self.color or self.colors[-1 * (index+1)]
         color = '#%s' % color.lstrip('#')
         return color
