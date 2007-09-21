@@ -2,7 +2,7 @@
 <span id="errmsg" style="color:red;"></span>
 <table>
 <tr><td>
-        <span id="new_id_label">ID:&nbsp;</span>:
+        <span id="new_id_label">ID&nbsp;</span>:
 </td><td>
 <input id="new_id" name="id">
 <input type="hidden" id="checkValidIdPath" 
