@@ -40,3 +40,7 @@ class StateTimeout(DataCollectorError):
 class NoServerFound(DataCollectorError): 
     "no telnet or ssh server found on a machine at the given port"
     pass
+
+class CommandNotFound(DataCollectorError): 
+    "no command found to run"
+    pass

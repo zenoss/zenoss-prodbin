@@ -10,14 +10,15 @@
 # For complete information please visit: http://www.zenoss.com/oss/
 #
 ###########################################################################
-#!/usr/bin/env python
+
 from twisted.conch.ssh import transport, userauth, connection, common, keys, channel
 from twisted.internet import defer, protocol, reactor
 from twisted.python import log
 import struct, sys, getpass, os
 
+import logging
 
-from Exceptions import NoValidConnection, LoginFailed, CommandTimeout
+from Exceptions import NoValidConnection, LoginFailed, CommandTimeout, CommandNotFound
 
 class SshSession:
 
@@ -96,12 +97,14 @@ class SimpleTransport(transport.SSHClientTransport):
         return defer.succeed(1) 
 
     def connectionSecure(self):
+        # where is USER defined?
         self.requestService(SimpleUserAuth(USER,SimpleConnection()))
             
                 
 
 class SimpleUserAuth(userauth.SSHUserAuthClient):
     def getPassword(self):
+        # where is HOST defined?
         return defer.succeed(
             getpass.getpass("%s@%s's password: " % (USER, HOST)))
 
@@ -123,7 +126,7 @@ class SimpleUserAuth(userauth.SSHUserAuthClient):
 
 class SimpleConnection(connection.SSHConnection):
     def serviceStarted(self):
-        for cmd in commands:
+        for cmd in self.commands:
             ch = CommandChannel(2**16, 2**15, self)
             ch.command = cmd
             self.openChannel(ch)
@@ -132,7 +135,7 @@ class SimpleConnection(connection.SSHConnection):
 class FindCmdChannel(channel.SSHChannel):
     
     def openFailed(self, reason):
-        print 'find command %s in path %s failed: %s' % (command, path, reason)
+        print 'find command %s in path %s failed: %s' % (self.command, self.path, reason)
 
     def channelOpen(self, ignoredData):
         self.conn.sendRequest(self, 'exec', common.NS(''))
@@ -168,8 +171,8 @@ class CommandChannel(channel.SSHChannel):
     def closed(self):
         #print 'command %s data: %s' % (self.command, repr(self.data))
         self.loseConnection()
-        results.append(self.data)
-        if len(results) == len(commands):
+        self.results.append(self.data)
+        if len(self.results) == len(self.commands):
             reactor.stop()
 
 

@@ -45,6 +45,7 @@ import os.path
 import logging
 
 from Exceptions import NoValidConnection, LoginFailed, CommandTimeout
+from Exceptions import CommandNotFound
 
 
 class TelnetSession:
