@@ -18,6 +18,7 @@ Add settings for smtp/snpp host/port to dmd
 '''
 import Migrate
 import os.path
+import sys
 
 def parseconfig(options):
     """parse a config file which has key value pairs delimited by white space"""
