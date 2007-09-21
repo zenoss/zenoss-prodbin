@@ -256,15 +256,21 @@
                 <dt>sysName</dt>
                 <dd> 
                     <div style="font-size:90%" 
-                         tal:content="here/snmpSysName">x</div>
+                        tal:content="here/snmpSysName">x</div>
+                    <div tal:condition="not:here/snmpSysName">&nbsp;</div>
                 </dd>
                 <dt>Location</dt>
-                <dd><div style="font-size:90%"
-                    tal:content="here/snmpLocation">x</div></dd>
+                <dd >
+                  <div style="font-size:90%" 
+                    tal:content="here/snmpLocation">x</div>
+                  <div tal:condition="not:here/snmpLocation">&nbsp;</div>
+                </dd>
                 <tal:block tal:condition="here/snmpAgent">
                 <dt>Agent</dt>
-                <dd><div style="font-size:90%"
-                    tal:content="here/snmpAgent">x</div></dd>
+                <dd>
+                 <div style="font-size:90%"
+                      tal:content="here/snmpAgent">x</div>
+                </dd>
                 </tal:block>
             </dl>
         </div>
@@ -273,8 +279,10 @@
 <div style="border-top:1px solid #aaa;background-color:#f2f2f2;">
     <dl class="faux-table">
     <dt class="first">SNMP Descr</dt>
-    <dd class="first"><div style="font-size:90%" 
-                tal:content="here/snmpDescr">x</div></dd>
+    <dd class="first">
+        <div style="font-size:90%" tal:content="here/snmpDescr">x</div>
+        <div tal:condition="not:here/snmpDescr">&nbsp;</div>
+    </dd>
     <dt>Comments</dt>
     <dd><div style="font-size:90%" tal:content="here/comments">x</div>
         <div tal:condition="not:here/comments">&nbsp;</div>
