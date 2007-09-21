@@ -910,10 +910,10 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
 
     def getMaxSeverity(self, me):
         """ Returns the severity of the most severe event. """
-        if type(me)!=type([]): me = [me]
-        where = self.lookupManagedEntityWhere(me[0])
-        for obj in me[1:]:
-            where += ' or %s' % self.lookupManagedEntityWhere(obj)
+        where = self.lookupManagedEntityWhere(me.device())
+        if me.event_key == 'Component':
+            where = self._wand(where, "%s = '%s'",
+                self.componentField, me.id)
         select = "select max(%s) from %s where " % (self.severityField, 
             self.statusTable)
         query = select + where
