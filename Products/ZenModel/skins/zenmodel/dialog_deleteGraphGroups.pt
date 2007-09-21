@@ -6,7 +6,7 @@
 <div align="center">
 <input type="submit" name="manage_deleteGraphGroups:method"
    value="Delete"
-   tal:attributes="onclick string:return $$('dialog').submit_form('', 'graphGroupList')" />
+   tal:attributes="onclick string:return $$('dialog').submit_form('', 'graphGroupForm')" />
 <input id="dialog_cancel" type="button" value="Cancel" 
        onclick="$('dialog').hide()"/>
 </div>
