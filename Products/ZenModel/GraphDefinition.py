@@ -43,8 +43,18 @@ def manage_addGraphDefinition(context, id, REQUEST = None):
 class FakeContext:
     def __init__(self, name):
         self.id = name
+    def __getattr__(self, name):
+        return FakeContext(name)
+    def __call__(self, *kw, **args):
+        return self
+    def __getitem__(self, key):
+        return FakeContext(key)
+    def __str__(self):
+        return self.id
     def device(self):
         return self
+    def __nonzero__(self):
+        return True
     def rrdPath(self):
         return 'rrdPath'
 
@@ -400,9 +410,11 @@ class GraphDefinition(ZenModelRM, ZenPackable):
             cmds = gp.getGraphCmds(cmds, context, rrdDir, 
                                         self.hasSummary, index+idxOffset,
                                         multiid, prefix)
-        if self.custom and includeSetup:
+        if self.custom and includeSetup \
+            and not upToPoint:
             res = talesEval("string:"+self.custom, context)
-            cmds.extend(res.split("\n"))
+            res = [l for l in res.split('\n') if l.strip()]
+            cmds.extend(res)
             #if self.hasSummary:
             #    cmds = self.addSummary(cmds)
 
