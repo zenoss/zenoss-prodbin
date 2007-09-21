@@ -284,6 +284,7 @@
         </td>
     </tr>
     
+    <tal:block tal:condition="not: here/isThreshold">
     <tr tal:condition="here/isManager">
         <td class="tableheader">Available RRD Variables</td>
       <td class="tablevalues"
@@ -295,6 +296,7 @@
           </tal:block>
       </td>
     </tr>
+    </tal:block>
 
         <!-- END TABLE CONTENTS -->
 
