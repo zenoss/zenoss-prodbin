@@ -103,7 +103,7 @@ class GraphDefinitionsAndFriends(Migrate.Step):
             for gp in graphDef.graphPoints():
                 if hasattr(gp, 'lineType') and not gp.lineType:
                     gp.lineType = gp.LINETYPE_DONTDRAW
-                    lineTypesFixed += 1
+                    numFixed += 1
         return numFixed
                     
 
