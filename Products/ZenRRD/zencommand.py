@@ -387,7 +387,7 @@ class zencommand(RRDDaemon):
         for cmd in self.schedule:
             if cmd.device in lastChanges:
                 if cmd.lastChange > lastChanges[cmd.device]:
-                    updated.append(device)
+                    updated.append(cmd.device)
                 keep.append(cmd)
             else:
                 log.info("Removing all commands for %s", cmd.device)
