@@ -97,6 +97,7 @@ class DbConnectionPool(Queue):
             host, database = database, 'events'
         conn = MySQLdb.connect(host=host, user=username,
                              port=port, passwd=password, 
-                             db=database, conv=mysqlconv)
+                             db=database, conv=mysqlconv,
+                             reconnect=1)
         conn.autocommit(1)
         return conn
