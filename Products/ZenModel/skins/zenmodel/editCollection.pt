@@ -2,11 +2,27 @@
 <tal:block metal:fill-slot="contentPane">
 
 <script type="text/javascript" src="/zport/js/MochiKit.js"></script>
+
+<tal:block tal:replace='structure string:
+    <script type="text/javascript">
+    var currentDevices = new Array();
+    var currentComponents = new Array();' />
+<tal:block tal:repeat="dev request/deviceIds | nothing" 
+    tal:replace="structure string:
+    currentDevices[currentDevices.length] = '${dev};'" />
+<tal:block tal:repeat="cPath request/componentPaths | nothing" 
+    tal:replace="structure string:
+    currentComponents[currentComponents.length] = '${cPath};'" />
+<tal:block tal:replace="structure string:
+    </script>" />
+
 <script type="text/javascript">
     
-    function updateSelect(widget, options) {
+    function updateSelect(widget, current, options) {
         for (var i = widget.length; i < options.length; i++) {
             widget.options[i] = new Option(options[i],options[i], false, false);
+            if (findValue(current, options[i]) > -1)
+                widget.options[i].selected = true;
         }
     }
     
@@ -16,17 +32,30 @@
         var url = '/zport/dmd/Devices/jsonGetDeviceNames'
         var d = loadJSONDoc(url, {'query': filter.value});
         widget.options.length = 0;
-        d.addBoth(updateSelect, widget);
+        d.addBoth(updateSelect, widget, currentDevices);
         getComponentList();
     }
     
     function getComponentList() {
         var deviceWidget = document.getElementById('deviceId');
+        var deviceId = null;
+        for (var i=0; i < deviceWidget.options.length; i++) {
+            if (deviceWidget.options[i].selected) {
+                if (deviceId == null) {
+                    deviceId = deviceWidget.options[i].value;
+                } else {
+                    deviceId = null;
+                    break;
+                }
+            }
+        }
         var compWidget = document.getElementById('componentPath');
-        var url = '/zport/dmd/Devices/jsonGetComponentPaths';
-        var d = loadJSONDoc(url, {'deviceId': deviceWidget.value});
         compWidget.options.length = 0;
-        d.addBoth(updateSelect, compWidget);
+        if (deviceId) {
+            var url = '/zport/dmd/Devices/jsonGetComponentPaths';
+            var d = loadJSONDoc(url, {'deviceId': deviceWidget.value});
+            d.addBoth(updateSelect, compWidget, currentComponents);
+        }
     }
 
     function handleDeviceKeys(e) {
@@ -55,6 +84,10 @@
         }
     }
     
+    function initialItemType() {
+        signal($('itemType'), 'onchange');
+    }
+    
 
     function makeConnections() {
         // This is what keeps the return/enter key in the device filter
@@ -70,6 +103,7 @@
     }
 
     addLoadEvent(makeConnections);
+    addLoadEvent(initialItemType);
     
 </script>
 
@@ -124,11 +158,21 @@
         </td>
         <td class="tablevalue">
             <select name="itemType" id="itemType">
-                <option value="deviceClass">Device Class</option>
-                <option value="system">System</option>
-                <option value="group">Group</option>
-                <option value="location">Location</option>
-                <option value="devcomp">Specific Device/Component</option>
+                <option value="deviceClass" tal:attributes="
+                    selected python:request.get('itemType','')=='deviceClass'">
+                    Device Class</option>
+                <option value="system" tal:attributes="
+                    selected python:request.get('itemType','')=='system'">
+                    System</option>
+                <option value="group" tal:attributes="
+                    selected python:request.get('itemType','')=='group'">
+                    Group</option>
+                <option value="location" tal:attributes="
+                    selected python:request.get('itemType','')=='location'">
+                    Location</option>
+                <option value="devcomp" tal:attributes="
+                    selected python:request.get('itemType','')=='devcomp'">
+                    Specific Device/Component</option>
             </select>
         </td>
     </tr>
@@ -138,7 +182,7 @@
             Device Class
         </td>
         <td class="tablevalue">
-            <select name="deviceClass">
+            <select name="deviceClasses:list" multiple="1" size="10">
                 <option tal:repeat="org here/Devices/getSubOrganizers"
                     tal:attributes="value org/getOrganizerName"
                     tal:content="org/getOrganizerName" />
@@ -150,7 +194,7 @@
             System
         </td>
         <td class="tablevalue">
-            <select name="system">
+            <select name="systems:list" multiple="1" size="10">
                 <option tal:repeat="org here/Systems/getSubOrganizers"
                     tal:attributes="value org/getOrganizerName"
                     tal:content="org/getOrganizerName" />
@@ -162,7 +206,7 @@
             Group
         </td>
         <td class="tablevalue">
-            <select name="group">
+            <select name="groups:list" multiple="1" size="10">
                 <option tal:repeat="org here/Groups/getSubOrganizers"
                     tal:attributes="value org/getOrganizerName"
                     tal:content="org/getOrganizerName" />
@@ -174,7 +218,7 @@
             Location
         </td>
         <td class="tablevalue">
-            <select name="location">
+            <select name="locations:list" multiple="1" size="10">
                 <option tal:repeat="org here/Locations/getSubOrganizers"
                     tal:attributes="value org/getOrganizerName"
                     tal:content="org/getOrganizerName" />
@@ -188,7 +232,8 @@
         <td class="tablevalue">
             <select class="tablevalues" name="recurse:boolean">
                 <option tal:repeat="e python:(True,False)" tal:content="e"
-                        tal:attributes="value e;" />
+                        tal:attributes="value e;
+                            selected python:request.get('recurse','')==e" />
             </select>
     </tr>
     <tr id="dev" style="display: none;">
@@ -197,11 +242,14 @@
         </td>
         <td class="tablevalue">
             <input class="tablevalues" type="text" name="deviceFilter"
-                 id="deviceFilter" size="20" />
+                 id="deviceFilter" size="20"
+                 tal:attributes="value request/deviceFilter | nothing"
+                  />
             <input class="tableheader" type="button" value="Filter"
                 id="filterButton" name="filter" />
             <br />
-            <select class="tablevalues" name="deviceId" id="deviceId" size="8">
+            <select class="tablevalues" name="deviceIds:list" id="deviceId"
+                 size="8" multiple="1">
             </select><br />
         </td>
     </tr>
@@ -210,8 +258,8 @@
             Component
         </td>
         <td class="tablevalue">
-            <select class="tablevalues" name="componentPath" size="6"
-                id="componentPath">
+            <select class="tablevalues" name="componentPaths:list" size="6"
+                id="componentPath" multiple="1">
             </select>
         </td>
     </tr>

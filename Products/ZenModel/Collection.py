@@ -69,35 +69,65 @@ class Collection(ZenModelRM):
     
     security = ClassSecurityInfo()
 
-    security.declareProtected('Manage DMD', 'manage_addCollectionItem')
-    def manage_addCollectionItem(self, itemType,
-            deviceId='', componentPath='', deviceClass='', system='',
-            group='', location='', recurse=False, REQUEST=None):
-        ''' Create a new CollectionItem and add to this collection
+    
+    def createCollectionItem(self, orgPath='', devId='', compPath='',
+                            recurse=False):
+        ''' Create and insert a new CollectionItem based either on the
+        orgPath or on devId/compPath.  Returns the new item.
         '''
         from CollectionItem import CollectionItem
         ci = CollectionItem(self.getUnusedId('items', 'Item'))
-        if itemType == 'deviceClass':
-            ci.deviceOrganizer = '/Devices' + deviceClass
-        elif itemType == 'system':
-            ci.deviceOrganizer = '/Systems' + system
-        elif itemType == 'group':
-            ci.deviceOrganizer = '/Groups' + group
-        elif itemType == 'location':
-            ci.deviceOrganizer = '/Locations' + location
-        elif itemType == 'devcomp':
-            ci.deviceId = deviceId
-            ci.compPath = componentPath
-            
-        if ci.deviceOrganizer:
-            ci.recurse = recurse
+        if orgPath:
+            ci.deviceOrganizer = orgPath
+        else:
+            ci.deviceId = devId
+            ci.compPath = compPath
+        ci.recurse = recurse
         ci.sequence = len(self.items())
-        
         self.items._setObject(ci.id, ci)
+        return ci
+
+
+    security.declareProtected('Manage DMD', 'manage_addCollectionItem')
+    def manage_addCollectionItem(self, itemType,
+            deviceIds=(), componentPaths=(), deviceClasses=(), systems=(),
+            groups=(), locations=(), recurse=False, REQUEST=None):
+        ''' Create a new CollectionItem and add to this collection
+        '''
+        from CollectionItem import CollectionItem
+        
+        count = 0
+        for i, devId in enumerate(deviceIds):
+            # If deviceIds then either
+            #       len(deviceIds) == 1 and len(componentPaths) >= 0 or
+            #       len(deviceIds) > 1 and len(componentPaths) == 0
+            if len(deviceIds) > 1 or not componentPaths:
+                componentPaths = ['']
+            for cPath in componentPaths:
+                self.createCollectionItem(
+                            devId=devId, compPath=cPath, recurse=False)
+                count += 1
+        for dClass in deviceClasses:
+            self.createCollectionItem(
+                                orgPath='/Devices' + dClass, recurse=recurse)
+            count += 1
+        for system in systems:
+            self.createCollectionItem(
+                                orgPath='/Systems' + system, recurse=recurse)
+            count += 1
+        for group in groups:
+            self.createCollectionItem(
+                                orgPath='/Groups' + group, recurse=recurse)
+            count += 1
+        for loc in locations:
+            self.createCollectionItem(
+                                orgPath='/Locations' + loc, recurse=recurse)
+            count += 1
+            
         if REQUEST:
-            REQUEST['message'] = 'Item added'
+            REQUEST['message'] = ' %s item%s added' % (count,
+                count > 1 and 's' or '')
             return self.callZenScreen(REQUEST)
-        return item
 
 
     security.declareProtected('Manage DMD', 'manage_deleteCollectionItems')
