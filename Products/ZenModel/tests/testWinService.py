@@ -55,7 +55,6 @@ class TestWinService(ZenModelBaseTest):
     def testGets(self):
         self.assert_(self.wsvc.hostname() == 'testdev')
         self.assert_(self.wsvc.getParentDeviceName() == 'testdev')
-        #import pdb;pdb.set_trace()
         #self.assert_(self.wsvc.getParentDeviceUrl() =='/zport/dmd/Devices/devices/testdev')
         self.assert_(self.wsvc.getParentDeviceUrl() =='http://nohost/zport/dmd/Devices/devices/testdev')
 

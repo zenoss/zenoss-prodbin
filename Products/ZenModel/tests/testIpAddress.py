@@ -61,5 +61,3 @@ def test_suite():
     suite.addTest(makeSuite(TestIpAddress))
     return suite
 
-if __name__=="__main__":
-    framework()
