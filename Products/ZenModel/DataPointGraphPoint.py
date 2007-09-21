@@ -92,7 +92,7 @@ class DataPointGraphPoint(ComplexGraphPoint):
                             (self.getDsName(self.id, multiid, prefix), src))
 
         # Draw
-        if self.lineType:
+        if self.lineType != self.LINETYPE_DONTDRAW:
             if multiid != -1:
                 fname = os.path.basename(rrdDir)
                 if fname.find('.rrd') > -1: fname = fname[:-4]

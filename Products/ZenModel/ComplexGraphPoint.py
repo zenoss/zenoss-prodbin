@@ -21,14 +21,18 @@ from GraphPoint import GraphPoint
 
 class ComplexGraphPoint(GraphPoint):
 
+    LINETYPE_DONTDRAW = 'DONTDRAW'
+    LINETYPE_LINE = 'LINE'
+    LINETYPE_AREA = 'AREA'
+
     lineTypeOptions = (
-        ('Not Drawn', ''),
-        ('Line', 'LINE'),
-        ('Area', 'AREA'),
+        ('Not Drawn', LINETYPE_DONTDRAW),
+        ('Line', LINETYPE_LINE),
+        ('Area', LINETYPE_AREA),
         )
 
     color = ''
-    lineType = 'LINE'
+    lineType = LINETYPE_LINE
     lineWidth = 1
     stacked = False
     format = GraphPoint.DEFAULT_FORMAT

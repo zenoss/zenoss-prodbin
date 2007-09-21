@@ -66,72 +66,98 @@ class GraphDefinitionsAndFriends(Migrate.Step):
             ],
             })
 
-            
+
         # Change the action on the Re-sequence Graphs menu item
         reseqMenuItem = dmd.zenMenus.Graph_list.zenMenuItems.resequenceGraphs
         reseqMenuItem.action = reseqMenuItem.action.replace(
                                                 'RRDGraphs', 'GraphDefs')
 
         # RRDTemplate.graphDefs needs to be built
-        numTemplates = 0
+        numTemplatesConverted = 0
         numGraphs = 0
         numDataPointsFound = 0
         numDataPointsMissing = 0
+        lineTypesFixed = 0
+        
         for template in dmd.Devices.getAllRRDTemplates():
             template.buildRelations()
                         
             if template.graphDefs():
-                continue
+                self.fixDefaultLineTypes(template)
+            else:
+                g, f, m = self.convertTemplate(template)
+                numGraphs += g
+                numDataPointsFound += f
+                numDataPointsMissing += m
+                numTemplatesConverted += 1
 
-            numTemplates += 1
-            for rrdGraph in template.graphs():
-                numGraphs += 1
-                graphDef = GraphDefinition(rrdGraph.id)
-                template.graphDefs._setObject(graphDef.id, graphDef)
-                graphDef = getattr(template.graphDefs, graphDef.id)
-                graphDef.sequence = rrdGraph.sequence
-                graphDef.height = rrdGraph.height
-                graphDef.width = rrdGraph.width
-                graphDef.units = rrdGraph.units
-                graphDef.log = rrdGraph.log
-                graphDef.base = rrdGraph.base
-                graphDef.summary = rrdGraph.summary
-                graphDef.hasSummary = rrdGraph.hasSummary
-                graphDef.miny = rrdGraph.miny
-                graphDef.maxy = rrdGraph.maxy
-                graphDef.custom = rrdGraph.custom
-                isFirst = True
-                for dsName in rrdGraph.dsnames:
-                    try:
-                        dp = template.getRRDDataPoint(dsName)
-                        numDataPointsFound += 1
-                    except ConfigurationError:
-                        dp = None
-                        numDataPointsMissing += 1
-                    includeThresholds = not graphDef.custom                     
-                    gp = graphDef.manage_addDataPointGraphPoints(
-                                        [dsName], includeThresholds)[0]
-                    if dp:
-                        gp.color = dp.color
-                        if graphDef.custom:
-                            gp.lineType = ''
-                        else:
-                            gp.lineType = dp.linetype or \
-                                            (isFirst and 'AREA') or 'LINE'
-                        gp.stacked = dp.linetype != 'LINE'
-                        gp.format = dp.format
-                        gp.limit = dp.limit
-                        gp.rpn = dp.rpn
-                    isFirst = False
-            # Remove the rrdGraphs
-            # Keep them for now, remove in 2.2
-            #for graphId in template.graphs.objectIds():
-            #    template.graphs._delObject(graphId)
+        print('converted %s templates, %s graphs, %s datapoints; '
+                '%s datapoints missing; %s lineTypes fixed' % 
+                (numTemplatesConverted, numGraphs, 
+                numDataPointsFound, numDataPointsMissing, lineTypesFixed))
+
+
+    def fixDefaultLineTypes(self, template):
+        numFixed = 0
+        for graphDef in template.graphDefs():
+            for gp in graphDef.graphPoints():
+                if hasattr(gp, 'lineType') and not gp.lineType:
+                    gp.lineType = gp.LINETYPE_DONTDRAW
+                    lineTypesFixed += 1
+        return numFixed
+                    
+
+
+    def convertTemplate(self, template):
+        numGraphs = 0
+        numDataPointsFound = 0
+        numDataPointsMissing = 0
+        for rrdGraph in template.graphs():
+            numGraphs += 1
+            graphDef = GraphDefinition(rrdGraph.id)
+            template.graphDefs._setObject(graphDef.id, graphDef)
+            graphDef = getattr(template.graphDefs, graphDef.id)
+            graphDef.sequence = rrdGraph.sequence
+            graphDef.height = rrdGraph.height
+            graphDef.width = rrdGraph.width
+            graphDef.units = rrdGraph.units
+            graphDef.log = rrdGraph.log
+            graphDef.base = rrdGraph.base
+            graphDef.summary = rrdGraph.summary
+            graphDef.hasSummary = rrdGraph.hasSummary
+            graphDef.miny = rrdGraph.miny
+            graphDef.maxy = rrdGraph.maxy
+            graphDef.custom = rrdGraph.custom
+            isFirst = True
+            for dsName in rrdGraph.dsnames:
+                try:
+                    dp = template.getRRDDataPoint(dsName)
+                    numDataPointsFound += 1
+                except ConfigurationError:
+                    dp = None
+                    numDataPointsMissing += 1
+                includeThresholds = not graphDef.custom                     
+                gp = graphDef.manage_addDataPointGraphPoints(
+                                    [dsName], includeThresholds)[0]
+                if dp:
+                    gp.color = dp.color
+                    if graphDef.custom:
+                        gp.lineType = gp.LINETYPE_DONTDRAW
+                    else:
+                        gp.lineType = dp.linetype or \
+                                        (isFirst and LINETYPE_AREA) or \
+                                        LINETYPE_LINE
+                    gp.stacked = dp.linetype != dp.LINETYPE_LINE
+                    gp.format = dp.format
+                    gp.limit = dp.limit
+                    gp.rpn = dp.rpn
+                isFirst = False
+        # Remove the rrdGraphs
+        # Keep them for now, remove in 2.2
+        #for graphId in template.graphs.objectIds():
+        #    template.graphs._delObject(graphId)
+        return (numGraphs, numDataPointsFound, numDataPointsMissing)
             
-        print('processed %s templates, %s graphs, %s datapoints found, '
-                '%s datapoints missing' % 
-                (numTemplates, numGraphs, 
-                numDataPointsFound, numDataPointsMissing))
                 
 
 GraphDefinitionsAndFriends()
