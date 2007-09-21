@@ -61,9 +61,6 @@ for regex in parsers:
 
 class SyslogEvent(Event):
 
-    agent="zensyslog"
-    eventGroup="syslog" 
-
     def getDedupFields(self, default):
         """Return list of dedupid fields.
         """
@@ -82,7 +79,8 @@ class SyslogProcessor(object):
 
 
     def process(self, msg, ipaddr, host, rtime):
-        evt = SyslogEvent(device=host, ipAddress=ipaddr, rcvtime=rtime)
+        evt = SyslogEvent(device=host, ipAddress=ipaddr, rcvtime=rtime,
+                agent='zensyslog', eventGroup='syslog')
         slog.debug("host=%s, ip=%s", host, ipaddr)
         slog.debug(msg)
 
