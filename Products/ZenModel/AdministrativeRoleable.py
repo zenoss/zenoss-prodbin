@@ -36,20 +36,9 @@ class AdministrativeRoleable:
         'manage_addAdministrativeRole')
     def manage_addAdministrativeRole(self, newId=None, REQUEST=None):
         "Add a Admin Role to this device"
-        us = None
-        if newId:
-            us = self.ZenUsers.getUserSettings(newId)
-        if us:
-            ar = AdministrativeRole(newId)
-            if us.defaultAdminRole:
-                ar.role = us.defaultAdminRole
-                ar.level = us.defaultAdminLevel
-            self.adminRoles._setObject(newId, ar)
-            ar = self.adminRoles._getOb(newId)
-            ar.userSetting.addRelation(us)
-            self.manage_setLocalRoles(newId, (ar.role,),)
-            if getattr(self, 'index_object', False):
-                self.index_object()
+        us = self.ZenUsers.getUserSettings(newId)
+        AdministrativeRole(us, self)
+        self.setAdminLocalRoles()
         if REQUEST:
             if us:
                 REQUEST['message'] = "Administrative Role Added"
@@ -67,12 +56,8 @@ class AdministrativeRoleable:
             level = [level]
         for i, id in enumerate(ids):
             ar = self.adminRoles._getOb(id)
-            if ar.role != role[i]: 
-                ar.role = role[i]
-                self.manage_setLocalRoles(id, (ar.role,),)
-            if ar.level != level[i]: ar.level = level[i]
-        if getattr(self, 'index_object', False):
-            self.index_object()
+            ar.update(role[i], level[i]) 
+        self.setAdminLocalRoles()
         if REQUEST:
             REQUEST['message'] = "Administrative Roles Updated"
             return self.callZenScreen(REQUEST)
@@ -84,16 +69,24 @@ class AdministrativeRoleable:
         "Delete a admin role to this device"
         if type(delids) in types.StringTypes:
             delids = [delids]
-        for id in delids:
-            if self.adminRoles._getOb(id):
-                self.adminRoles._delObject(id)
-            self.manage_delLocalRoles((id,))
-        if getattr(self, 'index_object', False):
-            self.index_object()
+        for userid in delids:
+            ar = self.adminRoles._getOb(userid, None)
+            if ar is not None: ar.delete()
+            self.manage_delLocalRoles((userid,))
+        self.setAdminLocalRoles()
         if REQUEST:
             if delids:
                 REQUEST['message'] = "Administrative Roles Deleted"
             return self.callZenScreen(REQUEST)
+
+    def manage_listAdministrativeRoles(self):
+        """List the user and their roles on an object"""
+        return [ (ar.id, (ar.role,)) for ar in self.adminRoles() ]
+
+    
+    def setAdminLocalRoles(self):
+        """Hook for setting permissions"""
+        pass
 
 
 InitializeClass(AdministrativeRoleable)

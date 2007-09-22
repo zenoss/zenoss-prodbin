@@ -11,8 +11,9 @@
 #
 ###########################################################################
 
-from ZenModelRM import ZenModelRM
 from Products.ZenRelations.RelSchema import *
+from ZenModelRM import ZenModelRM
+from ZenossSecurity import *
 
 
 class AdministrativeRole(ZenModelRM):
@@ -25,12 +26,35 @@ class AdministrativeRole(ZenModelRM):
     )
 
     level = 1
-    role = "Administrator"
+    role = ZEN_USER_ROLE
+
+    def __init__(self, userSettings, managedObject):
+        userid = userSettings.getId()
+        ZenModelRM.__init__(self, userid)
+        self.role = userSettings.defaultAdminRole
+        self.level = userSettings.defaultAdminLevel
+        self.id = userid
+        managedObject = managedObject.primaryAq()
+        managedObject.adminRoles._setObject(userid, self)
+        self.userSetting.addRelation(userSettings)
+        managedObject.manage_setLocalRoles(userid, (self.role,),)
+        managedObject.index_object()
 
 
-    def deleteAdminRole(self):
-        self.managedObject.removeRelation()
+    def update(self, role, level):
+        self.role = role
+        self.level = level
+        managedObject = self.managedObject().primaryAq()
+        managedObject.manage_setLocalRoles(self.getId(), (self.role,))
+        managedObject.index_object()
+
+
+    def delete(self):
+        managedObject = self.managedObject().primaryAq()
+        managedObject.manage_delLocalRoles((self.getId(),))
+        managedObject.index_object()
         self.userSetting.removeRelation()
+        self.managedObject.removeRelation()
 
 
     def email(self):

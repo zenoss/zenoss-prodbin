@@ -579,18 +579,7 @@ class UserSettings(ZenModelRM):
                     (type, name, self.id)
                 return self.callZenScreen(REQUEST)
             else: return
-        ar = AdministrativeRole(self.id)
-        if role is not None:
-            ar.role = role
-        else:
-            ar.role = self.defaultAdminRole
-        ar.level = self.defaultAdminLevel
-        mobj.adminRoles._setObject(self.id, ar)
-        ar = mobj.adminRoles._getOb(self.id)
-        ar.userSetting.addRelation(self)
-        mobj.manage_setLocalRoles(self.id, (ar.role,),)
-        if getattr(aq_base(mobj), 'index_object', False):
-            mobj.index_object()
+        mobj.manage_addAdministrativeRole(self.id)
         if REQUEST:
             REQUEST['message'] = \
             "Administrative Role for %s %s for user %s added" % \
@@ -600,8 +589,8 @@ class UserSettings(ZenModelRM):
 
     security.declareProtected(ZEN_CHANGE_ADMIN_OBJECTS,
         'manage_editAdministrativeRoles')
-    def manage_editAdministrativeRoles(self, ids=(), role=(), level=(), 
-        REQUEST=None):
+    def manage_editAdministrativeRoles(self, ids=(), role=(), 
+                                        level=(), REQUEST=None):
         """Edit list of admin roles.
         """
         if type(ids) in types.StringTypes:
@@ -609,15 +598,11 @@ class UserSettings(ZenModelRM):
             level = [level]
             role = [role]
         for ar in self.adminRoles():
-            try: i = ids.index(ar.managedObjectName())
+            mobj = ar.managedObject()
+            try: i = ids.index(mobj.managedObjectName())
             except ValueError: continue
-            if ar.role != role[i]: 
-                ar.role = role[i]
-                mobj = ar.managedObject()
-                mobj.manage_setLocalRoles(self.id, (ar.role,),)
-                if getattr(aq_base(mobj), 'index_object', False):
-                    mobj.index_object()
-            if ar.level != level[i]: ar.level = level[i]
+            mobj = mobj.primaryAq()
+            mobj.manage_editAdministrativeRoles(self.id, role[i], level[i])
         if REQUEST:
             if ids:
                 REQUEST['message'] = "Administrative Roles Updated"
@@ -632,13 +617,10 @@ class UserSettings(ZenModelRM):
         if type(delids) in types.StringTypes:
             delids = [delids]
         for ar in self.adminRoles():
-            if ar.managedObjectName() in delids:
-                ar.userSetting.removeRelation()
-                mobj = ar.managedObject().primaryAq()
-                mobj.adminRoles._delObject(ar.id)
-                mobj.manage_delLocalRoles((self.id,))
-                if getattr(aq_base(mobj), 'index_object', False):
-                    mobj.index_object()
+            mobj = ar.managedObject()
+            if mobj.managedObjectName() not in delids: continue
+            mobj = mobj.primaryAq()
+            mobj.manage_deleteAdministrativeRole(self.id)
         if REQUEST:
             if delids:
                 REQUEST['message'] = "Administrative Roles Deleted"

@@ -78,10 +78,12 @@ class DeviceOrganizer(Organizer, DeviceManagerBase, Commandable, ZenMenuable,
         )
 
     _relations =  Organizer._relations + (
-        ("maintenanceWindows",
-         ToManyCont(ToOne, "Products.ZenModel.MaintenanceWindow", "productionState")),
-        ("adminRoles", ToManyCont(ToOne,"Products.ZenModel.AdministrativeRole","managedObject")),
-        ('userCommands', ToManyCont(ToOne, 'Products.ZenModel.UserCommand', 'commandable')),
+        ("maintenanceWindows", ToManyCont(
+            ToOne, "Products.ZenModel.MaintenanceWindow", "productionState")),
+        ("adminRoles", ToManyCont(
+            ToOne,"Products.ZenModel.AdministrativeRole","managedObject")),
+        ('userCommands', ToManyCont(
+            ToOne, 'Products.ZenModel.UserCommand', 'commandable')),
         ('zenMenus', ToManyCont(
             ToOne, 'Products.ZenModel.ZenMenu', 'menuable')),
        ) 
@@ -93,6 +95,7 @@ class DeviceOrganizer(Organizer, DeviceManagerBase, Commandable, ZenMenuable,
         if not devrelobj:
             raise AttributeError, "%s not found on %s" % (devrel, self.id)
         devices = filter(devfilter, devrelobj())
+        devices = [ dev for dev in devices if self.checkRemotePerm('View', dev)]
         for subgroup in self.children():
             devices.extend(subgroup.getSubDevices(devfilter, devrel))
         return devices
@@ -373,36 +376,49 @@ class DeviceOrganizer(Organizer, DeviceManagerBase, Commandable, ZenMenuable,
                 return self.callZenScreen(REQUEST)
 
 
-    def manage_afterAdd(self, item, container):
-        """
-        """
-        super(DeviceOrganizer,self).manage_afterAdd(item, container)
-        self.index_object()
-
-
-    def manage_afterClone(self, item):
-        """Not really sure when this is called."""
-        super(DeviceOrganizer,self).manage_afterClone(item)
-        self.index_object()
-
-
-    def manage_beforeDelete(self, item, container):
-        """
-        """
-        super(DeviceOrganizer,self).manage_beforeDelete(item, container)
-        self.unindex_object()
-
-
     def index_object(self):
-        """Index all of our sub devices.
+        """No action. 
+        Index of subdevices will happen in manage_addAdministrativeRole
         """
-        for dev in self.getSubDevices():
-            dev.primaryAq().index_object()
+        pass
 
     def unindex_object(self):
+        """No action. 
+        Unindex of subdevices will happen in manage_deleteAdministrativeRole
+        """
+        pass 
+
+    def manage_addAdministrativeRole(self, userid, REQUEST=None):
+        AdministrativeRoleable.manage_addAdministrativeRole(self, userid)
         for dev in self.getSubDevices():
-            dev.primaryAq().unindex_object()
-        
+            dev = dev.primaryAq()
+            dev.setAdminLocalRoles()
+        if REQUEST:
+            REQUEST['message'] = "Administrative Role %s added" % ar.role
+            return self.callZenScreen(REQUEST)
+
+
+    def manage_editAdministrativeRoles(self, ids=(), role=(), 
+                                        level=(), REQUEST=None):
+        AdministrativeRoleable.manage_editAdministrativeRoles(
+                                         self,ids,role,level)
+        for dev in self.getSubDevices():
+            dev = dev.primaryAq()
+            dev.setAdminLocalRoles()
+        if REQUEST:
+            REQUEST['message'] = "Administrative Roles Updated"
+            return self.callZenScreen(REQUEST)
+           
+
+    def manage_deleteAdministrativeRole(self, delids=(), REQUEST=None):
+        AdministrativeRoleable.manage_deleteAdministrativeRole(self, delids)
+        for dev in self.getSubDevices():
+            dev = dev.primaryAq()
+            dev.setAdminLocalRoles()
+        if REQUEST:
+            REQUEST['message'] = "Administrative Roles Deleted"
+            return self.callZenScreen(REQUEST)
+
 
     def manage_snmpCommunity(self, REQUEST=None):
         """reset Community on all devices in this Organizer.

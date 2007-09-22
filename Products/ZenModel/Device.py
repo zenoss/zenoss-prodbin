@@ -69,6 +69,7 @@ from DeviceHW import DeviceHW
 
 from ZenStatus import ZenStatus
 from Exceptions import *
+from ZenossSecurity import *
 from Products.ZenUtils.Utils import edgesToXML
 from Products.ZenUtils import NetworkTree
 
@@ -459,13 +460,14 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable, Admini
         return self.os.traceRoute(target, ippath)
 
 
+    
     def getMonitoredComponents(self, collector=None, type=None):
         """Return list of monitored DeviceComponents on this device.
         """
         return self.getDeviceComponents(monitored=True, 
                                         collector=collector, type=type)
 
-
+    security.declareProtected(ZEN_VIEW, 'getDeviceComponents')
     def getDeviceComponents(self, monitored=None, collector=None, type=None):
         """Return list of all DeviceComponents on this device.
         """
@@ -892,6 +894,7 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable, Admini
         self.setPerformanceMonitor(performanceMonitor)
        
         self.setLastChange()
+        self.index_object()
         if REQUEST:
             from Products.ZenUtils.Time import SaveMessage
             REQUEST['message'] = SaveMessage()
@@ -1050,6 +1053,7 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable, Admini
         """set the location of a device within a generic location path"""
         locobj = self.getDmdRoot("Locations").createOrganizer(locationPath)
         self.addRelation("location", locobj)
+        self.setAdminLocalRoles()
 
 
     def addLocation(self, newLocationPath, REQUEST=None):
@@ -1164,6 +1168,7 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable, Admini
                 del curRelIds[path]
         for obj in curRelIds.values():
             self.removeRelation(relName, obj)
+        self.setAdminLocalRoles()
 
 
     def getExpandedLinks(self):
