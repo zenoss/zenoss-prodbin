@@ -83,7 +83,7 @@ class GraphDefinitionsAndFriends(Migrate.Step):
             template.buildRelations()
                         
             if template.graphDefs():
-                self.fixDefaultLineTypes(template)
+                lineTypesFixed += self.fixDefaultLineTypes(template)
             else:
                 g, f, m = self.convertTemplate(template)
                 numGraphs += g
