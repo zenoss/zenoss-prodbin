@@ -123,6 +123,14 @@ class UserSettingsManager(ZenModelRM):
         return [o for o in self.objectValues(spec="UserSettings")]
             
 
+    def getAllGroupSettings(self):
+        """Return list user settings objects.
+        """
+        # This code used to filter out the admin user.
+        # See ticket #1615 for why it no longer does.
+        return [o for o in self.objectValues(spec="GroupSettings")]
+            
+
     def getAllUserSettingsNames(self, filtNames=()):
         """Return list of all zenoss usernames. 
         """
@@ -174,6 +182,14 @@ class UserSettingsManager(ZenModelRM):
                 folder.changeOwnership(user)
                 folder.manage_setLocalRoles(userid, ("Owner",))
         return folder
+
+
+    def getGroupSettings(self, groupid):
+        if not self._getOb(groupid, False):
+            gfolder = GroupSettings(groupid)
+            self._setObject(gfolder.getId(), gfolder)
+        return self._getOb(groupid)
+
 
     def setDashboardState(self, userid=None, REQUEST=None):
         """ Store a user's portlets and layout. If userid is not passed
@@ -283,6 +299,30 @@ class UserSettingsManager(ZenModelRM):
         if REQUEST:
             REQUEST['message'] = "Users deleted"
             return self.callZenScreen(REQUEST)
+
+
+    def manage_addGroup(self, groupid, REQUEST=None): 
+        """Add a zenoss group to the system and set its default properties.
+        """
+        if not groupid: return
+        try:
+            self.acl_users.groupManager.addGroup(groupid)
+        except KeyError: pass
+        gfolder = self.getGroupSettings(groupid)
+        if REQUEST:
+            REQUEST['message'] = "Group %s added" % groupid
+            return self.callZenScreen(REQUEST)
+
+
+    def manage_deleteGroups(self, groupids=(), REQUEST=None):
+        gm = self.acl_users.groupManager
+        if type(groupids) not in types.StringTypes:
+            groupids = [groupids]
+        for groupid in groupids:
+            if self._getOb(groupid): self._delObject(groupid)
+            try:
+                gm.removeGroup(groupid)
+            except KeyError: pass
 
 
     def manage_emailTestAdmin(self, userid, REQUEST=None):
@@ -699,6 +739,41 @@ class UserSettings(ZenModelRM):
                 o.exportXml(ofile, ignorerels)
 
 
+class GroupSettings(UserSettings):
 
+    meta_type = 'GroupSettings'
+    
+    factory_type_information = (
+        {
+            'immediate_view' : 'administeredDevices',
+            'actions'        :
+            (
+                {'name'         : 'Edit',
+                'action'        : 'editGroupSettings',
+                'permissions'   : (ZEN_CHANGE_SETTINGS,),
+                },
+                {'name'         : 'Administered Objects', 
+                'action'        : 'administeredDevices', 
+                'permissions'   : (ZEN_CHANGE_ADMIN_OBJECTS,)
+                },
+                {'name'         : 'Alerting Rules',
+                'action'        : 'editActionRules',
+                'permissions'   : (ZEN_CHANGE_ALERTING_RULES,),
+                },
+            )
+         },
+        )
+
+    security = ClassSecurityInfo()
+
+    def _getG(self):
+        return self.zport.acl_users.groupManager
+
+    def getMemberUsers(self):
+        return [ u[0] for u in self._getG().listAssignedPrincipals(self.id) ]
+
+    def printUsers(self):
+        return ", ".join(self.getMemberUsers())
+    
 InitializeClass(UserSettingsManager)
 InitializeClass(UserSettings)

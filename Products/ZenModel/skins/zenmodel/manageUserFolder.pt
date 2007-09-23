@@ -29,7 +29,7 @@ function ConfirmPagerTest() {
        objects here/getAllUserSettings;
        showfilterbox python:True;
        batch python:ztm.getBatch(tableName, objects); 
-       tabletitle string:User Folder;
+       tabletitle string:Users;
        menu_id string:User_list">
         <tal:block metal:use-macro="here/zenuimacros/macros/zentable">
 
@@ -94,6 +94,52 @@ function ConfirmPagerTest() {
     </tr>
 
         <!-- END TABLE CONTENTS -->
+
+        </tal:block>
+        </tal:block>
+        </tal:block>
+        
+
+</form>
+
+<form method="get" tal:attributes="action here/absolute_url_path" id="groups">
+
+
+        <tal:block tal:define="tableName string:grouplist;
+       ztm here/ZenTableManager;
+       objects here/getAllGroupSettings;
+       showfilterbox python:True;
+       batch python:ztm.getBatch(tableName, objects); 
+       tabletitle string:Groups;
+       menu_id string:User_list">
+        <tal:block metal:use-macro="here/zenuimacros/macros/zentable">
+        <tal:block metal:fill-slot="zentablecontents">
+    <tr>
+        <th tal:replace="structure python:ztm.getTableHeader(
+                            tableName,'primarySortKey','Group Name')"/>
+        <th tal:replace="structure python:ztm.getTableHeader(
+                            tableName,'users','Users')"/>
+    </tr>
+    <tal:block tal:repeat="group batch">
+    <tr tal:define="odd repeat/group/odd"
+        tal:attributes="class python:test(odd, 'odd', 'even')">
+        <td class="tablevalues">
+        <input type="checkbox" name="groupids:list" 
+            tal:condition="here/isManager" tal:attributes="value group/getId" />
+            <a tal:attributes="href group/getPrimaryUrlPath"
+               tal:condition="group/iseditable" 
+               tal:content="group/getId">edahl</a>
+            <span tal:condition="not: group/iseditable" 
+                  tal:content="group/getId"/>
+        </td>
+        <td class="tablevalues" tal:content="group/printUsers"/>
+    </tr>
+    </tal:block>
+    <tr>
+        <td colspan="4" class="tableheader">
+            <span metal:use-macro="here/zenTableNavigation/macros/navtool"/>
+        </td>
+    </tr>
 
         </tal:block>
         </tal:block>
