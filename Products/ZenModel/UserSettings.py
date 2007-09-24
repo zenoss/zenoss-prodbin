@@ -471,6 +471,15 @@ class UserSettings(ZenModelRM):
         return ()
 
 
+    def getUserGroupSettings(self):
+        """Return group settings objects for user
+        """
+        user = self.getUser(self.id)
+        if user: 
+            return [self._getOb(g) for g in user.getGroups() if self._getOb(g)]
+        return ()
+
+
     security.declareProtected(ZEN_CHANGE_SETTINGS, 'updatePropsFromDict')
     def updatePropsFromDict(self, propdict):
         props = self.propertyIds()
@@ -680,6 +689,17 @@ class UserSettings(ZenModelRM):
             return self.callZenScreen(REQUEST)
 
 
+    security.declareProtected(ZEN_CHANGE_SETTINGS, 'getAllAdminRoles')
+    def getAllAdminRoles(self):
+        """Return all admin roles for this user and its groups
+        """
+        ars = self.adminRoles()
+        for group in self.getUser().getGroups():
+            gs = self.getGroupSettings(group)
+            ars.extend(gs.adminRoles())
+        return ars
+
+        
     security.declareProtected(ZEN_CHANGE_SETTINGS, 'manage_emailTest')
     def manage_emailTest(self, REQUEST=None):
         ''' Send a test email to the given userid.
