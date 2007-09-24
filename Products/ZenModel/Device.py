@@ -35,6 +35,7 @@ from _mysql_exceptions import OperationalError
 
 from Products.ZenUtils.Graphics import NetworkGraph
 from Products.ZenUtils.Utils import setWebLoggingStream, clearWebLoggingStream
+from Products.ZenUtils.Utils import zenPath
 from Products.ZenUtils import Time
 import RRDView
 
@@ -1270,7 +1271,7 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable, Admini
             handler = setWebLoggingStream(response)
         
         try:
-            zm = os.path.join(os.environ['ZENHOME'], 'bin', 'zenmodeler')
+            zm = zenPath('bin', 'zenmodeler')
             zenmodelerCmd = [zm, 'run', '--now', '-F', '-d', self.id]
             log.info('Executing command: %s' % ' '.join(zenmodelerCmd)) 
             f = Popen4(zenmodelerCmd) 
