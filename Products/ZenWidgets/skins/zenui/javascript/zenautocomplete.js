@@ -14,7 +14,7 @@ YAHOO.zenoss.getRemoteData = function(name, url, callback) {
     d.addCallback(callback);
     e.addCallback(function(){
         if (o[name]) return o[name];
-        else return loadJSONDoc(url);
+        else return loadJSONDoc(url, {'dataRoot':name});
     });
     d.callback();
     e.callback();
@@ -64,7 +64,7 @@ YAHOO.zenoss.zenautocomplete.ZenAutoComplete.prototype = {
 }
 
 YAHOO.zenoss.getOrganizers = function(root, callback) {
-    var url = '/zport/dmd/' + root + '/getOrganizerNames';
+    var url = '/zport/getOrganizerNames';
     function _prepare(orgarray) {
         orgarray = map(
             function(x){return '/'+root+(x=='/'?'':x)}, 
