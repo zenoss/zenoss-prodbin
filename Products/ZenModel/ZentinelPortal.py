@@ -16,11 +16,13 @@ $Id: ZentinelPortal.py,v 1.17 2004/04/08 15:35:25 edahl Exp $
 """
 
 import os
+import urllib
 
 import Globals
 
+from zExceptions import Redirect
 from AccessControl.User import manage_addUserFolder
-from AccessControl import getSecurityManager
+from AccessControl import getSecurityManager, ClassSecurityInfo
 
 from Products.Sessions.BrowserIdManager import constructBrowserIdManager
 from Products.Sessions.SessionDataManager import constructSessionDataManager
@@ -33,6 +35,7 @@ from Products.ZenUtils import Security
 
 from ZenossSecurity import *
 
+from Products.AdvancedQuery import MatchGlob, Eq, Or, And, In
 
 class ZentinelPortal ( PortalObjectBase ):
     """
@@ -47,9 +50,45 @@ class ZentinelPortal ( PortalObjectBase ):
         )
     title = ''
     description = ''
+    
+    security = ClassSecurityInfo()
 
     def __init__( self, id, title='' ):
         PortalObjectBase.__init__( self, id, title )
+
+
+    security.declareProtected(ZEN_COMMON, 'searchDevices')
+    def searchDevices(self, queryString='', REQUEST=None):
+        """Returns the concatenation of a device name, ip and mac
+        search on the list of devices.
+        """
+        zcatalog = self.dmd.Devices.searchDevices
+        glob = queryString.rstrip('*') + '*'
+        glob = MatchGlob('id', glob)
+        query = Or(glob, Eq('getDeviceIp', queryString))
+        brains = zcatalog.evalAdvancedQuery(query)
+        if REQUEST and len(brains) == 1:
+            raise Redirect(urllib.quote(brains[0].getPrimaryId))
+        try:
+            brains += self.Networks.ipSearch.evalAdvancedQuery(glob)
+        except AttributeError:
+            pass
+        return [ b.getObject() for b in brains ]
+   
+
+    security.declareProtected(ZEN_COMMON, 'getOrganizerNames')
+    def getOrganizerNames(self, dmdRoot='Devices'):
+        """Return the organizer names to which this user has access
+        """
+        root = self.getDmdRoot(dmdRoot)
+        return root.getOrganizerNames()
+
+
+    security.declareProtected(ZEN_COMMON, 'jsonGetDeviceNames')
+    def jsonGetDeviceNames(self):
+        """Return a list of devices for the dashboard
+        """
+        return self.Devices.jsonGetDeviceNames()
 
 
     def isManager(self, obj=None):

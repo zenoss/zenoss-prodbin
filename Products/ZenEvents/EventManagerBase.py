@@ -544,9 +544,10 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
             try:
                 if not e.startswith('/zport/dmd'):
                     bigdev = '/zport/dmd' + e
-                return self.dmd.unrestrictedTraverse(bigdev)
+                obj = self.dmd.unrestrictedTraverse(bigdev)
             except KeyError: 
-                return self.dmd.Devices.findDevice(e)
+                obj = self.dmd.Devices.findDevice(e)
+            if self.has_permission("View", obj): return obj
         entities = filter(lambda x:x is not None, map(getob, entities))
         return self.getObjectsEventSummaryJSON(entities, REQUEST)
 
