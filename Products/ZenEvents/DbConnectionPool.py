@@ -58,6 +58,9 @@ class DbConnectionPool(Queue):
                                             database=database)
             else:
                 log.debug('Retrieved a connection; Pool size: %s' % self.qsize())
+                if hasattr(obj, 'ping'):
+                    # maybe the connection timed out: reconnect if necessary
+                    obj.ping()
                 return obj
 
         except Empty:
