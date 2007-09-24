@@ -508,6 +508,29 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
                            'Events':x[1]} for x in devdata]
         return simplejson.dumps(mydict)
 
+    def getObjectsEventSummaryJSON(self, objects, REQUEST=None):
+        """ Given some objects, get a simple event summary table """
+        mydict = {'columns':[], 'data':[]}
+        mydict['columns'] = ['Object', 'Events']
+        getcolor = re.compile(r'class=\"evpill-(.*?)\"', re.S|re.I|re.M).search
+        colors = "red orange yellow blue green".split()
+        def pillcompare(a,b):
+            a, b = map(lambda x:getcolor(x[1]), (a, b))
+            def getindex(x):
+                try: return colors.index(x.groups()[0])
+                except AttributeError: return 5
+            a, b = map(getindex, (a, b))
+            return cmp(a, b)
+        devdata = []
+        for obj in objects:
+            alink = obj.getPrettyLink()
+            pill = self.getEventPillME(obj, showGreen=True)
+            if type(pill)==type([]): pill = pill[0]
+            devdata.append([alink, pill])
+        devdata.sort(pillcompare)
+        mydict['data'] = [{'Object':x[0],'Events':x[1]} for x in devdata]
+        return simplejson.dumps(mydict)
+
     def getEntityListEventSummary(self, entities=[], REQUEST=None):
         """ Given a list of URLs, return a list of event summaries,
             sorted by severity
@@ -525,26 +548,7 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
             except KeyError: 
                 return self.dmd.Devices.findDevice(e)
         entities = filter(lambda x:x is not None, map(getob, entities))
-        mydict = {'columns':[], 'data':[]}
-        mydict['columns'] = ['Object', 'Events']
-        getcolor = re.compile(r'class=\"evpill-(.*?)\"', re.S|re.I|re.M).search
-        colors = "red orange yellow blue green".split()
-        def pillcompare(a,b):
-            a, b = map(lambda x:getcolor(x[1]), (a, b))
-            def getindex(x):
-                try: return colors.index(x.groups()[0])
-                except AttributeError: return 5
-            a, b = map(getindex, (a, b))
-            return cmp(a, b)
-        devdata = []
-        for ent in entities:
-            alink = ent.getPrettyLink()
-            pill = self.getEventPillME(ent, showGreen=True)
-            if type(pill)==type([]): pill = pill[0]
-            devdata.append([alink, pill])
-        devdata.sort(pillcompare)
-        mydict['data'] = [{'Object':x[0],'Events':x[1]} for x in devdata]
-        return simplejson.dumps(mydict)
+        return self.getObjectsEventSummaryJSON(entities, REQUEST)
 
     def getEventSummary(self, where="", severity=1, state=1, prodState=None):
         """

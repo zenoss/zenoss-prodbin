@@ -564,4 +564,17 @@ class DeviceOrganizer(Organizer, DeviceManagerBase, Commandable, ZenMenuable,
         if shortDesc: name = self.id
         return template % (href, icon, name)
 
+    def getSubOrganizersEventSummary(self, REQUEST=None):
+        """ Gets event summaries of immediate child organizers """
+        objects = self.children()
+        return self.ZenEventManager.getObjectsEventSummaryJSON(objects, REQUEST)
+
+    def getSubDevicesEventSummary(self, REQUEST=None):
+        """ Gets event summaries of child devices """
+        devs = self.devices()
+        return self.ZenEventManager.getObjectsEventSummaryJSON(devs, REQUEST)
+
+    def getEventSummaryJSON(self, REQUEST=None):
+        return self.ZenEventManager.getObjectsEventSummary([self], REQUEST)
+
 InitializeClass(DeviceOrganizer)
