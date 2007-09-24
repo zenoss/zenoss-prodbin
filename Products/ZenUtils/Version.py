@@ -228,12 +228,6 @@ class Version(object):
             svnrev = ''
         return svnrev
 
-    def getSVNRevision(self):
-        if self.revision:
-            return self.revision
-        self.revision = getZenossRevision()
-        return self.revision
-
     def __repr__(self):
         return '%s(%s, %d, %d, %d,%s)' % (
             self.__class__.__name__,
