@@ -98,6 +98,12 @@ def firsts(lst):
     'the first element of every item in a sequence'
     return [item[0] for item in lst]
 
+def checkException(log, function, *args, **kw):
+    try:
+        return function(*args, **kw)
+    except Exception, ex:
+        log.exception(ex)
+        raise ex
 
 class Status:
     'keep track of the status of many parallel requests'
@@ -522,12 +528,13 @@ class zenperfsnmp(SnmpDaemon):
         if proxy.singleOidMode:
             n = 1
         def getLater(oids):
-            return proxy.get(oids, proxy.timeout, proxy.tries)
+            return checkException(self.log, proxy.get,
+                                  oids, proxy.timeout, proxy.tries)
         proxy.open()
         chain = Chain(getLater, iter(chunk(sorted(proxy.oidMap.keys()), n)))
         d = chain.run()
         def closer(arg, proxy):
-            proxy.close()
+            checkException(self.log, proxy.close)
             return arg
         d.addCallback(closer, proxy)
         d.addCallback(self.storeValues, deviceName)
@@ -574,7 +581,7 @@ class zenperfsnmp(SnmpDaemon):
                                deviceName,
                                update.__class__,
                                update)
-
+                
         successCount = sum(firsts(updates))
         oids = []
         for success, update in updates:
