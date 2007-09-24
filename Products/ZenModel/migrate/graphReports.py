@@ -31,7 +31,7 @@ class GraphReports(Migrate.Step):
             if not isinstance(rc, GraphReportClass):
                 rc.__class__ = GraphReportClass
         else:
-            rc = GraphReports('Graph Reports')
+            rc = GraphReportClass('Graph Reports')
             dmd.Reports._setObject(rc.id, rc)
                 
         # Build menus
