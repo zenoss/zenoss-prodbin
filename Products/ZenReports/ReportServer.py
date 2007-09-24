@@ -23,7 +23,7 @@ from Globals import InitializeClass
 from AccessControl import ClassSecurityInfo
 
 from Products.ZenModel.ZenModelRM import ZenModelRM
-from Products.ZenUtils.Utils import importClass
+from Products.ZenUtils.Utils import importClass, zenPath
 from Products.ZenModel.ZenossSecurity import *
 
 import os
@@ -38,8 +38,7 @@ class ReportServer(ZenModelRM):
         "Run a plugin to generate the report object"
         dmd = self.dmd
         args = dict(zip(REQUEST.keys(), REQUEST.values()))
-        m = os.path.join(os.environ['ZENHOME'],
-                         'Products/ZenReports/plugins')
+        m = zenPath('Products/ZenReports/plugins')
         directories = [
             p.path('reports', 'plugins') for p in self.packs()
             ] + [m]

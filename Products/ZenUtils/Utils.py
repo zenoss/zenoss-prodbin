@@ -539,3 +539,6 @@ def edgesToXML(edges, start=()):
     xmldoc = "<graph>%s</graph>" % ''.join(list(xmlels))
     return xmldoc
 
+def zenPath(*args):
+    args = [a.strip('/') for a in args]
+    return os.path.join(os.environ['ZENHOME'], *args)

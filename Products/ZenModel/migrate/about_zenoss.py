@@ -26,8 +26,6 @@ from Products.ZenModel.ZenossInfo import manage_addZenossInfo
 
 import Migrate
 
-zenhome = os.getenv('ZENHOME')
-
 class AboutZenoss(Migrate.Step):
     version = Migrate.Version(0, 23, 0)
 

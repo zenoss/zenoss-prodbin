@@ -36,7 +36,8 @@ class HoistPerfData(Migrate.Step):
         import glob
         names = dmd.getDmdRoot('Devices').getOrganizerNames(True)
         
-        oldbase = os.path.join(os.getenv('ZENHOME'), 'perf', 'Devices')
+        from Products.ZenUtils.Utils import zenPath
+        oldbase = zenPath('perf', 'Devices')
         names.sort()
         names.reverse()
         for name in names:

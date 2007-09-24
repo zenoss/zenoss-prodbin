@@ -26,6 +26,7 @@ import socket
 import time
 
 from CmdBase import CmdBase
+from Utils import zenPath
 
 class ConfDaemon(CmdBase):
     
@@ -60,9 +61,9 @@ class ConfDaemon(CmdBase):
             print >>sys.stderr, ("fork #2 failed: %d (%s)" % 
                     (e.errno, e.strerror))
         myname = sys.argv[0].split(os.sep)[-1] + ".pid"
-        zenhome = os.path.join(os.environ['ZENHOME'], 'var')
-        pidfile = os.path.join(zenhome, myname)
-        if os.path.exists(zenhome):
+        varhome = zenPath('var')
+        pidfile = os.path.join(varhome, myname)
+        if os.path.exists(varhome):
             file = open(pidfile, 'w')
             file.write(str(os.getpid()))
             file.close()
@@ -84,15 +85,15 @@ class ConfDaemon(CmdBase):
                 raise
 
 
-    def reverseDnsLookup(self, ip):
+    def reverseDnsLookup(self, addr):
         """try the reverse lookup dnstries times if it fails look in cache"""
         try:
-            ip = self._dsnLookup(socket.gethostbyaddr, ip)
-            self.reversednscache[hostname] = ip
+            ip = self._dsnLookup(socket.gethostbyaddr, addr)
+            self.reversednscache[addr] = ip
             return ip
         except socket.error:
-            if self.reversednscache.has_key(hostname):
-                return self.reversednscache[hostname]
+            if self.reversednscache.has_key(addr):
+                return self.reversednscache[addr]
             else:
                 raise
 

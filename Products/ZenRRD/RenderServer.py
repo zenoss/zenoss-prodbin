@@ -46,6 +46,7 @@ except ImportError:
 
 from Products.ZenUtils.PObjectCache import PObjectCache
 from Products.ZenUtils.PObjectCache import CacheObj
+from Products.ZenUtils.Utils import zenPath
 
 from RRDToolItem import RRDToolItem
 
@@ -222,8 +223,7 @@ class RenderServer(RRDToolItem):
         "render a custom graph and return it"
         try:
             dmd = self.dmd
-            m = os.path.join(os.environ['ZENHOME'],
-                             'Products/ZenRRD/plugins/%s.py' % name)
+            m = zenPath('Products/ZenRRD/plugins/%s.py' % name)
             graph = None
             exec open(m)
             return graph

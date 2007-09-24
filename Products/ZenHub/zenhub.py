@@ -36,6 +36,7 @@ from zope.interface import implements
 import Globals
 
 from Products.ZenUtils.ZCmdBase import ZCmdBase
+from Products.ZenUtils.Utils import zenPath
 from Products.ZenEvents.Event import Event, EventHeartbeat
 from Products.ZenEvents.ZenEventClasses import App_Start, App_Stop
 import transaction
@@ -282,8 +283,7 @@ class ZenHub(ZCmdBase):
                                dest='passwordfile',
                                type='string',
                                help='File where passwords are stored',
-                               default=os.path.join(os.environ['ZENHOME'],
-                                                    'etc','hubpasswd'))
+                               default=zenPath('etc','hubpasswd'))
         
 
 if __name__ == '__main__':

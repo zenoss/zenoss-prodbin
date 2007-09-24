@@ -19,6 +19,7 @@ import glob
 import rrdtool
 import random
 from Products.ZenRRD.plugins.plugin import *
+from Products.ZenUtils.Utils import zenPath
 
 if REQUEST:
     REQUEST.response.setHeader('Content-type', 'image/png')
@@ -31,7 +32,7 @@ if not graph:
 
     env = {}
     env.update(os.environ)
-    anyOldFile = random.choice(glob.glob('%(ZENHOME)s/perf/Devices/*/*.rrd' % env))
+    anyOldFile = random.choice(glob.glob(zenPath('/perf/Devices/*/*.rrd')))
     basename=os.path.basename(anyOldFile[:-4])
     width=500
     height=100

@@ -31,7 +31,7 @@ from ZPublisher.Converters import type_converters
 
 from ZenModelBase import ZenModelBase
 from ZenPacker import ZenPacker
-from Products.ZenUtils.Utils import getSubObjects
+from Products.ZenUtils.Utils import getSubObjects, zenPath
 from Products.ZenRelations.ImportRM import ImportRM
 from Products.ZenRelations.RelationshipManager import RelationshipManager
 
@@ -103,11 +103,9 @@ class ZenModelRM(ZenModelBase, RelationshipManager, Historical, ZenPacker):
         dest = 'filesystem'
         if REQUEST:
             dest = REQUEST.form.get('dest')
-        zenhome = os.getenv('ZENHOME')
-        expDir = os.path.join(zenhome, 'export')
         fileBase = '%s_%s.xml' % (context.getNodeName(), context.id)
         if dest == 'filesystem':
-            filename = os.path.join(expDir, fileBase)
+            filename = zenPath('export', fileBase)
             msg = "Item has been exported to: %s at " % filename
         elif dest == 'zenossdotnet':
             # create temp file

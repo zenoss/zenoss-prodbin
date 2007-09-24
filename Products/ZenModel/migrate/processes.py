@@ -21,6 +21,7 @@ __version__ = "$Revision$"[11:-2]
 
 import Migrate
 import os
+from Products.ZenUtils.Utils import zenPath
 
 class Processes(Migrate.Step):
     version = Migrate.Version(0, 22, 0)
@@ -41,7 +42,7 @@ class Processes(Migrate.Step):
             imp = ImportRM(noopts=True, app=dmd.getPhysicalRoot())
             imp.options.noCommit = True
             imp.options.noindex = True
-            imp.options.infile = os.path.join(os.environ['ZENHOME'],
+            imp.options.infile = zenPath(
                 'Products', 'ZenModel', 'data', 'osproc.update')
             imp.loadDatabase()
 

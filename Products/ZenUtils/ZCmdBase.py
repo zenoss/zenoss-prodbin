@@ -21,15 +21,13 @@ from threading import Lock
 
 from AccessControl.SecurityManagement import newSecurityManager
 from AccessControl.SecurityManagement import noSecurityManager
-from Utils import getObjByPath
+from Utils import getObjByPath, zenPath
 
 from Exceptions import ZentinelException
 from ZenDaemon import ZenDaemon
 
 import os
-defaultCacheDir = os.getenv('ZENHOME')
-if defaultCacheDir is not None:
-    defaultCacheDir = os.path.join(defaultCacheDir, 'var')
+defaultCacheDir = zenPath('var')
 
 class DataRootError(Exception):pass
 

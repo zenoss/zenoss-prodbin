@@ -50,7 +50,8 @@ def cached(fname, cachedTime=600):
     except OSError:
         return None
 
-perf = os.path.join(os.environ['ZENHOME'], 'perf')
+from Products.ZenUtils.Utils import zenPath
+perf =  zenPath('perf')
 
 title = 'Plugin Title'
 label = ''

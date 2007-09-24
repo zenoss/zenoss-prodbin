@@ -26,6 +26,7 @@ import signal
 import logging
 
 from CmdBase import CmdBase
+from Utils import zenPath
 
 # Daemon creation code below based on Recipe by Chad J. Schroeder
 # File mode creation mask of the daemon.
@@ -50,8 +51,8 @@ class ZenDaemon(CmdBase):
     def __init__(self, noopts=0, keeproot=False):
         CmdBase.__init__(self, noopts)
         self.keeproot=keeproot
-        self.zenhome = os.path.join(os.environ['ZENHOME'])
-        self.zenvar = os.path.join(self.zenhome, "var")
+        self.zenhome = zenPath()
+        self.zenvar = zenPath("var")
         if not noopts:
             # These handlers do not get called if run as daemon.  In that
             # case twisted's handlers are called instead.
@@ -78,7 +79,7 @@ class ZenDaemon(CmdBase):
                                         self.options.logpath)
                 logdir = self.options.logpath
             else:
-                logdir = os.path.join(os.environ['ZENHOME'], "log")
+                logdir = zenPath("log")
             logfile = os.path.join(logdir, mname.lower()+".log")
             h = logging.FileHandler(logfile)
             h.setFormatter(logging.Formatter(

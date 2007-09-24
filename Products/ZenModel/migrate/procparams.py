@@ -16,6 +16,7 @@ Reexecute zenprocs.sql to get new version of procedures (now parameterized)
 
 '''
 import Migrate
+from Products.ZenUtils.Utils import zenPath
 
 class ProcParams(Migrate.Step):
     version = Migrate.Version(1, 1, 0)
@@ -23,8 +24,7 @@ class ProcParams(Migrate.Step):
     def cutover(self, dmd):
         import os
         import os.path
-        procs = os.path.join(
-                    os.environ['ZENHOME'], 'Products', 'ZenEvents', 'db', 'zenprocs.sql')
+        procs = zenPath('Products', 'ZenEvents', 'db', 'zenprocs.sql')
         os.system('cat %s | mysql -u%s -p%s %s' % (
                     procs,
                     dmd.ZenEventManager.username,

@@ -61,7 +61,6 @@ class TestRunner(ZenScriptBase):
         return dataSource.getCommand(device)
 
     def execute(self, cmd):
-        zenhome = os.getenv('ZENHOME')
         child = popen2.Popen4(cmd)
         flags = fcntl.fcntl(child.fromchild, fcntl.F_GETFL)
         fcntl.fcntl(child.fromchild, fcntl.F_SETFL, flags | os.O_NDELAY)

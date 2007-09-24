@@ -15,9 +15,8 @@ import os
 import socket
 import time
 import Globals
-zhome = os.environ['ZENHOME']
-logdir = os.path.join(zhome, "log")
-defaultInfile = os.path.join(logdir, "origsyslog.log")
+from Products.ZenUtils.Utils import zenPath
+defaultInfile = zenPath("log/origsyslog.log")
 
 from Products.ZenUtils.CmdBase import CmdBase
 

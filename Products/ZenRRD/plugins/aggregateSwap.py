@@ -44,7 +44,7 @@ cmd = [fname,
        '--vertical-label=%(label)s' % env] + args
 ifiles = []
 ofiles = []
-perf = os.path.join(os.environ['ZENHOME'], 'perf')
+perf = zenPath('perf')
 rpn = env['rpn']
 devicePat = re.compile('.*(' + env.get('devices', '') + ').*')
 for d, _, fs in os.walk(perf):

@@ -21,6 +21,7 @@ __version__ = "$Revision$"[11:-2]
 
 import Migrate
 import os
+from Products.ZenUtils.Utils import zenPath
 
 class StandardErrorMessage(Migrate.Step):
     version = Migrate.Version(0, 23, 0)
@@ -32,9 +33,7 @@ class StandardErrorMessage(Migrate.Step):
         app = dmd.getPhysicalRoot()
         if app.hasObject('standard_error_message'):
             app._delObject('standard_error_message')
-        zenhome = os.getenv('ZENHOME')
-        file = open('%s/Products/ZenModel/dtml/standard_error_message.dtml' %
-                        zenhome)
+        file = open(zenPath('Products/ZenModel/dtml/standard_error_message.dtml'))
         try:
             text = file.read()
         finally:

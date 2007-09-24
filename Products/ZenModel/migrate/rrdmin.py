@@ -32,11 +32,12 @@ import Migrate
 
 rrd = re.compile('.*\\.rrd')
 
+from Products.ZenUtils.Utils import zenPath
 class RRDMinValue(Migrate.Step):
     version = Migrate.Version(0, 22, 0)
 
     def setMin(self, value):
-        for d,_, files in os.walk(os.path.join(os.environ['ZENHOME'], "perf")):
+        for d,_, files in os.walk(zenPath("perf")):
             for f in [f for f in files if rrd.match(f)]:
                 rrdtool.tune(os.path.join(d, f), '-i', 'ds0:' + value)
 

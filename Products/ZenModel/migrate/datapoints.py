@@ -71,7 +71,8 @@ class DataPoints(Migrate.Step):
             s.datapoints._setObject(p.id, p)
 
     def cutoverTemplate(self, t, rrdPath):
-        oldbase = os.path.join(os.getenv('ZENHOME'), 'perf')
+        from Products.ZenUtils.Utils import zenPath
+        oldbase = zenPath('perf')
         for s in t.datasources()[:]:
             self.cutoverDataSource(s)
             oldname = os.path.join(oldbase + rrdPath, s.id)

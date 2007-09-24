@@ -39,7 +39,8 @@ for k, v in env.items():
 fname = "%s/graph-%s.png" % (TMPDIR,name)
 cmd = [fname,] + basicArgs(env) + args
 
-perf = os.path.join(os.environ['ZENHOME'], 'perf')
+from Products.ZenUtils.Utils import zenPath
+perf = zenPath('perf')
 rpn = env['rpn']
 rfiles = []
 devicePat = re.compile('.*(' + devices + ').*')

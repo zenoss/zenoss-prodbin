@@ -24,14 +24,14 @@ import os
 
 import Migrate
 
-zenhome = os.getenv('ZENHOME')
+from Products.ZenUtils.Utils import zenPath
 
 class ImportExportFilesystem(Migrate.Step):
     version = Migrate.Version(0, 23, 0)
 
     def cutover(self, dmd):
         for directory in ['import', 'export']:
-            path = os.path.join(zenhome, directory)
+            path = zenPath(directory)
             if not os.path.exists(path):
                 os.mkdir(path, 0750)
 

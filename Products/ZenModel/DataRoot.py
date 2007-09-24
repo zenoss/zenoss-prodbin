@@ -19,7 +19,6 @@ name space.
 """
 
 import re
-
 from AccessControl import ClassSecurityInfo
 from AccessControl import getSecurityManager
 from OFS.OrderedFolder import OrderedFolder
@@ -38,6 +37,8 @@ from Products.ZenRelations.RelSchema import *
 from Commandable import Commandable
 import DateTime
 import socket
+
+from Products.ZenUtils.Utils import zenPath
 
 from AccessControl import Permissions as permissions
 
@@ -468,7 +469,7 @@ class DataRoot(ZenModelRM, OrderedFolder, Commandable, ZenMenuable):
         pack.version = version
         self.packs._setObject(id, pack)
         import os
-        zp = os.path.join(os.environ['ZENHOME'], 'Products', id)
+        zp = zenPath('Products', id)
         if not os.path.isdir(zp):
             os.makedirs(zp, 0750)
             for d in ['objects', 'skins', 'modeler/plugins',
@@ -487,7 +488,7 @@ class DataRoot(ZenModelRM, OrderedFolder, Commandable, ZenMenuable):
     def removeZenPacks(self, ids=(), REQUEST = None):
         """remove a ZenPack"""
         import os
-        zp = os.path.join(os.environ['ZENHOME'], 'bin', 'zenpack')
+        zp = zenPath('bin', 'zenpack')
         import os
         for pack in ids:
             os.system('%s run --remove %s' % (zp, pack))

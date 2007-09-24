@@ -21,6 +21,7 @@ import transaction
 
 
 from Products.ZenUtils.ZCmdBase import ZCmdBase
+from Products.ZenUtils.Utils import zenPath
 
 import re
 DEFINITIONS=re.compile(r'([A-Za-z-0-9]+) +DEFINITIONS *::= *BEGIN')
@@ -137,7 +138,7 @@ class zenmib(ZCmdBase):
 
     def load(self):
 
-        smimibdir = os.path.join(os.environ['ZENHOME'], 'share/mibs')
+        smimibdir = zenPath('share/mibs')
         ietf, iana, irtf, tubs, site = \
               map(lambda x: os.path.join(smimibdir, x),
                   'ietf iana irtf tubs site'.split())

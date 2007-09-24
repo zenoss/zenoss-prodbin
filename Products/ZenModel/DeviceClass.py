@@ -45,6 +45,7 @@ from Products.ZenUtils.Search import makeCaseSensitiveFieldIndex
 from Products.ZenUtils.Search import makeCaseInsensitiveFieldIndex
 from Products.ZenUtils.Search import makeCaseInsensitiveKeywordIndex
 from Products.ZenUtils.Search import makePathIndex
+from Products.ZenUtils.Utils import zenPath
 
 from Products.ZenUtils.FakeRequest import FakeRequest
 
@@ -510,7 +511,7 @@ class DeviceClass(DeviceOrganizer, ZenPackable):
         """Get a list of XML filenames and basenames from the ZENHOME/import
         directory.
         """
-        path = os.path.join(os.getenv('ZENHOME'), 'import')
+        path = zenPath('import')
         filedata = []
         for filename in glob(path+os.path.sep+'*.xml'):
             basename = os.path.basename(filename)

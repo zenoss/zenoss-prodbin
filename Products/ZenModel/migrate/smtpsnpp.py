@@ -41,13 +41,14 @@ def parseconfig(options):
 class OptionsBucket:
     pass
 
+from Products.ZenUtils.Utils import zenPath
+
 class smtpsnpp(Migrate.Step):
     version = Migrate.Version(1, 0, 0)
 
     def cutover(self, dmd):
         options = OptionsBucket()
-        options.configfile = os.path.join(
-                            os.environ['ZENHOME'], 'etc', 'zenactions.conf')
+        options.configfile = zenPath('etc', 'zenactions.conf')
         parseconfig(options)
         if not hasattr(dmd, 'smtpHost'):
             dmd.smtpHost = getattr(options, 'smtphost', '') or 'localhost'

@@ -24,8 +24,8 @@ from Products.ZenRelations.ImportRM import ImportRM
 from Products.ZenModel.DeviceClass import DeviceClass
 from Products.ZenModel.Device import Device
 
-zenhome = os.environ['ZENHOME']
-menuxml = os.path.join(zenhome, "Products/ZenModel/data/menus.xml")
+from Products.ZenUtils.Utils import zenPath
+menuxml = zenPath("Products/ZenModel/data/menus.xml")
 
 ZenPackItems = dict(
     ordering=0.0, 

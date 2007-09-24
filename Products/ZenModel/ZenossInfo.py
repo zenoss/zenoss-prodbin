@@ -24,6 +24,7 @@ from AccessControl import ClassSecurityInfo
 from Products.ZenModel.ZenModelItem import ZenModelItem
 from Products.ZenUtils import Time
 from Products.ZenUtils.Version import *
+from Products.ZenUtils.Utils import zenPath
 
 from Products.ZenEvents.UpdateCheck import UpdateCheck, parseVersion
 
@@ -179,7 +180,7 @@ class ZenossInfo(ZenModelItem, SimpleItem):
             v = Version(*getRRDToolVersion())
             v.full()
         """
-        cmd = os.path.join(os.getenv('ZENHOME'), 'bin', 'rrdtool')
+        cmd = zenPath('bin', 'rrdtool')
         if not os.path.exists(cmd):
             cmd = 'rrdtool'
         fd = os.popen(cmd)
@@ -244,7 +245,7 @@ class ZenossInfo(ZenModelItem, SimpleItem):
     
     def getZenossRevision(self):
         try:
-            os.chdir(os.path.join(os.getenv('ZENHOME'), 'Products'))
+            os.chdir(zenPath('Products'))
             fd = os.popen("svn info 2>/dev/null | grep Revision | awk '{print $2}'")
             return fd.readlines()[0].strip()
         except:
@@ -346,7 +347,7 @@ class ZenossInfo(ZenModelItem, SimpleItem):
             name = 'ZEO'
         else:
             name = "%s.py" % name
-        pidFile = os.path.join(os.getenv('ZENHOME'), 'var', '%s.pid' % name)
+        pidFile = zenPath('var', '%s.pid' % name)
         if os.path.exists(pidFile):
             pid = open(pidFile).read()
             try:
@@ -363,7 +364,7 @@ class ZenossInfo(ZenModelItem, SimpleItem):
         """
         Get the list of supported Zenoss daemons.
         """
-        masterScript = os.path.join(os.getenv('ZENHOME'), 'bin', 'zenoss')
+        masterScript = zenPath('bin', 'zenoss')
         daemons = []
         for line in os.popen("%s list" % masterScript).readlines():
             daemons.append(line.strip())
@@ -402,7 +403,7 @@ class ZenossInfo(ZenModelItem, SimpleItem):
             daemon = 'event'
         elif daemon == 'zeoctl':
             daemon = 'zeo'
-        filename = os.path.join(os.getenv('ZENHOME'), 'log', "%s.log" % daemon)
+        filename = zenPath('log', "%s.log" % daemon)
         # if there is no data read, we don't want to return something that can
         # be interptreted as "None", so we make the default a single white
         # space
@@ -419,8 +420,7 @@ class ZenossInfo(ZenModelItem, SimpleItem):
             daemon = 'zope'
         elif daemon == 'zeoctl':
             daemon = 'zeo'
-        return os.path.join(os.getenv('ZENHOME'), 'etc',
-            "%s.conf" % daemon)
+        return zenPath('etc', "%s.conf" % daemon)
 
     def _readConfigFile(self, filename):
        fh = open(filename)
@@ -468,8 +468,7 @@ class ZenossInfo(ZenModelItem, SimpleItem):
         action = (REQUEST.form.get('action') or '').lower()
         if action not in legalValues:
             return self.callZenScreen(REQUEST)
-        daemon = os.path.join(os.getenv('ZENHOME'), 'bin',
-            REQUEST.form.get('daemon'))
+        daemon = zenPath('bin', REQUEST.form.get('daemon'))
         # we actually want to block here, so that the page doesn't refresh
         # until the action has completed
         log.info("Processing a '%s' for '%s' through the web..." % (action, daemon))

@@ -15,7 +15,7 @@ __doc__='Base Classes for loading gunk in a ZenPack'
 
 import Globals
 from Products.ZenReports.ReportLoader import ReportLoader
-from Products.ZenUtils.Utils import getObjByPath
+from Products.ZenUtils.Utils import getObjByPath, zenPath
 
 import os
 import ConfigParser
@@ -164,9 +164,7 @@ class ZPLDaemons(ZenPackLoader):
 
 
     def binPath(self, daemon):
-        return os.path.join(os.environ['ZENHOME'],
-                            'bin',
-                            os.path.basename(daemon))
+        return zenPath('bin', os.path.basename(daemon))
 
     def load(self, pack, app):
         for fs in findFiles(pack, 'daemons', filter=self.filter):

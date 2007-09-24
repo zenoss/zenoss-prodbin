@@ -40,7 +40,8 @@ class ZenBackupBase(CmdBase):
 
     def __init__(self, noopts=0):
         CmdBase.__init__(self, noopts)
-        self.zenhome = os.getenv('ZENHOME')
+        from Utils import zenPath
+        self.zenhome = zenPath()
         self.zopehome = os.getenv('ZOPEHOME')
 
 

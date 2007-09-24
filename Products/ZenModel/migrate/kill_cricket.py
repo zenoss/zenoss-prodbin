@@ -27,6 +27,8 @@ from Acquisition import aq_base
 
 import Migrate
 
+from Products.ZenUtils.Utils import zenPath
+
 class KillCricket(Migrate.Step):
     version = Migrate.Version(0, 20, 0)
 
@@ -93,7 +95,7 @@ class KillCricket(Migrate.Step):
             from Products.ZenRelations.ImportRM import ImportRM
             imp = ImportRM(noopts=True, app=dmd.getPhysicalRoot())
             imp.options.noCommit = True
-            imp.options.infile = os.path.join(os.environ['ZENHOME'],
+            imp.options.infile = zenPath(
                 'Products', 'ZenModel', 'data', 'rrdconfig.update')
             imp.loadDatabase()
 

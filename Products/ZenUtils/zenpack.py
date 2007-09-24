@@ -15,7 +15,7 @@ __doc__ = "Manage ZenPacks"
 import Globals
 from Products.ZenModel.ZenPack import ZenPack, zenPackPath
 from Products.ZenUtils.ZenScriptBase import ZenScriptBase
-from Products.ZenUtils.Utils import cleanupSkins
+from Products.ZenUtils.Utils import cleanupSkins, zenPath
 import transaction
 from zipfile import ZipFile
 from StringIO import StringIO
@@ -166,7 +166,7 @@ class ZenPackCmd(ZenScriptBase):
         root = zenPackPath(packName)
         self.log.debug('Extracting ZenPack "%s"' % packName)
         for name in zf.namelist():
-            fullname = os.path.join(os.environ['ZENHOME'], 'Products', name)
+            fullname = zenPath('Products', name)
             self.log.debug('Extracting %s' % name)
             if name.find('/.svn') > -1: continue
             if name.endswith('~'): continue
@@ -199,15 +199,15 @@ class ZenPackCmd(ZenScriptBase):
         
         # Continue without copying if the srcDir is already in Products
         if os.path.exists(root) and os.path.samefile(root, srcDir):
-            self.log.debug('Directory already in $ZENHOME/Products,'
-                            ' not copying.')
+            self.log.debug('Directory already in %s, not copying.',
+                           zenPath('Products'))
             return packName
         
         # Copy the source dir over to Products
         self.log.debug('Copying %s' % packName)
-        result = os.system('cp -r %s $ZENHOME/Products/' % srcDir)
+        result = os.system('cp -r %s %s' % (srcDir, zenPath('Products')))
         if result == -1:
-            self.stop('Error copying %s to $ZENHOME/Products' % srcDir)
+            self.stop('Error copying %s to %s' % (srcDir, zenPath('Products')))
         
         return packName
 
@@ -233,14 +233,14 @@ class ZenPackCmd(ZenScriptBase):
         
         # Continue without copying if the srcDir is already in Products
         if os.path.exists(root) and os.path.samefile(root, srcDir):
-            self.log.debug('Directory already in $ZENHOME/Products,'
-                            ' not copying.')
+            self.log.debug('Directory already in %s, not copying.',
+                           zenPath('Products'))
             return packName
       
-        targetdir = "$ZENHOME/Products/%s" % packName
+        targetdir = zenPath("Products", packName)
         cmd = 'test -d %s && rm -rf %s' % (targetdir, targetdir)
         r = os.system(cmd)
-        cmd = 'ln -s %s $ZENHOME/Products' % srcDir
+        cmd = 'ln -s %s %s' % (srcDir, zenPath("Products"))
         r = os.system(cmd)
         
         return packName

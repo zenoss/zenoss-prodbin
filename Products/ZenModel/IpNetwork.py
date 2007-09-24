@@ -44,6 +44,7 @@ from DeviceOrganizer import DeviceOrganizer
 from Products.ZenModel.Exceptions import *
 
 from Products.ZenUtils.Utils import setWebLoggingStream, clearWebLoggingStream
+from Products.ZenUtils.Utils import zenPath
 from Products.ZenUtils import NetworkTree
 from Products.ZenUtils.Utils import edgesToXML
 
@@ -446,7 +447,7 @@ class IpNetwork(DeviceOrganizer):
             try:
                 organizer = orgroot._getNet(organizerName)
                 import os
-                zd = os.path.join(os.environ['ZENHOME'], 'bin', 'zendisc')
+                zd = zenPath('bin', 'zendisc')
                 zendiscCmd = [zd, "run", '--net', organizer.id]
                 log.info('Executing command: %s' % ' '.join(zendiscCmd))
                 f = Popen4(zendiscCmd)

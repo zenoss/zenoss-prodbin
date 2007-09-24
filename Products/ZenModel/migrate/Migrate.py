@@ -25,6 +25,7 @@ import transaction
 from Products.ZenUtils.ZenScriptBase import ZenScriptBase
 from Products.ZenUtils.Version import Version as VersionBase
 from Products.ZenReports.ReportLoader import ReportLoader
+from Products.ZenUtils.Utils import zenPath
 
 import sys
 import logging
@@ -43,7 +44,7 @@ def cleanup():
     "recursively remove all files ending with .pyc"
     import os
     count = 0
-    for p, d, fs in os.walk(os.path.join(os.environ['ZENHOME'], 'Products')):
+    for p, d, fs in os.walk(zenPath('Products')):
         for f in fs: 
             if f.endswith('.pyc'):
                 fullPath = os.path.join(p, f)
@@ -124,7 +125,7 @@ class Migration(ZenScriptBase):
         log.info(msg)
 
     def _currentVersion(self):
-        if not hasattr(self.dmd, 'version'):
+        if not hasattr(self.dmd, 'version') or not self.dmd.version:
             from Products.ZenModel.ZVersion import VERSION
             self.dmd.version = 'Zenoss ' + VERSION
         if type(self.dmd.version) == type(1.0):

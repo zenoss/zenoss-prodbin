@@ -26,7 +26,8 @@ class TwoPointOhObjects(Migrate.Step):
 
     def _zCommandPath(self, dmd):
         import os
-        dmd.Devices.zCommandPath = os.path.join(os.environ['ZENHOME'], 'libexec')
+        from Products.ZenUtils.Utils import zenPath
+        dmd.Devices.zCommandPath = zenPath('libexec')
 
     def _cleanupClass(self, dmd):
         d = [d.id for d in dmd.Devices.Server.Linux.getSubDevices()]

@@ -20,6 +20,7 @@ root.setLevel(logging.CRITICAL)
 import Globals
 
 from utils import importClasses
+from Products.ZenUtils.Utils import zenPath
 
 class HtmlGenerator(object):
 
@@ -142,7 +143,7 @@ class HtmlGenerator(object):
 baseModule = None
 if len(sys.argv) > 1:
     baseModule = sys.argv[1]
-docdir = os.path.join(os.environ['ZENHOME'],"zendocs/schema")
+docdir = zenPath("zendocs/schema")
 classList = importClasses(basemodule=baseModule, 
             skipnames=("ZentinelPortal", "ZDeviceLoader"))
 htmlGen = HtmlGenerator(baseModule, classList, docdir)

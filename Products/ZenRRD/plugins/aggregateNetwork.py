@@ -38,7 +38,8 @@ cmd = [fname,] + basicArgs(env) + ['--base=1000',
                                    '--vertical-label=%(label)s' % env]
 ifiles = []
 ofiles = []
-perf = os.path.join(os.environ['ZENHOME'], 'perf')
+from Products.ZenUtils.Utils import zenPath
+perf = zenPath('perf')
 rpn = env['rpn']
 for d, _, fs in os.walk(perf):
     for f in fs:

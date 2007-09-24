@@ -30,8 +30,8 @@ class Commands(Migrate.Step):
         
     def cutover(self, dmd):
         import os
-        self.update(dmd, "zNagiosPath", "zCommandPath",
-                    os.path.join(os.environ['ZENHOME'], 'libexec'))
+        from Products.ZenUtils.Utils import zenPath
+        self.update(dmd, "zNagiosPath", "zCommandPath", zenPath('libexec'))
         if dmd.Devices.hasProperty("zNagiosCycleTime"):
             dmd.Devices._delProperty("zNagiosCycleTime")
         zem = self.dmd.ZenEventManager

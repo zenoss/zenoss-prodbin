@@ -16,7 +16,7 @@ from Globals import InitializeClass
 from Products.ZenModel.ZenModelRM import ZenModelRM
 from Products.ZenModel import interfaces
 from Products.ZenRelations.RelSchema import *
-from Products.ZenUtils.Utils import importClass
+from Products.ZenUtils.Utils import importClass, zenPath
 from Products.ZenModel.migrate import Migrate
 from Products.ZenUtils.Version import getVersionTupleFromString
 from Products.ZenModel.migrate.Migrate import Version
@@ -250,8 +250,7 @@ registerDirectory("skins", globals())
             fp.close()
 
         # Create the zip file
-        zenhome = os.getenv('ZENHOME')
-        path = os.path.join(zenhome, 'export')
+        path = zenPath('export')
         if not os.path.isdir(path):
             os.makeDirs(path, 0750)
         from zipfile import ZipFile, ZIP_DEFLATED
@@ -290,7 +289,7 @@ registerDirectory("skins", globals())
 
 
 def zenPackPath(*parts):
-    return os.path.join(os.environ['ZENHOME'], 'Products', *parts)
+    return zenPath('Products', *parts)
 
 
 # ZenPackBase is here for backwards compatibility with older installed

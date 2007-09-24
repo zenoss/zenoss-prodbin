@@ -31,6 +31,9 @@ from twisted.python import failure
 from EventServer import EventServer
 from SyslogProcessing import SyslogProcessor
 
+import Globals
+from Products.ZenUtils.Utils import zenPath
+
 SYSLOG_PORT = 514
 try:
     SYSLOG_PORT = socket.getservbyname('syslog', 'udp')
@@ -57,7 +60,7 @@ class ZenSyslog(DatagramProtocol, EventServer):
             self.olog = logging.getLogger("origsyslog")
             self.olog.setLevel(20)
             self.olog.propagate = False
-            lname = os.path.join(os.environ['ZENHOME'],"log","origsyslog.log")
+            lname = zenPath("log/origsyslog.log")
             hdlr = logging.FileHandler(lname)
             hdlr.setFormatter(logging.Formatter("%(message)s"))
             self.olog.addHandler(hdlr)

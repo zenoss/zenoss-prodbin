@@ -17,15 +17,13 @@ __doc__="""ZenScriptBase
 from AccessControl.SecurityManagement import newSecurityManager
 from AccessControl.SecurityManagement import noSecurityManager
 from threading import Lock
-from Utils import getObjByPath
+from Utils import getObjByPath, zenPath
 from CmdBase import CmdBase
 
 from Exceptions import ZentinelException
 
 import os
-defaultCacheDir = os.getenv('ZENHOME')
-if defaultCacheDir is not None:
-    defaultCacheDir = os.path.join(defaultCacheDir, 'var')
+defaultCacheDir = zenPath('var')
 
 class DataRootError(Exception):pass
 

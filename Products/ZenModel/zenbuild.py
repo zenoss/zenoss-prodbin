@@ -25,11 +25,7 @@ import os
 import Globals
 import transaction
 
-if not os.environ.has_key('ZENHOME'):
-    print "ERROR: ZENHOME envrionment variable not set"
-    sys.exit(1)
-
-zenhome = os.environ['ZENHOME']
+from Products.ZenUtils.Utils import zenPath
 
 import Globals
 
@@ -42,10 +38,7 @@ class zenbuild(CmdBase):
     
     def __init__(self):
         CmdBase.__init__(self)
-        if not os.environ.has_key("ZENHOME"):
-            print "ERROR: ZENHOME not set."
-            sys.exit(1)
-        zopeconf = os.path.join(os.environ['ZENHOME'], "etc/zope.conf")
+        zopeconf = zenPath("etc/zope.conf")
         import Zope2
         Zope2.configure(zopeconf)
         self.app = Zope2.app()
@@ -93,8 +86,7 @@ class zenbuild(CmdBase):
         # build standard_error_message
         if self.app.hasObject('standard_error_message'):
             self.app._delObject('standard_error_message')
-        file = open('%s/Products/ZenModel/dtml/standard_error_message.dtml' %
-                        zenhome)
+        file = open(zenPath('Products/ZenModel/dtml/standard_error_message.dtml'))
         try:
             text = file.read()
         finally:

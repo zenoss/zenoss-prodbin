@@ -51,7 +51,7 @@ from AccessControl import Permissions as permissions
 from Products.ZenRelations.RelSchema import *
 
 from Products.ZenUtils.Exceptions import ZentinelException
-from Products.ZenUtils.Utils import basicAuthUrl
+from Products.ZenUtils.Utils import basicAuthUrl, zenPath
 from Products.ZenEvents.ZenEventClasses import Status_Snmp
 
 from Monitor import Monitor
@@ -64,7 +64,7 @@ PERF_ROOT=None
 def performancePath(target):
     global PERF_ROOT
     if PERF_ROOT is None:
-        PERF_ROOT = os.path.join(os.environ['ZENHOME'], "perf")
+        PERF_ROOT = zenPath("perf")
     if target.startswith("/"): target = target[1:]
     return os.path.join(PERF_ROOT, target)
 
