@@ -251,39 +251,12 @@ class ZenPropertyManager(PropertyManager):
         v = getattr(aq_base(self), propname, zenmarker)
         return v != zenmarker
     
-    security.declareProtected(ZEN_ZPROPERTIES_VIEW, 'isOverridden')
-    def isOverridden(self, propname):
-        """ Check that a property is being overridden somewhere below in the tree
-        """
-        if hasattr(aq_base(self), 'getSubInstances'):
-            for (rel, relobj) in self._relations:
-                for inst in self.getSubInstances(rel):
-                    if inst.isLocal(propname) and inst != self:
-                        return True
-            for suborg in self.children():
-                if suborg.isLocal(propname) \
-                or suborg.isOverridden(propname):
-                    return True
-        return False
-    
     security.declareProtected(ZEN_ZPROPERTIES_VIEW, 'getOverriddenObjects')
     def getOverriddenObjects(self, propname):
         """ Get the objects that override a property somewhere below in the tree
         """
-        objects = []
-        if hasattr(aq_base(self), 'getSubInstances'):
-            for (rel, relobj) in self._relations:
-                for inst in self.getSubInstances(rel):
-                    if inst.isLocal(propname) \
-                    and inst != self \
-                    and inst not in objects:
-                        objects.append(inst)
-            for suborg in self.children():
-                if suborg.isLocal(propname):
-                    objects.append(suborg)
-                for inst in suborg.getOverriddenObjects(propname):
-                    if inst not in objects:
-                        objects.append(inst)
-        return objects
-    
+        return [ org for org in self.getSubOrganizers() 
+            if org.isLocal(propname) ]
+
+
 InitializeClass(ZenPropertyManager)

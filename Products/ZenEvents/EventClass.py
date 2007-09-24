@@ -23,6 +23,7 @@ from Globals import InitializeClass
 from Globals import DTMLFile
 from AccessControl import ClassSecurityInfo
 from AccessControl import Permissions
+from Products.ZenModel.ZenossSecurity import *
 from Acquisition import aq_base
 
 from Products.ZenRelations.RelSchema import *
@@ -116,17 +117,17 @@ class EventClass(EventClassPropertyMixin, Organizer, ManagedEntity, ZenPackable)
                 , 'action'        : 'zPropertyEdit'
                 , 'permissions'   : ("Change Device",)
                 },
-                { 'id'            : 'transform'
-                , 'name'          : 'Transform'
-                , 'action'        : 'editEventClassTransform'
-                , 'permissions'   : ("Change Device",)
-                },
-                { 'id'            : 'viewHistory'
-                , 'name'          : 'Modifications'
-                , 'action'        : 'viewHistory'
-                , 'permissions'   : (
-                  Permissions.view, )
-                },
+#                { 'id'            : 'transform'
+#                , 'name'          : 'Transform'
+#                , 'action'        : 'editEventClassTransform'
+#                , 'permissions'   : ("Change Device",)
+#                },
+#                { 'id'            : 'viewHistory'
+#                , 'name'          : 'Modifications'
+#                , 'action'        : 'viewHistory'
+#                , 'permissions'   : (
+#                  Permissions.view, )
+#                },
             )
          },
         )
@@ -318,4 +319,21 @@ class EventClass(EventClassPropertyMixin, Organizer, ManagedEntity, ZenPackable)
         zcat.addColumn('getPrimaryId')
 
 
+    security.declareProtected(ZEN_ZPROPERTIES_VIEW, 'getOverriddenObjects')
+    def getOverriddenObjects(self, propname):
+        """ Get the objects that override a property somewhere below in the tree
+        This method overrides ZenPropertyManager
+        """
+        objects = []
+        for inst in self.getSubInstances('instances'):
+            if inst.isLocal(propname) and inst not in objects:
+                objects.append(inst) 
+        for suborg in self.children():
+            if suborg.isLocal(propname):
+                objects.append(suborg)
+            for inst in suborg.getOverriddenObjects(propname):
+                if inst not in objects:
+                    objects.append(inst)
+        return objects   
+        
 InitializeClass(EventClass)

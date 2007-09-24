@@ -1,8 +1,8 @@
 <tal:block metal:use-macro="here/templates/macros/page2">
 <tal:block metal:fill-slot="contentPane">
 <tal:block tal:define="tabletitle string:Overridden Objects;
-	               prop request/prop;
-	               orObjects python:here.getOverriddenObjects(prop)">
+	               prop request/prop | python:'';
+	               orObjects python:here.getOverriddenObjects(prop)"> 
 <tal:block metal:use-macro="here/zenuimacros/macros/zentable">
 <tal:block metal:fill-slot="zentablecontents">
 
@@ -14,10 +14,26 @@
     </tr>
     <tr>
       <td class="tablevalues" tal:content="structure python:here.getLink(here.absolute_url_path(), '%s/zPropertyEdit' % here.absolute_url_path())"/>
-      <td class="tablevalues" tal:content="prop"/>
-      <td class="tablevalues" tal:content="python:getattr(here, prop)"/>
+      <td class="tablevalues"> 
+        <form method="post">
+        <select class="tablevalues" 
+                name="prop" 
+                onchange="form.submit()">
+                <option value="">
+                <option tal:repeat="p here/zenPropertyIds"
+                        tal:content="p"
+                        tal:attributes="selected python:p==prop"/>
+        </select>
+        </form> 
+      </td>
+      <td class="tablevalues" tal:content="python:getattr(here, prop, '')"/>
     </tr>
-    <tal:block tal:repeat="orObject orObjects"> 
+    <tal:block tal:condition="not:orObjects">
+            <tr>
+            <td class="tablevalues" colspan="3">No Overriding Objects</td>
+            </tr>
+    </tal:block>
+    <tal:block tal:condition="orObjects" tal:repeat="orObject orObjects"> 
     <tr tal:define="odd repeat/orObject/odd"
         tal:attributes="class python:test(odd, 'odd', 'even')">
       <td class="tablevalues" tal:content="structure python:orObject.getLink(orObject.absolute_url_path(), '%s/zPropertyEdit' % orObject.absolute_url_path())"/>
