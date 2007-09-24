@@ -28,7 +28,7 @@ from AccessControl.SecurityManagement import noSecurityManager
 
 #from Products.ZenUtils.ZCmdBase import ZCmdBase
 from Products.ZenUtils.ZenScriptBase import ZenScriptBase
-from Products.ZenUtils.ZenUtils import zenPath
+from Products.ZenUtils.Utils import zenPath
 
 if readline:
     # Note: the history code in this file was originally authored by
