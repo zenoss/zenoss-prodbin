@@ -145,9 +145,9 @@ class GraphDefinitionsAndFriends(Migrate.Step):
                         gp.lineType = gp.LINETYPE_DONTDRAW
                     else:
                         gp.lineType = dp.linetype or \
-                                        (isFirst and LINETYPE_AREA) or \
-                                        LINETYPE_LINE
-                    gp.stacked = dp.linetype != dp.LINETYPE_LINE
+                                        (isFirst and gp.LINETYPE_AREA) or \
+                                        gp.LINETYPE_LINE
+                    gp.stacked = dp.linetype != gp.LINETYPE_LINE
                     gp.format = dp.format
                     gp.limit = dp.limit
                     gp.rpn = dp.rpn
