@@ -75,8 +75,7 @@ class Step:
         # if other is in the out dependency list, we are "greater"
         if other in self.getDependencies():
             return 1
-        # otherwise, let's just go with a nice repeatable but arbitrary name
-        return cmp(self.name(), other.name())
+        return 0
 
     def getDependencies(self):
         if not self.dependencies:
