@@ -80,7 +80,7 @@ class ZentinelPortal ( PortalObjectBase ):
     def getOrganizerNames(self, dmdRoot='Devices'):
         """Return the organizer names to which this user has access
         """
-        root = self.getDmdRoot(dmdRoot)
+        root = self.dmd.getDmdRoot(dmdRoot)
         return root.getOrganizerNames()
 
 
@@ -88,7 +88,7 @@ class ZentinelPortal ( PortalObjectBase ):
     def jsonGetDeviceNames(self):
         """Return a list of devices for the dashboard
         """
-        return self.Devices.jsonGetDeviceNames()
+        return self.dmd.Devices.jsonGetDeviceNames()
 
 
     def isManager(self, obj=None):
