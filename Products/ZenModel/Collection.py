@@ -136,7 +136,7 @@ class Collection(ZenModelRM):
         '''
         for id in ids:
             self.items._delObject(id)
-        #self.manage_resequenceCollectionItems()
+        self.manage_resequenceCollectionItems()
         if REQUEST:
             REQUEST['message'] = 'Item%s deleted' % len(ids) > 1 and 's' or ''
             return self.callZenScreen(REQUEST)
