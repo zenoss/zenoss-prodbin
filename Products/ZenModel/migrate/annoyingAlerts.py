@@ -22,6 +22,7 @@ class AnnoyingAlerts(Migrate.Step):
     version = Migrate.Version(2, 1, 0)
 
     def cutover(self, dmd):
+        return
         conn = dmd.ZenEventManager.connect()
         c = conn.cursor()
         c.execute('describe alert_state')

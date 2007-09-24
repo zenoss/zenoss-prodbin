@@ -68,17 +68,11 @@ class AdministrativeRole(ZenModelRM):
     def userLink(self):
         return self.userSetting().getPrimaryUrlPath()
 
-
     def managedObjectName(self):
         mo = self.managedObject()
         if mo.meta_type == 'Device':
             return mo.id
         return mo.getOrganizerName()
-
-
-    def managedObjectLink(self):
-        return self.managedObject().getPrimaryUrlPath()
-
 
     def getEventSummary(self):
         return self.managedObject().getEventSummary()

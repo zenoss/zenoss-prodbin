@@ -1,0 +1,105 @@
+<tal:block metal:use-macro="here/templates/macros/page2">
+
+<tal:block metal:fill-slot="head-local">
+<script type="text/javascript">
+function ConfirmEmailTest() {
+    return confirm("This will send a test email to this address." +
+        "  Do you wish to continue?");
+}
+
+function ConfirmPagerTest() {
+    return confirm("This will send a test message to this pager number." +
+        "  Do you wish to continue?");
+}
+</script>
+</tal:block>
+
+<tal:block metal:fill-slot="breadCrumbPane">
+    /<a tal:attributes=
+            "href string:${here/absolute_url_path}/${template/id}">Users
+    </a>
+</tal:block>
+
+<tal:block metal:fill-slot="contentPane">
+<form method="get" tal:attributes="action here/absolute_url_path" id="users">
+
+        <tal:block tal:define="tableName string:userlist;
+       ztm here/ZenTableManager;
+       objects here/getMemberUserSettings;
+       showfilterbox python:True;
+       batch python:ztm.getBatch(tableName, objects); 
+       tabletitle string:Users in Group;
+       menu_id string:GroupUser_list">
+        <tal:block metal:use-macro="here/zenuimacros/macros/zentable">
+
+        <!--====Optional titlebar slots=============
+
+            <tal:block metal:fill-slot="filterslot">
+            </tal:block>
+
+            <tal:block metal:fill-slot="menuslot">
+            </tal:block>
+
+            ==========================================-->
+
+        <tal:block metal:fill-slot="zentablecontents">
+        <!-- BEGIN TABLE CONTENTS -->
+            
+    
+    <tr>
+        <th tal:replace="structure python:ztm.getTableHeader(
+                            tableName,'primarySortKey','UserId')"/>
+        <th tal:replace="structure python:ztm.getTableHeader(
+                            tableName,'email','Email')"/>
+        <th tal:replace="structure python:ztm.getTableHeader(
+                            tableName,'pager','Pager')"/>
+        <th tal:replace="structure python:ztm.getTableHeader(
+                            tableName,'roles','Roles')"/>
+    </tr>
+    <tal:block tal:repeat="user batch">
+    <tr tal:define="odd repeat/user/odd"
+        tal:attributes="class python:test(odd, 'odd', 'even')">
+        <td class="tablevalues">
+        <input type="checkbox" name="userids:list" 
+            tal:condition="here/isManager" tal:attributes="value user/getId" />
+            <a tal:attributes="href user/getPrimaryUrlPath"
+               tal:condition="user/iseditable" 
+               tal:content="user/getId">edahl</a>
+            <span tal:condition="not: user/iseditable" 
+                  tal:content="user/getId"/>
+        </td>
+        <td class="tablevalues">
+            <tal:block tal:content="user/email" />
+            <tal:block tal:condition="user/email">
+            (<a class="tablevalues" onclick="return ConfirmEmailTest()"
+            tal:attributes="href string:${here/absolute_url_path}?manage_emailTestAdmin:method=1&userid=${user/getId}">test</a>)
+            </tal:block>
+        </td>
+        <td class="tablevalues">
+            <tal:block tal:content="user/pager"/>
+            <tal:block tal:condition="user/pager">
+            (<a class="tablevalues" onclick="return ConfirmPagerTest()"
+            tal:attributes="href string:${here/absolute_url_path}?manage_pagerTestAdmin:method=1&userid=${user/getId}">test</a>)
+            </tal:block>
+        </td>
+        <td class="tablevalues" 
+            tal:content="python:', '.join(user.getUserRoles())"/>
+    </tr>
+    </tal:block>
+    <tr>
+        <td colspan="4" class="tableheader">
+            <span metal:use-macro="here/zenTableNavigation/macros/navtool"/>
+        </td>
+    </tr>
+
+        <!-- END TABLE CONTENTS -->
+
+        </tal:block>
+        </tal:block>
+        </tal:block>
+        
+
+</form>
+
+</tal:block>
+</tal:block>

@@ -312,33 +312,27 @@ class UserSettingsManager(ZenModelRM):
 
 
     def manage_deleteGroups(self, groupids=(), REQUEST=None):
+        """ Delete a zenoss group from the system
+        """
         gm = self.acl_users.groupManager
-        if type(groupids) not in types.StringTypes:
+        if type(groupids) in types.StringTypes:
             groupids = [groupids]
         for groupid in groupids:
             if self._getOb(groupid): self._delObject(groupid)
             try:
                 gm.removeGroup(groupid)
             except KeyError: pass
-
-
+        if REQUEST:
+            REQUEST['message'] = "Groups deleted"
+            return self.callZenScreen(REQUEST) 
+            
+            
     def manage_addUserToGroup(self, userid, groupid, REQUEST=None):
         """ Add a user to a group
-        """
-        self._getOb(groupid).addUserToGroup(userid) 
+        """ 
+        self._getOb(groupid).manage_addUserToGroup(userid) 
         if REQUEST:
             REQUEST['message'] = "User %s added to group %s" % (userid, groupid)
-            return self.callZenScreen(REQUEST)
-
-
-    def manage_deleteUsersFromGroup(self, groupid, userids=(), REQUEST=None):
-        """ Delete users from a group
-        """
-        group = self._getOb(groupid)
-        for userid in userids:
-            group.deleteUserFromGroup(userid)
-        if REQUEST:
-            REQUEST['message'] = "Users deleted from group %s" % groupid
             return self.callZenScreen(REQUEST)
 
 
@@ -654,6 +648,8 @@ class UserSettings(ZenModelRM):
             ids = [ids]
             level = [level]
             role = [role]
+        else:
+            ids = list(ids)
         for ar in self.adminRoles():
             mobj = ar.managedObject()
             try: i = ids.index(mobj.managedObjectName())
@@ -771,7 +767,7 @@ class GroupSettings(UserSettings):
     
     factory_type_information = (
         {
-            'immediate_view' : 'administeredDevices',
+            'immediate_view' : 'editGroupSettings',
             'actions'        :
             (
                 {'name'         : 'Edit',
@@ -795,17 +791,37 @@ class GroupSettings(UserSettings):
     def _getG(self):
         return self.zport.acl_users.groupManager
     
-    def addUserToGroup( self, userid ):
+    def manage_addUserToGroup( self, userid, REQUEST=None ):
+        """ Add user to this group
+        """
         self._getG().addPrincipalToGroup( userid, self.id )
+        if REQUEST:
+            REQUEST['message'] = 'Added user %s to Group %s' % (userid, self.id)
+            return self.callZenScreen(REQUEST)
 
-    def deleteUserFromGroup( userid ):
-        self._getG().removePrincipalFromGroup( self, userid, self.id )
-    
-    def getMemberUsers(self):
+
+    def manage_deleteUserFromGroup( self, userid ):
+        self._getG().removePrincipalFromGroup( userid, self.id )
+        
+        
+    def manage_deleteUsersFromGroup(self, userids=(), REQUEST=None ):
+        """ Delete users from this group
+        """
+        for userid in userids:
+            self.manage_deleteUserFromGroup(userid)
+        if REQUEST:
+            REQUEST['message'] = 'Deleted users from Group %s' % self.id
+            return self.callZenScreen(REQUEST)
+
+    def getMemberUserSettings(self):
+        return [ self.getUserSettings(u[0])
+         for u in self._getG().listAssignedPrincipals(self.id) ]
+        
+    def getMemberUserIds(self):
         return [ u[0] for u in self._getG().listAssignedPrincipals(self.id) ]
 
     def printUsers(self):
-        return ", ".join(self.getMemberUsers())
+        return ", ".join(self.getMemberUserIds())
 
     def getEmailAddresses(self):
         result = []

@@ -9,14 +9,6 @@ User
     <option tal:repeat="user users"
         tal:content="user/id">user</option>
 </select>
-<br><br>
-Group
-<br>
-<select class="tableheader" name="groupid"
-    tal:define="groups here/getAllGroupSettings">
-    <option tal:repeat="group groups"
-        tal:content="group/id">group</option>
-</select>  
 </p>
 <div id="dialog_buttons">
 <input tal:attributes="id string:dialog_submit;

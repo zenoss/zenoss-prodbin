@@ -24,8 +24,8 @@ class AdminObjectMenus(Migrate.Step):
 
     def cutover(self, dmd):
         
-        dmd.buildMenus({
-            'AdministeredObjects_list': [{ 
+        dmd.buildMenus(
+            {'AdministeredObjects_list': [{ 
                'action': 'dialog_addAdministeredDevice', 
                 'description': 'Add Device...', 
                 'id': 'addAdministeredDevice', 
@@ -55,16 +55,16 @@ class AdminObjectMenus(Migrate.Step):
                 'permissions': (ZEN_CHANGE_ADMIN_OBJECTS,)
             },
             {  'action': 'dialog_deleteAdministeredObjects', 
-                'description': 'Delete Administered Objects...', 
+                'description': 'Delete Admin Objects...', 
                 'id': 'deleteAdministeredObjects', 
                 'isdialog': True, 
                 'ordering': 80.0, 
                 'permissions': (ZEN_CHANGE_ADMIN_OBJECTS,)
             },
-            {  'action': 'dialog_saveAdministeredObjects', 
-                'description': 'Save Administered Objects...', 
+            {  'action': 
+"javascript:submitFormToMethod('adminObjects', 'manage_editAdministrativeRoles')", 
+                'description': 'Save Admin Objects...', 
                 'id': 'saveAdministeredObjects', 
-                'isdialog': True, 
                 'ordering': 85.0, 
                 'permissions': (ZEN_CHANGE_ADMIN_OBJECTS,)
             }],

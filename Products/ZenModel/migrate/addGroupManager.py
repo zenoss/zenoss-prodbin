@@ -11,10 +11,9 @@
 #
 ###########################################################################
 import Migrate
-
 import Globals
-
 from Products.PluggableAuthService import plugins
+from Products.ZenModel.ZenossSecurity import *   
 
 class AddGroupManager(Migrate.Step):
     
@@ -23,37 +22,39 @@ class AddGroupManager(Migrate.Step):
     def cutover(self, dmd):
         
         dmd.buildMenus(
-            {'Group_list': [  {  'action': 'dialog_addToZenPack',
-                  'description': 'Add to ZenPack...',
-                  'id': 'addToZenPack',
-                  'isdialog': True,
-                  'ordering': 0.0,
-                  'permissions': ('View',)},
+            {'Group_list': [
                {  'action': 'dialog_addUserGroup',
                   'description': 'Add New Group...',
                   'id': 'addUserGroup',
                   'isdialog': True,
-                  'ordering': 90.0,
-                  'permissions': ('Manage DMD',)},
+                  'ordering': 90.1,
+                  'permissions': (ZEN_MANAGE_DMD,)},
                {  'action': 'dialog_deleteUserGroups',
                   'description': 'Delete Groups...',
                   'id': 'deleteUserGroups',
                   'isdialog': True,
-                  'ordering': 70.0,
-                  'permissions': ('Manage DMD',)},
+                  'ordering': 90.0,
+                  'permissions': (ZEN_MANAGE_DMD,)},
                {  'action': 'dialog_addUserToGroup',
                   'description': 'Add User...',
-                  'id': 'addUserToGroup',
+                  'id': 'addUserToGroups',
                   'isdialog': True,
-                  'ordering': 90.0,
-                  'permissions': ('Manage DMD',)},
+                  'ordering': 80.1,
+                  'permissions': (ZEN_MANAGE_DMD,)} ],
+              'GroupUser_list': [
+               {  'action': 'dialog_addUserToAGroup',
+                  'description': 'Add User...',
+                  'id': 'addUserToAGroup',
+                  'isdialog': True,
+                  'ordering': 80.1,
+                  'permissions': (ZEN_MANAGE_DMD,)},
                {  'action': 'dialog_deleteUsersFromGroup',
                   'description': 'Delete Users...',
                   'id': 'deleteUsersFromGroup',
                   'isdialog': True,
-                  'ordering': 70.0,
-                  'permissions': ('Manage DMD',) } ] 
-                  })     
+                  'ordering': 80.0,
+                  'permissions': (ZEN_MANAGE_DMD,)} ]
+        })     
                
         self._addGroupManager(dmd.zport)
 

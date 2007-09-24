@@ -1,7 +1,8 @@
 <tal:block metal:use-macro="here/templates/macros/page2">
 <tal:block metal:fill-slot="contentPane">
 
-<form method="post" tal:attributes="action here/absolute_url_path">
+<form method="post" name="adminObjects" 
+        tal:attributes="action here/absolute_url_path">
 <input type="hidden" name="zenScreenName" tal:attributes="value template/id"/>
 
 <script>
@@ -58,7 +59,6 @@ $('dialog').addLoadEvent('dialog_addAdministeredDevice', function() { createAnAu
                     tableName,'role','Role')"/>
         <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
                     tableName,'level','Level')"/>
-        <th class="tableheader">Events</th>
   </tr>
   <tal:block tal:repeat="ur batch">
   <tr tal:define="odd repeat/ur/odd"
@@ -68,8 +68,8 @@ $('dialog').addLoadEvent('dialog_addAdministeredDevice', function() { createAnAu
               tal:attributes="value ur/managedObjectName"/>
        <input type="checkbox" name="delids" tal:condition="editable"
               tal:attributes="value ur/managedObjectName"/>
-        <a tal:attributes="href ur/managedObjectLink"
-            tal:content="ur/managedObjectName">somename</a>
+        <div tal:define=" link python:ur.managedObject().getPrettyLink()"
+                tal:content="structure link"/>
     </td>
     <td class="tablevalues" align="left" tal:content="ur/managedObjectType"/>
     <td class="tablevalues">
@@ -85,20 +85,7 @@ $('dialog').addLoadEvent('dialog_addAdministeredDevice', function() { createAnAu
     onkeypress="return submitViaEnter(event,'manage_editAdministrativeRoles');"
         tal:condition="editable" tal:attributes="value ur/level">
     <tal:block tal:content="ur/level" tal:condition="not:editable"/>
-    </td>    
-  <td class="tablevalues" align="left">
-        
-        <table class="zentable ">
-            <tr>
-                <td align='center' width='16%'
-                tal:repeat="evt ur/getEventSummary"
-                tal:attributes="class python:evt[0]">
-                    <span 
-                    tal:replace="python:'%d/%d' % (evt[1],evt[2])"></span>
-                </td>
-          </tr>
-        
-  </td>
+    </td>
   </tr>
   </tal:block>
   <tr>
@@ -106,7 +93,12 @@ $('dialog').addLoadEvent('dialog_addAdministeredDevice', function() { createAnAu
         <span metal:use-macro="here/zenTableNavigation/macros/navbody" />
     </td>
   </tr>
-
+    <tr tal:condition="editable">
+    <td class="tableheader" colspan="4">
+        <input class="tableheader" type="submit" 
+            name="manage_editAdministrativeRoles:method" value=" Save " />
+    </td>
+    </tr>
         <!-- END TABLE CONTENTS -->
 
         </tal:block>

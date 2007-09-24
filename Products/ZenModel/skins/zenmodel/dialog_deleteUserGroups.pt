@@ -1,0 +1,15 @@
+<h2>Delete Groups</h2>
+<br/><br/>
+<p>
+Are you sure you want to remove these Groups?<br/>
+</p>
+<br/>
+<div id="dialog_buttons">
+<input type="submit" name="manage_deleteGroups:method" value="OK"
+ tal:attributes="onclick string:return $$('dialog').submit_form(
+                        '${here/absolute_url}')" />
+<input tal:attributes="id string:dialog_cancel;
+                        type string:button;
+                        value string:Cancel;
+                        onclick string:$$('dialog').hide()" />
+</div>
