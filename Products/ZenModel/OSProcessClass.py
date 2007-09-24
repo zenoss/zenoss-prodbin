@@ -20,6 +20,7 @@ from AccessControl import Permissions
 from Acquisition import aq_base
 from Commandable import Commandable
 from Products.ZenRelations.RelSchema import *
+from ZenPackable import ZenPackable
 
 from ZenModelRM import ZenModelRM
 
@@ -33,7 +34,7 @@ def manage_addOSProcessClass(context, id=None, REQUEST = None):
 
 addOSProcessClass = DTMLFile('dtml/addOSProcessClass',globals())
 
-class OSProcessClass(ZenModelRM, Commandable):
+class OSProcessClass(ZenModelRM, Commandable, ZenPackable):
     meta_type = "OSProcessClass"
     dmdRootName = "Processes"
     default_catalog = "processSearch"
@@ -52,7 +53,7 @@ class OSProcessClass(ZenModelRM, Commandable):
         {'id':'sequence', 'type':'int', 'mode':'w'},
         ) 
 
-    _relations = (
+    _relations = ZenPackable._relations + (
         ("instances", ToMany(ToOne, "Products.ZenModel.OSProcess", "osProcessClass")),
         ("osProcessOrganizer", 
             ToOne(ToManyCont,"Products.ZenModel.OSProcessOrganizer","osProcessClasses")),
