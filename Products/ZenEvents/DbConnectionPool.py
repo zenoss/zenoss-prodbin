@@ -95,9 +95,12 @@ class DbConnectionPool(Queue):
         mysqlconv[FIELD_TYPE.LONG] = int
         if not host:
             host, database = database, 'events'
-        conn = MySQLdb.connect(host=host, user=username,
-                             port=port, passwd=password, 
-                             db=database, conv=mysqlconv,
-                             reconnect=1)
+        args = dict(host=host, user=username,
+                    port=port, passwd=password, 
+                    db=database, conv=mysqlconv)
+        major, minor, release = map(int, MySQLdb.get_client_info().split('.'))
+        if major > 5 or (major == 5 and minor >= 1):
+            args['reconnect'] = 1
+        conn = MySQLdb.connect(**args)
         conn.autocommit(1)
         return conn
