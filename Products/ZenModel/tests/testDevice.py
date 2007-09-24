@@ -226,7 +226,7 @@ class TestDevice(ZenModelBaseTest):
     def testMonitorDevice(self):
         self.dev.setProdState(1000)
         self.assert_(self.dev.monitorDevice())
-        self.dev.setProdState(250)
+        self.dev.setProdState(-1)
         self.assert_(not self.dev.monitorDevice())
 
 
