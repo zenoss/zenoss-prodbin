@@ -1,0 +1,28 @@
+<h2>Add User To Group</h2>
+<span id="errmsg" style="color:red;"></span>
+<br/>
+<p style="text-align:right;">
+User:&nbsp;<select class="tableheader" name="userid"
+    tal:define="users here/getAllUserSettings">
+    <option tal:repeat="user users"
+        tal:content="user/id">user</option>
+</select>
+<br><br>
+Group:&nbsp;<select class="tableheader" name="groupid"
+    tal:define="groups here/getAllGroupSettings">
+    <option tal:repeat="group groups"
+        tal:content="group/id">group</option>
+</select>  
+</p>
+<div id="dialog_buttons">
+<input tal:attributes="id string:dialog_submit;
+        type string:submit;
+        value string:OK;
+        onclick string:return $$('dialog').submit_form(
+                                                '${here/absolute_url}')"
+                        name="manage_addUserToGroup:method" />
+<input tal:attributes="id string:dialog_cancel;
+                        type string:button;
+                        value string:Cancel;
+                        onclick string:$$('dialog').hide()" />
+</div>

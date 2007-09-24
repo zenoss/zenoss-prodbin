@@ -325,6 +325,26 @@ class UserSettingsManager(ZenModelRM):
             except KeyError: pass
 
 
+    def manage_addUserToGroup(self, userid, groupid, REQUEST=None):
+        """ Add a user to a group
+        """
+        self._getOb(groupid).addUserToGroup(userid) 
+        if REQUEST:
+            REQUEST['message'] = "User %s added to group %s" % (userid, groupid)
+            return self.callZenScreen(REQUEST)
+
+
+    def manage_deleteUsersFromGroup(self, groupid, userids=(), REQUEST=None):
+        """ Delete users from a group
+        """
+        group = self._getOb(groupid)
+        for userid in userids:
+            group.deleteUserFromGroup(userid)
+        if REQUEST:
+            REQUEST['message'] = "Users deleted from group %s" % groupid
+            return self.callZenScreen(REQUEST)
+
+
     def manage_emailTestAdmin(self, userid, REQUEST=None):
         ''' Do email test for given user
         '''
@@ -768,7 +788,13 @@ class GroupSettings(UserSettings):
 
     def _getG(self):
         return self.zport.acl_users.groupManager
+    
+    def addUserToGroup( self, userid ):
+        self._getG().addPrincipalToGroup( userid, self.id )
 
+    def deleteUserFromGroup( userid ):
+        self._getG().removePrincipalFromGroup( self, userid, self.id )
+    
     def getMemberUsers(self):
         return [ u[0] for u in self._getG().listAssignedPrincipals(self.id) ]
 

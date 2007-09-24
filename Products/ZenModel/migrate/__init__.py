@@ -106,3 +106,4 @@ import banClassesOnAddToZenPackMenuItem
 import annoyingAlerts
 import baseReportClasses
 import component_metadata
+import addGroupManager

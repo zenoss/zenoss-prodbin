@@ -111,7 +111,7 @@ function ConfirmPagerTest() {
        showfilterbox python:True;
        batch python:ztm.getBatch(tableName, objects); 
        tabletitle string:Groups;
-       menu_id string:User_list">
+       menu_id string:Group_list">
         <tal:block metal:use-macro="here/zenuimacros/macros/zentable">
         <tal:block metal:fill-slot="zentablecontents">
     <tr>
