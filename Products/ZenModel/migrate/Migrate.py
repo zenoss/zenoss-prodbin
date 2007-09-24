@@ -118,6 +118,7 @@ class Migration(ZenScriptBase):
         ZenScriptBase.__init__(self, connect=False)
         self.connect()
         self.allSteps = allSteps[:]
+        self.allSteps.sort(lambda x,y: cmp(x.name(), y.name()))
         self.allSteps.sort()
 
     def message(self, msg):
