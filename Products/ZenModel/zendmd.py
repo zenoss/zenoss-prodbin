@@ -31,10 +31,6 @@ from Products.ZenUtils.ZenScriptBase import ZenScriptBase
 from Products.ZenUtils.Utils import zenPath
 
 if readline:
-    # Note: the history code in this file was originally authored by
-    # Itamar Shtull-Trauring of Twisted Python. A current copy of his
-    # original code is available at http://pastebin.adytum.us/40 though
-    # the original has proven difficult to locate.
     zenHome = zenPath()
     historyPath = zenPath('.pyhistory')
     def save_history(historyPath=historyPath):
