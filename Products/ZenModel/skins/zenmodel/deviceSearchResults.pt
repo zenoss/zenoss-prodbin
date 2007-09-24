@@ -11,7 +11,7 @@
         tableName string:devicesearchresults;
         query python: here.ZenTableManager.setReqTableState(
                            tableName,'query', default='', reset=True);
-        objects python: here.Devices.searchDevices(query, request);
+        objects python: here.searchDevices(query, request);
         batch python: here.ZenTableManager.getBatch(tableName,objects);
         tabletitle string:Results">
         <tal:block metal:use-macro="here/zenuimacros/macros/zentable">

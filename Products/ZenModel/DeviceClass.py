@@ -327,26 +327,6 @@ class DeviceClass(DeviceOrganizer, ZenPackable):
         return svcinfo
 
 
-    security.declareProtected('View', 'searchDevices')
-    def searchDevices(self, queryString='', REQUEST=None):
-        """Returns the concatenation of a device name, ip and mac
-        search on the list of devices.
-        """
-        zcatalog = self._getCatalog()
-        if not queryString or not zcatalog:
-            return []
-        glob = queryString.rstrip('*') + '*'
-        query = Or(MatchGlob('id', glob), Eq('getDeviceIp', queryString))
-        names = zcatalog.evalAdvancedQuery(query)
-        if REQUEST and len(names) == 1:
-            raise Redirect(urllib.quote(names[0].getPrimaryId))
-        try:
-            names += self.Networks.ipSearch.evalAdvancedQuery(glob)
-        except AttributeError:
-            pass
-        return self._convertResultsToObj(names)
-   
-
     security.declareProtected('View', 'searchDeviceSummary')
     def searchDeviceSummary(self, query):
         """search device summary index and return device objects"""
