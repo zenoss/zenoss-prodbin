@@ -151,13 +151,11 @@ class ZenActions(ZCmdBase):
         """Load the ActionRules into the system.
         """
         self.actions = []
-        for us in self.dmd.ZenUsers.getAllUserSettings():
-            userid = us.getId()
-            self.log.debug("loading action rules for:%s", userid)
-            for ar in us.objectValues(spec="ActionRule"):
-                if not ar.enabled: continue
-                self.actions.append(ar)
-                self.log.debug("action:%s for:%s loaded", ar.getId(), userid)
+        for ar in self.dmd.ZenUsers.getAllActionRules():
+            if not ar.enabled: continue
+            userid = ar.getUser().id
+            self.actions.append(ar)
+            self.log.debug("action:%s for:%s loaded", ar.getId(), userid)
 
 
     def execute(self, stmt):
@@ -454,19 +452,28 @@ class ZenActions(ZCmdBase):
         """
         fmt, body = self.format(action, data, clear)
         msg = fmt % data
-        recipient = action.getAddress()
-        if not recipient:
+        recipients = action.getAddresses()
+        if not recipients:
             self.log.warning('failed to page %s on rule %s: %s',
-                action.getUser().id, action.id, 'Unspecified address.')
+                             action.getUser().id, action.id,
+                             'Unspecified address.')
             return True
-        
-        result, errorMsg = Utils.sendPage(recipient, msg,
-                                    self.dmd.snppHost,self.dmd.snppPort)
-        if result:
-            self.log.info('sent page to %s: %s', recipient, msg)
-        else:
-            self.log.info('failed to send page to %s: %s %s', recipient, msg,
-                                                                errorMsg)
+
+        result = False
+        for recipient in recipients:
+            success, errorMsg = Utils.sendPage(recipient,
+                                               msg,
+                                               self.dmd.snppHost,
+                                               self.dmd.snppPort)
+            if success:
+                self.log.info('sent page to %s: %s', recipient, msg)
+            else:
+                self.log.info('failed to send page to %s: %s %s',
+                              recipient,
+                              msg,
+                              errorMsg)
+                # return True if anyone got the page 
+                result = result or success
         return result
         
         
@@ -478,7 +485,7 @@ class ZenActions(ZCmdBase):
         import smtplib
         from email.MIMEText import MIMEText
         from email.MIMEMultipart import MIMEMultipart
-        addr = action.getAddress()
+        addr = action.getAddresses()
         if not addr:
             self.log.warning('failed to email %s on rule %s: %s',
                 action.getUser().id, action.id, 'Unspecified address.')
@@ -497,7 +504,7 @@ class ZenActions(ZCmdBase):
         emsgAlternative.attach(html)
         emsg['Subject'] = fmt
         emsg['From'] = self.dmd.getEmailFrom()
-        emsg['To'] = addr
+        emsg['To'] = ', '.join(addr)
         emsg['Date'] = DateTime().rfc822()
         result, errorMsg = Utils.sendEmail(emsg, self.dmd.smtpHost,
                     self.dmd.smtpPort, self.dmd.smtpUseTLS, self.dmd.smtpUser, 
@@ -505,8 +512,8 @@ class ZenActions(ZCmdBase):
         if result:
             self.log.info("sent email:%s to:%s", fmt, addr)
         else:
-            self.log.info("failed to send email to %s: %s %s", addr, fmt, 
-                                                                    errorMsg)
+            self.log.info("failed to send email to %s: %s %s",
+                          ','.join(addr), fmt, errorMsg)
         return result
 
 

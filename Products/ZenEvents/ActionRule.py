@@ -159,15 +159,15 @@ class ActionRule(ZenModelRM, EventFilter):
         return True
 
 
-    def getAddress(self):
-        """Return the correct address for the action this rule uses.
+    def getAddresses(self):
+        """Return the correct addresses for the action this rule uses.
         """
         if self.targetAddr:
-            return self.targetAddr
+            return [self.targetAddr]
         elif self.action == "page":
-            return self.pager
+            return self.getUser().getPagerAddresses()
         elif self.action == "email":
-            return self.email
+            return self.getUser().getEmailAddresses()
 
 
     def getUser(self):

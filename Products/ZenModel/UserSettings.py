@@ -120,15 +120,12 @@ class UserSettingsManager(ZenModelRM):
         """
         # This code used to filter out the admin user.
         # See ticket #1615 for why it no longer does.
-        return [o for o in self.objectValues(spec="UserSettings")]
-            
+        return self.objectValues(spec="UserSettings")
 
     def getAllGroupSettings(self):
         """Return list user settings objects.
         """
-        # This code used to filter out the admin user.
-        # See ticket #1615 for why it no longer does.
-        return [o for o in self.objectValues(spec="GroupSettings")]
+        return self.objectValues(spec="GroupSettings")
             
 
     def getAllUserSettingsNames(self, filtNames=()):
@@ -159,7 +156,7 @@ class UserSettingsManager(ZenModelRM):
 
 
     def getAllActionRules(self):
-        for u in self.getAllUserSettings():
+        for u in self.getAllUserSettings() + self.getAllGroupSettings():
             for ar in u.getActionRules():
                 yield ar
 
@@ -692,9 +689,9 @@ class UserSettings(ZenModelRM):
         ''' Send a test email to the given userid.
         '''
         destSettings = self.getUserSettings(self.getId())
-        destAddress = destSettings.email
+        destAddresses = destSettings.getEmailAddresses()
         msg = None
-        if destAddress:
+        if destAddresses:
             fqdn = socket.getfqdn()
             thisUser = self.getUser()
             srcId = thisUser.getId()
@@ -706,14 +703,14 @@ class UserSettings(ZenModelRM):
             emsg = MIMEText(body)
             emsg['Subject'] = 'Zenoss Email Test'
             emsg['From'] = srcAddress
-            emsg['To'] = destAddress
+            emsg['To'] = ', '.join(destAddresses)
             emsg['Date'] = DateTime().rfc822()
             result, errorMsg = Utils.sendEmail(emsg, self.dmd.smtpHost, 
                                 self.dmd.smtpPort,
                                 self.dmd.smtpUseTLS, self.dmd.smtpUser,
                                 self.dmd.smtpPass)
             if result:
-                msg = 'Test email sent to %s' % destAddress
+                msg = 'Test email sent to %s' % destAddresses
             else:
                 msg = 'Test failed: %s' % errorMsg
         else:
@@ -730,17 +727,17 @@ class UserSettings(ZenModelRM):
         ''' Send a test page 
         '''
         destSettings = self.getUserSettings(self.getId())
-        destPager = (destSettings.pager or '').strip()
+        destPagers = (destSettings.getPagerAddresses() or []).strip()
         msg = None
-        if destPager:
+        if destPagers:
             fqdn = socket.getfqdn()
             srcId = self.getUser().getId()
             msg = ('Test sent by %s' % srcId + 
                     ' from the Zenoss installation on %s.' % fqdn)
-            result, errorMsg = Utils.sendPage(destPager, msg, 
+            result, errorMsg = Utils.sendPage(destPagers, msg, 
                                     self.dmd.snppHost, self.dmd.snppPort)
             if result:
-                msg = 'Test page sent to %s' % destPager
+                msg = 'Test page sent to %s' % destPagers
             else:
                 msg = 'Test failed: %s' % errorMsg
         else:
@@ -758,6 +755,15 @@ class UserSettings(ZenModelRM):
             if hasattr(aq_base(o), 'exportXml'):
                 o.exportXml(ofile, ignorerels)
 
+    def getPagerAddresses(self):
+        if self.pager.strip():
+            return [self.pager.strip()]
+        return []
+
+    def getEmailAddresses(self):
+        if self.email.strip():
+            return [self.email]
+        return []
 
 class GroupSettings(UserSettings):
 
@@ -800,6 +806,12 @@ class GroupSettings(UserSettings):
 
     def printUsers(self):
         return ", ".join(self.getMemberUsers())
+
+    def getEmailAddresses(self):
+        result = []
+        for username in self.getMemberUsers():
+            result.extend(self.getUserSettings(username).getEmailAddresses())
+        return result
     
 InitializeClass(UserSettingsManager)
 InitializeClass(UserSettings)
