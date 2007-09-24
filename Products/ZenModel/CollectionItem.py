@@ -24,7 +24,6 @@ from Globals import DTMLFile
 from AccessControl import ClassSecurityInfo, Permissions
 from Products.ZenRelations.RelSchema import *
 from ZenModelRM import ZenModelRM
-from ZenPackable import ZenPackable
 
                                      
 def manage_addCollectionItem(context, id, deviceId, compPath, sequence,
@@ -61,7 +60,7 @@ class CollectionItem(ZenModelRM):
         {'id':'recurse', 'type':'boolean', 'mode':'w'},
         )
 
-    _relations = ZenPackable._relations + (
+    _relations = (
         ('collection', ToOne(ToManyCont,'Products.ZenModel.Collection','items')),
         )
     
