@@ -10,7 +10,7 @@
 # For complete information please visit: http://www.zenoss.com/oss/
 #
 ###########################################################################
-#   Copyright (c) 2005 Zentinel Systems, Inc. All rights reserved.
+
 import os, sys
 if __name__ == '__main__':
     execfile(os.path.join(sys.path[0], 'framework.py'))
@@ -34,16 +34,16 @@ class TestIpRouteEntry(ZenModelBaseTest):
 
         self.dev = self.dmd.Devices.createInstance('testdev')
 
-        tmpo = IpInterface('test0')
-        self.dev.os.interfaces._setObject('test0',tmpo)
-        self.iface0 = self.dev.os.interfaces._getOb('test0')
+        tmpo = IpInterface('iface0')
+        self.dev.os.interfaces._setObject('iface0',tmpo)
+        self.iface0 = self.dev.os.interfaces._getOb('iface0')
         self.iface0.setIpAddresses('1.2.3.4/24')
         self.iface0.ifindex = 0
         self.iface0.interfaceName = 'iface0'
 
-        tmpo = IpInterface('test1')
-        self.dev.os.interfaces._setObject('test1',tmpo)
-        self.iface1 = self.dev.os.interfaces._getOb('test1')
+        tmpo = IpInterface('iface1')
+        self.dev.os.interfaces._setObject('iface1',tmpo)
+        self.iface1 = self.dev.os.interfaces._getOb('iface1')
         self.iface1.setIpAddresses('2.3.4.5/24')
         self.iface1.ifindex = 1
         self.iface1.interfaceName = 'iface1'
@@ -87,27 +87,23 @@ class TestIpRouteEntry(ZenModelBaseTest):
     def testSetInterfaceIndex(self):
         self.rEntry.setInterfaceIndex(0)
         self.assert_(self.rEntry.getInterfaceIndex() == 0)
-        self.assert_(self.rEntry.getInterfaceName() == 'test0')
         self.assert_(self.rEntry.getInterfaceName() == 'iface0')
         self.assert_(self.rEntry.getInterfaceIp() == '1.2.3.4')
 
         self.rEntry.setInterfaceIndex(1)
         self.assert_(self.rEntry.getInterfaceIndex() == 1)
-        self.assert_(self.rEntry.getInterfaceName() == 'test1')
         self.assert_(self.rEntry.getInterfaceName() == 'iface1')
         self.assert_(self.rEntry.getInterfaceIp() == '2.3.4.5')
 
 
     def testSetInterfaceName(self):
-        self.rEntry.setInterfaceName('test0')
+        self.rEntry.setInterfaceName('iface0')
         self.assert_(self.rEntry.getInterfaceIndex() == 0)
-        self.assert_(self.rEntry.getInterfaceName() == 'test0')
         self.assert_(self.rEntry.getInterfaceName() == 'iface0')
         self.assert_(self.rEntry.getInterfaceIp() == '1.2.3.4')
 
-        self.rEntry.setInterfaceName('test1')
+        self.rEntry.setInterfaceName('iface1')
         self.assert_(self.rEntry.getInterfaceIndex() == 1)
-        self.assert_(self.rEntry.getInterfaceName() == 'test1')
         self.assert_(self.rEntry.getInterfaceName() == 'iface1')
         self.assert_(self.rEntry.getInterfaceIp() == '2.3.4.5')
 
