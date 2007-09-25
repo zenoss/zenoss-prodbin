@@ -83,6 +83,11 @@ class ZentinelPortal ( PortalObjectBase ):
         root = self.dmd.getDmdRoot(dataRoot)
         return root.getOrganizerNames() or '[]'
 
+    security.declareProtected(ZEN_COMMON, 'getRootOrganizerInfo')
+    def getRootOrganizerInfo(self, dataRoot, REQUEST=None):
+        """ Return json event summaries for root org """
+        root = self.dmd.getDmdRoot(dataRoot)
+        return root.getSubOrganizersEventSummary() or '[]'
 
     security.declareProtected(ZEN_COMMON, 'jsonGetDeviceNames')
     def jsonGetDeviceNames(self):

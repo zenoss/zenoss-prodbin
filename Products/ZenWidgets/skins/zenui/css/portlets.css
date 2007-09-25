@@ -153,3 +153,6 @@ a.portlet-settings-control {
 div.buttonslot {
     float: right;
 }
+#addPortletDialog button {
+    width: 150px;
+}
