@@ -92,9 +92,7 @@ class Builder(DmdBuilder):
 class BaseTestCase(ZopeTestCase.ZopeTestCase):
 
 
-    def setUp(self):
-        """setup schema manager and add needed permissions"""
-        ZopeTestCase.ZopeTestCase.setUp(self)
+    def afterSetUp(self):
         gen = PortalGenerator()
         gen.create(self.app, 'zport', True)
         # builder params:
