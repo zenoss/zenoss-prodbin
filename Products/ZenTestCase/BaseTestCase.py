@@ -105,6 +105,11 @@ class BaseTestCase(ZopeTestCase.ZopeTestCase):
         builder.build()
         self.dmd = builder.dmd
 
+        self.dmd.ZenUsers.manage_addUser('tester', roles=('Manager',))
+        user = self.app.zport.acl_users.getUserById('tester')
+        from AccessControl.SecurityManagement import newSecurityManager
+        newSecurityManager(None, user)
+
 
     def tearDown(self):
         self.app = None
