@@ -551,6 +551,13 @@ class DeviceOrganizer(Organizer, DeviceManagerBase, Commandable, ZenMenuable,
         """
         return "/zport/dmd/img/icons/folder.png"
 
+    security.declareProtected('View', 'getEventPill')
+    def getEventPill(self, showGreen=True):
+        """ Gets event pill for worst severity """
+        pill = self.ZenEventManager.getEventPillME(self, showGreen=showGreen)
+        if type(pill)==type([]) and len(pill)==1: return pill[0]
+        return pill
+
     security.declareProtected('View', 'getPrettyLink')
     def getPrettyLink(self, noicon=False, shortDesc=False):
         """ Gets a link to this object, plus an icon """

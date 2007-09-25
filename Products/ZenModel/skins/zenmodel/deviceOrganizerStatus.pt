@@ -7,7 +7,8 @@
 
 <tal:block metal:use-macro="here/templates/macros/page2">
 <tal:block metal:fill-slot="contentPane">
-    <!-- Status Table -->
+
+<!-- Status Table -->
 
 <form method="post" tal:attributes="action here/absolute_url_path" name="deviceOrganizerStatus">
 <input type="hidden" name="zenScreenName" value="deviceOrganizerStatus" />
@@ -21,8 +22,8 @@
 <!-- BEGIN TABLE CONTENTS -->
 <tr>
           <td class="tableheader" align="left">Events</td>
-          <td class="tablevalues rainbow" align="left">
-            <table metal:use-macro="here/rainbows/macros/eventrainbow" />
+          <td class="tablevalues rainbow" align="left" width="300">
+            <table metal:use-macro="here/rainbows/macros/horizontal" />
           </td>
           <th class="tableheader" align="left">Sub Count</th>
           <td class="tablevalues" tal:content="here/countChildren">100</td>
@@ -108,6 +109,13 @@
 
 </form>
     <span metal:use-macro="here/templates/macros/contentSeparator"/>
+
+
+
+<div class="yui-g">
+<div class="yui-u first">
+
+
     <!-- Sub-Devices Table -->
     <form method="post" tal:attributes="action here/absolute_url_path"
 		name="subdeviceForm">
@@ -160,30 +168,30 @@
                 tal:on-error="structure string:
                     <span class='errorvalues'>Events unavailable</span>">
                 <tr>
-                    <td align=center width=16%
-                    tal:repeat="evt python:devorg.getEventSummary()"
-                    tal:attributes="class python:test(evt[1]-evt[2]>=0,
-                                    evt[0] + ' empty thin', evt[0] + ' thin')">
-                        <span tal:replace="python:'%d/%d' % (evt[1],evt[2])"/>
-                    </td>
+                    <td tal:content="structure devorg/getEventPill"/>
               </tr>
             </table>
             </td>
         </tr>
         </tal:block>
+        <!--
         <tr>
             <td colspan="4" class="tableheader">
                 <span metal:use-macro="here/zenTableNavigation/macros/navbody"/>
             </td>
         </tr>
+        -->
 </tal:block>
 </tal:block>
 </tal:block>
     </form>
-
-    <br tal:condition="here/devices/countObjects">
+</div>
+<div class="yui-u">
 
     <table metal:use-macro="here/deviceListMacro/macros/devList"></table>
+
+</div>
+</div>
 
 </tal:block>
 </tal:block>

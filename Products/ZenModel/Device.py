@@ -1507,6 +1507,15 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable, Admini
         name = self.id
         return template % (href, icon, name)
 
+    security.declareProtected(ZEN_VIEW, 'getEventPill')
+    def getEventPill(self, showGreen=True):
+        """ Gets an event pill representing the highest severity """
+        pill = self.ZenEventManager.getEventPillME(self, showGreen=showGreen)
+        if type(pill)==type([]) and len(pill)==1: return pill[0]
+        return pill
+        
+
+
     def getDeviceComponentEventSummary(self):
         """ Gets datatable-ready string of components and summaries """
         return self.dmd.ZenEventManager.getDeviceComponentEventSummary(self)

@@ -12,6 +12,11 @@
             </div>
         </div>
         </tal:block>
+        <div class="evpill-green">
+            <div tal:condition="python:filter(lambda x:x, 
+                                              map(int, summaries[:-1]))">
+            </div>
+        </div>
     </div>
 </tal:block>
 </tal:block>
@@ -31,3 +36,27 @@
         </td>
   </tr>
 </table>
+
+<tal:block metal:define-macro="horizontal">
+<tal:block tal:define="
+    zem python:here.ZenEventManager;
+    colors python:'red orange yellow blue grey green'.split();
+    summaries python:[x[2] for x in zem.getEventSummaryME(here, 0)]">
+    <div class="horizontal-rainbow" onclick="location.href='viewEvents'">
+        <tal:block tal:repeat="evnum python:summaries[:-1]">
+        <div tal:define="color python:colors[repeat['evnum'].index]"
+            tal:attributes="class string:evpill-${color}"
+            style="float:left">
+            <span tal:content="evnum">0</span>
+            <div tal:condition="python:int(evnum)==0">
+            </div>
+        </div>
+        </tal:block>
+        <div class="evpill-green" style="float:left">
+            <div tal:condition="python:filter(lambda x:x, 
+                                              map(int, summaries[:-1]))">
+            </div>
+        </div>
+    </div>
+</tal:block>
+</tal:block>

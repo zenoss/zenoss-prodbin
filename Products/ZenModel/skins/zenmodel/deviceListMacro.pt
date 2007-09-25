@@ -64,18 +64,8 @@
                             tableName,'primarySortKey','Name')">Name
         </th>
         <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
-                            tableName,'getDeviceIp','IP')">IP
+                    tableName,'getSnmpStatusNumber','Events','cmp')">Critical/Error
         </th>
-        <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
-                            tableName,'getDeviceClassPath','Class')">Class
-        </th>
-        <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
-                    tableName,'getProdState','State','cmp')">State
-        </th>
-        <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
-                    tableName,'getSnmpStatusNumber','Critical/Error','cmp')">Critical/Error
-        </th>
-        <th class=tableheader align=left>Locks</th>
 	</tr>
    <tal:block tal:repeat="device batch">
 	<tr tal:define="odd repeat/device/odd"
@@ -89,44 +79,19 @@
                 tal:content="device/id">device
             </a>
         </td>
-		<td class="tablevalues" align="left"
-            tal:content="device/getDeviceIp">ip
-        </td>
-		<td class="tablevalues" align="left"
-            tal:define="path device/getDeviceClassPath">
-            <a href="" 
-                tal:attributes="href string:/zport/dmd/Devices${path}"
-                tal:content="path">type</a>
-        </td>
-		<td class="tablevalues" align="left"
-            tal:content="device/getProdState">prodstate
-        </td >
         <td class='tablevalues' tal:define="severity python:4">
         <table width="100%" cellspacing='1' cellpadding='3' 
             tal:on-error="structure string:
                 <span class='errorvalues'>Events unavailable</span>">
             <tr>
-                <td align=center width=16%
-                tal:repeat="evt python:device.getEventSummary(severity)"
-                tal:attributes="class python:test( evt[1]-evt[2]>=0,
-                                                  evt[0] + ' empty thin',evt[0]
-                                                  + ' thin')">
-                    <span tal:replace="python:'%d/%d' % (evt[1],evt[2])"/>
-                </td>
+                <td tal:content="structure device/getEventPill"/>
           </tr>
         </table>
-        </td>
-        <td class=tablevalues>
-             <img tal:condition="device/isResultLockedFromUpdates" 
-                     border="0" src="locked-update-icon.png">
-             <img tal:condition="device/isResultLockedFromDeletion" 
-                     border="0" src="locked-delete-icon.png">
-             <img tal:condition="device/sendEventWhenResultBlocked" 
-                     border="0" src="locked-sendevent-icon.png">
         </td>
     </tr>
     </tal:block>
     </tal:block>
+    <!--
     <tr>
         <td colspan="6" class="tableheader" align='center'>
             <span metal:use-macro="here/zenTableNavigation/macros/navbody" />
@@ -136,6 +101,7 @@
 			tal:define="numColumns string:5">
 		<span metal:use-macro="here/deviceListMacro/macros/deviceControl" />
 	</tal:block>
+    -->
 
         <!-- END TABLE CONTENTS -->
 

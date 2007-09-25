@@ -805,12 +805,18 @@ div.device-icon-container {
 div.vertical-rainbow {
     width: 50px;
 }
+div.horizontal-rainbow {
+    display:inline;
+    width:250px;
+}
 
+div.horizontal-rainbow > div ,
 div.vertical-rainbow > div {
     position: relative;
     margin: auto;
     width: 50px;
 }
+div.horizontal-rainbow > div > div ,
 div.vertical-rainbow > div > div {
     position: absolute;
     top: 0;
