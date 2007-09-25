@@ -62,7 +62,7 @@ class ZentinelPortal ( PortalObjectBase ):
         """Returns the concatenation of a device name, ip and mac
         search on the list of devices.
         """
-        zcatalog = self.dmd.Devices._getCatalog()
+        zcatalog = self.dmd.Devices.deviceSearch
         glob = queryString.rstrip('*') + '*'
         glob = MatchGlob('id', glob)
         query = Or(glob, Eq('getDeviceIp', queryString))
