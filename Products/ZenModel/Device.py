@@ -1502,7 +1502,7 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable, Admini
                     "<img class='device-icon' src='%s'/> "
                     "</div>%s")
         icon = self.getIconPath()
-        href = self.getPrimaryUrlPath()
+        href = self.getPrimaryUrlPath().replace('%','%%')
         name = self.id
         linktemplate = "<a href='"+href+"' class='prettylink'>%s</a>"
         rendered = template % (icon, name)
