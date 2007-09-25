@@ -10,7 +10,8 @@
 # For complete information please visit: http://www.zenoss.com/oss/
 #
 ###########################################################################
-import pdb
+import os, sys
+
 import unittest
 import Globals
 import transaction
@@ -21,7 +22,7 @@ from Products.ZenEvents.Exceptions import *
 
 zodb = ZCmdBase(noopts=True)
 
-class MySqlEventMangerTest(unittest.TestCase):
+class MySqlEventManagerTest(unittest.TestCase):
     """
     To run these tests zport.dmd.ZenEventManager must exist and must be setup
     with a proper config to access the mysql backend.  MySQL must also have
@@ -63,44 +64,48 @@ class MySqlEventMangerTest(unittest.TestCase):
 
 
     def testSendEventDup(self):
-        self.zem.sendEvent(self.evt) 
-        self.zem.sendEvent(self.evt) 
+        self.zem.sendEvent(self.evt.__dict__)
+        self.zem.sendEvent(self.evt.__dict__) 
         evts = self.zem.getEventList(where="device='dev.test.com'")
         self.assert_(len(evts) == 1)
         self.assert_(evts[0].count == 2)
 
 
     def testEventMissingRequired(self):
-        delattr(self.evt, "eventClass")
+        delattr(self.evt, "device")
         self.assertRaises(ZenEventError, self.zem.sendEvent, self.evt) 
 
 
     def testEventDetailField(self):
-        self.evt.ntseverity = "Error"
+        self.evt.test = "Error"
         evt = self.zem.sendEvent(self.evt)
-        evdetail = self.zem.getEventDetail(dedupid=evt.dedupid)
-        self.assert_(("ntseverity", self.evt.ntseverity) in 
+        evdetail = self.zem.getEventDetail(dedupid=self.evt.dedupid)
+        self.assert_(("test", self.evt.test) in 
                         evdetail.getEventDetails())
 
     
     def testEventDetailFields(self):
         self.evt.ntseverity = "Error"
         self.evt.ntsource = "Zope"
+        self.evt.foo = "Bar"
         evt = self.zem.sendEvent(self.evt)
-        evdetail = self.zem.getEventDetail(dedupid=evt.dedupid)
+        evdetail = self.zem.getEventDetail(evt)
         details = evdetail.getEventDetails()
         self.assert_(("ntseverity", self.evt.ntseverity) in details)
         self.assert_(("ntsource", self.evt.ntsource) in details)
+        self.assert_(("foo", self.evt.foo) in details)
     
     
     def testEventDetailgetEventFields(self):
         evt = self.zem.sendEvent(self.evt)
-        evdetail = self.zem.getEventDetail(dedupid=evt.dedupid)
+        evdetail = self.zem.getEventDetail(dedupid=self.evt.dedupid)
         feilds = evdetail.getEventFields()
 
     
-
-if __name__ == "__main__":
-    unittest.main()
+def test_suite():
+    from unittest import TestSuite, makeSuite
+    suite = TestSuite()
+    suite.addTest(makeSuite(MySqlEventManagerTest))
+    return suite
 
 

@@ -10,7 +10,7 @@
 # For complete information please visit: http://www.zenoss.com/oss/
 #
 ###########################################################################
-import pdb
+
 import unittest
 from Queue import Queue
 import Globals
@@ -65,8 +65,8 @@ class MySqlSendEventThreadTest(unittest.TestCase):
         self.assert_(evts[0].summary == evt.summary)
 
         
-
-if __name__ == "__main__":
-    unittest.main()
-
-
+def test_suite():
+    from unittest import TestSuite, makeSuite
+    suite = TestSuite()
+    suite.addTest(makeSuite(MySqlSendEventThread))
+    return suite
