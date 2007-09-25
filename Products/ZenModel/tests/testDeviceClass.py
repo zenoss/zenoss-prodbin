@@ -55,7 +55,8 @@ class TestDeviceClass(ZenModelBaseTest):
 
     def testSearchDevicesOneDevice(self):
         devices = self.dmd.Devices
-        self.assertRaises(Redirect, devices.searchDevices, "testdev2")
+        self.assertRaises(Redirect, devices.searchDevices, "testdev2",
+                          REQUEST=dict(junk=1))
 
     
     def testSearchDevicesNoDevice(self):
