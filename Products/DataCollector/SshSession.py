@@ -18,6 +18,10 @@ import struct, sys, getpass, os
 
 import logging
 
+# BROKEN: these were unknown globals!
+#  - keeps pyflakes quiet
+USER, HOST = None, None
+
 from Exceptions import NoValidConnection, LoginFailed, CommandTimeout, CommandNotFound
 
 class SshSession:
