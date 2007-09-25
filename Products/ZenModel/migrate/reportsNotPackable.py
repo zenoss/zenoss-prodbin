@@ -20,7 +20,7 @@ class ReportsNotPackable(Migrate.Step):
     
 
     def cutover(self, dmd):
-        if hasattr(dmd.zenMenus.Report_list.zenMenuItems, 'addToZenPack'):
+        if dmd.zenMenus.Report_list.zenMenuItems._getOb('addToZenPack', False):
             dmd.zenMenus.Report_list.zenMenuItems._delObject('addToZenPack')
 
 
