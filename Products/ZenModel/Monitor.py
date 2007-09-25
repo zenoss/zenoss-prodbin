@@ -73,7 +73,7 @@ class Monitor(ZenModelRM, DeviceManagerBase):
         if not performanceMonitor:
             if REQUEST: REQUEST['message'] = "No Monitor Selected"
             return self.callZenScreen(REQUEST)
-        if deviceNames is None and not isOrganizer:
+        if deviceNames is None:
             if REQUEST: REQUEST['message'] = "No Devices Selected"
             return self.callZenScreen(REQUEST)
         for devname in deviceNames:
