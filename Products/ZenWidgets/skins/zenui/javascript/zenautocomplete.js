@@ -119,7 +119,7 @@ var _getAllOrganizers = function(callback) {
 }
 var _getOrganizersAndDevices = function(callback) {
     function getDevices(payload) {
-        var d = loadJSONDoc('/zport/dmd/Devices/jsonGetDeviceNames');
+        var d = loadJSONDoc('/zport/jsonGetDeviceNames');
         d.addCallback(function(p) {
             payload = concat(p, payload);
             mycallback(payload)

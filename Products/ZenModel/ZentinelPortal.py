@@ -77,11 +77,11 @@ class ZentinelPortal ( PortalObjectBase ):
    
 
     security.declareProtected(ZEN_COMMON, 'getOrganizerNames')
-    def getOrganizerNames(self, dataRoot='Devices'):
+    def getOrganizerNames(self, dataRoot='Devices', REQUEST=None):
         """Return the organizer names to which this user has access
         """
         root = self.dmd.getDmdRoot(dataRoot)
-        return root.getOrganizerNames() or []
+        return root.getOrganizerNames() or '[]'
 
 
     security.declareProtected(ZEN_COMMON, 'jsonGetDeviceNames')
