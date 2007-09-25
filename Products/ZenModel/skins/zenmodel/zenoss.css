@@ -549,7 +549,7 @@ a.tabletitleselected:hover {
 }
 
 .tableheader { 
-    font-family: Verdana, Arial, Helvetica, sans-serif;
+    font-family: Arial, Verdana, Helvetica, sans-serif;
     color: #000000;
     background-color: #CCCCCC;
     font-weight: normal; 
@@ -560,32 +560,33 @@ a.tabletitleselected:hover {
     font-size:10pt;
 }
 .tableheaderselected { 
-    font-family: Verdana, Arial, Helvetica, sans-serif;
+    font-family: Arial, Verdana, Helvetica, sans-serif;
     color: #FFFFFF;
     background-color: #999999;
     font-weight: normal; 
     text-align: left;
 }
 .statusbar { 
-    font-family: Verdana, Arial, Helvetica, sans-serif; 
+    font-family: Arial, Verdana, Helvetica, sans-serif; 
     font-weight: normal; 
     color: #000000;
     background-color: #E0E0E0;
 }
 .tablevalues {  
-    font-family: Verdana, Arial, Helvetica, sans-serif;
+    font-family: Arial, Verdana, Helvetica, sans-serif;
     color: #000040; 
     font-weight: normal; 
     background-color: #EEE;
 }
 td.tablevalues {  
-    font-family: Verdana, Arial, Helvetica, sans-serif;
+    font-family: Arial, Verdana, Helvetica, sans-serif;
     color: #000040; 
     font-weight: normal; 
     background-color: #fff;
 }
 a.tablevalues {
     background-color: transparent;
+    text-decoration: none;
 }
 a.tablevalues:link {  
     color: #000040;
@@ -938,7 +939,7 @@ dl.faux-table .first {
     padding-top: 1px;
 }
 #component-event-table {
-    font-size: 12pt;
+    font-size: 10pt;
 }
 #component-event-table .yui-dt-table {
     width: 100%;
@@ -948,7 +949,7 @@ dl.faux-table .first {
     padding: 1px 10px;
 }
 #component-event-table a.prettylink {
-    font-size: .9em;
+    font-size: 1em;
     padding-left: 10px;
 }
 dl.faux-table a.prettylink {

@@ -84,7 +84,7 @@
                 var columns = compevsum.columns;
                 var data = compevsum.data;
                 var mycolumndefs = map(function(x){
-                    return {key:x,sortable:true,resizeable:true}}, columns);
+                    return {key:x,sortable:false,resizeable:true}}, columns);
                 var dataSource = new YAHOO.util.DataSource(data);
                 dataSource.responseType = YAHOO.util.DataSource.TYPE_JSARRAY;
                 dataSource.responseSchema = {fields:columns};

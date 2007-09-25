@@ -5,7 +5,7 @@ table.innerzentable {
     width: 100%;
     font-weight: normal;
     font-size: 10pt;
-    font-family: Verdana, Arial, Helvetica, sans-serif;
+    font-family: Arial, Verdana, Helvetica, sans-serif;
     position: relative;
     z-index: 1;
     margin-top: -3px;
@@ -24,6 +24,8 @@ table.innerzentable * {
 table.innerzentable tr td {
     padding: 1px;
     font-size: 10pt;
+    line-height: 25px;
+    border-right: 1px solid #eee;
 }
 
 .zentable_selectionbar {
@@ -56,4 +58,13 @@ table.innerzentable tr td {
 
 .tabletitlecontainer input.tableheader {
     border: 1px solid darkgrey;
+}
+
+table.innerzentable tr td a {
+    text-decoration: none;
+    color: #000040;
+}
+table.innerzentable tr td a:hover {
+    text-decoration: none;
+    color: #000;
 }

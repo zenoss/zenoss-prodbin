@@ -155,7 +155,7 @@
                 <input tal:condition="here/isManager" 
                     type="checkbox" name="organizerPaths:list" 
                     tal:attributes="value devorg/getId"/>
-                <a href="_" 
+                <a href="_" class="tablevalues"
                 tal:attributes="href string: ${devorg/getPrimaryUrlPath}/deviceOrganizerStatus"
                 tal:content="devorg/id">Name</a>
             </td>
