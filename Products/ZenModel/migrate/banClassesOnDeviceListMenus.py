@@ -240,10 +240,10 @@ class BanClassesOnDeviceListMenus(Migrate.Step):
                         'id': 'deviceManagement_os',
                         'ordering': 50.0,
                         'permissions': (ZEN_MANAGE_DEVICE,)},
-                      {  'action': 'zPropOverriden',
+                      {  'action': 'zPropOverridden',
                           'allowed_classes': ['DeviceClass', 'EventClass'],
-                          'description': 'Overriden Objects',
-                          'id': 'overridenObjects',
+                          'description': 'Overridden Objects',
+                          'id': 'overriddenObjects',
                           'ordering': 21.0,
                           'permissions': (ZEN_ZPROPERTIES_VIEW,)} ], 
         })

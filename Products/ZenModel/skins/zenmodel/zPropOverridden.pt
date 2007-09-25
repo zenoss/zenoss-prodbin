@@ -1,6 +1,6 @@
 <tal:block metal:use-macro="here/templates/macros/page2">
 <tal:block metal:fill-slot="contentPane">
-<tal:block tal:define="tabletitle string:Overridden Objects;
+<tal:block tal:define="tabletitle string:Overriding Objects;
 	               prop request/prop | python:'';
 	               orObjects python:here.getOverriddenObjects(prop)"> 
 <tal:block metal:use-macro="here/zenuimacros/macros/zentable">
@@ -8,13 +8,9 @@
 
 <!-- BEGIN TABLE CONTENTS -->
     <tr>
-      <th class="tableheader" align="center">Path</th>
-      <th class="tableheader" align="center">Name</th>
-      <th class="tableheader" align="center">Value</th>
-    </tr>
-    <tr>
-      <td class="tablevalues" tal:content="structure python:here.getLink(here.absolute_url_path(), '%s/zPropertyEdit' % here.absolute_url_path())"/>
-      <td class="tablevalues"> 
+      <th class="tableheader" colspan="2">
+        zProperty
+        <br/> 
         <form method="post">
         <select class="tablevalues" 
                 name="prop" 
@@ -25,6 +21,16 @@
                         tal:attributes="selected python:p==prop"/>
         </select>
         </form> 
+      </th>
+    </tr>
+    <tr>
+      <th class="tableheader" align="center">Overriding Object</th>
+      <th class="tableheader" align="center">Overridden Value</th>
+    </tr>
+    <tr>
+      <td class="tablevalues">
+        <div tal:define=" link python:here.getPrettyLink()"
+                tal:content="structure link"/>
       </td>
       <td class="tablevalues" tal:content="python:getattr(here, prop, '')"/>
     </tr>
@@ -36,8 +42,10 @@
     <tal:block tal:condition="orObjects" tal:repeat="orObject orObjects"> 
     <tr tal:define="odd repeat/orObject/odd"
         tal:attributes="class python:test(odd, 'odd', 'even')">
-      <td class="tablevalues" tal:content="structure python:orObject.getLink(orObject.absolute_url_path(), '%s/zPropertyEdit' % orObject.absolute_url_path())"/>
-      <td class="tablevalues" tal:content="prop"/>
+      <td class="tablevalues">
+              <div tal:define=" link python:orObject.getPrettyLink()"
+                tal:content="structure link"/>
+      </td>
       <td class="tablevalues" tal:content="python:getattr(orObject, prop)"/>
     </tr>
     </tal:block>
