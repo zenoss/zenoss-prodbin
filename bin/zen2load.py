@@ -40,13 +40,9 @@ from Products.ZenUtils import Security
 from Products.ZenUtils.CmdBase import CmdBase
 from Products.ZenUtils.Utils import importClass
 from Products.ZenUtils.Utils import getObjByPath
+from Products.ZenUtils.Utils import zenPath
 
 from Products.ZenRelations.Exceptions import *
-
-if not os.environ.has_key('ZENHOME'):
-    raise SysemExit("ERROR: ZENHOME envrionment variable not set")
-zenhome = os.environ['ZENHOME']
-
 
 class ImportRM(CmdBase, ContentHandler):
 
@@ -54,7 +50,7 @@ class ImportRM(CmdBase, ContentHandler):
 
     def __init__(self):
         CmdBase.__init__(self)
-        zopeconf = os.path.join(zenhome, "etc/zope.conf")
+        zopeconf = zenPath("etc/zope.conf")
         import Zope2
         Zope2.configure(zopeconf)
         self.app = Zope2.app()
@@ -295,8 +291,7 @@ class ImportRM(CmdBase, ContentHandler):
         # build standard_error_message
         if self.app.hasObject('standard_error_message'):
             self.app._delObject('standard_error_message')
-        file = open('%s/Products/ZenModel/dtml/standard_error_message.dtml' %
-                        zenhome)
+        file = open(zenPath('Products/ZenModel/dtml/standard_error_message.dtml'))
         try:
             text = file.read()
         finally:
