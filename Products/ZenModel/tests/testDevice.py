@@ -243,9 +243,9 @@ class TestDevice(ZenModelBaseTest):
 
         self.assert_(self.dev.hw.tag == '')
         self.assert_(self.dev.hw.serialNumber == '')
-        self.assert_(self.dev.zSnmpCommunity == '')
+        self.assert_(self.dev.zSnmpCommunity == self.dmd.Devices.zSnmpCommunity)
         self.assert_(self.dev.zSnmpPort == 161)
-        self.assert_(self.dev.zSnmpVer == 'v1')
+        self.assert_(self.dev.zSnmpVer == self.dmd.Devices.zSnmpVer)
         self.assert_(self.dev.rackSlot == 0)
         self.assert_(self.dev.productionState == 1000)
         self.assert_(self.dev.comments == "")
