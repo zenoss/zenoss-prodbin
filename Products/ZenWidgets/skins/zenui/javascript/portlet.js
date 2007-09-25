@@ -150,6 +150,7 @@ Portlet.prototype = {
         this.setDatasource(this.datasource);
         this.PortletContainer.isDirty = true;
         this.PortletContainer.save();
+        this.startRefresh();
     },
     submitSettings: function(e, settings) {
         settings = settings || {};
@@ -234,6 +235,7 @@ Portlet.prototype = {
         return portobj;
     },
     startRefresh: function(firsttime) {
+        this.stopRefresh();
         if (!firsttime) this.setDatasource(this.datasource);
         if (this.refreshTime>0)
             this.calllater = callLater(this.refreshTime, this.startRefresh);
@@ -662,6 +664,8 @@ YAHOO.extend(YAHOO.zenoss.portlet.PortletProxy, YAHOO.util.DDProxy, {
         }
         this.container.setContainerHeight();
         this.container.save();
+        if (this.container.doRefresh.innerHTML=='Stop Refresh')
+            this.container.startRefresh();
     },
     onDrag: function(e) {
         var y = YAHOO.util.Event.getPageY(e);
