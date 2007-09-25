@@ -62,7 +62,7 @@ class ZentinelPortal ( PortalObjectBase ):
         """Returns the concatenation of a device name, ip and mac
         search on the list of devices.
         """
-        zcatalog = self.dmd.Devices.searchDevices
+        zcatalog = self.dmd.Devices._getCatalog()
         glob = queryString.rstrip('*') + '*'
         glob = MatchGlob('id', glob)
         query = Or(glob, Eq('getDeviceIp', queryString))
@@ -70,7 +70,7 @@ class ZentinelPortal ( PortalObjectBase ):
         if REQUEST and len(brains) == 1:
             raise Redirect(urllib.quote(brains[0].getPrimaryId))
         try:
-            brains += self.Networks.ipSearch.evalAdvancedQuery(glob)
+            brains += self.dmd.Networks.ipSearch.evalAdvancedQuery(glob)
         except AttributeError:
             pass
         return [ b.getObject() for b in brains ]
