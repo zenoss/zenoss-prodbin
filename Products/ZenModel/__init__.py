@@ -33,6 +33,9 @@ import os
 import logging
 log = logging.getLogger("zen")
 
+if 0:
+    __path__ = None                     # keep pyflakes quiet
+
 from AccessControl import ModuleSecurityInfo
 
 from Products.CMFCore.DirectoryView import registerDirectory
