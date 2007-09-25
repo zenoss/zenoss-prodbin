@@ -26,6 +26,7 @@ class DataRoot(TestBaseClass):
         self.zPrimaryBasePath = container.getPhysicalPath()
         TestBaseClass.manage_afterAdd(self, item, container)
 
+TS = 'Products.ZenRelations.tests.TestSchema.'
 class Device(TestBaseClass, PropertyManager):
     _properties = (
         {'id':'pingStatus', 'type':'int', 'mode':'w', 'setter':'setPingStatus'},
@@ -33,9 +34,9 @@ class Device(TestBaseClass, PropertyManager):
         )
     _relations = (
         ("location", ToOne(ToMany, 
-            "Products.ZenRelations.tests.TestSchema.Location", "devices")),
-        ("groups", ToMany(ToMany, "TestSchema.Group", "devices")),
-        ("interfaces", ToManyCont(ToOne, "TestSchema.IpInterface", "device")),
+            TS + "Location", "devices")),
+        ("groups", ToMany(ToMany, TS + "Group", "devices")),
+        ("interfaces", ToManyCont(ToOne, TS + "IpInterface", "device")),
         )
     pingStatus = 0 
     communities = ()
@@ -43,12 +44,12 @@ class Device(TestBaseClass, PropertyManager):
 
 class Server(Device):
     _relations = (
-        ("admin", ToOne(ToOne, "TestSchema.Admin", "server")),
+        ("admin", ToOne(ToOne, TS + "Admin", "server")),
         ) + Device._relations
 
 class IpInterface(TestBaseClass):
     _relations = (
-        ("device", ToOne(ToMany,"TestSchema.Device","ipinterfaces")),
+        ("device", ToOne(ToMany,TS + "Device","ipinterfaces")),
         )
     beforeDelete = False
     afterAdd = False
@@ -62,23 +63,23 @@ class IpInterface(TestBaseClass):
 
 class Group(TestBaseClass):
     _relations = (
-        ("devices", ToMany(ToMany, "TestSchema.Device", "groups")),
+        ("devices", ToMany(ToMany, TS + "Device", "groups")),
         )
 class Location(TestBaseClass):
     _relations = (
-        ("devices", ToMany(ToOne, "TestSchema.Device", "location")),
+        ("devices", ToMany(ToOne, TS + "Device", "location")),
         )
 
 class Admin(TestBaseClass):
     _relations = (
         ("server", ToOne(ToOne, 
-            "Products.ZenRelations.tests.TestSchema.Server", "admin")),
+            TS + "Server", "admin")),
         )
 
 class Organizer(TestBaseClass):
     _relations = (
-    ("parent", ToOne(ToManyCont,"TestSchema.Organizer","children")),
-    ("children", ToManyCont(ToOne,"TestSchema.Organizer","parent")),
+    ("parent", ToOne(ToManyCont, TS + "Organizer","children")),
+    ("children", ToManyCont(ToOne, TS + "Organizer","parent")),
     )
     def buildOrgProps(self):
         self._setProperty("zFloat", -1.0, type="float")
