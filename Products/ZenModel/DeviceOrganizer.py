@@ -561,15 +561,19 @@ class DeviceOrganizer(Organizer, DeviceManagerBase, Commandable, ZenMenuable,
     security.declareProtected('View', 'getPrettyLink')
     def getPrettyLink(self, noicon=False, shortDesc=False):
         """ Gets a link to this object, plus an icon """
-        template = "<a href='%s' class='prettylink'>%s%s</a>"
+        href = self.getPrimaryUrlPath().replace('%','%%')
+        linktemplate = "<a href='"+href+"' class='prettylink'>%s</a>"
         icon = ("<div class='device-icon-container'> "
                 "<img class='device-icon' src='%s'/> " 
                 "</div>") % self.getIconPath()
-        href = self.getPrimaryUrlPath()
         name = self.getPrimaryDmdId()
         if noicon: icon=''
         if shortDesc: name = self.id
-        return template % (href, icon, name)
+        rendered = icon + name
+        if not self.checkRemotePerm("View", self):
+            return rendered
+        else:
+            return linktemplate % rendered
 
     def getSubOrganizersEventSummary(self, REQUEST=None):
         """ Gets event summaries of immediate child organizers """

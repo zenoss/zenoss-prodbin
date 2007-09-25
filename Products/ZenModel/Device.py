@@ -1498,14 +1498,18 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable, Admini
     security.declareProtected(ZEN_VIEW, 'getPrettyLink')
     def getPrettyLink(self):
         """ Gets a link to this device, plus an icon """
-        template = ("<a href='%s' class='prettylink'>"
-                    "<div class='device-icon-container'> "
+        template = ("<div class='device-icon-container'> "
                     "<img class='device-icon' src='%s'/> "
-                    "</div>%s</a>")
+                    "</div>%s")
         icon = self.getIconPath()
         href = self.getPrimaryUrlPath()
         name = self.id
-        return template % (href, icon, name)
+        linktemplate = "<a href='"+href+"' class='prettylink'>%s</a>"
+        rendered = template % (icon, name)
+        if not self.checkRemotePerm("View", self):
+            return rendered
+        else:
+            return linktemplate % rendered
 
     security.declareProtected(ZEN_VIEW, 'getEventPill')
     def getEventPill(self, showGreen=True):
@@ -1513,8 +1517,6 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable, Admini
         pill = self.ZenEventManager.getEventPillME(self, showGreen=showGreen)
         if type(pill)==type([]) and len(pill)==1: return pill[0]
         return pill
-        
-
 
     def getDeviceComponentEventSummary(self):
         """ Gets datatable-ready string of components and summaries """
