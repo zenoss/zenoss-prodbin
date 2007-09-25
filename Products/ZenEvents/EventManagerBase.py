@@ -434,7 +434,7 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
             sorted by severity
         """
         mydict = {'columns':[], 'data':[]}
-        mydict['columns'] = ['Component Type', 'Events']
+        mydict['columns'] = ['Component Type', 'Status']
         getcolor = re.compile(r'class=\"evpill-(.*?)\"', re.S|re.I|re.M).search
         devdata = []
         query = { 'getParentDeviceName':device.id, 'monitored':True }
@@ -442,8 +442,11 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
         metatypes = Set([x.meta_type for x in brains])
         resultdict = {}
         for mt in metatypes: resultdict[mt] = {}
-        evpilltemplate = ('<div class="evpill-%s" onclick="location.href'
-                          '=\'%s/viewEvents\'">%s</div>')
+        evpilltemplate = ('<img src="img/%s_dot.png" '
+                          'width="15" height="15" '
+                          'style="cursor:hand;cursor:pointer" '
+                          'onclick="location.href'
+                          '=\'%s/viewEvents\'"/>')
         linktemplate = ("<a href='%s' class='prettylink'>"
                         "<div class='device-icon-container'>%s "
                         "</div>%s</a>")
@@ -458,7 +461,7 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
             if not len(event.component): continue
             id, metatype = getcompfrombrains(event.component)
             if id is None or metatype is None: 
-                id, metatype = event.component, 'Unknown'
+                id, metatype = event.component, 'Other'
             tally = resultdict.setdefault(metatype, 
                             {'sev':event.severity, 
                              'components': {id: (event.severity, 1, id)}})
@@ -482,8 +485,7 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
             catlink = '%s/os' % devurl
             catcolor = colors[catsev]
             evpill = evpilltemplate % (catcolor, 
-                                    device.getPrimaryUrlPath(),
-                                    '')
+                                    device.getPrimaryUrlPath())
             if catnum: evpill = ''
             devdata.append((linktemplate % (catlink, '', catname), evpill))
             comps.sort()
@@ -500,12 +502,11 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
                 devdata.append(
                     (linktemplate % (complink, '', indent+compname),
                      evpilltemplate % (compcolor, 
-                                       device.getPrimaryUrlPath(), 
-                                       compnum)
+                                       device.getPrimaryUrlPath())
                     )
                 )
         mydict['data'] = [{'Component Type':x[0],
-                           'Events':x[1]} for x in devdata]
+                           'Status':x[1]} for x in devdata]
         return simplejson.dumps(mydict)
 
     def getObjectsEventSummaryJSON(self, objects, REQUEST=None):
