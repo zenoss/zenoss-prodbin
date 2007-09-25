@@ -82,9 +82,9 @@ class ZenPropertyManagerTest(ZenRelationsBaseTest):
   
     
     def testSetZenProperyLines(self):
-        """Set the value of a zenProperty with type float"""
+        """Set the value of a zenProperty with type lines"""
         subnode = self.create(self.orgroot, Organizer, "SubOrg")
-        subnode.setZenProperty("zLines", "1\n2\n3")
+        subnode.setZenProperty("zLines", ["1", "2", "3"])
         self.assert_(subnode.zLines == ["1","2","3"])
   
 
