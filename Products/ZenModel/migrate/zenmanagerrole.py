@@ -58,7 +58,8 @@ class ZenManagerRole(Migrate.Step):
         self.addPermissions(zport, ZEN_VIEW_HISTORY, 
             [ZEN_USER_ROLE, ZEN_MANAGER_ROLE, MANAGER_ROLE,], 1)
         self.addPermissions(zport, ZEN_COMMON,
-            [ZEN_USER_ROLE, ZEN_MANAGER_ROLE, MANAGER_ROLE, OWNER_ROLE], 1)
+            ["Authenticated", ZEN_USER_ROLE, ZEN_MANAGER_ROLE, 
+                MANAGER_ROLE, OWNER_ROLE], 1)
         self.addPermissions(zport, ZEN_CHANGE_SETTINGS, 
             [ZEN_MANAGER_ROLE, MANAGER_ROLE, OWNER_ROLE], 1)
         self.addPermissions(zport, ZEN_CHANGE_ALERTING_RULES, 
