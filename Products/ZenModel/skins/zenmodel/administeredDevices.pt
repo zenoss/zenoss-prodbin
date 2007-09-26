@@ -25,7 +25,7 @@ $('dialog').addLoadEvent('dialog_addAdministeredDevice', function() { createAnAu
 </script>
 
 <tal:block tal:define="objects here/adminRoles/objectValuesAll;
-    editable here/isManager;
+    editable python:here.checkRemotePerm('Change Admin Objects', here);
     tableName string:deviceadminroles;
     batch python:here.ZenTableManager.getBatch(tableName,objects); 
     tabletitle string:Administered Objects;
@@ -54,8 +54,6 @@ $('dialog').addLoadEvent('dialog_addAdministeredDevice', function() { createAnAu
         <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
                     tableName,'managedObjectName','Name')"/>
         <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
-                                tableName,'managedObjectType','Type')"/>
-        <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
                     tableName,'role','Role')"/>
         <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
                     tableName,'level','Level')"/>
@@ -66,12 +64,12 @@ $('dialog').addLoadEvent('dialog_addAdministeredDevice', function() { createAnAu
     <td class="tablevalues" align="left">
        <input type="hidden" name="ids" 
               tal:attributes="value ur/managedObjectName"/>
-       <input type="checkbox" name="delids" tal:condition="editable"
+       <input type="checkbox" style="float:left" name="delids"
+              tal:condition="editable"
               tal:attributes="value ur/managedObjectName"/>
         <div tal:define=" link python:ur.managedObject().getPrettyLink()"
                 tal:content="structure link"/>
     </td>
-    <td class="tablevalues" align="left" tal:content="ur/managedObjectType"/>
     <td class="tablevalues">
     <select class="tablevalues" name="role" tal:condition="editable"
         tal:define="roles here/getAllRoles">
@@ -89,12 +87,12 @@ $('dialog').addLoadEvent('dialog_addAdministeredDevice', function() { createAnAu
   </tr>
   </tal:block>
   <tr>
-    <td colspan="4" class="tableheader">
+    <td colspan="3" class="tableheader">
         <span metal:use-macro="here/zenTableNavigation/macros/navbody" />
     </td>
   </tr>
     <tr tal:condition="editable">
-    <td class="tableheader" colspan="4">
+    <td class="tableheader" colspan="3">
         <input class="tableheader" type="submit" 
             name="manage_editAdministrativeRoles:method" value=" Save " />
     </td>

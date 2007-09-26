@@ -56,6 +56,17 @@ function ConfirmPagerTest() {
         </select>
       </td>
     </tr>
+    <tr tal:condition="here/isManager">
+      <td class="tableheader" align="left">Groups</td>
+      <td class="tablevalues">
+        <select class="tablevalues" name="groups:list" multiple
+            tal:define="allgroups here/getAllGroupSettingsNames; 
+                currgroups here/getUserGroupSettingsNames">
+            <option tal:repeat="r allgroups" tal:content="r"
+                    tal:attributes="value r; selected python:r in currgroups"/>
+        </select>
+      </td>
+    </tr>
     <tr>
       <td class="tableheader" align="left">Email</td>
       <td class="tablevalues">

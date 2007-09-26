@@ -54,8 +54,19 @@ class AddGroupManager(Migrate.Step):
                   'isdialog': True,
                   'ordering': 80.0,
                   'permissions': (ZEN_MANAGE_DMD,)} ]
-        })     
-               
+        })
+        if hasattr(dmd.zenMenus.Group_list.zenMenuItems, 
+            'addUserToGroup'):
+            dmd.zenMenus.Group_list.manage_deleteZenMenuItem(
+                'addUserToGroup')
+        if hasattr(dmd.zenMenus.Group_list.zenMenuItems, 
+            'deleteUsersFromGroup'):
+            dmd.zenMenus.Group_list.manage_deleteZenMenuItem(
+                'deleteUsersFromGroup')
+        if hasattr(dmd.zenMenus.GroupUser_list.zenMenuItems, 
+            'addUserToGroup'):
+            dmd.zenMenus.GroupUser_list.manage_deleteZenMenuItem(
+                'addUserToGroup')
         self._addGroupManager(dmd.zport)
 
 

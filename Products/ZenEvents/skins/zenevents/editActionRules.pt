@@ -44,13 +44,17 @@
     <tal:block tal:repeat="action batch">
     <tr tal:define="odd repeat/action/odd"
         tal:attributes="class python:test(odd, 'odd', 'even')">
-        <td class="tablevalues" tal:condition="here/iseditable">
+        <td class="tablevalues" 
+         tal:condition="python:here.checkRemotePerm('Change Alerting Rules',
+                here)">
             <input type="checkbox" name="ids:list" 
                 tal:attributes="value action/getId"/>
             <a tal:attributes="href action/getPrimaryUrlPath"
                 tal:content="action/getId">action</a>
         </td>
-        <td class="tablevalues" tal:condition="not:here/iseditable"
+        <td class="tablevalues"
+         tal:condition="python:not here.checkRemotePerm('Change Alerting Rules',
+                here)"
             tal:content="action/getId"/>
         <td class="tablevalues" tal:content="action/delay"/>
         <td class="tablevalues" tal:content="string:Does not repeat" 

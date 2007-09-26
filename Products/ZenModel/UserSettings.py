@@ -134,7 +134,12 @@ class UserSettingsManager(ZenModelRM):
         filt = lambda x: x not in filtNames
         return [ u.id for u in self.getAllUserSettings() if filt(u.id) ]
 
-
+    def getAllGroupSettingsNames(self, filtNames=()):
+        """Return list of all zenoss usernames. 
+        """
+        filt = lambda x: x not in filtNames
+        return [ g.id for g in self.getAllGroupSettings() if filt(g.id) ]
+        
     def getUsers(self):
         """Return list of Users wrapped in their settings folder.
         """
@@ -447,15 +452,15 @@ class UserSettings(ZenModelRM):
                 },
                 {'name'         : 'Administered Objects', 
                 'action'        : 'administeredDevices', 
-                'permissions'   : (ZEN_CHANGE_ADMIN_OBJECTS,)
+                'permissions'   : (ZEN_VIEW,)
                 },
                 {'name'         : 'Event Views',
                 'action'        : 'editEventViews',
-                'permissions'   : (ZEN_CHANGE_EVENT_VIEWS,),
+                'permissions'   : (ZEN_VIEW,),
                 },
                 {'name'         : 'Alerting Rules',
                 'action'        : 'editActionRules',
-                'permissions'   : (ZEN_CHANGE_ALERTING_RULES,),
+                'permissions'   : (ZEN_VIEW,),
                 },
             )
          },
@@ -471,12 +476,13 @@ class UserSettings(ZenModelRM):
         return ()
 
 
-    def getUserGroupSettings(self):
+    def getUserGroupSettingsNames(self):
         """Return group settings objects for user
         """
         user = self.getUser(self.id)
+        gm =  self.zport.acl_users.groupManager
         if user: 
-            return [self._getOb(g) for g in user.getGroups() if self._getOb(g)]
+            return gm.getGroupsForPrincipal(user)
         return ()
 
 
@@ -498,12 +504,12 @@ class UserSettings(ZenModelRM):
 
     security.declareProtected(ZEN_CHANGE_SETTINGS, 'manage_editUserSettings')
     def manage_editUserSettings(self, password=None, sndpassword=None,
-                                roles=None, domains=None,
+                                roles=None, groups=None, domains=None,
                                 REQUEST=None, **kw):
         """Update user settings.
         """
-        # get the user object; return if no user
-        user = self.getUser(self.id)
+        # get the user object; return if no user 
+        user = self.acl_users.getUser(self.id)
         if not user:
             user = self.getPhysicalRoot().acl_users.getUser(self.id)
         if not user:
@@ -531,6 +537,25 @@ class UserSettings(ZenModelRM):
             addRoles = list(set(roles).difference(set(origRoles)))
             for role in addRoles:
                 roleManager.assignRoleToPrincipal(role, self.id)
+        
+        # update role info 
+        groupManager = self.acl_users.groupManager
+        origGroups = groupManager.getGroupsForPrincipal(user)
+        # if there's a change, then we need to update 
+        if groups != origGroups:
+            # can we use the built-in set?
+            try:
+                set()
+            except NameError:
+                from sets import Set as set
+            # get groups to remove and then remove them
+            removeGroups = set(origGroups).difference(set(groups))
+            for groupid in removeGroups:
+                groupManager.removePrincipalFromGroup(user.getId(), groupid)
+            # get groups to add and then add them
+            addGroups = set(groups).difference(set(origGroups))
+            for groupid in addGroups:
+                groupManager.addPrincipalToGroup(user.getId(), groupid)
 
         # we're not managing domains right now
         if domains:

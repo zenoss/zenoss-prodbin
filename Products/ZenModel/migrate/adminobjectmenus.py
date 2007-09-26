@@ -60,13 +60,6 @@ class AdminObjectMenus(Migrate.Step):
                 'isdialog': True, 
                 'ordering': 80.0, 
                 'permissions': (ZEN_CHANGE_ADMIN_OBJECTS,)
-            },
-            {  'action': 
-"javascript:submitFormToMethod('adminObjects', 'manage_editAdministrativeRoles')", 
-                'description': 'Save Admin Objects...', 
-                'id': 'saveAdministeredObjects', 
-                'ordering': 85.0, 
-                'permissions': (ZEN_CHANGE_ADMIN_OBJECTS,)
             }],
             'UserSettings': [{ 'action': 'dialog_saveUserSettings', 
                 'description': 'Save User Settings...', 
@@ -111,7 +104,11 @@ class AdminObjectMenus(Migrate.Step):
                 'isdialog': True,
                 'ordering': 80.0,
                 'permissions': (ZEN_CHANGE_EVENT_VIEWS,)}],
-         })
+        })
+        if hasattr(dmd.zenMenus.AdministeredObjects_list.zenMenuItems, 
+            'saveAdministeredObjects'):  
+            dmd.zenMenus.AdministeredObjects_list.manage_deleteZenMenuItem(
+                'saveAdministeredObjects')
                                       
                                       
 AdminObjectMenus()

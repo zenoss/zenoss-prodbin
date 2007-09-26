@@ -32,7 +32,7 @@ class BanClassesOnAddToZenPackMenuItem(Migrate.Step):
                                'id': 'addToZenPack',
                                'isdialog': True,
                                'ordering': 0.0,
-                               'permissions': ('View',) } ],
+                               'permissions': (ZEN_MANAGE_DMD,) } ],
         'More': [ {  'action': 'dialog_addOneToZenPack',
                      'allowed_classes': ['ZenPackable'],
                      'banned_classes': ('DeviceGroup',
@@ -43,7 +43,11 @@ class BanClassesOnAddToZenPackMenuItem(Migrate.Step):
                      'id': 'addToZenPack',
                      'isdialog': True,
                      'ordering': 1.0,
-                     'permissions': ('View',) } ]
+                     'permissions': (ZEN_MANAGE_DMD,) } ]
         })
+        for menuItems in dmd.zenMenus.getMenus().values():
+            for menuItem in menuItems:
+                if menuItem.id == 'addToZenPack':
+                    menuItem.permissions = (ZEN_MANAGE_DMD,)
 
 BanClassesOnAddToZenPackMenuItem()
