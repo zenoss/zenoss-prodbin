@@ -389,9 +389,15 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable, Admini
 
         
     def getDataSourceOptions(self):
-        ''' Returns a list of the available datasource options as a list
-        of (display name, dsOption)
-        '''
+        """
+        Returns the available DataSource options. DataSource options 
+        are used to populate the dropdown when adding a new DataSource 
+        and is a string.  See L{RRDTemplate.RRDTemplate.getDataSourceOptions} 
+        for more information. 
+
+        @rtype: list 
+        @return: [(displayName, dsOption),]
+        """ 
         # This is an unfortunate hack.  Called from the device templates
         # page where we show multiple templates now.  This only really
         # works because getDataSourceOptions() returns the same values
