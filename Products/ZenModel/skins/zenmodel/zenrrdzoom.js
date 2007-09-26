@@ -484,9 +484,8 @@ function zenRRDInit() {
             graph = new ZenRRDGraph($(ZenGraphs[graphid]));
             ZenQueue.add(graph);
         } catch(e) { 
-           mydiv = DIV({'style':'height:100px;width:300px;'},
-            "There was a problem rendering this graph. If you've just added "+
-            'this device, template or datapoint, please wait half an hour for data to be collected.');
+           mydiv = DIV({'style':'height:100px;width:500px;'},
+            "There was a problem rendering this graph. Either the file does not exist or an error has occurred.  Initial graph creation can take up to 5 minutes.  If the graph still does not appear, look in the Zope log file $ZENHOME/log/event.log for errors.");
            swapDOM($(ZenGraphs[graphid]), mydiv);
         }
     }
