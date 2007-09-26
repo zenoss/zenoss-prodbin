@@ -235,21 +235,6 @@ class FullZopeTestCases(ZenRelationsBaseTest):
         self.failUnless(len(anna.devices()) == 2)
 
 
-    def testCopyPasteRMManyToMany(self):
-        """Copy/paste to check RM with ManyToMany relationship"""
-        dev = build(self.dataroot, Device, "dev")
-        group = build(self.dataroot, Group, "group")
-        dev.groups.addRelation(group)
-        transaction.savepoint()
-        cookie = self.dataroot.manage_copyObjects(ids=('dev',))
-        self.dataroot.subfolder.manage_pasteObjects( cookie )
-        copy = self.dataroot.subfolder._getOb("dev")
-        self.failUnless(group in copy.groups())
-        self.failUnless(group in dev.groups())
-        self.failUnless(dev in group.devices())
-        self.failUnless(copy in group.devices())
-
-
     def testRenameRMOneToOne(self):
         """Renameing RM that has a OneToOne relationship"""
         dev = build(self.dataroot, Server, "dev")

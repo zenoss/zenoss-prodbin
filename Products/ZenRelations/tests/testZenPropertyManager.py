@@ -41,13 +41,6 @@ class ZenPropertyManagerTest(ZenRelationsBaseTest):
         """Get only ids of a sub node not root"""
         subnode = self.create(self.orgroot, Organizer, "SubOrg")
         subnode._setProperty("zString", "teststring")
-        self.assert_(subnode.zenPropertyIds() == ["zString"])
-  
-
-    def testZenProperyIdsSubNode(self):
-        """Get only ids of a sub node not root"""
-        subnode = self.create(self.orgroot, Organizer, "SubOrg")
-        subnode._setProperty("zString", "teststring")
         self.assert_(subnode.zenPropertyPath("zString") == "/SubOrg")
   
 

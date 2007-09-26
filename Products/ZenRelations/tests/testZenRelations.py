@@ -32,15 +32,6 @@ class PrimaryPathManagerTest(ZenRelationsBaseTest):
         
     
     def testGetPrimaryPath2(self):
-        "absolute primary path of a contained object using zPrimaryBasePath"
-        dev = self.build(self.dmd, Device, "dev")
-        eth0 = self.create(dev.interfaces, IpInterface, "eth0")
-        self.failUnless(eth0.getPrimaryPath() ==
-                        ("", "zport", "dmd", "dev", "interfaces", "eth0"))
-        self.failUnless(eth0.getPrimaryId() == "/zport/dmd/dev/interfaces/eth0")
-       
-
-    def testGetPrimaryPath2(self):
         "absolute primary path of a contained object using fromNode"
         dev = self.build(self.dmd, Device, "dev")
         eth0 = self.create(dev.interfaces, IpInterface, "eth0")
