@@ -182,13 +182,6 @@ class CustomEventView(ZenModelRM, EventFilter):
         return self.getEventManager().manage_deleteEvents(evids, REQUEST)
 
 
-    security.declareProtected('Manage Events','manage_undeleteEvents')
-    def manage_undeleteEvents(self, evids=(), REQUEST=None):
-        """Delete events form this managed entity.
-        """
-        return self.getEventManager().manage_undeleteEvents(evids, REQUEST)
-
-
     security.declareProtected('Manage Events','manage_deleteHeartbeat')
     def manage_deleteHeartbeat(self, REQUEST=None):
         """Delete events form this managed entity.
