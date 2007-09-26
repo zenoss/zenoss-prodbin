@@ -221,22 +221,6 @@ class FullZopeTestCases(ZenRelationsBaseTest):
             dev.interfaces.eth0.getPrimaryPath())
 
 
-    def testCopyPasteRMOneToManyCont(self):
-        """Copy/paste to check RM with OneToManyCont subobject"""
-        dev = build(self.dataroot, Device, "dev")
-        eth0 = create(dev.interfaces, IpInterface, "eth0")
-        transaction.savepoint()
-        cookie = self.dataroot.manage_copyObjects(ids=('dev',))
-        self.dataroot.subfolder.manage_pasteObjects( cookie )
-        copy = self.dataroot.subfolder._getOb("dev")
-        self.failUnless(self.dataroot.subfolder.getPhysicalPath() ==
-            copy.getPrimaryPath()[:-1])
-        ceth0 = copy.interfaces()[0]
-        self.failUnless(
-            ceth0.getPrimaryId().find(copy.getPrimaryId()) == 0)
-        self.failUnless(ceth0.device() == copy)
-
-                 
     def testCopyPasteRMOneToMany(self):
         """Copy/paste to check RM with OneToMany relationship"""
         dev = build(self.dataroot, Device, "dev")

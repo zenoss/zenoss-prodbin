@@ -429,13 +429,6 @@ class ToManyRelationshipTest(ZenRelationsBaseTest):
         self.failUnless(dev.location() == anna)
 
 
-    def testaddRelationToManyNone(self):
-        """Test adding None to a to many relationship"""
-        dev = self.create(self.app, Device, "dev")
-        self.failUnlessRaises(ZenRelationsError, 
-                dev.addRelation, "location", None)
-
-
     def testaddRelationOnToMany(self):
         """Test addRelation on a to many object itself """
         dev = self.create(self.app, Device, "dev")
