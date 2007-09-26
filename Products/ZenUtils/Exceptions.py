@@ -10,9 +10,6 @@
 # For complete information please visit: http://www.zenoss.com/oss/
 #
 ###########################################################################
-#   Copyright (c) 2004 Zentinel Systems,Inc. All rights reserved.
-
-
 class ZentinelException(Exception): 
     """Root of all Zentinel Exceptions"""
     pass

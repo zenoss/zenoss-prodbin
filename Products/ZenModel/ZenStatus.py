@@ -10,7 +10,6 @@
 # For complete information please visit: http://www.zenoss.com/oss/
 #
 ###########################################################################
-#   Copyright (c) 2004 Zentinel Systems. 
 
 __doc__="""ZenStatus
 

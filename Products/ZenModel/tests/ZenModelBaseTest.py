@@ -10,7 +10,6 @@
 # For complete information please visit: http://www.zenoss.com/oss/
 #
 ###########################################################################
-#   Copyright (c) 2006 Zentinel Systems, Inc. All rights reserved.
 from Products.ZenTestCase.BaseTestCase import BaseTestCase
 
 class ZenModelBaseTest(BaseTestCase):

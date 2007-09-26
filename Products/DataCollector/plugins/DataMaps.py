@@ -10,7 +10,6 @@
 # For complete information please visit: http://www.zenoss.com/oss/
 #
 ###########################################################################
-#   Copyright (c) 2003 Zentinel Systems, Inc. All rights reserved.
 
 class RelationshipMap(list):
     relname = ""

@@ -10,7 +10,6 @@
 # For complete information please visit: http://www.zenoss.com/oss/
 #
 ###########################################################################
-#   Copyright (c) 2005 Zentinel Systems, Inc. All rights reserved.
 
 from OFS.PropertyManager import PropertyManager
 from Products.ZenRelations.RelationshipManager import RelationshipManager as RM
