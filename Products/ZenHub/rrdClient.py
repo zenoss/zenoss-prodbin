@@ -74,11 +74,12 @@ class RRDClient(pb.Referenceable):
         print result
         reactor.stop()
 
-import sys
-try:
-    value = float(sys.argv[1])
-except:
-    print 'Unable to use value', sys.argv
-    value = 20.
-rc = RRDClient(value)
-rc.run()
+if __name__ == '__main__':
+    import sys
+    try:
+        value = float(sys.argv[1])
+    except:
+        print 'Unable to use value', sys.argv
+        value = 20.
+    rc = RRDClient(value)
+    rc.run()
