@@ -52,7 +52,7 @@ class RRDDaemon(Base):
     heartbeatevt = {'eventClass':Heartbeat}
     
     properties = ('configCycleInterval',)
-    heartBeatTimeout = 60
+    heartBeatTimeout = 60*3
     configCycleInterval = 20            # minutes
     rrd = None
     shutdown = False
