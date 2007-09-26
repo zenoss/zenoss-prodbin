@@ -124,7 +124,10 @@ class HubRealm(object):
 
 
 class ZenHub(ZCmdBase):
-    'Listen for change requests provide them to collectors'
+    """
+    Listen for changes to objects in the Zeo database and update the
+    collectors' configuration.
+    """
 
     totalTime = 0.
     totalEvents = 0
