@@ -26,5 +26,6 @@ def main():
                          severity=5))
     print proxy.getDevicePingIssues()
 
-main()
+if __name__ == '__main__':
+    main()
 
