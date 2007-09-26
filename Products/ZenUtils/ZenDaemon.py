@@ -26,7 +26,7 @@ import signal
 import logging
 
 from CmdBase import CmdBase
-from Utils import zenPath
+from Utils import zenPath, HtmlFormatter
 
 # Daemon creation code below based on Recipe by Chad J. Schroeder
 # File mode creation mask of the daemon.
@@ -88,6 +88,8 @@ class ZenDaemon(CmdBase):
             rlog.addHandler(h)
         else:
             logging.basicConfig()
+            if self.options.weblog:
+                [ h.setFormatter(HtmlFormatter()) for h in rlog.handlers ]
 
 
     def changeUser(self):
@@ -169,3 +171,6 @@ class ZenDaemon(CmdBase):
         self.parser.add_option('-D', '--daemon', default=False,
                 dest='daemon',action="store_true",
                 help="Become a unix daemon")
+        self.parser.add_option('--weblog', default=False,
+                dest='weblog',action="store_true",
+                help="output log info in html table format")

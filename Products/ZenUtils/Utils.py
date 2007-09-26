@@ -43,7 +43,7 @@ class HtmlFormatter(logging.Formatter):
 
     def __init__(self):
         logging.Formatter.__init__(self, 
-        """<tr class="tablevalues">
+        """<tr class="loggingRow">
         <td>%(asctime)s</td><td>%(levelname)s</td>
         <td>%(name)s</td><td>%(message)s</td>
         </tr>

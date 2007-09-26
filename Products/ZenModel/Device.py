@@ -1263,6 +1263,7 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable, Admini
     def collectDevice(self, setlog=True, REQUEST=None, generateEvents=False):
         """collect the configuration of this device.
         """
+        response = None
         if REQUEST and setlog:
             response = REQUEST.RESPONSE
             dlh = self.deviceLoggingHeader()
@@ -1275,13 +1276,19 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable, Admini
         
         try:
             zm = zenPath('bin', 'zenmodeler')
-            zenmodelerCmd = [zm, 'run', '--now', '-F', '-d', self.id]
+            zenmodelerCmd = [zm, 'run', '--now','-F','-d', self.id]
+            if REQUEST: zenmodelerCmd.append("--weblog")
             log.info('Executing command: %s' % ' '.join(zenmodelerCmd)) 
             f = Popen4(zenmodelerCmd) 
             while 1: 
                 s = f.fromchild.readline() 
-                if not s: break 
-                else: log.info(s.rstrip()) 
+                if not s: 
+                    break 
+                elif response: 
+                    response.write(s)
+                    response.flush()
+                else:
+                    sys.stdout.write(s) 
         except (SystemExit, KeyboardInterrupt): raise 
         except ZentinelException, e: 
             log.critical(e) 
