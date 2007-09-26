@@ -60,11 +60,6 @@ class TenDotAddressTest(unittest.TestCase):
             self.addrs().find('"/dmd/Devices/Servers/Linux/edahl04.confmon.loc"') != -1, 1)
 
     def testHasRouter(self):
-        '''make sure router is in here as an address'''
-        self.assertEqual(
-            self.addrs().find('10.2.1.5') != -1, 1)
-
-    def testHasRouter(self):
         '''make sure router is in here by name'''
         self.assertEqual(
             self.addrs().find('"/dmd/Devices/NetworkDevices/Router/router.confmon.loc"') != -1, 1)
