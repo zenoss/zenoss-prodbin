@@ -11,6 +11,8 @@
 #
 ###########################################################################
 
+from __future__ import division
+
 __doc__="""ZenStatus
 
 Track status information about some monitored object.
@@ -22,8 +24,6 @@ if status > 0 the object has failed its test status times
 This class should track availability as well!!!
 
 $Id: ZenStatus.py,v 1.28 2004/05/11 22:59:23 edahl Exp $"""
-
-from __future__ import division
 
 import calendar
 
