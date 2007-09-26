@@ -109,7 +109,7 @@ class RRDDaemon(Base):
         if not self.options.cycle:
             self.stop()
             return
-        self.sendEvent(self.heartbeatevt, timeout=self.heartBeatTimeout*3)
+        self.sendEvent(self.heartbeatevt, timeout=self.heartBeatTimeout)
 
 
     def buildOptions(self):
