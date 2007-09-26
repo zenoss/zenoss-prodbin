@@ -42,4 +42,5 @@ def main():
     drive(go).addBoth(lambda x: reactor.stop())
     reactor.run()
 
-main()
+if __name__ == '__main__':
+    main()

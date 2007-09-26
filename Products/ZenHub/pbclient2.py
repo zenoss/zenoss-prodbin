@@ -58,9 +58,9 @@ class EventClient(pb.Referenceable):
         print result
         reactor.stop()
 
-ec = EventClient()
-ec.run()
-
+if __name__ == '__main__':
+    ec = EventClient()
+    ec.run()
 
 #event = {   
 #    'device': 'zenoss02', 

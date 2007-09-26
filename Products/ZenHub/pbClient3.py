@@ -47,5 +47,6 @@ def main():
 
     drive(go).addErrback(error)
     reactor.run()
-
-main()
+    
+if __name__ == '__main__':
+    main()
