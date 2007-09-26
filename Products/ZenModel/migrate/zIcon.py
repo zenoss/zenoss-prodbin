@@ -27,18 +27,26 @@ class zIconProperty(Migrate.Step):
         if not dmd.Devices.hasProperty('zIcon'):
             dmd.Devices._setProperty(
                 "zIcon", "/zport/dmd/img/icons/noicon.png")
-        if not dmd.Devices.Network.Router.hasProperty('zIcon'):
-            dmd.Devices.Network.Router._setProperty(
-                "zIcon", "/zport/dmd/img/icons/router.png")
-        if not dmd.Devices.Server.hasProperty('zIcon'):
-            dmd.Devices.Server._setProperty(
-                "zIcon", "/zport/dmd/img/icons/server.png")
-        if not dmd.Devices.Server.Windows.hasProperty('zIcon'):
-            dmd.Devices.Server.Windows._setProperty(
-                "zIcon", "/zport/dmd/img/icons/server-windows.png")
-        if not dmd.Devices.Server.Linux.hasProperty('zIcon'):
-            dmd.Devices.Server.Linux._setProperty(
-                "zIcon", "/zport/dmd/img/icons/server-linux.png")
+        try:
+            if not dmd.Devices.Network.Router.hasProperty('zIcon'):
+                dmd.Devices.Network.Router._setProperty(
+                    "zIcon", "/zport/dmd/img/icons/router.png")
+        except AttributeError: pass
+        try:
+            if not dmd.Devices.Server.hasProperty('zIcon'):
+                dmd.Devices.Server._setProperty(
+                    "zIcon", "/zport/dmd/img/icons/server.png")
+        except AttributeError: pass
+        try:
+            if not dmd.Devices.Server.Windows.hasProperty('zIcon'):
+                dmd.Devices.Server.Windows._setProperty(
+                    "zIcon", "/zport/dmd/img/icons/server-windows.png")
+        except AttributeError: pass
+        try:
+            if not dmd.Devices.Server.Linux.hasProperty('zIcon'):
+                dmd.Devices.Server.Linux._setProperty(
+                    "zIcon", "/zport/dmd/img/icons/server-linux.png")
+        except AttributeError: pass
               
 
 
