@@ -28,11 +28,27 @@
       <th class="tableheader" align="center">Overridden Value</th>
     </tr>
     <tr>
-      <td class="tablevalues">
-        <div tal:define=" link python:here.getPrettyLink()"
-                tal:content="structure link"/>
+      <td class="tablevalues"
+              tal:condition="python:getattr(here, 'getPrettyLink', None)">
+        <div
+         tal:define="link python:here.getPrettyLink()"
+         tal:content="structure link"/>
       </td>
-      <td class="tablevalues" tal:content="python:getattr(here, prop, '')"/>
+      <td class="tablevalues"
+              tal:condition="python:not getattr(here, 'getPrettyLink', None)">
+        <tal:block 
+         tal:define="link python:here.getLink()"
+         tal:content="structure link"/>
+      </td> 
+      <td class="tablevalues" 
+          tal:condition="python:here.zenPropertyType(prop) == 'lines'">
+          <tal:block tal:repeat="item python:getattr(here, prop)">
+                  <tal:block tal:content="item"/><br>
+          </tal:block>
+      </td>
+      <td class="tablevalues" 
+          tal:condition="python:here.zenPropertyType(prop) != 'lines'"
+          tal:content="python:here.zenPropertyString(prop)"/>
     </tr>
     <tal:block tal:condition="not:orObjects">
             <tr>
@@ -42,11 +58,27 @@
     <tal:block tal:condition="orObjects" tal:repeat="orObject orObjects"> 
     <tr tal:define="odd repeat/orObject/odd"
         tal:attributes="class python:test(odd, 'odd', 'even')">
-      <td class="tablevalues">
-              <div tal:define=" link python:orObject.getPrettyLink()"
-                tal:content="structure link"/>
+      <td class="tablevalues"
+         tal:condition="python:getattr(orObject, 'getPrettyLink', None)">
+        <div
+         tal:define="link python:orObject.getPrettyLink()"
+         tal:content="structure link"/>
       </td>
-      <td class="tablevalues" tal:content="python:getattr(orObject, prop)"/>
+      <td class="tablevalues"
+         tal:condition="python:not getattr(orObject, 'getPrettyLink', None)">
+        <tal:block 
+         tal:define="link python:orObject.getLink()"
+         tal:content="structure link"/>
+      </td>
+      <td class="tablevalues" 
+          tal:condition="python:orObject.zenPropertyType(prop) == 'lines'">
+          <tal:block tal:repeat="item python:getattr(orObject, prop)">
+                  <tal:block tal:content="item"/><br>
+          </tal:block>
+      </td>
+      <td class="tablevalues" 
+          tal:condition="python:orObject.zenPropertyType(prop) != 'lines'"
+          tal:content="python:orObject.zenPropertyString(prop)"/>
     </tr>
     </tal:block>
 <!-- END TABLE CONTENTS -->
