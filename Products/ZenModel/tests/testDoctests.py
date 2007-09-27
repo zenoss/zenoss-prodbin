@@ -15,10 +15,11 @@ if __name__ == '__main__':
     execfile(os.path.join(sys.path[0], 'framework.py'))
 
 from types import ModuleType
-from unittest import TestSuite
+from unittest import TestSuite, makeSuite
+
+from Products.ZenUtils.ZenDocTest import ZenDocTestRunner
 
 from Products import ZenModel
-from Products.ZenUtils.ZenDocTest import ZenDocTestRunner
 
 def get_submodules(mod):
     vals = ZenModel.__dict__.values()
@@ -28,10 +29,10 @@ def get_submodules(mod):
 
 def test_suite():
     suite = TestSuite()
-    dtr = ZenDocTestRunner()
-    mods = get_submodules(ZenModel)
-    dtr.add_modules(mods)
-    for dtsuite in dtr.get_suites(): suite.addTest(dtsuite)
+    zdtr = ZenDocTestRunner()
+    zdtr.add_modules(get_submodules(ZenModel))
+    for dtsuite in zdtr.get_suites():
+        suite.addTest(dtsuite)
     return suite
 
 if __name__=="__main__":

@@ -17,8 +17,11 @@ import transaction
 import socket
 import Globals
 
-from Products.ZenUtils.ZenScriptBase import ZenScriptBase
 
+from AccessControl.SecurityManagement import newSecurityManager
+from AccessControl.SecurityManagement import noSecurityManager
+
+from Products.ZenUtils.ZeoConn import ZeoConn
 
 class ZenDocTestRunner(object):
     """
@@ -33,25 +36,47 @@ class ZenDocTestRunner(object):
     
     modules = []
     
-    def _setup_globals(self):
-        """
-        Connect to the database and set up the same global
-        variables as are available in zendmd.
-        """
-        zendmd = ZenScriptBase(connect=True)
-        dmd = zendmd.dmd
-        app = dmd.getPhysicalRoot()
-        zport = app.zport
-        find = dmd.Devices.findDevice
-        devices = dmd.Devices
-        sync = dmd._p_jar.sync
-        commit = transaction.commit
-        abort = transaction.abort
-        me = find(socket.getfqdn())
-        globs = vars()
-        del globs['self']
-        del globs['zendmd']
-        self.globals = globs
+    def setUp(self):
+        self.conn = ZeoConn()
+        self.app = self.conn.app
+        self.login()
+        self.dmd = self.app.zport.dmd
+        find = self.dmd.Devices.findDevice
+        self.globals = dict(
+            app = self.app,
+            zport = self.app.zport,
+            dmd = self.dmd,
+            find = find,
+            devices = self.dmd.Devices,
+            sync = self.dmd._p_jar.sync,
+            commit = transaction.commit,
+            abort = transaction.abort,
+            me = find(socket.getfqdn())
+        )
+
+    def tearDown(self):
+        self.logout()
+        self.conn.closedb()
+        
+    def login(self, name='admin', userfolder=None):
+        '''Logs in.'''
+        if userfolder is None:
+            userfolder = self.app.acl_users
+        user = userfolder.getUserById(name)
+        if user is None: return
+        if not hasattr(user, 'aq_base'):
+            user = user.__of__(userfolder)
+        newSecurityManager(None, user)
+    
+    def logout(self):
+        noSecurityManager()
+
+    def doctest_setUp(self, testObject):
+        self.login()
+        testObject.globs.update(self.globals)
+
+    def doctest_tearDown(self, testObject):
+        self.logout()
 
     def add_modules(self, mods):
         """
@@ -70,15 +95,21 @@ class ZenDocTestRunner(object):
 
         Provided for integration with existing unittest framework.
         """
-        if not hasattr(self, 'globals'): self._setup_globals()
+        self.setUp()
+        finder = doctest.DocTestFinder(exclude_empty=True)
         suites = []
         for mod in self.modules:
-            dtsuite = doctest.DocTestSuite(
-                mod,
-                globs=self.globals,
-                optionflags=doctest.NORMALIZE_WHITESPACE
-            )
-            suites.append(dtsuite)
+            try:
+                dtsuite = doctest.DocTestSuite(
+                    mod,
+                    optionflags=doctest.NORMALIZE_WHITESPACE,
+                    setUp = self.doctest_setUp,
+                    tearDown = self.doctest_tearDown
+                )
+            except ValueError:
+                pass
+            else:
+                suites.append(dtsuite)
         return suites
 
     def run(self):
@@ -94,4 +125,5 @@ class ZenDocTestRunner(object):
             suite.addTest(dtsuite)
         runner = unittest.TextTestRunner()
         runner.run(suite)
+        self.tearDown()
 
