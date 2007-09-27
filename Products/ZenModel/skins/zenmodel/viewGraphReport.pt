@@ -30,7 +30,11 @@ function ShowPrintable() {
         printableForm.removeChild(printableForm.firstChild);
     for (i=0; i < ZenGraphs.length; i++) {
         var graph = document.getElementById('graph_' + i);
-        CreateFormField(printableForm, 'graph_' + i, graph.src);
+        try {
+            CreateFormField(printableForm, 'graph_' + i, graph.src);
+        } catch(e) {
+            CreateFormField(printableForm, 'graph_' + i, '');
+        }
     }
     printableForm.submit();
 }

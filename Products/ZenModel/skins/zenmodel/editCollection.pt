@@ -28,7 +28,7 @@
     
     function getDeviceList(e) {
         var filter = document.getElementById('deviceFilter');
-        var widget = document.getElementById('deviceId');
+        var widget = document.getElementById('deviceIds');
         var url = '/zport/dmd/Devices/jsonGetDeviceNames'
         var d = loadJSONDoc(url, {'query': filter.value});
         widget.options.length = 0;
@@ -37,7 +37,7 @@
     }
     
     function getComponentList() {
-        var deviceWidget = document.getElementById('deviceId');
+        var deviceWidget = document.getElementById('deviceIds');
         var deviceId = null;
         for (var i=0; i < deviceWidget.options.length; i++) {
             if (deviceWidget.options[i].selected) {
@@ -49,11 +49,11 @@
                 }
             }
         }
-        var compWidget = document.getElementById('componentPath');
+        var compWidget = document.getElementById('componentPaths');
         compWidget.options.length = 0;
         if (deviceId) {
             var url = '/zport/dmd/Devices/jsonGetComponentPaths';
-            var d = loadJSONDoc(url, {'deviceId': deviceWidget.value});
+            var d = loadJSONDoc(url, {'deviceIds': deviceWidget.value});
             d.addBoth(updateSelect, compWidget, currentComponents);
         }
     }
@@ -99,7 +99,7 @@
         connect('deviceFilter', 'onkeydown', handleDeviceKeys);
         connect('filterButton', 'onclick', getDeviceList);
         connect('itemType', 'onchange', handleItemType);
-        connect('deviceId', 'onchange', getComponentList);
+        connect('deviceIds', 'onchange', getComponentList);
     }
 
     addLoadEvent(makeConnections);
@@ -248,7 +248,7 @@
             <input class="tableheader" type="button" value="Filter"
                 id="filterButton" name="filter" />
             <br />
-            <select class="tablevalues" name="deviceIds:list" id="deviceId"
+            <select class="tablevalues" name="deviceIds:list" id="deviceIds"
                  size="8" multiple="1">
             </select><br />
         </td>
@@ -259,7 +259,7 @@
         </td>
         <td class="tablevalue">
             <select class="tablevalues" name="componentPaths:list" size="6"
-                id="componentPath" multiple="1">
+                id="componentPaths" multiple="1">
             </select>
         </td>
     </tr>

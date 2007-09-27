@@ -52,7 +52,7 @@ var ZenGraphs = new Array();
             </td>
         </tr>
         <tr>
-            <td class="tablevalues">
+            <td class="tablevalue">
                 <img src="_" 
                 tal:attributes="src graph/url;
                                 id graphid;
