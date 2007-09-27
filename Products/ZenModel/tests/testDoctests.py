@@ -15,22 +15,24 @@ if __name__ == '__main__':
     execfile(os.path.join(sys.path[0], 'framework.py'))
 
 from types import ModuleType
-from unittest import TestSuite, makeSuite
+from unittest import TestSuite
 
 from Products.ZenUtils.ZenDocTest import ZenDocTestRunner
+from Products.ZenUtils.ZenDocTest import TestSuiteWithHooks
 
-from Products import ZenModel
+from Products import ZenModel as TARGET_MODULE
 
 def get_submodules(mod):
-    vals = ZenModel.__dict__.values()
+    vals = mod.__dict__.values()
     allmods = filter(lambda x:type(x)==ModuleType, vals)
     submods = filter(lambda x:x.__name__.startswith(mod.__name__), allmods)
     return submods
 
 def test_suite():
-    suite = TestSuite()
+    suite = TestSuiteWithHooks()
     zdtr = ZenDocTestRunner()
-    zdtr.add_modules(get_submodules(ZenModel))
+    suite.setUp, suite.tearDown = zdtr.setUp, zdtr.tearDown
+    zdtr.add_modules(get_submodules(TARGET_MODULE))
     for dtsuite in zdtr.get_suites():
         suite.addTest(dtsuite)
     return suite

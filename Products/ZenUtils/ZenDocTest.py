@@ -17,11 +17,29 @@ import transaction
 import socket
 import Globals
 
+from unittest import TestSuite
 
 from AccessControl.SecurityManagement import newSecurityManager
 from AccessControl.SecurityManagement import noSecurityManager
 
 from Products.ZenUtils.ZeoConn import ZeoConn
+
+
+class TestSuiteWithHooks(TestSuite):
+    """
+    A modified TestSuite that provides hooks for startUp and tearDown methods.
+    """
+    def run(self, result):
+        self.startUp()
+        TestSuite.run(self, result)
+        self.tearDown()
+
+    def startUp(self):
+        pass
+
+    def tearDown(self):
+        pass
+
 
 class ZenDocTestRunner(object):
     """
@@ -35,9 +53,10 @@ class ZenDocTestRunner(object):
     """
     
     modules = []
+    conn = None
     
     def setUp(self):
-        self.conn = ZeoConn()
+        if not self.conn: self.conn = ZeoConn()
         self.app = self.conn.app
         self.login()
         self.dmd = self.app.zport.dmd
