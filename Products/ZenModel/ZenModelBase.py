@@ -95,11 +95,12 @@ class ZenModelBase(object):
 
 
     def getUnusedId(self, relName, baseKey, extensionIter=None):
-        ''' Return a new id that is not already in use in the relationship.
+        """
+        Return a new id that is not already in use in the relationship.
         If baseKey is not already in use, return that.  Otherwise append values
         from extensionIter to baseKey until an used key is found.  The default
         extensionIter appends integers starting with 2 and counting up.
-        '''
+        """
         import itertools
         if extensionIter is None:
             extensionIter = itertools.count(2)
@@ -111,7 +112,8 @@ class ZenModelBase(object):
 
 
     def getIdLink(self):
-        """Return an A link to this object with its id as the name.
+        """
+        Return an a link to this object with its id as the name.
         """
         return self.getLink()
 
@@ -185,14 +187,16 @@ class ZenModelBase(object):
 
     security.declareProtected('View', 'getZ')
     def getZ(self, zpropname):
-        """Return the value of a zProperty on this object
+        """
+        Return the value of a zProperty on this object.
         """
         return getattr(self, zpropname)
 
 
     security.declareProtected(ZEN_COMMON, 'checkRemotePerm')
     def checkRemotePerm(self, permission, robject):
-        """Look to see if user has privleges on remote object.
+        """
+        Look to see if user has permission on remote object.
         """
         user = getSecurityManager().getUser()
         return user.has_permission(permission, robject.primaryAq())
@@ -201,8 +205,10 @@ class ZenModelBase(object):
 
     security.declareProtected('View', 'zentinelTabs')
     def zentinelTabs(self, templateName):
-        """Return a list of hashs that define the screen tabs for this object.
-        [{'name':'Name','action':'template','selected':False},...]
+        """
+        Return a list of hashs that define the screen tabs for this object.
+        
+        @return [{'name':'Name','action':'template','selected':False},...]
         """
         tabs = []
         user = getSecurityManager().getUser()
@@ -220,7 +226,9 @@ class ZenModelBase(object):
 
     security.declareProtected('Manage DMD', 'zmanage_editProperties')
     def zmanage_editProperties(self, REQUEST=None, redirect=False):
-        """Edit a ZenModel object and return its proper page template
+        """
+        Edit a ZenModel object and return its proper page template. 
+        Object will be reindexed if nessesary.
         """
         self.manage_changeProperties(**REQUEST.form)
         index_object = getattr(self, 'index_object', lambda self: None)
@@ -228,12 +236,25 @@ class ZenModelBase(object):
         if REQUEST:
             from Products.ZenUtils.Time import SaveMessage
             REQUEST['message'] = SaveMessage()
-            return self.callZenScreen(REQUEST) # , redirect=redirect)
+            return self.callZenScreen(REQUEST, redirect=redirect)
 
 
     security.declareProtected('View', 'getPrimaryDmdId')
     def getPrimaryDmdId(self, rootName="dmd", subrel=""):
-        """get the full dmd id of this object strip off everything before dmd"""
+        """
+        Return the full dmd id of this object for instance /Devices/Server.
+        Everything before dmd is removed.  A different rootName can be passed
+        to stop at a different object in the path.  If subrel is
+        passed any relationship name in the path to the object will be removed.
+
+        >>> d = dmd.Devices.Server.createInstance('test')
+        >>> d.getPrimaryDmdId()
+        '/Devices/Server/devices/test'
+        >>> d.getPrimaryDmdId('Devices')
+        '/Server/Linux/devices/test'
+        >>> d.getPrimaryDmdId('Devices','devices')
+        '/Server/Linux/test'
+        """
         path = list(self.getPrimaryPath())
         path = path[path.index(rootName)+1:]
         if subrel: path = filter(lambda x: x != subrel, path)
@@ -263,7 +284,13 @@ class ZenModelBase(object):
             
 
     def getDmdRoot(self, name):
-        """return an organizer object by its name"""
+        """
+        Return a dmd root organizer such as "Systems".  The acquisition 
+        path will be cleaned so that it points directly to the root. 
+
+        >>> dmd.Devices.Server.getDmdRoot("Systems")
+        <System at /zport/dmd/Systems> 
+        """
         dmd = self.getDmd()
         return dmd._getOb(name)
 
@@ -376,7 +403,13 @@ class ZenModelBase(object):
 
     security.declareProtected('View', 'getIconPath')
     def getIconPath(self):
-        """ Return the icon associated with this object """
+        """
+        Return the icon associated with this object.  The icon path is defined in the zPropoerty zIcon.
+
+        >>> d = dmd.Devices.Server.createInstance('test')
+        >>> d.getIconPath()
+        '/zport/dmd/img/icons/server.png'
+        """
         return self.dmd.getIconPath(self)
 
 
