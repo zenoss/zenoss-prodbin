@@ -111,13 +111,13 @@ class GraphGroup(ZenModelRM):
         return url
 
 
-    def zmanage_editProperties(self, REQUEST):
-        ''' Save then redirect back to the report
-        '''
-        self.manage_changeProperties(**REQUEST.form)
-        index_object = getattr(self, 'index_object', lambda self: None)
-        index_object()
-        REQUEST['RESPONSE'].redirect(self.report().getPrimaryUrlPath())
+    # def zmanage_editProperties(self, REQUEST):
+    #     ''' Save then redirect back to the report
+    #     '''
+    #     self.manage_changeProperties(**REQUEST.form)
+    #     index_object = getattr(self, 'index_object', lambda self: None)
+    #     index_object()
+    #     REQUEST['RESPONSE'].redirect(self.report().getPrimaryUrlPath())
 
 
 InitializeClass(GraphGroup)
