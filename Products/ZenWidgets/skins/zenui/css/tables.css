@@ -65,6 +65,6 @@ table.innerzentable tr td a {
     color: #000040;
 }
 table.innerzentable tr td a:hover {
-    text-decoration: none;
+    text-decoration: underline;
     color: #000;
 }
