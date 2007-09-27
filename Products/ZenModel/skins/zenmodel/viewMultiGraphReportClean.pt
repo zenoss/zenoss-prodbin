@@ -37,8 +37,14 @@ body {
 <br />
 
 <table border="0">
+    
     <tal:block tal:condition="python: request.has_key('numGraphs')"
         tal:repeat="index python: range(int(request['numGraphs']))">
+        
+    <tal:block tal:condition="python:path('repeat/index/index') % getattr(here, 'numColumns', 1) == 0"
+        tal:replace="structure string:<tr>"/>
+        <td>
+        <table>
         <tr>
             <td class="tableheader" 
                 tal:content="python:request['title_%s' % index]">
@@ -49,9 +55,18 @@ body {
                 <img tal:attributes="src python:request['graph_%s' % index]" />
             </td>
         </tr>
+        </table>
+        </td>
+    <tal:block tal:condition="python:(path('repeat/index/index')+1) % getattr(here, 'numColumns', 1) == 0"
+        tal:replace="structure string:</tr>"/>
     </tal:block>
     <tal:block tal:condition="python: not request.has_key('numGraphs')"
         tal:repeat="graph here/getDefaultGraphDefs">
+
+    <tal:block tal:condition="python:path('repeat/graph/index') % getattr(here, 'numColumns', 1) == 0"
+        tal:replace="structure string:<tr>"/>
+        <td>
+        <table>
         <tr>
             <td class="tableheader" 
                 tal:content="graph/title">
@@ -62,7 +77,12 @@ body {
                 <img tal:attributes="src graph/url" />
             </td>
         </tr>
+        </table>
+        </td>
+    <tal:block tal:condition="python:(path('repeat/graph/index')+1) % getattr(here, 'numColumns', 1) == 0"
+        tal:replace="structure string:</tr>"/>
     </tal:block>
+    
 </table>
 
 </tal:block>

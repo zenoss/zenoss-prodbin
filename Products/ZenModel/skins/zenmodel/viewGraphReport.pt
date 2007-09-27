@@ -69,26 +69,39 @@ function ShowPrintable() {
 <tal:block metal:fill-slot="zentablecontents">
 
 <!-- BEGIN TABLE CONTENTS -->
-
+    
     <tal:block tal:repeat="element here/getElements">
     <tal:block tal:define="graphUrl element/getGraphUrl;
                             graphid string:graph_${repeat/element/index}">
+        
+        <tal:block tal:condition="python:path('repeat/element/index') % here.numColumns == 0"
+            tal:replace="structure string:<tr>"/>
+        <td valign="top">
+        <table>
+
         <tr>
             <td class="tableheader" tal:content="structure element/getSummary">
                 summary 
-		        <tal:dummy tal:replace="graphUrl"/>
 		    </td>
 		</tr>
         <tr>
-            <td class="tablevalues">
+            <td class="tablevalue">
                 <img src="_" tal:attributes="src graphUrl; id graphid"/>
                 <script language="javascript" type="text/javascript"
                 tal:content="string:ZenGraphs[ZenGraphs.length]='${graphid}';">
                 </script>
             </td>
         </tr>
+        
+        </table>
+        </td>
+        <tal:block tal:condition="python:(path('repeat/element/index')+1) % here.numColumns == 0 or path('repeat/element/end')"
+            tal:replace="structure string:</tr>"/>
+
     </tal:block>
     </tal:block>
+    
+    
 <script>
     document.write('<\/script><script src="zenrrdzoom.js"><\/script><script>');
 </script>

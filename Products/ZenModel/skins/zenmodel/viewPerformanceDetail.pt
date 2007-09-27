@@ -42,17 +42,31 @@ var ZenGraphs = new Array();
 
     <tal:block tal:repeat="graph python:here.getDefaultGraphDefs(drange=drange)">
     <tal:block tal:define="graphid string:graph_${repeat/graph/index}">
-        <tr><td class="tableheader" tal:content="graph/title">title</td></tr>
-        <tr><td class="tablevalues">
-            <img src="_" 
-            tal:attributes="src graph/url;
-                            id graphid;
-                            title graph/title;"/>
-            <script language="javascript" type="text/javascript"
-            tal:content="string:ZenGraphs[ZenGraphs.length]='${graphid}';"></script>
+    
+    <tal:block tal:condition="python:path('repeat/graph/index') % getattr(here, 'numColumns', 1) == 0"
+        tal:replace="structure string:<tr>"/>
+        <td>
+        <table>
+        <tr>
+            <td class="tableheader" tal:content="graph/title">title
             </td>
-
         </tr>
+        <tr>
+            <td class="tablevalues">
+                <img src="_" 
+                tal:attributes="src graph/url;
+                                id graphid;
+                                title graph/title;"/>
+                <script language="javascript" type="text/javascript"
+                    tal:content="string:ZenGraphs[ZenGraphs.length]='${graphid}';">
+                </script>
+            </td>
+        </tr>
+        </table>
+        </td>
+    <tal:block tal:condition="python:(path('repeat/graph/index')+1) % getattr(here, 'numColumns', 1) == 0"
+        tal:replace="structure string:</tr>"/>
+
     </tal:block>
     </tal:block>
 <script>

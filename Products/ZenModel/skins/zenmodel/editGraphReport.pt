@@ -125,41 +125,41 @@
             
     <tr>
         <td class="tableheader">Name</td>
-        <td class="tablevalue" tal:condition="here/isManager">
-            <input class="tablevalue" type="text" name="newId" size="40"
+        <td class="tablevalues" tal:condition="here/isManager">
+            <input type="text" name="newId" size="40"
                 tal:attributes="value here/id" />
         </td>
-        <td class="tablevalue" tal:condition="not:here/isManager"
+        <td class="tablevalues" tal:condition="not:here/isManager"
             tal:content="here/id"/>
     </tr>
     <tr>
         <td class="tableheader">Title</td>
-        <td class="tablevalue" tal:condition="here/isManager">
-            <input class="tablevalue" type="text" name="title" size="40"
+        <td class="tablevalues odd" tal:condition="here/isManager">
+            <input type="text" name="title" size="40"
                 tal:attributes="value here/title" />
         </td>
-        <td class="tablevalue" tal:condition="not:here/isManager"
+        <td class="tablevalues odd" tal:condition="not:here/isManager"
             tal:content="here/title"/>
     </tr>
     <tr>
         <td class="tableheader">Number of Columns</td>
-        <td class="tablevalue" tal:condition="here/isManager">
-            <select class="tablevalues" name="numColumns">
+        <td class="tablevalues" tal:condition="here/isManager">
+            <select name="numColumns">
                 <option tal:repeat="a here/numColumnsOptions" tal:content="a"
                         tal:attributes="value a; 
                         selected python:a==here.numColumns"/>
             </select>
         </td>
-        <td class="tablevalue" tal:condition="not:here/isManager"
+        <td class="tablevalues" tal:condition="not:here/isManager"
             tal:content="here/numColumns"/>
     </tr>
     <tr>
         <td class="tableheader">Comments</td>
-        <td class="tablevalue" tal:condition="here/isManager">
-            <textarea class="tablevalue" name="comments" rows="4" cols="60"
+        <td class="tablevalues" tal:condition="here/isManager">
+            <textarea name="comments" rows="4" cols="60"
                 tal:content="here/comments"></textarea>
         </td>
-        <td class="tablevalue" tal:condition="not:here/isManager"
+        <td class="tablevalues" tal:condition="not:here/isManager"
             tal:content="here/comments"/>
     </tr>
     <tr>
@@ -198,13 +198,13 @@
     <tal:block metal:define-macro="componentSelector">
     <tr>
         <td class="tableheader" width="100" >Device</td>
-        <td class="tablevalue">
-            <input class="tablevalue" type="text" name="deviceFilter"
+        <td class="tablevalues">
+            <input type="text" name="deviceFilter"
                  id="deviceFilter" size="20" />
             <input class="tableheader" type="button" value="Filter"
                 id="filterButton" name="filter" />
             <br />
-            <select class="tablevalue" name="deviceIds:list" 
+            <select name="deviceIds:list" 
                 id="deviceIds" size="8"
                 onChange="getComponentList(); getThirdList()" multiple="1">
             </select>
@@ -213,8 +213,8 @@
     </tr>
     <tr>
         <td class="tableheader">Component</td>
-        <td class="tablevalue">
-            <select class="tablevalue" name="componentPaths:list" size="6"
+        <td class="tablevalues">
+            <select name="componentPaths:list" size="6"
                 id="componentPaths" multiple="1"
                 onChange="getThirdList()">
             </select>
@@ -224,8 +224,8 @@
     
     <tr>
         <td class="tableheader">Graph</td>
-        <td class="tablevalue">
-            <select class="tablevalue" name="graphIds:list" size="6"
+        <td class="tablevalues">
+            <select name="graphIds:list" size="6"
                 id="graphIds"
                 multiple="1">
             </select>
@@ -283,7 +283,7 @@
         <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
                     tableName,'graphId','Graph')"/>
     </tr>
-    <tr class="tablevalue" tal:repeat="element batch">
+    <tr class="tablevalues" tal:repeat="element batch">
         <td valign="top" tal:condition="here/isManager">
             <input type="text" name="seqmap:list" size="2" 
 		tal:attributes="value element/sequence"/>

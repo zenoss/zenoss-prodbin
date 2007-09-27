@@ -45,7 +45,7 @@ class GraphReport(ZenModelRM):
 
     _properties = ZenModelRM._properties + (
         {'id':'comments', 'type':'text', 'mode':'w'},
-        {'id':'numColumns', 'type':'selection', 
+        {'id':'numColumns', 'type':'int', 
             'select_variable' : 'numColumnOptions', 'mode':'w'},
     )
 
@@ -73,6 +73,12 @@ class GraphReport(ZenModelRM):
 
     security = ClassSecurityInfo()
 
+
+    def getBreadCrumbUrlPath(self):
+        '''
+        Return the url to be used in breadcrumbs for this object.
+        '''
+        return self.getPrimaryUrlPath() + '/editGraphReport'
 
     def getThing(self, deviceId, componentPath):
         ''' Return either a device or a component, or None if not found

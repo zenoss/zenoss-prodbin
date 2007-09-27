@@ -38,7 +38,7 @@ class MultiGraphReport(ZenModelRM):
     numColumnsOptions = (1, 2, 3)
 
     _properties = ZenModelRM._properties + (
-        {'id':'numColumns', 'type':'selection', 
+        {'id':'numColumns', 'type':'int', 
             'select_variable' : 'numColumnOptions', 'mode':'w'},
     )
 
@@ -69,6 +69,12 @@ class MultiGraphReport(ZenModelRM):
         )
 
     security = ClassSecurityInfo()
+
+    def getBreadCrumbUrlPath(self):
+        '''
+        Return the url to be used in breadcrumbs for this object.
+        '''
+        return self.getPrimaryUrlPath() + '/editMultiGraphReport'
 
 
     ### Graph Groups

@@ -29,17 +29,32 @@ body {
             <br />&nbsp;
         </td>
     </tr>   
-    <tr tal:repeat="element here/getElements">
-        <td valign="top">
+    <tal:block tal:repeat="element here/getElements">
+        
+        <tal:block tal:condition="python:path('repeat/element/index') % here.numColumns == 0"
+            tal:replace="structure string:<tr>"/>
+        <td valign="top" align="right">
+        <table>
+
+        <tr>
+        <td valign="top" align="left">
             <tal:dummy tal:replace="structure element/getComments" />
         </td>
         <td tal:define="i repeat/element/index;
                 key python: 'graph_%s' % i;
-                graphSrc python:request.has_key(key) and request[key] or element.getGraphUrl()">
+                graphSrc python:request.has_key(key) and request[key] or element.getGraphUrl()"
+            align="right">
             <img src="_" 
                 tal:attributes="src graphSrc" />
         </td>
-    </tr>
+        </tr>
+    
+        </table>
+        </td>
+        <tal:block tal:condition="python:(path('repeat/element/index')+1) % here.numColumns == 0 or path('repeat/element/end')"
+            tal:replace="structure string:</tr>"/>
+
+    </tal:block>
 </table>
 
 </tal:block>
