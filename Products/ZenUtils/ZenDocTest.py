@@ -27,8 +27,7 @@ class ZenDocTestRunner(object):
 
     Example usage:
         zdtr = ZenDocTestRunner()
-        from Products import ZenModel
-        zdtr.add_modules(ZenModel)
+        zdtr.add_modules("Products.ZenModel.ZenModelBase")
         zdtr.run()
     """
     
@@ -51,17 +50,36 @@ class ZenDocTestRunner(object):
         me = find(socket.getfqdn())
         globs = vars()
         del globs['self']
+        del globs['zendmd']
         self.globals = globs
 
     def add_modules(self, mods):
         """
         Add Zenoss modules to be tested.
 
-        @param mods: One or more module objects.
+        @param mods: One or more module objects or dotted names.
         @type mods: module or list
         """
         if type(mods)!=type([]): mods = [mods]
         self.modules.extend(mods)
+
+    def get_suites(self):
+        """
+        Returns a doctest.DocTestSuite for each module
+        in self.modules.
+
+        Provided for integration with existing unittest framework.
+        """
+        if not hasattr(self, 'globals'): self._setup_globals()
+        suites = []
+        for mod in self.modules:
+            dtsuite = doctest.DocTestSuite(
+                mod,
+                globs=self.globals,
+                optionflags=doctest.NORMALIZE_WHITESPACE
+            )
+            suites.append(dtsuite)
+        return suites
 
     def run(self):
         """
@@ -71,15 +89,8 @@ class ZenDocTestRunner(object):
         test suite for each module that has been added, and runs
         all suites.
         """
-        if not hasattr(self, 'globals'): 
-            self._setup_globals()
         suite = unittest.TestSuite()
-        for mod in self.modules:
-            dtsuite = doctest.DocTestSuite(
-                mod,
-                globs=self.globals,
-                optionflags=doctest.NORMALIZE_WHITESPACE
-            )
+        for dtsuite in self.get_suites(): 
             suite.addTest(dtsuite)
         runner = unittest.TextTestRunner()
         runner.run(suite)
