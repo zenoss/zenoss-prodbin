@@ -1,7 +1,7 @@
 <tal:block metal:use-macro="here/templates/macros/page2">    
 <tal:block metal:fill-slot="contentPane">
 
-<form method=post 
+<form method="POST" 
     tal:attributes="action string:${here/absolute_url_path}">
     <input type="hidden" name="zenScreenName" 
         tal:attributes="value template/id" /> 
@@ -57,9 +57,11 @@
         <td class="tableheader">Method</td>
         <td class="tablevalue" tal:condition="here/isManager">
             <select class="tablevalue" name="combineDevices:boolean">
-                <option tal:attributes="value python:False">Separate graph
+                <option tal:attributes="value python:False;
+                    selected python:not here.combineDevices">Separate graph
                     for each device</option>
-                <option tal:attributes="value python:True">All devices on
+                <option tal:attributes="value python:True;
+                    selected python:here.combineDevices">All devices on
                     single graph</option>
             </select>
         </td>
