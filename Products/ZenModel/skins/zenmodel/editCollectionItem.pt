@@ -1,0 +1,64 @@
+<tal:block metal:use-macro="here/templates/macros/page2">    
+<tal:block metal:fill-slot="contentPane">
+
+<form method=post 
+    tal:attributes="action string:${here/absolute_url_path}">
+    <input type="hidden" name="zenScreenName" 
+        tal:attributes="value template/id" /> 
+
+    <tal:block tal:define="message request/message | string:State at time:; 
+        tabletitle string:${message} ${here/getNowString}">
+    <tal:block metal:use-macro="here/zenuimacros/macros/zentable">
+        <tal:block metal:fill-slot="zentablecontents">
+            
+    <tr>
+        <td class="tableheader">Name</td>
+        <td class="tablevalue" tal:condition="here/isManager">
+            <input class="tablevalue" type="text" name="newId" size="40"
+                tal:attributes="value here/id" />
+        </td>
+        <td class="tablevalue" tal:condition="not:here/isManager"
+            tal:content="here/id"/>
+    </tr>
+    <tr>
+        <td class="tableheader" tal:condition="here/deviceId">Device/Component
+        </td>
+        <td class="tableheader" tal:condition="not: here/deviceId">Organizer
+        </td>
+        <td class="tablevalue" tal:content="structure here/getDesc">
+        </td>
+        <td class="tablevalue" tal:condition="not:here/isManager"
+            tal:content="here/id"/>
+    </tr>
+    <tr>
+        <td class="tableheader">Recurse</td>
+        <td class="tablevalue" tal:condition="here/isManager">
+            <select class="tablevalues" name="recurse:boolean">
+                <option tal:repeat="e python:(True,False)" tal:content="e"
+                        tal:attributes="value e; 
+                        selected python:e==here.recurse"/>
+            </select>
+        </td>
+        <td class="tablevalue" tal:condition="not:here/isManager"
+            tal:content="here/recurse"/>
+    </tr>
+    <tr>
+        <td class="tableheader">
+        </td>
+        <td class="tableheader" colspan="3">
+            <input class="tableheader" type="submit" value=" Save "
+                name="zmanage_editProperties:method" />
+        </td>
+    </tr>
+
+        <!-- END TABLE CONTENTS -->
+
+        </tal:block>
+        </tal:block>
+        </tal:block>
+        
+</form>
+<br />
+
+</tal:block>
+</tal:block>
