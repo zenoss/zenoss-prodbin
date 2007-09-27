@@ -10,26 +10,41 @@
             widget.options[i] = new Option(options[i],options[i], false, false);
         }
     }
-    
+
+
+    function getSelection(widget) {
+        var selection = new Array();
+        for (var i=0; i < widget.options.length; i++) {
+            if (widget.options[i].selected) {
+                selection[selection.length] = widget.options[i].value;
+            }
+        }
+        return selection;
+    }
+
+
     function getDeviceList(e) {
         var filter = document.getElementById('deviceFilter');
-        var widget = document.getElementById('deviceId');
+        var widget = document.getElementById('deviceIds');
         var url = '/zport/dmd/Devices/jsonGetDeviceNames'
         var d = loadJSONDoc(url, {'query': filter.value});
         widget.options.length = 0;
         d.addBoth(updateSelect, widget);
         getComponentList();
     }
-    
+
+
     function getComponentList() {
-        var deviceWidget = document.getElementById('deviceId');
-        var compWidget = document.getElementById('componentPath');
+        var deviceWidget = document.getElementById('deviceIds');
+        var compWidget = document.getElementById('componentPaths');
         var url = '/zport/dmd/Devices/jsonGetComponentPaths';
-        var d = loadJSONDoc(url, {'deviceId': deviceWidget.value});
+        var deviceIds = getSelection(deviceWidget);
+        var d = loadJSONDoc(url, {'deviceIds': deviceIds});
         compWidget.options.length = 0;
         d.addBoth(updateSelect, compWidget);
         getThirdList();
     }
+
 
     function handleDeviceKeys(e) {
         keyString = e.key().string;
@@ -52,12 +67,14 @@
 
 <script type="text/javascript">
     function getThirdList() {
-        var deviceWidget = document.getElementById('deviceId');
-        var compWidget = document.getElementById('componentPath');
+        var deviceWidget = document.getElementById('deviceIds');
+        var compWidget = document.getElementById('componentPaths');
         var graphWidget = document.getElementById('graphIds');
         var url = '/zport/dmd/Devices/jsonGetGraphIds';
+        var deviceIds = getSelection(deviceWidget);
+        var compPaths = getSelection(compWidget);
         var d = loadJSONDoc(url, 
-        {'deviceId': deviceWidget.value, 'componentPath': compWidget.value});
+        {'deviceIds': deviceIds, 'componentPaths': compPaths});
         graphWidget.options.length = 0;
         d.addBoth(updateSelect, graphWidget);
     }
@@ -108,29 +125,41 @@
             
     <tr>
         <td class="tableheader">Name</td>
-        <td class="tablevalues" tal:condition="here/isManager">
-            <input class="tablevalues" type="text" name="newId" size="40"
+        <td class="tablevalue" tal:condition="here/isManager">
+            <input class="tablevalue" type="text" name="newId" size="40"
                 tal:attributes="value here/id" />
         </td>
-        <td class="tablevalues" tal:condition="not:here/isManager"
+        <td class="tablevalue" tal:condition="not:here/isManager"
             tal:content="here/id"/>
     </tr>
     <tr>
         <td class="tableheader">Title</td>
-        <td class="tablevalues" tal:condition="here/isManager">
-            <input class="tablevalues" type="text" name="title" size="40"
+        <td class="tablevalue" tal:condition="here/isManager">
+            <input class="tablevalue" type="text" name="title" size="40"
                 tal:attributes="value here/title" />
         </td>
-        <td class="tablevalues" tal:condition="not:here/isManager"
-            tal:content="here/id"/>
+        <td class="tablevalue" tal:condition="not:here/isManager"
+            tal:content="here/title"/>
+    </tr>
+    <tr>
+        <td class="tableheader">Number of Columns</td>
+        <td class="tablevalue" tal:condition="here/isManager">
+            <select class="tablevalues" name="numColumns">
+                <option tal:repeat="a here/numColumnsOptions" tal:content="a"
+                        tal:attributes="value a; 
+                        selected python:a==here.numColumns"/>
+            </select>
+        </td>
+        <td class="tablevalue" tal:condition="not:here/isManager"
+            tal:content="here/numColumns"/>
     </tr>
     <tr>
         <td class="tableheader">Comments</td>
-        <td class="tablevalues" tal:condition="here/isManager">
-            <textarea class="tablevalues" name="comments" rows="4" cols="60"
+        <td class="tablevalue" tal:condition="here/isManager">
+            <textarea class="tablevalue" name="comments" rows="4" cols="60"
                 tal:content="here/comments"></textarea>
         </td>
-        <td class="tablevalues" tal:condition="not:here/isManager"
+        <td class="tablevalue" tal:condition="not:here/isManager"
             tal:content="here/comments"/>
     </tr>
     <tr>
@@ -155,8 +184,6 @@
 <form method="POST" id="addGraphForm"
     tal:condition="here/isManager"
     tal:attributes="action string:${here/absolute_url_path}"
-    tal:define="curDevice request/deviceId | nothing;
-                curComponent request/componentPath | nothing;"
     >
     <input type="hidden" name="zenScreenName" 
         tal:attributes="value template/id" /> 
@@ -171,23 +198,24 @@
     <tal:block metal:define-macro="componentSelector">
     <tr>
         <td class="tableheader" width="100" >Device</td>
-        <td class="tablevalues">
-            <input class="tablevalues" type="text" name="deviceFilter"
+        <td class="tablevalue">
+            <input class="tablevalue" type="text" name="deviceFilter"
                  id="deviceFilter" size="20" />
             <input class="tableheader" type="button" value="Filter"
                 id="filterButton" name="filter" />
             <br />
-            <select class="tablevalues" name="deviceId" id="deviceId" size="8"
-                onChange="getComponentList(); getThirdList()">
+            <select class="tablevalue" name="deviceIds:list" 
+                id="deviceIds" size="8"
+                onChange="getComponentList(); getThirdList()" multiple="1">
             </select>
         </td>
 	
     </tr>
     <tr>
         <td class="tableheader">Component</td>
-        <td class="tablevalues">
-            <select class="tablevalues" name="componentPath" size="6"
-                id="componentPath"
+        <td class="tablevalue">
+            <select class="tablevalue" name="componentPaths:list" size="6"
+                id="componentPaths" multiple="1"
                 onChange="getThirdList()">
             </select>
         </td>
@@ -196,8 +224,8 @@
     
     <tr>
         <td class="tableheader">Graph</td>
-        <td class="tablevalues">
-            <select class="tablevalues" name="graphIds:list" size="6"
+        <td class="tablevalue">
+            <select class="tablevalue" name="graphIds:list" size="6"
                 id="graphIds"
                 multiple="1">
             </select>
@@ -255,7 +283,7 @@
         <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
                     tableName,'graphId','Graph')"/>
     </tr>
-    <tr class="tablevalues" tal:repeat="element batch">
+    <tr class="tablevalue" tal:repeat="element batch">
         <td valign="top" tal:condition="here/isManager">
             <input type="text" name="seqmap:list" size="2" 
 		tal:attributes="value element/sequence"/>

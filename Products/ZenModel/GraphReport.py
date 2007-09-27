@@ -32,6 +32,8 @@ class GraphReport(ZenModelRM):
 
     meta_type = "GraphReport"
     
+    numColumns = 1
+    numColumnsOptions = (1, 2, 3)
     comments = (
         '<div style="float: right;"><img src="img/onwhitelogo.png"></div>\n'
         '<div style="font-size: 16pt;">${report/id}</div>\n'
@@ -43,6 +45,8 @@ class GraphReport(ZenModelRM):
 
     _properties = ZenModelRM._properties + (
         {'id':'comments', 'type':'text', 'mode':'w'},
+        {'id':'numColumns', 'type':'selection', 
+            'select_variable' : 'numColumnOptions', 'mode':'w'},
     )
 
     _relations =  (
@@ -82,8 +86,8 @@ class GraphReport(ZenModelRM):
 
 
     security.declareProtected('Manage DMD', 'manage_addGraphElement')
-    def manage_addGraphElement(self, deviceId='', componentPath='', graphIds=(), 
-                                                            REQUEST=None):
+    def manage_addGraphElement(self, deviceIds=(), componentPaths=(), 
+                            graphIds=(), REQUEST=None):
         ''' Add a new graph report element
         '''
         def GetId(deviceId, componentPath, graphId):
@@ -98,18 +102,26 @@ class GraphReport(ZenModelRM):
             return candidate
 
         msg = ''
-        thing = self.getThing(deviceId, componentPath)
-        if thing:
-            for graphId in graphIds:
-                graph = thing.getGraphDef(graphId)
-                if graph:            
-                    newId = GetId(deviceId, componentPath, graphId)
-                    ge = GraphReportElement(newId)
-                    ge.deviceId = deviceId
-                    ge.componentPath = componentPath
-                    ge.graphId = graphId
-                    ge.sequence = len(self.elements())
-                    self.elements._setObject(ge.id, ge)
+        if isinstance(deviceIds, basestring):
+            deviceIds = list(deviceIds)
+        if isinstance(componentPaths, basestring):
+            componentPaths = list(componentPaths)
+        componentPaths = componentPaths or ('')
+        import pdb; pdb.set_trace()
+        for devId in deviceIds:
+            for cPath in componentPaths:
+                thing = self.getThing(devId, cPath)
+                if thing:
+                    for graphId in graphIds:
+                        graph = thing.getGraphDef(graphId)
+                        if graph:            
+                            newId = GetId(devId, cPath, graphId)
+                            ge = GraphReportElement(newId)
+                            ge.deviceId = devId
+                            ge.componentPath = cPath
+                            ge.graphId = graphId
+                            ge.sequence = len(self.elements())
+                            self.elements._setObject(ge.id, ge)
             
         if REQUEST:
             if msg:
@@ -125,7 +137,7 @@ class GraphReport(ZenModelRM):
             self.elements._delObject(id)
         self.manage_resequenceGraphReportElements()
         if REQUEST:
-            REQUEST['message'] = 'Graph%s deleted' % len(ids) > 1 and 's' or ''
+            REQUEST['message'] = 'Graph%s deleted' % (len(ids)>1 and 's' or '')
             return self.callZenScreen(REQUEST)
 
 

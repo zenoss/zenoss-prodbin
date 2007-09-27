@@ -16,21 +16,33 @@
             
     <tr>
         <td class="tableheader">Name</td>
-        <td class="tablevalues" tal:condition="here/isManager">
-            <input class="tablevalues" type="text" name="newId" size="40"
+        <td class="tablevalue" tal:condition="here/isManager">
+            <input class="tablevalue" type="text" name="newId" size="40"
                 tal:attributes="value here/id" />
         </td>
-        <td class="tablevalues" tal:condition="not:here/isManager"
+        <td class="tablevalue" tal:condition="not:here/isManager"
             tal:content="here/id"/>
     </tr>
     <tr>
         <td class="tableheader">Title</td>
-        <td class="tablevalues" tal:condition="here/isManager">
-            <input class="tablevalues" type="text" name="title" size="40"
+        <td class="tablevalue" tal:condition="here/isManager">
+            <input class="tablevalue" type="text" name="title" size="40"
                 tal:attributes="value here/title" />
         </td>
-        <td class="tablevalues" tal:condition="not:here/isManager"
-            tal:content="here/id"/>
+        <td class="tablevalue" tal:condition="not:here/isManager"
+            tal:content="here/title"/>
+    </tr>
+    <tr>
+        <td class="tableheader">Number of Columns</td>
+        <td class="tablevalue" tal:condition="here/isManager">
+            <select class="tablevalues" name="numColumns">
+                <option tal:repeat="a here/numColumnsOptions" tal:content="a"
+                        tal:attributes="value a; 
+                        selected python:a==here.numColumns"/>
+            </select>
+        </td>
+        <td class="tablevalue" tal:condition="not:here/isManager"
+            tal:content="here/numColumns"/>
     </tr>
     <tr>
         <td class="tableheader">
@@ -72,7 +84,7 @@
         <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
                     tableName,'getNumItems','Number of Items')"/>
     </tr>
-    <tr class="tablevalues" tal:repeat="collection batch">
+    <tr class="tablevalue" tal:repeat="collection batch">
         <td>
             <input tal:condition="here/isManager" 
                 type="checkbox" name="ids:list" 
@@ -122,7 +134,7 @@
         <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
                     tableName,'graphDefId','Graph Definition')"/>
     </tr>
-    <tr class="tablevalues" tal:repeat="graphGroup batch">
+    <tr class="tablevalue" tal:repeat="graphGroup batch">
         <td>
             <input tal:condition="here/isManager" 
                 type="text" name="seqmap:list" size="2"

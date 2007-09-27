@@ -33,9 +33,13 @@ def manage_addMultiGraphReport(context, id, REQUEST = None):
 class MultiGraphReport(ZenModelRM):
 
     meta_type = "MultiGraphReport"
-    
+
+    numColumns = 1
+    numColumnsOptions = (1, 2, 3)
 
     _properties = ZenModelRM._properties + (
+        {'id':'numColumns', 'type':'selection', 
+            'select_variable' : 'numColumnOptions', 'mode':'w'},
     )
 
     _relations =  (
