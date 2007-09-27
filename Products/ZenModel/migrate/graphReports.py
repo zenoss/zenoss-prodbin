@@ -50,7 +50,7 @@ class GraphReports(Migrate.Step):
                 description='Re-sequence Graphs', 
                 action="javascript:submitFormToMethod('graphReportElementListform', 'manage_resequenceGraphReportElements')", 
                 permissions=('Change Device',), 
-                isdialog=True, 
+                isdialog=False, 
                 ordering=80.0)
                 
         reportList = dmd.zenMenus.Report_list
