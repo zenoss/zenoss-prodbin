@@ -107,7 +107,6 @@ class GraphReport(ZenModelRM):
         if isinstance(componentPaths, basestring):
             componentPaths = list(componentPaths)
         componentPaths = componentPaths or ('')
-        import pdb; pdb.set_trace()
         for devId in deviceIds:
             for cPath in componentPaths:
                 thing = self.getThing(devId, cPath)
