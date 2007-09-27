@@ -92,6 +92,7 @@ class ZenDocTestRunner(object):
 
     def doctest_setUp(self, testObject):
         self.login()
+        self.globals['sync']()
         testObject.globs.update(self.globals)
 
     def doctest_tearDown(self, testObject):
