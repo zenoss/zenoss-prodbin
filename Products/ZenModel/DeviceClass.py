@@ -396,39 +396,56 @@ class DeviceClass(DeviceOrganizer, ZenPackable):
 
 
     security.declareProtected('View', 'jsonGetComponentPaths')
-    def jsonGetComponentPaths(self, deviceId):
+    def jsonGetComponentPaths(self, deviceIds=()):
         ''' Return a list of all component names that match the device
         '''
-        d = self.findDevice(deviceId)
-        if d:
-            dPathLen = len(d.getPrimaryId()) + 1
-            comps = d.getMonitoredComponents()
-            paths = [c.getPrimaryId()[dPathLen:] for c in comps]
-            paths.sort()
-        else:
-            paths = []
+        from sets import Set
+        paths = Set()
+        if isinstance(deviceIds, basestring):
+            deviceIds = [deviceIds]
+        for devId in deviceIds:
+            d = self.findDevice(devId)
+            if d:
+                dPathLen = len(d.getPrimaryId()) + 1
+                for comp in d.getMonitoredComponents():
+                    paths.add(comp.getPrimaryId()[dPathLen:])
+        paths = list(paths)
+        paths.sort()
         return simplejson.dumps(paths)
         
         
     security.declareProtected('View', 'jsonGetGraphIds')
-    def jsonGetGraphIds(self, deviceId, componentPath):
+    def jsonGetGraphIds(self, deviceIds=(), componentPaths=()):
         ''' Get a list of the graph defs available for the given device
         and component.
         '''
-        graphIds = []
-        thing = self.findDevice(deviceId)
-        if thing:
-            if not componentPath: componentPath = ''
-            parts = componentPath.split('/')
-            for part in parts:
-                if part:
-                    if hasattr(thing, part):
-                        thing = getattr(thing, part)
+        from sets import Set
+        graphIds = Set()
+        if isinstance(deviceIds, basestring):
+            deviceIds = [deviceIds]
+        if isinstance(componentPaths, basestring):
+            componentPaths = [componentPaths]
+        if not componentPaths:
+            componentPaths = ('',)
+        
+        for devId in deviceIds:
+            thing = self.findDevice(devId)
+            if thing:
+                for compPath in componentPaths:
+                    compPath = compPath or ''
+                    parts = compPath.split('/')
+                    for part in parts:
+                        if part:
+                            if hasattr(thing, part):
+                                thing = getattr(thing, part)
+                            else:
+                                break
                     else:
-                        break
-            else:
-                for t in thing.getRRDTemplates():
-                    graphIds += [g.id for g in t.getGraphDefs()]
+                        for t in thing.getRRDTemplates():
+                            for g in t.getGraphDefs():
+                                graphIds.add(g.id)
+        graphIds = list(graphIds)
+        graphIds.sort()
         return simplejson.dumps(graphIds)
 
 
