@@ -163,7 +163,15 @@ class ZenModelBase(object):
                 text)
         else:
             return '<a href="%s">%s</a>' % (url, text)
-     
+
+
+    def getBreadCrumbUrlPath(self):
+        '''
+        Return the url to be used in breadcrumbs for this object.
+        '''
+        return self.getPrimaryUrlPath()
+
+
     def breadCrumbs(self, terminator='dmd'):
         """Return the breadcrumb links for this object.
         [('url','id'), ...]
@@ -174,11 +182,11 @@ class ZenModelBase(object):
             if curDir.meta_type == 'ToManyContRelationship':
                 curDir = curDir.getPrimaryParent()
                 continue
-            if not getattr(aq_base(curDir),"getPrimaryUrlPath", False):
+            if not getattr(aq_base(curDir),"getBreadCrumbUrlPath", False):
                 break
             url = ""
             if self.checkRemotePerm("View", curDir):
-                url = curDir.getPrimaryUrlPath()
+                url = curDir.getBreadCrumbUrlPath()
             links.append((url, curDir.id))
             curDir = curDir.aq_parent
         links.reverse()
