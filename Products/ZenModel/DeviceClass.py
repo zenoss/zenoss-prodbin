@@ -457,8 +457,11 @@ class DeviceClass(DeviceOrganizer, ZenPackable):
         dpNames = Set()
         for t in self.getAllRRDTemplates():
             for ds in t.datasources():
-                for dp in ds.datapoints():
-                    dpNames.add(dp.name())
+                # If we have a broken datasource (likely from a missing zenpack)
+                # then don't try to parse datapoints, you can't.
+                if hasattr(ds, 'datapoints'):
+                    for dp in ds.datapoints():
+                        dpNames.add(dp.name())
         dpNames = list(dpNames)
         dpNames.sort()
         return simplejson.dumps(dpNames)
