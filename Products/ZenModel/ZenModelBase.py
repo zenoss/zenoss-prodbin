@@ -247,7 +247,7 @@ class ZenModelBase(object):
         """
         Return the value of a zProperty on this object.  This method is used to
         lookup zProperties for a user with a role that doesn't have direct
-        access to an attribute further up the acquisitoin path.
+        access to an attribute further up the acquisition path.
 
         >>> dmd.Devices.getZ('zSnmpPort')
         161
@@ -344,7 +344,7 @@ class ZenModelBase(object):
 
     def zenpathjoin(self, path):
         """
-        DEPRICATED Build a Zenoss path based on a list or tuple.
+        DEPRECATED Build a Zenoss path based on a list or tuple.
 
         @type path: list or tuple
 
@@ -356,14 +356,14 @@ class ZenModelBase(object):
 
     def zenpathsplit(self, path):
         """
-        DEPRICATED Split a path on its '/'.
+        DEPRECATED Split a path on its '/'.
         """
         return zenpathsplit(path)
 
 
     def createHierarchyObj(self, root, name, factory, relpath="", log=None):
         """
-        DEPRICATED this is only seems to be used in Organizer.createOrganizer -
+        DEPRECATED this is only seems to be used in Organizer.createOrganizer -
         Create an object from its path we use relpath to skip down any missing
         relations in the path and factory is the constructor for this object.
         """
@@ -372,14 +372,14 @@ class ZenModelBase(object):
 
     def getHierarchyObj(self, root, name, relpath):
         """
-        DEPRICATED this doesn't seem to be used anywere don't use it!!! 
+        DEPRECATED this doesn't seem to be used anywere don't use it!!! 
         """
         return getHierarchyObj(root, name, relpath)
 
 
     def getDmd(self):
         """
-        DEPRICATED Return the dmd root object with unwraped acquisition path.
+        DEPRECATED Return the dmd root object with unwraped acquisition path.
 
         >>> dmd.Devices.Server.getDmd()
         <DataRoot at /zport/dmd>
@@ -402,7 +402,7 @@ class ZenModelBase(object):
     
     def getDmdObj(self, path):
         """
-        DEPRICATED Return an object from path that starts at dmd.
+        DEPRECATED Return an object from path that starts at dmd.
 
         >>> dmd.getDmdObj('/Devices/Server')
         <DeviceClass at /zport/dmd/Devices/Server>
@@ -413,7 +413,7 @@ class ZenModelBase(object):
 
     def getZopeObj(self, path):
         """
-        DEPRICATED Return an object from path tat starts at zope root. 
+        DEPRECATED Return an object from path tat starts at zope root. 
 
         >>> dmd.getZopeObj('/zport/dmd/Devices/Server')
         <DeviceClass at /zport/dmd/Devices/Server>
@@ -445,7 +445,7 @@ class ZenModelBase(object):
 
     def all_meta_types(self, interfaces=None):
         """
-        DEPRICATED Override the ObjectManager method that is used to control
+        DEPRECATED Override the ObjectManager method that is used to control
         the items available in the add drop down in the ZMI.  It uses the
         attribute sub_menu_items to create the data structures.  This is a list
         of meta_types for the available classes.  This functionality is rarely
@@ -541,7 +541,7 @@ class ZenModelBase(object):
     security.declareProtected('View', 'helpLink')
     def helpLink(self):
         """
-        DEPRICATED Return a link to the objects help file.
+        DEPRECATED Return a link to the objects help file.
         """
         path = self.__class__.__module__.split('.')
         className = path[-1].replace('Class','')
