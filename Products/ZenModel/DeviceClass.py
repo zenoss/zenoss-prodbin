@@ -111,28 +111,23 @@ class DeviceClass(DeviceOrganizer, ZenPackable):
             'immediate_view' : 'deviceOrganizerStatus',
             'actions'        :
             (
-                { 'id'            : 'classes'
-                , 'name'          : 'Classes'
+                { 'name'          : 'Classes'
                 , 'action'        : 'deviceOrganizerStatus'
                 , 'permissions'   : ( permissions.view, )
                 },
-                { 'id'            : 'events'
-                , 'name'          : 'Events'
+                { 'name'          : 'Events'
                 , 'action'        : 'viewEvents'
                 , 'permissions'   : (  permissions.view, )
                 },
-                { 'id'            : 'historyEvents'
-                , 'name'          : 'History'
+                { 'name'          : 'History'
                 , 'action'        : 'viewHistoryEvents'
                 , 'permissions'   : (  permissions.view, )
                 },
-                { 'id'            : 'config'
-                , 'name'          : 'zProperties'
+                { 'name'          : 'zProperties'
                 , 'action'        : 'zPropertyEdit'
                 , 'permissions'   : (permissions.view,)
                 },
-                { 'id'            : 'templates'
-                , 'name'          : 'Templates'
+                { 'name'          : 'Templates'
                 , 'action'        : 'perfConfig'
                 , 'permissions'   : ('Manage DMD',)
                 },
