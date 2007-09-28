@@ -93,7 +93,7 @@ class MultiGraphReports(Migrate.Step):
                 description='Re-sequence Items', 
                 action="javascript:submitFormToMethod('collectionItemForm', 'manage_resequenceCollectionItems')", 
                 permissions=('Change Device',), 
-                isdialog=True, 
+                isdialog=False, 
                 ordering=87.0)
 
         if hasattr(dmd.zenMenus, 'GraphGroup_list'):
