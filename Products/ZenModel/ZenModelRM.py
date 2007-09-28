@@ -201,11 +201,29 @@ class ZenModelRM(ZenModelBase, RelationshipManager, Historical, ZenPacker):
 
     security.declareProtected('View', 'getDmdKey')
     def getDmdKey(self):
+        """
+        Hook to get the name of an object.  Usually its self.getId() but is
+        overridden by Organizer to be getOrganizerName.
+
+        >>> dmd.Manufacturers.Cisco.getDmdKey()
+        'Cisco'
+        >>> dmd.Devices.Server.getDmdKey()
+        '/Server'        
+        """
         return self.getId()
     
         
     security.declareProtected('View', 'primarySortKey')
     def primarySortKey(self):
+        """
+        Hook for the value used to sort this object.  Defaults to self.getId().
+        IpNetwork for instance overrides to allow it to sort by the IP numeric
+        value not its string value.
+
+        >>> n = dmd.Networks.createNet('1.2.3.0', 24)
+        >>> n.primarySortKey()
+        16909056L
+        """
         return self.getId()
     
         

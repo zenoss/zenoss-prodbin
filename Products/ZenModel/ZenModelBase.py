@@ -208,9 +208,17 @@ class ZenModelBase(object):
 
 
     def getBreadCrumbUrlPath(self):
-        '''
-        Return the url to be used in breadcrumbs for this object.
-        '''
+        """
+        Return the url to be used in breadcrumbs for this object.  normally
+        this is equal to getPrimaryUrlPath. It can be used as a hook to modify
+        the url so that it points towards a different tab then the default.
+
+        >>> dmd.Devices.getBreadCrumbUrlPath()
+        '/zport/dmd/Devices'
+        >>> rc = dmd.Reports._getOb('Graph Reports')
+        >>> rc.manage_addGraphReport('test').getBreadCrumbUrlPath()
+        '/zport/dmd/Reports/Graph%20Reports/test/editGraphReport'
+        """
         return self.getPrimaryUrlPath()
 
 

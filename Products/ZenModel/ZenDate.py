@@ -11,16 +11,15 @@
 #
 ###########################################################################
 
-__doc__="""ZenDate
-
-$Id: ZenDate.py,v 1.1 2004/04/15 00:54:14 edahl Exp $"""
-
 from Globals import Persistent
 from DateTime import DateTime
 from Products.ZenUtils import Time
 
 class ZenDate(Persistent):
-    """wraper so that date sets on device don't provoke entire object store"""
+    """
+    DEPRECATED wraper so that date sets on device don't provoke entire object
+    store
+    """
     
     def __init__(self, date=None):
         self.setDate(date)
