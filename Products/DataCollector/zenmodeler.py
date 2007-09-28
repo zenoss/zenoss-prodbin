@@ -366,6 +366,9 @@ class ZenModeler(ZCmdBase):
         self.parser.add_option('--now', 
                 dest='now', action="store_true", default=False,
                 help="start daemon now, do not sleep before starting")
+        self.parser.add_option('--monitor',
+                dest='monitor',
+                help='Name of monitor instance to use for configuration.')
         TelnetClient.buildOptions(self.parser, self.usage)
     
 
@@ -429,6 +432,10 @@ class ZenModeler(ZCmdBase):
         if self.options.device:
             self.log.info("collecting for device %s", self.options.device)
             self.devicegen = iter([self.resolveDevice(self.options.device)])
+        elif self.options.monitor:
+            self.log.info("collecting for monitor %s", self.options.monitor)
+            self.devicegen = getattr(self.dmd.Monitors.Performance,
+                    self.options.monitor).devices.objectValuesGen()
         else:
             self.log.info("collecting for path %s", self.options.path)
             root = self.dmd.Devices.getOrganizer(self.options.path)
