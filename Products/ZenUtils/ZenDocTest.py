@@ -97,6 +97,8 @@ class ZenDocTestRunner(object):
 
     def doctest_tearDown(self, testObject):
         self.logout()
+        testObject.globs['abort']()
+        self.globals['sync']()
 
     def add_modules(self, mods):
         """
