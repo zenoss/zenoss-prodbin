@@ -62,8 +62,8 @@ class MultiGraphReportClass(ReportClass):
         self._setObject(id, fr)
         if REQUEST:
             url = '%s/%s/editMultiGraphReport' % (self.getPrimaryUrlPath(), id)
-            REQUEST['RESPONSE'].redirect(url)
-        return fr
+            return REQUEST['RESPONSE'].redirect(url)
+        return self._getOb(id)
 
 
 InitializeClass(MultiGraphReportClass)

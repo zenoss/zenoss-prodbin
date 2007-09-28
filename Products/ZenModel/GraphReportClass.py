@@ -50,13 +50,14 @@ class GraphReportClass(ReportClass):
     def manage_addGraphReport(self, id, REQUEST=None):
         """Add an MultiGraph report to this object.
         """
+        import pdb; pdb.set_trace()
         from Products.ZenModel.GraphReport import GraphReport
         fr = GraphReport(id)
         self._setObject(id, fr)
         if REQUEST:
-            url = '%s/%s/editGraphReport' % (self.getPrimaryUrlPath(), id)
-            REQUEST['RESPONSE'].redirect(url)
-        return fr
+            url = '%s/%s/editGraphReport' % (self.getPrimaryUrlPath(),id)
+            return REQUEST['RESPONSE'].redirect(url)
+        return self._getOb(id)
 
 
 InitializeClass(GraphReportClass)
