@@ -87,12 +87,16 @@ class GraphReport(ZenModelRM):
         if thing and componentPath:
             parts = componentPath.split('/')
             for part in parts:
-                thing = getattr(thing, part)
+                if hasattr(thing, part):
+                    thing = getattr(thing, part)
+                else:
+                    thing = None
+                    break
         return thing
 
 
     security.declareProtected('Manage DMD', 'manage_addGraphElement')
-    def manage_addGraphElement(self, deviceIds=(), componentPaths=(), 
+    def manage_addGraphElement(self, deviceIds='', componentPaths='', 
                             graphIds=(), REQUEST=None):
         ''' Add a new graph report element
         '''
@@ -109,9 +113,9 @@ class GraphReport(ZenModelRM):
 
         msg = ''
         if isinstance(deviceIds, basestring):
-            deviceIds = list(deviceIds)
+            deviceIds = [deviceIds]
         if isinstance(componentPaths, basestring):
-            componentPaths = list(componentPaths)
+            componentPaths = [componentPaths]
         componentPaths = componentPaths or ('')
         for devId in deviceIds:
             for cPath in componentPaths:
