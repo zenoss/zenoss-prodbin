@@ -89,7 +89,8 @@ class SshUserAuth(userauth.SSHUserAuthClient):
         path = None
         if os.path.exists(keyPath):
             path = keyPath
-        return defer.succeed(keys.getPrivateKeyObject(path))
+        return defer.succeed(keys.getPrivateKeyObject(path,
+                passphrase=self.factory.password))
 
 class SshConnection(connection.SSHConnection):
 
