@@ -118,7 +118,7 @@ class MultiGraphReports(Migrate.Step):
                 description='Re-sequence Items', 
                 action="javascript:submitFormToMethod('graphGroupForm', 'manage_resequenceGraphGroups')", 
                 permissions=('Change Device',), 
-                isdialog=True, 
+                isdialog=False, 
                 ordering=87.0)
 
 
