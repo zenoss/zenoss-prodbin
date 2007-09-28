@@ -11,9 +11,9 @@
 #
 ###########################################################################
 
-"""EventManagerBase
-
-$Id: NcoManager.py,v 1.6 2004/04/22 19:08:47 edahl Exp $"""
+"""
+Data connector to backend of the event management system.
+"""
 
 __version__ = "$Revision: 1.6 $"[11:-2]
 
@@ -62,6 +62,28 @@ from DbAccessBase import DbAccessBase
 
 
 def evtprep(evts):
+    """
+    Prepares data from L{Products.ZenEvents.EventManagerBase.getEventSummary}
+    for rendering in the eventrainbow template macro.
+
+    Each cell of the old-style event rainbow needs a CSS class specified in
+    order to render its color, fill and border style.  evtprep determines the
+    proper class and returns it, along with a string representation of the
+    number of live and acknowledged events.
+
+        >>> from Products.ZenEvents.EventManagerBase import evtprep
+        >>> evtprep(['zenevents_5_noack noack', 2, 2])
+        {'cssclass': 'zenevents_5_noack noack empty thin', 'data': '2/2'}
+        >>> evtprep(['zenevents_5_noack noack', 1, 2])
+        {'cssclass': 'zenevents_5_noack noack', 'data': '1/2'}
+
+    @param evts: A tuple of the form (Severity string, Number Acknowledged int,
+        Number Live int)
+    @type evts: tuple
+    @return: A dictionary of the form {'cssclass': Class string, 'data': Event
+        count representation string}
+
+    """
     evtsdata = "%d/%d" % (evts[1],evts[2])
     if evts[1]==evts[2] or evts[2]==0:
         return {'cssclass':evts[0] + " empty thin",
@@ -243,6 +265,34 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
     def __init__(self, id, title='', hostname='localhost', username='root',
                  password='', database='events', port=3306,
                  defaultWhere='',defaultOrderby='',defaultResultFields=[]):
+        """
+        Sets up event database access and initializes the cache.
+
+        @param id: A unique id
+        @type id: string
+        @param title: A title
+        @type title: string
+        @param hostname: The hostname of the events database server
+        @type hostname: string
+        @param username: The name of a user with permissions to access the
+            events database
+        @type username: string
+        @param password: The password of the user
+        @type password: string
+        @param database: The name of the events database
+        @type database: string
+        @param port: The port on which the database server is listening
+        @type port: int
+        @param defaultWhere: The default where clause to use when building
+            queries
+        @type defaultWhere: string
+        @param defaultOrderby: The default order by clause to use when building
+            queries
+        @type defaultOrderby: string
+        @param defaultResultFields: DEPRECATED. Currently unused.
+        @type defaultResultFields: list
+
+        """
         self.id = id
         self.title = title
         self.username=username
@@ -269,11 +319,48 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
 
 
     def getEventResultFields(self, context):
-        """Result fields for everything else.
         """
-        return self.lookupManagedEntityResultFields(context.event_key)
+        A wrapper for L{lookupManagedEntityResultFields}.
+
+        >>> class dummy(object):
+        ...     event_key = 'Device'
+        ...
+        >>> d = dummy()
+        >>> f = dmd.ZenEventManager.getEventResultFields(d)
+        >>> f==dmd.ZenEventManager.DeviceResultFields
+        True
+        >>> d.event_key = 'Robot'
+        >>> f = dmd.ZenEventManager.getEventResultFields(d)
+        >>> f==dmd.ZenEventManager.defaultResultFields
+        True
+
+        @param context: An object with an event_key attribute.
+        @type context: Managed Entity
+        @return: A tuple of strings representing columns in the database.
+        """
+        return self.lookupManagedEntityResultFields(getattr(context,
+                                                    'event_key', 'Default'))
 
     def getEventListME(self, me, **kwargs):
+        """
+        Queries the database for events on a managed entity.
+
+        >>> devid = dmd.Devices.getUnusedId('devices', 'dev')
+        >>> d = dmd.Devices.createInstance(devid)
+        >>> # Create an event for an object with the same id
+        ... evid = dmd.ZenEventManager.sendEvent({'device':devid,
+        ... 'component':'none', 'summary':'test event','severity':4,
+        ... 'eventClass':'/Test'})
+        >>> # Get the events for the device
+        ... evs = dmd.ZenEventManager.getEventListME(d)
+        >>> evid in [ev.evid for ev in evs]
+        True
+        >>> dmd.ZenEventManager.manage_deleteEvents(evid) # Cleanup
+
+        @param me: The entity for which to fetch events
+        @type me: Managed entity
+        @return: List of ZEvent objects
+        """
         where = ""
         if hasattr(me, 'getWhere'):
             where = me.getWhere()
@@ -283,14 +370,15 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
             resultFields = kwargs['resultFields']; del kwargs['resultFields']
         except KeyError: 
             resultFields = self.lookupManagedEntityResultFields(me.event_key)
-        return self.getEventList(resultFields=resultFields,where=where,**kwargs)
+        return self.getEventList(resultFields=resultFields, where=where,
+                                 **kwargs)
 
 
-    def getEventBatchME(self, me, selectstatus=None, 
-                        resultFields=[], where="", orderby="", severity=None,
-                        state=2, startdate=None, enddate=None, offset=0, rows=0,
-                        getTotalCount=False, filter="",
-                        goodevids=[], badevids=[], **kwargs):
+    def getEventBatchME(self, me, selectstatus=None, resultFields=[], 
+                        where="", orderby="", severity=None, state=2,
+                        startdate=None, enddate=None, offset=0, rows=0,
+                        getTotalCount=False, filter="", goodevids=[],
+                        badevids=[], **kwargs):
         where = self.lookupManagedEntityWhere(me)
         badevidsstr, goodevidsstr = '',''
         if not isinstance(goodevids, (list, tuple)): goodevids = [goodevids]
@@ -325,10 +413,11 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
         return [ev.evid for ev in events]
 
         
-    def getEventList(self, resultFields=[], where="", orderby="", severity=None,
-                    state=2, startdate=None, enddate=None, offset=0, rows=0,
-                    getTotalCount=False, filter="", **kwargs):
-        """see IEventList.
+    def getEventList(self, resultFields=[], where="", orderby="",
+            severity=None, state=2, startdate=None, enddate=None, offset=0,
+            rows=0, getTotalCount=False, filter="", **kwargs):
+        """
+        see IEventList.
         """
         try:
             if not resultFields:
@@ -364,7 +453,8 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
             select = " ".join(select)
             if getTotalCount: 
                 try: retdata, totalCount = self.checkCache(select)
-                except TypeError: retdata, totalCount = self.checkCache(select), 100
+                except TypeError: 
+                    retdata, totalCount = self.checkCache(select), 100
             else: retdata = self.checkCache(select)
             if not False:
                 conn = self.connect()
@@ -395,8 +485,8 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
 
     def getEventSummaryME(self, me, severity=1, state=1, prodState=None):
         """
-        Return a list of tuples with number of events
-        and the color of the severity that the number represents.
+        Return a list of tuples with number of events and the color of the
+        severity that the number represents.
         """ 
         try:
             where = self.lookupManagedEntityWhere(me)
@@ -406,8 +496,9 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
             raise
 
     def getEventPillME(self, me, number=1, showGreen=False):
-        """ Return a list of HTML strings representing the events
-            with the worst severity on an object
+        """ 
+        Return a list of HTML strings representing the events with the worst
+        severity on an object
         """ 
         try:
             summary =[x[2] for x in self.getEventSummaryME(me, 0)]
@@ -999,8 +1090,7 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
         key = me.event_key + "Where"
         wheretmpl = getattr(aq_base(self), key, False)
         if not wheretmpl:
-            raise ValueError("no where fround for event_key %s" %
-                            me.event_key)
+            raise ValueError("no where found for event_key %s" % me.event_key)
         return eval(wheretmpl,{'me':me})
 
 
@@ -1012,13 +1102,37 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
 
 
     def lookupManagedEntityResultFields(self, event_key):
-        """Lookup and result fields for managed entity.
+        """
+        Gets the column names that should be requested in an event query for
+        this entity type.
+
+        Returns a set of result fields predefined for this entity type.  If
+        none have been defined, returns the default result fields.
+
+        >>> f = dmd.ZenEventManager.lookupManagedEntityResultFields('Device')
+        >>> f==dmd.ZenEventManager.DeviceResultFields
+        True
+        >>> f = dmd.ZenEventManager.lookupManagedEntityResultFields('Robot')
+        >>> f==dmd.ZenEventManager.defaultResultFields
+        True
+
+        @param event_key: The event key of a managed entity.
+        @type event_key: string
+        @return: A tuple of strings representing columns in the database.
         """
         key = event_key + "ResultFields"
         return getattr(aq_base(self), key, self.defaultResultFields)
 
 
     def _wand(self, where, fmt, field, value):
+        """
+        >>> dmd.ZenEventManager._wand('where 1=1', '%s=%s', 'a', 'b')
+        'where 1=1 and a=b'
+        >>> dmd.ZenEventManager._wand('where a=5', '%s=%s', 'a', 'b')
+        'where a=5'
+        >>> dmd.ZenEventManager._wand('where b=a', '%s=%s', 'a', 'b')
+        'where b=a and a=b'
+        """
         if value != None and where.find(field) == -1:
             if where: where += " and "
             where += fmt % (field, value)
