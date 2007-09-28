@@ -18,43 +18,43 @@
 
 <script type="text/javascript">
     
-    function updateSelect(widget, current, options) {
+    function updateSelect(widget, options) {
         for (var i = widget.length; i < options.length; i++) {
             widget.options[i] = new Option(options[i],options[i], false, false);
             if (findValue(current, options[i]) > -1)
                 widget.options[i].selected = true;
         }
     }
-    
+
+    function getSelection(widget) {
+        var selection = new Array();
+        for (var i=0; i < widget.options.length; i++) {
+            if (widget.options[i].selected) {
+                selection[selection.length] = widget.options[i].value;
+            }
+        }
+        return selection;
+    }
+
     function getDeviceList(e) {
         var filter = document.getElementById('deviceFilter');
         var widget = document.getElementById('deviceIds');
         var url = '/zport/dmd/Devices/jsonGetDeviceNames'
         var d = loadJSONDoc(url, {'query': filter.value});
         widget.options.length = 0;
-        d.addBoth(updateSelect, widget, currentDevices);
+        d.addBoth(updateSelect, widget);
         getComponentList();
     }
     
     function getComponentList() {
         var deviceWidget = document.getElementById('deviceIds');
-        var deviceId = null;
-        for (var i=0; i < deviceWidget.options.length; i++) {
-            if (deviceWidget.options[i].selected) {
-                if (deviceId == null) {
-                    deviceId = deviceWidget.options[i].value;
-                } else {
-                    deviceId = null;
-                    break;
-                }
-            }
-        }
         var compWidget = document.getElementById('componentPaths');
+        var deviceIds = getSelection(deviceWidget);
         compWidget.options.length = 0;
-        if (deviceId) {
+        if (deviceIds) {
             var url = '/zport/dmd/Devices/jsonGetComponentPaths';
-            var d = loadJSONDoc(url, {'deviceIds': deviceWidget.value});
-            d.addBoth(updateSelect, compWidget, currentComponents);
+            var d = loadJSONDoc(url, {'deviceIds': deviceIds});
+            d.addBoth(updateSelect, compWidget);
         }
     }
 

@@ -97,32 +97,37 @@ class Collection(ZenModelRM):
         from CollectionItem import CollectionItem
         
         count = 0
-        for i, devId in enumerate(deviceIds):
-            # If deviceIds then either
-            #       len(deviceIds) == 1 and len(componentPaths) >= 0 or
-            #       len(deviceIds) > 1 and len(componentPaths) == 0
-            if len(deviceIds) > 1 or not componentPaths:
-                componentPaths = ['']
-            for cPath in componentPaths:
+        if itemType == 'devcomp':
+            for i, devId in enumerate(deviceIds):
+                # If deviceIds then either
+                #       len(deviceIds) == 1 and len(componentPaths) >= 0 or
+                #       len(deviceIds) > 1 and len(componentPaths) == 0
+                if len(deviceIds) > 1 or not componentPaths:
+                    componentPaths = ['']
+                for cPath in componentPaths:
+                    self.createCollectionItem(
+                                devId=devId, compPath=cPath, recurse=False)
+                    count += 1
+        if itemType == 'deviceClass':
+            for dClass in deviceClasses:
                 self.createCollectionItem(
-                            devId=devId, compPath=cPath, recurse=False)
+                                    orgPath='/Devices' + dClass, recurse=recurse)
+            count += 1
+        if itemType == 'system':
+            for system in systems:
+                self.createCollectionItem(
+                                    orgPath='/Systems' + system, recurse=recurse)
                 count += 1
-        for dClass in deviceClasses:
-            self.createCollectionItem(
-                                orgPath='/Devices' + dClass, recurse=recurse)
-            count += 1
-        for system in systems:
-            self.createCollectionItem(
-                                orgPath='/Systems' + system, recurse=recurse)
-            count += 1
-        for group in groups:
-            self.createCollectionItem(
-                                orgPath='/Groups' + group, recurse=recurse)
-            count += 1
-        for loc in locations:
-            self.createCollectionItem(
-                                orgPath='/Locations' + loc, recurse=recurse)
-            count += 1
+        if itemType == 'group':
+            for group in groups:
+                self.createCollectionItem(
+                                    orgPath='/Groups' + group, recurse=recurse)
+                count += 1
+        if itemType == 'location':
+            for loc in locations:
+                self.createCollectionItem(
+                                    orgPath='/Locations' + loc, recurse=recurse)
+                count += 1
             
         if REQUEST:
             REQUEST['message'] = ' %s item%s added' % (count,
