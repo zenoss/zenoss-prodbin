@@ -148,7 +148,7 @@ class ZenModelBase(object):
         >>> dmd.Devices.getIdLink()
         '<a href="/zport/dmd/Devices">Devices</a>'
         """
-        return self.getLink()
+        return self.urlLink()
 
 
     def callZenScreen(self, REQUEST, redirect=False):
@@ -183,7 +183,7 @@ class ZenModelBase(object):
         return self.getPrimaryUrlPath() + "/" + screenName
 
     
-    def getLink(self, text=None, url=None, attrs={}):
+    def urlLink(self, text=None, url=None, attrs={}):
         """
         Return an anchor tag if the user has access to the remote object.
 

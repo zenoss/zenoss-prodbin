@@ -37,7 +37,7 @@
       <td class="tablevalues"
               tal:condition="python:not getattr(here, 'getPrettyLink', None)">
         <tal:block 
-         tal:define="link python:here.getLink()"
+         tal:define="link python:here.urlLink()"
          tal:content="structure link"/>
       </td> 
       <td class="tablevalues" 
@@ -67,7 +67,7 @@
       <td class="tablevalues"
          tal:condition="python:not getattr(orObject, 'getPrettyLink', None)">
         <tal:block 
-         tal:define="link python:orObject.getLink()"
+         tal:define="link python:orObject.urlLink()"
          tal:content="structure link"/>
       </td>
       <td class="tablevalues" 

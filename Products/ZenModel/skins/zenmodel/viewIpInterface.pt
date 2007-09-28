@@ -40,7 +40,9 @@
           <span tal:repeat="ip here/getIpAddressObjs" omit-tag="">
             <tal:block 
              tal:condition="python:hasattr(ip,'getIpAddress')"
-             tal:content="structure python:ip.getLink(text=ip.getIpAddress(), attrs={'class':'tablevalues'})"/>
+             tal:content="structure 
+                python:ip.urlLink(text=ip.getIpAddress(),
+                attrs={'class':'tablevalues'})"/>
             <span tal:condition="python:not hasattr(ip,'getIpAddress')"
                 tal:replace="ip">1.1.1.1/24</span>
           </span>
@@ -63,7 +65,8 @@
       <td class="tablevalues" tal:condition="editable">
           <select class="tablevalues"  name="operStatus"
           tal:condition="editable">
-          <option tal:repeat="e python:(1,0)" tal:content="python:e==1 and 'Up' or 'Down'"
+          <option tal:repeat="e python:(1,0)" 
+                  tal:content="python:e==1 and 'Up' or 'Down'"
               tal:attributes="value e; selected python:e==here.operStatus"/>
           </select>
       </td>
@@ -75,7 +78,8 @@
       <td class="tablevalues" tal:condition="editable">
           <select class="tablevalues"  name="adminStatus"
           tal:condition="editable">
-          <option tal:repeat="e python:(1,0)" tal:content="python:e==1 and 'Up' or 'Down'"
+          <option tal:repeat="e python:(1,0)" 
+                  tal:content="python:e==1 and 'Up' or 'Down'"
               tal:attributes="value e; selected python:e==here.adminStatus"/>
           </select>
       </td>
@@ -136,10 +140,12 @@
     <tr>
       <td class="tableheader" align=left>Locks</td>
       <td class="tablevalues" colspan=3>
-          <img tal:condition="here/isLockedFromDeletion" border="0" src="locked-delete-icon.png">
-          <img tal:condition="here/isLockedFromUpdates" border="0" src="locked-update-icon.png">
-          <img tal:condition="here/sendEventWhenBlocked" border="0"
-          src="locked-sendevent-icon.png">
+          <img tal:condition="here/isLockedFromDeletion" 
+                  border="0" src="locked-delete-icon.png">
+          <img tal:condition="here/isLockedFromUpdates" 
+                  border="0" src="locked-update-icon.png">
+          <img tal:condition="here/sendEventWhenBlocked" 
+                  border="0" src="locked-sendevent-icon.png">
       </td>
     </tr>
     <tr>

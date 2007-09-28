@@ -152,7 +152,7 @@
                 <dt>Status Monitors</dt>
                 <dd>
                   <div tal:repeat="item here/monitors/objectValuesAll">
-                      <tal:block tal:content="structure python:item.getLink(
+                      <tal:block tal:content="structure python:item.urlLink(
                                                 text=item.getOrganizerName())"/>
                   </div>
                   <div tal:condition="not:here/monitors/objectValuesAll">
@@ -175,7 +175,7 @@
                 <dt>DHCP Helpers</dt>
                 <dd>
                     <div tal:repeat="item here/dhcpservers/objectValuesAll">
-                    <tal:block tal:content="structure python:item.getLink()"/>
+                    <tal:block tal:content="structure python:item.urlLink()"/>
                 </div>
                 </dd>
                 </tal:block>
@@ -195,7 +195,7 @@
                 <dt>UBR Clients</dt>
                 <dd>
                     <div tal:repeat="item here/dhcpubrclients/objectValuesAll">
-                    <tal:block tal:content="structure python:item.getLink()"/>
+                    <tal:block tal:content="structure python:item.urlLink()"/>
                 </div>
                 </dd>
                 </tal:block>

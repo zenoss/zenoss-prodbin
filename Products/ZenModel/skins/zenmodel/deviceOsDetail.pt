@@ -79,13 +79,15 @@ $('dialog').addLoadEvent('dialog_addWinService', function() { createWinServiceCl
                 tal:attributes="value intf/getRelationshipManagerId"/>
       </td>
       <td class="tablevalues">
-      <tal:block tal:content="structure python:intf.getLink(text=intf.viewName())"/>
+      <tal:block 
+       tal:content="structure python:intf.urlLink(text=intf.viewName())"/>
       </td>
       <td class="tablevalues">
           <span tal:repeat="ip intf/getIpAddressObjs" omit-tag="">
             <tal:block 
              tal:condition="python:hasattr(ip,'getIpAddress')"
-             tal:content="structure python:ip.getLink(text=ip.getIpAddress(), attrs={'class':'tablevalues'})"/>
+             tal:content="structure python:ip.urlLink(text=ip.getIpAddress(),
+              attrs={'class':'tablevalues'})"/>
             <span tal:condition="python:not hasattr(ip,'getIpAddress')"
                 tal:replace="ip">1.1.1.1/24</span>
             <br/>
@@ -115,15 +117,18 @@ $('dialog').addLoadEvent('dialog_addWinService', function() { createWinServiceCl
                 here.getStatusImgSrc(3))" />
       </td>
       <td class="tablevalues" align="center">
-      <img tal:condition="intf/isLockedFromDeletion" border="0" src="locked-delete-icon.png">
-      <img tal:condition="intf/isLockedFromUpdates" border="0" src="locked-update-icon.png">
-      <img tal:condition="intf/sendEventWhenBlocked" border="0" src="locked-sendevent-icon.png">
+      <img tal:condition="intf/isLockedFromDeletion" 
+              border="0" src="locked-delete-icon.png">
+      <img tal:condition="intf/isLockedFromUpdates" 
+              border="0" src="locked-update-icon.png">
+      <img tal:condition="intf/sendEventWhenBlocked" 
+              border="0" src="locked-sendevent-icon.png">
       </td>
     </tr>
     </tal:block>
     <tr>
         <td colspan="9" class="tableheader" align='center'>
-            <form metal:use-macro="here/zenTableNavigation/macros/navtool"></form>
+        <form metal:use-macro="here/zenTableNavigation/macros/navtool"></form>
         </td>
     </tr>
 <!-- END TABLE CONTENTS -->
@@ -189,7 +194,9 @@ $('dialog').addLoadEvent('dialog_addWinService', function() { createWinServiceCl
                   tal:attributes="value srv/getRelationshipManagerId"/>
         </td>
         <td class="tablevalues">
-           <tal:block tal:content="structure python:srv.getLink(text=srv.caption(), attrs={'class':'tablevalues'})"/>
+           <tal:block 
+            tal:content="structure python:srv.urlLink(text=srv.caption(),
+             attrs={'class':'tablevalues'})"/>
         </td>
         <td class="tablevalues" tal:content="srv/startMode"/>
         <td class="tablevalues" tal:content="srv/startName"/>
@@ -199,16 +206,19 @@ $('dialog').addLoadEvent('dialog_addWinService', function() { createWinServiceCl
                 python:here.getStatusImgSrc(srv.getStatus())" />
         </td>
         <td class="tablevalues" align="center" width="60">
-        <img tal:condition="srv/isLockedFromDeletion" border="0" src="locked-delete-icon.png">
-        <img tal:condition="srv/isLockedFromUpdates" border="0" src="locked-update-icon.png">
-      <img tal:condition="srv/sendEventWhenBlocked" border="0" src="locked-sendevent-icon.png">
+        <img tal:condition="srv/isLockedFromDeletion" 
+              border="0" src="locked-delete-icon.png">
+        <img tal:condition="srv/isLockedFromUpdates" 
+              border="0" src="locked-update-icon.png">
+        <img tal:condition="srv/sendEventWhenBlocked" 
+              border="0" src="locked-sendevent-icon.png">
         </td>
     </tr>
     </tal:block>
     <tr>
-        <td colspan="7" class="tableheader" align='center'>
-            <div metal:use-macro="here/zenTableNavigation/macros/navtoolnoform"></div>
-        </td>
+      <td colspan="7" class="tableheader" align='center'>
+      <div metal:use-macro="here/zenTableNavigation/macros/navtoolnoform"></div>
+      </td>
     </tr>
 
 <!-- END TABLE CONTENTS -->
@@ -249,13 +259,13 @@ Optional titlebar stuff
     <tr>
         <th class="tableheader" width="20"></th>
         <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
-                            tableName,'getOSProcessClass','Class')"/>
+                tableName,'getOSProcessClass','Class')"/>
         <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
-                            tableName,'name','Name')"/>
+                tableName,'name','Name')"/>
         <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
-                            tableName,'alertOnRestart','Restarts')"/>
+                tableName,'alertOnRestart','Restarts')"/>
         <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
-                            tableName,'getFailSeverityString','Fail Severity')"/>
+                tableName,'getFailSeverityString','Fail Severity')"/>
         <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
                         tableName,'getStatus','Status','cmp')"
                         width="60" />
@@ -271,7 +281,9 @@ Optional titlebar stuff
         <td class="tablevalues" 
                 tal:content="structure proc/getOSProcessClassLink"/>
         <td class="tablevalues">
-           <tal:block tal:content="structure python:proc.getLink(text=proc.name()[:50], attrs={'class':'tablevalues'})"/>
+           <tal:block 
+            tal:content="structure python:proc.urlLink(text=proc.name()[:50],
+             attrs={'class':'tablevalues'})"/>
         </td>
         <td class="tablevalues" tal:content="proc/alertOnRestart"/>
         <td class="tablevalues" tal:content="proc/getFailSeverityString"/>
@@ -280,16 +292,18 @@ Optional titlebar stuff
                         python:here.getStatusImgSrc(proc.getStatus())" />
         </td>
         <td class="tablevalues" align="center" width="60">
-        <img tal:condition="proc/isLockedFromDeletion" border="0" src="locked-delete-icon.png">
-        <img tal:condition="proc/isLockedFromUpdates" border="0" src="locked-update-icon.png">
-      <img tal:condition="proc/sendEventWhenBlocked" border="0" src="locked-sendevent-icon.png">
+        <img tal:condition="proc/isLockedFromDeletion" 
+                border="0" src="locked-delete-icon.png">
+        <img tal:condition="proc/isLockedFromUpdates" 
+                border="0" src="locked-update-icon.png">
+        <img tal:condition="proc/sendEventWhenBlocked" 
+              border="0" src="locked-sendevent-icon.png">
         </td>
     </tr>
     </tal:block>
     <tr>
         <td colspan="7" class="tableheader" align='center'>
-            <form metal:use-macro="here/zenTableNavigation/macros/navtool">
-            </form>
+        <form metal:use-macro="here/zenTableNavigation/macros/navtool"></form>
         </td>
     </tr>
 
@@ -364,7 +378,9 @@ Optional titlebar stuff
                   tal:attributes="value srv/getRelationshipManagerId"/>
         </td>
         <td class="tablevalues">
-           <tal:block tal:content="structure python:srv.getLink(text=srv.name(), attrs={'class':'tablevalues'})"/>
+           <tal:block 
+            tal:content="structure python:srv.urlLink(text=srv.name(),
+             attrs={'class':'tablevalues'})"/>
         </td>
         <td class="tablevalues" tal:content="srv/protocol"/>
         <td class="tablevalues" tal:content="srv/port"/>
@@ -373,21 +389,24 @@ Optional titlebar stuff
                 tal:content="ip"/>
         </td>
         <td class="tablevalues" tal:content="srv/getDescription"/>
-		<td class="tablevalues" align="center" width="40">
-      		<img border="0" tal:attributes="src 
-					python:here.getStatusImgSrc(srv.getStatus())" />
-		</td>
+        <td class="tablevalues" align="center" width="40">
+         <img border="0" 
+          tal:attributes="src python:here.getStatusImgSrc(srv.getStatus())"/>
+        </td>
         <td class="tablevalues" align="center" width="60">
-        <img tal:condition="srv/isLockedFromDeletion" border="0" src="locked-delete-icon.png">
-        <img tal:condition="srv/isLockedFromUpdates" border="0" src="locked-update-icon.png">
-      <img tal:condition="srv/sendEventWhenBlocked" border="0" src="locked-sendevent-icon.png">
+        <img tal:condition="srv/isLockedFromDeletion" 
+              border="0" src="locked-delete-icon.png">
+        <img tal:condition="srv/isLockedFromUpdates" 
+              border="0" src="locked-update-icon.png">
+        <img tal:condition="srv/sendEventWhenBlocked" 
+              border="0" src="locked-sendevent-icon.png">
         </td>
     </tr>
     </tal:block>
     <tr>
-        <td colspan="8" class="tableheader" align='center'>
-            <form metal:use-macro="here/zenTableNavigation/macros/navtoolnoform"></form>
-        </td>
+    <td colspan="8" class="tableheader" align='center'>
+    <form metal:use-macro="here/zenTableNavigation/macros/navtoolnoform"></form>
+    </td>
     </tr>
 <!-- END TABLE CONTENTS -->
 
@@ -452,7 +471,9 @@ Optional titlebar stuff
                   tal:attributes="value fsys/getRelationshipManagerId"/>
       </td>
       <td class="tablevalues">
-          <tal:block tal:content="structure python:fsys.getLink(text=fsys.mount, attrs={'class':'tablevalues'})"/>
+          <tal:block 
+           tal:content="structure python:fsys.urlLink(text=fsys.mount,
+            attrs={'class':'tablevalues'})"/>
       </td>
       <td class="tablevalues"
         tal:content="fsys/totalBytesString">vol
@@ -472,9 +493,12 @@ Optional titlebar stuff
       </td>
       -->
       <td class="tablevalues" align="center" width="60">
-      <img tal:condition="fsys/isLockedFromDeletion" border="0" src="locked-delete-icon.png">
-      <img tal:condition="fsys/isLockedFromUpdates" border="0" src="locked-update-icon.png">
-      <img tal:condition="fsys/sendEventWhenBlocked" border="0" src="locked-sendevent-icon.png">
+      <img tal:condition="fsys/isLockedFromDeletion" 
+              border="0" src="locked-delete-icon.png">
+      <img tal:condition="fsys/isLockedFromUpdates" 
+              border="0" src="locked-update-icon.png">
+      <img tal:condition="fsys/sendEventWhenBlocked" 
+              border="0" src="locked-sendevent-icon.png">
       </td>
     </tr>
     </tal:block>
@@ -534,18 +558,19 @@ Optional titlebar stuff
       <td class="tablevalues">
          <tal:block
           tal:condition="python:route.interface()"
-          tal:content="structure python:route.interface().getLink(
+          tal:content="structure python:route.interface().urlLink(
                 text=route.getInterfaceName(), 
                 attrs={'class':'tablevalues'})"/>
       </td>
       <td class="tablevalues" tal:content="route/routeproto"/>
       <td class="tablevalues" tal:content="route/routetype"/>
       <td class="tablevalues" align="center">
-      <img tal:condition="route/isLockedFromDeletion" border="0"
-               src="locked-delete-icon.png">
-      <img tal:condition="route/isLockedFromUpdates" border="0"
-               src="locked-update-icon.png">
-      <img tal:condition="route/sendEventWhenBlocked" border="0" src="locked-sendevent-icon.png">
+      <img tal:condition="route/isLockedFromDeletion" 
+              border="0" src="locked-delete-icon.png">
+      <img tal:condition="route/isLockedFromUpdates" 
+              border="0" src="locked-update-icon.png">
+      <img tal:condition="route/sendEventWhenBlocked" 
+              border="0" src="locked-sendevent-icon.png">
       </td>
     </tr>
     </tal:block>

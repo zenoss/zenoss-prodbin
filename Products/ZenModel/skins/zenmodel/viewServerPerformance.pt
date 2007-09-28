@@ -33,7 +33,11 @@
     <span tal:repeat="filesystem batch">
     <tr>
         <td class=tablevalues>
-            <tal:block tal:content="structure python:filesystem.getLink(text=filesystem.mount(), url='%s/viewPerformanceDetail' % filesystem.absolute_url(), attrs={'class':'tablevalues'})"/>
+            <tal:block tal:content="structure
+             python:filesystem.urlLink(text=filesystem.mount(),
+             url='%s/viewPerformanceDetail' % 
+             filesystem.absolute_url(), 
+             attrs={'class':'tablevalues'})"/> 
         </td>
     </tr>
     </span>
@@ -67,13 +71,16 @@
     <span tal:repeat="disk batch">
     <tr>
         <td class=tablevalues>
-            <tal:block tal:content="structure python:disk.getLink(text=disk.description(), url='%s/viewPerformanceDetail' % disk.absolute_url(), attrs={'class':'tablevalues'})"/>
+            <tal:block tal:content="structure 
+                    python:disk.urlLink(text=disk.description(),
+                    url='%s/viewPerformanceDetail' % disk.absolute_url(),
+                    attrs={'class':'tablevalues'})"/>
         </td>
     </tr>
     </span>
     <tr>
         <td class="tableheader" align='center'>
-            <form metal:use-macro="here/zenTableNavigation/macros/navtool"></form>
+        <form metal:use-macro="here/zenTableNavigation/macros/navtool"></form>
         </td>
     </tr>
 </table>
