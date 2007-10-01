@@ -259,7 +259,6 @@ class ZenModelBase(object):
 
         >>> dmd.Devices.getZ('zSnmpPort')
         161
-
         """
         return getattr(self, zpropname)
 
