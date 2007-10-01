@@ -35,10 +35,10 @@ from ZenossSecurity import ZEN_COMMON
         
 class Organizer(ZenModelRM, EventView):
     """
-    @summary: OrganizerBase class is base for all hierarchical organization classes.
-    It allows Organizers to be addressed and created with file system like
-    paths like /Devices/Servers.  Organizers have a containment relation
-    called children.  Subclasses must define the attribute:
+    The base for all hierarchical organization classes.  It allows Organizers
+    to be addressed and created with file system like paths like
+    /Devices/Servers.  Organizers have a containment relation called children.
+    Subclasses must define the attribute:
 
     dmdRootName - root in the dmd database for this organizer
     """
@@ -58,10 +58,7 @@ class Organizer(ZenModelRM, EventView):
         @type id: string
         @param description: A decription of this organizer
         @type description: string
-        @return: N/A
         @rtype: Organizer
-        @raise:
-        @summary: Creates a new organizer
         """
         ZenModelRM.__init__(self, id)
         self.description = description
@@ -86,24 +83,21 @@ class Organizer(ZenModelRM, EventView):
 
     def childMoveTargetsJSON(self):
         """
-        Returns a list of all organizer names  
-        under the same root excluding ourselves (as a json dump)
+        Returns a list of all organizer names  under the same root excluding
+        ourselves (as a json dump)
         
         @return: Organizer names under a the same organizer root as a json dump
         @rtype: list
-        @raise:
-        @summary:
         """
         return simplejson.dumps(self.childMoveTargets());
 
     def getChildMoveTarget(self, moveTargetName):
         """
-        Returns an organizer under the same root
+        Returns an organizer under the same root.
         
         @param moveTargetName: Name of the organizer
         @type moveTargetName: string
         @rtype: Organizer
-        @summary:
         
         >>> dmd.Devices.getChildMoveTarget('Server')
         <DeviceClass at /zport/dmd/Devices/Server>
@@ -193,17 +187,15 @@ class Organizer(ZenModelRM, EventView):
     security.declareProtected('Add DMD Objects', 'manage_addOrganizer')
     def manage_addOrganizer(self, newPath, REQUEST=None):
         """
-        Adds a new organizer under this organizer, 
-        if given a fully qualified path it will create an organizer at that path
+        Adds a new organizer under this organizer. if given a fully qualified
+        path it will create an organizer at that path
         
         @param newPath: Path of the organizer to be created
         @type newPath:  string
         @param REQUEST: Request object
         @type REQUEST: dict
-        @return: called object
-        @rtype: 
+
         @raise: ZentinelException
-        @summary: Add an organizer to the database
         @permission: 'Add DMD Objects'
         
         >>> dmd.Devices.manage_addOrganizer('/Devices/DocTest')
