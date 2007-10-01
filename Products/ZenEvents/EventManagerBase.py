@@ -320,7 +320,8 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
 
     def getEventResultFields(self, context):
         """
-        A wrapper for L{lookupManagedEntityResultFields}.
+        A wrapper for L{lookupManagedEntityResultFields} accepting an object
+        with an C{event_key} attribute.
 
         >>> class dummy(object):
         ...     event_key = 'Device'
@@ -334,9 +335,10 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
         >>> f==dmd.ZenEventManager.defaultResultFields
         True
 
-        @param context: An object with an event_key attribute.
-        @type context: Managed Entity
-        @return: A tuple of strings representing columns in the database.
+        @param context: An object with an C{event_key} attribute.
+        @type context: L{ManagedEntity}
+        @return: A sequence of strings representing columns in the database.
+        @rtype: tuple
         """
         return self.lookupManagedEntityResultFields(getattr(context,
                                                     'event_key', 'Default'))
@@ -345,9 +347,10 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
         """
         Queries the database for events on a managed entity.
 
-        @param me: The entity for which to fetch events
-        @type me: Managed entity
-        @return: List of ZEvent objects
+        @param me: The object for which to fetch events
+        @type me: L{ManagedEntity}
+        @return: L{ZEvent} objects
+        @rtype: list
         """
         where = ""
         if hasattr(me, 'getWhere'):
@@ -367,6 +370,48 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
                         startdate=None, enddate=None, offset=0, rows=0,
                         getTotalCount=False, filter="", goodevids=[],
                         badevids=[], **kwargs):
+        """
+        Returns a batch of events based on criteria from checked rows on the
+        event console.
+
+        The event console can show thousands of events, and we want to support a
+        "Select All" feature; enter this method. It builds a query based on the
+        select status from the console ("All", "None", "Acknowledged",
+        "Unacknowledged") and any checkboxes that have been modified manually.
+
+        @param me: The managed entity for which to query events.
+        @type me: L{ManagedEntity}
+        @param resultFields: The columns to return from the database.
+        @type resultFields: list
+        @param where: DEPRECATED The base where clause to modify (ignored).
+        @type where: string
+        @param orderby: The "ORDER BY" string governing sort order.
+        @type orderby: string
+        @param severity: The minimum severity for which to query.
+        @type severity: int
+        @param state: The minimum state for which to query.
+        @type state: int
+        @param startdate: The early date limit
+        @type startdate: string, DateTime
+        @param enddate: The late date limit
+        @type enddate: string, DateTime
+        @param offset: The row at which to begin returning
+        @type offset: int
+        @param rows: DEPRECATED The number of rows to return (ignored).
+        @type rows: int
+        @param getTotalCount: Whether or not to return a count of the total
+            number of rows
+        @type getTotalCount: bool
+        @param filter: A glob by which to filter events
+        @type filter: string
+        @param goodevids: Ids of events that specifically should be included
+        @type goodevids: list
+        @param badevids: Ids of events that specifically should not be included
+        @type badevids: list
+        @return: Ids of matching events
+        @rtype: list
+        @todo: Remove unused parameters from the method definition
+        """
         where = self.lookupManagedEntityWhere(me)
         badevidsstr, goodevidsstr = '',''
         if not isinstance(goodevids, (list, tuple)): goodevids = [goodevids]
@@ -405,7 +450,34 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
             severity=None, state=2, startdate=None, enddate=None, offset=0,
             rows=0, getTotalCount=False, filter="", **kwargs):
         """
-        see IEventList.
+        Fetch a list of events from the database matching certain criteria.
+
+        @param resultFields: The columns to return from the database.
+        @type resultFields: list
+        @param where: The base where clause to modify.
+        @type where: string
+        @param orderby: The "ORDER BY" string governing sort order.
+        @type orderby: string
+        @param severity: The minimum severity for which to query.
+        @type severity: int
+        @param state: The minimum state for which to query.
+        @type state: int
+        @param startdate: The early date limit
+        @type startdate: string, DateTime
+        @param enddate: The late date limit
+        @type enddate: string, DateTime
+        @param offset: The row at which to begin returning
+        @type offset: int
+        @param rows: The number of rows to return.
+        @type rows: int
+        @param getTotalCount: Whether or not to return a count of the total
+            number of rows
+        @type getTotalCount: bool
+        @param filter: A glob by which to filter events
+        @type filter: string
+        @return: Matching events as L{ZEvent}s.
+        @rtype: list
+        @todo: Remove unused parameters from the method definition
         """
         try:
             if not resultFields:
@@ -473,8 +545,20 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
 
     def getEventSummaryME(self, me, severity=1, state=1, prodState=None):
         """
-        Return a list of tuples with number of events and the color of the
-        severity that the number represents.
+        Return the CSS class, number of acknowledged events, and number of
+        unacknowledged events, per severity, for a C{ManagedEntity}.
+
+        @param me: The object of the inquiry.
+        @type me: L{ManagedEntity}
+        @param severity: The minimum severity for which to retrieve events
+        @type severity: int
+        @param state: The minimum state for which to retrieve events
+        @type state: int
+        @param prodState: The minimum production state for which to retrieve
+            events
+        @type prodState: int
+        @return: List of lists of the form [class, acked count, unacked count].
+        @rtype: list
         """ 
         try:
             where = self.lookupManagedEntityWhere(me)
@@ -485,14 +569,27 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
 
     def getEventPillME(self, me, number=1, showGreen=False):
         """ 
-        Return a list of HTML strings representing the events with the worst
-        severity on an object
+        Get HTML code displaying the maximum event severity and the number of
+        events of that severity on a particular L{ManagedEntity} in a pleasing
+        pill-shaped container. Optionally return pills for lesser severities as
+        well. Optionally return a green pill if there are no events (normally no
+        events in a severity will not yield a result).
+
+        @param me: The object regarding which event data should be queried.
+        @type me: L{ManagedEntity}
+        @param number: The number of pills to return
+        @type number: int
+        @param showGreen: Whether to return an empty green pill if all is well
+        @type showGreen: bool
+        @return: HTML strings ready for template inclusion
+        @rtype: list
         """ 
         try:
             summary =[x[2] for x in self.getEventSummaryME(me, 0)]
             colors = "red orange yellow blue green".split()
             results = zip(colors, [me.getPrimaryUrlPath()]*5, summary)
-            template = '<div class="evpill-%s" onclick="location.href=\'%s/viewEvents\'">%s</div>'
+            template = ('<div class="evpill-%s" onclick="location.href='
+                        '\'%s/viewEvents\'">%s</div>')
             pills = []
             for result in results:
                 if (result[2]): 
@@ -509,8 +606,18 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
             return None
 
     def getDeviceComponentEventSummary(self, device, REQUEST=None):
-        """ Given a device, return a summary of component event stati
-            sorted by severity
+        """ 
+        Return a list of categories of components on a device along with event
+        pills for the maximum severity event on each category in the form of a
+        JSON object ready for inclusion in a YUI data table. If a category
+        contains components with events, the component and its associated event
+        pill are returned as a separate (indented) row.
+
+        @param device: The device for which to gather component data
+        @type device: L{Device}
+        @return: A JSON-formatted string representation of the columns and rows
+            of the table
+        @rtype: string
         """
         mydict = {'columns':[], 'data':[]}
         mydict['columns'] = ['Component Type', 'Status']
@@ -589,7 +696,16 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
         return simplejson.dumps(mydict)
 
     def getObjectsEventSummaryJSON(self, objects, REQUEST=None):
-        """ Given some objects, get a simple event summary table """
+        """
+        Return an HTML link and event pill for each object passed as a JSON
+        object ready for inclusion in a YUI data table.
+
+        @param objects: The objects for which to create links and pills.
+        @type objects: list
+        @return: A JSON-formatted string representation of the columns and rows
+            of the table
+        @rtype: string
+        """ 
         mydict = {'columns':[], 'data':[]}
         mydict['columns'] = ['Object', 'Events']
         getcolor = re.compile(r'class=\"evpill-(.*?)\"', re.S|re.I|re.M).search
@@ -612,8 +728,18 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
         return simplejson.dumps(mydict)
 
     def getEntityListEventSummary(self, entities=[], REQUEST=None):
-        """ Given a list of URLs, return a list of event summaries,
-            sorted by severity
+        """
+        A wrapper for L{getObjectsEventSummaryJSON} that accepts a list of paths
+        to Zope objects which it then attempts to resolve. If no list of paths
+        is given, it will try to read them from the POST data of the REQUEST
+        object.
+
+        @param entities: A list of paths that should be resolved into objects
+            and passed to L{getObjectsEventSummaryJSON}.
+        @type entities: list
+        @return: A JSON-formatted string representation of the columns and rows
+            of the table
+        @rtype: string
         """
         if not entities:
             try: entities = simplejson.loads(str(REQUEST._file.read()), 
@@ -633,8 +759,22 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
 
     def getEventSummary(self, where="", severity=1, state=1, prodState=None):
         """
-        Return a list of tuples with number of events
-        and the color of the severity that the number represents.
+        Return a list of tuples with number of events and the color of the
+        severity that the number represents.
+
+        This method should not be called directly, but overridden by subclasses.
+
+        @param where: The base where clause to modify.
+        @type where: string
+        @param severity: The minimum severity for which to retrieve events
+        @type severity: int
+        @param state: The minimum state for which to retrieve events
+        @type state: int
+        @param prodState: The minimum production state for which to retrieve
+            events
+        @type prodState: int
+        @return: List of lists of the form [class, acked count, unacked count].
+        @rtype: list
         """ 
         raise NotImplementedError
 
