@@ -35,4 +35,5 @@ class DeviceManagerBase:
         if type(deviceNames) in types.StringTypes: deviceNames = (deviceNames,)
         for devname in deviceNames:
             self.devices._delObject(devname)
-        if REQUEST: return self() 
+        if REQUEST:
+            return self()
