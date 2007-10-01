@@ -78,7 +78,6 @@ CREATE TABLE IF NOT EXISTS history
     INDEX lastTime(lastTime)
 ) ENGINE=INNODB;
 
-DROP TRIGGER IF EXISTS status_delete;
 CREATE TRIGGER status_delete BEFORE DELETE ON status
     FOR EACH ROW INSERT INTO history SET
             dedupid=OLD.dedupid,
