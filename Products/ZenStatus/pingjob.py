@@ -190,12 +190,12 @@ class PingMonitor:
         print len(targets), "LEN"
         print len(targets) % self._chunkSize
         if len(targets) % self._chunkSize:
-            for None in range(len(targets) % self._chunkSize):
+            for _ in range(len(targets) % self._chunkSize):
                 t = targets.pop()
                 chunk[t.host()] = t
         else:
             while targets:
-                for None in range(self._chunkSize):
+                for _ in range(self._chunkSize):
                     t = targets.pop()
                     chunk[t.host()] = t
         return chunk
