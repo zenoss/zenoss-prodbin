@@ -13,7 +13,7 @@
 
 __doc__="""ZenDaemon
 
-Base class for makeing deamon programs
+Base class for making deamon programs
 
 $Id: ZenDaemon.py,v 1.9 2003/08/29 20:33:10 edahl Exp $"""
 
