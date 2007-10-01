@@ -44,3 +44,7 @@ class NoServerFound(DataCollectorError):
 class CommandNotFound(DataCollectorError): 
     "no command found to run"
     pass
+
+class NoValidConnection(DataCollectorError):
+    "no valid connection found to make"
+    pass
