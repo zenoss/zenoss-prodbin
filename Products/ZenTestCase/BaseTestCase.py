@@ -98,8 +98,8 @@ class BaseTestCase(ZopeTestCase.ZopeTestCase):
         # builder params:
         # portal, cvthost, evtuser, evtpass, evtdb,
         #    smtphost, smtpport, snpphost, snppport
-        builder = Builder(self.app.zport, 'localhost', 'dbuser', 'dbpass', 'dbtable',
-            'localhost', '25', 'localhost', '0')
+        builder = Builder(self.app.zport, 'localhost', 'dbuser', 'dbpass',
+                            'dbtable', 'localhost', '25', 'localhost', '0')
         builder.build()
         self.dmd = builder.dmd
 
