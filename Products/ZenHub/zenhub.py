@@ -59,17 +59,30 @@ class AuthXmlRpcService(XmlRpcService):
 
 
     def doRender(self, avatar, request):
-        "Render after authentication" 
+        """
+        Call the inherited render engine after authentication succeeds.
+        See @L{XmlRpcService.XmlRpcService.Render}.
+        """
         return XmlRpcService.render(self, request)
 
 
     def unauthorized(self, request):
-        "Give a hint to the user that their credentials were bad"
+        """
+        Render an XMLRPC error indicating an authentication failure.
+        @type request: HTTPRequest
+        @param request: the request for this xmlrpc call.
+        @return: None
+        """
         self._cbRender(xmlrpc.Fault(self.FAILURE, "Unauthorized"), request)
-
+        
     
     def render(self, request):
-        "unpack the authorization header and check the credentials"
+        """
+        Unpack the authorization header and check the credentials.
+        @type request: HTTPRequest
+        @param request: the request for this xmlrpc call.
+        @return: NOT_DONE_YET
+        """
         auth = request.received_headers.get('authorization', None)
         if not auth:
             self.unauthorized(request)
@@ -97,11 +110,23 @@ class HubAvitar(pb.Avatar):
     def __init__(self, hub):
         self.hub = hub
 
-
     def perspective_getService(self,
                                serviceName,
                                instance = None,
                                listener = None):
+        """
+        Allow a collector to find a Hub service by name.  It also
+        associates the service with a collector so that changes can be
+        pushed back out to collectors.
+        
+        @type serviceName: string
+        @param serviceName: a name, like 'EventService'
+        @type instance: string
+        @param instance: the collector's instance name, like 'localhost'
+        @type listener: a remote reference to the collector
+        @param listener: the callback interface to the collector
+        @return a remote reference to a service
+        """
         service = self.hub.getService(serviceName, instance)
         if listener:
             service.addListener(listener)
@@ -109,13 +134,14 @@ class HubAvitar(pb.Avatar):
 
 
 class HubRealm(object):
-    "Gunk needed to connect PB to a login"
+    """
+    Following the Twisted authentication framework.
+    See http://twistedmatrix.com/projects/core/documentation/howto/cred.html
+    """
     implements(portal.IRealm)
-
 
     def __init__(self, hub):
         self.hubAvitar = HubAvitar(hub)
-
 
     def requestAvatar(self, collName, mind, *interfaces):
         if pb.IPerspective not in interfaces:
@@ -127,6 +153,22 @@ class ZenHub(ZCmdBase):
     """
     Listen for changes to objects in the Zeo database and update the
     collectors' configuration.
+
+    The remote collectors connect the ZenHub and request configuration
+    information and stay connected.  When changes are detected in the
+    Zeo database configuration updates are sent out to collectors
+    asynchronously.  In this way, changes made in the web GUI can
+    affect collection immediately, instead of waiting for a
+    configuration cycle.
+
+    Each collector uses a different, pluggable service within ZenHub
+    to translate objects into configuration and data.  ZenPacks can
+    add services for their collectors.  Collectors communicate using
+    Twisted's Perspective Broker, which provides authenticated,
+    asynchronous, bidirectional method invocation.
+
+    ZenHub also provides an XmlRPC interface to some common services
+    to support collectors written in other languages.
     """
 
     totalTime = 0.
@@ -135,6 +177,10 @@ class ZenHub(ZCmdBase):
     name = 'zenhub'
 
     def __init__(self):
+        """
+        Hook ourselves up to the Zeo database and wait for collectors
+        to connect.
+        """
         self.changes = []
         ZCmdBase.__init__(self)
         self.zem = self.dmd.ZenEventManager
@@ -155,8 +201,12 @@ class ZenHub(ZCmdBase):
 
 
     def zeoConnect(self):
-        """override the kind of zeo connection we have so we
-        can get OID invalidations"""
+        """
+        Override the kind of zeo connection we have so we can listen
+        to Zeo object updates.  Updates comes as OID invalidations.
+
+        @return: None
+        """
         from ZEO.cache import ClientCache as ClientCacheBase
         class ClientCache(ClientCacheBase):
             def invalidate(s, oid, version, tid):
@@ -180,8 +230,12 @@ class ZenHub(ZCmdBase):
 
 
     def processQueue(self):
-        "Process detected object changes"
-        self.syncdb()
+        """
+        Periodically (once a second) process database changes
+        
+        @return: None
+        """
+        self.syncdb()                   # reads the object invalidations
         try:
             self.doProcessQueue()
         except Exception, ex:
@@ -190,7 +244,11 @@ class ZenHub(ZCmdBase):
 
 
     def doProcessQueue(self):
-        "Process the changes"
+        """
+        Perform one cycle of update notifications.
+
+        @return: None
+        """
         while self.changes:
             oid = self.changes.pop()
             self.log.debug("Got oid %r" % oid)
@@ -201,7 +259,6 @@ class ZenHub(ZCmdBase):
                 self.log.debug("Noticing object %s changed" % obj.getPrimaryUrlPath())
             except AttributeError, ex:
                 self.log.debug("Noticing object %s " % obj)
-                print "Noticing object %s" %obj
                 for s in self.services.values():
                     s.deleted(obj)
             else:
@@ -210,6 +267,13 @@ class ZenHub(ZCmdBase):
 
 
     def sendEvent(self, **kw):
+        """
+        Useful method for posting events to the EventManager.
+
+        @type kw: keywords (dict)
+        @param kw: the values for an event: device, summary, etc.
+        @return: None
+        """
         if not 'device' in kw:
             kw['device'] = getfqdn()
         if not 'component' in kw:
@@ -221,7 +285,14 @@ class ZenHub(ZCmdBase):
 
 
     def loadChecker(self):
-        "Load the password file"
+        """
+        Load the password file
+
+        @return: an object satisfying the ICredentialsChecker
+        interface using a password file or an empty list if the file
+        is not available.  Uses the file specified in the --passwd
+        command line option.
+        """
         try:
             return checkers.FilePasswordDB(self.options.passwordfile)
         except Exception, ex:
@@ -230,7 +301,18 @@ class ZenHub(ZCmdBase):
 
 
     def getService(self, name, instance):
-        "Load services dynamically"
+        """
+        Helper method to load services dynamically for a collector.
+        Returned instances are cached: reconnecting collectors will
+        get the same service object.
+
+        @type name: string
+        @param name: the dotted-name of the module to load
+        (uses @L{Products.ZenUtils.Utils.importClass})
+        @param instance: string
+        @param instance: each service serves only one specific collector instances (like 'localhost').  instance defines the collector's instance name.
+        @return: a service loaded from ZenHub/services or one of the zenpacks.
+        """
         try:
             return self.services[name, instance]
         except KeyError:
@@ -245,8 +327,12 @@ class ZenHub(ZCmdBase):
 
         
     def heartbeat(self):
-        """Since we don't do anything on a regular basis, just
-        push heartbeats regularly"""
+        """
+        Since we don't do anything on a regular basis, just
+        push heartbeats regularly.
+        
+        @return: None
+        """
         seconds = 30
         evt = EventHeartbeat(getfqdn(), self.name, 3*seconds)
         self.zem.sendEvent(evt)
@@ -254,7 +340,13 @@ class ZenHub(ZCmdBase):
 
         
     def sigTerm(self, signum, frame):
-        'controlled shutdown of main loop on interrupt'
+        """
+        Start a controlled shutdown of main loop on interrupt.
+
+        @param signum: unused.
+        @param frame: unused.
+        @return: None
+        """
         try:
             ZCmdBase.sigTerm(self, signum, frame)
         except SystemExit:
@@ -266,10 +358,20 @@ class ZenHub(ZCmdBase):
 
 
     def main(self):
+        """
+        Start the main event loop.
+        
+        @return: None
+        """
         reactor.run(installSignalHandlers=False)
 
 
     def buildOptions(self):
+        """
+        Adds our command line options to ZCmdBase command line options.
+
+        @return: None
+        """
         ZCmdBase.buildOptions(self)
         self.parser.add_option('--xport',
                                '-x',
