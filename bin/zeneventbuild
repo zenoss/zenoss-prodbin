@@ -35,6 +35,11 @@ mysql -h $MYSQLHOST -u $MYSQLUSER --password=$MYSQLPASS << EOF
 	CREATE DATABASE IF NOT EXISTS $MYSQLDB;
 EOF
 
+echo "dropping any triggers that my already exist" >&2
+mysql -h $MYSQLHOST -u $MYSQLUSER --password=$MYSQLPASS $MYSQLDB 2>/dev/null << EOF
+	DROP TRIGGER status_delete
+EOF 
+
 # Load schema
 echo "loading schema" >&2
 mysql -h $MYSQLHOST -u $MYSQLUSER --password=$MYSQLPASS $MYSQLDB < zenevents.sql
