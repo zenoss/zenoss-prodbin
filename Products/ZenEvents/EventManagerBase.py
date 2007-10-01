@@ -345,18 +345,6 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
         """
         Queries the database for events on a managed entity.
 
-        >>> devid = dmd.Devices.getUnusedId('devices', 'dev')
-        >>> d = dmd.Devices.createInstance(devid)
-        >>> # Create an event for an object with the same id
-        ... evid = dmd.ZenEventManager.sendEvent({'device':devid,
-        ... 'component':'none', 'summary':'test event','severity':4,
-        ... 'eventClass':'/Test'})
-        >>> # Get the events for the device
-        ... evs = dmd.ZenEventManager.getEventListME(d)
-        >>> evid in [ev.evid for ev in evs]
-        True
-        >>> dmd.ZenEventManager.manage_deleteEvents(evid) # Cleanup
-
         @param me: The entity for which to fetch events
         @type me: Managed entity
         @return: List of ZEvent objects
