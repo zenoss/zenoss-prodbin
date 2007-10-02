@@ -392,7 +392,9 @@ class DeviceClass(DeviceOrganizer, ZenPackable):
 
     security.declareProtected('View', 'jsonGetComponentPaths')
     def jsonGetComponentPaths(self, deviceIds=()):
-        ''' Return a list of all component names that match the device
+        '''
+        Return a list of all components that match device in the form
+        (componentPath, componentName)
         '''
         from sets import Set
         paths = Set()
@@ -403,9 +405,9 @@ class DeviceClass(DeviceOrganizer, ZenPackable):
             if d:
                 dPathLen = len(d.getPrimaryId()) + 1
                 for comp in d.getMonitoredComponents():
-                    paths.add(comp.getPrimaryId()[dPathLen:])
+                    paths.add((comp.getPrimaryId()[dPathLen:], comp.name()))
         paths = list(paths)
-        paths.sort()
+        paths.sort(lambda x,y: cmp(x[0], y[0]))
         return simplejson.dumps(paths)
         
         

@@ -95,11 +95,12 @@ class CollectionItem(ZenModelRM):
         '''
         thing = self.getRepresentedItem()
         if self.deviceId:
-            if withLink and thing:
-                desc = '<a href="%s">%s%s</a>' % (thing.getPrimaryUrlPath(),
-                    self.deviceId, self.compPath)
+            if self.compPath:
+                desc = '%s %s' % (self.deviceId, thing.name())
             else:
-                desc = '%s%s' % (self.deviceId, self.compPath)
+                desc = self.deviceId
+            if withLink and thing:
+                desc = '<a href="%s">%s</a>' % (thing.getPrimaryUrlPath(),desc)
         else:
             if withLink and thing:
                 desc = '<a href="%s">%s</a>' % (thing.getPrimaryUrlPath(),

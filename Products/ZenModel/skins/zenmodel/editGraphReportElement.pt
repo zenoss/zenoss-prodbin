@@ -51,7 +51,8 @@ addLoadEvent(connectZenWebTextareas);
     </tr>
     <tr>
         <td class="tableheader">Component</td>
-        <td class="tablevalue" tal:content="here/componentPath"/>
+        <td class="tablevalue"
+            tal:content="python: here.componentPath and here.getComponent().name()"/>
     </tr>
     <tr>
         <td class="tableheader">Graph</td>

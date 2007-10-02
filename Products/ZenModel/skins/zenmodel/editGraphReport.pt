@@ -11,6 +11,15 @@
         }
     }
 
+    function updateSelectWithDisplay(widget, options) {
+        // Each element of options is an array of [value, display]
+        for (var i = widget.length; i < options.length; i++) {
+            widget.options[i] = new Option(options[i][1],options[i][0],
+                                false, false);
+            //if (findValue(current, options[i][0]) > -1)
+            //    widget.options[i].selected = true;
+        }
+    }
 
     function getSelection(widget) {
         var selection = new Array();
@@ -41,7 +50,7 @@
         var deviceIds = getSelection(deviceWidget);
         var d = loadJSONDoc(url, {'deviceIds': deviceIds});
         compWidget.options.length = 0;
-        d.addBoth(updateSelect, compWidget);
+        d.addBoth(updateSelectWithDisplay, compWidget);
         getThirdList();
     }
 
