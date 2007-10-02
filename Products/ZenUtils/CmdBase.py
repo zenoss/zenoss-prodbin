@@ -181,7 +181,7 @@ be seen on the display."""
 # ---------	-------""" % ( daemon_name )
 
 
-	options_to_ignore= ( 'help', 'version', '', 'genconf' )
+	options_to_ignore= ( 'help', 'version', '', 'genconf', 'genxmltable' )
 
 	#
 	# Create an entry for each of the command line flags
@@ -241,12 +241,131 @@ be seen on the display."""
 
 
 
+    def generate_xml_table( self, parser, options ):
+        """Create a Docbook table based on the long-form of the option names"""
+
+	#
+	# Header for the configuration file
+	#
+	daemon_name= os.path.basename( sys.argv[0] )
+	daemon_name= daemon_name.replace( '.py', '' )
+
+	print """<?xml version="1.0" encoding="UTF-8"?>
+
+<section version="5.0" xmlns="http://docbook.org/ns/docbook"
+   xmlns:xlink="http://www.w3.org/1999/xlink"
+   xmlns:xi="http://www.w3.org/2001/XInclude"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns:mml="http://www.w3.org/1998/Math/MathML"
+   xmlns:html="http://www.w3.org/1999/xhtml"
+   xmlns:db="http://docbook.org/ns/docbook"
+
+  xml:id="%s.options"
+>
+
+<title>%s Options</title>
+<para />
+<table frame="all">
+  <caption>%s <indexterm><primary>Daemons</primary><secondary>%s</secondary></indexterm> options</caption>
+<tgroup cols="2">
+<colspec colname="option" colwidth="1*" />
+<colspec colname="description" colwidth="2*" />
+<thead>
+<row>
+<entry> <para>Option</para> </entry>
+<entry> <para>Description</para> </entry>
+</row>
+</thead>
+<tbody>
+""" % ( daemon_name, daemon_name, daemon_name, daemon_name )
+
+
+	options_to_ignore= ( 'help', 'version', '', 'genconf', 'genxmltable' )
+
+	#
+	# Create an entry for each of the command line flags
+	#
+	# NB: Ideally, this should print out only the option parser dest
+	#     entries, rather than the command line options.
+	#
+	import re
+	for opt in parser.option_list:
+		if opt.help is SUPPRESS_HELP:
+			continue
+
+		#
+		# Create a Docbook-happy version of the option strings
+		# Yes, <arg></arg> would be better semantically, but the output
+		# just looks goofy in a table.  Use literal instead.
+		#
+		all_options= '<literal>' + re.sub( r'/', '</literal>,</para> <para><literal>', "%s" % opt ) + '</literal>'
+
+		#
+		# Don't display anything we shouldn't be displaying
+		#
+		option_name= re.sub( r'.*/--', '', "%s" % opt )
+		option_name= re.sub( r'^--', '', "%s" % option_name )
+		if option_name in options_to_ignore:
+			continue
+
+		default_value= parser.defaults.get( opt.dest )
+       		if default_value is NO_DEFAULT or default_value is None:
+			default_value= ""
+		default_string= ""
+		if default_value != "":
+			default_string= "<para> Default: <literal>" + str( default_value ) + "</literal></para>\n"
+
+                comment= self.pretty_print_config_comment( opt.help )
+
+#
+# TODO: Determine the variable name used and display the --option_name=variable_name
+#
+                if opt.action in [ 'store_true', 'store_false' ]:
+		   print """<row>
+<entry> <para>%s</para> </entry>
+<entry>
+<para>%s</para>
+%s</entry>
+</row>
+""" % ( all_options, comment, default_string )
+
+                else:
+                   target= '=<replaceable>' +  opt.dest.lower() + '</replaceable>'
+                   all_options= all_options + target
+		   all_options= re.sub( r',', target + ',', all_options )
+		   print """<row>
+<entry> <para>%s</para> </entry>
+<entry>
+<para>%s</para>
+%s</entry>
+</row>
+""" % ( all_options, comment, default_string )
+
+
+
+	#
+	# Close the table elements
+	#
+	print """</tbody></tgroup>
+</table>
+<para />
+</section>
+"""
+	sys.exit( 0 )
+
+
+
     def parseOptions(self):
 
         self.parser.add_option("--genconf",
                                action="store_true",
                                default=False,
                                help="Generate a template configuration file" )
+
+        self.parser.add_option("--genxmltable",
+                               action="store_true",
+                               default=False,
+                               help="Generate a Docbook table showing command-line switches." )
 
         if self.noopts:
             args = []
@@ -257,3 +376,6 @@ be seen on the display."""
 
         if self.options.genconf:
             self.generate_configs( self.parser, self.options )
+
+        if self.options.genxmltable:
+            self.generate_xml_table( self.parser, self.options )
