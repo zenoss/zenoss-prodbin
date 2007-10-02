@@ -12,6 +12,7 @@
 ###########################################################################
 "Turn ZenHub into a module"
 
-
-
-
+import sys
+if 'zope.testing' in sys.modules.keys():
+    from twisted.python.runtime import platform
+    platform.supportsThreads = lambda : None
