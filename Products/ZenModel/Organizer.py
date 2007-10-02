@@ -11,13 +11,6 @@
 #
 ###########################################################################
 
-
-__doc__="""Organizer
-
-$Id: DeviceOrganizer.py,v 1.6 2004/04/22 19:08:47 edahl Exp $"""
-
-__version__ = "$Revision: 1.6 $"[11:-2]
-
 from Globals import InitializeClass
 from Acquisition import aq_parent
 from AccessControl import ClassSecurityInfo, getSecurityManager
@@ -31,7 +24,7 @@ from Products.ZenUtils.Exceptions import ZenPathError, ZentinelException
 from EventView import EventView
 from ZenModelRM import ZenModelRM
 from ZenPackable import ZenPackable
-from ZenossSecurity import ZEN_COMMON
+from ZenossSecurity import *
         
 class Organizer(ZenModelRM, EventView):
     """
@@ -50,7 +43,7 @@ class Organizer(ZenModelRM, EventView):
     _relations = ZenModelRM._relations
  
     security = ClassSecurityInfo()
-    security.declareObjectProtected("View")
+    security.declareObjectProtected(ZEN_VIEW)
 
     def __init__(self, id, description = ''):
         """
@@ -70,8 +63,6 @@ class Organizer(ZenModelRM, EventView):
         
         @return: A list of organizers excluding our self.
         @rtype: list
-        @raise:
-        @summary:
         @todo: We should be using either deviceMoveTargets or childMoveTargets
             
         >>> dmd.Events.getOrganizerName() in dmd.Events.childMoveTargets()
@@ -111,18 +102,14 @@ class Organizer(ZenModelRM, EventView):
         Returns the immediate children of an organizer
         
         @param sort: If True, sorts the returned children. 
-            Defaults to False.
         @type sort: boolean
         @param checkPerm: If True, checks if the user has the permission 
-            to view each child. Defaults to True.
+            to view each child.
         @type checkPerm: boolean
         @param spec: If set, returns children of the specified meta_type.
-            Defaults to None.
         @type spec: string
         @return: A list of children of the organizer
         @rtype: list
-        @raise:
-        @summary: Return children of our organizer who have same type as parent.
         @permission: ZEN_COMMON
         
         >>> dmd.Devices.Printer.children()
@@ -133,7 +120,7 @@ class Organizer(ZenModelRM, EventView):
             spec = self.meta_type
         kids = self.objectValues(spec=spec)
         if checkPerm:
-            kids = [ kid for kid in kids if self.checkRemotePerm("View", kid)]
+            kids = [ kid for kid in kids if self.checkRemotePerm(ZEN_VIEW, kid)]
         if sort: kids.sort(lambda x,y: cmp(x.primarySortKey(), 
                                            y.primarySortKey()))
         return kids
@@ -144,11 +131,9 @@ class Organizer(ZenModelRM, EventView):
         Returns the ids of the immediate children of an organizer
         
         @param spec: If set, returns children of the specified meta_type.
-            Defaults to None.
         @type spec: string
         @return: Ids of children within our organizer 
         @rtype: list
-        @summary:
         
         >>> dmd.Devices.childIds()
         ['Discovered', 'Network', 'Server', 'Printer', 'Power', 'KVM', 'Ping']
@@ -165,11 +150,9 @@ class Organizer(ZenModelRM, EventView):
         Returns the number of all the children underneath an organizer
         
         @param spec: If set, returns children of the specified meta_type.
-            Defaults to None.
         @type spec: string 
         @return: A count of all our contained children.
         @rtype: integer
-        @summary:
         @permission: ZEN_COMMON
         
         >>> dmd.Devices.countChildren()
@@ -184,7 +167,7 @@ class Organizer(ZenModelRM, EventView):
         return count
         
 
-    security.declareProtected('Add DMD Objects', 'manage_addOrganizer')
+    security.declareProtected(ZEN_ADD, 'manage_addOrganizer')
     def manage_addOrganizer(self, newPath, REQUEST=None):
         """
         Adds a new organizer under this organizer. if given a fully qualified
@@ -192,11 +175,8 @@ class Organizer(ZenModelRM, EventView):
         
         @param newPath: Path of the organizer to be created
         @type newPath:  string
-        @param REQUEST: Request object
-        @type REQUEST: dict
-
         @raise: ZentinelException
-        @permission: 'Add DMD Objects'
+        @permission: ZEN_ADD
         
         >>> dmd.Devices.manage_addOrganizer('/Devices/DocTest')
         """ 
@@ -212,24 +192,20 @@ class Organizer(ZenModelRM, EventView):
                 REQUEST['message'] = 'Error: %s' % e
                 return self.callZenScreen(REQUEST)
         if REQUEST:
-            REQUEST['message'] = "%s %s added" % (self.__class__.__name__, newPath)
+            REQUEST['message'] = "%s %s added" % (self.__class__.__name__, 
+                newPath)
             return self.callZenScreen(REQUEST)
             
 
-    security.declareProtected('Delete objects', 'manage_deleteOrganizer')
+    security.declareProtected(ZEN_DELETE, 'manage_deleteOrganizer')
     def manage_deleteOrganizer(self, orgname, REQUEST=None):
         """
         Deletes an organizer underneath this organizer
         
         @param orgname: Name of the organizer to delete
         @type orgname: string
-        @param REQUEST: Request object
-        @type REQUEST: dict
-        @return: called object
-        @rtype:
         @raise: KeyError
-        @summary: Delete an Organizer from its parent name is relative to parent
-        @permission: 'Delete objects'
+        @permission: ZEN_DELETE
         
         >>> dmd.Devices.manage_deleteOrganizer('/Devices/Server/Linux')
         """
@@ -244,24 +220,19 @@ class Organizer(ZenModelRM, EventView):
         else:
             self._delObject(orgname)
         if REQUEST: 
-            REQUEST['message'] = "%s %s deleted" % (self.__class__.__name__, orgname)
+            REQUEST['message'] = "%s %s deleted" % (self.__class__.__name__, 
+                orgname)
             return self.callZenScreen(REQUEST)
 
 
-    security.declareProtected('Delete objects', 'manage_deleteOrganizers')
+    security.declareProtected(ZEN_DELETE, 'manage_deleteOrganizers')
     def manage_deleteOrganizers(self, organizerPaths=None, REQUEST=None):
         """
-        Deletes organizers underneath this organizer
+        Delete a list of Organizers from the database using their ids.
         
         @param organizerPaths: Names of organizer to be deleted
         @type organizerPaths: list
-        @param REQUEST: Request object
-        @type REQUEST: dict
-        @return: called object
-        @rtype: 
-        @raise:
-        @summary: Delete a list of Organizers from the database using their ids.
-        @permission: 'Delete objects'
+        @permission: ZEN_DELETE
         
         >>> dmd.Devices.manage_deleteOrganizers(['/Devices/Server/Linux',
         ... '/Devices/Server/Windows'])   
@@ -286,8 +257,6 @@ class Organizer(ZenModelRM, EventView):
         
         @return: A sorted list of organizers excluding our self.
         @rtype: list
-        @raise:
-        @summary: Return list of all organizers excluding our self.
         @todo: We should be using either deviceMoveTargets or childMoveTargets
         """
         targets = filter(lambda x: x != self.getOrganizerName(),
@@ -304,12 +273,6 @@ class Organizer(ZenModelRM, EventView):
         @type moveTarget: string
         @param organizerPaths: Paths of organizers to be moved
         @type organizerPaths: list
-        @param REQUEST: Request object
-        @type REQUEST: dict
-        @return: called object
-        @rtype: 
-        @raise:
-        @summary: Move organizer to moveTarget.
                       
         >>> dmd.Events.Status.moveOrganizer('/Events/Ignore',
         ... ['Ping', 'Snmp'])        
@@ -343,7 +306,6 @@ class Organizer(ZenModelRM, EventView):
         @type path: string
         @return: Organizer created with the specified path
         @rtype: Organizer
-        @summary: Create and return and an Organizer from its path.
         """
         return self.createHierarchyObj(self.getDmdRoot(self.dmdRootName), 
                                            path,self.__class__)
@@ -357,8 +319,6 @@ class Organizer(ZenModelRM, EventView):
         @type path: string
         @return: Organizer with the specified path
         @rtype: Organizer
-        @raise:
-        @summary: Return and an Organizer from its path.
                                              
         >>> dmd.Events.Status.getOrganizer('/Status/Snmp')
         <EventClass at /zport/dmd/Events/Status/Snmp>
@@ -374,10 +334,10 @@ class Organizer(ZenModelRM, EventView):
     security.declareProtected(ZEN_COMMON, "getOrganizerName")
     def getOrganizerName(self):
         """
+        Return the DMD path of an Organizer without its dmdSubRel names.
+        
         @return: Name of this organizer
         @rtype: string 
-        @summary: Return the DMD path of an Organizer without its 
-            dmdSubRel names.
         @permission: ZEN_COMMON
                
         >>> dmd.Events.Status.Snmp.getOrganizerName()
@@ -393,12 +353,9 @@ class Organizer(ZenModelRM, EventView):
         Returns a list of all organizer names under this organizer
         
         @param addblank: If True, add a blank item in the list.
-            Defaults to False.
         @type addblank: boolean
         @return: The DMD paths of all Organizers below this instance.
         @rtype: list
-        @raise:
-        @summary:
         @permission: ZEN_COMMON
         
         >>> dmd.Events.Security.getOrganizerNames()
@@ -409,7 +366,7 @@ class Organizer(ZenModelRM, EventView):
         """
         groupNames = []
         user = getSecurityManager().getUser()
-        if user.has_permission("View", self):
+        if user.has_permission(ZEN_VIEW, self):
             groupNames.append(self.getOrganizerName())
         for subgroup in self.children(checkPerm=False):
             groupNames.extend(subgroup.getOrganizerNames())
@@ -425,7 +382,6 @@ class Organizer(ZenModelRM, EventView):
         
         @return: The catalog instance for this Organizer.
         @rtype: ZCatalog
-        @raise:
         @note: Catalog is found using the attribute default_catalog.
         """
         catalog = None
@@ -441,8 +397,6 @@ class Organizer(ZenModelRM, EventView):
         
         @return: Organizers below this instance
         @rtype: list
-        @raise:
-        @summary:
         @permission: ZEN_COMMON
         
         >>> dmd.Events.Security.getSubOrganizers()
@@ -472,7 +426,6 @@ class Organizer(ZenModelRM, EventView):
         @return: The object ids of instances under an relation of this org
         @rtype: list
         @raise: AttributeError
-        @summary:
         @permission: ZEN_COMMON
         
         >>> dmd.Events.Security.Login.getSubInstanceIds('instances')
@@ -491,14 +444,14 @@ class Organizer(ZenModelRM, EventView):
     security.declareProtected(ZEN_COMMON, "getSubInstances")
     def getSubInstances(self, rel):
         """
-        Returns the object isntances of a specific relation under this organizer
+        Returns the object isntances of a specific relation 
+        under this organizer
         
         @param rel: The name of the relation to traverse
         @type rel: string
         @return: The object instances under an relation of this org
         @rtype: list
         @raise: AttributeError
-        @summary: 
         @permission: ZEN_COMMON
         
         >>> dmd.Events.Security.Login.getSubInstances('instances')
@@ -524,14 +477,14 @@ class Organizer(ZenModelRM, EventView):
     security.declareProtected(ZEN_COMMON, "getSubInstancesGen")
     def getSubInstancesGen(self, rel):
         """
-        Returns the object isntances of a specific relation under this organizer 
+        Returns the object isntances of a specific relation 
+        under this organizer 
         
         @param rel: The name of the relation to traverse
         @type rel: string
         @return: The object ids of instances under an relation of this org
         @rtype: generator
         @raise: AttributeError
-        @summary: 
         @permission: ZEN_COMMON
         """
         relobj = getattr(self, rel, None)
@@ -551,10 +504,6 @@ class Organizer(ZenModelRM, EventView):
         @type ofile: File
         @param ignorerels: Relations to ignore
         @type ignorerels: list
-        @return: None
-        @rtype: None
-        @raise:
-        @summary: Export of our child objects.
         """
         map(lambda o: o.exportXml(ofile, ignorerels), self.children())
 
