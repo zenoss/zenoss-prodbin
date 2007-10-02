@@ -24,4 +24,5 @@ echo 'events...\c'
 zendump -R /zport/dmd/Events -o events.xml
 echo 'manufacturers...\c'
 zendump -R /zport/dmd/Manufacturers --ignore instances -o manufacturers.xml
+replace "id='/zport/dmd'" "id='/zport/dmd/Manufacturers'" -- manufacturers.xml
 echo done
