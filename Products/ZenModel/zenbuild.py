@@ -27,10 +27,9 @@ import transaction
 
 from Products.ZenUtils.Utils import zenPath
 
-import Globals
-
 from Products.ZenUtils import Security
 from Products.ZenUtils.CmdBase import CmdBase
+from Products.PluggableAuthService import plugins
 
 class zenbuild(CmdBase):
     
@@ -98,6 +97,12 @@ class zenbuild(CmdBase):
         # Convert the acl_users folder at the root to a PAS folder and update
         # the login form to use the Zenoss login form
         Security.replaceACLWithPAS(self.app, deleteBackup=True)
+        
+        # Add groupManager to zport.acl
+        acl = site.acl_users
+        if not hasattr(acl, 'groupManager'):
+            plugins.ZODBGroupManager.addZODBGroupManager(acl, 'groupManager')
+        acl.groupManager.manage_activateInterfaces(['IGroupsPlugin',]) 
 
         trans = transaction.get()
         trans.note("Initial ZentinelPortal load by zenbuild.py")
