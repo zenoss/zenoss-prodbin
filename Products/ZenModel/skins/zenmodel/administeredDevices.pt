@@ -67,7 +67,8 @@ $('dialog').addLoadEvent('dialog_addAdministeredDevice', function() { createAnAu
        <input type="checkbox" style="float:left" name="delids"
               tal:condition="editable"
               tal:attributes="value ur/managedObjectName"/>
-        <div tal:define=" link python:ur.managedObject().getPrettyLink()"
+        <div style="float:left" 
+                tal:define=" link python:ur.managedObject().getPrettyLink()"
                 tal:content="structure link"/>
     </td>
     <td class="tablevalues">
