@@ -56,6 +56,16 @@ class Organizer(ZenModelRM, EventView):
         ZenModelRM.__init__(self, id)
         self.description = description
 
+    def urlLink(self):
+        """
+        Override urlLink to return a link with the full path of the organizer.
+
+        >>> dmd.Devices.Server.urlLink()
+        '<a href="/zport/dmd/Devices/Server">/Server</a>'
+        """
+        return ZenModelRM.urlLink(self, self.getOrganizerName())
+
+        
     def childMoveTargets(self):
         """ 
         Returns a list of all organizer names 

@@ -657,7 +657,7 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable, Admini
                                                 loc.getOrganizerName())
             else:
                 return loc.getOrganizerName()
-        return ""
+        return "None"
 
 
     security.declareProtected(ZEN_VIEW, 'getSystemNames')
@@ -1055,8 +1055,11 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable, Admini
     security.declareProtected(ZEN_CHANGE_DEVICE, 'setLocation')
     def setLocation(self, locationPath, REQUEST=None):
         """set the location of a device within a generic location path"""
-        locobj = self.getDmdRoot("Locations").createOrganizer(locationPath)
-        self.addRelation("location", locobj)
+        if not locationPath: 
+            self.location.removeRelation()
+        else:
+            locobj = self.getDmdRoot("Locations").createOrganizer(locationPath)
+            self.addRelation("location", locobj)
         self.setAdminLocalRoles()
 
 

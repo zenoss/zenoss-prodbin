@@ -120,19 +120,12 @@
             <dl class="faux-table">
                 <dt class="first">Location</dt>
                 <dd class="first">
-                <tal:block tal:condition="python:here.location()">
-                <div tal:define=" link python:here.location().getPrettyLink(
-                                        noicon=True)"
-                    tal:content="structure link"/>
-                </tal:block>
-                <div tal:condition="python:not here.location()">None</div>
+                <div tal:content="structure here/getLocationLink"/>
                 </dd>
                 <dt>Groups</dt>
                 <dd>
                 <tal:block tal:repeat="item here/groups/objectValuesAll">
-                <div tal:define="link python:item.getPrettyLink(
-                                        noicon=True)"
-                    tal:content="structure link"/>
+                <div tal:content="structure item/urlLink"/>
                 </tal:block>
                 <div tal:condition="not:here/groups/objectValuesAll">
                 None
@@ -141,22 +134,17 @@
                 <dt>Systems</dt>
                 <dd>
                 <tal:block tal:repeat="item here/systems/objectValuesAll">
-                <div tal:define="link python:item.getPrettyLink(
-                                        noicon=True)"
-                    tal:content="structure link"/>
+                <div tal:content="structure item/urlLink"/>
                 </tal:block>
-                <div tal:condition="not:here/systems/objectValuesAll">
-                None
+                <div tal:condition="not: here/systems/objectValuesAll">
+                    None
                 </div>
                 </dd>
                 <dt>Status Monitors</dt>
                 <dd>
                   <div tal:repeat="item here/monitors/objectValuesAll">
-                      <tal:block tal:content="structure python:item.urlLink(
-                                                text=item.getOrganizerName())"/>
+                      <div tal:content="structure item/urlLink"/>
                   </div>
-                  <div tal:condition="not:here/monitors/objectValuesAll">
-                  None</div>
                 </dd>
                 <dt>Perf Server</dt>
                 <dd>
