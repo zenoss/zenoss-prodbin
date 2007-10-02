@@ -201,6 +201,7 @@ class PBDaemon(ZenDaemon, pb.Referenceable):
         '''
         event = event.copy()
         event['agent'] = self.name
+        event['manager'] = self.options.monitor
         event.update(kw)
         self.log.debug("Sending event %r", event)
         def errback(error, event):
