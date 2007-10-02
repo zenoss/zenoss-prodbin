@@ -11,12 +11,6 @@
 #
 ###########################################################################
 
-__doc__="""DeviceOrganizer
-
-$Id: DeviceOrganizer.py,v 1.6 2004/04/22 19:08:47 edahl Exp $"""
-
-__version__ = "$Revision: 1.6 $"[11:-2]
-
 import types
 import re
 
@@ -90,12 +84,23 @@ class DeviceOrganizer(Organizer, DeviceManagerBase, Commandable, ZenMenuable,
 
     security.declareProtected(ZEN_COMMON, "getSubDevices")
     def getSubDevices(self, devfilter=None, devrel="devices"):
-        """get all the devices under an instance of a DeviceGroup"""
+        """
+        Get all the devices under an instance of a DeviceOrganizer
+        
+        @param devfilter: Filter function applied to returned list
+        @type devfilter: function
+        @param devrel: Relationship that contains devices
+        @type devrel: string
+        @return: Devices
+        @rtype: list
+        
+        
+        """
         devrelobj = getattr(self, devrel, None)
         if not devrelobj:
             raise AttributeError, "%s not found on %s" % (devrel, self.id)
         devices = filter(devfilter, devrelobj())
-        devices = [ dev for dev in devices if self.checkRemotePerm('View', dev)]
+        devices = [ dev for dev in devices if self.checkRemotePerm(ZEN_VIEW, dev)]
         for subgroup in self.children():
             devices.extend(subgroup.getSubDevices(devfilter, devrel))
         return devices
@@ -388,18 +393,29 @@ class DeviceOrganizer(Organizer, DeviceManagerBase, Commandable, ZenMenuable,
         """
         pass 
 
-    def manage_addAdministrativeRole(self, userid, REQUEST=None):
-        AdministrativeRoleable.manage_addAdministrativeRole(self, userid)
+    def manage_addAdministrativeRole(self, newId, REQUEST=None):
+        """
+        Overrides AdministrativeRoleable.manage_addAdministrativeRole
+        Adds an administrator to this DeviceOrganizer
+        
+        @param userid: User to make an administrator of this Organizer
+        @type userid: string
+        """
+        AdministrativeRoleable.manage_addAdministrativeRole(self, newId)
         for dev in self.getSubDevices():
             dev = dev.primaryAq()
             dev.setAdminLocalRoles()
         if REQUEST:
-            REQUEST['message'] = "Administrative Role %s added" % ar.role
+            REQUEST['message'] = "Administrative Role %s added" % newId
             return self.callZenScreen(REQUEST)
 
 
     def manage_editAdministrativeRoles(self, ids=(), role=(), 
                                         level=(), REQUEST=None):
+        """
+        Overrides AdministrativeRoleable.manage_editAdministrativeRoles
+        Edit the administrators to this DeviceOrganizer
+        """
         AdministrativeRoleable.manage_editAdministrativeRoles(
                                          self,ids,role,level)
         for dev in self.getSubDevices():
@@ -411,6 +427,13 @@ class DeviceOrganizer(Organizer, DeviceManagerBase, Commandable, ZenMenuable,
            
 
     def manage_deleteAdministrativeRole(self, delids=(), REQUEST=None):
+        """
+        Overrides AdministrativeRoleable.manage_deleteAdministrativeRole
+        Deletes administrators to this DeviceOrganizer
+        
+        @param delids: Users to delete from this Organizer
+        @type delids: tuple of strings
+        """
         AdministrativeRoleable.manage_deleteAdministrativeRole(self, delids)
         for dev in self.getSubDevices():
             dev = dev.primaryAq()
@@ -545,20 +568,20 @@ class DeviceOrganizer(Organizer, DeviceManagerBase, Commandable, ZenMenuable,
         return alllinks
 
 
-    security.declareProtected('View', 'getIconPath')
+    security.declareProtected(ZEN_VIEW, 'getIconPath')
     def getIconPath(self):
         """ Override the zProperty icon path and return a folder
         """
         return "/zport/dmd/img/icons/folder.png"
 
-    security.declareProtected('View', 'getEventPill')
+    security.declareProtected(ZEN_VIEW, 'getEventPill')
     def getEventPill(self, showGreen=True):
         """ Gets event pill for worst severity """
         pill = self.ZenEventManager.getEventPillME(self, showGreen=showGreen)
         if type(pill)==type([]) and len(pill)==1: return pill[0]
         return pill
 
-    security.declareProtected('View', 'getPrettyLink')
+    security.declareProtected(ZEN_VIEW, 'getPrettyLink')
     def getPrettyLink(self, noicon=False, shortDesc=False):
         """ Gets a link to this object, plus an icon """
         href = self.getPrimaryUrlPath().replace('%','%%')
