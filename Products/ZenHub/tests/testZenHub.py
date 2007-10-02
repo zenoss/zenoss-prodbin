@@ -19,11 +19,12 @@ from Products.ZenHub.zenhub import ZenHub
 class TestClient(pb.Referenceable):
 
     success = False
+    svc = 'Products.ZenHub.tests.TestService'
     
-    def __init__(self, tester):
+    def __init__(self, tester, port):
         self.tester = tester
         factory = pb.PBClientFactory()
-        reactor.connectTCP("localhost", 7000, factory)
+        reactor.connectTCP("localhost", port, factory)
         d = factory.login(credentials.UsernamePassword("admin", "zenoss"),
                           client=self)
         d.addCallback(self.connected)
@@ -45,22 +46,46 @@ class TestClient(pb.Referenceable):
             yield service.callRemote('echo', data)
             self.tester.assertEqual(driver.next(), data)
             self.success = True
-            stop()
+        drive(Test).addBoth(stop)
+
+class SendEventClient(TestClient):
+    svc = 'EventService'
+
+    def test(self, service):
+        def Test(driver):
+            evt = dict(device='localhost',
+                       severity='5',
+                       summary='This is a test message')
+            yield service.callRemote('sendEvents', [data])
+            self.tester.assertEqual(driver.next(), 1)
+            self.success = True
         drive(Test).addBoth(stop)
 
 class TestZenHub(unittest.TestCase):
 
-    def testGetService(self):
-        try:
-            before, sys.argv = sys.argv, ['run',
-                                          '--pbport=7000',
-                                          '--xport=7001']
-            zenhub = ZenHub()
-        finally:
-            sys.argv = before
-        client = TestClient(self)
+    base = 7000
+    count = 0
+
+    def setUp(self):
+        self.count += 1
+        base = self.base + self.count
+        self.before, sys.argv = sys.argv, ['run',
+                                           '--pbport=%d' % base,
+                                           '--xport=%d' % (base + 1)]
+        self.zenhub = ZenHub()
         reactor.callLater(1, stop)
-        zenhub.main()
+
+    def tearDown(self):
+        sys.argv = self.before
+
+    def testGetService(self):
+        client = TestClient(self, self.base + self.count)
+        self.zenhub.main()
+        self.assertTrue(client.success)
+
+    def testSendEvent(self):
+        client = SendEventClient(self, self.base + self.count)
+        self.zenhub.main()
         self.assertTrue(client.success)
 
 def test_suite():
