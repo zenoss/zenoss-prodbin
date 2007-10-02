@@ -59,7 +59,7 @@ class EventFilter(object):
         deviceClasses = [(n, n) for n in self.dmd.Devices.getOrganizerNames()]
         return dict(
             eventClass=EventClass('Event Class', eventClasses),
-            deviceClass=Select('Device Class', deviceClasses),
+            deviceClass=EventClass('Device Class', deviceClasses),
             summary=Text("Summary"),
             location=Text("Location"),
             prodState=Enumerated("Production State",pconv),
