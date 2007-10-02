@@ -637,7 +637,7 @@ False
 </object>
 <object id='Altiris Monitor Agent Package ' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
 <property type="string" id="name" mode="w" >
-Altiris Monitor Agent Package 
+Altiris Monitor Agent Package
 </property>
 <property type="lines" id="productKeys" mode="w" >
 ['Altiris Monitor Agent Package']
@@ -9898,7 +9898,7 @@ False
 </object>
 <object id='PowerEdge 2550                  ' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
 <property type="string" id="name" mode="w" >
-PowerEdge 2550                  
+PowerEdge 2550
 </property>
 <property type="lines" id="productKeys" mode="w" >
 ['PowerEdge 2550                  ']
@@ -9909,7 +9909,7 @@ False
 </object>
 <object id='PowerEdge 2650             ' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
 <property type="string" id="name" mode="w" >
-PowerEdge 2650             
+PowerEdge 2650
 </property>
 <property type="lines" id="productKeys" mode="w" >
 ['PowerEdge 2650             ']
@@ -11652,7 +11652,7 @@ False
 </object>
 <object id='Intel Corporation PCI Bridge Hub A ' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
 <property type="string" id="name" mode="w" >
-Intel Corporation PCI Bridge Hub A 
+Intel Corporation PCI Bridge Hub A
 </property>
 <property type="lines" id="productKeys" mode="w" >
 ['Intel Corporation PCI Bridge Hub A ']
@@ -11696,7 +11696,7 @@ False
 </object>
 <object id='Intel Corporation Server Hub PCI Express x4 Port C1 ' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
 <property type="string" id="name" mode="w" >
-Intel Corporation Server Hub PCI Express x4 Port C1 
+Intel Corporation Server Hub PCI Express x4 Port C1
 </property>
 <property type="lines" id="productKeys" mode="w" >
 ['Intel Corporation Server Hub PCI Express x4 Port C1 ']
@@ -12891,7 +12891,7 @@ True
 </object>
 <object id='Microsoft Windows Server 2003, Standard Edition ' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
 <property type="string" id="name" mode="w" >
-Microsoft Windows Server 2003, Standard Edition 
+Microsoft Windows Server 2003, Standard Edition
 </property>
 <property type="lines" id="productKeys" mode="w" >
 ['Microsoft Windows Server 2003, Standard Edition ']
@@ -15465,7 +15465,7 @@ False
 </object>
 <object id='Windows NT Version 4.0 ' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
 <property type="string" id="name" mode="w" >
-Windows NT Version 4.0 
+Windows NT Version 4.0
 </property>
 <property type="lines" id="productKeys" mode="w" >
 ['Windows NT Version 4.0 ']
