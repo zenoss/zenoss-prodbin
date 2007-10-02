@@ -35,7 +35,7 @@ class HruleGraphPoint(GraphPoint):
 
     value = ''
     color = ''
-    legend = ''
+    legend = GraphPoint.DEFAULT_LEGEND
 
     _properties = GraphPoint._properties + (
         {'id':'value', 'type':'string', 'mode':'w'},
@@ -56,7 +56,7 @@ class HruleGraphPoint(GraphPoint):
                         multiid=-1, prefix=''):
         ''' Build the graphing commands for this graphpoint
         '''
-        legend = self.addPrefix(prefix, self.legend)
+        legend = self.talesEval(self.legend, context)
         return cmds + ['HRULE:%s%s%s' % (
                     self.value or 0,
                     self.getColor(idx),

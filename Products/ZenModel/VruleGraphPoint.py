@@ -35,7 +35,7 @@ class VruleGraphPoint(GraphPoint):
 
     time = 0
     color = ''
-    legend = ''
+    legend = GraphPoint.DEFAULT_LEGEND
 
     _properties = GraphPoint._properties + (
         {'id':'time', 'type':'integer', 'mode':'w'},
@@ -59,6 +59,6 @@ class VruleGraphPoint(GraphPoint):
             return cmds
         gopts = 'VRULE:%s%s' % (self.time, self.getColor(idx))
         if self.legend:
-            gopts += ':%s' % self.addPrefix(prefix, self.legend)
+            gopts += ':%s' % self.talesEval(self.legend, context)
         return cmds + [gopts]
 

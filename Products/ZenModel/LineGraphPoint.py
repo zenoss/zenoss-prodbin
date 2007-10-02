@@ -36,7 +36,7 @@ class LineGraphPoint(GraphPoint):
     lineWidth = 1
     value = ''
     color = ''
-    legend = ''
+    legend = GraphPoint.DEFAULT_LEGEND
     stacked = False
 
     _properties = GraphPoint._properties + (
@@ -64,7 +64,7 @@ class LineGraphPoint(GraphPoint):
         if self.color:
             gopts += self.getColor(idx)
         if self.legend:
-            gopts += ':%s' % self.addPrefix(prefix, self.legend)
+            gopts += ':%s' % self.talesEval(self.legend, context)
         if self.stacked:
             gopts += ':STACK'
         return cmds + [gopts]

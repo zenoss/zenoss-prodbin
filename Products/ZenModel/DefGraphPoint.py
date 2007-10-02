@@ -64,13 +64,10 @@ class DefGraphPoint(GraphPoint):
                             multiid=-1, prefix=''):
         ''' Build the graphing commands for this graphpoint
         '''
-        from Products.ZenUtils.ZenTales import talesEvalStr
         if not (self.rrdFile and self.dsName and self.cFunc):
             return cmds
         
-        extraContext = self.getTalesContext()
-        extraContext['rrdDir'] = rrdDir
-        rrdFile = talesEvalStr(self.rrdFile, self, extraContext)
+        rrdFile = self.talesEval(self.rrdFile, context, rrdDir=rrdDir)    
             
         dest = self.getDsName(self.id, multiid, prefix)
         gopt = 'DEF:%s=%s:%s:%s' % (
@@ -81,10 +78,10 @@ class DefGraphPoint(GraphPoint):
         if self.step:
             gopt += ':step=%s' % self.step
         if self.start:
-            start = talesEvalStr(self.start, self, extraContext)
+            start = self.talesEval(self.start, context)
             gopt += ':start=%s' % start.replace(':', '\:')
         if self.end:
-            end = talesEvalStr(self.end, self, extraContext)
+            end = self.talesEval(self.end, context)
             gopt += ':end=%s' % end.replace(':', '\:')
         if self.rFunc:
             gopt += ':reduce=%s' % self.rFunc        

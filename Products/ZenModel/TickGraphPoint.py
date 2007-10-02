@@ -36,7 +36,7 @@ class TickGraphPoint(GraphPoint):
     vname = ''
     color = ''
     fraction = ''
-    legend = ''
+    legend = GraphPoint.DEFAULT_LEGEND
 
     _properties = GraphPoint._properties + (
         {'id':'vname', 'type':'string', 'mode':'w'},
@@ -60,7 +60,7 @@ class TickGraphPoint(GraphPoint):
         if not self.vname:
             return cmds
             
-        legend = self.addPrefix(prefix, self.legend)
+        legend = self.talesEval(self.legend, context)
         return cmds + ['TICK:%s%s%s%s' % (
                     self.addPrefix(prefix, self.vname),
                     self.getThresholdColor(idx),

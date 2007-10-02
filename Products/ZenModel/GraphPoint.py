@@ -42,7 +42,9 @@ class GraphPoint(ZenModelRM, ZenPackable):
     isThreshold = False
 
     DEFAULT_FORMAT = '%5.2lf%s'
-
+    DEFAULT_LEGEND = '${graphPoint/id}'
+    DEFAULT_MULTIGRAPH_LEGEND = '${here/name} ${graphPoint/id}'
+    
     sequence = 0
     _properties = (
         {'id':'sequence', 'type':'long', 'mode':'w'},
@@ -74,6 +76,12 @@ class GraphPoint(ZenModelRM, ZenPackable):
         '#fb31fb', '#0080ff', '#ff8000', '#800000', 
         )
 
+    def __init__(self, id, title=None, buildRelations=True, legend=None):
+        ZenModelRM.__init__(self, id, title=title, buildRelations=buildRelations)
+        if hasattr(self, 'legend'):
+            self.legend = legend or ''
+
+
     ## Interface
 
 
@@ -100,15 +108,43 @@ class GraphPoint(ZenModelRM, ZenPackable):
         ''' Return a description
         '''
         return self.id
+        
 
-
-    def getTalesContext(self):
-        ''' Standard stuff to add to context for tales expressions
+    def getTalesContext(self, thing=None, **kw):
         '''
-        d = self.graphDef.getTalesContext()
-        d['graphPoint'] = self
-        return d
+        Standard stuff to add to context for tales expressions
+        '''
+        context = {
+            'graphDef': self.graphDef(),
+            'graphPoint': self,
+            }
+        if thing:
+            if thing.meta_type == 'Device':
+                context['dev'] = thing
+                context['devId'] = thing.id
+            else:
+                context['comp'] = thing
+                context['compId'] = thing.id
+                context['compName'] = thing.name()
+                context['dev'] = thing.device()
+                context['devId'] = thing.device().id
+        for key, value in kw.items():
+            context[key] = value
+        return context
 
+
+    def talesEval(self, str, context, **kw):
+        '''
+        return a tales evaluation of str
+        '''
+        from Products.ZenUtils.ZenTales import talesEvalStr
+        extraContext = self.getTalesContext(thing=context, **kw)
+        try:
+            result = talesEvalStr(str, context, extraContext)
+        except Exception, e:
+            result = '(Tales expression error)'
+        return result
+            
 
     ## Graphing Support
     

@@ -27,10 +27,12 @@ class ThresholdGraphPoint(GraphPoint):
   
     threshId = ''
     color = ''
+    legend = GraphPoint.DEFAULT_LEGEND
 
     _properties = GraphPoint._properties + (
         {'id':'threshId', 'type':'string', 'mode':'w'},
         {'id':'color', 'type':'string', 'mode':'w'},
+        {'id':'legend', 'type':'string', 'mode':'w'},
         )
     
     def getThreshClass(self):

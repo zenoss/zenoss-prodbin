@@ -35,7 +35,7 @@ class AreaGraphPoint(GraphPoint):
 
     value = ''
     color = ''
-    legend = ''
+    legend = GraphPoint.DEFAULT_LEGEND
     stacked = False
 
     _properties = GraphPoint._properties + (
@@ -44,6 +44,7 @@ class AreaGraphPoint(GraphPoint):
         {'id':'legend', 'type':'string', 'mode':'w'},
         {'id':'stacked', 'type':'boolean', 'mode':'w'},
         )
+
 
     def getDescription(self):
         return '%s %s' % (self.value, self.legend)
@@ -61,7 +62,7 @@ class AreaGraphPoint(GraphPoint):
         if self.color:
             gopts += '%s' % self.getColor(idx)
         if self.legend:
-            gopts += ':%s' % self.addPrefix(prefix, self.legend)
+            gopts += ':%s' % self.talesEval(self.legend, context)
         if self.stacked:
             gopts += ':STACK'
         return cmds + [gopts]

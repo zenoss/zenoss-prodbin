@@ -19,7 +19,6 @@ Handles GraphPoints that define an rrd SHIFT
 import os
 
 from GraphPoint import GraphPoint
-from Products.ZenUtils.ZenTales import talesEvalStr
 
 
 def manage_addShiftGraphPoint(context, id, REQUEST = None):
@@ -58,8 +57,7 @@ class ShiftGraphPoint(GraphPoint):
         if not (self.rrdFile and self.dsName and self.cFunc):
             return cmds
         
-        extraContext = self.getTalesContext()
-        offset = talesEvalStr(self.offset, self, extraContext)
+        offset = self.talesEval(self.offset, context)
 
         return cmds + ['SHIFT:%s:%s' % (
                             self.addPrefix(prefix, self.vname), offset or 0)]

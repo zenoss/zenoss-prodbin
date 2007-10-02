@@ -254,11 +254,19 @@ class GraphDefinition(ZenModelRM, ZenPackable):
                 return new
         newId = getUniqueId(self.graphPoints, newId)
         gp = cls(newId)
+        # Set sequence
         if gp.isThreshold:
             gp.sequence = 0
         else:
             gp.sequence = len(self.graphPoints())
+        # Set legend for graph points on multigraph reports
+        if self.report():
+            # For MultiGraphReports we use a fancier legend
+            # to differentiate when you have multiple devices/graphpoints
+            # on a single graph
+            gp.legend = gp.DEFAULT_MULTIPGRAPH_LEGEND
         self.graphPoints._setObject(gp.id, gp)
+        gp = self.graphPoints._getOb(gp.id)
         if gp.id == 0:
             self.manage_resequenceGraphPoints()
         return gp
@@ -371,12 +379,6 @@ class GraphDefinition(ZenModelRM, ZenPackable):
         which the user selects from to create new graphpoints.
         '''
         return [(t.id, t.id) for t in self.rrdTemplate.thresholds()] 
-
-
-    def getTalesContext(self):
-        ''' Standard stuff to add to context for tales expressions
-        '''
-        return { 'graphDef': self }
 
 
     ## Graphing Support

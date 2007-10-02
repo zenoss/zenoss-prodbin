@@ -36,6 +36,7 @@ class ComplexGraphPoint(GraphPoint):
     lineWidth = 1
     stacked = False
     format = GraphPoint.DEFAULT_FORMAT
+    legend = GraphPoint.DEFAULT_LEGEND
 
     _properties = GraphPoint._properties + (
         {'id':'color', 'type':'string', 'mode':'w'},
@@ -44,6 +45,7 @@ class ComplexGraphPoint(GraphPoint):
         {'id':'lineWidth', 'type':'long', 'mode':'w'},
         {'id':'stacked', 'type':'boolean', 'mode':'w'},
         {'id':'format', 'type':'string', 'mode':'w'},
+        {'id':'legend', 'type':'string', 'mode':'w'},
         )
 
 

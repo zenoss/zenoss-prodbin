@@ -53,6 +53,13 @@ class DataPointGraphPoint(ComplexGraphPoint):
         return self.dpName
 
 
+    def getSimpleDataPointName(self):
+        '''
+        Return the id of the datapoint, without the datasource name
+        '''
+        return self.dpName.split('_', 1)[-1]
+
+
     def getType(self):
         return 'DataPoint'
 
@@ -96,15 +103,15 @@ class DataPointGraphPoint(ComplexGraphPoint):
             if multiid != -1:
                 fname = os.path.basename(rrdDir)
                 if fname.find('.rrd') > -1: fname = fname[:-4]
-                name = "%s-%s" % (self.id, fname)
+                legend = "%s-%s" % (self.id, fname)
             else:
-                name = self.dpName.split('_', 1)[-1]
-                name = self.addPrefix(prefix, name)
-            drawCmd ='%s:%s%s:%s' % (
+                legend = self.talesEval(self.legend, context)
+            drawCmd ='%s:%s%s' % (
                         self.lineType,
                         src,
-                        self.getColor(idx),
-                        name.ljust(14))
+                        self.getColor(idx))
+            if legend:
+                drawCmd += ':%s' % legend.ljust(14)
             if self.stacked:
                 drawCmd += ':STACK'
             graph.append(drawCmd)
