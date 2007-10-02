@@ -40,6 +40,7 @@ class EventFilter(object):
 
     def genMeta(self):
         from WhereClause import Text, Select, Compare, Enumerated, DeviceGroup
+        from WhereClause import EventClass
         from EventManagerBase import EventManagerBase
         kw = {}
         def addDevices(name, label, column):
@@ -57,7 +58,7 @@ class EventFilter(object):
         eventClasses = [(n, n) for n in self.dmd.Events.getOrganizerNames()]
         deviceClasses = [(n, n) for n in self.dmd.Devices.getOrganizerNames()]
         return dict(
-            eventClass=Select('Event Class', eventClasses),
+            eventClass=EventClass('Event Class', eventClasses),
             deviceClass=Select('Device Class', deviceClasses),
             summary=Text("Summary"),
             location=Text("Location"),
@@ -104,6 +105,10 @@ Modes = """
          {text:"ends with",value:"$"},
          {text:"is",value:""},
          {text:"is not",value:"!"}],
+   evtClass:[{text:"begins with",value:"^"},
+             {text:"does not begin with",value:"!^"},
+             {text:"is",value:""},
+             {text:"is not",value:"!"}],
    select:[{text:"is",value:""},
            {text:"is not",value:"!"}],
    compare:[{text:"<",value:"<"},

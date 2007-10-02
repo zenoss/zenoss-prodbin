@@ -240,6 +240,8 @@ function initializeFilters(current) {
       td.className = "filter";
       if (property.type == "select") {
         var element = createSelect(propertyName, property.options);
+      } else if (property.type == "evtClass") {
+        var element = createSelect(propertyName, property.options);
       } else if (property.type == "cselect") {
         var element = createSelect(propertyName, property.options);
       } else if (property.type == "text") {

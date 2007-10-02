@@ -125,6 +125,30 @@ class DeviceGroup(Select):
         else:
             return "%s not like %s" % (name, q('%|' + v + '%'))
     
+class EventClass(Select):
+    type = 'evtClass'
+    def toJS(self, operator, value):
+        value = value[2:-1]
+        import pdb; pdb.set_trace()
+        if operator == '=':
+            return ['', [value]]
+        if operator == '!=':
+            return ['!', [value]]
+        if operator == 'like':
+            return ['^', [value]]
+        if operator == 'not like':
+            return ['!^', [value]]
+    def buildClause1(self, name, v, mode):
+        if mode == '':
+            return "%s = %s" % (name, q(v))
+        elif mode == '^':
+            return "%s like %s" % (name, q(v + '%'))
+        elif mode == '!^':
+            return "%s not like %s" % (name, q(v + '%'))
+        else:
+            return "%s != %s" % (name, q(v))
+    
+
 
 class Enumerated(Select):
     "Convert to/from javascript and where clause elements for enumerated types"
