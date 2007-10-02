@@ -1,0 +1,12 @@
+#!/bin/sh
+
+#ZENHOME=/opt/zenoss
+cd $ZENHOME
+
+if [ `find perf -name \*.rrd -and -mtime 1 | wc -l` -gt 0 ]; then
+    cd perf/Devices
+    find . -name \*.rrd -mtime 1 | \
+       xargs $ZENHOME/bin/zensendevent -s Critical -c '/Status/RRD' stale rrd files:
+else
+    $ZENHOME/bin/zensendevent -s Clear -c '/Status/RRD' rrd files updated
+fi
