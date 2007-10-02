@@ -129,7 +129,6 @@ class EventClass(Select):
     type = 'evtClass'
     def toJS(self, operator, value):
         value = value[2:-1]
-        import pdb; pdb.set_trace()
         if operator == '=':
             return ['', [value]]
         if operator == '!=':
