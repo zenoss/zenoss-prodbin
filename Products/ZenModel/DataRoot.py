@@ -34,6 +34,7 @@ from ImageFile import ImageFile
 from Products.ZenModel.ZenModelBase import ZenModelBase
 from Products.ZenModel.ZenMenuable import ZenMenuable
 from Products.ZenRelations.RelSchema import *
+from Products.ZenUtils.IpUtil import IpAddressError
 from Commandable import Commandable
 import DateTime
 import socket
