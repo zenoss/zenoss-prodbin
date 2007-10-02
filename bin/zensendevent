@@ -22,6 +22,8 @@ parser.add_option("-d", "--device", dest="device", default=device,
     help="device from which this event is sent, default: %default")
 parser.add_option("-p", "--component", dest="component", default="",
     help="component from which this event is sent, default: ''")
+parser.add_option("-k", "--classkey", dest="eventClassKey", default="",
+    help="eventClassKey for this event, default: ''")
 parser.add_option("-s", "--severity", dest="severity", default="Warn",
     help="severity of this event: Critical, Error, Warn, Info, Debug, Clear")
 parser.add_option("-c", "--class", dest="eventClass", default=None,
@@ -46,6 +48,8 @@ if not evt['summary']:
     parser.error('no summary supplied') 
 evt['device'] = opts.device
 evt['component'] = opts.component
+if opts.eventClassKey:
+    evt['eventClassKey'] = opts.eventClassKey
 if opts.eventClass:
     evt['eventClass'] = opts.eventClass
 url = "http://%s@%s:%s" % (opts.auth, opts.server, opts.port)
