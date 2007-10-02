@@ -136,6 +136,14 @@ class GraphDefinitionsAndFriends(Migrate.Step):
                 except ConfigurationError:
                     dp = None
                     numDataPointsMissing += 1
+                except AttributeError, e:
+                    msg = ('There was a problem converting the graph %s.'
+                            % rrdGraph.name() +
+                            ' This might be caused by a misinstalled zenpack,'
+                            ' make sure all zenpacks listed on the ZenPacks'
+                            ' page (under Settings) are properly installed. '
+                            + str(e))
+                    raise msg
                 includeThresholds = not graphDef.custom                     
                 gp = graphDef.manage_addDataPointGraphPoints(
                                     [dsName], includeThresholds)[0]
