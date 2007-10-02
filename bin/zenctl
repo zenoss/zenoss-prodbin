@@ -145,13 +145,13 @@ upgrade_post() {
 #
 
 # run the firstboot if this is the first time zenoss was started
-if [ -f ${FRESH_INSTALL} ]; then
+if [ "$1" = start -a -f ${FRESH_INSTALL} ]; then
     fresh_install_pre
 fi
 
 # run the upgrade if this is the first time zenoss was started since
 # an upgrade occurred
-if [ -f ${UPGRADED} ]; then
+if [ "$1" = start -a -f ${UPGRADED} ]; then
     upgrade_pre
     rm ${UPGRADED}
 fi
@@ -162,13 +162,13 @@ su - ${RUNUSER} sh -c "${ZENHOME}/bin/zenoss $@"
 
 
 # run the post-script for firstboot and remove the firstboot flag
-if [ -f ${FRESH_INSTALL} ]; then
+if [ "$1" = start -a -f ${FRESH_INSTALL} ]; then
     fresh_install_post
     rm ${FRESH_INSTALL}
 fi
 
 # run the post-script for upgrade and remove the upgradeflag
-if [ -f ${UPGRADED} ]; then
+if [ "$1" = start -a -f ${UPGRADED} ]; then
     upgrade_post
     rm ${UPGRADED}
 fi
