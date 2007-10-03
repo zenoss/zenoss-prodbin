@@ -181,14 +181,27 @@ span.searchform-label {
 #topPane a{
 	color: white;
 }
+
 #leftPane {
     position: absolute;
     z-index: 999;
 	left: 0px;
     top: 107px;
 	width: 115px;
+}
+
+#leftPane-container {
     background: transparent url('img/paneToggle_bg.gif') top right repeat-y;
     border-right: 1px solid black;
+    margin-right: -1px;
+}
+
+#leftPane-bottom {
+    margin-top: -10px;
+    height: 14px;
+    border-right: none;
+    margin-right: -1px;
+    background: transparent url('img/menu_bottom.gif') bottom right no-repeat;
 }
 
 #leftPane p {

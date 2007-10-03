@@ -1,7 +1,9 @@
 <!-- ======================================================
     leftPane - standard left side and nav
  ====================================================== -->
-<div id="leftPane" metal:define-macro="leftPane">
+<tal:block metal:define-macro="leftPane">
+<div id="leftPane">
+    <div id="leftPane-container">
     <p id="mainviews">Main Views</p>
     <ul>
         <li><a href="/zport/dmd/Dashboard">Dashboard</a></li>
@@ -38,6 +40,7 @@
         <li><a href="/zport/dmd/ZenEventManager">Event Manager</a></li>
     </ul>
     </tal:block>
-
-
+    </div>
+    <div id="leftPane-bottom">&nbsp;</div>
 </div>
+</tal:block>
