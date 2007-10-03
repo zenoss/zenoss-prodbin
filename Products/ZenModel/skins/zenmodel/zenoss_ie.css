@@ -168,4 +168,13 @@ dl.faux-table dt {
 
 dl.faux-table dd {
     margin-left: 8.2em;
+} 
+
+span.searchform-label {
+    position:relative;
+    font-size:80%;
+    top:-1px;
+    color:#bbb;
+    left:-6em;
 }
+
