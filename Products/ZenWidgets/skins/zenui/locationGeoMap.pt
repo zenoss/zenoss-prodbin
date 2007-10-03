@@ -7,6 +7,7 @@
       behavior:url(#default#VML);
     }
     </style>
+<tal:block tal:condition="here/dmd/geomapapikey">
     <script type="text/javascript"
         tal:condition="here/dmd/geomapapikey"
         tal:define="apikey here/dmd/geomapapikey"
@@ -19,7 +20,9 @@
         var linkdata = ${here/getChildLinks};
         var secondarynodedata = ${here/getSecondaryNodes};
         var cachestring = '${here/dmd/getGeoCache}';
-        if (cachestring) geocodecache = evalJSON(cachestring);
+        try {
+            if (cachestring) geocodecache = evalJSON(cachestring);
+        } catch(e) { noop(); }
     "></script>
     <script>
         function maximizeMapHeight() {
@@ -33,6 +36,7 @@
         addLoadEvent(maximizeMapHeight);
     </script>
     <script type="text/javascript" src="javascript/geomap.js"> </script>
+</tal:block>
 </tal:block>
 
 <tal:block metal:fill-slot="breadCrumbPane">

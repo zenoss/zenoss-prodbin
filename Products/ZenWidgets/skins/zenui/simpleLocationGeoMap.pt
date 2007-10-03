@@ -24,7 +24,9 @@ v\:* {
         tal:content="string:
         var geocodecache;
         var cachestring = '${here/dmd/geocache}';
-        if (cachestring) geocodecache = evalJSON(cachestring);
+        try {
+            if (cachestring) geocodecache = evalJSON(cachestring);
+        } catch(e) { noop(); }
     "></script>
     <script type="text/javascript" src="javascript/geomap-2.1.js"> </script>
 </tal:block>

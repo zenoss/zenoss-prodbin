@@ -169,13 +169,15 @@ ZenGeoMap.prototype = {
 }
 
 function geomap_initialize(){
-    var x = new ZenGeoMap($('geomapcontainer'));
-    connect(currentWindow(), 'onunload', GUnload);
-    var portlet_id = currentWindow().frameElement.parentNode.id.replace(
-        '_body', '');
-    var pobj = currentWindow().parent.ContainerObject.portlets[portlet_id];
-    pobj.mapobject = x;
-    x.refresh();
+    try {
+        var x = new ZenGeoMap($('geomapcontainer'));
+        connect(currentWindow(), 'onunload', GUnload);
+        var portlet_id = currentWindow().frameElement.parentNode.id.replace(
+            '_body', '');
+        var pobj = currentWindow().parent.ContainerObject.portlets[portlet_id];
+        pobj.mapobject = x;
+        x.refresh();
+    } catch(e) { noop(); }
 }
 
 addLoadEvent(geomap_initialize);
