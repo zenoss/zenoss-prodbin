@@ -228,23 +228,23 @@ class MinMaxThresholdInstance(ThresholdInstance):
         result = []
         if n:
             result += [
-                "HRULE:%s%s:%s\\j" % (n, color, self.getMinLabel()),
+                "HRULE:%s%s:%s\\j" % (n, color, self.getMinLabel(n)),
                 ]
         if x:
             result += [
-                "HRULE:%s%s:%s\\j" % (x, color, self.getMaxLabel())
+                "HRULE:%s%s:%s\\j" % (x, color, self.getMaxLabel(x))
             ]
         return gopts + result
 
 
-    def getMinLabel(self):
+    def getMinLabel(self, minval):
         """build a label for a min threshold"""
-        return "%s < %s" % (self.getNames(), self.setPower(self.minimum))
+        return "%s < %s" % (self.getNames(), self.setPower(minval))
 
 
-    def getMaxLabel(self):
+    def getMaxLabel(self, maxval):
         """build a label for a max threshold"""
-        return "%s > %s" % (self.getNames(),self.setPower(self.maximum))
+        return "%s > %s" % (self.getNames(),self.setPower(maxval))
 
     def getNames(self):
         names = list(Set([x.split('_', 1)[1] for x in self.dataPointNames]))
