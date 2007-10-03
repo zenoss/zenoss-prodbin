@@ -1,6 +1,8 @@
 // Set up the namespace
 YAHOO.namespace('zenoss.portlet');
 
+var isIE//@cc_on=1;
+
 var DDM = YAHOO.util.DragDropMgr;
 
 var Portlet = Class.create();
@@ -45,11 +47,12 @@ PortletColumn.prototype = {
         } else {
             appendChildNodes(this.domel, portlet.render());
         }
-        new YAHOO.zenoss.DDResize(portlet);
+        if (!isIE) new YAHOO.zenoss.DDResize(portlet);
         j = new YAHOO.zenoss.portlet.PortletProxy(portlet.id, this.container);
         j.addInvalidHandleId(portlet.resizehandle.id);
         j.addInvalidHandleClass('nodrag');
         this.container.setContainerHeight();
+        if (isIE) new YAHOO.zenoss.DDResize(portlet);
     },
     getPortlets: function() {
         els = getElementsByTagAndClassName('div', 'zenoss-portlet', this.domel);
@@ -123,7 +126,6 @@ Portlet.prototype = {
         var myDataTable = new YAHOO.widget.DataTable(
             this.body.id, columnDefs, dataSource, oConfigs);
         currentWindow().dataTable = myDataTable;
-        connect(myDataTable, 'onfocus', myDataTable.blur);
     },
     toggleSettings: function(state) {
         var show = method(this, function() {
@@ -147,6 +149,7 @@ Portlet.prototype = {
         this.setTitleText(this.title);
         for (setting in settings) {
             this.datasource[setting] = settings[setting];
+            console.log(setting, settings[setting]);
         }
         this.setDatasource(this.datasource);
         this.PortletContainer.isDirty = true;
@@ -629,6 +632,7 @@ YAHOO.zenoss.portlet.PortletProxy = function(id, container) {
         this, id, sGroup, config);
     var el = this.getDragEl();
     YAHOO.util.Dom.setStyle(el, "opacity", 0.67);
+    YAHOO.util.Dom.setStyle(el, "z-index", 10000);
     this.container = container;
     this.goingUp = false;
     this.lastY = 0;
@@ -901,7 +905,7 @@ WatchListPortlet.prototype = {
             //log(this.id+"_row_"+i);
             var removelink = "<a id='"+this.id+"_row_"+i+
                          "' class='removerowlink'"+
-                         " title='Remove this object'>" +
+                         " title='Stop watching this object'>" +
                          "X</a>";
             x['Object'] = removelink + x['Object'];
             i++;
