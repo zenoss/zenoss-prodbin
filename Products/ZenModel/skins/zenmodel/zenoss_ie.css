@@ -153,4 +153,19 @@ div.horizontal-rainbow > div > div ,
 div.vertical-rainbow > div > div {
     background-color: transparent;
     opacity: 1;
+    background: transparent url(img/ffffff3c.png);
+}
+
+dl.faux-table div {
+    margin: 0;
+    padding: 0;
+}
+
+dl.faux-table dt {
+    font-size: 0.9em;
+    width: 8em;
+}
+
+dl.faux-table dd {
+    margin-left: 8.2em;
 }

@@ -164,7 +164,7 @@
                 <dd>
                     <div tal:repeat="item here/dhcpservers/objectValuesAll">
                     <tal:block tal:content="structure python:item.urlLink()"/>
-                </div>
+                    </div>
                 </dd>
                 </tal:block>
                 <tal:block tal:condition="python:hasattr(here,'termserver')
@@ -196,24 +196,29 @@
             <dl class="faux-table">
                 <dt class="first">Tag #</dt>
                 <dd class="first"> 
-                    <div tal:content="here/hw/tag">x</div>
+                    <div tal:condition="here/hw/tag" 
+                        tal:content="here/hw/tag">x</div>
                     <div tal:condition="not:here/hw/tag">&nbsp;</div>
                 </dd>
                 <dt>Serial #</dt>
                 <dd>
-                    <div tal:content="here/hw/serialNumber">x</div>
+                    <div tal:condition="here/hw/serialNumber" 
+                        tal:content="here/hw/serialNumber">x</div>
                     <div tal:condition="not:here/hw/serialNumber">&nbsp;</div>
                 </dd>
                 <dt>HW Make</dt>
                 <dd>
-                    <div tal:content="structure
-                    here/hw/getManufacturerLink">&nbsp;</div>
+                    <div tal:condition="here/hw/getManufacturerLink" 
+                        tal:content="structure here/hw/getManufacturerLink">
+                            &nbsp;
+                    </div>
                     <div tal:condition="not:here/hw/getManufacturerLink">&nbsp;
                     </div>
                 </dd>
                 <dt>HW Model</dt>
                 <dd>
-                    <div tal:content="structure here/hw/productClass/getPrimaryLink">x
+                    <div tal:condition="here/hw/productClass/getPrimaryLink"
+                    tal:content="structure here/hw/productClass/getPrimaryLink">x
                     </div>
                    <div tal:condition="not:here/hw/productClass/getPrimaryLink">
                     &nbsp;
@@ -221,7 +226,8 @@
                 </dd>
                 <dt>OS Make</dt>
                 <dd>
-                    <div tal:content="structure here/os/getManufacturerLink">x
+                    <div tal:condition="here/os/getManufacturerLink" 
+                         tal:content="structure here/os/getManufacturerLink">x
                     </div>
                    <div tal:condition="not:here/os/getManufacturerLink">
                     &nbsp;
@@ -229,8 +235,9 @@
                 </dd>
                 <dt>OS Version</dt>
                 <dd>
-                    <div tal:content="
-                        structure here/os/productClass/getPrimaryLink">x
+                    <div tal:condition="here/os/productClass/getPrimaryLink"
+                        tal:content="
+                            structure here/os/productClass/getPrimaryLink">x
                     </div>
                    <div tal:condition="not:here/os/productClass/getPrimaryLink">
                         &nbsp;
@@ -238,19 +245,22 @@
                 </dd>
                 <dt>Rack Slot</dt>
                 <dd>
-                    <div tal:content="structure here/rackSlot">x</div>
+                    <div tal:condition="string:${here/rackSlot}"
+                    tal:content="structure here/rackSlot">x</div>
                    <div tal:condition="not:string:${here/rackSlot}">&nbsp;</div>
                 </dd>
                 <dt>sysName</dt>
                 <dd> 
-                    <div style="font-size:90%" 
+                    <div tal:condition="here/snmpSysName"
+                        style="font-size:90%" 
                         tal:content="here/snmpSysName">x</div>
                     <div tal:condition="not:here/snmpSysName">&nbsp;</div>
                 </dd>
                 <dt>Location</dt>
                 <dd >
-                  <div style="font-size:90%" 
-                    tal:content="here/snmpLocation">x</div>
+                  <div tal:condition="here/snmpLocation"
+                      style="font-size:90%" 
+                      tal:content="here/snmpLocation">x</div>
                   <div tal:condition="not:here/snmpLocation">&nbsp;</div>
                 </dd>
                 <tal:block tal:condition="here/snmpAgent">
@@ -268,15 +278,18 @@
     <dl class="faux-table">
     <dt class="first">SNMP Descr</dt>
     <dd class="first">
-        <div style="font-size:90%" tal:content="here/snmpDescr">x</div>
+        <div tal:condition="here/snmpDescr"
+            style="font-size:90%" tal:content="here/snmpDescr">x</div>
         <div tal:condition="not:here/snmpDescr">&nbsp;</div>
     </dd>
     <dt>Comments</dt>
-    <dd><div style="font-size:90%" tal:content="here/comments">x</div>
+    <dd><div tal:condition="here/comments"
+    style="font-size:90%" tal:content="here/comments">x</div>
         <div tal:condition="not:here/comments">&nbsp;</div>
     </dd>
     <dt>Links</dt>
-    <dd><div style="font-size:90%" tal:content="structure here/getExpandedLinks">
+    <dd><div tal:condition="here/getExpandedLinks"
+            style="font-size:90%" tal:content="structure here/getExpandedLinks">
         x</div>
         <div tal:condition="not:here/getExpandedLinks">&nbsp;</div>
         </dd>
