@@ -35,10 +35,19 @@ class ThresholdGraphPoint(GraphPoint):
         {'id':'legend', 'type':'string', 'mode':'w'},
         )
     
-    def getThreshClass(self):
+    def getThreshClass(self, context):
         ''' Get the related threshold class or None if it doesn't exist
         '''
-        return getattr(self.rrdTemplate.thresholds, self.threshId, None)
+        threshClass = None
+        if self.graphDef.rrdTemplate():
+            threshClass = getattr(self.graphDef.rrdTemplate.thresholds, 
+                                        self.threshId, None)
+        elif self.graphDef.report():
+            for temp in context.getRRDTemplates():
+                threshClass = getattr(temp.thresholds, self.threshId, None)
+                if threshClass:
+                    break
+        return threshClass
 
 
     def getDescription(self):
@@ -62,15 +71,15 @@ class ThresholdGraphPoint(GraphPoint):
     #     return dpNames
     
         
-    def getRelatedGraphPoints(self):
-        ''' Return a dictiony where keys are the dp names from the
+    def getRelatedGraphPoints(self, context):
+        ''' Return a dictionary where keys are the dp names from the
         threshold and values are a DataPointGraphPoint for that dp or
         None if a RPGP doesn't exist.  If multiple exist for any given
         dp then return just the first one.
         '''
         from DataPointGraphPoint import DataPointGraphPoint
         related = {}
-        threshClass = self.getThreshClass()
+        threshClass = self.getThreshClass(context)
         if threshClass:
             for dpName in threshClass.dsnames:
                 gps = self.graphDef.getDataPointGraphPoints(dpName)
@@ -86,9 +95,9 @@ class ThresholdGraphPoint(GraphPoint):
                         multiid=-1, prefix=''):
         ''' Build the graphing commands for this graphpoint
         '''
-        relatedGps = self.getRelatedGraphPoints()
+        relatedGps = self.getRelatedGraphPoints(context)
         gopts = []
-        threshClass = self.getThreshClass()
+        threshClass = self.getThreshClass(context)
         if threshClass:
             threshInst = threshClass.createThresholdInstance(context)
             namespace = self.addPrefix(prefix, self.id)
