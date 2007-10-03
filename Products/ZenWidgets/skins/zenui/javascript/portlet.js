@@ -149,7 +149,6 @@ Portlet.prototype = {
         this.setTitleText(this.title);
         for (setting in settings) {
             this.datasource[setting] = settings[setting];
-            console.log(setting, settings[setting]);
         }
         this.setDatasource(this.datasource);
         this.PortletContainer.isDirty = true;
@@ -371,9 +370,17 @@ PortletContainer.prototype = {
                 this.configDialog = null;
             }, this);
             var getImage = function(type) {
-                el = DIV({'class':'column-layout-button'}, null);
-                setStyle(el, {'background-image':'url(img/icons/'+type+'.png)'});
-                return toHTML(el);
+                el = DIV({'class':'column-layout-button',
+                          'style':'background-image:url(img/icons/'+type+'.png)'
+                         }, null);
+                var imagehtml = toHTML(el);
+                if (isIE) {
+                    imagehtml = imagehtml.replace(
+                        'align', 
+                        'style="background-image:url(img/icons/'+type+
+                            '.png)" align');
+                }
+                return imagehtml;
             }
             var mybuttons = [ { text:getImage("1col"),handler:onecol},  
                               { text:getImage("2coleq"),handler:twocoleq},  

@@ -81,7 +81,7 @@ div.portlet-body table.yui-dt-table {
 div.tinylink-container {
     padding: 0;
     margin: 0;
-    height: 6pt;
+    height: 10.4pt;
     text-align: right;
     width: 100%;
     display: block;
@@ -92,7 +92,7 @@ a.tinylink {
     margin: 0;
     color: darkblue;
     font-size: 8pt;
-    line-height: 6pt;
+    line-height: 10.4pt;
     text-decoration: none;
     cursor: hand;
     cursor: pointer;

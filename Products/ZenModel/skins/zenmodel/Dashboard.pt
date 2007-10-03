@@ -16,7 +16,6 @@
 </tal:block>
 
 <tal:block metal:fill-slot="contentPane">
-<div id="testthingy" style="width:30em;position:relative;"></div>
 <div id="portletContainer"></div>
 <script tal:define="settings python:here.ZenUsers.getUserSettings();
                     json settings/dashboardState | string:null"

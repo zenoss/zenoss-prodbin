@@ -783,20 +783,17 @@ div.evpill-grey   { background-position: 0px -120px; }
 a.prettylink {
     text-decoration: none;
     font-size: 1.2em;
-    /*
-    padding-left: 35px;
-    */
     line-height: 28px;
 }
 
-table.zenportlet img.device-icon,
+div.zenportlet img.device-icon,
 img.device-icon {
     height: 28px;
     vertical-align: middle;
     text-decoration: none;
     border: medium none;
 }
-table.zenportlet div.device-icon-container,
+div.zenportlet div.device-icon-container,
 div.device-icon-container {
     float: left;
     width: 35px;
