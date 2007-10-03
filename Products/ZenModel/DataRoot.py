@@ -519,6 +519,7 @@ class DataRoot(ZenModelRM, OrderedFolder, Commandable, ZenMenuable):
         """
         cache = extractPostContent(REQUEST)
         self.geocache = cache
+        return True
 
     security.declareProtected(ZEN_COMMON, 'getGeoCache')
     def getGeoCache(self, REQUEST=None):

@@ -14,33 +14,45 @@ v\:* {
   behavior:url(#default#VML);
 }
 </style>
+
+    <link type="text/css" rel="stylesheet" href='css/geomap.css'/>
+    <style type="text/css">
+    v\:* {
+      behavior:url(#default#VML);
+    }
+    </style>
 <tal:block tal:condition="here/dmd/geomapapikey">
     <script type="text/javascript"
+        tal:condition="here/dmd/geomapapikey"
         tal:define="apikey here/dmd/geomapapikey"
         tal:attributes="
             src string:http://maps.google.com/maps?file=api&v=2&key=${apikey};
     "></script>
-    <script 
-        tal:content="string:
+    <script tal:content="string:
         var geocodecache;
-        var cachestring = '${here/dmd/geocache}';
+        var nodedata = ${here/getChildGeomapData};
+        var linkdata = ${here/getChildLinks};
+        var secondarynodedata = ${here/getSecondaryNodes};
+        var cachestring = '${here/dmd/getGeoCache}';
         try {
             if (cachestring) geocodecache = evalJSON(cachestring);
         } catch(e) { noop(); }
     "></script>
+    <script>
+        function maximizeMapHeight() {
+            mapdiv = $('geomapcontainer');
+            mapoffset = getElementPosition(mapdiv).y;
+            maxbottom = getViewportDimensions().h;
+            newdims = {'h':maxbottom-mapoffset};
+            setElementDimensions(mapdiv, newdims);
+        }
+        connect(currentWindow(), 'onresize', maximizeMapHeight);
+        addLoadEvent(maximizeMapHeight);
+    </script>
     <script type="text/javascript" src="javascript/geomap-2.1.js"> </script>
 </tal:block>
-<script>
-    function maximizeMapHeight() {
-        mapdiv = $('geomapcontainer');
-        mapoffset = getElementPosition(mapdiv).y;
-        maxbottom = getViewportDimensions().h;
-        newdims = {'h':maxbottom-mapoffset};
-        setElementDimensions(mapdiv, newdims);
-    }
-    connect(currentWindow(), 'onresize', maximizeMapHeight);
-//    addLoadEvent(maximizeMapHeight);
-</script>
+
+
 <div id="geomapcontainer">
 
     <!-- Google Maps javascript adds map here -->

@@ -153,7 +153,7 @@ Portlet.prototype = {
         this.setDatasource(this.datasource);
         this.PortletContainer.isDirty = true;
         this.PortletContainer.save();
-        this.startRefresh();
+        this.startRefresh(true);
     },
     submitSettings: function(e, settings) {
         settings = settings || {};
