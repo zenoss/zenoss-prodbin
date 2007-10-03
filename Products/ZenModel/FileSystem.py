@@ -138,7 +138,7 @@ class FileSystem(OSComponent):
 
     def capacity(self):
         usedBytes = self.usedBytes()
-        if usedBytes is not None:
+        if self.totalBytes() and usedBytes is not None:
             return int(100.0 * self.usedBytes() / self.totalBytes())
         return 'unknown'
 
