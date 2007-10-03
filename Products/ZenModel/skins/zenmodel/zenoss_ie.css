@@ -149,3 +149,8 @@ div.devmovemenuitems ul.zenMenu li a:hover {
 }
 
 
+div.horizontal-rainbow > div > div ,
+div.vertical-rainbow > div > div {
+    background-color: transparent;
+    opacity: 1;
+}

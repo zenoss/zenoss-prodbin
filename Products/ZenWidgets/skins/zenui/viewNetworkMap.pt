@@ -9,8 +9,9 @@
        var _deviceClasses = ${classlist};
        var _initialObjId = '${initobj}';
     "></script>
-    <script src="javascript/AC_OETags.js"></script>
-    <script>
+    <script src="javascript/AC_OETags.js" type="text/javascript"
+        language="javascript"></script>
+    <script language="javascript" type="text/javascript">
         var oldpos, olddims, oldstyle;
         var fullscreen = false;
         function maximizeMapHeight() {
@@ -78,8 +79,7 @@
      style="position:relative; height:400px; 
             border:1px solid black;">
 
-<object>
-<script>
+<script language="javascript" type="text/javascript">
 
 var requiredMajorVersion = 9;
 var requiredMinorVersion = 0;

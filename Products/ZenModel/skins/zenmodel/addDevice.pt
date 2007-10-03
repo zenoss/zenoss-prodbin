@@ -19,6 +19,9 @@
         action="/zport/dmd/DeviceLoader" method="post" name="addDevice">
         <input type="hidden" name="zenScreenName" 
             tal:attributes="value template/id" /> 
+        <input type="hidden" name="zSnmpVer" 
+                tal:attributes="value request/zSnmpVer |
+                device/zSnmpVer | string:"/>
 
 
 <tal:block tal:define="device python: here.meta_type != 'DeviceLoader' 
@@ -64,10 +67,7 @@
                 </select>
             </td>
         </tr>
-        <span metal:define-macro="body" tal:omit-tag="">
-        <input type="hidden" name="zSnmpVer" 
-                tal:attributes="value request/zSnmpVer |
-                device/zSnmpVer | string:"/>
+        <tal:block metal:define-macro="body" tal:omit-tag="">
         <tr><th class="subtabletitle" colspan=4 align="left">Attributes</th></tr>
         <tr>
             <td class="tableheader" align="left">Snmp Community</td>
@@ -372,7 +372,7 @@
                     name="setPerformanceMonitor:method" value="Add" />
             </td>
         </tr>
-        </span>
+        </tal:block>
         <tr>
             <td class=tableheader align="left" >
             </td>

@@ -1,6 +1,5 @@
 <tal:block metal:use-macro="here/templates/macros/page2">
 <tal:block metal:fill-slot="contentPane">
-
 <tal:block metal:define-macro="deviceStatusInfo"
            tal:define=" tabletitle string:Status;">
 <tal:block metal:use-macro="here/zenuimacros/macros/zentable-slidingdoors">
@@ -99,14 +98,12 @@
     </div>
     <div style="clear:both;"></div>
 
-<!-- END TABLE CONTENTS -->
 
 </tal:block>
 </tal:block>
 </tal:block>
 
-<span metal:use-macro="here/templates/macros/contentSeparator"/>
-
+<br/>
 
 <tal:block tal:define=" tabletitle string:Device; "
     metal:define-macro="deviceOverview">
@@ -283,68 +280,8 @@
     </dl>
 </div>
 </tal:block>
-<!--
-<tal:block metal:fill-slot="zentablecontents">
-
-    <tr>
-      <th class="tableheader">SNMP sysName</th>
-      <td colspan='3' class="tablevalues" tal:content="here/snmpSysName"/>
-    </tr>
-    <tr>
-      <td class="tableheader">Tag #</td>
-      <td class="tablevalues" tal:content="here/hw/tag">123456</td>
-      <td class="tableheader">Serial #</td>
-      <td class="tablevalues" tal:content="here/hw/serialNumber">123456</td>
-    </tr>
-    <tr>
-      <td class="tableheader">HW Manufacturer</td>
-      <td class="tablevalues"
-          tal:content="structure here/hw/getManufacturerLink"/>
-      <td class="tableheader">HW Model</td>
-      <td class="tablevalues"
-          tal:content="structure here/hw/productClass/getPrimaryLink"/>
-    </tr>
-    <tr>
-      <td class="tableheader">OS Manufacturer</td>
-      <td class="tablevalues"
-          tal:content="structure here/os/getManufacturerLink"/>
-      <td class="tableheader">OS Version</td>
-      <td class="tablevalues"
-          tal:content="structure here/os/productClass/getPrimaryLink"/>
-    </tr>
-    <tr>
-      <td class="tableheader">Location</td>
-      <td class="tablevalues" 
-        tal:content="structure here/getLocationLink"/>
-      <td class="tableheader">Rack Slot</td>
-      <td class="tablevalues" tal:content='here/rackSlot' />
-    </tr>
-    <tr>
-      <td class="tableheader">SNMP Location</td>
-      <td class="tablevalues" tal:content='here/snmpLocation' />
-      <td class="tableheader">SNMP Contact</td>
-      <td class="tablevalues" tal:content='here/snmpContact' />
-    </tr>
-    <tr>
-      <td class="tableheader">SNMP Descr</td>
-      <td class="tablevalues" colspan="3" tal:content="here/snmpDescr" />
-    </tr>
-    <tr tal:condition="here/snmpAgent">
-      <td class="tableheader">SNMP Agent</td>
-      <td class="tablevalues" colspan="3" tal:content="here/snmpAgent" />
-    </tr>
-    <tr>
-      <td class="tableheader">Comments</td>
-      <td class="tablevalues" colspan="3" tal:content="here/comments" />
-    </tr>
-    <tr>
-      <td class="tableheader">Links</td>
-      <td class="tablevalues" colspan="3" tal:content="structure here/getExpandedLinks" />
-    </tr>
--->
 </tal:block>
 </tal:block>
-
 
 </tal:block>
 </tal:block>

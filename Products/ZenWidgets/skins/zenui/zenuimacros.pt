@@ -257,9 +257,8 @@ mypath python:test(item.action.startswith('javascript'),
 =================================================-->
 <tal:block metal:define-macro="zentable-slidingdoors">
 <div class="zentable-modified">
-    <table class="zentable-modified">
-        <tr>
-            <td class="zentable-header">
+    <div class="zentable-modified">
+            <div class="zentable-header">
                 <div class="tabletitle-container">
                     <div class="tabletitle-left">
                         <div class="tabletitle-right">
@@ -271,18 +270,13 @@ mypath python:test(item.action.startswith('javascript'),
                         </div>
                     </div>
                 </div>
-            </td>
-        </tr>
-        <tr>
-            <td class="zentable-body">
-                <div class="zentable-body">
-                <tal:block metal:define-slot="body">
-                    Here's some body.
-                </tal:block>
-                </div>
-            </td>
-        </tr>
-    </table>
+            </div>
+            <div class="zentable-body">
+            <tal:block metal:define-slot="body">
+                Here's some body.
+            </tal:block>
+            </div>
+    </div>
 </div>
 </tal:block>
 

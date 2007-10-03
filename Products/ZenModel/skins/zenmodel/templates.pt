@@ -33,8 +33,6 @@
             </div>
             <div id="paneToggle">
             </div>
-            <script language="javascript" type="text/javascript"
-                src="/zport/dmd/firebug/firebug.js"></script>
             <style tal:condition="python:'Zenoss_Collapsed_Menu' in 
                                     here.REQUEST.HTTP_COOKIE">
                 #leftPane { display:none;}
@@ -176,6 +174,8 @@
     <![endif]-->
     <script type="text/javascript" src="js/MochiKit.js"></script>
     <script> var YAHOO_config={load:{base: '/zport/dmd/yui/'}};</script>
+    <script type="text/javascript" language="javascript"
+        src="/zport/dmd/yui/yahoo/yahoo-min.js"></script>
     <script type="text/javascript" language="javascript"
         src="/zport/dmd/yui/yuiloader/yuiloader-beta-min.js"></script>
     <script type="text/javascript" src="javascript/zenoss-core.js"></script>
