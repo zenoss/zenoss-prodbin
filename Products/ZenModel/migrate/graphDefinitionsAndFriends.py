@@ -81,6 +81,12 @@ class GraphDefinitionsAndFriends(Migrate.Step):
         
         for template in dmd.Devices.getAllRRDTemplates():
             template.buildRelations()
+            
+            # This code is only for when you want to complete delete
+            # all graph definitions from all templates and remigrate
+            # from the old RRDGraphs
+            # for gdId in template.graphDefs.objectIds():
+            #     template.graphDefs._delObject(gdId)
                         
             if template.graphDefs():
                 lineTypesFixed += self.fixDefaultLineTypes(template)
@@ -105,7 +111,6 @@ class GraphDefinitionsAndFriends(Migrate.Step):
                     gp.lineType = gp.LINETYPE_DONTDRAW
                     numFixed += 1
         return numFixed
-                    
 
 
     def convertTemplate(self, template):
@@ -155,7 +160,7 @@ class GraphDefinitionsAndFriends(Migrate.Step):
                         gp.lineType = dp.linetype or \
                                         (isFirst and gp.LINETYPE_AREA) or \
                                         gp.LINETYPE_LINE
-                    gp.stacked = dp.linetype != gp.LINETYPE_LINE
+                    gp.stacked = rrdGraph.stacked
                     gp.format = dp.format
                     gp.limit = dp.limit
                     gp.rpn = dp.rpn
