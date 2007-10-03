@@ -142,16 +142,19 @@
                   <div tal:repeat="item here/monitors/objectValuesAll">
                       <div tal:content="structure item/urlLink"/>
                   </div>
+                  <div tal:condition="not:here/monitors/objectValuesAll">
+                      None
+                  </div>
                 </dd>
                 <dt>Perf Server</dt>
                 <dd>
-                    <span tal:replace="structure python: 
+                    <div tal:replace="structure python: 
                         here.perfServer.getPrimaryLink()">
                       performance server
-                    </span>
-                    <span tal:condition="not:here/perfServer/getPrimaryLink">
+                    </div>
+                    <div tal:condition="not:here/perfServer/getPrimaryLink">
                         None
-                    </span>
+                    </div>
                 </dd>
 
 
