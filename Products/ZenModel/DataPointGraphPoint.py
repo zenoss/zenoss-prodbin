@@ -105,13 +105,12 @@ class DataPointGraphPoint(ComplexGraphPoint):
                 if fname.find('.rrd') > -1: fname = fname[:-4]
                 legend = "%s-%s" % (self.id, fname)
             else:
-                legend = self.talesEval(self.legend, context)
+                legend = self.talesEval(self.legend, context) or self.id
             drawCmd ='%s:%s%s' % (
                         self.lineType,
                         src,
                         self.getColor(idx))
-            if legend:
-                drawCmd += ':%s' % legend.ljust(14)
+            drawCmd += ':%s' % legend.ljust(14)
             if self.stacked:
                 drawCmd += ':STACK'
             graph.append(drawCmd)
@@ -129,7 +128,7 @@ class DataPointGraphPoint(ComplexGraphPoint):
         funcs = ("LAST", "AVERAGE", "MAX")
         tags = ("cur\:", "avg\:", "max\:")
         for i in range(len(funcs)):
-            label = "%s%s" % (tags[i], format)
+            label = "%s%s" % (tags[i], format or self.DEFAULT_FORMAT)
             gopts.append(self.summElement(src, funcs[i], label, ongraph))
         gopts[-1] += "\j"
         return gopts

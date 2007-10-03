@@ -19,6 +19,9 @@ from Products.ZenModel.ConfigurationError import ConfigurationError
 class GraphDefinitionsAndFriends(Migrate.Step):
     version = Migrate.Version(2, 1, 0)
     
+    scriptVersion = 1.1
+    scriptVerAttrName = 'newGraphsVers'
+    
     def __init__(self):
         Migrate.Step.__init__(self)
         import thresholds
@@ -26,7 +29,7 @@ class GraphDefinitionsAndFriends(Migrate.Step):
 
 
     def cutover(self, dmd):
-        
+                
         # Build Reports/Graph Reports
         if not hasattr(dmd.Reports, 'Graph Reports'):
             dmd.Reports.manage_addReportClass('Graph Reports')
@@ -66,6 +69,7 @@ class GraphDefinitionsAndFriends(Migrate.Step):
             ],
             })
 
+        prevVersion = getattr(dmd, self.scriptVerAttrName, 0)
 
         # Change the action on the Re-sequence Graphs menu item
         reseqMenuItem = dmd.zenMenus.Graph_list.zenMenuItems.resequenceGraphs
@@ -90,12 +94,16 @@ class GraphDefinitionsAndFriends(Migrate.Step):
                         
             if template.graphDefs():
                 lineTypesFixed += self.fixDefaultLineTypes(template)
+                self.fixStackedGraphPoints(template, prevVersion)
+                self.fixLegends(template, prevVersion)
             else:
                 g, f, m = self.convertTemplate(template)
                 numGraphs += g
                 numDataPointsFound += f
                 numDataPointsMissing += m
                 numTemplatesConverted += 1
+
+        setattr(dmd, self.scriptVerAttrName, self.scriptVersion)
 
         print('converted %s templates, %s graphs, %s datapoints; '
                 '%s datapoints missing; %s lineTypes fixed' % 
@@ -111,6 +119,24 @@ class GraphDefinitionsAndFriends(Migrate.Step):
                     gp.lineType = gp.LINETYPE_DONTDRAW
                     numFixed += 1
         return numFixed
+
+
+    def fixStackedGraphPoints(self, template, prevVersion):
+        if prevVersion < 1.0:
+            for graphDef in template.graphDefs():
+                oldGraph = getattr(template.graphs, graphDef.id, None)
+                if not oldGraph:
+                    continue
+                for gp in graphDef.graphPoints():
+                    gp.stacked = oldGraph.stacked
+
+
+    def fixLegends(self, template, prevVersion):
+        if prevVersion < 1.1:
+            for graphDef in template.graphDefs():
+                for gp in graphDef.graphPoints():
+                    if hasattr(gp, 'legend') and not gp.legend:
+                        gp.legend = gp.DEFAULT_LEGEND
 
 
     def convertTemplate(self, template):
