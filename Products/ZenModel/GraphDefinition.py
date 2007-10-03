@@ -264,7 +264,7 @@ class GraphDefinition(ZenModelRM, ZenPackable):
             # For MultiGraphReports we use a fancier legend
             # to differentiate when you have multiple devices/graphpoints
             # on a single graph
-            gp.legend = gp.DEFAULT_MULTIPGRAPH_LEGEND
+            gp.legend = gp.DEFAULT_MULTIGRAPH_LEGEND
         self.graphPoints._setObject(gp.id, gp)
         gp = self.graphPoints._getOb(gp.id)
         if gp.id == 0:
