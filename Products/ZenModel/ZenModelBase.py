@@ -335,7 +335,7 @@ class ZenModelBase(object):
         {'action': 'zPropertyEdit', 'name': 'zProperties', 
             'permissions': ('View',)}, 
         {'action': 'perfConfig', 'name': 'Templates', 
-            'permissions': (ZEN_MANAGE_DMD,)}]
+            'permissions': ('Manage DMD',)}]
         """
         tabs = []
         user = getSecurityManager().getUser()
