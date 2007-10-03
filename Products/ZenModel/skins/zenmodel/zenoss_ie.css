@@ -147,3 +147,8 @@ div#gridcontainer {
 div.devmovemenuitems ul.zenMenu li a:hover {
     background-color: #aaa;
 }
+
+iframe {
+    border: medium none;
+    margin: 0; padding: 0;
+}

@@ -40,6 +40,7 @@ import DateTime
 import socket
 
 from Products.ZenUtils.Utils import zenPath
+from Products.ZenUtils.Utils import extractPostContent
 
 from AccessControl import Permissions as permissions
 
@@ -516,7 +517,7 @@ class DataRoot(ZenModelRM, OrderedFolder, Commandable, ZenMenuable):
         """ Store a JSON representation of
             the Google Maps geocode cache
         """
-        cache = REQUEST._file.read()
+        cache = extractPostContent(REQUEST)
         self.geocache = cache
 
     security.declareProtected(ZEN_COMMON, 'getGeoCache')

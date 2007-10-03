@@ -48,6 +48,7 @@ PortletColumn.prototype = {
         new YAHOO.zenoss.DDResize(portlet);
         j = new YAHOO.zenoss.portlet.PortletProxy(portlet.id, this.container);
         j.addInvalidHandleId(portlet.resizehandle.id);
+        j.addInvalidHandleClass('nodrag');
         this.container.setContainerHeight();
     },
     getPortlets: function() {
@@ -126,13 +127,13 @@ Portlet.prototype = {
     },
     toggleSettings: function(state) {
         var show = method(this, function() {
-            this.body.style.marginTop = '-2px';
+            this.body.style.marginTop = '-1px';
             showElement(this.settingsPane);
             this.PortletContainer.setContainerHeight();
         });
         var hide = method(this, function() {
             hideElement(this.settingsPane);
-            this.body.style.marginTop = '-4px';
+            this.body.style.marginTop = '0';
             this.PortletContainer.setContainerHeight();
         });
         if (state=='hide') hide();
@@ -203,6 +204,21 @@ Portlet.prototype = {
                     [this.settingsSlot, this.buttonsSlot]), 
                     DIV({'style':'clear:both'}, '')]);
             this.container = DIV({'class':'zenoss-portlet','id':this.id},
+               DIV({'class':'zenportlet'},
+                [
+                 DIV({'class':'portlet-header'},
+                  DIV({'class':'tabletitle-container','id':this.handleid},
+                   DIV({'class':'tabletitle-left'},
+                    DIV({'class':'tabletitle-right'},
+                     DIV({'class':'tabletitle-center'},
+                     [this.titlecont,this.settingsToggle]
+                 ))))),
+                DIV(null, this.settingsPane),
+                DIV({'class':'portlet-body-outer'},
+                    [this.body,this.resizehandle])
+                ]));
+            /*
+            this.container = DIV({'class':'zenoss-portlet','id':this.id},
                TABLE({'class':'zenportlet'},
                 [TR(null,
                  TD({'class':'portlet-header'},
@@ -216,10 +232,11 @@ Portlet.prototype = {
                 TR(null, TD({'class':'portlet-body'},
                     [this.body,this.resizehandle]))
                 ]));
+            */
             this.isDirty = false;
             setStyle(this.body, {'height':this.bodyHeight+'px'});
             hideElement(this.settingsPane);
-            this.body.style.marginTop = '-4px';
+            //this.body.style.marginTop = '-4px';
         }
         return this.container;
     },
@@ -702,8 +719,11 @@ YAHOO.zenoss.DDResize = function(portlet) {
     YAHOO.zenoss.DDResize.superclass.constructor.call(
         this, panelElId, sGroup, config);
     this.setHandleElId(portlet.resizehandle.id);
+    this.addInvalidHandleId(portlet.handleid);
     this.addInvalidHandleId(portlet.body.id);
     this.addInvalidHandleId(portlet.handleid);
+    this.addInvalidHandleId(portlet.container.id);
+    this.addInvalidHandleId(portlet.titlecont.id);
 };
 YAHOO.extend(YAHOO.zenoss.DDResize, YAHOO.util.DragDrop, {
     onMouseDown: function(e) {
@@ -714,19 +734,13 @@ YAHOO.extend(YAHOO.zenoss.DDResize, YAHOO.util.DragDrop, {
         this.startPos = [YAHOO.util.Event.getPageX(e),
                          YAHOO.util.Event.getPageY(e)];
     },
-
     onDrag: function(e) {
         var newPos = [YAHOO.util.Event.getPageX(e),
                       YAHOO.util.Event.getPageY(e)];
 
-        //var offsetX = newPos[0] - this.startPos[0];
         var offsetY = newPos[1] - this.startPos[1];
-
-  //      var newWidth = Math.max(this.startWidth + offsetX, 10);
         var newHeight = Math.max(this.startHeight + offsetY, 10);
-
         var panel = this.portlet.body;
-   //     panel.style.width = newWidth + "px";
         panel.style.height = newHeight + "px";
         this.portlet.bodyHeight = newHeight;
         this.portlet.PortletContainer.setContainerHeight();

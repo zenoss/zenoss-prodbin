@@ -542,3 +542,19 @@ def edgesToXML(edges, start=()):
 def zenPath(*args):
     args = [a.strip('/') for a in args]
     return os.path.join(os.environ['ZENHOME'], *args)
+
+def extractPostContent(REQUEST):
+    """
+    IE puts the POST content in one place in the REQUEST object, and Firefox in
+    another. Thus we need to try both.
+    """
+    try:
+        try:
+            # Firefox
+            result = REQUEST._file.read()
+        except:
+            # IE         
+            result = REQUEST.form.keys()[0]
+    except: result = ''
+    return result
+

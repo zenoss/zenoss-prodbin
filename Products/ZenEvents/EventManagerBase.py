@@ -35,6 +35,7 @@ import DateTime
 from AccessControl import Permissions as permissions
 
 from Products.ZenUtils.ObjectCache import ObjectCache
+from Products.ZenUtils.Utils import extractPostContent
 
 from interfaces import IEventList, IEventStatus, ISendEvents
 
@@ -729,10 +730,10 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
 
     def getEntityListEventSummary(self, entities=[], REQUEST=None):
         """
-        A wrapper for L{getObjectsEventSummaryJSON} that accepts a list of paths
-        to Zope objects which it then attempts to resolve. If no list of paths
-        is given, it will try to read them from the POST data of the REQUEST
-        object.
+        A wrapper for L{getObjectsEventSummaryJSON} that accepts a list of
+        paths to Zope objects which it then attempts to resolve. If no list of
+        paths is given, it will try to read them from the POST data of the
+        REQUEST object.
 
         @param entities: A list of paths that should be resolved into objects
             and passed to L{getObjectsEventSummaryJSON}.
@@ -742,9 +743,8 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
         @rtype: string
         """
         if not entities:
-            try: entities = simplejson.loads(str(REQUEST._file.read()), 
-                                             encoding='ascii')
-            except: entities = []
+            entities = simplejson.loads(extractPostContent(REQUEST), 
+                                        encoding = 'ascii')
         def getob(e):
             e = str(e)
             try:

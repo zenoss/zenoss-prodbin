@@ -14,17 +14,20 @@ v\:* {
   behavior:url(#default#VML);
 }
 </style>
-<script type="text/javascript"
-    tal:condition="here/dmd/geomapapikey"
-    tal:define="apikey here/dmd/geomapapikey"
-    tal:attributes="
-        src string:http://maps.google.com/maps?file=api&v=2&key=${apikey};
-"></script>
-<script tal:content="string:
-    var geocodecache;
-    var cachestring = '${here/dmd/geocache}';
-    if (cachestring) geocodecache = evalJSON(cachestring);
-"></script>
+<tal:block tal:condition="here/dmd/geomapapikey">
+    <script type="text/javascript"
+        tal:define="apikey here/dmd/geomapapikey"
+        tal:attributes="
+            src string:http://maps.google.com/maps?file=api&v=2&key=${apikey};
+    "></script>
+    <script 
+        tal:content="string:
+        var geocodecache;
+        var cachestring = '${here/dmd/geocache}';
+        if (cachestring) geocodecache = evalJSON(cachestring);
+    "></script>
+    <script type="text/javascript" src="javascript/geomap-2.1.js"> </script>
+</tal:block>
 <script>
     function maximizeMapHeight() {
         mapdiv = $('geomapcontainer');
@@ -34,9 +37,8 @@ v\:* {
         setElementDimensions(mapdiv, newdims);
     }
     connect(currentWindow(), 'onresize', maximizeMapHeight);
-    addLoadEvent(maximizeMapHeight);
+//    addLoadEvent(maximizeMapHeight);
 </script>
-<script type="text/javascript" src="javascript/geomap-2.1.js"> </script>
 <div id="geomapcontainer">
 
     <!-- Google Maps javascript adds map here -->

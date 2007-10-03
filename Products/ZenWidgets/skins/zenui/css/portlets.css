@@ -1,41 +1,46 @@
 div.zenoss-portlet {
     margin: 1em 0.25em;
 }
-table.zenportlet * {
+div.zenportlet * {
     margin: 0;
     padding: 0;
 }
-table.zenportlet {
-    height:100%;
+div.zenportlet {
+    /*height:100%;
+    */
     width: 100%;
     table-layout: fixed;
     margin: 0;
     padding: 0;
 }
-table.zenportlet td.portlet-header {
+div.zenportlet div.portlet-body-outer {
+    border: medium none;
+    margin-top: -1px;
+}
+div.zenportlet div.portlet-header {
     height:25px;
 }
-table.zenportlet td.portlet-body {
+div.zenportlet div.portlet-body {
     padding: 0; margin: 0;
 }
-table.zenportlet div.tabletitle-container {
+div.zenportlet div.tabletitle-container {
     height: 25px;
     border-bottom: 1px solid black;
     position: relative;
 }
-table.zenportlet div.tabletitle-left {
+div.zenportlet div.tabletitle-left {
     height:100%;
     padding-left: 20px;
     background: transparent url(img/titlebar_left_corner.png) 
                 top left no-repeat;
 }
-table.zenportlet div.tabletitle-right {
+div.zenportlet div.tabletitle-right {
     height:100%;
     padding-right: 20px;
     background: transparent url(img/titlebar_right_corner.png) 
                 top right no-repeat;
 }
-table.zenportlet div.tabletitle-center {
+div.zenportlet div.tabletitle-center {
     position: relative;
     color: white;
     font-weight: bold;
@@ -44,8 +49,8 @@ table.zenportlet div.tabletitle-center {
     background: transparent url(img/titlebar_bg.gif) 
                 top repeat-x;
 }
-table.zenportlet div.portlet-body {
-    margin-top: -2px;
+div.zenportlet div.portlet-body {
+    margin-top: 2px;
     background-color: #bbb;
     border: 1px solid black;
     border-top: medium none;
@@ -53,12 +58,12 @@ table.zenportlet div.portlet-body {
     overflow-x: hidden;
     overflow-y: auto;
 }
-table.zenportlet div.resize-handle {
+div.zenportlet div.resize-handle {
     height:7px;
     width:100%;
     cursor:s-resize;
 }
-table.zenportlet div.resize-handle:hover {
+div.zenportlet div.resize-handle:hover {
     background-color: #888;
 }
 div.portlet-settings {
@@ -114,12 +119,12 @@ div.autocompleter-container {
     color: black;
 }
 
-table.zenportlet div.portlet-settings .portlet-settings-control {
+div.zenportlet div.portlet-settings .portlet-settings-control {
     margin: 10px 1em;
     position: relative;
     min-height:25px;
 }
-table.zenportlet div.portlet-settings button.portlet-settings-control {
+div.zenportlet div.portlet-settings button.portlet-settings-control {
     display: block;
 }
 div.control-label {

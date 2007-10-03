@@ -198,8 +198,8 @@ class UserSettingsManager(ZenModelRM):
             set the state for the current user.
         """
         user = self.getUserSettings(userid)
-        state = REQUEST._file.read()
-        user.dashboardState = state
+        user.dashboardState = (Utils.extractPostContent(REQUEST) or
+                               user.dashboardState)
         return True
 
     def getUserSettingsUrl(self, userid=None):
