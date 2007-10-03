@@ -51,12 +51,16 @@ class FakeContext:
         return FakeContext(key)
     def __str__(self):
         return self.id
+    def __repr__(self):
+        return self.id
     def device(self):
         return self
     def __nonzero__(self):
         return True
     def rrdPath(self):
         return 'rrdPath'
+    def getRRDTemplates(self):
+        return []
 
 class GraphDefinition(ZenModelRM, ZenPackable):
     '''
