@@ -10,9 +10,12 @@
 # For complete information please visit: http://www.zenoss.com/oss/
 #
 ###########################################################################
-import math, sys, time, random, threading, socket
+import math, sys, time, random, threading, socket, os
 
-make_hexip = lambda ip: ''.join(["%02x" % long(i) for i in ip.split('.')]) 
+make_hexip = lambda ip: ''.join(["%02x" % long(i) for i in ip.split('.')])
+
+_pid = '%04x' % os.getpid()
+_pid = _pid[-3:]
   
 ip = ''
 lock = threading.RLock()
@@ -45,7 +48,10 @@ def generate():
         frac, secs = math.modf(time.time())
         days, remain = divmod(secs, 86400)
         id = _uniqueid.next()
-        return "%s%s%s%s" % (hexip, hex(int(days))[2:],
-                               hex(int(remain))[2:], hex(id)[-7:])
+        return  "%s%s%s%s%s" % (hexip,
+                                hex(int(days))[2:],
+                                hex(int(remain))[2:],
+                                hex(id)[-4:],
+                                _pid)
     finally:
         lock.release()
