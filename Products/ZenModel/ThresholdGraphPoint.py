@@ -95,6 +95,8 @@ class ThresholdGraphPoint(GraphPoint):
                         multiid=-1, prefix=''):
         ''' Build the graphing commands for this graphpoint
         '''
+        if getattr(context, 'isFake', False):
+            return cmds
         relatedGps = self.getRelatedGraphPoints(context)
         gopts = []
         threshClass = self.getThreshClass(context)

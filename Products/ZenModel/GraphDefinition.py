@@ -41,6 +41,7 @@ def manage_addGraphDefinition(context, id, REQUEST = None):
         self.callZenScreen(REQUEST)
 
 class FakeContext:
+    isFake = True
     def __init__(self, name):
         self.id = name
     def __getattr__(self, name):
