@@ -183,7 +183,11 @@ class IpNetwork(DeviceOrganizer):
         for net in self.children():
             if net.hasIp(ip):
                 if len(net.children()):
-                    return net._getNet(ip)
+                    subnet = net._getNet(ip)
+                    if subnet:
+                        return subnet
+                    else:
+                        return net
                 else:
                     return net
 

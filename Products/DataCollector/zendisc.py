@@ -65,6 +65,7 @@ class ZenDisc(ZenModeler):
             nets = self.dmd.Networks.getSubNetworks()
         goodCount = 0
         for net in nets:
+            if self.options.subnets and len(net.children()) > 0: continue
             if not getattr(net, "zAutoDiscover", False): 
                 self.log.warn("skipping network %s zAutoDiscover is False"
                                 % net.id)
@@ -196,11 +197,15 @@ class ZenDisc(ZenModeler):
         if self.options.net:
             for net in self.options.net:
                 try:
-                    #netobj = self.dmd.Networks._getNet(net) 
-                    netobj = self.dmd.Networks.getSubNetwork(net)
+                    nets = []
+                    netobj = self.dmd.Networks._getNet(net) 
                     if not netobj:
                         raise SystemExit("network %s not found in dmd" % net)
-                    for ip in self.discoverIps((netobj,)):
+                    if self.options.subnets and len(netobj.children()) > 0:
+                        nets.extend(netobj.getSubNetworks())
+                    else:
+                        nets.append(netobj)
+                    for ip in self.discoverIps(nets):
                         self.dmd._p_jar.sync()
                         if not self.options.nosnmp: 
                             self.discoverDevice(ip, self.options.deviceclass,
@@ -273,6 +278,9 @@ class ZenDisc(ZenModeler):
         self.parser.add_option('--no-snmp', dest='nosnmp',
                     action="store_true", default=False,
                     help="Perform snmp discovery on found IP addresses")
+        self.parser.add_option('--subnets', dest='subnets',
+                    action="store_true", default=False,
+                    help="Recurse into subnets for discovery")
         self.parser.add_option('--useFileDescriptor',
                     dest='useFileDescriptor', default=None,
                     help="Use the given (priveleged) file descriptor for ping")
