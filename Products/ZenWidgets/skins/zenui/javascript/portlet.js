@@ -115,6 +115,7 @@ Portlet.prototype = {
             if (contents.responseText) {
                 contents = contents.responseText;
             }
+            replaceChildNodes(this.body, '');
             this.body.innerHTML = contents;
         }
     },
@@ -219,26 +220,9 @@ Portlet.prototype = {
                 DIV({'class':'portlet-body-outer'},
                     [this.body,this.resizehandle])
                 ]));
-            /*
-            this.container = DIV({'class':'zenoss-portlet','id':this.id},
-               TABLE({'class':'zenportlet'},
-                [TR(null,
-                 TD({'class':'portlet-header'},
-                  DIV({'class':'tabletitle-container','id':this.handleid},
-                   DIV({'class':'tabletitle-left'},
-                    DIV({'class':'tabletitle-right'},
-                     DIV({'class':'tabletitle-center'},
-                     [this.titlecont,this.settingsToggle]
-                 )))))),
-                TBODY({}, TR(null, TD(null, this.settingsPane))),
-                TR(null, TD({'class':'portlet-body'},
-                    [this.body,this.resizehandle]))
-                ]));
-            */
             this.isDirty = false;
             setStyle(this.body, {'height':this.bodyHeight+'px'});
             hideElement(this.settingsPane);
-            //this.body.style.marginTop = '-4px';
         }
         return this.container;
     },
@@ -594,9 +578,11 @@ TableDatasource.prototype = {
         this.method = 'method' in settings? settings.method:'POST';
     },
     get: function(callback) {
+        queryarguments = this.queryArguments;
+        queryarguments['ms'] = String(new Date().getTime());
         var d = doXHR(this.url, {
             method: this.method,
-            queryString: this.queryArguments,
+            queryString: queryarguments,
             sendContent: serializeJSON(this.postContent)
         });
         d.addCallback(bind(function(r){
@@ -968,7 +954,11 @@ TopLevelOrgsPortlet.prototype = {
     buildSettingsPane: function() {
         s = this.settingsSlot;
         orgs = ["Devices", "Locations", "Systems", "Groups"];
-        getopt = function(x) { return OPTION({'value':x}, x); }
+        getopt = method(this, function(x) { 
+            opts = {'value':x};
+            dataRoot = this.datasource.queryArguments.dataRoot;
+            if (dataRoot==x) opts['selected']=true;
+            return OPTION(opts, x); });
         options = map(getopt, orgs);
         this.orgselect = new SELECT(null,options);
         mycontrol = DIV({'class':'portlet-settings-control'}, [
