@@ -35,10 +35,14 @@ from OSComponent import OSComponent
 import logging
 log = logging.getLogger("zen.IpRouteEntry")
 
-def manage_addIpRouteEntry(context, dest, nexthopid, interface, routeproto, routetype, userCreated=None, REQUEST = None):
+def manage_addIpRouteEntry(context, dest, routemask, nexthopid, interface, 
+                   routeproto, routetype, userCreated=None, REQUEST = None):
     """make a IpRouteEntry"""
-    routemask = 0
-    if dest.find("/") > -1: ip, routemask = dest.split("/",1)
+    if not routemask:
+        routemask = 0
+    else:
+        routemask = int(routemask)
+    dest = '%s/%s' % (dest, routemask)
     id = prepId(dest)
     d = IpRouteEntry(id)
     context._setObject(id, d)

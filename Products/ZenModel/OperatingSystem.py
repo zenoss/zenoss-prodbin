@@ -417,7 +417,8 @@ class OperatingSystem(Software):
             return self.callZenScreen(REQUEST)
 
     def addIpRouteEntry(self, 
-                        dest, 
+                        dest,
+                        routemask, 
                         nexthopid, 
                         interface, 
                         routeproto, 
@@ -427,7 +428,8 @@ class OperatingSystem(Software):
         """Add an IpRouteEntry.
         """
         manage_addIpRouteEntry(self.routes, 
-                                dest, 
+                                dest,
+                                routemask, 
                                 nexthopid, 
                                 interface, 
                                 routeproto, 

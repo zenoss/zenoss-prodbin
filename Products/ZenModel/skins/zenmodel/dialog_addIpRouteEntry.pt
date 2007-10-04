@@ -3,11 +3,9 @@
 <span id="errmsg" style="color:red;"></span>
 <br/>
 <p style="text-align:right;">
-<span id="new_id_label">Destination:&nbsp;</span>
-<input id="new_id" name="dest">
-<input type="hidden" id="checkValidIdPath" 
-        tal:attributes="value here/absolute_url"><br/><br/>
-Next Hop:&nbsp;<input name="nexthopid">
+Destination:&nbsp;<input name="dest" size="15">&nbsp;/&nbsp;<input name="routemask" size="2">
+<br/><br/>
+Next Hop:&nbsp;<input name="nexthopid" size="15">
 <br/><br/>
 Interface:&nbsp;<select name="interface"
 tal:define="interfaces here/os/interfaces/objectValuesAll">
@@ -35,8 +33,8 @@ tal:define="types here/os/routeTypeMap">
 <input tal:attributes="id string:dialog_submit;
         type string:submit;
         value string:OK;
-        onclick string:return $$('dialog').submit_form_and_check(
-                                                '${here/absolute_url}', '', 1)"
+        onclick string:return $$('dialog').submit_form('${here/absolute_url}',
+         '', 1)"
                         name="addIpRouteEntry:method" />
 <input tal:attributes="id string:dialog_cancel;
                         type string:button;
