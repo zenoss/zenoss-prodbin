@@ -320,8 +320,9 @@ class EventClass(EventClassPropertyMixin, Organizer, ManagedEntity, ZenPackable)
 
 
     security.declareProtected(ZEN_ZPROPERTIES_VIEW, 'getOverriddenObjects')
-    def getOverriddenObjects(self, propname):
-        """ Get the objects that override a property somewhere below in the tree
+    def getOverriddenObjects(self, propname, showDevices=False):
+        """ 
+        Get the objects that override a property somewhere below in the tree
         This method overrides ZenPropertyManager
         """
         objects = []
@@ -334,6 +335,6 @@ class EventClass(EventClassPropertyMixin, Organizer, ManagedEntity, ZenPackable)
             for inst in suborg.getOverriddenObjects(propname):
                 if inst not in objects:
                     objects.append(inst)
-        return objects   
+        return objects
         
 InitializeClass(EventClass)

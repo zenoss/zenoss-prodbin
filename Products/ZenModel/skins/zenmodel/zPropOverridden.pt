@@ -1,17 +1,15 @@
 <tal:block metal:use-macro="here/templates/macros/page2">
 <tal:block metal:fill-slot="contentPane">
 <tal:block tal:define="tabletitle string:Overriding Objects;
-	               prop request/prop | python:'';
-	               orObjects python:here.getOverriddenObjects(prop)"> 
+               prop request/prop | python:'';
+               showDevices request/showDevices | python:False;
+               orObjects python:here.getOverriddenObjects(prop, showDevices)"> 
 <tal:block metal:use-macro="here/zenuimacros/macros/zentable">
-<tal:block metal:fill-slot="zentablecontents">
 
-<!-- BEGIN TABLE CONTENTS -->
-    <tr>
-      <th class="tableheader" colspan="2">
-        zProperty
-        <br/> 
+<tal:block metal:fill-slot="filterslot">
+        <div style="position:absolute;right:200px;top:0px;">
         <form method="post">
+        zProperty
         <select class="tablevalues" 
                 name="prop" 
                 onchange="form.submit()">
@@ -20,12 +18,22 @@
                         tal:content="p"
                         tal:attributes="selected python:p==prop"/>
         </select>
-        </form> 
-      </th>
-    </tr>
+        Show Devices
+        <input class="navcontrol" type="checkbox"
+                name="showDevices"
+                onchange="this.form.submit()"
+                value="1"
+                style="margin-top:-2px;margin-bottom:2px;"
+                tal:attributes="checked showDevices"/>
+        </form>
+        </div>
+</tal:block>
+<tal:block metal:fill-slot="zentablecontents">
+
+<!-- BEGIN TABLE CONTENTS -->
     <tr>
-      <th class="tableheader" align="center">Overriding Object</th>
-      <th class="tableheader" align="center">Overridden Value</th>
+      <th class="tableheader" align="center">Object</th>
+      <th class="tableheader" align="center">Value</th>
     </tr>
     <tr>
       <td class="tablevalues"
@@ -49,6 +57,10 @@
       <td class="tablevalues" 
           tal:condition="python:here.zenPropertyType(prop) != 'lines'"
           tal:content="python:here.zenPropertyString(prop)"/>
+    </tr>
+    <tr>
+      <th class="tableheader" align="center">Overriding Object</th>
+      <th class="tableheader" align="center">Overriding Value</th>
     </tr>
     <tal:block tal:condition="not:orObjects">
             <tr>

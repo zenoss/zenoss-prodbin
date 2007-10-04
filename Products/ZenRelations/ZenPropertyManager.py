@@ -252,9 +252,22 @@ class ZenPropertyManager(PropertyManager):
         return v != zenmarker
     
     security.declareProtected(ZEN_ZPROPERTIES_VIEW, 'getOverriddenObjects')
-    def getOverriddenObjects(self, propname):
+    def getOverriddenObjects(self, propname, showDevices=False):
         """ Get the objects that override a property somewhere below in the tree
         """
+        if showDevices:
+            objects = []
+            for inst in self.getSubInstances('devices'):
+                if inst.isLocal(propname) and inst not in objects:
+                    objects.append(inst) 
+            for suborg in self.children():
+                if suborg.isLocal(propname):
+                    objects.append(suborg)
+                for inst in suborg.getOverriddenObjects(propname, showDevices):
+                    if inst not in objects:
+                        objects.append(inst)
+            return objects
+        
         return [ org for org in self.getSubOrganizers() 
             if org.isLocal(propname) ]
 
