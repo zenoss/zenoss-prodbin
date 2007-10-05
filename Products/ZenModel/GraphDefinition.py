@@ -301,7 +301,8 @@ class GraphDefinition(ZenModelRM, ZenPackable):
         from ThresholdGraphPoint import ThresholdGraphPoint
         newGps = []
         for dpName in dpNames:
-            gp = self.createGraphPoint(DataPointGraphPoint, dpName)
+            dpId = dpName.split('_', 1)[-1]
+            gp = self.createGraphPoint(DataPointGraphPoint, dpId)
             gp.dpName = dpName
             newGps.append(gp)
         if includeThresholds:
@@ -467,13 +468,14 @@ class GraphDefinition(ZenModelRM, ZenPackable):
         if self.miny > -1:
             gopts.append('--lower-limit=%d' % self.miny)
             gopts.append('--rigid')
-        if self.units: 
-            gopts.append('--vertical-label=%s' % self.units)
-            if self.units == 'percentage':
-                if not self.maxy > -1:
-                    gopts.append('--upper-limit=100')
-                if not self.miny > -1:
-                    gopts.append('--lower-limit=0')
+        # Always include a vertical label so that multiple graphs on page
+        # align correctly.
+        gopts.append('--vertical-label=%s' % (self.units or ' '))
+        if self.units == 'percentage':
+            if not self.maxy > -1:
+                gopts.append('--upper-limit=100')
+            if not self.miny > -1:
+                gopts.append('--lower-limit=0')
         if self.base:
             gopts.append('--base=1024')
         gopts = [str(o) for o in gopts]
