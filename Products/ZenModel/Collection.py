@@ -110,7 +110,7 @@ class Collection(ZenModelRM):
                 componentPaths = ['']
             for i, devId in enumerate(deviceIds):
                 for cPath in componentPaths:
-                    ci = self.createCollectionItem(devId=devId, compPath=cpath,
+                    ci = self.createCollectionItem(devId=devId, compPath=cPath,
                         recurse=False, checkExists=True)
                     if ci:
                         count += 1
@@ -149,7 +149,7 @@ class Collection(ZenModelRM):
             self.items._delObject(id)
         self.manage_resequenceCollectionItems()
         if REQUEST:
-            REQUEST['message'] = 'Item%s deleted' % len(ids) > 1 and 's' or ''
+            REQUEST['message'] = 'Item%s deleted' % (len(ids) > 1 and 's' or '')
             return self.callZenScreen(REQUEST)
 
 
