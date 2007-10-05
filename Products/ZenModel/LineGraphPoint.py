@@ -63,7 +63,7 @@ class LineGraphPoint(GraphPoint):
         gopts = 'LINE%s:%s' % ((self.lineWidth or ''), value)
         if self.color:
             gopts += self.getColor(idx)
-        if self.legend:
+        if self.legend or self.stacked:
             gopts += ':%s' % self.talesEval(self.legend, context)
         if self.stacked:
             gopts += ':STACK'
