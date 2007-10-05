@@ -128,7 +128,7 @@ class DeviceGroup(Select):
 class EventClass(Select):
     type = 'evtClass'
     def toJS(self, operator, value):
-        value = value[2:-1]
+        value = value.rstrip('%')
         if operator == '=':
             return ['', [value]]
         if operator == '!=':
