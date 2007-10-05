@@ -1,7 +1,10 @@
 // Set up the namespace
 YAHOO.namespace('zenoss.portlet');
 
+
 var isIE//@cc_on=1;
+
+var purge = YAHOO.zenoss.purge;
 
 var DDM = YAHOO.util.DragDropMgr;
 
@@ -95,6 +98,7 @@ Portlet.prototype = {
     },
     setDatasource: function(datasource) {
         if (datasource) {
+            this.datasource = null;
             this.datasource = datasource;
             if (datasource.__class__=='YAHOO.zenoss.portlet.TableDatasource') {
                 this.datasource.get(this.fillTable);
@@ -110,12 +114,17 @@ Portlet.prototype = {
             this.title = text;
         }
     },
+    empty: function() {
+        var els = this.body.childNodes;
+        map(purge, els);
+        replaceChildNodes(this.body, '');
+    },
     fill: function(contents) {
         if (this.body) {
             if (contents.responseText) {
                 contents = contents.responseText;
             }
-            replaceChildNodes(this.body, '');
+            this.empty();
             this.body.innerHTML = contents;
         }
     },
@@ -123,10 +132,12 @@ Portlet.prototype = {
         var columnDefs = contents.columnDefs;
         var dataSource = contents.dataSource;
         var oConfigs = {};
-        addElementClass(this.body, 'yui-skin-sam');
-        var myDataTable = new YAHOO.widget.DataTable(
-            this.body.id, columnDefs, dataSource, oConfigs);
-        currentWindow().dataTable = myDataTable;
+        if (this.dataTable) this.dataTable.initializeTable(dataSource.liveData);
+        else {
+            addElementClass(this.body, 'yui-skin-sam');
+            this.dataTable = new YAHOO.widget.DataTable(
+                this.body.id, columnDefs, dataSource, oConfigs);
+        }
     },
     toggleSettings: function(state) {
         var show = method(this, function() {
@@ -905,9 +916,13 @@ WatchListPortlet.prototype = {
         }, this));
         var oConfigs = {};
         addElementClass(this.body, 'yui-skin-sam');
-        var myDataTable = new YAHOO.widget.DataTable(
-            this.body.id, columnDefs, dataSource, oConfigs);
-        this.dataTable = myDataTable;
+        if (this.dataTable)
+            this.dataTable.initializeTable(dataSource.liveData);
+        else {
+            var myDataTable = new YAHOO.widget.DataTable(
+                this.body.id, columnDefs, dataSource, oConfigs);
+            this.dataTable = myDataTable;
+        }
         forEach(this.dataTable.getRecordSet().getRecords(), bind(function(x){
             var row = this.dataTable.getTrEl(x);
             var link = getElementsByTagAndClassName('a','removerowlink',row)[0];
