@@ -18,15 +18,17 @@ Handles GraphPoints that define an rrd TICK
 
 import os
 from GraphPoint import GraphPoint
+from Globals import InitializeClass
 
 
 def manage_addTickGraphPoint(context, id, REQUEST = None):
     ''' This is here so than zope will let us copy/paste/rename
     graphpoints.
     '''
+    gp = TickGraphPoint(id)
+    context._setObject(gp.id, gp)
     if REQUEST:
-        REQUEST['message'] = 'That operation is not supported.'
-        context.callZenScreen(REQUEST)
+        return context.callZenScreen(REQUEST)
 
 
 class TickGraphPoint(GraphPoint):
@@ -67,3 +69,5 @@ class TickGraphPoint(GraphPoint):
                     self.fraction and ':%s' % self.fraction or '',
                     legend and ':%s' % legend or '')]
 
+
+InitializeClass(TickGraphPoint)

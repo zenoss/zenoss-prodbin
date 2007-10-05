@@ -12,12 +12,12 @@
 ###########################################################################
 
 __doc__="""ComplexGraphPoint
-
 """
 
 import os
-
 from GraphPoint import GraphPoint                                     
+from Globals import InitializeClass
+
 
 class ComplexGraphPoint(GraphPoint):
 
@@ -49,4 +49,4 @@ class ComplexGraphPoint(GraphPoint):
         )
 
 
-
+InitializeClass(ComplexGraphPoint)

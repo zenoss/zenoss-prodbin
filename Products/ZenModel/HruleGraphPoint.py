@@ -18,15 +18,17 @@ Handles GraphPoints that define an rrd Line
 
 import os
 from GraphPoint import GraphPoint
+from Globals import InitializeClass
 
 
 def manage_addHruleGraphPoint(context, id, REQUEST = None):
     ''' This is here so than zope will let us copy/paste/rename
     graphpoints.
     '''
+    gp = HruleGraphPoint(id)
+    context._setObject(gp.id, gp)
     if REQUEST:
-        REQUEST['message'] = 'That operation is not supported.'
-        context.callZenScreen(REQUEST)
+        return context.callZenScreen(REQUEST)
 
 
 class HruleGraphPoint(GraphPoint):
@@ -61,3 +63,6 @@ class HruleGraphPoint(GraphPoint):
                     self.value or 0,
                     self.getColor(idx),
                     legend and ':%s' % legend or '')]
+
+
+InitializeClass(HruleGraphPoint)

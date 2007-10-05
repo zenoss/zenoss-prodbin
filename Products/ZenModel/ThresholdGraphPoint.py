@@ -17,6 +17,17 @@ Handles GraphPoints that refer to RRDDataPoints
 """
 
 from GraphPoint import GraphPoint
+from Globals import InitializeClass
+
+
+def manage_addThresholdGraphPoint(context, id, REQUEST = None):
+    ''' This is here so than zope will let us copy/paste/rename
+    graphpoints.
+    '''
+    gp = ThresholdGraphPoint(id)
+    context._setObject(gp.id, gp)
+    if REQUEST:
+        return context.callZenScreen(REQUEST)
 
 
 class ThresholdGraphPoint(GraphPoint):
@@ -112,3 +123,6 @@ class ThresholdGraphPoint(GraphPoint):
                         template, gopts, namespace, 
                         color, relatedGps)
         return cmds + gopts
+
+
+InitializeClass(ThresholdGraphPoint)

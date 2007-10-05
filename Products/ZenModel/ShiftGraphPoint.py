@@ -17,17 +17,18 @@ Handles GraphPoints that define an rrd SHIFT
 """
 
 import os
-
 from GraphPoint import GraphPoint
+from Globals import InitializeClass
 
 
 def manage_addShiftGraphPoint(context, id, REQUEST = None):
     ''' This is here so than zope will let us copy/paste/rename
     graphpoints.
     '''
+    gp = ShiftGraphPoint(id)
+    context._setObject(gp.id, gp)
     if REQUEST:
-        REQUEST['message'] = 'That operation is not supported.'
-        context.callZenScreen(REQUEST)
+        return context.callZenScreen(REQUEST)
 
 
 class ShiftGraphPoint(GraphPoint):
@@ -61,3 +62,6 @@ class ShiftGraphPoint(GraphPoint):
 
         return cmds + ['SHIFT:%s:%s' % (
                             self.addPrefix(prefix, self.vname), offset or 0)]
+
+
+InitializeClass(ShiftGraphPoint)

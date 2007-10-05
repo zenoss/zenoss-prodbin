@@ -18,15 +18,17 @@ Handles GraphPoints that define an rrd VRULE
 
 import os
 from GraphPoint import GraphPoint
+from Globals import InitializeClass
 
 
 def manage_addVruleGraphPoint(context, id, REQUEST = None):
     ''' This is here so than zope will let us copy/paste/rename
     graphpoints.
     '''
+    gp = VruleGraphPoint(id)
+    context._setObject(gp.id, gp)
     if REQUEST:
-        REQUEST['message'] = 'That operation is not supported.'
-        context.callZenScreen(REQUEST)
+        return context.callZenScreen(REQUEST)
 
 
 class VruleGraphPoint(GraphPoint):
@@ -62,3 +64,5 @@ class VruleGraphPoint(GraphPoint):
             gopts += ':%s' % self.talesEval(self.legend, context)
         return cmds + [gopts]
 
+
+InitializeClass(VruleGraphPoint)

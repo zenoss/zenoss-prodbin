@@ -18,15 +18,17 @@ Handles GraphPoints that define an rrd GPRINT
 
 import os
 from GraphPoint import GraphPoint
+from Globals import InitializeClass
 
 
 def manage_addGprintGraphPoint(context, id, REQUEST = None):
     ''' This is here so than zope will let us copy/paste/rename
     graphpoints.
     '''
+    gp = GprintGraphPoint(id)
+    context._setObject(gp.id, gp)
     if REQUEST:
-        REQUEST['message'] = 'That operation is not supported.'
-        context.callZenScreen(REQUEST)
+        return context.callZenScreen(REQUEST)
 
 
 class GprintGraphPoint(GraphPoint):
@@ -61,3 +63,5 @@ class GprintGraphPoint(GraphPoint):
                     (self.format or self.DEFAULT_FORMAT).replace(':', '\:'),
                     self.strftime and ':%s' % self.strftime or '')]
 
+
+InitializeClass(GprintGraphPoint)

@@ -18,15 +18,17 @@ Handles GraphPoints that define an rrd DEF
 
 import os
 from GraphPoint import GraphPoint
+from Globals import InitializeClass
 
 
 def manage_addDefGraphPoint(context, id, REQUEST = None):
     ''' This is here so than zope will let us copy/paste/rename
     graphpoints.
     '''
+    gp = DefGraphPoint(id)
+    context._setObject(gp.id, gp)
     if REQUEST:
-        REQUEST['message'] = 'That operation is not supported.'
-        context.callZenScreen(REQUEST)
+        return context.callZenScreen(REQUEST)
 
 
 class DefGraphPoint(GraphPoint):
@@ -87,3 +89,5 @@ class DefGraphPoint(GraphPoint):
             gopt += ':reduce=%s' % self.rFunc        
         return cmds + [gopt]
 
+
+InitializeClass(DefGraphPoint)

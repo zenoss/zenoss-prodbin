@@ -18,15 +18,17 @@ Handles GraphPoints that define an rrd LINE
 
 import os
 from GraphPoint import GraphPoint
+from Globals import InitializeClass
 
 
 def manage_addLineGraphPoint(context, id, REQUEST = None):
     ''' This is here so than zope will let us copy/paste/rename
     graphpoints.
     '''
+    gp = LineGraphPoint(id)
+    context._setObject(gp.id, gp)
     if REQUEST:
-        REQUEST['message'] = 'That operation is not supported.'
-        context.callZenScreen(REQUEST)
+        return context.callZenScreen(REQUEST)
 
 
 class LineGraphPoint(GraphPoint):
@@ -68,3 +70,6 @@ class LineGraphPoint(GraphPoint):
         if self.stacked:
             gopts += ':STACK'
         return cmds + [gopts]
+
+
+InitializeClass(LineGraphPoint)

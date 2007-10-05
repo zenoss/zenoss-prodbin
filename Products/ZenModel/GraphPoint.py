@@ -30,9 +30,10 @@ def manage_addGraphPoint(context, id, REQUEST = None):
     ''' This is here so than zope will let us copy/paste/rename
     graphpoints.
     '''
+    gp = GraphPoint(id)
+    context._setObject(gp.id, gp)
     if REQUEST:
-        REQUEST['message'] = 'That operation is not supported.'
-        self.callZenScreen(REQUEST)
+        return context.callZenScreen(REQUEST)
 
 
 class GraphPoint(ZenModelRM, ZenPackable):
@@ -203,3 +204,6 @@ class GraphPoint(ZenModelRM, ZenPackable):
                 candidate = value + str(postfixIter.next())
             value = candidate
         return value
+
+
+InitializeClass(GraphPoint)

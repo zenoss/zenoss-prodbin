@@ -18,16 +18,17 @@ Handles GraphPoints that refer to RRDDataPoints
 
 import os
 from ComplexGraphPoint import ComplexGraphPoint
-from AccessControl import ClassSecurityInfo, Permissions
+from Globals import InitializeClass
 
 
 def manage_addDataPointGraphPoint(context, id, REQUEST = None):
     ''' This is here so than zope will let us copy/paste/rename
     graphpoints.
     '''
+    gp = DataPointGraphPoint(id)
+    context._setObject(gp.id, gp)
     if REQUEST:
-        REQUEST['message'] = 'That operation is not supported.'
-        context.callZenScreen(REQUEST)
+        return context.callZenScreen(REQUEST)
 
 
 class DataPointGraphPoint(ComplexGraphPoint):
@@ -141,3 +142,4 @@ class DataPointGraphPoint(ComplexGraphPoint):
         return ":".join((opt, src, function, format))
 
     
+InitializeClass(DataPointGraphPoint)

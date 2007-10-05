@@ -18,15 +18,17 @@ Handles GraphPoints that define an rrd COMMENT
 
 import os
 from GraphPoint import GraphPoint
+from Globals import InitializeClass
 
 
 def manage_addCommentGraphPoint(context, id, REQUEST = None):
     ''' This is here so than zope will let us copy/paste/rename
     graphpoints.
     '''
+    gp = CommentGraphPoint(id)
+    context._setObject(gp.id, gp)
     if REQUEST:
-        REQUEST['message'] = 'That operation is not supported.'
-        context.callZenScreen(REQUEST)
+        return context.callZenScreen(REQUEST)
 
 
 class CommentGraphPoint(GraphPoint):
@@ -54,3 +56,4 @@ class CommentGraphPoint(GraphPoint):
         return cmds + ['COMMENT:%s' % self.text.replace(':', '\:')]
 
 
+InitializeClass(CommentGraphPoint)

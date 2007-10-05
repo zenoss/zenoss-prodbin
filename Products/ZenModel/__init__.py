@@ -58,6 +58,7 @@ productNames = (
     "MultiGraphReport",
     'MultiGraphReportClass',
     "FileSystem",
+    "GraphGroup",
     "GraphReport",
     "GraphReportElement",
     "HardDisk",

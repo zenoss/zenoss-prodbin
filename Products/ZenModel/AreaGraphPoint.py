@@ -18,15 +18,17 @@ Handles GraphPoints that define an rrd AREA
 
 import os
 from GraphPoint import GraphPoint
+from Globals import InitializeClass
 
 
 def manage_addAreaGraphPoint(context, id, REQUEST = None):
     ''' This is here so than zope will let us copy/paste/rename
     graphpoints.
     '''
+    gp = AreaGraphPoint(id)
+    context._setObject(gp.id, gp)
     if REQUEST:
-        REQUEST['message'] = 'That operation is not supported.'
-        context.callZenScreen(REQUEST)
+        return context.callZenScreen(REQUEST)
 
 
 class AreaGraphPoint(GraphPoint):
@@ -66,3 +68,6 @@ class AreaGraphPoint(GraphPoint):
         if self.stacked:
             gopts += ':STACK'
         return cmds + [gopts]
+
+
+InitializeClass(AreaGraphPoint)

@@ -28,8 +28,10 @@ from ZenModelRM import ZenModelRM
 def manage_addGraphGroup(context, id, REQUEST = None):
     ''' This is here so than zope will let us copy/paste/rename
     '''
-    if REQUEST is not None:
-        REQUEST['RESPONSE'].redirect(context.absolute_url() +'/manage_main') 
+    gg = GraphGroup(id)
+    context._setObject(gg.id, gg)
+    if REQUEST:
+        return context.callZenScreen(REQUEST)
 
 
 class GraphGroup(ZenModelRM):
