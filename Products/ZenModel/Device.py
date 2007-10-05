@@ -1514,7 +1514,7 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable, Admini
     security.declareProtected(ZEN_VIEW, 'getPrettyLink')
     def getPrettyLink(self):
         """ Gets a link to this device, plus an icon """
-        template = ("<div class='device-icon-container'> "
+        template = ("<div class='device-icon-container'>"
                     "<img class='device-icon' src='%s'/> "
                     "</div>%s")
         icon = self.getIconPath()

@@ -586,19 +586,27 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
         @rtype: list
         """ 
         try:
-            summary =[x[2] for x in self.getEventSummaryME(me, 0)]
+            evsum = self.getEventSummaryME(me, 0)
+            summary =[x[2] for x in evsum]
             colors = "red orange yellow blue green".split()
-            results = zip(colors, [me.getPrimaryUrlPath()]*5, summary)
+            info = ["%s out of %s acknowledged" % (x[1],x[2])
+                    for x in evsum]
+            results = zip(colors, [me.getPrimaryUrlPath()]*5, info, summary)
             template = ('<div class="evpill-%s" onclick="location.href='
-                        '\'%s/viewEvents\'">%s</div>')
+                        '\'%s/viewEvents\'" title="%s">%s</div>')
             pills = []
-            for result in results:
-                if (result[2]): 
+            for i, result in enumerate(results):
+                color, path, info, summary = result
+                if evsum[i][1]>=evsum[i][2]: 
+                    if color!='green': color += '-acked'
+                result = color, path, info, summary
+                if (result[3]): 
                     pills.append(template % result)
                 elif (result[0]=='green' and showGreen):
-                    color, path, summary = result
+                    color, path, info, summary = result
                     summary = ' '
-                    result = (color, path, summary)
+                    info = 'No events'
+                    result = (color, path, info, summary)
                     pills.append(template % result)
                 if len(pills)==number: return pills
             return pills
@@ -714,8 +722,14 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
         def pillcompare(a,b):
             a, b = map(lambda x:getcolor(x[1]), (a, b))
             def getindex(x):
-                try: return colors.index(x.groups()[0])
-                except AttributeError: return 5
+                try: 
+                    color = x.groups()[0]
+                    smallcolor = x.groups()[0].replace('-acked','')
+                    isacked = 'acked' in color
+                    index = colors.index(x.groups()[0].replace('-acked',''))
+                    if isacked: index += .5
+                    return index
+                except: return 5
             a, b = map(getindex, (a, b))
             return cmp(a, b)
         devdata = []
@@ -1340,8 +1354,14 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
         def pillcompare(a,b):
             a, b = map(lambda x:getcolor(x[1]), (a, b))
             def getindex(x):
-                try: return colors.index(x.groups()[0])
-                except AttributeError: return 5
+                try: 
+                    color = x.groups()[0]
+                    smallcolor = x.groups()[0].replace('-acked','')
+                    isacked = 'acked' in color
+                    index = colors.index(x.groups()[0].replace('-acked',''))
+                    if isacked: index += .5
+                    return index
+                except: return 5
             a, b = map(getindex, (a, b))
             return cmp(a, b)
         for devname in devices:
