@@ -98,6 +98,12 @@ class ReportClass(Organizer, ZenPackable):
         return count
 
 
+    def getReportClass(self):
+        ''' Return the class to instantiate for new report classes
+        '''
+        return ReportClass
+
+
     def manage_addReportClass(self, id, title = None, REQUEST = None):
         """make a device class"""
         rClass = self.getReportClass()
