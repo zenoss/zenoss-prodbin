@@ -54,6 +54,7 @@ class ZenMenu(ZenModelRM, ZenPackable):
             try: self.zenMenuItems._delObject(id)
             except AttributeError: pass
             self.zenMenuItems._setObject(id, mi)
+            mi = self.zenMenuItems._getOb(mi.id)
             mi.description = description
             mi.action = action
             mi.permissions = permissions

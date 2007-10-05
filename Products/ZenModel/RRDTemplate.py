@@ -184,11 +184,12 @@ class RRDTemplate(ZenModelRM, ZenPackable):
         if id and dsOption:
             ds = self.getDataSourceInstance(id, dsOption)
             self.datasources._setObject(ds.id, ds)
+            ds = self.datasources._getOb(ds.id)
         if REQUEST:
             if ds:
                 REQUEST['message'] = "Data source %s added" % ds.id
                 url = '%s/datasources/%s' % (self.getPrimaryUrlPath(), ds.id)
-                REQUEST['RESPONSE'].redirect(url)
+                return REQUEST['RESPONSE'].redirect(url)
             else:
                 return self.callZenScreen(REQUEST)
         return ds
@@ -236,11 +237,12 @@ class RRDTemplate(ZenModelRM, ZenPackable):
         if not id: return self.callZenScreen(REQUEST)
         org = self.getThresholdClass(id, thresholdClassName)
         self.thresholds._setObject(org.id, org)
+        org = self.thresholds._getOb(org.id)
         if REQUEST:
             if org:
                 REQUEST['message'] = 'Threshold %s added' % org.id
                 url = '%s/thresholds/%s' % (self.getPrimaryUrlPath(), org.id)
-                REQUEST['RESPONSE'].redirect(url)
+                return REQUEST['RESPONSE'].redirect(url)
             else:
                 return self.callZenScreen(REQUEST)
         return org
@@ -271,10 +273,11 @@ class RRDTemplate(ZenModelRM, ZenPackable):
         graph = GraphDefinition(new_id)
         graph.sequence = len(self.graphDefs())
         self.graphDefs._setObject(graph.id, graph)
+        graph = self.graphDefs._getOb(graph.id)
         if REQUEST:
             REQUEST['message'] = 'Graph %s added' % graph.id
             url = '%s/graphDefs/%s' % (self.getPrimaryUrlPath(), graph.id)
-            REQUEST['RESPONSE'].redirect(url)
+            return REQUEST['RESPONSE'].redirect(url)
         return graph
         
 

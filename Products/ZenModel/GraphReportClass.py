@@ -53,10 +53,11 @@ class GraphReportClass(ReportClass):
         from Products.ZenModel.GraphReport import GraphReport
         fr = GraphReport(id)
         self._setObject(id, fr)
+        fr = self._getOb(id)
         if REQUEST:
             url = '%s/%s/editGraphReport' % (self.getPrimaryUrlPath(),id)
             return REQUEST['RESPONSE'].redirect(url)
-        return self._getOb(id)
+        return fr
 
 
 InitializeClass(GraphReportClass)

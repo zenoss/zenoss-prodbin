@@ -30,7 +30,7 @@ def manage_addDeviceReport(context, id, title = None, REQUEST = None):
     context._setObject(id, dc)
     if REQUEST is not None:
         REQUEST['message'] = "Device report created"
-        REQUEST['RESPONSE'].redirect(context.absolute_url() + '/manage_main') 
+        return REQUEST['RESPONSE'].redirect(context.absolute_url() + '/manage_main') 
                    
 
 

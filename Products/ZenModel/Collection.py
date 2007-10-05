@@ -32,7 +32,7 @@ def manage_addCollection(context, id, REQUEST = None):
     c = Collection(id)
     context._setObject(id, c)
     if REQUEST is not None:
-        REQUEST['RESPONSE'].redirect(context.absolute_url() +'/manage_main') 
+        return REQUEST['RESPONSE'].redirect(context.absolute_url() +'/manage_main') 
 
 addCollection = DTMLFile('dtml/addCollection',globals())
 
@@ -71,7 +71,7 @@ class Collection(ZenModelRM):
 
     
     def createCollectionItem(self, orgPath='', devId='', compPath='',
-                            recurse=False):
+                            recurse=False, checkExists=False):
         ''' Create and insert a new CollectionItem based either on the
         orgPath or on devId/compPath.  Returns the new item.
         '''
@@ -85,6 +85,12 @@ class Collection(ZenModelRM):
         ci.recurse = recurse
         ci.sequence = len(self.items())
         self.items._setObject(ci.id, ci)
+        ci = self.items._getOb(ci.id)
+        # This check happens after the _setObject so that ci has full 
+        # aq wrapper in case it needs it.
+        if checkExists and not ci.getRepresentedItem():
+            self.items._delObject(ci.id)
+            ci = None
         return ci
 
 
@@ -98,16 +104,16 @@ class Collection(ZenModelRM):
         
         count = 0
         if itemType == 'devcomp':
+            if not deviceIds:
+                deviceIds = []
+            if not componentPaths:
+                componentPaths = ['']
             for i, devId in enumerate(deviceIds):
-                # If deviceIds then either
-                #       len(deviceIds) == 1 and len(componentPaths) >= 0 or
-                #       len(deviceIds) > 1 and len(componentPaths) == 0
-                if len(deviceIds) > 1 or not componentPaths:
-                    componentPaths = ['']
                 for cPath in componentPaths:
-                    self.createCollectionItem(
-                                devId=devId, compPath=cPath, recurse=False)
-                    count += 1
+                    ci = self.createCollectionItem(devId=devId, compPath=cpath,
+                        recurse=False, checkExists=True)
+                    if ci:
+                        count += 1
         if itemType == 'deviceClass':
             for dClass in deviceClasses:
                 self.createCollectionItem(

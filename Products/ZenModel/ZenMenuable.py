@@ -31,6 +31,7 @@ class ZenMenuable:
         if id:
             mu = ZenMenu(id)
             self.zenMenus._setObject(id, mu)
+            mu = self.zenMenus._getOb(id)
             if self.meta_type == 'Device':
                 self.setLastChange()
             mu.description = desc
@@ -38,7 +39,7 @@ class ZenMenuable:
             if mu:
                 REQUEST['message'] = 'Menu Added'
                 url = '%s/zenMenus/%s' % (self.getPrimaryUrlPath(), mu.id)
-                REQUEST['RESPONSE'].redirect(url)
+                return REQUEST['RESPONSE'].redirect(url)
             return self.callZenScreen(REQUEST)
         return mu
 

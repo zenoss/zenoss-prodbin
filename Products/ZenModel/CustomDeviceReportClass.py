@@ -30,7 +30,7 @@ def manage_addCustomDeviceReportClass(context, id, title = None, REQUEST = None)
     context._setObject(id, frc)
     if REQUEST is not None:
         REQUEST['message'] = "Report organizer created"
-        REQUEST['RESPONSE'].redirect(context.absolute_url() + '/manage_main') 
+        return REQUEST['RESPONSE'].redirect(context.absolute_url() + '/manage_main') 
 
 addCustomDeviceReportClass = DTMLFile('dtml/addCustomDeviceReportClass',globals())
 
@@ -53,9 +53,10 @@ class CustomDeviceReportClass(ReportClass):
         from Products.ZenModel.DeviceReport import DeviceReport
         rpt = DeviceReport(id)
         self._setObject(rpt.id, rpt)
+        rpt = self._getOb(rpt.id)
         if REQUEST:
             url = '%s/%s/editDeviceReport' % (self.getPrimaryUrlPath(), id)
-            REQUEST['RESPONSE'].redirect(url)
+            return REQUEST['RESPONSE'].redirect(url)
         return rpt
 
 

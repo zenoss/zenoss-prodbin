@@ -88,8 +88,9 @@ class MultiGraphReport(ZenModelRM):
         gg = GraphGroup(new_id, collectionId, graphDefId, 
                                             len(self.graphGroups()))
         self.graphGroups._setObject(gg.id, gg)
+        gg = self.graphGroups._getOb(gg.id)
         if REQUEST:
-            REQUEST['RESPONSE'].redirect(
+            return REQUEST['RESPONSE'].redirect(
                 '%s/graphGroups/%s' % (self.getPrimaryUrlPath(), gg.id))
         return gg
 
@@ -143,9 +144,10 @@ class MultiGraphReport(ZenModelRM):
         from Collection import Collection
         col = Collection(new_id)
         self.collections._setObject(col.id, col)
+        col = self.collections._getOb(col.id)
         if REQUEST:
             url = '%s/collections/%s' % (self.getPrimaryUrlPath(), new_id)
-            REQUEST['RESPONSE'].redirect(url)
+            return REQUEST['RESPONSE'].redirect(url)
         return col
 
     security.declareProtected('Manage DMD', 'manage_deleteCollections')
@@ -193,9 +195,10 @@ class MultiGraphReport(ZenModelRM):
         graph = GraphDefinition(new_id)
         graph.sequence = len(self.graphDefs())
         self.graphDefs._setObject(graph.id, graph)
+        graph = self.graphDefs._getOb(graph.id)
         if REQUEST:
             url = '%s/graphDefs/%s' % (self.getPrimaryUrlPath(), graph.id)
-            REQUEST['RESPONSE'].redirect(url)
+            return REQUEST['RESPONSE'].redirect(url)
         return graph
         
 

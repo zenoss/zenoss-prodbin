@@ -138,6 +138,7 @@ class RRDDataSource(ZenModelRM, ZenPackable):
         from Products.ZenModel.RRDDataPoint import RRDDataPoint
         dp = RRDDataPoint(id)
         self.datapoints._setObject(dp.id, dp)
+        dp = self.datapoints._getOb(dp.id)
         if REQUEST:
             if dp:
                 #REQUEST['message'] = "Command Added"

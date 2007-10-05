@@ -24,13 +24,13 @@ from util.selTestUtils import *
 from util.selenium import selenium
 
 ### BEGIN GLOBAL DEFS ###
-HOST        =   "zenosst"               # Zenoss instance to test
+HOST        =   "localhost"               # Zenoss instance to test
 USER        =   "admin"                 # Username for HOST
 PASS        =   "zenoss"                # Password for HOST
-SERVER      =   "selserver"             # Hosts the selenium jar file
-TARGET      =   "testtarget.zenoss.loc" # Added/deleted in HOST
+SERVER      =   "localhost"             # Hosts the selenium jar file
+TARGET      =   "build.zenoss.loc" # Added/deleted in HOST
 BROWSER     =   "*firefox"              # Can also be "*iexplore"
-WAITTIME    =   "30000"                 # Time to wait for page loads in milliseconds
+WAITTIME    =   "90000"                 # Time to wait for page loads in milliseconds
 ### END GLOBAL DEFS ###
 
 class SelTestBase(unittest.TestCase):
