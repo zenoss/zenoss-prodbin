@@ -43,7 +43,7 @@ class GraphPoint(ZenModelRM, ZenPackable):
 
     DEFAULT_FORMAT = '%5.2lf%s'
     DEFAULT_LEGEND = '${graphPoint/id}'
-    DEFAULT_MULTIGRAPH_LEGEND = '${here/name} ${graphPoint/id}'
+    DEFAULT_MULTIGRAPH_LEGEND = '${here/name | here/id} ${graphPoint/id}'
     
     sequence = 0
     _properties = (
@@ -75,11 +75,6 @@ class GraphPoint(ZenModelRM, ZenPackable):
         '#408080', '#808000', '#000000', '#00ff00',
         '#fb31fb', '#0080ff', '#ff8000', '#800000', 
         )
-
-    def __init__(self, id, title=None, buildRelations=True, legend=None):
-        ZenModelRM.__init__(self, id, title=title, buildRelations=buildRelations)
-        if hasattr(self, 'legend'):
-            self.legend = legend or ''
 
 
     ## Interface

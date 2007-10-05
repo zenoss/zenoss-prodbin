@@ -53,7 +53,7 @@ class DataPointGraphPoint(ComplexGraphPoint):
         return self.dpName
 
 
-    def getSimpleDataPointName(self):
+    def dataPointId(self):
         '''
         Return the id of the datapoint, without the datasource name
         '''
