@@ -11,16 +11,6 @@
 #
 ###########################################################################
 
-__doc__="""Device
-
-Device is a base class that represents the idea of a single computer
-system that is made up of software running on hardware.  It currently
-must be IP enabled but maybe this will change.
-
-$Id: Device.py,v 1.121 2004/04/23 19:11:58 edahl Exp $"""
-
-__version__ = "$Revision: 1.121 $"[11:-2]
-
 import os
 import sys
 import re
@@ -83,10 +73,13 @@ def manage_createDevice(context, deviceName, devicePath="/Discovered",
             locationPath="", groupPaths=[], systemPaths=[],
             statusMonitors=["localhost"], performanceMonitor="localhost",
             discoverProto="snmp", priority=3):
-    """Device factory creates a device and sets up its relations and collects
-    its configuration.  SNMP Community discovery also happens here.  If an
-    IP is passed for deviceName it will be used for collection and the device
-    name will be set to the SNMP SysName (or ptr if SNMP Fails and ptr is valid)
+    """
+    Device factory creates a device and sets up its relations and collects its
+    configuration. SNMP Community discovery also happens here. If an IP is
+    passed for deviceName it will be used for collection and the device name
+    will be set to the SNMP SysName (or ptr if SNMP Fails and ptr is valid)
+    
+    @rtype: Device
     """
     if isip(deviceName):
         ip = deviceName
@@ -158,7 +151,10 @@ def manage_createDevice(context, deviceName, devicePath="/Discovered",
 
 def findCommunity(context, ip, devicePath, 
                   community="", port=None, version=None):
-    """Find the SNMP community and version for an p address using zSnmpCommunities.
+    """
+    Find the SNMP community and version for an p address using zSnmpCommunities.
+    
+    @rtype: tuple of (community, port, version, device name)
     """
     try:
         from pynetsnmp.SnmpSession import SnmpSession
@@ -198,7 +194,9 @@ def findCommunity(context, ip, devicePath,
     return (goodcommunity, port, goodversion, devname)
 
 def manage_addDevice(context, id, REQUEST = None):
-    """make a device"""
+    """
+    Creates a device
+    """
     serv = Device(id)
     context._setObject(serv.id, serv)
     if REQUEST is not None:
@@ -209,10 +207,12 @@ def manage_addDevice(context, id, REQUEST = None):
 addDevice = DTMLFile('dtml/addDevice',globals())
 
 
-class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable, AdministrativeRoleable, ZenMenuable):
+class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
+            AdministrativeRoleable, ZenMenuable):
     """
-    Device is a key class within zenoss.  It represents the combination of
-    computer hardware running an operating system.
+    Device is a base class that represents the idea of a single computer system
+    that is made up of software running on hardware. It currently must be IP
+    enabled but maybe this will change.
     """
 
     event_key = portal_type = meta_type = 'Device'
@@ -253,17 +253,25 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable, Admini
         )
 
     _relations = ManagedEntity._relations + (
-        ("deviceClass", ToOne(ToManyCont, "Products.ZenModel.DeviceClass", "devices")),
-        #("termserver", ToOne(ToMany, "Products.ZenModel.TerminalServer", "devices")),
-        ("monitors", ToMany(ToMany, "Products.ZenModel.StatusMonitorConf", "devices")),
-        ("perfServer", ToOne(ToMany, "Products.ZenModel.PerformanceConf", "devices")),
+        ("deviceClass", ToOne(ToManyCont, "Products.ZenModel.DeviceClass", 
+            "devices")),
+        #("termserver", ToOne(ToMany, "Products.ZenModel.TerminalServer", 
+        #    "devices")),
+        ("monitors", ToMany(ToMany, "Products.ZenModel.StatusMonitorConf",
+            "devices")),
+        ("perfServer", ToOne(ToMany, "Products.ZenModel.PerformanceConf", 
+            "devices")),
         ("location", ToOne(ToMany, "Products.ZenModel.Location", "devices")),
         ("systems", ToMany(ToMany, "Products.ZenModel.System", "devices")),
         ("groups", ToMany(ToMany, "Products.ZenModel.DeviceGroup", "devices")),
-        ("maintenanceWindows",ToManyCont(ToOne, "Products.ZenModel.MaintenanceWindow", "productionState")),
-        ("adminRoles", ToManyCont(ToOne,"Products.ZenModel.AdministrativeRole","managedObject")),
-        ('userCommands', ToManyCont(ToOne, 'Products.ZenModel.UserCommand', 'commandable')),
-        #("dhcpubrclients", ToMany(ToMany, "Products.ZenModel.UBRRouter", "dhcpservers")),
+        ("maintenanceWindows",ToManyCont(ToOne, 
+            "Products.ZenModel.MaintenanceWindow", "productionState")),
+        ("adminRoles", ToManyCont(ToOne,"Products.ZenModel.AdministrativeRole",
+            "managedObject")),
+        ('userCommands', ToManyCont(ToOne, 'Products.ZenModel.UserCommand', 
+            'commandable')),
+        #("dhcpubrclients", ToMany(ToMany, "Products.ZenModel.UBRRouter", 
+        #   "dhcpservers")),
         )
 
     # Screen action bindings (and tab definitions)
@@ -366,14 +374,26 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable, Admini
         self._lastChange = 0
 
 
-
     def getRRDTemplate(self):
+        """
+        DEPRECATED
+        """
         import warnings
         warnings.warn('Device.getRRDTemplate is deprecated',
                          DeprecationWarning)
         return ManagedEntity.getRRDTemplate(self)
 
     def getRRDTemplates(self):
+        """
+        Returns all the templates bound to this Device
+        
+        @rtype: list
+
+        >>> from Products.ZenModel.Device import manage_addDevice
+        >>> manage_addDevice(devices, 'test')
+        >>> devices.test.getRRDTemplates()
+        [<RRDTemplate at /zport/dmd/Devices/rrdTemplates/Device>]
+        """
         if not self.zDeviceTemplates:
             return ManagedEntity.getRRDTemplates(self)
         result = []
@@ -417,6 +437,11 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable, Admini
             
 
     def sysUpTime(self):
+        """
+        Returns the cached sysUpTime for this device
+        
+        @rtype: int
+        """
         try:
             return self.cacheRRDValue('sysUpTime', -1)
         except Exception:
@@ -425,6 +450,12 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable, Admini
 
 
     def availability(self, *args, **kw):
+        """
+        Returns the uptime of this device
+        
+        @rtype: string
+        @todo: Performance enhancement: Should move import outside of method
+        """
         from Products.ZenEvents import Availability
         results = Availability.query(self.dmd, device=self.id, *args, **kw)
         if results:
@@ -434,6 +465,13 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable, Admini
 
 
     def __getattr__(self, name):
+        """
+        Override from object to handle lastPollSnmpUpTime and 
+        snmpLastCollection
+        
+        @todo: Not sure this is needed, see getLastPollSnmpUpTime and 
+        getSnmpLastCollection
+        """
         if name == 'lastPollSnmpUpTime':
             return self._lastPollSnmpUpTime.getStatus()
         elif name == 'snmpLastCollection':
@@ -443,7 +481,11 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable, Admini
 
 
     def _setPropValue(self, id, value):
-        """override from PropertyManager to handle checks and ip creation"""
+        """
+        Override from PropertyManager to handle checks and ip creation
+        
+        @todo: Not sure this is needed, see setSnmpLastCollection
+        """
         self._wrapperCheck(value)
         if id == 'snmpLastCollection':
             self._snmpLastCollection = float(value)
@@ -452,7 +494,8 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable, Admini
 
     
     def applyDataMap(self, datamap, relname="", compname="", modname=""):
-        """Apply a datamap passed as a list of dicts through XML-RPC.
+        """
+        Apply a datamap passed as a list of dicts through XML-RPC.
         """
         adm = ApplyDataMap()
         adm.applyDataMap(self, datamap, relname=relname,
@@ -460,23 +503,42 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable, Admini
 
     
     def traceRoute(self, target, ippath=None):
+        """
+        Trace the route to target using our routing table.
+        Wrapper method of OperatingSystem.traceRoute
+        
+        @param target: Device name
+        @type target: string
+        @param ippath: IP addesses
+        @type ippath: list
+        @return: IP Addresses
+        @rtype: list
+        """
         if ippath is None: ippath=[]
         if type(target) in types.StringTypes:
             target = self.findDevice(target)
             if not target: raise ValueError("target %s not found in dmd",target)
         return self.os.traceRoute(target, ippath)
 
-
     
     def getMonitoredComponents(self, collector=None, type=None):
-        """Return list of monitored DeviceComponents on this device.
+        """
+        Return list of monitored DeviceComponents on this device.
+        Wrapper method for getDeviceComponents
         """
         return self.getDeviceComponents(monitored=True, 
                                         collector=collector, type=type)
 
     security.declareProtected(ZEN_VIEW, 'getDeviceComponents')
     def getDeviceComponents(self, monitored=None, collector=None, type=None):
-        """Return list of all DeviceComponents on this device.
+        """
+        Return list of all DeviceComponents on this device.
+        
+        @type monitored: boolean
+        @type collector: string
+        @type type: string
+        @permission: ZEN_VIEW
+        @rtype: list
         """
         query = {
             'getParentDeviceName':self.id,
@@ -492,6 +554,17 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable, Admini
 
 
     def getSnmpConnInfo(self):
+        """
+        Returns a tuple of SNMP Connection Info
+        
+        @rtype: tuple (devname, (ip, port), 
+            (community, version, timeout, tries), zMaxOIDPerRequest)
+
+        >>> from Products.ZenModel.Device import manage_addDevice
+        >>> manage_addDevice(devices, 'test')
+        >>> devices.test.getSnmpConnInfo()
+        ('test', ('', 161), ('public', 'v1', 2.5, 2), 40)
+        """
         return (self.id,
                 (self.manageIp, self.zSnmpPort),
                 (self.zSnmpCommunity, self.zSnmpVer,
@@ -500,7 +573,12 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable, Admini
 
 
     def getOSProcessConf(self):
-        """Return process monitoring configuration.
+        """
+        Returns process monitoring configuration
+        
+        @rtype: tuple (lastChangeTimeInSecs, (devname, (ip, port), 
+            (community, version, timeout, tries), zMaxOIDPerRequest),
+            list of configs, list of thresholds)
         """
         if not self.snmpMonitorDevice():
             return None
@@ -516,14 +594,20 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable, Admini
 
 
     def getSnmpOidTargets(self):
-        """Return information for snmp collection on this device in the form
-        (lastChangeTimeInSecs,
-        (devname,
-           (ip, snmpport),
-           (snmpcommunity, snmpversion, snmptimeout, snmptries)),
-         [threshold,],
-         [(name, oid, path, type, createCmd),]),
-         zMaxOIDPerRequest
+        """
+        Return information for snmp collection on this device
+        
+        @rtype: tuple (lastChangeTimeInSecs, (devname, (ip, port), 
+           (community, version, timeout, tries), zMaxOIDPerRequest),
+           list of thresholds,
+           list of oids)
+
+        >>> from Products.ZenModel.Device import manage_addDevice
+        >>> manage_addDevice(devices, 'test')
+        >>> devices.test.getSnmpOidTargets()
+        (0.0, ('test', ('', 161), ('public', 'v1', 2.5, 2), 40), [],
+        [('sysUpTime', '1.3.6.1.2.1.1.3.0', 'Devices/test/sysUpTime_sysUpTime',
+        'GAUGE', '', (None, None))])
         """
         if not self.snmpMonitorDevice(): return None
         oids, threshs = (super(Device, self).getSnmpOidTargets())
@@ -538,8 +622,13 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable, Admini
 
 
     def getDataSourceCommands(self):
-        """Return list of command definitions in the form
-        (device, user, pass [(cmdinfo,),...])
+        """
+        Return list of command definitions on this device
+
+        @rtype: tuple (lastChangeTimeInSecs, (devname, (ip, port), 
+           (community, version, timeout, tries), zMaxOIDPerRequest),
+           list of thresholds,
+           list of commands)
         """
         if not self.monitorDevice():
             return []
@@ -558,8 +647,10 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable, Admini
 
 
     def getXmlRpcTargets(self):
-        """Return information for xmlrpc collection on this device in the form
-        (devname, xmlRpcStatus,
+        """
+        Return information for xmlrpc collection on this device
+        
+        @rtype: tuple (devname, xmlRpcStatus,
          (url, methodName),
          [(name, path, type, createCmd, thresholds)])
         """
