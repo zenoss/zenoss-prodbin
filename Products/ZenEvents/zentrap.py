@@ -104,6 +104,8 @@ class ZenTrap(EventServer, snmpprotocol.SNMPProtocol):
             device = ipObject.device()
         if not device:
             device = self.dmd.Devices.findDevice(addr[0])
+        if device:
+            return device.id
         try:
             return socket.gethostbyaddr(addr[0])[0]
         except socket.herror:
