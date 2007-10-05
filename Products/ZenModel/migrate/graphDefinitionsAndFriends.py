@@ -14,12 +14,13 @@
 
 import Migrate
 from Products.ZenModel.GraphDefinition import GraphDefinition
+from Products.ZenModel.DataPointGraphPoint import DataPointGraphPoint
 from Products.ZenModel.ConfigurationError import ConfigurationError
 
 class GraphDefinitionsAndFriends(Migrate.Step):
     version = Migrate.Version(2, 1, 0)
     
-    scriptVersion = 1.1
+    scriptVersion = 1.2
     scriptVerAttrName = 'newGraphsVers'
     
     def __init__(self):
@@ -96,6 +97,11 @@ class GraphDefinitionsAndFriends(Migrate.Step):
                 lineTypesFixed += self.fixDefaultLineTypes(template)
                 self.fixStackedGraphPoints(template, prevVersion)
                 self.fixLegends(template, prevVersion)
+                self.fixLineTypes(template, prevVersion)
+                self.fixGraphPointNames(template, prevVersion)
+                # Might need to build the reports relation
+                for g in template.graphDefs():
+                    g.buildRelations()
             else:
                 g, f, m = self.convertTemplate(template)
                 numGraphs += g
@@ -105,10 +111,11 @@ class GraphDefinitionsAndFriends(Migrate.Step):
 
         setattr(dmd, self.scriptVerAttrName, self.scriptVersion)
 
-        print('converted %s templates, %s graphs, %s datapoints; '
-                '%s datapoints missing; %s lineTypes fixed' % 
-                (numTemplatesConverted, numGraphs, 
-                numDataPointsFound, numDataPointsMissing, lineTypesFixed))
+        #print('converted %s templates, %s graphs, %s datapoints; '
+        #        '%s datapoints missing; %s lineTypes fixed' % 
+        #        (numTemplatesConverted, numGraphs, 
+        #        numDataPointsFound, numDataPointsMissing, lineTypesFixed))
+
 
 
     def fixDefaultLineTypes(self, template):
@@ -132,11 +139,48 @@ class GraphDefinitionsAndFriends(Migrate.Step):
 
 
     def fixLegends(self, template, prevVersion):
-        if prevVersion < 1.1:
+        if prevVersion < 1.2:
             for graphDef in template.graphDefs():
                 for gp in graphDef.graphPoints():
-                    if hasattr(gp, 'legend') and not gp.legend:
-                        gp.legend = gp.DEFAULT_LEGEND
+                    try:
+                        del gp.legend
+                    except AttributeError:
+                        pass
+
+
+    def fixGraphPointNames(self, template, prevVersion):
+        if prevVersion < 1.2:
+            for graphDef in template.graphDefs():
+                idChanges = []
+                for gp in graphDef.graphPoints():
+                    if isinstance(gp,DataPointGraphPoint) and gp.id==gp.dpName:
+                        newName = gp.dpName.split('_', 1)[-1]
+                        idChanges.append((gp, newName))
+                for gp, newId in idChanges:
+                    if newId not in graphDef.graphPoints.objectIds():
+                        graphDef.graphPoints._delObject(gp.id)
+                        gp.id = newId
+                        graphDef.graphPoints._setObject(gp.id, gp)
+            
+
+    def fixLineTypes(self, template, prevVersion):
+        if prevVersion < 1.2:
+            for graphDef in template.graphDefs():
+                isFirstDP = True
+                for gp in graphDef.graphPoints():
+                    if isinstance(gp, DataPointGraphPoint):
+                        try:
+                            dp = template.getRRDDataPoint(gp.dpName)
+                        except ConfigurationError:
+                            dp = None
+                        except AttributeError:
+                            dp = None
+                        if dp:
+                            gp.lineType = (dp.linetype or 
+                                            (gp.stacked and gp.LINETYPE_AREA) or
+                                            (isFirstDP and gp.LINETYPE_AREA) or
+                                            gp.LINETYPE_LINE)
+                        isFirstDP = False
 
 
     def convertTemplate(self, template):
@@ -180,13 +224,14 @@ class GraphDefinitionsAndFriends(Migrate.Step):
                                     [dsName], includeThresholds)[0]
                 if dp:
                     gp.color = dp.color
+                    gp.stacked = rrdGraph.stacked
                     if graphDef.custom:
                         gp.lineType = gp.LINETYPE_DONTDRAW
                     else:
-                        gp.lineType = dp.linetype or \
-                                        (isFirst and gp.LINETYPE_AREA) or \
-                                        gp.LINETYPE_LINE
-                    gp.stacked = rrdGraph.stacked
+                        gp.lineType = (dp.linetype or 
+                                        (gp.stacked and gp.LINETYPE_AREA) or
+                                        (isFirst and gp.LINETYPE_AREA) or
+                                        gp.LINETYPE_LINE)
                     gp.format = dp.format
                     gp.limit = dp.limit
                     gp.rpn = dp.rpn

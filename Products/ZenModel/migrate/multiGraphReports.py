@@ -15,6 +15,8 @@
 import Migrate
 from Products.ZenModel.GraphDefinition import GraphDefinition
 from Products.ZenModel.MultiGraphReportClass import MultiGraphReportClass
+from Products.ZenModel.MultiGraphReport import MultiGraphReport
+from Products.ZenModel.DataPointGraphPoint import DataPointGraphPoint
 from AccessControl import Permissions
 
 # graphReports is using buildMenus so we let it go first before we modify
@@ -23,9 +25,14 @@ import graphReports
 
 class MultiGraphReports(Migrate.Step):
     version = Migrate.Version(2, 1, 0)
-    
+
+    scriptVersion = 1.0
+    scriptVerAttrName = 'multiGraphReportsVers'
+
     def cutover(self, dmd):
-        
+
+        prevVersion = getattr(dmd, self.scriptVerAttrName, 0)
+
         # Build Reports/MultiGraph Reports
         frc = getattr(dmd.Reports, 'Multi-Graph Reports', None)
         if frc:
@@ -45,8 +52,37 @@ class MultiGraphReports(Migrate.Step):
             for subClass in reportClass.children():
                 BuildRelationsOnReports(subClass)
         BuildRelationsOnReports(dmd.Reports['Multi-Graph Reports'])
-        
-                
+
+
+        def WalkGraphPoints(reportClass):
+            for report in reportClass.reports():
+                if isinstance(report, MultiGraphReport):
+                    for graphDef in report.graphDefs():
+                        for gp in graphDef.graphPoints():
+                            yield gp
+            for subClass in reportClass.children():
+                for gp in WalkGraphPoints(subClass):
+                    yield gp
+
+        # Fix Legends
+        if prevVersion < 1.0:
+            for gp in WalkGraphPoints(dmd.Reports):
+                gp.legend = gp.DEFAULT_MULTIGRAPH_LEGEND
+
+        # Fix DPGP names
+        if prevVersion < 1.0:
+            idChanges = []
+            for gp in WalkGraphPoints(dmd.Reports):
+                if isinstance(gp, DataPointGraphPoint):
+                    newId = gp.id.split('_', 1)[-1]
+                    idChanges.append((gp, newId))
+            for gp, newId in idChanges:
+                if newId not in gp.graphDef.graphPoints.objectIds():
+                    gp.graphDef.graphPoints._delObject(gp.id)
+                    gp.id = newId
+                    gp.graphDef.graphPoints._setObject(gp.id, gp)
+
+
         # Get rid of old  Report menus
         reportList = getattr(dmd.zenMenus, 'Report_list')
         if hasattr(reportList, 'addMultiGraphReport'):
@@ -121,5 +157,6 @@ class MultiGraphReports(Migrate.Step):
                 isdialog=False, 
                 ordering=87.0)
 
+        setattr(dmd, self.scriptVerAttrName, self.scriptVersion)
 
 MultiGraphReports()
