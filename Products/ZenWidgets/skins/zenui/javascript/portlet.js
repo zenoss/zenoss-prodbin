@@ -132,8 +132,9 @@ Portlet.prototype = {
         var columnDefs = contents.columnDefs;
         var dataSource = contents.dataSource;
         var oConfigs = {};
-        if (this.dataTable) this.dataTable.initializeTable(dataSource.liveData);
-        else {
+        if (this.dataTable) {
+            this.dataTable.initializeTable(dataSource.liveData);
+        } else {
             addElementClass(this.body, 'yui-skin-sam');
             this.dataTable = new YAHOO.widget.DataTable(
                 this.body.id, columnDefs, dataSource, oConfigs);
@@ -175,6 +176,9 @@ Portlet.prototype = {
         this.toggleSettings('hide');
     },
     destroy: function() {
+        this.stopRefresh();
+        if ('datatable' in this) this.datatable.destroy();
+        purge(this.container);
         removeElement(this.container);
         delete this.PortletContainer.portlets[this.id];
         this.PortletContainer.isDirty = true;
@@ -605,10 +609,19 @@ TableDatasource.prototype = {
         var mycolumndefs = map(function(x){
             return {key:x,sortable:true,resizeable:true}}, columns);
         var data = response.data;
-        var myDataSource = new YAHOO.util.DataSource(data);
-        myDataSource.responseType = YAHOO.util.DataSource.TYPE_JSARRAY;
-        myDataSource.responseSchema = {fields:columns};
-        callback({columnDefs:mycolumndefs,dataSource:myDataSource});
+        if ('datasource' in this) {
+            this.datasource.liveData = data;
+        } else {
+            this.datasource = new YAHOO.util.DataSource(data);
+        }
+        this.datasource.responseType = YAHOO.util.DataSource.TYPE_JSARRAY;
+        this.datasource.responseSchema = {fields:columns};
+        callback({columnDefs:mycolumndefs,dataSource:this.datasource});
+    },
+    __json__: function() {
+        return {url:this.url, queryArguments:this.queryArguments,
+                postContent: this.postContent, method:this.method, 
+                __class__:this.__class__}
     }
 }
 
@@ -906,7 +919,6 @@ WatchListPortlet.prototype = {
         var dataSource = contents.dataSource;
         i=0;
         forEach(dataSource.liveData, bind(function(x){
-            //log(this.id+"_row_"+i);
             var removelink = "<a id='"+this.id+"_row_"+i+
                          "' class='removerowlink'"+
                          " title='Stop watching this object'>" +
@@ -916,9 +928,16 @@ WatchListPortlet.prototype = {
         }, this));
         var oConfigs = {};
         addElementClass(this.body, 'yui-skin-sam');
-        if (this.dataTable)
+        if (this.dataTable) {
+            forEach(this.dataTable.getRecordSet().getRecords(), 
+                bind(function(x){
+                var row = this.dataTable.getTrEl(x);
+                var cells = row.childNodes;
+                map(purge, cells);
+                forEach(function(x){replaceChildNodes(x, '')}, cells);
+            }, this));
             this.dataTable.initializeTable(dataSource.liveData);
-        else {
+        } else {
             var myDataTable = new YAHOO.widget.DataTable(
                 this.body.id, columnDefs, dataSource, oConfigs);
             this.dataTable = myDataTable;
