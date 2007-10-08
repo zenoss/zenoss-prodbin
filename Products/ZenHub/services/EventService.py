@@ -17,7 +17,7 @@ from twisted.spread import pb
 from Products.ZenEvents.Event import Event
 pb.setUnjellyableForClass(Event, Event)
 
-from HubService import HubService
+from Products.ZenHub.HubService import HubService
 
 class EventService(HubService):
 
