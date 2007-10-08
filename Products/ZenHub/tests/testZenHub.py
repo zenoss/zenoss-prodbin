@@ -10,7 +10,11 @@ from twisted.cred import credentials
 from twisted.spread import pb
 import sys
 
+count = 0
+
 def stop(ignored=None):
+    if isinstance(ignored, Exception):
+        raise ignored
     if reactor.running:
         reactor.crash()
 
@@ -31,8 +35,7 @@ class TestClient(pb.Referenceable):
         d.addErrback(self.bad)
 
     def connected(self, perspective):
-        svc = 'Products.ZenHub.tests.TestService'
-        d = perspective.callRemote('getService', svc, self)
+        d = perspective.callRemote('getService', self.svc, self)
         d.addCallback(self.test)
         d.addErrback(self.bad)
 
@@ -56,7 +59,7 @@ class SendEventClient(TestClient):
             evt = dict(device='localhost',
                        severity='5',
                        summary='This is a test message')
-            yield service.callRemote('sendEvents', [data])
+            yield service.callRemote('sendEvents', [evt])
             self.tester.assertEqual(driver.next(), 1)
             self.success = True
         drive(Test).addBoth(stop)
@@ -64,14 +67,16 @@ class SendEventClient(TestClient):
 class TestZenHub(unittest.TestCase):
 
     base = 7000
-    count = 0
+    xbase = 8000
 
     def setUp(self):
-        self.count += 1
-        base = self.base + self.count
+        global count
+        count += 1
+        base = self.base + count
+        xbase = self.xbase + count
         self.before, sys.argv = sys.argv, ['run',
                                            '--pbport=%d' % base,
-                                           '--xport=%d' % (base + 1)]
+                                           '--xport=%d' % xbase]
         self.zenhub = ZenHub()
         reactor.callLater(1, stop)
 
@@ -79,12 +84,12 @@ class TestZenHub(unittest.TestCase):
         sys.argv = self.before
 
     def testGetService(self):
-        client = TestClient(self, self.base + self.count)
+        client = TestClient(self, self.base + count)
         self.zenhub.main()
         self.assertTrue(client.success)
 
     def testSendEvent(self):
-        client = SendEventClient(self, self.base + self.count)
+        client = SendEventClient(self, self.base + count)
         self.zenhub.main()
         self.assertTrue(client.success)
 
