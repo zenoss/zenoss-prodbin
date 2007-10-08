@@ -10,7 +10,6 @@
 # For complete information please visit: http://www.zenoss.com/oss/
 #
 ###########################################################################
-#! /usr/bin/env python
 
 import sys
 import base64
@@ -25,6 +24,7 @@ from email.MIMEImage import MIMEImage
 import Globals
 from Products.ZenUtils.ZenScriptBase import ZenScriptBase
 from Products.ZenUtils import Utils
+import md5
 
 def sibling(url, path):
     parts = list(urlparse(url))
@@ -42,7 +42,6 @@ class Page(HTMLParser):
         self.user = user
         self.passwd = passwd
         self.html = []
-        self.id = 0
         self.images = {}
         self.contentPane = 0
         self.inTitle = False
@@ -72,9 +71,9 @@ class Page(HTMLParser):
     def updateSrc(self, attrs):
         def cache(v):
             if v not in self.images:
-                self.id += 1
                 v = self.absolute(v)
-                self.images[v] = ('img%d.png' % self.id, self.fetchImage(v))
+                name = 'img%d.png' % md5.md5(v).hexdigest()
+                self.images[v] = (name, self.fetchImage(v))
             v, _ = self.images[v]
             return 'cid:%s' % v
         return self.alter(attrs, 'src', cache)
