@@ -588,7 +588,7 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
         try:
             evsum = self.getEventSummaryME(me, 0)
             summary =[x[2] for x in evsum]
-            colors = "red orange yellow blue gray green".split()
+            colors = "red orange yellow blue grey".split()
             info = ["%s out of %s acknowledged" % (x[1],x[2])
                     for x in evsum]
             results = zip(colors, [me.getPrimaryUrlPath()]*5, info, summary)
@@ -602,13 +602,13 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
                 result = color, path, info, summary
                 if (result[3]): 
                     pills.append(template % result)
-                elif (result[0]=='green' and showGreen):
-                    color, path, info, summary = result
-                    summary = ' '
-                    info = 'No events'
-                    result = (color, path, info, summary)
-                    pills.append(template % result)
                 if len(pills)==number: return pills
+            if (showGreen):
+                color = 'green'
+                summary = ' '
+                info = 'No events'
+                result = (color, path, info, summary)
+                pills.append(template % result)
             return pills
         except:
             log.exception("event summary for %s failed" % me.getDmdKey())
@@ -718,7 +718,7 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
         mydict = {'columns':[], 'data':[]}
         mydict['columns'] = ['Object', 'Events']
         getcolor = re.compile(r'class=\"evpill-(.*?)\"', re.S|re.I|re.M).search
-        colors = "red orange yellow blue gray green".split()
+        colors = "red orange yellow blue grey green".split()
         def pillcompare(a,b):
             a, b = map(lambda x:getcolor(x[1]), (a, b))
             def getindex(x):
@@ -1350,7 +1350,7 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
         devdata = []
         devclass = self.getDmdRoot("Devices")
         getcolor = re.compile(r'class=\"evpill-(.*?)\"', re.S|re.I|re.M).search
-        colors = "red orange yellow blue gray green".split()
+        colors = "red orange yellow blue grey green".split()
         def pillcompare(a,b):
             a, b = map(lambda x:getcolor(x[1]), (a, b))
             def getindex(x):
