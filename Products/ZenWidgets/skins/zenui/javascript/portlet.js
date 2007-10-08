@@ -51,7 +51,7 @@ PortletColumn.prototype = {
             appendChildNodes(this.domel, portlet.render());
         }
         if (!isIE) new YAHOO.zenoss.DDResize(portlet);
-        j = new YAHOO.zenoss.portlet.PortletProxy(portlet.id, this.container);
+        j = new YAHOO.zenoss.portlet.PortletProxy(portlet.id, this);
         j.addInvalidHandleId(portlet.resizehandle.id);
         j.addInvalidHandleClass('nodrag');
         this.container.setContainerHeight();
@@ -263,6 +263,23 @@ Portlet.prototype = {
             this.calllater.cancel();
             this.calllater = null;
         }
+    },
+    disable: function() {
+        this.enable();
+        this.cover = DIV({'style':'position:absolute;top:0;left:0;height:100%;width:100%;'}, 
+                    null);
+        setStyle(this.body, {'position':'relative'});
+        appendChildNodes(this.body, this.cover);
+    },
+    enable: function() {
+        if ('cover' in this) {
+            try {
+                removeElement(this.cover);
+            } catch(e) {
+                noop();
+            }
+        }
+        this.cover = null;
     }
 }
 
@@ -539,6 +556,16 @@ PortletContainer.prototype = {
             this.addPortletDialog = addPortletDialog;
         }
         this.addPortletDialog.show();
+    },
+    disablePortlets: function() {
+        forEach(values(this.portlets), method(this, function(x) {
+            x.disable();
+        }));
+    },
+    enablePortlets: function() {
+        forEach(values(this.portlets), method(this, function(x) {
+            x.enable();
+        }));
     }
 }
 
@@ -642,7 +669,7 @@ GoogleMapsDatasource.prototype = {
 }
 
 // Portlet drag stuffz
-YAHOO.zenoss.portlet.PortletProxy = function(id, container) {
+YAHOO.zenoss.portlet.PortletProxy = function(id, portlet) {
     sGroup = 'PortletProxy';
     config = null;
     YAHOO.zenoss.portlet.PortletProxy.superclass.constructor.call(
@@ -650,7 +677,8 @@ YAHOO.zenoss.portlet.PortletProxy = function(id, container) {
     var el = this.getDragEl();
     YAHOO.util.Dom.setStyle(el, "opacity", 0.67);
     YAHOO.util.Dom.setStyle(el, "z-index", 10000);
-    this.container = container;
+    this.portlet = portlet;
+    this.container = portlet.container;
     this.goingUp = false;
     this.lastY = 0;
     this.setHandleElId(id+'_handle');
@@ -665,6 +693,7 @@ YAHOO.extend(YAHOO.zenoss.portlet.PortletProxy, YAHOO.util.DDProxy, {
         setStyle(clickEl, {'visibility':'hidden'});
         nodes = clickEl.childNodes;
         dragEl.innerHTML = clickEl.innerHTML;
+        this.container.disablePortlets();
     },
     endDrag: function(e) {
         var srcEl = this.getEl();
@@ -686,6 +715,7 @@ YAHOO.extend(YAHOO.zenoss.portlet.PortletProxy, YAHOO.util.DDProxy, {
             YAHOO.util.Dom.setStyle(thisid, "visibility", "");
         });
         a.animate();
+        this.container.enablePortlets();
     },
     onDragDrop: function(e, id) {
         if (DDM.interactionInfo.drop.length === 1) {
@@ -749,6 +779,7 @@ YAHOO.zenoss.DDResize = function(portlet) {
 YAHOO.extend(YAHOO.zenoss.DDResize, YAHOO.util.DragDrop, {
     onMouseDown: function(e) {
         var panel = this.portlet.body; 
+        this.portlet.disable();
         this.startWidth = panel.offsetWidth;
         this.startHeight = panel.offsetHeight;
 
@@ -769,6 +800,7 @@ YAHOO.extend(YAHOO.zenoss.DDResize, YAHOO.util.DragDrop, {
     },
 
     onMouseUp: function(e) {
+        this.portlet.enable();
         this.portlet.PortletContainer.save();
     }
 
@@ -824,6 +856,7 @@ GoogleMapsPortlet.prototype = {
         if (this.refreshTime>0)
             this.calllater = callLater(this.refreshTime, this.startRefresh);
     }
+
 }
 YAHOO.zenoss.portlet.GoogleMapsPortlet = GoogleMapsPortlet;
 
