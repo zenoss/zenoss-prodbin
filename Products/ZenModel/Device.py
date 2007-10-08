@@ -659,68 +659,101 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
 
 
     def getHWManufacturerName(self):
-        """Return the hardware manufacturer name of this device.
+        """
+        DEPRECATED - Return the hardware manufacturer name of this device.
+        
+        @rtype: string
+        @todo: Remove this method and remove the call from testDevice.py
         """
         return self.hw.getManufacturerName()
 
 
     def getHWProductName(self):
-        """Return the hardware product name of this device.
+        """
+        Return the hardware product name of this device.
+        
+        @rtype: string
         """
         return self.hw.getProductName()
 
 
     def getHWProductKey(self):
-        """Get our HW product by productKey.
+        """
+        DEPRECATED - Return the productKey of the device hardware.
+        
+        @rtype: string
+        @todo: Remove this method and remove the call from testDevice.py
         """
         return self.hw.getProductKey()
 
 
     def getOSManufacturerName(self):
-        """Return the OS manufacturer name of this device.
+        """
+        DEPRECATED - Return the OS manufacturer name of this device.
+        
+        @rtype: string
+        @todo: Remove this method and remove the call from testDevice.py
         """
         return self.os.getManufacturerName()
 
 
     def getOSProductName(self):
-        """Return the OS product name of this device.
+        """
+        DEPRECATED - Return the OS product name of this device.
+        
+        @rtype: string
+        @todo: Remove this method and remove the call from testDevice.py
         """
         return self.os.getProductName()
 
 
     def getOSProductKey(self):
-        """Get our OS product by productKey.
+        """
+        DEPRECATED - Return the productKey of the device OS.
+        
+        @rtype: string
+        @todo: Remove this method and remove the call from testDevice.py
         """
         return self.os.getProductKey()
 
 
     def setOSProductKey(self, prodKey):
-        """Set our OS product by productKey.
+        """
+        Set the productKey of the device OS.
         """
         self.os.setProductKey(prodKey)
 
 
     def setHWProductKey(self, prodKey):
-        """Set our HW product by productKey.
+        """
+        Set the productKey of the device hardware.
         """
         self.hw.setProductKey(prodKey)
 
 
     def setHWSerialNumber(self, number):
-        """Set our hardware serial number.
+        """
+        Set the hardware serial number.
         """
         self.hw.serialNumber = number
 
 
     def getHWSerialNumber(self):
-        """Return our hardware serial number.
+        """
+        DEPRECATED - Return the hardware serial number.
+        
+        @rtype: string
+        @todo: Remove this method and remove the call from testDevice.py
         """
         return self.hw.serialNumber
 
 
     def followNextHopIps(self):
-        """Return the ips that our indirect routs point to which 
-        aren't currently connected to devices.
+        """
+        Return the ips that our indirect routs point to which aren't currently 
+        connected to devices.
+        
+        @todo: Can be moved to zendisc.py
         """
         ips = []
         for r in self.os.routes():
@@ -732,14 +765,23 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
 
     security.declareProtected(ZEN_VIEW, 'getLocationName')
     def getLocationName(self):
-        """return the full location name ie /Location/SubLocation/Rack"""
+        """
+        Return the full location name ie /Location/SubLocation/Rack
+        
+        @rtype: string
+        @permission: ZEN_VIEW
+        """
         loc = self.location()
         if loc: return loc.getOrganizerName()
         return ""
     
     security.declareProtected(ZEN_VIEW, 'getLocationLink')
     def getLocationLink(self):
-        """Return an a link to the devices location.
+        """
+        Return a link to the device's location.
+        
+        @rtype: string
+        @permission: ZEN_VIEW
         """
         loc = self.location()
         if loc: 
@@ -753,37 +795,67 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
 
     security.declareProtected(ZEN_VIEW, 'getSystemNames')
     def getSystemNames(self):
-        """get the system names for this device"""
+        """
+        Return the system names for this device
+        
+        @rtype: list
+        @permission: ZEN_VIEW
+        """
         return map(lambda x: x.getOrganizerName(), self.systems())
 
 
     security.declareProtected(ZEN_VIEW, 'getSystemNamesString')
     def getSystemNamesString(self, sep=', '):
-        """get the system names for this device as a string"""
+        """
+        Return the system names for this device as a string
+
+        @rtype: string
+        @permission: ZEN_VIEW
+        """
         return sep.join(self.getSystemNames())
 
 
     security.declareProtected(ZEN_VIEW, 'getDeviceGroupNames')
     def getDeviceGroupNames(self):
-        """get the device group names for this device"""
+        """
+        Return the device group names for this device
+        
+        @rtype: list
+        @permission: ZEN_VIEW
+        """
         return map(lambda x: x.getOrganizerName(), self.groups())
 
 
     security.declareProtected(ZEN_VIEW, 'getStatusMonitorNames')
     def getStatusMonitorNames(self):
-        """return status monitor names"""
+        """
+        Return status monitor names
+        
+        @rtype: string
+        @permission: ZEN_VIEW
+        """
         return map(lambda x: x.getId(), self.monitors())
 
     
     security.declareProtected(ZEN_VIEW, 'getPerformanceServer')
     def getPerformanceServer(self):
-        """return device performance server"""
+        """
+        Return the device performance server
+        
+        @rtype: PerformanceMonitor
+        @permission: ZEN_VIEW
+        """
         return self.perfServer()
 
 
     security.declareProtected(ZEN_VIEW, 'getPerformanceServerName')
     def getPerformanceServerName(self):
-        """return device performance server"""
+        """
+        Return the device performance server name
+        
+        @rtype: string
+        @permission: ZEN_VIEW
+        """
         cr = self.perfServer()
         if cr: return cr.getId()
         return ''
@@ -791,31 +863,55 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
 
     security.declareProtected(ZEN_VIEW, 'getLastChange')
     def getLastChange(self):
-        """Return DateTime of last change detected on this device.
+        """
+        Return DateTime of last change detected on this device.
+        
+        @rtype: DateTime
+        @permission: ZEN_VIEW
         """
         return DateTime(float(self._lastChange))
 
     
     security.declareProtected(ZEN_VIEW, 'getLastChangeString')
     def getLastChangeString(self):
-        """Return date string of last change detected on this device.
+        """
+        Return date string of last change detected on this device.
+        
+        @rtype: string
+        @permission: ZEN_VIEW
         """
         return Time.LocalDateTime(float(self._lastChange))
 
 
     security.declareProtected(ZEN_VIEW, 'getSnmpLastCollection')
     def getSnmpLastCollection(self):
+        """
+        Return DateTime of last SNMP collection on this device.
+        
+        @rtype: DateTime
+        @permission: ZEN_VIEW
+        """
         return DateTime(float(self._snmpLastCollection))
 
-    
+
     security.declareProtected(ZEN_VIEW, 'getSnmpLastCollectionString')
     def getSnmpLastCollectionString(self):
+        """
+        Return date string of last SNMP collection on this device.
+        
+        @rtype: string
+        @permission: ZEN_VIEW
+        """
         return Time.LocalDateTime(float(self._snmpLastCollection))
 
 
     security.declareProtected(ZEN_ADMIN_DEVICE, 'setManageIp')
     def setManageIp(self, ip="", REQUEST=None):
-        """Set the manage ip, if ip is not passed perform DNS lookup.
+        """
+        Set the manage IP, if IP is not passed perform DNS lookup.
+        
+        @rtype: string
+        @permission: ZEN_ADMIN_DEVICE
         """
         if not ip:
             try: ip = socket.gethostbyname(self.id)
@@ -830,32 +926,48 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
             return self.manageIp
 
 
-
     security.declareProtected(ZEN_VIEW, 'getManageIp')
     def getManageIp(self):
-        """Return the management ip for this device. 
+        """
+        Return the management ip for this device.
+        
+        @rtype: string
+        @permission: ZEN_VIEW
         """
         return self.manageIp
 
     
     def getManageIpObj(self):
-        """Return the management ipobject for this device.
+        """
+        DEPRECATED - Return the management ipobject for this device.
+        
+        @rtype: IpAddress
+        @todo: This method may not be called anywhere, remove it.
         """
         if self.manageIp:
             return self.Networks.findIp(self.manageIp)
 
-    
+
     security.declareProtected(ZEN_VIEW, 'getManageInterface')
     def getManageInterface(self):
-        """Return the management interface of a device based on its manageIp.
+        """
+        Return the management interface of a device based on its manageIp.
+        
+        @rtype: IpInterface
+        @permission: ZEN_VIEW
         """
         ipobj = self.Networks.findIp(self.manageIp)
         if ipobj: return ipobj.interface()
 
-    
+
     security.declareProtected(ZEN_VIEW, 'uptimeStr')
     def uptimeStr(self):
-        '''return a textual representation of the snmp uptime'''
+        """"
+        Return the SNMP uptime
+        
+        @rtype: string
+        @permission: ZEN_VIEW
+        """
         ut = self.sysUpTime()
         if ut < 0:
             return "Unknown"
@@ -871,13 +983,20 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
 
 
     def getPeerDeviceClassNames(self):
-        "build a list of all device paths that have the python class pyclass"
+        """
+        Build a list of all device paths that have the python class pyclass
+        
+        @rtype: list
+        """
         dclass = self.getDmdRoot("Devices")
         return dclass.getPeerDeviceClassNames(self.__class__)
 
 
     def havePydot(self):
-        """return true if pydot is installed.
+        """
+        DEPRECATED - Return true if pydot is installed.
+        
+        @todo: This method may not be called anywhere, remove it.
         """
         try:
             import pydot
@@ -888,7 +1007,12 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
 
     security.declareProtected(ZEN_VIEW, 'getRouterGraph')
     def getRouterGraph(self):
-        '''get a graph representing the relative routers'''
+        """
+        Return a graph representing the relative routers
+        
+        @rtype: graph
+        @permission: ZEN_VIEW
+        """
         from Products.ZenStatus import pingtree
         node = pingtree.buildTree(self)
         g = NetworkGraph(node=node, parentName=self.id)
@@ -896,12 +1020,16 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
         self.REQUEST.RESPONSE.setHeader('Content-Type', 'image/%s' % g.format)
         return g.render()
 
+
     security.declareProtected(ZEN_VIEW, 'getNetworkGraph')
     def getNetworkGraph(self):
-        '''
-        get a graph representing the relative routers as well as the
+        """
+        Return a graph representing the relative routers as well as the
         networks
-        '''
+        
+        @rtype: graph
+        @permission: ZEN_VIEW
+        """
         from Products.ZenStatus import pingtree
         node = pingtree.buildTree(self)
         g = NetworkGraph(node=node, parentName=self.id)
@@ -1020,13 +1148,13 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
         return self.convertPriority(self.priority)
         
     def getPingStatusString(self):
-        '''Return the pingStatus as a string
-        '''
+        """Return the pingStatus as a string
+        """
         return self.convertStatus(self.getPingStatus())
 
     def getSnmpStatusString(self):
-        '''Return the snmpStatus as a string
-        '''
+        """Return the snmpStatus as a string
+        """
         return self.convertStatus(self.getSnmpStatus())
 
     security.declareProtected(ZEN_CHANGE_DEVICE, 'setProdState')
@@ -1478,9 +1606,9 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
 
 
     def getUserCommandTargets(self):
-        ''' Called by Commandable.doCommand() to ascertain objects on which
+        """ Called by Commandable.doCommand() to ascertain objects on which
         a UserCommand should be executed.
-        '''
+        """
         return [self]
 
     def getUserCommandEnvironment(self):
