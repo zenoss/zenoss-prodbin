@@ -49,8 +49,11 @@ def manage_afterAdd(self, item, container):
 CookieAuthHelper.CookieAuthHelper.manage_afterAdd = manage_afterAdd
 
 def login(self):
-    """ Set a cookie and redirect to the url that we tried to
+    """ 
+    Set a cookie and redirect to the url that we tried to
     authenticate against originally.
+
+    FIXME - I don't think we need this any more now that the EULA is gone -EAD
     """
     request = self.REQUEST
     response = request['RESPONSE']
@@ -74,13 +77,13 @@ def login(self):
             came_from = urlparse.urlunsplit(parts)
     else:
         came_from = '/zport/dmd?%s' % submittedQs
-    if self.dmd.acceptedTerms:
-        url = came_from
-    else:
-        url = "%s/zenoss_terms/?came_from=%s" % (
-                    self.absolute_url(), urllib.quote(came_from))
+#    if self.dmd.acceptedTerms:
+#        url = came_from
+#    else:
+#        url = "%s/zenoss_terms/?came_from=%s" % (
+#                    self.absolute_url(), urllib.quote(came_from))
 
-    return response.redirect(url)
+    return response.redirect(came_from)
 
 CookieAuthHelper.CookieAuthHelper.login = login
 

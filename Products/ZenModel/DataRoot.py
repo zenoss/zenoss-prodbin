@@ -73,7 +73,7 @@ class DataRoot(ZenModelRM, OrderedFolder, Commandable, ZenMenuable):
     lastVersionCheckAttempt = 0
     versionCheckOptIn = True
     reportMetricsOptIn = True
-    acceptedTerms = False
+    acceptedTerms = True
     smtpHost = 'localhost'
     snppHost = 'localhost'
     smtpPort = 25

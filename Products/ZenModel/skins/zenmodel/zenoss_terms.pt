@@ -52,7 +52,7 @@ div {
 <body>
 
 <div id="copy">
-The Zenoss Core monitoring platform is made available pursuant to version 2 of the <a href="/zport/LICENSE" target="_">GNU General Public License</a>. Without limiting your rights under the GPL, the Zenoss Core monitoring platform is subject to the <a href="/zport/EULA" target="_">Zenoss Core End User License Agreement</a> and our <a href="/zport/PRIVACY" target="_">Privacy Policy</a>. Please click the "accept" button to acknowledge your consent to the above.
+The Zenoss Core monitoring platform is made available pursuant to version 2 of the <a href="/zport/LICENSE" target="_">GNU General Public License</a>. Without limiting your rights under the GPL, the Zenoss Core monitoring platform is subject to our <a href="/zport/PRIVACY" target="_">Privacy Policy</a>. Please click the "accept" button to acknowledge your consent to the above.
 </div>
 
 <div id="acceptance" tal:define="
