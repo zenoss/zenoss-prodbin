@@ -209,11 +209,6 @@ ZenGrid.prototype = {
             if (!isMSIE) this.resizeTable();
             if (this.lock.locked) this.lock.release();
         }, this));
-        statuslock = this.lock.acquire();
-        statuslock.addCallback(bind(function(r){
-            this.refresh();
-            if (this.lock.locked) this.lock.release();
-        }, this));
         this.addMouseWheelListening();
         connect(this.scrollbar, 'onscroll', this.handleScroll);
         connect(currentWindow(), 'onresize', bind(function(){
@@ -331,7 +326,7 @@ ZenGrid.prototype = {
         bufOffset = this.buffer.startPos;
         qs = update(this.lastparams, {
                 'offset':this.buffer.startPos,
-                'count':this.buffer.size });
+                'count':this.numRows });
         var d = loadJSONDoc(this.url, qs);
         d.addErrback(bind(function(x) { 
             callLater(5, bind(function(){

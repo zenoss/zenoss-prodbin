@@ -193,11 +193,6 @@ DeviceZenGrid.prototype = {
             /*if (!isMSIE)*/ this.resizeTable();
             if (this.lock.locked) this.lock.release();
         }, this));
-        statuslock = this.lock.acquire();
-        statuslock.addCallback(bind(function(r){
-            this.refresh();
-            if (this.lock.locked) this.lock.release();
-        }, this));
         this.addMouseWheelListening();
         connect(this.scrollbar, 'onscroll', this.handleScroll);
         connect(currentWindow(), 'onresize', bind(function(){
@@ -290,7 +285,7 @@ DeviceZenGrid.prototype = {
         bufOffset = this.buffer.startPos;
         qs = update(this.lastparams, {
                 'offset':this.buffer.startPos,
-                'count':this.buffer.size });
+                'count':this.numRows });
         var isMSIE//@cc_on=1;
         if (isMSIE) {
             qs.ms= new Date().getTime();
