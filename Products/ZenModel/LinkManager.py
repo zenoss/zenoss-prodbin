@@ -32,6 +32,8 @@ from Products.ZenUtils.Search import makeCaseInsensitiveKeywordIndex
 from Products.ZenModel.Link import Link
 from Products.ZenModel.Linkable import Linkable
 
+from Products.ZenUtils.NetworkTree import NetworkLink
+
 
 def manage_addLinkManager(context, id=None):
     """ Make a LinkManager """
@@ -172,9 +174,46 @@ class LinkManager(ZenModelRM):
                    for x in linkList]
         return simplejson.dumps((results, totalCount))
 
-    def getChildLinks(self, context):
+    def getNetworkLinks(self, context):
+        """
+        An alternate way to get links under an Organizer.
+        """
+        result = Set([])
+        networks = filter(lambda x:x.zDrawMapLinks, 
+                          self.dmd.Networks.getSubNetworks())
+        siblings = [x.getPrimaryId() for x in context.children()]
+        for net in networks:
+            locdict = {}
+            def addToDict(iface):
+                loc = iface.device().location()
+                if not loc: return
+                here = loc.getPrimaryId()
+                matched = False
+                for sib in siblings:
+                    if here.startswith(sib):
+                        locdict.setdefault(sib, []).append(iface)
+                        matched = True
+                        break
+                if not matched: 
+                    locdict.setdefault(here, []).append(iface)
+            for ip in net.ipaddresses.objectValuesGen():
+                iface = ip.interface()
+                if iface: addToDict(iface)
+            if len(locdict)<=1: continue
+            locgroups = locdict.values()
+            while locgroups:
+                lg = locgroups.pop()
+                targets = []
+                for g in locgroups: targets.extend(g)
+                for l in lg:
+                    for t in targets:
+                        n = NetworkLink()
+                        n.setEndpoints(l, t)
+                        result.add(n)
+        return result
+
+    def getChildLinks_slow(self, context):
         """ Returns all links under a given Organizer, aggregated """
-        from sets import Set
         result = Set([])
         severities = {}
         siblings = context.children()
@@ -197,6 +236,23 @@ class LinkManager(ZenModelRM):
         addresses = [x for x in list(result) if x]
         severities = [severities[x] for x in addresses]
         return map(list, zip(map(list, addresses), severities))
+
+    def getChildLinks(self, context):
+        """ Returns all links under a given Organizer, aggregated """
+        result = Set([])
+        severities = {}
+        links = self.getNetworkLinks(context)
+        for x in links:
+            geomapdata = x.getGeomapData(context)
+            severities[geomapdata] = max(
+                x.getStatus(),
+                severities.get(geomapdata, 0)
+            ) 
+            result.add(geomapdata)
+        addresses = [x for x in list(result) if x]
+        severities = [severities[x] for x in addresses]
+        return map(list, zip(map(list, addresses), severities))
+
 
 
 InitializeClass(LinkManager)

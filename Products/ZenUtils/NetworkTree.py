@@ -106,6 +106,7 @@ def getDeviceNetworkLinks(rootdevice):
                 yield link
 
 
+
 class NetworkLink(ILink):
     """ Represents a link between two IpInterfaces
         related by network connectivity.
@@ -117,6 +118,11 @@ class NetworkLink(ILink):
     OSI_layer = '3'
     pointa = None
     pointb = None
+
+    def __hash__(self):
+        eps = [x.id for x in self.getEndpoints()]
+        eps.sort()
+        return hash(':'.join(eps))
 
     def setEndpoints(self, pointa, pointb):
         self.pointa = pointa
@@ -138,7 +144,7 @@ class NetworkLink(ILink):
             aggregated for the generation of the context
         """
         dmd = context.dmd
-        generation = len(context.getPrimaryPath())
+        generation = len(context.getPrimaryPath())+1
         def getancestoraddress(endpoint):
             loc = endpoint.device().location()
             if loc is None: return 

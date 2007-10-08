@@ -72,6 +72,8 @@ class IpNetwork(DeviceOrganizer):
     """IpNetwork object"""
     
     isInTree = True
+
+    buildLinks = True
     
     # Organizer configuration
     dmdRootName = "Networks"
@@ -399,6 +401,7 @@ class IpNetwork(DeviceOrganizer):
         if getattr(aq_base(nets), "zDefaultNetworkTree", False):
             return
         nets._setProperty("zDefaultNetworkTree", (24,32), type="lines")
+        nets._setProperty("zDrawMapLinks", True, type="boolean")
         nets._setProperty("zAutoDiscover", True, type="boolean")
         nets._setProperty("zPingFailThresh", 168, type="int")
         nets._setProperty("zIcon", "/zport/dmd/img/icons/network.png")
