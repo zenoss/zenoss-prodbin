@@ -174,13 +174,11 @@
             </td>
         </tr>
         </tal:block>
-        <!--
         <tr>
-            <td colspan="4" class="tableheader">
+            <td colspan="4" class="tableheader"> 
                 <span metal:use-macro="here/zenTableNavigation/macros/navbody"/>
             </td>
         </tr>
-        -->
 </tal:block>
 </tal:block>
 </tal:block>
@@ -188,7 +186,9 @@
 </div>
 <div class="yui-u">
 
+    <tal:block tal:define="showPageSize python:False">
     <table metal:use-macro="here/deviceListMacro/macros/devList"></table>
+    </tal:block>
 
 </div>
 </div>

@@ -90,12 +90,12 @@
     </tr>
     </tal:block>
     </tal:block>
-    <!--
     <tr>
         <td colspan="6" class="tableheader" align='center'>
             <span metal:use-macro="here/zenTableNavigation/macros/navbody" />
         </td>
     </tr>
+    <!--
 	<tal:block tal:condition="here/editableDeviceList"
 			tal:define="numColumns string:5">
 		<span metal:use-macro="here/deviceListMacro/macros/deviceControl" />
