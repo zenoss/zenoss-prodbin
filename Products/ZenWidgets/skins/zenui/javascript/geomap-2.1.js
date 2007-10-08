@@ -90,7 +90,7 @@ ZenGeoMap.prototype = {
             address,
             bind(function(p){
                 if (!p) {
-                    noop()
+                    this.lock.release();
                 } else {
                     var marker = this.Dot(p, color);
                     GEvent.addListener(marker, "click", function(){
