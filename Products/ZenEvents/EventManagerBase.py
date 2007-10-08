@@ -588,7 +588,7 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
         try:
             evsum = self.getEventSummaryME(me, 0)
             summary =[x[2] for x in evsum]
-            colors = "red orange yellow blue green".split()
+            colors = "red orange yellow blue gray green".split()
             info = ["%s out of %s acknowledged" % (x[1],x[2])
                     for x in evsum]
             results = zip(colors, [me.getPrimaryUrlPath()]*5, info, summary)
@@ -718,7 +718,7 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
         mydict = {'columns':[], 'data':[]}
         mydict['columns'] = ['Object', 'Events']
         getcolor = re.compile(r'class=\"evpill-(.*?)\"', re.S|re.I|re.M).search
-        colors = "red orange yellow blue green".split()
+        colors = "red orange yellow blue gray green".split()
         def pillcompare(a,b):
             a, b = map(lambda x:getcolor(x[1]), (a, b))
             def getindex(x):
@@ -1350,7 +1350,7 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
         devdata = []
         devclass = self.getDmdRoot("Devices")
         getcolor = re.compile(r'class=\"evpill-(.*?)\"', re.S|re.I|re.M).search
-        colors = "red orange yellow blue green".split()
+        colors = "red orange yellow blue gray green".split()
         def pillcompare(a,b):
             a, b = map(lambda x:getcolor(x[1]), (a, b))
             def getindex(x):
