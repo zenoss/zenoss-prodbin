@@ -72,7 +72,7 @@ class Page(HTMLParser):
         def cache(v):
             if v not in self.images:
                 v = self.absolute(v)
-                name = 'img%d.png' % md5.md5(v).hexdigest()
+                name = 'img%s.png' % md5.md5(v).hexdigest()
                 self.images[v] = (name, self.fetchImage(v))
             v, _ = self.images[v]
             return 'cid:%s' % v
