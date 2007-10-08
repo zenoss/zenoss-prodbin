@@ -50,7 +50,9 @@ ZenGeoMap.prototype = {
     addPolyline: function(addresses) {
         var addys = addresses[0];
         var severity = addresses[1];
-        var color = severity>0?'#ff0000':'#00ff00';
+        var colors = ['#00ff00', '#888888', '#0000ff', '#ffd700', 
+                      '#ff8c00', '#ff0000']
+        var color = colors[severity];
         var points = []
         var lock = new DeferredLock();
         var lock2 = new DeferredLock();
