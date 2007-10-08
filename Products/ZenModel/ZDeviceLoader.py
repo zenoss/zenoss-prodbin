@@ -33,6 +33,7 @@ from Products.ZenUtils.Utils import setWebLoggingStream, clearWebLoggingStream
 from Products.ZenUtils.Exceptions import ZentinelException
 from Products.ZenModel.Exceptions import DeviceExistsError, NoSnmp
 from ZenModelItem import ZenModelItem
+from zExceptions import BadRequest
 
 
 def manage_addZDeviceLoader(context, id="", REQUEST = None):
@@ -143,7 +144,14 @@ class ZDeviceLoader(ZenModelItem,SimpleItem):
         if not mname:
             mname = newSWManufacturerName
             field = 'osManufacturer'
-        self.getDmdRoot("Manufacturers").createManufacturer(mname)
+        try:
+            self.getDmdRoot("Manufacturers").createManufacturer(mname)
+        except BadRequest, e:
+            if REQUEST: 
+                REQUEST['message'] = str(e)
+            else: 
+                raise e
+        
         if REQUEST:
             REQUEST[field] = mname
             return self.callZenScreen(REQUEST)
@@ -152,6 +160,10 @@ class ZDeviceLoader(ZenModelItem,SimpleItem):
     security.declareProtected('Change Device', 'setHWProduct')
     def setHWProduct(self, newHWProductName, hwManufacturer, REQUEST=None):
         """set the productName of this device"""
+        if not hwManufacturer and REQUEST:
+            REQUEST['message'] = 'Please select a HW Manufacturer'
+            return self.callZenScreen(REQUEST) 
+            
         self.getDmdRoot("Manufacturers").createHardwareProduct(
                                         newHWProductName, hwManufacturer)
         if REQUEST:
@@ -162,6 +174,10 @@ class ZDeviceLoader(ZenModelItem,SimpleItem):
     security.declareProtected('Change Device', 'setOSProduct')
     def setOSProduct(self, newOSProductName, osManufacturer, REQUEST=None):
         """set the productName of this device"""
+        if not osManufacturer and REQUEST:
+            REQUEST['message'] = 'Please select an OS Manufacturer'
+            return self.callZenScreen(REQUEST)
+        
         self.getDmdRoot("Manufacturers").createSoftwareProduct(
                                         newOSProductName, osManufacturer, isOS=True)
         if REQUEST:
@@ -172,7 +188,14 @@ class ZDeviceLoader(ZenModelItem,SimpleItem):
     security.declareProtected('Change Device', 'addLocation')
     def addLocation(self, newLocationPath, REQUEST=None):
         """add a location to the database"""
-        self.getDmdRoot("Locations").createOrganizer(newLocationPath)
+        try:
+            self.getDmdRoot("Locations").createOrganizer(newLocationPath)
+        except BadRequest, e:
+            if REQUEST:
+                REQUEST['message'] = str(e)
+            else: 
+                raise e
+            
         if REQUEST:
             REQUEST['locationPath'] = newLocationPath
             return self.callZenScreen(REQUEST)
@@ -181,7 +204,14 @@ class ZDeviceLoader(ZenModelItem,SimpleItem):
     security.declareProtected('Change Device', 'addSystem')
     def addSystem(self, newSystemPath, REQUEST=None):
         """add a system to the database"""
-        self.getDmdRoot("Systems").createOrganizer(newSystemPath)
+        try:
+            self.getDmdRoot("Systems").createOrganizer(newSystemPath)
+        except BadRequest, e:
+            if REQUEST:
+                REQUEST['message'] = str(e)
+            else: 
+                raise e
+                
         syss = REQUEST.get('systemPaths', [])
         syss.append(newSystemPath)
         if REQUEST:
@@ -192,7 +222,14 @@ class ZDeviceLoader(ZenModelItem,SimpleItem):
     security.declareProtected('Change Device', 'addDeviceGroup')
     def addDeviceGroup(self, newDeviceGroupPath, REQUEST=None):
         """add a device group to the database"""
-        self.getDmdRoot("Groups").createOrganizer(newDeviceGroupPath)
+        try:
+            self.getDmdRoot("Groups").createOrganizer(newDeviceGroupPath)
+        except BadRequest, e:
+            if REQUEST:
+                REQUEST['message'] = str(e)
+            else: 
+                raise e
+                
         groups = REQUEST.get('groupPaths', [])
         groups.append(newDeviceGroupPath)
         if REQUEST:
@@ -203,7 +240,14 @@ class ZDeviceLoader(ZenModelItem,SimpleItem):
     security.declareProtected('Change Device', 'addStatusMonitor')
     def addStatusMonitor(self, newStatusMonitor, REQUEST=None):
         """add new status monitor to the database"""
-        self.getDmdRoot("Monitors").getStatusMonitor(newStatusMonitor)
+        try:
+            self.getDmdRoot("Monitors").getStatusMonitor(newStatusMonitor)
+        except BadRequest, e:
+            if REQUEST:
+                REQUEST['message'] = str(e)
+            else: 
+                raise e 
+        
         mons = REQUEST.get('statusMonitors', [])
         mons.append(newStatusMonitor)
         if REQUEST:
@@ -214,7 +258,14 @@ class ZDeviceLoader(ZenModelItem,SimpleItem):
     security.declareProtected('Change Device', 'setPerformanceMonitor')
     def setPerformanceMonitor(self, newPerformanceMonitor, REQUEST=None):
         """add new performance monitor to the database"""
-        self.getDmdRoot("Monitors").getPerformanceMonitor(newPerformanceMonitor)
+        try:
+            self.getDmdRoot("Monitors").getPerformanceMonitor(newPerformanceMonitor)
+        except BadRequest, e:
+            if REQUEST:
+                REQUEST['message'] = str(e)
+            else: 
+                raise e 
+        
         if REQUEST:
             REQUEST['performanceMonitor'] = newPerformanceMonitor
             return self.callZenScreen(REQUEST)
