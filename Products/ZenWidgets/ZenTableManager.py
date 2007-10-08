@@ -290,9 +290,12 @@ class ZenTableManager(SimpleItem, PropertyManager):
 
     def getTableStates(self):
         session = self.REQUEST.SESSION
-        if not session.has_key('zentablestates'):
-            session['zentablestates'] = {}
-        return session['zentablestates']
+        try:
+            return session['zentablestates']
+        except KeyError:
+            init = {}
+            session['zentablestates'] = init
+            return init
 
 
     def tableStatesHasTable(self, tableName):
