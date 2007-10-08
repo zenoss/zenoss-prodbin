@@ -252,7 +252,7 @@ class TestDevice(ZenModelBaseTest):
         self.assert_(self.dev.getHWProductName() == "")
         self.assert_(self.dev.getOSManufacturerName() == "")
         self.assert_(self.dev.getOSProductName() == "")
-        self.assert_(self.dev.getLocationLink() == "")
+        self.assert_(self.dev.getLocationLink() == "None")
         self.assert_(self.dev.getLocationName() == "")
         self.assert_(self.dev.getDeviceGroupNames() == [])
         self.assert_(self.dev.getSystemNames() == [])

@@ -159,13 +159,13 @@ class ZenModelBase(object):
 
     def getIdLink(self):
         """
-        Return an a link to this object with its id as the name.
+        DEPRECATED Return an a link to this object with its id as the name.
         
         @return: An HTML link to this object
         @rtype: string
         
         >>> dmd.Devices.getIdLink()
-        '<a href="/zport/dmd/Devices">Devices</a>'
+        '<a href="/zport/dmd/Devices">/</a>'
         """
         return self.urlLink()
 
