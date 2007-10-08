@@ -20,9 +20,7 @@
         var linkdata = ${here/getChildLinks};
         var secondarynodedata = ${here/getSecondaryNodes};
         var cachestring = '${here/dmd/getGeoCache}';
-        try {
-            if (cachestring) geocodecache = evalJSON(cachestring);
-        } catch(e) { noop(); }
+        if (cachestring) geocodecache = evalJSON(cachestring);
     "></script>
     <script>
         function maximizeMapHeight() {

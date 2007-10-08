@@ -8,13 +8,13 @@ ZenossLocationCache.prototype = new GGeocodeCache();
 ZenossLocationCache.prototype.reset = function() {
     GGeocodeCache.prototype.reset.call(this);
     if (geocodecache) {
-      var mycache = geocodecache.v;
+      var mycache = geocodecache.H;
     } else {
       var mycache = [];
     }
-    for (var i in mycache) { 
-        this.put(mycache[i].name, mycache[i]);
-    }
+    forEach(keys(mycache), method(this, function(x) {
+        this.put(mycache[x].name, mycache[x]);
+    }));
 }
 
 var ZenGeoMap = Class.create();
@@ -84,7 +84,8 @@ ZenGeoMap.prototype = {
     addMarker: function(address, color, clicklink, summarytext){
         var d = this.lock.acquire();
         d.addCallback(bind(function(){
-        if (this.cache.get(address)==null) this.dirtycache = true;
+        if (this.cache.get(address)==null)
+            this.dirtycache = true;
         this.geocoder.getLatLng(
             address,
             bind(function(p){
