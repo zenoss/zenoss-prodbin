@@ -38,14 +38,27 @@ class BanClassesOnAddToZenPackMenuItem(Migrate.Step):
                      'banned_classes': ('DeviceGroup',
                                         'IpNetwork',
                                         'Location',
-                                        'System',),
+                                        'System',
+                                        'RRDDataSource',
+                                        'RRDDataPoint',
+                                        'ThresholdClass',
+                                        'GraphDefinition',
+                                        'GraphPoint'
+                                        ),
                      'description': 'Add to ZenPack...',
                      'id': 'addToZenPack',
                      'isdialog': True,
                      'ordering': 1.0,
                      'permissions': (ZEN_MANAGE_DMD,) } ]
         })
-        for menuItems in dmd.zenMenus.getMenus().values():
+        
+        zm = dmd.zenMenus
+        if zm.User_list.zenMenuItems._getOb('addToZenPack', False):
+            zm.User_list.zenMenuItems._delObject('addToZenPack') 
+        if zm.Manufacturer_list.zenMenuItems._getOb('addToZenPack', False):
+            zm.Manufacturer_list.zenMenuItems._delObject('addToZenPack')
+        
+        for menuItems in zm.getMenus().values():
             for menuItem in menuItems:
                 if menuItem.id == 'addToZenPack':
                     menuItem.permissions = (ZEN_MANAGE_DMD,)
