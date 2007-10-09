@@ -89,7 +89,7 @@ function ShowPrintable() {
 		    </td>
 		</tr>
         <tr>
-            <td class="tablevalue">
+            <td class="tablevalues">
                 <img src="_" tal:attributes="src graphUrl; id graphid"/>
                 <script language="javascript" type="text/javascript"
                 tal:content="string:ZenGraphs[ZenGraphs.length]='${graphid}';">

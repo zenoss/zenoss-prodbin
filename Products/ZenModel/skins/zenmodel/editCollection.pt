@@ -166,7 +166,7 @@
     <tr>
         <td class="tableheader" width="100">Item Type
         </td>
-        <td class="tablevalue">
+        <td class="tablevalues">
             <select name="itemType" id="itemType">
                 <option value="deviceClass" tal:attributes="
                     selected python:request.get('itemType','')=='deviceClass'">
@@ -191,7 +191,7 @@
         <td class="tableheader">
             Device Class
         </td>
-        <td class="tablevalue">
+        <td class="tablevalues">
             <select name="deviceClasses:list" multiple="1" size="10">
                 <option tal:repeat="org here/Devices/getSubOrganizers"
                     tal:attributes="value org/getOrganizerName"
@@ -203,7 +203,7 @@
         <td class="tableheader">
             System
         </td>
-        <td class="tablevalue">
+        <td class="tablevalues">
             <select name="systems:list" multiple="1" size="10">
                 <option tal:repeat="org here/Systems/getSubOrganizers"
                     tal:attributes="value org/getOrganizerName"
@@ -215,7 +215,7 @@
         <td class="tableheader">
             Group
         </td>
-        <td class="tablevalue">
+        <td class="tablevalues">
             <select name="groups:list" multiple="1" size="10">
                 <option tal:repeat="org here/Groups/getSubOrganizers"
                     tal:attributes="value org/getOrganizerName"
@@ -227,7 +227,7 @@
         <td class="tableheader">
             Location
         </td>
-        <td class="tablevalue">
+        <td class="tablevalues">
             <select name="locations:list" multiple="1" size="10">
                 <option tal:repeat="org here/Locations/getSubOrganizers"
                     tal:attributes="value org/getOrganizerName"
@@ -239,7 +239,7 @@
         <td class="tableheader">
             Include Suborganizers?
         </td>
-        <td class="tablevalue">
+        <td class="tablevalues">
             <select class="tablevalues" name="recurse:boolean">
                 <option tal:repeat="e python:(True,False)" tal:content="e"
                         tal:attributes="value e;
@@ -250,7 +250,7 @@
         <td class="tableheader">
             Device
         </td>
-        <td class="tablevalue">
+        <td class="tablevalues">
             <input class="tablevalues" type="text" name="deviceFilter"
                  id="deviceFilter" size="20"
                  tal:attributes="value request/deviceFilter | nothing"
@@ -267,7 +267,7 @@
         <td class="tableheader">
             Component
         </td>
-        <td class="tablevalue">
+        <td class="tablevalues">
             <select class="tablevalues" name="componentPaths:list" size="6"
                 id="componentPaths" multiple="1">
             </select>
@@ -318,7 +318,7 @@
                     tableName,'getNumDevicesAndComponents','Number of'
                     ' Devices/Components')"/>
     </tr>
-    <tr class="tablevalue" tal:repeat="item batch">
+    <tr class="tablevalues" tal:repeat="item batch">
         <td>
             <input tal:condition="here/isManager" 
                 type="text" name="seqmap:list" size="2"
@@ -345,13 +345,13 @@
             
     </tr>
     <tr>
-        <td class="tablevalue" colspan="4">&nbsp;</td>
+        <td class="tablevalues" colspan="4">&nbsp;</td>
     </tr>
     <tr>
-        <td class="tablevalue" colspan="3">
+        <td class="tablevalues" colspan="3">
             Total unique devices and components
         </td>
-        <td class="tablevalue">
+        <td class="tablevalues">
             <tal:block tal:replace="python:len(here.getDevicesAndComponents())">
             </tal:block>
         </td>
