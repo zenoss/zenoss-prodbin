@@ -50,7 +50,7 @@ class ProductClass(ZenModelRM, ZenPackable):
         {'id':'isOS', 'type':'boolean', 'mode':'w'},
     )
 
-    _relations = (
+    _relations = ZenPackable._relations + (
         ("instances", ToMany(ToOne, "Products.ZenModel.MEProduct", "productClass")),
         ("manufacturer", ToOne(ToManyCont,"Products.ZenModel.Manufacturer","products")),
     )
