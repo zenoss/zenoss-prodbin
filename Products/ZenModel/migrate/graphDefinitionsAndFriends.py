@@ -68,6 +68,18 @@ class GraphDefinitionsAndFriends(Migrate.Step):
                    'ordering': 80.0,
                    'permissions': ('Change Device',)}
             ],
+        'Graph_list_noseq': [  {  'action': 'dialog_addGraph',
+                   'description': 'Add Graph...',
+                   'id': 'addGraph',
+                   'isdialog': True,
+                   'ordering': 90.1,
+                   'permissions': ('Change Device',)},
+                {  'action': 'dialog_deleteGraph',
+                   'description': 'Delete Graph...',
+                   'id': 'deleteGraph',
+                   'isdialog': True,
+                   'ordering': 90.0,
+                   'permissions': ('Change Device',)}],
             })
 
         prevVersion = getattr(dmd, self.scriptVerAttrName, 0)
