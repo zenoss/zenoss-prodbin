@@ -285,7 +285,11 @@ mypath python:test(item.action.startswith('javascript'),
     =================================================-->
 
 <tal:block metal:define-macro="jsutils">
-<script tal:content="string:
+<script 
+tal:define="templateFreeUrl python:request['PATH_INFO'].replace(template.id, '');
+            templateFreeUrl python:test(templateFreeUrl.endswith('/'),
+            templateFreeUrl[:-1], templateFreeUrl)"
+tal:content="string:
 
 var submitFormToMethod = function(formname, method) {
 //Basically for use in menu items, to obviate creating dummy forms
@@ -314,6 +318,13 @@ var goExport = function() {
     url = '${here/absolute_url_path}/exportEvents?' + queryString(params);
     parent.location = url;
 }
+
+addLoadEvent(function() {
+
+    YAHOO.zenoss.templateFreeURL = '${templateFreeUrl}';
+
+});
+
 
 ">s</script>
 </tal:block>
