@@ -779,7 +779,6 @@ YAHOO.zenoss.DDResize = function(portlet) {
 YAHOO.extend(YAHOO.zenoss.DDResize, YAHOO.util.DragDrop, {
     onMouseDown: function(e) {
         var panel = this.portlet.body; 
-        this.portlet.disable();
         this.startWidth = panel.offsetWidth;
         this.startHeight = panel.offsetHeight;
 
@@ -787,6 +786,7 @@ YAHOO.extend(YAHOO.zenoss.DDResize, YAHOO.util.DragDrop, {
                          YAHOO.util.Event.getPageY(e)];
     },
     onDrag: function(e) {
+        this.portlet.disable();
         var newPos = [YAHOO.util.Event.getPageX(e),
                       YAHOO.util.Event.getPageY(e)];
 
@@ -797,6 +797,9 @@ YAHOO.extend(YAHOO.zenoss.DDResize, YAHOO.util.DragDrop, {
         this.portlet.bodyHeight = newHeight;
         this.portlet.PortletContainer.setContainerHeight();
         this.portlet.PortletContainer.isDirty = true;
+    },
+    onDrop: function(e) {
+        this.portlet.enable();
     },
 
     onMouseUp: function(e) {
