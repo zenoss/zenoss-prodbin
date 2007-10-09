@@ -570,9 +570,17 @@ class UserSettings(ZenModelRM):
         # update password info
         userManager = self.acl_users.userManager
         if password:
-            if password != sndpassword:
+            if password.find(':') >= 0:
                 if REQUEST:
-                    REQUEST['message'] = "Passwords didn't match! No change. "
+                    REQUEST['message'] = \
+                        "Passwords cannot contain a ':'. Password not updated."
+                    return self.callZenScreen(REQUEST)
+                else:
+                    raise ValueError("Passwords cannot contain a ':' ") 
+            elif password != sndpassword:
+                if REQUEST:
+                    REQUEST['message'] = \
+                        "Passwords didn't match! Password not updated. "
                     return self.callZenScreen(REQUEST)
                 else:
                     raise ValueError("Passwords don't match")
