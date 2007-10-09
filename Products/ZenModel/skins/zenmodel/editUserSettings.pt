@@ -84,7 +84,7 @@ function ConfirmPagerTest() {
       <td class="tablevalues">
         <input class="tablevalues" type="text" name="pager" size="40"
             tal:attributes="value here/pager" />
-        <tal:block tal:condition="here/email">
+        <tal:block tal:condition="here/pager">
         &nbsp;&nbsp;
         <a class="tablevalues" onclick="return ConfirmPagerTest()"
         tal:attributes="href string:${here/absolute_url_path}?zenScreenName=editUserSettings&manage_pagerTest:method=1&userid=${here/getId}">test</a>

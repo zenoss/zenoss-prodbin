@@ -768,19 +768,21 @@ class UserSettings(ZenModelRM):
         ''' Send a test page 
         '''
         destSettings = self.getUserSettings(self.getId())
-        destPagers = (destSettings.getPagerAddresses() or []).strip()
+        destPagers = [ x.strip() for x in 
+            (destSettings.getPagerAddresses() or []) ]
         msg = None
-        if destPagers:
-            fqdn = socket.getfqdn()
-            srcId = self.getUser().getId()
-            msg = ('Test sent by %s' % srcId + 
-                    ' from the Zenoss installation on %s.' % fqdn)
-            result, errorMsg = Utils.sendPage(destPagers, msg, 
+        fqdn = socket.getfqdn()
+        srcId = self.getUser().getId()
+        testMsg = ('Test sent by %s' % srcId + 
+                ' from the Zenoss installation on %s.' % fqdn)
+        for destPager in destPagers:
+            result, errorMsg = Utils.sendPage(destPager, testMsg, 
                                     self.dmd.snppHost, self.dmd.snppPort)
             if result:
-                msg = 'Test page sent to %s' % destPagers
+                msg = 'Test page sent to %s' % ', '.join(destPagers)
             else:
                 msg = 'Test failed: %s' % errorMsg
+                break
         else:
             msg = 'Test page not sent, user has no pager number.'
         if REQUEST:
