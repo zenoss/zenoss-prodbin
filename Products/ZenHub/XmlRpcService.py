@@ -32,7 +32,10 @@ class XmlRpcService(xmlrpc.XMLRPC):
 
     def xmlrpc_sendEvent(self, data):
         'XMLRPC requests are processed asynchronously in a thread'
-        return self.zem.sendEvent(data)
+        result = self.zem.sendEvent(data)
+        if result is None:
+            result = "heartbeat ok"
+        return result
 
     def xmlrpc_sendEvents(self, data):
         return self.zem.sendEvents(data)
