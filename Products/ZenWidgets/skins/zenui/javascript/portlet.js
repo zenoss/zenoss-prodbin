@@ -81,7 +81,7 @@ Portlet.prototype = {
         datasource = 'datasource' in args? args.datasource:{};
         title = 'title' in args? args.title:"My Portlet";
         bodyHeight = 'bodyHeight' in args? args.bodyHeight:200;
-        refreshTime = 'refreshTime' in args? args.refreshTime:0;
+        refreshTime = 'refreshTime' in args? args.refreshTime:60;
         if (!bodyHeight) bodyHeight = 50;
         this.bodyHeight = bodyHeight;
         this.refreshTime = refreshTime;
@@ -775,6 +775,7 @@ YAHOO.zenoss.DDResize = function(portlet) {
     this.addInvalidHandleId(portlet.handleid);
     this.addInvalidHandleId(portlet.container.id);
     this.addInvalidHandleId(portlet.titlecont.id);
+    this.addInvalidHandleClass('removelink');
 };
 YAHOO.extend(YAHOO.zenoss.DDResize, YAHOO.util.DragDrop, {
     onMouseDown: function(e) {
@@ -965,13 +966,6 @@ WatchListPortlet.prototype = {
         var oConfigs = {};
         addElementClass(this.body, 'yui-skin-sam');
         if (this.dataTable) {
-            forEach(this.dataTable.getRecordSet().getRecords(), 
-                bind(function(x){
-                var row = this.dataTable.getTrEl(x);
-                var cells = row.childNodes;
-                map(purge, cells);
-                forEach(function(x){replaceChildNodes(x, '')}, cells);
-            }, this));
             this.dataTable.initializeTable(dataSource.liveData);
         } else {
             var myDataTable = new YAHOO.widget.DataTable(
