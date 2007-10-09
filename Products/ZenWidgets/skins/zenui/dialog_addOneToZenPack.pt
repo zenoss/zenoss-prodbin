@@ -3,17 +3,15 @@
     To which pack would you like to add this object?<br/>
 </p>
 <br/>
-<form name='packomatic'>
+<form name='packomatic' tal:attributes="action here/absolute_url">
 <p style="text-align:center;">
     <select class="tableheader" name="pack" tal:define="targets here/packs">
-	<option tal:repeat="target targets" tal:content="target/id"/>
+            <option tal:repeat="target targets" tal:content="target/id"/>
     </select>
 </p>
 <div id="dialog_buttons">
-    <input type="submit" name="addToZenPack:method"
-    	   value="Add"/>
-    <input id="dialog_cancel" 
-    	   type="button" value="Cancel" 
-    	   onclick="$('dialog').hide()"/>
+    <input type="submit" name="addToZenPack:method" value="Add"/>
+    <input id="dialog_cancel" type="button" value="Cancel" 
+        onclick="$('dialog').hide()"/> 
 </div>
 </form>
