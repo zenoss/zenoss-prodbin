@@ -28,7 +28,7 @@ class MibNode(MibBase):
         {'id':'access', 'type':'string', 'mode':'w'},
     )
 
-    _relations = (
+    _relations = MibBase._relations + (
         ("module", ToOne(ToManyCont, "Products.ZenModel.MibModule", "nodes")),
     )
     

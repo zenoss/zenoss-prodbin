@@ -28,7 +28,7 @@ class MibNotification(MibBase):
         {'id':'objects', 'type':'lines', 'mode':'w'},
     )
     
-    _relations = (
+    _relations = MibBase._relations + (
         ("module", ToOne(ToManyCont, "Products.ZenModel.MibModule", "notifications")),
     )
     
