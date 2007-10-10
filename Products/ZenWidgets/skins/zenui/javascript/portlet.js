@@ -797,7 +797,7 @@ YAHOO.extend(YAHOO.zenoss.DDResize, YAHOO.util.DragDrop, {
 
         var offsetY = newPos[1] - this.startPos[1];
         var newHeight = Math.max(this.startHeight + offsetY, 10);
-        newHeight = newHeight - (Math.abs(newHeight) % 10) - 1;
+        newHeight = newHeight - (Math.abs(newHeight) % 5);
         if (newHeight!=this.portlet.bodyHeight) {
             var panel = this.portlet.body;
             panel.style.height = newHeight + "px";

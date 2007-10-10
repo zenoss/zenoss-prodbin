@@ -59,7 +59,7 @@ div.zenportlet div.portlet-body {
     overflow-y: auto;
 }
 div.zenportlet div.resize-handle {
-    height:5px;
+    height:4px;
     width:100%;
     cursor:s-resize;
 }
@@ -169,5 +169,5 @@ div.zenportlet .yui-skin-sam .yui-dt-table thead tr {
 }
 
 div.zenportlet .yui-skin-sam .yui-dt-table td {
-    padding: 3px 10px;
+    padding: 1px 10px 1px;
 }
