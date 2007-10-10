@@ -1275,7 +1275,7 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
         >>> dmd.ZenEventManager._wand('where a=5', '%s=%s', 'a', 'b')
         'where a=5'
         >>> dmd.ZenEventManager._wand('where b=a', '%s=%s', 'a', 'b')
-        'where b=a and a=b'
+        'where b=a'
         """
         if value != None and where.find(field) == -1:
             if where: where += " and "
