@@ -1727,6 +1727,50 @@ False
 </object>
 </tomanycont>
 </object>
+<object id='Graph_list_noseq' module='Products.ZenModel.ZenMenu' class='ZenMenu'>
+<tomanycont id='zenMenuItems'>
+<object id='addGraph' module='Products.ZenModel.ZenMenuItem' class='ZenMenuItem'>
+<property type="text" id="description" mode="w" >
+Add Graph...
+</property>
+<property type="text" id="action" mode="w" >
+dialog_addGraph
+</property>
+<property type="boolean" id="isglobal" mode="w" >
+True
+</property>
+<property type="lines" id="permissions" mode="w" >
+('Change Device',)
+</property>
+<property type="boolean" id="isdialog" mode="w" >
+True
+</property>
+<property type="float" id="ordering" mode="w" >
+90.1
+</property>
+</object>
+<object id='deleteGraph' module='Products.ZenModel.ZenMenuItem' class='ZenMenuItem'>
+<property type="text" id="description" mode="w" >
+Delete Graph...
+</property>
+<property type="text" id="action" mode="w" >
+dialog_deleteGraph
+</property>
+<property type="boolean" id="isglobal" mode="w" >
+True
+</property>
+<property type="lines" id="permissions" mode="w" >
+('Change Device',)
+</property>
+<property type="boolean" id="isdialog" mode="w" >
+True
+</property>
+<property type="float" id="ordering" mode="w" >
+90.0
+</property>
+</object>
+</tomanycont>
+</object>
 <object id='GroupUser_list' module='Products.ZenModel.ZenMenu' class='ZenMenu'>
 <tomanycont id='zenMenuItems'>
 <object id='addUserToAGroup' module='Products.ZenModel.ZenMenuItem' class='ZenMenuItem'>
@@ -2461,26 +2505,6 @@ True
 90.0
 </property>
 </object>
-<object id='addToZenPack' module='Products.ZenModel.ZenMenuItem' class='ZenMenuItem'>
-<property type="text" id="description" mode="w" >
-Add to ZenPack...
-</property>
-<property type="text" id="action" mode="w" >
-dialog_addToZenPack
-</property>
-<property type="boolean" id="isglobal" mode="w" >
-True
-</property>
-<property type="lines" id="permissions" mode="w" >
-('Manage DMD',)
-</property>
-<property type="boolean" id="isdialog" mode="w" >
-True
-</property>
-<property type="float" id="ordering" mode="w" >
-0.0
-</property>
-</object>
 <object id='removeManufacturers' module='Products.ZenModel.ZenMenuItem' class='ZenMenuItem'>
 <property type="text" id="description" mode="w" >
 Delete Manufacturers...
@@ -2696,7 +2720,7 @@ True
 ('Manage DMD',)
 </property>
 <property type="lines" id="banned_classes" mode="w" >
-['DeviceGroup', 'IpNetwork', 'Location', 'System']
+['DeviceGroup', 'IpNetwork', 'Location', 'System', 'RRDDataSource', 'RRDDataPoint', 'ThresholdClass', 'GraphDefinition', 'GraphPoint']
 </property>
 <property type="lines" id="allowed_classes" mode="w" >
 ['ZenPackable']
@@ -4340,26 +4364,6 @@ True
 </object>
 <object id='User_list' module='Products.ZenModel.ZenMenu' class='ZenMenu'>
 <tomanycont id='zenMenuItems'>
-<object id='addToZenPack' module='Products.ZenModel.ZenMenuItem' class='ZenMenuItem'>
-<property type="text" id="description" mode="w" >
-Add to ZenPack...
-</property>
-<property type="text" id="action" mode="w" >
-dialog_addToZenPack
-</property>
-<property type="boolean" id="isglobal" mode="w" >
-True
-</property>
-<property type="lines" id="permissions" mode="w" >
-('Manage DMD',)
-</property>
-<property type="boolean" id="isdialog" mode="w" >
-True
-</property>
-<property type="float" id="ordering" mode="w" >
-0.0
-</property>
-</object>
 <object id='addUser' module='Products.ZenModel.ZenMenuItem' class='ZenMenuItem'>
 <property type="text" id="description" mode="w" >
 Add New User...

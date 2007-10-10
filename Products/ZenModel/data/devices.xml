@@ -433,7 +433,7 @@ False
 True
 </property>
 <tomanycont id='graphPoints'>
-<object id='cpu_cpu' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint'>
+<object id='cpu' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint'>
 <property select_variable="lineTypes" type="selection" id="lineType" mode="w" >
 AREA
 </property>
@@ -441,10 +441,13 @@ AREA
 1
 </property>
 <property type="boolean" id="stacked" mode="w" >
-True
+False
 </property>
 <property type="string" id="format" mode="w" >
 %0.2lf%s
+</property>
+<property type="string" id="legend" mode="w" >
+${graphPoint/id}
 </property>
 <property type="long" id="limit" mode="w" >
 800
@@ -487,7 +490,7 @@ True
 1
 </property>
 <tomanycont id='graphPoints'>
-<object id='mem_mem' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint'>
+<object id='mem' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint'>
 <property select_variable="lineTypes" type="selection" id="lineType" mode="w" >
 AREA
 </property>
@@ -495,10 +498,13 @@ AREA
 1
 </property>
 <property type="boolean" id="stacked" mode="w" >
-True
+False
 </property>
 <property type="string" id="format" mode="w" >
 %5.2lf%s
+</property>
+<property type="string" id="legend" mode="w" >
+${graphPoint/id}
 </property>
 <property type="long" id="limit" mode="w" >
 -1
@@ -538,7 +544,7 @@ True
 2
 </property>
 <tomanycont id='graphPoints'>
-<object id='count_count' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint'>
+<object id='count' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint'>
 <property select_variable="lineTypes" type="selection" id="lineType" mode="w" >
 AREA
 </property>
@@ -546,10 +552,13 @@ AREA
 1
 </property>
 <property type="boolean" id="stacked" mode="w" >
-True
+False
 </property>
 <property type="string" id="format" mode="w" >
 %5.2lf%s
+</property>
+<property type="string" id="legend" mode="w" >
+${graphPoint/id}
 </property>
 <property type="long" id="limit" mode="w" >
 -1
@@ -1011,7 +1020,7 @@ True
 2
 </property>
 <tomanycont id='graphPoints'>
-<object id='ifInErrors_ifInErrors' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint'>
+<object id='ifInErrors' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint'>
 <property select_variable="lineTypes" type="selection" id="lineType" mode="w" >
 AREA
 </property>
@@ -1019,10 +1028,13 @@ AREA
 1
 </property>
 <property type="boolean" id="stacked" mode="w" >
-True
+False
 </property>
 <property type="string" id="format" mode="w" >
 %5.2lf%s
+</property>
+<property type="string" id="legend" mode="w" >
+${graphPoint/id}
 </property>
 <property type="long" id="limit" mode="w" >
 -1
@@ -1034,7 +1046,7 @@ ifInErrors_ifInErrors
 AVERAGE
 </property>
 </object>
-<object id='ifOutErrors_ifOutErrors' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint'>
+<object id='ifOutErrors' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint'>
 <property type="long" id="sequence" mode="w" >
 1
 </property>
@@ -1045,10 +1057,13 @@ LINE
 1
 </property>
 <property type="boolean" id="stacked" mode="w" >
-True
+False
 </property>
 <property type="string" id="format" mode="w" >
 %5.2lf%s
+</property>
+<property type="string" id="legend" mode="w" >
+${graphPoint/id}
 </property>
 <property type="long" id="limit" mode="w" >
 -1
@@ -1091,7 +1106,7 @@ True
 1
 </property>
 <tomanycont id='graphPoints'>
-<object id='ifInUcastPackets_ifInUcastPackets' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint'>
+<object id='ifInUcastPackets' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint'>
 <property select_variable="lineTypes" type="selection" id="lineType" mode="w" >
 AREA
 </property>
@@ -1099,10 +1114,13 @@ AREA
 1
 </property>
 <property type="boolean" id="stacked" mode="w" >
-True
+False
 </property>
 <property type="string" id="format" mode="w" >
 %5.2lf%s
+</property>
+<property type="string" id="legend" mode="w" >
+${graphPoint/id}
 </property>
 <property type="long" id="limit" mode="w" >
 -1
@@ -1114,7 +1132,7 @@ ifInUcastPackets_ifInUcastPackets
 AVERAGE
 </property>
 </object>
-<object id='ifOutUcastPackets_ifOutUcastPackets' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint'>
+<object id='ifOutUcastPackets' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint'>
 <property type="long" id="sequence" mode="w" >
 1
 </property>
@@ -1125,10 +1143,13 @@ LINE
 1
 </property>
 <property type="boolean" id="stacked" mode="w" >
-True
+False
 </property>
 <property type="string" id="format" mode="w" >
 %5.2lf%s
+</property>
+<property type="string" id="legend" mode="w" >
+${graphPoint/id}
 </property>
 <property type="long" id="limit" mode="w" >
 -1
@@ -1172,8 +1193,11 @@ True
 <property type="string" id="threshId" mode="w" >
 Utilization 75 perc
 </property>
+<property type="string" id="legend" mode="w" >
+${graphPoint/id}
+</property>
 </object>
-<object id='ifInOctets_ifInOctets' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint'>
+<object id='ifInOctets' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint'>
 <property select_variable="lineTypes" type="selection" id="lineType" mode="w" >
 AREA
 </property>
@@ -1181,10 +1205,13 @@ AREA
 1
 </property>
 <property type="boolean" id="stacked" mode="w" >
-True
+False
 </property>
 <property type="string" id="format" mode="w" >
 %5.2lf%s
+</property>
+<property type="string" id="legend" mode="w" >
+${graphPoint/id}
 </property>
 <property type="long" id="limit" mode="w" >
 -1
@@ -1196,7 +1223,7 @@ ifInOctets_ifInOctets
 AVERAGE
 </property>
 </object>
-<object id='ifOutOctets_ifOutOctets' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint'>
+<object id='ifOutOctets' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint'>
 <property type="long" id="sequence" mode="w" >
 2
 </property>
@@ -1207,10 +1234,13 @@ LINE
 1
 </property>
 <property type="boolean" id="stacked" mode="w" >
-True
+False
 </property>
 <property type="string" id="format" mode="w" >
 %5.2lf%s
+</property>
+<property type="string" id="legend" mode="w" >
+${graphPoint/id}
 </property>
 <property type="long" id="limit" mode="w" >
 -1
@@ -1582,7 +1612,7 @@ True
 2
 </property>
 <tomanycont id='graphPoints'>
-<object id='ifInErrors_ifInErrors' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint'>
+<object id='ifInErrors' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint'>
 <property select_variable="lineTypes" type="selection" id="lineType" mode="w" >
 AREA
 </property>
@@ -1590,10 +1620,13 @@ AREA
 1
 </property>
 <property type="boolean" id="stacked" mode="w" >
-True
+False
 </property>
 <property type="string" id="format" mode="w" >
 %5.2lf%s
+</property>
+<property type="string" id="legend" mode="w" >
+${graphPoint/id}
 </property>
 <property type="long" id="limit" mode="w" >
 -1
@@ -1605,7 +1638,7 @@ ifInErrors_ifInErrors
 AVERAGE
 </property>
 </object>
-<object id='ifOutErrors_ifOutErrors' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint'>
+<object id='ifOutErrors' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint'>
 <property type="long" id="sequence" mode="w" >
 1
 </property>
@@ -1616,10 +1649,13 @@ LINE
 1
 </property>
 <property type="boolean" id="stacked" mode="w" >
-True
+False
 </property>
 <property type="string" id="format" mode="w" >
 %5.2lf%s
+</property>
+<property type="string" id="legend" mode="w" >
+${graphPoint/id}
 </property>
 <property type="long" id="limit" mode="w" >
 -1
@@ -1659,7 +1695,7 @@ True
 1
 </property>
 <tomanycont id='graphPoints'>
-<object id='ifHCInUcastPkts_ifHCInUcastPkts' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint'>
+<object id='ifHCInUcastPkts' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint'>
 <property select_variable="lineTypes" type="selection" id="lineType" mode="w" >
 AREA
 </property>
@@ -1667,10 +1703,13 @@ AREA
 1
 </property>
 <property type="boolean" id="stacked" mode="w" >
-True
+False
 </property>
 <property type="string" id="format" mode="w" >
 %5.2lf%s
+</property>
+<property type="string" id="legend" mode="w" >
+${graphPoint/id}
 </property>
 <property type="long" id="limit" mode="w" >
 -1
@@ -1682,7 +1721,7 @@ ifHCInUcastPkts_ifHCInUcastPkts
 AVERAGE
 </property>
 </object>
-<object id='ifHCOutUcastPkts_ifHCOutUcastPkts' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint'>
+<object id='ifHCOutUcastPkts' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint'>
 <property type="long" id="sequence" mode="w" >
 1
 </property>
@@ -1693,10 +1732,13 @@ LINE
 1
 </property>
 <property type="boolean" id="stacked" mode="w" >
-True
+False
 </property>
 <property type="string" id="format" mode="w" >
 %5.2lf%s
+</property>
+<property type="string" id="legend" mode="w" >
+${graphPoint/id}
 </property>
 <property type="long" id="limit" mode="w" >
 -1
@@ -1733,7 +1775,7 @@ False
 True
 </property>
 <tomanycont id='graphPoints'>
-<object id='ifHCInOctets_ifHCInOctets' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint'>
+<object id='ifHCInOctets' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint'>
 <property select_variable="lineTypes" type="selection" id="lineType" mode="w" >
 AREA
 </property>
@@ -1741,10 +1783,13 @@ AREA
 1
 </property>
 <property type="boolean" id="stacked" mode="w" >
-True
+False
 </property>
 <property type="string" id="format" mode="w" >
 %5.2lf%s
+</property>
+<property type="string" id="legend" mode="w" >
+${graphPoint/id}
 </property>
 <property type="long" id="limit" mode="w" >
 -1
@@ -1759,7 +1804,7 @@ ifHCInOctets_ifHCInOctets
 AVERAGE
 </property>
 </object>
-<object id='ifHCOutOctets_ifHCOutOctets' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint'>
+<object id='ifHCOutOctets' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint'>
 <property type="long" id="sequence" mode="w" >
 1
 </property>
@@ -1770,10 +1815,13 @@ LINE
 1
 </property>
 <property type="boolean" id="stacked" mode="w" >
-True
+False
 </property>
 <property type="string" id="format" mode="w" >
 %5.2lf%s
+</property>
+<property type="string" id="legend" mode="w" >
+${graphPoint/id}
 </property>
 <property type="long" id="limit" mode="w" >
 -1
@@ -2077,8 +2125,11 @@ True
 <property type="string" id="threshId" mode="w" >
 CPU
 </property>
+<property type="string" id="legend" mode="w" >
+${graphPoint/id}
+</property>
 </object>
-<object id='cpu5min_cpu5min' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint'>
+<object id='cpu5min' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint'>
 <property select_variable="lineTypes" type="selection" id="lineType" mode="w" >
 AREA
 </property>
@@ -2086,10 +2137,13 @@ AREA
 1
 </property>
 <property type="boolean" id="stacked" mode="w" >
-True
+False
 </property>
 <property type="string" id="format" mode="w" >
 %0.2lf%s
+</property>
+<property type="string" id="legend" mode="w" >
+${graphPoint/id}
 </property>
 <property type="long" id="limit" mode="w" >
 -1
@@ -2132,7 +2186,7 @@ True
 1
 </property>
 <tomanycont id='graphPoints'>
-<object id='mem5minFree_mem5minFree' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint'>
+<object id='mem5minFree' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint'>
 <property select_variable="lineTypes" type="selection" id="lineType" mode="w" >
 AREA
 </property>
@@ -2140,10 +2194,13 @@ AREA
 1
 </property>
 <property type="boolean" id="stacked" mode="w" >
-True
+False
 </property>
 <property type="string" id="format" mode="w" >
 %0.2lf%s
+</property>
+<property type="string" id="legend" mode="w" >
+${graphPoint/id}
 </property>
 <property type="long" id="limit" mode="w" >
 -1
@@ -2843,8 +2900,11 @@ True
 <property type="string" id="threshId" mode="w" >
 CPU Utilization
 </property>
+<property type="string" id="legend" mode="w" >
+${graphPoint/id}
+</property>
 </object>
-<object id='ssCpuRawIdle_ssCpuRawIdle' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint'>
+<object id='ssCpuRawIdle' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint'>
 <property select_variable="lineTypes" type="selection" id="lineType" mode="w" >
 AREA
 </property>
@@ -2852,10 +2912,13 @@ AREA
 1
 </property>
 <property type="boolean" id="stacked" mode="w" >
-True
+False
 </property>
 <property type="string" id="format" mode="w" >
 %0.1lf%%
+</property>
+<property type="string" id="legend" mode="w" >
+${graphPoint/id}
 </property>
 <property type="long" id="limit" mode="w" >
 -1
@@ -2898,7 +2961,7 @@ True
 1
 </property>
 <tomanycont id='graphPoints'>
-<object id='ssCpuRawSystem_ssCpuRawSystem' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint'>
+<object id='ssCpuRawSystem' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint'>
 <property select_variable="lineTypes" type="selection" id="lineType" mode="w" >
 AREA
 </property>
@@ -2911,6 +2974,9 @@ True
 <property type="string" id="format" mode="w" >
 %0.1lf%%
 </property>
+<property type="string" id="legend" mode="w" >
+${graphPoint/id}
+</property>
 <property type="long" id="limit" mode="w" >
 -1
 </property>
@@ -2921,12 +2987,12 @@ ssCpuRawSystem_ssCpuRawSystem
 AVERAGE
 </property>
 </object>
-<object id='ssCpuRawUser_ssCpuRawUser' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint'>
+<object id='ssCpuRawUser' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint'>
 <property type="long" id="sequence" mode="w" >
 1
 </property>
 <property select_variable="lineTypes" type="selection" id="lineType" mode="w" >
-LINE
+AREA
 </property>
 <property type="long" id="lineWidth" mode="w" >
 1
@@ -2936,6 +3002,9 @@ True
 </property>
 <property type="string" id="format" mode="w" >
 %0.1lf%%
+</property>
+<property type="string" id="legend" mode="w" >
+${graphPoint/id}
 </property>
 <property type="long" id="limit" mode="w" >
 -1
@@ -2947,12 +3016,12 @@ ssCpuRawUser_ssCpuRawUser
 AVERAGE
 </property>
 </object>
-<object id='ssCpuRawWait_ssCpuRawWait' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint'>
+<object id='ssCpuRawWait' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint'>
 <property type="long" id="sequence" mode="w" >
 2
 </property>
 <property select_variable="lineTypes" type="selection" id="lineType" mode="w" >
-LINE
+AREA
 </property>
 <property type="long" id="lineWidth" mode="w" >
 1
@@ -2962,6 +3031,9 @@ True
 </property>
 <property type="string" id="format" mode="w" >
 %0.1lf%%
+</property>
+<property type="string" id="legend" mode="w" >
+${graphPoint/id}
 </property>
 <property type="long" id="limit" mode="w" >
 -1
@@ -3004,7 +3076,7 @@ True
 4
 </property>
 <tomanycont id='graphPoints'>
-<object id='memAvailReal_memAvailReal' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint'>
+<object id='memAvailReal' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint'>
 <property select_variable="lineTypes" type="selection" id="lineType" mode="w" >
 AREA
 </property>
@@ -3012,10 +3084,13 @@ AREA
 1
 </property>
 <property type="boolean" id="stacked" mode="w" >
-True
+False
 </property>
 <property type="string" id="format" mode="w" >
 %5.2lf%s
+</property>
+<property type="string" id="legend" mode="w" >
+${graphPoint/id}
 </property>
 <property type="long" id="limit" mode="w" >
 -1
@@ -3061,7 +3136,7 @@ True
 3
 </property>
 <tomanycont id='graphPoints'>
-<object id='memAvailSwap_memAvailSwap' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint'>
+<object id='memAvailSwap' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint'>
 <property select_variable="lineTypes" type="selection" id="lineType" mode="w" >
 AREA
 </property>
@@ -3069,10 +3144,13 @@ AREA
 1
 </property>
 <property type="boolean" id="stacked" mode="w" >
-True
+False
 </property>
 <property type="string" id="format" mode="w" >
 %0.2lf
+</property>
+<property type="string" id="legend" mode="w" >
+${graphPoint/id}
 </property>
 <property type="long" id="limit" mode="w" >
 -1
@@ -3112,7 +3190,7 @@ False
 True
 </property>
 <tomanycont id='graphPoints'>
-<object id='laLoadInt5_laLoadInt5' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint'>
+<object id='laLoadInt5' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint'>
 <property select_variable="lineTypes" type="selection" id="lineType" mode="w" >
 AREA
 </property>
@@ -3120,10 +3198,13 @@ AREA
 1
 </property>
 <property type="boolean" id="stacked" mode="w" >
-True
+False
 </property>
 <property type="string" id="format" mode="w" >
 %0.2lf
+</property>
+<property type="string" id="legend" mode="w" >
+${graphPoint/id}
 </property>
 <property type="long" id="limit" mode="w" >
 -1
@@ -3166,7 +3247,7 @@ False
 True
 </property>
 <tomanycont id='graphPoints'>
-<object id='laLoadInt5_laLoadInt5' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint'>
+<object id='laLoadInt5' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint'>
 <property select_variable="lineTypes" type="selection" id="lineType" mode="w" >
 AREA
 </property>
@@ -3174,10 +3255,13 @@ AREA
 1
 </property>
 <property type="boolean" id="stacked" mode="w" >
-True
+False
 </property>
 <property type="string" id="format" mode="w" >
 %0.2lf
+</property>
+<property type="string" id="legend" mode="w" >
+${graphPoint/id}
 </property>
 <property type="long" id="limit" mode="w" >
 -1
@@ -3338,18 +3422,21 @@ AREA:percent#00cc00:utilization
 True
 </property>
 <tomanycont id='graphPoints'>
-<object id='usedBlocks_usedBlocks' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint'>
+<object id='usedBlocks' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint'>
 <property select_variable="lineTypes" type="selection" id="lineType" mode="w" >
-LINE
+AREA
 </property>
 <property type="long" id="lineWidth" mode="w" >
 1
 </property>
 <property type="boolean" id="stacked" mode="w" >
-True
+False
 </property>
 <property type="string" id="format" mode="w" >
 %5.2lf%s
+</property>
+<property type="string" id="legend" mode="w" >
+${graphPoint/id}
 </property>
 <property type="long" id="limit" mode="w" >
 -1
@@ -3719,8 +3806,11 @@ True
 <property type="string" id="threshId" mode="w" >
 CPU Utilization over 90
 </property>
+<property type="string" id="legend" mode="w" >
+${graphPoint/id}
+</property>
 </object>
-<object id='cpuPercentProcessorTime_cpuPercentProcessorTime' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint'>
+<object id='cpuPercentProcessorTime' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint'>
 <property select_variable="lineTypes" type="selection" id="lineType" mode="w" >
 AREA
 </property>
@@ -3728,10 +3818,13 @@ AREA
 1
 </property>
 <property type="boolean" id="stacked" mode="w" >
-True
+False
 </property>
 <property type="string" id="format" mode="w" >
 %.0lf
+</property>
+<property type="string" id="legend" mode="w" >
+${graphPoint/id}
 </property>
 <property type="long" id="limit" mode="w" >
 -1
@@ -3774,7 +3867,7 @@ True
 1
 </property>
 <tomanycont id='graphPoints'>
-<object id='memoryAvailableKBytes_memoryAvailableKBytes' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint'>
+<object id='memoryAvailableKBytes' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint'>
 <property select_variable="lineTypes" type="selection" id="lineType" mode="w" >
 AREA
 </property>
@@ -3782,10 +3875,13 @@ AREA
 1
 </property>
 <property type="boolean" id="stacked" mode="w" >
-True
+False
 </property>
 <property type="string" id="format" mode="w" >
 %0.2lf%s
+</property>
+<property type="string" id="legend" mode="w" >
+${graphPoint/id}
 </property>
 <property type="long" id="limit" mode="w" >
 -1
@@ -3831,7 +3927,7 @@ True
 2
 </property>
 <tomanycont id='graphPoints'>
-<object id='memoryPagesPerSec_memoryPagesPerSec' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint'>
+<object id='memoryPagesPerSec' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint'>
 <property select_variable="lineTypes" type="selection" id="lineType" mode="w" >
 AREA
 </property>
@@ -3839,10 +3935,13 @@ AREA
 1
 </property>
 <property type="boolean" id="stacked" mode="w" >
-True
+False
 </property>
 <property type="string" id="format" mode="w" >
 %0.1lf
+</property>
+<property type="string" id="legend" mode="w" >
+${graphPoint/id}
 </property>
 <property type="long" id="limit" mode="w" >
 -1
@@ -4003,7 +4102,7 @@ False
 True
 </property>
 <tomanycont id='graphPoints'>
-<object id='lDiskDiskReadBytesPerSec_lDiskDiskReadBytesPerSec' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint'>
+<object id='lDiskDiskReadBytesPerSec' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint'>
 <property select_variable="lineTypes" type="selection" id="lineType" mode="w" >
 AREA
 </property>
@@ -4011,10 +4110,13 @@ AREA
 1
 </property>
 <property type="boolean" id="stacked" mode="w" >
-True
+False
 </property>
 <property type="string" id="format" mode="w" >
 %0.1lf%S
+</property>
+<property type="string" id="legend" mode="w" >
+${graphPoint/id}
 </property>
 <property type="long" id="limit" mode="w" >
 -1
@@ -4026,7 +4128,7 @@ lDiskDiskReadBytesPerSec_lDiskDiskReadBytesPerSec
 AVERAGE
 </property>
 </object>
-<object id='lDiskDiskWriteBytesPerSec_lDiskDiskWriteBytesPerSec' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint'>
+<object id='lDiskDiskWriteBytesPerSec' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint'>
 <property type="long" id="sequence" mode="w" >
 1
 </property>
@@ -4037,10 +4139,13 @@ LINE
 1
 </property>
 <property type="boolean" id="stacked" mode="w" >
-True
+False
 </property>
 <property type="string" id="format" mode="w" >
 %0.1lf%S
+</property>
+<property type="string" id="legend" mode="w" >
+${graphPoint/id}
 </property>
 <property type="long" id="limit" mode="w" >
 -1
@@ -4633,8 +4738,11 @@ True
 <property type="string" id="threshId" mode="w" >
 CPU Utilization
 </property>
+<property type="string" id="legend" mode="w" >
+${graphPoint/id}
+</property>
 </object>
-<object id='cpu_ssCpuRawIdle' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint'>
+<object id='ssCpuRawIdle' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint'>
 <property select_variable="lineTypes" type="selection" id="lineType" mode="w" >
 AREA
 </property>
@@ -4642,10 +4750,13 @@ AREA
 1
 </property>
 <property type="boolean" id="stacked" mode="w" >
-True
+False
 </property>
 <property type="string" id="format" mode="w" >
 %0.2lf%s
+</property>
+<property type="string" id="legend" mode="w" >
+${graphPoint/id}
 </property>
 <property type="long" id="limit" mode="w" >
 -1
@@ -4688,7 +4799,7 @@ True
 1
 </property>
 <tomanycont id='graphPoints'>
-<object id='cpu_ssCpuRawSystem' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint'>
+<object id='ssCpuRawSystem' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint'>
 <property select_variable="lineTypes" type="selection" id="lineType" mode="w" >
 AREA
 </property>
@@ -4701,6 +4812,9 @@ True
 <property type="string" id="format" mode="w" >
 %0.2lf%s
 </property>
+<property type="string" id="legend" mode="w" >
+${graphPoint/id}
+</property>
 <property type="long" id="limit" mode="w" >
 -1
 </property>
@@ -4711,12 +4825,12 @@ cpu_ssCpuRawSystem
 AVERAGE
 </property>
 </object>
-<object id='cpu_ssCpuRawUser' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint'>
+<object id='ssCpuRawUser' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint'>
 <property type="long" id="sequence" mode="w" >
 1
 </property>
 <property select_variable="lineTypes" type="selection" id="lineType" mode="w" >
-LINE
+AREA
 </property>
 <property type="long" id="lineWidth" mode="w" >
 1
@@ -4726,6 +4840,9 @@ True
 </property>
 <property type="string" id="format" mode="w" >
 %0.2lf%s
+</property>
+<property type="string" id="legend" mode="w" >
+${graphPoint/id}
 </property>
 <property type="long" id="limit" mode="w" >
 -1
@@ -4737,12 +4854,12 @@ cpu_ssCpuRawUser
 AVERAGE
 </property>
 </object>
-<object id='cpu_ssCpuRawWait' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint'>
+<object id='ssCpuRawWait' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint'>
 <property type="long" id="sequence" mode="w" >
 2
 </property>
 <property select_variable="lineTypes" type="selection" id="lineType" mode="w" >
-LINE
+AREA
 </property>
 <property type="long" id="lineWidth" mode="w" >
 1
@@ -4752,6 +4869,9 @@ True
 </property>
 <property type="string" id="format" mode="w" >
 %0.2lf%s
+</property>
+<property type="string" id="legend" mode="w" >
+${graphPoint/id}
 </property>
 <property type="long" id="limit" mode="w" >
 -1
@@ -4794,7 +4914,7 @@ True
 3
 </property>
 <tomanycont id='graphPoints'>
-<object id='mem_memAvailReal' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint'>
+<object id='memAvailReal' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint'>
 <property select_variable="lineTypes" type="selection" id="lineType" mode="w" >
 AREA
 </property>
@@ -4807,6 +4927,9 @@ True
 <property type="string" id="format" mode="w" >
 %5.2lf%s
 </property>
+<property type="string" id="legend" mode="w" >
+${graphPoint/id}
+</property>
 <property type="long" id="limit" mode="w" >
 -1
 </property>
@@ -4817,12 +4940,12 @@ mem_memAvailReal
 AVERAGE
 </property>
 </object>
-<object id='mem_memBuffer' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint'>
+<object id='memBuffer' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint'>
 <property type="long" id="sequence" mode="w" >
 1
 </property>
 <property select_variable="lineTypes" type="selection" id="lineType" mode="w" >
-LINE
+AREA
 </property>
 <property type="long" id="lineWidth" mode="w" >
 1
@@ -4832,6 +4955,9 @@ True
 </property>
 <property type="string" id="format" mode="w" >
 %5.2lf%s
+</property>
+<property type="string" id="legend" mode="w" >
+${graphPoint/id}
 </property>
 <property type="long" id="limit" mode="w" >
 -1
@@ -4843,12 +4969,12 @@ mem_memBuffer
 AVERAGE
 </property>
 </object>
-<object id='mem_memCached' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint'>
+<object id='memCached' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint'>
 <property type="long" id="sequence" mode="w" >
 2
 </property>
 <property select_variable="lineTypes" type="selection" id="lineType" mode="w" >
-LINE
+AREA
 </property>
 <property type="long" id="lineWidth" mode="w" >
 1
@@ -4858,6 +4984,9 @@ True
 </property>
 <property type="string" id="format" mode="w" >
 %5.2lf%s
+</property>
+<property type="string" id="legend" mode="w" >
+${graphPoint/id}
 </property>
 <property type="long" id="limit" mode="w" >
 -1
@@ -4900,7 +5029,7 @@ True
 4
 </property>
 <tomanycont id='graphPoints'>
-<object id='mem_memAvailSwap' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint'>
+<object id='memAvailSwap' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint'>
 <property select_variable="lineTypes" type="selection" id="lineType" mode="w" >
 AREA
 </property>
@@ -4908,10 +5037,13 @@ AREA
 1
 </property>
 <property type="boolean" id="stacked" mode="w" >
-True
+False
 </property>
 <property type="string" id="format" mode="w" >
 %5.2lf%s
+</property>
+<property type="string" id="legend" mode="w" >
+${graphPoint/id}
 </property>
 <property type="long" id="limit" mode="w" >
 -1
@@ -4951,7 +5083,7 @@ False
 True
 </property>
 <tomanycont id='graphPoints'>
-<object id='cpu_laLoadInt5' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint'>
+<object id='laLoadInt5' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint'>
 <property select_variable="lineTypes" type="selection" id="lineType" mode="w" >
 AREA
 </property>
@@ -4959,10 +5091,13 @@ AREA
 1
 </property>
 <property type="boolean" id="stacked" mode="w" >
-True
+False
 </property>
 <property type="string" id="format" mode="w" >
 %5.2lf%s
+</property>
+<property type="string" id="legend" mode="w" >
+${graphPoint/id}
 </property>
 <property type="long" id="limit" mode="w" >
 -1
@@ -5211,18 +5346,21 @@ AREA:percent#00cc00:utilization
 True
 </property>
 <tomanycont id='graphPoints'>
-<object id='disk_usedBlocks' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint'>
+<object id='usedBlocks' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint'>
 <property select_variable="lineTypes" type="selection" id="lineType" mode="w" >
-LINE
+AREA
 </property>
 <property type="long" id="lineWidth" mode="w" >
 1
 </property>
 <property type="boolean" id="stacked" mode="w" >
-True
+False
 </property>
 <property type="string" id="format" mode="w" >
 %0.2lf%s
+</property>
+<property type="string" id="legend" mode="w" >
+${graphPoint/id}
 </property>
 <property type="long" id="limit" mode="w" >
 -1
@@ -5269,18 +5407,21 @@ True
 1
 </property>
 <tomanycont id='graphPoints'>
-<object id='disk_totalInodes' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint'>
+<object id='totalInodes' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint'>
 <property select_variable="lineTypes" type="selection" id="lineType" mode="w" >
-LINE
+AREA
 </property>
 <property type="long" id="lineWidth" mode="w" >
 1
 </property>
 <property type="boolean" id="stacked" mode="w" >
-True
+False
 </property>
 <property type="string" id="format" mode="w" >
 %5.2lf%s
+</property>
+<property type="string" id="legend" mode="w" >
+${graphPoint/id}
 </property>
 <property type="long" id="limit" mode="w" >
 -1
@@ -5292,7 +5433,7 @@ disk_totalInodes
 AVERAGE
 </property>
 </object>
-<object id='disk_usedInodes' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint'>
+<object id='usedInodes' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint'>
 <property type="long" id="sequence" mode="w" >
 1
 </property>
@@ -5303,10 +5444,13 @@ LINE
 1
 </property>
 <property type="boolean" id="stacked" mode="w" >
-True
+False
 </property>
 <property type="string" id="format" mode="w" >
 %5.2lf%s
+</property>
+<property type="string" id="legend" mode="w" >
+${graphPoint/id}
 </property>
 <property type="long" id="limit" mode="w" >
 -1
@@ -5619,7 +5763,7 @@ True
 2
 </property>
 <tomanycont id='graphPoints'>
-<object id='intf_ifInErrors' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint'>
+<object id='ifInErrors' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint'>
 <property select_variable="lineTypes" type="selection" id="lineType" mode="w" >
 AREA
 </property>
@@ -5627,10 +5771,13 @@ AREA
 1
 </property>
 <property type="boolean" id="stacked" mode="w" >
-True
+False
 </property>
 <property type="string" id="format" mode="w" >
 %0.2lf%s
+</property>
+<property type="string" id="legend" mode="w" >
+${graphPoint/id}
 </property>
 <property type="long" id="limit" mode="w" >
 -1
@@ -5642,7 +5789,7 @@ intf_ifInErrors
 AVERAGE
 </property>
 </object>
-<object id='intf_ifOutErrors' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint'>
+<object id='ifOutErrors' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint'>
 <property type="long" id="sequence" mode="w" >
 1
 </property>
@@ -5653,10 +5800,13 @@ LINE
 1
 </property>
 <property type="boolean" id="stacked" mode="w" >
-True
+False
 </property>
 <property type="string" id="format" mode="w" >
 %0.2lf%s
+</property>
+<property type="string" id="legend" mode="w" >
+${graphPoint/id}
 </property>
 <property type="long" id="limit" mode="w" >
 -1
@@ -5699,7 +5849,7 @@ True
 1
 </property>
 <tomanycont id='graphPoints'>
-<object id='intf_ifInUcastPackets' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint'>
+<object id='ifInUcastPackets' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint'>
 <property select_variable="lineTypes" type="selection" id="lineType" mode="w" >
 AREA
 </property>
@@ -5707,10 +5857,13 @@ AREA
 1
 </property>
 <property type="boolean" id="stacked" mode="w" >
-True
+False
 </property>
 <property type="string" id="format" mode="w" >
 %0.2lf%s
+</property>
+<property type="string" id="legend" mode="w" >
+${graphPoint/id}
 </property>
 <property type="long" id="limit" mode="w" >
 -1
@@ -5722,7 +5875,7 @@ intf_ifInUcastPackets
 AVERAGE
 </property>
 </object>
-<object id='intf_ifOutUcastPackets' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint'>
+<object id='ifOutUcastPackets' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint'>
 <property type="long" id="sequence" mode="w" >
 1
 </property>
@@ -5733,10 +5886,13 @@ LINE
 1
 </property>
 <property type="boolean" id="stacked" mode="w" >
-True
+False
 </property>
 <property type="string" id="format" mode="w" >
 %0.2lf%s
+</property>
+<property type="string" id="legend" mode="w" >
+${graphPoint/id}
 </property>
 <property type="long" id="limit" mode="w" >
 -1
@@ -5776,7 +5932,7 @@ False
 True
 </property>
 <tomanycont id='graphPoints'>
-<object id='intf_ifInOctets' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint'>
+<object id='ifInOctets' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint'>
 <property select_variable="lineTypes" type="selection" id="lineType" mode="w" >
 AREA
 </property>
@@ -5784,10 +5940,13 @@ AREA
 1
 </property>
 <property type="boolean" id="stacked" mode="w" >
-True
+False
 </property>
 <property type="string" id="format" mode="w" >
 %0.2lf%s
+</property>
+<property type="string" id="legend" mode="w" >
+${graphPoint/id}
 </property>
 <property type="long" id="limit" mode="w" >
 -1
@@ -5799,7 +5958,7 @@ intf_ifInOctets
 AVERAGE
 </property>
 </object>
-<object id='intf_ifOutOctets' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint'>
+<object id='ifOutOctets' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint'>
 <property type="long" id="sequence" mode="w" >
 1
 </property>
@@ -5810,10 +5969,13 @@ LINE
 1
 </property>
 <property type="boolean" id="stacked" mode="w" >
-True
+False
 </property>
 <property type="string" id="format" mode="w" >
 %0.2lf%s
+</property>
+<property type="string" id="legend" mode="w" >
+${graphPoint/id}
 </property>
 <property type="long" id="limit" mode="w" >
 -1
@@ -6150,7 +6312,7 @@ True
 1
 </property>
 <tomanycont id='graphPoints'>
-<object id='batteryCapacity_batteryCapacity' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint'>
+<object id='batteryCapacity' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint'>
 <property select_variable="lineTypes" type="selection" id="lineType" mode="w" >
 AREA
 </property>
@@ -6158,10 +6320,13 @@ AREA
 1
 </property>
 <property type="boolean" id="stacked" mode="w" >
-True
+False
 </property>
 <property type="string" id="format" mode="w" >
 %5.2lf%s
+</property>
+<property type="string" id="legend" mode="w" >
+${graphPoint/id}
 </property>
 <property type="long" id="limit" mode="w" >
 -1
@@ -6201,7 +6366,7 @@ False
 True
 </property>
 <tomanycont id='graphPoints'>
-<object id='batteryOutputLoad_batteryOutputLoad' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint'>
+<object id='batteryOutputLoad' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint'>
 <property select_variable="lineTypes" type="selection" id="lineType" mode="w" >
 AREA
 </property>
@@ -6209,10 +6374,13 @@ AREA
 1
 </property>
 <property type="boolean" id="stacked" mode="w" >
-True
+False
 </property>
 <property type="string" id="format" mode="w" >
 %5.2lf%s
+</property>
+<property type="string" id="legend" mode="w" >
+${graphPoint/id}
 </property>
 <property type="long" id="limit" mode="w" >
 -1
@@ -6255,7 +6423,7 @@ True
 2
 </property>
 <tomanycont id='graphPoints'>
-<object id='batteryRunTimeRemaining_batteryRunTimeRemaining' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint'>
+<object id='batteryRunTimeRemaining' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint'>
 <property select_variable="lineTypes" type="selection" id="lineType" mode="w" >
 AREA
 </property>
@@ -6263,10 +6431,13 @@ AREA
 1
 </property>
 <property type="boolean" id="stacked" mode="w" >
-True
+False
 </property>
 <property type="string" id="format" mode="w" >
 %5.2lf%s
+</property>
+<property type="string" id="legend" mode="w" >
+${graphPoint/id}
 </property>
 <property type="long" id="limit" mode="w" >
 -1
