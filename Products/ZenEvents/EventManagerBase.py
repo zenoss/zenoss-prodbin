@@ -634,7 +634,7 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
         devdata = []
         query = { 'getParentDeviceName':device.id, 'monitored':True }
         brains = device.componentSearch(query)
-        metatypes = Set([x.meta_type for x in brains])
+        metatypes = Set([str(x.meta_type) for x in brains])
         resultdict = {}
         for mt in metatypes: resultdict[mt] = {}
         evpilltemplate = ('<img src="img/%s_dot.png" '
