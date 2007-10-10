@@ -239,7 +239,7 @@ class SshRunner:
         try:
             d = Timeout(c.addCommand(cmd.command), cmd.commandTimeout, cmd)
         except Exception, ex:
-            log.error('Error starting command: %s', ex)
+            log.warning('Error starting command: %s', ex)
             self.pool.close(cmd)
             return defer.fail(ex)
         d.addErrback(self.timeout)

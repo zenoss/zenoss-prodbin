@@ -98,7 +98,7 @@ class Pid:
             try:
                 n = int(n)
             except ValueError, er:
-                log.error("Bad value for CPU: '%s'", n)
+                log.warning("Bad value for CPU: '%s'", n)
 
         if self.cpu is None or n is None:
             self.cpu = n
@@ -498,7 +498,7 @@ class zenprocess(SnmpDaemon):
                                summary=summary,
                                component=config.originalName,
                                severity=config.severity)
-                log.error(summary)
+                log.warning(summary)
         
         # store counts
         pidCounts = dict([(p, 0) for p in device.processes])
