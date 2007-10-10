@@ -467,13 +467,13 @@ class ZenActions(ZCmdBase):
                                                self.dmd.snppPort)
             if success:
                 self.log.info('sent page to %s: %s', recipient, msg)
+                # return True if anyone got the page 
+                result = result or success
             else:
                 self.log.info('failed to send page to %s: %s %s',
                               recipient,
                               msg,
                               errorMsg)
-                # return True if anyone got the page 
-                result = result or success
         return result
         
         
