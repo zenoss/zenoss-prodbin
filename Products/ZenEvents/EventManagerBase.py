@@ -39,6 +39,8 @@ from Products.ZenUtils.Utils import extractPostContent
 
 from interfaces import IEventList, IEventStatus, ISendEvents
 
+from Products.AdvancedQuery import Eq, Or
+
 from ZEvent import ZEvent
 from EventDetail import EventDetail
 from BetterEventDetail import BetterEventDetail
@@ -1343,6 +1345,7 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
                 'Daemon':Daemon, 'Seconds':Seconds})
         return simplejson.dumps(mydict)
         
+
     def getDeviceDashboard(self, simple=False):
         """return device info for bad device to dashboard"""
         devices = [d[0] for d in self.getDeviceIssues(
@@ -1401,12 +1404,35 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
         return data
         
 
+    def getDevProdStateJSON(self, prodStates=['Maintenance'], REQUEST=None):
+        """
+        Return a map of device to production state in a format suitable for a
+        YUI data table.
+        """
+        if type(prodStates)==type(''): prodStates = [prodStates]
+        orderby, orderdir = 'id', 'asc'
+        catalog = getattr(self.dmd.Devices, self.dmd.Devices.default_catalog)
+        queries = []
+        for state in prodStates:
+            queries.append(Eq('getProdState', state))
+        query = Or(*queries)
+        objects = catalog.evalAdvancedQuery(query, ((orderby, orderdir),))
+        devs = [x.getObject() for x in objects][:100]
+        mydict = {'columns':['Device', 'Prod State'], 'data':[]}
+        for dev in devs:
+            if not self.checkRemotePerm(ZEN_VIEW, dev): continue
+            mydict['data'].append({
+                'Device' : dev.getPrettyLink(), 
+                'Prod State' : dev.getProdState()
+            })
+        return simplejson.dumps(mydict)
+
+
     def getOrganizerDashboard(self):
         return {
                 'systemevents': self.getOrganizerSummary(),
                 'locationevents': self.getOrganizerSummary('Locations')
         }
-
 
     def getSummaryDashboard(self, REQUEST=None):
         '''Build summary of serveral zope servers'''
