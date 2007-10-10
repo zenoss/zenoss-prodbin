@@ -20,7 +20,7 @@ from Products.ZenModel.ConfigurationError import ConfigurationError
 class GraphDefinitionsAndFriends(Migrate.Step):
     version = Migrate.Version(2, 1, 0)
     
-    scriptVersion = 1.2
+    scriptVersion = 1.3
     scriptVerAttrName = 'newGraphsVers'
     
     def __init__(self):
@@ -102,8 +102,8 @@ class GraphDefinitionsAndFriends(Migrate.Step):
             # This code is only for when you want to complete delete
             # all graph definitions from all templates and remigrate
             # from the old RRDGraphs
-            # for gdId in template.graphDefs.objectIds():
-            #     template.graphDefs._delObject(gdId)
+            #for gdId in template.graphDefs.objectIds():
+            #    template.graphDefs._delObject(gdId)
                         
             if template.graphDefs():
                 lineTypesFixed += self.fixDefaultLineTypes(template)
@@ -111,6 +111,7 @@ class GraphDefinitionsAndFriends(Migrate.Step):
                 self.fixLegends(template, prevVersion)
                 self.fixLineTypes(template, prevVersion)
                 self.fixGraphPointNames(template, prevVersion)
+                self.fixCustom(template, prevVersion)
                 # Might need to build the reports relation
                 for g in template.graphDefs():
                     g.buildRelations()
@@ -195,6 +196,15 @@ class GraphDefinitionsAndFriends(Migrate.Step):
                         isFirstDP = False
 
 
+    def fixCustom(self, template, prevVersion):
+        if prevVersion < 1.3:
+            for g in template.graphDefs():
+                if g.custom:
+                    for gp in g.graphPoints():
+                        if isinstance(gp, DataPointGraphPoint):
+                            g.custom = g.custom.replace(gp.dpName, gp.id)
+
+
     def convertTemplate(self, template):
         numGraphs = 0
         numDataPointsFound = 0
@@ -234,6 +244,8 @@ class GraphDefinitionsAndFriends(Migrate.Step):
                 includeThresholds = not graphDef.custom                     
                 gp = graphDef.manage_addDataPointGraphPoints(
                                     [dsName], includeThresholds)[0]
+                if graphDef.custom:
+                    graphDef.custom = graphDef.custom.replace(dsName, gp.id)
                 if dp:
                     gp.color = dp.color
                     gp.stacked = rrdGraph.stacked

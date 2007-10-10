@@ -281,7 +281,7 @@ class GraphDefinition(ZenModelRM, ZenPackable):
         ''' Create a new graphpoint of the given class and id
         '''
         exec 'import %s' % flavor
-        cls = eval('%s.%s' % (flavor, flavor))
+        cls = eval('%s.%s' % (flavor, flavor)) 
         gp = self.createGraphPoint(cls, new_id)
         if REQUEST:
             url = '%s/graphPoints/%s' % (self.getPrimaryUrlPath(), gp.id)
@@ -420,7 +420,7 @@ class GraphDefinition(ZenModelRM, ZenPackable):
                                         multiid, prefix)
         if self.custom and includeSetup \
             and not upToPoint:
-            res = talesEval("string:"+self.custom, context)
+            res = talesEval("string:"+str(self.custom), context)
             res = [l for l in res.split('\n') if l.strip()]
             cmds.extend(res)
             #if self.hasSummary:
