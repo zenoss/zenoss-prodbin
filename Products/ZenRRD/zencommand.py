@@ -544,7 +544,10 @@ class zencommand(RRDDaemon):
                 parts = CacParser.match(value)
             if not parts: continue
             label = parts.group(1).replace("''", "'")
-            value = float(parts.group(3))
+            try:
+                value = float(parts.group(3))
+            except:
+                value = 'U'
             if cmd.points.has_key(label):
                 path, type, command, (minv, maxv) = cmd.points[label]
                 log.debug("storing %s = %s in: %s" % (label, value, path))
