@@ -3415,7 +3415,7 @@ False
 -1
 </property>
 <property type="text" id="custom" mode="w" >
-CDEF:percent=usedBlocks_usedBlocks,${here/totalBlocks},/,100,*
+CDEF:percent=usedBlocks,${here/totalBlocks},/,100,*
 AREA:percent#00cc00:utilization
 </property>
 <property type="boolean" id="hasSummary" mode="w" >
@@ -5339,7 +5339,7 @@ False
 -1
 </property>
 <property type="text" id="custom" mode="w" >
-CDEF:percent=disk_usedBlocks,${here/totalBlocks},/,100,*
+CDEF:percent=usedBlocks,${here/totalBlocks},/,100,*
 AREA:percent#00cc00:utilization
 </property>
 <property type="boolean" id="hasSummary" mode="w" >
@@ -5397,7 +5397,7 @@ False
 -1
 </property>
 <property type="text" id="custom" mode="w" >
-CDEF:percent=disk_usedInodes,disk_totalInodes,/,100,*
+CDEF:percent=usedInodes,totalInodes,/,100,*
 AREA:percent#00cc00:utilization
 </property>
 <property type="boolean" id="hasSummary" mode="w" >
