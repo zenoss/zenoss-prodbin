@@ -142,13 +142,13 @@ Portlet.prototype = {
     },
     toggleSettings: function(state) {
         var show = method(this, function() {
-            this.body.style.marginTop = '-1px';
+            //this.body.style.marginTop = '-1px';
             showElement(this.settingsPane);
             this.PortletContainer.setContainerHeight();
         });
         var hide = method(this, function() {
             hideElement(this.settingsPane);
-            this.body.style.marginTop = '0';
+            //this.body.style.marginTop = '0';
             this.PortletContainer.setContainerHeight();
         });
         if (state=='hide') hide();
@@ -787,7 +787,6 @@ YAHOO.extend(YAHOO.zenoss.DDResize, YAHOO.util.DragDrop, {
         var panel = this.portlet.body; 
         this.startWidth = panel.offsetWidth;
         this.startHeight = panel.offsetHeight;
-
         this.startPos = [YAHOO.util.Event.getPageX(e),
                          YAHOO.util.Event.getPageY(e)];
     },
@@ -798,11 +797,14 @@ YAHOO.extend(YAHOO.zenoss.DDResize, YAHOO.util.DragDrop, {
 
         var offsetY = newPos[1] - this.startPos[1];
         var newHeight = Math.max(this.startHeight + offsetY, 10);
-        var panel = this.portlet.body;
-        panel.style.height = newHeight + "px";
-        this.portlet.bodyHeight = newHeight;
-        this.portlet.PortletContainer.setContainerHeight();
-        this.portlet.PortletContainer.isDirty = true;
+        newHeight = newHeight - (Math.abs(newHeight) % 10) - 1;
+        if (newHeight!=this.portlet.bodyHeight) {
+            var panel = this.portlet.body;
+            panel.style.height = newHeight + "px";
+            this.portlet.bodyHeight = newHeight;
+            this.portlet.PortletContainer.setContainerHeight();
+            this.portlet.PortletContainer.isDirty = true;
+        }
     },
     onDrop: function(e) {
         this.portlet.enable();
@@ -845,7 +847,7 @@ GoogleMapsPortlet.prototype = {
             datasource:datasource, bodyHeight:bodyHeight}
         );
         this.buildSettingsPane();
-        this.resizehandle.style.height="10px";
+        //setStyle(this.resizehandle, {'height':'5px'});
     },
     buildSettingsPane: function() {
         s = this.settingsSlot;
