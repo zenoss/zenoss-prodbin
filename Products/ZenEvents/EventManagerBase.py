@@ -634,7 +634,7 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
         mydict['columns'] = ['Component Type', 'Status']
         getcolor = re.compile(r'class=\"evpill-(.*?)\"', re.S|re.I|re.M).search
         devdata = []
-        query = { 'getParentDeviceName':device.id, 'monitored':True }
+        query = { 'getParentDeviceName':device.id,}
         brains = device.componentSearch(query)
         metatypes = Set([str(x.meta_type) for x in brains])
         resultdict = {}
