@@ -58,9 +58,9 @@ class BanClassesOnAddToZenPackMenuItem(Migrate.Step):
         if zm.Manufacturer_list.zenMenuItems._getOb('addToZenPack', False):
             zm.Manufacturer_list.zenMenuItems._delObject('addToZenPack')
         
-        for menuItems in zm.getMenus().values():
-            for menuItem in menuItems:
-                if menuItem.id == 'addToZenPack':
-                    menuItem.permissions = (ZEN_MANAGE_DMD,)
+        for menu in dmd.zenMenus():
+            for item in menu.zenMenuItems():
+                if item.id == 'addToZenPack':
+                    item.permissions = (ZEN_MANAGE_DMD,)
 
 BanClassesOnAddToZenPackMenuItem()
