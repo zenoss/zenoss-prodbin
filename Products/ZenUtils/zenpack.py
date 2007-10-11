@@ -44,6 +44,14 @@ class ZenPackCmd(ZenScriptBase):
             else:
                 self.stop('%s does not appear to be a valid file or directory.'
                           % self.options.installPackName)
+            # We want to make sure all zenpacks have a skins directory and that it
+            # is registered. The zip file may not contain a skins directory, so we
+            # create one here if need be.  The directory should be registered
+            # by the zenpack's __init__.py and the skin should be registered
+            # by ZPLSkins loader.
+            skinsSubdir = zenPath('Products', packName, 'skins', packName)
+            if not os.path.exists(skinsSubdir):
+                os.makedirs(skinsSubdir)
             self.install(packName)
 
         elif self.options.removePackName:
@@ -103,7 +111,6 @@ class ZenPackCmd(ZenScriptBase):
 
 
     def install(self, packName):
-
         zp = None
         try:
             zp = self.dmd.packs._getOb(packName)
