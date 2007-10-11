@@ -262,12 +262,18 @@ class OperatingSystem(Software):
         """
         org = self.dmd.Services.WinService
         wsc = org.find(org.parseServiceLiveSearchString(className))
-        ws = manage_addWinService(self.winservices, 
-                                wsc.id,
-                                wsc.description,
-                                userCreated=userCreated)
+        if wsc is not None:
+            ws = manage_addWinService(self.winservices, 
+                                    wsc.id,
+                                    wsc.description,
+                                    userCreated=userCreated)
+        elif REQUEST:
+            REQUEST['message'] = \
+                'Could not find a WinService named %s' % className
+            return self.callZenScreen(REQUEST)
+            
         if REQUEST: 
-            REQUEST['message'] = 'WinService created'
+            REQUEST['message'] = 'WinService added'
             REQUEST['RESPONSE'].redirect(ws.absolute_url())
             return self.callZenScreen(REQUEST)
 
@@ -340,13 +346,19 @@ class OperatingSystem(Software):
         """
         org = self.dmd.Services.IpService
         ipsc = org.find(org.parseServiceLiveSearchString(className))
-        ips = manage_addIpService(self.ipservices,
-                            ipsc.id,
-                            protocol,
-                            ipsc.port, 
-                            userCreated=userCreated)
+        if ipsc is not None:
+            ips = manage_addIpService(self.ipservices,
+                                ipsc.id,
+                                protocol,
+                                ipsc.port, 
+                                userCreated=userCreated)
+        elif REQUEST:
+            REQUEST['message'] = \
+                'Could not find an IpService named %s' % className
+            return self.callZenScreen(REQUEST)
+                
         if REQUEST:
-            REQUEST['message'] = 'IpService created'
+            REQUEST['message'] = 'IpService added'
             REQUEST['RESPONSE'].redirect(ips.absolute_url())
             return self.callZenScreen(REQUEST)
 
