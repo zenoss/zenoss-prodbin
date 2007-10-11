@@ -22,6 +22,8 @@ class RemoveZenPackMenuItem(Migrate.Step):
         items = dmd.zenMenus.ZenPack_list.zenMenuItems
         if hasattr(items, 'removeZenPack'):        
             dmd.zenMenus.ZenPack_list.zenMenuItems._delObject('removeZenPack')
+        if hasattr(items, 'deleteZenPack'):        
+            dmd.zenMenus.ZenPack_list.zenMenuItems._delObject('deleteZenPack')
 
 
 RemoveZenPackMenuItem()

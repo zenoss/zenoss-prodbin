@@ -34,13 +34,6 @@ class ZenPackMenus(Migrate.Step):
                                   isdialog=True, 
                                   ordering=1.01, 
                                   permissions=('Manage DMD',))
-        zplm = dmd.zenMenus.ZenPack_list
-        zplm.manage_addZenMenuItem( action='dialog_deleteZenPacks', 
-                                  description='Delete ZenPacks...', 
-                                  id='deleteZenPack', 
-                                  isdialog=True, 
-                                  ordering=1.01, 
-                                  permissions=('Manage DMD',))
                                    
 
 ZenPackMenus()
