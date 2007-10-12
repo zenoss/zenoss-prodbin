@@ -170,7 +170,7 @@ Portlet.prototype = {
     },
     submitSettings: function(e, settings) {
         settings = settings || {};
-        settings['refreshTime'] = this.refreshRateInput.value || 0;
+        settings['refreshTime'] = this.refreshRateInput.value || 60;
         settings['title'] = this.titleInput.value;
         this.saveSettings(settings);
         this.toggleSettings('hide');
@@ -836,7 +836,7 @@ GoogleMapsPortlet.prototype = {
         baseLoc = 'baseLoc' in args? args.baseLoc : '/Locations';
         bodyHeight = 'bodyHeight' in args? args.bodyHeight : 400;
         title = 'title' in args? args.title: "Locations";
-        refreshTime = 'refreshTime' in args? args.refreshTime : 0;
+        refreshTime = 'refreshTime' in args? args.refreshTime : 60;
         this.mapobject = null;
         var datasource = 'datasource' in args? 
             args.datasource:
@@ -883,7 +883,7 @@ DeviceIssuesPortlet.prototype = {
         bodyHeight = 'bodyHeight' in args? args.bodyHeight :
             200;
         title = 'title' in args? args.title:"Device Issues";
-        refreshTime = 'refreshTime' in args? args.refreshTime : 0;
+        refreshTime = 'refreshTime' in args? args.refreshTime : 60;
         this.superclass.__init__(
             {id:id, title:title, 
              datasource:datasource, 
@@ -906,7 +906,7 @@ HeartbeatsPortlet.prototype = {
         bodyHeight = 'bodyHeight' in args? args.bodyHeight :
             200;
         title = 'title' in args? args.title:"Zenoss Issues";
-        refreshTime = 'refreshTime' in args? args.refreshTime : 0;
+        refreshTime = 'refreshTime' in args? args.refreshTime : 60;
         this.superclass.__init__(
             {id:id, 
              title:title,
@@ -931,7 +931,7 @@ WatchListPortlet.prototype = {
                 url:'/zport/dmd/ZenEventManager/getEntityListEventSummary',
                 postContent: ['/Devices/Discovered']});
         bodyHeight = 'bodyHeight' in args? args.bodyHeight:200;
-        refreshTime = 'refreshTime' in args? args.refreshTime: 0;
+        refreshTime = 'refreshTime' in args? args.refreshTime: 60;
         this.superclass.__init__(
             {id:id, 
              title:title,
@@ -1010,7 +1010,7 @@ TopLevelOrgsPortlet.prototype = {
                 url:'/zport/getRootOrganizerInfo',
                 queryArguments: {'dataRoot':'Devices'} });
         bodyHeight = 'bodyHeight' in args? args.bodyHeight:200;
-        refreshTime = 'refreshTime' in args? args.refreshTime: 0;
+        refreshTime = 'refreshTime' in args? args.refreshTime: 60;
         rootOrganizer = 'rootOrganizer' in args?args.rootOrganizer:'Devices';
         this.superclass.__init__(
             {id:id, 
