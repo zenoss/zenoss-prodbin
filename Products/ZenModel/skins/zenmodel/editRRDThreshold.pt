@@ -34,7 +34,7 @@
             tal:content="here/id"/>
     </tr>
     <tr>
-        <td class="tableheader">Data Sources</td>
+        <td class="tableheader">Data Points</td>
         <td class="tablevalues" tal:condition="here/isManager">
             <select class="tablevalues" name="dsnames:list" multiple
                 tal:define="curdses here/dsnames">
