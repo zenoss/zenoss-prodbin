@@ -46,6 +46,7 @@ from Products.ZenUtils.Search import makeCaseInsensitiveFieldIndex
 from Products.ZenUtils.Search import makeCaseInsensitiveKeywordIndex
 from Products.ZenUtils.Search import makePathIndex
 from Products.ZenUtils.Utils import zenPath
+from Products.ZenUtils.Utils import importClass
 
 from Products.ZenUtils.FakeRequest import FakeRequest
 
@@ -88,9 +89,6 @@ class DeviceClass(DeviceOrganizer, ZenPackable):
 
     #manage_options = Folder.manage_options[:-1] + (
     #    {'label' : 'Find', 'action' : 'manageDeviceSearch'},)
-
-    #Used to find factory on instance creation
-    baseModulePath = "Products.ZenModel"  
 
     default_catalog = 'deviceSearch'
     
@@ -177,16 +175,12 @@ class DeviceClass(DeviceOrganizer, ZenPackable):
         """
         import sys
         from Device import Device
-        for obj in aq_chain(self):
-            if obj.meta_type != "DeviceClass": continue 
-            if obj.id == "Devices": break
-            cname = getattr(aq_base(obj), "zPythonClass", None)
-            if not cname: cname = obj.id
-            fullpath = ".".join((self.baseModulePath, cname))
-            if sys.modules.has_key(fullpath):
-                mod = sys.modules[fullpath]
-                if hasattr(mod, cname):
-                    return getattr(mod, cname)
+        cname = getattr(self, "zPythonClass", None)
+        if cname:
+            try:
+                return importClass(cname)
+            except ImportError:
+                log.exception("Unable to import class " + cname)
         return Device
    
 
