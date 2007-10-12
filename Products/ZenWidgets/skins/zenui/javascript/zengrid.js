@@ -268,6 +268,7 @@ ZenGrid.prototype = {
     setSelectUnacked: function() {
         this.checkedArray = new Array();
         var cbs = this.viewport.getElementsByTagName('input');
+        var rows = this.zgtable.getElementsByTagName('tr');
         for (i=0;i<cbs.length;i++) {
             rowclass = rows[i].className;
             cbs[i].checked=null;
