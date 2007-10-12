@@ -36,17 +36,6 @@ ADP Enterprise eTIME 5.0.0 Service Pack 12
 False
 </property>
 </object>
-<object id='new' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
-<property type="string" id="name" mode="w" >
-new
-</property>
-<property type="lines" id="productKeys" mode="w" >
-[None]
-</property>
-<property type="boolean" id="isOS" mode="w" >
-False
-</property>
-</object>
 </tomanycont>
 </object>
 <object id='AOL' module='Products.ZenModel.Manufacturer' class='Manufacturer'>

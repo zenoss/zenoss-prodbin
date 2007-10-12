@@ -109,3 +109,4 @@ import component_metadata
 import addGroupManager
 import reportsNotPackable
 import zDrawMapLinks
+import deleteADPNewProductClass
