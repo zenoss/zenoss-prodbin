@@ -27,7 +27,6 @@
         <tal:block metal:fill-slot="zentablecontents">
         <!-- BEGIN TABLE CONTENTS -->
         <tr>
-          <th class="tableheader"/>
           <th class="tableheader">Pack</th>
           <th class="tableheader">Author</th>
           <th class="tableheader">Organization</th>
@@ -36,13 +35,7 @@
         </tr>
 	
 	
-	<tr tal:repeat='pack objects'>
-	  <td class="tablevalues">
-	    <input type="checkbox" name="ids:list" 
-				tal:condition="pack/getPrimaryPath|nothing"
-	    	   tal:attributes="value pack/id"/>
-	  </td>
-	
+	<tr tal:repeat='pack objects'>	
 	  <tal:block tal:condition="pack/getPrimaryUrlPath|nothing">
 		  <td class="tablevalues">
 		    <a tal:attributes="href pack/getPrimaryUrlPath" 
