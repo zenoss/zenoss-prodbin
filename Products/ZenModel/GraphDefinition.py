@@ -265,7 +265,7 @@ class GraphDefinition(ZenModelRM, ZenPackable):
         else:
             gp.sequence = len(self.graphPoints())
         # Set legend for graph points on multigraph reports
-        if self.report():
+        if self.report() and hasattr(gp, 'legend'):
             # For MultiGraphReports we use a fancier legend
             # to differentiate when you have multiple devices/graphpoints
             # on a single graph
