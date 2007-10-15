@@ -196,6 +196,9 @@ class ZenDisc(ZenModeler):
 
     def run(self):
         if self.options.net:
+            if type(self.options.net) == type(''):
+                self.options.net = [
+                    n.strip() for n in self.options.net.split(',')]
             for net in self.options.net:
                 try:
                     nets = []
