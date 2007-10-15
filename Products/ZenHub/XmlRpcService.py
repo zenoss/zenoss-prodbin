@@ -17,6 +17,8 @@ import types
 from Products.ZenHub.services.RRDImpl import RRDImpl
 from Products.DataCollector.ApplyDataMap import ApplyDataMap
 
+from Products.ZenUtils.ZenTales import talesEval
+
 class XmlRpcService(xmlrpc.XMLRPC):
     # serializable types
     PRIMITIVES = [types.IntType, types.StringType, types.BooleanType,
@@ -34,7 +36,7 @@ class XmlRpcService(xmlrpc.XMLRPC):
         'XMLRPC requests are processed asynchronously in a thread'
         result = self.zem.sendEvent(data)
         if result is None:
-            result = "heartbeat ok"
+            result = "none"
         return result
 
     def xmlrpc_sendEvents(self, data):
@@ -74,6 +76,8 @@ class XmlRpcService(xmlrpc.XMLRPC):
             vals['dps'] = []
             for key, val in ds.__dict__.items():
                 if type(val) in XmlRpcService.PRIMITIVES:
+                    if (type(val) == types.StringType) and (val.find('$') >= 0):
+                        val = talesEval('string:%s' % (val, ), device)
                     vals[key] = val
 
             for dp in dps:
