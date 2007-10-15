@@ -406,7 +406,11 @@ ZenGrid.prototype = {
             if (this.lock.locked) this.lock.release();
             this.updateStatusBar(offset);
             if(this.numRows+offset!=this.buffer.totalRows)
-                this.populateTable(this.buffer.getRows(offset, this.numRows));
+                try {
+                    this.populateTable(
+                        this.buffer.getRows(offset, this.numRows));
+                } catch(e) { noop(); }
+                this.killLoading();
         }, this));
     },
     getBlankRow: function(indx) {
