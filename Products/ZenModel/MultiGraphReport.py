@@ -249,7 +249,7 @@ class MultiGraphReport(ZenModelRM):
                 title += ' - %s' % postfix
             return title
         
-        for gg in self.graphGroups():
+        for gg in self.getGraphGroups():
             collection = gg.getCollection()
             things = collection and collection.getDevicesAndComponents()
             graphDef = gg.getGraphDef()
