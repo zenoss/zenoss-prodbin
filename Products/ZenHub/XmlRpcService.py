@@ -74,6 +74,7 @@ class XmlRpcService(xmlrpc.XMLRPC):
 
             vals = {}
             vals['dps'] = []
+            vals['dptypes'] = []
             for key, val in ds.__dict__.items():
                 if type(val) in XmlRpcService.PRIMITIVES:
                     if (type(val) == types.StringType) and (val.find('$') >= 0):
@@ -82,6 +83,7 @@ class XmlRpcService(xmlrpc.XMLRPC):
 
             for dp in dps:
                 vals['dps'].append(dp.id)
+                vals['dptypes'].append(dp.rrdtype)
 
             vals['device'] = device.id
             return vals
