@@ -87,7 +87,12 @@ Optional titlebar stuff
         <span metal:use-macro="here/zenTableNavigation/macros/navbody" />
     </td>
   </tr>
-
+    <tr tal:condition="editable">
+    <td class="tableheader" colspan="3">
+        <input class="tableheader" type="submit" 
+            name="manage_editAdministrativeRoles:method" value=" Save " />
+    </td>
+    </tr>
 <!-- END TABLE CONTENTS -->
 
 </tal:block>
