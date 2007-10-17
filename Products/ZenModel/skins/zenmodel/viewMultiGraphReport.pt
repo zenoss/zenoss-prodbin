@@ -35,6 +35,7 @@ function ShowPrintable() {
 }
 </script>
 
+<tal:block tal:define="tabletitle here/id">
 <tal:block metal:use-macro="here/viewPerformanceDetail/macros/objectperf">
 
     <tal:block metal:fill-slot="filterslot">
@@ -44,6 +45,7 @@ function ShowPrintable() {
         style="margin-left:2em;"/>
     </tal:block>
 
+</tal:block>
 </tal:block>
 
 </tal:block>
