@@ -435,10 +435,16 @@ class IpNetwork(DeviceOrganizer):
         """
         Load a device into the database connecting its major relations
         and collecting its configuration. 
-        """      
-        if not organizerPaths: return self.callZenScreen(REQUEST)
+        """
+        xmlrpc = False
+        if REQUEST and REQUEST['CONTENT_TYPE'].find('xml') > -1:
+            xmlrpc = True
+                  
+        if not organizerPaths: 
+            if xmlrpc: return 1
+            return self.callZenScreen(REQUEST)
         
-        if REQUEST:
+        if REQUEST and not xmlrpc:
             response = REQUEST.RESPONSE
             dlh = self.discoverLoggingHeader()
             idx = dlh.rindex("</table>")
@@ -462,15 +468,21 @@ class IpNetwork(DeviceOrganizer):
                     s = f.fromchild.readline()
                     if not s: break
                     log.info(s.rstrip())
-            except (SystemExit, KeyboardInterrupt): raise
+            except (SystemExit, KeyboardInterrupt): 
+                if xmlrpc: return 1
+                raise
             except ZentinelException, e:
+                if xmlrpc: return 1
                 log.critical(e)
-            except: raise
+            except: 
+                if xmlrpc: return 1
+                raise
         log.info('Done')
         
-        if REQUEST:
+        if REQUEST and not xmlrpc:
             self.loaderFooter(response)
             clearWebLoggingStream(handler)
+        if xmlrpc: return 0
 
 
     def setupLog(self, response):
