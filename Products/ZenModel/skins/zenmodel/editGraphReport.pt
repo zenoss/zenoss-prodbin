@@ -36,7 +36,10 @@
         var filter = document.getElementById('deviceFilter');
         var widget = document.getElementById('deviceIds');
         var url = '/zport/dmd/Devices/jsonGetDeviceNames'
-        var d = loadJSONDoc(url, {'query': filter.value});
+        var filterValue = filter.value;        
+        if (filterValue)
+            filterValue = '*' + filterValue + '*';
+        var d = loadJSONDoc(url, {'query': filterValue});
         widget.options.length = 0;
         d.addBoth(updateSelect, widget);
         getComponentList();
