@@ -26,7 +26,7 @@ import graphReports
 class MultiGraphReports(Migrate.Step):
     version = Migrate.Version(2, 1, 0)
 
-    scriptVersion = 1.0
+    scriptVersion = 1.1
     scriptVerAttrName = 'multiGraphReportsVers'
 
     def cutover(self, dmd):
@@ -67,7 +67,12 @@ class MultiGraphReports(Migrate.Step):
         # Fix Legends
         if prevVersion < 1.0:
             for gp in WalkGraphPoints(dmd.Reports):
-                gp.legend = gp.DEFAULT_MULTIGRAPH_LEGEND
+                if hasattr(gp, 'legend'):
+                    gp.legend = gp.DEFAULT_MULTIGRAPH_LEGEND
+        if prevVersion < 1.1:
+            for gp in WalkGraphPoints(dmd.Reports):
+                if hasattr(gp,'legend') and not hasattr(gp.__class__, 'legend'):
+                    del gp.legend
 
         # Fix DPGP names
         if prevVersion < 1.0:
