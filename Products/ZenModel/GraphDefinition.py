@@ -406,7 +406,6 @@ class GraphDefinition(ZenModelRM, ZenPackable):
             threshGps = [gp for gp in self.getThresholdGraphPoints()
                         if upToPoint is None or gp.sequence < upToPoint]
             if threshGps:
-                cmds.append("COMMENT:Data Thresholds\j")
                 for index, gp in enumerate(threshGps):
                     cmds = gp.getGraphCmds(cmds, context, rrdDir,
                                         self.hasSummary, index+idxOffset,
