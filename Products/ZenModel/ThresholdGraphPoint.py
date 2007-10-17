@@ -51,7 +51,8 @@ class ThresholdGraphPoint(GraphPoint):
         '''
         threshClass = None
         if self.graphDef.rrdTemplate():
-            threshClass = temp.thresholds._getOb(self.threshId, None)
+            threshClass = self.graphDef.rrdTemplate.thresholds._getOb(
+                                                self.threshId, None)
         elif self.graphDef.report() and None:
             for temp in context.getRRDTemplates():
                 threshClass = temp.thresholds._getOb(self.threshId, None)
