@@ -63,6 +63,7 @@ class TickGraphPoint(GraphPoint):
             return cmds
             
         legend = self.talesEval(self.legend, context)
+        legend = self.escapeForRRD(legend)
         return cmds + ['TICK:%s%s%s%s' % (
                     self.addPrefix(prefix, self.vname),
                     self.getThresholdColor(idx),

@@ -107,6 +107,7 @@ class DataPointGraphPoint(ComplexGraphPoint):
                 legend = "%s-%s" % (self.id, fname)
             else:
                 legend = self.talesEval(self.legend, context) or self.id
+            legend = self.escapeForRRD(legend)
             drawCmd ='%s:%s%s' % (
                         self.lineType,
                         src,

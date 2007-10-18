@@ -206,4 +206,12 @@ class GraphPoint(ZenModelRM, ZenPackable):
         return value
 
 
+    def escapeForRRD(self, value):
+        '''
+        Escapes characters like colon ':' for use by RRDTool which would
+        '''
+        value = value.replace(":", "\:")
+        return value
+
+
 InitializeClass(GraphPoint)

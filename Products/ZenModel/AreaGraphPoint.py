@@ -64,7 +64,9 @@ class AreaGraphPoint(GraphPoint):
         if self.color:
             gopts += '%s' % self.getColor(idx)
         if self.legend or self.stacked:
-            gopts += ':%s' % self.talesEval(self.legend, context)
+            legend = self.talesEval(self.legend, context)
+            legend = self.escapeForRRD(legend)
+            gopts += ':%s' % legend
         if self.stacked:
             gopts += ':STACK'
         return cmds + [gopts]

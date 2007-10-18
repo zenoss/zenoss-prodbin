@@ -59,6 +59,7 @@ class HruleGraphPoint(GraphPoint):
         ''' Build the graphing commands for this graphpoint
         '''
         legend = self.talesEval(self.legend, context)
+        legend = self.escapeForRRD(legend)
         return cmds + ['HRULE:%s%s%s' % (
                     self.value or 0,
                     self.getColor(idx),

@@ -61,7 +61,9 @@ class VruleGraphPoint(GraphPoint):
             return cmds
         gopts = 'VRULE:%s%s' % (self.time, self.getColor(idx))
         if self.legend:
-            gopts += ':%s' % self.talesEval(self.legend, context)
+            legend = self.talesEval(self.legend, context)
+            legend = self.escapeForRRD(legend)
+            gopts += ':%s' % legend
         return cmds + [gopts]
 
 
