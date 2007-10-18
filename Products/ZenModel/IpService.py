@@ -161,6 +161,13 @@ class IpService(Service):
     def primarySortKey(self):
         return "%s-%05d" % (self.protocol, self.port)
     
+    def getManageIp(self):
+        manage_ip = Service.getManageIp(self)
+        for ip in self.ipaddresses:
+            if ip != '0.0.0.0' and ip != '127.0.0.1':
+                return ip
+        return manage_ip
+
     def getProtocol(self):
         return self.protocol
 
