@@ -196,6 +196,9 @@ class DeviceOrganizer(Organizer, DeviceManagerBase, Commandable, ZenMenuable,
 
     def moveDevicesToClass(self, moveTarget, deviceNames=None, REQUEST=None):
         """Move Devices from one DeviceClass to Another"""
+        if deviceNames is None:
+            if REQUEST: REQUEST['message'] = "No Devices Selected"
+            return self.callZenScreen(REQUEST)
         deviceNames = [ x.split('/')[-1] for x in deviceNames ]
         return self.dmd.Devices.moveDevices(moveTarget, deviceNames, REQUEST)
 
