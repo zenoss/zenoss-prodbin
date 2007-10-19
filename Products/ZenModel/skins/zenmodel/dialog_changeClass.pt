@@ -1,18 +1,18 @@
 <h2>Change Device Class Path</h2>
-
+<p>
+To which class would you like to move this device?<br/>
+</p> 
 <form action="_"  method="post" 
         tal:define="device python:here.device()"
         tal:attributes="action here/REQUEST/URL1">
 <input type="hidden" name="deviceNames" 
         tal:attributes="value device/getId" />
-<p>
-<select name="moveTarget"
-        tal:define="
-        dcs device/deviceMoveTargets;
-        curdc device/getDeviceClassName">
-    <option tal:repeat="dc dcs" 
-        tal:attributes="value dc; selected python:dc==curdc"
-        tal:content="dc">/Server/Linux</option>
+<p style="text-align:center;">
+<select class="tableheader" name="moveTarget"
+    tal:define="targets here/deviceClassMoveTargets">
+    <option value=""></option>
+    <option tal:repeat="target targets"
+        tal:content="target">/Thing</option>
 </select>
 </p>
 <br/>
