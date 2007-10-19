@@ -332,12 +332,15 @@ class UserSettingsManager(ZenModelRM):
             return self.callZenScreen(REQUEST) 
             
             
-    def manage_addUserToGroup(self, userid, groupid, REQUEST=None):
-        """ Add a user to a group
-        """ 
-        self._getOb(groupid).manage_addUserToGroup(userid) 
+    def manage_addUsersToGroup(self, userids, groupid, REQUEST=None):
+        """ Add users to a group
+        """
+        if type(userids) in types.StringTypes:
+            userids = [userids]
+        self._getOb(groupid).manage_addUsersToGroup(userids) 
         if REQUEST:
-            REQUEST['message'] = "User %s added to group %s" % (userid, groupid)
+            REQUEST['message'] = \
+                "User %s added to group %s" % (','.join(userids), groupid)
             return self.callZenScreen(REQUEST)
 
 
@@ -846,12 +849,15 @@ class GroupSettings(UserSettings):
     def _getG(self):
         return self.zport.acl_users.groupManager
     
-    def manage_addUserToGroup( self, userid, REQUEST=None ):
+    def manage_addUsersToGroup( self, userids, REQUEST=None ):
         """ Add user to this group
         """
-        self._getG().addPrincipalToGroup( userid, self.id )
+        if type(userids) in types.StringTypes:
+            userids = [userids]
+        for userid in userids:
+            self._getG().addPrincipalToGroup( userid, self.id )
         if REQUEST:
-            REQUEST['message'] = 'Added user %s to Group %s' % (userid, self.id)
+            REQUEST['message'] = 'Added %s to Group %s' % (','.join(userids), self.id)
             return self.callZenScreen(REQUEST)
 
 
