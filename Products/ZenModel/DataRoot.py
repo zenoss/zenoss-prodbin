@@ -523,7 +523,10 @@ class DataRoot(ZenModelRM, OrderedFolder, Commandable, ZenMenuable):
 
     security.declareProtected(ZEN_COMMON, 'getGeoCache')
     def getGeoCache(self, REQUEST=None):
-        return self.geocache
+        cachestr = self.geocache
+        for char in ('\\r', '\\n'):
+            cachestr = cachestr.replace(char, ' ')
+        return cachestr
 
     def goToStatusPage(self, objid, REQUEST=None):
         """ Find a device or network and redirect 
