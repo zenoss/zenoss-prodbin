@@ -93,6 +93,8 @@ class EventServer(ZCmdBase):
         transport.connected = 1
         transport._realPortNumber = port
         self.transport = transport
+        # hack around startListening not being called
+        self.numPorts = 1
         transport.startReading()
 
     def useTcpFileDescriptor(self, fd, factory):
