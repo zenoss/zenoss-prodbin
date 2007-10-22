@@ -3,7 +3,14 @@
 <span id="errmsg" style="color:red;"></span>
 
 <tal:block tal:condition="not: exists: here/datasources">
-<div id="dpNameACDiv" style="width:30em;position:relative;"></div>
+<div style="text-align:left;" class="yui-skin-sam">
+DataPoint Name<br />
+<div id="dpNamesAutoComplete" style="color: black; position: relative; width: 30em">
+<input id="dpNamesInput" type="text" name="dpNames:list" size="40" 
+        onfocus="setupAutoComplete()" onblur="teardownAutoComplete()"/>
+<div id="dpNameContainer"></div>
+</div>
+</div>
 <br /><br />
 </tal:block>
 

@@ -1,39 +1,49 @@
 <tal:block metal:use-macro="here/templates/macros/page2">
     
+<tal:block metal:fill-slot="head-local" 
+            tal:condition="not: exists: here/datasources">
 
-<tal:block metal:fill-slot="contentPane">
+<!-- YAHOO script lib files --> 
+<script type="text/javascript" src="/zport/dmd/yui/yahoo/yahoo-min.js" ></script>
+<link type="text/css" rel="stylesheet" href="/zport/dmd/yui/autocomplete/assets/skins/sam/autocomplete.css" /> 
+<script type="text/javascript" src="/zport/dmd/yui/yahoo-dom-event/yahoo-dom-event.js"></script>
+<script type="text/javascript" src="/zport/dmd/yui/animation/animation-min.js"></script>
+<script type="text/javascript" src="/zport/dmd/yui/autocomplete/autocomplete-min.js"></script>
 
-<tal:block tal:condition="not: exists: here/datasources">
-<script>
-YAHOO.zenoss.loader.require(['zenautocomplete']);
-YAHOO.zenoss.loader.insert();
+<tal:block tal:replace='structure string:<script type="text/javascript">' />
+<tal:block tal:replace="structure string:var dpNamesArray = [" />
+<tal:block tal:repeat="dpName here/getUniqueDpNames"
+            tal:replace="structure string:'${dpName}'," />
+<tal:block tal:replace="structure string:];</script>" />
+<script type="text/javascript">
+    var dpNamesDataSource = new YAHOO.widget.DS_JSArray(dpNamesArray);
+    dpNamesDataSource.queryMatchContains = true;
+    //dpNamesDataSource.animVert = false;
+    //dpNamesDataSource.animHoriz = false;
+    
+    var dpNamesAutoComp = null;
 
-function createDpNameAC() {
-    var dpNameAC = new YAHOO.zenoss.zenautocomplete.ZenAutoComplete(
-        'dpNames',
-        '/zport/dmd/Devices/jsonGetUniqueDataPointNames', 
-        'DataPoint Name', // Label for the widget
-        'dpNameACDiv' // DOM element into which to put the thing
-    );
-    dpNameAC.input.name = 'dpNames:list';
-}
+    function setupAutoComplete() {
+        if (!dpNamesAutoComp)
+            dpNamesAutoComp = new YAHOO.widget.AutoComplete("dpNamesInput", 
+                                    "dpNameContainer", dpNamesDataSource);
+            dpNamesAutoComp.maxResultsDisplayed = 20;
+            dpNamesAutoComp.forceSelection = false;
+            dpNamesAutoComp.typeAhead = false;
+            dpNamesAutoComp.animVert = false;
+            dpNamesAutoComp.animHoriz = false;
+    };
 
-function createThreshNameAC() {
-    var threshNameAC = new YAHOO.zenoss.zenautocomplete.ZenAutoComplete(
-        'threshNames',
-        '/zport/dmd/Devices/jsonGetUniqueThresholdNames', 
-        'Threshold Name', // Label for the widget
-        'threshNameACDiv' // DOM element into which to put the thing
-    );
-    threshNameAC.input.name = 'threshNames:list';
-}
-
-
-$('dialog').addLoadEvent('dialog_addDataPointGraphPoint', createDpNameAC);
-$('dialog').addLoadEvent('dialog_addThresholdGraphPoint', createThreshNameAC);
+    function teardownAutoComplete() {
+        if (dpNamesAutoComp)
+            dpNamesAutoComp = null;
+    };
 
 </script>
+
 </tal:block>
+
+<tal:block metal:fill-slot="contentPane">
 
 <form tal:attributes="method string:post;
                 action here/absolute_url_path;

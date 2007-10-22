@@ -490,4 +490,42 @@ class GraphDefinition(ZenModelRM, ZenPackable):
                 and gp.dpName == dpName]
 
 
+    def getUniqueDpNames(self, limit=100):
+        '''
+        Get a list of all unique datapoint names
+        '''
+        from sets import Set
+        dpNames = Set()
+        for t in self.dmd.Devices.getAllRRDTemplates():
+            for ds in t.datasources():
+                # If we have a broken datasource (likely from a missing zenpack)
+                # then don't try to parse datapoints, you can't.
+                if hasattr(ds, 'datapoints'):
+                    for dp in ds.datapoints():
+                        dpNames.add(dp.name())
+            if len(dpNames) >= limit:
+                break
+        dpNames = list(dpNames)
+        dpNames.sort()
+        return dpNames
+
+
+    def getUniqueThresholdNames(self, limit=100):
+        '''
+        Get a list of all unique threshold names
+        '''
+        from sets import Set
+        names = Set()
+        for t in self.dmd.Devices.getAllRRDTemplates():
+            for thresh in t.thresholds():
+                names.add(thresh.id)
+                if len(names) >= limit:
+                    break
+            if len(names) >= limit:
+                break
+        names = list(names)
+        names.sort()
+        return names
+
+
 InitializeClass(GraphDefinition)

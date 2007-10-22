@@ -440,38 +440,6 @@ class DeviceClass(DeviceOrganizer, ZenPackable):
         return simplejson.dumps(graphIds)
 
 
-    security.declareProtected('View', 'jsonGetUniqueDataPointNames')
-    def jsonGetUniqueDataPointNames(self):
-        ''' Get a list of unique datapoint names
-        '''
-        from sets import Set
-        dpNames = Set()
-        for t in self.getAllRRDTemplates():
-            for ds in t.datasources():
-                # If we have a broken datasource (likely from a missing zenpack)
-                # then don't try to parse datapoints, you can't.
-                if hasattr(ds, 'datapoints'):
-                    for dp in ds.datapoints():
-                        dpNames.add(dp.name())
-        dpNames = list(dpNames)
-        dpNames.sort()
-        return simplejson.dumps(dpNames)
-
-
-    security.declareProtected('View', 'jsonGetUniqueThresholdNames')
-    def jsonGetUniqueThresholdNames(self):
-        ''' Get a list of unique threshold names
-        '''
-        from sets import Set
-        threshNames = Set()
-        for t in self.getAllRRDTemplates():
-            for thresh in t.thresholds():
-                threshNames.add(thresh.id)
-        threshNames = list(threshNames)
-        threshNames.sort()
-        return simplejson.dumps(threshNames)
-
-
     def findDevicePingStatus(self, devicename):
         """look up device in catalog and return its pingStatus"""
         dev = self.findDevice(devicename)

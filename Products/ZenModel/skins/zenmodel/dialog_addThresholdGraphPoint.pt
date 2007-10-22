@@ -2,31 +2,34 @@
 <span id="errmsg" style="color:red;"></span>
 
 <tal:block tal:condition="not: exists: here/datasources">
-<div id="threshNameACDiv" style="width:30em;position:relative;"></div>
+<div style="text-align:left;" class="yui-skin-sam">
+Threshold Name<br />
+<div id="threshNamesAutoComplete" style="color: black; position: relative; width: 30em">
+<input id="threshNamesInput" type="text" name="threshNames:list" size="40" 
+        onfocus="setupAutoComplete()" onblur="teardownAutoComplete()"/>
+<div id="threshNameContainer"></div>
+</div>
+</div>
 <br /><br />
 </tal:block>
 
-
 <tal:block tal:condition="exists: here/datasources">
 <span style="text-align:left;">
-Thresholds:&nbsp;<select name='threshNames:list' multiple="1">
-        <option tal:repeat="option here/getThresholdOptions"
+Thresholds:&nbsp;<br />
+<select id="threshNames" name='threshNames:list' multiple="1">
+    <option tal:condition="exists: here/rrdTemplate"
+                tal:repeat="option here/getThresholdOptions"
                 tal:attributes="value python: option[1]" 
                 tal:content="python: option[0]" />
 </select>
-<br/><br/>
+<br />
 </span>
 </tal:block>
 
 <div id="dialog_buttons">
-<input tal:attributes="id string:dialog_submit;
-        type string:submit;
-        value string:OK;
-        onclick string:return $$('dialog').submit_form(
-                                                '${here/absolute_url}')"
-                        name="manage_addThresholdGraphPoints:method" />
-<input tal:attributes="id string:dialog_cancel;
-                        type string:button;
-                        value string:Cancel;
-                        onclick string:$$('dialog').hide()" />
+<input type="submit" name="manage_addThresholdGraphPoints:method" value="OK"
+    tal:attributes="onclick string:return $$('dialog').submit_form(
+                        '${here/absolute_url_path}')" />
+<input id="dialog_cancel" type="button" value="Cancel"
+        onclick="$('dialog').hide()"/>
 </div>
