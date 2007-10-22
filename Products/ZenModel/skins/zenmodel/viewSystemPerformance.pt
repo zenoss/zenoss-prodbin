@@ -35,7 +35,7 @@
             sortedobjs python:sequence.sort(objects, sortOn)">
         <tal:block tal:repeat="device sortedobjs">
         
-        <tal:block tal:repeat="graph python:device.primaryAq().getDefaultGraphs(drange=drange)">
+        <tal:block tal:repeat="graph python:device.primaryAq().getDefaultGraphDefs(drange=drange)">
             <tr><td class=tableheader tal:content="graph/title">title</td></tr>
             <tr><td class=tablevalues>
                 <img src="_" tal:attributes="src graph/url">

@@ -394,7 +394,7 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
         >>> devices.test.getRRDTemplates()
         [<RRDTemplate at /zport/dmd/Devices/rrdTemplates/Device>]
         """
-        if not self.zDeviceTemplates:
+        if not hasattr(self, 'zDeviceTemplates'):
             return ManagedEntity.getRRDTemplates(self)
         result = []
         for name in self.zDeviceTemplates:
