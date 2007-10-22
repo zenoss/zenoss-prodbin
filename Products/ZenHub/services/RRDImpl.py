@@ -19,6 +19,9 @@ log = logging.getLogger("zenhub")
 
 
 class RRDImpl:
+    # list of rrd types that only accept long or integer values (no floats!)
+    LONG_RRD_TYPES = ['COUNTER', 'DERIVE']
+
     def __init__(self, dmd):
         # rrd is a dictionary of RRDUtil instances
         self.rrd = {}
@@ -46,6 +49,16 @@ class RRDImpl:
         else:
             rrd = RRDUtil(rrdCreateCmd, dp.datasource.cycletime)
             self.rrd[rrdKey] = rrd
+
+        # convert value to a long if our data point uses a long type
+        if dp.rrdtype in RRDImpl.LONG_RRD_TYPES:
+            try:
+                value = long(value)
+            except ValueError:
+                log.warn("value '%s' received for data point '%s' that " \
+                         "could not be converted to a long" % \
+                         (value, dp.rrdtype))
+
         value = rrd.save(os.path.join(dev.rrdPath(), dp.name()),
                         value, 
                         dp.rrdtype,
