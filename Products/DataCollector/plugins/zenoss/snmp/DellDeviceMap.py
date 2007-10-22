@@ -27,6 +27,11 @@ class DellDeviceMap(SnmpPlugin):
          })
 
 
+    def condition(self, device, log):
+        """does device meet the proper conditions for this collector to run"""
+        return device.snmpOid.startswith('.1.3.6.1.4.1.674.10892.1.300.10')  
+    
+    
     def process(self, device, results, log):
         """collect snmp information from this device"""
         log.info('processing %s for device %s', self.name(), device.id)
