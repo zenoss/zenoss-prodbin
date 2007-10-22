@@ -261,7 +261,7 @@ class GraphDefinition(ZenModelRM, ZenPackable):
         gp = cls(newId)
         # Set sequence
         if gp.isThreshold:
-            gp.sequence = 0
+            gp.sequence = -1
         else:
             gp.sequence = len(self.graphPoints())
         # Set legend for graph points on multigraph reports
@@ -272,7 +272,7 @@ class GraphDefinition(ZenModelRM, ZenPackable):
             gp.legend = gp.DEFAULT_MULTIGRAPH_LEGEND
         self.graphPoints._setObject(gp.id, gp)
         gp = self.graphPoints._getOb(gp.id)
-        if gp.id == 0:
+        if gp.sequence == -1:
             self.manage_resequenceGraphPoints()
         return gp
         
