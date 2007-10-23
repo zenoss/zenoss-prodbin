@@ -886,7 +886,7 @@ class GroupSettings(UserSettings):
 
     def getEmailAddresses(self):
         result = []
-        for username in self.getMemberUsers():
+        for username in self.getMemberUserIds():
             result.extend(self.getUserSettings(username).getEmailAddresses())
         return result
     
