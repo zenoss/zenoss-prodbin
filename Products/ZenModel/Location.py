@@ -150,6 +150,8 @@ class Location(DeviceOrganizer, ZenPackable):
             included in the view due to outside linking.
         """
         data = []
+        # Short-circuit the method for now
+        return data
         children = self.children()
         olddata = self.getChildGeomapData()
         for child in children:
