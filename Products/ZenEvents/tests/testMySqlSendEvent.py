@@ -11,62 +11,133 @@
 #
 ###########################################################################
 
-import unittest
-from Queue import Queue
-import Globals
-import transaction
+from Products.ZenTestCase.BaseTestCase import BaseTestCase
 
-from Products.ZenUtils.ZCmdBase import ZCmdBase
-zodb = ZCmdBase(noopts=True)
+TEST_DEVICE = 'TestDeviceSE'
+IPADDR1 = '1.1.1.1'
+IPADDR2 = '1.1.1.2'
 
-from Products.ZenEvents.MySqlSendEvent import MySqlSendEventThread 
-from Products.ZenEvents.Event import Event
-from Products.ZenEvents.Exceptions import *
 
-class MySqlSendEventThreadTest(unittest.TestCase):
+class MySqlSendEventTest(BaseTestCase):
     
     def setUp(self):
-        zodb.getDataRoot()
-        self.zem = zodb.dmd.ZenEventManager
+        BaseTestCase.setUp(self)
+        self.zem = self.dmd.ZenEventManager
+        self.dmd.Devices.createInstance(TEST_DEVICE)
+        self.d = self.dmd.Devices.findDevice(TEST_DEVICE)
 
 
     def tearDown(self):
-        transaction.abort()
-        zem = self.dmd.ZenEventManager
-        conn = zem.connect()
+        conn = self.zem.connect()
         try:
             curs = conn.cursor()
-            zem.curs.execute("truncate status")
-        finally: zem.close(conn)
-        zodb.closedb()
-        self.zem = None
+            curs.execute("truncate table status")
+            curs.execute("truncate table history")
+            curs.execute("truncate table heartbeat")
+        finally: 
+            self.zem.close(conn)
+        BaseTestCase.tearDown(self)
 
 
-    def testInit(self):
-        evthread = MySqlSendEventThread(self.zem)
-        self.assert_(evthread.database == "127.0.0.1")
-        self.assert_(evthread.detailTable == "detail")
-        self.assert_(isinstance(evthread.getqueue(), Queue)) 
-        
+    def testSendEventDeviceFieldIsName(self):
+        """Send event with device feild set to name of device"""
+        evt = dict(device = TEST_DEVICE, 
+                    summary = 'device field is name using device index', 
+                    severity = 5)
+        evid = self.zem.sendEvent(evt)
+        event = self.zem.getEventDetail(evid)
+        self.assert_(event.device == TEST_DEVICE)
 
-    def testSendEvent(self):
-        evthread = MySqlSendEventThread(self.zem)
-        queue = evthread.getqueue()
-        evt = Event()
-        evt.device = "dev.test.com"
-        evt.eventClass = "TestEvent"
-        evt.summary = "this is a test event"
-        evt.severity = 3
-        queue.put(evt)
-        evthread.stop()
-        evthread.run()
-        evts = self.zem.getEventList(where="device='dev.test.com'")
-        self.assert_(len(evts) == 1)
-        self.assert_(evts[0].summary == evt.summary)
+    def testSendEventDeviceFieldIsIp(self): 
+        """Send event with device feild set to manage ip of device"""
+        self.d.setManageIp(IPADDR1)
+        evt = dict(device = IPADDR1, 
+                    summary = 'device field is ip using device index', 
+                    severity = 5)
+        evid = self.zem.sendEvent(evt)
+        event = self.zem.getEventDetail(evid)
+        self.assert_(event.device == TEST_DEVICE)
 
-        
+    def testSendEventDeviceFieldIsIpNet(self):
+        """Send event with device feild set to an interface ip of device"""
+        self.d.os.addIpInterface('eth0', True)
+        self.d.os.interfaces.eth0.addIpAddress(IPADDR2)
+        evt = dict(device = IPADDR2, 
+                summary = 'device field is ip using network index', 
+                severity = 5)
+        evid = self.zem.sendEvent(evt)
+        event = self.zem.getEventDetail(evid)
+        self.assert_(event.device == TEST_DEVICE)
+
+
+    def testSendEvent_ipAddressFieldIsIpNet(self):
+        """Send event with ipAddress feild set to an interface ip of device"""
+        self.d.os.addIpInterface('eth0', True)
+        self.d.os.interfaces.eth0.addIpAddress(IPADDR2)
+        evt = dict(device = "", ipAddress = IPADDR2, 
+                summary = 'device blank, ipAddress with ip using network index',
+                severity = 5)
+        evid = self.zem.sendEvent(evt)
+        event = self.zem.getEventDetail(evid)
+        self.assert_(event.device == TEST_DEVICE)
+        self.assert_(event.ipAddress == IPADDR2)
+
+
+    def testDeduplicationSimple(self):
+        """Test sumary based dedupliation 
+        """
+        evt = dict(device=TEST_DEVICE, summary='Test', severity = 5)
+        evid = self.zem.sendEvent(evt)
+        evid2 = self.zem.sendEvent(evt)
+        self.assert_(evid == evid2)
+
+
+    def testDeduplicationEventKey(self):
+        """
+        Test eventKey based dedupliation events have different summaries but
+        same eventKey
+        """
+        evt = dict(device=TEST_DEVICE, eventKey='mykey',
+                    summary='Test', severity = 5)
+        evid = self.zem.sendEvent(evt)
+        evt = dict(device=TEST_DEVICE, eventKey='mykey',
+                    summary='Test2', severity = 5)
+        evid2 = self.zem.sendEvent(evt)
+        self.assert_(evid == evid2)
+
+
+    def testUnknownEventClass(self):
+        """Test event with no eventClass getting class set to /Unknown
+        """
+        evt = dict(device=TEST_DEVICE, summary='Test', severity = 5)
+        evid = self.zem.sendEvent(evt)
+        event = self.zem.getEventDetail(evid)
+        self.assert_(event.eventClass == "/Unknown")
+
+
+    def testHeartbeatClass(self):
+        """Test sending heartbeats and the not timedout query
+        """
+        evt = dict(device=TEST_DEVICE, summary='Test', component='Test', 
+                    timeout = 50, severity = 5, eventClass="/Heartbeat")
+        evid = self.zem.sendEvent(evt)
+        self.assert_(evid is None)
+        self.assert_(len(self.zem.getHeartbeat()) == 0)
+        self.assert_(len(self.zem.getHeartbeat(failures=False)) == 1)
+
+
+    def testHeartbeatClassTimedOut(self):
+        """Test sending heartbeats and the timedout query
+        """
+        evt = dict(device=TEST_DEVICE, summary='Test', component='Test', 
+                    timeout = 0, severity = 5, eventClass="/Heartbeat")
+        evid = self.zem.sendEvent(evt)
+        self.assert_(evid is None)
+        self.assert_(len(self.zem.getHeartbeat()) == 1)
+        self.assert_(len(self.zem.getHeartbeat(failures=False)) == 1)
+
 def test_suite():
     from unittest import TestSuite, makeSuite
     suite = TestSuite()
-    suite.addTest(makeSuite(MySqlSendEventThread))
+    suite.addTest(makeSuite(MySqlSendEventTest))
     return suite

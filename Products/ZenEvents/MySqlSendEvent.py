@@ -143,30 +143,39 @@ class MySqlSendEventMixin:
                     evid = None
         finally: self.close(conn)
         return evid
-            
+           
+
+    def _findByIp(self, ipaddress):
+        """
+        Find and ip by looking up it up in the Networks catalog.
+        """
+        log.debug("looking up ip %s",ipaddress)
+        nets = self.getDmdRoot("Networks")
+        ipobj = nets.findIp(ipaddress)
+        if ipobj and ipobj.device():
+            device = ipobj.device()
+            log.debug("ip %s -> %s", ipobj.id, device.id)
+            return device
+
 
     def applyEventContext(self, evt):
-        """Apply event and devices contexts to the event.
+        """
+        Apply event and devices contexts to the event.
         Only valid if this object has zeo connection.
         """
         events = self.getDmdRoot("Events")
         devices = self.getDmdRoot("Devices")
         device = None
-        if evt.device:
+        if getattr(evt, 'device', None):
             device = devices.findDevice(evt.device)
-        if not device and hasattr(evt, 'ipAddress'):
+        if not device and getattr(evt, 'ipAddress', None):
             device = devices.findDevice(evt.ipAddress)
-            if device:
-                evt.device = device.id
-            else:
-                log.debug("looking up ip %s",evt.ipAddress)
-                nets = self.getDmdRoot("Networks")
-                ipobj = nets.findIp(evt.ipAddress)
-                if ipobj and ipobj.device():
-                    device = ipobj.device()
-                    evt.device = device.id
-                    log.debug("ip %s -> %s", ipobj.id, device.id)
+        if not device and getattr(evt, 'device', None):
+            device = self._findByIp(evt.device)
+        if not device and getattr(evt, 'ipAddress', None):
+            device = self._findByIp(evt.ipAddress)
         if device:
+            evt.device = device.id
             log.debug("Found device=%s", evt.device)
             evt = self.applyDeviceContext(device, evt)
         evtclass = events.lookup(evt, device)
