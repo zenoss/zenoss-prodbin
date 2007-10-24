@@ -85,8 +85,8 @@ class Builder(DmdBuilder):
 
     def build(self):
         DmdBuilder.build(self)
-        manage_addDummyManager(self.dmd, 'ZenEventManager')
-        manage_addDummyManager(self.dmd, 'ZenEventHistory')
+        #manage_addDummyManager(self.dmd, 'ZenEventManager')
+        #manage_addDummyManager(self.dmd, 'ZenEventHistory')
 
 
 class BaseTestCase(ZopeTestCase.ZopeTestCase):
@@ -98,8 +98,8 @@ class BaseTestCase(ZopeTestCase.ZopeTestCase):
         # builder params:
         # portal, cvthost, evtuser, evtpass, evtdb,
         #    smtphost, smtpport, snpphost, snppport
-        builder = Builder(self.app.zport, 'localhost', 'dbuser', 'dbpass',
-                            'dbtable', 'localhost', '25', 'localhost', '0')
+        builder = DmdBuilder(self.app.zport, 'localhost', 'zenoss', 'zenoss',
+                            'events', 'localhost', '25', 'localhost', '0')
         builder.build()
         self.dmd = builder.dmd
 
