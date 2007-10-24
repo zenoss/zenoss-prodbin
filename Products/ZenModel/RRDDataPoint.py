@@ -130,6 +130,13 @@ class RRDDataPoint(ZenModelRM, ZenPackable):
         useful for lists of DataPoints"""
         return '%s%c%s' % (self.datasource().id, SEPARATOR, self.id)
 
+    def getRRDCreateCommand(self, performanceConf):
+        """Get the create command.
+        Return '' for the default from performanceConf"""
+        if self.createCmd:
+            return self.createCmd
+        return ''
+
 
     security.declareProtected('Manage DMD', 'zmanage_editProperties')
     def zmanage_editProperties(self, REQUEST=None):

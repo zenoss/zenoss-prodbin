@@ -300,6 +300,7 @@ class RRDView(object):
         oids = []
         if self.snmpIgnore(): return (oids, [])
         basepath = self.rrdPath()
+        perfServer = self.device().getPerformanceServer()
         for templ in self.getRRDTemplates():
             for ds in templ.getRRDDataSources("SNMP"):
                 if not ds.enabled: continue
@@ -313,7 +314,7 @@ class RRDView(object):
                                  oid,
                                  "/".join((basepath, dp.name())),
                                  dp.rrdtype,
-                                 dp.createCmd,
+                                 dp.getRRDCreateCommand(perfServer),
                                  (dp.rrdmin, dp.rrdmax)))
         return (oids, self.getThresholdInstances('SNMP'))
 
@@ -322,6 +323,7 @@ class RRDView(object):
         """Return list of command definitions.
         """
         result = []
+        perfServer = self.device().getPerformanceServer()
         for templ in self.getRRDTemplates():
             basepath = self.rrdPath()
             if dsName:
@@ -336,7 +338,7 @@ class RRDView(object):
                         (dp.id,
                          "/".join((basepath, dp.name())),
                          dp.rrdtype,
-                         dp.createCmd,
+                         dp.getRRDCreateCommand(perfServer),
                          (dp.rrdmin, dp.rrdmax)))
                 key = ds.eventKey or ds.id
                 result.append( (getattr(ds, 'usessh', False), 
