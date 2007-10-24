@@ -59,6 +59,12 @@ class MySqlSendEventMixin:
         #FIXME - ungly hack to make sure severity is an int
         event.severity = int(event.severity)
         
+        # If either message or summary is empty then try to copy from the other.
+        # Make sure summary is truncated to 128
+        if not getattr(event, 'message', False):
+            event.message = getattr(event, 'summary', '')
+        event.summary = (getattr(event, 'summary', '') or event.message)[:128]
+        
         if getattr(self, "getDmdRoot", False):
             try:
                 event = self.applyEventContext(event)
@@ -85,12 +91,6 @@ class MySqlSendEventMixin:
             dedupid = map(self.escape, dedupid)
             event.dedupid = "|".join(dedupid)
 
-        # If either message or summary is empty then try to copy from the other.
-        # Make sure summary is truncated to 128
-        if not getattr(event, 'message', False):
-            event.message = getattr(event, 'summary', '')
-        event.summary = (getattr(event, 'summary', '') or event.message)[:128]
-        
         cleanup = lambda : None
         evid = None
         try:
