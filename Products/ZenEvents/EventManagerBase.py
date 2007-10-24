@@ -1349,7 +1349,7 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
     def getDeviceDashboard(self, simple=False):
         """return device info for bad device to dashboard"""
         devices = [d[0] for d in self.getDeviceIssues(
-                            severity=2, state=1, limit=100)]
+                            severity=4, state=1, limit=100)]
         devdata = []
         devclass = self.getDmdRoot("Devices")
         getcolor = re.compile(r'class=\"evpill-(.*?)\"', re.S|re.I|re.M).search
