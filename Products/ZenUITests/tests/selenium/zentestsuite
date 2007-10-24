@@ -14,4 +14,4 @@ cd $ZENHOME/Products/
 svn up
 zenmigrate
 cd $ZENHOME/Products/ZenUITests/tests/selenium/
-python testAll.py $1 $2
+python testAll.py

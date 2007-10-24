@@ -25,13 +25,7 @@ import sys
 import smtplib
 import StringIO
 
-######## BEGIN GLOBAL DEFS ########
-MAILSERVER  = "%s" %sys.argv[1]
-FROMADDR    = "testsuite@%s" %(sys.argv[1].split('.', 1)[1])
-TOADDR      = "%s" %sys.argv[2]
-SUBJECT     = "Selenium Test Suite Results - "
 TESTFMT     = re.compile("^Test\w+\.py$")
-######### END GLOBAL DEFS #########
 
 def findTest(str):
     """Returns module names from filenames of the form "TestSomething.py" """
@@ -62,13 +56,4 @@ testAll = loader.loadTestsFromNames(testTargets) # Load test modules
 result = runner.run(testAll)
 
 if len(result.errors) > 0 or len(result.failures) > 0:
-    messageHeader = "From: %s\nTo: %s\nSubject: %s\n\n"\
-                    %(FROMADDR, TOADDR, SUBJECT + "Problems Encountered")
-else:
-    messageHeader = "From: %s\nTo: %s\nSubject: %s\n\n"\
-                    %(FROMADDR, TOADDR, SUBJECT + "All ok!")
-
-mailServer = smtplib.SMTP(MAILSERVER)
-# mailServer.sendmail(FROMADDR, TOADDR, messageHeader + messageBody)
-mailServer.sendmail(FROMADDR, TOADDR, messageHeader + testout.getvalue())
-mailServer.quit()
+    print testout.getvalue()

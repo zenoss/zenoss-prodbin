@@ -88,8 +88,9 @@ class TestDeviceInstanceOsTab(TestDeviceInstanceBase):
     def testOSProcess(self):
         """Add, edit, and delete an OS Process under a specific device"""
         
-        self.addDialog(addType="link=Add OSProcess...", new_id=("text", "testingString"))
-        self.assert_(self.selenium.is_element_present("link=testingString"))
+        self.addDialog(addType="link=Add OSProcess...", 
+                        className=("select", "httpd"))
+        self.assert_(self.selenium.is_element_present("link=httpd"))
         
         # Enter new data in form
         self.selenium.type("name", "testingString2")
@@ -137,29 +138,15 @@ class TestDeviceInstanceOsTab(TestDeviceInstanceBase):
         
         self.assert_(not self.selenium.is_element_present("link=testingString2"))
         
-#    def testIpRoute(self):
-#        """Add and delete an IP Route under a sepcific device (no editing available)"""
-#        
-#        self.addDialog(addType="link=Add Route...", new_id=("text", "127.0.0.1"),
-#                       nexthopid=("text", "127.0.0.1"), routeproto=("select", "label=local"),
-#                       routetype=("select", "label=direct")
-#                      )
-#        self.assert_(self.selenium.is_text_present("127.0.0.1 (None)"))
-#        
-#        self.deleteDialog(deleteType="IpRouteEntrydeleteIpRouteEntries",
-#                          deleteMethod="deleteIpRouteEntries:method",
-#                          pathsList="componentNames:list",
-#                          form_name="ipRouteEntryListForm",
-#                          testData="127.0.0.1/8")
-#        self.assert_(not self.selenium.is_text_present("127.0.0.1 (None)"))
     
     def testIpService(self):
         """Add, edit, and delete an Ip Service under a sepcific device"""
         
-        self.addDialog(addType="link=Add IpService...", new_id=("text", "1234"),
-                       port=("text", "1234"), protocol=("select", "label=tcp")
+        self.addDialog(addType="link=Add IpService...", 
+                        className=("text", "tcp6_00080"),
+                        protocol=("select", "label=tcp")
                       )
-        self.assert_(self.selenium.is_element_present("link=1234"))
+        self.assert_(self.selenium.is_element_present("link=tcp6_00080"))
             
         # now, edit some of the fields
         self.selenium.type("id", "2345")
@@ -188,11 +175,11 @@ class TestDeviceInstanceOsTab(TestDeviceInstanceBase):
             
     def testWinService(self):
         """Add, edit, and delete a Win Service under a sepcific device"""
+                
         
-        self.addDialog(addType="link=Add WinService...", new_id=("text", "testingString"),
-                       description=("text", "testingString")
-                      )
-        self.assert_(self.selenium.is_element_present("link=testingString"))
+        self.addDialog(addType="link=Add WinService...", 
+                        className=("text", "Dhcp"))
+        self.assert_(self.selenium.is_element_present("link=Dhcp"))
         
         # now, edit some of the fields
         self.selenium.type("id", "testingString2")
@@ -209,31 +196,32 @@ class TestDeviceInstanceOsTab(TestDeviceInstanceBase):
         
         self.selenium.click("manage_editService:method")
         self.selenium.wait_for_page_to_load(self.WAITTIME)
-        
-        # bug workaround
-        self.selenium.click("link=testingString2")
-        self.selenium.wait_for_page_to_load(self.WAITTIME)
-        
+                
         # then delete the WinService
         self.selenium.click("link=Delete")
         self.waitForElement("dialog_cancel")
+        self.waitForElement("manage_deleteComponent:method")
+        self.waitForElement('deleteForm')
         self.selenium.click("manage_deleteComponent:method")
+        self.selenium.wait_for_page_to_load(self.WAITTIME)
         self.assert_(not self.selenium.is_text_present("Win Services"))
         
 class TestDeviceInstanceManageDevice(TestDeviceInstanceBase):
     """Test functionality related to managing the device itself"""
         
-    def testChangeDeviceClass(self):
+    def testChangeDeviceClass(self, newClass='/Discovered'):
         """Test changing the device class of a device"""
         
         self.selenium.click("link=Change Class...")
         
         self.waitForElement("moveDevices:method")
-        self.selenium.select("moveTarget", "label=/Discovered")
+        self.selenium.select("moveTarget", "label=%s" % newClass)
         self.selenium.click("moveDevices:method")
         self.selenium.wait_for_page_to_load(self.WAITTIME)
         
-        self.assert_(self.selenium.is_element_present("link=Discovered"))
+        for part in newClass.split('/'):
+            if part:
+                self.assert_(self.selenium.is_element_present("link=%s" % part))
         self.selenium.click("link=%s" %TARGET)
         
         

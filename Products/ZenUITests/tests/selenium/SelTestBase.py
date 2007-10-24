@@ -24,13 +24,13 @@ from util.selTestUtils import *
 from util.selenium import selenium
 
 ### BEGIN GLOBAL DEFS ###
-HOST        =   "zenosst"               # Zenoss instance to test
+HOST        =   "zenosst.zenoss.loc"               # Zenoss instance to test
 USER        =   "admin"                 # Username for HOST
 PASS        =   "zenoss"                # Password for HOST
-SERVER      =   "selserver"             # Hosts the selenium jar file
-TARGET      =   "testtarget.zenoss.loc" # Added/deleted in HOST
+SERVER      =   "selserver.zenoss.loc"             # Hosts the selenium jar file
+TARGET      =   "selserver.zenoss.loc" # Added/deleted in HOST
 BROWSER     =   "*firefox"              # Can also be "*iexplore"
-WAITTIME    =   "30000"                 # Time to wait for page loads in milliseconds
+WAITTIME    =   "60000"                 # Time to wait for page loads in milliseconds
 ### END GLOBAL DEFS ###
 
 class SelTestBase(unittest.TestCase):
@@ -80,6 +80,7 @@ class SelTestBase(unittest.TestCase):
         self.selenium.click("link=Logout")
         
     # FAILS if device at deviceIp is already present in Zenoss test target.
+    # Does it?  Looks to me like it attempts to delete it.  -jrs
     def addDevice(self, deviceIp=TARGET, classPath="/Server/Linux"):
         """Adds a test target device to Zenoss"""
         # First, make sure the device isn't already in the system.
@@ -99,6 +100,7 @@ class SelTestBase(unittest.TestCase):
         self.waitForElement("loadDevice:method")
         self.selenium.type("deviceName", deviceIp)
         self.selenium.select("devicePath", "label=" + classPath)
+        self.selenium.select('discoverProto', 'label=none')
         self.selenium.click("loadDevice:method")
         self.selenium.wait_for_page_to_load(self.WAITTIME)
         self.waitForElement("link=" + deviceIp)
@@ -177,17 +179,11 @@ class SelTestBase(unittest.TestCase):
            Throws a TimeoutException if too much time has
            passed."""
         i = 0.0
-        try:
-            while not self.selenium.is_element_present(locator):
-                time.sleep(0.25)
-                i += 0.25
-                if i >= timeout:
-                    raise TimeoutError("Timed out waiting for " + locator)
-        except TimeoutError, e:
-            import traceback
-            traceback.print_exc()
-            self.selenium.stop()
-            raise e
+        while not self.selenium.is_element_present(locator):
+            time.sleep(0.25)
+            i += 0.25
+            if i >= timeout:
+                raise TimeoutError("Timed out waiting for " + locator)
 
         
     # Included for historical reasons.
