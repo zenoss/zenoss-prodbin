@@ -78,6 +78,11 @@ class ZenossInfo(ZenModelItem, SimpleItem):
                 , 'action'        : '../dmd/editMenus'
                 , 'permissions'   : ( "Manage DMD", )
                 },
+                { 'id'            : 'portlets'
+                , 'name'          : 'Portlets'
+                , 'action'        : '../dmd/editPortletPerms'
+                , 'permissions'   : ( "Manage DMD", )
+                },
                 { 'id'            : 'daemons'
                 , 'name'          : 'Daemons'
                 , 'action'        : 'zenossInfo'

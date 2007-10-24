@@ -110,5 +110,6 @@ import addGroupManager
 import reportsNotPackable
 import zDrawMapLinks
 import deleteADPNewProductClass
+import portletmgr
 import deleteSaveAdministratorsMenuItem
 import removeReportClassPageMenu

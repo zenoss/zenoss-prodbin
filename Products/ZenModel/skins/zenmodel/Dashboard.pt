@@ -33,15 +33,15 @@ function initDashboardPortlets() {
         ContainerObject.restore(dashboardState);
     } else {
         ContainerObject.setLayout('2coleq', false);
-        p1 = new YAHOO.zenoss.portlet.GoogleMapsPortlet({id:'googlemaps'});
+        p1 = new YAHOO.zenoss.portlet.ProdStatePortlet({id:'prodstates'});
         p2 = new YAHOO.zenoss.portlet.DeviceIssuesPortlet({id:'devissues'});
-        p3 = new YAHOO.zenoss.portlet.HeartbeatsPortlet({id:'heartbeats'});
+        p3 = new YAHOO.zenoss.portlet.WatchListPortlet({id:'watchlist'});
         ContainerObject.leftCol().addPortlet(p1);
         ContainerObject.middleCol().addPortlet(p2);
         ContainerObject.rightCol().addPortlet(p3);
     }
 }
-YAHOO.zenoss.loader.require(['portlet']);
+YAHOO.zenoss.loader.require(['portletsource']);
 YAHOO.zenoss.loader.insert(initDashboardPortlets);
 </script>
 </tal:block>

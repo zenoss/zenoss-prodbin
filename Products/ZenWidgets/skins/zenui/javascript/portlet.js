@@ -1,6 +1,15 @@
 // Set up the namespace
 YAHOO.namespace('zenoss.portlet');
 
+// A registry for portlets to make themselves known.
+YAHOO.zenoss.portlet.Registry = [];
+function register_portlet(klass, name) {
+    if (klass in YAHOO.zenoss.portlet) {
+        constructor = YAHOO.zenoss.portlet[klass];
+        YAHOO.zenoss.portlet.Registry.push([constructor, name]);
+    }
+}
+YAHOO.zenoss.portlet.register_portlet = register_portlet;
 
 var isIE//@cc_on=1;
 
@@ -14,7 +23,6 @@ var PortletColumn = Class.create();
 var XHRDatasource = Class.create();
 var StaticDatasource = Class.create();
 var IFrameDatasource = Class.create();
-var GoogleMapsDatasource = Class.create();
 var TableDatasource = Class.create();
 
 var pc_layouts = {
@@ -341,10 +349,12 @@ PortletContainer.prototype = {
         return this.columns[this.numCols()>1?1:0]; 
     },
     addPortlet: function(klass, args) {
-        var portlet = new klass(args);
-        this.rightCol().addPortlet(portlet, true);
-        this.isDirty = true;
-        this.save();
+        try {
+            var portlet = new klass(args);
+            this.rightCol().addPortlet(portlet, true);
+            this.isDirty = true;
+            this.save();
+        } catch (e) { noop() }
     },
     fillColumns: function(oldcols) {
         // Passed in an array of arrays of portlets,
@@ -484,8 +494,10 @@ PortletContainer.prototype = {
                 var datasource = new dsklass(dssettings);
                 portsettings.datasource = datasource;
                 var portklass = eval(portsettings.__class__);
-                var p = new portklass(portsettings);
-                thiscolumn.push(p);
+                if (portklass) {
+                    var p = new portklass(portsettings);
+                    thiscolumn.push(p);
+                }
             });
             newcolumns.push(thiscolumn);
         });
@@ -519,42 +531,24 @@ PortletContainer.prototype = {
                   draggable:true });
             addPortletDialog.setHeader("Add Portlet");
             var hidedialog = bind(function(){
-                //this.configDialog.hide();
                 this.addPortletDialog.destroy();
                 this.addPortletDialog = null;
             }, this);
-            var addHeartbeats= method(this, function() {
-                this.addPortlet(YAHOO.zenoss.portlet.HeartbeatsPortlet);
-                hidedialog();
-            });
-            var addWatchList= method(this, function() {
-                this.addPortlet(YAHOO.zenoss.portlet.WatchListPortlet);
-                hidedialog();
-            });
-            var addDeviceIssues= method(this, function() {
-                this.addPortlet(YAHOO.zenoss.portlet.DeviceIssuesPortlet);
-                hidedialog();
-            });
-            var addGoogleMaps= method(this, function() {
-                this.addPortlet(YAHOO.zenoss.portlet.GoogleMapsPortlet);
-                hidedialog();
-            });
-            var addTopLevelOrgs= method(this, function() {
-                this.addPortlet(YAHOO.zenoss.portlet.TopLevelOrgsPortlet);
-                hidedialog();
-            });
-            var addProdState= method(this, function() {
-                this.addPortlet(YAHOO.zenoss.portlet.ProdStatePortlet);
-                hidedialog();
-            });
-            var mybuttons = [ { text:"Device Issues",handler:addDeviceIssues},  
-                              { text:"Top Level Organizers",
-                                     handler:addTopLevelOrgs},  
-                              { text:"Watch List",handler:addWatchList},  
-                              { text:"Google Maps",handler:addGoogleMaps},  
-                              { text:"Zenoss Issues",handler:addHeartbeats},
-                              { text:"Production States",handler:addProdState}
-                            ];
+            var mybuttons = [];
+            function registerButton(text, klass) {
+                var klassAddMethod = method(this, function() {
+                    this.addPortlet(klass);
+                    hidedialog();
+                });
+                log(klass, text);
+                mybuttons.push( {text:text, handler:klassAddMethod} );
+            }
+            registerButton = method(this, registerButton);
+            forEach(YAHOO.zenoss.portlet.Registry, method(this, function(x) {
+                var klass = x[0];
+                var text = x[1];
+                registerButton(text, klass);
+            }));
             addPortletDialog.cfg.queueProperty("buttons", mybuttons);
             addElementClass(this.container, 'yui-skin-sam');
             addPortletDialog.render(this.container);
@@ -657,21 +651,6 @@ TableDatasource.prototype = {
     }
 }
 
-GoogleMapsDatasource.prototype = {
-    __class__ : "YAHOO.zenoss.portlet.GoogleMapsDatasource",
-    __init__: function(settings) {
-        this.baseLoc = settings.baseLoc;
-    },
-    get: function(callback) {
-        this.callback = callback;
-        var url = '/zport/dmd' + this.baseLoc + 
-                  '/simpleLocationGeoMap';
-        html = '<iframe src="' + url + '" ' +
-               'style="border:medium none;margin:0;padding:0;'+
-               'width:100%;height:100%;"/>';
-        callback({responseText:html});
-    }
-}
 
 // Portlet drag stuffz
 YAHOO.zenoss.portlet.PortletProxy = function(id, portlet) {
@@ -817,298 +796,12 @@ YAHOO.extend(YAHOO.zenoss.DDResize, YAHOO.util.DragDrop, {
 
 });
 
-
 YAHOO.zenoss.portlet.PortletContainer = PortletContainer;
 YAHOO.zenoss.portlet.XHRDatasource = XHRDatasource;
 YAHOO.zenoss.portlet.StaticDatasource = StaticDatasource;
 YAHOO.zenoss.portlet.IFrameDatasource = IFrameDatasource;
-YAHOO.zenoss.portlet.GoogleMapsDatasource = GoogleMapsDatasource;
 YAHOO.zenoss.portlet.TableDatasource = TableDatasource;
 YAHOO.zenoss.portlet.Portlet = Portlet;
-
-var GoogleMapsPortlet = YAHOO.zenoss.Subclass.create(
-    YAHOO.zenoss.portlet.Portlet);
-GoogleMapsPortlet.prototype = {
-    __class__: "YAHOO.zenoss.portlet.GoogleMapsPortlet",
-    __init__: function(args) {
-        args = args || {};
-        id = 'id' in args? args.id : getUID('googlemaps');
-        baseLoc = 'baseLoc' in args? args.baseLoc : '/Locations';
-        bodyHeight = 'bodyHeight' in args? args.bodyHeight : 400;
-        title = 'title' in args? args.title: "Locations";
-        refreshTime = 'refreshTime' in args? args.refreshTime : 60;
-        this.mapobject = null;
-        var datasource = 'datasource' in args? 
-            args.datasource:
-            new YAHOO.zenoss.portlet.GoogleMapsDatasource(
-                {'baseLoc':baseLoc?baseLoc:'/Locations'});
-        this.superclass.__init__(
-            {id:id, title:title, refreshTime:refreshTime,
-            datasource:datasource, bodyHeight:bodyHeight}
-        );
-        this.buildSettingsPane();
-        //setStyle(this.resizehandle, {'height':'5px'});
-    },
-    buildSettingsPane: function() {
-        s = this.settingsSlot;
-        this.locsearch = YAHOO.zenoss.zenautocomplete.LocationSearch(
-            'Base Location', s);
-        addElementClass(this.locsearch.container, 
-                        'portlet-settings-control');
-    },
-    submitSettings: function(e, settings) {
-        baseLoc = this.locsearch.input.value;
-        if (baseLoc.length<1) baseLoc = this.datasource.baseLoc;
-        this.locsearch.input.value = '';
-        this.superclass.submitSettings(e, {'baseLoc':baseLoc});
-    },
-    startRefresh: function(firsttime) {
-        if (!firsttime) this.mapobject.refresh();
-        if (this.refreshTime>0)
-            this.calllater = callLater(this.refreshTime, this.startRefresh);
-    }
-
-}
-YAHOO.zenoss.portlet.GoogleMapsPortlet = GoogleMapsPortlet;
-
-var DeviceIssuesPortlet = Subclass.create(YAHOO.zenoss.portlet.Portlet);
-DeviceIssuesPortlet.prototype = {
-    __class__:"YAHOO.zenoss.portlet.DeviceIssuesPortlet",
-    __init__: function(args) {
-        args = args || {};
-        id = 'id' in args? args.id : getUID('devissues');
-        datasource = 'datasource' in args? args.datasource :
-            new YAHOO.zenoss.portlet.TableDatasource(
-            {'url':'/zport/dmd/ZenEventManager/getDeviceIssuesJSON'});
-        bodyHeight = 'bodyHeight' in args? args.bodyHeight :
-            200;
-        title = 'title' in args? args.title:"Device Issues";
-        refreshTime = 'refreshTime' in args? args.refreshTime : 60;
-        this.superclass.__init__(
-            {id:id, title:title, 
-             datasource:datasource, 
-             refreshTime: refreshTime,
-             bodyHeight:bodyHeight}
-        );
-    }
-}
-YAHOO.zenoss.portlet.DeviceIssuesPortlet = DeviceIssuesPortlet;
-
-var HeartbeatsPortlet = Subclass.create(YAHOO.zenoss.portlet.Portlet);
-HeartbeatsPortlet.prototype = {
-    __class__: "YAHOO.zenoss.portlet.HeartbeatsPortlet",
-    __init__: function(args) {
-        args = args || {};
-        id = 'id' in args? args.id : getUID('heartbeats');
-        datasource = 'datasource' in args? args.datasource :
-            new YAHOO.zenoss.portlet.TableDatasource(
-            {'url':'/zport/dmd/ZenEventManager/getHeartbeatIssuesJSON'});
-        bodyHeight = 'bodyHeight' in args? args.bodyHeight :
-            200;
-        title = 'title' in args? args.title:"Zenoss Issues";
-        refreshTime = 'refreshTime' in args? args.refreshTime : 60;
-        this.superclass.__init__(
-            {id:id, 
-             title:title,
-             datasource:datasource,
-             bodyHeight: bodyHeight,
-             refreshTime: refreshTime
-            }
-        );
-    }
-}
-YAHOO.zenoss.portlet.HeartbeatsPortlet = HeartbeatsPortlet;
-
-var WatchListPortlet = YAHOO.zenoss.Subclass.create(YAHOO.zenoss.portlet.Portlet);
-WatchListPortlet.prototype = {
-    __class__:"YAHOO.zenoss.portlet.WatchListPortlet",
-    __init__: function(args) {
-        args = args || {};
-        id = 'id' in args? args.id : getUID('watchlist');
-        title = 'title' in args? args.title: "Object Watch List",
-        datasource = 'datasource' in args? args.datasource :
-            new YAHOO.zenoss.portlet.TableDatasource({
-                url:'/zport/dmd/ZenEventManager/getEntityListEventSummary',
-                postContent: ['/Devices/Discovered']});
-        bodyHeight = 'bodyHeight' in args? args.bodyHeight:200;
-        refreshTime = 'refreshTime' in args? args.refreshTime: 60;
-        this.superclass.__init__(
-            {id:id, 
-             title:title,
-             datasource:datasource,
-             refreshTime: refreshTime,
-             bodyHeight: bodyHeight
-            }
-        );
-        this.buildSettingsPane();
-    },
-    buildSettingsPane: function() {
-        s = this.settingsSlot;
-        this.locsearch = new YAHOO.zenoss.zenautocomplete.DevObjectSearch(
-            'Zenoss Objects', s);
-        addElementClass(this.locsearch.container, 'portlet-settings-control');
-    },
-    submitSettings: function(e, settings) {
-        var postContent = settings?settings.postContent:
-                          this.datasource.postContent;
-        var newob = this.locsearch.input.value;
-        if (findValue(postContent, newob)<0) {
-            if (newob.length>0) postContent.push(newob);
-            this.superclass.submitSettings(e, {'postContent':postContent});
-        }
-        this.locsearch.input.value = '';
-    },
-    fillTable: function(contents) {
-        var columnDefs = contents.columnDefs;
-        var dataSource = contents.dataSource;
-        i=0;
-        forEach(dataSource.liveData, bind(function(x){
-            var removelink = "<a id='"+this.id+"_row_"+i+
-                         "' class='removerowlink'"+
-                         " title='Stop watching this object'>" +
-                         "X</a>";
-            x['Object'] = removelink + x['Object'];
-            i++;
-        }, this));
-        var oConfigs = {};
-        addElementClass(this.body, 'yui-skin-sam');
-        if (this.dataTable) {
-            this.dataTable.initializeTable(dataSource.liveData);
-        } else {
-            var myDataTable = new YAHOO.widget.DataTable(
-                this.body.id, columnDefs, dataSource, oConfigs);
-            this.dataTable = myDataTable;
-        }
-        forEach(this.dataTable.getRecordSet().getRecords(), bind(function(x){
-            var row = this.dataTable.getTrEl(x);
-            var link = getElementsByTagAndClassName('a','removerowlink',row)[0];
-            connect(link, "onclick", method(this, 
-                function(){this.deleteRow(x);}));
-        }, this));
-    },
-    deleteRow: function(record) {
-        var data = record.getData()['Object'];
-        var name = regex = data.match(/<\/div>(.*?)<\/a>/)[1];
-        myarray = this.datasource.postContent;
-        myarray.splice(findValue(myarray, name), 1);
-        this.submitSettings(null, {'postContent':myarray});
-    }
-}
-YAHOO.zenoss.portlet.WatchListPortlet = WatchListPortlet;
-
-var TopLevelOrgsPortlet = YAHOO.zenoss.Subclass.create(
-    YAHOO.zenoss.portlet.Portlet);
-TopLevelOrgsPortlet.prototype = {
-    __class__:"YAHOO.zenoss.portlet.TopLevelOrgsPortlet",
-    __init__: function(args) {
-        args = args || {};
-        id = 'id' in args? args.id : getUID('toplevelorgs');
-        title = 'title' in args? args.title: "Root Organizers",
-        datasource = 'datasource' in args? args.datasource :
-            new YAHOO.zenoss.portlet.TableDatasource({
-                method:'GET',
-                url:'/zport/getRootOrganizerInfo',
-                queryArguments: {'dataRoot':'Devices'} });
-        bodyHeight = 'bodyHeight' in args? args.bodyHeight:200;
-        refreshTime = 'refreshTime' in args? args.refreshTime: 60;
-        rootOrganizer = 'rootOrganizer' in args?args.rootOrganizer:'Devices';
-        this.superclass.__init__(
-            {id:id, 
-             title:title,
-             datasource:datasource,
-             refreshTime: refreshTime,
-             bodyHeight: bodyHeight
-            }
-        );
-        this.buildSettingsPane();
-    },
-    buildSettingsPane: function() {
-        s = this.settingsSlot;
-        orgs = ["Devices", "Locations", "Systems", "Groups"];
-        getopt = method(this, function(x) { 
-            opts = {'value':x};
-            dataRoot = this.datasource.queryArguments.dataRoot;
-            if (dataRoot==x) opts['selected']=true;
-            return OPTION(opts, x); });
-        options = map(getopt, orgs);
-        this.orgselect = new SELECT(null,options);
-        mycontrol = DIV({'class':'portlet-settings-control'}, [
-                DIV({'class':'control-label'}, 'Root Organizer'),
-                 this.orgselect
-               ]);
-        appendChildNodes(s, mycontrol);
-    },
-    submitSettings: function(e, settings) {
-        var newroot = this.orgselect.value;
-        this.datasource.dataRoot = newroot;
-        this.superclass.submitSettings(e, {'queryArguments':
-            {'dataRoot':newroot}
-        });
-    }
-}
-YAHOO.zenoss.portlet.TopLevelOrgsPortlet = TopLevelOrgsPortlet;
-
-var ProdStatePortlet = YAHOO.zenoss.Subclass.create(
-    YAHOO.zenoss.portlet.Portlet);
-ProdStatePortlet.prototype = {
-    __class__:"YAHOO.zenoss.portlet.ProdStatePortlet",
-    __init__: function(args) {
-        args = args || {};
-        id = 'id' in args? args.id : getUID('ProdState');
-        title = 'title' in args? args.title: "Production States";
-        datasource = 'datasource' in args? args.datasource :
-            new YAHOO.zenoss.portlet.TableDatasource({
-                method:'GET',
-                url:'/zport/dmd/ZenEventManager/getDevProdStateJSON',
-                queryArguments: {'prodStates':['Maintenance','Testing']} });
-        bodyHeight = 'bodyHeight' in args? args.bodyHeight:200;
-        refreshTime = 'refreshTime' in args? args.refreshTime: 60;
-        prodStates = 'prodStates' in args?args.prodStates:
-            ['Maintenance','Testing'];
-        this.superclass.__init__(
-            {id:id, 
-             title:title,
-             datasource:datasource,
-             refreshTime: refreshTime,
-             bodyHeight: bodyHeight
-            }
-        );
-        this.buildSettingsPane();
-    },
-    buildSettingsPane: function() {
-        s = this.settingsSlot;
-        var getopt = method(this, function(x) { 
-            opts = {'value':x};
-            prodStates = this.datasource.queryArguments.prodStates;
-            if (findValue(prodStates, x)>-1) opts['selected']=true;
-            return OPTION(opts, x); });
-        this.orgselect = SELECT({'multiple':true},null);
-        var createOptions = method(this, function(jsondoc) {
-            forEach(jsondoc, method(this, function(x) {
-                opt = getopt(x[0]);
-                appendChildNodes(this.orgselect, opt);
-            }));
-        });
-        mycontrol = DIV({'class':'portlet-settings-control'}, [
-                DIV({'class':'control-label'}, 'Production States'),
-                 this.orgselect
-               ]);
-        appendChildNodes(s, mycontrol);
-        d = loadJSONDoc('/zport/dmd/getProdStateConversions');
-        d.addCallback(method(this, createOptions));
-    },
-    submitSettings: function(e, settings) {
-        var newstates = [];
-        forEach(this.orgselect.options, function(x) {
-            if (x.selected) newstates.push(x.value);
-        });
-        this.datasource.queryArguments.prodStates = newstates;
-        this.superclass.submitSettings(e, {'queryArguments':
-            {'prodStates':newstates}
-        });
-    }
-}
-YAHOO.zenoss.portlet.ProdStatePortlet = ProdStatePortlet;
 
 // Tell the loader we're all done!
 YAHOO.register("portlet", YAHOO.zenoss.portlet, {});

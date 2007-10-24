@@ -1,0 +1,47 @@
+<tal:block metal:use-macro="here/templates/macros/page2">
+
+<tal:block metal:fill-slot="head-local">
+</tal:block>
+
+<tal:block metal:fill-slot="breadCrumbPane">
+    /<a tal:attributes="
+    href string:${here/absolute_url_path}/${template/id}">Portlet Permissions
+    </a>
+</tal:block>
+
+<tal:block metal:fill-slot="contentPane">
+<tal:block metal:use-macro="here/zenuimacros/macros/zentable-slidingdoors">
+
+<tal:block metal:fill-slot="title">
+Available Portlets
+</tal:block>
+<tal:block metal:fill-slot="body">
+
+<form action="/zport/ZenPortletManager/edit_portlet_perms" method="POST">
+<table style="width:100%;margin-top:4px;">
+<tal:block tal:repeat="portlet here/dmd/ZenPortletManager/get_portlets">
+<tr tal:define="odd repeat/portlet/odd" 
+     tal:attributes="class python:test(odd, 'odd', 'even') + ' portlet-row'">
+<td tal:content="portlet/title">x</td>
+<td>
+<select tal:attributes="name python:portlet.id+'_permission'">
+<option tal:repeat="opt python:['ZenCommon', 'View', 'Manage DMD']"
+        tal:attributes="selected python:opt==portlet.permission;
+                        value opt"
+        tal:content="python:'Users with %s permission' % opt"
+></option>
+
+</select>
+</td>
+</tr>
+</tal:block>
+<tr ><td style="border-top:1px solid #444" colspan="2" align="center">
+<input type="submit" name="method:edit_portlet_perms" value="Save"/></td></tr>
+</table>
+</form>
+</tal:block>
+
+</tal:block>
+</tal:block>
+</tal:block>
+

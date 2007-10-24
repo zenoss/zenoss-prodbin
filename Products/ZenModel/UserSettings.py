@@ -100,6 +100,11 @@ class UserSettingsManager(ZenModelRM):
                 , 'action'        : '../editMenus'
                 , 'permissions'   : ( ZEN_MANAGE_DMD, )
                 },
+                { 'id'            : 'portlets'
+                , 'name'          : 'Portlets'
+                , 'action'        : '../editPortletPerms'
+                , 'permissions'   : ( ZEN_MANAGE_DMD, )
+                },
                 { 'id'            : 'daemons'
                 , 'name'          : 'Daemons'
                 , 'action'        : '../../About/zenossInfo'

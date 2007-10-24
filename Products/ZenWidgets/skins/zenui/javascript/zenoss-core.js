@@ -22,6 +22,12 @@ loader.addModule({
                "container", "button","zenautocomplete"]
 });
 loader.addModule({
+    name: "portletsource",
+    type: "js",
+    fullpath: "/zport/ZenPortletManager/get_source",
+    requires: ["portlet"]
+});
+loader.addModule({
     name: "zenautocomplete",
     type: "js",
     fullpath: "/zport/dmd/javascript/zenautocomplete.js",
