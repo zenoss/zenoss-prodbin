@@ -428,7 +428,7 @@ def sendEmail(emsg, host, port=25, usetls=0, usr='', pwd=''):
     '''
     import smtplib
     fromaddr = emsg['From']
-    toaddr = emsg['To']
+    toaddr = emsg['To'].split(', ')
     try:
         server = smtplib.SMTP(host, port)
         if usetls:
@@ -436,7 +436,7 @@ def sendEmail(emsg, host, port=25, usetls=0, usr='', pwd=''):
             server.starttls()
             server.ehlo()
         if len(usr): server.login(usr, pwd)
-        server.sendmail(fromaddr, (toaddr,), emsg.as_string())
+        server.sendmail(fromaddr, toaddr, emsg.as_string())
         # Need to catch the quit because some servers using TLS throw an
         # EOF error on quit, so the email gets sent over and over
         try: server.quit()
