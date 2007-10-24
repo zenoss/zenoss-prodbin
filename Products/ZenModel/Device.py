@@ -553,6 +553,21 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
         return [c.getObject() for c in brains]
 
 
+    def getDeviceComponentsNoIndexGen(self):
+        """
+        Return a list of all device components by walking relations.  This is
+        much slower then the normal getDeviceComponents method which uses the
+        component index.  It is used when rebuilding the device indexes.
+        """
+        from DeviceComponent import DeviceComponent
+        for baseObject in (self, self.os, self.hw):
+            for rel in baseObject.getRelationships():
+                if rel.meta_type != "ToManyContRelationship": continue
+                for obj in rel():
+                    if not isinstance(obj, DeviceComponent): break
+                    yield obj
+
+
     def getSnmpConnInfo(self):
         """
         Returns a tuple of SNMP Connection Info

@@ -697,10 +697,9 @@ class DeviceClass(DeviceOrganizer, ZenPackable):
         transaction.savepoint()
         for dev in self.getSubDevicesGen():
             dev.index_object()
-            for comp in dev.getDeviceComponents():
+            for comp in dev.getDeviceComponentsNoIndexGen():
                 comp.index_object()
             transaction.savepoint()
-
 
 
     def buildDeviceTreeProperties(self):
