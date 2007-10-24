@@ -210,7 +210,7 @@ class EventClassInst(EventClassPropertyMixin, ZenModelRM, EventView,
         Apply the event dict regex to extract additional values from the event.
         """
         if self.regex:
-            m = re.search(self.regex, evt.summary)
+            m = re.search(self.regex, evt.message)
             if m: evt.updateFromDict(m.groupdict())
         return evt
 
@@ -235,7 +235,7 @@ class EventClassInst(EventClassPropertyMixin, ZenModelRM, EventView,
 
 
     def match(self, evt, device):
-        """Match an event summary against our regex.
+        """Match an event message against our regex.
         """
         value = False
         log.debug("match on:%s", self.getPrimaryDmdId())
@@ -248,8 +248,8 @@ class EventClassInst(EventClassPropertyMixin, ZenModelRM, EventView,
                             self.getDmdKey(), e)
         else:
             try:
-                log.debug("regex='%s' summary='%s'", self.regex, evt.summary)
-                value = re.search(self.regex, evt.summary, re.I)
+                log.debug("regex='%s' message='%s'", self.regex, evt.message)
+                value = re.search(self.regex, evt.message, re.I)
             except sre_constants.error: pass
         return value
 
