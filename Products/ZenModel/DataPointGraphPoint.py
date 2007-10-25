@@ -17,6 +17,7 @@ Handles GraphPoints that refer to RRDDataPoints
 """
 
 import os
+import os.path
 from ComplexGraphPoint import ComplexGraphPoint
 from Globals import InitializeClass
 
@@ -70,10 +71,22 @@ class DataPointGraphPoint(ComplexGraphPoint):
         ''' Build the graphing commands for this graphpoint
         '''
         graph = []
-        
+
+        rrdFile = os.path.join(rrdDir, self.dpName) + ".rrd"
+
+        # If we are really drawing the graph (ie we do not have a fake context)
+        # then make sure the rrd file actually exists.
+        if not getattr(context, 'isFake', False):
+            if not os.path.isfile(rrdFile):
+                desc = context.device().id
+                if context.meta_type != 'Device':
+                    desc += ' %s' % context.name()
+                desc += ' %s' % self.dpName
+                cmds.append('COMMENT:MISSING\: data file for %s' % desc)
+                return cmds
+
         # Create the base DEF
         rawName = self.getDsName('%s-raw' % self.id, multiid, prefix)        
-        rrdFile = os.path.join(rrdDir, self.dpName) + ".rrd"
         graph.append("DEF:%s=%s:%s:%s" % (rawName, rrdFile, 'ds0', self.cFunc))
 
         # If have rpn then create a new CDEF
