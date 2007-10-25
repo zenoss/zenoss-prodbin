@@ -320,7 +320,13 @@ class RenderServer(RRDToolItem):
         graph = self._loadfile(filename)
         if graph: 
             cache.addToCache(id, graph)
-            os.remove(filename)
+            try: 
+                os.remove(filename)
+            except OSError, e:
+                if e.errno == 2: 
+                    log.debug("%s: %s" % (e.strerror, e.filename))
+                else: 
+                    raise e
         cache.cleanCache()
 
 
