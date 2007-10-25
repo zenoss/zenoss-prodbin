@@ -115,7 +115,11 @@ class ProcessRunner(ProcessProtocol):
 
     def timeout(self, value):
         "Kill a process if it takes too long"
-        self.transport.signalProcess('KILL')
+        try:
+            self.transport.signalProcess('KILL')
+        except ProcessExitedAlready:
+            log.debug("Command already exited on device %s: %s" % (cmd.device, 
+                cmd.command))
         return value
 
 
