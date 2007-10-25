@@ -525,7 +525,7 @@ class DeviceOrganizer(Organizer, DeviceManagerBase, Commandable, ZenMenuable,
 
 
     def getJSONDeviceInfo(self, offset=0, count=50, filter='',
-                          orderby='id', orderdir='asc'):
+                          orderby='id', orderdir='asc', REQUEST=None):
         """yo"""
         totalCount, devicelist = self.getAdvancedQueryDeviceList(
                 offset, count, filter, orderby, orderdir)

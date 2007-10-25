@@ -1,4 +1,4 @@
-<tal:block metal:use-macro="here/templates/macros/page2">
+<tal:block metal:use-macro="here/templates/macros/page1">
 <tal:block metal:fill-slot="breadcrumbs">Device List</tal:block>
 <tal:block metal:fill-slot="contentPane">
 
@@ -13,19 +13,14 @@
         tal:attributes="value string:1" />
 <input type="hidden" name="tableName" tal:attributes="value tableName"/>
 <tal:block tal:define="tabletitle string:Device List;
-                        menu_id string:DeviceGrid_list">
+                       menu_id string:DeviceGrid_list">
 <tal:block metal:use-macro="here/zenuimacros/macros/zentable">
 
 <tal:block metal:fill-slot="filterslot">
-<div class="filterbox"
-     tal:define=" tableName tableName | nothing;
-                 ts python:test(
-                  tableName, here.ZenTableManager.getTableState(tableName), 
-                  request);
-                 message request/SESSION/message | nothing;">
+<div class="filterbox">
 <input type="text" name="filter" id="filter"
     onfocus="select(this)"
-    tal:attributes="value ts/filter | string:;"/>
+    tal:attributes="value string:;"/>
 </div>
 </tal:block>
 

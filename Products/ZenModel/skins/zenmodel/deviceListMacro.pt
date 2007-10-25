@@ -256,14 +256,19 @@
     src="/zport/javascript/devicezengrid.js"></script>
 
     <div id="gridcontainer" style="width:100%;"> </div>
+    <tal:block tal:define="ismanager python:test(
+                    here.zport.has_permission('View', here.dmd),
+                    'true', 'false')">
     <script tal:content="string:
     var devZenGridBuffer, devZenGrid;
     addLoadEvent( function() {
+        isManager = ${ismanager};
         devZenGridBuffer = new DeviceZenGridBuffer();
         devZenGrid = new DeviceZenGrid('gridcontainer',
             'getJSONDeviceInfo', 'mygrid', devZenGridBuffer,
             '${here/absolute_url_path}');
         connect('filter', 'onkeydown', devZenGrid.doEventLivesearch);
     });"></script>
+    </tal:block>
     </td></tr>
 </tal:block>
