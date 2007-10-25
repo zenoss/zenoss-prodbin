@@ -2,6 +2,7 @@
 <head>
 <title>Zenoss Login</title>
 <link type="text/css" rel="stylesheet" href="login_form.css" />
+<!--[if IE 7]><style>#errorbox{left:-50px;margin-top:-5px;}</style><![endif]-->
 </head>
 
 <body onload="document.loginform.__ac_name.focus();">
