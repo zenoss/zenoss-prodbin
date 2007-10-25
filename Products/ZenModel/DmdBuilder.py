@@ -66,6 +66,7 @@ from Products.CMFCore.DirectoryView import manage_addDirectoryView
 from Products.ZenModel.UserSettings import manage_addUserSettingsManager
 from Products.ZenModel.LinkManager import manage_addLinkManager
 from Products.ZenWidgets.PortletManager import manage_addPortletManager
+from Products.ZenWidgets.ZenossPortlets import ZenossPortlets
 
 classifications = {
     'Devices':          DeviceClass,
@@ -170,16 +171,21 @@ class DmdBuilder:
             rc = MultiGraphReportClass('Multi-Graph Reports')
             self.dmd.Reports._setObject(rc.id, rc)
 
+    def buildPortlets(self):
+        manage_addPortletManager(self.portal)
+        zpmgr = self.portal.ZenPortletManager
+        ZenossPortlets.register_default_portlets(zpmgr)
+
 
     def build(self):
         self.buildRoots()
         self.buildMonitors()
         self.buildUserCommands()
         self.buildReportClasses()
+        self.buildPortlets()
         manage_addEventClass(self.dmd)
         manage_addZDeviceLoader(self.dmd)
         manage_addZenTableManager(self.portal)
-        manage_addPortletManager(self.portal)
         manage_addZenossInfo(self.portal)
         manage_addDirectoryView(self.portal,'ZenUtils/js', 'js')
         manage_addRenderServer(self.portal, "RenderServer")
