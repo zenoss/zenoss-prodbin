@@ -98,7 +98,10 @@
             </script>
         </div>
     </div>
-    <div style="clear:both;"></div>
+    <div
+    style="clear:both;font-size:.000001em;line-height:0pt;margin:0;padding:0">
+    &nbsp;
+    </div>
 
 
 </tal:block>
