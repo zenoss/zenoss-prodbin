@@ -90,7 +90,7 @@ class ZDeviceLoader(ZenModelItem,SimpleItem):
         """
         Load a device into the database connecting its major relations
         and collecting its configuration. 
-        """
+        """ 
         xmlrpc = False
         if REQUEST and REQUEST['CONTENT_TYPE'].find('xml') > -1:
             xmlrpc = True
@@ -116,20 +116,23 @@ class ZDeviceLoader(ZenModelItem,SimpleItem):
                 statusMonitors, performanceMonitor, discoverProto)
             transaction.commit()
         except (SystemExit, KeyboardInterrupt): raise
-        except DeviceExistsError:
-            if xmlrpc: return 2
-        except NoSnmp:
-            if xmlrpc: return 3
         except ZentinelException, e:
+            log.info(e)
             if xmlrpc: return 1
-            log.critical(e)
-        except:
+        except DeviceExistsError, e:
+            log.info(e)
+            if xmlrpc: return 2
+        except NoSnmp, e:
+            log.info(e)
+            if xmlrpc: return 3
+        except e:
+            log.exception(e)
             log.exception('load of device %s failed' % deviceName)
             transaction.abort()
         else:
             if discoverProto != "none":
                 device.collectDevice(setlog=False, REQUEST=REQUEST)
-            log.info("device %s loaded!" % deviceName)
+            log.info("Device %s loaded!" % deviceName)
         if REQUEST and not xmlrpc:
             self.loaderFooter(device, response)
             clearWebLoggingStream(handler)
