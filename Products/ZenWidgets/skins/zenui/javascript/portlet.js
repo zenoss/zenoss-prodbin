@@ -748,12 +748,13 @@ YAHOO.extend(YAHOO.zenoss.portlet.PortletProxy, YAHOO.util.DDProxy, {
 
 YAHOO.zenoss.DDResize = function(portlet) {
     sGroup = "PortletResize";
-    config = null;
+    config = {'tickInterval':5};
     panelElId = portlet.id;
     this.portlet = portlet;
     YAHOO.zenoss.DDResize.superclass.constructor.call(
         this, panelElId, sGroup, config);
-    this.setHandleElId(portlet.resizehandle.id);
+    this.hasOuterHandles = true;
+    this.setOuterHandleElId(portlet.resizehandle.id);
     this.addInvalidHandleId(portlet.handleid);
     this.addInvalidHandleId(portlet.body.id);
     this.addInvalidHandleId(portlet.handleid);
@@ -763,6 +764,8 @@ YAHOO.zenoss.DDResize = function(portlet) {
 };
 YAHOO.extend(YAHOO.zenoss.DDResize, YAHOO.util.DragDrop, {
     onMouseDown: function(e) {
+        if (this.portlet.__class__=='YAHOO.zenoss.portlet.GoogleMapsPortlet')
+            this.portlet.disable();
         var panel = this.portlet.body; 
         this.startWidth = panel.offsetWidth;
         this.startHeight = panel.offsetHeight;
@@ -770,19 +773,21 @@ YAHOO.extend(YAHOO.zenoss.DDResize, YAHOO.util.DragDrop, {
                          YAHOO.util.Event.getPageY(e)];
     },
     onDrag: function(e) {
-        this.portlet.disable();
-        var newPos = [YAHOO.util.Event.getPageX(e),
-                      YAHOO.util.Event.getPageY(e)];
+        if (!this.portlet.cover) this.portlet.disable();
+        if (this.portlet.cover) {
+            var newPos = [YAHOO.util.Event.getPageX(e),
+                          YAHOO.util.Event.getPageY(e)];
 
-        var offsetY = newPos[1] - this.startPos[1];
-        var newHeight = Math.max(this.startHeight + offsetY, 10);
-        newHeight = newHeight - (Math.abs(newHeight) % 5);
-        if (newHeight!=this.portlet.bodyHeight) {
-            var panel = this.portlet.body;
-            panel.style.height = newHeight + "px";
-            this.portlet.bodyHeight = newHeight;
-            this.portlet.PortletContainer.setContainerHeight();
-            this.portlet.PortletContainer.isDirty = true;
+            var offsetY = newPos[1] - this.startPos[1];
+            var newHeight = Math.max(this.startHeight + offsetY, 10);
+            newHeight = newHeight - (Math.abs(newHeight) % 5);
+            if (newHeight!=this.portlet.bodyHeight) {
+                var panel = this.portlet.body;
+                panel.style.height = newHeight + "px";
+                this.portlet.bodyHeight = newHeight;
+                this.portlet.PortletContainer.setContainerHeight();
+                this.portlet.PortletContainer.isDirty = true;
+            }
         }
     },
     onDrop: function(e) {
