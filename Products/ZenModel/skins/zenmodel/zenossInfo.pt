@@ -2,23 +2,14 @@
 <tal:block metal:fill-slot="contentPane">
 
 
-        <tal:block tal:define="url string:${here/absolute_url_path}; 
-            tabletitle string:Zenoss Daemons">
-        <tal:block metal:use-macro="here/zenuimacros/macros/zentable">
+    <tal:block metal:use-macro="here/zenuimacros/macros/zentable-slidingdoors">
+        <tal:block metal:fill-slot='title'>
+        Zenoss Daemons
+        </tal:block>
 
-        <!--====Optional titlebar slots=============
-
-            <tal:block metal:fill-slot="filterslot">
-            </tal:block>
-
-            <tal:block metal:fill-slot="menuslot">
-            </tal:block>
-
-            ==========================================-->
-
-        <tal:block metal:fill-slot="zentablecontents">
-        <!-- BEGIN TABLE CONTENTS -->
+        <tal:block metal:fill-slot="body">
             
+    <table style="margin-top:4px">
     <colgroup>
         <col width="25%">
         <col width="15%">
@@ -99,9 +90,8 @@
         </tr>
     </tbody>
 
-        <!-- END TABLE CONTENTS -->
+        </table>
 
-        </tal:block>
         </tal:block>
         </tal:block>
         

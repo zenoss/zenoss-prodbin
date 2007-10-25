@@ -311,12 +311,14 @@ style="position:relative;">
         </td>
         <td class="tabtableleftcap"
             tal:condition="not:hasMenus" >
-            &nbsp;
+        <div style="margin:0;padding:0;width:21px;">&nbsp;</div>
         </td>
         </tal:block>
         </tal:block>
         <tal:block tal:condition="python:not hasattr(here, 'getMenus')">
-        <td class="tabtableleftcap"> &nbsp; </td>
+        <td class="tabtableleftcap">
+        <div style="margin:0;padding:0;width:21px;">&nbsp;</div>
+        </td>
         </tal:block>
            <td tal:repeat="tab ztabs"
                tal:attributes="class python:tab.get('selected', None) 

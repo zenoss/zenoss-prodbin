@@ -33,8 +33,13 @@ th.tabletitle {
     margin-top: -2px;
 }
 div.tabletitlecontainer {
-    height:25px;
+    height: 24px;
     background: transparent url(img/titlebar_bg.gif) repeat-x top left;
+}
+
+div.tabletitlecontainer div.leftcorner,
+div.tabletitlecontainer div.rightcorner{
+    background-position: 0px 1px;
 }
 
 #selectedtablinehider {
@@ -144,6 +149,11 @@ div#gridcontainer {
 #contentPane {
     position: relative;
     z-index: 1;
+}
+
+div.devmovemenu {
+    margin-bottom: -1px;
+    border-bottom: medium none;
 }
 
 div.devmovemenuitems ul.zenMenu li a:hover {
