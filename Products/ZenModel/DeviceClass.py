@@ -465,29 +465,6 @@ class DeviceClass(DeviceOrganizer, ZenPackable):
         return self.getSubComponents()
 
 
-    security.declareProtected('View', 'getImportFilesData')
-    def getImportFilesData(self):
-        """Get a list of XML filenames and basenames from the ZENHOME/import
-        directory.
-        """
-        path = zenPath('import')
-        filedata = []
-        for filename in glob(path+os.path.sep+'*.xml'):
-            basename = os.path.basename(filename)
-            filedata.append({
-                'filename': filename,
-                'display': basename})
-        filedata.sort()
-        return filedata
-
-
-    security.declareProtected('View', 'getRRDImportFilesData')
-    def getRRDImportFilesData(self):
-        """Get a list of command-only import files' data.
-        """
-        return [ x for x in self.getImportFilesData() if 'RRD' in x['display'] ]
-
-
     security.declareProtected('View', 'getRRDTemplates')
     def getRRDTemplates(self, context=None):
         """Return the actual RRDTemplate instances.
@@ -634,27 +611,6 @@ class DeviceClass(DeviceOrganizer, ZenPackable):
         if REQUEST: 
             REQUEST['message'] = "Templates deleted"
             return self.callZenScreen(REQUEST)
-
-    def manage_exportRRDTemplates(self, ids=(), REQUEST=None):
-        """Export RRDTemplates from this DeviceClass 
-        (skips ones in other Classes)
-        """
-        if not ids:
-            return self.callZenScreen(REQUEST)
-        for id in ids:
-            templates = getattr(aq_base(self), 'rrdTemplates')
-            obj = getattr(aq_base(self.rrdTemplates), id)
-            if templates and obj:
-                self.zmanage_exportObject(obj, REQUEST)
-        if REQUEST:
-            REQUEST['message'] = "Templates exported"
-            return self.callZenScreen(REQUEST)
-
-    security.declareProtected('Add DMD Objects', 'manage_importRRDTemplates')
-    def manage_importRRDTemplates(self, REQUEST=None):
-        """Import one or more RRD Templates.
-        """
-        return self.zmanage_importObjects(self.rrdTemplates, REQUEST)
 
 
     def createCatalog(self):
