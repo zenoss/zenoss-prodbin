@@ -56,14 +56,15 @@ class Organizer(ZenModelRM, EventView):
         ZenModelRM.__init__(self, id)
         self.description = description
 
-    def urlLink(self):
+    def urlLink(self, text=None, url=None, attrs={}):
         """
         Override urlLink to return a link with the full path of the organizer.
 
         >>> dmd.Devices.Server.urlLink()
         '<a href="/zport/dmd/Devices/Server">/Server</a>'
         """
-        return ZenModelRM.urlLink(self, self.getOrganizerName())
+        if text is None: text = self.getOrganizerName()
+        return ZenModelRM.urlLink(self, text=text, url=url, attrs=attrs)
 
         
     def childMoveTargets(self):
