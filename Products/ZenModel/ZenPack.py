@@ -287,6 +287,20 @@ registerDirectory("skins", globals())
     def getThresholdClasses(self):
         return self._getClassesByPath('thresholds')
 
+    def getFilenames(self):
+        '''
+        Get the filenames of a ZenPack exclude .svn, .pyc and .xml files 
+        '''
+        filenames = []
+        for root, dirs, files in os.walk(self.path()):
+            if root.find('.svn') == -1:
+                    for f in files:
+                        if not f.endswith('.pyc') \
+                        and not f.endswith('.xml'):
+                            filenames.append('%s/%s' % (root, f))
+        return filenames
+        
+        
 
 def zenPackPath(*parts):
     return zenPath('Products', *parts)
