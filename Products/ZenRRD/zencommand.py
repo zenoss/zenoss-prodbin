@@ -118,8 +118,7 @@ class ProcessRunner(ProcessProtocol):
         try:
             self.transport.signalProcess('KILL')
         except ProcessExitedAlready:
-            log.debug("Command already exited on device %s: %s" % (cmd.device, 
-                cmd.command))
+            log.debug("Command already exited: %s" % self.command)
         return value
 
 
