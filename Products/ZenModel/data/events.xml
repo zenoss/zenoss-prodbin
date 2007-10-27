@@ -102,7 +102,7 @@ MSExchangeIS Mailbox Store_1009
 0
 </property>
 <property type="string" id="example" mode="w" >
-MMCNT\tjeffers logged on as /O=Mercy Medical Center/OU=MMCNT/cn=Recipients/cn=tjeffers on database "First Storage Group\Mailbox Store (MHSMAIL1)".
+DOMAIN\username logged on as /O=My Organization/OU=DOMAIN/cn=Recipients/cn=username on database "First Storage Group\Mailbox Store (MAIL1)".
 
 
 For more information, click http://www.microsoft.com/contentredirect.asp.
@@ -122,7 +122,7 @@ MSExchangeIS Mailbox Store_1011
 0
 </property>
 <property type="string" id="example" mode="w" >
-NT AUTHORITY\SYSTEM logged on as /o=Mercy Medical Center/ou=MMCNT/cn=Recipients/cn=SRooney on database "First Storage Group\Mailbox Store (MHSMAIL1)", using administrator privileges.
+NT AUTHORITY\SYSTEM logged on as /o=My Organization/ou=DOMAIN/cn=Recipients/cn=username on database "First Storage Group\Mailbox Store (MAIL1)", using administrator privileges.
 
 
 For more information, click http://www.microsoft.com/contentredirect.asp.
@@ -142,10 +142,10 @@ defaultmapping
 1
 </property>
 <property type="string" id="regex" mode="w" >
-\d+ \S+ \S+ SEV=\d+ (?P&lt;component&gt;\S+) RPT=\d+ \S+  (?P&lt;summary&gt;Group \[(?P&lt;secGroup&gt;\S+)\] User \[(?P&lt;remoteUser&gt;\S+)\] PHASE 2 COMPLETED)
+\d+ \S+ \S+ SEV=\d+ (?P&lt;component&gt;\S+) RPT=\d+ \S+  (?P&lt;summary&gt;Group \[(?P&lt;secGroup&gt;\S+)\] User \[(?P&lt;username&gt;\S+)\] PHASE 2 COMPLETED)
 </property>
 <property type="string" id="example" mode="w" >
-1101379 03/17/2006 10:52:59.040 SEV=4 IKE/120 RPT=54919 70.194.239.98  Group [IPsecUsers] User [mmcnt\wchappell] PHASE 2 COMPLETED (msgid=ae41db32)
+1101379 03/17/2006 10:52:59.040 SEV=4 IKE/120 RPT=54919 10.1.2.3  Group [IPsecUsers] User [domain\username] PHASE 2 COMPLETED (msgid=ae41db32)
 </property>
 <property type="text" id="explanation" mode="w" >
 \d+ \S+ \S+ SEV=\d+ (?P&lt;component&gt;\S+) RPT=\d+ \S+ (?P&lt;summary&gt;.*)
@@ -182,7 +182,7 @@ sshd
 Failed password for (?P&lt;eventKey&gt;\S+) from (?P&lt;remoteIp&gt;\S+) port (?P&lt;remotePort&gt;\d+) (?P&lt;protocol&gt;\S+)
 </property>
 <property type="string" id="example" mode="w" >
-Failed password for edahl from 10.2.1.11 port 53529 ssh2
+Failed password for username from 10.1.2.3 port 53529 ssh2
 </property>
 </object>
 </tomanycont>
@@ -200,7 +200,7 @@ MSFTPSVC_100
 0
 </property>
 <property type="string" id="example" mode="w" >
-The server was unable to logon the Windows NT account 'mmcnt\anangpal' due to the following error: Logon failure: unknown user name or bad password.  The data is the error code.
+The server was unable to logon the Windows NT account 'domain\username' due to the following error: Logon failure: unknown user name or bad password.  The data is the error code.
 
 For additional information specific to this message please visit the Microsoft Online Support site located at: http://www.microsoft.com/contentredirect.asp.
 </property>
@@ -290,7 +290,7 @@ dropbear
 Child connection from (?P&lt;eventKey&gt;\S+):\d+
 </property>
 <property type="string" id="example" mode="w" >
-Child connection from 10.2.1.11:55107
+Child connection from 10.1.2.3:55107
 </property>
 <property visible="True" type="string" id="zEventAction" >
 history
@@ -321,7 +321,7 @@ ultravnc_1
 (?P&lt;summary&gt;Connection received from (?P&lt;eventKey&gt;\S+))
 </property>
 <property type="string" id="example" mode="w" >
-29/11/2005 16:12 Connection received from 10.2.1.11
+29/11/2005 16:12 Connection received from 10.1.2.3
 </property>
 </object>
 </tomanycont>
@@ -384,7 +384,7 @@ ultravnc_3
 (?P&lt;summary&gt;Client (?P&lt;remoteIp&gt;\S+) disconnected)
 </property>
 <property type="string" id="example" mode="w" >
-29/11/2005 16:16 Client 10.2.1.11 disconnected
+29/11/2005 16:16 Client 10.1.2.3 disconnected
 </property>
 </object>
 </tomanycont>
@@ -414,7 +414,7 @@ Symantec AntiVirus_46
 0
 </property>
 <property type="string" id="example" mode="w" >
-Security Risk Found!Threat: Trojan.Dropper in File: G:\AHSInstall\TouchWorks 10.1.1 CD.part1.exe by: Scheduled scan.  Action: Clean failed : Delete failed.  Action Description: The file was left unchanged.
+Security Risk Found!Threat: Trojan.Dropper in File: D:\AHSInstall\TouchWorks 10.1.1 CD.part1.exe by: Scheduled scan.  Action: Clean failed : Delete failed.  Action Description: The file was left unchanged.
 </property>
 <property visible="True" type="int" id="zEventSeverity" >
 3
@@ -671,10 +671,10 @@ DirXML Remote Loader_1
 <property type="string" id="example" mode="w" >
 Driver : \ID_VAULT\org\services\DirXML\Driver-Set\NewADDriver
 Thread : Publisher Channel
-Object : CN=Kane MD\, Dean,CN=Users,DC=mmcnt,DC=mhs,DC=med
+Object : CN=Username,CN=Users,DC=domain,DC=com
 Message : Code(-9039) Element &amp;lt;parent&gt; does not have a valid association.&lt;application&gt;DirXML&lt;/application&gt;
 &lt;module&gt;NewADDriver&lt;/module&gt;
-&lt;object-dn&gt;CN=Kane MD\, Dean,CN=Users,DC=mmcnt,DC=mhs,DC=med (org\Users\Internal\Inactive Users\dkane)&lt;/object-dn&gt;
+&lt;object-dn&gt;CN=Username,CN=Users,DC=domain,DC=com (org\Users\username)&lt;/object-dn&gt;
 &lt;component&gt;Publisher&lt;/component&gt;
 </property>
 </object>
@@ -697,7 +697,7 @@ Kerberos_3
 0
 </property>
 <property type="string" id="example" mode="w" >
-A Kerberos Error Message was received: on logon session Client Time: Server Time: 14:57:1.0000 1/24/2006 Z Error Code: 0xd KDC_ERR_BADOPTION Extended Error: 0xc00000bb KLIN(0) Client Realm: Client Name: Server Realm: MMCNT.MHS.MED Server Name: host/mmcdc4.mmcnt.mhs.med Target Name: host/mmcdc4.mmcnt.mhs.med@MMCNT.MHS.MED Error Text: File: 9 Line: ae0 Error Data is in record data.
+A Kerberos Error Message was received: on logon session Client Time: Server Time: 14:57:1.0000 1/24/2006 Z Error Code: 0xd KDC_ERR_BADOPTION Extended Error: 0xc00000bb KLIN(0) Client Realm: Client Name: Server Realm: DOMAIN Server Name: host/dc4.mydomain.com Target Name: host/dc4.mydomain.com@DOMAIN Error Text: File: 9 Line: ae0 Error Data is in record data.
 </property>
 </object>
 <object id='Kerberos_4' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
@@ -708,7 +708,7 @@ Kerberos_4
 0
 </property>
 <property type="string" id="example" mode="w" >
-The kerberos client received a KRB_AP_ERR_MODIFIED error from the server PR-1S-8CA7$.  The target name used was cifs/NURSI-1P-396A.mmcnt.mhs.med. This indicates that the password used to encrypt the kerberos service ticket is different than that on the target server. Commonly, this is due to identically named  machine accounts in the target realm (MMCNT.MHS.MED), and the client realm.   Please contact your system administrator.
+The kerberos client received a KRB_AP_ERR_MODIFIED error from the server PR-1S-8CA7$.  The target name used was cifs/hostname.mydomain.com. This indicates that the password used to encrypt the kerberos service ticket is different than that on the target server. Commonly, this is due to identically named  machine accounts in the target realm (DOMAIN), and the client realm.   Please contact your system administrator.
 </property>
 </object>
 <object id='MSExchangeDSAccess_2110' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
@@ -730,7 +730,7 @@ MSExchangeDSAccess_2115
 0
 </property>
 <property type="string" id="example" mode="w" >
-Process INETINFO.EXE (PID=1328). DSAccess needs to close a connection to the Domain Controller mmcdc3.mmcnt.mhs.med due to error 0x80040920.   For more information, click http://www.microsoft.com/contentredirect.asp.
+Process INETINFO.EXE (PID=1328). DSAccess needs to close a connection to the Domain Controller dc1.domain.com due to error 0x80040920.   For more information, click http://www.microsoft.com/contentredirect.asp.
 </property>
 </object>
 <object id='MSExchangeIS Mailbox Store_1173' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
@@ -763,7 +763,7 @@ MetaframeEvents_1106
 0
 </property>
 <property type="string" id="example" mode="w" >
-Client printer auto-creation failed.  The driver could not be installed. Possible reasons for the failure: The driver is not in the list of drivers on the server. The driver cannot be located. The driver has not been mapped. Client name: (MMCNT-banthon2) Printer: (Client\MMCNT-banthon2#\Plant Ops - Kyocera Mita KM-1650 KX - 10.116.2.203)  Printer driver: (Kyocera Mita KM-1650 KX)
+Client printer auto-creation failed.  The driver could not be installed. Possible reasons for the failure: The driver is not in the list of drivers on the server. The driver cannot be located. The driver has not been mapped. Client name: (DOMAIN-client) Printer: (Client\DOMAIN-client#\Kyocera Mita KM-1650 KX - 10.1.2.3)  Printer driver: (Kyocera Mita KM-1650 KX)
 </property>
 </object>
 <object id='NETLOGON_5722' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
@@ -815,7 +815,7 @@ Print_2
 0
 </property>
 <property type="string" id="example" mode="w" >
-NT AUTHORITY\SYSTEM Printer Client\MMCNT-hmendenh#\Color Printer (Work Area) - 10.116.2.201 was created.
+NT AUTHORITY\SYSTEM Printer Client\DOMAIN-client#\Color Printer - 10.1.2.3 was created.
 </property>
 </object>
 <object id='Print_20' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
@@ -837,7 +837,7 @@ Print_3
 0
 </property>
 <property type="string" id="example" mode="w" >
-NT AUTHORITY\SYSTEM  Printer Client\MMCNT-hmendenh#\HP Laserjet 2100 PCL 6 - 10.116.2.18 was deleted.
+NT AUTHORITY\SYSTEM  Printer Client\DOMAIN-client#\HP Laserjet 2100 PCL 6 - 10.1.2.3 was deleted.
 </property>
 </object>
 <object id='Print_4' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
@@ -848,7 +848,7 @@ Print_4
 0
 </property>
 <property type="string" id="example" mode="w" >
-NT AUTHORITY\SYSTEM  Printer Client\MMCNT-hmendenh#\HP Laserjet 2100 PCL 6 - 10.116.2.18 is pending deletion.
+NT AUTHORITY\SYSTEM  Printer Client\DOMAIN-client#\HP Laserjet 2100 PCL 6 - 10.1.2.3 is pending deletion.
 </property>
 </object>
 <object id='Print_8' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
@@ -859,7 +859,7 @@ Print_8
 0
 </property>
 <property type="string" id="example" mode="w" >
-NT AUTHORITY\SYSTEM  Printer Client\MMCNT-hmendenh#\HP Laserjet 2100 PCL 6 - 10.116.2.18 was purged.
+NT AUTHORITY\SYSTEM  Printer Client\DOMAIN-client#\HP Laserjet 2100 PCL 6 - 10.1.2.3 was purged.
 </property>
 </object>
 <object id='Remote Storage_3037' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
@@ -958,7 +958,7 @@ excdo_8230
 0
 </property>
 <property type="string" id="example" mode="w" >
-An inconsistency was detected in jweiland@mdmercy.com: /Calendar/OR 9 Progress Meeting.EML.  The calendar is being repaired.  If other errors occur with this calendar, please view the calendar using Microsoft Outlook Web Access.  If a problem persists, please recreate the calendar or the containing mailbox.   For more information, click http://www.microsoft.com/contentredirect.asp.
+An inconsistency was detected in username@domain.com: /Calendar/OR 9 Progress Meeting.EML.  The calendar is being repaired.  If other errors occur with this calendar, please view the calendar using Microsoft Outlook Web Access.  If a problem persists, please recreate the calendar or the containing mailbox.   For more information, click http://www.microsoft.com/contentredirect.asp.
 </property>
 </object>
 <object id='excdo_8263' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
@@ -991,7 +991,7 @@ msexchangeactivesyncnotify_10306
 0
 </property>
 <property type="string" id="example" mode="w" >
-OMA Categorizer dropped the message with message ID '&lt;c2b7606a703bbd44940f3cd8462068f5-b3c0e6d@OMA&gt;', Recipient 'cjeng@mdmercy.com'.  The global notifications to user specified SMTP addresses is disabled.
+OMA Categorizer dropped the message with message ID '&lt;c2b7606a703bbd44940f3cd8462068f5-b3c0e6d@OMA&gt;', Recipient 'username@domain.com'.  The global notifications to user specified SMTP addresses is disabled.
 </property>
 </object>
 <object id='msexchangeis_9554' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
@@ -1013,7 +1013,7 @@ msexchangeis_9646
 0
 </property>
 <property type="string" id="example" mode="w" >
-Mapi session "/o=Mercy Medical Center/ou=MMCNT/cn=Recipients/cn=PVizzard"  exceeded the maximum of 32 objects of type "session".   For more information, click http://www.microsoft.com/contentredirect.asp.
+Mapi session "/o=My Organization/ou=DOMAIN/cn=Recipients/cn=username"  exceeded the maximum of 32 objects of type "session".   For more information, click http://www.microsoft.com/contentredirect.asp.
 </property>
 </object>
 <object id='msexchangesa_5008' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
@@ -1046,7 +1046,7 @@ msexchangesa_9234
 0
 </property>
 <property type="string" id="example" mode="w" >
-Referral Interface was not able to find an msExchExchangeServer object with legacyExchangeDN '/o=Mercy Medical Center/ou=MMCNT/cn=Configuration/cn=Servers/cn=MMC_MAIL'  in the Active Directory.   For more information, click http://www.microsoft.com/contentredirect.asp.
+Referral Interface was not able to find an msExchExchangeServer object with legacyExchangeDN '/o=My Organization/ou=DOMAIN/cn=Configuration/cn=Servers/cn=MAIL'  in the Active Directory.   For more information, click http://www.microsoft.com/contentredirect.asp.
 </property>
 </object>
 <object id='msexchangetransport_327' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
@@ -1057,7 +1057,7 @@ msexchangetransport_327
 0
 </property>
 <property type="string" id="example" mode="w" >
-The following call : EcLocallyDeliverMsg to the store failed. Error code : -2147024891 (Message-ID &lt;C2B7606A703BBD44940F3CD8462068F506E0DB5D@MHSMAIL1.mmcnt.mhs.med&gt; will be NDR'd).  MDB : c423a872-af66-4188-9417-867ecd674fce. FID : b-1549FB. MID : 1-6E0DB5D. File : .   For more information, click http://www.microsoft.com/contentredirect.asp.
+The following call : EcLocallyDeliverMsg to the store failed. Error code : -2147024891 (Message-ID &lt;C2B7606A703BBD44940F3CD8462068F506E0DB5D@MAIL1.domain.com&gt; will be NDR'd).  MDB : c423a872-af66-4188-9417-867ecd674fce. FID : b-1549FB. MID : 1-6E0DB5D. File : .   For more information, click http://www.microsoft.com/contentredirect.asp.
 </property>
 </object>
 <object id='norton antivirus_6' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
@@ -1142,7 +1142,7 @@ store_1211
 0
 </property>
 <property type="string" id="example" mode="w" >
-User ibryant@mdmercy.com used ROWLIST_REPLACE to delete all rules in folder 1-8B9EDD6. 12 rules got deleted and 11 rules were added.   For more information, click http://www.microsoft.com/contentredirect.asp.
+User username@domain.com used ROWLIST_REPLACE to delete all rules in folder 1-8B9EDD6. 12 rules got deleted and 11 rules were added.   For more information, click http://www.microsoft.com/contentredirect.asp.
 </property>
 </object>
 </tomanycont>
@@ -1504,7 +1504,7 @@ NETLOGON_5719
 </property>
 <property type="string" id="example" mode="w" >
 This computer was not able to set up a secure session with a domain
-controller in domain MMCNT due to the following: 
+controller in domain DOMAIN due to the following: 
 The remote procedure call failed and did not execute. 
 
 This may lead to authentication problems. Make sure that this
@@ -1617,7 +1617,7 @@ USER32_1073
 0
 </property>
 <property type="string" id="example" mode="w" >
-The attempt by user MMCNT\Ngensys to restart/shutdown computer CALLPILOTWEB failed
+The attempt by user DOMAIN\username to restart/shutdown computer COMPUTER failed
 </property>
 <property visible="True" type="int" id="zEventSeverity" >
 3
@@ -1647,7 +1647,7 @@ Winlogon_1218
 Failed to load Terminal Server Profile path.
 Note that the profile path must be less than 256 characters in length.
 User Name: Administrator
-Domain: MMCNT
+Domain: DOMAIN
 </property>
 <property visible="True" type="int" id="zEventSeverity" >
 3
@@ -1661,7 +1661,7 @@ Winlogon_1219
 0
 </property>
 <property type="string" id="example" mode="w" >
-Logon rejected for MMCNT\jratliff. Unable to obtain Terminal Server User Configuration.
+Logon rejected for DOMAIN\username. Unable to obtain Terminal Server User Configuration.
 Error: The RPC server is unavailable.
 </property>
 <property visible="True" type="int" id="zEventSeverity" >
@@ -1775,11 +1775,11 @@ MSExchangeIS Mailbox Store_1029
 0
 </property>
 <property type="string" id="example" mode="w" >
-tmoore2@mdmercy.com failed an operation because the user did not have the following access rights:
+username@domain.com failed an operation because the user did not have the following access rights:
 
 'Delete' 'Read Property' 'Write Property' 'Create Message' 'View Item' 'Create Subfolder' 'Write Security Descriptor' 'Write Owner' 'Read Security Descriptor' 'Contact' 
 
-The distinguished name of the owning mailbox is /O=MERCY MEDICAL CENTER/OU=MMCNT/CN=RECIPIENTS/CN=MBOUCOT. The folder ID is in the data section of this event.
+The distinguished name of the owning mailbox is /O=My Organization/OU=DOMAIN/CN=RECIPIENTS/CN=username. The folder ID is in the data section of this event.
 
 
 For more information, click http://www.microsoft.com/contentredirect.asp.
@@ -1793,7 +1793,7 @@ MSExchangeIS Mailbox Store_1032
 0
 </property>
 <property type="string" id="example" mode="w" >
-/o=Mercy Medical Center/ou=MMCNT/cn=Recipients/cn=vwindmil sent a message as /O=Mercy Medical Center/OU=MMCNT/cn=Configuration/cn=Servers/cn=MHSMAIL1/cn=Microsoft Private MDB.
+/o=My Organization/ou=DOMAIN/cn=Recipients/cn=vwindmil sent a message as /O=My Organization/OU=DOMAIN/cn=Configuration/cn=Servers/cn=MAIL1/cn=Microsoft Private MDB.
 
 
 For more information, click http://www.microsoft.com/contentredirect.asp.
@@ -2138,7 +2138,7 @@ Print_6161
 0
 </property>
 <property type="string" id="example" mode="w" >
-The document Default Report Title owned by lmarcinke failed to print on printer Client\MMCNT-lmarcinke#\172.16.12.177 - LJ 4100n - Reception Area. Data type: NT EMF 1.008. Size of the spool file in bytes: 131776. Number of bytes printed: 0. Total number of pages in the document: 2. Number of pages printed: 0. Client machine: \\MMCTS07. Win32 error code returned by the print processor: 1450.
+The document Default Report Title owned by lmarcinke failed to print on printer Client\DOMAIN-client#\10.1.2.3 - LJ 4100n. Data type: NT EMF 1.008. Size of the spool file in bytes: 131776. Number of bytes printed: 0. Total number of pages in the document: 2. Number of pages printed: 0. Client machine: \\COMPUTER. Win32 error code returned by the print processor: 1450.
 </property>
 <property visible="True" type="int" id="zEventSeverity" >
 2
@@ -2266,7 +2266,7 @@ Print_47
 0
 </property>
 <property type="string" id="example" mode="w" >
-The Printer represented by PrintQueue LDAP://CN=MRIDG-1M-A4B1-Kyocera Mita KM-5035 KX,CN=MRIDG-1M-A4B1,CN=Computers,DC=mercyridge,DC=com cannot be found: 709.
+The Printer represented by PrintQueue LDAP://CN=Kyocera Mita KM-5035 KX,CN=COMPUTER,CN=Computers,DC=dc4,DC=com cannot be found: 709.
 </property>
 </object>
 <object id='Print_9' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
@@ -2277,7 +2277,7 @@ Print_9
 0
 </property>
 <property type="string" id="example" mode="w" >
-Printer __ed_server_MNT/NIGEL-TABLET/Session 2 was set.
+Printer printername/Session 2 was set.
 </property>
 <property visible="True" type="int" id="zEventSeverity" >
 2
@@ -2328,7 +2328,7 @@ CDP-4-DUPLEX_MISMATCH
 0
 </property>
 <property type="string" id="example" mode="w" >
-duplex mismatch discovered on FastEthernet0/47 (not half duplex), with AP-SH-GRND.mercymed.org FastEthernet0 (half duplex).
+duplex mismatch discovered on FastEthernet0/1 (not half duplex), with COMPUTER FastEthernet0 (half duplex).
 </property>
 <property visible="True" type="int" id="zEventSeverity" >
 3
@@ -2619,7 +2619,7 @@ snmp_linkDown
 1
 </property>
 <property type="string" id="example" mode="w" >
-snmp trap snmp_linkDown from 172.24.253.2
+snmp trap snmp_linkDown from 10.1.2.3
 </property>
 <property type="text" id="explanation" mode="w" >
 has key for ifIndex for all traps.  Some (from cisco) have the IfDescr which give s us a good name for the interface
@@ -2637,7 +2637,7 @@ snmp_linkUp
 1
 </property>
 <property type="string" id="example" mode="w" >
-snmp trap snmp_linkUp from 172.25.96.7
+snmp trap snmp_linkUp from 10.1.2.3
 </property>
 <property type="text" id="explanation" mode="w" >
 has key for ifIndex for all traps.  Some (from cisco) have the IfDescr which give s us a good name for the interface
@@ -2698,7 +2698,7 @@ DNS_6525
 0
 </property>
 <property type="string" id="example" mode="w" >
-A zone transfer request for the secondary zone mercymed.org was refused by the master DNS server at 10.120.100.90. Check the zone at the master server 10.120.100.90 to verify that zone transfer is enabled to this server.  To do so, use the DNS console, and select master server 10.120.100.90 as the applicable server, then in secondary zone mercymed.org Properties, view the settings on the Zone Transfers tab.  Based on the settings you choose, make any configuration adjustments there (or possibly in the Name Servers tab) so that a zone transfer can be made to this server.
+A zone transfer request for the secondary zone domain.com was refused by the master DNS server at 10.1.2.3. Check the zone at the master server 10.1.2.3 to verify that zone transfer is enabled to this server.  To do so, use the DNS console, and select master server 10.1.2.3 as the applicable server, then in secondary zone domain.com Properties, view the settings on the Zone Transfers tab.  Based on the settings you choose, make any configuration adjustments there (or possibly in the Name Servers tab) so that a zone transfer can be made to this server.
 </property>
 <property visible="True" type="int" id="zEventSeverity" >
 4
@@ -2712,7 +2712,7 @@ DNS_6527
 0
 </property>
 <property type="string" id="example" mode="w" >
-Zone mercymed.org expired before it could obtain a successful zone transfer or update from a master server acting as its source for the zone.  The zone has been shut down.
+Zone domain.com expired before it could obtain a successful zone transfer or update from a master server acting as its source for the zone.  The zone has been shut down.
 </property>
 <property visible="True" type="int" id="zEventSeverity" >
 2
@@ -2744,7 +2744,7 @@ NETLOGON_5789
 </property>
 <property type="string" id="example" mode="w" >
 Attempt to update DNS Host Name of the computer object
-in Active Directory failed. The updated value was 'mhsowa1.mercymed.com'.
+in Active Directory failed. The updated value was 'hostname.domain.com'.
 The following error occurred: 
 The parameter is incorrect.
 </property>
@@ -2855,10 +2855,10 @@ MSExchangeIS_9646
 0
 </property>
 <property type="string" id="regex" mode="w" >
-Mapi session "/o=Mercy Medical Center/ou=MMCNT/cn=Recipients/cn=scadmin" exceeded the maximum of \d+ objects of type "objtMessage". For more information, click http://www.microsoft.com/contentredirect.asp.
+Mapi session "/o=My Organization/ou=DOMAIN/cn=Recipients/cn=username" exceeded the maximum of \d+ objects of type "objtMessage". For more information, click http://www.microsoft.com/contentredirect.asp.
 </property>
 <property type="string" id="example" mode="w" >
-Mapi session "/o=Mercy Medical Center/ou=MMCNT/cn=Recipients/cn=scadmin" exceeded the maximum of 250 objects of type "objtMessage". For more information, click http://www.microsoft.com/contentredirect.asp.
+Mapi session "/o=My Organization/ou=DOMAIN/cn=Recipients/cn=username" exceeded the maximum of 250 objects of type "objtMessage". For more information, click http://www.microsoft.com/contentredirect.asp.
 </property>
 <property visible="True" type="int" id="zEventSeverity" >
 5
@@ -2926,7 +2926,7 @@ AD WebManager_0
 </property>
 <property type="string" id="example" mode="w" >
 Modify User
-Modify user: mmcandre
+Modify user: username
 The attribute syntax specified to the directory service is invalid.
 </property>
 <property visible="True" type="string" id="zEventAction" >
@@ -2962,7 +2962,7 @@ MRxSmb_8003
 1
 </property>
 <property type="string" id="example" mode="w" >
-The master browser has received a server announcement from the computer MERCY-RID-3188
+The master browser has received a server announcement from the computer COMPUTER
 that believes that it is the master browser for the domain on transport NetBT_Tcpip_{4E448810-5CCB.
 The master browser is stopping or an election is being forced.
 </property>
@@ -2985,7 +2985,7 @@ msExchPoliciesIncluded:delete:{FDBF7EC5-F16E-4840-805D-25D492F273E5},{3B6813EC-C
 objectGUID:EB3D6BE41A37084C8D306C8190A80CF0
 -
 
-DC=mmcnt,DC=mhs,DC=med
+DC=domain,DC=com
 
 
 For more information, click http://www.microsoft.com/contentredirect.asp.
@@ -3002,7 +3002,7 @@ MSExchangeIS_9548
 0
 </property>
 <property type="string" id="example" mode="w" >
-Disabled user /o=Mercy Medical Center/ou=MMCNT/cn=Recipients/cn=bposey does not have a master account SID. Please use Active Directory MMC to set an active account as this user's master account.
+Disabled user /o=My Organization/ou=DOMAIN/cn=Recipients/cn=username does not have a master account SID. Please use Active Directory MMC to set an active account as this user's master account.
 
 
 For more information, click http://www.microsoft.com/contentredirect.asp.
@@ -3019,7 +3019,7 @@ Userenv_1006
 0
 </property>
 <property type="string" id="example" mode="w" >
-Windows cannot bind to MMCNT.MHS.MED domain. (Invalid Credentials). Group Policy processing aborted.
+Windows cannot bind to DOMAIN domain. (Invalid Credentials). Group Policy processing aborted.
 </property>
 <property visible="True" type="int" id="zEventSeverity" >
 3
@@ -3083,7 +3083,7 @@ Windows SharePoint Services 2.0_1000
 0
 </property>
 <property type="string" id="example" mode="w" >
-#50070: Unable to connect to the database wssconfigdb on mmcproject.  Check the database connection information and make sure that the database server is running.
+#50070: Unable to connect to the database database on server.  Check the database connection information and make sure that the database server is running.
 </property>
 <property visible="True" type="string" id="zEventAction" >
 drop
@@ -3324,7 +3324,7 @@ Userenv_1517
 0
 </property>
 <property type="string" id="example" mode="w" >
-Windows saved user MMCNT\administrator registry while an application or service was still using the registry during log off. The memory used by the user's registry has not been freed. The registry will be unloaded when it is no longer in use. 
+Windows saved user DOMAIN\administrator registry while an application or service was still using the registry during log off. The memory used by the user's registry has not been freed. The registry will be unloaded when it is no longer in use. 
 
 
 This is often caused by services running as a user account, try configuring the services to run in either the LocalService or NetworkService account.
@@ -3675,7 +3675,7 @@ Fibre Channel Controller Status Change. The Fibre Channel Controller in Slot 3 h
 Server Lost connection to SAN.  For some reason, when a server reboots the port on the SAN switch sometimes gets hosed.
 </property>
 <property type="text" id="resolution" mode="w" >
-Fail the Supervisor over to the Standby sup.  To do this, Login to the Switch through Cisco Device Manager (ie: http://10.120.100.185/cgi-bin/element-manager.jnlp).  Locate the Supervisor that is Active (the supervisors are the blades with the Mgmt ports on them).  Right click on the Active Supervisor and click Reset.  You will get a message telling you that this will reset the interfaces.  Click OK to proceed.  This only resets the management session that you are using.  It will not disrupt the FiberChannel network.  That will cause the Supervisor to failover to the other Sup blade.
+Fail the Supervisor over to the Standby sup.  To do this, Login to the Switch through Cisco Device Manager (ie: http://10.1.2.3/cgi-bin/element-manager.jnlp).  Locate the Supervisor that is Active (the supervisors are the blades with the Mgmt ports on them).  Right click on the Active Supervisor and click Reset.  You will get a message telling you that this will reset the interfaces.  Click OK to proceed.  This only resets the management session that you are using.  It will not disrupt the FiberChannel network.  That will cause the Supervisor to failover to the other Sup blade.
 </property>
 <property visible="True" type="int" id="zEventSeverity" >
 4
@@ -3813,7 +3813,7 @@ configChangeSNMP
 0
 </property>
 <property type="string" id="example" mode="w" >
-snmp trap configChangeSNMP from 10.115.100.16
+snmp trap configChangeSNMP from 10.1.2.3
 </property>
 <property visible="True" type="int" id="zEventSeverity" >
 3
@@ -3883,7 +3883,7 @@ accessViolationHTTP
 0
 </property>
 <property type="string" id="example" mode="w" >
-snmp trap accessViolationHTTP from 10.115.100.22
+snmp trap accessViolationHTTP from 10.1.2.3
 </property>
 </object>
 <object id='noBatteries' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
@@ -3894,7 +3894,7 @@ noBatteries
 0
 </property>
 <property type="string" id="example" mode="w" >
-snmp trap noBatteries from 10.120.12.10
+snmp trap noBatteries from 10.1.2.3
 </property>
 </object>
 <object id='passwordChange' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
@@ -3905,7 +3905,7 @@ passwordChange
 0
 </property>
 <property type="string" id="example" mode="w" >
-snmp trap passwordChange from 10.115.100.8
+snmp trap passwordChange from 10.1.2.3
 </property>
 <property visible="True" type="int" id="zEventSeverity" >
 3
@@ -3922,7 +3922,7 @@ powerRestored
 0
 </property>
 <property type="string" id="example" mode="w" >
-snmp trap powerRestored from 10.120.88.7
+snmp trap powerRestored from 10.1.2.3
 </property>
 <property visible="True" type="int" id="zEventSeverity" >
 0
@@ -3936,7 +3936,7 @@ upsBatteryNeedsReplacement
 0
 </property>
 <property type="string" id="example" mode="w" >
-snmp trap upsBatteryNeedsReplacement from 10.115.100.15
+snmp trap upsBatteryNeedsReplacement from 10.1.2.3
 </property>
 <property visible="True" type="int" id="zEventSeverity" >
 4
@@ -4004,7 +4004,7 @@ upsOnBattery
 0
 </property>
 <property type="string" id="example" mode="w" >
-snmp trap upsOnBattery from 10.120.88.7
+snmp trap upsOnBattery from 10.1.2.3
 </property>
 <property visible="True" type="int" id="zEventSeverity" >
 5
@@ -4032,7 +4032,7 @@ smartBoostOff
 0
 </property>
 <property type="string" id="example" mode="w" >
-snmp trap smartBoostOff from 10.115.100.15
+snmp trap smartBoostOff from 10.1.2.3
 </property>
 <property visible="True" type="int" id="zEventSeverity" >
 0
@@ -4046,7 +4046,7 @@ smartBoostOn
 0
 </property>
 <property type="string" id="example" mode="w" >
-snmp trap smartBoostOn from 10.115.100.15
+snmp trap smartBoostOn from 10.1.2.3
 </property>
 <property visible="True" type="int" id="zEventSeverity" >
 3
@@ -4795,7 +4795,7 @@ defaultmapping
 \d+ \S+ \S+ SEV=\d+ (?P&lt;component&gt;\S+) RPT=\d+ \S+ (?P&lt;summary&gt;Received SNMP .*)
 </property>
 <property type="string" id="example" mode="w" >
-1313851 03/30/2006 14:01:28.540 SEV=3 SNMP/6 RPT=1026 10.128.5.173 Received SNMP request with unsupported community string 'public'
+1313851 03/30/2006 14:01:28.540 SEV=3 SNMP/6 RPT=1026 10.1.2.3 Received SNMP request with unsupported community string 'public'
 </property>
 </object>
 </tomanycont>
@@ -4869,7 +4869,7 @@ FileMaker Server 7_190
 0
 </property>
 <property type="string" id="example" mode="w" >
-Client "NURSI-T15-5906" opening a connection from "10.120.30.13".
+Client "COMPUTER" opening a connection from "10.1.2.3".
 </property>
 <property visible="True" type="string" id="zEventAction" >
 history
@@ -5169,7 +5169,7 @@ diagnostic-alarm-trap-node
 0
 </property>
 <property type="string" id="example" mode="w" >
-snmp trap diagnostic-alarm-trap-node from 10.120.100.139
+snmp trap diagnostic-alarm-trap-node from 10.1.2.3
 </property>
 <property visible="True" type="int" id="zEventSeverity" >
 3
@@ -5187,7 +5187,7 @@ environment-alarm-trap-major
 0
 </property>
 <property type="string" id="example" mode="w" >
-snmp trap environment-alarm-trap-major from 10.120.100.139
+snmp trap environment-alarm-trap-major from 10.1.2.3
 </property>
 <property visible="True" type="int" id="zEventSeverity" >
 5
