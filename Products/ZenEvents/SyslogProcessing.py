@@ -128,7 +128,7 @@ class SyslogProcessor(object):
 
     timeParse = \
         re.compile("^(\S{3} [\d ]{2} [\d ]{2}:[\d ]{2}:[\d ]{2}) (.*)").search
-    notHostSearch = re.compile("[-\[:]").search
+    notHostSearch = re.compile("[\[:]").search
     def parseHEADER(self, evt, msg):
         """Parse RFC-3164 HEADER part of syslog message.  TIMESTAMP format is:
         MMM HH:MM:SS and host is next token without the characters '[' or ':'.
