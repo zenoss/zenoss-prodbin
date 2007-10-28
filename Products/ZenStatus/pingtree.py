@@ -253,11 +253,12 @@ def buildTree(root, rootnode=None, devs=None, memo=None):
                     log.debug("create rnode: %s", nrnode)
                     nextdevs.append((ndev, nrnode))
         for iface in dev.os.interfaces():
-            netid = iface.getNetworkName()
-            if not netid: continue
-            if localIpCheck(dev, netid) or rootnode.hasNet(netid): continue
-            net = rnode.addNet(netid,iface.getIp())
-            log.debug("add net: %s to rnode: %s", net, rnode)
+            for ip in iface.ipaddresses():
+                netid = ip.getNetworkName()
+                if not netid: continue
+                if localIpCheck(dev, netid) or rootnode.hasNet(netid): continue
+                net = rnode.addNet(netid,ip.getIp())
+                log.debug("add net: %s to rnode: %s", net, rnode)
     if nextdevs: buildTree(root, rootnode, nextdevs, memo)
     return rootnode
 
