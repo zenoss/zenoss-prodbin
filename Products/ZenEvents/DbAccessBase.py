@@ -15,20 +15,23 @@ import types
 from DbConnectionPool import DbConnectionPool
 
 class DbAccessBase(object):
+
+    # if we make this object persistent, we do not want to save make
+    # connections to the other database persistent.
     
-    _cpool = DbConnectionPool()
+    _v_cpool = DbConnectionPool()
 
     def close(self, conn):
-        self._cpool.put(conn)
+        self._v_cpool.put(conn)
 
     def connect(self):
         """Load our database driver and connect to the database."""
-        return self._cpool.get(backend=self.backend, 
-                               host=self.host,
-                               port=self.port,
-                               username=self.username,
-                               password=self.password,
-                               database=self.database)
+        return self._v_cpool.get(backend=self.backend, 
+                                 host=self.host,
+                                 port=self.port,
+                                 username=self.username,
+                                 password=self.password,
+                                 database=self.database)
 
     def cleanstring(self, value):
         """Remove the trailing \x00 off the end of a string."""
