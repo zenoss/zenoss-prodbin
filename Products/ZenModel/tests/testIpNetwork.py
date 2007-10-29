@@ -71,7 +71,7 @@ class TestIpNetwork(ZenModelBaseTest):
     def testMisc(self):
         net = self.dmd.Networks.createNet('1.2.3.0/24')
         self.dmd.Networks.addIp('1.2.3.4')
-        self.assert_(net.freeIps() == 254)
+        self.assert_(net.freeIps() == 253)
         self.assert_(net.countIpAddresses(inuse=False) == 1)
         self.assert_(net.getNetworkName() == '1.2.3.0/24')
         self.assert_(not net.getIpAddress('1.2.3.4') == None)
