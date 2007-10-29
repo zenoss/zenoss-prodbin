@@ -130,7 +130,7 @@ class ZenPackCmd(ZenScriptBase):
         if zp:
             for required in zp.requires:
                 try:
-                    self.packs._getOb(required)
+                    self.dmd.packs._getOb(required)
                 except:
                     self.log.error("Pack %s requires pack %s: not installing",
                                    packName, required)
