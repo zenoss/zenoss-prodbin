@@ -31,7 +31,7 @@ from Products.CMFCore.PortalObject import PortalObjectBase
 from Products.CMFCore import PortalFolder
 from Products.CMFCore.utils import getToolByName
 
-from Products.ZenUtils import Security
+from Products.ZenUtils import Security, Time
 
 from ZenossSecurity import *
 
@@ -56,6 +56,8 @@ class ZentinelPortal ( PortalObjectBase ):
     def __init__( self, id, title='' ):
         PortalObjectBase.__init__( self, id, title )
 
+    def server_time(self):
+        return Time.isoDateTime()
 
     security.declareProtected(ZEN_COMMON, 'searchDevices')
     def searchDevices(self, queryString='', REQUEST=None):

@@ -33,6 +33,11 @@ def LocalDateTime(gmtSecondsSince1970 = None):
     secs = value % 60
     return time.strftime("%Y/%m/%d %H:%M:%%06.3f", time.localtime(value)) % secs
 
+def isoDateTime(gmtSecondsSince1970 = None):
+    value = _maybenow(gmtSecondsSince1970)
+    secs = value % 60
+    return time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(value))
+
 def LocalDateTimeSecsResolution(gmtSecondsSince1970 = None):
     value = _maybenow(gmtSecondsSince1970)
     return time.strftime("%Y/%m/%d %H:%M:%S", time.localtime(value)) 

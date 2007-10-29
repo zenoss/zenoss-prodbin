@@ -229,6 +229,20 @@
     </form> 
     </div>
     </div>
+    <div id="system_clock_container">Zenoss server time: 
+    <span id="system_clock"/>
+    <script tal:content="string: var start_time = '${here/server_time}';">
+    </script>
+    <script>
+    var timedelta = new Date().getTime() - isoTimestamp(start_time).getTime();
+    function updateTime(){
+        var servernow = new Date(new Date().getTime() + timedelta);
+        $('system_clock').innerHTML = toISOTime(servernow);
+        callLater(1, updateTime);
+    };
+    updateTime();
+    </script>
+    </div>
 </div>
 
 <!-- ======================================================

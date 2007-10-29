@@ -1009,3 +1009,11 @@ dl.faux-table a.prettylink div.device-icon-container {
     width: 25px;
 }
 
+#system_clock_container {
+    position: absolute;
+    right: 5px;
+    top: 64px;
+    color: #444;
+    font-size: 90%;
+    z-index: 4999;
+}
