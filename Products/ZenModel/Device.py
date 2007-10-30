@@ -572,19 +572,17 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
         """
         Returns a tuple of SNMP Connection Info
         
-        @rtype: tuple (devname, (ip, port), 
-            (community, version, timeout, tries), zMaxOIDPerRequest)
+        @rtype: SnmpConnInfo object
 
         >>> from Products.ZenModel.Device import manage_addDevice
         >>> manage_addDevice(devices, 'test')
-        >>> devices.test.getSnmpConnInfo()
-        ('test', ('', 161), ('public', 'v1', 2.5, 2), 40)
+        >>> lst = devices.test.getSnmpConnInfo().__dict__.items()
+        >>> lst.sort()
+        >>> lst
+        [('id', 'test'), ('manageIp', ''), ('zMaxOIDPerRequest', 40), ('zSnmpAuthPassword', ''), ('zSnmpAuthType', ''), ('zSnmpCommunity', 'public'), ('zSnmpPort', 161), ('zSnmpPrivPassword', ''), ('zSnmpPrivType', ''), ('zSnmpSecurityName', ''), ('zSnmpTimeout', 2.5), ('zSnmpTries', 2), ('zSnmpVer', 'v1')]
         """
-        return (self.id,
-                (self.manageIp, self.zSnmpPort),
-                (self.zSnmpCommunity, self.zSnmpVer,
-                 self.zSnmpTimeout, self.zSnmpTries),
-                self.zMaxOIDPerRequest)
+        from Products.ZenHub.services.PerformanceConfig import SnmpConnInfo
+        return SnmpConnInfo(self)
 
 
     def getOSProcessConf(self):
@@ -603,6 +601,7 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
         config = [ p.getOSProcessConf() for p in procs ]
         threshs = [t for p in procs for t in p.getThresholdInstances('SNMP')]
         return (float(self.getLastChange()),
+                self.id,
                 self.getSnmpConnInfo(),
                 config,
                 threshs)
@@ -612,17 +611,17 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
         """
         Return information for snmp collection on this device
         
-        @rtype: tuple (lastChangeTimeInSecs, (devname, (ip, port), 
-           (community, version, timeout, tries), zMaxOIDPerRequest),
-           list of thresholds,
-           list of oids)
+        @rtype: tuple (lastChangeTimeInSecs, devname, snmpConnInfo,
+                       list of thresholds,
+                       list of oids)
 
         >>> from Products.ZenModel.Device import manage_addDevice
         >>> manage_addDevice(devices, 'test')
         >>> devices.test.getSnmpOidTargets()
-        (0.0, ('test', ('', 161), ('public', 'v1', 2.5, 2), 40), [],
-        [('sysUpTime', '1.3.6.1.2.1.1.3.0', 'Devices/test/sysUpTime_sysUpTime',
-        'GAUGE', '', (None, None))])
+        (0.0, 'test',
+        <Products.ZenHub.services.PerformanceConfig.SnmpConnInfo
+        for test>, [], [('sysUpTime', '1.3.6.1.2.1.1.3.0',
+        'Devices/test/sysUpTime_sysUpTime', 'GAUGE', '', (None, None))])
         """
         if not self.snmpMonitorDevice(): return None
         oids, threshs = (super(Device, self).getSnmpOidTargets())
@@ -631,6 +630,7 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
             oids.extend(o)
             threshs.extend(t)
         return (float(self.getLastChange()),
+                self.id, 
                 self.getSnmpConnInfo(),
                 threshs,
                 oids)
@@ -977,7 +977,7 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
 
     security.declareProtected(ZEN_VIEW, 'uptimeStr')
     def uptimeStr(self):
-        """"
+        """
         Return the SNMP uptime
         
         @rtype: string
@@ -1679,6 +1679,12 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
             names = loadPlugins(self.dmd).keys()
             names.sort()
             return names
+        if propname == 'zSnmpVer':
+            return ['v1', 'v2c', 'v3']
+        if propname == 'zSnmpAuthType':
+            return ['', 'MD5', 'SHA']
+        if propname == 'zSnmpPrivType':
+            return ['', 'DES', 'AES']
         return ManagedEntity.zenPropertyOptions(self, propname)
     
     security.declareProtected(ZEN_MANAGE_DEVICE, 'pushConfig')

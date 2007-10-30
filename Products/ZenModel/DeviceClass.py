@@ -678,6 +678,11 @@ class DeviceClass(DeviceOrganizer, ZenPackable):
         devs._setProperty("zSnmpVer", "v1")
         devs._setProperty("zSnmpTries", 2, type="int")
         devs._setProperty("zSnmpTimeout", 2.5, type="float")
+        devs._setProperty("zSnmpSecurityName", "")
+        devs._setProperty("zSnmpAuthPassword", "")
+        devs._setProperty("zSnmpPrivPassword", "")
+        devs._setProperty("zSnmpAuthType", "")
+        devs._setProperty("zSnmpPrivType", "")
         devs._setProperty("zRouteMapCollectOnlyLocal", False, type="boolean")
         devs._setProperty("zRouteMapCollectOnlyIndirect", False, type="boolean")
         devs._setProperty("zInterfaceMapIgnoreTypes", "")
@@ -755,6 +760,12 @@ class DeviceClass(DeviceOrganizer, ZenPackable):
             names = loadPlugins(self.dmd).keys()
             names.sort()
             return names
+        if propname == 'zSnmpVer':
+            return ['v1', 'v2c', 'v3']
+        if propname == 'zSnmpAuthType':
+            return ['', 'MD5', 'SHA']
+        if propname == 'zSnmpPrivType':
+            return ['', 'DES', 'AES']
         return DeviceOrganizer.zenPropertyOptions(self, propname)
 
     def pushConfig(self, REQUEST=None):

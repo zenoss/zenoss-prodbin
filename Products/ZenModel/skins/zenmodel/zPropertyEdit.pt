@@ -85,8 +85,16 @@
             </select>
             </span>
             <span tal:condition="python: ptype not in 'boolean lines text'.split() and prop not in 'zEventSeverity zEventAction zFailSeverity'.split()">
-            <input class="tablevalues" type="text" size="40"
+            <input class="tablevalues" 
+	           tal:condition="not:popts"
+	    	   type="text" size="40"
                 tal:attributes="value pvalue;name python:prop+':'+ptype"/>
+            <select tal:condition="popts" 
+	            class="tablevalues" 
+	    	    tal:attributes="name python:prop+':'+ptype">
+		<option tal:repeat="e python:popts" tal:content="e"
+		       tal:attributes="value e; selected python:e==pvalue"/>
+            </select>
             </span>
       </td>
       <td class="tablevalues"

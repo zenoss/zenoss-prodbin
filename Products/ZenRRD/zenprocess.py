@@ -30,14 +30,8 @@ log = logging.getLogger("zen.zenprocess")
 from twisted.internet import reactor, defer
 from twisted.python import failure
 
-try:
-    from pynetsnmp.twistedsnmp import AgentProxy
-    from pynetsnmp.tableretriever import TableRetriever
-except ImportError:
-    import warnings
-    warnings.warn("Using python-based snmp enging")
-    from twistedsnmp.agentproxy import AgentProxy
-    from twistedsnmp.tableretriever import TableRetriever
+from pynetsnmp.twistedsnmp import AgentProxy
+from pynetsnmp.tableretriever import TableRetriever
 
 import Globals
 from Products.ZenUtils.Driver import drive, driveLater
@@ -49,6 +43,10 @@ from Products.ZenEvents.ZenEventClasses import Status_Snmp, Status_OSProcess
 
 from Products.ZenRRD.RRDUtil import RRDUtil
 from SnmpDaemon import SnmpDaemon
+
+from Products.ZenHub.services.PerformanceConfig import SnmpConnInfo
+# needed for pb comms
+SnmpConnInfo = SnmpConnInfo
 
 HOSTROOT  ='.1.3.6.1.2.1.25'
 RUNROOT   = HOSTROOT + '.4'
@@ -167,14 +165,8 @@ class Process:
 class Device:
     'track device data'
     name = ''
-    address = ('', 0)
-    community = 'public'
-    version = '1'
-    port = 161
+    snmpConnInfo = None
     proxy = None
-    timeout = 2.5
-    tries = 2
-    protocol = None
     lastScan = 0.
     snmpStatus = 0
     lastChange = 0
@@ -197,21 +189,15 @@ class Device:
 
     def _makeProxy(self):
         p = self.proxy
-        if (p is None or 
-            (p.ip, p.port) != self.address or
-            p.snmpVersion != self.version or
-            p.port != self.port):
-            self.proxy = AgentProxy(ip=self.address[0],
-                                    port=self.address[1],
-                                    community=self.community,
-                                    snmpVersion=self.version,
-                                    protocol=self.protocol,
-                                    allowCache=True)
-            self.proxy.tries = self.tries
-            self.proxy.timeout = self.timeout
+        c = self.snmpConnInfo
+        if (p is None or p.snmpConnInfo != c):
+            self.close()
+            self.proxy = self.snmpConnInfo.createSession(protocol=self.protocol,
+                                                         allowCache=True)
 
     
-    def updateConfig(self, processes):
+    def updateConfig(self, snmpInfo, processes):
+        self.snmpConnInfo = snmpInfo
         unused = Set(self.processes.keys())
         for name, originalName, ignoreParameters, restart, severity \
                 in processes:
@@ -227,15 +213,18 @@ class Device:
 
 
     def get(self, oids):
-        return self.proxy.get(oids, self.timeout, self.tries)
+        return self.proxy.get(oids,
+                              self.snmpConnInfo.zSnmpTimeout,
+                              self.snmpConnInfo.zSnmpTries)
 
 
     def getTables(self, oids):
-        t = TableRetriever(self.proxy, oids,
-                           timeout=self.timeout,
-                           retryCount=self.tries,
-                           maxRepetitions=self.maxOidsPerRequest / len(oids))
-        return t()
+        repetitions = self.maxOidsPerRequest / len(oids)
+        t = self.proxy.getTable(oids,
+                                timeout=self.snmpConnInfo.zSnmpTimeout,
+                                retryCount=self.snmpConnInfo.zSnmpTries,
+                                maxRepetitions=repetitions)
+        return t
 
 
 class zenprocess(SnmpDaemon):
@@ -326,20 +315,12 @@ class zenprocess(SnmpDaemon):
     def updateDevices(self, cfgs, fetched):
         names = Set()
         for cfg in cfgs:
-            lastChange, snmpConf, procs, thresholds = cfg
-            name, addr, snmpConf, maxOidsPerRequest = snmpConf
-            community, version, timeout, tries = snmpConf
+            lastChange, name, snmpConf, procs, thresholds = cfg
             names.add(name)
             d = self._devices.setdefault(name, Device())
             d.lastChange = lastChange
             d.name = name
-            d.address = addr
-            d.community = community
-            d.version = version
-            d.timeout = timeout
-            d.tries = tries
-            d.maxOidsPerRequest = maxOidsPerRequest
-            d.updateConfig(procs)
+            d.updateConfig(snmpConf, procs)
             d.protocol = self.snmpPort.protocol
             self.thresholds.updateList(thresholds)
         for doomed in Set(fetched) - names:

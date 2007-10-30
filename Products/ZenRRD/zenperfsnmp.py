@@ -31,17 +31,6 @@ import cPickle
 
 from twisted.internet import reactor, defer
 
-try:
-    from pynetsnmp.twistedsnmp import AgentProxy
-except ImportError:
-    import warnings
-    warnings.warn("Using python-based snmp engine")
-    from twistedsnmp.agentproxy import AgentProxy
-if not hasattr(AgentProxy, 'open'):
-    def ignore(self): pass
-    AgentProxy.open = ignore
-    AgentProxy.close = ignore
-
 import Globals
 from Products.ZenUtils.Chain import Chain
 from Products.ZenUtils.Driver import drive, driveLater
@@ -51,6 +40,10 @@ from Products.ZenEvents.ZenEventClasses import Perf_Snmp, Status_Snmp
 
 from Products.ZenRRD.RRDUtil import RRDUtil
 from SnmpDaemon import SnmpDaemon
+
+from Products.ZenHub.services.PerformanceConfig import SnmpConnInfo
+# needed for pb comms
+SnmpConnInfo = SnmpConnInfo
 
 from FileCleanup import FileCleanup
 
@@ -263,6 +256,10 @@ class zenperfsnmp(SnmpDaemon):
                     self.updateDeviceConfig(cPickle.loads(config))
                 except Exception, ex:
                     self.log.debug("Ignoring updateDeviceConfigFailure: %s", ex)
+                    try:
+                        os.unlink(self.pickleName(d))
+                    except:
+                        pass
 
     def cleanup(self, fullPath):
         self.log.warning("Deleting old RRD file: %s", fullPath)
@@ -369,41 +366,34 @@ class zenperfsnmp(SnmpDaemon):
 
             ips = Set()
             for name, proxy in self.proxies.items():
-                if proxy.ip in ips:
+                if proxy.snmpConnInfo.manageIp in ips:
                     log.warning("Warning: device %s has a duplicate address %s",
-                                name, proxy.ip)
-                ips.add(proxy.ip)
+                                name, proxy.snmpConnInfo.manageIp)
+                ips.add(proxy.snmpConnInfo.manageIp)
             self.log.info('Configured %d of %d devices',
                           len(deviceNames), len(self.proxies))
             yield defer.succeed(None)
         return drive(fetchDevices)
 
 
-    def updateAgentProxy(self,
-                         deviceName, ip, port, community,
-                         version, timeout, tries, maxoids=40):
+    def updateAgentProxy(self, deviceName, snmpConnInfo):
         "create or update proxy"
-        # find any cached proxy
         p = self.proxies.get(deviceName, None)
         if not p:
-            p = AgentProxy(ip=ip,
-                           port=port,
-                           community=community,
-                           snmpVersion=version,
-                           protocol=self.snmpPort.protocol,
-                           allowCache=True)
+            p = snmpConnInfo.createSession(protocol=self.snmpPort.protocol,
+                                           allowCache=True)
             p.oidMap = {}
             p.snmpStatus = SnmpStatus(0)
             p.singleOidMode = False
             p.lastChange = 0
-        else:
-            p.ip = ip
-            p.port = port
-            p.community = community
-            p.snmpVersion = version
-        p.timeout = timeout
-        p.tries = tries
-        p.maxoids = maxoids
+        if p.snmpConnInfo != snmpConnInfo:
+            t = snmpConnInfo.createSession(protocol=self.snmpPort.protocol,
+                                           allowCache=True)
+            t.oidMap = p.oidMap
+            t.snmpStatus = p.snmpStatus
+            t.singleOidMode = p.singleOidMode
+            t.lastChange = p.lastChange
+            p = t
         return p
 
     def updateSnmpStatus(self, status):
@@ -426,20 +416,10 @@ class zenperfsnmp(SnmpDaemon):
 
     def updateDeviceConfig(self, snmpTargets):
         'Save the device configuration and create an SNMP proxy to talk to it'
-        last, identity, thresholds, oidData = snmpTargets
-        deviceName, hostPort, snmpConfig, maxOIDs = identity
+        last, deviceName, snmpConfig, thresholds, oidData = snmpTargets
 
-        if not oidData: return
-        (ip, port)= hostPort
-        (community, version, timeout, tries) = snmpConfig
         self.log.debug("received config for %s", deviceName)
-        if version.find('1') >= 0:
-            version = '1'
-        else:
-            version = '2'
-        p = self.updateAgentProxy(deviceName, 
-                                  ip, port, str(community),
-                                  version, timeout, tries, maxOIDs)
+        p = self.updateAgentProxy(deviceName, snmpConfig)
         if p.lastChange < last:
             p.lastChange = last
             write(self.pickleName(deviceName), cPickle.dumps(snmpTargets))
@@ -524,12 +504,15 @@ class zenperfsnmp(SnmpDaemon):
         if proxy is None:
             return
         # ensure that the request will fit in a packet
-        n = int(proxy.maxoids)
+        n = int(proxy.snmpConnInfo.zMaxOIDPerRequest)
         if proxy.singleOidMode:
             n = 1
         def getLater(oids):
-            return checkException(self.log, proxy.get,
-                                  oids, proxy.timeout, proxy.tries)
+            return checkException(self.log,
+                                  proxy.get,
+                                  oids,
+                                  proxy.snmpConnInfo.zSnmpTimeout,
+                                  proxy.snmpConnInfo.zSnmpTries)
         proxy.open()
         chain = Chain(getLater, iter(chunk(sorted(proxy.oidMap.keys()), n)))
         d = chain.run()
@@ -577,7 +560,7 @@ class zenperfsnmp(SnmpDaemon):
                 self.startReadDevice(deviceName)
                 return
             if not success:
-                self.log.debug('Failed to collect on %s (%s: %s)',
+                self.log.error('Failed to collect on %s (%s: %s)',
                                deviceName,
                                update.__class__,
                                update)

@@ -24,6 +24,71 @@ from twisted.internet import reactor, defer
 
 from Procrastinator import Procrastinate
 
+ATTRIBUTES = (
+    'id',
+    'manageIp',
+    'zMaxOIDPerRequest',
+    'zSnmpAuthPassword',
+    'zSnmpAuthType',
+    'zSnmpCommunity',
+    'zSnmpPort',
+    'zSnmpPrivPassword',
+    'zSnmpPrivType',
+    'zSnmpSecurityName',
+    'zSnmpTimeout',
+    'zSnmpTries',
+    'zSnmpVer',
+    )
+
+from twisted.spread import pb
+class SnmpConnInfo(pb.Copyable, pb.RemoteCopy):
+    "A class to transfer the many SNMP values to clients"
+    
+    def __init__(self, device):
+        "Store the properties from the device"
+        for propertyName in ATTRIBUTES:
+            setattr(self, propertyName, getattr(device, propertyName, None))
+            self.id = device.id
+
+    def __cmp__(self, other):
+        for propertyName in ATTRIBUTES:
+            c = cmp(getattr(self, propertyName), getattr(other, propertyName))
+            if c != 0:
+                return c
+        return 0
+
+    def createSession(self, protocol=None, allowCache=False):
+        "Create a session based on the properties"
+        from pynetsnmp.twistedsnmp import AgentProxy
+        cmdLineArgs=['-t', str(self.zSnmpTimeout)]
+        if '3' in self.zSnmpVer:
+            if self.zSnmpPrivType:
+                cmdLineArgs += ['-l', 'authPriv']
+                cmdLineArgs += ['-X', self.zSnmpPrivPassword]
+            elif self.zSnmpAuthType:
+                cmdLineArgs += ['-l', 'authNoPriv']
+            else:
+                cmdLineArgs += ['-l', 'authNoAuthNoPriv']
+            if self.zSnmpAuthType:
+                cmdLineArgs += ['-A', self.zSnmpPrivPassword]
+            cmdLineArgs += ['-u', self.zSnmpSecurityName]
+        p = AgentProxy(ip=self.manageIp,
+                       port=self.zSnmpPort,
+                       snmpVersion=self.zSnmpVer,
+                       community=self.zSnmpCommunity,
+                       cmdLineArgs=cmdLineArgs,
+                       protocol=protocol,
+                       allowCache=allowCache)
+        p.snmpConnInfo = self
+        return p
+
+    def __repr__(self):
+        return '<%s for %s>' % (self.__class__, self.id)
+        
+pb.setUnjellyableForClass(SnmpConnInfo, SnmpConnInfo)
+        
+
+
 class PerformanceConfig(HubService):
 
     def __init__(self, dmd, instance):
