@@ -57,13 +57,13 @@
         <!-- BEGIN TABLE CONTENTS -->
             
                     
-                    <tr>
+                    <tr tal:condition="exists: request/cmd/command">
                         <td class="tablevalues" valign="top">
                             Command:
                             <tal:block tal:content="request/cmd/command" />
                         </td>
                     </tr>
-                    <tr>
+                    <tr tal:condition="exists: request/cmd/description">
                         <td class="tablevalues" valign="top">
                             Description:
                             <tal:block tal:content="request/cmd/description" />

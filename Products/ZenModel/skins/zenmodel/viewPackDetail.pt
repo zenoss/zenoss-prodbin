@@ -1,6 +1,19 @@
  <tal:block metal:use-macro="here/templates/macros/page2">
   <tal:block metal:fill-slot="contentPane">
-    <form method="post"
+      
+<tal:block condition="request/doDownload | nothing">
+<tal:block tal:replace="structure string:<script type='text/javascript'>
+var downloadUrl = '${here/absolute_url_path}/manage_download';
+</script>" />
+<script type="text/javascript">
+function doDownloadRedirect(evt) {
+    location.href = downloadUrl;
+}
+addLoadEvent(doDownloadRedirect);
+</script>
+</tal:block>
+
+    <form method="post" name="zenPackObjectsForm" id="zenPackObjectsForm"
 	  tal:attributes="action string:${here/absolute_url_path}"
 	  tal:define="tableName string:packlistdetail;
 		      objects here/packables;

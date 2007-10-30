@@ -112,5 +112,6 @@ import zDrawMapLinks
 import deleteADPNewProductClass
 import portletmgr
 import deleteSaveAdministratorsMenuItem
+import importExportZenPacks
 import removeReportClassPageMenu
 import snmpv3

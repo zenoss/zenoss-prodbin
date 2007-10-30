@@ -38,6 +38,8 @@ from Products.ZenUtils.IpUtil import IpAddressError
 from Commandable import Commandable
 import DateTime
 import socket
+import os
+import sys
 
 from Products.ZenUtils.Utils import zenPath
 from Products.ZenUtils.Utils import extractPostContent
@@ -45,7 +47,7 @@ from Products.ZenUtils.Utils import extractPostContent
 from AccessControl import Permissions as permissions
 
 from ZenModelRM import ZenModelRM
-from ZenossSecurity import ZEN_COMMON
+from ZenossSecurity import ZEN_COMMON, ZEN_MANAGE_DMD
 
 def manage_addDataRoot(context, id, title = None, REQUEST = None):
     """make a device"""
@@ -475,7 +477,6 @@ class DataRoot(ZenModelRM, OrderedFolder, Commandable, ZenMenuable):
         pack.organization = organization
         pack.version = version
         self.packs._setObject(id, pack)
-        import os
         zp = zenPath('Products', id)
         if not os.path.isdir(zp):
             os.makedirs(zp, 0750)
@@ -492,18 +493,102 @@ class DataRoot(ZenModelRM, OrderedFolder, Commandable, ZenMenuable):
         if REQUEST is not None:
             return self.callZenScreen(REQUEST, redirect=True)
 
+
     def removeZenPacks(self, ids=(), REQUEST = None):
         """remove a ZenPack"""
-        import os
         zp = zenPath('bin', 'zenpack')
-        import os
         for pack in ids:
             os.system('%s run --remove %s' % (zp, pack))
         self._p_jar.sync()
         if REQUEST is not None:
             return self.callZenScreen(REQUEST, redirect=True)
 
-    
+
+    security.declareProtected(ZEN_MANAGE_DMD, 'manage_installZenPack')
+    def manage_installZenPack(self, zenpack=None, REQUEST=None):
+        """
+        Installs the given zenpack.  Zenpack is a file upload from the browser.
+        """
+        import tempfile
+        import fcntl
+        import popen2
+        import signal
+        import time
+        import select
+        
+        ZENPACK_INSTALL_TIMEOUT = 120
+        
+        def write(out, lines):
+            # Looks like firefox renders progressive output more smoothly
+            # if each line is stuck into a table row.  
+            startLine = '<tr><td class="tablevalues">'
+            endLine = '</td></tr>\n'
+            if out:
+                if not isinstance(lines, list):
+                    lines = [lines]
+                for l in lines:
+                    if not isinstance(l, str):
+                        l = str(l)
+                    l = l.strip()
+                    l = cgi.escape(l)
+                    l = l.replace('\n', endLine + startLine)
+                    out.write(startLine + l + endLine)
+
+        if REQUEST:
+            REQUEST['cmd'] = ''
+            header, footer = self.commandOutputTemplate().split('OUTPUT_TOKEN')
+            REQUEST.RESPONSE.write(str(header))
+            out = REQUEST.RESPONSE
+        else:
+            out = None
+        
+        tFile = None
+        child = None
+        try:
+            try:
+                # Write the zenpack to the filesystem
+                tFile = tempfile.NamedTemporaryFile()
+                tFile.write(zenpack.read())
+                tFile.flush()
+            
+                cmd = 'zenpack --install %s' % tFile.name
+                child = popen2.Popen4(cmd)
+                flags = fcntl.fcntl(child.fromchild, fcntl.F_GETFL)
+                fcntl.fcntl(child.fromchild, fcntl.F_SETFL, flags | os.O_NDELAY)
+                endtime = time.time() + ZENPACK_INSTALL_TIMEOUT
+                self.write(out, '%s' % cmd)
+                self.write(out, '')
+                pollPeriod = 1
+                firstPass = True
+                while time.time() < endtime and (firstPass or child.poll()==-1):
+                    firstPass = False
+                    r, w, e = select.select([child.fromchild],[],[], pollPeriod)
+                    if r:
+                        t = child.fromchild.read()
+                        #We are sometimes getting to this point without any data
+                        # from child.fromchild. I don't think that should happen
+                        # but the conditional below seems to be necessary.
+                        if t:
+                            self.write(out, t)
+                if child.poll() == -1:
+                    self.write(out, 'Command timed out for %s' % target.id +
+                                    ' (timeout is %s seconds)' % timeout)
+            except:
+                self.write(out, 'Error installing ZenPack.')
+                self.write(
+                    out, 'type: %s  value: %s' % tuple(sys.exc_info()[:2]))
+                self.write(out, '')
+        finally:
+            tFile.close()
+            if child and child.poll() == -1:
+                os.kill(child.pid, signal.SIGKILL)
+        
+        self.write(out, '')
+        self.write(out, 'Done installing ZenPack.')
+        if REQUEST:
+            REQUEST.RESPONSE.write(footer)
+
+
     def getBrokenPackName(self, pack):
         ''' Extract the zenpack name from the broken module
         '''

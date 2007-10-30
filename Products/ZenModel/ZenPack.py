@@ -21,6 +21,8 @@ from Products.ZenModel.migrate import Migrate
 from Products.ZenUtils.Version import getVersionTupleFromString
 from Products.ZenModel.migrate.Migrate import Version
 from Products.ZenModel.ZenPackLoader import *
+from AccessControl import ClassSecurityInfo
+from ZenossSecurity import ZEN_MANAGE_DMD
 
 import transaction
 
@@ -96,6 +98,7 @@ class ZenPack(ZenModelRM):
     packZProperties = [
         ]
 
+    security = ClassSecurityInfo()
 
     def path(self, *args):
         return zenPackPath(self.id, *args)
@@ -187,8 +190,12 @@ class ZenPack(ZenModelRM):
             REQUEST['message'] = 'Deleted objects from ZenPack %s' % self.id 
             return self.callZenScreen(REQUEST)
 
-    def manage_exportPack(self, REQUEST=None):
-        "Export the ZenPack to the /export directory"
+
+    security.declareProtected(ZEN_MANAGE_DMD, 'manage_exportPack')
+    def manage_exportPack(self, download="no", REQUEST=None):
+        """
+        Export the ZenPack to the /export directory
+        """
         from StringIO import StringIO
         from Acquisition import aq_base
         xml = StringIO()
@@ -254,7 +261,8 @@ registerDirectory("skins", globals())
         if not os.path.isdir(path):
             os.makeDirs(path, 0750)
         from zipfile import ZipFile, ZIP_DEFLATED
-        zf = ZipFile(os.path.join(path, '%s.zip' % self.id), 'w', ZIP_DEFLATED)
+        zipFilePath = os.path.join(path, '%s.zip' % self.id)
+        zf = ZipFile(zipFilePath, 'w', ZIP_DEFLATED)
         base = zenPackPath()
         for p, ds, fd in os.walk(zenPackPath(self.id)):
             if p.split('/')[-1].startswith('.'): continue
@@ -265,8 +273,27 @@ registerDirectory("skins", globals())
                 zf.write(filename, filename[len(base)+1:])
         zf.close()
         if REQUEST:
+            if download == 'yes':
+                REQUEST['doDownload'] = 'yes'
             REQUEST['message'] = '%s has been exported' % self.id
             return self.callZenScreen(REQUEST)
+
+
+    def manage_download(self, REQUEST):
+        """
+        Download the already exported zenpack from $ZENHOME/export
+        """
+        path = os.path.join(zenPath('export'), '%s.zip' % self.id)
+        REQUEST.RESPONSE.setHeader('content-type', 'application/zip')
+        REQUEST.RESPONSE.setHeader('content-disposition',
+                                    'attachment; filename=%s.zip' %
+                                    self.id)
+        zf = file(path, 'r')
+        try:
+            REQUEST.RESPONSE.write(zf.read())
+        finally:
+            zf.close()
+        
 
     def _getClassesByPath(self, name):
         dsClasses = []
