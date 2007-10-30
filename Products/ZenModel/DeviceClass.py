@@ -376,10 +376,7 @@ class DeviceClass(DeviceOrganizer, ZenPackable):
         '''
         def cmpDevice(a, b):
             return cmp(a.id, b.id)
-        if query:
-            devices = self.searchDevices(query)
-        else:
-            devices = self.getSubDevices()
+        devices = self.searchDevices(query)
         devices.sort(cmpDevice)
         return simplejson.dumps([d.id for d in devices])
 
