@@ -144,7 +144,7 @@ class GraphDefinitionsAndFriends(Migrate.Step):
     def fixStackedGraphPoints(self, template, prevVersion):
         if prevVersion < 1.0:
             for graphDef in template.graphDefs():
-                oldGraph = getattr(template.graphs, graphDef.id, None)
+                oldGraph = template.graphs._getOb(graphDef.id, None)
                 if not oldGraph:
                     continue
                 for gp in graphDef.graphPoints():
