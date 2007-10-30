@@ -11,6 +11,9 @@
 #
 ###########################################################################
 
+from twisted.python.runtime import platform
+platform.supportsThreads = lambda : False
+
 import unittest
 import Globals
 
