@@ -1149,7 +1149,8 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
         "Is this device subject to SNMP monitoring?"
         return (self.monitorDevice()
                 and not self.zSnmpMonitorIgnore
-                and self.zSnmpCommunity)
+                and (self.zSnmpCommunity or
+                     getattr(self, 'zSnmpSecurityName', None)))
 
 
     def getProductionStateString(self):
