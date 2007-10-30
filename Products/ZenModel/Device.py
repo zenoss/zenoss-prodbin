@@ -1502,15 +1502,16 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
         """collect the configuration of this device.
         """
         response = None
-        if REQUEST and setlog:
+        if REQUEST:
             response = REQUEST.RESPONSE
-            dlh = self.deviceLoggingHeader()
-            idx = dlh.rindex("</table>")
-            dlh = dlh[:idx]
-            idx = dlh.rindex("</table>")
-            dlh = dlh[:idx]
-            response.write(str(dlh[:idx]))
-            handler = setWebLoggingStream(response)
+            if setlog:
+                dlh = self.deviceLoggingHeader()
+                idx = dlh.rindex("</table>")
+                dlh = dlh[:idx]
+                idx = dlh.rindex("</table>")
+                dlh = dlh[:idx]
+                response.write(str(dlh[:idx]))
+                handler = setWebLoggingStream(response)
         
         try:
             zm = zenPath('bin', 'zenmodeler')
