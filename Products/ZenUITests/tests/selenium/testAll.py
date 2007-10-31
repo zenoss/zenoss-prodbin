@@ -35,7 +35,7 @@ def findTest(str):
     else:
         return None
 
-testout = StringIO.StringIO('')
+testout = sys.stdout
 loader = unittest.TestLoader()
 runner = unittest.TextTestRunner(stream = testout,  verbosity = 2) # Enables detailed output.
 
@@ -54,6 +54,3 @@ for dir in subDirs:
 
 testAll = loader.loadTestsFromNames(testTargets) # Load test modules
 result = runner.run(testAll)
-
-if len(result.errors) > 0 or len(result.failures) > 0:
-    print testout.getvalue()
