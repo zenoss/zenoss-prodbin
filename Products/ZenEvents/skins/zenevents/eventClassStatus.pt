@@ -1,10 +1,11 @@
 <tal:block metal:use-macro="here/templates/macros/page2">
 <tal:block metal:fill-slot="contentPane">
 
-
+<form method="post" name="eventClassStatus"
+      tal:attributes="action here/absolute_url_path">
+<input type="hidden" name="zenScreenName" value="eventClassStatus" />
 <tal:block tal:define=" tabletitle string:Status ">
 <tal:block metal:use-macro="here/zenuimacros/macros/zentable">
-
 <tal:block metal:fill-slot="zentablecontents">
 
 <!-- BEGIN TABLE CONTENTS -->
@@ -18,11 +19,45 @@
       <th class="tableheader" align="left">Instance Count</th>
       <td class="tablevalues" tal:content="here/countInstances">100</td>
     </tr>
+    
+    <tr tal:condition="python:here.id != 'Events'">
+       <td class="tableheader">Description 
+          <span tal:condition="here/isManager"> 
+             <a style="color:darkgrey;text-decoration:none;"
+              href="javascript:toggleElement('descriptioneditform')">[Edit]</a>
+           </span>
+       </td>
+       <td class="tablevalues" colspan='5'>
+          <span 
+        tal:content="structure python:here.description.replace('\n','<br/>')"/>
+          <br tal:condition="here/description"  />
+    </tr>
+    <tbody id="descriptioneditform" tal:condition="here/isManager" 
+            visible="1" style="display:none;">
+    <tr>
+        <td class="tableheader">New Description</td>
+        <td class="tablevalues" colspan='5'> 
+            <textarea tal:condition="here/isManager" name="description"
+                    rows="4" cols="50" tal:content="here/description"/>
+            <tal:block tal:condition="not: here/isManager"
+                    tal:replace="here/description" />
+    </tr>
+    <tr>
+        <td class="tableheader" align="left"></td>
+        <td align="left" class="tableheader" colspan='5'>
+            <input class="tableheader" type="submit" value=" Save "
+                name="zmanage_editProperties:method:method" />
+            <input class="tableheader" type="button" value=" Cancel "
+                onclick="javascript:toggleElement('descriptioneditform')"/>
+        </td>
+    </tr>
+    </tbody>
 <!-- END TABLE CONTENTS -->
 
 </tal:block>
 </tal:block>
 </tal:block>
+</form>
 
 <span metal:use-macro="here/templates/macros/contentSeparator"/>
 
