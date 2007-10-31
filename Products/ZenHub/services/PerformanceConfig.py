@@ -10,7 +10,6 @@
 # For complete information please visit: http://www.zenoss.com/oss/
 #
 ###########################################################################
-#! /usr/bin/env python 
 
 import Globals
 from Products.ZenEvents.ZenEventClasses import Status_Snmp
@@ -57,6 +56,20 @@ class SnmpConnInfo(pb.Copyable, pb.RemoteCopy):
                 return c
         return 0
 
+    def summary(self):
+        result = 'SNMP info for %s at %s:%d' % (
+            self.id, self.manageIp, self.zSnmpPort)
+        result += ' timeout: %s tries: %d' % (
+            self.zSnmpTimeout, self.zSnmpTries)
+        result += ' version: %s ' % (self.zSnmpVer)
+        if '3' not in self.zSnmpVer:
+            result += ' community: %s' % self.zSnmpCommunity
+        else:
+            result += ' securityName: %s' % self.zSnmpSecurityName
+            result += ' authType: %s' % self.zSnmpAuthType
+            result += ' privType: %s' % self.zSnmpPrivType
+        return result
+
     def createSession(self, protocol=None, allowCache=False):
         "Create a session based on the properties"
         from pynetsnmp.twistedsnmp import AgentProxy
@@ -64,12 +77,14 @@ class SnmpConnInfo(pb.Copyable, pb.RemoteCopy):
         if '3' in self.zSnmpVer:
             if self.zSnmpPrivType:
                 cmdLineArgs += ['-l', 'authPriv']
+                cmdLineArgs += ['-x', self.zSnmpPrivType]
                 cmdLineArgs += ['-X', self.zSnmpPrivPassword]
             elif self.zSnmpAuthType:
                 cmdLineArgs += ['-l', 'authNoPriv']
             else:
                 cmdLineArgs += ['-l', 'authNoAuthNoPriv']
             if self.zSnmpAuthType:
+                cmdLineArgs += ['-a', self.zSnmpAuthType]
                 cmdLineArgs += ['-A', self.zSnmpPrivPassword]
             cmdLineArgs += ['-u', self.zSnmpSecurityName]
         p = AgentProxy(ip=self.manageIp,
