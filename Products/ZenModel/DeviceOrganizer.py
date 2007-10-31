@@ -101,7 +101,7 @@ class DeviceOrganizer(Organizer, DeviceManagerBase, Commandable, ZenMenuable,
             raise AttributeError, "%s not found on %s" % (devrel, self.id)
         devices = filter(devfilter, devrelobj())
         devices = [ dev for dev in devices if self.checkRemotePerm(ZEN_VIEW, dev)]
-        for subgroup in self.children():
+        for subgroup in self.children(checkPerm=False):
             devices.extend(subgroup.getSubDevices(devfilter, devrel))
         return devices
 
