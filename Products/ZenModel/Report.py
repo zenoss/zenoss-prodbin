@@ -66,7 +66,7 @@ addReport = PageTemplateFile('www/reportAdd', globals(),
                             __name__='addReport')
 
 
-class Report(ZopePageTemplate, ZenModelRM, ZenPackable):
+class Report(ZenModelRM, ZenPackable):
     """Report object"""
     meta_type = 'Report'
 
@@ -77,27 +77,31 @@ class Report(ZopePageTemplate, ZenModelRM, ZenPackable):
 
     _relations = ZenPackable._relations
 
-    pt_editForm = PageTemplateFile('www/reportEdit', globals(),
-                                   __name__='pt_editForm')
-                                  
-
     def __init__(self, id, title = None, text=None, content_type=None):
         ZenModelRM.__init__(self, id);
-        ZopePageTemplate.__init__(self, id, text, content_type)
+        self._template = ZopePageTemplate(id, text, content_type)
         self.title = title
 
-    
-    def om_icons(self):
-        """Return a list of icon URLs to be displayed by an ObjectManager"""
-        icons = ({'path': 'misc_/Confmon/Report_icon.gif',
-                  'alt': self.meta_type, 'title': self.meta_type},)
-        if not self._v_cooked:
-            self._cook()
-        if self._v_errors:
-            icons = icons + ({'path': 'misc_/PageTemplates/exclamation.gif',
-                              'alt': 'Error',
-                              'title': 'This template has an error'},)
-        return icons
+    def __call__(self, *args, **kwargs):
+        """Return our rendered template not our default page
+        """
+        if not kwargs.has_key('args'):
+            kwargs['args'] = args
+        template = self._template.__of__(self)
+        return template.pt_render(extra_context={'options': kwargs})
 
+
+    def ZScriptHTML_tryForm(self, *args, **kwargs):
+        """Test form called from ZMI test tab
+        """
+        return self.__call__(self, args, kwargs)
+
+
+    def manage_main(self):
+        """Return the ZMI edit page of our template not ourself
+        """
+        template = self._template.__of__(self)
+        return template.pt_editForm()
+    pt_editForm = manage_main
 
 InitializeClass(Report)
