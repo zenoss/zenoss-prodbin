@@ -17,11 +17,8 @@ log = logging.getLogger("zen.SnmpClient")
 
 from twisted.internet import reactor, error, defer
 from twisted.python import failure
-try:
-    from pynetsnmp.twistedsnmp import snmpprotocol, AgentProxy
-except ImportError:
-    from twistedsnmp import snmpprotocol
-    from twistedsnmp.agentproxy import AgentProxy
+
+from pynetsnmp.twistedsnmp import snmpprotocol, AgentProxy
 
 import Globals
 
@@ -49,25 +46,16 @@ class SnmpClient(object):
         self._getdata = {}
         self._tabledata = {}
 
-        community = getattr(device, 'zSnmpCommunity', "public")
-        port = int(getattr(device, 'zSnmpPort', 161))
-        snmpver = getattr(device, 'zSnmpVer', "v1")
-        self.tries = int(getattr(device,'zSnmpTries', defaultTries))
-        self.timeout = float(getattr(device,'zSnmpTimeout', defaultTimeout))
-
+        from Products.ZenHub.services.PerformanceConfig import SnmpConnInfo
+        self.connInfo = SnmpConnInfo(device)
         srcport = snmpprotocol.port()
-        self.proxy = AgentProxy(ipaddr, port, community, snmpver,
-                                protocol=srcport.protocol)
-        if not hasattr(self.proxy, 'open'):
-            def doNothing(): pass
-            self.proxy.open = doNothing
-            self.proxy.close = doNothing
+        self.proxy = self.connInfo.createSession(srcport.protocol)
 
 
     def run(self):
         """Start snmp collection.
         """
-        log.debug("timeout=%s, tries=%s", self.timeout, self.tries)
+        log.debug("Starting %s", self.connInfo.summary())
         self.proxy.open()
         drive(self.doRun).addBoth(self.clientFinished)
 
@@ -76,9 +64,7 @@ class SnmpClient(object):
         """Check to see if a cisco box has changed.
         """
         device = self.device
-        yield self.proxy.get(['.1.3.6.1.4.1.9.9.43.1.1.1.0'],
-                             timeout=self.timeout,
-                             retryCount=self.tries)
+        yield self.proxy.get(['.1.3.6.1.4.1.9.9.43.1.1.1.0'])
         lastpolluptime = device.getLastPollSnmpUpTime()
         log.debug("lastpolluptime = %s", lastpolluptime)
         try:
@@ -98,15 +84,11 @@ class SnmpClient(object):
     def doRun(self, driver):
         # test snmp connectivity
         log.debug("Testing SNMP configuration")
-        yield self.proxy.walk('.1', timeout=self.timeout, retryCount=self.tries)
+        yield self.proxy.walk('.1')
         try:
             driver.next()
         except Exception, ex:
-            log.error("Unable to talk to device %s on %s:%s using community '%s'",
-                      self.device.id,
-                      self.proxy.ip,
-                      self.proxy.port or 161,
-                      self.proxy.community)
+            log.exception("Unable to talk: ", self.connInfo.summary())
             return
 
         changed = True
@@ -125,16 +107,12 @@ class SnmpClient(object):
                 self._tabledata[pname] = {}
                 log.debug("sending queries for plugin %s", pname)
                 if plugin.snmpGetMap:
-                    yield self.proxy.get(plugin.snmpGetMap.getoids(),
-                                       timeout=self.timeout,
-                                       retryCount=self.tries)
+                    yield self.proxy.get(plugin.snmpGetMap.getoids())
                     self._getdata[pname] = driver.next()
                 for tmap in plugin.snmpGetTableMaps:
                     rowSize = len(tmap.getoids())
                     maxRepetitions = max(DEFAULT_MAX_OIDS_BACK / rowSize, 1)
                     yield self.proxy.getTable(tmap.getoids(),
-                                              timeout=self.timeout,
-                                              retryCount=self.tries,
                                               maxRepetitions=maxRepetitions)
                     self._tabledata[pname][tmap] = driver.next()
             except Exception, ex:
