@@ -24,7 +24,7 @@ from util.selTestUtils import *
 from util.selenium import selenium
 
 ### BEGIN GLOBAL DEFS ###
-HOST        =   "zenosst.zenoss.loc"               # Zenoss instance to test
+HOST        =   "zenosst2.zenoss.loc"               # Zenoss instance to test
 USER        =   "admin"                 # Username for HOST
 PASS        =   "zenoss"                # Password for HOST
 SERVER      =   "selserver.zenoss.loc"             # Hosts the selenium jar file
@@ -153,7 +153,31 @@ class SelTestBase(unittest.TestCase):
                 self.selenium.select(key, value[1])
         self.selenium.click(addMethod) # Submit form.
         self.selenium.wait_for_page_to_load(self.WAITTIME) # Wait for page refresh.
+    def goToDevice(self):
+        self.waitForElement("searchform")
+        self.selenium.type("query", TARGET)
+        self.selenium.submit("searchform")
+        self.selenium.wait_for_page_to_load(self.WAITTIME)
         
+        
+    def addOSProcessClass(self):
+        """Adds an os process class"""
+        self.selenium.click("link=Processes")
+        self.waitForElement("link=Add Process...")
+        self.selenium.click("link=Add Process...")
+        self.waitForElement("manage_addOSProcessClass:method")
+        self.selenium.type("id", "httpd")
+        self.selenium.click("manage_addOSProcessClass:method")
+
+    def deleteOSProcessClasses(self):
+        """Deletes an OSProcessClass"""
+        self.selenium.click("link=Processes")
+        self.waitForElement("//input[@value='httpd']")
+        self.selenium.click("//input[@value='httpd']")
+        self.selenium.click("link=Delete Processes...")
+        self.waitForElement("removeOSProcessClasses:method")
+        self.selenium.click("removeOSProcessClasses:method")
+
     def deleteDialog(self, deleteType="OrganizerlistremoveOrganizers", deleteMethod="manage_deleteOrganizers:method", 
                         pathsList="organizerPaths:list", form_name="subdeviceForm", testData="testingString"):
         """Test the deleteOrganizer functionality"""

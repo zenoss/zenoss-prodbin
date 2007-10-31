@@ -45,12 +45,22 @@ class TestDeviceInstanceOsTab(TestDeviceInstanceBase):
     
     def setUp(self):
         """Customized setUp for testing under the OS tab"""
-        
         TestDeviceInstanceBase.setUp(self)
-
+        self._goToOSTab()
+    
+    def tearDown(self):
+        """Customized setUp for testing under the OS tab"""
+        
+        self._goToOSTab()
+        TestDeviceInstanceBase.tearDown(self)
+    
+    def _goToOSTab(self):
+        self.goToDevice()
         self.waitForElement("link=OS")
         self.selenium.click("link=OS")
         self.selenium.wait_for_page_to_load(self.WAITTIME)
+
+        
         
     def testIpInterface(self):
         """Add, edit, and delete an Ip Interface under a specific device"""
@@ -88,6 +98,8 @@ class TestDeviceInstanceOsTab(TestDeviceInstanceBase):
     def testOSProcess(self):
         """Add, edit, and delete an OS Process under a specific device"""
         
+        self.addOSProcessClass()
+        self._goToOSTab()
         self.addDialog(addType="link=Add OSProcess...", 
                         className=("select", "httpd"))
         self.assert_(self.selenium.is_element_present("link=httpd"))
@@ -109,6 +121,7 @@ class TestDeviceInstanceOsTab(TestDeviceInstanceBase):
         self.selenium.wait_for_page_to_load(self.WAITTIME)
         
         self.assert_(not self.selenium.is_element_present("link=testingString2"))
+        self.deleteOSProcessClasses()
         
     def testFileSystem(self):
         """Add, edit, and delete a File System under a sepcific device"""
@@ -143,10 +156,10 @@ class TestDeviceInstanceOsTab(TestDeviceInstanceBase):
         """Add, edit, and delete an Ip Service under a sepcific device"""
         
         self.addDialog(addType="link=Add IpService...", 
-                        className=("text", "tcp6_00080"),
+                        className=("text", "http [World"),
                         protocol=("select", "label=tcp")
                       )
-        self.assert_(self.selenium.is_element_present("link=tcp6_00080"))
+        self.assert_(self.selenium.is_element_present("link=http"))
             
         # now, edit some of the fields
         self.selenium.type("id", "2345")
