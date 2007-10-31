@@ -647,6 +647,7 @@ class DeviceClass(DeviceOrganizer, ZenPackable):
         """Go through all devices in this tree and reindex them."""
         zcat = self._getOb(self.default_catalog)
         zcat.manage_catalogClear()
+        self.componentSearch.manage_catalogClear()
         transaction.savepoint()
         for dev in self.getSubDevicesGen():
             dev.index_object()
