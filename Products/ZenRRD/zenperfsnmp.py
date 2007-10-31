@@ -343,8 +343,11 @@ class zenperfsnmp(SnmpDaemon):
             for devices in chunk(responses, DEVICE_LOAD_CHUNK_SIZE):
                 log.debug("Fetching config for %s", devices)
                 yield self.model().callRemote('getDeviceConfigs', devices)
-                for response in driver.next():
-                    self.updateDeviceConfig(response)
+                try:
+                    for response in driver.next():
+                       self.updateDeviceConfig(response)
+                except Exception, ex:
+                    log.warning("Error loading config for devices %s" % devices)
                 for d in devices:
                     deviceNames.add(d)
             log.debug("Finished fetching configs for %d devices", length)
