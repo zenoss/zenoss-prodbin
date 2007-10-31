@@ -73,7 +73,7 @@ class SnmpConnInfo(pb.Copyable, pb.RemoteCopy):
     def createSession(self, protocol=None, allowCache=False):
         "Create a session based on the properties"
         from pynetsnmp.twistedsnmp import AgentProxy
-        cmdLineArgs=['-t', str(self.zSnmpTimeout)]
+        cmdLineArgs=[]
         if '3' in self.zSnmpVer:
             if self.zSnmpPrivType:
                 cmdLineArgs += ['-l', 'authPriv']
@@ -89,6 +89,7 @@ class SnmpConnInfo(pb.Copyable, pb.RemoteCopy):
             cmdLineArgs += ['-u', self.zSnmpSecurityName]
         p = AgentProxy(ip=self.manageIp,
                        port=self.zSnmpPort,
+                       timeout=self.zSnmpTimeout,
                        snmpVersion=self.zSnmpVer,
                        community=self.zSnmpCommunity,
                        cmdLineArgs=cmdLineArgs,
