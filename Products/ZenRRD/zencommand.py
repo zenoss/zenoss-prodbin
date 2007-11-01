@@ -23,7 +23,7 @@ import time
 import logging
 log = logging.getLogger("zen.zencommand")
 
-from twisted.internet import reactor, defer
+from twisted.internet import reactor, defer, error
 from twisted.internet.protocol import ProcessProtocol
 from twisted.python import failure
 
@@ -117,7 +117,7 @@ class ProcessRunner(ProcessProtocol):
         "Kill a process if it takes too long"
         try:
             self.transport.signalProcess('KILL')
-        except ProcessExitedAlready:
+        except error.ProcessExitedAlready:
             log.debug("Command already exited: %s" % self.command)
         return value
 
