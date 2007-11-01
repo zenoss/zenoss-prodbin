@@ -23,11 +23,3 @@ test -z "$ZOPEHOME" && export ZOPEHOME=$ZENHOME
 $ZOPEHOME/bin/zpasswd.py -u admin -p $ZOPEPASSWORD inituser
 zopectl stop
 zopectl start
-sleep 2
-for file in zenperfsnmp zencommand zenperfxmlrpc zenprocess
-do
-    sed -e "s/zopepassword.*/zopepassword $ZOPEPASSWORD/" < \
-        $ZENHOME/etc/${file}.conf > /tmp/${file}.conf
-    mv /tmp/${file}.conf $ZENHOME/etc
-    $file restart
-done
