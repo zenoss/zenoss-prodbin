@@ -230,17 +230,20 @@
     </div>
     </div>
     <div id="system_clock_container">Zenoss server time: 
-    <span id="system_clock"/>
+    <span id="system_clock">Now o'clock</span>
     <script tal:content="string: var start_time = '${here/server_time}';">
+    var x;
     </script>
     <script>
     var timedelta = new Date().getTime() - isoTimestamp(start_time).getTime();
+    var isIE//@cc_on=1;
+    if (isIE) timedelta -= 25000;
     function updateTime(){
         var servernow = new Date(new Date().getTime() + timedelta);
         $('system_clock').innerHTML = toISOTime(servernow);
         callLater(1, updateTime);
-    };
-    updateTime();
+    }
+    addLoadEvent(updateTime);
     </script>
     </div>
 </div>
