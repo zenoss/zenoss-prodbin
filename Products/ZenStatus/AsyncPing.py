@@ -151,7 +151,10 @@ class Ping(object):
                     icmppkt = icmp.disassemble(ipreply.data)
                 except ValueError:
                     plog.debug("checksum failure on packet %r", ipreply.data)
-                    icmppkt = icmp.disassemble(ipreply.data, 0)
+                    try:
+                        icmppkt = icmp.disassemble(ipreply.data, 0)
+                    except ValueError:
+                        pass            # probably Unknown type
                 sip =  ipreply.src
                 if (icmppkt.get_type() == icmp.ICMP_ECHOREPLY and 
                     icmppkt.get_id() == self.procId and
