@@ -84,11 +84,15 @@ table.tabtable,
 }
 
 #tabsPane table {
+    
     table-layout: auto;
+    float:left;
 }
 
 #tabsPane table td {
+    /*
     width: 0%;
+    */
     z-index: 3000;
 }
 
@@ -112,6 +116,8 @@ td.contextmenutab { z-index: 3000; }
 td.tabletitleselected div.tabcenter a.tabletitle {
     position: relative;
     top: -3px;
+    line-height: 1em;
+    padding-top: 0.5em;
 }
 
 table.tabtable td.tabletitleselected div.tablinehider {
@@ -193,3 +199,5 @@ span.searchform-label {
 #leftPane-bottom {
     margin-top: 0px;
 }
+
+

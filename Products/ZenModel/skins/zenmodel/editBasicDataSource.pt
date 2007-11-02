@@ -59,7 +59,7 @@
         tal:content="here/oid"/>
     </tr>
 
-    <span tal:condition="python:here.sourcetype in ('COMMAND')">
+    <tal:block tal:condition="python:here.sourcetype in ('COMMAND')">
         <tr>
             <td class="tableheader">Use SSH</td>
             <td class="tablevalues" tal:condition="editable">
@@ -138,7 +138,7 @@
                 tal:content="here/commandTemplate"/>
         </tr>
 
-    </span>
+    </tal:block>
 
 
     <tr>
@@ -159,17 +159,15 @@
 
 </form>
 
-
-<!----------------------------------------------------------------->
-
 <form method="post" tal:attributes="action here/absolute_url_path">
 
 
-        <tal:block tal:define="tableName string:rrdtempdplist; 
+    <tal:block tal:define="tableName string:rrdtempdplist; 
         objects here/datapoints;
         batch python:here.ZenTableManager.getBatch(tableName,objects); 
-		tabletitle string:DataPoints;
-		menu_id string:DataPoint_list;">
+        tabletitle string:DataPoints;
+        menu_id string:DataPoint_list;">
+    <input type='hidden' name='tableName' tal:attributes="value tableName"/>
         <tal:block metal:use-macro="here/zenuimacros/macros/zentable">
 
         <!--====Optional titlebar slots=============
@@ -209,7 +207,6 @@
             <span metal:use-macro="here/zenTableNavigation/macros/navbody"/>
         </td>
     </tr>
-    <input type='hidden' name='tableName' tal:attributes="value tableName" />
 
         <!-- END TABLE CONTENTS -->
 
