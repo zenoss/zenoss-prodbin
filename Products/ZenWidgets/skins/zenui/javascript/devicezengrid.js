@@ -53,7 +53,7 @@ DeviceZenGridBuffer.prototype = {
         this.rows = new Array();
         this.updating = false;
         this.grid = null;
-        this.maxQuery = 50;
+        this.maxQuery = 150;
         this.totalRows = 0;
         this.numRows = 0;
         this.numCols = 0;
@@ -103,7 +103,7 @@ DeviceZenGridBuffer.prototype = {
                 newOffset = Math.min(offset, newOffset + (2*this.tolerance()));
             }
         }
-        return newOffset;
+        return Math.min(newOffset, this.endPos())
     },
     getRows: function(start, count) {
         var bPos = start - this.startPos;
@@ -260,7 +260,6 @@ DeviceZenGrid.prototype = {
         event.returnValue = false;
     },
     scrollTable: function(delta) {
-        if (this.scrollTimeout) clearTimeout(this.scrollTimeout);
         var pixelDelta = this.rowToPixel(delta);
         this.scrollbar.scrollTop -= pixelDelta;
     },
@@ -313,6 +312,10 @@ DeviceZenGrid.prototype = {
         this.lastOffset = offset;
         bufOffset = this.buffer.queryOffset(offset);
         bufSize = this.buffer.querySize(bufOffset);
+        if (bufSize==0) {
+            if (this.lock.locked) this.lock.release();
+            return;
+        }
         var qs = update(this.lastparams, {
             'offset': bufOffset,
             'count': bufSize
@@ -362,8 +365,12 @@ DeviceZenGrid.prototype = {
         popLock.addCallback(bind(function() {
             if (this.lock.locked) this.lock.release();
             this.updateStatusBar(offset);
-            if (offset + this.numRows != this.buffer.totalRows)
+            try {
                 this.populateTable(this.buffer.getRows(offset, this.numRows));
+            } catch(e) {
+                noop();
+            }
+            this.killLoading();
         }, this));
     },
     getBlankRow: function(indx) {
@@ -674,20 +681,18 @@ DeviceZenGrid.prototype = {
     },
     scrollToPixel: function(pixel) {
         var diff = this.lastPixelOffset-pixel;
-        if (diff==0.00) return;
+        if (diff==0.00 && pixel!=this.scrollbar.height) return;
         var sign = Math.abs(diff)/diff;
         pixel = sign<0?
         Math.ceil(pixel/(this.rowSizePlus))*(this.rowSizePlus):
         Math.floor(pixel/(this.rowSizePlus))*(this.rowSizePlus);
         var newOffset = this.pixelToRow(pixel);
         this.updateStatusBar(newOffset);
-        if (newOffset==0||newOffset==this.buffer.totalRows-this.numRows) 
+        if (this.scrollDeferred) this.scrollDeferred.cancel();
+        this.scrollDeferred = callLater(0.1, method(this, function() {
             this.refreshTable(newOffset);
-        clearTimeout(this.scrollTimeout);
-        this.scrollTimeout = setTimeout (
-            bind(function() {
-                this.refreshTable(newOffset);
-            }, this), 100);
+            this.scrollDeferred = null;
+        }));
         this.lastPixelOffset = pixel;
     },
     handleScroll: function() {
@@ -753,16 +758,16 @@ DeviceZenGrid.prototype = {
     },
     resizeTable: function() {
         var maxTableBottom = getViewportDimensions().h +
-            getViewportPosition().y - 20;
-        var curTableBottom = 
-            Math.max(0,
-                getElementDimensions(this.viewport).h +
-                getElementPosition(this.viewport).y);
-        var diff = maxTableBottom - curTableBottom;
-        var rowdiff = Math.floor(diff/this.rowSizePlus);
-        if (rowdiff==0 && this.buffer.totalRows!=0) return;
-        this.numRows = this.buffer.pageSize = Math.max(1, this.numRows + rowdiff);
-        this.setTableNumRows( Math.min( this.numRows, this.buffer.totalRows));
+            getViewportPosition().y;
+        var topOfRows = getElementPosition(this.viewport).y;
+        var bottomMargin = 20;
+        var roomToWorkWith = maxTableBottom - topOfRows - bottomMargin;
+        var maxRows = Math.floor(roomToWorkWith/this.rowSizePlus);
+        var newNumRows = this.buffer.totalRows ?
+                         Math.min(maxRows, this.buffer.totalRows) :
+                         maxRows;
+        this.numRows = newNumRows;
+        this.setTableNumRows(newNumRows);
         this.refreshTable(this.lastOffset);
         this.updateStatusBar(this.lastOffset);
         this.viewportHeight = getViewportDimensions().h;
