@@ -117,7 +117,8 @@ class Location(DeviceOrganizer, ZenPackable):
     def getGeomapData(self):
         """ Returns node info ready for Google Maps """
         address = self.address
-        summary = self.getEventSummary()
+        psthresh = self.dmd.prodStateDashboardThresh
+        summary = self.getEventSummary(prodState=psthresh)
         colors = 'red orange yellow green green'.split()
         color = 'green'
         for i in range(5):
