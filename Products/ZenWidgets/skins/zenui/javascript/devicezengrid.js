@@ -714,7 +714,7 @@ DeviceZenGrid.prototype = {
                 this.refreshWithParams({filter:filters});
                 return;
             case 'KEY_ENTER':
-            e.preventDefault()
+                e.preventDefault()
                 clearTimeout(this.LSTimeout);
                 this.refreshWithParams({filter:filters});
                 return;

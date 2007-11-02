@@ -2,7 +2,7 @@
 <tal:block metal:fill-slot="breadcrumbs">Device List</tal:block>
 <tal:block metal:fill-slot="contentPane">
 
-<form method="POST" tal:attributes="action request/URL; name string:deviceList"
+<tal:block 
     tal:define="
         tableName string:devicelist;
         tblcolspan string:6;
@@ -36,7 +36,7 @@
 </tal:block>
 </tal:block>
 
-</form>
+</tal:block>
 
 </tal:block>
 </tal:block>
