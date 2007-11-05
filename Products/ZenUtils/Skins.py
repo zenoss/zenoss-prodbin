@@ -33,6 +33,8 @@ def registerSkin(self, base, positionAfter='custom'):
         skinstool = getToolByName(self, 'portal_skins')
         for layer in layers:
             if layer not in skinstool.objectIds():
+                path = os.path.join(base, 'skins')
+                if not os.path.exists(path): os.mkdir(path, mode=0755)
                 addDirectoryViews(skinstool, 'skins', base)
         skins = skinstool.getSkinSelections()
         for skin in skins:
