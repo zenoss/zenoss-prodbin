@@ -52,6 +52,10 @@ class zeneventlog(Base):
                 self.devices[name] = self.getWatcher(name, ip, user,passwd,sev)
             except Exception, ex:
                 msg = self.printComErrorMessage(ex)
+                if msg.find('RPC_S_CALL_FAILED') >= 0:
+                    # transient error, log it but don't create an event
+                    self.log.exception('Ignoring: %s' % msg)
+                    continue
                 if not msg:
                     msg = 'WMI connect error on %s: %s' % (name, str(ex))
                 self.log.exception(msg)

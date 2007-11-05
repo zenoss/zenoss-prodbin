@@ -82,7 +82,11 @@ class zenwinmodeler(Base):
                         scode = abs(scode)
                         if descr: wmsg = descr.strip()
                     msg += "%d: %s" % (scode, wmsg)
-                self.sendFail(name, msg, Status_Wmi_Conn, Event.Error)
+                if msg.find('RPC_S_CALL_FAILED') >= 0:
+                    # transient error, log it but don't create an event
+                    self.log.exception('Ignoring: %s' % msg)
+                else:
+                    self.sendFail(name, msg, Status_Wmi_Conn, Event.Error)
             except:
                 self.sendFail(name)
 
