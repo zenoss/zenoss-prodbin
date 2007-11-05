@@ -289,9 +289,9 @@ function addSelectionBar() {
 
 function applyBrowserSpecificStyles() {
     if (navigator.userAgent.match('Mac')) {
-        var myinput = $('settings').getElementsByTagName('input')[0];
-        setStyle(myinput, {
-            'margin-top':'-4px'
+        var searchform=$("searchform-label");
+        setStyle(searchform, {
+            'left':'-5em'
         });
     }
 }
@@ -306,6 +306,6 @@ var removeElementAutoCompletes = function() {
 }
 
 addLoadEvent(removeElementAutoCompletes);
-//addLoadEvent(applyBrowserSpecificStyles);
+addLoadEvent(applyBrowserSpecificStyles);
 addLoadEvent(addSelectionBar);
 addLoadEvent(checkForCollapsed);
