@@ -40,6 +40,8 @@ import DateTime
 import socket
 import os
 import sys
+from sets import Set
+import string
 
 from Products.ZenUtils.Utils import zenPath
 from Products.ZenUtils.Utils import extractPostContent
@@ -593,6 +595,22 @@ class DataRoot(ZenModelRM, OrderedFolder, Commandable, ZenMenuable):
         ''' Extract the zenpack name from the broken module
         '''
         return pack.__class__.__module__.split('.')[1]
+
+
+    def checkValidId(self, id, prep_id = False):
+        """Checks a valid id
+        """
+        if len(id) > 128:
+            return 'ZenPack names can not be longer than 128 characters.'
+        allowed = Set(list(string.ascii_letters)
+                        + list(string.digits)
+                        + ['_'])
+        attempted = Set(list(id))
+        if not attempted.issubset(allowed):
+            return 'Only letters, digits and underscores are allowed' + \
+                    ' in ZenPack names.'
+        return ZenModelRM.checkValidId(self, id, prep_id)
+
 
     def getIconPath(self, obj):
         """ Retrieve the appropriate image path associated
