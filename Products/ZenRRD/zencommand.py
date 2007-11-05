@@ -350,6 +350,10 @@ class Cmd:
         for p in cfg.points:
             self.points[p[0]] = p[1:]
 
+    def key(self, point):
+        # fetch datapoint name from filename path and add it to the event key
+        return self.eventKey + '|' + self.points[point][0].split('/')[-1]
+
 class Options:
     loginTries=1
     searchPath=''
@@ -558,7 +562,7 @@ class zencommand(RRDDaemon):
                                       cmd.cycleTime, minv, maxv)
                 log.debug("rrd save result: %s" % value)
                 for ev in self.thresholds.check(path, time.time(), value):
-                    ev['eventKey'] = cmd.eventKey
+                    ev['eventKey'] = cmd.key(label)
                     ev['eventClass'] = cmd.eventClass
                     ev['component'] = cmd.component
                     self.sendThresholdEvent(**ev)
