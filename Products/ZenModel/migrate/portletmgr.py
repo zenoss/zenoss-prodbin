@@ -19,7 +19,7 @@ from Acquisition import aq_base
 
 
 class PortletManager(Migrate.Step):
-    version = Migrate.Version(2, 2, 0)
+    version = Migrate.Version(2, 1, 1)
 
     def cutover(self, dmd):
         zport = aq_base(dmd.zport)
