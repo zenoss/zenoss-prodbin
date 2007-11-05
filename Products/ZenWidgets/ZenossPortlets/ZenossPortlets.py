@@ -13,10 +13,10 @@
 
 import os
 from Products.ZenModel.ZenossSecurity import *
+from Products.ZenUtils.Utils import zenPath
 
 def portletpath(*args):
-    workdir = os.environ['ZENHOME']+ '/Products/ZenWidgets'
-    return os.path.join(workdir, *args)
+    return zenPath('/Products/ZenWidgets', *args)
 
 portlets = [
     {
