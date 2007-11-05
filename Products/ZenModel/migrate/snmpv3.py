@@ -13,6 +13,7 @@
 __doc__='Add zProperties for SNMPv3'
 
 import Migrate
+from Acquisition import aq_base
 
 class SNMPv3(Migrate.Step):
     version = Migrate.Version(2, 1, 1)
@@ -24,7 +25,7 @@ class SNMPv3(Migrate.Step):
                      "zSnmpPrivPassword",
                      "zSnmpAuthType",
                      "zSnmpPrivType"):
-            if not hasattr(devs, name):
+            if not hasattr(aq_base(devs), name):
                 devs._setProperty(name, "")
 
 SNMPv3()
