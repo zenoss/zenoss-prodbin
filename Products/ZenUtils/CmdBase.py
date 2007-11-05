@@ -42,6 +42,9 @@ def parseconfig(options):
         value = value.rstrip('\r\n')
         key = key.lower()
         defval = getattr(options, key, None)
+        # hack around for #2290: ignore config file values for
+        # list types when the user has provided a value
+        if type(defval) == type([]) and defval: continue
         if defval: value = type(defval)(value)
         setattr(options, key, value)
 
