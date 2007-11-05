@@ -221,7 +221,7 @@
     <div class="searchbox">
     <form action="/zport/dmd/deviceSearchResults" method="POST"
 		name="searchform">
-        <span class="searchform-label">Device/IP Search</span>
+        <span class="searchform-label" id="searchform-label">Device/IP Search</span>
         <input type="text" name="query" 
             onkeypress="submitViaEnter(event)"
             onclick="select(this.value)"
