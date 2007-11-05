@@ -112,6 +112,21 @@ help() {
 }
 
 
+getPort()
+{
+   PORT=$1 ; shift
+   name=$1 ; shift
+   while [ $# -ge 1 ]; do
+       eval "
+       case $1 in
+	   $name=*) PORT=`echo $1 | sed -e \"s/$name=//\"` ;;
+	   $name) PORT=$2; shift;;
+       esac
+       "
+       shift
+   done
+   echo $PORT
+}
 
 genconf() {
     #

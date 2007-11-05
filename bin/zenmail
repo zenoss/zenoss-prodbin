@@ -12,7 +12,8 @@
 
 . $ZENHOME/bin/zenfunctions
 
-SUDO="$ZENHOME/bin/zensocket --listen --proto=tcp --port=25 -- "
+PORT=`getPort 25 --listenPort $@`
+SUDO="$ZENHOME/bin/zensocket --listen --proto=tcp --port=$PORT -- "
 PRGHOME=$ZENHOME/Products/ZenEvents
 PRGNAME=zenmail.py
 CFGFILE=$CFGDIR/zenmail.conf

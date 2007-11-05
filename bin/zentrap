@@ -12,7 +12,9 @@
 
 . $ZENHOME/bin/zenfunctions
 
-SUDO="$ZENHOME/bin/zensocket --listen --proto=udp --port=162 -- "
+PORT=`getPort 162 --trapport $@`
+PORT=`getPort $PORT -t $@`
+SUDO="$ZENHOME/bin/zensocket --listen --proto=udp --port=$PORT -- "
 PRGHOME=$ZENHOME/Products/ZenEvents
 PRGNAME=zentrap.py
 CFGFILE=$CFGDIR/zentrap.conf

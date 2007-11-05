@@ -12,7 +12,8 @@
 
 . $ZENHOME/bin/zenfunctions
 
-SUDO="$ZENHOME/bin/zensocket --listen  --proto=udp --port=514 -- "
+PORT=`getPort 514 --syslogport $@`
+SUDO="$ZENHOME/bin/zensocket --listen  --proto=udp --port=$PORT -- "
 PRGHOME=$ZENHOME/Products/ZenEvents
 PRGNAME=zensyslog.py
 CFGFILE=$CFGDIR/zensyslog.conf
