@@ -154,7 +154,7 @@ class Ping(object):
                     try:
                         icmppkt = icmp.disassemble(ipreply.data, 0)
                     except ValueError:
-                        pass            # probably Unknown type
+                        continue            # probably Unknown type
                 sip =  ipreply.src
                 if (icmppkt.get_type() == icmp.ICMP_ECHOREPLY and 
                     icmppkt.get_id() == self.procId and
