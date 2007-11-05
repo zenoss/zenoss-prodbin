@@ -53,6 +53,7 @@ table.innerzentable {
 
 div.zentable_selectionbar {
     height: 12px;
+    border-bottom: medium none;
 }
 
 .tabletitletext {
@@ -135,9 +136,11 @@ td.tabtablecap {
 }
 
 div.dialog_container {
-    zoom: 1;
-    overflow: visible;
-    width: 30%;
+    zoom: 100%;
+    width: 500px;
+}
+div.dialog_container select {
+    width: 400px; 
 }
 
 div#gridcontainer {
@@ -199,5 +202,4 @@ span.searchform-label {
 #leftPane-bottom {
     margin-top: 0px;
 }
-
 
