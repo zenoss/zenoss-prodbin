@@ -93,7 +93,7 @@ class TestZenHub(unittest.TestCase):
                                            '--pbport=%d' % base,
                                            '--xport=%d' % xbase]
         self.zenhub = ZenHub()
-        reactor.callLater(1, stop)
+        reactor.callLater(5, stop)
 
     def tearDown(self):
         sys.argv = self.before
