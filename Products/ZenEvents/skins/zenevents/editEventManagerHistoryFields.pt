@@ -91,60 +91,6 @@
         </td>
     </tr>
     <tr>
-        <td class="tableheader">Default Event Id</td>
-        <td class="tablevalues"> 
-        <div style="float:left;">
-                   <textarea
-                   tal:content="python:'\n'.join(obj.defaultEventId)"
-                      name="defaultEventId:lines"
-                      id="ta_defaultEventId"></textarea>
-        <h5>Fields (drag to change order)</h5>
-
-        </div>
-        <div style="float:left;">
-            <ul id="ul_defaultEventId"
-                class="sortable_list fieldlist">
-                <li 
-                class="sortable_item fieldlist"
-                tal:repeat="field python:[x for x in obj.getFieldList() if x
-                not in obj.defaultEventId]"
-                    tal:content="field">item</li>
-            </ul>
-        <h5>Available fields (drag to other list to add)</h5>
-        </div>
-            <script> var x = new ZenDragDropList('ta_defaultEventId',
-                                                 'ul_defaultEventId');
-            </script>
-        </td>
-    </tr>
-    <tr>
-        <td class="tableheader">Required Fields</td>
-        <td class="tablevalues"> 
-        <div style="float:left;">
-                   <textarea
-                   tal:content="python:'\n'.join(obj.requiredEventFields)"
-                      name="requiredEventFields:lines"
-                      id="ta_requiredEventFields"></textarea>
-        <h5>Fields (drag to change order)</h5>
-
-        </div>
-        <div style="float:left;">
-            <ul id="ul_requiredEventFields"
-                class="sortable_list fieldlist">
-                <li 
-                class="sortable_item fieldlist"
-                tal:repeat="field python:[x for x in obj.getFieldList() if x
-                not in obj.requiredEventFields]"
-                    tal:content="field">item</li>
-            </ul>
-        <h5>Available fields (drag to other list to add)</h5>
-        </div>
-            <script> var x = new ZenDragDropList('ta_requiredEventFields',
-                                                 'ul_requiredEventFields');
-            </script>
-        </td>
-    </tr>
-    <tr>
         <td class="tableheader" colspan="2">
             <input type='submit' value="Save"
                 name='zmanage_editProperties:method'>
@@ -206,24 +152,6 @@
             <textarea class="tablevalues" rows="7" cols="40"
                 name="DeviceResultFields:lines" 
                 tal:content='python: "\n".join(obj.DeviceResultFields)'>
-            </textarea>
-        </td>
-    </tr>
-    <tr>
-        <td class="tableheader">Default Event Id</td>
-        <td class="tablevalues"> 
-            <textarea class="tablevalues" rows="5" cols="40"
-                name="defaultEventId:lines" 
-                tal:content='python: "\n".join(obj.defaultEventId)'>
-            </textarea>
-        </td>
-    </tr>
-    <tr>
-        <td class="tableheader">Required Fields</td>
-        <td class="tablevalues"> 
-            <textarea class="tablevalues" rows="5" cols="40"
-                name="requiredEventFields:lines" 
-                tal:content='python: "\n".join(obj.requiredEventFields)'>
             </textarea>
         </td>
     </tr>
