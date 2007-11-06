@@ -22,12 +22,13 @@ class MoveExportPackMenuItem(Migrate.Step):
     def cutover(self, dmd):
 
         # Remove "Export ZenPack" item from the ZenPack menu.
-        zenPackMenu = dmd.zenMenus._getOb('ZenPack')
-        if zenPackMenu and zenPackMenu.zenMenuItems._getOb('exportZenPack'):
+        zenPackMenu = dmd.zenMenus._getOb('ZenPack', None)
+        if zenPackMenu and \
+            zenPackMenu.zenMenuItems._getOb('exportZenPack', None):
             zenPackMenu.zenMenuItems._delObject('exportZenPack')
 
         # Add to the More menu
-        moreMenu = dmd.zenMenus._getOb('More')
+        moreMenu = dmd.zenMenus._getOb('More', None)
         if moreMenu:
             moreMenu.manage_addZenMenuItem(
                 id='exportZenPack',
