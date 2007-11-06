@@ -27,8 +27,8 @@ from util.selenium import selenium
 HOST        =   "zenosst2.zenoss.loc"               # Zenoss instance to test
 USER        =   "admin"                 # Username for HOST
 PASS        =   "zenoss"                # Password for HOST
-SERVER      =   "selserver.zenoss.loc"             # Hosts the selenium jar file
-TARGET      =   "selserver.zenoss.loc" # Added/deleted in HOST
+SERVER      =   "zenosst2.zenoss.loc"             # Hosts the selenium jar file
+TARGET      =   "zenosst2.zenoss.loc" # Added/deleted in HOST
 BROWSER     =   "*firefox"              # Can also be "*iexplore"
 WAITTIME    =   "60000"                 # Time to wait for page loads in milliseconds
 ### END GLOBAL DEFS ###
