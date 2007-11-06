@@ -179,6 +179,7 @@ class FileSystem(OSComponent):
             self.snmpindex = snmpindex
         
         self.monitor = monitor
+        self.index_object()
 
         if REQUEST:
             REQUEST['message'] = "FileSystem updated"
