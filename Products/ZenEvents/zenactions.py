@@ -66,11 +66,12 @@ class EventCommandProtocol(ProcessProtocol):
             code = reason.value.exitCode
         except AttributeError, ex:
             pass
-        if self.data and code == 0:
+        if code == 0:
             self.server.log.debug("Command %s says: %s", self.cmd.id, self.data)
+            summary = self.data or "<command produced no output>"
             self.server.sendEvent(Event.Event(device=socket.getfqdn(),
                                               eventClass=Cmd_Ok,
-                                              summary=self.data,
+                                              summary=summary,
                                               severity=Event.Clear,
                                               component="zenactions"))
             return
