@@ -970,14 +970,14 @@ dl.faux-table dt, dl.faux-table dd {
 dl.faux-table dt {
     font-size: 0.9em;
     text-align: right;
-    width: 7em;
+    width: 8em;
     color: #222;
     white-space: nowrap;
 }
 dl.faux-table dd {
     font-size: 1em;
     margin-top: -1.6431819em;
-    margin-left: 7.2em;
+    margin-left: 8.2em;
 }
 dl.faux-table .first {
     border: medium none;
