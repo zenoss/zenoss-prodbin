@@ -3,7 +3,8 @@
     zem python:here.ZenEventManager;
     colors python:'red orange yellow blue grey green'.split();
     summaries python:[x[2] for x in zem.getEventSummaryME(here, 0)]">
-    <div class="vertical-rainbow" onclick="location.href='viewEvents'">
+    <div class="vertical-rainbow"
+    onclick="location.href=YAHOO.zenoss.templateFreeURL+'/viewEvents'">
         <tal:block tal:repeat="evnum python:summaries[:-1]">
         <div tal:define="color python:colors[repeat['evnum'].index]"
             tal:attributes="class string:evpill-${color}">
@@ -42,7 +43,8 @@
     zem python:here.ZenEventManager;
     colors python:'red orange yellow blue grey green'.split();
     summaries python:[x[2] for x in zem.getEventSummaryME(here, 0)]">
-    <div class="horizontal-rainbow" onclick="location.href='viewEvents'">
+    <div class="horizontal-rainbow"
+    onclick="location.href=YAHOO.zenoss.templateFreeURL+'/viewEvents'">
         <tal:block tal:repeat="evnum python:summaries[:-1]">
         <div tal:define="color python:colors[repeat['evnum'].index]"
             tal:attributes="class string:evpill-${color}"
