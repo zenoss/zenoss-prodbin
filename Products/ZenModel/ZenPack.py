@@ -108,7 +108,6 @@ class ZenPack(ZenModelRM):
         for loader in self.loaders:
             loader.load(self, app)
         self.createZProperties(app)
-        self.migrate()
 
 
     def upgrade(self, app):
