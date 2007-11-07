@@ -108,6 +108,7 @@ class ZenPack(ZenModelRM):
         for loader in self.loaders:
             loader.load(self, app)
         self.createZProperties(app)
+        self.migrate()
 
 
     def upgrade(self, app):
@@ -205,7 +206,7 @@ class ZenPack(ZenModelRM):
         xml.write("<objects>\n")
         packables = eliminateDuplicates(self.packables())
         for obj in packables:
-            obj = aq_base(obj)
+            # obj = aq_base(obj)
             xml.write('<!-- %r -->\n' % (obj.getPrimaryPath(),))
             obj.exportXml(xml,['devices','networks', 'pack'],True)
         xml.write("</objects>\n")
