@@ -761,6 +761,7 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
         if not entities:
             entities = simplejson.loads(extractPostContent(REQUEST), 
                                         encoding = 'ascii')
+        if type(entities)==type(''): entities = [entities]
         def getob(e):
             e = str(e)
             try:
