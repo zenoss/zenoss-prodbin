@@ -460,15 +460,15 @@ class UserSettings(ZenModelRM):
                 },
                 {'name'         : 'Administered Objects', 
                 'action'        : 'administeredDevices', 
-                'permissions'   : (ZEN_VIEW,)
+                'permissions'   : (ZEN_CHANGE_ADMIN_OBJECTS,)
                 },
                 {'name'         : 'Event Views',
                 'action'        : 'editEventViews',
-                'permissions'   : (ZEN_VIEW,),
+                'permissions'   : (ZEN_CHANGE_EVENT_VIEWS,),
                 },
                 {'name'         : 'Alerting Rules',
                 'action'        : 'editActionRules',
-                'permissions'   : (ZEN_VIEW,),
+                'permissions'   : (ZEN_CHANGE_ALERTING_RULES,),
                 },
             )
          },
