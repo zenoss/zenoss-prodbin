@@ -301,7 +301,7 @@ class zenprocess(SnmpDaemon):
                 self._devices[name].snmpStatus = 0
                 self.sendEvent(self.statusEvent,
                                eventClass=Status_Snmp,
-                               component="snmp",
+                               component="process",
                                device=name,
                                summary=message,
                                severity=Event.Clear)
@@ -385,7 +385,7 @@ class zenprocess(SnmpDaemon):
         "Log exception for a single device"
         self.sendEvent(self.statusEvent,
                        eventClass=Status_Snmp,
-                       component="snmp",
+                       component="process",
                        device=device.name,
                        summary='Unable to read processes on device %s' % device.name,
                        severity=Event.Error)
@@ -404,8 +404,7 @@ class zenprocess(SnmpDaemon):
             log.info(summary)
             return
         if device.snmpStatus > 0:
-            device.snmpStatus = 0
-            summary = 'Good SNMP response from device %s' % device.name
+            summary = 'Process table up for device %s' % device.name
             self.clearSnmpError(device.name, summary)
             
         procs = []
@@ -530,11 +529,12 @@ class zenprocess(SnmpDaemon):
 
     def storePerfStats(self, results, device):
         "Save the performance data in RRD files"
-        if isinstance(results, failure.Failure):
-            self.error(results)
-            return results
+        for result in results:
+            if not result[0]:
+                self.error(results)
+                return results
         self.clearSnmpError(device.name,
-                            'Performance data read for %s' % device.name)
+                            'Process table up for device %s' % device.name)
         parts = {}
         for success, values in results:
             if success:
