@@ -58,6 +58,12 @@
             </td>
         </tr>
         <tr>
+            <th class="tableheader">Server Key</th>
+            <td class="tablevalues">
+            <span tal:content="here/dmd/uuid | string:">x</span>
+            </td>
+        </tr>
+        <tr>
             <th class="tableheader">
                <input type="submit" 
                       name="manage_checkVersion:method" 
