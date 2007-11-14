@@ -56,9 +56,9 @@ class TestDeviceList(TestDeviceInstanceBase):
         self._goToDeviceList() 
         self.waitForElement("id=setSelectAll")
         self.selenium.click("id=setSelectAll")
-        self.assert_(
-            do_command_byname(self.selenium, "verifyChecked", "evids:list")
-        )
+        do_command_byname(self.selenium, "assertChecked", "evids:list")
+        self.selenium.click("id=setSelectNone")
+        do_command_byname(self.selenium, "assertNotChecked", "evids:list")
 
     def xtestSelectNone(self):
         """Test Deselcting all devices"""

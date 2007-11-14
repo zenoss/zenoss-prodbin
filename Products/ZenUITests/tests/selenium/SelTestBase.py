@@ -24,11 +24,11 @@ from util.selTestUtils import *
 from util.selenium import selenium
 
 ### BEGIN GLOBAL DEFS ###
-HOST        =   "192.168.1.197"         # Zenoss instance to test
+HOST        =   "zenosst2.zenoss.loc"         # Zenoss instance to test
 USER        =   "admin"                 # Username for HOST
 PASS        =   "zenoss"                # Password for HOST
-SERVER      =   "192.168.1.111"         # Hosts the selenium jar file
-TARGET      =   "192.168.1.197"         # Added/deleted in HOST
+SERVER      =   "zenosst2.zenoss.loc"         # Hosts the selenium jar file
+TARGET      =   "zenosst2.zenoss.loc"         # Added/deleted in HOST
 BROWSER     =   "*iexplore"             # Can also be "*iexplore"
 WAITTIME    =   "60000"                 # Time to wait for page loads in milliseconds
 ### END GLOBAL DEFS ###
