@@ -17,11 +17,12 @@
 # Adam Modlin and Nate Avers
 #
 
-import sys, time, re
+import sys, time, re, os
 import unittest
 from util.selTestUtils import *
 
 from util.selenium import selenium
+
 
 ### BEGIN GLOBAL DEFS ###
 HOST        =   "zenosst2.zenoss.loc"         # Zenoss instance to test
@@ -29,9 +30,13 @@ USER        =   "admin"                 # Username for HOST
 PASS        =   "zenoss"                # Password for HOST
 SERVER      =   "zenosst2.zenoss.loc"         # Hosts the selenium jar file
 TARGET      =   "zenosst2.zenoss.loc"         # Added/deleted in HOST
-BROWSER     =   "*iexplore"             # Can also be "*iexplore"
+BROWSER     =   "*firefox"             # Can also be "*iexplore"
 WAITTIME    =   "60000"                 # Time to wait for page loads in milliseconds
 ### END GLOBAL DEFS ###
+
+# Check for local defs
+if os.path.exists('_seleniumtestdata.py'):
+    from _seleniumtestdata import *
 
 class SelTestBase(unittest.TestCase):
     """Base class for Zenoss Selenium tests.
@@ -106,6 +111,7 @@ class SelTestBase(unittest.TestCase):
         self.waitForElement("link=" + deviceIp)
         self.selenium.click("link=" + deviceIp)
         self.selenium.wait_for_page_to_load(self.WAITTIME)
+        self.devicenames.append(deviceIp)
         
     def deleteDevice(self):
         """Delete the test target device from Zenoss test instance"""
@@ -153,9 +159,9 @@ class SelTestBase(unittest.TestCase):
                 self.selenium.select(key, value[1])
         self.selenium.click(addMethod) # Submit form.
         self.selenium.wait_for_page_to_load(self.WAITTIME) # Wait for page refresh.
-    def goToDevice(self):
+    def goToDevice(self, deviceName=TARGET):
         self.waitForElement("searchform")
-        self.selenium.type("query", TARGET)
+        self.selenium.type("query", deviceName)
         self.selenium.submit("searchform")
         self.selenium.wait_for_page_to_load(self.WAITTIME)
         
