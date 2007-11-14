@@ -106,60 +106,100 @@ class FileSystem(OSComponent):
 
     
     def totalBytes(self):
+        """
+        Return the total bytes of a filesytem
+        """
         return int(self.blockSize) * int(self.totalBlocks)
 
     def totalBytesString(self):
+        """
+        Return the number of total bytes in human readable from ie 10MB
+        """
         return convToUnits(self.totalBytes())
 
     def usedBytes(self):
+        """
+        Return the number of used bytes on a filesytem.
+        """
         blocks = self.usedBlocks()
         if blocks is not None:
             return self.blockSize * blocks
         return None
     
     def usedBytesString(self):
+        """
+        Return the number of used bytes in human readable form ie 10MB
+        """
         ub = self.usedBytes()
         return ub is None and "unknown" or convToUnits(ub)
         
 
     def availBytes(self):
+        """
+        Return the number of availible bytes for this filesystem
+        """
         blocks = self.usedBlocks()
         if blocks is not None:
             return self.blockSize * (self.totalBlocks - self.usedBlocks())
         return None
 
     def availBytesString(self):
+        """
+        Return the number of availible bytes in human readable form ie 10MB
+        """
         ab = self.availBytes()
         return ab is None and "unknown" or convToUnits(ab)
         
 
     def availFiles(self):
+        """
+        Not implemented returns 0
+        """
         return 0
 
     def capacity(self):
+        """
+        Return the percentage capacity of a filesystems using its rrd file
+        """
         usedBytes = self.usedBytes()
         if self.totalBytes() and usedBytes is not None:
             return int(100.0 * self.usedBytes() / self.totalBytes())
         return 'unknown'
 
     def inodeCapacity(self):
+        """
+        Not implemented returns 0
+        """
         return 0
 
     def usedBlocks(self, default = None):
+        """
+        Return the number of used blocks stored in the filesystem's rrd file
+        """
         blocks = self.cacheRRDValue('usedBlocks', default)
         if blocks is not None:
             return long(blocks)
         return None
 
     def usedBlocksString(self):
+        """
+        Return the number of used blocks in human readable form ie 10MB
+        """
         ub = self.usedBlocks()
         return ub is None and "unknown" or convToUnits(ub)
         
 
     def getRRDNames(self):
+        """
+        Return the datapoint name of this filesystem 'usedBlocks_usedBlocks'
+        """
         return ['usedBlocks_usedBlocks']
 
-    def viewName(self): return self.mount
+    def viewName(self): 
+        """
+        Return the mount point name of a filesystem '/boot'
+        """
+        return self.mount
     name = viewName
 
     def manage_editFileSystem(self, monitor=False,
