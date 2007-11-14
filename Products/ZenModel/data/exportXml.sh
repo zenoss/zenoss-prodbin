@@ -1,7 +1,7 @@
 #! /bin/sh
 
 echo 'Running migrate'
-zenmigrate run -v 10
+zenmigrate -v 10
 
 echo 'Dumping...\c'
 echo 'menus...\c'
