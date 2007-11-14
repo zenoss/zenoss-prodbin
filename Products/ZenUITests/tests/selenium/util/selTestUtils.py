@@ -27,3 +27,17 @@ class TimeoutError(Exception):
     """This will be thrown when an element is not found
         on a page and times out."""
     pass
+
+def do_command_byname(selenium, command, name):
+    """Runs specified command on all elements with the given name"""
+    _flag = True
+    i = 0
+    while _flag:
+       locator = "name=%s index=%s" % (name, i)
+       try:
+           selenium.do_command(command, [locator,])
+           i += 1
+       except Exception, data:
+           if "ndex out of range" in data[0]: _flag = False
+           else: raise Exception, data
+
