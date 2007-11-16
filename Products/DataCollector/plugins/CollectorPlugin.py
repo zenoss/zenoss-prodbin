@@ -99,7 +99,18 @@ class CollectorPlugin:
             log.error("result missing columns: '%s'", 
                      ",".join(cols.difference(rescols)))
         return rescols == cols
-        
+
+
+class PythonPlugin(CollectorPlugin):
+    """
+    A PythonPlugin defines a native Python collection routine and a parsing
+    method to turn the returned data structure into a datamap. A valid
+    PythonPlugin must implement the collect and process methods.
+    """
+    transport = "python"
+    def collect(self, device, log):
+        pass
+
 
 class CommandPlugin(CollectorPlugin):
     """

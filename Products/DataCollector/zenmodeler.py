@@ -25,6 +25,7 @@ from Products.ZenUtils.ZCmdBase import ZCmdBase
 from Products.ZenEvents.ZenEventClasses import Heartbeat
 
 from ApplyDataMap import ApplyDataMap, ApplyDataMapThread
+import PythonClient
 import SshClient
 import TelnetClient
 import SnmpClient
@@ -139,10 +140,34 @@ class ZenModeler(ZCmdBase):
         if not ip:
             ip = device.setManageIp()
         timeout = clientTimeout + time.time()
+        self.pythonCollect(device, ip, timeout)
         self.cmdCollect(device, ip, timeout)
         self.snmpCollect(device, ip, timeout)
         self.portscanCollect(device, ip, timeout)
-        
+
+
+    def pythonCollect(self, device, ip, timeout):
+        """Start local collection client.
+        """
+        client = None
+        try:
+            plugins = self.selectPlugins(device, "python")
+            if not plugins:
+                self.log.info("no python plugins found for %s" % device.id)
+                return
+            if self.checkCollection(device):
+                self.log.info('python collection device %s' % device.id)
+                self.log.info("plugins: %s",
+                        ", ".join(map(lambda p: p.name(), plugins)))
+                client = PythonClient.PythonClient(device, self, plugins)
+            if not client or not plugins:
+                self.log.warn("python client creation failed")
+                return
+        except (SystemExit, KeyboardInterrupt): raise
+        except:
+            self.log.exception("error opening pythonclient")
+        self.addClient(client, timeout, 'python', device.id)
+
 
     def cmdCollect(self, device, ip, timeout):
         """Start command collection client.
