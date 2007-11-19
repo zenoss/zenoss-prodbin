@@ -16,6 +16,7 @@ log = logging.getLogger("zen.PythonClient")
 
 import Globals
 from CollectorClient import CollectorClient
+from twisted.internet import reactor
 
 class PythonClient(object):
 
