@@ -188,6 +188,7 @@ class RRDDataSource(ZenModelRM, ZenPackable):
         compiled = talesCompile(exp)    
         d = context.device()
         environ = {'dev' : d,
+                   'device': d,
                    'devname': d.id,
                    'here' : context, 
                    'zCommandPath' : context.zCommandPath,
