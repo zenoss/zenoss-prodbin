@@ -16,7 +16,6 @@ log = logging.getLogger("zen.PythonClient")
 
 import Globals
 from CollectorClient import CollectorClient
-from twisted.internet import reactor
 
 class PythonClient(object):
 
@@ -42,8 +41,6 @@ class PythonClient(object):
         log.info("python client finished collection for %s" % self.device.id)
         if self.datacollector:
             self.datacollector.clientFinished(self)
-        else:
-            reactor.stop()
 
 
     def getResults(self):
