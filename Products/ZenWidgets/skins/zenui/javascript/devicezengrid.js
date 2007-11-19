@@ -318,7 +318,8 @@ DeviceZenGrid.prototype = {
         }
         var qs = update(this.lastparams, {
             'offset': bufOffset,
-            'count': bufSize
+            'count': bufSize,
+            'ms': new Date().getTime()
         });
         var d = loadJSONDoc(url, qs);
         d.addErrback(bind(function(x) { 
