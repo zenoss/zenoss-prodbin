@@ -88,7 +88,7 @@ class SnmpClient(object):
         try:
             driver.next()
         except Exception, ex:
-            log.exception("Unable to talk: ", self.connInfo.summary())
+            log.exception("Unable to talk: " + self.connInfo.summary())
             return
 
         changed = True
