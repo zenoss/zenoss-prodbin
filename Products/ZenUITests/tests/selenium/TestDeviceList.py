@@ -80,7 +80,7 @@ class TestDeviceList(TestDeviceListBase):
         self.selenium.click("id=setSelectNone")
         do_command_byname(self.selenium, "assertNotChecked", "evids:list")
 
-    def testSetPriority(self):
+    def _testSetPriority(self):
         """Test Setting Priority to the Highest"""
         curtarget = "zenosst.zenoss.loc"
         self._goToDeviceList() 
@@ -104,7 +104,7 @@ class TestDeviceList(TestDeviceListBase):
         self.selenium.select('state', 'value=400')
         self.selenium.click("setProductionState:method")
         self.selenium.do_command("waitForText",
-                ['id=messageSlot', 'Production State Set to Test'])
+                ['id=messageSpan'])
         self.goToDevice(curtarget)
         self.selenium.do_command('assertTextPresent', ['Test'])
 
@@ -132,10 +132,9 @@ class TestDeviceList(TestDeviceListBase):
         self.waitForElement("setGroups:method")
         self.selenium.select('groupPaths', 'value=/testingString')
         self.selenium.click("setGroups:method")
-        self.selenium.do_command("waitForText",
-                ['id=messageSlot', 'Groups'])
-        self.goToDevice(curtarget)
-        self.selenium.do_command('assertTextPresent', ['/testingString'])
+        self.selenium.do_command("waitForElementPresent",
+                ['id=messageSpan'])
+        self.selenium.do_command('assertElementPresent', ['link=/testingString'])
         self._goToGroupsDeleteOrganizer()
 
 if __name__ == "__main__":

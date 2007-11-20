@@ -111,6 +111,8 @@ class SelTestBase(unittest.TestCase):
         self.waitForElement("link=" + deviceIp)
         self.selenium.click("link=" + deviceIp)
         self.selenium.wait_for_page_to_load(self.WAITTIME)
+        if not hasattr(self, "devicenames"):
+            self.devicenames=[]
         self.devicenames.append(deviceIp)
         
     def deleteDevice(self):
@@ -160,7 +162,7 @@ class SelTestBase(unittest.TestCase):
         self.selenium.click(addMethod) # Submit form.
         self.selenium.wait_for_page_to_load(self.WAITTIME) # Wait for page refresh.
     def goToDevice(self, deviceName=TARGET):
-        self.waitForElement("searchform")
+        self.waitForElement("query")
         self.selenium.type("query", deviceName)
         self.selenium.submit("searchform")
         self.selenium.wait_for_page_to_load(self.WAITTIME)
@@ -215,8 +217,7 @@ class SelTestBase(unittest.TestCase):
             if i >= timeout:
                 raise TimeoutError("Timed out waiting for " + locator)
 
-        
-    # Included for historical reasons.
+       # Included for historical reasons.
     # This functionality no longer seems to be necessary.
     def type_keys(self, locator, keyseq="testingString"):
         """Because Selenium lies about what functions it actually has"""

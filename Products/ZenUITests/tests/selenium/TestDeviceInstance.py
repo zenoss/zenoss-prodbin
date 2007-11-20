@@ -59,8 +59,6 @@ class TestDeviceInstanceOsTab(TestDeviceInstanceBase):
         self.waitForElement("link=OS")
         self.selenium.click("link=OS")
         self.selenium.wait_for_page_to_load(self.WAITTIME)
-
-        
         
     def testIpInterface(self):
         """Add, edit, and delete an Ip Interface under a specific device"""
@@ -99,7 +97,7 @@ class TestDeviceInstanceOsTab(TestDeviceInstanceBase):
         """Add, edit, and delete an OS Process under a specific device"""
         
         self.addOSProcessClass()
-        self._goToOSTab()
+       # self._goToOSTab()
         self.addDialog(addType="link=Add OSProcess...", 
                         className=("select", "httpd"))
         self.assert_(self.selenium.is_element_present("link=httpd"))
