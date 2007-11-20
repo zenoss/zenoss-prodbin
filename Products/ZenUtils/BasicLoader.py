@@ -26,8 +26,6 @@ import os
 
 import transaction
 
-from Utils import getHierarchyObj
-
 from ZCmdBase import ZCmdBase
 
 class BasicLoader(ZCmdBase):

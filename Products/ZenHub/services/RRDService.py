@@ -17,10 +17,8 @@ Provides RRD services to zenhub clients.
 '''
 
 from HubService import HubService
-from Products.ZenRRD.RRDUtil import RRDUtil
 from Products.ZenRRD.Thresholds import Thresholds
 from RRDImpl import RRDImpl
-import time
 import logging
 log = logging.getLogger("zenhub")
 

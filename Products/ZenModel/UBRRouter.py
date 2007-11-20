@@ -23,8 +23,6 @@ from AccessControl import ClassSecurityInfo
 from Globals import DTMLFile
 from Globals import InitializeClass
 
-from AccessControl import Permissions as permissions
-
 from Products.ZenRelations.RelSchema import *
 
 from IpAddress import findIpAddress

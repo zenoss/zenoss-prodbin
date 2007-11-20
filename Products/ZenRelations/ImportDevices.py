@@ -20,20 +20,12 @@ $Id: ImportRM.py,v 1.3 2003/10/03 16:16:01 edahl Exp $"""
 __version__ = "$Revision: 1.3 $"[11:-2]
 
 import sys
-import os
-import types
 import urllib2
 import transaction
 from urlparse import urlparse
 from xml.dom.minidom import parse
-from optparse import OptionParser
-
-from Acquisition import aq_base
-
-from DateTime import DateTime
 
 from Products.ZenUtils.ZCmdBase import ZCmdBase
-from Products.ZenUtils.Utils import importClass
 
 from Products.ZenRelations.Exceptions import *
 

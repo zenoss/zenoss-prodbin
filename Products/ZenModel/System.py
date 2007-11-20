@@ -17,7 +17,6 @@ $Id: System.py,v 1.45 2004/04/14 22:11:48 edahl Exp $"""
 
 __version__ = "$Revision: 1.45 $"[11:-2]
 
-from Acquisition import aq_parent
 from AccessControl import ClassSecurityInfo
 from Globals import DTMLFile
 from Globals import InitializeClass
@@ -25,8 +24,6 @@ from Globals import InitializeClass
 from AccessControl import Permissions as permissions
 
 from Products.ZenRelations.RelSchema import *
-
-from Products.ZenUtils.Utils import travAndColl
 
 from DeviceOrganizer import DeviceOrganizer
 from ZenPackable import ZenPackable

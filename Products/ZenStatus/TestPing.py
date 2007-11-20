@@ -11,7 +11,6 @@
 #
 ###########################################################################
 
-from AsyncPing import PingJob
 from twisted.internet import reactor
 import os.path
 import time

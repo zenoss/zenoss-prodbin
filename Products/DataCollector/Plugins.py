@@ -18,8 +18,6 @@ import os
 import logging
 log = logging.getLogger('dc.plugins')
 
-import plugins
-
 _pluginskip = ("CollectorPlugin.py", "DataMaps.py")
 def _plfilter(f):
     return f.endswith(".py") and not (f.startswith("_") or f in _pluginskip)

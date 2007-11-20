@@ -28,7 +28,10 @@ from Products.ZenEvents.ZenEventClasses import Status_IpService
 from socket import getfqdn
 hostname = getfqdn()
 
+# needed for pb/jelly
 from Products.ZenHub.services.StatusConfig import ServiceConfig
+if 0:
+    ServiceConfig = None                # pyflakes
 
 class ZenTcpTest(protocol.Protocol):
 

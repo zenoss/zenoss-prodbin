@@ -16,7 +16,6 @@ __doc__="""TickGraphPoint
 Handles GraphPoints that define an rrd TICK
 """
 
-import os
 from GraphPoint import GraphPoint
 from Globals import InitializeClass
 

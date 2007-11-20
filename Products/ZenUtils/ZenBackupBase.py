@@ -19,7 +19,6 @@ Common code for zenbackup.py and zenrestore.py
 '''
 
 import os
-import os.path
 import tempfile
 from CmdBase import CmdBase
 

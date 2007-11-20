@@ -11,20 +11,16 @@
 #
 ###########################################################################
 
-import os
 import types
 import time
-import glob
 
 import logging
 log = logging.getLogger("zen.RRDView")
 
-from Acquisition import aq_base, aq_chain
+from Acquisition import aq_chain
 
-from Products.ZenRRD.Exceptions import RRDObjectNotFound
 from Products.ZenUtils import Map
 
-from Products.ZenUtils.ZenTales import talesEval
 from Products.ZenModel.ConfigurationError import ConfigurationError
 
 CACHE_TIME = 60.

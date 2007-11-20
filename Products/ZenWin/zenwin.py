@@ -11,20 +11,20 @@
 #
 ###########################################################################
 
-import sys
-import os
-import time
 from socket import getfqdn
 from wmiclient import WMI
 import pywintypes
 
-from twisted.internet import reactor, defer
-
 import Globals
 from WinCollector import WinCollector as Base, TIMEOUT_CODE
-from Products.ZenHub.services import WmiConfig
-from Products.ZenEvents.ZenEventClasses import Heartbeat, Status_Wmi_Conn, Status_WinService
+from Products.ZenEvents.ZenEventClasses import Status_Wmi_Conn, Status_WinService
 from Products.ZenEvents import Event
+
+# needed for pb/jelly 
+from Products.ZenHub.services import WmiConfig
+if 0:
+    WmiConfig = None                    # pyflakes
+
 
 ERRtimeout = 1726
 

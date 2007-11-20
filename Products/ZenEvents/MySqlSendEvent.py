@@ -10,7 +10,6 @@
 # For complete information please visit: http://www.zenoss.com/oss/
 #
 ###########################################################################
-import time
 import types
 import threading
 from Queue import Queue, Empty
@@ -22,7 +21,7 @@ from ZEO.Exceptions import ClientDisconnected
 
 import Products.ZenUtils.guid as guid
 from Products.ZenUtils.Utils import zdecode as decode
-from Event import Event, EventHeartbeat, buildEventFromDict
+from Event import buildEventFromDict
 from ZenEventClasses import Heartbeat, Unknown
 from Products.ZenEvents.Exceptions import *
 

@@ -20,11 +20,8 @@ __version__ = "$Revision: 1.48 $"[11:-2]
 #from PrimaryPathObjectManager import PrimaryPathObjectManager
 from RelationshipBase import RelationshipBase
 from RelCopySupport import RelCopyContainer
-from OFS.Traversable import Traversable
-from Acquisition import Implicit
 
 from Globals import DTMLFile
-from Acquisition import aq_base, aq_parent
 from AccessControl import ClassSecurityInfo
 from Globals import InitializeClass
 from App.Management import Tabs

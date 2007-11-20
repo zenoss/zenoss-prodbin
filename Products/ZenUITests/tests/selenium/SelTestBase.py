@@ -17,7 +17,7 @@
 # Adam Modlin and Nate Avers
 #
 
-import sys, time, re, os
+import time, os
 import unittest
 from util.selTestUtils import *
 

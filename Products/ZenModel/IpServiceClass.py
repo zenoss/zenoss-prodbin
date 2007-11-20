@@ -11,19 +11,15 @@
 #
 ###########################################################################
 
-import logging
-
 from Globals import DTMLFile
 from Globals import InitializeClass
 
-from Products.PageTemplates.PageTemplateFile import PageTemplateFile
 from AccessControl import Permissions
 from AccessControl import ClassSecurityInfo
 
 from Products.ZenRelations.RelSchema import *
 
 from ServiceClass import ServiceClass
-from ZenModelRM import ZenModelRM
 
 
 def manage_addIpServiceClass(context, id, REQUEST = None):

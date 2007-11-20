@@ -13,15 +13,16 @@
 
 
 import Migrate
-from Products.ZenModel.GraphDefinition import GraphDefinition
 from Products.ZenModel.MultiGraphReportClass import MultiGraphReportClass
 from Products.ZenModel.MultiGraphReport import MultiGraphReport
 from Products.ZenModel.DataPointGraphPoint import DataPointGraphPoint
-from AccessControl import Permissions
 
 # graphReports is using buildMenus so we let it go first before we modify
 # some of the same menus.
 import graphReports
+if 0:
+    graphReports = None                 # be quiet pyflakes
+
 
 class MultiGraphReports(Migrate.Step):
     version = Migrate.Version(2, 1, 0)

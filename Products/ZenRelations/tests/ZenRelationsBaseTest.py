@@ -10,12 +10,10 @@
 # For complete information please visit: http://www.zenoss.com/oss/
 #
 ###########################################################################
-from OFS.Folder import manage_addFolder
-from Testing.ZopeTestCase import ZopeLite
 
 from Products.ZenTestCase.BaseTestCase import BaseTestCase
 
-from TestSchema import create, build, DataRoot
+from TestSchema import create, build
 
 class ZenRelationsBaseTest(BaseTestCase):
     """

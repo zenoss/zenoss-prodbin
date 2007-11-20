@@ -37,7 +37,6 @@ class TwoPointOhObjects(Migrate.Step):
         dmd.Devices.manage_addRRDTemplate('softwareLoopback')
 
     def _zCommandPath(self, dmd):
-        import os
         from Products.ZenUtils.Utils import zenPath
         dmd.Devices.zCommandPath = zenPath('libexec')
 

@@ -20,7 +20,6 @@ from AccessControl import ClassSecurityInfo
 from Globals import DTMLFile
 from ReportClass import ReportClass
 from Products.ZenRelations.RelSchema import *
-from ZenossSecurity import ZEN_MANAGE_DMD
 from Globals import InitializeClass
 
 

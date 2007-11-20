@@ -20,8 +20,6 @@ templates to and from Zenoss.
 
 __version__ = "$Revision$"[11:-2]
 
-import os
-
 from Products.ZenModel.ZenossInfo import manage_addZenossInfo
 
 import Migrate

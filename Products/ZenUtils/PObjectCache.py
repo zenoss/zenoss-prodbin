@@ -21,7 +21,6 @@ __version__ = "$Revision: 1.2 $"[11:-2]
 
 import time
 
-from Globals import Persistent
 from Globals import DTMLFile
 from AccessControl import ClassSecurityInfo
 

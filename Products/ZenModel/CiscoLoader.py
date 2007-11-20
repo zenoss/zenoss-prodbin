@@ -21,11 +21,8 @@ $Id: CiscoLoader.py,v 1.2 2004/02/18 16:19:18 edahl Exp $"""
 __version__ = "$Revision: 1.2 $"[11:-2]
 
 import re
-import os
 
 import Globals
-
-from OFS.Folder import manage_addFolder
 
 from Products.ZenUtils.BasicLoader import BasicLoader
 from Products.ZenModel.Manufacturer import manage_addManufacturer

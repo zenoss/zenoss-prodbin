@@ -18,7 +18,6 @@ import unittest
 import Globals
 
 from Products.ZenUtils.Driver import drive
-import unittest
 
 from twisted.internet import reactor
 from twisted.cred import credentials

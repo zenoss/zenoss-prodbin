@@ -25,17 +25,15 @@ import copy
 import logging
 log = logging.getLogger("zen.IpInterface")
 
-from Globals import Persistent
 from Globals import DTMLFile
 from Globals import InitializeClass
-from Acquisition import aq_parent
 from Acquisition import aq_base
 from App.Dialogs import MessageDialog
 from AccessControl import ClassSecurityInfo
 
 from Products.ZenRelations.RelSchema import *
 
-from IpAddress import IpAddress, findIpAddress
+from IpAddress import findIpAddress
 from Products.ZenUtils.Utils import localIpCheck, localInterfaceCheck 
 from Products.ZenUtils.IpUtil import *
 

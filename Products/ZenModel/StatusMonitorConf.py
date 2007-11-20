@@ -19,15 +19,11 @@ $Id: StatusMonitorConf.py,v 1.40 2004/04/22 02:13:23 edahl Exp $"""
 
 __version__ = "$Revision: 1.40 $"[11:-2]
 
-import re
 import logging
 
 from AccessControl import ClassSecurityInfo
 from Globals import DTMLFile
 from Globals import InitializeClass
-from DateTime import DateTime
-
-from zLOG import LOG, WARNING
 
 from AccessControl import Permissions as permissions
 
@@ -35,7 +31,6 @@ from Products.ZenRelations.RelSchema import *
 
 from Products.ZenModel.Monitor import Monitor
 from Products.ZenModel.StatusColor import StatusColor
-from Products.ZenModel.ZenDate import ZenDate
 
 
 def manage_addStatusMonitorConf(context, id, title = None, REQUEST = None):

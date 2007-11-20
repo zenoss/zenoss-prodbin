@@ -15,7 +15,6 @@ import logging
 log = logging.getLogger("zen.PythonClient")
 
 import Globals
-from CollectorClient import CollectorClient
 
 class PythonClient(object):
 

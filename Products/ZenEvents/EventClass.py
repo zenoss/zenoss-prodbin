@@ -32,7 +32,6 @@ from EventClassInst import EventClassInst, EventClassPropertyMixin
 from Products.ZenModel.Organizer import Organizer
 from Products.ZenModel.ZenPackable import ZenPackable
 from Products.ZenModel.ManagedEntity import ManagedEntity
-from Products.ZenModel.ZenPackable import ZenPackable
 
 from Products.ZenUtils.Utils import prepId as globalPrepId
 

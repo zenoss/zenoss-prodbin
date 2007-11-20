@@ -17,8 +17,6 @@ Defines attributes for how a data source will be graphed
 and builds the nessesary rrd commands.
 """
 
-import os
-
 from Globals import InitializeClass
 from Globals import DTMLFile
 from AccessControl import ClassSecurityInfo, Permissions

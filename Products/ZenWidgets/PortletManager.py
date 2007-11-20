@@ -11,13 +11,9 @@
 #
 ###########################################################################
 
-from sets import Set
 import os, md5
 from Globals import InitializeClass, DevelopmentMode
 from AccessControl import getSecurityManager
-from OFS.SimpleItem import SimpleItem
-from OFS.PropertyManager import PropertyManager
-from Acquisition import aq_base
 from Products.ZenRelations.RelSchema import *
 from Products.ZenModel.ZenModelRM import ZenModelRM
 

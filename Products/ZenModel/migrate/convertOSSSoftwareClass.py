@@ -18,7 +18,6 @@ Convert all OSSSoftwareClass objects to SoftwareClass
 $Id:$
 '''
 import Migrate
-from Products.ZenModel.SoftwareClass import SoftwareClass, OSSoftwareClass
 
 class convertOSSoftwareClass(Migrate.Step):
     version = Migrate.Version(2, 0, 0)

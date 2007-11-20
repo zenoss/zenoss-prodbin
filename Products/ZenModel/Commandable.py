@@ -21,7 +21,7 @@ from Globals import InitializeClass
 from AccessControl import ClassSecurityInfo
 from ZenossSecurity import *
 from UserCommand import UserCommand
-from Acquisition import aq_base, aq_parent, aq_chain
+from Acquisition import aq_base, aq_chain
 from Products.PageTemplates.Expressions import getEngine
 from Products.ZenUtils.ZenTales import talesCompile
 from DateTime import DateTime
@@ -33,7 +33,6 @@ import signal
 import time
 import cgi
 import sys
-import traceback
 
 import logging
 log = logging.getLogger("zen.Device")

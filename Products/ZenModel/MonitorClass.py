@@ -25,8 +25,6 @@ from AccessControl import ClassSecurityInfo
 from AccessControl import Permissions as permissions
 from Acquisition import aq_base
 from OFS.Folder import Folder
-from Products.PageTemplates.PageTemplateFile import PageTemplateFile
-from Products.ZenRelations.RelationshipManager import RelationshipManager
 from Products.ZenUtils.Utils import checkClass
 from ZenModelRM import ZenModelRM
 

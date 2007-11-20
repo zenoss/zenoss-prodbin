@@ -13,7 +13,6 @@
 
 import Globals
 from Products.ZenReports import Utils, Utilization
-from Products.ZenUtils import Time
 
 class cpu:
     "The cpu usage report"

@@ -22,7 +22,6 @@ __version__ = "$Revision: 1.15 $"[11:-2]
 import sys
 import os
 import types
-import struct
 import logging
 import re
 import socket
@@ -34,8 +33,7 @@ from zExceptions import NotFound
 from AccessControl import getSecurityManager
 from AccessControl import Unauthorized
 from AccessControl.ZopeGuards import guarded_getattr
-from ZODB.POSException import ConflictError
-from Acquisition import Acquired, aq_inner, aq_parent, aq_base
+from Acquisition import aq_inner, aq_parent
 
 from Products.ZenUtils.Exceptions import ZenPathError
 
@@ -231,7 +229,6 @@ def checkClass(myclass, className):
 
 def lookupClass(productName, classname=None):
         """look in sys.modules for our class"""
-        import sys
         if sys.modules.has_key(productName):
             mod = sys.modules[productName]
         elif sys.modules.has_key("Products."+productName):

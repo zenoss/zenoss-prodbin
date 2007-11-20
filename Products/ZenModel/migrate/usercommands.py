@@ -19,7 +19,6 @@ Add some built-in commands
 $Id:$
 '''
 import Migrate
-from Products.ZenModel.UserCommand import UserCommand
 
 class UserCommands(Migrate.Step):
     version = Migrate.Version(1, 1, 0)

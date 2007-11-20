@@ -16,11 +16,9 @@ import Migrate
 from Products.ZenModel.DeviceReportClass import DeviceReportClass
 from Products.ZenModel.CustomDeviceReportClass import CustomDeviceReportClass
 from Products.ZenModel.GraphReportClass import GraphReportClass
-from AccessControl import Permissions
 
 # graphReports is using buildMenus so we let it go first before we modify
 # some of the same menus.
-import graphReports
 
 class BaseReportClasses(Migrate.Step):
     version = Migrate.Version(2, 1, 0)

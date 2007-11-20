@@ -43,7 +43,7 @@ try:
 except:
     from twisted.protocols import telnet
 
-from twisted.internet import protocol, reactor
+from twisted.internet import reactor
 
 import re
 import logging

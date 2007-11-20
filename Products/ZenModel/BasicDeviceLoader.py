@@ -23,7 +23,7 @@ $Id: BasicDeviceLoader.py,v 1.19 2004/04/04 01:51:19 edahl Exp $"""
 
 __version__ = "$Revision: 1.19 $"[11:-2]
 
-from logging import debug, info, warn, critical, exception
+from logging import info
 
 from Products.ZenModel.Exceptions import *
 

@@ -16,8 +16,6 @@
 #
 # Adam Modlin and Nate Avers
 #
-import time
-
 
 def getByValue (listName, value, formName="subdeviceForm"):
     """Handles checkbox selections"""

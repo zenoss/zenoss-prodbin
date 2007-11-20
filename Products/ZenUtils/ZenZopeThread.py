@@ -10,7 +10,6 @@
 # For complete information please visit: http://www.zenoss.com/oss/
 #
 ###########################################################################
-import logging
 from threading import Thread
 
 class ZenZopeThread(Thread):

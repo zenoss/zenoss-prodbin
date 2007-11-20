@@ -39,7 +39,6 @@ from App.Management import Tabs
 
 from RelSchema import *
 from Exceptions import *
-from utils import importClass
 
 zenmarker = "__ZENMARKER__"
 

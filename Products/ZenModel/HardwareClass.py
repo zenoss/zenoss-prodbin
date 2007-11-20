@@ -22,8 +22,6 @@ __version__ = "$Revision: 1.5 $"[11:-2]
 from Globals import DTMLFile
 from Globals import InitializeClass
 
-from AccessControl import Permissions as permissions
-
 from Products.ZenRelations.RelSchema import *
 
 from ProductClass import ProductClass

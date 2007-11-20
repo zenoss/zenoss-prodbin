@@ -17,7 +17,6 @@ from AccessControl import Permissions
 from Commandable import Commandable
 from Products.ZenRelations.RelSchema import *
 from Acquisition import aq_chain
-from zExceptions import NotFound
 
 from OSComponent import OSComponent
 from ZenPackable import ZenPackable

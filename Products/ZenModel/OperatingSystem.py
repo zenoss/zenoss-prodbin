@@ -20,16 +20,12 @@ from Software import Software
 
 from AccessControl import ClassSecurityInfo
 from Globals import InitializeClass
-from Acquisition import aq_base
-from DateTime import DateTime
 
 from AccessControl import Permissions as permissions
 
 from Products.ZenUtils.Utils import convToUnits
 from Products.ZenRelations.RelSchema import *
 
-from ZenStatus import ZenStatus
-from ZenDate import ZenDate
 from Exceptions import *
 
 from IpInterface import manage_addIpInterface

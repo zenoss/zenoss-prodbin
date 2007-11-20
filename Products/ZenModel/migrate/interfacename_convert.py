@@ -24,7 +24,6 @@ import Migrate
 
 from Acquisition import aq_base
 
-import os
 
 class InterfaceNameConvert(Migrate.Step):
     version = Migrate.Version(0, 21, 0)

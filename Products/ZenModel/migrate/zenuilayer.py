@@ -19,11 +19,7 @@ Add a clearid column to the status and history tables
 __version__ = "$Revision$"[11:-2]
 
 import Migrate
-import os
 
-from Products.CMFCore.utils import getToolByName
-from Products.CMFCore.DirectoryView import addDirectoryViews
-from Products.CMFCore.DirectoryView import registerDirectory
 from Products.ZenWidgets.ZenTableManager import manage_addZenTableManager
 
 class ZenUILayer(Migrate.Step):

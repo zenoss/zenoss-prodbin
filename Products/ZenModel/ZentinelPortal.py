@@ -15,27 +15,24 @@
 $Id: ZentinelPortal.py,v 1.17 2004/04/08 15:35:25 edahl Exp $
 """
 
-import os
 import urllib
 
 import Globals
 
 from zExceptions import Redirect
-from AccessControl.User import manage_addUserFolder
 from AccessControl import getSecurityManager, ClassSecurityInfo
 
 from Products.Sessions.BrowserIdManager import constructBrowserIdManager
 from Products.Sessions.SessionDataManager import constructSessionDataManager
 
 from Products.CMFCore.PortalObject import PortalObjectBase
-from Products.CMFCore import PortalFolder
 from Products.CMFCore.utils import getToolByName
 
 from Products.ZenUtils import Security, Time
 
 from ZenossSecurity import *
 
-from Products.AdvancedQuery import MatchGlob, Eq, Or, And, In
+from Products.AdvancedQuery import MatchGlob, Eq, Or
 
 class ZentinelPortal ( PortalObjectBase ):
     """

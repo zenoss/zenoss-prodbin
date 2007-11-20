@@ -11,8 +11,6 @@
 #
 ###########################################################################
 
-import sys
-import re
 import socket
 
 import Globals

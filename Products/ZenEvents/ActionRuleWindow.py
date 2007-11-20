@@ -17,7 +17,6 @@ import time
 
 from Globals import DTMLFile
 from AccessControl import Permissions
-from Products.ZenModel.ZenModelRM import ZenModelRM
 from Products.ZenModel.MaintenanceWindow import MaintenanceWindow
 from Products.ZenRelations.RelSchema import *
 

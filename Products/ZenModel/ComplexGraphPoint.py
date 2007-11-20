@@ -14,7 +14,6 @@
 __doc__="""ComplexGraphPoint
 """
 
-import os
 from GraphPoint import GraphPoint                                     
 from Globals import InitializeClass
 

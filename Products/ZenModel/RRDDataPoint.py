@@ -20,12 +20,8 @@ $Id:$"""
 
 __version__ = "$Revision:$"[11:-2]
 
-import os
-
-from Globals import DTMLFile
-from Globals import InitializeClass
+import Globals
 from AccessControl import ClassSecurityInfo, Permissions
-from Acquisition import aq_parent
 
 from Products.ZenRelations.RelSchema import *
 

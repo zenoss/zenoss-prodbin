@@ -14,7 +14,6 @@
 import os
 import time
 import rrdtool
-import random
 import re
 
 import Globals

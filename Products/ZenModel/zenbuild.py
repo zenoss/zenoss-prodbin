@@ -19,9 +19,6 @@ $Id: DmdBuilder.py,v 1.11 2004/04/06 22:33:07 edahl Exp $"""
 
 __version__ = "$Revision: 1.11 $"[11:-2]
 
-import sys
-import os
-
 import Globals
 import transaction
 

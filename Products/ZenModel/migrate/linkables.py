@@ -18,10 +18,8 @@ Create a LinkManager object on the dmd.
 
 '''
 import Migrate
-from Products.ZenRelations.ImportRM import ImportRM
 from Products.ZenModel.LinkManager import manage_addLinkManager
 from Products.ZenModel.Linkable import Linkable
-from Products.ZenUtils.Utils import cmpClassNames
 
 
 class Linkability(Migrate.Step):

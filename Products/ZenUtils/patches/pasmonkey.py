@@ -35,7 +35,6 @@ if not hasattr(pas, '_createInitialUser'):
 # monkey patches for the PAS login form
 from Products.PluggableAuthService.plugins import CookieAuthHelper
 import urlparse
-import urllib
 
 def manage_afterAdd(self, item, container):
     """We don't want CookieAuthHelper setting the login attribute, we we'll

@@ -19,10 +19,7 @@ $Id: HRFileSystemMap.py,v 1.2 2004/04/07 16:26:53 edahl Exp $"""
 
 __version__ = '$Revision: 1.2 $'[11:-2]
 
-import re
-
 from CollectorPlugin import SnmpPlugin, GetTableMap
-from DataMaps import ObjectMap
 from sets import Set
 import md5
 

@@ -12,7 +12,6 @@
 ###########################################################################
 
 from Globals import InitializeClass
-from ZenModelRM import ZenModelRM
 from Products.ZenRelations.RelSchema import *
 
 

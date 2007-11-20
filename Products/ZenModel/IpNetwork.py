@@ -20,8 +20,6 @@ $Id: IpNetwork.py,v 1.22 2004/04/12 16:21:25 edahl Exp $"""
 
 __version__ = "$Revision: 1.22 $"[11:-2]
 
-import os
-import sys
 import math
 import transaction
 import logging
@@ -459,7 +457,6 @@ class IpNetwork(DeviceOrganizer):
         for organizerName in organizerPaths:
             try:
                 organizer = orgroot._getNet(organizerName)
-                import os
                 zd = zenPath('bin', 'zendisc')
                 zendiscCmd = [zd, "run", '--net', organizer.id]
                 log.info('Executing command: %s' % ' '.join(zendiscCmd))

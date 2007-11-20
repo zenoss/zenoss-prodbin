@@ -14,10 +14,8 @@
 import logging
 log = logging.getLogger("zen.EventView")
 
-from _mysql_exceptions import MySQLError
-
 from Globals import DTMLFile, InitializeClass
-from AccessControl import Permissions, ClassSecurityInfo
+from AccessControl import ClassSecurityInfo
 from Acquisition import aq_parent
 
 from Products.ZenModel.ZenModelRM import ZenModelRM

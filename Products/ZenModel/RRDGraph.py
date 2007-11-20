@@ -25,7 +25,6 @@ RRDGraph defines the global options for an rrdtool graph.
 
 import os
 import re
-import time
 
 from Globals import DTMLFile
 from Globals import InitializeClass

@@ -18,12 +18,10 @@ from AccessControl import ClassSecurityInfo, getSecurityManager
 import simplejson
 
 from Products.ZenRelations.RelSchema import *
-from Products.ZenUtils.Utils import travAndColl
-from Products.ZenUtils.Exceptions import ZenPathError, ZentinelException
+from Products.ZenUtils.Exceptions import ZentinelException
 
 from EventView import EventView
 from ZenModelRM import ZenModelRM
-from ZenPackable import ZenPackable
 from ZenossSecurity import *
         
 class Organizer(ZenModelRM, EventView):

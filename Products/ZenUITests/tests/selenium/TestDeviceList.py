@@ -23,7 +23,7 @@ import unittest
 
 from util.selTestUtils import *
 
-from SelTestBase import SelTestBase,TARGET
+from SelTestBase import SelTestBase
 
 class TestDeviceListBase(SelTestBase):
     """Base class for performing tests on specific device instances"""

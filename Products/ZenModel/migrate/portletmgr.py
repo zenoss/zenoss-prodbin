@@ -12,7 +12,6 @@
 ###########################################################################
 
 import Migrate
-import os
 from Products.ZenWidgets.PortletManager import manage_addPortletManager
 from Products.ZenWidgets.ZenossPortlets import ZenossPortlets
 from Acquisition import aq_base

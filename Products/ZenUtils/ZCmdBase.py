@@ -155,7 +155,9 @@ class ZCmdBase(ZenDaemon):
         """return a device based on its FQDN"""
         devices = self.dataroot.getDmdRoot("Devices")
         return devices.findDevice(name)
-    
+
+    def sigTerm(self, *unused):
+        pass
     
     def buildOptions(self):
         """basic options setup sub classes can add more options here"""

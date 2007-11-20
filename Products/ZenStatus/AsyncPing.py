@@ -13,19 +13,15 @@
 
 import sys
 import os
-import types
 import time
-import select
 import socket
 import ip
 import icmp
 import errno
-import pprint
 import logging
 log = logging.getLogger("zen.Ping")
 
 from twisted.internet import reactor, defer
-from sets import Set
 
 class PermissionError(Exception):
     """Not permitted to access resource."""

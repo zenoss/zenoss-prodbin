@@ -13,7 +13,7 @@
 
 import logging
 
-from twisted.internet import reactor, error
+from twisted.internet import reactor
 from twisted.python import failure
 
 import Globals

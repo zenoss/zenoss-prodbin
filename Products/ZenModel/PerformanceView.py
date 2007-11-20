@@ -19,9 +19,6 @@ __version__ = "$Revision: 1.13 $"[11:-2]
 
 import types
 
-from Acquisition import aq_base
-
-
 class PerformanceView:
     """
     Mixin to provide hooks to performance management functions

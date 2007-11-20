@@ -17,35 +17,26 @@ $Id: DeviceClass.py,v 1.76 2004/04/22 19:09:53 edahl Exp $"""
 
 __version__ = "$Revision: 1.76 $"[11:-2]
 
-import os
 import types
 import time
-import urllib
-from glob import glob
 import transaction
 import simplejson
 import logging
 log = logging.getLogger('zen.DeviceClass')
 
 import DateTime
-from zExceptions import Redirect
 from Globals import DTMLFile
 from Globals import InitializeClass
-from Globals import InitializeClass
-from OFS.Folder import manage_addFolder
-from Acquisition import aq_base, aq_parent, aq_chain
+from Acquisition import aq_base, aq_chain
 from AccessControl import ClassSecurityInfo
 from AccessControl import Permissions as permissions
 
 from Products.AdvancedQuery import MatchGlob, Or, Eq
-from Products.PageTemplates.PageTemplateFile import PageTemplateFile
 
 from Products.ZenRelations.RelSchema import *
-from Products.ZenUtils.Search import makeCaseSensitiveFieldIndex
 from Products.ZenUtils.Search import makeCaseInsensitiveFieldIndex
 from Products.ZenUtils.Search import makeCaseInsensitiveKeywordIndex
 from Products.ZenUtils.Search import makePathIndex
-from Products.ZenUtils.Utils import zenPath
 from Products.ZenUtils.Utils import importClass
 
 from Products.ZenUtils.FakeRequest import FakeRequest
@@ -173,7 +164,6 @@ class DeviceClass(DeviceOrganizer, ZenPackable):
         to find a node that has the same name as a python class or has an 
         attribute named zPythonClass that matches a python class.
         """
-        import sys
         from Device import Device
         cname = getattr(self, "zPythonClass", None)
         if cname:

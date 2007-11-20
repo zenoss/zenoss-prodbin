@@ -21,8 +21,6 @@ import os
 import time
 
 from DateTime import DateTime
-from Globals import DTMLFile
-from Globals import InitializeClass
 from OFS.History import Historical
 from Acquisition import aq_base
 from AccessControl import ClassSecurityInfo

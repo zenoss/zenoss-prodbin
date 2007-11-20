@@ -21,8 +21,6 @@ monitoring.
 
 __version__ = "$Revision$"[11:-2]
 
-import os
-
 from Acquisition import aq_base
 
 import Migrate

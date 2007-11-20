@@ -11,18 +11,16 @@
 #
 ###########################################################################
 
-import socket
 import logging
 log = logging.getLogger("zen.SnmpClient")
 
 from twisted.internet import reactor, error, defer
 from twisted.python import failure
 
-from pynetsnmp.twistedsnmp import snmpprotocol, AgentProxy
+from pynetsnmp.twistedsnmp import snmpprotocol
 
 import Globals
 
-from Products.ZenUtils.IpUtil import isip
 from Products.ZenUtils.Driver import drive
 
 global defaultTries, defaultTimeout

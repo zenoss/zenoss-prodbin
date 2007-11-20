@@ -23,8 +23,6 @@ from DeviceResultInt import DeviceResultInt
 from RRDView import RRDView
 from EventView import EventView
 
-from Acquisition import aq_base
-
 from Products.ZenRelations.RelSchema import *
 
 class ManagedEntity(ZenModelRM, DeviceResultInt, EventView, RRDView):

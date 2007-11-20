@@ -11,12 +11,8 @@
 #
 ###########################################################################
 
-import types
-import re
-
 from AccessControl import ClassSecurityInfo
 from Globals import InitializeClass
-from Acquisition import aq_parent
 
 from Organizer import Organizer
 from DeviceManagerBase import DeviceManagerBase

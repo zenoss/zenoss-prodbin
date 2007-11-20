@@ -22,8 +22,6 @@ import unittest
 import re
 import os
 import sys
-import smtplib
-import StringIO
 
 TESTFMT     = re.compile("^Test\w+\.py$")
 

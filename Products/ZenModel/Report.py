@@ -21,7 +21,6 @@ __version__ = "$Revision: 1.3 $"[11:-2]
 
 from urllib import quote
 
-from Globals import DTMLFile
 from Globals import InitializeClass
 from AccessControl import ClassSecurityInfo
 

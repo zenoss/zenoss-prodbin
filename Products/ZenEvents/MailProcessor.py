@@ -12,7 +12,7 @@
 ###########################################################################
 #! /usr/bin/env python 
 
-import email, socket, time, rfc822, types
+import email, socket, rfc822, types
 import calendar
 from datetime import tzinfo, timedelta, datetime
 

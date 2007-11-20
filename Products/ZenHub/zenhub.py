@@ -22,14 +22,11 @@ $Id$
 __version__ = "$Revision$"[11:-2]
 
 from socket import getfqdn
-import os
 
-
-from twisted.cred import portal, checkers, error, credentials
+from twisted.cred import portal, checkers, credentials
 from twisted.spread import pb
 
-from twisted.internet import reactor, defer
-from twisted.python import failure
+from twisted.internet import reactor
 from twisted.web import server, xmlrpc
 from zope.interface import implements
 
@@ -39,8 +36,6 @@ from Products.ZenUtils.ZCmdBase import ZCmdBase
 from Products.ZenUtils.Utils import zenPath
 from Products.ZenEvents.Event import Event, EventHeartbeat
 from Products.ZenEvents.ZenEventClasses import App_Start, App_Stop
-import transaction
-from zExceptions import NotFound
 
 from XmlRpcService import XmlRpcService
 

@@ -16,7 +16,6 @@ __doc__="""GraphDefinition
 GraphDefinition defines the global options for a graph.
 """
 
-import re
 import sys
 from sets import Set
 import string
@@ -24,10 +23,8 @@ import string
 from Products.ZenRelations.RelSchema import *
 from Globals import InitializeClass
 from AccessControl import ClassSecurityInfo, Permissions
-from GraphPoint import GraphPoint
 from ZenModelRM import ZenModelRM
 from ZenPackable import ZenPackable
-from OFS.ObjectManager import checkValidId as globalCheckValidId
 import logging
 log = logging.getLogger("zen.Device")
 
@@ -298,7 +295,6 @@ class GraphDefinition(ZenModelRM, ZenPackable):
         name is passed in dpNames.
         '''
         from DataPointGraphPoint import DataPointGraphPoint
-        from ThresholdGraphPoint import ThresholdGraphPoint
         newGps = []
         for dpName in dpNames:
             dpId = dpName.split('_', 1)[-1]

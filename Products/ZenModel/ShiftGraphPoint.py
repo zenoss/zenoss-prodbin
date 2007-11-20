@@ -16,7 +16,6 @@ __doc__="""ShiftGraphPoint
 Handles GraphPoints that define an rrd SHIFT
 """
 
-import os
 from GraphPoint import GraphPoint
 from Globals import InitializeClass
 

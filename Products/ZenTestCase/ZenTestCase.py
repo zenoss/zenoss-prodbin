@@ -13,7 +13,6 @@
 
 import unittest
 import transaction 
-import socket
 from Products.ZenUtils.ZeoConn import ZeoConn
 from AccessControl.SecurityManagement import newSecurityManager
 from AccessControl.SecurityManagement import noSecurityManager

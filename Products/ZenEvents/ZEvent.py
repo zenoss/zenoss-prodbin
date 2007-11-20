@@ -11,7 +11,6 @@
 #
 ###########################################################################
 
-import cgi
 import urllib
 
 from Globals import InitializeClass

@@ -12,9 +12,7 @@
 ###########################################################################
 import os
 import time
-import glob
 import rrdtool
-import random
 try:
     import Globals
     from Products.ZenRRD.plugins.plugin import *

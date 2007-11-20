@@ -16,7 +16,6 @@ __doc__="""DefGraphPoint
 Handles GraphPoints that define an rrd DEF
 """
 
-import os
 from GraphPoint import GraphPoint
 from Globals import InitializeClass
 

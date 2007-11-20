@@ -11,7 +11,6 @@
 #
 ###########################################################################
 
-import os
 from Products.ZenModel.ZenossSecurity import *
 from Products.ZenUtils.Utils import zenPath
 

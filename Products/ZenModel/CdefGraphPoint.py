@@ -16,7 +16,6 @@ __doc__="""CdefGraphPoint
 Handles GraphPoints that define an rrd CDEF
 """
 
-import os
 from GraphPoint import GraphPoint
 from Globals import InitializeClass
 

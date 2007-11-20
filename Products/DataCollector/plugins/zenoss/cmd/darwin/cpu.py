@@ -19,10 +19,7 @@ $Id: $"""
 
 __version__ = '$Revision: 1.1 $'[11:-2]
 
-import re
-
-from CollectorPlugin import CommandPlugin, GetTableMap
-from DataMaps import ObjectMap
+from CollectorPlugin import CommandPlugin
 
 class cpu(CommandPlugin):
 

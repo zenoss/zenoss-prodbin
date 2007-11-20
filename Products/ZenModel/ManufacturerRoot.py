@@ -26,11 +26,9 @@ log = logging.getLogger('zen')
 import transaction
 
 from Globals import InitializeClass
-from Globals import DTMLFile
 from Acquisition import aq_base
 from AccessControl import Permissions as permissions
 
-from Products.PageTemplates.PageTemplateFile import PageTemplateFile
 from Products.ZenRelations.PrimaryPathObjectManager import \
     PrimaryPathBTreeFolder2
 

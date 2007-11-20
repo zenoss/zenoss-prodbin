@@ -28,11 +28,11 @@ $Id: CollectorClient.py,v 1.5 2004/04/05 02:05:30 edahl Exp $"""
 
 __version__ = "$Revision: 1.5 $"[11:-2]
 
-import os, sys, getpass
+import os, sys
 import logging
 log = logging.getLogger("zen.CmdClient")
 
-from twisted.internet import protocol, reactor
+from twisted.internet import protocol
 
 #Default option values
 if os.environ.has_key('USER'):

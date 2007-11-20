@@ -24,12 +24,9 @@ device2
     device4"""
 
 import Globals
-import transaction
 import re
-import sys
 
 from Products.ZenUtils.ZCmdBase import ZCmdBase
-from Products.ZenUtils.CmdBase import CmdBase
 
 
 class BatchDeviceLoader(ZCmdBase):

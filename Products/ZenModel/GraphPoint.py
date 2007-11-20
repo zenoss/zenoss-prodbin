@@ -17,10 +17,8 @@ Defines attributes for how a data source will be graphed
 and builds the nessesary rrd commands.
 """
 
-import os
-
 from Globals import InitializeClass
-from AccessControl import ClassSecurityInfo, Permissions
+from AccessControl import Permissions
 from Products.ZenRelations.RelSchema import *
 from ZenModelRM import ZenModelRM
 from ZenPackable import ZenPackable

@@ -15,10 +15,7 @@
 Zenoss versioning module.
 
 """
-import os
 import re
-import sys
-
 
 def getVersionTupleFromString(versionString):
     """

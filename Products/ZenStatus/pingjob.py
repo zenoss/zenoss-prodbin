@@ -23,7 +23,6 @@ import socket
 import ip
 import icmp
 import os
-import pprint
 import time
 import select
 import sys

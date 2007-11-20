@@ -27,7 +27,6 @@ import copy
 from os import path
 from sets import Set
 from threading import Lock
-import logging
 
 from Products.ZenUtils.Exceptions import ZentinelException
 

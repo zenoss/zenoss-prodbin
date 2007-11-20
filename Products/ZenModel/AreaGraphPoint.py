@@ -16,7 +16,6 @@ __doc__="""AreaGraphPoint
 Handles GraphPoints that define an rrd AREA
 """
 
-import os
 from GraphPoint import GraphPoint
 from Globals import InitializeClass
 

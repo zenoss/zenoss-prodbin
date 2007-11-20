@@ -24,12 +24,9 @@ $Id$
 from EventServer import EventServer
 
 from twisted.mail.pop3client import POP3Client
-from twisted.internet import reactor, protocol, defer, task
+from twisted.internet import reactor, protocol, defer
 from twisted.internet.ssl import ClientContextFactory
-from zope.interface import implements
 from Products.ZenRRD.RRDDaemon import RRDDaemon
-from Products.ZenUtils.Driver import drive, driveLater
-
 
 from MailProcessor import POPProcessor
 

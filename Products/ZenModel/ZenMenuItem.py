@@ -13,7 +13,6 @@
 
 
 from Globals import InitializeClass
-from Globals import DTMLFile
 from AccessControl import ClassSecurityInfo, Permissions
 from Products.ZenModel.ZenModelRM import ZenModelRM
 from Products.ZenModel.ZenPackable import ZenPackable

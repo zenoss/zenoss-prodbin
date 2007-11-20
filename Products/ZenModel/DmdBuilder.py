@@ -27,19 +27,9 @@ $Id: DmdBuilder.py,v 1.11 2004/04/06 22:33:07 edahl Exp $"""
 
 __version__ = "$Revision: 1.11 $"[11:-2]
 
-import sys
-import os
-
-import transaction
-import Zope2
-
-from OFS.Image import File
-from Acquisition import aq_base
-
 from Products.ZenModel.DeviceClass import DeviceClass
 from Products.ZenModel.Location import Location
 from Products.ZenModel.DeviceGroup import DeviceGroup
-from Products.ZenModel.ProductClass import ProductClass
 from Products.ZenModel.IpNetwork import manage_addIpNetwork
 from Products.ZenModel.ManufacturerRoot import ManufacturerRoot
 from Products.ZenModel.MibOrganizer import MibOrganizer

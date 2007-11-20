@@ -16,7 +16,6 @@ __version__ = "$Revision: 1.2 $"[11:-2]
 import unittest
 import Zope
 from Testing import makerequest
-import time
 
 
 class SystemSearchTest(unittest.TestCase):

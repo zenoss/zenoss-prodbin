@@ -16,11 +16,9 @@
 from twisted.spread import pb
 from twisted.internet import reactor
 from twisted.cred import credentials
-from socket import getfqdn
 
 import Globals
 from Products.ZenUtils.Driver import drive
-from Products.ZenEvents.Event import Event
 
 from zenhub import PB_PORT
 

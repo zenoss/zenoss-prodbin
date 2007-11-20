@@ -22,21 +22,15 @@ import re
 from AccessControl import ClassSecurityInfo
 from AccessControl import getSecurityManager
 from OFS.OrderedFolder import OrderedFolder
-from OFS.CopySupport import CopyError, eNotSupported
 from Products.CMFCore.DirectoryView import registerDirectory
-from ImageFile import ImageFile
-from Globals import HTMLFile, DTMLFile
+from Globals import DTMLFile
 from Globals import InitializeClass
-from Acquisition import aq_base
-from Products.PageTemplates.PageTemplateFile import PageTemplateFile
 from Products.ZenModel.SiteError import SiteError
-from ImageFile import ImageFile
 from Products.ZenModel.ZenModelBase import ZenModelBase
 from Products.ZenModel.ZenMenuable import ZenMenuable
 from Products.ZenRelations.RelSchema import *
 from Products.ZenUtils.IpUtil import IpAddressError
 from Commandable import Commandable
-import DateTime
 import socket
 import os
 import sys
@@ -45,8 +39,6 @@ import string
 
 from Products.ZenUtils.Utils import zenPath
 from Products.ZenUtils.Utils import extractPostContent
-
-from AccessControl import Permissions as permissions
 
 from ZenModelRM import ZenModelRM
 from ZenossSecurity import ZEN_COMMON, ZEN_MANAGE_DMD

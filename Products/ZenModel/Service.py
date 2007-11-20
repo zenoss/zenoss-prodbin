@@ -20,9 +20,8 @@ $Id: Service.py,v 1.15 2003/03/11 23:32:13 edahl Exp $"""
 
 __version__ = "$Revision: 1.15 $"[11:-2]
 
-from Globals import DTMLFile
-from Globals import InitializeClass
-from Acquisition import aq_base, aq_chain
+import Globals
+from Acquisition import aq_chain
 from AccessControl import ClassSecurityInfo
 from Commandable import Commandable
 

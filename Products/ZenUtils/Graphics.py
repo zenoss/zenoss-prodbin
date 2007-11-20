@@ -58,7 +58,7 @@ class NetworkGraph(object):
 
 
     def setGraphFromEdges(self, edges, directed=True):
-        import os, os.path
+        import os
         from Utils import zenPath
         config = zenPath('lib/graphviz/config')
         if not os.path.exists(config) or os.path.getsize(config) == 0:

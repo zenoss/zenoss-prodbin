@@ -18,10 +18,7 @@ Base class for DataSources
 
 import os
 
-from Globals import DTMLFile
-from Globals import InitializeClass
 from DateTime import DateTime
-from Acquisition import aq_parent
 from AccessControl import ClassSecurityInfo, Permissions
 
 from Products.PageTemplates.Expressions import getEngine

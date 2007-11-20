@@ -19,8 +19,6 @@ $Id: CommandParser.py,v 1.1 2003/09/25 16:21:52 edahl Exp $"""
 
 __version__ = '$Revision: 1.1 $'[11:-2]
 
-import re
-
 from Products.DataCollector.ObjectMap import ObjectMap
 from Products.DataCollector.RelationshipMap import RelationshipMap
 

@@ -16,7 +16,6 @@ __doc__="""VruleGraphPoint
 Handles GraphPoints that define an rrd VRULE
 """
 
-import os
 from GraphPoint import GraphPoint
 from Globals import InitializeClass
 

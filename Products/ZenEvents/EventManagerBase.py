@@ -28,16 +28,13 @@ log = logging.getLogger("zen.Events")
 
 from AccessControl import ClassSecurityInfo
 from AccessControl import getSecurityManager
-from Globals import InitializeClass
 from Globals import DTMLFile
-from Acquisition import aq_base, aq_parent
+from Acquisition import aq_base
 import DateTime
 from AccessControl import Permissions as permissions
 
 from Products.ZenUtils.ObjectCache import ObjectCache
 from Products.ZenUtils.Utils import extractPostContent
-
-from interfaces import IEventList, IEventStatus, ISendEvents
 
 from Products.AdvancedQuery import Eq, Or
 
@@ -53,13 +50,9 @@ from Products.ZenRelations.RelSchema import *
 from Products.ZenUtils import Time
 from Products.ZenUtils.FakeRequest import FakeRequest
 from Products.ZenEvents.ZenEventClasses import Status_Ping, Status_Wmi_Conn
-import StringIO
-import csv
 from sets import Set
 
 from ZenEventClasses import Unknown
-
-import time
 
 from DbAccessBase import DbAccessBase
 

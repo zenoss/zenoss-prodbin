@@ -16,7 +16,6 @@ __doc__="""CommentGraphPoint
 Handles GraphPoints that define an rrd COMMENT
 """
 
-import os
 from GraphPoint import GraphPoint
 from Globals import InitializeClass
 

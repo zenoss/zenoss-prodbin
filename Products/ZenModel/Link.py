@@ -15,7 +15,6 @@
 from Globals import InitializeClass
 from Products.ZenModel.ZenModelRM import ZenModelRM
 from Products.ZenRelations.RelSchema import *
-from AccessControl import ClassSecurityInfo, Permissions
 
 
 class ILink(object):

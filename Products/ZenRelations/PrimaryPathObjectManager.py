@@ -19,7 +19,6 @@ __version__ = "$Revision: 1.26 $"[11:-2]
 
 # base classes for PrimaryPathObjectManager
 from RelCopySupport import RelCopyContainer
-from OFS.Traversable import Traversable
 from Acquisition import Implicit, aq_base
 from OFS.ObjectManager import ObjectManager
 from AccessControl.Role import RoleManager

@@ -19,7 +19,6 @@ __docformat__ = "restructuredtext en"
 
 import httplib
 import urllib
-import re
 
 class selenium:
     """

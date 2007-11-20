@@ -30,8 +30,6 @@ from ManagedEntity import ManagedEntity
 from AccessControl import ClassSecurityInfo
 from Globals import DTMLFile
 from Globals import InitializeClass
-from OFS.FindSupport import FindSupport
-from Acquisition import aq_parent
 
 from Products.ZenRelations.RelSchema import *
 

@@ -10,20 +10,17 @@
 # For complete information please visit: http://www.zenoss.com/oss/
 #
 ###########################################################################
-import os
-import unittest
 
 from Testing import ZopeTestCase
 from Testing.ZopeTestCase.ZopeTestCase import standard_permissions
+if 0:
+    standard_permissions = None         # pyflakes
 
-from Products import ZenModel
 from Products.ZenModel.DmdBuilder import DmdBuilder
 from Products.ZenModel.ZentinelPortal import PortalGenerator
 from Products.ZenEvents.EventManagerBase import EventManagerBase
 from Products.ZenEvents.MySqlSendEvent import MySqlSendEventMixin
 from Products.ZenEvents.MySqlEventManager import log
-from Products.ZenEvents import MySqlEventManager
-from Products.ZenRelations.ImportRM import ImportRM
 
 log.warn = lambda *args, **kwds: None
 

@@ -21,10 +21,7 @@ Base for daemons that connect to zenhub
 import Globals
 from Products.ZenUtils.ZenDaemon import ZenDaemon
 #from Products.ZenUtils.Step import Step
-import Products.ZenEvents.Event as Event
 from Products.ZenUtils.PBUtil import ReconnectingPBClientFactory
-
-import socket
 
 from twisted.internet import reactor, defer
 from twisted.cred import credentials
@@ -60,7 +57,6 @@ class HubDown(Exception): pass
 
 class FakeRemote:
     def callRemote(self, name, *args):
-        from twisted.internet import defer
         return defer.fail(HubDown("ZenHub is down"))
 
 class PBDaemon(ZenDaemon, pb.Referenceable):

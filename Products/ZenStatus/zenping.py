@@ -37,7 +37,7 @@ from Products.ZenEvents.ZenEventClasses import Status_Ping
 from Products.ZenEvents.Event import Event, EventHeartbeat
 from Products.ZenUtils.ZCmdBase import ZCmdBase
 
-from twisted.internet import reactor, defer
+from twisted.internet import reactor
 
 class ZenPing(ZCmdBase):
 

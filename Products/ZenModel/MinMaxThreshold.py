@@ -16,9 +16,8 @@ from AccessControl import Permissions
 from Globals import InitializeClass
 from ThresholdClass import ThresholdClass
 from ThresholdInstance import ThresholdInstance, ThresholdContext
-from Products.ZenModel.PerformanceConf import performancePath
 from Products.ZenEvents import Event
-from Products.ZenEvents.ZenEventClasses import Perf_Snmp, Clear
+from Products.ZenEvents.ZenEventClasses import Perf_Snmp
 from Products.ZenUtils.ZenTales import talesEval
 
 import logging

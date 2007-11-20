@@ -20,8 +20,6 @@ $Id: ToOneRelationship.py,v 1.23 2003/10/02 20:48:22 edahl Exp $"""
 
 __version__ = "$Revision: 1.23 $"[11:-2]
 
-import copy
-
 import logging
 log = logging.getLogger("zen.Relations")
 
@@ -33,7 +31,7 @@ from Globals import InitializeClass
 from Globals import DTMLFile
 from AccessControl import ClassSecurityInfo
 from App.Dialogs import MessageDialog
-from Acquisition import aq_base, aq_parent
+from Acquisition import aq_base
 
 from Products.ZenRelations.Exceptions import *
 

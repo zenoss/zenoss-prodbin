@@ -11,9 +11,7 @@
 #
 ###########################################################################
 
-import os
 import time
-import sys
 
 from twisted.internet import reactor, defer
 
@@ -24,7 +22,9 @@ from Products.ZenStatus.ZenTcpClient import ZenTcpClient
 from Products.ZenEvents.ZenEventClasses import Heartbeat
 
 # required for pb.setUnjellyableForClass 
-import Products.ZenHub.services.StatusConfig
+from Products.ZenHub.services import StatusConfig
+if 0:
+    StatusConfig = None                 # pyflakes
 
 from sets import Set
 

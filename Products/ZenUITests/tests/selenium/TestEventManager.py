@@ -22,7 +22,6 @@
 import unittest
 
 from SelTestBase import SelTestBase
-from util.selTestUtils import getByValue
 
 class TestEventManager(SelTestBase):
     """Defines a class that runs tests under the Event Manager heading"""

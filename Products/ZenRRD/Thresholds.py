@@ -11,8 +11,6 @@
 #
 ###########################################################################
 
-import os
-
 import logging
 log = logging.getLogger('zen.thresholds')
 

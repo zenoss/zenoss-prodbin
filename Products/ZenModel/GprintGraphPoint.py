@@ -16,7 +16,6 @@ __doc__="""GprintGraphPoint
 Handles GraphPoints that define an rrd GPRINT
 """
 
-import os
 from GraphPoint import GraphPoint
 from Globals import InitializeClass
 

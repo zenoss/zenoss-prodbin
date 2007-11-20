@@ -36,7 +36,7 @@ from Products.ZenUtils.ZCmdBase import ZCmdBase
 from Event import Event, EventHeartbeat
 
 from ZenEventClasses import App_Start, App_Stop
-from twisted.internet import reactor, defer
+from twisted.internet import reactor
 
 class Stats:
     totalTime = 0.

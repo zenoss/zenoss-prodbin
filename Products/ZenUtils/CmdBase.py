@@ -24,7 +24,6 @@ __version__ = "$Revision: 1.10 $"[11:-2]
 import os
 import sys
 import logging
-import logging.config
 from optparse import OptionParser, SUPPRESS_HELP, NO_DEFAULT
 
 

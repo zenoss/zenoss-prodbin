@@ -20,8 +20,6 @@ import Globals
 
 from Products.ZenModel.ZenStatus import ZenAvailability
 
-import pdb
-
 class ZenStatusTest(unittest.TestCase):
     
 

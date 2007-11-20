@@ -19,7 +19,6 @@ DeviceReportClass contain DeviceReports.
 from AccessControl import ClassSecurityInfo
 from Globals import DTMLFile
 from ReportClass import ReportClass
-from ZenossSecurity import ZEN_MANAGE_DMD
 from Globals import InitializeClass
 
 

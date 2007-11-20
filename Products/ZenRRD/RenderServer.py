@@ -29,7 +29,6 @@ import mimetypes
 from AccessControl import ClassSecurityInfo
 from Globals import InitializeClass
 from Globals import DTMLFile
-from OFS.Image import manage_addFile
 
 try:
     import rrdtool
@@ -45,7 +44,6 @@ except ImportError:
         return base64.decodestring(s.replace('-','+').replace('_','/'))
 
 from Products.ZenUtils.PObjectCache import PObjectCache
-from Products.ZenUtils.PObjectCache import CacheObj
 from Products.ZenUtils.Utils import zenPath
 
 from RRDToolItem import RRDToolItem
@@ -53,8 +51,6 @@ from RRDToolItem import RRDToolItem
 from Products.ZenModel.PerformanceConf import performancePath
 import glob
 import tarfile
-
-import utils
 
 log = logging.getLogger("RenderServer")
 

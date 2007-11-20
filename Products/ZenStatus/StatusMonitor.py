@@ -19,8 +19,6 @@ $Id: StatusMonitor.py,v 1.9 2003/08/29 20:33:10 edahl Exp $"""
 
 __version__ = "$Revision: 1.9 $"[11:-2]
 
-import signal
-import os
 import sys
 import socket
 import time

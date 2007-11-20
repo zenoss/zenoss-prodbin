@@ -12,10 +12,7 @@
 ###########################################################################
 
 import sys
-import os
 import gc
-import time
-import logging
 from socket import getfqdn
 import pywintypes
 import pythoncom
@@ -23,9 +20,13 @@ import wmiclient
 
 import Globals
 from WinCollector import WinCollector as Base, TIMEOUT_CODE, RPC_ERROR_CODE
-from Products.ZenHub.services import WmiConfig
-from Products.ZenEvents.ZenEventClasses import Heartbeat, Status_Wmi_Conn, Status_Wmi
+from Products.ZenEvents.ZenEventClasses import Status_Wmi_Conn
 from Products.ZenEvents import Event
+
+# needed for pb/jelly
+from Products.ZenHub.services import WmiConfig
+if 0:
+    WmiConfig = None                    # pyflakes
 
 class zeneventlog(Base):
 

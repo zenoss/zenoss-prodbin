@@ -17,7 +17,6 @@ $Id: ZenModelBase.py,v 1.17 2004/04/23 19:11:58 edahl Exp $"""
 
 __version__ = "$Revision: 1.17 $"[11:-2]
 
-import copy
 import re
 import time
 
@@ -28,8 +27,6 @@ from OFS.ObjectManager import checkValidId as globalCheckValidId
 from AccessControl import ClassSecurityInfo, getSecurityManager, Unauthorized
 from Globals import InitializeClass
 from Acquisition import aq_base, aq_chain
-
-from Products.CMFCore.utils import _verifyActionPermissions
 
 from Products.ZenUtils.Utils import zenpathsplit, zenpathjoin
 from Products.ZenUtils.Utils import createHierarchyObj, getHierarchyObj

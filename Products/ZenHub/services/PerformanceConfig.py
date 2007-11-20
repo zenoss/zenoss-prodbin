@@ -17,9 +17,9 @@ from Products.ZenEvents.ZenEventClasses import Status_Snmp
 from Products.ZenHub.HubService import HubService
 
 from Products.ZenModel.Device import Device
-from Acquisition import aq_parent, aq_base
+from Acquisition import aq_parent
 
-from twisted.internet import reactor, defer
+from twisted.internet import defer
 
 from Procrastinator import Procrastinate
 
@@ -214,7 +214,6 @@ class PerformanceConfig(HubService):
         # somethinge else... mark the devices as out-of-date
         from Products.ZenModel.DeviceClass import DeviceClass
 
-        import transaction
         while object:
             # walk up until you hit an organizer or a device
             if isinstance(object, DeviceClass):

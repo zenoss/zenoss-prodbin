@@ -15,7 +15,6 @@ if __name__ == '__main__':
     execfile(os.path.join(sys.path[0], 'framework.py'))
 
 import logging
-import unittest
 
 from Products.ZenModel.Exceptions import *
 from Products.ZenModel.IpInterface import IpInterface
@@ -87,7 +86,6 @@ class TestIpInterface(ZenModelBaseTest):
         
 
     def testSetIpAddresses(self):
-        from Products.ZenModel.IpAddress import IpAddress
         self.iface.setIpAddresses('1.2.3.4/24')
         self.assert_('1.2.3.4/24' in self.iface.getIpAddresses())
         self.assert_(self.iface.getIpAddress() == '1.2.3.4/24')

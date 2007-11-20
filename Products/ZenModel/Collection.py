@@ -100,8 +100,6 @@ class Collection(ZenModelRM):
             groups=(), locations=(), recurse=False, REQUEST=None):
         ''' Create a new CollectionItem and add to this collection
         '''
-        from CollectionItem import CollectionItem
-        
         count = 0
         if itemType == 'devcomp':
             if not deviceIds:

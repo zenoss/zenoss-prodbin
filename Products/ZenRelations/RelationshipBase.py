@@ -20,13 +20,10 @@ $Id: RelationshipBase.py,v 1.26 2003/10/03 16:16:01 edahl Exp $"""
 
 __version__ = "$Revision: 1.26 $"[11:-2]
 
-import sys
 import logging
 log = logging.getLogger("zen.Relations")
   
-from Globals import DTMLFile
 from Globals import InitializeClass
-from AccessControl import ClassSecurityInfo
 from Acquisition import aq_base
 
 from Products.ZenRelations.Exceptions import *

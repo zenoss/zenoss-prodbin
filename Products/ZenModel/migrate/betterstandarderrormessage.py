@@ -20,7 +20,6 @@ Create standard_error_message at the root level of zope
 __version__ = "$Revision$"[11:-2]
 
 import Migrate
-import os
 from Products.ZenUtils.Utils import zenPath
 
 class BetterStandardErrorMessage(Migrate.Step):

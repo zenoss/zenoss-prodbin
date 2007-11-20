@@ -194,7 +194,6 @@ class Migration(ZenScriptBase):
 
 
     def error(self, msg):
-        import sys
         print >>sys.stderr, msg
 
 

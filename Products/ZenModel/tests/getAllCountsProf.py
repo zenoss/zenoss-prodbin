@@ -14,7 +14,7 @@ import Zope2
 app = Zope2.app()
 devs = app.zport.dmd.Devices.getOrganizer("/Server")
 
-import hotshot, hotshot.stats
+import hotshot
 
 def runtest():
     prof = hotshot.Profile("allcounts.prof")

@@ -19,8 +19,6 @@ $Id: HRSWInstalledMap.py,v 1.2 2004/04/07 16:26:53 edahl Exp $"""
 
 __version__ = '$Revision: 1.2 $'[11:-2]
 
-import struct
-
 from CollectorPlugin import SnmpPlugin, GetTableMap
 
 class HRSWInstalledMap(SnmpPlugin):

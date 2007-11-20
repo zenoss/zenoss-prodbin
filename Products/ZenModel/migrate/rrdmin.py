@@ -23,10 +23,7 @@ __version__ = "$Revision$"[11:-2]
 import os
 import re
 
-try:
-    import rrdtool
-except ImportError:
-    rrdtool = None
+import rrdtool
 
 import Migrate
 

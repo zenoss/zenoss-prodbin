@@ -11,7 +11,6 @@
 #
 ###########################################################################
 
-from ZenModelRM import ZenModelRM
 from Products.ZenRelations.RelSchema import *
 
 

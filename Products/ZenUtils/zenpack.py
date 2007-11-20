@@ -22,7 +22,6 @@ from StringIO import StringIO
 import ConfigParser
 from Products.ZenModel.ZenPackLoader import CONFIG_FILE, CONFIG_SECTION_ABOUT
 import os, sys
-import os.path
 
 class ZenPackCmd(ZenScriptBase):
     "Manage ZenPacks"

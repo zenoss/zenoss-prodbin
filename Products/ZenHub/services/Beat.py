@@ -13,7 +13,6 @@
 
 from HubService import HubService
 from twisted.internet import reactor
-from twisted.spread import pb
 import time
 
 class Beat(HubService):

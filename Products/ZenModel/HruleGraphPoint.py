@@ -16,7 +16,6 @@ __doc__="""
 Handles GraphPoints that define an rrd Line
 """
 
-import os
 from GraphPoint import GraphPoint
 from Globals import InitializeClass
 

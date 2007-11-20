@@ -25,10 +25,8 @@ import socket
 
 import Globals
 from Products.ZenEvents import Event
-from Products.ZenEvents.ZenEventClasses import Perf_Snmp, Heartbeat
-from Products.ZenUtils.Driver import drive
+from Products.ZenEvents.ZenEventClasses import Heartbeat
 
-from twisted.internet import reactor, defer
 from twisted.python import failure
 
 from Products.ZenHub.PBDaemon import FakeRemote, PBDaemon as Base

@@ -19,8 +19,6 @@ $Id: FileSystem.py,v 1.12 2004/04/06 22:33:23 edahl Exp $"""
 
 __version__ = "$Revision: 1.12 $"[11:-2]
 
-import locale
-
 from Globals import DTMLFile
 from Globals import InitializeClass
 

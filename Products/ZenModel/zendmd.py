@@ -20,6 +20,8 @@ try:
 except ImportError:
     readline = rlcompleter = None
 from pprint import pprint
+if 0:
+    pprint = None                       # be quiet pyflakes
 
 import Globals
 import transaction

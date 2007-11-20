@@ -23,7 +23,6 @@ __version__ = "$Revision: 1.2 $"[11:-2]
 import transaction
 
 import Globals
-from Acquisition import aq_parent
 
 from Products.ZenUtils.Utils import getAllConfmonObjects
 

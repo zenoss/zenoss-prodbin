@@ -19,10 +19,6 @@ Add default menus to dmd and device organizers
 $Id:$
 '''
 import Migrate
-import os
-from Products.ZenRelations.ImportRM import ImportRM
-from Products.ZenModel.DeviceClass import DeviceClass
-from Products.ZenModel.Device import Device
 
 from Products.ZenUtils.Utils import zenPath
 menuxml = zenPath("Products/ZenModel/data/menus.xml")

@@ -19,7 +19,6 @@ via xmlrpc.
 '''
 
 import time
-from sets import Set
 import socket
 
 import Globals
@@ -28,7 +27,6 @@ from Products.ZenEvents.EventServer import EventServer
 from Products.ZenEvents.Event import Event
 
 from twisted.internet import reactor, defer
-from twisted.python import failure
 from twisted.web import xmlrpc, server
 
 XML_RPC_PORT = 8081

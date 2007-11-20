@@ -11,9 +11,7 @@
 #
 ###########################################################################
 
-import os
 import sys
-import re
 import time
 import types
 import socket
@@ -35,9 +33,7 @@ from ManagedEntity import ManagedEntity
 from AccessControl import ClassSecurityInfo
 from Globals import DTMLFile
 from Globals import InitializeClass
-from Acquisition import aq_base
 from DateTime import DateTime
-from App.Dialogs import MessageDialog
 
 from ZODB.POSException import POSError
 from ZenossSecurity import *
@@ -47,8 +43,6 @@ from Products.DataCollector.ApplyDataMap import ApplyDataMap
 
 from Products.ZenRelations.RelSchema import *
 from Products.ZenUtils.IpUtil import isip
-from Products.ZenEvents.ZenEventClasses import Status_Snmp
-from UserCommand import UserCommand
 from Commandable import Commandable
 from Lockable import Lockable
 from MaintenanceWindowable import MaintenanceWindowable
@@ -1005,19 +999,6 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
         """
         dclass = self.getDmdRoot("Devices")
         return dclass.getPeerDeviceClassNames(self.__class__)
-
-
-    def havePydot(self):
-        """
-        DEPRECATED - Return true if pydot is installed.
-        
-        @todo: This method may not be called anywhere, remove it.
-        """
-        try:
-            import pydot
-            return True
-        except ImportError:
-            return False
 
 
     security.declareProtected(ZEN_VIEW, 'getRouterGraph')

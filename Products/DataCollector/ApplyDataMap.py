@@ -11,7 +11,6 @@
 #
 ###########################################################################
 
-import time
 import types
 import threading
 import Queue

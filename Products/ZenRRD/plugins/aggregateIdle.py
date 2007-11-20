@@ -13,9 +13,7 @@
 
 import os
 import time
-import glob
 import rrdtool
-import random
 
 import Globals
 try:

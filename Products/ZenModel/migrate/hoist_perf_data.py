@@ -33,7 +33,6 @@ class HoistPerfData(Migrate.Step):
         self.renames = []
 
     def cutover(self, dmd):
-        import glob
         names = dmd.getDmdRoot('Devices').getOrganizerNames(True)
         
         from Products.ZenUtils.Utils import zenPath

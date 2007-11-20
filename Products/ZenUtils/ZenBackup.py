@@ -22,11 +22,8 @@ import Globals
 from ZCmdBase import ZCmdBase
 import sys
 import os
-import os.path
 from datetime import date
-import getpass
 import ConfigParser
-import time
 import commands
 from ZenBackupBase import *
 

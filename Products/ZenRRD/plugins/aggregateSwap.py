@@ -14,7 +14,6 @@ import os
 import time
 import re
 import rrdtool
-import random
 try:
     import Globals
     from Products.ZenRRD.plugins.plugin import *

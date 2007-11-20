@@ -19,8 +19,6 @@ $Id: CiscoMap.py,v 1.3 2003/01/15 21:51:54 edahl Exp $"""
 
 __version__ = '$Revision: 1.3 $'[11:-2]
 
-import re
-
 from CollectorPlugin import SnmpPlugin, GetMap
 
 class CiscoMap(SnmpPlugin):

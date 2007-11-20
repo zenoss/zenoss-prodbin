@@ -18,7 +18,6 @@ import re
 import Globals
 
 from Products.ZenUtils.ZCmdBase import ZCmdBase
-from Products.ZenRelations.RelationshipManager import RelationshipManager
 
 _newlines = re.compile('\n[\t \r]*\n', re.M)
 

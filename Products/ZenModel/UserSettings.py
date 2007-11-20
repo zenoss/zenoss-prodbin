@@ -14,12 +14,10 @@
 import types
 
 from random import choice
-from copy import copy
 
 from Globals import DTMLFile
 from Globals import InitializeClass
 from AccessControl import ClassSecurityInfo
-from AccessControl import Permissions
 from AccessControl import getSecurityManager
 from Acquisition import aq_base
 from Products.PluggableAuthService import interfaces
@@ -29,17 +27,14 @@ from DateTime import DateTime
 from Products.ZenEvents.ActionRule import ActionRule
 from Products.ZenEvents.CustomEventView import CustomEventView
 from Products.ZenRelations.RelSchema import *
-from Products.ZenModel.AdministrativeRole import AdministrativeRole
 from Products.ZenUtils import Time
 
 from ZenossSecurity import *
 from ZenModelRM import ZenModelRM
 import Products.ZenUtils.Utils as Utils
 
-import smtplib
 from email.MIMEText import MIMEText
 import socket
-import sys
 
 UserSettingsId = "ZenUsers"
 

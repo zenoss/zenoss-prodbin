@@ -17,14 +17,12 @@ DEFAULT_HTTP_PORT = 8091
 import Globals
 
 from Products.ZenHub.PBDaemon import PBDaemon
-from Products.ZenModel.PerformanceConf import performancePath
 from RenderServer import RenderServer as OrigRenderServer
 from Products.ZenUtils.ObjectCache import ObjectCache
 
 from twisted.web import resource, server
 from twisted.internet import reactor
 
-import os
 import mimetypes
 
 class RenderServer(OrigRenderServer):

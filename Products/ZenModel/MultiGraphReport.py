@@ -15,8 +15,6 @@ from Globals import InitializeClass
 from AccessControl import ClassSecurityInfo
 from ZenModelRM import ZenModelRM
 from Products.ZenRelations.RelSchema import *
-from Products.ZenUtils.ZenTales import talesCompile, getEngine
-from DateTime import DateTime
 from RRDView import GetRRDPath
 from PerformanceConf import performancePath
 from ZenossSecurity import ZEN_MANAGE_DMD

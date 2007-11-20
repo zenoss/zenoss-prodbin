@@ -17,7 +17,6 @@ Create standard_error_message at the root level of zope
 '''
 
 import Migrate
-import os
 from Products.ZenUtils.Utils import zenPath
 
 class EvenBettererStandardErrorMessage(Migrate.Step):

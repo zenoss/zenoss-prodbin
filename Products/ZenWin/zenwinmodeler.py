@@ -11,19 +11,15 @@
 #
 ###########################################################################
 
-import os
 import time
-import sys
-import logging
 import wmiclient
-from socket import getfqdn
 import pywintypes
 
 
 import Globals
 from WinCollector import WinCollector as Base
 from Products.ZenEvents.ZenEventClasses import \
-     Heartbeat, Status_WinService, Status_Wmi, Status_Wmi_Conn
+     Status_WinService, Status_Wmi, Status_Wmi_Conn
 from Products.ZenUtils.Utils import prepId
 
 from Products.ZenEvents import Event

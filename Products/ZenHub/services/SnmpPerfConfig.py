@@ -14,8 +14,6 @@
 from PerformanceConfig import PerformanceConfig
 
 from sets import Set
-from ZODB.POSException import POSError
-
 
 
 class SnmpPerfConfig(PerformanceConfig):

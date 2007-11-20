@@ -10,13 +10,12 @@
 # For complete information please visit: http://www.zenoss.com/oss/
 #
 ###########################################################################
-from AccessControl import ClassSecurityInfo, getSecurityManager, Unauthorized, Permissions
+from AccessControl import ClassSecurityInfo, Permissions
 from ZenMenu import ZenMenu
 from Globals import InitializeClass
-from Acquisition import aq_base, aq_parent, aq_chain
+from Acquisition import aq_base, aq_chain
 from Products.ZenRelations.RelSchema import *
 from Products.ZenUtils.Utils import cmpClassNames
-from zExceptions import NotFound
 
 class ZenMenuable:
     """ ZenMenuable is a mixin providing menuing.

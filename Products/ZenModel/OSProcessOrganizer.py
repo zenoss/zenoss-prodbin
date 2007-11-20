@@ -11,7 +11,6 @@
 #
 ###########################################################################
 
-import re
 import types
 import logging
 log = logging.getLogger("zen.OSProcessOrganizer")

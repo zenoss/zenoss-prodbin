@@ -214,7 +214,7 @@ class ToManyContRelationship(ToManyRelationshipBase):
 
     security.declareProtected('View', 'objectValues')
     def objectValues(self, spec=None):
-        """over ride to only return owned objects for many to many rel"""
+        """override to only return owned objects for many to many rel"""
         if spec:
             retval = []
             if type(spec)==type('s'): spec=[spec]

@@ -12,7 +12,6 @@
 ###########################################################################
 
 import time
-import socket
 
 from ZenEventClasses import *
 from Exceptions import *

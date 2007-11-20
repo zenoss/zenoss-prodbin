@@ -14,13 +14,11 @@
 
 from Globals import InitializeClass
 from AccessControl import ClassSecurityInfo
-from AccessControl import getSecurityManager
-from AccessControl import Permissions as permissions
 
 from sets import Set
 
 import Products.ZenUtils.guid as guid
-from Products.AdvancedQuery import MatchRegexp, Or, In, Eq
+from Products.AdvancedQuery import MatchRegexp, Or
 
 import simplejson
 
@@ -30,7 +28,6 @@ from Products.ZenUtils.Search import makeCaseInsensitiveFieldIndex
 from Products.ZenUtils.Search import makeCaseInsensitiveKeywordIndex
 
 from Products.ZenModel.Link import Link
-from Products.ZenModel.Linkable import Linkable
 
 from Products.ZenUtils.NetworkTree import NetworkLink
 

@@ -15,8 +15,6 @@
 import Migrate
 from Products.ZenModel.GraphReportClass import GraphReportClass
 # Dependency?
-from Products.ZenModel.GraphDefinition import GraphDefinition
-
 
 
 class GraphReports(Migrate.Step):

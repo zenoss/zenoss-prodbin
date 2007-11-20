@@ -22,7 +22,6 @@ __version__ = "$Revision: 1.30 $"[11:-2]
 
 import os
 import zlib
-import transaction
 import logging
 log = logging.getLogger("zen.PerformanceConf")
 
@@ -40,7 +39,6 @@ except ImportError, ex:
 
 import xmlrpclib
 
-from ZODB.POSException import POSError
 from AccessControl import ClassSecurityInfo
 from Globals import DTMLFile
 from Globals import InitializeClass
@@ -50,14 +48,10 @@ from AccessControl import Permissions as permissions
 
 from Products.ZenRelations.RelSchema import *
 
-from Products.ZenUtils.Exceptions import ZentinelException
 from Products.ZenUtils.Utils import basicAuthUrl, zenPath
-from Products.ZenEvents.ZenEventClasses import Status_Snmp
 
 from Monitor import Monitor
 from StatusColor import StatusColor
-
-from ZenDate import ZenDate
 
 PERF_ROOT=None
 

@@ -19,10 +19,7 @@ Add Mibs organizer and friends.
 
 __version__ = "$Revision$"[11:-2]
 
-from Acquisition import aq_base
-
 import Migrate
-import os
 
 class Mibs(Migrate.Step):
     version = Migrate.Version(0, 22, 0)

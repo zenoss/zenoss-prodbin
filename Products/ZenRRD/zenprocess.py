@@ -28,16 +28,11 @@ from sets import Set
 log = logging.getLogger("zen.zenprocess")
 
 from twisted.internet import reactor, defer
-from twisted.python import failure
-
-from pynetsnmp.twistedsnmp import AgentProxy
-from pynetsnmp.tableretriever import TableRetriever
 
 import Globals
 from Products.ZenUtils.Driver import drive, driveLater
 from Products.ZenUtils.NJobs import NJobs
 from Products.ZenUtils.Chain import Chain
-from Products.ZenModel.PerformanceConf import performancePath
 from Products.ZenEvents import Event
 from Products.ZenEvents.ZenEventClasses import Status_Snmp, Status_OSProcess
 

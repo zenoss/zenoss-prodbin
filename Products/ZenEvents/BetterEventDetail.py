@@ -19,7 +19,6 @@ from EventDetail import EventDetail
 from Globals import InitializeClass
 from AccessControl import ClassSecurityInfo
 from AccessControl import Permissions as permissions
-from Acquisition import aq_base, aq_parent
 
 class BetterEventDetail(EventDetail):
     security = ClassSecurityInfo()

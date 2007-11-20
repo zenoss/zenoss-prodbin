@@ -30,9 +30,6 @@ def percentString(n, decimals=0):
     return '%*.*f' % (2, decimals, n)
 
 
-from AccessControl import ClassSecurityInfo
-
-
 class Record:
     __allow_access_to_unprotected_subobjects__ = 1
 

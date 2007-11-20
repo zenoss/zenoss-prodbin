@@ -22,7 +22,6 @@ from CmdBase import CmdBase
 
 from Exceptions import ZentinelException
 
-import os
 defaultCacheDir = zenPath('var')
 
 class DataRootError(Exception):pass

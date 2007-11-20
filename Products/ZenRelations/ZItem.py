@@ -12,14 +12,16 @@
 ###########################################################################
 import marshal, re, sys, time
 
-import Globals, App.Management, Acquisition, App.Undo
+import Globals, Acquisition
+import App
+import App.Management
+import AccessControl
 import AccessControl.Role, AccessControl.Owned, App.Common
-from webdav.Resource import Resource
 from ExtensionClass import Base
 from ComputedAttribute import ComputedAttribute
 from AccessControl import getSecurityManager, Unauthorized
 from AccessControl.ZopeSecurityPolicy import getRoles
-from Acquisition import aq_base, aq_parent, aq_inner, aq_acquire
+from Acquisition import aq_base, aq_parent, aq_inner
 from DocumentTemplate.html_quote import html_quote
 from DocumentTemplate.ustr import ustr
 from zExceptions.ExceptionFormatter import format_exception
@@ -90,7 +92,6 @@ class ZItem(Base, CopySource, App.Management.Tabs, Traversable,
     __propsets__=()
 
     manage_options=(
-        #App.Undo.UndoSupport.manage_options
         AccessControl.Owned.Owned.manage_options
         )
 

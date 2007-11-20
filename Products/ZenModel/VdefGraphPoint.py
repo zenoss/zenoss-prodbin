@@ -16,7 +16,6 @@ __doc__="""VdefGraphPoint
 Handles GraphPoints that define an rrd VDEF
 """
 
-import os
 from GraphPoint import GraphPoint
 from Globals import InitializeClass
 

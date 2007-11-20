@@ -29,10 +29,8 @@ from twisted.python import failure
 
 import Globals
 from Products.ZenUtils.Driver import drive, driveLater
-from Products.ZenEvents import Event
 
 from Products.ZenRRD.RRDDaemon import RRDDaemon
-from Products.ZenRRD.Thresholds import Thresholds
 from Products.ZenRRD.RRDUtil import RRDUtil
 from Products.DataCollector.SshClient import SshClient
 

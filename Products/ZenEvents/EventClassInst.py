@@ -11,7 +11,6 @@
 #
 ###########################################################################
 
-import os
 import copy
 import re
 import sre_constants
@@ -20,7 +19,6 @@ log = logging.getLogger("zen.Events")
 
 from Globals import DTMLFile
 from Globals import InitializeClass
-from Acquisition import aq_base
 from AccessControl import ClassSecurityInfo
 from AccessControl import Permissions
 

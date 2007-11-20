@@ -24,21 +24,15 @@ __version__ = "$Revision$"[11:-2]
 from twisted.python import threadable
 threadable.init()
 
-from Queue import Queue
-
 import time
 import socket
 
 import Globals
 
 from EventServer import EventServer
-from Event import Event, EventHeartbeat
-
-from ZenEventClasses import Status_Snmp
 from Products.ZenModel.IpAddress import findIpAddress
 
 from twisted.internet import reactor
-from twisted.internet.protocol import DatagramProtocol
 from twistedsnmp import snmpprotocol
 
 TRAP_PORT = 162

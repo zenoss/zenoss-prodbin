@@ -22,7 +22,6 @@ $Id$
 __version__ = "$Revision$"[11:-2]
 
 
-import os
 import socket
 import time
 from sets import Set
@@ -33,7 +32,7 @@ from _mysql_exceptions import OperationalError, ProgrammingError
 
 from Products.ZenUtils.ZCmdBase import ZCmdBase
 from Products.ZenUtils.ZenTales import talesCompile, getEngine
-from ZenEventClasses import App_Start, App_Stop, Heartbeat, Status_Heartbeat 
+from ZenEventClasses import App_Start, App_Stop, Status_Heartbeat 
 from ZenEventClasses import Cmd_Ok, Cmd_Fail
 import Event
 from Schedule import Schedule
@@ -483,7 +482,6 @@ class ZenActions(ZCmdBase):
         """Send an event to an email address.
         Return True if we think the email was sent, False otherwise.
         """
-        import smtplib
         from email.MIMEText import MIMEText
         from email.MIMEMultipart import MIMEMultipart
         addr = action.getAddresses()

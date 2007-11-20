@@ -23,12 +23,10 @@ import os
 import sys
 import Migrate
 
-from Acquisition import aq_base
 from Products.ZenModel.RRDDataPoint import RRDDataPoint, SEPARATOR
 
 from Products.ZenRelations.RelSchema import *
 from Products.ZenModel.DeviceClass import DeviceClass
-from Products.ZenModel.NagiosTemplate import NagiosTemplate
 DeviceClass._relations = DeviceClass._relations + (
         ("nagiosTemplates", ToManyCont(ToOne,"Products.ZenModel.NagiosTemplate","deviceClass")),
         )

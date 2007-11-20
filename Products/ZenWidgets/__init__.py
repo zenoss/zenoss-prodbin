@@ -39,3 +39,5 @@ def initialize(registrar):
 
 # Enable gzip compression of static files
 import FileGzipper
+if 0:
+    FileGzipper = None                  # pyflakes

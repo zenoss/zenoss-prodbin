@@ -17,8 +17,6 @@ configured with the move to AdvancedQuery.
 
 __version__ = "$Revision$"[11:-2]
         
-from Products.ZCatalog.Catalog import CatalogError
-
 from Products.ZenUtils.Search import makeCaseSensitiveFieldIndex
 from Products.ZenUtils.Search import makeCaseSensitiveKeywordIndex
 from Products.ZenUtils.Search import makeCaseInsensitiveFieldIndex

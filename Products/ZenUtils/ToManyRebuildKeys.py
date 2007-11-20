@@ -60,12 +60,8 @@ class ToManyRebuildKeys(ZCmdBase):
         from Products.ZenModel.ZenModelRM import ZenModelRM
         from Products.ZenRelations.ToManyRelationship \
             import ToManyRelationship
-        from Products.ZenRelations.ToOneRelationship \
-            import ToOneRelationship
-        return (
-                isinstance(obj, ZenModelRM) or 
+        return (isinstance(obj, ZenModelRM) or 
                 isinstance(obj, ToManyRelationship))
-                #isinstance(obj, ToOneRelationship))
 
 
     def buildOptions(self):

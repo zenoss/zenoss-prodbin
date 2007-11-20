@@ -12,7 +12,6 @@
 ###########################################################################
 import unittest
 import Globals
-import transaction
 
 from Products.ZenUtils.ZeoPoolBase import ZeoPoolBase
 

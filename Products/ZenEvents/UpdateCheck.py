@@ -17,7 +17,6 @@ __doc__='''UpdateCheck
 
 import Globals
 import transaction
-import Products.ZenUtils.Version
 from Products.ZenUtils.Version import Version
 from Products.ZenEvents import Event
 from Products.ZenEvents.ZenEventClasses import Status_Update

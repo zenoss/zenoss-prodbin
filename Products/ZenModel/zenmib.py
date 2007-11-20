@@ -10,11 +10,8 @@
 # For complete information please visit: http://www.zenoss.com/oss/
 #
 ###########################################################################
-import sys
 import os
 import glob
-from sets import Set
-import pprint
 
 import Globals
 import transaction
@@ -174,6 +171,5 @@ class zenmib(ZCmdBase):
 
 
 if __name__ == '__main__':
-    import sys
     zm = zenmib()
     zm.load()

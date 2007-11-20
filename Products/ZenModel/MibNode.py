@@ -11,8 +11,7 @@
 #
 ###########################################################################
 
-from Globals import InitializeClass
-from AccessControl import ClassSecurityInfo
+import Globals
 from AccessControl import Permissions
 
 from Products.ZenRelations.RelSchema import *

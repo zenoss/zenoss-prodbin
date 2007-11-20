@@ -15,12 +15,7 @@
 from Hardware import Hardware
 
 from AccessControl import ClassSecurityInfo
-from Globals import DTMLFile
 from Globals import InitializeClass
-from Acquisition import aq_base
-from DateTime import DateTime
-
-from AccessControl import Permissions as permissions
 
 from Products.ZenUtils.Utils import convToUnits
 from Products.ZenRelations.RelSchema import *

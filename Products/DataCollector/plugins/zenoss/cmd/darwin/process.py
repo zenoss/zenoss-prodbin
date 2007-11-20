@@ -14,7 +14,6 @@
 import string
 
 from CollectorPlugin import CommandPlugin
-from DataMaps import ObjectMap
 from sets import Set
 import md5
 

@@ -17,7 +17,6 @@ from Globals import DTMLFile
 from Globals import InitializeClass
 from AccessControl import ClassSecurityInfo
 from AccessControl import Permissions
-from Acquisition import aq_base
 from Commandable import Commandable
 from Products.ZenRelations.RelSchema import *
 from ZenPackable import ZenPackable

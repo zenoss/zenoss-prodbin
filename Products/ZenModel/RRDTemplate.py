@@ -15,12 +15,10 @@ import sys
 from Globals import DTMLFile
 from Globals import InitializeClass
 from AccessControl import ClassSecurityInfo, Permissions
-from Acquisition import aq_parent
 
 from ZenModelRM import ZenModelRM
 
 from Products.ZenRelations.RelSchema import *
-import Products.ZenModel.RRDDataSource as RRDDataSource
 from Products.ZenModel.BasicDataSource import BasicDataSource
 from Products.ZenModel.ConfigurationError import ConfigurationError
 from RRDDataPoint import SEPARATOR
@@ -233,7 +231,6 @@ class RRDTemplate(ZenModelRM, ZenPackable):
     def manage_addRRDThreshold(self, id, thresholdClassName, REQUEST=None):
         """Add an RRDThreshold to this DeviceClass.
         """
-        from RRDThreshold import RRDThreshold
         if not id: return self.callZenScreen(REQUEST)
         org = self.getThresholdClass(id, thresholdClassName)
         self.thresholds._setObject(org.id, org)

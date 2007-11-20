@@ -81,7 +81,7 @@ if not sys.modules.has_key('Testing'):
         print 'You might need to set SOFTWARE_HOME.'
         sys.exit(1)
 
-import Testing, unittest
+import Testing
 execfile(os.path.join(os.path.dirname(Testing.__file__), 'common.py'))
 
 # Include ZopeTestCase support

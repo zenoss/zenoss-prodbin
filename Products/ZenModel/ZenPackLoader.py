@@ -15,7 +15,7 @@ __doc__='Base Classes for loading gunk in a ZenPack'
 
 import Globals
 from Products.ZenReports.ReportLoader import ReportLoader
-from Products.ZenUtils.Utils import getObjByPath, zenPath
+from Products.ZenUtils.Utils import zenPath
 
 import os
 import ConfigParser
@@ -65,8 +65,7 @@ class ZenPackLoader:
     def upgrade(self, pack, app):
         "Run an upgrade on an existing pack"
 
-from xml.sax import saxutils, make_parser
-from xml.sax.handler import ContentHandler
+from xml.sax import make_parser
 
 class ZPLObject(ZenPackLoader):
 
@@ -252,7 +251,6 @@ class ZPLSkins(ZenPackLoader):
 
     def load(self, pack, app):
         from Products.ZenUtils.Skins import registerSkin
-        from Products.ZenUtils.Utils import getObjByPath
         registerSkin(app.zport.dmd, pack.path(''))
 
 

@@ -24,8 +24,6 @@ from Products.PluggableAuthService import plugins
 from Products.PluggableAuthService import interfaces
 from Products.PluggableAuthService import PluggableAuthService
 
-from Products import ZenModel
-
 ZENOSS_ROLES = ['ZenUser', 'ZenManager']
 
 

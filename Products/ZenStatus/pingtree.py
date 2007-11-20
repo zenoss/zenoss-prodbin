@@ -12,7 +12,6 @@
 ###########################################################################
 
 import sys
-import socket
 import logging
 
 from Products.ZenEvents.ZenEventClasses import Status_Ping

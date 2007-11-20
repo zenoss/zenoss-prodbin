@@ -29,9 +29,6 @@ from Products.ZenRelations.RelSchema import *
 from DeviceOrganizer import DeviceOrganizer
 from ZenPackable import ZenPackable
 
-import urllib, urllib2
-
-
 def manage_addLocation(context, id, description = "", 
                        address="", REQUEST = None):
     """make a Location"""

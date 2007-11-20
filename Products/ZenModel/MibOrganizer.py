@@ -17,7 +17,6 @@ from Globals import DTMLFile
 from Globals import InitializeClass
 from AccessControl import ClassSecurityInfo
 from AccessControl import Permissions
-from Acquisition import aq_base
 
 from Products.ZenRelations.RelSchema import *
 from Products.ZenUtils.Search import makeCaseInsensitiveKeywordIndex

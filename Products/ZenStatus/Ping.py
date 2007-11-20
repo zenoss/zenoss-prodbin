@@ -20,7 +20,6 @@ import socket
 import ip
 import icmp
 import errno
-import pprint
 import logging
 log = logging.getLogger("zen.Ping")
 

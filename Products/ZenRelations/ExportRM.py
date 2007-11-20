@@ -24,7 +24,6 @@ import sys
 import Globals
 
 from Products.ZenUtils.ZCmdBase import ZCmdBase
-from Products.ZenRelations.RelationshipManager import RelationshipManager
 
 class ExportRM(ZCmdBase):
 

@@ -88,7 +88,6 @@ class ThresholdGraphPoint(GraphPoint):
         None if a RPGP doesn't exist.  If multiple exist for any given
         dp then return just the first one.
         '''
-        from DataPointGraphPoint import DataPointGraphPoint
         related = {}
         threshClass = self.getThreshClass(context)
         if threshClass:

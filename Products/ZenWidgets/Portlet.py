@@ -14,10 +14,8 @@
 from Products.ZenModel.ZenossSecurity import *
 from os.path import basename, exists
 from Products.ZenRelations.RelSchema import *
-from OFS.SimpleItem import SimpleItem
-from OFS.PropertyManager import PropertyManager
 from Products.ZenModel.ZenModelRM import ZenModelRM
-from Globals import InitializeClass, DevelopmentMode
+from Globals import InitializeClass
 
 class PortletSourceNotFound(Exception): pass
 

@@ -11,13 +11,11 @@
 #
 ###########################################################################
 
-import sys
-import os
 import time
 import re
 from socket import getfqdn
 
-from twisted.internet import reactor, defer
+from twisted.internet import reactor
 
 import Globals
 from Products.ZenHub.PBDaemon import FakeRemote, PBDaemon as Base

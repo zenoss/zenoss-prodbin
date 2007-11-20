@@ -12,9 +12,9 @@
 ###########################################################################
 
 from twisted.conch.ssh import transport, userauth, connection, common, keys, channel
-from twisted.internet import defer, protocol, reactor
+from twisted.internet import defer, reactor
 from twisted.python import log
-import struct, sys, getpass, os
+import struct, getpass, os
 
 import logging
 
@@ -22,7 +22,7 @@ import logging
 #  - keeps pyflakes quiet
 USER, HOST = None, None
 
-from Exceptions import NoValidConnection, LoginFailed, CommandTimeout, CommandNotFound
+from Exceptions import CommandNotFound
 
 class SshSession:
 

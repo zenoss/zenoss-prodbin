@@ -23,15 +23,11 @@ import types
 
 from AccessControl import ClassSecurityInfo
 from Globals import InitializeClass
-from OFS.Folder import Folder
 from Globals import DTMLFile
 
-from Products.PageTemplates.PageTemplateFile import PageTemplateFile
-
 from Organizer import Organizer
-from Report import Report
 from ZenPackable import ZenPackable
-from ZenossSecurity import ZEN_MANAGE_DMD, ZEN_COMMON
+from ZenossSecurity import ZEN_COMMON
 from Products.ZenRelations.RelSchema import *
 
 def manage_addReportClass(context, id, title = None, REQUEST = None):

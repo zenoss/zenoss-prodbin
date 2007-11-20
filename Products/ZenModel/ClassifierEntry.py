@@ -24,8 +24,6 @@ __version__ = "$Revision: 1.6 $"[11:-2]
 
 from AccessControl import ClassSecurityInfo
 from Globals import DTMLFile
-from Globals import Persistent
-from Globals import InitializeClass
 
 from Products.ZCatalog.CatalogAwareness import CatalogAware
 from OFS.SimpleItem import SimpleItem

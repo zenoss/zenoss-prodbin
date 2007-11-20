@@ -28,7 +28,6 @@ slog = logging.getLogger("zen.Syslog")
 
 import Globals
 from Event import Event
-from Exceptions import ZenBackendFailure
 from syslog_h import *
 
 # Regular expressions that parse syslog tags from different sources

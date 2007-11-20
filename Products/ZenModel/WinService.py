@@ -13,7 +13,6 @@
 
 from Globals import InitializeClass
 from AccessControl import ClassSecurityInfo, Permissions
-from Acquisition import aq_base
 
 from Products.ZenRelations.RelSchema import *
 from Products.ZenUtils.Utils import prepId

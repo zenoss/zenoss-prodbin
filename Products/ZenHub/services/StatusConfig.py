@@ -16,11 +16,10 @@ from Products.ZenHub.HubService import HubService
 
 from Products.ZenEvents.ZenEventClasses import Status_IpService
 from Products.ZenModel.Device import Device
-from Acquisition import aq_parent, aq_base
 
 from Procrastinator import Procrastinate
 
-from twisted.internet import reactor, defer
+from twisted.internet import defer
 from sets import Set
 
 from twisted.spread import pb

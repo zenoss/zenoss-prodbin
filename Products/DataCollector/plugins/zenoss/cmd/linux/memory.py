@@ -11,8 +11,6 @@
 #
 ###########################################################################
 
-import re
-
 from CollectorPlugin import CommandPlugin
 from DataMaps import ObjectMap
 

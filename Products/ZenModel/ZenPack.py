@@ -10,21 +10,16 @@
 # For complete information please visit: http://www.zenoss.com/oss/
 #
 ###########################################################################
-import zope.interface
 
 from Globals import InitializeClass
 from Products.ZenModel.ZenModelRM import ZenModelRM
-from Products.ZenModel import interfaces
 from Products.ZenRelations.RelSchema import *
 from Products.ZenUtils.Utils import importClass, zenPath
-from Products.ZenModel.migrate import Migrate
 from Products.ZenUtils.Version import getVersionTupleFromString
 from Products.ZenModel.migrate.Migrate import Version
 from Products.ZenModel.ZenPackLoader import *
 from AccessControl import ClassSecurityInfo
 from ZenossSecurity import ZEN_MANAGE_DMD
-
-import transaction
 
 import os
 
@@ -197,7 +192,6 @@ class ZenPack(ZenModelRM):
         Export the ZenPack to the /export directory
         """
         from StringIO import StringIO
-        from Acquisition import aq_base
         xml = StringIO()
         
         # Write out packable objects
