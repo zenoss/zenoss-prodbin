@@ -55,9 +55,9 @@ class VdefGraphPoint(GraphPoint):
         '''
         if not self.rpn:
             return cmds
-
+        rpn = self.talesEval(self.rpn, context)
         return cmds + ['VDEF:%s=%s' % (
-                        self.getDsName(self.id, multiid, prefix), self.rpn)]
+                        self.getDsName(self.id, multiid, prefix), rpn)]
 
 
 InitializeClass(VdefGraphPoint)

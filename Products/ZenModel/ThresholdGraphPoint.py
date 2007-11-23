@@ -119,7 +119,7 @@ class ThresholdGraphPoint(GraphPoint):
             # need to refactor threshinst to not take template.
             # Looks like it's not being used anyway.
             gopts = threshInst.getGraphElements(
-                        template, gopts, namespace, 
+                        template, context, gopts, namespace, 
                         color, relatedGps)
         return cmds + gopts
 

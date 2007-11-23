@@ -18,7 +18,7 @@ from ThresholdClass import ThresholdClass
 from ThresholdInstance import ThresholdInstance, ThresholdContext
 from Products.ZenEvents import Event
 from Products.ZenEvents.ZenEventClasses import Perf_Snmp
-from Products.ZenUtils.ZenTales import talesEval
+from Products.ZenUtils.ZenTales import talesEval, talesEvalStr
 
 import logging
 log = logging.getLogger('zen.MinMaxCheck')
@@ -212,7 +212,8 @@ class MinMaxThresholdInstance(ThresholdInstance):
         return []
 
 
-    def getGraphElements(self, template, gopts, namespace, color, relatedGps):
+    def getGraphElements(self, template, context, gopts, namespace, color, 
+            relatedGps):
         """Produce a visual indication on the graph of where the
         threshold applies."""
         if not color.startswith('#'):
@@ -221,9 +222,11 @@ class MinMaxThresholdInstance(ThresholdInstance):
         n = self.minimum
         x = self.maximum
         gp = relatedGps[self.dataPointNames[0]]
-        if getattr(gp, 'rpn', ''):
-            n = rpneval(n, gp.rpn)
-            x = rpneval(x, gp.rpn)
+        rpn = getattr(gp, 'rpn', None)
+        if rpn:
+            rpn = talesEvalStr(rpn, context)
+            n = rpneval(n, rpn)
+            x = rpneval(x, rpn)
         result = []
         if n:
             result += [
@@ -232,7 +235,7 @@ class MinMaxThresholdInstance(ThresholdInstance):
         if x:
             result += [
                 "HRULE:%s%s:%s\\j" % (x, color, self.getMaxLabel(x))
-            ]
+                ]
         return gopts + result
 
 

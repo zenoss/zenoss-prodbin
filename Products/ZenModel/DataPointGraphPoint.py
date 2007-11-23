@@ -90,9 +90,10 @@ class DataPointGraphPoint(ComplexGraphPoint):
         graph.append("DEF:%s=%s:%s:%s" % (rawName, rrdFile, 'ds0', self.cFunc))
 
         # If have rpn then create a new CDEF
-        if self.rpn: 
+        if self.rpn:
+            rpn = self.talesEval(self.rpn, context)
             rpnName = self.getDsName('%s-rpn' % self.id, multiid, prefix)
-            graph.append("CDEF:%s=%s,%s" % (rpnName, rawName, self.rpn))
+            graph.append("CDEF:%s=%s,%s" % (rpnName, rawName, rpn))
 
         # If have limit then create a new CDEF
         if self.limit > -1:

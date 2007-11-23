@@ -82,7 +82,7 @@ class ThresholdInstance(pb.Copyable, pb.RemoteCopy):
         """
         return self.check([dataPoint])
 
-    def getGraphElements(self, template, gopts, namespace, color):
+    def getGraphElements(self, template, context, gopts, namespace, color):
         """Produce a visual indication on the graph of where the
         threshold applies."""
         return []

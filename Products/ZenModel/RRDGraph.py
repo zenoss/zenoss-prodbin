@@ -206,7 +206,8 @@ class RRDGraph(ZenModelRM):
         for i, thresh in enumerate(threshs):
             t = thresh.createThresholdInstance(context)
             color = self.getthreshcolor()
-            gopts = t.getGraphElements(template, gopts, 'thresh%d' % i, color)
+            gopts = t.getGraphElements(template, context, gopts, 'thresh%d' %
+                    i, color)
         import logging
         log = logging.getLogger("debug")
         log.error('%r' % gopts)
