@@ -1171,7 +1171,7 @@ AVERAGE
 500
 </property>
 <property type="string" id="units" mode="w" >
-Bits/sec
+bits/sec
 </property>
 <property type="boolean" id="log" mode="w" >
 False
@@ -1180,7 +1180,7 @@ False
 False
 </property>
 <property type="int" id="miny" mode="w" >
--1
+0
 </property>
 <property type="int" id="maxy" mode="w" >
 -1
@@ -1211,10 +1211,13 @@ False
 %5.2lf%s
 </property>
 <property type="string" id="legend" mode="w" >
-${graphPoint/id}
+Outbound
 </property>
 <property type="long" id="limit" mode="w" >
 -1
+</property>
+<property type="string" id="rpn" mode="w" >
+8,*
 </property>
 <property type="string" id="dpName" mode="w" >
 ifInOctets_ifInOctets
@@ -1240,10 +1243,13 @@ False
 %5.2lf%s
 </property>
 <property type="string" id="legend" mode="w" >
-${graphPoint/id}
+Inbound
 </property>
 <property type="long" id="limit" mode="w" >
 -1
+</property>
+<property type="string" id="rpn" mode="w" >
+8,*
 </property>
 <property type="string" id="dpName" mode="w" >
 ifOutOctets_ifOutOctets
@@ -1789,7 +1795,7 @@ False
 %5.2lf%s
 </property>
 <property type="string" id="legend" mode="w" >
-${graphPoint/id}
+Inbound
 </property>
 <property type="long" id="limit" mode="w" >
 -1
@@ -1821,7 +1827,7 @@ False
 %5.2lf%s
 </property>
 <property type="string" id="legend" mode="w" >
-${graphPoint/id}
+Outbound
 </property>
 <property type="long" id="limit" mode="w" >
 -1
@@ -3409,20 +3415,27 @@ False
 False
 </property>
 <property type="int" id="miny" mode="w" >
--1
+0
 </property>
 <property type="int" id="maxy" mode="w" >
--1
-</property>
-<property type="text" id="custom" mode="w" >
-CDEF:percent=usedBlocks,${here/totalBlocks},/,100,*
-AREA:percent#00cc00:utilization
+100
 </property>
 <property type="boolean" id="hasSummary" mode="w" >
 True
 </property>
 <tomanycont id='graphPoints'>
+<object id='Free Space 90 Percent' module='Products.ZenModel.ThresholdGraphPoint' class='ThresholdGraphPoint'>
+<property type="string" id="threshId" mode="w" >
+Free Space 90 Percent
+</property>
+<property type="string" id="legend" mode="w" >
+${graphPoint/id}
+</property>
+</object>
 <object id='usedBlocks' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint'>
+<property type="long" id="sequence" mode="w" >
+1
+</property>
 <property select_variable="lineTypes" type="selection" id="lineType" mode="w" >
 AREA
 </property>
@@ -3433,13 +3446,16 @@ AREA
 False
 </property>
 <property type="string" id="format" mode="w" >
-%5.2lf%s
+%5.2lf%%
 </property>
 <property type="string" id="legend" mode="w" >
-${graphPoint/id}
+Used
 </property>
 <property type="long" id="limit" mode="w" >
 -1
+</property>
+<property type="string" id="rpn" mode="w" >
+${here/totalBlocks},/,100,*
 </property>
 <property type="string" id="dpName" mode="w" >
 usedBlocks_usedBlocks
@@ -5333,20 +5349,27 @@ False
 False
 </property>
 <property type="int" id="miny" mode="w" >
--1
+0
 </property>
 <property type="int" id="maxy" mode="w" >
--1
-</property>
-<property type="text" id="custom" mode="w" >
-CDEF:percent=usedBlocks,${here/totalBlocks},/,100,*
-AREA:percent#00cc00:utilization
+100
 </property>
 <property type="boolean" id="hasSummary" mode="w" >
 True
 </property>
 <tomanycont id='graphPoints'>
+<object id='Free Space 90 Percent' module='Products.ZenModel.ThresholdGraphPoint' class='ThresholdGraphPoint'>
+<property type="string" id="threshId" mode="w" >
+Free Space 90 Percent
+</property>
+<property type="string" id="legend" mode="w" >
+${graphPoint/id}
+</property>
+</object>
 <object id='usedBlocks' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint'>
+<property type="long" id="sequence" mode="w" >
+1
+</property>
 <property select_variable="lineTypes" type="selection" id="lineType" mode="w" >
 AREA
 </property>
@@ -5357,13 +5380,16 @@ AREA
 False
 </property>
 <property type="string" id="format" mode="w" >
-%0.2lf%s
+%5.2lf%%
 </property>
 <property type="string" id="legend" mode="w" >
-${graphPoint/id}
+Used
 </property>
 <property type="long" id="limit" mode="w" >
 -1
+</property>
+<property type="string" id="rpn" mode="w" >
+${here/totalBlocks},/,100,*
 </property>
 <property type="string" id="dpName" mode="w" >
 disk_usedBlocks
@@ -5914,7 +5940,7 @@ AVERAGE
 500
 </property>
 <property type="string" id="units" mode="w" >
-Bits/sec
+bits/sec
 </property>
 <property type="boolean" id="log" mode="w" >
 False
@@ -5923,7 +5949,7 @@ False
 False
 </property>
 <property type="int" id="miny" mode="w" >
--1
+0
 </property>
 <property type="int" id="maxy" mode="w" >
 -1
@@ -5946,10 +5972,13 @@ False
 %0.2lf%s
 </property>
 <property type="string" id="legend" mode="w" >
-${graphPoint/id}
+Inbound
 </property>
 <property type="long" id="limit" mode="w" >
 -1
+</property>
+<property type="string" id="rpn" mode="w" >
+8,*
 </property>
 <property type="string" id="dpName" mode="w" >
 intf_ifInOctets
@@ -5975,10 +6004,13 @@ False
 %0.2lf%s
 </property>
 <property type="string" id="legend" mode="w" >
-${graphPoint/id}
+Outbound
 </property>
 <property type="long" id="limit" mode="w" >
 -1
+</property>
+<property type="string" id="rpn" mode="w" >
+8,*
 </property>
 <property type="string" id="dpName" mode="w" >
 intf_ifOutOctets
