@@ -139,6 +139,27 @@ class NetworkLink(ILink):
         zem = eps[0].dmd.ZenEventManager
         return max(map(zem.getMaxSeverity,eps))
 
+    def getEndpointNames(self):
+        return (self.pointa.id, self.pointb.id)
+
+    def getOtherEndpoint(self, endpoint):
+        if endpoint==self.pointa: return self.pointb
+        elif endpoint==self.pointb: return self.pointa
+        else: return None
+
+    def getDataForJSON(self):
+        # Eventually will return data for serialization
+        import simplejson
+        return simplejson.dumps([
+            self.id,
+            self.getEndpointNames()[0],
+            self.getEndpointNames()[1],
+            self.OSI_layer,
+            self.link_type,
+            self.entry_type,
+            self.id
+        ])
+
     def getGeomapData(self, context, full=False):
         """ Return the addresses of the endpoints
             aggregated for the generation of the context

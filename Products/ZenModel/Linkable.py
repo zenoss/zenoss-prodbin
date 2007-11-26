@@ -36,7 +36,7 @@ class Linkable:
 
     def unlink(self):
         """ Removes all links associated with a Linkable """
-        zlm = dmd.ZenLinkManager
+        zlm = self.dmd.ZenLinkManager
         for link in self.links():
             zlm.manage_removeLink(link.id)
 
