@@ -12,7 +12,7 @@
 ##############################################################################
 """ PortalContent: Base class for all CMF content.
 
-$Id: PortalContent.py 40634 2005-12-07 21:04:44Z tseaver $
+$Id: PortalContent.py 69189 2006-07-18 18:48:28Z tseaver $
 """
 
 from Globals import InitializeClass
@@ -97,7 +97,7 @@ class PortalContent(DynamicType, CMFCatalogAware, SimpleItem):
         """
         ti = self.getTypeInfo()
         method_id = ti and ti.queryMethodID('(Default)', context=self)
-        if method_id:
+        if method_id and method_id!='(Default)':
             method = getattr(self, method_id)
         else:
             method = _getViewFor(self)

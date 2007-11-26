@@ -12,7 +12,7 @@
 ##############################################################################
 """ Information about customizable actions.
 
-$Id: ActionInformation.py 40138 2005-11-15 17:47:37Z jens $
+$Id: ActionInformation.py 40136 2005-11-15 17:41:36Z jens $
 """
 
 from UserDict import UserDict

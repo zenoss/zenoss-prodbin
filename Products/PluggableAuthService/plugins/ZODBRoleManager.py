@@ -14,12 +14,14 @@
 ##############################################################################
 """ Classes: ZODBRoleManager
 
-$Id: ZODBRoleManager.py 69891 2006-08-30 15:41:06Z andrew $
+$Id: ZODBRoleManager.py 76618 2007-06-11 19:09:58Z jens $
 """
 from Acquisition import aq_parent, aq_inner
 from AccessControl import ClassSecurityInfo
 from BTrees.OOBTree import OOBTree
 from Globals import InitializeClass
+
+from zope.interface import Interface
 
 from Products.PageTemplates.PageTemplateFile import PageTemplateFile
 
@@ -33,7 +35,7 @@ from Products.PluggableAuthService.interfaces.plugins \
 from Products.PluggableAuthService.permissions import ManageUsers
 from Products.PluggableAuthService.plugins.BasePlugin import BasePlugin
 from Products.PluggableAuthService.utils import classImplements
-from Products.PluggableAuthService.utils import Interface
+from Products.PluggableAuthService.utils import postonly
 
 class IZODBRoleManager(Interface):
     """ Marker interface.
@@ -157,6 +159,10 @@ class ZODBRoleManager( BasePlugin ):
     def doAssignRoleToPrincipal( self, principal_id, role ):
         return self.assignRoleToPrincipal( role, principal_id )
 
+    security.declarePrivate( 'doRemoveRoleFromPrincipal' )
+    def doRemoveRoleFromPrincipal( self, principal_id, role ):
+        return self.removeRoleFromPrincipal( role, principal_id )
+
     #
     #   Role management API
     #
@@ -208,7 +214,7 @@ class ZODBRoleManager( BasePlugin ):
                                        } )
 
     security.declareProtected( ManageUsers, 'removeRole' )
-    def removeRole( self, role_id ):
+    def removeRole( self, role_id, REQUEST=None ):
 
         """ Remove 'role_id' from the list of roles managed by this object.
 
@@ -218,6 +224,7 @@ class ZODBRoleManager( BasePlugin ):
             self.removeRoleFromPrincipal( role_id, principal_id )
 
         del self._roles[ role_id ]
+    removeRole = postonly(removeRole)
 
     #
     #   Role assignment API
@@ -274,7 +281,7 @@ class ZODBRoleManager( BasePlugin ):
         return result
 
     security.declareProtected( ManageUsers, 'assignRoleToPrincipal' )
-    def assignRoleToPrincipal( self, role_id, principal_id ):
+    def assignRoleToPrincipal( self, role_id, principal_id, REQUEST=None ):
 
         """ Assign a role to a principal (user or group).
 
@@ -292,9 +299,10 @@ class ZODBRoleManager( BasePlugin ):
             self._principal_roles[ principal_id ] = new
 
         return not already
+    assignRoleToPrincipal = postonly(assignRoleToPrincipal)
 
     security.declareProtected( ManageUsers, 'removeRoleFromPrincipal' )
-    def removeRoleFromPrincipal( self, role_id, principal_id ):
+    def removeRoleFromPrincipal( self, role_id, principal_id, REQUEST=None ):
 
         """ Remove a role from a principal (user or group).
 
@@ -315,6 +323,7 @@ class ZODBRoleManager( BasePlugin ):
             self._principal_roles[ principal_id ] = new
 
         return already
+    removeRoleFromPrincipal = postonly(removeRoleFromPrincipal)
 
     #
     #   ZMI
@@ -376,6 +385,7 @@ class ZODBRoleManager( BasePlugin ):
     def manage_removeRoles( self
                           , role_ids
                           , RESPONSE
+                          , REQUEST=None
                           ):
         """ Remove one or more roles via the ZMI.
         """
@@ -394,12 +404,14 @@ class ZODBRoleManager( BasePlugin ):
         RESPONSE.redirect( '%s/manage_roles?manage_tabs_message=%s'
                          % ( self.absolute_url(), message )
                          )
+    manage_removeRoles = postonly(manage_removeRoles)
 
     security.declareProtected( ManageUsers, 'manage_assignRoleToPrincipals' )
     def manage_assignRoleToPrincipals( self
                                      , role_id
                                      , principal_ids
                                      , RESPONSE
+                                     , REQUEST=None
                                      ):
         """ Assign a role to one or more principals via the ZMI.
         """
@@ -420,12 +432,14 @@ class ZODBRoleManager( BasePlugin ):
                            + '&manage_tabs_message=%s'
                            ) % ( self.absolute_url(), role_id, message )
                          )
+    manage_assignRoleToPrincipals = postonly(manage_assignRoleToPrincipals)
 
     security.declareProtected( ManageUsers, 'manage_removeRoleFromPrincipals' )
     def manage_removeRoleFromPrincipals( self
                                        , role_id
                                        , principal_ids
                                        , RESPONSE
+                                       , REQUEST=None
                                        ):
         """ Remove a role from one or more principals via the ZMI.
         """
@@ -446,6 +460,7 @@ class ZODBRoleManager( BasePlugin ):
                            + '&manage_tabs_message=%s'
                            ) % ( self.absolute_url(), role_id, message )
                          )
+    manage_removeRoleFromPrincipals = postonly(manage_removeRoleFromPrincipals)
 
 classImplements( ZODBRoleManager
                , IZODBRoleManager

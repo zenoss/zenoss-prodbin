@@ -12,7 +12,7 @@
 ##############################################################################
 """CookieCrumbler tests.
 
-$Id: testCookieCrumbler.py 41262 2006-01-11 13:50:36Z yuppie $
+$Id: testCookieCrumbler.py 40930 2005-12-21 00:25:48Z efge $
 """
 
 import base64

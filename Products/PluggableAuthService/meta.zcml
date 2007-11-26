@@ -1,0 +1,12 @@
+<configure
+    xmlns="http://namespaces.zope.org/zope"
+    xmlns:meta="http://namespaces.zope.org/meta">
+
+  <meta:directive
+      name="registerMultiPlugin"
+      namespace="http://namespaces.zope.org/pluggableauthservice"
+      schema=".zcml.IRegisterMultiPlugin"
+      handler=".zcml.registerMultiPlugin"
+      />
+
+</configure>

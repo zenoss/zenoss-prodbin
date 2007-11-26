@@ -14,7 +14,7 @@
 ##############################################################################
 """ Class: BasePlugin
 
-$Id: BasePlugin.py 39312 2005-07-06 18:49:05Z urbanape $
+$Id: BasePlugin.py 70853 2006-10-20 20:03:04Z jens $
 """
 from OFS.SimpleItem import SimpleItem
 from OFS.PropertyManager import PropertyManager
@@ -23,9 +23,12 @@ from AccessControl import ClassSecurityInfo
 from App.class_init import default__class_init__ as InitializeClass
 from Interface.Implements import flattenInterfaces
 
+from zope.interface import implementedBy
+from zope.interface import providedBy
+
 from Products.PageTemplates.PageTemplateFile import PageTemplateFile
 
-from Products.PluggableAuthService.utils import classImplements, implementedBy
+from Products.PluggableAuthService.utils import classImplements
 from Products.PluggableAuthService.permissions import ManageUsers
 
 class BasePlugin(SimpleItem, PropertyManager):
@@ -60,7 +63,7 @@ class BasePlugin(SimpleItem, PropertyManager):
 
         results = []
 
-        for iface in flattenInterfaces( self.__implements__ ):
+        for iface in flattenInterfaces( providedBy( self ) ):
             results.append( iface.__name__ )
 
         return results
@@ -104,13 +107,6 @@ class BasePlugin(SimpleItem, PropertyManager):
         """ Canonical way to get at the PAS instance from a plugin """
         return aq_parent( aq_inner( self ) )
 
-try:
-    from Products.Five.bridge import fromZ2Interface
-except ImportError:
-    BasePlugin.__implements__ = SimpleItem.__implements__
-else:
-    classImplements( BasePlugin
-                   , *implementedBy(SimpleItem)
-                   )
+classImplements(BasePlugin, *implementedBy(SimpleItem))
 
 InitializeClass(BasePlugin)

@@ -12,10 +12,10 @@
 ##############################################################################
 """ Base class for catalog aware content items.
 
-$Id: CMFCatalogAware.py 38390 2005-09-08 12:49:28Z anguenot $
+$Id: CMFCatalogAware.py 68523 2006-06-08 16:23:41Z efge $
 """
 
-from zLOG import LOG, PROBLEM
+import logging
 from AccessControl import ClassSecurityInfo
 from Acquisition import aq_base
 from ExtensionClass import Base
@@ -30,6 +30,10 @@ from utils import _getAuthenticatedUser
 from utils import getToolByName
 
 from interfaces.IOpaqueItems import ICallableOpaqueItem
+
+
+logger = logging.getLogger('CMFCore.CMFCatalogAware')
+
 
 class CMFCatalogAware(Base):
     """Mix-in for notifying portal_catalog and portal_workflow
@@ -119,8 +123,8 @@ class CMFCatalogAware(Base):
                 # BBB: Ignore old references to deleted objects.
                 # Can happen only in Zope 2.7, or when using
                 # catalog-getObject-raises off in Zope 2.8
-                LOG('reindexObjectSecurity', PROBLEM,
-                    "Cannot get %s from catalog" % brain_path)
+                logger.warning("reindexObjectSecurity: Cannot get %s from "
+                               "catalog", brain_path)
                 continue
             # Recatalog with the same catalog uid.
             s = getattr(ob, '_p_changed', 0)

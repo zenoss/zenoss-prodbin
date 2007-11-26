@@ -20,7 +20,7 @@ from Products.PluggableAuthService.tests.conformance \
     import IGroupsPlugin_conformance
 
 from Products.PluggableAuthService.plugins.tests.helpers \
-     import FauxPAS, FauxSmartPAS, DummyUser
+     import FauxPAS, FauxSmartPAS, DummyUser, makeRequestAndResponse
 
 class DummyGroup:
 
@@ -265,10 +265,63 @@ class ZODBGroupManagerTests( unittest.TestCase
         groups = zgm.getGroupsForPrincipal( user )
         self.assertEqual( groups, ( 'prefixed_group', ) )
 
+    def testPOSTProtections(self):
+        from zExceptions import Forbidden
+
+        USER_ID = 'testuser'
+        GROUP_ID = 'testgroup'
+
+        zgm = self._makeOne()
+        zgm.prefix = 'prefixed_'
+
+        zgm.addGroup( GROUP_ID )
+        user = DummyUser( USER_ID )
+
+        req, res = makeRequestAndResponse()
+
+        # test addPrincipalToGroup
+        # Fails with a GET
+        req.set('REQUEST_METHOD', 'GET')
+        self.assertRaises(Forbidden, zgm.addPrincipalToGroup,
+                          USER_ID, GROUP_ID, REQUEST=req)
+        # Works with a POST
+        req.set('REQUEST_METHOD', 'POST')
+        zgm.addPrincipalToGroup(USER_ID, GROUP_ID, REQUEST=req)
+
+        # test removePrincipalFromGroup
+        req.set('REQUEST_METHOD', 'GET')
+        self.assertRaises(Forbidden, zgm.removePrincipalFromGroup,
+                          USER_ID, GROUP_ID, REQUEST=req)
+        # Works with a POST
+        req.set('REQUEST_METHOD', 'POST')
+        zgm.removePrincipalFromGroup(USER_ID, GROUP_ID, REQUEST=req)
+
+        # test manage_addPrincipalsToGroup
+        req.set('REQUEST_METHOD', 'GET')
+        self.assertRaises(Forbidden, zgm.manage_addPrincipalsToGroup,
+                          GROUP_ID, [USER_ID], REQUEST=req)
+        req.set('REQUEST_METHOD', 'POST')
+        zgm.manage_addPrincipalsToGroup(GROUP_ID, [USER_ID], REQUEST=req)
+
+        # test manage_removePrincipalsFromGroup
+        req.set('REQUEST_METHOD', 'GET')
+        self.assertRaises(Forbidden, zgm.manage_removePrincipalsFromGroup,
+                          GROUP_ID, [USER_ID], REQUEST=req)
+        req.set('REQUEST_METHOD', 'POST')
+        zgm.manage_removePrincipalsFromGroup(GROUP_ID, [USER_ID], REQUEST=req)
+
+        # test manage_removeGroup
+        req.set('REQUEST_METHOD', 'GET')
+        self.assertRaises(Forbidden, zgm.manage_removeGroups,
+                          [GROUP_ID], REQUEST=req)
+        # Works with a POST
+        req.set('REQUEST_METHOD', 'POST')
+        zgm.manage_removeGroups([GROUP_ID], REQUEST=req)
+
 if __name__ == "__main__":
     unittest.main()
 
 def test_suite():
     return unittest.TestSuite((
         unittest.makeSuite( ZODBGroupManagerTests ),
-        ))               
+        ))

@@ -1,14 +1,72 @@
 PluggableAuthService changelog
 
-  PluggableAuthService 1.5 (unreleased)
+  PluggableAuthService 1.5 (06/17/2006)
 
     Features Added
+
+      - Add support for property plugins returning an IPropertySheet
+        to PropertiedUser. Added addPropertysheet to the IPropertiedUser.
+
+      - Added a method to the IRoleAssignerPlugin to remove roles from a
+        principal, and an implementation for it on the ZODBRoleManager.
+        (http://www.zope.org/Collectors/PAS/57)
+
+      - Added events infrastructure. Enabled new IPrincipalCreatedEvent and
+        ICredentialsUpdatedEvent events.
+
+      - Added support for registering plugin types via ZCML.
 
       - Implemented authentication caching in _extractUserIds.
 
       - Ported standard user folder tests from the AccessControl test suite.
 
     Bugs Fixed
+
+      - Passwords with ":" characters would break authentication
+        (http://www.zope.org/Collectors/PAS/51)
+
+      - Corrected documented software dependencies
+
+      - Converted to publishable security sensitive methods to only accept
+        POST requests to prevent XSS attacks.  See
+        http://www.zope.org/Products/Zope/Hotfix-2007-03-20/announcement and
+        http://dev.plone.org/plone/ticket/6310
+
+      - Fixed issue in the user search filter where unrecognized keyword
+        arguments were ignored resulting in duplicate search entries.
+        (http://dev.plone.org/plone/ticket/6300)
+
+      - Made sure the Extensions.upgrade script does not commit full
+        transactions but only sets (optimistic) savepoints. Removed bogus
+        Zope 2.7 compatibility in the process.
+        (http://www.zope.org/Collectors/PAS/55)
+
+      - Made the CookieAuthHelper only use the '__ac_name' field if
+        '__ac_password' is also present. This fixes a login problem for
+        CMF sites where the login name was remembered between sessions with
+        an '__ac_name' cookie.
+
+      - Made the DomainAuthHelper return the remote address, even it the
+        remote host is not available (http://www.zope.org/Collectors/PAS/49).
+
+      - Fixed bug in DelegatingMultiPlugin which attempted to validate the
+        supplied password directly against the user password - updated to use
+        AuthEncoding.pw_validate to handle encoding issues
+
+      - Fixed serious security hole in DelegatingMultiPlugin which allowed
+        Authentication if the EmergencyUser login was passed in.  Added
+        password validation utilizing AuthEncoding.pw_validate
+
+      - Fixed a set of tests that tested values computed from dictionaries 
+        and could break since dictionaries are not guaranteed to have any 
+        sort order.
+
+      - Fixed test breakage induced by use of Z3 pagetemplates in Zope
+        2.10+.
+
+      - BasePlugin: The listInterfaces method only considered the old-style
+        __implements__ machinery when determining interfaces provided by
+        a plugin instance.
 
       - ZODBUserManager: Already encrypted passwords were encrypted again in
         addUser and updateUserPassword.
@@ -17,6 +75,13 @@ PluggableAuthService changelog
       - Made sure the emergency user via HTTP basic auth always wins, no matter
         how borken the plugin landscape.
 
+    Other
+
+      - cleaned up code in CookieAuthHelper which allowed the form to override
+        login/password if a cookie had already been set.
+
+      - Removed some BBB code for Zope versions < 2.8, which is not needed 
+        since we require Zope > 2.8.5 nowadays.
 
   PluggableAuthService 1.4 (2006/08/28)
 

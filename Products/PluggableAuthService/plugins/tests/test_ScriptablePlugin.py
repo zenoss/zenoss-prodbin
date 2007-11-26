@@ -16,12 +16,8 @@ import unittest
 from OFS.Folder import Folder
 from OFS.SimpleItem import SimpleItem
 
-try:
-    from zope.interface import Interface
-except ImportError:
-    from Interface import Interface
-
-from Products.PluggableAuthService.utils import providedBy
+from zope.interface import Interface
+from zope.interface import providedBy
 
 class IFaux( Interface ):
 

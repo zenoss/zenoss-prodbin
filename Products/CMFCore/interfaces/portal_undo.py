@@ -12,27 +12,9 @@
 ##############################################################################
 """ Undo tool interface.
 
-$Id: portal_undo.py 36457 2004-08-12 15:07:44Z jens $
+$Id: portal_undo.py 38590 2005-09-24 15:24:32Z yuppie $
 """
 
-from Interface import Attribute
-from Interface import Interface
-
-
-class portal_undo(Interface):
-    '''Provides access to Zope undo functions.
-    '''
-    id = Attribute('id', 'Must be set to "portal_undo"')
-
-    # permission: 'Undo changes'
-    def listUndoableTransactionsFor(object,
-                                    first_transaction=None,
-                                    last_transaction=None,
-                                    PrincipiaUndoBatchSize=None):
-        '''Lists all transaction IDs the user is allowed to undo.
-        '''
-
-    # permission: 'Undo changes'
-    def undo(object, transaction_info):
-        '''Performs an undo operation.
-        '''
+# BBB: module will be removed in CMF 2.2
+#      zope2 interfaces created on runtime:
+#      - portal_undo

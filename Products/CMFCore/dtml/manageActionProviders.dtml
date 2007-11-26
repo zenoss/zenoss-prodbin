@@ -27,7 +27,16 @@
                value="&dtml-sequence-item;" />
         <a href="../&dtml-sequence-item;/manage_workspace">
           &dtml-sequence-item;
-        </a>
+        </a> provides:
+         <dtml-in "_.getitem(_['sequence-item'], 0).listActions()">
+          <dtml-if sequence-start>
+           <ul>
+          </dtml-if>
+            <li><dtml-var id></li>
+          <dtml-if sequence-end>
+           </ul>
+          </dtml-if>
+         </dtml-in>
       </td>
     </tr>
   </dtml-in>

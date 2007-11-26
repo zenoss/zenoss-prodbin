@@ -46,33 +46,61 @@ class UtilityTests(unittest.TestCase):
         self.assertEqual(createViewName('foo', u'b\344r'), 'foo-b\303\244r')
 
     def test_createKeywords(self):
+        _ITEMS = (('foo', 'bar'),)
+        hashed = _createHashedValue(_ITEMS)
         self.assertEqual(createKeywords(foo='bar'),
-                {'keywords': '8843d7f92416211de9ebb963ff4ce28125932878'})
+                         {'keywords': hashed})
 
     def test_createKeywords_multiple(self):
+        _ITEMS = (('foo', 'bar'), ('baz', 'peng'))
+        hashed = _createHashedValue(_ITEMS)
         self.assertEqual(createKeywords(foo='bar', baz='peng'),
-                {'keywords': '0237196c9a6c711223d087676671351510c265be'})
+                         {'keywords': hashed})
 
     def test_createKeywords_latin1_umlaut(self):
+        _ITEMS = (('foo', 'bar'), ('baz', 'M\344dchen'))
+        hashed = _createHashedValue(_ITEMS)
         self.assertEqual(createKeywords(foo='bar', baz='M\344dchen'),
-                {'keywords': '1a952e3797b287f60e034c19dacd0eca49c4f437'})
+                         {'keywords': hashed})
 
     def test_createKeywords_utf8_umlaut(self):
+        _ITEMS = (('foo', 'bar'), ('baz', 'M\303\244dchen'))
+        hashed = _createHashedValue(_ITEMS)
         self.assertEqual(createKeywords(foo='bar', baz='M\303\244dchen'),
-                {'keywords': '62e00b7ef8978f85194632b90e829006b0410472'})
+                         {'keywords': hashed})
 
     def test_createKeywords_unicode_umlaut(self):
+        _ITEMS = (('foo', 'bar'), ('baz', u'M\344dchen'))
+        hashed = _createHashedValue(_ITEMS)
         self.assertEqual(createKeywords(foo='bar', baz=u'M\344dchen'),
-                {'keywords': '62e00b7ef8978f85194632b90e829006b0410472'})
+                         {'keywords': hashed})
 
     def test_createKeywords_utf16_umlaut(self):
-        self.assertEqual(createKeywords(foo='bar', baz=u'M\344dchen'.encode('utf-16')),
-                {'keywords': 'a884c1b0242a14f253e0e361ff1cee808eb18aff'})
+        _ITEMS = (('foo', 'bar'), ('baz', u'M\344dchen'.encode('utf-16')))
+        hashed = _createHashedValue(_ITEMS)
+        self.assertEqual(createKeywords(foo='bar',
+                                        baz=u'M\344dchen'.encode('utf-16')),
+                         {'keywords': hashed})
 
     def test_createKeywords_unicode_chinese(self):
+        _ITEMS = (('foo', 'bar'), ('baz', u'\u03a4\u03b6'))
+        hashed = _createHashedValue(_ITEMS)
         self.assertEqual(createKeywords(foo='bar', baz=u'\u03a4\u03b6'),
-                {'keywords': '03b19dff4adbd3b8a2f158456f0f26efe35e1f2c'})
+                {'keywords': hashed})
 
+def _createHashedValue(items):
+    import sha
+    hasher = sha.new()
+    items = list(items)
+    items.sort()
+    for k, v in items:
+        if isinstance(k, unicode):
+            k = k.encode('utf-8')
+        hasher.update(k)
+        if isinstance(v, unicode):
+            v = v.encode('utf-8')
+        hasher.update(v)
+    return hasher.hexdigest()
 
 def test_suite():
     return unittest.TestSuite((

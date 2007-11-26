@@ -14,7 +14,7 @@
 ##############################################################################
 """ Class: CookieAuthHelper
 
-$Id: CookieAuthHelper.py 68820 2006-06-24 09:46:39Z jens $
+$Id: CookieAuthHelper.py 75979 2007-05-27 18:24:45Z jens $
 """
 
 from base64 import encodestring, decodestring
@@ -24,6 +24,9 @@ from AccessControl.SecurityInfo import ClassSecurityInfo
 from AccessControl.Permissions import view
 from OFS.Folder import Folder
 from App.class_init import default__class_init__ as InitializeClass
+
+from zope.interface import Interface
+
 from Products.PageTemplates.PageTemplateFile import PageTemplateFile
 from Products.PageTemplates.ZopePageTemplate import ZopePageTemplate
 
@@ -37,7 +40,6 @@ from Products.PluggableAuthService.interfaces.plugins import \
         ICredentialsResetPlugin
 from Products.PluggableAuthService.plugins.BasePlugin import BasePlugin
 from Products.PluggableAuthService.utils import classImplements
-from Products.PluggableAuthService.utils import Interface
 
 
 class ICookieAuthHelper(Interface):
@@ -108,22 +110,23 @@ class CookieAuthHelper(Folder, BasePlugin):
         """ Extract credentials from cookie or 'request'. """
         creds = {}
         cookie = request.get(self.cookie_name, '')
-        login = request.get('__ac_name', '')
+        # Look in the request.form for the names coming from the login form
+        login = request.form.get('__ac_name', '')
 
-        if login:
-            # Look in the request for the names coming from the login form
-            login = request.get('__ac_name', '')
-            password = request.get('__ac_password', '')
+        if login and request.form.has_key('__ac_password'):
+            creds['login'] = login
+            creds['password'] = request.form.get('__ac_password', '')
 
-            if login:
-                creds['login'] = login
-                creds['password'] = password
         elif cookie and cookie != 'deleted':
             cookie_val = decodestring(unquote(cookie))
-            login, password = cookie_val.split(':')
+            try:
+                login, password = cookie_val.split(':')
+            except ValueError:
+                # Cookie is in a different format, so it is not ours
+                return creds
 
-            creds['login'] = login
-            creds['password'] = password
+            creds['login'] = login.decode('hex')
+            creds['password'] = password.decode('hex')
 
         if creds:
             creds['remote_host'] = request.get('REMOTE_HOST', '')
@@ -145,7 +148,8 @@ class CookieAuthHelper(Folder, BasePlugin):
     security.declarePrivate('updateCredentials')
     def updateCredentials(self, request, response, login, new_password):
         """ Respond to change of credentials (NOOP for basic auth). """
-        cookie_val = encodestring('%s:%s' % (login, new_password))
+        cookie_str = '%s:%s' % (login.encode('hex'), new_password.encode('hex'))
+        cookie_val = encodestring(cookie_str)
         cookie_val = cookie_val.rstrip()
         response.setCookie(self.cookie_name, quote(cookie_val), path='/')
 
@@ -181,7 +185,7 @@ class CookieAuthHelper(Folder, BasePlugin):
         url = self.getLoginURL()
         if url is not None:
             came_from = req.get('came_from', None)
-            
+
             if came_from is None:
                 came_from = req.get('URL', '')
                 query = req.get('QUERY_STRING')
@@ -202,7 +206,7 @@ class CookieAuthHelper(Folder, BasePlugin):
                     # the only sane thing to do is to give up because we are
                     # in an endless redirect loop.
                     return 0
-                
+
             url = url + '?came_from=%s' % quote(came_from)
             resp.redirect(url, lock=1)
             return 1

@@ -1,0 +1,13 @@
+<configure
+    xmlns="http://namespaces.zope.org/zope"
+    >
+ 
+   <subscriber handler=".events.PASEventNotify" />
+
+   <subscriber
+       for=".interfaces.authservice.IBasicUser
+            .interfaces.events.ICredentialsUpdatedEvent"
+       handler=".events.userCredentialsUpdatedHandler"
+       />
+
+</configure>

@@ -256,44 +256,59 @@ class IDublinCore(Interface):
         o 'initial caps' names are reserved for strings.
         """
 
-    def Date():
+    def Date(zone=None):
         """ Return the DCMI Date element (default resource date).
 
         o Result is a string, formatted 'YYYY-MM-DD H24:MN:SS TZ'.
 
+        o If 'zone' is 'None', return the time in the system default
+          timezone.
+
         o Permission:  View
         """
 
-    def CreationDate():
+    def CreationDate(zone=None):
         """ Return the DCMI Date element (date resource created).
 
         o Result is a string, formatted 'YYYY-MM-DD H24:MN:SS TZ'.
 
+        o If 'zone' is 'None', return the time in the system default
+          timezone.
+
         o Permission:  View
         """
 
-    def EffectiveDate():
+    def EffectiveDate(zone=None):
         """ Return the DCMI Date element (date resource becomes effective).
 
         o Result is a string, formatted 'YYYY-MM-DD H24:MN:SS TZ', or
           None.
 
+        o If 'zone' is 'None', return the time in the system default
+          timezone.
+
         o Permission:  View
         """
 
-    def ExpirationDate():
+    def ExpirationDate(zone=None):
         """ Return the DCMI Date element (date resource expires).
 
         o Result is a string, formatted 'YYYY-MM-DD H24:MN:SS TZ', or
           None.
 
+        o If 'zone' is 'None', return the time in the system default
+          timezone.
+
         o Permission:  View
         """
 
-    def ModificationDate():
+    def ModificationDate(zone=None):
         """ DCMI Date element - date resource last modified.
 
         o Result is a string, formatted 'YYYY-MM-DD H24:MN:SS TZ'.
+
+        o If 'zone' is 'None', return the time in the system default
+          timezone.
 
         o Permission:  View
         """

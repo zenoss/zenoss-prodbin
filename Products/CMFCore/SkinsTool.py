@@ -12,7 +12,7 @@
 ##############################################################################
 """Portal skins tool.
 
-$Id: SkinsTool.py 36910 2005-04-07 16:37:47Z yuppie $
+$Id: SkinsTool.py 74143 2007-04-15 05:06:19Z alecm $
 """
 
 from AccessControl import ClassSecurityInfo
@@ -306,8 +306,8 @@ class SkinsTool(UniqueObject, SkinsContainer, Folder, ActionProviderBase):
         mtool = getToolByName(self, 'portal_membership')
         utool = getToolByName(self, 'portal_url')
         member = mtool.getAuthenticatedMember()
-        if hasattr(aq_base(member), 'portal_skin'):
-            mskin = member.portal_skin
+        if hasattr(aq_base(member), 'getProperty'):
+            mskin = member.getProperty('portal_skin', None)
             if mskin:
                 req = self.REQUEST
                 cookie = req.cookies.get(self.request_varname, None)

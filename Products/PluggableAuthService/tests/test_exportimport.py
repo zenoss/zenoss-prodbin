@@ -14,7 +14,7 @@
 ##############################################################################
 """ Unit tests for GenericSetup-based export / import of PAS.
 
-$Id: test_exportimport.py 68734 2006-06-18 11:44:20Z jens $
+$Id: test_exportimport.py 74681 2007-04-23 15:34:38Z tseaver $
 """
 import unittest
 from csv import reader
@@ -31,6 +31,8 @@ except ImportError:  # No GenericSetup, so no tests
 
 else:
     from Products.GenericSetup.tests.common import BaseRegistryTests
+    from Products.PluggableAuthService.tests.utils import \
+            _setUpDefaultTraversable
 
     from zope.interface import Interface
 
@@ -60,7 +62,7 @@ else:
     class Test_exportPAS(_TestBase):
 
         def _setUpAdapters(self):
-            from zope.app.tests import ztapi
+            from zope.app.testing import ztapi
 
             try:
                 from OFS.interfaces import IObjectManager
@@ -135,6 +137,8 @@ else:
             from Products.PluginRegistry.PluginRegistry import PluginRegistry
             from Products.PluggableAuthService.exportimport import exportPAS
 
+            _setUpDefaultTraversable()
+
             self._setUpAdapters()
             app, pas = self._initPAS()
             context = DummyExportContext(pas)
@@ -166,6 +170,8 @@ else:
             from Products.GenericSetup.utils import _getDottedName
             from Products.PluginRegistry.PluginRegistry import PluginRegistry
             from Products.PluggableAuthService.exportimport import exportPAS
+
+            _setUpDefaultTraversable()
 
             self._setUpAdapters()
             app, pas = self._initPAS()
@@ -210,7 +216,7 @@ else:
     class Test_importPAS(_TestBase):
 
         def _setUpAdapters(self):
-            from zope.app.tests import ztapi
+            from zope.app.testing import ztapi
 
             try:
                 from OFS.interfaces import IObjectManager

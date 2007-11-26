@@ -12,11 +12,13 @@
 ##############################################################################
 """ PortalObject: The portal root object class
 
-$Id: PortalObject.py 36457 2004-08-12 15:07:44Z jens $
+$Id: PortalObject.py 40152 2005-11-16 09:57:56Z rafrombrc $
 """
 
 from Globals import InitializeClass
+from zope.interface import implements
 
+from interfaces import ISiteRoot
 from PortalFolder import PortalFolder
 from Skinnable import SkinnableObjectManager
 from permissions import AddPortalMember
@@ -32,6 +34,7 @@ PORTAL_SKINS_TOOL_ID = 'portal_skins'
 
 class PortalObjectBase(PortalFolder, SkinnableObjectManager):
 
+    implements(ISiteRoot)
     meta_type = 'Portal Site'
     _isPortalRoot = 1
 

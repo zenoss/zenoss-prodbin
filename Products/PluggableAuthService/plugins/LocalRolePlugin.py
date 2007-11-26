@@ -14,17 +14,18 @@
 ##############################################################################
 """ Classes: LocalRolePlugin
 
-$Id: LocalRolePlugin.py 40169 2005-11-16 20:09:11Z tseaver $
+$Id: LocalRolePlugin.py 70851 2006-10-20 19:25:56Z jens $
 """
 from AccessControl import ClassSecurityInfo
 from Globals import InitializeClass
+
+from zope.interface import Interface
 
 from Products.PageTemplates.PageTemplateFile import PageTemplateFile
 
 from Products.PluggableAuthService.interfaces.plugins import IRolesPlugin
 from Products.PluggableAuthService.plugins.BasePlugin import BasePlugin
 from Products.PluggableAuthService.utils import classImplements
-from Products.PluggableAuthService.utils import Interface
 
 class ILocalRolePlugin(Interface):
     """ Marker interface.

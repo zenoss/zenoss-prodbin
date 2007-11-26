@@ -12,7 +12,7 @@
 ##############################################################################
 """ Basic Site content type registry
 
-$Id: ContentTypeRegistry.py 36457 2004-08-12 15:07:44Z jens $
+$Id: ContentTypeRegistry.py 40263 2005-11-19 21:15:56Z rafrombrc $
 """
 
 import re, os, urllib
@@ -25,13 +25,16 @@ from OFS.SimpleItem import SimpleItem
 from ZPublisher.mapply import mapply
 
 from interfaces.ContentTypeRegistry \
-        import ContentTypeRegistry as IContentTypeRegistry
+        import ContentTypeRegistry as z2IContentTypeRegistry
 from interfaces.ContentTypeRegistry \
-        import ContentTypeRegistryPredicate as IContentTypeRegistryPredicate
+        import ContentTypeRegistryPredicate as z2IContentTypeRegistryPredicate
 from permissions import ManagePortal
 from utils import _dtmldir
 from utils import getToolByName
 
+from zope.interface import implements
+from interfaces import IContentTypeRegistry
+from interfaces import IContentTypeRegistryPredicate
 
 class MajorMinorPredicate( SimpleItem ):
     """
@@ -39,7 +42,8 @@ class MajorMinorPredicate( SimpleItem ):
         Empty major or minor implies wildcard (all match).
     """
 
-    __implements__ = IContentTypeRegistryPredicate
+    __implements__ = z2IContentTypeRegistryPredicate
+    implements(IContentTypeRegistryPredicate)
 
     major = minor = None
     PREDICATE_TYPE  = 'major_minor'
@@ -125,8 +129,9 @@ class ExtensionPredicate( SimpleItem ):
         Predicate matching on filename extensions.
     """
 
-    __implements__ = IContentTypeRegistryPredicate
-
+    __implements__ = z2IContentTypeRegistryPredicate
+    implements(IContentTypeRegistryPredicate)
+    
     extensions = None
     PREDICATE_TYPE  = 'extension'
 
@@ -189,7 +194,8 @@ class MimeTypeRegexPredicate( SimpleItem ):
         also be passed).
     """
 
-    __implements__ = IContentTypeRegistryPredicate
+    __implements__ = z2IContentTypeRegistryPredicate
+    implements(IContentTypeRegistryPredicate)
 
     pattern         = None
     PREDICATE_TYPE  = 'mimetype_regex'
@@ -245,8 +251,9 @@ class NameRegexPredicate( SimpleItem ):
         and 'pattern' can also be passed).
     """
 
-    __implements__ = IContentTypeRegistryPredicate
-
+    __implements__ = z2IContentTypeRegistryPredicate
+    implements(IContentTypeRegistryPredicate)
+    
     pattern         = None
     PREDICATE_TYPE  = 'name_regex'
 
@@ -319,7 +326,8 @@ class ContentTypeRegistry( SimpleItem ):
         Registry for rules which map PUT args to a CMF Type Object.
     """
 
-    __implements__ = IContentTypeRegistry
+    __implements__ = z2IContentTypeRegistry
+    implements(IContentTypeRegistry)
 
     meta_type = 'Content Type Registry'
     id = 'content_type_registry'

@@ -14,7 +14,7 @@
 ##############################################################################
 """ Interfaces for PluggableAuthService
 
-$Id: plugins.py 69827 2006-08-29 03:21:16Z tseaver $
+$Id: plugins.py 76647 2007-06-12 20:18:02Z wichert $
 """
 
 try:
@@ -134,6 +134,9 @@ class IChallengePlugin( Interface ):
 class ICredentialsUpdatePlugin( Interface ):
 
     """ Callback:  user has changed her password.
+
+    This interface is not responsible for the actual password change,
+    it is used after a successful password change event.
     """
 
     def updateCredentials( request, response, login, new_password ):
@@ -176,6 +179,13 @@ class IRoleAssignerPlugin( Interface ):
         o Return a Boolean indicating whether the role was assigned or not
         """
 
+    def doRemoveRoleFromPrincipal( principal_id, role ):
+
+        """ Remove a principal/role association from a Role Manager
+
+        o Return a Boolean indicating whether the role was removed or not
+        """
+
 class IUserFactoryPlugin( Interface ):
 
     """ Create a new IPropertiedUser.
@@ -210,6 +220,9 @@ class IPropertiesPlugin( Interface ):
         """ user -> {}
 
         o User will implement IPropertiedUser.
+
+        o Plugin should return a dictionary or an object providing
+          IPropertiesPlugin.
 
         o Plugin may scribble on the user, if needed (but must still
           return a mapping, even if empty).

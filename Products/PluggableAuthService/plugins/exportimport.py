@@ -52,7 +52,7 @@ TODO:
 
  o Review BasePlugin to ensure we haven't left anything out.
 
-$Id: exportimport.py 41653 2006-02-17 22:16:49Z tseaver $
+$Id: exportimport.py 70860 2006-10-20 21:39:45Z andrew $
 """
 from xml.dom.minidom import parseString
 
@@ -363,7 +363,7 @@ class TitleOnlyExportImport(SimpleXMLExportImport):
                }
 
 class DelegatePathExportImport(SimpleXMLExportImport):
-    """ Adapter for dumping / loading plugins with 'delegate_path' via XML.
+    """ Adapter for dumping / loading plugins with 'delegate' via XML.
     """
     _FILENAME = 'delegatepath.xml'
     _ROOT_TAGNAME = 'delegating-plugin'
@@ -372,18 +372,18 @@ class DelegatePathExportImport(SimpleXMLExportImport):
         pass
 
     def _updateFromDOM(self, root):
-        delegate_path = self._getNodeAttr(root, 'delegate_path', None)
-        if delegate_path is not None:
-            self.context.delegate_path = delegate_path
+        delegate = self._getNodeAttr(root, 'delegate', None)
+        if delegate is not None:
+            self.context.delegate = delegate
         else:
             try:
-                del self.context.delegate_path
+                del self.context.delegate
             except AttributeError:
                 pass
 
     def _getExportInfo(self):
         return {'title': self.context.title,
-                'delegate_path': self.context.delegate_path,
+                'delegate': self.context.delegate,
                }
 
 class DynamicGroupsPluginExportImport(SimpleXMLExportImport):

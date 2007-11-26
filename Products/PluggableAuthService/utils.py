@@ -15,33 +15,8 @@
 import os
 import sha
 import unittest
-from types import TupleType, ListType
 
 from Globals import package_home
-
-def tuplize(value):
-    if isinstance(value, TupleType):
-        return value
-    if isinstance(value, ListType):
-        return tuple(value)
-    return (value,)
-
-try:
-    from zope.interface import Interface
-except ImportError:
-    from Interface import Interface
-
-try:
-    from zope.interface import providedBy
-except ImportError:
-    def providedBy(obj):
-        return tuplize(obj.__implements__)
-
-try:
-    from zope.interface import implementedBy
-except ImportError:
-    def implementedBy(klass):
-        return tuplize(klass.__implements__)
 
 try:
     from Products.Five.bridge import fromZ2Interface
@@ -51,37 +26,39 @@ except ImportError:
         # zope.interface is available but Five is not.
         raise ValueError, i
 
+from zope import interface
+def directlyProvides(obj, *interfaces):
+    # convert any Zope 2 interfaces to Zope 3 using fromZ2Interface
+    normalized_interfaces = []
+    for i in interfaces:
+        try:
+            i = fromZ2Interface(i)
+        except ValueError: # already a Zope 3 interface
+            pass
+        normalized_interfaces.append(i)
+    return interface.directlyProvides(obj, *normalized_interfaces)
+
+def classImplements(class_, *interfaces):
+    # convert any Zope 2 interfaces to Zope 3 using fromZ2Interface
+    normalized_interfaces = []
+    for i in interfaces:
+        try:
+            i = fromZ2Interface(i)
+        except ValueError: # already a Zope 3 interface
+            pass
+        normalized_interfaces.append(i)
+    return interface.classImplements(class_, *normalized_interfaces)
+
+# postonly protection
 try:
-    from zope import interface
+    # Zope 2.8.9, 2.9.7 and 2.10.3 (and up)
+    from AccessControl.requestmethod import postonly
 except ImportError:
-    def directlyProvides(obj, *interfaces):
-        obj.__implements__ = tuple( interfaces )
-
-    def classImplements(class_, *interfaces):
-        class_.__implements__ = tuple( interfaces )
-
-else:
-    def directlyProvides(obj, *interfaces):
-        # convert any Zope 2 interfaces to Zope 3 using fromZ2Interface
-        normalized_interfaces = []
-        for i in interfaces:
-            try:
-                i = fromZ2Interface(i)
-            except ValueError: # already a Zope 3 interface
-                pass
-            normalized_interfaces.append(i)
-        return interface.directlyProvides(obj, *normalized_interfaces)
-
-    def classImplements(class_, *interfaces):
-        # convert any Zope 2 interfaces to Zope 3 using fromZ2Interface
-        normalized_interfaces = []
-        for i in interfaces:
-            try:
-                i = fromZ2Interface(i)
-            except ValueError: # already a Zope 3 interface
-                pass
-            normalized_interfaces.append(i)
-        return interface.classImplements(class_, *normalized_interfaces)
+    try:
+        # Try the hotfix too
+        from Products.Hotfix_20070320 import postonly
+    except:
+        def postonly(callable): return callable
 
 
 product_dir = package_home( globals() )
@@ -225,7 +202,9 @@ def createKeywords(**kw):
     """
     keywords = sha.new()
 
-    for k, v in kw.items():
+    items = kw.items()
+    items.sort()
+    for k, v in items:
         keywords.update(makestr(k))
         keywords.update(makestr(v))
 

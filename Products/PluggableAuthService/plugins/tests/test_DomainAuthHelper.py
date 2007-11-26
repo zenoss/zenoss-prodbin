@@ -78,6 +78,24 @@ class DomainAuthHelperTests( unittest.TestCase
                         {'remote_host': 'foo',
                          'remote_address': 'bam'})
 
+    def test_extractCredentials_with_getClientAddr_no_REMOTE_HSOT( self ):
+
+        helper = self._makeOne()
+        request = FauxRequestWithClientAddr(CLIENT_ADDR='bar')
+
+        self.assertEqual(helper.extractCredentials(request),
+                        {'remote_host': '',
+                         'remote_address': 'bar'})
+
+    def test_extractCredentials_with_REMOTE_ADDR_no_REMOTE_HOST( self ):
+
+        helper = self._makeOne()
+        request = FauxRequest(REMOTE_ADDR='bam')
+
+        self.assertEqual(helper.extractCredentials(request),
+                        {'remote_host': '',
+                         'remote_address': 'bam'})
+
     def test_extractCredentials_no_getClientAddr_no_REMOTE_ADDR( self ):
 
         helper = self._makeOne()

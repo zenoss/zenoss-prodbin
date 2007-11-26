@@ -47,3 +47,16 @@ class DummyUser:
     def getGroups( self ):
         return self._groups
 
+
+def makeRequestAndResponse():
+    # the POST checking requires a real HTTPRequest
+    from cStringIO import StringIO
+    from ZPublisher.HTTPRequest import HTTPRequest
+    from ZPublisher.HTTPResponse import HTTPResponse
+
+    res = HTTPResponse()
+    req = HTTPRequest(StringIO(),
+                      {'SERVER_NAME': 'localhost',
+                       'SERVER_PORT': '80'},
+                      res)
+    return req, res

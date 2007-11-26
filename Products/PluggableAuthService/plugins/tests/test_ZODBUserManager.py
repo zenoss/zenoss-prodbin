@@ -21,6 +21,9 @@ from Products.PluggableAuthService.tests.conformance \
 from Products.PluggableAuthService.tests.conformance \
     import IUserAdderPlugin_conformance
 
+from Products.PluggableAuthService.plugins.tests.helpers \
+     import makeRequestAndResponse
+
 class DummyUser:
 
     def __init__( self, id ):
@@ -242,6 +245,24 @@ class ZODBUserManagerTests( unittest.TestCase
             self.assertEqual( info_list[ i ][ 'pluginid' ], 'partial' )
             self.assertEqual( info_list[ i ][ 'editurl' ]
                             , 'partial/manage_users?user_id=%s' % sorted[ i ])
+
+    def test_enumerateUsers_other_criteria( self ):
+
+        from Products.PluggableAuthService.tests.test_PluggableAuthService \
+            import FauxRoot
+
+        root = FauxRoot()
+        zum = self._makeOne( id='partial' ).__of__( root )
+
+        ID_LIST = ( 'foo', 'bar', 'baz', 'bam' )
+
+        for id in ID_LIST:
+
+            zum.addUser( id, '%s@example.com' % id, 'password' )
+
+        info_list = zum.enumerateUsers( email='bar@example.com',
+                                        exact_match=False )
+        self.assertEqual( len( info_list ), 0 )
 
     def test_enumerateUsers_exact_nonesuch( self ):
 
@@ -501,6 +522,80 @@ class ZODBUserManagerTests( unittest.TestCase
                                 })
 
         self.assertEqual(uid_and_info, (USER_ID, USER_ID))
+
+    def test_manage_updatePassword(self):
+        from AccessControl.SecurityManagement import newSecurityManager
+        from AccessControl.SecurityManagement import noSecurityManager
+        from Acquisition import Implicit
+        # Test that a user can update her own password using the
+        # ZMI-provided form handler: http://www.zope.org/Collectors/PAS/56
+        zum = self._makeOne()
+
+        # Create a user and make sure we can authenticate with it
+        zum.addUser( 'user1', 'user1@example.com', 'password' )
+        info1 = { 'login' : 'user1@example.com', 'password' : 'password' }
+        self.failUnless(zum.authenticateCredentials(info1))
+
+        # Give the user a new password; attempting to authenticate with the
+        # old password must fail
+        class FauxUser(Implicit):
+
+            def __init__(self, id):
+                self._id = id
+
+            def getId( self ):
+                return self._id
+
+        newSecurityManager(None, FauxUser('user1'))
+        try:
+            zum.manage_updatePassword('user2@example.com',
+                                      'new_password',
+                                      'new_password',
+                                     )
+        finally:
+            noSecurityManager()
+
+        self.failIf(zum.authenticateCredentials(info1))
+
+        # Try to authenticate with the new password, this must succeed.
+        info2 = { 'login' : 'user2@example.com', 'password' : 'new_password' }
+        user_id, login = zum.authenticateCredentials(info2)
+        self.assertEqual(user_id, 'user1')
+        self.assertEqual(login, 'user2@example.com')
+
+    def testPOSTProtections(self):
+        from AccessControl.AuthEncoding import pw_encrypt
+        from zExceptions import Forbidden
+        USER_ID = 'testuser'
+        PASSWORD = 'password'
+
+        ENCRYPTED = pw_encrypt(PASSWORD)
+
+        zum = self._makeOne()
+        zum.addUser(USER_ID, USER_ID, '')
+
+        req, res = makeRequestAndResponse()
+        # test manage_updateUserPassword
+        # Fails with a GET
+        req.set('REQUEST_METHOD', 'GET')
+        self.assertRaises(Forbidden, zum.manage_updateUserPassword,
+                          USER_ID, PASSWORD, PASSWORD, REQUEST=req)
+        # Works with a POST
+        req.set('REQUEST_METHOD', 'POST')
+        zum.manage_updateUserPassword(USER_ID, PASSWORD, PASSWORD, REQUEST=req)
+
+        # test manage_updatePassword
+        req.set('REQUEST_METHOD', 'GET')
+        self.assertRaises(Forbidden, zum.manage_updatePassword,
+                          USER_ID, PASSWORD, PASSWORD, REQUEST=req)
+        # XXX: This method is broken
+
+        # test manage_removeUsers
+        req.set('REQUEST_METHOD', 'GET')
+        self.assertRaises(Forbidden, zum.manage_removeUsers,
+                          [USER_ID], REQUEST=req)
+        req.set('REQUEST_METHOD', 'POST')
+        zum.manage_removeUsers([USER_ID], REQUEST=req)
 
 
 if __name__ == "__main__":

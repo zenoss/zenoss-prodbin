@@ -27,6 +27,9 @@ from OFS.Folder import Folder
 from Globals import InitializeClass
 from AccessControl import ClassSecurityInfo
 from AccessControl.SpecialUsers import emergency_user
+
+from zope.interface import Interface
+
 from Products.PageTemplates.PageTemplateFile import PageTemplateFile
 
 from Products.PluggableAuthService.interfaces.plugins import \
@@ -35,7 +38,6 @@ from Products.PluggableAuthService.interfaces.plugins import \
      IGroupEnumerationPlugin
 from Products.PluggableAuthService.plugins.BasePlugin import BasePlugin
 from Products.PluggableAuthService.utils import classImplements
-from Products.PluggableAuthService.utils import Interface
 
 class ISearchPrincipalsPlugin(Interface):
     """ Marker interface.

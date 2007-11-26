@@ -12,7 +12,7 @@
 ##############################################################################
 """ Unit test dummies.
 
-$Id: dummy.py 41675 2006-02-18 20:56:48Z jens $
+$Id: dummy.py 69189 2006-07-18 18:48:28Z tseaver $
 """
 
 from Acquisition import Implicit, aq_base, aq_inner, aq_parent
@@ -22,6 +22,8 @@ from Products.CMFCore.ActionProviderBase import ActionProviderBase
 from Products.CMFCore.PortalContent import PortalContent
 from security import OmnipotentUser
 
+from DateTime import DateTime
+from webdav.common import rfc1123_date
 
 class DummyObject(Implicit):
     """
@@ -59,7 +61,7 @@ class DummyType(DummyObject):
         a page template.
         """
 
-        self.id = id
+        self.id = self._id = id
         self.title = title
         self._actions = {}
 
@@ -77,6 +79,31 @@ class DummyType(DummyObject):
 
     def allowDiscussion(self):
         return False
+
+    def listActions(self, info=None, object=None):
+        rs = []
+        for k,v in self._actions.items():
+           rs.append( DummyAction( k,v ) )
+        return rs
+
+class DummyAction:
+
+    def __init__( self, id, target, permissions=() ):
+        self._id = id
+        self.target = target
+        self.permissions = permissions
+
+    def getId( self ):
+        return self._id
+
+    # can this be right? e.g. utils._getViewFor calls action
+    # attribute directly, which is not part of API but no other way
+    # to do it...
+    def action( self, context ):
+        return self.target
+
+    def getPermissions( self ):
+        return self.permissions
 
 class DummyContent( PortalContent, Item ):
     """
@@ -353,7 +380,6 @@ class DummyTool(Implicit,ActionProviderBase):
     def notifyCreated(self, ob):
         self.test_notified = ob
 
-
 class DummyCachingManager:
 
     def getHTTPCachingHeaders( self, content, view_name, keywords, time=None ):
@@ -362,5 +388,32 @@ class DummyCachingManager:
              ('test_path', '/'.join(content.getPhysicalPath())),
              )
 
+    def getModTimeAndETag(self, content, view_method, keywords, time=None ):
+         return (None, None, False)
+
     def getPhysicalPath(self):
         return ('baz',)
+
+
+FAKE_ETAG = None # '--FAKE ETAG--'
+
+class DummyCachingManagerWithPolicy(DummyCachingManager):
+
+    # dummy fixture implementing a single policy:
+    #  - always set the last-modified date if available
+    #  - calculate the date using the modified method on content
+
+    def getHTTPCachingHeaders( self, content, view_name, keywords, time=None ):
+
+         # if the object has a modified method, add it as last-modified
+         if hasattr(content, 'modified'):
+             headers = ( ('Last-modified', rfc1123_date(content.modified()) ), )
+         return headers
+
+    def getModTimeAndETag(self, content, view_method, keywords, time=None ):
+         modified_date = None
+         if hasattr(content, 'modified'):
+            modified_date = content.modified()
+         set_last_modified = (modified_date is not None)
+         return (modified_date, FAKE_ETAG, set_last_modified)
+

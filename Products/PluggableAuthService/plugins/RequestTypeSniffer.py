@@ -14,7 +14,7 @@
 ##############################################################################
 """ Classes: RequestTypeSniffer
 
-$Id: RequestTypeSniffer.py 40169 2005-11-16 20:09:11Z tseaver $
+$Id: RequestTypeSniffer.py 70851 2006-10-20 19:25:56Z jens $
 """
 
 from Acquisition import aq_parent
@@ -22,6 +22,8 @@ from AccessControl import ClassSecurityInfo
 from Globals import InitializeClass
 from ZServer.FTPRequest import FTPRequest
 from ZPublisher import xmlrpc
+
+from zope.interface import Interface
 
 from Products.PageTemplates.PageTemplateFile import PageTemplateFile
 
@@ -37,7 +39,6 @@ from Products.PluggableAuthService.interfaces.request \
     import IXMLRPCRequest
 from Products.PluggableAuthService.plugins.BasePlugin import BasePlugin
 from Products.PluggableAuthService.utils import classImplements
-from Products.PluggableAuthService.utils import Interface
 
 class IRequestTypeSnifferPlugin(Interface):
     """ Marker interface.
