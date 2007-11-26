@@ -24,6 +24,7 @@ __version__ = '$Revision: 1.15 $'
 
 import sys
 import types
+from cgi import escape
 
 # base class for RelCopyContainer
 from OFS.ObjectManager import checkValidId
