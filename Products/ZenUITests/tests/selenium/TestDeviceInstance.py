@@ -266,6 +266,7 @@ class TestDeviceInstanceManageDevice(TestDeviceInstanceBase):
         self.waitForElement("dialog_cancel")
         self.selenium.click("lockFromUpdates:method")
         self.selenium.wait_for_page_to_load(self.WAITTIME)
+        self.selenium.click("link=Device List")
         self.assert_(self.selenium.is_element_present("//img[@src='locked-update-icon.png']"))
         self.assert_(self.selenium.is_element_present("//img[@src='locked-delete-icon.png']"))
         

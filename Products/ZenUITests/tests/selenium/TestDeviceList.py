@@ -71,7 +71,7 @@ class TestDeviceList(TestDeviceListBase):
         self.selenium.wait_for_page_to_load(self.WAITTIME)
 
 
-    def _testSelectAll(self):
+    def testSelectAll(self):
         """Test Selecting all devices"""
         self._goToDeviceList() 
         self.waitForElement("id=setSelectAll")
@@ -80,7 +80,7 @@ class TestDeviceList(TestDeviceListBase):
         self.selenium.click("id=setSelectNone")
         do_command_byname(self.selenium, "assertNotChecked", "evids:list")
 
-    def _testSetPriority(self):
+    def testSetPriority(self):
         """Test Setting Priority to the Highest"""
         curtarget = "zenosst.zenoss.loc"
         self._goToDeviceList() 
@@ -94,7 +94,7 @@ class TestDeviceList(TestDeviceListBase):
         self.goToDevice(curtarget)
         self.selenium.do_command('assertTextPresent', ['Highest',])
 
-    def _testSetProductionState(self):
+    def testSetProductionState(self):
         """Test Setting Production state to the Test"""
         curtarget = "zenosst.zenoss.loc"
         self._goToDeviceList() 
@@ -122,7 +122,7 @@ class TestDeviceList(TestDeviceListBase):
         self.goToDevice(curtarget)
         self.selenium.do_command('assertTextPresent', ['/Server/Windows'])
 
-    def _testSetGroups(self):
+    def testSetGroups(self):
         """Test Setting the group to testingString"""
         curtarget = "zenosst.zenoss.loc"
         self._goToGroupsAddOrganizer()
