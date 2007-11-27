@@ -74,6 +74,7 @@ class ActionRule(ZenModelRM, EventFilter):
     enabled = False
     actionTypes = ("page", "email") 
     targetAddr = ""
+    plainText = False
 
     _properties = ZenModelRM._properties + (
         {'id':'where', 'type':'text', 'mode':'w'},
@@ -88,6 +89,7 @@ class ActionRule(ZenModelRM, EventFilter):
         {'id':'enabled', 'type':'boolean', 'mode':'w'},
         {'id':'targetAddr', 'type':'string', 'mode':'w'},
         {'id':'repeatTime', 'type':'int', 'mode':'w'},
+        {'id':'plainText', 'type':'boolean', 'mode':'w'},
     )
 
     _relations = (

@@ -493,14 +493,20 @@ class ZenActions(ZCmdBase):
         fmt, htmlbody = self.format(action, data, clear)
         htmlbody = htmlbody.replace('\n','<br/>\n')
         body = self.stripTags(htmlbody)
-        emsg = MIMEMultipart('related')
-        emsgAlternative = MIMEMultipart('alternative')
-        emsg.attach( emsgAlternative )
         plaintext = MIMEText(body)
-        html = MIMEText(htmlbody)
-        html.set_type('text/html')
-        emsgAlternative.attach(plaintext)
-        emsgAlternative.attach(html)
+
+        emsg = None
+        if action.plainText:
+            emsg = plaintext
+        else:
+            emsg = MIMEMultipart('related')
+            emsgAlternative = MIMEMultipart('alternative')
+            emsg.attach( emsgAlternative )
+            html = MIMEText(htmlbody)
+            html.set_type('text/html')
+            emsgAlternative.attach(plaintext)
+            emsgAlternative.attach(html)
+
         emsg['Subject'] = fmt
         emsg['From'] = self.dmd.getEmailFrom()
         emsg['To'] = ', '.join(addr)
