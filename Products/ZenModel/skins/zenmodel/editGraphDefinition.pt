@@ -168,7 +168,7 @@
         </td>
     </tr>
     <tr>
-        <td class="tableheader">Log</td>
+        <td class="tableheader">Logarithmic Scale</td>
         <td class="tablevalues" tal:condition="here/isManager">
         <select class="tablevalues" name="log:boolean">
             <option tal:repeat="e python:(True,False)" tal:content="e"
