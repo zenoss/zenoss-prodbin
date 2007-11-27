@@ -97,7 +97,8 @@ class TestDeviceInstanceOsTab(TestDeviceInstanceBase):
         """Add, edit, and delete an OS Process under a specific device"""
         
         self.addOSProcessClass()
-       # self._goToOSTab()
+        self.goToDevice()
+        self._goToOSTab()
         self.addDialog(addType="link=Add OSProcess...", 
                         className=("select", "httpd"))
         self.assert_(self.selenium.is_element_present("link=httpd"))
