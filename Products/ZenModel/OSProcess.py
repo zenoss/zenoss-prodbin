@@ -21,8 +21,11 @@ from Acquisition import aq_chain
 from OSComponent import OSComponent
 from ZenPackable import ZenPackable
 
+
 def manage_addOSProcess(context, className, userCreated, REQUEST=None):
-    """make an os process"""
+    """
+    Make an os process from the ZMI
+    """
     id = className.split('/')[-1]
     context._setObject(id, OSProcess(id))
     osp = context._getOb(id)
@@ -33,8 +36,11 @@ def manage_addOSProcess(context, className, userCreated, REQUEST=None):
         REQUEST['RESPONSE'].redirect(context.absolute_url()+'/manage_main')
     return osp
 
+
 class OSProcess(OSComponent, Commandable, ZenPackable):
-    """Hardware object"""
+    """
+    OSProcess object
+    """
     portal_type = meta_type = 'OSProcess'
 
     procName = ""
@@ -86,16 +92,19 @@ class OSProcess(OSComponent, Commandable, ZenPackable):
     
     security = ClassSecurityInfo()
 
+
     def getOSProcessConf(self):
-        """Return information used to monitor this process.
+        """
+        Return information used to monitor this process.
         """
         ignoreParams = getattr(self.osProcessClass(), 'ignoreParameters', False)
         return (self.id, self.name(), ignoreParams,
                 self.alertOnRestart(), self.getFailSeverity())
 
-                    
+
     def setOSProcessClass(self, procKey):
-        """Set the OSProcessClass based on procKey which is the proc + args.
+        """
+        Set the OSProcessClass based on procKey which is the proc + args.
         We set by matching regular expressions of each proces class.
         """
         klass = self.getDmdObj(procKey)
@@ -103,7 +112,8 @@ class OSProcess(OSComponent, Commandable, ZenPackable):
     
 
     def getOSProcessClass(self):
-        """Return the current procKey.
+        """
+        Return the current procKey.
         """
         pClass = self.osProcessClass()
         if pClass:
@@ -111,7 +121,8 @@ class OSProcess(OSComponent, Commandable, ZenPackable):
        
 
     def getOSProcessClassLink(self):
-        """Return an a link to the OSProcessClass.
+        """
+        Return an a link to the OSProcessClass.
         """
         proccl = self.osProcessClass()
         if proccl:
@@ -124,6 +135,10 @@ class OSProcess(OSComponent, Commandable, ZenPackable):
 
         
     def name(self):
+        """
+        Return a string that is the process name and, if ignoreParamaters
+        is not True, then also the parameters.
+        """
         ignoreParams = getattr(self.osProcessClass(), 'ignoreParameters', False)
         if not self.parameters or ignoreParams:
             return self.procName
@@ -131,39 +146,52 @@ class OSProcess(OSComponent, Commandable, ZenPackable):
 
 
     def monitored(self):
-        """Should this service be monitored or not. Use ServiceClass aq path. 
+        """
+        Should this service be monitored or not. Use ServiceClass aq path. 
         """
         return self.getAqProperty("zMonitor")
 
 
     def alertOnRestart(self):
+        """
+        Retrieve the zProperty zAlertOnRestart
+        """
         return self.getAqProperty("zAlertOnRestart")
 
 
     def getSeverities(self):
-        """Return a list of tuples with the possible severities
+        """
+        Return a list of tuples with the possible severities
         """
         return self.ZenEventManager.getSeverities()
 
+
     def getFailSeverity(self):
-        """Return the severity for this service when it fails.
+        """
+        Return the severity for this service when it fails.
         """
         return self.getAqProperty("zFailSeverity")
 
+
     def getFailSeverityString(self):
-        """Return a string representation of zFailSeverity
+        """
+        Return a string representation of zFailSeverity
         """
         return self.ZenEventManager.severities[self.getAqProperty("zFailSeverity")]
 
 
     def getClassObject(self):
+        """
+        Return the ProcessClass for this proc
+        """
         return self.osProcessClass()
 
 
     security.declareProtected('Manage DMD', 'manage_editOSProcess')
     def manage_editOSProcess(self, zMonitor=False, zAlertOnRestart=False,
                              zFailSeverity=3, msg=None,REQUEST=None):
-        """Edit a Service from a web page.
+        """
+        Edit a Service from a web page.
         """
         if msg is None: msg=[]
         msg.append(self.setAqProperty("zMonitor", zMonitor, "boolean"))
@@ -178,13 +206,17 @@ class OSProcess(OSComponent, Commandable, ZenPackable):
 
 
     def getUserCommandTargets(self):
-        ''' Called by Commandable.doCommand() to ascertain objects on which
+        '''
+        Called by Commandable.doCommand() to ascertain objects on which
         a UserCommand should be executed.
         '''
         return [self]     
 
 
     def getUserCommandEnvironment(self):
+        """
+        Return the environment to be used when processing a UserCommand
+        """
         environ = Commandable.getUserCommandEnvironment(self)
         context = self.primaryAq()
         environ.update({'proc': context,  'process': context,})
@@ -192,12 +224,18 @@ class OSProcess(OSComponent, Commandable, ZenPackable):
 
 
     def getAqChainForUserCommands(self):
+        """
+        Setup the aq chain as appropriate for the execution of a UserCommand
+        """
         chain = aq_chain(self.getClassObject().primaryAq())
         chain.insert(0, self)
         return chain
         
         
     def getUrlForUserCommands(self):
+        """
+        Return the url where UserCommands are viewed for this object
+        """
         return self.getPrimaryUrlPath() + '/osProcessManage'
 
 

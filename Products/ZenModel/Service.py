@@ -31,6 +31,9 @@ from OSComponent import OSComponent
 from ZenPackable import ZenPackable
 
 class Service(OSComponent, Commandable, ZenPackable):
+    """
+    Service class
+    """
     portal_type = meta_type = 'Service'
    
     _relations = OSComponent._relations + ZenPackable._relations + (
@@ -41,13 +44,15 @@ class Service(OSComponent, Commandable, ZenPackable):
     security = ClassSecurityInfo()
 
     def key(self):
-        """Return tuple (manageIp, name) for this service to uniquely id it.
+        """
+        Return tuple (manageIp, name) for this service to uniquely id it.
         """
         return (self.getManageIp(), self.name())
 
 
     def name(self):
-        """Return the name of this service. (short name for net stop/start).
+        """
+        Return the name of this service. (short name for net stop/start).
         """
         svccl = self.serviceclass()
         if svccl: return svccl.name
@@ -55,27 +60,36 @@ class Service(OSComponent, Commandable, ZenPackable):
 
     
     def monitored(self):
-        """Should this service be monitored or not. Use ServiceClass aq path. 
+        """
+        Should this service be monitored or not. Use ServiceClass aq path. 
         """
         return self.getAqProperty("zMonitor")
 
+
     def getSeverities(self):
-        """Return a list of tuples with the possible severities
+        """
+        Return a list of tuples with the possible severities
         """
         return self.ZenEventManager.getSeverities()
 
+
     def getFailSeverity(self):
-        """Return the severity for this service when it fails.
+        """
+        Return the severity for this service when it fails.
         """
         return self.getAqProperty("zFailSeverity")
 
+
     def getFailSeverityString(self):
-        """Return a string representation of zFailSeverity
+        """
+        Return a string representation of zFailSeverity
         """
         return self.ZenEventManager.severities[self.getAqProperty("zFailSeverity")]
 
+
     def setServiceClass(self, name="", description=""):
-        """Set the service class based on a dict describing the service.
+        """
+        Set the service class based on a dict describing the service.
         Dict keys are be protocol and port
         """
         srvs = self.dmd.getDmdRoot("Services")
@@ -84,7 +98,8 @@ class Service(OSComponent, Commandable, ZenPackable):
 
 
     def getServiceClassLink(self):
-        """Return an a link to the service class.
+        """
+        Return an a link to the service class.
         """
         svccl = self.serviceclass()
         if svccl: 
@@ -97,12 +112,16 @@ class Service(OSComponent, Commandable, ZenPackable):
 
 
     def getClassObject(self):
+        """
+        Return the ServiceClass for this service.
+        """
         return self.serviceclass()
 
 
     security.declareProtected('Manage DMD', 'manage_editService')
     def manage_editService(self,monitor=False,severity=5,msg=None,REQUEST=None):
-        """Edit a Service from a web page.
+        """
+        Edit a Service from a web page.
         """
         if msg is None: msg=[]
         msg.append(self.setAqProperty("zMonitor", monitor, "boolean"))
@@ -116,13 +135,17 @@ class Service(OSComponent, Commandable, ZenPackable):
 
 
     def getUserCommandTargets(self):
-        ''' Called by Commandable.doCommand() to ascertain objects on which
+        '''
+        Called by Commandable.doCommand() to ascertain objects on which
         a UserCommand should be executed.
         '''
         return [self]     
 
 
     def getUserCommandEnvironment(self):
+        """
+        Return the environment to be used when processing a UserCommand
+        """
         environ = Commandable.getUserCommandEnvironment(self)
         context = self.primaryAq()
         environ.update({'serv': context,  'service': context,})
@@ -130,11 +153,17 @@ class Service(OSComponent, Commandable, ZenPackable):
 
 
     def getAqChainForUserCommands(self):
+        """
+        Setup the aq chain as appropriate for the execution of a UserCommand
+        """
         chain = aq_chain(self.getClassObject().primaryAq())
         chain.insert(0, self)
         return chain
         
         
     def getUrlForUserCommands(self):
+        """
+        Return the url where UserCommands are viewed for this object
+        """
         return self.getPrimaryUrlPath() + '/serviceManage'
 

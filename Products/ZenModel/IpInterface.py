@@ -42,7 +42,9 @@ from OSComponent import OSComponent
 from Products.ZenModel.Exceptions import *
 
 def manage_addIpInterface(context, id, userCreated, REQUEST = None):
-    """make a device"""
+    """
+    Make a device via the ZMI
+    """
     d = IpInterface(id)
     context._setObject(id, d)
     d = context._getOb(id)
@@ -56,7 +58,9 @@ addIpInterface = DTMLFile('dtml/addIpInterface',globals())
 
 
 class IpInterface(OSComponent):
-    """IpInterface object"""
+    """
+    IpInterface object
+    """
 
     portal_type = meta_type = 'IpInterface'
 
@@ -138,29 +142,38 @@ class IpInterface(OSComponent):
     security = ClassSecurityInfo()
 
     def __init__(self, id, title = None):
+        """
+        Init OSComponent and set _ipAddresses to an empty list.
+        """
         OSComponent.__init__(self, id, title)
         self._ipAddresses = []
 
-       
+
     security.declareProtected('View', 'viewName')
     def viewName(self):
-        """Use the unmagled interface name for display"""
+        """
+        Use the unmagled interface name for display
+        """
         return self.interfaceName.rstrip('\x00') #Bogus fix for MS names
     name = primarySortKey = viewName
 
-    
+
     def _setPropValue(self, id, value):
-        """override from PerpertyManager to handle checks and ip creation"""
+        """
+        Override from PerpertyManager to handle checks and ip creation
+        """
         self._wrapperCheck(value)
         if id == 'ips':
             self.setIpAddresses(value)
         else:
             setattr(self,id,value)
             #if id == 'macaddress': self.index_object()
-   
+
 
     def manage_editProperties(self, REQUEST):
-        """override from propertiyManager so we can trap errors"""
+        """
+        Override from propertiyManager so we can trap errors
+        """
         try:
             return ConfmonPropManager.manage_editProperties(self, REQUEST)
         except IpAddressError, e:
@@ -168,9 +181,12 @@ class IpInterface(OSComponent):
                 title = "Input Error",
                 message = e.args[0],
                 action = "manage_main")
- 
+
 
     def __getattr__(self, name):
+        """
+        Allow access to ipAddresses via the ips attribute
+        """
         if name == 'ips':
             return self.getIpAddresses()
         else:
@@ -178,7 +194,8 @@ class IpInterface(OSComponent):
 
   
     def _prepIp(self, ip, netmask=24):
-        """Split ips in the format 1.1.1.1/24 into ip and netmask.
+        """
+        Split ips in the format 1.1.1.1/24 into ip and netmask.
         Default netmask is 24.
         """
         iparray = ip.split("/")
@@ -190,7 +207,8 @@ class IpInterface(OSComponent):
   
 
     def addIpAddress(self, ip, netmask=24):
-        """Add an ip to the ipaddresses relationship on this interface.
+        """
+        Add an ip to the ipaddresses relationship on this interface.
         """
         ip, netmask = self._prepIp(ip, netmask)
         #see if ip exists already and link it to interface
@@ -208,7 +226,8 @@ class IpInterface(OSComponent):
   
 
     def addLocalIpAddress(self, ip, netmask=24):
-        """Add a locally stored ip. Ips like 127./8 are maintained locally.
+        """
+        Add a locally stored ip. Ips like 127./8 are maintained locally.
         """
         (ip, netmask) = self._prepIp(ip, netmask)
         ip = ip + '/' + str(netmask)
@@ -218,7 +237,8 @@ class IpInterface(OSComponent):
 
 
     def setIpAddresses(self, ips):
-        """Set a list of ipaddresses in the form 1.1.1.1/24 on to this 
+        """
+        Set a list of ipaddresses in the form 1.1.1.1/24 on to this 
         interface. If networks for the ips don't exist they will be created.
         """
         if type(ips) == type(''): ips = [ips,]
@@ -253,7 +273,8 @@ class IpInterface(OSComponent):
    
 
     def removeIpAddress(self, ip):
-        """Remove an ipaddress from this interface.
+        """
+        Remove an ipaddress from this interface.
         """
         for ipobj in self.ipaddresses():
             if ipobj.id == ip:
@@ -262,7 +283,8 @@ class IpInterface(OSComponent):
 
     
     def getIp(self):
-        """Return the first ip for this interface in the form: 1.1.1.1.
+        """
+        Return the first ip for this interface in the form: 1.1.1.1.
         """
         if self.ipaddresses.countObjects():
             return self.ipaddresses()[0].getIp()
@@ -271,7 +293,8 @@ class IpInterface(OSComponent):
         
    
     def getIpSortKey(self):
-        """Return the ipaddress as a 32bit integter for sorting purposes.
+        """
+        Return the ipaddress as a 32bit integter for sorting purposes.
         """
         if self.ipaddresses.countObjects():
             return self.ipaddresses()[0].primarySortKey()
@@ -280,7 +303,8 @@ class IpInterface(OSComponent):
 
 
     def getIpAddress(self):
-        """Return the first ipaddress with its netmask ie: 1.1.1.1/24.
+        """
+        Return the first ipaddress with its netmask ie: 1.1.1.1/24.
         """
         if self.ipaddresses.countObjects():
             return self.ipaddresses()[0].getIpAddress()
@@ -289,14 +313,17 @@ class IpInterface(OSComponent):
 
 
     def getIpAddressObj(self):
-        """Return the first real ipaddress object or None if none are found.
+        """
+        Return the first real ipaddress object or None if none are found.
         """
         if len(self.ipaddresses()):
             return self.ipaddresses()[0]
 
 
     def getIpAddressObjs(self):
-        """Return a list of the ip objects on this interface."""
+        """
+        Return a list of the ip objects on this interface.
+        """
         retval=[]
         for ip in self.ipaddresses.objectValuesAll():
             retval.append(ip)
@@ -306,20 +333,23 @@ class IpInterface(OSComponent):
 
 
     def getIpAddresses(self):
-        """Return list of ip addresses as strings in the form 1.1.1.1/24.
+        """
+        Return list of ip addresses as strings in the form 1.1.1.1/24.
         """
         return map(str, self.getIpAddressObjs())
 
 
     def getNetwork(self):
-        """Return the network for the first ip on this interface.
+        """
+        Return the network for the first ip on this interface.
         """
         if self.ipaddresses.countObjects():
             return self.ipaddresses()[0].network()
 
 
     def getNetworkName(self):
-        """Return the network name for the first ip on this interface.
+        """
+        Return the network name for the first ip on this interface.
         """
         net = self.getNetwork()
         if net: return net.getNetworkName()
@@ -327,7 +357,8 @@ class IpInterface(OSComponent):
 
 
     def getNetworkLink(self):
-        """Return the network link for the first ip on this interface.
+        """
+        Return the network link for the first ip on this interface.
         """
         if len(self.ipaddresses()):
             addr = self.ipaddresses.objectValuesAll()[0]
@@ -342,7 +373,8 @@ class IpInterface(OSComponent):
    
 
     def getNetworkLinks(self):
-        """Return a list of network links for each ip in this interface.
+        """
+        Return a list of network links for each ip in this interface.
         """
         addrs = self.ipaddresses() + self._ipAddresses
         if addrs:
@@ -362,26 +394,34 @@ class IpInterface(OSComponent):
 
     security.declareProtected('View', 'getInterfaceName')
     def getInterfaceName(self):
-        """Return the name of this interface.
+        """
+        Return the name of this interface.
         """
         if self.interfaceName: return self.interfaceName
         elif self.viewName(): return self.viewName()
         else: return "None"
 
+
     security.declareProtected('View', 'getInterfaceMacaddress')
     def getInterfaceMacaddress(self):
-        """Return the mac address of this interface.
+        """
+        Return the mac address of this interface.
         """
         return self.macaddress
 
 
     def getRRDTemplateName(self):
-        """Return the interface type as the target type name.
+        """
+        Return the interface type as the target type name.
         """
         return self.prepId(self.type or "Unknown")
 
 
     def getRRDTemplates(self):
+        """
+        Return a list containing the appropriate RRDTemplate for this
+        IpInterface.  If none is found then the list will contain None.
+        """
         default = self.getRRDTemplateByName(self.getRRDTemplateName())
         if default:
             return [default]
@@ -389,12 +429,16 @@ class IpInterface(OSComponent):
         
 
     def snmpIgnore(self):
-        """Ignore interface that are operationally down.
+        """
+        Ignore interface that are operationally down.
         """
         return self.operStatus > 1
 
 
     def niceSpeed(self):
+        """
+        Return a string that expresses self.speed in reasonable units.
+        """
         if not self.speed:
             return 'Unknown'
         speed = self.speed
@@ -405,7 +449,8 @@ class IpInterface(OSComponent):
 
 
     def manage_beforeDelete(self, item, container):
-        """Unindex this interface after it is deleted.
+        """
+        Unindex this interface after it is deleted.
         """
         if (item == self or item == self.device()
             or getattr(item, "_operation", -1) < 1):

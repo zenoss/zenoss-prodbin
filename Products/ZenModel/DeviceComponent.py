@@ -39,15 +39,20 @@ class DeviceComponent(Lockable):
 
 
     def getParentDeviceName(self):
-        """return the name of this component's device"""
+        """
+        Return the name of this component's device
+        """
         name = ""
         dev = self.device()
         if dev: name = dev.getDeviceName()
         return name
     hostname = getParentDeviceName
 
+
     def getParentDeviceUrl(self):
-        """return the url of this component's device"""
+        """
+        Return the url of this component's device
+        """
         url = ""
         dev = self.device()
         if dev: url = dev.absolute_url()
@@ -55,31 +60,36 @@ class DeviceComponent(Lockable):
     
    
     def name(self):
-        """Return the name of this component.  Default is id.
+        """
+        Return the name of this component.  Default is id.
         """
         return self.id
 
 
     def monitored(self):
-        """Return the monitored status of this component. Default is False.
+        """
+        Return the monitored status of this component. Default is False.
         """
         return self.monitor
 
 
     def getCollectors(self):
-        """Return list of collectors that want to monitor this component
+        """
+        Return list of collectors that want to monitor this component
         """
         return self.collectors
 
 
     def getInstDescription(self):
-        """Return some text that describes this component.  Default is name.
+        """
+        Return some text that describes this component.  Default is name.
         """
         return self.name()
 
         
     def getStatus(self, statClass=None):
-        """Return the status number for this component of class statClass.
+        """
+        Return the status number for this component of class statClass.
         """
         if not self.monitored() \
             or not self.device() \
@@ -90,11 +100,15 @@ class DeviceComponent(Lockable):
 
   
     def getStatusString(self, statClass=None):
+        """
+        Return a text representation of this component's status
+        """
         return self.convertStatus(self.getStatus(statClass))
 
 
     def getManageIp(self):
-        """Return the manageIP of the device of this component.
+        """
+        Return the manageIP of the device of this component.
         """
         dev = self.device()
         if dev: return dev.getManageIp()
@@ -102,7 +116,8 @@ class DeviceComponent(Lockable):
 
     
     def getRRDTemplateByName(self, name):
-        """Return the closest RRDTemplate named name by walking our aq chain.
+        """
+        Return the closest RRDTemplate named name by walking our aq chain.
         """
         try:
             return getattr(self, name)
@@ -116,7 +131,8 @@ class DeviceComponent(Lockable):
 
 
     def getAqProperty(self, prop):
-        """Get a property from ourself if it exsits then try serviceclass path.
+        """
+        Get a property from ourself if it exsits then try serviceclass path.
         """
         if getattr(aq_base(self), prop, None) is not None:
             return getattr(self, prop)
@@ -127,7 +143,8 @@ class DeviceComponent(Lockable):
 
 
     def setAqProperty(self, prop, value, type):
-        """Set a local prop if nessesaary on this service.
+        """
+        Set a local prop if nessesaary on this service.
         """
         classObj = self.getClassObject()
         if not classObj: return
@@ -148,7 +165,8 @@ class DeviceComponent(Lockable):
 
     
     def getClassObject(self):
-        """If you are going to use acquisition up different class path
+        """
+        If you are going to use acquisition up different class path
         override this.
         """
         return self.device()
@@ -163,7 +181,9 @@ class DeviceComponent(Lockable):
 
 
     def manage_afterClone(self, item):
-        """Not really sure when this is called."""
+        """
+        Not really sure when this is called.
+        """
         super(DeviceComponent,self).manage_afterClone(item)
         self.index_object()
 
@@ -175,5 +195,6 @@ class DeviceComponent(Lockable):
         """
         super(DeviceComponent,self).manage_beforeDelete(item, container)
         self.unindex_object()
-        
+
+   
 InitializeClass(DeviceComponent)

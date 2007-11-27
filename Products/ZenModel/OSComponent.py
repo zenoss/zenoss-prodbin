@@ -20,21 +20,34 @@ class OSComponent(DeviceComponent, ManagedEntity, Linkable):
     """
     Logical Operating System component like a Process, IpInterface, etc.
     """
+    
     isUserCreatedFlag = False
 
     _relations = ManagedEntity._relations + Linkable._relations
-    
+
+
     def setUserCreateFlag(self):
+        """
+        Sets self.isUserCreatedFlag to True.  This indicated that the
+        component was created by a user rather than via modelling.
+        """
         self.isUserCreatedFlag = True
-        
+
+
     def isUserCreated(self):
+        """
+        Returns the value of isUserCreated.  See setUserCreatedFlag() above.
+        """
         return self.isUserCreatedFlag
 
+
     def device(self):
-        """Return our device object for DeviceResultInt.
+        """
+        Return our device object for DeviceResultInt.
         """
         os = self.os()
         if os: return os.device()
+
 
     def manage_deleteComponent(self, REQUEST=None):
         """
@@ -57,6 +70,7 @@ class OSComponent(DeviceComponent, ManagedEntity, Linkable):
         if REQUEST is not None:
             REQUEST['RESPONSE'].redirect(url)
 
+
     def manage_updateComponent(self, datamap, REQUEST=None):
         """
         Update OSComponent
@@ -78,27 +92,34 @@ class OSComponent(DeviceComponent, ManagedEntity, Linkable):
         if REQUEST is not None:
             REQUEST['RESPONSE'].redirect(url)
 
+
     def getEndpointName(self):
-        """ Implement the Linkable interface for
-            naming endpoints. See Linkable.py.
+        """
+        Implement the Linkable interface for naming endpoints. See Linkable.py.
         """
         return "%s/%s" % (self.device().getId(), self.id)
 
+
     def isInLocation(self, context):
-        """ Implement the Linkable interface for
-            checking Location. See Linkable.py.
+        """
+        Implement the Linkable interface for checking Location. See Linkable.py.
         """
         here = self.device().getLocationName()
         return here.startswith(context.getLocationName())
 
+
     def getIconPath(self):
-        """ Override the device's zProperty and return
-            an icon based on the class name
+        """
+        Override the device's zProperty and return an icon based on the class 
+        name
         """
         return "/zport/dmd/img/icons/%s.png" % self.meta_type.lower()
 
+
     def getPrettyLink(self):
-        """ Gets a link to this object, plus an icon """
+        """
+        Gets a link to this object, plus an icon
+        """
         template = ("<a href='%s' class='prettylink'>"
                     "<div class='device-icon-container'> "
                     "<img class='device-icon' src='%s'/> "
