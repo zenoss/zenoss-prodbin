@@ -161,20 +161,6 @@ class SelTestBase(unittest.TestCase):
                 self.selenium.select(key, value[1])
         self.selenium.click(addMethod) # Submit form.
         self.selenium.wait_for_page_to_load(self.WAITTIME) # Wait for page refresh.
-    def addDialogNetwork(self, addType="SubnetworksaddNetworkinput", addMethod="dialog_submit", **textFields):
-        """Fills in an AJAX dialog."""
-        
-        self.waitForElement(addType) # Bring up the dialog.
-        self.selenium.click(addType)
-        self.waitForElement(addMethod) # Wait till dialog is finished loading.
-        for key in textFields.keys(): # Enter all the values.
-            value = textFields[key]
-            if value[0] == "text":
-               self.selenium.type(key, value[1])
-            elif value[0] == "select":
-                self.selenium.select(key, value[1])
-        self.selenium.click(addMethod) # Submit form.
-        self.selenium.wait_for_page_to_load(self.WAITTIME) # Wait for page refresh.
     def goToDevice(self, deviceName=TARGET):
         self.waitForElement("query")
         self.selenium.type("query", deviceName)
