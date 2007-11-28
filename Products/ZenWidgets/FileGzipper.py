@@ -48,6 +48,7 @@ def index_html(self, REQUEST, RESPONSE):
 
     # Here's the modification. We turn on compression, and also make sure the
     # charset is utf-8 for css and javascript files.
+    content_type = self.content_type
     if (self.content_type.endswith("css") or
         self.content_type.endswith("javascript")):
         content_type = self.content_type + "; charset=utf-8"
