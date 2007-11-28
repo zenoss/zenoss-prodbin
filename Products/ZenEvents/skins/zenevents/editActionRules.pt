@@ -58,9 +58,9 @@
             tal:content="action/getId"/>
         <td class="tablevalues" tal:content="action/delay"/>
         <td class="tablevalues" tal:content="string:Does not repeat" 
-	    tal:condition="action/repeatTime"/>
-        <td class="tablevalues" tal:content="action/repeatTime" 
 	    tal:condition="not:action/repeatTime"/>
+        <td class="tablevalues" tal:content="action/repeatTime" 
+	    tal:condition="action/repeatTime"/>
         <td class="tablevalues" tal:content="action/action"/>
         <td class="tablevalues" tal:content="action/enabled"/>
         <td class="tablevalues" tal:content="action/sendClear"/>
