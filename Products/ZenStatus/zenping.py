@@ -164,6 +164,7 @@ class ZenPing(ZCmdBase):
 
     def pingCycle(self):
         "Start a new run against the ping job tree"
+        self.dmd._p_jar.sync()
         reactor.callLater(self.cycleInterval, self.pingCycle)
 
         if self.pingTreeIter == None:
