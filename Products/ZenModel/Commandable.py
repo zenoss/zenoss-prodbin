@@ -50,6 +50,7 @@ class Commandable:
         if newId:
             uc = UserCommand(newId)
             self.userCommands._setObject(newId, uc)
+            uc = self.userCommands._getOb(newId)
             if self.meta_type == 'Device':
                 self.setLastChange()
             uc.description = desc
