@@ -25,6 +25,7 @@ log = logging.getLogger('zen.MinMaxCheck')
 
 from sets import Set
 from Products.ZenUtils.Utils import unused
+import types
 
 def rpneval(value, rpn):
     """totally bogus rpn valuation only works with one level stack"""
@@ -182,6 +183,8 @@ class MinMaxThresholdInstance(ThresholdInstance):
                   dp, value, self.minimum, self.maximum)
         if value is None:
             return []
+        if type(value) in types.StringTypes:
+            value = float(value)
         thresh = None
         if self.maximum is not None and value > self.maximum:
             thresh = self.maximum
