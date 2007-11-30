@@ -34,6 +34,7 @@ from App.Dialogs import MessageDialog
 from Acquisition import aq_base
 
 from Products.ZenRelations.Exceptions import *
+from Products.ZenUtils.Utils import unused
 
 def manage_addToOneRelationship(context, id, REQUEST = None):
     """ToOneRelationship Factory"""
@@ -139,6 +140,7 @@ class ToOneRelationship(RelationshipBase):
         ToOne doesn't call beforeDelete on its related object because its 
         not a container.
         """
+        unused(container)
         if (getattr(item, "_operation", -1) < 1 
             and self.remoteTypeName() != 'ToManyCont'): 
             self._remoteRemove()

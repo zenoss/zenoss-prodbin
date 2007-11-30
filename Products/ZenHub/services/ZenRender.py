@@ -88,7 +88,7 @@ class Render(resource.Resource):
                     log.warning("Skipping renderer %s" % instance)
         raise Exception("No renderer registered")
 
-    def getChild(self, path, request):
+    def getChild(self, unused, ignored):
         "Handle all paths"
         return self, ()
 

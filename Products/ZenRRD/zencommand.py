@@ -344,7 +344,7 @@ class Cmd:
         self.component = cfg.component
         self.severity = cfg.severity
         self.command = str(cfg.command)
-        self.points, before = {}, self.points
+        self.points = {}
         for p in cfg.points:
             self.points[p[0]] = p[1:]
 

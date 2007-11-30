@@ -29,6 +29,7 @@ from Organizer import Organizer
 from ZenPackable import ZenPackable
 from ZenossSecurity import ZEN_COMMON
 from Products.ZenRelations.RelSchema import *
+from Products.ZenUtils.Utils import unused
 
 def manage_addReportClass(context, id, title = None, REQUEST = None):
     """make a device class"""
@@ -72,6 +73,7 @@ class ReportClass(Organizer, ZenPackable):
     def children(self, sort=False, checkPerm=True, spec=None):
         ''' Return all objects that are instances of ReportClass
         '''
+        unused(spec)
         kids = [o for o in self.objectValues() if isinstance(o, ReportClass)]
         if checkPerm:
             kids = [kid for kid in kids if self.checkRemotePerm("View", kid)]
@@ -82,12 +84,14 @@ class ReportClass(Organizer, ZenPackable):
 
     def childIds(self, spec=None):
         """Return Ids of children within our organizer."""
+        unused(spec)
         return [k.id for k in self.children()]
 
 
     security.declareProtected(ZEN_COMMON, "countChildren")
     def countChildren(self, spec=None):
         """Return a count of all our contained children."""
+        unused(spec)
         count = len(self.childIds())
         for child in self.children():
             count += child.countChildren()

@@ -35,7 +35,6 @@ from Products.ZenUtils.ZenTales import talesEval
 
 from ZenModelRM import ZenModelRM
 
-
 def manage_addRRDGraph(context, id, REQUEST = None):
     """make a RRDGraph"""
     graph = RRDGraph(id)
@@ -235,6 +234,8 @@ class RRDGraph(ZenModelRM):
         VDEF:src_max=src,MAXIMUM 
         GPRINT:src_max:max\:%0.2lf%s\j
         """
+        from Products.ZenUtils.Utils import unused
+        unused(pad)
         funcs = (("cur\:", "LAST"), ("avg\:", "AVERAGE"), ("max\:", "MAXIMUM"))
         for tag, func in funcs:
             label = "%s%s" % (tag, format)

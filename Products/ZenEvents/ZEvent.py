@@ -68,6 +68,7 @@ class ZEvent(Event):
     def getCssClass(self):
         """return the css class name to be used for this event.
         """
+        __pychecker__='no-constCond'
         value = self.severity < 0 and "unknown" or self.severity
         acked = self.eventState > 0 and "acked" or "noack"
         return "zenevents_%s_%s %s" % (value, acked, acked)

@@ -258,7 +258,8 @@ if __name__ == '__main__':
     toJavaScript(meta, "severity >= 4 and eventState = 0 and prodState = 1000")
     toJavaScript(meta, "severity >= 2 and eventState = 0 and prodState = 1000")
     print toJavaScript(meta, '(prodState = 1000) and (eventState = 0 or eventState = 1) and (severity >= 3)')
-    print fromFormVariables(dict(severity='Info',
+    print fromFormVariables(meta,
+                            dict(severity='Info',
                                  severity_mode='>',
                                  eventState='New',
                                  eventState_mode='=',

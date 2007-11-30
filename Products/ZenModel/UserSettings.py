@@ -28,10 +28,11 @@ from Products.ZenEvents.ActionRule import ActionRule
 from Products.ZenEvents.CustomEventView import CustomEventView
 from Products.ZenRelations.RelSchema import *
 from Products.ZenUtils import Time
+from Products.ZenUtils.Utils import unused
 
 from ZenossSecurity import *
 from ZenModelRM import ZenModelRM
-import Products.ZenUtils.Utils as Utils
+from Products.ZenUtils import Utils
 
 from email.MIMEText import MIMEText
 import socket
@@ -198,8 +199,9 @@ class UserSettingsManager(ZenModelRM):
             set the state for the current user.
         """
         user = self.getUserSettings(userid)
-        user.dashboardState = (Utils.extractPostContent(REQUEST) or
-                               user.dashboardState)
+        posted = Utils.extractPostContent(REQUEST)
+        if posted:
+            user.dashboardState = posted
         return True
 
     def getUserSettingsUrl(self, userid=None):
@@ -310,7 +312,7 @@ class UserSettingsManager(ZenModelRM):
         try:
             self.acl_users.groupManager.addGroup(groupid)
         except KeyError: pass
-        gfolder = self.getGroupSettings(groupid)
+        self.getGroupSettings(groupid)
         if REQUEST:
             REQUEST['message'] = "Group %s added" % groupid
             return self.callZenScreen(REQUEST)
@@ -476,7 +478,7 @@ class UserSettings(ZenModelRM):
         """
         user = self.getUser(self.id)
         if user: return filter(rolefilter, user.getRoles())
-        return ()
+        return []
 
 
     def getUserGroupSettingsNames(self):
@@ -527,11 +529,7 @@ class UserSettings(ZenModelRM):
         origRoles = filter(rolefilter, user.getRoles())
         # if there's a change, then we need to update
         if roles != origRoles:
-            # can we use the built-in set?
-            try:
-                set()
-            except NameError:
-                from sets import Set as set
+            from sets import Set as set
             # get roles to remove and then remove them
             removeRoles = list(set(origRoles).difference(set(roles)))
             for role in removeRoles:
@@ -652,9 +650,10 @@ class UserSettings(ZenModelRM):
     def manage_addAdministrativeRole(self, name=None, type='device', 
                                     role=None, REQUEST=None):
         "Add a Admin Role to this device"
+        unused(role)
         mobj = None
         if not name:
-            name = getattr(REQUEST, 'deviceName')
+            name = REQUEST.deviceName
         if type == 'device':
             mobj =self.getDmdRoot("Devices").findDevice(name)
         else:
@@ -711,7 +710,6 @@ class UserSettings(ZenModelRM):
         'manage_deleteAdministrativeRole')
     def manage_deleteAdministrativeRole(self, delids=(), REQUEST=None):
         "Delete a admin role to this device"
-        import types
         if type(delids) in types.StringTypes:
             delids = [delids]
         for ar in self.adminRoles():
@@ -747,7 +745,7 @@ class UserSettings(ZenModelRM):
             fqdn = socket.getfqdn()
             thisUser = self.getUser()
             srcId = thisUser.getId()
-            srcSettings = self.getUserSettings(srcId)
+            self.getUserSettings(srcId)
             srcAddress = self.dmd.getEmailFrom()
             # Read body from file probably
             body = ('This is a test message sent by %s' % srcId +

@@ -99,6 +99,8 @@ class ZenTableManager(SimpleItem, PropertyManager):
 
     def getTableState(self, tableName, attrname=None, default=None, **keys):
         """return an existing table state or a single value from the state"""
+        from Products.ZenUtils.Utils import unused
+        unused(default)
         request = self.REQUEST
         tableStates = self.getTableStates()
         tableState = tableStates.get(tableName, None)
@@ -199,7 +201,7 @@ class ZenTableManager(SimpleItem, PropertyManager):
         if not regex: 
             return objects
         try: search = re.compile(regex,re.I).search
-        except re.error, e:
+        except re.error:
             self.REQUEST.SESSION['message'] = "Invalid regular expression." 
             return objects
         filteredObjects = []

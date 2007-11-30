@@ -156,7 +156,7 @@ class ZCmdBase(ZenDaemon):
         devices = self.dataroot.getDmdRoot("Devices")
         return devices.findDevice(name)
 
-    def sigTerm(self, *unused):
+    def sigTerm(self, signum=None, frame=None):
         pass
     
     def buildOptions(self):

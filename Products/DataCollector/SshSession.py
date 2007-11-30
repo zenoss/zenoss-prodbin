@@ -14,7 +14,7 @@
 from twisted.conch.ssh import transport, userauth, connection, common, keys, channel
 from twisted.internet import defer, reactor
 from twisted.python import log
-import struct, getpass, os
+import getpass, os
 
 import logging
 
@@ -23,6 +23,8 @@ import logging
 USER, HOST = None, None
 
 from Exceptions import CommandNotFound
+
+from Products.ZenUtils.Utils import unused
 
 class SshSession:
 
@@ -98,6 +100,7 @@ class SshSession:
 class SimpleTransport(transport.SSHClientTransport):
     def verifyHostKey(self, hostKey, fingerprint):
         print 'host key fingerprint: %s' % fingerprint
+        unused(hostKey)
         return defer.succeed(1) 
 
     def connectionSecure(self):
@@ -107,8 +110,9 @@ class SimpleTransport(transport.SSHClientTransport):
                 
 
 class SimpleUserAuth(userauth.SSHUserAuthClient):
-    def getPassword(self):
+    def getPassword(self, prompt=None):
         # where is HOST defined?
+        unused(prompt)
         return defer.succeed(
             getpass.getpass("%s@%s's password: " % (USER, HOST)))
 
@@ -145,9 +149,7 @@ class FindCmdChannel(channel.SSHChannel):
         self.conn.sendRequest(self, 'exec', common.NS(''))
 
     def request_exit_status(self, data):
-        status = struct.unpack('>L', data)[0]
-        if not status:
-            fpcommand = 0
+        unused(data)
         self.loseConnection()
 
 
@@ -162,18 +164,15 @@ class CommandChannel(channel.SSHChannel):
     def channelOpen(self, ignoredData):
         #self.command = '/bin/netstat -an'
         self.data = ''
-        d = self.conn.sendRequest(self, 'exec', 
-            common.NS(self.command), wantReply = 1)
-    #    d.addCallback(self._cbRequest)
-
-    #def _cbRequest(self, ignored):
-    #    self.conn.sendEOF(self)
+        self.conn.sendRequest(self,
+                              'exec', 
+                              common.NS(self.command),
+                              wantReply = 1)
 
     def dataReceived(self, data):
         self.data += data
 
     def closed(self):
-        #print 'command %s data: %s' % (self.command, repr(self.data))
         self.loseConnection()
         self.results.append(self.data)
         if len(self.results) == len(self.commands):

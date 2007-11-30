@@ -119,7 +119,6 @@ class PerformanceConfig(HubService):
         
     def remote_getSnmpStatus(self, devname=None):
         "Return the failure counts for Snmp" 
-        result = []
         counts = {}
         try:
             # get all the events with /Status/Snmp
@@ -191,10 +190,6 @@ class PerformanceConfig(HubService):
         if isinstance(object, PerformanceConf) and object.id == self.instance:
             for listener in self.listeners:
                 listener.callRemote('setPropertyItems', object.propertyItems())
-                devices = [
-                    (d.id, float(d.getLastChange())) for d in object.devices()
-                     ]
-                # listener.callRemote('updateDeviceList', devices)
 
         # a ZenPack is installed
         from Products.ZenModel.ZenPack import ZenPack

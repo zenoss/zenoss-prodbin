@@ -19,6 +19,7 @@ from AccessControl import ClassSecurityInfo
 from Globals import InitializeClass
 from Products.ZenUtils.FakeRequest import FakeRequest
 
+from Products.ZenUtils.Utils import unused
 
 class EventView(object):
 
@@ -45,6 +46,8 @@ class EventView(object):
                           orderby='', REQUEST=None):
         """Return the current event list for this managed entity.
         """
+        unused(count, fields, filter, getTotalCount, offset, orderby,
+               severity, state)
         kwargs = locals(); del kwargs['self']
         return self.getEventManager().getJSONEventsInfo(self, **kwargs)
 
@@ -56,6 +59,8 @@ class EventView(object):
                           orderby='', REQUEST=None):
         """Return the current event list for this managed entity.
         """
+        unused(count, enddate, fields, filter, getTotalCount, offset, orderby,
+               severity, startdate, state)
         kwargs = locals(); del kwargs['self']
         return self.getEventHistory().getJSONEventsInfo(self, **kwargs)
 
@@ -80,7 +85,9 @@ class EventView(object):
     def getStatusString(self, statclass, **kwargs):
         """Return the status number for this device of class statClass.
         """
-        return self.convertStatus(self.getStatus(statclass, **kwargs))
+        # used to avoid pychecker complaint about wrong # of args to getStatus
+        f = self.getStatus
+        return self.convertStatus(f(statclass, **kwargs))
                                                         
     
     def getEventSummary(self, severity=1, state=1, prodState=None):
@@ -133,6 +140,7 @@ class EventView(object):
                                     REQUEST=None, **kwargs):
         """Delete events form this managed entity.
         """
+        unused(count)
         evids = self.getEventManager().getEventBatchME(self, 
                                             selectstatus=selectstatus,
                                             goodevids=goodevids, 
@@ -172,6 +180,7 @@ class EventView(object):
         Only called from event console, so uses FakeRequest to avoid
         page rendering.
         """
+        unused(count)
         evids = self.getEventHistory().getEventBatchME(self, 
                                             selectstatus=selectstatus,
                                             goodevids=goodevids, 
@@ -218,6 +227,7 @@ class EventView(object):
         Only called from event console, so uses FakeRequest to avoid
         page rendering.
         """
+        unused(count)
         evids = self.getEventManager().getEventBatchME(self, 
                                             selectstatus=selectstatus,
                                             goodevids=goodevids, 

@@ -12,7 +12,7 @@
 ###########################################################################
 import math, sys, time, random, threading, socket, os
 
-make_hexip = lambda ip: ''.join(["%02x" % long(i) for i in ip.split('.')])
+make_hexip = lambda parts: ''.join(["%02x" % long(i) for i in parts.split('.')])
 
 _pid = '%04x' % os.getpid()
 _pid = _pid[-3:]
@@ -30,7 +30,6 @@ except:
         ip += '.' + str(rand.randrange(1, 0xff))  
         # might as well use IPv6 range if we're making it up
     hexip = make_hexip(ip)
-
 
 def _unique_sequencer():
     _XUnit_sequence = sys.maxint
@@ -55,3 +54,5 @@ def generate():
                                 _pid)
     finally:
         lock.release()
+
+del ip

@@ -83,7 +83,8 @@ def strip(ip):
     o = []
     for i in range(len(_masks)):
         t = ip & _masks[i]
-        o.append(str(t >> (i*8)))
+        s = str(t >> (i*8))
+        o.append(s)
     o.reverse()
     return '.'.join(o)
 

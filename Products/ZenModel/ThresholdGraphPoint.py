@@ -53,11 +53,6 @@ class ThresholdGraphPoint(GraphPoint):
         if self.graphDef.rrdTemplate():
             threshClass = self.graphDef.rrdTemplate.thresholds._getOb(
                                                 self.threshId, None)
-        elif self.graphDef.report() and None:
-            for temp in context.getRRDTemplates():
-                threshClass = temp.thresholds._getOb(self.threshId, None)
-                if threshClass:
-                    break
         return threshClass
 
 
@@ -105,6 +100,8 @@ class ThresholdGraphPoint(GraphPoint):
                         multiid=-1, prefix=''):
         ''' Build the graphing commands for this graphpoint
         '''
+        from Products.ZenUtils.Utils import unused
+        unused(multiid, rrdDir)
         if getattr(context, 'isFake', False):
             return cmds
         relatedGps = self.getRelatedGraphPoints(context)

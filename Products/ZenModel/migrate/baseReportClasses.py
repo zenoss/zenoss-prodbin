@@ -41,7 +41,7 @@ class BaseReportClasses(Migrate.Step):
         
         # Menus
 
-        reportList = getattr(dmd.zenMenus, 'Report_list')
+        reportList = dmd.zenMenus.Report_list
         reportList.zenMenuItems.addDeviceReport.allowed_classes = ['CustomDeviceReportClass']
         reportList.zenMenuItems.deleteDeviceReports.allowed_classes = [
             'CustomDeviceReportClass', 'GraphReportClass', 'MultiGraphReportClass']

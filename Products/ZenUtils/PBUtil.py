@@ -52,6 +52,7 @@ class ReconnectingPBClientFactory(PBClientFactory,
     To use me, subclass, then hand an instance to a connector (like
     TCPClient).
     """
+    __pychecker__='no-override'
 
     def __init__(self):
         PBClientFactory.__init__(self)
@@ -67,9 +68,9 @@ class ReconnectingPBClientFactory(PBClientFactory,
             self.connector = connector
             self.retry()
 
-    def clientConnectionLost(self, connector, reason):
+    def clientConnectionLost(self, connector, reason, reconnecting=1):
         PBClientFactory.clientConnectionLost(self, connector, reason,
-                                             reconnecting=True)
+                                             reconnecting=reconnecting)
         RCF = protocol.ReconnectingClientFactory
         RCF.clientConnectionLost(self, connector, reason)
 
@@ -114,7 +115,9 @@ class ReconnectingPBClientFactory(PBClientFactory,
 
     # newcred methods
 
-    def login(self, *args):
+    def login(self, credentials, client=None):
+        from Products.ZenUtils.Utils import unused
+        unused(credentials, client)
         raise RuntimeError, "login is one-shot: use startLogin instead"
 
     def startLogin(self, credentials, client=None):

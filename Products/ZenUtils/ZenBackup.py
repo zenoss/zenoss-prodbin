@@ -90,6 +90,8 @@ class ZenBackup(ZenBackupBase):
 
     def buildOptions(self):
         """basic options setup sub classes can add more options here"""
+        # pychecker can't handle strings made of multiple tokens
+        __pychecker__ = 'no-noeffect no-constCond'
         ZenBackupBase.buildOptions(self)
         self.parser.add_option('--dbname',
                                dest='dbname',
@@ -227,9 +229,10 @@ class ZenBackup(ZenBackupBase):
         else:
             outfile = self.getDefaultBackupFile()
         tempHead, tempTail = os.path.split(tempDir)
-        cmd = 'tar czfC %s %s %s' % (
-                self.options.stdout and '-' or outfile, 
-                tempHead, tempTail)
+        tarFile = outfile
+        if self.options.stdout:
+            tarFile = '-'
+        cmd = 'tar czfC %s %s %s' % (tarFile, tempHead, tempTail)
         self.msg('Backup file written to %s' % outfile)
 
         if os.system(cmd): return -1

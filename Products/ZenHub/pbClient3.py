@@ -41,7 +41,7 @@ def main():
         perspective = driver.next()
 
         yield perspective.callRemote('getService', 'Beat', listener=Listener())
-        service = driver.next()
+        driver.next()
 
     drive(go).addErrback(error)
     reactor.run()

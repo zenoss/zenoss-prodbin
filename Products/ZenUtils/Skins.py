@@ -57,6 +57,8 @@ def registerSkin(self, base, positionAfter='custom'):
 
 def unregisterSkin(self, base, positionAfter='custom'):
     """setup the skins in a product"""
+    from Products.ZenUtils.Utils import unused
+    unused(positionAfter)
     layers = skinDirs(base)
     if layers is None: return
     try:

@@ -23,7 +23,7 @@ from _mysql_exceptions import OperationalError
 
 from Products.ZenUtils.Graphics import NetworkGraph
 from Products.ZenUtils.Utils import setWebLoggingStream, clearWebLoggingStream
-from Products.ZenUtils.Utils import zenPath
+from Products.ZenUtils.Utils import zenPath, unused
 from Products.ZenUtils import Time
 import RRDView
 
@@ -53,7 +53,7 @@ from OperatingSystem import OperatingSystem
 from DeviceHW import DeviceHW
 
 from ZenStatus import ZenStatus
-from Exceptions import *
+from Products.ZenModel.Exceptions import *
 from ZenossSecurity import *
 from Products.ZenUtils.Utils import edgesToXML
 from Products.ZenUtils import NetworkTree
@@ -165,7 +165,6 @@ def findCommunity(context, ip, devicePath,
     timeout = getattr(devroot, "zSnmpTimeout", 2)
     retries = getattr(devroot, "zSnmpTries", 2)
     session = SnmpSession(ip, timeout=timeout, port=port, retries=retries)
-    sysTableOid = '.1.3.6.1.2.1.1'
     oid = '.1.3.6.1.2.1.1.5.0'
     goodcommunity = ""
     goodversion = ""
@@ -640,7 +639,7 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
            list of commands)
         """
         if not self.monitorDevice():
-            return []
+            return ()
         cmds, threshs = (super(Device, self).getDataSourceCommands())
         for o in self.getMonitoredComponents(collector="zencommand"):
             c, t = o.getDataSourceCommands()
@@ -1366,7 +1365,7 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
         @todo: Doesn't really do work on a device object.
         Already exists on ZDeviceLoader
         """
-        locobj = self.getDmdRoot("Locations").createOrganizer(newLocationPath)
+        self.getDmdRoot("Locations").createOrganizer(newLocationPath)
         if REQUEST:
             REQUEST['locationPath'] = newLocationPath
             REQUEST['message'] = "Added Location %s at time:" % newLocationPath
@@ -1644,6 +1643,7 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
         @permission: ZEN_MANAGE_DEVICE
         @todo: generateEvents param is not being used.
         """
+        unused(generateEvents)
         response = None
         if REQUEST:
             response = REQUEST.RESPONSE
@@ -1674,7 +1674,6 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
         except (SystemExit, KeyboardInterrupt): raise 
         except ZentinelException, e: 
             log.critical(e) 
-        except: raise 
                             
         if REQUEST and setlog:
             response.write(self.loggingFooter())
@@ -1798,7 +1797,7 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
         environ.update({'dev': context,  'device': context,})
         return environ
         
-    def getUrlForUserCommands(self, commandId=None):
+    def getUrlForUserCommands(self):
         """
         Returns a URL to redirect to after a command has executed
         used by Commandable

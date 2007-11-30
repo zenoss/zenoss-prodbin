@@ -70,7 +70,7 @@ class ClearId(Migrate.Step):
         except OperationalError:
             pass
 
-    def cutover(self, dmd):
+    def cutover(self, unused):
         try:
             zem = self.dmd.ZenEventManager
             conn = zem.connect()

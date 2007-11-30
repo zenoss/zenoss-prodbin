@@ -28,7 +28,9 @@ from cgi import escape
 
 # base class for RelCopyContainer
 from OFS.ObjectManager import checkValidId
-from OFS.CopySupport import CopyContainer
+from OFS.CopySupport import CopyContainer, eNotSupported
+
+from webdav.Lockable import ResourceLockedError
 
 from Acquisition import aq_base
 from AccessControl import getSecurityManager
@@ -93,6 +95,8 @@ class RelCopyContainer(CopyContainer):
 
     def manage_unlinkObjects(self, ids = None, cb_copy_data=None, REQUEST=None):
         """unlink objects from relationship"""
+        from Products.ZenUtils.Utils import unused
+        unused(cb_copy_data)
         try:
             relName = self._getRelName(ids)
             self.manage_removeRelation(relName)
@@ -169,7 +173,6 @@ class RelCopyContainer(CopyContainer):
         except: raise CopyError, eInvalid
 
         oblist=[]
-        op=cp[0]
         app = self.getPhysicalRoot()
 
         for mdata in cp[1]:

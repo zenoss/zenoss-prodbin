@@ -53,7 +53,7 @@ class StatusConfig(HubService):
         devices = Set([d.id for d in self.config.devices()])
         return [x for x in status.items() if x[0][0] in devices]
 
-    def remote_services(self, configpath):
+    def remote_services(self, unused):
         result = []
         for dev in self.config.devices():
             dev = dev.primaryAq()
@@ -72,10 +72,6 @@ class StatusConfig(HubService):
         if isinstance(object, PerformanceConf):
             for listener in self.listeners:
                 listener.callRemote('setPropertyItems', object.propertyItems())
-                devices = [
-                    (d.id, float(d.getLastChange())) for d in object.devices()
-                     ]
-                # listener.callRemote('updateDeviceList', devices)
         self.procrastinator.doLater()
 
     def notify(self, unused):

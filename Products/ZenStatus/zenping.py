@@ -269,10 +269,10 @@ class ZenPing(ZCmdBase):
         
         self.next()
 
-    def sigTerm(self, *unused):
+    def sigTerm(self, signum=None, frame=None):
         'controlled shutdown of main loop on interrupt'
         try:
-            ZCmdBase.sigTerm(self, *unused)
+            ZCmdBase.sigTerm(self, signum, frame)
         except SystemExit:
             reactor.stop()
 

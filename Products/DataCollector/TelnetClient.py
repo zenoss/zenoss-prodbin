@@ -52,13 +52,13 @@ log = logging.getLogger("zen.TelnetClient")
 import CollectorClient
 from Exceptions import *
 
+from Products.ZenUtils.Utils import unused
+
 defaultPromptTimeout = 10 
-defaultCommandTimeout = 20
 defaultLoginRegex = 'ogin:.$'
 defaultPasswordRegex = 'assword:'
 defaultEnable = False
 defaultTermLength = False
-
 
 responceMap = ("WILL", "WONT", "DO", "DONT")
 
@@ -226,7 +226,7 @@ class TelnetClientProtocol(telnet.Telnet):
         return 'FindPrompt'
 
 
-    def telnet_Enable(self, data):
+    def telnet_Enable(self, unused):
         "change to enable mode on cisco"
         self.write('enable\n')
         self.startTimeout(self.factory.loginTimeout, self.loginTimeout)
@@ -258,12 +258,12 @@ class TelnetClientProtocol(telnet.Telnet):
         reactor.callLater(.1, self.write, "\n")
         return 'FindPrompt' 
 
-    def telnet_ClearPromptData(self, data):
+    def telnet_ClearPromptData(self, unused):
         if self.scCallLater: self.scCallLater.cancel()
         self.scCallLater = reactor.callLater(1.0, self.telnet_SendCommand, "")
         return "ClearPromptData"
 
-    def telnet_SendCommand(self, data):
+    def telnet_SendCommand(self, unused):
         "Get a command of the command stack and send it"
         if self.scCallLater and self.scCallLater.active(): 
             self.scCallLater.cancel()
@@ -307,6 +307,11 @@ class TelnetClient(CollectorClient.CollectorClient):
                     device=None, datacollector=None):
         CollectorClient.CollectorClient.__init__(self, hostname, ip, port, 
                             commands, options, device, datacollector)
+        global defaultPromptTimeout
+        global defaultLoginRegex
+        global defaultPasswordRegex
+        global defaultEnable
+        
         self.protocol = TelnetClientProtocol
         self.modeRegex = { 
                     'FindPrompt' : '.*',
@@ -317,11 +322,9 @@ class TelnetClient(CollectorClient.CollectorClient):
 
         if options:
             defaultPromptTimeout = options.promptTimeout
-            defaultCommandTimeout = options.commandTimeout
             defaultLoginRegex = options.loginRegex
             defaultPasswordRegex = options.passwordRegex
             defaultEnable = options.enable
-            defaultTermLength = options.termlen
 
         if device: # if we are in zope look for parameters in aq path
             self.promptTimeout = getattr(device, 
@@ -362,6 +365,7 @@ class TelnetClient(CollectorClient.CollectorClient):
 
     def clientConnectionFailed(self, connector, reason):
         """if we don't connect let the modeler know"""
+        unused(connector)
         log.warn(reason.getErrorMessage())
         self.clientFinished()
        
@@ -373,7 +377,9 @@ class TelnetClient(CollectorClient.CollectorClient):
 
 
 def buildOptions(parser=None, usage=None):
+    
     parser = CollectorClient.buildOptions(parser,usage)
+
     parser.add_option('-r', '--promptTimeout',
                 dest='promptTimeout',
                 type = 'float',

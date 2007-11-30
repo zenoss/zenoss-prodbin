@@ -56,6 +56,8 @@ class VruleGraphPoint(GraphPoint):
                         multiid=-1, prefix=''):
         ''' Build the graphing commands for this graphpoint
         '''
+        from Products.ZenUtils.Utils import unused
+        unused(multiid, prefix, rrdDir)
         if not self.time:
             return cmds
         gopts = 'VRULE:%s%s' % (self.time, self.getColor(idx))

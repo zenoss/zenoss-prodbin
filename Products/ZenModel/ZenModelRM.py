@@ -67,7 +67,7 @@ class ZenModelRM(ZenModelBase, RelationshipManager, Historical, ZenPacker):
 
 
     security.declareProtected('Manage DMD', 'zmanage_editProperties')
-    def zmanage_editProperties(self, REQUEST=None):
+    def zmanage_editProperties(self, REQUEST=None, redirect=False):
         """Edit a ZenModel object and return its proper page template
         """
         redirect = False
@@ -108,9 +108,6 @@ class ZenModelRM(ZenModelBase, RelationshipManager, Historical, ZenPacker):
         elif dest == 'zenossdotnet':
             # create temp file
             filename = ''
-            # get username and password from configuration
-            username = ''
-            password = ''
             # get https URL for user space at Zenoss.net
             url = 'https://%s:%s@zenoss.net/'
             # build XML-RPC proxy object for publishing to Zenoss.net
@@ -265,7 +262,9 @@ class ZenModelRM(ZenModelBase, RelationshipManager, Historical, ZenPacker):
         for sobj in self.objectValues():
             RelationshipManager._delObject(self,sobj.getId())
             if not hasattr(nobj, sobj.id) and sobj.id in nrelations:
-                RelationshipManager._setObject(nobj, sobj.id, sobj)
+                # confuse pychecker:
+                setObject = RelationshipManager._setObject
+                setObject(nobj, sobj.id, sobj)
         nobj.buildRelations() #build out any missing relations
         # copy properties to new object
         noprop = getattr(nobj, 'zNoPropertiesCopy', [])

@@ -58,6 +58,8 @@ class TickGraphPoint(GraphPoint):
                         multiid=-1, prefix=''):
         ''' Build the graphing commands for this graphpoint
         '''
+        from Products.ZenUtils.Utils import unused
+        unused(multiid, rrdDir)
         if not self.vname:
             return cmds
             

@@ -30,7 +30,9 @@ from Device import Device
 
 def manage_addUBRRouter(context, id, title = None, REQUEST = None):
     """make a device"""
-    serv = UBRRouter(id, title)
+    from Products.ZenUtils.Utils import unused
+    unused(title)
+    serv = UBRRouter(id)
     context._setObject(serv.id, serv)
 
     if REQUEST is not None:

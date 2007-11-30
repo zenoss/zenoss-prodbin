@@ -92,12 +92,12 @@ class Locked:
         return self.impl(self.map.get, *args, **kw)
 
         
-    def __setitem__(self, *args, **kw):
-        return self.impl(self.map.__setitem__, *args, **kw)
+    def __setitem__(self, key, item):
+        return self.impl(self.map.__setitem__, key, item)
 
 
-    def __getitem__(self, *args, **kw):
-        return self.impl(self.map.__getitem__, *args, **kw)
+    def __getitem__(self, key):
+        return self.impl(self.map.__getitem__, key)
 
 
     def update(self, *args, **kw):

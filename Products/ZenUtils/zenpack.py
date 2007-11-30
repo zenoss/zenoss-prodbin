@@ -79,7 +79,7 @@ class ZenPackCmd(ZenScriptBase):
             zf = ZipFile(self.options.installPackName)
             for name in zf.namelist():
                 if name.endswith == '/%s' % CONFIG_FILE:
-                    sio = StringIO(zf.read())
+                    sio = StringIO(zf.read(name))
             else:
                 return True
         else:
@@ -138,7 +138,6 @@ class ZenPackCmd(ZenScriptBase):
 
     def remove(self, packName):
         self.log.debug('Removing Pack "%s"' % packName)
-        foundIt = False
         for pack in self.dmd.packs():
             if packName in pack.requires:
                 self.log.error("Pack %s depends on pack %s, not removing",
@@ -169,7 +168,6 @@ class ZenPackCmd(ZenScriptBase):
         zf = ZipFile(fname)
         name = zf.namelist()[0]
         packName = name.split('/')[0]
-        root = zenPackPath(packName)
         self.log.debug('Extracting ZenPack "%s"' % packName)
         for name in zf.namelist():
             fullname = zenPath('Products', name)
@@ -245,16 +243,15 @@ class ZenPackCmd(ZenScriptBase):
       
         targetdir = zenPath("Products", packName)
         cmd = 'test -d %s && rm -rf %s' % (targetdir, targetdir)
-        r = os.system(cmd)
+        os.system(cmd)
         cmd = 'ln -s %s %s' % (srcDir, zenPath("Products"))
-        r = os.system(cmd)
+        os.system(cmd)
         
         return packName
         
 
     def stop(self, why):
         self.log.error("zenpack stopped: %s", why)
-        import sys
         sys.exit(1)
         
     

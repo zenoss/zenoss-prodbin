@@ -18,7 +18,7 @@ from MySQLdb import OperationalError
 import logging
 log = logging.getLogger("zen.migrate")
 
-import MySQLdb.constants.ER as ER
+from MySQLdb.constants import ER
 MYSQL_ERROR_TRIGGER_DOESNT_EXIST = 1360
 
 trigger = """

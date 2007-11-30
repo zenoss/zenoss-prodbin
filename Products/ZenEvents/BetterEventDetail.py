@@ -58,7 +58,7 @@ class BetterEventDetail(EventDetail):
         )
 
 
-    def breadCrumbs(self, terminator='dmd'):
+    def breadCrumbs(self):
         """Return the breadcrumb links for this object add event.
         [('url','id'), ...]
         """

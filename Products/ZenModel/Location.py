@@ -150,17 +150,5 @@ class Location(DeviceOrganizer, ZenPackable):
         data = []
         # Short-circuit the method for now
         return data
-        children = self.children()
-        olddata = self.getChildGeomapData()
-        for child in children:
-            childlinks = child.getLinks(recursive=False)
-            for link in childlinks:
-                gdata = link.getGeomapData(child, full=True)
-                if gdata is not None:
-                    for datum in gdata:
-                        if (datum not in olddata and 
-                            data!=self.getGeomapData()):
-                            data.append(datum)
-        return data
     
 InitializeClass(Location)

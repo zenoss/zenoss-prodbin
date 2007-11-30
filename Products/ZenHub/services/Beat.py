@@ -30,6 +30,6 @@ class Beat(HubService):
             d.addErrback(self.error)
         reactor.callLater(1, self.beat)
 
-    def error(self, reason, listener):
+    def error(self, reason, unused):
         reason.printTraceback()
         

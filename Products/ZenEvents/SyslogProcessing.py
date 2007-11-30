@@ -153,9 +153,9 @@ class SyslogProcessor(object):
         at the top of this module.
         """
         slog.debug(msg)
-        for regex in compiledParsers:        
-            slog.debug("tag regex: %s", regex.pattern)
-            m = regex.search(msg)
+        for parser in compiledParsers:        
+            slog.debug("tag regex: %s", parser.pattern)
+            m = parser.search(msg)
             if not m: continue
             slog.debug("tag match: %s", m.groupdict())
             evt.updateFromDict(m.groupdict())

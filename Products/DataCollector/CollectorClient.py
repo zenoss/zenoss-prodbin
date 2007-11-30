@@ -34,28 +34,15 @@ log = logging.getLogger("zen.CmdClient")
 
 from twisted.internet import protocol
 
-#Default option values
-if os.environ.has_key('USER'):
-    defaultUsername = os.environ['USER']
-else:
-    defaultUsername = ""
-defaultPassword = ""
-defaultLoginTries = 1
-defaultLoginTimeout = 10
-defaultCommandTimeout = 10 
-defaultKeyPath = '~/.ssh/id_dsa'
-defaultSearchPath = []
-defaultExistanceTest = 'test -f %s'
-        
-
 class CollectorClient(protocol.ClientFactory):
     
     maintainConnection = False 
     cmdindex = 0
     
     def __init__(self, hostname, ip, port, commands=None, options=None, 
-                    device=None, datacollector=None, log=None):
-
+                    device=None, datacollector=None, alog=None):
+        from Products.ZenUtils.Utils import unused
+        unused(alog)
         self.hostname = hostname
         self.ip = ip
         self.port = port
@@ -149,6 +136,18 @@ class CollectorClient(protocol.ClientFactory):
 def buildOptions(parser=None, usage=None):
     "build options list that both telnet and ssh use"
    
+    #Default option values
+    if os.environ.has_key('USER'):
+        defaultUsername = os.environ['USER']
+    else:
+        defaultUsername = ""
+    defaultPassword = ""
+    defaultLoginTries = 1
+    defaultLoginTimeout = 10
+    defaultCommandTimeout = 10 
+    defaultKeyPath = '~/.ssh/id_dsa'
+    defaultSearchPath = []
+    defaultExistanceTest = 'test -f %s'
 
     if not usage:
         usage = "%prog [options] hostname[:port] command"

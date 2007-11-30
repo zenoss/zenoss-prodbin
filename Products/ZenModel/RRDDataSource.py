@@ -38,24 +38,6 @@ def manage_addRRDDataSource(context, id, dsOption, REQUEST = None):
        REQUEST['RESPONSE'].redirect(context.absolute_url()+'/manage_main')
                                      
 
-#addRRDDataSource = DTMLFile('dtml/addRRDDataSource',globals())
-
-
-def convertMethodParameter(value, type):
-    if type == "integer":
-        return int(value)
-    elif type == "string":
-        return str(value)
-    elif type == "float":
-        return float(value)
-    else:
-        raise TypeError('Unsupported method parameter type: %s' % type)
-
-
-
-#class RRDDataSourceError(Exception): pass
-
-
 class RRDDataSource(ZenModelRM, ZenPackable):
 
     meta_type = 'RRDDataSource'
@@ -209,5 +191,5 @@ class RRDDataSource(ZenModelRM, ZenPackable):
         return self.ZenEventManager.getSeverityString(self.severity)
 
 
-    def zmanage_editProperties(self, REQUEST=None):
+    def zmanage_editProperties(self, REQUEST=None, ignored=None):
         return ZenModelRM.zmanage_editProperties(self, REQUEST)

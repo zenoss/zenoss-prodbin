@@ -57,7 +57,7 @@ class PortscanClient(object):
             d.addCallback(self._cbScanComplete, pluginName)
             d.addErrback(self._ebScanError, pluginName)
 
-    def _cbScanComplete(self, results, pluginName):
+    def _cbScanComplete(self, unused, pluginName):
         log.debug("received plugin:%s getOids", pluginName)
         self.clientFinished(pluginName)
 
@@ -67,10 +67,8 @@ class PortscanClient(object):
         self.clientFinished(pluginName)
         log.debug('device %s plugin %s %s', self.hostname, pluginName, err)
         if isinstance(err, failure.Failure):
-            actualError = err.value
             trace = err.getTraceback()
         else:
-            actualError = err
             trace = log.getException(err)
         log.error(
             """device %s plugin %s unexpected error: %s""",

@@ -15,6 +15,7 @@
 from Globals import InitializeClass
 from Products.ZenModel.ZenModelRM import ZenModelRM
 from Products.ZenRelations.RelSchema import *
+from Products.ZenUtils.Utils import unused
 
 
 class ILink(object):
@@ -59,7 +60,7 @@ class ILink(object):
         """
         raise NotImplementedError
 
-    def getGeomapData(self):
+    def getGeomapData(self, context, full=False):
         """ Return the addresses of the endpoints
             aggregated for the generation of the context
         """
@@ -112,9 +113,11 @@ class Link(ZenModelRM, ILink):
         self.buildRelations()
 
     def manage_afterAdd(self, item, container):
+        unused(item, container)
         self.index_object()
 
     def manage_beforeDelete(self, item, container):
+        unused(item, container)
         self.unindex_object()
 
     def setEndpoints(self, pointa, pointb):

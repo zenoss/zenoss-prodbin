@@ -57,6 +57,8 @@ class HruleGraphPoint(GraphPoint):
                         multiid=-1, prefix=''):
         ''' Build the graphing commands for this graphpoint
         '''
+        from Products.ZenUtils.Utils import unused
+        unused(multiid, prefix, rrdDir)
         legend = self.talesEval(self.legend, context)
         legend = self.escapeForRRD(legend)
         return cmds + ['HRULE:%s%s%s' % (

@@ -119,7 +119,9 @@ class ConfDaemon(CmdBase):
         return self.dnstries
 
         
-    def sigTerm(self, signum, frame):
+    def sigTerm(self, signum=None, frame=None):
+        from Products.ZenUtils.Utils import unused
+        unused(signum, frame)
         self.log.info('Daemon %s shutting down' % self.__class__.__name__)
         sys.exit(0)
 

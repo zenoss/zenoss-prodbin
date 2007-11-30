@@ -29,6 +29,7 @@ class DeviceComponent(Lockable):
     DeviceComponent is a mix-in class for all components of a device.
     These include LogicalComponent, Software, and Hardware.
     """
+    __pychecker__='no-override'
     event_key = "Component"
 
     default_catalog = "componentSearch"
@@ -125,7 +126,7 @@ class DeviceComponent(Lockable):
             return super(DeviceComponent, self).getRRDTemplateByName(name)
 
 
-    def getNagiosTemplate(self, name=None):
+    def getNagiosTemplate(self, unused=None):
         import warnings
         warnings.warn('anything named nagios is deprecated', DeprecationWarning)
 

@@ -115,6 +115,7 @@ class RenderServer(RRDToolItem):
                 gopts.insert(0, '--end=%d' % end)
                 gopts.insert(0, '--start=%d' % start)
                 gopts.insert(0, filename)
+                log.error("opts: %r", (gopts,))
                 try:
                     rrdtool.graph(*gopts)
                 except Exception, ex:    
@@ -218,7 +219,6 @@ class RenderServer(RRDToolItem):
     def plugin(self, name, REQUEST=None):
         "render a custom graph and return it"
         try:
-            dmd = self.dmd
             m = zenPath('Products/ZenRRD/plugins/%s.py' % name)
             graph = None
             exec open(m)
@@ -269,7 +269,6 @@ class RenderServer(RRDToolItem):
             return map(value, paths)
         except NameError:
             log.warn("It appears that the rrdtool bindings are not installed properly.")
-            values = []
         except Exception, ex:
             if ex.args[0].find('No such file or directory') > -1:
                 return None

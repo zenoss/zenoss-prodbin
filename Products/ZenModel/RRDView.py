@@ -115,7 +115,6 @@ class RRDView(object):
         try:
             if not start:
                 start = time.time() - self.defaultDateRange
-            res = {}.fromkeys(dsnames, None)
             gopts = []
             names = list(dsnames[:])
             for dsname in dsnames:
@@ -162,7 +161,6 @@ class RRDView(object):
             if not end:
                 end = time.time()
             gopts = []
-            names = list(points[:])
             for name in points:
                 for dp in self.getRRDDataPoints():
                     if dp.name().find(name) > -1:
@@ -315,18 +313,14 @@ class RRDView(object):
         return (oids, self.getThresholdInstances('SNMP'))
 
 
-    def getDataSourceCommands(self, dsName=None):
+    def getDataSourceCommands(self):
         """Return list of command definitions.
         """
         result = []
         perfServer = self.device().getPerformanceServer()
         for templ in self.getRRDTemplates():
             basepath = self.rrdPath()
-            if dsName:
-                dataSources = [x for x in templ.datasources() if x.id==dsName]
-            else:
-                dataSources = templ.getRRDDataSources('COMMAND')
-            for ds in dataSources:
+            for ds in templ.getRRDDataSources('COMMAND'):
                 if not ds.enabled: continue
                 points = []
                 for dp in ds.getRRDDataPoints():

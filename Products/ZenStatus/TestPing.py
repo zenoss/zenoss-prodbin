@@ -15,8 +15,11 @@ from twisted.internet import reactor
 import os.path
 import time
 
+from Products.ZenUtils.Utils import unused
+
 class Ping(object):
     def __init__(self, *args):
+        unused(args)
         self.count = 0
 
     def jobCount(self):

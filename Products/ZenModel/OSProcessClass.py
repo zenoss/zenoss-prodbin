@@ -137,6 +137,8 @@ class OSProcessClass(ZenModelRM, Commandable, ZenPackable):
         """
         Edit a ProductClass from a web page.
         """
+        from Products.ZenUtils.Utils import unused
+        unused(zAlertOnRestart, zFailSeverity, zMonitor)
         # Left in name, added title for consistency
         self.title = name
         self.name = name

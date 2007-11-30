@@ -37,7 +37,7 @@ from ZenEventClasses import Cmd_Ok, Cmd_Fail
 import Event
 from Schedule import Schedule
 from UpdateCheck import UpdateCheck
-import Products.ZenUtils.Utils as Utils
+from Products.ZenUtils import Utils
 from twisted.internet import reactor
 from twisted.internet.protocol import ProcessProtocol
 from DateTime import DateTime
@@ -533,7 +533,7 @@ class ZenActions(ZCmdBase):
             help="http path to the root of the zope server")
 
 
-    def sigTerm(self, signum, frame):
+    def sigTerm(self, signum=None, frame=None):
         'controlled shutdown of main loop on interrupt'
         try:
             ZCmdBase.sigTerm(self, signum, frame)

@@ -23,7 +23,6 @@ from Products.ZenRelations.RelSchema import *
 from ZenModelRM import ZenModelRM
 from ZenPackable import ZenPackable
 
-                                     
 def manage_addGraphPoint(context, id, REQUEST = None):
     ''' This is here so than zope will let us copy/paste/rename
     graphpoints.
@@ -135,7 +134,7 @@ class GraphPoint(ZenModelRM, ZenPackable):
         extraContext = self.getTalesContext(thing=context, **kw)
         try:
             result = talesEvalStr(str, context, extraContext)
-        except Exception, e:
+        except Exception:
             result = '(Tales expression error)'
         return result
             
@@ -160,6 +159,8 @@ class GraphPoint(ZenModelRM, ZenPackable):
                     multiid=-1, prefix=''):
         ''' Build the graphing commands for this graphpoint
         '''
+        from Products.ZenUtils.Utils import unused
+        unused(multiid, prefix, rrdDir)
         return cmds
         
 

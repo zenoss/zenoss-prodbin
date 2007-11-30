@@ -28,6 +28,8 @@ import simplejson
 
 from ZenossSecurity import *
 
+from Products.ZenUtils.Utils import unused
+
 class DeviceOrganizer(Organizer, DeviceManagerBase, Commandable, ZenMenuable, 
                         MaintenanceWindowable, AdministrativeRoleable):
     """
@@ -151,6 +153,7 @@ class DeviceOrganizer(Organizer, DeviceManagerBase, Commandable, ZenMenuable,
 
     def countDevices(self, devrel="devices"):
         """count all devices with in a device group"""
+        unused(devrel)
         count = self.devices.countObjects()
         for group in self.children():
             count += group.countDevices()
@@ -533,6 +536,7 @@ class DeviceOrganizer(Organizer, DeviceManagerBase, Commandable, ZenMenuable,
     def getDeviceBatch(self, selectstatus='none', goodevids=[],
                        badevids=[], offset=0, count=50, filter='',
                        orderby='id', orderdir='asc'):
+        unused(count, offset, orderby, orderdir)
         if not isinstance(goodevids, (list, tuple)):
             goodevids = [goodevids]
         if not isinstance(badevids, (list, tuple)):

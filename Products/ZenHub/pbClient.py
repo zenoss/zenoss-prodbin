@@ -39,7 +39,7 @@ def main():
                                 summary="This is a test",
                                 severity=5))
 
-    drive(go).addBoth(lambda x: reactor.stop())
+    drive(go).addBoth(lambda unused: reactor.stop())
     reactor.run()
 
 if __name__ == '__main__':

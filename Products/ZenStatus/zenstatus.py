@@ -16,7 +16,7 @@ import time
 from twisted.internet import reactor, defer
 
 import Globals # make zope imports work
-from Products.ZenHub.PBDaemon import FakeRemote, PBDaemon as Base
+from Products.ZenHub.PBDaemon import FakeRemote, PBDaemon
 from Products.ZenUtils.Driver import drive, driveLater
 from Products.ZenStatus.ZenTcpClient import ZenTcpClient
 from Products.ZenEvents.ZenEventClasses import Heartbeat
@@ -90,7 +90,7 @@ class Status:
         return time.time() - self._start
 
 
-class ZenStatus(Base):
+class ZenStatus(PBDaemon):
 
     name = agent = "zenstatus"
     initialServices = ['EventService', 'StatusConfig']
@@ -100,7 +100,7 @@ class ZenStatus(Base):
     reconfigureTimeout = None
 
     def __init__(self):
-        Base.__init__(self, keeproot=True)
+        PBDaemon.__init__(self, keeproot=True)
         self.clients = {}
         self.counts = {}
         self.status = Status()
@@ -111,7 +111,7 @@ class ZenStatus(Base):
     def startScan(self, ignored=None):
         d = drive(self.scanCycle)
         if not self.options.cycle:
-            d.addBoth(lambda x: self.stop())
+            d.addBoth(lambda unused: self.stop())
 
     def connected(self):
         d = drive(self.configCycle)
@@ -207,7 +207,7 @@ class ZenStatus(Base):
         self.log.info("Finished %d jobs (%d good, %d bad) in %.2f seconds",
                       (success + fail), success, fail, self.status.duration())
         if not self.options.cycle:
-            self.stop
+            self.stop()
             return
         from socket import getfqdn
         heartbeatevt = dict(eventClass=Heartbeat,
@@ -243,7 +243,7 @@ class ZenStatus(Base):
         self.log.warn(error.getErrorMessage())
 
     def buildOptions(self):
-        Base.buildOptions(self)
+        PBDaemon.buildOptions(self)
         p = self.parser
         p.add_option('--configpath',
                      dest='configpath',

@@ -29,7 +29,7 @@ class NewComponentIndexes(Migrate.Step):
 
     def cutover(self, dmd):
         devices = dmd.getDmdRoot('Devices')
-        zcat = getattr(devices, 'componentSearch')
+        zcat = devices.componentSearch
         cat = zcat._catalog
         try:
             cat.addIndex('getCollectors', 

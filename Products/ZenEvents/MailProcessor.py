@@ -18,6 +18,8 @@ from datetime import tzinfo, timedelta, datetime
 
 from Event import Event
 
+from Products.ZenUtils.Utils import unused
+
 import logging
 log = logging.getLogger("zen.mail")
 
@@ -39,10 +41,10 @@ class FixedOffset(tzinfo):
         self.__offset = timedelta(minutes = offset)
         self.__name = name
 
-    def utcoffset(self, dt):
+    def utcoffset(self, unused):
         return self.__offset
 
-    def tzname(self, dt):
+    def tzname(self, unused):
         return self.__name
 
     def dst(self, dt):
@@ -65,7 +67,7 @@ class MessageProcessor(object):
         fromAddr = fromAddr.split(' ')[0]
         try:
             fromIp = socket.gethostbyname(fromAddr)
-        except socket.gaierror, e:
+        except socket.gaierror:
             fromIp = None
             log.error('hostname lookup failed for host: %s' % fromAddr, exc_info=1)
 
@@ -111,6 +113,7 @@ class MessageProcessor(object):
 
 
     def enrich(self, event, subject):
+        unused(subject)
         pri = self.zem.defaultPriority
         event.priority = pri
         event.facility = "unknown"

@@ -20,7 +20,7 @@ import Migrate
 class Innodb(Migrate.Step):
     version = Migrate.Version(1, 0, 0)
 
-    def cutover(self, dmd):
+    def cutover(self, unused):
         zem = self.dmd.ZenEventManager
         conn = zem.connect()
         try:

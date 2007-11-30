@@ -17,7 +17,7 @@ from AccessControl import ClassSecurityInfo
 
 from sets import Set
 
-import Products.ZenUtils.guid as guid
+from Products.ZenUtils import guid
 from Products.AdvancedQuery import MatchRegexp, Or
 
 import simplejson
@@ -30,6 +30,7 @@ from Products.ZenUtils.Search import makeCaseInsensitiveKeywordIndex
 from Products.ZenModel.Link import Link
 
 from Products.ZenUtils.NetworkTree import NetworkLink
+from Products.ZenUtils.Utils import unused
 
 
 def manage_addLinkManager(context, id=None):
@@ -101,6 +102,7 @@ class LinkManager(ZenModelRM):
                        link_type="", OSI_layer="1",
                        entry_type="manual", REQUEST=None):
         """ Add a link """
+        unused(entry_type, link_type, OSI_layer)
         newid = guid.generate()
         link = Link(newid)
         link.setEndpoints(pointa, pointb)
@@ -142,7 +144,7 @@ class LinkManager(ZenModelRM):
         return self.query_catalog('link_type', linktype)
 
     def searchLinksByLayer(self, layernum):
-        return self.query_catalog('OSI_layer', linktype)
+        return self.query_catalog('OSI_layer', layernum)
         
     def searchLinksByEndpoint(self, epointname):
         return self.query_catalog('getEndpointNames', epointname)

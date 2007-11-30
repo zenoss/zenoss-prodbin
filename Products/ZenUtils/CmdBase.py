@@ -26,6 +26,7 @@ import sys
 import logging
 from optparse import OptionParser, SUPPRESS_HELP, NO_DEFAULT
 
+from Products.ZenUtils.Utils import unused
 
 def parseconfig(options):
     """parse a config file which has key value pairs delimited by white space"""
@@ -171,6 +172,7 @@ be seen on the display."""
 	#
 	# Header for the configuration file
 	#
+        unused(options)
 	daemon_name= os.path.basename( sys.argv[0] )
 	daemon_name= daemon_name.replace( '.py', '' )
 
@@ -249,6 +251,7 @@ be seen on the display."""
 	#
 	# Header for the configuration file
 	#
+        unused(options)
 	daemon_name= os.path.basename( sys.argv[0] )
 	daemon_name= daemon_name.replace( '.py', '' )
 

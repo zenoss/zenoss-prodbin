@@ -11,7 +11,6 @@
 #
 ###########################################################################
 
-import sys
 import gc
 from socket import getfqdn
 import pywintypes
@@ -19,7 +18,7 @@ import pythoncom
 import wmiclient
 
 import Globals
-from WinCollector import WinCollector as Base, TIMEOUT_CODE, RPC_ERROR_CODE
+from WinCollector import WinCollector, TIMEOUT_CODE, RPC_ERROR_CODE
 from Products.ZenEvents.ZenEventClasses import Status_Wmi_Conn
 from Products.ZenEvents import Event
 
@@ -28,15 +27,15 @@ from Products.ZenHub.services import WmiConfig
 if 0:
     WmiConfig = None                    # pyflakes
 
-class zeneventlog(Base):
+class zeneventlog(WinCollector):
 
     name = agent = "zeneventlog"
 
     eventlogCycleInterval = 5*60
-    attributes = Base.attributes + ('eventlogCycleInterval',)
+    attributes = WinCollector.attributes + ('eventlogCycleInterval',)
 
     def __init__(self):
-        Base.__init__(self)
+        WinCollector.__init__(self)
         self.devices = {}
         self.manager = getfqdn()
         self.start()
@@ -123,8 +122,6 @@ class zeneventlog(Base):
         gc.collect()
         self.log.info("Com InterfaceCount: %d", pythoncom._GetInterfaceCount())
         self.log.info("Com GatewayCount: %d", pythoncom._GetGatewayCount())
-        if hasattr(sys, "gettotalrefcount"):
-            self.log.info("ref: %d", sys.gettotalrefcount())
 
 
     def mkevt(self, name, lrec):

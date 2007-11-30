@@ -15,6 +15,7 @@ import os
 
 import Globals
 from Products.ZenModel.PerformanceConf import performancePath
+from Products.ZenUtils.Utils import unused
 
 
 from twisted.spread import pb
@@ -80,11 +81,14 @@ class ThresholdInstance(pb.Copyable, pb.RemoteCopy):
         value to re-evalue the threshold.
         returns a sequence of events.
         """
+        unused(timeOf, value)
         return self.check([dataPoint])
 
-    def getGraphElements(self, template, context, gopts, namespace, color):
+    def getGraphElements(self, template, context, gopts, namespace, color,
+                         relatedGps):
         """Produce a visual indication on the graph of where the
         threshold applies."""
+        unused(template, context, gopts, namespace, color, relatedGps)
         return []
 
 

@@ -56,6 +56,8 @@ class PrintGraphPoint(GraphPoint):
                         multiid=-1, prefix=''):
         ''' Build the graphing commands for this graphpoint
         '''
+        from Products.ZenUtils.Utils import unused
+        unused(multiid, rrdDir)
         return cmds + ['PRINT:%s:%s%s' % (
                     self.addPrefix(prefix, self.vname),
                     (self.format or self.DEFAULT_FORMAT).replace(':', '\:'),

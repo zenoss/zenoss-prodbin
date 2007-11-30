@@ -38,6 +38,8 @@ class SshClientTransport(transport.SSHClientTransport):
 
     def verifyHostKey(self, hostKey, fingerprint):
         #blowing off host key right now, should store and check
+        from Products.ZenUtils.Utils import unused
+        unused(hostKey)
         log.debug('%s host key: %s' % (self.factory.hostname, fingerprint))
         return defer.succeed(1)
 
@@ -62,7 +64,7 @@ class SshUserAuth(userauth.SSHUserAuthClient):
         self.user = user
         self.factory = factory
 
-    def getPassword(self):
+    def getPassword(self, unused=None):
         if not self.factory.password or self.factory.loginTries <= 0:
             self.factory.clientFinished()
             return
@@ -133,6 +135,7 @@ class CommandChannel(channel.SSHChannel):
         log.debug('running command remotely: exec %s' % common.NS(self.command))
         d = self.conn.sendRequest(self, 'exec', common.NS(self.command),
                                   wantReply = 1)
+        return d
 
     def request_exit_status(self, data):
         import struct

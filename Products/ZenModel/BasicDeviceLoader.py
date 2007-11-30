@@ -93,7 +93,7 @@ class BasicDeviceLoader:
                                         snmpCommunity, snmpPort,
                                         loginName, loginPassword)
             if not self.classificationEntry:
-                raise DeviceNotClassified, \
+                raise NotImplemented, \
                     "classifier failed to classify device %s" % deviceName
             devicePath = self.classificationEntry.getDeviceClassPath
 

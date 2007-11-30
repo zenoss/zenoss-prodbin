@@ -28,6 +28,8 @@ from Products.ZenRelations.RelSchema import *
 from ZenModelRM import ZenModelRM
 from ZenPackable import ZenPackable
 
+from Products.ZenUtils.Utils import unused
+
 def manage_addRRDDataPoint(context, id, REQUEST = None):
     """make a RRDDataPoint"""
     dp = RRDDataPoint(id)
@@ -40,6 +42,7 @@ def manage_addRRDDataPoint(context, id, REQUEST = None):
 SEPARATOR = '_'
 
 def convertMethodParameter(value, type):
+    __pychecker__='no-returnvalues'
     if type == "integer":
         return int(value)
     elif type == "string":
@@ -116,7 +119,7 @@ class RRDDataPoint(ZenModelRM, ZenPackable):
 
 
     security.declareProtected('View', 'getPrimaryUrlPath')
-    def getPrimaryUrlPath(self):
+    def getPrimaryUrlPath(self, ignored=None):
         """get the physicalpath as a url"""
         return self.absolute_url_path()
 
@@ -129,15 +132,17 @@ class RRDDataPoint(ZenModelRM, ZenPackable):
     def getRRDCreateCommand(self, performanceConf):
         """Get the create command.
         Return '' for the default from performanceConf"""
+        unused(performanceConf)
         if self.createCmd:
             return self.createCmd
         return ''
 
 
     security.declareProtected('Manage DMD', 'zmanage_editProperties')
-    def zmanage_editProperties(self, REQUEST=None):
+    def zmanage_editProperties(self, REQUEST=None, redirect=False):
         """Edit a ZenModel object and return its proper page template
         """
+        unused(redirect)
         if REQUEST:
             msgs = []
             for optional in 'rrdmin', 'rrdmax':

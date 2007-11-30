@@ -25,6 +25,8 @@ from Exceptions import *
 
 class DeviceHW(Hardware):
 
+    __pychecker__='no-override'
+
     meta_type = "DeviceHW"
 
     totalMemory = 0L

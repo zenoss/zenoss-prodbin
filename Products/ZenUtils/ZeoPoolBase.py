@@ -27,6 +27,7 @@ from ZPublisher.BaseRequest import RequestContainer
 
 from ZenDaemon import ZenDaemon
 
+from Products.ZenUtils.Utils import unused
 
 class ZeoPoolBase(ZenDaemon):
     """
@@ -37,6 +38,7 @@ class ZeoPoolBase(ZenDaemon):
 
     def __init__(self, noopts=0, app=None, keeproot=False):
         ZenDaemon.__init__(self, noopts, keeproot)
+        unused(app)
         self.opendb()
         self.openconn = self.getPoolSize()
 

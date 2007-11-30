@@ -21,6 +21,7 @@ from Products.ZenModel.ZentinelPortal import PortalGenerator
 from Products.ZenEvents.EventManagerBase import EventManagerBase
 from Products.ZenEvents.MySqlSendEvent import MySqlSendEventMixin
 from Products.ZenEvents.MySqlEventManager import log
+from Products.ZenUtils.Utils import unused
 
 log.warn = lambda *args, **kwds: None
 
@@ -58,24 +59,27 @@ class DummyConnection(object):
 
 
 class DummyManager(MySqlSendEventMixin, EventManagerBase):
+    __pychecker__ = 'no-override'
     def __init__(self, *args, **kwds):
         EventManagerBase.__init__(self, *args, **kwds)
-    def connect(self, *args, **kwds): return DummyConnection()
-    def sendEvent(self, *args, **kwds): pass
-    def sendEvents(self, *args, **kwds): pass
-    def doSendEvent(self, *args, **kwds): pass
-    def getEventSummary(self, *args, **kwds): pass
-    def getEventDetail(self, *args, **kwds): pass
-    def getGenericStatus(self, *args, **kwds): pass
-    def getOrganizerStatus(self, *args, **kwds): pass
-    def getOrganizerStatusIssues(self, *args, **kwds): pass
-    def getDeviceIssues(self, *args, **kwds): pass
-    def getDeviceStatus(self, *args, **kwds): pass
-    def getHeartbeat(self, *args, **kwds): pass
-    def getComponentStatus(self, *args, **kwds): pass
-    def getEventList(self, *args, **kwds): return []
+    def connect(self, *args, **kwds):
+        unused(args, kwds)
+        return DummyConnection()
+    def sendEvent(self, *args, **kwds): unused(args, kwds)
+    def sendEvents(self, *args, **kwds): unused(args, kwds)
+    def doSendEvent(self, *args, **kwds): unused(args, kwds)
+    def getEventSummary(self, *args, **kwds): unused(args, kwds)
+    def getEventDetail(self, *args, **kwds): unused(args, kwds)
+    def getGenericStatus(self, *args, **kwds): unused(args, kwds)
+    def getOrganizerStatus(self, *args, **kwds): unused(args, kwds)
+    def getOrganizerStatusIssues(self, *args, **kwds): unused(args, kwds)
+    def getDeviceIssues(self, *args, **kwds): unused(args, kwds)
+    def getDeviceStatus(self, *args, **kwds): unused(args, kwds)
+    def getHeartbeat(self, *args, **kwds): unused(args, kwds)
+    def getComponentStatus(self, *args, **kwds): unused(args, kwds)
+    def getEventList(self, *args, **kwds): unused(args, kwds); return []
     def applyEventContext(self, evt): return evt
-    def applyDeviceContext(self, dev, evt): return evt
+    def applyDeviceContext(self, dev, evt): unused(dev); return evt
 
 
 class Builder(DmdBuilder):

@@ -17,14 +17,9 @@ configured with the move to AdvancedQuery.
 
 __version__ = "$Revision$"[11:-2]
         
-from Products.ZenUtils.Search import makeCaseSensitiveFieldIndex
-from Products.ZenUtils.Search import makeCaseSensitiveKeywordIndex
-from Products.ZenUtils.Search import makeCaseInsensitiveFieldIndex
-from Products.ZenUtils.Search import makeCaseInsensitiveKeywordIndex
-
 import Migrate
 
-from advanced_query import allCatalogs, keywordCatalogs
+from advanced_query import allCatalogs
 
 caseSensitiveCatalogs = [
     'componentSearch',
@@ -50,18 +45,9 @@ class CaseSensitive(Migrate.Step):
                 # check to see if this needs to be a case-sensitive index
                 if catalogName in caseSensitiveCatalogs:
                     prenormalizer = ''
-                    # check to see if it needs to be a keyword index
-                    if section in keywordCatalogs:
-                        makeIndex = makeCaseSensitiveKeywordIndex
-                    else:
-                        makeIndex = makeCaseSensitiveFieldIndex
                 else:
                     prenormalizer = 'value/lower'
                     # check to see if it needs to be a keyword index
-                    if section in keywordCatalogs:
-                        makeIndex = makeCaseInsensitiveKeywordIndex
-                    else:
-                        makeIndex = makeCaseInsensitiveFieldIndex
                 # check the indices for a pre-normalizer attribute
                 for indexName in indexNames:
                     idx = cat.getIndex(indexName)

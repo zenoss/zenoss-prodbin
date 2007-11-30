@@ -60,6 +60,8 @@ class LineGraphPoint(GraphPoint):
                         multiid=-1, prefix=''):
         ''' Build the graphing commands for this graphpoint
         '''
+        from Products.ZenUtils.Utils import unused
+        unused(multiid, rrdDir)
         value = self.addPrefix(prefix, self.value)
         gopts = 'LINE%s:%s' % ((self.lineWidth or ''), value)
         if self.color:

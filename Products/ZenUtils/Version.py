@@ -242,7 +242,7 @@ class Version(object):
             self.micro,
             self._formatSVNRevision())
 
-    def parse(self, versionString):
+    def parse(cls, versionString):
         """
         Parse the version info from a string. This method is usable without
         having instantiated Version, and returns an instantiation.

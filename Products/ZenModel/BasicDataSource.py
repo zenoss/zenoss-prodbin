@@ -17,7 +17,7 @@ Defines attributes for how a datasource will be graphed
 and builds the nessesary DEF and CDEF statements for it.
 """
 
-import Products.ZenModel.RRDDataSource as RRDDataSource
+from Products.ZenModel import RRDDataSource
 from AccessControl import ClassSecurityInfo, Permissions
 from Globals import InitializeClass
 from Products.ZenEvents.ZenEventClasses import Cmd_Fail
@@ -36,6 +36,8 @@ def checkOid(oid):
 
 
 class BasicDataSource(RRDDataSource.RRDDataSource):
+
+    __pychecker__='no-override'
 
     sourcetypes = ('SNMP', 'COMMAND')
     

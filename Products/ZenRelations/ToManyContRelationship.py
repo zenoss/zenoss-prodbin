@@ -22,7 +22,8 @@ from Globals import DTMLFile
 from Globals import InitializeClass
 from AccessControl import ClassSecurityInfo
 from Acquisition import aq_base
-from OFS.ObjectManager import checkValidId
+from OFS.ObjectManager import checkValidId, BeforeDeleteException
+from ZODB.POSException import ConflictError
 
 from BTrees.OOBTree import OOBTree
 
@@ -30,6 +31,7 @@ from ToManyRelationshipBase import ToManyRelationshipBase
 
 from Products.ZenRelations.Exceptions import *
 
+from Products.ZenUtils.Utils import unused
 
 def manage_addToManyContRelationship(context, id, REQUEST=None):
     """factory for ToManyRelationship"""
@@ -95,6 +97,7 @@ class ToManyContRelationship(ToManyRelationshipBase):
 
     def _setObject(self,id,object,roles=None,user=None,set_owner=1):
         """ObjectManager interface to add contained object."""
+        unused(user, roles, set_owner)
         object.__primary_parent__ = aq_base(self)
         self.addRelation(object)
         object.manage_afterAdd(object, self)
@@ -135,17 +138,12 @@ class ToManyContRelationship(ToManyRelationshipBase):
             try:
                 if hasattr(aq_base(object), 'manage_beforeDelete'):
                     object.manage_beforeDelete(item, container)
-            except BeforeDeleteException, ob:
+            except BeforeDeleteException:
                 raise
             except ConflictError:
                 raise
             except:
-                LOG('Zope',ERROR,'manage_beforeDelete() threw',
-                    error=sys.exc_info())
-                # In debug mode when non-Manager, let exceptions propagate.
-                if getConfiguration().debug_mode:
-                    if not getSecurityManager().getUser().has_role('Manager'):
-                        raise
+                log.exception('manage_beforeDelete()')
             if s is None: object._p_deactivate()
        
 
@@ -183,7 +181,7 @@ class ToManyContRelationship(ToManyRelationshipBase):
         """remove an object from the far side of this relationship
         if no object is passed in remove all objects"""
         if obj:
-            if not self._objects.has_key(obj.id): raise ObjectNotFround
+            if not self._objects.has_key(obj.id): raise ObjectNotFound
             objs = [obj]
         else: objs = self.objectValuesAll()
         remoteName = self.remoteName()
@@ -216,7 +214,6 @@ class ToManyContRelationship(ToManyRelationshipBase):
     def objectValues(self, spec=None):
         """override to only return owned objects for many to many rel"""
         if spec:
-            retval = []
             if type(spec)==type('s'): spec=[spec]
             return [ob.__of__(self) for ob in self._objects.values() \
                         if ob.meta_type in spec]

@@ -436,7 +436,7 @@ class DeviceClass(DeviceOrganizer, ZenPackable):
     def getSubComponents(self, meta_type="", monitored=True):
         """Return generator of components, by meta_type if specified.
         """
-        zcat = getattr(self, "componentSearch")
+        zcat = self.componentSearch
         res = zcat({'meta_type': meta_type, 'monitored': monitored})
         for b in res:
             try:

@@ -75,13 +75,13 @@ class ZenMenuable:
         if menu and REQUEST:
             for menuitem in getattr(self.zenMenus, menuid).zenMenuItems():
                 ordering = REQUEST[menuitem.id]
-                setattr(menuitem, 'ordering', ordering)
+                menuitem.ordering = ordering
         if REQUEST:
             return self.callZenScreen(REQUEST)
 
 
     security.declareProtected('Change Device', 'manage_addItemsToZenMenu')
-    def manage_addItemsToZenMenu(self, menuid, items=[{}]):
+    def manage_addItemsToZenMenu(self, menuid, items=None):
         """ Add ZenMenuItems to a ZenMenu. 
             Accepts a list of dictionaries.
             Available keyword args:
@@ -94,6 +94,8 @@ class ZenMenuable:
               banned_classes
               allowed_classes
         """
+        if not items:
+            items = [{}]
         menu = getattr(self.zenMenus, menuid, None)
         if not menu: menu = self.manage_addZenMenu(menuid)
         if type(items)==type({}): items = [items]

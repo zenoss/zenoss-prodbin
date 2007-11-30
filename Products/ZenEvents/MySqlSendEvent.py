@@ -401,7 +401,7 @@ class MySqlSendEventThread(threading.Thread, MySqlSendEvent):
                 evt = self._evqueue.get(True,1)
                 MySqlSendEvent.sendEvent(self, evt)
             except Empty: pass
-            except OperationalError:
+            except OperationalError, e:
                 log.warn(e)
             except Exception, e:
                 log.exception(e)

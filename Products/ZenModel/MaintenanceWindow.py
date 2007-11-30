@@ -181,8 +181,7 @@ class MaintenanceWindow(ZenModelRM):
                                      stopProductionState=-99,
                                      enabled=True,
                                      skip=1,
-                                     REQUEST=None,
-                                     **kw):
+                                     REQUEST=None):
         "Update the maintenance window from GUI elements"
         def makeInt(v, fieldName, minv=None, maxv=None, acceptBlanks=True):
             if acceptBlanks:

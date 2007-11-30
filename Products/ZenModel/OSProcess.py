@@ -29,7 +29,7 @@ def manage_addOSProcess(context, className, userCreated, REQUEST=None):
     id = className.split('/')[-1]
     context._setObject(id, OSProcess(id))
     osp = context._getOb(id)
-    setattr(osp, 'procName', id)
+    osp.procName = id
     osp.setOSProcessClass(className)
     if userCreated: osp.setUserCreateFlag()
     if REQUEST is not None:

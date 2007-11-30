@@ -23,7 +23,7 @@ from Globals import InitializeClass
 from AccessControl import ClassSecurityInfo
 from Acquisition import aq_base
 
-from Products.ZenUtils.Utils import getObjByPath
+from Products.ZenUtils.Utils import getObjByPath, unused
 
 from ToManyRelationshipBase import ToManyRelationshipBase
 
@@ -51,6 +51,8 @@ class ToManyRelationship(ToManyRelationshipBase):
 
     Related references are maintained in a list.
     """
+
+    __pychecker__='no-override'
 
     meta_type = "ToManyRelationship"
 
@@ -84,6 +86,7 @@ class ToManyRelationship(ToManyRelationshipBase):
         ToMany unlinks from its remote relations if its being deleted.
         ToMany will not propagate beforeDelete because its not a container.
         """
+        unused(container)
         if getattr(item, "_operation", -1) < 1:
             self._remoteRemove()
         
@@ -130,6 +133,7 @@ class ToManyRelationship(ToManyRelationshipBase):
 
     def _setObject(self,id,object,roles=None,user=None,set_owner=1):
         """Set and object onto a ToMany by calling addRelation"""
+        unused(id, roles, user, set_owner)
         self.addRelation(object)
 
     
@@ -164,6 +168,7 @@ class ToManyRelationship(ToManyRelationshipBase):
         ToManyRelationship doesn't publish objectIds to prevent 
         zope recursion problems. 
         """
+        unused(spec)
         return []
              
 
@@ -184,6 +189,7 @@ class ToManyRelationship(ToManyRelationshipBase):
         ToManyRelationship doesn't publish objectValues to prevent 
         zope recursion problems. 
         """
+        unused(spec)
         return []
 
 
@@ -202,6 +208,7 @@ class ToManyRelationship(ToManyRelationshipBase):
         ToManyRelationship doesn't publish objectItems to prevent 
         zope recursion problems. 
         """
+        unused(spec)
         return []
 
 

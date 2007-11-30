@@ -17,24 +17,24 @@ import pywintypes
 
 
 import Globals
-from WinCollector import WinCollector as Base
+from WinCollector import WinCollector
 from Products.ZenEvents.ZenEventClasses import \
      Status_WinService, Status_Wmi, Status_Wmi_Conn
 from Products.ZenUtils.Utils import prepId
 
 from Products.ZenEvents import Event
 
-class zenwinmodeler(Base):
+class zenwinmodeler(WinCollector):
     
     evtClass = Status_WinService
     name = agent = "zenwinmodeler"
     evtAlertGroup = "ServiceTest"
     deviceConfig = 'getDeviceWinInfo'
     winmodelerCycleInterval = 20*60
-    attributes = Base.attributes + ('winmodelerCycleInterval',)
+    attributes = WinCollector.attributes + ('winmodelerCycleInterval',)
 
     def __init__(self):
-        Base.__init__(self)
+        WinCollector.__init__(self)
         self.devices = []
         self.lastRead = {}
         self.start()

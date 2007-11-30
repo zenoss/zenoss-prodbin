@@ -154,7 +154,7 @@ class IpAddress(ManagedEntity):
         network = aqself.aq_parent
         netip = getnetstr(ip, network.netmask)
         if netip == network.id:
-            network._renameObject(aqs.id, ip)
+            network._renameObject(aqself.id, ip)
         else:
             raise WrongSubnetError, \
                     "Ip %s is in a different subnet than %s" % (ip, self.id)

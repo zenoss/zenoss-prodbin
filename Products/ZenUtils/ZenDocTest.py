@@ -17,7 +17,6 @@ import transaction
 import socket
 import Globals
 
-from unittest import TestSuite
 
 from AccessControl.SecurityManagement import newSecurityManager
 from AccessControl.SecurityManagement import noSecurityManager
@@ -25,13 +24,13 @@ from AccessControl.SecurityManagement import noSecurityManager
 from Products.ZenUtils.ZeoConn import ZeoConn
 
 
-class TestSuiteWithHooks(TestSuite):
+class TestSuiteWithHooks(unittest.TestSuite):
     """
     A modified TestSuite that provides hooks for startUp and tearDown methods.
     """
     def run(self, result):
         self.startUp()
-        TestSuite.run(self, result)
+        unittest.TestSuite.run(self, result)
         self.tearDown()
 
     def startUp(self):
@@ -118,7 +117,7 @@ class ZenDocTestRunner(object):
         Provided for integration with existing unittest framework.
         """
         self.setUp()
-        finder = doctest.DocTestFinder(exclude_empty=True)
+        doctest.DocTestFinder(exclude_empty=True)
         suites = []
         for mod in self.modules:
             try:

@@ -123,6 +123,6 @@ if __name__ == "__main__":
         pass
     zendmd = zendmd()
     uc = UpdateCheck()
-    uc.getUpdate = lambda *args: parseVersion('0.24.0')
+    uc.getUpdate = lambda *unused: parseVersion('0.24.0')
     uc.check(zendmd.dmd, zendmd.dmd.ZenEventManager, manual=True)
     transaction.commit()

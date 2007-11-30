@@ -29,7 +29,7 @@ from Products.ZenUtils.Utils import zenPath
 class ImportExportFilesystem(Migrate.Step):
     version = Migrate.Version(0, 23, 0)
 
-    def cutover(self, dmd):
+    def cutover(self, unused):
         for directory in ['import', 'export']:
             path = zenPath(directory)
             if not os.path.exists(path):

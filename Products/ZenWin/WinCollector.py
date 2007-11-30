@@ -18,7 +18,7 @@ from socket import getfqdn
 from twisted.internet import reactor
 
 import Globals
-from Products.ZenHub.PBDaemon import FakeRemote, PBDaemon as Base
+from Products.ZenHub.PBDaemon import FakeRemote, PBDaemon
 from Products.ZenEvents.ZenEventClasses import \
      Heartbeat, App_Start, App_Stop, Clear, Warning
 from Products.ZenUtils.Driver import drive, driveLater
@@ -3648,7 +3648,7 @@ ERROR_CODE_MAP = {'0': ('ERROR_SUCCESS', 'The operation completed successfully.'
  '999': ('ERROR_SWAPERROR', 'Error performing inpage operation.')}
 
  
-class WinCollector(Base):
+class WinCollector(PBDaemon):
 
     configCycleInterval = 20.
 
@@ -3661,7 +3661,7 @@ class WinCollector(Base):
     def __init__(self):
         self.heartbeat['component'] = self.agent
         self.wmiprobs = []
-        Base.__init__(self)
+        PBDaemon.__init__(self)
         self.reconfigureTimeout = None
 
 
@@ -3722,7 +3722,7 @@ class WinCollector(Base):
         return 60
         
     def buildOptions(self):
-        Base.buildOptions(self)
+        PBDaemon.buildOptions(self)
         self.parser.add_option('-d', '--device', 
                                dest='device', 
                                default=None,

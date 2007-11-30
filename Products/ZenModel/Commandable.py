@@ -214,6 +214,8 @@ class Commandable:
         ''' Redirect to the page which lists UserCommands
         for this Commandable object.
         '''
+        from Products.ZenUtils.Utils import unused
+        unused(commandId)
         url = self.getUrlForUserCommands()
         if url:
             return REQUEST.RESPONSE.redirect(url)
@@ -225,17 +227,6 @@ class Commandable:
         '''
         # This should be overridden by subclasses of Commandable
         return self.getPrimaryUrlPath()
-        
-        candidates = [a for a in self.factory_type_information[0]['actions'] 
-                        if a['name'] == 'Administration']
-        if candidates:
-            action = candidates[0]
-            url = '%s/%s' % (self.getPrimaryUrlPath(), action['action'])
-            if commandId:
-                url += '?commandId=%s' % commandId
-        else:
-            url = ''
-        return url  
 
     security.declareProtected(ZEN_DEFINE_COMMANDS_VIEW, 'getUserCommand')
     def getUserCommand(self, commandId):
@@ -261,7 +252,7 @@ class Commandable:
         ''' Called by Commandable.doCommand() to ascertain objects on which
         a UserCommand should be executed.
         '''
-        raise 'must be implemented by subclass'
+        raise NotImplemented
 
 
     def write(self, out, lines):

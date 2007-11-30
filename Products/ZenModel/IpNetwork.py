@@ -45,6 +45,7 @@ from Products.ZenUtils.Utils import setWebLoggingStream, clearWebLoggingStream
 from Products.ZenUtils.Utils import zenPath
 from Products.ZenUtils import NetworkTree
 from Products.ZenUtils.Utils import edgesToXML
+from Products.ZenUtils.Utils import unused
 
 def manage_addIpNetwork(context, id, netmask=24, REQUEST = None):
     """make a IpNetwork"""
@@ -341,9 +342,10 @@ class IpNetwork(DeviceOrganizer):
     countDevices = countIpAddresses
    
 
-    def getAllCounts(self):
+    def getAllCounts(self, devrel=None):
         """Count all devices within a device group and get the
         ping and snmp counts as well"""
+        unused(devrel)
         counts = [
             self.ipaddresses.countObjects(),
             self._status("Ping", "ipaddresses"),
@@ -355,13 +357,15 @@ class IpNetwork(DeviceOrganizer):
         return counts
 
     
-    def pingStatus(self):
+    def pingStatus(self, devrel=None):
         """aggregate ping status for all devices in this group and below"""
+        unused(devrel)
         return DeviceOrganizer.pingStatus(self, "ipaddresses")
 
     
-    def snmpStatus(self):
+    def snmpStatus(self, devrel=None):
         """aggregate snmp status for all devices in this group and below"""
+        unused(devrel)
         return DeviceOrganizer.snmpStatus(self, "ipaddresses")
 
 
@@ -497,9 +501,9 @@ class IpNetwork(DeviceOrganizer):
 
 
     def clearLog(self):
-        log = logging.getLogger()
+        alog = logging.getLogger()
         if getattr(self, "_v_handler", False):
-            log.removeHandler(self._v_handler)
+            alog.removeHandler(self._v_handler)
 
 
     def loaderFooter(self, response):

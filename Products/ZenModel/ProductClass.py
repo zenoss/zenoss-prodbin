@@ -158,7 +158,7 @@ class ProductClass(ZenModelRM, ZenPackable):
 
 
     security.declareProtected('Manage DMD', 'manage_editProductClass')
-    def manage_editProductClass(self, name="", productKeys=[], isOS=False,
+    def manage_editProductClass(self, name="", productKeys=(), isOS=False,
                                partNumber="", description="", REQUEST=None):
         """
         Edit a ProductClass from a web page.

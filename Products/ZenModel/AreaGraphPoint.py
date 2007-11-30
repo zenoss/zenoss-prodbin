@@ -19,6 +19,7 @@ Handles GraphPoints that define an rrd AREA
 from GraphPoint import GraphPoint
 from Globals import InitializeClass
 
+from Products.ZenUtils.Utils import unused
 
 def manage_addAreaGraphPoint(context, id, REQUEST = None):
     ''' This is here so than zope will let us copy/paste/rename
@@ -59,6 +60,7 @@ class AreaGraphPoint(GraphPoint):
                         multiid=-1, prefix=''):
         ''' Build the graphing commands for this graphpoint
         '''
+        unused(multiid, rrdDir)
         gopts = 'AREA:%s' % self.addPrefix(prefix, self.value)
         if self.color:
             gopts += '%s' % self.getColor(idx)

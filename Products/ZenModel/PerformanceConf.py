@@ -28,7 +28,7 @@ log = logging.getLogger("zen.PerformanceConf")
 try:
     from base64 import urlsafe_b64encode
     raise ImportError
-except ImportError, ex:
+except ImportError:
     def urlsafe_b64encode(s):
         import base64
         s = base64.encodestring(s)
@@ -36,7 +36,6 @@ except ImportError, ex:
         s = s.replace('/','_')
         s = s.replace('\n','')
         return s
-
 import xmlrpclib
 
 from AccessControl import ClassSecurityInfo
@@ -52,6 +51,7 @@ from Products.ZenUtils.Utils import basicAuthUrl, zenPath
 
 from Monitor import Monitor
 from StatusColor import StatusColor
+from Products.ZenUtils.Utils import unused
 
 PERF_ROOT=None
 
@@ -64,6 +64,7 @@ def performancePath(target):
 
 def manage_addPerformanceConf(context, id, title = None, REQUEST = None):
     """make a device class"""
+    unused(title)
     dc = PerformanceConf(id)
     context._setObject(id, dc)
 
@@ -198,6 +199,7 @@ class PerformanceConf(Monitor, StatusColor):
     def performanceGraphUrl(self, context, targetpath, targettype,
                             view, drange):
         """set the full path of the target and send to view"""
+        unused(targettype)
         targetpath = performancePath(targetpath)
         gopts =  view.getGraphCmds(context, targetpath)
         return self.buildGraphUrlFromCommands(gopts, drange)
@@ -273,6 +275,7 @@ class PerformanceConf(Monitor, StatusColor):
     security.declareProtected('View','performanceDeviceList')
     def performanceDeviceList(self, force=True):
         """Return a list of urls that point to our managed devices"""
+        unused(force)
         devlist = []
         for dev in self.devices():
             dev = dev.primaryAq()

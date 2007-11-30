@@ -26,8 +26,7 @@ class DbAccessBase(object):
 
     def connect(self):
         """Load our database driver and connect to the database."""
-        return self._v_cpool.get(backend=self.backend, 
-                                 host=self.host,
+        return self._v_cpool.get(host=self.host,
                                  port=self.port,
                                  username=self.username,
                                  password=self.password,

@@ -134,7 +134,7 @@ class ZenAvailability(ZenStatus):
         """get current down time in seconds"""
         if self.status < 0: return self.status
         if self.failstart == 0: return 0
-        return round((DateTime() - self.failstart) * 86400)
+        return int(round((DateTime() - self.failstart) * 86400))
         
 
     def getAvailPercent(self, start, end=None):

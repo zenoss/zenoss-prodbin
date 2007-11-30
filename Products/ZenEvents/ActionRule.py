@@ -205,6 +205,8 @@ class ActionRule(ZenModelRM, EventFilter):
     def manage_beforeDelete(self, item, container):
         """Clear state in alert_state before we are deleted.
         """
+        from Products.ZenUtils.Utils import unused
+        unused(item, container)
         self._clearAlertState()
 
 

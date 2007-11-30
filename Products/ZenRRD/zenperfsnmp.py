@@ -91,11 +91,11 @@ def firsts(lst):
     'the first element of every item in a sequence'
     return [item[0] for item in lst]
 
-def checkException(log, function, *args, **kw):
+def checkException(alog, function, *args, **kw):
     try:
         return function(*args, **kw)
     except Exception, ex:
-        log.exception(ex)
+        alog.exception(ex)
         raise ex
 
 class Status:
@@ -234,7 +234,7 @@ class zenperfsnmp(SnmpDaemon):
         self.snmpOidsRequested = 0
         perfRoot = performancePath('')
         makeDirs(perfRoot)
-        self.loadConfigs(perfRoot)
+        self.loadConfigs()
         self.fileCleanup = FileCleanup(perfRoot, '.*\\.rrd$',
                                        self.maxRrdFileAge,
                                        frequency=90*60)
@@ -244,7 +244,7 @@ class zenperfsnmp(SnmpDaemon):
     def pickleName(self, id):
         return performancePath('Devices/%s/%s-config.pickle' % (id, self.options.monitor))
 
-    def loadConfigs(self, perfRoot):
+    def loadConfigs(self):
         "Read local configuration values at startup"
         base = performancePath('Devices')
         makeDirs(base)

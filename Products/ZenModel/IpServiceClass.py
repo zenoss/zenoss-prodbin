@@ -36,6 +36,7 @@ addIpServiceClass = DTMLFile('dtml/addIpServiceClass',globals())
 class IpServiceClass(ServiceClass):
     """IpServiceClass object.
     """
+    __pychecker__='no-override'
 
     port = 0
     sendString = ""

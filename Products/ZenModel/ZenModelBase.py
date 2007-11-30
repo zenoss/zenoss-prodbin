@@ -58,8 +58,8 @@ class ZenModelBase(object):
         if hasattr(self, "factory_type_information"):
             view = self.factory_type_information[0]['immediate_view']
         else:
-            raise 'Not Found', ('Cannot find default view for "%s"' %
-                                '/'.join(self.getPhysicalPath()))
+            raise NameError('Cannot find default view for "%s"' %
+                            '/'.join(self.getPhysicalPath()))
         return self.restrictedTraverse(view)()
 
     index_html = None  # This special value informs ZPublisher to use __call__
@@ -414,13 +414,13 @@ class ZenModelBase(object):
         return zenpathsplit(path)
 
 
-    def createHierarchyObj(self, root, name, factory, relpath="", log=None):
+    def createHierarchyObj(self, root, name, factory, relpath="", alog=None):
         """
         DEPRECATED this is only seems to be used in Organizer.createOrganizer -
         Create an object from its path we use relpath to skip down any missing
         relations in the path and factory is the constructor for this object.
         """
-        return createHierarchyObj(root, name, factory, relpath, log)
+        return createHierarchyObj(root, name, factory, relpath, alog)
 
 
     def getHierarchyObj(self, root, name, relpath):
@@ -648,7 +648,10 @@ class ZenModelBase(object):
         >>> d.getIconPath()
         '/zport/dmd/img/icons/server.png'
         """
-        return self.dmd.getIconPath(self)
+        try:
+            return self.primaryAq().zIcon 
+        except AttributeError:
+            return '/zport/dmd/img/icons/noicon.png'
 
 
 InitializeClass(ZenModelBase)

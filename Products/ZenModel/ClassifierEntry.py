@@ -81,6 +81,8 @@ class ClassifierEntry(PropertyManager, CatalogAware, SimpleItem):
                     product = "", systemPath = "",
                     locationPath = "", manufacturer = "",
                     snmpAgentPath = "", productDescr = ""):
+        from Products.ZenUtils.Utils import unused
+        unused(locationPath)
         self.id = id 
         self.title = title
         self.default_catalog = default_catalog

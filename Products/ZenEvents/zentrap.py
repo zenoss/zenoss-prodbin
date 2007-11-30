@@ -125,7 +125,6 @@ class ZenTrap(EventServer, snmpprotocol.SNMPProtocol):
         result = {}
         if data['version'].get() == 1:
             # SNMP v2
-            pdu = data['pdu']
             bindings = extract(data, 'pdu/snmpV2_trap/variable_bindings', [])
             bindings = extract(data, 'pdu/inform_request/variable_bindings',
                                bindings)

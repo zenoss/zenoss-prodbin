@@ -53,9 +53,9 @@ def manage_addIpRouteEntry(context, dest, routemask, nexthopid, interface,
     d.setNextHopIp(nexthopid)
     d.setInterfaceName(interface)
     if userCreated: d.setUserCreateFlag()
-    setattr(d, 'routeproto', routeproto)
-    setattr(d, 'routetype', routetype)
-    setattr(d, 'routemask', routemask)
+    d.routeproto = routeproto
+    d.routetype = routetype
+    d.routemask = routemask
     
     if REQUEST is not None:
         REQUEST['RESPONSE'].redirect(context.absolute_url()

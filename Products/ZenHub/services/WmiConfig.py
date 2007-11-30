@@ -57,7 +57,6 @@ class WmiConfig(HubService):
         """Return a list of (devname, user, passwd, {'EvtSys':0,'Exchange':0}) 
         """
         svcinfo = []
-        allsvcs = {}
         for dev in self.config.devices():
             dev = dev.primaryAq()
             if not dev.monitorDevice(): continue

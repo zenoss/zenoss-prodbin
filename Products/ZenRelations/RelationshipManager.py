@@ -40,6 +40,8 @@ from App.Management import Tabs
 from RelSchema import *
 from Exceptions import *
 
+from Products.ZenUtils.Utils import unused
+
 zenmarker = "__ZENMARKER__"
 
 def manage_addRelationshipManager(context, id, title=None, REQUEST = None):
@@ -93,6 +95,7 @@ class RelationshipManager(PrimaryPathObjectManager, ZenPropertyManager):
     _operation = -1
 
     def __init__(self, id, title=None, buildRelations=True):
+        unused(title)
         self.id = id
         if buildRelations: self.buildRelations()
 
@@ -175,7 +178,6 @@ class RelationshipManager(PrimaryPathObjectManager, ZenPropertyManager):
             #if getattr(aq_base(self), objid, None): continue
             csobj = sobj._getCopy(cobj)
             cobj._setObject(csobj.id, csobj)
-        noprop = getattr(self, 'zNoPropertiesCopy', [])
         for name, value in self.propertyItems():
             cobj._updateProperty(name, value)
         return aq_base(cobj)
@@ -183,6 +185,7 @@ class RelationshipManager(PrimaryPathObjectManager, ZenPropertyManager):
     
     def _notifyOfCopyTo(self, container, op=0):
         """Manage copy/move/rename state for use in manage_beforeDelete."""
+        unused(container)
         self._operation = op # 0 == copy, 1 == move, 2 == rename
 
 
@@ -334,7 +337,8 @@ class RelationshipManager(PrimaryPathObjectManager, ZenPropertyManager):
         if url.find(myp) > 0:
             Tabs.manage_workspace(self, REQUEST)
         else:
-            raise "Redirect", (myp+'/manage_workspace')
+            from zExceptions import Redirect
+            raise Redirect, myp+'/manage_workspace'
 
 
     

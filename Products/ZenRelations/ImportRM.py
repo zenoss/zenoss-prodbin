@@ -43,6 +43,10 @@ class ImportRM(ZCmdBase, ContentHandler):
 
     rootpath = ""
 
+    def __init__(self, noopts=0, app=None, keeproot=False):
+        ZCmdBase.__init__(self, noopts, app, keeproot)
+        ContentHandler.__init__(self)
+
     def context(self):
         return self.objstack[-1]
 

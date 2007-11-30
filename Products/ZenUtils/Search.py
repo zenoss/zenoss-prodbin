@@ -51,4 +51,5 @@ def makeKeywordIndex(indexName):
     return makeCaseInsensitiveKeywordIndex(indexName)
 
 def makePathIndex(indexName):
+    __pychecker__="no-abstract"
     return PathIndex(indexName)

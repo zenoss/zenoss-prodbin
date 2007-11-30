@@ -17,7 +17,6 @@ Collection is a grouping of devices and components.
 """
 
 
-from AccessControl import Permissions
 from Globals import InitializeClass
 from AccessControl import ClassSecurityInfo, Permissions
 from Globals import DTMLFile

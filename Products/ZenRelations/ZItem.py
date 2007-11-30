@@ -30,6 +30,8 @@ from zExceptions import Redirect
 from OFS.CopySupport import CopySource
 from OFS.Traversable import Traversable
 
+from Products.ZenUtils.Utils import unused
+
 HTML=Globals.HTML
 
 import logging
@@ -185,10 +187,10 @@ class ZItem(Base, CopySource, App.Management.Tabs, Traversable,
 
             try:
                 if hasattr(client, 'standard_error_message'):
-                    s=getattr(client, 'standard_error_message')
+                    s=client.standard_error_message
                 else:
                     client = client.aq_parent
-                    s=getattr(client, 'standard_error_message')
+                    s=client.standard_error_message
                 kwargs = {'error_type': error_type,
                           'error_value': error_value,
                           'error_tb': error_tb,
@@ -201,6 +203,7 @@ class ZItem(Base, CopySource, App.Management.Tabs, Traversable,
                 elif callable(s):
                     v = s(**kwargs)
                 else:
+                    __pychecker__='self="s"'
                     v = HTML.__call__(s, client, REQUEST, **kwargs)
             except:
                 logger.error(
@@ -231,6 +234,7 @@ class ZItem(Base, CopySource, App.Management.Tabs, Traversable,
     # This keeps simple items from acquiring their parents
     # objectValues, etc., when used in simple tree tags.
     def objectValues(self, spec=None):
+        unused(spec)
         return ()
     objectIds=objectItems=objectValues
 

@@ -32,7 +32,7 @@ class PingJob:
     """
     Class representing a single target to be pinged.
     """
-    def __init__(self, ipaddr, hostname="", status=0, cycle=60):
+    def __init__(self, ipaddr, hostname="", status=0):
         self.ipaddr = ipaddr 
         self.hostname = hostname
         self.status = status
@@ -181,7 +181,7 @@ class Ping(object):
                 if err == errno.EAGAIN:
                     return
                 raise err
-            except Exception, e:
+            except Exception:
                 log.exception("receiving packet")
 
 

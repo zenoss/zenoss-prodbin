@@ -24,6 +24,7 @@ import logging
 log = logging.getLogger('zen.MinMaxCheck')
 
 from sets import Set
+from Products.ZenUtils.Utils import unused
 
 def rpneval(value, rpn):
     """totally bogus rpn valuation only works with one level stack"""
@@ -143,6 +144,7 @@ class MinMaxThresholdInstance(ThresholdInstance):
     def check(self, dataPoints):
         """The given datapoints have been updated, so re-evaluate.
         returns events or an empty sequence"""
+        unused(dataPoints)
         result = []
         for dp in self.dataPointNames:
             cycleTime, rrdType = self.rrdInfoCache(dp)
@@ -157,6 +159,7 @@ class MinMaxThresholdInstance(ThresholdInstance):
     def checkRaw(self, dataPoint, timeOf, value):
         """A new datapoint has been collected, use the given _raw_
         value to re-evalue the threshold."""
+        unused(timeOf)
         result = []
         if value is None: return result
         try:
@@ -213,12 +216,12 @@ class MinMaxThresholdInstance(ThresholdInstance):
 
 
     def getGraphElements(self, template, context, gopts, namespace, color, 
-            relatedGps):
+                         relatedGps):
         """Produce a visual indication on the graph of where the
         threshold applies."""
+        unused(template, namespace)
         if not color.startswith('#'):
             color = '#%s' % color
-        ns = namespace
         n = self.minimum
         x = self.maximum
         gp = relatedGps[self.dataPointNames[0]]

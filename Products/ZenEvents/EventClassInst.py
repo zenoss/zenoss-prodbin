@@ -181,7 +181,6 @@ class EventClassInst(EventClassPropertyMixin, ZenModelRM, EventView,
     def getStatus(self, **kwargs):
         """Return the status number for this device of class statClass.
         """
-        statkey = self.getEventClass
         return self.getEventManager().getStatusME(self, 
                                 statusclass=self.getEventClass(), 
                                 **kwargs)

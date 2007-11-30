@@ -54,7 +54,10 @@ def manage_addDataRoot(context, id, title = None, REQUEST = None):
 
 addDataRoot = DTMLFile('dtml/addDataRoot',globals())
 
+__pychecker__='no-override'
+
 class DataRoot(ZenModelRM, OrderedFolder, Commandable, ZenMenuable):
+    
     meta_type = portal_type = 'DataRoot'
 
     manage_main = OrderedFolder.manage_main
@@ -364,7 +367,6 @@ class DataRoot(ZenModelRM, OrderedFolder, Commandable, ZenMenuable):
                     self.REQUEST.contactEmail,
                     self.REQUEST.comments)
         if not mailSent:
-            toAddress = SiteError.ERRORS_ADDRESS
             body = SiteError.createReport(
                                 self.REQUEST.errorType,
                                 self.REQUEST.errorValue,
@@ -376,10 +378,9 @@ class DataRoot(ZenModelRM, OrderedFolder, Commandable, ZenMenuable):
                                 self.REQUEST.contactName,
                                 self.REQUEST.contactEmail,
                                 self.REQUEST.comments)
-            return getattr(self, 'errorEmailFailure')(
-                        toAddress=SiteError.ERRORS_ADDRESS,
-                        body=body)
-        return getattr(self, 'errorEmailThankYou')()
+            return self.errorEmailFailure(toAddress=SiteError.ERRORS_ADDRESS,
+                                          body=body)
+        return self.errorEmailThankYou()
 
 
     #security.declareProtected('View', 'writeExportRows')
@@ -446,7 +447,7 @@ class DataRoot(ZenModelRM, OrderedFolder, Commandable, ZenMenuable):
         ''' Called by Commandable.doCommand() to ascertain objects on which
         a UserCommand should be executed.
         '''
-        raise 'Not supported on DataRoot'
+        raise NotImplemented
         
         
     def getUrlForUserCommands(self):
@@ -512,22 +513,6 @@ class DataRoot(ZenModelRM, OrderedFolder, Commandable, ZenMenuable):
         
         ZENPACK_INSTALL_TIMEOUT = 120
         
-        def write(out, lines):
-            # Looks like firefox renders progressive output more smoothly
-            # if each line is stuck into a table row.  
-            startLine = '<tr><td class="tablevalues">'
-            endLine = '</td></tr>\n'
-            if out:
-                if not isinstance(lines, list):
-                    lines = [lines]
-                for l in lines:
-                    if not isinstance(l, str):
-                        l = str(l)
-                    l = l.strip()
-                    l = cgi.escape(l)
-                    l = l.replace('\n', endLine + startLine)
-                    out.write(startLine + l + endLine)
-
         if REQUEST:
             REQUEST['cmd'] = ''
             header, footer = self.commandOutputTemplate().split('OUTPUT_TOKEN')
@@ -565,8 +550,10 @@ class DataRoot(ZenModelRM, OrderedFolder, Commandable, ZenMenuable):
                         if t:
                             self.write(out, t)
                 if child.poll() == -1:
-                    self.write(out, 'Command timed out for %s' % target.id +
-                                    ' (timeout is %s seconds)' % timeout)
+                    self.write(out,
+                               'Command timed out for %s' % cmd +
+                               ' (timeout is %s seconds)' %
+                               ZENPACK_INSTALL_TIMEOUT)
             except:
                 self.write(out, 'Error installing ZenPack.')
                 self.write(
@@ -603,15 +590,6 @@ class DataRoot(ZenModelRM, OrderedFolder, Commandable, ZenMenuable):
                     ' in ZenPack names.'
         return ZenModelRM.checkValidId(self, id, prep_id)
 
-
-    def getIconPath(self, obj):
-        """ Retrieve the appropriate image path associated
-            with a given object.
-        """
-        try:
-            return obj.primaryAq().zIcon 
-        except AttributeError:
-            return '/zport/dmd/img/icons/noicon.png'
 
     def setGeocodeCache(self, REQUEST=None):
         """ Store a JSON representation of

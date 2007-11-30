@@ -67,6 +67,9 @@ addReport = PageTemplateFile('www/reportAdd', globals(),
 
 class Report(ZenModelRM, ZenPackable):
     """Report object"""
+
+    __pychecker__ = 'no-override'
+
     meta_type = 'Report'
 
     # this is deprecated don't use!!!

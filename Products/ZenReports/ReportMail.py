@@ -136,7 +136,6 @@ class Page(HTMLParser):
                 ctype = 'image/png'
             maintype, subtype = ctype.split('/', 1)
             img = MIMEImage(img, subtype)
-            fname = url.rsplit('/', 1)[1]
             img.add_header('Content-ID', '<%s>' % name)
             msg.attach(img)
         msg['Subject'] = self.title

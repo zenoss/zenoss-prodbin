@@ -120,7 +120,7 @@ class ZPLObject(ZenPackLoader):
                     log.warning("Unable to remove %s on %s", id,
                                 '/'.join(path))
 
-    def list(self, pack, app):
+    def list(self, pack, unused):
         return [obj.getPrimaryUrlPath() for obj in pack.packables()]
         
 
@@ -146,7 +146,7 @@ class ZPLReport(ZPLObject):
     def upgrade(self, pack, app):
         self.load(pack, app)
 
-    def list(self, pack, app):
+    def list(self, pack, unused):
         return [branchAfter(r, 'reports') for r in findFiles(pack, 'reports')]
 
 
@@ -165,7 +165,7 @@ class ZPLDaemons(ZenPackLoader):
     def binPath(self, daemon):
         return zenPath('bin', os.path.basename(daemon))
 
-    def load(self, pack, app):
+    def load(self, pack, unused):
         for fs in findFiles(pack, 'daemons', filter=self.filter):
             os.chmod(fs, 0755)
             path = self.binPath(fs)
@@ -176,14 +176,14 @@ class ZPLDaemons(ZenPackLoader):
     def upgrade(self, pack, app):
         self.load(pack, app)
 
-    def unload(self, pack, app):
+    def unload(self, pack, unused):
         for fs in findFiles(pack, 'daemons', filter=self.filter):
             try:
                 os.remove(self.binPath(fs))
             except OSError:
                 pass
 
-    def list(self, pack, app):
+    def list(self, pack, unused):
         return [branchAfter(d, 'daemons') 
                 for d in findFiles(pack, 'daemons', filter=self.filter)]
 
@@ -199,14 +199,14 @@ class ZPLBin(ZenPackLoader):
                 return False
         return True
 
-    def load(self, pack, app):
+    def load(self, pack, unused):
         for fs in findFiles(pack, 'bin', filter=self.filter):
             os.chmod(fs, 0755)
 
     def upgrade(self, pack, app):
         self.load(pack, app)
 
-    def list(self, pack, app):
+    def list(self, pack, unused):
         return [branchAfter(d, 'bin') 
                 for d in findFiles(pack, 'bin', filter=self.filter)]
 
@@ -222,14 +222,14 @@ class ZPLLibExec(ZenPackLoader):
                 return False
         return True
 
-    def load(self, pack, app):
+    def load(self, pack, unused):
         for fs in findFiles(pack, 'libexec', filter=self.filter):
             os.chmod(fs, 0755)
 
     def upgrade(self, pack, app):
         self.load(pack, app)
 
-    def list(self, pack, app):
+    def list(self, pack, unused):
         return [branchAfter(d, 'libexec') 
                 for d in findFiles(pack, 'libexec', filter=self.filter)]
 
@@ -239,7 +239,7 @@ class ZPLModelers(ZenPackLoader):
     name = "Modeler Plugins"
 
 
-    def list(self, pack, app):
+    def list(self, pack, unused):
         return [branchAfter(d, 'plugins')
                 for d in findFiles(pack, 'modeler/plugins')]
 
@@ -259,7 +259,7 @@ class ZPLSkins(ZenPackLoader):
         unregisterSkin(app.zport.dmd, pack.path(''))
 
 
-    def list(self, pack, app):
+    def list(self, pack, unused):
         return [branchAfter(d, 'skins') for d in findDirectories(pack, 'skins')]
 
 
@@ -268,10 +268,11 @@ class ZPLDataSources(ZenPackLoader):
     name = "DataSources"
 
 
-    def list(self, pack, app):
+    def list(self, pack, unused):
         return [branchAfter(d, 'datasources')
                 for d in findFiles(pack, 'datasources',
                 lambda f: not f.endswith('.pyc') and f != '__init__.py')]
+
 
 
 class ZPLLibraries(ZenPackLoader):
@@ -279,7 +280,7 @@ class ZPLLibraries(ZenPackLoader):
     name = "Libraries"
 
 
-    def list(self, pack, app):
+    def list(self, pack, unused):
         d = pack.path('lib')
         if os.path.isdir(d):
             return [l for l in os.listdir(d)]
@@ -306,7 +307,7 @@ class ZPLAbout(ZenPackLoader):
         return result
 
 
-    def load(self, pack, app):
+    def load(self, pack, unused):
         for name, value in self.getAttributeValues(pack):
             setattr(pack, name, value)
 
@@ -315,5 +316,5 @@ class ZPLAbout(ZenPackLoader):
         self.load(pack, app)
 
 
-    def list(self, pack, app):
+    def list(self, pack, unused):
         return [('%s %s' % av) for av in self.getAttributeValues(pack)]

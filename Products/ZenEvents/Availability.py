@@ -107,6 +107,7 @@ class Report:
         """Run the report, returning an Availability object for each device"""
         # Note: we don't handle overlapping "down" events, so down
         # time could get get double-counted.
+        __pychecker__='no-local'
         zem = dmd.ZenEventManager
         cols = 'device, component, firstTime, lastTime'
         endDate = self.endDate or time.time()

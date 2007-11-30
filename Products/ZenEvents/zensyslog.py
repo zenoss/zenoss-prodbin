@@ -76,7 +76,6 @@ class ZenSyslog(DatagramProtocol, EventServer):
         
         # pri := facility * severity
         stop = msg.find('>')
-        pri = msg[1:stop]
         
         # check for a datestamp.  default to right now if date not present
         start = stop + 1

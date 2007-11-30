@@ -53,7 +53,7 @@ class AuthXmlRpcService(XmlRpcService):
         self.checker = checker
 
 
-    def doRender(self, avatar, request):
+    def doRender(self, unused, request):
         """
         Call the inherited render engine after authentication succeeds.
         See @L{XmlRpcService.XmlRpcService.Render}.
@@ -91,11 +91,11 @@ class AuthXmlRpcService(XmlRpcService):
                     c = credentials.UsernamePassword(user, passwd)
                     d = self.checker.requestAvatarId(c)
                     d.addCallback(self.doRender, request)
-                    def error(reason, request):
+                    def error(unused, request):
                         self.unauthorized(request)
                     d.addErrback(error, request)
             except Exception:
-                self.unauthorized()
+                self.unauthorized(request)
         return server.NOT_DONE_YET
 
 
@@ -334,7 +334,7 @@ class ZenHub(ZCmdBase):
         reactor.callLater(seconds, self.heartbeat)
 
         
-    def sigTerm(self, signum, frame):
+    def sigTerm(self, signum=None, frame=None):
         """
         Start a controlled shutdown of main loop on interrupt.
 

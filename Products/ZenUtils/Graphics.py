@@ -11,6 +11,8 @@
 #
 ###########################################################################
 
+from Products.ZenUtils.Utils import unused
+
 class NetworkGraph(object):
     '''
     This class is a wrapper for pydot functionality. It provides a means of
@@ -32,6 +34,7 @@ class NetworkGraph(object):
         children. It returns a list of tuples where the tuples represent a
         simple parent-child relationship.
         '''
+        unused(doDevices)
         if not node:
             node = self.node
         if not parentName:

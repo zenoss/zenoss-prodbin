@@ -31,7 +31,7 @@ class NewDeviceIndexes(Migrate.Step):
 
     def cutover(self, dmd):
         devices = dmd.getDmdRoot('Devices')
-        zcat = getattr(devices, 'deviceSearch')
+        zcat = devices.deviceSearch
         cat = zcat._catalog
         reindex = False
         for indexName in fieldIndexes:

@@ -17,8 +17,7 @@ Utility for chaining defered actions.
 
 '''
 
-from twisted.internet import reactor
-import twisted.internet.defer as defer
+from twisted.internet import reactor, defer
 
 def Step(iterable):
     ''' Step through iterable looking for deferreds.  Whenever a deferred is
@@ -54,7 +53,7 @@ def Step(iterable):
         if hasattr(iterable, '__iter__'):
             iterable = iter(iterable)
         else:
-            raise 'Must pass an iterable object to step'
+            raise RuntimeError, 'Must pass an iterable object to step'
             
     # finalD is the deferred that will trigger when iterable is exhausted
     finalD = defer.Deferred()

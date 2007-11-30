@@ -29,8 +29,9 @@ from Products.ZenEvents.ZenEventClasses import Heartbeat
 
 from twisted.python import failure
 
-from Products.ZenHub.PBDaemon import FakeRemote, PBDaemon as Base
+from Products.ZenHub.PBDaemon import FakeRemote, PBDaemon
 from Products.ZenRRD.Thresholds import Thresholds
+from Products.ZenUtils.Utils import unused
 
 
 BAD_SEVERITY=Event.Warning
@@ -44,7 +45,7 @@ COMMON_EVENT_INFO = {
     }
     
 
-class RRDDaemon(Base):
+class RRDDaemon(PBDaemon):
     'Holds the code common to performance gathering daemons.'
 
     heartbeatevt = {'eventClass':Heartbeat}
@@ -59,8 +60,7 @@ class RRDDaemon(Base):
     def __init__(self, name):
         self.events = []
         self.name = name
-        Base.__init__(self)
-        evt = self.heartbeatevt.copy()
+        PBDaemon.__init__(self)
         self.thresholds = Thresholds()
         self.heartbeatevt.update(dict(component=name,
                                       device=socket.getfqdn()))
@@ -83,6 +83,7 @@ class RRDDaemon(Base):
 
 
     def remote_updateDeviceList(self, devices):
+        unused(devices)
         self.log.debug("Async update of device list")
 
 
@@ -102,7 +103,7 @@ class RRDDaemon(Base):
         self.sendEvent({}, **kw)
 
 
-    def heartbeat(self, *unused):
+    def heartbeat(self):
         'if cycling, send a heartbeat, else, shutdown'
         if not self.options.cycle:
             self.stop()
@@ -111,7 +112,7 @@ class RRDDaemon(Base):
 
 
     def buildOptions(self):
-        Base.buildOptions(self)
+        PBDaemon.buildOptions(self)
         self.parser.add_option('-d', '--device',
                                dest='device',
                                default='',

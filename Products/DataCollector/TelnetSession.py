@@ -120,10 +120,9 @@ class TelnetSession:
 
     def check(self, hostname, timeout=1):
         "check to see if a device supports telnet"
-        from telnetlib import Telnet
         import socket
         try:
-            tn = Telnet(hostname)
+            tn = telnetlib.Telnet(hostname)
             index, match, data = tn.expect([self.loginRegex,], timeout)
             tn.close()
             if index == 0: return 1
@@ -228,7 +227,6 @@ class TelnetSession:
 
 def main():
     import getpass
-    import os
     import sys
 
     from optparse import OptionParser

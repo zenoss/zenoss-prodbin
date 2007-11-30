@@ -74,7 +74,6 @@ class PingThread(threading.Thread, Ping):
 
 if __name__ == "__main__":
     import sys
-    import Queue
     logging.basicConfig()
     log = logging.getLogger()
     log.setLevel(10)

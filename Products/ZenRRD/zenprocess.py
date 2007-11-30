@@ -506,7 +506,7 @@ class zenprocess(SnmpDaemon):
             yield self.scanning.start()
             driver.next()
 
-        drive(doPeriodic).addCallback(self.heartbeat)
+        drive(doPeriodic).addCallback(lambda unused: self.heartbeat())
 
 
     def fetchPerf(self, device):
@@ -562,7 +562,7 @@ class zenprocess(SnmpDaemon):
             self.sendThresholdEvent(**ev)
             
 
-    def heartbeat(self, *unused):
+    def heartbeat(self):
         self.scanning = None
         devices = self.devices()
         pids = sum(map(lambda x: len(x.pids), devices.values()))

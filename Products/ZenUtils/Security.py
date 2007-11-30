@@ -14,10 +14,7 @@
 import os
 from random import random
 from datetime import datetime
-try:
-    set
-except NameError:
-    from sets import Set as set
+from sets import Set as set
 
 from OFS.Folder import Folder
 from Products.PluggableAuthService import plugins

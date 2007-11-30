@@ -34,7 +34,7 @@ def manage_addFileSystem(context, id, userCreated, REQUEST=None):
     fs = FileSystem(fsid)
     context._setObject(fsid, fs)
     fs = context._getOb(fsid)
-    setattr(fs, 'mount', id)
+    fs.mount = id
     if userCreated: fs.setUserCreateFlag()
     if REQUEST is not None:
         REQUEST['RESPONSE'].redirect(context.absolute_url()+'/manage_main') 
@@ -133,6 +133,7 @@ class FileSystem(OSComponent):
         """
         Return the number of used bytes in human readable form ie 10MB
         """
+        __pychecker__='no-constCond'
         ub = self.usedBytes()
         return ub is None and "unknown" or convToUnits(ub)
 
@@ -151,6 +152,7 @@ class FileSystem(OSComponent):
         """
         Return the number of availible bytes in human readable form ie 10MB
         """
+        __pychecker__='no-constCond'
         ab = self.availBytes()
         return ab is None and "unknown" or convToUnits(ab)
 
@@ -166,6 +168,7 @@ class FileSystem(OSComponent):
         """
         Return the percentage capacity of a filesystems using its rrd file
         """
+        __pychecker__='no-returnvalues'
         usedBytes = self.usedBytes()
         if self.totalBytes() and usedBytes is not None:
             return int(100.0 * self.usedBytes() / self.totalBytes())
@@ -193,6 +196,7 @@ class FileSystem(OSComponent):
         """
         Return the number of used blocks in human readable form ie 10MB
         """
+        __pychecker__='no-constCond'
         ub = self.usedBlocks()
         return ub is None and "unknown" or convToUnits(ub)
 

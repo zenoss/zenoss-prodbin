@@ -16,7 +16,7 @@ from wmiclient import WMI
 import pywintypes
 
 import Globals
-from WinCollector import WinCollector as Base, TIMEOUT_CODE
+from WinCollector import WinCollector, TIMEOUT_CODE
 from Products.ZenEvents.ZenEventClasses import Status_Wmi_Conn, Status_WinService
 from Products.ZenEvents import Event
 
@@ -36,14 +36,14 @@ class StatusTest:
         self.password = password
         self.services = dict([(k, v) for k, v in services.items()])
 
-class zenwin(Base):
+class zenwin(WinCollector):
 
     name = agent = "zenwin"
     deviceConfig  = 'getWinServices'
-    attributes = Base.attributes + ('winmodelerCycleInterval',)
+    attributes = WinCollector.attributes + ('winmodelerCycleInterval',)
 
     def __init__(self):
-        Base.__init__(self)
+        WinCollector.__init__(self)
         self.wmiprobs = []
         self.devices = []
         self.watchers = {}
@@ -177,7 +177,7 @@ class zenwin(Base):
                                 component=self.name))
 
     def updateConfig(self, cfg):
-        Base.updateConfig(self, cfg)
+        WinCollector.updateConfig(self, cfg)
         self.heartbeat['timeout'] = self.winCycleInterval*3
 
     def updateDevices(self, devices):
@@ -198,7 +198,7 @@ class zenwin(Base):
         return self.winCycleInterval
         
     def buildOptions(self):
-        Base.buildOptions(self)
+        WinCollector.buildOptions(self)
 
 
 if __name__ == "__main__":

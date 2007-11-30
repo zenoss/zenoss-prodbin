@@ -24,6 +24,7 @@ log = logging.getLogger("zen.ZenTcpClient")
 
 from twisted.internet import reactor, protocol, defer
 from Products.ZenEvents.ZenEventClasses import Status_IpService
+from Products.ZenUtils.Utils import unused
 
 from socket import getfqdn
 hostname = getfqdn()
@@ -86,6 +87,7 @@ class ZenTcpClient(protocol.ClientFactory):
         self.status = status
 
     def clientConnectionLost(self, connector, reason):
+        unused(connector)
         log.debug("lost: %s", reason.getErrorMessage())
         if self.deferred:
             self.deferred.callback(self)
@@ -93,6 +95,7 @@ class ZenTcpClient(protocol.ClientFactory):
 
 
     def clientConnectionFailed(self, connector, reason):
+        unused(connector)
         log.debug("failed: %s", reason.getErrorMessage())
         log.debug(reason.type)
         self.msg = "IP Service %s is down" % self.cfg.component

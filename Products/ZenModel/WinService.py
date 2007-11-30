@@ -24,8 +24,7 @@ def manage_addWinService(context, id, description, userCreated=None, REQUEST=Non
     s = WinService(id)
     context._setObject(id, s)
     s = context._getOb(id)
-    #setattr(s, 'name', id)
-    setattr(s, 'description', description)
+    s.description = description
     args = {'name':id, 'description':description}
     s.setServiceClass(args)
     if userCreated: s.setUserCreateFlag()
@@ -102,13 +101,9 @@ class WinService(Service):
         return {'name': self.name, 'description': self.description }
 
 
-    def setServiceClass(self, kwargs):
-        """Set the service class based on a dict describing the service.
-        Dict keys are be name and description. where name=ServiceName
-        and description=Caption.
+    def setServiceClass(self, name, description):
+        """Set the service class where name=ServiceName and description=Caption.
         """
-        name = kwargs['name']
-        description = kwargs['description']
         path = "/WinService/"
         srvs = self.dmd.getDmdRoot("Services")
         srvclass = srvs.createServiceClass(name=name, description=description, 

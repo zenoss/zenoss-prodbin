@@ -23,6 +23,7 @@ from Globals import InitializeClass
 from Globals import DTMLFile
 from AccessControl import ClassSecurityInfo
 from AccessControl import Permissions
+from Products.ZenModel.ManagedEntity import ManagedEntity
 from Products.ZenModel.ZenossSecurity import *
 from Acquisition import aq_base
 
@@ -31,9 +32,10 @@ from EventClassInst import EventClassInst, EventClassPropertyMixin
 
 from Products.ZenModel.Organizer import Organizer
 from Products.ZenModel.ZenPackable import ZenPackable
-from Products.ZenModel.ManagedEntity import ManagedEntity
 
 from Products.ZenUtils.Utils import prepId as globalPrepId
+
+__pychecker__='no-argsused'
 
 def manage_addEventClass(context, id="Events", REQUEST=None):
     """make a event class"""
@@ -173,7 +175,6 @@ class EventClass(EventClassPropertyMixin, Organizer, ManagedEntity, ZenPackable)
         if not evtcls: 
             log.debug("lookup eventClassKey:defaultmapping")
             evtcls = self.find("defaultmapping")
-        recdict = {}
         for evtcl in evtcls:
             m = evtcl.match(evt, device)
             if m: 

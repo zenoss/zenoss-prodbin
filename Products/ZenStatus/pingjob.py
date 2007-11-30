@@ -131,11 +131,7 @@ class PingMonitor:
                     break
 
     def sendPacket(self, target, queue):
-        pkt = icmp.Packet()
-        pkt.type = icmp.ICMP_ECHO
-        pkt._id = self._id
-        pkt.seq = target.sent()
-        pkt.data = 'Confmon connectivity test'
+        pkt = icmp.Echo(self._id, target.sent(), 'Zenoss connectivity test')
         buf = icmp.assemble(pkt)
         target.start(time.time())
         #### sockets with bad addresses fail
@@ -145,14 +141,14 @@ class PingMonitor:
             target.rtt(0.0)
             self._resultQueue.append(target)
             del queue[target.host()]
-        target.sent(pkt.seq + 1)
+        target.sent(pkt.get_seq() + 1)
 
     def recvPacket(self):
         data = self._socket.recv(4096)
         if data:
             ipreply = ip.Packet(data)
             try:
-                reply = icmp.Packet(ipreply.data)
+                reply = icmp.disassemble(ipreply.data, 0)
             except:
                 return
             return (reply, ipreply)

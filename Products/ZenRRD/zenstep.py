@@ -46,7 +46,7 @@ class UpdateStep(ZCmdBase):
                              '--resolution', str(resolution),
                              '--start', str(start),
                              '--end', str(end))
-        (start, end, resolution), ds0, data = data
+        (start, end, resolution), unused, data = data
         rnd = lambda x: x
         if info['ds']['ds0']['type'] == 'COUNTER':
             rnd = lambda x: int(x+0.5)

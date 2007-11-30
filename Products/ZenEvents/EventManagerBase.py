@@ -42,7 +42,7 @@ from ZEvent import ZEvent
 from EventDetail import EventDetail
 from BetterEventDetail import BetterEventDetail
 from EventCommand import EventCommand
-from Exceptions import *
+from Products.ZenEvents.Exceptions import *
 
 from Products.ZenModel.ZenModelRM import ZenModelRM
 from Products.ZenModel.ZenossSecurity import ZEN_COMMON, ZEN_VIEW
@@ -56,6 +56,9 @@ from ZenEventClasses import Unknown
 
 from DbAccessBase import DbAccessBase
 
+from Products.ZenUtils.Utils import unused
+
+__pychecker__="maxargs=16"
 
 def evtprep(evts):
     """
@@ -289,6 +292,7 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
         @type defaultResultFields: list
 
         """
+        unused(defaultOrderby, defaultResultFields)
         self.id = id
         self.title = title
         self.username=username
@@ -408,6 +412,7 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
         @rtype: list
         @todo: Remove unused parameters from the method definition
         """
+        unused(getTotalCount, rows)
         where = self.lookupManagedEntityWhere(me)
         badevidsstr, goodevidsstr = '',''
         if not isinstance(goodevids, (list, tuple)): goodevids = [goodevids]
@@ -442,7 +447,7 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
         return [ev.evid for ev in events]
 
         
-    def getEventList(self, resultFields=[], where="", orderby="",
+    def getEventList(self, resultFields=None, where="", orderby="",
             severity=None, state=2, startdate=None, enddate=None, offset=0,
             rows=0, getTotalCount=False, filter="", **kwargs):
         """
@@ -475,6 +480,7 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
         @rtype: list
         @todo: Remove unused parameters from the method definition
         """
+        unused(kwargs)
         try:
             if not resultFields:
                 resultFields = self.defaultResultFields
@@ -625,7 +631,6 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
         """
         mydict = {'columns':[], 'data':[]}
         mydict['columns'] = ['Component Type', 'Status']
-        getcolor = re.compile(r'class=\"evpill-(.*?)\"', re.S|re.I|re.M).search
         devdata = []
         query = { 'getParentDeviceName':device.id,}
         brains = device.componentSearch(query)
@@ -1277,12 +1282,16 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
         return where
 
 
-    def _setupDateRange(self, startdate=DateTime.DateTime(),
-                              enddate=DateTime.DateTime()-1):
+    def _setupDateRange(self, startdate=None,
+                              enddate=None):
         """
         Make a start and end date range that is at least one day long.
         returns a start and end date as a proper database element.
         """
+        if enddate is None:
+            enddate = DateTime.DateTime()-1
+        if startdate is None:
+            startdate = DateTime.DateTime()
         if type(enddate) == types.StringType:
             enddate = DateTime.DateTime(enddate, datefmt='us')
         enddate = enddate.latestTime()
@@ -1477,6 +1486,8 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
                           orderby='', **kwargs):
         """ Event data in JSON format.
         """
+        
+        unused(kwargs)
         if hasattr(context, 'getResultFields'):
             fields = context.getResultFields()
         else:
@@ -1634,6 +1645,7 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
     def getEventCssClass(self, severity, acked=False):
         """return the css class name to be used for this event.
         """
+        __pychecker__='no-constCond'
         value = severity < 0 and "unknown" or severity
         acked = acked and "acked" or "noack"
         return "zenevents_%s_%s %s" % (value, acked, acked)
@@ -1740,7 +1752,7 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
                 return self.callZenScreen(REQUEST)
             else:
                 return
-        evid = self.sendEvent(eventDict)            
+        self.sendEvent(eventDict)            
         if REQUEST:
             REQUEST['RESPONSE'].redirect('/zport/dmd/Events/viewEvents')
 
@@ -1994,7 +2006,9 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
             # asking user if they wanted to save the password.
             if REQUEST.has_key('mysql_pass'):
                 REQUEST.form['password'] = REQUEST['mysql_pass']
-        ZenModelRM.zmanage_editProperties(obj, REQUEST)
+        editProperties = ZenModelRM.zmanage_editProperties
+        # suppress 'self is not first method argument' from pychecker
+        editProperties(obj, REQUEST)
         if REQUEST: return self.callZenScreen(REQUEST)
 
     security.declareProtected('Manage EventManager', 'manage_addLogMessage')
@@ -2033,14 +2047,6 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
     #==========================================================================
     # Utility functions
     #==========================================================================
-
-    def _genuuid(self):
-        """globally unique id based on timestamp, fqdn, and random number.
-        """
-        d=datetime.datetime.utcnow().strftime("%Y%m%d%H%M%S")
-        r = "%04d" % random.randint(0, 1000)
-        return d+str(d.microsecond)+r+self.FQDNID
-
 
     def installIntoPortal(self):
         """Install skins into portal.

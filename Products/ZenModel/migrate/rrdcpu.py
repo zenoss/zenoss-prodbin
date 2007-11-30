@@ -22,7 +22,7 @@ import Migrate
 class RRDCpuType(Migrate.Step):
     version = Migrate.Version(1, 1, 0)
 
-    def cutover(self, dmd):
+    def cutover(self, unused):
         import os
         import rrdtool
         from Products.ZenModel.PerformanceConf import PERF_ROOT

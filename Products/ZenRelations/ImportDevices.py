@@ -133,6 +133,8 @@ class ImportDevices(ZCmdBase):
         Upon loading the XML file to be processed, the content of the XML file
         is handled (processed) by the methods in this class.
         """
+        from Products.ZenUtils.Utils import unused
+        unused(objstack)
         if xmlfile:
             # check to see if we're getting the XML from a URL ...
             schema, host, path, null, null, null = urlparse(xmlfile)

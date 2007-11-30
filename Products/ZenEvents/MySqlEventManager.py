@@ -86,7 +86,6 @@ class MySqlEventManager(MySqlSendEventMixin, EventManagerBase):
             curs = conn.cursor()
             curs.execute(select)
             sumdata = {}
-            ownerids = ""
             for row in curs.fetchall():
                 sev, count, acks = row[:3]
                 if hasattr(acks, 'tostring'):
@@ -117,14 +116,9 @@ class MySqlEventManager(MySqlSendEventMixin, EventManagerBase):
         try:
             curs = conn.cursor()
             for table in ('status', 'history'):
-                sql = 'select count(*) from status ' \
-                        'where firstTime >= %s' % since
-            curs.execute(sql)
-            count = curs.fetchall()[0][0]
-            sql = 'select count(*) from history ' \
-                    'where firstTime >= %s' % since
-            curs.execute(sql)
-            count += curs.fetchall()[0][0]
+                curs.execute('select count(*) from %s where firstTime >= %s' %
+                             (table, since))
+                count += curs.fetchall()[0][0]
         finally: zem.close(conn)
         return count
 

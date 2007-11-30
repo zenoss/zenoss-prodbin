@@ -56,7 +56,7 @@ DEFAULT_HUB_MONITOR = 'localhost'
 class HubDown(Exception): pass
 
 class FakeRemote:
-    def callRemote(self, name, *args):
+    def callRemote(self, *unused):
         return defer.fail(HubDown("ZenHub is down"))
 
 class PBDaemon(ZenDaemon, pb.Referenceable):
@@ -172,9 +172,9 @@ class PBDaemon(ZenDaemon, pb.Referenceable):
         reactor.run()
         self.log.info('%s shutting down' % self.name)
 
-    def sigTerm(self, *unused):
+    def sigTerm(self, signum=None, frame=None):
         try:
-            ZenDaemon.sigTerm(self, *unused)
+            ZenDaemon.sigTerm(self, signum, frame)
         except SystemExit:
             pass
 
@@ -228,7 +228,7 @@ class PBDaemon(ZenDaemon, pb.Referenceable):
         return self.name
 
 
-    def remote_shutdown(self, result):
+    def remote_shutdown(self, unused):
         self.stop()
         self.sigTerm()
 

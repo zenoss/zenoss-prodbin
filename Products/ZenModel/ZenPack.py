@@ -213,7 +213,7 @@ class ZenPack(ZenModelRM):
         # Create skins dir if not there
         path = zenPackPath(self.id, 'skins')
         if not os.path.isdir(path):
-            os.makeDirs(path, 0750)
+            os.makedirs(path, 0750)
             
         # Create __init__.py
         init = zenPackPath(self.id, '__init__.py')
@@ -253,7 +253,7 @@ registerDirectory("skins", globals())
         # Create the zip file
         path = zenPath('export')
         if not os.path.isdir(path):
-            os.makeDirs(path, 0750)
+            os.makedirs(path, 0750)
         from zipfile import ZipFile, ZIP_DEFLATED
         zipFilePath = os.path.join(path, '%s.zip' % self.id)
         zf = ZipFile(zipFilePath, 'w', ZIP_DEFLATED)

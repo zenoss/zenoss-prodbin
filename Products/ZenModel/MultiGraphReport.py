@@ -18,6 +18,7 @@ from Products.ZenRelations.RelSchema import *
 from RRDView import GetRRDPath
 from PerformanceConf import performancePath
 from ZenossSecurity import ZEN_MANAGE_DMD
+import sys
 
 def manage_addMultiGraphReport(context, id, REQUEST = None):
     ''' Create a new MultiGraphReport

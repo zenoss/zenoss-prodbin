@@ -149,9 +149,11 @@ class ZenDaemon(CmdBase):
         return(0)
 
 
-    def sigTerm(self, *unused):
+    def sigTerm(self, signum=None, frame=None):
         # This probably won't be called when running as daemon.
         # See ticket #1757
+        from Products.ZenUtils.Utils import unused
+        unused(signum, frame)
         stop = getattr(self, "stop", None)
         if callable(stop): stop()
         if self.pidfile and os.path.exists(self.pidfile):

@@ -53,7 +53,7 @@ class ZenMenuItem(ZenModelRM, ZenPackable):
 
     def getMenuItemOwner(self):
         parent = self
-        for x in range(4):
+        for unused in range(4):
             parent = parent.getParentNode()
         return parent
 

@@ -20,9 +20,8 @@ from Products.ZenModel.DataPointGraphPoint import DataPointGraphPoint
 # graphReports is using buildMenus so we let it go first before we modify
 # some of the same menus.
 import graphReports
-if 0:
-    graphReports = None                 # be quiet pyflakes
-
+from Products.ZenUtils.Utils import unused
+unused(graphReports)
 
 class MultiGraphReports(Migrate.Step):
     version = Migrate.Version(2, 1, 0)
@@ -90,7 +89,7 @@ class MultiGraphReports(Migrate.Step):
 
 
         # Get rid of old  Report menus
-        reportList = getattr(dmd.zenMenus, 'Report_list')
+        reportList = dmd.zenMenus.Report_list
         if hasattr(reportList, 'addMultiGraphReport'):
             reportList.manage_deleteZenMenuItem(('addMultiGraphReport',))
         reportList.manage_addZenMenuItem( 

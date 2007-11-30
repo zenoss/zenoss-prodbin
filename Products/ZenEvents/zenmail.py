@@ -50,7 +50,7 @@ class ZenossEventPoster(object):
 
 
     def postEvent(self, messageStr):
-        message = email.message_from_string(messageStr)
+        email.message_from_string(messageStr)
         self.processor.process(messageStr)
 
 
@@ -79,7 +79,7 @@ class ZenossDelivery(object):
         self.processor = processor
 
 
-    def receivedHeader(self, helo, origin, recipients):
+    def receivedHeader(self, helo, unused, ignored):
         myHostname, self.clientIP = helo
         date = smtp.rfc822date()
 
@@ -101,7 +101,7 @@ class ZenossDelivery(object):
         return ZenossEventPoster(self.processor)
 
 
-    def validateFrom(self, helo, originAddress):
+    def validateFrom(self, unused, originAddress):
         log.info("from: %s" % originAddress)
         return originAddress
     
@@ -110,7 +110,7 @@ class SMTPFactory(protocol.ServerFactory):
     def __init__(self, processor):
         self.processor = processor
 
-    def buildProtocol(self, addr):
+    def buildProtocol(self, unused):
         delivery = ZenossDelivery(self.processor)
         smtpProtocol = smtp.SMTP(delivery)
         smtpProtocol.factory = self

@@ -139,13 +139,10 @@ class Migration(ZenScriptBase):
         steps = self.allSteps[:]
         
         # check version numbers
-        good = True
         while steps and steps[0].version < 0:
             raise MigrationFailed("Migration %s does not set "
                                   "the version number" %
                                   steps[0].__class__.__name__)
-
-        app = self.dmd.getPhysicalRoot()
 
         # dump old steps
         

@@ -25,7 +25,9 @@ class ZenManagerRole(Migrate.Step):
 
     version = Migrate.Version(2, 1, 0)
     
-    def addPermissions(self, obj, permission, roles=[], acquire=0):
+    def addPermissions(self, obj, permission, roles=None, acquire=0):
+        if not roles:
+            roles = []
         if not permission in obj.possible_permissions():
             obj.__ac_permissions__=(
                 obj.__ac_permissions__+((permission,(),roles),))

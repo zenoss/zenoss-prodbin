@@ -13,8 +13,8 @@
 
 import time
 
-from ZenEventClasses import *
-from Exceptions import *
+from Products.ZenEvents.ZenEventClasses import *
+from Products.ZenEvents.Exceptions import *
 
 
 def buildEventFromDict(evdict):

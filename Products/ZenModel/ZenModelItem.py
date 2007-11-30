@@ -43,7 +43,7 @@ class ZenModelItem(ZenModelBase):
 
 
     security.declareProtected('View', 'getPrimaryUrlPath')
-    def getPrimaryUrlPath(self):
+    def getPrimaryUrlPath(self, ignored=None):
         """get the physicalpath as a url"""
         return self.absolute_url_path()
 

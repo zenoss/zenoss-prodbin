@@ -22,6 +22,8 @@ from Products.ZenModel.ZenModelRM import ZenModelRM
 from Products.ZenEvents.EventFilter import EventFilter
 from Products.ZenUtils.FakeRequest import FakeRequest
 
+from Products.ZenUtils.Utils import unused
+
 def manage_addCustomEventView(context, id, REQUEST=None):
     """Create an aciton rule"""
     ed = CustomEventView(id)
@@ -31,6 +33,7 @@ def manage_addCustomEventView(context, id, REQUEST=None):
 
 addCustomEventView = DTMLFile('dtml/addCustomEventView',globals())
 
+__pychecker__='no-argsused no-varargsused'
 
 class CustomEventView(ZenModelRM, EventFilter):
     
@@ -112,11 +115,12 @@ class CustomEventView(ZenModelRM, EventFilter):
 
     def getJSONEventsInfo(self, offset=0, count=50, fields=[], 
                           getTotalCount=True, 
-                          
                           filter='', severity=2, state=1, 
                           orderby='', REQUEST=None):
         """Return the current event list for this managed entity.
         """
+        unused(count, fields, filter, getTotalCount, offset,
+               orderby, severity, state)
         kwargs = locals(); del kwargs['self']
         return self.getEventManager().getJSONEventsInfo(self, **kwargs)
 
@@ -128,6 +132,8 @@ class CustomEventView(ZenModelRM, EventFilter):
                           orderby='', REQUEST=None):
         """Return the current event list for this managed entity.
         """
+        unused(count, enddate, fields, filter, getTotalCount, offset, orderby,
+               severity, startdate, state)
         kwargs = locals(); del kwargs['self']
         return self.getEventHistory().getJSONEventsInfo(self, **kwargs)
 
@@ -239,6 +245,7 @@ class CustomEventView(ZenModelRM, EventFilter):
                                     REQUEST=None, **kwargs):
         """Delete events form this managed entity.
         """
+        unused(count)
         evids = self.getEventManager().getEventBatchME(self.dmd.Events,
                                             selectstatus=selectstatus,
                                             goodevids=goodevids, 
@@ -276,6 +283,7 @@ class CustomEventView(ZenModelRM, EventFilter):
         Only called from event console, so uses FakeRequest to avoid
         page rendering.
         """
+        unused(count)
         evids = self.getEventHistory().getEventBatchME(self.dmd.Events, 
                                             selectstatus=selectstatus,
                                             goodevids=goodevids, 
@@ -304,6 +312,7 @@ class CustomEventView(ZenModelRM, EventFilter):
         Only called from event console, so uses FakeRequest to avoid
         page rendering.
         """
+        unused(count)
         evids = self.getEventManager().getEventBatchME(self.dmd.Events, 
                                             selectstatus=selectstatus,
                                             goodevids=goodevids, 

@@ -34,7 +34,7 @@ class ScanFactory(ClientFactory):
     def __init__(self):
         self.deferred = defer.Deferred()
 
-    def clientConnectionFailed(self, connector, reason):
+    def clientConnectionFailed(self, unused, reason):
         self.deferred.errback(reason)
         self.deferred = None
 
@@ -105,7 +105,7 @@ class Scanner(object):
         d.addErrback(self.recordFailure, host, port)
         return d
 
-    def recordConnection(self, result, host, port):
+    def recordConnection(self, unused, host, port):
         hostData = self.data['success'].setdefault(host, [])
         log.debug('Connected to %s:%d' % (host, port))
         hostData.append(port)
@@ -116,7 +116,7 @@ class Scanner(object):
         log.debug('Failed to connect to %s:%d -- %s' (host, port, data[1]))
         hostData.append(data)
 
-    def finishRun(self, result=None):
+    def finishRun(self, unused=None):
         reactor.stop()
         self.printResults()
 

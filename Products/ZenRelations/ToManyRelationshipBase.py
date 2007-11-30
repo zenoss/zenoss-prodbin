@@ -27,6 +27,7 @@ from Globals import InitializeClass
 from App.Management import Tabs
 
 from Products.ZenRelations.Exceptions import zenmarker
+from Products.ZenUtils.Utils import unused
 
 class ToManyRelationshipBase(
             RelCopyContainer, 
@@ -66,6 +67,7 @@ class ToManyRelationshipBase(
     
     def _delObject(self, id, dp=1):
         """Emulate ObjectManager deletetion."""
+        unused(dp)
         obj = self._getOb(id)
         self.removeRelation(obj)
         obj.__primary_parent__ = None
@@ -73,12 +75,16 @@ class ToManyRelationshipBase(
     
     def _setOb(self, id, obj): 
         """don't use attributes in relations"""
-        raise NotImplementedError
+        unused(id)
+        unused(obj)
+        if True:
+            raise NotImplementedError
         
   
     def _delOb(self, id):
         """don't use attributes in relations"""
-        raise NotImplementedError
+        if True:
+            raise NotImplementedError
 
 
     def _getOb(self, id, default=zenmarker):
@@ -87,7 +93,9 @@ class ToManyRelationshipBase(
         If it doesn't exist return default or if default is not set 
         raise AttributeError
         """
-        raise NotImplementedError
+        unused(default)
+        if True:
+            raise NotImplementedError
 
 
     def manage_workspace(self, REQUEST):
@@ -98,7 +106,8 @@ class ToManyRelationshipBase(
             Tabs.manage_workspace(self, REQUEST) 
         else:    
             obj = self._getOb(self, id)
-            raise "Redirect", (obj.getPrimaryUrlPath()+'/manage_workspace')
+            from zExceptions import Redirect
+            raise Redirect, (obj.getPrimaryUrlPath()+'/manage_workspace')
                                         
 
 InitializeClass(ToManyRelationshipBase)

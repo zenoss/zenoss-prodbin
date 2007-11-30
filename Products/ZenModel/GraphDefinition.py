@@ -35,7 +35,7 @@ def manage_addGraphDefinition(context, id, REQUEST = None):
     '''
     if REQUEST:
         REQUEST['message'] = 'That operation is not supported.'
-        self.callZenScreen(REQUEST)
+        context.callZenScreen(REQUEST)
 
 class FakeContext:
     isFake = True
@@ -43,7 +43,7 @@ class FakeContext:
         self.id = name
     def __getattr__(self, name):
         return FakeContext(name)
-    def __call__(self, *kw, **args):
+    def __call__(self, *unused, **ignored):
         return self
     def __getitem__(self, key):
         return FakeContext(key)

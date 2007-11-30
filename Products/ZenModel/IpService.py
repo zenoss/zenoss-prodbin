@@ -34,8 +34,8 @@ def manage_addIpService(context, id, protocol, port, userCreated=None, REQUEST=N
     s = IpService(id)
     context._setObject(id, s)
     s = context._getOb(id)
-    setattr(s, 'protocol', protocol)
-    setattr(s, 'port', int(port))
+    s.protocol = protocol
+    s.port = int(port)
     args = {'protocol':protocol, 'port':int(port)}
     s.setServiceClass(args)
     if userCreated: s.setUserCreateFlag()
@@ -55,6 +55,8 @@ class IpService(Service):
     """
     IpService object
     """
+
+    __pychecker__='no-override'
 
     portal_type = meta_type = 'IpService'
 

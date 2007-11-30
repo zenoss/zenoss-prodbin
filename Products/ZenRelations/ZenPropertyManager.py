@@ -22,8 +22,9 @@ from ZPublisher.Converters import type_converters
 from Products.ZenModel.ZenossSecurity import *
 from AccessControl import ClassSecurityInfo
 from Exceptions import zenmarker
-
 iszprop = re.compile("^z[A-Z]").search
+
+from Products.ZenUtils.Utils import unused
 
 class ZenPropertyManager(PropertyManager):
     """
@@ -41,6 +42,8 @@ class ZenPropertyManager(PropertyManager):
     ZenProperties all have the same prefix which is defined by iszprop
     this can be overridden in a subclass.
     """
+    __pychecker__='no-override'
+    
     security = ClassSecurityInfo()
     
     manage_propertiesForm=DTMLFile('dtml/properties', globals(),
@@ -55,7 +58,7 @@ class ZenPropertyManager(PropertyManager):
             self._v_propdict = self.propdict()
         if self._v_propdict.has_key('setter'):
             settername = self._v_propdict['setter']
-            setter = getattr(aq_base(obj), settername, None)
+            setter = getattr(aq_base(self), settername, None)
             if not setter:
                 raise ValueError("setter %s for property %s doesn't exist"
                                     % (settername, id))
@@ -242,6 +245,7 @@ class ZenPropertyManager(PropertyManager):
     security.declareProtected(ZEN_ZPROPERTIES_VIEW, 'zenPropertyOptions')
     def zenPropertyOptions(self, propname):
         "Provide a set of default options for a ZProperty"
+        unused(propname)
         return []
     
     security.declareProtected(ZEN_ZPROPERTIES_VIEW, 'isLocal')

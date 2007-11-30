@@ -265,7 +265,7 @@ class RRDTemplate(ZenModelRM, ZenPackable):
         """Add a GraphDefinition to our RRDTemplate.
         """
         from GraphDefinition import GraphDefinition
-        graphs = self.getGraphDefs()
+        self.getGraphDefs()
         graph = None
         graph = GraphDefinition(new_id)
         graph.sequence = len(self.graphDefs())

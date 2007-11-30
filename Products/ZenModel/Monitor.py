@@ -30,6 +30,8 @@ class Monitor(ZenModelRM, DeviceManagerBase):
     meta_type = 'Monitor'
     
     def breadCrumbs(self, target='dmd'):
+        from Products.ZenUtils.Utils import unused
+        unused(target)
         bc = ZenModelRM.breadCrumbs(self)
         return [bc[0],bc[-1]]
 

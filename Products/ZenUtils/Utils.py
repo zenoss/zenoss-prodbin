@@ -141,7 +141,6 @@ def getObjByPath(base, path, restricted=0):
     obj = base
     while path:
         name = path_pop()
-        __traceback_info__ = path, name
 
         if name[0] == '_':
             # Never allowed in a URL.
@@ -333,6 +332,7 @@ def OLDgetHierarchyObj(root, name, factory, lastfactory=None,
     relpath is the relationship within which we will recurse as
     objects are created.  Having the relationship in the path passed
     is optional."""
+    unused(llog)
     path = zenpathsplit(name)
     for id in path:
         if id == relpath: continue
@@ -363,6 +363,7 @@ def createHierarchyObj(root, name, factory, relpath="", llog=None):
     any missing relations in the path and factory is the constructor for 
     this object.
     """
+    unused(llog)
     rootName = root.id
     for id in zenpathsplit(name):
         if id == rootName: continue
@@ -554,4 +555,7 @@ def extractPostContent(REQUEST):
             result = REQUEST.form.keys()[0]
     except: result = ''
     return result
+
+def unused(*args):                      # useful for shutting up pychecker
+    return len(args)
 

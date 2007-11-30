@@ -21,7 +21,7 @@ __version__ = "$Revision$"[11:-2]
 
 import Migrate
 from MySQLdb import OperationalError
-import MySQLdb.constants.ER as ER
+from MySQLdb.constants import ER
 MYSQL_ERROR_TRIGGER_DOESNT_EXIST = 1360
 
 trigger = """
@@ -67,7 +67,7 @@ class DevicePriority(Migrate.Step):
     "Add a DevicePriority column to the status and history tables"
     version = Migrate.Version(1, 1, 0)
 
-    def cutover(self, dmd):
+    def cutover(self, unused):
         zem = self.dmd.ZenEventManager
         conn = zem.connect()
         try:

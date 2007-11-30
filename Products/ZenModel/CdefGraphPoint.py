@@ -52,6 +52,8 @@ class CdefGraphPoint(GraphPoint):
                         multiid=-1, prefix=''):
         ''' Build the graphing commands for this graphpoint
         '''
+        from Products.ZenUtils.Utils import unused
+        unused(rrdDir)
         if not self.rpn:
             return cmds
         rpn = self.talesEval(self.rpn, context)

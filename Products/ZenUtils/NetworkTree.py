@@ -49,10 +49,12 @@ def _sortedpair(x,y):
     l.sort(cmpf)
     return tuple(l)
 
-def _get_connections(rootnode, depth=1, pairs=[], filter='/'):
+def _get_connections(rootnode, depth=1, pairs=None, filter='/'):
     """ Depth-first search of the network tree emanating from
         rootnode, returning (network, device) edges.
     """
+    if not pairs:
+        pairs = []
     if depth:
         for node in _get_related(rootnode, filter):
             sorted = _sortedpair(rootnode, node)

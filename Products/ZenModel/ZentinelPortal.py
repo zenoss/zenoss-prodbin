@@ -249,7 +249,7 @@ class PortalGenerator:
 manage_addZentinelPortal = Globals.HTMLFile('dtml/addPortal', globals())
 manage_addZentinelPortal.__name__ = 'addPortal'
 
-def manage_addZentinelPortal(self, id="zport", title='Zentinel Portal',
+def manage_addZentinelPortal(obj, id="zport", title='Zentinel Portal',
                          description='',
                          create_userfolder=True,
                          email_from_address='postmaster@localhost',
@@ -261,9 +261,9 @@ def manage_addZentinelPortal(self, id="zport", title='Zentinel Portal',
     gen = PortalGenerator()
     from string import strip
     id = strip(id)
-    p = gen.create(self, id, create_userfolder)
+    p = gen.create(obj, id, create_userfolder)
     gen.setupDefaultProperties(p, title, description,
                                email_from_address, email_from_name,
                                validate_email)
     if RESPONSE is not None:
-        RESPONSE.redirect(self.absolute_url()+'/manage_main')
+        RESPONSE.redirect(obj.absolute_url()+'/manage_main')

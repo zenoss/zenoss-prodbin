@@ -19,8 +19,8 @@ $Id: ZDeviceLoader.py,v 1.19 2004/04/22 02:14:12 edahl Exp $"""
 
 __version__ = "$Revision: 1.19 $"[11:-2]
 
-import logging
-log = logging.getLogger("zen.DeviceLoader")
+from logging import StreamHandler, Formatter, getLogger
+log = getLogger("zen.DeviceLoader")
 
 import transaction
 from AccessControl import ClassSecurityInfo
@@ -276,8 +276,7 @@ class ZDeviceLoader(ZenModelItem,SimpleItem):
 
     def setupLog(self, response):
         """setup logging package to send to browser"""
-        from logging import StreamHandler, Formatter
-        root = logging.getLogger()
+        root = getLogger()
         self._v_handler = StreamHandler(response)
         fmt = Formatter("""<tr class="tablevalues">
         <td>%(asctime)s</td><td>%(levelname)s</td>
@@ -289,9 +288,9 @@ class ZDeviceLoader(ZenModelItem,SimpleItem):
 
 
     def clearLog(self):
-        log = logging.getLogger()
+        alog = getLogger()
         if getattr(self, "_v_handler", False):
-            log.removeHandler(self._v_handler)
+            alog.removeHandler(self._v_handler)
 
 
     def loaderFooter(self, devObj, response):

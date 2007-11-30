@@ -25,12 +25,12 @@ log = logging.getLogger("zen.DbConnectionPool")
 POOL_SIZE = 5
 KEEP_ALIVE = 28800
 
-class DbConnectionPool(Queue):
+class DbConnectionPool:
 
-    def __new__(type):
-        if not '_the_instance' in type.__dict__:
-            type._the_instance = object.__new__(type)
-        return type._the_instance
+    def __new__(self):                  # self is a type
+        if not '_the_instance' in self.__dict__:
+            self._the_instance = object.__new__(self)
+        return self._the_instance
         
     '''
     instance = None
@@ -42,12 +42,15 @@ class DbConnectionPool(Queue):
     '''
         
     def __init__(self):
-        Queue.__init__(self, POOL_SIZE)
+        self.q = Queue(POOL_SIZE)
 
-    def get(self, backend=None, host=None, port=None, username=None, 
+    def qsize(self):
+        return self.q.qsize()
+
+    def get(self, host=None, port=None, username=None, 
             password=None, database=None, block=0):
         try:
-            putstamp,obj = Queue.get(self, block)
+            putstamp,obj = self.q.get(block)
 
             if time.time() - putstamp >= KEEP_ALIVE:
                 log.debug('Retrieved a stale connection; Pool size: %s' % self.qsize())
@@ -71,7 +74,7 @@ class DbConnectionPool(Queue):
 
     def put(self, obj, block=0):
         try:
-            Queue.put(self, (time.time(),obj), block)
+            self.q.put((time.time(),obj), block)
             log.debug('Returned a connection; Pool size: %s' % self.qsize())
         except Full:
             pass
@@ -80,17 +83,6 @@ class DbConnectionPool(Queue):
                         username=None, password=None, database=None):
         log.debug('Creating a new connection; Pool size: %s' % self.qsize())
         conn = None
-        """
-        if self.backend == "omnibus":
-            import Sybase
-            self.conn = Sybase.connect(self.database,self.username,
-                                        self.password)
-        elif self.backend == "oracle":
-            import DCOracle2
-            connstr = "%s/%s@%s" % (self.username, self.password, self.database)
-            self.conn = DCOracle2.connect(connstr)                                        
-        elif self.backend == "mysql":
-        """
         mysqlconv = MySQLdb.converters.conversions.copy()
         mysqlconv[FIELD_TYPE.DATETIME] = DateTime.DateTime
         mysqlconv[FIELD_TYPE.TIMESTAMP] = DateTime.DateTime

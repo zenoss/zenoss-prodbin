@@ -139,13 +139,15 @@ class EventServer(ZCmdBase):
                 reactor.stop()
 
 
-    def sendEvent(self, evt):
+    def sendEvent(self, evt, **kw):
         "wrapper for sending an event"
         self.zem._p_jar.sync()
         if type(evt) == dict:
             evt['manager'] = self.myfqdn
+            evt.update(kw)
         else:
             evt.manager = self.myfqdn
+            evt.__dict__.update(kw)
         self.zem.sendEvent(evt)
 
 
@@ -166,7 +168,7 @@ class EventServer(ZCmdBase):
         reactor.callLater(seconds, self.heartbeat)
 
         
-    def sigTerm(self, signum, frame):
+    def sigTerm(self, signum=None, frame=None):
         'controlled shutdown of main loop on interrupt'
         try:
             ZCmdBase.sigTerm(self, signum, frame)

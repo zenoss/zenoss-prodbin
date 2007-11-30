@@ -54,6 +54,8 @@ class ShiftGraphPoint(GraphPoint):
                         multiid=-1, prefix=''):
         ''' Build the graphing commands for this graphpoint
         '''
+        from Products.ZenUtils.Utils import unused
+        unused(multiid, rrdDir)
         if not (self.rrdFile and self.dsName and self.cFunc):
             return cmds
         

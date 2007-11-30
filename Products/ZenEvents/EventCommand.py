@@ -75,7 +75,7 @@ class EventCommand(ZenModelRM, Commandable, EventFilter, ZenPackable):
         return crumbs
 
     
-    def manage_beforeDelete(self, item, container):
+    def manage_beforeDelete(self, item, unused):
         """Clear state in alert_state before we are deleted.
         """
         self._clearAlertState()

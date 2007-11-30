@@ -26,7 +26,7 @@ from AccessControl import Permissions as permissions
 from Products.ZenUtils.Utils import convToUnits
 from Products.ZenRelations.RelSchema import *
 
-from Exceptions import *
+from Products.ZenModel.Exceptions import *
 
 from IpInterface import manage_addIpInterface
 from WinService import manage_addWinService

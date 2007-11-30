@@ -43,7 +43,7 @@ class POPProtocol(POP3Client):
     allowInsecureLogin = True
     timeout = 15
 
-    def serverGreeting(self, greeting):
+    def serverGreeting(self, unused):
         log.info('server greeting received.')
         log.info('logging in...')
 
@@ -52,7 +52,7 @@ class POPProtocol(POP3Client):
         login.addErrback(self.factory.deferred.errback)
  
 
-    def _loggedIn(self, result):
+    def _loggedIn(self, unused):
         log.info('logged in')
         return self.retrieveAndParse()
 
@@ -90,7 +90,7 @@ class POPProtocol(POP3Client):
         self.factory.handleMessage("\r\n".join(messageLines))
 
 
-    def _delete(self, results):
+    def _delete(self, unused):
         if not self.factory.nodelete:
             deleters = []
             for index in range(len(self.sizes)):
@@ -102,7 +102,7 @@ class POPProtocol(POP3Client):
         return deferreds
 
 
-    def _finished(self, downloadResults):
+    def _finished(self, unused):
         log.info('sleeping for %d seconds.' % self.factory.cycletime)
         reactor.callLater(self.factory.cycletime, self.retrieveAndParse)
 
@@ -130,11 +130,11 @@ class POPFactory(protocol.ClientFactory):
         self.processor.process(messageData)
 
 
-    def clientConnectionFailed(self, connection, reason):
+    def clientConnectionFailed(self, unused, reason):
         self.deferred.errback(reason)
 
 
-    def scanComplete(self, results):
+    def scanComplete(self, unused):
         log.info("scan complete")
         self.finish()
 

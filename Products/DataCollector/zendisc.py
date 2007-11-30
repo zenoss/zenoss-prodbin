@@ -36,9 +36,11 @@ class ZenDisc(ZenModeler):
         ZenModeler.__init__(self, noopts, app, single, threaded, keeproot)
 
 
-    def discoverRouters(self, rootdev, seenips=[]):
+    def discoverRouters(self, rootdev, seenips=None):
         """Discover all default routers based on dmd configuration.
         """
+        if not seenips:
+            seenips = []
         for ip in rootdev.followNextHopIps():
             if ip in seenips: continue
             self.log.info("device '%s' next hop '%s'", rootdev.id, ip)
@@ -148,9 +150,7 @@ class ZenDisc(ZenModeler):
     def discoverDevice(self, ip, devicepath="/Discovered", prodState=1000):
         """Discover a device based on its ip address.
         """
-        devname = ""
         if not isip(ip):
-            devname = ip
             ip = socket.gethostbyname(ip)
         try:
             ipobj = self.dmd.Networks.findIp(ip)
@@ -222,7 +222,7 @@ class ZenDisc(ZenModeler):
         try:
             myip = socket.gethostbyname(myname)
             self.log.info("my ip = %s", myip)
-        except socket.error, e:
+        except socket.error:
             self.log.warn("failed lookup of my ip for name %s", myname) 
         me = self.dmd.Devices.findDevice(myname)
         if not me or self.options.remodel:
