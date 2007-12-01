@@ -193,11 +193,13 @@
     topPane - standard top area with logo, etc...
  ====================================================== -->
 <div id="topPane" metal:define-macro="topPane">
+    <a href="/zport/dmd/Dashboard">
     <div class="logo"
         tal:define="zenversion zenversion | string:Core"
         tal:content="string:| ${zenversion}">
         | Core
     </div>
+    </a>
     <div id="settings">
     <ul>
         <li>
