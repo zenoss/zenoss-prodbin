@@ -422,6 +422,7 @@ class UserSettings(ZenModelRM):
     escalationMinutes = 0
     dashboardState = ''
     netMapStartObject = ''
+    eventConsoleRefresh = True
     
     _properties = ZenModelRM._properties + (
         {'id':'email', 'type':'string', 'mode':'w'},
@@ -435,6 +436,7 @@ class UserSettings(ZenModelRM):
         {'id':'escalationMinutes', 'type':'int', 'mode':'w'},
         {'id':'dashboardState', 'type':'string', 'mode':'w'},
         {'id':'netMapStartObject', 'type':'string', 'mode':'w'},
+        {'id':'eventConsoleRefresh', 'type':'boolean', 'mode':'w'},
     )
  
 

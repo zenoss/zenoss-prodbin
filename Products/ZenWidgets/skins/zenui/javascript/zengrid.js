@@ -229,8 +229,10 @@ ZenGrid.prototype = {
     },
     turnRefreshOff: function() {
         var button = $('refreshButton');
-        this.refreshMgr.cancelRefresh();
-        delete this.refreshMgr;
+        try {
+            this.refreshMgr.cancelRefresh();
+            delete this.refreshMgr;
+        } catch(e) { noop(); }
         setStyle(button,
             {'background-image':'url(img/refresh_on.png)'});
         button.onclick = this.turnRefreshOn;

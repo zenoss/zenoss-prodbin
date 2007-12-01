@@ -123,6 +123,17 @@ function ConfirmPagerTest() {
       </td>
     </tr>
     <tr>
+      <td class="tableheader" align="left">Event Console Refresh On</td>
+      <td class="tablevalues">
+        <select class="tablevalues" name="eventConsoleRefresh:boolean"
+            tal:define="options python:[True, False]">
+            <option tal:repeat="opt options" tal:content="opt"
+                tal:attributes="selected python:here.eventConsoleRefresh==opt"
+                />
+        </select>
+      </td>
+    </tr>
+    <tr>
         <td class=tableheader align="left" >
         </td>
         <td align="left"  class="tableheader" colspan=3>

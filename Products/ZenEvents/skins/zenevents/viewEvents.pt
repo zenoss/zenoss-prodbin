@@ -61,8 +61,7 @@
                 name="refresh" 
                 style="width:50px;background:transparent 
                        url(img/refresh_on.png) no-repeat;
-                       cursor:pointer;height:20px;"
-                onclick="eventZenGrid.turnRefreshOn($('refreshRate').value)">
+                       cursor:pointer;height:20px;">
             <input class="tableheader" type="text" name="refreshRate" 
                 id="refreshRate" size='2' value='60'>
         <div class="filterbox"
@@ -95,6 +94,18 @@ addLoadEvent( function() {
     connect('state', 'onchange', eventZenGrid.refreshFromFormElement);
     connect('severity', 'onchange', eventZenGrid.refreshFromFormElement);
 });">
+</script>
+<script tal:condition="
+python:here.dmd.ZenUsers.getUserSettings().eventConsoleRefresh">
+addLoadEvent( function() {
+    eventZenGrid.turnRefreshOn();
+});
+</script>
+<script tal:condition="
+python:not here.dmd.ZenUsers.getUserSettings().eventConsoleRefresh">
+addLoadEvent( function() {
+    eventZenGrid.turnRefreshOff();
+});
 </script>
 </td></tr>
 <!-- END TABLE CONTENTS -->
