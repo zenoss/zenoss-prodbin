@@ -20,16 +20,6 @@ function ConfirmPagerTest() {
 
 <form method=post tal:attributes="action string:${here/absolute_url_path}" name="user">
 <input type="hidden" name="zenScreenName" tal:attributes="value template/id" /> 
-<textarea type="text" name="roles:lines"
-    tal:condition="not:here/isManager" style="display:none"
-    tal:content="python:'\n'.join(here.getUserRoles())">
-</textarea>
-
-<textarea type="text" name="groups:lines"
-    tal:condition="not:here/isManager" style="display:none"
-    tal:content="python:'\n'.join(here.getUserGroupSettingsNames())">
-</textarea>
-
 
         <tal:block tal:define="message request/message | string:State at time:; 
             tabletitle string:${message} ${here/getNowString}">

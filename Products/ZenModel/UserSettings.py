@@ -527,7 +527,7 @@ class UserSettings(ZenModelRM):
         roleManager = self.acl_users.roleManager
         origRoles = filter(rolefilter, user.getRoles())
         # if there's a change, then we need to update
-        if roles != origRoles:
+        if roles != origRoles and self.isManager():
             from sets import Set as set
             # get roles to remove and then remove them
             removeRoles = list(set(origRoles).difference(set(roles)))
@@ -542,7 +542,7 @@ class UserSettings(ZenModelRM):
         groupManager = self.acl_users.groupManager
         origGroups = groupManager.getGroupsForPrincipal(user)
         # if there's a change, then we need to update 
-        if groups != origGroups:
+        if groups != origGroups and self.isManager():
             # can we use the built-in set?
             try:
                 set()
