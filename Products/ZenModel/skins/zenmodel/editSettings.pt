@@ -52,42 +52,42 @@ YAHOO.zenoss.loader.insert();
         <!-- BEGIN TABLE CONTENTS -->
             
     <tr>
-      <td class="tableheader" align="left">SMTP Host</td>
+      <td class="tableheader noselect" title="Simple Mail Transport Protocol (aka E-mail server)" align="left">SMTP Host</td>
       <td class="tablevalues">
-        <input class="tablevalues" type="text" name="smtpHost"
+        <input class="tablevalues" title="Simple Mail Transport Protocol (aka E-mail server)" type="text" name="smtpHost"
             tal:attributes="value here/smtpHost" />
       </td>
     </tr>
     <tr>
-      <td class="tableheader" align="left">SMTP Port (usually 25)</td>
+      <td class="noselect tableheader" title="TCP/IP port to access Simple Mail Transport Protocol (aka E-mail server)" align="left">SMTP Port (usually 25)</td>
       <td class="tablevalues">
-        <input class="tablevalues" type="text" name="smtpPort"
+        <input class="tablevalues" title="TCP/IP port to access Simple Mail Transport Protocol (aka E-mail server)" type="text" name="smtpPort"
             tal:attributes="value here/smtpPort" />
       </td>
     </tr>
     <tr>
-      <td class="tableheader" align="left">SMTP Username (blank for none)</td>
+      <td class="noselect tableheader" title="Use this only if authentication is required" align="left">SMTP Username (blank for none)</td>
       <td class="tablevalues">
-        <input class="tablevalues" type="text" name="smtpUser"
+        <input class="tablevalues" title="Use this only if authentication is required" type="text" name="smtpUser"
             tal:attributes="value here/smtpUser|string:" />
       </td>
     </tr>    
     <tr>
-      <td class="tableheader" align="left">SMTP Password (blank for none)</td>
+      <td class="noselect tableheader" title="Use this only if authentication is required" align="left">SMTP Password (blank for none)</td>
       <td class="tablevalues">
-        <input class="tablevalues" type="password" name="smtpPass"
+        <input class="tablevalues" title="Use this only if authentication is required" type="password" name="smtpPass"
             tal:attributes="value here/smtpPass|string:" />
       </td>
     </tr>
     <tr>
-      <td class="tableheader" align="left">From Address for Emails</td>
+      <td class="noselect tableheader" title="Defaults to 'root@localhost.localdomain'" align="left">From Address for Emails</td>
       <td class="tablevalues">
-        <input class="tablevalues" type="text" name="emailFrom"
+        <input class="tablevalues" title="Defaults to 'root@localhost.localdomain'" type="text" name="emailFrom"
             tal:attributes="value here/emailFrom|string:" />
       </td>
     </tr>
     <tr>
-        <td class="tableheader" align="left">Use TLS?</td>
+        <td class="noselect tableheader" title="Use Transport Layer Security for E-mail?" align="left">Use TLS?</td>
         <td class="tablevalues">
         <input type="hidden" name="smtpUseTLS:int:default" value="0">
         <input type="checkbox" value="1" name="smtpUseTLS:int"
@@ -95,74 +95,74 @@ YAHOO.zenoss.loader.insert();
         </td>
     </tr>
     <tr>
-      <td class="tableheader" align="left">SNPP Host</td>
+      <td class="noselect tableheader" title="Simple Network Paging Protocol host" align="left">SNPP Host</td>
       <td class="tablevalues">
-        <input class="tablevalues" type="text" name="snppHost"
+        <input class="tablevalues" title="Simple Network Paging Protocol host" type="text" name="snppHost"
             tal:attributes="value here/snppHost" />
       </td>
     </tr>
     <tr>
-      <td class="tableheader" align="left">SNPP Port (usually 444)</td>
+      <td class="noselect tableheader" title="TCP/IP port for Simple Network Paging Protocol" align="left">SNPP Port (usually 444)</td>
       <td class="tablevalues">
-        <input class="tablevalues" type="text" name="snppPort"
+        <input class="tablevalues" title="TCP/IP port for Simple Network Paging Protocol" type="text" name="snppPort"
             tal:attributes="value here/snppPort" />
       </td>
     </tr>
 
     <tr>
-      <td class="tableheader" align="left">Dashboard Production State Threshold</td>
+      <td class="noselect tableheader" title="" align="left">Dashboard Production State Threshold</td>
       <td class="tablevalues">
-        <input class="tablevalues" type="text" name="prodStateDashboardThresh"
+        <input class="tablevalues" title="" type="text" name="prodStateDashboardThresh"
             tal:attributes="value here/prodStateDashboardThresh" />
       </td>
     </tr>
 
     <tr>
-      <td class="tableheader" align="left">Dashboard Priority Threshold</td>
+      <td class="noselect tableheader" title="" align="left">Dashboard Priority Threshold</td>
       <td class="tablevalues">
-        <input class="tablevalues" type="text" name="priorityDashboardThresh"
+        <input class="tablevalues" title="" type="text" name="priorityDashboardThresh"
             tal:attributes="value here/priorityDashboardThresh" />
       </td>
     </tr>
         
     <tr>
-      <td class="tableheader" align="left">State Conversions</td>
+      <td class="noselect tableheader" title="" align="left">State Conversions</td>
       <td class="tablevalues">
-        <textarea class="tablevalues" name="prodStateConversions:lines"
+        <textarea class="tablevalues" title="" name="prodStateConversions:lines"
             rows="6" cols="35"
             tal:content="python: '\n'.join(here.prodStateConversions)"></textarea>
       </td>
      </tr>
      <tr>
-      <td class="tableheader" align="left">Priority Conversions</td>
+      <td class="noselect tableheader" title="" align="left">Priority Conversions</td>
       <td class="tablevalues">
-        <textarea class="tablevalues" name="priorityConversions:lines"
+        <textarea class="tablevalues" title="" name="priorityConversions:lines"
             rows="6" cols="35"
             tal:content="python: '\n'.join(here.priorityConversions)"></textarea>
       </td>
     </tr>
     <!--
     <tr>
-      <td class="tableheader" align="left">Status Conversions</td>
+      <td class="tableheader" title="" align="left">Status Conversions</td>
       <td class="tablevalues">
-        <textarea class="tablevalues" name="statusConversions:lines"
+        <textarea class="tablevalues" title="" name="statusConversions:lines"
             rows="6" cols="35"
             tal:content="python: '\n'.join(here.statusConversions)"></textarea>
       </td>
     </tr>
     <tr>
-      <td class="tableheader" align="left">Interface State Conversions</td>
+      <td class="tableheader" title="" align="left">Interface State Conversions</td>
       <td class="tablevalues">
-        <textarea class="tablevalues" name="interfaceStateConversions:lines"
+        <textarea class="tablevalues" title="" name="interfaceStateConversions:lines"
             rows="6" cols="35"
             tal:content="python: '\n'.join(here.interfaceStateConversions)"></textarea>
       </td>
     </tr>
     -->
     <tr>
-      <td class="tableheader" align="left">Administrative Roles</td>
+      <td class="noselect tableheader" title="Site-specific groups and categories of users" align="left">Administrative Roles</td>
       <td class="tablevalues">
-        <textarea class="tablevalues" name="administrativeRoles:lines"
+        <textarea class="tablevalues" title="Site-specific groups and categories of users" name="administrativeRoles:lines"
             rows="6" cols="35"
             tal:content="python: '\n'.join(here.administrativeRoles)"></textarea>
       </td>

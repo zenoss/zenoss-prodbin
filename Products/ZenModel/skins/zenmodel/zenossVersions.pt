@@ -140,7 +140,9 @@
     </thead>
     <tbody>
         <tr tal:repeat="version here/getAllVersions" >
-            <th class="tableheader" tal:content="version/header" />
+            <th class="tableheader" title="Project homepage" >
+               <a tal:attributes="href version/href" target="_blank" tal:content="version/header" > project name </a>
+            </th>
             <td class="tablevalues" tal:content="version/data"/>
         </tr>
     </tbody>

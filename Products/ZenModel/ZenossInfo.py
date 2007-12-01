@@ -269,19 +269,29 @@ class ZenossInfo(ZenModelItem, SimpleItem):
         software.
         """
         versions = (
-        {'header': 'Zenoss', 'data': self.getZenossVersion().full()},
-        {'header': 'OS', 'data': self.getOSVersion().full()},
-        {'header': 'Zope', 'data': self.getZopeVersion().full()},
-        {'header': 'Python', 'data': self.getPythonVersion().full()},
-        {'header': 'Database', 'data': self.getMySQLVersion().full()},
-        {'header': 'RRD', 'data': self.getRRDToolVersion().full()},
-        {'header': 'Twisted', 'data': self.getTwistedVersion().full()},
-        {'header': 'SNMP', 'data': self.getPySNMPVersion().full()},
-        {'header': 'Twisted SNMP', 'data': self.getTwistedSNMPVersion().full()},
+        {'header': 'Zenoss', 'data': self.getZenossVersion().full(), 
+            'href': "http://www.zenoss.com" },
+        {'header': 'OS', 'data': self.getOSVersion().full(),
+            'href': "http://www.tldp.org" },
+        {'header': 'Zope', 'data': self.getZopeVersion().full(),
+            'href': "http://www.zope.org" },
+        {'header': 'Python', 'data': self.getPythonVersion().full(),
+            'href': "http://www.python.org" },
+        {'header': 'Database', 'data': self.getMySQLVersion().full(),
+            'href': "http://www.mysql.com" },
+        {'header': 'RRD', 'data': self.getRRDToolVersion().full(),
+            'href': "http://oss.oetiker.ch/rrdtool" },
+        {'header': 'Twisted', 'data': self.getTwistedVersion().full(),
+            'href': "http:///twistedmatrix.com/trac" },
+        {'header': 'SNMP', 'data': self.getPySNMPVersion().full(),
+            'href': "http://pysnmp.sourceforge.net" },
+        {'header': 'Twisted SNMP', 'data': self.getTwistedSNMPVersion().full(),
+            'href': "http://twistedsnmp.sourceforge.net" },
         )
         try:
             versions += (
-                {'header': 'NetSnmp', 'data': self.getNetSnmpVersion().full() },
+                {'header': 'NetSnmp', 'data': self.getNetSnmpVersion().full(),
+                 'href': "http://net-snmp.sourceforge.net"  },
                 )
         except:
             pass
@@ -305,6 +315,28 @@ class ZenossInfo(ZenModelItem, SimpleItem):
     security.declareProtected('View','getAllUptimes')
 
 
+
+    daemon_tooltips= {
+      "zeoctl": "Zope Enterprise Objects server (shares database between Zope instances)",
+      "zopectl": "The Zope open source web application server",
+      "zenhub": "Broker between the data layer and the collection daemons",
+      "zenping": "ICMP ping status monitoring",
+      "zensyslog": "Collection of and classification of syslog events",
+      "zenstatus": "Active TCP connection testing of remote daemons",
+      "zenactions": "Alerts (SMTP, SNPP and Maintenance Windows)",
+      "zentrap": "Receives SNMP traps and turns them into events",
+      "zenmodeler": "Configuration collection and configuration",
+      "zenperfsnmp": "High performance asynchronous SNMP performance collection",
+      "zencommand": "Runs plug-ins on the local box or on remote boxes through SSH",
+      "zenprocess": "Process monitoring using SNMP host resources MIB",
+      "zenwin": "Windows Service Monitoring (WMI)",
+      "zeneventlog": "Collect (WMI) event log events (aka NT Eventlog)",
+      "zenwinmodeler": "MS Windows configuration collection and configuration",
+      "zendisc": "Discover the network topology to find active IPs and devices",
+      "zenperfxmlrpc": "XML RPC data collection",
+    }
+
+
     def getZenossDaemonStates(self):
         """
         Return a data structures representing the states of the supported
@@ -323,12 +355,20 @@ class ZenossInfo(ZenModelItem, SimpleItem):
                 buttons = inactiveButtons
                 msg = 'Down'
                 color = '#F00'
+
+            if daemon in self.daemon_tooltips:
+               tooltip= self.daemon_tooltips[ daemon ]
+            else:
+               tooltip= ''
+
             states.append({
                 'name': daemon,
                 'pid': pid,
                 'msg': msg,
+                'tooltip': tooltip,
                 'color': color,
                 'buttons': buttons})
+
         return states
 
 

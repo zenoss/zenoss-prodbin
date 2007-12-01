@@ -1017,3 +1017,9 @@ dl.faux-table a.prettylink div.device-icon-container {
     font-size: 90%;
     z-index: 4999;
 }
+
+.noselect {
+    -moz-user-select: none;    
+    -moz-user-focus: ignore;    
+    cursor: default;
+}

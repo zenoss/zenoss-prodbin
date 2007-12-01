@@ -43,7 +43,8 @@
     </thead>
     <tbody tal:define="url string:${here/absolute_url_path}">
         <tr tal:repeat="daemon here/getZenossDaemonStates">
-            <th class="tableheader" tal:content="daemon/name" />
+            <th class="tableheader noselect"
+              tal:attributes="title daemon/tooltip" tal:content="daemon/name" />
             <td class="tablevalues" tal:content="daemon/pid" />
             <td class="tablevalues" nowrap><a tal:attributes="
                 href string:${url}/viewDaemonLog?daemon=${daemon/name}">view log</a></td>
