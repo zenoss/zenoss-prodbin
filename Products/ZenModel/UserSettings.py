@@ -421,9 +421,6 @@ class UserSettings(ZenModelRM):
     oncallEnd = 0
     escalationMinutes = 0
     dashboardState = ''
-    dashboardRefresh = 30
-    dashboardTimeout = 25
-    dashboardOrganizer = 'Devices' 
     netMapStartObject = ''
     
     _properties = ZenModelRM._properties + (
@@ -437,9 +434,6 @@ class UserSettings(ZenModelRM):
         {'id':'oncallEnd', 'type':'int', 'mode':'w'},
         {'id':'escalationMinutes', 'type':'int', 'mode':'w'},
         {'id':'dashboardState', 'type':'string', 'mode':'w'},
-        {'id':'dashboardRefresh', 'type':'int', 'mode':'w'},
-        {'id':'dashboardTimeout', 'type':'int', 'mode':'w'},
-        {'id':'dashboardOrganizer', 'type':'string', 'mode':'w'},
         {'id':'netMapStartObject', 'type':'string', 'mode':'w'},
     )
  

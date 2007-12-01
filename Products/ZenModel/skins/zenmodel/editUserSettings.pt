@@ -116,32 +116,6 @@ function ConfirmPagerTest() {
       </td>
     </tr>
     <tr>
-      <td class="tableheader" align="left">Dashboard Refresh</td>
-      <td class="tablevalues">
-        <input class="tablevalues" type="text" name="dashboardRefresh:int" 
-            tal:attributes="value here/dashboardRefresh" />
-      </td>
-    </tr>
-    <tr>
-      <td class="tableheader" align="left">Dashboard Timeout</td>
-      <td class="tablevalues">
-        <input class="tablevalues" type="text" name="dashboardTimeout:int" 
-            tal:attributes="value here/dashboardTimeout" />
-      </td>
-    </tr>
-    <tr>
-      <td class="tableheader" align="left">Dashboard Organizer</td>
-      <td class="tablevalues">
-        <select class="tablevalues" name="dashboardOrganizer"
-                tal:define="options 
-                    python:['Devices','Systems','Groups','Locations']">
-            <option tal:repeat="option options" tal:content="option"
-                tal:attributes="selected
-                python:here.dashboardOrganizer==option"/>
-        </select>
-      </td>
-    </tr>
-    <tr>
       <td class="tableheader" align="left">Network Map Start Object</td>
       <td class="tablevalues">
         <input class="tablevalues" type="text" name="netMapStartObject" 
