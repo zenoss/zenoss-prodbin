@@ -12,6 +12,11 @@
     "http://www.w3.org/TR/html4/loose.dtd">
 <html>
     <head>
+    <title>
+    <tal:block metal:define-slot="title">
+        <tal:block tal:content="string:Zenoss: ${here/getId}"/>
+    </tal:block>
+    </title>
         <tal:block metal:use-macro="here/templates/macros/head1"/>
         <tal:block metal:define-slot="head-local"/>
         <tal:block metal:use-macro="here/zenuimacros/macros/jsutils"/>
@@ -103,6 +108,11 @@
  ====================================================== -->
 <tal:block metal:define-macro="page2">
     <html metal:use-macro="here/templates/macros/page1" >
+        <tal:block metal:fill-slot="title">
+            <tal:block metal:define-slot="title">
+                <tal:block tal:content="string:Zenoss: ${here/getId}"/>
+            </tal:block>
+        </tal:block>
         <tal:block metal:fill-slot="head-local">
         <tal:block metal:define-slot="head-local"/>
         </tal:block>
@@ -144,7 +154,6 @@
  ====================================================== -->
 <tal:block metal:define-macro="head1">
     <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
-    <title tal:content="string:Zenoss: ${here/getId}"/>
     <link rel="shortcut icon"
           href="/zport/dmd/favicon.ico"
           type="image/x-icon"/>

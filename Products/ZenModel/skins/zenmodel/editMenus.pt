@@ -1,5 +1,5 @@
-
 <tal:block metal:use-macro="here/templates/macros/page2">
+<tal:block metal:fill-slot="title">Zenoss: Menus</tal:block>
 <tal:block metal:fill-slot="contentPane"
         tal:define="menus here/zenMenus;
         menuid python:request.get('menuid', 'TopLevel')">

@@ -1,4 +1,5 @@
 <tal:block metal:use-macro="here/templates/macros/page2">
+<tal:block metal:fill-slot="title">Zenoss: ZenPacks</tal:block>
   <tal:block metal:fill-slot="contentPane">
 
     <form method="POST" name="zenPackList"
