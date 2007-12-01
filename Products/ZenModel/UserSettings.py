@@ -121,13 +121,16 @@ class UserSettingsManager(ZenModelRM):
         """
         # This code used to filter out the admin user.
         # See ticket #1615 for why it no longer does.
-        return self.objectValues(spec="UserSettings")
+        users = self.objectValues(spec="UserSettings")
+        users.sort(lambda a,b:cmp(a.id, b.id))
+        return users
 
     def getAllGroupSettings(self):
         """Return list user settings objects.
         """
-        return self.objectValues(spec="GroupSettings")
-            
+        groups = self.objectValues(spec="GroupSettings")
+        groups.sort(lambda a,b:cmp(a.id, b.id))
+        return groups
 
     def getAllUserSettingsNames(self, filtNames=()):
         """Return list of all zenoss usernames. 
