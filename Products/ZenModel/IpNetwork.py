@@ -523,7 +523,10 @@ class IpNetwork(DeviceOrganizer):
 
     def getIconPath(self):
         """ gets icon """
-        return self.dmd.getIconPath(self)
+        try:
+            return self.primaryAq().zIcon
+        except AttributeError:
+            return '/zport/dmd/img/icons/noicon.png'
 
 
 InitializeClass(IpNetwork)
