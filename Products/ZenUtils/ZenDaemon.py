@@ -105,7 +105,7 @@ class ZenDaemon(CmdBase):
 
 
     def becomeDaemon(self):
-        """Code below comes from the excelent recipe by Chad J. Schroeder.
+        """Code below comes from the excellent recipe by Chad J. Schroeder.
         """
         try:
             pid = os.fork()
