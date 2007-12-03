@@ -106,6 +106,9 @@ class PrimaryPathObjectManager(
         obj = self._getOb(id)
         ObjectManager._delObject(self, id, dp)
         obj.__primary_parent__ = None
+    
+    def manage_beforeDelete(self, item, container):
+        PrimaryPathManager.manage_beforeDelete(self, item, container)
 
 
 class PrimaryPathBTreeFolder2(BTreeFolder2):

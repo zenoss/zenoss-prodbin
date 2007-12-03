@@ -69,7 +69,7 @@ class ToManyRelationshipBase(
 
     
     def _delObject(self, id, dp=1):
-        """Emulate ObjectManager deletetion."""
+        """Emulate ObjectManager deletion."""
         unused(dp)
         obj = self._getOb(id)
         notify(ObjectWillBeRemovedEvent(obj, self, id))
