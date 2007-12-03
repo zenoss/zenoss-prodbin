@@ -43,7 +43,7 @@ class TestDeviceListBase(SelTestBase):
 
         for devicename in self.devicenames:
             self.goToDevice(devicename)
-            self.deleteDevice()
+        self.deleteDevice()
 
         SelTestBase.tearDown(self)
 
@@ -61,6 +61,8 @@ class TestDeviceList(TestDeviceListBase):
         self.waitForElement("link=Groups")
         self.selenium.click("link=Groups")
         self.selenium.wait_for_page_to_load(self.WAITTIME)
+        if self.selenium.is_element_present("link=testingString"):
+                self.deleteDialog()
         self.addDialog(new_id=("text", "testingString"))
         self.selenium.wait_for_page_to_load(self.WAITTIME)
 
@@ -80,7 +82,7 @@ class TestDeviceList(TestDeviceListBase):
         self.selenium.click("id=setSelectNone")
         do_command_byname(self.selenium, "assertNotChecked", "evids:list")
 
-    def testSetPriority(self):
+    def _testSetPriority(self):
         """Test Setting Priority to the Highest"""
         curtarget = "zenosst.zenoss.loc"
         self._goToDeviceList() 
@@ -94,7 +96,7 @@ class TestDeviceList(TestDeviceListBase):
         self.goToDevice(curtarget)
         self.selenium.do_command('assertTextPresent', ['Highest',])
 
-    def testSetProductionState(self):
+    def _testSetProductionState(self):
         """Test Setting Production state to the Test"""
         curtarget = "zenosst.zenoss.loc"
         self._goToDeviceList() 
@@ -122,7 +124,7 @@ class TestDeviceList(TestDeviceListBase):
         self.goToDevice(curtarget)
         self.selenium.do_command('assertTextPresent', ['/Server/Windows'])
 
-    def testSetGroups(self):
+    def _testSetGroups(self):
         """Test Setting the group to testingString"""
         curtarget = "zenosst.zenoss.loc"
         self._goToGroupsAddOrganizer()

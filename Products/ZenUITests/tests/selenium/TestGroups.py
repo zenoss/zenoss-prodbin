@@ -32,6 +32,8 @@ class TestGroups(SelTestBase):
         self.waitForElement("link=Groups")
         self.selenium.click("link=Groups")
         self.selenium.wait_for_page_to_load(self.WAITTIME)
+        if self.selenium.is_element_present("link=testingString"):
+                self.deleteDialog()
         self.addDialog(new_id=("text", "testingString"))
         self.selenium.wait_for_page_to_load(self.WAITTIME)
         self.deleteDialog()
