@@ -29,6 +29,9 @@ from App.Management import Tabs
 from Products.ZenRelations.Exceptions import zenmarker
 from Products.ZenUtils.Utils import unused
 
+from OFS.event import ObjectWillBeRemovedEvent
+from zope.event import notify
+
 class ToManyRelationshipBase(
             RelCopyContainer, 
             RelationshipBase
@@ -69,8 +72,10 @@ class ToManyRelationshipBase(
         """Emulate ObjectManager deletetion."""
         unused(dp)
         obj = self._getOb(id)
+        notify(ObjectWillBeRemovedEvent(obj, self, id))
         self.removeRelation(obj)
         obj.__primary_parent__ = None
+        
 
     
     def _setOb(self, id, obj): 

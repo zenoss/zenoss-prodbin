@@ -32,12 +32,24 @@ from OFS.Traversable import Traversable
 
 from Products.ZenUtils.Utils import unused
 
+from zope.interface import implements
+from Products.ZenRelations.interfaces import IDeletable
+
 HTML=Globals.HTML
 
 import logging
 logger = logging.getLogger()
 
-
+def manage_beforeDelete(ob, event):
+    """ Recurse through relationships """
+    item = ob
+    container = ob.__primary_parent__
+    for object in ob.objectValues():
+        try: s=object._p_changed
+        except: s=0
+        if hasattr(aq_base(object), 'manage_beforeDelete'):
+            object.manage_beforeDelete(item, container)
+        if s is None: object._p_deactivate()
 
 class ZItem(Base, CopySource, App.Management.Tabs, Traversable,
            AccessControl.Owned.Owned,
@@ -46,6 +58,7 @@ class ZItem(Base, CopySource, App.Management.Tabs, Traversable,
 
     """A common base class for simple, non-container objects."""
 
+    implements(IDeletable)
     isPrincipiaFolderish=0
     isTopLevelPrincipiaApplicationObject=0
 
