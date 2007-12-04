@@ -26,7 +26,7 @@ def manage_addWinService(context, id, description, userCreated=None, REQUEST=Non
     s = context._getOb(id)
     s.description = description
     args = {'name':id, 'description':description}
-    s.setServiceClass(args)
+    s.setServiceClass(**args)
     if userCreated: s.setUserCreateFlag()
     if REQUEST is not None:
         REQUEST['RESPONSE'].redirect(context.absolute_url()
@@ -139,7 +139,7 @@ class WinService(Service):
             self.startName = startName
             if self.id != id:
                 id = prepId(id)
-                self.setServiceClass({'name':id, 'description':description})
+                self.setServiceClass(name=id, description=description)
                 renamed = self.rename(id)
         tmpl = super(WinService, self).manage_editService(monitor, severity,
                                                     REQUEST=REQUEST)
