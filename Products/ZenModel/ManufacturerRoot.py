@@ -91,6 +91,7 @@ class ManufacturerRoot(ZenModelItem, PrimaryPathBTreeFolder2, ZenPacker):
     def __init__(self, id=None):
         if not id: id = self.dmdRootName
         super(ManufacturerRoot, self).__init__(id)
+        PrimaryPathBTreeFolder2.__init__(self, id)
         self.createCatalog()
         self.buildzProperties()
 
