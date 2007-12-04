@@ -50,7 +50,7 @@ FakeXHR.prototype = {
                 'iframe',
                 {
                     id:this.id+'IFrameProxy',
-                    style:'position:absolute;visibility:hidden;',
+                    style:'position:absolute;visibility:hidden;'
                 },
                 null
             );
