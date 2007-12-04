@@ -20,7 +20,7 @@ Base for daemons that connect to zenhub
 
 import Globals
 from Products.ZenUtils.ZenDaemon import ZenDaemon
-#from Products.ZenUtils.Step import Step
+from Products.ZenEvents.ZenEventClasses import Heartbeat
 from Products.ZenUtils.PBUtil import ReconnectingPBClientFactory
 
 from twisted.internet import reactor, defer
@@ -63,7 +63,9 @@ class PBDaemon(ZenDaemon, pb.Referenceable):
     
     name = 'pbdaemon'
     initialServices = ['EventService']
-
+    heartbeatEvent = {'eventClass':Heartbeat}
+    heartbeatTimeout = 60*3
+    
     def __init__(self, noopts=0, keeproot=False):
         ZenDaemon.__init__(self, noopts, keeproot)
         self.perspective = None
@@ -71,11 +73,11 @@ class PBDaemon(ZenDaemon, pb.Referenceable):
         self.eventQueue = []
         self.startEvent = startEvent.copy()
         self.stopEvent = stopEvent.copy()
-        for evt in self.startEvent, self.stopEvent:
-            evt.update(dict(component=self.name, device=getfqdn()))
+        details = dict(component=self.name, device=getfqdn())
+        for evt in self.startEvent, self.stopEvent, self.heartbeatEvent:
+            evt.update(details)
         self.initialConnect = defer.Deferred()
         self.stopped = False
-
 
     def gotPerspective(self, perspective):
         ''' This gets called every time we reconnect.
@@ -211,8 +213,9 @@ class PBDaemon(ZenDaemon, pb.Referenceable):
             # Maybe this is overkill and if we have an operable
             # event service we should just log events that don't get sent
             # and then drop them.
-            self.log.error('Error sending event: %s' % error)
-            self.eventQueue.append(event)
+            if reactor.running:
+                self.log.error('Error sending event: %s' % error)
+                self.eventQueue.append(event)
         if event:
             self.eventQueue.append(event)
         evtSvc = self.services.get('EventService', None)
@@ -222,6 +225,15 @@ class PBDaemon(ZenDaemon, pb.Referenceable):
                 del self.eventQueue[0]
                 d = evtSvc.callRemote('sendEvent', event)
                 d.addErrback(errback, event)
+
+
+    def heartbeat(self):
+        'if cycling, send a heartbeat, else, shutdown'
+        if not self.options.cycle:
+            self.stop()
+            return
+        self.sendEvent(self.heartbeatEvent, timeout=self.heartbeatTimeout)
+        self.niceDoggie(self.heartbeatTimeout)
 
 
     def remote_getName(self):

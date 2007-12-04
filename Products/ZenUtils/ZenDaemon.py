@@ -51,19 +51,34 @@ class ZenDaemon(CmdBase):
     def __init__(self, noopts=0, keeproot=False):
         CmdBase.__init__(self, noopts)
         self.keeproot=keeproot
-        self.zenhome = zenPath()
-        self.zenvar = zenPath("var")
+        self.reporter = None
+        from twisted.internet import reactor
+        reactor.addSystemEventTrigger('before', 'shutdown', self.sigTerm)
         if not noopts:
-            # These handlers do not get called if run as daemon.  In that
-            # case twisted's handlers are called instead.
-            # See ticket #1757
-            signal.signal(signal.SIGINT, self.sigTerm)
-            signal.signal(signal.SIGTERM, self.sigTerm)
-            signal.signal(signal.SIGHUP, self.sigTerm)
             if self.options.daemon:
                 self.changeUser()
-                self.becomeDaemon() 
+                self.becomeDaemon()
+        if self.options.watchdog:
+            self.becomeWatchdog()
+        if self.options.watchdogPath:
+            from Watchdog import Reporter
+            self.reporter = Reporter(self.options.watchdogPath)
+        # if we are daemonizing, or child of a watchdog:
+        if self.options.daemon or self.options.watchdogPath:
+           try:
+              self.pidfile = 'unknown'
+              self.writePidFile()
+           except OSError:
+              raise SystemExit("ERROR: unable to open pid file %s" %
+                               self.pidfile)
 
+
+    def writePidFile(self):
+        myname = sys.argv[0].split(os.sep)[-1] + ".pid"
+        self.pidfile =  zenPath("var", myname)
+        fp = open(self.pidfile, 'w')
+        fp.write(str(os.getpid()))
+        fp.close()
 
     def setupLogging(self):
         rlog = logging.getLogger()
@@ -138,15 +153,6 @@ class ZenDaemon(CmdBase):
         # Duplicate standard input to standard output and standard error.
         os.dup2(0, 1)                   # standard output (1)
         os.dup2(0, 2)                   # standard error (2)
-        if os.path.exists(self.zenvar):
-            myname = sys.argv[0].split(os.sep)[-1] + ".pid"
-            self.pidfile = os.path.join(self.zenvar, myname)
-            fp = open(self.pidfile, 'w')
-            fp.write(str(os.getpid()))
-            fp.close()
-        else:
-            raise SystemExit("ERROR: unable to open pid file %s" % self.pidfile)
-        return(0)
 
 
     def sigTerm(self, signum=None, frame=None):
@@ -162,6 +168,30 @@ class ZenDaemon(CmdBase):
         self.log.info('Daemon %s shutting down' % self.__class__.__name__)
         raise SystemExit
 
+    def becomeWatchdog(self):
+        from Products.ZenUtils.Watchdog import Watcher
+        cmd = sys.argv[:]
+        if '--watchdog' in cmd:
+            cmd.remove('--watchdog')
+        if '--daemon' in cmd:
+            cmd.remove('--daemon')
+        socketPath = '%s/.%s-watchdog-%d' % (
+            zenPath('var'), self.__class__.__name__, os.getpid())
+        # time between child reports: default to 2x the default cycle time
+        cycleTime = getattr(self.options, 'cycleTime', 1200)
+        startTimeout = getattr(self.options, 'startTimeOut', cycleTime)
+        maxTime = getattr(self.options, 'maxRestartTime', 600)
+        watchdog = Watcher(socketPath,
+                           cmd,
+                           startTimeout,
+                           cycleTime,
+                           maxTime)
+        watchdog.run()
+        sys.exit(0)
+
+    def niceDoggie(self, timeout):
+        if self.reporter:
+           self.reporter.niceDoggie(timeout)
 
     def buildOptions(self):
         CmdBase.buildOptions(self)
@@ -176,3 +206,9 @@ class ZenDaemon(CmdBase):
         self.parser.add_option('--weblog', default=False,
                 dest='weblog',action="store_true",
                 help="output log info in html table format")
+        self.parser.add_option('--watchdog', default=False,
+                               dest='watchdog', action="store_true",
+                               help="Run under a supervisor which will restart it")
+        self.parser.add_option('--watchdogPath', default=None,
+                               dest='watchdogPath', 
+                               help="The path to the watchdog reporting socket")

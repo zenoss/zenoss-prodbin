@@ -213,5 +213,5 @@ class EventServer(ZCmdBase):
         reactor.callInThread(self.run)
         reactor.addSystemEventTrigger('before', 'shutdown', self.finish)
         self._wakeUpReactorAndHandleSignals()
-        reactor.run(installSignalHandlers=False)
+        reactor.run()
         

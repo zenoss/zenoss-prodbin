@@ -321,6 +321,7 @@ class ZenModeler(ZCmdBase):
                            timeout=self.cycletime*3)
                 if self.dmd:
                     self.dmd.ZenEventManager.sendEvent(evt)
+                self.niceDoggie(self.cycletime)
             else:
                 self.stop()
 
@@ -420,7 +421,7 @@ class ZenModeler(ZCmdBase):
                 
 
     def reactorLoop(self):
-        reactor.startRunning(installSignalHandlers=False)
+        reactor.startRunning()
         while reactor.running:
             try:
                 while reactor.running:

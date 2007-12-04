@@ -25,7 +25,6 @@ import socket
 
 import Globals
 from Products.ZenEvents import Event
-from Products.ZenEvents.ZenEventClasses import Heartbeat
 
 from twisted.python import failure
 
@@ -48,10 +47,7 @@ COMMON_EVENT_INFO = {
 class RRDDaemon(PBDaemon):
     'Holds the code common to performance gathering daemons.'
 
-    heartbeatevt = {'eventClass':Heartbeat}
-    
     properties = ('configCycleInterval',)
-    heartBeatTimeout = 60*3
     configCycleInterval = 20            # minutes
     rrd = None
     shutdown = False
@@ -62,8 +58,6 @@ class RRDDaemon(PBDaemon):
         self.name = name
         PBDaemon.__init__(self)
         self.thresholds = Thresholds()
-        self.heartbeatevt.update(dict(component=name,
-                                      device=socket.getfqdn()))
 
     def getDevicePingIssues(self):
         return self.eventService().callRemote('getDevicePingIssues')
@@ -101,14 +95,6 @@ class RRDDaemon(PBDaemon):
     def sendThresholdEvent(self, **kw):
         "Send the right event class for threshhold events"
         self.sendEvent({}, **kw)
-
-
-    def heartbeat(self):
-        'if cycling, send a heartbeat, else, shutdown'
-        if not self.options.cycle:
-            self.stop()
-            return
-        self.sendEvent(self.heartbeatevt, timeout=self.heartBeatTimeout)
 
 
     def buildOptions(self):

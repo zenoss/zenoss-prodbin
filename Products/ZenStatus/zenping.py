@@ -220,6 +220,7 @@ class ZenPing(ZCmdBase):
         timeout = self.cycleInterval*3
         evt = EventHeartbeat(getfqdn(), "zenping", timeout)
         self.sendEvent(evt)
+        self.niceDoggie(timeout)
 
     def pingSuccess(self, pj):
         "Callback for a good ping response"
@@ -352,7 +353,7 @@ if __name__=='__main__':
     pm.start()
     import logging
     logging.getLogger('zen.Events').setLevel(20)
-    reactor.run(installSignalHandlers=False)
+    reactor.run()
     pm.log.info("stopping...")
     pm.sendEvent(Event(device=getfqdn(), 
                        eventClass=App_Stop, 

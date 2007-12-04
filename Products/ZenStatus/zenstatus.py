@@ -214,6 +214,7 @@ class ZenStatus(PBDaemon):
                             component='zenstatus',
                             device=getfqdn())
         self.sendEvent(heartbeatevt, timeout=self.statusCycleInterval*3)
+        self.niceDoggie(self.statusCycleInterval)
 
 
     def runSomeJobs(self):

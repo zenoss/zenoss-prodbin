@@ -12,9 +12,10 @@
 #
 ###########################################################################
 
-__doc__='''zenxevent
+__doc__='''zenhub
 
-Creates events from xml rpc calls.
+Provide remote, authenticated, and possibly encrypted two-way
+communications with the Model and Event databases.
 
 $Id$
 '''
@@ -177,6 +178,7 @@ class ZenHub(ZCmdBase):
         to connect.
         """
         self.changes = []
+
         ZCmdBase.__init__(self)
         self.zem = self.dmd.ZenEventManager
         self.services = {}
@@ -331,6 +333,7 @@ class ZenHub(ZCmdBase):
         seconds = 30
         evt = EventHeartbeat(getfqdn(), self.name, 3*seconds)
         self.zem.sendEvent(evt)
+        self.niceDoggie(seconds)
         reactor.callLater(seconds, self.heartbeat)
 
         
@@ -358,7 +361,7 @@ class ZenHub(ZCmdBase):
         
         @return: None
         """
-        reactor.run(installSignalHandlers=False)
+        reactor.run()
 
 
     def buildOptions(self):
@@ -384,7 +387,8 @@ class ZenHub(ZCmdBase):
                                type='string',
                                help='File where passwords are stored',
                                default=zenPath('etc','hubpasswd'))
-        
+def abort(*args):
+    raise ValueError('abort')
 
 if __name__ == '__main__':
     z = ZenHub()

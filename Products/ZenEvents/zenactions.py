@@ -416,6 +416,7 @@ class ZenActions(ZCmdBase):
         timeout = self.options.cycletime*3
         evt = Event.EventHeartbeat(socket.getfqdn(), "zenactions", timeout)
         self.sendEvent(evt)
+        self.niceDoggie(timeout)
 
 
     def stop(self):
