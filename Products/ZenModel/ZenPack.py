@@ -201,7 +201,7 @@ class ZenPack(ZenModelRM):
         for obj in packables:
             # obj = aq_base(obj)
             xml.write('<!-- %r -->\n' % (obj.getPrimaryPath(),))
-            obj.exportXml(xml,['devices','networks','instances','pack'],True)
+            obj.exportXml(xml,['devices','networks','pack'],True)
         xml.write("</objects>\n")
         path = zenPackPath(self.id, 'objects')
         if not os.path.isdir(path):
