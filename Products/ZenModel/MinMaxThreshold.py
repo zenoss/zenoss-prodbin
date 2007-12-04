@@ -40,7 +40,10 @@ def rpneval(value, rpn):
             operator = symbol
         else:
             expr = str(value) + operator + symbol
-            value = eval(expr)
+            try:
+                value = eval(expr)
+            except ZeroDivisionError:
+                value = 0
     return value
 
 
