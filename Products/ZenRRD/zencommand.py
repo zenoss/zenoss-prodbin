@@ -561,7 +561,6 @@ class zencommand(RRDDaemon):
                 log.debug("rrd save result: %s" % value)
                 for ev in self.thresholds.check(path, time.time(), value):
                     ev['eventKey'] = cmd.key(label)
-                    ev['eventClass'] = cmd.eventClass
                     ev['component'] = cmd.component
                     self.sendThresholdEvent(**ev)
 
