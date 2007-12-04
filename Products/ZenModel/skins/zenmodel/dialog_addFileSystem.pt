@@ -6,14 +6,14 @@
 <span id="new_id_label">ID:&nbsp;</span>
 <input id="new_id" name="id">
 <input type="hidden" id="checkValidIdPath" 
-        tal:attributes="value here/absolute_url">
+        tal:attributes="value here/os/absolute_url">
 </p>
 <div id="dialog_buttons">
 <input tal:attributes="id string:dialog_submit;
         type string:submit;
         value string:OK;
         onclick string:return $$('dialog').submit_form_and_check(
-                                                '${here/absolute_url}', 
+                                                '${here/os/absolute_url}', 
                                                 'fileSystemListForm',
                                                 true)"
                         name="addFileSystem:method" />

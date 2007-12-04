@@ -1,7 +1,7 @@
 <tal:block metal:use-macro="here/templates/macros/page2">
 <tal:block metal:fill-slot="contentPane">
 
-<form method="post" tal:attributes="action here/absolute_url" 
+<form method="post" tal:attributes="action here/os/absolute_url" 
     name="ipInterfaceListForm">
 
 <script>
@@ -33,9 +33,9 @@ $('dialog').addLoadEvent('dialog_addWinService', function() { createWinServiceCl
 </script>
         
 <tal:block 
-        tal:define="unused here/cacheComponents;
+        tal:define="unused here/os/cacheComponents;
         tableName string:interfacelist;
-        objects here/interfaces/objectValuesAll;
+        objects here/os/interfaces/objectValuesAll;
         tabletitle string:Interfaces;
         batch python:here.ZenTableManager.getBatch(tableName,objects);
         menu_id string:IpInterface;
@@ -100,21 +100,21 @@ $('dialog').addLoadEvent('dialog_addWinService', function() { createWinServiceCl
       <td class="tablevalues" tal:content="intf/macaddress">
          00:11:AA:BB:CC:DD
       </td>
-      <td tal:condition="python: here.getZ('zIfDescription')" 
+      <td tal:condition="python: here.os.getZ('zIfDescription')" 
           class="tablevalues" tal:content="intf/description">
         A really nice interface
       </td>
       <td class="tablevalues" align="center">
       <img border="0"
         tal:attributes="src python:test(intf.operStatus==1,
-                here.getStatusImgSrc(0),
-                here.getStatusImgSrc(3))" />
+                here.os.getStatusImgSrc(0),
+                here.os.getStatusImgSrc(3))" />
       </td>
       <td class="tablevalues" align="center">
       <img border="0"
         tal:attributes="src python:test(intf.adminStatus==1,
-                here.getStatusImgSrc(0),
-                here.getStatusImgSrc(3))" />
+                here.os.getStatusImgSrc(0),
+                here.os.getStatusImgSrc(3))" />
       </td>
       <td class="tablevalues" align="center">
       <img tal:condition="intf/isLockedFromDeletion" 
@@ -138,13 +138,12 @@ $('dialog').addLoadEvent('dialog_addWinService', function() { createWinServiceCl
 </tal:block>
 
 </form>
-<form method="post" tal:attributes="action here/absolute_url"
+<form method="post" tal:attributes="action here/os/absolute_url"
         name="winServiceListForm">
 
 <tal:block 
-    tal:condition="here/winservices/countObjects"
     tal:define="tableName string:winserviceslist;
-    objects here/winservices/objectValuesAll;
+    objects here/os/winservices/objectValuesAll;
     tabletitle string:Win Services;
     batch python:here.ZenTableManager.getBatch(tableName,objects,
                                                 sortedHeader='caption',
@@ -203,7 +202,7 @@ $('dialog').addLoadEvent('dialog_addWinService', function() { createWinServiceCl
         <td class="tablevalues" tal:content="srv/name"/>
         <td class="tablevalues" align="center" width="40">
                 <img border="0" tal:attributes="src 
-                python:here.getStatusImgSrc(srv.getStatus())" />
+                python:here.os.getStatusImgSrc(srv.getStatus())" />
         </td>
         <td class="tablevalues" align="center" width="60">
         <img tal:condition="srv/isLockedFromDeletion" 
@@ -228,13 +227,12 @@ $('dialog').addLoadEvent('dialog_addWinService', function() { createWinServiceCl
 </tal:block>
 
 </form>
-<form method="post" tal:attributes="action here/absolute_url" 
+<form method="post" tal:attributes="action here/os/absolute_url" 
     name="osProcessListForm">
     
 <tal:block 
-    tal:condition="here/processes/countObjects"
     tal:define="tableName string:osprocesslist;
-    objects here/processes/objectValuesAll;
+    objects here/os/processes/objectValuesAll;
     tabletitle string:OS Processes;
     batch python:here.ZenTableManager.getBatch(tableName,objects,
                                             sortedHeader='getOSProcessClass');
@@ -289,7 +287,7 @@ Optional titlebar stuff
         <td class="tablevalues" tal:content="proc/getFailSeverityString"/>
         <td class="tablevalues" align="center" width="40">
                 <img border="0" tal:attributes="src 
-                        python:here.getStatusImgSrc(proc.getStatus())" />
+                        python:here.os.getStatusImgSrc(proc.getStatus())" />
         </td>
         <td class="tablevalues" align="center" width="60">
         <img tal:condition="proc/isLockedFromDeletion" 
@@ -314,13 +312,12 @@ Optional titlebar stuff
 </tal:block>
 
 </form>
-<form method="post" tal:attributes="action here/absolute_url" 
+<form method="post" tal:attributes="action here/os/absolute_url" 
     name="ipServiceListForm">
 
 <tal:block metal:define-macro="ipserviceList"
-    tal:condition="here/ipservices/countObjects"
     tal:define="tableName string:ipservicelist;
-    objects here/ipservices/objectValuesAll;
+    objects here/os/ipservices/objectValuesAll;
     tabletitle string:IP Services;
     batch python:here.ZenTableManager.getBatch(tableName,objects,
                                             sortedHeader='getPort',
@@ -391,7 +388,7 @@ Optional titlebar stuff
         <td class="tablevalues" tal:content="srv/getDescription"/>
         <td class="tablevalues" align="center" width="40">
          <img border="0" 
-          tal:attributes="src python:here.getStatusImgSrc(srv.getStatus())"/>
+          tal:attributes="src python:here.os.getStatusImgSrc(srv.getStatus())"/>
         </td>
         <td class="tablevalues" align="center" width="60">
         <img tal:condition="srv/isLockedFromDeletion" 
@@ -415,13 +412,12 @@ Optional titlebar stuff
 </tal:block>
 
 </form>
-<form method="post" tal:attributes="action here/absolute_url" 
+<form method="post" tal:attributes="action here/os/absolute_url" 
     name="fileSystemListForm">
 
 <tal:block metal:define-macro="fileSysList"
-    tal:condition="here/filesystems/countObjects"
     tal:define="tableName string:fileSyslist;
-    objects here/filesystems/objectValuesAll;
+    objects here/os/filesystems/objectValuesAll;
     tabletitle string:File Systems;
     batch python:here.ZenTableManager.getBatch(tableName,objects,
                                             sortedHeader='mount');
@@ -515,12 +511,12 @@ Optional titlebar stuff
 </tal:block>
 
 </form>
-<form method="post" tal:attributes="action here/absolute_url" 
+<form method="post" tal:attributes="action here/os/absolute_url" 
     name="ipRouteEntryListForm">
     
 <tal:block metal:define-macro="routeTableList"
     tal:define="tableName string:routeTablelist;
-    objects here/routes/objectValuesAll;
+    objects here/os/routes/objectValuesAll;
     tabletitle string:Routes;
     batch python:here.ZenTableManager.getBatch(tableName,objects);
     menu_id string:IpRouteEntry;

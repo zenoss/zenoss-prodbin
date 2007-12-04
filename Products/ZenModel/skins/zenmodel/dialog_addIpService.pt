@@ -16,7 +16,7 @@ Protocol
         type string:submit;
         value string:OK;
         onclick string:return $$('dialog').submit_form(
-                                                '${here/absolute_url}')"
+                                        '${here/os/absolute_url}')"
                         name="addIpService:method" />
 <input tal:attributes="id string:dialog_cancel;
                         type string:button;

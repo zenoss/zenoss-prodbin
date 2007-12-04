@@ -72,50 +72,8 @@ class OperatingSystem(Software):
             'icon'           : 'Device_icon.gif',
             'product'        : 'ZenModel',
             'factory'        : 'manage_addDevice',
-            'immediate_view' : 'deviceOsDetail',
-            'actions'        :
-            (
-                { 'id'            : 'status'
-                , 'name'          : 'Status'
-                , 'action'        : '../deviceStatus'
-                , 'permissions'   : (permissions.view, )
-                },
-                { 'id'            : 'osdetail'
-                , 'name'          : 'OS'
-                , 'action'        : 'deviceOsDetail'
-                , 'permissions'   : (permissions.view, )
-                },
-                { 'id'            : 'hwdetail'
-                , 'name'          : 'Hardware'
-                , 'action'        : '../deviceHardwareDetail'
-                , 'permissions'   : (permissions.view, )
-                },
-                { 'id'            : 'swdetail'
-                , 'name'          : 'Software'
-                , 'action'        : '../deviceSoftwareDetail'
-                , 'permissions'   : (permissions.view, )
-                },
-                { 'id'            : 'events'
-                , 'name'          : 'Events'
-                , 'action'        : '../viewEvents'
-                , 'permissions'   : (permissions.view, )
-                },
-                { 'id'            : 'historyEvents'
-                , 'name'          : 'History'
-                , 'action'        : '../viewHistoryEvents'
-                , 'permissions'   : (permissions.view, )
-                },
-                { 'id'            : 'perfServer'
-                , 'name'          : 'Perf'
-                , 'action'        : '../viewDevicePerformance'
-                , 'permissions'   : (permissions.view, )
-                },
-                { 'id'            : 'edit'
-                , 'name'          : 'Edit'
-                , 'action'        : '../editDevice'
-                , 'permissions'   : ("Change Device",)
-                },
-            )
+            'immediate_view' : '../deviceOsDetail',
+            'actions'        : ()
          },
         )
 

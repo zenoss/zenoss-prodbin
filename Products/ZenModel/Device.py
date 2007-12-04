@@ -286,7 +286,7 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
                 },
                 { 'id'            : 'osdetail'
                 , 'name'          : 'OS'
-                , 'action'        : 'os/deviceOsDetail'
+                , 'action'        : 'deviceOsDetail'
                 , 'permissions'   : (ZEN_VIEW, )
                 },
                 { 'id'            : 'hwdetail'
