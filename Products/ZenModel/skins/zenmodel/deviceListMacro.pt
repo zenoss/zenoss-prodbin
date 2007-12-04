@@ -137,8 +137,8 @@
     <td class="tablevalues" tal:content="device/getDeviceClassPath"/>
     <td class="tablevalues" tal:content="device/getHWProductName"/>
     <td class="tablevalues" tal:content="device/getProdState"/>
-    <span metal:use-macro="here/deviceMacros/macros/pingStatus" />
-    <span metal:use-macro="here/deviceMacros/macros/snmpStatus" />
+    <span metal:use-macro="here/deviceListMacro/macros/pingStatus" />
+    <span metal:use-macro="here/deviceListMacro/macros/snmpStatus" />
 </tr>
 <tr>
     <td colspan="6" class="tableheader" align='center'>
@@ -271,4 +271,17 @@
     });"></script>
     </tal:block>
     </td></tr>
-</tal:block>
+</tal:block>:w
+
+
+<td metal:define-macro="pingStatus" tal:define="status device/getPingStatus"
+    tal:attributes="class python:device.getStatusCssClass(status)"
+    tal:content="python:here.convertStatus(status)" align="center">
+    ping status
+</td>
+<td metal:define-macro="snmpStatus"  tal:define="status device/getSnmpStatus"
+    tal:attributes="class python:device.getStatusCssClass(status)"
+    tal:content="python:here.convertStatus(status)" align="center">
+    Snmp Status
+</td>
+
