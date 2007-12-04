@@ -115,8 +115,10 @@ class SelTestBase(unittest.TestCase):
             self.devicenames=[]
         self.devicenames.append(deviceIp)
         
-    def deleteDevice(self):
+    def deleteDevice(self, devname=TARGET):
         """Delete the test target device from Zenoss test instance"""
+        devicename = getattr(self, "devname", devname)
+        self.goToDevice(devicename)
         self.waitForElement("link=Delete Device...")
         self.selenium.click("link=Delete Device...")
         self.waitForElement("dialog_cancel")
@@ -124,7 +126,9 @@ class SelTestBase(unittest.TestCase):
         self.selenium.wait_for_page_to_load(self.WAITTIME)
 
     # Not actually sure where this is used.
-    def addUser(self, username="testingString", email="nosuchemail@zenoss.com", defaultAdminRole="Administrator", ):
+    def addUser(self, username="testingString", 
+                      email="nosuchemail@zenoss.com", 
+                      defaultAdminRole="Administrator", ):
         """Test the addUser functionality"""
         self.waitForElement("link=Settings")
         self.selenium.click("link=Settings")
