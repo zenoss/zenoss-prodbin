@@ -348,6 +348,7 @@ class RRDView(object):
                 for dp in ds.datapoints():
                     names.append(dp.name())
             for threshold in template.thresholds():
+                if not threshold.enabled: continue
                 for ds in threshold.dsnames:
                     if ds in names:
                         result.append(threshold.createThresholdInstance(self))
