@@ -220,88 +220,88 @@ class TestDeviceInstanceOsTab(TestDeviceInstanceBase):
         self.selenium.wait_for_page_to_load(self.WAITTIME)
         self.assert_(not self.selenium.is_element_present("link=Dhcp"))
         
-#class TestDeviceInstanceManageDevice(TestDeviceInstanceBase):
-#    """Test functionality related to managing the device itself"""
-#        
-#    def testChangeDeviceClass(self, newClass='/Discovered'):
-#        """Test changing the device class of a device"""
-#        
-#        self.selenium.click("link=Change Class...")
-#        
-#        self.waitForElement("moveDevices:method")
-#        self.selenium.select("moveTarget", "label=%s" % newClass)
-#        self.selenium.click("moveDevices:method")
-#        self.selenium.wait_for_page_to_load(self.WAITTIME)
-#        
-#        for part in newClass.split('/'):
-#            if part:
-#                self.assert_(self.selenium.is_element_present("link=%s" % part))
-#        self.selenium.click("link=%s" %TARGET)
-#        
-#        
-#    def testRenameDevice(self):
-#        """Test renaming a device"""
-#        
-#        self.selenium.click("link=Rename Device...")
-#        
-#        self.waitForElement("dialog_submit")
-#        self.selenium.type("new_id", "testDevice")
-#        self.selenium.click("dialog_submit")
-#        self.selenium.wait_for_page_to_load(self.WAITTIME)
-#        self.devname = 'testDevice'
-#        self.assert_(self.selenium.is_element_present("link=testDevice"))
-#        
-#    def testResetIP(self):
-#        """Test setting a new IP address for a device"""
-#        
-#        self.selenium.click("link=Reset IP...")
-#        
-#        self.waitForElement("dialog_submit")
-#        self.selenium.type("new_id", "1.2.3.4")
-#        self.selenium.click("dialog_submit")
-#        self.selenium.wait_for_page_to_load(self.WAITTIME)
-#        self.assert_(self.selenium.is_text_present("1.2.3.4"))
-#        
-#    def testLockDevice(self):
-#        """Test locking a device against deletes and updates"""
-#        
-#        # First, test lock against updates (and deletes).
-#        self.selenium.click("link=Lock...")
-#        self.waitForElement("dialog_cancel")
-#        self.selenium.click("lockFromUpdates:method")
-#        self.selenium.wait_for_page_to_load(self.WAITTIME)
-#        self.selenium.click("link=Device List")
-#        self.assert_(self.selenium.is_element_present("//img[@src='locked-update-icon.png']"))
-#        self.assert_(self.selenium.is_element_present("//img[@src='locked-delete-icon.png']"))
-#        
-#        self.selenium.click("link=Lock...") # Unlocking the device now.
-#        self.waitForElement("dialog_cancel")
-#        self.selenium.click("unlock:method")
-#        self.selenium.wait_for_page_to_load(self.WAITTIME)
-#        self.assert_(not self.selenium.is_element_present("//img[@src='locked-update-icon.png']"))
-#        self.assert_(not self.selenium.is_element_present("//img[@src='locked-delete-icon.png']"))
-#        
-#        # Then, test lock against deletes only.
-#        self.selenium.click("link=Lock...")
-#        self.waitForElement("dialog_cancel")
-#        self.selenium.click("lockFromDeletion:method")
-#        self.selenium.wait_for_page_to_load(self.WAITTIME)
-#        self.assert_(self.selenium.is_element_present("//img[@src='locked-delete-icon.png']"))
-#        
-#        self.selenium.click("link=Lock...") # Unlocking the device now.
-#        self.waitForElement("dialog_cancel")
-#        self.selenium.click("unlock:method")
-#        self.selenium.wait_for_page_to_load(self.WAITTIME)
-#        self.assert_(not self.selenium.is_element_present("//img[@src='locked-delete-icon.png']"))	
-#
-#    def testClearHeartbeats(self):
-#        """Test clearing a device's heartbeats"""
-#
-#        self.selenium.click("link=Clear Heartbeats...")
-#        self.waitForElement("dialog_cancel")
-#        self.selenium.click("manage_deleteHeartbeat:method")
-#        self.selenium.wait_for_page_to_load(self.WAITTIME)
-#        self.assert_(self.selenium.is_text_present("Cleared heartbeat events for %s" %TARGET))
+class TestDeviceInstanceManageDevice(TestDeviceInstanceBase):
+    """Test functionality related to managing the device itself"""
+        
+    def testChangeDeviceClass(self, newClass='/Discovered'):
+        """Test changing the device class of a device"""
+        
+        self.selenium.click("link=Change Class...")
+        
+        self.waitForElement("moveDevices:method")
+        self.selenium.select("moveTarget", "label=%s" % newClass)
+        self.selenium.click("moveDevices:method")
+        self.selenium.wait_for_page_to_load(self.WAITTIME)
+        
+        for part in newClass.split('/'):
+            if part:
+                self.assert_(self.selenium.is_element_present("link=%s" % part))
+        self.selenium.click("link=%s" %TARGET)
+        
+        
+    def testRenameDevice(self):
+        """Test renaming a device"""
+        
+        self.selenium.click("link=Rename Device...")
+        
+        self.waitForElement("dialog_submit")
+        self.selenium.type("new_id", "testDevice")
+        self.selenium.click("dialog_submit")
+        self.selenium.wait_for_page_to_load(self.WAITTIME)
+        self.devname = 'testDevice'
+        self.assert_(self.selenium.is_element_present("link=testDevice"))
+        
+    def testResetIP(self):
+        """Test setting a new IP address for a device"""
+        
+        self.selenium.click("link=Reset IP...")
+        
+        self.waitForElement("dialog_submit")
+        self.selenium.type("new_id", "1.2.3.4")
+        self.selenium.click("dialog_submit")
+        self.selenium.wait_for_page_to_load(self.WAITTIME)
+        self.assert_(self.selenium.is_text_present("1.2.3.4"))
+        
+    def testLockDevice(self):
+        """Test locking a device against deletes and updates"""
+        
+        # First, test lock against updates (and deletes).
+        self.selenium.click("link=Lock...")
+        self.waitForElement("dialog_cancel")
+        self.selenium.click("lockFromUpdates:method")
+        self.selenium.wait_for_page_to_load(self.WAITTIME)
+        self.selenium.click("link=Device List")
+        self.assert_(self.selenium.is_element_present("//img[@src='locked-update-icon.png']"))
+        self.assert_(self.selenium.is_element_present("//img[@src='locked-delete-icon.png']"))
+        
+        self.selenium.click("link=Lock...") # Unlocking the device now.
+        self.waitForElement("dialog_cancel")
+        self.selenium.click("unlock:method")
+        self.selenium.wait_for_page_to_load(self.WAITTIME)
+        self.assert_(not self.selenium.is_element_present("//img[@src='locked-update-icon.png']"))
+        self.assert_(not self.selenium.is_element_present("//img[@src='locked-delete-icon.png']"))
+        
+        # Then, test lock against deletes only.
+        self.selenium.click("link=Lock...")
+        self.waitForElement("dialog_cancel")
+        self.selenium.click("lockFromDeletion:method")
+        self.selenium.wait_for_page_to_load(self.WAITTIME)
+        self.assert_(self.selenium.is_element_present("//img[@src='locked-delete-icon.png']"))
+        
+        self.selenium.click("link=Lock...") # Unlocking the device now.
+        self.waitForElement("dialog_cancel")
+        self.selenium.click("unlock:method")
+        self.selenium.wait_for_page_to_load(self.WAITTIME)
+        self.assert_(not self.selenium.is_element_present("//img[@src='locked-delete-icon.png']"))	
+
+    def testClearHeartbeats(self):
+        """Test clearing a device's heartbeats"""
+
+        self.selenium.click("link=Clear Heartbeats...")
+        self.waitForElement("dialog_cancel")
+        self.selenium.click("manage_deleteHeartbeat:method")
+        self.selenium.wait_for_page_to_load(self.WAITTIME)
+        self.assert_(self.selenium.is_text_present("Cleared heartbeat events for %s" %TARGET))
 
 if __name__ == "__main__":
     unittest.main()
