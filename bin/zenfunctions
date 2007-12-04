@@ -56,10 +56,10 @@ start() {
     else
         echo starting...
         if [ "$CFGFILE" = "" ]; then
-            eval exec $SUDO $PYTHON $PRGHOME/$PRGNAME --cycle --daemon '"$@"'
+            eval exec $SUDO $PYTHON $PRGHOME/$PRGNAME --cycle --daemon --watchdog '"$@"'
         else
             eval exec $SUDO $PYTHON $PRGHOME/$PRGNAME --configfile $CFGFILE \
-                --cycle --daemon '"$@"'
+                --cycle --daemon --watchdog '"$@"'
         fi
     fi
 }
@@ -76,7 +76,7 @@ stop() {
     if running; then
         PID=`cat $PIDFILE`
         echo stopping...
-        kill $PID
+        kill -INT $PID
         if [ $? -gt 0 ]; then
             rm -f $PIDFILE
             echo clearing pid file
