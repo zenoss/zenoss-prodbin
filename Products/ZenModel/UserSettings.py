@@ -53,6 +53,7 @@ def rolefilter(r): return r not in ("Anonymous", "Authenticated", "Owner")
 class UserSettingsManager(ZenModelRM):
     """Manage zenoss user folders.
     """
+    security = ClassSecurityInfo()
     
     meta_type = "UserSettingsManager"
 
@@ -215,6 +216,7 @@ class UserSettingsManager(ZenModelRM):
         return ""
 
 
+    security.declareProtected(ZEN_MANAGE_DMD, 'manage_addUser')
     def manage_addUser(self, userid, password=None,roles=("ZenUser",),
                     REQUEST=None,**kw):
         """Add a zenoss user to the system and set its default properties.
@@ -242,6 +244,7 @@ class UserSettingsManager(ZenModelRM):
         return ''.join( [ choice(chars) for i in range(6) ] )
 
 
+    security.declareProtected(ZEN_MANAGE_DMD, 'manage_changeUser')
     def manage_changeUser(self, userid, password=None, sndpassword=None,
                           roles=None, domains=None, REQUEST=None, **kw):
         """Change a zenoss users settings.
@@ -272,6 +275,7 @@ class UserSettingsManager(ZenModelRM):
             return user
 
 
+    security.declareProtected(ZEN_MANAGE_DMD, 'manage_deleteUsers')
     def manage_deleteUsers(self, userids=(), REQUEST=None):
         """Delete a list of zenoss users from the system.
         """
@@ -303,11 +307,13 @@ class UserSettingsManager(ZenModelRM):
                     mobj = ar.managedObject().primaryAq()
                     mobj.adminRoles._delObject(ar.id)
                 self._delObject(userid)
+        
         if REQUEST:
             REQUEST['message'] = "Users deleted"
             return self.callZenScreen(REQUEST)
 
 
+    security.declareProtected(ZEN_MANAGE_DMD, 'manage_addGroup')
     def manage_addGroup(self, groupid, REQUEST=None): 
         """Add a zenoss group to the system and set its default properties.
         """
@@ -321,6 +327,7 @@ class UserSettingsManager(ZenModelRM):
             return self.callZenScreen(REQUEST)
 
 
+    security.declareProtected(ZEN_MANAGE_DMD, 'manage_deleteGroups')
     def manage_deleteGroups(self, groupids=(), REQUEST=None):
         """ Delete a zenoss group from the system
         """
@@ -334,15 +341,19 @@ class UserSettingsManager(ZenModelRM):
             except KeyError: pass
         if REQUEST:
             REQUEST['message'] = "Groups deleted"
-            return self.callZenScreen(REQUEST) 
-            
-            
-    def manage_addUsersToGroup(self, userids, groupid, REQUEST=None):
+            return self.callZenScreen(REQUEST)
+
+
+    security.declareProtected(ZEN_MANAGE_DMD, 'manage_addUsersToGroups')
+    def manage_addUsersToGroups(self, userids=(), groupids=(), REQUEST=None):
         """ Add users to a group
         """
         if type(userids) in types.StringTypes:
             userids = [userids]
-        self._getOb(groupid).manage_addUsersToGroup(userids) 
+        if type(groupids) in types.StringTypes:
+            groupids = [groupids]
+        for groupid in groupids:
+            self._getOb(groupid).manage_addUsersToGroup(userids) 
         if REQUEST:
             REQUEST['message'] = \
                 "User %s added to group %s" % (','.join(userids), groupid)
@@ -845,7 +856,9 @@ class GroupSettings(UserSettings):
 
     def _getG(self):
         return self.zport.acl_users.groupManager
-    
+
+
+    security.declareProtected(ZEN_MANAGE_DMD, 'manage_addUsersToGroup')
     def manage_addUsersToGroup( self, userids, REQUEST=None ):
         """ Add user to this group
         """
@@ -858,10 +871,12 @@ class GroupSettings(UserSettings):
             return self.callZenScreen(REQUEST)
 
 
+    security.declareProtected(ZEN_MANAGE_DMD, 'manage_deleteUserFromGroup')
     def manage_deleteUserFromGroup( self, userid ):
         self._getG().removePrincipalFromGroup( userid, self.id )
         
-        
+
+    security.declareProtected(ZEN_MANAGE_DMD, 'manage_deleteUsersFromGroup')
     def manage_deleteUsersFromGroup(self, userids=(), REQUEST=None ):
         """ Delete users from this group
         """

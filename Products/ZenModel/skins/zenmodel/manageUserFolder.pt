@@ -61,8 +61,9 @@ function ConfirmPagerTest() {
     <tr tal:define="odd repeat/user/odd"
         tal:attributes="class python:test(odd, 'odd', 'even')">
         <td class="tablevalues">
-        <input type="checkbox" name="userids:list" 
-            tal:condition="here/isManager" tal:attributes="value user/getId" />
+            <input type="checkbox" name="userids:list" 
+               tal:condition="user/isManager" 
+               tal:attributes="value user/getId" />
             <a tal:attributes="href user/getPrimaryUrlPath"
                tal:condition="user/iseditable" 
                tal:content="user/getId">edahl</a>
@@ -124,8 +125,11 @@ function ConfirmPagerTest() {
     <tr tal:define="odd repeat/group/odd"
         tal:attributes="class python:test(odd, 'odd', 'even')">
         <td class="tablevalues">
-        <input type="checkbox" name="groupids:list" 
-            tal:condition="here/isManager" tal:attributes="value group/getId" />
+            <input type="checkbox" name="groupids:list" 
+               tal:condition="group/iseditable" 
+               tal:attributes="value group/getId" />
+            <input type="checkbox" disabled
+               tal:condition="not:group/iseditable"> 
             <a tal:attributes="href group/getPrimaryUrlPath"
                tal:condition="group/iseditable" 
                tal:content="group/getId">edahl</a>
