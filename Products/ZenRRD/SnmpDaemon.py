@@ -23,13 +23,7 @@ __version__ = "$Revision$"[11:-2]
 
 from RRDDaemon import RRDDaemon
 
-try:
-    from pynetsnmp.twistedsnmp import snmpprotocol
-except:
-    import warnings
-    warnings.warn("Using python-based snmp engine")
-    from twistedsnmp import snmpprotocol
-
+from pynetsnmp.twistedsnmp import snmpprotocol
 
 class SnmpDaemon(RRDDaemon):
     snmpCycleInterval = 5*60            # seconds

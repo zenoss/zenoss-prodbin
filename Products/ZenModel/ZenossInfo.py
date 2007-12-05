@@ -222,18 +222,6 @@ class ZenossInfo(ZenModelItem, SimpleItem):
         return Version('PySNMP', *getVersion())
 
 
-    def getTwistedSNMPVersion(self):
-        """
-        This function returns a Version-ready tuple. For use with the Version
-        object, use extended call syntax:
-
-            v = Version(*getTwistedSNMPVersion())
-            v.full()
-        """
-        from twistedsnmp.version import version
-        return Version('TwistedSNMP', *version)
-
-        
     def getZopeVersion(self):
         """
         This function returns a Version-ready tuple. For use with the Version
@@ -285,8 +273,6 @@ class ZenossInfo(ZenModelItem, SimpleItem):
             'href': "http:///twistedmatrix.com/trac" },
         {'header': 'SNMP', 'data': self.getPySNMPVersion().full(),
             'href': "http://pysnmp.sourceforge.net" },
-        {'header': 'Twisted SNMP', 'data': self.getTwistedSNMPVersion().full(),
-            'href': "http://twistedsnmp.sourceforge.net" },
         )
         try:
             versions += (

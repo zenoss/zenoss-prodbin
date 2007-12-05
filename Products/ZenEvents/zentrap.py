@@ -32,8 +32,21 @@ import Globals
 from EventServer import EventServer
 from Products.ZenModel.IpAddress import findIpAddress
 
-from twisted.internet import reactor
-from twistedsnmp import snmpprotocol
+from pynetsnmp import netsnmp, twistedsnmp
+
+# Magical interfacing with C code
+import ctypes as c
+
+# This is what struct sockaddr_in {} looks like
+class sockaddr_in(c.Structure):
+    _fields_ = [
+        ('family', c.c_ushort),
+        ('port', c.c_ubyte * 2),        # need to decode from net-byte-order
+        ('addr', c.c_ubyte * 4)
+        ];
+
+# teach python that the return type of snmp_clone_pdu is a pdu pointer
+netsnmp.lib.snmp_clone_pdu.restype = netsnmp.netsnmp_pdu_p
 
 TRAP_PORT = 162
 try:
@@ -41,33 +54,16 @@ try:
 except socket.error:
     pass
 
-def grind(obj):
-    '''Chase an object down to its value.
+def lp2oid(ptr, length):
+    "Convert a pointer to an array of longs to an oid"
+    return '.'.join([str(ptr[i]) for i in range(length)])
 
-    Example: getting a timeticks value:
-
-       ticks = obj['value']['application_syntax']['timeticks_value'].get()
-
-    becomes:
-
-       ticks = grind(obj)
-
-    '''
-    if hasattr(obj, 'keys'):
-        return grind(obj.values()[0])
-    return obj.get()
-
-def extract(obj, path, default = None):
-    parts = path.split('/')
-    for p in parts:
-        try:
-            obj = obj[p]
-        except KeyError:
-            return default
-    return obj
+def bp2ip(ptr):
+    "Convert a pointer to 4 bytes to a dotted-ip-address"
+    return '.'.join([str(ptr[i]) for i in range(4)])
 
 
-class ZenTrap(EventServer, snmpprotocol.SNMPProtocol):
+class ZenTrap(EventServer):
     'Listen for SNMP traps and turn them into events'
 
     totalTime = 0.
@@ -78,17 +74,20 @@ class ZenTrap(EventServer, snmpprotocol.SNMPProtocol):
 
     def __init__(self):
         EventServer.__init__(self)
-        snmpprotocol.SNMPProtocol.__init__(self, self.options.trapport)
+        self.session = netsnmp.Session()
         if self.options.useFileDescriptor is not None:
-            self.useUdpFileDescriptor(int(self.options.useFileDescriptor))
+            fileno = int(self.options.useFileDescriptor)
+            # open port 1162, but then dup fileno onto it
+            self.session.awaitTraps('0.0.0.0:1162', fileno)
         else:
-            reactor.listenUDP(self.port, self)
+            self.session.awaitTraps('0.0.0.0:%d' % self.options.trapport)
+        self.session.callback = self.handleTrap
+        twistedsnmp.updateReactor()
 
-
-    def handleTrap(self, data, addr):
+    def handleTrap(self, pdu):
         'Traps are processed asynchronously in a thread'
-        self.q.put( (data, addr, time.time()) )
-
+        # FIXME: not using the threaded-based posting
+        self.doHandleRequest(time.time(), pdu)
 
     def _findDevice(self, addr):
         'Find a device by its IP address'
@@ -112,7 +111,8 @@ class ZenTrap(EventServer, snmpprotocol.SNMPProtocol):
   
     def oid2name(self, oid):
         "get oids, even if we're handed slightly wrong values"
-        oid = oid.lstrip('.')
+        if type(oid) == type(()):
+            oid = '.'.join(map(str, oid))
         name = self._oid2name(oid)
         if not name:
             name = self._oid2name('.'.join(oid.split('.')[:-1]))
@@ -120,28 +120,39 @@ class ZenTrap(EventServer, snmpprotocol.SNMPProtocol):
             return oid
         return name
 
-    def doHandleRequest(self, data, addr, ts):
+    def doHandleRequest(self, ts, pdu):
         eventType = 'unknown'
         result = {}
-        if data['version'].get() == 1:
+        # is it a trap?
+        if pdu.sessid != 0: return
+        # what address did it come from?
+        #   for now, we'll make the scary assumption this data is a sockaddr_in
+        transport = c.cast(pdu.transport_data, c.POINTER(sockaddr_in))
+        if not transport: return
+        transport = transport.contents
+        #   Just to make sure, check to see that it is type AF_INET
+        if transport.family != socket.AF_INET: return
+        # get the address out as ( host-ip, port)
+        addr = (bp2ip(transport.addr),
+                transport.port[0] << 8 | transport.port[1])
+        if pdu.version == 1:
             # SNMP v2
-            bindings = extract(data, 'pdu/snmpV2_trap/variable_bindings', [])
-            bindings = extract(data, 'pdu/inform_request/variable_bindings',
-                               bindings)
-            for binding in bindings:
-                oid = grind(binding['name'])
-                value = grind(binding['value'])
+            variables = netsnmp.getResult(pdu)
+            for oid, value in variables:
+                oid = '.'.join(map(str, oid))
                 # SNMPv2-MIB/snmpTrapOID
-                if oid.lstrip('.') == '1.3.6.1.6.3.1.1.4.1.0':
+                if oid == '1.3.6.1.6.3.1.1.4.1.0':
                     eventType = self.oid2name(value)
                 result[self.oid2name(oid)] = value
-        else:
+        elif pdu.version == 0:
             # SNMP v1
-            addr = grind(extract(data, 'pdu/trap/agent_addr')), addr[1]
-            enterprise = grind(extract(data, 'pdu/trap/enterprise'))
+            variables = netsnmp.getResult(pdu)
+            addr = ('.'.join(map(str, [pdu.agent_addr[i] for i in range(4)])),
+                    addr[1])
+            enterprise = lp2oid(pdu.enterprise, pdu.enterprise_length)
             eventType = self.oid2name(enterprise)
-            generic = grind(extract(data, 'pdu/trap/generic_trap'))
-            specific = grind(extract(data, 'pdu/trap/specific_trap'))
+            generic = pdu.trap_type
+            specific = pdu.specific_type
             eventType = { 0 : 'snmp_coldStart',
                           1 : 'snmp_warmStart',
                           2 : 'snmp_linkDown',
@@ -150,15 +161,17 @@ class ZenTrap(EventServer, snmpprotocol.SNMPProtocol):
                           5 : 'snmp_egpNeighorLoss',
                           6 : self.oid2name('%s.0.%d' % (enterprise, specific))
                           }.get(generic, eventType + "_%d" % specific)
-            for binding in extract(data, 'pdu/trap/variable_bindings'):
-                oid = grind(binding['name'])
-                value = grind(binding['value'])
+            for oid, value in variables:
+                oid = '.'.join(map(str, oid))
                 result[self.oid2name(oid)] = value
+        else:
+            self.log.error("Unable to handle trap version %d", pdu.version)
+            return
 
         device = self._findDevice(addr)
         summary = 'snmp trap %s from %s' % (eventType, device)
         self.log.debug(summary)
-        community = data['community'].get()
+        community = c.string_at(pdu.community, pdu.community_len)
         result.setdefault('agent', 'zentrap')
         result.setdefault('component', '')
         result.setdefault('device', device)
@@ -176,27 +189,34 @@ class ZenTrap(EventServer, snmpprotocol.SNMPProtocol):
         self.totalEvents += 1
         self.maxTime = max(diff, self.maxTime)
 
-        if data['pdu'].has_key('inform_request'):
-            r = snmpprotocol.v2c.Response()
-            extract(r, 'pdu/response/request_id').set(
-                extract(data, 'pdu/inform_request/request_id').get())
-            r['community'].set(data['community'].get())
-            reactor.callFromThread(self.informResponse, r.berEncode(), addr)
-
-
-    def informResponse(self, data, addr):
-        self.transport.socket.sendto(data, addr)
-
+        # respond to INFORM requests
+        if pdu.command == netsnmp.SNMP_MSG_INFORM:
+            reply = netsnmp.lib.snmp_clone_pdu(c.addressof(pdu))
+            if not reply:
+                self.log.error("could not clone PDU for INFORM response")
+                raise SnmpError("Cannot respond to INFORM PDU")
+            reply.contents.command = netsnmp.SNMP_MSG_RESPONSE
+            reply.contents.errstat = 0
+            reply.contents.errindex = 0
+            sess = netsnmp.Session(peername='%s:%d' % addr,
+                                   version=pdu.version)
+            sess.open()
+            if not netsnmp.lib.snmp_send(sess.sess, reply):
+                netsnmp.lib.snmp_sess_perror("unable to send inform PDU", self.session.sess)
+                netsnmp.lib.snmp_free_pdu(reply)
+            sess.close()
 
     def buildOptions(self):
         EventServer.buildOptions(self)
         self.parser.add_option('--trapport', '-t',
-                               help='Listen for SNMP traps on this port rather than the default',
+                               help=('Listen for SNMP traps on this '
+                                     'port rather than the default'),
                                dest='trapport', type='int', default=TRAP_PORT)
         self.parser.add_option('--useFileDescriptor',
                                dest='useFileDescriptor',
                                type='int',
-                               help="Read from an existing connection rather opening a new port.",
+                               help=("Read from an existing connection "
+                                     " rather opening a new port."),
                                default=None)
 
 
