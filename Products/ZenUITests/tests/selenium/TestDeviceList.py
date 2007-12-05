@@ -25,6 +25,8 @@ from util.selTestUtils import *
 
 from SelTestBase import SelTestBase
 
+secondarydev = 'zenosst'
+
 class TestDeviceListBase(SelTestBase):
     """Base class for performing tests on specific device instances"""
 
@@ -35,15 +37,14 @@ class TestDeviceListBase(SelTestBase):
 
         SelTestBase.setUp(self)
         self.addDevice('localhost')
-        self.addDevice('zenosst.zenoss.loc')
+        self.addDevice(secondarydev)
 
 
     def tearDown(self):
         """Customized tearDown for device instance tests"""
 
         for devicename in self.devicenames:
-            self.goToDevice(devicename)
-        self.deleteDevice()
+            self.deleteDevice(devicename)
 
         SelTestBase.tearDown(self)
 
@@ -51,6 +52,10 @@ class TestDeviceListBase(SelTestBase):
 
 class TestDeviceList(TestDeviceListBase):
     """Test the device list"""
+
+    def _clickDeviceInList(self, targetname=secondarydev):
+        self.waitForElement("name=evids:list " + targetname)
+        self.selenium.click("name=evids:list " + targetname)
 
     def _goToDeviceList(self):
         self.waitForElement("link=Device List")
@@ -72,6 +77,25 @@ class TestDeviceList(TestDeviceListBase):
         self.deleteDialog()
         self.selenium.wait_for_page_to_load(self.WAITTIME)
 
+    def _addSubClass(self):
+        self.waitForElement("link=Devices")
+        self.selenium.click("link=Devices")
+        self.waitForElement("link=Server")
+        self.selenium.click("link=Server")
+        if self.selenium.is_element_present("link=/Server/testingString"):
+            self._deleteSubclass()
+        self.addDialog(addMethod="manage_addOrganizer:method",new_id=("text",
+                    "testingString"))
+        self.selenium.wait_for_page_to_load(self.WAITTIME)
+
+    def _deleteSubClass(self):
+        self.waitForElement("link=Devices")
+        self.selenium.click("link=Devices")
+        self.waitForElement("link=Server")
+        self.selenium.click("link=Server")
+        self.deleteDialog()
+        self.devicenames.remove(secondarydev)
+        self.selenium.wait_for_page_to_load(self.WAITTIME)
 
     def testSelectAll(self):
         """Test Selecting all devices"""
@@ -82,11 +106,11 @@ class TestDeviceList(TestDeviceListBase):
         self.selenium.click("id=setSelectNone")
         do_command_byname(self.selenium, "assertNotChecked", "evids:list")
 
-    def _testSetPriority(self):
+    def testSetPriority(self):
         """Test Setting Priority to the Highest"""
-        curtarget = "zenosst.zenoss.loc"
+        curtarget = secondarydev
         self._goToDeviceList() 
-        self.selenium.click("name=evids:list " + curtarget)
+        self._clickDeviceInList(curtarget)
         self.selenium.click("link=Set Priority...")
         self.waitForElement("setProductionState:method")
         self.selenium.select('priority', 'value=5')
@@ -96,11 +120,11 @@ class TestDeviceList(TestDeviceListBase):
         self.goToDevice(curtarget)
         self.selenium.do_command('assertTextPresent', ['Highest',])
 
-    def _testSetProductionState(self):
+    def testSetProductionState(self):
         """Test Setting Production state to the Test"""
-        curtarget = "zenosst.zenoss.loc"
+        curtarget = secondarydev
         self._goToDeviceList() 
-        self.selenium.click("name=evids:list " + curtarget)
+        self._clickDeviceInList(curtarget)
         self.selenium.click("link=Set Production State...")
         self.waitForElement("setProductionState:method")
         self.selenium.select('state', 'value=400')
@@ -110,32 +134,36 @@ class TestDeviceList(TestDeviceListBase):
         self.goToDevice(curtarget)
         self.selenium.do_command('assertTextPresent', ['Test'])
 
-    def _testMoveClass(self):
-        """Test Moving Class to /Server/Windows"""
-        curtarget = "zenosst.zenoss.loc"
+    def testMoveClass(self):
+        """Test Moving Class to /Server/testingString"""
+        curtarget = secondarydev
+        self._addSubClass()
         self._goToDeviceList() 
-        self.selenium.click("name=evids:list " + curtarget)
+        self._clickDeviceInList(curtarget)
         self.selenium.click("link=Move to Class...")
         self.waitForElement("moveDevicesToClass:method")
-        self.selenium.select('moveTarget', 'label=/Server/Windows')
+        self.selenium.select('moveTarget', 'label=/Server/testingString')
         self.selenium.click("moveDevicesToClass:method")
         self.selenium.do_command("waitForText",
-                ['id=messageSlot', 'Devices moved to /Server/Windows'])
-        self.goToDevice(curtarget)
-        self.selenium.do_command('assertTextPresent', ['/Server/Windows'])
+                ['id=messageSlot', 'Devices moved to /Server/testingString'])
+        self.waitForElement("name=evids:list " + curtarget)
+        self.selenium.do_command('assertElementPresent',
+                ['link=/Server/testingString'])
+        self._deleteSubClass()
 
-    def _testSetGroups(self):
+    def testSetGroups(self):
         """Test Setting the group to testingString"""
-        curtarget = "zenosst.zenoss.loc"
+        curtarget = secondarydev
         self._goToGroupsAddOrganizer()
         self._goToDeviceList() 
-        self.selenium.click("name=evids:list " + curtarget)
+        self._clickDeviceInList(curtarget)
         self.selenium.click("link=Set Groups...")
         self.waitForElement("setGroups:method")
         self.selenium.select('groupPaths', 'value=/testingString')
         self.selenium.click("setGroups:method")
         self.selenium.do_command("waitForElementPresent",
                 ['id=messageSpan'])
+        self.goToDevice(curtarget)
         self.selenium.do_command('assertElementPresent', ['link=/testingString'])
         self._goToGroupsDeleteOrganizer()
 

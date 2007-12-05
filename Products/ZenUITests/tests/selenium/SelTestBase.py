@@ -96,7 +96,7 @@ class SelTestBase(unittest.TestCase):
         if self.selenium.is_element_present("link=%s" %deviceIp):
             self.selenium.click("link=%s" %deviceIp)
             self.selenium.wait_for_page_to_load(self.WAITTIME)
-            self.deleteDevice()
+            self.deleteDevice(deviceIp)
         
         # Then add the device and navigate to its top level page.   
         self.waitForElement("link=Add Device")
@@ -113,12 +113,14 @@ class SelTestBase(unittest.TestCase):
         self.selenium.wait_for_page_to_load(self.WAITTIME)
         if not hasattr(self, "devicenames"):
             self.devicenames=[]
-        self.devicenames.append(deviceIp)
+        if not deviceIp in self.devicenames:
+            self.devicenames.append(deviceIp)
         
-    def deleteDevice(self, devname=TARGET):
+    def deleteDevice(self, devname=None):
         """Delete the test target device from Zenoss test instance"""
-        devicename = getattr(self, "devname", devname)
-        self.goToDevice(devicename)
+        if not devname:
+            devname = getattr(self, "devname", TARGET)
+        self.goToDevice(devname)
         self.waitForElement("link=Delete Device...")
         self.selenium.click("link=Delete Device...")
         self.waitForElement("dialog_cancel")
