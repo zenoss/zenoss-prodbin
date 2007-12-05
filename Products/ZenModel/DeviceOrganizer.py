@@ -287,6 +287,7 @@ class DeviceOrganizer(Organizer, DeviceManagerBase, Commandable, ZenMenuable,
             if REQUEST: REQUEST['message'] = "No Devices Selected"
             return self.callZenScreen(REQUEST)
         if not groupPaths: groupPaths = []
+        elif type(groupPaths)==type(""): groupPaths = [groupPaths]
         for dev in self._buildDeviceList(deviceNames):
             dev.setGroups(groupPaths)
         if REQUEST:

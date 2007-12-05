@@ -44,8 +44,7 @@ logger = logging.getLogger()
 
 def manage_beforeDelete(ob, event):
     """ Recurse through relationships """
-    # Left for a more enlightened Zopey future
-    # ob.manage_beforeDelete(ob, ob.__primary_parent__)
+    ob.manage_beforeDelete(ob, ob.__primary_parent__)
 
 
 class ZItem(Base, CopySource, App.Management.Tabs, Traversable,
