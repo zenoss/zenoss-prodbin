@@ -183,7 +183,7 @@ class Ping(object):
         """
         plog.debug("pj succeed for %s", pj.ipaddr)
         pj.rtt = time.time() - pj.start
-        pj.message = "%s ip %s is up" % (pj.hostname, pj.ipaddr)
+        pj.message = "ip %s is up" % (pj.ipaddr)
         self.reportPingJob(pj)
 
 
@@ -192,7 +192,7 @@ class Ping(object):
         """
         plog.debug("pj fail for %s", pj.ipaddr)
         pj.rtt = -1
-        pj.message = "%s ip %s is down" % (pj.hostname, pj.ipaddr)
+        pj.message = "ip %s is down" % (pj.ipaddr)
         self.reportPingJob(pj)
 
 
