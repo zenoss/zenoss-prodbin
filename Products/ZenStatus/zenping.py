@@ -220,7 +220,7 @@ class ZenPing(ZCmdBase):
         timeout = self.cycleInterval*3
         evt = EventHeartbeat(getfqdn(), "zenping", timeout)
         self.sendEvent(evt)
-        self.niceDoggie(timeout)
+        self.niceDoggie(self.cycleInterval)
 
     def pingSuccess(self, pj):
         "Callback for a good ping response"
