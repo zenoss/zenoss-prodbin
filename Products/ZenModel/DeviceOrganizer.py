@@ -180,7 +180,7 @@ class DeviceOrganizer(Organizer, DeviceManagerBase, Commandable, ZenMenuable,
         """Build a device list for set methods"""
         if isinstance(deviceNames, basestring):
             deviceNames = [deviceNames]
-        return [d for d in self.getSubDevices()
+        return [d.primaryAq() for d in self.getSubDevices()
                 if deviceNames is None or d.id in deviceNames 
                 or d.getPrimaryId() in deviceNames]
 
