@@ -22,7 +22,6 @@ __version__ = "$Revision: 1.9 $"[11:-2]
 import sys
 import os
 import pwd
-import signal
 import logging
 
 from CmdBase import CmdBase
