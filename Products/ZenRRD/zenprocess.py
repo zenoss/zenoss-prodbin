@@ -558,7 +558,7 @@ class zenprocess(SnmpDaemon):
         path = 'Devices/%s/os/processes/%s/%s' % (deviceName, pidName, statName)
         value = self.rrd.save(path, value, rrdType, min=min, max=max)
 
-        for ev in self.thresholds.check('/' + path, time.time(), value):
+        for ev in self.thresholds.check(path, time.time(), value):
             self.sendThresholdEvent(**ev)
             
 

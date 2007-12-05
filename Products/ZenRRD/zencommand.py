@@ -434,7 +434,7 @@ class zencommand(RRDDaemon):
     def heartbeatCycle(self, *ignored):
         "There is no master 'cycle' to send the hearbeat"
         self.heartbeat()
-        reactor.callLater(self.heartBeatTimeout/3, self.heartbeatCycle)
+        reactor.callLater(self.heartbeatTimeout/3, self.heartbeatCycle)
 
     def processSchedule(self, *unused):
         """Run through the schedule and start anything that needs to be done.

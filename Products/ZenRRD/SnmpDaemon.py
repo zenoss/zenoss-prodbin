@@ -27,7 +27,7 @@ from pynetsnmp.twistedsnmp import snmpprotocol
 
 class SnmpDaemon(RRDDaemon):
     snmpCycleInterval = 5*60            # seconds
-    heartBeatTimeout = snmpCycleInterval*3
+    heartbeatTimeout = snmpCycleInterval*3
 
     properties = RRDDaemon.properties + ('snmpCycleInterval',)
     
@@ -37,4 +37,4 @@ class SnmpDaemon(RRDDaemon):
         
     def setPropertyItems(self, items):
         RRDDaemon.setPropertyItems(self, items)
-        self.heartBeatTimeout = self.snmpCycleInterval*3
+        self.heartbeatTimeout = self.snmpCycleInterval*3
