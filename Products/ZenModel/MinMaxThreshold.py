@@ -201,8 +201,8 @@ class MinMaxThresholdInstance(ThresholdInstance):
             severity = self.severity
             if self.escalateCount and self.count >= self.escalateCount:
                 severity = min(severity + 1, 5)
-            summary = '%s %s threshold of %s %s: current value %.2f' % (
-                self.context().deviceName, label, self.name(), how, float(value))
+            summary = '%s threshold of %s %s: current value %.2f' % (
+                label, self.name(), how, float(value))
             return [dict(device=self.context().deviceName,
                          summary=summary,
                          eventClass=self.eventClass,
@@ -210,8 +210,8 @@ class MinMaxThresholdInstance(ThresholdInstance):
                          severity=severity)]
         else:
             if self.count != 0 and self.count is not None:
-                summary = '%s %s threshold restored current value: %.2f' % (
-                    self.context().deviceName, label, value)
+                summary = '%s threshold restored current value: %.2f' % (
+                    label, value)
                 self.count = 0
                 return [dict(device=self.context().deviceName,
                              summary=summary,
