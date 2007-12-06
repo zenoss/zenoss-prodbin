@@ -88,6 +88,9 @@
     "http://www.w3.org/TR/html4/loose.dtd">
 <html>
     <head>
+        <title>
+            <tal:block tal:content="string:Zenoss: ${here/getId}"/>
+        </title>
         <tal:block metal:use-macro="here/templates/macros/head1"/>
         <tal:block metal:define-slot="head-local"/>
     </head>
