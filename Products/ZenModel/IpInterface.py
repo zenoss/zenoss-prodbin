@@ -444,7 +444,7 @@ class IpInterface(OSComponent):
         speed = self.speed
         for unit in ('bps', 'Kbps', 'Mbps', 'Gbps'):
             if speed < 1000: break
-            speed /= 1000
+            speed /= 1000.0
         return "%.1f%s" % (speed, unit)
 
 
