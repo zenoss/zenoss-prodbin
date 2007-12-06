@@ -29,7 +29,7 @@ from AccessControl import Permissions as permissions
 from OFS.SimpleItem import SimpleItem
 
 from Device import manage_createDevice
-from Products.ZenUtils.Utils import setWebLoggingStream, clearWebLoggingStream
+from Products.ZenUtils.Utils import isXmlRpc, setupLoggingHeader, clearWebLoggingStream
 from Products.ZenUtils.Exceptions import ZentinelException
 from Products.ZenModel.Exceptions import DeviceExistsError, NoSnmp
 from ZenModelItem import ZenModelItem
@@ -90,21 +90,15 @@ class ZDeviceLoader(ZenModelItem,SimpleItem):
         """
         Load a device into the database connecting its major relations
         and collecting its configuration. 
-        """ 
-        xmlrpc = False
-        if REQUEST and REQUEST['CONTENT_TYPE'].find('xml') > -1:
-            xmlrpc = True
+        """         
         if not deviceName: return self.callZenScreen(REQUEST)
         device = None
+        
+        xmlrpc = isXmlRpc(REQUEST)
+        print xmlrpc
         if REQUEST and not xmlrpc:
-            response = REQUEST.RESPONSE
-            dlh = self.deviceLoggingHeader()
-            idx = dlh.rindex("</table>")
-            dlh = dlh[:idx]
-            idx = dlh.rindex("</table>")
-            dlh = dlh[:idx]
-            response.write(str(dlh[:idx]))
-            handler = setWebLoggingStream(response)
+            handler = setupLoggingHeader(self, REQUEST)
+        
         try:
             device = manage_createDevice(self, deviceName, devicePath,
                 tag, serialNumber,
@@ -133,8 +127,9 @@ class ZDeviceLoader(ZenModelItem,SimpleItem):
             if discoverProto != "none":
                 device.collectDevice(setlog=False, REQUEST=REQUEST)
             log.info("Device %s loaded!" % deviceName)
+
         if REQUEST and not xmlrpc:
-            self.loaderFooter(device, response)
+            self.loaderFooter(device, REQUEST.RESPONSE)
             clearWebLoggingStream(handler)
         if xmlrpc: return 0
 

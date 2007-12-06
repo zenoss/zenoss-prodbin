@@ -28,6 +28,8 @@ import socket
 from sets import Set
 log = logging.getLogger("zen.Utils")
 
+from popen2 import Popen4
+
 from Acquisition import aq_base
 from zExceptions import NotFound
 from AccessControl import getSecurityManager
@@ -35,7 +37,7 @@ from AccessControl import Unauthorized
 from AccessControl.ZopeGuards import guarded_getattr
 from Acquisition import aq_inner, aq_parent
 
-from Products.ZenUtils.Exceptions import ZenPathError
+from Products.ZenUtils.Exceptions import ZenPathError, ZentinelException
 
 class HtmlFormatter(logging.Formatter):
 
@@ -559,3 +561,46 @@ def extractPostContent(REQUEST):
 def unused(*args):                      # useful for shutting up pychecker
     return len(args)
 
+
+def isXmlRpc(REQUEST):
+    if REQUEST and REQUEST['CONTENT_TYPE'].find('xml') > -1:
+        return True
+    else:
+        return False
+
+def setupLoggingHeader(context, REQUEST):
+    response = REQUEST.RESPONSE
+    dlh = context.discoverLoggingHeader()
+    idx = dlh.rindex("</table>")
+    dlh = dlh[:idx]
+    idx = dlh.rindex("</table>")
+    dlh = dlh[:idx]
+    response.write(str(dlh[:idx]))
+    return setWebLoggingStream(response)
+
+
+def executeCommand(cmd, REQUEST):
+    xmlrpc = isXmlRpc(REQUEST)
+    try:
+        response = REQUEST.RESPONSE
+        log.info('Executing command: %s' % ' '.join(cmd))
+        f = Popen4(cmd)
+        while 1:
+            s = f.fromchild.readline()
+            if not s: 
+                break
+            elif response:
+                response.write(s)
+                response.flush()
+            else:
+                log.info(s)
+    except (SystemExit, KeyboardInterrupt): 
+        if xmlrpc: return 1
+        raise
+    except ZentinelException, e:
+        if xmlrpc: return 1
+        log.critical(e)
+    except: 
+        if xmlrpc: return 1
+        raise
+    return 0

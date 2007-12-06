@@ -22,8 +22,8 @@ from popen2 import Popen4
 from _mysql_exceptions import OperationalError
 
 from Products.ZenUtils.Graphics import NetworkGraph
-from Products.ZenUtils.Utils import setWebLoggingStream, clearWebLoggingStream
-from Products.ZenUtils.Utils import zenPath, unused
+from Products.ZenUtils.Utils import isXmlRpc, setupLoggingHeader, executeCommand
+from Products.ZenUtils.Utils import zenPath, unused, clearWebLoggingStream
 from Products.ZenUtils import Time
 import RRDView
 
@@ -1644,45 +1644,22 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
         @todo: generateEvents param is not being used.
         """
         unused(generateEvents)
-        response = None
-        if REQUEST:
-            response = REQUEST.RESPONSE
-            if setlog:
-                dlh = self.deviceLoggingHeader()
-                idx = dlh.rindex("</table>")
-                dlh = dlh[:idx]
-                idx = dlh.rindex("</table>")
-                dlh = dlh[:idx]
-                response.write(str(dlh[:idx]))
-                handler = setWebLoggingStream(response)
         
-        try:
-            zm = zenPath('bin', 'zenmodeler')
-            zenmodelerCmd = [zm, 'run', '--now','-F','-d', self.id]
-            if REQUEST: zenmodelerCmd.append("--weblog")
-            log.info('Executing command: %s' % ' '.join(zenmodelerCmd)) 
-            f = Popen4(zenmodelerCmd) 
-            while 1: 
-                s = f.fromchild.readline() 
-                if not s: 
-                    break 
-                elif response: 
-                    response.write(s)
-                    response.flush()
-                else:
-                    sys.stdout.write(s) 
-        except (SystemExit, KeyboardInterrupt): raise 
-        except ZentinelException, e: 
-            log.critical(e) 
-                            
-        if REQUEST and setlog:
-            response.write(self.loggingFooter())
+        xmlrpc = isXmlRpc(REQUEST)
+        if setlog and REQUEST and not xmlrpc:
+            handler = setupLoggingHeader(self, REQUEST)
+
+        zm = zenPath('bin', 'zenmodeler')
+        zenmodelerCmd = [zm, 'run', '--now','-F','-d', self.id]
+        if REQUEST: zenmodelerCmd.append("--weblog")
+        result = executeCommand(zenmodelerCmd, REQUEST)
+        if result and xmlrpc: return result
+        log.info("configuration collected")
+        
+        if setlog and REQUEST and not xmlrpc:
             clearWebLoggingStream(handler)
-            REQUEST['message'] = "Configuration collected"
-#        if not setlog:
-#            for c in [c for c in sc.finished if c.timeout < time.time()]:
-#                from Products.DataCollector.Exceptions import DataCollectorError
-#                raise DataCollectorError("Device %s timed out" % self.id)
+        
+        if xmlrpc: return 0
 
 
     security.declareProtected(ZEN_ADMIN_DEVICE, 'deleteDevice')

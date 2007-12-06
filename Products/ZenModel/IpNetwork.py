@@ -41,8 +41,8 @@ from DeviceOrganizer import DeviceOrganizer
 
 from Products.ZenModel.Exceptions import *
 
-from Products.ZenUtils.Utils import setWebLoggingStream, clearWebLoggingStream
-from Products.ZenUtils.Utils import zenPath
+from Products.ZenUtils.Utils import isXmlRpc, setupLoggingHeader, executeCommand
+from Products.ZenUtils.Utils import zenPath, clearWebLoggingStream
 from Products.ZenUtils import NetworkTree
 from Products.ZenUtils.Utils import edgesToXML
 from Products.ZenUtils.Utils import unused
@@ -438,51 +438,29 @@ class IpNetwork(DeviceOrganizer):
         Load a device into the database connecting its major relations
         and collecting its configuration. 
         """
-        xmlrpc = False
-        if REQUEST and REQUEST['CONTENT_TYPE'].find('xml') > -1:
-            xmlrpc = True
+        xmlrpc = isXmlRpc(REQUEST)
                   
         if not organizerPaths: 
             if xmlrpc: return 1
             return self.callZenScreen(REQUEST)
         
         if REQUEST and not xmlrpc:
-            response = REQUEST.RESPONSE
-            dlh = self.discoverLoggingHeader()
-            idx = dlh.rindex("</table>")
-            dlh = dlh[:idx]
-            idx = dlh.rindex("</table>")
-            dlh = dlh[:idx]
-            response.write(str(dlh[:idx]))
-            handler = setWebLoggingStream(response)
+            handler = setupLoggingHeader(self, REQUEST)
         
         orgroot = self.getDmdRoot(self.dmdRootName)
-        from popen2 import Popen4
         for organizerName in organizerPaths:
-            try:
-                organizer = orgroot._getNet(organizerName)
-                zd = zenPath('bin', 'zendisc')
-                zendiscCmd = [zd, "run", '--net', organizer.id]
-                log.info('Executing command: %s' % ' '.join(zendiscCmd))
-                f = Popen4(zendiscCmd)
-                while 1:
-                    s = f.fromchild.readline()
-                    if not s: break
-                    log.info(s.rstrip())
-            except (SystemExit, KeyboardInterrupt): 
-                if xmlrpc: return 1
-                raise
-            except ZentinelException, e:
-                if xmlrpc: return 1
-                log.critical(e)
-            except: 
-                if xmlrpc: return 1
-                raise
+            organizer = orgroot._getNet(organizerName)
+            zd = zenPath('bin', 'zendisc')
+            zendiscCmd = [zd, "run", '--net', organizer.id]
+            result = executeCommand(zendiscCmd, REQUEST)
+            if result and xmlrpc: return result
+                
         log.info('Done')
         
         if REQUEST and not xmlrpc:
-            self.loaderFooter(response)
+            self.loaderFooter(REQUEST.RESPONSE)
             clearWebLoggingStream(handler)
+            
         if xmlrpc: return 0
 
 
