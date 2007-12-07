@@ -416,7 +416,7 @@ class zencommand(RRDDaemon):
              username, password,
              loginTimeout, commandTimeout, 
              keyPath, maxOids, commandPart, threshs) = c
-            self.thresholds.updateList(threshs)
+            self.thresholds.updateForDevice(device, threshs)
             if self.options.device and self.options.device != device:
                 continue
             for cmd in commandPart:

@@ -317,7 +317,7 @@ class zenprocess(SnmpDaemon):
             d.name = name
             d.updateConfig(snmpConf, procs)
             d.protocol = self.snmpPort.protocol
-            self.thresholds.updateList(thresholds)
+            self.thresholds.updateForDevice(name, thresholds)
         for doomed in Set(fetched) - names:
             if doomed in self._devices:
                 del self._devices[doomed]

@@ -437,7 +437,7 @@ class zenperfsnmp(SnmpDaemon):
                 p.oidMap[oid] = d = oidMap.setdefault(oid, OidData())
                 d.update(name, path, dsType, createCmd, minmax)
         self.proxies[deviceName] = p
-        self.thresholds.updateList(thresholds)
+        self.thresholds.updateForDevice(deviceName, thresholds)
 
 
     def scanCycle(self, *unused):

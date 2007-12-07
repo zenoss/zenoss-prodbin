@@ -18,27 +18,33 @@ class Thresholds:
     "Class for holding multiple Thresholds, used in most collectors"
 
     def __init__(self):
-        self.thresholds = {}
-        self.map = {}
+        self.byKey = {}
+        self.byFilename = {}
+        self.byDevice = {}
 
     def remove(self, threshold):
-        doomed = self.thresholds.get(threshold.key(), None)
+        d = self.byDevice.get(threshold.context().deviceName, None)
+        if d and threshold.key() in d:
+            del d[threshold.key()]
+        doomed = self.byKey.get(threshold.key(), None)
         if doomed:
-            del self.thresholds[doomed.key()]
+            del self.byKey[doomed.key()]
             ctx = doomed.context()
             for dp in doomed.dataPoints():
-                lst = self.map[ctx.fileKey(dp)]
+                lst = self.byFilename[ctx.fileKey(dp)]
                 if (doomed, dp) in lst:
                     lst.remove( (doomed, dp) )
                 if not lst:
-                    del self.map[ctx.fileKey(dp)]
+                    del self.byFilename[ctx.fileKey(dp)]
         return doomed
 
     def add(self, threshold):
-        self.thresholds[threshold.key()] = threshold
+        self.byKey[threshold.key()] = threshold
+        d = self.byDevice.setdefault(threshold.context().deviceName, {})
+        d[threshold.key()] = threshold
         ctx = threshold.context()
         for dp in threshold.dataPoints():
-            self.map.setdefault(ctx.fileKey(dp), []).append((threshold, dp))
+            self.byFilename.setdefault(ctx.fileKey(dp), []).append((threshold, dp))
         
     def update(self, threshold):
         "Store a threshold instance for future computation"
@@ -53,12 +59,25 @@ class Thresholds:
         for threshold in thresholds:
             self.update(threshold)
 
+    def thresholdsForDevice(self, device):
+        return self.byDevice.get(device, {}).values()
+
+    def updateForDevice(self, device, thresholds):
+        "Store a threshold instance for future computation"
+        doomed = dict([(d.key(), d) for d in self.thresholdsForDevice(device)])
+        self.updateList(thresholds)
+        for threshold in thresholds:
+            if threshold.key() in doomed:
+                del doomed[threshold.key()]
+        for d in doomed.values():
+            self.remove(d)
+
     def check(self, filename, timeAt, value):
         "Check a given threshold based on an updated value"
         result = []
-        if filename in self.map:
+        if filename in self.byFilename:
             log.debug("Checking value %s on %s", value, filename)
-            for t, dp in self.map[filename]:
+            for t, dp in self.byFilename[filename]:
                 result += t.checkRaw(dp, timeAt, value)
         return result
 
