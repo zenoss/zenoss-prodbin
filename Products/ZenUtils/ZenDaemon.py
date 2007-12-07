@@ -79,10 +79,11 @@ class ZenDaemon(CmdBase):
         fp.write(str(os.getpid()))
         fp.close()
 
-    def setupLogging(self):
+    def setupLogging(self, mname=None):
         rlog = logging.getLogger()
         rlog.setLevel(logging.WARN)
-        mname = self.__class__.__name__
+        if not mname:
+           mname = self.__class__.__name__
         self.log = logging.getLogger("zen."+ mname)
         zlog = logging.getLogger("zen")
         zlog.setLevel(self.options.logseverity)
@@ -185,6 +186,7 @@ class ZenDaemon(CmdBase):
                            startTimeout,
                            cycleTime,
                            maxTime)
+        self.setupLogging(self.__class__.__name__ + "-watcher")
         watchdog.run()
         sys.exit(0)
 
