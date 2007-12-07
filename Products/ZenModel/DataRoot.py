@@ -172,6 +172,11 @@ class DataRoot(ZenModelRM, OrderedFolder, Commandable, ZenMenuable):
                 , 'action'        : '../About/zenossVersions'
                 , 'permissions'   : ( "Manage DMD", )
                 },
+                { 'id'            : 'backups'
+                , 'name'          : 'Backups'
+                , 'action'        : 'backupInfo'
+                , 'permissions'   : ( "Manage DMD", )
+                },
             )
           },
         )
@@ -645,5 +650,138 @@ class DataRoot(ZenModelRM, OrderedFolder, Commandable, ZenMenuable):
             return '<graph><Start name="%s"/></graph>' % objid
         return obj.getXMLEdges(int(depth), filter, 
                                start=(obj.id,obj.getPrimaryUrlPath()))
+
+
+    security.declareProtected(ZEN_MANAGE_DMD, 'getBackupFilesInfo')
+    def getBackupFilesInfo(self):
+        """
+        Retrieve a list of dictionaries describing the files in 
+        $ZENHOME/backups.
+        """
+        import stat
+        import os
+        import datetime
+        import operator
+                
+        def FmtFileSize(size):
+            for power, units in ((3, 'GB'), (2, 'MB'), (1, 'KB')):
+                if size > pow(1024, power):
+                    fmt = '%.2f %s' % ((size * 1.0)/pow(1024, power), units)
+                    break
+            else:
+                fmt = '%s bytes' % size
+            return fmt
+
+        backupsDir = zenPath('backups')
+        fileInfo = []
+        if os.path.isdir(backupsDir):
+            for dirPath, dirNames, fileNames in os.walk(backupsDir):
+                dirNames[:] = []
+                for fileName in fileNames:
+                    filePath = os.path.join(backupsDir, fileName)
+                    info = os.stat(filePath)
+                    fileInfo.append({
+                        'fileName': fileName,
+                        'size': info[stat.ST_SIZE],
+                        'sizeFormatted': FmtFileSize(info[stat.ST_SIZE]),
+                        'modDate': info[stat.ST_MTIME],
+                        'modDateFormatted': datetime.datetime.fromtimestamp(
+                                info[stat.ST_MTIME]).strftime(
+                                '%a %b %d, %Y  %X %p'),
+                        })
+        fileInfo.sort(key=operator.itemgetter('modDate'))
+        return fileInfo
+
+
+    security.declareProtected(ZEN_MANAGE_DMD, 'manage_createBackup')
+    def manage_createBackup(self, includeEvents=None, includeMysqlLogin=None,
+            timeout=120, REQUEST=None):
+        """
+        Create a new backup file using zenbackup and the options specified
+        in the request.
+        
+        This method makes use of the fact that DataRoot is a Commandable
+        in order to use Commandable.write
+        """
+        import popen2
+        import fcntl
+        import time
+        import select
+        
+        def write(s):
+            if REQUEST:
+                self.write(REQUEST.RESPONSE, s)
+
+        if REQUEST:
+            header, footer = self.commandOutputTemplate().split('OUTPUT_TOKEN')
+            REQUEST.RESPONSE.write(str(header))        
+        write('')
+        try:
+            cmd = '%s/zenbackup -v' % zenPath('bin')
+            if not includeEvents:
+                cmd += ' --no-eventsdb'
+            if includeMysqlLogin:
+                cmd += ' --save-mysql-access'
+            try:
+                timeout = int(timeout)
+            except ValueError:
+                timeout = 120
+            timeout = max(timeout, 1)
+            child = popen2.Popen4(cmd)
+            flags = fcntl.fcntl(child.fromchild, fcntl.F_GETFL)
+            fcntl.fcntl(child.fromchild, fcntl.F_SETFL, flags | os.O_NDELAY)
+            endtime = time.time() + timeout
+            write('%s' % cmd)
+            write('')
+            pollPeriod = 1
+            firstPass = True
+            while time.time() < endtime and (firstPass or child.poll() == -1):
+                firstPass = False
+                r, w, e = select.select([child.fromchild], [], [], pollPeriod)
+                if r:
+                    t = child.fromchild.read()
+                    # We are sometimes getting to this point without any data
+                    # from child.fromchild.  I don't think that should happen
+                    # but the conditional below seems to be necessary.
+                    if t:
+                        write(t)
+                    
+            if child.poll() == -1:
+                write('Backup timed out after %s seconds.' % timeout)
+                os.kill(child.pid, signal.SIGKILL)
+
+            write('DONE')
+        except:
+            write('Exception while performing backup.')
+            write('type: %s  value: %s' % tuple(sys.exc_info()[:2]))
+        write('')
+        if REQUEST:
+            REQUEST.RESPONSE.write(footer)
+
+
+    security.declareProtected(ZEN_MANAGE_DMD, 'manage_deleteBackups')
+    def manage_deleteBackups(self, fileNames=(), REQUEST=None):
+        """
+        Delete the specified files from $ZENHOME/backups
+        """
+        backupsDir = zenPath('backups')
+        fileInfo = []
+        count = 0
+        if os.path.isdir(backupsDir):
+            for dirPath, dirNames, dirFileNames in os.walk(backupsDir):
+                dirNames[:] = []
+                for fileName in fileNames:
+                    if fileName in dirFileNames:
+                        res = os.remove(os.path.join(dirPath, fileName))
+                        if res == 0:
+                            count += 1
+            if REQUEST:
+                REQUEST['messag'] = '%s files deleted' % count
+        else:
+            if REQUEST:
+                REQUEST['message'] = 'Unable to find $ZENHOME/backups'
+        if REQUEST:
+            return self.callZenScreen(REQUEST)
+
 
 InitializeClass(DataRoot)

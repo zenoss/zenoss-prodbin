@@ -214,7 +214,8 @@ mypath python:test(item.action.startswith('javascript'),
             Zentable macro
 ====================================-->
 <tal:block metal:define-macro="zentable">
-    <table class=" zentable">
+    <table class=" zentable"
+        tal:attributes="noselectionbar noselectionbar | nothing">
         <tr tal:define="tabletitle tabletitle|string:">
         <tal:block metal:use-macro="here/zenuimacros/macros/tabletitle">
             <tal:block metal:fill-slot="filterslot">

@@ -281,9 +281,11 @@ function selectNoneCheckboxes(table) {
 function addSelectionBar() {
     var tables = getElementsByTagAndClassName('table', 'innerzentable');
     for (i=0;i<tables.length;i++) {
-        var inputs = tables[i].getElementsByTagName('input');
-        var cbs = filter(function(x){return x.type=='checkbox'}, inputs);
-        if (cbs.length) insertSelBar(tables[i]);
+        if (!getNodeAttribute(tables[i], 'noselectionbar')) {
+            var inputs = tables[i].getElementsByTagName('input');
+            var cbs = filter(function(x){return x.type=='checkbox'}, inputs);
+            if (cbs.length) insertSelBar(tables[i]);
+        }
     }
 }
 

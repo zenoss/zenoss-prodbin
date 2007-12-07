@@ -1,0 +1,12 @@
+<h2>Delete Backup</h2>
+<table>
+<tr><td>Are you sure you want to delete the selected backup file(s)?</td></tr>
+</table>
+<br>
+<div align="center">
+<input type="submit" name="manage_deleteBackups:method"
+   value="Delete"
+   tal:attributes="onclick string:return $$('dialog').submit_form('', 'backupsForm')" />
+<input id="dialog_cancel" type="button" value="Cancel" 
+       onclick="$('dialog').hide()"/>
+</div>
