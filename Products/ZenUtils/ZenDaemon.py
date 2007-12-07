@@ -79,15 +79,16 @@ class ZenDaemon(CmdBase):
         fp.write(str(os.getpid()))
         fp.close()
 
-    def setupLogging(self, mname=None):
+    def setupLogging(self):
         rlog = logging.getLogger()
         rlog.setLevel(logging.WARN)
-        if not mname:
-           mname = self.__class__.__name__
+        mname = self.__class__.__name__
         self.log = logging.getLogger("zen."+ mname)
         zlog = logging.getLogger("zen")
         zlog.setLevel(self.options.logseverity)
-        if self.options.daemon or self.options.logpath:
+        if self.options.watchdogPath or \
+           self.options.daemon or \
+           self.options.logpath:
             if self.options.logpath:
                 if not os.path.isdir(os.path.dirname(self.options.logpath)):
                     raise SystemExit("logpath:%s doesn't exist" %
@@ -186,7 +187,6 @@ class ZenDaemon(CmdBase):
                            startTimeout,
                            cycleTime,
                            maxTime)
-        self.setupLogging(self.__class__.__name__ + "-watcher")
         watchdog.run()
         sys.exit(0)
 
