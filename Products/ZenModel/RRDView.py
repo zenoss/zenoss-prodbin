@@ -289,7 +289,7 @@ class RRDView(object):
         return performancePath(self.rrdPath())
         
     def getSnmpOidTargets(self):
-        """Return a list of (name, oid, path, type, createCmd, thresholds)
+        """Return a list of (name, oid, path, type, createCmd)
         that define monitorable"""
         oids = []
         if self.snmpIgnore(): return (oids, [])
