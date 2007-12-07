@@ -10,5 +10,12 @@
 # For complete information please visit: http://www.zenoss.com/oss/
 #############################################################################
 
-. $ZENHOME/bin/zenfunctions
-$PYTHON $ZENHOME/Products/ZenUtils/ZenBackup.py "$CMD" $*
+if [ -z "$ZENHOME" ] ; then
+    echo ERROR: '$ZENHOME' is not set.
+    echo This is usually caused by executing this command as root rather than \
+as the zenoss user.  Either define '$ZENHOME' or run this command as a \
+different user.
+else
+    . $ZENHOME/bin/zenfunctions
+    $PYTHON $ZENHOME/Products/ZenUtils/ZenBackup.py "$CMD" $*
+fi
