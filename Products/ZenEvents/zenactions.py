@@ -288,10 +288,13 @@ class ZenActions(ZCmdBase):
             data['eventUrl'] = self.getUrl(evid)
             severity = data.get('severity', -1)
             data['severityString'] = zem.getSeverityString(severity)
-            if getattr(context, 'sendClear', True):
-                action(context, data, True)
             delcmd = self.clearstate % (evid, userid, context.getId())
-            self.execute(delcmd)
+            if getattr(context, 'sendClear', True):
+                if action(context, data, True):
+                    self.execute(delcmd)
+            else:
+                self.execute(delcmd)
+
 
     def maintenance(self, zem):
         """Run stored procedures that maintain the events database.
