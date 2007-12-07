@@ -26,7 +26,7 @@ def manage_addWinService(context, id, description, userCreated=None, REQUEST=Non
     s = context._getOb(id)
     s.description = description
     args = {'name':id, 'description':description}
-    s.setServiceClass(**args)
+    s.setServiceClass(args)
     if userCreated: s.setUserCreateFlag()
     if REQUEST is not None:
         REQUEST['RESPONSE'].redirect(context.absolute_url()
