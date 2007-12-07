@@ -265,6 +265,7 @@ registerDirectory("skins", globals())
                 if f.endswith('.pyc'): continue
                 filename = os.path.join(p, f)
                 zf.write(filename, filename[len(base)+1:])
+            ds[:] = [d for d in ds if d[0] != '.']
         zf.close()
         if REQUEST:
             if download == 'yes':
