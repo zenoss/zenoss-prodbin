@@ -1810,6 +1810,18 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
             REQUEST['message'] = 'Deleted all events for %s' % devname
             return self.callZenScreen(REQUEST)
 
+    security.declareProtected('Manage Events','manage_deleteHistoricalEvents')
+    def manage_deleteHistoricalEvents(self, devname, REQUEST=None):
+        """
+        Delete the historical events for the given device.
+        This is an option during device deletion
+        """
+        whereClause = 'where device = "%s"' % devname
+        self.updateEvents('DELETE FROM history', whereClause, 'Device Deleted')
+        if REQUEST:
+            REQUEST['message'] = 'Deleted historical events for %s' % devname
+            return self.callZenScreen(REQUEST)
+
 
     security.declareProtected('Manage Events','manage_deleteHeartbeat')
     def manage_deleteHeartbeat(self, devname, REQUEST=None):
