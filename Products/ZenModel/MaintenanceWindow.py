@@ -364,10 +364,8 @@ class MaintenanceWindow(ZenModelRM):
 
         for device in devices:
             if state == -99:
-                try:
-                    state = self.stopProductionStates[device.id]
-                except KeyError:
-                    state = 1000
+                state = self.stopProductionStates.get(device.id,
+                        device.productionState)
             self.stopProductionStates[device.id] = device.productionState
             device.setProdState(state)
 
