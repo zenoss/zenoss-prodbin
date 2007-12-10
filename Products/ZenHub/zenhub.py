@@ -361,6 +361,8 @@ class ZenHub(ZCmdBase):
         
         @return: None
         """
+        if self.options.cycle:
+            self.heartbeat()
         reactor.run()
 
 
