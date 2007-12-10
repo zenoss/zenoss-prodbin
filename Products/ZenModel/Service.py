@@ -87,11 +87,13 @@ class Service(OSComponent, Commandable, ZenPackable):
         return self.ZenEventManager.severities[self.getAqProperty("zFailSeverity")]
 
 
-    def setServiceClass(self, name="", description=""):
+    def setServiceClass(self, kwargs):
         """
         Set the service class based on a dict describing the service.
         Dict keys are be protocol and port
         """
+        name = kwargs['name']
+        description = kwargs['description']
         srvs = self.dmd.getDmdRoot("Services")
         srvclass = srvs.createServiceClass(name=name, description=description)
         self.serviceclass.addRelation(srvclass)

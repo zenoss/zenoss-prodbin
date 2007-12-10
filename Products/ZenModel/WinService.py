@@ -101,9 +101,11 @@ class WinService(Service):
         return {'name': self.name, 'description': self.description }
 
 
-    def setServiceClass(self, name, description):
+    def setServiceClass(self, kwargs):
         """Set the service class where name=ServiceName and description=Caption.
         """
+        name = kwargs['name']
+        description = kwargs['description']
         path = "/WinService/"
         srvs = self.dmd.getDmdRoot("Services")
         srvclass = srvs.createServiceClass(name=name, description=description, 
@@ -139,7 +141,7 @@ class WinService(Service):
             self.startName = startName
             if self.id != id:
                 id = prepId(id)
-                self.setServiceClass(name=id, description=description)
+                self.setServiceClass(dict(name=id, description=description))
                 renamed = self.rename(id)
         tmpl = super(WinService, self).manage_editService(monitor, severity,
                                                     REQUEST=REQUEST)
