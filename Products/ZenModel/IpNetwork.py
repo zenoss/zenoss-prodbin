@@ -170,7 +170,23 @@ class IpNetwork(DeviceOrganizer):
                 supnetip = getnetstr(netip, treemask)
                 netobj = netobj.addSubNetwork(supnetip, treemask)
         return netobj
-       
+
+
+    def findNet(self, netip, netmask=0):
+        """
+        Find and return the subnet of this IpNetwork that matches the requested
+        netip and netmask.
+        """
+        if netip.find("/") >= 0:
+            netip, netmask = netip.split("/", 1)
+            netmask = int(netmask)
+        for subnet in [self] + self.getSubNetworks():
+            if netmask == 0 and subnet.id == netip:
+                return subnet
+            if subnet.id == netip and subnet.netmask == netmask:
+                return subnet
+        return None
+
 
     def getNet(self, ip):
         """Return the net starting form the Networks root for ip.

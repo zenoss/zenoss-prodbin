@@ -200,7 +200,7 @@ class ZenDisc(ZenModeler):
             for net in self.options.net:
                 try:
                     nets = []
-                    netobj = self.dmd.Networks._getNet(net) 
+                    netobj = self.dmd.Networks.findNet(net) 
                     if not netobj:
                         raise SystemExit("network %s not found in dmd" % net)
                     if self.options.subnets and len(netobj.children()) > 0:
