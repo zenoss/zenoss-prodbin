@@ -32,8 +32,6 @@ from OFS.Traversable import Traversable
 
 from Products.ZenUtils.Utils import unused
 
-from zope.interface import implements
-from Products.ZenRelations.interfaces import IDeletable
 
 HTML=Globals.HTML
 
@@ -47,7 +45,6 @@ class ZItem(Base, CopySource, App.Management.Tabs, Traversable,
 
     """A common base class for simple, non-container objects."""
 
-    implements(IDeletable)
     isPrincipiaFolderish=0
     isTopLevelPrincipiaApplicationObject=0
 
