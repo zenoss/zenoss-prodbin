@@ -12,7 +12,7 @@
 ##############################################################################
 """ Expressions in a web-configurable workflow.
 
-$Id: Expression.py 67708 2006-04-28 10:45:12Z yuppie $
+$Id: Expression.py 36510 2004-09-03 17:18:18Z jens $
 """
 
 from AccessControl import ClassSecurityInfo
@@ -101,9 +101,10 @@ def createExprContext(folder, portal, object):
         'folder':       folder,
         'portal':       portal,
         'nothing':      None,
-        'request':      getattr(portal, 'REQUEST', None),
+        'request':      getattr( object, 'REQUEST', None ),
         'modules':      SecureModuleImporter,
         'member':       member,
         'here':         object,
         }
     return getEngine().getContext(data)
+

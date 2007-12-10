@@ -14,15 +14,13 @@
 ##############################################################################
 """ Class: HTTPBasicAuthHelper
 
-$Id: HTTPBasicAuthHelper.py 70851 2006-10-20 19:25:56Z jens $
+$Id: HTTPBasicAuthHelper.py 40169 2005-11-16 20:09:11Z tseaver $
 """
 
 from zExceptions import Unauthorized
 
 from AccessControl.SecurityInfo import ClassSecurityInfo
 from App.class_init import default__class_init__ as InitializeClass
-
-from zope.interface import Interface
 
 from Products.PageTemplates.PageTemplateFile import PageTemplateFile
 from Products.PluggableAuthService.interfaces.plugins import \
@@ -32,6 +30,7 @@ from Products.PluggableAuthService.interfaces.plugins import \
 from Products.PluggableAuthService.interfaces.plugins import \
         ICredentialsResetPlugin
 from Products.PluggableAuthService.plugins.BasePlugin import BasePlugin
+from Products.PluggableAuthService.utils import Interface
 from Products.PluggableAuthService.utils import classImplements
 
 

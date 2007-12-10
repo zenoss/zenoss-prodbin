@@ -12,18 +12,19 @@
 ##############################################################################
 """ Unit tests for DynamicType module.
 
-$Id: test_DynamicType.py 71509 2006-12-09 15:05:30Z philikon $
+$Id: test_DynamicType.py 38612 2005-09-25 13:02:39Z jens $
 """
 
 from unittest import TestCase, TestSuite, makeSuite, main
 import Testing
-import Zope2
+try:
+    import Zope2
+except ImportError: # BBB: for Zope 2.7
+    import Zope as Zope2
 Zope2.startup()
 
-from StringIO import StringIO
-
 from Acquisition import Implicit
-from ZPublisher.HTTPRequest import HTTPRequest
+from ZPublisher.BaseRequest import BaseRequest
 from ZPublisher.HTTPResponse import HTTPResponse
 
 from Products.CMFCore.DynamicType import DynamicType
@@ -35,43 +36,22 @@ from Products.CMFCore.tests.base.tidata import FTIDATA_CMF15
 from Products.CMFCore.TypesTool import FactoryTypeInformation as FTI
 from Products.CMFCore.TypesTool import TypesTool
 
-import zope.component
-from zope.interface import Interface, implements
-from zope.component.tests.placelesssetup import PlacelessSetup
-from zope.publisher.interfaces.browser import IBrowserRequest
-from zope.app.publisher.interfaces.browser import IBrowserView
 
-from Products.Five.traversable import FiveTraversable
-from Products.Five.traversable import Traversable
-from Products.Five.browser import BrowserView
-from zope.app.traversing.adapters import Traverser
-from zope.app.traversing.interfaces import ITraverser, ITraversable
-
-def defineDefaultViewName(name, for_=None):
-    try:
-        from zope.component.interfaces import IDefaultViewName
-        zope.component.provideAdapter(name, (for_, IBrowserRequest),
-                                      IDefaultViewName, '')
-    except ImportError:
-        # BBB for Zope 2.8
-        pres = zope.component.getService(zope.component.Presentation)
-        pres.setDefaultViewName(for_, IBrowserRequest, name)
-
-class IDummyContent(Interface):
-    pass
-
-class DummyContent(Traversable, DynamicType, Implicit):
+class DummyContent(DynamicType, Implicit):
     """ Basic dynamic content class.
     """
-    implements(IDummyContent)
+
     portal_type = 'Dummy Content 15'
 
 
-class DummyView(BrowserView):
-    """This is a view"""
-
-
 class DynamicTypeTests(TestCase):
+
+    def setUp(self):
+        self.site = DummySite('site')
+        self.site._setObject( 'portal_types', TypesTool() )
+        fti = FTIDATA_CMF15[0].copy()
+        self.site.portal_types._setObject( 'Dummy Content 15', FTI(**fti) )
+        self.site._setObject( 'foo', DummyContent() )
 
     def test_z2interfaces(self):
         from Interface.Verify import verifyClass
@@ -81,99 +61,31 @@ class DynamicTypeTests(TestCase):
         verifyClass(IDynamicType, DynamicType)
 
     def test_z3interfaces(self):
-        from zope.interface.verify import verifyClass
-        from Products.CMFCore.interfaces import IDynamicType
+        try:
+            from zope.interface.verify import verifyClass
+            from Products.CMFCore.interfaces import IDynamicType
+        except ImportError:
+            # BBB: for Zope 2.7
+            return
+
         verifyClass(IDynamicType, DynamicType)
 
-class DynamicTypeDefaultTraversalTests(PlacelessSetup, TestCase):
-
-    def setUp(self):
-        super(DynamicTypeDefaultTraversalTests, self).setUp()
-
-        self.site = DummySite('site')
-        self.site._setObject( 'portal_types', TypesTool() )
-        fti = FTIDATA_CMF15[0].copy()
-        self.site.portal_types._setObject( 'Dummy Content 15', FTI(**fti) )
-        self.site._setObject( 'foo', DummyContent() )
+    def test___before_publishing_traverse__(self):
         dummy_view = self.site._setObject( 'dummy_view', DummyObject() )
-
-        try:
-            from zope.component import provideAdapter
-            provideAdapter(FiveTraversable, (None,), ITraversable)
-            provideAdapter(Traverser, (None,), ITraverser)
-        except ImportError:
-            # BBB for Zope 2.8
-            from zope.app.tests import ztapi
-            ztapi.provideAdapter(None, ITraversable, FiveTraversable)
-            ztapi.provideAdapter(None, ITraverser, Traverser)
-
-    def test_default_view_from_fti(self):
         response = HTTPResponse()
         environment = { 'URL': '',
                         'PARENTS': [self.site],
                         'REQUEST_METHOD': 'GET',
-                        'SERVER_NAME': 'localhost',
-                        'SERVER_PORT': '80',
-                        'REQUEST_METHOD': 'GET',
                         'steps': [],
-                        '_hacked_path': 0}
-        r = HTTPRequest(StringIO(), environment, response)
-        r.other.update(environment)
+                        '_hacked_path': 0,
+                        'response': response }
+        r = BaseRequest(environment)
 
         r.traverse('foo')
         self.assertEqual( r.URL, '/foo/dummy_view' )
         self.assertEqual( r.response.base, '/foo/',
                           'CMF Collector issue #192 (wrong base): %s'
                           % (r.response.base or 'empty',) )
-
-    def test_default_viewname_but_no_view_doesnt_override_fti(self):
-        response = HTTPResponse()
-        environment = { 'URL': '',
-                        'PARENTS': [self.site],
-                        'REQUEST_METHOD': 'GET',
-                        'SERVER_NAME': 'localhost',
-                        'SERVER_PORT': '80',
-                        'REQUEST_METHOD': 'GET',
-                        'steps': [],
-                        '_hacked_path': 0 }
-        r = HTTPRequest(StringIO(), environment, response)
-        r.other.update(environment)
-
-        # we define a Zope3-style default view name, but no
-        # corresponding view, no change in behaviour expected
-        defineDefaultViewName('index.html', IDummyContent)
-        r.traverse('foo')
-        self.assertEqual( r.URL, '/foo/dummy_view' )
-        self.assertEqual( r.response.base, '/foo/' )
-
-    def test_default_viewname_overrides_fti(self):
-        response = HTTPResponse()
-        environment = { 'URL': '',
-                        'PARENTS': [self.site],
-                        'REQUEST_METHOD': 'GET',
-                        'SERVER_PORT': '80',
-                        'REQUEST_METHOD': 'GET',
-                        'steps': [],
-                        'SERVER_NAME': 'localhost',
-                        '_hacked_path': 0 }
-        r = HTTPRequest(StringIO(), environment, response)
-        r.other.update(environment)
-
-        # we define a Zope3-style default view name for which a view
-        # actually exists
-        defineDefaultViewName('index.html', IDummyContent)
-        try:
-            from zope.component import provideAdapter
-            provideAdapter(DummyView, (DummyContent, IBrowserRequest),
-                           IBrowserView, 'index.html')
-        except ImportError:
-            # BBB for Zope 2.8
-            from zope.app.tests import ztapi
-            ztapi.browserView(IDummyContent, 'index.html', DummyView)
-
-        r.traverse('foo')
-        self.assertEqual( r.URL, '/foo/index.html' )
-        self.assertEqual( r.response.base, '/foo/' )
 
 
 class DynamicTypeSecurityTests(SecurityRequestTest):
@@ -210,7 +122,6 @@ class DynamicTypeSecurityTests(SecurityRequestTest):
 def test_suite():
     return TestSuite((
         makeSuite(DynamicTypeTests),
-        makeSuite(DynamicTypeDefaultTraversalTests),
         makeSuite(DynamicTypeSecurityTests),
         ))
 

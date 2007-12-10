@@ -1,0 +1,221 @@
+<configure
+    xmlns="http://namespaces.zope.org/five"
+    >
+
+  <bridge
+      zope2=".interfaces.CachingPolicyManager.CachingPolicyManager"
+      package=".interfaces"
+      name="ICachingPolicyManager"
+      />
+
+  <bridge
+      zope2=".interfaces.Contentish.Contentish"
+      package=".interfaces"
+      name="IContentish"
+      />
+
+  <bridge
+      zope2=".interfaces.ContentTypeRegistry.ContentTypeRegistryPredicate"
+      package=".interfaces"
+      name="IContentTypeRegistryPredicate"
+      />
+
+  <bridge
+      zope2=".interfaces.ContentTypeRegistry.ContentTypeRegistry"
+      package=".interfaces"
+      name="IContentTypeRegistry"
+      />
+
+  <bridge
+      zope2=".interfaces.Discussions.Discussable"
+      package=".interfaces"
+      name="IDiscussable"
+      />
+
+  <bridge
+      zope2=".interfaces.Discussions.OldDiscussable"
+      package=".interfaces"
+      name="IOldstyleDiscussable"
+      />
+
+  <bridge
+      zope2=".interfaces.Discussions.DiscussionResponse"
+      package=".interfaces"
+      name="IDiscussionResponse"
+      />
+
+  <bridge
+      zope2=".interfaces.DublinCore.DublinCore"
+      package=".interfaces"
+      name="IDublinCore"
+      />
+
+  <bridge
+      zope2=".interfaces.DublinCore.CatalogableDublinCore"
+      package=".interfaces"
+      name="ICatalogableDublinCore"
+      />
+
+  <bridge
+      zope2=".interfaces.DublinCore.MutableDublinCore"
+      package=".interfaces"
+      name="IMutableDublinCore"
+      />
+
+  <bridge
+      zope2=".interfaces.Dynamic.DynamicType"
+      package=".interfaces"
+      name="IDynamicType"
+      />
+
+  <bridge
+      zope2=".interfaces.Folderish.Folderish"
+      package=".interfaces"
+      name="IFolderish"
+      />
+
+  <bridge
+      zope2=".interfaces.IOpaqueItems.ICallableOpaqueItem"
+      package=".interfaces"
+      name="ICallableOpaqueItem"
+      />
+
+  <bridge
+      zope2=".interfaces.IOpaqueItems.ICallableOpaqueItemEvents"
+      package=".interfaces"
+      name="ICallableOpaqueItemEvents"
+      />
+
+  <bridge
+      zope2=".interfaces.portal_actions.portal_actions"
+      package=".interfaces"
+      name="IActionsTool"
+      />
+
+  <bridge
+      zope2=".interfaces.portal_actions.ActionProvider"
+      package=".interfaces"
+      name="IActionProvider"
+      />
+
+  <bridge
+      zope2=".interfaces.portal_actions.ActionInfo"
+      package=".interfaces"
+      name="IActionInfo"
+      />
+
+  <bridge
+      zope2=".interfaces.portal_catalog.portal_catalog"
+      package=".interfaces"
+      name="ICatalogTool"
+      />
+
+  <bridge
+      zope2=".interfaces.portal_catalog.IndexableObjectWrapper"
+      package=".interfaces"
+      name="IIndexableObjectWrapper"
+      />
+
+  <bridge
+      zope2=".interfaces.portal_discussion.oldstyle_portal_discussion"
+      package=".interfaces"
+      name="IOldstyleDiscussionTool"
+      />
+
+  <bridge
+      zope2=".interfaces.portal_discussion.portal_discussion"
+      package=".interfaces"
+      name="IDiscussionTool"
+      />
+
+  <bridge
+      zope2=".interfaces.portal_memberdata.portal_memberdata"
+      package=".interfaces"
+      name="IMemberDataTool"
+      />
+
+  <bridge
+      zope2=".interfaces.portal_memberdata.MemberData"
+      package=".interfaces"
+      name="IMemberData"
+      />
+
+  <bridge
+      zope2=".interfaces.portal_membership.portal_membership"
+      package=".interfaces"
+      name="IMembershipTool"
+      />
+
+  <bridge
+      zope2=".interfaces.portal_metadata.portal_metadata"
+      package=".interfaces"
+      name="IMetadataTool"
+      />
+
+  <bridge
+      zope2=".interfaces.portal_properties.portal_properties"
+      package=".interfaces"
+      name="IPropertiesTool"
+      />
+
+  <bridge
+      zope2=".interfaces.portal_registration.portal_registration"
+      package=".interfaces"
+      name="IRegistrationTool"
+      />
+
+  <bridge
+      zope2=".interfaces.portal_skins.SkinsContainer"
+      package=".interfaces"
+      name="ISkinsContainer"
+      />
+
+  <bridge
+      zope2=".interfaces.portal_skins.portal_skins"
+      package=".interfaces"
+      name="ISkinsTool"
+      />
+
+  <bridge
+      zope2=".interfaces.portal_types.ContentTypeInformation"
+      package=".interfaces"
+      name="ITypeInformation"
+      />
+
+  <bridge
+      zope2=".interfaces.portal_types.portal_types"
+      package=".interfaces"
+      name="ITypesTool"
+      />
+
+  <bridge
+      zope2=".interfaces.portal_undo.portal_undo"
+      package=".interfaces"
+      name="IUndoTool"
+      />
+
+  <bridge
+      zope2=".interfaces.portal_url.portal_url"
+      package=".interfaces"
+      name="IURLTool"
+      />
+
+  <bridge
+      zope2=".interfaces.portal_workflow.portal_workflow"
+      package=".interfaces"
+      name="IWorkflowTool"
+      />
+
+  <bridge
+      zope2=".interfaces.portal_workflow.WorkflowDefinition"
+      package=".interfaces"
+      name="IWorkflowDefinition"
+      />
+
+  <bridge
+      zope2=".interfaces.Syndicatable.Syndicatable"
+      package=".interfaces"
+      name="ISyndicatable"
+      />
+
+</configure>

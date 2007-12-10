@@ -12,10 +12,47 @@
 ##############################################################################
 """ Marker interface for callable opaque items with manage_* hooks.
 
-$Id: IOpaqueItems.py 38590 2005-09-24 15:24:32Z yuppie $
+$Id: IOpaqueItems.py 36457 2004-08-12 15:07:44Z jens $
 """
 
-# BBB: module will be removed in CMF 2.2
-#      zope2 interfaces created on runtime:
-#      - ICallableOpaqueItem
-#      - ICallableOpaqueItemEvents
+from Interface import Attribute
+from Interface import Interface
+
+
+class ICallableOpaqueItem(Interface):
+    """Interface for callable opaque items.
+
+    Opaque items are subelements that are contained using something that
+    is not an ObjectManager.
+
+    On add, copy, move and delete operations a marked opaque items
+    'manage_afterAdd', 'manage_afterClone' and 'manage_beforeDelete' hooks
+    get called if available. Unavailable hooks do not throw exceptions.
+    """
+
+    def __init__(obj, id):
+        """Return the opaque item and assign it to 'obj' as attr with 'id'.
+        """
+    
+    def __call__():
+        """Return the opaque items value.
+        """
+    
+    def getId():
+        """Return the id of the opaque item.
+        """
+
+class ICallableOpaqueItemEvents(Interface):
+    """CMF specific events upon copying, renaming and deletion.
+    """
+    def manage_afterClone(item):
+        """After clone event hook.
+        """
+    
+    def manage_beforeDelete(item, container):
+        """Before delete event hook.
+        """
+    
+    def manage_afterAdd(item, container):
+        """After add event hook.
+        """

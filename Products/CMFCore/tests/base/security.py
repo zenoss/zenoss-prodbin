@@ -12,7 +12,7 @@
 ##############################################################################
 """ Unit test security.
 
-$Id: security.py 41231 2006-01-08 18:01:44Z yuppie $
+$Id: security.py 36662 2004-11-16 22:03:03Z efge $
 """
 
 from AccessControl.PermissionRole import rolesForPermissionOn
@@ -66,9 +66,6 @@ class OmnipotentUser( Implicit ):
 
     def getRolesInContext(self, object):
         return ('Manager',)
-
-    def _check_context(self, object):
-        return True
 
 
 class UserWithRoles( Implicit ):

@@ -14,7 +14,7 @@
 ##############################################################################
 """ Classes: ZODBUserManager
 
-$Id: ZODBUserManager.py 74684 2007-04-23 16:11:37Z tseaver $
+$Id: ZODBUserManager.py 70144 2006-09-13 11:45:05Z shh $
 """
 import sha
 import copy
@@ -24,9 +24,6 @@ from AccessControl.SecurityManagement import getSecurityManager
 from App.class_init import default__class_init__ as InitializeClass
 from BTrees.OOBTree import OOBTree
 from OFS.Cache import Cacheable
-
-from zope.interface import Interface
-
 from Products.PageTemplates.PageTemplateFile import PageTemplateFile
 
 from Products.PluggableAuthService.interfaces.plugins \
@@ -41,7 +38,7 @@ from Products.PluggableAuthService.permissions import SetOwnPassword
 from Products.PluggableAuthService.plugins.BasePlugin import BasePlugin
 from Products.PluggableAuthService.utils import classImplements
 from Products.PluggableAuthService.utils import createViewName
-from Products.PluggableAuthService.utils import postonly
+from Products.PluggableAuthService.utils import Interface
 
 class IZODBUserManager(Interface):
     """ Marker interface.
@@ -292,7 +289,7 @@ class ZODBUserManager( BasePlugin, Cacheable ):
 
     security.declarePrivate('updateUser')
     def updateUser(self, user_id, login_name):
-
+        
         # The following raises a KeyError if the user_id is invalid
         old_login = self.getLoginForUserId(user_id)
 
@@ -396,7 +393,6 @@ class ZODBUserManager( BasePlugin, Cacheable ):
                                  , password
                                  , confirm
                                  , RESPONSE=None
-                                 , REQUEST=None
                                  ):
         """ Update a user's login name / password via the ZMI.
         """
@@ -413,7 +409,6 @@ class ZODBUserManager( BasePlugin, Cacheable ):
             RESPONSE.redirect( '%s/manage_users?manage_tabs_message=%s'
                              % ( self.absolute_url(), message )
                              )
-    manage_updateUserPassword = postonly(manage_updateUserPassword)
 
     security.declareProtected( ManageUsers, 'manage_updateUser' )
     def manage_updateUser(self, user_id, login_name, RESPONSE=None):
@@ -437,7 +432,6 @@ class ZODBUserManager( BasePlugin, Cacheable ):
     def manage_removeUsers( self
                           , user_ids
                           , RESPONSE=None
-                          , REQUEST=None
                           ):
         """ Remove one or more users via the ZMI.
         """
@@ -457,7 +451,6 @@ class ZODBUserManager( BasePlugin, Cacheable ):
             RESPONSE.redirect( '%s/manage_users?manage_tabs_message=%s'
                              % ( self.absolute_url(), message )
                              )
-    manage_removeUsers = postonly(manage_removeUsers)
 
     #
     #   Allow users to change their own login name and password.
@@ -483,7 +476,6 @@ class ZODBUserManager( BasePlugin, Cacheable ):
                              , password
                              , confirm
                              , RESPONSE=None
-                             , REQUEST=None
                              ):
         """ Update the current user's password and login name.
         """
@@ -497,8 +489,8 @@ class ZODBUserManager( BasePlugin, Cacheable ):
                 login_name = user_id
 
             # XXX:  validate 'user_id', 'login_name' against policies?
-            self.updateUser( user_id, login_name )
-            self.updateUserPassword( user_id, password )
+
+            self.updateUserPassword( user_id, login_name, password )
 
             message = 'password+updated'
 
@@ -507,7 +499,6 @@ class ZODBUserManager( BasePlugin, Cacheable ):
                                '?manage_tabs_message=%s'
                              % ( self.absolute_url(), message )
                              )
-    manage_updatePassword = postonly(manage_updatePassword)
 
 classImplements( ZODBUserManager
                , IZODBUserManager
@@ -528,7 +519,6 @@ class _ZODBUserFilter:
 
         self._filter_ids = id
         self._filter_logins = login
-        self._filter_keywords = kw
 
     def __call__( self, user_info ):
 
@@ -542,11 +532,8 @@ class _ZODBUserFilter:
             key = 'login'
             to_test = self._filter_logins
 
-        elif self._filter_keywords:
-            return 0    # TODO:  try using 'kw'
-
         else:
-            return 1    # the search is done without any criteria
+            return 1 # TODO:  try using 'kw'
 
         value = user_info.get( key )
 

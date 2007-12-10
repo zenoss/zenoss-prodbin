@@ -22,7 +22,7 @@ from Products.PluggableAuthService.tests.conformance \
     import IRoleAssignerPlugin_conformance
 
 from Products.PluggableAuthService.plugins.tests.helpers \
-     import FauxPAS, FauxSmartPAS, DummyUser, makeRequestAndResponse
+     import FauxPAS, FauxSmartPAS, DummyUser
 
 class ZODBRoleManagerTests( unittest.TestCase
                           , IRolesPlugin_conformance
@@ -470,72 +470,6 @@ class ZODBRoleManagerTests( unittest.TestCase
         zrm.addRole( 'test' )
 
         self.failIf( 'test' in zrm.getRolesForPrincipal( user ) )
-
-    def testPOSTProtections(self):
-        from zExceptions import Forbidden
-
-        USER_ID = 'testuser'
-        ROLE_ID = 'myrole'
-
-        root = FauxPAS()
-        zrm = self._makeOne( id='remove_existing' ).__of__( root )
-        zrm = self._makeOne()
-        zrm.addRole(ROLE_ID)
-
-        user = DummyUser( USER_ID )
-
-        req, res = makeRequestAndResponse()
-
-        # Fails with a GET
-        # test assignRoleToPrincipal
-        req.set('REQUEST_METHOD', 'GET')
-        self.assertRaises(Forbidden, zrm.assignRoleToPrincipal,
-                          ROLE_ID, USER_ID, REQUEST=req)
-        # Works with a POST
-        req.set('REQUEST_METHOD', 'POST')
-        zrm.assignRoleToPrincipal(ROLE_ID, USER_ID, REQUEST=req)
-
-        # test removeRoleFromPricipal
-        req.set('REQUEST_METHOD', 'GET')
-        self.assertRaises(Forbidden, zrm.removeRoleFromPrincipal,
-                          ROLE_ID, USER_ID, REQUEST=req)
-        req.set('REQUEST_METHOD', 'POST')
-        zrm.removeRoleFromPrincipal(ROLE_ID, USER_ID, REQUEST=req)
-
-        # test removeRole
-        req.set('REQUEST_METHOD', 'GET')
-        self.assertRaises(Forbidden, zrm.removeRole,
-                          ROLE_ID, REQUEST=req)
-        req.set('REQUEST_METHOD', 'POST')
-        zrm.removeRole(ROLE_ID, REQUEST=req)
-
-        # Readd the role for the manage_* methods
-        zrm.addRole(ROLE_ID)
-
-        # test manage_assignRoleToPrincipal
-        req.set('REQUEST_METHOD', 'GET')
-        self.assertRaises(Forbidden, zrm.manage_assignRoleToPrincipals,
-                          ROLE_ID, [USER_ID], RESPONSE=res, REQUEST=req)
-        req.set('REQUEST_METHOD', 'POST')
-        zrm.manage_assignRoleToPrincipals(ROLE_ID, [USER_ID], RESPONSE=res,
-                                          REQUEST=req)
-
-        # test manage_removeRoleFromPricipal
-        req.set('REQUEST_METHOD', 'GET')
-        self.assertRaises(Forbidden, zrm.manage_removeRoleFromPrincipals,
-                          ROLE_ID, [USER_ID], RESPONSE=res, REQUEST=req)
-        req.set('REQUEST_METHOD', 'POST')
-        zrm.manage_removeRoleFromPrincipals(ROLE_ID, [USER_ID], RESPONSE=res,
-                                            REQUEST=req)
-
-        # test manage_removeRoles
-        req.set('REQUEST_METHOD', 'GET')
-        self.assertRaises(Forbidden, zrm.manage_removeRoles,
-                          [ROLE_ID], RESPONSE=res, REQUEST=req)
-        req.set('REQUEST_METHOD', 'POST')
-        zrm.manage_removeRoles([ROLE_ID], RESPONSE=res, REQUEST=req)
-
-
 
 if __name__ == "__main__":
     unittest.main()

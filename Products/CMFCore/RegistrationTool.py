@@ -12,7 +12,7 @@
 ##############################################################################
 """ Basic user registration tool.
 
-$Id: RegistrationTool.py 73957 2007-03-31 18:25:46Z alecm $
+$Id: RegistrationTool.py 36633 2004-10-29 14:37:36Z jens $
 """
 
 import re
@@ -32,7 +32,6 @@ from utils import _checkPermission
 from utils import _limitGrantedRoles
 from utils import getToolByName
 from utils import _dtmldir
-from utils import postonly
 
 from interfaces.portal_registration \
         import portal_registration as IRegistrationTool
@@ -129,7 +128,7 @@ class RegistrationTool(UniqueObject, SimpleItem, ActionProviderBase):
 
     security.declareProtected(AddPortalMember, 'addMember')
     def addMember(self, id, password, roles=('Member',), domains='',
-                  properties=None, REQUEST=None):
+                  properties=None):
         '''Creates a PortalMember and returns it. The properties argument
         can be a mapping with additional member properties. Raises an
         exception if the given id already exists, the password does not
@@ -161,7 +160,6 @@ class RegistrationTool(UniqueObject, SimpleItem, ActionProviderBase):
         member = membership.getMemberById(id)
         self.afterAdd(member, id, password, properties)
         return member
-    addMember = postonly(addMember)
 
     security.declareProtected(AddPortalMember, 'isMemberIdAllowed')
     def isMemberIdAllowed(self, id):

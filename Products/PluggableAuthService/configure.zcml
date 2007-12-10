@@ -4,6 +4,4 @@
 
   <include file="exportimport.zcml" />
 
-  <include file="events.zcml" />
-
 </configure>

@@ -10,3 +10,15 @@
 />
 
 </configure>
+<configure
+    xmlns="http://namespaces.zope.org/zope"
+    xmlns:browser="http://namespaces.zope.org/browser"
+>
+
+<subscriber
+    for="Products.ZenRelations.interfaces.IDeletable
+         OFS.interfaces.IObjectWillBeRemovedEvent"
+    handler="Products.ZenRelations.ZItem.manage_beforeDelete"
+/>
+
+</configure>

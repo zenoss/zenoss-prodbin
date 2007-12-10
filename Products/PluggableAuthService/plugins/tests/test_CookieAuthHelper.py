@@ -89,13 +89,13 @@ class CookieAuthHelperTests( unittest.TestCase
         helper = self._makeOne()
         response = FauxCookieResponse()
         request = FauxSettableRequest(__ac_name='foo',
-                                      __ac_password='b:ar',
+                                      __ac_password='bar',
                                       RESPONSE=response)
 
         self.assertEqual(len(response.cookies), 0)
         self.assertEqual(helper.extractCredentials(request),
                         {'login': 'foo',
-                         'password': 'b:ar',
+                         'password': 'bar',
                          'remote_host': '',
                          'remote_address': ''})
         self.assertEqual(len(response.cookies), 0)
@@ -145,31 +145,11 @@ class CookieAuthHelperTests( unittest.TestCase
                                      , __ac_password='bar'
                                      , RESPONSE=response
                                      )
-        request.form['came_from'] = ''
+        request.form = {'came_from':''}
         helper.REQUEST = request
 
         helper.login()
         self.assertEqual(len(response.cookies), 0)
-
-    def test_extractCredentials_from_cookie_with_colon_in_password(self): 
-        # http://www.zope.org/Collectors/PAS/51
-        # Passwords with ":" characters broke authentication
-        from base64 import encodestring 
-
-        helper = self._makeOne() 
-        response = FauxCookieResponse() 
-        request = FauxSettableRequest(RESPONSE=response) 
-
-        cookie_str = '%s:%s' % ('foo'.encode('hex'), 'b:ar'.encode('hex'))
-        cookie_val = encodestring(cookie_str)
-        cookie_val = cookie_val.rstrip() 
-        request.set(helper.cookie_name, cookie_val) 
-
-        self.assertEqual(helper.extractCredentials(request), 
-                        {'login': 'foo', 
-                         'password': 'b:ar', 
-                         'remote_host': '', 
-                         'remote_address': ''}) 
 
 
 if __name__ == "__main__":

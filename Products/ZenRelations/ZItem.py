@@ -29,8 +29,6 @@ from zExceptions import Redirect
 
 from OFS.CopySupport import CopySource
 from OFS.Traversable import Traversable
-from OFS.ObjectManager import BeforeDeleteException
-from ZODB.POSException import ConflictError
 
 from Products.ZenUtils.Utils import unused
 
@@ -41,11 +39,6 @@ HTML=Globals.HTML
 
 import logging
 logger = logging.getLogger()
-
-def manage_beforeDelete(ob, event):
-    """ Recurse through relationships """
-    ob.manage_beforeDelete(ob, ob.__primary_parent__)
-
 
 class ZItem(Base, CopySource, App.Management.Tabs, Traversable,
            AccessControl.Owned.Owned,
@@ -62,19 +55,7 @@ class ZItem(Base, CopySource, App.Management.Tabs, Traversable,
         pass
 
     def manage_beforeDelete(self, item, container):
-        for object in self.objectValues():
-            try: s=object._p_changed
-            except: s=0
-            try:
-                if hasattr(aq_base(object), 'manage_beforeDelete'):
-                    object.manage_beforeDelete(item, container)
-            except BeforeDeleteException:
-                raise
-            except ConflictError:
-                raise
-            except:
-                logger.exception('manage_beforeDelete()')
-            if s is None: object._p_deactivate()
+        pass
 
     def manage_afterClone(self, item):
         pass

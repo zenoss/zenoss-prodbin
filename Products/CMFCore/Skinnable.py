@@ -15,10 +15,9 @@
 Skinnable object managers inherit attributes from a skin specified in
 the browser request.  Skins are stored in a fixed-name subobject.
 
-$Id: Skinnable.py 68524 2006-06-08 16:54:49Z efge $
+$Id: Skinnable.py 39938 2005-11-05 21:39:56Z tseaver $
 """
 
-import logging
 from thread import get_ident
 from AccessControl import ClassSecurityInfo
 from Acquisition import aq_base
@@ -26,9 +25,6 @@ from Acquisition import ImplicitAcquisitionWrapper
 from Globals import InitializeClass
 from OFS.ObjectManager import ObjectManager
 from ZODB.POSException import ConflictError
-
-
-logger = logging.getLogger('CMFCore.Skinnable')
 
 
 # superGetAttr is assigned to whatever ObjectManager.__getattr__
@@ -193,7 +189,10 @@ class SkinnableObjectManager(ObjectManager):
         except:
             # This shouldn't happen, even if the requested skin
             # does not exist.
-            logger.exception("Unable to setupCurrentSkin()")
+            import sys
+            from zLOG import LOG, ERROR
+            LOG('CMFCore', ERROR, 'Unable to setupCurrentSkin()',
+                error=sys.exc_info())
         return w_self
 
     def _checkId(self, id, allow_dup=0):

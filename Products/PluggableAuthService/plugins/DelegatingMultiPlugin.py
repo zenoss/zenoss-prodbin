@@ -17,7 +17,7 @@
 """
 
 __doc__     = """ Delegating User Folder shim module """
-__version__ = '$Revision: 70857 $'[11:-2]
+__version__ = '$Revision: 40169 $'[11:-2]
 
 # General Python imports
 import copy, os
@@ -29,10 +29,6 @@ from OFS.Folder import Folder
 from Globals import InitializeClass
 from AccessControl import ClassSecurityInfo
 from AccessControl.SpecialUsers import emergency_user
-
-from zope.interface import Interface
-from AccessControl import AuthEncoding
-
 from Products.PageTemplates.PageTemplateFile import PageTemplateFile
 
 from Products.PluggableAuthService.interfaces.plugins import \
@@ -49,6 +45,7 @@ from Products.PluggableAuthService.interfaces.plugins import \
     IPropertiesPlugin
 from Products.PluggableAuthService.plugins.BasePlugin import BasePlugin
 from Products.PluggableAuthService.utils import classImplements
+from Products.PluggableAuthService.utils import Interface
 
 class IDelegatingMultiPlugin(Interface):
     """ Marker interface.
@@ -125,19 +122,15 @@ class DelegatingMultiPlugin(Folder, BasePlugin):
         if not acl or not login or not password:
             return (None, None)
 
-        if login == emergency_user.getUserName() and \
-                AuthEncoding.pw_validate(emergency_user._getPassword(), password):
+        if login == emergency_user.getUserName():
             return ( login, login )
 
         user = acl.getUser(login)
-
         if user is None:
             return (None, None)
-
-        elif user and AuthEncoding.pw_validate(user._getPassword(),
-                                               password):
+        elif user and user._getPassword() == password:
             return ( user.getId(), login )
-
+            
         return (None, None)
 
 

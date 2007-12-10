@@ -14,7 +14,7 @@
 ##############################################################################
 """ Represent a group of properties about a user.
 
-$Id: UserPropertySheet.py 74710 2007-04-24 16:53:47Z tseaver $
+$Id: UserPropertySheet.py 70450 2006-09-30 19:01:58Z rafrombrc $
 """
 from types import IntType
 from types import FloatType
@@ -111,8 +111,7 @@ class UserPropertySheet:
             value = kw.get( id )
 
             if ptype == 'lines':
-                if value is not None:
-                    value = tuple( value )
+                value = tuple( value )
 
             self._properties[ id ] = value
 

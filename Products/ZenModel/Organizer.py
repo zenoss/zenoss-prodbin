@@ -246,8 +246,6 @@ class Organizer(ZenModelRM, EventView):
         >>> dmd.Devices.manage_deleteOrganizers(['/Devices/Server/Linux',
         ... '/Devices/Server/Windows'])   
         """
-        if type(organizerPaths)==type(""):
-            organizerPaths = [organizerPaths]
         if not organizerPaths: 
             REQUEST['message'] = "Organizer not specified, not deleted"
             return self.callZenScreen(REQUEST)

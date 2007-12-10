@@ -14,7 +14,7 @@
 ##############################################################################
 """ Interfaces:  IUser, IUserFolder, IMutableUserFolder, IEnumerableUserFolder
 
-$Id: authservice.py 76647 2007-06-12 20:18:02Z wichert $
+$Id: authservice.py 67172 2006-04-20 11:52:41Z jens $
 """
 
 try:
@@ -74,13 +74,6 @@ class IPropertiedUser( IBasicUser ):
         i.e. a mapping from strings (property sheet ids)
         to objects implementing IPropertySheet
     """
-
-    def addPropertysheet( id, data ):
-        
-        """ Add a new property sheet to the user.
-
-        The property sheet has to be a map or an IPropertySheet instance.
-        """
 
     def listPropertysheets():
 

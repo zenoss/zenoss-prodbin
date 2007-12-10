@@ -16,7 +16,7 @@
 """
 
 __doc__     = """ Authentication Plugin for Domain authentication """
-__version__ = '$Revision: 70858 $'[11:-2]
+__version__ = '$Revision: 69827 $'[11:-2]
 
 # General Python imports
 import socket, os, time, copy, re
@@ -26,9 +26,6 @@ from BTrees.OOBTree import OOBTree
 from Globals import InitializeClass
 from AccessControl import ClassSecurityInfo
 from AccessControl.Permissions import manage_users
-
-from zope.interface import Interface
-
 from Products.PageTemplates.PageTemplateFile import PageTemplateFile
 
 # PluggableAuthService imports
@@ -40,6 +37,7 @@ from Products.PluggableAuthService.interfaces.plugins import \
     IRolesPlugin
 from Products.PluggableAuthService.plugins.BasePlugin import BasePlugin
 from Products.PluggableAuthService.utils import classImplements
+from Products.PluggableAuthService.utils import Interface
 
 class IDomainAuthHelper(Interface):
     """ Marker interface.
@@ -105,14 +103,10 @@ class DomainAuthHelper(BasePlugin):
         if remote_host:
             creds['remote_host'] = request.get('REMOTE_HOST', '')
 
-        try:
-            remote_address = request.getClientAddr()
-        except AttributeError:
-            remote_address = request.get('REMOTE_ADDR', '')
-
-        if remote_host or remote_address:
-            creds['remote_host'] = remote_host
-            creds['remote_address'] = remote_address
+            try:
+                creds['remote_address'] = request.getClientAddr()
+            except AttributeError:
+                creds['remote_address'] = request.get('REMOTE_ADDR', '')
 
         return creds
 

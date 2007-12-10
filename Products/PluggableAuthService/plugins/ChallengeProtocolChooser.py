@@ -14,15 +14,13 @@
 ##############################################################################
 """ Classes: ChallengeProtocolChooser
 
-$Id: ChallengeProtocolChooser.py 73955 2007-03-31 14:11:32Z alecm $
+$Id: ChallengeProtocolChooser.py 40169 2005-11-16 20:09:11Z tseaver $
 """
 
 from Acquisition import aq_parent
 from AccessControl import ClassSecurityInfo
 from BTrees.OOBTree import OOBTree
 from Globals import InitializeClass
-
-from zope.interface import Interface
 
 from Products.PageTemplates.PageTemplateFile import PageTemplateFile
 
@@ -43,6 +41,7 @@ from Products.PluggableAuthService.interfaces.request \
 
 from Products.PluggableAuthService.plugins.BasePlugin import BasePlugin
 from Products.PluggableAuthService.utils import classImplements
+from Products.PluggableAuthService.utils import Interface
 
 class IChallengeProtocolChooserPlugin(Interface):
     """ Marker interface.
@@ -101,7 +100,7 @@ class ChallengeProtocolChooser( BasePlugin ):
         if mapping is not None:
             self.manage_updateProtocolMapping(mapping=mapping)
 
-    security.declarePrivate('chooseProtocols')
+    security.declarePrivate('chooseProtocol')
     def chooseProtocols(self, request):
         pas_instance = self._getPAS()
         plugins = pas_instance._getOb('plugins')

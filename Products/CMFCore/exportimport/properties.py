@@ -68,7 +68,7 @@ def importSiteProperties(context):
 
     importer = zapi.queryMultiAdapter((site, context), IBody)
     if importer is None:
-        logger.warning('Import adapter missing.')
+        logger.warning('Import adapter misssing.')
         return
 
     importer.body = body
@@ -81,7 +81,7 @@ def exportSiteProperties(context):
 
     exporter = zapi.queryMultiAdapter((site, context), IBody)
     if exporter is None:
-        logger.warning('Export adapter missing.')
+        logger.warning('Export adapter misssing.')
         return
 
     context.writeDataFile(_FILENAME, exporter.body, exporter.mime_type)

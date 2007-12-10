@@ -32,10 +32,6 @@ from AccessControl.SecurityManagement import noSecurityManager
 from Products.ZenUtils.ZenScriptBase import ZenScriptBase
 from Products.ZenUtils.Utils import zenPath
 
-import Products.ZenRelations
-
-from Products.Five import zcml
-
 if readline:
     zenHome = zenPath()
     historyPath = zenPath('.pyhistory')
@@ -50,8 +46,6 @@ class zendmd(ZenScriptBase):
     pass
 
 if __name__ == '__main__':
-    zcml.load_site()
-    zcml.load_config('configure.zcml', Products.ZenRelations)
     zendmd = zendmd(connect=True)
     dmd = zendmd.dmd
     app = dmd.getPhysicalRoot()

@@ -23,22 +23,6 @@ from AccessControl.Permissions import add_folders as AddFolders
 
 from Products.PluggableAuthService.PluggableAuthService import PluggableAuthService
 
-from zope import event
-from zope.component import adapter
-from zope.component import provideHandler
-from Products.PluggableAuthService.interfaces.events import IPrincipalCreatedEvent
-from Products.PluggableAuthService.events import CredentialsUpdated
-from Products.PluggableAuthService.events import PASEventNotify
-from Products.PluggableAuthService.events import userCredentialsUpdatedHandler
-
-@adapter(IPrincipalCreatedEvent)
-def userCreatedHandler(event):
-    pas = event.principal.aq_parent
-    if not hasattr(pas, 'events'):
-        pas.events = []
-
-    pas.events.append(event)
-
 
 class UserFolderTests(pastc.PASTestCase):
 
@@ -291,50 +275,10 @@ class UserTests(pastc.PASTestCase):
         self.assertEqual(f.getDomains(), ())
 
 
-class UserEvents(pastc.PASTestCase):
-
-    def afterSetUp(self):
-        # Set up roles and a user
-        self.uf = self.folder.acl_users
-        self.folder._addRole('role1')
-        self.folder.manage_role('role1', [View])
-        self.uf.roles.addRole('role1')
-        self.folder._addRole('role2')
-        self.uf._doAddUser('user1', 'secret', ['role1'], [])
-
-    def testUserCreationEvent(self):
-        provideHandler(userCreatedHandler)
-        self.uf.events = []
-
-        self.uf._doAddUser('event1', 'secret', ['role1'], [])
-
-        self.assertEqual(len(self.uf.events), 1)
-        event = self.uf.events[0]
-        self.failUnless(IPrincipalCreatedEvent.providedBy(event))
-        self.assertEqual(event.principal.getUserName(), 'event1')
-        self.assertEqual(event.principal.getId(), 'event1')
-
-    def testCredentialsEvent(self):
-        provideHandler(PASEventNotify)
-        provideHandler(userCredentialsUpdatedHandler)
-        def wrap(self, *args):
-            self._data.append(args)
-            return self._original(*args)
-        self.uf._data=[]
-        self.uf._original=self.uf.updateCredentials
-        self.uf.updateCredentials=wrap
-        event.notify(CredentialsUpdated(self.uf.getUserById("user1"), "testpassword"))
-        self.assertEqual(len(self.uf._data), 1)
-        self.assertEqual(self.uf._data[0][2], "user1")
-        self.assertEqual(self.uf._data[0][3], "testpassword")
-
-
-
 def test_suite():
     suite = unittest.TestSuite()
     suite.addTest(unittest.makeSuite(UserFolderTests))
     suite.addTest(unittest.makeSuite(UserTests))
-    suite.addTest(unittest.makeSuite(UserEvents))
     return suite
 
 if __name__ == '__main__':

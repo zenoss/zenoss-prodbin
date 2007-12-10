@@ -28,10 +28,16 @@
     Each migrated user will be assigned the global roles they have in the
     previous acl_users record.
 
-$Id: upgrade.py 73612 2007-03-25 15:39:50Z shh $
+$Id: upgrade.py 65465 2006-02-25 20:01:13Z jens $
 """
 import logging
-import transaction
+
+try:
+    import transaction
+    get_transaction = transaction.get
+except ImportError:
+    # Zope 2.7 backwards compatibility
+    pass
 
 def _write(response, tool, message):
     logger = logging.getLogger('PluggableAuthService.upgrade.%s' % tool)
@@ -109,7 +115,7 @@ def _replaceUserFolder(self, RESPONSE=None):
               , 'replaceRootUserFolder'
               , 'Replaced root acl_users with PluggableAuthService\n' )
 
-    transaction.savepoint(True)
+    get_transaction().commit()
 
 def _migrate_user( pas, login, password, roles ):
 
@@ -171,10 +177,10 @@ def _upgradeLocalRoleAssignments(self, RESPONSE=None):
                           , ( 'Local Roles map changed for (%s)\n'
                               % '/'.join(path) ) )
             if (len(seen) % 100 ) == 0:
-                transaction.savepoint(True)
+                get_transaction().commit()
                 _write( RESPONSE
                       , 'upgradeLocalRoleAssignmentsFromRoot'
-                      , "  -- Set savepoint at object # %d\n" % len( seen ) )
+                      , "  -- committed at object # %d\n" % len( seen ) )
             if getattr(aq_base(obj), 'isPrincipiaFolderish', 0):
                 for o in obj.objectValues():
                     descend(user_folder, o)
@@ -187,7 +193,7 @@ def _upgradeLocalRoleAssignments(self, RESPONSE=None):
 
     descend(self.acl_users, self)
 
-    transaction.savepoint(True)
+    get_transaction().commit()
 
 # External Method to use
 

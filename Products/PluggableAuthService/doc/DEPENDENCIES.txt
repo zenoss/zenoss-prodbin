@@ -1,6 +1,4 @@
-Zope >= 2.9.7 or Zope >= 2.10.3
+Zope >= 2.8.5
 Five >= 1.2 (http://codespeak.net/z3/five/)
-PluginRegistry >= 1.1.1 (http://www.zope.org/Products/PluginRegistry)
-
-OPTIONAL:
 GenericSetup >= 1.1 (http://www.zope.org/Products/GenericSetup)
+PluginRegistry >= 1.1.1

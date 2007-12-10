@@ -14,7 +14,7 @@
 ##############################################################################
 """ Classes: PluggableAuthService
 
-$Id: PluggableAuthService.py 76609 2007-06-11 14:27:03Z wichert $
+$Id: PluggableAuthService.py 70144 2006-09-13 11:45:05Z shh $
 """
 
 import logging
@@ -45,14 +45,17 @@ from Products.PageTemplates.PageTemplateFile import PageTemplateFile
 from ZTUtils import Batch
 from App.class_init import default__class_init__ as InitializeClass
 
-from OFS.interfaces import IObjectManager
-from OFS.interfaces import ISimpleItem
-from OFS.interfaces import IPropertyManager
+try:
+    from OFS.interfaces import IObjectManager
+    from OFS.interfaces import ISimpleItem
+    from OFS.interfaces import IPropertyManager
+except ImportError: # BBB
+    from Products.Five.interfaces import IObjectManager
+    from Products.Five.interfaces import ISimpleItem
+    from Products.Five.interfaces import IPropertyManager
 
 from Products.PluginRegistry.PluginRegistry import PluginRegistry
 import Products
-
-from zope import event
 
 from interfaces.authservice import IPluggableAuthService
 from interfaces.authservice import _noroles
@@ -76,8 +79,6 @@ from interfaces.plugins import IRoleEnumerationPlugin
 from interfaces.plugins import IRoleAssignerPlugin
 from interfaces.plugins import IChallengeProtocolChooser
 from interfaces.plugins import IRequestTypeSniffer
-
-from events import PrincipalCreated
 
 from permissions import SearchPrincipals
 
@@ -944,8 +945,6 @@ class PluggableAuthService( Folder, Cacheable ):
                 user = self.getUser( login )
                 break
 
-        # XXX What should we do if no useradder was succesfull?
-
         for roleassigner_id, roleassigner in roleassigners:
             for role in roles:
                 try:
@@ -955,10 +954,6 @@ class PluggableAuthService( Folder, Cacheable ):
                                 , exc_info=True
                                 )
                     pass
-
-        if user is not None:
-            event.notify(PrincipalCreated(user))
-
 
     security.declarePublic('all_meta_types')
     def all_meta_types(self):
@@ -1097,7 +1092,6 @@ class PluggableAuthService( Folder, Cacheable ):
 
         for updater_id, updater in cred_updaters:
             updater.updateCredentials(request, response, login, new_password)
-
 
     security.declarePublic('logout')
     def logout(self, REQUEST):

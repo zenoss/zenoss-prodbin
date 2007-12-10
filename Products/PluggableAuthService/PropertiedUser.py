@@ -14,7 +14,7 @@
 ##############################################################################
 """ Classes:  PropertiedUser
 
-$Id: PropertiedUser.py 76647 2007-06-12 20:18:02Z wichert $
+$Id: PropertiedUser.py 67083 2006-04-18 21:56:22Z jens $
 """
 
 from Acquisition import aq_inner, aq_parent
@@ -24,8 +24,6 @@ from AccessControl.PermissionRole import _what_not_even_god_should_do
 from interfaces.authservice import IPropertiedUser
 from UserPropertySheet import UserPropertySheet
 from utils import classImplements
-from Products.PluggableAuthService.interfaces.propertysheets \
-    import IPropertySheet
 
 class PropertiedUser( BasicUser ):
 
@@ -284,10 +282,7 @@ class PropertiedUser( BasicUser ):
         if self._propertysheets.get( id ) is not None:
             raise KeyError, "Duplicate property sheet: %s" % id
 
-        if IPropertySheet.providedBy(data):
-            self._propertysheets[ id ] = data
-        else:
-            self._propertysheets[ id ] = UserPropertySheet( id, **data )
+        self._propertysheets[ id ] = UserPropertySheet( id, **data )
 
 
 classImplements( PropertiedUser,
