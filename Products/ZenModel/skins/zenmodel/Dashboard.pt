@@ -43,7 +43,7 @@ function initDashboardPortlets() {
     }
 }
 YAHOO.zenoss.loader.require(['portletsource']);
-YAHOO.zenoss.loader.insert(initDashboardPortlets);
+YAHOO.zenoss.loader.insert({ 'onSuccess':initDashboardPortlets });
 </script>
 </tal:block>
 </tal:block>
