@@ -61,7 +61,7 @@ class TestDeviceInstanceOsTab(TestDeviceInstanceBase):
         self.selenium.click("link=OS")
         self.selenium.wait_for_page_to_load(self.WAITTIME)
         
-    def testIpInterface(self):
+    def _testIpInterface(self):
         """Add, edit, and delete an Ip Interface under a specific device"""
         
         self.addDialog(addType="IpInterfaceaddIpInterface", addMethod="addIpInterface:method",
@@ -94,7 +94,7 @@ class TestDeviceInstanceOsTab(TestDeviceInstanceBase):
         
         self.assert_(not self.selenium.is_element_present("link=testingString2"))
         
-    def testOSProcess(self):
+    def _testOSProcess(self):
         """Add, edit, and delete an OS Process under a specific device"""
         
         self.addOSProcessClass()
@@ -123,7 +123,7 @@ class TestDeviceInstanceOsTab(TestDeviceInstanceBase):
         self.assert_(not self.selenium.is_element_present("link=testingString2"))
         self.deleteOSProcessClasses()
         
-    def testFileSystem(self):
+    def _testFileSystem(self):
         """Add, edit, and delete a File System under a sepcific device"""
         
         self.addDialog(addType="link=Add File System...", new_id=("text", "testingString"))
@@ -152,7 +152,7 @@ class TestDeviceInstanceOsTab(TestDeviceInstanceBase):
         self.assert_(not self.selenium.is_element_present("link=testingString2"))
         
     
-    def testIpService(self):
+    def _testIpService(self):
         """Add, edit, and delete an Ip Service under a sepcific device"""
         
         self.addDialog(addType="link=Add IpService...", 
@@ -186,7 +186,7 @@ class TestDeviceInstanceOsTab(TestDeviceInstanceBase):
         self.selenium.click("manage_deleteComponent:method")
         # TODO: add an assert statement concerning the ip service's deletion.
             
-    def testWinService(self):
+    def _testWinService(self):
         """Add, edit, and delete a Win Service under a sepcific device"""
                 
         
@@ -223,7 +223,11 @@ class TestDeviceInstanceOsTab(TestDeviceInstanceBase):
 class TestDeviceInstanceManageDevice(TestDeviceInstanceBase):
     """Test functionality related to managing the device itself"""
         
-    def testChangeDeviceClass(self, newClass='/Discovered'):
+    def _clickDeviceInList(self, targetname=TARGET):
+        self.waitForElement("name=evids:list " + targetname)
+        self.selenium.click("name=evids:list " + targetname)  
+
+    def _testChangeDeviceClass(self, newClass='/Discovered'):
         """Test changing the device class of a device"""
         
         self.selenium.click("link=Change Class...")
@@ -239,7 +243,7 @@ class TestDeviceInstanceManageDevice(TestDeviceInstanceBase):
         self.selenium.click("link=%s" %TARGET)
         
         
-    def testRenameDevice(self):
+    def _testRenameDevice(self):
         """Test renaming a device"""
         
         self.selenium.click("link=Rename Device...")
@@ -251,7 +255,7 @@ class TestDeviceInstanceManageDevice(TestDeviceInstanceBase):
         self.devname = 'testDevice'
         self.assert_(self.selenium.is_element_present("link=testDevice"))
         
-    def testResetIP(self):
+    def _testResetIP(self):
         """Test setting a new IP address for a device"""
         
         self.selenium.click("link=Reset IP...")
@@ -266,35 +270,47 @@ class TestDeviceInstanceManageDevice(TestDeviceInstanceBase):
         """Test locking a device against deletes and updates"""
         
         # First, test lock against updates (and deletes).
+        curtarget = TARGET
         self.selenium.click("link=Lock...")
         self.waitForElement("dialog_cancel")
         self.selenium.click("lockFromUpdates:method")
         self.selenium.wait_for_page_to_load(self.WAITTIME)
         self.selenium.click("link=Device List")
+        #self.selenium.wait_for_page_to_load(self.WAITTIME)
+        self.waitForElement("name=evids:list " + curtarget)
         self.assert_(self.selenium.is_element_present("//img[@src='locked-update-icon.png']"))
         self.assert_(self.selenium.is_element_present("//img[@src='locked-delete-icon.png']"))
-        
-        self.selenium.click("link=Lock...") # Unlocking the device now.
+        # Unlocking the device now
+        self.goToDevice(curtarget)
+        self.waitForElement("link=Lock...") 
+        self.selenium.click("link=Lock...") 
         self.waitForElement("dialog_cancel")
         self.selenium.click("unlock:method")
-        self.selenium.wait_for_page_to_load(self.WAITTIME)
+        self.selenium.click("link=Device List")
+        self.waitForElement("name=evids:list " + curtarget)
         self.assert_(not self.selenium.is_element_present("//img[@src='locked-update-icon.png']"))
         self.assert_(not self.selenium.is_element_present("//img[@src='locked-delete-icon.png']"))
         
         # Then, test lock against deletes only.
+        self.goToDevice(curtarget)
+        self.waitForElement("link=Lock...") 
         self.selenium.click("link=Lock...")
         self.waitForElement("dialog_cancel")
         self.selenium.click("lockFromDeletion:method")
-        self.selenium.wait_for_page_to_load(self.WAITTIME)
+        self.selenium.click("link=Device List")
+        self.waitForElement("name=evids:list " + curtarget)
         self.assert_(self.selenium.is_element_present("//img[@src='locked-delete-icon.png']"))
-        
-        self.selenium.click("link=Lock...") # Unlocking the device now.
+        # Unlocking the device now
+        self.goToDevice(curtarget)
+        self.waitForElement("link=Lock...") 
+        self.selenium.click("link=Lock...") 
         self.waitForElement("dialog_cancel")
         self.selenium.click("unlock:method")
-        self.selenium.wait_for_page_to_load(self.WAITTIME)
+        self.selenium.click("link=Device List")
+        self.waitForElement("name=evids:list " + curtarget)
         self.assert_(not self.selenium.is_element_present("//img[@src='locked-delete-icon.png']"))	
 
-    def testClearHeartbeats(self):
+    def _testClearHeartbeats(self):
         """Test clearing a device's heartbeats"""
 
         self.selenium.click("link=Clear Heartbeats...")

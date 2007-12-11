@@ -92,7 +92,7 @@ class TestAdminPreferences(SelTestBase):
         self.selenium.click("link=testingString")
         self.waitForElement("manage_editActionRule:method")
         self.selenium.click("manage_editActionRule:method")
-        self.selenium.wait_for_page_to_load(self.WAITTIME)
+       #self.selenium.wait_for_page_to_load(self.WAITTIME)
 
         #Tests the Message tab under an Alert Rule
         self.selenium.click("link=Message")
