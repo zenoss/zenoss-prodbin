@@ -100,19 +100,24 @@ class ZenPack(ZenModelRM):
 
 
     def install(self, app):
+        self.stopDaemons()
         for loader in self.loaders:
             loader.load(self, app)
         self.createZProperties(app)
+        self.startDaemons()
 
 
     def upgrade(self, app):
+        self.stopDaemons()
         for loader in self.loaders:
             loader.upgrade(self, app)
         self.createZProperties(app)
         self.migrate()
+        self.startDaemons()
 
 
     def remove(self, app):
+        self.stopDaemons()
         for loader in self.loaders:
             loader.unload(self, app)
         self.removeZProperties(app)
@@ -321,8 +326,48 @@ registerDirectory("skins", globals())
                         and not f.endswith('.xml'):
                             filenames.append('%s/%s' % (root, f))
         return filenames
-        
-        
+
+
+    def getDaemonNames(self):
+        """
+        Return a list of daemons in the daemon subdirectory that should be
+        stopped/started before/after an install or an upgrade of the zenpack.
+        """
+        daemonsDir = zenPackPath(self.id, 'daemons')
+        if os.path.isdir(daemonsDir):
+            daemons = [f for f in os.listdir(daemonsDir) 
+                        if os.path.isfile(os.path.join(daemonsDir,f))]
+        else:
+            daemons = []
+        return daemons
+
+
+    def stopDaemons(self):
+        """
+        Stop all the daemons provided by this pack.
+        Called before an upgrade or a removal of the pack.
+        """
+        for d in self.getDaemonNames():
+            self.root.About.doDaemonAction(d, 'stop')
+
+
+    def startDaemons(self):
+        """
+        Start all the daemons provided by this pack.
+        Called after an upgrade or an install of the pack.
+        """
+        for d in self.getDaemonNames():
+            self.root.About.doDaemonAction(d, 'start')
+
+
+    def restartDaemons(self):
+        """
+        Restart all the daemons provided by this pack.
+        Called after an upgrade or an install of the pack.
+        """
+        for d in self.getDaemonNames():
+            self.root.About.doDaemonAction(d, 'restart')
+
 
 def zenPackPath(*parts):
     return zenPath('Products', *parts)

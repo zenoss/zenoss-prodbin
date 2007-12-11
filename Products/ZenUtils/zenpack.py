@@ -125,6 +125,7 @@ class ZenPackCmd(ZenScriptBase):
                                ex)
                 zp = ZenPack(packName)
             self.dmd.packs._setObject(packName, zp)
+            zp = self.dmd.packs._getOb(packName)
             zp.install(self.app)
         if zp:
             for required in zp.requires:

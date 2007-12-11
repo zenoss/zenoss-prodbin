@@ -486,14 +486,32 @@ class ZenossInfo(ZenModelItem, SimpleItem):
         action = (REQUEST.form.get('action') or '').lower()
         if action not in legalValues:
             return self.callZenScreen(REQUEST)
-        daemon = zenPath('bin', REQUEST.form.get('daemon'))
-        # we actually want to block here, so that the page doesn't refresh
-        # until the action has completed
-        log.info("Processing a '%s' for '%s' through the web..." % (action, daemon))
-        os.system("%s %s" % (daemon, action))
-        if action == 'stop': time.sleep(2)
+        daemonName = REQUEST.form.get('daemon')
+        self.doDaemonAction(daemonName, action)
         return self.callZenScreen(REQUEST)
     security.declareProtected('Manage DMD','manage_daemonAction')
+
+
+    def doDaemonAction(self, daemonName, action):
+        """
+        Do the given action (start, stop, restart) or the given daemon.
+        Block until the action is completed.
+        No return value.
+        """
+        import time
+        import subprocess
+        daemonPath = zenPath('bin', daemonName)
+        if not os.path.isfile(daemonPath):
+            return
+        log.info('Processing a %s for %s' % (action, daemonName))
+        proc = subprocess.Popen([daemonPath, action], stdout=subprocess.PIPE,
+                    stderr=subprocess.STDOUT)
+        code = proc.wait()
+        if code:
+            log.info('Error from %s: %s (%s)' % (daemonName, proc.stdout.read(),
+                        code))
+        if action in ('stop', 'restart'):
+            time.sleep(2)
 
 
     def manage_checkVersion(self, optInOut=False, optInOutMetrics=False, REQUEST=None):
