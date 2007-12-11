@@ -78,5 +78,18 @@ class ThresholdClass(ZenModelRM, ZenPackable):
 
     def getSeverityString(self):
         return self.ZenEventManager.getSeverityString(self.severity)
-        
 
+
+    def getDataPointNamesString(self):
+        """
+        Return a string that lists the datapoints used in this threshold.
+        Indicate missing datapoints with (missing) after the name.
+        """
+        names = []
+        availableDPNames = self.rrdTemplate.getRRDDataPointNames()
+        for dsName in self.dsnames:
+            if dsName in availableDPNames:
+                names.append(dsName)
+            else:
+                names.append('%s(<span style="color: red">missing</span>)' % dsName)
+        return ', '.join(names)

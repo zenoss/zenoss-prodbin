@@ -162,7 +162,7 @@
         <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
                     tableName,'getTypeName','Type')"/>
         <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
-                    tableName,'dsnames','Data Sources')"/>
+                    tableName,'dsnames','Data Points')"/>
         <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
                     tableName,'severity','Severity')"/>
         <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
@@ -179,7 +179,7 @@
             <tal:block tal:condition="not:editable" tal:content="thresh/getId"/>
         </td>
         <td tal:content="thresh/getTypeName"/>
-        <td tal:content="python:', '.join(thresh.dsnames)"/>
+        <td tal:content="structure thresh/getDataPointNamesString"/>
         <td tal:content="thresh/getSeverityString"/>
         <td tal:content="thresh/enabled"/>
     </tr>

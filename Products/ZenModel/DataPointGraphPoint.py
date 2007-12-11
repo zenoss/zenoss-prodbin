@@ -66,6 +66,19 @@ class DataPointGraphPoint(ComplexGraphPoint):
         return 'DataPoint'
 
 
+    def isBroken(self):
+        """
+        If this graphpoint's graph definition is associated with a perf
+        template and if the datapoint needed by this gp is not present in 
+        the perf template then return True, otherwise false.
+        """
+        if self.graphDef.rrdTemplate():
+            if self.dpName \
+                    not in self.graphDef.rrdTemplate.getRRDDataPointNames():
+                return True
+        return False
+
+
     def getGraphCmds(self, cmds, context, rrdDir, addSummary, idx, 
                         multiid=-1, prefix=''):
         ''' Build the graphing commands for this graphpoint

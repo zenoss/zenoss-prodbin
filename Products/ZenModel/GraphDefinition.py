@@ -222,6 +222,23 @@ class GraphDefinition(ZenModelRM, ZenPackable):
         ''' Return list of graph point ids
         '''
         return [gp.id for gp in self.getGraphPoints()]
+
+
+    def getGraphPointNamesString(self):
+        """
+        Return a string that lists the names of the graphpoints used in this
+        graph definition.  If this graph definition has a perf template then
+        note in the string which graphpoints are broken (in that they refer
+        to nonexistent datapoints.)
+        """
+        names = []
+        for gp in self.getGraphPoints():
+            if hasattr(gp.aq_base, 'isBroken') and gp.isBroken():
+                names.append('%s(<span style="color: red">missing</span>)' % 
+                                                                    gp.id)
+            else:
+                names.append(gp.id)
+        return ', '.join(names)
         
         
     def getGraphPointOptions(self):
