@@ -492,9 +492,9 @@ class zencommand(RRDDaemon):
     def error(self, err):
         if isinstance(err.value, TimeoutError):
             cmd, = err.value.args
-            msg = "Command timed out on device %s: %s" % (cmd.device, cmd.command)
-            log.warning(msg)
             dc = cmd.deviceConfig
+            msg = "Command timed out on device %s: %s" % (dc.device, cmd.command)
+            log.warning(msg)
             issueKey = dc.device, cmd.eventClass, cmd.eventKey
             self.deviceIssues.add(issueKey)
             self.sendEvent(dict(device=dc.device,
