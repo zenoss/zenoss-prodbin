@@ -128,11 +128,11 @@ class DeviceReport(ZenModelRM):
         """
         body = []
         for dev in batch:
-            body.append("<tr class='tablevalues'>") 
+            body.append("<tr class='tablevalues'>")
             for field in self.columns:
                 body.append("<td>")
                 if field == "getId": field += "Link"
-                attr = getattr(dev, field)
+                attr = getattr(dev, field, 'Unknown column')
                 if callable(attr): value = attr()
                 else: value = attr
                 if type(value) in (types.ListType, types.TupleType):
