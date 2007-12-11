@@ -302,11 +302,11 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
                 , 'action'        : 'viewEvents'
                 , 'permissions'   : (ZEN_VIEW, )
                 },
-                { 'id'            : 'historyEvents'
-                , 'name'          : 'History'
-                , 'action'        : 'viewHistoryEvents'
-                , 'permissions'   : (ZEN_VIEW, )
-                },
+#                { 'id'            : 'historyEvents'
+#                , 'name'          : 'History'
+#                , 'action'        : 'viewHistoryEvents'
+#                , 'permissions'   : (ZEN_VIEW, )
+#                },
                 { 'id'            : 'perfServer'
                 , 'name'          : 'Perf'
                 , 'action'        : 'viewDevicePerformance'

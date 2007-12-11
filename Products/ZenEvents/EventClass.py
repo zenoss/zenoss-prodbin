@@ -107,12 +107,12 @@ class EventClass(EventClassPropertyMixin, Organizer, ManagedEntity, ZenPackable)
                 , 'permissions'   : (
                   Permissions.view, )
                 },
-                { 'id'            : 'historyEvents'
-                , 'name'          : 'History'
-                , 'action'        : 'viewHistoryEvents'
-                , 'permissions'   : (
-                  Permissions.view, )
-                },
+#                { 'id'            : 'historyEvents'
+#                , 'name'          : 'History'
+#                , 'action'        : 'viewHistoryEvents'
+#                , 'permissions'   : (
+#                  Permissions.view, )
+#                },
                 { 'id'            : 'config'
                 , 'name'          : 'zProperties'
                 , 'action'        : 'zPropertyEdit'

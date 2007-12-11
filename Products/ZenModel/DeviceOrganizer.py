@@ -55,11 +55,11 @@ class DeviceOrganizer(Organizer, DeviceManagerBase, Commandable, ZenMenuable,
                 , 'action'        : 'viewEvents'
                 , 'permissions'   : (ZEN_VIEW, )
                 },
-                { 'id'            : 'historyEvents'
-                , 'name'          : 'History'
-                , 'action'        : 'viewHistoryEvents'
-                , 'permissions'   : (ZEN_VIEW, )
-                },
+#                { 'id'            : 'historyEvents'
+#                , 'name'          : 'History'
+#                , 'action'        : 'viewHistoryEvents'
+#                , 'permissions'   : (ZEN_VIEW, )
+#                },
                 { 'id'            : 'manage'
                 , 'name'          : 'Administration'
                 , 'action'        : 'deviceOrganizerManage'

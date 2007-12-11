@@ -97,12 +97,12 @@ class System(DeviceOrganizer, ZenPackable):
                 , 'permissions'   : (
                   permissions.view, )
                 },
-                { 'id'            : 'historyEvents'
-                , 'name'          : 'History'
-                , 'action'        : 'viewHistoryEvents'
-                , 'permissions'   : (
-                  permissions.view, )
-                },
+#                { 'id'            : 'historyEvents'
+#                , 'name'          : 'History'
+#                , 'action'        : 'viewHistoryEvents'
+#                , 'permissions'   : (
+#                  permissions.view, )
+#                },
                 { 'id'            : 'manage'
                 , 'name'          : 'Administration'
                 , 'action'        : 'deviceOrganizerManage'

@@ -80,11 +80,11 @@ class Location(DeviceOrganizer, ZenPackable):
                 , 'action'        : 'viewEvents'
                 , 'permissions'   : (permissions.view,)
                 },
-                { 'id'            : 'historyEvents'
-                , 'name'          : 'History'
-                , 'action'        : 'viewHistoryEvents'
-                , 'permissions'   : (permissions.view,)
-                },
+#                { 'id'            : 'historyEvents'
+#                , 'name'          : 'History'
+#                , 'action'        : 'viewHistoryEvents'
+#                , 'permissions'   : (permissions.view,)
+#                },
                 { 'id'            : 'manage'
                 , 'name'          : 'Administration'
                 , 'action'        : 'deviceOrganizerManage'

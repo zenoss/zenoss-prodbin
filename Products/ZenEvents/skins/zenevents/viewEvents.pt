@@ -9,6 +9,11 @@
 </tal:block>
 
 <tal:block metal:fill-slot="contentPane">
+
+<div class='tinylink-container'>
+<a class="tinylink" href="viewHistoryEvents">View Event History...</a>
+</div>
+
 <link type="text/css" rel="stylesheet" href="css/zengrid.css"/>
 <script type="text/javascript" src="/zport/js/zenutils.js"></script>
 <script type="text/javascript" src="/zport/javascript/zengrid.js"></script>
