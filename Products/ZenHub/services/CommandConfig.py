@@ -34,7 +34,7 @@ def getComponentCommands(comp):
                      (dp.rrdmin, dp.rrdmax)))
             key = ds.eventKey or ds.id
             cmd = Cmd()
-            cmd.usessh = getattr(ds, 'usessh', False)
+            cmd.useSsh = getattr(ds, 'usessh', False)
             cmd.cycleTime = ds.cycletime
             cmd.component = ds.component
             cmd.eventClass = ds.eventClass
