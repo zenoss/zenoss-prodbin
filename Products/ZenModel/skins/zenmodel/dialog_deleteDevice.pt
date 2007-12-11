@@ -6,8 +6,9 @@
 Are you sure you want to delete this device?<br/>
 </p>
 <p>
-<input type="radio" name="deleteHistory" value="no" checked="1"> Delete current events for this device<br />
-<input type="radio" name="deleteHistory" value="yes"> Delete current and historical events for this device<br />
+<input type="checkbox" name="deleteStatus" value="1" checked="1"> Delete current events for this device<br />
+<input type="checkbox" name="deleteHistory" value="1" checked="1"> Delete historical events for this device<br />
+<input type="checkbox" name="deletePerf" value="1" checked="1"> Delete performance data for this device<br />
 </p>
 <br/>
 <div id="dialog_buttons">

@@ -199,13 +199,15 @@ class DeviceClass(DeviceOrganizer, ZenPackable):
                     return self.callZenScreen(REQUEST)
 
 
-    def removeDevices(self, deviceNames=None, REQUEST=None):
+    def removeDevices(self, deviceNames=None, deleteStatus=False, 
+                    deleteHistory=False, deletePerf=False,REQUEST=None):
         """see IManageDevice overrides DeviceManagerBase.removeDevices"""
         if not deviceNames: return self()
         if type(deviceNames) in types.StringTypes: deviceNames = (deviceNames,)
         for devname in deviceNames:
             dev = self.findDevice(devname)
-            dev.deleteDevice()
+            dev.deleteDevice(deleteStatus=deleteStatus, 
+                        deleteHistory=deleteHistory, deletePerf=deletePerf)
         if REQUEST:
             REQUEST['message'] = "Devices deleted"
             if REQUEST.has_key('oneKeyValueSoInstanceIsntEmptyAndEvalToFalse'):
@@ -230,13 +232,18 @@ class DeviceClass(DeviceOrganizer, ZenPackable):
              'setPerformanceMonitor':'performanceMonitor',
              'setStatusMonitors':'statusMonitors',
              'moveDevices':'moveTarget',
-             'removeDevices':'',
+             'removeDevices':('deleteStatus', 'deleteHistory', 'deletePerf'),
              'setProdState':'state',
              'setPriority':'priority'
             }
         request = FakeRequest()
         argdict = dict(REQUEST=request)
-        if d[method]: argdict[d[method]] = extraarg
+        if d[method]:
+            if type(d[method]) in [tuple, list]:
+                for argName in d[method]:
+                    argdict[argName] = REQUEST.get(argName, None)
+            else:
+                argdict[d[method]] = extraarg
         action = getattr(self, method)
         argdict['deviceNames'] = self.getDeviceBatch(selectstatus, 
                                   goodevids, badevids, offset, count, 

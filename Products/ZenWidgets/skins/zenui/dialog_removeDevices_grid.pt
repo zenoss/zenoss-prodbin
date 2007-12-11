@@ -3,11 +3,19 @@
 <p>
 Are you sure you want to remove these devices?<br/>
 </p>
+<p>
+<input type="checkbox" name="deleteStatus" id="deleteStatus" value="1" checked="1"> Delete current events for these devices<br />
+<input type="checkbox" name="deleteHistory" id="deleteHistory" value="1" checked="1"> Delete historical events for these devices<br />
+<input type="checkbox" name="deletePerf" id="deletePerf" value="1" checked="1"> Delete performance data for these devices<br />
+</p>
 <br/>
 <div id="dialog_buttons">
 <input type="submit" name="removeDevices:method"
     value="OK"
-    onclick="devZenGrid.setDeviceBatchProps('removeDevices','')"/>
+    onclick="devZenGrid.setDeviceBatchProps('removeDevices','', 
+        {'deleteStatus': $('deleteStatus').checked?1:'',
+        'deleteHistory': $('deleteHistory').checked?1:'',
+        'deletePerf': $('deletePerf').checked?1:''})"/>
 <input id="dialog_cancel" type="button" value="Cancel"
 onclick="$('dialog').hide()"/>
 </div>

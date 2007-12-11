@@ -139,20 +139,39 @@ class RenderServer(RRDToolItem):
     def deleteRRDFiles(self, device, 
                         datasource=None, datapoint=None, 
                         remoteUrl=None, REQUEST=None):
+        """
+        Delete RRD files associated with the given device id.
+        If datapoint is not None then delete the file corresponding to that dp.
+        Else if datasource is not None then delete the files corresponding to
+          all datapoints in the datasource.
+        Else delete all rrd files associated with the given device.
+        """
+        devDir = performancePath('/Devices/%s' % device)
+        if not os.path.isdir(devDir):
+            return
+        fileNames = []
+        dirNames = []
         if datapoint:
-            rrdPath = '/Devices/%s/%s.rrd' % (device, datapoint)
-            try:
-                os.remove(performancePath(rrdPath))
-            except OSError:
-                log.warn("File %s does not exist" % performancePath(rrdPath))
+            fileNames = [
+                performancePath('/Devices/%s/%s.rrd' % (device, datapoint))]
         elif datasource:
             rrdPath = '/Devices/%s/%s_*.rrd' % (device, datasource)
-            filenames = glob.glob(performancePath(rrdPath))
-            for filename in filenames:
-                try:
-                    os.remove(filename)
-                except OSError:
-                    log.warn("File %s does not exist" % filename)
+            fileNames = glob.glob(performancePath(rrdPath))
+        else:
+            for dPath, dNames, dFiles in os.walk(devDir, topdown=False):
+                fileNames += [os.path.join(dPath, f) for f in dFiles]
+                dirNames += [os.path.join(dPath, d) for d in dNames]
+            dirNames.append(devDir)
+        for fileName in fileNames:
+            try:
+                os.remove(fileName)
+            except OSError:
+                log.warn("File %s does not exist" % fileName)
+        for dirName in dirNames:
+            try:
+                os.rmdir(dirName)
+            except OSError:
+                log.warn('Directory %s could not be removed' % dirName)
         if remoteUrl:
             urllib.urlopen(remoteUrl)
     

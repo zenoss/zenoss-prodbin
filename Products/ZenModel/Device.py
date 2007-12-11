@@ -1573,17 +1573,21 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
 
 
     security.declareProtected(ZEN_ADMIN_DEVICE, 'deleteDevice')
-    def deleteDevice(self, deleteHistory='no', REQUEST=None):
+    def deleteDevice(self, deleteStatus=False, deleteHistory=False,
+                    deletePerf=False, REQUEST=None):
         """
         Delete device from the database
 
         @permission: ZEN_ADMIN_DEVICE
         """
         parent = self.getPrimaryParent()
-        self.getEventManager().manage_deleteHeartbeat(self.getId())
-        self.getEventManager().manage_deleteAllEvents(self.getId())
-        if deleteHistory == 'yes':
+        if deleteStatus:
+            self.getEventManager().manage_deleteHeartbeat(self.getId())
+            self.getEventManager().manage_deleteAllEvents(self.getId())
+        if deleteHistory:
             self.getEventManager().manage_deleteHistoricalEvents(self.getId())
+        if deletePerf:
+            self.getPerformanceServer().deleteRRDFiles(self.id)
         parent._delObject(self.getId())
         if REQUEST:
             REQUEST['message'] = "Device deleted"

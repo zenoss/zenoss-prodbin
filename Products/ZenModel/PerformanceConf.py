@@ -308,9 +308,13 @@ class PerformanceConf(Monitor, StatusColor):
         remoteUrl = None
         if self.renderurl.startswith("http"):
             if datapoint:
-                remoteUrl = "%s/deleteRRDFiles?device=%s&datapoint=%s" % (self.renderurl,device,datapoint)
+                remoteUrl = "%s/deleteRRDFiles?device=%s&datapoint=%s" % (
+                                self.renderurl,device,datapoint)
+            elif datasource:
+                remoteUrl = "%s/deleteRRDFiles?device=%s&datasource=%s" % (
+                                self.renderurl,device,datasource)
             else:
-                remoteUrl = "%s/deleteRRDFiles?device=%s&datasource=%s" % (self.renderurl,device,datasource)
+                remoteUrl = "%s/deleteRRDFiles?device=%s" % (self.renderurl,device)
         rs = self.getDmd().getParentNode().RenderServer
         rs.deleteRRDFiles(device, datasource, datapoint, remoteUrl)
 

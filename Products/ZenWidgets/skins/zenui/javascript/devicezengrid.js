@@ -793,7 +793,7 @@ DeviceZenGrid.prototype = {
         this.headcolgroup = swapDOM(this.headcolgroup, this.getColgroup());
         //this.refreshTable(this.lastOffset);
     },
-    setDeviceBatchProps: function(method, extraarg) {
+    setDeviceBatchProps: function(method, extraarg, yetMoreArgs) {
         url = this.absurl + '/setDeviceBatchProps';
         var selectstatus = this.selectstatus;
         var goodevids = [];
@@ -810,6 +810,8 @@ DeviceZenGrid.prototype = {
                 'extraarg':extraarg
              }
         qs = update(qs, this.lastparams);
+        if (yetMoreArgs)
+            qs = update(qs, yetMoreArgs);
         $('dialog').hide();
         if (!(selectstatus=='none' && goodevids.length==0)) {
             this.showLoading();
