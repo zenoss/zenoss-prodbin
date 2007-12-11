@@ -194,7 +194,7 @@ class ZenTrap(EventServer):
             reply = netsnmp.lib.snmp_clone_pdu(c.addressof(pdu))
             if not reply:
                 self.log.error("could not clone PDU for INFORM response")
-                raise SnmpError("Cannot respond to INFORM PDU")
+                raise RuntimeError("Cannot respond to INFORM PDU")
             reply.contents.command = netsnmp.SNMP_MSG_RESPONSE
             reply.contents.errstat = 0
             reply.contents.errindex = 0
