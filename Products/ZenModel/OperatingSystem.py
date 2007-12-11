@@ -21,8 +21,6 @@ from Software import Software
 from AccessControl import ClassSecurityInfo
 from Globals import InitializeClass
 
-from AccessControl import Permissions as permissions
-
 from Products.ZenUtils.Utils import convToUnits
 from Products.ZenRelations.RelSchema import *
 

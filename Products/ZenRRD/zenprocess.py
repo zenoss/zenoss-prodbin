@@ -76,10 +76,6 @@ def chunk(lst, n):
     'break lst into n-sized chunks'
     return [lst[i:i+n] for i in range(0, len(lst), n)]
 
-def closer(value, device):
-    device.close()
-    return value
-
 class ScanFailure(Exception): pass
 
 class Pid:
@@ -111,8 +107,9 @@ class Pid:
         return '<Pid> memory: %s cpu: %s' % (self.memory, self.cpu)
     __repr__ = __str__
 
+from twisted.spread import pb
 
-class Process:
+class Process(pb.Copyable, pb.RemoteCopy):
     'track process-specific configuration data'
     name = None
     originalName = None
@@ -157,7 +154,18 @@ class Process:
         if self.pids.has_key(pid):
             del self.pids[pid]
 
-class Device:
+    def updateConfig(self, update):
+        if self is update:
+            return
+        self.name = update.name
+        self.originalName = update.originalName
+        self.ignoreParameters = update.ignoreParameters
+        self.restart = update.restart
+        self.severity = update.severity
+
+pb.setUnjellyableForClass(Process, Process)
+
+class Device(pb.Copyable, pb.RemoteCopy):
     'track device data'
     name = ''
     snmpConnInfo = None
@@ -175,34 +183,29 @@ class Device:
 
     def open(self):
         self._makeProxy()
-        if hasattr(self.proxy, 'open'):
-            self.proxy.open()
 
-    def close(self):
-        if hasattr(self.proxy, 'close'):
+    def close(self, unused=None):
+        if self.proxy:
             self.proxy.close()
+        self.proxy = None
+        return unused
 
     def _makeProxy(self):
         p = self.proxy
         c = self.snmpConnInfo
         if (p is None or p.snmpConnInfo != c):
-            self.close()
-            self.proxy = self.snmpConnInfo.createSession(protocol=self.protocol,
-                                                         allowCache=True)
-
+            self.proxy = self.snmpConnInfo.createSession()
+            self.proxy.open()
     
-    def updateConfig(self, snmpInfo, processes):
-        self.snmpConnInfo = snmpInfo
+    def updateConfig(self, cfg):
+        if self is cfg:
+            return
+        self.snmpConnInfo = cfg.ConnInfo
         unused = Set(self.processes.keys())
-        for name, originalName, ignoreParameters, restart, severity \
-                in processes:
-            unused.discard(name)
-            p = self.processes.setdefault(name, Process())
-            p.name = name
-            p.originalName = originalName
-            p.ignoreParameters = ignoreParameters
-            p.restart = restart
-            p.severity = severity
+        for update in cfg.processes:
+            unused.discard(update.name)
+            p = self.processes.setdefault(update.name, Process())
+            p.updateConfig(update)
         for name in unused:
             del self.processes[name]
 
@@ -220,6 +223,7 @@ class Device:
                                 retryCount=self.snmpConnInfo.zSnmpTries,
                                 maxRepetitions=repetitions)
         return t
+pb.setUnjellyableForClass(Device, Device)
 
 
 class zenprocess(SnmpDaemon):
@@ -308,17 +312,13 @@ class zenprocess(SnmpDaemon):
 
     
     def updateDevices(self, cfgs, fetched):
-        names = Set()
+        received = Set()
         for cfg in cfgs:
-            lastChange, name, snmpConf, procs, thresholds = cfg
-            names.add(name)
-            d = self._devices.setdefault(name, Device())
-            d.lastChange = lastChange
-            d.name = name
-            d.updateConfig(snmpConf, procs)
-            d.protocol = self.snmpPort.protocol
-            self.thresholds.updateForDevice(name, thresholds)
-        for doomed in Set(fetched) - names:
+            received.add(cfg.name)
+            d = self._devices.setdefault(cfg.name, cfg)
+            d.updateConfig(d)
+            self.thresholds.updateForDevice(cfg.name, cfg.thresholds)
+        for doomed in Set(fetched) - received:
             if doomed in self._devices:
                 del self._devices[doomed]
 
@@ -362,7 +362,7 @@ class zenprocess(SnmpDaemon):
             yield self.fetchPerf(device)
             driver.next()
         d = drive(go)
-        d.addBoth(closer, device)
+        d.addBoth(device.close)
         return d
         
 
@@ -506,7 +506,15 @@ class zenprocess(SnmpDaemon):
             yield self.scanning.start()
             driver.next()
 
-        drive(doPeriodic).addCallback(lambda unused: self.heartbeat())
+        def checkResults(results):
+            for result in results:
+                if isinstance(result , Exception):
+                    log.error("Error scanning device: %s", result)
+                    break
+            else:
+                self.heartbeat()
+
+        drive(doPeriodic).addCallback(checkResults)
 
 
     def fetchPerf(self, device):
@@ -576,5 +584,6 @@ class zenprocess(SnmpDaemon):
 
 
 if __name__ == '__main__':
+    from Products.ZenRRD.zenprocess import zenprocess
     z = zenprocess()
     z.run()

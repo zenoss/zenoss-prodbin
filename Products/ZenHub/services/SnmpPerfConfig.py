@@ -15,11 +15,55 @@ from PerformanceConfig import PerformanceConfig
 
 from sets import Set
 
+from Products.ZenRRD.zenperfsnmp import SnmpConfig
+
+def getComponentConfig(comp):
+    oids = []
+    if comp.snmpIgnore(): return None
+    basepath = comp.rrdPath()
+    perfServer = comp.device().getPerformanceServer()
+    for templ in comp.getRRDTemplates():
+        for ds in templ.getRRDDataSources("SNMP"):
+            if not ds.enabled: continue
+            oid = ds.oid
+            snmpindex = getattr(comp, "ifindex", comp.snmpindex)
+            if snmpindex: oid = "%s.%s" % (oid, snmpindex)
+            for dp in ds.getRRDDataPoints():
+                cname = comp.meta_type != "Device" \
+                        and comp.viewName() or dp.id
+                oids.append((cname,
+                             oid,
+                             "/".join((basepath, dp.name())),
+                             dp.rrdtype,
+                             dp.getRRDCreateCommand(perfServer),
+                             (dp.rrdmin, dp.rrdmax)))
+    return (oids, comp.getThresholdInstances('SNMP'))
+
+
+def getDeviceConfig(dev):
+    dev = dev.primaryAq()
+    if not dev.snmpMonitorDevice(): return None
+    result = SnmpConfig()
+    oids, threshs = getComponentConfig(dev)
+    for comp in dev.os.getMonitoredComponents(collector="zenperfsnmp"):
+        cfg = getComponentConfig(comp)
+        if cfg:
+            oids.extend(cfg[0])
+            threshs.extend(cfg[1])
+    result.lastChangeTime = float(dev.getLastChange())
+    result.device = dev.id
+    result.connInfo = dev.getSnmpConnInfo()
+    result.thresholds = threshs
+    result.oids = oids
+    return result
 
 class SnmpPerfConfig(PerformanceConfig):
 
     def remote_getDevices(self, devices=None):
-        """Return information for snmp collection on all devices."""
+        """Return the subset of devices that should be monitored.
+        
+        If devices is empty, then all the monitored devices are given.
+        """
         if devices:
             if not isinstance(devices, list):
                 devices = Set([devices])
@@ -34,12 +78,18 @@ class SnmpPerfConfig(PerformanceConfig):
         return snmp
 
 
+    def getDeviceConfig(self, device):
+        "Fill in the template method to push our configs"
+        return getDeviceConfig(device)
+
+
     def remote_getDeviceConfigs(self, devices):
+        "Fetch the configs for the given devices"
         result = []
         for d in devices:
             device = self.dmd.Devices.findDevice(d)
             if device:
-                config = device.getSnmpOidTargets()
+                config = self.getDeviceConfig(device)
                 if config:
                     result.append(config)
         return result
@@ -62,10 +112,6 @@ class SnmpPerfConfig(PerformanceConfig):
         deleted = Set(lastChanged.keys()) - all
         return list(new | deleted)
 
-    def getDeviceConfig(self, device):
-        "Template method helper for PerformanceConfig.pushConfig"
-        return device.getSnmpOidTargets()
-
 
     def sendDeviceConfig(self, listener, config):
         "Template method helper for PerformanceConfig.pushConfig"
@@ -77,5 +123,5 @@ class SnmpPerfConfig(PerformanceConfig):
         if isinstance(object, RRDDataSource):
             if object.sourcetype != 'SNMP':
                 return
-
         PerformanceConfig.update(self, object)
+

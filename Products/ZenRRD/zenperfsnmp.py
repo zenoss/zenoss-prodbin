@@ -41,10 +41,6 @@ from Products.ZenEvents.ZenEventClasses import Perf_Snmp, Status_Snmp
 from Products.ZenRRD.RRDUtil import RRDUtil
 from SnmpDaemon import SnmpDaemon
 
-from Products.ZenHub.services.PerformanceConfig import SnmpConnInfo
-# needed for pb comms
-SnmpConnInfo = SnmpConnInfo
-
 from FileCleanup import FileCleanup
 
 MAX_OIDS_PER_REQUEST = 40
@@ -98,6 +94,19 @@ def checkException(alog, function, *args, **kw):
         alog.exception(ex)
         raise ex
 
+from twisted.spread import pb
+class SnmpConfig(pb.Copyable, pb.RemoteCopy):
+    "A class to transfer the SNMP collection data to zenperfsnmp"
+
+    lastChangeTime = 0.
+    device = ''
+    connInfo = None
+    thresholds = []
+    oids = []
+
+pb.setUnjellyableForClass(SnmpConfig, SnmpConfig)
+
+        
 class Status:
     'keep track of the status of many parallel requests'
     _success = _fail = 0
@@ -419,16 +428,16 @@ class zenperfsnmp(SnmpDaemon):
 
     def updateDeviceConfig(self, snmpTargets):
         'Save the device configuration and create an SNMP proxy to talk to it'
-        last, deviceName, snmpConfig, thresholds, oidData = snmpTargets
+        cfg = snmpTargets
 
-        self.log.debug("received config for %s", deviceName)
-        p = self.updateAgentProxy(deviceName, snmpConfig)
-        if p.lastChange < last:
-            p.lastChange = last
-            write(self.pickleName(deviceName), cPickle.dumps(snmpTargets))
+        self.log.debug("received config for %s", cfg.device)
+        p = self.updateAgentProxy(cfg.device, cfg.connInfo)
+        if p.lastChange < cfg.lastChangeTime:
+            p.lastChange = cfg.lastChangeTime
+            write(self.pickleName(cfg.device), cPickle.dumps(snmpTargets))
 
         oidMap, p.oidMap = p.oidMap, {}
-        for name, oid, path, dsType, createCmd, minmax in oidData:
+        for name, oid, path, dsType, createCmd, minmax in cfg.oids:
             createCmd = createCmd.strip()
             oid = str(oid).strip('.')
             # beware empty oids
@@ -436,8 +445,8 @@ class zenperfsnmp(SnmpDaemon):
                 oid = '.' + oid
                 p.oidMap[oid] = d = oidMap.setdefault(oid, OidData())
                 d.update(name, path, dsType, createCmd, minmax)
-        self.proxies[deviceName] = p
-        self.thresholds.updateForDevice(deviceName, thresholds)
+        self.proxies[cfg.device] = p
+        self.thresholds.updateForDevice(cfg.device, cfg.thresholds)
 
 
     def scanCycle(self, *unused):
@@ -624,5 +633,6 @@ class zenperfsnmp(SnmpDaemon):
 
 
 if __name__ == '__main__':
+    from Products.ZenRRD.zenperfsnmp import zenperfsnmp
     zpf = zenperfsnmp()
     zpf.run()

@@ -10,10 +10,41 @@
 # For complete information please visit: http://www.zenoss.com/oss/
 #
 ###########################################################################
-#! /usr/bin/env python 
 
 from PerformanceConfig import PerformanceConfig
 from ZODB.POSException import POSError
+
+from Products.ZenRRD.zenprocess import Device, Process
+
+def getOSProcessConf(dev):
+    """
+    Returns process monitoring configuration
+        
+    @rtype: tuple (lastChangeTimeInSecs, (devname, (ip, port), 
+    (community, version, timeout, tries), zMaxOIDPerRequest),
+    list of configs, list of thresholds)
+    """
+    if not dev.snmpMonitorDevice():
+        return None
+    procs = dev.getMonitoredComponents(collector='zenprocess')
+    if not procs:
+        return None
+    d = Device()
+    d.name = dev.id
+    d.lastChange = dev.getLastChange()
+    d.thresholds = [t for p in procs for t in p.getThresholdInstances('SNMP')]
+    d.snmpConnInfo = dev.getSnmpConnInfo()
+    for p in procs:
+        proc = Process()
+        proc.name = p.id
+        proc.originalName = p.name()
+        p.ignoreParameters = (
+            getattr(p.osProcessClass(), 'ignoreParameters', False))
+        proc.restart = p.alertOnRestart()
+        proc.severity = p.getFailSeverity()
+        d.processes[p.id] = proc
+    return d
+
 
 class ProcessConfig(PerformanceConfig):
 
@@ -52,7 +83,7 @@ class ProcessConfig(PerformanceConfig):
                 continue
             dev = dev.primaryAq()
             try:
-                procinfo = dev.getOSProcessConf()
+                procinfo = getOSProcessConf(dev)
                 if procinfo:
                     result.append(procinfo)
             except POSError: raise
@@ -70,7 +101,7 @@ class ProcessConfig(PerformanceConfig):
 
 
     def getDeviceConfig(self, device):
-        return device.getOSProcessConf()
+        return getOSProcessConf(device)
 
 
     def sendDeviceConfig(self, listener, config):

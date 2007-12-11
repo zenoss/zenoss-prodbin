@@ -11,13 +11,11 @@
 #
 ###########################################################################
 
-import sys
 import time
 import types
 import socket
 import logging
 log = logging.getLogger("zen.Device")
-from popen2 import Popen4
 
 from _mysql_exceptions import OperationalError
 
@@ -563,7 +561,7 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
 
     def getSnmpConnInfo(self):
         """
-        Returns a tuple of SNMP Connection Info
+        Returns an object containing SNMP Connection Info
         
         @rtype: SnmpConnInfo object
 
@@ -576,94 +574,6 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
         """
         from Products.ZenHub.services.PerformanceConfig import SnmpConnInfo
         return SnmpConnInfo(self)
-
-
-    def getOSProcessConf(self):
-        """
-        Returns process monitoring configuration
-        
-        @rtype: tuple (lastChangeTimeInSecs, (devname, (ip, port), 
-            (community, version, timeout, tries), zMaxOIDPerRequest),
-            list of configs, list of thresholds)
-        """
-        if not self.snmpMonitorDevice():
-            return None
-        procs = self.getMonitoredComponents(collector='zenprocess')
-        if not procs:
-            return None
-        config = [ p.getOSProcessConf() for p in procs ]
-        threshs = [t for p in procs for t in p.getThresholdInstances('SNMP')]
-        return (float(self.getLastChange()),
-                self.id,
-                self.getSnmpConnInfo(),
-                config,
-                threshs)
-
-
-    def getSnmpOidTargets(self):
-        """
-        Return information for snmp collection on this device
-        
-        @rtype: tuple (lastChangeTimeInSecs, devname, snmpConnInfo,
-                       list of thresholds,
-                       list of oids)
-
-        >>> from Products.ZenModel.Device import manage_addDevice
-        >>> manage_addDevice(devices, 'test')
-        >>> devices.test.getSnmpOidTargets()
-        (0.0, 'test',
-        <Products.ZenHub.services.PerformanceConfig.SnmpConnInfo
-        for test>, [], [('sysUpTime', '1.3.6.1.2.1.1.3.0',
-        'Devices/test/sysUpTime_sysUpTime', 'GAUGE', '', (None, None))])
-        """
-        if not self.snmpMonitorDevice(): return None
-        oids, threshs = (super(Device, self).getSnmpOidTargets())
-        for o in self.os.getMonitoredComponents(collector="zenperfsnmp"):
-            o, t = o.getSnmpOidTargets()
-            oids.extend(o)
-            threshs.extend(t)
-        return (float(self.getLastChange()),
-                self.id, 
-                self.getSnmpConnInfo(),
-                threshs,
-                oids)
-
-
-    def getDataSourceCommands(self):
-        """
-        Return list of command definitions on this device
-
-        @rtype: tuple (lastChangeTimeInSecs, (devname, (ip, port), 
-           (community, version, timeout, tries), zMaxOIDPerRequest),
-           list of thresholds,
-           list of commands)
-        """
-        if not self.monitorDevice():
-            return ()
-        cmds, threshs = (super(Device, self).getDataSourceCommands())
-        for o in self.getMonitoredComponents(collector="zencommand"):
-            c, t = o.getDataSourceCommands()
-            cmds.extend(c)
-            threshs.extend(t)
-        if cmds:
-            return (float(self.getLastChange()),
-                    self.id, self.getManageIp(), self.zCommandPort,
-                    self.zCommandUsername, self.zCommandPassword,
-                    self.zCommandLoginTimeout, self.zCommandCommandTimeout,
-                    self.zKeyPath,self.zMaxOIDPerRequest,
-                    cmds, threshs)
-
-
-    def getXmlRpcTargets(self):
-        """
-        Return information for xmlrpc collection on this device
-        
-        @rtype: tuple (devname, xmlRpcStatus,
-         (url, methodName),
-         [(name, path, type, createCmd, thresholds)])
-        """
-        targets = (super(Device, self).getXmlRpcTargets())
-        return (self.id, self.getXmlRpcStatus(), targets)
 
 
     def getHWManufacturerName(self):

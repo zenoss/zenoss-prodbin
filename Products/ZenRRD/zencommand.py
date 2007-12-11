@@ -35,6 +35,7 @@ from Products.ZenRRD.RRDUtil import RRDUtil
 from Products.DataCollector.SshClient import SshClient
 
 from sets import Set
+from twisted.spread import pb
 
 import re
 # how to parse each value from a nagios command
@@ -53,13 +54,6 @@ EXIT_CODE_MAPPING = {
     128:'Invalid argument to exit, exit takes only integers in the range 0-255',
     130:'Fatal error signal: 2, Command terminated by Control-C'
 }
-
-class CommandConfig:
-    def __init__(self, dictionary):
-        d = dictionary.copy()
-        d['self'] = self
-        self.__dict__.update(dictionary)
-    
 
 class TimeoutError(Exception):
     "Error for a defered call taking too long to complete"
@@ -106,7 +100,7 @@ class ProcessRunner(ProcessProtocol):
         log.debug('cmd line: %r' % self.command)
         reactor.spawnProcess(self, shell, self.cmdline, env=None)
 
-        d = Timeout(defer.Deferred(), cmd.commandTimeout, cmd)
+        d = Timeout(defer.Deferred(), cmd.deviceConfig.commandTimeout, cmd)
         self.stopped = d
         self.stopped.addErrback(self.timeout)
         return d
@@ -184,16 +178,18 @@ class SshPool:
 
     def get(self, cmd):
         "Make an ssh connection if there isn't one available"
-        result = self.pool.get(cmd.device, None)
+        dc = cmd.deviceConfig
+        result = self.pool.get(dc.device, None)
         if result is None:
-            log.debug("Creating connection to %s", cmd.device)
-            options = Options(cmd.username, cmd.password,
-                              cmd.loginTimeout, cmd.commandTimeout, cmd.keyPath)
+            log.debug("Creating connection to %s", dc.device)
+            options = Options(dc.username, dc.password,
+                              dc.loginTimeout, dc.commandTimeout,
+                              dc.keyPath)
             # New param KeyPath
-            result = MySshClient(cmd.device, cmd.ipAddress, cmd.port,
+            result = MySshClient(dc.device, dc.ipAddress, dc.port,
                                  options=options)
             result.run()
-            self.pool[cmd.device] = result
+            self.pool[dc.device] = result
         return result
 
 
@@ -209,7 +205,7 @@ class SshPool:
         
     def close(self, cmd):
         "symetric close that matches get() method"
-        self._close(cmd.device)
+        self._close(cmd.deviceConfig.device)
 
 
     def trimConnections(self, schedule):
@@ -217,8 +213,9 @@ class SshPool:
         # compute device list in order of next use
         devices = []
         for c in schedule:
-            if c.device not in devices:
-                devices.append(c.device)
+            device = c.deviceConfig.device
+            if device not in devices:
+                devices.append(device)
         # close as many devices as needed
         while devices and len(self.pool) > MAX_CONNECTIONS:
             self._close(devices.pop())
@@ -238,7 +235,9 @@ class SshRunner:
         self.defer = defer.Deferred()
         c = self.pool.get(cmd)
         try:
-            d = Timeout(c.addCommand(cmd.command), cmd.commandTimeout, cmd)
+            d = Timeout(c.addCommand(cmd.command),
+                        cmd.deviceConfig.commandTimeout,
+                        cmd)
         except Exception, ex:
             log.warning('Error starting command: %s', ex)
             self.pool.close(cmd)
@@ -264,14 +263,29 @@ class SshRunner:
         self.output, self.exitCode = value
         return self
 
+class DeviceConfig(pb.Copyable, pb.RemoteCopy):
+    lastChange = 0.
+    device = ''
+    ipAddress = ''
+    port = 0
+    username = ''
+    password = ''
+    loginTimeout = 0.
+    commandTimeout = 0.
+    keyPath = ''
+    maxOids = 20
+pb.setUnjellyableForClass(DeviceConfig, DeviceConfig)
 
-class Cmd:
+
+class CommandConfig:
+    def __init__(self, dictionary):
+        d = dictionary.copy()
+        d['self'] = self
+        self.__dict__.update(dictionary)
+    
+
+class Cmd(pb.Copyable, pb.RemoteCopy):
     "Holds the config of every command to be run"
-    device = None
-    ipAddress = None
-    port = 22
-    username = None
-    password = None
     command = None
     useSsh = False
     cycleTime = None
@@ -327,16 +341,8 @@ class Cmd:
         return pr
 
 
-    def updateConfig(self, cfg):
-        self.lastChange = cfg.lastChange
-        self.device = cfg.device
-        self.ipAddress = cfg.ipAddress
-        self.port = cfg.port
-        self.username = str(cfg.username)
-        self.password = str(cfg.password)
-        self.loginTimeout = cfg.loginTimeout
-        self.commandTimeout = cfg.commandTimeout
-        self.keyPath = cfg.keyPath
+    def updateConfig(self, cfg, deviceConfig):
+        self.deviceConfig = deviceConfig
         self.useSsh = cfg.useSsh
         self.cycleTime = max(cfg.cycleTime, 1)
         self.eventKey = cfg.eventKey
@@ -351,6 +357,7 @@ class Cmd:
     def key(self, point):
         # fetch datapoint name from filename path and add it to the event key
         return self.eventKey + '|' + self.points[point][0].split('/')[-1]
+pb.setUnjellyableForClass(Cmd, Cmd)
 
 class Options:
     loginTries=1
@@ -378,7 +385,7 @@ class zencommand(RRDDaemon):
 
     def remote_deleteDevice(self, doomed):
         self.log.debug("Async delete device %s" % doomed)
-        self.schedule = [c for c in self.schedule if c.device != doomed]
+        self.schedule = [c for c in self.schedule if c.deviceConfig.device != doomed]
             
     def remote_updateConfig(self, config):
         self.log.debug("Async configuration update")
@@ -390,12 +397,12 @@ class zencommand(RRDDaemon):
         lastChanges = dict(devices)     # map device name to last change
         keep = []
         for cmd in self.schedule:
-            if cmd.device in lastChanges:
+            if cmd.deviceConfig.device in lastChanges:
                 if cmd.lastChange > lastChanges[cmd.device]:
-                    updated.append(cmd.device)
+                    updated.append(cmd.deviceConfig.device)
                 keep.append(cmd)
             else:
-                log.info("Removing all commands for %s", cmd.device)
+                log.info("Removing all commands for %s", cmd.deviceConfig.device)
         self.schedule = keep
         if updated:
             log.info("Fetching the config for %s", updated)
@@ -403,28 +410,23 @@ class zencommand(RRDDaemon):
             d.addCallback(self.updateConfig, updated)
             d.addErrback(self.error)
 
-    def updateConfig(self, config, expected):
+    def updateConfig(self, configs, expected):
         expected = Set(expected)
         current = {}
         for c in self.schedule:
-            if c.device in expected:
-                current[c.device,c.command] = c
+            if c.deviceConfig.device in expected:
+                current[c.deviceConfig.device,c.command] = c
         # keep all the commands we didn't ask for
-        update = [c for c in self.schedule if c.device not in expected]
-        for c in config:
-            (lastChange, device, ipAddress, port,
-             username, password,
-             loginTimeout, commandTimeout, 
-             keyPath, maxOids, commandPart, threshs) = c
-            self.thresholds.updateForDevice(device, threshs)
+        update = [c for c in self.schedule if c.deviceConfig.device not in expected]
+        for cfg in configs:
+            device = cfg.device
+            self.thresholds.updateForDevice(device, cfg.thresholds)
             if self.options.device and self.options.device != device:
                 continue
-            for cmd in commandPart:
-                (useSsh, cycleTime,
-                 component, eventClass, eventKey, severity, command, points) = cmd
-                obj = current.setdefault((device,command), Cmd())
-                del current[(device,command)]
-                obj.updateConfig(CommandConfig(locals()))
+            for cmd in cfg.commands:
+                obj = current.setdefault((device, cmd.command), cmd)
+                del current[(device, cmd.command)]
+                obj.updateConfig(cmd, cfg)
                 update.append(obj)
         for device, command in current.keys():
             log.info("Deleting command %s from %s", device, command)
@@ -492,9 +494,10 @@ class zencommand(RRDDaemon):
             cmd, = err.value.args
             msg = "Command timed out on device %s: %s" % (cmd.device, cmd.command)
             log.warning(msg)
-            issueKey = cmd.device, cmd.eventClass, cmd.eventKey
+            dc = cmd.deviceConfig
+            issueKey = dc.device, cmd.eventClass, cmd.eventKey
             self.deviceIssues.add(issueKey)
-            self.sendEvent(dict(device=cmd.device,
+            self.sendEvent(dict(device=dc.device,
                                 eventClass=cmd.eventClass,
                                 eventKey=cmd.eventKey,
                                 component=cmd.component,
@@ -517,7 +520,7 @@ class zencommand(RRDDaemon):
         output = cmd.result.output
         exitCode = cmd.result.exitCode
         severity = cmd.severity
-        issueKey = cmd.device, cmd.eventClass, cmd.eventKey
+        issueKey = cmd.deviceConfig.device, cmd.eventClass, cmd.eventKey
         if output.find('|') >= 0:
             msg, values = output.split('|', 1)
         elif CacParser.search(output):
@@ -530,7 +533,7 @@ class zencommand(RRDDaemon):
         elif exitCode == 2:
             severity = min(severity + 1, 5)
         if severity or issueKey in self.deviceIssues:
-            self.sendThresholdEvent(device=cmd.device,
+            self.sendThresholdEvent(device=cmd.deviceConfig.device,
                                     summary=msg,
                                     severity=severity,
                                     message=msg,
@@ -624,5 +627,6 @@ class zencommand(RRDDaemon):
 
 
 if __name__ == '__main__':
+    from Products.ZenRRD.zencommand import zencommand
     z = zencommand()
     z.run()

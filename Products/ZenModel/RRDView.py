@@ -288,56 +288,6 @@ class RRDView(object):
         from PerformanceConf import performancePath
         return performancePath(self.rrdPath())
         
-    def getSnmpOidTargets(self):
-        """Return a list of (name, oid, path, type, createCmd)
-        that define monitorable"""
-        oids = []
-        if self.snmpIgnore(): return (oids, [])
-        basepath = self.rrdPath()
-        perfServer = self.device().getPerformanceServer()
-        for templ in self.getRRDTemplates():
-            for ds in templ.getRRDDataSources("SNMP"):
-                if not ds.enabled: continue
-                oid = ds.oid
-                snmpindex = getattr(self, "ifindex", self.snmpindex)
-                if snmpindex: oid = "%s.%s" % (oid, snmpindex)
-                for dp in ds.getRRDDataPoints():
-                    cname = self.meta_type != "Device" \
-                                and self.viewName() or dp.id
-                    oids.append((cname,
-                                 oid,
-                                 "/".join((basepath, dp.name())),
-                                 dp.rrdtype,
-                                 dp.getRRDCreateCommand(perfServer),
-                                 (dp.rrdmin, dp.rrdmax)))
-        return (oids, self.getThresholdInstances('SNMP'))
-
-
-    def getDataSourceCommands(self):
-        """Return list of command definitions.
-        """
-        result = []
-        perfServer = self.device().getPerformanceServer()
-        for templ in self.getRRDTemplates():
-            basepath = self.rrdPath()
-            for ds in templ.getRRDDataSources('COMMAND'):
-                if not ds.enabled: continue
-                points = []
-                for dp in ds.getRRDDataPoints():
-                    points.append(
-                        (dp.id,
-                         "/".join((basepath, dp.name())),
-                         dp.rrdtype,
-                         dp.getRRDCreateCommand(perfServer),
-                         (dp.rrdmin, dp.rrdmax)))
-                key = ds.eventKey or ds.id
-                result.append( (getattr(ds, 'usessh', False), 
-                                ds.cycletime, ds.component,
-                                ds.eventClass, key, ds.severity,
-                                ds.getCommand(self), points) )
-        return (result, self.getThresholdInstances('COMMAND'))
-
-
     def getThresholdInstances(self, dsType):
         result = []
         for template in self.getRRDTemplates():

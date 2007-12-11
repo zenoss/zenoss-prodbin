@@ -13,6 +13,64 @@
 
 from PerformanceConfig import PerformanceConfig
 from ZODB.POSException import POSError
+from Products.ZenRRD.zencommand import Cmd, DeviceConfig
+
+def getComponentCommands(comp):
+    """Return list of command definitions.
+    """
+    result = []
+    perfServer = comp.device().getPerformanceServer()
+    for templ in comp.getRRDTemplates():
+        basepath = comp.rrdPath()
+        for ds in templ.getRRDDataSources('COMMAND'):
+            if not ds.enabled: continue
+            points = []
+            for dp in ds.getRRDDataPoints():
+                points.append(
+                    (dp.id,
+                     "/".join((basepath, dp.name())),
+                     dp.rrdtype,
+                     dp.getRRDCreateCommand(perfServer),
+                     (dp.rrdmin, dp.rrdmax)))
+            key = ds.eventKey or ds.id
+            cmd = Cmd()
+            cmd.usessh = getattr(ds, 'usessh', False)
+            cmd.cycleTime = ds.cycletime
+            cmd.component = ds.component
+            cmd.eventClass = ds.eventClass
+            cmd.eventKey = key
+            cmd.severity = ds.severity
+            cmd.command = ds.getCommand(comp)
+            cmd.points = points
+            result.append(cmd)
+    return (result, comp.getThresholdInstances('COMMAND'))
+
+
+def getDeviceCommands(dev):
+    if not dev.monitorDevice():
+        return None
+    cmds, threshs = getComponentCommands(dev)
+    for o in dev.getMonitoredComponents(collector="zencommand"):
+        c, t = getComponentCommands(o)
+        cmds.extend(c)
+        threshs.extend(t)
+    if cmds:
+        d = DeviceConfig()
+        d.lastChange = dev.getLastChange()
+        d.device = dev.id
+        d.ipAddress = dev.getManageIp()
+        d.port = dev.zCommandPort
+        d.username = dev.zCommandUsername
+        d.password = dev.zCommandPassword
+        d.loginTimeout = dev.zCommandLoginTimeout
+        d.commandTimeout = dev.zCommandCommandTimeout
+        d.keyPath = dev.zKeyPath
+        d.maxOids = dev.zMaxOIDPerRequest
+        d.commands = cmds
+        d.thresholds = threshs
+        return d
+    return None
+
 
 class CommandConfig(PerformanceConfig):
 
@@ -21,7 +79,7 @@ class CommandConfig(PerformanceConfig):
 
 
     def getDeviceConfig(self, device):
-        return device.getDataSourceCommands()
+        return getDeviceCommands(device)
 
 
     def sendDeviceConfig(self, listener, config):
@@ -36,7 +94,7 @@ class CommandConfig(PerformanceConfig):
             if devices and dev.id not in devices: continue
             dev = dev.primaryAq()
             try:
-                cmdinfo = dev.getDataSourceCommands()
+                cmdinfo = getDeviceCommands(dev)
                 if not cmdinfo: continue
                 result.append(cmdinfo)
             except POSError: raise

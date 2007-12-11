@@ -197,6 +197,7 @@ class PBDaemon(ZenDaemon, pb.Referenceable):
         ''' Add event to queue of events to be sent.  If we have an event
         service then process the queue.
         '''
+        if not reactor.running: return
         event = event.copy()
         event['agent'] = self.name
         event['manager'] = self.options.monitor
