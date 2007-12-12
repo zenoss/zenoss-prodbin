@@ -23,6 +23,7 @@ ProdStatePortlet.prototype = {
              bodyHeight: bodyHeight
             }
         );
+        this.datasource.widths = {'Prod State':'100px'};
         this.buildSettingsPane();
     },
     buildSettingsPane: function() {

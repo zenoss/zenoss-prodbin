@@ -632,9 +632,21 @@ TableDatasource.prototype = {
     parseResponse: function(response, callback) {
         response = evalJSONRequest(response);
         var columns = response.columns;
+        var colwidths = {};
+        forEach(columns, method(this, function(x) {
+            if ('widths' in this) {
+              if (x in this.widths) colwidths[x] = this.widths[x];
+              else if (x=='Events') colwidths[x] = '50px';  
+              else colwidths[x] = '';
+            } else if (x=='Events') {
+                colwidths[x] = '50px';
+            } else {
+                colwidths[x] = '';
+            }
+        }));
         var mycolumndefs = map(function(x){
             return {key:x,sortable:true,resizeable:true,
-                    width:x=="Events"?'50px':''}}, columns);
+                    width:x=colwidths[x]}}, columns);
         var data = response.data;
         if ('datasource' in this) {
             this.datasource.liveData = data;
