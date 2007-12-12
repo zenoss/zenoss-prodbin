@@ -771,7 +771,7 @@ a.tablevalues:active {
     height: 28px;
     position: absolute;
     right: 50px;
-    top: 0px;
+    top: -2px;
     z-index: 2007;
 }
 
@@ -1761,4 +1761,4 @@ table.innerzentable tr td {
 .thin {
     border-width: 1px;
 }
-
+.temp_filterbox .filterbox { top: 2px; line-height: 30px; padding-top: 6px }
