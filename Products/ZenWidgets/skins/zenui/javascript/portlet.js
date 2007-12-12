@@ -340,13 +340,13 @@ PortletContainer.prototype = {
     },
     middleCol: function() {
         if (this.numCols()==3) {
-            return this.columns[2];
+            return this.columns[1];
         } else {
             return this.rightCol();
         }
     },
     rightCol: function() { 
-        return this.columns[this.numCols()>1?1:0]; 
+        return this.columns[this.columns.length-1];
     },
     addPortlet: function(klass, args) {
         try {
