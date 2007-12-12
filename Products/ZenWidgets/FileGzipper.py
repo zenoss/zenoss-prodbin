@@ -21,12 +21,16 @@ from Products.CMFCore.utils import _setCacheHeaders, _ViewEmulator
 from DateTime import DateTime
 from webdav.common import rfc1123_date
 from Products.CMFCore.FSFile import FSFile
+from Products.CMFCore.FSImage import FSImage
 def index_html(self, REQUEST, RESPONSE):
     """ Modified default view for files to enable
         gzip compression on js and css files.
     """
     self._updateFromFS()
-    data = self._readFile(0)
+    if hasattr(self, '_data'):
+        data = self._data
+    else:
+        data = self._readFile(0)
     data_len = len(data)
     last_mod = self._file_mod_time
     status = 200
@@ -43,9 +47,13 @@ def index_html(self, REQUEST, RESPONSE):
             if last_mod > 0 and last_mod <= mod_since:
                 status = 304
                 data = ''
+    now = DateTime()
+    later = now + 30
     RESPONSE.setStatus(status)
     RESPONSE.setHeader('Last-Modified', rfc1123_date(last_mod))
     RESPONSE.setHeader('Content-Type', self.content_type)
+    RESPONSE.setHeader('Cache-Control', 'public,max-age=%d' % int(3600*24*30))
+    RESPONSE.setHeader('Expires', later.rfc822())
 
     # The key line!
     RESPONSE.enableHTTPCompression(force=1)
@@ -59,3 +67,4 @@ def index_html(self, REQUEST, RESPONSE):
     return data
 
 FSFile.index_html = index_html
+FSImage.index_html = index_html
