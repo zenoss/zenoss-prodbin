@@ -350,9 +350,10 @@ class Cmd(pb.Copyable, pb.RemoteCopy):
         self.component = cfg.component
         self.severity = cfg.severity
         self.command = str(cfg.command)
-        self.points = {}
+        points = {}
         for p in cfg.points:
-            self.points[p[0]] = p[1:]
+            points[p[0]] = p[1:]
+        self.points = points
 
     def key(self, point):
         # fetch datapoint name from filename path and add it to the event key
