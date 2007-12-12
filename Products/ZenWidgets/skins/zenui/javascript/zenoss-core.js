@@ -402,9 +402,10 @@ function addSelectionBar() {
 function applyBrowserSpecificStyles() {
     if (navigator.userAgent.match('Mac')) {
         var searchform=$("searchform-label");
-        setStyle(searchform, {
-            'left':'-5em'
-        });
+        if (searchform)
+            setStyle(searchform, {
+                'left':'-5em'
+            });
     }
 }
 
