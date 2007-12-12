@@ -362,15 +362,15 @@ function getChildCheckboxes(element) {
 }
 
 var tablesOnPage=0;
-function insertSelBar(table) {
+function insertSelBar(table, index) {
     var getselall = function() {
         return function() {selectAllCheckboxes(table)}
     }
     var getselnone = function() {
         return function() {selectNoneCheckboxes(table)}
     }
-    var all = LI(null, 'All');
-    var nun = LI(null, 'None');
+    var all = LI({id:'selectall_' + index}, 'All');
+    var nun = LI({id:'selectnone_' + index}, 'None');
     var selbar = DIV({'class':'zentable_selectionbar'}, 
         [ 'Select:  ', UL(null, [all, nun ]) ]);
     insertSiblingNodesBefore(table, selbar);
@@ -394,7 +394,7 @@ function addSelectionBar() {
         if (!getNodeAttribute(tables[i], 'noselectionbar')) {
             var inputs = tables[i].getElementsByTagName('input');
             var cbs = filter(function(x){return x.type=='checkbox'}, inputs);
-            if (cbs.length) insertSelBar(tables[i]);
+            if (cbs.length) insertSelBar(tables[i], i);
         }
     }
 }
