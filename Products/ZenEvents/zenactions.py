@@ -307,6 +307,30 @@ class ZenActions(ZCmdBase):
             self.log.exception("problem with proc: '%s'" % sql)
 
 
+    def deleteHistoricalEvents(self):
+        """
+        Once per day delete events from history table
+        """
+        import datetime
+        try:
+            maxDays = int(self.dmd.ZenEventManager.historyMaxAgeDays)
+        except ValueError:
+            maxDays = 0
+        if maxDays > 0:
+            lastRun = getattr(self.dmd, 
+                                'lastDeleteHistoricalEvents_datetime', None)
+            lastAge = getattr(self.dmd,
+                                'lastDeleteHistoricalEvents_days', None)
+            now = datetime.datetime.now()
+            if not lastRun \
+                    or now - lastRun > datetime.timedelta(ageDays) \
+                    or lastAge != maxDays:
+                self.dmd.ZenEventManager.manage_deleteHistoricalEvents(
+                                            agedDays=maxDays)
+                self.dmd.lastDeleteHistoricalEvents_datetime = now
+                self.dmd.lastDeleteHistoricalEvents_days = maxDays
+
+
     def heartbeatEvents(self):
         """Create events for failed heartbeats.
         """
@@ -383,7 +407,9 @@ class ZenActions(ZCmdBase):
         self.processRules(zem)
         self.checkVersion(zem)
         self.maintenance(zem)
+        self.deleteHistoricalEvents()
         self.heartbeatEvents()
+
 
     def runCycle(self):
         try:

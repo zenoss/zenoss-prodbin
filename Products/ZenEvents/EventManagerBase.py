@@ -178,6 +178,7 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
     defaultPriority = 3
     eventAgingHours = 4
     eventAgingSeverity = 4
+    historyMaxAgeDays = 0
     
     _properties = (
         {'id':'backend', 'type':'string','mode':'r', },
@@ -218,6 +219,7 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
         {'id':'defaultPriority', 'type':'int', 'mode':'w'},
         {'id':'eventAgingHours', 'type':'int', 'mode':'w'},
         {'id':'eventAgingSeverity', 'type':'int', 'mode':'w'},
+        {'id':'historyMaxAgeDays', 'type':'int', 'mode':'w'},
         )
 
     _relations =  (
@@ -1760,6 +1762,7 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
     def deleteEvents(self, whereClause, reason):
         self.updateEvents('DELETE FROM status', whereClause, reason)
 
+
     security.declareProtected('Manage Events','manage_deleteEvents')
     def manage_deleteEvents(self, evids=(), REQUEST=None):
         "Delete the given event ids"
@@ -1801,6 +1804,7 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
             REQUEST['message'] = "%s events undeleted." % num
             return self.callZenScreen(REQUEST)
 
+
     security.declareProtected('Manage Events','manage_deleteAllEvents')
     def manage_deleteAllEvents(self, devname, REQUEST=None):
         "Delete the events for a given Device (used for deleting the device"
@@ -1810,16 +1814,39 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
             REQUEST['message'] = 'Deleted all events for %s' % devname
             return self.callZenScreen(REQUEST)
 
+
     security.declareProtected('Manage Events','manage_deleteHistoricalEvents')
-    def manage_deleteHistoricalEvents(self, devname, REQUEST=None):
+    def manage_deleteHistoricalEvents(self, devname=None, agedDays=None,
+                                                            REQUEST=None):
         """
-        Delete the historical events for the given device.
-        This is an option during device deletion
+        Delete historical events.  If devices is given then only delete
+        events for that device.  If agedDays is given then only delete
+        events that are older than that many days.
+        devname and agedDays are mutually exclusive.  No real reason for this
+        other than there is no current need to use both in same call and I
+        don't want to test the combination.
+        This is an option during device deletion.  It is also used
+        by zenactions to keep history table clean.
         """
-        whereClause = 'where device = "%s"' % devname
-        self.updateEvents('DELETE FROM history', whereClause, 'Device Deleted')
+        if devname:
+            statement = 'delete from history'
+            whereClause = 'where device = "%s"' % devname
+            reason = 'Device Deleted'
+            toLog = True
+        elif agedDays > 0:
+            statement = ('delete h,j,d from history h '
+                'LEFT JOIN log j ON h.evid = j.evid '
+                'LEFT JOIN detail d ON h.evid = d.evid ')
+            whereClause = ('WHERE StateChange < DATE_SUB(NOW(), '
+                            'INTERVAL %s day)' % agedDays)
+            reason = 'deleting historical events older than %s days' % agedDays
+            toLog = False
+        else:
+            return
+        self.updateEvents(statement, whereClause, reason, 
+                            toLog=toLog, table='history')
         if REQUEST:
-            REQUEST['message'] = 'Deleted historical events for %s' % devname
+            REQUEST['message'] = 'Deleted historical events'
             return self.callZenScreen(REQUEST)
 
 
