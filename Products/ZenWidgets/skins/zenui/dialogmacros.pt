@@ -1,7 +1,5 @@
 <!--============Basic dialog box wrapper===============-->
 <tal:block metal:define-macro="dialog">
-<script src="javascript/dialog.js"></script>
-<link href="css/dialog.css" rel="stylesheet" type="text/css" />
 <div id="dialog" class="dialog"> 
 <div id="dialog_innercontent">
     <tal:block metal:define-slot="dialog_content">

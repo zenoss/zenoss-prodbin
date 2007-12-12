@@ -14,18 +14,12 @@ loader.addModule({
     fullpath: "/zport/dmd/yui/autocomplete/assets/skins/sam/autocomplete.css"
 });
 loader.addModule({
-    name: "portlet",
-    type: "js",
-    fullpath: "/zport/dmd/javascript/portlet.js",
-    requires: ["dragdrop", "event", "dom", "animation", 
-               "datasource", "datatable", "datatablesamskin",
-               "container", "button","zenautocomplete"]
-});
-loader.addModule({
     name: "portletsource",
     type: "js",
     fullpath: "/zport/ZenPortletManager/get_source",
-    requires: ["portlet"]
+    requires: ["portlet","dragdrop", "event", "dom", "animation", 
+               "datasource", "datatable", "datatablesamskin",
+               "container", "button","zenautocomplete"]
 });
 loader.addModule({
     name: "zenautocomplete",
