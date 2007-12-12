@@ -633,7 +633,8 @@ TableDatasource.prototype = {
         response = evalJSONRequest(response);
         var columns = response.columns;
         var mycolumndefs = map(function(x){
-            return {key:x,sortable:true,resizeable:true}}, columns);
+            return {key:x,sortable:true,resizeable:true,
+                    width:x=="Events"?'50px':''}}, columns);
         var data = response.data;
         if ('datasource' in this) {
             this.datasource.liveData = data;
