@@ -8,7 +8,8 @@ ZenossLocationCache.prototype = new GGeocodeCache();
 ZenossLocationCache.prototype.reset = function() {
     GGeocodeCache.prototype.reset.call(this);
     if (geocodecache) {
-      var mycache = geocodecache.H;
+      for (key in geocodecache)
+          var mycache = geocodecache[key];
     } else {
       var mycache = [];
     }
