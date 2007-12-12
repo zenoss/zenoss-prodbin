@@ -1023,3 +1023,742 @@ dl.faux-table a.prettylink div.device-icon-container {
     -moz-user-focus: ignore;    
     cursor: default;
 }
+
+/* MENUS */
+.contextmenu * ,
+.littlemenu * {
+    padding: 0;
+    font-size: 12px;
+    margin:0;
+    font-weight: normal;
+}
+
+.littlemenu,
+.contextmenu {
+    position: relative;
+    cursor:pointer;
+    z-index: 4000;
+}
+
+.littlemenu {
+    position:absolute;
+    right:0px;
+    bottom: 0px;
+    z-index: 4000;
+}
+
+
+.contextmenubutton {
+    display: inline;
+    min-width: 5em;
+    text-align: center;
+    height: 24px;
+    cursor: pointer;
+    float:right;
+    margin-right:10px;
+    background-color: #E0E0E0;
+    border: 1px solid #5A6F8F;
+    border-bottom-width: 0px;
+}
+
+.devmovemenuitems,
+.contextmenuitems {
+    visibility: hidden;
+    position: absolute;
+    width: 172px;
+    top: -1000px;
+    left: -1000px;
+    border-top: 0px;
+    padding-bottom: 14px;
+    padding-top: 14px;
+}
+
+div.menu_bottom {
+    background: transparent url('img/menu_bottom.gif') bottom left no-repeat;
+    position: absolute;
+    bottom: 0px;
+    left: -2px;
+    height: 20px;
+    width: 174px;
+    z-index: 1000;
+}
+.submenu div.menu_bottom {
+    z-index: 0;
+}
+
+div.menu_top {
+    background: transparent url('img/menu_top.gif') top left no-repeat;
+    position: absolute;
+    top: 0px;
+    left: -2px;
+    height: 20px;
+    width: 174px;
+}
+div.menu_top_rounded {
+    background: transparent url('img/menu_top_rounded.gif') 
+        top left no-repeat;
+    position: absolute;
+    top: 0px;
+    left: -2px;
+    height: 20px;
+    width: 174px;
+}
+
+ul.zenMenu {
+    list-style-type: none;
+    border-left: 1px solid #5A6F8F;
+    border-right: 1px solid #5A6F8F;
+    width: 172px;
+    position: relative;
+    left: -2px;
+    background-color: black;
+    z-index: 4001;
+}
+
+#contentPane {
+z-index: 1;
+}
+
+ul.zenMenu li a {
+    padding-left: 1em;
+    text-align: left;
+    text-decoration: none;
+    display:block;
+    color: white;
+    padding: 5px;
+    height: 100%;
+}
+
+ul.zenMenu li {
+    line-height: 1.5em;
+    font-size: 9pt;
+}
+
+ul.zenMenu li a:hover {
+    background-color: grey;
+    color: white;
+}
+
+div.menuselected {
+}
+
+div.devmovemenu {
+    width: 52px;
+    border-right: 1px solid #333;
+    height: 25px;
+    background: #E0E0E0 url('img/contextmenu_tab.gif') bottom left no-repeat;
+    position:absolute;
+    z-index: 4000;
+    right:-1px;
+    bottom: 0px;
+}
+
+div.devmovemenu span {
+    line-height: 2.5em;
+    margin-left: 3em;
+}
+
+div.devmovemenu:hover {
+    background: #E0E0E0 url('img/contextmenu_tab_depressed.gif') bottom left no-repeat;
+}
+
+.menu * {
+    padding:0;
+    margin:0;
+    font-weight: normal;
+    position: relative;
+}
+.menu {
+    position: relative;
+    z-index: 4000;
+    cursor:pointer;
+}
+#contextmenu_items {
+    position: absolute;
+    top: 24px;
+    padding-top: 14px;
+    padding-bottom: 14px;
+    border-top: 0px;
+}
+.menu ul {
+    padding:0;
+    margin:0;
+    list-style-type:none;
+    width:172px;
+    border-left: 1px solid #000;
+    border-right: 1px solid #000;
+    background: transparent url('img/menu_bg.gif') top left repeat-y;
+}
+
+ul.zenMenu > li > a {
+    padding: 8px;
+    padding-left: 1em;
+    background: transparent url(img/expandable_menu_arrow.gif) 150px no-repeat;
+}
+ul.zenMenu > li.toplevelmenu > a {
+    padding-left: 1em;
+    background-image: url() !important;
+}
+
+div.devmovemenuitems ul {
+    border-left: 1px solid black;
+    border-right: 1px solid black;
+    background: transparent url('img/menu_bg.gif') top left repeat-y;
+}
+
+div.devmovemenuitems ul.zenMenu li a {
+    background-image: url() !important;
+}
+div.devmovemenuitems ul.zenMenu li a:hover {
+    background-color: grey;
+}
+
+* html .menu li {margin-left:-16px; margin-lef\t:0;}
+.menu table {position:absolute; border-collapse:collapse; top:0; left:0;
+    font-size:1em;width:0;height:0;}
+/* style the link hover */
+* html .menu a:hover {color:#fff; background:#999;}
+
+.menu :hover > a {
+color:#fff; 
+background-color:#999;
+}
+
+/* hide the sub levels and give them a position absolute so that they take up no room */
+.menu ul div.submenu {
+visibility: hidden;
+position:absolute;
+z-index: 4002;
+top:-1px;
+left:100px;
+padding: 0px;
+padding-top: 14px;
+padding-bottom: 14px;
+}
+
+/* make the second level visible when hover on first level list OR link 
+.menu ul li:hover div.submenu,
+.menu ul a:hover div.submenu {
+visibility:visible;
+top: 10px;
+}
+*/
+
+.menu div.submenu div.menu_top_rounded,
+.menu div.submenu div.menu_bottom {
+    left: 0px;
+}
+
+/* IE HACKS */
+
+* html .contextmenubutton {
+    width: 5em;
+}
+* html .contextmenuitems {
+    top: 22px;
+}
+
+/* DIALOGS */
+
+.zengridload_container {
+    width: 15em;
+    z-index: 11000;
+    position: absolute;
+    display: none;
+}
+#zengridload_content {
+    font-weight: bold;
+    font-size: 2em;
+    text-align: center;
+}
+
+#dialog {
+    margin: 0;
+    padding: 0;
+    position: relative;
+    top: -5px;
+}
+
+.dialog_container {
+    min-height: 200px;
+    min-width: 300px;
+    display:none;
+    padding: 0;
+}
+
+.dialog_container div.control-label {
+    color: white;
+    font-size: 12px;
+}
+
+.dialog input,
+.dialog select{
+    border: 1px solid darkgrey;
+    font-size: 1.2em;
+}
+
+.dialog_close {
+    background-color: lightgrey;
+    color: grey;
+    line-height: 1.2em;
+    position: absolute;
+    top: 0px;
+    right: -2px;
+    cursor: pointer;
+}
+
+#dialog_buttons {
+    padding: 1em;
+    text-align:right;
+    position: relative;
+    top: 10px;
+}
+
+#dialog_buttons input {
+    border: 1px solid darkgrey;
+}
+
+
+#dialog_buttons input:hover {
+    background-color: lightgrey;
+}
+
+#dialog_content {
+    position:relative;
+}
+
+#dialog_innercontent {
+    position:relative;
+    padding-top: 23px;
+}
+.dbox_tl {
+    background: transparent url(img/dbox/corners.gif) no-repeat scroll left 0pt;
+}
+.dbox_tc {
+    background: transparent url(img/dbox/tb.gif) repeat-x scroll 0pt;
+    height: 8px;
+    overflow:hidden;
+}
+.dbox_tr {
+    background: transparent url(img/dbox/corners.gif) no-repeat scroll right -8px;
+}
+.dbox_ml {
+    background: transparent url(img/dbox/l.gif) repeat-y scroll 0pt 50%;
+    overflow: visible;
+    padding-left:4px;
+}
+.dbox_mc {
+    background: #666 url(img/dbox/tb.gif) repeat-x scroll 0pt -16px;
+    color: white;
+    opacity: 0.95;
+    font-family: "Tahoma","Helvetica","Arial",sans-serif;
+    font-size: 12px;
+    padding: 4px 10px;
+}
+.dbox_mc h3 {
+    display:inline;
+    font-size: 14px;
+    font-weight: bold;
+}
+.dbox_mr {
+    background: transparent url(img/dbox/r.gif) repeat-y scroll right center;
+    overflow: visible;
+    padding-right:4px;
+}
+.dbox_bl {
+    background:transparent url(img/dbox/corners.gif) no-repeat scroll 0pt -16px;
+}
+.dbox_bc {
+    background: transparent url(img/dbox/tb.gif) repeat-x scroll 0pt -8px;
+    height: 8px;
+    overflow: hidden;
+}
+.dbox_br {
+    background: transparent url(img/dbox/corners.gif) no-repeat scroll right -24px;
+}
+.dbox_tl, .dbox_bl {
+    overflow: hidden;
+    padding-left: 8px;
+}
+.dbox_tr, .dbox_br {
+    overflow: hidden;
+    padding-right: 8px;
+}
+
+/* IE HACKS */
+
+* html .dialog {
+   height: 200px;
+   width: 300px;
+}
+
+
+/* FILTERBOX */
+.filterbox {
+    background: transparent url('img/filter_box_bg.gif') no-repeat 0px 0px;
+    height: 26px;
+    line-height: 26px;
+    position: absolute;
+    z-index: 2000;
+    width: 126px;
+    top: 1px;
+    padding-top: 4px;
+    right: 60px;
+}
+
+.filterbox input[type="text"] {
+    background: transparent none no-repeat; 
+    border: medium none;
+    color: #444;
+    font-size: 90%;
+    margin-left: auto;
+    margin-right: auto;
+    width: 95px;
+    padding-left: 20px;
+    height: 21px;
+}
+
+div.tabletitlecontainer {
+    height: 100%;
+    position: relative;
+}
+
+/* PORTLETS */
+div.zenoss-portlet {
+    margin: 10px 3px;
+}
+div.zenportlet * {
+    margin: 0;
+    padding: 0;
+}
+div.zenportlet {
+    /*height:100%;
+    */
+    width: 100%;
+    table-layout: fixed;
+    margin: 0;
+    padding: 0;
+}
+div.zenportlet div.portlet-body-outer {
+    border: medium none;
+    margin-top: -1px;
+}
+div.zenportlet div.portlet-header {
+    height:25px;
+}
+div.zenportlet div.portlet-body {
+    padding: 0; margin: 0;
+}
+div.zenportlet div.tabletitle-container {
+    height: 25px;
+    border-bottom: 1px solid black;
+    position: relative;
+}
+div.zenportlet div.tabletitle-left {
+    height:100%;
+    padding-left: 20px;
+    background: transparent url(img/titlebar_left_corner.png) 
+                top left no-repeat;
+}
+div.zenportlet div.tabletitle-right {
+    height:100%;
+    padding-right: 20px;
+    background: transparent url(img/titlebar_right_corner.png) 
+                top right no-repeat;
+}
+div.zenportlet div.tabletitle-center {
+    position: relative;
+    color: white;
+    font-weight: bold;
+    height:25px;
+    line-height:25px;
+    background: transparent url(img/titlebar_bg.gif) 
+                top repeat-x;
+}
+div.zenportlet div.portlet-body {
+    margin-top: 2px;
+    background-color: #bbb;
+    border: 1px solid black;
+    border-top: medium none;
+    padding: 0;
+    overflow-x: hidden;
+    overflow-y: auto;
+}
+div.zenportlet div.resize-handle {
+    height:4px;
+    width:100%;
+    cursor:s-resize;
+}
+div.zenportlet div.resize-handle:hover {
+    background-color: #888;
+}
+div.portlet-settings {
+    background-color: #ffffe0;
+    margin-top: -2px;
+    border: 1px solid black;
+    border-top: medium none;
+    /*padding: 7px 6px;*/
+    position: relative;
+}
+div.portlet-body table.yui-dt-table {
+    width: 100%;
+    border: medium none;
+}
+div.tinylink-container {
+    padding: 0;
+    margin: 0;
+    height: 15px;
+    text-align: right;
+    width: 100%;
+    display: block;
+}
+a.tinylink {
+    padding: 0;
+    padding-right: 10px;
+    margin: 0;
+    color: darkblue;
+    font-size: 8pt;
+    line-height: 15px;
+    text-decoration: none;
+    cursor: hand;
+    cursor: pointer;
+}
+a.tinylink:hover {
+    color: orange;
+}
+div.column-layout-button {
+    width: 50px;
+    height: 70px;
+    background-position: middle middle;
+    background-repeat: no-repeat;
+    line-height: 70px;
+}
+#portletContainer.yui-skin-sam .yui-dialog .ft .button-group {
+    text-align: center;
+}
+
+div.autocompleter-container {
+    width: 20em;
+    position: relative;
+    padding: 0;
+    margin: 0;
+    color: black;
+}
+
+div.zenportlet div.portlet-settings .portlet-settings-control {
+    margin: 10px 1em;
+    position: relative;
+    min-height:25px;
+}
+div.zenportlet div.portlet-settings button.portlet-settings-control {
+    display: block;
+}
+div.control-label {
+    font-size: 9px;
+    color: #888;
+}
+div.settings-controls {
+    float: left;
+}
+a.removerowlink {
+    float: left;
+    line-height:28px;
+    color: #aaa;
+    padding-right: 10px;
+    cursor: hand; cursor: pointer;
+}
+a.removerowlink:hover {
+    color: #f00;
+}
+a.portlet-settings-control {
+    display: block;
+    text-align: center;
+    padding-left: 10px;
+    font-size: 80%;
+    color: blue;
+    line-height: 25px;
+    cursor: hand; cursor: pointer;
+    text-decoration: underline;
+}
+
+div.buttonslot {
+    float: right;
+}
+#addPortletDialog button {
+    width: 150px;
+}
+
+div.zenportlet .yui-skin-sam .yui-dt-table thead tr {
+    height: 24px;
+}
+
+div.zenportlet .yui-skin-sam .yui-dt-table td {
+    padding: 1px 10px 1px;
+}
+
+/* TABLES */
+table.innerzentable {
+    margin: 0px;
+    padding: 0pt;
+    border: 1px solid black;
+    width: 100%;
+    font-weight: normal;
+    font-size: 8pt;
+    font-family: Verdana, Arial, Helvetica, sans-serif;
+    position: relative;
+    z-index: 1;
+    margin-top: -3px;
+    background-color: #E0E0E0;
+}
+* html table.innerzentable {
+    
+}
+
+table.innerzentable * {
+    position: relative;
+    z-index: 1;
+}
+
+table.innerzentable tr td {
+    padding: 1px;
+    font-size: 8pt;
+}
+
+.zentable_selectionbar {
+    height:14px;
+    font-size: 10px;
+    line-height: 14px;
+    padding: 2px;
+    border: 1px solid black;
+    border-top: medium none;
+    position: relative;
+    z-index: 1;
+    top: -2px;
+    text-align: left;
+    background: transparent url('img/stripe.png');
+}
+
+.zentable_selectionbar ul {
+    list-style-type: none;
+    display: inline;
+    margin: 0; padding: 0;
+}
+
+.zentable_selectionbar li {
+    display:inline;
+    text-decoration: underline;
+    color: darkblue;
+    margin: 0 4px;
+    cursor: pointer;
+}
+
+.tabletitlecontainer input.tableheader {
+    border: 1px solid darkgrey;
+}
+
+
+/* EVENT SEVERITIES */
+.acked, .acked a, .acked a:visited, .acked a:link {
+    color: #333;
+    font-style:italic;
+}
+
+.noack, .noack a, .noack a:visited, .noack a:link {
+    color: #000;
+
+}
+
+.zenevents_5_acked {
+    background-color: #f88880;
+}
+
+
+.zenevents_5_noack {
+    background-color: #e00;
+    border: 1px solid #e00;
+}
+
+.zenevents_4_acked {
+    background-color: #ffba75;
+}
+
+.zenevents_4_noack {
+    background-color: #f82;
+    border: 1px solid #f82;
+}
+
+.zenevents_3_acked {
+    background-color: #fff280;
+}
+
+.zenevents_3_noack {
+    background-color: #ffda00;
+    border: 1px solid #ffda00;
+}
+
+.zenevents_2_acked {
+    background-color: #b3b3ff;
+}
+
+.zenevents_2_noack {
+    background-color: #56f;
+    border: 1px solid #56f;
+}
+
+.zenevents_1_acked {
+    background-color: #C8C8C8;
+}
+
+.zenevents_1_noack {
+    background-color: #AFAFAF;
+    border: 1px solid #AFAFAF;
+}
+
+.zenevents_0_acked {
+    background-color: #00CD00;
+}
+
+.zenevents_0_noack {
+    background-color: #00FF00;
+}
+
+.zenevents_unknown_acked {
+    background-color: #CD00CD;
+}
+
+.zenevents_unknown_noack {
+    background-color: #D02090;
+}
+
+.zenstatus_3 {
+    color: #000000;
+    background-color: #FF0000;
+}
+
+.zenstatus_2 {
+    color: #000000;
+    background-color: #ffb329;
+}
+
+.zenstatus_1 {
+    color: #000000;
+    background-color: #e2e200;
+}
+
+.zenstatus_0 {
+    background-color: #00FF00;
+}
+
+.zenstatus_unknown {
+    color: #000000;
+    background-color: #D02090;
+}
+
+.empty {
+    background-color: transparent !important;
+}
+
+.thin {
+    border-width: 1px;
+}
+

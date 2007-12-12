@@ -164,18 +164,6 @@
           href="yui/grids/grids-min.css"/>
     <link rel="stylesheet" type="text/css" title="zenoss"
         href="/zport/portal_skins/zenoss.css" >
-    <link rel="stylesheet" type="text/css" title="zenoss"
-        href="/zport/portal_skins/zenevents.css" >
-    <link rel="stylesheet" type="text/css" title="zenoss"
-        href="/zport/portal_skins/css/tables.css" >
-    <link rel="stylesheet" type="text/css" title="zenoss"
-        href="css/menus.css"/>
-    <link rel="stylesheet" type="text/css" title="zenoss"
-        href="css/dialog.css"/>
-    <link rel="stylesheet" type="text/css" title="zenoss"
-        href="css/filterbox.css"/>
-    <link rel="stylesheet" type="text/css" title="zenoss"
-        href="css/portlets.css"/>
     <!--[if IE 7]>
         <link rel="stylesheet" type="text/css" title="zenoss"
             href="zenoss_ie.css" >
@@ -191,14 +179,6 @@
     <script type="text/javascript" language="javascript"
         src="/zport/dmd/yui/yuiloader/yuiloader-beta-min.js"></script>
     <script type="text/javascript" src="javascript/zenoss-core.js"></script>
-    <script type="text/javascript" src="zenmodelfuncs.js"></script>
-    <script type="text/javascript" src="javascript/selection.js"></script>
-    <script type="text/javascript" src="js/zenui.js"></script>
-    <script type="text/javascript" src="js/zenutils.js"></script>
-    <script type="text/javascript" src="javascript/menus.js"></script>
-    <script type="text/javascript" src="javascript/zgdagent.js"></script>
-
-
 </tal:block>
 
 <!-- ======================================================
