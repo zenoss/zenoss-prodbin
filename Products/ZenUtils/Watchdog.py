@@ -175,9 +175,9 @@ class Watcher:
                             self.childPid = -1
                             if status.signaled():
                                 raise UnexpectedFailure(status)
-                            log.warning("Child exited with status %d" %
-                                        status.exitCode())
                             if status.exitCode() != 0:
+                                log.error("Child exited with status %d" %
+                                          status.exitCode())
                                 raise UnexpectedFailure(status)
                             return
                         else:
@@ -224,6 +224,8 @@ class Watcher:
             if not self.stop:
                 log.debug("Waiting %.2f seconds before restarting", sleepTime)
                 _sleep(sleepTime)
+                prog = self.cmd[0].split('/')[-1].split('.')[0]
+                log.error("Restarting %s" % prog)
             sleepTime = min(1.5 * sleepTime, self.maxTime)
 
 class Reporter:
