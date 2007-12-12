@@ -85,7 +85,7 @@ class SnmpConnInfo(pb.Copyable, pb.RemoteCopy):
                 cmdLineArgs += ['-l', 'authNoAuthNoPriv']
             if self.zSnmpAuthType:
                 cmdLineArgs += ['-a', self.zSnmpAuthType]
-                cmdLineArgs += ['-A', self.zSnmpPrivPassword]
+                cmdLineArgs += ['-A', self.zSnmpAuthPassword]
             cmdLineArgs += ['-u', self.zSnmpSecurityName]
         p = AgentProxy(ip=self.manageIp,
                        port=self.zSnmpPort,
