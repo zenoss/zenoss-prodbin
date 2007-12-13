@@ -48,6 +48,7 @@ export MY_CNF="**MY_CNF**"
 export ZOPE_USERNAME="admin"
 export ZOPE_PASSWORD="**ZOPE_PASSWD**"
 export ZOPE_LISTEN_PORT="8080"
+export PYTHON="**PYTHON**"
 
 # signature of zenoss having been installed for the first time (but
 # not configured yet)
