@@ -102,15 +102,18 @@
         <td>
             <input tal:condition="editable" 
                 type="checkbox" name="ids:list" 
-                tal:attributes="value ds/getId"/>
+                tal:attributes="value ds/getId;
+                    disabled python:ds.id == 'broken';
+                "/>
             <a tal:condition="editable"
                 tal:attributes="href ds/getPrimaryUrlPath" 
+                tal:on-error="python:'Broken because the %s zenpack is missing' % here.getBrokenPackName(ds)"
                 tal:content="ds/getId">name</a>
             <tal:block tal:condition="not:editable" tal:content="ds/getId"/>
         </td>
-        <td tal:content="ds/getDescription"/>
-        <td tal:content="ds/sourcetype"/>
-        <td tal:content="ds/enabled"/>
+        <td tal:content="ds/getDescription" tal:on-error="string:"/>
+        <td tal:content="ds/sourcetype" tal:on-error="string:"/>
+        <td tal:content="ds/enabled" tal:on-error="string:"/>
     </tr>
     <tr>
         <td colspan="4" class="tableheader">
@@ -170,18 +173,21 @@
     </tr>
     <tr class="tablevalues" tal:repeat="thresh batch">
         <td>
-            <input tal:condition="editable" 
+            <input tal:condition="editable"
                 type="checkbox" name="ids:list" 
-                tal:attributes="value thresh/getId"/>
-            <a tal:condition="editable"
+                tal:attributes="value thresh/getId;
+                    disabled python:thresh.id == 'broken';"
+                />
+            <a tal:condition="editable"     
+                tal:on-error="python:'Broken because the %s zenpack is missing' % here.getBrokenPackName(thresh)"
                 tal:attributes="href thresh/getPrimaryUrlPath" 
                 tal:content="thresh/getId">name</a>
             <tal:block tal:condition="not:editable" tal:content="thresh/getId"/>
         </td>
-        <td tal:content="thresh/getTypeName"/>
-        <td tal:content="structure thresh/getDataPointNamesString"/>
-        <td tal:content="thresh/getSeverityString"/>
-        <td tal:content="thresh/enabled"/>
+        <td tal:content="thresh/getTypeName" tal:on-error="string:"/>
+        <td tal:content="structure thresh/getDataPointNamesString" tal:on-error="string:"/>
+        <td tal:content="thresh/getSeverityString" tal:on-error="string:"/>
+        <td tal:content="thresh/enabled" tal:on-error="string:"/>
     </tr>
     <tr>
         <td colspan="5" class="tableheader">

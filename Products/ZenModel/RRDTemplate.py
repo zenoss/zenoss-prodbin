@@ -132,7 +132,12 @@ class RRDTemplate(ZenModelRM, ZenPackable):
     def getRRDDataPointNames(self):
         """Return the list of all datapoint names.
         """
-        return [p.name() for s in self.datasources() for p in s.datapoints()]
+        # We check for the presence of datapoints on the datasources
+        # to better handle situation where the datasource is broken
+        # (usually because of a missing zenpack.)
+        datasources = [ds for ds in self.datasources() 
+                        if hasattr(ds, 'datapoints')]
+        return [dp.name() for ds in datasources for dp in ds.datapoints()]
 
     
     def getRRDDataSources(self, dsType=None):

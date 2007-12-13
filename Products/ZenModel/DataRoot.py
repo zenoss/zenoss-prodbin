@@ -575,10 +575,10 @@ class DataRoot(ZenModelRM, OrderedFolder, Commandable, ZenMenuable):
             REQUEST.RESPONSE.write(footer)
 
 
-    def getBrokenPackName(self, pack):
+    def getBrokenPackName(self, ob):
         ''' Extract the zenpack name from the broken module
         '''
-        return pack.__class__.__module__.split('.')[1]
+        return ob.__class__.__module__.split('.')[1]
 
 
     def checkValidId(self, id, prep_id = False):
