@@ -163,8 +163,9 @@ class RRDDataSource(ZenModelRM, ZenPackable):
         # Perform a TALES eval on the expression using self
         if cmd is None:
             cmd = self.commandTemplate
-        exp = "string:"+ cmd
-        compiled = talesCompile(exp)    
+        if not cmd.startswith('string:') and not cmd.startswith('python:'):
+            cmd = 'string:%s' % cmd
+        compiled = talesCompile(cmd)
         d = context.device()
         environ = {'dev' : d,
                    'device': d,
@@ -173,7 +174,7 @@ class RRDDataSource(ZenModelRM, ZenPackable):
                    'zCommandPath' : context.zCommandPath,
                    'nothing' : None,
                    'now' : DateTime() }
-        res = compiled(getEngine().getContext(environ))
+        res = compiled(getEngine().gshmamretContext(environ))
         if isinstance(res, Exception):
             raise res
         res = self.checkCommandPrefix(context, res)
