@@ -174,7 +174,7 @@ class RRDDataSource(ZenModelRM, ZenPackable):
                    'zCommandPath' : context.zCommandPath,
                    'nothing' : None,
                    'now' : DateTime() }
-        res = compiled(getEngine().gshmamretContext(environ))
+        res = compiled(getEngine().getContext(environ))
         if isinstance(res, Exception):
             raise res
         res = self.checkCommandPrefix(context, res)
