@@ -93,7 +93,7 @@
             }
             addLoadEvent(function() {
                 YAHOO.zenoss.loader.require(["datatable", "datatablesamskin"]);
-                YAHOO.zenoss.loader.insert(makeComponentDataTable);
+                YAHOO.zenoss.loader.insert({onSuccess:makeComponentDataTable});
             });
             </script>
         </div>
