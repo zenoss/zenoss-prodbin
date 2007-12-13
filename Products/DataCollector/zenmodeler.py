@@ -394,7 +394,7 @@ class ZenModeler(ZCmdBase):
                 help="start daemon now, do not sleep before starting")
         self.parser.add_option('--monitor',
                 dest='monitor',
-                help='Name of monitor instance to use for configuration.')
+                help='Name of monitor instance to use for configuration retrevial OR Performance Monitor to set at discovery time.')
         TelnetClient.buildOptions(self.parser, self.usage)
     
 

@@ -256,7 +256,7 @@ class ZenDisc(ZenModeler):
                     help="initial production state for discovered devices")
         self.parser.add_option('--statusmonitor', dest='statusmonitor',
                     default="localhost",
-                    help="status monitor for discovered devices")
+                    help="Status monitor to use for discovered devices")
         self.parser.add_option('--remodel', dest='remodel',
                     action="store_true", default=False,
                     help="remodel existing objects")
