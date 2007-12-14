@@ -132,6 +132,7 @@ class WinCollector(PBDaemon):
             self.updateConfig(driver.next())
             yield self.configService().callRemote(self.deviceConfig)
             self.updateDevices(driver.next())
+            self.rrdStats.config(self.options.monitor, self.name)
         except Exception, ex:
             self.log.exception("Error fetching config")
 
