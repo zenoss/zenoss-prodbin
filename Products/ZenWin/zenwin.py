@@ -178,7 +178,7 @@ class zenwin(WinCollector):
 
     def updateConfig(self, cfg):
         WinCollector.updateConfig(self, cfg)
-        self.heartbeat['timeout'] = self.winCycleInterval*3
+        self.heartbeatTimeout = self.winCycleInterval * 3
 
     def updateDevices(self, devices):
         config = []
