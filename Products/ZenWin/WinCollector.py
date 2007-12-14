@@ -34,6 +34,7 @@ class WinCollector(PBDaemon):
 
     heartbeat = dict(eventClass=Heartbeat, device=getfqdn())
     deviceConfig = 'getDeviceWinInfo'
+    devices = ()
 
     def __init__(self):
         self.heartbeat['component'] = self.agent
@@ -83,20 +84,15 @@ class WinCollector(PBDaemon):
         delay = time.time() - now
         if self.options.cycle:
             driveLater(max(0, self.cycleInterval() - delay), self.scanCycle)
+            self.rrdStats.gauge('scanTime', self.cycleInterval(), delay)
+            self.rrdStats.gauge('devices',
+                                self.cycleInterval(),
+                                len(self.devices))
         else:
             self.stop()
 
-    def stop(self):
-        self.log.info("Starting %s", self.agent)
-        self.sendEvent(dict(summary='Stopping %s' % self.agent,
-                            eventClass=App_Stop,
-                            device=getfqdn(),
-                            severity=Warning,
-                            component=self.agent))
-        reactor.callLater(1, reactor.stop)
-
     def cycleInterval(self):
-        return 60
+        raise NotImplementedError
         
     def buildOptions(self):
         PBDaemon.buildOptions(self)
