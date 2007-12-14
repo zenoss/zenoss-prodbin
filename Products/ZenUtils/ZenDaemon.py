@@ -170,7 +170,8 @@ class ZenDaemon(CmdBase):
         raise SystemExit
 
     def becomeWatchdog(self):
-        from Products.ZenUtils.Watchdog import Watcher
+        from Products.ZenUtils.Watchdog import Watcher, log
+        log.setLevel(self.options.logseverity)
         cmd = sys.argv[:]
         if '--watchdog' in cmd:
             cmd.remove('--watchdog')
