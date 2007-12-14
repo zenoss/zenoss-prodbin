@@ -29,11 +29,7 @@ import os, sys, time, signal, select
 class TimeoutError(Exception): pass
 class UnexpectedFailure(Exception): pass
 
-log = None
-def setLog():
-    global log
-    if not log:
-        log = logging.getLogger('watchdog')    
+log = logging.getLogger('watchdog')    
 
 # time to spend waiting around for a child to die after we kill it
 DEATH_WATCH_TIME = 10
@@ -88,7 +84,6 @@ class Watcher:
                  startTimeout = 10,
                  cycleTimeout = 1,
                  maxTime = 30):
-        setLog()
         self.socketPath = socketPath
         self.cmd = cmd
         self.startTimeout = startTimeout
@@ -157,7 +152,8 @@ class Watcher:
             sock.setblocking(False)
             sock.listen(1)
             if not self._readWait(sock, self.startTimeout):
-                raise TimeoutError("getting initial connection from process")
+                if not self.stop:
+                    raise TimeoutError("getting initial connection from process")
             log.debug('Waiting for command to connect %r' % (cmd,))
             conn, addr = sock.accept()
             conn.setblocking(False)
@@ -166,8 +162,12 @@ class Watcher:
                 while not self.stop:
                     # get input from the child
                     if not self._readWait(conn, self.cycleTimeout * 2):
-                        raise TimeoutError("getting status from process")
-                    bytes = conn.recv(1024)
+                        if not self.stop:
+                            raise TimeoutError("getting status from process")
+                    try:
+                        bytes = conn.recv(1024)
+                    except Exception:
+                        continue
                     if bytes == '':          # EOF
                         pid, status = os.waitpid(self.childPid, os.WNOHANG)
                         if pid == self.childPid:
@@ -208,7 +208,6 @@ class Watcher:
 
     def run(self):
         sleepTime = 1
-        
         signal.signal(signal.SIGINT, self._stop)
         while not self.stop:
             try:
@@ -230,7 +229,6 @@ class Watcher:
 
 class Reporter:
     def __init__(self, path):
-        setLog()
         self.sock = s.socket(s.AF_UNIX, s.SOCK_STREAM)
         self.sock.connect(path)
         self.sock.setblocking(False)
