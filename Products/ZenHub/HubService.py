@@ -14,7 +14,7 @@ from twisted.spread import pb
 
 import logging
 hubLog = logging.getLogger("zenhub")
-
+import time
 
 class HubService(pb.Referenceable):
 
@@ -25,6 +25,14 @@ class HubService(pb.Referenceable):
         self.zem = dmd.ZenEventManager
         self.instance = instance
         self.listeners = []
+        self.callTime = 0.
+
+    def remoteMessageRecieved(self, broker, message, args, kw):
+        now = time.time()
+        try:
+            return pb.Referenceable.remoteMessageRecieved(self, broker, message, args, kw)
+        finally:
+            self.callTime += time.time() - now
 
     def update(self, object):
         pass

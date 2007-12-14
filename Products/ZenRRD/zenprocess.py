@@ -248,6 +248,8 @@ class zenprocess(SnmpDaemon):
     def fetchConfig(self):
         'Get configuration values from the Zope server'
         def doFetchConfig(driver):
+            now = time.time()
+            
             yield self.model().callRemote('getDefaultRRDCreateCommand')
             createCommand = driver.next()
 
@@ -255,6 +257,10 @@ class zenprocess(SnmpDaemon):
             self.setPropertyItems(driver.next())
 
             self.rrd = RRDUtil(createCommand, self.processCycleInterval)
+
+            self.rrdStats.config(self.options.monitor,
+                                 self.name,
+                                 createCommand)
 
             yield self.model().callRemote('getThresholdClasses')
             self.remote_updateThresholdClasses(driver.next())
@@ -264,6 +270,9 @@ class zenprocess(SnmpDaemon):
                 devices = [self.options.device]
             yield self.model().callRemote('getOSProcessConf', devices)
             driver.next()
+            self.rrdStats.gauge('configTime',
+                                self.processConfigInterval,
+                                time.time() - now)
 
         return drive(doFetchConfig)
 
@@ -565,7 +574,6 @@ class zenprocess(SnmpDaemon):
         "Save an value in the right path in RRD files"
         path = 'Devices/%s/os/processes/%s/%s' % (deviceName, pidName, statName)
         value = self.rrd.save(path, value, rrdType, min=min, max=max)
-
         for ev in self.thresholds.check(path, time.time(), value):
             self.sendThresholdEvent(**ev)
             
@@ -577,6 +585,11 @@ class zenprocess(SnmpDaemon):
         log.info("Pulled process status for %d devices and %d processes",
                  len(devices), pids)
         SnmpDaemon.heartbeat(self)
+        self.rrdStats.counter('dataPoints',
+                              self.processCycleInterval,
+                              self.rrd.dataPoints)
+        self.rrdStats.gauge('pids', self.processCycleInterval, pids)
+        self.rrdStats.gauge('devices', self.processCycleInterval, len(devices))
 
 
     def connected(self):

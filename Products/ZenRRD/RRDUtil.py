@@ -25,12 +25,15 @@ class RRDUtil:
     def __init__(self, defaultRrdCreateCommand, defaultCycleTime):
         self.defaultRrdCreateCommand = defaultRrdCreateCommand
         self.defaultCycleTime = defaultCycleTime
+        self.dataPoints = 0
 
     def save(self, path, value, rrdType, rrdCommand=None, cycleTime=None,
              min='U', max='U'):
         import rrdtool, os
 
         if value is None: return None
+
+        self.dataPoints += 1
 
         if cycleTime is None:
             cycleTime = self.defaultCycleTime

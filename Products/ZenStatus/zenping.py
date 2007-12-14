@@ -36,6 +36,7 @@ from Products.ZenEvents.ZenEventClasses import App_Start, App_Stop
 from Products.ZenEvents.ZenEventClasses import Status_Ping
 from Products.ZenEvents.Event import Event, EventHeartbeat
 from Products.ZenUtils.ZCmdBase import ZCmdBase
+from Products.ZenUtils.DaemonStats import DaemonStats
 
 from twisted.internet import reactor
 
@@ -71,6 +72,7 @@ class ZenPing(ZCmdBase):
                                severity=0,
                                component="zenping"))
         self.log.info("started")
+        self.rrdStats = DaemonStats()
 
     def sendEvent(self, evt):
         "wrapper for sending an event"
@@ -94,6 +96,7 @@ class ZenPing(ZCmdBase):
 
     def loadConfig(self):
         "get the config data"
+        now = time.time()
         self.dmd._p_jar.sync()
         changed = False
         smc = self.dmd.getObjByPath(self.configpath)
@@ -107,6 +110,9 @@ class ZenPing(ZCmdBase):
                 changed = before != after
         self.configCycleInterval *= 60
         self.reconfigured = True
+
+        monitor = self.configpath.rsplit('/', 1)[-1]
+        self.rrdStats.config(monitor, 'zenping')
         
         reactor.callLater(self.configCycleInterval, self.loadConfig)
 
@@ -126,6 +132,9 @@ class ZenPing(ZCmdBase):
             self.pingtree = pingtree.Rnode(findIp(), self.hostname, 0)
         devices = smc.getPingDevices()
         self.prepDevices(devices)
+        self.rrdStats.gauge('configTime',
+                            self.configCycleInterval,
+                            time.time() - now)
 
 
     def prepDevices(self, devices):
@@ -221,6 +230,12 @@ class ZenPing(ZCmdBase):
         evt = EventHeartbeat(getfqdn(), "zenping", timeout)
         self.sendEvent(evt)
         self.niceDoggie(self.cycleInterval)
+        self.rrdStats.gauge('cycleTime',
+                            self.cycleInterval,
+                            time.time() - self.start)
+        self.rrdStats.gauge('devices',
+                            self.cycleInterval,
+                            self.jobs)
 
     def pingSuccess(self, pj):
         "Callback for a good ping response"

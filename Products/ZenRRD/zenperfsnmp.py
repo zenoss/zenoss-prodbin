@@ -300,6 +300,8 @@ class zenperfsnmp(SnmpDaemon):
 
     def startUpdateConfig(self, driver):
         'Periodically ask the Zope server for basic configuration data.'
+
+        now = time.time()
         
         log.info("fetching property items")
         yield self.model().callRemote('propertyItems')
@@ -328,7 +330,9 @@ class zenperfsnmp(SnmpDaemon):
         createCommand = driver.next()
 
         self.rrd = RRDUtil(createCommand, self.perfsnmpCycleInterval)
-        
+
+        self.rrdStats.config(self.options.monitor, self.name, createCommand)
+                
         log.info("fetching snmp status")
         yield self.model().callRemote('getSnmpStatus', self.options.device)
         self.updateSnmpStatus(driver.next())
@@ -340,7 +344,9 @@ class zenperfsnmp(SnmpDaemon):
             if result:
                 log.error("Error loading devices: %s", result)
         d.addBoth(report)
-
+        self.rrdStats.gauge('configTime',
+                            self.configCycleInterval,
+                            time.time() - now)
 
 
     def updateDeviceList(self, responses, requested):
@@ -502,11 +508,17 @@ class zenperfsnmp(SnmpDaemon):
     def reportRate(self, *unused):
         'Finished reading all the devices, report stats and maybe stop'
         total, success, failed, runtime = self.status.stats()
-        self.log.info("sent %d OID requests", self.snmpOidsRequested)
+        oidsRequested, self.snmpOidsRequested = self.snmpOidsRequested, 0
+        self.log.info("sent %d OID requests", oidsRequested)
         self.log.info("collected %d of %d devices in %.2f" %
                       (success, total, runtime))
-        self.snmpOidsRequested = 0
         self.heartbeat()
+        
+        cycle = self.perfsnmpCycleInterval
+        self.rrdStats.gauge('success', cycle, success)
+        self.rrdStats.gauge('failed', cycle, failed)
+        self.rrdStats.gauge('cycletime', cycle, runtime)
+        self.rrdStats.counter('dataPoints', cycle, self.rrd.dataPoints)
 
 
     def startReadDevice(self, deviceName):

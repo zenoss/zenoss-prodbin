@@ -32,6 +32,7 @@ import socket
 import Globals
 
 from Products.ZenUtils.ZCmdBase import ZCmdBase
+from Products.ZenUtils.DaemonStats import DaemonStats
 
 from Event import Event, EventHeartbeat
 
@@ -77,6 +78,10 @@ class EventServer(ZCmdBase):
                                component=self.name))
         self.q = Queue()
         self.log.info("started")
+    
+        self.rrdStats = DaemonStats()
+        self.rrdStats.config(self.myfqdn, self.name)
+        
         self.heartbeat()
         self.reportCycle()
 
@@ -166,6 +171,16 @@ class EventServer(ZCmdBase):
         evt = EventHeartbeat(self.myfqdn, self.name, 3*seconds)
         self.q.put(evt)
         reactor.callLater(seconds, self.heartbeat)
+        totalTime, totalEvents, maxTime = self.stats.report()
+        self.rrdStats.counter('events',
+                              seconds,
+                              totalEvents)
+        self.rrdStats.counter('totalTime',
+                              seconds,
+                              int(totalTime * 1000))
+        self.rrdStats.gauge('qsize',
+                            seconds,
+                            self.q.qsize())
 
         
     def sigTerm(self, signum=None, frame=None):

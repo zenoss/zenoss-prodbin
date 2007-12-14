@@ -35,6 +35,7 @@ import Globals
 
 from Products.ZenUtils.ZCmdBase import ZCmdBase
 from Products.ZenUtils.Utils import zenPath
+from Products.ZenUtils.DaemonStats import DaemonStats
 from Products.ZenEvents.Event import Event, EventHeartbeat
 from Products.ZenEvents.ZenEventClasses import App_Start, App_Stop
 
@@ -42,6 +43,8 @@ from XmlRpcService import XmlRpcService
 
 import logging
 log = logging.getLogger('zenhub')
+
+import time
 
 XML_RPC_PORT = 8081
 PB_PORT = 8789
@@ -169,7 +172,7 @@ class ZenHub(ZCmdBase):
 
     totalTime = 0.
     totalEvents = 0
-    maxTime = 0.
+    totalCallTime = 0.
     name = 'zenhub'
 
     def __init__(self):
@@ -195,6 +198,8 @@ class ZenHub(ZCmdBase):
                        summary="%s started" % self.name,
                        severity=0)
         reactor.callLater(5, self.processQueue)
+        self.rrdStats = DaemonStats()
+        self.rrdStats.config('localhost', 'zenhub')
 
 
     def zeoConnect(self):
@@ -232,12 +237,15 @@ class ZenHub(ZCmdBase):
         
         @return: None
         """
+        now = time.time()
         self.syncdb()                   # reads the object invalidations
         try:
             self.doProcessQueue()
         except Exception, ex:
             self.log.exception(ex)
         reactor.callLater(1, self.processQueue)
+        self.totalEvents += 1
+        self.totalTime += time.time() - now
 
 
     def doProcessQueue(self):
@@ -322,6 +330,8 @@ class ZenHub(ZCmdBase):
             self.services[name, instance] = svc
             return svc
 
+    def timeInCall(self, seconds):
+        self.totalCallTime += seconds
         
     def heartbeat(self):
         """
@@ -335,6 +345,11 @@ class ZenHub(ZCmdBase):
         self.zem.sendEvent(evt)
         self.niceDoggie(seconds)
         reactor.callLater(seconds, self.heartbeat)
+        self.rrdStats.counter('totalTime', seconds, int(self.totalTime * 1000))
+        self.rrdStats.counter('totalEvents', seconds, self.totalEvents)
+        self.rrdStats.gauge('services', seconds, len(self.services))
+        totalTime = sum([s.callTime for s in self.services.values()])
+        self.rrdStats.counter('totalCallTime', seconds, totalTime)
 
         
     def sigTerm(self, signum=None, frame=None):
@@ -389,8 +404,6 @@ class ZenHub(ZCmdBase):
                                type='string',
                                help='File where passwords are stored',
                                default=zenPath('etc','hubpasswd'))
-def abort(*args):
-    raise ValueError('abort')
 
 if __name__ == '__main__':
     z = ZenHub()

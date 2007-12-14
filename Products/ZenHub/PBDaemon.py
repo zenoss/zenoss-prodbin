@@ -22,6 +22,7 @@ import Globals
 from Products.ZenUtils.ZenDaemon import ZenDaemon
 from Products.ZenEvents.ZenEventClasses import Heartbeat
 from Products.ZenUtils.PBUtil import ReconnectingPBClientFactory
+from Products.ZenUtils.DaemonStats import DaemonStats
 
 from twisted.internet import reactor, defer
 from twisted.cred import credentials
@@ -65,6 +66,7 @@ class PBDaemon(ZenDaemon, pb.Referenceable):
     initialServices = ['EventService']
     heartbeatEvent = {'eventClass':Heartbeat}
     heartbeatTimeout = 60*3
+    rrdStats = DaemonStats()
     
     def __init__(self, noopts=0, keeproot=False):
         ZenDaemon.__init__(self, noopts, keeproot)

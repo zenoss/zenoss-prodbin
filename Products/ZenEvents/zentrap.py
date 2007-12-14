@@ -66,10 +66,6 @@ def bp2ip(ptr):
 class ZenTrap(EventServer):
     'Listen for SNMP traps and turn them into events'
 
-    totalTime = 0.
-    totalEvents = 0
-    maxTime = 0.
-
     name = 'zentrap'
 
     def __init__(self):
@@ -84,10 +80,9 @@ class ZenTrap(EventServer):
         self.session.callback = self.handleTrap
         twistedsnmp.updateReactor()
 
-    def handleTrap(self, pdu):
-        'Traps are processed asynchronously in a thread'
-        # FIXME: not using the threaded-based posting
-        self.doHandleRequest(time.time(), pdu)
+    def doHandleRequest(self, ts, event):
+        'Events are processed asynchronously in a thread'
+        self.sendEvent(event)
 
     def _findDevice(self, addr):
         'Find a device by its IP address'
@@ -120,7 +115,8 @@ class ZenTrap(EventServer):
             return oid
         return name
 
-    def doHandleRequest(self, ts, pdu):
+    def handleTrap(self, pdu):
+        ts = time.time()
         eventType = 'unknown'
         result = {}
         # is it a trap?
@@ -182,12 +178,7 @@ class ZenTrap(EventServer):
         result.setdefault('summary', summary)
         result.setdefault('community', community)
         result['ipAddress'] = addr[0]
-        self.sendEvent(result)
-
-        diff = time.time() - ts
-        self.totalTime += diff
-        self.totalEvents += 1
-        self.maxTime = max(diff, self.maxTime)
+        self.q.add(ts, result)
 
         # respond to INFORM requests
         if pdu.command == netsnmp.SNMP_MSG_INFORM:

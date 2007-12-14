@@ -383,6 +383,7 @@ class zencommand(RRDDaemon):
         self.timeout = None
         self.deviceIssues = Set()
         self.pool = SshPool()
+        self.executed = 0
 
     def remote_deleteDevice(self, doomed):
         self.log.debug("Async delete device %s" % doomed)
@@ -438,6 +439,16 @@ class zencommand(RRDDaemon):
         "There is no master 'cycle' to send the hearbeat"
         self.heartbeat()
         reactor.callLater(self.heartbeatTimeout/3, self.heartbeatCycle)
+        self.rrdStats.gauge('schedule',
+                            self.heartbeatCycle,
+                            len(self.schedule))
+        self.rrdStats.counter('commands',
+                              self.heartbeatCycle,
+                              self.executed)
+        self.rrdStats.counter('dataPoints',
+                              self.heartbeatCycle,
+                              self.rrd.dataPoints)
+        
 
     def processSchedule(self, *unused):
         """Run through the schedule and start anything that needs to be done.
@@ -483,6 +494,7 @@ class zencommand(RRDDaemon):
 
             
     def finished(self, cmd):
+        self.executed += 1
         if isinstance(cmd, failure.Failure):
             self.error(cmd)
         else:
@@ -571,11 +583,17 @@ class zencommand(RRDDaemon):
     def fetchConfig(self):
         def doFetchConfig(driver):
             try:
+                now = time.time()
+                
                 yield self.model().callRemote('propertyItems')
                 self.setPropertyItems(driver.next())
-                
+
                 yield self.model().callRemote('getDefaultRRDCreateCommand')
                 createCommand = driver.next()
+
+                self.rrdStats.config(self.options.monitor,
+                                     self.name,
+                                     createCommand)
 
                 yield self.model().callRemote('getThresholdClasses')
                 self.remote_updateThresholdClasses(driver.next())
@@ -590,6 +608,10 @@ class zencommand(RRDDaemon):
                 self.updateConfig(driver.next(), devices)
 
                 self.rrd = RRDUtil(createCommand, 60)
+
+                self.rrdStats.gauge('configTime',
+                                   self.configCycleInterval,
+                                   time.time() - now)
 
             except Exception, ex:
                 log.exception(ex)

@@ -145,15 +145,26 @@ class ZenStatus(PBDaemon):
         self.ipservices = [s for s in self.ipservices if s.cfg.device != device]
 
     def configCycle(self, driver):
+        now = time.time()
         self.log.info("fetching property items")
         yield self.configService().callRemote('propertyItems')
         self.setPropertyItems(driver.next())
+
+        self.log.info("fetching default RRDCreateCommand")
+        yield self.configService().callRemote('getDefaultRRDCreateCommand')
+        createCommand = driver.next()
+
+        self.rrdStats.config(self.options.monitor, self.name, createCommand)
 
         d = driveLater(self.configCycleInterval * 60, self.configCycle)
         d.addErrback(self.error)
 
         yield drive(self.reconfigure)
         driver.next()
+
+        self.rrdStats.gauge('configTime',
+                            self.configCycleInterval * 60,
+                            time.time() - now)
 
     def reconfigure(self, driver):
         self.log.debug("Getting service status")
@@ -215,6 +226,15 @@ class ZenStatus(PBDaemon):
                             device=getfqdn())
         self.sendEvent(heartbeatevt, timeout=self.statusCycleInterval*3)
         self.niceDoggie(self.statusCycleInterval)
+        self.rrdStats.gauge('cycleTime',
+                            self.statusCycleInterval,
+                            self.status.duration())
+        self.rrdStats.gauge('success',
+                            self.statusCycleInterval,
+                            success)
+        self.rrdStats.gauge('failed',
+                            self.statusCycleInterval,
+                            fail)
 
 
     def runSomeJobs(self):

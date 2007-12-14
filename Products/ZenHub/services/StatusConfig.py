@@ -63,6 +63,9 @@ class StatusConfig(HubService):
                 result.append(ServiceConfig(svc))
         return result
 
+    def remote_getDefaultRRDCreateCommand(self):
+        return self.config.getDefaultRRDCreateCommand()
+
         
     def update(self, object):
         if not self.listeners: return
