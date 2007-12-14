@@ -236,7 +236,8 @@ class PBDaemon(ZenDaemon, pb.Referenceable):
             self.stop()
             return
         self.sendEvent(self.heartbeatEvent, timeout=self.heartbeatTimeout)
-        self.niceDoggie(self.heartbeatTimeout)
+        # heartbeat is normally 3x cycle time
+        self.niceDoggie(self.heartbeatTimeout / 3)
 
 
     def remote_getName(self):
