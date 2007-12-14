@@ -14,7 +14,6 @@
 import os
 import sys
 import re
-import time
 import logging
 log = logging.getLogger("zen.ZenossInfo")
 
