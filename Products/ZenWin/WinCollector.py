@@ -20,7 +20,7 @@ from twisted.internet import reactor
 import Globals
 from Products.ZenHub.PBDaemon import FakeRemote, PBDaemon
 from Products.ZenEvents.ZenEventClasses import \
-     Heartbeat, App_Start, App_Stop, Clear, Warning
+     App_Start, App_Stop, Clear, Warning
 from Products.ZenUtils.Driver import drive, driveLater
 
 from Constants import TIMEOUT_CODE, RPC_ERROR_CODE, ERROR_CODE_MAP
@@ -32,26 +32,22 @@ class WinCollector(PBDaemon):
     initialServices = ['EventService', 'WmiConfig']
     attributes = ('configCycleInterval',)
 
-    heartbeat = dict(eventClass=Heartbeat, device=getfqdn())
     deviceConfig = 'getDeviceWinInfo'
     devices = ()
 
     def __init__(self):
-        self.heartbeat['component'] = self.agent
         self.wmiprobs = []
         PBDaemon.__init__(self)
         self.reconfigureTimeout = None
 
 
     def start(self):
-        self.heartbeat['component']=self.agent
-        self.log.info("Starting %s", self.agent)
-        self.sendEvent(dict(summary='Starting %s' % self.agent,
+        self.log.info("Starting %s", self.name)
+        self.sendEvent(dict(summary='Starting %s' % self.name,
                             eventClass=App_Start,
                             device=getfqdn(),
                             severity=Clear,
-                            agent=self.agent,
-                            component=self.agent))
+                            component=self.name))
 
     def remote_notifyConfigChanged(self):
         self.log.info("Async config notification")
@@ -77,8 +73,7 @@ class WinCollector(PBDaemon):
             self.wmiprobs = [e[0] for e in driver.next()]
             self.log.debug("Wmi Probs %r", self.wmiprobs)
             self.processLoop()
-            self.heartbeat['timeout'] = self.cycleInterval() * 3
-            self.sendEvent(self.heartbeat)
+            self.heartbeat()
         except Exception, ex:
             self.log.exception("Error processing main loop")
         delay = time.time() - now
