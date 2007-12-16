@@ -383,7 +383,7 @@ class ZenModeler(ZCmdBase):
                 help="number of times to try to write if a "
                      "read conflict is found")
         self.parser.add_option("-F", "--force",
-                    dest="force", action='store_true', default=True,
+                    dest="force", action='store_true', default=False,
                     help="force collection of config data " 
                          "(even without change to the device)")
         self.parser.add_option('--portscantimeout', dest='portscantimeout', 

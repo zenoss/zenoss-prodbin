@@ -65,18 +65,19 @@ class SnmpClient(object):
         yield self.proxy.get(['.1.3.6.1.4.1.9.9.43.1.1.1.0'])
         lastpolluptime = device.getLastPollSnmpUpTime()
         log.debug("lastpolluptime = %s", lastpolluptime)
+        result = True
         try:
             lastchange = driver.next().values()[0]
             log.debug("lastchange = %s", lastchange)
-            if lastchange == lastpolluptime: 
+            if lastchange <= lastpolluptime: 
                 log.info("skipping cisco device %s no change detected",
                          device.id)
-                yield defer.succeed(False)
+                result = False
             else:
                 device.setLastPollSnmpUpTime(lastchange)
         except Exception:
             pass
-        yield defer.succeed(False)
+        yield defer.succeed(result)
 
 
     def doRun(self, driver):
