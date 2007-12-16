@@ -43,6 +43,8 @@ from SnmpDaemon import SnmpDaemon
 
 from FileCleanup import FileCleanup
 
+from Products.ZenHub.services.PerformanceConfig import PerformanceConfig
+
 MAX_OIDS_PER_REQUEST = 40
 MAX_SNMP_REQUESTS = 20
 DEVICE_LOAD_CHUNK_SIZE = 2
