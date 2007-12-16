@@ -202,6 +202,7 @@ class MySqlSendEventMixin:
         evt.DeviceClass  = device.getDeviceClassName()
         evt.DeviceGroups = "|"+"|".join(device.getDeviceGroupNames())
         evt.Systems = "|"+"|".join(device.getSystemNames())
+        evt.priority = device.priority
         return evt
 
 
