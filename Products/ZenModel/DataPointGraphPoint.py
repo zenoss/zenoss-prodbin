@@ -89,14 +89,14 @@ class DataPointGraphPoint(ComplexGraphPoint):
 
         # If we are really drawing the graph (ie we do not have a fake context)
         # then make sure the rrd file actually exists.
-        if not getattr(context, 'isFake', False):
-            if not os.path.isfile(rrdFile):
-                desc = context.device().id
-                if context.meta_type != 'Device':
-                    desc += ' %s' % context.name()
-                desc += ' %s' % self.dpName
-                cmds.append('COMMENT:MISSING\: data file for %s' % desc)
-                return cmds
+        #if not getattr(context, 'isFake', False):
+        #    if not os.path.isfile(rrdFile):
+        #        desc = context.device().id
+        #        if context.meta_type != 'Device':
+        #            desc += ' %s' % context.name()
+        #        desc += ' %s' % self.dpName
+        #        cmds.append('COMMENT:MISSING\: data file for %s' % desc)
+        #        return cmds
 
         # Create the base DEF
         rawName = self.getDsName('%s-raw' % self.id, multiid, prefix)        
