@@ -170,6 +170,7 @@ class EventServer(ZCmdBase):
         seconds = 60
         evt = EventHeartbeat(self.myfqdn, self.name, 3*seconds)
         self.q.put(evt)
+        self.niceDoggie(seconds)
         reactor.callLater(seconds, self.heartbeat)
         totalTime, totalEvents, maxTime = self.stats.report()
         self.rrdStats.counter('events',
