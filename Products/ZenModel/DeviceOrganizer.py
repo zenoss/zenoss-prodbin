@@ -28,7 +28,7 @@ import simplejson
 
 from ZenossSecurity import *
 
-from Products.ZenUtils.Utils import unused
+from Products.ZenUtils.Utils import unused, ipsort
 
 class DeviceOrganizer(Organizer, DeviceManagerBase, Commandable, ZenMenuable, 
                         MaintenanceWindowable, AdministrativeRoleable):
@@ -520,7 +520,8 @@ class DeviceOrganizer(Organizer, DeviceManagerBase, Commandable, ZenMenuable,
         objects = list(objects)
         totalCount = len(objects)
         offset, count = int(offset), int(count)
-        return totalCount, objects[offset:offset+count] 
+        obs = objects[offset:offset+count]
+        return totalCount, obs
 
 
     def getJSONDeviceInfo(self, offset=0, count=50, filter='',
@@ -528,8 +529,10 @@ class DeviceOrganizer(Organizer, DeviceManagerBase, Commandable, ZenMenuable,
         """yo"""
         totalCount, devicelist = self.getAdvancedQueryDeviceList(
                 offset, count, filter, orderby, orderdir)
-        results = [x.getObject().getDataForJSON() + ['odd'] 
-                   for x in devicelist]
+        obs = [x.getObject() for x in devicelist]
+        if orderby=='getDeviceIp': obs.sort(lambda a,b:ipsort(a.getDeviceIp(), b.getDeviceIp()))
+        if orderdir=='desc': obs.reverse()
+        results = [ob.getDataForJSON() + ['odd'] for ob in obs]
         return simplejson.dumps((results, totalCount))
 
 

@@ -604,3 +604,9 @@ def executeCommand(cmd, REQUEST):
         if xmlrpc: return 1
         raise
     return 0
+
+def ipsort(a, b):
+    # Strip off netmasks
+    a, b = map(lambda x:x.rsplit("/")[0], (a, b))
+    return cmp(*map(socket.inet_aton, (a, b)))
+
