@@ -12,11 +12,10 @@
 
 . $ZENHOME/bin/zenfunctions
 
-SUDO="$ZENHOME/bin/zensocket --ping -- "
 PRGHOME=$ZENHOME/Products/DataCollector
 PRGNAME=zendisc.py
 CFGFILE=$CFGDIR/zendisc.conf
 PIDFILE=$VARDIR/$PRGNAME.pid
 
-generic "$@" --useFileDescriptor='$privilegedSocket'
+generic "$@"
 

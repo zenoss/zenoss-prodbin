@@ -12,16 +12,10 @@
 
 . $ZENHOME/bin/zenfunctions
 
-PORT=`getPort 25 --listenPort $@`
-SUDO="$ZENHOME/bin/zensocket --listen --proto=tcp --port=$PORT -- "
 PRGHOME=$ZENHOME/Products/ZenEvents
 PRGNAME=zenmail.py
 CFGFILE=$CFGDIR/zenmail.conf
 PIDFILE=$VARDIR/$PRGNAME.pid
 
-# don't go for privieged ports and instead just start up with app defaults
-#generic "$@"
-
-# listen on the privileged port 25
-generic "$@" --useFileDescriptor='$privilegedSocket'
+generic "$@"
 

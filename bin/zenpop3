@@ -12,7 +12,6 @@
 
 . $ZENHOME/bin/zenfunctions
 
-SUDO=""
 PRGHOME=$ZENHOME/Products/ZenEvents
 PRGNAME=zenpop3.py
 CFGFILE=$CFGDIR/zenpop3.conf

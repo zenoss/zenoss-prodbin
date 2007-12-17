@@ -48,27 +48,25 @@ running() {
     return 1
 }
 
-EXEC="exec $SUDO"
-
 start() {
     if running; then    
         echo is already running
     else
         echo starting...
         if [ "$CFGFILE" = "" ]; then
-            eval exec $SUDO $PYTHON $PRGHOME/$PRGNAME --cycle --daemon --watchdog '"$@"'
+            exec $PYTHON $PRGHOME/$PRGNAME --cycle --daemon --watchdog "$@"
         else
-            eval exec $SUDO $PYTHON $PRGHOME/$PRGNAME --configfile $CFGFILE \
-                --cycle --daemon --watchdog '"$@"'
+            exec $PYTHON $PRGHOME/$PRGNAME --configfile $CFGFILE \
+                --cycle --daemon --watchdog "$@"
         fi
     fi
 }
 
 run() {
     if [ "$CFGFILE" = "" ]; then
-        eval exec $SUDO $PYTHON $PRGHOME/$PRGNAME '"$@"'
+        exec $PYTHON $PRGHOME/$PRGNAME "$@"
     else        
-        eval exec $SUDO $PYTHON $PRGHOME/$PRGNAME --configfile $CFGFILE '"$@"'
+        exec $PYTHON $PRGHOME/$PRGNAME --configfile $CFGFILE "$@"
     fi
 }
 
@@ -111,22 +109,6 @@ help() {
     exec $PYTHON $PRGHOME/$PRGNAME -h
 }
 
-
-getPort()
-{
-   PORT=$1 ; shift
-   name=$1 ; shift
-   while [ $# -ge 1 ]; do
-       eval "
-       case $1 in
-	   $name=*) PORT=`echo $1 | sed -e \"s/$name=//\"` ;;
-	   $name) PORT=$2; shift;;
-       esac
-       "
-       shift
-   done
-   echo $PORT
-}
 
 genconf() {
     #
