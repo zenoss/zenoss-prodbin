@@ -142,7 +142,7 @@ class EventClass(EventClassPropertyMixin, Organizer, ManagedEntity, ZenPackable)
         ('Info', 2), 
         ('Debug', 1), 
         ('Clear', 0), 
-        ('Default', -1),
+        ('Original', -1),
     )
     severities = dict([(b, a) for a, b in severityConversions])
     
