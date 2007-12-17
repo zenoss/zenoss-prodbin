@@ -41,6 +41,7 @@ YAHOO.namespace("zenoss");
 YAHOO.namespace("zenoss.loader");
 YAHOO.zenoss.loader = loader;
 
+
 // Define a helpful "class" function (thanks, Prototype)
 
 var Class={
@@ -104,6 +105,45 @@ function purge(d) {
 }
 YAHOO.zenoss.purge = purge;
 
+// Code from Julien Lecomte of Yahoo!
+YAHOO.zenoss.loader.require(['dom', 'event']);
+YAHOO.zenoss.loader.insert();
+function setInnerHTML (el, html) {
+   el = YAHOO.util.Dom.get(el);
+   if (!el || typeof html !== 'string') {
+       return null;
+   }
+   // Break circular references.
+   (function (o) {
+       var a = o.attributes, i, l, n, c;
+       if (a) {
+           l = a.length;
+           for (i = 0; i <l; i += 1) {
+               n = a[i].name;
+               if (typeof o[n] === 'function') {
+                   o[n] = null;
+               }
+           }
+       }
+       a = o.childNodes;
+       if (a) {
+           l = a.length;
+           for (i = 0; i <l; i += 1) {
+               c = o.childNodes[i];
+               // Purge child nodes.
+               arguments.callee(c);
+               // Removes all listeners attached to the element via YUI's addListener.
+               YAHOO.util.Event.purgeElement(c);
+           }
+       }
+   })(el);
+   // Remove scripts from HTML string, and set innerHTML property
+   el.innerHTML = html.replace(/<script[^>]*>((.|[\r\n])*?)<\\?\/script>/ig, "");
+   // Return a reference to the first child
+   return el.firstChild;
+};
+YAHOO.zenoss.setInnerHTML = setInnerHTML;
+ 
 /************************************
  *   Less universally useful stuff
  *   (formerly separate scripts)
@@ -1011,7 +1051,7 @@ Dialog.Box.prototype = {
         fade(this.dimbg, {duration:0.1});
         if (this.curid in this.unloadEvents)
             forEach(this.unloadEvents[this.curid], function(f){f()});
-        this.box.innerHTML = this.defaultContent;
+        setInnerHTML(this.defaultContent);
         this.curid = null;
         hideElement(this.framework);
         this.moveBox('back');
@@ -1025,7 +1065,7 @@ Dialog.Box.prototype = {
         d.addCallback(method(this, function(req){this.fill(id, req)}));
     },
     fill: function(dialogid, request) {
-        $('dialog_innercontent').innerHTML = request.responseText;
+        setInnerHTML($('dialog_innercontent'), request.responseText);
         if (dialogid in this.loadEvents)
             forEach(this.loadEvents[dialogid], function(f){f()});
         var elements = getFormElements($('dialog_innercontent'));

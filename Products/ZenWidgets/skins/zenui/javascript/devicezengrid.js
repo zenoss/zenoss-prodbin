@@ -33,7 +33,7 @@ ZenGridLoadingMsg.prototype = {
         return new Coordinates((dims.w/2)+pos.x, (dims.h/2)+pos.y);
     },
     show: function(msg) {
-        if (msg) $('zengridload_content').innerHTML = msg;
+        if (msg) setInnerHTML($('zengridload_content'),msg);
         var p = this.getViewportCenter();
         var d = getElementDimensions(this.framework);
         var pos = new Coordinates(p.x-(d.w/2),p.y-(d.h/2));
@@ -387,11 +387,11 @@ DeviceZenGrid.prototype = {
     populateRow: function(row, data) {
         var stuffz = row.getElementsByTagName('div')
         for (i=0;i<stuffz.length;i++) {
-            stuffz[i].innerHTML = data[i];
+            setInnerHTML(stuffz[i], data[i]);
         }
         if (isManager) {
             var cb = '<input type="checkbox" style="visibility:hidden"/>';
-            stuffz[0].innerHTML = cb;
+            setInnerHTML(stuffz[0], cb);
             setStyle(stuffz[0], {'width':'20px'});
         }
     },
@@ -499,7 +499,7 @@ DeviceZenGrid.prototype = {
         table = this.zgtable;
         var cells = getElementsByTagAndClassName('div', 'cell_inner', table);
         for (i=0;(cell=cells[i]);i++){
-            cell.innerHTML='';
+            setInnerHTML(cell, '');
         }
     },
     setTableNumRows: function(numrows) {
@@ -555,13 +555,13 @@ DeviceZenGrid.prototype = {
             var firstcol = yo[0];
             if (isManager) {
                 mydata = concat([''],mydata);
-                divs[0].innerHTML = chkbox;
+                setInnerHTML(divs[0], chkbox);
                 setStyle(divs[0], {'width':'21px'});
                 connect($(evid), 'onclick', this.markAsChecked);
             }
             for (j=isManager?1:0;j<yo.length;j++) {
                 var cellwidth = this.abswidths[j]
-                divs[j].innerHTML = unescape(mydata[j]);
+                setInnerHTML(divs[j], unescape(mydata[j]));
                 yo[j].title = scrapeText(divs[j]);
             }
 
@@ -738,10 +738,10 @@ DeviceZenGrid.prototype = {
         500);
     },
     updateStatusBar: function(rownum) {
-        $('currentRows').innerHTML = rownum+1 + '-' +
+        setInnerHTML($('currentRows'), rownum+1 + '-' +
             parseInt(parseInt(rownum)+
             Math.min(parseInt(this.numRows), parseInt(this.buffer.totalRows))
-        ) + ' of ' + this.buffer.totalRows;
+        ) + ' of ' + this.buffer.totalRows);
     },
     markAsChecked: function(e) {
         var node = e.src();

@@ -14,6 +14,7 @@ YAHOO.zenoss.portlet.register_portlet = register_portlet;
 var isIE//@cc_on=1;
 
 var purge = YAHOO.zenoss.purge;
+var setInnerHTML = YAHOO.zenoss.setInnerHTML;
 
 var DDM = YAHOO.util.DragDropMgr;
 
@@ -118,7 +119,7 @@ Portlet.prototype = {
     setTitleText: function(text) {
         if (this.titlecont) {
             if (!text) text = "My Portlet";
-            this.titlecont.innerHTML = text;
+            setInnerHTML(this.titlecont, text);
             this.title = text;
         }
     },
@@ -133,7 +134,7 @@ Portlet.prototype = {
                 contents = contents.responseText;
             }
             this.empty();
-            this.body.innerHTML = contents;
+            setInnerHTML(this.body, contents);
         }
     },
     fillTable: function(contents) {
@@ -508,7 +509,7 @@ PortletContainer.prototype = {
             p = this.portlets[portlet];
             p.startRefresh(true);
         }
-        this.doRefresh.innerHTML = "Stop Refresh";
+        setInnerHTML(this.doRefresh, "Stop Refresh");
         disconnectAll(this.doRefresh, 'onclick');
         connect(this.doRefresh, 'onclick', this.stopRefresh);
     },
@@ -517,7 +518,7 @@ PortletContainer.prototype = {
             p = this.portlets[portlet];
             p.stopRefresh();
         }
-        this.doRefresh.innerHTML = "Start Refresh";
+        setInnerHTML(this.doRefresh, "Start Refresh");
         disconnectAll(this.doRefresh, 'onclick');
         connect(this.doRefresh, 'onclick', this.startRefresh);
     },
@@ -689,7 +690,7 @@ YAHOO.extend(YAHOO.zenoss.portlet.PortletProxy, YAHOO.util.DDProxy, {
         var clickEl = this.getEl();
         setStyle(clickEl, {'visibility':'hidden'});
         nodes = clickEl.childNodes;
-        dragEl.innerHTML = clickEl.innerHTML;
+        setInnerHTML(dragEl, clickEl.innerHTML);
         this.container.disablePortlets();
     },
     endDrag: function(e) {
