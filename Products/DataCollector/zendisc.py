@@ -34,6 +34,8 @@ class ZenDisc(ZenModeler):
     def __init__(self,noopts=0,app=None,single=True,
                 threaded=False,keeproot=True):
         ZenModeler.__init__(self, noopts, app, single, threaded, keeproot)
+        if not self.options.useFileDescriptor:
+            self.openPrivilegedPort('--ping')
 
 
     def discoverRouters(self, rootdev, seenips=None):

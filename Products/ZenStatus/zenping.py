@@ -59,7 +59,10 @@ class ZenPing(ZCmdBase):
     reconfigured = True
 
     def __init__(self):
+        import sys
         ZCmdBase.__init__(self, keeproot=True)
+        if not self.options.useFileDescriptor:
+            self.openPrivilegedPort('--ping')
         self.hostname = getfqdn()
         self.configpath = self.options.configpath
         if self.configpath.startswith("/"):

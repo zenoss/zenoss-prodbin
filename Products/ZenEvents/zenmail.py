@@ -123,6 +123,11 @@ class ZenMail(EventServer, RRDDaemon):
     def __init__(self):
         EventServer.__init__(self)
         RRDDaemon.__init__(self, ZenMail.name)
+        if (self.options.useFileDescriptor < 0 and \
+            self.options.listenPort < 1024):
+            self.openPrivilegedPort('--listen',
+                                    '--proto=tcp',
+                                    '--port=%d' % self.options.listenPort)
 
         self.changeUser()
         self.processor = MailProcessor(self.dmd.ZenEventManager)
@@ -135,7 +140,6 @@ class ZenMail(EventServer, RRDDaemon):
         else:
             log.info("listening on port: %d" % self.options.listenPort)
             reactor.listenTCP(self.options.listenPort, self.factory)
-        reactor.run()
 
 
     def handleError(self, error):
@@ -153,7 +157,7 @@ class ZenMail(EventServer, RRDDaemon):
         EventServer.buildOptions(self)
         self.parser.add_option('--useFileDescriptor',
                                dest='useFileDescriptor', 
-                               default="-1",
+                               default=-1,
                                type="int",
                                help="File descriptor to use for listening")
         self.parser.add_option('--listenPort',

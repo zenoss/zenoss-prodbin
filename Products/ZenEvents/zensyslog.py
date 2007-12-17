@@ -48,6 +48,10 @@ class ZenSyslog(DatagramProtocol, EventServer):
 
     def __init__(self):
         EventServer.__init__(self)
+        if not self.options.useFileDescriptor and \
+               self.options.syslogport < 1024:
+            self.openPrivilegedPort('--listen', '--proto=udp',
+                                    '--port=%d' % self.options.syslogport)
         self.changeUser()
         self.minpriority = self.options.minpriority
         self.processor = SyslogProcessor(self.dmd.ZenEventManager, 

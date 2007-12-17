@@ -70,6 +70,9 @@ class ZenTrap(EventServer):
 
     def __init__(self):
         EventServer.__init__(self)
+        if not self.options.useFileDescriptor and self.options.trapport < 1024:
+            self.openPrivilegedPort('--listen', '--proto=udp',
+                                    '--port=%d' % self.options.trapport)
         self.session = netsnmp.Session()
         if self.options.useFileDescriptor is not None:
             fileno = int(self.options.useFileDescriptor)

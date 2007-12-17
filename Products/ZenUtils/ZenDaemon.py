@@ -72,6 +72,21 @@ class ZenDaemon(CmdBase):
                                self.pidfile)
 
 
+    def openPrivilegedPort(self, *address):
+        """Execute under zensocket, providing the args to zensocket"""
+        zensocket = zenPath('bin', 'zensocket')
+        cmd = [zensocket, zensocket] + list(address) + ['--'] + \
+              [sys.executable] + sys.argv + \
+              ['--useFileDescriptor=$privilegedSocket']
+        # close file descriptors so children don't use any extra resources
+        for i in range(3, 1024):
+           try:
+              os.close(i)
+           except:
+              pass
+        os.execlp(*cmd)
+
+
     def writePidFile(self):
         myname = sys.argv[0].split(os.sep)[-1] + ".pid"
         self.pidfile =  zenPath("var", myname)
