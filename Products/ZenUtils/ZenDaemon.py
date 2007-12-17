@@ -78,12 +78,6 @@ class ZenDaemon(CmdBase):
         cmd = [zensocket, zensocket] + list(address) + ['--'] + \
               [sys.executable] + sys.argv + \
               ['--useFileDescriptor=$privilegedSocket']
-        # close file descriptors so children don't use any extra resources
-        for i in range(3, 1024):
-           try:
-              os.close(i)
-           except:
-              pass
         os.execlp(*cmd)
 
 
