@@ -79,6 +79,50 @@ class RenderServer(RRDToolItem):
         self.tmpdir = tmpdir
         self.cachetimeout = cachetimeout
 
+
+    def removeInvalidRRDReferences(self, cmds):
+        """
+        Check the cmds list for DEF commands.  For each one check that the rrd
+        file specified actually exists.  Return a list of commands which
+        excludes commands referencing or depending on non-existent rrd files.
+        """
+        import re
+        newCmds = []
+        badNames = set()
+        for cmd in cmds:
+            if cmd.startswith('DEF:'):
+                # Check for existence of the rrd file
+                vName, rrdFile = cmd.split(':')[1].split('=', 1)
+                if not os.path.isfile(rrdFile):
+                    badNames.add(vName)
+                    parts = rrdFile.split('/')
+                    try:
+                        devIndex = parts.index('Devices') + 1
+                    except IndexError:
+                        devIndex = -1
+                    devName = devIndex > 0 and parts[devIndex] or ''
+                    compIndex = len(parts) - 2
+                    compName = compIndex > devIndex and parts[compIndex] or ''
+                    dpName = parts[-1].rsplit('.', 1)[0]
+                    desc = ' '.join([p for p in (devName,compName,dpName) if p])
+                    newCmds.append('COMMENT:MISSING RRD FILE\: %s' % desc)
+                    continue
+            elif cmd.startswith('VDEF:') or cmd.startswith('CDEF:'):
+                vName, expression = cmd.split(':', 1)[1].split('=', 1)
+                if set(expression.split(',')) & badNames:
+                    badNames.add(vName)
+                    continue
+            elif not cmd.startswith('COMMENT'):
+                try:
+                    vName = cmd.split(':')[1].split('#')[0]
+                except IndexError:
+                    vName = None
+                if vName in badNames:
+                    continue
+            newCmds.append(cmd)
+        return newCmds
+
+
     security.declareProtected('View', 'render')
     def render(self, gopts=None, start=None, end=None, drange=None, 
                remoteUrl=None, width=None, ftype='PNG', getImage=True, 
@@ -86,6 +130,7 @@ class RenderServer(RRDToolItem):
         """render a graph and return it"""
         gopts = zlib.decompress(urlsafe_b64decode(gopts))
         gopts = gopts.split('|')
+        gopts = self.removeInvalidRRDReferences(gopts)
         gopts.append('--width=%s' % width)
         if start:
             gopts.append('--start=%s' % start)
@@ -174,7 +219,8 @@ class RenderServer(RRDToolItem):
                 log.warn('Directory %s could not be removed' % dirName)
         if remoteUrl:
             urllib.urlopen(remoteUrl)
-    
+
+
     def packageRRDFiles(self, device, REQUEST=None):
         """Tar a package of RRDFiles"""
         srcdir = performancePath('/Devices/%s' % device)
