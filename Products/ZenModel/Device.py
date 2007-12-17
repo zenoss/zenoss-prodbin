@@ -19,6 +19,8 @@ log = logging.getLogger("zen.Device")
 
 from _mysql_exceptions import OperationalError
 
+from urllib import quote as urlquote
+
 from Products.ZenUtils.Graphics import NetworkGraph
 from Products.ZenUtils.Utils import isXmlRpc, setupLoggingHeader, executeCommand
 from Products.ZenUtils.Utils import zenPath, unused, clearWebLoggingStream
@@ -1729,12 +1731,12 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
         """
         Returns data ready for serialization
         """
+        url, classurl = map(urlquote, 
+                    (self.getDeviceUrl(), self.getDeviceClassPath()))
         id = '<a class="tablevalues" href="%s">%s</a>' % (
-                            self.getDeviceUrl(), self.getId())
+                            url, self.getId())
         ip = self.getDeviceIp()
-        path = '<a href="/zport/dmd/Devices%s">%s</a>' % (
-                                self.getDeviceClassPath(),
-                                self.getDeviceClassPath())
+        path = '<a href="/zport/dmd/Devices%s">%s</a>' % (classurl, classurl)
         prod = self.getProdState()
         evsum = self.getHTMLEventSummary()
         imgbase = '<img border="0" src="locked-%s-icon.png"/>'
