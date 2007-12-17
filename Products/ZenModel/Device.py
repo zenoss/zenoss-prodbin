@@ -1075,6 +1075,16 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
         """
         return self.convertProdState(self.productionState)
 
+
+    def getPriority(self):
+        """
+        Return the numeric device priority.
+
+        @rtype: int
+        """
+        return self.priority
+
+
     def getPriorityString(self):
         """
         Return the device priority as a string.
