@@ -323,7 +323,7 @@ class ZenActions(ZCmdBase):
                                 'lastDeleteHistoricalEvents_days', None)
             now = datetime.datetime.now()
             if not lastRun \
-                    or now - lastRun > datetime.timedelta(ageDays) \
+                    or now - lastRun > datetime.timedelta(maxDays) \
                     or lastAge != maxDays:
                 self.dmd.ZenEventManager.manage_deleteHistoricalEvents(
                                             agedDays=maxDays)
