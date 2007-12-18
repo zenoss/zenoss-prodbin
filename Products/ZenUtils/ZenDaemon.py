@@ -187,7 +187,7 @@ class ZenDaemon(CmdBase):
             zenPath('var'), self.__class__.__name__, os.getpid())
         # time between child reports: default to 2x the default cycle time
         cycleTime = getattr(self.options, 'cycleTime', 1200)
-        startTimeout = getattr(self.options, 'startTimeOut', 10)
+        startTimeout = getattr(self.options, 'startTimeOut', 120)
         maxTime = getattr(self.options, 'maxRestartTime', 600)
         watchdog = Watcher(socketPath,
                            cmd,
