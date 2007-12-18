@@ -202,8 +202,6 @@ class ZenDaemon(CmdBase):
         # through zensocket or other startup that results in closing
         # this socket
         if not self.reporter and self.options.watchdogPath:
-            import pdb; pdb.set_trace()
-            self.log.debug('Creating reporter on %s' % self.options.watchdogPath)
             from Watchdog import Reporter
             self.reporter = Reporter(self.options.watchdogPath)
         if self.reporter:
