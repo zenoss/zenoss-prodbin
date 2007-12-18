@@ -140,6 +140,7 @@ class ZenMail(EventServer, RRDDaemon):
         else:
             log.info("listening on port: %d" % self.options.listenPort)
             reactor.listenTCP(self.options.listenPort, self.factory)
+        self.heartbeat()
 
 
     def handleError(self, error):

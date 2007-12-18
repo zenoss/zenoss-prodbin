@@ -109,8 +109,8 @@ class POPProtocol(POP3Client):
     
     
 class POPFactory(protocol.ClientFactory):
-    ''' factory that stores the configuration the protocol uses to do it's
-    job.'''
+    """ factory that stores the configuration the protocol uses to do it's
+    job."""
     
     protocol = POPProtocol
 
@@ -171,6 +171,7 @@ class ZenPOP3(EventServer, RRDDaemon):
         else:
             log.info("connceting to server using plaintext")
             reactor.connectTCP(host, port, self.factory)
+        self.heartbeat()
 
 
     def handleError(self, error):

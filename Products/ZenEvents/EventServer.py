@@ -82,7 +82,6 @@ class EventServer(ZCmdBase):
         self.rrdStats = DaemonStats()
         self.rrdStats.config(self.myfqdn, self.name)
         
-        self.heartbeat()
         self.reportCycle()
 
     def useUdpFileDescriptor(self, fd):

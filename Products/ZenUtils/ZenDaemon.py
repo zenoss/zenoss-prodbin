@@ -59,9 +59,6 @@ class ZenDaemon(CmdBase):
                 self.becomeDaemon()
         if self.options.watchdog:
             self.becomeWatchdog()
-        if self.options.watchdogPath:
-            from Watchdog import Reporter
-            self.reporter = Reporter(self.options.watchdogPath)
         # if we are daemonizing, or child of a watchdog:
         if self.options.daemon or self.options.watchdogPath:
            try:
@@ -201,6 +198,14 @@ class ZenDaemon(CmdBase):
         sys.exit(0)
 
     def niceDoggie(self, timeout):
+        # defer creation of the reporter until we know we're not going
+        # through zensocket or other startup that results in closing
+        # this socket
+        if not self.reporter and self.options.watchdogPath:
+            import pdb; pdb.set_trace()
+            self.log.debug('Creating reporter on %s' % self.options.watchdogPath)
+            from Watchdog import Reporter
+            self.reporter = Reporter(self.options.watchdogPath)
         if self.reporter:
            self.reporter.niceDoggie(timeout)
 

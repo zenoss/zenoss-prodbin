@@ -10,7 +10,6 @@
 # For complete information please visit: http://www.zenoss.com/oss/
 #
 ###########################################################################
-#! /usr/bin/env python 
 
 __doc__='''zentrap
 
@@ -82,6 +81,7 @@ class ZenTrap(EventServer):
             self.session.awaitTraps('0.0.0.0:%d' % self.options.trapport)
         self.session.callback = self.handleTrap
         twistedsnmp.updateReactor()
+        self.heartbeat()
 
     def doHandleRequest(self, ts, event):
         'Events are processed asynchronously in a thread'

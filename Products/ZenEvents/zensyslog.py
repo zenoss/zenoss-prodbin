@@ -71,6 +71,7 @@ class ZenSyslog(DatagramProtocol, EventServer):
             self.useUdpFileDescriptor(int(self.options.useFileDescriptor))
         else:
             reactor.listenUDP(self.options.syslogport, self)
+        self.heartbeat()
 
 
     def expand(self, msg, client_address):
