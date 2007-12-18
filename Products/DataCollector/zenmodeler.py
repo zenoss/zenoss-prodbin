@@ -80,6 +80,7 @@ class ZenModeler(ZCmdBase):
         else:
             self.log.debug("in debug mode starting apply in main thread.")
             self.applyData = ApplyDataMap(self)
+        self.heartbeat()
 
     def loadPlugins(self):
         """Load plugins from the plugin directory.
@@ -305,6 +306,17 @@ class ZenModeler(ZCmdBase):
         self.fillCollectionSlots()
 
 
+    def heartbeat(self):
+        if self.options.cycle:
+            evt = dict(eventClass=Heartbeat,
+                       component='zenmodeler',
+                       device=socket.getfqdn(),
+                       timeout=self.cycletime*3)
+            if self.dmd:
+                self.dmd.ZenEventManager.sendEvent(evt)
+            self.niceDoggie(self.cycletime)
+
+
     def checkStop(self):
         "if there's nothing left to do, maybe we should terminate"
         if self.clients: return
@@ -314,16 +326,9 @@ class ZenModeler(ZCmdBase):
             runTime = time.time() - self.start
             self.log.info("scan time: %0.2f seconds", runTime)
             self.start = None
-            if self.options.cycle:
-                evt = dict(eventClass=Heartbeat,
-                           component='zenmodeler',
-                           device=socket.getfqdn(),
-                           timeout=self.cycletime*3)
-                if self.dmd:
-                    self.dmd.ZenEventManager.sendEvent(evt)
-                self.niceDoggie(self.cycletime)
-            else:
+            if not self.options.cycle:
                 self.stop()
+            self.heartbeat()
 
     def fillCollectionSlots(self):
         """If there are any free collection slots fill them up
