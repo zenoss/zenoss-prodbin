@@ -132,7 +132,7 @@ class CommandChannel(channel.SSHChannel):
     def channelOpen(self, ignoredData):
         log.debug('opening command channel for %s' % self.command)
         self.data = ''
-        log.debug('running command remotely: exec %s' % common.NS(self.command))
+        log.debug('running command remotely: exec %s' % self.command)
         d = self.conn.sendRequest(self, 'exec', common.NS(self.command),
                                   wantReply = 1)
         return d
