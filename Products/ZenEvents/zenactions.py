@@ -426,6 +426,7 @@ class ZenActions(ZCmdBase):
     
     def run(self):
         if not self.options.cycle:
+            self.sendHeartbeat()
             self.schedule.run()
             return self.mainbody()
         self.schedule.start()
@@ -445,7 +446,7 @@ class ZenActions(ZCmdBase):
         timeout = self.options.cycletime*3
         evt = Event.EventHeartbeat(socket.getfqdn(), "zenactions", timeout)
         self.sendEvent(evt)
-        self.niceDoggie(timeout)
+        self.niceDoggie(self.options.cycletime)
 
 
     def stop(self):
