@@ -155,7 +155,7 @@ class IpNetwork(DeviceOrganizer):
             netip, netmask = netip.split("/",1)
             netmask = int(netmask)
         netobj = netroot.getNet(netip)
-        if netobj: return netobj
+        if netobj and netobj.netmask == netmask: return netobj
         if netmask == 0:
             raise ValueError("netip '%s' without netmask", netip)
         netip = getnetstr(netip,netmask)
