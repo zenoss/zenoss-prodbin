@@ -531,4 +531,28 @@ class IpNetwork(DeviceOrganizer):
             return '/zport/dmd/img/icons/noicon.png'
 
 
+    def urlLink(self, text=None, url=None, attrs={}):
+        """
+        Return an anchor tag if the user has access to the remote object.
+        @param text: the text to place within the anchor tag or string.
+                     Defaults to the id of this object.
+        @param url: url for the href. Default is getPrimaryUrlPath
+        @type attrs: dict
+        @param attrs: any other attributes to be place in the in the tag.
+        @return: An HTML link to this object
+        @rtype: string 
+        """
+        if not text:
+            text = "%s/%d" % (self.id, self.netmask)
+        if not self.checkRemotePerm("View", self):
+            return text
+        if not url:
+            url = self.getPrimaryUrlPath()
+        if len(attrs):
+            return '<a href="%s" %s>%s</a>' % (url,
+                ' '.join(['%s="%s"' % (x,y) for x,y in attrs.items()]),
+                text)
+        else:
+            return '<a href="%s">%s</a>' % (url, text)
+
 InitializeClass(IpNetwork)

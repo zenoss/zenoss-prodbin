@@ -237,7 +237,7 @@ class IpRouteEntry(OSComponent):
         Return an <a> link to our target network.
         """
         if self.target(): 
-            return self.target.getPrimaryLink()
+            return self.target().urlLink()
         else:
             return self._target
 
