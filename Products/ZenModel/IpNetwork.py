@@ -462,15 +462,23 @@ class IpNetwork(DeviceOrganizer):
         
         if REQUEST and not xmlrpc:
             handler = setupLoggingHeader(self, REQUEST)
+	zDiscCommand = "empty"
         
+	from Products.ZenUtils.ZenTales import talesEval
+
         orgroot = self.getDmdRoot(self.dmdRootName)
         for organizerName in organizerPaths:
             organizer = orgroot._getNet(organizerName)
+      	    zDiscCommand = getattr(organizer, "zZenDiscCommand", None)
+	    if zDiscCommand:
+	    	cmd = talesEval('string:' + zDiscCommand, organizer).split(" ")
+	    else:
+		cmd = ["zendisc", "run", "--net", organizer.id]
             zd = zenPath('bin', 'zendisc')
-            zendiscCmd = [zd, "run", '--net', organizer.id]
+            zendiscCmd = [zd] + cmd[1:]
             result = executeCommand(zendiscCmd, REQUEST)
             if result and xmlrpc: return result
-                
+ 				
         log.info('Done')
         
         if REQUEST and not xmlrpc:

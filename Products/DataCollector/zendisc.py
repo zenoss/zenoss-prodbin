@@ -34,9 +34,8 @@ class ZenDisc(ZenModeler):
     def __init__(self,noopts=0,app=None,single=True,
                 threaded=False,keeproot=True):
         ZenModeler.__init__(self, noopts, app, single, threaded, keeproot)
-        if not self.options.useFileDescriptor:
-            self.openPrivilegedPort('--ping')
-
+	if not self.options.useFileDescriptor:
+	    self.openPrivilegedPort('--ping')
 
     def discoverRouters(self, rootdev, seenips=None):
         """Discover all default routers based on dmd configuration.
@@ -170,12 +169,17 @@ class ZenDisc(ZenModeler):
                         self.log.info("ip '%s' on device '%s' remodel",
                                         ip, dev.id)
                 self.sendDiscoveredEvent(ipobj)
-            if not self.options.monitor: self.options.monitor = 'localhost'
+	    #create a new device here
+	    if not self.options.monitor: self.options.monitor = 'localhost'
             dev = manage_createDevice(self.dmd, ip, devicepath,
-            productionState=prodState, performanceMonitor=self.options.monitor,
-                    statusMonitors=[self.options.statusmonitor])
+            				productionState=prodState, 
+					performanceMonitor=self.options.monitor,
+                    			statusMonitors=[self.options.statusmonitor])
             transaction.commit()
             dev.collectDevice()
+	    #autoallocate device
+	    if self.options.autoAllocate:
+	    	self.autoAllocate(ipobj, dev)	
             return dev
         except ZentinelException, e:
             self.log.warn(e)
@@ -196,9 +200,11 @@ class ZenDisc(ZenModeler):
 
     def run(self):
         if self.options.net:
-            if type(self.options.net) == type(''):
-                self.options.net = [
-                    n.strip() for n in self.options.net.split(',')]
+	    # in case someone uses 10.0.0.0,192.168.0.1 instead of 
+	    # --net 10.0.0.0 --net 192.168.0.1 
+            if len(self.options.net) and self.options.net[0].find(",") > -1:
+                self.options.net = [n.strip() for n in self.options.net[0].split(',')]
+	    print self.options.net
             for net in self.options.net:
                 try:
                     nets = []
@@ -245,10 +251,37 @@ class ZenDisc(ZenModeler):
                 self.discoverDevices(ips)
         self.stop()
 
+    def autoAllocate(self, ipobj=None, device=None):
+	"""Execute a script that will auto allocate devices into their 
+	Device Classes"""
+	self.log.info("trying to auto-allocate device %s" % device.id )
+	if not ipobj or not device:
+	    return
+
+	script = getattr(ipobj, "zAutoAllocateScript", None)
+	self.log.error("no auto-allocation script found")
+	if script:
+	    import string
+	    script = string.join(script, "\n")
+	    self.log.debug("using script\n%s" % script)
+	    try:
+		compile(script, "zAutoAllocateScript", "exec")
+	    except:
+		self.log.error("zAutoAllocateScript contains error")
+		return
+	    vars = {'dev': device, 'dmd': self.dmd, 'log': self.log}
+	    try:
+	    	exec(script, vars)
+	    except:
+		log.error("error executing zAutoAllocateScript:\n%s" % script)
+		return
+	    transaction.commit()	
+	return 
+
 
     def buildOptions(self):
         ZenModeler.buildOptions(self)
-        self.parser.add_option('--net', dest='net', action="append",
+        self.parser.add_option('--net', dest='net', action="append",  
                     help="discover all device on this network")
         self.parser.add_option('--deviceclass', dest='deviceclass',
                     default="/Discovered",
@@ -292,6 +325,12 @@ class ZenDisc(ZenModeler):
                     dest='useFileDescriptor', default=None,
                     help="Use the given (priveleged) file descriptor for ping")
 
+        self.parser.add_option('--auto-allocate', dest='autoAllocate',
+                    action="store_true", default=False,
+                    help="have zendisc auto allocate devices after discovery")
+
+
+
 if __name__ == "__main__":
     try:
         d = ZenDisc()
@@ -300,3 +339,9 @@ if __name__ == "__main__":
         raise
     except Exception, e:
         print "Error: " + str(e)
+
+
+
+
+
+
