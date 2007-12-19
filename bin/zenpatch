@@ -1,0 +1,13 @@
+#!/usr/bin/env bash
+CHANGESET=$1
+
+if [ -z "$CHANGESET" ]; then
+    echo "Specify changeset."
+    exit 1
+fi
+
+echo "http://dev.zenoss.org/trac/changeset/${CHANGESET}?format=diff&new=${CHANGESET}"
+curl "http://dev.zenoss.org/trac/changeset/${CHANGESET}?format=diff&new=${CHANGESET}" \
+    > ${ZENHOME}/Products/r${CHANGESET}.patch
+cd $ZENHOME/Products
+patch --strip 3 < r${CHANGESET}.patch
