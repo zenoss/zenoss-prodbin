@@ -246,7 +246,6 @@ def importClass(modulePath, classname=""):
     """
     try:
         if not classname: classname = modulePath.split(".")[-1]
-        print "modulePath: %s classname: %s" % (modulePath, classname)
         mod = __import__(modulePath, globals(), locals(), classname)
         
         return getattr(mod, classname)
