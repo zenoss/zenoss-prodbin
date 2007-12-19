@@ -246,7 +246,9 @@ def importClass(modulePath, classname=""):
     """
     try:
         if not classname: classname = modulePath.split(".")[-1]
+        print "modulePath: %s classname: %s" % (modulePath, classname)
         mod = __import__(modulePath, globals(), locals(), classname)
+        
         return getattr(mod, classname)
     except AttributeError:
         raise ImportError("failed importing class %s from module %s" % (
@@ -582,7 +584,10 @@ def setupLoggingHeader(context, REQUEST):
 def executeCommand(cmd, REQUEST):
     xmlrpc = isXmlRpc(REQUEST)
     try:
-        response = REQUEST.RESPONSE
+	if REQUEST:
+        	response = REQUEST.RESPONSE
+	else:
+		response = sys.stdout
         log.info('Executing command: %s' % ' '.join(cmd))
         f = Popen4(cmd)
         while 1:
