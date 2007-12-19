@@ -181,7 +181,7 @@ class ZenTrap(EventServer):
         result.setdefault('summary', summary)
         result.setdefault('community', community)
         result['ipAddress'] = addr[0]
-        self.q.add(ts, result)
+        self.q.put( (ts, result) )
 
         # respond to INFORM requests
         if pdu.command == netsnmp.SNMP_MSG_INFORM:
