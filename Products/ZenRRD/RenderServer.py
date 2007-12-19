@@ -29,6 +29,7 @@ import mimetypes
 from AccessControl import ClassSecurityInfo
 from Globals import InitializeClass
 from Globals import DTMLFile
+from sets import Set
 
 try:
     import rrdtool
@@ -88,7 +89,7 @@ class RenderServer(RRDToolItem):
         """
         import re
         newCmds = []
-        badNames = set()
+        badNames = Set()
         for cmd in cmds:
             if cmd.startswith('DEF:'):
                 # Check for existence of the rrd file
@@ -109,7 +110,7 @@ class RenderServer(RRDToolItem):
                     continue
             elif cmd.startswith('VDEF:') or cmd.startswith('CDEF:'):
                 vName, expression = cmd.split(':', 1)[1].split('=', 1)
-                if set(expression.split(',')) & badNames:
+                if Set(expression.split(',')) & badNames:
                     badNames.add(vName)
                     continue
             elif not cmd.startswith('COMMENT'):
