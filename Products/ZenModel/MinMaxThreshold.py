@@ -209,7 +209,7 @@ class MinMaxThresholdInstance(ThresholdInstance):
                          component=self.context().componentName,
                          severity=severity)]
         else:
-            if self.count != 0 and self.count is not None:
+            if self.count is None or self.count > 0:
                 summary = '%s threshold restored current value: %.2f' % (
                     label, value)
                 self.count = 0
