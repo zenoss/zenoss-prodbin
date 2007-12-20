@@ -83,7 +83,7 @@ class ZenTrap(EventServer):
         twistedsnmp.updateReactor()
         self.heartbeat()
 
-    def doHandleRequest(self, ts, event):
+    def doHandleRequest(self, event, ts):
         'Events are processed asynchronously in a thread'
         self.sendEvent(event)
 
@@ -181,7 +181,7 @@ class ZenTrap(EventServer):
         result.setdefault('summary', summary)
         result.setdefault('community', community)
         result['ipAddress'] = addr[0]
-        self.q.put( (ts, result) )
+        self.q.put( (result, ts) )
 
         # respond to INFORM requests
         if pdu.command == netsnmp.SNMP_MSG_INFORM:
