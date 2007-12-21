@@ -34,7 +34,9 @@ CREATE TABLE IF NOT EXISTS status
     eventClassMapping varchar(128) default "",
     PRIMARY KEY ( dedupid ),
     Index evididx (evid),
-    Index clearidx (clearid)
+    Index clearidx (clearid),
+    Index severityidx (severity),
+    Index deviceidx (device)
 ) ENGINE=INNODB;
 
 CREATE TABLE IF NOT EXISTS history

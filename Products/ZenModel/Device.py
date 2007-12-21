@@ -1602,11 +1602,11 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
             self.getPerformanceServer().deleteRRDFiles(self.id)
         parent._delObject(self.getId())
         if REQUEST:
-            REQUEST['message'] = "Device deleted"
             if parent.getId()=='devices': 
                 parent = parent.getPrimaryParent()
             REQUEST['RESPONSE'].redirect(parent.absolute_url() +
-                                            "/deviceOrganizerStatus")
+                                            "/deviceOrganizerStatus"
+                                            '?message=Device deleted')
 
 
     security.declareProtected(ZEN_MANAGE_DEVICE, 'manage_deleteHeartbeat')

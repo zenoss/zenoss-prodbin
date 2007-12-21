@@ -307,28 +307,91 @@ class ZenActions(ZCmdBase):
             self.log.exception("problem with proc: '%s'" % sql)
 
 
-    def deleteHistoricalEvents(self):
+    def deleteHistoricalEvents(self, deferred=False, force=False):
         """
-        Once per day delete events from history table
+        Once per day delete events from history table.
+        If force then run the deletion statement regardless of when it was
+        last run (the deletion will still not run if the historyMaxAgeDays
+        setting in the event manager is not greater than zero.)
+        If deferred then we are running in a twisted reactor.  Run the 
+        deletion script in a non-blocking manner (if it is to be run) and
+        return a deferred (if the deletion script is run.)
+        In all cases return None if the deletion script is not run.
         """
         import datetime
+        import os
+        import twisted.internet.utils
+        import Products.ZenUtils.Utils as Utils
+        import transaction
+        import subprocess
+        
+        def onSuccess(result, startTime):
+            self.log.info('Done deleting historical events in %.2f seconds' %
+                            (time.time() - startTime))
+            return None
+        def onError(error, startTime):
+            self.log.error('Error deleting historical events after '
+                            '%s seconds: %s' % (time.time()-startTime,
+                            error))
+            return None
+        
+        # d is the return value.  It is a deferred if the deferred argument
+        # is true and if we run the deletion script.  Otherwise it is None
+        d = None
+        
+        # Unless the event manager has a positive number of days for its
+        # historyMaxAgeDays setting then there is never any point in
+        # performing the deletion.
         try:
             maxDays = int(self.dmd.ZenEventManager.historyMaxAgeDays)
         except ValueError:
             maxDays = 0
         if maxDays > 0:
+            # lastDeleteHistoricalEvents_datetime is when the deletion
+            # script was last run
             lastRun = getattr(self.dmd, 
                                 'lastDeleteHistoricalEvents_datetime', None)
+            # lastDeleteHistoricalEvents_days is the value of historyMaxAgeDays
+            # the last time the deletion script was run.  If this value has
+            # changed then we run the script again regardless of when it was
+            # last run.
             lastAge = getattr(self.dmd,
                                 'lastDeleteHistoricalEvents_days', None)
             now = datetime.datetime.now()
             if not lastRun \
                     or now - lastRun > datetime.timedelta(maxDays) \
-                    or lastAge != maxDays:
-                self.dmd.ZenEventManager.manage_deleteHistoricalEvents(
-                                            agedDays=maxDays)
+                    or lastAge != maxDays \
+                    or force:
+                self.log.info('Deleting historical events older than %s days' %
+                                maxDays)
+                startTime = time.time()
+                cmd = Utils.zenPath('Products', 'ZenUtils', 
+                                        'ZenDeleteHistory.py')
+                args = ['--numDays=%s' % maxDays]
+                if deferred:
+                    # We're in a twisted reactor, so make a twisty call
+                    d = twisted.internet.utils.getProcessOutput(
+                            cmd, args, os.environ, errortoo=True)
+                    d.addCallback(onSuccess, startTime)
+                    d.addErrback(onError, startTime)
+                else:
+                    # Not in a reactor, so do this in a blocking manner
+                    proc = subprocess.Popen(
+                            [cmd]+args, stdout=subprocess.PIPE,
+                            stderr=subprocess.STDOUT, env=os.environ)
+                    # Trying to mimic how twisted returns results to us
+                    # sort of.
+                    code = proc.wait()
+                    output = proc.stdout.read()
+                    if code:
+                        onError(output, startTime)
+                    else:
+                        onSuccess(output, startTime)
+                # Record circumstances of this run
                 self.dmd.lastDeleteHistoricalEvents_datetime = now
                 self.dmd.lastDeleteHistoricalEvents_days = maxDays
+                transaction.commit()
+        return d
 
 
     def heartbeatEvents(self):
@@ -407,7 +470,7 @@ class ZenActions(ZCmdBase):
         self.processRules(zem)
         self.checkVersion(zem)
         self.maintenance(zem)
-        self.deleteHistoricalEvents()
+        self.deleteHistoricalEvents(deferred=self.options.cycle)
         self.heartbeatEvents()
 
 

@@ -1817,7 +1817,7 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
 
     security.declareProtected('Manage Events','manage_deleteHistoricalEvents')
     def manage_deleteHistoricalEvents(self, devname=None, agedDays=None,
-                                                            REQUEST=None):
+                                        REQUEST=None):
         """
         Delete historical events.  If devices is given then only delete
         events for that device.  If agedDays is given then only delete
@@ -1828,23 +1828,23 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
         This is an option during device deletion.  It is also used
         by zenactions to keep history table clean.
         """
+        import subprocess
+        import os
+        import Products.ZenUtils.Utils as Utils
+        
+        cmd = Utils.zenPath('Products', 'ZenUtils', 'ZenDeleteHistory.py')
         if devname:
-            statement = 'delete from history'
-            whereClause = 'where device = "%s"' % devname
-            reason = 'Device Deleted'
-            toLog = True
-        elif agedDays > 0:
-            statement = ('delete h,j,d from history h '
-                'LEFT JOIN log j ON h.evid = j.evid '
-                'LEFT JOIN detail d ON h.evid = d.evid ')
-            whereClause = ('WHERE StateChange < DATE_SUB(NOW(), '
-                            'INTERVAL %s day)' % agedDays)
-            reason = 'deleting historical events older than %s days' % agedDays
-            toLog = False
+            args = ['--device=%s' % devname]
+        elif agedDays:
+            args = ['--numDays=%s' % agedDays]
         else:
             return
-        self.updateEvents(statement, whereClause, reason, 
-                            toLog=toLog, table='history')
+        proc = subprocess.Popen(
+                [cmd]+args, stdout=subprocess.PIPE,
+                stderr=subprocess.STDOUT, env=os.environ)
+        # We are abandoning this proc to do it's thing. or not.  We don't
+        # want to block because we would delay user feedback on a device
+        # delete when this might take a while to perform.
         if REQUEST:
             REQUEST['message'] = 'Deleted historical events'
             return self.callZenScreen(REQUEST)
