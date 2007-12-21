@@ -11,7 +11,10 @@ var q = new YAHOO.zenoss.zenautocomplete.ZenAutoComplete(
     'ipserviceclasses', // Name for the cache
     '/zport/dmd/Services/IpService/getServiceLiveSearchList',
     'Ip Service Class', // Label for the widget
-    divId // DOM element into which to put the thing 
+    divId, // DOM element into which to put the thing 
+    {itemSelectEvent:function(oSelf, elItem, oData){
+     $('dialog_submit').disabled = false;
+    }}
 );
 q.input.name = 'className'
 }
@@ -20,7 +23,10 @@ var q = new YAHOO.zenoss.zenautocomplete.ZenAutoComplete(
     'winserviceclasses', // Name for the cache
     '/zport/dmd/Services/WinService/getServiceLiveSearchList',
     'Win Service Class', // Label for the widget
-    divId // DOM element into which to put the thing 
+    divId, // DOM element into which to put the thing 
+    {itemSelectEvent:function(oSelf, elItem, oData){
+     $('dialog_submit').disabled = false;
+    }}
 );
 q.input.name = 'className'
 }

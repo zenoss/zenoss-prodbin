@@ -6,6 +6,7 @@
 <br/><br/>
 <div id="dialog_buttons">
 <input tal:attributes="id string:dialog_submit;
+        disabled string:true;
         type string:submit;
         value string:OK;
         onclick string:return $$('dialog').submit_form('${here/os/absolute_url}')"

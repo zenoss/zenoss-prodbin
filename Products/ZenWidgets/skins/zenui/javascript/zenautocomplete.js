@@ -23,10 +23,11 @@ YAHOO.zenoss.getRemoteData = function(name, url, callback) {
 
 YAHOO.zenoss.zenautocomplete.ZenAutoComplete = Class.create();
 YAHOO.zenoss.zenautocomplete.ZenAutoComplete.prototype = {
-    __init__: function(name, url, label, container) {
+    __init__: function(name, url, label, container, events) {
         bindMethods(this);
         this.target = $(container);
         this.label = label;
+        this.eventconfig = events;
         this.setup();
         YAHOO.zenoss.getRemoteData(name, url, this.makeAutoCompleter);
     },
@@ -60,6 +61,9 @@ YAHOO.zenoss.zenautocomplete.ZenAutoComplete.prototype = {
                 setTimeout(function(){oSelf.sendQuery(sInputValue);},0);
             }
         });
+        forEach(items(this.eventconfig), method(this, function(x) {
+            this.oAutoComp[x[0]].subscribe(x[1]);
+        }));
     }
 }
 
