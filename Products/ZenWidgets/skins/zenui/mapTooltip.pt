@@ -1,0 +1,20 @@
+<div class="tooltip_container">
+    <div class="tooltip_title" tal:content="here/id"></div>
+    <div class="tooltip_body">
+    <div style="clear:both">
+        <div metal:use-macro="here/rainbows/macros/horizontal"></div>
+    </div>
+        <div style="clear:both">
+            <dl class="faux-table">
+
+                <dt class="first">Subdevices</dt>
+                <dd class="first" 
+                    tal:content="python:len(here.getSubDevices())"></dd>
+
+                <dt>Mappable Children</dt>
+                <dd tal:content="here/numMappableChildren"></dd>
+
+            </dl>
+        </div>
+    </div>
+</div>
