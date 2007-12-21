@@ -24,7 +24,7 @@ def buildEventFromDict(evdict):
     if evclass == Heartbeat:
         for field in ("device", "component", "timeout"):
             if field not in evdict:
-                raise ZenEventError("Required event field %s not found" % field)
+                raise ZenEventError("Required event field %s not found: %s" % (field, evdict))
         evt = EventHeartbeat(evdict['device'], evdict['component'], 
                              evdict['timeout'])
     else:
