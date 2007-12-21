@@ -391,7 +391,7 @@ class zencommand(RRDDaemon):
             
     def remote_updateConfig(self, config):
         self.log.debug("Async configuration update")
-        self.updateConfig([config], [config[1]])
+        self.updateConfig([config], [config.device])
 
     def remote_updateDeviceList(self, devices):
         self.log.debug("Async update device list %s" % devices)
@@ -440,13 +440,13 @@ class zencommand(RRDDaemon):
         self.heartbeat()
         reactor.callLater(self.heartbeatTimeout/3, self.heartbeatCycle)
         self.rrdStats.gauge('schedule',
-                            self.heartbeatCycle,
+                            self.heartbeatTimeout,
                             len(self.schedule))
         self.rrdStats.counter('commands',
-                              self.heartbeatCycle,
+                              self.heartbeatTimeout,
                               self.executed)
         self.rrdStats.counter('dataPoints',
-                              self.heartbeatCycle,
+                              self.heartbeatTimeout,
                               self.rrd.dataPoints)
         
 
@@ -604,14 +604,15 @@ class zencommand(RRDDaemon):
                 yield self.model().callRemote('getDataSourceCommands',
                                               devices)
                 if not devices:
-                    devices = list(Set([c.device for c in self.schedule]))
+                    devices = list(Set([c.deviceConfig.device
+                                        for c in self.schedule]))
                 self.updateConfig(driver.next(), devices)
 
                 self.rrd = RRDUtil(createCommand, 60)
 
                 self.rrdStats.gauge('configTime',
-                                   self.configCycleInterval,
-                                   time.time() - now)
+                                    self.configCycleInterval,
+                                    time.time() - now)
 
             except Exception, ex:
                 log.exception(ex)
