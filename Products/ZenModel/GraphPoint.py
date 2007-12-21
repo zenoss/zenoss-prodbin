@@ -145,6 +145,9 @@ class GraphPoint(ZenModelRM, ZenPackable):
         index %= len(self.colors)
         color = self.color or self.colors[index]
         color = '#%s' % color.lstrip('#')
+        if hasattr(self, 'stacked'): 
+            if not self.stacked and index>0: color += "99"
+            else: color += "ff"
         return color
 
 
