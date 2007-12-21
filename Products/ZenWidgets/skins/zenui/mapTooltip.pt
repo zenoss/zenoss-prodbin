@@ -11,7 +11,7 @@
                 <dd class="first" 
                     tal:content="python:len(here.getSubDevices())"></dd>
 
-                <dt>Mappable Children</dt>
+                <dt>Subaddresses</dt>
                 <dd tal:content="here/numMappableChildren"></dd>
 
             </dl>

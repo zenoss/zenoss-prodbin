@@ -44,9 +44,17 @@ ZenGeoMap.prototype = {
         }, this));
     },
     Dot: function(p, color) {
+        colors = ['green', 'grey', 'blue', 'yellow', 'orange', 'red'];
+        severity = findValue(colors, color);
+        newsize = 16 + severity;
+        this.baseIcon.iconSize = new GSize(newsize, newsize)
+        function colorImportance (marker, b) {
+            return GOverlay.getZIndex(marker.getPoint().lat()) + 
+                      findValue(colors, color)*10000000;
+        };
         var icon = new GIcon(this.baseIcon);
         icon.image = "img/"+color+"_dot.png";
-        return new GMarker(p, icon);
+        return new GMarker(p, {zIndexProcess:colorImportance, icon:icon});
     },
     addPolyline: function(addresses) {
         var addys = addresses[0];
@@ -103,8 +111,9 @@ ZenGeoMap.prototype = {
                     addElementClass(markerimg.ownerDocument.body, 
                                     "zenoss-gmaps")
                     summarytext = YAHOO.zenoss.unescapeHTML(summarytext);
+                    randint = parseInt(Math.random()*1000);
                     var ttip = new YAHOO.widget.Tooltip(
-                        marker.id+"_tooltip",
+                        randint+"_tooltip",
                         {
                             context:markerimg, 
                             text:summarytext
