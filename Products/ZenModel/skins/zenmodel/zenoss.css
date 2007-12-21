@@ -1762,3 +1762,14 @@ table.innerzentable tr td {
     border-width: 1px;
 }
 .temp_filterbox .filterbox { top: 2px; line-height: 30px; padding-top: 6px }
+
+.zenoss-gmaps.yui-skin-sam .yui-tt div.bd {
+    background-color: #fffacd;
+    padding: 0;
+}
+div.tooltip_title { font-weight: bold;border-bottom:1px solid #888; padding:2px 5px }
+div.tooltip_body { padding: 2px 5px; background-color:#fff; }
+div.tooltip_container ul {list-style-type: none;padding:0;margin:0}
+div.tooltip_container li {list-style-type: none;padding:0;margin:0}
+
+

@@ -4,6 +4,7 @@
 <script src="/zport/dmd/yui/yuiloader/yuiloader-beta-min.js"></script>
 <script src="/zport/dmd/yui/yahoo/yahoo-min.js"></script>
 <script src="/zport/dmd/javascript/zenoss-core.js"></script>
+<link type="text/css" rel="stylesheet" href='css/zenoss.css'/>
 <link type="text/css" rel="stylesheet" href='css/geomap.css'/>
 <style>
 body {margin:0;padding:0}

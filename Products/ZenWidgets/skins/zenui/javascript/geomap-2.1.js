@@ -103,14 +103,19 @@ ZenGeoMap.prototype = {
 
                        });
                     this.map.addOverlay(marker);
-                    var markerimg = marker.Oj
-                    /*
-                    Ext.QuickTips.register({
-                        target: markerimg,
-                        title: address,
-                        text: summarytext
-                    });
-                    */
+                    var markerimg = _getGMMarkerImage(marker);
+                    addElementClass(markerimg.ownerDocument.body, 
+                                    "yui-skin-sam")
+                    addElementClass(markerimg.ownerDocument.body, 
+                                    "zenoss-gmaps")
+                    //summarytext = YAHOO.zenoss.unescapeHTML(summarytext);
+                    var ttip = new YAHOO.widget.Tooltip(
+                        marker.id+"_tooltip",
+                        {
+                            context:markerimg, 
+                            text:summarytext
+                        }
+                    );
                     this.bounds.extend(p);
                     this.lock.release();
                 }
@@ -171,6 +176,18 @@ ZenGeoMap.prototype = {
     }
 }
 
+function _getGMMarkerImage(marker) {
+    var myval;
+    forEach(values(marker), function(val){
+        try {
+            if (val.tagName=='IMG') {
+                myval = val;
+            }
+        } catch(e) {noop()}
+    });
+    return myval;
+}
+
 function geomap_initialize(){
     var x = new ZenGeoMap($('geomapcontainer'));
     connect(currentWindow(), 'onunload', GUnload);
@@ -181,4 +198,7 @@ function geomap_initialize(){
     x.refresh();
 }
 
-addLoadEvent(geomap_initialize);
+addLoadEvent(function() {
+    YAHOO.zenoss.loader.require("container");
+    YAHOO.zenoss.loader.insert({onSuccess:geomap_initialize})
+});

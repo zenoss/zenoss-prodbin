@@ -126,11 +126,7 @@ class Location(DeviceOrganizer, ZenPackable):
         linkToMap = self.numMappableChildren()
         if linkToMap: 
             link+='/locationGeoMap'
-        summarytext = """
-            Subdevices: %s
-            Mappable Children: %s
-        """ % (len(self.getSubDevices()), self.numMappableChildren())
-
+        summarytext = self.mapTooltip() # mapTooltip is a page template
         return [address, color, link, summarytext]
 
     def getChildGeomapData(self):

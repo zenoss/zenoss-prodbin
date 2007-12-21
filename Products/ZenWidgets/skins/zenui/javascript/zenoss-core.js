@@ -144,6 +144,14 @@ function setInnerHTML (el, html) {
 };
 YAHOO.zenoss.setInnerHTML = setInnerHTML;
  
+function unescapeHTML(str) {
+    if (!YAHOO.zenoss._dummydiv) YAHOO.zenoss._dummydiv=DIV(null, null);
+    _dummydiv = YAHOO.zenoss._dummydiv;
+    _dummydiv.innerHTML = str;
+    return _dummydiv.textContent;
+}
+YAHOO.zenoss.unescapeHTML = unescapeHTML;
+
 /************************************
  *   Less universally useful stuff
  *   (formerly separate scripts)
