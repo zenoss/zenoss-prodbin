@@ -224,7 +224,7 @@ class ApplyDataMap(object):
             if type(value) == type(''):
                 try:
                     value.encode('ascii')
-                except UnicodeDecodeError:
+                except UnicodeEncodeError:
                     decoding = obj.zCollectorDecoding
                     value = value.decode(decoding)
             if attname[0] == '_': continue
