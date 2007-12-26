@@ -58,7 +58,6 @@ class ZenPing(ZCmdBase):
     reconfigured = True
 
     def __init__(self):
-        import sys
         ZCmdBase.__init__(self, keeproot=True)
         if not self.options.useFileDescriptor:
             self.openPrivilegedPort('--ping')
