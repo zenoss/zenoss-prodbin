@@ -21,7 +21,7 @@ from Products.ZenHub.PBDaemon import FakeRemote, PBDaemon
 from Products.ZenEvents.ZenEventClasses import App_Start, Clear
 from Products.ZenUtils.Driver import drive, driveLater
 
-from Constants import TIMEOUT_CODE, RPC_ERROR_CODE, ERROR_CODE_MAP
+from Constants import ERROR_CODE_MAP
  
 class WinCollector(PBDaemon):
 
