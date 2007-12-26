@@ -638,7 +638,7 @@ class ZenModelBase(object):
     def getIconPath(self):
         """
         Return the icon associated with this object.  The icon path is defined
-        in the zPropoerty zIcon.
+        in the zProperty zIcon.
         
         @return: Path to icon
         @rtype: string
