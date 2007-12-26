@@ -161,7 +161,7 @@ class RenderServer(RRDToolItem):
                 gopts.insert(0, '--end=%d' % end)
                 gopts.insert(0, '--start=%d' % start)
                 gopts.insert(0, filename)
-                log.error("opts: %r", (gopts,))
+                log.debug("opts: %r", (gopts,))
                 try:
                     rrdtool.graph(*gopts)
                 except Exception, ex:    
