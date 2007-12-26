@@ -38,7 +38,7 @@ def getOSProcessConf(dev):
         proc = Process()
         proc.name = p.id
         proc.originalName = p.name()
-        p.ignoreParameters = (
+        proc.ignoreParameters = (
             getattr(p.osProcessClass(), 'ignoreParameters', False))
         proc.restart = p.alertOnRestart()
         proc.severity = p.getFailSeverity()
