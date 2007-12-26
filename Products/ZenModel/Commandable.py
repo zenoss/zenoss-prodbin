@@ -24,6 +24,7 @@ from UserCommand import UserCommand
 from Acquisition import aq_base, aq_chain
 from Products.PageTemplates.Expressions import getEngine
 from Products.ZenUtils.ZenTales import talesCompile
+from Products.ZenUtils.Utils import unused
 from DateTime import DateTime
 import os
 import popen2
@@ -46,6 +47,7 @@ class Commandable:
     security.declareProtected(ZEN_DEFINE_COMMANDS_EDIT, 'manage_addUserCommand')
     def manage_addUserCommand(self, newId=None, desc='', cmd='', REQUEST=None):
         "Add a UserCommand to this device"
+        unused(desc, cmd)
         uc = None
         if newId:
             uc = UserCommand(newId)
@@ -214,7 +216,6 @@ class Commandable:
         ''' Redirect to the page which lists UserCommands
         for this Commandable object.
         '''
-        from Products.ZenUtils.Utils import unused
         unused(commandId)
         url = self.getUrlForUserCommands()
         if url:
