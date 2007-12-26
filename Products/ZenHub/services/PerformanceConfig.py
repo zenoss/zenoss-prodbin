@@ -22,6 +22,7 @@ from Acquisition import aq_parent
 from twisted.internet import defer
 
 from Procrastinator import Procrastinate
+from ThresholdMixin import ThresholdMixin
 
 ATTRIBUTES = (
     'id',
@@ -104,8 +105,7 @@ class SnmpConnInfo(pb.Copyable, pb.RemoteCopy):
 pb.setUnjellyableForClass(SnmpConnInfo, SnmpConnInfo)
         
 
-
-class PerformanceConfig(HubService):
+class PerformanceConfig(HubService, ThresholdMixin):
 
     def __init__(self, dmd, instance):
         HubService.__init__(self, dmd, instance)
@@ -116,7 +116,7 @@ class PerformanceConfig(HubService):
     def remote_propertyItems(self):
         return self.config.propertyItems()
 
-        
+
     def remote_getSnmpStatus(self, devname=None):
         "Return the failure counts for Snmp" 
         counts = {}
@@ -145,14 +145,6 @@ class PerformanceConfig(HubService):
 
     def remote_getDefaultRRDCreateCommand(self, *args, **kwargs):
         return self.config.getDefaultRRDCreateCommand(*args, **kwargs)
-
-
-    def remote_getThresholdClasses(self):
-        from Products.ZenModel.MinMaxThreshold import MinMaxThreshold
-        classes = [MinMaxThreshold]
-        for pack in self.dmd.packs():
-            classes += pack.getThresholdClasses()
-        return map(lambda c: c.__module__, classes)
 
 
     def notifyAll(self, device):

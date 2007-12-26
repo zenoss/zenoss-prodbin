@@ -13,14 +13,12 @@
 
 import time
 import re
-from socket import getfqdn
 
 from twisted.internet import reactor
 
 import Globals
 from Products.ZenHub.PBDaemon import FakeRemote, PBDaemon
-from Products.ZenEvents.ZenEventClasses import \
-     App_Start, App_Stop, Clear, Warning
+from Products.ZenEvents.ZenEventClasses import App_Start, Clear
 from Products.ZenUtils.Driver import drive, driveLater
 
 from Constants import TIMEOUT_CODE, RPC_ERROR_CODE, ERROR_CODE_MAP
@@ -45,7 +43,7 @@ class WinCollector(PBDaemon):
         self.log.info("Starting %s", self.name)
         self.sendEvent(dict(summary='Starting %s' % self.name,
                             eventClass=App_Start,
-                            device=getfqdn(),
+                            device=self.options.monitor,
                             severity=Clear,
                             component=self.name))
 
@@ -79,10 +77,12 @@ class WinCollector(PBDaemon):
         delay = time.time() - now
         if self.options.cycle:
             driveLater(max(0, self.cycleInterval() - delay), self.scanCycle)
-            self.rrdStats.gauge('scanTime', self.cycleInterval(), delay)
-            self.rrdStats.gauge('devices',
-                                self.cycleInterval(),
-                                len(self.devices))
+            self.sendEvents(
+                self.rrdStats.gauge('scanTime', self.cycleInterval(), delay) +
+                self.rrdStats.gauge('devices',
+                                    self.cycleInterval(),
+                                    len(self.devices))
+                )
         else:
             self.stop()
 
@@ -132,7 +132,12 @@ class WinCollector(PBDaemon):
             self.updateConfig(driver.next())
             yield self.configService().callRemote(self.deviceConfig)
             self.updateDevices(driver.next())
-            self.rrdStats.config(self.options.monitor, self.name)
+            
+            yield self.configService().callRemote('getThresholdClasses')
+            self.remote_updateThresholdClasses(driver.next())
+
+            yield self.configService().callRemote('getCollectorThresholds')
+            self.rrdStats.config(self.options.monitor, self.name, driver.next())
         except Exception, ex:
             self.log.exception("Error fetching config")
 

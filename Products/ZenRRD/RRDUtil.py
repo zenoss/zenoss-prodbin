@@ -14,8 +14,6 @@
 import logging
 log = logging.getLogger("zen.RRDUtil")
 
-from Products.ZenModel.PerformanceConf import performancePath
-
 def _checkUndefined(x):
     if x is None or x == '' or x == -1 or x == '-1':
         return 'U'
@@ -26,6 +24,10 @@ class RRDUtil:
         self.defaultRrdCreateCommand = defaultRrdCreateCommand
         self.defaultCycleTime = defaultCycleTime
         self.dataPoints = 0
+
+    def performancePath(self, path):
+        from Products.ZenModel.PerformanceConf import performancePath
+        return performancePath(path)
 
     def save(self, path, value, rrdType, rrdCommand=None, cycleTime=None,
              min='U', max='U'):
@@ -38,7 +40,7 @@ class RRDUtil:
         if cycleTime is None:
             cycleTime = self.defaultCycleTime
 
-        filename = performancePath(path) + '.rrd'
+        filename = self.performancePath(path) + '.rrd'
         if not rrdCommand:
             rrdCommand = self.defaultRrdCreateCommand
         if not os.path.exists(filename):

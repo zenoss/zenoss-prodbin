@@ -23,7 +23,6 @@ __version__ = "$Revision$"[11:-2]
 from socket import gethostbyname, getfqdn, gaierror
 
 import time
-import sys
 
 import Globals # make zope imports work
 
@@ -114,8 +113,7 @@ class ZenPing(ZCmdBase):
         self.configCycleInterval *= 60
         self.reconfigured = True
 
-        monitor = self.configpath.rsplit('/', 1)[-1]
-        self.rrdStats.config(monitor, 'zenping')
+        self.rrdStats.configWithMonitor('zenping', smc)
         
         reactor.callLater(self.configCycleInterval, self.loadConfig)
 
@@ -151,6 +149,11 @@ class ZenPing(ZCmdBase):
     def buildOptions(self):
         ZCmdBase.buildOptions(self)
         self.parser.add_option('--configpath',
+                               dest='configpath',
+                               default="Monitors/StatusMonitors/localhost",
+                               help="path to our monitor config ie: "
+                               "/Monitors/StatusMonitors/localhost")
+        self.parser.add_option('--monitor',
                                dest='configpath',
                                default="Monitors/StatusMonitors/localhost",
                                help="path to our monitor config ie: "
@@ -233,12 +236,13 @@ class ZenPing(ZCmdBase):
         evt = EventHeartbeat(getfqdn(), "zenping", timeout)
         self.sendEvent(evt)
         self.niceDoggie(self.cycleInterval)
-        self.rrdStats.gauge('cycleTime',
-                            self.cycleInterval,
-                            time.time() - self.start)
-        self.rrdStats.gauge('devices',
-                            self.cycleInterval,
-                            self.jobs)
+        for ev in (self.rrdStats.gauge('cycleTime',
+                                       self.cycleInterval,
+                                       time.time() - self.start) +
+                   self.rrdStats.gauge('devices',
+                                       self.cycleInterval,
+                                       self.jobs)):
+            self.sendEvent(ev)
 
     def pingSuccess(self, pj):
         "Callback for a good ping response"
@@ -365,8 +369,6 @@ def findIp():
     return '127.0.0.1'
 
 if __name__=='__main__':
-    if sys.platform == 'win32':
-        time.time = time.clock
     pm = ZenPing()
     pm.start()
     import logging

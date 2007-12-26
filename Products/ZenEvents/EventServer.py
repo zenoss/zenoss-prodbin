@@ -10,7 +10,6 @@
 # For complete information please visit: http://www.zenoss.com/oss/
 #
 ###########################################################################
-#! /usr/bin/env python 
 
 __doc__='''EventServer
 
@@ -70,8 +69,7 @@ class EventServer(ZCmdBase):
         ZCmdBase.__init__(self, keeproot=True)
         self.stats = Stats()
         self.zem = self.dmd.ZenEventManager
-        self.myfqdn = socket.getfqdn()
-        self.sendEvent(Event(device=self.myfqdn, 
+        self.sendEvent(Event(device=self.options.monitor, 
                                eventClass=App_Start, 
                                summary="%s started" % self.name,
                                severity=0,
@@ -80,8 +78,8 @@ class EventServer(ZCmdBase):
         self.log.info("started")
     
         self.rrdStats = DaemonStats()
-        self.rrdStats.config(self.myfqdn, self.name)
-        
+        monitor = self.dmd.Monitors.Performance._getOb(self.options.monitor)
+        self.rrdStats.configWithMonitor(self.name, monitor)
         self.reportCycle()
 
     def useUdpFileDescriptor(self, fd):
@@ -147,10 +145,10 @@ class EventServer(ZCmdBase):
         "wrapper for sending an event"
         self.zem._p_jar.sync()
         if type(evt) == dict:
-            evt['manager'] = self.myfqdn
+            evt['manager'] = self.options.monitor
             evt.update(kw)
         else:
-            evt.manager = self.myfqdn
+            evt.manager = self.options.monitor
             evt.__dict__.update(kw)
         self.zem.sendEvent(evt)
 
@@ -167,20 +165,21 @@ class EventServer(ZCmdBase):
         """Since we don't do anything on a regular basis, just
         push heartbeats regularly"""
         seconds = 60
-        evt = EventHeartbeat(self.myfqdn, self.name, 3*seconds)
+        evt = EventHeartbeat(self.options.monitor, self.name, 3*seconds)
         self.q.put(evt)
         self.niceDoggie(seconds)
         reactor.callLater(seconds, self.heartbeat)
         totalTime, totalEvents, maxTime = self.stats.report()
-        self.rrdStats.counter('events',
-                              seconds,
-                              totalEvents)
-        self.rrdStats.counter('totalTime',
-                              seconds,
-                              int(totalTime * 1000))
-        self.rrdStats.gauge('qsize',
-                            seconds,
-                            self.q.qsize())
+        for ev in (self.rrdStats.counter('events',
+                                         seconds,
+                                         totalEvents) +
+                   self.rrdStats.counter('totalTime',
+                                         seconds,
+                                         int(totalTime * 1000)) +
+                   self.rrdStats.gauge('qsize',
+                                       seconds,
+                                       self.q.qsize())):
+            self.sendEvent(**ev)
 
         
     def sigTerm(self, signum=None, frame=None):
@@ -207,7 +206,7 @@ class EventServer(ZCmdBase):
         'things to do at shutdown: thread cleanup, logs and events'
         self.q.put(None)
         self.report()
-        self.sendEvent(Event(device=self.myfqdn, 
+        self.sendEvent(Event(device=self.options.monitor, 
                              eventClass=App_Stop, 
                              summary="%s stopped" % self.name,
                              severity=4,
@@ -220,6 +219,11 @@ class EventServer(ZCmdBase):
                                type='int',
                                help='Number of seconds between the writing of statistics',
                                default=0)
+        self.parser.add_option(
+            '--monitor',
+            dest='monitor',
+            help='Name of the distributed monitor running this event generator',
+            default='localhost')
 
     def _wakeUpReactorAndHandleSignals(self):
         reactor.callLater(1.0, self._wakeUpReactorAndHandleSignals)

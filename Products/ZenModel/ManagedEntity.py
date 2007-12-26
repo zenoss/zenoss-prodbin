@@ -54,3 +54,4 @@ class ManagedEntity(ZenModelRM, DeviceResultInt, EventView, RRDView):
         """Overridden in lower classes if a device relationship exists.
         """
         return None
+

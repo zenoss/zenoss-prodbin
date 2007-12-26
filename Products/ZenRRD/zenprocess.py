@@ -258,21 +258,25 @@ class zenprocess(SnmpDaemon):
 
             self.rrd = RRDUtil(createCommand, self.processCycleInterval)
 
-            self.rrdStats.config(self.options.monitor,
-                                 self.name,
-                                 createCommand)
-
             yield self.model().callRemote('getThresholdClasses')
             self.remote_updateThresholdClasses(driver.next())
-        
+
+            yield self.model().callRemote('getCollectorThresholds')
+            self.rrdStats.config(self.options.monitor,
+                                 self.name,
+                                 driver.next(),
+                                 createCommand)
+
             devices = []
             if self.options.device:
                 devices = [self.options.device]
             yield self.model().callRemote('getOSProcessConf', devices)
             driver.next()
-            self.rrdStats.gauge('configTime',
-                                self.processConfigInterval,
-                                time.time() - now)
+            self.sendEvents(
+                self.rrdStats.gauge('configTime',
+                                    self.processConfigInterval,
+                                    time.time() - now)
+                )
 
         return drive(doFetchConfig)
 
@@ -431,6 +435,7 @@ class zenprocess(SnmpDaemon):
         # look for changes in pids
         before = Set(device.pids.keys())
         after = {}
+        import pdb; pdb.set_trace()
         for p in device.processes.values():
             for pid, (name, args) in procs:
                 if p.match(name, args):
@@ -585,11 +590,14 @@ class zenprocess(SnmpDaemon):
         log.info("Pulled process status for %d devices and %d processes",
                  len(devices), pids)
         SnmpDaemon.heartbeat(self)
-        self.rrdStats.counter('dataPoints',
-                              self.processCycleInterval,
-                              self.rrd.dataPoints)
-        self.rrdStats.gauge('pids', self.processCycleInterval, pids)
-        self.rrdStats.gauge('devices', self.processCycleInterval, len(devices))
+        self.sendEvents(
+            self.rrdStats.counter('dataPoints',
+                                  self.processCycleInterval,
+                                  self.rrd.dataPoints) + 
+            self.rrdStats.gauge('pids', self.processCycleInterval, pids) +
+            self.rrdStats.gauge('devices', self.processCycleInterval,
+                                len(devices))
+            )
 
 
     def connected(self):

@@ -112,15 +112,7 @@ class GraphPoint(ZenModelRM, ZenPackable):
             'graphPoint': self,
             }
         if thing:
-            if thing.meta_type == 'Device':
-                context['dev'] = thing
-                context['devId'] = thing.id
-            else:
-                context['comp'] = thing
-                context['compId'] = thing.id
-                context['compName'] = thing.name()
-                context['dev'] = thing.device()
-                context['devId'] = thing.device().id
+            thing.getRRDContextData(context)
         for key, value in kw.items():
             context[key] = value
         return context

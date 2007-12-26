@@ -199,7 +199,8 @@ class ZenHub(ZCmdBase):
                        severity=0)
         reactor.callLater(5, self.processQueue)
         self.rrdStats = DaemonStats()
-        self.rrdStats.config('localhost', 'zenhub')
+        perf = self.dmd.Monitors.Performance._getOb(self.options.monitor)
+        self.rrdStats.configWithMonitor('zenhub', perf)
 
 
     def zeoConnect(self):
@@ -404,6 +405,10 @@ class ZenHub(ZCmdBase):
                                type='string',
                                help='File where passwords are stored',
                                default=zenPath('etc','hubpasswd'))
+        self.parser.add_option('--monitor', 
+                               dest='monitor',
+                               help='Name of the distributed monitor this hub runs on',
+                               default='localhost')
 
 if __name__ == '__main__':
     z = ZenHub()

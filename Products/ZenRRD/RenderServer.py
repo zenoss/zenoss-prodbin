@@ -87,7 +87,6 @@ class RenderServer(RRDToolItem):
         file specified actually exists.  Return a list of commands which
         excludes commands referencing or depending on non-existent rrd files.
         """
-        import re
         newCmds = []
         badNames = Set()
         for cmd in cmds:

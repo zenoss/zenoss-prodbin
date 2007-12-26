@@ -99,6 +99,12 @@ class StatusMonitorConf(Monitor, StatusColor):
                 , 'action'        : 'editStatusMonitorConf'
                 , 'permissions'   : ("Manage DMD",)
                 },
+# StatusMonitor doesn't know how to make graphs             
+#                 { 'id'            : 'performance'
+#                 , 'name'          : 'Performance'
+#                 , 'action'        : 'viewDaemonPerformance'
+#                 , 'permissions'   : (permissions.view,)
+#                 },
                 { 'id'            : 'viewHistory'
                 , 'name'          : 'Modifications'
                 , 'action'        : 'viewHistory'
@@ -289,5 +295,5 @@ class StatusMonitorConf(Monitor, StatusColor):
         """set the last time the snmp monitor ran"""
         self.snmpHeartbeat.setDate()
 
-    
+
 InitializeClass(StatusMonitorConf)

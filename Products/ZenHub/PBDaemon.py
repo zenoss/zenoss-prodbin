@@ -66,10 +66,10 @@ class PBDaemon(ZenDaemon, pb.Referenceable):
     initialServices = ['EventService']
     heartbeatEvent = {'eventClass':Heartbeat}
     heartbeatTimeout = 60*3
-    rrdStats = DaemonStats()
     
     def __init__(self, noopts=0, keeproot=False):
         ZenDaemon.__init__(self, noopts, keeproot)
+        self.rrdStats = DaemonStats()
         self.perspective = None
         self.services = {}
         self.eventQueue = []
@@ -194,6 +194,9 @@ class PBDaemon(ZenDaemon, pb.Referenceable):
                 reactor.callLater(1, reactor.stop)
             else:
                 reactor.stop()
+
+    def sendEvents(self, events):
+        map(self.sendEvent, events)
         
     def sendEvent(self, event, **kw):
         ''' Add event to queue of events to be sent.  If we have an event
@@ -248,6 +251,15 @@ class PBDaemon(ZenDaemon, pb.Referenceable):
         self.stop()
         self.sigTerm()
 
+
+    def remote_updateThresholdClasses(self, classes):
+        from Products.ZenUtils.Utils import importClass
+        self.log.debug("Loading classes %s", classes)
+        for c in classes:
+            try:
+                importClass(c)
+            except ImportError:
+                self.log.exception("Unable to import class %s", c)
 
     def buildOptions(self):
         self.parser.add_option('--hub-host',

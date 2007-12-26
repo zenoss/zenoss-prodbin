@@ -173,6 +173,15 @@ class DeviceComponent(Lockable):
         return self.device()
 
 
+    def getRRDContextData(self, context):
+        context['comp'] = self
+        context['compId'] = self.id
+        context['compName'] = self.name()
+        if self.device():
+            context['dev'] = self.device()
+            context['devId'] = self.device().id
+
+
     def manage_afterAdd(self, item, container):
         """
         Device only propagates afterAdd if it is the added object.

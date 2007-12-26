@@ -62,15 +62,6 @@ class RRDDaemon(PBDaemon):
     def getDevicePingIssues(self):
         return self.eventService().callRemote('getDevicePingIssues')
 
-    def remote_updateThresholdClasses(self, classes):
-        from Products.ZenUtils.Utils import importClass
-        self.log.debug("Loading classes %s", classes)
-        for c in classes:
-            try:
-                importClass(c)
-            except ImportError:
-                self.log.exception("Unable to import class %s", c)
-
     def remote_setPropertyItems(self, items):
         self.log.debug("Async update of collection properties")
         self.setPropertyItems(items)

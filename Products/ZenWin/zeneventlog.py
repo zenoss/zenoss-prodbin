@@ -21,11 +21,11 @@ import Globals
 from WinCollector import WinCollector, TIMEOUT_CODE, RPC_ERROR_CODE
 from Products.ZenEvents.ZenEventClasses import Status_Wmi_Conn
 from Products.ZenEvents import Event
+from Products.ZenUtils.Utils import unused
 
 # needed for pb/jelly
 from Products.ZenHub.services import WmiConfig
-if 0:
-    WmiConfig = None                    # pyflakes
+unused(WmiConfig)
 
 class zeneventlog(WinCollector):
 
@@ -33,6 +33,7 @@ class zeneventlog(WinCollector):
 
     eventlogCycleInterval = 5*60
     attributes = WinCollector.attributes + ('eventlogCycleInterval',)
+    events = 0
 
     def __init__(self):
         WinCollector.__init__(self)
@@ -98,6 +99,7 @@ class zeneventlog(WinCollector):
                     lrec = w.nextEvent()
                     if not lrec.Message:
                         continue
+                    self.events += 1
                     self.sendEvent(self.mkevt(name, lrec))
             except pywintypes.com_error, e:
                 msg = "wmi connection failed: "
@@ -122,6 +124,13 @@ class zeneventlog(WinCollector):
         gc.collect()
         self.log.info("Com InterfaceCount: %d", pythoncom._GetInterfaceCount())
         self.log.info("Com GatewayCount: %d", pythoncom._GetGatewayCount())
+        cycle = self.cycleInterval()
+        for ev in (self.rrdStats.counter('events', cycle, self.events) +
+                   self.rrdStats.gauge('comInterfaceCount', cycle,
+                                       pythoncom._GetInterfaceCount()) +
+                   self.rrdStats.gauge('comGatewayCount', cycle,
+                                       pythoncom._GetGatewayCount())):
+            self.sendEvent
 
 
     def mkevt(self, name, lrec):

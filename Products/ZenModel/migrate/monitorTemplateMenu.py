@@ -14,12 +14,10 @@
 
 import Migrate
 
-class StatusMonitorMenus(Migrate.Step):
-    version = Migrate.Version(2, 1, 0)
-    
+class MonitorTemplateMenu(Migrate.Step):
+    version = Migrate.Version(2, 2, 0)
+
     def cutover(self, dmd):
-        
-        # Build menus
         dmd.buildMenus({  
             'PerformanceMonitor_list': [
                 {  'action': 'performanceTemplates',
@@ -36,6 +34,10 @@ class StatusMonitorMenus(Migrate.Step):
                    'permissions': ('View Device',),
                 }],
         })
-
-
-StatusMonitorMenus()
+        for c in dmd.Monitors.objectValues(spec='MonitorClass'):
+            c.buildRelations()
+        for c in dmd.Monitors.objectValues(spec='Monitor'):
+            c.buildRelations()
+        dmd.Monitors.buildRelations()
+        
+MonitorTemplateMenu()

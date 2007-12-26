@@ -119,4 +119,5 @@ import moveExportPackMenuItem
 import evenbettererstandarderrormessage
 import addBackupFilesListMenu
 import MoveHistoryToMoreMenu
+import monitorTemplateMenu
 import expandEventKeyColumn

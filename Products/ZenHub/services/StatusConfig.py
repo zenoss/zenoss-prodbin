@@ -18,6 +18,7 @@ from Products.ZenEvents.ZenEventClasses import Status_IpService
 from Products.ZenModel.Device import Device
 
 from Procrastinator import Procrastinate
+from ThresholdMixin import ThresholdMixin
 
 from twisted.internet import defer
 from sets import Set
@@ -37,7 +38,7 @@ class ServiceConfig(pb.Copyable, pb.RemoteCopy):
         self.key = svc.key()
 pb.setUnjellyableForClass(ServiceConfig, ServiceConfig)
 
-class StatusConfig(HubService):
+class StatusConfig(HubService, ThresholdMixin):
 
     def __init__(self, dmd, instance):
         HubService.__init__(self, dmd, instance)

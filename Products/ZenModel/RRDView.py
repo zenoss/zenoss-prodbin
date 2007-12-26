@@ -287,6 +287,9 @@ class RRDView(object):
     def fullRRDPath(self):
         from PerformanceConf import performancePath
         return performancePath(self.rrdPath())
+
+    def getRRDContextData(self, context):
+        return context
         
     def getThresholdInstances(self, dsType):
         result = []

@@ -25,10 +25,14 @@ from Globals import InitializeClass
 
 from ZenModelRM import ZenModelRM
 from DeviceManagerBase import DeviceManagerBase
+from RRDView import RRDView
 
-class Monitor(ZenModelRM, DeviceManagerBase):
+class Monitor(ZenModelRM, DeviceManagerBase, RRDView):
     meta_type = 'Monitor'
-    
+
+    def snmpIgnore(self):
+        return True
+
     def breadCrumbs(self, target='dmd'):
         from Products.ZenUtils.Utils import unused
         unused(target)
@@ -88,6 +92,38 @@ class Monitor(ZenModelRM, DeviceManagerBase):
                 return REQUEST['message']
             else:
                 return self.callZenScreen(REQUEST)
+
+    def rrdPath(self):
+        return 'Daemons/%s' % self.id
+
+    def getRRDContextData(self, context):
+        context['here'] = self
+        context['name'] = self.id
+        return context
+
+    def getGraphDefUrl(self, graph, drange=None, template=None):
+        """resolve template and graph names to objects 
+        and pass to graph performance"""
+        import types
+        if not drange: drange = self.defaultDateRange
+        templates = self.getRRDTemplates()
+        if template:
+            templates = [template]
+        if type(graph) in types.StringTypes:
+            for t in templates:
+                if hasattr(t.graphDefs, graph):
+                    template = t
+                    graph = getattr(t.graphDefs, graph)
+                    break
+        targetpath = self.rrdPath()
+        objpaq = self.primaryAq()
+        return self.performanceGraphUrl(objpaq, targetpath, template, graph, drange)
+
+
+    # FIXME: OMG this is such a hack to let thresholds instances be created against
+    # a monitor
+    def device(self):
+        return self
 
 
 InitializeClass(Monitor)

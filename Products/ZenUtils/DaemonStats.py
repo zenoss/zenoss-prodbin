@@ -13,8 +13,15 @@
 import Globals
 from Products.ZenUtils.Utils import zenPath
 
+# FIXME dependency from Utils to Thresholds
+from Products.ZenRRD.Thresholds import Thresholds
+
 import rrdtool
 import os
+import time
+
+def fullname(partial):
+    return zenPath('perf', partial + '.rrd')
 
 class DaemonStats:
     "Utility for a daemon to write out internal performance statistics"
@@ -24,9 +31,10 @@ class DaemonStats:
     rrdCreateCommand = ""
 
     def __init__(self):
-        pass
+        self.thresholds = Thresholds()
 
-    def config(self, name, monitor, rrdCreateCommand = None):
+
+    def config(self, name, monitor, thresholds, rrdCreateCommand = None):
         """Initialize the object.  We could do this in __init__, but
         that would delay creation to after configuration time, which
         may run asynchronously with collection or heartbeats.  By
@@ -43,15 +51,28 @@ class DaemonStats:
             self.createCommand = rrdCreateCommand
         else:
             self.createCommand = rrdCreateCommand.split('\n')
+        self.thresholds = Thresholds()
+        self.thresholds.updateList(thresholds)
 
 
-    def rrdFile(self, type, cycleTime, names, minVal = 'U', maxVal = 'U'):
-        """Create an RRD file if it does not exist."""
+    def configWithMonitor(self, name, monitor):
+        from Products.ZenModel.BuiltInDS import BuiltInDS
+        threshs = monitor.getThresholdInstances(BuiltInDS.sourcetype)
+        createCommand = getattr(monitor, 'defaultRRDCreateCommand', None)
+        self.config(monitor.id, name, threshs, createCommand)
+
+
+    def rrdFile(self, type, cycleTime, name, minVal = 'U', maxVal = 'U'):
+        """Create an RRD file if it does not exist.
+        Returns the basename of the rrdFile, suitable for checking thresholds.
+        """
         if not self.name: return None
-        directory = zenPath('perf', 'Daemons', *names[:-1])
+        base = os.path.join('Daemons', self.name)
+        directory = zenPath('perf', base)
         if not os.path.exists(directory):
             os.makedirs(directory)
-        fileName = os.path.join(directory, names[-1] + '.rrd')
+        base = os.path.join(base, '%s_%s' % (self.monitor, name))
+        fileName = fullname(base)
         if not os.path.exists(fileName):
             rrdtool.create(fileName,
                            'DS:ds0:%s:%s:%s:%s' % (type,
@@ -59,24 +80,31 @@ class DaemonStats:
                                                    minVal,
                                                    maxVal),
                            *self.createCommand)
-        return fileName
+        return base
+
     
-    def counter(self, counterName, cycleTime, value):
-        "Write a counter value"
-        fileName = self.rrdFile('DERIVE',
-                                cycleTime,
-                                (self.name, self.monitor),
-                                0)
+    def counter(self, name, cycleTime, value):
+        "Write a counter value, return threshold events"
+        fileName = self.rrdFile('DERIVE', cycleTime, name, 0)
         if fileName:
-            rrdtool.update(fileName, 'N:%s' % int(value))
-        return value
+            full = fullname(fileName)
+            rrdtool.update(full, 'N:%s' % int(value))
+            startStop, names, values = \
+                       rrdtool.fetch(full, 'AVERAGE',
+                                     '-s', 'now-%d' % (cycleTime*2),
+                                     '-e', 'now')
+            value = values[0][0]
+            if value is not None:
+                return self.thresholds.check(fileName, time.time(), value)
+        return []
 
-    def gauge(self, counterName, cycleTime, value):
-        "Write a gauge value"
-        fileName = self.rrdFile('GAUGE',
-                                cycleTime,
-                                (self.name, self.monitor))
+
+    def gauge(self, name, cycleTime, value):
+        "Write a gauge value, return threshold events"
+        fileName = self.rrdFile('GAUGE', cycleTime, name)
         if fileName:
-            rrdtool.update(fileName, 'N:%s' % value)
-        return value
-
+            full = fullname(fileName)
+            rrdtool.update(full, 'N:%s' % value)
+        if value is not None:
+            return self.thresholds.check(fileName, time.time(), value)
+        return []

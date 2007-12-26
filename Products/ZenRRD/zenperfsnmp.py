@@ -32,6 +32,7 @@ import cPickle
 from twisted.internet import reactor, defer
 
 import Globals
+from Products.ZenUtils.Utils import unused
 from Products.ZenUtils.Chain import Chain
 from Products.ZenUtils.Driver import drive, driveLater
 from Products.ZenModel.PerformanceConf import performancePath
@@ -43,7 +44,9 @@ from SnmpDaemon import SnmpDaemon
 
 from FileCleanup import FileCleanup
 
+# PerformanceConfig import needed to get pb to work
 from Products.ZenHub.services.PerformanceConfig import PerformanceConfig
+unused(PerformanceConfig)
 
 MAX_OIDS_PER_REQUEST = 40
 MAX_SNMP_REQUESTS = 20
@@ -333,7 +336,10 @@ class zenperfsnmp(SnmpDaemon):
 
         self.rrd = RRDUtil(createCommand, self.perfsnmpCycleInterval)
 
-        self.rrdStats.config(self.options.monitor, self.name, createCommand)
+        log.info("getting collector thresholds")
+        yield self.model().callRemote('getCollectorThresholds')
+        self.rrdStats.config(self.options.monitor, self.name, driver.next(),
+                             createCommand)
                 
         log.info("fetching snmp status")
         yield self.model().callRemote('getSnmpStatus', self.options.device)
@@ -346,9 +352,9 @@ class zenperfsnmp(SnmpDaemon):
             if result:
                 log.error("Error loading devices: %s", result)
         d.addBoth(report)
-        self.rrdStats.gauge('configTime',
-                            self.configCycleInterval,
-                            time.time() - now)
+        self.sendEvents(self.rrdStats.gauge('configTime',
+                                            self.configCycleInterval,
+                                            time.time() - now))
 
 
     def updateDeviceList(self, responses, requested):
@@ -517,10 +523,12 @@ class zenperfsnmp(SnmpDaemon):
         self.heartbeat()
         
         cycle = self.perfsnmpCycleInterval
-        self.rrdStats.gauge('success', cycle, success)
-        self.rrdStats.gauge('failed', cycle, failed)
-        self.rrdStats.gauge('cycletime', cycle, runtime)
-        self.rrdStats.counter('dataPoints', cycle, self.rrd.dataPoints)
+        self.sendEvents(
+            self.rrdStats.gauge('success', cycle, success) + 
+            self.rrdStats.gauge('failed', cycle, failed) +
+            self.rrdStats.gauge('cycleTime', cycle, runtime) +
+            self.rrdStats.counter('dataPoints', cycle, self.rrd.dataPoints)
+            )
 
 
     def startReadDevice(self, deviceName):

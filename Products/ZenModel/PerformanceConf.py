@@ -151,6 +151,11 @@ class PerformanceConf(Monitor, StatusColor):
                 , 'action'        : 'editPerformanceConf'
                 , 'permissions'   : ("Manage DMD",)
                 },
+                { 'id'            : 'performance'
+                , 'name'          : 'Performance'
+                , 'action'        : 'viewDaemonPerformance'
+                , 'permissions'   : (permissions.view,)
+                },
                 { 'id'            : 'viewHistory'
                 , 'name'          : 'Modifications'
                 , 'action'        : 'viewHistory'

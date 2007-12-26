@@ -22,13 +22,15 @@ from Products.ZenModel.Device import Device
 from Products.ZenModel.DeviceClass import DeviceClass
 
 from Procrastinator import Procrastinate
+from ThresholdMixin import ThresholdMixin
 
-class WmiConfig(HubService):
+class WmiConfig(HubService, ThresholdMixin):
     
     def __init__(self, dmd, instance):
         HubService.__init__(self, dmd, instance)
         self.config = self.dmd.Monitors.Performance._getOb(self.instance)
         self.procrastinator = Procrastinate(self.push)
+
 
     def remote_getDeviceWinInfo(self):
         """Return list of (devname,user,passwd,url) for each device.

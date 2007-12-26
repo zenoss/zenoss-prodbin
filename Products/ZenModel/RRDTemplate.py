@@ -20,6 +20,7 @@ from ZenModelRM import ZenModelRM
 
 from Products.ZenRelations.RelSchema import *
 from Products.ZenModel.BasicDataSource import BasicDataSource
+from Products.ZenModel.BuiltInDS import BuiltInDS
 from Products.ZenModel.ConfigurationError import ConfigurationError
 from RRDDataPoint import SEPARATOR
 from ZenPackable import ZenPackable
@@ -308,7 +309,7 @@ class RRDTemplate(ZenModelRM, ZenPackable):
 
 
     def getDataSourceClasses(self):
-        dsClasses = [BasicDataSource]
+        dsClasses = [BasicDataSource, BuiltInDS]
         for zp in self.dmd.packs():
             dsClasses += zp.getDataSourceClasses()
         return dsClasses

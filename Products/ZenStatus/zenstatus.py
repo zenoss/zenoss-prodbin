@@ -154,7 +154,14 @@ class ZenStatus(PBDaemon):
         yield self.configService().callRemote('getDefaultRRDCreateCommand')
         createCommand = driver.next()
 
-        self.rrdStats.config(self.options.monitor, self.name, createCommand)
+        self.log.info("getting threshold classes")
+        yield self.configService().callRemote('getThresholdClasses')
+        self.remote_updateThresholdClasses(driver.next())
+        
+        self.log.info("getting collector thresholds")
+        yield self.configService().callRemote('getCollectorThresholds')
+        self.rrdStats.config(self.options.monitor, self.name, driver.next(),
+                             createCommand)
 
         d = driveLater(self.configCycleInterval * 60, self.configCycle)
         d.addErrback(self.error)
@@ -226,15 +233,16 @@ class ZenStatus(PBDaemon):
                             device=getfqdn())
         self.sendEvent(heartbeatevt, timeout=self.statusCycleInterval*3)
         self.niceDoggie(self.statusCycleInterval)
-        self.rrdStats.gauge('cycleTime',
-                            self.statusCycleInterval,
-                            self.status.duration())
-        self.rrdStats.gauge('success',
-                            self.statusCycleInterval,
-                            success)
-        self.rrdStats.gauge('failed',
-                            self.statusCycleInterval,
-                            fail)
+        for ev in (self.rrdStats.gauge('cycleTime',
+                                       self.statusCycleInterval,
+                                       self.status.duration()) +
+                   self.rrdStats.gauge('success',
+                                       self.statusCycleInterval,
+                                       success) +
+                   self.rrdStats.gauge('failed',
+                                       self.statusCycleInterval,
+                                       fail)):
+            self.sendEvent(ev)
 
 
     def runSomeJobs(self):
