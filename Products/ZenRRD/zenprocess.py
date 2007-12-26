@@ -435,7 +435,6 @@ class zenprocess(SnmpDaemon):
         # look for changes in pids
         before = Set(device.pids.keys())
         after = {}
-        import pdb; pdb.set_trace()
         for p in device.processes.values():
             for pid, (name, args) in procs:
                 if p.match(name, args):
