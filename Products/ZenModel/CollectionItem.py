@@ -22,6 +22,7 @@ from Globals import DTMLFile
 from AccessControl import ClassSecurityInfo, Permissions
 from Products.ZenRelations.RelSchema import *
 from ZenModelRM import ZenModelRM
+from Products.ZenUtils.utils import unused
 
                                      
 def manage_addCollectionItem(context, id, deviceId, compPath, sequence,
@@ -29,6 +30,7 @@ def manage_addCollectionItem(context, id, deviceId, compPath, sequence,
     ''' This is here so than zope will let us copy/paste/rename
     CollectionItems.
     '''
+    unused(deviceId, compPath, sequence)
     ci = CollectionItem(id)
     context._setObject(id, ci)
     ci.deviceId = deviceId
