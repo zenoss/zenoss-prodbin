@@ -51,6 +51,8 @@ class CommentGraphPoint(GraphPoint):
                         multiid=-1, prefix=''):
         ''' Build the graphing commands for this graphpoint
         '''
+        from Products.ZenUtils.Utils import unused
+        unused(cmds, context, rrdDir, addSummary, idx, multiid, prefix)
         return cmds + ['COMMENT:%s' % self.text.replace(':', '\:')]
 
 
