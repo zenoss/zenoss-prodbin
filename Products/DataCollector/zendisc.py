@@ -273,7 +273,7 @@ class ZenDisc(ZenModeler):
 	    try:
 	    	exec(script, vars)
 	    except:
-		log.error("error executing zAutoAllocateScript:\n%s" % script)
+		self.log.error("error executing zAutoAllocateScript:\n%s" % script)
 		return
 	    transaction.commit()	
 	return 
