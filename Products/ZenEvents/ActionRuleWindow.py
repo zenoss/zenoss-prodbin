@@ -19,6 +19,7 @@ from Globals import DTMLFile
 from AccessControl import Permissions
 from Products.ZenModel.MaintenanceWindow import MaintenanceWindow
 from Products.ZenRelations.RelSchema import *
+from Products.ZenUtils.utils import unused
 
 def manage_addActionRuleWindow(context, id, REQUEST=None):
     """Create an aciton rule"""
@@ -83,6 +84,9 @@ class ActionRuleWindow(MaintenanceWindow):
                                      REQUEST=None, 
                                    **kw):
         "Update the ActionRuleWindow from GUI elements"
+        unused(startDate, startHours, startMinutes,
+               durationDays, durationHours, durationMinutes,
+               repeat, kw, enabled)
         args = locals().copy()
         for name in 'self kw'.split(): del args[name]
         result = self.manage_editMaintenanceWindow(**args)
