@@ -35,7 +35,8 @@ class IDeviceManager:
         Move a list of devices from this DeviceManager to another.
         """
 
-    def removeDevices(self, deviceNames=None, REQUEST=None):
+    def removeDevices(self, deviceNames=None, deleteStatus=False, 
+                      deleteHistory=False, deletePerf=False, REQUEST=None):
         """
         Remove devices from this DeviceManager.
         """

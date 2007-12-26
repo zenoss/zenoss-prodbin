@@ -29,7 +29,8 @@ class DeviceManagerBase:
         """see IManageDevice"""
         raise NotImplementedError
     
-    def removeDevices(self, deviceNames=None, REQUEST=None):
+    def removeDevices(self, deviceNames=None, deleteStatus=False, 
+                      deleteHistory=False, deletePerf=False,REQUEST=None):
         """see IManageDevice"""
         if not deviceNames: return self()
         if type(deviceNames) in types.StringTypes: deviceNames = (deviceNames,)
