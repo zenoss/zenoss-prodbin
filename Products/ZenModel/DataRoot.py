@@ -748,6 +748,7 @@ class DataRoot(ZenModelRM, OrderedFolder, Commandable, ZenMenuable):
                     
             if child.poll() == -1:
                 write('Backup timed out after %s seconds.' % timeout)
+                import signal
                 os.kill(child.pid, signal.SIGKILL)
 
             write('DONE')
@@ -765,7 +766,6 @@ class DataRoot(ZenModelRM, OrderedFolder, Commandable, ZenMenuable):
         Delete the specified files from $ZENHOME/backups
         """
         backupsDir = zenPath('backups')
-        fileInfo = []
         count = 0
         if os.path.isdir(backupsDir):
             for dirPath, dirNames, dirFileNames in os.walk(backupsDir):
