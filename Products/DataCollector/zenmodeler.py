@@ -22,6 +22,7 @@ import DateTime
 from twisted.internet import reactor
 
 from Products.ZenUtils.ZCmdBase import ZCmdBase
+from Products.ZenUtils.DaemonStats import DaemonStats
 from Products.ZenEvents.ZenEventClasses import Heartbeat
 
 from ApplyDataMap import ApplyDataMap, ApplyDataMapThread
@@ -59,6 +60,7 @@ class ZenModeler(ZCmdBase):
         else:
             self.log.debug("Run in foreground, starting immediately.")
             
+        self.rrdStats = DaemonStats()
         self.single = single
         if self.options.device:
             self.single = True
@@ -245,6 +247,7 @@ class ZenModeler(ZCmdBase):
     def addClient(self, obj, timeout, clientType, name):
         if obj:
             obj.timeout = timeout
+            obj.timedOut = False
             self.clients.append(obj)
             obj.run()
         else:
@@ -310,12 +313,18 @@ class ZenModeler(ZCmdBase):
         if self.options.cycle:
             evt = dict(eventClass=Heartbeat,
                        component='zenmodeler',
-                       device=socket.getfqdn(),
+                       device=self.options.monitor,
                        timeout=self.cycletime*3)
-            if self.dmd:
-                self.dmd.ZenEventManager.sendEvent(evt)
+            self.sendEvent(evt)
             self.niceDoggie(self.cycletime)
 
+    def sendEvent(self, evt):
+        if self.dmd:
+            self.dmd.ZenEventManager.sendEvent(evt)
+
+    def sendEvents(self, evts):
+        if self.dmd:
+            self.dmd.ZenEventManager.sendEvents(evts)
 
     def checkStop(self):
         "if there's nothing left to do, maybe we should terminate"
@@ -325,6 +334,13 @@ class ZenModeler(ZCmdBase):
         if self.start:
             runTime = time.time() - self.start
             self.log.info("scan time: %0.2f seconds", runTime)
+            devices = len(self.finished)
+            timedOut = len([c for c in finished if c.timedOut])
+            self.sendEvents(
+                self.rrdStats.gauge('cycleTime', self.cycletime, runTime) +
+                self.rrdStats.gauge('devices', self.cycletime, devices) +
+                self.rrdStats.gauge('timedOut', self.cycletime, timedOut)
+                )
             self.start = None
             if not self.options.cycle:
                 self.stop()
@@ -398,6 +414,7 @@ class ZenModeler(ZCmdBase):
                 dest='now', action="store_true", default=False,
                 help="start daemon now, do not sleep before starting")
         self.parser.add_option('--monitor',
+                default='localhost',
                 dest='monitor',
                 help='Name of monitor instance to use for configuration retrevial OR Performance Monitor to set at discovery time.')
         TelnetClient.buildOptions(self.parser, self.usage)
@@ -418,6 +435,7 @@ class ZenModeler(ZCmdBase):
             if client.timeout < time.time():
                 self.log.warn("client %s timeout", client.hostname)
                 self.finished.append(client)
+                client.timedOut = True
             else:
                 active.append(client)
         self.clients = active
@@ -465,8 +483,9 @@ class ZenModeler(ZCmdBase):
             self.devicegen = iter([self.resolveDevice(self.options.device)])
         elif self.options.monitor:
             self.log.info("collecting for monitor %s", self.options.monitor)
-            self.devicegen = getattr(self.dmd.Monitors.Performance,
-                    self.options.monitor).devices.objectValuesGen()
+            monitor = self.dmd.Monitors.Performance._getOb(self.options.monitor)
+            self.devicegen = monitor.devices.objectValuesGen()
+            self.rrdStats.configWithMonitor('zenmodeler', monitor)
         else:
             self.log.info("collecting for path %s", self.options.path)
             root = self.dmd.Devices.getOrganizer(self.options.path)
