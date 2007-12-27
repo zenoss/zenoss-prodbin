@@ -335,7 +335,7 @@ class ZenModeler(ZCmdBase):
             runTime = time.time() - self.start
             self.log.info("scan time: %0.2f seconds", runTime)
             devices = len(self.finished)
-            timedOut = len([c for c in finished if c.timedOut])
+            timedOut = len([c for c in self.finished if c.timedOut])
             self.sendEvents(
                 self.rrdStats.gauge('cycleTime', self.cycletime, runTime) +
                 self.rrdStats.gauge('devices', self.cycletime, devices) +
