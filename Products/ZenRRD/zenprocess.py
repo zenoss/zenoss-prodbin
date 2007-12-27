@@ -233,6 +233,8 @@ class zenprocess(SnmpDaemon):
     processConfigInterval = 20*60
     processCycleInterval = 5*60
     properties = SnmpDaemon.properties + ('processCycleInterval',)
+    missing = 0
+    restarted = 0
 
     def __init__(self):
         SnmpDaemon.__init__(self, 'zenprocess')
@@ -450,6 +452,7 @@ class zenprocess(SnmpDaemon):
             config = device.pids[p]
             config.discardPid(p)
             if afterByConfig.has_key(config):
+                self.restarted += 1
                 if config.restart:
                     summary = 'Process restarted: %s' % config.originalName
                     self.sendEvent(self.statusEvent,
@@ -479,6 +482,7 @@ class zenprocess(SnmpDaemon):
         # no pids for a config
         for config in device.processes.values():
             if not afterByConfig.has_key(config):
+                self.missing += 1
                 config.status += 1
                 summary = 'Process not running: %s' % config.originalName
                 self.sendEvent(self.statusEvent,
@@ -589,13 +593,13 @@ class zenprocess(SnmpDaemon):
         log.info("Pulled process status for %d devices and %d processes",
                  len(devices), pids)
         SnmpDaemon.heartbeat(self)
+        cycle = self.processCycleInterval
         self.sendEvents(
-            self.rrdStats.counter('dataPoints',
-                                  self.processCycleInterval,
-                                  self.rrd.dataPoints) + 
-            self.rrdStats.gauge('pids', self.processCycleInterval, pids) +
-            self.rrdStats.gauge('devices', self.processCycleInterval,
-                                len(devices))
+            self.rrdStats.counter('dataPoints', cycle, self.rrd.dataPoints) + 
+            self.rrdStats.gauge('pids', cycle, pids) +
+            self.rrdStats.gauge('devices', cycle, len(devices)) +
+            self.rrdStats.gauge('missing', cycle, self.missing) + 
+            self.rrdStats.gauge('restarted', cycle, self.restarted)
             )
 
 
