@@ -118,6 +118,7 @@ class Process(pb.Copyable, pb.RemoteCopy):
     severity = Event.Warning
     status = 0
     cpu = 0
+    cycleTime = None
 
     def __init__(self):
         self.pids = {}
@@ -512,8 +513,10 @@ class zenprocess(SnmpDaemon):
             log.error(msg)
             return
 
+        start = time.time()
+
         def doPeriodic(driver):
-            
+
             yield self.getDevicePingIssues()
             self.downDevices = Set([d[0] for d in driver.next()])
 
@@ -529,6 +532,7 @@ class zenprocess(SnmpDaemon):
                     log.error("Error scanning device: %s", result)
                     break
             else:
+                self.cycleTime = time.time() - start
                 self.heartbeat()
 
         drive(doPeriodic).addCallback(checkResults)
@@ -599,7 +603,8 @@ class zenprocess(SnmpDaemon):
             self.rrdStats.gauge('pids', cycle, pids) +
             self.rrdStats.gauge('devices', cycle, len(devices)) +
             self.rrdStats.gauge('missing', cycle, self.missing) + 
-            self.rrdStats.gauge('restarted', cycle, self.restarted)
+            self.rrdStats.gauge('restarted', cycle, self.restarted) +
+            self.rrdStats.gauge('cycleTime', cycle, self.cycleTime)
             )
 
 
