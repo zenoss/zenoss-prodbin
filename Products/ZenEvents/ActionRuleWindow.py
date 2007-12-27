@@ -19,7 +19,7 @@ from Globals import DTMLFile
 from AccessControl import Permissions
 from Products.ZenModel.MaintenanceWindow import MaintenanceWindow
 from Products.ZenRelations.RelSchema import *
-from Products.ZenUtils.utils import unused
+from Products.ZenUtils.Utils import unused
 
 def manage_addActionRuleWindow(context, id, REQUEST=None):
     """Create an aciton rule"""
