@@ -600,6 +600,7 @@ class zenprocess(SnmpDaemon):
         cycle = self.processCycleInterval
         self.sendEvents(
             self.rrdStats.counter('dataPoints', cycle, self.rrd.dataPoints) + 
+            self.rrdStats.gauge('cyclePoints', cycle, self.rrd.endCycle()) + 
             self.rrdStats.gauge('pids', cycle, pids) +
             self.rrdStats.gauge('devices', cycle, len(devices)) +
             self.rrdStats.gauge('missing', cycle, self.missing) + 

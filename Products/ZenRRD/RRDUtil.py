@@ -24,6 +24,12 @@ class RRDUtil:
         self.defaultRrdCreateCommand = defaultRrdCreateCommand
         self.defaultCycleTime = defaultCycleTime
         self.dataPoints = 0
+        self.cycleDataPoints = 0
+
+    def endCycle(self):
+        result = self.cycleDataPoints
+        self.cycleDataPoints = 0
+        return result
 
     def performancePath(self, path):
         from Products.ZenModel.PerformanceConf import performancePath

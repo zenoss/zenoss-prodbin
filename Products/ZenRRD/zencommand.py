@@ -449,6 +449,9 @@ class zencommand(RRDDaemon):
         events += self.rrdStats.counter('dataPoints',
                                         self.heartbeatTimeout,
                                         self.rrd.dataPoints)
+        events += self.rrdStats.gauge('cyclePoints',
+                                      self.heartbeatTimeout,
+                                      self.rrd.endCycle())
         self.sendEvents(events)
         
 

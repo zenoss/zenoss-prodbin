@@ -527,7 +527,8 @@ class zenperfsnmp(SnmpDaemon):
             self.rrdStats.gauge('success', cycle, success) + 
             self.rrdStats.gauge('failed', cycle, failed) +
             self.rrdStats.gauge('cycleTime', cycle, runtime) +
-            self.rrdStats.counter('dataPoints', cycle, self.rrd.dataPoints)
+            self.rrdStats.counter('dataPoints', cycle, self.rrd.dataPoints) +
+            self.rrdStats.gauge('cyclePoints', cycle, self.rrd.endCycle())
             )
 
 
