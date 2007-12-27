@@ -111,7 +111,6 @@ class GraphReport(ZenModelRM):
                 i += 1
             return candidate
 
-        msg = ''
         if isinstance(deviceIds, basestring):
             deviceIds = [deviceIds]
         if isinstance(componentPaths, basestring):
@@ -133,8 +132,6 @@ class GraphReport(ZenModelRM):
                             self.elements._setObject(ge.id, ge)
             
         if REQUEST:
-            if msg:
-                REQUEST['message'] = msg
             return self.callZenScreen(REQUEST)
 
 
