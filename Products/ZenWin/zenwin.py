@@ -16,14 +16,15 @@ from wmiclient import WMI
 import pywintypes
 
 import Globals
-from WinCollector import WinCollector, TIMEOUT_CODE
+from WinCollector import WinCollector
+from Constants import TIMEOUT_CODE
 from Products.ZenEvents.ZenEventClasses import Status_Wmi_Conn, Status_WinService
 from Products.ZenEvents import Event
+from Products.ZenUtils.Utils import unused
 
 # needed for pb/jelly 
 from Products.ZenHub.services import WmiConfig
-if 0:
-    WmiConfig = None                    # pyflakes
+unused(WmiConfig)
 
 
 ERRtimeout = 1726

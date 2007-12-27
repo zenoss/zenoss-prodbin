@@ -18,7 +18,8 @@ import pythoncom
 import wmiclient
 
 import Globals
-from WinCollector import WinCollector, TIMEOUT_CODE, RPC_ERROR_CODE
+from WinCollector import WinCollector
+from Constants import TIMEOUT_CODE, RPC_ERROR_CODE
 from Products.ZenEvents.ZenEventClasses import Status_Wmi_Conn
 from Products.ZenEvents import Event
 from Products.ZenUtils.Utils import unused
