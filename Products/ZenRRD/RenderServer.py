@@ -98,7 +98,7 @@ class RenderServer(RRDToolItem):
                     parts = rrdFile.split('/')
                     try:
                         devIndex = parts.index('Devices') + 1
-                    except IndexError:
+                    except ValueError:
                         devIndex = -1
                     devName = devIndex > 0 and parts[devIndex] or ''
                     compIndex = len(parts) - 2
