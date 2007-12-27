@@ -39,5 +39,11 @@ class MonitorTemplateMenu(Migrate.Step):
         for c in dmd.Monitors.objectValues(spec='Monitor'):
             c.buildRelations()
         dmd.Monitors.buildRelations()
+        if len(dmd.Monitors.rrdTemplates()) == 0:
+            from Products.ZenRelations.ImportRM import ImportRM
+            from Products.ZenUtils.Utils import zenPath
+            template = zenPath('Products/ZenModel/migrate/monitorTemplate.xml')
+            im = ImportRM(noopts=True, app=dmd.zport)
+            im.loadObjectFromXML(xmlfile=template)
         
 MonitorTemplateMenu()
