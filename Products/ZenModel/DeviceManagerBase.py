@@ -32,6 +32,8 @@ class DeviceManagerBase:
     def removeDevices(self, deviceNames=None, deleteStatus=False, 
                       deleteHistory=False, deletePerf=False,REQUEST=None):
         """see IManageDevice"""
+        from Products.ZenUtils.Utils import unused
+        unused(deleteHistory, deletePerf, deleteStatus)
         if not deviceNames: return self()
         if type(deviceNames) in types.StringTypes: deviceNames = (deviceNames,)
         for devname in deviceNames:
