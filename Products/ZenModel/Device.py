@@ -99,17 +99,26 @@ def manage_createDevice(context, deviceName, devicePath="/Discovered",
         log.debug("device version = %s", zSnmpVer)
         log.debug("device name = %s", snmpname)
         if not deviceName:
+            # use the ptr record we already have
             try:
-                if snmpname and socket.gethostbyname(snmpname):
-                    deviceName = snmpname
+                ptrName = ''
+                if ipobj and ipobj.ptrName:
+                    ptrName = ipobj.ptrName
+                if ptrName and socket.gethostbyname(ptrName):
+                    deviceName = ptrName
             except socket.error: pass
+            
+            # lookup the ptr record
             try:
-                if (not deviceName and ipobj and ipobj.ptrName
-                    and socket.gethostbyname(ipobj.ptrName)):
-                    deviceName = ipobj.ptrName
+                if not deviceName and ip:
+                    deviceName = socket.gethostbyaddr(ip)[0]
             except socket.error: pass
+
+            # use the snmpname
             if not deviceName and snmpname:
                 deviceName = snmpname
+
+            # give up: use ip
             if not deviceName:
                 log.warn("unable to name device using ip '%s'", ip)
                 deviceName = ip
