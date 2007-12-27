@@ -49,6 +49,7 @@ class ZenDaemon(CmdBase):
     
     def __init__(self, noopts=0, keeproot=False):
         CmdBase.__init__(self, noopts)
+        self.pidfile = 'unknown'
         self.keeproot=keeproot
         self.reporter = None
         from twisted.internet import reactor
@@ -57,16 +58,15 @@ class ZenDaemon(CmdBase):
             if self.options.daemon:
                 self.changeUser()
                 self.becomeDaemon()
-        if self.options.watchdog:
-            self.becomeWatchdog()
         # if we are daemonizing, or child of a watchdog:
         if self.options.daemon or self.options.watchdogPath:
            try:
-              self.pidfile = 'unknown'
               self.writePidFile()
            except OSError:
               raise SystemExit("ERROR: unable to open pid file %s" %
                                self.pidfile)
+        if self.options.watchdog:
+            self.becomeWatchdog()
 
 
     def openPrivilegedPort(self, *address):
@@ -80,7 +80,10 @@ class ZenDaemon(CmdBase):
 
     def writePidFile(self):
         myname = sys.argv[0].split(os.sep)[-1] + ".pid"
-        self.pidfile =  zenPath("var", myname)
+        if self.options.watchdog:
+           self.pidfile =  zenPath("var", 'watchdog-%s' % myname)
+        else:
+           self.pidfile =  zenPath("var", myname)
         fp = open(self.pidfile, 'w')
         fp.write(str(os.getpid()))
         fp.close()
