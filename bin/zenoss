@@ -107,6 +107,7 @@ case "$FUNC" in
   stop)
         CMDS=`reverse $CMDS`
         issue
+	rm -f $ZENHOME/var/.*watchdog-*
         ;;
   restart)
         CMDS=`reverse $CMDS`

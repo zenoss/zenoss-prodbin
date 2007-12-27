@@ -71,16 +71,30 @@ run() {
 }
 
 stop() {
+    WATCHDOGPID=`dirname $PIDFILE`/watchdog-`basename $PIDFILE`
+    KILLED=1
+    echo stopping...
+    # first, kill any watchdog
+    if [ -f $WATCHDOGPID ] ; then
+	kill -INT `cat $WATCHDOGPID`
+	KILLED=$?
+	rm -f $WATCHDOGPID
+    fi
     if running; then
-        PID=`cat $PIDFILE`
-        echo stopping...
-        kill -INT $PID
-        if [ $? -gt 0 ]; then
-            rm -f $PIDFILE
-            echo clearing pid file
+        # kill the daemon
+        PID=`cat $PIDFILE 2>/dev/null`
+	if [ x"$PID" != x ] ; then
+	    kill -INT $PID
+	    if [ $? -gt 0 ]; then
+		rm -f $PIDFILE
+		echo clearing pid file
+	    fi
         fi
     else
-        echo already stopped
+	# probably stopped by the watchdog
+        if [ "$KILLED" -ne 0 ] ; then
+	   echo already stopped
+        fi
     fi
 }
 
