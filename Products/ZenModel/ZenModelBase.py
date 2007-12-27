@@ -327,8 +327,6 @@ class ZenModelBase(object):
         [{'action': 'deviceOrganizerStatus', 'selected': True, 
             'name': 'Classes', 'permissions': ('View',)}, 
         {'action': 'viewEvents', 'name': 'Events', 'permissions': ('View',)}, 
-        {'action': 'viewHistoryEvents', 'name': 'History', 
-            'permissions': ('View',)}, 
         {'action': 'zPropertyEdit', 'name': 'zProperties', 
             'permissions': ('View',)}, 
         {'action': 'perfConfig', 'name': 'Templates', 
