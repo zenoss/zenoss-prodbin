@@ -57,7 +57,8 @@ class ZenModeler(ZCmdBase):
                 self.log.debug("Run as a daemon, slept %s sec, starting now." % defaultStartSleep)
         else:
             self.log.debug("Run in foreground, starting immediately.")
-            
+
+        self.start = time.time()
         self.rrdStats = DaemonStats()
         self.single = single
         if self.options.device:
@@ -308,13 +309,17 @@ class ZenModeler(ZCmdBase):
 
 
     def heartbeat(self):
+        ARBITRARY_BEAT = 30
+        reactor.callLater(ARBITRARY_BEAT, self.heartbeat)
         if self.options.cycle:
-            evt = dict(eventClass=Heartbeat,
-                       component='zenmodeler',
-                       device=self.options.monitor,
-                       timeout=self.cycletime*3)
-            self.sendEvent(evt)
-            self.niceDoggie(self.cycletime)
+            # as long as we started recently, send a heartbeat
+            if time.time() - self.start < self.cycletime*3:
+                evt = dict(eventClass=Heartbeat,
+                           component='zenmodeler',
+                           device=self.options.monitor,
+                           timeout=3*ARBITRARY_BEAT)
+                self.sendEvent(evt)
+                self.niceDoggie(self.cycletime)
 
     def sendEvent(self, evt):
         if self.dmd:
@@ -342,7 +347,6 @@ class ZenModeler(ZCmdBase):
             self.start = None
             if not self.options.cycle:
                 self.stop()
-            self.heartbeat()
 
     def fillCollectionSlots(self):
         """If there are any free collection slots fill them up
