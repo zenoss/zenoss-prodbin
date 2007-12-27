@@ -179,7 +179,7 @@ class EventServer(ZCmdBase):
                    self.rrdStats.gauge('qsize',
                                        seconds,
                                        self.q.qsize())):
-            self.sendEvent(**ev)
+            self.sendEvent(ev)
 
         
     def sigTerm(self, signum=None, frame=None):

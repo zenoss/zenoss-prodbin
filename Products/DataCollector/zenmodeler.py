@@ -14,8 +14,6 @@
 import time
 import types
 import re
-import socket
-
 import Globals
 import transaction
 import DateTime

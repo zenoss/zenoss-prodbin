@@ -83,7 +83,7 @@ class ZenTrap(EventServer):
         twistedsnmp.updateReactor()
         self.heartbeat()
 
-    def doHandleRequest(self, event, ts):
+    def doHandleRequest(self, event, unused):
         'Events are processed asynchronously in a thread'
         self.sendEvent(event)
 

@@ -1845,6 +1845,7 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
         # We are abandoning this proc to do it's thing. or not.  We don't
         # want to block because we would delay user feedback on a device
         # delete when this might take a while to perform.
+        unused(proc)
         if REQUEST:
             REQUEST['message'] = 'Deleted historical events'
             return self.callZenScreen(REQUEST)

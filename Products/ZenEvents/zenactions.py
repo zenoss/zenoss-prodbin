@@ -325,7 +325,7 @@ class ZenActions(ZCmdBase):
         import transaction
         import subprocess
         
-        def onSuccess(result, startTime):
+        def onSuccess(unused, startTime):
             self.log.info('Done deleting historical events in %.2f seconds' %
                             (time.time() - startTime))
             return None

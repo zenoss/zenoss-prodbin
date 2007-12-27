@@ -50,7 +50,7 @@ class ZenDeleteHistory(ZenScriptBase):
             try:
                 self.options.numDays = int(self.options.numDays)
             except ValueError:
-                raise 'numDays argument must be an integer'
+                raise ValueError('numDays argument must be an integer')
         
         self.connect()
         

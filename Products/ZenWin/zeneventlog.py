@@ -131,7 +131,7 @@ class zeneventlog(WinCollector):
                                        pythoncom._GetInterfaceCount()) +
                    self.rrdStats.gauge('comGatewayCount', cycle,
                                        pythoncom._GetGatewayCount())):
-            self.sendEvent
+            self.sendEvent(ev)
 
 
     def mkevt(self, name, lrec):

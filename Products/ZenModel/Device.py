@@ -997,6 +997,7 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
         """
         self.hw.tag = tag
         self.hw.serialNumber = serialNumber
+        unused(zSnmpCommunity, zSnmpVer, zSnmpPort)
         for prop in ('zSnmpCommunity', 'zSnmpVer', 'zSnmpPort'):
             passedIn = locals()[prop]
             if passedIn and getattr(self, prop) != passedIn:
