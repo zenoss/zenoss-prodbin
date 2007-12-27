@@ -84,7 +84,6 @@ class MonitorClass(ZenModelRM, Folder):
 
     def __init__(self, id, title=None, buildRelations=True):
         ZenModelRM.__init__(self, id, title, buildRelations)
-        self.rrdTemplate = RRDTemplate()
 
     def getStatusMonitor(self, monitorName):
         """get or create the status monitor name"""
