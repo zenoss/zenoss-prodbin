@@ -42,6 +42,7 @@ class RRDUtil:
         if value is None: return None
 
         self.dataPoints += 1
+        self.cycleDataPoints += 1
 
         if cycleTime is None:
             cycleTime = self.defaultCycleTime
