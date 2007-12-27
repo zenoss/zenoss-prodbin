@@ -78,7 +78,7 @@ class WinCollector(PBDaemon):
         if self.options.cycle:
             driveLater(max(0, self.cycleInterval() - delay), self.scanCycle)
             self.sendEvents(
-                self.rrdStats.gauge('scanTime', self.cycleInterval(), delay) +
+                self.rrdStats.gauge('cycleTime', self.cycleInterval(), delay) +
                 self.rrdStats.gauge('devices',
                                     self.cycleInterval(),
                                     len(self.devices))
