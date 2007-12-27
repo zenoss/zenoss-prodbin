@@ -80,7 +80,7 @@ class TestIpRouteEntry(ZenModelBaseTest):
         self.assert_(self.rEntry.getTarget() == '1.2.3.0/24')
         self.assert_(self.rEntry.matchTarget('1.2.3.0'))
         self.assert_(self.rEntry.getTargetIp() == '1.2.3.0')
-        self.assert_(self.rEntry.getTargetLink() == "<a href='/zport/dmd/Networks/1.2.3.0'>1.2.3.0/24</a>")
+        self.assert_(self.rEntry.getTargetLink() == '<a href="/zport/dmd/Networks/1.2.3.0">1.2.3.0/24</a>')
         #TODO(?): test setTarget locally
 
 
