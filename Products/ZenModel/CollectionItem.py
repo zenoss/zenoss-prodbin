@@ -22,7 +22,7 @@ from Globals import DTMLFile
 from AccessControl import ClassSecurityInfo, Permissions
 from Products.ZenRelations.RelSchema import *
 from ZenModelRM import ZenModelRM
-from Products.ZenUtils.utils import unused
+from Products.ZenUtils.Utils import unused
 
                                      
 def manage_addCollectionItem(context, id, deviceId, compPath, sequence,
