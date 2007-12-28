@@ -560,7 +560,7 @@ class zenperfsnmp(SnmpDaemon):
                 severity=Critical,
                 device=self.options.monitor,
                 eventClass=Status_RRD,
-                message=message))
+                summary=message))
         else:
             self.sendEvent(dict(
                 severity=Clear, 
