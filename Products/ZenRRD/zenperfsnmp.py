@@ -557,11 +557,16 @@ class zenperfsnmp(SnmpDaemon):
             filenames = [f.lstrip(root) for f in self.oldFiles]
             message = 'RRD files not updated: ' + ' '.join(filenames)
             self.sendEvent(dict(
-                severity=Critical, eventClass=Status_RRD, message=message))
+                severity=Critical,
+                device=self.options.monitor,
+                eventClass=Status_RRD,
+                message=message))
         else:
-            self.sendEvent(
-                dict(severity=Clear, eventClass=Status_RRD,
-                     summary='All RRD files have been recently update'))
+            self.sendEvent(dict(
+                severity=Clear, 
+                device=self.options.monitor,
+                eventClass=Status_RRD,
+                summary='All RRD files have been recently update'))
 
 
     def startReadDevice(self, deviceName):
