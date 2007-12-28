@@ -555,7 +555,7 @@ class zenperfsnmp(SnmpDaemon):
         if self.oldFiles:
             root = performancePath('')
             filenames = [f.lstrip(root) for f in self.oldFiles]
-            message = 'RRD files not updated: '.join(filenames)
+            message = 'RRD files not updated: ' + ' '.join(filenames)
             self.sendEvent(dict(
                 severity=Critical, eventClass=Status_RRD, message=message))
         else:
