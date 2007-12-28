@@ -344,7 +344,6 @@ class ZenModeler(ZCmdBase):
                 self.rrdStats.gauge('devices', self.cycletime, devices) +
                 self.rrdStats.gauge('timedOut', self.cycletime, timedOut)
                 )
-            self.start = None
             if not self.options.cycle:
                 self.stop()
 
