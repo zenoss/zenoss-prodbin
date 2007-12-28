@@ -159,10 +159,7 @@ def findCommunity(context, ip, devicePath,
     
     @rtype: tuple of (community, port, version, device name)
     """
-    try:
-        from pynetsnmp.SnmpSession import SnmpSession
-    except:
-        from Products.DataCollector.SnmpSession import SnmpSession
+    from pynetsnmp.SnmpSession import SnmpSession
 
     devroot = context.getDmdRoot('Devices').createOrganizer(devicePath)
     communities = []
