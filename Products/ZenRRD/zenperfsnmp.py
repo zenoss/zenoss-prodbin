@@ -548,7 +548,6 @@ class zenperfsnmp(SnmpDaemon):
         self.checkOldFiles()
 
     def checkOldFiles(self):
-        import pdb; pdb.set_trace()
         self.oldFiles = Set(
             [f for f in self.oldFiles
              if os.path.exists(f) and self.oldCheck.test(f)]
