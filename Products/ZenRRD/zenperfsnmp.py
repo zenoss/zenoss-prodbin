@@ -37,7 +37,9 @@ from Products.ZenUtils.Chain import Chain
 from Products.ZenUtils.Driver import drive, driveLater
 from Products.ZenModel.PerformanceConf import performancePath
 from Products.ZenEvents import Event
-from Products.ZenEvents.ZenEventClasses import Perf_Snmp, Status_Snmp
+from Products.ZenEvents.ZenEventClasses \
+     import Perf_Snmp, Status_Snmp, Status_RRD
+from Products.ZenEvents.ZenEventClasses import Critical, Clear
 
 from Products.ZenRRD.RRDUtil import RRDUtil
 from SnmpDaemon import SnmpDaemon
@@ -249,6 +251,14 @@ class zenperfsnmp(SnmpDaemon):
         perfRoot = performancePath('')
         makeDirs(perfRoot)
         self.loadConfigs()
+        self.oldFiles = Set()
+        # report on files older than a day
+        self.oldCheck = FileCleanup(perfRoot, '.*\\.rrd$',
+                                    24 * 60 * 60,
+                                    frequency=60)
+        self.oldCheck.process = self.reportOldFile
+        self.oldCheck.start()
+        # remove files older than maxRrdFileAge
         self.fileCleanup = FileCleanup(perfRoot, '.*\\.rrd$',
                                        self.maxRrdFileAge,
                                        frequency=90*60)
@@ -278,6 +288,10 @@ class zenperfsnmp(SnmpDaemon):
     def cleanup(self, fullPath):
         self.log.warning("Deleting old RRD file: %s", fullPath)
         os.unlink(fullPath)
+        self.oldFiles.discard(fullPath)
+
+    def reportOldFile(self, fullPath):
+        self.oldFiles.add(fullPath)
 
     def maybeQuit(self):
         "Stop if all performance has been fetched, and we aren't cycling"
@@ -530,6 +544,25 @@ class zenperfsnmp(SnmpDaemon):
             self.rrdStats.counter('dataPoints', cycle, self.rrd.dataPoints) +
             self.rrdStats.gauge('cyclePoints', cycle, self.rrd.endCycle())
             )
+        # complain about RRD files that have not been updated
+        self.checkOldFiles()
+
+    def checkOldFiles(self):
+        import pdb; pdb.set_trace()
+        self.oldFiles = Set(
+            [f for f in self.oldFiles
+             if os.path.exists(f) and self.oldCheck.test(f)]
+            )
+        if self.oldFiles:
+            root = performancePath('')
+            filenames = [f.lstrip(root) for f in self.oldFiles]
+            message = 'RRD files not updated: '.join(filenames)
+            self.sendEvent(dict(
+                severity=Critical, eventClass=Status_RRD, message=message))
+        else:
+            self.sendEvent(
+                dict(severity=Clear, eventClass=Status_RRD,
+                     summary='All RRD files have been recently update'))
 
 
     def startReadDevice(self, deviceName):

@@ -30,6 +30,7 @@ Status_Nagios = "/Status/Nagios" # Deprecated, but included for consistency
 Status_OSProcess = "/Status/OSProcess"
 Status_Perf = "/Status/Perf"
 Status_Ping = "/Status/Ping"
+Status_RRD = "/Status/RRD"
 Status_Snmp = "/Status/Snmp"
 Status_Update = "/Status/Update"
 Status_Web = "/Status/Web"
