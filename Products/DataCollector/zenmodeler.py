@@ -356,6 +356,7 @@ class ZenModeler(ZCmdBase):
                self.devicegen and not self.slowDown):
             try:
                 device = self.devicegen.next()
+                device = device.primaryAq()                
                 if (device.productionState <= 
                     getattr(device,'zProdStateThreshold',0)): 
                     self.log.info("skipping %s production state too low",
