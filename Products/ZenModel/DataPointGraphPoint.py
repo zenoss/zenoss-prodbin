@@ -124,8 +124,11 @@ class DataPointGraphPoint(ComplexGraphPoint):
             else:
                 legend = self.talesEval(self.legend, context) or self.id
             legend = self.escapeForRRD(legend)
+            drawType = self.lineType
+            if self.lineType == self.LINETYPE_LINE:
+                drawType += str(self.lineWidth)
             drawCmd ='%s:%s%s' % (
-                        self.lineType,
+                        drawType,
                         src,
                         self.getColor(idx))
             drawCmd += ':%s' % legend.ljust(14)
