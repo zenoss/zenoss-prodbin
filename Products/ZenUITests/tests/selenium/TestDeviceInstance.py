@@ -94,7 +94,7 @@ class TestDeviceInstanceOsTab(TestDeviceInstanceBase):
         
         self.assert_(not self.selenium.is_element_present("link=testingString2"))
         
-    def _testOSProcess(self):
+    def testOSProcess(self):
         """Add, edit, and delete an OS Process under a specific device"""
         
         self.addOSProcessClass()
@@ -123,7 +123,7 @@ class TestDeviceInstanceOsTab(TestDeviceInstanceBase):
         self.assert_(not self.selenium.is_element_present("link=testingString2"))
         self.deleteOSProcessClasses()
         
-    def _testFileSystem(self):
+    def testFileSystem(self):
         """Add, edit, and delete a File System under a sepcific device"""
         
         self.addDialog(addType="link=Add File System...", new_id=("text", "testingString"))
@@ -152,7 +152,7 @@ class TestDeviceInstanceOsTab(TestDeviceInstanceBase):
         self.assert_(not self.selenium.is_element_present("link=testingString2"))
         
     
-    def _testIpService(self):
+    def testIpService(self):
         """Add, edit, and delete an Ip Service under a sepcific device"""
         
         self.addDialog(addType="link=Add IpService...", 
@@ -186,7 +186,7 @@ class TestDeviceInstanceOsTab(TestDeviceInstanceBase):
         self.selenium.click("manage_deleteComponent:method")
         # TODO: add an assert statement concerning the ip service's deletion.
             
-    def _testWinService(self):
+    def testWinService(self):
         """Add, edit, and delete a Win Service under a sepcific device"""
                 
         
@@ -223,11 +223,7 @@ class TestDeviceInstanceOsTab(TestDeviceInstanceBase):
 class TestDeviceInstanceManageDevice(TestDeviceInstanceBase):
     """Test functionality related to managing the device itself"""
         
-    def _clickDeviceInList(self, targetname=TARGET):
-        self.waitForElement("name=evids:list " + targetname)
-        self.selenium.click("name=evids:list " + targetname)  
-
-    def _testChangeDeviceClass(self, newClass='/Discovered'):
+    def testChangeDeviceClass(self, newClass='/Discovered'):
         """Test changing the device class of a device"""
         
         self.selenium.click("link=Change Class...")
@@ -243,7 +239,7 @@ class TestDeviceInstanceManageDevice(TestDeviceInstanceBase):
         self.selenium.click("link=%s" %TARGET)
         
         
-    def _testRenameDevice(self):
+    def testRenameDevice(self):
         """Test renaming a device"""
         
         self.selenium.click("link=Rename Device...")
@@ -255,7 +251,7 @@ class TestDeviceInstanceManageDevice(TestDeviceInstanceBase):
         self.devname = 'testDevice'
         self.assert_(self.selenium.is_element_present("link=testDevice"))
         
-    def _testResetIP(self):
+    def testResetIP(self):
         """Test setting a new IP address for a device"""
         
         self.selenium.click("link=Reset IP...")
@@ -310,7 +306,7 @@ class TestDeviceInstanceManageDevice(TestDeviceInstanceBase):
         self.waitForElement("name=evids:list " + curtarget)
         self.assert_(not self.selenium.is_element_present("//img[@src='locked-delete-icon.png']"))	
 
-    def _testClearHeartbeats(self):
+    def testClearHeartbeats(self):
         """Test clearing a device's heartbeats"""
 
         self.selenium.click("link=Clear Heartbeats...")

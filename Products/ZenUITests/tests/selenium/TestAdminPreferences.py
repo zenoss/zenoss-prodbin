@@ -21,6 +21,8 @@
 
 import unittest
 
+from util.selTestUtils import *
+
 from SelTestBase import SelTestBase
 
 class TestAdminPreferences(SelTestBase):
@@ -40,8 +42,13 @@ class TestAdminPreferences(SelTestBase):
         self.selenium.wait_for_page_to_load(self.WAITTIME)
         if self.selenium.is_element_present("link=testingString"):
             self._deleteAlertRule()
+        if self.selenium.is_element_present("link=testingString2"):
+            self._deleteAlertRule2()
         self.addDialog("ActionRulelistaddActionRule",new_id=("text",
                     "testingString"))
+        self.selenium.wait_for_page_to_load(self.WAITTIME)
+        self.addDialog("ActionRulelistaddActionRule",new_id=("text",
+                    "testingString2"))
         self.selenium.wait_for_page_to_load(self.WAITTIME)
        
     def _deleteAlertRule(self): 
@@ -52,6 +59,13 @@ class TestAdminPreferences(SelTestBase):
         self.deleteDialog("ActionRulelistdeleteActionRules",
                 "manage_deleteObjects:method", pathsList="ids:list",
                 form_name="actionRules")
+        self.selenium.wait_for_page_to_load(self.WAITTIME)
+           
+    def _deleteAlertRule2(self): 
+        """Deletes the second testing Alert Rule""" 
+        self.deleteDialog("ActionRulelistdeleteActionRules",
+                "manage_deleteObjects:method", pathsList="ids:list",
+                form_name="actionRules", testData="testingString2")
         self.selenium.wait_for_page_to_load(self.WAITTIME)
 
     def testSavePreferences(self):
@@ -89,6 +103,13 @@ class TestAdminPreferences(SelTestBase):
         """Run tests on the Alerting Rules tab"""
         
         self._addAlertRule()
+        #Selects All 
+        self.waitForElement("id=selectall_0")
+        self.selenium.click("id=selectall_0")
+        do_command_byname(self.selenium, "assertChecked", "ids:list")
+        self.selenium.click("id=selectnone_0")
+        do_command_byname(self.selenium, "assertNotChecked", "ids:list")
+
         self.selenium.click("link=testingString")
         self.waitForElement("manage_editActionRule:method")
         self.selenium.click("manage_editActionRule:method")
@@ -120,6 +141,7 @@ class TestAdminPreferences(SelTestBase):
 
         #Deletes the testing Alert Rule 
         self._deleteAlertRule()
+        self._deleteAlertRule2()
 
 if __name__ == "__main__":
     unittest.main()
