@@ -548,6 +548,7 @@ class DeviceOrganizer(Organizer, DeviceManagerBase, Commandable, ZenMenuable,
             idquery = ~In('id', badevids)
         else:
             idquery = In('id', goodevids)
+        filter = '(?is).*%s.*' % filter
         filterquery = Or(
             MatchRegexp('id', filter),
             MatchRegexp('getDeviceIp', filter),
