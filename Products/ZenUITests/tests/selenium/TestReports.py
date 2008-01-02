@@ -47,6 +47,7 @@ class TestReports(SelTestBase):
     def testReportOrganizer(self):
         """Run tests on the Reports page"""
         
+        self.addDevice('localhost')
         self._addTestReportOrganizer()
         #Selects All 
         self.waitForElement("id=selectall_0")
@@ -54,7 +55,27 @@ class TestReports(SelTestBase):
         do_command_byname(self.selenium, "assertChecked", "ids:list")
         self.selenium.click("id=selectnone_0")
         do_command_byname(self.selenium, "assertNotChecked", "ids:list")
-        self._deleteTestReportOrganizer()
         
+        #Checks to make sure that the added device is listed in the Device Reports/All devices
+        self.selenium.click("link=Device Reports")
+        self.waitForElement("link=All Devices")
+        self.selenium.click("link=All Devices")
+        self.selenium.wait_for_page_to_load(self.WAITTIME)
+        self.selenium.do_command('assertElementPresent', 
+                ['link=localhost'])
+
+        #Checks to make sure that the added device is listed in the Device Reports/New devices
+        self.selenium.click("link=Device Reports") 
+        self.waitForElement("link=New Devices")
+        self.selenium.click("link=New Devices")
+        self.selenium.wait_for_page_to_load(self.WAITTIME)
+        self.selenium.do_command('assertElementPresent', 
+                ['link=localhost'])
+
+
+        self._deleteTestReportOrganizer()
+        for devicename in self.devicenames:
+                self.deleteDevice(devicename)
+            
 if __name__ == "__main__":
-    unittest.main()
+        unittest.main()
