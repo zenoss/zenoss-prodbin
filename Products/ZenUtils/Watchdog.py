@@ -131,7 +131,7 @@ class Watcher:
         try:
             os.unlink(self.socketPath)
         except OSError:
-            pass
+            log.exception("Problem removing old socket %s" % self.socketPath)
         cmd = self.cmd + ['--watchdogPath', self.socketPath]
         cmd.insert(0, sys.executable)
         sock = s.socket(s.AF_UNIX, s.SOCK_STREAM)
