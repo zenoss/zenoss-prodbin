@@ -27,7 +27,8 @@ from sets import Set
 
 log = logging.getLogger("zen.zenprocess")
 
-from twisted.internet import reactor, defer
+from twisted.internet import reactor, defer, error
+from twisted.python import failure
 
 import Globals
 from Products.ZenUtils.Driver import drive, driveLater
@@ -392,7 +393,7 @@ class zenprocess(SnmpDaemon):
         return d
 
 
-    def deviceFailure(self, error, device):
+    def deviceFailure(self, reason, device):
         "Log exception for a single device"
         self.sendEvent(self.statusEvent,
                        eventClass=Status_Snmp,
@@ -401,7 +402,10 @@ class zenprocess(SnmpDaemon):
                        summary='Unable to read processes on device %s' % device.name,
                        severity=Event.Error)
         device.snmpStatus += 1
-        self.logError('Error on device %s' % device.name, error.value)
+        if isinstance(reason.value, error.TimeoutError):
+            self.log.debug('Timeout on device %s' % device.name)
+        else:
+            self.logError('Error on device %s' % device.name, reason.value)
 
 
     def storeProcessNames(self, results, device):

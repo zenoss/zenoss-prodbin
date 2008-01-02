@@ -29,7 +29,8 @@ log = logging.getLogger("zen.zenperfsnmp")
 from sets import Set
 import cPickle
 
-from twisted.internet import reactor, defer
+from twisted.internet import reactor, defer, error
+from twisted.python import failure
 
 import Globals
 from Products.ZenUtils.Utils import unused
@@ -632,10 +633,14 @@ class zenperfsnmp(SnmpDaemon):
                 self.startReadDevice(deviceName)
                 return
             if not success:
-                self.log.error('Failed to collect on %s (%s: %s)',
-                               deviceName,
-                               update.__class__,
-                               update)
+                if isinstance(update, failure.Failure) and \
+                    isinstance(update.value, error.TimeoutError):
+                    self.log.debug("Device %s timed out" % deviceName)
+                else:
+                    self.log.error('Failed to collect on %s (%s: %s)',
+                                   deviceName,
+                                   update.__class__,
+                                   update)
                 
         successCount = sum(firsts(updates))
         oids = []
