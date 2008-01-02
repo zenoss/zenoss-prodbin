@@ -423,6 +423,41 @@ table.tabtable td.tabletitleselected a:link   {
     background: none;
     border-top: 1px solid black;
 }
+#tabsPane table.zentable td a.tabletitle {
+    display: block;
+    padding: 0px 15px;
+    border-left: 1px solid black;
+    border-top: 1px solid black;
+	background: transparent url(img/titlebar_bg.gif) repeat-x bottom left;
+    height: 23px;
+}
+
+#tabsPane table.zentable td a.tabletitle:hover {
+	background: transparent url(img/titlebar_bg_depressed.gif) repeat-x bottom left;
+}
+
+#tabsPane table.zentable td.tabletitle a.tabletitleselected  {
+    white-space: nowrap;
+    color: #333333;
+    height: 32px;
+    font-size:8pt;
+    padding-top: 2px;
+    background-color: transparent;
+    border: 0px;
+}
+
+#tabsPane table.zentable td.tabletitle a.tabletitleselected,
+#tabsPane table.zentable td.tabletitle a.tabletitleselected:visited, 
+#tabsPane table.zentable td.tabletitle a.tabletitleselected:link   {
+    color: black;
+	display: block;
+    padding: 0px 10px;
+    border: 0pt;
+    font-size:10pt;
+    margin-top: 3px;
+    background: none;
+    border-top: 1px solid black;
+}
 
 table.zentable {
     font-family: Verdana, Arial, Helvetica, sans-serif;

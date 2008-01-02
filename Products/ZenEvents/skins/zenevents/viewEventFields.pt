@@ -12,49 +12,59 @@
     <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
     <title tal:content="string:Event: ${event/evid}"/>
     <link rel="stylesheet" type="text/css" 
-        href="/zport/portal_skins/default_stylesheet" />
+        href="/zport/portal_skins/zenoss.css" />
     <link rel="stylesheet" type="text/css"
         href="/zport/portal_skins/zenevents.css" />
     <script type="text/javascript" 
         src="/zport/js/MochiKit.js"></script>
-    <script type="text/javascript" 
-        src="/zport/portal_skins/zenmodelfuncs.js"></script>
 </head>
 <tal:block metal:define-macro="eventTabs">
 <div id="tabsPane">
-<table class=" zentable" cellspacing="1">
+<table class="tabtable" cellspacing="0" cellpadding="0">
     <tr>
-        <td class="tabletitle" colspan=3 
-            tal:content="string:Event: ${evid}">
-        </td>
-    </tr>
-    <tr>
-        <td class="tabletitle" colspan="1" align="center"
-            tal:repeat="tab python:event.zentinelTabs(template.id)">
+            <td class="tabtableleftcap"></td>
+            <tal:block tal:repeat="tab python:event.zentinelTabs(template.id)">
+            <tal:block tal:condition="python:tab.get('selected', None)">
+            <td class="tabletitleselected" colspan="1" align="center">
+            <div class="tablinehider"></div>
+                <div class="tableft">
+                     <div class="tabright">
+                         <div class="tabcenter">
             <a class="tabletitle"
             tal:attributes="href python:tab['action']+'?evid=%s'%evid;
-               class python:tab.get('selected',None) and 'tabletitleselected' or 'tabletitle'"
+               class string:tabletitle"
             tal:content="tab/name">
             TabName
             </a>
-        </td>
+
+                         </div>
+                     </div>
+                 </div>
+     
+            </td>
+            </tal:block>
+
+            <tal:block tal:condition="python:not tab.get('selected', None)">
+            <td class="tabletitle" colspan="1" align="center">
+            <a class="tabletitle"
+            tal:attributes="href python:tab['action']+'?evid=%s'%evid;
+               class string:tabletitle"
+            tal:content="tab/name">
+            TabName
+            </a>
+            </td>
+            </tal:block>
+            </tal:block>
+            <td class="tabtablecap"></td>
+
     </tr>
 </table>
 </div>
-<script>
-var tt = document.getElementById("tabsPane")
-if(tt) {
-    tabs = tt.getElementsByTagName("a");
-    for(var i=0; i<tabs.length; i++) {
-        log("rounding element=",tabs[i]);
-        roundElement(tabs[i],{corners:"tl tr"});
-    }
-}
-</script>
 </tal:block>
 </tal:block>
 <tal:block metal:define-macro="eventFields">
-<table class=" zentable" cellpadding="3" cellspacing="1">
+<style>table.zentable {border-top: 1px solid black;}</style>
+<table class="zentable" cellpadding="3" cellspacing="1">
     <tr>
         <th class="tableheader">Field</th>
         <th class="tableheader">Value</th>
