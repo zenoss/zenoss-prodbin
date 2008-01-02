@@ -165,7 +165,7 @@ class Status:
             self._stopTime = time.time()
             if not self._deferred.called:
                 self._deferred.callback(self)
-        log.info("Count %d good %d bad %d time %f", *self.stats())
+        log.info("total=%d good=%d bad=%d time=%f", * self.stats())
 
 
     def finished(self):
