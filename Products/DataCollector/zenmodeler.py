@@ -1,4 +1,4 @@
-###########################################################################
+##########################################################################
 #
 # This program is part of Zenoss Core, an open source monitoring platform.
 # Copyright (C) 2007, Zenoss Inc.
@@ -58,7 +58,7 @@ class ZenModeler(ZCmdBase):
         else:
             self.log.debug("Run in foreground, starting immediately.")
 
-        self.start = time.time()
+        self.start = None
         self.rrdStats = DaemonStats()
         self.single = single
         if self.options.device:
@@ -313,7 +313,7 @@ class ZenModeler(ZCmdBase):
         reactor.callLater(ARBITRARY_BEAT, self.heartbeat)
         if self.options.cycle:
             # as long as we started recently, send a heartbeat
-            if time.time() - self.start < self.cycletime*3:
+            if not self.start or time.time() - self.start < self.cycletime*3:
                 evt = dict(eventClass=Heartbeat,
                            component='zenmodeler',
                            device=self.options.monitor,
@@ -336,6 +336,7 @@ class ZenModeler(ZCmdBase):
 
         if self.start:
             runTime = time.time() - self.start
+            self.start = None
             self.log.info("scan time: %0.2f seconds", runTime)
             devices = len(self.finished)
             timedOut = len([c for c in self.finished if c.timedOut])
