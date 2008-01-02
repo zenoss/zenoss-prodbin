@@ -129,7 +129,8 @@ class Watcher:
 
     def _runOnce(self):
         try:
-            os.unlink(self.socketPath)
+            if os.path.exists(self.socketPath):
+                os.unlink(self.socketPath)
         except OSError:
             log.exception("Problem removing old socket %s" % self.socketPath)
         cmd = self.cmd + ['--watchdogPath', self.socketPath]
