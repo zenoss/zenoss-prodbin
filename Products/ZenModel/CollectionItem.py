@@ -94,7 +94,9 @@ class CollectionItem(ZenModelRM):
         ''' Return a string that represents this item
         '''
         thing = self.getRepresentedItem()
-        if self.deviceId:
+        if not thing:
+            desc = 'missing'
+        elif self.deviceId:
             if self.compPath:
                 desc = '%s %s' % (self.deviceId, thing.name())
             else:
@@ -137,7 +139,9 @@ class CollectionItem(ZenModelRM):
         ''' Return a list of the devices and components referenced by this item
         '''
         thing = self.getRepresentedItem()
-        if self.deviceId:
+        if not thing:
+            stuff = []
+        elif self.deviceId:
             stuff = [thing]
         elif self.recurse:
             stuff = thing.getSubDevices()
