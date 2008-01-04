@@ -45,10 +45,30 @@ class HRSWRunMap(SnmpPlugin):
         """collect snmp information from this device"""
         log.info('processing %s for device %s', self.name(), device.id)
         getdata, tabledata = results
+	
+	#get the SNMP process data
         fstable = tabledata.get("hrSWRunEntry")
+	
         rm = self.relMap()
         procs = Set()
-        for proc in fstable.values():
+	
+	#get the processes defined in Zenoss
+        processes = device.getDmdRoot("Processes")
+        pcs = list(processes.getSubOSProcessClassesGen())
+	log.debug("zenoss processes: %s" % pcs)
+        pcs.sort(lambda a, b: cmp(a.sequence,b.sequence))
+      
+	#some debug output 
+	if log.isEnabledFor(10):
+	    log.debug("=== snmp process information received ===")
+	    for p in fstable.keys():
+		log.debug("snmpidx: %s\tprocess: %s" % (p, fstable[p]))
+	
+	    log.debug("=== processes stored/defined in Zenoss ===")
+	    for p in pcs:
+		log.debug("%s\t%s" % (p.id, p.regex))
+	
+	for proc in fstable.values():
             om = self.objectMap(proc)
             ppath = getattr(om, '_procPath', False) 
             if ppath and ppath.find('\\') == -1:
@@ -60,11 +80,9 @@ class HRSWRunMap(SnmpPlugin):
                 om.parameters = ''
 
             fullname = (om.procName + " " + om.parameters).rstrip()
-
-            processes = device.getDmdRoot("Processes")
-            pcs = list(processes.getSubOSProcessClassesGen())
-            pcs.sort(lambda a, b: cmp(a.sequence,b.sequence))
-            for pc in pcs:
+	    log.debug("current process: %s" % fullname)
+            
+	    for pc in pcs:
                 if pc.match(fullname):
                     om.setOSProcessClass = pc.getPrimaryDmdId()
                     id = om.procName
@@ -75,6 +93,7 @@ class HRSWRunMap(SnmpPlugin):
                     om.id = self.prepId(id)
                     if id not in procs:
                         procs.add(id)
+			log.debug("adding %s" % fullname)
                         rm.append(om)
                     break
             
