@@ -25,7 +25,9 @@ import os
 from datetime import date
 import ConfigParser
 import commands
+import tarfile
 from ZenBackupBase import *
+
 
 MAX_UNIQUE_NAME_ATTEMPTS = 1000
 
@@ -152,7 +154,7 @@ class ZenBackup(ZenBackupBase):
         if this appears to be an incomplete zenoss install.
         '''
         
-        # Output from --verbose would screw up backup being send to
+        # Output from --verbose would screw up backup being sent to
         # stdout because of --stdout
         if self.options.stdout and self.options.verbose:
             sys.stderr.write('You cannot specify both'
@@ -179,7 +181,7 @@ class ZenBackup(ZenBackupBase):
         rootTempDir = self.getTempDir()
         tempDir = os.path.join(rootTempDir, BACKUP_DIR)
         os.mkdir(tempDir, 0750)
-        
+                
         # Save options to a file for use during restore
         if self.options.saveSettings:
             self.saveSettings(tempDir)
@@ -208,19 +210,15 @@ class ZenBackup(ZenBackupBase):
         
         # /etc to backup dir (except for sockets)
         self.msg('Backing up config files.')
-        cmd = 'tar -cf %s --exclude *.zdsock --directory %s %s' % (
-                    os.path.join(tempDir, 'etc.tar'),
-                    self.zenhome,
-                    'etc')        
-        if os.system(cmd): return -1
+        etcTar = tarfile.open(os.path.join(tempDir, 'etc.tar'), 'w')
+        etcTar.add(os.path.join(self.zenhome, 'etc'), 'etc')
+        etcTar.close()
 
         # /perf to backup dir
         self.msg('Backing up performance data.')
-        cmd = 'tar Ccf %s %s %s' % (
-                    self.zenhome,
-                    os.path.join(tempDir, 'perf.tar'),
-                    'perf')
-        if os.system(cmd): return -1
+        perfTar = tarfile.open(os.path.join(tempDir, 'perf.tar'), 'w')
+        perfTar.add(os.path.join(self.zenhome, 'perf'), 'perf')
+        perfTar.close()
                                 
         # tar, gzip and send to outfile
         self.msg('Packaging backup file.')
