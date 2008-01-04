@@ -41,6 +41,9 @@ export PYTHON="**PYTHON**"
 # already exist (we don't want to clobber people's configs)
 update_conf_files
 
+# version 2.1.1 and below used the system python, but in 2.1.70 we
+# started shipping our own.  replace the old scripts with references
+# to the new python
 replace /usr/bin/python $ZENHOME/bin/python -- $ZENHOME/bin/*
 replace /usr/bin/python $ZENHOME/bin/python -- $ZENHOME/etc/zeo.conf
 
