@@ -41,6 +41,9 @@ export PYTHON="**PYTHON**"
 # already exist (we don't want to clobber people's configs)
 update_conf_files
 
+replace /usr/bin/python $ZENHOME/bin/python -- $ZENHOME/bin/*
+replace /usr/bin/python $ZENHOME/bin/python -- $ZENHOME/etc/zeo.conf
+
 # migrate the zeo database
 start_zeodb
 run_zenmigrate
