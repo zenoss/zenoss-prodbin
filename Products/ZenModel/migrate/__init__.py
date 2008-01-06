@@ -121,3 +121,4 @@ import addBackupFilesListMenu
 import MoveHistoryToMoreMenu
 import monitorTemplateMenu
 import expandEventKeyColumn
+import fixOldTemplates
