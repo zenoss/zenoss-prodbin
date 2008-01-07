@@ -58,7 +58,7 @@ class SnmpConnInfo(pb.Copyable, pb.RemoteCopy):
         return 0
 
     def summary(self):
-        result = 'SNMP info for %s at %s:%d' % (
+        result = 'SNMP info for %s at %s:%s' % (
             self.id, self.manageIp, self.zSnmpPort)
         result += ' timeout: %s tries: %d' % (
             self.zSnmpTimeout, self.zSnmpTries)
