@@ -1,6 +1,6 @@
 <tal:block metal:use-macro="here/templates/macros/page2">
 <tal:block metal:fill-slot="contentPane">
-<form method="post" action="">
+<form name="performanceTemplates" method="post" action="">
 
 
 <tal:block metal:define-macro="rrdtemplatelist"
