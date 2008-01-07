@@ -114,6 +114,24 @@ class EventView(object):
         return self.getEventManager().getStatusCssClass(status) 
 
     
+    def getEventDetail(self, evid=None, dedupid=None, better=False):
+        """
+        Return an EventDetail for an event on this object.
+        """
+        return self.getEventManager().getEventDetail(evid, dedupid, better)
+
+
+    def getEventDetailFromStatusOrHistory(self, evid=None, 
+                                            dedupid=None, better=False):
+        """
+        Return the event detail for an event within the context of a device
+        or other device organizer 
+        """
+        return self.getEventManager().getEventDetailFromStatusOrHistory(
+                                        evid, dedupid, better)
+    
+
+
     security.declareProtected('Manage Events','manage_deleteEvents')
     def manage_deleteEvents(self, evids=(), REQUEST=None):
         """Delete events form this managed entity.

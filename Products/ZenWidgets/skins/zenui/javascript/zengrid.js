@@ -175,8 +175,6 @@ ZenGrid.prototype = {
         this.rowHeight = 32;
         this.checkedArray = new Array();
         this.url = this.absurl + '/' + url;
-        this.zem = this.isHistory?this.absurl+'/ZenEventHistory':
-                                 this.absurl+'/ZenEventManager';
         this.lastparams = this.isHistory?{startdate:$('startdate').value,
                                           enddate:$('enddate').value }:
                           {};
@@ -612,7 +610,8 @@ ZenGrid.prototype = {
             var geteventwindow = function(zeml, evidl) {
                 return function() { eventWindow(zeml, evidl) }
             }
-            connect(divs[yo.length-1], 'onclick', geteventwindow(this.zem, evid));
+            connect(divs[yo.length-1], 'onclick', 
+                    geteventwindow(this.absurl, evid));
             divs[yo.length-1].title = "View detailed information" + 
                 " about this event."
             for (var j=isManager?1:0;j<yo.length-1;j++) {
