@@ -174,6 +174,11 @@ class ZenPing(ZCmdBase):
                                dest='useFileDescriptor',
                                default=None,
                                help="use the given (privileged) file descriptor")
+        self.parser.add_option('--startTimeOut',
+                               dest='startTimeOut',
+                               default=600,
+                               help="wait seconds for initial heartbeat")
+
 
 
     def pingCycle(self):
