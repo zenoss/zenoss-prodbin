@@ -1,0 +1,22 @@
+<h2>Add Data Sources to Graphs</h2>
+<span id="errmsg" style="color:red;"></span>
+
+<p style="test-align=left;">Select one or more Graph Definitions to which the selected Data Sources should be added.</p>
+
+<span style="text-align:left;">
+Graphs:&nbsp;<br />
+<select id="graphs" name='graphIds:list' multiple="1">
+    <option tal:repeat="graphDef here/getGraphDefs"
+            tal:attributes="value graphDef/id" 
+            tal:content="graphDef/id" />
+</select>
+<br />
+</span>
+
+<div id="dialog_buttons">
+<input type="submit" name="manage_addDataSourcesToGraphs:method" value="OK"
+    tal:attributes="onclick string:return $$('dialog').submit_form(
+                        '${here/absolute_url_path}')" />
+<input id="dialog_cancel" type="button" value="Cancel"
+        onclick="$('dialog').hide()"/>
+</div>

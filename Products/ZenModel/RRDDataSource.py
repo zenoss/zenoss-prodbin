@@ -157,6 +157,31 @@ class RRDDataSource(ZenModelRM, ZenPackable):
             return self.callZenScreen(REQUEST)
 
 
+    #security.declareProtected('Manage DMD', 'manage_addDataPointsToGraphs')
+    def manage_addDataPointsToGraphs(self, ids=(), graphIds=(), REQUEST=None):
+        """
+        Create GraphPoints for all datapoints given datapoints (ids)
+        in each of the graphDefs (graphIds.)
+        If a graphpoint already exists for a datapoint in a graphDef then
+        don't create a 2nd one.
+        """
+        newGps = []
+        for graphDefId in graphIds:
+            graphDef = self.rrdTemplate.graphDefs._getOb(graphDefId, None)
+            if graphDef:
+                for dpId in ids:
+                    dp = self.datapoints._getOb(dpId, None)
+                    if dp and not graphDef.isDataPointGraphed(dp.name()):
+                        newGps += graphDef.manage_addDataPointGraphPoints(
+                                                                [dp.name()])
+        if REQUEST:
+            numNew = len(newGps)
+            REQUEST['message'] = '%s GraphPoint%s added' % (
+                        numNew, numNew != 1 and 's' or '')
+            return self.callZenScreen(REQUEST)
+        return newGps
+
+
     def getCommand(self, context, cmd=None):
         """Return localized command target.
         """

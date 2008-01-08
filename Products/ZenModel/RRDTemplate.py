@@ -308,6 +308,52 @@ class RRDTemplate(ZenModelRM, ZenPackable):
                             seqmap, origseq, REQUEST)
 
 
+    security.declareProtected('Manage DMD', 'manage_addDataSourcesToGraphs')
+    def manage_addDataSourcesToGraphs(self, ids=(), graphIds=(), REQUEST=None):
+        """
+        Create GraphPoints for all datapoints in the given datasources (ids)
+        in each of the graphDefs (graphIds.)
+        If a graphpoint already exists for a datapoint in a graphDef then
+        don't create a 2nd one.
+        """
+        newGraphPoints = []
+        for dsId in ids:
+            ds = self.datasources._getOb(dsId, None)
+            if ds:
+                newGraphPoints += ds.manage_addDataPointsToGraphs(
+                    [dp.id for dp in ds.datapoints()],
+                    graphIds)
+        numAdded = len(newGraphPoints)
+        if REQUEST:
+            REQUEST['message'] = 'Added %s GraphPoint%s' % (
+                numAdded, numAdded != 1 and 's' or '')
+            return self.callZenScreen(REQUEST)
+        return newGraphPoints
+
+
+    security.declareProtected('Manage DMD', 'manage_addDataSourcesToGraphs')
+    def manage_addThresholdsToGraphs(self, ids=(), graphIds=(), REQUEST=None):
+        """
+        Create GraphPoints for all given thresholds that are not already
+        graphed. in the given datasources (ids)
+        """
+        newGps = []
+        for graphId in graphIds:
+            graphDef = self.graphDefs._getOb(graphId, None)
+            if graphDef:
+                for threshId in ids:
+                    thresh = self.thresholds._getOb(threshId, None)
+                    if thresh and not graphDef.isThresholdGraphed(thresh.id):
+                        newGps += graphDef.manage_addThresholdGraphPoints(
+                                                                [thresh.id])
+        if REQUEST:
+            numAdded = len(newGps)
+            REQUEST['message'] = 'Added %s GraphPoint%s' % (
+                numAdded, numAdded != 1 and 's' or '')
+            return self.callZenScreen(REQUEST)
+        return newGps
+                            
+
     def getDataSourceClasses(self):
         dsClasses = [BasicDataSource, BuiltInDS]
         for zp in self.dmd.packs():
