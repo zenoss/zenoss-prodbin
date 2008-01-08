@@ -61,7 +61,7 @@ class TestDeviceInstanceOsTab(TestDeviceInstanceBase):
         self.selenium.click("link=OS")
         self.selenium.wait_for_page_to_load(self.WAITTIME)
         
-    def _testIpInterface(self):
+    def testIpInterface(self):
         """Add, edit, and delete an Ip Interface under a specific device"""
         
         self.addDialog(addType="IpInterfaceaddIpInterface", addMethod="addIpInterface:method",
@@ -152,11 +152,11 @@ class TestDeviceInstanceOsTab(TestDeviceInstanceBase):
         self.assert_(not self.selenium.is_element_present("link=testingString2"))
         
     
-    def testIpService(self):
+    def _testIpService(self):
         """Add, edit, and delete an Ip Service under a sepcific device"""
         
         self.addDialog(addType="link=Add IpService...", 
-                        className=("text", "http [World"),
+                        className=("text", "http [World Wide Web]"),
                         protocol=("select", "label=tcp")
                       )
         self.assert_(self.selenium.is_element_present("link=http"))
@@ -186,7 +186,7 @@ class TestDeviceInstanceOsTab(TestDeviceInstanceBase):
         self.selenium.click("manage_deleteComponent:method")
         # TODO: add an assert statement concerning the ip service's deletion.
             
-    def testWinService(self):
+    def _testWinService(self):
         """Add, edit, and delete a Win Service under a sepcific device"""
                 
         
