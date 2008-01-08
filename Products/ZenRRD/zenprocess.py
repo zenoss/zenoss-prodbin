@@ -28,7 +28,6 @@ from sets import Set
 log = logging.getLogger("zen.zenprocess")
 
 from twisted.internet import reactor, defer, error
-from twisted.python import failure
 
 import Globals
 from Products.ZenUtils.Driver import drive, driveLater
