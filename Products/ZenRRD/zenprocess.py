@@ -53,7 +53,7 @@ PERFROOT  = HOSTROOT + '.5'
 CPU       = PERFROOT + '.1.1.1.'        # note trailing dot
 MEM       = PERFROOT + '.1.1.2.'        # note trailing dot
 
-PARALLEL_JOBS = 10
+DEFAULT_PARALLEL_JOBS = 10
 
 WRAP=0xffffffffL
 
@@ -237,6 +237,7 @@ class zenprocess(SnmpDaemon):
     properties = SnmpDaemon.properties + ('processCycleInterval',)
     missing = 0
     restarted = 0
+    parallelJobs = DEFAULT_PARALLEL_JOBS
 
     def __init__(self):
         SnmpDaemon.__init__(self, 'zenprocess')
@@ -256,6 +257,9 @@ class zenprocess(SnmpDaemon):
             
             yield self.model().callRemote('getDefaultRRDCreateCommand')
             createCommand = driver.next()
+
+            yield self.model().callRemote('getZenProcessParallelJobs')
+            self.parallelJobs = driver.next()
 
             yield self.model().callRemote('propertyItems')
             self.setPropertyItems(driver.next())
@@ -524,7 +528,7 @@ class zenprocess(SnmpDaemon):
             yield self.getDevicePingIssues()
             self.downDevices = Set([d[0] for d in driver.next()])
 
-            self.scanning = NJobs(PARALLEL_JOBS,
+            self.scanning = NJobs(self.parallelJobs,
                                   self.oneDevice,
                                   self.devices().values())
             yield self.scanning.start()

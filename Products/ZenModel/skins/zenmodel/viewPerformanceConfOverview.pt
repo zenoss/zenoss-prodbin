@@ -33,6 +33,10 @@
       <td class="tablevalues" tal:content="here/processCycleInterval" />
     </tr>
     <tr>
+      <td class="tableheader">Process Parallel Jobs</td>
+      <td class="tablevalues" tal:content="here/zenProcessParallelJobs" />
+    </tr>
+    <tr>
       <td class="tableheader">Status Cycle Interval (secs)</td>
       <td class="tablevalues" tal:content="here/statusCycleInterval" />
     </tr>

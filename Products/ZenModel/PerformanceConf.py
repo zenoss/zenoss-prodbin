@@ -91,6 +91,8 @@ class PerformanceConf(Monitor, StatusColor):
     
     configCycleInterval = 6*60
 
+    zenProcessParallelJobs = 10
+
     renderurl = '/zport/RenderServer'
     renderuser = ''
     renderpass = ''
@@ -129,6 +131,7 @@ class PerformanceConf(Monitor, StatusColor):
         {'id':'renderuser','type':'string','mode':'w'},
         {'id':'renderpass','type':'string','mode':'w'},
         {'id':'defaultRRDCreateCommand','type':'lines','mode':'w'},
+        {'id':'zenProcessParallelJobs','type':'int','mode':'w'},
         )
     _relations = Monitor._relations + (
         ("devices", ToMany(ToOne,"Products.ZenModel.Device","perfServer")),

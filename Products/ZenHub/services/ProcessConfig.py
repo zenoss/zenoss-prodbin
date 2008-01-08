@@ -108,4 +108,6 @@ class ProcessConfig(PerformanceConfig):
         return listener.callRemote('updateDevice', config)
 
 
+    def remote_getZenProcessParallelJobs(self):
+        return self.config.zenProcessParallelJobs
 

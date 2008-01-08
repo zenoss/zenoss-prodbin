@@ -45,6 +45,13 @@
       </td>
     </tr>
     <tr>
+      <td class="tableheader" align="left">Process Parallel Jobs</td>
+      <td class="tablevalues">
+        <input class="tablevalues" type="text" name="zenProcessParallelJobs:int" 
+            size="10" tal:attributes="value here/zenProcessParallelJobs" />
+      </td>
+    </tr>
+    <tr>
       <td class="tableheader">Status Cycle Interval (secs)</td>
       <td class="tablevalues">
         <input class="tablevalues" type="text" name="statusCycleInterval:int" 
