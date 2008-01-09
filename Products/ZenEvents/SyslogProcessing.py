@@ -124,7 +124,7 @@ class SyslogProcessor(object):
         if pri < 3: sev = 5
         elif pri == 3: sev = 4
         elif pri == 4: sev = 3
-        elif 7 < pri > 4: sev = 2
+        elif pri == 5 or pri == 6: sev = 2
         return sev
 
 
