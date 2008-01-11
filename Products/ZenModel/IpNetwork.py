@@ -343,11 +343,12 @@ class IpNetwork(DeviceOrganizer):
         if REQUEST:
             return self.callZenScreen(REQUEST)
 
+
     security.declareProtected('View', 'countIpAddresses')
     def countIpAddresses(self, inuse=True):
         """get an ip on this network"""
         if inuse:
-            count = len(filter(lambda x: x.getStatus() == 0, self.ipaddresses()))
+            count = len(self.ipaddresses())
         else:
             count = self.ipaddresses.countObjects()
         for net in self.children():
