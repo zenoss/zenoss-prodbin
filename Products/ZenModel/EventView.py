@@ -19,6 +19,7 @@ from AccessControl import ClassSecurityInfo
 from Globals import InitializeClass
 from Products.ZenUtils.FakeRequest import FakeRequest
 
+
 from Products.ZenUtils.Utils import unused
 
 class EventView(object):
@@ -118,7 +119,9 @@ class EventView(object):
         """
         Return an EventDetail for an event on this object.
         """
-        return self.getEventManager().getEventDetail(evid, dedupid, better)
+        evt = self.getEventManager().getEventDetail(evid, dedupid, better)
+        return evt.__of__(self)
+
 
 
     def getEventDetailFromStatusOrHistory(self, evid=None, 
@@ -127,8 +130,9 @@ class EventView(object):
         Return the event detail for an event within the context of a device
         or other device organizer 
         """
-        return self.getEventManager().getEventDetailFromStatusOrHistory(
+        evt = self.getEventManager().getEventDetailFromStatusOrHistory(
                                         evid, dedupid, better)
+        return evt.__of__(self)
     
 
 

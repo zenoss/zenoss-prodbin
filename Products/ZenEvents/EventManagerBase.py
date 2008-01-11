@@ -832,7 +832,6 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
                 event = BetterEventDetail(self, fields, evdata)
             else:
                 event = EventDetail(self, fields, evdata)
-            event = event.__of__(self)
 
             selectdetail = "select name, value from %s where" % self.detailTable
             selectdetail += " evid = '%s'" % event.evid
