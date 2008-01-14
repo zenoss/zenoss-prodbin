@@ -345,10 +345,15 @@ class IpNetwork(DeviceOrganizer):
 
 
     security.declareProtected('View', 'countIpAddresses')
-    def countIpAddresses(self, inuse=True):
+    def countIpAddresses(self, inuse=False):
         """get an ip on this network"""
         if inuse:
-            count = len(self.ipaddresses())
+            # When there are a large number of IPs this code is too slow
+            # we either need to cache all /Status/Ping events before hand
+            # and then integrate them with the list of IPs
+            # or blow off the whole feature.  For now we just set the
+            # default to not use this code.  -EAD
+            count = len(filter(lambda x: x.getStatus() == 0,self.ipaddresses()))
         else:
             count = self.ipaddresses.countObjects()
         for net in self.children():
