@@ -215,11 +215,14 @@ class RRDTemplate(ZenModelRM, ZenPackable):
             if getattr(self.datasources,id,False):
                 if getattr(self, 'device', False):
                     perfConf = self.device().getPerformanceServer()
-                    perfConf.deleteRRDFiles(device=self.device().id, datasource=id)
+                    if perfConf:
+                        perfConf.deleteRRDFiles(device=self.device().id, 
+                                                datasource=id)
                 else:
                     for d in self.deviceClass.obj.getSubDevicesGen():
                         perfConf = d.getPerformanceServer()
-                        perfConf.deleteRRDFiles(device=d, datasource=id)
+                        if perfConf:
+                            perfConf.deleteRRDFiles(device=d, datasource=id)
                         
                 self.datasources._delObject(id)
                 clean(self.graphs, id)
