@@ -21,6 +21,7 @@ from Products.ZenUtils.Exceptions import ZentinelException
 from Products.ZenUtils.IpUtil import isip
 from Products.ZenEvents.ZenEventClasses import Status_Ping, Status_Snmp
 from Products.ZenEvents.Event import Event, Info
+# FIXME: We could remove Ping if we switched this code to use AsyncPing
 from Products.ZenStatus.Ping import Ping
 from Products.ZenModel.Device import manage_createDevice
 
