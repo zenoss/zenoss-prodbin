@@ -38,8 +38,10 @@ defaultPort = 22
 defaultStartSleep = 10 * 60
 
 from Products.DataCollector import DeviceProxy
+from Products.DataCollector import Plugins
 # needed for pb to work
 unused(DeviceProxy)
+unused(Plugins)
 
 class ZenModeler(PBDaemon):
 
