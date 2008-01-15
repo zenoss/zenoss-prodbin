@@ -93,6 +93,13 @@ class PerformanceConf(Monitor, StatusColor):
 
     zenProcessParallelJobs = 10
 
+    pingTimeOut = 1.5
+    pingTries = 2
+    pingChunk = 75
+    pingCycleInterval = 60
+    maxPingFailures = 1440
+    
+
     renderurl = '/zport/RenderServer'
     renderuser = ''
     renderpass = ''
@@ -132,6 +139,11 @@ class PerformanceConf(Monitor, StatusColor):
         {'id':'renderpass','type':'string','mode':'w'},
         {'id':'defaultRRDCreateCommand','type':'lines','mode':'w'},
         {'id':'zenProcessParallelJobs','type':'int','mode':'w'},
+        {'id':'pingTimeOut','type':'float','mode':'w'},
+        {'id':'pingTries','type':'int','mode':'w'},
+        {'id':'pingChunk','type':'int','mode':'w'},
+        {'id':'pingCycleInterval','type':'int','mode':'w'},
+        {'id':'maxPingFailures','type':'int','mode':'w'},
         )
     _relations = Monitor._relations + (
         ("devices", ToMany(ToOne,"Products.ZenModel.Device","perfServer")),
@@ -348,5 +360,18 @@ class PerformanceConf(Monitor, StatusColor):
                 return REQUEST['message']
             else:
                 return self.callZenScreen(REQUEST)
+
+
+    security.declareProtected('View','getPingDevices')
+    def getPingDevices(self):
+        '''Return devices associated with this monitor configuration.
+        '''
+        devices = []
+        for dev in self.devices.objectValuesAll():
+            dev = dev.primaryAq()
+            if dev.monitorDevice() and not dev.zPingMonitorIgnore: 
+                devices.append(dev)
+        return devices
+
 
 InitializeClass(PerformanceConf)

@@ -11,18 +11,32 @@
 #
 ###########################################################################
 
-class RelationshipMap(list):
+from twisted.spread import pb
+
+class PBSafe(pb.Copyable, pb.RemoteCopy): pass
+
+class RelationshipMap(PBSafe):
     relname = ""
     compname = ""
 
     def __init__(self, relname="", compname="", modname="", objmaps=[]):
         self.relname = relname
         self.compname = compname
-        self.extend([ ObjectMap(dm, modname=modname) for dm in objmaps ])
+        self.maps = [ObjectMap(dm, modname=modname) for dm in objmaps ]
+    
+    def __repr__(self):
+        return '<%s %s>' % (self.__class__.__name__, self.maps.__repr__())
+
+    def __iter__(self):
+        return iter(self.maps)
+
+    def append(self, obj):
+        self.maps.append(obj)
+
+pb.setUnjellyableForClass(RelationshipMap, RelationshipMap)
 
 
-
-class ObjectMap(object):
+class ObjectMap(PBSafe):
     """
     ObjectMap defines a mapping of some data to a ZenModel object.  To be valid
     it must specify modname the full path to the module where the class to 
@@ -32,11 +46,12 @@ class ObjectMap(object):
     compname = ""
     modname = ""
     classname = ""
-    _blockattrs = ('compname', 'modname', 'classname' )
+    _blockattrs = ('compname', 'modname', 'classname')
     _attrs = []
 
 
     def __init__(self, data={}, compname="", modname="", classname=""):
+        self._attrs = []
         self.updateFromDict(data)
         if compname: self.compname = compname
         if modname: self.modname = modname
@@ -61,3 +76,5 @@ class ObjectMap(object):
         """
         for key, value in data.items():
             setattr(self, key, value)
+
+pb.setUnjellyableForClass(ObjectMap, ObjectMap)

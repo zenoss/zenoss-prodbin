@@ -620,7 +620,7 @@ class zencommand(RRDDaemon):
 
                 self.sendEvents(
                     self.rrdStats.gauge('configTime',
-                                        self.configCycleInterval,
+                                        self.configCycleInterval * 60,
                                         time.time() - now))
 
             except Exception, ex:

@@ -303,10 +303,10 @@ class TelnetClientProtocol(telnet.Telnet):
     
 class TelnetClient(CollectorClient.CollectorClient):
     
-    def __init__(self, hostname, ip, port, commands=[], options=None, 
+    def __init__(self, hostname, ip, port, plugins=[], options=None, 
                     device=None, datacollector=None):
         CollectorClient.CollectorClient.__init__(self, hostname, ip, port, 
-                            commands, options, device, datacollector)
+                            plugins, options, device, datacollector)
         global defaultPromptTimeout
         global defaultLoginRegex
         global defaultPasswordRegex
@@ -415,7 +415,7 @@ def main():
     client = TelnetClient(options.hostname,
                           socket.gethostbyname(options.hostname),
                           options.port,
-                          commands=commands, options=options)
+                          plugins=commands, options=options)
     client.run()
     def stop():
         if client.commandsFinished():

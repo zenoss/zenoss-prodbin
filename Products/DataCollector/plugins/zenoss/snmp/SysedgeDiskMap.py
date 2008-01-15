@@ -28,6 +28,8 @@ class SysedgeDiskMap(SnmpPlugin):
     remoteClass = "Products.ZenModel.HardDisk"
     relationshipName = "harddisks"
     componentName = "hw"
+    deviceProperties = \
+                SnmpPlugin.deviceProperties + ('zSysedgeDiskMapIgnoreNames',)
 
     hrDeviceDescr = "1.3.6.1.2.1.25.3.2.1.3"
     diskStatsTable = "1.3.6.1.4.1.546.12.1.1"
@@ -55,7 +57,7 @@ class SysedgeDiskMap(SnmpPlugin):
                 desc = desc.values()[0]
                 diskrow['description'] = desc
                 disknamereg = getattr(device, 
-                                    'zSysedgeDiskMapIgnoreNames', None)
+                                      'zSysedgeDiskMapIgnoreNames', None)
                 if disknamereg and re.search(disknamereg, desc): continue
                 id = re.split('[,\s]', desc)[0]
                 diskrow['title'] = id

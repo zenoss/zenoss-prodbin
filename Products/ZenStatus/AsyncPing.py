@@ -22,6 +22,7 @@ import logging
 log = logging.getLogger("zen.Ping")
 
 from twisted.internet import reactor, defer
+from twisted.spread import pb
 
 class PermissionError(Exception):
     """Not permitted to access resource."""
@@ -29,8 +30,7 @@ class PermissionError(Exception):
 class IpConflict(Exception):
     """Pinging two jobs simultaneously with different hostnames but the same IP"""
 
-
-class PingJob:
+class PingJob(pb.Copyable, pb.RemoteCopy):
     """
     Class representing a single target to be pinged.
     """
@@ -62,6 +62,8 @@ class PingJob:
     def routerpj(self):
         if self.parent:
             return self.parent.routerpj()
+
+pb.setUnjellyableForClass(PingJob, PingJob)
 
 
 plog = logging.getLogger("zen.Ping")

@@ -18,151 +18,154 @@ Determines the availability of an IP address using ping.
 
 $Id$'''
 
-__version__ = "$Revision$"[11:-2]
-
 from socket import gethostbyname, getfqdn, gaierror
 
 import time
 
 import Globals # make zope imports work
 
-from AsyncPing import Ping
-from TestPing import Ping as TestPing
-import pingtree
+from Products.ZenStatus.AsyncPing import Ping
+from Products.ZenStatus.TestPing import Ping as TestPing
+from Products.ZenStatus import pingtree
+from Products.ZenUtils.Utils import unused
+unused(pingtree)                        # needed for pb
 
-
-from Products.ZenEvents.ZenEventClasses import App_Start, App_Stop
 from Products.ZenEvents.ZenEventClasses import Status_Ping
-from Products.ZenEvents.Event import Event, EventHeartbeat
-from Products.ZenUtils.ZCmdBase import ZCmdBase
+from Products.ZenHub.PBDaemon import FakeRemote, PBDaemon
 from Products.ZenUtils.DaemonStats import DaemonStats
+from Products.ZenUtils.Driver import drive, driveLater
 
 from twisted.internet import reactor
 
-class ZenPing(ZCmdBase):
+class ZenPing(PBDaemon):
 
-    agent = "ZenPing"
+    name = agent = "ZenPing"
     eventGroup = "Ping"
+    initialServices = PBDaemon.initialServices + ['PingConfig']
 
-    pathcheckthresh = 10
-    timeOut = 1.5
-    tries = 2
-    chunk = 75
-    cycleInterval = 60
+    pingTimeOut = 1.5
+    pingTries = 2
+    pingChunk = 75
+    pingCycleInterval = 60
     configCycleInterval = 20*60
-    maxFailures = 2
+    maxPingFailures = 2
+
     pinger = None
     pingTreeIter = None
     startTime = None
     jobs = 0
     reconfigured = True
+    loadingConfig = None
 
     def __init__(self):
-        ZCmdBase.__init__(self, keeproot=True)
+        PBDaemon.__init__(self, keeproot=True)
         if not self.options.useFileDescriptor:
             self.openPrivilegedPort('--ping')
-        self.hostname = getfqdn()
-        self.configpath = self.options.configpath
-        if self.configpath.startswith("/"):
-            self.configpath = self.configpath[1:]
-
-        self.zem = self.dmd.ZenEventManager
-        self.sendEvent(Event(device=getfqdn(), 
-                               eventClass=App_Start, 
-                               summary="zenping started",
-                               severity=0,
-                               component="zenping"))
-        self.log.info("started")
         self.rrdStats = DaemonStats()
+        if self.options.test:
+            self.pinger = TestPing(self.pingTries, self.pingTimeOut)
+        else:
+            fd = None
+            if self.options.useFileDescriptor is not None:
+                fd = int(self.options.useFileDescriptor)
+            self.pinger = Ping(self.pingTries, self.pingTimeOut, fd)
+        self.log.info("started")
 
-    def sendEvent(self, evt):
-        "wrapper for sending an event"
-        self.zem.sendEvent(evt)
 
+    def config(self):
+        return self.services.get('PingConfig', FakeRemote())
+
+    def stopOnError(self, error):
+        self.log.exception(error)
+        self.stop()
+        return error
+
+    def connected(self):
+        self.log.debug("Connected, getting config")
+        d = drive(self.loadConfig)
+        d.addCallback(self.pingCycle)
+        d.addErrback(self.stopOnError)
 
     def sendPingEvent(self, pj):
         "Send an event based on a ping job to the event backend."
-        evt = Event(device=pj.hostname, 
-                    ipAddress=pj.ipaddr, 
-                    summary=pj.message, 
-                    severity=pj.severity,
-                    eventClass=Status_Ping,
-                    eventGroup=self.eventGroup, 
-                    agent=self.agent, 
-                    component='',
-                    manager=self.hostname)
+        evt = dict(device=pj.hostname, 
+                   ipAddress=pj.ipaddr, 
+                   summary=pj.message, 
+                   severity=pj.severity,
+                   eventClass=Status_Ping,
+                   eventGroup=self.eventGroup, 
+                   agent=self.agent, 
+                   component='',
+                   manager=self.options.monitor)
         evstate = getattr(pj, 'eventState', None)
-        if evstate is not None: evt.eventState = evstate
+        if evstate is not None:
+            evt['eventState'] = evstate
         self.sendEvent(evt)
 
-    def loadConfig(self):
-        "get the config data"
-        now = time.time()
-        self.dmd._p_jar.sync()
-        changed = False
-        smc = self.dmd.getObjByPath(self.configpath)
-        for att in ("timeOut", "tries", "chunk",
-                    "cycleInterval", "configCycleInterval",
-                    "maxFailures",):
+    def loadConfig(self, driver):
+        "Get the configuration for zenpin"
+
+        if self.loadingConfig:
+            self.log.warning("Configuration still loading.  Started at %s" %
+                             time.strftime('%x %X', self.loadingConfig))
+            return
+        
+        self.loadingConfig = time.time()
+
+        self.log.info('fetching monitor properties')
+        yield self.config().callRemote('propertyItems')
+        items = dict(driver.next())
+        for att in ("pingTimeOut",
+                    "pingTries",
+                    "pingChunk",
+                    "pingCycleInterval",
+                    "configCycleInterval",
+                    "maxPingFailures",
+                    ):
             before = getattr(self, att)
-            after = getattr(smc, att)
+            after = items.get(att, before)
             setattr(self, att, after)
-            if not changed:
-                changed = before != after
         self.configCycleInterval *= 60
         self.reconfigured = True
 
-        self.rrdStats.configWithMonitor('zenping', smc)
-        
-        reactor.callLater(self.configCycleInterval, self.loadConfig)
+        driveLater(self.configCycleInterval, self.loadConfig)
 
-        me = None
-        if self.options.name:
-            me = self.dmd.Devices.findDevice(self.options.name)
-            self.log.info("device %s not found trying %s", 
-                          self.options.name, self.hostname)
-        else:
-            me = self.dmd.Devices.findDevice(self.hostname)
-        if me: 
-            self.log.info("building pingtree from %s", me.id)
-            self.pingtree = pingtree.buildTree(me)
-        else:
-            self.log.critical("ZenPing '%s' not found,"
-                              "ignoring network topology.",self.hostname)
-            self.pingtree = pingtree.Rnode(findIp(), self.hostname, 0)
-        devices = smc.getPingDevices()
-        self.prepDevices(devices)
+        self.log.info("fetching default RRDCreateCommand")
+        yield self.config().callRemote('getDefaultRRDCreateCommand')
+        createCommand = driver.next()
+
+        self.log.info("getting threshold classes")
+        yield self.config().callRemote('getThresholdClasses')
+        self.remote_updateThresholdClasses(driver.next())
+        
+        self.log.info("getting collector thresholds")
+        yield self.config().callRemote('getCollectorThresholds')
+        self.rrdStats.config('zenping',
+                             self.options.monitor,
+                             driver.next(), 
+                             createCommand)
+
+        self.log.info("getting ping tree")
+        yield self.config().callRemote('getPingTree',
+                                       self.options.name,
+                                       findIp())
+        self.pingtree = driver.next()
+
         self.rrdStats.gauge('configTime',
                             self.configCycleInterval,
-                            time.time() - now)
-
-
-    def prepDevices(self, devices):
-        """resolve dns names and make StatusTest objects"""
-        for device in devices:
-            if not self.pingtree.hasDev(device):
-                self.pingtree.addDevice(device)
-        self.reconfigured = True
+                            time.time() - self.loadingConfig)
+        self.loadingConfig = None
 
 
     def buildOptions(self):
-        ZCmdBase.buildOptions(self)
-        self.parser.add_option('--configpath',
-                               dest='configpath',
-                               default="Monitors/StatusMonitors/localhost",
-                               help="path to our monitor config ie: "
-                               "/Monitors/StatusMonitors/localhost")
-        self.parser.add_option('--monitor',
-                               dest='configpath',
-                               default="Monitors/StatusMonitors/localhost",
-                               help="path to our monitor config ie: "
-                               "/Monitors/StatusMonitors/localhost")
+        PBDaemon.buildOptions(self)
         self.parser.add_option('--name',
                                dest='name',
-                               help=("name to use when looking up our "
-                                     "record in the dmd "
-                                     "defaults to our fqdn as returned "
-                                     "by getfqdn"))
+                               default=getfqdn(),
+                               help=("host that roots the ping dependency "
+                                     "tree: typically the collecting hosts' "
+                                     "name; defaults to our fully qualified "
+                                     "domain name (%s)" % getfqdn()))
         self.parser.add_option('--test',
                                dest='test',
                                default=False,
@@ -173,7 +176,8 @@ class ZenPing(ZCmdBase):
         self.parser.add_option('--useFileDescriptor',
                                dest='useFileDescriptor',
                                default=None,
-                               help="use the given (privileged) file descriptor")
+                               help=
+                               "use the given (privileged) file descriptor")
         self.parser.add_option('--startTimeOut',
                                dest='startTimeOut',
                                default=600,
@@ -181,16 +185,16 @@ class ZenPing(ZCmdBase):
 
 
 
-    def pingCycle(self):
+    def pingCycle(self, unused=None):
         "Start a new run against the ping job tree"
-        self.dmd._p_jar.sync()
-        reactor.callLater(self.cycleInterval, self.pingCycle)
+        if self.options.cycle:
+            reactor.callLater(self.pingCycleInterval, self.pingCycle)
 
         if self.pingTreeIter == None:
             self.start = time.time()
             self.jobs = 0
             self.pingTreeIter = self.pingtree.pjgen()
-        while self.pinger.jobCount() < self.chunk and self.startOne():
+        while self.pinger.jobCount() < self.pingChunk and self.startOne():
             pass
 
 
@@ -201,7 +205,7 @@ class ZenPing(ZCmdBase):
         while 1:
             try:
                 pj = self.pingTreeIter.next()
-                if pj.status < self.maxFailures or self.reconfigured:
+                if pj.status < self.maxPingFailures or self.reconfigured:
                     self.ping(pj)
                     return True
             except StopIteration:
@@ -232,31 +236,27 @@ class ZenPing(ZCmdBase):
         if not self.options.cycle:
             reactor.stop()
         else:
-            self.sendHeartbeat()
+            self.heartbeat()
 
-    def sendHeartbeat(self):
+    def heartbeat(self):
         'Send a heartbeat event for this monitor.'
-        timeout = self.cycleInterval*3
-        evt = EventHeartbeat(getfqdn(), "zenping", timeout)
-        self.sendEvent(evt)
-        self.niceDoggie(self.cycleInterval)
+        PBDaemon.heartbeat(self)
         for ev in (self.rrdStats.gauge('cycleTime',
-                                       self.cycleInterval,
+                                       self.pingCycleInterval,
                                        time.time() - self.start) +
                    self.rrdStats.gauge('devices',
-                                       self.cycleInterval,
+                                       self.pingCycleInterval,
                                        self.jobs)):
             self.sendEvent(ev)
 
     def pingSuccess(self, pj):
         "Callback for a good ping response"
         pj.deferred = None
-        status = pj.status
-        pj.status = 0
-        if status > 1:
+        if pj.status > 1:
             pj.severity = 0
             self.sendPingEvent(pj)
         self.log.debug("Success %s", pj.ipaddr)
+        pj.status = 0
         self.next()
 
     def pingFailed(self, err):
@@ -296,27 +296,6 @@ class ZenPing(ZCmdBase):
         
         self.next()
 
-    def sigTerm(self, signum=None, frame=None):
-        'controlled shutdown of main loop on interrupt'
-        try:
-            ZCmdBase.sigTerm(self, signum, frame)
-        except SystemExit:
-            reactor.stop()
-
-    def start(self):
-        "Get things going"
-        self.loadConfig()
-        if self.options.test:
-            self.pinger = TestPing(self.tries, self.timeOut)
-        else:
-            fd = None
-            if self.options.useFileDescriptor is not None:
-                fd = int(self.options.useFileDescriptor)
-            self.pinger = Ping(self.tries, self.timeOut, fd)
-                                   
-        self.pingCycle()
-
-
     def markChildrenDown(self, pj):
         """If this is a router PingJob, mark all Nodes
         away from the ping monitor as down"""
@@ -339,6 +318,18 @@ class ZenPing(ZCmdBase):
             self.sendPingEvent(pj)
 
 
+    def remote_updateConfig(self):
+        self.log.debug("Asynch update config")
+        if self.loadingConfig:
+            return
+        d = drive(self.loadConfig)
+        def reportError(result):
+            self.log.error("Error loading config: %s" % result)
+        d.addErrback(reportError)
+
+    def remote_deleteDevice(self, device):
+        self.log.debug("Asynch delete device %s" % device)
+        self.remote_updateConfig()
         
 
 def findIp():
@@ -374,13 +365,6 @@ def findIp():
 
 if __name__=='__main__':
     pm = ZenPing()
-    pm.start()
     import logging
     logging.getLogger('zen.Events').setLevel(20)
-    reactor.run()
-    pm.log.info("stopping...")
-    pm.sendEvent(Event(device=getfqdn(), 
-                       eventClass=App_Stop, 
-                       summary="zenping stopped",
-                       severity=4, component="zenping"))
-    pm.log.info("stopped")
+    pm.run()

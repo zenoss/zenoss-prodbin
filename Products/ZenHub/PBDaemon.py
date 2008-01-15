@@ -96,8 +96,8 @@ class PBDaemon(ZenDaemon, pb.Referenceable):
         factory = ReconnectingPBClientFactory()
         self.log.debug("Connecting to %s", self.options.hubhost)
         reactor.connectTCP(self.options.hubhost, self.options.hubport, factory)
-        username = self.options.username
-        password = self.options.password
+        username = self.options.hubusername
+        password = self.options.hubpassword
         self.log.debug("Logging in as %s", username)
         c = credentials.UsernamePassword(username, password)
         factory.gotPerspective = self.gotPerspective
@@ -271,13 +271,13 @@ class PBDaemon(ZenDaemon, pb.Referenceable):
                                 default=DEFAULT_HUB_PORT,
                                 help='Port zenhub listens on.'
                                     'Default is %s.' % DEFAULT_HUB_PORT)
-        self.parser.add_option('--username',
-                                dest='username',
+        self.parser.add_option('--hub-username',
+                                dest='hubusername',
                                 default=DEFAULT_HUB_USERNAME,
                                 help='Username for zenhub login.'
                                     ' Default is %s.' % DEFAULT_HUB_USERNAME)
-        self.parser.add_option('--password',
-                                dest='password',
+        self.parser.add_option('--hub-password',
+                                dest='hubpassword',
                                 default=DEFAULT_HUB_PASSWORD,
                                 help='Password for zenhub login.'
                                     ' Default is %s.' % DEFAULT_HUB_PASSWORD)

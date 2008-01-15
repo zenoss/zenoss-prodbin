@@ -28,7 +28,9 @@ class IpServiceMap(SnmpPlugin):
     compname = "os"
     relname = "ipservices"
     modname = "Products.ZenModel.IpService"
-
+    deviceProperties = \
+                SnmpPlugin.deviceProperties + ('zIpServiceMapMaxPort',)
+                
     snmpGetTableMaps = (
         GetTableMap('tcptable', '.1.3.6.1.2.1.6.13.1', {'.1':'state'}),
         GetTableMap('udptable', '.1.3.6.1.2.1.7.5.1', {'.1':'addr'}),

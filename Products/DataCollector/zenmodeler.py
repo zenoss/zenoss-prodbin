@@ -15,22 +15,21 @@ import time
 import types
 import re
 import Globals
-import transaction
 import DateTime
 from twisted.internet import reactor
+from twisted.internet.defer import succeed
 
-from Products.ZenUtils.ZCmdBase import ZCmdBase
+from Products.ZenHub.PBDaemon import FakeRemote, PBDaemon
 from Products.ZenUtils.DaemonStats import DaemonStats
+from Products.ZenUtils.Driver import drive, driveLater
+from Products.ZenUtils.Utils import unused
 from Products.ZenEvents.ZenEventClasses import Heartbeat
 
-from ApplyDataMap import ApplyDataMap, ApplyDataMapThread
 import PythonClient
 import SshClient
 import TelnetClient
 import SnmpClient
 import PortscanClient
-
-from Exceptions import *
 
 defaultPortScanTimeout = 5
 defaultParallel = 1
@@ -38,23 +37,30 @@ defaultProtocol = "ssh"
 defaultPort = 22
 defaultStartSleep = 10 * 60
 
-from Plugins import loadPlugins
+from Products.DataCollector import DeviceProxy
+# needed for pb to work
+unused(DeviceProxy)
 
-class ZenModeler(ZCmdBase):
+class ZenModeler(PBDaemon):
+
+    name = 'zenmodeler'
+    initialServices = PBDaemon.initialServices + ['ModelerService']
 
     generateEvents = True
     
     def __init__(self,noopts=0,app=None,single=False,
                  threaded=None,keeproot=False):
-        ZCmdBase.__init__(self, noopts, app, keeproot)
+        PBDaemon.__init__(self)
         
         if self.options.daemon:
             if self.options.now:
                 self.log.debug("Run as a daemon, starting immediately.")
             else:
-                self.log.debug("Run as a daemon, waiting %s sec to start." % defaultStartSleep)
+                self.log.debug("Run as a daemon, waiting %s sec to start." %
+                               defaultStartSleep)
                 time.sleep(defaultStartSleep)
-                self.log.debug("Run as a daemon, slept %s sec, starting now." % defaultStartSleep)
+                self.log.debug("Run as a daemon, slept %s sec, starting now." %
+                               defaultStartSleep)
         else:
             self.log.debug("Run in foreground, starting immediately.")
 
@@ -70,29 +76,31 @@ class ZenModeler(ZCmdBase):
         self.collage = self.options.collage / 1440.0
         self.clients = []
         self.finished = []
-        self.collectorPlugins = {}
         self.devicegen = None
-        self.loadPlugins()
         self.slowDown = False
-        if self.threaded and not self.single:
-            self.log.info("starting apply in separate thread.")
-            self.applyData = ApplyDataMapThread(self, self.getConnection())
-            self.applyData.start()
-        else:
-            self.log.debug("in debug mode starting apply in main thread.")
-            self.applyData = ApplyDataMap(self)
-        self.heartbeat()
 
-    def loadPlugins(self):
-        """Load plugins from the plugin directory.
-        """
-        self.collectorPlugins = loadPlugins(self.dmd)
+    def reportError(self, error):
+        self.log.error("Error occured: %s", error)
 
-    
+    def connected(self):
+        self.log.debug("Connected to ZenHub")
+        d = self.configure()
+        d.addCallback(self.heartbeat)
+        d.addErrback(self.reportError)
+        d.addCallback(self.main)
+
+    def configure(self):
+        # add in the code to fetch cycle time, etc.
+        return succeed(None)
+
+    def config(self):
+        "Get the ModelerService"
+        return self.services.get('ModelerService', FakeRemote())
+
     def selectPlugins(self, device, transport):
         """Build a list of active plugins for a device.  
         """
-        names = getattr(device, 'zCollectorPlugins', [])
+        plugins = [loader.create() for loader in device.plugins]
         result = []
         collectTest = lambda x: False
         ignoreTest = lambda x: False
@@ -100,47 +108,26 @@ class ZenModeler(ZCmdBase):
             collectTest = re.compile(self.options.collectPlugins).search
         elif self.options.ignorePlugins:
             ignoreTest = re.compile(self.options.ignorePlugins).search
-        for plugin in self.collectorPlugins.values():
+        for plugin in plugins:
             if plugin.transport != transport:
                 continue
             name = plugin.name()
-            try:
-                if not plugin.condition(device, self.log):
-                    self.log.debug("condition failed %s on %s",name,device.id) 
-                elif ignoreTest(name):
-                    self.log.debug("ignoring %s on %s",name, device.id)
-                elif name in names and not self.options.collectPlugins:
-                    self.log.debug("using %s on %s",name, device.id)
-                    result.append(plugin)
-                elif collectTest(name):
-                    self.log.debug("--collect %s on %s", name, device.id)
-                    result.append(plugin)
-                else:
-                    self.log.debug("skipping %s for %s", name, device.id)
-            except (SystemExit, KeyboardInterrupt): raise
-            except:
-                self.log.exception("failed to select plugin %s", name)
+            if ignoreTest(name):
+                self.log.debug("ignoring %s on %s",name, device.id)
+            elif collectTest(name):
+                self.log.debug("--collect %s on %s", name, device.id)
+                result.append(plugin)
+            else:
+                self.log.debug("using %s on %s",name, device.id)
+                result.append(plugin)
         return result
              
     
-    def resolveDevice(self, device):
-        """If device is a string look it up in the dmd.
-        """
-        if type(device) == types.StringType:
-            dname = device
-            device = self.dmd.Devices.findDevice(device)
-            if not device:
-                raise DataCollectorError("device %s not found" % dname)
-        return device
-
-
     def collectDevice(self, device):
         """Collect data from a single device.
         """
         clientTimeout = getattr(device, 'zCollectorClientTimeout', 180)
-        ip = device.getManageIp()
-        if not ip:
-            ip = device.setManageIp()
+        ip = device.manageIp
         timeout = clientTimeout + time.time()
         self.pythonCollect(device, ip, timeout)
         self.cmdCollect(device, ip, timeout)
@@ -179,8 +166,7 @@ class ZenModeler(ZCmdBase):
         hostname = device.id
         try:
             plugins = self.selectPlugins(device,"command")
-            commands = map(lambda x: (x.name(), x.command), plugins)
-            if not commands:
+            if not plugins:
                 self.log.info("no cmd plugins found for %s" % hostname)
                 return 
             protocol = getattr(device, 'zCommandProtocol', defaultProtocol)
@@ -188,7 +174,7 @@ class ZenModeler(ZCmdBase):
             if protocol == "ssh": 
                 client = SshClient.SshClient(hostname, ip, commandPort, 
                                     options=self.options,
-                                    commands=commands, device=device, 
+                                    plugins=plugins, device=device, 
                                     datacollector=self)
                 clientType = 'ssh'
                 self.log.info('using ssh collection device %s' % hostname)
@@ -196,7 +182,7 @@ class ZenModeler(ZCmdBase):
                 if commandPort == 22: commandPort = 23 #set default telnet
                 client = TelnetClient.TelnetClient(hostname, ip, commandPort,
                                     options=self.options,
-                                    commands=commands, device=device, 
+                                    plugins=plugins, device=device, 
                                     datacollector=self)
                 clientType = 'telnet'
                 self.log.info('using telnet collection device %s' % hostname)
@@ -261,7 +247,6 @@ class ZenModeler(ZCmdBase):
         """
         client = None
         try:
-            plugins = []
             hostname = device.id
             plugins = self.selectPlugins(device, "portscan")
             if not plugins:
@@ -271,8 +256,12 @@ class ZenModeler(ZCmdBase):
                 self.log.info('portscan collection device %s' % hostname)
                 self.log.info("plugins: %s",
                     ", ".join(map(lambda p: p.name(), plugins)))
-                client = PortscanClient.PortscanClient(device.id, ip,
-                    self.options, device, self, plugins)
+                client = PortscanClient.PortscanClient(device.id,
+                                                       ip,
+                                                       self.options,
+                                                       device,
+                                                       self,
+                                                       plugins)
             if not client or not plugins:
                 self.log.warn("portscan client creation failed")
                 return
@@ -285,7 +274,7 @@ class ZenModeler(ZCmdBase):
     def checkCollection(self, device):
         age = device.getSnmpLastCollection() + self.collage
         if device.getSnmpStatusNumber() > 0 and age >= DateTime.DateTime():
-            self.log.info("skipped collection of %s" % device.getId())
+            self.log.info("skipped collection of %s" % device.id)
             return False
         return True
 
@@ -293,22 +282,61 @@ class ZenModeler(ZCmdBase):
     def clientFinished(self, collectorClient):
         """Callback that processes the return values from a device. 
         """
-        try:
-            self.log.debug("client for %s finished collecting",
-                            collectorClient.hostname)
-            device = collectorClient.device
-            self.applyData.processClient(device, collectorClient)
-        finally:
+        device = collectorClient.device
+        self.log.debug("client for %s finished collecting", device.id)
+        def processClient(driver):
+            self.log.debug("processing data for device %s", device.id)
+            devchanged = False
+            maps = []
+            for plugin, results in collectorClient.getResults():
+                self.log.debug("processing plugin %s on device %s",
+                               plugin.name(), device.id)
+                if not results: 
+                    self.log.warn("plugin %s no results returned",
+                                  plugin.name())
+                    continue
+
+                results = plugin.preprocess(results, self.log)
+                datamaps = plugin.process(device, results, self.log)
+
+                # allow multiple maps to be returned from one plugin
+                if type(datamaps) not in (types.ListType, types.TupleType):
+                    datamaps = [datamaps,]
+                if datamaps:
+                    maps += [m for m in datamaps if m]
+            if maps:
+                yield self.config().callRemote('applyDataMaps', device.id, maps)
+                if driver.next():
+                    devchanged = True
+            if devchanged:
+                self.log.info("changes applied")
+            else:
+                self.log.info("no change detected")
+            yield self.config().callRemote('setSnmpLastCollection', device.id)
+            driver.next()
+
+        def processClientFinished(result):
+            if not result:
+                self.log.debug("Client %s finished" % device.id)
+            else:
+                self.log.error("Client %s finished: %s" % (device.id, result))
             try:
                 self.clients.remove(collectorClient)
                 self.finished.append(collectorClient)
             except ValueError:
                 self.log.warn("client %s not found in active clients",
-                              collectorClient.hostname)
-        self.fillCollectionSlots()
+                              device.id)
+            d = drive(self.fillCollectionSlots)
+            d.addErrback(self.fillError)
+        d = drive(processClient)
+        d.addBoth(processClientFinished)
 
 
-    def heartbeat(self):
+
+    def fillError(self, reason):
+        self.log.error("Unable to fill collection slots: %s" % reason)
+
+    def heartbeat(self, ignored=None):
         ARBITRARY_BEAT = 30
         reactor.callLater(ARBITRARY_BEAT, self.heartbeat)
         if self.options.cycle:
@@ -321,15 +349,8 @@ class ZenModeler(ZCmdBase):
                 self.sendEvent(evt)
                 self.niceDoggie(self.cycletime)
 
-    def sendEvent(self, evt):
-        if self.dmd:
-            self.dmd.ZenEventManager.sendEvent(evt)
 
-    def sendEvents(self, evts):
-        if self.dmd:
-            self.dmd.ZenEventManager.sendEvents(evts)
-
-    def checkStop(self):
+    def checkStop(self, unused = None):
         "if there's nothing left to do, maybe we should terminate"
         if self.clients: return
         if self.devicegen: return
@@ -348,22 +369,20 @@ class ZenModeler(ZCmdBase):
             if not self.options.cycle:
                 self.stop()
 
-    def fillCollectionSlots(self):
+    def fillCollectionSlots(self, driver):
         """If there are any free collection slots fill them up
         """
         count = len(self.clients)
-        while (count < self.options.parallel and
-               self.devicegen and not self.slowDown):
+        while ( count < self.options.parallel and
+                self.devicegen and
+                not self.slowDown ):
             try:
                 device = self.devicegen.next()
-                device = device.primaryAq()                
-                if (device.productionState <= 
-                    getattr(device,'zProdStateThreshold',0)): 
-                    self.log.info("skipping %s production state too low",
-                                  device.id)
-                    continue
+                yield self.config().callRemote('getDeviceConfig', [device])
                 # just collect one device, and let the timer add more
-                self.collectDevice(device)
+                devices = driver.next()
+                if devices:
+                    self.collectDevice(devices[0])
             except StopIteration:
                 self.devicegen = None
             break
@@ -371,11 +390,13 @@ class ZenModeler(ZCmdBase):
         update = len(self.clients)
         if update != count and update != 1:
             self.log.info('Running %d clients', update)
+        else:
+            self.log.debug('Running %d clients', update)
         self.checkStop()
 
 
     def buildOptions(self):
-        ZCmdBase.buildOptions(self)
+        PBDaemon.buildOptions(self)
         self.parser.add_option('--debug',
                 dest='debug', action="store_true", default=False,
                 help="don't fork threads for processing")
@@ -416,10 +437,6 @@ class ZenModeler(ZCmdBase):
         self.parser.add_option('--now', 
                 dest='now', action="store_true", default=False,
                 help="start daemon now, do not sleep before starting")
-        self.parser.add_option('--monitor',
-                default='localhost',
-                dest='monitor',
-                help='Name of monitor instance to use for configuration retrevial OR Performance Monitor to set at discovery time.')
         TelnetClient.buildOptions(self.parser, self.usage)
     
 
@@ -431,7 +448,7 @@ class ZenModeler(ZCmdBase):
             raise SystemExit("--ignore and --collect are mutually exclusive")
 
 
-    def timeoutClients(self):
+    def timeoutClients(self, unused=None):
         reactor.callLater(1, self.timeoutClients)
         active = []
         for client in self.clients:
@@ -442,8 +459,9 @@ class ZenModeler(ZCmdBase):
             else:
                 active.append(client)
         self.clients = active
-        self.fillCollectionSlots()
-        self.checkStop()
+        d = drive(self.fillCollectionSlots)
+        d.addCallback(self.checkStop)
+        d.addErrback(self.fillError)
                 
 
     def reactorLoop(self):
@@ -457,66 +475,62 @@ class ZenModeler(ZCmdBase):
                     self.slowDown = timeout < 0.01
                     reactor.doIteration(timeout)
             except:
-                self.log.exception("Unexpected error in main loop.")
+                if reactor.running:
+                    self.log.exception("Unexpected error in main loop.")
+
+    def getDeviceList(self):
+        if self.options.device:
+            self.log.info("collecting for device %s", self.options.device)
+            return succeed([self.options.device])
+        elif self.options.monitor:
+            self.log.info("collecting for monitor %s", self.options.monitor)
+            return self.config().callRemote('getDeviceListByMonitor',
+                                            self.options.monitor)
+        else:
+            self.log.info("collecting for path %s", self.options.path)
+            return self.config().callRemote('getDeviceListByOrganizer',
+                                            self.options.path)
         
 
-    def stop(self):
-        """Stop ZenModeler make sure reactor is stopped, join with 
-        applyData thread and close the zeo connection.
-        """
-        self.log.info("stopping...")
-        self.applyData.stop()
-        transaction.abort()
-        reactor.callLater(0., reactor.crash)
 
-
-    def mainLoop(self):
+    def mainLoop(self, driver):
         if self.options.cycle:
-            reactor.callLater(self.cycletime, self.mainLoop)
+            driveLater(self.cycletime, self.mainLoop)
 
         if self.clients:
             self.log.error("modeling cycle taking too long")
             return
 
-        self.log.info("starting collector loop")
-        self.app._p_jar.sync()
         self.start = time.time()
-        if self.options.device:
-            self.log.info("collecting for device %s", self.options.device)
-            self.devicegen = iter([self.resolveDevice(self.options.device)])
-        elif self.options.monitor:
-            self.log.info("collecting for monitor %s", self.options.monitor)
-            monitor = self.dmd.Monitors.Performance._getOb(self.options.monitor)
-            self.devicegen = monitor.devices.objectValuesGen()
-            self.rrdStats.configWithMonitor('zenmodeler', monitor)
-        else:
-            self.log.info("collecting for path %s", self.options.path)
-            root = self.dmd.Devices.getOrganizer(self.options.path)
-            self.devicegen = root.getSubDevicesGen()
-        self.fillCollectionSlots()
+
+        self.log.info("starting collector loop")
+        yield self.getDeviceList()
+        self.devicegen = iter(driver.next())
+        d = drive(self.fillCollectionSlots)
+        d.addErrback(self.fillError)
+        yield d
+        driver.next()
+        self.log.debug("Collection slots filled")
         
 
-    def sigTerm(self, signum=None, frame=None):
-        'controlled shutdown of main loop on interrupt'
-        try:
-            ZCmdBase.sigTerm(self, signum, frame)
-        except SystemExit:
-            pass
-
-    def main(self):
+    def main(self, unused=None):
         self.finished = []
-        self.mainLoop()
-        self.timeoutClients()
+        d = drive(self.mainLoop)
+        d.addCallback(self.timeoutClients)
+        return d
 
     def collectSingle(self, device):
         self.finished = []
         self.start = time.time()
-        self.devicegen = iter([self.resolveDevice(device)])
-        self.fillCollectionSlots()
-        self.timeoutClients()
+        self.devicegen = iter([device])
+        d = self.drive(self.fillCollectionSlots)
+        d.addCallback(self.timeoutClients)
+        d.addErrback(self.fillError)
+
 
 if __name__ == '__main__':
     dc = ZenModeler()
     dc.processOptions()
-    dc.main()
-    dc.reactorLoop()
+    # hook to detect slowdown 
+    reactor.run = dc.reactorLoop
+    dc.run()

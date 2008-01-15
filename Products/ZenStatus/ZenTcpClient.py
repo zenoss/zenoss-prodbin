@@ -31,8 +31,7 @@ hostname = getfqdn()
 
 # needed for pb/jelly
 from Products.ZenHub.services.StatusConfig import ServiceConfig
-if 0:
-    ServiceConfig = None                # pyflakes
+unused(ServiceConfig)
 
 class ZenTcpTest(protocol.Protocol):
 

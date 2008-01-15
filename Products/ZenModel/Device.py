@@ -1765,7 +1765,7 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
         """
         if propname == 'zCollectorPlugins':
             from Products.DataCollector.Plugins import loadPlugins
-            names = loadPlugins(self.dmd).keys()
+            names = [loader.create().name() for loader in loadPlugins(self.dmd)]
             names.sort()
             return names
         if propname == 'zSnmpVer':
@@ -1908,4 +1908,68 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
         return self.dmd.ZenEventManager.getDeviceComponentEventSummary(self)
 
 
+    def updateProcesses(self, relmaps):
+        "Uses ProcessClasses to create processes to monitor"
+
+        from Products.DataCollector.ApplyDataMap import ApplyDataMap
+
+        processes = self.getDmdRoot("Processes")
+        pcs = list(processes.getSubOSProcessClassesGen())
+	log.debug("zenoss processes: %s" % pcs)
+        pcs.sort(lambda a, b: cmp(a.sequence,b.sequence))
+      
+	#some debug output 
+        procs = Set()
+	if log.isEnabledFor(10):
+	    log.debug("=== snmp process information received ===")
+	    for p in scanResults:
+		log.debug("process: %s" % p)
+	    log.debug("=== processes stored/defined in Zenoss ===")
+	    for p in pcs:
+		log.debug("%s\t%s" % (p.id, p.regex))
+
+        procs = Set()
+	
+	#get the processes defined in Zenoss
+        processes = self.getDmdRoot("Processes")
+        pcs = list(processes.getSubOSProcessClassesGen())
+	log.debug("zenoss processes: %s" % pcs)
+        pcs.sort(lambda a, b: cmp(a.sequence,b.sequence))
+      
+	#some debug output 
+	if log.isEnabledFor(10):
+	    log.debug("=== snmp process information received ===")
+	    for p in scanResults:
+		log.debug("process: %s" % p)
+	
+	    log.debug("=== processes stored/defined in Zenoss ===")
+	    for p in pcs:
+		log.debug("%s\t%s" % (p.id, p.regex))
+
+        maps = []
+	for om in relmap.maps:
+            om = ObjectMap(proc)
+            fullname = (om.procName + " " + om.parameters).rstrip()
+	    log.debug("current process: %s" % fullname)
+            
+	    for pc in pcs:
+                if pc.match(fullname):
+                    om.setOSProcessClass = pc.getPrimaryDmdId()
+                    id = om.procName
+                    parameters = om.parameters.strip()
+                    if parameters and not pc.ignoreParameters:
+                        parameters = md5.md5(parameters).hexdigest()
+                        id += ' ' + parameters
+                    om.id = self.prepId(id)
+                    if id not in procs:
+                        procs.add(id)
+			log.debug("adding %s" % fullname)
+                        maps.append(om)
+                    break
+        relmap.maps = maps
+
+        adm = ApplyDataMap()
+        return adm._applyDataMap(self, relmap)
+ 
+            
 InitializeClass(Device)

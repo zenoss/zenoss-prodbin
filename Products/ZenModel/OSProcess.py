@@ -37,6 +37,25 @@ def manage_addOSProcess(context, className, userCreated, REQUEST=None):
     return osp
 
 
+def createFromObjectMap(context, objectMap):
+    import md5
+    om = objectMap
+    device = context.device()
+    processes = context.device().getDmdRoot("Processes")
+    pcs = processes.getSubOSProcessClassesSorted()
+    fullname = (om.procName + ' ' + om.parameters).rstrip()
+    for pc in pcs:
+        if pc.match(fullname):
+            id = om.procName
+            parameters = om.parameters.strip()
+            if parameters and not pc.ignoreParameters:
+                parameters = md5.md5(parameters).hexdigest()
+                id += ' ' + parameters
+            result = OSProcess(device.prepId(id))
+            om.setOSProcessClass = pc.getPrimaryDmdId()
+            return result
+
+
 class OSProcess(OSComponent, Commandable, ZenPackable):
     """
     OSProcess object
@@ -237,6 +256,25 @@ class OSProcess(OSComponent, Commandable, ZenPackable):
         Return the url where UserCommands are viewed for this object
         """
         return self.getPrimaryUrlPath() + '/osProcessManage'
+
+    def filterAutomaticCreation(self):
+	#get the processes defined in Zenoss
+        processes = self.getDmdRoot("Processes")
+        pcs = list(processes.getSubOSProcessClassesGen())
+        pcs.sort(lambda a, b: cmp(a.sequence,b.sequence))
+      
+        for pc in pcs:
+            fullname = (self.procName + ' ' + self.parameters).rstrip()
+            if pc.match(fullname):
+                self.setOSProcessClass(pc.getPrimaryDmdId())
+                self.id = om.procName
+                parameters = om.parameters.strip()
+                if parameters and not pc.ignoreParameters:
+                    parameters = md5.md5(parameters).hexdigest()
+                    self.id += ' ' + parameters
+                self.id = self.prepId(id)
+                return True
+        return False
 
 
 InitializeClass(OSProcess)

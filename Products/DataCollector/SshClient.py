@@ -154,10 +154,10 @@ class CommandChannel(channel.SSHChannel):
 
 class SshClient(CollectorClient.CollectorClient):
 
-    def __init__(self, hostname, ip, port=22, commands=[], options=None, 
+    def __init__(self, hostname, ip, port=22, plugins=[], options=None, 
                     device=None, datacollector=None):
         CollectorClient.CollectorClient.__init__(self, hostname, ip, port, 
-                           commands, options, device, datacollector)
+                           plugins, options, device, datacollector)
         self.protocol = SshClientTransport
         self.connection = None
         self.transport = None

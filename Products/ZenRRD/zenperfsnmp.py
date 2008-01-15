@@ -368,7 +368,7 @@ class zenperfsnmp(SnmpDaemon):
                 log.error("Error loading devices: %s", result)
         d.addBoth(report)
         self.sendEvents(self.rrdStats.gauge('configTime',
-                                            self.configCycleInterval,
+                                            self.configCycleInterval * 60,
                                             time.time() - now))
 
 

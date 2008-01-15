@@ -27,7 +27,9 @@ class RouteMap(SnmpPlugin):
     relname = "routes"
     compname = "os"
     modname = "Products.ZenModel.IpRouteEntry"
-
+    deviceProperties = \
+                SnmpPlugin.deviceProperties + ('zRouteMapCollectOnlyLocal',
+                                               'zRouteMapCollectOnlyIndirect')
     columns = {
         '.1' : 'id',
         '.2': 'setInterfaceIndex',

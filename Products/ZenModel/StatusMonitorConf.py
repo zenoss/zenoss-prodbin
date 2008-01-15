@@ -182,18 +182,6 @@ class StatusMonitorConf(Monitor, StatusColor):
         return self.maxFailures
 
 
-    security.declareProtected('View','getPingDevices')
-    def getPingDevices(self):
-        '''Return devices associated with this monitor configuration.
-        '''
-        devices = []
-        for dev in self.devices.objectValuesAll():
-            dev = dev.primaryAq()
-            if dev.monitorDevice() and not dev.zPingMonitorIgnore: 
-                devices.append(dev)
-        return devices
-
-
     security.declareProtected('View','getExtraPingInterfaces')
     def getExtraPingInterfaces(self, dev):
         """collect other interfaces to ping based on 

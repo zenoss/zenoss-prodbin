@@ -12,7 +12,6 @@
 ###########################################################################
 
 from Products.ZenTestCase.BaseTestCase import BaseTestCase
-from Products.ZenStatus.pingtree import buildTree
 
 from Products.ZenModel.IpInterface import IpInterface
 from Products.ZenModel.IpRouteEntry import IpRouteEntry

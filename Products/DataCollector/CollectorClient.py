@@ -39,19 +39,19 @@ class CollectorClient(protocol.ClientFactory):
     maintainConnection = False 
     cmdindex = 0
     
-    def __init__(self, hostname, ip, port, commands=None, options=None, 
+    def __init__(self, hostname, ip, port, plugins=None, options=None, 
                     device=None, datacollector=None, alog=None):
         from Products.ZenUtils.Utils import unused
         unused(alog)
         self.hostname = hostname
         self.ip = ip
         self.port = port
-        commands = commands or []
+        plugins = plugins or []
         self.cmdmap = {}
         self._commands = []
-        for pname, cmd in commands:
-            self.cmdmap[cmd] = pname
-            self._commands.append(cmd)
+        for plugin in plugins:
+            self.cmdmap[plugin.command] = plugin
+            self._commands.append(plugin.command)
         self.device = device
         self.results = []
         self.protocol = None
@@ -107,8 +107,8 @@ class CollectorClient(protocol.ClientFactory):
 
     def addResult(self, command, data, exitCode):
         "add a result pair to the results store"
-        pname = self.cmdmap.get(command, command)
-        self.results.append((pname, data))
+        plugin = self.cmdmap.get(command, command)
+        self.results.append((plugin, data))
 
   
     def getCommands(self):

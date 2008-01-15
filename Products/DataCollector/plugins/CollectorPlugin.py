@@ -20,6 +20,8 @@ from DataMaps import ObjectMap, RelationshipMap
 
 from Products.ZenUtils.Utils import prepId as globalPrepId
 
+from Products.ZenHub.services.PerformanceConfig import ATTRIBUTES
+
 class CollectorPlugin:
     """
 
@@ -32,6 +34,10 @@ class CollectorPlugin:
     compname = ""
     modname = ""
     classname = ""
+    deviceProperties = ('id',
+                        'manageIp',
+                        '_snmpLastCollection',
+                        )
 
     isip = iputil.isip
     
@@ -99,6 +105,11 @@ class CollectorPlugin:
                      ",".join(cols.difference(rescols)))
         return rescols == cols
 
+    def copyDataToProxy(self, device, proxy):
+        for prop in self.deviceProperties:
+            if hasattr(device, prop):
+                setattr(proxy, prop, getattr(device, prop))
+        proxy._snmpStatus = device.getSnmpStatus()
 
 class PythonPlugin(CollectorPlugin):
     """
@@ -120,6 +131,16 @@ class CommandPlugin(CollectorPlugin):
     """
     transport = "command"
     command = ""
+    deviceProperties = CollectorPlugin.deviceProperties + (
+        'zCommandUsername', 
+        'zCommandPassword', 
+        'zCommandLoginTries',
+        'zCommandLoginTimeout', 
+        'zCommandCommandTimeout',
+        'zKeyPath', 
+        'zCommandSearchPath', 
+        'zCommandExistanceTest',
+        )
 
 
 
@@ -135,6 +156,9 @@ class SnmpPlugin(CollectorPlugin):
     conditionOids = []
     snmpGetMap = None
     snmpGetTableMaps = []
+    deviceProperties = CollectorPlugin.deviceProperties + ATTRIBUTES + (
+        'snmpOid',
+        )
 
 
     def condition(self, device, log):
@@ -184,7 +208,6 @@ class SnmpPlugin(CollectorPlugin):
             datear = (1968,1,8,10,15,00)
         return "%d/%02d/%02d %02d:%02d:%02d" % datear[:6]
 
-        
 
         
 class GetMap(object):
@@ -242,13 +265,3 @@ class GetTableMap(object):
                 data[ridx][name] = value
         return data
         
-            
-
-class HttpPlugin(CollectorPlugin):
-    """
-    HttpPlugin collects info using http.
-    """
-
-    transport = "http"
-    collectoids = []
-

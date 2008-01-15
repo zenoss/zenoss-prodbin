@@ -122,7 +122,7 @@ class SnmpClient(object):
 
     def getResults(self):
         """Return data for this client in the form
-        ((pname, (getdata, tabledata),)
+        ((plugin, (getdata, tabledata),)
         getdata = {'.1.2.4.5':"value",}
         tabledata = {tableMap : {'.1.2.3.4' : {'.1.2.3.4.1': "value",...}}} 
         """
@@ -132,7 +132,7 @@ class SnmpClient(object):
             getdata = self._getdata.get(pname,{})
             tabledata = self._tabledata.get(pname,{})
             if getdata or tabledata:
-                data.append((pname, (getdata, tabledata)))
+                data.append((plugin, (getdata, tabledata)))
         return data 
 
     def clientFinished(self, result):

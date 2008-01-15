@@ -13,24 +13,13 @@
 
 import sys
 import logging
+log = logging.getLogger("zen.ZenStatus")
 
 from Products.ZenEvents.ZenEventClasses import Status_Ping
 from Products.ZenUtils.Utils import localIpCheck
-from AsyncPing import PingJob
+from Products.ZenStatus.AsyncPing import PingJob
 
-gDevicemap = {}
-gNetsmap = {}
-gAllnodes = {}
-
-def initglobals(devname):
-    global gAllnodes, gNetsmap, gDevicemap
-    gAllnodes = []
-    gNetsmap = {}
-    gDevicemap = {devname:1}
-
-
-
-log = logging.getLogger("zen.ZenStatus")
+from twisted.spread import pb
 
 def getStatus(device):
     # if there's a down event in the database, it must have failed twice
@@ -39,8 +28,9 @@ def getStatus(device):
         status += 2
     return status
 
-class Rnode(object):
-    """Rnode is a router node in the tree map.
+
+class RouterNode(pb.Copyable, pb.RemoteCopy):
+    """RouterNode is a router node in the tree map.
     """
 
     def __init__(self, ip, devname, status, parent=None):
@@ -49,9 +39,6 @@ class Rnode(object):
         self.parent = parent
         self.children = []
         self.nets = []
-        if not parent: 
-            initglobals(devname)
-            self.addNet("default","default")
 
 
     def checkpath(self):
@@ -69,51 +56,48 @@ class Rnode(object):
         return self.pj
 
 
-    def hasDev(self, devname):
-        global gDevicemap
-        return gDevicemap.has_key(devname)
+    def hasDev(self, tree, devname):
+        return tree.deviceMap.has_key(devname)
 
 
-    def hasNet(self, netname):
-        global gNetsmap
-        return gNetsmap.has_key(netname)
+    def hasNet(self, tree, netname):
+        return tree.netsMap.has_key(netname)
 
 
-    def addRouter(self, ip, devname, status):
-        global gDevicemap
-        if gDevicemap.has_key(devname): return gDevicemap[devname]
-        gDevicemap[devname] = 1
-        child = Rnode(ip, devname, status, self)
+    def addRouter(self, tree, ip, devname, status):
+        if tree.deviceMap.has_key(devname):
+            return tree.deviceMap[devname]
+        tree.deviceMap[devname] = 1
+        child = RouterNode(ip, devname, status, self)
         self.children.append(child)
         return child
 
 
-    def addNet(self, netip, enterip):
-        global gNetsmap
-        if self.hasNet(netip): return gNetsmap[netip]
+    def addNet(self, tree, netip, enterip):
+        if self.hasNet(tree, netip):
+            return tree.netsMap[netip]
         net = Net(netip, enterip, self)
         self.nets.append(net)
-        gNetsmap[netip] = net
+        tree.netsMap[netip] = net
         return net
 
 
-    def getNet(self, netname):
+    def getNet(self, tree, netname):
         """Return the net node for net name
         """
-        global gNetsmap
-        net = gNetsmap.get(netname,None)
-        if not net: net = gNetsmap['default']
+        net = tree.netsMap.get(netname,None)
+        if not net:
+            net = tree.netsMap['default']
         return net
 
 
-    def addDevice(self, device, unused_cycle=60):
+    def addDevice(self, tree, device):
         """Add a device to the ping tree.
         """
-        global gDevicemap
-        if self.hasDev(device.id): 
+        if self.hasDev(tree, device.id): 
             log.debug("device '%s' already exists.", device.id)
             return
-        gDevicemap[device.id] = 1
+        tree.deviceMap[device.id] = 1
         ip = device.getManageIp()
         if not ip: 
             log.warn("device '%s' no management ip, skipping.",device.id)
@@ -122,7 +106,7 @@ class Rnode(object):
         netname = "default"
         if netobj:
             netname = netobj.getNetworkName()
-        net = self.getNet(netname)
+        net = self.getNet(tree, netname)
         if net.ip == 'default':
             log.warn("device '%s' network '%s' not in topology", 
                             device.id, netname)
@@ -143,24 +127,21 @@ class Rnode(object):
                 yield pj
 
     
-    def pprint(self, nodes=None):
-        global gAllnodes
-        if nodes is None: 
-            nodes = [self,]
-            for n in gAllnodes:
-                n._seen=False
-            gAllnodes = []
-        nnodes = []
-        for node in nodes:
-            if getattr(node, "_seen", False): continue
-            node._seen = True
-            gAllnodes.append(node)
-            print node
-            nnodes.extend(node.children)
-        print
-        if nnodes: self.pprint(nnodes)
+    def pprint(self):
+        allNodes = set()
+        def recurse(nodes):
+            nnodes = []
+            for node in nodes:
+                if node in allNodes:
+                    continue
+                allNodes.add(node)
+                print node
+                nnodes.extend(node.children)
+            print
+            return nnodes
+        return recurse([self,])
 
-    
+
     def pprint_gen(self, root=None):
         if root is None: root = self
         yield root
@@ -173,11 +154,12 @@ class Rnode(object):
 
     
     def __str__(self):
-        return "%s->(%s)" % (self.pj.ipaddr, ",".join(map(str,self.nets)))
+        return "%s->(%s)" % (self.pj.ipaddr, ", ".join(map(str,self.nets)))
+
+pb.setUnjellyableForClass(RouterNode, RouterNode)
 
 
-
-class Net(object):
+class Net(pb.Copyable, pb.RemoteCopy):
     """Net object represents a network in the tree map.
     """
     def __init__(self,ip,enterip,parent):
@@ -212,19 +194,48 @@ class Net(object):
     def __str__(self):
         return self.ip
 
+pb.setUnjellyableForClass(Net, Net)
 
-def buildTree(root, rootnode=None, devs=None, memo=None):
+class PingTree(pb.Copyable, pb.RemoteCopy):
+
+    deviceMap = None
+    netsMap = None
+    root = None
+
+    def __init__(self, devname):
+        self.netsMap = {}
+        self.deviceMap = {devname:1}
+        self.root = None
+
+    def rootNode(self):
+        return self.root
+
+    def hasDev(self, device):
+        return self.deviceMap.has_key(device)
+
+    def addDevice(self, device):
+        self.root.addDevice(self, device)
+
+
+pb.setUnjellyableForClass(PingTree, PingTree)
+
+
+def buildTree(root, rootnode=None, devs=None, memo=None, tree=None):
     """Returns tree where tree that maps the network from root's 
     perspective  and nmap is a dict that points network ids to the 
     network objects in the tree.  nmap is used to add devices to be pinged
     to the tree.
     """
     if memo is None: memo = []
-    if devs is None: 
+    if devs is None:
+        assert tree is None
+        tree = PingTree(root.id)
         ipaddr = root.getManageIp()
         if not ipaddr:
             raise ValueError("zenping host %s has no manage ip"%root.id)
-        rootnode = Rnode(ipaddr, root.id, getStatus(root))
+        rootnode = RouterNode(ipaddr, root.id, getStatus(root))
+        tree.root = rootnode
+        rootnode.addNet(tree, "default", "default")
         devs = [(root,rootnode)]
     nextdevs = []
     for dev, rnode in devs:
@@ -233,33 +244,36 @@ def buildTree(root, rootnode=None, devs=None, memo=None):
         memo.append(dev.id)
         for route in dev.os.routes():
             if route.routetype == "direct":
-                netid=route.getTarget()
+                netid = route.getTarget()
                 if not route.ipcheck(netid):
                     netid = route.getTarget()
-                    if rootnode.hasNet(netid): continue
-                    net = rnode.addNet(netid,route.getInterfaceIp())
+                    if rootnode.hasNet(tree, netid): continue
+                    net = rnode.addNet(tree, netid,route.getInterfaceIp())
                     log.debug("add net: %s to rnode: %s", net, rnode)
             else:
                 ndev = route.getNextHopDevice()
                 if ndev: 
-                    if rootnode.hasDev(ndev.id): continue
+                    if rootnode.hasDev(tree, ndev.id): continue
                     if route.getNextHopDevice():
                         nextHopIp = route.getNextHopDevice().manageIp
                     else:
                         nextHopIp = route.getNextHopIp()
-                    nrnode = rnode.addRouter(nextHopIp,ndev.id,
-                                                getStatus(ndev))
+                    nrnode = rnode.addRouter(tree,
+                                             nextHopIp,ndev.id,
+                                             getStatus(ndev))
                     log.debug("create rnode: %s", nrnode)
                     nextdevs.append((ndev, nrnode))
         for iface in dev.os.interfaces():
             for ip in iface.ipaddresses():
                 netid = ip.getNetworkName()
                 if not netid: continue
-                if localIpCheck(dev, netid) or rootnode.hasNet(netid): continue
-                net = rnode.addNet(netid,ip.getIp())
+                if localIpCheck(dev, netid) or rootnode.hasNet(tree, netid): continue
+                net = rnode.addNet(tree, netid,ip.getIp())
                 log.debug("add net: %s to rnode: %s", net, rnode)
-    if nextdevs: buildTree(root, rootnode, nextdevs, memo)
-    return rootnode
+    if nextdevs:
+        buildTree(root, rootnode, nextdevs, memo, tree)
+    return tree
+
 
 
 

@@ -32,6 +32,9 @@ class InterfaceMap(SnmpPlugin):
     compname = "os"
     relname = "interfaces"
     modname = "Products.ZenModel.IpInterface"
+    deviceProperties = \
+                SnmpPlugin.deviceProperties + ('zInterfaceMapIgnoreNames',
+                                               'zInterfaceMapIgnoreTypes')
 
     snmpGetTableMaps = (
         # If table

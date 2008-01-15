@@ -30,6 +30,8 @@ class HRFileSystemMap(SnmpPlugin):
     compname = "os"
     relname = "filesystems"
     modname = "Products.ZenModel.FileSystem"
+    deviceProperties =  \
+      SnmpPlugin.deviceProperties + ('zFileSystemMapIgnoreNames',)
 
     columns = {
          '.1': 'snmpindex',

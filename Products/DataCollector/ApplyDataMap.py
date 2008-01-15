@@ -180,7 +180,8 @@ class ApplyDataMap(object):
                 device.addRelation(rname, objmap)
                 changed = True
             else:
-                log.warn("ignoring objmap no id found")
+                changed = self._createRelObject(device, objmap, rname)
+
         for id in relids: 
             obj = rel._getOb(id)
             if isinstance(obj, Lockable) and obj.isLockedFromDeletion():
@@ -276,36 +277,46 @@ class ApplyDataMap(object):
     def _createRelObject(self, device, objmap, relname):
         """Create an object on a relationship using its objmap.
         """
+        constructor = importClass(objmap.modname, objmap.classname)
+        if hasattr(objmap, 'id'):
+            remoteObj = constructor(objmap.id)
+        else:
+            remoteObj = constructor(device, objmap)
+        if remoteObj is None:
+            log.debug("Constructor returned None")
+            return False
+        id = remoteObj.id
+        if not remoteObj: 
+            raise ObjectCreationError(
+                    "failed to create object %s in relation %s" % (id, relname))
+
         realdevice = device.device()
         if realdevice.isLockedFromUpdates():
             objtype = ""
             try: objtype = objmap.modname.split(".")[-1] 
             except: pass
             msg = "Add Blocked: %s '%s' on %s" % (
-                    objtype, objmap.id, realdevice.id)
+                    objtype, id, realdevice.id)
             log.warn(msg)
             if realdevice.sendEventWhenBlocked():
-                self.logEvent(realdevice, objmap.id, Change_Add_Blocked, 
+                self.logEvent(realdevice, id, Change_Add_Blocked, 
                                 msg, Event.Warning)
             return False
-        id = objmap.id
-        constructor = importClass(objmap.modname, objmap.classname)
-        remoteObj = constructor(id)
-        if not remoteObj: 
-            raise ObjectCreationError(
-                    "failed to create object %s in relation %s" % (id, relname))
-        rel = device._getOb(relname, None) 
-        if rel:
-            rel._setObject(remoteObj.id, remoteObj)
-        else:
+        rel = device._getOb(relname, None)
+        if not rel:
             raise ObjectCreationError(
                     "No relation %s found on device %s" % (relname, device.id))
-        remoteObj = rel._getOb(remoteObj.id)
-        self.logChange(realdevice, remoteObj, Change_Add,
-                        "adding object %s to relationship %s" % (
-                        remoteObj.id, relname))
-        self._updateObject(remoteObj, objmap)
-        return True
+        changed = False
+        try:
+            remoteObj = rel._getOb(remoteObj.id)
+        except AttributeError:
+            self.logChange(realdevice, remoteObj, Change_Add,
+                           "adding object %s to relationship %s" %
+                           (remoteObj.id, relname))
+            rel._setObject(remoteObj.id, remoteObj)
+            remoteObj = rel._getOb(remoteObj.id)
+            changed = True
+        return self._updateObject(remoteObj, objmap) or changed
 
 
     def stop(self): pass 

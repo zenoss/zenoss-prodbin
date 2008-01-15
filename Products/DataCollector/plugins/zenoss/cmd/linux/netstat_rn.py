@@ -26,7 +26,9 @@ class netstat_rn(CommandPlugin):
     compname = "os"
     relname = "routes"
     modname = "Products.ZenModel.IpRouteEntry"
-
+    deviceProperties = CommandPlugin.deviceProperties + (
+        'zRouteMapCollectOnlyIndirect',
+        )
 
     def condition(self, device, log):
         return device.os.uname == 'Linux'

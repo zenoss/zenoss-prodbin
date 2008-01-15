@@ -206,5 +206,17 @@ class DeviceComponent(Lockable):
         super(DeviceComponent,self).manage_beforeDelete(item, container)
         self.unindex_object()
 
+    def filterAutomaticCreation(self):
+        """Test if automatic creation (and anchoring into a model) is
+        appropriate for this object.  Lets us ignore detectable gunk
+        that's not very interesting to model, like most processes, and
+        loopback network devices, CDROM file systems, etc.
+        
+        Returns False if the object should not be added.
+
+        The object will have its full acquisition path, but will not
+        have been added to the database.
+        """
+        return True
    
 InitializeClass(DeviceComponent)

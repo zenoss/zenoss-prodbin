@@ -29,6 +29,9 @@ class IpServiceMap(CollectorPlugin):
     compname = "os"
     relname = "ipservices"
     modname = "Products.ZenModel.IpService"
+    deviceProperties = CollectorPlugin.deviceProperties + (
+        'zIpServiceMapMaxPort',
+        )
 
     def condition(self, device, log):
         """

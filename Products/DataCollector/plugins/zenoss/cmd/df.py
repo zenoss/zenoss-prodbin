@@ -24,6 +24,8 @@ class df(CommandPlugin):
     compname = "os"
     relname = "filesystems"
     modname = "Products.ZenModel.FileSystem"
+    deviceProperties = \
+                CommandPlugin.deviceProperties + ('zFileSystemMapIgnoreNames',)
 
     oses = ['Linux', 'Darwin', 'SunOS']
 
