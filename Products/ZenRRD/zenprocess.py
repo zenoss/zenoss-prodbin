@@ -258,7 +258,7 @@ class zenprocess(SnmpDaemon):
             createCommand = driver.next()
 
             yield self.model().callRemote('getZenProcessParallelJobs')
-            self.parallelJobs = driver.next()
+            self.parallelJobs = int(driver.next())
 
             yield self.model().callRemote('propertyItems')
             self.setPropertyItems(driver.next())
