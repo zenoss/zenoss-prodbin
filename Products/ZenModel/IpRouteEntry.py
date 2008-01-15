@@ -271,9 +271,10 @@ class IpRouteEntry(OSComponent):
         Set the interface relationship to the interface specified by the given
         name.  See also setInterfaceIndex()
         """
-        int = self.os().interfaces._getOb(intname,None)
-        if int: self.interface.addRelation(int)
-        else: log.warn("interface '%s' not found", intname)
+        try:
+            int = filter(lambda i: i.name() == intname, self.os().interfaces())
+        except IndexError:
+            log.warn("interface '%s' not found", intname)
 
 
     def getInterfaceIp(self):
