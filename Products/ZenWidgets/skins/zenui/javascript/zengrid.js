@@ -329,13 +329,15 @@ ZenGrid.prototype = {
         qs = update(this.lastparams, {
                 'offset':this.buffer.startPos,
                 'count':this.numRows });
-        var d = loadJSONDoc(this.url, qs);
-        d.addErrback(bind(function(x) { 
+        if ('askformore' in this) this.askformore.cancel()
+        this.askformore = loadJSONDoc(this.url, qs);
+        this.askformore.addErrback(bind(function(x) { 
             callLater(5, bind(function(){
             alert('Cannot communicate with the server!');
+            delete this.askformore;
             this.killLoading()}, this))
         }, this));
-        d.addCallback(
+        this.askformore.addCallback(
             bind(function(r) {
                 result = r; 
                 this.buffer.totalRows = result[1];
@@ -344,6 +346,7 @@ ZenGrid.prototype = {
                 this.buffer.update(result[0], bufOffset);
                 this.updateStatusBar(this.lastOffset);
                 this.populateTable(this.buffer.getRows(this.lastOffset, this.numRows));
+                delete this.askformore;
             }, this)
         );
     },
@@ -365,18 +368,21 @@ ZenGrid.prototype = {
         if (isMSIE) {
             qs.ms= new Date().getTime();
         }
-        var d = loadJSONDoc(url, qs);
-        d.addErrback(bind(function(x) { 
+        if ('askformore' in this) this.askformore.cancel()
+        this.askformore = loadJSONDoc(url, qs);
+        this.askformore.addErrback(bind(function(x) { 
             callLater(5, bind(function(){
             alert('Cannot communicate with the server!');
             this.killLoading()}, this))
+            delete this.askformore;
         }, this));
-        d.addCallback(
+        this.askformore.addCallback(
          bind(function(r) {
              result = r; 
              this.buffer.totalRows = result[1];
              this.setScrollHeight(this.rowToPixel(this.buffer.totalRows));
              this.buffer.update(result[0], bufOffset);
+             delete this.askformore;
              if (this.lock.locked) this.lock.release();
          }, this));
     },
