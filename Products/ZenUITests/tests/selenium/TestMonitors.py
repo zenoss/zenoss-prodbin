@@ -25,7 +25,7 @@ from util.selTestUtils import *
 
 from SelTestBase import SelTestBase
 
-class TestMonitors(SelTestBase):
+class _TestMonitors(SelTestBase):
     """Defines a class that runs tests under the Monitors heading"""
 
     def _addStatusMonitor(self):
@@ -66,24 +66,27 @@ class TestMonitors(SelTestBase):
         self.selenium.wait_for_page_to_load(self.WAITTIME)
 
     def _addPerformanceTemplate(self):
-        self._addStatusMonitor()   
-        self.waitForElement("id=StatusMonitorlistperformanceTemplates")
-        self.selenium.click("id=StatusMonitorlistperformanceTemplates")
+        #self._addPerformanceMonitor()   
+        self.waitForElement("link=Monitors")
+        self.selenium.click("link=Monitors")
+        self.waitForElement("id=PerformanceMonitorlistperformanceTemplates")
+        self.selenium.click("id=PerformanceMonitorlistperformanceTemplates")
         self.addDialog("AllTemplatesaddTemplate","manage_addRRDTemplate:method", 
             new_id=("text", "testingString"))
         self.selenium.wait_for_page_to_load(self.WAITTIME)
+
     def _deletePerformanceTemplate(self):
         self.waitForElement("link=Monitors")
         self.selenium.click("link=Monitors")
         self.selenium.wait_for_page_to_load(self.WAITTIME)
-        self.waitForElement("id=StatusMonitorlistperformanceTemplates")
-        self.selenium.click("id=StatusMonitorlistperformanceTemplates")
+        self.waitForElement("id=PerformanceMonitorlistperformanceTemplates")
+        self.selenium.click("id=PerformanceMonitorlistperformanceTemplates")
         self.selenium.wait_for_page_to_load(self.WAITTIME)
         self.deleteDialog("AllTemplatesdeleteTemplates",
                 "manage_deleteRRDTemplates:method", pathsList="paths:list",
-                form_name="performanceTemplates")
+                form_name="performanceTemplates", testData="testingString")
         self.selenium.wait_for_page_to_load(self.WAITTIME)
-        self._deleteStatusMonitor()
+        #self._deleteStatusMonitor()
 
         
     def testAddStatusMonitor(self):
@@ -287,6 +290,89 @@ class TestMonitorsPerformanceConfTemplates(SelTestBase):
                 form_name="graphPointList", testData="customGraphPointTest")
         self.selenium.wait_for_page_to_load(self.WAITTIME)
 
+    def _addDataSource(self):
+        self._goToPerformanceConfTemplate()
+        if self.selenium.is_element_present("link=dataSourceTestingString"):
+            self._deleteDataSource()
+        self.addDialog("DataSourcelistaddDataSource", "manage_addRRDDataSource:method", 
+                        new_id=("text", "dataSourceTestingString"),
+                        dsOption=("select", "SNMP"))       
+        self.selenium.wait_for_page_to_load(self.WAITTIME)
+        
+    def _deleteDataSource(self):
+        self._goToPerformanceConfTemplate()
+        self.waitForElement("id=DataSourcelistdeleteDataSource")
+        self.deleteDialog("DataSourcelistdeleteDataSource", "manage_deleteRRDDataSources:method", 
+                pathsList="ids:list",
+                form_name="datasourceList", testData="dataSourceTestingString")
+        self.selenium.wait_for_page_to_load(self.WAITTIME)
+
+    def _addDataSourceDataPoint(self):
+        if self.selenium.is_element_present("link=dataPointTestingString"):
+            self._deleteDataSourceDataPoint()
+        self.addDialog("DataPointlistaddDataPoint", "manage_addRRDDataPoint:method",
+                        id=("text", "dataPointTestingString"))       
+        self.selenium.wait_for_page_to_load(self.WAITTIME)
+        
+    def _deleteDataSourceDataPoint(self):
+        self.deleteDialog("DataPointlistdeleteDataPoint",
+                "manage_deleteRRDDataPoints:method", pathsList="ids:list",
+                form_name="dataPointsList", testData="dataPointTestingString")
+        self.selenium.wait_for_page_to_load(self.WAITTIME)
+
+    def _addGraphPointDataPointTestingString(self):
+        self.selenium.click("link=graphTestingString")
+        self.selenium.wait_for_page_to_load(self.WAITTIME)
+        if self.selenium.is_element_present("link=dataSourceTestingString"):
+            self._deleteGraphPointTestingString()
+        self.addDialog("GraphPointlistaddGPFromDataPoint",
+                        dpNames=("select", "dataSourceTestingString_dataPointTestingString"))
+        self.selenium.wait_for_page_to_load(self.WAITTIME)
+        
+    def _deleteGraphPointDataPointTestingString(self):
+        self.selenium.click("link=graphTestingString")
+        self.selenium.wait_for_page_to_load(self.WAITTIME)
+        self.deleteDialog("GraphPointlistdeleteGraphPoint",
+                "manage_deleteGraphPoints:method", pathsList="ids:list",
+                form_name="graphPointList", testData="dataPointTestingString")
+        self.selenium.wait_for_page_to_load(self.WAITTIME)
+    
+    def _addThreshold(self):
+        self._goToPerformanceConfTemplate()
+        if self.selenium.is_element_present("link=thresholdTestingString"):
+            self._deleteThreshold()
+        self.addDialog("ThresholdlistaddThreshold", "manage_addRRDThreshold:method", 
+                        new_id=("text", "thresholdTestingString"),
+                        thresholdClassName=("select", "MinMaxThreshold"))       
+        self.selenium.wait_for_page_to_load(self.WAITTIME)
+        
+    def _deleteThreshold(self):
+        self._goToPerformanceConfTemplate()
+        self.waitForElement("id=ThresholdlistdeleteThreshold")
+        self.deleteDialog("ThresholdlistdeleteThreshold",
+                "manage_deleteRRDThresholds:method", 
+                pathsList="ids:list",
+                form_name="thresholdList", testData="thresholdTestingString")
+        self.selenium.wait_for_page_to_load(self.WAITTIME)
+
+    def _addGraphPointThresholdTestingString(self):
+        self.selenium.click("link=graphTestingString")
+        self.selenium.wait_for_page_to_load(self.WAITTIME)
+        if self.selenium.is_element_present("link=thresholdTestingString"):
+            self._deleteGraphPointThresholdPing()
+        self.addDialog("GraphPointlistaddGPFromThreshold",
+                        threshNames=("select", "thresholdTestingString"))
+        self.selenium.wait_for_page_to_load(self.WAITTIME)
+        
+    def _deleteGraphPointThresholdTestingString(self):
+        self.selenium.click("link=graphTestingString")
+        self.selenium.wait_for_page_to_load(self.WAITTIME)
+        self.deleteDialog("GraphPointlistdeleteGraphPoint",
+                "manage_deleteGraphPoints:method", pathsList="ids:list",
+                form_name="graphPointList", testData="thresholdTestingString")
+        self.selenium.wait_for_page_to_load(self.WAITTIME)
+
+
     def testEditTemplateNameAndDescription(self):
         """Changes PerformanceConf template name"""
         self._goToPerformanceConfTemplate()
@@ -407,6 +493,127 @@ class TestMonitorsPerformanceConfTemplates(SelTestBase):
         self._deleteGraphPointThresholdPing()
         self._deleteGraphPointCustom()
         self._deleteGraphDefinition()
+
+    def testAddDataSource(self):
+        """Adds and deletes a data source and a Datapoint"""
+        self._addDataSource()
+        self._addDataSourceDataPoint()
+        self.waitForElement("link=dataSourceTestingString")
+        self.selenium.click("link=dataSourceTestingString")
+        self.selenium.wait_for_page_to_load(self.WAITTIME)
+        self._deleteDataSourceDataPoint()
+        self._deleteDataSource()
+
+    def testAddTestingDataPointToGraphDef(self):
+        """Creates a testing data source and data point, adds the data point as a graph definition of a test graph, then verifies against the PerformanceConf page"""
+        self._addDataSource()
+        self._addDataSourceDataPoint()
+        self.waitForElement("link=PerformanceConf")
+        self.selenium.click("link=PerformanceConf")
+        self.selenium.wait_for_page_to_load(self.WAITTIME)
+        self._addGraphDefinition()
+        self._addGraphPointDataPointTestingString()
+        self.selenium.do_command('assertTextPresent',
+                ['dataSourceTestingString_dataPointTestingString'])
+        self._deleteGraphPointDataPointTestingString()
+        self._deleteGraphDefinition()
+        self._deleteDataSource()
+           
+    def testMissingDataPointInGraphDefIsHandledProperly(self):
+        """Verifies the Missing text is displayed next to a Datapoint that has been deleted but is still defined in a Graph Definition"""
+        self._addDataSource()
+        self._addDataSourceDataPoint()
+        self.waitForElement("link=PerformanceConf")
+        self.selenium.click("link=PerformanceConf")
+        self.selenium.wait_for_page_to_load(self.WAITTIME)
+        self._addGraphDefinition()
+        self._addGraphPointDataPointTestingString()
+        self._deleteDataSource()
+        self.selenium.do_command('assertTextPresent',
+                ['dataPointTestingString(missing)'])
+        self._deleteGraphDefinition()
+
+    def testAddsEditAndDeleteThreshold(self):
+        """Adds, edits/verifies settings and deletes a Threshold"""
+        self._addDataSource()
+        self._addDataSourceDataPoint()
+        self._addThreshold() 
+        self.selenium.click("link=thresholdTestingString")
+        self.selenium.wait_for_page_to_load(self.WAITTIME)
+        #self.selenium.type("newId", "thresholdTestingStringEdit")
+           #Disabled because of Ticket 2610
+        self.selenium.select("dsnames:list", "label=dataSourceTestingString_dataPointTestingString")
+        self.selenium.type("minval", "25") 
+        self.selenium.type("maxval", "30") 
+        self.selenium.select("eventClass", "label=/App/Email")
+        self.selenium.select("severity:int", "value=5")
+        self.selenium.type("escalateCount:int", "23") 
+        self.selenium.select("enabled:boolean", "label=False")
+        self.selenium.click("name=zmanage_editProperties:method")
+        self.selenium.wait_for_page_to_load(self.WAITTIME)
+        self.selenium.do_command('assertValue', ['minval', '25'])
+        self.selenium.do_command('assertValue', ['maxval', '30'])
+        self.selenium.do_command('assertSelectedValue', ['eventClass',
+                '/App/Email'])
+        self.selenium.do_command('assertValue', ['escalateCount:int', '23'])
+        self.selenium.click("link=PerformanceConf")
+        self.selenium.wait_for_page_to_load(self.WAITTIME)
+        #self.selenium.do_command('assertElementPresent', ['link=thresholdTestingStringEdit'])
+        self.selenium.do_command('assertTextPresent', ['dataSourceTestingString_dataPointTestingString'])
+        self.selenium.do_command('assertTextPresent', ['Critical'])
+        self.selenium.do_command('assertTextPresent', ['False'])
+        #self.selenium.click("link=thresholdTestingStringEdit")
+        #self.selenium.wait_for_page_to_load(self.WAITTIME)
+        #self.selenium.type("newId", "thresholdTestingString") 
+        #self.selenium.click("name=zmanage_editProperties:method")
+        self._deleteThreshold()
+        self._deleteDataSource()
+
+    def testMissingDataPointForThreshold(self):
+        """Verifies the Missing text is displayed next to a Datapoint that has been deleted but is still defined in a Threshold"""
+        self._addDataSource()
+        self._addDataSourceDataPoint()
+        self._addThreshold() 
+        self.selenium.click("link=thresholdTestingString")
+        self.selenium.wait_for_page_to_load(self.WAITTIME)
+        self.selenium.select("dsnames:list", "label=dataSourceTestingString_dataPointTestingString")
+        self.selenium.click("name=zmanage_editProperties:method")
+        self.selenium.wait_for_page_to_load(self.WAITTIME)
+        self._deleteDataSource()
+        self.selenium.do_command('assertTextPresent',
+                ['dataSourceTestingString_dataPointTestingString(missing)'])
+        self._deleteThreshold()
+
+    def testAddTestingThresholdToGraphDef(self):
+        """Creates a testing data source and data point, adds the data point to a threshold, adds the threshold as a graph definition of a test graph, then verifies against the PerformanceConf page"""
+        self._addDataSource()
+        self._addDataSourceDataPoint()
+        self._addThreshold() 
+        self.selenium.click("link=thresholdTestingString")
+        self.selenium.wait_for_page_to_load(self.WAITTIME)
+        self.selenium.select("dsnames:list", "label=dataSourceTestingString_dataPointTestingString")
+        self.selenium.click("name=zmanage_editProperties:method")
+        self.selenium.wait_for_page_to_load(self.WAITTIME)
+        self._addGraphDefinition()
+        self._addGraphPointThresholdTestingString()
+        self.selenium.do_command('assertTextPresent', ['thresholdTestingString'])
+        self.selenium.click("link=thresholdTestingString")
+        self.selenium.wait_for_page_to_load(self.WAITTIME)
+        self.selenium.type("newId", "thresholdTestingStringEdit")
+        self.selenium.click("name=manage_editProperties:method")
+        self.selenium.wait_for_page_to_load(self.WAITTIME)
+        self.selenium.click("link=graphTestingString")
+        self.selenium.wait_for_page_to_load(self.WAITTIME)
+        self.selenium.do_command('assertTextPresent',
+                ['thresholdTestingStringEdit'])
+        self.waitForElement("link=PerformanceConf")
+        self.selenium.click("link=PerformanceConf")
+        self.selenium.wait_for_page_to_load(self.WAITTIME)
+        self.selenium.do_command('assertTextPresent',
+                ['thresholdTestingStringEdit'])
+        self._deleteGraphDefinition()
+        self._deleteThreshold() 
+        self._deleteDataSource()
 
 if __name__ == "__main__":
     unittest.main()
