@@ -272,7 +272,9 @@ class IpRouteEntry(OSComponent):
         name.  See also setInterfaceIndex()
         """
         try:
-            int = filter(lambda i: i.name() == intname, self.os().interfaces())
+            int = filter(lambda i: i.name() == intname,
+                    self.os().interfaces())[0]
+            self.interface.addRelation(int)
         except IndexError:
             log.warn("interface '%s' not found", intname)
 
