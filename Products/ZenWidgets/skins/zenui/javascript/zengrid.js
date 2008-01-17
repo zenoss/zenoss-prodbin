@@ -55,7 +55,7 @@ ZenGridBuffer.prototype = {
         this.rows = new Array();
         this.updating = false;
         this.grid = null;
-        this.maxQuery = 150;
+        this.maxQuery = 60;
         this.totalRows = 0;
         this.numRows = 0;
         this.numCols = 0;
@@ -105,7 +105,7 @@ ZenGridBuffer.prototype = {
                 newOffset = Math.min(offset, newOffset + (2*this.tolerance()));
             }
         }
-        return Math.min(newOffset, this.endPos());
+        return newOffset;
     },
     getRows: function(start, count) {
         var bPos = start - this.startPos;
