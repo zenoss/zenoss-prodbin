@@ -177,7 +177,7 @@ class ZenDisc(ZenModeler):
 					performanceMonitor=self.options.monitor,
                     			statusMonitors=[self.options.statusmonitor])
             transaction.commit()
-            dev.collectDevice()
+            self.collectDevice(dev)
 	    #autoallocate device
 	    if self.options.autoAllocate:
 	    	self.autoAllocate(ipobj, dev)	
