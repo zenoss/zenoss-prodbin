@@ -68,23 +68,25 @@ class WMIClient(object):
             del self._wmi
 
 
-    def query(self, wql):
+    def query(self, wqls):
         if not hasattr(self, '_wmi'): 
             raise ValueError("WMI connection is closed")
         #flags = wbemFlagReturnImmediately | wbemFlagForwardOnly
         flags = 0x10 | 0x20
-        wql = wql.replace ("\\", "\\\\")
-        return self._wmi.ExecQuery(wql, iFlags=flags)
+        result = []
+        for wql in wqls:
+            wql = wql.replace ("\\", "\\\\")
+            result.append(self._wmi.ExecQuery(wql, iFlags=flags))
+        return result
 
 
     def run(self):
         self.connect()
         for plugin in self.plugins:
             pluginName = plugin.name()
-            log.debug("sending queries for plugin %s", pluginName)
-            log.debug("query: %s" % plugin.queryString())
-            result = self.query(plugin.queryString())
-            log.debug("result: %s" % result)
+            log.debug("Sending queries for plugin: %s", pluginName)
+            log.debug("Queries: %s" % plugin.queryStrings())
+            result = self.query(plugin.queryStrings())
             self.results.append((plugin, result))
         self.close()
         
