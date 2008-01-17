@@ -819,7 +819,6 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
         selectevent += ", ".join(fields)
         selectevent += " from %s where" % self.statusTable
         selectevent += " %s = '%s'" % (idfield, evid)
-        if self.backend=="omnibus": selectevent += ";"
         conn = self.connect()
         try:
             curs = conn.cursor()
@@ -835,7 +834,6 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
 
             selectdetail = "select name, value from %s where" % self.detailTable
             selectdetail += " evid = '%s'" % event.evid
-            if self.backend=="omnibus": selectevent += ";"
             #print selectdetail
             curs.execute(selectdetail)
             event._details = curs.fetchall()
@@ -843,7 +841,6 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
             selectlogs = "select userName, ctime, text"
             selectlogs += " from %s where" % self.logTable
             selectlogs += " evid = '%s' order by ctime desc" % event.evid
-            if self.backend=="omnibus": selectevent += ";"
             #print selectlogs
             curs.execute(selectlogs)
             jrows = curs.fetchall()
@@ -1697,9 +1694,7 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
             for row in curs.fetchall():
                 fieldlist.append(row[0])
                 col = self.cleanstring(row[0])
-                if self.backend == "omnibus":
-                    type = row[1] in (1, 4, 7, 8) #different date types
-                elif self.backend == "mysql":
+                if self.backend == "mysql":
                     type = row[1] in ("datetime", "timestamp", "double")
                 schema[col] = type
             if schema: self._schema = schema
@@ -1970,7 +1965,7 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
 
     security.declareProtected('Manage EventManager','manage_refreshConversions')
     def manage_refreshConversions(self, REQUEST=None):
-        """get the conversion information from the omnibus server"""
+        """get the conversion information from the database server"""
         assert(self == self.dmd.ZenEventManager)
         self.loadSchema()
         self.dmd.ZenEventHistory.loadSchema()
