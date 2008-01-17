@@ -22,15 +22,22 @@ from Products.ZenEvents.ZenEventClasses import App_Start, Clear
 from Products.ZenUtils.Driver import drive, driveLater
 
 from Constants import ERROR_CODE_MAP
- 
+
+from Products.ZenUtils.Utils import unused
+from Products.DataCollector import DeviceProxy # This is needed by pb
+unused(DeviceProxy)
+from Products.DataCollector.Plugins import PluginLoader # This is needed by pb
+unused(PluginLoader)
+
 class WinCollector(PBDaemon):
 
     configCycleInterval = 20.
 
-    initialServices = ['EventService', 'WmiConfig']
+    initialServices = PBDaemon.initialServices + \
+     ['ModelerService', 'EventService', 'Products.ZenWin.services.WmiConfig']
+
     attributes = ('configCycleInterval',)
 
-    deviceConfig = 'getDeviceWinInfo'
     devices = ()
 
     def __init__(self):
@@ -70,7 +77,8 @@ class WinCollector(PBDaemon):
             yield self.eventService().callRemote('getWmiConnIssues')
             self.wmiprobs = [e[0] for e in driver.next()]
             self.log.debug("Wmi Probs %r", self.wmiprobs)
-            self.processLoop()
+            yield self.processLoop()
+            driver.next()
             self.heartbeat()
         except Exception, ex:
             self.log.exception("Error processing main loop")
@@ -102,8 +110,13 @@ class WinCollector(PBDaemon):
 
 
     def configService(self):
-        return self.services.get('WmiConfig', FakeRemote())
+        return self.services.get('Products.ZenWin.services.WmiConfig', 
+            FakeRemote())
 
+
+    def modelerService(self):
+        return self.services.get('ModelerService', FakeRemote())
+            
 
     def updateDevices(self, cfg):
         pass
@@ -128,9 +141,12 @@ class WinCollector(PBDaemon):
             yield self.eventService().callRemote('getWmiConnIssues')
             self.wmiprobs = [e[0] for e in driver.next()]
             self.log.debug("Wmi Probs %r", self.wmiprobs)
+            
             yield self.configService().callRemote('getConfig')
             self.updateConfig(driver.next())
-            yield self.configService().callRemote(self.deviceConfig)
+            
+            yield self.modelerService().callRemote('getDeviceListByMonitor')            
+            yield self.modelerService().callRemote('getDeviceConfig', driver.next())
             self.updateDevices(driver.next())
             
             yield self.configService().callRemote('getThresholdClasses')
