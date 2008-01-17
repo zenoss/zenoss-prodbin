@@ -28,6 +28,8 @@ class cpu:
             if not d.monitorDevice(): continue
 
             laLoadInt5 = d.getRRDValue('laLoadInt5', **summary)
+            if laLoadInt5 is not None:
+                laLoadInt5 = laLoadInt5 / 100.0
             cpuPercent = None
 
             idle = d.getRRDValue('ssCpuRawIdle', **idleSummary)
