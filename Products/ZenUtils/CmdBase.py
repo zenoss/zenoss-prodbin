@@ -214,6 +214,9 @@ be seen on the display."""
 		if option_name in options_to_ignore:
 			continue
 
+                if opt.dest:
+                    option_name = opt.dest
+
 		#
 		# Find the actual value specified on the command line, if any, 
 		# and display it
