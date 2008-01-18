@@ -16,6 +16,7 @@ log = logging.getLogger("zen.SnmpClient")
 
 from twisted.internet import reactor, error, defer
 from twisted.python import failure
+from twisted.internet.error import TimeoutError
 
 from pynetsnmp.twistedsnmp import snmpprotocol
 
@@ -86,6 +87,9 @@ class SnmpClient(object):
         yield self.proxy.walk('.1')
         try:
             driver.next()
+        except TimeoutError, ex:
+            log.info("Device timed out: " + self.connInfo.summary())
+            return
         except Exception, ex:
             log.exception("Unable to talk: " + self.connInfo.summary())
             return
