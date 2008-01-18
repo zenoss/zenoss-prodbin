@@ -11,15 +11,6 @@
 #
 ###########################################################################
 
-__doc__="""WinServiceMap
-
-WinServiceMap maps the interface and ip tables to interface objects
-
-$Id: WinServiceMap.py,v 1.8 2008/01/11 04:03:24 marc Exp $"""
-
-__version__ = '$Revision: 1.8 $'[11:-2]
-
-
 from Products.ZenWin.WMIPlugin import WMIPlugin
 from Products.ZenUtils.Utils import prepId
 
@@ -29,20 +20,24 @@ class WinServiceMap(WMIPlugin):
     compname = "os"
     relname = "winservices"
     modname = "Products.ZenModel.WinService"
+    
     attrs = ("acceptPause","acceptStop","name","caption",
          "pathName","serviceType","startMode","startName")
-    
-    def queryString(self):
-        return "select %s from Win32_Service" % (",".join(self.attrs))
+
+
+    def queryStrings(self):
+        return (
+            "Select %s From Win32_Service" % (",".join(self.attrs)),
+        )
     
     def process(self, device, results, log):
         """
         Collect win service info from this device.
         """
-        log.info('processing WinServices for device %s' % device.id)
+        log.info('Processing WinServices for device %s' % device.id)
         
         rm = self.relMap()
-        for svc in results:
+        for svc in results[0]:
             om = self.objectMap()
             om.id = prepId(svc.name)
             om.setServiceClass = {'name':svc.name, 'description':svc.caption}
