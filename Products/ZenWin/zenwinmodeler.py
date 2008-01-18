@@ -11,7 +11,6 @@
 #
 ###########################################################################
 
-import time
 import types
 from WMIC import WMIClient
 import pywintypes
@@ -23,7 +22,7 @@ from Products.ZenEvents.ZenEventClasses import \
 
 from Products.ZenEvents import Event
 
-from Products.ZenUtils.Driver import drive, driveLater
+from Products.ZenUtils.Driver import drive
 from Products.ZenHub.PBDaemon import FakeRemote
 
 from twisted.internet import reactor

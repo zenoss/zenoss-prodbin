@@ -24,8 +24,6 @@ from Products.ZenModel.DeviceClass import DeviceClass
 from Products.ZenHub.services.Procrastinator import Procrastinate
 from Products.ZenHub.services.ThresholdMixin import ThresholdMixin
 
-from Products.DataCollector.Plugins import loadPlugins
-
 class WmiConfig(HubService, ThresholdMixin):
     
     def __init__(self, dmd, instance):
