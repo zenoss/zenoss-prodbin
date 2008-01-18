@@ -123,7 +123,6 @@ class EventView(object):
         return evt.__of__(self)
 
 
-
     def getEventDetailFromStatusOrHistory(self, evid=None, 
                                             dedupid=None, better=False):
         """
@@ -133,7 +132,14 @@ class EventView(object):
         evt = self.getEventManager().getEventDetailFromStatusOrHistory(
                                         evid, dedupid, better)
         return evt.__of__(self)
-    
+
+
+    def manage_addLogMessage(self, evid=None, message='', REQUEST=None):
+        """
+        Add a log message to an event
+        """
+        self.getEventManager().manage_addLogMessage(evid, message)
+        if REQUEST: return self.callZenScreen(REQUEST)
 
 
     security.declareProtected('Manage Events','manage_deleteEvents')

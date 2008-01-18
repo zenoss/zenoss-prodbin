@@ -3,7 +3,7 @@
     evid request/evid;
     sesskey python:tableName+evid;
     params python:'&evid=%s' % evid;
-    event python:here.getEventDetail(evid);
+    event python:here.getEventDetailFromStatusOrHistory(evid);
     objects event/getEventDetails;
     ">
     <!--tal:on-error="python:'Unable to load detail for event: %s' % evid"-->

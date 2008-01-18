@@ -2047,7 +2047,9 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
 
     security.declareProtected('Manage EventManager', 'manage_addLogMessage')
     def manage_addLogMessage(self, evid=None, message='', REQUEST=None):
-        'Add a log message to an event'
+        """
+        Add a log message to an event
+        """
         if not evid:
             return
         userId = getSecurityManager().getUser().getId()
