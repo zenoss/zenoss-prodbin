@@ -229,15 +229,13 @@
     var x;
     </script>
     <script>
-    var timedelta = new Date().getTime() - isoTimestamp(start_time).getTime();
-    var isIE//@cc_on=1;
-    if (isIE) timedelta -= 25000;
+    var server_time = isoTimestamp(start_time).getTime();
     function updateTime(){
-        var servernow = new Date(new Date().getTime() + timedelta);
+        var servernow = new Date(server_time+=1000);
         $('system_clock').innerHTML = toISOTime(servernow);
-        callLater(1, updateTime);
+        callLater(1, updateTime)
     }
-    addLoadEvent(updateTime);
+    addLoadEvent(updateTime)
     </script>
     </div>
 </div>
