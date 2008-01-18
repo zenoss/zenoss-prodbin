@@ -66,7 +66,7 @@ def manage_createDevice(context, deviceName, devicePath="/Discovered",
             osManufacturer="", osProductName="",
             locationPath="", groupPaths=[], systemPaths=[],
             statusMonitors=["localhost"], performanceMonitor="localhost",
-            discoverProto="snmp", priority=3):
+            discoverProto="snmp", priority=3, manageIp=None):
     """
     Device factory creates a device and sets up its relations and collects its
     configuration. SNMP Community discovery also happens here. If an IP is
@@ -75,9 +75,13 @@ def manage_createDevice(context, deviceName, devicePath="/Discovered",
     
     @rtype: Device
     """
+    ip = None
     if isip(deviceName):
         ip = deviceName
         deviceName = ""
+    if manageIp and isip(manageIp):
+        ip = manageIp
+    if ip:
         ipobj = context.getDmdRoot('Networks').findIp(ip)
         if ipobj:
             dev = ipobj.device()
