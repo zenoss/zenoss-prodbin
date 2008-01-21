@@ -11,7 +11,7 @@
 #
 ###########################################################################
 
-from Products.ZenUtils.Utils import importClass
+from Products.ZenUtils.Utils import importClass, zenPath
 import sys
 import os
 
@@ -69,6 +69,7 @@ def loadPlugins(dmd):
             del sys.modules[key]
     log.info("loading collector plugins from:%s", PDIR)
     plugins = _loadPluginDir(PDIR)
+    plugins += _loadPluginDir(zenPath('Products/ZenWin/modeler/plugins'))
     try:
         for pack in dmd.packs():
             plugins += _loadPluginDir(pack.path('modeler', 'plugins'))

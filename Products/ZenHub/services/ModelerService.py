@@ -55,7 +55,9 @@ class ModelerService(HubService):
             result.append(createDeviceProxy(device, self.plugins))
         return result
 
-    def remote_getDeviceListByMonitor(self, monitor):
+    def remote_getDeviceListByMonitor(self, monitor=None):
+        if monitor is None:
+            monitor = self.instance
         monitor = self.dmd.Monitors.Performance._getOb(monitor)
         return [d.id for d in monitor.devices.objectValuesGen()]
     
