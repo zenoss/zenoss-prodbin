@@ -19,23 +19,11 @@ from Products.DataCollector.Plugins import loadPlugins
 import logging
 log = logging.getLogger('zen.ModelerService')
 
-def createDeviceProxy(dev, plugins):
-    result = DeviceProxy()
-    if not dev.manageIp:
-        dev.setManageIp()
-    result.plugins = []
-    for name in dev.zCollectorPlugins:
-        plugin = plugins.get(name, None)
-        if plugin and plugin.condition(dev, log):
-            result.plugins.append(plugin.loader)
-            plugin.copyDataToProxy(dev, result)
-    return result
-
 class ModelerService(HubService):
 
     plugins = None
 
-    def remote_getDeviceConfig(self, names):
+    def createDeviceProxy(self, dev):
         if self.plugins is None:
             self.plugins = {}
             for loader in loadPlugins(self.dmd):
@@ -43,6 +31,18 @@ class ModelerService(HubService):
                 plugin.loader = loader
                 self.plugins[plugin.name()] = plugin
     
+        result = DeviceProxy()
+        if not dev.manageIp:
+            dev.setManageIp()
+        result.plugins = []
+        for name in dev.zCollectorPlugins:
+            plugin = self.plugins.get(name, None)
+            if plugin and plugin.condition(dev, log):
+                result.plugins.append(plugin.loader)
+                plugin.copyDataToProxy(dev, result)
+        return result
+
+    def remote_getDeviceConfig(self, names):
         result = []
         for name in names:
             device = self.dmd.Devices.findDevice(name)
@@ -52,7 +52,7 @@ class ModelerService(HubService):
             if (device.productionState <=
                 getattr(device, 'zProdStateThreshold', 0)):
                 continue
-            result.append(createDeviceProxy(device, self.plugins))
+            result.append(self.createDeviceProxy(device))
         return result
 
     def remote_getDeviceListByMonitor(self, monitor=None):
