@@ -69,11 +69,12 @@ class NewDeviceMap(SnmpPlugin):
         om = self.objectMap(getdata)
         om.setHWProductKey = om.snmpOid
         log.debug("HWProductKey=%s", om.setHWProductKey)
-        descr = re.sub("\s", " ", om.snmpDescr)
-        for regex in self.osregex:
-            m = regex.search(descr)
-            if m: 
-                om.setOSProductKey = " ".join(m.groups())
-                log.debug("OSProductKey=%s", om.setOSProductKey)
-                break
+        if om.snmpDescr:
+            descr = re.sub("\s", " ", om.snmpDescr)
+            for regex in self.osregex:
+                m = regex.search(descr)
+                if m: 
+                    om.setOSProductKey = " ".join(m.groups())
+                    log.debug("OSProductKey=%s", om.setOSProductKey)
+                    break
         return om
