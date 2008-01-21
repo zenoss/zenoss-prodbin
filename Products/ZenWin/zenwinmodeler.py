@@ -174,7 +174,7 @@ class zenwinmodeler(WinCollector):
                     self.sendFail(device.getId(), msg, Status_Wmi_Conn, 
                         Event.Error)
             except:
-                self.sendFail(device.getId())
+                self.sendFail('')
         return DeferredList(deferreds)
 
 
