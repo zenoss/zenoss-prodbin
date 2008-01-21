@@ -33,12 +33,13 @@ class WinCollector(PBDaemon):
 
     configCycleInterval = 20.
 
-    initialServices = PBDaemon.initialServices + \
-     ['ModelerService', 'EventService', 'Products.ZenWin.services.WmiConfig']
+    initialServices = PBDaemon.initialServices + [
+        'EventService', 'Products.ZenWin.services.WmiConfig']
 
     attributes = ('configCycleInterval',)
 
     devices = ()
+
 
     def __init__(self):
         self.wmiprobs = []
@@ -114,10 +115,6 @@ class WinCollector(PBDaemon):
             FakeRemote())
 
 
-    def modelerService(self):
-        return self.services.get('ModelerService', FakeRemote())
-            
-
     def updateDevices(self, cfg):
         pass
 
@@ -144,13 +141,8 @@ class WinCollector(PBDaemon):
             
             yield self.configService().callRemote('getConfig')
             self.updateConfig(driver.next())
-            
-            yield self.modelerService().callRemote('getDeviceListByMonitor',
-                                                   self.options.monitor)
-            
-            yield self.modelerService().callRemote('getDeviceConfig',
-                                                   driver.next())
-            self.updateDevices(driver.next())
+
+            yield drive(self.fetchDevices)
             
             yield self.configService().callRemote('getThresholdClasses')
             self.remote_updateThresholdClasses(driver.next())
@@ -160,6 +152,10 @@ class WinCollector(PBDaemon):
         except Exception, ex:
             self.log.exception("Error fetching config")
 
+
+    def fetchDevices(self, driver):
+        yield self.configService().callRemote(self.deviceConfig)
+        self.updateDevices(driver.next())
 
     def startConfigCycle(self):
         def driveAgain(result):

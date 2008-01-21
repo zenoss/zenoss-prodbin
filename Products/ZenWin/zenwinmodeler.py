@@ -35,6 +35,8 @@ class zenwinmodeler(WinCollector):
     evtAlertGroup = "ServiceTest"
     winmodelerCycleInterval = 20*60
     attributes = WinCollector.attributes + ('winmodelerCycleInterval',)
+    initialServices = WinCollector.initialServices + ['ModelerService',]
+
 
     def __init__(self):
         WinCollector.__init__(self)
@@ -43,6 +45,7 @@ class zenwinmodeler(WinCollector):
         self.client = None
         self.collectorPlugins = {}
         self.start()
+
 
     def selectPlugins(self, device, transport):
         """Build a list of active plugins for a device.  
@@ -62,11 +65,12 @@ class zenwinmodeler(WinCollector):
     def config(self):
         "Get the ModelerService"
         return self.services.get('ModelerService', FakeRemote())
+
         
     def remote_deleteDevice(self, deviceId):
         self.devices = \
             [i for i in self.devices if i.name != deviceId]
-        
+
 
     def collectDevice(self, device):
         """Collect the service info and build datamap using WMI.
@@ -198,10 +202,13 @@ class zenwinmodeler(WinCollector):
     def cycleInterval(self):
         return self.winmodelerCycleInterval
         
-    #def updateDevices(self, devices):
-    #    self.log.info("Updating devices")
-    #    self.devices = devices
-
+    def fetchDevices(self, driver):
+        yield self.config().callRemote('getDeviceListByMonitor',
+                                       self.options.monitor)
+            
+        yield self.config().callRemote('getDeviceConfig', driver.next())
+        self.updateDevices(driver.next())
+            
     def updateDevices(self, devices):
         self.log.debug('device: %s' % devices)
         self.devices = devices

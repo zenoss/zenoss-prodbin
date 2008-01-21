@@ -44,14 +44,18 @@ class zeneventlog(WinCollector):
 
     def updateDevices(self, devices):
         """get the config data from server"""
-        for lastTime, name, ip, user, passwd, sev, url in devices:
+        import pdb; pdb.set_trace()
+        for dev in devices:
             try:
-                if name in self.wmiprobs: 
+                if dev.id in self.wmiprobs: 
                     self.log.info('wmi prob on %s skipping', name)
                     continue
-                if name in self.devices:
+                if dev.id in self.devices:
                     continue
-                self.devices[name] = self.getWatcher(name, ip, user,passwd,sev)
+                self.devices[dev.id] = self.getWatcher(
+                   dev.id, dev.manageIp,
+                   dev.zWinUser, dev.zWinPasswd,
+                   d.zWinEventlogMinSeverity)
             except Exception, ex:
                 msg = self.printComErrorMessage(ex)
                 if msg.find('RPC_S_CALL_FAILED') >= 0:
@@ -59,10 +63,10 @@ class zeneventlog(WinCollector):
                     self.log.exception('Ignoring: %s' % msg)
                     continue
                 if not msg:
-                    msg = 'WMI connect error on %s: %s' % (name, str(ex))
+                    msg = 'WMI connect error on %s: %s' % (dev.id, str(ex))
                 self.log.exception(msg)
                 self.sendEvent(dict(summary=msg,
-                                    device=name,
+                                    device=dev.id,
                                     eventClass=Status_Wmi_Conn,
                                     agent=self.agent,
                                     severity=Event.Error,
