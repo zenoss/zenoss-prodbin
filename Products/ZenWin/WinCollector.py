@@ -78,8 +78,7 @@ class WinCollector(PBDaemon):
             yield self.eventService().callRemote('getWmiConnIssues')
             self.wmiprobs = [e[0] for e in driver.next()]
             self.log.debug("Wmi Probs %r", self.wmiprobs)
-            yield self.processLoop()
-            driver.next()
+            self.processLoop()
             self.heartbeat()
         except Exception, ex:
             self.log.exception("Error processing main loop")
