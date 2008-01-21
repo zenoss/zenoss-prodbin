@@ -53,11 +53,15 @@ start() {
         echo is already running
     else
         echo starting...
+	case "$PRGNAME" in 
+	     zenwin* | zeneventlog* ) WATCHDOG=--watchdog ;;
+	     * ) 	WATCHDOG=
+        esac
         if [ "$CFGFILE" = "" ]; then
-            exec $PYTHON $PRGHOME/$PRGNAME --cycle --daemon --watchdog "$@"
+            exec $PYTHON $PRGHOME/$PRGNAME --cycle --daemon $WATCHDOG "$@"
         else
             exec $PYTHON $PRGHOME/$PRGNAME --configfile $CFGFILE \
-                --cycle --daemon --watchdog "$@"
+                --cycle --daemon $WATCHDOG "$@"
         fi
     fi
 }
