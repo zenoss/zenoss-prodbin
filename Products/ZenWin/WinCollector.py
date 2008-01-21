@@ -145,8 +145,11 @@ class WinCollector(PBDaemon):
             yield self.configService().callRemote('getConfig')
             self.updateConfig(driver.next())
             
-            yield self.modelerService().callRemote('getDeviceListByMonitor')            
-            yield self.modelerService().callRemote('getDeviceConfig', driver.next())
+            yield self.modelerService().callRemote('getDeviceListByMonitor',
+                                                   self.options.monitor)
+            
+            yield self.modelerService().callRemote('getDeviceConfig',
+                                                   driver.next())
             self.updateDevices(driver.next())
             
             yield self.configService().callRemote('getThresholdClasses')
