@@ -53,7 +53,7 @@ class zenwinmodeler(WinCollector):
             if plugin.transport != transport:
                 continue
             pname = plugin.name()
-            self.log.debug("using %s on %s",pname, device.id)
+            self.log.debug("using %s on %s",pname, device.getId())
             result.append(plugin)
             self.collectorPlugins[pname] = plugin
         return result
@@ -71,7 +71,7 @@ class zenwinmodeler(WinCollector):
     def collectDevice(self, device):
         """Collect the service info and build datamap using WMI.
         """
-        hostname = device.id
+        hostname = device.getId()
         try:
             plugins = []
             plugins = self.selectPlugins(device, "wmi")
@@ -95,22 +95,22 @@ class zenwinmodeler(WinCollector):
 
 
     def checkCollection(self, device):
-        if self.options.device and device.id != self.options.device:
+        if self.options.device and device.getId() != self.options.device:
             return False
-        if self.lastRead.get(device.id, 0) > device.lastChange:
-            self.log.info('Skipping collection of %s' % device.id)
+        if self.lastRead.get(device.getId(), 0) > device.lastChange:
+            self.log.info('Skipping collection of %s' % device.getId())
             return False
         return True
         
 
     def processClient(self, device):
         def doProcessClient(driver):
-            self.log.debug("processing data for device %s", device.id)
+            self.log.debug("processing data for device %s", device.getId())
             devchanged = False
             maps = []
             for plugin, results in self.client.getResults():
                 self.log.debug("processing plugin %s on device %s",
-                               plugin.name(), device.id)
+                               plugin.name(), device.getId())
                 if not results: 
                     self.log.warn("plugin %s no results returned",
                                   plugin.name())
@@ -128,15 +128,15 @@ class zenwinmodeler(WinCollector):
                     maps += [m for m in datamaps if m]
     
             if maps:
-                self.log.info("ApplyDataMaps to %s" % device.id)
-                yield self.config().callRemote('applyDataMaps',device.id,maps)
+                self.log.info("ApplyDataMaps to %s" % device.getId())
+                yield self.config().callRemote('applyDataMaps',device.getId(),maps)
                 if driver.next():
                     devchanged = True
     
             if devchanged:
-                self.log.info("Changes applied to %s" % device.id)
+                self.log.info("Changes applied to %s" % device.getId())
             else:
-                self.log.info("No changes detected on %s" % device.id)
+                self.log.info("No changes detected on %s" % device.getId())
         
         return drive(doProcessClient)
     
@@ -147,9 +147,9 @@ class zenwinmodeler(WinCollector):
         for device in self.devices:
             reactor.runUntilCurrent()
             try:
-                if device.id in self.wmiprobs:
+                if device.getId() in self.wmiprobs:
                     self.log.warn("skipping %s has bad wmi state",
-                        device.id)
+                        device.getId())
                     continue
                 self.collectDevice(device)
                 if self.client:
@@ -159,7 +159,7 @@ class zenwinmodeler(WinCollector):
             except pywintypes.com_error, e:
                 msg = self.printComErrorMessage(e)
                 if not msg:
-                    msg = "WMI connect error on %s: %s" % (device.id)
+                    msg = "WMI connect error on %s: %s" % (device.getId())
                     code, txt, info, param = e
                     wmsg = "%s: %s" % (abs(code), txt)
                     if info:
@@ -171,10 +171,10 @@ class zenwinmodeler(WinCollector):
                     # transient error, log it but don't create an event
                     self.log.exception('Ignoring: %s' % msg)
                 else:
-                    self.sendFail(device.id, msg, Status_Wmi_Conn, 
+                    self.sendFail(device.getId(), msg, Status_Wmi_Conn, 
                         Event.Error)
             except:
-                self.sendFail(device.id)
+                self.sendFail(device.getId())
         return DeferredList(deferreds)
 
 
