@@ -25,11 +25,11 @@ from util.selenium import selenium
 
 
 ### BEGIN GLOBAL DEFS ###
-HOST        =   "zenosst2.zenoss.loc"         # Zenoss instance to test
+HOST        =   "cent5n.zenoss.loc"         # Zenoss instance to test
 USER        =   "admin"                 # Username for HOST
 PASS        =   "zenoss"                # Password for HOST
-SERVER      =   "zenosst2.zenoss.loc"         # Hosts the selenium jar file
-TARGET      =   "zenosst2.zenoss.loc"         # Added/deleted in HOST
+SERVER      =   "cent5n.zenoss.loc"         # Hosts the selenium jar file
+TARGET      =   "cent5n.zenoss.loc"         # Added/deleted in HOST
 BROWSER     =   "*firefox"             # Can also be "*iexplore"
 WAITTIME    =   "60000"                 # Time to wait for page loads in milliseconds
 ### END GLOBAL DEFS ###
@@ -156,15 +156,23 @@ class SelTestBase(unittest.TestCase):
     def addDialog(self, addType="OrganizerlistaddOrganizer", addMethod="dialog_submit", **textFields):
         """Fills in an AJAX dialog."""
         
+        fieldkeys=textFields.keys()
+        fieldkeys.reverse()
         self.waitForElement(addType) # Bring up the dialog.
         self.selenium.click(addType)
         self.waitForElement(addMethod) # Wait till dialog is finished loading.
-        for key in textFields.keys(): # Enter all the values.
+        for key in fieldkeys: # Enter all the values.
             value = textFields[key]
-            if value[0] == "text":
-               self.selenium.type(key, value[1])
-            elif value[0] == "select":
+            if value[0] == "select":
                 self.selenium.select(key, value[1])
+            elif value[0] == "text":
+                self.selenium.type(key, value[1])
+                #self.selenium.do_command("setCursorPosition", ["className", "-1"])
+                #self.selenium.do_command("keyPress", ["className", r"\08"])
+                #self.selenium.do_command("keyPress", ["className", r"\13"])
+                #self.waitForElement("xpath=//ul/li[@style='display: list-item;']") 
+                #self.selenium.click("css=li.yui-ac-highlight")
+
         self.selenium.click(addMethod) # Submit form.
         self.selenium.wait_for_page_to_load(self.WAITTIME) # Wait for page refresh.
     def goToDevice(self, deviceName=TARGET):
