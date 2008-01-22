@@ -422,11 +422,12 @@ class IpInterface(OSComponent):
         Return a list containing the appropriate RRDTemplate for this
         IpInterface.  If none is found then the list will contain None.
         """
-        default = self.getRRDTemplateByName(self.getRRDTemplateName())
+        default = self.getRRDTemplateByName(self.getRRDTemplateName()) or \
+                    self.getRRDTemplateByName('ethernetCsmacd')
         if default:
             return [default]
-        return [self.getRRDTemplateByName('ethernetCsmacd')]
-        
+        return []
+
 
     def snmpIgnore(self):
         """
