@@ -30,7 +30,7 @@ class PowerSupply(HWComponent):
 
     portal_type = meta_type = 'PowerSupply'
 
-    watts = 0
+    watts = None
     type = "unknown"
     state = "unknown"
 
@@ -62,6 +62,11 @@ class PowerSupply(HWComponent):
                 , 'action'        : 'viewPowerSupply'
                 , 'permissions'   : ('View',)
                 },
+                { 'id'            : 'perfConf'
+                , 'name'          : 'Template'
+                , 'action'        : 'objTemplates'
+                , 'permissions'   : ("Change Device", )
+                },
                 { 'id'            : 'viewHistory'
                 , 'name'          : 'Modifications'
                 , 'action'        : 'viewHistory'
@@ -70,5 +75,36 @@ class PowerSupply(HWComponent):
             )
           },
         )
+
+
+    def wattsString(self):
+        """
+        Return a string representation of the watts
+        """
+        return self.watts is None and "unknown" or str(self.watts)
+
+
+    def millivolts(self, default=None):
+        """
+        Return the current millivolts for the power supply
+        """
+        millivolts = self.cacheRRDValue('millivolts', default)
+        if millivolts is not None:
+            return long(millivolts)
+        return None
+
+
+    def millivoltsString(self):
+        """
+        Return the current millivolts as a string
+        """
+        millivolts = self.millivolts()
+        return millivolts is None and "unknown" or "%dmv" % (millivolts,)
+
+
+    def viewName(self):
+        return self.id
+    name = viewName
+
 
 InitializeClass(PowerSupply)

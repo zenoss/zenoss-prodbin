@@ -57,6 +57,11 @@ class TemperatureSensor(HWComponent):
                 , 'action'        : 'viewTemperatureSensor'
                 , 'permissions'   : ('View',)
                 },
+                { 'id'            : 'perfConf'
+                , 'name'          : 'Template'
+                , 'action'        : 'objTemplates'
+                , 'permissions'   : ("Change Device", )
+                },
                 { 'id'            : 'viewHistory'
                 , 'name'          : 'Modifications'
                 , 'action'        : 'viewHistory'
@@ -65,5 +70,28 @@ class TemperatureSensor(HWComponent):
             )
           },
         )
+
+
+    def temperature(self, default=None):
+        """
+        Return the current temperature in degrees fahrenheit
+        """
+        temp = self.cacheRRDValue('temperature', default)
+        if temp is not None:
+            return long(temp)
+        return None
+
+
+    def temperatureString(self):
+        """
+        Return the current temperature as a string
+        """
+        temp = self.temperature()
+        return temp is None and "unknown" or "%dF" % (temp,)
+
+
+    def viewName(self):
+        return id
+    name = viewName
 
 InitializeClass(TemperatureSensor)

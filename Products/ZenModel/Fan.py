@@ -59,6 +59,11 @@ class Fan(HWComponent):
                 , 'action'        : 'viewFan'
                 , 'permissions'   : ('View',)
                 },
+                { 'id'            : 'perfConf'
+                , 'name'          : 'Template'
+                , 'action'        : 'objTemplates'
+                , 'permissions'   : ("Change Device", )
+                },
                 { 'id'            : 'viewHistory'
                 , 'name'          : 'Modifications'
                 , 'action'        : 'viewHistory'
@@ -67,5 +72,29 @@ class Fan(HWComponent):
             )
           },
         )
+
+
+    def rpmString(self):
+        """
+        Return a string representation of the RPM
+        """
+        rpm = self.rpm()
+        return rpm is None and "unknown" or "%lrpm" % (rpm,)
+
+
+    def rpm(self, default=None):
+        """
+        Return the current RPM
+        """
+        rpm = self.cacheRRDValue('rpm', default)
+        if rpm is not None:
+            return long(rpm)
+        return None
+
+
+    def viewName(self):
+        return self.id
+    name = viewName
+
 
 InitializeClass(Fan)

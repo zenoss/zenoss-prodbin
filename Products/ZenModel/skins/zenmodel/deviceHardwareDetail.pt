@@ -113,6 +113,143 @@
 </tal:block>
 </tal:block>
 
+<tal:block metal:define-macro="powersupplyList"
+    tal:define="tableName string:powersupplyList;
+    objects here/hw/powersupplies/objectValuesAll;
+    tabletitle string:Power Supplies;
+    batch python:here.ZenTableManager.getBatch(tableName,objects,
+                                            sortedHeader='id');"
+    tal:condition="objects">
+<tal:block metal:use-macro="here/zenuimacros/macros/zentable">
+<tal:block metal:fill-slot="zentablecontents">
+
+<!-- BEGIN TABLE CONTENTS -->
+    <tr>
+        <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
+                            tableName,'id','Name')"/>
+        <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
+                            tableName,'type','Type')"/>
+        <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
+                            tableName,'watts','Watts')"/>
+        <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
+                            tableName,'state','State')"/>
+        <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
+                            tableName,'millivolts','Voltage')"/>
+    </tr>
+    <tal:block tal:repeat="powersupply batch">
+    <tr tal:define="odd repeat/powersupply/odd"
+        tal:attributes="class python:test(odd, 'odd', 'even')">
+      <td class="tablevalues" width="50%">
+          <tal:block 
+           tal:content="structure python:powersupply.urlLink(text=powersupply.getId())"/>
+      </td>
+      <td class="tablevalues" tal:content="powersupply/type"/>
+      <td class="tablevalues" tal:content="powersupply/wattsString"/>
+      <td class="tablevalues" tal:content="powersupply/state"/>
+      <td class="tablevalues" tal:content="powersupply/millivoltsString"/>
+    </tr>
+    </tal:block>
+    <tr>
+        <td colspan="2" class="tableheader">
+        <form metal:use-macro="here/zenTableNavigation/macros/navtool"></form>
+        </td>
+    </tr>
+
+<!-- END TABLE CONTENTS -->
+
+</tal:block>
+</tal:block>
+</tal:block>
+
+<tal:block metal:define-macro="fanList"
+    tal:define="tableName string:fanList;
+    objects here/hw/fans/objectValuesAll;
+    tabletitle string:Fans;
+    batch python:here.ZenTableManager.getBatch(tableName,objects,
+                                            sortedHeader='id');"
+    tal:condition="objects">
+<tal:block metal:use-macro="here/zenuimacros/macros/zentable">
+<tal:block metal:fill-slot="zentablecontents">
+
+<!-- BEGIN TABLE CONTENTS -->
+    <tr>
+        <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
+                            tableName,'id','Name')"/>
+        <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
+                            tableName,'type','Type')"/>
+        <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
+                            tableName,'state','State')"/>
+        <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
+                            tableName,'rpm','Speed')"/>
+    </tr>
+    <tal:block tal:repeat="fan batch">
+    <tr tal:define="odd repeat/fan/odd"
+        tal:attributes="class python:test(odd, 'odd', 'even')">
+      <td class="tablevalues" width="50%">
+          <tal:block 
+           tal:content="structure python:fan.urlLink(text=fan.getId())"/>
+      </td>
+      <td class="tablevalues" tal:content="fan/type"/>
+      <td class="tablevalues" tal:content="fan/state"/>
+      <td class="tablevalues" tal:content="fan/rpmString"/>
+    </tr>
+    </tal:block>
+    <tr>
+        <td colspan="2" class="tableheader">
+        <form metal:use-macro="here/zenTableNavigation/macros/navtool"></form>
+        </td>
+    </tr>
+
+<!-- END TABLE CONTENTS -->
+
+</tal:block>
+</tal:block>
+</tal:block>
+
+<!-- BEGIN -->
+<tal:block metal:define-macro="temperaturesensorList"
+    tal:define="tableName string:temperaturesensorList;
+    objects here/hw/temperaturesensors/objectValuesAll;
+    tabletitle string:Temperature Sensors;
+    batch python:here.ZenTableManager.getBatch(tableName,objects,
+                                            sortedHeader='id');"
+    tal:condition="objects">
+<tal:block metal:use-macro="here/zenuimacros/macros/zentable">
+<tal:block metal:fill-slot="zentablecontents">
+
+<!-- BEGIN TABLE CONTENTS -->
+    <tr>
+        <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
+                            tableName,'id','Name')"/>
+        <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
+                            tableName,'state','State')"/>
+        <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
+                            tableName,'state','Temperature')"/>
+    </tr>
+    <tal:block tal:repeat="temperaturesensor batch">
+    <tr tal:define="odd repeat/temperaturesensor/odd"
+        tal:attributes="class python:test(odd, 'odd', 'even')">
+      <td class="tablevalues" width="50%">
+          <tal:block 
+           tal:content="structure python:temperaturesensor.urlLink(text=temperaturesensor.getId())"/>
+      </td>
+      <td class="tablevalues" tal:content="temperaturesensor/state"/>
+      <td class="tablevalues" tal:content="temperaturesensor/temperatureString"/>
+    </tr>
+    </tal:block>
+    <tr>
+        <td colspan="2" class="tableheader">
+        <form metal:use-macro="here/zenTableNavigation/macros/navtool"></form>
+        </td>
+    </tr>
+
+<!-- END TABLE CONTENTS -->
+
+</tal:block>
+</tal:block>
+</tal:block>
+<!-- END -->
+
 <tal:block
     metal:define-macro="cardList"
     tal:define="tableName string:hardDiskList;
