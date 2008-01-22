@@ -32,6 +32,7 @@ class ModelerService(HubService):
                 self.plugins[plugin.name()] = plugin
     
         result = DeviceProxy()
+        result.id = dev.getId()
         if not dev.manageIp:
             dev.setManageIp()
         result.plugins = []
