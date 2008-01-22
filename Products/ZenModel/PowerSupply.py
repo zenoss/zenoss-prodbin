@@ -1,0 +1,74 @@
+###########################################################################
+#
+# This program is part of Zenoss Core, an open source monitoring platform.
+# Copyright (C) 2007, Zenoss Inc.
+#
+# This program is free software; you can redistribute it and/or modify it
+# under the terms of the GNU General Public License version 2 as published by
+# the Free Software Foundation.
+#
+# For complete information please visit: http://www.zenoss.com/oss/
+#
+###########################################################################
+
+__doc__="""PowerSupply
+
+PowerSupply is an abstraction of a power supply on a device.
+
+$Id: PowerSupply.py,v 1.7 2004/04/06 22:33:24 edahl Exp $"""
+
+__version__ = "$Revision: 1.7 $"[11:-2]
+
+from Globals import InitializeClass
+
+from Products.ZenRelations.RelSchema import *
+
+from HWComponent import HWComponent
+
+class PowerSupply(HWComponent):
+    """PowerSupply object"""
+
+    portal_type = meta_type = 'PowerSupply'
+
+    watts = 0
+    type = "unknown"
+    state = "unknown"
+
+    _properties = HWComponent._properties + (
+        {'id':'watts', 'type':'int', 'mode':'w'},
+        {'id':'type', 'type':'string', 'mode':'w'},
+        {'id':'state', 'type':'string', 'mode':'w'},
+    )
+
+    _relations = HWComponent._relations + (
+        ("hw", ToOne(ToManyCont, "Products.ZenModel.DeviceHW",
+            "powersupplies")),
+        )
+
+    
+    factory_type_information = ( 
+        { 
+            'id'             : 'PowerSupply',
+            'meta_type'      : 'PowerSupply',
+            'description'    : """Arbitrary device grouping class""",
+            'icon'           : 'PowerSupply_icon.gif',
+            'product'        : 'ZenModel',
+            'factory'        : 'manage_addPowerSupply',
+            'immediate_view' : 'viewPowerSupply',
+            'actions'        :
+            ( 
+                { 'id'            : 'status'
+                , 'name'          : 'Status'
+                , 'action'        : 'viewPowerSupply'
+                , 'permissions'   : ('View',)
+                },
+                { 'id'            : 'viewHistory'
+                , 'name'          : 'Modifications'
+                , 'action'        : 'viewHistory'
+                , 'permissions'   : ('View',)
+                },
+            )
+          },
+        )
+
+InitializeClass(PowerSupply)

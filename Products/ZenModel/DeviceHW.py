@@ -39,6 +39,11 @@ class DeviceHW(Hardware):
         ("cpus", ToManyCont(ToOne, "Products.ZenModel.CPU", "hw")),
         ("cards", ToManyCont(ToOne, "Products.ZenModel.ExpansionCard", "hw")),
         ("harddisks", ToManyCont(ToOne, "Products.ZenModel.HardDisk", "hw")),
+        ("fans", ToManyCont(ToOne, "Products.ZenModel.Fan", "hw")),
+        ("powersupplies", ToManyCont(ToOne, "Products.ZenModel.PowerSupply",
+            "hw")),
+        ("temperaturesensors", ToManyCont(ToOne,
+            "Products.ZenModel.TemperatureSensor", "hw")),
     )
 
     security = ClassSecurityInfo()
