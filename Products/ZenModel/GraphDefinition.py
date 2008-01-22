@@ -432,7 +432,10 @@ class GraphDefinition(ZenModelRM, ZenPackable):
                                         multiid, prefix)
         if self.custom and includeSetup \
             and not upToPoint:
-            res = talesEval("string:"+str(self.custom), context)
+            try:
+                res = talesEval("string:"+str(self.custom), context)
+            except KeyError, e:
+                res = 'COMMENT:UNKNOWN VALUE IN CUSTOM COMMANDS\: %s' % str(e)
             res = [l for l in res.split('\n') if l.strip()]
             cmds.extend(res)
             #if self.hasSummary:
