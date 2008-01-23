@@ -72,22 +72,46 @@ class TemperatureSensor(HWComponent):
         )
 
 
-    def temperature(self, default=None):
+    def temperatureCelsius(self, default=None):
+        """
+        Return the current temperature in degrees celsius
+        """
+        tempC = self.cacheRRDValue('temperature_celsius', default)
+        if tempC is None:
+            tempF = self.cacheRRDValue('temperature_fahrenheit', default)
+            if tempF is not None: tempC = (tempF - 32) / 9 * 5
+        if tempC is not None:
+            return long(tempC)
+        return None
+    temperature = temperatureCelsius
+
+
+    def temperatureFahrenheit(self, default=None):
         """
         Return the current temperature in degrees fahrenheit
         """
-        temp = self.cacheRRDValue('temperature', default)
-        if temp is not None:
-            return long(temp)
+        tempC = self.temperatureCelsius(default)
+        if tempC is not None:
+            tempF = tempC * 9 / 5 + 32
+            return long(tempF)
         return None
 
 
-    def temperatureString(self):
+    def temperatureCelsiusString(self):
         """
-        Return the current temperature as a string
+        Return the current temperature in degrees celsius as a string
         """
-        temp = self.temperature()
-        return temp is None and "unknown" or "%dF" % (temp,)
+        tempC = self.temperature()
+        return tempC is None and "unknown" or "%dC" % (tempC,)
+    temperatureString = temperatureCelsiusString
+
+
+    def temperatureFahrenheitString(self):
+        """
+        Return the current temperature in degrees fahrenheit as a string
+        """
+        tempF = self.temperatureFahrenheit()
+        return tempF is None and "unknown" or "%dF" % (tempF,)
 
 
     def viewName(self):

@@ -224,7 +224,7 @@
         <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
                             tableName,'state','State')"/>
         <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
-                            tableName,'state','Temperature')"/>
+                            tableName,'temperatureFahrenheit','Temperature')"/>
     </tr>
     <tal:block tal:repeat="temperaturesensor batch">
     <tr tal:define="odd repeat/temperaturesensor/odd"
@@ -234,7 +234,7 @@
            tal:content="structure python:temperaturesensor.urlLink(text=temperaturesensor.getId())"/>
       </td>
       <td class="tablevalues" tal:content="temperaturesensor/state"/>
-      <td class="tablevalues" tal:content="temperaturesensor/temperatureString"/>
+      <td class="tablevalues" tal:content="temperaturesensor/temperatureFahrenheitString"/>
     </tr>
     </tal:block>
     <tr>
