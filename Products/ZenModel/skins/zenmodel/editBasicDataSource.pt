@@ -159,7 +159,7 @@
 
 </form>
 
-<form method="post" tal:attributes="action here/absolute_url_path">
+<form name="dataPointsList" method="post" tal:attributes="action here/absolute_url_path">
 
 
     <tal:block tal:define="tableName string:rrdtempdplist; 
