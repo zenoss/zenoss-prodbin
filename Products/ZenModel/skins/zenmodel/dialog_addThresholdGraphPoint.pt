@@ -27,7 +27,7 @@ Thresholds:&nbsp;<br />
 </tal:block>
 
 <div id="dialog_buttons">
-<input type="submit" name="manage_addThresholdGraphPoints:method" value="OK"
+<input id="dialog_submit" type="submit" name="manage_addThresholdGraphPoints:method" value="OK"
     tal:attributes="onclick string:return $$('dialog').submit_form(
                         '${here/absolute_url_path}')" />
 <input id="dialog_cancel" type="button" value="Cancel"
