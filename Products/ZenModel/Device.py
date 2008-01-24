@@ -121,6 +121,11 @@ def manage_createDevice(context, deviceName, devicePath="/Discovered",
             # use the snmpname
             if not deviceName and snmpname:
                 deviceName = snmpname
+                
+            # check if the deviceName already exists
+            if context.getDmdRoot("Devices").findDevice(
+                    context.prepId(deviceName)):
+                deviceName = None
 
             # give up: use ip
             if not deviceName:
