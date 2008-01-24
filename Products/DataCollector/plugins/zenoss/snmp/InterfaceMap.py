@@ -128,7 +128,7 @@ class InterfaceMap(SnmpPlugin):
                 continue
             if not hasattr(om, 'setIpAddresses'): om.setIpAddresses = []
             if row.has_key('ipAddress'): ip = row['ipAddress']
-            ip = ip + "/" + str(self.maskToBits(row['netmask'].strip()))
+            if row.has_key('netmask'): ip = ip + "/" + str(self.maskToBits(row['netmask'].strip()))
             om.setIpAddresses.append(ip)
             #om.ifindex = row.ifindex #FIXME ifindex is not set!
 
