@@ -117,7 +117,9 @@ class GraphReportElement(ZenModelRM):
         component = self.getDevice()
         for part in self.componentPath.split('/'):
             if part:
-                component = getattr(component, part)
+                component = getattr(component, part, None)
+                if not component:
+                    break
         return component
 
 
@@ -129,11 +131,12 @@ class GraphReportElement(ZenModelRM):
     def getGraphUrl(self, drange=None):
         ''' Return the url for the graph
         '''
-        component = self.getComponent()
-        graph = component.getGraphDef(self.graphId)
         url = ''
-        if graph:
-            url = component.getGraphDefUrl(graph, drange, graph.rrdTemplate())
+        component = self.getComponent()
+        if component:
+            graph = component.getGraphDef(self.graphId)
+            if graph:
+                url = component.getGraphDefUrl(graph, drange, graph.rrdTemplate())
         return url
 
 
