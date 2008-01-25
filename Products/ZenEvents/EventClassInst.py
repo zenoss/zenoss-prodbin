@@ -67,7 +67,7 @@ class EventClassPropertyMixin(object):
     def applyTransform(self, evt, device):
         if not self.transform: return evt
         try:
-            variables = {'evt':evt, 'device':device, '', 'dev':device}
+            variables = {'evt':evt, 'device':device, 'dev':device}
             exec(self.transform, variables)
         except Exception, ex:
             log.error("Error transforming EventClassInst %s (%s)", self.id, ex)
