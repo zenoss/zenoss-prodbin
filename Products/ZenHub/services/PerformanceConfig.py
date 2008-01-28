@@ -28,6 +28,7 @@ ATTRIBUTES = (
     'id',
     'manageIp',
     'zMaxOIDPerRequest',
+    'zSnmpMonitorIgnore',
     'zSnmpAuthPassword',
     'zSnmpAuthType',
     'zSnmpCommunity',
