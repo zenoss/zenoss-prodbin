@@ -59,6 +59,7 @@ class SnmpClient(object):
         drive(self.doRun).addBoth(self.clientFinished)
 
 
+    # FIXME: cleanup --force option #2660
     def checkCiscoChange(self, driver):
         """Check to see if a cisco box has changed.
         """
@@ -95,6 +96,7 @@ class SnmpClient(object):
             return
 
         changed = True
+        # FIXME: cleanup --force option #2660
         if not self.options.force and self.device.snmpOid.startswith(".1.3.6.1.4.1.9"):
             yield drive(self.checkCiscoChange)
             changed = driver.next()

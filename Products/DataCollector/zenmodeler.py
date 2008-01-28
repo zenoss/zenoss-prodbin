@@ -53,7 +53,8 @@ class ZenModeler(PBDaemon):
     def __init__(self,noopts=0,app=None,single=False,
                  threaded=None,keeproot=False):
         PBDaemon.__init__(self)
-        
+        # FIXME: cleanup --force option #2660
+        self.options.force = True
         if self.options.daemon:
             if self.options.now:
                 self.log.debug("Run as a daemon, starting immediately.")
@@ -429,10 +430,10 @@ class ZenModeler(PBDaemon):
                 dest='writetries',default=2,type='int',
                 help="number of times to try to write if a "
                      "read conflict is found")
+        # FIXME: cleanup --force option #2660
         self.parser.add_option("-F", "--force",
-                    dest="force", action='store_true', default=False,
-                    help="force collection of config data " 
-                         "(even without change to the device)")
+                    dest="force", action='store_true', default=True,
+                    help="force collection of config data (deprecated)")
         self.parser.add_option('--portscantimeout', dest='portscantimeout', 
                 type='int', default=defaultPortScanTimeout,
                 help="time to wait for connection failures when port scanning")
