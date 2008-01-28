@@ -120,7 +120,12 @@ class Page(HTMLParser):
         req = urllib2.Request(url)
         encoded = base64.encodestring('%s:%s' % (self.user, self.passwd))[:-1]
         req.add_header("Authorization", "Basic %s" % encoded)
-        return urllib2.urlopen(req)
+        try:
+            result = urllib2.urlopen(req)
+        except urllib2.HTTPError:
+            import StringIO
+            result = StringIO.StringIO('')
+        return result
 
     def fetch(self, url):
         self.feed(self.slurp(url).read())
