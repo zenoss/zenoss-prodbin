@@ -45,6 +45,9 @@ r"%(?P<eventClassKey>(?P<component>\S+)-\d-\S+): (?P<summary>.*)",
 # Cisco ACS
 r"^(?P<ipAddress>\S+)\s+(?P<summary>(?P<eventClassKey>CisACS_\d\d_\S+)\s+(?P<eventKey>\S+)\s.*)",
 
+# netscreen device msg
+r"device_id=\S+\s+\[\S+\](?P<eventClassKey>\S+\d+):\s+(?P<summary>.*)\s+\((?P<originalTime>\d\d\d\d-\d\d-\d\d \d\d:\d\d:\d\d)\)",
+
 # unix syslog with pid
 r"(?P<component>\S+)\[(?P<pid>\d+)\]: (?P<summary>.*)",
 
