@@ -44,7 +44,6 @@ class zeneventlog(WinCollector):
 
     def updateDevices(self, devices):
         """get the config data from server"""
-        import pdb; pdb.set_trace()
         for dev in devices:
             try:
                 if dev.id in self.wmiprobs: 
