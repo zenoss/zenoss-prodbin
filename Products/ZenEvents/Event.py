@@ -16,6 +16,7 @@ import time
 from Products.ZenEvents.ZenEventClasses import *
 from Products.ZenEvents.Exceptions import *
 
+from twisted.spread import pb
 
 def buildEventFromDict(evdict):
     """Build an event object from a dictionary.
@@ -33,7 +34,7 @@ def buildEventFromDict(evdict):
 
 
 
-class Event(object):
+class Event(pb.Copyable, pb.RemoteCopy):
     """
     Event that lives independant of zope context.  As interface that allows
     it to be persisted to/from the event backend.
@@ -128,6 +129,8 @@ class Event(object):
         """Return list of dedupid fields.
         """
         return default
+pb.setUnjellyableForClass(Event, Event)
+
 
 
 class EventHeartbeat(Event):
@@ -138,3 +141,4 @@ class EventHeartbeat(Event):
         self._fields = ("device", "component", "timeout")
         super(EventHeartbeat, self).__init__(
             device=device, component=component,timeout=timeout)
+pb.setUnjellyableForClass(EventHeartbeat, EventHeartbeat)

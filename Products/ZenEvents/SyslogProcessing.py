@@ -10,25 +10,19 @@
 # For complete information please visit: http://www.zenoss.com/oss/
 #
 ###########################################################################
-#! /usr/bin/env python 
 
 __doc__='''SyslogProcessing
 
 Class for turning syslog events into Zenoss Events
 
-$Id$
 '''
-
-__version__ = "$Revision$"[11:-2]
-
 
 import re
 import logging
 slog = logging.getLogger("zen.Syslog")
 
 import Globals
-from Event import Event
-from syslog_h import *
+from Products.ZenEvents.syslog_h import *
 
 # Regular expressions that parse syslog tags from different sources
 parsers = (
@@ -64,46 +58,39 @@ for regex in parsers:
     compiledParsers.append(re.compile(regex)) 
 
 
-class SyslogEvent(Event):
-
-    def getDedupFields(self, default):
-        """Return list of dedupid fields.
-        """
-        default = list(default[:])
-        if not getattr(self, "eventKey", False):
-            default.append("summary")
-        return default
-
-
 class SyslogProcessor(object):
 
-    def __init__(self, zem, minpriority, parsehost): 
+    def __init__(self, sendEvent, minpriority, parsehost, defaultPriority): 
         self.minpriority = minpriority
         self.parsehost = parsehost
-        self.zem = zem
+        self.sendEvent = sendEvent
+        self.defaultPriority = defaultPriority
 
 
     def process(self, msg, ipaddr, host, rtime):
-        evt = SyslogEvent(device=host, ipAddress=ipaddr, rcvtime=rtime,
-                agent='zensyslog', eventGroup='syslog')
+        evt = dict(device=host,
+                   ipAddress=ipaddr,
+                   firstTime=rtime,
+                   lastTime=rtime,
+                   eventGroup='syslog')
         slog.debug("host=%s, ip=%s", host, ipaddr)
         slog.debug(msg)
 
         evt, msg = self.parsePRI(evt, msg) 
-        if evt.priority > self.minpriority: return
+        if evt['priority'] > self.minpriority: return
 
         evt, msg = self.parseHEADER(evt, msg)
         evt = self.parseTag(evt, msg) 
         #rest of msg now in summary of event
         evt = self.buildEventClassKey(evt)
-        self.zem.sendEvent(evt)
+        self.sendEvent(evt)
 
         
     def parsePRI(self, evt, msg):
         """
         Parse RFC-3164 PRI part of syslog message to get facility and priority.
         """
-        pri = self.zem.defaultPriority
+        pri = self.defaultPriority
         fac = None
         if msg[:1] == '<':
             pos = msg.find('>')
@@ -112,11 +99,11 @@ class SyslogProcessor(object):
         elif msg and msg[0] < ' ':
             fac, pri = LOG_KERN, ord(msg[0])
             msg = msg[1:]
-        evt.facility = fac_names.get(fac,"unknown")
-        evt.priority = pri
-        evt.severity = self.defaultSeverityMap(pri)
+        evt['facility'] = fac_names.get(fac,"unknown")
+        evt['priority'] = pri
+        evt['severity'] = self.defaultSeverityMap(pri)
         slog.debug("fac=%s pri=%s", fac, pri)
-        slog.debug("facility=%s severity=%s", evt.facility, evt.severity)
+        slog.debug("facility=%s severity=%s", evt['facility'], evt['severity'])
         return evt, msg
 
 
@@ -142,14 +129,12 @@ class SyslogProcessor(object):
         m = self.timeParse(msg)
         if m: 
             slog.debug("parseHEADER timestamp=%s", m.group(1))
-            #FIXME date parsing in event not working
-            #evt.initTime(m.group(1))
-            evt.originalTime = m.group(1)
+            evt['originalTime'] = m.group(1)
             msg = m.group(2).strip()
         msglist = msg.split()
         if self.parsehost and not self.notHostSearch(msglist[0]):
-            evt.device = msglist[0]
-            slog.debug("parseHEADER hostname=%s", evt.device)
+            evt['device'] = msglist[0]
+            slog.debug("parseHEADER hostname=%s", evt['device'])
             msg = " ".join(msglist[1:])
         return evt, msg
 
@@ -164,11 +149,11 @@ class SyslogProcessor(object):
             m = parser.search(msg)
             if not m: continue
             slog.debug("tag match: %s", m.groupdict())
-            evt.updateFromDict(m.groupdict())
+            evt.update(m.groupdict())
             break
         else:
             slog.warn("parseTag failed:'%s'", msg)
-            evt.summary = msg
+            evt['summary'] = msg
         return evt
 
 
@@ -181,15 +166,15 @@ class SyslogProcessor(object):
         if hasattr(evt, 'eventClassKey') or hasattr(evt, 'eventClass'):
             return evt
         elif hasattr(evt, 'ntevid'):
-            evt.eventClassKey = "%s_%s" % (evt.component,evt.ntevid)
+            evt['eventClassKey'] = "%s_%s" % (evt['component'],evt['ntevid'])
         elif hasattr(evt, 'component'):
-            evt.eventClassKey = evt.component
+            evt['eventClassKey'] = evt['component']
         if hasattr(evt, 'eventClassKey'): 
-            slog.debug("eventClassKey=%s", evt.eventClassKey)
+            slog.debug("eventClassKey=%s", evt['eventClassKey'])
             try:
-                evt.eventClassKey = evt.eventClassKey.decode('latin-1')
+                evt['eventClassKey'] = evt['eventClassKey'].decode('latin-1')
             except:
-                evt.eventClassKey = evt.eventClassKey.decode('utf-8')
+                evt['eventClassKey'] = evt['eventClassKey'].decode('utf-8')
         else:
             slog.debug("no eventClassKey assigned")
         return evt

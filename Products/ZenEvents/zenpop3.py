@@ -25,8 +25,6 @@ from EventServer import EventServer
 
 from twisted.mail.pop3client import POP3Client
 from twisted.internet import reactor, protocol, defer
-from twisted.internet.ssl import ClientContextFactory
-from Products.ZenRRD.RRDDaemon import RRDDaemon
 
 from MailProcessor import POPProcessor
 
@@ -139,15 +137,14 @@ class POPFactory(protocol.ClientFactory):
         self.finish()
 
 
-class ZenPOP3(EventServer, RRDDaemon):
+class ZenPOP3(EventServer):
     name = 'zenpop3'
 
     def __init__(self):
         EventServer.__init__(self)
-        RRDDaemon.__init__(self, ZenPOP3.name)
 
         self.changeUser()
-        self.processor = POPProcessor(self.dmd.ZenEventManager)
+        self.processor = POPProcessor(self)
         host = self.options.pophost
         port = self.options.popport
         popuser = self.options.popuser
@@ -167,6 +164,7 @@ class ZenPOP3(EventServer, RRDDaemon):
         
         if usessl:
             log.info("connecting to server using SSL")
+            from twisted.internet.ssl import ClientContextFactory
             reactor.connectSSL(host, port, self.factory, ClientContextFactory())
         else:
             log.info("connceting to server using plaintext")
@@ -222,5 +220,5 @@ class ZenPOP3(EventServer, RRDDaemon):
 
 
 if __name__ == '__main__':
-    ZenPOP3().main()
+    ZenPOP3().run()
 

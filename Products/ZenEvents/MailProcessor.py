@@ -114,8 +114,6 @@ class MessageProcessor(object):
 
     def enrich(self, event, subject):
         unused(subject)
-        pri = self.zem.defaultPriority
-        event.priority = pri
         event.facility = "unknown"
         event.severity = 5
 

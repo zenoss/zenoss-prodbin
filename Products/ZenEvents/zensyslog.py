@@ -1,3 +1,4 @@
+#! /usr/bin/env python 
 ###########################################################################
 #
 # This program is part of Zenoss Core, an open source monitoring platform.
@@ -10,7 +11,6 @@
 # For complete information please visit: http://www.zenoss.com/oss/
 #
 ###########################################################################
-#! /usr/bin/env python 
 
 __doc__='''zensyslog
 
@@ -24,14 +24,15 @@ import socket
 
 from twisted.internet.protocol import DatagramProtocol
 from twisted.internet import reactor
-from twisted.names.client import lookupPointer
 from twisted.python import failure
 
-from EventServer import EventServer
-from SyslogProcessing import SyslogProcessor
-
 import Globals
+from Products.ZenEvents.EventServer import EventServer
+from Products.ZenEvents.SyslogProcessing import SyslogProcessor
+
 from Products.ZenUtils.Utils import zenPath
+from Products.ZenUtils.IpUtil import asyncNameLookup
+from Products.ZenUtils.Driver import drive
 
 SYSLOG_PORT = 514
 try:
@@ -54,9 +55,7 @@ class ZenSyslog(DatagramProtocol, EventServer):
                                     '--port=%d' % self.options.syslogport)
         self.changeUser()
         self.minpriority = self.options.minpriority
-        self.processor = SyslogProcessor(self.dmd.ZenEventManager, 
-                                         self.options.minpriority,
-                                         self.options.parsehost)
+        self.processor = None
 
         if self.options.logorig:
             import logging
@@ -71,7 +70,6 @@ class ZenSyslog(DatagramProtocol, EventServer):
             self.useUdpFileDescriptor(int(self.options.useFileDescriptor))
         else:
             reactor.listenUDP(self.options.syslogport, self)
-        self.heartbeat()
 
 
     def expand(self, msg, client_address):
@@ -113,7 +111,7 @@ class ZenSyslog(DatagramProtocol, EventServer):
         
 
     def datagramReceived(self, msg, client_address):
-        """Use a separate thread to process the request."""
+        """Consume the network packet"""
         ipaddr, port = client_address
         if self.options.logorig:
             if self.options.logformat == 'human':
@@ -124,21 +122,30 @@ class ZenSyslog(DatagramProtocol, EventServer):
             self.olog.info(message)
 
         ptr = '.'.join(ipaddr.split('.')[::-1]) + '.in-addr.arpa'
-        lookupPointer(ptr, timeout=(1,)).addBoth(self.gotHostname, (msg,ipaddr,time.time()))
+        asyncNameLookup(ipaddr).addBoth(self.gotHostname, (msg, ipaddr, time.time()))
+
+    def configure(self):
+        def inner(driver):
+            yield EventServer.configure(self)
+            driver.next()
+            self.log.info("Fetching the default syslog priority")
+            yield self.model().callRemote('getDefaultPriority')
+            self.processor = SyslogProcessor(self.sendEvent, 
+                                             self.options.minpriority,
+                                             self.options.parsehost,
+                                             driver.next())
+            self.log.info("Configuration finished")
+        return drive(inner)
 
 
     def gotHostname(self, response, data):
         "send the resolved address, if possible, and the event via the thread"
-        if isinstance(response, failure.Failure) or len(response[0]) == 0:
-            self.q.put( (data[1],) + data )
-        else:
-            self.q.put( (str(response[0][0].payload.name),) + data )
-
-
-    def doHandleRequest(self, host, msg, ipaddr, rtime):
-        "process a single syslog message, called from the inherited thread"
-        self.processor.process(msg, ipaddr, host, rtime)
-
+        msg, ipaddr, rtime = data
+        host = ipaddr
+        if not isinstance(response, failure.Failure):
+            host = response
+        if self.processor:
+            self.processor.process(msg, ipaddr, host, rtime)
 
     def buildOptions(self):
         EventServer.buildOptions(self)
@@ -157,9 +164,6 @@ class ZenSyslog(DatagramProtocol, EventServer):
         self.parser.add_option('--logformat',
             dest='logformat', default="human",
             help="human (/var/log/messages) or raw (wire)")
-        self.parser.add_option('--debug',
-            dest='debug', action="store_true",  default=False,
-            help="debug mode no threads")
         self.parser.add_option('--minpriority',
             dest='minpriority', default=6, type="int",
             help="Minimum priority that syslog will accecpt")
@@ -177,4 +181,7 @@ class ZenSyslog(DatagramProtocol, EventServer):
 
 
 if __name__ == '__main__':
-    ZenSyslog().main()
+    zsl = ZenSyslog()
+    zsl.run()
+    zsl.report()
+

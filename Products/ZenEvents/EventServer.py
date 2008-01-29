@@ -13,74 +13,93 @@
 
 __doc__='''EventServer
 
-Base class for ZenXEvent and ZenTrap
+Base class for ZenSyslog, ZenTrap and others
 
 $Id$
 '''
 
 __version__ = "$Revision$"[11:-2]
 
-from twisted.python import threadable
-threadable.init()
-
-from Queue import Queue
-from threading import Lock
-import time
 import socket
 
 import Globals
 
-from Products.ZenUtils.ZCmdBase import ZCmdBase
+from Products.ZenHub.PBDaemon import PBDaemon, FakeRemote
 from Products.ZenUtils.DaemonStats import DaemonStats
+from Products.ZenUtils.Driver import drive
 
-from Event import Event, EventHeartbeat
-
-from ZenEventClasses import App_Start, App_Stop
+from Products.ZenEvents.ZenEventClasses import App_Start
 from twisted.internet import reactor
+
+import time
 
 class Stats:
     totalTime = 0.
     totalEvents = 0
     maxTime = 0.
     
-    def __init__(self):
-        self.lock = Lock()
-    
     def add(self, moreTime):
-        self.lock.acquire()
         self.totalEvents += 1
         self.totalTime += moreTime
         self.maxTime = max(self.maxTime, moreTime)
-        self.lock.release()
 
     def report(self):
-        try:
-            self.lock.acquire()
-            return self.totalTime, self.totalEvents, self.maxTime
-        finally:
-            self.lock.release()
+        return self.totalTime, self.totalEvents, self.maxTime
 
-class EventServer(ZCmdBase):
+class EventServer(PBDaemon):
     'Base class for a daemon whose primary job is to post events'
 
     name = 'EventServer'
     
     def __init__(self):
-        ZCmdBase.__init__(self, keeproot=True)
+        PBDaemon.__init__(self, keeproot=True)
         self.stats = Stats()
-        self.zem = self.dmd.ZenEventManager
-        self.sendEvent(Event(device=self.options.monitor, 
-                               eventClass=App_Start, 
-                               summary="%s started" % self.name,
-                               severity=0,
-                               component=self.name))
-        self.q = Queue()
-        self.log.info("started")
-    
         self.rrdStats = DaemonStats()
-        monitor = self.dmd.Monitors.Performance._getOb(self.options.monitor)
-        self.rrdStats.configWithMonitor(self.name, monitor)
-        self.reportCycle()
+
+
+    def connected(self):
+        self.sendEvent(dict(device=self.options.monitor, 
+                            eventClass=App_Start, 
+                            summary="%s started" % self.name,
+                            severity=0,
+                            component=self.name))
+        self.log.info("started")
+        self.configure()
+
+
+    def model(self):
+        return self.services.get('EventService', FakeRemote())
+
+
+    def configure(self):
+        def inner(driver):
+            self.log.info("fetching default RRDCreateCommand")
+            yield self.model().callRemote('getDefaultRRDCreateCommand')
+            createCommand = driver.next()
+        
+            self.log.info("getting threshold classes")
+            yield self.model().callRemote('getThresholdClasses')
+            self.remote_updateThresholdClasses(driver.next())
+        
+            self.log.info("getting collector thresholds")
+            yield self.model().callRemote('getCollectorThresholds')
+            self.rrdStats.config(self.options.monitor, self.name,
+                                 driver.next(), createCommand)
+            self.heartbeat()
+            self.reportCycle()
+        d = drive(inner)
+        def error(result):
+            self.log.error("Unexpected error in configure: %s" % result)
+        d.addErrback(error)
+        return d
+
+
+    def sendEvent(self, event, **kw):
+        # FIXME: get real event processing stats
+        if event.has_key('firstTime'):
+            self.stats.add(min(time.time() - event['firstTime'], 0))
+        PBDaemon.sendEvent(self, event, **kw)
+
 
     def useUdpFileDescriptor(self, fd):
         from twisted.internet import udp
@@ -99,6 +118,7 @@ class EventServer(ZCmdBase):
         self.numPorts = 1
         transport.startReading()
 
+
     def useTcpFileDescriptor(self, fd, factory):
         import os, socket
         for i in range(19800, 19999):
@@ -114,82 +134,29 @@ class EventServer(ZCmdBase):
                 pass
         raise socket.error("Unable to find an open socket to listen on")
 
+
     def reportCycle(self):
         if self.options.statcycle:
             self.report()
             reactor.callLater(self.options.statcycle, self.reportCycle)
 
-    def run(self):
-        'method to process events in a thread'
-        try:
-            while 1:
-                args = self.q.get()
-                if args is None:
-                    break
-                try:
-                    if isinstance(args, Event):
-                        self.sendEvent(args)
-                    else:
-                        self.doHandleRequest(*args)
-                        diff = time.time() - args[-1]
-                        self.stats.add(diff)
-                except Exception, ex:
-                    self.log.exception(ex)
-                self.syncdb()
-        finally:
-            if reactor.running:
-                reactor.stop()
-
-
-    def sendEvent(self, evt, **kw):
-        "wrapper for sending an event"
-        self.zem._p_jar.sync()
-        if type(evt) == dict:
-            evt['manager'] = self.options.monitor
-            evt.update(kw)
-        else:
-            evt.manager = self.options.monitor
-            evt.__dict__.update(kw)
-        self.zem.sendEvent(evt)
-
-
-    def sendEvents(self, evts):
-        """Send multiple events to database syncing only one time.
-        """
-        self.zem._p_jar.sync()
-        for e in evts:
-            self.zem.sendEvent(e)
-
 
     def heartbeat(self):
         """Since we don't do anything on a regular basis, just
         push heartbeats regularly"""
-        seconds = 60
-        evt = EventHeartbeat(self.options.monitor, self.name, 3*seconds)
-        self.q.put(evt)
-        self.niceDoggie(seconds)
-        reactor.callLater(seconds, self.heartbeat)
+        seconds = self.heartbeatTimeout / 3
+        reactor.callLater(self.heartbeatTimeout / 3, self.heartbeat)
+        PBDaemon.heartbeat(self)
         totalTime, totalEvents, maxTime = self.stats.report()
         for ev in (self.rrdStats.counter('events',
                                          seconds,
                                          totalEvents) +
                    self.rrdStats.counter('totalTime',
                                          seconds,
-                                         int(totalTime * 1000)) +
-                   self.rrdStats.gauge('qsize',
-                                       seconds,
-                                       self.q.qsize())):
+                                         int(totalTime * 1000))):
             self.sendEvent(ev)
 
         
-    def sigTerm(self, signum=None, frame=None):
-        'controlled shutdown of main loop on interrupt'
-        try:
-            ZCmdBase.sigTerm(self, signum, frame)
-        except SystemExit:
-            if reactor.running:
-                reactor.stop()
-
     def report(self):
         'report some simple diagnostics at shutdown'
         totalTime, totalEvents, maxTime = self.stats.report()
@@ -202,35 +169,12 @@ class EventServer(ZCmdBase):
             self.log.info("Maximum processing time for one event was %.5f",
                           maxTime)
 
-    def finish(self):
-        'things to do at shutdown: thread cleanup, logs and events'
-        self.q.put(None)
-        self.report()
-        self.sendEvent(Event(device=self.options.monitor, 
-                             eventClass=App_Stop, 
-                             summary="%s stopped" % self.name,
-                             severity=4,
-                             component=self.name))
 
     def buildOptions(self):
-        ZCmdBase.buildOptions(self)
+        PBDaemon.buildOptions(self)
         self.parser.add_option('--statcycle',
                                dest='statcycle',
                                type='int',
                                help='Number of seconds between the writing of statistics',
                                default=0)
-        self.parser.add_option(
-            '--monitor',
-            dest='monitor',
-            help='Name of the distributed monitor running this event generator',
-            default='localhost')
 
-    def _wakeUpReactorAndHandleSignals(self):
-        reactor.callLater(1.0, self._wakeUpReactorAndHandleSignals)
-        
-    def main(self):
-        reactor.callInThread(self.run)
-        reactor.addSystemEventTrigger('before', 'shutdown', self.finish)
-        self._wakeUpReactorAndHandleSignals()
-        reactor.run()
-        
