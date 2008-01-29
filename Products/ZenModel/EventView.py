@@ -236,14 +236,14 @@ class EventView(object):
             return self.callZenScreen(REQUEST)
 
 
-    security.declareProtected('View','manage_ackEvents')
+    security.declareProtected('Manage Events','manage_ackEvents')
     def manage_ackEvents(self, evids=(), REQUEST=None):
         """Set event state form this managed entity.
         """
         return self.getEventManager().manage_ackEvents(evids, REQUEST)
 
 
-    security.declareProtected('View','manage_ackBatchEvents')
+    security.declareProtected('Manage Events','manage_ackBatchEvents')
     def manage_ackBatchEvents(self, selectstatus='none', goodevids=[],
                                     badevids=[], filter='', 
                                     offset=0, count=50, fields=[], 
