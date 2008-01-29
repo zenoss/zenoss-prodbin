@@ -389,7 +389,7 @@ class ZenHub(ZCmdBase):
         @return: None
         """
         ZCmdBase.buildOptions(self)
-        self.parser.add_option('--xport',
+        self.parser.add_option('--xmlrpcport',
                                '-x',
                                dest='xmlrpcport',
                                type='int',
