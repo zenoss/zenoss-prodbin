@@ -254,11 +254,12 @@ class zenperfsnmp(SnmpDaemon):
         self.loadConfigs()
         self.oldFiles = Set()
         # report on files older than a day
-        self.oldCheck = FileCleanup(perfRoot, '.*\\.rrd$',
-                                    24 * 60 * 60,
-                                    frequency=60)
-        self.oldCheck.process = self.reportOldFile
-        self.oldCheck.start()
+        if self.options.checkagingfiles:
+            self.oldCheck = FileCleanup(perfRoot, '.*\\.rrd$',
+                                        24 * 60 * 60,
+                                        frequency=60)
+            self.oldCheck.process = self.reportOldFile
+            self.oldCheck.start()
         # remove files older than maxRrdFileAge
         self.fileCleanup = FileCleanup(perfRoot, '.*\\.rrd$',
                                        self.maxRrdFileAge,
@@ -549,6 +550,8 @@ class zenperfsnmp(SnmpDaemon):
         self.checkOldFiles()
 
     def checkOldFiles(self):
+        if not self.options.checkagingfiles:
+            return
         self.oldFiles = Set(
             [f for f in self.oldFiles
              if os.path.exists(f) and self.oldCheck.test(f)]
@@ -564,7 +567,7 @@ class zenperfsnmp(SnmpDaemon):
                 summary=message))
         else:
             self.sendEvent(dict(
-                severity=Clear, 
+                severity=Clear,
                 device=self.options.monitor,
                 eventClass=Status_RRD,
                 summary='All RRD files have been recently update'))
@@ -695,6 +698,14 @@ class zenperfsnmp(SnmpDaemon):
         "Run forever, fetching and storing"
         d = drive(self.startUpdateConfig)
         d.addCallbacks(self.scanCycle, self.errorStop)
+
+    def buildOptions(self):
+        SnmpDaemon.buildOptions(self)
+        self.parser.add_option('--checkAgingFiles',
+                               dest='checkagingfiles',
+                               action="store_true",
+                               default=False,
+                               help="Send events when RRD files are not being updated regularly")
 
 
 if __name__ == '__main__':
