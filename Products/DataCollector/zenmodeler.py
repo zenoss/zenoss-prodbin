@@ -210,10 +210,12 @@ class ZenModeler(PBDaemon):
         try:
             plugins = []
             hostname = device.id
-            if not device.zSnmpMonitorIgnore:
-                plugins = self.selectPlugins(device,"snmp")
+            plugins = self.selectPlugins(device,"snmp")
             if not plugins:
                 self.log.info("no snmp plugins found for %s" % hostname)
+                return 
+            if device.zSnmpMonitorIgnore:
+                self.log.info("snmp monitoring off for %s" % hostname)
                 return 
             if self.checkCollection(device):
                 self.log.info('snmp collection device %s' % hostname)
