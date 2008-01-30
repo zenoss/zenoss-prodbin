@@ -25,6 +25,8 @@ import string
 
 from Products.ZenUtils.Exceptions import ZentinelException
 
+from twisted.names.client import lookupPointer
+
 class IpAddressError(ZentinelException): pass
 
 
@@ -155,4 +157,12 @@ def getnet(ip, netmask):
 def getnetstr(ip, netmask):
     """return network number as string"""
     return strip(getnet(ip, netmask))
+
+def asyncNameLookup(address):
+    address = '.'.join(address.split('.')[::-1]) + '.in-addr.arpa'
+    d = lookupPointer(address, [1,2,4])
+    def ip(result):
+        return str(result[0][0].payload.name)
+    d.addCallback(ip)
+    return d
 
