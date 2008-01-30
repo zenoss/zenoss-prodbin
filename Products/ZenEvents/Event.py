@@ -140,6 +140,5 @@ class EventHeartbeat(Event):
     
     def __init__(self, device, component, timeout=120):
         self._fields = ("device", "component", "timeout")
-        super(EventHeartbeat, self).__init__(
-            device=device, component=component,timeout=timeout)
+        Event.__init__(self, device=device, component=component,timeout=timeout)
 pb.setUnjellyableForClass(EventHeartbeat, EventHeartbeat)
