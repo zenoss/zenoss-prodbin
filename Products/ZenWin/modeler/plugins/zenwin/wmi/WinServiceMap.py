@@ -24,12 +24,13 @@ class WinServiceMap(WMIPlugin):
     attrs = ("acceptPause","acceptStop","name","caption",
          "pathName","serviceType","startMode","startName")
 
-
-    def queryStrings(self):
-        return (
-            "Select %s From Win32_Service" % (",".join(self.attrs)),
-        )
-    
+    queryMap = {
+     "Win32_Service":"Select %s From Win32_Service" % (",".join(attrs)),
+    }
+        
+    def queries(self):
+        return self.queryMap
+        
     def process(self, device, results, log):
         """
         Collect win service info from this device.
@@ -37,7 +38,7 @@ class WinServiceMap(WMIPlugin):
         log.info('Processing WinServices for device %s' % device.id)
         
         rm = self.relMap()
-        for svc in results[0]:
+        for svc in results["Win32_Service"]:
             om = self.objectMap()
             om.id = prepId(svc.name)
             om.setServiceClass = {'name':svc.name, 'description':svc.caption}

@@ -114,9 +114,12 @@ class WinCollector(PBDaemon):
             FakeRemote())
 
 
-    def updateDevices(self, cfg):
-        pass
-
+    def updateDevices(self, devices):
+        self.devices = devices
+    
+    def remote_deleteDevice(self, deviceId):
+        self.devices = \
+            [i for i in self.devices if i.name != deviceId]
 
     def updateConfig(self, cfg):
         cfg = dict(cfg)
@@ -151,10 +154,6 @@ class WinCollector(PBDaemon):
         except Exception, ex:
             self.log.exception("Error fetching config")
 
-
-    def fetchDevices(self, driver):
-        yield self.configService().callRemote(self.deviceConfig)
-        self.updateDevices(driver.next())
 
     def startConfigCycle(self):
         def driveAgain(result):

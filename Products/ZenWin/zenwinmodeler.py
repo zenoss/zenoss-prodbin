@@ -66,10 +66,13 @@ class zenwinmodeler(WinCollector):
         "Get the ModelerService"
         return self.services.get('ModelerService', FakeRemote())
 
-        
-    def remote_deleteDevice(self, deviceId):
-        self.devices = \
-            [i for i in self.devices if i.name != deviceId]
+
+    def fetchDevices(self, driver):
+        yield self.config().callRemote('getDeviceListByMonitor',
+                                       self.options.monitor)
+            
+        yield self.config().callRemote('getDeviceConfig', driver.next())
+        self.updateDevices(driver.next())
 
 
     def collectDevice(self, device):
@@ -147,6 +150,7 @@ class zenwinmodeler(WinCollector):
     def processLoop(self):
         """For each device collect service info and send to server.
         """
+        if not self.devices: return
         deferreds = []
         for device in self.devices:
             reactor.runUntilCurrent()
@@ -201,17 +205,6 @@ class zenwinmodeler(WinCollector):
 
     def cycleInterval(self):
         return self.winmodelerCycleInterval
-        
-    def fetchDevices(self, driver):
-        yield self.config().callRemote('getDeviceListByMonitor',
-                                       self.options.monitor)
-            
-        yield self.config().callRemote('getDeviceConfig', driver.next())
-        self.updateDevices(driver.next())
-            
-    def updateDevices(self, devices):
-        self.log.debug('device: %s' % devices)
-        self.devices = devices
 
 
 if __name__=='__main__':

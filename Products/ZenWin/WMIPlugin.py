@@ -37,5 +37,5 @@ class WMIPlugin(CollectorPlugin):
         # Do any other prep of plugin here
         setattr(proxy, 'lastChange', getattr(device, '_lastChange', ''))
 
-    def queryStrings(self):
+    def queries(self):
         raise NotImplementedError
