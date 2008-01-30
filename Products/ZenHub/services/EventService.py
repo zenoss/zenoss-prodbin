@@ -18,8 +18,14 @@ from Products.ZenEvents.Event import Event
 pb.setUnjellyableForClass(Event, Event)
 
 from Products.ZenHub.HubService import HubService
+from Products.ZenHub.services.ThresholdMixin import ThresholdMixin
 
-class EventService(HubService):
+class EventService(HubService, ThresholdMixin):
+
+
+    def __init__(self, dmd, instance):
+        HubService.__init__(self, dmd, instance)
+        self.config = self.dmd.Monitors.Performance._getOb(self.instance)
 
     def remote_sendEvent(self, evt):
         try:
@@ -44,3 +50,18 @@ class EventService(HubService):
 
     def remote_getWmiConnIssues(self):
         return self.zem.getWmiConnIssues()
+
+    def remote_getDefaultRRDCreateCommand(self):
+        return self.config.getDefaultRRDCreateCommand()
+
+    def remote_getDefaultPriority(self):
+        return self.zem.defaultPriority
+
+    def remote_oid2name(self, oid):
+        "get oids, even if we're handed slightly wrong values"
+        name = self.dmd.Mibs.oid2name(oid)
+        if not name:
+            name = self.dmd.Mibs.oid2name(oid.rsplit('.', 1)[0])
+        if name:
+            return name
+        return oid
