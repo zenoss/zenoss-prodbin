@@ -467,6 +467,7 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
             return None
 
 
+    # FIXME: cleanup --force option #2660
     def __getattr__(self, name):
         """
         Override from object to handle lastPollSnmpUpTime and 
@@ -582,7 +583,7 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
         >>> lst = devices.test.getSnmpConnInfo().__dict__.items()
         >>> lst.sort()
         >>> lst
-        [('id', 'test'), ('manageIp', ''), ('zMaxOIDPerRequest', 40), ('zSnmpAuthPassword', ''), ('zSnmpAuthType', ''), ('zSnmpCommunity', 'public'), ('zSnmpPort', 161), ('zSnmpPrivPassword', ''), ('zSnmpPrivType', ''), ('zSnmpSecurityName', ''), ('zSnmpTimeout', 2.5), ('zSnmpTries', 2), ('zSnmpVer', 'v1')]
+        [('id', 'test'), ('manageIp', ''), ('zMaxOIDPerRequest', 40), ('zSnmpAuthPassword', ''), ('zSnmpAuthType', ''), ('zSnmpCommunity', 'public'), ('zSnmpMonitorIgnore', False), ('zSnmpPort', 161), ('zSnmpPrivPassword', ''), ('zSnmpPrivType', ''), ('zSnmpSecurityName', ''), ('zSnmpTimeout', 2.5), ('zSnmpTries', 2), ('zSnmpVer', 'v1')]
         """
         from Products.ZenHub.services.PerformanceConfig import SnmpConnInfo
         return SnmpConnInfo(self)
@@ -1502,6 +1503,7 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
         return False
 
 
+    # FIXME: cleanup --force option #2660
     security.declareProtected(ZEN_MANAGE_DEVICE_STATUS, 
         'getLastPollSnmpUpTime')
     def getLastPollSnmpUpTime(self):
@@ -1513,6 +1515,7 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
         return self._lastPollSnmpUpTime.getStatus()
 
 
+    # FIXME: cleanup --force option #2660
     security.declareProtected(ZEN_MANAGE_DEVICE_STATUS, 
         'setLastPollSnmpUpTime')
     def setLastPollSnmpUpTime(self, value):
