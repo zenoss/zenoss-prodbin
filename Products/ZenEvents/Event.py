@@ -75,6 +75,7 @@ class Event(pb.Copyable, pb.RemoteCopy):
         self._action = "status"
         self._fields = kwargs.get('fields',[])
         self.eventKey = ''
+        self.component = ''
         if kwargs: self.updateFromDict(kwargs)
 
     
