@@ -18,6 +18,7 @@ import Globals
 from Products.ZenUtils.Exceptions import ZentinelException
 from Products.ZenUtils.Utils import unused
 from Products.ZenUtils.Driver import drive
+from Products.ZenUtils.IpUtil import asyncNameLookup
 from Products.ZenUtils.NJobs import NJobs
 from Products.ZenEvents.ZenEventClasses import Status_Snmp
 from Products.ZenEvents.Event import Info
@@ -31,17 +32,7 @@ from zenmodeler import ZenModeler
 from twisted.internet.defer import succeed
 from twisted.python.failure import Failure
 from twisted.internet import reactor
-from twisted.names.client import lookupPointer
 from twisted.names.error import DNSNameError
-
-
-def asyncNameLookup(address):
-    address = '.'.join(address.split('.')[::-1]) + '.in-addr.arpa'
-    d = lookupPointer(address, [1,2,4])
-    def ip(result):
-        return str(result[0][0].payload.name)
-    d.addCallback(ip)
-    return d
 
 
 class ZenDisc(ZenModeler):
