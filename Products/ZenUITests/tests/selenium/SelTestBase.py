@@ -35,7 +35,8 @@ WAITTIME    =   "60000"                 # Time to wait for page loads in millise
 ### END GLOBAL DEFS ###
 
 # Check for local defs
-if os.path.exists('_seleniumtestdata.py'):
+here = lambda x:os.path.join(os.path.dirname(__file__), x)
+if os.path.exists(here('_seleniumtestdata.py')):
     from _seleniumtestdata import *
 
 class SelTestBase(unittest.TestCase):
