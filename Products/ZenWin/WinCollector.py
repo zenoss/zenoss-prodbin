@@ -119,7 +119,7 @@ class WinCollector(PBDaemon):
     
     def remote_deleteDevice(self, deviceId):
         self.devices = \
-            [i for i in self.devices if i.name != deviceId]
+            [i for i in self.devices if i.id != deviceId]
 
     def updateConfig(self, cfg):
         cfg = dict(cfg)

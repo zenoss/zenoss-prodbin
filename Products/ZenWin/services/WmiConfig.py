@@ -16,7 +16,7 @@ __doc__='''WmiService
 Provides Wmi config to zenwin clients.
 '''
 
-from Products.ZenHub.HubService import HubService
+from Products.ZenHub.services.ModelerService import ModelerService
 from Products.DataCollector.ApplyDataMap import ApplyDataMap
 from Products.ZenModel.Device import Device
 from Products.ZenModel.DeviceClass import DeviceClass
@@ -24,78 +24,18 @@ from Products.ZenModel.DeviceClass import DeviceClass
 from Products.ZenHub.services.Procrastinator import Procrastinate
 from Products.ZenHub.services.ThresholdMixin import ThresholdMixin
 
-class WmiConfig(HubService, ThresholdMixin):
-    
+class WmiConfig(ModelerService, ThresholdMixin):
+
     def __init__(self, dmd, instance):
-        HubService.__init__(self, dmd, instance)
+        ModelerService.__init__(self, dmd, instance)
         self.config = self.dmd.Monitors.Performance._getOb(self.instance)
         self.procrastinator = Procrastinate(self.push)
-
-
-    def remote_getDeviceWinInfo(self):
-        """Return list of (devname,user,passwd,url) for each device.
-        user and passwd are used to connect via wmi.
-        """
-
-        devinfo = []
-        for dev in self.config.devices():
-            dev = dev.primaryAq()
-            if not dev.monitorDevice(): continue
-            if getattr(dev, 'zWmiMonitorIgnore', False): continue
-            user = getattr(dev,'zWinUser','')
-            passwd = getattr(dev, 'zWinPassword', '')
-            sev = getattr(dev, 'zWinEventlogMinSeverity', '')
-            devinfo.append((dev._lastChange,
-                            dev.id,
-                            dev.getManageIp(),
-                            str(user),
-                            str(passwd),
-                            sev,
-                            dev.absolute_url()))
-        return devinfo
-    
-    
-    def remote_getWinServices(self):
-        """Return a list of (devname, user, passwd, {'EvtSys':0,'Exchange':0}) 
-        """
-        svcinfo = []
-        for dev in self.config.devices():
-            dev = dev.primaryAq()
-            if not dev.monitorDevice(): continue
-            if getattr(dev, 'zWmiMonitorIgnore', False): continue
-            svcs = {}
-            for s in dev.getMonitoredComponents(type='WinService'):
-                name = s.name()
-                if type(name) == type(u''):
-                    name = name.encode(s.zCollectorDecoding)
-                svcs[name] = (s.getStatus(), s.getAqProperty('zFailSeverity'))
-            if not svcs and not dev.zWinEventlog: continue
-            user = getattr(dev,'zWinUser','')
-            passwd = getattr(dev, 'zWinPassword', '')
-            svcinfo.append((dev.id, dev.getManageIp(), str(user), str(passwd), svcs))
-        return svcinfo
 
 
     def remote_getConfig(self):
         return self.config.propertyItems()
 
-    def remote_applyDataMap(self,
-                            url,
-                            datamap,
-                            relname="",
-                            compname="",
-                            modname=""):
-        dev = self.dmd.getObjByPath(url)
-        adm = ApplyDataMap()
-        result = adm.applyDataMap(dev,
-                                  datamap,
-                                  relname=relname,
-                                  compname=compname,
-                                  modname=modname)
-        import transaction
-        transaction.commit()
-        return result
-        
+
     def update(self, object):
         if isinstance(object, DeviceClass):
             objects = object.getSubDevices()
@@ -119,3 +59,33 @@ class WmiConfig(HubService, ThresholdMixin):
         for listener in self.listeners:
             if isinstance(obj, Device):
                 listener.callRemote('deleteDevice', obj.id)
+
+
+    def remote_getDeviceConfigAndWinServices(self):
+        """Return a list of (devname, user, passwd, {'EvtSys':0,'Exchange':0}) 
+        """
+        result = []
+        for name in names:
+            device = self.dmd.Devices.findDevice(name)
+            if not device:
+                continue
+            device = device.primaryAq()
+            if (device.productionState <=
+                getattr(device, 'zProdStateThreshold', 0)):
+                continue
+            if not device.monitorDevice(): continue
+            if getattr(device, 'zWmiMonitorIgnore', False): continue
+            
+            proxy = self.createDeviceProxy(device)
+            proxy.id = device.getId()
+            proxy.services = {}
+            for s in device.getMonitoredComponents(type='WinService'):
+                name = s.name()
+                if type(name) == type(u''):
+                    name = name.encode(s.zCollectorDecoding)
+                proxy.services[name] = (s.getStatus(), 
+                                    s.getAqProperty('zFailSeverity'))
+            if not proxy.services and not device.zWinEventlog: continue
+            result.append(proxy)
+        return result
+
