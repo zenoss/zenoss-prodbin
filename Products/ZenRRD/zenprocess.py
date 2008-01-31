@@ -437,11 +437,13 @@ class zenprocess(SnmpDaemon):
         for row in results[ARGSTABLE].items():
             extract(args,  *row)
         for i, path in paths.items():
-            if i in names and i in args:
-                name = names[i]
-                if path and path.find('\\') == -1:
-                    name = path
-                procs.append( (i, (name, args[i]) ) )
+            if i not in names: continue
+            name = names[i]
+            if path and path.find('\\') == -1:
+                name = path
+            arg = ''
+            if i in args: arg = args[i]
+            procs.append( (i, (name, arg) ) )
         # look for changes in pids
         before = Set(device.pids.keys())
         after = {}
