@@ -43,6 +43,8 @@ class WinCollector(PBDaemon):
 
     def __init__(self):
         self.wmiprobs = []
+        self.devices = []
+        self.watchers = {}
         PBDaemon.__init__(self)
         self.reconfigureTimeout = None
 

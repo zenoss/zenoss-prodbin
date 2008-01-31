@@ -31,9 +31,6 @@ class zenwin(WinCollector):
 
     def __init__(self):
         WinCollector.__init__(self)
-        self.wmiprobs = []
-        self.devices = []
-        self.watchers = {}
         self.statmsg = "Windows Service '%s' is %s"
         self.winCycleInterval = 60
         self.start()

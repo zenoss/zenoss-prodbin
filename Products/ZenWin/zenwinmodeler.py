@@ -40,7 +40,6 @@ class zenwinmodeler(WinCollector):
 
     def __init__(self):
         WinCollector.__init__(self)
-        self.devices = []
         self.lastRead = {}
         self.client = None
         self.collectorPlugins = {}

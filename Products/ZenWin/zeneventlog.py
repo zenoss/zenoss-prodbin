@@ -24,10 +24,6 @@ from Products.ZenEvents.ZenEventClasses import Status_Wmi_Conn
 from Products.ZenEvents import Event
 from Products.ZenUtils.Utils import unused
 
-# needed for pb/jelly
-from Products.ZenHub.services import WmiConfig
-unused(WmiConfig)
-
 class zeneventlog(WinCollector):
 
     name = agent = "zeneventlog"
@@ -38,54 +34,25 @@ class zeneventlog(WinCollector):
 
     def __init__(self):
         WinCollector.__init__(self)
-        self.devices = {}
         self.manager = getfqdn()
         self.start()
 
-    def updateDevices(self, devices):
-        """get the config data from server"""
-        for dev in devices:
-            try:
-                if dev.id in self.wmiprobs: 
-                    self.log.info('wmi prob on %s skipping', name)
-                    continue
-                if dev.id in self.devices:
-                    continue
-                self.devices[dev.id] = self.getWatcher(
-                   dev.id, dev.manageIp,
-                   dev.zWinUser, dev.zWinPasswd,
-                   d.zWinEventlogMinSeverity)
-            except Exception, ex:
-                msg = self.printComErrorMessage(ex)
-                if msg.find('RPC_S_CALL_FAILED') >= 0:
-                    # transient error, log it but don't create an event
-                    self.log.exception('Ignoring: %s' % msg)
-                    continue
-                if not msg:
-                    msg = 'WMI connect error on %s: %s' % (dev.id, str(ex))
-                self.log.exception(msg)
-                self.sendEvent(dict(summary=msg,
-                                    device=dev.id,
-                                    eventClass=Status_Wmi_Conn,
-                                    agent=self.agent,
-                                    severity=Event.Error,
-                                    manager=self.manager,
-                                    component=self.name))
+    def fetchDevices(self, driver):
+        yield self.config().callRemote('getDeviceListByMonitor',
+                                       self.options.monitor)
+        yield self.config().callRemote('getDeviceConfigAndWinServices', 
+            driver.next())
+        self.updateDevices(driver.next())
+        
 
-    def remote_deleteDevice(self, device):
-        if device in self.devices:
-            del self.devices[device]
-    
-    def getWatcher(self, name, ip, user, passwd, minSeverity):
-       """Setup WMI connection to monitored server. 
-       """
-       c = wmiclient.WMI(*map(str, (name, ip, user, passwd) ))
-       c.connect()
-       wql = """SELECT * FROM __InstanceCreationEvent where """\
-               """TargetInstance ISA 'Win32_NTLogEvent' """\
-               """and TargetInstance.EventType <= %d"""\
-             % minSeverity
-       return c.watcher(wql)
+    def getWatcher(self, device):
+        wql = """SELECT * FROM __InstanceCreationEvent where """\
+            """TargetInstance ISA 'Win32_NTLogEvent' """\
+            """and TargetInstance.EventType <= %d"""\
+        % minSeverity
+        wmic = WMIClient(device)
+        wmic.connect()
+        return wmic.watcher(wql)
 
         
     def processLoop(self):
@@ -93,10 +60,12 @@ class zeneventlog(WinCollector):
         then process results later (when they have already returned)
         """
         pythoncom.PumpWaitingMessages()
-        baddevices = []
-        for name, w in self.devices.items():
-            if name in self.wmiprobs:
+        for device in self.devices:
+            if device.id in self.wmiprobs:
+                self.log.debug("WMI problems on %s: skipping" % device.id)
                 continue
+            self.watchers[device.id] = w = self.getWatcher(device)
+            
             self.log.debug("polling %s", name)
             try:
                 while 1:
@@ -122,9 +91,8 @@ class zeneventlog(WinCollector):
                 else:
                     self.log.warn("%s %s", name, msg)
                     self.log.warn("removing %s", name)
-                    baddevices.append(name)
-        for name in baddevices:
-            del self.devices[name]
+                    self.devices.remove(device)
+        
         gc.collect()
         self.log.info("Com InterfaceCount: %d", pythoncom._GetInterfaceCount())
         self.log.info("Com GatewayCount: %d", pythoncom._GetGatewayCount())
