@@ -90,7 +90,7 @@ class TestZenHub(unittest.TestCase):
         xbase = self.xbase + count
         self.before, sys.argv = sys.argv, ['run',
                                            '--pbport=%d' % base,
-                                           '--xport=%d' % xbase]
+                                           '--xmlrpcport=%d' % xbase]
         self.zenhub = ZenHub()
         reactor.callLater(5, stop)
 
