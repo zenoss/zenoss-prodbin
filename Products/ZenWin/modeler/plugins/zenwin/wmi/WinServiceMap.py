@@ -24,8 +24,9 @@ class WinServiceMap(WMIPlugin):
     attrs = ("acceptPause","acceptStop","name","caption",
          "pathName","serviceType","startMode","startName")
 
-    queryMap = {
-     "Win32_Service":"Select %s From Win32_Service" % (",".join(attrs)),
+    def queries(self):
+        return {
+     "Win32_Service":"Select %s From Win32_Service" % (",".join(self.attrs)),
     }
         
     def queries(self):
