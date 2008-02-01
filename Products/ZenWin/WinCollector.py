@@ -63,9 +63,6 @@ class WinCollector(PBDaemon):
             self.reconfigureTimeout.cancel()
         self.reconfigureTimeout = reactor.callLater(5, drive, self.reconfigure)
 
-    def remote_deleteDevice(self, device):
-        pass
-
     def processLoop(self):
         pass
 

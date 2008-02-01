@@ -20,7 +20,6 @@ from WinCollector import WinCollector
 from Constants import TIMEOUT_CODE
 from Products.ZenEvents.ZenEventClasses import Status_Wmi_Conn, Status_WinService
 from Products.ZenEvents import Event
-from Products.ZenUtils.Utils import unused
 
 ERRtimeout = 1726
 
