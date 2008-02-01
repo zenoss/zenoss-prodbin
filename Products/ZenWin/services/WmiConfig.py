@@ -17,7 +17,6 @@ Provides Wmi config to zenwin clients.
 '''
 
 from Products.ZenHub.services.ModelerService import ModelerService
-from Products.DataCollector.ApplyDataMap import ApplyDataMap
 from Products.ZenModel.Device import Device
 from Products.ZenModel.DeviceClass import DeviceClass
 
@@ -61,7 +60,7 @@ class WmiConfig(ModelerService, ThresholdMixin):
                 listener.callRemote('deleteDevice', obj.id)
 
 
-    def remote_getDeviceConfigAndWinServices(self):
+    def remote_getDeviceConfigAndWinServices(self, names):
         """Return a list of (devname, user, passwd, {'EvtSys':0,'Exchange':0}) 
         """
         result = []

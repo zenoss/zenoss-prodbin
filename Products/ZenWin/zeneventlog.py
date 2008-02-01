@@ -15,14 +15,11 @@ import gc
 from socket import getfqdn
 import pywintypes
 import pythoncom
-import wmiclient
 
 import Globals
+from WMIC import WMIClient
 from WinCollector import WinCollector
 from Constants import TIMEOUT_CODE, RPC_ERROR_CODE
-from Products.ZenEvents.ZenEventClasses import Status_Wmi_Conn
-from Products.ZenEvents import Event
-from Products.ZenUtils.Utils import unused
 
 class zeneventlog(WinCollector):
 
@@ -49,7 +46,7 @@ class zeneventlog(WinCollector):
         wql = """SELECT * FROM __InstanceCreationEvent where """\
             """TargetInstance ISA 'Win32_NTLogEvent' """\
             """and TargetInstance.EventType <= %d"""\
-        % minSeverity
+        % device.zWinEventlogMinSeverity
         wmic = WMIClient(device)
         wmic.connect()
         return wmic.watcher(wql)
@@ -66,14 +63,14 @@ class zeneventlog(WinCollector):
                 continue
             self.watchers[device.id] = w = self.getWatcher(device)
             
-            self.log.debug("polling %s", name)
+            self.log.debug("polling %s", device.id)
             try:
                 while 1:
                     lrec = w.nextEvent()
                     if not lrec.Message:
                         continue
                     self.events += 1
-                    self.sendEvent(self.mkevt(name, lrec))
+                    self.sendEvent(self.mkevt(device.id, lrec))
             except pywintypes.com_error, e:
                 msg = "wmi connection failed: "
                 code,txt,info,param = e
@@ -85,12 +82,12 @@ class zeneventlog(WinCollector):
                         wmsg = descr.strip()
                 msg += wmsg
                 if scode == TIMEOUT_CODE:
-                    self.log.debug("timeout %s", name)
+                    self.log.debug("timeout %s", device.id)
                 elif scode == RPC_ERROR_CODE:
-                    self.log.warn("%s %s", name, msg)
+                    self.log.warn("%s %s", device.id, msg)
                 else:
-                    self.log.warn("%s %s", name, msg)
-                    self.log.warn("removing %s", name)
+                    self.log.warn("%s %s", device.id, msg)
+                    self.log.warn("removing %s", device.id)
                     self.devices.remove(device)
         
         gc.collect()
