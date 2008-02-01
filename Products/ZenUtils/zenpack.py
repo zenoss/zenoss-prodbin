@@ -29,6 +29,13 @@ class ZenPackCmd(ZenScriptBase):
 
     def run(self):
         "Execute the user's request"
+
+        # files-only just lays the files down and doesn't "install"
+        # them into zeo
+        if self.options.filesOnly:
+            self.extract(self.options.installPackName)
+            return
+            
         self.connect()
         if self.options.installPackName:
             if not self.preInstallCheck():
@@ -277,6 +284,14 @@ class ZenPackCmd(ZenScriptBase):
                                default=False,
                                help="symlink the zenpack dir instead of"
                                     " copying to $ZENHOME/Products")
+
+        self.parser.add_option('--files-only',
+                               dest='filesOnly',
+                               action="store_true",
+                               default=False,
+                               help="extract classes from the pack but do "
+                               "not install them in zeo")
+
         ZenScriptBase.buildOptions(self)
 
 if __name__ == '__main__':
