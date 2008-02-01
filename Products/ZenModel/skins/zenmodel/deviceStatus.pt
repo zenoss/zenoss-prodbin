@@ -261,6 +261,13 @@
                         tal:content="here/snmpSysName">x</div>
                     <div tal:condition="not:here/snmpSysName">&nbsp;</div>
                 </dd>
+                <dt>Contact</dt>
+                <dd>
+                    <div tal:condition="here/snmpContact"
+                        style="font-size:90%"
+                        tal:content="here/snmpContact">x</div>
+                    <div tal:condition="not:here/snmpContact">&nbsp;</div>
+                </dd>
                 <dt>Location</dt>
                 <dd >
                   <div tal:condition="here/snmpLocation"
