@@ -28,10 +28,7 @@ class WinServiceMap(WMIPlugin):
         return {
      "Win32_Service":"Select %s From Win32_Service" % (",".join(self.attrs)),
     }
-        
-    def queries(self):
-        return self.queryMap
-        
+    
     def process(self, device, results, log):
         """
         Collect win service info from this device.
