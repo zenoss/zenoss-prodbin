@@ -15,8 +15,8 @@ registerDirectory('js', globals())
 
 # import any monkey patches that may be necessary
 from patches import pasmonkey
-if 0:
-    pasmonkey = None                    # pyflakes
+from Products.ZenUtils.Utils import unused
+unused(pasmonkey)
 
 
 
