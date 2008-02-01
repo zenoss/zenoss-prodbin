@@ -12,7 +12,6 @@
 ###########################################################################
 import Migrate
 from Acquisition import aq_base
-from Products.ZenModel.DeviceClass import DeviceClass
 
 class addWinServiceMap(Migrate.Step):
     version = Migrate.Version(2, 2, 0)
