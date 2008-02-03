@@ -254,6 +254,8 @@ class PerformanceConf(Monitor, StatusColor):
         "fill out full path for custom gopts and call to server"
         gopts = self._fullPerformancePath(gopts)
         renderurl = str(self.renderurl)
+        if renderurl.startswith('proxy'):
+            renderurl = self.renderurl.replace('proxy','http')
         if renderurl.startswith("http"):
             url = basicAuthUrl(str(self.renderuser), 
                                str(self.renderpass), 
