@@ -112,6 +112,7 @@ InitializeClass(MinMaxThreshold)
 MinMaxThresholdClass = MinMaxThreshold
 
 class MinMaxThresholdInstance(ThresholdInstance):
+    count = {}
     
     def __init__(self, id, context, dpNames,
                  minval, maxval, eventClass, severity, escalateCount):
@@ -144,6 +145,25 @@ class MinMaxThresholdInstance(ThresholdInstance):
         value = data['step'], data['ds']['ds0']['type']
         self._rrdInfoCache[dp] = value
         return value
+
+    def countKey(self, dp):
+        return(':'.join(self.context().key()) + ':' + dp)
+        
+    def getCount(self, dp):
+        countKey = self.countKey(dp)
+        if not self.count.has_key(countKey):
+            return None
+        return self.count[countKey]
+
+    def incrementCount(self, dp):
+        countKey = self.countKey(dp)
+        if not self.count.has_key(countKey):
+            self.resetCount(dp)
+        self.count[countKey] += 1
+        return self.count[countKey]
+
+    def resetCount(self, dp):
+        self.count[self.countKey(dp)] = 0
 
     def check(self, dataPoints):
         """The given datapoints have been updated, so re-evaluate.
@@ -196,9 +216,9 @@ class MinMaxThresholdInstance(ThresholdInstance):
             thresh = self.minimum
             how = 'not met'
         if thresh is not None:
-            self.count = (self.count or 0) + 1
             severity = self.severity
-            if self.escalateCount and self.count >= self.escalateCount:
+            count = self.incrementCount(dp)
+            if self.escalateCount and count >= self.escalateCount:
                 severity = min(severity + 1, 5)
             summary = 'threshold of %s %s: current value %.2f' % (
                 self.name(), how, float(value))
@@ -208,10 +228,11 @@ class MinMaxThresholdInstance(ThresholdInstance):
                          component=self.context().componentName,
                          severity=severity)]
         else:
-            if self.count is None or self.count > 0:
+            count = self.getCount(dp)
+            if count is None or count > 0:
                 summary = 'threshold of %s restored: current value: %.2f' % (
                     self.name(), value)
-                self.count = 0
+                self.resetCount(dp)
                 return [dict(device=self.context().deviceName,
                              summary=summary,
                              eventClass=self.eventClass,
