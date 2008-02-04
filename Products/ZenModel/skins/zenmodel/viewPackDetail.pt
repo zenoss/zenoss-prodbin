@@ -69,6 +69,7 @@ addLoadEvent(doDownloadRedirect);
         <tal:block metal:use-macro="here/zenuimacros/macros/zentable">
         <tal:block metal:fill-slot="zentablecontents">
 
+    <tal:block tal:condition="python:len(here.packs())>1">
     <tr>
         <td class="tableheader" 
             tal:condition="here/isDevelopment">Required?</td>
@@ -109,8 +110,16 @@ addLoadEvent(doDownloadRedirect);
     </tr>
     </tal:block>
     </tal:block>
+    </tal:block>
+    <tal:block tal:condition="python:len(here.packs())<=1">
+    <tr>
+        <td class="tablevalues">
+            No other ZenPacks are installed.
+        </td>
+    </tr>
+    </tal:block>
 
-    <tr tal:condition="here/isDevelopment">
+    <tr tal:condition="python: here.isDevelopment() and len(here.packs())>1">
         <td class="tableheader" colspan="3">
             <input class="tableheader" type="submit" value="Save"
                 name="zmanage_editProperties:method" />
@@ -148,7 +157,8 @@ addLoadEvent(doDownloadRedirect);
         </tal:block>
         </tal:block>
         </tal:block>
-
+        <br />
+        
         <tal:block tal:define="tabletitle string:Objects in ZenPack; 
                                menu_id string:ZenPack;">
         <tal:block metal:use-macro="here/zenuimacros/macros/zentable">
