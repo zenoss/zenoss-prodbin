@@ -19,6 +19,10 @@ class PingConfig(PerformanceConfig):
 
     def remote_getPingTree(self, root, fallbackIp):
         me = self.dmd.Devices.findDevice(root)
+        if not me:
+            ip = self.dmd.Networks.findIp(fallbackIp)
+            if ip and ip.device():
+                me = ip.device()
         if me: 
             self.log.info("building pingtree from %s", me.id)
             tree = pingtree.buildTree(me)
@@ -26,7 +30,9 @@ class PingConfig(PerformanceConfig):
             self.log.critical("ZenPing '%s' not found, "
                               "ignoring network topology.",
                               root)
-            tree = pingtree.RouterNode(fallbackIp, root, 0)
+            tree = pingtree.PingTree(fallbackIp)
+            tree.root = pingtree.RouterNode(fallbackIp, root, 0)
+            tree.root.addNet(tree, "default", "default")
         devices = self.config.getPingDevices()
         self.prepDevices(tree, devices)
         return tree.root
@@ -35,8 +41,11 @@ class PingConfig(PerformanceConfig):
     def prepDevices(self, pingtree, devices):
         """resolve dns names and make StatusTest objects"""
         for device in devices:
-            if not pingtree.hasDev(device):
-                pingtree.addDevice(device)
+	    try:
+                if not pingtree.hasDev(device):
+                  pingtree.addDevice(device)
+	    except Exception, ex:
+		import pdb; pdb.set_trace()
 
     def sendDeviceConfig(self, listener, config):
         listener.callRemote('updateConfig')
