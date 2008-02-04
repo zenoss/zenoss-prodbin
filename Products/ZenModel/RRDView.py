@@ -140,7 +140,7 @@ class RRDView(object):
             if perfServer:
                 vals = perfServer.performanceCustomSummary(gopts)
                 if vals is None:
-                    vals = [None] * len(gopts)
+                    vals = [None] * len(dsnames)
             def cvt(val):
                 if val is None: return val
                 val = float(val)
