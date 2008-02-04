@@ -166,7 +166,7 @@ class zenwinmodeler(WinCollector):
             except pywintypes.com_error, e:
                 msg = self.printComErrorMessage(e)
                 if not msg:
-                    msg = "WMI connect error on %s: %s" % (device.getId())
+                    msg = "WMI connect error on %s" % (device.getId())
                     code, txt, info, param = e
                     wmsg = "%s: %s" % (abs(code), txt)
                     if info:
