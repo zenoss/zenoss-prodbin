@@ -30,9 +30,8 @@ class PythonClient(object):
         """Start Python collection.
         """
         for plugin in self.plugins:
-            pname = plugin.name()
-            log.debug("running collection for plugin %s", pname)
-            self.results.append((pname, plugin.collect(self.device, log)))
+            log.debug("running collection for plugin %s", plugin.name())
+            self.results.append((plugin, plugin.collect(self.device, log)))
         self.clientFinished()
 
 
