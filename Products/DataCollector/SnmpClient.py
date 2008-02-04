@@ -146,8 +146,8 @@ class SnmpClient(object):
         if isinstance(result, failure.Failure):
             from twisted.internet import error
             if isinstance(result.value, error.TimeoutError):
-                log.error("Device %s timed out: are "
-                          "your SNMP settings correct?", self.hostname)
+                log.warning("Device %s timed out: are "
+                            "your SNMP settings correct?", self.hostname)
             else:
                 log.error("Device %s had an error: %s", self.hostname, result)
         self.proxy.close()
