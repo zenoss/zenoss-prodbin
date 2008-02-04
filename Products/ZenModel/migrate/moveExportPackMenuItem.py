@@ -16,7 +16,7 @@ import Migrate
 
 
 class MoveExportPackMenuItem(Migrate.Step):
-    version = Migrate.Version(2, 1, 1)
+    version = Migrate.Version(2, 2, 0)
     
 
     def cutover(self, dmd):

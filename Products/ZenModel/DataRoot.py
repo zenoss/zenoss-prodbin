@@ -465,43 +465,46 @@ class DataRoot(ZenModelRM, OrderedFolder, Commandable, ZenMenuable):
         return self.emailFrom or 'zenossuser_%s@%s' % (
             getSecurityManager().getUser().getId(), socket.getfqdn())
 
-    def manage_addZenPack(self, id,
-                          author="",
-                          organization="",
-                          version="",
-                          REQUEST = None):
-        """make a new ZenPack"""
-        from ZenPack import ZenPack
-        pack = ZenPack(id)
-        pack.author = author
-        pack.organization = organization
-        pack.version = version
-        self.packs._setObject(id, pack)
-        zp = zenPath('Products', id)
-        if not os.path.isdir(zp):
-            os.makedirs(zp, 0750)
-            for d in ['objects', 'skins', 'modeler/plugins',
-                      'reports', 'daemons']:
-                os.makedirs(os.path.join(zp, d), 0750)
-        skinsDir = os.path.join(zp, 'skins')
-        skinsDir2 = os.path.join(skinsDir, id)
-        if not os.path.isdir(skinsDir2):
-            os.makedirs(skinsDir2, 0750)
-        registerDirectory(skinsDir, globals())
-        # Install in order to register the skins directory
-        pack.install(self.getPhysicalRoot())
-        if REQUEST is not None:
-            return self.callZenScreen(REQUEST, redirect=True)
+
+    def manage_addZenPack(self, packId, package, REQUEST=None):
+        """
+        Create a new zenpack on the filesystem with the given info.
+        Install the pack.  If REQUEST then render the REQUEST otherwise
+        return the new zenpack.
+        """
+        import Products.ZenUtils.ZenPackCmd as ZenPackCmd 
+        # Make sure a zenpack can be created with given info
+        canCreate, msg = ZenPackCmd.CanCreateZenPack(self, packId, package)
+        if not canCreate:
+            if REQUEST:
+                REQUEST['message'] = msg
+                return self.callZenScreen(REQUEST, redirect=False)
+            raise ZenPackException(msg)
+        
+        # Create it
+        zpDir = ZenPackCmd.CreateZenPack(packId, package)
+        
+        # Install it
+        zenPack = ZenPackCmd.InstallZenPack(self.dmd, zpDir, True)
+        
+        if REQUEST:
+            return REQUEST['RESPONSE'].redirect(zenPack.getPrimaryUrlPath())
+        return zenPack
 
 
-    def removeZenPacks(self, ids=(), REQUEST = None):
-        """remove a ZenPack"""
-        zp = zenPath('bin', 'zenpack')
-        for pack in ids:
-            os.system('%s run --remove %s' % (zp, pack))
-        self._p_jar.sync()
-        if REQUEST is not None:
-            return self.callZenScreen(REQUEST, redirect=True)
+    def manage_removeZenPacks(self, ids=(), REQUEST=None):
+        """
+        Uninstall the given zenpacks.  Uninstall the zenpack egg.  If not in
+        development mode then also delete the egg from the filesystem.
+        """
+        raise ZenPackException, 'Not implemented'
+        # zp = zenPath('bin', 'zenpack')
+        # for pack in ids:
+        #     os.system('%s run --remove %s' % (zp, pack))
+        # self._p_jar.sync()
+        # if REQUEST is not None:
+        #     return self.callZenScreen(REQUEST, redirect=True)
+
 
 
     security.declareProtected(ZEN_MANAGE_DMD, 'manage_installZenPack')
@@ -530,10 +533,11 @@ class DataRoot(ZenModelRM, OrderedFolder, Commandable, ZenMenuable):
         child = None
         try:
             try:
-                # Write the zenpack to the filesystem
-                tFile = tempfile.NamedTemporaryFile()
+                # Write the zenpack to the filesystem                
+                tDir = tempfile.gettempdir()
+                tFile = open(os.path.join(tDir, zenpack.filename), 'wb')
                 tFile.write(zenpack.read())
-                tFile.flush()
+                tFile.close()
             
                 cmd = 'zenpack --install %s' % tFile.name
                 child = popen2.Popen4(cmd)
@@ -565,7 +569,6 @@ class DataRoot(ZenModelRM, OrderedFolder, Commandable, ZenMenuable):
                     out, 'type: %s  value: %s' % tuple(sys.exc_info()[:2]))
                 self.write(out, '')
         finally:
-            tFile.close()
             if child and child.poll() == -1:
                 os.kill(child.pid, signal.SIGKILL)
         

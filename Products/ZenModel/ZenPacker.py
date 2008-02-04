@@ -61,3 +61,11 @@ class ZenPacker(object):
         if len(result) == 1:
             return result[0]
         raise AttributeError('Cannot find a unique %s on %s' % (id, self.id))
+
+
+    def eligiblePacks(self):
+        """
+        Return a list of zenpacks that objects can be added to.  (The
+        development mode zenpacks.)
+        """
+        return [zp for zp in self.dmd.packs() if zp.isDevelopment()]

@@ -13,7 +13,7 @@
 __doc__ = "Manage ZenPacks"
 
 import Globals
-from Products.ZenModel.ZenPack import ZenPack, zenPackPath
+from Products.ZenModel.ZenPack import ZenPack
 from Products.ZenUtils.ZenScriptBase import ZenScriptBase
 from Products.ZenUtils.Utils import cleanupSkins, zenPath
 import transaction
@@ -22,6 +22,7 @@ from StringIO import StringIO
 import ConfigParser
 from Products.ZenModel.ZenPackLoader import CONFIG_FILE, CONFIG_SECTION_ABOUT
 import os, sys
+import ZenPackCmd as EggPackCmd
 
 class ZenPackCmd(ZenScriptBase):
     "Manage ZenPacks"
@@ -29,15 +30,56 @@ class ZenPackCmd(ZenScriptBase):
 
     def run(self):
         "Execute the user's request"
-
+        
+        if self.options.installPackName or self.options.filesOnly:
+            eggInstall = (self.options.installPackName.lower().endswith('.egg')
+                or os.path.exists(os.path.join(self.options.installPackName,
+                                                'setup.py')))
+        #                 
+        #         if self.options.fileOnly:
+        #             dmd = None
+        #         else:
+        #             dmd = self.connect()
+        #             dmd = self.dmd
+        #         return EggPackCmd.InstallZenPack(
+        #             dmd,
+        #             self.options.installPackName,
+        #             develop=self.options.link,
+        #             filesOnly=self.options.filesOnly)
+        #     else:
+        #         # Fall through to install method below
+        #         pass
+        # elif:
+        # 
+        # 
+        # self.options.removePackName:
+        #     self.connect()
+        #     pack = self.dmd.packs._getOb(self.options.removePackName, None)
+        #     if pack and pack.isEggPack():
+        #         return EggPackCmd.RemoveZenPack(self.dmd, 
+        #                                         self.options.removePackName)
+                    
+                
         # files-only just lays the files down and doesn't "install"
         # them into zeo
         if self.options.filesOnly:
+            if eggInstall:
+                return  EggPackCmd.InstallZenPack(None,
+                            self.options.installPackName,
+                            develop=False, filesOnly=True)
             self.extract(self.options.installPackName)
+            for loader in (ZPL.ZPLDaemons, ZPL.ZPLBin, ZPL.ZPLLibExec):
+                loader.load(zenPack, None)
             return
             
         self.connect()
         if self.options.installPackName:
+            if eggInstall:
+                return EggPackCmd.InstallZenPack(
+                    self.dmd,
+                    self.options.installPackName,
+                    develop=self.options.link,
+                    filesOnly=False)
             if not self.preInstallCheck():
                 self.stop('%s not installed' % self.options.installPackName)
             if os.path.isfile(self.options.installPackName):
@@ -61,11 +103,18 @@ class ZenPackCmd(ZenScriptBase):
             self.install(packName)
 
         elif self.options.removePackName:
+            pack = self.dmd.packs._getOb(self.options.removePackName, None)
+            if pack and pack.isEggPack():
+                return EggPackCmd.RemoveZenPack(self.dmd,
+                                                self.options.removePackName)
             self.remove(self.options.removePackName)
 
         elif self.options.list:
             for zp in self.dmd.packs():
-                f = sys.modules[zp.__module__].__file__
+                if zp.isEggPack():
+                    f = sys.modules[zp.getModule()].__file__
+                else:
+                    f = sys.modules[zp.__module__].__file__
                 if f.endswith('.pyc'):
                     f = f[:-1]
                 print '%s (%s)' % (zp.id, f)
@@ -160,7 +209,7 @@ class ZenPackCmd(ZenScriptBase):
         if zp:
             zp.remove(self.app)
             self.dmd.packs._delObject(packName)
-        root = zenPackPath(packName)
+        root = zenPath('Products', packName)
         self.log.debug('Removing %s' % root)
         recurse = ""
         if os.path.isdir(root):
@@ -207,7 +256,7 @@ class ZenPackCmd(ZenScriptBase):
         
         # Determine name of pack and it's destination directory                
         packName = os.path.split(srcDir)[1]
-        root = zenPackPath(packName)
+        root = zenPath('Products', packName)
         
         # Continue without copying if the srcDir is already in Products
         if os.path.exists(root) and os.path.samefile(root, srcDir):
@@ -241,7 +290,7 @@ class ZenPackCmd(ZenScriptBase):
         
         # Determine name of pack and it's destination directory                
         packName = os.path.split(srcDir)[1]
-        root = zenPackPath(packName)
+        root = zenPath('Products', packName)
         
         # Continue without copying if the srcDir is already in Products
         if os.path.exists(root) and os.path.samefile(root, srcDir):
@@ -278,19 +327,18 @@ class ZenPackCmd(ZenScriptBase):
                                default=False,
                                help="list installed zenpacks"
                                     " and associated files")
-        self.parser.add_option('--link',
+        self.parser.add_option('--link', '--develop',
                                dest='link',
                                action="store_true",
                                default=False,
                                help="symlink the zenpack dir instead of"
-                                    " copying to $ZENHOME/Products")
-
+                                    " copying.")
         self.parser.add_option('--files-only',
                                dest='filesOnly',
                                action="store_true",
                                default=False,
-                               help="extract classes from the pack but do "
-                               "not install them in zeo")
+                               help='install onto filesystem but not into '
+                                        'zenoss')
 
         ZenScriptBase.buildOptions(self)
 

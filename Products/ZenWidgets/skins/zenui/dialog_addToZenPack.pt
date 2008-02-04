@@ -4,7 +4,8 @@
 </p>
 <br/>
 <p style="text-align:center;">
-    <select class="tableheader" name="pack" tal:define="targets here/packs">
+    <select class="tableheader" name="pack" 
+            tal:define="targets here/eligiblePacks">
 	<option tal:repeat="target targets" tal:content="target/id"/>
     </select>
 </p>

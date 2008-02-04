@@ -4,13 +4,11 @@
 <tr><td>
         <span id="new_id_label">ID&nbsp;</span>:
 </td><td>
-<input id="new_id" name="id">
+<input id="new_id" name="packId">
 <input type="hidden" id="checkValidIdPath" 
         tal:attributes="value here/absolute_url_path">
 </td></tr>
-<tr><td>Author:       </td><td><input name="author"/></td></tr>
-<tr><td>Organization: </td><td><input name="organization"/></td></tr>
-<tr><td>Version:      </td><td><input name="version"/></td></tr>
+<tr><td>Package:       </td><td><input name="package"/></td></tr>
 </table>
 <br>
 <div align="center">
