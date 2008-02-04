@@ -39,6 +39,7 @@ class ZenDisc(ZenModeler):
     "Scan networks and routes looking for devices to add to the Model"
 
     initialServices = PBDaemon.initialServices + ['DiscoverService']
+    name = 'zendisc'
 
     def __init__(self,noopts=0,app=None,single=True,
                 threaded=False,keeproot=True):
