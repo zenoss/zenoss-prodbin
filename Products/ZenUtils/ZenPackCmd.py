@@ -213,7 +213,7 @@ def InstallZenPack(dmd, eggPath, develop=False, filesOnly=False):
 
 
     if filesOnly:
-        for loader in (ZPL.ZPLDaemons, ZPL.ZPLBin, ZPL.ZPLLibExec):
+        for loader in (ZPL.ZPLDaemons(), ZPL.ZPLBin(), ZPL.ZPLLibExec()):
             loader.load(zenPack, None)
     else:
         # If upgrading from non-egg to egg this is probably where the 
