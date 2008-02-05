@@ -40,13 +40,19 @@ class ZenPackCmd(ZenScriptBase):
         # files-only just lays the files down and doesn't "install"
         # them into zeo
         if self.options.filesOnly:
+            class ZPProxy:
+                def __init__(self, zpId):
+                    self.id = zpId
+                def path(self, *parts):
+                    return zenPath('Products', self.id, *parts)
             if eggInstall:
                 return  EggPackCmd.InstallZenPack(None,
                             self.options.installPackName,
                             develop=False, filesOnly=True)
-            self.extract(self.options.installPackName)
-            for loader in (ZPL.ZPLDaemons, ZPL.ZPLBin, ZPL.ZPLLibExec):
-                loader.load(None, None)
+            packName = self.extract(self.options.installPackName)
+            proxy = ZPProxy(packName)
+            for loader in (ZPL.ZPLDaemons(), ZPL.ZPLBin(), ZPL.ZPLLibExec()):
+                loader.load(proxy, None)
             return
             
         self.connect()
