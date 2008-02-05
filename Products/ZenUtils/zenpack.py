@@ -46,7 +46,7 @@ class ZenPackCmd(ZenScriptBase):
                             develop=False, filesOnly=True)
             self.extract(self.options.installPackName)
             for loader in (ZPL.ZPLDaemons, ZPL.ZPLBin, ZPL.ZPLLibExec):
-                loader.load(zenPack, None)
+                loader.load(None, None)
             return
             
         self.connect()
