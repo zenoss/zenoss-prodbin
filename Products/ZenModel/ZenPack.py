@@ -74,6 +74,7 @@ class ZenPack(ZenModelRM):
     author = ''
     organization = ''
     url = ''
+    license = ''
 
     # New-style zenpacks (eggs) have this set to True when they are
     # first installed
@@ -95,6 +96,7 @@ class ZenPack(ZenModelRM):
         {'id':'author', 'type':'string', 'mode':'w'},
         {'id':'organization', 'type':'string', 'mode':'w'},
         {'id':'url', 'type':'string', 'mode':'w'},
+        {'id':'license', 'type':'string', 'mode':'w'},
     )
 
     _relations =  (
@@ -145,7 +147,7 @@ class ZenPack(ZenModelRM):
         self.startDaemons()
 
 
-    def remove(self, app):        
+    def remove(self, app):
         self.stopDaemons()
         for loader in self.loaders:
             loader.unload(self, app)
@@ -313,6 +315,7 @@ registerDirectory("skins", globals())
                 os.system('rm -rf dist/*')
             os.system('python setup.py bdist_egg')
             os.system('cp dist/* %s' % exportDir)
+            exportFileName = self.eggName()
         else:
             # Create about.txt
             about = self.path(CONFIG_FILE)
@@ -353,12 +356,13 @@ registerDirectory("skins", globals())
                     zf.write(filename, filename[len(base)+1:])
                 ds[:] = [d for d in ds if d[0] != '.']
             zf.close()
-
+            exportFileName = '%s.zip' % self.id
 
         if REQUEST:
             if download == 'yes':
                 REQUEST['doDownload'] = 'yes'
-            REQUEST['message'] = '%s has been exported' % self.id
+            REQUEST['message'] = 'ZenPack exported to $ZENHOME/export/%s' % (
+                                                    exportFileName)
             return self.callZenScreen(REQUEST)
 
 
@@ -366,16 +370,25 @@ registerDirectory("skins", globals())
         """
         Download the already exported zenpack from $ZENHOME/export
         """
-        path = os.path.join(zenPath('export'), '%s.zip' % self.id)
-        REQUEST.RESPONSE.setHeader('content-type', 'application/zip')
-        REQUEST.RESPONSE.setHeader('content-disposition',
-                                    'attachment; filename=%s.zip' %
-                                    self.id)
-        zf = file(path, 'r')
-        try:
-            REQUEST.RESPONSE.write(zf.read())
-        finally:
-            zf.close()
+        if self.isEggPack():
+            filename = self.eggName()
+        else:
+            filename = '%s.zip' % self.id
+        path = os.path.join(zenPath('export'), filename)
+        if os.path.isfile(path):
+            REQUEST.RESPONSE.setHeader('content-type', 'application/zip')
+            REQUEST.RESPONSE.setHeader('content-disposition',
+                                        'attachment; filename=%s' %
+                                        filename)
+            zf = file(path, 'r')
+            try:
+                REQUEST.RESPONSE.write(zf.read())
+            finally:
+                zf.close()
+        else:
+            REQUEST['message'] = 'An error has occured, the ZenPack could not' \
+                                ' be exported.'
+            return self.callZenScreen(REQUEST)    
         
 
     def _getClassesByPath(self, name):

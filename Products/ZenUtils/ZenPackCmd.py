@@ -71,8 +71,9 @@ def CanCreateZenPack(dmd, zpId, package):
                         ' only letters, digits and underscores.')
 
     # Is the id already in use?
-    if zpId in dmd.packs.objectIds():
-        return (False, 'A ZenPack named %s already exists.' % zpId)
+    if dmd:
+        if zpId in dmd.packs.objectIds():
+            return (False, 'A ZenPack named %s already exists.' % zpId)
 
     # Is there an (uninstalled) zenpack in the way?
     if os.path.exists(zenPath('ZenPackDev', zpId)):
@@ -165,6 +166,8 @@ def InstallZenPack(dmd, eggPath, develop=False, filesOnly=False):
     import distutils.core
     import pkg_resources
 
+    eggPath = os.path.abspath(eggPath)
+
     # Install the egg
     zenPackDir = zenPath('ZenPacks')
     if develop:
@@ -201,16 +204,33 @@ def InstallZenPack(dmd, eggPath, develop=False, filesOnly=False):
     zenPack.eggPack = True
     if develop:
         zenPack.development = True
-    
+    CopyMetaDataToZenPackObject(dist, zenPack)
+
+
     if filesOnly:
         for loader in (ZPL.ZPLDaemons, ZPL.ZPLBin, ZPL.ZPLLibExec):
             loader.load(zenPack, None)
-        CopyMetaDataToZenPackObject(dist, zenPack)
     else:
-        dmd.packs._setObject(packName, zenPack)
-        zenPack = dmd.packs._getOb(packName)    
-        CopyMetaDataToZenPackObject(dist, zenPack)
-        zenPack.install(dmd)
+        # If upgrading from non-egg to egg this is probably where the 
+        # object conversion needs to take place.
+        existing = dmd.packs._getOb(packName, None)
+        if existing:
+            if existing.isEggPack():
+                zenPack.upgrade(self.dmd)
+            elif zenPack.__class__ == existing.__class__:
+                # This does not yet handle changing classes of custom
+                # datasources, etc.
+                existing.eggPack = True
+                existing.development = zenPack.development
+                zenPack = existing
+                zenPack.upgrade(dmd)
+            else:
+                raise ZenPackException('Upgrading ZenPacks with custom'
+                    ' classes is not supported yet.')
+        else:
+            dmd.packs._setObject(packName, zenPack)
+            zenPack = dmd.packs._getOb(packName)    
+            zenPack.install(dmd)
         transaction.commit()
     
     return zenPack
@@ -239,11 +259,29 @@ def RemoveZenPack(dmd, packName):
     except pkg_resources.DistributionNotFound:
         dist = None
     if dist:
-        # This has the unfortunate side effect of actually installing
-        # dependencies it seems.
-        # r = os.system('easy_install --site-dirs=%s -m %s' % (
-        #                     zenPath('ZenPacks'), zp.id))
-        r = os.system('rm -rf %s' % zp.eggPath())
+        if zp.isDevelopment():
+            # Leave development mode zenpacks in place.  The user has to
+            # delete development mode code themselves.
+            # Remove the egg-link from $ZENHOME/ZenPacks
+            link = zenPath('ZenPacks', '%s.egg-link' % zp.id)
+            if os.path.isfile(link):
+                os.remove(link)
+            eggLink = zp.eggPath()
+        else:        
+            # This has the unfortunate side effect of actually installing
+            # dependencies it seems.
+            # r = os.system('easy_install --site-dirs=%s -m %s' % (
+            #                     zenPath('ZenPacks'), zp.id))
+            r = os.system('rm -rf %s' % zp.eggPath())
+            eggLink = './%s' % zp.eggName()
+        # Remove the path from easy-install.pth
+        easyPth = zenPath('ZenPacks', 'easy-install.pth')
+        f = open(easyPth, 'r')
+        newLines = [l for l in f if l.strip() != eggLink]
+        f.close()
+        f = open(easyPth, 'w')
+        f.writelines(newLines)
+        f.close()
     cleanupSkins(dmd)
     
     transaction.commit()

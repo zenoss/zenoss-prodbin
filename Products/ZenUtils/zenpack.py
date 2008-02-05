@@ -20,6 +20,7 @@ import transaction
 from zipfile import ZipFile
 from StringIO import StringIO
 import ConfigParser
+import Products.ZenModel.ZenPackLoader as ZPL
 from Products.ZenModel.ZenPackLoader import CONFIG_FILE, CONFIG_SECTION_ABOUT
 import os, sys
 import ZenPackCmd as EggPackCmd
@@ -34,32 +35,8 @@ class ZenPackCmd(ZenScriptBase):
         if self.options.installPackName or self.options.filesOnly:
             eggInstall = (self.options.installPackName.lower().endswith('.egg')
                 or os.path.exists(os.path.join(self.options.installPackName,
-                                                'setup.py')))
-        #                 
-        #         if self.options.fileOnly:
-        #             dmd = None
-        #         else:
-        #             dmd = self.connect()
-        #             dmd = self.dmd
-        #         return EggPackCmd.InstallZenPack(
-        #             dmd,
-        #             self.options.installPackName,
-        #             develop=self.options.link,
-        #             filesOnly=self.options.filesOnly)
-        #     else:
-        #         # Fall through to install method below
-        #         pass
-        # elif:
-        # 
-        # 
-        # self.options.removePackName:
-        #     self.connect()
-        #     pack = self.dmd.packs._getOb(self.options.removePackName, None)
-        #     if pack and pack.isEggPack():
-        #         return EggPackCmd.RemoveZenPack(self.dmd, 
-        #                                         self.options.removePackName)
-                    
-                
+                                                'setup.py')))                    
+
         # files-only just lays the files down and doesn't "install"
         # them into zeo
         if self.options.filesOnly:
