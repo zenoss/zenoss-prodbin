@@ -166,6 +166,11 @@ def InstallZenPack(dmd, eggPath, develop=False, filesOnly=False):
     import distutils.core
     import pkg_resources
 
+    # Make sure $ZENHOME/ZenPacks exists
+    zpDir = zenPath('ZenPacks')
+    if not os.path.isdir(zpDir):
+        os.mkdir(zpDir, 0750)
+
     eggPath = os.path.abspath(eggPath)
 
     # Install the egg
