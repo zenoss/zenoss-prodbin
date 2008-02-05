@@ -153,6 +153,9 @@ class Ping(object):
                         icmppkt = icmp.disassemble(ipreply.data, 0)
                     except ValueError:
                         continue            # probably Unknown type
+                except Exception, ex:
+                    plog.debug("Unable to decode reply packet payload %s", ex)
+                    continue
                 sip =  ipreply.src
                 if (icmppkt.get_type() == icmp.ICMP_ECHOREPLY and 
                     icmppkt.get_id() == self.procId and
