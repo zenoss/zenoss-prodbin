@@ -49,7 +49,7 @@ class TestClient(pb.Referenceable):
         d.addErrback(self.bad)
 
     def connected(self, perspective):
-        d = perspective.callRemote('getService', self.svc, self)
+        d = perspective.callRemote('getService', self.svc, 'localhost', self)
         d.addCallback(self.test)
         d.addErrback(self.bad)
 
