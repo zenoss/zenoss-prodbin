@@ -1,0 +1,21 @@
+#! /usr/bin/env bash
+#############################################################################
+# This program is part of Zenoss Core, an open source monitoring platform.
+# Copyright (C) 2007, Zenoss Inc.
+#
+# This program is free software; you can redistribute it and/or modify it
+# under the terms of the GNU General Public License version 2 as published by
+# the Free Software Foundation.
+#
+# For complete information please visit: http://www.zenoss.com/oss/
+#############################################################################
+
+if [ -z "$ZENHOME" ] ; then
+    echo ERROR: '$ZENHOME' is not set.
+    echo This is usually caused by executing this command as root rather than \
+as the zenoss user.  Either define '$ZENHOME' or run this command as a \
+different user.
+else
+    . $ZENHOME/bin/zenfunctions
+    $PYTHON $ZENHOME/Products/ZenUtils/EggifyZenPack.py "$CMD" $*
+fi
