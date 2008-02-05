@@ -41,11 +41,8 @@ class PingConfig(PerformanceConfig):
     def prepDevices(self, pingtree, devices):
         """resolve dns names and make StatusTest objects"""
         for device in devices:
-	    try:
-                if not pingtree.hasDev(device):
-                  pingtree.addDevice(device)
-	    except Exception, ex:
-		import pdb; pdb.set_trace()
+            if not pingtree.hasDev(device):
+              pingtree.addDevice(device)
 
     def sendDeviceConfig(self, listener, config):
         listener.callRemote('updateConfig')
