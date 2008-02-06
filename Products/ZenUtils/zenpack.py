@@ -13,7 +13,7 @@
 __doc__ = "Manage ZenPacks"
 
 import Globals
-from Products.ZenModel.ZenPack import ZenPack
+from Products.ZenModel.ZenPack import ZenPack, ZenPackException
 from Products.ZenUtils.ZenScriptBase import ZenScriptBase
 from Products.ZenUtils.Utils import cleanupSkins, zenPath
 import transaction
@@ -32,19 +32,19 @@ class ZenPackCmd(ZenScriptBase):
     def run(self):
         "Execute the user's request"
         
-        if self.options.installPackName or self.options.filesOnly:
+        if self.options.installPackName:
             eggInstall = (self.options.installPackName.lower().endswith('.egg')
                 or os.path.exists(os.path.join(self.options.installPackName,
                                                 'setup.py')))                    
 
         # files-only just lays the files down and doesn't "install"
         # them into zeo
-        if self.options.filesOnly:
-            class ZPProxy:
-                def __init__(self, zpId):
-                    self.id = zpId
-                def path(self, *parts):
-                    return zenPath('Products', self.id, *parts)
+        class ZPProxy:
+            def __init__(self, zpId):
+                self.id = zpId
+            def path(self, *parts):
+                return zenPath('Products', self.id, *parts)
+        if self.options.installPackName and self.options.filesOnly:
             if eggInstall:
                 return  EggPackCmd.InstallZenPack(None,
                             self.options.installPackName,
@@ -54,6 +54,17 @@ class ZenPackCmd(ZenScriptBase):
             for loader in (ZPL.ZPLDaemons(), ZPL.ZPLBin(), ZPL.ZPLLibExec()):
                 loader.load(proxy, None)
             return
+        if self.options.removePackName and self.options.filesOnly:
+            # Remove files-only is not yet supported for egg zenpacks
+            # todo
+            proxy = ZPProxy(self.options.removePackName)
+            for loader in (ZPL.ZPLDaemons(), ZPL.ZPLBin(), ZPL.ZPLLibExec()):
+                loader.unload(proxy, None)
+            os.system('rm -rf %s' % zenPath('Products', 
+                                            self.options.removePackName))
+            return
+            
+            
             
         self.connect()
         if self.options.installPackName:
@@ -326,5 +337,9 @@ class ZenPackCmd(ZenScriptBase):
         ZenScriptBase.buildOptions(self)
 
 if __name__ == '__main__':
-    zp = ZenPackCmd()
-    zp.run()
+    try:
+        zp = ZenPackCmd()
+        zp.run()
+    except ZenPackException, e:
+        sys.stderr.write('%s\n' % str(e))
+        sys.exit(-1)
