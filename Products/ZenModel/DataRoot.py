@@ -22,7 +22,6 @@ import re
 from AccessControl import ClassSecurityInfo
 from AccessControl import getSecurityManager
 from OFS.OrderedFolder import OrderedFolder
-from Products.CMFCore.DirectoryView import registerDirectory
 from Globals import DTMLFile
 from Globals import InitializeClass
 from Products.ZenModel.SiteError import SiteError

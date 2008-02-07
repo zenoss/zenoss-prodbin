@@ -16,10 +16,10 @@ import Globals
 from Products.ZenUtils.ZenScriptBase import ZenScriptBase
 from Products.ZenUtils.Utils import cleanupSkins, zenPath
 from Products.ZenModel.ZenPack import ZenPackException, ZenPackNotFoundException
+from Products.ZenModel.ZenPack import ZenPackDependentsException
 from Products.ZenModel.ZenPack import ZenPack
 import Products.ZenModel.ZenPackLoader as ZPL
 import transaction
-from StringIO import StringIO
 import os, sys
 import pkg_resources
 import shutil
@@ -98,7 +98,7 @@ def CreateZenPack(zpId, package):
     srcDir = zenPath('Products', 'ZenModel', 'ZenPackTemplate')
     devDir = zenPath('ZenPackDev')
     if not os.path.exists(devDir):
-        os.mkdir(devDir)
+        os.mkdir(devDir, 0750)
     destDir = os.path.join(devDir, zpId)
     shutil.copytree(srcDir, destDir, symlinks=False)
     os.system('find %s -name .svn | xargs rm -rf' % destDir)
@@ -163,7 +163,6 @@ def InstallZenPack(dmd, eggPath, develop=False, filesOnly=False):
     Installs the given egg, instantiates the ZenPack, installs in
     dmd.packs, and runs the zenpacks's install method.
     """
-    import distutils.core
     import pkg_resources
 
     # Make sure $ZENHOME/ZenPacks exists
@@ -221,7 +220,7 @@ def InstallZenPack(dmd, eggPath, develop=False, filesOnly=False):
         existing = dmd.packs._getOb(packName, None)
         if existing:
             if existing.isEggPack():
-                zenPack.upgrade(self.dmd)
+                zenPack.upgrade(dmd)
             elif zenPack.__class__ == existing.__class__:
                 # This does not yet handle changing classes of custom
                 # datasources, etc.
@@ -241,19 +240,55 @@ def InstallZenPack(dmd, eggPath, develop=False, filesOnly=False):
     return zenPack
 
 
-def RemoveZenPack(dmd, packName):
+def CanRemoveZenPack(dmd, packName):
+    """
+    Return True if this ZenPack can be removed, False otherwise.
+    A ZenPack can be removed if no other installed ZenPack list it as
+    as dependency.
+    """
+    if GetDependents(dmd, packName):
+        return False
+    return True
+
+
+def GetDependents(dmd, packName):
+    """
+    Return a list of installed ZenPack ids that list packName as a dependency
+    """
+    return [zp.id for zp in dmd.packs() 
+                if zp.id != packName and zp.dependencies.has_key(packName)]
+
+
+def CleanupEasyInstallPth(eggLink):
+    # Remove the path from easy-install.pth
+    easyPth = zenPath('ZenPacks', 'easy-install.pth')
+    f = open(easyPth, 'r')
+    newLines = [l for l in f if l.strip() != eggLink]
+    f.close()
+    f = open(easyPth, 'w')
+    f.writelines(newLines)
+    f.close()
+
+
+def RemoveZenPack(dmd, packName, filesOnly=False):
         
     # Check for dependency implications here?
+    
+    if not filesOnly:
+        deps = GetDependents(dmd, packName)
+        if deps:
+            raise ZenPackDependentsException('%s cannot be removed ' % packName +
+                    'because it is required by %s' % ', '.join(deps))
 
-    # Fetch the zenpack, call its remove() and remove from dmd.packs
-    zp = None
-    try:
-        zp = dmd.packs._getOb(packName)
-    except AttributeError, ex:
-        raise ZenPackNotFoundException('No ZenPack named %s is installed' % 
-                                        packName)
-    zp.remove(dmd)
-    dmd.packs._delObject(packName)
+        # Fetch the zenpack, call its remove() and remove from dmd.packs
+        zp = None
+        try:
+            zp = dmd.packs._getOb(packName)
+        except AttributeError, ex:
+            raise ZenPackNotFoundException('No ZenPack named %s is installed' % 
+                                            packName)
+        zp.remove(dmd)
+        dmd.packs._delObject(packName)
     
     # Uninstall the egg and possibly delete it
     # If we can't find the distribution then apparently the zp egg itself is 
@@ -279,14 +314,8 @@ def RemoveZenPack(dmd, packName):
             #                     zenPath('ZenPacks'), zp.id))
             r = os.system('rm -rf %s' % zp.eggPath())
             eggLink = './%s' % zp.eggName()
-        # Remove the path from easy-install.pth
-        easyPth = zenPath('ZenPacks', 'easy-install.pth')
-        f = open(easyPth, 'r')
-        newLines = [l for l in f if l.strip() != eggLink]
-        f.close()
-        f = open(easyPth, 'w')
-        f.writelines(newLines)
-        f.close()
+
+    CleanupEasyInstallPth()
     cleanupSkins(dmd)
     
     transaction.commit()
@@ -337,5 +366,9 @@ class ZenPackCmd(ZenScriptBase):
 
 
 if __name__ == '__main__':
-    zp = ZenPackCmd()
-    zp.run()
+    try:
+        zp = ZenPackCmd()
+        zp.run()
+    except ZenPackException, e:
+        sys.stderr.write('%s\n' % str(e))
+        sys.exit(-1)

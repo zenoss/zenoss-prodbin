@@ -20,7 +20,6 @@ from Products.ZenModel.migrate.Migrate import Version
 from Products.ZenModel.ZenPackLoader import *
 from AccessControl import ClassSecurityInfo
 from ZenossSecurity import ZEN_MANAGE_DMD
-import shutil
 import exceptions
 import pkg_resources
 import string
@@ -34,6 +33,9 @@ class ZenPackException(exceptions.Exception):
     pass
 
 class ZenPackNotFoundException(ZenPackException):
+    pass
+
+class ZenPackDependentsException(ZenPackException):
     pass
 
 class ZenPackDevelopmentModeExeption(ZenPackException):
@@ -241,6 +243,7 @@ class ZenPack(ZenModelRM):
         
         if self.isEggPack():
             self.writeSetupValues()
+            self.buildEggInfo()
         return result
 
 
@@ -494,6 +497,16 @@ registerDirectory("skins", globals())
         return self.eggPack
 
 
+    def getEligibleDependencies(self):
+        """
+        Return a list of installed zenpacks that could be listed as
+        dependencies for this zenpack
+        """
+        return [zp for zp in self.dmd.packs()
+                    if zp.id != self.id
+                    and zp.isEggPack()]
+
+
     ##########
     # Egg-related methods
     # Nothing below here should be called for old-style zenpacks
@@ -546,6 +559,14 @@ registerDirectory("skins", globals())
         f = open(setupPath, 'w')
         f.writelines(newSetup)
         f.close()
+
+
+    def buildEggInfo(self):
+        """
+        Rebuild the egg info to update dependencies, etc
+        """
+        os.chdir(self.eggPath())
+        os.system('python setup.py egg_info')
 
 
     def getDistribution(self):
