@@ -61,70 +61,62 @@ addLoadEvent(doDownloadRedirect);
         </tal:block>
         </tal:block>
 
-<br/>
 
 
         <tal:block tal:define="tabletitle string:Dependencies"
             tal:condition="here/isEggPack">
+        <br/>
         <tal:block metal:use-macro="here/zenuimacros/macros/zentable">
         <tal:block metal:fill-slot="zentablecontents">
 
-    <tal:block tal:condition="python:len(here.packs())>1">
-    <tr>
-        <td class="tableheader" 
-            tal:condition="here/isDevelopment">Required?</td>
-        <td class="tableheader">Name</td>
-        <td class="tableheader">Version(s)</td>
-    </tr>
-    <tr tal:condition="nothing">
-        <td class="tablevalues" tal:condition="here/isDevelopment">
-            <input type="checkbox" disabled="1" checked="1"/>
-        </td>
-        <td class="tablevalues">Zenoss</td>
-        <td class="tablevalues" tal:condition="here/isDevelopment">
-            <input class="tablevalues" type="text" name="version_zenpacksupport"
-                 size="40" tal:attributes="
-                 value python:here.dependencies.get('zenpacksupport', '')" />
-        </td>
-        <td class="tablevalues" tal:condition="not:here/isDevelopment"
-            tal:content="here/dependencies/zenpacksupport"/>
-    </tr>
-    <tal:block tal:repeat="pack python:here.packs()">
-    <tal:block tal:condition="python: here.isDevelopment() or here.dependencies.has_key(pack.id)">
-    <tr tal:condition="python: here.id != pack.id">
-        <td class="tablevalues" tal:condition="here/isDevelopment">
-            <input type="checkbox" name="dependencies" 
-                tal:attributes="
-                    value pack/id;
-                    checked python:here.dependencies.has_key(pack.id)" />
-        </td>
-        <td class="tablevalues" tal:content="pack/id" />
-        <td class="tablevalues" tal:condition="here/isDevelopment">
-            <input class="tablevalues" type="text" size="40" 
-                 tal:attributes="
-                    value python:here.dependencies.get(pack.id, '');
-                    name string:version_${pack/id}" />
-        </td>
-        <td class="tablevalues" tal:condition="not:here/isDevelopment"
-            tal:content="python: here.dependencies.get(pack.id, '')"/>
-    </tr>
-    </tal:block>
-    </tal:block>
-    </tal:block>
-    <tal:block tal:condition="python:len(here.packs())<=1">
-    <tr>
-        <td class="tablevalues">
-            No other ZenPacks are installed.
-        </td>
-    </tr>
-    </tal:block>
 
-    <tr tal:condition="python: here.isDevelopment() and len(here.packs())>1">
-        <td class="tableheader" colspan="3">
-            <input class="tableheader" type="submit" value="Save"
-                name="zmanage_editProperties:method" />
-        </td>
-    </tr>
+    <tal:block tal:condition="here/isDevelopment"
+        tal:define="eligibles here/getEligibleDependencies">
+        <tr>
+            <td class="tableheader" 
+                tal:condition="here/isDevelopment">Required?</td>
+            <td class="tableheader">Name</td>
+            <td class="tableheader">Version(s)</td>
+        </tr>
+        <tr tal:repeat="pack eligibles">
+            <td class="tablevalue">
+                <input type="checkbox" name="dependencies" 
+                    tal:attributes="
+                        value pack/id;
+                        checked python:here.dependencies.has_key(pack.id)" />
+            </td>
+            <td class="tablevalue" tal:content="pack/id" />
+            <td class="tablevalue">
+                <input class="tablevalues" type="text" size="40" 
+                     tal:attributes="
+                        value python:here.dependencies.get(pack.id, '');
+                        name string:version_${pack/id}" />
+            </td>
+        </tr>
+        <tr tal:condition="eligibles">
+            <td class="tableheader" colspan="3">
+                <input class="tableheader" type="submit" value="Save"
+                    name="zmanage_editProperties:method" />
+            </td>
+        </tr>
+        <tr tal:condition="not: eligibles">
+            <td class="tablevalue" colspan="3">No other ZenPack eggs installed
+            </td>
+        </tr>
+    </tal:block>
+    <tal:block tal:condition="not: here/isDevelopment">
+        <tr>
+            <td class="tableheader">Name</td>
+            <td class="tableheader">Version</td>
+        </tr>
+        <tr tal:repeat="name here/dependencies">
+            <td class="tablevalue" tal:content="name" />
+            <td class="tablevalue" tal:content="here/dependencies/name" />
+        </tr>
+        <tr tal:condition="not: here/dependencies">
+            <td class="tablevalues" colspan="2">No dependencies</td>
+        </tr>
+    </tal:block>
 
         </tal:block>
         </tal:block>
@@ -176,6 +168,11 @@ addLoadEvent(doDownloadRedirect);
             </td>
         </tr>
         </tal:block>
+        <tr tal:condition="not: batch">
+            <td class="tablevalue">
+                No database objects are included in this ZenPack
+            </td>
+        </tr>
         <tr>
           <td class="tableheader" align='center'>
             <span metal:use-macro="here/zenTableNavigation/macros/navbody"/>
