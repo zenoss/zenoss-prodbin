@@ -36,6 +36,8 @@ class PluginLoader(pb.Copyable, pb.RemoteCopy):
         sys.path.insert(0, self.package)
         const = importClass(self.modpath)
         sys.path.remove(self.package)
+        moduleName = self.modpath.split('.')[0]
+        del sys.modules[moduleName]
         plugin = const()
         return plugin
 
