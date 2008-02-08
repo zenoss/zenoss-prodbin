@@ -69,12 +69,18 @@ def loadPlugins(dmd):
         log.debug("clearing plugin %s", key)
         if sys.modules.has_key(key):
             del sys.modules[key]
-    log.info("loading collector plugins from:%s", PDIR)
     plugins = _loadPluginDir(PDIR)
     plugins += _loadPluginDir(zenPath('Products/ZenWin/modeler/plugins'))
     try:
         for pack in dmd.packs():
-            plugins += _loadPluginDir(pack.path('modeler', 'plugins'))
+            if pack.isEggPack():
+                 eggPlugins = _loadPluginDir(pack.path('modeler', 'plugins'))
+                 for eggPlugin in eggPlugins:
+                    eggPlugin.modpath = '%s.modeler.plugins.%s' % \
+                        (pack.moduleName(), eggPlugin.modpath)
+                 plugins += eggPlugins
+            else:
+                plugins += _loadPluginDir(pack.path('modeler', 'plugins'))
     except:
         log.error('Could not load modeler plugins from zenpacks.'
                   ' One of the zenpacks is missing or broken.')
