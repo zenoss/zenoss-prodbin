@@ -78,6 +78,7 @@ class zenwinmodeler(WinCollector):
         """Collect the service info and build datamap using WMI.
         """
         hostname = device.getId()
+        self.client = None
         try:
             plugins = []
             plugins = self.selectPlugins(device, "wmi")

@@ -37,10 +37,11 @@ class addWinServiceMap(Migrate.Step):
                         'zenoss.snmp.DellPCIMap',
                         'zenoss.snmp.HPCPUMap',
                         'zenoss.snmp.InformantHardDiskMap',
-                        'zenwin.wmi.WinServiceMap'
+                        'zenoss.wmi.WinServiceMap'
                     ), type = 'lines')
             else:
-                win.zCollectorPlugins += ('zenwin.wmi.WinServiceMap',)
+                win.zCollectorPlugins.remove('zenwin.wmi.WinServiceMap')
+                win.zCollectorPlugins += ('zenoss.wmi.WinServiceMap',)
         except: pass
 
 addWinServiceMap()

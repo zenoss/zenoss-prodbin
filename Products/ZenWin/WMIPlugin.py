@@ -28,7 +28,7 @@ class WMIPlugin(CollectorPlugin):
     )
     
     def condition(self, device, log):
-        return not getattr(device, 'zWmiMonitorIgnore', False)
+        return not getattr(device, 'zWmiMonitorIgnore', True)
 
     def copyDataToProxy(self, device, proxy):
         for prop in self.deviceProperties:
