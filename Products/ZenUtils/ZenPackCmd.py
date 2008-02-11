@@ -315,7 +315,7 @@ def RemoveZenPack(dmd, packName, filesOnly=False):
             r = os.system('rm -rf %s' % zp.eggPath())
             eggLink = './%s' % zp.eggName()
 
-    CleanupEasyInstallPth()
+    CleanupEasyInstallPth(eggLink)
     cleanupSkins(dmd)
     
     transaction.commit()
