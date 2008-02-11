@@ -26,6 +26,7 @@ from Products.ZenUtils.Utils import isXmlRpc, setupLoggingHeader, executeCommand
 from Products.ZenUtils.Utils import zenPath, unused, clearWebLoggingStream
 from Products.ZenUtils import Time
 import RRDView
+from Products.ZenUtils.IpUtil import checkip, IpAddressError
 
 # base classes for device
 from ManagedEntity import ManagedEntity
@@ -844,6 +845,10 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
         @rtype: string
         @permission: ZEN_ADMIN_DEVICE
         """
+        try:
+            checkip(ip)
+        except IpAddressError:
+            ip=""
         if not ip:
             try: ip = socket.gethostbyname(self.id)
             except socket.error: ip = ""
