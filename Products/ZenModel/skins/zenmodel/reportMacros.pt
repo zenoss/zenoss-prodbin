@@ -34,6 +34,8 @@
                            zem.defaultAvailabilityEnd());
         how python:sts(tableName, 'how', 'AVERAGE');
         summaryOptions python:('AVERAGE', 'MAXIMUM');
+        deviceClass python:sts(tableName, 'deviceClass', '/');
+        deviceFilter python:sts(tableName, 'deviceFilter', '');
 ">
     <script type="text/javascript" 
             src="/zport/portal_skins/zenmodel/datePicker.js">
@@ -60,6 +62,23 @@
         <!-- BEGIN TABLE CONTENTS -->
             
       <tr>
+        <td class="tableheader">Device Class:</td>
+        <td class="tablevalues">
+	  <select class="tablevalues" name="deviceClass"
+                tal:define="
+		orgs python:here.getDmdRoot('Devices').getOrganizerNames();
+                ">
+             <option tal:repeat="org orgs" 
+                     tal:attributes="value org;selected python:org==deviceClass"
+                     tal:content="org"/>
+          </select>
+        </td>
+        <td class="tableheader">Device Filter:</td>
+        <td class="tablevalues">
+           <input class="tablevalues" name="deviceFilter"
+                  tal:attributes="value deviceFilter"/>
+        </td>
+      </tr><tr>
         <td class="tableheader">Start Date:</td>
         <td class="tablevalues">
            <input class="tablevalues" name="startDate" readonly="true" 
