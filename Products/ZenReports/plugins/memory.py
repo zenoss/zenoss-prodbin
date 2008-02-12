@@ -23,7 +23,7 @@ class memory:
         report = []
         freeNames = ['memAvailReal', 'memBuffer', 'memCached']
         fetchNames = ['memoryAvailableKBytes', 'memAvailSwap', ] + freeNames
-        for d in dmd.Devices.getSubDevices():
+        for d in Utilization.filteredDevices(dmd, args):
             totalReal = d.hw.totalMemory
             if not totalReal:
                 totalReal = None

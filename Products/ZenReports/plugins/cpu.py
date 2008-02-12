@@ -24,8 +24,7 @@ class cpu:
         idleSummary = Utilization.reversedSummary(summary)
 
         report = []
-        for d in dmd.Devices.getSubDevices():
-            if not d.monitorDevice(): continue
+        for d in Utilization.filteredDevices(dmd, args):
 
             laLoadInt5 = d.getRRDValue('laLoadInt5', **summary)
             if laLoadInt5 is not None:

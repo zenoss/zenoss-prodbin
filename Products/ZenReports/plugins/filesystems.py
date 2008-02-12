@@ -21,7 +21,7 @@ class filesystems:
     def run(self, dmd, args):
         report = []
         summary = Utilization.getSummaryArgs(dmd, args)
-        for d in dmd.Devices.getSubDevices():
+        for d in Utilization.filteredDevices(dmd, args):
             for f in d.os.filesystems():
                 if not f.monitored(): continue
                 available, used = None, None
