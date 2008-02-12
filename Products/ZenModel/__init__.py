@@ -116,6 +116,7 @@ productNames = (
     "ZDeviceLoader",
     "ZentinelPortal",
     "ZenossInfo",
+    "ZenPackManager",
 )
 
 # Make the skins available as DirectoryViews.

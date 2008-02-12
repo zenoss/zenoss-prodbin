@@ -13,7 +13,8 @@
 __doc__ = "Manage ZenPacks"
 
 import Globals
-from Products.ZenModel.ZenPack import ZenPack, ZenPackException
+from Products.ZenModel.ZenPack import ZenPack, ZenPackException, \
+                                        ZenPackNeedMigrateException
 from Products.ZenUtils.ZenScriptBase import ZenScriptBase
 from Products.ZenUtils.Utils import cleanupSkins, zenPath
 import transaction
@@ -67,6 +68,11 @@ class ZenPackCmd(ZenScriptBase):
             
             
         self.connect()
+
+        if not getattr(self.dmd, 'ZenPackManager', None):
+            raise ZenPackNeedMigrateException('Your Zenoss database appears'
+                ' to be out of date. Try running zenmigrate to update.')
+
         if self.options.installPackName:
             if eggInstall:
                 return EggPackCmd.InstallZenPack(
@@ -97,14 +103,15 @@ class ZenPackCmd(ZenScriptBase):
             self.install(packName)
 
         elif self.options.removePackName:
-            pack = self.dmd.packs._getOb(self.options.removePackName, None)
+            pack = self.dmd.ZenPackManager.packs._getOb(
+                                        self.options.removePackName, None)
             if pack and pack.isEggPack():
                 return EggPackCmd.RemoveZenPack(self.dmd,
                                                 self.options.removePackName)
             self.remove(self.options.removePackName)
 
         elif self.options.list:
-            for zp in self.dmd.packs():
+            for zp in self.dmd.ZenPackManager.packs():
                 if zp.isEggPack():
                     f = sys.modules[zp.getModule()].__file__
                 else:
@@ -162,7 +169,7 @@ class ZenPackCmd(ZenScriptBase):
     def install(self, packName):
         zp = None
         try:
-            zp = self.dmd.packs._getOb(packName)
+            zp = self.dmd.ZenPackManager.packs._getOb(packName)
             self.log.info('Upgrading %s' % packName)
             zp.upgrade(self.app)
         except AttributeError:
@@ -174,13 +181,13 @@ class ZenPackCmd(ZenScriptBase):
                                "defaulting to generic ZenPack",
                                ex)
                 zp = ZenPack(packName)
-            self.dmd.packs._setObject(packName, zp)
-            zp = self.dmd.packs._getOb(packName)
+            self.dmd.ZenPackManager.packs._setObject(packName, zp)
+            zp = self.dmd.ZenPackManager.packs._getOb(packName)
             zp.install(self.app)
         if zp:
             for required in zp.requires:
                 try:
-                    self.dmd.packs._getOb(required)
+                    self.dmd.ZenPackManager.packs._getOb(required)
                 except:
                     self.log.error("Pack %s requires pack %s: not installing",
                                    packName, required)
@@ -189,20 +196,20 @@ class ZenPackCmd(ZenScriptBase):
 
     def remove(self, packName):
         self.log.debug('Removing Pack "%s"' % packName)
-        for pack in self.dmd.packs():
+        for pack in self.dmd.ZenPackManager.packs():
             if packName in pack.requires:
                 self.log.error("Pack %s depends on pack %s, not removing",
                                pack.id, packName)
                 return
         zp = None
         try:
-            zp = self.dmd.packs._getOb(packName)
+            zp = self.dmd.ZenPackManager.packs._getOb(packName)
         except AttributeError, ex:
             # Pack not in zeo, might still exist in filesystem
             self.log.debug('No ZenPack named %s in zeo' % packName)
         if zp:
             zp.remove(self.app)
-            self.dmd.packs._delObject(packName)
+            self.dmd.ZenPackManager.packs._delObject(packName)
         root = zenPath('Products', packName)
         self.log.debug('Removing %s' % root)
         recurse = ""

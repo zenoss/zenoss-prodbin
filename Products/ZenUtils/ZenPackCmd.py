@@ -15,7 +15,9 @@ __doc__ = "Manage ZenPacks"
 import Globals
 from Products.ZenUtils.ZenScriptBase import ZenScriptBase
 from Products.ZenUtils.Utils import cleanupSkins, zenPath
-from Products.ZenModel.ZenPack import ZenPackException, ZenPackNotFoundException
+from Products.ZenModel.ZenPack import ZenPackException, \
+                                        ZenPackNotFoundException, \
+                                        ZenPackNeedMigrateException
 from Products.ZenModel.ZenPack import ZenPackDependentsException
 from Products.ZenModel.ZenPack import ZenPack
 import Products.ZenModel.ZenPackLoader as ZPL
@@ -72,7 +74,7 @@ def CanCreateZenPack(dmd, zpId, package):
 
     # Is the id already in use?
     if dmd:
-        if zpId in dmd.packs.objectIds():
+        if zpId in dmd.ZenPackManager.packs.objectIds():
             return (False, 'A ZenPack named %s already exists.' % zpId)
 
     # Is there an (uninstalled) zenpack in the way?
@@ -161,7 +163,7 @@ def CopyMetaDataToZenPackObject(dist, pack):
 def InstallZenPack(dmd, eggPath, develop=False, filesOnly=False):
     """
     Installs the given egg, instantiates the ZenPack, installs in
-    dmd.packs, and runs the zenpacks's install method.
+    dmd.ZenPackManager.packs, and runs the zenpacks's install method.
     """
     import pkg_resources
 
@@ -217,7 +219,7 @@ def InstallZenPack(dmd, eggPath, develop=False, filesOnly=False):
     else:
         # If upgrading from non-egg to egg this is probably where the 
         # object conversion needs to take place.
-        existing = dmd.packs._getOb(packName, None)
+        existing = dmd.ZenPackManager.packs._getOb(packName, None)
         if existing:
             if existing.isEggPack():
                 zenPack.upgrade(dmd)
@@ -232,8 +234,8 @@ def InstallZenPack(dmd, eggPath, develop=False, filesOnly=False):
                 raise ZenPackException('Upgrading ZenPacks with custom'
                     ' classes is not supported yet.')
         else:
-            dmd.packs._setObject(packName, zenPack)
-            zenPack = dmd.packs._getOb(packName)    
+            dmd.ZenPackManager.packs._setObject(packName, zenPack)
+            zenPack = dmd.ZenPackManager.packs._getOb(packName)    
             zenPack.install(dmd)
         transaction.commit()
     
@@ -255,7 +257,7 @@ def GetDependents(dmd, packName):
     """
     Return a list of installed ZenPack ids that list packName as a dependency
     """
-    return [zp.id for zp in dmd.packs() 
+    return [zp.id for zp in dmd.ZenPackManager.packs() 
                 if zp.id != packName and zp.dependencies.has_key(packName)]
 
 
@@ -280,15 +282,15 @@ def RemoveZenPack(dmd, packName, filesOnly=False):
             raise ZenPackDependentsException('%s cannot be removed ' % packName +
                     'because it is required by %s' % ', '.join(deps))
 
-        # Fetch the zenpack, call its remove() and remove from dmd.packs
+        # Fetch the zenpack, call its remove() and remove from packs
         zp = None
         try:
-            zp = dmd.packs._getOb(packName)
+            zp = dmd.ZenPackManager.packs._getOb(packName)
         except AttributeError, ex:
             raise ZenPackNotFoundException('No ZenPack named %s is installed' % 
                                             packName)
         zp.remove(dmd)
-        dmd.packs._delObject(packName)
+        dmd.ZenPackManager.packs._delObject(packName)
     
     # Uninstall the egg and possibly delete it
     # If we can't find the distribution then apparently the zp egg itself is 
@@ -327,6 +329,11 @@ class ZenPackCmd(ZenScriptBase):
     def run(self):
         "Execute the user's request"
         self.connect()
+        
+        if not getattr(self.dmd, 'ZenPackManager', None):
+            raise ZenPackNeedMigrateException('Your Zenoss database appears'
+                ' to be out of date. Try running zenmigrate to update.')
+
         if self.options.eggPath:
             return InstallZenPack(self.dmd, self.options.eggPath, False,
                                     self.options.filesOnly)

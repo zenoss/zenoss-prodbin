@@ -35,11 +35,18 @@ class ZenPackException(exceptions.Exception):
 class ZenPackNotFoundException(ZenPackException):
     pass
 
+class ZenPackDuplicateNameException(ZenPackException):
+    pass
+
+class ZenPackNeedMigrateException(ZenPackException):
+    pass
+
 class ZenPackDependentsException(ZenPackException):
     pass
 
 class ZenPackDevelopmentModeExeption(ZenPackException):
     pass
+
 
 
 def eliminateDuplicates(objs):
@@ -102,7 +109,11 @@ class ZenPack(ZenModelRM):
     )
 
     _relations =  (
+        # root is deprecated, use manager now instead
+        # root should be removed post zenoss 2.2
         ('root', ToOne(ToManyCont, 'Products.ZenModel.DataRoot', 'packs')),
+        ('manager', 
+            ToOne(ToManyCont, 'Products.ZenModel.ZenPackManager', 'packs')),
         ("packables", ToMany(ToOne, "Products.ZenModel.ZenPackable", "pack")),
         )
 
@@ -402,9 +413,11 @@ registerDirectory("skins", globals())
                 if not f.startswith('.') \
                         and f.endswith('.py') \
                         and not f == '__init__.py':
-                    parts = path.split('/') + [f[:-3]]
-                    parts = parts[parts.index('Products'):]
-                    dsClasses.append(importClass('.'.join(parts)))
+                    subPath = path[len(self.path()):]
+                    parts = subPath.strip('/').split('/')
+                    parts.append(f[:f.rfind('.')])
+                    modName = '.'.join([self.moduleName()] + parts)
+                    dsClasses.append(importClass(modName))
         return dsClasses
 
     def getDataSourceClasses(self):
@@ -447,7 +460,7 @@ registerDirectory("skins", globals())
         Called before an upgrade or a removal of the pack.
         """
         for d in self.getDaemonNames():
-            self.root.About.doDaemonAction(d, 'stop')
+            self.About.doDaemonAction(d, 'stop')
 
 
     def startDaemons(self):
@@ -456,7 +469,7 @@ registerDirectory("skins", globals())
         Called after an upgrade or an install of the pack.
         """
         for d in self.getDaemonNames():
-            self.root.About.doDaemonAction(d, 'start')
+            self.About.doDaemonAction(d, 'start')
 
 
     def restartDaemons(self):
@@ -465,7 +478,7 @@ registerDirectory("skins", globals())
         Called after an upgrade or an install of the pack.
         """
         for d in self.getDaemonNames():
-            self.root.About.doDaemonAction(d, 'restart')
+            self.About.doDaemonAction(d, 'restart')
 
 
     def path(self, *parts):
@@ -497,14 +510,16 @@ registerDirectory("skins", globals())
         return self.eggPack
 
 
-    def getEligibleDependencies(self):
+    def moduleName(self):
         """
-        Return a list of installed zenpacks that could be listed as
-        dependencies for this zenpack
+        Return the importable dotted module name for this zenpack.
         """
-        return [zp for zp in self.dmd.packs()
-                    if zp.id != self.id
-                    and zp.isEggPack()]
+        if self.isEggPack():
+            name = self.getModule().__name__
+        else:
+            name = 'Products.%s' % self.id
+        return name
+
 
 
     ##########
@@ -623,16 +638,14 @@ registerDirectory("skins", globals())
         return d.egg_name() + '.egg'
 
 
-    def moduleName(self):
+    def getEligibleDependencies(self):
         """
-        Return the importable dotted module name for this zenpack.
-        Usually of the form ZenPacks.<org>.<zenpackid>
+        Return a list of installed zenpacks that could be listed as
+        dependencies for this zenpack
         """
-        if not self.isEggPack():
-            raise ZenPackException('Calling moduleName on non-egg zenpack.')
-        module = self.getModule()
-        return module.__name__
-
+        return [zp for zp in self.dmd.ZenPackManager.packs()
+                    if zp.id != self.id
+                    and zp.isEggPack()]
 
 
 

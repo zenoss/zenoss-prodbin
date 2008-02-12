@@ -57,6 +57,7 @@ from Products.ZenModel.UserSettings import manage_addUserSettingsManager
 from Products.ZenModel.LinkManager import manage_addLinkManager
 from Products.ZenWidgets.PortletManager import manage_addPortletManager
 from Products.ZenWidgets.ZenossPortlets import ZenossPortlets
+from Products.ZenModel.ZenPackManager import manage_addZenPackManager
 
 classifications = {
     'Devices':          DeviceClass,
@@ -190,4 +191,5 @@ class DmdBuilder:
         manage_addUserSettingsManager(self.dmd)
         manage_addLinkManager(self.dmd)
         manage_addIpNetwork(self.dmd, "Networks")
+        manage_addZenPackManager(self.dmd)
 

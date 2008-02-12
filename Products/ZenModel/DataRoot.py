@@ -114,6 +114,9 @@ class DataRoot(ZenModelRM, OrderedFolder, Commandable, ZenMenuable):
 
     _relations =  (
         ('userCommands', ToManyCont(ToOne, 'Products.ZenModel.UserCommand', 'commandable')),
+        # packs is depracated.  Has been moved to dmd.ZenPackManager.packs
+        # Should be removed post Zenoss 2.2
+        # TODO
         ('packs',        ToManyCont(ToOne, 'Products.ZenModel.ZenPack',     'root')),
         ('zenMenus', ToManyCont(
             ToOne, 'Products.ZenModel.ZenMenu', 'menuable')),
@@ -148,7 +151,7 @@ class DataRoot(ZenModelRM, OrderedFolder, Commandable, ZenMenuable):
                 },
                 { 'id'            : 'packs'
                 , 'name'          : 'ZenPacks'
-                , 'action'        : 'viewZenPacks'
+                , 'action'        : 'ZenPackManager/viewZenPacks'
                 , 'permissions'   : ( "Manage DMD", )
                 },
                 { 'id'            : 'menus'
@@ -463,124 +466,6 @@ class DataRoot(ZenModelRM, OrderedFolder, Commandable, ZenMenuable):
         '''
         return self.emailFrom or 'zenossuser_%s@%s' % (
             getSecurityManager().getUser().getId(), socket.getfqdn())
-
-
-    def manage_addZenPack(self, packId, package, REQUEST=None):
-        """
-        Create a new zenpack on the filesystem with the given info.
-        Install the pack.  If REQUEST then render the REQUEST otherwise
-        return the new zenpack.
-        """
-        import Products.ZenUtils.ZenPackCmd as ZenPackCmd 
-        # Make sure a zenpack can be created with given info
-        canCreate, msg = ZenPackCmd.CanCreateZenPack(self, packId, package)
-        if not canCreate:
-            if REQUEST:
-                REQUEST['message'] = msg
-                return self.callZenScreen(REQUEST, redirect=False)
-            raise ZenPackException(msg)
-        
-        # Create it
-        zpDir = ZenPackCmd.CreateZenPack(packId, package)
-        
-        # Install it
-        zenPack = ZenPackCmd.InstallZenPack(self.dmd, zpDir, True)
-        
-        if REQUEST:
-            return REQUEST['RESPONSE'].redirect(zenPack.getPrimaryUrlPath())
-        return zenPack
-
-
-    def manage_removeZenPacks(self, ids=(), REQUEST=None):
-        """
-        Uninstall the given zenpacks.  Uninstall the zenpack egg.  If not in
-        development mode then also delete the egg from the filesystem.
-        """
-        raise ZenPackException, 'Not implemented'
-        # zp = zenPath('bin', 'zenpack')
-        # for pack in ids:
-        #     os.system('%s run --remove %s' % (zp, pack))
-        # self._p_jar.sync()
-        # if REQUEST is not None:
-        #     return self.callZenScreen(REQUEST, redirect=True)
-
-
-
-    security.declareProtected(ZEN_MANAGE_DMD, 'manage_installZenPack')
-    def manage_installZenPack(self, zenpack=None, REQUEST=None):
-        """
-        Installs the given zenpack.  Zenpack is a file upload from the browser.
-        """
-        import tempfile
-        import fcntl
-        import popen2
-        import signal
-        import time
-        import select
-        
-        ZENPACK_INSTALL_TIMEOUT = 120
-        
-        if REQUEST:
-            REQUEST['cmd'] = ''
-            header, footer = self.commandOutputTemplate().split('OUTPUT_TOKEN')
-            REQUEST.RESPONSE.write(str(header))
-            out = REQUEST.RESPONSE
-        else:
-            out = None
-        
-        tFile = None
-        child = None
-        try:
-            try:
-                # Write the zenpack to the filesystem                
-                tDir = tempfile.gettempdir()
-                tFile = open(os.path.join(tDir, zenpack.filename), 'wb')
-                tFile.write(zenpack.read())
-                tFile.close()
-            
-                cmd = 'zenpack --install %s' % tFile.name
-                child = popen2.Popen4(cmd)
-                flags = fcntl.fcntl(child.fromchild, fcntl.F_GETFL)
-                fcntl.fcntl(child.fromchild, fcntl.F_SETFL, flags | os.O_NDELAY)
-                endtime = time.time() + ZENPACK_INSTALL_TIMEOUT
-                self.write(out, '%s' % cmd)
-                self.write(out, '')
-                pollPeriod = 1
-                firstPass = True
-                while time.time() < endtime and (firstPass or child.poll()==-1):
-                    firstPass = False
-                    r, w, e = select.select([child.fromchild],[],[], pollPeriod)
-                    if r:
-                        t = child.fromchild.read()
-                        #We are sometimes getting to this point without any data
-                        # from child.fromchild. I don't think that should happen
-                        # but the conditional below seems to be necessary.
-                        if t:
-                            self.write(out, t)
-                if child.poll() == -1:
-                    self.write(out,
-                               'Command timed out for %s' % cmd +
-                               ' (timeout is %s seconds)' %
-                               ZENPACK_INSTALL_TIMEOUT)
-            except:
-                self.write(out, 'Error installing ZenPack.')
-                self.write(
-                    out, 'type: %s  value: %s' % tuple(sys.exc_info()[:2]))
-                self.write(out, '')
-        finally:
-            if child and child.poll() == -1:
-                os.kill(child.pid, signal.SIGKILL)
-        
-        self.write(out, '')
-        self.write(out, 'Done installing ZenPack.')
-        if REQUEST:
-            REQUEST.RESPONSE.write(footer)
-
-
-    def getBrokenPackName(self, ob):
-        ''' Extract the zenpack name from the broken module
-        '''
-        return ob.__class__.__module__.split('.')[1]
 
 
     def checkValidId(self, id, prep_id = False):
