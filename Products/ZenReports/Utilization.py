@@ -29,3 +29,14 @@ def reversedSummary(summary):
     return summary
 
 
+def filteredDevices(dmd, args):
+    import re
+    deviceClass = args.get('deviceClass', '/') or '/'
+    deviceFilter = args.get('deviceFilter', '') or ''
+    deviceMatch = re.compile('.*%s.*' % deviceFilter)
+
+    for d in dmd.Devices.getOrganizer(deviceClass).getSubDevices():
+        if not d.monitorDevice(): continue
+        if not deviceMatch.match(d.id): continue
+        yield d
+
