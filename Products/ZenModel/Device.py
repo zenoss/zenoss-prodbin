@@ -26,7 +26,7 @@ from Products.ZenUtils.Utils import isXmlRpc, setupLoggingHeader, executeCommand
 from Products.ZenUtils.Utils import zenPath, unused, clearWebLoggingStream
 from Products.ZenUtils import Time
 import RRDView
-from Products.ZenUtils.IpUtil import checkip, IpAddressError
+from Products.ZenUtils.IpUtil import checkip, IpAddressError, maskToBits
 
 # base classes for device
 from ManagedEntity import ManagedEntity
@@ -846,9 +846,15 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
         @permission: ZEN_ADMIN_DEVICE
         """
         try:
-            checkip(ip)
-        except IpAddressError:
-            ip=""
+            if ip.find("/") > -1: 
+                ipWithoutNetmask, netmask = ip.split("/",1)
+                checkip(ipWithoutNetmask)
+                # Also check for valid netmask
+                if maskToBits(netmask) is None: ip = ""
+            else:
+                checkip(ip)
+        except IpAddressError: ip = ""
+        except ValueError: ip = ""
         if not ip:
             try: ip = socket.gethostbyname(self.id)
             except socket.error: ip = ""
