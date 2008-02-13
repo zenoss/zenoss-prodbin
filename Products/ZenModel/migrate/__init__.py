@@ -125,4 +125,4 @@ import fixOldTemplates
 import addToGraphMenuItem
 import addWinServiceMap
 import zpsitecustomize
-import makeZenPackManager
+import devicehwrelations
