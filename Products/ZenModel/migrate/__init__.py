@@ -124,5 +124,5 @@ import expandEventKeyColumn
 import fixOldTemplates
 import addToGraphMenuItem
 import addWinServiceMap
-import zpsitecustomize
-import devicehwrelations
+import makeZenPackManager
+import hwrelations
