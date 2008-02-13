@@ -47,6 +47,7 @@ class MonitorClass(ZenModelRM, Folder):
     #isInTree = 1
     meta_type = "MonitorClass"
     sub_class = 'MonitorClass'
+    dmdRootName = 'Monitors'
 
     _properties = (
         {'id':'title', 'type':'string', 'mode':'w'},
