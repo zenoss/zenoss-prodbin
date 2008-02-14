@@ -50,7 +50,7 @@
            <td tal:content="python: r.humanBits(r.input, 8)"/>
            <td tal:content="python: r.humanBits(r.output, 8)"/>
            <td tal:content="python: r.humanBits(r.total, 8)"/>
-           <td tal:content="python: r.percentString(r.percentUsed, 1)"/>
+           <td tal:content="python: r.percentString(r.percentUsed * 8, 1)"/>
         </tr>
     </tal:block>
     <tr>
