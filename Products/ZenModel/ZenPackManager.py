@@ -16,18 +16,8 @@ ZenPackManager is a Zope Product that helps manage ZenPacks
 """
 
 from Globals import InitializeClass
-from AccessControl import ClassSecurityInfo, getSecurityManager
 from ZenModelRM import ZenModelRM
 from Products.ZenRelations.RelSchema import *
-
-# import re
-# import types
-# import ZTUtils
-# from Globals import InitializeClass
-# from Acquisition import aq_base
-# from OFS.SimpleItem import SimpleItem
-# from OFS.PropertyManager import PropertyManager
-# from DocumentTemplate.sequence.SortEx import sort
 
 
 def manage_addZenPackManager(context, newId='', REQUEST=None):
