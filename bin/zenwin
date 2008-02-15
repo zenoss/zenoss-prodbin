@@ -15,6 +15,6 @@
 PRGHOME=$ZENHOME/Products/ZenWin
 PRGNAME=zenwin.py
 CFGFILE=$CFGDIR/zenwin.conf
-PIDFILE=$VARDIR/$PRGNAME.pid
+
 generic "$@"
 

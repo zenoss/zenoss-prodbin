@@ -15,7 +15,6 @@
 PRGHOME=$ZENHOME/Products/ZenModel
 PRGNAME=zenmib.py
 CFGFILE=$CFGDIR/zenmib.conf
-PIDFILE=$VARDIR/$PRGNAME.pid
 
 start() {
     run "$@"

@@ -15,6 +15,5 @@
 PRGHOME=$ZENHOME/Products/ZenEvents
 PRGNAME=zensyslog.py
 CFGFILE=$CFGDIR/zensyslog.conf
-PIDFILE=$VARDIR/$PRGNAME.pid
 
 generic "$@"

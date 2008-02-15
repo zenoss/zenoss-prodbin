@@ -15,7 +15,6 @@
 PRGHOME=$ZENHOME/Products/ZenEvents
 PRGNAME=zenmail.py
 CFGFILE=$CFGDIR/zenmail.conf
-PIDFILE=$VARDIR/$PRGNAME.pid
 
 generic "$@"
 

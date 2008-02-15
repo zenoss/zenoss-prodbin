@@ -15,6 +15,5 @@
 PRGHOME=$ZENHOME/Products/ZenRRD
 PRGNAME=zenrender.py
 CFGFILE=$CFGDIR/zenrender.conf
-PIDFILE=$VARDIR/$PRGNAME.pid
 
 generic "$@"

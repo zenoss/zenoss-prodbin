@@ -39,9 +39,19 @@ fi
 CMD=$1
 shift
 
+pidFile() {
+   if [ -z "$PIDFILE" ] ; then
+       MONITOR=`grep monitor $1 | tr -d '\r' | tail -1 | awk '{ print $2 }'`
+       if [ -z "$MONITOR" ] ; then MONITOR=localhost ; fi
+       PIDFILE="$VARDIR/`basename $PRGNAME .py`-$MONITOR.pid"
+   fi
+   echo "$PIDFILE"
+}
+
 running() {
+    PIDFILE=`pidFile $CFGFILE`
     if [ -f $PIDFILE ]; then
-        PID=`cat $PIDFILE`
+        PID=`cat $PIDFILE 2>/dev/null`
 	kill -0 $PID 2>/dev/null || $PS | grep -q "^ *$PID$"
 	return $?
     fi
@@ -49,6 +59,7 @@ running() {
 }
 
 start() {
+    PIDFILE=`pidFile $CFGFILE`
     if running; then    
         echo is already running
     else
@@ -75,6 +86,7 @@ run() {
 }
 
 stop() {
+    PIDFILE=`pidFile $CFGFILE`
     WATCHDOGPID=`dirname $PIDFILE`/watchdog-`basename $PIDFILE`
     KILLED=1
     echo stopping...
@@ -103,6 +115,7 @@ stop() {
 }
 
 restart() {
+    PIDFILE=`pidFile $CFGFILE`
     stop
     for i in 1 2 3 4 5 6 7 8 9 10
     do
@@ -113,6 +126,7 @@ restart() {
 }
 
 status() {
+    PIDFILE=`pidFile $CFGFILE`
     if running; then
             echo program running\; pid=$PID
             exit 109
@@ -207,3 +221,4 @@ notdaemon() {
     esac
     exit $?
 }
+

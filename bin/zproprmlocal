@@ -16,7 +16,6 @@ NAME=zproprmlocal
 PRGHOME=$ZENHOME/Products/ZenUtils
 PRGNAME=$NAME.py
 CFGFILE=$CFGDIR/$NAME.conf
-PIDFILE=$VARDIR/$PRGNAME.pid
 
 notdaemon "$@"
 
