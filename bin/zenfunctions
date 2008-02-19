@@ -129,11 +129,15 @@ status() {
     PIDFILE=`pidFile $CFGFILE`
     if running; then
             echo program running\; pid=$PID
-            exit 109
+            exit 0
     else
-        rm -f $PIDFILE
         echo not running
-        exit 100
+        if [ -f $PIDFILE ]; then
+            rm -f $PIDFILE
+            exit 1
+        else
+            exit 3
+        fi
     fi
 }
 

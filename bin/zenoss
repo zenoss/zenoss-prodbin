@@ -93,11 +93,17 @@ reverse() {
 FUNC=$CMD
 
 issue() {
+    HUBCODE=4
     for cmd in $CMDS
     do
         echo -n "Daemon: $cmd "
         $ZENHOME/bin/$cmd "$FUNC"
+        CODE=$?
+        if [ $cmd == "zenhub" ]; then
+            HUBCODE=$CODE
+        fi
     done
+    return $HUBCODE
 }
 
 case "$FUNC" in
