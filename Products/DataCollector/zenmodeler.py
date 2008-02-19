@@ -374,6 +374,7 @@ class ZenModeler(PBDaemon):
                 )
             if not self.options.cycle:
                 self.stop()
+            self.finished = []
 
     def fillCollectionSlots(self, driver):
         """If there are any free collection slots fill them up
