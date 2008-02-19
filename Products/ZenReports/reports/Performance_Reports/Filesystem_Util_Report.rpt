@@ -5,7 +5,6 @@
 	sortedHeader='percentFull', sortedSence='desc');
 	exportFields python:['deviceName', 'mount', 'totalBytes',
         		     'usedBytes', 'availableBytes', 'percentFull'];">
-	">
 <tal:block metal:use-macro="here/reportMacros/macros/exportableReport">
 <tal:block metal:fill-slot="report">
 
