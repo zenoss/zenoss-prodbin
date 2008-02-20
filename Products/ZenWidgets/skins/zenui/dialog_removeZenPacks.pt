@@ -1,27 +1,24 @@
-<h2>Remove ZenPacks</h2>
+<h2>Delete ZenPacks</h2>
 <br/>
-<!-- Temporarily modified so as not to force a migrate
-<p>
-Are you sure you want to remove these ZenPacks?<br/>
-</p>
-<br/>
-<div id="dialog_buttons">
-<input type="submit" name="removeZenPacks:method"
-    value="OK"
-    tal:attributes="onclick string:return $$('dialog').submit_form(
-                        '${here/absolute_url_path}')" />
--->
 
-<div style="text-align:center;">
-<p> There are many complexities involved in ZenPack deletion.
-<p>Please review the Admin Guide for more information.
-<p>Deletion may be performed at the command line.
+<div style="text-align:left;">
+<p>
+Deleting these ZenPacks will delete all objects provided<br />
+by the ZenPack as well as all objects that depend on code<br />
+provided by the ZenPack.  Please click on the link for each<br />
+ZenPack to view a list of all such objects.  See the Admin<br />
+Guide for more details.
+</p>
+<p>
+Warning: If any DeviceClasses are deleted then all<br />
+contained Device Classes and Devices will also be deleted.
+</p>
 </div>
 
 <div id="dialog_buttons">
-<input type="submit" name="removeZenPacks:method"
-    value="OK"
-    tal:attributes="onclick string:$$('dialog_cancel').click()" />
-<input id="dialog_cancel" type="button" value="Cancel"
-onclick="$('dialog').hide()"/>
+<input id="dialog_cancel" type="button" value="Cancel" 
+    onclick="$('dialog').hide()"/>
+<input type="submit" name="manage_removeZenPacks:method" value="OK"
+    tal:attributes="onclick string:return $$('dialog').submit_form(
+                            '${here/absolute_url}')"/>
 </div>

@@ -63,7 +63,7 @@ addLoadEvent(doDownloadRedirect);
 
 
 
-        <tal:block tal:define="tabletitle string:Dependencies"
+        <tal:block tal:define="tabletitle string:ZenPacks Required by ${here/id}"
             tal:condition="here/isEggPack">
         <br/>
         <tal:block metal:use-macro="here/zenuimacros/macros/zentable">
@@ -125,6 +125,25 @@ addLoadEvent(doDownloadRedirect);
 </form>
 
 
+    <tal:block tal:define="tabletitle string:ZenPacks that Require ${here/id};
+            filenames here/getDependentZenPacks;"
+            tal:condition="here/isEggPack"
+            >
+    <tal:block metal:use-macro="here/zenuimacros/macros/zentable">
+    <tal:block metal:fill-slot="zentablecontents"> 
+    <!-- BEGIN TABLE CONTENTS -->
+    <tal:block tal:repeat="filename here/getFilenames">
+    <tr tal:define="odd repeat/filename/odd"
+        tal:attributes="class python:test(odd, 'odd', 'even')">
+       <td class="tablevalues" tal:content="filename"/>
+    </tr>
+    </tal:block>
+    </tal:block>
+    </tal:block>
+    <br />
+    </tal:block>
+
+
     <form method="post" name="zenPackObjectsForm" id="zenPackObjectsForm"
 	  tal:attributes="action string:${here/absolute_url_path}"
 	  tal:define="tableName string:packlistdetail;
@@ -134,22 +153,6 @@ addLoadEvent(doDownloadRedirect);
 	     tal:attributes="value template/id"/>
       <input type="hidden" name="tableName" tal:attributes="value tableName"/>
       
-
-        <tal:block tal:define="tabletitle string:Files in ZenPack">
-        <tal:block metal:use-macro="here/zenuimacros/macros/zentable">
-        <tal:block metal:fill-slot="zentablecontents"> 
-        <!-- BEGIN TABLE CONTENTS -->
-        <tal:block tal:repeat="filename here/getFilenames">
-        <tr tal:define="odd repeat/filename/odd"
-            tal:attributes="class python:test(odd, 'odd', 'even')">
-           <td class="tablevalues" tal:content="filename"/>
-        </tr>
-        </tal:block>
-        <!-- END TABLE CONTENTS -->
-        </tal:block>
-        </tal:block>
-        </tal:block>
-        <br />
         
         <tal:block tal:define="tabletitle string:Objects in ZenPack; 
                                menu_id string:ZenPack;">
@@ -182,7 +185,57 @@ addLoadEvent(doDownloadRedirect);
         </tal:block>
         </tal:block>
         </tal:block>
-        
     </form>
+    <br />
+
+    <tal:block tal:define="tabletitle string:Objects Requiring this ZenPack;
+        tableName string:zenpackcatalogedobjects;
+        objects here/getCatalogedObjects;
+        batch
+        python:container.dmd.ZenTableManager.getBatch(tableName,objects);">
+    <tal:block metal:use-macro="here/zenuimacros/macros/zentable">
+    <tal:block metal:fill-slot="zentablecontents"> 
+    <tal:block tal:repeat="obj batch">
+    <tr tal:define="odd repeat/obj/odd"
+        tal:attributes="class python:test(odd, 'odd', 'even')">
+       <td class="tablevalues" tal:content="
+           structure
+           python:obj.urlLink(text=obj.getPrimaryDmdId(),
+           attrs={'class':'tablevalues'})"/>
+    </tr>
+    </tal:block>
+    <tr tal:condition="not: objects">
+        <td class="tablevalue">
+            No objects require this ZenPack
+        </td>
+    </tr>
+        <tr>
+          <td class="tableheader" align='center'>
+            <span metal:use-macro="here/zenTableNavigation/macros/navbody"/>
+          </td>
+        </tr>
+    </tal:block>
+    </tal:block>
+    </tal:block>
+    <br />
+
+    <tal:block tal:define="tabletitle string:Files in ZenPack;
+            filenames here/getFilenames;">
+    <tal:block metal:use-macro="here/zenuimacros/macros/zentable">
+    <tal:block metal:fill-slot="zentablecontents"> 
+    <!-- BEGIN TABLE CONTENTS -->
+    <tal:block tal:repeat="filename here/getFilenames">
+    <tr tal:define="odd repeat/filename/odd"
+        tal:attributes="class python:test(odd, 'odd', 'even')">
+       <td class="tablevalues" tal:content="filename"/>
+    </tr>
+    </tal:block>
+
+    <!-- END TABLE CONTENTS -->
+    </tal:block>
+    </tal:block>
+    </tal:block>
+    <br />
+
   </tal:block>
 </tal:block>

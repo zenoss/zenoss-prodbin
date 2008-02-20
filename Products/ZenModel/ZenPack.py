@@ -23,7 +23,7 @@ from ZenossSecurity import ZEN_MANAGE_DMD
 import exceptions
 import pkg_resources
 import string
-
+from Acquisition import aq_parent
 import os
 
 __doc__="ZenPacks base definitions"
@@ -165,6 +165,7 @@ class ZenPack(ZenModelRM):
         for loader in self.loaders:
             loader.unload(self, app)
         self.removeZProperties(app)
+        self.removeCatalogedObjects(app)
         
 
     def migrate(self):
@@ -221,6 +222,27 @@ class ZenPack(ZenModelRM):
     def removeZProperties(self, app):
         for name, value, pType in self.packZProperties:
             app.zport.dmd.Devices._delProperty(name)
+
+
+    def removeCatalogedObjects(self, app):
+        """
+        Delete all objects in the zenPackPersistence catalog that are
+        associated with this zenpack.
+        """
+        objects = self.getCatalogedObjects()
+        for o in objects:
+            parent = aq_parent(o)
+            if parent:
+                parent._delObject(o.id)
+
+
+    def getCatalogedObjects(self):
+        """
+        Return a list of objects from the ZenPackPersistence catalog
+        for this zenpack.
+        """
+        from ZenPackPersistence import GetCatalogedObjects
+        return GetCatalogedObjects(self.dmd, self.id) or []
 
 
     def zmanage_editProperties(self, REQUEST, redirect=False):
@@ -647,6 +669,14 @@ registerDirectory("skins", globals())
                     if zp.id != self.id
                     and zp.isEggPack()]
 
+    def getDependentZenPacks(self):
+        """
+        Return a list of ZenPacks that have this zenpack as a
+        dependency.
+        """
+        return [p for p in self.dmd.ZenPackManager.packs()
+                if p.isEggPack()
+                and self.id in p.dependencies.keys()]
 
 
 # ZenPackBase is here for backwards compatibility with older installed

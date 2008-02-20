@@ -19,7 +19,8 @@ from Globals import InitializeClass
 from ZenModelRM import ZenModelRM
 from Products.ZenRelations.RelSchema import *
 from AccessControl import ClassSecurityInfo
-
+from Products.ZenUtils.Utils import zenPath
+import os
 
 def manage_addZenPackManager(context, newId='', REQUEST=None):
     """
@@ -77,6 +78,7 @@ class ZenPackManager(ZenModelRM):
             if REQUEST:
                 REQUEST['message'] = msg
                 return self.callZenScreen(REQUEST)
+            from ZenPack import ZenPackNeedMigrateException
             raise ZenPackNeedMigrateException(msg)
 
         # Make sure a zenpack can be created with given info
@@ -85,6 +87,7 @@ class ZenPackManager(ZenModelRM):
             if REQUEST:
                 REQUEST['message'] = msg
                 return self.callZenScreen(REQUEST, redirect=False)
+            from ZenPack import ZenPackException
             raise ZenPackException(msg)
         
         # Create it
@@ -103,22 +106,37 @@ class ZenPackManager(ZenModelRM):
         Uninstall the given zenpacks.  Uninstall the zenpack egg.  If not in
         development mode then also delete the egg from the filesystem.
         """
-        raise ZenPackException, 'Not implemented'
+        import Products.ZenUtils.ZenPackCmd as ZenPackCmd 
 
-        # if not getattr(self.dmd, 'ZenPackManager'):
-        #     msg = 'Your Zenoss database appears to be out of date. Try ' \
-        #             'running zenmigrate to update.'
-        #     if REQUEST:
-        #         REQUEST['message'] = msg
-        #         return self.callZenScreen(REQUEST)
-        #     raise ZenPackNeedMigrateException(msg)
-
-        # zp = zenPath('bin', 'zenpack')
-        # for pack in ids:
-        #     os.system('%s run --remove %s' % (zp, pack))
-        # self._p_jar.sync()
-        # if REQUEST is not None:
-        #     return self.callZenScreen(REQUEST, redirect=True)
+        if not getattr(self.dmd, 'ZenPackManager'):
+            msg = 'Your Zenoss database appears to be out of date. Try ' \
+                    'running zenmigrate to update.'
+            if REQUEST:
+                REQUEST['message'] = msg
+                return self.callZenScreen(REQUEST)
+            from ZenPack import ZenPackNeedMigrateException
+            raise ZenPackNeedMigrateException(msg)
+        
+        canRemove, dependents = ZenPackCmd.CanRemoveZenPacks(self.dmd, ids)
+        if not canRemove:
+            msg = 'The following ZenPacks depend on one or more of the ' + \
+                ' ZenPacks you are trying to remove: %s' % ','.join(dependents)
+            if REQUEST:
+                REQUEST['message'] = msg
+                return self.callZenScreen(REQUEST)
+            from ZenPack import ZenPackDependentsException
+            raise ZenPackDependentsException(msg)
+        for zpId in ids:
+            zp = self.packs._getOb(zpId, None)
+            if zp:
+                if zp.isEggPack():
+                    ZenPackCmd.RemoveZenPack(self.dmd, zpId, skipDepsCheck=True)
+                else:
+                    os.system('%s run --remove %s' % (
+                                            zenPath('bin', 'zenpack'), zpId))
+                    self._p_jar.sync()
+        if REQUEST:
+            return self.callZenScreen(REQUEST)
 
 
     def manage_installZenPack(self, zenpack=None, REQUEST=None):
@@ -140,6 +158,7 @@ class ZenPackManager(ZenModelRM):
             if REQUEST:
                 REQUEST['message'] = msg
                 return self.callZenScreen(REQUEST)
+            from ZenPack import ZenPackNeedMigrateException
             raise ZenPackNeedMigrateException(msg)
 
         if REQUEST:

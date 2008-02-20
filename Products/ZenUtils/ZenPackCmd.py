@@ -242,15 +242,19 @@ def InstallZenPack(dmd, eggPath, develop=False, filesOnly=False):
     return zenPack
 
 
-def CanRemoveZenPack(dmd, packName):
+def CanRemoveZenPacks(dmd, packNames):
     """
-    Return True if this ZenPack can be removed, False otherwise.
-    A ZenPack can be removed if no other installed ZenPack list it as
-    as dependency.
+    Returns a tuple of (canRemove, otherDependents)
+    canRemove is True if the listed zenPacks have no dependents not also
+    listed in packNames, False otherwise.
+    otherDependents is a list of zenpack names not in packNames that 
+    depend on one or more of the packs in packNames.
     """
-    if GetDependents(dmd, packName):
-        return False
-    return True
+    unhappy = set()
+    for name in packNames:
+        deps = GetDependents(dmd, name)
+        unhappy.update(set([dep for dep in deps if dep not in packNames]))
+    return (not unhappy and True or False, list(unhappy))
 
 
 def GetDependents(dmd, packName):
@@ -272,16 +276,19 @@ def CleanupEasyInstallPth(eggLink):
     f.close()
 
 
-def RemoveZenPack(dmd, packName, filesOnly=False):
+def RemoveZenPack(dmd, packName, filesOnly=False, skipDepsCheck=False):
         
+    if filesOnly:
+        skipDepsCheck = True
+
     # Check for dependency implications here?
-    
-    if not filesOnly:
+    if not skipDepsCheck:
         deps = GetDependents(dmd, packName)
         if deps:
             raise ZenPackDependentsException('%s cannot be removed ' % packName +
                     'because it is required by %s' % ', '.join(deps))
 
+    if not filesOnly:
         # Fetch the zenpack, call its remove() and remove from packs
         zp = None
         try:

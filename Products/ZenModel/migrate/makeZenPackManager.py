@@ -18,6 +18,8 @@ import Globals
 import Migrate
 from Acquisition import aq_base
 from Products.ZenModel.ZenPackManager import manage_addZenPackManager
+from Products.ZenModel.ZenPackPersistence import ZENPACK_PERSISTENCE_CATALOG, \
+                                            CreateZenPackPersistenceCatalog
 
 class MakeZenPackManager(Migrate.Step):
     version = Migrate.Version(2, 2, 0)
@@ -29,5 +31,8 @@ class MakeZenPackManager(Migrate.Step):
                 dmd.packs._delObject(zp.id)
                 zp = aq_base(zp)
                 dmd.ZenPackManager.packs._setObject(zp.id, zp)
+                
+        if getattr(dmd, ZENPACK_PERSISTENCE_CATALOG, None) is None:
+            CreateZenPackPersistenceCatalog(dmd)
 
 MakeZenPackManager()

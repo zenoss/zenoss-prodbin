@@ -20,17 +20,22 @@
         <tal:block metal:fill-slot="zentablecontents">
         <!-- BEGIN TABLE CONTENTS -->
         <tr>
-          <th class="tableheader">Pack</th>
-          <th class="tableheader">Author</th>
-          <th class="tableheader">Organization</th>
-          <th class="tableheader">Version</th>
-          <th class="tableheader">Egg</th>
-          <th class="tableheader">#</th>
+          <th class="tableheader"/> 
+          <th class="tableheader" valign="top">Pack</th>
+          <th class="tableheader" valign="top">Author</th>
+          <th class="tableheader" valign="top">Organization</th>
+          <th class="tableheader" valign="top">Version</th>
+          <th class="tableheader" valign="top">Egg</th>
         </tr>
 	
 	
 	<tr tal:repeat='pack objects'>	
-	  <tal:block tal:condition="pack/getPrimaryUrlPath|nothing">
+          <td class="tablevalues"> 
+              <input type="checkbox" name="ids:list"  
+                  tal:condition="pack/getPrimaryPath|nothing" 
+                  tal:attributes="value pack/id"/> 
+          </td>
+          <tal:block tal:condition="pack/getPrimaryUrlPath|nothing">
 		  <td class="tablevalues">
 		    <a tal:attributes="href pack/getPrimaryUrlPath" 
 		       tal:content="pack/id"/>
@@ -40,13 +45,12 @@
 		  <td class="tablevalues" tal:content="pack/version"/>
 		  <td class="tablevalues" 
 		    tal:content="python: pack.isEggPack() and 'Yes' or 'No'"/>
-		  <td class="tablevalues" tal:content="python:len(pack.packables())"/>
       </tal:block>
 	  <tal:block tal:condition="not:pack/getPrimaryUrlPath|nothing">
 		  <td class="tablevalues">
 			<tal:dummy tal:replace="python:here.dmd.getBrokenPackName(pack)" />
 		  </td>
-		  <td class="tablevalues" colspan="5">
+		  <td class="tablevalues" colspan="4">
 		      This pack is missing or broken.  Please reinstall.
 		  </td>
 	  </tal:block>
