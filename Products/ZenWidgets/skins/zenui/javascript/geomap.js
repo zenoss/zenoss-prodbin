@@ -162,11 +162,6 @@ function geomap_initialize(){
             x.addMarker(node[0], node[1], node[2], node[3]);
     }
     x.showAllMarkers();
-    for (i=0;i<secondarynodedata.length;i++) {
-        var node = secondarynodedata[i];
-        if (node[0].length>0) 
-            x.addMarker(node[0], node[1], node[2], node[3]);
-    }
     for (j=0;j<linkdata.length;j++) {
         x.addPolyline(linkdata[j]);
     }

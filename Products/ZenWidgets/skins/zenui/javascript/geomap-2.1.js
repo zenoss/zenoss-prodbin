@@ -148,7 +148,6 @@ ZenGeoMap.prototype = {
         var x = this;
         var nodedata = results.nodedata;
         var linkdata = results.linkdata;
-        var secondarynodedata = results.secondarynodedata;
         this.map.clearOverlays();
         for (i=0;i<nodedata.length;i++) {
             var node = nodedata[i];
@@ -156,11 +155,6 @@ ZenGeoMap.prototype = {
                 x.addMarker(node[0], node[1], node[2], node[3]);
         }
         x.showAllMarkers();
-        for (i=0;i<secondarynodedata.length;i++) {
-            var node = secondarynodedata[i];
-            if (node[0].length>0) 
-                x.addMarker(node[0], node[1], node[2], node[3]);
-        }
         for (j=0;j<linkdata.length;j++) {
             x.addPolyline(linkdata[j]);
         }
@@ -170,16 +164,13 @@ ZenGeoMap.prototype = {
     refresh: function() {
         var results = {
             'nodedata':[],
-            'linkdata':[],
-            'secondarynodedata':[]
+            'linkdata':[]
         };
         var myd = loadJSONDoc('getChildGeomapData');
         myd.addCallback(function(x){results['nodedata'] = x});
         var myd2 = loadJSONDoc('getChildLinks');
         myd2.addCallback(function(x){results['linkdata'] = x});
-        var myd3 = loadJSONDoc('getSecondaryNodes');
-        myd3.addCallback(function(x){results['secondarynodedata'] = x});
-        var bigd = new DeferredList([myd, myd2, myd3], false, false, true);
+        var bigd = new DeferredList([myd, myd2], false, false, true);
         bigd.addCallback(method(this, function(){this.doDraw(results)}));
     }
 }

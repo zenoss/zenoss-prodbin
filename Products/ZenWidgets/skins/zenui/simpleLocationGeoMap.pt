@@ -33,7 +33,6 @@ v\:* {
         var geocodecache;
         var nodedata = ${here/getChildGeomapData};
         var linkdata = ${here/getChildLinks};
-        var secondarynodedata = ${here/getSecondaryNodes};
         var cachestring = '${here/dmd/getGeoCache}';
         if (cachestring) geocodecache = evalJSON(cachestring);
     "></script>
