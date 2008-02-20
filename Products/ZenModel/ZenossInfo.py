@@ -70,7 +70,7 @@ class ZenossInfo(ZenModelItem, SimpleItem):
                 },
                 { 'id'            : 'packs'
                 , 'name'          : 'ZenPacks'
-                , 'action'        : '../dmd/viewZenPacks'
+                , 'action'        : '../dmd/ZenPackManager/viewZenPacks'
                 , 'permissions'   : ( "Manage DMD", )
                 },
                 { 'id'            : 'menus'

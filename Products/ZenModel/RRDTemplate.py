@@ -359,7 +359,7 @@ class RRDTemplate(ZenModelRM, ZenPackable):
 
     def getDataSourceClasses(self):
         dsClasses = [BasicDataSource, BuiltInDS]
-        for zp in self.dmd.packs():
+        for zp in self.dmd.ZenPackManager.packs():
             dsClasses += zp.getDataSourceClasses()
         return dsClasses
         
@@ -394,7 +394,7 @@ class RRDTemplate(ZenModelRM, ZenPackable):
     def getThresholdClasses(self):
         from Products.ZenModel.MinMaxThreshold import MinMaxThreshold
         thresholdClasses = [MinMaxThreshold]
-        for zp in self.dmd.packs():
+        for zp in self.dmd.ZenPackManager.packs():
             thresholdClasses += zp.getThresholdClasses()
         return map(lambda x: (x, x.__name__), thresholdClasses)
         

@@ -24,7 +24,7 @@ class ZenPacker(object):
         ids = list(ids) + list(organizerPaths)
         message = "You must provide a valid ZenPack"
         if pack:
-            pack = self.dmd.packs._getOb(pack)
+            pack = self.dmd.ZenPackManager.packs._getOb(pack)
             message = 'Saved to %s' % pack.id
             if ids:
                 for id in ids:
@@ -68,4 +68,5 @@ class ZenPacker(object):
         Return a list of zenpacks that objects can be added to.  (The
         development mode zenpacks.)
         """
-        return [zp for zp in self.dmd.packs() if zp.isDevelopment()]
+        return [zp for zp in self.dmd.ZenPackManager.packs() 
+                if zp.isDevelopment()]

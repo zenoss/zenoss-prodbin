@@ -89,7 +89,7 @@ class UserSettingsManager(ZenModelRM):
                 },
                 { 'id'            : 'packs'
                 , 'name'          : 'ZenPacks'
-                , 'action'        : '../viewZenPacks'
+                , 'action'        : '../ZenPackManager/viewZenPacks'
                 , 'permissions'   : ( ZEN_MANAGE_DMD, )
                 },
                 { 'id'            : 'menus'

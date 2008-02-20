@@ -16,7 +16,7 @@ class ThresholdMixin:
     def remote_getThresholdClasses(self):
         from Products.ZenModel.MinMaxThreshold import MinMaxThreshold
         classes = [MinMaxThreshold]
-        for pack in self.dmd.packs():
+        for pack in self.dmd.ZenPackManager.packs():
             classes += pack.getThresholdClasses()
         return map(lambda c: c.__module__, classes)
 

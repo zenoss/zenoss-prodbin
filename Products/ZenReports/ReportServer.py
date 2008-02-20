@@ -40,7 +40,7 @@ class ReportServer(ZenModelRM):
         args = dict(zip(REQUEST.keys(), REQUEST.values()))
         m = zenPath('Products/ZenReports/plugins')
         directories = [
-            p.path('reports', 'plugins') for p in self.packs()
+            p.path('reports', 'plugins') for p in self.ZenPackManager.packs()
             ] + [m]
         
         klass = None
