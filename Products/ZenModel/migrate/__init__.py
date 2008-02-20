@@ -127,3 +127,4 @@ import addWinServiceMap
 import zpsitecustomize
 import makeZenPackManager
 import hwrelations
+import restoreRemoveZenPackMenuItem
