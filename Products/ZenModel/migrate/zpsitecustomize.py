@@ -16,12 +16,15 @@ __doc__='''
 '''
 import Globals
 import Migrate
+import os
+import os.path
 from Products.ZenUtils.Utils import zenPath
 
 class zpSiteCustomize(Migrate.Step):
     version = Migrate.Version(2, 2, 0)
 
     def cutover(self, dmd):
+        # Write extra path to sitecustomize.py
         path = zenPath('lib', 'python', 'sitecustomize.py')
         f = open(path, 'r')
         t = f.read()
@@ -31,5 +34,9 @@ class zpSiteCustomize(Migrate.Step):
         f.write('\nimport os, os.path, site; ')
         f.write("site.addsitedir(os.path.join(os.getenv('ZENHOME'), 'ZenPacks'))\n")
         f.close()
+        # Make sure the ZenPacks directory exists
+        path = zenPath('ZenPacks')
+        if not os.path.isdir(path):
+            os.mkdir(path, 0750)
 
 zpSiteCustomize()
