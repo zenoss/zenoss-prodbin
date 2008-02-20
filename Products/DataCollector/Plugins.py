@@ -72,7 +72,7 @@ def loadPlugins(dmd):
     plugins = _loadPluginDir(PDIR)
     plugins += _loadPluginDir(zenPath('Products/ZenWin/modeler/plugins'))
     try:
-        for pack in dmd.packs():
+        for pack in dmd.ZenPackManager.packs():
             if pack.isEggPack():
                  eggPlugins = _loadPluginDir(pack.path('modeler', 'plugins'))
                  for eggPlugin in eggPlugins:
