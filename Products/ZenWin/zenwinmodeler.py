@@ -28,6 +28,8 @@ from Products.ZenHub.PBDaemon import FakeRemote
 from twisted.internet import reactor
 from twisted.internet.defer import DeferredList
 
+MAX_WAIT_FOR_WMI_REQUEST = 10
+
 class zenwinmodeler(WinCollector):
     
     evtClass = Status_WinService
@@ -159,7 +161,9 @@ class zenwinmodeler(WinCollector):
                     self.log.warn("skipping %s has bad wmi state",
                         device.getId())
                     continue
-                self.collectDevice(device)
+                self.halfSync.boundedCall(MAX_WAIT_FOR_WMI_REQUEST,
+                                          self.collectDevice,
+                                          device)
                 if self.client:
                     d = self.processClient(device)
                     d.addErrback(self.error)
@@ -210,7 +214,3 @@ class zenwinmodeler(WinCollector):
 if __name__=='__main__':
     zw = zenwinmodeler()
     zw.run()
-
-
-
-    

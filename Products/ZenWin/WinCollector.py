@@ -29,6 +29,11 @@ unused(DeviceProxy)
 from Products.DataCollector.Plugins import PluginLoader # This is needed by pb
 unused(PluginLoader)
 
+from HalfSync import HalfSync
+
+MAX_THREADS_WAITING = 10
+
+
 class WinCollector(PBDaemon):
 
     configCycleInterval = 20.
@@ -47,6 +52,7 @@ class WinCollector(PBDaemon):
         self.watchers = {}
         PBDaemon.__init__(self)
         self.reconfigureTimeout = None
+        self.halfSync = HalfSync(MAX_THREADS_WAITING)
 
 
     def start(self):
@@ -183,5 +189,10 @@ class WinCollector(PBDaemon):
             return 'Could not map the error code %s to a com_error' % code
         else:
             return None
-        
 
+    def run(self):
+        PBDaemon.run(self)
+        # I don't care about the threads still in progress: really quit
+        if self.halfSync.running():
+            import os
+            os._exit(0)
