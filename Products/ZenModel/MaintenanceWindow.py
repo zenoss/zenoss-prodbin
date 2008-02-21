@@ -263,7 +263,7 @@ class MaintenanceWindow(ZenModelRM):
     def nextEvent(self, now):
         "Return the time of the next begin() or end()"
         if self.started:
-            return self.started + self.duration * 60
+            return self.started + self.duration * 60 - 1
         # ok, so maybe "now" is a little late: start anything that
         # should have been started by now
         return self.next(now - self.duration * 60 + 1)
@@ -390,83 +390,6 @@ class MaintenanceWindow(ZenModelRM):
             self.end()
         else:
             self.begin(now)
-
-#DeviceMaintenanceWindow = MaintenanceWindow
-#OrganizerMaintenanceWindow = MaintenanceWindow
-
-
-if __name__=='__main__':
-    m = MaintenanceWindow('tester')
-    t = time.mktime( (2006, 1, 29, 10, 45, 12, 6, 29, 0) )
-    P = 60*60*2
-    m.set(t, P, m.NEVER)
-    assert m.next() == None
-    m.set(t, P, m.DAILY)
-    c = time.mktime( (2006, 1, 30, 10, 45, 12, 6, 29, 0) )
-    assert m.next(t + P + 1) == c
-    m.set(t, P, m.WEEKLY)
-    c = time.mktime( (2006, 2, 5, 10, 45, 12, 6, 36, 0) )
-    assert m.next(t + 1) == c
-    m.set(t - DAY_SECONDS, P, m.EVERY_WEEKDAY)
-    c = time.mktime( (2006, 1, 30, 10, 45, 12, 7, 30, 0) )
-    assert m.next(t) == c
-    m.set(t, P, m.MONTHLY)
-    c = time.mktime( (2006, 2, 28, 10, 45, 12, 0, 0, 0) )
-    assert m.next(t+1) == c
-    t2 = time.mktime( (2005, 12, 31, 10, 45, 12, 0, 0, 0) )
-    m.set(t2, P, m.MONTHLY)
-    c = time.mktime( (2006, 1, 31, 10, 45, 12, 0, 0, 0) )
-    c2 = time.mktime( (2006, 2, 28, 10, 45, 12, 0, 0, 0) )
-    assert m.next(t2+1) == c
-    assert m.next(c+1) == c2
-    c = time.mktime( (2006, 2, 5, 10, 45, 12, 0, 0, 0) )
-    m.set(t, P, m.FSOTM)
-    assert m.next(t+1) == c
-
-    # skips
-    m.skip = 2
-    m.set(t, P, m.DAILY)
-    c = time.mktime( (2006, 1, 31, 10, 45, 12, 6, 29, 0) )
-    assert m.next(t + 1) == c
-
-    m.set(t, P, m.WEEKLY)
-    c = time.mktime( (2006, 2, 12, 10, 45, 12, 6, 36, 0) )
-    assert m.next(t + 1) == c
-
-    m.set(t, P, m.MONTHLY)
-    c = time.mktime( (2006, 3, 29, 10, 45, 12, 6, 36, 0) )
-    assert m.next(t + 1) == c
-
-    m.set(t - DAY_SECONDS * 2, P, m.EVERY_WEEKDAY)
-    c = time.mktime( (2006, 1, 31, 10, 45, 12, 7, 30, 0) )
-    assert m.next(t + 1) == c
-
-    c = time.mktime( (2006, 3, 5, 10, 45, 12, 0, 0, 0) )
-    m.set(t, P, m.FSOTM)
-    assert m.next(t+1) == c
-
-    r = {'test':None}
-    m.manage_editMaintenanceWindow(
-                                     startDate='01/29/2006',
-                                     startHours='10',
-                                     startMinutes='45',
-                                     durationDays='1',
-                                     durationHours='1',
-                                     durationMinutes='1',
-                                     repeat='Weekly',
-                                     startProductionState=300,
-                                     stopProductionState=-99,
-                                     enabled=True,
-                                     REQUEST=r)
-
-    if r.has_key('message'):
-        print r['message']
-    assert not r.has_key('message')
-    assert m.start == t - 12
-    assert m.duration == 24*60+61
-    assert m.repeat == 'Weekly'
-    assert m.startProductionState == 300
-    assert m.stopProductionState == -99
 
 DeviceMaintenanceWindow = MaintenanceWindow
 OrganizerMaintenanceWindow = MaintenanceWindow
