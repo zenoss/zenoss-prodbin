@@ -27,6 +27,7 @@ from ZenModelRM import ZenModelRM
 from ZenPackable import ZenPackable
 import logging
 log = logging.getLogger("zen.Device")
+from Acquisition import aq_base
 
 
 def manage_addGraphDefinition(context, id, REQUEST = None):
@@ -233,7 +234,7 @@ class GraphDefinition(ZenModelRM, ZenPackable):
         """
         names = []
         for gp in self.getGraphPoints():
-            if hasattr(gp.aq_base, 'isBroken') and gp.isBroken():
+            if hasattr(aq_base(gp), 'isBroken') and gp.isBroken():
                 names.append('%s(<span style="color: red">missing</span>)' % 
                                                                     gp.id)
             else:

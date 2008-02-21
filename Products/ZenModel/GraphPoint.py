@@ -208,13 +208,4 @@ class GraphPoint(ZenModelRM, ZenPackable):
         return value
 
 
-    def usesAttr(self, attr):
-        """
-        Return True if this graphpoint has the given attribute.
-        This method exists for use in templates where the aq_base stuff
-        is not so easily accessible.
-        """
-        return hasattr(self.aq_base, attr)
-
-
 InitializeClass(GraphPoint)

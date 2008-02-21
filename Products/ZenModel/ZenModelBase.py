@@ -652,4 +652,21 @@ class ZenModelBase(object):
             return '/zport/dmd/img/icons/noicon.png'
 
 
+    def aqBaseHasAttr(self, attr):
+        """
+        Return hasattr(aq_base(self), attr)
+        This is a convenience function for use in templates, where it's not
+        so easy to make a similar call directly.
+        hasattr itself will swallow exceptions, so we don't want to use that.
+        We also need to allow for values of None, so something like
+        getattr(aq_base(self, attr, None) doesn't really tell us anything.
+        Testing __dict__ is not a good choice because it doesn't allow
+        for properties (and I believe __getitem__ calls.)
+        So while this looks pretty attrocious, it might be the most sane
+        solution.
+        """
+        base = aq_base(self)
+        return getattr(base, attr, True) == getattr(base, attr, False)
+
+
 InitializeClass(ZenModelBase)
