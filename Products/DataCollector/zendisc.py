@@ -44,6 +44,10 @@ class ZenDisc(ZenModeler):
     def __init__(self,noopts=0,app=None,single=True,
                 threaded=False,keeproot=True):
         ZenModeler.__init__(self, noopts, app, single, threaded, keeproot)
+        if not (self.options.walk or self.options.net):
+            self.log.error("You must use walk or net options for discovery")
+            import sys
+            sys.exit(1)
 	if not self.options.useFileDescriptor:
 	    self.openPrivilegedPort('--ping')
         self.discovered = []
@@ -342,7 +346,7 @@ class ZenDisc(ZenModeler):
         self.log.info('connected to ZenHub')
         if self.options.net:
             d = drive(self.collectNet)
-        else:
+        if self.options.walk:
             d = drive(self.walkDiscovery)
         d.addBoth(self.printResults)
 
@@ -422,6 +426,9 @@ class ZenDisc(ZenModeler):
         self.parser.add_option('--auto-allocate', dest='autoAllocate',
                     action="store_true", default=False,
                     help="have zendisc auto allocate devices after discovery")
+        self.parser.add_option('--walk', dest='walk', action='store_true',
+                    default=False,
+                    help="Walk the route tree, performing discovery on all networks")
 
 
 
