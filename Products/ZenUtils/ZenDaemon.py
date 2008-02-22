@@ -80,7 +80,10 @@ class ZenDaemon(CmdBase):
 
 
     def writePidFile(self):
-        myname = sys.argv[0].split(os.sep)[-1] + ".pid"
+        myname = sys.argv[0].split(os.sep)[-1]
+        if myname.endswith('.py'): myname = myname[:-3]
+        monitor = getattr(self.options, 'monitor', 'localhost')
+        myname = "%s-%s.pid" % (myname, monitor)
         if self.options.watchdog:
            self.pidfile =  zenPath("var", 'watchdog-%s' % myname)
         else:
