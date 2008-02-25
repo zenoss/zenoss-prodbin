@@ -35,10 +35,13 @@ class ModelerService(HubService):
         result.id = dev.getId()
         if not dev.manageIp:
             dev.setManageIp()
+        result.manageIp = dev.manageIp
         result.plugins = []
         for name in dev.zCollectorPlugins:
             plugin = self.plugins.get(name, None)
+            log.debug('checking plugin %s for device %s' % (name, dev.getId()))
             if plugin and plugin.condition(dev, log):
+                log.debug('adding plugin %s for device %s' % (name, dev.getId()))
                 result.plugins.append(plugin.loader)
                 plugin.copyDataToProxy(dev, result)
         return result
