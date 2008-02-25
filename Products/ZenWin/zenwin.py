@@ -77,7 +77,8 @@ class zenwin(WinCollector):
         wql = "select Name from Win32_Service where State='Running'"
         wmic = WMIClient(device)
         wmic.connect()
-        svcs = [ svc.Name for svc in wmic.query(wql) ]
+        q = wmic.query(dict(query=wql))
+        svcs = [ svc.Name for svc in q['query'] ]
         for name, (status, severity) in device.services.items():
             self.log.debug("service: %s status: %d", name, status)
             if name not in svcs:
@@ -126,7 +127,7 @@ class zenwin(WinCollector):
                 self.log.debug("WMI problems on %s: skipping" % device.id)
                 continue
             try:
-                self.processDevice(device)
+                self.halfSync.boundedCall(30, self.processDevice, device)
             except Exception, ex:
                 raise
                 self.deviceDown(device, str(ex))
@@ -163,9 +164,9 @@ class zenwin(WinCollector):
         self.heartbeatTimeout = self.winCycleInterval * 3
 
     def fetchDevices(self, driver):
-        yield self.config().callRemote('getDeviceListByMonitor',
+        yield self.configService().callRemote('getDeviceListByMonitor',
                                        self.options.monitor)
-        yield self.config().callRemote('getDeviceConfigAndWinServices', 
+        yield self.configService().callRemote('getDeviceConfigAndWinServices', 
             driver.next())
         self.updateDevices(driver.next())
 

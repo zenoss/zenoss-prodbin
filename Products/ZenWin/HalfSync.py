@@ -80,26 +80,4 @@ class HalfSync(object):
         self.lock.release()
 
 
-if __name__ == '__main__':
-    sleep = time.sleep
-    obj = HalfSync()
-    assert obj.boundedCall(0.2, sleep, 0.1) == None
-    thrown = False
-    try:
-        obj.boundedCall(0.1, sleep, 0.2)
-    except TimeoutError:
-        thrown = True
-    assert thrown
-    obj = HalfSync(1)
-    thrown = False
-    try:
-        for i in range(3):
-            try:
-                obj.boundedCall(0.01, sleep, 0.2)
-            except TimeoutError:
-                pass
-    except TooManyThreads:
-        thrown = True
-    assert thrown
-
             

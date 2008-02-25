@@ -150,6 +150,7 @@ class WinCollector(PBDaemon):
             self.updateConfig(driver.next())
 
             yield drive(self.fetchDevices)
+            driver.next()
             
             yield self.configService().callRemote('getThresholdClasses')
             self.remote_updateThresholdClasses(driver.next())

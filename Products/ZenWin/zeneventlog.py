@@ -61,7 +61,9 @@ class zeneventlog(WinCollector):
             if device.id in self.wmiprobs:
                 self.log.debug("WMI problems on %s: skipping" % device.id)
                 continue
-            self.watchers[device.id] = w = self.getWatcher(device)
+
+            w = self.halfSync.boundedCall(30, self.getWatcher, device)
+            self.watchers[device.id] = w
             
             self.log.debug("polling %s", device.id)
             try:
