@@ -21,9 +21,8 @@ class WinServiceMap(WMIPlugin):
     relname = "winservices"
     modname = "Products.ZenModel.WinService"
     
-    attrs = WMIPlugin.attrs + (
-         "acceptPause","acceptStop","name","caption",
-         "pathName","serviceType","startMode","startName")
+    attrs = ("acceptPause","acceptStop","name","caption",
+             "pathName","serviceType","startMode","startName")
 
     def queries(self):
         return {
