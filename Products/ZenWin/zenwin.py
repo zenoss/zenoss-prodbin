@@ -97,6 +97,8 @@ class zenwin(WinCollector):
         return wmic.watcher(wql)
 
     def processDevice(self, device):
+        # device won't have any attributes
+        if not device.plugins: return
         w = self.watchers.get(device.id, None)
         if not w:
             self.scanDevice(device)

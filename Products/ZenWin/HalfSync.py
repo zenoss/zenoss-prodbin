@@ -15,6 +15,7 @@ class Thread(threading.Thread):
             self.result = (True, self.callable(*self.args, **self.kw))
         except Exception, ex:
             self.result = (False, ex)
+            raise
         self.callback(self)
 
 class TooManyThreads(Exception): pass

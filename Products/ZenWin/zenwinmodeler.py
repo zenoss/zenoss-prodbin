@@ -127,7 +127,7 @@ class zenwinmodeler(WinCollector):
 
                 results = plugin.preprocess(results, self.log)
                 datamaps = plugin.process(device, results, 
-                    self.log)
+                        self.log)
 
                 # allow multiple maps to be returned from a plugin
                 if type(datamaps) not in \
@@ -183,17 +183,18 @@ class zenwinmodeler(WinCollector):
                     # transient error, log it but don't create an event
                     self.log.exception('Ignoring: %s' % msg)
                 else:
-                    self.sendFail(device.getId(), msg, Status_Wmi_Conn, 
-                        Event.Error)
+                    self.sendFail(device.getId(), msg)
             except:
-                self.sendFail('')
+                self.sendFail(device.getId())
         return DeferredList(deferreds)
 
 
     def error(self, why):
         self.log.error(why.getErrorMessage())
 
-    def sendFail(self, name, msg="", evtclass=Status_Wmi, sev=Event.Warning):
+    def sendFail(self, name, msg=""):
+        evtclass = Status_Wmi_Conn
+        sev = Event.Warning
         if not msg:
             msg = "WMI connection failed %s" % name
             sev = Event.Error

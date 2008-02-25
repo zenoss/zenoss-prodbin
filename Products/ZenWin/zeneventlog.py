@@ -60,6 +60,7 @@ class zeneventlog(WinCollector):
         """
         pythoncom.PumpWaitingMessages()
         for device in self.devices:
+            if not device.plugins: continue
             if device.id in self.wmiprobs:
                 self.log.debug("WMI problems on %s: skipping" % device.id)
                 continue
