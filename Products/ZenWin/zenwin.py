@@ -23,6 +23,8 @@ from Products.ZenEvents import Event
 
 ERRtimeout = 1726
 
+MAX_WAIT_FOR_WMI_REQUEST = 10
+
 class zenwin(WinCollector):
 
     name = agent = "zenwin"
@@ -127,7 +129,8 @@ class zenwin(WinCollector):
                 self.log.debug("WMI problems on %s: skipping" % device.id)
                 continue
             try:
-                self.halfSync.boundedCall(30, self.processDevice, device)
+                self.halfSync.boundedCall(MAX_WAIT_FOR_WMI_REQUEST,
+                                          self.processDevice, device)
             except Exception, ex:
                 raise
                 self.deviceDown(device, str(ex))

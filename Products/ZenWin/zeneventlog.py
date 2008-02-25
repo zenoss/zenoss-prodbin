@@ -21,6 +21,8 @@ from WMIC import WMIClient
 from WinCollector import WinCollector
 from Constants import TIMEOUT_CODE, RPC_ERROR_CODE
 
+MAX_WAIT_FOR_WMI_REQUEST = 10
+
 class zeneventlog(WinCollector):
 
     name = agent = "zeneventlog"
@@ -62,7 +64,8 @@ class zeneventlog(WinCollector):
                 self.log.debug("WMI problems on %s: skipping" % device.id)
                 continue
 
-            w = self.halfSync.boundedCall(30, self.getWatcher, device)
+            w = self.halfSync.boundedCall(MAX_WAIT_FOR_WMI_REQUEST,
+                                          self.getWatcher, device)
             self.watchers[device.id] = w
             
             self.log.debug("polling %s", device.id)
