@@ -35,9 +35,9 @@ class zeneventlog(WinCollector):
         self.start()
 
     def fetchDevices(self, driver):
-        yield self.config().callRemote('getDeviceListByMonitor',
+        yield self.configService().callRemote('getDeviceListByMonitor',
                                        self.options.monitor)
-        yield self.config().callRemote('getDeviceConfigAndWinServices', 
+        yield self.configService().callRemote('getDeviceConfigAndWinServices', 
             driver.next())
         self.updateDevices(driver.next())
         
