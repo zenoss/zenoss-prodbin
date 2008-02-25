@@ -561,6 +561,7 @@ class zenperfsnmp(SnmpDaemon):
             filenames = [f.lstrip(root) for f in self.oldFiles]
             message = 'RRD files not updated: ' + ' '.join(filenames)
             self.sendEvent(dict(
+                dedupid="%s|%s" % (self.options.monitor, 'rrd files too old'),
                 severity=Critical,
                 device=self.options.monitor,
                 eventClass=Status_RRD,
