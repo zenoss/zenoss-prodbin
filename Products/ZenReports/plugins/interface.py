@@ -48,6 +48,6 @@ class interface:
                                  input=input,
                                  output=output,
                                  total=total,
-                                 percentUsed=Utils.percent(total, i.speed))
+                                 percentUsed=Utils.percent(total, i.speed / 8))
                 report.append(r)
         return report
