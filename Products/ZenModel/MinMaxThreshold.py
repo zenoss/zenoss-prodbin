@@ -250,7 +250,8 @@ class MinMaxThresholdInstance(ThresholdInstance):
             color = '#%s' % color
         n = self.minimum
         x = self.maximum
-        gp = relatedGps[self.dataPointNames[0]]
+        if not self.dataPointNames:
+            return gopts
         rpn = getattr(gp, 'rpn', None)
         if rpn:
             rpn = talesEvalStr(rpn, context)
