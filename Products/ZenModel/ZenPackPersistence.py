@@ -20,18 +20,21 @@ ZENPACK_PERSISTENCE_CATALOG = 'zenPackPersistence'
 
 def CreateZenPackPersistenceCatalog(dmd):
     '''
+    Create the zenPackPersistence catalog if it does not exist.
+    Return the catalog
     '''
     from Products.ZCatalog.ZCatalog import manage_addZCatalog
     from Products.ZenUtils.Search import makeCaseSensitiveFieldIndex
-
-    # Make catalog for Devices
-    manage_addZCatalog(dmd, ZENPACK_PERSISTENCE_CATALOG,
-                            ZENPACK_PERSISTENCE_CATALOG)
-    zcat = dmd._getOb(ZENPACK_PERSISTENCE_CATALOG)
-    cat = zcat._catalog
-    cat.addIndex('getZenPackName',makeCaseSensitiveFieldIndex('getZenPackName'))
-    cat.addColumn('id')
-    cat.addColumn('getPrimaryId')
+    zcat = getattr(dmd, ZENPACK_PERSISTENCE_CATALOG, None)
+    if zcat is None:
+        manage_addZCatalog(dmd, ZENPACK_PERSISTENCE_CATALOG,
+                                ZENPACK_PERSISTENCE_CATALOG)
+        zcat = dmd._getOb(ZENPACK_PERSISTENCE_CATALOG)
+        cat = zcat._catalog
+        cat.addIndex('getZenPackName',makeCaseSensitiveFieldIndex('getZenPackName'))
+        cat.addColumn('id')
+        cat.addColumn('getPrimaryId')
+    return zcat
 
 
 def GetCatalogedObjects(dmd, packName):

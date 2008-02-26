@@ -58,6 +58,8 @@ from Products.ZenModel.LinkManager import manage_addLinkManager
 from Products.ZenWidgets.PortletManager import manage_addPortletManager
 from Products.ZenWidgets.ZenossPortlets import ZenossPortlets
 from Products.ZenModel.ZenPackManager import manage_addZenPackManager
+from Products.ZenModel.ZenPackPersistence import CreateZenPackPersistenceCatalog
+from Products.ZenModel.RRDTemplate import CreateRRDTemplatesCatalog
 
 classifications = {
     'Devices':          DeviceClass,
@@ -192,4 +194,4 @@ class DmdBuilder:
         manage_addLinkManager(self.dmd)
         manage_addIpNetwork(self.dmd, "Networks")
         manage_addZenPackManager(self.dmd)
-
+        CreateZenPackPersistenceCatalog(self.dmd)
