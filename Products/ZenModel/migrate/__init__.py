@@ -128,3 +128,4 @@ import zpsitecustomize
 import makeZenPackManager
 import hwrelations
 import restoreRemoveZenPackMenuItem
+import makeTemplateCatalog

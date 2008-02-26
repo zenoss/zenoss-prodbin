@@ -24,6 +24,56 @@ from Products.ZenModel.BuiltInDS import BuiltInDS
 from Products.ZenModel.ConfigurationError import ConfigurationError
 from RRDDataPoint import SEPARATOR
 from ZenPackable import ZenPackable
+from Acquisition import aq_parent
+
+
+RRDTEMPLATE_CATALOG = 'searchRRDTemplates'
+
+
+def CreateRRDTemplatesCatalog(dmd, rebuild=False):
+    """
+    Create the searchRRDTemplates catalog if it does not already exist.
+    Return the catalog.
+    """
+    from Products.ZCatalog.ZCatalog import manage_addZCatalog
+    from Products.ZenUtils.Search import makeCaseSensitiveFieldIndex, \
+                                            makePathIndex
+    zcat = getattr(dmd, RRDTEMPLATE_CATALOG, None)
+    if zcat and rebuild:
+        dmd._delObject(RRDTEMPLATE_CATALOG)
+        zcat = None
+    if zcat is None:
+        manage_addZCatalog(dmd, RRDTEMPLATE_CATALOG, RRDTEMPLATE_CATALOG)
+        zcat = dmd._getOb(RRDTEMPLATE_CATALOG)
+        cat = zcat._catalog
+        cat.addIndex('id', makeCaseSensitiveFieldIndex('id'))
+        cat.addIndex('getPhysicalPath', makePathIndex('getPhysicalPath'))
+    return zcat
+
+
+def ReindexRRDTemplates(dmd):
+    """
+    Reindex all RRDTemplates
+    """
+    for t in dmd.Devices.getAllRRDTemplates():
+        t.index_object()
+    for t in dmd.Monitors.getAllRRDTemplates():
+        t.index_object()
+
+
+def YieldAllRRDTemplates(dmd, criteria=None):
+    """
+    Yield all templates in the searchRRDTemplates catalog, which should
+    include every RRDTemplate instance in the database.
+    """
+    zcat = getattr(dmd, RRDTEMPLATE_CATALOG, None)
+    if zcat is None:
+        raise 'Could not fild rrdTemplates catalog. A migrate is probably ' \
+                'required.'
+    criteria = criteria or {}
+    brains = zcat(criteria)
+    for result in brains:
+        yield result.getObject()
 
 
 def manage_addRRDTemplate(context, id, REQUEST = None):
@@ -49,10 +99,11 @@ def crumbspath(templ, crumbs, idx=-1):
     return crumbs
 
 
-
 class RRDTemplate(ZenModelRM, ZenPackable):
 
     meta_type = 'RRDTemplate'
+    
+    default_catalog = RRDTEMPLATE_CATALOG
 
     security = ClassSecurityInfo()
   
@@ -95,6 +146,30 @@ class RRDTemplate(ZenModelRM, ZenPackable):
         """
         crumbs = super(RRDTemplate, self).breadCrumbs(terminator)
         return crumbspath(self, crumbs)
+
+
+    # manage_afterAdd, manage_afterClose and manage_beforeDelete
+    # are the magic methods that make the indexing happen
+
+    def manage_afterAdd(self, item, container):
+        """
+        """
+        self.index_object()
+        super(RRDTemplate,self).manage_afterAdd(item, container)
+
+
+    def manage_afterClone(self, item):
+        """
+        """
+        super(RRDTemplate,self).manage_afterClone(item)
+        self.index_object()
+
+
+    def manage_beforeDelete(self, item, container):
+        """
+        """
+        super(RRDTemplate,self).manage_beforeDelete(item, container)
+        self.unindex_object()
 
 
     def isEditable(self, context):

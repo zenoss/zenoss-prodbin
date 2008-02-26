@@ -499,6 +499,12 @@ class DeviceClass(DeviceOrganizer, ZenPackable):
 
 
     def getAllRRDTemplates(self, rrdts=None):
+        """
+        This method is deprecated and should only be used by those
+        migrate scripts that predate the searchRRDTemplates catalog.
+        Current code should use RRDTemplate.YieldAllRRDTemplates()
+        instead.
+        """
         if rrdts is None: rrdts = []
         rrdts.extend(self.rrdTemplates())
         for dev in self.devices():
