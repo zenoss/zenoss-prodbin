@@ -252,6 +252,7 @@ class ZenActions(ZCmdBase):
                 data['eventsUrl'] = self.getEventsUrl(device)
             else:
                 data['eventsUrl'] = 'n/a'
+                data['device'] = data.get('device', None) or ''
             data['ackUrl'] = self.getAckUrl(evid)
             data['deleteUrl'] = self.getDeleteUrl(evid)
             severity = data.get('severity', -1)
