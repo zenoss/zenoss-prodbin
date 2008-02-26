@@ -31,6 +31,9 @@ class PluginLoader(pb.Copyable, pb.RemoteCopy):
     def __init__(self, package, modpath):
         self.package = package
         self.modpath = modpath
+    
+    def pluginName(self):
+        return self.modpath.split('plugins.').pop()
         
     def create(self):
         sys.path.insert(0, self.package)

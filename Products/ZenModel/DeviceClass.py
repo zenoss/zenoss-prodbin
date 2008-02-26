@@ -758,7 +758,7 @@ class DeviceClass(DeviceOrganizer, ZenPackable):
         "Provide a set of default options for a ZProperty"
         if propname == 'zCollectorPlugins':
             from Products.DataCollector.Plugins import loadPlugins
-            names = [ldr.create().name() for ldr in loadPlugins(self.dmd)]
+            names = [ldr.pluginName() for ldr in loadPlugins(self.dmd)]
             names.sort()
             return names
         if propname == 'zSnmpVer':
