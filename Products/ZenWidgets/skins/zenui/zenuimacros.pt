@@ -214,8 +214,7 @@ mypath python:test(item.action.startswith('javascript'),
             Zentable macro
 ====================================-->
 <tal:block metal:define-macro="zentable">
-    <table class=" zentable"
-        tal:attributes="noselectionbar noselectionbar | nothing">
+    <table class=" zentable">
         <tr tal:define="tabletitle tabletitle|string:">
         <tal:block metal:use-macro="here/zenuimacros/macros/tabletitle">
             <tal:block metal:fill-slot="filterslot">
@@ -237,7 +236,8 @@ mypath python:test(item.action.startswith('javascript'),
         </tr>
         <tr>
             <td style="padding:0px;">
-                <table class="innerzentable" cellpadding="3" cellspacing="1">
+                <table class="innerzentable" cellpadding="3" cellspacing="1"
+		       tal:attributes="noselectionbar noselectionbar | nothing">
 <!-- The main body into which we dump rows -->
 <tbody tal:attributes="id python:filter(lambda x:x.isalnum(),tabletitle)">
                         <tal:block metal:define-slot="zentablecontents">
