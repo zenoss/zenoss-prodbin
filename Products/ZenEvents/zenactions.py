@@ -239,8 +239,10 @@ class ZenActions(ZCmdBase):
             nwhere += " and firstTime + %s < UNIX_TIMESTAMP()" % context.delay
         awhere = ''
         if context.repeatTime:
-            awhere += ' and lastSent + %d > now() ' % context.repeatTime
-        q = self.newsel % (",".join(fields), nwhere, userid, context.getId(), awhere)
+            awhere += ' and DATE_ADD(lastSent, INTERVAL %d SECOND) > now() ' % (
+                context.repeatTime,)
+        q = self.newsel % (",".join(fields), nwhere, userid, context.getId(),
+                           awhere)
         for result in self.query(q):
             evid = result[-1]
             data = dict(zip(fields, map(zem.convert, fields, result[:-1])))
