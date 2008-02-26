@@ -652,7 +652,7 @@ class zenperfsnmp(SnmpDaemon):
             if success:
                 for oid, value in update.items():
                     # should always get something back
-                    if value == '':
+                    if value == '' or value is None:
                         self.badOid(deviceName, oid)
                     else:
                         self.storeRRD(deviceName, oid, value)
