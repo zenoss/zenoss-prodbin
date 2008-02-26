@@ -63,7 +63,7 @@ class Service(OSComponent, Commandable, ZenPackable):
         """
         Should this service be monitored or not. Use ServiceClass aq path. 
         """
-        return self.getAqProperty("zMonitor")
+        return self.monitor and self.getAqProperty("zMonitor")
 
 
     def getSeverities(self):
