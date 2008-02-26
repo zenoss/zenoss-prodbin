@@ -90,9 +90,9 @@ class CollectorPlugin:
 
     def name(self):
         """Return the name of this plugin.
+        Removes any paths before the plugins directory
         """
-        return self.__class__.__module__.replace("plugins.","")
-
+        return self.__class__.__module__.split('plugins.').pop()
 
     def checkColumns(self, row, columns, log):
         """Check that all columns came back, 
