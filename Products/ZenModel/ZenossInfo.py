@@ -363,7 +363,7 @@ class ZenossInfo(ZenModelItem, SimpleItem):
         elif name == 'zeoctl':
             name = 'ZEO'
         else:
-            name = "%s.py" % name
+            name = "%s-localhost" % name
         pidFile = zenPath('var', '%s.pid' % name)
         if os.path.exists(pidFile):
             pid = open(pidFile).read()
