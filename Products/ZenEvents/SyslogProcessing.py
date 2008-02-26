@@ -133,8 +133,14 @@ class SyslogProcessor(object):
             msg = m.group(2).strip()
         msglist = msg.split()
         if self.parsehost and not self.notHostSearch(msglist[0]):
-            evt['device'] = msglist[0]
-            slog.debug("parseHEADER hostname=%s", evt['device'])
+            evt.device = msglist[0]
+            if evt.device.find('@') >= 0:
+                evt.device = evt.device.split('@', 1)[1]
+            try:
+                evt.ipAddress = socket.gethostbyname(evt.device)
+            except socket.error:
+                pass
+            slog.debug("parseHEADER hostname=%s", evt.device)
             msg = " ".join(msglist[1:])
         return evt, msg
 
