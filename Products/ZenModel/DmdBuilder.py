@@ -59,7 +59,6 @@ from Products.ZenWidgets.PortletManager import manage_addPortletManager
 from Products.ZenWidgets.ZenossPortlets import ZenossPortlets
 from Products.ZenModel.ZenPackManager import manage_addZenPackManager
 from Products.ZenModel.ZenPackPersistence import CreateZenPackPersistenceCatalog
-from Products.ZenModel.RRDTemplate import CreateRRDTemplatesCatalog
 
 classifications = {
     'Devices':          DeviceClass,
