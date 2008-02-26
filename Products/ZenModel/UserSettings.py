@@ -770,13 +770,13 @@ class UserSettings(ZenModelRM):
                                 self.dmd.smtpUseTLS, self.dmd.smtpUser,
                                 self.dmd.smtpPass)
             if result:
-                msg = 'Test email sent to %s' % destAddresses
+                msg = 'Test email sent to %s' % ', '.join(destAddresses)
             else:
                 msg = 'Test failed: %s' % errorMsg
         else:
             msg = 'Test email not sent, user has no email address.'
         if REQUEST:
-            REQUEST['message'] = msg
+            REQUEST['message'] = msg.replace("'", "\\'")
             return self.callZenScreen(REQUEST)
         else:
             return msg
