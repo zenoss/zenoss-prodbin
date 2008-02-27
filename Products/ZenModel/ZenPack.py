@@ -140,7 +140,7 @@ class ZenPack(ZenModelRM):
     def __init__(self, id, title=None, buildRelations=True):
         #self.dependencies = {'zenpacksupport':''}
         self.dependencies = {}
-        return ZenModelRM.__init__(self, id, title, buildRelations)
+        ZenModelRM.__init__(self, id, title, buildRelations)
 
 
     def install(self, app):

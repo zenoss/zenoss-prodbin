@@ -24,7 +24,6 @@ from Products.ZenModel.BuiltInDS import BuiltInDS
 from Products.ZenModel.ConfigurationError import ConfigurationError
 from RRDDataPoint import SEPARATOR
 from ZenPackable import ZenPackable
-from Acquisition import aq_parent
 
 
 RRDTEMPLATE_CATALOG = 'searchRRDTemplates'
