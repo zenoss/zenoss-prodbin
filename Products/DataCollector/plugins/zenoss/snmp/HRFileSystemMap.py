@@ -62,9 +62,14 @@ class HRFileSystemMap(SnmpPlugin):
         rm = self.relMap()
         for fs in fstable.values():
             if not fs.has_key("totalBlocks"): continue
+            totalBlocks = fs['totalBlocks']
+            if totalBlocks < 0:
+                import struct
+                totalBlocks = struct.unpack('L', struct.pack('l', totalBlocks))
+                fs['totalBlocks'] = totalBlocks
             if not self.checkColumns(fs, self.columns, log): continue
             fstype = self.typemap.get(fs['type'],None)
-            size = long(fs['blockSize'] * fs['totalBlocks'])
+            size = long(fs['blockSize'] * totalBlocks)
             if fstype == "ram":
                 maps.append(ObjectMap({"totalMemory": size}, compname="hw"))
             elif fstype == "swap":
