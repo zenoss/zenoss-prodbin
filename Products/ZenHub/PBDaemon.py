@@ -52,6 +52,7 @@ DEFAULT_HUB_PORT = PB_PORT
 DEFAULT_HUB_USERNAME = 'admin'
 DEFAULT_HUB_PASSWORD = 'zenoss'
 DEFAULT_HUB_MONITOR = 'localhost'
+DEFAULT_HEARTBEAT_TIMEOUT = 180 
 
 class HubDown(Exception): pass
 
@@ -287,6 +288,12 @@ class PBDaemon(ZenDaemon, pb.Referenceable):
                                 help='Name of monitor instance to use for'
                                     ' configuration.  Default is %s.'
                                     % DEFAULT_HUB_MONITOR)
+        self.parser.add_option('--heartbeat-timeout', 
+                                dest='heartbeat',
+                                default=DEFAULT_HEARTBEAT_TIMEOUT,
+                                help='The heartbeat timeout time in seconds.'
+                                    ' Default is %s.'
+                                    % DEFAULT_HEARTBEAT_TIMEOUT)
 
         ZenDaemon.buildOptions(self)
 
