@@ -18,7 +18,7 @@ import pywintypes
 import Globals
 from WinCollector import WinCollector
 from Products.ZenEvents.ZenEventClasses import \
-     Status_WinService, Status_Wmi, Status_Wmi_Conn
+     Status_WinService, Status_Wmi_Conn
 
 from Products.ZenEvents import Event
 
