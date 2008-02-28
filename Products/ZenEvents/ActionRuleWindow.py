@@ -16,7 +16,8 @@ log = logging.getLogger("zen.ActionRuleWindow")
 import time
 
 from Globals import DTMLFile
-from AccessControl import Permissions
+from AccessControl import ClassSecurityInfo
+from Products.ZenModel.ZenossSecurity import *
 from Products.ZenModel.MaintenanceWindow import MaintenanceWindow
 from Products.ZenRelations.RelSchema import *
 from Products.ZenUtils.Utils import unused
@@ -44,12 +45,12 @@ class ActionRuleWindow(MaintenanceWindow):
                 { 'id'            : 'status'
                 , 'name'          : 'Status'
                 , 'action'        : 'actionRuleWindowDetail'
-                , 'permissions'   : ( Permissions.view, )
+                , 'permissions'   : ( ZEN_VIEW, )
                 },
                 { 'id'            : 'viewHistory'
                 , 'name'          : 'Modifications'
                 , 'action'        : 'viewHistory'
-                , 'permissions'   : ( Permissions.view, )
+                , 'permissions'   : ( ZEN_VIEW, )
                 },
             )
          },
@@ -58,6 +59,8 @@ class ActionRuleWindow(MaintenanceWindow):
     _relations = (
         ("actionRule", ToOne(ToManyCont,"Products.ZenEvents.ActionRule","windows")),
         )
+        
+    security = ClassSecurityInfo()
 
     def target(self):
         return self.actionRule()
@@ -72,6 +75,7 @@ class ActionRuleWindow(MaintenanceWindow):
         self.started = None
         self.target().enabled = False
 
+    security.declareProtected(ZEN_CHANGE_ALERTING_RULES, 'manage_editActionRuleWindow')
     def manage_editActionRuleWindow(self,
                                      startDate='',
                                      startHours='',

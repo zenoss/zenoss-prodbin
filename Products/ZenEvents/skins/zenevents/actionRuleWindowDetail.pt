@@ -9,9 +9,8 @@
         tal:attributes="value template/id" /> 
 
 
-        <tal:block tal:define="editable here/isManager; 
-        message string:State at time:;
-        tabletitle string: ${message} ${here/getNowString}">
+        <tal:block tal:define="message string:State at time:;
+                tabletitle string: ${message} ${here/getNowString}">
         <tal:block metal:use-macro="here/zenuimacros/macros/zentable">
 
         <!--====Optional titlebar slots=============
@@ -33,20 +32,16 @@
     </tr>
     <tr>
         <td class="tableheader">Enabled</td>
-        <td class="tablevalues" tal:condition="editable">
+        <td class="tablevalues">
         <select class="tablevalues" name="enabled:boolean">
             <option tal:repeat="e python:(True,False)" tal:content="e"
                     tal:attributes="value e; selected python:e==here.enabled"/>
         </select>
         </td>
-        <td class="tablevalues" tal:condition="not:editable" 
-            tal:content="here/enabled"/>
     </tr>
     <tr>
         <td class="tableheader">Start</td>
-        <td class="tablevalues" tal:condition="not:editable" 
-            tal:content="here/niceStart"/>
-        <td class="tablevalues" tal:condition="editable">
+        <td class="tablevalues">
 	    <input type="text" name="startDate" 
 		   readonly="true"
 		   tal:attributes="
@@ -70,10 +65,7 @@
     </tr>
     <tr>
         <td class="tableheader">Duration</td>
-        <td class="tablevalues" 
-	    tal:condition="not:editable"
-	    tal:content="here/niceDuration"/>
-        <td class="tablevalues" tal:condition="editable"
+        <td class="tablevalues"
 	    tal:define="days python:here.duration//(24*60);
                         hours python:'%02d' % (here.duration//60%24);
                         mins  python:'%02d' % (here.duration%60)">
@@ -90,12 +82,7 @@
     </tr>
     <tr>
         <td class="tableheader">Repeat</td>
-        <td class="tablevalues" tal:condition="not:editable">
-            <span tal:content="here/repeat"/>
-            every
-            <span tal:content="here/skip"/>
-        </td>
-        <td tal:condition="editable" class="tablevalues">
+        <td class="tablevalues">
 	  <select class="tablevalues" name="repeat">
 	    <option class="tablevalues" 
 		    tal:repeat="e here/repeatOptions" 
