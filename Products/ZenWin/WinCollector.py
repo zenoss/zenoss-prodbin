@@ -31,6 +31,8 @@ unused(PluginLoader)
 
 from HalfSync import HalfSync
 
+from twisted.internet.defer import DeferredList
+
 MAX_THREADS_WAITING = 10
 
 
@@ -76,15 +78,20 @@ class WinCollector(PBDaemon):
     def startScan(self, unused=None):
         drive(self.scanCycle)
 
-
+    
+    def stopScan(self, unused=None):
+        self.stop()
+    
     def scanCycle(self, driver):
         now = time.time()
+        deferreds = None
         try:
             yield self.eventService().callRemote('getWmiConnIssues')
             self.wmiprobs = [e[0] for e in driver.next()]
             self.log.debug("Wmi Probs %r", self.wmiprobs)
-            self.processLoop()
-            self.heartbeat()
+            deferreds = self.processLoop()
+            if self.options.cycle:
+                self.heartbeat()
         except Exception, ex:
             self.log.exception("Error processing main loop")
         delay = time.time() - now
@@ -96,6 +103,8 @@ class WinCollector(PBDaemon):
                                     self.cycleInterval(),
                                     len(self.devices))
                 )
+        elif isinstance(deferreds, DeferredList):
+            deferreds.addBoth(self.stopScan)
         else:
             self.stop()
 
