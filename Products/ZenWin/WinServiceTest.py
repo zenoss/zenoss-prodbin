@@ -29,8 +29,8 @@ class WinServiceTest(object):
         """Test a single device.
         """
         if not srec.svcs: return
-        wql = "select Name from Win32_Service where State='Running'"
-        svcs = [ svc.Name.lower() for svc in srec.query(wql) ]
+        wql = "select name from Win32_Service where State='Running'"
+        svcs = [ svc.name.lower() for svc in srec.query(wql) ]
         for name, (status, severity) in srec.svcs.items():
             evt = None
             log.debug("service: %s status: %d", name, status)

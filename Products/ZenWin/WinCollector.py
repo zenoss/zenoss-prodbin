@@ -29,12 +29,12 @@ unused(DeviceProxy)
 from Products.DataCollector.Plugins import PluginLoader # This is needed by pb
 unused(PluginLoader)
 
-from HalfSync import HalfSync
+from ProcessProxy import ProcessProxy, ProcessProxyError
 
 from twisted.internet.defer import DeferredList
 
 MAX_THREADS_WAITING = 10
-
+MAX_WAIT_FOR_WMI_REQUEST = 10
 
 class WinCollector(PBDaemon):
 
@@ -54,7 +54,6 @@ class WinCollector(PBDaemon):
         self.watchers = {}
         PBDaemon.__init__(self)
         self.reconfigureTimeout = None
-        self.halfSync = HalfSync(MAX_THREADS_WAITING)
 
 
     def start(self):
@@ -64,6 +63,17 @@ class WinCollector(PBDaemon):
                             device=self.options.monitor,
                             severity=Clear,
                             component=self.name))
+
+    def getWatcher(self, device, query):
+        from Products.ZenUtils.Utils import zenPath
+        wmic = ProcessProxy(zenPath('Products/ZenWin/Watcher.py'), 'Watcher')
+        try:
+            wmic.start(MAX_WAIT_FOR_WMI_REQUEST, device, query)
+            self.log.debug("Connected to %s" % device.id)
+            return wmic
+        except ProcessProxyError:
+            wmic.stop()
+            raise
 
     def remote_notifyConfigChanged(self):
         self.log.info("Async config notification")
@@ -199,10 +209,3 @@ class WinCollector(PBDaemon):
             return 'Could not map the error code %s to a com_error' % code
         else:
             return None
-
-    def run(self):
-        PBDaemon.run(self)
-        # I don't care about the threads still in progress: really quit
-        if self.halfSync.running():
-            import os
-            os._exit(0)

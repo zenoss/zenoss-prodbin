@@ -16,12 +16,17 @@ from socket import getfqdn
 import pywintypes
 import pythoncom
 
+
 import Globals
+from Products.ZenEvents.ZenEventClasses import Status_Wmi_Conn
+from Products.ZenEvents import Event
+
 from WMIC import WMIClient
 from WinCollector import WinCollector
 from Constants import TIMEOUT_CODE, RPC_ERROR_CODE
+from ProcessProxy import ProcessProxy, ProcessProxyError
 
-MAX_WAIT_FOR_WMI_REQUEST = 10
+MAX_WAIT_FOR_WMI_REQUEST = 5
 
 class zeneventlog(WinCollector):
 
@@ -43,16 +48,6 @@ class zeneventlog(WinCollector):
             driver.next())
         self.updateDevices(driver.next())
         
-
-    def getWatcher(self, device):
-        wql = """SELECT * FROM __InstanceCreationEvent where """\
-            """TargetInstance ISA 'Win32_NTLogEvent' """\
-            """and TargetInstance.EventType <= %d"""\
-        % device.zWinEventlogMinSeverity
-        wmic = WMIClient(device)
-        wmic.connect()
-        return wmic.watcher(wql)
-
         
     def processLoop(self):
         """Run WMI queries in two stages ExecQuery in semi-sync mode.
@@ -65,14 +60,18 @@ class zeneventlog(WinCollector):
                 self.log.debug("WMI problems on %s: skipping" % device.id)
                 continue
 
-            w = self.halfSync.boundedCall(MAX_WAIT_FOR_WMI_REQUEST,
-                                          self.getWatcher, device)
-            self.watchers[device.id] = w
-            
             self.log.debug("polling %s", device.id)
             try:
+                wql = """SELECT * FROM __InstanceCreationEvent where """\
+                      """TargetInstance ISA 'Win32_NTLogEvent' """\
+                      """and TargetInstance.EventType <= %d"""\
+                      % device.zWinEventlogMinSeverity
+                if not self.watchers.has_key(device.id):
+                    self.watchers[device.id] = self.getWatcher(device, wql)
+                w = self.watchers[device.id]
+
                 while 1:
-                    lrec = w.nextEvent()
+                    lrec = w.boundedCall(MAX_WAIT_FOR_WMI_REQUEST, 'nextEvent')
                     if not lrec.Message:
                         continue
                     self.events += 1
@@ -95,6 +94,17 @@ class zeneventlog(WinCollector):
                     self.log.warn("%s %s", device.id, msg)
                     self.log.warn("removing %s", device.id)
                     self.devices.remove(device)
+            except ProcessProxyError:
+                self.sendEvent(dict(summary="WMI Timeout",
+                                    eventClass=Status_Wmi_Conn,
+                                    device=device.id,
+                                    severity=Event.Error,
+                                    agent=self.agent))
+                self.wmiprobs.append(device.id)
+                self.log.warning("WMI Connection to %s timed out" % device.id)
+                if self.watchers.has_key(device.id):
+                    self.watchers[device.id].stop()
+                    del self.watchers[device.id]
         
         gc.collect()
         self.log.info("Com InterfaceCount: %d", pythoncom._GetInterfaceCount())

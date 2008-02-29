@@ -12,10 +12,10 @@
 ###########################################################################
 
 import types
-from WMIC import WMIClient
 import pywintypes
 
 import Globals
+from WMIC import WMIClient
 from WinCollector import WinCollector
 from Products.ZenEvents.ZenEventClasses import \
      Status_WinService, Status_Wmi_Conn
@@ -23,12 +23,28 @@ from Products.ZenEvents.ZenEventClasses import \
 from Products.ZenEvents import Event
 
 from Products.ZenUtils.Driver import drive
+from Products.ZenUtils.Utils import zenPath
 from Products.ZenHub.PBDaemon import FakeRemote
 
 from twisted.internet import reactor
 from twisted.internet.defer import DeferredList
 
+from ProcessProxy import ProcessProxy
+ 
 MAX_WAIT_FOR_WMI_REQUEST = 10
+
+class Client(ProcessProxy):
+
+    def __init__(self, device, plugins):
+        ProcessProxy.__init__(self,
+                              zenPath('Products/ZenWin/Query.py'), 'Query')
+        self.plugins = plugins
+        self.results = []
+        self.start(MAX_WAIT_FOR_WMI_REQUEST, device)
+
+    def getResults(self):
+        return self.results
+
 
 class zenwinmodeler(WinCollector):
     
@@ -92,7 +108,7 @@ class zenwinmodeler(WinCollector):
                 self.log.info('User: %s' % device.zWinUser)
                 self.log.info("Plugins: %s", 
                               ", ".join(map(lambda p: p.name(), plugins)))
-                self.client = WMIClient(device, self, plugins)
+                self.client = Client(device, plugins)
             if not self.client or not plugins:
                 self.log.warn("WMIClient creation failed")
                 return
@@ -100,8 +116,16 @@ class zenwinmodeler(WinCollector):
         except:
             self.log.exception("Error opening WMIClient")
             return
-        self.client.run()
-
+        try:
+            mx = MAX_WAIT_FOR_WMI_REQUEST
+            for plugin in self.client.plugins:
+                pluginName = plugin.name()
+                self.log.debug("Sending queries for plugin: %s", pluginName)
+                self.log.debug("Queries: %s" % str(plugin.queries().values()))
+                result = self.client.boundedCall(mx, 'query', plugin.queries())
+                self.client.results.append((plugin, result))
+        finally:
+            self.client.stop()
 
     def checkCollection(self, device):
         if self.options.device and device.getId() != self.options.device:
@@ -161,9 +185,7 @@ class zenwinmodeler(WinCollector):
                     self.log.warn("skipping %s has bad wmi state",
                         device.getId())
                     continue
-                self.halfSync.boundedCall(MAX_WAIT_FOR_WMI_REQUEST,
-                                          self.collectDevice,
-                                          device)
+                self.collectDevice(device)
                 if self.client:
                     d = self.processClient(device)
                     d.addErrback(self.error)

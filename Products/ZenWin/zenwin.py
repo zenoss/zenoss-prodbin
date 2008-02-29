@@ -12,18 +12,20 @@
 ###########################################################################
 
 from socket import getfqdn
-from WMIC import WMIClient
 import pywintypes
 
 import Globals
 from WinCollector import WinCollector
 from Constants import TIMEOUT_CODE
 from Products.ZenEvents.ZenEventClasses import Status_Wmi_Conn, Status_WinService
+from Products.ZenUtils.Utils import zenPath
 from Products.ZenEvents import Event
 
 ERRtimeout = 1726
 
 MAX_WAIT_FOR_WMI_REQUEST = 10
+
+from Products.ZenWin.ProcessProxy import ProcessProxy
 
 class zenwin(WinCollector):
 
@@ -77,36 +79,34 @@ class zenwin(WinCollector):
         if not device.services:
             return None
         wql = "select Name from Win32_Service where State='Running'"
-        wmic = WMIClient(device)
-        wmic.connect()
-        q = wmic.query(dict(query=wql))
-        svcs = [ svc.Name for svc in q['query'] ]
+        wmic = ProcessProxy(zenPath('Products/ZenWin/Query.py'), 'Query')
+        mx = MAX_WAIT_FOR_WMI_REQUEST
+        wmic.start(mx, device)
+        q = wmic.boundedCall(mx, 'query', dict(query=wql))
+        svcs = [ svc.name for svc in q['query'] ]
         for name, (status, severity) in device.services.items():
             self.log.debug("service: %s status: %d", name, status)
             if name not in svcs:
                 self.serviceStopped(device, name)
             elif status > 0:
                 self.serviceRunning(device, name)
-        wmic.close()
+        wmic.stop()
 
-    def getWatcher(self, device):
-        wql = ("""SELECT * FROM __InstanceModificationEvent within 5 where """
-               """TargetInstance ISA 'Win32_Service' """)
-        wmic = WMIClient(device)
-        wmic.connect()
-        return wmic.watcher(wql)
 
     def processDevice(self, device):
+        wql = ("""SELECT * FROM __InstanceModificationEvent within 5 where """
+               """TargetInstance ISA 'Win32_Service' """)
+        
         # device won't have any attributes
         if not device.plugins: return
         w = self.watchers.get(device.id, None)
         if not w:
             self.scanDevice(device)
             self.deviceUp(device)
-            self.watchers[device.id] = w = self.getWatcher(device)
+            self.watchers[device.id] = w = self.getWatcher(device, wql)
         try:
             self.log.debug("Querying %s", device.id)
-            s = w.nextEvent(100)
+            s = w.boundedCall(MAX_WAIT_FOR_WMI_REQUEST, 'nextEvent', 100)
             self.deviceUp(device)
             if not s.state:
                 return
@@ -131,10 +131,8 @@ class zenwin(WinCollector):
                 self.log.debug("WMI problems on %s: skipping" % device.id)
                 continue
             try:
-                self.halfSync.boundedCall(MAX_WAIT_FOR_WMI_REQUEST,
-                                          self.processDevice, device)
+                self.processDevice(device)
             except Exception, ex:
-                raise
                 self.deviceDown(device, str(ex))
 
     def deviceDown(self, device, message):
