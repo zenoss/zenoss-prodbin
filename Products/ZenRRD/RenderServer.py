@@ -88,7 +88,7 @@ class GraphRenderThread(threading.Thread):
 
     def kill(self):
         self.isRunning = False
-        os.kill(self.proc.pid, signal.SIGQUIT)
+        if self.proc: os.kill(self.proc.pid, signal.SIGQUIT)
 
 
 class RenderServer(RRDToolItem):
