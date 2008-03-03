@@ -238,6 +238,16 @@ class ZenossInfo(ZenModelItem, SimpleItem):
         return Version.parse('NetSnmp %s ' % lib.netsnmp_get_version())
 
 
+    def getPyNetSnmpVersion(self):
+        from pynetsnmp.version import VERSION
+        return Version.parse('PyNetSnmp %s ' % VERSION)
+
+
+    def getWmiVersion(self):
+        from pythoncom import VERSION
+        return Version.parse('Wmi %s ' % VERSION)
+
+
     def getAllVersions(self):
         """
         Return a list of version numbers for currently tracked component
@@ -263,6 +273,20 @@ class ZenossInfo(ZenModelItem, SimpleItem):
             versions += (
                 {'header': 'NetSnmp', 'data': self.getNetSnmpVersion().full(),
                  'href': "http://net-snmp.sourceforge.net"  },
+                )
+        except:
+            pass
+        try:
+            versions += (
+                {'header': 'PyNetSnmp', 'data': self.getPyNetSnmpVersion().full(),
+                 'href': "http://www.zenoss.com"  },
+                )
+        except:
+            pass
+        try:
+            versions += (
+                {'header': 'WMI', 'data': self.getWmiVersion().full(),
+                 'href': "http://www.zenoss.com"  },
                 )
         except:
             pass
