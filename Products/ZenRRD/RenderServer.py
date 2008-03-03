@@ -25,9 +25,6 @@ import logging
 import urllib
 import zlib
 import mimetypes
-import signal
-import subprocess
-import threading
 
 from AccessControl import ClassSecurityInfo
 from Globals import InitializeClass
@@ -68,27 +65,6 @@ def manage_addRenderServer(context, id, REQUEST = None):
                                      
 
 addRenderServer = DTMLFile('dtml/addRenderServer',globals())
-
-class GraphRenderThread(threading.Thread):
-
-    def __init__(self, graphOptions):
-        threading.Thread.__init__(self)
-        self.gopts = graphOptions
-        self.gopts.insert(0, 'graph')
-        self.gopts.insert(0, 'rrdtool')
-        self.proc = None
-        self.isRunning = False
-
-    def run(self):
-        self.proc = subprocess.Popen(self.gopts, env=os.environ)
-        self.isRunning = True
-        while self.isRunning and self.proc.poll() == None:
-            time.sleep(.10)
-        self.isRunning = False
-
-    def kill(self):
-        self.isRunning = False
-        if self.proc: os.kill(self.proc.pid, signal.SIGQUIT)
 
 
 class RenderServer(RRDToolItem):
@@ -186,10 +162,7 @@ class RenderServer(RRDToolItem):
                 gopts.insert(0, filename)
                 log.debug("opts: %r", (gopts,))
                 try:
-                    RT = GraphRenderThread(gopts)
-                    RT.start()
-                    RT.join(5.0)
-                    if RT.isAlive(): RT.kill()
+                    rrdtool.graph(*gopts)
                 except Exception, ex:    
                     if ex.args[0].find('No such file or directory') > -1:
                         return None
