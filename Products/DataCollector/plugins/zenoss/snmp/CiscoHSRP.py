@@ -40,7 +40,9 @@ class CiscoHSRP(SnmpPlugin):
     )
 
     def condition(self, device, log):
-        return device.hw.getManufacturerName() == "Cisco"
+        # return device.hw.getManufacturerName() == "Cisco"
+        # CiscoHSRP plugin no longer works in this architecture
+        return False
         
    
     def process(self, device, results, log):
