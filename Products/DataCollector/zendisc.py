@@ -353,12 +353,12 @@ class ZenDisc(ZenModeler):
     def autoAllocate(self, device=None):
 	"""Execute a script that will auto allocate devices into their 
 	Device Classes"""
-	self.log.info("trying to auto-allocate device %s" % device.id )
+	self.log.debug("trying to auto-allocate device %s" % device.id )
 	if not device:
 	    return
 
 	script = getattr(device, "zAutoAllocateScript", None)
-	self.log.error("no auto-allocation script found")
+	self.log.debug("no auto-allocation script found")
 	if script:
 	    import string
 	    script = string.join(script, "\n")
