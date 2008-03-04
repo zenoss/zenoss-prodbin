@@ -228,7 +228,7 @@ class InterfaceMap(SnmpPlugin):
      '60': 'ATM Emulation of 802.5 LAN',
      '61': 'ATM Emulation of a Circuit',
      '62': 'FastEthernet (100BaseT)',
-     '63': 'ISDN & X.25',
+     '63': 'ISDN',
      '64': 'CCITT V.11_X.21',
      '65': 'CCITT V.36',
      '66': 'CCITT G703 at 64Kbps',
