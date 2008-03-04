@@ -479,7 +479,7 @@ class IpNetwork(DeviceOrganizer):
 	    if zDiscCommand:
 	    	cmd = talesEval('string:' + zDiscCommand, organizer).split(" ")
 	    else:
-		cmd = ["zendisc", "run", "--net", organizer.id]
+		cmd = ["zendisc", "run", "--weblog", "--net", organizer.id]
             zd = zenPath('bin', 'zendisc')
             zendiscCmd = [zd] + cmd[1:]
             result = executeCommand(zendiscCmd, REQUEST)
