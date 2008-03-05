@@ -17,7 +17,7 @@ import time
 
 from Globals import DTMLFile
 from AccessControl import ClassSecurityInfo
-from Products.ZenModel.ZenossSecurity import *
+from Products.ZenModel.ZenossSecurity import ZEN_VIEW
 from Products.ZenModel.MaintenanceWindow import MaintenanceWindow
 from Products.ZenRelations.RelSchema import *
 from Products.ZenUtils.Utils import unused
