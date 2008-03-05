@@ -34,5 +34,9 @@ class MakeZenPackManager(Migrate.Step):
                 
         if getattr(dmd, ZENPACK_PERSISTENCE_CATALOG, None) is None:
             CreateZenPackPersistenceCatalog(dmd)
+        
+        for pack in dmd.ZenPackManager.packs():
+            if not pack.aqBaseHasAttr('dependencies'):
+                pack.dependencies = {}
 
 MakeZenPackManager()
