@@ -34,9 +34,5 @@ class zpSiteCustomize(Migrate.Step):
         f.write('\nimport os, os.path, site; ')
         f.write("site.addsitedir(os.path.join(os.getenv('ZENHOME'), 'ZenPacks'))\n")
         f.close()
-        # Make sure the ZenPacks directory exists
-        path = zenPath('ZenPacks')
-        if not os.path.isdir(path):
-            os.mkdir(path, 0750)
 
 zpSiteCustomize()
