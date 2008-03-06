@@ -24,6 +24,8 @@ slog = logging.getLogger("zen.Syslog")
 import Globals
 from Products.ZenEvents.syslog_h import *
 
+import socket
+
 # Regular expressions that parse syslog tags from different sources
 parsers = (
     
@@ -133,15 +135,16 @@ class SyslogProcessor(object):
             msg = m.group(2).strip()
         msglist = msg.split()
         if self.parsehost and not self.notHostSearch(msglist[0]):
-            evt.device = msglist[0]
-            if evt.device.find('@') >= 0:
-                evt.device = evt.device.split('@', 1)[1]
+            device = msglist[0]
+            if device.find('@') >= 0:
+                device = device.split('@', 1)[1]
             try:
-                evt.ipAddress = socket.gethostbyname(evt.device)
+                evt['ipAddress'] = socket.gethostbyname(device)
             except socket.error:
                 pass
-            slog.debug("parseHEADER hostname=%s", evt.device)
+            slog.debug("parseHEADER hostname=%s", evt['device'])
             msg = " ".join(msglist[1:])
+            evt['device'] = device
         return evt, msg
 
 
