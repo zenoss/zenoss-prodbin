@@ -121,7 +121,6 @@ class ZenSyslog(DatagramProtocol, EventServer):
 
             self.olog.info(message)
 
-        ptr = '.'.join(ipaddr.split('.')[::-1]) + '.in-addr.arpa'
         asyncNameLookup(ipaddr).addBoth(self.gotHostname, (msg, ipaddr, time.time()))
 
     def configure(self):
