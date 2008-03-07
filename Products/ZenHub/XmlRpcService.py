@@ -85,6 +85,10 @@ class XmlRpcService(xmlrpc.XMLRPC):
                 vals['dps'].append(dp.id)
                 vals['dptypes'].append(dp.rrdtype)
 
+            # add zproperties
+            for propertyId in device.propertyIds():
+                vals[propertyId] = device.getProperty(propertyId)
+
             vals['device'] = device.id
             return vals
 
