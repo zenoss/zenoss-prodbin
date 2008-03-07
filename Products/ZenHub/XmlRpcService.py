@@ -90,6 +90,8 @@ class XmlRpcService(xmlrpc.XMLRPC):
                 vals[propertyId] = device.getProperty(propertyId)
 
             vals['device'] = device.id
+            vals['manageIp'] = device.manageIp
+
             return vals
 
 
