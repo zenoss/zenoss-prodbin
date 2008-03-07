@@ -59,8 +59,10 @@ class ProcessProxy:
     def boundedCall(self, timer, method, *args, **kw):
         try:
             return self._boundedCall(timer, method, *args, **kw)
-        except Exception, ex:
+        except ProcessProxyError, ex:
             self.stop()
+            raise
+        except Exception, ex:
             raise
         
     def _boundedCall(self, timer, method, *args, **kw):
@@ -129,7 +131,10 @@ def run():
                 result = (True, getattr(obj, meth)(*args, **kw))
             except Exception, ex:
                 result = (False, ex)
-        result = pickle.dumps(result)
+        try:
+            result = pickle.dumps(result)
+        except Exception, ex:
+            result = pickle.dumps( (False, ValueError("Unable to pickle %r" % (result, ))))
         sys.stdout.write(struct.pack('L', len(result)) + result)
         sys.stdout.flush()
                 

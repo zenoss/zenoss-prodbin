@@ -21,12 +21,11 @@ import Globals
 from Products.ZenEvents.ZenEventClasses import Status_Wmi_Conn
 from Products.ZenEvents import Event
 
-from WMIC import WMIClient
 from WinCollector import WinCollector
 from Constants import TIMEOUT_CODE, RPC_ERROR_CODE
-from ProcessProxy import ProcessProxy, ProcessProxyError
+from ProcessProxy import ProcessProxyError
 
-MAX_WAIT_FOR_WMI_REQUEST = 5
+MAX_WAIT_FOR_WMI_REQUEST = 10
 
 class zeneventlog(WinCollector):
 
@@ -72,7 +71,7 @@ class zeneventlog(WinCollector):
 
                 while 1:
                     lrec = w.boundedCall(MAX_WAIT_FOR_WMI_REQUEST, 'nextEvent')
-                    if not lrec.Message:
+                    if not lrec.message:
                         continue
                     self.events += 1
                     self.sendEvent(self.mkevt(device.id, lrec))
@@ -87,14 +86,17 @@ class zeneventlog(WinCollector):
                         wmsg = descr.strip()
                 msg += wmsg
                 if scode == TIMEOUT_CODE:
-                    self.log.debug("timeout %s", device.id)
+                    self.log.debug("timeout (no events) %s", device.id)
                 elif scode == RPC_ERROR_CODE:
                     self.log.warn("%s %s", device.id, msg)
                 else:
                     self.log.warn("%s %s", device.id, msg)
                     self.log.warn("removing %s", device.id)
                     self.devices.remove(device)
-            except ProcessProxyError:
+            except ProcessProxyError, ex:
+                import traceback
+                traceback.print_exc()
+                import pdb; pdb.set_trace()
                 self.sendEvent(dict(summary="WMI Timeout",
                                     eventClass=Status_Wmi_Conn,
                                     device=device.id,
@@ -121,19 +123,19 @@ class zeneventlog(WinCollector):
     def mkevt(self, name, lrec):
         """Put event in the queue to be sent to the ZenEventManager.
         """
-        evtkey = "%s_%s" % (lrec.SourceName, lrec.EventCode)
-        sev = 4 - lrec.EventType     #lower severity by one level
+        evtkey = "%s_%s" % (lrec.sourcename, lrec.eventcode)
+        sev = 4 - lrec.eventtype     #lower severity by one level
         if sev < 1: sev = 1
         evt = dict(device=name,
                     eventClassKey=evtkey,
-                    eventGroup=lrec.LogFile,
-                    component=lrec.SourceName,
-                    ntevid=lrec.EventCode,
-                    summary=lrec.Message.strip(),
+                    eventGroup=lrec.logfile,
+                    component=lrec.sourcename,
+                    ntevid=lrec.eventcode,
+                    summary=lrec.message.strip(),
                     agent="zeneventlog",
                     severity=sev,
                     manager=self.manager)
-        self.log.debug("device:%s msg:'%s'", name, lrec.Message)
+        self.log.debug("device:%s msg:'%s'", name, lrec.message)
         return evt
 
     def cycleInterval(self):

@@ -15,15 +15,20 @@ import Globals
 from WMIC import WMIClient
 from ProcessProxy import Record
 
-def picklable(results):
+def picklable(item):
+    obj = Record() 
+    for prop in item.Properties_.set.keys():
+        setattr(obj, prop, getattr(item, prop))
+    return obj
+    
+
+def picklableResults(results):
     ret = {}
+    import sys
     for k, v in results.items():
         values = []
         for item in v:
-            obj = Record() 
-            for prop in item.Properties_.set.keys():
-                setattr(obj, prop, getattr(item, prop))
-            values.append(obj)
+            values.append(picklable(item))
         ret[k] = values
     return ret
 
@@ -35,5 +40,5 @@ class Query:
         self.wmic.connect()
 
     def query(self, queries):
-        return picklable(self.wmic.query(queries))
+        return picklableResults(self.wmic.query(queries))
 
