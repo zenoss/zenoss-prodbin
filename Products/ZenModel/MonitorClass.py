@@ -99,7 +99,7 @@ class MonitorClass(ZenModelRM, Folder):
     def getStatusMonitorNames(self):
         """return a list of all status monitor names"""
         status = self.getDmdRoot("Monitors").StatusMonitors
-        snames = status.objectIds()
+        snames = status.objectIds(spec='StatusMonitorConf')
         snames.sort()
         return snames
 
@@ -116,7 +116,7 @@ class MonitorClass(ZenModelRM, Folder):
     def getPerformanceMonitorNames(self):
         """return a list of all performance monitor names"""
         perfServer = self.getDmdRoot("Monitors").Performance
-        cnames = perfServer.objectIds()
+        cnames = perfServer.objectIds(spec=('PerformanceConf'))
         cnames.sort()
         return cnames
             
