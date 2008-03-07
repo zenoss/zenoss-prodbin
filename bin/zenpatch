@@ -1,13 +1,28 @@
 #!/usr/bin/env bash
 CHANGESET=$1
-
-if [ -z "$CHANGESET" ]; then
-    echo "Specify changeset."
+# check to see if changeset or file have been specified
+# and whether ZENHOME is directory
+if [ -z "$CHANGESET" -a -d $ZENHOME ]; then
+    echo "Specify changeset or patch file."
     exit 1
 fi
 
-echo "http://dev.zenoss.org/trac/changeset/${CHANGESET}?format=diff&new=${CHANGESET}"
-curl "http://dev.zenoss.org/trac/changeset/${CHANGESET}?format=diff&new=${CHANGESET}" \
+# use a diff file
+if [ -e "$CHANGESET" ];	then
+    echo "using file ${CHANGESET}"
+    cp `pwd`/${CHANGESET} $ZENHOME/Products
+    DFILE=${CHANGESET}
+    STRIP=4
+# get diff from svn
+else
+    echo "http://dev.zenoss.org/trac/changeset/${CHANGESET}?format=diff&new=${CHANGESET}"
+    curl "http://dev.zenoss.org/trac/changeset/${CHANGESET}?format=diff&new=${CHANGESET}" \
     > ${ZENHOME}/Products/r${CHANGESET}.patch
+    DFILE=r${CHANGESET}.patch
+    STRIP=3
+fi
+
+# apply patch
 cd $ZENHOME/Products
-patch --strip 3 < r${CHANGESET}.patch
+echo "patch --strip $STRIP < ${DFILE}"
+patch --strip $STRIP < ${DFILE}
