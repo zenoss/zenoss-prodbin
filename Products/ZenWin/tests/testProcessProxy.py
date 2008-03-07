@@ -14,9 +14,8 @@
 import Globals
 from Products.ZenTestCase.BaseTestCase import BaseTestCase
 from Products.ZenUtils.Utils import zenPath
-from time import sleep
 
-from Products.ZenWin.ProcessProxy import ProcessProxy, TimeoutError, EofError
+from Products.ZenWin.ProcessProxy import ProcessProxy, TimeoutError
 
 TEST_DIR = 'Products/ZenWin/tests'
 
