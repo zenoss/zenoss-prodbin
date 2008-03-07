@@ -80,6 +80,41 @@
       </td>
     </tr>
     <tr>
+      <td class="tableheader">Ping Time Out (secs)</td>
+      <td class="tablevalues">
+        <input class="tablevalues" type="text" name="pingTimeOut:float" 
+            size="10" tal:attributes="value here/pingTimeOut"/>
+      </td>
+    </tr>
+    <tr>
+      <td class="tableheader">Ping Tries</td>
+      <td class="tablevalues">
+        <input class="tablevalues" type="text" name="pingTries:int" 
+            size="10" tal:attributes="value here/pingTries"/>
+      </td>
+    </tr>
+    <tr>
+      <td class="tableheader">Maximum Ping Packets in Flight</td>
+      <td class="tablevalues">
+        <input class="tablevalues" type="text" name="pingChunk:int" 
+            size="10" tal:attributes="value here/pingChunk"/>
+      </td>
+    </tr>
+    <tr>
+      <td class="tableheader">Ping Cycle Time (secs)</td>
+      <td class="tablevalues">
+        <input class="tablevalues" type="text" name="pingCycleInterval:int" 
+            size="10" tal:attributes="value here/pingCycleInterval"/>
+      </td>
+    </tr>
+    <tr>
+      <td class="tableheader">Maximum Ping Failures</td>
+      <td class="tablevalues">
+        <input class="tablevalues" type="text" name="maxPingFailures:int" 
+            size="10" tal:attributes="value here/maxPingFailures"/>
+      </td>
+    </tr>
+    <tr>
       <td class="tableheader" align="left">Render URL</td>
       <td class="tablevalues">
         <input class="tablevalues" type="text" name="renderurl" size="50"

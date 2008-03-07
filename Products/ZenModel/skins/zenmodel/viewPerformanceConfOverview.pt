@@ -53,6 +53,26 @@
       <td class="tablevalues" tal:content="here/configCycleInterval" />
     </tr>
     <tr>
+      <td class="tableheader">Ping Time Out (secs)</td>
+      <td class="tablevalues" tal:content="here/pingTimeOut" />
+    </tr>
+    <tr>
+      <td class="tableheader">Ping Tries</td>
+      <td class="tablevalues" tal:content="here/pingTries" />
+    </tr>
+    <tr>
+      <td class="tableheader">Maximum Ping Packets in Flight</td>
+      <td class="tablevalues" tal:content="here/pingChunk" />
+    </tr>
+    <tr>
+      <td class="tableheader">Ping Cycle Time (secs)</td>
+      <td class="tablevalues" tal:content="here/pingCycleInterval" />
+    </tr>
+    <tr>
+      <td class="tableheader">Maximum Ping Failures</td>
+      <td class="tablevalues" tal:content="here/maxPingFailures" />
+    </tr>
+    <tr>
       <td class="tableheader">Render URL</td>
       <td class="tablevalues" tal:content="here/renderurl" />
     </tr>
