@@ -15,7 +15,6 @@ import types
 import pywintypes
 
 import Globals
-from WMIC import WMIClient
 from WinCollector import WinCollector
 from Products.ZenEvents.ZenEventClasses import \
      Status_WinService, Status_Wmi_Conn
