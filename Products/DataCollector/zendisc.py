@@ -40,6 +40,7 @@ class ZenDisc(ZenModeler):
 
     initialServices = PBDaemon.initialServices + ['DiscoverService']
     name = 'zendisc'
+    scanned = 0
 
     def __init__(self,noopts=0,app=None,single=True,
                 threaded=False,keeproot=True):
@@ -201,6 +202,12 @@ class ZenDisc(ZenModeler):
     def discoverDevice(self, ip, devicepath="/Discovered", prodState=1000):
         """Discover a device based on its ip address.
         """
+        self.scanned += 1
+        if self.options.maxdevices:
+            if self.scanned >= self.options.maxdevices:
+                self.log.info("Limit of %d devices reached" %
+                              self.options.maxdevices)
+                return succeed(None)
         self.log.debug("Scanning device with address %s", ip)
         def inner(driver):
             try:
@@ -429,6 +436,10 @@ class ZenDisc(ZenModeler):
         self.parser.add_option('--walk', dest='walk', action='store_true',
                     default=False,
                     help="Walk the route tree, performing discovery on all networks")
+        self.parser.add_option('--max-devices', dest='maxdevices',
+                    default=0,
+                    type='int',
+                    help="Collect a maximum number of devices. Default is no limit.")
 
 
 
