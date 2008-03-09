@@ -385,7 +385,7 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
         @type me: L{ManagedEntity}
         @param resultFields: The columns to return from the database.
         @type resultFields: list
-        @param where: DEPRECATED The base where clause to modify (ignored).
+        @param where: The base where clause to modify.
         @type where: string
         @param orderby: The "ORDER BY" string governing sort order.
         @type orderby: string
@@ -415,7 +415,9 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
         @todo: Remove unused parameters from the method definition
         """
         unused(getTotalCount, rows)
-        where = self.lookupManagedEntityWhere(me)
+        newwhere = self.lookupManagedEntityWhere(me)
+        if where: newwhere = self._wand(newwhere, '%s%s', where, '')
+        where = newwhere
         badevidsstr, goodevidsstr = '',''
         if not isinstance(goodevids, (list, tuple)): goodevids = [goodevids]
         if not isinstance(badevids, (list, tuple)): badevids = [badevids]
@@ -1930,6 +1932,7 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
                     evmap.eventClassKey = evclasskey
                     evmap.example = msg
                     numCreated += 1
+                    evmap.index_object()
             finally: self.close(conn)
         elif REQUEST:
             if not evids:

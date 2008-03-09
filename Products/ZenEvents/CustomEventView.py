@@ -247,6 +247,7 @@ class CustomEventView(ZenModelRM, EventFilter):
         """
         unused(count)
         evids = self.getEventManager().getEventBatchME(self.dmd.Events,
+                                            where=self.getWhere(),
                                             selectstatus=selectstatus,
                                             goodevids=goodevids, 
                                             badevids=badevids, 
@@ -285,6 +286,7 @@ class CustomEventView(ZenModelRM, EventFilter):
         """
         unused(count)
         evids = self.ZenEventHistory.getEventBatchME(self.dmd.Events, 
+                                            where=self.getWhere(),
                                             selectstatus=selectstatus,
                                             goodevids=goodevids, 
                                             badevids=badevids, 
@@ -314,6 +316,7 @@ class CustomEventView(ZenModelRM, EventFilter):
         """
         unused(count)
         evids = self.getEventManager().getEventBatchME(self.dmd.Events, 
+                                            where=self.getWhere(),
                                             selectstatus=selectstatus,
                                             goodevids=goodevids, 
                                             badevids=badevids, 
