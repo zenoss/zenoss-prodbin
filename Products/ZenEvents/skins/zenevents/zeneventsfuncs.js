@@ -226,10 +226,15 @@ RefreshManager.prototype = {
         bindMethods(this);
         this.time = time;
         this.func = func;
+        this.firstTime = true;
         this.doRefresh();
     },
     doRefresh: function() {
-        this.func();
+        if (!this.firstTime) {
+            this.func();
+        } else {
+            this.firstTime = false;
+        }
         this.current = callLater(this.time, this.doRefresh);
     },
     cancelRefresh: function() {
