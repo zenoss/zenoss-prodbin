@@ -328,6 +328,7 @@ ZenGrid.prototype = {
         bufOffset = this.buffer.startPos;
         qs = update(this.lastparams, {
                 'offset':this.buffer.startPos,
+                'getTotalCount':1,
                 'count':this.numRows });
         if ('askformore' in this) this.askformore.cancel()
         this.askformore = loadJSONDoc(this.url, qs);
