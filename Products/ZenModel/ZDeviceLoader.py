@@ -119,7 +119,7 @@ class ZDeviceLoader(ZenModelItem,SimpleItem):
         except NoSnmp, e:
             log.info(e)
             if xmlrpc: return 3
-        except e:
+        except Exception, e:
             log.exception(e)
             log.exception('load of device %s failed' % deviceName)
             transaction.abort()
