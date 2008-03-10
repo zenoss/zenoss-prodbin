@@ -96,7 +96,6 @@ class zeneventlog(WinCollector):
             except ProcessProxyError, ex:
                 import traceback
                 traceback.print_exc()
-                import pdb; pdb.set_trace()
                 self.sendEvent(dict(summary="WMI Timeout",
                                     eventClass=Status_Wmi_Conn,
                                     device=device.id,
