@@ -251,6 +251,9 @@ class PBDaemon(ZenDaemon, pb.Referenceable):
         self.sigTerm()
 
 
+    def remote_setPropertyItems(self, items):
+        pass
+
     def remote_updateThresholdClasses(self, classes):
         from Products.ZenUtils.Utils import importClass
         self.log.debug("Loading classes %s", classes)
