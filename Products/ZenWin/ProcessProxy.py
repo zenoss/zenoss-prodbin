@@ -17,7 +17,6 @@ __doc__ = "Call a python object via an external process"
 import os
 def zenPath(*parts):
     return os.path.join(os.environ['ZENHOME'], *parts)
-import sys
 import pickle
 import select
 import signal
