@@ -18,6 +18,7 @@ Creates events from SNMP Traps.
 '''
 
 import time
+import sys
 import socket
 
 import Globals
@@ -33,9 +34,12 @@ from Products.ZenUtils.Driver import drive
 import ctypes as c
 
 # This is what struct sockaddr_in {} looks like
+family = [('family', c.c_ushort)]
+if sys.platform == 'darwin':
+    family = [('len', c.c_ubyte), ('family', c.c_ubyte)]
+
 class sockaddr_in(c.Structure):
-    _fields_ = [
-        ('family', c.c_ushort),
+    _fields_ = family + [
         ('port', c.c_ubyte * 2),        # need to decode from net-byte-order
         ('addr', c.c_ubyte * 4)
         ];
@@ -78,7 +82,6 @@ class ZenTrap(EventServer):
         self.oidCache = {}
         self.session.callback = self.handleTrap
         twistedsnmp.updateReactor()
-        self.heartbeat()
 
     def oid2name(self, oid):
         'get oid name from cache or ZenHub'
