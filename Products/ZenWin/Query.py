@@ -24,7 +24,6 @@ def picklable(item):
 
 def picklableResults(results):
     ret = {}
-    import sys
     for k, v in results.items():
         values = []
         for item in v:
