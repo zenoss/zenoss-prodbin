@@ -16,8 +16,6 @@ __doc__='''
 '''
 import Globals
 import Migrate
-import os
-import os.path
 from Products.ZenUtils.Utils import zenPath
 
 class zpSiteCustomize(Migrate.Step):
