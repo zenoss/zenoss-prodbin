@@ -31,7 +31,7 @@ class CiscoMap(SnmpPlugin):
    
     def condition(self, device, log):
         """does device meet the proper conditions for this collector to run"""
-        return device.snmpOid.startswith('.1.3.6.1.4.1.9')
+        return device.snmpOid and device.snmpOid.startswith('.1.3.6.1.4.1.9')
 
 
     def process(self, device, results, log):
