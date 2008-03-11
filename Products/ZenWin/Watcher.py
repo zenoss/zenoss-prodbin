@@ -12,7 +12,7 @@
 ###########################################################################
 
 import Globals
-from WMIC import WMIClient
+from WMIClient import WMIClient
 
 def debug(msg):
     pass

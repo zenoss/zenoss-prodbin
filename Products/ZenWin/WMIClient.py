@@ -14,7 +14,7 @@
 import socket
 import win32com.client
 import logging
-log = logging.getLogger("zen.wmiclient")
+log = logging.getLogger("zen.WMIClient.WMIClient")
 
 locator = win32com.client.Dispatch("WbemScripting.SWbemLocator")
 refresher = win32com.client.Dispatch("WbemScripting.SWbemRefresher")
@@ -24,33 +24,34 @@ def refresh():
     """
     refresher.refresh()
 
+#class WMI(object):
+class WMIClient(object):
 
-class WMI(object):
-
-
-    def __init__(self,
-                 name=".",
-                 ip=None,
-                 user="",
-                 passwd="",
-                 authority="",
-                 namespace="root\cimv2", locale="", flags=0, valueset=None):
-        self.host = name
-        if socket.getfqdn().lower() == name.lower(): 
+    def __init__(self, device, datacollector=None, plugins=[]):
+        self.host = device.id
+        if socket.getfqdn().lower() == device.id.lower(): 
             self.host = "."
-            user = passwd = authority = ""
-        elif ip is not None:
-            self.host = ip
-        self.name = name
-        self.user = user
-        self.passwd = passwd
-        self.authority = authority
-        self.namespace = namespace
-        self.locale = locale
-        self.flags = flags
-        self.valueset = valueset
+            device.zWinUser = device.zWinPassword = ""
+        elif device.manageIp is not None:
+            self.host = device.manageIp
+        self.name = device.id
+        self.user = device.zWinUser
+        self.passwd = device.zWinPassword
+        
+        self.authority = ""
+        self.namespace = "root\cimv2"
+        self.locale = ""
+        self.flags = 0
+        self.valueset = None
+        self.datacollector = datacollector
+        self.plugins = plugins
 
-
+        #self._getdata = {}
+        #self._tabledata = {}
+        
+        self.results = []
+        
+    
     def connect(self):
         log.debug("connect to %s, user %s", self.host, self.user)
         self._wmi = locator.ConnectServer(self.host,
@@ -67,14 +68,34 @@ class WMI(object):
             del self._wmi
 
 
-    def query(self, wql):
+    def query(self, queries):
         if not hasattr(self, '_wmi'): 
             raise ValueError("WMI connection is closed")
         #flags = wbemFlagReturnImmediately | wbemFlagForwardOnly
         flags = 0x10 | 0x20
-        wql = wql.replace ("\\", "\\\\")
-        return self._wmi.ExecQuery(wql, iFlags=flags)
+        queryResult = {}
+        for (tableName, query) in queries.items():
+            query = query.replace ("\\", "\\\\")
+            queryResult[tableName] = self._wmi.ExecQuery(query, iFlags=flags)
+        return queryResult
 
+
+    def run(self):
+        self.connect()
+        for plugin in self.plugins:
+            pluginName = plugin.name()
+            log.debug("Sending queries for plugin: %s", pluginName)
+            log.debug("Queries: %s" % str(plugin.queries().values()))
+            result = self.query(plugin.queries())
+            self.results.append((plugin, result))
+        self.close()
+        
+        
+    def getResults(self):
+        """Return data for this client
+        """
+        return self.results 
+        
 
     def addEnum(self, classname):
         """Add a set of classname instances to the refresher
@@ -128,4 +149,5 @@ class _watcher(object):
         """Poll for next event wait timeout for response return value.
         """
         return self.event.NextEvent(timeout).Properties_("TargetInstance").Value
+
 
