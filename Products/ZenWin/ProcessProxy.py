@@ -32,6 +32,8 @@ class TimeoutError(ProcessProxyError): pass
 
 class Record(object): pass
 
+SIZE_SIZE = struct.calcsize('L')
+
 class ProcessProxy:
 
     def __init__(self, filename, classname):
@@ -83,7 +85,7 @@ class ProcessProxy:
         rd, wr, ex = select.select([self.process.stdout], [], [], waitTime)
         if not rd:
             raise TimeoutError
-        response = self.process.stdout.read(4)
+        response = self.process.stdout.read(SIZE_SIZE)
         if not response:
             raise EofError
         responseLen, = struct.unpack("L", response)
@@ -108,7 +110,7 @@ def run():
     import sys
     obj = None
     while 1:
-        length = sys.stdin.read(4)
+        length = sys.stdin.read(SIZE_SIZE)
         if not length:
             sys.exit(0)
         if obj is None:
