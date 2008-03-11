@@ -367,6 +367,7 @@ class MaintenanceWindow(ZenModelRM):
                 state = self.stopProductionStates.get(device.id,
                         device.productionState)
             self.stopProductionStates[device.id] = device.productionState
+            self._p_changed = 1
             device.setProdState(state)
 
 
