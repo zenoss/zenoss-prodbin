@@ -172,6 +172,7 @@ class ProductClass(ZenModelRM, ZenPackable):
         self.partNumber = partNumber
         self.description = description
         self.isOS = isOS
+        self.name = name
         if REQUEST:
             from Products.ZenUtils.Time import SaveMessage
             REQUEST['message'] = SaveMessage()
