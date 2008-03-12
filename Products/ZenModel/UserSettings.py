@@ -901,6 +901,13 @@ class GroupSettings(UserSettings):
         for username in self.getMemberUserIds():
             result.extend(self.getUserSettings(username).getEmailAddresses())
         return result
+
+    def getPagerAddresses(self):
+        result = []
+        for username in self.getMemberUserIds():
+            result.extend(self.getUserSettings(username).getPagerAddresses())
+        return result
+
     
 InitializeClass(UserSettingsManager)
 InitializeClass(UserSettings)
