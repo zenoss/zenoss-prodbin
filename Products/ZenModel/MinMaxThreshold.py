@@ -112,10 +112,13 @@ InitializeClass(MinMaxThreshold)
 MinMaxThresholdClass = MinMaxThreshold
 
 class MinMaxThresholdInstance(ThresholdInstance):
+    # Not strictly necessary, but helps when restoring instances from
+    # pickle files that were not constructed with a count member.
     count = {}
     
     def __init__(self, id, context, dpNames,
                  minval, maxval, eventClass, severity, escalateCount):
+        self.count = {}
         self._context = context
         self.id = id
         self.minimum = minval
