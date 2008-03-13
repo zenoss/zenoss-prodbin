@@ -32,6 +32,7 @@ from AccessControl import ClassSecurityInfo
 from AccessControl import Permissions as permissions
 
 from Products.AdvancedQuery import MatchGlob, Or, Eq
+from Products.CMFCore.utils import getToolByName
 
 from Products.ZenRelations.RelSchema import *
 from Products.ZenUtils.Search import makeCaseInsensitiveFieldIndex
@@ -648,7 +649,7 @@ class DeviceClass(DeviceOrganizer, ZenPackable):
 
     def reIndex(self):
         """Go through all devices in this tree and reindex them."""
-        zcat = self._getOb(self.default_catalog)
+        zcat = getToolByName(self, self.default_catalog)
         zcat.manage_catalogClear()
         self.componentSearch.manage_catalogClear()
         transaction.savepoint()
