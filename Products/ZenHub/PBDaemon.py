@@ -27,6 +27,23 @@ from twisted.internet import reactor, defer
 from twisted.cred import credentials
 from twisted.spread import pb
 
+class RemoteException(Exception, pb.Copyable, pb.RemoteCopy):
+    "Exception that can cross the PB barrier"
+    def __init__(self, msg, tb):
+        Exception.__init__(self, msg)
+        self.traceback = tb
+pb.setUnjellyableForClass(RemoteException, RemoteException)
+        
+def translateError(callable):
+    def inner(*args, **kw):
+        try:
+            return callable(*args, **kw)
+        except Exception, ex:
+            import traceback
+            raise RemoteException('Remote exception: %s: %s' % (ex.__class__, ex),
+                                  traceback.format_exc())
+    return inner
+
 from Products.ZenEvents.ZenEventClasses import App_Start, App_Stop, \
                                                 Clear, Warning
 
@@ -254,6 +271,8 @@ class PBDaemon(ZenDaemon, pb.Referenceable):
     def remote_setPropertyItems(self, items):
         pass
 
+
+    @translateError
     def remote_updateThresholdClasses(self, classes):
         from Products.ZenUtils.Utils import importClass
         self.log.debug("Loading classes %s", classes)
@@ -262,6 +281,7 @@ class PBDaemon(ZenDaemon, pb.Referenceable):
                 importClass(c)
             except ImportError:
                 self.log.exception("Unable to import class %s", c)
+
 
     def buildOptions(self):
         self.parser.add_option('--hub-host',
