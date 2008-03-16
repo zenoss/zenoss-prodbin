@@ -21,6 +21,7 @@ from Products.ZenRRD.Thresholds import Thresholds
 from RRDImpl import RRDImpl
 import logging
 log = logging.getLogger("zenhub")
+from Products.ZenHub.PBDaemon import translateError
 
 class RRDService(HubService):
 
@@ -33,6 +34,7 @@ class RRDService(HubService):
         self.rrdimpl = RRDImpl(dmd)
 
 
+    @translateError
     def remote_writeRRD(self, devId, compType, compId, dpName, value):
         '''Write the given data to its rrd file.
         Also check any thresholds and send events if value is out of bounds.

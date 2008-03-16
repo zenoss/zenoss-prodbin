@@ -14,11 +14,13 @@
 from Products.ZenStatus import pingtree
 from Products.ZenHub.services.PerformanceConfig import PerformanceConfig
 from Products.ZenHub.HubService import threaded
+from Products.ZenHub.PBDaemon import translateError
 
 class PingConfig(PerformanceConfig):
     "Support zenping configuration loading"
 
     @threaded
+    @translateError
     def remote_getPingTree(self, root, fallbackIp):
         me = self.dmd.Devices.findDevice(root)
         if not me:

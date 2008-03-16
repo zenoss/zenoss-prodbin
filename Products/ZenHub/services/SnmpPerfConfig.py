@@ -12,6 +12,7 @@
 ###########################################################################
 
 from PerformanceConfig import PerformanceConfig
+from Products.ZenHub.PBDaemon import translateError
 
 from sets import Set
 
@@ -59,6 +60,7 @@ def getDeviceConfig(dev):
 
 class SnmpPerfConfig(PerformanceConfig):
 
+    @translateError
     def remote_getDevices(self, devices=None):
         """Return the subset of devices that should be monitored.
         
@@ -83,8 +85,10 @@ class SnmpPerfConfig(PerformanceConfig):
         return getDeviceConfig(device)
 
 
+    @translateError
     def remote_getDeviceConfigs(self, devices):
         "Fetch the configs for the given devices"
+        raise AttributeError("onos! it is teh broken")
         result = []
         for d in devices:
             device = self.dmd.Devices.findDevice(d)
@@ -95,6 +99,7 @@ class SnmpPerfConfig(PerformanceConfig):
         return result
 
 
+    @translateError
     def remote_getDeviceUpdates(self, devices):
         """Return a list of devices that have changed.
         Takes a list of known devices and the time of last known change.

@@ -13,6 +13,7 @@
 #! /usr/bin/env python 
 
 from Products.ZenHub.HubService import HubService
+from Products.ZenHub.PBDaemon import translateError
 
 from Products.ZenEvents.ZenEventClasses import Status_IpService
 from Products.ZenModel.Device import Device
@@ -45,15 +46,18 @@ class StatusConfig(HubService, ThresholdMixin):
         self.config = self.dmd.Monitors.Performance._getOb(self.instance)
         self.procrastinator = Procrastinate(self.notify)
 
+    @translateError
     def remote_propertyItems(self):
         return self.config.propertyItems()
 
+    @translateError
     def remote_serviceStatus(self):
         zem = self.dmd.ZenEventManager
         status = zem.getAllComponentStatus(Status_IpService)
         devices = Set([d.id for d in self.config.devices()])
         return [x for x in status.items() if x[0][0] in devices]
 
+    @translateError
     def remote_services(self, unused):
         result = []
         for dev in self.config.devices():
@@ -64,6 +68,7 @@ class StatusConfig(HubService, ThresholdMixin):
                 result.append(ServiceConfig(svc))
         return result
 
+    @translateError
     def remote_getDefaultRRDCreateCommand(self):
         return self.config.getDefaultRRDCreateCommand()
 

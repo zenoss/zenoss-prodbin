@@ -11,8 +11,11 @@
 #
 ###########################################################################
 
+from Products.ZenHub.PBDaemon import translateError
+
 class ThresholdMixin:
 
+    @translateError
     def remote_getThresholdClasses(self):
         from Products.ZenModel.MinMaxThreshold import MinMaxThreshold
         classes = [MinMaxThreshold]
@@ -21,6 +24,7 @@ class ThresholdMixin:
         return map(lambda c: c.__module__, classes)
 
 
+    @translateError
     def remote_getCollectorThresholds(self):
         from Products.ZenModel.BuiltInDS import BuiltInDS
         return self.config.getThresholdInstances(BuiltInDS.sourcetype)

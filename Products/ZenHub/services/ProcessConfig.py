@@ -15,6 +15,7 @@ from PerformanceConfig import PerformanceConfig
 from ZODB.POSException import POSError
 
 from Products.ZenRRD.zenprocess import Device, Process
+from Products.ZenHub.PBDaemon import translateError
 
 def getOSProcessConf(dev):
     """
@@ -92,10 +93,12 @@ class ProcessConfig(PerformanceConfig):
         return result
 
 
+    @translateError
     def remote_getOSProcessConf(self, devices=None):
         return self.getOSProcessConf(devices)
 
 
+    @translateError
     def remote_getProcessStatus(self, devices=None):
         return self.getProcessStatus(devices)
 
@@ -108,6 +111,7 @@ class ProcessConfig(PerformanceConfig):
         return listener.callRemote('updateDevice', config)
 
 
+    @translateError
     def remote_getZenProcessParallelJobs(self):
         return self.config.zenProcessParallelJobs
 

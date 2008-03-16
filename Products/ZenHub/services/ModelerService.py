@@ -12,6 +12,7 @@
 ###########################################################################
 
 from Products.ZenHub.HubService import HubService
+from Products.ZenHub.PBDaemon import translateError
 from Products.DataCollector.DeviceProxy import DeviceProxy
 
 from Products.DataCollector.Plugins import loadPlugins
@@ -46,6 +47,7 @@ class ModelerService(HubService):
                 plugin.copyDataToProxy(dev, result)
         return result
 
+    @translateError
     def remote_getDeviceConfig(self, names):
         result = []
         for name in names:
@@ -59,16 +61,19 @@ class ModelerService(HubService):
             result.append(self.createDeviceProxy(device))
         return result
 
+    @translateError
     def remote_getDeviceListByMonitor(self, monitor=None):
         if monitor is None:
             monitor = self.instance
         monitor = self.dmd.Monitors.Performance._getOb(monitor)
         return [d.id for d in monitor.devices.objectValuesGen()]
     
+    @translateError
     def remote_getDeviceListByOrganizer(self, organizer):
         root = self.dmd.Devices.getOrganizer(organizer)
         return [d.id for d in root.getSubDevicesGen()]
 
+    @translateError
     def remote_applyDataMaps(self, device, maps):
         from Products.DataCollector.ApplyDataMap import ApplyDataMap
         device = self.dmd.Devices.findDevice(device)
@@ -86,6 +91,7 @@ class ModelerService(HubService):
             trans.commit()
         return changed
 
+    @translateError
     def remote_setSnmpLastCollection(self, device):
         device = self.dmd.Devices.findDevice(device)
         device.setSnmpLastCollection()

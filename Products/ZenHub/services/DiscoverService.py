@@ -19,6 +19,7 @@ from Products.ZenEvents.Event import Event
 from Products.ZenEvents.ZenEventClasses import Status_Ping
 from Products.ZenModel.Device import manage_createDevice
 from Products.ZenUtils.IpUtil import isip
+from Products.ZenHub.PBDaemon import translateError
 
 import transaction
 
@@ -62,6 +63,7 @@ pb.setUnjellyableForClass(IpNetProxy, IpNetProxy)
 
 class DiscoverService(ModelerService):
 
+    @translateError
     def remote_getNetworks(self, net, includeSubNets):
         "Get network objects to scan"
         netObj = self.dmd.Networks.findNet(net, includeSubNets)
@@ -73,6 +75,7 @@ class DiscoverService(ModelerService):
         return map(IpNetProxy, nets)
 
 
+    @translateError
     def remote_pingStatus(self, net, goodips, badips, resetPtr, addInactive):
         "Create objects based on ping results"
         net = self.dmd.Networks.findNet(net.id)
@@ -123,6 +126,7 @@ class DiscoverService(ModelerService):
 
 
 
+    @translateError
     def remote_createDevice(self, ip, **kw):
         """Create a device.
 
@@ -146,6 +150,7 @@ class DiscoverService(ModelerService):
         return self.createDeviceProxy(dev), True
 
 
+    @translateError
     def remote_followNextHopIps(self, device):
         """
         Return the ips that the device's indirect routes point to
@@ -159,11 +164,13 @@ class DiscoverService(ModelerService):
         return ips
 
 
+    @translateError
     def remote_getSubNetworks(self):
         "Fetch proxies for all the networks"
         return map(IpNetProxy, self.dmd.Networks.getSubNetworks())
 
 
+    @translateError
     def remote_getSnmpConfig(self, devicePath):
         "Get the snmp configuration defaults for scanning a device"
         devroot = self.dmd.Devices.createOrganizer(devicePath)
@@ -174,6 +181,7 @@ class DiscoverService(ModelerService):
                 devroot.zSnmpTries)
         
 
+    @translateError
     def remote_moveDevice(self, dev, path):
         self.dmd.Devices.moveDevices(path, [dev])
         transaction.commit()

@@ -15,6 +15,7 @@ import Globals
 from Products.ZenEvents.ZenEventClasses import Status_Snmp
 
 from Products.ZenHub.HubService import HubService
+from Products.ZenHub.PBDaemon import translateError
 
 from Products.ZenModel.Device import Device
 from Acquisition import aq_parent
@@ -114,10 +115,12 @@ class PerformanceConfig(HubService, ThresholdMixin):
         self.procrastinator = Procrastinate(self.pushConfig)
 
 
+    @translateError
     def remote_propertyItems(self):
         return self.config.propertyItems()
 
 
+    @translateError
     def remote_getSnmpStatus(self, devname=None):
         "Return the failure counts for Snmp" 
         counts = {}
