@@ -738,26 +738,6 @@ True
 80.0
 </property>
 </object>
-<object id='setStatusMonitors_grid' module='Products.ZenModel.ZenMenuItem' class='ZenMenuItem'>
-<property type="text" id="description" mode="w" >
-Set Status Monitors...
-</property>
-<property type="text" id="action" mode="w" >
-dialog_setStatusMonitors_grid
-</property>
-<property type="boolean" id="isglobal" mode="w" >
-True
-</property>
-<property type="lines" id="permissions" mode="w" >
-('Change Device',)
-</property>
-<property type="boolean" id="isdialog" mode="w" >
-True
-</property>
-<property type="float" id="ordering" mode="w" >
-15.0
-</property>
-</object>
 <object id='setSystems_grid' module='Products.ZenModel.ZenMenuItem' class='ZenMenuItem'>
 <property type="text" id="description" mode="w" >
 Set Systems...
@@ -963,26 +943,6 @@ True
 80.0
 </property>
 </object>
-<object id='setStatusMonitors' module='Products.ZenModel.ZenMenuItem' class='ZenMenuItem'>
-<property type="text" id="description" mode="w" >
-Set Status Monitors...
-</property>
-<property type="text" id="action" mode="w" >
-dialog_setStatusMonitors
-</property>
-<property type="boolean" id="isglobal" mode="w" >
-True
-</property>
-<property type="lines" id="permissions" mode="w" >
-('Change Device',)
-</property>
-<property type="boolean" id="isdialog" mode="w" >
-True
-</property>
-<property type="float" id="ordering" mode="w" >
-16.0
-</property>
-</object>
 <object id='setSystems' module='Products.ZenModel.ZenMenuItem' class='ZenMenuItem'>
 <property type="text" id="description" mode="w" >
 Set Systems...
@@ -1123,29 +1083,6 @@ True
 </property>
 <property type="float" id="ordering" mode="w" >
 80.0
-</property>
-</object>
-<object id='setStatusMonitors' module='Products.ZenModel.ZenMenuItem' class='ZenMenuItem'>
-<property type="text" id="description" mode="w" >
-Set Status Monitors...
-</property>
-<property type="text" id="action" mode="w" >
-dialog_setStatusMonitors_global
-</property>
-<property type="boolean" id="isglobal" mode="w" >
-True
-</property>
-<property type="lines" id="permissions" mode="w" >
-('Change Device',)
-</property>
-<property type="lines" id="allowed_classes" mode="w" >
-['DeviceClass', 'DeviceGroup', 'Location', 'System']
-</property>
-<property type="boolean" id="isdialog" mode="w" >
-True
-</property>
-<property type="float" id="ordering" mode="w" >
-15.0
 </property>
 </object>
 <object id='setSystems' module='Products.ZenModel.ZenMenuItem' class='ZenMenuItem'>
@@ -3914,70 +3851,6 @@ Delete Services...
 </property>
 <property type="text" id="action" mode="w" >
 dialog_removeServiceClasses
-</property>
-<property type="boolean" id="isglobal" mode="w" >
-True
-</property>
-<property type="lines" id="permissions" mode="w" >
-('Manage DMD',)
-</property>
-<property type="boolean" id="isdialog" mode="w" >
-True
-</property>
-<property type="float" id="ordering" mode="w" >
-80.0
-</property>
-</object>
-</tomanycont>
-</object>
-<object id='StatusMonitor_list' module='Products.ZenModel.ZenMenu' class='ZenMenu'>
-<tomanycont id='zenMenuItems'>
-<object id='addSMonitor' module='Products.ZenModel.ZenMenuItem' class='ZenMenuItem'>
-<property type="text" id="description" mode="w" >
-Add Monitor...
-</property>
-<property type="text" id="action" mode="w" >
-dialog_addMonitor
-</property>
-<property type="boolean" id="isglobal" mode="w" >
-True
-</property>
-<property type="lines" id="permissions" mode="w" >
-('Manage DMD',)
-</property>
-<property type="boolean" id="isdialog" mode="w" >
-True
-</property>
-<property type="float" id="ordering" mode="w" >
-90.0
-</property>
-</object>
-<object id='performanceTemplates' module='Products.ZenModel.ZenMenuItem' class='ZenMenuItem'>
-<property type="text" id="description" mode="w" >
-Templates
-</property>
-<property type="text" id="action" mode="w" >
-performanceTemplates
-</property>
-<property type="boolean" id="isglobal" mode="w" >
-True
-</property>
-<property type="lines" id="permissions" mode="w" >
-('View Device',)
-</property>
-<property type="boolean" id="isdialog" mode="w" >
-False
-</property>
-<property type="float" id="ordering" mode="w" >
-16.0
-</property>
-</object>
-<object id='removeSMonitors' module='Products.ZenModel.ZenMenuItem' class='ZenMenuItem'>
-<property type="text" id="description" mode="w" >
-Delete Monitors...
-</property>
-<property type="text" id="action" mode="w" >
-dialog_removeMonitors
 </property>
 <property type="boolean" id="isglobal" mode="w" >
 True

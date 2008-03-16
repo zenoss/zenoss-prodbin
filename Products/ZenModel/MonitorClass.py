@@ -86,23 +86,6 @@ class MonitorClass(ZenModelRM, Folder):
     def __init__(self, id, title=None, buildRelations=True):
         ZenModelRM.__init__(self, id, title, buildRelations)
 
-    def getStatusMonitor(self, monitorName):
-        """get or create the status monitor name"""
-        from Products.ZenModel.StatusMonitorConf \
-            import manage_addStatusMonitorConf
-        statusMonitorObj = self.getDmdRoot("Monitors").StatusMonitors
-        if not hasattr(statusMonitorObj, monitorName):
-            manage_addStatusMonitorConf(statusMonitorObj, monitorName)
-        return statusMonitorObj._getOb(monitorName)
-
-
-    def getStatusMonitorNames(self):
-        """return a list of all status monitor names"""
-        status = self.getDmdRoot("Monitors").StatusMonitors
-        snames = status.objectIds(spec='StatusMonitorConf')
-        snames.sort()
-        return snames
-
     def getPerformanceMonitor(self, monitorName):
         """get or create the performance monitor name"""
         from Products.ZenModel.PerformanceConf \

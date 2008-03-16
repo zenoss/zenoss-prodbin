@@ -10,10 +10,9 @@
 
 
         <tal:block tal:define="objects python:submonitor.objectSubValues();
-    menu_id python:test(submonitor.id=='Performance','Performance','Status') + 'Monitor_list';
+    menu_id python:submonitor.id + 'Monitor_list';
     tableName string:monitorlist;
-    submonname python:test(submonitor.id=='Performance',
-                'Performance Monitors', 'Status Monitors');
+    submonname python:submonitor.id + ' Monitors';
     batch python:here.ZenTableManager.getBatch(tableName,objects); 
     tabletitle submonname">
         <tal:block metal:use-macro="here/zenuimacros/macros/zentable">

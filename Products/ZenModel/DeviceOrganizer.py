@@ -237,29 +237,6 @@ class DeviceOrganizer(Organizer, DeviceManagerBase, Commandable, ZenMenuable,
                 return self.callZenScreen(REQUEST)
 
     
-    def setStatusMonitors(self, statusMonitors=None, deviceNames=None, 
-                                isOrganizer=False, REQUEST=None):
-        """ Provide a method to set status monitors from any organizer """
-        if not statusMonitors:
-            if REQUEST: REQUEST['message'] = "No Monitor Selected"
-            return self.callZenScreen(REQUEST)
-        if deviceNames is None and not isOrganizer:
-            if REQUEST: REQUEST['message'] = "No Devices Selected"
-            return self.callZenScreen(REQUEST)
-        for dev in self._buildDeviceList(deviceNames):
-            dev.setStatusMonitors(statusMonitors)
-        if REQUEST:
-            if len(statusMonitors) == 1:
-                 REQUEST['message'] = "Status monitor set to %s" % statusMonitors
-            elif len(statusMonitors) > 1:
-                REQUEST['message'] = "Status monitor set to %s" % ", ".join(statusMonitors)
-            else:
-                REQUEST['message'] = "Status monitor unset"
-            if REQUEST.has_key('oneKeyValueSoInstanceIsntEmptyAndEvalToFalse'):
-                return REQUEST['message']
-            else:
-                return self.callZenScreen(REQUEST)
-
     def setPerformanceMonitor(self, performanceMonitor=None, deviceNames=None, 
                                 isOrganizer=False, REQUEST=None):
         """ Provide a method to set performance monitor from any organizer """

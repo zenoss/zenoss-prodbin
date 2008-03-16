@@ -34,7 +34,7 @@ class BasicDeviceLoader:
     def loadDevice(self, deviceName, devicePath="", systemPath="",
                 manufacturer="", model="", groupPath="",
                 locationPath="", rack="",
-                statusMonitorName="localhost", perfMonitorName="localhost",
+                perfMonitorName="localhost",
                 snmpCommunity="", snmpPort=None,
                 loginName="", loginPassword=""):
         """load a device into the database"""
@@ -66,11 +66,6 @@ class BasicDeviceLoader:
         if systemPath:
             info("setting system %s" % systemPath)
             device.setSystems(systemPath)
-
-        if not statusMonitorName:
-            statusMonitorName = self.getStatusMonitorName()
-        info("setting status monitor to %s" % statusMonitorName)
-        device.setStatusMonitor(statusMonitorName)
 
         if not perfMonitorName:
             perfMonitorName = self.getPerformanceMonitorName()
@@ -118,11 +113,6 @@ class BasicDeviceLoader:
         """override if you need to derive the system name from something else"""
         pass
        
-
-    def getStatusMonitorName(self):
-        """return the status monitor name, default is localhost"""
-        return "localhost"
-      
 
     def getPerformanceMonitorName(self):
         """return the performance monitor name, default is localhost"""

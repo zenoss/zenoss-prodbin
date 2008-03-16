@@ -320,32 +320,6 @@
             </td>
         </tr>
         <tr>
-            <td class="tableheader" align="left">Status Monitors</td>
-            <td class="tablevalues" align="left" colspan=3>
-                <select class="tablevalues" name="statusMonitors:list" multiple
-                tal:define="
-                mons python:here.getDmdRoot('Monitors').getStatusMonitorNames();
-                curmons device/getStatusMonitorNames | 
-                        request/statusMonitors | string:localhost"
-                >
-                    <option tal:repeat="mon mons" 
-                        tal:attributes="value mon;
-                            selected python:curmons and mon in curmons"
-                        tal:content="mon">localhost</option>
-                </select>
-            </td>
-        </tr>
-        <tr>
-            <td class="tableheader" align="left">New StatusMonitor</td>
-            <td class="tablevalues" align="left" colspan="3">
-                <input class="tablevalues" type="text" 
-                 size="40" name="newStatusMonitor"
-                 onkeypress="return submitViaEnter(event,'addStatusMonitor');"/>
-                <input class="tableheader" type="submit" 
-                    name="addStatusMonitor:method" value="Add" />
-            </td>
-        </tr>
-        <tr>
             <td class="tableheader" align="left">Performance Monitor</td>
             <td class="tablevalues" align="left" colspan=3>
                 <select class="tablevalues" name="performanceMonitor"

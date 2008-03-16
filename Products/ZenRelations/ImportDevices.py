@@ -57,7 +57,6 @@ class ImportDevices(ZCmdBase):
         d = dict(
             systemPaths = [],
             groupPaths = [],
-            statusMonitors = [],
             performanceMonitor = '',
             locationPath = ''
         )

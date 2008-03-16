@@ -129,3 +129,4 @@ import makeZenPackManager
 import hwrelations
 import restoreRemoveZenPackMenuItem
 import makeTemplateCatalog
+import removeStatusMonitor

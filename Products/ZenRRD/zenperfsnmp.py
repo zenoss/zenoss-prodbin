@@ -235,7 +235,7 @@ class OidData:
 class zenperfsnmp(SnmpDaemon):
     "Periodically query all devices for SNMP values to archive in RRD files"
     
-    # these names need to match the property values in StatusMonitorConf
+    # these names need to match the property values in PerformanceMonitorConf
     maxRrdFileAge = 30 * (24*60*60)     # seconds
     perfsnmpConfigInterval = 20*60
     perfsnmpCycleInterval = 5*60

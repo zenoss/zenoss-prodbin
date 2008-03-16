@@ -66,7 +66,7 @@ def manage_createDevice(context, deviceName, devicePath="/Discovered",
             hwManufacturer="", hwProductName="",
             osManufacturer="", osProductName="",
             locationPath="", groupPaths=[], systemPaths=[],
-            statusMonitors=["localhost"], performanceMonitor="localhost",
+            performanceMonitor="localhost",
             discoverProto="snmp", priority=3, manageIp=None):
     """
     Device factory creates a device and sets up its relations and collects its
@@ -143,7 +143,7 @@ def manage_createDevice(context, deviceName, devicePath="/Discovered",
                 hwManufacturer, hwProductName,
                 osManufacturer, osProductName,
                 locationPath, groupPaths, systemPaths,
-                statusMonitors, performanceMonitor, priority)
+                performanceMonitor, priority)
 # Not sure why this was important but it causes issues if
 # we are adding an alias to an existing box.  It will take
 # away that boxes IP.  It also seems to make a network with
@@ -261,8 +261,6 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
             "devices")),
         #("termserver", ToOne(ToMany, "Products.ZenModel.TerminalServer", 
         #    "devices")),
-        ("monitors", ToMany(ToMany, "Products.ZenModel.StatusMonitorConf",
-            "devices")),
         ("perfServer", ToOne(ToMany, "Products.ZenModel.PerformanceConf", 
             "devices")),
         ("location", ToOne(ToMany, "Products.ZenModel.Location", "devices")),
@@ -758,17 +756,6 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
         return map(lambda x: x.getOrganizerName(), self.groups())
 
 
-    security.declareProtected(ZEN_VIEW, 'getStatusMonitorNames')
-    def getStatusMonitorNames(self):
-        """
-        Return status monitor names
-        
-        @rtype: string
-        @permission: ZEN_VIEW
-        """
-        return map(lambda x: x.getId(), self.monitors())
-
-    
     security.declareProtected(ZEN_VIEW, 'getPerformanceServer')
     def getPerformanceServer(self):
         """
@@ -1000,7 +987,7 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
                 hwManufacturer="", hwProductName="",
                 osManufacturer="", osProductName="",
                 locationPath="", groupPaths=[], systemPaths=[],
-                statusMonitors=["localhost"], performanceMonitor="localhost",
+                performanceMonitor="localhost",
                 priority=3, REQUEST=None):
         """
         Edit the device relation and attributes.
@@ -1011,8 +998,6 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
         @type groupPaths: list
         @param systemPaths: paths to Systems
         @type systemPaths: list
-        @param statusMonitors: StatusMonitors
-        @type statusMonitors: list
         @param performanceMonitor: name of PerformanceMonitor
         @type performanceMonitor: string
         @permission: ZEN_CHANGE_DEVICE
@@ -1056,9 +1041,6 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
         if systemPaths:
             log.info("setting system %s" % systemPaths)
             self.setSystems(systemPaths)
-
-        log.info("setting status monitor to %s" % statusMonitors)
-        self.setStatusMonitors(statusMonitors)
 
         log.info("setting performance monitor to %s" % performanceMonitor)
         self.setPerformanceMonitor(performanceMonitor)
@@ -1338,38 +1320,6 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
                 
         if REQUEST:
             REQUEST['message'] = "Set Performance %s at time:" % performanceMonitor
-            return self.callZenScreen(REQUEST)
-
-
-    security.declareProtected(ZEN_CHANGE_DEVICE, 'setStatusMonitors')
-    def setStatusMonitors(self, statusMonitors):
-        """
-        Set Status Monitor by list statusMonitors
-        
-        @permission: ZEN_CHANGE_DEVICE
-        """
-        objGetter = self.getDmdRoot("Monitors").getStatusMonitor
-        self._setRelations("monitors", objGetter, statusMonitors)
-        self.setLastChange()
-
-
-    security.declareProtected(ZEN_CHANGE_DEVICE, 'addStatusMonitor')
-    def addStatusMonitor(self, newStatusMonitor=None, REQUEST=None):
-        """
-        DEPRECATED
-        Add new status monitor to the database and this device
-        
-        @permission: ZEN_CHANGE_DEVICE
-        @todo: Already exists on ZDeviceLoader
-        """
-        if newStatusMonitor:
-            mon = self.getDmdRoot("Monitors").getStatusMonitor(newStatusMonitor)
-            self.addRelation("monitors", mon)
-            self.setLastChange()
-        if REQUEST:
-            if newStatusMonitor:
-                REQUEST['message'] = "Added Monitor %s at time:" % \
-                                                    newStatusMonitor
             return self.callZenScreen(REQUEST)
 
 

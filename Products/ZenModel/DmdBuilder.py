@@ -47,7 +47,6 @@ from Products.ZenModel.ZDeviceLoader import manage_addZDeviceLoader
 from Products.ZenModel.ZenossInfo import manage_addZenossInfo
 from Products.ZenWidgets.ZenTableManager import manage_addZenTableManager
 from Products.ZenModel.PerformanceConf import manage_addPerformanceConf
-from Products.ZenModel.StatusMonitorConf import manage_addStatusMonitorConf
 from Products.ZenRRD.RenderServer import manage_addRenderServer
 from Products.ZenReports.ReportServer import manage_addReportServer
 from Products.ZenEvents.MySqlEventManager import manage_addMySqlEventManager
@@ -91,7 +90,7 @@ class DmdBuilder:
         )
    
     # default monitor classes
-    monRoots = ('StatusMonitors','Performance')
+    monRoots = ('Performance',)
 
 
     def __init__(self, portal, evthost, evtuser, evtpass, evtdb, 
@@ -119,11 +118,9 @@ class DmdBuilder:
         mons = self.dmd.Monitors
         self.addroots(mons, self.monRoots, "Monitors")
         mons.Performance.sub_class = 'PerformanceConf'
-        mons.StatusMonitors.sub_class = 'StatusMonitorConf'
         manage_addPerformanceConf(mons.Performance, "localhost")
         crk = mons.Performance._getOb("localhost")
         crk.renderurl = "/zport/RenderServer"
-        manage_addStatusMonitorConf(mons.StatusMonitors,"localhost")
 
 
     def buildUserCommands(self):

@@ -109,7 +109,6 @@ productNames = (
     "ServiceOrganizer",
     "Software",
     "SoftwareClass",
-    "StatusMonitorConf",
     "System",
     "UserSettings",
     "WinService",

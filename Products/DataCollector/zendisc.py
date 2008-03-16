@@ -215,7 +215,6 @@ class ZenDisc(ZenModeler):
                 kw = dict(deviceName=name,
                           discoverProto=None,
                           devicePath=devicepath,
-                          statusMonitors=[self.options.monitor],
                           performanceMonitor=self.options.monitor)
                 yield self.findRemoteDeviceInfo(ip, devicepath)
                 deviceInfo = driver.next()
@@ -289,6 +288,9 @@ class ZenDisc(ZenModeler):
                                                net,
                                                self.options.subnets)
                 nets = driver.next()
+                if not nets:
+                    self.log.warning("No networks found for %s" % (net,))
+                    continue
                 yield self.discoverIps(nets)
                 ips = driver.next()
                 if not self.options.nosnmp:
@@ -394,9 +396,6 @@ class ZenDisc(ZenModeler):
         self.parser.add_option('--prod_state', dest='productionState',
                     default=1000,
                     help="initial production state for discovered devices")
-        self.parser.add_option('--statusmonitor', dest='statusmonitor',
-                    default="localhost",
-                    help="Status monitor to use for discovered devices")
         self.parser.add_option('--remodel', dest='remodel',
                     action="store_true", default=False,
                     help="remodel existing objects")

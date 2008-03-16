@@ -55,25 +55,6 @@ class Monitor(ZenModelRM, DeviceManagerBase, RRDView):
         """Return the DMD path of an Organizer without its dmdSubRel names."""
         return self.id
 
-    def setStatusMonitors(self, statusMonitors=None, deviceNames=None, REQUEST=None):
-        """ Provide a method to set status monitors from any organizer """
-        if not statusMonitors:
-            if REQUEST: REQUEST['message'] = "No Monitor Selected"
-            return self.callZenScreen(REQUEST)
-        if deviceNames is None:
-            if REQUEST: REQUEST['message'] = "No Devices Selected"
-            return self.callZenScreen(REQUEST)
-        for devname in deviceNames:
-            dev = self.devices._getOb(devname)
-            dev.setStatusMonitors(statusMonitors)
-        if REQUEST: 
-            REQUEST['message'] = "Status monitor set to %s" % (
-                                    statusMonitors)
-            if REQUEST.has_key('oneKeyValueSoInstanceIsntEmptyAndEvalToFalse'):
-                return REQUEST['message']
-            else:
-                return self.callZenScreen(REQUEST)
-
     def setPerformanceMonitor(self, performanceMonitor=None, deviceNames=None, REQUEST=None):
         """ Provide a method to set performance monitor from any organizer """
         if not performanceMonitor:
@@ -120,8 +101,8 @@ class Monitor(ZenModelRM, DeviceManagerBase, RRDView):
         return self.performanceGraphUrl(objpaq, targetpath, template, graph, drange)
 
 
-    # FIXME: OMG this is such a hack to let thresholds instances be created against
-    # a monitor
+    # FIXME: OMG this is such a hack to let thresholds instances be
+    # created against a monitor
     def device(self):
         return self
 

@@ -85,7 +85,7 @@ class ZDeviceLoader(ZenModelItem,SimpleItem):
             hwManufacturer="", hwProductName="",
             osManufacturer="", osProductName="",
             locationPath="", groupPaths=[], systemPaths=[],
-            statusMonitors=["localhost"], performanceMonitor="localhost",
+            performanceMonitor="localhost",
             discoverProto="snmp",REQUEST = None):
         """
         Load a device into the database connecting its major relations
@@ -107,7 +107,7 @@ class ZDeviceLoader(ZenModelItem,SimpleItem):
                 hwManufacturer, hwProductName,
                 osManufacturer, osProductName,
                 locationPath, groupPaths, systemPaths,
-                statusMonitors, performanceMonitor, discoverProto)
+                performanceMonitor, discoverProto)
             transaction.commit()
         except (SystemExit, KeyboardInterrupt): raise
         except ZentinelException, e:
@@ -232,24 +232,6 @@ class ZDeviceLoader(ZenModelItem,SimpleItem):
         groups.append(newDeviceGroupPath)
         if REQUEST:
             REQUEST['groupPaths'] = groups
-            return self.callZenScreen(REQUEST)
-
-
-    security.declareProtected('Change Device', 'addStatusMonitor')
-    def addStatusMonitor(self, newStatusMonitor, REQUEST=None):
-        """add new status monitor to the database"""
-        try:
-            self.getDmdRoot("Monitors").getStatusMonitor(newStatusMonitor)
-        except BadRequest, e:
-            if REQUEST:
-                REQUEST['message'] = str(e)
-            else: 
-                raise e 
-        
-        mons = REQUEST.get('statusMonitors', [])
-        mons.append(newStatusMonitor)
-        if REQUEST:
-            REQUEST['statusMonitors'] = mons
             return self.callZenScreen(REQUEST)
 
 
