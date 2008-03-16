@@ -14,6 +14,7 @@
 from PerformanceConfig import PerformanceConfig
 from ZODB.POSException import POSError
 from Products.ZenRRD.zencommand import Cmd, DeviceConfig
+from Products.ZenHub.PBDaemon import translateError
 
 def getComponentCommands(comp):
     """Return list of command definitions.
@@ -74,6 +75,7 @@ def getDeviceCommands(dev):
 
 class CommandConfig(PerformanceConfig):
 
+    @translateError
     def remote_getDataSourceCommands(self, devices = None):
         return self.getDataSourceCommands(devices)
 
