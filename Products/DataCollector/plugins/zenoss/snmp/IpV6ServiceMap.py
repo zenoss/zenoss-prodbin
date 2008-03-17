@@ -88,7 +88,6 @@ class IpV6ServiceMap(SnmpPlugin):
         #udp services
         udpports = {}
         for oid, value in udpendpoint.items():
-            print "udp new %s %s" % (oid,value)
             oidar = oid.split('.')
             port = 0
             if port > maxport or port < 1: continue
