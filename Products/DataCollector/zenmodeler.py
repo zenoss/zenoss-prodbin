@@ -49,7 +49,8 @@ class ZenModeler(PBDaemon):
     initialServices = PBDaemon.initialServices + ['ModelerService']
 
     generateEvents = True
-    
+    configCycleInterval = 360
+
     def __init__(self,noopts=0,app=None,single=False,
                  threaded=None,keeproot=False):
         PBDaemon.__init__(self)
@@ -75,7 +76,7 @@ class ZenModeler(PBDaemon):
         self.threaded = threaded
         if self.threaded is None:
             self.threaded = not self.options.nothread
-        self.cycletime = self.options.cycletime*60
+        self.modelerCycleInterval = self.options.cycletime
         self.collage = self.options.collage / 1440.0
         self.clients = []
         self.finished = []
@@ -94,7 +95,31 @@ class ZenModeler(PBDaemon):
 
     def configure(self):
         # add in the code to fetch cycle time, etc.
-        return succeed(None)
+        def inner(driver):
+            self.log.info('fetching monitor properties')
+            yield self.config().callRemote('propertyItems')
+            items = dict(driver.next())
+            for att in ("modelerCycleInterval", "configCycleInterval"):
+                before = getattr(self, att)
+                after = items.get(att, before)
+                setattr(self, att, after)
+            reactor.callLater(self.configCycleInterval * 60, self.configure)
+
+            self.log.info("getting threshold classes")
+            yield self.config().callRemote('getThresholdClasses')
+            self.remote_updateThresholdClasses(driver.next())
+
+            self.log.info("fetching default RRDCreateCommand")
+            yield self.config().callRemote('getDefaultRRDCreateCommand')
+            createCommand = driver.next()
+
+            self.log.info("getting collector thresholds")
+            yield self.config().callRemote('getCollectorThresholds')
+            self.rrdStats.config(self.options.monitor,
+                                 self.name,
+                                 driver.next(),
+                                 createCommand)
+        return drive(inner)
 
     def config(self):
         "Get the ModelerService"
@@ -342,18 +367,21 @@ class ZenModeler(PBDaemon):
     def fillError(self, reason):
         self.log.error("Unable to fill collection slots: %s" % reason)
 
+    def cycleTime(self):
+        return self.modelerCycleInterval * 60
+
     def heartbeat(self, ignored=None):
         ARBITRARY_BEAT = 30
         reactor.callLater(ARBITRARY_BEAT, self.heartbeat)
         if self.options.cycle:
             # as long as we started recently, send a heartbeat
-            if not self.start or time.time() - self.start < self.cycletime*3:
+            if not self.start or time.time() - self.start < self.cycleTime()*3:
                 evt = dict(eventClass=Heartbeat,
                            component='zenmodeler',
                            device=self.options.monitor,
                            timeout=3*ARBITRARY_BEAT)
                 self.sendEvent(evt)
-                self.niceDoggie(self.cycletime)
+                self.niceDoggie(self.cycleTime())
 
 
     def checkStop(self, unused = None):
@@ -368,9 +396,9 @@ class ZenModeler(PBDaemon):
             devices = len(self.finished)
             timedOut = len([c for c in self.finished if c.timedOut])
             self.sendEvents(
-                self.rrdStats.gauge('cycleTime', self.cycletime, runTime) +
-                self.rrdStats.gauge('devices', self.cycletime, devices) +
-                self.rrdStats.gauge('timedOut', self.cycletime, timedOut)
+                self.rrdStats.gauge('cycleTime', self.cycleTime(), runTime) +
+                self.rrdStats.gauge('devices', self.cycleTime(), devices) +
+                self.rrdStats.gauge('timedOut', self.cycleTime(), timedOut)
                 )
             if not self.options.cycle:
                 self.stop()
@@ -502,7 +530,7 @@ class ZenModeler(PBDaemon):
 
     def mainLoop(self, driver):
         if self.options.cycle:
-            driveLater(self.cycletime, self.mainLoop)
+            driveLater(self.cycleTime(), self.mainLoop)
 
         if self.clients:
             self.log.error("modeling cycle taking too long")
@@ -533,6 +561,10 @@ class ZenModeler(PBDaemon):
         d = self.drive(self.fillCollectionSlots)
         d.addCallback(self.timeoutClients)
         d.addErrback(self.fillError)
+
+    def remote_deleteDevice(self, device):
+        # we fetch the device list before every scan
+        self.log.debug("Asynch deleteDevice %s" % device)
 
 
 if __name__ == '__main__':
