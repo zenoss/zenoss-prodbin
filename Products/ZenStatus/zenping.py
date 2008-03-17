@@ -39,7 +39,7 @@ from twisted.internet import reactor
 
 class ZenPing(PBDaemon):
 
-    name = agent = "ZenPing"
+    name = agent = "zenping"
     eventGroup = "Ping"
     initialServices = PBDaemon.initialServices + ['PingConfig']
 
@@ -140,8 +140,8 @@ class ZenPing(PBDaemon):
         
         self.log.info("getting collector thresholds")
         yield self.config().callRemote('getCollectorThresholds')
-        self.rrdStats.config('zenping',
-                             self.options.monitor,
+        self.rrdStats.config(self.options.monitor,
+                             self.name,
                              driver.next(), 
                              createCommand)
 
