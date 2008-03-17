@@ -595,7 +595,7 @@ here.perfsnmpCycleInterval*0.8
 True
 </property>
 <property type="string" id="maxval" mode="w" >
-here.cycleInterval *0.8
+here.pingCycleInterval *0.8
 </property>
 <property type="string" id="eventClass" mode="w" >
 /Status/Ping
