@@ -17,20 +17,11 @@ hubLog = logging.getLogger("zenhub")
 import time
 
 def threaded(callable):
-    from twisted.internet import reactor
-    from twisted.internet.defer import Deferred
+    from twisted.internet.threads import deferToThread
 
     def callInThread(*args, **kw):
         "Run the callable in a separate thread."
-
-        def run(deferred, callable, *args, **kw):
-            try:
-                reactor.callFromThread(deferred.callback, callable(*args, **kw))
-            except Exception, ex:
-                reactor.callFromThread(deferred.errback, (ex))
-        d = Deferred()
-        reactor.callInThread(run, d, callable, *args, **kw)
-        return d
+        return deferToThread(callable, *args, **kw)
     return callInThread
 
 class HubService(pb.Referenceable):
