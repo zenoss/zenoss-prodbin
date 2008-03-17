@@ -19,7 +19,7 @@ class RemoveStatusMonitor(Migrate.Step):
         Device._relations = Device._relations + (
             ("monitors", ToMany(ToMany,"Products.ZenModel.StatusMonitorConf","devices")),
             )
-        for d in self.dmd.Devices.getSubDevices():
+        for d in dmd.Devices.getSubDevices():
             if hasattr(d, 'monitors'):
                 d._delObject('monitors')
         Device._relations = tuple([x for x in Device._relations if x[0] != 'monitors'])
