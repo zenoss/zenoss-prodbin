@@ -433,7 +433,7 @@ class IpInterface(OSComponent):
         """
         Ignore interface that are operationally down.
         """
-        return self.operStatus > 1
+        return self.operStatus > 1 or self.monitor == False
 
 
     def niceSpeed(self):
