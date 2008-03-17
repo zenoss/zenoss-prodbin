@@ -12,6 +12,7 @@
 ###########################################################################
 
 from Products.ZenHub.HubService import HubService
+from PerformanceConfig import PerformanceConfig
 from Products.ZenHub.PBDaemon import translateError
 from Products.DataCollector.DeviceProxy import DeviceProxy
 
@@ -20,7 +21,7 @@ from Products.DataCollector.Plugins import loadPlugins
 import logging
 log = logging.getLogger('zen.ModelerService')
 
-class ModelerService(HubService):
+class ModelerService(PerformanceConfig):
 
     plugins = None
 
