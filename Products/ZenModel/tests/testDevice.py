@@ -67,21 +67,6 @@ class TestDevice(ZenModelBaseTest):
         self.assert_('/Test/Loc' in self.dmd.Locations.getOrganizerNames())
 
 
-    def testSetStatusMonitors(self):
-        self.dev.setStatusMonitors(['test1','test2'])
-        smms = self.dev.getStatusMonitorNames()
-        self.assert_('test1' in smms)
-        self.assert_('test2' in smms)
-        self.dev.setStatusMonitors(['test1'])
-        smms = self.dev.getStatusMonitorNames()
-        self.assert_('test1' in smms)
-        self.assert_('test2' not in smms)
-        self.dev.setStatusMonitors(['test3'])
-        smms = self.dev.getStatusMonitorNames()
-        self.assert_('test3' in smms)
-        self.assert_('test1' not in smms)
-
-    
     def testSetHWSerialNumber(self):
         self.dev.setHWSerialNumber('testSWKey')
         self.assert_(self.dev.getHWSerialNumber() == 'testSWKey')
@@ -144,13 +129,6 @@ class TestDevice(ZenModelBaseTest):
         self.dev.setOSProduct('testOS', 'HP')
         self.assert_('testOS' in self.dev.getDmdRoot("Manufacturers")\
                      .getProductNames('HP')\
-                    )
-
-
-    def testAddStatusMonitor(self):
-        self.dev.addStatusMonitor('testMon')
-        self.assert_('testMon' in\
-                     self.dev.getDmdRoot("Monitors").getStatusMonitorNames()\
                     )
 
 
@@ -256,7 +234,6 @@ class TestDevice(ZenModelBaseTest):
         self.assert_(self.dev.getLocationName() == "")
         self.assert_(self.dev.getDeviceGroupNames() == [])
         self.assert_(self.dev.getSystemNames() == [])
-        self.assert_('localhost' in self.dev.getStatusMonitorNames())
         self.assert_(self.dev.getPerformanceServerName() == "localhost")
 
         self.dev.manage_editDevice(tag='tag', serialNumber='SN123',
@@ -267,7 +244,6 @@ class TestDevice(ZenModelBaseTest):
                         osProductName="osProd", locationPath='/test/loc',
                         groupPaths=['/group/path1','/group/path2'],
                         systemPaths=['/sys/path1','/sys/path2'],
-                        statusMonitors=['statMon1','statMon2'],
                         performanceMonitor='perfMon')
                         
         self.assert_(self.dev.hw.tag == 'tag')
@@ -288,8 +264,6 @@ class TestDevice(ZenModelBaseTest):
         self.assert_('/group/path2' in self.dev.getDeviceGroupNames())
         self.assert_('/sys/path1' in self.dev.getSystemNames())
         self.assert_('/sys/path2' in self.dev.getSystemNames())
-        self.assert_('statMon1' in self.dev.getStatusMonitorNames())
-        self.assert_('statMon2' in self.dev.getStatusMonitorNames())
         self.assert_(self.dev.getPerformanceServerName() == "perfMon")
 
 def test_suite():
