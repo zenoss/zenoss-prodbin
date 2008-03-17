@@ -73,6 +73,10 @@
       <td class="tablevalues" tal:content="here/maxPingFailures" />
     </tr>
     <tr>
+      <td class="tableheader">Modeler Cycle Interval (mins)</td>
+      <td class="tablevalues" tal:content="here/modelerCycleInterval" />
+    </tr>
+    <tr>
       <td class="tableheader">Render URL</td>
       <td class="tablevalues" tal:content="here/renderurl" />
     </tr>

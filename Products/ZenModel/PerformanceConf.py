@@ -99,7 +99,7 @@ class PerformanceConf(Monitor, StatusColor):
     pingCycleInterval = 60
     maxPingFailures = 1440
 
-    modelerCycleInterval = 720 * 60
+    modelerCycleInterval = 720
 
     renderurl = '/zport/RenderServer'
     renderuser = ''
