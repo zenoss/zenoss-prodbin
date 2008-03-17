@@ -98,22 +98,13 @@ class PerformanceConf(Monitor, StatusColor):
     pingChunk = 75
     pingCycleInterval = 60
     maxPingFailures = 1440
-    
+
+    modelerCycleInterval = 720 * 60
 
     renderurl = '/zport/RenderServer'
     renderuser = ''
     renderpass = ''
 
-#    defaultRRDCreateCommand = (
-#        'RRA:AVERAGE:0.5:1:2016',  # every 5 mins for 7 days
-#        'RRA:AVERAGE:0.5:4:2016',  # every 20 mins for 4 weeks
-#        'RRA:AVERAGE:0.5:24:1488', # every 2 hours for 4 months
-#        'RRA:AVERAGE:0.5:288:730', # every 1 day for 2 years 
-#        'RRA:MAX:0.5:4:2016',
-#        'RRA:MAX:0.5:24:1488',
-#        'RRA:MAX:0.5:288:730',
-#        )
-    
     # make the default rrdfile size smaller
     # we need the space to live within the disk cache
     defaultRRDCreateCommand = (
@@ -144,6 +135,7 @@ class PerformanceConf(Monitor, StatusColor):
         {'id':'pingChunk','type':'int','mode':'w'},
         {'id':'pingCycleInterval','type':'int','mode':'w'},
         {'id':'maxPingFailures','type':'int','mode':'w'},
+        {'id':'modelerCycleInterval','type':'int','mode':'w'},
         )
     _relations = Monitor._relations + (
         ("devices", ToMany(ToOne,"Products.ZenModel.Device","perfServer")),
