@@ -10,3 +10,5 @@
 # For complete information please visit: http://www.zenoss.com/oss/
 #
 ###########################################################################
+from twisted.python.runtime import platform
+platform.supportsThreads = lambda : False

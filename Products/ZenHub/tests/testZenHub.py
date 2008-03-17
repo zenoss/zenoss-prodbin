@@ -11,9 +11,6 @@
 #
 ###########################################################################
 
-from twisted.python.runtime import platform
-platform.supportsThreads = lambda : False
-
 import unittest
 import Globals
 
@@ -92,7 +89,6 @@ class TestZenHub(unittest.TestCase):
                                            '--pbport=%d' % base,
                                            '--xmlrpcport=%d' % xbase]
         self.zenhub = ZenHub()
-        reactor.callLater(5, stop)
 
     def tearDown(self):
         sys.argv = self.before
