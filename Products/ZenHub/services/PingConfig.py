@@ -22,6 +22,9 @@ class PingConfig(PerformanceConfig):
     @threaded
     @translateError
     def remote_getPingTree(self, root, fallbackIp):
+        return self.getPingTree(root, fallbackIp)
+
+    def getPingTree(self, root, fallbackIp):
         me = self.dmd.Devices.findDevice(root)
         if not me:
             ip = self.dmd.Networks.findIp(fallbackIp)
