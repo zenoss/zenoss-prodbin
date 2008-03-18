@@ -161,6 +161,11 @@ class ZenPropertyManager(PropertyManager):
             if pfilt(pdict['id']): pmap.append(pdict)
         pmap.sort(lambda x, y: cmp(x['id'], y['id']))
         return pmap
+
+    security.declareProtected(ZEN_ZPROPERTIES_VIEW, 'zenProperty')
+    def zenProperty(self, id):
+        """Return the value of a device tree property"""
+        return getattr(self, id, None)
             
     security.declareProtected(ZEN_ZPROPERTIES_VIEW, 'zenPropertyString')
     def zenPropertyString(self, id):
