@@ -14,6 +14,8 @@ from twisted.web import xmlrpc
 
 import types
 
+import DateTime
+
 from Products.ZenHub.services.RRDImpl import RRDImpl
 from Products.DataCollector.ApplyDataMap import ApplyDataMap
 
@@ -87,7 +89,14 @@ class XmlRpcService(xmlrpc.XMLRPC):
 
             # add zproperties
             for propertyId in device.propertyIds():
-                vals[propertyId] = device.getProperty(propertyId)
+                value = device.getProperty(propertyId)
+
+                # _millis can't be serialized because it is long, so
+                # we skip it to avoid an XML-RPC serialization error
+                if isinstance(value, DateTime.DateTime):
+                    continue
+
+                vals[propertyId] = value
 
             vals['device'] = device.id
             vals['manageIp'] = device.manageIp
