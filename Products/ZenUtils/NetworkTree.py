@@ -19,6 +19,8 @@ def _fromDeviceToNetworks(dev):
             net = ip.network()
             if net is None:
                 continue
+            elif net.netmask == 32:
+                continue
             else:
                 yield net
 
