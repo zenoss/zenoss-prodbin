@@ -692,7 +692,11 @@ class zenperfsnmp(SnmpDaemon):
                               min=min, max=max)
 
         for ev in self.thresholds.check(oidData.path, time.time(), value):
-            ev['eventKey'] = oidData.path.rsplit('/')[-1]
+            eventKey = oidData.path.rsplit('/')[-1]
+            if ev.has_key('eventKey'):
+                ev['eventKey'] = '%s|%s' % (eventKey, ev['eventKey'])
+            else:
+                ev['eventKey'] = eventKey
             self.sendThresholdEvent(**ev)
 
     def connected(self):

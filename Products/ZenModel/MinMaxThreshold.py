@@ -227,6 +227,7 @@ class MinMaxThresholdInstance(ThresholdInstance):
                 self.name(), how, float(value))
             return [dict(device=self.context().deviceName,
                          summary=summary,
+                         eventKey=self.id,
                          eventClass=self.eventClass,
                          component=self.context().componentName,
                          severity=severity)]
@@ -238,6 +239,7 @@ class MinMaxThresholdInstance(ThresholdInstance):
                 self.resetCount(dp)
                 return [dict(device=self.context().deviceName,
                              summary=summary,
+                             eventKey=self.id,
                              eventClass=self.eventClass,
                              component=self.context().componentName,
                              severity=Event.Clear)]
