@@ -186,6 +186,14 @@ class UserSettingsManager(ZenModelRM):
             if not user:
                 user = self.getUser(userid)
             if user:
+                # Load default values from our auth backend
+                psheets = user.listPropertysheets()
+                psheets.reverse() # Because first sheet should have priority
+                for ps in map(lambda ps: user.getPropertysheet(ps), psheets):
+                    props = {}
+                    for id in ps.propertyIds():
+                        props[id] = ps.getProperty(id)
+                    ufolder.updatePropsFromDict(props)
                 folder.changeOwnership(user)
                 folder.manage_setLocalRoles(userid, ("Owner",))
         return folder
