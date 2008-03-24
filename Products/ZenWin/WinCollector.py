@@ -20,6 +20,7 @@ import Globals
 from Products.ZenHub.PBDaemon import FakeRemote, PBDaemon
 from Products.ZenEvents.ZenEventClasses import App_Start, Clear
 from Products.ZenUtils.Driver import drive, driveLater
+from Products.ZenUtils.Utils import zenPath
 
 from Constants import ERROR_CODE_MAP
 
@@ -30,6 +31,7 @@ from Products.DataCollector.Plugins import PluginLoader # This is needed by pb
 unused(PluginLoader)
 
 from ProcessProxy import ProcessProxy, ProcessProxyError
+from NullProxy import NullProxy
 
 from twisted.internet.defer import DeferredList
 
@@ -64,9 +66,15 @@ class WinCollector(PBDaemon):
                             severity=Clear,
                             component=self.name))
 
+    def getProxy(self, filename, classname):
+        filename = zenPath(filename)
+        if self.options.proxywmi:
+            return ProcessProxy(filename, classname)
+        return NullProxy(filename, classname)
+
     def getWatcher(self, device, query):
         from Products.ZenUtils.Utils import zenPath
-        wmic = ProcessProxy(zenPath('Products/ZenWin/Watcher.py'), 'Watcher')
+        wmic = self.getProxy('Products/ZenWin/Watcher.py', 'Watcher')
         try:
             wmic.start(MAX_WAIT_FOR_WMI_REQUEST, device, query)
             self.log.debug("Connected to %s" % device.id)
@@ -130,7 +138,13 @@ class WinCollector(PBDaemon):
         self.parser.add_option('--debug', 
                                dest='debug', 
                                default=False,
+                               action='store_true',
                                help="turn on additional debugging")
+        self.parser.add_option('--proxywmi', 
+                               dest='proxywmi', 
+                               default=False,
+                               action='store_true',
+                               help="use a process proxy to avoid long-term blocking")
 
 
     def configService(self):

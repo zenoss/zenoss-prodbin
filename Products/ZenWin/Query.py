@@ -41,3 +41,5 @@ class Query:
     def query(self, queries):
         return picklableResults(self.wmic.query(queries))
 
+    def close(self):
+        self.wmic.close()

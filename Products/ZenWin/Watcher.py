@@ -36,3 +36,5 @@ class Watcher:
         finally:
             debug('next event returned')
 
+    def close(self):
+        self.watcher.close()

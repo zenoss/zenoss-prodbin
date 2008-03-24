@@ -30,19 +30,24 @@ from twisted.internet.defer import DeferredList
 
 from ProcessProxy import ProcessProxy
  
-MAX_WAIT_FOR_WMI_REQUEST = 10
+MAX_WAIT_FOR_WMI_REQUEST = 20
 
-class Client(ProcessProxy):
+class Client:
 
-    def __init__(self, device, plugins):
-        ProcessProxy.__init__(self,
-                              zenPath('Products/ZenWin/Query.py'), 'Query')
+    def __init__(self, proxy, device, plugins):
+        self.proxy = proxy
         self.plugins = plugins
         self.results = []
-        self.start(MAX_WAIT_FOR_WMI_REQUEST, device)
+        self.proxy.start(MAX_WAIT_FOR_WMI_REQUEST, device)
+
+    def boundedCall(self, timeout, method, *args, **kw):
+        return self.proxy.boundedCall(timeout, method, *args, **kw)
 
     def getResults(self):
         return self.results
+
+    def stop(self):
+        self.proxy.stop()
 
 
 class zenwinmodeler(WinCollector):
@@ -107,7 +112,10 @@ class zenwinmodeler(WinCollector):
                 self.log.info('User: %s' % device.zWinUser)
                 self.log.info("Plugins: %s", 
                               ", ".join(map(lambda p: p.name(), plugins)))
-                self.client = Client(device, plugins)
+                self.client = Client(
+                    self.getProxy('Products/ZenWin/Query.py', 'Query'),
+                    device,
+                    plugins)
             if not self.client or not plugins:
                 self.log.warn("WMIClient creation failed")
                 return

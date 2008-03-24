@@ -79,7 +79,7 @@ class zenwin(WinCollector):
         if not device.services:
             return None
         wql = "select Name from Win32_Service where State='Running'"
-        wmic = ProcessProxy(zenPath('Products/ZenWin/Query.py'), 'Query')
+        wmic = self.getProxy('Products/ZenWin/Query.py', 'Query')
         mx = MAX_WAIT_FOR_WMI_REQUEST
         wmic.start(mx, device)
         q = wmic.boundedCall(mx, 'query', dict(query=wql))
