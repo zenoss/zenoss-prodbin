@@ -100,6 +100,10 @@ class Location(DeviceOrganizer, ZenPackable):
         )
 
     security = ClassSecurityInfo()
+    
+    def setAddress(self, address):
+        """Sets the mailing address for this location"""
+        self.address = address
 
     def getChildLinks(self):
         """ Returns child link data ready for GMaps """
