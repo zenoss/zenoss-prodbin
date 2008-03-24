@@ -154,14 +154,13 @@ class IpNetwork(DeviceOrganizer):
         if netip.find("/") > -1:
             netip, netmask = netip.split("/",1)
             netmask = int(netmask)
-        netobj = netroot.getNet(netip)
+        netobj = netroot.getNet(netip) or netroot
         if netobj and netobj.netmask == netmask: return netobj
         if netmask == 0:
             raise ValueError("netip '%s' without netmask", netip)
         netip = getnetstr(netip,netmask)
         netTree = getattr(netroot, 'zDefaultNetworkTree', defaultNetworkTree)
-        netTree = map(int, netTree)
-        netobj = netroot
+        netTree = [ bm for bm in map(int, netTree) if bm > netobj.netmask ]
         for treemask in netTree:
             if treemask >= netmask:
                 netobj = netobj.addSubNetwork(netip, netmask)
@@ -216,8 +215,8 @@ class IpNetwork(DeviceOrganizer):
         netobj = self.getDmdRoot("Networks")
         ipobj = self.findIp(ip)
         if ipobj: return ipobj
-        ipobj = netobj.addIp(ip)
-        if ipobj: return ipobj
+        # ipobj = netobj.addIp(ip)
+        # if ipobj: return ipobj
         netobj = self.createNet(ip, netmask)
         ipobj = netobj.addIpAddress(ip,netmask)
         return ipobj
