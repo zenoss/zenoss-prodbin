@@ -89,10 +89,6 @@ class _TestMonitors(SelTestBase):
         #self._deleteStatusMonitor()
 
         
-    def testAddStatusMonitor(self):
-        """Run tests on the Status Monitors table"""
-        self._addStatusMonitor()   
-        self._deleteStatusMonitor()
         
     def testAddPerformanceMonitor(self):
         """Run tests on the Performance Monitors table"""
@@ -102,37 +98,6 @@ class _TestMonitors(SelTestBase):
     def _testEditPerformanceTemplateDescription(self):
         self._addPerformanceTemplate()
         self._deletePerformanceTemplate()
-
-    def testEditStatusMonitorSettings(self):
-        """Go into a Status Monitor, edit the time interval and verify the information is saved"""
-        self._addStatusMonitor()   
-        self.selenium.click("link=statusTestingString")
-        self.selenium.wait_for_page_to_load(self.WAITTIME)
-        self.selenium.click("link=Modifications")
-        self.selenium.wait_for_page_to_load(self.WAITTIME)
-        self.selenium.do_command('assertTextNotPresent', ['zport/dmd/Monitors/StatusMonitors/statusTestingString/zmanage_editProperties'])
-        self.selenium.click("link=Edit")
-        self.selenium.wait_for_page_to_load(self.WAITTIME)
-        self.selenium.type("cycleInterval:int", "61") 
-        self.selenium.type("timeOut:float", "1.6") 
-        self.selenium.type("maxFailures:int", "1441") 
-        self.selenium.type("chunk:int", "76") 
-        self.selenium.type("tries:int", "3") 
-        self.selenium.type("configCycleInterval:int", "21") 
-        self.selenium.click("name=zmanage_editProperties:method")
-        self.selenium.wait_for_page_to_load(self.WAITTIME)
-        self.selenium.click("link=Overview")
-        self.selenium.wait_for_page_to_load(self.WAITTIME)
-        self.selenium.do_command('assertTextPresent', ['61'])
-        self.selenium.do_command('assertTextPresent', ['1.6'])
-        self.selenium.do_command('assertTextPresent', ['1441'])
-        self.selenium.do_command('assertTextPresent', ['76'])
-        self.selenium.do_command('assertTextPresent', ['3'])
-        self.selenium.do_command('assertTextPresent', ['21'])
-        self.selenium.click("link=Modifications")
-        self.selenium.wait_for_page_to_load(self.WAITTIME)
-        self.selenium.do_command('assertTextPresent', ['zport/dmd/Monitors/StatusMonitors/statusTestingString/zmanage_editProperties'])
-        self._deleteStatusMonitor()
 
     def testEditPerformanceMonitorSettings(self):
         """Go into a Performance Monitor, edit the time interval and verify the information is saved"""
