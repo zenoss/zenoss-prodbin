@@ -65,6 +65,10 @@ class RouteMap(SnmpPlugin):
             if not hasattr(om, "id"): continue
             if not hasattr(om, "routemask"): continue
             om.routemask = self.maskToBits(om.routemask)
+            
+            # Workaround for existing but invalid netmasks
+            if om.routemask is None: continue
+            
             om.setTarget = om.id + "/" + str(om.routemask)
             om.id = om.id + "_" + str(om.routemask)
             if om.routemask == 32: continue
