@@ -17,9 +17,7 @@ def _fromDeviceToNetworks(dev):
     for iface in dev.os.interfaces():
         for ip in iface.ipaddresses():
             net = ip.network()
-            if net is None:
-                continue
-            elif net.netmask == 32:
+            if net is None or net.netmask == 32:
                 continue
             else:
                 yield net
