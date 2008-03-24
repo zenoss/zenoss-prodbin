@@ -202,7 +202,11 @@ class PBDaemon(ZenDaemon, pb.Referenceable):
         if reactor.running and not self.stopped:
             self.stopped = True
             if 'EventService' in self.services:
-                self.sendEvent(self.stopEvent)
+                # send stop event if we don't have an implied --cycle,
+                # or if --cycle has been specified
+                if not hasattr(self.options, 'cycle') or \
+                   getattr(self.options, 'cycle', True):
+                    self.sendEvent(self.stopEvent)
                 # give the reactor some time to send the shutdown event
                 # we could get more creative an add callbacks for event
                 # sends, which would mean we could wait longer, only as long
