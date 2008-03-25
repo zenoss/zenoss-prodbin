@@ -30,7 +30,9 @@ class EofError(ProcessProxyError): pass
 class NoProcess(ProcessProxyError): pass
 class TimeoutError(ProcessProxyError): pass
 
-class Record(object): pass
+class Record(object):
+    def __getattr__(self, name):
+        return self.__dict__[name.lower()]
 
 SIZE_SIZE = struct.calcsize('L')
 
