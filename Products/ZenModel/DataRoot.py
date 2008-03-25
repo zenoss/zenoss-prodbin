@@ -363,6 +363,13 @@ class DataRoot(ZenModelRM, OrderedFolder, Commandable, ZenMenuable):
         ''' send an email to the zenoss error email address
             then send user to a thankyou page or an email error page.
         '''
+        if self.smtpHost: host = self.smtpHost
+        else: host = None
+        port = self.smtpPort and self.smtpPort or 25
+        usetls = self.smtpUseTLS
+        usr = self.smtpUser
+        pwd = self.smtpPass
+
         mailSent = SiteError.sendErrorEmail(
                     self.REQUEST.errorType,
                     self.REQUEST.errorValue,
@@ -372,7 +379,8 @@ class DataRoot(ZenModelRM, OrderedFolder, Commandable, ZenMenuable):
                     self.About.getZenossVersionShort(),
                     self.REQUEST.contactName,
                     self.REQUEST.contactEmail,
-                    self.REQUEST.comments)
+                    self.REQUEST.comments,
+                    host, port, usetls, usr, pwd)
         if not mailSent:
             body = SiteError.createReport(
                                 self.REQUEST.errorType,

@@ -87,9 +87,11 @@ class SiteError:
     createReport = classmethod(createReport)
 
 
-    def sendErrorEmail(cls, errorType, errorValue, errorTrace, errorUrl, 
+    def sendErrorEmail(self, errorType, errorValue, errorTrace, errorUrl, 
                         revision, versionShort,
-                        contactName=None, contactEmail=None, comments=None):
+                        contactName=None, contactEmail=None, comments=None,
+                        smtphost=None, smtpport=25, usetls=False, usr='', 
+                        pwd=''):
         ''' Attempt to send an email to the zenoss errors email address
         with details of this error.
         Returns true if mail was sent, false otherwise.
@@ -97,21 +99,31 @@ class SiteError:
         import socket
         fqdn = socket.getfqdn()
         fromAddress = 'errors@%s' % fqdn
-        cleanUrl = cls.cleanUrl(errorUrl)
+        cleanUrl = self.cleanUrl(errorUrl)
         subject = '%s: %s (%s)' % (errorType, errorValue[:15], cleanUrl)
-        header = cls.createEmailHeader(
-                    fromAddress, cls.ERRORS_ADDRESS, subject)
-        body = cls.createReport(errorType, errorValue, errorTrace, cleanUrl,
+        header = self.createEmailHeader(
+                    fromAddress, self.ERRORS_ADDRESS, subject)
+        body = self.createReport(errorType, errorValue, errorTrace, cleanUrl,
                                 revision, versionShort,
                                 0, contactName, contactEmail, comments)
         mailSent = False
-        server = smtplib.SMTP(cls.SMTP_HOST)
+
+        # Log in to the server using user's smtp or fall back to mail.zenoss.com
+        if not smtphost:
+            smtphost = self.SMTP_HOST
+        server = smtplib.SMTP(smtphost, smtpport)
+        if usetls:
+            server.ehlo()
+            server.starttls()
+            server.ehlo()
+        if usr: server.login(usr, pwd)
         try:
-            server.sendmail(fromAddress, cls.ERRORS_ADDRESS, 
+            server.sendmail(fromAddress, self.ERRORS_ADDRESS, 
                             '%s\n\n%s' % (header, body))
             mailSent = True
         finally:
-            server.quit()
+            try: server.quit()
+            except: pass
         return mailSent
     sendErrorEmail = classmethod(sendErrorEmail)
     
