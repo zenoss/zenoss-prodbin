@@ -122,14 +122,21 @@ td.tabletitleselected div.tabcenter a.tabletitle {
 }
 
 table.tabtable td.tabletitleselected div.tablinehider {
-    bottom: -1px;
+    bottom: 0px;
     width: 100%;
     margin: 0;
     padding: 0;
     height: 4px;
-    border: 2px solid black;
+    border: 0px solid black;
     border-width: 0px 1px;
 }
+table.tabtable td a.tabletitle {
+border-top:0px solid black;
+display:block;
+height:23px;
+padding:0px 15px;
+}
+
 
 td.tabtablecap {
     padding: 0px 10px;
