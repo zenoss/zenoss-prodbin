@@ -1713,13 +1713,7 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
         ip = self.getDeviceIp()
         path = '<a href="/zport/dmd/Devices%s">%s</a>' % (classurl, classurl)
         prod = self.getProdState()
-        evsum = self.getHTMLEventSummary()
-        imgbase = '<img border="0" src="locked-%s-icon.png"/>'
-        locks = ''
-        if self.isLockedFromUpdates(): locks += imgbase % 'update'
-        if self.isLockedFromDeletion(): locks += imgbase % 'delete'
-        if self.sendEventWhenBlocked(): locks += imgbase % 'sendevent'
-        return [id, ip, path, prod, evsum, locks, self.getId()]
+        return [id, ip, path, prod, self.getId()]
 
     def exportXmlHook(self, ofile, ignorerels):
         """
