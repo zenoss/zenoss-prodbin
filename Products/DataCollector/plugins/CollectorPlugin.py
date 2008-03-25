@@ -111,6 +111,19 @@ class CollectorPlugin:
                 setattr(proxy, prop, getattr(device, prop))
         proxy._snmpStatus = device.getSnmpStatus()
 
+
+    def asdate(self,val):
+        """Convert a byte string to the date string 'YYYY/MM/DD HH:MM:SS'
+        """
+        datear = (1968,1,8,10,15,00)
+        try:
+            datear = struct.unpack("!h5B", val[0:7])
+        except: pass
+        if datear[0] == 0:
+            datear = (1968,1,8,10,15,00)
+        return "%d/%02d/%02d %02d:%02d:%02d" % datear[:6]
+
+
 class PythonPlugin(CollectorPlugin):
     """
     A PythonPlugin defines a native Python collection routine and a parsing
@@ -195,18 +208,6 @@ class SnmpPlugin(CollectorPlugin):
         """Convert a byte string to an ip address string.
         """
         return ".".join(map(str, struct.unpack('!4B', val)))
-    
-
-    def asdate(self,val):
-        """Convert a byte string to the date string 'YYYY/MM/DD HH:MM:SS'
-        """
-        datear = (1968,1,8,10,15,00)
-        try:
-            datear = struct.unpack("!h5B", val[0:7])
-        except: pass
-        if datear[0] == 0:
-            datear = (1968,1,8,10,15,00)
-        return "%d/%02d/%02d %02d:%02d:%02d" % datear[:6]
 
 
         
