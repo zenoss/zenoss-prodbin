@@ -32,7 +32,10 @@ class TimeoutError(ProcessProxyError): pass
 
 class Record(object):
     def __getattr__(self, name):
-        return self.__dict__[name.lower()]
+        try:
+            self.__dict__[name.lower()]
+        except KeyError:
+            raise AttributeError, name
 
 SIZE_SIZE = struct.calcsize('L')
 
