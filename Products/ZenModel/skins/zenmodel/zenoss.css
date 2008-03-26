@@ -1540,14 +1540,17 @@ div.portlet-body table.yui-dt-table {
     border: medium none;
 }
 div.tinylink-container {
-    padding: 0;
-    margin: 0;
     height: 15px;
-    text-align: right;
-    width: 100%;
-    display: block;
+}
+div.tinylink-container .msgbox {
+    text-align: left;
+    color: #a00;
+    font-size: 90%;
+    padding-left: 1em;
+    float: left;
 }
 a.tinylink {
+    float: right;
     padding: 0;
     padding-right: 10px;
     margin: 0;

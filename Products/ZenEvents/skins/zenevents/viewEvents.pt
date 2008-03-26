@@ -11,7 +11,8 @@
 <tal:block metal:fill-slot="contentPane">
 
 <div class='tinylink-container'>
-<a class="tinylink" href="viewHistoryEvents">View Event History...</a>
+    <a class="tinylink" href="viewHistoryEvents">View Event History...</a>
+    <div id='msgbox' class='msgbox'></div>
 </div>
 
 <link type="text/css" rel="stylesheet" href="css/zengrid.css"/>
@@ -89,15 +90,19 @@
 <div id="gridcontainer" style="width:100%;"> </div>
 <script tal:content="string:
 var eventZenGridBuffer, eventZenGrid;
+function updateEventConsoleMessage(msg) {
+    $('msgbox').innerHTML = msg;
+}
 addLoadEvent( function() {
     eventZenGridBuffer = new ZenGridBuffer();
     eventZenGrid = new ZenGrid('gridcontainer', 
         'getJSONEventsInfo', 'mygrid', eventZenGridBuffer, 
-        '${here/absolute_url_path}');
+        '${here/absolute_url_path}', false, updateEventConsoleMessage);
 
     connect('filter', 'onkeyup', eventZenGrid.doEventLivesearch);
     connect('state', 'onchange', eventZenGrid.refreshFromFormElement);
     connect('severity', 'onchange', eventZenGrid.refreshFromFormElement);
+
 });">
 </script>
 <script tal:condition="

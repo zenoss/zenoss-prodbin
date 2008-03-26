@@ -163,10 +163,12 @@ ZenGridBuffer.prototype = {
 var ZenGrid = Class.create();
 
 ZenGrid.prototype = {
-    __init__: function(container, url, gridId, buffer, absurl, isHistory) {
+    __init__: function(container, url, gridId, buffer, absurl, isHistory,
+                       messageCallback) {
         bindMethods(this);
         this.absurl = absurl;
         this.isHistory = isHistory || 0;
+        this.message = messageCallback || function(msg){noop()};
         this.container = $(container);
         this.gridId = gridId;
         this.buffer = buffer;
@@ -207,6 +209,8 @@ ZenGrid.prototype = {
         updatelock.addCallback(bind(function(r){
             var isMSIE//@cc_on=1;
             if (!isMSIE) this.resizeTable();
+            this.message('Last updated ' + 
+                         toISOTimestamp(new Date()) + '.');
             if (this.lock.locked) this.lock.release();
         }, this));
         this.addMouseWheelListening();
@@ -334,7 +338,8 @@ ZenGrid.prototype = {
         this.askformore = loadJSONDoc(this.url, qs);
         this.askformore.addErrback(bind(function(x) { 
             callLater(5, bind(function(){
-            alert('Cannot communicate with the server!');
+            this.message('Unable to communicate with the server.');
+            this.clearTable();
             delete this.askformore;
             this.killLoading()}, this))
         }, this));
@@ -346,7 +351,10 @@ ZenGrid.prototype = {
                 this.buffer.clear();
                 this.buffer.update(result[0], bufOffset);
                 this.updateStatusBar(this.lastOffset);
-                this.populateTable(this.buffer.getRows(this.lastOffset, this.numRows));
+                this.populateTable(this.buffer.getRows(
+                        this.lastOffset, this.numRows));
+                this.message('Last updated ' + 
+                             toISOTimestamp(new Date()) + '.');
                 delete this.askformore;
             }, this)
         );
@@ -373,7 +381,8 @@ ZenGrid.prototype = {
         this.askformore = loadJSONDoc(url, qs);
         this.askformore.addErrback(bind(function(x) { 
             callLater(5, bind(function(){
-            alert('Cannot communicate with the server!');
+            this.message('Unable to communicate with the server.');
+            this.clearTable();
             this.killLoading()}, this))
             delete this.askformore;
         }, this));
@@ -551,9 +560,18 @@ ZenGrid.prototype = {
     clearTable: function() {
         table = this.zgtable;
         var cells = getElementsByTagAndClassName('div', 'cell_inner', table);
+        var rows = table.getElementsByTagName('tr');
         for (i=0;(cell=cells[i]);i++){
             setInnerHTML(cell, '');
         }
+        forEach(rows, function(row){
+                forEach(['zenevents_5_noack', 'zenevents_4_noack', 
+                         'zenevents_3_noack', 'zenevents_2_noack',
+                         'zenevents_1_noack', 'zenevents_0_noack'],
+                         function(className){ 
+                            removeElementClass(row, className); 
+                        });
+                });
     },
     setTableNumRows: function(numrows) {
         this.rowEls = map(this.getBlankRow, range(numrows));
