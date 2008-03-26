@@ -9,7 +9,8 @@
 </p>
 <div id="dialog_buttons">
 <input type="submit" name="setSystems:method" value="OK"
-    onclick="devZenGrid.setDeviceBatchProps('setSystems',$('systemPaths').value)"/>
+onclick="devZenGrid.setDeviceBatchProps('setSystems',
+    YAHOO.zenoss.getSelectValues('systemPaths'))"/>
 <input id="dialog_cancel" type="button" value="Cancel"
         onclick="$('dialog').hide()"/>
 </div>

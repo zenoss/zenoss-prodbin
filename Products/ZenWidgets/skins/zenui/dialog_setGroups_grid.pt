@@ -10,7 +10,8 @@
 </p>
 <div id="dialog_buttons">
 <input type="submit" name="setGroups:method" value="OK"
-    onclick="devZenGrid.setDeviceBatchProps('setGroups',$('groupPaths').value)"/>
+onclick="devZenGrid.setDeviceBatchProps('setGroups', 
+    YAHOO.zenoss.getSelectValues('groupPaths'))"/>
 <input id="dialog_cancel" type="button" value="Cancel"
         onclick="$('dialog').hide()"/>
 </div>

@@ -152,6 +152,16 @@ function unescapeHTML(str) {
 }
 YAHOO.zenoss.unescapeHTML = unescapeHTML;
 
+function getSelectValues(element) {
+    var element = $(element);
+    var values = [];
+    forEach(element.options, function(opt){
+        if(opt.selected) values.push(opt.value);
+    });
+    return values;
+}
+YAHOO.zenoss.getSelectValues = getSelectValues;
+
 /************************************
  *   Less universally useful stuff
  *   (formerly separate scripts)
