@@ -259,8 +259,6 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
     _relations = ManagedEntity._relations + (
         ("deviceClass", ToOne(ToManyCont, "Products.ZenModel.DeviceClass", 
             "devices")),
-        #("termserver", ToOne(ToMany, "Products.ZenModel.TerminalServer", 
-        #    "devices")),
         ("perfServer", ToOne(ToMany, "Products.ZenModel.PerformanceConf", 
             "devices")),
         ("location", ToOne(ToMany, "Products.ZenModel.Location", "devices")),
@@ -272,8 +270,6 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
             "managedObject")),
         ('userCommands', ToManyCont(ToOne, 'Products.ZenModel.UserCommand', 
             'commandable')),
-        #("dhcpubrclients", ToMany(ToMany, "Products.ZenModel.UBRRouter", 
-        #   "dhcpservers")),
         )
 
     # Screen action bindings (and tab definitions)
