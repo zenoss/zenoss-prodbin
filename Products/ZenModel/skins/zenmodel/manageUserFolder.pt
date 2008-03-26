@@ -21,7 +21,7 @@ function ConfirmPagerTest() {
 </tal:block>
 
 <tal:block metal:fill-slot="contentPane">
-<form method="get" tal:attributes="action here/absolute_url_path" id="users">
+<form method="get" name="usersTable" tal:attributes="action here/absolute_url_path" id="users">
 
 
         <tal:block tal:define="tableName string:userlist;
