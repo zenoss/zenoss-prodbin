@@ -56,14 +56,18 @@ class Schedule:
 
     def getWindows(self):
         result = []
-        for dev in self.dmd.Devices.getSubDevices():
-            result.extend(dev.maintenanceWindows())
-        for name in 'Systems', 'Locations', 'Groups', 'Devices':
-            organizer = getattr(self.dmd, name)
-            for c in organizer.getSubOrganizers():
-                result.extend(c.maintenanceWindows())
-            result.extend(organizer.maintenanceWindows())
-            
+        catalog = getattr(self.dmd, 'maintenanceWindowSearch', None)
+        if catalog:
+            result.extend(x.getObject() for x in catalog())
+        else: # Should be removed in 2.3.
+            self.log.warn('Run zenmigrate to index your maintenance windows.')
+            for dev in self.dmd.Devices.getSubDevices():
+                result.extend(dev.maintenanceWindows())
+            for name in 'Systems', 'Locations', 'Groups', 'Devices':
+                organizer = getattr(self.dmd, name)
+                for c in organizer.getSubOrganizers():
+                    result.extend(c.maintenanceWindows())
+                result.extend(organizer.maintenanceWindows())
         for lst in [self.dmd.ZenUsers.getAllUserSettings(),
                     self.dmd.ZenUsers.getAllGroupSettings()]:
             for us in lst:

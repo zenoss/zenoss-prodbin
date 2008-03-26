@@ -59,6 +59,7 @@ from Products.ZenWidgets.ZenossPortlets import ZenossPortlets
 from Products.ZenModel.ZenPackManager import manage_addZenPackManager
 from Products.ZenModel.ZenPackPersistence import CreateZenPackPersistenceCatalog
 from Products.ZenModel.RRDTemplate import CreateRRDTemplatesCatalog
+from Products.ZenModel.MaintenanceWindow import createMaintenanceWindowCatalog
 
 classifications = {
     'Devices':          DeviceClass,
@@ -166,7 +167,6 @@ class DmdBuilder:
         zpmgr = self.portal.ZenPortletManager
         ZenossPortlets.register_default_portlets(zpmgr)
 
-
     def build(self):
         self.buildRoots()
         self.buildMonitors()
@@ -193,3 +193,4 @@ class DmdBuilder:
         manage_addZenPackManager(self.dmd)
         CreateZenPackPersistenceCatalog(self.dmd)
         CreateRRDTemplatesCatalog(self.dmd)
+        createMaintenanceWindowCatalog(self.dmd)

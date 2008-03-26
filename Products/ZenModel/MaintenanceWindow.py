@@ -64,6 +64,10 @@ def addMonth(secs, dayOfMonthHint=0):
     
 class MaintenanceWindow(ZenModelRM):
     
+    meta_type = 'Maintenance Window'
+
+    default_catalog = 'maintenanceWindowSearch'
+
     name = None
     start = None
     started = None
@@ -119,6 +123,14 @@ class MaintenanceWindow(ZenModelRM):
         ZenModelRM.__init__(self, id)
         self.start = time.time()
         self.enabled = False
+
+    def manage_afterAdd(self, item, container):
+        super(MaintenanceWindow, self).manage_afterAdd(item, container)
+        self.index_object()
+
+    def manage_beforeDelete(self, item, container):
+        super(MaintenanceWindow, self).manage_beforeDelete(item, container)
+        self.unindex_object()
 
     def set(self, start, duration, repeat, enabled=True):
         self.start = start
@@ -394,3 +406,20 @@ class MaintenanceWindow(ZenModelRM):
 
 DeviceMaintenanceWindow = MaintenanceWindow
 OrganizerMaintenanceWindow = MaintenanceWindow
+
+
+from Products.ZCatalog.ZCatalog import manage_addZCatalog
+from Products.ZenUtils.Search import makeCaseInsensitiveFieldIndex
+from Products.CMFCore.utils import getToolByName
+
+def createMaintenanceWindowCatalog(dmd):
+
+    catalog_name = 'maintenanceWindowSearch'
+
+    manage_addZCatalog(dmd, catalog_name, catalog_name)
+    cat = getToolByName(dmd, catalog_name)
+
+    id_index = makeCaseInsensitiveFieldIndex('getId')
+    cat._catalog.addIndex('id', id_index)
+    cat.addColumn('id')
+
