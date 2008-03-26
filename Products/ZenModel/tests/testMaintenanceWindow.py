@@ -17,6 +17,22 @@ import time
 
 class TestMaintenanceWindows(ZenModelBaseTest):
 
+    def testProductionStateIndexing(self):
+        mwid = 'testwindow1'
+        devid = 'unittestdevice1'
+        grpid = 'unittestGroup'
+        grp = self.dmd.Groups.createOrganizer(grpid)
+        dev = self.dmd.Devices.createInstance(devid)
+        dev.setGroups(grp.id)
+        grp.manage_addMaintenanceWindow(mwid)
+        mw = grp.maintenanceWindows._getOb(mwid)
+        mw.begin()
+        self.assert_(dev.productionState==mw.startProductionState)
+        prodstate = dev.getProdState()
+        catalog = self.dmd.Devices.deviceSearch
+        results = [x.id for x in catalog(getProdState=prodstate)]
+        self.assert_(dev.id in results)
+
     def testMaintenanceWindows(self):
         m = MaintenanceWindow('tester')
         t = time.mktime( (2006, 1, 29, 10, 45, 12, 6, 29, 0) )

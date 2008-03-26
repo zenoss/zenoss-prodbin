@@ -1420,7 +1420,7 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
             queries.append(Eq('getProdState', state))
         query = Or(*queries)
         objects = catalog.evalAdvancedQuery(query, ((orderby, orderdir),))
-        devs = [x.getObject() for x in objects][:100]
+        devs = (x.getObject() for x in objects[:100])
         mydict = {'columns':['Device', 'Prod State'], 'data':[]}
         for dev in devs:
             if not self.checkRemotePerm(ZEN_VIEW, dev): continue

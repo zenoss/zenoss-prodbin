@@ -1125,7 +1125,7 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
         @permission: ZEN_CHANGE_DEVICE
         """
         self.productionState = int(state)
-        self.index_object()
+        self.primaryAq().index_object()
         try:
             zem = self.dmd.ZenEventManager
             conn = zem.connect()
