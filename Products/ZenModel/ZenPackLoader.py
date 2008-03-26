@@ -255,7 +255,6 @@ class ZPLSkins(ZenPackLoader):
 
 
     def upgrade(self, pack, app):
-        import pdb; pdb.set_trace()
         self.unload(pack, app)
         return self.load(pack, app)
 
