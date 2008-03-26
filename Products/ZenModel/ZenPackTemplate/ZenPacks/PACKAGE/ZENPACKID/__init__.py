@@ -1,12 +1,3 @@
-######################################################################
-#
-# Copyright 2007 Zenoss, Inc.  All Rights Reserved.
-#
-######################################################################
-
-__doc__="ZenPack Template"
-
-__import__('pkg_resources').declare_namespace(__name__)
 
 import Globals
 import os.path

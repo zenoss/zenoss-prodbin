@@ -75,7 +75,7 @@ class ZenPackCmd(ZenScriptBase):
 
         if self.options.installPackName:
             if eggInstall:
-                return EggPackCmd.InstallZenPack(
+                return EggPackCmd.InstallEggAndZenPack(
                     self.dmd,
                     self.options.installPackName,
                     develop=self.options.link,
@@ -99,13 +99,16 @@ class ZenPackCmd(ZenScriptBase):
             # by ZPLSkins loader.
             skinsSubdir = zenPath('Products', packName, 'skins', packName)
             if not os.path.exists(skinsSubdir):
-                os.makedirs(skinsSubdir)
+                os.makedirs(skinsSubdir, 0750)
             self.install(packName)
 
         elif self.options.removePackName:
             pack = self.dmd.ZenPackManager.packs._getOb(
                                         self.options.removePackName, None)
-            if pack and pack.isEggPack():
+            if not pack:
+                raise ZenPackException('ZenPack %s is not installed.' %
+                                        self.options.removePackName)
+            if pack.isEggPack():
                 return EggPackCmd.RemoveZenPack(self.dmd,
                                                 self.options.removePackName)
             self.remove(self.options.removePackName)

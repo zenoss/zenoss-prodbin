@@ -169,9 +169,9 @@ class ZPLDaemons(ZenPackLoader):
         for fs in findFiles(pack, 'daemons', filter=self.filter):
             os.chmod(fs, 0755)
             path = self.binPath(fs)
-            if os.path.exists(path):
+            if os.path.lexists(path):
                 os.remove(path)
-            os.symlink(fs, self.binPath(fs))
+            os.symlink(fs, path)
 
     def upgrade(self, pack, app):
         self.load(pack, app)
@@ -252,6 +252,12 @@ class ZPLSkins(ZenPackLoader):
     def load(self, pack, app):
         from Products.ZenUtils.Skins import registerSkin
         registerSkin(app.zport.dmd, pack.path(''))
+
+
+    def upgrade(self, pack, app):
+        import pdb; pdb.set_trace()
+        self.unload(pack, app)
+        return self.load(pack, app)
 
 
     def unload(self, pack, app):

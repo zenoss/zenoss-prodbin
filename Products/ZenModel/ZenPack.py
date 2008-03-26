@@ -23,8 +23,9 @@ from ZenossSecurity import ZEN_MANAGE_DMD
 import exceptions
 import pkg_resources
 import string
+import subprocess
 from Acquisition import aq_parent
-import os
+import os, sys
 
 __doc__="ZenPacks base definitions"
 
@@ -144,24 +145,24 @@ class ZenPack(ZenModelRM):
 
 
     def install(self, app):
-        self.stopDaemons()
+        #self.stopDaemons()
         for loader in self.loaders:
             loader.load(self, app)
         self.createZProperties(app)
-        self.startDaemons()
+        #self.startDaemons()
 
 
     def upgrade(self, app):
-        self.stopDaemons()
+        #self.stopDaemons()
         for loader in self.loaders:
             loader.upgrade(self, app)
         self.createZProperties(app)
         self.migrate()
-        self.startDaemons()
+        #self.startDaemons()
 
 
-    def remove(self, app):
-        self.stopDaemons()
+    def remove(self, app, leaveObjects=False):
+        #self.stopDaemons()
         for loader in self.loaders:
             loader.unload(self, app)
         self.removeZProperties(app)
@@ -169,7 +170,6 @@ class ZenPack(ZenModelRM):
         
 
     def migrate(self):
-        import sys
         instances = []
         # find all the migrate modules
         root = self.path("migrate")
@@ -201,7 +201,7 @@ class ZenPack(ZenModelRM):
             # give the pack a chance to recover from problems
             recover.reverse()
             for r in recover:
-                r.recover()
+                r.recover(self)
             raise ex
 
 
@@ -349,7 +349,11 @@ registerDirectory("skins", globals())
             os.chdir(eggPath)
             if os.path.isdir(os.path.join(eggPath, 'dist')):
                 os.system('rm -rf dist/*')
-            os.system('python setup.py bdist_egg')
+            p = subprocess.Popen('python setup.py bdist_egg',
+                            stderr=sys.stderr,
+                            shell=True,
+                            cwd=eggPath)
+            p.wait()
             os.system('cp dist/* %s' % exportDir)
             exportFileName = self.eggName()
         else:
@@ -400,6 +404,8 @@ registerDirectory("skins", globals())
             REQUEST['message'] = 'ZenPack exported to $ZENHOME/export/%s' % (
                                                     exportFileName)
             return self.callZenScreen(REQUEST)
+            
+        return exportFileName
 
 
     def manage_download(self, REQUEST):
@@ -543,7 +549,6 @@ registerDirectory("skins", globals())
         return name
 
 
-
     ##########
     # Egg-related methods
     # Nothing below here should be called for old-style zenpacks
@@ -602,8 +607,11 @@ registerDirectory("skins", globals())
         """
         Rebuild the egg info to update dependencies, etc
         """
-        os.chdir(self.eggPath())
-        os.system('python setup.py egg_info')
+        p = subprocess.Popen('python setup.py egg_info',
+                        stderr=sys.stderr,
+                        shell=True,
+                        cwd=self.eggPath())
+        p.wait()
 
 
     def getDistribution(self):
@@ -660,6 +668,41 @@ registerDirectory("skins", globals())
         return d.egg_name() + '.egg'
 
 
+    def shouldDeleteFilesOnRemoval(self):
+        """
+        Return True if the egg itself should be deleted when this ZenPack
+        is removed from Zenoss.
+        If the ZenPack is in development mode and if it lives outside
+        $ZENHOME/ZenPackDev then don't delete, otherwise do delete.
+        This logic is based on the assumed case where anything in ZenPackDev
+        was likely created through the gui, where eggs outside it are more
+        likely to be created by hand.  Packs created from the GUI should be
+        deleted without any trace because they likely contain only db objects
+        and no code per se.  
+        """
+        if self.isDevelopment():
+            eggPath = self.eggPath()
+            oneFolderUp = eggPath[:eggPath.rfind('/')-1]
+            if oneFolderUp == zenPath('ZenPackDev'):
+                delete = True
+            else:
+                delete = False
+        else:
+            delete = True
+        return delete
+
+
+    def getPackageName(self):
+        """
+        Return the name of submodule of zenpacks that contains this zenpack.
+        """
+        if not self.isEggPack():
+            raise ZenPackException('Calling getPackageName on a non-egg '
+                                        'zenpack')
+        modName = self.moduleName()
+        return modName.split('.')[1]
+
+
     def getEligibleDependencies(self):
         """
         Return a list of installed zenpacks that could be listed as
@@ -669,14 +712,14 @@ registerDirectory("skins", globals())
                     if zp.id != self.id
                     and zp.isEggPack()]
 
-    def getDependentZenPacks(self):
-        """
-        Return a list of ZenPacks that have this zenpack as a
-        dependency.
-        """
-        return [p for p in self.dmd.ZenPackManager.packs()
-                if p.isEggPack()
-                and self.id in p.dependencies.keys()]
+    # def getDependentZenPacks(self):
+    #     """
+    #     Return a list of ZenPacks that have this zenpack as a
+    #     dependency.
+    #     """
+    #     return [p for p in self.dmd.ZenPackManager.packs()
+    #             if p.isEggPack()
+    #             and self.id in p.dependencies.keys()]
 
 
 # ZenPackBase is here for backwards compatibility with older installed

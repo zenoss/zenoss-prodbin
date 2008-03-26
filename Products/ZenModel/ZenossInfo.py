@@ -526,7 +526,7 @@ class ZenossInfo(ZenModelItem, SimpleItem):
         daemonPath = zenPath('bin', daemonName)
         if not os.path.isfile(daemonPath):
             return
-        log.info('Processing a %s for %s' % (action, daemonName))
+        log.info('Telling %s to %s' % (daemonName, action))
         proc = subprocess.Popen([daemonPath, action], stdout=subprocess.PIPE,
                     stderr=subprocess.STDOUT)
         code = proc.wait()

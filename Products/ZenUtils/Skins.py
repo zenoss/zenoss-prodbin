@@ -12,7 +12,11 @@
 ###########################################################################
 import os
 import string 
+import warnings
 
+warnings.filterwarnings('ignore', '.*non-existing path.*',
+                        UserWarning,
+                        '.*DirectoryView.*')
 
 def skinDirs(base):
     layers = []

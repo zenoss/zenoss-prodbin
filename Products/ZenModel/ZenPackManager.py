@@ -19,6 +19,7 @@ from Globals import InitializeClass
 from ZenModelRM import ZenModelRM
 from Products.ZenRelations.RelSchema import *
 from AccessControl import ClassSecurityInfo
+from ZenossSecurity import ZEN_MANAGE_DMD
 from Products.ZenUtils.Utils import zenPath
 import os
 
@@ -64,6 +65,7 @@ class ZenPackManager(ZenModelRM):
     security = ClassSecurityInfo()
 
 
+    security.declareProtected(ZEN_MANAGE_DMD, 'manage_addZenPack')
     def manage_addZenPack(self, packId, package, REQUEST=None):
         """
         Create a new zenpack on the filesystem with the given info.
@@ -94,13 +96,17 @@ class ZenPackManager(ZenModelRM):
         zpDir = ZenPackCmd.CreateZenPack(packId, package)
         
         # Install it
-        zenPack = ZenPackCmd.InstallZenPack(self.dmd, zpDir, True)
-        
+        zenPacks = ZenPackCmd.InstallEggAndZenPack(self.dmd, zpDir, develop=True)
+        zenPack = self.packs._getOb(packId, None)
         if REQUEST:
-            return REQUEST['RESPONSE'].redirect(zenPack.getPrimaryUrlPath())
+            if zenPack:
+                return REQUEST['RESPONSE'].redirect(zenPack.getPrimaryUrlPath())
+            REQUEST['message'] = 'There was an error creating the ZenPack.'
+            return self.callZenScreen(REQUEST)
         return zenPack
 
 
+    security.declareProtected(ZEN_MANAGE_DMD, 'manage_removeZenPacks')
     def manage_removeZenPacks(self, ids=(), REQUEST=None):
         """
         Uninstall the given zenpacks.  Uninstall the zenpack egg.  If not in
@@ -138,7 +144,7 @@ class ZenPackManager(ZenModelRM):
         if REQUEST:
             return self.callZenScreen(REQUEST)
 
-
+    security.declareProtected(ZEN_MANAGE_DMD, 'manage_installZenPack')
     def manage_installZenPack(self, zenpack=None, REQUEST=None):
         """
         Installs the given zenpack.  Zenpack is a file upload from the browser.
@@ -216,16 +222,6 @@ class ZenPackManager(ZenModelRM):
         self.write(out, 'Done installing ZenPack.')
         if REQUEST:
             REQUEST.RESPONSE.write(footer)
-
-
-    def getZenPackPaths(self):
-        '''
-        Return a list of paths to currently installed ZenPacks.  This is used
-        to test which classes are provided by these ZenPacks.
-        '''
-        # return [zp.path()
-        # for pack in self.packs():
-        pass
 
 
     def getBrokenPackName(self, ob):
