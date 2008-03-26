@@ -77,7 +77,7 @@ class SelTestBase(unittest.TestCase):
         self.waitForElement("__ac_password")
         self.selenium.type("__ac_name", USER)
         self.selenium.type("__ac_password", PASS)
-        self.selenium.click("//input[@value='Submit']")
+        self.selenium.click("//input[@name='submit']")
         self.selenium.wait_for_page_to_load(self.WAITTIME)
         
     def logout(self):
