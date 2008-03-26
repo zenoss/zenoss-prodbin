@@ -6,8 +6,8 @@ import subprocess
 ZENHOME = os.environ['ZENHOME']
 zenhome = lambda *args:os.path.join(ZENHOME, *args)
 
-def findSeleniumTests():
-    prods = findTestableProducts()
+def findSeleniumTests(mods=[]):
+    prods = findTestableProducts(mods)
     results = []
     for prod in prods:
         selpath = zenhome('Products', prod, 'tests', 'selenium', 'testAll.py')
@@ -15,10 +15,11 @@ def findSeleniumTests():
             results.append(selpath)
     return results
 
-def findTestableProducts():
+def findTestableProducts(mods=[]):
     results = []
     for root, dirs, files in os.walk(zenhome('Products')):
         for dir in dirs:
+            if mods and dir not in mods: continue
             if not dir.startswith('Zen') or \
                dir=='ZenTestRunner': continue
             newdir = os.path.join(root, dir)
@@ -26,12 +27,12 @@ def findTestableProducts():
                 results.append(dir)
     return results
 
-def runSeleniumTests():
-    for testscript in findSeleniumTests():
+def runSeleniumTests(mods=[]):
+    for testscript in findSeleniumTests(mods):
         subprocess.call([testscript])
 
-def runUnitTests():
-    for prod in findTestableProducts():
+def runUnitTests(mods=[]):
+    for prod in findTestableProducts(mods):
         subprocess.call([ 'zopectl', 'test', '--libdir', 
                         zenhome('Products', prod) ])
 
@@ -40,10 +41,11 @@ def main():
     parser = OptionParser()
     options, args = parser.parse_args()
     testtype = args[0]
+    mods = args[1:]
     if testtype in ('unit', 'all'):
-        runUnitTests()
+        runUnitTests(mods)
     if testtype in ('selenium', 'all'):
-        runSeleniumTests()
+        runSeleniumTests(mods)
 
 
 if __name__=="__main__":
