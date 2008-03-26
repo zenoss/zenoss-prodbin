@@ -63,8 +63,9 @@ class MaintenanceWindowable:
             # Only Device and DeviceClass have setLastChange for now.
             self.setLastChange()
         if REQUEST:
-            REQUEST['message'] = "Maintenace Window Deleted"
+            REQUEST['message'] = "Maintenance Window Deleted"
             return self.callZenScreen(REQUEST)
 
 
 InitializeClass(MaintenanceWindowable)
+
