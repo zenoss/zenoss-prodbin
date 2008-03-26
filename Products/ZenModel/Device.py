@@ -780,6 +780,11 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
         return ''
 
 
+    def getNetworkRoot(self):
+        """Return the network root object
+        """
+        return self.getDmdRoot('Networks')
+
     security.declareProtected(ZEN_VIEW, 'getLastChange')
     def getLastChange(self):
         """

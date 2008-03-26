@@ -27,7 +27,7 @@ log = logging.getLogger('zen')
 
 from Globals import DTMLFile
 from Globals import InitializeClass
-from Acquisition import aq_base
+from Acquisition import aq_base, aq_chain
 from AccessControl import ClassSecurityInfo
 from AccessControl import Permissions as permissions
 
@@ -145,23 +145,23 @@ class IpNetwork(DeviceOrganizer):
         return super(IpNetwork, self).checkValidId(id, prep_id)
     
     
-    def createNet(self, netip, netmask=0):
-        """Return and create if nessesary netip.  netip in form 1.1.1.0/24 or
-        with netmask passed as parameter.
-        Subnetworks created based on the zParameter zDefaulNetworkTree.
+    def createNet(self, netip, netmask=24):
         """
-        netroot = self.getDmdRoot("Networks")
-        if netip.find("/") > -1:
-            netip, netmask = netip.split("/",1)
-            netmask = int(netmask)
-        netobj = netroot.getNet(netip)
+        Return and create if nessesary network.  netip is in the form
+        1.1.1.0/24 or with netmask passed as parameter.  Subnetworks created
+        based on the zParameter zDefaulNetworkTree.
+        Called by IpNetwork.createIp and IpRouteEntry.setTarget
+        """
+        if netip.find("/") > -1: netip, netmask = netip.split("/",1)
+        netmask = int(netmask)
+        netobj = self.getNet(netip)
         if netobj and netobj.netmask == netmask: return netobj
         if netmask == 0:
             raise ValueError("netip '%s' without netmask", netip)
         netip = getnetstr(netip,netmask)
-        netTree = getattr(netroot, 'zDefaultNetworkTree', defaultNetworkTree)
+        netTree = getattr(self, 'zDefaultNetworkTree', defaultNetworkTree)
         netTree = map(int, netTree)
-        netobj = netroot
+        netobj = self
         for treemask in netTree:
             if treemask >= netmask:
                 netobj = netobj.addSubNetwork(netip, netmask)
@@ -191,7 +191,7 @@ class IpNetwork(DeviceOrganizer):
     def getNet(self, ip):
         """Return the net starting form the Networks root for ip.
         """
-        return self.getDmdRoot("Networks")._getNet(ip)
+        return self._getNet(ip)
 
 
     def _getNet(self, ip):
@@ -213,26 +213,11 @@ class IpNetwork(DeviceOrganizer):
         """Return an ip and create if nessesary in a hierarchy of 
         subnetworks based on the zParameter zDefaulNetworkTree.
         """
-        netobj = self.getDmdRoot("Networks")
         ipobj = self.findIp(ip)
-        if ipobj: return ipobj
-        ipobj = netobj.addIp(ip)
         if ipobj: return ipobj
         netobj = self.createNet(ip, netmask)
         ipobj = netobj.addIpAddress(ip,netmask)
         return ipobj
-
-
-    def addIp(self, ip):
-        """Add an ip to the system.  Its network object must already exist.
-        """
-        for net in self.children():
-            if net.hasIp(ip):
-                if not len(net.children()):
-                    return net.addIpAddress(ip, net.netmask)
-                else:
-                    return net.addIp(ip)
-        return None
 
 
     def freeIps(self):
@@ -400,26 +385,13 @@ class IpNetwork(DeviceOrganizer):
         """Find an ipAddress.
         """
         searchCatalog = self.getDmdRoot("Networks").ipSearch
-        ret = searchCatalog({'id':ip})
+        ret = searchCatalog(dict(id=ip))
         if not ret: return None
         if len(ret) > 1:
             raise IpAddressConflict, "IP address conflict for IP: %s" % ip
-        try:
-            return self.getObjByPath(ret[0].getPrimaryId)
-        except KeyError:
-            log.warn("bad path '%s' in index ipSearch" % ret[0].getPrimaryId)
+        return ret[0].getObject()
 
-
-    def ipHref(self,ip):
-        """Return the url of an ip address.
-        """
-        ip = self.findIp(ip)
-        if ip:
-            if ip.checkRemotePerm("View", ip):
-                return ip.getPrimaryUrlPath()
-        return ""
-
-
+    
     def buildZProperties(self):
         nets = self.getDmdRoot("Networks")
         if getattr(aq_base(nets), "zDefaultNetworkTree", False):
@@ -562,3 +534,4 @@ class IpNetwork(DeviceOrganizer):
             return '<a href="%s">%s</a>' % (url, text)
 
 InitializeClass(IpNetwork)
+

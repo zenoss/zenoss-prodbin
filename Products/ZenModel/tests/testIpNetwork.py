@@ -42,9 +42,8 @@ class TestIpNetwork(ZenModelBaseTest):
     def testIpCreation(self):
         ipobj = self.dmd.Networks.createIp("1.2.3.4", 24)
         self.assert_("1.2.3.0" in self.dmd.Networks.objectIds())
-        #net = self.dmd.Networks._getOb("1.2.3.0")
-        #self.assert_(ipobj.network() == net)
-        #preceding lines don't work now; don't know why
+        net = self.dmd.Networks._getOb("1.2.3.0")
+        self.assert_(ipobj.network() == net)
         
 
     def testGetNet(self):
@@ -54,22 +53,10 @@ class TestIpNetwork(ZenModelBaseTest):
         self.assert_(self.dmd.Networks.getNet('1.2.4.5') == None)
 
 
-    def testAddIp(self):
-        net = self.dmd.Networks.createNet('1.2.3.0/24')
-        ipobj0 = self.dmd.Networks.addIp('1.2.3.4')
-        self.assert_(self.dmd.Networks.findIp('1.2.3.4') == ipobj0)
-        self.assert_(self.dmd.Networks.findIp('1.2.3.5') == None)
-        net = self.dmd.Networks.createNet('2.3.4.0/24')
-        ipobj1 = self.dmd.Networks.addIp('2.3.4.5')
-        self.assert_(self.dmd.Networks.findIp('2.3.4.5') == ipobj1)
-        self.assert_(net.findIp('2.3.4.5') == ipobj1)
-        self.assert_(net.findIp('1.2.3.4') == ipobj0)
-
-
     def testMisc(self):
         net = self.dmd.Networks.createNet('1.2.3.0/24')
         self.assert_(net.freeIps() == 254)
-        self.dmd.Networks.addIp('1.2.3.4')
+        self.dmd.Networks.createIp('1.2.3.4')
         self.assert_(net.freeIps() == 253)
         self.assert_(net.countIpAddresses(inuse=False) == 1)
         self.assert_(net.getNetworkName() == '1.2.3.0/24')

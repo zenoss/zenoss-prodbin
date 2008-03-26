@@ -33,7 +33,6 @@ from AccessControl import ClassSecurityInfo
 
 from Products.ZenRelations.RelSchema import *
 
-from IpAddress import findIpAddress
 from Products.ZenUtils.Utils import localIpCheck, localInterfaceCheck 
 from Products.ZenUtils.IpUtil import *
 
@@ -210,9 +209,10 @@ class IpInterface(OSComponent):
         """
         Add an ip to the ipaddresses relationship on this interface.
         """
+        networks = self.device().getNetworkRoot()
         ip, netmask = self._prepIp(ip, netmask)
         #see if ip exists already and link it to interface
-        ipobj = findIpAddress(self, ip)
+        ipobj = networks.findIp(ip)
         if ipobj:
             dev = ipobj.device()
             if dev and dev != self.device():
@@ -221,7 +221,7 @@ class IpInterface(OSComponent):
             self.ipaddresses.addRelation(ipobj)
         #never seen this ip make a new one in correct subnet
         else:
-            ipobj = self.getDmdRoot("Networks").createIp(ip, netmask)
+            ipobj = networks.createIp(ip, netmask)
             self.ipaddresses.addRelation(ipobj)
   
 
@@ -236,40 +236,50 @@ class IpInterface(OSComponent):
             self._ipAddresses = self._ipAddresses + [ip,]
 
 
+    def clearIps(self, ips):
+        """
+        If no IPs are sent remove all in the relation
+        """
+        if not ips:
+            self.removeRelation('ipaddresses')
+            return True
+
+
     def setIpAddresses(self, ips):
         """
         Set a list of ipaddresses in the form 1.1.1.1/24 on to this 
         interface. If networks for the ips don't exist they will be created.
         """
         if type(ips) == type(''): ips = [ips,]
-        if not ips:
-            self.removeRelation('ipaddresses')
-        else:
-            ipids = self.ipaddresses.objectIdsAll()
-            localips = copy.copy(self._ipAddresses)
-            for ip in ips:
-                if localIpCheck(self, ip) or localInterfaceCheck(self, self.id):
-                    if not ip in localips:
-                        self.addLocalIpAddress(ip)
-                    else:
-                        localips.remove(ip)
-                else:
-                    #if not ipFromIpMask(ip) in ipids:
-                    rawip = ipFromIpMask(ip)
-                    ipmatch = filter(lambda x: x.find(rawip) > -1, ipids)
-                    if not ipmatch:
-                        self.addIpAddress(ip)
-                    elif len(ipmatch) == 1:
-                        ipids.remove(ipmatch[0])
-                    else:
-                        pass # THIS WOULD BE BAD!! -EAD
+        if self.clearIps(ips): return
 
-            #delete ips that are no longer in use
-            for ip in ipids:
-                ipobj = self.ipaddresses._getOb(ip)
-                self.removeRelation('ipaddresses', ipobj)
-            for ip in localips:
-                self._ipAddresses.remove(ip)
+        ipids = self.ipaddresses.objectIdsAll()
+        localips = copy.copy(self._ipAddresses)
+        for ip in ips:
+            if localIpCheck(self, ip) or localInterfaceCheck(self, self.id):
+                if not ip in localips:
+                    self.addLocalIpAddress(ip)
+                else:
+                    localips.remove(ip)
+            else:
+                # do this funky filtering because the id we have
+                # is a primary id /zport/dmd/Newtowrks... etc
+                # and we are looking for just the IP part
+                # we used the full id later when deleting the IPs
+                rawip = ipFromIpMask(ip)
+                ipmatch = filter(lambda x: x.find(rawip) > -1, ipids)
+                if not ipmatch:
+                    self.addIpAddress(ip)
+                elif len(ipmatch) == 1:
+                    ipids.remove(ipmatch[0])
+
+
+        #delete ips that are no longer in use
+        for ip in ipids:
+            ipobj = self.ipaddresses._getOb(ip)
+            self.removeRelation('ipaddresses', ipobj)
+        for ip in localips:
+            self._ipAddresses.remove(ip)
    
 
     def removeIpAddress(self, ip):

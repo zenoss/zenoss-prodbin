@@ -144,17 +144,23 @@ class MySqlSendEventMixin:
         return evid
            
 
-    def _findByIp(self, ipaddress):
+    def _findByIp(self, ipaddress, networks):
         """
         Find and ip by looking up it up in the Networks catalog.
         """
         log.debug("looking up ip %s",ipaddress)
-        nets = self.getDmdRoot("Networks")
-        ipobj = nets.findIp(ipaddress)
+        ipobj = networks.findIp(ipaddress)
         if ipobj and ipobj.device():
             device = ipobj.device()
             log.debug("ip %s -> %s", ipobj.id, device.id)
             return device
+
+
+    def getNetworkRoot(self, evt):
+        """
+        Return the network root and event
+        """
+        return self.getDmdRoot('Networks'), evt
 
 
     def applyEventContext(self, evt):
@@ -164,15 +170,16 @@ class MySqlSendEventMixin:
         """
         events = self.getDmdRoot("Events")
         devices = self.getDmdRoot("Devices")
+        networks, evt = self.getNetworkRoot(evt)
         device = None
         if getattr(evt, 'device', None):
             device = devices.findDevice(evt.device)
         if not device and getattr(evt, 'ipAddress', None):
             device = devices.findDevice(evt.ipAddress)
         if not device and getattr(evt, 'device', None):
-            device = self._findByIp(evt.device)
+            device = self._findByIp(evt.device, networks)
         if not device and getattr(evt, 'ipAddress', None):
-            device = self._findByIp(evt.ipAddress)
+            device = self._findByIp(evt.ipAddress, networks)
         if device:
             evt.device = device.id
             log.debug("Found device=%s", evt.device)

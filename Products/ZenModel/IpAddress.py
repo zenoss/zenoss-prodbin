@@ -47,18 +47,6 @@ def manage_addIpAddress(context, id, netmask=24, REQUEST = None):
                                      +'/manage_main')
 
 
-def findIpAddress(context, ip):
-    """find an ip from base. base should be Networks root found through aq"""
-    searchCatalog = context.Networks.ipSearch
-    ret = searchCatalog({'id':ip})
-    if len(ret) > 1:
-        raise IpAddressConflict, "IP address conflict for IP: %s" % ip
-    if ret:
-        ipobj = getObjByPath(searchCatalog.getPhysicalRoot(),
-                            ret[0].getPrimaryId)
-        return ipobj
-
-
 addIpAddress = DTMLFile('dtml/addIpAddress',globals())
 
 

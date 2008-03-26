@@ -133,7 +133,8 @@ class zeneventlog(WinCollector):
                     summary=lrec.message.strip(),
                     agent="zeneventlog",
                     severity=sev,
-                    manager=self.manager)
+                    manager=self.manager,
+                    monitor=self.options.monitor)
         self.log.debug("device:%s msg:'%s'", name, lrec.message)
         return evt
 

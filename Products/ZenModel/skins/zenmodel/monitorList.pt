@@ -14,7 +14,7 @@
     tableName string:monitorlist;
     submonname python:submonitor.id + ' Monitors';
     batch python:here.ZenTableManager.getBatch(tableName,objects); 
-    tabletitle submonname">
+    tabletitle string:Zenoss Collectors">
         <tal:block metal:use-macro="here/zenuimacros/macros/zentable">
 
         <!--====Optional titlebar slots=============

@@ -80,6 +80,16 @@ class TestIpInterface(ZenModelBaseTest):
         self.assert_(self.iface.getIpAddressObj().getIp() == add2.getIp())
 
 
+    def testAddIpaddress(self):
+        self.iface.addIpAddress('1.2.3.4')
+        self.assert_(self.dmd.Networks.findIp('1.2.3.4'))
+        
+
+    def testAddLocalIpAddresses(self):
+        self.iface.addLocalIpAddress('127.0.0.2')
+        self.assert_(self.dmd.Networks.findIp('127.0.0.2') is None)
+        self.assert_('127.0.0.2/24' in self.iface._ipAddresses)
+
     def testGetNetworkName(self):
         self.iface.addIpAddress('1.2.3.4')
         self.assert_(self.iface.getNetworkName() == '1.2.3.0/24')
@@ -87,10 +97,14 @@ class TestIpInterface(ZenModelBaseTest):
 
     def testSetIpAddresses(self):
         self.iface.setIpAddresses('1.2.3.4/24')
+        self.assert_(self.dmd.Networks.findIp('1.2.3.4'))
         self.assert_('1.2.3.4/24' in self.iface.getIpAddresses())
         self.assert_(self.iface.getIpAddress() == '1.2.3.4/24')
         
+    def testSetIpAddresses2(self):
         self.iface.setIpAddresses(['1.2.3.4/24', '2.3.4.5/24'])
+        self.assert_(self.dmd.Networks.findIp('1.2.3.4'))
+        self.assert_(self.dmd.Networks.findIp('2.3.4.5'))
         self.assert_('1.2.3.4/24' in self.iface.getIpAddresses())
         self.assert_('2.3.4.5/24' in self.iface.getIpAddresses())
         self.assert_(self.iface.getIpAddress() == '1.2.3.4/24')
@@ -117,8 +131,13 @@ class TestIpInterface(ZenModelBaseTest):
 
 
     def testGetParentInfo(self):
-        self.assert_(self.iface.getParentDeviceName() == self.dev.getDeviceName())
+        self.assert_(self.iface.getParentDeviceName()==self.dev.getDeviceName())
         self.assert_(self.iface.getParentDeviceUrl() == self.dev.absolute_url())
+
+
+    def testClearIps(self):
+        self.iface.clearIps(None)
+        self.assert_(not self.iface.getIpAddresses())
 
 
 def test_suite():

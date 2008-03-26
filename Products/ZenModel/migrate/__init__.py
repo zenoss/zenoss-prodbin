@@ -131,3 +131,4 @@ import restoreRemoveZenPackMenuItem
 import makeTemplateCatalog
 import removeStatusMonitor
 import maintwindowcatalog
+import addMonitorColumn

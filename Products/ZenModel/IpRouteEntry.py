@@ -28,7 +28,6 @@ from AccessControl import ClassSecurityInfo
 from Products.ZenUtils.Utils import localIpCheck, prepId
 from Products.ZenRelations.RelSchema import *
 
-from IpAddress import findIpAddress
 
 from OSComponent import OSComponent
 
@@ -139,11 +138,9 @@ class IpRouteEntry(OSComponent):
         """
         Return an <a> link to our next hop ip.
         """
-        ip = self.getNextHopIp()
-        if not ip: return ""
-        href = self.getDmdRoot("Networks").ipHref(ip)
-        if not href: return ip
-        return "<a href='%s'>%s</a>" % (href, ip)
+        ipobj = self.nexthop()
+        if not ipobj: return ""
+        return ipobj.getPrimaryLink()
 
         
     security.declareProtected('View', 'getNextHopIp')
@@ -185,14 +182,15 @@ class IpRouteEntry(OSComponent):
         if localIpCheck(self, nextHopIp) or not nextHopIp:
             self._nexthop = nextHopIp
         else:
-            ip = findIpAddress(self, nextHopIp)
+            networks = self.device().getNetworkRoot()
+            ip = networks.findIp(nextHopIp)
             if not ip: 
                 netmask = 24
                 int = self.interface()
                 if int: 
                     intip = int.getIpAddressObj()
                     if intip: netmask = intip.netmask
-                ip = self.getDmdRoot("Networks").createIp(nextHopIp, netmask)
+                ip = networks.createIp(nextHopIp, netmask)
             self.addRelation('nexthop', ip)
       
 
@@ -211,7 +209,8 @@ class IpRouteEntry(OSComponent):
         if localIpCheck(self, netip) or netmask == '0':
             self._target = netip
         else:
-            net = self.getDmdRoot("Networks").createNet(netip)
+            networks = self.device().getNetworkRoot()
+            net = networks.createNet(netid, netmask)
             self.target.addRelation(net)
 
 
@@ -219,7 +218,7 @@ class IpRouteEntry(OSComponent):
         """
         Return the route target ie 0.0.0.0/0.
         """
-        if self.target(): 
+        if self.target():
             return self.target().getNetworkName()
         else:
             return self._target

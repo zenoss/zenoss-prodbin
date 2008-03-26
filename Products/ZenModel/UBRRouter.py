@@ -25,7 +25,7 @@ from Globals import InitializeClass
 
 from Products.ZenRelations.RelSchema import *
 
-from IpAddress import findIpAddress
+# THIS CLASS NEEDS TO DIE
 from Device import Device
 
 def manage_addUBRRouter(context, id, title = None, REQUEST = None):
@@ -60,7 +60,7 @@ class UBRRouter(Device):
         if len(sys): sys = sys[0]
         else: sys = None
         for ip in ips:
-            dip = findIpAddress(self, ip)
+            dip = None
             if not dip: continue
             dserv = dip.getDevice()
             if dserv in dhcpservers: 

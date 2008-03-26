@@ -182,6 +182,7 @@ class ZenTrap(EventServer):
             result.setdefault('community', community)
             result.setdefault('firstTime', ts)
             result.setdefault('lastTime', ts)
+            result.setdefault('monitor', self.options.monitor)
             self.sendEvent(result)
 
             # respond to INFORM requests

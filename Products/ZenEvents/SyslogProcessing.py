@@ -85,6 +85,7 @@ class SyslogProcessor(object):
         evt = self.parseTag(evt, msg) 
         #rest of msg now in summary of event
         evt = self.buildEventClassKey(evt)
+        evt['monitor'] = self.options.monitor
         self.sendEvent(evt)
 
         
