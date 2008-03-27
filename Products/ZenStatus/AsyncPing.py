@@ -140,7 +140,7 @@ class Ping(object):
 
     def recvPackets(self):
         """receive a packet and decode its header"""
-        while self.pingsocket:
+        while reactor.running:
             try:
                 data, (host, port) = self.pingsocket.recvfrom(1024)
                 if not data: return
@@ -176,7 +176,7 @@ class Ping(object):
             except (SystemExit, KeyboardInterrupt): raise
             except socket.error, err:
                 errnum, errmsg = err.args
-                if errnum in (errno.EAGAIN, errno.EBADF):
+                if errnum == errno.EAGAIN:
                     return
                 raise err
             except Exception, ex:
