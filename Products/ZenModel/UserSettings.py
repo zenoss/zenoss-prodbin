@@ -112,6 +112,11 @@ class UserSettingsManager(ZenModelRM):
                 , 'action'        : '../../About/zenossVersions'
                 , 'permissions'   : ( ZEN_MANAGE_DMD, )
                 },
+                { 'id'            : 'backups'
+                , 'name'          : 'Backups'
+                , 'action'        : '../backupInfo'
+                , 'permissions'   : ( ZEN_MANAGE_DMD, )
+                },
            )
          },
         )
