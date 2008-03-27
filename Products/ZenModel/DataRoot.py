@@ -499,6 +499,12 @@ class DataRoot(ZenModelRM, OrderedFolder, Commandable, ZenMenuable):
         self.geocache = cache
         return True
 
+    def clearGeocodeCache(self, REQUEST=None):
+        """
+        Clear the Google Maps cache.
+        """
+        self.geocache = ''
+
     security.declareProtected(ZEN_COMMON, 'getGeoCache')
     def getGeoCache(self, REQUEST=None):
         cachestr = self.geocache

@@ -131,4 +131,5 @@ import restoreRemoveZenPackMenuItem
 import makeTemplateCatalog
 import removeStatusMonitor
 import maintwindowcatalog
+import clearmapcachemenuitem
 import addMonitorColumn
