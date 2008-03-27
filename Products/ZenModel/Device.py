@@ -1714,7 +1714,8 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
         ip = self.getDeviceIp()
         path = '<a href="/zport/dmd/Devices%s">%s</a>' % (classurl, classurl)
         prod = self.getProdState()
-        return [id, ip, path, prod, self.getId()]
+        evsum = self.getHTMLEventSummary()
+        return [id, ip, path, prod, evsum, self.getId()]
 
     def exportXmlHook(self, ofile, ignorerels):
         """

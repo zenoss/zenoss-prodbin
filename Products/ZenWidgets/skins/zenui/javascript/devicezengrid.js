@@ -495,8 +495,8 @@ DeviceZenGrid.prototype = {
             this.setTableNumRows(this.numRows);
             if (this.lock.locked) this.lock.release();
         }, this);
-        r = [['Device Id',31.0],['IP',20.0],['Class',30.0],
-             ['Prod State',20.0]]
+        r = [['Device Id',25.0],['IP',16.0],['Class',25.0],
+             ['Prod State',16.0],['Event Summary',14.0]]
         this.fields=r;
         if (isManager) this.fields = concat([['&nbsp;','']], this.fields);
         updateColumns();
