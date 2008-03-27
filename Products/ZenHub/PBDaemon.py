@@ -24,6 +24,7 @@ from Products.ZenUtils.PBUtil import ReconnectingPBClientFactory
 from Products.ZenUtils.DaemonStats import DaemonStats
 
 from twisted.internet import reactor, defer
+from twisted.internet.defer import TimeoutError
 from twisted.cred import credentials
 from twisted.spread import pb
 
@@ -122,6 +123,10 @@ class PBDaemon(ZenDaemon, pb.Referenceable):
         c = credentials.UsernamePassword(username, password)
         factory.gotPerspective = self.gotPerspective
         factory.startLogin(c)
+        def timeout(d):
+            if not d.called:
+                d.errback(TimeoutError("Connection to ZenHub timed out"))
+        reactor.callLater(self.options.hubtimeout, timeout, self.initialConnect)
         return self.initialConnect
 
 
@@ -189,7 +194,12 @@ class PBDaemon(ZenDaemon, pb.Referenceable):
             self.connected()
             return result
         def errback(error):
-            self.log.error('Unable to connect to zenhub: \n%s' % error)
+            from twisted.python.failure import Failure
+            if (isinstance(error, Failure) and \
+                isinstance(error.value, TimeoutError)):
+                self.log.error('Timeout connecting to zenhub: is it running?')
+            else:
+                self.log.error('Unable to connect to zenhub: \n%s' % error)
             self.stop()
         d.addCallbacks(callback, errback)
         reactor.run()
@@ -317,6 +327,11 @@ class PBDaemon(ZenDaemon, pb.Referenceable):
                                 help='Name of monitor instance to use for'
                                     ' configuration.  Default is %s.'
                                     % DEFAULT_HUB_MONITOR)
+        self.parser.add_option('--initialHubTimeout',
+                               dest='hubtimeout',
+                               type='int',
+                               default=20,
+                               help='Initial time to wait for a ZenHub connection')
 
         ZenDaemon.buildOptions(self)
 

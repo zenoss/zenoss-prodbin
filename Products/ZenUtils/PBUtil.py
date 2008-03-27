@@ -54,6 +54,8 @@ class ReconnectingPBClientFactory(PBClientFactory,
     """
     __pychecker__='no-override'
 
+    maxdelay = 5
+
     def __init__(self):
         PBClientFactory.__init__(self)
         self._doingLogin = False
