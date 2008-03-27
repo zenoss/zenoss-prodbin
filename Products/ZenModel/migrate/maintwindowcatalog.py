@@ -23,15 +23,16 @@ class MaintenanceWindowCatalog(Migrate.Step):
     version = Migrate.Version(2, 2, 0)
 
     def cutover(self, dmd):  
-        createMaintenanceWindowCatalog(dmd)
-        indexit = lambda x:x.index_object()
-        print "Indexing maintenance windows. This may take some time..."
-        for dev in dmd.Devices.getSubDevicesGen():
-            map(indexit, dev.maintenanceWindows())
-        for name in 'Systems', 'Locations', 'Groups', 'Devices':
-            organizer = getattr(dmd, name)
-            for c in organizer.getSubOrganizers():
+        if not getattr(dmd, 'maintenanceWindowSearch'):
+            createMaintenanceWindowCatalog(dmd)
+            indexit = lambda x:x.index_object()
+            print "Indexing maintenance windows. This may take some time..."
+            for dev in dmd.Devices.getSubDevicesGen():
                 map(indexit, dev.maintenanceWindows())
-            map(indexit, organizer.maintenanceWindows())
+            for name in 'Systems', 'Locations', 'Groups', 'Devices':
+                organizer = getattr(dmd, name)
+                for c in organizer.getSubOrganizers():
+                    map(indexit, dev.maintenanceWindows())
+                map(indexit, organizer.maintenanceWindows())
 
 MaintenanceWindowCatalog()
