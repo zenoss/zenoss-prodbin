@@ -505,7 +505,6 @@ class ZenModeler(PBDaemon):
             try:
                 while reactor.running:
                     reactor.runUntilCurrent()
-                    reactor.doIteration(0)
                     timeout = reactor.timeout()
                     self.slowDown = timeout < 0.01
                     reactor.doIteration(timeout)
