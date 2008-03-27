@@ -32,6 +32,9 @@ class RemoteException(Exception, pb.Copyable, pb.RemoteCopy):
     def __init__(self, msg, tb):
         Exception.__init__(self, msg)
         self.traceback = tb
+    def __str__(self):
+        return Exception.__str__(self) + self.traceback
+
 pb.setUnjellyableForClass(RemoteException, RemoteException)
         
 def translateError(callable):
