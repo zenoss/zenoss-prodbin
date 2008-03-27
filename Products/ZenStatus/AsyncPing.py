@@ -140,7 +140,7 @@ class Ping(object):
 
     def recvPackets(self):
         """receive a packet and decode its header"""
-        while 1:
+        while self.pingsocket:
             try:
                 data, (host, port) = self.pingsocket.recvfrom(1024)
                 if not data: return
@@ -175,8 +175,8 @@ class Ping(object):
                     plog.debug("unexpected pkt %s %s", sip, icmppkt)
             except (SystemExit, KeyboardInterrupt): raise
             except socket.error, err:
-                err, errmsg = err.args
-                if err == errno.EAGAIN:
+                errnum, errmsg = err.args
+                if errnum in (errno.EAGAIN, errno.EBADF):
                     return
                 raise err
             except Exception, ex:
