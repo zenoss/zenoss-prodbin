@@ -27,8 +27,7 @@ class PingConfig(PerformanceConfig):
     def getPingTree(self, root, fallbackIp):
         me = self.dmd.Devices.findDevice(root)
         if not me:
-            realm = self.dmd.Networks.getNetworksRoot(self.config.ipRealm)
-            ip = networks.findIp(fallbackIp)
+            ip = self.dmd.Networks.findIp(fallbackIp)
             if ip and ip.device():
                 me = ip.device()
         if me: 
