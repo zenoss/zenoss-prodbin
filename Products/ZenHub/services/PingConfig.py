@@ -32,9 +32,7 @@ class PingConfig(PerformanceConfig):
     def getPingTree(self, dmd, root, fallbackIp):
         me = dmd.Devices.findDevice(root)
         if not me:
-            ip = dmd.Networks.findIp(fallbackIp)
-            if ip and ip.device():
-                me = ip.device()
+            me = self.lookupByIp(fallbackIp)
         if me: 
             self.log.info("building pingtree from %s", me.id)
             tree = pingtree.buildTree(me)
@@ -49,6 +47,14 @@ class PingConfig(PerformanceConfig):
         self.prepDevices(tree, devices)
         return tree.root
 
+
+    def lookupByIp(self, fallbackIp):
+        """Try to find the root device by our IP
+        """
+        ip = self.dmd.Networks.findIp(fallbackIp)
+        if ip and ip.device():
+            return ip.device()
+        
 
     def prepDevices(self, pingtree, devices):
         """resolve dns names and make StatusTest objects"""
