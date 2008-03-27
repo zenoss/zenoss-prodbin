@@ -22,12 +22,17 @@ class PingConfig(PerformanceConfig):
     @threaded
     @translateError
     def remote_getPingTree(self, root, fallbackIp):
-        return self.getPingTree(root, fallbackIp)
+        conn = self.dmd._p_jar._db.open()
+        try:
+            dmd = conn.root()['Application'].zport.dmd
+            return self.getPingTree(dmd, root, fallbackIp)
+        finally:
+            conn.close()
 
-    def getPingTree(self, root, fallbackIp):
-        me = self.dmd.Devices.findDevice(root)
+    def getPingTree(self, dmd, root, fallbackIp):
+        me = dmd.Devices.findDevice(root)
         if not me:
-            ip = self.dmd.Networks.findIp(fallbackIp)
+            ip = dmd.Networks.findIp(fallbackIp)
             if ip and ip.device():
                 me = ip.device()
         if me: 
