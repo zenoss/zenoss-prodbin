@@ -117,7 +117,7 @@
     <tr>
       <td class="tableheader">Modeler Cycle Interval (mins)</td>
       <td class="tablevalues">
-        <input class="tablevalues" type="text" name="statusCycleInterval:int" 
+        <input class="tablevalues" type="text" name="modelerCycleInterval:int" 
             size="10" tal:attributes="value here/modelerCycleInterval"/>
       </td>
     </tr>
