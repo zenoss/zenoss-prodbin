@@ -22,14 +22,11 @@ from Products.ZenEvents.ZenEventClasses import \
 from Products.ZenEvents import Event
 
 from Products.ZenUtils.Driver import drive
-from Products.ZenUtils.Utils import zenPath
 from Products.ZenHub.PBDaemon import FakeRemote
 
 from twisted.internet import reactor
 from twisted.internet.defer import DeferredList
 
-from ProcessProxy import ProcessProxy
- 
 MAX_WAIT_FOR_WMI_REQUEST = 20
 
 class Client:
