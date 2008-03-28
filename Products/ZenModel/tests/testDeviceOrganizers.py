@@ -14,10 +14,7 @@ import os, sys
 if __name__ == '__main__':
     execfile(os.path.join(sys.path[0], 'framework.py'))
 
-from zExceptions import Redirect
-
 from ZenossSecurity import *
-from Products.ZenModel.Device import Device
 from Products.CMFCore.utils import getToolByName
 
 from ZenModelBaseTest import ZenModelBaseTest
