@@ -27,7 +27,6 @@ import os, sys
 import pkg_resources
 import shutil
 import string
-import tempfile
 import subprocess
 import socket
 
