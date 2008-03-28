@@ -30,7 +30,7 @@ unused(DeviceProxy)
 from Products.DataCollector.Plugins import PluginLoader # This is needed by pb
 unused(PluginLoader)
 
-from ProcessProxy import ProcessProxy, ProcessProxyError
+from ProcessProxy import ProcessProxyError
 from NullProxy import NullProxy
 
 from twisted.internet.defer import DeferredList
@@ -73,7 +73,6 @@ class WinCollector(PBDaemon):
         return NullProxy(filename, classname)
 
     def getWatcher(self, device, query):
-        from Products.ZenUtils.Utils import zenPath
         wmic = self.getProxy('Products/ZenWin/Watcher.py', 'Watcher')
         try:
             wmic.start(MAX_WAIT_FOR_WMI_REQUEST, device, query)
