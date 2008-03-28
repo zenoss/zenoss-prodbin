@@ -809,7 +809,7 @@ class UserSettings(ZenModelRM):
                 ' from the Zenoss installation on %s.' % fqdn)
         for destPager in destPagers:
             result, errorMsg = Utils.sendPage(destPager, testMsg, 
-                                    self.dmd.snppHost, self.dmd.snppPort)
+                                    self.dmd.pageCommand)
             if result:
                 msg = 'Test page sent to %s' % ', '.join(destPagers)
             else:

@@ -98,9 +98,9 @@ class BaseTestCase(ZopeTestCase.ZopeTestCase):
         gen.create(self.app, 'zport', True)
         # builder params:
         # portal, cvthost, evtuser, evtpass, evtdb,
-        #    smtphost, smtpport, snpphost, snppport
+        #    smtphost, smtpport, pagecommand
         builder = DmdBuilder(self.app.zport, 'localhost', 'zenoss', 'zenoss',
-                            'events', 'localhost', '25', 'localhost', '0')
+                            'events', 'localhost', '25', '$ZENHOME/bin/zensnpp localhost 444 $RECIPIENT')
         builder.build()
         self.dmd = builder.dmd
 

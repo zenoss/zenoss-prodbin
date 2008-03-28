@@ -135,3 +135,4 @@ import devicepathindex
 import twotwoindexing
 import clearmapcachemenuitem
 import addMonitorColumn
+import pagecommand

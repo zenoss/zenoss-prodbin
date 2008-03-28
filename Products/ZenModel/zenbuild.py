@@ -54,11 +54,8 @@ class zenbuild(CmdBase):
                 help="smtp host")
         self.parser.add_option('--smtpport', dest="smtpport", default=25,
                 help="smtp port")
-        self.parser.add_option('--snpphost', dest="snpphost", default="localhost",
-                help="snpp host")
-        self.parser.add_option('--snppport', dest="snppport", default=444,
-                help="snpp port")
-
+        self.parser.add_option('--pagecommand', dest="pagecommand", default="$ZENHOME/bin/zensnpp localhost 444 $RECIPIENT",
+                help="page command")
 
     def build(self):
         site = getattr(self.app, self.sitename, None)
@@ -115,12 +112,9 @@ class zenbuild(CmdBase):
                                 self.options.evtdb, 
                                 self.options.smtphost, 
                                 self.options.smtpport, 
-                                self.options.snpphost, 
-                                self.options.snppport)
+                                self.options.pagecommand)
         dmdBuilder.build()
         transaction.commit() 
-        # Set smtp and snpp values
-        
 
         # Load reports
         from Products.ZenReports.ReportLoader import ReportLoader

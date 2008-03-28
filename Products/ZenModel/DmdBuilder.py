@@ -95,7 +95,7 @@ class DmdBuilder:
 
 
     def __init__(self, portal, evthost, evtuser, evtpass, evtdb, 
-                    smtphost, smtpport, snpphost, snppport):
+                    smtphost, smtpport, pagecommand):
         self.portal = portal
         self.evthost = evthost
         self.evtuser = evtuser
@@ -105,9 +105,8 @@ class DmdBuilder:
         self.portal._setObject(dmd.id, dmd)
         self.dmd = self.portal._getOb('dmd')
         self.dmd.smtpHost = smtphost
-        self.dmd.snppHost = snpphost
         self.dmd.smtpPort = smtpport
-        self.dmd.snppPort = snppport
+        self.dmd.pageCommand = pagecommand
 
 
     def buildRoots(self):

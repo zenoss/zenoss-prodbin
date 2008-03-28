@@ -560,8 +560,7 @@ class ZenActions(ZCmdBase):
         for recipient in recipients:
             success, errorMsg = Utils.sendPage(recipient,
                                                msg,
-                                               self.dmd.snppHost,
-                                               self.dmd.snppPort)
+                                               self.dmd.pageCommand)
             if success:
                 self.log.info('sent page to %s: %s', recipient, msg)
                 # return True if anyone got the page 

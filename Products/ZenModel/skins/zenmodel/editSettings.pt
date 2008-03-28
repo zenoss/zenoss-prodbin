@@ -97,17 +97,10 @@ YAHOO.zenoss.loader.insert();
         </td>
     </tr>
     <tr>
-      <td class="noselect tableheader" title="Simple Network Paging Protocol host" align="left">SNPP Host</td>
+      <td class="noselect tableheader" title="Command to execute to send a page" align="left">Page Command</td>
       <td class="tablevalues">
-        <input class="tablevalues" title="Simple Network Paging Protocol host" type="text" name="snppHost"
-            tal:attributes="value here/snppHost" />
-      </td>
-    </tr>
-    <tr>
-      <td class="noselect tableheader" title="TCP/IP port for Simple Network Paging Protocol" align="left">SNPP Port (usually 444)</td>
-      <td class="tablevalues">
-        <input class="tablevalues" title="TCP/IP port for Simple Network Paging Protocol" type="text" name="snppPort"
-            tal:attributes="value here/snppPort" />
+        <input class="tablevalues" title="Defaults to '$ZENHOME/bin/zensnpp localhost 444 $RECIPIENT" type="text" name="pageCommand"
+            tal:attributes="value here/pageCommand|string:" />
       </td>
     </tr>
 

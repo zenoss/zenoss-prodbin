@@ -452,21 +452,22 @@ def sendEmail(emsg, host, port=25, usetls=0, usr='', pwd=''):
     return result
     
     
-def sendPage(recipient, msg, snppHost, snppPort):
+def sendPage(recipient, msg, pageCommand):
     ''' Send a page.  Return a tuple: (success, message) where
     sucess is True or False.
     '''
-    import Pager
-    try:
-        rcpt = Pager.Recipient((recipient or '').strip())
-        pmsg = Pager.Message(msg)
-        page = Pager.Pager((rcpt,), pmsg, snppHost, snppPort)
-        page.send()
-    except (Pager.SNPPException, Pager.PagerException, socket.error):
-        result = (False, '%s - %s' % tuple(sys.exc_info()[:2]))
-    else:
-        result = (True, '')
-    return result
+    import subprocess
+    env = dict(os.environ)
+    env["RECIPIENT"] = recipient
+    p = subprocess.Popen(pageCommand, 
+                         stdin=subprocess.PIPE,
+                         stdout=subprocess.PIPE,
+                         shell=True,
+                         env=env)
+    p.stdin.write(msg)
+    p.stdin.close()
+    response = p.stdout.read()
+    return (not p.wait(), response)
        
 
 def zdecode(context, value):

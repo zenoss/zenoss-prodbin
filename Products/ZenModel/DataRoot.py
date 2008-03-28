@@ -73,9 +73,8 @@ class DataRoot(ZenModelRM, OrderedFolder, Commandable, ZenMenuable):
     reportMetricsOptIn = True
     acceptedTerms = True
     smtpHost = 'localhost'
-    snppHost = 'localhost'
+    pageCommand = '$ZENHOME/bin/zensnpp localhost 444 $RECIPIENT'
     smtpPort = 25
-    snppPort = 444
     smtpUser = ''
     smtpPass = ''
     smtpUseTLS = 0
@@ -102,8 +101,7 @@ class DataRoot(ZenModelRM, OrderedFolder, Commandable, ZenMenuable):
         {'id':'reportMetricsOptIn', 'type': 'boolean', 'mode':'w'},
         {'id':'smtpHost', 'type': 'string', 'mode':'w'},
         {'id':'smtpPort', 'type': 'int', 'mode':'w'},
-        {'id':'snppHost', 'type': 'string', 'mode':'w'},
-        {'id':'snppPort', 'type': 'int', 'mode':'w'},
+        {'id':'pageCommand', 'type': 'string', 'mode':'w'},
         {'id':'smtpUser', 'type': 'string', 'mode':'w'},
         {'id':'smtpPass', 'type': 'string', 'mode':'w'},
         {'id':'smtpUseTLS', 'type': 'int', 'mode':'w'},
