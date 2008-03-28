@@ -34,7 +34,6 @@ from Globals import InitializeClass
 from Products.ZenRelations.RelSchema import *
 
 from Products.ZenUtils.IpUtil import *
-from Products.ZenUtils.Utils import getObjByPath
 
 from Products.ZenModel.Exceptions import *
 
