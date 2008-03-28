@@ -23,7 +23,7 @@ class MaintenanceWindowCatalog(Migrate.Step):
     version = Migrate.Version(2, 2, 0)
 
     def cutover(self, dmd):  
-        if not getattr(dmd, 'maintenanceWindowSearch'):
+        if not hasattr(dmd, 'maintenanceWindowSearch'):
             createMaintenanceWindowCatalog(dmd)
             # Indexing is done by the twotwoindexing step
 
