@@ -14,8 +14,6 @@ import Migrate
 
 import Globals
 
-from Products.ZenModel.MaintenanceWindow import createMaintenanceWindowCatalog
-
 import logging
 log = logging.getLogger("zen.migrate")
 
