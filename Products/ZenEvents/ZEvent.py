@@ -26,11 +26,12 @@ class ZEvent(Event):
     security = ClassSecurityInfo()
     security.setDefaultAccess("allow")
  
-    def __init__(self, manager, fields, data):
+    def __init__(self, manager, fields, data, eventPermission=True):
         Event.__init__(self)
         self.updateFromFields(fields, data)
         self._zem = manager.getId()
         self._baseurl = manager.absolute_url_path()
+        self.eventPermission = eventPermission
 
     def getDataForJSON(self, fields):
         """ returns data ready for serialization
@@ -44,16 +45,17 @@ class ZEvent(Event):
         for field in fields:
             value = getattr(self, field)
             _shortvalue = str(value) or ''
-            #if len(_shortvalue) > 50:
-            #    _shortvalue = _shortvalue[:47]+'...'
             if field == "device":
                 value = urllib.quote('<a class="%s"' % (cssClass) +
                             ' href="/zport/dmd/deviceSearchResults'
                             '?query=%s">%s</a>' % (value, _shortvalue))
             elif field == 'eventClass':
                 _shortvalue = _shortvalue.replace('/','/&shy;')
-                value = urllib.quote('<a class="%s" ' % (cssClass) +
-                        'href="/zport/dmd/Events%s">%s</a>' % (value,_shortvalue))
+                if not self.eventPermission: 
+                    value = _shortvalue
+                else:
+                    value = urllib.quote('<a class="%s" ' % (cssClass) +
+                      'href="/zport/dmd/Events%s">%s</a>' % (value,_shortvalue))
             else:
                 value = _shortvalue
             data.append(value)

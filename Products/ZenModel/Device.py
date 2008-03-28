@@ -1739,7 +1739,10 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
         id = '<a class="tablevalues" href="%s">%s</a>' % (
                             url, self.getId())
         ip = self.getDeviceIp()
-        path = '<a href="/zport/dmd/Devices%s">%s</a>' % (classurl, classurl)
+        if self.checkRemotePerm("View", self.deviceClass()):
+            path = '<a href="/zport/dmd/Devices%s">%s</a>' % (classurl,classurl)
+        else:
+            path = classurl
         prod = self.getProdState()
         evsum = self.getHTMLEventSummary()
         return [id, ip, path, prod, evsum, self.getId()]

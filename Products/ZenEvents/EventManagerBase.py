@@ -531,9 +531,13 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
                     retdata = []
                     # iterate through the data results and convert to python
                     # objects
+                    if self.checkRemotePerm("View", self.dmd.Events):
+                        eventPermission = True
+                    else:
+                        eventPermission = False
                     for row in curs.fetchall():
                         row = map(self.convert, resultFields, row)
-                        evt = ZEvent(self, resultFields, row)
+                        evt = ZEvent(self, resultFields, row, eventPermission)
                         retdata.append(evt)
                     if getTotalCount:
                         curs.execute("SELECT FOUND_ROWS()")
