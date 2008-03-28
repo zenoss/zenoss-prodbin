@@ -1,52 +1,91 @@
 #!/usr/bin/env python
 
 import os, sys
-import subprocess
+from subprocess import call
+import optparse
+import time
 
 ZENHOME = os.environ['ZENHOME']
 zenhome = lambda *args:os.path.join(ZENHOME, *args)
 
-def findSeleniumTests(mods=[]):
-    prods = findTestableProducts(mods)
+STDOUT = sys.stdout
+
+def findSeleniumTests(packages=[], regex=None):
+    prods = findTestableProducts(packages, regex)
     results = []
+    if not regex: regex = 'testAll'
+    regex += '.py'
     for prod in prods:
-        selpath = zenhome('Products', prod, 'tests', 'selenium', 'testAll.py')
+        selpath = zenhome('Products', prod, 'tests', 'selenium', regex)
         if os.path.exists(selpath):
             results.append(selpath)
     return results
 
-def findTestableProducts(mods=[]):
+def findTestableProducts(packages=[], regex=None):
     results = []
     for root, dirs, files in os.walk(zenhome('Products')):
         for dir in dirs:
-            if mods and dir not in mods: continue
-            if not dir.startswith('Zen') or \
-               dir=='ZenTestRunner': continue
+            if packages and dir not in packages: continue
+            if (not (dir.startswith('Zen') or 
+                     dir=='DataCollector') or 
+                dir=='ZenTestRunner'): 
+                continue
             newdir = os.path.join(root, dir)
             if 'tests' in os.listdir(newdir): 
-                results.append(dir)
+                if regex:
+                    f = os.path.join(newdir, 'tests', regex+'.py')
+                    if os.path.exists(f):
+                        results.append(dir)
+                else:
+                    results.append(dir)
     return results
 
-def runSeleniumTests(mods=[]):
-    for testscript in findSeleniumTests(mods):
-        subprocess.call([testscript])
+def runSeleniumTests(packages=[], regex=None):
+    for testscript in findSeleniumTests(packages, regex):
+        call([testscript])
 
-def runUnitTests(mods=[]):
-    for prod in findTestableProducts(mods):
-        subprocess.call([ 'zopectl', 'test', '--libdir', 
-                        zenhome('Products', prod) ])
+def runUnitTests(packages=[], regex=None):
+    for prod in findTestableProducts(packages, regex):
+        parts = [ 'zopectl', 'test', '--libdir', 
+                  zenhome('Products', prod)]
+        if regex: parts.append(regex)
+        call(parts)
+
+usage="""%prog [options] [package1 [package2]]
+
+Run Zenoss tests against specified packages.  
+
+Packages are the names of directories in $ZENHOME/Products. If no
+packages are specified, tests will be executed against all testable
+Zenoss packages.
+
+Valid test types are:
+    unit        Run unit tests and doctests.
+    selenium    Run selenium tests.
+    all         Run all tests.
+
+Individual test modules may also be specified. For example, to run only
+the Device tests, use:
+    runtests --type unit --name testDevice ZenModel
+"""
 
 def main():
-    from optparse import OptionParser
-    parser = OptionParser()
+
+    parser = optparse.OptionParser( prog='runtests', usage=usage)
+    parser.add_option('-t', '--type', 
+                      help="The test types to run.", 
+                      default="all")
+    parser.add_option('-n', '--name', 
+                      help="The name of a test module.")
     options, args = parser.parse_args()
-    testtype = args[0]
-    mods = args[1:]
-    if testtype in ('unit', 'all'):
-        runUnitTests(mods)
-    if testtype in ('selenium', 'all'):
-        runSeleniumTests(mods)
+
+    if options.type in ('unit', 'all'):
+        runUnitTests(args, options.name)
+
+    if options.type in ('selenium', 'all'):
+        runSeleniumTests(args, options.name)
 
 
 if __name__=="__main__":
+    start = time.time()
     main()
