@@ -1,0 +1,53 @@
+<dtml-var manage_page_header>
+
+<dtml-var "manage_form_title(this(), _,
+           form_title='Add MultiPathInex',
+	   )">
+
+<p class="form-help">
+A <em>MultiPathIndex</em> indexes the paths of objects. Because ZenRelations
+allows an object essentially to have multiple paths, a MultiPathIndex is
+capable of handling a sequence of paths, and the object can be retrieved
+underneath any of them. The object need only provide a method that returns a
+tuple of path tuples, such as:
+<em>[ ('', 'zport', 'dmd', 'Devices', 'dev1'), 
+    ('', 'zport', 'dmd', 'Locations', 'dev1'), ]</em>
+</p>
+
+
+<form action="manage_addMultiPathIndex" method="post" enctype="multipart/form-data">
+<table cellspacing="0" cellpadding="2" border="0">
+  <tr>
+    <td align="left" valign="top">
+    <div class="form-label">
+    Id
+    </div>
+    </td>
+    <td align="left" valign="top">
+    <input type="text" name="id" size="40" />
+    </td>
+  </tr>
+  <tr>
+    <td align="left" valign="top">
+    <div class="form-optional">
+    Type
+    </div>
+    </td>
+    <td align="left" valign="top">
+    MultiPathIndex
+    </td>
+  </tr>
+  <tr>
+    <td align="left" valign="top">
+    </td>
+    <td align="left" valign="top">
+    <div class="form-element">
+    <input class="form-element" type="submit" name="submit" 
+     value=" Add " /> 
+    </div>
+    </td>
+  </tr>
+</table>
+</form>
+
+<dtml-var manage_page_footer>

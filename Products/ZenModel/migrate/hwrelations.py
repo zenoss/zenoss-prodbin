@@ -18,6 +18,11 @@ import Migrate
 class DeviceHWRelations(Migrate.Step):
     version = Migrate.Version(2, 2, 0)
 
+    def __init__(self):
+        Migrate.Step.__init__(self)
+        import twotwoindexing
+        self.dependencies = [ twotwoindexing.twotwoindexing ]
+
     def cutover(self, dmd):
         for dev in dmd.Devices.getSubDevices():
             dev.hw.buildRelations()

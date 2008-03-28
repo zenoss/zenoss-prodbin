@@ -18,6 +18,16 @@ from patches import pasmonkey
 from Products.ZenUtils.Utils import unused
 unused(pasmonkey)
 
+from Products.ZenUtils.MultiPathIndex import MultiPathIndex , \
+                                             manage_addMultiPathIndex, \
+                                             manage_addMultiPathIndexForm
 
+def initialize(context):
+    context.registerClass(
+        MultiPathIndex,
+        permission='Add Pluggable Index',
+        constructors=(manage_addMultiPathIndexForm, manage_addMultiPathIndex),
+        #icon="www/index.gif",
+        visibility=None)
 
 

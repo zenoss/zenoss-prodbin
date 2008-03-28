@@ -501,6 +501,30 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
                          compname=compname, modname=modname)
 
     
+    def path(self):
+        """
+        Return a sequence of path tuples suitable for indexing by 
+        a MultiPathIndex.
+        """
+        orgs = (
+                self.systems() + 
+                self.groups() + 
+                [self.location()] + 
+                [self.deviceClass()]
+               )
+        orgs = filter(None, orgs)
+        paths = []
+        for org in orgs:
+            rel = org.primaryAq().devices
+            try:
+                orgself = rel._getOb(self.getPrimaryId())
+            except AttributeError:
+                # Device class wants an id, not a path
+                orgself = rel._getOb(self.getId())
+            paths.append(orgself.getPhysicalPath())
+        return paths
+
+
     def traceRoute(self, target, ippath=None):
         """
         Trace the route to target using our routing table.
@@ -1283,6 +1307,7 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
             locobj = self.getDmdRoot("Locations").createOrganizer(locationPath)
             self.addRelation("location", locobj)
         self.setAdminLocalRoles()
+        self.index_object()
 
 
     def addLocation(self, newLocationPath, REQUEST=None):
@@ -1333,6 +1358,7 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
         """
         objGetter = self.getDmdRoot("Groups").createOrganizer
         self._setRelations("groups", objGetter, groupPaths)
+        self.index_object()
 
 
     security.declareProtected(ZEN_CHANGE_DEVICE, 'addDeviceGroup')
@@ -1360,6 +1386,7 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
         """
         objGetter = self.getDmdRoot("Systems").createOrganizer
         self._setRelations("systems", objGetter, systemPaths)
+        self.index_object()
       
 
     security.declareProtected(ZEN_CHANGE_DEVICE, 'addSystem')

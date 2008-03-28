@@ -11,6 +11,8 @@
 #
 ###########################################################################
 
+from itertools import ifilter
+
 from AccessControl import ClassSecurityInfo
 from Globals import InitializeClass
 
@@ -22,6 +24,7 @@ from MaintenanceWindowable import MaintenanceWindowable
 from AdministrativeRoleable import AdministrativeRoleable
 
 from Products.AdvancedQuery import MatchRegexp, Eq, Or, In
+from Products.CMFCore.utils import getToolByName
 
 from Products.ZenRelations.RelSchema import *
 import simplejson
@@ -29,6 +32,9 @@ import simplejson
 from ZenossSecurity import *
 
 from Products.ZenUtils.Utils import unused, ipsort
+
+import logging
+LOG = logging.getLogger('ZenModel.DeviceOrganizer')
 
 class DeviceOrganizer(Organizer, DeviceManagerBase, Commandable, ZenMenuable, 
                         MaintenanceWindowable, AdministrativeRoleable):
@@ -81,31 +87,59 @@ class DeviceOrganizer(Organizer, DeviceManagerBase, Commandable, ZenMenuable,
        ) 
 
     security.declareProtected(ZEN_COMMON, "getSubDevices")
-    def getSubDevices(self, devfilter=None, devrel="devices"):
+    def getSubDevices(self, devfilter=None):
         """
         Get all the devices under an instance of a DeviceOrganizer
         
         @param devfilter: Filter function applied to returned list
         @type devfilter: function
-        @param devrel: Relationship that contains devices
-        @type devrel: string
         @return: Devices
         @rtype: list
         
-        
         """
+        catalog = getToolByName(self.dmd.Devices, self.dmd.Devices.default_catalog)
+
+        if not 'path' in catalog.indexes():
+            LOG.warn('Please run zenmigrate to create device path indexes.')
+            return self.getSubDevices_recursive(devfilter)
+
+        brains = catalog(path="/".join(self.getPhysicalPath()))
+        devices = (b.getObject() for b in brains)
+        devices = ifilter(devfilter, devices)
+        devices = ifilter(lambda dev:self.checkRemotePerm(ZEN_VIEW, dev),
+                          devices)
+        return list(devices)
+
+    security.declareProtected(ZEN_VIEW, "getSubDevicesGen")
+    def getSubDevicesGen(self):
+        """get all the devices under and instance of a DeviceGroup"""
+        catalog = getToolByName(self.dmd.Devices, self.dmd.Devices.default_catalog)
+
+        if not 'path' in catalog.indexes():
+            LOG.warn('Please run zenmigrate to create device path indexes.')
+            yield self.getSubDevicesGen_recursive(devfilter)
+
+        brains = catalog(path="/".join(self.getPhysicalPath()))
+        devices = (b.getObject() for b in brains)
+        devices = ifilter(lambda dev:self.checkRemotePerm(ZEN_VIEW, dev),
+                          devices)
+        for device in devices:
+            yield device
+
+    security.declareProtected(ZEN_COMMON, "getSubDevices_recursive")
+    def getSubDevices_recursive(self, devfilter=None, devrel="devices"):
         devrelobj = getattr(self, devrel, None)
         if not devrelobj:
             raise AttributeError, "%s not found on %s" % (devrel, self.id)
         devices = filter(devfilter, devrelobj())
-        devices = [ dev for dev in devices if self.checkRemotePerm(ZEN_VIEW, dev)]
+        devices = [ dev for dev in devices
+                    if self.checkRemotePerm(ZEN_VIEW, dev)]
         for subgroup in self.children(checkPerm=False):
-            devices.extend(subgroup.getSubDevices(devfilter, devrel))
+            devices.extend(subgroup.getSubDevices_recursive(devfilter, devrel))
         return devices
 
-
     security.declareProtected(ZEN_VIEW, "getSubDevicesGen")
-    def getSubDevicesGen(self, devrel="devices"):
+    def getSubDevicesGen_recursive(self, devrel="devices"):
         """get all the devices under and instance of a DeviceGroup"""
         devrelobj = getattr(self, devrel, None)
         if not devrelobj: 
@@ -113,7 +147,7 @@ class DeviceOrganizer(Organizer, DeviceManagerBase, Commandable, ZenMenuable,
         for dev in devrelobj.objectValuesGen():
             yield dev
         for subgroup in self.children():
-            for dev in subgroup.getSubDevicesGen(devrel):
+            for dev in subgroup.getSubDevicesGen_recursive(devrel):
                 yield dev
 
     def getSubDevicesGenTest(self, devrel="devices"):

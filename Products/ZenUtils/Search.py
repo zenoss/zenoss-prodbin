@@ -19,6 +19,7 @@ Utilities to help build zcatalog indexes
 __version__ = "$Revision: 1.3 $"[11:-2]
 
 from Products.ManagableIndex import FieldIndex, KeywordIndex, PathIndex
+from Products.ZenUtils.MultiPathIndex import MultiPathIndex
 
 def makeCaseInsensitiveFieldIndex(indexName, termType='ustring'):
     index = FieldIndex(indexName)
@@ -53,3 +54,6 @@ def makeKeywordIndex(indexName):
 def makePathIndex(indexName):
     __pychecker__="no-abstract"
     return PathIndex(indexName)
+
+def makeMultiPathIndex(indexName):
+    return MultiPathIndex(indexName)

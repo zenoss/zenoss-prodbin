@@ -37,7 +37,7 @@ from Products.CMFCore.utils import getToolByName
 from Products.ZenRelations.RelSchema import *
 from Products.ZenUtils.Search import makeCaseInsensitiveFieldIndex
 from Products.ZenUtils.Search import makeCaseInsensitiveKeywordIndex
-from Products.ZenUtils.Search import makePathIndex
+from Products.ZenUtils.Search import makePathIndex, makeMultiPathIndex
 from Products.ZenUtils.Utils import importClass
 
 from Products.ZenUtils.FakeRequest import FakeRequest
@@ -627,6 +627,7 @@ class DeviceClass(DeviceOrganizer, ZenPackable):
             'getDeviceIp','getDeviceClassPath','getProdState']:
             cat.addIndex(idxname, makeCaseInsensitiveFieldIndex(idxname))
         cat.addIndex('getPhysicalPath', makePathIndex('getPhysicalPath'))
+        cat.addIndex('path', makeMultiPathIndex('path'))
         zcat.addColumn('getPrimaryId')
         zcat.addColumn('id')
     
@@ -652,7 +653,7 @@ class DeviceClass(DeviceOrganizer, ZenPackable):
         zcat.manage_catalogClear()
         self.componentSearch.manage_catalogClear()
         transaction.savepoint()
-        for dev in self.getSubDevicesGen():
+        for dev in self.getSubDevicesGen_recursive():
             dev.index_object()
             for comp in dev.getDeviceComponentsNoIndexGen():
                 comp.index_object()

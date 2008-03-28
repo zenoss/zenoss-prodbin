@@ -131,5 +131,7 @@ import restoreRemoveZenPackMenuItem
 import makeTemplateCatalog
 import removeStatusMonitor
 import maintwindowcatalog
+import devicepathindex
+import twotwoindexing
 import clearmapcachemenuitem
 import addMonitorColumn

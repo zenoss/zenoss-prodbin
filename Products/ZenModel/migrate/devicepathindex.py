@@ -14,17 +14,22 @@ import Migrate
 
 import Globals
 
-from Products.ZenModel.MaintenanceWindow import createMaintenanceWindowCatalog
+from Products.CMFCore.utils import getToolByName
+from Products.ZenUtils.Search import makeMultiPathIndex
+from Products.ZCatalog.Catalog import CatalogError
 
 import logging
 log = logging.getLogger("zen.migrate")
 
-class MaintenanceWindowCatalog(Migrate.Step):
+class DevicePathIndex(Migrate.Step):
     version = Migrate.Version(2, 2, 0)
 
     def cutover(self, dmd):  
-        if not getattr(dmd, 'maintenanceWindowSearch'):
-            createMaintenanceWindowCatalog(dmd)
-            # Indexing is done by the twotwoindexing step
+        cat = getToolByName(dmd.Devices, 'deviceSearch')
+        try:
+            cat._catalog.addIndex('path', makeMultiPathIndex('path'))
+        except CatalogError:
+            # Index already exists
+            pass
 
-maintwindowcatalog = MaintenanceWindowCatalog()
+devicepathindex = DevicePathIndex()
