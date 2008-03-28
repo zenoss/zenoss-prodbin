@@ -88,7 +88,6 @@ class SnmpPerfConfig(PerformanceConfig):
     @translateError
     def remote_getDeviceConfigs(self, devices):
         "Fetch the configs for the given devices"
-        raise AttributeError("onos! it is teh broken")
         result = []
         for d in devices:
             device = self.dmd.Devices.findDevice(d)
