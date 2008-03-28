@@ -227,8 +227,8 @@ class ZenDisc(ZenModeler):
                 yield asyncNameLookup(ip)
                 try:
                     kw.update(dict(deviceName=driver.next()))
-                except DNSNameError:
-                    pass
+                except Exception, ex:
+                    self.log.debug("Failed to lookup %s (%s)" % (ip, ex))
                 yield self.config().callRemote('createDevice', ip, **kw)
                 result = driver.next()
                 if isinstance(result, Failure):
