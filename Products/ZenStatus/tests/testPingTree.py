@@ -60,7 +60,7 @@ class TestPingTree(BaseTestCase):
     def testPingTree(self):
         self.assert_(self.rEntry.getNextHopIp() == '3.4.5.6')
         pc = PingConfig(self.dmd, 'localhost')
-        nodes = pc.getPingTree('testdev', '1.2.3.4')
+        nodes = pc.getPingTree(self.dmd, 'testdev', '1.2.3.4')
         assert nodes
         pjs = list(nodes.pjgen())
         assert len(pjs) == 3
@@ -69,14 +69,14 @@ class TestPingTree(BaseTestCase):
         tempdev = self.makeDevice('testdev4', '3.4.5.7')
         tempdev.setPerformanceMonitor('localhost')
         
-        nodes = pc.getPingTree('testdev', '1.2.3.4')
+        nodes = pc.getPingTree(self.dmd, 'testdev', '1.2.3.4')
         pjs = list(nodes.pjgen())
         assert [x.hostname for x in pjs] == [
             'testdev', 'testdev3', 'testdev4', 'testdev2']
 
         tempdev = self.makeDevice('testdev5', '1.2.3.6')
         tempdev.setPerformanceMonitor('localhost')
-        nodes = pc.getPingTree('testdev', '1.2.3.4')
+        nodes = pc.getPingTree(self.dmd, 'testdev', '1.2.3.4')
         pjs = list(nodes.pjgen())
         assert [x.hostname for x in pjs] == [
             'testdev', 'testdev3', 'testdev4', 'testdev2', 'testdev5']
