@@ -11,7 +11,6 @@
 #
 ###########################################################################
 
-from Products.ZenHub.HubService import HubService
 from PerformanceConfig import PerformanceConfig
 from Products.ZenHub.PBDaemon import translateError
 from Products.DataCollector.DeviceProxy import DeviceProxy
