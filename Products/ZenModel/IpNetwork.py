@@ -27,7 +27,7 @@ log = logging.getLogger('zen')
 
 from Globals import DTMLFile
 from Globals import InitializeClass
-from Acquisition import aq_base, aq_chain
+from Acquisition import aq_base
 from AccessControl import ClassSecurityInfo
 from AccessControl import Permissions as permissions
 
