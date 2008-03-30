@@ -37,7 +37,7 @@ class Page(HTMLParser):
     content pane.  Url references are turned into absolute references,
     and images are sent with the page."""
 
-    def __init__(self, user, passwd):
+    def __init__(self, user, passwd, div):
         HTMLParser.__init__(self)
         self.user = user
         self.passwd = passwd
@@ -46,6 +46,7 @@ class Page(HTMLParser):
         self.contentPane = 0
         self.inTitle = False
         self.title = ''
+        self.div = div
 
     def fetchImage(self, url):
         return self.slurp(url).read()
@@ -90,7 +91,7 @@ class Page(HTMLParser):
         if tag == 'A':
             attrs = self.updateHref(attrs)
         if tag == 'DIV':
-            if ('id','contentPane') in attrs:
+            if ('id',self.div) in attrs:
                 self.contentPane = 1
             elif self.contentPane:
                 self.contentPane += 1
@@ -169,7 +170,7 @@ class ReportMail(ZenScriptBase):
         if not o.addresses:
             self.log.error("No address for user %s" % o.user)
             sys.exit(1)
-        page = Page(o.user, o.passwd)
+        page = Page(o.user, o.passwd, o.div)
         page.fetch(o.url)
         msg = page.mail()
         if o.subject:
@@ -219,6 +220,10 @@ class ReportMail(ZenScriptBase):
                                dest='fromAddress',
                                default='zenoss@localhost',
                                help='Origination address')
+        self.parser.add_option('--div', '-d',
+                               dest='div',
+                               default='contentPane',
+                               help='DIV to extract from URL')
 
 
 if __name__ == '__main__':
