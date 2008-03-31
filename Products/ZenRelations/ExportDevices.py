@@ -62,14 +62,14 @@ class ExportDevices(ZCmdBase):
             return s
         
         def clearObjects(node):
-            def keepDevice(dev):
-                try: return not dev.getAttribute('module') in _retain_class
+            def keepDevice(elem):
+                try: return not elem.getAttribute('module') in _retain_class
                 except: return True
-            try: devs = node.getElementsByTagName('object')
+            try: elems = node.getElementsByTagName('object')
             except AttributeError: pass
             else:
-                devs = filter(keepDevice, devs)
-                map(node.parentNode.removeChild, devs)
+                elems = filter(keepDevice, elems)
+                [elem.parentNode.removeChild(elem) for elem in elems]
 
         def clearProps(node):
             try: props = node.getElementsByTagName('property')
@@ -90,18 +90,18 @@ class ExportDevices(ZCmdBase):
 
     def export(self):
         root = self.dmd.Devices
-        buffer = StringIO.StringIO()
         if hasattr(root, "exportXml"):
-            buffer = self.outfile
-            buffer.write("""<?xml version="1.0"? encoding='latin-1'>\n""")
+            buffer = StringIO.StringIO()
+            buffer.write("""<?xml version="1.0" encoding='latin-1'?>\n""")
             buffer.write("<objects>\n")
             root.exportXml(buffer,self.options.ignorerels,True)
             buffer.write("</objects>\n")
             doc = parseString(buffer.getvalue())
             finalxml = self.stripUseless(doc)
             self.outfile.write(finalxml)
-            doc.unlink()
+            self.outfile.close()
             buffer.close()
+            doc.unlink()
         else:
             print "ERROR: root object not a exportable (exportXml not found)"
             
