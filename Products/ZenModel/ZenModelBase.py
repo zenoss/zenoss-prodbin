@@ -22,6 +22,7 @@ import time
 
 import sys 
 from urllib import unquote
+from cgi import escape
 from OFS.ObjectManager import checkValidId as globalCheckValidId
 
 from AccessControl import ClassSecurityInfo, getSecurityManager, Unauthorized
@@ -216,6 +217,7 @@ class ZenModelBase(object):
         """
         if not text:
             text = self.id
+        text = escape(text)
         if not self.checkRemotePerm("View", self):
             return text
         if not url:
