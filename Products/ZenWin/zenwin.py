@@ -27,7 +27,7 @@ MAX_WAIT_FOR_WMI_REQUEST = 10
 class zenwin(WinCollector):
 
     name = agent = "zenwin"
-    attributes = WinCollector.attributes + ('winmodelerCycleInterval',)
+    attributes = WinCollector.attributes + ('winCycleInterval',)
 
     def __init__(self):
         WinCollector.__init__(self)
