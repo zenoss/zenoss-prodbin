@@ -49,7 +49,7 @@ class ZenPackCmd(ZenScriptBase):
             if eggInstall:
                 return  EggPackCmd.InstallZenPack(None,
                             self.options.installPackName,
-                            develop=False, filesOnly=True)
+                                filesOnly=True)
             packName = self.extract(self.options.installPackName)
             proxy = ZPProxy(packName)
             for loader in (ZPL.ZPLDaemons(), ZPL.ZPLBin(), ZPL.ZPLLibExec()):
@@ -78,7 +78,8 @@ class ZenPackCmd(ZenScriptBase):
                 return EggPackCmd.InstallEggAndZenPack(
                     self.dmd,
                     self.options.installPackName,
-                    develop=self.options.link,
+                    develop=self.options.develop,
+                    link=self.options.link,
                     filesOnly=False)
             if not self.preInstallCheck():
                 self.stop('%s not installed' % self.options.installPackName)
@@ -115,17 +116,8 @@ class ZenPackCmd(ZenScriptBase):
 
         elif self.options.list:
             for zp in self.dmd.ZenPackManager.packs():
-                if zp.isEggPack():
-                    f = sys.modules[zp.getModule()].__file__
-                else:
-                    f = sys.modules[zp.__module__].__file__
-                if f.endswith('.pyc'):
-                    f = f[:-1]
-                print '%s (%s)' % (zp.id, f)
-                for extensionType, lst in zp.list(self.app):
-                    print '  %s:' % extensionType
-                    for item in lst:
-                        print '    %s' % item
+                print('%s (%s)' % (zp.id, 
+                                zp.isEggPack() and zp.eggPath() or zp.path()))
             
         transaction.commit()
 
@@ -320,29 +312,35 @@ class ZenPackCmd(ZenScriptBase):
         self.parser.add_option('--install',
                                dest='installPackName',
                                default=None,
-                               help="name of the pack to install")
+                               help="Path to the ZenPack to install.")
         self.parser.add_option('--remove',
                                dest='removePackName',
                                default=None,
-                               help="name of the pack to remove")
+                               help="Name of the ZenPack to remove.")
         self.parser.add_option('--list',
                                dest='list',
                                action="store_true",
                                default=False,
-                               help="list installed zenpacks"
-                                    " and associated files")
-        self.parser.add_option('--link', '--develop',
+                               help='List installed ZenPacks')
+        self.parser.add_option('--link',
                                dest='link',
                                action="store_true",
                                default=False,
-                               help="symlink the zenpack dir instead of"
-                                    " copying.")
+                               help="Install the ZenPack in place, without "
+                                        "copying into $ZENHOME/ZenPacks.")
+        self.parser.add_option('--develop',
+                               dest='develop',
+                               action="store_true",
+                               default=False,
+                               help="Install the ZenPack in development mode "
+                                        "so that it can be edited.")
         self.parser.add_option('--files-only',
                                dest='filesOnly',
                                action="store_true",
                                default=False,
-                               help='install onto filesystem but not into '
-                                        'zenoss')
+                               help='Install the ZenPack files onto the '
+                                        'filesystem, but do not install the '
+                                        'ZenPack into Zenoss.')
 
         ZenScriptBase.buildOptions(self)
 

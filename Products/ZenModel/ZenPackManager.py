@@ -66,7 +66,7 @@ class ZenPackManager(ZenModelRM):
 
 
     security.declareProtected(ZEN_MANAGE_DMD, 'manage_addZenPack')
-    def manage_addZenPack(self, packId, package, REQUEST=None):
+    def manage_addZenPack(self, packId, REQUEST=None):
         """
         Create a new zenpack on the filesystem with the given info.
         Install the pack.  If REQUEST then render the REQUEST otherwise
@@ -84,8 +84,10 @@ class ZenPackManager(ZenModelRM):
             raise ZenPackNeedMigrateException(msg)
 
         # Make sure a zenpack can be created with given info
-        canCreate, msg = ZenPackCmd.CanCreateZenPack(self, packId, package)
-        if not canCreate:
+        canCreate, msgOrId = ZenPackCmd.CanCreateZenPack(self, packId)
+        if canCreate:
+            packId = msgOrId
+        else:
             if REQUEST:
                 REQUEST['message'] = msg
                 return self.callZenScreen(REQUEST, redirect=False)
@@ -93,7 +95,7 @@ class ZenPackManager(ZenModelRM):
             raise ZenPackException(msg)
         
         # Create it
-        zpDir = ZenPackCmd.CreateZenPack(packId, package)
+        zpDir = ZenPackCmd.CreateZenPack(packId)
         
         # Install it
         zenPacks = ZenPackCmd.InstallEggAndZenPack(self.dmd, zpDir, develop=True)
@@ -227,7 +229,7 @@ class ZenPackManager(ZenModelRM):
     def getBrokenPackName(self, ob):
         ''' Extract the zenpack name from the broken module
         '''
-        return ob.__class__.__module__.split('.')[1]
+        return ob.__class__.__module__
 
 
 

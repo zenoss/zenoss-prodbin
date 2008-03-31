@@ -1,14 +1,32 @@
 <h2>Create a new ZenPack:</h2>
 <span id="errmsg" style="color:red;"></span>
 <table>
-<tr><td>
-        <span id="new_id_label">ID&nbsp;</span>:
-</td><td>
-<input id="new_id" name="packId">
-<input type="hidden" id="checkValidIdPath" 
-        tal:attributes="value here/absolute_url_path">
-</td></tr>
-<tr><td>Package:       </td><td><input name="package"/></td></tr>
+    <tr>
+        <td colspan="2">
+            ZenPack names are a sequence of three or more package names 
+            separated by
+            periods.  The first package is always named ZenPacks.  The second 
+            package usually identifies the person or organization responsible 
+            for 
+            the ZenPack.  The last package name usually identifies the function 
+            of 
+            the ZenPack.  Examples:
+            <ul>
+                <li>ZenPacks.WidgetCorp.WidgetWatcher</li>
+                <li>ZenPacks.JohnDoe.networking.RouterGraphs</li>
+            </ul>
+        </td>
+    </tr>
+    <tr>
+        <td>
+            <span id="new_id_label">Name&nbsp;</span>:
+        </td>
+        <td>
+            <input id="new_id" name="packId" value="ZenPacks.">
+            <input type="hidden" id="checkValidIdPath" 
+                    tal:attributes="value here/absolute_url_path">
+        </td>
+    </tr>
 </table>
 <br>
 <div align="center">

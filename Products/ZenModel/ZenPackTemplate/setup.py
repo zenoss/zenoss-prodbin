@@ -1,20 +1,34 @@
+################################
+# These variables are overwritten by Zenoss when the ZenPack is exported
+# or saved.  Do not modify them directly here.
+NAME = ''
+VERSION = '1.0'
+AUTHOR = ''
+LICENSE = ''
+NAMESPACE_PACKAGES = []
+PACKAGES = []
+INSTALL_REQUIRES = []
+# STOP_REPLACEMENTS
+################################
+# Zenoss will not overwrite any changes you make below here.
+
 from setuptools import setup, find_packages
 
 setup(
     # This ZenPack metadata should usually be edited with the Zenoss
     # ZenPack edit page.  Whenever the edit page is submitted it will
     # overwrite the values below (the ones it knows about) with new values.
-    name = 'ZENPACKID',
-    version = '1.0',
-    author = '',
-    license = '',
+    name = NAME,
+    version = VERSION,
+    author = AUTHOR,
+    license = LICENSE,
     
     # Indicate to setuptools which namespace packages the zenpack
     # participates in
-    namespace_packages = ['ZenPacks', 'ZenPacks.PACKAGE'],
+    namespace_packages = NAMESPACE_PACKAGES,
     
     # Tell setuptools what packages this zenpack provides.
-    packages = ['ZenPacks', 'ZenPacks.PACKAGE', 'ZenPacks.PACKAGE.ZENPACKID'],
+    packages = PACKAGES,
     
     # Tell setuptools to figure out for itself which files to include
     # in the binary egg when it is built.
@@ -24,7 +38,7 @@ setup(
     # with the binary egg.
     package_data = {
          '': ['*.txt'],
-         'ZenPacks.PACKAGE.ZENPACKID': ['objects/*','skins/ZENPACKID/*'],
+         NAME: ['objects/*','skins/%s/*' % NAME],
          },
 
     # Indicate dependencies on other python modules or ZenPacks.  This line
@@ -33,12 +47,12 @@ setup(
     # list, so any manual additions should be added to the end.  Things will
     # go poorly if this line is broken into multiple lines or modified to
     # dramatically.
-    install_requires = [],
+    install_requires = INSTALL_REQUIRES,
 
     # Every ZenPack egg must define exactly one zenoss.zenpacks entry point
     # of this form.
     entry_points = {
-        'zenoss.zenpacks': 'ZENPACKID = ZenPacks.PACKAGE.ZENPACKID',
+        'zenoss.zenpacks': '%s = %s' % (NAME, NAME),
     },
 
     # All ZenPack eggs must be installed in unzipped form.

@@ -672,23 +672,15 @@ registerDirectory("skins", globals())
         """
         Return True if the egg itself should be deleted when this ZenPack
         is removed from Zenoss.
-        If the ZenPack is in development mode and if it lives outside
-        $ZENHOME/ZenPackDev then don't delete, otherwise do delete.
-        This logic is based on the assumed case where anything in ZenPackDev
-        was likely created through the gui, where eggs outside it are more
-        likely to be created by hand.  Packs created from the GUI should be
-        deleted without any trace because they likely contain only db objects
-        and no code per se.  
+        If the ZenPack code resides in $ZENHOME/ZenPacks then it is
+        deleted, otherwise it is not.
         """
-        if self.isDevelopment():
-            eggPath = self.eggPath()
-            oneFolderUp = eggPath[:eggPath.rfind('/')-1]
-            if oneFolderUp == zenPath('ZenPackDev'):
-                delete = True
-            else:
-                delete = False
-        else:
+        eggPath = self.eggPath()
+        oneFolderUp = eggPath[:eggPath.rfind('/')]
+        if oneFolderUp == zenPath('ZenPacks'):
             delete = True
+        else:
+            delete = False
         return delete
 
 
@@ -711,6 +703,16 @@ registerDirectory("skins", globals())
         return [zp for zp in self.dmd.ZenPackManager.packs()
                     if zp.id != self.id
                     and zp.isEggPack()]
+
+
+    def isLinked(self):
+        """
+        Return true if the egg is not located in the ZenPacks directory (ie,
+        it was installed with the --develop flag.)  Return False otherwise.
+        """
+        zpDir = zenPath('ZenPacks')
+        eggDir = self.eggPath()
+        return eggDir.startswith(zpDir)
 
     # def getDependentZenPacks(self):
     #     """
