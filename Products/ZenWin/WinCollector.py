@@ -18,9 +18,10 @@ from twisted.internet import reactor
 
 import Globals
 from Products.ZenHub.PBDaemon import FakeRemote, PBDaemon
-from Products.ZenEvents.ZenEventClasses import App_Start, Clear
+from Products.ZenEvents.ZenEventClasses import Error, App_Start, Clear, Status_Wmi_Conn
 from Products.ZenUtils.Driver import drive, driveLater
 from Products.ZenUtils.Utils import zenPath
+from Products.ZenWin import WMIClient
 
 from Constants import ERROR_CODE_MAP
 
@@ -65,6 +66,12 @@ class WinCollector(PBDaemon):
                             device=self.options.monitor,
                             severity=Clear,
                             component=self.name))
+        for device, where in WMIClient.failures(clean=True):
+            self.sendEvent(dict(
+                summary='Wmi communication failure during %s' % (where,),
+                eventClass=Status_Wmi_Conn,
+                device=device,
+                severity=Error))
 
     def getProxy(self, filename, classname):
         filename = zenPath(filename)
@@ -93,6 +100,7 @@ class WinCollector(PBDaemon):
 
 
     def startScan(self, unused=None):
+        self.start()
         drive(self.scanCycle)
 
     

@@ -11,9 +11,11 @@
 #
 ###########################################################################
 
+import os
 import socket
 import win32com.client
 import logging
+from ProcessProxy import zenPath
 log = logging.getLogger("zen.WMIClient.WMIClient")
 
 locator = win32com.client.Dispatch("WbemScripting.SWbemLocator")
@@ -24,7 +26,52 @@ def refresh():
     """
     refresher.refresh()
 
-#class WMI(object):
+import sys
+BaseName = os.path.basename(sys.argv[0])
+MyName = None
+
+def _myname():
+    global MyName
+    if not MyName:
+        import sys
+        MyName = BaseName.split('.')[0]
+        try:
+            os.mkdir(zenPath('var', _myname()))
+        except os.error:
+            pass
+    return MyName
+
+def _filename(device):
+    return zenPath('var', _myname(), device)
+
+def prepForFailure(device, operation):
+    fp = file(_filename(device), 'w')
+    fp.write('%s\n' % (operation,))
+    fp.close()
+
+def success(device):
+    os.unlink(_filename(device))
+
+def failures(clean=False):
+    result = []
+    for path, dirs, files in os.walk(zenPath('var', _myname())):
+        for f in files:
+            fullname = os.path.join(path, f)
+            result.append( (f, file(fullname).read()[:-1]) )
+            if clean:
+                os.unlink(fullname)
+    return result
+
+def watchForFailure(method):
+    def protect(self, *args, **kw):
+        try:
+            prepForFailure(self.name, method.func_name)
+            return method(self, *args, **kw)
+        finally:
+            success(self.name)
+    return protect
+    
+
 class WMIClient(object):
 
     def __init__(self, device, datacollector=None, plugins=[]):
@@ -50,8 +97,8 @@ class WMIClient(object):
         #self._tabledata = {}
         
         self.results = []
-        
-    
+
+    @watchForFailure
     def connect(self):
         log.debug("connect to %s, user %s", self.host, self.user)
         self._wmi = locator.ConnectServer(self.host,
@@ -68,6 +115,7 @@ class WMIClient(object):
             del self._wmi
 
 
+    @watchForFailure
     def query(self, queries):
         if not hasattr(self, '_wmi'): 
             raise ValueError("WMI connection is closed")
@@ -123,6 +171,7 @@ class WMIClient(object):
         return self._wmi.InstancesOf(classname)
 
 
+    @watchForFailure
     def watcher(self, wql=None):
         """Return a watcher object that can be called
         to check for new events.
@@ -135,19 +184,20 @@ class WMIClient(object):
             wql = """SELECT * from __InstanceCreationEvent WITHIN 1 where """\
                   """TargetInstance ISA 'Win32_NTLogEvent'"""
         log.debug(wql)
-        return _watcher(self._wmi.ExecNotificationQuery(wql))
+        return _watcher(self._wmi.ExecNotificationQuery(wql), self.name)
 
 
 class _watcher(object):
 
 
-    def __init__(self, event):
+    def __init__(self, event, device):
         self.event = event
+        self.name = device
 
 
+    @watchForFailure
     def nextEvent(self, timeout=0):
         """Poll for next event wait timeout for response return value.
         """
         return self.event.NextEvent(timeout).Properties_("TargetInstance").Value
-
 

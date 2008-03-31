@@ -33,7 +33,6 @@ class zenwin(WinCollector):
         WinCollector.__init__(self)
         self.statmsg = "Windows Service '%s' is %s"
         self.winCycleInterval = 60
-        self.start()
 
     def mkevt(self, devname, svcname, msg, sev):
         "Compose an event"

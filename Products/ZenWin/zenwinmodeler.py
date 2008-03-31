@@ -62,7 +62,6 @@ class zenwinmodeler(WinCollector):
         self.lastRead = {}
         self.client = None
         self.collectorPlugins = {}
-        self.start()
 
 
     def selectPlugins(self, device, transport):
