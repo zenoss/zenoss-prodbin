@@ -815,7 +815,7 @@ class UserSettings(ZenModelRM):
             else:
                 msg = 'Test failed: %s' % errorMsg
                 break
-        else:
+        if not destPagers:
             msg = 'Test page not sent, user has no pager number.'
         if REQUEST:
             REQUEST['message'] = msg
