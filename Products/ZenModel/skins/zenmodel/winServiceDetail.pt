@@ -153,7 +153,7 @@
                                    value here/pathName"/>
         </td>
     </tr>
-    <tr>
+    <tr tal:condition="python:here.has_permission('Manage DMD', here)">
         <td align="left"  class="tableheader" colspan="4">
             <input class="tableheader" type="submit" value=" Save "
                 name="manage_editService:method" />

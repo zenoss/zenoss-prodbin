@@ -16,6 +16,7 @@ from Globals import InitializeClass
 
 from AccessControl import Permissions
 from AccessControl import ClassSecurityInfo
+from Products.ZenModel.ZenossSecurity import *
 
 from Products.ZenRelations.RelSchema import *
 
@@ -79,8 +80,7 @@ class IpServiceClass(ServiceClass):
                 { 'id'            : 'viewHistory'
                 , 'name'          : 'Modifications'
                 , 'action'        : 'viewHistory'
-                , 'permissions'   : (
-                  Permissions.view, )
+                , 'permissions'   : (ZEN_VIEW_MODIFICATIONS,)
                 },
             )
          },

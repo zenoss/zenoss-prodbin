@@ -25,6 +25,8 @@ from Products.ZenRelations.RelSchema import *
 
 from HWComponent import HWComponent
 
+from Products.ZenModel.ZenossSecurity import *
+
 class PowerSupply(HWComponent):
     """PowerSupply object"""
 
@@ -70,7 +72,7 @@ class PowerSupply(HWComponent):
                 { 'id'            : 'viewHistory'
                 , 'name'          : 'Modifications'
                 , 'action'        : 'viewHistory'
-                , 'permissions'   : ('View',)
+                , 'permissions'   : (ZEN_VIEW_MODIFICATIONS,)
                 },
             )
           },

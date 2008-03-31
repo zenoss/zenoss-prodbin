@@ -44,6 +44,7 @@ from Globals import InitializeClass
 
 from Products.PythonScripts.standard import url_quote
 from AccessControl import Permissions as permissions
+from Products.ZenModel.ZenossSecurity import *
 
 from Products.ZenRelations.RelSchema import *
 
@@ -166,8 +167,7 @@ class PerformanceConf(Monitor, StatusColor):
                 { 'id'            : 'viewHistory'
                 , 'name'          : 'Modifications'
                 , 'action'        : 'viewHistory'
-                , 'permissions'   : (
-                  permissions.view, )
+                , 'permissions'   : (ZEN_VIEW_MODIFICATIONS,)
                 },
             )
           },

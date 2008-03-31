@@ -13,6 +13,7 @@
 
 from Globals import InitializeClass
 from AccessControl import ClassSecurityInfo, Permissions
+from Products.ZenModel.ZenossSecurity import *
 
 from Products.ZenRelations.RelSchema import *
 from Products.ZenUtils.Utils import prepId
@@ -78,8 +79,7 @@ class WinService(Service):
                 { 'id'            : 'viewHistory'
                 , 'name'          : 'Modifications'
                 , 'action'        : 'viewHistory'
-                , 'permissions'   : (
-                  Permissions.view, )
+                , 'permissions'   : (ZEN_VIEW_MODIFICATIONS,)
                 },
             )
          },

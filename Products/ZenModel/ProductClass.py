@@ -23,6 +23,7 @@ __version__ = "$Revision: 1.10 $"[11:-2]
 from Globals import InitializeClass
 from AccessControl import ClassSecurityInfo
 from AccessControl import Permissions as permissions
+from Products.ZenModel.ZenossSecurity import *
 
 from ZenModelRM import ZenModelRM
 from ZenPackable import ZenPackable
@@ -85,8 +86,7 @@ class ProductClass(ZenModelRM, ZenPackable):
                 { 'id'            : 'viewHistory'
                 , 'name'          : 'Modifications'
                 , 'action'        : 'viewHistory'
-                , 'permissions'   : (
-                  permissions.view, )
+                , 'permissions'   : (ZEN_VIEW_MODIFICATIONS,)
                 },
             )
           },

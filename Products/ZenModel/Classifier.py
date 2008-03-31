@@ -24,6 +24,7 @@ __version__ = "$Revision: 1.4 $"[11:-2]
 from AccessControl import ClassSecurityInfo
 from Globals import InitializeClass
 from AccessControl import Permissions as permissions
+from Products.ZenModel.ZenossSecurity import *
 from OFS.OrderedFolder import OrderedFolder
 
 from ZenModelItem import ZenModelItem
@@ -62,8 +63,7 @@ class Classifier(ZenModelItem, OrderedFolder):
                 { 'id'            : 'viewHistory'
                 , 'name'          : 'Modifications'
                 , 'action'        : 'viewHistory'
-                , 'permissions'   : (
-                  permissions.view, )
+                , 'permissions'   : (ZEN_VIEW_MODIFICATIONS,)
                 },
             )
           },

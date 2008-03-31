@@ -28,6 +28,8 @@ from Products.ZenRelations.RelSchema import *
 from OSComponent import OSComponent
 from Products.ZenUtils.Utils import prepId
 
+from Products.ZenModel.ZenossSecurity import *
+
 def manage_addFileSystem(context, id, userCreated, REQUEST=None):
     """make a filesystem"""
     fsid = prepId(id)
@@ -98,7 +100,7 @@ class FileSystem(OSComponent):
                 { 'id'            : 'viewHistory'
                 , 'name'          : 'Modifications'
                 , 'action'        : 'viewHistory'
-                , 'permissions'   : ('View',)
+                , 'permissions'   : (ZEN_VIEW_MODIFICATIONS,)
                 },
             )
           },

@@ -27,6 +27,8 @@ from Products.ZenRelations.RelSchema import *
 
 from HWComponent import HWComponent
 
+from Products.ZenModel.ZenossSecurity import *
+
 def manage_addHardDisk(context, id, title = None, REQUEST = None):
     """make a filesystem"""
     hd = HardDisk(id, title)
@@ -84,7 +86,7 @@ class HardDisk(HWComponent):
                 { 'id'            : 'viewHistory'
                 , 'name'          : 'Modifications'
                 , 'action'        : 'viewHistory'
-                , 'permissions'   : ('View',)
+                , 'permissions'   : (ZEN_VIEW_MODIFICATIONS,)
                 },
             )
           },

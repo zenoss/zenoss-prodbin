@@ -17,6 +17,7 @@ from Globals import DTMLFile
 from Globals import InitializeClass
 from AccessControl import ClassSecurityInfo
 from AccessControl import Permissions
+from Products.ZenModel.ZenossSecurity import *
 from Commandable import Commandable
 from Products.ZenRelations.RelSchema import *
 from ZenPackable import ZenPackable
@@ -89,8 +90,7 @@ class OSProcessClass(ZenModelRM, Commandable, ZenPackable):
                 { 'id'            : 'viewHistory'
                 , 'name'          : 'Modifications'
                 , 'action'        : 'viewHistory'
-                , 'permissions'   : (
-                  Permissions.view, )
+                , 'permissions'   : (ZEN_VIEW_MODIFICATIONS,)
                 },
             )
          },

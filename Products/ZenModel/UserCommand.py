@@ -14,6 +14,8 @@
 from Globals import DTMLFile
 from Globals import InitializeClass
 from AccessControl import ClassSecurityInfo, Permissions
+from Products.ZenModel.ZenossSecurity import *
+
 from ZenModelRM import ZenModelRM
 from Products.ZenRelations.RelSchema import *
 from ZenPackable import ZenPackable
@@ -56,7 +58,7 @@ class UserCommand(ZenModelRM, ZenPackable):
             { 'id'            : 'viewHistory',
               'name'          : 'Modifications',
               'action'        : 'viewHistory',
-              'permissions'   : ( Permissions.view, ),
+              'permissions'   : (ZEN_VIEW_MODIFICATIONS,),
             }
         )
     },

@@ -96,12 +96,12 @@ class MaintenanceWindow(ZenModelRM):
                 { 'id'            : 'status'
                 , 'name'          : 'Status'
                 , 'action'        : 'maintenanceWindowDetail'
-                , 'permissions'   : ( Permissions.view, )
+                , 'permissions'   : (ZEN_MAINTENANCE_WINDOW_VIEW, )
                 },
                 { 'id'            : 'viewHistory'
                 , 'name'          : 'Modifications'
                 , 'action'        : 'viewHistory'
-                , 'permissions'   : ( Permissions.view, )
+                , 'permissions'   : (ZEN_VIEW_MODIFICATIONS,)
                 },
             )
          },

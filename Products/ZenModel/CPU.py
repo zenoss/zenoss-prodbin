@@ -26,6 +26,8 @@ from Products.ZenRelations.RelSchema import *
 
 from HWComponent import HWComponent
 
+from Products.ZenModel.ZenossSecurity import *
+
 class CPU(HWComponent):
     """CPU object"""
 
@@ -71,7 +73,7 @@ class CPU(HWComponent):
                 { 'id'            : 'viewHistory'
                 , 'name'          : 'Modifications'
                 , 'action'        : 'viewHistory'
-                , 'permissions'   : ('View',)
+                , 'permissions'   : (ZEN_VIEW_MODIFICATIONS,)
                 },
             )
           },

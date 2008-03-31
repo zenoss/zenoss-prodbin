@@ -50,7 +50,7 @@ class ActionRuleWindow(MaintenanceWindow):
                 { 'id'            : 'viewHistory'
                 , 'name'          : 'Modifications'
                 , 'action'        : 'viewHistory'
-                , 'permissions'   : ( ZEN_VIEW, )
+                , 'permissions'   : (ZEN_VIEW_MODIFICATIONS,)
                 },
             )
          },

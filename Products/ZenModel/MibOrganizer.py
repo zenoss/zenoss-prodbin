@@ -17,6 +17,7 @@ from Globals import DTMLFile
 from Globals import InitializeClass
 from AccessControl import ClassSecurityInfo
 from AccessControl import Permissions
+from Products.ZenModel.ZenossSecurity import *
 
 from Products.ZenRelations.RelSchema import *
 from Products.ZenUtils.Search import makeCaseInsensitiveKeywordIndex
@@ -66,7 +67,7 @@ class MibOrganizer(Organizer, ZenPackable):
                 { 'id'            : 'viewHistory'
                 , 'name'          : 'Modifications'
                 , 'action'        : 'viewHistory'
-                , 'permissions'   : ( Permissions.view, )
+                , 'permissions'   : (ZEN_VIEW_MODIFICATIONS,)
                 },
             )
          },

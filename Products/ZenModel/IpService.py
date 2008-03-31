@@ -23,6 +23,7 @@ __version__ = "$Revision: 1.10 $"[11:-2]
 from Globals import DTMLFile
 from Globals import InitializeClass
 from AccessControl import ClassSecurityInfo, Permissions
+from Products.ZenModel.ZenossSecurity import *
 
 from Products.ZenRelations.RelSchema import *
 
@@ -98,8 +99,7 @@ class IpService(Service):
                 { 'id'            : 'viewHistory'
                 , 'name'          : 'Modifications'
                 , 'action'        : 'viewHistory'
-                , 'permissions'   : (
-                  Permissions.view, )
+                , 'permissions'   : (ZEN_VIEW_MODIFICATIONS,)
                 },
             )
          },

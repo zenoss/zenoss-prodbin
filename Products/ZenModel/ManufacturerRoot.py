@@ -28,6 +28,7 @@ import transaction
 from Globals import InitializeClass
 from Acquisition import aq_base
 from AccessControl import Permissions as permissions
+from Products.ZenModel.ZenossSecurity import *
 
 from Products.ZenRelations.PrimaryPathObjectManager import \
     PrimaryPathBTreeFolder2
@@ -80,8 +81,7 @@ class ManufacturerRoot(ZenModelItem, PrimaryPathBTreeFolder2, ZenPacker):
                 { 'id'            : 'viewHistory'
                 , 'name'          : 'Modifications'
                 , 'action'        : 'viewHistory'
-                , 'permissions'   : (
-                  permissions.view, )
+                , 'permissions'   : (ZEN_VIEW_MODIFICATIONS,)
                 },
             )
           },

@@ -26,6 +26,8 @@ from Products.ZenRelations.RelSchema import *
 
 from HWComponent import HWComponent
 
+from Products.ZenModel.ZenossSecurity import *
+
 class ExpansionCard(HWComponent):
     """ExpansionCard object"""
 
@@ -64,7 +66,7 @@ class ExpansionCard(HWComponent):
                 { 'id'            : 'viewHistory'
                 , 'name'          : 'Modifications'
                 , 'action'        : 'viewHistory'
-                , 'permissions'   : ('View',)
+                , 'permissions'   : (ZEN_VIEW_MODIFICATIONS,)
                 },
             )
           },

@@ -25,6 +25,8 @@ from Products.ZenRelations.RelSchema import *
 
 from HWComponent import HWComponent
 
+from Products.ZenModel.ZenossSecurity import *
+
 class TemperatureSensor(HWComponent):
     """TemperatureSensor object"""
 
@@ -65,7 +67,7 @@ class TemperatureSensor(HWComponent):
                 { 'id'            : 'viewHistory'
                 , 'name'          : 'Modifications'
                 , 'action'        : 'viewHistory'
-                , 'permissions'   : ('View',)
+                , 'permissions'   : (ZEN_VIEW_MODIFICATIONS,)
                 },
             )
           },

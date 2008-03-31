@@ -24,6 +24,7 @@ from Globals import InitializeClass
 from AccessControl import ClassSecurityInfo
 
 from AccessControl import Permissions as permissions
+from Products.ZenModel.ZenossSecurity import *
 
 from Products.ZenRelations.RelSchema import *
 
@@ -78,8 +79,7 @@ class Software(MEProduct):
                 { 'id'            : 'viewHistory'
                 , 'name'          : 'Modifications'
                 , 'action'        : 'viewHistory'
-                , 'permissions'   : (
-                  permissions.view, )
+                , 'permissions'   : (ZEN_VIEW_MODIFICATIONS,)
                 },
             )
           },

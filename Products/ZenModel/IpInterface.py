@@ -40,6 +40,8 @@ from ConfmonPropManager import ConfmonPropManager
 from OSComponent import OSComponent
 from Products.ZenModel.Exceptions import *
 
+from Products.ZenModel.ZenossSecurity import *
+
 def manage_addIpInterface(context, id, userCreated, REQUEST = None):
     """
     Make a device via the ZMI
@@ -132,7 +134,7 @@ class IpInterface(OSComponent):
                 { 'id'            : 'viewHistory'
                 , 'name'          : 'Modifications'
                 , 'action'        : 'viewHistory'
-                , 'permissions'   : ('View',)
+                , 'permissions'   : (ZEN_VIEW_MODIFICATIONS,)
                 },
             )
           },
