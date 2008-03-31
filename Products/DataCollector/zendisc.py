@@ -208,7 +208,6 @@ class ZenDisc(ZenModeler):
                 self.log.info("Limit of %d devices reached" %
                               self.options.maxdevices)
                 return succeed(None)
-        self.log.debug("Scanning device with address %s", ip)
         def inner(driver):
             try:
                 name = ip
@@ -216,14 +215,16 @@ class ZenDisc(ZenModeler):
                           discoverProto=None,
                           devicePath=devicepath,
                           performanceMonitor=self.options.monitor)
-                yield self.findRemoteDeviceInfo(ip, devicepath)
-                deviceInfo = driver.next()
-                if deviceInfo:
-                    community, port, ver, snmpname = deviceInfo
-                    kw.update(dict(deviceName=snmpname,
-                                   zSnmpCommunity=community,
-                                   zSnmpPort=port,
-                                   zSnmpVer=ver))
+                if not self.options.nosnmp:
+                    self.log.debug("Scanning device with address %s", ip)
+                    yield self.findRemoteDeviceInfo(ip, devicepath)
+                    deviceInfo = driver.next()
+                    if deviceInfo:
+                        community, port, ver, snmpname = deviceInfo
+                        kw.update(dict(deviceName=snmpname,
+                                       zSnmpCommunity=community,
+                                       zSnmpPort=port,
+                                       zSnmpVer=ver))
                 yield asyncNameLookup(ip)
                 try:
                     kw.update(dict(deviceName=driver.next()))
@@ -252,7 +253,8 @@ class ZenDisc(ZenModeler):
                             self.log.info("ip '%s' on device '%s' remodel",
                                           ip, dev.id)
                     self.sendDiscoveredEvent(ip, dev)
-                self.discovered.append(dev.id)
+                if not self.options.nosnmp:
+                    self.discovered.append(dev.id)
                 yield succeed(dev)
                 driver.next()
             except ZentinelException, e:
@@ -293,9 +295,8 @@ class ZenDisc(ZenModeler):
                     continue
                 yield self.discoverIps(nets)
                 ips = driver.next()
-                if not self.options.nosnmp:
-                    devices += ips
-                    count += len(ips)
+                devices += ips
+                count += len(ips)
             except Exception, ex:
                 self.log.exception("Error performing net discovery on %s", ex)
         def discoverDevice(ip):
@@ -421,7 +422,7 @@ class ZenDisc(ZenModeler):
                     help="Reset all ip PTR records")
         self.parser.add_option('--no-snmp', dest='nosnmp',
                     action="store_true", default=False,
-                    help="Perform snmp discovery on found IP addresses")
+                    help="Skip SNMP discovery on found IP addresses")
         self.parser.add_option('--subnets', dest='subnets',
                     action="store_true", default=False,
                     help="Recurse into subnets for discovery")
