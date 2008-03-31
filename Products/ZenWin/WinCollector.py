@@ -30,7 +30,7 @@ unused(DeviceProxy)
 from Products.DataCollector.Plugins import PluginLoader # This is needed by pb
 unused(PluginLoader)
 
-from ProcessProxy import ProcessProxyError
+from ProcessProxy import ProcessProxy, ProcessProxyError
 from NullProxy import NullProxy
 
 from twisted.internet.defer import DeferredList

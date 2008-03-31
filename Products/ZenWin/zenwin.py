@@ -18,14 +18,11 @@ import Globals
 from WinCollector import WinCollector
 from Constants import TIMEOUT_CODE
 from Products.ZenEvents.ZenEventClasses import Status_Wmi_Conn, Status_WinService
-from Products.ZenUtils.Utils import zenPath
 from Products.ZenEvents import Event
 
 ERRtimeout = 1726
 
 MAX_WAIT_FOR_WMI_REQUEST = 10
-
-from Products.ZenWin.ProcessProxy import ProcessProxy
 
 class zenwin(WinCollector):
 

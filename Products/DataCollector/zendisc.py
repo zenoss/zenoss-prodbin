@@ -320,7 +320,7 @@ class ZenDisc(ZenModeler):
         try:
             myip = socket.gethostbyname(myname)
             self.log.info("my ip = %s", myip)
-        except socket.error:
+        except (socket.error, DNSNameError):
             self.log.warn("failed lookup of my ip for name %s", myname)
         yield self.config().callRemote('getDeviceConfig', [myname])
         me, = driver.next() or [None]
