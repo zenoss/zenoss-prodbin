@@ -1,1 +1,0 @@
-This file left here for egg packing code includes the directory.
