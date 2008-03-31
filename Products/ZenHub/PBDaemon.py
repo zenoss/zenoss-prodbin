@@ -330,7 +330,7 @@ class PBDaemon(ZenDaemon, pb.Referenceable):
         self.parser.add_option('--initialHubTimeout',
                                dest='hubtimeout',
                                type='int',
-                               default=20,
+                               default=30,
                                help='Initial time to wait for a ZenHub connection')
 
         ZenDaemon.buildOptions(self)
