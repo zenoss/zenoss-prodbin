@@ -21,6 +21,7 @@ __version__ = '$Revision: 1.2 $'[11:-2]
 
 import re
 
+from Products.ZenUtils.Utils import unsigned
 from CollectorPlugin import SnmpPlugin, GetTableMap
 from DataMaps import ObjectMap
 
@@ -64,9 +65,7 @@ class HRFileSystemMap(SnmpPlugin):
             if not fs.has_key("totalBlocks"): continue
             totalBlocks = fs['totalBlocks']
             if totalBlocks < 0:
-                import struct
-                totalBlocks = struct.unpack('L', struct.pack('l', totalBlocks))
-                fs['totalBlocks'] = totalBlocks
+                fs['totalBlocks'] = unsigned(totalBlocks)
             if not self.checkColumns(fs, self.columns, log): continue
             fstype = self.typemap.get(fs['type'],None)
             size = long(fs['blockSize'] * totalBlocks)

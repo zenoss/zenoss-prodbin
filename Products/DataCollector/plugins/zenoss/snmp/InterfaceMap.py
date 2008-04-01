@@ -21,7 +21,7 @@ __version__ = '$Revision: 1.24 $'[11:-2]
 
 import re
 
-from Products.ZenUtils.Utils import cleanstring
+from Products.ZenUtils.Utils import cleanstring, unsigned
 
 from CollectorPlugin import SnmpPlugin, GetTableMap
 
@@ -99,6 +99,12 @@ class InterfaceMap(SnmpPlugin):
             if speed == 4294967295L or speed < 0:
                 try: iftable[ifidx]['speed'] = data['highSpeed']*1e6
                 except KeyError: pass
+
+        for ifidx, data in iftable.items():
+            try:
+                data['speed'] = unsigned(data['speed'])
+            except KeyError:
+                pass
 
         omtable = {}
         for ip, row in iptable.items():
