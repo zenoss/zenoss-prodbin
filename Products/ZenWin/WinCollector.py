@@ -174,6 +174,7 @@ class WinCollector(PBDaemon):
             if current is not None and current != value:
                 self.log.info("Setting %s to %r", attribute, value);
                 setattr(self, attribute, value)
+        self.heartbeatTimeout = self.cycleInterval() * 3
 
     def error(self, why):
         why.printTraceback()
