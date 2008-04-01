@@ -91,9 +91,24 @@ class GraphPoint(ZenModelRM, ZenPackable):
         
     def manage_editProperties(self, REQUEST):
         '''
+        Process a save request from a GraphPoint edit screen.  Perform
+        validation on fields and either return error message or save
+        results.
         '''
-        if REQUEST.get('color', ''):
-            REQUEST.color = '#%s' % REQUEST.color.lstrip('#')
+        def IsHex(s):
+            try:
+                _ = long(color, 16)
+            except ValueError:
+                return False
+            return True
+
+        color = REQUEST.get('color', '').strip().lstrip('#').upper()
+        if color:
+            if len(color) == 6 and IsHex(color):
+                REQUEST.form['color'] = color
+            else:
+                REQUEST['message'] = 'Color must be a 6 digit hexadecimal value'
+                return self.callZenScreen(REQUEST)
         return self.zmanage_editProperties(REQUEST)
 
 
@@ -134,10 +149,25 @@ class GraphPoint(ZenModelRM, ZenPackable):
     ## Graphing Support
     
     def getColor(self, index):
-        index %= len(self.colors)
-        color = self.color or self.colors[index]
+        """
+        Return a string apprpriate for use as the color part of an
+        rrd graph command.  The color either comes from the attribute on
+        this object or from an offset into the self.colors list.
+        """
+        color = None
+        if self.color:
+            color = self.color
+            try:
+                _ = long(color, 16)
+            except ValueError:
+                color = None
+        if not color:
+            index %= len(self.colors)
+            color = self.colors[index]
         color = '#%s' % color.lstrip('#')
         if hasattr(self, 'stacked'): 
+            # This is setting the alpha channel?
+            # Why is this needed?
             if not self.stacked and index>0: color += "99"
             else: color += "ff"
         return color
