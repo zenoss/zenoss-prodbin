@@ -54,9 +54,50 @@ class ZenPackManager(ZenModelRM):
             'immediate_view' : 'viewZenPacks',
             'actions'        :
             (
-                { 'name'          : 'ZenPacks'
-                , 'action'        : 'viewZenPacks'
+                { 'id'            : 'settings'
+                , 'name'          : 'Settings'
+                , 'action'        : '../editSettings'
+                , 'permissions'   : ( "Manage DMD", )
+                },
+                { 'id'            : 'manage'
+                , 'name'          : 'Commands'
+                , 'action'        : '../dataRootManage'
+                , 'permissions'   : ('Manage DMD',)
+                },
+                { 'id'            : 'users'
+                , 'name'          : 'Users'
+                , 'action'        : '../ZenUsers/manageUserFolder'
                 , 'permissions'   : ( 'Manage DMD', )
+                },
+                { 'id'            : 'packs'
+                , 'name'          : 'ZenPacks'
+                , 'action'        : 'viewZenPacks'
+                , 'permissions'   : ( "Manage DMD", )
+                },
+                { 'id'            : 'menus'
+                , 'name'          : 'Menus'
+                , 'action'        : '../editMenus'
+                , 'permissions'   : ( "Manage DMD", )
+                },
+                { 'id'            : 'portlets'
+                , 'name'          : 'Portlets'
+                , 'action'        : '../editPortletPerms'
+                , 'permissions'   : ( "Manage DMD", )
+                },
+                { 'id'            : 'daemons'
+                , 'name'          : 'Daemons'
+                , 'action'        : '../About/zenossInfo'
+                , 'permissions'   : ( "Manage DMD", )
+                },
+                { 'id'            : 'versions'
+                , 'name'          : 'Versions'
+                , 'action'        : '../About/zenossVersions'
+                , 'permissions'   : ( "Manage DMD", )
+                },
+                { 'id'            : 'backups'
+                , 'name'          : 'Backups'
+                , 'action'        : '../backupInfo'
+                , 'permissions'   : ( "Manage DMD", )
                 },
             )
          },
