@@ -11,7 +11,7 @@
 <tal:block metal:define-macro="objectperf" tal:define="
                 tabletitle string:File System;
                 menu_id string:Lockable;
-                editable python:manager and userCreated">
+                editable python:manager and userCreated and here.has_permission('Change Device', here)">
 <tal:block metal:use-macro="here/zenuimacros/macros/zentable">
 
 <tal:block metal:fill-slot="zentablecontents">
@@ -26,13 +26,15 @@
                                name string:mount;
                                value here/mount">
       </td>
-        <td class="tableheader">Monitor</td>
-        <td class="tablevalues">
+      <td class="tableheader">Monitor</td>
+      <td class="tablevalues" tal:condition="editable">
             <select class="tablevalues"  name="monitor:boolean">
             <option tal:repeat="e python:(True,False)" tal:content="e"
                 tal:attributes="value e; selected python:e==here.monitored()"/>
             </select>
-        </td>
+      </td>
+      <td class="tablevalues" tal:condition="not: editable"
+            tal:content="here/monitored"/>
     </tr>  
     <tr>
       <td class="tableheader" align=left>Storage Device</td>
@@ -122,7 +124,7 @@
               border="0" src="locked-sendevent-icon.png">
       </td>
     </tr>
-    <tr>
+    <tr tal:condition="editable">
         <td align="left"  class="tableheader" colspan="4">
             <input class="tableheader" type="submit" value=" Save "
                 name="manage_editFileSystem:method" />

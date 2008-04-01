@@ -10,7 +10,7 @@
 
 <tal:block metal:define-macro="objectperf" 
         tal:define="tabletitle string:IpInterface;
-                    editable python:manager and userCreated">
+                    editable python:manager and userCreated and here.has_permission('Change Device', here)">
 <tal:block metal:use-macro="here/zenuimacros/macros/zentable">
 
 <tal:block metal:fill-slot="zentablecontents">
@@ -130,12 +130,14 @@
                             value here/description">
       </td>
       <td class="tableheader">Monitor</td>
-      <td class="tablevalues">
-          <select class="tablevalues"  name="monitor:boolean">
-          <option tal:repeat="e python:(True,False)" tal:content="e"
-              tal:attributes="value e; selected python:e==here.monitored()"/>
-          </select>
+      <td class="tablevalues" tal:condition="editable">
+            <select class="tablevalues"  name="monitor:boolean">
+            <option tal:repeat="e python:(True,False)" tal:content="e"
+                tal:attributes="value e; selected python:e==here.monitored()"/>
+            </select>
       </td>
+      <td class="tablevalues" tal:condition="not: editable"
+            tal:content="here/monitored"/>
     </tr>
     <tr>
       <td class="tableheader" align=left>Locks</td>
@@ -148,7 +150,7 @@
                   border="0" src="locked-sendevent-icon.png">
       </td>
     </tr>
-    <tr tal:condition="python:here.has_permission('Manage DMD', here)">
+    <tr tal:condition="editable">
         <td align="left"  class="tableheader" colspan="4">
             <input class="tableheader" type="submit" value=" Save "
                 name="zmanage_editProperties:method" />

@@ -12,7 +12,7 @@
         <tal:block tal:define="message request/message | string:State at time:; 
             tabletitle string:${message} ${here/getNowString};
             menu_id string:Lockable;
-            editable python:manager and userCreated">
+            editable python:manager and userCreated and here.has_permission('Change Device', here)">
         <tal:block metal:use-macro="here/zenuimacros/macros/zentable">
 
         <!--====Optional titlebar slots=============
@@ -87,37 +87,37 @@
     </tr>
     <tr tal:condition="python:here.protocol!='udp'">
         <td class="tableheader">Monitor</td>
-        <td class="tablevalues" tal:condition="not: here/cantMonitor">
+        <td class="tablevalues" tal:condition="python:not here.cantMonitor and editable">
             <select class="tablevalues"  name="monitor:boolean">
             <option tal:repeat="e python:(True,False)" tal:content="e"
                 tal:attributes="value e; selected python:e==here.monitored()"/>
             </select>
         </td>
-        <td class="tablevalues" tal:condition="here/cantMonitor"
+        <td class="tablevalues" tal:condition="python:here.cantMonitor or not editable"
             tal:content="here/monitored"/>
     </tr>
     <tr>
         <td class="tableheader">Send String</td>
-        <td class="tablevalues" tal:condition="not: here/cantMonitor">
+        <td class="tablevalues" tal:condition="python:not here.cantMonitor and editable">
             <input tal:attributes="class string:tablevalues;
                                 name string:sendString;
                                 value here/getSendString"/>
         </td>
-        <td class="tablevalues" tal:condition="here/cantMonitor"
+        <td class="tablevalues" tal:condition="python:here.cantMonitor or not editable"
             tal:content="here/getSendString"/>
     </tr>
     <tr>
         <td class="tableheader">Expect Regex</td>
-        <td class="tablevalues" tal:condition="not: here/cantMonitor">
+        <td class="tablevalues" tal:condition="python:not here.cantMonitor and editable">
             <input class="tablevalues" type="text" name="expectRegex" 
                 tal:attributes="value here/getExpectRegex"/>
         </td>
-        <td class="tablevalues" tal:condition="here/cantMonitor"
+        <td class="tablevalues" tal:condition="python:here.cantMonitor or not editable"
             tal:content="here/getExpectRegex"/>
     </tr>
     <tr>
         <td class="tableheader">Fail Severity</td>
-        <td class="tablevalues" tal:condition="not: here/cantMonitor">
+        <td class="tablevalues" tal:condition="python:not here.cantMonitor and editable">
             <select class="tableheader" name="severity:int">
                 <option tal:repeat="sev here/getSeverities"
                     tal:content="python:sev[0]"
@@ -125,7 +125,7 @@
                         selected python:sev[1] == here.getFailSeverity()" />
             </select>
         </td>
-        <td class="tablevalues" tal:condition="here/cantMonitor"
+        <td class="tablevalues" tal:condition="python:here.cantMonitor or not editable"
             tal:content="here/getFailSeverityString"/>
     </tr>
     <tr>
@@ -149,7 +149,7 @@
               src="locked-sendevent-icon.png">
       </td>
     </tr>
-    <tr tal:condition="python:here.has_permission('Manage DMD', here)">
+    <tr tal:condition="editable">
         <td align="left"  class="tableheader" colspan="2">
             <input class="tableheader" type="submit" value=" Save "
                 name="manage_editService:method" />
