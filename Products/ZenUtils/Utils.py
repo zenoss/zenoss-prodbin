@@ -618,3 +618,14 @@ def ipsort(a, b):
     a, b = map(lambda x:x.rsplit("/")[0], (a, b))
     return cmp(*map(socket.inet_aton, (a, b)))
 
+
+def unsigned(v):
+    '''Convert negative 32-bit values into the 2s compliment unsigned value
+
+    >>> unsigned(-1)
+    4294967295L
+    >>> unsigned(1)
+    1
+    '''
+    import ctypes
+    return int(ctypes.c_uint32(v).value)
