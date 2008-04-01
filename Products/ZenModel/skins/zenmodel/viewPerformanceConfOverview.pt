@@ -77,6 +77,15 @@
       <td class="tablevalues" tal:content="here/modelerCycleInterval" />
     </tr>
     <tr>
+      <td class="tableheader">Default Discovery Networks</td>
+      <td class="tablevalues">
+      	<span tal:condition="here/discoveryNetworks" 
+	      tal:content="python:', '.join(here.discoveryNetworks)">
+	</span>
+      	<span tal:condition="not:here/discoveryNetworks">None</span>
+      </td>
+    </tr>
+    <tr>
       <td class="tableheader">Render URL</td>
       <td class="tablevalues" tal:content="here/renderurl" />
     </tr>

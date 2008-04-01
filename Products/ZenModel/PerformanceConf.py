@@ -106,6 +106,8 @@ class PerformanceConf(Monitor, StatusColor):
     renderuser = ''
     renderpass = ''
 
+    discoveryNetworks = ()
+
     # make the default rrdfile size smaller
     # we need the space to live within the disk cache
     defaultRRDCreateCommand = (
@@ -137,6 +139,7 @@ class PerformanceConf(Monitor, StatusColor):
         {'id':'pingCycleInterval','type':'int','mode':'w'},
         {'id':'maxPingFailures','type':'int','mode':'w'},
         {'id':'modelerCycleInterval','type':'int','mode':'w'},
+        {'id':'discoveryNetworks', 'type':'lines','mode':'w'},
         )
     _relations = Monitor._relations + (
         ("devices", ToMany(ToOne,"Products.ZenModel.Device","perfServer")),

@@ -185,3 +185,8 @@ class DiscoverService(ModelerService):
     def remote_moveDevice(self, dev, path):
         self.dmd.Devices.moveDevices(path, [dev])
         transaction.commit()
+
+    @translateError
+    def remote_getDefaultNetworks(self):
+        monitor = self.dmd.Monitors.Performance._getOb(self.instance)
+        return [net for net in monitor.discoveryNetworks]

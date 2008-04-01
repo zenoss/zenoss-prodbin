@@ -45,10 +45,6 @@ class ZenDisc(ZenModeler):
     def __init__(self,noopts=0,app=None,single=True,
                 threaded=False,keeproot=True):
         ZenModeler.__init__(self, noopts, app, single, threaded, keeproot)
-        if not (self.options.walk or self.options.net):
-            self.log.error("You must use walk or net options for discovery")
-            import sys
-            sys.exit(1)
 	if not self.options.useFileDescriptor:
 	    self.openPrivilegedPort('--ping')
         self.discovered = []
@@ -278,12 +274,21 @@ class ZenDisc(ZenModeler):
     def collectNet(self, driver):
         # in case someone uses 10.0.0.0,192.168.0.1 instead of 
         # --net 10.0.0.0 --net 192.168.0.1
-        if len(self.options.net) and self.options.net[0].find(",") > -1:
+        if isinstance(self.options.net, list) and \
+               self.options.net[0].find(",") > -1:
             self.options.net = [
                 n.strip() for n in self.options.net[0].split(',')
                 ]
         count = 0
         devices = []
+        if not self.options.net:
+            yield self.config().callRemote('getDefaultNetworks')
+            self.options.net = driver.next()
+
+        if not self.options.net:
+            self.log.warning("No networks configured")
+            return
+        
         for net in self.options.net:
             try:
                 yield self.config().callRemote('getNetworks',
@@ -354,10 +359,10 @@ class ZenDisc(ZenModeler):
 
     def connected(self):
         self.log.info('connected to ZenHub')
-        if self.options.net:
-            d = drive(self.collectNet)
         if self.options.walk:
             d = drive(self.walkDiscovery)
+        else:
+            d = drive(self.collectNet)
         d.addBoth(self.printResults)
 
     def autoAllocate(self, device=None):
