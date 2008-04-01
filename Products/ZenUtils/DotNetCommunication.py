@@ -1,7 +1,6 @@
 from urllib2 import HTTPCookieProcessor, build_opener, HTTPError
 from urllib import urlencode, quote
 from urlparse import urljoin, urlparse, urlunparse
-import MultipartPostHandler
 
 #BASE_URL = 'http://dotnet.zenoss.loc:8080/ZenossDotNet/'
 BASE_URL = 'http://localhost:8081/ZenossDotNet/'
@@ -26,6 +25,7 @@ class DotNetSession(object):
         """
         Set up the cookie jar.
         """
+        import MultipartPostHandler
         self.opener = build_opener(HTTPCookieProcessor(),
                                 MultipartPostHandler.MultipartPostHandler)
         self.base_url = BASE_URL
