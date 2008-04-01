@@ -2609,8 +2609,16 @@ HP Gb Server Adapter:  Network Link Down
 </object>
 <object id='snmp_linkDown' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
 <property type="text" id="transform" mode="w" >
-evt.component = getattr(evt, 'ifIndex', 0)
-evt.component = getattr(evt ,'ifDescr', evt.component)
+index = None
+for key, value in evt.__dict__.items():
+   if key.find('1.3.6.1.2.1.2.2.1.1') >= 0:
+      index = value
+      break
+if index is not None:
+   for obj in device.os.interfaces.objectItems():
+      if obj[1].ifindex == index:
+         evt.component = obj[1].id
+         break
 </property>
 <property type="string" id="eventClassKey" mode="w" >
 snmp_linkDown
@@ -2619,16 +2627,24 @@ snmp_linkDown
 1
 </property>
 <property type="string" id="example" mode="w" >
-snmp trap snmp_linkDown from 10.1.2.3
+snmp trap snmp_linkDown
 </property>
 <property type="text" id="explanation" mode="w" >
-has key for ifIndex for all traps.  Some (from cisco) have the IfDescr which give s us a good name for the interface
+has key for ifIndex for all traps.
 </property>
 </object>
 <object id='snmp_linkUp' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
 <property type="text" id="transform" mode="w" >
-evt.component = getattr(evt, 'ifIndex', 0)
-evt.component = getattr(evt ,'ifDescr', evt.component)
+index = None
+for key, value in evt.__dict__.items():
+   if key.find('1.3.6.1.2.1.2.2.1.1') >= 0:
+      index = value
+      break
+if index is not None:
+   for obj in device.os.interfaces.objectItems():
+      if obj[1].ifindex == index:
+         evt.component = obj[1].id
+         break
 </property>
 <property type="string" id="eventClassKey" mode="w" >
 snmp_linkUp
@@ -2637,10 +2653,10 @@ snmp_linkUp
 1
 </property>
 <property type="string" id="example" mode="w" >
-snmp trap snmp_linkUp from 10.1.2.3
+snmp trap snmp_linkUp
 </property>
 <property type="text" id="explanation" mode="w" >
-has key for ifIndex for all traps.  Some (from cisco) have the IfDescr which give s us a good name for the interface
+has key for ifIndex for all traps.
 </property>
 <property visible="True" type="int" id="zEventSeverity" >
 0
