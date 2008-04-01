@@ -96,3 +96,6 @@ class ModelerService(PerformanceConfig):
         device = self.dmd.Devices.findDevice(device)
         device.setSnmpLastCollection()
 
+    def pushConfig(self, device):
+        from twisted.internet.defer import succeed
+        return succeed(device)
