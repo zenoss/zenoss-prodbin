@@ -1,0 +1,53 @@
+<h2>Upload ZenPack to Zenoss.net</h2>
+
+<tal:block tal:define="
+    userSettings python:here.ZenUsers.getUserSettings();
+    znetUser python:userSettings.zenossNetUser;
+    znetPassword python:userSettings.zenossNetPassword;
+    canUpload python:znetUser and znetPassword;">
+
+<tal:block tal:condition="canUpload">
+<p>
+Uploading a ZenPack to Zenoss.Net will create a new Release<br />
+for an existing Zenoss.net Project.
+</p>
+<p>
+Please select the Project:<br />
+<select name="znetProject">
+    <option tal:repeat="option here/getZnetProjectOptions"
+        tal:attributes="value python:option[0]"
+        tal:content="python: option[1]" />
+</select>
+<br /><br />
+Description:<br />
+<textarea name="description" rows="4" cols="40"></textarea>
+</p>
+<br/>
+<div id="dialog_buttons">
+<input tal:attributes="id string:dialog_submit;
+        type string:submit;
+        value string:OK;
+        onclick string:return $$('dialog').submit_form(
+                        '${here/absolute_url_path}', 'zenPackObjectsForm')"
+                name="manage_uploadPack:method" />
+<input tal:attributes="id string:dialog_cancel;
+        type string:button;
+        value string:Cancel;
+        onclick string:$$('dialog').hide()" />
+</div>
+</tal:block>
+
+<tal:block tal:condition="not: canUpload">
+<p>Before uploading ZenPacks to Zenoss.net you must create<br />
+an account on Zenoss.net and enter that username and<br />
+password in your Zenoss Preferences.
+</p>
+<div id="dialog_buttons">
+<input tal:attributes="id string:dialog_cancel;
+        type string:button;
+        value string:Cancel;
+        onclick string:$$('dialog').hide()" />
+</div>
+</tal:block>
+
+</tal:block>

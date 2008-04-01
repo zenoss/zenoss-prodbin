@@ -146,6 +146,20 @@ class ZenPackManager(ZenModelRM):
         if REQUEST:
             return self.callZenScreen(REQUEST)
 
+
+    security.declareProtected(ZEN_MANAGE_DMD, 'fetchZenPack')
+    def fetchZenPack(self, packName, packVersion=''):
+        """
+        Retrieve the given zenpack from Zenoss.net and install.
+        """
+        import Products.ZenUtils.ZenPackCmd as ZenPackCmd
+        zp = ZenPackCmd.FetchAndInstallZenPack(self.dmd, packName, packVersion)
+        if REQUEST:
+            return REQUEST['RESPONSE'].redirect(zp.getPrimaryUrlPath())
+        return zp
+
+
+
     security.declareProtected(ZEN_MANAGE_DMD, 'manage_installZenPack')
     def manage_installZenPack(self, zenpack=None, REQUEST=None):
         """
@@ -224,6 +238,30 @@ class ZenPackManager(ZenModelRM):
         self.write(out, 'Done installing ZenPack.')
         if REQUEST:
             REQUEST.RESPONSE.write(footer)
+
+
+    def getZnetProjectOptions(self):
+        """
+        Return a list of 2-tuples of (option value, option name) for the
+        user to select a Zenoss.net project from.
+        """
+        projects = self.getZnetProjectsList()
+        return [(p, p.split('/')[-1]) for p in projects]
+
+
+    def getZnetProjectsList(self):
+        """
+        Return a list of the zenoss.net projects.
+        """
+        import simplejson
+        import Products.ZenUtils.DotNetCommunication as DotNetCommunication
+        userSettings = self.dmd.ZenUsers.getUserSettings()
+        session = DotNetCommunication.getDotNetSession(
+                    userSettings.zenossNetUser,
+                    userSettings.zenossNetPassword)
+        projects = session.retrieve('projectList')
+        projects = simplejson.loads(projects)
+        return projects
 
 
     def getBrokenPackName(self, ob):

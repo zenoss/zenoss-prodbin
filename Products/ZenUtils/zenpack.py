@@ -103,6 +103,9 @@ class ZenPackCmd(ZenScriptBase):
                 os.makedirs(skinsSubdir, 0750)
             self.install(packName)
 
+#        elif self.options.fetch:
+#            return EggPackCmd.FetchAndInstallZenPack(self.dmd,
+#                                self.options.fetch, self.options.fetchVers)
         elif self.options.removePackName:
             pack = self.dmd.ZenPackManager.packs._getOb(
                                         self.options.removePackName, None)
@@ -313,6 +316,16 @@ class ZenPackCmd(ZenScriptBase):
                                dest='installPackName',
                                default=None,
                                help="Path to the ZenPack to install.")
+#        self.parser.add_option('--fetch',
+#                               dest='fetch',
+#                               default=None,
+#                               help='Name of ZenPack to retrieve from '
+#                                    'Zenoss.net and install.')
+#        self.parser.add_option('--fetchVers',
+#                               dest='fetchVers',
+#                               default=None,
+#                               help='Use with --fetch to specify a version'
+#                                    ' for the ZenPack to download and install.')
         self.parser.add_option('--remove',
                                dest='removePackName',
                                default=None,

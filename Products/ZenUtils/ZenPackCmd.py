@@ -27,6 +27,7 @@ import os, sys
 import pkg_resources
 import shutil
 import string
+import tempfile
 import subprocess
 import socket
 
@@ -479,6 +480,117 @@ def CreateZenPacksDir():
 
 
 ########################################
+#   Zenoss.Net
+########################################
+
+
+def FetchAndInstallZenPack(dmd, zenPackName, zenPackVersion='', sendEvent=True):
+    """
+    Fetch the named zenpack and all its dependencies and install them.
+    Return a list of the ZenPacks that were installed.
+    """
+    try:
+        FetchZenPack(zenPackName, zenPackVersion)
+        zenPacks = DiscoverAndInstall(dmd, zenPackName)
+    except:
+        if sendEvent:
+            ZPEvent(dmd, 4, 'Failed to install ZenPack %s' % zenPackName,
+                '%s: %s' % sys.exc_info()[:2])
+        raise
+    if sendEvent:
+        zenPackIds = [z.id for z in zenPacks]
+        if zenPackIds:
+            ZPEvent(dmd, 2, 'Installed ZenPacks: %s' % ', '.join(zenPackIds))
+        if zenPackName not in zenPackIds:
+            ZPEvent(dmd, 4, 'Unable to install ZenPack %s' % zenPackName)
+    return zenPacks
+
+
+def FetchZenPack(zenPackName, zenPackVersion=''):
+    """
+    Use easy_install to retrieve the given zenpack and any dependencies.
+    easy_install will install the eggs, but does not install them into
+    Zenoss as ZenPacks.
+    Return list of project_names of installed distributions.  These are
+    probably all ZenPacks, but possibly not.
+    """
+    from setuptools.command import easy_install
+    
+    # Make sure $ZENHOME/ZenPacks exists
+    CreateZenPacksDir()
+    
+    # Create temp file for easy_install to write results to
+    _, tempPath = tempfile.mkstemp(prefix='zenpackcmd-easyinstall')
+    # eggPaths is a set of paths to eggs that were installed.  We need to
+    # add them to the current workingset so we can discover their
+    # entry points.
+    eggPaths = set()
+    try:
+        # Execute the easy_install
+        args = ['--site-dirs', zenPath('ZenPacks'),
+            '-d', zenPath('ZenPacks'),
+            '-i', ZEN_PACK_INDEX_URL,
+            '--record', tempPath,
+            '--quiet',
+            zenPackName]
+        easy_install.main(args)
+        # Collect the paths for eggs that were installed
+        f = open(tempPath, 'r')
+        marker = '.egg/'
+        markerOffset = len(marker)-1
+        for l in f.readlines():
+            i = l.find(marker)
+            if i > 0:
+                eggPaths.add(l[:i+markerOffset])
+    finally:
+        os.remove(tempPath)
+    # Add any installed eggs to the current working set
+    distProjectNames = []
+    for path in eggPaths:
+        projectName = AddDistToWorkingSet(path)
+        distProjectNames.append(projectName)
+    return distProjectNames
+
+
+def UploadZenPack(dmd, packName, project, description, znetUser, znetPass):
+    """
+    Upload the specified zenpack to the given project.
+    Project is a string of the form 'enterprise/myproject' or
+    'community/otherproject'.
+    """
+    zp = dmd.ZenPackManager.packs._getOb(packName, None)
+    if not zp:
+        raise ZenPackException('No ZenPack named %s' % packName)
+
+    # Export the zenpack
+    fileName = zp.manage_exportPack()
+    filePath = zenPath('export', fileName)
+
+    # Login to Zenoss.net
+    from DotNetCommunication import DotNetSession
+    session = DotNetSession()
+    userSettings = dmd.ZenUsers.getUserSettings()
+    session.login(znetUser, znetPass)
+
+    # Upload
+    zpFile = open(zenPath('export', fileName), 'r')
+    try:
+        response = session.open('%s/createRelease' % project.strip('/'), {
+                'description': description,
+                'fileStorage': zpFile,
+                })
+    finally:
+        zpFile.close()
+    if response:
+        result = response.read()
+        if "'success':true" not in result:
+            raise ZenPackException('Upload failed')
+    else:
+        raise ZenPackException('Failed to connect to Zenoss.net')
+    return
+
+
+########################################
 #   ZenPack Removal
 ########################################
 
@@ -654,6 +766,15 @@ class ZenPackCmd(ZenScriptBase):
                                 link=self.options.link,
                                 filesOnly=self.options.filesOnly)
             PrintInstalled(installed)
+        elif self.options.fetch:
+            installed = FetchAndInstallZenPack(self.dmd, self.options.fetch)
+            PrintInstalled(installed)
+        elif self.options.upload:
+            return UploadZenPack(self.dmd, self.options.upload,
+                                    self.options.znetProject,
+                                    self.options.uploadDesc,
+                                    self.options.znetUser,
+                                    self.options.znetPass)
         elif self.options.removePackName:
             try:
                 RemoveZenPack(self.dmd, self.options.removePackName)
@@ -669,6 +790,42 @@ class ZenPackCmd(ZenScriptBase):
                                dest='eggPath',
                                default=None,
                                help="name of the pack to install")
+#        self.parser.add_option('--fetch',
+#                               dest='fetch',
+#                               default=None,
+#                               help='Name of ZenPack to retrieve from '
+#                                    'Zenoss.net and install.')
+#        self.parser.add_option('--fetch-vers',
+#                               dest='fetchVers',
+#                               default=None,
+#                               help='Use with --fetch to specify a version'
+#                                    ' for the ZenPack to download and install.')
+#        self.parser.add_option('--znet-user',
+#                               dest='znetUser',
+#                               default=None,
+#                               help='Use with --fetch or --upload to specify'
+#                                    ' your Zenoss.net username.')
+#        self.parser.add_option('--znet-pass',
+#                               dest='znetPass',
+#                               default=None,
+#                               help='Use with --fetch or --upload to specify'
+#                                    ' your Zenoss.net password.')
+#        self.parser.add_option('--upload',
+#                               dest='upload',
+#                               default=None,
+#                               help='Name of ZenPack to upload to '
+#                                    'Zenoss.net')
+#        self.parser.add_option('--znet-project',
+#                               dest='znetProject',
+#                               default=None,
+#                               help='Use with --upload to specify'
+#                                    ' which Zenoss.net project to create'
+#                                    ' a release on.')
+#        self.parser.add_option('--upload-desc',
+#                               dest='uploadDesc',
+#                               default=None,
+#                               help='Use with --upload to provide'
+#                                    ' a description for the new release.')
         self.parser.add_option('--develop',
                                dest='develop',
                                action='store_true',

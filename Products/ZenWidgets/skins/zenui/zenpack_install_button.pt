@@ -1,0 +1,26 @@
+<html>
+<head>
+    <style>
+        a, img, html, body {
+            margin:0;
+            padding:0;
+            border:medium none;
+            background-color: transparent;
+            overflow: hidden;
+        }
+    </style>
+</head>
+<body>
+<script tal:content="string:
+    var packname = '${request/form/packname}'
+"></script>
+<script>
+function startPackInstall() {
+    window.parent.window.parent.installZenPack(packname);
+}
+</script>
+<a href="javascript:startPackInstall()">
+<img src="/zport/dmd/img/install_button.png"/>
+</a>
+</body>
+</html>

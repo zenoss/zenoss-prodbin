@@ -1,0 +1,55 @@
+<tal:block metal:use-macro="here/templates/macros/page1">
+<tal:block metal:fill-slot="contentPane">
+<script>
+    YAHOO.zenoss.loader.require(['container']);
+    YAHOO.zenoss.loader.insert();
+    function installZenPack(packName) {
+        url = '/zport/dmd/ZenPackManager/fetchZenPack';
+        qs = {packName:packName};
+        var d = doSimpleXMLHttpRequest(url, qs);
+        d.addCallback(function(){
+            var packinstall = new YAHOO.widget.SimpleDialog("packinstall",
+            {
+                width: "300px",
+                fixedcenter: true,
+                visible: false,
+                close: true,
+                text: 'The ZenPack is being installed.',
+                constraintoviewport: true,
+                buttons: [ {text:"OK", handler:function(){this.hide()},
+                            isDefault: true}
+                         ]
+            });
+            addElementClass(currentDocument().body, 'yui-skin-sam');
+            packinstall.render(currentDocument().body);
+            packinstall.show();
+        });
+    }
+    function maximizeMapHeight() {
+        mapdiv = $('zendotnet');
+        mapoffset = getElementPosition(mapdiv).y;
+        maxbottom = getViewportDimensions().h;
+        newdims = {'h':maxbottom-mapoffset-32};
+        setElementDimensions(mapdiv, newdims);
+    }
+    function makeDotNetIframe(){
+        var mydomain = currentWindow().location.host;
+        console.log(mydomain);
+        var dotneturl = 'http://dotnet.zenoss.loc:8080/' +
+                        'ZenossDotNet/index.html';
+        var myframe = createDOM('IFRAME');
+        myframe.id = 'zendotnet';
+        myframe.src = dotneturl + '?zad=' + mydomain;
+        setStyle(myframe, {'width':'100%','border':'medium none'});
+        swapDOM($('dotnet'), myframe);
+        maximizeMapHeight();
+    }
+    addLoadEvent(makeDotNetIframe);
+    connect(currentWindow(), 'onresize', maximizeMapHeight);
+</script>
+
+<div id="dotnet"></div>
+
+
+</tal:block>
+</tal:block>

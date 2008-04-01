@@ -15,7 +15,8 @@
 $Id: ZentinelPortal.py,v 1.17 2004/04/08 15:35:25 edahl Exp $
 """
 
-import urllib
+import urllib, urlparse
+import re
 
 import Globals
 
@@ -102,6 +103,43 @@ class ZentinelPortal ( PortalObjectBase ):
         """Return a list of devices for the dashboard
         """
         return self.dmd.Devices.jsonGetDeviceNames()
+
+    security.declareProtected(ZEN_COMMON, 'dotNetProxy')
+    def dotNetProxy(self, path='', params={}, REQUEST=None):
+        """
+        Logs in to Zenoss.net using the user's credentials and retrieves data,
+        thereby putting it in the current domain
+        """
+        session = self.dmd.ZenUsers.getUserSettings().getDotNetSession()
+        response = session.open(path.lstrip('/'))
+        if response:
+            data = response.read()
+            headers = response.headers.dict
+            url = response.geturl()
+            response.close()
+        else:
+            return response
+        localbase = 'http://localhost:8080/zport/dotNetProxy?path='
+        allrefs = re.compile(r"""(href *= *["']|src *= *["'])(.*?)(["'])""")
+        proxyrefs = re.compile(
+            r"""((<a[^<>]*?|location\.)href *= *["'])(.*?)(['"])""")
+
+        def mod_rewrite(matchobj):
+            start, path, end = matchobj.groups()
+            if not path.startswith('javascript'): 
+                path = urlparse.urljoin(url, path)
+            return start + path + end
+
+        def make_proxied(matchobj):
+            start, trash, path, end = matchobj.groups()
+            path = path.replace(session.base_url, localbase)
+            return start + path + end
+
+        data = re.sub(allrefs, mod_rewrite, data)
+        data = re.sub(proxyrefs, make_proxied, data)
+        for header in headers: 
+            REQUEST.RESPONSE.setHeader(header, headers[header])
+        return data
 
     def isManager(self, obj=None):
         """

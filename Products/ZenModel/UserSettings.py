@@ -29,6 +29,7 @@ from Products.ZenEvents.CustomEventView import CustomEventView
 from Products.ZenRelations.RelSchema import *
 from Products.ZenUtils import Time
 from Products.ZenUtils.Utils import unused
+from Products.ZenUtils import DotNetCommunication
 
 from ZenossSecurity import *
 from ZenModelRM import ZenModelRM
@@ -38,7 +39,6 @@ from email.MIMEText import MIMEText
 import socket
 
 UserSettingsId = "ZenUsers"
-
 
 def manage_addUserSettingsManager(context, REQUEST=None):
     """Create user settings manager."""
@@ -447,6 +447,8 @@ class UserSettings(ZenModelRM):
     dashboardState = ''
     netMapStartObject = ''
     eventConsoleRefresh = True
+    zenossNetUser = ''
+    zenossNetPassword = ''
     
     _properties = ZenModelRM._properties + (
         {'id':'email', 'type':'string', 'mode':'w'},
@@ -461,6 +463,8 @@ class UserSettings(ZenModelRM):
         {'id':'dashboardState', 'type':'string', 'mode':'w'},
         {'id':'netMapStartObject', 'type':'string', 'mode':'w'},
         {'id':'eventConsoleRefresh', 'type':'boolean', 'mode':'w'},
+        {'id':'zenossNetUser', 'type':'string', 'mode':'w'},
+        {'id':'zenossNetPassword', 'type':'string', 'mode':'w'},
     )
  
 
@@ -756,7 +760,7 @@ class UserSettings(ZenModelRM):
             ars.extend(gs.adminRoles())
         return ars
 
-        
+
     security.declareProtected(ZEN_CHANGE_SETTINGS, 'manage_emailTest')
     def manage_emailTest(self, REQUEST=None):
         ''' Send a test email to the given userid.
@@ -839,6 +843,16 @@ class UserSettings(ZenModelRM):
         if self.email.strip():
             return [self.email]
         return []
+
+    def getDotNetSession(self):
+        """
+        Use the Zenoss.net credentials associated with this user to log in to a
+        Zenoss.net session.
+        """
+        session = DotNetCommunication.getDotNetSession(
+                                        self.zenossNetUser, 
+                                        self.zenossNetPassword)
+        return session
 
 class GroupSettings(UserSettings):
 

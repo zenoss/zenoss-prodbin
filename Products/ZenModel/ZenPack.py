@@ -292,6 +292,19 @@ class ZenPack(ZenModelRM):
             return self.callZenScreen(REQUEST)
 
 
+    def manage_uploadPack(self, znetProject, description, REQUEST=None):
+        """
+        Create a new release of the given project.
+        """
+        import Products.ZenUtils.ZenPackCmd as ZenPackCmd
+        userSettings = self.dmd.ZenUsers.getUserSettings()
+        ZenPackCmd.UploadZenPack(self.dmd, self.id, znetProject, description,
+            userSettings.zenossNetUser, userSettings.zenossNetPassword)
+        if REQUEST:
+            REQUEST['message'] = 'ZenPack uploaded to Zenoss.net'
+            return self.callZenScreen(REQUEST)
+
+
     security.declareProtected(ZEN_MANAGE_DMD, 'manage_exportPack')
     def manage_exportPack(self, download="no", REQUEST=None):
         """
