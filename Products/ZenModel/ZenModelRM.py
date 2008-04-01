@@ -27,7 +27,7 @@ from AccessControl import ClassSecurityInfo
 from ZPublisher.Converters import type_converters
 #from Products.ZCatalog.CatalogAwareness import CatalogAware
 
-from ZenModelBase import ZenModelBase
+from ZenModelBase import ZenModelBase, iscustprop
 from ZenPacker import ZenPacker
 from Products.ZenUtils.Utils import getSubObjects, zenPath
 from Products.ZenRelations.ImportRM import ImportRM
@@ -85,12 +85,24 @@ class ZenModelRM(ZenModelBase, RelationshipManager, Historical, ZenPacker):
         """
         if type_converters.has_key(type):
             value=type_converters[type](value)
+        id = id.strip()
         if prefix and not id.startswith(prefix):
             id = prefix + id
-        self._setProperty(id.strip(), value, type, label, visible)
-        if REQUEST:
-            REQUEST['message'] = "Property added"
-            return self.callZenScreen(REQUEST)
+        if not iscustprop(id):
+            if REQUEST:
+                REQUEST['message'] = \
+                    "Custom property name should be in this format: cProperty"
+                return self.callZenScreen(REQUEST)
+        elif self.hasProperty(id):
+            if REQUEST:
+                REQUEST['message'] = \
+                    "Custom property: %s already exists" % id
+                return self.callZenScreen(REQUEST)
+        else:
+            self._setProperty(id, value, type, label, visible)
+            if REQUEST:
+                REQUEST['message'] = "Custom property: %s added" % id
+                return self.callZenScreen(REQUEST)
 
     def zmanage_exportObject(self, context=None, REQUEST=None):
         """Export objects to specific locations.
