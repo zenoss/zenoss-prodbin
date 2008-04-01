@@ -2,7 +2,7 @@
 <tal:block metal:fill-slot="contentPane">
 <tal:block tal:define="tabletitle string:Overriding Objects;
                prop request/prop | python:'';
-               showDevices request/showDevices | python:False;
+               showDevices request/showDevices | python:True;
                orObjects python:here.getOverriddenObjects(prop, showDevices)"> 
 <tal:block metal:use-macro="here/zenuimacros/macros/zentable">
 
