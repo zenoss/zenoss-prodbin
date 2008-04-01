@@ -46,4 +46,4 @@ class MonitorTemplateMenu(Migrate.Step):
             im = ImportRM(noopts=True, app=dmd.zport)
             im.loadObjectFromXML(xmlfile=template)
         
-MonitorTemplateMenu()
+monitorTemplateMenu = MonitorTemplateMenu()

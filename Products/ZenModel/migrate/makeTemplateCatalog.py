@@ -17,15 +17,16 @@ __doc__='''
 import Globals
 import Migrate
 from Products.ZenModel.RRDTemplate import CreateRRDTemplatesCatalog, \
-                                            ReindexRRDTemplates, \
                                             RRDTEMPLATE_CATALOG
 
 class MakeTemplateCatalog(Migrate.Step):
     version = Migrate.Version(2, 2, 0)
 
+    # This creates the catalog if it doesn't exist.  Indexing of the templates
+    # happens in the twotwoindexing.py step.
+
     def cutover(self, dmd):                
         if getattr(dmd, RRDTEMPLATE_CATALOG, None) is None:
             CreateRRDTemplatesCatalog(dmd)
-            ReindexRRDTemplates(dmd)
 
-MakeTemplateCatalog()
+makeTemplateCatalog = MakeTemplateCatalog()
