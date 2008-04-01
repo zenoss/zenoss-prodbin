@@ -85,24 +85,12 @@ class System(DeviceOrganizer, ZenPackable):
                 , 'permissions'   : (
                   permissions.view, )
                 },
-                { 'id'            : 'performance'
-                , 'name'          : 'Performance'
-                , 'action'        : 'viewSystemPerformance'
-                , 'permissions'   : (
-                  permissions.view, )
-                },
                 { 'id'            : 'events'
                 , 'name'          : 'Events'
                 , 'action'        : 'viewEvents'
                 , 'permissions'   : (
                   permissions.view, )
                 },
-#                { 'id'            : 'historyEvents'
-#                , 'name'          : 'History'
-#                , 'action'        : 'viewHistoryEvents'
-#                , 'permissions'   : (
-#                  permissions.view, )
-#                },
                 { 'id'            : 'manage'
                 , 'name'          : 'Administration'
                 , 'action'        : 'deviceOrganizerManage'
