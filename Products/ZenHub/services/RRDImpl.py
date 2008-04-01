@@ -30,6 +30,7 @@ class RRDImpl:
         self.counts = {}
 
         self.dmd = dmd
+        self.zem = dmd.ZenEventManager
 
 
     def writeRRD(self, devId, compType, compId, dpName, value):
