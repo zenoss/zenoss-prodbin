@@ -49,9 +49,13 @@ ZenGeoMap.prototype = {
                 lat = coords[1];
                 lng = coords[0];
                 callback(new GLatLng(lat, lng));
-            } else {
+            } else if (ob.Status.code == 620) {
                 this.geocodetimeout += 50;
                 callLater(5, method(this, function(){makereq()}));
+            } else {
+                callback(null);
+                callLater(this.geocodetimeout/1000, method(this, function(){
+                        this.geocodelock.release()}));
             }
         });
         var makereq = method(this, function(){
@@ -136,6 +140,7 @@ ZenGeoMap.prototype = {
             var summarytext = node[3];
             if (this.cache.get(address)==null)
                 this.dirtycache = true;
+            if (address) {
             this.geocode(
                 address,
                 bind(function(p){
@@ -153,6 +158,7 @@ ZenGeoMap.prototype = {
                     }
                 }, this)
             );
+            } else { nummarkers += 1 }
         }
         var makeMarker = method(this, makeMarker);
         forEach(nodedata, makeMarker);
