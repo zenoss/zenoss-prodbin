@@ -1,5 +1,6 @@
 <h2>Create a new ZenPack:</h2>
 <span id="errmsg" style="color:red;"></span>
+<div style="width:400px">
 <table>
     <tr>
         <td colspan="2">
@@ -28,6 +29,7 @@
         </td>
     </tr>
 </table>
+</div>
 <br>
 <div align="center">
 <input tal:attributes="id string:dialog_submit;
