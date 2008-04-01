@@ -727,14 +727,19 @@ registerDirectory("skins", globals())
         eggDir = self.eggPath()
         return eggDir.startswith(zpDir)
 
-    # def getDependentZenPacks(self):
-    #     """
-    #     Return a list of ZenPacks that have this zenpack as a
-    #     dependency.
-    #     """
-    #     return [p for p in self.dmd.ZenPackManager.packs()
-    #             if p.isEggPack()
-    #             and self.id in p.dependencies.keys()]
+
+    def isBroken(self):
+        """
+        Make sure that the ZenPack can be instantiated and that it
+        is physically present on the filesystem.
+        """
+        # Well, if zope has an object to call this method on then
+        # we know that it can be instantiated.  Templates will need
+        # to catch the case where a broken object won't have an isBroken
+        # method.
+        # So here we just need to check for presence on the filesystem.
+        return not os.path.isdir(self.path())
+
 
 
 # ZenPackBase is here for backwards compatibility with older installed

@@ -29,11 +29,11 @@
         </tr>
 	
 	
-	<tr tal:repeat='pack objects'>	
-	  <tal:block>
+	<tr tal:repeat='pack objects'>
+	    <tal:block tal:define="isBroken python: not hasattr(pack,'isBroken') or pack.isBroken();">
+	    <tal:block tal:condition="not: isBroken">
           <td class="tablevalue"> 
               <input type="checkbox" name="ids:list"  
-                  tal:condition="pack/getPrimaryPath|nothing" 
                   tal:attributes="value pack/id"/> 
           </td>
 		  <td class="tablevalue">
@@ -49,7 +49,7 @@
 		  <td class="tablevalue" 
 		    tal:content="python: pack.isEggPack() and 'Yes' or 'No'"/>
       </tal:block>
-	  <tal:block tal:condition="not:pack/getPrimaryUrlPath|nothing">
+	  <tal:block tal:condition="isBroken">
 	      <td class="tablevalue"></td>
 		  <td class="tablevalue">
 			<tal:dummy tal:replace="python:here.dmd.ZenPackManager.getBrokenPackName(pack)" />
@@ -58,6 +58,7 @@
 		      This pack is missing or broken.  Please reinstall.
 		  </td>
 	  </tal:block>
+     </tal:block>
 	</tr>
       
         <!-- END TABLE CONTENTS -->
