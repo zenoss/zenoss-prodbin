@@ -233,7 +233,9 @@ class PortalGenerator:
         mp(ZEN_ADMINISTRATORS_EDIT, [ZEN_MANAGER_ROLE, MANAGER_ROLE], 1)
         mp(ZEN_ADMINISTRATORS_VIEW, 
             [ZEN_MANAGER_ROLE, MANAGER_ROLE, ZEN_USER_ROLE], 1)
-
+        mp(ZEN_EDIT_USER, [ZEN_MANAGER_ROLE, MANAGER_ROLE], 1)
+        mp(ZEN_EDIT_USERGROUP, [ZEN_MANAGER_ROLE, MANAGER_ROLE], 1)
+        
     def setupDefaultSkins(self, p):
         from Products.CMFCore.DirectoryView import addDirectoryViews
         ps = getToolByName(p, 'portal_skins')

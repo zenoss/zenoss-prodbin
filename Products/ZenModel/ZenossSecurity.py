@@ -35,6 +35,9 @@ ZEN_CHANGE_ALERTING_RULES = 'Change Alerting Rules'
 ZEN_CHANGE_EVENT_VIEWS = 'Change Event Views'
 ZEN_CHANGE_ADMIN_OBJECTS = 'Change Admin Objects'
 
+ZEN_EDIT_USER = 'Edit Users'
+ZEN_EDIT_USERGROUP = 'Edit User Groups'
+
 # Device
 ZEN_CHANGE_DEVICE = 'Change Device'
 # Change Class, Rename, Delete Device, Reset IP
@@ -58,6 +61,5 @@ ZEN_MAINTENANCE_WINDOW_EDIT='Maintenance Windows Edit'
 ZEN_MAINTENANCE_WINDOW_VIEW='Maintenance Windows View'
 ZEN_ADMINISTRATORS_EDIT='Administrators Edit'
 ZEN_ADMINISTRATORS_VIEW='Administrators View' 
-
 
 
