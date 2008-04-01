@@ -30,7 +30,7 @@ class InterfaceAliasMap(InterfaceMap):
                  '.8': 'operStatus'}
         ),
         # Ip table
-        GetTableMap('iptable', '.1.3.6.1.2.1.4.20.1',
+        GetTableMap('ipAddrTable', '.1.3.6.1.2.1.4.20.1',
                 {'.1': 'ipAddress',
                  '.2': 'ifindex',
                  '.3': 'netmask'}
