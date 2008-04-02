@@ -267,7 +267,7 @@
         devZenGrid = new DeviceZenGrid('gridcontainer',
             'getJSONDeviceInfo', 'mygrid', devZenGridBuffer,
             '${here/absolute_url_path}');
-        connect('filter', 'onkeydown', devZenGrid.doEventLivesearch);
+        connect('filter', 'onkeypress', devZenGrid.doEventLivesearch);
     });"></script>
     </tal:block>
     </td></tr>
