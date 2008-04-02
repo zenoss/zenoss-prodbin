@@ -35,7 +35,8 @@ class TestCreateZenpack(SelTestBase):
         self.selenium.wait_for_page_to_load(self.WAITTIME)
         if self.selenium.is_element_present("link=testingPack"):
             self._deleteZenpack()
-        self.addDialog("ZenPacklistaddZenPack",new_id=("text", "testingPack"),
+        self.addDialog("ZenPacklistaddZenPack",new_id=("text",
+                    "ZenPacks.Tester.testingPack"),
                 package=("text", "testpackage"))
         self.selenium.wait_for_page_to_load(self.WAITTIME)
 

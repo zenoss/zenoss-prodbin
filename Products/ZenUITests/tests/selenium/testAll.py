@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 ###########################################################################
 #
 # This program is part of Zenoss Core, an open source monitoring platform.
@@ -23,6 +23,8 @@ import re
 import os
 import sys
 
+HERE = os.path.abspath(os.path.dirname(__file__))
+
 TESTFMT     = re.compile("^Test\w+\.py$")
 
 def findTest(str):
@@ -37,18 +39,14 @@ testout = sys.stdout
 loader = unittest.TestLoader()
 runner = unittest.TextTestRunner(stream = testout,  verbosity = 2) # Enables detailed output.
 
-subDirs = os.walk('.') # Recursively get subdirectories and their contents.
 testTargets = []
 
-for dir in subDirs:
-    rootDir = dir[0]
-    fileList = dir[2]
-    
-    for file in fileList:
-        modName = findTest(file)
-        if modName is not None:
-            modName = ((rootDir + '/')[2:] + modName).replace('/', '.')
-            testTargets.append(modName)
+for root, subDirs, files in os.walk(HERE):
+        for file in files:
+            modName = findTest(file)
+            if modName is not None:
+                testTargets.append(modName)
 
+print testTargets
 testAll = loader.loadTestsFromNames(testTargets) # Load test modules
 result = runner.run(testAll)

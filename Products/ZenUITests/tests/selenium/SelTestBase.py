@@ -70,13 +70,13 @@ class SelTestBase(unittest.TestCase):
     # Reference:
     #   http://svn.openqa.org/fisheye/viewrep/~raw,r=HEAD/selenium-rc/
     #   trunk/clients/python/test_default_server.py
-    def login (self):
+    def login (self, user=USER, passw=PASS):
         """Logs selenium into the Zenoss Instance"""
         self.selenium.open("/zport/acl_users/cookieAuthHelper/login_form?came_from=http%%3A//%s%%3A8080/zport/dmd" %HOST)
         self.selenium.wait_for_page_to_load(self.WAITTIME)
         self.waitForElement("__ac_password")
-        self.selenium.type("__ac_name", USER)
-        self.selenium.type("__ac_password", PASS)
+        self.selenium.type("__ac_name", user)
+        self.selenium.type("__ac_password", passw)
         self.selenium.click("//input[@name='submit']")
         self.selenium.wait_for_page_to_load(self.WAITTIME)
         
@@ -176,6 +176,35 @@ class SelTestBase(unittest.TestCase):
 
         self.selenium.click(addMethod) # Submit form.
         self.selenium.wait_for_page_to_load(self.WAITTIME) # Wait for page refresh.
+    def addDialogYui(self, addType="OrganizerlistaddOrganizer", addMethod="dialog_submit", **textFields):
+        """Fills in an AJAX dialog."""
+        
+        fieldkeys=textFields.keys()
+        fieldkeys.reverse()
+        self.waitForElement(addType) # Bring up the dialog.
+        self.selenium.click(addType)
+        self.waitForElement(addMethod) # Wait till dialog is finished loading.
+        self.selenium.click("dialog_cancel")
+        fieldkeys=textFields.keys()
+        fieldkeys.reverse()
+        self.waitForElement(addType) # Bring up the dialog.
+        self.selenium.click(addType)
+        self.waitForElement(addMethod) # Wait till dialog is finished loading.
+        self.waitForElement("class=yui-ac-input") # Wait till dialog is finished loading.
+        for key in fieldkeys: # Enter all the values.
+            value = textFields[key]
+            if value[0] == "select":
+                self.selenium.select(key, value[1])
+            elif value[0] == "text":
+                self.selenium.type(key, value[1])
+                #self.selenium.do_command("setCursorPosition", ["className", "-1"])
+                #self.selenium.do_command("keyPress", ["className", r"\08"])
+                #self.selenium.do_command("keyPress", ["className", r"\13"])
+                #self.waitForElement("xpath=//ul/li[@style='display: list-item;']") 
+                #self.selenium.click("css=li.yui-ac-highlight")
+
+        self.selenium.click(addMethod) # Submit form.
+        self.selenium.wait_for_page_to_load(self.WAITTIME) # Wait for page refresh.
     def goToDevice(self, deviceName=TARGET):
         self.waitForElement("query")
         self.selenium.type("query", deviceName)
@@ -205,7 +234,7 @@ class SelTestBase(unittest.TestCase):
                         pathsList="organizerPaths:list", form_name="subdeviceForm", testData="testingString"):
         """Test the deleteOrganizer functionality"""
         # Since Zenoss converts slashes to underscores, do the same.
-        testData = testData.replace('/', '_')
+        #testData = testData.replace('/', '_')
 
         # Find the desired element in a checkbox selection.
         self.waitForElement(getByValue(pathsList, testData, form_name))
