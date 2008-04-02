@@ -2096,7 +2096,7 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
         editProperties(obj, REQUEST)
         if REQUEST: return self.callZenScreen(REQUEST)
 
-    security.declareProtected('Manage EventManager', 'manage_addLogMessage')
+    security.declareProtected('Manage Events', 'manage_addLogMessage')
     def manage_addLogMessage(self, evid=None, message='', REQUEST=None):
         """
         Add a log message to an event
