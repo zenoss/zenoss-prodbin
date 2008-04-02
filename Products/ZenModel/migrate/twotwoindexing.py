@@ -23,18 +23,21 @@ class TwoTwoIndexing(Migrate.Step):
     def __init__(self):
         Migrate.Step.__init__(self)
         import maintwindowcatalog, devicepathindex, monitorTemplateMenu, \
-                makeTemplateCatalog
+                makeTemplateCatalog, networkindexes
         self.dependencies = [ maintwindowcatalog.maintwindowcatalog,
                               devicepathindex.devicepathindex,
+                              networkindexes.networkindexes,
                               makeTemplateCatalog.makeTemplateCatalog,
                               monitorTemplateMenu.monitorTemplateMenu ]
 
     def cutover(self, dmd):  
         indexit = lambda x:x.index_object()
         for dev in dmd.Devices.getSubDevices_recursive():
-            # For devicepathindex
+
+        # For devicepathindex
             dev.index_object()
-            # For maintwindowcatalog
+
+        # For maintwindowcatalog
             map(indexit, dev.maintenanceWindows())
             # Index rrdTemplates on the device and its components
             map(indexit, dev.objectValues('RRDTemplate'))
@@ -51,6 +54,9 @@ class TwoTwoIndexing(Migrate.Step):
             map(indexit, organizer.maintenanceWindows())
             if indexRRDTemplates:
                 map(indexit, organizer.rrdTemplates())
+
+        # for networkindexes
+        dmd.Networks.reIndex()
 
         # Need to index the rrdTemplates on perf monitors too
         map(indexit, dmd.Monitors.getAllRRDTemplates())

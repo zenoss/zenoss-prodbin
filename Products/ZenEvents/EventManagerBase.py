@@ -1199,6 +1199,48 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
             finally: self.close(conn)
         return statusCache.get(device+component, 0)
 
+    def getBatchComponentInfo(self, components):
+        """
+        Given a list of dicts with keys 'device', 'component', make a query to
+        get an overall severity and device status for the group.
+        """
+        severity, state = 3, 1
+        components = list(components) # Sometimes a generator. We use it twice.
+
+        def doQuery(query):
+            conn = self.connect()
+            data = None
+            try:
+                curs = conn.cursor()
+                curs.execute(query)
+                data = curs.fetchall()
+            finally: self.close(conn)
+            return data
+
+        select = "select MAX(%s) from %s where " % (self.severityField, 
+                                                    self.statusTable)
+        where = self._wand("", "%s >= %s", self.severityField, severity)
+        where = self._wand(where, "%s <= %s", self.stateField, state)
+        def componentWhere(device, component):
+            return "device = '%s' and component= '%s'" % (device, component)
+        cwheres = ' and ' + ' or '.join(['(%s)'% componentWhere(**comp) 
+                                        for comp in components])
+        sevquery = select + where + cwheres
+
+        select = "select MAX(%s) from %s where " % (self.countField, 
+                                                    self.statusTable)
+        where = self._wand("", "%s >= %s", self.severityField, severity)
+        where = self._wand(where, "%s <= %s", self.stateField, state)
+        where = self._wand(where, "%s = '%s'", self.eventClassField,
+                           '/Status/Ping')
+        devwhere = lambda d:"device = '%s'" % d
+        dwheres = ' and ' + '(%s)' % (' or '.join(
+            map(devwhere, [x['device'] for x in components])))
+        statquery = select + where + dwheres
+
+        maxseverity = doQuery(sevquery)[0][0]
+        maxstatus = doQuery(statquery)[0][0]
+        return maxseverity, maxstatus
 
     def getEventOwnerListME(self, me, severity=0, state=1):
         """Return list of event owners based on passed in managed entity.

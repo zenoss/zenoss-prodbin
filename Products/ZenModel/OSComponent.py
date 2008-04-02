@@ -11,19 +11,18 @@
 #
 ###########################################################################
 
-from Linkable import Linkable
 from ManagedEntity import ManagedEntity
 from DeviceComponent import DeviceComponent
 
 
-class OSComponent(DeviceComponent, ManagedEntity, Linkable):
+class OSComponent(DeviceComponent, ManagedEntity):
     """
     Logical Operating System component like a Process, IpInterface, etc.
     """
     
     isUserCreatedFlag = False
 
-    _relations = ManagedEntity._relations + Linkable._relations
+    _relations = ManagedEntity._relations
 
 
     def setUserCreateFlag(self):
@@ -91,21 +90,6 @@ class OSComponent(DeviceComponent, ManagedEntity, Linkable):
         '''
         if REQUEST is not None:
             REQUEST['RESPONSE'].redirect(url)
-
-
-    def getEndpointName(self):
-        """
-        Implement the Linkable interface for naming endpoints. See Linkable.py.
-        """
-        return "%s/%s" % (self.device().getId(), self.id)
-
-
-    def isInLocation(self, context):
-        """
-        Implement the Linkable interface for checking Location. See Linkable.py.
-        """
-        here = self.device().getLocationName()
-        return here.startswith(context.getLocationName())
 
 
     def getIconPath(self):

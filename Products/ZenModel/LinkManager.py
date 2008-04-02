@@ -11,173 +11,179 @@
 #
 ###########################################################################
 
+from sets import Set as set
+from itertools import groupby
+
+from simplejson import dumps
 
 from Globals import InitializeClass
 from AccessControl import ClassSecurityInfo
 
-from sets import Set
+from OFS.Folder import Folder
 
-from Products.ZenUtils import guid
-from Products.AdvancedQuery import MatchRegexp, Or
-
-import simplejson
-
-from Products.ZenModel.ZenModelRM import ZenModelRM
-from Products.ZenRelations.RelSchema import *
+from Products.CMFCore.utils import getToolByName
+from Products.ZCatalog.ZCatalog import manage_addZCatalog
 from Products.ZenUtils.Search import makeCaseInsensitiveFieldIndex
-from Products.ZenUtils.Search import makeCaseInsensitiveKeywordIndex
-
-from Products.ZenModel.Link import Link
-
 from Products.ZenUtils.NetworkTree import NetworkLink
-from Products.ZenUtils.Utils import unused
 
+security = ClassSecurityInfo()
 
-def manage_addLinkManager(context, id=None):
+NODE_IDS = dict(
+    layer_3 = {'IpNetwork':'networkId', 'Device':'deviceId'}
+)
+
+def allcombos(items):
+    results = []
+    items.pop
+    
+
+def _getComplement(context, layer=3):
+    key = 'layer_%d' % layer
+    nodestuff = NODE_IDS[key]
+    if not type(context)==type(""):
+        try:
+            context = nodestuff[context.meta_type]
+        except KeyError:
+            return None
+    first, second = nodestuff.values()
+    if context==first: 
+        return second
+    else:
+        return first
+
+def manage_addLinkManager(context, id="ZenLinkManager"):
     """ Make a LinkManager """
-    if not id:
-        id = "ZenLinkManager"
     mgr = LinkManager(id)
     context._setObject(mgr.id, mgr)
     mgr = context._getOb(id)
-    mgr.createCatalog()
-    mgr.buildRelations()
+    _create_catalogs(mgr)
+
+def _create_catalogs(mgr):
+    # Layer 3
+    layer_3_indices = (
+        ('networkId', makeCaseInsensitiveFieldIndex),
+        ('ipAddressId', makeCaseInsensitiveFieldIndex),
+        ('deviceId', makeCaseInsensitiveFieldIndex),
+        ('interfaceId', makeCaseInsensitiveFieldIndex)
+    )
+    mgr._addLinkCatalog('layer3_catalog', layer_3_indices)
 
 
-class LinkManager(ZenModelRM):
-    """ An object that manages links.
+class Layer3Link(object):
     """
+    Provides an API for navigating paired groups of brains.
+    """
+    def __init__(self, dmd, twokeydict):
+        a, b = twokeydict.items()
+        aid, self.abrains = a
+        bid, self.bbrains = b
+        self.a = dmd.unrestrictedTraverse(aid)
+        self.b = dmd.unrestrictedTraverse(bid)
+        self.zem = dmd.ZenEventManager
 
-    default_catalog = "linkSearch"
 
-    _properties = (
-        {'id':'link_type','type':'string','mode':'w'},
-        {'id':'OSI_layer', 'type':'int', 'mode':'w'},
-        {'id':'entry_type', 'type':'string', 'mode':'w'},
-    )
+    def getStatus(self):
+        brains = self.abrains + self.bbrains
+        comps =(
+            dict(device=a.deviceId, component=a.interfaceId) for a in brains)
+        sev, count = self.zem.getBatchComponentInfo(comps)
+        if count: 
+            return 5
+        else:
+            try:
+                return int(sev)
+            except:
+                return 0
 
-    _relations = (
-        ("links", ToManyCont(ToOne, "Products.ZenModel.Link", "linkManager")),
-    )
+    def getAddresses(self):
+        return (self.a.address, self.b.address)
 
-    factory_type_information = (
-        { 'immediate_view' : 'viewLinkManager',
-          'factory'        : 'manage_addLinkManager',
-          'actions'        : (
-           { 'id'            : 'viewLinkManager'
-           , 'name'          : 'Link Manager'
-           , 'action'        : 'viewLinkManager'
-           , 'permissions'   : ( "Manage DMD", )
-           },)
-        },
-    )
 
-    security = ClassSecurityInfo()
-
-    def __init__(self, id):
+class LinkManager(Folder):
+    """ 
+    A tool that keeps track of OSI layer links between objects.
+    """
+    def __init__(self, id, *args, **kwargs):
+        Folder.__init__(self, id, *args, **kwargs)
         self.id = id
 
-    def createCatalog(self):
-        """ Creates the catalog for link searching """
-
-        from Products.ZCatalog.ZCatalog import manage_addZCatalog
-
-        manage_addZCatalog(self, self.default_catalog,
-            self.default_catalog)
-        zcat = self._getOb(self.default_catalog)
-        cat = zcat._catalog
-        for idxname in ['link_type','OSI_layer']:
-            cat.addIndex(idxname, 
-                makeCaseInsensitiveFieldIndex(idxname, 'string'))
-        cat.addIndex('getEndpointNames',
-            makeCaseInsensitiveKeywordIndex('getEndpointNames'))
-        zcat.addColumn('id')
-
-    def _getCatalog(self):
-        """ Return the ZCatalog under the default_catalog attribute """
-        return getattr(self, self.default_catalog, None)
-
-    security.declareProtected('Change Device', 'manage_addLink')
-    def manage_addLink(self, pointa, pointb,
-                       link_type="", OSI_layer="1",
-                       entry_type="manual", REQUEST=None):
-        """ Add a link """
-        unused(entry_type, link_type, OSI_layer)
-        newid = guid.generate()
-        link = Link(newid)
-        link.setEndpoints(pointa, pointb)
-
-        self.links._setObject(newid, link)
-        if REQUEST:
-            return self.callZenScreen(REQUEST)
-        return link
-
-    security.declareProtected('Change Device', 'manage_removeLink')
-    def manage_removeLink(self, linkid, REQUEST=None):
-        """ Delete a link """
-        self.links._delObject(linkid)
-        if REQUEST:
-            return self.callZenScreen(REQUEST)
-
-    security.declareProtected('Change Device', 'getNodeLinks')
-    def getNodeLinks(self, node):
-        """ Returns all links associated with a given Linkable """
-        try:
-            return node.links.objectValuesGen()
+    def _getCatalog(self, layer=3):
+        try: 
+            return getToolByName(self, 'layer%d_catalog' % layer)
         except AttributeError:
-            return node.getLinks(recursive=False)
+            return None
 
-    security.declareProtected('View', 'getLinkedNodes')
-    def getLinkedNodes(self, node):
-        """ Returns all nodes linked to a given Linkable """
-        nlinks = self.getNodeLinks(node)
-        return map(lambda x:x.getOtherEndpoint(node), nlinks)
+    def _addLinkCatalog(self, id, indices):
+        manage_addZCatalog(self, id, id)
+        zcat = self._getOb(id)
+        cat = zcat._catalog
+        for index, factory in indices:
+            cat.addIndex(index, factory(index))
+            zcat.addColumn(index)
 
-    def query_catalog(self, indxname, querystr=""):
-        zcat = self._getCatalog()
-        if not querystr or not zcat: return []
-        query = MatchRegexp(indxname, querystr)
-        brains = zcat.evalAdvancedQuery(query)
-        return [x.getObject() for x in brains]
-        
-    def searchLinksByType(self, linktype):
-        return self.query_catalog('link_type', linktype)
+    def getLinkedNodes(self, meta_type, id, layer=3, visited=None):
+        cat = self._getCatalog(layer)
+        col = NODE_IDS['layer_%d' % layer][meta_type]
+        nextcol = _getComplement(col, layer)
+        brains = cat(**{col:id})
+        gen1ids = set(getattr(brain, nextcol) for brain in brains)
+        if visited:
+            gen1ids = gen1ids - visited # Don't go places we've been!
+        gen2 = cat(**{nextcol:list(gen1ids)})
+        return gen2, gen1ids
 
-    def searchLinksByLayer(self, layernum):
-        return self.query_catalog('OSI_layer', layernum)
-        
-    def searchLinksByEndpoint(self, epointname):
-        return self.query_catalog('getEndpointNames', epointname)
+    def getChildLinks(self, organizer):
+        catalog = getToolByName(self.dmd.Devices, 'deviceSearch')
+        result = {}
+        locs = organizer.children()
+        locpaths = ['/'.join(loc.getPrimaryPath()) for loc in locs]
+        path = '/'.join(organizer.getPhysicalPath())
+        subdevs = catalog(path=path)
+        subids = dict((x.id, x.path) for x in subdevs)
+        def _whichorg(brain):
+            for path in locpaths:
+                try:
+                    brainpath = subids[brain.deviceId]
+                except KeyError:
+                    return '__outside'
+                if filter(lambda x:'/'.join(x).startswith(path), brainpath): 
+                    return path
+            return '__outside'
+        links, nets = self.getLinkedNodes('Device', subids.keys())
+        byloc = {}
+        for k, g in groupby(links, _whichorg):
+            byloc[k] = list(g)
+        if '__outside' in byloc: del byloc['__outside']
+        locs = byloc.keys()
+        linkobs = []
+        while locs:
+            loc = locs.pop()
+            for loc2 in locs:
+                link = Layer3Link(self.dmd, {loc:byloc[loc], loc2:byloc[loc2]})
+                linkobs.append(link)
+        return dumps([(x.getAddresses(), x.getStatus()) for x in linkobs])
 
-    def getAdvancedQueryLinkList(self, offset=0, count=50, filter='',
-                                 orderby='OSI_layer', orderdir='asc'):
-        zcat = self._getCatalog()._catalog
-        filter='(?is).*%s.*' % filter
-        filterquery = Or(
-            MatchRegexp('OSI_layer', filter),
-            MatchRegexp('getEndpointNames', filter),
-            MatchRegexp('link_type', filter)
-        )
-        objects = zcat.evalAdvancedQuery(filterquery, ((orderby, orderdir),))
-        objects = list(objects)
-        totalCount = len(objects)
-        offset, count = int(offset), int(count)
-        return totalCount, objects[offset:offset+count]
-
-    def getJSONLinkInfo(self, offset=0, count=50, filter='',
-                        orderby='OSI_layer', orderdir='asc'):
-        """ Returns a batch of links in JSON format """
-        totalCount, linkList = self.getAdvancedQueryLinkList(
-            offset, count, filter, orderby, orderdir)
-        results = [x.getObject().getDataForJSON() + ['odd']
-                   for x in linkList]
-        return simplejson.dumps((results, totalCount))
+    def getChildLinks_recursive(self, context):
+        """ Returns all links under a given Organizer, aggregated """
+        result = set([])
+        severities = {}
+        links = self.getNetworkLinks(context)
+        for x in links:
+            geomapdata = x.getGeomapData(context)
+            severities[geomapdata] = max(
+                x.getStatus(),
+                severities.get(geomapdata, 0)
+            ) 
+            result.add(geomapdata)
+        addresses = [x for x in list(result) if x]
+        severities = [severities[x] for x in addresses]
+        return map(list, zip(map(list, addresses), severities))
 
     def getNetworkLinks(self, context):
         """
         An alternate way to get links under an Organizer.
         """
-        result = Set([])
+        result = set([])
         networks = filter(lambda x:x.zDrawMapLinks, 
                           self.dmd.Networks.getSubNetworks())
         siblings = [x.getPrimaryId() for x in context.children()]
@@ -210,48 +216,10 @@ class LinkManager(ZenModelRM):
                         n.setEndpoints(l, t)
                         result.add(n)
         return result
-
-    def getChildLinks_slow(self, context):
-        """ Returns all links under a given Organizer, aggregated """
-        result = Set([])
-        severities = {}
-        siblings = context.children()
-        for sibling in siblings:
-            links = sibling.getLinks()
-            loc = sibling.getPrimaryId()
-            def hasForeignEndpoint(link):
-                locs = map(lambda x:x.device().location(), link.getEndpoints())
-                if len(filter(lambda x:x, locs))<2: return False
-                bools = map(lambda x:x.getPrimaryId().startswith(loc), locs)
-                return not (bools[0] and bools[1])
-            links = filter(hasForeignEndpoint, links)
-            for x in links:
-                geomapdata = x.getGeomapData(sibling)
-                severities[geomapdata] = max(
-                    x.getStatus(),
-                    severities.get(geomapdata, 0)
-                ) 
-                result.add(geomapdata)
-        addresses = [x for x in list(result) if x]
-        severities = [severities[x] for x in addresses]
-        return map(list, zip(map(list, addresses), severities))
-
-    def getChildLinks(self, context):
-        """ Returns all links under a given Organizer, aggregated """
-        result = Set([])
-        severities = {}
-        links = self.getNetworkLinks(context)
-        for x in links:
-            geomapdata = x.getGeomapData(context)
-            severities[geomapdata] = max(
-                x.getStatus(),
-                severities.get(geomapdata, 0)
-            ) 
-            result.add(geomapdata)
-        addresses = [x for x in list(result) if x]
-        severities = [severities[x] for x in addresses]
-        return map(list, zip(map(list, addresses), severities))
-
-
-
 InitializeClass(LinkManager)
+
+
+
+
+
+

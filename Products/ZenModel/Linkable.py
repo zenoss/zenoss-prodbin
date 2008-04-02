@@ -11,34 +11,40 @@
 #
 ###########################################################################
 
-from Globals import InitializeClass
-from Products.ZenRelations.RelSchema import *
-
+from Products.CMFCore.utils import getToolByName
 
 class Linkable:
     """ A mixin allowing an object to be the 
         endpoint of a Link object.
     """
 
-    meta_type = "Linkable"
+    def _getLinkCatalog(self):
+        try:
+            return getToolByName(self.dmd.ZenLinkManager, self.link_catalog)
+        except AttributeError:
+            return None
 
-    _relations = (
-        ("links", ToMany(ToMany, "Products.ZenModel.Link", "endpoints")),
-    )
-
-    def getEndpointName(self):
-        """ Returns a unique endpoint name """
+    def index_links(self):
         raise NotImplementedError
 
-    def isInLocation(self, context):
-        """ Checks if Linkable is in given Location """
+
+class Layer3Linkable(Linkable):
+
+    link_catalog = "layer3_catalog"
+
+    def index_links(self):
+        cat = self._getLinkCatalog()
+        if cat is not None:
+            cat.catalog_object(self)
+
+    def deviceId(self):
         raise NotImplementedError
 
-    def unlink(self):
-        """ Removes all links associated with a Linkable """
-        zlm = self.dmd.ZenLinkManager
-        for link in self.links():
-            zlm.manage_removeLink(link.id)
+    def ipAddressId(self):
+        raise NotImplementedError
 
+    def networkId(self):
+        raise NotImplementedError
 
-InitializeClass(Linkable)
+    def interfaceId(self):
+        raise NotImplementedError

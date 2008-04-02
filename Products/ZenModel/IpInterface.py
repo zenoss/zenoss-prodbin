@@ -225,6 +225,7 @@ class IpInterface(OSComponent):
         else:
             ipobj = networks.createIp(ip, netmask)
             self.ipaddresses.addRelation(ipobj)
+        ipobj.index_links()
   
 
     def addLocalIpAddress(self, ip, netmask=24):
@@ -280,6 +281,7 @@ class IpInterface(OSComponent):
         for ip in ipids:
             ipobj = self.ipaddresses._getOb(ip)
             self.removeRelation('ipaddresses', ipobj)
+            ipobj.index_links()
         for ip in localips:
             self._ipAddresses.remove(ip)
    
@@ -291,6 +293,7 @@ class IpInterface(OSComponent):
         for ipobj in self.ipaddresses():
             if ipobj.id == ip:
                 self.ipaddresses.removeRelation(ipobj)
+                ipobj.index_links()
                 return
 
     

@@ -31,6 +31,8 @@ from AccessControl import ClassSecurityInfo
 from Globals import DTMLFile
 from Globals import InitializeClass
 
+from Products.ZenModel.Linkable import Layer3Linkable
+
 from Products.ZenRelations.RelSchema import *
 
 from Products.ZenUtils.IpUtil import *
@@ -49,7 +51,7 @@ def manage_addIpAddress(context, id, netmask=24, REQUEST = None):
 addIpAddress = DTMLFile('dtml/addIpAddress',globals())
 
 
-class IpAddress(ManagedEntity):
+class IpAddress(ManagedEntity, Layer3Linkable):
     """IpAddress object"""
     event_key = portal_type = meta_type = 'IpAddress'
 
@@ -226,5 +228,38 @@ class IpAddress(ManagedEntity):
         super(IpAddress,self).manage_beforeDelete(item, container)
         self.unindex_object()
 
+    def index_object(self):
+        super(IpAddress, self).index_object()
+        self.index_links()
+
+    def deviceId(self):
+        """
+        The device id, for indexing purposes.
+        """
+        d = self.device()
+        if d: return d.id
+        else: return None
+
+    def interfaceId(self):
+        """
+        The interface id, for indexing purposes.
+        """
+        i = self.interface()
+        if i: return i.id
+        else: return None
+
+    def ipAddressId(self):
+        """
+        The device id, for indexing purposes.
+        """
+        return self.id
+
+    def networkId(self):
+        """
+        The network id, for indexing purposes.
+        """
+        n = self.network()
+        if n: return n.id
+        else: return None
 
 InitializeClass(IpAddress)

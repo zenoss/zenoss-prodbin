@@ -630,6 +630,7 @@ class DeviceClass(DeviceOrganizer, ZenPackable):
         cat.addIndex('path', makeMultiPathIndex('path'))
         zcat.addColumn('getPrimaryId')
         zcat.addColumn('id')
+        zcat.addColumn('path')
     
         # make catalog for device components
         manage_addZCatalog(self, "componentSearch", "componentSearch")
