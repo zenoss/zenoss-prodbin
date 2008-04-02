@@ -59,14 +59,15 @@ ZenGeoMap.prototype = {
             }
         });
         var makereq = method(this, function(){
-            if (!!this.cache.get(address)) {
-                this.geocodelock.release();
-                this.geocoder.getLatLng(address, callback);
-            } else {
-                YAHOO.zenoss.geocodingdialog.show();
-                this.geocoder.getLocations(address, checkStatus);
+            if (address) {
+                if (!!this.cache.get(address)) {
+                    this.geocodelock.release();
+                    this.geocoder.getLatLng(address, callback);
+                } else {
+                    YAHOO.zenoss.geocodingdialog.show();
+                    this.geocoder.getLocations(address, checkStatus);
+                }
             }
-            
         });
         var lockedreq = method(this, function(){
             this.geocodelock.acquire().addCallback(method(this, makereq));

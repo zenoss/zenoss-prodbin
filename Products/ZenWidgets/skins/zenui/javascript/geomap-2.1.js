@@ -38,6 +38,7 @@ ZenGeoMap.prototype = {
         this.geocodelock = new DeferredLock();
         this.mgr = new GMarkerManager(this.map);
         this.geocodetimeout = 500;
+        this.markerchecking = null;
         bindMethods(this);
     },
     geocode: function(address, callback) {
@@ -59,14 +60,15 @@ ZenGeoMap.prototype = {
             }
         });
         var makereq = method(this, function(){
-            if (!!this.cache.get(address)) {
-                this.geocodelock.release();
-                this.geocoder.getLatLng(address, callback);
-            } else {
-                YAHOO.zenoss.geocodingdialog.show();
-                this.geocoder.getLocations(address, checkStatus);
+            if (address) {
+                if (!!this.cache.get(address)) {
+                    this.geocoder.getLatLng(address, callback);
+                    this.geocodelock.release();
+                } else {
+                    YAHOO.zenoss.geocodingdialog.show();
+                    this.geocoder.getLocations(address, checkStatus);
+                }
             }
-            
         });
         var lockedreq = method(this, function(){
             this.geocodelock.acquire().addCallback(method(this, makereq));
@@ -176,7 +178,8 @@ ZenGeoMap.prototype = {
                 YAHOO.zenoss.geocodingdialog.hide();
                 this.showAllMarkers();
             } else {
-                callLater(0.2, checkMarkers);
+                try {this.markerchecking.cancel()}catch(e){noop();}
+                this.markerchecking = callLater(0.2, checkMarkers);
             }
         }
         var checkMarkers = method(this, checkMarkers);
@@ -265,7 +268,7 @@ function geomap_initialize(){
             close:false,
             draggable:false,
             zindex:40000,
-            modal:true,
+            modal:false,
             visible:false
         }
     );
