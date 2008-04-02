@@ -42,7 +42,7 @@ from Products.ZenUtils.Utils import importClass
 
 from Products.ZenUtils.FakeRequest import FakeRequest
 
-from RRDTemplate import RRDTemplate
+import RRDTemplate
 from DeviceOrganizer import DeviceOrganizer
 from ZenPackable import ZenPackable
 
@@ -500,10 +500,32 @@ class DeviceClass(DeviceOrganizer, ZenPackable):
 
     def getAllRRDTemplates(self, rrdts=None):
         """
-        This method is deprecated and should only be used by those
-        migrate scripts that predate the searchRRDTemplates catalog.
-        Current code should use RRDTemplate.YieldAllRRDTemplates()
-        instead.
+        Return all RRDTemplates at this level and below in the object tree.
+        If rrdts is provided then it must be a list of RRDTemplates which
+        will be extended with the templates from here and returned.
+        
+        The original getAllRRDTemplates() method has been renamed
+        getAllRRDTemplatesPainfully().  It walks the object tree looking
+        for templates which is a very slow way of going about things.
+        The newer RRDTemplate.YieldAllRRDTemplate() method uses the
+        searchRRDTemplates catalog to speed things up dramatically.
+        YieldAllRRDTemplates is smart enough to revert to 
+        getAllRRDTemplatesPainfully if the catalog is not present.
+        
+        The searchRRDTemplates catalog was added in 2.2
+        """
+        if rrdts == None:
+            rrdts = []
+        rrdts.extend(RRDTemplate.YieldAllRRDTemplates(self))
+        return rrdts
+
+
+    def getAllRRDTemplatesPainfully(self, rrdts=None):
+        """
+        RRDTemplate.YieldAllRRDTemplates() is probably what you want.
+        It takes advantage of the searchRRDTemplates catalog to get
+        much better performance.  This method iterates over objects looking
+        for templates which is a slow, painful process.
         """
         if rrdts is None: rrdts = []
         rrdts.extend(self.rrdTemplates())
@@ -512,7 +534,7 @@ class DeviceClass(DeviceOrganizer, ZenPackable):
             for comps in dev.getDeviceComponents():
                 rrdts += comps.objectValues('RRDTemplate')
         for child in self.children():
-            child.getAllRRDTemplates(rrdts)
+            child.getAllRRDTemplatesPainfully(rrdts)
         return rrdts
     
     
@@ -522,7 +544,7 @@ class DeviceClass(DeviceOrganizer, ZenPackable):
         """
         if not id: return self.callZenScreen(REQUEST)
         id = self.prepId(id)
-        org = RRDTemplate(id)
+        org = RRDTemplate.RRDTemplate(id)
         self.rrdTemplates._setObject(org.id, org)
         if REQUEST: 
             REQUEST['message'] = "Template added"

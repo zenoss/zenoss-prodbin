@@ -50,29 +50,30 @@ def CreateRRDTemplatesCatalog(dmd, rebuild=False):
     return zcat
 
 
-def ReindexRRDTemplates(dmd):
+def YieldAllRRDTemplates(root, criteria=None):
     """
-    Reindex all RRDTemplates
-    """
-    for t in dmd.Devices.getAllRRDTemplates():
-        t.index_object()
-    for t in dmd.Monitors.getAllRRDTemplates():
-        t.index_object()
+    Yield all templates in the searchRRDTemplates catalog which fall under
+    the given root and match the given criteria.  To get all RRDTemplates
+    pass dmd in as root.  If criteria contains a
+    value for getPhysicalRoot then the root parameter will be ignored.
 
-
-def YieldAllRRDTemplates(dmd, criteria=None):
+    If the searchRRDTemplates catalog is not present then fall back to using
+    DeviceClass.getAllRRDTemplatesPainfully().  In this case root must
+    be a DeviceClass and criteria is ignored. (This is compatible with 
+    previous DeviceClass.getAllRRDTemplates usage.)
+    
+    The searchRRDTemplates catalog was added in 2.2
     """
-    Yield all templates in the searchRRDTemplates catalog, which should
-    include every RRDTemplate instance in the database.
-    """
-    zcat = getattr(dmd, RRDTEMPLATE_CATALOG, None)
-    if zcat is None:
-        raise 'Could not fild rrdTemplates catalog. A migrate is probably ' \
-                'required.'
-    criteria = criteria or {}
-    brains = zcat(criteria)
-    for result in brains:
-        yield result.getObject()
+    zcat = getattr(root, RRDTEMPLATE_CATALOG, None)
+    if zcat:
+        criteria = criteria or {}
+        criteria.setdefault('getPhysicalPath', root.getPrimaryId())
+        brains = zcat(criteria)
+        for result in brains:
+            yield result.getObject()
+    else:
+        for t in root.getAllRRDTemplatesPainfully():
+            yield t
 
 
 def manage_addRRDTemplate(context, id, REQUEST = None):

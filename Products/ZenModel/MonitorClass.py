@@ -159,7 +159,16 @@ class MonitorClass(ZenModelRM, Folder):
 
 
     def getAllRRDTemplates(self):
-        "return the list of RRD Templates available at all levels"
+        """
+        Return a list of all RRDTemplates at this level and below.
+        
+        Note: DeviceClass.getAllRRDTemplates has been rewritted to
+        use the searchRRDTemplates catalog.  Because there is only
+        one level of MonitorClass this approach might be overkill for
+        this situation.  However, if MonitorClasses ever become
+        hierarchical and contain many RRDTemplates it should probably
+        be refactored in a similar way.
+        """
         return self.rrdTemplates()
 
 
