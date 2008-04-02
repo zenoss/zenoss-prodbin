@@ -233,7 +233,7 @@ function geomap_initialize(){
             close:false,
             draggable:false,
             zindex:40000,
-            modal:true,
+            modal:false,
             visible:false
         }
     );
