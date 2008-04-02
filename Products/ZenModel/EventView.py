@@ -158,7 +158,7 @@ class EventView(object):
             return self.callZenScreen(REQUEST)
 
 
-    #security.declareProtected('Manage Events','manage_deleteBatchEvents')
+    security.declareProtected('Manage Events','manage_deleteBatchEvents')
     def manage_deleteBatchEvents(self, selectstatus='none', goodevids=[],
                                     badevids=[], filter='', 
                                     offset=0, count=50, fields=[], 
