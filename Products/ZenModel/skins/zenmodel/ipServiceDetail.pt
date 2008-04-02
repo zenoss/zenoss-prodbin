@@ -2,7 +2,7 @@
 <tal:block metal:fill-slot="contentPane">
 
 <form method="post" 
-    tal:define="manager here/isManager;
+    tal:define="manager python:here.checkRemotePerm('Change Device', here);
                 userCreated here/isUserCreated"
     tal:attributes="action string:${here/absolute_url_path}">
     <input type="hidden" name="zenScreenName" 
@@ -12,7 +12,7 @@
         <tal:block tal:define="message request/message | string:State at time:; 
             tabletitle string:${message} ${here/getNowString};
             menu_id string:Lockable;
-            editable python:manager and userCreated and here.has_permission('Change Device', here)">
+            editable python:manager and userCreated">
         <tal:block metal:use-macro="here/zenuimacros/macros/zentable">
 
         <!--====Optional titlebar slots=============
@@ -87,13 +87,15 @@
     </tr>
     <tr tal:condition="python:here.protocol!='udp'">
         <td class="tableheader">Monitor</td>
-        <td class="tablevalues" tal:condition="python:not here.cantMonitor() and manager">
+        <td class="tablevalues" 
+                tal:condition="python:not here.cantMonitor() and manager">
             <select class="tablevalues"  name="monitor:boolean">
             <option tal:repeat="e python:(True,False)" tal:content="e"
                 tal:attributes="value e; selected python:e==here.monitored()"/>
             </select>
         </td>
-        <td class="tablevalues" tal:condition="python:here.cantMonitor() or not manager"
+        <td class="tablevalues" 
+                tal:condition="python:here.cantMonitor() or not manager"
             tal:content="here/monitored"/>
     </tr>
     <tr>

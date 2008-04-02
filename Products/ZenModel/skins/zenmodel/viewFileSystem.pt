@@ -2,7 +2,7 @@
 <tal:block metal:fill-slot="contentPane">
 
 <form method=post 
-    tal:define="manager here/isManager;
+    tal:define="manager python:here.checkRemotePerm('Change Device', here);
                 userCreated here/isUserCreated"
     tal:attributes="action string:${here/absolute_url_path}">
     <input type="hidden" name="zenScreenName" 
@@ -11,7 +11,7 @@
 <tal:block metal:define-macro="objectperf" tal:define="
                 tabletitle string:File System;
                 menu_id string:Lockable;
-                editable python:manager and userCreated and here.has_permission('Change Device', here)">
+                editable python:manager and userCreated">
 <tal:block metal:use-macro="here/zenuimacros/macros/zentable">
 
 <tal:block metal:fill-slot="zentablecontents">

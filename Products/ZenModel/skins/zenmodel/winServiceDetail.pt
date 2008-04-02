@@ -2,7 +2,7 @@
 <tal:block metal:fill-slot="contentPane">
 
 <form method=post 
-    tal:define="manager here/isManager;
+    tal:define="manager python:here.checkRemotePerm('Change Device', here);
                 userCreated here/isUserCreated"
     tal:attributes="action string:${here/absolute_url_path}">
     <input type="hidden" name="zenScreenName" 
@@ -12,7 +12,7 @@
         <tal:block tal:define="
             tabletitle string:Windows Service;
             menu_id string:Lockable;
-            editable python:manager and userCreated and here.has_permission('Change Device', here)">
+            editable python:manager and userCreated">
         <tal:block metal:use-macro="here/zenuimacros/macros/zentable">
 
         <!--====Optional titlebar slots=============
@@ -69,7 +69,7 @@
         <td class="tablevalues" tal:condition="not:manager"
             tal:content="here/monitored"/>
         <td class="tableheader">Fail Severity</td>
-        <td class="tablevalues" tal:condition="manager">
+        <td class="tablevalues" tal:condition="editable">
             <select class="tablevalues" name="severity:int">
                 <option tal:repeat="sev here/getSeverities"
                     tal:content="python:sev[0]"
@@ -77,7 +77,7 @@
                         selected python:sev[1] == here.getFailSeverity()" />
             </select>
         </td>
-        <td class="tablevalues" tal:condition="not:manager"
+        <td class="tablevalues" tal:condition="not:editable"
             tal:content="here/getFailSeverityString"/>
     </tr>
     <tr>
