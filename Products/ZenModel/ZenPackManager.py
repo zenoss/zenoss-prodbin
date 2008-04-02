@@ -130,10 +130,10 @@ class ZenPackManager(ZenModelRM):
             packId = msgOrId
         else:
             if REQUEST:
-                REQUEST['message'] = msg
+                REQUEST['message'] = msgOrId
                 return self.callZenScreen(REQUEST, redirect=False)
             from ZenPack import ZenPackException
-            raise ZenPackException(msg)
+            raise ZenPackException(msgOrId)
         
         # Create it
         zpDir = ZenPackCmd.CreateZenPack(packId)
