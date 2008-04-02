@@ -31,7 +31,10 @@ class DevicePathIndex(Migrate.Step):
         except CatalogError:
             # Index already exists
             pass
-        else:
+        try:
             cat.addColumn('path')
+        except CatalogError:
+            # Column exists
+            pass
 
 devicepathindex = DevicePathIndex()
