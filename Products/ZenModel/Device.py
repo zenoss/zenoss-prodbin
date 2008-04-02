@@ -563,6 +563,13 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
         @permission: ZEN_VIEW
         @rtype: list
         """
+        # The getParentDeviceName index was added in 2.2.  During migrates
+        # this code could execute before the 2.2 migrate steps are run, so we
+        # need to properly cope with this case.
+        # See ticket #2787
+        if not self.componentSearch._catalog.indexes.has_key('getParentDeviceName'):
+            return self.getDeviceComponentsNoIndexGen()
+            
         query = {
             'getParentDeviceName':self.id,
             }
