@@ -38,7 +38,13 @@ GoogleMapsPortlet.prototype = {
             datasource:datasource, bodyHeight:bodyHeight}
         );
         this.buildSettingsPane();
+        this.hardRefreshTime = (60*60)-2; // Once every 59mins58secs
+        callLater(this.hardRefreshTime, this.force_reload);
         //setStyle(this.resizehandle, {'height':'5px'});
+    },
+    force_reload: function() {
+        this.body.innerHTML = this.body.innerHTML;
+        callLater(this.hardRefreshTime, this.force_reload);
     },
     buildSettingsPane: function() {
         s = this.settingsSlot;
