@@ -152,15 +152,23 @@ class LinkManager(Folder):
         links, nets = self.getLinkedNodes('Device', subids.keys())
         byloc = {}
         for k, g in groupby(links, _whichorg):
-            byloc[k] = list(g)
+            byloc.setdefault(k, []).extend(g)
         if '__outside' in byloc: del byloc['__outside']
         locs = byloc.keys()
         linkobs = []
+        def haslink(locs1, locs2):
+            for l in locs1:
+                for b in locs2:
+                    if l.networkId==b.networkId: 
+                        return True
         while locs:
             loc = locs.pop()
             for loc2 in locs:
-                link = Layer3Link(self.dmd, {loc:byloc[loc], loc2:byloc[loc2]})
-                linkobs.append(link)
+                first = byloc[loc]
+                second = byloc[loc2]
+                if haslink(first, second):
+                    link = Layer3Link(self.dmd, {loc:first, loc2:second})
+                    linkobs.append(link)
         return dumps([(x.getAddresses(), x.getStatus()) for x in linkobs])
 
     def getChildLinks_recursive(self, context):
