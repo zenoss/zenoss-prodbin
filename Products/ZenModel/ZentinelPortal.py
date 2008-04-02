@@ -69,10 +69,7 @@ class ZentinelPortal ( PortalObjectBase ):
         brains = zcatalog.evalAdvancedQuery(query)
         if REQUEST and len(brains) == 1:
             raise Redirect(urllib.quote(brains[0].getPrimaryId))
-        try:
-            brains += self.dmd.Networks.ipSearch.evalAdvancedQuery(glob)
-        except AttributeError:
-            pass
+        brains += self.dmd.Networks.ipSearch.evalAdvancedQuery(glob)
         return [ b.getObject() for b in brains ]
    
 
