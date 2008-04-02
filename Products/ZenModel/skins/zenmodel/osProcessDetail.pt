@@ -57,25 +57,29 @@
     </tr>
     <tr>
         <td class="tableheader">Monitor</td>
-        <td class="tablevalues">
-            <select class="tablevalues" name="zMonitor:boolean">
+        <td class="tablevalues" tal:condition="editable">
+            <select class="tablevalues"  name="zMonitor:boolean">
             <option tal:repeat="e python:(True,False)" tal:content="e"
                 tal:attributes="value e; selected python:e==here.monitored()"/>
             </select>
         </td>
+        <td class="tablevalues" tal:condition="not: editable"
+            tal:content="here/monitored"/>
     </tr>
     <tr>
         <td class="tableheader">Alert On Restart</td>
-        <td class="tablevalues">
+        <td class="tablevalues" tal:condition="editable">
             <select class="tablevalues" name="zAlertOnRestart:boolean">
             <option tal:repeat="e python:(True,False)" tal:content="e"
             tal:attributes="value e; selected python:e==here.alertOnRestart()"/>
             </select>
         </td>
+        <td class="tablevalues" tal:condition="not: editable"
+            tal:content="here/alertOnRestart"/>
     </tr>
     <tr>
         <td class="tableheader">Fail Severity</td>
-        <td class="tablevalues">
+        <td class="tablevalues" tal:condition="editable">
             <select class="tablevalues" name="zFailSeverity:int">
                 <option tal:repeat="sev here/getSeverities"
                     tal:content="python:sev[0]"
@@ -83,6 +87,8 @@
                         selected python:sev[1] == here.getFailSeverity()" />
             </select>
         </td>
+        <td class="tablevalues" tal:condition="not: editable"
+            tal:content="here/getFailSeverityString"/>
     </tr>
     <tr>
         <td class=tableheader align=left>Lock</td>

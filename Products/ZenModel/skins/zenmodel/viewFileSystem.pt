@@ -27,13 +27,13 @@
                                value here/mount">
       </td>
       <td class="tableheader">Monitor</td>
-      <td class="tablevalues" tal:condition="editable">
+      <td class="tablevalues" tal:condition="manager">
             <select class="tablevalues"  name="monitor:boolean">
             <option tal:repeat="e python:(True,False)" tal:content="e"
                 tal:attributes="value e; selected python:e==here.monitored()"/>
             </select>
       </td>
-      <td class="tablevalues" tal:condition="not: editable"
+      <td class="tablevalues" tal:condition="not:manager"
             tal:content="here/monitored"/>
     </tr>  
     <tr>
@@ -124,7 +124,7 @@
               border="0" src="locked-sendevent-icon.png">
       </td>
     </tr>
-    <tr tal:condition="editable">
+    <tr tal:condition="manager">
         <td align="left"  class="tableheader" colspan="4">
             <input class="tableheader" type="submit" value=" Save "
                 name="manage_editFileSystem:method" />
