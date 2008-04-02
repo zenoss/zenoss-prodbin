@@ -4,7 +4,7 @@
 <br/>
 <p style="text-align:right;">
 Process Class:&nbsp;<select name="className"
-tal:define="targets python:[ x.absolute_url_path() for x in here.getDmdRoot('Processes').getSubOSProcessClassesGen()]">
+tal:define="targets python:[ x.absolute_url_path() for x in here.os.getSubOSProcessClassesGen()]">
     <option tal:repeat="target targets"
         tal:attributes="value target"
         tal:content="python:target.split('/')[-1]">/</option>

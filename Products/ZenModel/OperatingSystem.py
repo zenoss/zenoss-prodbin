@@ -256,7 +256,12 @@ class OperatingSystem(Software):
         if REQUEST: 
             REQUEST['message'] = 'WinServices locked from updates and deletion'
             return self.callZenScreen(REQUEST)
-
+    
+    def getSubOSProcessClassesGen(self, REQUEST=None):
+        """Get OS Process
+        """
+        return self.getDmdRoot('Processes').getSubOSProcessClassesGen()
+        
     def addOSProcess(self, className, userCreated, REQUEST=None):
         """Add an OSProcess.
         """

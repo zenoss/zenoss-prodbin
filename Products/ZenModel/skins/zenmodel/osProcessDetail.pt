@@ -2,7 +2,7 @@
 <tal:block metal:fill-slot="contentPane">
 
 <form method=post 
-    tal:define="manager here/isManager;
+    tal:define="manager python:here.has_permission('Change Device', here);
                 userCreated here/isUserCreated"
     tal:attributes="action string:${here/absolute_url_path}">
     <input type="hidden" name="zenScreenName" 
@@ -13,7 +13,7 @@
         message request/message | string:State at time:;
         tabletitle string:${message} ${here/getNowString};
         menu_id string:Lockable;
-        editable python:manager and userCreated and here.has_permission('Change Device', here)">
+        editable python:manager and userCreated">
         <tal:block metal:use-macro="here/zenuimacros/macros/zentable">
 
         <!--====Optional titlebar slots=============
@@ -99,7 +99,7 @@
         src="locked-sendevent-icon.png">
         </td>
     </tr>
-    <tr tal:condition="editable">
+    <tr tal:condition="manager">
         <td align="left"  class="tableheader" colspan="2">
             <input class="tableheader" type="submit" value=" Save "
                 name="manage_editOSProcess:method" />
