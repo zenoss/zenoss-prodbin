@@ -117,8 +117,13 @@ class ReportClass(Organizer, ZenPackable):
     def reports(self):
         """Return list of report instances.
         """
-        return [ r for r in self.objectValues(
-                 spec=('Report','DeviceReport','GraphReport','MultiGraphReport')) ]
+        reports = []
+        for r in self.objectValues(
+            spec=('Report','DeviceReport','GraphReport','MultiGraphReport')):
+            if self.checkRemotePerm('View', r):
+                reports.append(r)
+        return reports
+                
 
         
     def countReports(self):
