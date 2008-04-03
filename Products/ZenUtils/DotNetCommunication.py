@@ -1,6 +1,19 @@
+###########################################################################
+#
+# This program is part of Zenoss Core, an open source monitoring platform.
+# Copyright (C) 2008, Zenoss Inc.
+#
+# This program is free software; you can redistribute it and/or modify it
+# under the terms of the GNU General Public License version 2 as published by
+# the Free Software Foundation.
+#
+# For complete information please visit: http://www.zenoss.com/oss/
+#
+###########################################################################
+
 from urllib2 import HTTPCookieProcessor, build_opener, HTTPError
-from urllib import urlencode, quote
-from urlparse import urljoin, urlparse, urlunparse
+from urllib import quote
+from urlparse import urljoin
 
 #BASE_URL = 'http://dotnet.zenoss.loc:8080/ZenossDotNet/'
 BASE_URL = 'http://localhost:8081/ZenossDotNet/'
