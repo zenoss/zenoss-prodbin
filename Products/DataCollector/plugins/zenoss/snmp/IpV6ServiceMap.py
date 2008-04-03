@@ -82,8 +82,8 @@ class IpV6ServiceMap(SnmpPlugin):
                 port = int(oidar[5])
                 addr = '.'.join(oidar[1:5])
             elif value.has_key('v6'): #ipv4 binding
-                port = int(oidar[28])
-                addr = '.'.join(oidar[12:28])
+                port = int(oidar[17])
+                addr = '.'.join(oidar[1:17])
                 if addr == '0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0': 
                     addr = '0.0.0.0'
                 else:
