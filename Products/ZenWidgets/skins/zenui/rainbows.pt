@@ -2,20 +2,24 @@
 <tal:block tal:define="
     zem python:here.ZenEventManager;
     colors python:'red orange yellow blue grey green'.split();
-    summaries python:[x[2] for x in zem.getEventSummaryME(here, 0)]">
+    summaries python:zem.getEventSummaryME(here, 0);
+    totals python:[x[2] for x in summaries];
+    ackstatus python:[x[2]-x[1] for x in summaries];
+    ">
+    
     <div class="vertical-rainbow"
     onclick="location.href=YAHOO.zenoss.templateFreeURL+'/viewEvents'">
-        <tal:block tal:repeat="evnum python:summaries[:-1]">
+        <tal:block tal:repeat="evnum python:totals[:-1]">
         <div tal:define="color python:colors[repeat['evnum'].index]"
             tal:attributes="class string:evpill-${color}">
             <span tal:content="evnum">0</span>
-            <div tal:condition="python:int(evnum)==0">
+            <div tal:condition="python:ackstatus[repeat['evnum'].index]<=0">
             </div>
         </div>
         </tal:block>
         <div class="evpill-green">
             <div tal:condition="python:filter(lambda x:x, 
-                                              map(int, summaries[:-1]))">
+                                              map(int, totals[:-1]))">
             </div>
         </div>
     </div>
@@ -42,21 +46,24 @@
 <tal:block tal:define="
     zem python:here.ZenEventManager;
     colors python:'red orange yellow blue grey green'.split();
-    summaries python:[x[2] for x in zem.getEventSummaryME(here, 0)]">
+    summaries python:zem.getEventSummaryME(here, 0);
+    totals python:[x[2] for x in summaries];
+    ackstatus python:[x[2]-x[1] for x in summaries];
+    ">
     <div class="horizontal-rainbow"
     onclick="location.href=YAHOO.zenoss.templateFreeURL+'/viewEvents'">
-        <tal:block tal:repeat="evnum python:summaries[:-1]">
+        <tal:block tal:repeat="evnum python:totals[:-1]">
         <div tal:define="color python:colors[repeat['evnum'].index]"
             tal:attributes="class string:evpill-${color}"
             style="float:left">
             <span tal:content="evnum">0</span>
-            <div tal:condition="python:int(evnum)==0">
+            <div tal:condition="python:ackstatus[repeat['evnum'].index]<=0">
             </div>
         </div>
         </tal:block>
         <div class="evpill-green" style="float:left">
             <div tal:condition="python:filter(lambda x:x, 
-                                              map(int, summaries[:-1]))">
+                                              map(int, totals[:-1]))">
             </div>
         </div>
     </div>
