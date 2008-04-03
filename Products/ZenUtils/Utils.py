@@ -626,6 +626,8 @@ def unsigned(v):
     4294967295L
     >>> unsigned(1)
     1
+    >>> unsigned(1e6)
+    1000000
     '''
     import ctypes
-    return int(ctypes.c_uint32(v).value)
+    return int(ctypes.c_uint32(long(v)).value)
