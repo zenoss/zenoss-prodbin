@@ -28,21 +28,25 @@ MYSQLHOST=$1
 MYSQLUSER=$2
 MYSQLPASS=$3
 MYSQLDB=$4
+MYSQLPORT=$5
+if [ -z "$MYSQLPORT" ] ; then
+   MYSQLPORT=3306
+fi
 
 # Create the database
 echo "creating database" >&2
 echo "CREATE DATABASE IF NOT EXISTS $MYSQLDB" | \
-mysql -h $MYSQLHOST -u $MYSQLUSER --password=$MYSQLPASS
+mysql -h $MYSQLHOST -u $MYSQLUSER --password=$MYSQLPASS --port=$MYSQLPORT
 
 echo "dropping any triggers that my already exist" >&2
 echo "DROP TRIGGER status_delete"  | \
-mysql -h $MYSQLHOST -u $MYSQLUSER --password=$MYSQLPASS $MYSQLDB 2>/dev/null
+mysql -h $MYSQLHOST -u $MYSQLUSER --password=$MYSQLPASS --port=$MYSQLPORT $MYSQLDB 2>/dev/null
 
 # Load schema
 echo "loading schema" >&2
-mysql -h $MYSQLHOST -u $MYSQLUSER --password=$MYSQLPASS $MYSQLDB < zenevents.sql
+mysql -h $MYSQLHOST -u $MYSQLUSER --password=$MYSQLPASS --port=$MYSQLPORT $MYSQLDB < zenevents.sql
 
 # Load stored procedures
 echo "loading stored procedures" >&2
-mysql -h $MYSQLHOST -u $MYSQLUSER --password=$MYSQLPASS $MYSQLDB < zenprocs.sql
+mysql -h $MYSQLHOST -u $MYSQLUSER --password=$MYSQLPASS --port=$MYSQLPORT $MYSQLDB < zenprocs.sql
 echo "events database created and loaded" >&2

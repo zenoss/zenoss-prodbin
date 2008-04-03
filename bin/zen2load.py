@@ -306,7 +306,7 @@ class ImportRM(CmdBase, ContentHandler):
 
         # build dmd
         from Products.ZenModel.DmdBuilder import DmdBuilder
-        dmdBuilder = DmdBuilder(site, "", '','','','','','','') 
+        dmdBuilder = DmdBuilder(site, "", '','','','','','') 
         dmdBuilder.build()
 #        trans = transaction.get()
 #        trans.note("Initial load by zen2load.py")

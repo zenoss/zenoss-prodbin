@@ -1,0 +1,43 @@
+#! /usr/bin/env python
+#############################################################################
+# This program is part of Zenoss Core, an open source monitoring platform.
+# Copyright (C) 2008, Zenoss Inc.
+#
+# This program is free software; you can redistribute it and/or modify it
+# under the terms of the GNU General Public License version 2 as published by
+# the Free Software Foundation.
+#
+# For complete information please visit: http://www.zenoss.com/oss/
+#############################################################################
+
+import Pager
+import socket
+import sys
+
+
+# Get arguments
+def main():
+    try:
+        host = sys.argv[1]
+        port = int(sys.argv[2])
+        rcpt = sys.argv[3]
+    except:
+        print "Invalid arguments! Usage: zensnpp <snpphost> <snppport> <recipient>"
+        sys.exit(1)
+
+    # Read message from standard in
+    msg = sys.stdin.read()
+
+    # Do the page
+    try:
+        rcpt = Pager.Recipient(rcpt.strip())
+        pmsg = Pager.Message(msg)
+        host = socket.gethostbyname(host)
+        page = Pager.Pager((rcpt,), pmsg, host, port)
+        page.send()
+    except (Pager.SNPPException, Pager.PagerException, socket.error):
+        print '%s - %s' % tuple(sys.exc_info()[:2])
+        sys.exit(1)
+
+    print "Page sent to '%s'!" % rcpt.get_id()
+main()
