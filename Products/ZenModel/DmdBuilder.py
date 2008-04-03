@@ -94,12 +94,13 @@ class DmdBuilder:
     monRoots = ('Performance',)
 
 
-    def __init__(self, portal, evthost, evtuser, evtpass, evtdb, 
+    def __init__(self, portal, evthost, evtuser, evtpass, evtdb, evtport,
                     smtphost, smtpport, pagecommand):
         self.portal = portal
         self.evthost = evthost
         self.evtuser = evtuser
         self.evtpass = evtpass
+        self.evtport = evtport
         self.evtdb = evtdb
         dmd = DataRoot('dmd')
         self.portal._setObject(dmd.id, dmd)
@@ -181,10 +182,10 @@ class DmdBuilder:
         manage_addReportServer(self.portal, "ReportServer")
         manage_addMySqlEventManager(self.dmd, evthost=self.evthost,
                                     evtuser=self.evtuser, evtpass=self.evtpass,
-                                    evtdb=self.evtdb)
+                                    evtdb=self.evtdb, evtport=self.evtport)
         manage_addMySqlEventManager(self.dmd, evthost=self.evthost,
                                     evtuser=self.evtuser, evtpass=self.evtpass,
-                                    evtdb=self.evtdb, 
+                                    evtdb=self.evtdb, evtport=self.evtport,
                                     history=True)
         manage_addUserSettingsManager(self.dmd)
         manage_addLinkManager(self.dmd)

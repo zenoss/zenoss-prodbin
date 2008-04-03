@@ -24,14 +24,16 @@ from MySqlSendEvent import MySqlSendEventMixin
 from Exceptions import *
 
 def manage_addMySqlEventManager(context, id=None, evthost="localhost",
-                                evtuser="root", evtpass="", evtdb="events", 
+                                evtuser="root", evtpass="", evtdb="events",
+                                evtport=3306,
                                 history=False, REQUEST=None):
     '''make an MySqlEventManager'''
     if not id: 
         id = "ZenEventManager"
         if history: id = "ZenEventHistory"
     evtmgr = MySqlEventManager(id, hostname=evthost, username=evtuser, 
-                               password=evtpass, database=evtdb)
+                               password=evtpass, database=evtdb,
+                               port=evtport)
     context._setObject(id, evtmgr)
     evtmgr = context._getOb(id)
     evtmgr.buildRelations()
