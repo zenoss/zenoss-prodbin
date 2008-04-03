@@ -13,7 +13,6 @@
 
 import Globals
 from Products.ZenTestCase.BaseTestCase import BaseTestCase
-from Products.ZenUtils.Utils import zenPath
 from Products.ZenUtils.ZCmdBase import ZCmdBase
 from Products.ZenWin import WMIClient
 from Products.DataCollector.DeviceProxy import DeviceProxy
@@ -32,7 +31,6 @@ class WMIClientTest(WMIClient.WMIClient):
         assert WMIClient.failures() == [('win2003.zenoss.loc', 'test'),]
         assert os.path.exists(WMIClient.zenPath('var', 'test', self.name))
         assert success
-        pass
 
 class TestWMIFail(BaseTestCase):
     def testWmiFail(self):
