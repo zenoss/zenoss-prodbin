@@ -23,30 +23,36 @@
     <tr>
       <td class="tableheader">Name</td>
       <td class="tablevalues" tal:content="here/id">Zentinel</td>
-      <td class="tableheader">URL</td>
-      <td class="tablevalues" width="14%">
-          <a tal:attributes="href here/url" 
-            tal:content="here/url">http://www.zentinel.com</a>
-      </td>
       <td class="tableheader">Phone</td>
       <td width="14%" class="tablevalues" tal:content="here/supportNumber"/>
     </tr>
     <tr>
-      <td class="tableheader">Street1</td>
+      <td class="tableheader">URL</td>
+      <td class="tablevalues" colspan=5>
+          <a tal:attributes="href here/url" 
+            tal:content="here/url">http://www.zentinel.com</a>
+      </td>
+    </tr>
+    <tr>
+      <td class="tableheader">Street 1</td>
       <td class="tablevalues" colspan=5 tal:content="here/address1">
         3071 Riverview Rd.
       </td>
     </tr>
     <tr tal:condition="here/address2">
-      <td class="tableheader">Street2</td>
+      <td class="tableheader">Street 2</td>
       <td class="tablevalues" tal:content="here/address2"/>
     </tr>
     <tr>
       <td class="tableheader">City</td>
       <td class="tablevalues" tal:content="here/city">Riva</td>
-      <td class="tableheader">State</td>
+      <td class="tableheader">State/Province</td>
       <td class="tablevalues" tal:content="here/state">MD</td>
-      <td class="tableheader">Zip</td>
+    </tr>
+    <tr>
+      <td class="tableheader">Country</td>
+      <td class="tablevalues" tal:content="here/country">USA</td>
+      <td class="tableheader">Postal/Zip Code</td>
       <td class="tablevalues" tal:content="here/zip">21140</td>
     </tr>
 

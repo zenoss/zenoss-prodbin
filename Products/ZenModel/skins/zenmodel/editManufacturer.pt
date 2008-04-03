@@ -64,12 +64,19 @@
         <input class="tablevalues" type="text" name="city" size="25"
             tal:attributes="value here/city"/>
       </td>
-      <td class="tableheader">State</td>
+      <td class="tableheader">State/Province</td>
       <td class="tablevalues">
-        <input class="tablevalues" type="text" name="state" size="2"
+        <input class="tablevalues" type="text" name="state" size="25"
             tal:attributes="value here/state"/>
       </td>
-      <td class="tableheader">Zip</td>
+    </tr>
+    <tr>
+      <td class="tableheader">Country</td>
+      <td class="tablevalues">
+        <input class="tablevalues" type="text" name="country" size="25"
+            tal:attributes="value here/country"/>
+      </td>
+      <td class="tableheader">Postal/Zip Code</td>
       <td class="tablevalues">
         <input class="tablevalues" type="text" name="zip" size="10"
             tal:attributes="value here/zip"/>

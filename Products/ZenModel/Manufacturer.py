@@ -55,6 +55,7 @@ class Manufacturer(ZenModelRM, ZenPackable):
     city = ''
     state = ''
     zip = ''
+    country = ''
 
     _properties = (
         {'id':'url', 'type':'string', 'mode':'w'},
@@ -64,6 +65,7 @@ class Manufacturer(ZenModelRM, ZenPackable):
         {'id':'city', 'type':'string', 'mode':'w'},
         {'id':'state', 'type':'string', 'mode':'w'},
         {'id':'zip', 'type':'string', 'mode':'w'},
+        {'id':'country', 'type':'string', 'mode':'w'}, 
         )
 
     _relations = ZenPackable._relations + (
@@ -182,7 +184,7 @@ class Manufacturer(ZenModelRM, ZenPackable):
     def manage_editManufacturer(self, id='',
                 url = '', supportNumber = '',
                 address1 = '', address2 = '',
-                city = '', state = '', zip = '', REQUEST=None):
+                city = '', state = '', zip = '', country = '', REQUEST=None):
         """
         Edit a Manufacturer from a web page.
         """
@@ -194,6 +196,7 @@ class Manufacturer(ZenModelRM, ZenPackable):
         self.city = city
         self.state = state
         self.zip = zip
+        self.country = country
         if REQUEST:
             from Products.ZenUtils.Time import SaveMessage
             REQUEST['message'] = SaveMessage()
