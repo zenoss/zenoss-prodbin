@@ -148,12 +148,13 @@ class ZenMenuable:
                     its = c.zenMenuItems()
                     while its:
                         i = its.pop()
-                        def permfilter(p): return self.checkRemotePerm(p,context)
+                        def permfilter(p): 
+                            return self.checkRemotePerm(p,context)
                         permok = filter(permfilter,
                             getattr(i,'permissions',('',)))
                         if not permok \
                            or (not getattr(i, 'isglobal', True) and \
-                               not context==i.getMenuItemOwner())\
+                               context!=i.getMenuItemOwner())\
                            or (i.allowed_classes and not \
                               cmpClassNames(context, i.allowed_classes))\
                            or cmpClassNames(context, i.banned_classes):

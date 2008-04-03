@@ -12,6 +12,7 @@
 ###########################################################################
 
 
+from Acquisition import aq_parent
 from Globals import InitializeClass
 from AccessControl import ClassSecurityInfo, Permissions
 from Products.ZenModel.ZenModelRM import ZenModelRM
@@ -52,9 +53,9 @@ class ZenMenuItem(ZenModelRM, ZenPackable):
     security = ClassSecurityInfo()
 
     def getMenuItemOwner(self):
-        parent = self
+        parent = self.primaryAq()
         for unused in range(4):
-            parent = parent.getParentNode()
+            parent = aq_parent(parent)
         return parent
 
     def __cmp__(self, other):
