@@ -213,16 +213,26 @@ tal:define="tabletitle string:Network;">
             <span tal:condition="not:ip/interface"  
                 tal:content="ip/getInterfaceName" />
     </td>
-    <td tal:define="status ip/getPingStatus"
-        tal:attributes="class python:ip.getStatusCssClass(status)"
-        tal:content="python:here.convertStatus(status)" align="center">
-        ping status
+    <tal:block tal:condition="ip/interface">
+    <td tal:define="status ip/getPingStatus; 
+                    color python:here.convertStatusToDot(status)"
+        class="tablevalues" style="text-align:center;">
+        <img tal:attributes="src string:img/${color}_dot.png"/>
     </td>
-    <td tal:define="status ip/getSnmpStatus"
-        tal:attributes="class python:ip.getStatusCssClass(status)"
-        tal:content="python:here.convertStatus(status)" align="center">
-        Snmp Status
+    <td tal:define="status ip/getSnmpStatus; 
+                    color python:here.convertStatusToDot(status)"
+        class="tablevalues" style="text-align:center;">
+        <img tal:attributes="src string:img/${color}_dot.png"/>
     </td>
+    </tal:block>
+    <tal:block tal:condition="not: ip/interface">
+    <td class="tablevalues" style="text-align: center;">
+        <img src="img/grey_dot.png"/>
+    </td>
+    <td class="tablevalues" style="text-align: center;">
+        <img src="img/grey_dot.png"/>
+    </td>
+    </tal:block>
     </tr>
   <tr>
     <td colspan="6" class="tableheader">

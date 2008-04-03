@@ -317,6 +317,13 @@ class DataRoot(ZenModelRM, OrderedFolder, Commandable, ZenMenuable):
                 return name
         return numbValue
 
+    security.declareProtected(ZEN_COMMON, 'convertStatusToDot')
+    def convertStatusToDot(self, status):
+        colors = ['green', 'yellow', 'orange', 'red']
+        try: 
+            return colors[status]
+        except IndexError:
+            return 'grey'
 
     security.declareProtected(ZEN_COMMON, 'getConversions')
     def getConversions(self, attribute):
