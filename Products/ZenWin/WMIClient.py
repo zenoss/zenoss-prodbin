@@ -33,7 +33,6 @@ MyName = None
 def _myname():
     global MyName
     if not MyName:
-        import sys
         MyName = BaseName.split('.')[0]
         try:
             os.mkdir(zenPath('var', _myname()))
