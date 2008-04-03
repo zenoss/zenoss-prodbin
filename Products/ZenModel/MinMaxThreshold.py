@@ -28,23 +28,25 @@ from Products.ZenUtils.Utils import unused
 import types
 
 def rpneval(value, rpn):
-    """totally bogus rpn valuation only works with one level stack"""
+    """simulate rpn evaluation: only handles simple arithmetic"""
     if value is None: return value
     operators = ('+','-','*','/')
     rpn = rpn.split(',')
-    operator = ''
-    for i in range(len(rpn)):
-        symbol = rpn.pop()
-        symbol = symbol.strip()
-        if symbol in operators:
-            operator = symbol
-        else:
-            expr = str(value) + operator + symbol
+    rpn.reverse()
+    stack = [value]
+    while rpn:
+        next = rpn.pop()
+        if next in operators:
+            first = stack.pop()
+            second = stack.pop()
             try:
-                value = eval(expr)
+                value = eval('%s %s %s' % (second, next, first))
             except ZeroDivisionError:
                 value = 0
-    return value
+            stack.append(value)
+        else:
+            stack.append(float(next))
+    return stack[0]
 
 
 class MinMaxThreshold(ThresholdClass):

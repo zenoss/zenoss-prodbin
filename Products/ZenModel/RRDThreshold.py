@@ -21,23 +21,7 @@ from ZenPackable import ZenPackable
 from Products.ZenRelations.RelSchema import *
 from Products.ZenUtils.ZenTales import talesEval
 from Products.ZenEvents.ZenEventClasses import Perf_Snmp
-
-
-def rpneval(value, rpn):
-    """totally bogus rpn valuation only works with one level stack"""
-    if value is None: return value
-    operators = ('+','-','*','/')
-    rpn = rpn.split(',')
-    operator = ''
-    for i in range(len(rpn)):
-        symbol = rpn.pop()
-        symbol = symbol.strip()
-        if symbol in operators:
-            operator = symbol
-        else:
-            expr = str(value) + operator + symbol
-            value = eval(expr)
-    return value
+from Products.ZenModel.MinMaxThreshold import rpneval
 
 
 def manage_addRRDThreshold(context, id, REQUEST = None):
