@@ -1144,3 +1144,25 @@ Dialog.Box.prototype = {
     }
 }
 
+var RefreshManager = Class.create();
+RefreshManager.prototype = {
+    __init__: function(time, func) {
+        bindMethods(this);
+        this.time = time;
+        this.func = func;
+        this.firstTime = true;
+        this.doRefresh();
+    },
+    doRefresh: function() {
+        if (!this.firstTime) {
+            this.func();
+        } else {
+            this.firstTime = false;
+        }
+        this.current = callLater(this.time, this.doRefresh);
+    },
+    cancelRefresh: function() {
+        if(this.current) this.current.cancel();
+        this.current = null;
+    }
+}

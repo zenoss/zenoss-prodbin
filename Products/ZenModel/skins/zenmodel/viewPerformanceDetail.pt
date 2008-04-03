@@ -32,6 +32,39 @@ var ZenGraphs = new Array();
     <span style="margin-left:2em;" id="linkcheck_label">Link graphs?</span>
     <input type="checkbox" style="border:1px solid black;padding-top:0.5em;" 
            checked onchange="linkGraphs(this.checked)" id="linkcheck"/>
+
+    &nbsp;&nbsp;&nbsp;&nbsp;
+    <input class="navcontrol" type="button" id="refreshButton"
+        name="refresh" 
+        style="width:50px;background:transparent 
+               url(img/refresh_on.png) no-repeat;
+               cursor:pointer;height:20px;"/>
+    <input class="tableheader" type="text" name="refreshRate" 
+        id="refreshRate" size='2' value='60'/>
+    <script>
+        var button = $('refreshButton');
+        var refreshMgr;
+        function turnRefreshOff() {
+            try {
+                refreshMgr.cancelRefresh();
+            } catch(e) { noop(); }
+            setStyle(button,
+                {'background-image':'url(img/refresh_on.png)'});
+            button.onclick = turnRefreshOn;
+            button.blur();
+        }
+        function turnRefreshOn () {
+            var rate = $('refreshRate').value;
+            var refreshMgr = new RefreshManager(rate, 
+                function(){resetGraphs($('drange_select').value)}
+            );
+            setStyle(button, 
+                {'background-image':'url(img/refresh_off.png)'});
+            button.onclick = turnRefreshOff;
+            button.blur();
+        }
+        turnRefreshOn();
+    </script>
     <tal:block metal:define-slot="filterslot">
     </tal:block>
 </tal:block>
