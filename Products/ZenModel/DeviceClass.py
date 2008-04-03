@@ -384,6 +384,7 @@ class DeviceClass(DeviceOrganizer, ZenPackable):
         Return a list of all components that match device in the form
         (componentPath, componentName)
         '''
+        # FIXME This needs to use the new catalog
         from sets import Set
         paths = Set()
         if isinstance(deviceIds, basestring):

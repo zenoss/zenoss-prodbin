@@ -337,4 +337,27 @@ class EventClass(EventClassPropertyMixin, Organizer, ManagedEntity, ZenPackable)
                     objects.append(inst)
         return objects
         
+    security.declareProtected(ZEN_VIEW, 'getIconPath')
+    def getIconPath(self):
+        """ Override the zProperty icon path and return a folder
+        """
+        return "/zport/dmd/img/icons/folder.png"
+
+    security.declareProtected(ZEN_VIEW, 'getPrettyLink')
+    def getPrettyLink(self, noicon=False, shortDesc=False):
+        """ Gets a link to this object, plus an icon """
+        href = self.getPrimaryUrlPath().replace('%','%%')
+        linktemplate = "<a href='"+href+"' class='prettylink'>%s</a>"
+        icon = ("<div class='device-icon-container'> "
+                "<img class='device-icon' src='%s'/> " 
+                "</div>") % self.getIconPath()
+        name = self.getPrimaryDmdId()
+        if noicon: icon=''
+        if shortDesc: name = self.id
+        rendered = icon + name
+        if not self.checkRemotePerm("View", self):
+            return rendered
+        else:
+            return linktemplate % rendered
+
 InitializeClass(EventClass)

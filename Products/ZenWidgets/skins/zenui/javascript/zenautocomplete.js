@@ -136,6 +136,21 @@ var _getOrganizersAndDevices = function(callback) {
     _getAllOrganizers(getDevices);
 }
 
+var _getOrganizersAndDevicesAndEventClasses = function(callback) {
+    function getEventClasses(payload) {
+        var d = loadJSONDoc('/zport/jsonGetEventClassNames');
+        d.addCallback(function(p) {
+            payload = concat(p, payload);
+            mycallback(payload)
+        });
+    }
+    function mycallback(payload) {
+        payload.sort();
+        callback(payload)
+    }
+    _getOrganizersAndDevices(getEventClasses);
+}
+
 YAHOO.zenoss.zenautocomplete.OrganizerSearch = Subclass.create(
     YAHOO.zenoss.zenautocomplete.ZenAutoComplete);
 YAHOO.zenoss.zenautocomplete.OrganizerSearch.prototype = {
@@ -160,5 +175,16 @@ YAHOO.zenoss.zenautocomplete.DevObjectSearch.prototype = {
     }
 }
 
+YAHOO.zenoss.zenautocomplete.DevAndEventObjectSearch = Subclass.create(
+    YAHOO.zenoss.zenautocomplete.ZenAutoComplete);
+YAHOO.zenoss.zenautocomplete.DevAndEventObjectSearch.prototype = {
+    __init__: function(label, container) {
+        bindMethods(this);
+        this.target = $(container);
+        this.label = label;
+        this.setup();
+        _getOrganizersAndDevicesAndEventClasses(this.makeAutoCompleter);
+    }
+}
 
 YAHOO.register('zenautocomplete', YAHOO.zenoss.zenautocomplete, {});

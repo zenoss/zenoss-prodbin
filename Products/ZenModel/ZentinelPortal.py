@@ -16,6 +16,7 @@ $Id: ZentinelPortal.py,v 1.17 2004/04/08 15:35:25 edahl Exp $
 """
 
 import urllib, urlparse
+import simplejson
 import re
 
 import Globals
@@ -100,6 +101,17 @@ class ZentinelPortal ( PortalObjectBase ):
         """Return a list of devices for the dashboard
         """
         return self.dmd.Devices.jsonGetDeviceNames()
+
+    security.declareProtected('View', 'jsonGetEventClassNames')
+    def jsonGetEventClassNames(self, query=''):
+        """
+        Return a list of all event classes that match the filter.
+        """
+        orgs = self.dmd.Events.getSubOrganizers()
+        paths = ['/'.join(x.getPrimaryPath()) for x in orgs]
+        paths = [p.replace('/zport/dmd','') for p in paths]
+        return simplejson.dumps(paths)
+
 
     security.declareProtected(ZEN_COMMON, 'dotNetProxy')
     def dotNetProxy(self, path='', params={}, REQUEST=None):

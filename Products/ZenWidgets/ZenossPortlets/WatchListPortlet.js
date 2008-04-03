@@ -23,7 +23,7 @@ WatchListPortlet.prototype = {
     },
     buildSettingsPane: function() {
         s = this.settingsSlot;
-        this.locsearch = new YAHOO.zenoss.zenautocomplete.DevObjectSearch(
+        this.locsearch = new YAHOO.zenoss.zenautocomplete.DevAndEventObjectSearch(
             'Zenoss Objects', s);
         addElementClass(this.locsearch.container, 'portlet-settings-control');
     },
