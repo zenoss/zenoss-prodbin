@@ -96,6 +96,8 @@ class ZenModelBase(object):
         'boot'
         >>> dmd.Devices.prepId('/')
         '-'
+        >>> dmd.Devices.prepId(' mydev ')
+        'mydev'
         """
         return globalPrepId(id, subchar)
 
