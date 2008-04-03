@@ -49,11 +49,11 @@
       </td>
       <td class="tablevalues" colspan="3" tal:condition="editable">
           <textarea tal:condition="editable"
-                    name="ips:lines"
+                    name="setIpAddresses:lines"
                     tal:attributes="class string:tablevalues; 
                             cols string:40;
                             rows string:5;"
-                    tal:content="python: '\n'.join(here.ips)"/>
+                    tal:content="python: '\n'.join(here.getIpAddresses())"/>
       </td>
     </tr>
     <tr>
