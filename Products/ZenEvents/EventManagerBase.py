@@ -699,7 +699,7 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
                 compcolor = colors[compsev]
                 if not complink.startswith('/zport'): 
                     compname = complink
-                    complink = '%s/os' % devurl
+                    complink = comp.getURL().rstrip('/') + '/viewEvents'
                 else: 
                     compname = complink.split('/')[-1]
                 if not compname: continue
