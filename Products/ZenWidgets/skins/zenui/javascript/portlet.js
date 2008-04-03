@@ -325,7 +325,7 @@ PortletContainer.prototype = {
         // Due to the CSS, columns are displayed out of order in 
         // the 33-33-33 format.
         if (this.numCols()==3) {
-            return [this.columns[0], this.columns[2], this.columns[1]];
+            return [this.columns[0], this.columns[1], this.columns[2]];
         } else {
             return this.columns;
         }
