@@ -66,4 +66,11 @@ class ILink(object):
         """
         raise NotImplementedError
 
+# DEPRECATED - This class will be removed in the next release. It's here now
+# only so that relations won't totally break for no reason.
+class Link(ZenModelRM):
+    _relations = (
+        ("endpoints", ToMany(
+         ToMany, "Products.ZenModel.OSComponent", "links")),
+    )
 

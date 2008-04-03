@@ -13,6 +13,7 @@
 
 from ManagedEntity import ManagedEntity
 from DeviceComponent import DeviceComponent
+from Products.ZenRelations.RelSchema import ToMany
 
 
 class OSComponent(DeviceComponent, ManagedEntity):
@@ -22,8 +23,9 @@ class OSComponent(DeviceComponent, ManagedEntity):
     
     isUserCreatedFlag = False
 
-    _relations = ManagedEntity._relations
-
+    _relations = ManagedEntity._relations + (
+        ("links", ToMany(ToMany, "Products.ZenModel.Link", "endpoints")),
+    )
 
     def setUserCreateFlag(self):
         """
@@ -112,3 +114,5 @@ class OSComponent(DeviceComponent, ManagedEntity):
         href = self.getPrimaryUrlPath()
         name = self.id
         return template % (href, icon, name)
+
+
