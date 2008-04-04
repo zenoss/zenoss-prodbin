@@ -15,6 +15,7 @@ from sets import Set as set
 from itertools import groupby
 
 from simplejson import dumps
+from Acquisition import aq_base
 
 from Globals import InitializeClass
 from AccessControl import ClassSecurityInfo
@@ -140,6 +141,7 @@ class LinkManager(Folder):
         path = '/'.join(organizer.getPhysicalPath())
         subdevs = catalog(path=path)
         subids = dict((x.id, x.path) for x in subdevs)
+
         def _whichorg(brain):
             for path in locpaths:
                 try:
@@ -149,23 +151,55 @@ class LinkManager(Folder):
                 if filter(lambda x:'/'.join(x).startswith(path), brainpath): 
                     return path
             return '__outside'
+
+        def _whichnet(brain):
+            return brain.networkId
+
+        def _whichdev(brain):
+            return brain.deviceId
+
         links, nets = self.getLinkedNodes('Device', subids.keys())
+        links = map(aq_base, links) # For comparison, can't be ImplicitAcq
+
         byloc = {}
         for k, g in groupby(links, _whichorg):
             byloc.setdefault(k, []).extend(g)
         if '__outside' in byloc: del byloc['__outside']
-        locs = byloc.keys()
+
+        bynet = {}
+        for k, g in groupby(links, _whichnet):
+            bynet.setdefault(k, []).extend(g)
+
+        final = {}
         linkobs = []
+
+        inverted_loc = {}
+        for loc in byloc:
+            for dev in byloc[loc]:
+                inverted_loc[dev.deviceId] = loc
+        for net in bynet:
+            devs = bynet[net]
+            alllocs = set()
+            for dev in devs:
+                if dev.deviceId and dev.deviceId in inverted_loc:
+                    alllocs.add(inverted_loc[dev.deviceId])
+            if len(alllocs)>=2:
+                for dev in devs:
+                    if dev.deviceId:
+                        loc = inverted_loc.get(dev.deviceId, None)
+                        if loc:
+                            final.setdefault(loc, []).append(dev)
         def haslink(locs1, locs2):
             for l in locs1:
                 for b in locs2:
                     if l.networkId==b.networkId: 
                         return True
+        locs = final.keys()
         while locs:
             loc = locs.pop()
             for loc2 in locs:
-                first = byloc[loc]
-                second = byloc[loc2]
+                first = final[loc]
+                second = final[loc2]
                 if haslink(first, second):
                     link = Layer3Link(self.dmd, {loc:first, loc2:second})
                     linkobs.append(link)
