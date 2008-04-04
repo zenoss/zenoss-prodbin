@@ -78,6 +78,7 @@ CREATE TABLE IF NOT EXISTS history
     monitor         varchar(128) default "",
     PRIMARY KEY ( evid ),
     INDEX device (device),
+    Index severityidx (severity),
     INDEX firstTime (firstTime),
     INDEX lastTime(lastTime)
 ) ENGINE=INNODB;
