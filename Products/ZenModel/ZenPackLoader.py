@@ -19,6 +19,7 @@ from Products.ZenUtils.Utils import zenPath
 
 import os
 import ConfigParser
+import subprocess
 import logging
 log = logging.getLogger('zen.ZPLoader')
 
@@ -53,7 +54,7 @@ class ZenPackLoader:
     name = "Set This Name"
 
     def load(self, pack, app):
-        """Load things from the ZenPack and put it 
+        """Load things from the ZenPack and put it
         into the app"""
 
     def unload(self, pack, app):
@@ -85,7 +86,7 @@ class ZPLObject(ZenPackLoader):
                     except Exception, ex:
                         log.exception("Error adding pack to %s",
                                       obj.getPrimaryUrlPath())
-                    
+
                 ImportRM.endElement(self, name)
         importer = AddToPack(noopts=True, app=app)
         importer.options.noindex = True
@@ -98,7 +99,7 @@ class ZPLObject(ZenPackLoader):
         parser = make_parser()
         parser.setContentHandler(handler)
         parser.parse(open(filename))
-        
+
 
     def unload(self, pack, app):
         from Products.ZenRelations.Exceptions import ObjectNotFound
@@ -122,7 +123,7 @@ class ZPLObject(ZenPackLoader):
 
     def list(self, pack, unused):
         return [obj.getPrimaryUrlPath() for obj in pack.packables()]
-        
+
 
     def objectFiles(self, pack):
         def isXml(f): return f.endswith('.xml')
@@ -153,7 +154,7 @@ class ZPLReport(ZPLObject):
 class ZPLDaemons(ZenPackLoader):
 
     name = "Daemons"
-    
+
     extensionsToIgnore = ('.svn-base', '.pyc' '~')
     def filter(self, f):
         for ext in self.extensionsToIgnore:
@@ -165,6 +166,21 @@ class ZPLDaemons(ZenPackLoader):
     def binPath(self, daemon):
         return zenPath('bin', os.path.basename(daemon))
 
+
+    def _genConfFile(self, pack):
+        """
+        Attempt to generate a conf file for any daemons.
+        """
+        # We just go on with business, not waiting for this to finish
+        # nor caring if it throws an exception.  The conf file is nice
+        # to provide, but not important.
+        try:
+            subprocess.Popen(zenPath('bin', 'create_sample_config.sh'),
+                            cwd=pack.path())
+        except OSError:
+            pass
+
+
     def load(self, pack, unused):
         for fs in findFiles(pack, 'daemons', filter=self.filter):
             os.chmod(fs, 0755)
@@ -172,9 +188,12 @@ class ZPLDaemons(ZenPackLoader):
             if os.path.lexists(path):
                 os.remove(path)
             os.symlink(fs, path)
+        self._genConfFile(pack)
+
 
     def upgrade(self, pack, app):
         self.load(pack, app)
+
 
     def unload(self, pack, unused):
         for fs in findFiles(pack, 'daemons', filter=self.filter):
@@ -184,14 +203,14 @@ class ZPLDaemons(ZenPackLoader):
                 pass
 
     def list(self, pack, unused):
-        return [branchAfter(d, 'daemons') 
+        return [branchAfter(d, 'daemons')
                 for d in findFiles(pack, 'daemons', filter=self.filter)]
 
 
 class ZPLBin(ZenPackLoader):
 
     name = "Bin"
-    
+
     extensionsToIgnore = ('.svn-base', '.pyc' '~')
     def filter(self, f):
         for ext in self.extensionsToIgnore:
@@ -207,14 +226,14 @@ class ZPLBin(ZenPackLoader):
         self.load(pack, app)
 
     def list(self, pack, unused):
-        return [branchAfter(d, 'bin') 
+        return [branchAfter(d, 'bin')
                 for d in findFiles(pack, 'bin', filter=self.filter)]
 
 
 class ZPLLibExec(ZenPackLoader):
 
     name = "LibExec"
-    
+
     extensionsToIgnore = ('.svn-base', '.pyc' '~')
     def filter(self, f):
         for ext in self.extensionsToIgnore:
@@ -230,7 +249,7 @@ class ZPLLibExec(ZenPackLoader):
         self.load(pack, app)
 
     def list(self, pack, unused):
-        return [branchAfter(d, 'libexec') 
+        return [branchAfter(d, 'libexec')
                 for d in findFiles(pack, 'libexec', filter=self.filter)]
 
 
@@ -294,7 +313,7 @@ class ZPLLibraries(ZenPackLoader):
 class ZPLAbout(ZenPackLoader):
 
     name = "About"
-    
+
     def getAttributeValues(self, pack):
         about = pack.path(CONFIG_FILE)
         result = []
