@@ -72,7 +72,26 @@ class ZentinelPortal ( PortalObjectBase ):
             raise Redirect(urllib.quote(brains[0].getPrimaryId))
         brains += self.dmd.Networks.ipSearch.evalAdvancedQuery(glob)
         return [ b.getObject() for b in brains ]
-   
+    
+    security.declareProtected(ZEN_COMMON, 'searchDevices')
+    def searchComponents(self, device='', component='', REQUEST=None):
+        """
+        Redirect to the component of a device. Hopefully.
+        """
+        catalog = self.dmd.Devices.componentSearch
+        brains = []
+        if device and component:
+            brains = catalog(getParentDeviceName=device)
+        if REQUEST:
+            if brains:
+                for brain in brains:
+                    if brain.getPath().split('/')[-1]==component:
+                        raise Redirect(urllib.quote(brain.getPath()))
+                return self.searchDevices(device, REQUEST)
+            else:
+                return self.searchDevices(device, REQUEST)
+        return [b.getObject() for b in brains]
+
 
     security.declareProtected(ZEN_COMMON, 'getOrganizerNames')
     def getOrganizerNames(self, dataRoot='Devices', REQUEST=None):
