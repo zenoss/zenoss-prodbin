@@ -59,7 +59,7 @@ addLoadEvent(connectZenWebTextareas);
         <td class="tablevalues" tal:content="here/graphId"/>
     </tr>
     <tr>
-        <td class="tableheader">Summary</td>
+        <td class="tableheader">Summary<br /> (for normal view)</td>
         <td class="tablevalues" tal:condition="here/isManager">
             <textarea class="tablevalues" name="summary" rows="4" cols="60"
                 tal:content="here/summary"></textarea>
@@ -74,7 +74,7 @@ addLoadEvent(connectZenWebTextareas);
         </td>
     </tr>
     <tr>
-        <td class="tableheader">Comments</td>
+        <td class="tableheader">Comments<br />(for printable view)</td>
         <td class="tablevalues" tal:condition="here/isManager">
             <textarea class="tablevalues" name="comments" rows="12" cols="60"
                 tal:content="here/comments"></textarea>
