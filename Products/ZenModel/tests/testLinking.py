@@ -33,6 +33,8 @@ class TestLinking(ZenModelBaseTest):
         ZenModelBaseTest.setUp(self)
         self.globalInt = count()
         self.devices = {}
+        self.evids = []
+        self.zem = self.dmd.ZenEventManager
 
     def assertSameObs(self, *stuff):
         idsort = lambda a,b:cmp(a.id, b.id)
@@ -127,6 +129,54 @@ class TestLinking(ZenModelBaseTest):
         locs = self.dmd.ZenLinkManager.getChildLinks(self.dmd.Locations)
         locs = simplejson.loads(locs)
         self.assertEqual(len(locs), 15) # (n!)/(k!(n-k)!), n=6, k=2
+
+    def testLinkStatus(self):
+        devs = self._makeDevices(3)
+
+        devs[0].setLocation('/A')
+        devs[1].setLocation('/A')
+        devs[2].setLocation('/B')
+
+        self.dmd.Locations.A.address = 'A'
+        self.dmd.Locations.B.address = 'B'
+
+        self._linkDevices({1:devs[1], 2:devs[2]})
+
+        evt = dict(device=devs[0].id, summary="Test Event", 
+                   eventClass='/Status/Ping', severity=5)
+
+        self.evids.append(self.zem.sendEvent(evt))
+
+        links = self.dmd.ZenLinkManager.getChildLinks(self.dmd.Locations)
+        links = simplejson.loads(links)
+
+        self.assertEqual(len(links), 1)
+        self.assertEqual(links[0][1], 0)
+
+        evt = dict(device=devs[1].id, summary="Test Event", 
+                   eventClass='/Status/Ping', severity=5)
+
+        self.evids.append(self.zem.sendEvent(evt))
+
+        links = self.dmd.ZenLinkManager.getChildLinks(self.dmd.Locations)
+        links = simplejson.loads(links)
+
+        self.assertEqual(len(links), 1)
+        self.assertEqual(links[0][1], 5)
+
+
+    def tearDown(self):
+        if self.evids:
+            conn = self.zem.connect()
+            try:
+                curs = conn.cursor()
+                for evid in self.evids:
+                    curs.execute("delete from status where evid='%s'" % evid)
+            finally: 
+                self.zem.close(conn)
+        ZenModelBaseTest.tearDown(self)
+
+
 
 def test_suite():
     from unittest import TestSuite, makeSuite
