@@ -90,10 +90,10 @@ class ZenPack(ZenModelRM):
     # first installed
     eggPack = False
                         
-    # isDevelopment indicates that the zenpack can be exported
-    # and that objects can be added to it.  Also allows editing on
-    # viewPackDetail.pt
-    development = False
+    # # isDevelopment indicates that the zenpack can be exported
+    # # and that objects can be added to it.  Also allows editing on
+    # # viewPackDetail.pt
+    # development = False
 
     requires = () # deprecated
 
@@ -537,11 +537,17 @@ registerDirectory("skins", globals())
 
     def isDevelopment(self):
         """
-        Return True if this pack is installed in dev mode or if it's an
-        old (non-egg) style zenpack which didn't differentiate between
-        dev and non-dev zenpacks.
+        Return True if
+        1) the pack is an old-style zenpack (not a python egg)
+        or
+        2) the pack is a python egg and is a source install (includes a
+        setup.py file)
+
+        Returns False otherwise.
         """
-        return self.development or not self.isEggPack()
+        if self.isEggPack():
+            return os.path.isfile(self.eggPath('setup.py'))
+        return True
 
 
     def isEggPack(self):
@@ -574,46 +580,20 @@ registerDirectory("skins", globals())
         """
         if not self.isEggPack():
             raise ZenPackException('Calling writeSetupValues on non-egg zenpack.')
-        attrs = {
-            'version': 'version',
-            'author': 'author',
-            # 'author_email': 'authorEmail',
-            # 'organization': 'organization',
-            # 'description': 'description',
-            # 'maintainer': 'maintainer',
-            # 'maintainer_email': 'maintainerEmail',
-            }
-        
-        setupPath = self.eggPath('setup.py')
-        f = open(setupPath, 'r')
-        setup = f.readlines()
-        f.close()
-        newSetup = []
-        for line in setup:
-            setting = line.split('=', 1)[0].strip()
-            if setting in attrs.keys():
-                newSetup.append("    %s = '%s',\n" % (setting, 
-                                            getattr(self, attrs[setting], '')))
-            elif setting == 'install_requires':
-                oldDeps = eval(line.split('=', 1)[1].strip().strip(','))
-                for i, d in enumerate(oldDeps):
-                    if d.startswith('zenpacksupport'):
-                        oldDeps[:i+1] = []
-                        break
-                newDeps = []
-                for dName, dVers in self.dependencies.items():
-                    d = '%s%s' % (dName, dVers)
-                    if dName == 'zenpacksupport':
-                        newDeps.append(d)
-                    else:
-                        newDeps.insert(0, d)
-                newDeps += oldDeps
-                newSetup.append('    install_requires = %s,\n' % `newDeps`)
-            else:
-                newSetup.append(line)
-        f = open(setupPath, 'w')
-        f.writelines(newSetup)
-        f.close()
+        packages = []
+        parts = self.id.split('.')
+        for i in range(len(parts)):
+            packages.append('.'.join(parts[:i+1]))
+        attrs = dict(
+            NAME=self.id,
+            VERSION=self.version,
+            AUTHOR=self.author,
+            LICENSE=self.license,
+            NAMESPACE_PACKAGES=packages[:-1],
+            PACKAGES = packages,
+            INSTALL_REQUIRES = []
+            )
+        ZenPackCmd.WriteSetup(self.eggPath('setup.py'), attrs)
 
 
     def buildEggInfo(self):
@@ -718,12 +698,12 @@ registerDirectory("skins", globals())
                     and zp.isEggPack()]
 
 
-    def isLinked(self):
+    def isInZenPacksDir(self):
         """
-        Return true if the egg is not located in the ZenPacks directory (ie,
-        it was installed with the --develop flag.)  Return False otherwise.
+        Return True if the egg is located in the ZenPacks directory,
+        False otherwise.
         """
-        zpDir = zenPath('ZenPacks')
+        zpDir = zenPath('ZenPacks') + '/'
         eggDir = self.eggPath()
         return eggDir.startswith(zpDir)
 

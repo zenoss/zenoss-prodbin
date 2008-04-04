@@ -33,6 +33,10 @@ class ZenPackCmd(ZenScriptBase):
     def run(self):
         "Execute the user's request"
         
+        if self.args:
+            self.parser.print_help()
+            return
+        
         if self.options.installPackName:
             eggInstall = (self.options.installPackName.lower().endswith('.egg')
                 or os.path.exists(os.path.join(self.options.installPackName,
@@ -78,7 +82,6 @@ class ZenPackCmd(ZenScriptBase):
                 return EggPackCmd.InstallEggAndZenPack(
                     self.dmd,
                     self.options.installPackName,
-                    develop=self.options.develop,
                     link=self.options.link,
                     filesOnly=False)
             if not self.preInstallCheck():
@@ -341,12 +344,6 @@ class ZenPackCmd(ZenScriptBase):
                                default=False,
                                help="Install the ZenPack in place, without "
                                         "copying into $ZENHOME/ZenPacks.")
-        self.parser.add_option('--develop',
-                               dest='develop',
-                               action="store_true",
-                               default=False,
-                               help="Install the ZenPack in development mode "
-                                        "so that it can be edited.")
         self.parser.add_option('--files-only',
                                dest='filesOnly',
                                action="store_true",

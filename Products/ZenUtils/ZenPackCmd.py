@@ -35,6 +35,8 @@ import socket
 
 FQDN = socket.getfqdn()
 
+ZEN_PACK_INDEX_URL = ''
+
 # All ZenPack eggs have to define exactly one entry point in this group.
 ZENPACK_ENTRY_POINT = 'zenoss.zenpacks'
 
@@ -61,7 +63,7 @@ def CreateZenPack(zpId):
     shutil.copytree(srcDir, destDir, symlinks=False)
     os.system('find %s -name .svn | xargs rm -rf' % destDir)
 
-    # Write zenpackid and package to the setup file.
+    # Write setup.py
     packages = []
     for i in range(len(parts)):
         packages.append('.'.join(parts[:i+1]))
@@ -74,32 +76,7 @@ def CreateZenPack(zpId):
         PACKAGES = packages,
         INSTALL_REQUIRES = [],
         )
-
-    # Read setup.py and do text replacement at top of file
-    setupPath = os.path.join(destDir, 'setup.py')
-    f = open(setupPath, 'r')
-    lines = f.readlines()
-    f.close()
-    newLines = []
-    for i, line in enumerate(lines):
-        if line.startswith('STOP_REPLACEMENTS'):
-            newLines += lines[i:]
-            break
-        key = line.split('=')[0].strip()
-        if mapping.has_key(key):
-            value = mapping[key]
-            if isinstance(value, basestring):
-                fmt = "%s = '%s'\n"
-            else:
-                fmt = "%s = %s\n"
-            newLines.append(fmt % (key, value))
-        else:
-            newLines.append(line)
-
-    # Write new setup.py
-    f = open(setupPath, 'w')
-    f.writelines(newLines)
-    f.close()
+    WriteSetup(os.path.join(destDir, 'setup.py'), mapping)
 
     # Create subdirectories
     base = destDir
@@ -115,8 +92,41 @@ def CreateZenPack(zpId):
     # Create the skins subdirs
     skinsDir = os.path.join(base, 'skins', zpId)
     os.mkdir(skinsDir)
+    
+    # Stick a placeholder in the skins dir so that the egg will include
+    # the dir even if empty.
+    f = file(os.path.join(skinsDir, 'placeholder.txt'), 'w')
+    f.close()
 
     return destDir
+
+
+def WriteSetup(setupPath, values):
+    """
+    """
+    f = file(setupPath, 'r')
+    lines = f.readlines()
+    f.close()
+
+    newLines = []
+    for i, line in enumerate(lines):
+        if line.startswith('STOP_REPLACEMENTS'):
+            newLines += lines[i:]
+            break
+        key = line.split('=')[0].strip()
+        if values.has_key(key):
+            value = values[key]
+            if isinstance(value, basestring):
+                fmt = "%s = '%s'\n"
+            else:
+                fmt = "%s = %s\n"
+            newLines.append(fmt % (key, value))
+        else:
+            newLines.append(line)
+    
+    f = file(setupPath, 'w')
+    f.writelines(newLines)
+    f.close()
 
 
 def CanCreateZenPack(dmd, zpId):
@@ -201,7 +211,7 @@ def ScrubZenPackId(name):
 ########################################
 
 
-def InstallEggAndZenPack(dmd, eggPath, develop=False, link=False, 
+def InstallEggAndZenPack(dmd, eggPath, link=False, 
                             filesOnly=False, sendEvent=True):
     """
     Installs the given egg, instantiates the ZenPack, installs in
@@ -209,13 +219,13 @@ def InstallEggAndZenPack(dmd, eggPath, develop=False, link=False,
     Returns a list of ZenPacks that were installed.
     """
     try:
-        zenPackName = InstallEgg(dmd, eggPath, develop=develop, link=link)
+        zenPackName = InstallEgg(dmd, eggPath, link=link)
         zenPacks = DiscoverAndInstall(dmd, zenPackName)
-        if develop:
-            for p in zenPacks:
-                if p.id == zenPackName:
-                    p.development = True
-            transaction.commit()
+        # if link:
+        #     for p in zenPacks:
+        #         if p.id == zenPackName:
+        #             p.development = True
+        #     transaction.commit()
     except:
         if sendEvent:
             ZPEvent(dmd, 4, 'Error installing ZenPack %s' % eggPath,
@@ -230,31 +240,44 @@ def InstallEggAndZenPack(dmd, eggPath, develop=False, link=False,
     return zenPacks
 
 
-def InstallEgg(dmd, eggPath, develop=False, link=False):
+def InstallEgg(dmd, eggPath, link=False):
     """
     Install the given egg and add to the current working set.
     This does not install the egg as a ZenPack.
     """
+    eggPath = os.path.abspath(eggPath)
+    zenPackDir = zenPath('ZenPacks')
+    eggInZenPacksDir = eggPath.startswith(zenPackDir + '/')
+
+    # If link the must be a directory and must have a setup.py file
+
     # Don't allow link for eggs already in ZenPacks dir
-    if link:
-        if eggPath.startswith(zenPath('ZenPacks') + '/'):
-            raise ZenPackException('The link option cannot be used for '
-                'eggs that already reside within $ZENHOME/ZenPacks.')
+    # Otherwise user might be confused when it is deleted when zenpack
+    # is removed.
+    # if link and eggInZenPacksDir:
+    #     raise ZenPackException('The link option cannot be used for '
+    #         'eggs that already reside within $ZENHOME/ZenPacks.')
 
     # Develop only works for directories, not egg files
-    if develop:
-        if not os.path.isdir(eggPath):
-            raise ZenPackException('The develop option can only be used '
-                'when installing an unpackaged directory.  It cannot be '
-                'used with .egg files.')
+    # NOTE: We could possible try to untar the egg file and see if there is
+    # a setup.py there.  If so we could install it in development mode.
+    # Would this work?
+    # if develop:
+    #     if not os.path.isdir(eggPath):
+    #         raise ZenPackException('The develop option can only be used '
+    #             'when installing an unpackaged directory.  It cannot be '
+    #             'used with .egg files.')
+
+    
+    # On upgrade, if location is switching, we should delete the old
+    # location zenpack.deleteFilesOnRemove().  This way people could move
+    # zenpacks in development out of ZenPacks dir with a simple reinstall
+    # from another location.
     
     # Make sure $ZENHOME/ZenPacks exists
     CreateZenPacksDir()
 
-    eggPath = os.path.abspath(eggPath)
-
     # Install the egg
-    zenPackDir = zenPath('ZenPacks')
     if link:
         cmd = ('python setup.py develop '
                 '--site-dirs=%s ' % zenPackDir +
@@ -287,7 +310,7 @@ def InstallEgg(dmd, eggPath, develop=False, link=False):
     return zenPackName
 
 
-def InstallDistAsZenPack(dmd, dist, develop=False, filesOnly=False):
+def InstallDistAsZenPack(dmd, dist, filesOnly=False):
     """
     Given an installed dist, install it into Zenoss as a ZenPack.
     Return the ZenPack instance.
@@ -305,8 +328,8 @@ def InstallDistAsZenPack(dmd, dist, develop=False, filesOnly=False):
     else:
         zenPack = ZenPack(packName)
     zenPack.eggPack = True
-    if develop:
-        zenPack.development = True
+    # if develop:
+    #     zenPack.development = True
     CopyMetaDataToZenPackObject(dist, zenPack)
 
     if filesOnly:
@@ -317,7 +340,7 @@ def InstallDistAsZenPack(dmd, dist, develop=False, filesOnly=False):
         # object conversion needs to take place.
         existing = dmd.ZenPackManager.packs._getOb(packName, None)
         if existing:
-            existing.development = develop
+            # existing.development = develop
             CopyMetaDataToZenPackObject(dist, existing)
             if existing.isEggPack():
                 existing.upgrade(dmd)
@@ -636,7 +659,7 @@ def RemoveZenPack(dmd, packName, filesOnly=False, skipDepsCheck=False,
             # Determine deleteFiles before develop -u gets called.  Once
             # it is called the egg has problems figuring out some of it's state.
             deleteFiles = zp.shouldDeleteFilesOnRemoval()
-            if zp.isLinked():
+            if zp.isDevelopment():
                 zenPackDir = zenPath('ZenPacks')
                 cmd = ('python setup.py develop -u '
                         '--site-dirs=%s ' % zenPackDir +
@@ -762,7 +785,6 @@ class ZenPackCmd(ZenScriptBase):
         if self.options.eggPath:
             installed = InstallEggAndZenPack(
                                 self.dmd, self.options.eggPath,
-                                develop=self.options.develop,
                                 link=self.options.link,
                                 filesOnly=self.options.filesOnly)
             PrintInstalled(installed)
@@ -826,18 +848,15 @@ class ZenPackCmd(ZenScriptBase):
 #                               default=None,
 #                               help='Use with --upload to provide'
 #                                    ' a description for the new release.')
-        self.parser.add_option('--develop',
-                               dest='develop',
-                               action='store_true',
-                               default=False,
-                               help='Install the ZenPack in development mode.')
         self.parser.add_option('--link',
                                dest='link',
                                action='store_true',
                                default=False,
                                help='Install the ZenPack in its current '
                                 'location, do not copy to $ZENHOME/ZenPacks. '
-                                'This only works with directories, not '
+                                'Also mark ZenPack as editable. '
+                                'This only works with source directories '
+                                'containing setup.py files, not '
                                 'egg files.')
         self.parser.add_option('--remove',
                                dest='removePackName',

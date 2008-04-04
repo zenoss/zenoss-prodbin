@@ -1,13 +1,22 @@
 <h2>Export ZenPack</h2>
 
+<tal:block tal:condition="here/isDevelopment">
 <p>
 <input type="radio" name="download" value="no" checked="1"> Export to $ZENHOME/exports<br />
 <input type="radio" name="download" value="yes"> Export to $ZENHOME/exports and
     download<br />
 </p>
+</tal:block>
+
+<tal:block tal:condition="not: here/isDevelopment">
+    <p>Only ZenPacks that have been installed in development mode can be
+        exported.</p>
+</tal:block>
+
 <br/>
 <div id="dialog_buttons">
-<input tal:attributes="id string:dialog_submit;
+<input tal:condition="here/isDevelopment"
+        tal:attributes="id string:dialog_submit;
         type string:submit;
         value string:OK;
         onclick string:return $$('dialog').submit_form(
