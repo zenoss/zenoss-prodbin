@@ -27,10 +27,14 @@ import sys
 import select
 import logging
 import signal
+from copy import copy
 log = logging.getLogger("zen.zentestcommand")
 
 import Globals
 from Products.ZenUtils.ZenScriptBase import ZenScriptBase
+
+snmptemplate = ("snmpwalk -c%(zSnmpCommunity)s "
+                "-%(zSnmpVer)s %(manageIp)s %(oid)s")
 
 
 class TestRunner(ZenScriptBase):
@@ -49,7 +53,7 @@ class TestRunner(ZenScriptBase):
             sys.exit(1)
         dataSource = None
         for templ in device.getRRDTemplates():
-            for ds in templ.getRRDDataSources('COMMAND'):
+            for ds in templ.getRRDDataSources():
                 if ds.id==dsName: 
                     dataSource = ds
                     break
@@ -58,7 +62,15 @@ class TestRunner(ZenScriptBase):
             self.write('No datasource %s applies to device %s.' % (dsName,
                                                                    devName))
             sys.exit(1)
-        return dataSource.getCommand(device)
+        if dataSource.sourcetype=='COMMAND':
+            return dataSource.getCommand(device)
+        elif dataSource.sourcetype=='SNMP':
+            snmpinfo = copy(device.getSnmpConnInfo().__dict__)
+            snmpinfo['oid'] = dataSource.getDescription()
+            return snmptemplate % snmpinfo
+        else:
+            self.write('No COMMAND or SNMP datasource %s applies to device %s.' % (
+                                                            dsName, devName))
 
     def execute(self, cmd):
         child = popen2.Popen4(cmd)
