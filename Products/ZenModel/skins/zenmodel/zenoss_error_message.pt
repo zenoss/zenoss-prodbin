@@ -5,6 +5,33 @@
 <span tal:condition="not:exists:error_message">
 
   <h2>Zenoss Error</h2>
+
+    <script>
+    function toggleReqBox() {
+    if ($('request_box').style.display=='none') {
+        showElement('request_box');
+        setStyle('request_toggle', {'background-image':'url(/zport/dmd/img/arrow.d.gif)'});
+    } else {
+        hideElement('request_box');
+        setStyle('request_toggle', {'background-image':'url(/zport/dmd/img/arrow.r.gif)'});
+    }
+    }
+    </script>
+    <style>#request_box{width:95%;border:2px dotted #666;margin-top:10px;background-color:white;color:#333;font-size:0.8em;padding:1em;overflow:hidden;}#request_toggle{color:darkblue;padding-left:25px;margin-top:20px;font-weight:bold;cursor:pointer;cursor:hand;background:transparent url('/zport/dmd/img/arrow.r.gif') 5px 5px no-repeat;} </style>
+    <div id="more_info">
+    <div id="request_toggle" onclick="toggleReqBox()">View Error Details</div>
+    <div id="request_box">
+  <p>
+      <strong>Type: <tal:block tal:replace="options/error_type" />
+      </strong><br/>
+      <strong>Value: <tal:block tal:replace="options/error_value" />
+      </strong><br/>
+      <tal:block tal:replace="structure options/error_traceback" />
+  </p>
+</div>
+<script>toggleReqBox()</script>
+
+            </div>
   
   <p>An error was encountered while publishing this resource.  Please use the
   form below to submit details of this error to Zenoss, Inc.  This information
@@ -20,13 +47,6 @@
   </p>
 
   <form tal:attributes="action here/absolute_url_path" method="post">
-  <p>
-      <strong>Type: <tal:block tal:replace="options/error_type" />
-      </strong><br/>
-      <strong>Value: <tal:block tal:replace="options/error_value" />
-      </strong><br/>
-      <tal:block tal:replace="structure options/error_traceback" />
-  </p>
   
   <p>The following fields are optional.  This information will only be used
   to contact you if further information is needed regarding this error.
@@ -51,6 +71,7 @@
         tal:attributes="value request/URL" />
     <input type="submit" name="reportError:method" 
         value="Send Error Details" />
+
   </form>
 
 </span>
