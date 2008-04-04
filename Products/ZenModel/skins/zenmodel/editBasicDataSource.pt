@@ -124,6 +124,7 @@
                 tal:content="here/cycletime"/>
         </tr>
 
+
         <tr>
             <td class="tableheader" colspan="2">Command Template</td>
             </tr>
@@ -140,7 +141,6 @@
 
     </tal:block>
 
-
     <tr>
         <td class=tableheader align="left" >
         </td>
@@ -149,6 +149,20 @@
                 name="zmanage_editProperties:method"/>
         </td>
     </tr>
+
+    <tal:block tal:condition="python:here.sourcetype in ('COMMAND', 'SNMP')">
+    <tr><td></td></tr>
+    <tr>
+        <td class="tableheader">Test Against Device</td>
+        <td class="tablevalues">
+        <input class="tablevalues" type="text" 
+            name="testDevice:string" size="40" /> 
+        <input class="tablevalues" type="submit" value=" Test "
+            name="manage_testDataSource:method"/>
+    </td>
+    </tr>
+    </tal:block>
+
 
         <!-- END TABLE CONTENTS -->
 

@@ -1,0 +1,72 @@
+<html> 
+    <head metal:use-macro="here/templates/macros/head1"/>
+	<body>
+    <tal:block metal:use-macro="here/dialogmacros/macros/dialog_with_buttons"/>
+	   <div id="frame">
+            <form name="proxy_form" id="proxy_form"
+                style="position:absolute;visibility:hidden"
+                tal:attributes="action here/absolute_url_path"></form>
+            <div metal:use-macro="here/templates/macros/topPane"/>
+            <div id="infoBar">
+                <div id="leftPaneToggle"></div>
+                <div id="breadCrumbPane">
+                   <span metal:use-macro="here/miscmacros/macros/breadCrumbs" />
+                </div>
+                <tal:block metal:use-macro="here/templates/macros/infoBarExtra"/>
+            </div>
+            <div id="paneToggle">
+            </div>
+            <style tal:condition="python:'Zenoss_Collapsed_Menu' in 
+                                    here.REQUEST.HTTP_COOKIE">
+                #leftPane { display:none;}
+                #rightPane { margin-left:12px;}
+                #paneToggle { 
+                    background-image: url('paneToggle_bg_collapsed.gif');
+                    border-right: medium none;
+                }
+                #leftPaneToggle{ display:block;
+                    background:transparent url(img/leftpanetoggle_bg.gif) top
+                    left repeat-x;
+                    height: 30px;
+                    width: 30px;
+                }
+                #breadCrumbPane{ padding-left: 35px;}
+
+            </style>
+            <div metal:use-macro="here/templates/macros/leftPane"/>
+            <div id="rightPane"/>
+            <div metal:use-macro="here/templates/macros/tabsPane"/>
+            <script type="text/javascript">zenPageInit()</script>
+            <div id="contentPane">
+                
+
+        <tal:block tal:define="tabletitle string:Command Output">
+        <tal:block metal:use-macro="here/zenuimacros/macros/zentable">
+
+        <!--====Optional titlebar slots=============
+
+            <tal:block metal:fill-slot="filterslot">
+            </tal:block>
+
+            <tal:block metal:fill-slot="menuslot">
+            </tal:block>
+
+            ==========================================-->
+
+        <tal:block metal:fill-slot="zentablecontents">
+        <!-- BEGIN TABLE CONTENTS -->
+            
+                    
+                    OUTPUT_TOKEN
+                
+        <!-- END TABLE CONTENTS -->
+
+        </tal:block>
+        </tal:block>
+        </tal:block>
+        
+
+            </div>
+        </div>
+    </body>
+</html>

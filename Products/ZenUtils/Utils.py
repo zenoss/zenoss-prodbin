@@ -20,6 +20,10 @@ $Id: Utils.py,v 1.15 2004/04/04 02:22:38 edahl Exp $"""
 __version__ = "$Revision: 1.15 $"[11:-2]
 
 import sys
+import select
+import popen2
+import fcntl
+import time
 import os
 import types
 import logging
@@ -632,3 +636,33 @@ def unsigned(v):
     '''
     import ctypes
     return int(ctypes.c_uint32(long(v)).value)
+
+
+def executeCommand(cmd, writefunc, timeout=30):
+    """
+    Execute cmd in the shell and send the output to writefunc.
+    """
+    child = popen2.Popen4(cmd)
+    flags = fcntl.fcntl(child.fromchild, fcntl.F_GETFL)
+    fcntl.fcntl(child.fromchild, fcntl.F_SETFL, flags | os.O_NDELAY)
+    pollPeriod = 1
+    endtime = time.time() + timeout
+    firstPass = True
+    while time.time() < endtime and (
+        firstPass or child.poll()==-1):
+        firstPass = False
+        r,w,e = select.select([child.fromchild],[],[],pollPeriod)
+        if r:
+            t = child.fromchild.read()
+            if t:
+                writefunc(t)
+    if child.poll()==-1:
+        writefunc('Command timed out')
+        os.kill(child.pid, signal.SIGKILL)
+
+
+
+
+
+
+

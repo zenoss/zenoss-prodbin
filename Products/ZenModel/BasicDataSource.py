@@ -21,7 +21,12 @@ from Products.ZenModel import RRDDataSource
 from AccessControl import ClassSecurityInfo, Permissions
 from Globals import InitializeClass
 from Products.ZenEvents.ZenEventClasses import Cmd_Fail
+from Products.ZenUtils.Utils import executeCommand
+from copy import copy
+import cgi, time
 
+snmptemplate = ("snmpwalk -c%(zSnmpCommunity)s "
+                "-%(zSnmpVer)s %(manageIp)s %(oid)s")
 
 def checkOid(oid):
     import string
@@ -102,5 +107,84 @@ class BasicDataSource(RRDDataSource.RRDDataSource):
                     return self.callZenScreen(REQUEST)
         return RRDDataSource.RRDDataSource.zmanage_editProperties(
                                                                 self, REQUEST)
+
+    security.declareProtected('Change Device', 'manage_testDataSource')
+    def manage_testDataSource(self, testDevice, REQUEST):
+        ''' Test the datasource by executing the command and outputting the
+        non-quiet results.
+        '''
+        out = REQUEST.RESPONSE
+
+        def write(lines):
+            ''' Output (maybe partial) result text.
+            '''
+            # Looks like firefox renders progressive output more smoothly
+            # if each line is stuck into a table row.  
+            startLine = '<tr><td class="tablevalues">'
+            endLine = '</td></tr>\n'
+            if out:
+                if not isinstance(lines, list):
+                    lines = [lines]
+                for l in lines:
+                    if not isinstance(l, str):
+                        l = str(l)
+                    l = l.strip()
+                    l = cgi.escape(l)
+                    l = l.replace('\n', endLine + startLine)
+                    out.write(startLine + l + endLine)
+        
+        # Determine which device to execute against
+        device = None
+        if testDevice:
+            # Try to get specified device
+            device = self.findDevice(testDevice)
+            if not device:
+                REQUEST['message'] = 'Cannot find device matching %s' % testDevice
+                return self.callZenScreen(REQUEST)
+        elif hasattr(self, 'device'):
+            # ds defined on a device, use that device
+            device = self.device()
+        elif hasattr(self, 'getSubDevicesGen'):
+            # ds defined on a device class, use any device from the class
+            try:
+                device = self.getSubDevicesGen().next()
+            except StopIteration:
+                # No devices in this class, bail out
+                pass
+        if not device:
+            REQUEST['message'] = 'Cannot determine a device to test against.'
+            return self.callZenScreen(REQUEST)
+
+        # Get the command to run
+        command = None
+        if self.sourcetype=='COMMAND':
+            command = self.getCommand(device)
+        elif self.sourcetype=='SNMP':
+            snmpinfo = copy(device.getSnmpConnInfo().__dict__)
+            snmpinfo['oid'] = self.getDescription()
+            command = snmptemplate % snmpinfo
+        else:
+            REQUEST['message']='Unable to test %s datasources' % self.sourcetype
+            return self.callZenScreen(REQUEST)
+        if not command:
+            REQUEST['message'] = 'Unable to create test command.'
+            return self.callZenScreen(REQUEST)
+
+        # Render
+        header, footer = self.commandTestOutput().split('OUTPUT_TOKEN')
+        out.write(str(header))
+        
+        write('Executing command against %s' % device.id)
+        write('')
+        start = time.time()
+        try:
+            executeCommand(command, write)
+        except:
+            write('exception while executing command')
+            write('type: %s  value: %s' % tuple(sys.exc_info()[:2]))
+        write('')
+        write('')
+        write('DONE in %s seconds' % long(time.time() - start))
+        out.write(str(footer))
 
 InitializeClass(BasicDataSource)
