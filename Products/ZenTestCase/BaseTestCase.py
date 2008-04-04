@@ -100,7 +100,8 @@ class BaseTestCase(ZopeTestCase.ZopeTestCase):
         # portal, cvthost, evtuser, evtpass, evtdb,
         #    smtphost, smtpport, pagecommand
         builder = DmdBuilder(self.app.zport, 'localhost', 'zenoss', 'zenoss',
-                            'events', 'localhost', '25', '$ZENHOME/bin/zensnpp localhost 444 $RECIPIENT')
+                            'events', 3306, 'localhost', '25', 
+                             '$ZENHOME/bin/zensnpp localhost 444 $RECIPIENT')
         builder.build()
         self.dmd = builder.dmd
 
