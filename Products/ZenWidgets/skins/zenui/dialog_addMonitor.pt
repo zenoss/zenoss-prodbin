@@ -5,7 +5,7 @@
 <span id="new_id_label">ID:&nbsp;</span>
 <input id="new_id" name="id">
 <input type="hidden" id="checkValidIdPath" 
-        tal:attributes="value here/absolute_url_path">
+        tal:attributes="value here/Performance/absolute_url_path">
 <br/>
 </p>
 <div id="dialog_buttons">
@@ -13,7 +13,7 @@
         type string:submit;
         value string:OK;
         onclick string:return $$('dialog').submit_form_and_check(
-                '${here/absolute_url_path}', 'proxyForm')"
+                '${here/absolute_url_path}', 'monitorList')"
                         name="manage_addMonitor:method" />
 <input tal:attributes="id string:dialog_cancel;
                         type string:button;

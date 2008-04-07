@@ -2,19 +2,17 @@
 <tal:block metal:fill-slot="contentPane">
 
 <form method="post" 
-    tal:repeat="submonitor here/objectSubValues"
     tal:attributes="action here/absolute_url_path;
-                    name submonitor/id">
-<input type="hidden" name="submon"
-    tal:attributes="value submonitor/id"/>
-
-
-        <tal:block tal:define="objects python:submonitor.objectSubValues();
-    menu_id python:submonitor.id + 'Monitor_list';
-    tableName string:monitorlist;
-    submonname python:submonitor.id + ' Monitors';
-    batch python:here.ZenTableManager.getBatch(tableName,objects); 
-    tabletitle string:Zenoss Collectors">
+                    name string:monitorList">
+<input type="hidden" name="submon" value="Performance"/>
+        
+        <tal:block tal:define="
+                objects python:here.Performance.objectSubValues();
+                menu_id python:here.Performance.id + 'Monitor_list';
+                tableName string:monitorlist;
+                submonname python:here.Performance.id + ' Monitors';
+                batch python:here.ZenTableManager.getBatch(tableName,objects); 
+                tabletitle string:Zenoss Collectors">
         <tal:block metal:use-macro="here/zenuimacros/macros/zentable">
 
         <!--====Optional titlebar slots=============
