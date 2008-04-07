@@ -56,7 +56,7 @@ class ZEvent(Event):
                 else:
                     value = urllib.quote('<a class="%s" ' % (cssClass) +
                       'href="/zport/dmd/Events%s">%s</a>' % (value,_shortvalue))
-            elif field == 'component':
+            elif field == 'component' and getattr(self, 'device', None):
                 value = urllib.quote('<a class="%s"' % (cssClass) +
                             ' href="/zport/dmd/searchComponents'
                             '?device=%s&component=%s">%s</a>' % (
