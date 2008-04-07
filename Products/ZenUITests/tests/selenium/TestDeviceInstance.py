@@ -61,7 +61,7 @@ class TestDeviceInstanceOsTab(TestDeviceInstanceBase):
         self.selenium.click("link=OS")
         self.selenium.wait_for_page_to_load(self.WAITTIME)
         
-    def testIpInterface(self):
+    def _testIpInterface(self):
         """Add, edit, and delete an Ip Interface under a specific device"""
         
         self.addDialog(addType="IpInterfaceaddIpInterface", addMethod="addIpInterface:method",
