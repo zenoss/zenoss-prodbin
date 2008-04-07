@@ -90,8 +90,10 @@ class DbConnectionPool:
         mysqlconv[FIELD_TYPE.LONG] = int
         if not host:
             host, database = database, 'events'
+        if port:
+            port = int(port)
         conn = MySQLdb.connect(host=host, user=username,
-	                       port=port, passwd=password, 
-                    	       db=database, conv=mysqlconv, reconnect=1)
+                               port=port, passwd=password, 
+                               db=database, conv=mysqlconv, reconnect=1)
         conn.autocommit(1)
         return conn
