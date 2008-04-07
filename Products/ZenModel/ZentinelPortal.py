@@ -86,7 +86,8 @@ class ZentinelPortal ( PortalObjectBase ):
             if brains:
                 for brain in brains:
                     if brain.getPath().split('/')[-1]==component:
-                        raise Redirect(urllib.quote(brain.getPath()))
+                        raise Redirect(urllib.quote(
+                            brain.getPath()+'/viewEvents'))
                 return self.searchDevices(device, REQUEST)
             else:
                 return self.searchDevices(device, REQUEST)
