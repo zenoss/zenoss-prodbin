@@ -28,7 +28,7 @@ def findTestableProducts(packages=[], regex=None):
             if packages and dir not in packages: continue
             if (not (dir.startswith('Zen') or 
                      dir=='DataCollector') or 
-                dir=='ZenTestRunner'): 
+                dir in ('ZenTestRunner', 'ZenUITests')): 
                 continue
             newdir = os.path.join(root, dir)
             if 'tests' in os.listdir(newdir): 
