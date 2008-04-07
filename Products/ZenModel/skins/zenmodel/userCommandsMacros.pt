@@ -1,6 +1,6 @@
 <form method="post" tal:attributes="action here/absolute_url_path"
     metal:define-macro="userCommandsTable"
-    tal:condition="python:here.checkRemotePerm('Define Commands View', here)">
+    tal:condition="python:here.has_permission('Define Commands View')">
 <input type="hidden" name="zenScreenName" tal:attributes="value template/id"/>
 
 <tal:block tal:define="tabletitle string:Define Commands;

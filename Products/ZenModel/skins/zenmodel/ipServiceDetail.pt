@@ -2,7 +2,7 @@
 <tal:block metal:fill-slot="contentPane">
 
 <form method="post" 
-    tal:define="manager python:here.checkRemotePerm('Change Device', here);
+    tal:define="manager python:here.has_permission('Change Device');
                 userCreated here/isUserCreated"
     tal:attributes="action string:${here/absolute_url_path}">
     <input type="hidden" name="zenScreenName" 
