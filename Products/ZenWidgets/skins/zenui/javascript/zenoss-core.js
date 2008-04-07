@@ -452,7 +452,7 @@ function addSelectionBar() {
         if (!getNodeAttribute(tables[i], 'noselectionbar')) {
             var inputs = tables[i].getElementsByTagName('input');
             var cbs = filter(function(x){return x.type=='checkbox'}, inputs);
-            if (cbs.length) insertSelBar(tables[i], i);
+            if (cbs.length>1) insertSelBar(tables[i], i);
         }
     }
 }
