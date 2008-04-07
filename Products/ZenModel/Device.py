@@ -87,7 +87,7 @@ def manage_createDevice(context, deviceName, devicePath="/Discovered",
         if ipobj:
             dev = ipobj.device()
             if dev:
-                raise DeviceExistsError("Ip %s exists on %s" % (ip, deviceName))
+                raise DeviceExistsError("Ip %s exists on %s" % (ip, dev.id))
     else:
         deviceName = context.prepId(deviceName)
         try: ip = socket.gethostbyname(deviceName)
