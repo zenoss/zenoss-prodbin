@@ -208,14 +208,14 @@ class SnmpStatus:
         'Send events on snmp failures'
         if success:
             if self.count > 0:
-                summary='snmp agent up on device ' + deviceName
+                summary='snmp agent up'
                 eventCb(self.snmpStatusEvent, 
                         device=deviceName, summary=summary,
                         severity=Event.Clear)
                 log.info(summary)
             self.count = 0
         else:
-            summary='snmp agent down on device ' + deviceName
+            summary='snmp agent down'
             eventCb(self.snmpStatusEvent,
                     device=deviceName, summary=summary,
                     severity=Event.Error)
