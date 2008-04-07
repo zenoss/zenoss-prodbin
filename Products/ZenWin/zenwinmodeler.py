@@ -85,10 +85,19 @@ class zenwinmodeler(WinCollector):
 
 
     def fetchDevices(self, driver):
-        yield self.config().callRemote('getDeviceListByMonitor',
+        if self.options.device:
+            self.log.info("Fetching a single device config for %s" % \
+                self.options.device)
+            yield self.configService().callRemote(
+                'getDeviceConfigAndWinServices', [self.options.device])
+        else:
+            self.log.info("Fetching device configs for %s" % \
+                self.options.monitor)
+            yield self.config().callRemote('getDeviceListByMonitor',
                                        self.options.monitor)
-            
-        yield self.config().callRemote('getDeviceConfig', driver.next())
+            yield self.configService().callRemote(
+                'getDeviceConfigAndWinServices', driver.next())
+        
         self.updateDevices(driver.next())
 
 
@@ -127,6 +136,12 @@ class zenwinmodeler(WinCollector):
                 self.log.debug("Queries: %s" % str(plugin.queries().values()))
                 result = self.client.boundedCall(mx, 'query', plugin.queries())
                 self.client.results.append((plugin, result))
+                
+                if getattr(plugin, 'getEvents', None):
+                    self.log.info("Sending events returned by plugins")
+                    for evt in plugin.getEvents(device, result, self.log):
+                        self.sendEvent(evt)
+                        
         finally:
             self.client.stop()
 
@@ -151,29 +166,28 @@ class zenwinmodeler(WinCollector):
                     self.log.warn("plugin %s no results returned",
                                   plugin.name())
                     continue
-
+                
                 results = plugin.preprocess(results, self.log)
-                datamaps = plugin.process(device, results, 
-                        self.log)
-
+                datamaps = plugin.process(device, results, self.log)
+                
                 # allow multiple maps to be returned from a plugin
                 if type(datamaps) not in \
                 (types.ListType, types.TupleType):
                     datamaps = [datamaps,]
                 if datamaps:
                     maps += [m for m in datamaps if m]
-    
+
             if maps:
                 self.log.info("ApplyDataMaps to %s" % device.getId())
                 yield self.config().callRemote('applyDataMaps',device.getId(),maps)
                 if driver.next():
                     devchanged = True
-    
+
             if devchanged:
                 self.log.info("Changes applied to %s" % device.getId())
             else:
                 self.log.info("No changes detected on %s" % device.getId())
-        
+
         return drive(doProcessClient)
     
     def processLoop(self):
