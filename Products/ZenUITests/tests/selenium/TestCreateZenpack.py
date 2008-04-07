@@ -33,11 +33,10 @@ class TestCreateZenpack(SelTestBase):
         self.waitForElement("link=ZenPacks")
         self.selenium.click("link=ZenPacks")
         self.selenium.wait_for_page_to_load(self.WAITTIME)
-        if self.selenium.is_element_present("link=testingPack"):
+        if self.selenium.is_element_present("link=ZenPacks.Tester.testingPack"):
             self._deleteZenpack()
         self.addDialog("ZenPacklistaddZenPack",new_id=("text",
-                    "ZenPacks.Tester.testingPack"),
-                package=("text", "testpackage"))
+                    "ZenPacks.Tester.testingPack"))
         self.selenium.wait_for_page_to_load(self.WAITTIME)
 
     def _deleteZenpack(self):
@@ -50,7 +49,7 @@ class TestCreateZenpack(SelTestBase):
         self.selenium.wait_for_page_to_load(self.WAITTIME)
         self.deleteDialog("ZenPacklistremoveZenPack",
                 "manage_removeZenPacks:method", pathsList="ids:list",
-                form_name="zenPackList", testData="testingPack")
+                form_name="zenPackList", testData="ZenPacks.Tester.testingPack")
         self.selenium.wait_for_page_to_load(self.WAITTIME)
 
 
