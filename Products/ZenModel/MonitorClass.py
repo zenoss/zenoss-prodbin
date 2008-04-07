@@ -117,9 +117,7 @@ class MonitorClass(ZenModelRM, Folder):
     def manage_removeMonitor(self, ids = None, submon = None, REQUEST=None):
         'Add an object of sub_class, from a module of the same name'
         msg = ''
-        child = self
-        if submon:
-            child = self._getOb(submon, None) or self
+        child = self._getOb(submon) or self
         if ids:
             if len(ids) < len(child._objects):
                 num = 0
@@ -142,9 +140,7 @@ class MonitorClass(ZenModelRM, Folder):
     def manage_addMonitor(self, id, submon=None, REQUEST=None):
         'Remove an object from this one'
         values = {}
-        child = self
-        if submon:
-            child = self._getOb(submon, None) or self
+        child = self._getOb(submon) or self
         exec('from Products.ZenModel.%s import %s' % (child.sub_class,
                                                       child.sub_class), values)
         ctor = values[child.sub_class]
