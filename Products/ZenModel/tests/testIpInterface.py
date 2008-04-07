@@ -54,16 +54,6 @@ class TestIpInterface(ZenModelBaseTest):
         self.assert_(self.iface.getIpAddress() == '2.3.4.5/24')#primary changed
         self.assert_(self.iface.getIp() == '2.3.4.5')#ditto
 
-    def testIpAddressIndexing(self):
-        self.iface.addIpAddress('1.2.3.4')
-        cat = self.dmd.Networks.ipSearch
-        brains = cat(getPrimaryId='1.2.3.4')
-        self.assertEqual(len(brains), 1)
-        b = brains[0]
-        self.assertEqual(b.networkId, b.getObject().network().id)
-        self.assertEqual(b.deviceId, self.dev.id)
-        self.assertEqual(b.interfaceId, self.iface.id)
-
     def testGetInterfaceMacaddress(self):
         self.assert_(self.iface.getInterfaceMacaddress() == '00:00:00:00:00:00')
         
