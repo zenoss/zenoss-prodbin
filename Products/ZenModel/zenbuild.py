@@ -50,7 +50,8 @@ class zenbuild(CmdBase):
                 help="password used to connect to the events database")
         self.parser.add_option('-d','--evtdb', dest="evtdb", default="events",
                 help="name of events database")
-        self.parser.add_option('-t','--evtport', dest="evtport", default="3306",
+        self.parser.add_option('-t','--evtport', dest="evtport",
+                type='int' default=3306,
                 help="port used to connect to the events database")
         self.parser.add_option('--smtphost', dest="smtphost", default="localhost",
                 help="smtp host")
