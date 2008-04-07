@@ -92,6 +92,11 @@ class OSProcess(OSComponent, Commandable, ZenPackable):
                 , 'action'        : 'osProcessDetail'
                 , 'permissions'   : ( Permissions.view, )
                 },
+                { 'id'            : 'events'
+                , 'name'          : 'Events'
+                , 'action'        : 'viewEvents'
+                , 'permissions'   : (ZEN_VIEW, )
+                },
                 { 'id'            : 'perfConf'
                 , 'name'          : 'Template'
                 , 'action'        : 'objTemplates'

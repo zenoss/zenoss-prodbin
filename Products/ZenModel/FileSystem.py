@@ -18,7 +18,6 @@ FileSystem is a file system on a server
 $Id: FileSystem.py,v 1.12 2004/04/06 22:33:23 edahl Exp $"""
 
 __version__ = "$Revision: 1.12 $"[11:-2]
-
 from Globals import DTMLFile
 from Globals import InitializeClass
 
@@ -90,7 +89,12 @@ class FileSystem(OSComponent):
                 { 'id'            : 'status'
                 , 'name'          : 'Status'
                 , 'action'        : 'viewFileSystem'
-                , 'permissions'   : ('View',)
+                , 'permissions'   : (ZEN_VIEW,)
+                },
+                { 'id'            : 'events'
+                , 'name'          : 'Events'
+                , 'action'        : 'viewEvents'
+                , 'permissions'   : (ZEN_VIEW, )
                 },
                 { 'id'            : 'perfConf'
                 , 'name'          : 'Template'

@@ -124,7 +124,12 @@ class IpInterface(OSComponent):
                 { 'id'            : 'status'
                 , 'name'          : 'Status'
                 , 'action'        : 'viewIpInterface'
-                , 'permissions'   : ('View',)
+                , 'permissions'   : (ZEN_VIEW,)
+                },
+                { 'id'            : 'events'
+                , 'name'          : 'Events'
+                , 'action'        : 'viewEvents'
+                , 'permissions'   : (ZEN_VIEW, )
                 },
                 { 'id'            : 'perfConf'
                 , 'name'          : 'Template'

@@ -88,8 +88,12 @@ class IpService(Service):
                 { 'id'            : 'status'
                 , 'name'          : 'Status'
                 , 'action'        : 'ipServiceDetail'
-                , 'permissions'   : (
-                  Permissions.view, )
+                , 'permissions'   : (ZEN_VIEW, )
+                },
+                { 'id'            : 'events'
+                , 'name'          : 'Events'
+                , 'action'        : 'viewEvents'
+                , 'permissions'   : (ZEN_VIEW, )
                 },
                 { 'id'            : 'manage'
                 , 'name'          : 'Administration'

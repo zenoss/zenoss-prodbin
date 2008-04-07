@@ -71,6 +71,11 @@ class WinService(Service):
                 , 'permissions'   : (
                   Permissions.view, )
                 },
+                { 'id'            : 'events'
+                , 'name'          : 'Events'
+                , 'action'        : 'viewEvents'
+                , 'permissions'   : (ZEN_VIEW, )
+                },
                 { 'id'            : 'manage'
                 , 'name'          : 'Administration'
                 , 'action'        : 'winServiceManage'
