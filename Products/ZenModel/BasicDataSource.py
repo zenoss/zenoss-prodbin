@@ -21,7 +21,7 @@ from Products.ZenModel import RRDDataSource
 from AccessControl import ClassSecurityInfo, Permissions
 from Globals import InitializeClass
 from Products.ZenEvents.ZenEventClasses import Cmd_Fail
-from Products.ZenUtils.Utils import executeCommand
+from Products.ZenUtils.Utils import executeStreamCommand
 from copy import copy
 import cgi, time
 
@@ -178,7 +178,7 @@ class BasicDataSource(RRDDataSource.RRDDataSource):
         write('')
         start = time.time()
         try:
-            executeCommand(command, write)
+            executeStreamCommand(command, write)
         except:
             write('exception while executing command')
             write('type: %s  value: %s' % tuple(sys.exc_info()[:2]))

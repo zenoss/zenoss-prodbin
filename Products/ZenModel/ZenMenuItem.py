@@ -33,6 +33,7 @@ class ZenMenuItem(ZenModelRM, ZenPackable):
     isdialog = False
     banned_classes = () 
     allowed_classes = ()
+    banned_ids = () 
     ordering = 0.0
 
     _properties = (
@@ -42,6 +43,7 @@ class ZenMenuItem(ZenModelRM, ZenPackable):
         {'id':'permissions', 'type':'lines', 'mode':'w'},
         {'id':'banned_classes','type':'lines','mode':'w'},
         {'id':'allowed_classes','type':'lines','mode':'w'},
+        {'id':'banned_ids','type':'lines','mode':'w'},
         {'id':'isdialog', 'type':'boolean','mode':'w'},
         {'id':'ordering', 'type':'float','mode':'w'},
         )

@@ -426,6 +426,12 @@ class IpNetwork(DeviceOrganizer):
         zcat.addColumn('getPrimaryId')
 
 
+    def discoverNetwork(self, REQUEST=None):
+        """
+        """
+        path = '/'.join(self.getPrimaryPath()[4:])
+        return self.discoverDevices([path], REQUEST=REQUEST)
+
     def discoverDevices(self, organizerPaths=None, REQUEST = None):
         """
         Load a device into the database connecting its major relations

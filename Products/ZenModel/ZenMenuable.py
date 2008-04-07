@@ -46,14 +46,15 @@ class ZenMenuable:
     security.declareProtected('Change Device', 'manage_addZenMenuItem')
     def manage_addZenMenuItem(self, menuid, id=None, description='', action='', 
             permissions=(Permissions.view,), isdialog=False, isglobal=True, 
-            banned_classes=(), allowed_classes=(), ordering=0.0, REQUEST=None):
+            banned_classes=(), allowed_classes=(), banned_ids=(), ordering=0.0, 
+            REQUEST=None):
         """ Add ZenMenuItem
         """
         menu = getattr(self.zenMenus, menuid, None) 
         if not menu: menu = self.manage_addZenMenu(menuid)
         menu.manage_addZenMenuItem(id, description, action, 
                 permissions, isdialog, isglobal, 
-                banned_classes, allowed_classes, ordering)
+                banned_classes, allowed_classes, banned_ids, ordering)
         if REQUEST:
             return self.callZenScreen(REQUEST)
 
@@ -93,6 +94,7 @@ class ZenMenuable:
               isdialog
               banned_classes
               allowed_classes
+              banned_ids
         """
         if not items:
             items = [{}]
@@ -155,6 +157,7 @@ class ZenMenuable:
                         if not permok \
                            or (not getattr(i, 'isglobal', True) and \
                                context!=i.getMenuItemOwner())\
+                           or (context.id in i.banned_ids) \
                            or (i.allowed_classes and not \
                               cmpClassNames(context, i.allowed_classes))\
                            or cmpClassNames(context, i.banned_classes):

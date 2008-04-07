@@ -638,7 +638,7 @@ def unsigned(v):
     return int(ctypes.c_uint32(long(v)).value)
 
 
-def executeCommand(cmd, writefunc, timeout=30):
+def executeStreamCommand(cmd, writefunc, timeout=30):
     """
     Execute cmd in the shell and send the output to writefunc.
     """

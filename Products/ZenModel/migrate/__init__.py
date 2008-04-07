@@ -139,3 +139,4 @@ import networkindexes
 import pagecommand
 import twoTwoMySqlChanges
 import custschemamenuitemrestriction
+import discovernetworkmenuitem
