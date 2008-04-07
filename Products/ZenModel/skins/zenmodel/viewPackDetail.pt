@@ -25,10 +25,6 @@ addLoadEvent(doDownloadRedirect);
         <td class="tableheader">Name</td>
         <td class="tablevalues" tal:content="here/id"/>
     </tr>
-    <tr tal:condition="here/isEggPack">
-        <td class="tableheader">Package</td>
-        <td class="tablevalues" tal:content="here/moduleName"/>
-    </tr>
     <tr>
         <td class="tableheader">Version</td>
         <td class="tablevalues" tal:condition="here/isDevelopment">
