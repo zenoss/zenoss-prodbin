@@ -26,6 +26,7 @@ import string
 import subprocess
 from Acquisition import aq_parent
 import os, sys
+from Products.ZenModel.ZVersion import VERSION as ZENOSS_VERSION
 
 __doc__="ZenPacks base definitions"
 
@@ -85,6 +86,7 @@ class ZenPack(ZenModelRM):
     organization = ''
     url = ''
     license = ''
+    compatZenossVers = ''
 
     # New-style zenpacks (eggs) have this set to True when they are
     # first installed
@@ -107,6 +109,7 @@ class ZenPack(ZenModelRM):
         {'id':'organization', 'type':'string', 'mode':'w'},
         {'id':'url', 'type':'string', 'mode':'w'},
         {'id':'license', 'type':'string', 'mode':'w'},
+        {'id':'compatZenossVers', 'type':'string', 'mode':'w'},
     )
 
     _relations =  (
@@ -256,21 +259,52 @@ class ZenPack(ZenModelRM):
             depNames = REQUEST.get('dependencies', [])
             if not isinstance(depNames, list):
                 depNames = [depNames]
-            #depNames.insert(0, 'zenpacksupport')
             newDeps = {}
             for depName in depNames:
-                vers = REQUEST.get('version_%s' % depName, '').strip()
+                fieldName = 'version_%s' % depName
+                vers = REQUEST.get(fieldName, '').strip()
                 if vers and vers[0] in string.digits:
                     vers = '==' + vers
                 try:
-                    gen = pkg_resources.parse_requirements(depName + vers)
-                    [r for r in gen]
+                    req = pkg_resources.Requirement.parse(depName + vers)
                 except ValueError:
                     REQUEST['message'] = '%s is not a valid ' % vers + \
                                             'version specification'
                     return self.callZenScreen(REQUEST)
+                zp = self.dmd.ZenPackManager.packs._getOb(depName, None)
+                if not zp:
+                    REQUEST['message'] = '%s is not installed.' % depName
+                    return self.callZenScreen(REQUEST)
+                if not req.__contains__(zp.version):
+                    REQUEST['message'] = ('The required version for %s (%s) '
+                                        % (depName, vers) +
+                                        'does not match the installed version '
+                                        '(%s).' % zp.version)
+                    return self.callZenScreen(REQUEST)
                 newDeps[depName] = vers
+                REQUEST.form[fieldName] = vers
             self.dependencies = newDeps
+            # Check the value of compatZenossVers and the dependencies to
+            # make sure that they match installed versions
+            compatZenossVers = REQUEST.form['compatZenossVers'] or ''
+            if compatZenossVers:
+                if compatZenossVers[0] in string.digits:
+                    compatZenossVers = '==' + compatZenossVers
+                try:
+                    req = pkg_resources.Requirement.parse(
+                                                'zenoss%s' % compatZenossVers)
+                except ValueError:
+                    REQUEST['message'] = ('%s is not a valid ' % 
+                                            compatZenossVers +
+                                            'version specification for Zenoss.')
+                    return self.callZenScreen(REQUEST)
+                if not req.__contains__(ZENOSS_VERSION):
+                    REQUEST['message'] = ('%s does not match this '
+                                            % compatZenossVers +
+                                            'version of Zenoss (%s)'
+                                            % ZENOSS_VERSION)
+                    return self.callZenScreen(REQUEST)
+                REQUEST.form['compatZenossVers'] = compatZenossVers
 
         result =  ZenModelRM.zmanage_editProperties(self, REQUEST, redirect)
         
@@ -578,6 +612,7 @@ registerDirectory("skins", globals())
         """
         Write appropriate values to the setup.py file
         """
+        import Products.ZenUtils.ZenPackCmd as ZenPackCmd
         if not self.isEggPack():
             raise ZenPackException('Calling writeSetupValues on non-egg zenpack.')
         packages = []
@@ -591,7 +626,8 @@ registerDirectory("skins", globals())
             LICENSE=self.license,
             NAMESPACE_PACKAGES=packages[:-1],
             PACKAGES = packages,
-            INSTALL_REQUIRES = []
+            INSTALL_REQUIRES = [],
+            COMPAT_ZENOSS_VERS = self.compatZenossVers,
             )
         ZenPackCmd.WriteSetup(self.eggPath('setup.py'), attrs)
 

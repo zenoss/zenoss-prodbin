@@ -8,6 +8,7 @@ LICENSE = ''
 NAMESPACE_PACKAGES = []
 PACKAGES = []
 INSTALL_REQUIRES = []
+COMPAT_ZENOSS_VERS = ''
 # STOP_REPLACEMENTS
 ################################
 # Zenoss will not overwrite any changes you make below here.
@@ -22,6 +23,10 @@ setup(
     version = VERSION,
     author = AUTHOR,
     license = LICENSE,
+    
+    # This is the version spec which indicates what versions of Zenoss
+    # this ZenPack is compatible with
+    compatZenossVers = COMPAT_ZENOSS_VERS,
     
     # Indicate to setuptools which namespace packages the zenpack
     # participates in

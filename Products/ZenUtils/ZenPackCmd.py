@@ -75,6 +75,7 @@ def CreateZenPack(zpId):
         NAMESPACE_PACKAGES = packages[:-1],
         PACKAGES = packages,
         INSTALL_REQUIRES = [],
+        COMPAT_ZENOSS_VERS = '',
         )
     WriteSetup(os.path.join(destDir, 'setup.py'), mapping)
 
@@ -221,11 +222,6 @@ def InstallEggAndZenPack(dmd, eggPath, link=False,
     try:
         zenPackName = InstallEgg(dmd, eggPath, link=link)
         zenPacks = DiscoverAndInstall(dmd, zenPackName)
-        # if link:
-        #     for p in zenPacks:
-        #         if p.id == zenPackName:
-        #             p.development = True
-        #     transaction.commit()
     except:
         if sendEvent:
             ZPEvent(dmd, 4, 'Error installing ZenPack %s' % eggPath,
@@ -328,8 +324,6 @@ def InstallDistAsZenPack(dmd, dist, filesOnly=False):
     else:
         zenPack = ZenPack(packName)
     zenPack.eggPack = True
-    # if develop:
-    #     zenPack.development = True
     CopyMetaDataToZenPackObject(dist, zenPack)
 
     if filesOnly:
@@ -466,6 +460,11 @@ def ReadZenPackInfo(dist):
         for line in pkg_resources.yield_lines(lines):
             key, value = line.split(':', 1)
             info[key.strip()] = value.strip()
+    if dist.has_metadata('zenpack_info'):
+        lines = dist.get_metadata('zenpack_info')
+        for line in pkg_resources.yield_lines(lines):
+            key, value = line.split(':', 1)
+            info[key.strip()] = value.strip()
     return info
 
 
@@ -478,12 +477,8 @@ def CopyMetaDataToZenPackObject(dist, pack):
 
     # Egg Info
     info = ReadZenPackInfo(dist)
-    pack.author = info.get('author', '')
-    # pack.organization = info.get('organization', '')
-    # pack.description = info.get('description', '')
-    # pack.authorEmail = info.get('author_email', '')
-    # pack.maintainer = info.get('maintainer', '')
-    # pack.maintainerEmail = info.get('maintainerEmail', '')
+    pack.author = info.get('Author', '')
+    pack.compatZenossVers = info.get('compatZenossVers', '')
 
     # Requires
     pack.dependencies = {}

@@ -78,6 +78,16 @@ addLoadEvent(doDownloadRedirect);
             <td class="tableheader">Name</td>
             <td class="tableheader">Version(s)</td>
         </tr>
+        <tr>
+            <td class="tablevalue"></td>
+            <td class="tablevalue">Zenoss</td>
+            <td class="tablevalue">
+                <input class="tablevalues" type="text" size="40" 
+                     tal:attributes="
+                        value here/compatZenossVers;
+                        name string:compatZenossVers;" />
+            </td>
+        </tr>
         <tr tal:repeat="pack eligibles">
             <td class="tablevalue">
                 <input type="checkbox" name="dependencies" 
@@ -93,14 +103,10 @@ addLoadEvent(doDownloadRedirect);
                         name string:version_${pack/id}" />
             </td>
         </tr>
-        <tr tal:condition="eligibles">
+        <tr>
             <td class="tableheader" colspan="3">
                 <input class="tableheader" type="submit" value="Save"
                     name="zmanage_editProperties:method" />
-            </td>
-        </tr>
-        <tr tal:condition="not: eligibles">
-            <td class="tablevalue" colspan="3">No other ZenPack eggs installed
             </td>
         </tr>
     </tal:block>
@@ -109,12 +115,16 @@ addLoadEvent(doDownloadRedirect);
             <td class="tableheader">Name</td>
             <td class="tableheader">Version</td>
         </tr>
+        <tr tal:condition="here/compatZenossVers">
+            <td class="tablevalue">Zenoss</td>
+            <td class="tablevalue" tal:content="here/compatZenossVers"/>
+        </tr>            
         <tr tal:repeat="name here/dependencies">
             <td class="tablevalue" tal:content="name" />
             <td class="tablevalue" 
                 tal:content="python: here.dependencies[name]"/>
         </tr>
-        <tr tal:condition="not: here/dependencies">
+        <tr tal:condition="python: not here.compatZenossVers and not here.dependencies">
             <td class="tablevalues" colspan="2">No dependencies</td>
         </tr>
     </tal:block>
