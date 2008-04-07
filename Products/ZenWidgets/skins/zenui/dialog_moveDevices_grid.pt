@@ -8,6 +8,7 @@ To which class would you like to move these devices?<br/>
     tal:define="targets here/deviceClassMoveTargets">
     <option value=""></option>
     <option tal:repeat="target targets"
+        tal:attributes="value target"
         tal:content="target">/Thing</option>
 </select>
 </p>
