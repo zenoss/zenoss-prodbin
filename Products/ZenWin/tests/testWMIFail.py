@@ -36,6 +36,7 @@ class TestWMIFail(BaseTestCase):
     def testWmiFail(self):
         cmd = ZCmdBase(noopts=True)
         testPass = cmd.dmd.Devices.Server.Windows.zWinPassword
+	if not testPass: return
         WMIClient.failures(clean=True)
         self.assert_(len(WMIClient.failures()) == 0)
         device = DeviceProxy()
