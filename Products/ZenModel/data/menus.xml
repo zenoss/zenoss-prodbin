@@ -2813,7 +2813,7 @@ Custom Schema
 editCustSchema
 </property>
 <property type="boolean" id="isglobal" mode="w" >
-True
+False
 </property>
 <property type="lines" id="permissions" mode="w" >
 ('Change Device',)
@@ -3867,6 +3867,30 @@ True
 </object>
 </tomanycont>
 </object>
+<object id='StatusMonitor_list' module='Products.ZenModel.ZenMenu' class='ZenMenu'>
+<tomanycont id='zenMenuItems'>
+<object id='performanceTemplates' module='Products.ZenModel.ZenMenuItem' class='ZenMenuItem'>
+<property type="text" id="description" mode="w" >
+Templates
+</property>
+<property type="text" id="action" mode="w" >
+performanceTemplates
+</property>
+<property type="boolean" id="isglobal" mode="w" >
+True
+</property>
+<property type="lines" id="permissions" mode="w" >
+('View Device',)
+</property>
+<property type="boolean" id="isdialog" mode="w" >
+False
+</property>
+<property type="float" id="ordering" mode="w" >
+16.0
+</property>
+</object>
+</tomanycont>
+</object>
 <object id='Subnetworks' module='Products.ZenModel.ZenMenu' class='ZenMenu'>
 <tomanycont id='zenMenuItems'>
 <object id='addNetwork' module='Products.ZenModel.ZenMenuItem' class='ZenMenuItem'>
@@ -4128,6 +4152,55 @@ True
 </property>
 <property type="boolean" id="isdialog" mode="w" >
 True
+</property>
+<property type="float" id="ordering" mode="w" >
+80.0
+</property>
+</object>
+<object id='clearMapCache' module='Products.ZenModel.ZenMenuItem' class='ZenMenuItem'>
+<property type="text" id="description" mode="w" >
+Clear Geocode Cache
+</property>
+<property type="text" id="action" mode="w" >
+clearGeocodeCache
+</property>
+<property type="boolean" id="isglobal" mode="w" >
+True
+</property>
+<property type="lines" id="permissions" mode="w" >
+('Manage DMD',)
+</property>
+<property type="lines" id="allowed_classes" mode="w" >
+['Location']
+</property>
+<property type="boolean" id="isdialog" mode="w" >
+False
+</property>
+<property type="float" id="ordering" mode="w" >
+80.0
+</property>
+</object>
+<object id='discoverMyNetwork' module='Products.ZenModel.ZenMenuItem' class='ZenMenuItem'>
+<property type="text" id="description" mode="w" >
+Discover Devices
+</property>
+<property type="text" id="action" mode="w" >
+discoverNetwork
+</property>
+<property type="boolean" id="isglobal" mode="w" >
+True
+</property>
+<property type="lines" id="permissions" mode="w" >
+('Manage DMD',)
+</property>
+<property type="lines" id="allowed_classes" mode="w" >
+['IpNetwork']
+</property>
+<property type="lines" id="banned_ids" mode="w" >
+['Networks']
+</property>
+<property type="boolean" id="isdialog" mode="w" >
+False
 </property>
 <property type="float" id="ordering" mode="w" >
 80.0

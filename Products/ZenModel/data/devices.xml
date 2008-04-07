@@ -133,6 +133,35 @@ True
 <property visible="True" type="boolean" id="zCollectorLogChanges" >
 True
 </property>
+<tomanycont id='zenMenus'>
+<object id='More' module='Products.ZenModel.ZenMenu' class='ZenMenu'>
+<tomanycont id='zenMenuItems'>
+<object id='editCustSchema' module='Products.ZenModel.ZenMenuItem' class='ZenMenuItem'>
+<property type="text" id="description" mode="w" >
+Custom Schema
+</property>
+<property type="text" id="action" mode="w" >
+editCustSchema
+</property>
+<property type="boolean" id="isglobal" mode="w" >
+False
+</property>
+<property type="lines" id="permissions" mode="w" >
+('Change Device',)
+</property>
+<property type="lines" id="allowed_classes" mode="w" >
+['DeviceClass']
+</property>
+<property type="boolean" id="isdialog" mode="w" >
+False
+</property>
+<property type="float" id="ordering" mode="w" >
+60.0
+</property>
+</object>
+</tomanycont>
+</object>
+</tomanycont>
 <tomanycont id='rrdTemplates'>
 <object id='Device' module='Products.ZenModel.RRDTemplate' class='RRDTemplate'>
 <property type="text" id="description" mode="w" >

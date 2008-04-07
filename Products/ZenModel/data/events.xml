@@ -2611,7 +2611,7 @@ HP Gb Server Adapter:  Network Link Down
 <property type="text" id="transform" mode="w" >
 index = None
 for key, value in evt.__dict__.items():
-   if key.find('1.3.6.1.2.1.2.2.1.1') >= 0:
+   if key.find('1.3.6.1.2.1.2.2.1.1') &gt;= 0:
       index = value
       break
 if index is not None:
@@ -2637,7 +2637,7 @@ has key for ifIndex for all traps.
 <property type="text" id="transform" mode="w" >
 index = None
 for key, value in evt.__dict__.items():
-   if key.find('1.3.6.1.2.1.2.2.1.1') >= 0:
+   if key.find('1.3.6.1.2.1.2.2.1.1') &gt;= 0:
       index = value
       break
 if index is not None:
