@@ -198,7 +198,7 @@ class TestMonitorsPerformanceConfTemplates(SelTestBase):
         self.selenium.wait_for_page_to_load(self.WAITTIME)
         self.deleteDialog("PerformanceMonitorlistremovePMonitors",
                 "manage_removeMonitor:method", pathsList="ids:list",
-                form_name="Performance", testData="performanceTestingString")
+                form_name="monitorList", testData="performanceTestingString")
         self.selenium.wait_for_page_to_load(self.WAITTIME)
   
     def _addGraphPointDataPointSuccess(self):
