@@ -1584,7 +1584,7 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
         zm = zenPath('bin', 'zenmodeler')
         zenmodelerCmd = [zm, 'run', '--now','-F','-d', self.id]
         if REQUEST: zenmodelerCmd.append("--weblog")
-        result = executeCommand(zenmodelerCmd, REQUEST.response.write)
+        result = executeCommand(zenmodelerCmd, REQUEST)
         if result and xmlrpc: return result
         log.info("configuration collected")
         
