@@ -180,6 +180,7 @@ class BasicDataSource(RRDDataSource.RRDDataSource):
         try:
             executeStreamCommand(command, write)
         except:
+            import sys
             write('exception while executing command')
             write('type: %s  value: %s' % tuple(sys.exc_info()[:2]))
         write('')

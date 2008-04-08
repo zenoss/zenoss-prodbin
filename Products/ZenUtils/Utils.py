@@ -658,6 +658,7 @@ def executeStreamCommand(cmd, writefunc, timeout=30):
                 writefunc(t)
     if child.poll()==-1:
         writefunc('Command timed out')
+        import signal
         os.kill(child.pid, signal.SIGKILL)
 
 
