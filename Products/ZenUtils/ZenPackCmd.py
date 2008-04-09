@@ -244,26 +244,6 @@ def InstallEgg(dmd, eggPath, link=False):
     eggPath = os.path.abspath(eggPath)
     zenPackDir = zenPath('ZenPacks')
     eggInZenPacksDir = eggPath.startswith(zenPackDir + '/')
-
-    # If link the must be a directory and must have a setup.py file
-
-    # Don't allow link for eggs already in ZenPacks dir
-    # Otherwise user might be confused when it is deleted when zenpack
-    # is removed.
-    # if link and eggInZenPacksDir:
-    #     raise ZenPackException('The link option cannot be used for '
-    #         'eggs that already reside within $ZENHOME/ZenPacks.')
-
-    # Develop only works for directories, not egg files
-    # NOTE: We could possible try to untar the egg file and see if there is
-    # a setup.py there.  If so we could install it in development mode.
-    # Would this work?
-    # if develop:
-    #     if not os.path.isdir(eggPath):
-    #         raise ZenPackException('The develop option can only be used '
-    #             'when installing an unpackaged directory.  It cannot be '
-    #             'used with .egg files.')
-
     
     # On upgrade, if location is switching, we should delete the old
     # location zenpack.deleteFilesOnRemove().  This way people could move
@@ -330,20 +310,19 @@ def InstallDistAsZenPack(dmd, dist, filesOnly=False):
         for loader in (ZPL.ZPLDaemons(), ZPL.ZPLBin(), ZPL.ZPLLibExec()):
             loader.load(zenPack, None)
     else:
-        # If upgrading from non-egg to egg this is probably where the
-        # object conversion needs to take place.
         existing = dmd.ZenPackManager.packs._getOb(packName, None)
         if existing:
-            # existing.development = develop
             CopyMetaDataToZenPackObject(dist, existing)
             if existing.isEggPack():
                 existing.upgrade(dmd)
+                # Remove previous dist if in a different location
             else:
                 # Upgrading from old-style to egg
                 existing.__class__ = zenPack.__class__
                 zenPack = existing
                 zenPack.eggPack = True
                 zenPack.upgrade(dmd)
+                # Remove from Products?
         else:
             dmd.ZenPackManager.packs._setObject(packName, zenPack)
             zenPack = dmd.ZenPackManager.packs._getOb(packName)
@@ -478,6 +457,8 @@ def CopyMetaDataToZenPackObject(dist, pack):
     # Egg Info
     info = ReadZenPackInfo(dist)
     pack.author = info.get('Author', '')
+    if pack.author == 'UNKNOWN':
+        pack.author = ''
     pack.compatZenossVers = info.get('compatZenossVers', '')
 
     # Requires
