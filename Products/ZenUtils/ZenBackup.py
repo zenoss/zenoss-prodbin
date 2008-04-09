@@ -26,6 +26,7 @@ from datetime import date
 import ConfigParser
 import commands
 import tarfile
+from Products.ZenUtils.Utils import zenPath
 from ZenBackupBase import *
 
 
@@ -215,11 +216,14 @@ class ZenBackup(ZenBackupBase):
         etcTar.close()
 
         # /perf to backup dir
-        self.msg('Backing up performance data.')
-        perfTar = tarfile.open(os.path.join(tempDir, 'perf.tar'), 'w')
-        perfTar.add(os.path.join(self.zenhome, 'perf'), 'perf')
-        perfTar.close()
-                                
+        if os.path.isdir(zenPath('perf')):
+            self.msg('Backing up performance data.')
+            perfTar = tarfile.open(os.path.join(tempDir, 'perf.tar'), 'w')
+            perfTar.add(zenPath('perf'), 'perf')
+            perfTar.close()
+        else:
+            self.msg('$ZENHOME/perf does not exist, skipping.')
+
         # tar, gzip and send to outfile
         self.msg('Packaging backup file.')
         if self.options.file:

@@ -172,13 +172,17 @@ class ZenRestore(ZenBackupBase):
         if os.system(cmd): return -1
         
         # Copy perf files
-        self.msg('Restoring performance data.')
         cmd = 'rm -rf %s' % os.path.join(self.zenhome, 'perf')
         if os.system(cmd): return -1
-        cmd = 'tar Cxf %s %s' % (
-                        self.zenhome,
-                        os.path.join(tempDir, 'perf.tar'))
-        if os.system(cmd): return -1
+        tempPerf = os.path.join(tempDir, 'perf.tar')
+        if os.path.isfile(tempPerf):
+            self.msg('Restoring performance data.')
+            cmd = 'tar Cxf %s %s' % (
+                            self.zenhome,
+                            os.path.join(tempDir, 'perf.tar'))
+            if os.system(cmd): return -1
+        else:
+            self.msg('Backup contains no perf data.')
         
         if self.options.noEventsDb:
             self.msg('Skipping the events database.')
