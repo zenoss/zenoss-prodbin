@@ -176,6 +176,8 @@ class ZPLDaemons(ZenPackLoader):
         # to provide, but not important.
         try:
             subprocess.Popen(zenPath('bin', 'create_sample_config.sh'),
+                            stdout=subprocess.PIPE,
+                            stderr=subprocess.PIPE,
                             cwd=pack.path())
         except OSError:
             pass
