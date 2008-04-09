@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <objects>
-<object id='/zport/dmd' module='Products.ZenModel.ManufacturerRoot' class='ManufacturerRoot'>
+<object id='/zport/dmd/Manufacturers' module='Products.ZenModel.ManufacturerRoot' class='ManufacturerRoot'>
 <object id='ADP' module='Products.ZenModel.Manufacturer' class='Manufacturer'>
 <tomanycont id='products'>
 <object id='ADP Data Collection Manager _Enterprise eTIME' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
