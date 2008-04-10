@@ -10,6 +10,7 @@ zenhome = lambda *args:os.path.join(ZENHOME, *args)
 
 STDOUT = sys.stdout
 
+
 exitcodes = []
 
 def findSeleniumTests(packages=[], regex=None):
