@@ -10,6 +10,8 @@ zenhome = lambda *args:os.path.join(ZENHOME, *args)
 
 STDOUT = sys.stdout
 
+exitcodes = []
+
 def findSeleniumTests(packages=[], regex=None):
     prods = findTestableProducts(packages, regex)
     results = []
@@ -42,7 +44,7 @@ def findTestableProducts(packages=[], regex=None):
 
 def runSeleniumTests(packages=[], regex=None):
     for testscript in findSeleniumTests(packages, regex):
-        call([testscript])
+        exitcodes.append(call([testscript]))
 
 def runUnitTests(packages=[], regex=None, coverage=False):
     for prod in findTestableProducts(packages, regex):
@@ -50,7 +52,7 @@ def runUnitTests(packages=[], regex=None, coverage=False):
         if coverage: parts.append('--coverage')
         parts.extend(['--libdir', zenhome('Products', prod)])
         if regex: parts.append(regex)
-        call(parts)
+        exitcodes.append(call(parts))
 
 usage="""%prog [options] [package1 [package2]]
 
@@ -93,3 +95,4 @@ def main():
 if __name__=="__main__":
     start = time.time()
     main()
+    sys.exit(max(exitcodes))
