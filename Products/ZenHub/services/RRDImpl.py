@@ -17,6 +17,8 @@ from Products.ZenRRD.RRDUtil import RRDUtil
 import logging
 log = logging.getLogger("zenhub")
 
+import time
+
 
 class RRDImpl:
     # list of rrd types that only accept long or integer values (no floats!)
@@ -34,9 +36,9 @@ class RRDImpl:
 
 
     def writeRRD(self, devId, compType, compId, dpName, value):
-        ''' Write the given data to it's rrd file.
+        """Write the given data to it's rrd file.
         Also check any thresholds and send events if value is out of bounds.
-        '''
+        """
         log.debug('Writing %s %s' % (dpName, value))
         dev = self.getDeviceOrComponent(devId, compType, compId)
         dp = dev.getRRDDataPoint(dpName)
@@ -103,55 +105,14 @@ class RRDImpl:
         # Loop through the enabled thresholds on the template containing
         # this datapoint.
         for t in [t for t in dp.datasource.rrdTemplate.thresholds()
-                    if t.enabled and dp.name() in t.dsnames]:
+                  if t.enabled and dp.name() in t.dsnames]:
             log.debug('Checking %s value of %s against threshold %s: %s:%s' %
                 (dp.name(), value, t.id, t.getMinval(dev), t.getMaxval(dev)))
-            countKey = (dev.getPrimaryPath(), dp.getPrimaryPath(), t.id)
-            count = self.counts.setdefault(countKey, 0)
-            limit = None
-            how = None
-            maxv = t.getMaxval(dev)
-            if maxv is not None and value > maxv:
-                log.debug('threshold exceeded')
-                limit = maxv
-                how = 'exceeded'
-            else:
-                minv = t.getMinval(dev)
-                if minv is not None and value < minv:
-                    log.debug('threshold not met')
-                    limit = minv
-                    how = 'not met'
-            # Only need to take action if threshold was exceeded or if it was
-            # previously exceeded.
-            if how or count:
-                if dev.meta_type == 'Device':
-                    devId = dev.id
-                    compId = ''
-                else:
-                    devId = dev.device().id
-                    compId = dev.id
-                if how:
-                    self.counts[countKey] += 1
-                    severity = t.severity
-                    if t.escalateCount and count >= t.escalateCount:
-                        severity += 1
-                    summary = ('%s %s threshold of %s %s:' %
-                                (devId, dp.name(), limit, how) +
-                                ' current value %.2f' % float(value))
-                else:
-                    self.counts[countKey] = 0
-                    severity = 0
-                    summary = ('%s %s threshold restored' %
-                                (devId, dp.name()) +
-                                ' current value: %.2f' % float(value))
-                self.zem.sendEvent(dict(
-                                device=devId,
-                                summary=summary,
-                                eventClass=t.eventClass,
-                                eventKey=dp.name(),
-                                component=compId,
-                                severity=severity))
-
-
-
-
+            inst = t.createThresholdInstance(dev)
+            # storing the count external to the instances is a little
+            # broken, but I don't want to cache the instances
+            countKey = inst.countKey('dp_ds')
+            inst.count[countKey] = self.counts.get(countKey, None)
+            for evt in inst.checkRaw(dp.name(), time.time(), value):
+                self.zem.sendEvent(evt)
+            self.counts[countKey] = inst.countKey('dp_ds')
