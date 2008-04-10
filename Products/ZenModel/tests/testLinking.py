@@ -10,14 +10,11 @@
 # For complete information please visit: http://www.zenoss.com/oss/
 #
 ###########################################################################
-import os, sys
-if __name__ == '__main__':
-    execfile(os.path.join(sys.path[0], 'framework.py'))
 
-import operator
 import simplejson
 from itertools import count, islice
 
+#import operator
 #af = lambda x:x>1 and reduce(operator.add, xrange(1, x+1)) or x
 #numpairs = lambda x: ((x*(x-1))*0.5) - (af(x%10)) - (af(10)*((x/10)-1))
 
@@ -183,6 +180,3 @@ def test_suite():
     suite = TestSuite()
     suite.addTest(makeSuite(TestLinking))
     return suite
-
-if __name__=="__main__":
-    framework()

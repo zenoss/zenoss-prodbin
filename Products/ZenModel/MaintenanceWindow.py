@@ -27,7 +27,6 @@ import Globals
 
 from AccessControl import ClassSecurityInfo
 from ZenossSecurity import *
-from AccessControl import Permissions
 from ZenModelRM import ZenModelRM
 from Products.ZenRelations.RelSchema import *
 from Products.ZenUtils import Time

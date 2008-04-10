@@ -32,7 +32,6 @@ from AccessControl import getSecurityManager
 from Globals import DTMLFile
 from Acquisition import aq_base
 import DateTime
-from AccessControl import Permissions as permissions
 from Products.ZenModel.ZenossSecurity import *
 
 from Products.ZenUtils.ObjectCache import ObjectCache
