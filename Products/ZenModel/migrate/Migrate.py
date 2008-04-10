@@ -26,9 +26,11 @@ from Products.ZenUtils.ZenScriptBase import ZenScriptBase
 from Products.ZenUtils.Version import Version as VersionBase
 from Products.ZenReports.ReportLoader import ReportLoader
 from Products.ZenUtils.Utils import zenPath
+from Products.ZenModel.ZVersion import VERSION
 
 import sys
 import logging
+import operator
 from textwrap import wrap
 log = logging.getLogger("zen.migrate")
 
@@ -109,6 +111,29 @@ class Step:
     def name(self):
         return self.__class__.__name__
 
+    def isVersionAppropriate(self, version=None):
+        """
+        Return True if this step is appropriate for the given version of
+        Zenoss, False otherwise.  Appropiate in this case means that the
+        major and minor versions match.  version can be either a Version
+        instance or a string.  If version is None then the version from
+        ZVersion is used.
+        """
+        if version is None:
+            version = VersionBase.parse(' Zenoss ' + VERSION)
+        elif isinstance(version, basestring):
+            version = VersionBase.parse(version)
+        elif not isinstance(version, VersionBase):
+            raise Exception('version for Step.isVersionAppropriate() must '
+                            'be a string or an instance of VersionBase.')
+        if self.version.major ==  version.major:
+            if self.version.minor == version.minor:
+                return True
+            if version.micro >= 70 and version.minor + 1 == self.version.minor:
+                return True
+        return False
+
+
 class Migration(ZenScriptBase):
     "main driver for migration: walks the steps and performs commit/abort"
 
@@ -126,7 +151,6 @@ class Migration(ZenScriptBase):
 
     def _currentVersion(self):
         if not hasattr(self.dmd, 'version') or not self.dmd.version:
-            from Products.ZenModel.ZVersion import VERSION
             self.dmd.version = 'Zenoss ' + VERSION
         if type(self.dmd.version) == type(1.0):
             self.dmd.version = "Zenoss 0.%f" % self.dmd.version
@@ -144,25 +168,41 @@ class Migration(ZenScriptBase):
                                   "the version number" %
                                   steps[0].__class__.__name__)
 
-        # dump old steps
-        
+        # dump old steps        
         current = self._currentVersion()
         if self.useDatabaseVersion:
-            while steps and steps[0].version < current:
-                steps.pop(0)
-        if self.options.newer:
-            while steps and steps[0].version <= current:
-                steps.pop(0)
+            op = self.options.again and operator.ge or operator.gt
+            steps = [s for s in steps if op(s.version, current)]
+
+        # Ideally migrate scripts are always run using the version of the code
+        # that corresponds to the version in the migrate step.  Problems can
+        # arise when executing migrate steps using newer code than that for
+        # which they were intended.  See #2924
+        if not self.options.force:
+            inappropriate = [s for s in steps if not s.isVersionAppropriate()]
+            if inappropriate:
+                sys.stderr.write('The following migrate steps were not '
+                        'intended to run with the currently installed version '
+                        'of the Zenoss code.  The installed version is %s.\n ' 
+                        % VERSION +
+                        'You can override this warning with the --force '
+                        'option.\n'
+                        )
+                for step in inappropriate:
+                    sys.stderr.write('  %s (%s)\n'
+                                    % (step.name(), step.version.short()))
+                sys.exit(-1)
 
         for m in steps:
             m.prepare()
 
         for m in steps:
-            if m.version != current:
+            if m.version > current:
                 self.message("Database going to version %s" % m.version.long())
             self.message('Installing %s' % m.name())
             m.cutover(self.dmd)
-            self.dmd.version = m.version
+            if m.version > current:
+                self.dmd.version = m.version
         if type(self.dmd.version) != type(''):
             self.dmd.version = self.dmd.version.long()
 
@@ -255,12 +295,18 @@ class Migration(ZenScriptBase):
                                type='string',
                                default=None,
                                help="Run the steps by version number")
-        self.parser.add_option('--newer',
-                               dest="newer",
-                               action='store_true',
-                               default=False,
-                               help="Run only steps newer than the "
-                               "current database version.")
+        self.parser.add_option('--again',
+                                dest='again',
+                                action='store_true',
+                                default=False,
+                                help='Rerun steps for current database '
+                                        'version.')
+        self.parser.add_option('--force',
+                                dest='force',
+                                action='store_true',
+                                default=False,
+                                help='Force version inappropriate migrate '
+                                        'steps to run.')
         ZenScriptBase.buildOptions(self)
 
 
@@ -286,7 +332,7 @@ class Migration(ZenScriptBase):
         if self.options.list:
             self.list()
             return
-
+                
         if self.options.level is not None:
             self.options.level = VersionBase.parse('Zenoss ' + self.options.level)
             self.allSteps = [s for s in self.allSteps
