@@ -27,6 +27,8 @@ class PingConfig(PerformanceConfig):
             dmd = conn.root()['Application'].zport.dmd
             return self.getPingTree(dmd, root, fallbackIp)
         finally:
+            import transaction
+            transaction.abort()
             conn.close()
 
     def getPingTree(self, dmd, root, fallbackIp):
