@@ -140,3 +140,4 @@ import pagecommand
 import twoTwoMySqlChanges
 import custschemamenuitemrestriction
 import discovernetworkmenuitem
+import fixManufacturersLocation
