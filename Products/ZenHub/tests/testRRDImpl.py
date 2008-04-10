@@ -45,7 +45,6 @@ class TestRRDImpl(BaseTestCase):
                 evts.append(evt)
         impl.zem.sendEvent = append
         impl.writeRRD(d.id, '', '', 'ds_dp', 99)
-        import pdb; pdb.set_trace()
         self.assert_(len(evts) == 0)
         impl.writeRRD(d.id, '', '', 'ds_dp', 101)
         self.assert_(len(evts) != 0)
