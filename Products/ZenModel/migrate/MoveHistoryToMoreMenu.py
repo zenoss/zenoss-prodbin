@@ -24,11 +24,15 @@ class MoveHistoryToMoreMenu(Migrate.Step):
                      'allowed_classes': ['EventClass', 'EventClassInst', 
                         'Device', 'DeviceOrganizer', 'Location', 'System',
                         'DeviceClass'],
+                     'banned_classes' : ['IpNetwork'],
                      'description': 'Event History',
                      'id': 'historyEvents',
                      'ordering': 1.0,
                      'permissions': (ZEN_VIEW,) } ]
         })
+        viewHistory = dmd.zenMenus.More.zenMenuItems.viewHistory
+        if not viewHistory.banned_classes:
+            viewHistory.banned_classes = ('IpNetwork',)
 
 
 MoveHistoryToMoreMenu()
