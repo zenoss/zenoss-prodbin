@@ -44,10 +44,11 @@ def runSeleniumTests(packages=[], regex=None):
     for testscript in findSeleniumTests(packages, regex):
         call([testscript])
 
-def runUnitTests(packages=[], regex=None):
+def runUnitTests(packages=[], regex=None, coverage=False):
     for prod in findTestableProducts(packages, regex):
-        parts = [ 'zopectl', 'test', '--libdir', 
-                  zenhome('Products', prod)]
+        parts = [ 'zopectl', 'test']
+        if coverage: parts.append('--coverage')
+        parts.extend(['--libdir', zenhome('Products', prod)])
         if regex: parts.append(regex)
         call(parts)
 
@@ -75,12 +76,15 @@ def main():
     parser.add_option('-t', '--type', 
                       help="The test types to run.", 
                       default="all")
+    parser.add_option('-c', '--coverage', 
+                      help="Compile coverage stats",
+                      action="store_true", default=False)
     parser.add_option('-n', '--name', 
                       help="The name of a test module.")
     options, args = parser.parse_args()
 
     if options.type in ('unit', 'all'):
-        runUnitTests(args, options.name)
+        runUnitTests(args, options.name, options.coverage)
 
     if options.type in ('selenium', 'all'):
         runSeleniumTests(args, options.name)
