@@ -2864,6 +2864,9 @@ True
 <property type="lines" id="permissions" mode="w" >
 ('View',)
 </property>
+<property type="lines" id="banned_classes" mode="w" >
+['IpNetwork']
+</property>
 <property type="lines" id="allowed_classes" mode="w" >
 ['EventClass', 'EventClassInst', 'Device', 'DeviceOrganizer', 'Location', 'System', 'DeviceClass']
 </property>
@@ -3001,6 +3004,9 @@ True
 </property>
 <property type="lines" id="permissions" mode="w" >
 ('View History',)
+</property>
+<property type="lines" id="banned_classes" mode="w" >
+('IpNetwork',)
 </property>
 <property type="lines" id="allowed_classes" mode="w" >
 ['Device', 'System', 'DeviceGroup', 'Location', 'DeviceClass', 'EventClass']
