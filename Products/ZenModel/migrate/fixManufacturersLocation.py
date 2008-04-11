@@ -34,7 +34,7 @@ class FixManufacturersLocation(Migrate.Step):
         for m in dmd.objectValues('Manufacturer'):
             dmd._delObject(m.id)
             m = aq_base(m)
-            if not dmd.Manufacturers.has_key(m.id):
+            if not dmd.Manufacturers._getOb(m.id, None):
                 dmd.Manufacturers._setObject(m.id, m)
 
 
