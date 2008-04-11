@@ -41,5 +41,7 @@ class RemoveStatusMonitor(Migrate.Step):
             t.maxval = 'here.pingCycleInterval * 0.8'
         except AttributeError, err:
             pass
+        for perf in dmd.Monitors.Performance.objectSubValues():
+            perf.checkRelations(repair=True)
 
 RemoveStatusMonitor()
