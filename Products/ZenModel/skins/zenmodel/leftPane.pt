@@ -38,6 +38,8 @@
         <li><a href="/zport/dmd/Monitors">Monitors</a></li>
         <li><a href="/zport/dmd/editSettings">Settings</a></li>
         <li><a href="/zport/dmd/ZenEventManager">Event Manager</a></li>
+        <li><a href="/zport/dmd/zenossDotNet">Zenoss.net</a></li>
+
     </ul>
     </tal:block>
     </div>

@@ -12,6 +12,7 @@
 ###########################################################################
 
 import types
+import simplejson
 import logging
 log = logging.getLogger("zen.ServiceOrganizer")
 
@@ -253,7 +254,7 @@ class ServiceOrganizer(Organizer, Commandable, ZenPackable):
                 liveSearchList.append('%s [%s]' % (srv.id, srv.description))
             else:
                 liveSearchList.append(srv.id)
-        return liveSearchList
+        return simplejson.dumps(liveSearchList)
     
     def parseServiceLiveSearchString(self, str):
         """ Parse a string of id and description from a live search
