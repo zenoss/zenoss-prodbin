@@ -48,8 +48,7 @@ class TestGoogleMaps(ZenModelBaseTest):
         self.dmd.clearGeocodeCache()
         self.assert_(not self.dmd.geocache)
 
-    def testDummyTest(self):
-        import pdb; pdb.set_trace
+    def _testDummyTest(self):
         self.assert_("IAN IS JUST TESTING THE BUILDBOT"==False)
 
 def test_suite():
