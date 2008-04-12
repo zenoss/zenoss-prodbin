@@ -23,6 +23,8 @@ class zpSiteCustomize(Migrate.Step):
 
     def cutover(self, dmd):
         # Write extra path to sitecustomize.py
+	import site, sys
+	if zenPath('ZenPacks') in sys.path: return
         path = zenPath('lib', 'python', 'sitecustomize.py')
         f = open(path, 'r')
         t = f.read()
