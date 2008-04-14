@@ -10,7 +10,6 @@ zenhome = lambda *args:os.path.join(ZENHOME, *args)
 
 STDOUT = sys.stdout
 
-
 exitcodes = []
 
 def findSeleniumTests(packages=[], regex=None):
@@ -96,4 +95,9 @@ def main():
 if __name__=="__main__":
     start = time.time()
     main()
-    sys.exit(max(exitcodes))
+    if exitcodes:
+        code = max(exitcodes)
+    else:
+        code = 0
+    sys.exit(code)
+
