@@ -593,7 +593,7 @@ class DataRoot(ZenModelRM, OrderedFolder, Commandable, ZenMenuable):
                         'modDate': info[stat.ST_MTIME],
                         'modDateFormatted': datetime.datetime.fromtimestamp(
                                 info[stat.ST_MTIME]).strftime(
-                                '%a %b %d, %Y  %X %p'),
+                                '%c'),
                         })
         fileInfo.sort(key=operator.itemgetter('modDate'))
         return fileInfo
