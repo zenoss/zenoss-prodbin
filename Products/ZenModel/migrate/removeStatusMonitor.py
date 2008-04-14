@@ -44,4 +44,36 @@ class RemoveStatusMonitor(Migrate.Step):
         for perf in dmd.Monitors.Performance.objectSubValues():
             perf.checkRelations(repair=True)
 
+        # Fix menu items
+        dlm = dmd.zenMenus._getOb('Device_list')
+        if dlm:
+            if dlm.zenMenuItems._getOb('setStatusMonitors', False):
+                dlm.zenMenuItems._delObject('setStatusMonitors')
+
+            spm = dlm.zenMenuItems._getOb('setPerformanceMonitor', False)
+            if spm:
+                spm.description = 'Set Collector...'
+
+        dlm = dmd.zenMenus._getOb('DeviceGrid_list')
+        if dlm:
+            if dlm.zenMenuItems._getOb('setStatusMonitors_grid', False):
+                dlm.zenMenuItems._delObject('setStatusMonitors_grid')
+
+            spm = dlm.zenMenuItems._getOb('setPerformanceMonitor_grid', False)
+            if spm:
+                spm.description = 'Set Collector...'
+
+        if dmd.zenMenus._getOb('StatusMonitor_list', False):
+            dmd.zenMenus._delObject('StatusMonitor_list')
+
+        pml = dmd.zenMenus._getOb('PerformanceMonitor_list')
+        if pml:
+            apm = pml.zenMenuItems._getOb('addPMonitor', False)
+            if apm:
+                apm.description = 'Add Collector...'
+
+            rpm = pml.zenMenuItems._getOb('removePMonitors', False)
+            if rpm:
+                rpm.description = 'Delete Collectors...'
+
 RemoveStatusMonitor()

@@ -1,8 +1,8 @@
 <tal:block metal:define-macro="body">
-<h2>Set Performance Monitor</h2>
+<h2>Set Collector</h2>
 <br/>
 <p style="text-align:center;font-size:0.8em;">
-Performance Monitor:&nbsp;<select class="tablevalues" name="performanceMonitor"
+Collector:&nbsp;<select class="tablevalues" name="performanceMonitor"
         tal:define="
         crks python:here.getDmdRoot('Monitors').getPerformanceMonitorNames();
         curcrk here/getPerformanceServerName | request/performanceMonitor |

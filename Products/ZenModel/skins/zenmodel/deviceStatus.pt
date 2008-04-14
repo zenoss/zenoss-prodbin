@@ -142,7 +142,7 @@
                     None
                 </div>
                 </dd>
-                <dt>Perf Server</dt>
+                <dt>Collector</dt>
                 <dd>
                     <div tal:replace="structure python: 
                         here.perfServer.getPrimaryLink()">
