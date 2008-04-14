@@ -55,10 +55,9 @@ class zenwin(WinCollector):
         if name not in device.services: return
         status, severity = device.services[name]
         device.services[name] = status + 1, severity
-        if status == 0:
-            msg = self.statmsg % (name, "down")
-            self.sendEvent(self.mkevt(device.id, name, msg, severity))
-            self.log.info("svc down %s, %s", device.id, name)
+        msg = self.statmsg % (name, "down")
+        self.sendEvent(self.mkevt(device.id, name, msg, severity))
+        self.log.info("svc down %s, %s", device.id, name)
             
     def serviceRunning(self, device, name):
         self.log.info('%s: %s running' % (device.id, name))

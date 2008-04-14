@@ -60,18 +60,17 @@ class WinServiceMap(WMIPlugin):
             else:
                 log.warning('%s: %s stopped' % (device.id, name))
                 device.services[name] = status + 1, severity
-                if status == 0:
-                    msg = STATMSG % (name, "down")
-                    log.critical(msg)
-                    events.append(dict(summary=msg,
-                        eventClass=Status_WinService,
-                        device=device.id,
-                        severity=severity,
-                        agent="zenwinmodeler",
-                        component=name,
-                        eventGroup= "StatusTest",
-                        manager=getfqdn()))
-                    log.info("svc down %s, %s", device.id, name) 
+                msg = STATMSG % (name, "down")
+                log.critical(msg)
+                events.append(dict(summary=msg,
+                    eventClass=Status_WinService,
+                    device=device.id,
+                    severity=severity,
+                    agent="zenwinmodeler",
+                    component=name,
+                    eventGroup= "StatusTest",
+                    manager=getfqdn()))
+                log.info("svc down %s, %s", device.id, name) 
         return events
         
     def process(self, device, results, log):
