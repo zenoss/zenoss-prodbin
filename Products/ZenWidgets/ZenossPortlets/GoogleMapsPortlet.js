@@ -43,7 +43,7 @@ GoogleMapsPortlet.prototype = {
         //setStyle(this.resizehandle, {'height':'5px'});
     },
     force_reload: function() {
-        this.body.innerHTML = this.body.innerHTML;
+        YAHOO.zenoss.setInnerHTML(this.body, this.body.innerHTML)
         callLater(this.hardRefreshTime, this.force_reload);
     },
     buildSettingsPane: function() {
