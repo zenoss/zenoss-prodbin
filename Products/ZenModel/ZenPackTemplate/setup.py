@@ -9,6 +9,7 @@ NAMESPACE_PACKAGES = []
 PACKAGES = []
 INSTALL_REQUIRES = []
 COMPAT_ZENOSS_VERS = ''
+PREV_ZENPACK_NAME = ''
 # STOP_REPLACEMENTS
 ################################
 # Zenoss will not overwrite any changes you make below here.
@@ -27,6 +28,11 @@ setup(
     # This is the version spec which indicates what versions of Zenoss
     # this ZenPack is compatible with
     compatZenossVers = COMPAT_ZENOSS_VERS,
+    
+    # previousZenPackName is a facility for telling Zenoss that the name
+    # of this ZenPack has changed.  If no ZenPack with the current name is
+    # installed then a zenpack of this name if installed will be upgraded.
+    prevZenPackName = PREV_ZENPACK_NAME, 
     
     # Indicate to setuptools which namespace packages the zenpack
     # participates in

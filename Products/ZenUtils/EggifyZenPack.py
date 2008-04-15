@@ -57,7 +57,7 @@ class Eggify(ZenScriptBase):
             os.makedirs(skinsDir)
         
         # Install it
-        ZenPackCmd.InstallEggAndZenPack(self.dmd, eggDir, develop=True)
+        ZenPackCmd.InstallEggAndZenPack(self.dmd, eggDir, link=True)
 
         # Confirm pack is eggified
         pack = self.dmd.ZenPackManager.packs._getOb(zpName, None)

@@ -26,6 +26,39 @@ from Products.ZenModel.ZenPackLoader import CONFIG_FILE, CONFIG_SECTION_ABOUT
 import os, sys
 import ZenPackCmd as EggPackCmd
 
+
+def RemoveZenPack(dmd, packName, log=None, 
+                        skipDepsCheck=False, leaveObjects=True):
+    if log:
+        log.debug('Removing Pack "%s"' % packName)
+    if not skipDepsCheck:
+        for pack in dmd.ZenPackManager.packs():
+            if packName in pack.requires:
+                if log:
+                    log.error("Pack %s depends on pack %s, not removing",
+                               pack.id, packName)
+                return False
+    zp = None
+    try:
+        zp = dmd.ZenPackManager.packs._getOb(packName)
+    except AttributeError, ex:
+        # Pack not in zeo, might still exist in filesystem
+        if log:
+            log.debug('No ZenPack named %s in zeo' % packName)
+    if zp:
+        zp.remove(dmd, leaveObjects=True)
+        dmd.ZenPackManager.packs._delObject(packName)
+    root = zenPath('Products', packName)
+    if log:
+        log.debug('Removing %s' % root)
+    recurse = ""
+    if os.path.isdir(root):
+        recurse = "r"
+    os.system('rm -%sf %s' % (recurse, root))
+    cleanupSkins(dmd)
+    return True
+
+
 class ZenPackCmd(ZenScriptBase):
     "Manage ZenPacks"
     
@@ -118,12 +151,21 @@ class ZenPackCmd(ZenScriptBase):
             if pack.isEggPack():
                 return EggPackCmd.RemoveZenPack(self.dmd,
                                                 self.options.removePackName)
-            self.remove(self.options.removePackName)
+            RemoveZenPack(self.dmd, self.options.removePackName, self.log)
 
         elif self.options.list:
-            for zp in self.dmd.ZenPackManager.packs():
-                print('%s (%s)' % (zp.id, 
-                                zp.isEggPack() and zp.eggPath() or zp.path()))
+            for zpId in self.dmd.ZenPackManager.packs.objectIds():
+                try:
+                    zp = self.dmd.ZenPackManager.packs._getOb(zpId, None)
+                except AttributeError:
+                    zp = None
+                if not zp:
+                    desc = 'broken'
+                elif zp.isEggPack():
+                    desc = zp.eggPath()
+                else:
+                    desc = zp.path()
+                print('%s (%s)' % (zpId,  desc))
             
         transaction.commit()
 
@@ -194,31 +236,6 @@ class ZenPackCmd(ZenScriptBase):
                                    packName, required)
                     return
         transaction.commit()
-
-    def remove(self, packName):
-        self.log.debug('Removing Pack "%s"' % packName)
-        for pack in self.dmd.ZenPackManager.packs():
-            if packName in pack.requires:
-                self.log.error("Pack %s depends on pack %s, not removing",
-                               pack.id, packName)
-                return
-        zp = None
-        try:
-            zp = self.dmd.ZenPackManager.packs._getOb(packName)
-        except AttributeError, ex:
-            # Pack not in zeo, might still exist in filesystem
-            self.log.debug('No ZenPack named %s in zeo' % packName)
-        if zp:
-            zp.remove(self.app)
-            self.dmd.ZenPackManager.packs._delObject(packName)
-        root = zenPath('Products', packName)
-        self.log.debug('Removing %s' % root)
-        recurse = ""
-        if os.path.isdir(root):
-            recurse = "r"
-        os.system('rm -%sf %s' % (recurse, root))
-        cleanupSkins(self.dmd)
-
 
     def extract(self, fname):
         "Unpack a ZenPack, and return the name"

@@ -57,7 +57,7 @@ class ZenPackLoader:
         """Load things from the ZenPack and put it
         into the app"""
 
-    def unload(self, pack, app):
+    def unload(self, pack, app, leaveObjects=False):
         """Remove things from Zenoss defined in the ZenPack"""
 
     def list(self, pack, app):
@@ -101,7 +101,9 @@ class ZPLObject(ZenPackLoader):
         parser.parse(open(filename))
 
 
-    def unload(self, pack, app):
+    def unload(self, pack, app, leaveObjects=False):
+        if leaveObjects:
+            return
         from Products.ZenRelations.Exceptions import ObjectNotFound
         dmd = app.zport.dmd
         objs = pack.packables()
@@ -145,6 +147,7 @@ class ZPLReport(ZPLObject):
         rl.loadDirectory(pack.path('reports'))
 
     def upgrade(self, pack, app):
+        self.unload(pack, app)
         self.load(pack, app)
 
     def list(self, pack, unused):
@@ -194,10 +197,11 @@ class ZPLDaemons(ZenPackLoader):
 
 
     def upgrade(self, pack, app):
+        self.unload(pack, app)
         self.load(pack, app)
 
 
-    def unload(self, pack, unused):
+    def unload(self, pack, unused, leaveObjects=False):
         for fs in findFiles(pack, 'daemons', filter=self.filter):
             try:
                 os.remove(self.binPath(fs))
@@ -225,6 +229,7 @@ class ZPLBin(ZenPackLoader):
             os.chmod(fs, 0755)
 
     def upgrade(self, pack, app):
+        self.unload(pack, app)
         self.load(pack, app)
 
     def list(self, pack, unused):
@@ -248,6 +253,7 @@ class ZPLLibExec(ZenPackLoader):
             os.chmod(fs, 0755)
 
     def upgrade(self, pack, app):
+        self.unload(pack, app)
         self.load(pack, app)
 
     def list(self, pack, unused):
@@ -280,7 +286,7 @@ class ZPLSkins(ZenPackLoader):
         return self.load(pack, app)
 
 
-    def unload(self, pack, app):
+    def unload(self, pack, app, leaveObjects=False):
         from Products.ZenUtils.Skins import unregisterSkin
         unregisterSkin(app.zport.dmd, pack.path(''))
 

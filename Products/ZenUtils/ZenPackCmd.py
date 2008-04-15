@@ -22,6 +22,7 @@ from Products.ZenModel.ZenPack import ZenPackException, \
 from Products.ZenModel.ZenPack import ZenPackDependentsException
 from Products.ZenModel.ZenPack import ZenPack
 import Products.ZenModel.ZenPackLoader as ZPL
+import zenpack as oldzenpack
 import transaction
 import os, sys
 import pkg_resources
@@ -310,23 +311,31 @@ def InstallDistAsZenPack(dmd, dist, filesOnly=False):
         for loader in (ZPL.ZPLDaemons(), ZPL.ZPLBin(), ZPL.ZPLLibExec()):
             loader.load(zenPack, None)
     else:
+        # Look for an installed ZenPack to be upgraded.  In this case
+        # upgraded means that it is removed before the new one is installed
+        # but that its objects are not removed and the packables are
+        # copied to the new instance.
         existing = dmd.ZenPackManager.packs._getOb(packName, None)
+        if not existing and zenPack.prevZenPackName:
+            existing = dmd.ZenPackManager.packs._getOb(
+                                zenPack.prevZenPackName, None)
+        packables = []
         if existing:
-            CopyMetaDataToZenPackObject(dist, existing)
+            for p in existing.packables():
+                packables.append(p)
+                existing.packables.removeRelation(p)
             if existing.isEggPack():
-                existing.upgrade(dmd)
-                # Remove previous dist if in a different location
+                RemoveZenPack(dmd, existing.id, 
+                                skipDepsCheck=False, leaveObjects=True)
             else:
-                # Upgrading from old-style to egg
-                existing.__class__ = zenPack.__class__
-                zenPack = existing
-                zenPack.eggPack = True
-                zenPack.upgrade(dmd)
-                # Remove from Products?
-        else:
-            dmd.ZenPackManager.packs._setObject(packName, zenPack)
-            zenPack = dmd.ZenPackManager.packs._getOb(packName)
-            zenPack.install(dmd)
+                oldzenpack.RemoveZenPack(dmd, existing.id,
+                                skipDepsCheck=False, leaveObjects=True)
+
+        dmd.ZenPackManager.packs._setObject(packName, zenPack)
+        zenPack = dmd.ZenPackManager.packs._getOb(packName)
+        zenPack.install(dmd)
+        for p in packables:
+            zenPack.packables.addRelation(p)        
 
     cleanupSkins(dmd)
     transaction.commit()
@@ -460,6 +469,7 @@ def CopyMetaDataToZenPackObject(dist, pack):
     if pack.author == 'UNKNOWN':
         pack.author = ''
     pack.compatZenossVers = info.get('compatZenossVers', '')
+    pack.prevZenPackName = info.get('prevZenPackName', '')
 
     # Requires
     pack.dependencies = {}
@@ -656,12 +666,10 @@ def RemoveZenPack(dmd, packName, filesOnly=False, skipDepsCheck=False,
                 pass
             if deleteFiles:
                 eggLink = './%s' % zp.eggName()
-                p = subprocess.Popen(
-                    'rm -rf %s' % zp.eggPath(),
-                    stdout=subprocess.PIPE,
-                    stderr=subprocess.PIPE,
-                    shell=True)
-                p.wait()
+                if os.path.islink(eggLink):
+                    os.remove(eggLink)
+                else:
+                    shutil.rmtree(eggLink)
                 # Looks like maybe this is not needed.  at least some of the 
                 # time the easy-install.pth file is removed by setuptools
                 #CleanupEasyInstallPth(eggLink)

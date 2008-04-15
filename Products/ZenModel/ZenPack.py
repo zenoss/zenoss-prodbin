@@ -74,6 +74,42 @@ class ZenPackMigration:
     def recover(self, pack): pass
 
 
+class ZenPackDataSourceMigrateBase(ZenPackMigration):
+    """
+    Base class for ZenPack migrate steps that need to switch classes of
+    datasources and reindex them.  This is frequently done in migrate
+    scripts for 2.2 when ZenPacks are migrated to python eggs.
+    """
+    # dsClass is the actual class of the datasource provided by this ZenPack
+    dsClass = None
+    # These are the names of the module and the class of the datasource as
+    # provided by previous versios of this ZenPack.  If these are provided
+    # then any instances of them will be converted to instances of dsClass.
+    oldDsModuleName = ''
+    oldDsClassName = ''
+    # If reIndex is True then any instances of dsClass are reindexed.
+    reIndex = False
+    
+    def migrate(self, pack):
+        if self.oldDsModuleName and self.oldDsClassName and self.dsClass:
+            try:
+                exec('import %s' % self.oldDsModuleName)
+                oldClass = eval('%s.%s' % (self.oldDsModuleName, 
+                                            self.oldDsClassName))
+            except ImportError:
+                # The old-style code no longer exists in Products,
+                # so we assume the migration has already happened.
+                oldClass = None
+
+        from Products.ZenModel.RRDTemplate import YieldAllRRDTemplates
+        for template in YieldAllRRDTemplates(pack.dmd, None):
+            for ds in template.datasources():
+                if oldClass and self.dsClass and isinstance(ds, oldClass):
+                    ds.__class__ = self.dsClass
+                if self.reIndex and isinstance(ds, self.dsClass):
+                    ds.reIndex()
+                    
+
 class ZenPack(ZenModelRM):
     '''The root of all ZenPacks: has no implementation,
     but sits here to be the target of the Relation'''
@@ -87,15 +123,11 @@ class ZenPack(ZenModelRM):
     url = ''
     license = ''
     compatZenossVers = ''
+    prevZenPackName = ''
 
     # New-style zenpacks (eggs) have this set to True when they are
     # first installed
     eggPack = False
-                        
-    # # isDevelopment indicates that the zenpack can be exported
-    # # and that objects can be added to it.  Also allows editing on
-    # # viewPackDetail.pt
-    # development = False
 
     requires = () # deprecated
 
@@ -148,28 +180,43 @@ class ZenPack(ZenModelRM):
 
 
     def install(self, app):
-        #self.stopDaemons()
+        self.stopDaemons()
         for loader in self.loaders:
             loader.load(self, app)
         self.createZProperties(app)
-        #self.startDaemons()
+        self.migrate()
+        self.startDaemons()
 
 
     def upgrade(self, app):
-        #self.stopDaemons()
+        """
+        This is essentially an install() call except that a different method
+        is called on the loaders.
+        NB: Newer ZenPacks (egg style) do not use this upgrade method.  Instead
+        the proper method is to remove(leaveObjects=True) and install again.
+        See ZenPackCmd.InstallDistAsZenPack().
+        """
+        self.stopDaemons()
         for loader in self.loaders:
             loader.upgrade(self, app)
         self.createZProperties(app)
         self.migrate()
-        #self.startDaemons()
+        self.startDaemons()
 
 
     def remove(self, app, leaveObjects=False):
-        #self.stopDaemons()
+        """
+        This prepares the ZenPack for removal but does not actually remove
+        the instance from ZenPackManager.packs  This is sometimes called during 
+        the course of an upgrade where the loaders' unload methods need to
+        be run.
+        """
+        self.stopDaemons()
         for loader in self.loaders:
-            loader.unload(self, app)
-        self.removeZProperties(app)
-        self.removeCatalogedObjects(app)
+            loader.unload(self, app, leaveObjects)
+        if not leaveObjects:
+            self.removeZProperties(app)
+            self.removeCatalogedObjects(app)
         
 
     def migrate(self):
@@ -534,6 +581,7 @@ registerDirectory("skins", globals())
         Stop all the daemons provided by this pack.
         Called before an upgrade or a removal of the pack.
         """
+        return
         for d in self.getDaemonNames():
             self.About.doDaemonAction(d, 'stop')
 
@@ -543,6 +591,7 @@ registerDirectory("skins", globals())
         Start all the daemons provided by this pack.
         Called after an upgrade or an install of the pack.
         """
+        return
         for d in self.getDaemonNames():
             self.About.doDaemonAction(d, 'start')
 
