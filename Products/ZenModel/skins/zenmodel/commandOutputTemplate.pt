@@ -55,24 +55,14 @@
 
         <tal:block metal:fill-slot="zentablecontents">
         <!-- BEGIN TABLE CONTENTS -->
-            
-                    
                     <tr tal:condition="exists: request/cmd/command">
-                        <td class="tablevalues" valign="top">
-                            Command:
-                            <tal:block tal:content="request/cmd/command" />
-                        </td>
+                        <td class="commandoutput" valign="top">Command:   <tal:block tal:content="request/cmd/command" /></td>
                     </tr>
                     <tr tal:condition="exists: request/cmd/description">
-                        <td class="tablevalues" valign="top">
-                            Description:
-                            <tal:block tal:content="request/cmd/description" />
-                        </td>
+                        <td class="commandoutput" valign="top">Description:   <tal:block tal:content="request/cmd/description" /></td>
                     </tr>
                     <tr>
-                        <td class="tablevalues" valign="top">
-                            Output:
-                        </td>
+                        <td class="commandoutput" valign="top">Output:</td>
                     </tr>
                     OUTPUT_TOKEN
                 

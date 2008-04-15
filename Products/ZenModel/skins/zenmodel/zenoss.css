@@ -630,6 +630,12 @@ a.tabletitleselected:hover {
     color: #000000;
     background-color: #E0E0E0;
 }
+td.commandoutput {  
+    font-family: Courier New, Courier, monospace;
+    white-space:pre;
+    font-weight: normal; 
+    background-color: #EEEEE;
+}
 .tablevalues {  
     font-family: Verdana, Arial, Helvetica, sans-serif;
     color: #000040; 

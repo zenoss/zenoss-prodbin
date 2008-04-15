@@ -261,7 +261,7 @@ class Commandable:
         '''
         # Looks like firefox renders progressive output more smoothly
         # if each line is stuck into a table row.  
-        startLine = '<tr><td class="tablevalues">'
+        startLine = '<tr><td class="commandoutput">'
         endLine = '</td></tr>\n'
         if out:
             if not isinstance(lines, list):
