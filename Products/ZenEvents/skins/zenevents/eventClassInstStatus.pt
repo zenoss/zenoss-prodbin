@@ -24,7 +24,7 @@
     <tr>
       <td class="tableheader">Events</td>
       <td class="tablevalues">
-        <table metal:use-macro="here/rainbows/macros/eventrainbow"></table>
+        <table metal:use-macro="here/rainbows/macros/horizontal"></table>
       </td>
       <th class="tableheader" align="left">Total Event Count</th>
       <td class="tablevalues" align="center" tal:content="here/getStatus">
