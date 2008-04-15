@@ -359,7 +359,9 @@ class Migration(ZenScriptBase):
         self.parser.add_option('--step',
                                action='append',
                                dest="steps",
-                               help="Run the given step")
+                               help="Run the specified step.  This option "
+                                    'can be specified multiple times to run '
+                                    'more than on step.')
         # NB: The flag for this setting indicates a false value for the setting.
         self.parser.add_option('--dont-commit',
                                dest="commit",
@@ -375,7 +377,8 @@ class Migration(ZenScriptBase):
                                dest="level",
                                type='string',
                                default=None,
-                               help="Run the steps by version number")
+                               help="Run the steps for the specified level "
+                                    ' and above.')
         self.parser.add_option('--newer',
                                 dest='newer',
                                 action='store_true',
@@ -390,7 +393,9 @@ class Migration(ZenScriptBase):
                                 action='store_true',
                                 default=False,
                                 help='Force version inappropriate migrate '
-                                        'steps to run.')
+                                        'steps to run.  This can happen when '
+                                        'trying to skip a minor version '
+                                        'when upgrading.')
         ZenScriptBase.buildOptions(self)
 
 
