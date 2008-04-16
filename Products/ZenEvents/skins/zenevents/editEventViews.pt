@@ -51,8 +51,37 @@
                 here)"
             tal:content="view/getId"/>
         <td class="tablevalues" tal:content="view/type"/>
-        <td class="tablevalues">
-        <table class=" zentable" border=0 cellpadding=0 cellspacing=1
+        <td class="tablevalues" width="300">
+<tal:block metal:define-macro="horizontal">
+<tal:block tal:define="
+    zem python:view.ZenEventManager;
+    colors python:'red orange yellow blue grey green'.split();
+    summaries python:view.getEventSummary();
+    totals python:[x[2] for x in summaries];
+    ackstatus python:[x[2]-x[1] for x in summaries];
+    ">
+    <div class="horizontal-rainbow"
+    onclick="location.href=YAHOO.zenoss.templateFreeURL+'/viewEvents'">
+        <tal:block tal:repeat="evnum python:totals[:-1]">
+        <div tal:define="color python:colors[repeat['evnum'].index]"
+            tal:attributes="class string:evpill-${color}"
+            style="float:left">
+            <span tal:content="evnum">0</span>
+            <div tal:condition="python:ackstatus[repeat['evnum'].index]<=0">
+            </div>
+        </div>
+        </tal:block>
+        <div class="evpill-green" style="float:left">
+            <div tal:condition="python:filter(lambda x:x, 
+                                              map(int, totals[:-1]))">
+            </div>
+        </div>
+    </div>
+</tal:block>
+</tal:block>
+        
+       <!--
+       <table class=" zentable" border=0 cellpadding=0 cellspacing=1
             metal:define-macro="eventrainbow"
             tal:on-error="structure string:
                 <span class='errorvalues'>Events unavailable</span>">
@@ -64,7 +93,7 @@
                 </td>
           </tr>
         </table>
-
+-->
         </td>
     </tr>
     </tal:block>
