@@ -54,6 +54,8 @@ ZEN_ZPROPERTIES_EDIT='zProperties Edit'
 ZEN_ZPROPERTIES_VIEW='zProperties View'
 ZEN_EDIT_LOCAL_TEMPLATES='Edit Local Templates'
 
+ZEN_RUN_COMMANDS = 'Run Commands'
+
 # Administrate
 ZEN_DEFINE_COMMANDS_EDIT='Define Commands Edit'
 ZEN_DEFINE_COMMANDS_VIEW='Define Commands View'

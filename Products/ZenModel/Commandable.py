@@ -93,7 +93,7 @@ class Commandable:
         return self.redirectToUserCommands(REQUEST)
         
 
-    security.declareProtected(ZEN_CHANGE_DEVICE, 'manage_doUserCommand')
+    security.declareProtected(ZEN_RUN_COMMANDS, 'manage_doUserCommand')
     def manage_doUserCommand(self, commandId=None, REQUEST=None):
         ''' Execute a UserCommand. If REQUEST then
         wrap output in proper zenoss html page.
