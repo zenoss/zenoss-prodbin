@@ -141,3 +141,5 @@ import twoTwoMySqlChanges
 import custschemamenuitemrestriction
 import discovernetworkmenuitem
 import fixManufacturersLocation
+import addeventmenuitem
+
