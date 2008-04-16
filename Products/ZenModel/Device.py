@@ -37,7 +37,6 @@ from Globals import InitializeClass
 from DateTime import DateTime
 
 from ZODB.POSException import POSError
-from ZenossSecurity import *
 
 #from Products.SnmpCollector.SnmpCollector import findSnmpCommunity
 from Products.DataCollector.ApplyDataMap import ApplyDataMap
@@ -1971,6 +1970,6 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
 
         adm = ApplyDataMap()
         return adm._applyDataMap(self, relmap)
- 
-            
+
+
 InitializeClass(Device)
