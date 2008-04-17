@@ -45,7 +45,7 @@ r"^(?P<ipAddress>\S+)\s+(?P<summary>(?P<eventClassKey>CisACS_\d\d_\S+)\s+(?P<eve
 r"device_id=\S+\s+\[\S+\](?P<eventClassKey>\S+\d+):\s+(?P<summary>.*)\s+\((?P<originalTime>\d\d\d\d-\d\d-\d\d \d\d:\d\d:\d\d)\)",
 
 # unix syslog with pid
-r"(?P<component>\S+)\[(?P<pid>\d+)\]: (?P<summary>.*)",
+r"(?P<component>\S+)\[(?P<pid>\d+)\]:\s*(?P<summary>.*)",
 
 # unix syslog without pid
 r"(?P<component>\S+): (?P<summary>.*)",
