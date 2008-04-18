@@ -228,6 +228,8 @@ class ApplyDataMap(object):
                 except UnicodeEncodeError:
                     decoding = obj.zCollectorDecoding
                     value = value.decode(decoding)
+                except UnicodeDecodeError:
+                    continue
             if attname[0] == '_': continue
             att = getattr(aq_base(obj), attname, zenmarker)
             if att == zenmarker:
