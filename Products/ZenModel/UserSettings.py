@@ -488,6 +488,7 @@ class UserSettings(ZenModelRM):
                 },
                 {'name'         : 'Event Views',
                 'action'        : 'editEventViews',
+                # ideally make this its own permission
                 'permissions'   : (ZEN_CHANGE_SETTINGS,),
                 },
                 {'name'         : 'Alerting Rules',
