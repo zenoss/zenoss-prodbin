@@ -87,6 +87,13 @@ class ZenPackPersistence(object):
         return self.ZENPACKID
 
 
+    def getZenPack(self, context):
+        """
+        Return the ZenPack instance that provides this object.
+        """
+        return context.dmd.ZenPackManager.packs._getOb(self.ZENPACK_ID, None)
+
+
     # index_object and unindex_object are overridden so that instances
     # can participate in other catalogs, not just the 
     # ZENPACK_PERSISTENCE_CATALOG.
