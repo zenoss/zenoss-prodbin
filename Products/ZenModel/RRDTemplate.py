@@ -65,7 +65,7 @@ def YieldAllRRDTemplates(root, criteria=None):
     The searchRRDTemplates catalog was added in 2.2
     """
     zcat = getattr(root, RRDTEMPLATE_CATALOG, None)
-    if zcat:
+    if zcat is not None:
         criteria = criteria or {}
         criteria.setdefault('getPhysicalPath', root.getPrimaryId())
         brains = zcat(criteria)
