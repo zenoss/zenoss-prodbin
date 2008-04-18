@@ -690,4 +690,14 @@ class DataRoot(ZenModelRM, OrderedFolder, Commandable, ZenMenuable):
             return self.callZenScreen(REQUEST)
 
 
+    def getProductName(self):
+        """
+        Return a string that represents the Zenoss product that is installed.
+        Currently this is something like 'core' or 'enterprise'.  This is
+        used in the version check code to retrieve the available version
+        for the correct product.
+        """
+        return getattr(self, 'productName', 'core')
+
+
 InitializeClass(DataRoot)
