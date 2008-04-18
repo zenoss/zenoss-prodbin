@@ -25,8 +25,9 @@ def skinDirs(base):
             if not d.startswith('.'):
                 layers.append(d)
         # stop at one level
-        return layers
-    
+        break
+    return layers
+
 
 def registerSkin(self, base, positionAfter='custom'):
     """setup the skins in a product"""
