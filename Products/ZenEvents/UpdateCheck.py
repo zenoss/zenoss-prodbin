@@ -37,9 +37,19 @@ def parseVersion(s):
 
 class UpdateCheck:
 
-    def getUpdate(self, dmd, manual):
+    def getUpdate(self, dmd, manual, product=None):
+        """
+        Send a GET request to dev.zenoss.org giving some parameters about this
+        Zenoss installation and getting back the version number for the
+        most recent product release.  The product can be passed in the product
+        parameter, but if product is None then the code will attempt to 
+        figure out which product is currently running and use that.
+        """
+        if not product:
+            product = dmd.getProductName()
         available = None
         args = {}
+        args['pr'] = product
         if dmd.uuid is None:
             import commands
             dmd.uuid = commands.getoutput('uuidgen')
@@ -74,7 +84,7 @@ class UpdateCheck:
             args['nl'] = dmd.Locations.countChildren()
             
         query = urllib.urlencode(args.items())
-        for line in urllib.urlopen(URL + '?' + query):
+        for line in urllib.urlopen(URL + '?' + query):            
             # skip blank lines and http gunk
             if line.strip() and line[0] not in '<' + string.whitespace:
                 try:
