@@ -43,7 +43,7 @@ class Eggify(ZenScriptBase):
         self.connect()
         
         # Create new zenpack
-        eggDir = ZenPackCmd.CreateZenPack(newId)
+        eggDir = ZenPackCmd.CreateZenPack(newId, prevZenPackName=zpName)
         
         # Copy old one into new one
         parts = newId.split('.')

@@ -45,13 +45,14 @@ ZENPACK_ENTRY_POINT = 'zenoss.zenpacks'
 #   ZenPack Creation
 ########################################
 
-def CreateZenPack(zpId):
+def CreateZenPack(zpId, prevZenPackName=''):
     """
     Create the zenpack in the filesystem.
     The zenpack is not installed in Zenoss, it is simply created in
     the $ZENHOME/ZenPacks directory.  Usually this should be followed
     with a "zenpack install" call.
     zpId should already be valid, scrubbed value.
+    prevZenPackName is written to PREV_ZENPACK_NAME in setup.py.
     """
     parts = zpId.split('.')
     
@@ -77,6 +78,7 @@ def CreateZenPack(zpId):
         PACKAGES = packages,
         INSTALL_REQUIRES = [],
         COMPAT_ZENOSS_VERS = '',
+        PREV_ZENPACK_NAME = prevZenPackName,
         )
     WriteSetup(os.path.join(destDir, 'setup.py'), mapping)
 
@@ -665,13 +667,14 @@ def RemoveZenPack(dmd, packName, filesOnly=False, skipDepsCheck=False,
                 # around lines in easy-install.pth otherwise.
                 pass
             if deleteFiles:
-                eggLink = './%s' % zp.eggName()
-                if os.path.islink(eggLink):
-                    os.remove(eggLink)
+                eggDir = zp.eggPath()
+                if os.path.islink(eggDir):
+                    os.remove(eggDir)
                 else:
-                    shutil.rmtree(eggLink)
+                    shutil.rmtree(eggDir)
                 # Looks like maybe this is not needed.  at least some of the 
                 # time the easy-install.pth file is removed by setuptools
+                # eggLink = './%s' % zp.eggName()
                 #CleanupEasyInstallPth(eggLink)
         cleanupSkins(dmd)
         transaction.commit()

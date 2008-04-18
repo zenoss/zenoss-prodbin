@@ -677,6 +677,7 @@ registerDirectory("skins", globals())
             PACKAGES = packages,
             INSTALL_REQUIRES = [],
             COMPAT_ZENOSS_VERS = self.compatZenossVers,
+            PREV_ZENPACK_NAME = self.prevZenPackName,
             )
         ZenPackCmd.WriteSetup(self.eggPath('setup.py'), attrs)
 
