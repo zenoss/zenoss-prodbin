@@ -261,8 +261,14 @@ class Commandable:
         '''
         # Looks like firefox renders progressive output more smoothly
         # if each line is stuck into a table row.  
+
+        # I doubt the above statement, as tested on Firefox 3
+        # this only generates a larger DOM object and does nothing
+        # for smoothness. It actually slows things down for large command
+        # output. Should maybe retested especially now that we are
+        # using CSS pre
         startLine = '<tr><td class="commandoutput">'
-        endLine = '</td></tr>\n'
+        endLine = '\n</td></tr>\n'
         if out:
             if not isinstance(lines, list):
                 lines = [lines]
@@ -273,5 +279,7 @@ class Commandable:
                 l = cgi.escape(l)
                 l = l.replace('\n', endLine + startLine)
                 out.write(startLine + l + endLine)
+                
+
 
 InitializeClass(Commandable)
