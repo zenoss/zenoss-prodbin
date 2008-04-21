@@ -303,6 +303,7 @@ def InstallDistAsZenPack(dmd, dist, filesOnly=False):
     Given an installed dist, install it into Zenoss as a ZenPack.
     Return the ZenPack instance.
     """
+    from Products.ZenRelations.Exceptions import ObjectNotFound
     # Instantiate ZenPack
     entryMap = pkg_resources.get_entry_map(dist, ZENPACK_ENTRY_POINT)
     if not entryMap or len(entryMap) > 1:
@@ -334,7 +335,10 @@ def InstallDistAsZenPack(dmd, dist, filesOnly=False):
         if existing:
             for p in existing.packables():
                 packables.append(p)
-                existing.packables.removeRelation(p)
+                try:
+                    existing.packables.removeRelation(p)
+                except ObjectNotFound:
+                    pass
             if existing.isEggPack():
                 forceNoFileDeletion = existing.eggPath() == dist.location
                 RemoveZenPack(dmd, existing.id, 
