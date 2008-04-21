@@ -1602,14 +1602,18 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
         """
         Delete device from the database
 
+        NB: deleteHistory is disabled for the 2.2 release.  In some
+        circumstances it was causing many subprocesses to be spawned
+        and creating a gridlock situation.
+
         @permission: ZEN_ADMIN_DEVICE
         """
         parent = self.getPrimaryParent()
         if deleteStatus:
             self.getEventManager().manage_deleteHeartbeat(self.getId())
             self.getEventManager().manage_deleteAllEvents(self.getId())
-        if deleteHistory:
-            self.getEventManager().manage_deleteHistoricalEvents(self.getId())
+        # if deleteHistory:
+        #     self.getEventManager().manage_deleteHistoricalEvents(self.getId())
         if deletePerf:
             self.getPerformanceServer().deleteRRDFiles(self.id)
         parent._delObject(self.getId())

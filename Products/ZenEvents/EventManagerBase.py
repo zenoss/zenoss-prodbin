@@ -1873,6 +1873,9 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
         don't want to test the combination.
         This is an option during device deletion.  It is also used
         by zenactions to keep history table clean.
+        
+        NB: Device.deleteDevice() is not currently calling this when devices
+        are deleted.  See ticket #2996.
         """
         import subprocess
         import os
