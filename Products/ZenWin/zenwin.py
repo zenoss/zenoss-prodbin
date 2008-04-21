@@ -101,7 +101,7 @@ class zenwin(WinCollector):
             self.watchers[device.id] = w = self.getWatcher(device, wql)
         try:
             self.log.debug("Querying %s", device.id)
-            s = w.boundedCall(MAX_WAIT_FOR_WMI_REQUEST, 'nextEvent', 100)
+            s = w.boundedCall(MAX_WAIT_FOR_WMI_REQUEST, 'nextEvent', 500)
             self.deviceUp(device)
             if not s.state:
                 return
