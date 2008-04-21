@@ -204,6 +204,28 @@ class RRDDataSource(ZenModelRM, ZenPackable):
             raise res
         res = self.checkCommandPrefix(context, res)
         return res
+        
+
+    def getComponent(self, context, component=None):
+        """Return localized component.
+        """
+        if component is None:
+            component = self.component
+        if not component.startswith('string:') and \
+                not component.startswith('python:'):
+            component = 'string:%s' % component
+        compiled = talesCompile(component)
+        d = context.device()
+        environ = {'dev' : d,
+                   'device': d,
+                   'devname': d.id,
+                   'here' : context, 
+                   'nothing' : None,
+                   'now' : DateTime() }
+        res = compiled(getEngine().getContext(environ))
+        if isinstance(res, Exception):
+            raise res
+        return res
 
 
     def checkCommandPrefix(self, context, cmd):

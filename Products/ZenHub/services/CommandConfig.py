@@ -37,7 +37,7 @@ def getComponentCommands(comp):
             cmd = Cmd()
             cmd.useSsh = getattr(ds, 'usessh', False)
             cmd.cycleTime = ds.cycletime
-            cmd.component = ds.component
+            cmd.component = ds.getComponent(comp)
             cmd.eventClass = ds.eventClass
             cmd.eventKey = key
             cmd.severity = ds.severity
