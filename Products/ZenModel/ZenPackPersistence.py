@@ -91,7 +91,7 @@ class ZenPackPersistence(object):
         """
         Return the ZenPack instance that provides this object.
         """
-        return context.dmd.ZenPackManager.packs._getOb(self.ZENPACK_ID, None)
+        return context.dmd.ZenPackManager.packs._getOb(self.ZENPACKID, None)
 
 
     # index_object and unindex_object are overridden so that instances
