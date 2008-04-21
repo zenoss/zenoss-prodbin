@@ -1,6 +1,7 @@
 ################################
 # These variables are overwritten by Zenoss when the ZenPack is exported
 # or saved.  Do not modify them directly here.
+# NB: PACKAGES is deprecated
 NAME = ''
 VERSION = '1.0'
 AUTHOR = ''
@@ -39,7 +40,7 @@ setup(
     namespace_packages = NAMESPACE_PACKAGES,
     
     # Tell setuptools what packages this zenpack provides.
-    packages = PACKAGES,
+    packages = find_packages(),
     
     # Tell setuptools to figure out for itself which files to include
     # in the binary egg when it is built.
