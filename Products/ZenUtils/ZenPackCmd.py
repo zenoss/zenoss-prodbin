@@ -222,9 +222,11 @@ def InstallEggAndZenPack(dmd, eggPath, link=False,
     dmd.ZenPackManager.packs, and runs the zenpacks's install method.
     Returns a list of ZenPacks that were installed.
     """
+    zenPacks = []
     try:
-        zenPackName = InstallEgg(dmd, eggPath, link=link)
-        zenPacks = DiscoverAndInstall(dmd, zenPackName)
+        zpDists = InstallEgg(dmd, eggPath, link=link)
+        for d in zpDists:
+            zenPacks.append(InstallDistAsZenPack(dmd, d, filesOnly=filesOnly))
     except:
         if sendEvent:
             ZPEvent(dmd, 4, 'Error installing ZenPack %s' % eggPath,
@@ -232,10 +234,10 @@ def InstallEggAndZenPack(dmd, eggPath, link=False,
         raise
     if sendEvent:
         zenPackIds = [zp.id for zp in zenPacks]
-        if zenPackName in zenPackIds:
+        if zenPackIds:
             ZPEvent(dmd, 2, 'Installed ZenPacks %s' % ','.join(zenPackIds))
         else:
-            ZPEvent(dmd, 4, 'Unable to install ZenPack %s' % zenPackName)
+            ZPEvent(dmd, 4, 'Unable to install %s' % eggPath)
     return zenPacks
 
 
@@ -243,16 +245,12 @@ def InstallEgg(dmd, eggPath, link=False):
     """
     Install the given egg and add to the current working set.
     This does not install the egg as a ZenPack.
+    Return a list of distributions that should be installed as ZenPacks.
     """
     eggPath = os.path.abspath(eggPath)
     zenPackDir = zenPath('ZenPacks')
     eggInZenPacksDir = eggPath.startswith(zenPackDir + '/')
-    
-    # On upgrade, if location is switching, we should delete the old
-    # location zenpack.deleteFilesOnRemove().  This way people could move
-    # zenpacks in development out of ZenPacks dir with a simple reinstall
-    # from another location.
-    
+        
     # Make sure $ZENHOME/ZenPacks exists
     CreateZenPacksDir()
 
@@ -270,23 +268,34 @@ def InstallEgg(dmd, eggPath, link=False):
         errors = p.stderr.read()
         if errors:
             sys.stderr.write('%s\n' % errors)
+        zpDists = AddDistToWorkingSet(eggPath)
     else:
-        cmd = 'easy_install --always-unzip --site-dirs=%s -d %s %s' % (
-                    zenPackDir,
-                    zenPackDir,
-                    eggPath)
-        p = subprocess.Popen(cmd,
-                            stdout=subprocess.PIPE,
-                            stderr=subprocess.PIPE,
-                            shell=True)
-        p.wait()
-        eggName = os.path.split(eggPath)[1]
-        eggPath = os.path.join(zenPackDir, eggName)
+        zpDists = DoEasyInstall(eggPath)
+        # cmd = 'easy_install --always-unzip --site-dirs=%s -d %s %s' % (
+        #             zenPackDir,
+        #             zenPackDir,
+        #             eggPath)
+        # p = subprocess.Popen(cmd,
+        #                     stdout=subprocess.PIPE,
+        #                     stderr=subprocess.PIPE,
+        #                     shell=True)
+        # p.wait()
+        # eggName = os.path.split(eggPath)[1]
+        # eggPath = os.path.join(zenPackDir, eggName)
 
-    # Add egg to working_set
-    zenPackName = AddDistToWorkingSet(eggPath)
+    return zpDists
 
-    return zenPackName
+
+# def GetZenPackNamesFromEggPath(eggPath):
+#     """
+#     Given a path to a ZenPack egg (installed or not) return the 
+#     name of the ZenPack it contains.
+#     """
+#     zpNames = []
+#     for d in pkg_resources.find_distributions(eggPath)
+#         if d.project_name.startswith('ZenPacks.'):
+#             zpNames.append(d.project_name)
+#     return zpNames
 
 
 def InstallDistAsZenPack(dmd, dist, filesOnly=False):
@@ -327,8 +336,11 @@ def InstallDistAsZenPack(dmd, dist, filesOnly=False):
                 packables.append(p)
                 existing.packables.removeRelation(p)
             if existing.isEggPack():
+                forceNoFileDeletion = existing.eggPath() == dist.location
                 RemoveZenPack(dmd, existing.id, 
-                                skipDepsCheck=False, leaveObjects=True)
+                                skipDepsCheck=False, leaveObjects=True,
+                                forceNoFileDeletion=forceNoFileDeletion,
+                                uninstallEgg=False)
             else:
                 oldzenpack.RemoveZenPack(dmd, existing.id,
                                 skipDepsCheck=False, leaveObjects=True)
@@ -344,7 +356,7 @@ def InstallDistAsZenPack(dmd, dist, filesOnly=False):
     return zenPack
 
 
-def DiscoverAndInstall(dmd, zenPackId):
+def DiscoverAndInstall(dmd, zpNames):
     """
     Discover installed eggs that provide zenoss.zenpacks entry points.
     Install into Zenoss those that aren't already.
@@ -427,17 +439,16 @@ def AddDistToWorkingSet(distPath):
     Given the path to a dist (an egg) add it to the current working set.
     This is basically a pkg_resources-friendly way of adding it to
     sys.path.
-    If the dist was added successfully then return the name of the
-    dist project, otherwise return None
+    Return a list of all distributions on distPath that appear to
+    be ZenPacks.
     """
-    distGen = pkg_resources.find_distributions(distPath)
-    try:
-        dist = distGen.next()
-    except StopIteration:
-        return None
-    pkg_resources.working_set.add(dist)
-    pkg_resources.require(dist.project_name)
-    return dist.project_name
+    zpDists = []
+    for d in pkg_resources.find_distributions(distPath):
+        pkg_resources.working_set.add(d)
+        pkg_resources.require(d.project_name)
+        if d.project_name.startswith('ZenPacks.'):
+            zpDists.append(d)
+    return zpDists
 
 
 def ReadZenPackInfo(dist):
@@ -490,6 +501,51 @@ def CreateZenPacksDir():
         os.mkdir(zpDir, 0750)
 
 
+def DoEasyInstall(eggPath):
+    """
+    Use easy_install to install an egg from the filesystem.
+    easy_install will install the egg, but does not install it into
+    Zenoss as ZenPacks.
+    Returns a list of distributions that were installed that appear
+    to be ZenPacks.
+    """
+    from setuptools.command import easy_install
+    
+    # Make sure $ZENHOME/ZenPacks exists
+    CreateZenPacksDir()
+    
+    # Create temp file for easy_install to write results to
+    _, tempPath = tempfile.mkstemp(prefix='zenpackcmd-easyinstall')
+    # eggPaths is a set of paths to eggs that were installed.  We need to
+    # add them to the current workingset so we can discover their
+    # entry points.
+    eggPaths = set()
+    try:
+        # Execute the easy_install
+        args = ['--site-dirs', zenPath('ZenPacks'),
+            '-d', zenPath('ZenPacks'),
+            # '-i', ZEN_PACK_INDEX_URL,
+            '--record', tempPath,
+            '--quiet',
+            eggPath]
+        easy_install.main(args)
+        # Collect the paths for eggs that were installed
+        f = open(tempPath, 'r')
+        marker = '.egg/'
+        markerOffset = len(marker)-1
+        for l in f.readlines():
+            i = l.find(marker)
+            if i > 0:
+                eggPaths.add(l[:i+markerOffset])
+    finally:
+        os.remove(tempPath)
+    # Add any installed eggs to the current working set
+    zpDists = []
+    for path in eggPaths:
+        zpDists += AddDistToWorkingSet(path)
+    return zpDists
+
+
 ########################################
 #   Zenoss.Net
 ########################################
@@ -500,9 +556,11 @@ def FetchAndInstallZenPack(dmd, zenPackName, zenPackVersion='', sendEvent=True):
     Fetch the named zenpack and all its dependencies and install them.
     Return a list of the ZenPacks that were installed.
     """
+    zenPacks = []
     try:
-        FetchZenPack(zenPackName, zenPackVersion)
-        zenPacks = DiscoverAndInstall(dmd, zenPackName)
+        zpDists = FetchZenPack(zenPackName, zenPackVersion)
+        for d in zpDists:
+            zenPacks.append(InstallDistAsZenPack(dmd, d))
     except:
         if sendEvent:
             ZPEvent(dmd, 4, 'Failed to install ZenPack %s' % zenPackName,
@@ -522,8 +580,11 @@ def FetchZenPack(zenPackName, zenPackVersion=''):
     Use easy_install to retrieve the given zenpack and any dependencies.
     easy_install will install the eggs, but does not install them into
     Zenoss as ZenPacks.
-    Return list of project_names of installed distributions.  These are
-    probably all ZenPacks, but possibly not.
+    Return a list of distributions just installed that appear to be
+    ZenPacks.
+    
+    NB: This should be refactored.  It shares most of its code with
+    DoEasyInstall()
     """
     from setuptools.command import easy_install
     
@@ -556,11 +617,10 @@ def FetchZenPack(zenPackName, zenPackVersion=''):
     finally:
         os.remove(tempPath)
     # Add any installed eggs to the current working set
-    distProjectNames = []
+    zpDists = []
     for path in eggPaths:
-        projectName = AddDistToWorkingSet(path)
-        distProjectNames.append(projectName)
-    return distProjectNames
+        zpDists += AddDistToWorkingSet(path)
+    return zpDists
 
 
 def UploadZenPack(dmd, packName, project, description, znetUser, znetPass):
@@ -607,7 +667,8 @@ def UploadZenPack(dmd, packName, project, description, znetUser, znetPass):
 
 
 def RemoveZenPack(dmd, packName, filesOnly=False, skipDepsCheck=False,
-                    leaveObjects=False, sendEvent=True):
+                    leaveObjects=False, sendEvent=True, 
+                    forceNoFileDeletion=False, uninstallEgg=True):
     """
     Remove the given ZenPack from Zenoss.
     Whether the ZenPack will be removed from the filesystem or not
@@ -634,6 +695,7 @@ def RemoveZenPack(dmd, packName, filesOnly=False, skipDepsCheck=False,
                                                 packName)
             zp.remove(dmd, leaveObjects)
             dmd.ZenPackManager.packs._delObject(packName)
+            transaction.commit()
 
         # Uninstall the egg and possibly delete it
         # If we can't find the distribution then apparently the zp egg itself is
@@ -647,35 +709,38 @@ def RemoveZenPack(dmd, packName, filesOnly=False, skipDepsCheck=False,
             # Determine deleteFiles before develop -u gets called.  Once
             # it is called the egg has problems figuring out some of it's state.
             deleteFiles = zp.shouldDeleteFilesOnRemoval()
-            if zp.isDevelopment():
-                zenPackDir = zenPath('ZenPacks')
-                cmd = ('python setup.py develop -u '
-                        '--site-dirs=%s ' % zenPackDir +
-                        '-d %s' % zenPackDir)
-                p = subprocess.Popen(cmd,
-                                    stdout=subprocess.PIPE,
-                                    stderr=subprocess.PIPE,
-                                    shell=True,
-                                    cwd=zp.eggPath())
-                p.wait()
-                errors = p.stderr.read()
-                if errors:
-                    raise ZenPackException(errors)
-            else:
-                # Do we need to call easy_install -m here?  It causes problems
-                # because it tries to install deps.  However, we might be leaving
-                # around lines in easy-install.pth otherwise.
-                pass
-            if deleteFiles:
+            if uninstallEgg:
+                if zp.isDevelopment():
+                    zenPackDir = zenPath('ZenPacks')
+                    cmd = ('python setup.py develop -u '
+                            '--site-dirs=%s ' % zenPackDir +
+                            '-d %s' % zenPackDir)
+                    p = subprocess.Popen(cmd,
+                                        stdout=subprocess.PIPE,
+                                        stderr=subprocess.PIPE,
+                                        shell=True,
+                                        cwd=zp.eggPath())
+                    p.wait()
+                    errors = p.stderr.read()
+                    if errors:
+                        raise ZenPackException(errors)
+                else:
+                    DoEasyUninstall(packName)
+            # elif cleanupEasyInstallPth:
+            #     # Do we need to call easy_install -m here?  It causes problems
+            #     # because it tries to install deps.  Cleanup easy-install.pth
+            #     # ourselves instead.
+            #     # We don't want to cleanup easy-install.pth when a newer
+            #     # version of the egg has already been installed (when doing
+            #     # an upgrade or installing in new location.)
+            #     eggLink = './%s' % zp.eggName()
+            #     CleanupEasyInstallPth(eggLink)
+            if deleteFiles and not forceNoFileDeletion:
                 eggDir = zp.eggPath()
                 if os.path.islink(eggDir):
                     os.remove(eggDir)
                 else:
                     shutil.rmtree(eggDir)
-                # Looks like maybe this is not needed.  at least some of the 
-                # time the easy-install.pth file is removed by setuptools
-                # eggLink = './%s' % zp.eggName()
-                #CleanupEasyInstallPth(eggLink)
         cleanupSkins(dmd)
         transaction.commit()
     except:
@@ -685,6 +750,24 @@ def RemoveZenPack(dmd, packName, filesOnly=False, skipDepsCheck=False,
         raise
     if sendEvent:
         ZPEvent(dmd, 2, 'Removed ZenPack %s' % packName)
+
+
+def DoEasyUninstall(name):
+    """
+    Execute the easy_install command to unlink the given egg.
+    What this is really doing is switching the egg to be in
+    multiple-version mode, however this is the first step in deleting
+    an egg as described here:
+    http://peak.telecommunity.com/DevCenter/EasyInstall#uninstalling-packages
+    """
+    from setuptools.command import easy_install        
+    args = ['--site-dirs', zenPath('ZenPacks'),
+        '-d', zenPath('ZenPacks'),
+        #'--record', tempPath,
+        '--quiet',
+        '-m',
+        name]
+    easy_install.main(args)
 
 
 def CanRemoveZenPacks(dmd, packNames):
@@ -702,15 +785,30 @@ def CanRemoveZenPacks(dmd, packNames):
     return (not unhappy and True or False, list(unhappy))
 
 
-def CleanupEasyInstallPth(eggLink):
-    # Remove the path from easy-install.pth
-    easyPth = zenPath('ZenPacks', 'easy-install.pth')
-    f = open(easyPth, 'r')
-    newLines = [l for l in f if l.strip() != eggLink]
-    f.close()
-    f = open(easyPth, 'w')
-    f.writelines(newLines)
-    f.close()
+# def CleanupEasyInstallPth(eggLink):
+#     """
+#     Remove the entry for the given egg from the 
+#     $ZENHOME/ZenPacks/easy-install.pth file.  If this entry is left
+#     in place in can cause problems during the next install of the same
+#     egg.
+#     """
+#     # Remove the path from easy-install.pth
+#     eggTail = os.path.split(eggLink)[1]
+#     easyPth = zenPath('ZenPacks', 'easy-install.pth')
+#     if os.path.isfile(easyPth):
+#         needToWrite = False
+#         newLines = []
+#         f = open(easyPth, 'r')
+#         for line in f:
+#             if os.path.split(line.strip())[1] == eggTail:
+#                 needToWrite = True
+#             else:
+#                 newLines.append(line)
+#         f.close()
+#         if needToWrite:
+#             f = open(easyPth, 'w')
+#             f.writelines(newLines)
+#             f.close()
 
 
 def GetDependents(dmd, packName):
