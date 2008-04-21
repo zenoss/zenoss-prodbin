@@ -363,7 +363,11 @@ def InstallDistAsZenPack(dmd, dist, filesOnly=False):
             # We skipped deleteing the existing files from filesystem
             # because maybe they'd be needed in migrate scripts.
             # Delete them now
-            shutil.rmtree(zenPath('Products', existing.id))
+            oldZpDir = zenPath('Products', existing.id)
+            if os.path.islink(oldZpDir):
+                os.remove(oldZpDir)
+            else:
+                shutil.rmtree(oldZpDir)
 
     cleanupSkins(dmd)
     transaction.commit()
