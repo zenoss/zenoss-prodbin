@@ -21,7 +21,12 @@ import Migrate
 import re
 
 class FixOldTemplates(Migrate.Step):
-    version = Migrate.Version(2, 1, 2)
+    version = Migrate.Version(2, 2, 0)
+
+    def __init__(self):
+        Migrate.Step.__init__(self)
+        import twotwoindexing
+        self.dependencies = [ twotwoindexing.twotwoindexing ]
 
     def cutover(self, dmd):
         for template in dmd.Devices.getAllRRDTemplates():

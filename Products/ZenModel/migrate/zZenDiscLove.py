@@ -14,7 +14,7 @@
 import Migrate
 
 class zZenDiscLove(Migrate.Step):
-    version = Migrate.Version(2, 1, 2)
+    version = Migrate.Version(2, 2, 0)
     
     def cutover(self, dmd):
         if not dmd.Networks.hasProperty('zAutoAllocateScript'):
@@ -27,5 +27,3 @@ class zZenDiscLove(Migrate.Step):
 
 
 zZenDiscLove()
-
-
