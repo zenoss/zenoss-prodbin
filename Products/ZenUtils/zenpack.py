@@ -28,7 +28,8 @@ import ZenPackCmd as EggPackCmd
 
 
 def RemoveZenPack(dmd, packName, log=None, 
-                        skipDepsCheck=False, leaveObjects=True):
+                        skipDepsCheck=False, leaveObjects=True,
+                        deleteFiles=True):
     if log:
         log.debug('Removing Pack "%s"' % packName)
     if not skipDepsCheck:
@@ -49,12 +50,13 @@ def RemoveZenPack(dmd, packName, log=None,
         zp.remove(dmd, leaveObjects=True)
         dmd.ZenPackManager.packs._delObject(packName)
     root = zenPath('Products', packName)
-    if log:
-        log.debug('Removing %s' % root)
-    recurse = ""
-    if os.path.isdir(root):
-        recurse = "r"
-    os.system('rm -%sf %s' % (recurse, root))
+    if deleteFiles:
+        if log:
+            log.debug('Removing %s' % root)
+        recurse = ""
+        if os.path.isdir(root):
+            recurse = "r"
+        os.system('rm -%sf %s' % (recurse, root))
     cleanupSkins(dmd)
     return True
 

@@ -331,6 +331,7 @@ def InstallDistAsZenPack(dmd, dist, filesOnly=False):
         if not existing and zenPack.prevZenPackName:
             existing = dmd.ZenPackManager.packs._getOb(
                                 zenPack.prevZenPackName, None)
+        deferFileDeletion = False
         packables = []
         if existing:
             for p in existing.packables():
@@ -346,14 +347,23 @@ def InstallDistAsZenPack(dmd, dist, filesOnly=False):
                                 forceNoFileDeletion=forceNoFileDeletion,
                                 uninstallEgg=False)
             else:
+                # Don't delete files, might still be needed for 
+                # migrate scripts to be run below.
+                deferFileDeletion = True
                 oldzenpack.RemoveZenPack(dmd, existing.id,
-                                skipDepsCheck=False, leaveObjects=True)
+                                skipDepsCheck=False, leaveObjects=True,
+                                deleteFiles=False)
 
         dmd.ZenPackManager.packs._setObject(packName, zenPack)
         zenPack = dmd.ZenPackManager.packs._getOb(packName)
         zenPack.install(dmd)
         for p in packables:
-            zenPack.packables.addRelation(p)        
+            zenPack.packables.addRelation(p)
+        if deferFileDeletion:
+            # We skipped deleteing the existing files from filesystem
+            # because maybe they'd be needed in migrate scripts.
+            # Delete them now
+            shutil.rmtree(zenPath('Products', existing.id))
 
     cleanupSkins(dmd)
     transaction.commit()
