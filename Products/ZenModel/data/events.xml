@@ -5351,16 +5351,6 @@ history
 </object>
 </object>
 <object id='Users' module='Products.ZenEvents.EventClass' class='EventClass'>
-<object id='edahl' module='Products.ZenEvents.EventClass' class='EventClass'>
-<object id='zenoss' module='Products.ZenEvents.EventClass' class='EventClass'>
-<object id='Products' module='Products.ZenEvents.EventClass' class='EventClass'>
-<object id='ZenEvents' module='Products.ZenEvents.EventClass' class='EventClass'>
-<object id='ZenEventClasses.pyc' module='Products.ZenEvents.EventClass' class='EventClass'>
-</object>
-</object>
-</object>
-</object>
-</object>
 </object>
 </object>
 </objects>
