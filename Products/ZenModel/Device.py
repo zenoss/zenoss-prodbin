@@ -269,6 +269,9 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
             "managedObject")),
         ('userCommands', ToManyCont(ToOne, 'Products.ZenModel.UserCommand', 
             'commandable')),
+        # unused:
+        ('monitors', ToMany(ToMany, 'Products.ZenModel.StatusMonitorConf',
+            'devices')),
         )
 
     # Screen action bindings (and tab definitions)
