@@ -1681,14 +1681,11 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
         '''
         if status < 0:
             src = 'grey'
-        elif status == 0:
-            src = 'green'
-        elif status == 1:
-            src = 'yellow'
-        elif status == 2:
-            src = 'yellow'
-        else:
-            src = 'red'
+        colors = "green yellow orange red".split()
+            try:
+                src = colors[status]
+            except IndexError:
+                src = 'red'
         return '/zport/dmd/img/%s_dot.png' % src
 
 
