@@ -38,7 +38,7 @@ from twisted.internet.defer import DeferredList
 
 MAX_THREADS_WAITING = 10
 MAX_WAIT_FOR_WMI_REQUEST = 10
-DEFAULT_QUERY_TIMEOUT = 500
+DEFAULT_QUERY_TIMEOUT = 100
 
 class WinCollector(PBDaemon):
 
