@@ -48,10 +48,10 @@ class TestDeviceInstanceOsTab(TestDeviceInstanceBase):
         """Customized setUp for testing under the OS tab"""
         TestDeviceInstanceBase.setUp(self)
         self._goToOSTab()
-    
+        
     def tearDown(self):
         """Customized setUp for testing under the OS tab"""
-        
+
         self._goToOSTab()
         TestDeviceInstanceBase.tearDown(self)
     
@@ -274,10 +274,10 @@ class TestDeviceInstanceManageDevice(TestDeviceInstanceBase):
         self.selenium.click("link=Device List")
         #self.selenium.wait_for_page_to_load(self.WAITTIME)
         self.waitForElement("name=evids:list " + curtarget)
-        self.assert_(self.selenium.is_element_present("//img[@src='locked-update-icon.png']"))
-        self.assert_(self.selenium.is_element_present("//img[@src='locked-delete-icon.png']"))
         # Unlocking the device now
         self.goToDevice(curtarget)
+        self.assert_(self.selenium.is_element_present("//img[@src='locked-update-icon.png']"))
+        self.assert_(self.selenium.is_element_present("//img[@src='locked-delete-icon.png']"))
         self.waitForElement("link=Lock...") 
         self.selenium.click("link=Lock...") 
         self.waitForElement("dialog_cancel")
