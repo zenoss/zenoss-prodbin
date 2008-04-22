@@ -217,7 +217,7 @@ class zenwinmodeler(WinCollector):
                         wcode, source, descr, hfile, hcont, scode = info
                         scode = abs(scode)
                         if descr: wmsg = descr.strip()
-                    msg += "%d: %s" % (scode, wmsg)
+                    msg += " %d: %s" % (scode, wmsg)
                 if msg.find('RPC_S_CALL_FAILED') >= 0:
                     # transient error, log it but don't create an event
                     self.log.exception('Ignoring: %s' % msg)
