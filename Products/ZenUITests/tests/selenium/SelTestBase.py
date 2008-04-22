@@ -220,6 +220,7 @@ class SelTestBase(unittest.TestCase):
         self.waitForElement("manage_addOSProcessClass:method")
         self.selenium.type("id", "httpd")
         self.selenium.click("manage_addOSProcessClass:method")
+        self.selenium.wait_for_page_to_load(self.WAITTIME)
 
     def deleteOSProcessClasses(self):
         """Deletes an OSProcessClass"""
