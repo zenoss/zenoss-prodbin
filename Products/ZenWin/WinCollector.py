@@ -38,6 +38,7 @@ from twisted.internet.defer import DeferredList
 
 MAX_THREADS_WAITING = 10
 MAX_WAIT_FOR_WMI_REQUEST = 10
+DEFAULT_QUERY_TIMEOUT = 500
 
 class WinCollector(PBDaemon):
 
@@ -139,20 +140,24 @@ class WinCollector(PBDaemon):
     def buildOptions(self):
         PBDaemon.buildOptions(self)
         self.parser.add_option('-d', '--device', 
-                               dest='device', 
-                               default=None,
-                               help="single device to collect")
+            dest='device', 
+            default=None,
+            help="single device to collect")
         self.parser.add_option('--debug', 
-                               dest='debug', 
-                               default=False,
-                               action='store_true',
-                               help="turn on additional debugging")
+            dest='debug', 
+            default=False,
+            action='store_true',
+            help="turn on additional debugging")
         self.parser.add_option('--proxywmi', 
-                               dest='proxywmi', 
-                               default=False,
-                               action='store_true',
-                               help="use a process proxy to avoid long-term blocking")
-
+            dest='proxywmi', 
+            default=False,
+            action='store_true',
+            help="use a process proxy to avoid long-term blocking") 
+        self.parser.add_option('--queryTimeout', 
+            dest='queryTimeout', 
+            default=DEFAULT_QUERY_TIMEOUT,
+            help='The number of milliseconds to wait for WMI query to respond.'
+                ' Default value is %s' % DEFAULT_QUERY_TIMEOUT)
 
     def configService(self):
         return self.services.get('Products.ZenWin.services.WmiConfig', 
