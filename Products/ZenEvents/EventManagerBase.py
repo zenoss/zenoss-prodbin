@@ -1681,7 +1681,8 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
         '''
         if status < 0:
             src = 'grey'
-        colors = "green yellow orange red".split()
+        else:
+            colors = "green yellow orange red".split()
             try:
                 src = colors[status]
             except IndexError:
