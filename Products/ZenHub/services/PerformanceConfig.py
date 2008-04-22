@@ -85,7 +85,7 @@ class SnmpConnInfo(pb.Copyable, pb.RemoteCopy):
             elif self.zSnmpAuthType:
                 cmdLineArgs += ['-l', 'authNoPriv']
             else:
-                cmdLineArgs += ['-l', 'authNoAuthNoPriv']
+                cmdLineArgs += ['-l', 'noAuthNoPriv']
             if self.zSnmpAuthType:
                 cmdLineArgs += ['-a', self.zSnmpAuthType]
                 cmdLineArgs += ['-A', self.zSnmpAuthPassword]
