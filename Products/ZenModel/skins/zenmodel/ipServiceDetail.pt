@@ -85,7 +85,7 @@
                       tal:content="python: '\n'.join(here.ipaddresses)"/>
         </td>
     </tr>
-    <tr tal:condition="python:here.protocol!='udp'">
+    <tr>
         <td class="tableheader">Monitor</td>
         <td class="tablevalues" 
                 tal:condition="python:not here.cantMonitor() and manager">
