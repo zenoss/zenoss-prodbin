@@ -1091,6 +1091,7 @@ Dialog.Box.prototype = {
         var textboxes = elements[1];
         var submits = elements[2];
         var submt = submits[0];
+        first.focus();
         var connectTextboxes = function(box) {
             connect(box, 'onkeyup', function(e){
                 if (e.key().string=='KEY_ENTER') submt.click();
