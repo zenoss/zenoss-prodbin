@@ -103,9 +103,8 @@
         // This is what keeps the return/enter key in the device filter
         // field from submitting the form.
         $('addToCollectionForm').onsubmit = function() {return false;}
-    
-        connect('addToCollectionBtn', 'onclick',
-                $('addToCollectionForm'), 'submit');
+        var submitform = function(){$('addToCollectionForm').submit()};
+        connect('addToCollectionBtn', 'onclick', submitform);
         connect('deviceFilter', 'onkeydown', handleDeviceKeys);
         connect('filterButton', 'onclick', getDeviceList);
         connect('itemType', 'onchange', handleItemType);
