@@ -61,7 +61,7 @@ FakeXHR.prototype = {
     getData: function(url) {
         this.deferreds[url] = this.lock.acquire();
         this.deferreds[url].addCallback(bind(function(){
-            this.IFrameProxy.onload = this.registerResponse;
+            connect(this.IFrameProxy, 'onload', this.registerResponse);
             this.IFrameProxy.src = url;
         }, this));
     },
@@ -319,7 +319,8 @@ ZenRRDGraph.prototype = {
     },
 
     loadImage : function() {
-        checkurl = this.url+'&getImage=&graphid='+this.obj.id+'&ftype=html';
+        checkurl = this.url+'&getImage=&graphid='+this.obj.id+'&ftype=html'+
+            '&ms='+new Date().getTime();
         var onSuccess = bind(function(r) {
             if (r.responseText=='True') {
                 if (this.obj.src!=this.url) {
