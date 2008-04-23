@@ -438,7 +438,11 @@ DeviceZenGrid.prototype = {
         var cell = e.src();
         var f = fieldmap[cell.getElementsByTagName('div')[0].innerHTML];
         var headcells = this.headers.getElementsByTagName('td');
-        var clearcell = function(cell){setStyle(cell,{'background':null,'color':null})}
+        var clearcell = function(cell){
+            try {
+                setStyle(cell,{'background':null,'color':null});
+            } catch(e) { noop(); }
+        }
         map(clearcell, headcells);
         if (f) {
         if (this.lastparams['orderby']==f) {
