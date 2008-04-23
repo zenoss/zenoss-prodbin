@@ -78,14 +78,9 @@
                 tal:content="device/id">device
             </a>
         </td>
-        <td class='tablevalues' tal:define="severity python:4">
-        <table width="100%" cellspacing='1' cellpadding='3' 
-            tal:on-error="structure string:
-                <span class='errorvalues'>Events unavailable</span>">
-            <tr>
-                <td tal:content="structure device/getEventPill"/>
-          </tr>
-        </table>
+        <td class='tablevalues' tal:define="severity python:4;">
+            <tal:block tal:condition="python:device.meta_type=='Device'" 
+                       tal:content="structure device/getEventPill"/>
         </td>
     </tr>
     </tal:block>
