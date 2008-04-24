@@ -65,7 +65,7 @@ start() {
     else
         echo starting...
 	case "$PRGNAME" in 
-	     zenwin* | zeneventlog* ) WATCHDOG=--watchdog ;;
+	     zenwinmodeler | zenwin | zeneventlog ) WATCHDOG=--watchdog ;;
 	     * ) 	WATCHDOG=
         esac
         if [ "$CFGFILE" = "" ]; then
