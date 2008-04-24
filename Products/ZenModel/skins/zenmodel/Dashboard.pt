@@ -30,9 +30,11 @@ var ContainerObject;
 function initDashboardPortlets() {
     ContainerObject = new YAHOO.zenoss.portlet.PortletContainer(
         'portletContainer');
+   YAHOO.zenoss.globalPortletContainer = ContainerObject;
     if (dashboardState) {
         ContainerObject.restore(dashboardState);
     } else {
+        // Create a default dashboard
         ContainerObject.setLayout('2coleq', false);
         p1 = new YAHOO.zenoss.portlet.ProdStatePortlet({id:'prodstates'});
         p2 = new YAHOO.zenoss.portlet.DeviceIssuesPortlet({id:'devissues'});
@@ -47,3 +49,4 @@ YAHOO.zenoss.loader.insert({ 'onSuccess':initDashboardPortlets });
 </script>
 </tal:block>
 </tal:block>
+

@@ -34,6 +34,8 @@ var pc_layouts = {
     '3col':   [3, 'yui-gb']
 };
 
+YAHOO.namespace('zenoss.globalPortletContainer');
+
 function getUID(base) {
     return base + new Date().getTime();
 }
@@ -300,6 +302,13 @@ PortletContainer.prototype = {
         this.columnContainer = null;
         this.isDirty = false;
     },
+    goodConnection: function() {
+        setInnerHTML($('connectionmessage'), 
+                'Last updated ' + toISOTimestamp(new Date()) + '.');
+    },
+    brokenConnection: function() {
+        setInnerHTML($('connectionmessage'), 'Lost connection to the server.');
+    },
     setContainerHeight: function() {
         var heights = [];
         for (var i=0;i<this.columns.length;i++) {
@@ -438,12 +447,15 @@ PortletContainer.prototype = {
         this.dialogLink = A({'class':"tinylink"}, "Configure layout...");
         this.portDialogLink = A({'class':"tinylink"}, "Add portlet...");
         this.doRefresh = A({'class':"tinylink"}, "Stop Refresh");
+        messagebox = DIV({'class':'msgbox', 'id':'connectionmessage'},
+            'Last updated ' + toISOTimestamp(new Date()) + '.');
         connect(this.dialogLink, "onclick", this.showLayoutDialog);
         connect(this.portDialogLink, "onclick", this.showAddPortletDialog);
         connect(this.doRefresh, "onclick", this.stopRefresh);
         var newContainer = DIV({'class':colsclass}, 
-            [DIV({'class':'tinylink-container'}, 
-                [this.doRefresh, this.portDialogLink, this.dialogLink]), 
+            [DIV({'class':'tinylink-container'}, [
+                messagebox, 
+                this.doRefresh, this.portDialogLink, this.dialogLink]), 
              this.columnElements()]);
         if (!this.columnContainer) {
             this.columnContainer = newContainer;
@@ -590,7 +602,13 @@ XHRDatasource.prototype = {
     get: function(callback) {
         this.callback = callback;
         var d = doXHR(this.url);
-        d.addCallback(callback);
+        d.addCallback(function(r){
+            YAHOO.zenoss.globalPortletContainer.goodConnection();
+            callback(r);
+        });
+        d.addErrback(function(){
+            YAHOO.zenoss.globalPortletContainer.brokenConnection()
+        });
         return d;
     }
 }
@@ -628,7 +646,11 @@ TableDatasource.prototype = {
             sendContent: serializeJSON(this.postContent)
         });
         d.addCallback(bind(function(r){
+            YAHOO.zenoss.globalPortletContainer.goodConnection();
             this.parseResponse(r, callback)},this));
+        d.addErrback(function(){
+            YAHOO.zenoss.globalPortletContainer.brokenConnection()
+        });
     },
     parseResponse: function(response, callback) {
         response = evalJSONRequest(response);
