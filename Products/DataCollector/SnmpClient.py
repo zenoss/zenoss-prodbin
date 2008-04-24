@@ -85,7 +85,7 @@ class SnmpClient(object):
     def doRun(self, driver):
         # test snmp connectivity
         log.debug("Testing SNMP configuration")
-        yield self.proxy.walk('.1')
+        yield self.proxy.walk('.1.3')
         try:
             driver.next()
         except TimeoutError, ex:
