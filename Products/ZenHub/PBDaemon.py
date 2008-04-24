@@ -200,7 +200,6 @@ class PBDaemon(ZenDaemon, pb.Referenceable):
                 self.log.error('Timeout connecting to zenhub: is it running?')
             else:
                 self.log.error('Unable to connect to zenhub: \n%s' % error)
-            self.stop()
         d.addCallbacks(callback, errback)
         reactor.run()
         self.log.info('%s shutting down' % self.name)
