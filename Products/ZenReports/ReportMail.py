@@ -117,7 +117,6 @@ class Page(HTMLParser):
             self.title += data
 
     def slurp(self, url):
-        self.base = url.strip()
         req = urllib2.Request(url)
         encoded = base64.encodestring('%s:%s' % (self.user, self.passwd))[:-1]
         req.add_header("Authorization", "Basic %s" % encoded)
@@ -129,6 +128,7 @@ class Page(HTMLParser):
         return result
 
     def fetch(self, url):
+        self.base = url.strip()
         self.feed(self.slurp(url).read())
 
     def mail(self):
