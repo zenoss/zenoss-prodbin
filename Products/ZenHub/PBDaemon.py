@@ -23,9 +23,11 @@ from Products.ZenEvents.ZenEventClasses import Heartbeat
 from Products.ZenUtils.PBUtil import ReconnectingPBClientFactory
 from Products.ZenUtils.DaemonStats import DaemonStats
 
-from twisted.internet import reactor, defer
-from twisted.internet.defer import TimeoutError
 from twisted.cred import credentials
+from twisted.internet import reactor, defer
+from twisted.internet.error import ConnectionLost
+from twisted.internet.defer import TimeoutError
+from twisted.python.failure import Failure
 from twisted.spread import pb
 
 class RemoteException(Exception, pb.Copyable, pb.RemoteCopy):
@@ -194,7 +196,6 @@ class PBDaemon(ZenDaemon, pb.Referenceable):
             self.connected()
             return result
         def errback(error):
-            from twisted.python.failure import Failure
             if (isinstance(error, Failure) and \
                 isinstance(error.value, TimeoutError)):
                 self.log.error('Timeout connecting to zenhub: is it running?')
@@ -252,7 +253,10 @@ class PBDaemon(ZenDaemon, pb.Referenceable):
             # event service we should just log events that don't get sent
             # and then drop them.
             if reactor.running:
-                self.log.error('Error sending event: %s' % error)
+                # don't complain if you get disconnected: you'll reconnect
+                if not (isinstance(error, Failure) and
+                        isinstance(error.value, ConnectionLost)):
+                    self.log.error('Error sending event: %s' % error)
                 self.eventQueue.append(event)
         if event:
             self.eventQueue.append(event)
