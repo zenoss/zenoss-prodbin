@@ -91,7 +91,18 @@ class ZenPackPersistence(object):
         """
         Return the ZenPack instance that provides this object.
         """
+        # NB: we can probably use self.dmd rather than passing in a context
         return context.dmd.ZenPackManager.packs._getOb(self.ZENPACKID, None)
+    
+    
+    def path(self, *parts):
+        """
+        Return the path to the installed ZenPack directory or a subdirectory.
+        Example: zenpack.path('libexec') would return something like
+        $ZENHOME/ZenPacks/ZenPacks.Me.MyZenPack/ZenPacks/Me/MyZenPack/libexec
+        """
+        zp = self.getZenPack(self)
+        return zp.path(*parts)
 
 
     # index_object and unindex_object are overridden so that instances
