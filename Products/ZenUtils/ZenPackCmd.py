@@ -256,7 +256,7 @@ def InstallEgg(dmd, eggPath, link=False):
 
     # Install the egg
     if link:
-        cmd = ('python setup.py develop '
+        cmd = ('%s setup.py develop ' % zenPath('bin', 'python') +
                 '--site-dirs=%s ' % zenPackDir +
                 '-d %s' % zenPackDir)
         p = subprocess.Popen(cmd,
@@ -730,7 +730,8 @@ def RemoveZenPack(dmd, packName, filesOnly=False, skipDepsCheck=False,
             if uninstallEgg:
                 if zp.isDevelopment():
                     zenPackDir = zenPath('ZenPacks')
-                    cmd = ('python setup.py develop -u '
+                    cmd = ('%s setup.py develop -u '
+                            % zenPath('bin', 'python') +
                             '--site-dirs=%s ' % zenPackDir +
                             '-d %s' % zenPackDir)
                     p = subprocess.Popen(cmd,
@@ -874,17 +875,29 @@ class ZenPackCmd(ZenScriptBase):
         """
 
         self.connect()
-        def PrintInstalled(installed):
+        def PrintInstalled(installed, eggOnly=False):
             if installed:
-                print('Installed ZenPack%s: %s' % (
-                        len(installed) > 1 and 's' or '',
-                        ', '.join([i.id for i in installed])))
+                if eggOnly:
+                    names = [i['id'] for i in installed]
+                    what = 'ZenPack egg'
+                else:
+                    names = [i.id for i in installed]
+                    what = 'ZenPack'
+                print('Installed %s%s: %s' % (
+                        what,
+                        len(names) > 1 and 's' or '',
+                        ', '.join(names)))
             else:
                 print('No ZenPacks installed.')
 
         if not getattr(self.dmd, 'ZenPackManager', None):
             raise ZenPackNeedMigrateException('Your Zenoss database appears'
                 ' to be out of date. Try running zenmigrate to update.')
+        if self.options.eggOnly and self.options.eggPath:
+            zpDists = InstallEgg(self.dmd, self.options.eggPath, 
+                                            link=self.options.link)
+            PrintInstalled([{'id':d.project_name} for d in zpDists], 
+                            eggOnly=True)
         if self.options.eggPath:
             installed = InstallEggAndZenPack(
                                 self.dmd, self.options.eggPath,
@@ -908,6 +921,8 @@ class ZenPackCmd(ZenScriptBase):
                 sys.stderr.write(str(e) + '\n')
         elif self.options.list:
             self.list()
+        else:
+            self.parser.print_help()
 
 
     def buildOptions(self):
