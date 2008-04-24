@@ -339,7 +339,7 @@ ZenGrid.prototype = {
         this.askformore.addErrback(bind(function(x) { 
             callLater(5, bind(function(){
             this.message('Unable to communicate with the server.');
-            this.clearTable();
+            this.emptyTable();
             delete this.askformore;
             this.killLoading()}, this))
         }, this));
@@ -382,7 +382,7 @@ ZenGrid.prototype = {
         this.askformore.addErrback(bind(function(x) { 
             callLater(5, bind(function(){
             this.message('Unable to communicate with the server.');
-            this.clearTable();
+            this.emptyTable();
             this.killLoading()}, this))
             delete this.askformore;
         }, this));
@@ -556,6 +556,9 @@ ZenGrid.prototype = {
             if (isManager) this.fields = concat([['&nbsp;','']], this.fields);
             updateColumns();
         }, this));
+    },
+    emptyTable: function() {
+        this.setTableNumRows(0);
     },
     clearTable: function() {
         table = this.zgtable;
