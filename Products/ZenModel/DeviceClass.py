@@ -371,11 +371,11 @@ class DeviceClass(DeviceOrganizer, ZenPackable):
     def jsonGetDeviceNames(self, query=''):
         ''' Return a list of all device names that match the filter.
         '''
-        def cmpDevice(a, b):
-            return cmp(a.id, b.id)
-        devices = self.searchDevices(query)
-        devices.sort(cmpDevice)
-        return simplejson.dumps([d.id for d in devices])
+        brains = self.deviceSearch.evalAdvancedQuery(
+                                MatchGlob('id', query.rstrip('*') + '*'))
+        deviceIds = [b.id for b in brains]
+        deviceIds.sort(lambda x, y: cmp(x.lower(), y.lower()))
+        return simplejson.dumps(deviceIds)
 
 
     security.declareProtected('View', 'jsonGetComponentPaths')
