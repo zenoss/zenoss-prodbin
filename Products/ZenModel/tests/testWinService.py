@@ -33,14 +33,11 @@ class TestWinService(ZenModelBaseTest):
 
 
     def testSetServiceClass(self):
-        """Bogus test needs to have winservices.xml loaded"""
-        pass
-        #self.wsvc.setServiceClass({'name':'ALG','description':'testsvc'})
-        #self.assert_(self.wsvc.name() == 'ALG')
-        #self.assert_(self.wsvc.caption() == 'Application Layer Gateway Service')
-        #self.assert_(self.wsvc.getInstDescription() == \
-        #             "'%s' StartMode: StartName:" % (self.wsvc.caption())\
-        #            )
+        """Short test of basic set/get working"""
+        svc = {'name':'ALG','description':'testsvc'}
+        self.wsvc.setServiceClass(svc)
+        self.assert_(self.wsvc.name() == 'ALG')
+        self.assert_(self.wsvc.getServiceClass() == svc)
     
     
     def testSetManageIp(self):
