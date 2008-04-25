@@ -103,7 +103,11 @@ class WinService(Service):
     def getServiceClass(self):
         """Return a dict like one set by zenwinmodeler for services.
         """
-        return {'name': self.name, 'description': self.description }
+        desc = self.description
+        if not desc:
+            svccl = self.serviceclass()
+            if svccl: desc = svccl.description
+        return {'name': self.name(), 'description': desc }
 
 
     def setServiceClass(self, kwargs):
