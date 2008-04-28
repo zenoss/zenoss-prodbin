@@ -13,6 +13,7 @@
 
 from socket import getfqdn
 import pywintypes
+import pythoncom
 
 import Globals
 from WinCollector import WinCollector
@@ -122,14 +123,18 @@ class zenwin(WinCollector):
                 self.deviceDown(device, '%d: %s' % (code, txt))
 
     def processLoop(self):
+        pythoncom.PumpWaitingMessages()
         for device in self.devices:
             if device.id in self.wmiprobs:
                 self.log.debug("WMI problems on %s: skipping" % device.id)
                 continue
             try:
-                self.processDevice(device)
-            except Exception, ex:
-                self.deviceDown(device, str(ex))
+                try:
+                    self.processDevice(device)
+                except Exception, ex:
+                    self.deviceDown(device, str(ex))
+            finally:
+                self.niceDoggie(self.winCycleInterval)
 
     def deviceDown(self, device, message):
         if device.id in self.watchers:

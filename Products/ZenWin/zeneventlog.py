@@ -46,71 +46,77 @@ class zeneventlog(WinCollector):
         yield self.configService().callRemote('getDeviceConfigAndWinServices', 
             driver.next())
         self.updateDevices(driver.next())
+
+    def processDevice(self, device):
+        self.log.debug("polling %s", device.id)
+        try:
+            wql = """SELECT * FROM __InstanceCreationEvent where """\
+                  """TargetInstance ISA 'Win32_NTLogEvent' """\
+                  """and TargetInstance.EventType <= %d"""\
+                  % device.zWinEventlogMinSeverity
+            if not self.watchers.has_key(device.id):
+                self.watchers[device.id] = self.getWatcher(device, wql)
+            w = self.watchers[device.id]
+
+            while 1:
+                lrec = w.boundedCall(MAX_WAIT_FOR_WMI_REQUEST, 'nextEvent')
+                if not lrec.message:
+                    continue
+                self.events += 1
+                self.sendEvent(self.mkevt(device.id, lrec))
+        except pywintypes.com_error, e:
+            msg = "wmi connection failed: "
+            code,txt,info,param = e
+            wmsg = "%s: %s" % (abs(code), txt)
+            if info:
+                wcode, source, descr, hfile, hcont, scode = info
+                scode = abs(scode)
+                if descr:
+                    wmsg = descr.strip()
+            msg += wmsg
+            if scode == TIMEOUT_CODE:
+                self.log.debug("timeout (no events) %s", device.id)
+            elif scode == RPC_ERROR_CODE:
+                self.log.warn("%s %s", device.id, msg)
+            else:
+                self.log.warn("%s %s", device.id, msg)
+                self.log.warn("removing %s", device.id)
+                self.devices.remove(device)
+        except ProcessProxyError, ex:
+            import traceback
+            traceback.print_exc()
+            self.sendEvent(dict(summary="WMI Timeout",
+                                eventClass=Status_Wmi_Conn,
+                                device=device.id,
+                                severity=Event.Error,
+                                agent=self.agent))
+            self.wmiprobs.append(device.id)
+            self.log.warning("WMI Connection to %s timed out" % device.id)
+            if self.watchers.has_key(device.id):
+                self.watchers[device.id].stop()
+                del self.watchers[device.id]
+
         
         
     def processLoop(self):
         """Run WMI queries in two stages ExecQuery in semi-sync mode.
         then process results later (when they have already returned)
         """
+        cycle = self.cycleInterval()
         pythoncom.PumpWaitingMessages()
         for device in self.devices:
             if not device.plugins: continue
             if device.id in self.wmiprobs:
                 self.log.debug("WMI problems on %s: skipping" % device.id)
                 continue
-
-            self.log.debug("polling %s", device.id)
             try:
-                wql = """SELECT * FROM __InstanceCreationEvent where """\
-                      """TargetInstance ISA 'Win32_NTLogEvent' """\
-                      """and TargetInstance.EventType <= %d"""\
-                      % device.zWinEventlogMinSeverity
-                if not self.watchers.has_key(device.id):
-                    self.watchers[device.id] = self.getWatcher(device, wql)
-                w = self.watchers[device.id]
+                self.processDevice(device)
+            finally:
+                self.niceDoggie(cycle)
 
-                while 1:
-                    lrec = w.boundedCall(MAX_WAIT_FOR_WMI_REQUEST, 'nextEvent')
-                    if not lrec.message:
-                        continue
-                    self.events += 1
-                    self.sendEvent(self.mkevt(device.id, lrec))
-            except pywintypes.com_error, e:
-                msg = "wmi connection failed: "
-                code,txt,info,param = e
-                wmsg = "%s: %s" % (abs(code), txt)
-                if info:
-                    wcode, source, descr, hfile, hcont, scode = info
-                    scode = abs(scode)
-                    if descr:
-                        wmsg = descr.strip()
-                msg += wmsg
-                if scode == TIMEOUT_CODE:
-                    self.log.debug("timeout (no events) %s", device.id)
-                elif scode == RPC_ERROR_CODE:
-                    self.log.warn("%s %s", device.id, msg)
-                else:
-                    self.log.warn("%s %s", device.id, msg)
-                    self.log.warn("removing %s", device.id)
-                    self.devices.remove(device)
-            except ProcessProxyError, ex:
-                import traceback
-                traceback.print_exc()
-                self.sendEvent(dict(summary="WMI Timeout",
-                                    eventClass=Status_Wmi_Conn,
-                                    device=device.id,
-                                    severity=Event.Error,
-                                    agent=self.agent))
-                self.wmiprobs.append(device.id)
-                self.log.warning("WMI Connection to %s timed out" % device.id)
-                if self.watchers.has_key(device.id):
-                    self.watchers[device.id].stop()
-                    del self.watchers[device.id]
-        
         gc.collect()
         self.log.info("Com InterfaceCount: %d", pythoncom._GetInterfaceCount())
         self.log.info("Com GatewayCount: %d", pythoncom._GetGatewayCount())
-        cycle = self.cycleInterval()
         for ev in (self.rrdStats.counter('events', cycle, self.events) +
                    self.rrdStats.gauge('comInterfaceCount', cycle,
                                        pythoncom._GetInterfaceCount()) +

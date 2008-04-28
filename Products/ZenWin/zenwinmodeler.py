@@ -143,6 +143,7 @@ class zenwinmodeler(WinCollector):
                         self.sendEvent(evt)
                         
         finally:
+            self.niceDoggie(self.cycleInterval())
             self.client.stop()
 
     def checkCollection(self, device):
