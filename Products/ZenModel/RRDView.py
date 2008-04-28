@@ -135,6 +135,8 @@ class RRDView(object):
                 gopts.append("--start=%d" % start)
                 if end:
                     gopts.append("--end=%d" % end)
+            if not names:
+                return {}
             perfServer = self.device().getPerformanceServer()
             vals = []
             if perfServer:
