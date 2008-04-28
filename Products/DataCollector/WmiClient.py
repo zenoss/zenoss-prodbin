@@ -21,7 +21,8 @@ class WmiClient(ProcessProtocol):
         self.datacollector = modeler
 
     def processEnded(self, reason):
-        self.datacollector.clientFinished(self)
+        if self.datacollector:
+            self.datacollector.clientFinished(self)
 
 
     def run(self):
