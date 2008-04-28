@@ -24,7 +24,7 @@ class DeviceProxy(pb.Copyable, pb.RemoteCopy):
         return DateTime(float(self._snmpLastCollection))
 
     def getSnmpStatus(self):
-        return self._snmpStatus
+        return getattr(self, '_snmpStatus', 0)
     getSnmpStatusNumber = getSnmpStatus
 
     def getId(self):
