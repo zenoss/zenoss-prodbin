@@ -2259,7 +2259,7 @@ AVERAGE
 </object>
 <object id='Server' module='Products.ZenModel.DeviceClass' class='DeviceClass'>
 <property visible="True" type="lines" id="zCollectorPlugins" >
-('zenoss.snmp.NewDeviceMap', 'zenoss.snmp.DeviceMap', 'zenoss.snmp.DellDeviceMap', 'zenoss.snmp.HPDeviceMap', 'zenoss.snmp.InterfaceMap', 'zenoss.snmp.RouteMap', 'zenoss.snmp.IpServiceMap', 'zenoss.snmp.IpV6ServiceMap', 'zenoss.snmp.HRFileSystemMap', 'zenoss.snmp.HRSWInstalledMap', 'zenoss.snmp.HRSWRunMap', 'zenoss.snmp.CpuMap', 'zenoss.snmp.DellCPUMap', 'zenoss.snmp.HPCPUMap', 'zenoss.snmp.DellPCIMap')
+('zenoss.snmp.NewDeviceMap', 'zenoss.snmp.DeviceMap', 'zenoss.snmp.DellDeviceMap', 'zenoss.snmp.HPDeviceMap', 'zenoss.snmp.InterfaceMap', 'zenoss.snmp.RouteMap', 'zenoss.snmp.IpServiceMap', 'zenoss.snmp.HRFileSystemMap', 'zenoss.snmp.HRSWInstalledMap', 'zenoss.snmp.HRSWRunMap', 'zenoss.snmp.CpuMap', 'zenoss.snmp.DellCPUMap', 'zenoss.snmp.HPCPUMap', 'zenoss.snmp.DellPCIMap')
 </property>
 <property visible="True" type="string" id="zIcon" >
 /zport/dmd/img/icons/server.png
@@ -3506,7 +3506,7 @@ HRSWInstalledMap
 8090
 </property>
 <property visible="True" type="lines" id="zCollectorPlugins" >
-('zenoss.snmp.NewDeviceMap', 'zenoss.snmp.DeviceMap', 'zenoss.snmp.DellDeviceMap', 'zenoss.snmp.HPDeviceMap', 'zenoss.snmp.InterfaceMap', 'zenoss.snmp.RouteMap', 'zenoss.snmp.IpServiceMap', 'zenoss.snmp.IpV6ServiceMap', 'zenoss.snmp.HRFileSystemMap', 'zenoss.snmp.HRSWRunMap', 'zenoss.snmp.CpuMap', 'zenoss.snmp.DellCPUMap', 'zenoss.snmp.DellPCIMap', 'zenoss.snmp.HPCPUMap')
+('zenoss.snmp.NewDeviceMap', 'zenoss.snmp.DeviceMap', 'zenoss.snmp.DellDeviceMap', 'zenoss.snmp.HPDeviceMap', 'zenoss.snmp.InterfaceMap', 'zenoss.snmp.RouteMap', 'zenoss.snmp.IpServiceMap', 'zenoss.snmp.HRFileSystemMap', 'zenoss.snmp.HRSWRunMap', 'zenoss.snmp.CpuMap', 'zenoss.snmp.DellCPUMap', 'zenoss.snmp.DellPCIMap', 'zenoss.snmp.HPCPUMap')
 </property>
 <property visible="True" type="string" id="zIcon" >
 /zport/dmd/img/icons/server-linux.png
