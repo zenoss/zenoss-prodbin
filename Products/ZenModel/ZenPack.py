@@ -779,10 +779,15 @@ registerDirectory("skins", globals())
         Return a list of installed zenpacks that could be listed as
         dependencies for this zenpack
         """
-        return [zp for zp in self.dmd.ZenPackManager.packs()
-                    if zp.id != self.id
-                    and zp.isEggPack()]
-
+        result = []
+        for zp in self.dmd.ZenPackManager.packs():
+            try:
+                if zp.id != self.id and zp.isEggPack():
+                    result.append(zp)                    
+            except AttributeError:
+               pass 
+        return result
+    
 
     def isInZenPacksDir(self):
         """
