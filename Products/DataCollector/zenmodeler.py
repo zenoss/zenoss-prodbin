@@ -30,6 +30,7 @@ import SshClient
 import TelnetClient
 import SnmpClient
 import PortscanClient
+import WmiClient
 
 defaultPortScanTimeout = 5
 defaultParallel = 1
@@ -157,11 +158,31 @@ class ZenModeler(PBDaemon):
         clientTimeout = getattr(device, 'zCollectorClientTimeout', 180)
         ip = device.manageIp
         timeout = clientTimeout + time.time()
+        self.wmiCollect(device, ip, timeout)
         self.pythonCollect(device, ip, timeout)
         self.cmdCollect(device, ip, timeout)
         self.snmpCollect(device, ip, timeout)
         self.portscanCollect(device, ip, timeout)
 
+    def wmiCollect(self, device, ip, timeout):
+        "Start the wmi collector"
+        try:
+            plugins = self.selectPlugins(device, 'wmi')
+            if not plugins:
+                self.log.info("no wmi plugins found for %s" % device.id)
+                return
+            if self.checkCollection(device):
+                self.log.info('wmi collection device %s' % device.id)
+                self.log.info("plugins: %s",
+                        ", ".join(map(lambda p: p.name(), plugins)))
+                client = WmiClient.WmiClient(device, self)
+            if not client or not plugins:
+                self.log.warn("wmi client creation failed")
+        except (SystemExit, KeyboardInterrupt):
+            raise
+        except Exception:
+            self.log.exception("error opening wmi client")
+        self.addClient(client, timeout, 'wmi', device.id)
 
     def pythonCollect(self, device, ip, timeout):
         """Start local collection client.
