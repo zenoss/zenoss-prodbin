@@ -153,8 +153,11 @@ class Report:
         finally: zem.close(conn)
         total = endDate - startDate
         if self.device:
-            deviceList = [dmd.Devices.findDevice(self.device)]
-            devices.setdefault( (self.device, self.component), 0)
+            deviceList = []
+            device = dmd.Devices.findDevice(self.device)
+            if device:
+                deviceList = [device]
+                devices.setdefault( (self.device, self.component), 0)
         else:
             deviceList = [d for d in dmd.Devices.getSubDevices()]
             if not self.component:
