@@ -55,7 +55,7 @@
 			<tal:dummy tal:replace="python:here.dmd.ZenPackManager.getBrokenPackName(pack)" />
 		  </td>
 		  <td class="tablevalue" colspan="6">
-		      This pack is missing or broken.  Please reinstall.
+		      This pack is missing or broken.  You may need to restart Zope.
 		  </td>
 	  </tal:block>
      </tal:block>
