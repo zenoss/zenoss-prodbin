@@ -3,7 +3,9 @@ class BaseClient(object):
     "Define the DataCollector Client interface"
 
     def __init__(self, device, datacollector):
-        self.hostname = device.id
+        self.hostname = None
+        if device:
+            self.hostname = device.id
         self.device = device
         self.datacollector = datacollector
         self.timeout = None
