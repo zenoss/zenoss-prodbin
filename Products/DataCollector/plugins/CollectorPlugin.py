@@ -37,6 +37,8 @@ class CollectorPlugin:
     deviceProperties = ('id',
                         'manageIp',
                         '_snmpLastCollection',
+                        '_snmpStatus',
+                        'zCollectorClientTimeout',
                         )
 
     isip = iputil.isip

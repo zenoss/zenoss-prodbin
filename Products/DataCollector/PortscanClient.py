@@ -22,14 +22,15 @@ from Products.ZenUtils import PortScan
 
 log = logging.getLogger("zen.PortscanClient")
 
-class PortscanClient(object):
+from BaseClient import BaseClient
+
+class PortscanClient(BaseClient):
 
     def __init__(self, hostname, ipaddr, options=None, device=None, 
                  datacollector=None, plugins=[]):
+        BaseClient.__init__(self, device, datacollector)
         self.hostname = hostname
-        self.device = device
         self.options = options
-        self.datacollector = datacollector
         self.plugins = plugins
         self.results = []
 

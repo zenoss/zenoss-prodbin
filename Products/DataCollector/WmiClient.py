@@ -1,28 +1,38 @@
 from twisted.internet.protocol import ProcessProtocol
 from twisted.internet import reactor
-
-import logging
-log = logging.getLogger("zen.WmiClient")
+from twisted.internet import error
 
 import sys
 
 from Products.ZenUtils.Utils import zenPath
+from BaseClient import BaseClient
 
-class WmiClient(ProcessProtocol):
+class WmiClient(BaseClient, ProcessProtocol):
     "Invoke zenwinmodeler on the device to model it"
 
-    def __init__(self, device, modeler):
-        self.device = device
-        self.modeler = modeler
-        self.timeout = None
-        self.timedOut = False
+    def __init__(self, device, datacollector):
+        BaseClient.__init__(self, device, datacollector)
+        self.process = None
         self.outReceived = sys.stdout.write
         self.errReceived = sys.stderr.write
-        self.datacollector = modeler
 
     def processEnded(self, reason):
         if self.datacollector:
             self.datacollector.clientFinished(self)
+        self.process = None
+
+    def stop(self):
+        if not self.process:
+            return
+        try:
+            self.process.signalProcess(signal.SIGSTOP)
+        except error.ProcessExitedAlready:
+            pass
+        try:
+            self.process.loseConnection()
+        except Exception:
+            pass
+        self.process = None
 
 
     def run(self):
@@ -32,5 +42,3 @@ class WmiClient(ProcessProtocol):
             args += ('--weblog',)
         reactor.spawnProcess(self, modeler, (modeler,) + args, env=None)
 
-    def getResults(self):
-        return []

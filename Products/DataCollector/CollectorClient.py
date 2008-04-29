@@ -34,13 +34,16 @@ log = logging.getLogger("zen.CmdClient")
 
 from twisted.internet import protocol
 
-class CollectorClient(protocol.ClientFactory):
+from BaseClient import BaseClient
+
+class CollectorClient(BaseClient, protocol.ClientFactory):
     
     maintainConnection = False 
     cmdindex = 0
     
     def __init__(self, hostname, ip, port, plugins=None, options=None, 
                     device=None, datacollector=None, alog=None):
+        BaseClient.__init__(self, device, datacollector)
         from Products.ZenUtils.Utils import unused
         unused(alog)
         self.hostname = hostname
@@ -52,10 +55,8 @@ class CollectorClient(protocol.ClientFactory):
         for plugin in plugins:
             self.cmdmap[plugin.command] = plugin
             self._commands.append(plugin.command)
-        self.device = device
         self.results = []
         self.protocol = None
-        self.datacollector = datacollector
 
         if options:
             defaultUsername = options.username

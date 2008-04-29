@@ -31,10 +31,13 @@ defaultSnmpCommunity = 'public'
 
 DEFAULT_MAX_OIDS_BACK = 40
 
-class SnmpClient(object):
+from BaseClient import BaseClient
+
+class SnmpClient(BaseClient):
 
     def __init__(self, hostname, ipaddr, options=None, device=None, 
                  datacollector=None, plugins=[]):
+        BaseClient.__init__(self, device, datacollector)
         global defaultTries, defaultTimeout
         self.hostname = hostname
         self.device = device

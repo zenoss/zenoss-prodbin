@@ -52,8 +52,7 @@ class ZenModeler(PBDaemon):
     generateEvents = True
     configCycleInterval = 360
 
-    def __init__(self,noopts=0,app=None,single=False,
-                 threaded=None,keeproot=False):
+    def __init__(self, noopts=0, app=None, single=False, keeproot=False):
         PBDaemon.__init__(self)
         # FIXME: cleanup --force option #2660
         self.options.force = True
@@ -74,9 +73,6 @@ class ZenModeler(PBDaemon):
         self.single = single
         if self.options.device:
             self.single = True
-        self.threaded = threaded
-        if self.threaded is None:
-            self.threaded = not self.options.nothread
         self.modelerCycleInterval = self.options.cycletime
         self.collage = self.options.collage / 1440.0
         self.clients = []
@@ -166,6 +162,8 @@ class ZenModeler(PBDaemon):
 
     def wmiCollect(self, device, ip, timeout):
         "Start the wmi collector"
+        if self.options.nowmi:
+            return
         try:
             plugins = self.selectPlugins(device, 'wmi')
             if not plugins:
@@ -456,9 +454,9 @@ class ZenModeler(PBDaemon):
         self.parser.add_option('--debug',
                 dest='debug', action="store_true", default=False,
                 help="don't fork threads for processing")
-        self.parser.add_option('--nothread',
-                dest='nothread', action="store_true", default=True,
-                help="do not use threads when applying updates")
+        self.parser.add_option('--nowmi',
+                dest='nowmi', action="store_true", default=False,
+                help="do not run zenwinmodeler to execute WMI plugins")
         self.parser.add_option('--parallel', dest='parallel', 
                 type='int', default=defaultParallel,
                 help="number of devices to collect from in parallel")
@@ -512,6 +510,7 @@ class ZenModeler(PBDaemon):
                 self.log.warn("client %s timeout", client.hostname)
                 self.finished.append(client)
                 client.timedOut = True
+                client.stop()
             else:
                 active.append(client)
         self.clients = active

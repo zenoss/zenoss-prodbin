@@ -16,12 +16,13 @@ log = logging.getLogger("zen.PythonClient")
 
 import Globals
 
-class PythonClient(object):
+from BaseClient import BaseClient
+
+class PythonClient(BaseClient):
 
     def __init__(self, device=None, datacollector=None, plugins=[]):
-        self.device = device
+        BaseClient.__init__(self, device, datacollector)
         self.hostname = device.id
-        self.datacollector = datacollector
         self.plugins = plugins
         self.results = []
 
