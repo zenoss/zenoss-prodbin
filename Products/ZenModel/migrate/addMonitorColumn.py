@@ -65,7 +65,7 @@ trigger = """
 
 
 class AddMonitorColumn(Migrate.Step):
-    version = Migrate.Version(2, 0, 0)
+    version = Migrate.Version(2, 2, 0)
 
     def cutover(self, dmd):
         zem = dmd.ZenEventManager
