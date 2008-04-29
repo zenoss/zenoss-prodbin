@@ -23,6 +23,7 @@ import sys
 import os
 import os.path
 import ConfigParser
+from Products.ZenUtils.Utils import zenPath
 
 from ZenBackupBase import *
 
@@ -147,38 +148,39 @@ class ZenRestore(ZenBackupBase):
         # If there is not a Data.fs then create an empty one
         # Maybe should read file location/name from zeo.conf
         # but we're going to assume the standard location for now.
-        if not os.path.isfile(os.path.join(self.zenhome, 'var', 'Data.fs')):
+        if not os.path.isfile(zenPath('var', 'Data.fs')):
             self.msg('There does not appear to be a zeo database.'
                         ' Starting zeo to create one.')
-            os.system(os.path.join(self.zenhome, 'bin', 'zeoctl start > /dev/null'))
-            os.system(os.path.join(self.zenhome, 'bin', 'zeoctl stop > /dev/null'))
+            os.system(zenPath('bin', 'zeoctl') + 'start > /dev/null')
+            os.system(zenPath('bin', 'zeoctl') + 'stop > /dev/null')
         
         # Restore zopedb
         self.msg('Restoring the zeo database.')
         repozoDir = os.path.join(tempDir, 'repozo')
-        cmd ='%s --recover --repository %s --output %s' % (
-                    self.getRepozoPath(),
+        cmd ='%s %s --recover --repository %s --output %s' % (
+                    zenPath('bin', 'python'),
+                    self.findBin('repozo.py'),
                     repozoDir,
-                    os.path.join(self.zenhome, 'var', 'Data.fs'))
+                    zenPath('var', 'Data.fs'))
         if os.system(cmd): return -1
     
         # Copy etc files
         self.msg('Restoring config files.')
-        cmd = 'rm -rf %s' % os.path.join(self.zenhome, 'etc')
+        cmd = 'rm -rf %s' % zenPath('etc')
         if os.system(cmd): return -1
         cmd = 'tar Cxf %s %s' % (
-                        self.zenhome,
+                        zenPath(),
                         os.path.join(tempDir, 'etc.tar'))
         if os.system(cmd): return -1
         
         # Copy perf files
-        cmd = 'rm -rf %s' % os.path.join(self.zenhome, 'perf')
+        cmd = 'rm -rf %s' % os.path.join(zenPath(), 'perf')
         if os.system(cmd): return -1
         tempPerf = os.path.join(tempDir, 'perf.tar')
         if os.path.isfile(tempPerf):
             self.msg('Restoring performance data.')
             cmd = 'tar Cxf %s %s' % (
-                            self.zenhome,
+                            zenPath(),
                             os.path.join(tempDir, 'perf.tar'))
             if os.system(cmd): return -1
         else:

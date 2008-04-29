@@ -21,6 +21,7 @@ Common code for zenbackup.py and zenrestore.py
 import os
 import tempfile
 from CmdBase import CmdBase
+from Products.ZenUtils.Utils import zenPath
 
 
 BACKUP_DIR = 'zenbackup'
@@ -39,10 +40,6 @@ class ZenBackupBase(CmdBase):
 
     def __init__(self, noopts=0):
         CmdBase.__init__(self, noopts)
-        from Utils import zenPath
-        self.zenhome = zenPath()
-        self.zopehome = os.getenv('ZOPEHOME')
-
 
     def msg(self, msg):
         ''' If --verbose then send msg to stdout
@@ -71,7 +68,7 @@ class ZenBackupBase(CmdBase):
         '''
         if self.options.dbpass == None:
             return ''
-        return '-p"%s"' % self.options.dbpass
+        return '--password="%s"' % self.options.dbpass
 
 
     def getTempDir(self):
@@ -83,14 +80,21 @@ class ZenBackupBase(CmdBase):
         else:
             dir = tempfile.mkdtemp()
         return dir
-        
-        
-    def getRepozoPath(self):
-        ''' Return path to repozo.py
-        This is usually $ZENHOME/bin/repozo.py, but on the appliance it is
-        $ZOPEHOME/bin/repozo.py
-        '''
-        path = os.path.join(self.zenhome, 'bin', 'repozo.py')
-        if not os.path.isfile(path):
-            path = os.path.join(self.zopehome, 'bin', 'repozo.py')
-        return path
+
+
+    def findBin(self, name, failIfNotFound=True):
+        """
+        Find the file of the given name in either $ZENHOME/bin or in
+        $ZOPEHOME/bin.  Return the path to the file if found.
+        """
+        zopeHome = os.getenv('ZOPEHOME')
+        path = zenPath('bin', name)
+        if os.path.isfile(path):
+            return path
+        if zopeHome:
+            path = os.path.join(zopeHome, 'bin', name)
+            if os.path.isfile(path):
+                return path
+        if failIfNotFound:
+            raise Exception('Could not find %s' % name)
+        return ''

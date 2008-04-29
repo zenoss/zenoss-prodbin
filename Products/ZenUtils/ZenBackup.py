@@ -22,6 +22,7 @@ import Globals
 from ZCmdBase import ZCmdBase
 import sys
 import os
+import os.path
 from datetime import date
 import ConfigParser
 import commands
@@ -39,7 +40,10 @@ class ZenBackup(ZenBackupBase):
     def isZeoUp(self):
         ''' Returns True is zeo appears to be running, false otherwise.
         '''
-        cmd = '%s/bin/zeoup.py -p 8100' % self.zenhome
+        # zeoup.py should live in either $ZOPEHOME/lib/bin/ (for the
+        # appliance) or in $ZENHOME/bin (other installs.)
+        zeoup = self.findBin('zeoup.py')
+        cmd = '%s %s -p 8100' % (zenPath('bin', 'python'), zeoup)
         output = commands.getoutput(cmd)
         return output.startswith('Elapsed time:')
 
@@ -75,7 +79,7 @@ class ZenBackup(ZenBackupBase):
         def getName(index=0):
             return 'zenbackup_%s%s.tgz' % (date.today().strftime('%Y%m%d'), 
                                             (index and '_%s' % index) or '')
-        backupDir = os.path.join(self.zenhome, 'backups')
+        backupDir = zenPath('backups')
         if not os.path.exists(backupDir):
             os.mkdir(backupDir, 0750)
         for i in range(MAX_UNIQUE_NAME_ATTEMPTS):
@@ -203,16 +207,16 @@ class ZenBackup(ZenBackupBase):
         self.msg('Backing up zeo database.')
         repozoDir = os.path.join(tempDir, 'repozo')
         os.mkdir(repozoDir, 0750)
-        cmd = ('%s --backup --full ' % 
-                self.getRepozoPath() +
-                '--repository %s --file %s/var/Data.fs' %
-                (repozoDir, self.zenhome))
+        cmd = ('%s %s --backup --full ' % 
+                (zenPath('bin', 'python'), self.findBin('repozo.py')) +
+                '--repository %s --file %s' %
+                (repozoDir, zenPath('var', 'Data.fs')))
         if os.system(cmd): return -1
         
         # /etc to backup dir (except for sockets)
         self.msg('Backing up config files.')
         etcTar = tarfile.open(os.path.join(tempDir, 'etc.tar'), 'w')
-        etcTar.add(os.path.join(self.zenhome, 'etc'), 'etc')
+        etcTar.add(zenPath('etc'), 'etc')
         etcTar.close()
 
         # /perf to backup dir
