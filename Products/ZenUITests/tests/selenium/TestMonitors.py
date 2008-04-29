@@ -29,8 +29,8 @@ class _TestMonitors(SelTestBase):
     """Defines a class that runs tests under the Monitors heading"""
 
     def _addStatusMonitor(self):
-        self.waitForElement("link=Monitors")
-        self.selenium.click("link=Monitors")
+        self.waitForElement("link=Collectors")
+        self.selenium.click("link=Collectors")
         self.selenium.wait_for_page_to_load(self.WAITTIME)
         if self.selenium.is_element_present("link=statusTestingString"):
             self._deleteStatusMonitor()
@@ -39,16 +39,16 @@ class _TestMonitors(SelTestBase):
         self.selenium.wait_for_page_to_load(self.WAITTIME)
 
     def _deleteStatusMonitor(self):
-        self.waitForElement("link=Monitors")
-        self.selenium.click("link=Monitors")
+        self.waitForElement("link=Collectors")
+        self.selenium.click("link=Collectors")
         self.selenium.wait_for_page_to_load(self.WAITTIME)
         self.deleteDialog("StatusMonitorlistremoveSMonitors",
                 "manage_removeMonitor:method", pathsList="ids:list", form_name="StatusMonitors", testData="statusTestingString")
         self.selenium.wait_for_page_to_load(self.WAITTIME)
 
     def _addPerformanceMonitor(self):
-        self.waitForElement("link=Monitors")
-        self.selenium.click("link=Monitors")
+        self.waitForElement("link=Collectors")
+        self.selenium.click("link=Collectors")
         self.selenium.wait_for_page_to_load(self.WAITTIME)
         if self.selenium.is_element_present("link=performanceTestingString"):
             self._deletePerformanceMonitor()
@@ -57,8 +57,8 @@ class _TestMonitors(SelTestBase):
         self.selenium.wait_for_page_to_load(self.WAITTIME)
 
     def _deletePerformanceMonitor(self):
-        self.waitForElement("link=Monitors")
-        self.selenium.click("link=Monitors")
+        self.waitForElement("link=Collectors")
+        self.selenium.click("link=Collectors")
         self.selenium.wait_for_page_to_load(self.WAITTIME)
         self.deleteDialog("PerformanceMonitorlistremovePMonitors",
                 "manage_removeMonitor:method", pathsList="ids:list",
@@ -67,8 +67,8 @@ class _TestMonitors(SelTestBase):
 
     def _addPerformanceTemplate(self):
         #self._addPerformanceMonitor()   
-        self.waitForElement("link=Monitors")
-        self.selenium.click("link=Monitors")
+        self.waitForElement("link=Collectors")
+        self.selenium.click("link=Collectors")
         self.waitForElement("id=PerformanceMonitorlistperformanceTemplates")
         self.selenium.click("id=PerformanceMonitorlistperformanceTemplates")
         self.addDialog("AllTemplatesaddTemplate","manage_addRRDTemplate:method", 
@@ -76,8 +76,8 @@ class _TestMonitors(SelTestBase):
         self.selenium.wait_for_page_to_load(self.WAITTIME)
 
     def _deletePerformanceTemplate(self):
-        self.waitForElement("link=Monitors")
-        self.selenium.click("link=Monitors")
+        self.waitForElement("link=Collectors")
+        self.selenium.click("link=Collectors")
         self.selenium.wait_for_page_to_load(self.WAITTIME)
         self.waitForElement("id=PerformanceMonitorlistperformanceTemplates")
         self.selenium.click("id=PerformanceMonitorlistperformanceTemplates")
@@ -148,8 +148,8 @@ class TestMonitorsPerformanceConfTemplates(SelTestBase):
     """Defines a class that runs tests under the Monitors Performance Templates heading"""
 
     def _goToPerformanceConfTemplate(self):
-        self.waitForElement("link=Monitors")
-        self.selenium.click("link=Monitors")
+        self.waitForElement("link=Collectors")
+        self.selenium.click("link=Collectors")
         self.selenium.wait_for_page_to_load(self.WAITTIME)
         self.waitForElement("id=PerformanceMonitorlistperformanceTemplates")
         self.selenium.click("id=PerformanceMonitorlistperformanceTemplates")
@@ -183,8 +183,8 @@ class TestMonitorsPerformanceConfTemplates(SelTestBase):
         self.selenium.wait_for_page_to_load(self.WAITTIME)
 
     def _addPerformanceMonitor(self):
-        self.waitForElement("link=Monitors")
-        self.selenium.click("link=Monitors")
+        self.waitForElement("link=Collectors")
+        self.selenium.click("link=Collectors")
         self.selenium.wait_for_page_to_load(self.WAITTIME)
         if self.selenium.is_element_present("link=performanceTestingString"):
             self._deletePerformanceMonitor()
@@ -193,8 +193,8 @@ class TestMonitorsPerformanceConfTemplates(SelTestBase):
         self.selenium.wait_for_page_to_load(self.WAITTIME)
 
     def _deletePerformanceMonitor(self):
-        self.waitForElement("link=Monitors")
-        self.selenium.click("link=Monitors")
+        self.waitForElement("link=Collectors")
+        self.selenium.click("link=Collectors")
         self.selenium.wait_for_page_to_load(self.WAITTIME)
         self.deleteDialog("PerformanceMonitorlistremovePMonitors",
                 "manage_removeMonitor:method", pathsList="ids:list",
