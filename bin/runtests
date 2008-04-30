@@ -50,7 +50,7 @@ def runSeleniumTests(packages=[], regex=None):
 
 def runUnitTests(packages=[], regex=None, coverage=False):
     for prod in findTestableProducts(packages, regex):
-        parts = [ zopehome('bin', 'zopectl'), 'test']
+        parts = [ zenhome('bin', 'zopectl'), 'test']
         if coverage: parts.append('--coverage')
         parts.extend(['--libdir', zenhome('Products', prod)])
         if regex: parts.append(regex)
