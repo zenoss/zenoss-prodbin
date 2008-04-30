@@ -165,6 +165,7 @@ class ZenModeler(PBDaemon):
         if self.options.nowmi:
             return
         try:
+            client = None
             plugins = self.selectPlugins(device, 'wmi')
             if not plugins:
                 self.log.info("no wmi plugins found for %s" % device.id)
