@@ -42,9 +42,8 @@ class ZenDisc(ZenModeler):
     name = 'zendisc'
     scanned = 0
 
-    def __init__(self,noopts=0,app=None,single=True,
-                threaded=False,keeproot=True):
-        ZenModeler.__init__(self, noopts, app, single, threaded, keeproot)
+    def __init__(self,noopts=0,app=None,single=True, keeproot=True):
+        ZenModeler.__init__(self, noopts, app, single, keeproot)
 	if not self.options.useFileDescriptor:
 	    self.openPrivilegedPort('--ping')
         self.discovered = []
