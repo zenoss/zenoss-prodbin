@@ -38,6 +38,9 @@ export PYTHON="**PYTHON**"
 . ${ZENHOME}/bin/shared-functions.sh
 . ${ZENHOME}/bin/install-functions.sh
 
+# set the python shebang line
+shebang
+
 # create the log directory
 mkdir -p ${ZENHOME}/log
 
