@@ -48,8 +48,10 @@ update_conf_files
 /usr/bin/replace /usr/bin/python $ZENHOME/bin/python -- $ZENHOME/bin/* 2>/dev/null
 /usr/bin/replace /usr/bin/python $ZENHOME/bin/python -- $ZENHOME/etc/zeo.conf
 
+# set the python shebang to be the proper python
+shebang
+
 # migrate the zeo database
 start_zeodb
 run_zenmigrate
 stop_zeodb
-

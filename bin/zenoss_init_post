@@ -42,4 +42,3 @@ export PYTHON="**PYTHON**"
 
 # add localhost as a device to zenoss
 add_localhost_device
-shebang
