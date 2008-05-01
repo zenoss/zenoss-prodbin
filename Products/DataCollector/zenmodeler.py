@@ -164,8 +164,8 @@ class ZenModeler(PBDaemon):
         "Start the wmi collector"
         if self.options.nowmi:
             return
+        client = None
         try:
-            client = None
             plugins = self.selectPlugins(device, 'wmi')
             if not plugins:
                 self.log.info("no wmi plugins found for %s" % device.id)
@@ -177,6 +177,7 @@ class ZenModeler(PBDaemon):
                 client = WmiClient.WmiClient(device, self)
             if not client or not plugins:
                 self.log.warn("wmi client creation failed")
+                return
         except (SystemExit, KeyboardInterrupt):
             raise
         except Exception:
