@@ -132,6 +132,7 @@ class ZenSyslog(DatagramProtocol, EventServer):
             self.processor = SyslogProcessor(self.sendEvent, 
                                              self.options.minpriority,
                                              self.options.parsehost,
+                                             self.options.monitor,
                                              driver.next())
             self.log.info("Configuration finished")
         return drive(inner)

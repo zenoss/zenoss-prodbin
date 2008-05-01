@@ -62,10 +62,11 @@ for regex in parsers:
 
 class SyslogProcessor(object):
 
-    def __init__(self, sendEvent, minpriority, parsehost, defaultPriority): 
+    def __init__(self,sendEvent,minpriority,parsehost,monitor,defaultPriority): 
         self.minpriority = minpriority
         self.parsehost = parsehost
         self.sendEvent = sendEvent
+        self.monitor = monitor
         self.defaultPriority = defaultPriority
 
 
@@ -85,7 +86,7 @@ class SyslogProcessor(object):
         evt = self.parseTag(evt, msg) 
         #rest of msg now in summary of event
         evt = self.buildEventClassKey(evt)
-        evt['monitor'] = self.options.monitor
+        evt['monitor'] = self.monitor
         self.sendEvent(evt)
 
         
