@@ -434,7 +434,7 @@ class ZenDisc(ZenModeler):
                     dest='useFileDescriptor', default=None,
                     help="Use the given (priveleged) file descriptor for ping")
 
-        self.parser.add_option('--auto-allocate', dest='autoAllocate',
+        self.parser.add_option('--assign-devclass-script', dest='autoAllocate',
                     action="store_true", default=False,
                     help="have zendisc auto allocate devices after discovery")
         self.parser.add_option('--walk', dest='walk', action='store_true',
