@@ -15,6 +15,7 @@ from Products.ZenStatus import pingtree
 from Products.ZenHub.services.PerformanceConfig import PerformanceConfig
 from Products.ZenHub.HubService import threaded
 from Products.ZenHub.PBDaemon import translateError
+from Products.ZenUtils.ZCmdBase import login
 
 class PingConfig(PerformanceConfig):
     "Support zenping configuration loading"
@@ -25,6 +26,8 @@ class PingConfig(PerformanceConfig):
         conn = self.dmd._p_jar._db.open()
         try:
             dmd = conn.root()['Application'].zport.dmd
+            user = login(dmd, 'admin')
+            assert user.has_permission('View', dmd)
             return self.getPingTree(dmd, root, fallbackIp)
         finally:
             import transaction
@@ -34,7 +37,7 @@ class PingConfig(PerformanceConfig):
     def getPingTree(self, dmd, root, fallbackIp):
         me = dmd.Devices.findDevice(root)
         if not me:
-            me = self.lookupByIp(fallbackIp)
+            me = self.lookupByIp(dmd, fallbackIp)
         if me: 
             self.log.info("building pingtree from %s", me.id)
             tree = pingtree.buildTree(me)
@@ -45,12 +48,13 @@ class PingConfig(PerformanceConfig):
             tree = pingtree.PingTree(fallbackIp)
             tree.root = pingtree.RouterNode(fallbackIp, root, 0)
             tree.root.addNet(tree, "default", "default")
-        devices = self.config.getPingDevices()
+        config = dmd.Monitors.Performance._getOb(self.instance)
+        devices = config.getPingDevices()
         self.prepDevices(tree, devices)
         return tree.root
 
 
-    def lookupByIp(self, fallbackIp):
+    def lookupByIp(self, dmd, fallbackIp):
         """Try to find the root device by our IP
         """
         ip = self.dmd.Networks.findIp(fallbackIp)

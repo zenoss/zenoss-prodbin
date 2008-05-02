@@ -31,6 +31,17 @@ defaultCacheDir = zenPath('var')
 
 class DataRootError(Exception):pass
 
+def login(context, name='admin', userfolder=None):
+    '''Logs in.'''
+    if userfolder is None:
+        userfolder = context.getPhysicalRoot().acl_users
+    user = userfolder.getUserById(name)
+    if user is None: return
+    if not hasattr(user, 'aq_base'):
+        user = user.__of__(userfolder)
+    newSecurityManager(None, user)
+    return user
+
 class ZCmdBase(ZenDaemon):
 
 
@@ -67,13 +78,7 @@ class ZCmdBase(ZenDaemon):
 
     def login(self, name='admin', userfolder=None):
         '''Logs in.'''
-        if userfolder is None:
-            userfolder = self.app.acl_users
-        user = userfolder.getUserById(name)
-        if user is None: return
-        if not hasattr(user, 'aq_base'):
-            user = user.__of__(userfolder)
-        newSecurityManager(None, user)
+        login(self.dmd, name, userfolder)
 
 
     def logout(self):
