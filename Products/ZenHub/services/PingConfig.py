@@ -57,7 +57,7 @@ class PingConfig(PerformanceConfig):
     def lookupByIp(self, dmd, fallbackIp):
         """Try to find the root device by our IP
         """
-        ip = self.dmd.Networks.findIp(fallbackIp)
+        ip = dmd.Networks.findIp(fallbackIp)
         if ip and ip.device():
             return ip.device()
         
