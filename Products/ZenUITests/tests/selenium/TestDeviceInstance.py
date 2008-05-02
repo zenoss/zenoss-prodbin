@@ -264,46 +264,37 @@ class TestDeviceInstanceManageDevice(TestDeviceInstanceBase):
         
     def testLockDevice(self):
         """Test locking a device against deletes and updates"""
-        
+       
         # First, test lock against updates (and deletes).
         curtarget = TARGET
+        self.waitForElement("link=Lock...") 
         self.selenium.click("link=Lock...")
         self.waitForElement("dialog_cancel")
         self.selenium.click("lockFromUpdates:method")
         self.selenium.wait_for_page_to_load(self.WAITTIME)
-        self.selenium.click("link=Device List")
-        #self.selenium.wait_for_page_to_load(self.WAITTIME)
-        self.waitForElement("name=evids:list " + curtarget)
-        # Unlocking the device now
-        self.goToDevice(curtarget)
         self.assert_(self.selenium.is_element_present("//img[@src='locked-update-icon.png']"))
         self.assert_(self.selenium.is_element_present("//img[@src='locked-delete-icon.png']"))
         self.waitForElement("link=Lock...") 
         self.selenium.click("link=Lock...") 
         self.waitForElement("dialog_cancel")
         self.selenium.click("unlock:method")
-        self.selenium.click("link=Device List")
-        self.waitForElement("name=evids:list " + curtarget)
+        self.selenium.wait_for_page_to_load(self.WAITTIME)
         self.assert_(not self.selenium.is_element_present("//img[@src='locked-update-icon.png']"))
         self.assert_(not self.selenium.is_element_present("//img[@src='locked-delete-icon.png']"))
-        
+ 
         # Then, test lock against deletes only.
-        self.goToDevice(curtarget)
         self.waitForElement("link=Lock...") 
         self.selenium.click("link=Lock...")
         self.waitForElement("dialog_cancel")
         self.selenium.click("lockFromDeletion:method")
-        self.selenium.click("link=Device List")
-        self.waitForElement("name=evids:list " + curtarget)
+        self.selenium.wait_for_page_to_load(self.WAITTIME)
         self.assert_(self.selenium.is_element_present("//img[@src='locked-delete-icon.png']"))
         # Unlocking the device now
-        self.goToDevice(curtarget)
         self.waitForElement("link=Lock...") 
         self.selenium.click("link=Lock...") 
         self.waitForElement("dialog_cancel")
         self.selenium.click("unlock:method")
-        self.selenium.click("link=Device List")
-        self.waitForElement("name=evids:list " + curtarget)
+        self.selenium.wait_for_page_to_load(self.WAITTIME)
         self.assert_(not self.selenium.is_element_present("//img[@src='locked-delete-icon.png']"))	
 
     def testClearHeartbeats(self):
