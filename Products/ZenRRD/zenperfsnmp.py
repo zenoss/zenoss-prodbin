@@ -641,10 +641,10 @@ class zenperfsnmp(SnmpDaemon):
                     isinstance(update.value, error.TimeoutError):
                     self.log.debug("Device %s timed out" % deviceName)
                 else:
-                    self.log.error('Failed to collect on %s (%s: %s)',
-                                   deviceName,
-                                   update.__class__,
-                                   update)
+                    self.log.warning('Failed to collect on %s (%s: %s)',
+                                     deviceName,
+                                     update.__class__,
+                                     update)
                 
         successCount = sum(firsts(updates))
         oids = []
