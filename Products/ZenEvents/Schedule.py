@@ -57,7 +57,7 @@ class Schedule:
     def getWindows(self):
         result = []
         catalog = getattr(self.dmd, 'maintenanceWindowSearch', None)
-        if catalog:
+        if catalog is not None:
             result.extend(x.getObject() for x in catalog())
         else: # Should be removed in 2.3.
             self.log.warn('Run zenmigrate to index your maintenance windows.')
