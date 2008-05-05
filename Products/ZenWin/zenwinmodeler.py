@@ -125,6 +125,17 @@ class zenwinmodeler(WinCollector):
                 self.log.warn("WMIClient creation failed")
                 return
         except (SystemExit, KeyboardInterrupt): raise
+        except pywintypes.com_error, e:
+            code,txt,info,param = e
+            msg = self.printComErrorMessage(e)
+            if msg:
+                self.log.warning("WMI Com error: %s", msg)
+            if info:
+                wcode, source, descr, hfile, hcont, scode = info
+                if scode == 1326 and device.zWinPassword == '':
+                    self.log.warning("You must set the zProperty "
+                                     "zWinPassword for device %s.", hostname)
+            return
         except:
             self.log.exception("Error opening WMIClient")
             return
