@@ -58,7 +58,16 @@ class Schedule:
         result = []
         catalog = getattr(self.dmd, 'maintenanceWindowSearch', None)
         if catalog is not None:
-            result.extend(x.getObject() for x in catalog())
+            for brain in catalog():
+                try:
+                    ob = brain.getObject()
+                except KeyError:
+                    # We're just catching the symptom for now, but an actual
+                    # fix will be forthcoming.
+                    # http://dev.zenoss.org/trac/ticket/3105
+                    pass
+                else:
+                    result.append(ob)
         else: # Should be removed in 2.3.
             self.log.warn('Run zenmigrate to index your maintenance windows.')
             for dev in self.dmd.Devices.getSubDevices():
