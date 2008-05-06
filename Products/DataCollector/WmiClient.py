@@ -38,7 +38,7 @@ class WmiClient(BaseClient, ProcessProtocol):
         if not self.process:
             return
         try:
-            self.process.signalProcess(signal.SIGSTOP)
+            self.process.signalProcess(signal.SIGKILL)
         except error.ProcessExitedAlready:
             pass
         try:
