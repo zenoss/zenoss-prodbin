@@ -271,8 +271,9 @@ class ZenDisc(ZenModeler):
 
 
     def collectNet(self, driver):
+        import types
         # net option from the config file is a string
-        if isinstance(self.options.net, (str, unicode)):
+        if type(self.options.net) in types.StringTypes:
             self.options.net = [self.options.net]
         # in case someone uses 10.0.0.0,192.168.0.1 instead of 
         # --net 10.0.0.0 --net 192.168.0.1
