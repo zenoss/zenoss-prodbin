@@ -51,7 +51,10 @@ r"(?P<component>\S+)\[(?P<pid>\d+)\]:\s*(?P<summary>.*)",
 r"(?P<component>\S+): (?P<summary>.*)",
 
 # adtran devices
-r"^(?P<deviceModel>[^\[]+)\[(?P<deviceManufacturer>ADTRAN)\]:(?P<component>[^\|]+\|\d+\|\d+)\|(?P<summary>.*)"
+r"^(?P<deviceModel>[^\[]+)\[(?P<deviceManufacturer>ADTRAN)\]:(?P<component>[^\|]+\|\d+\|\d+)\|(?P<summary>.*)",
+
+# proprietary message passing system
+r"^(?P<component>\S+) (LOG|RSE) \d \S+ \d\d:\d\d:\d\d-\d\d:\d\d:\d\d \d{5} \d{2} \d{5} \S+ \d{4} \d{5} - (?P<summary>.*) \d{4} \d{4}",
 ) 
 
 # compile regex parsers on load
