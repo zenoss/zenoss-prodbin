@@ -35,6 +35,7 @@ class WmiClient(BaseClient, ProcessProtocol):
         self.process = None
 
     def stop(self):
+        import signal
         if not self.process:
             return
         try:
@@ -53,5 +54,5 @@ class WmiClient(BaseClient, ProcessProtocol):
         args = ('run', '-d', self.device.id)
         if '--weblog' in sys.argv:
             args += ('--weblog',)
-        reactor.spawnProcess(self, modeler, (modeler,) + args, env=None)
+        self.process = reactor.spawnProcess(self, modeler, (modeler,) + args, env=None)
 
