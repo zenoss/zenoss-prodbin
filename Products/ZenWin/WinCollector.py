@@ -35,6 +35,7 @@ from ProcessProxy import ProcessProxy, ProcessProxyError
 from NullProxy import NullProxy
 
 from twisted.internet.defer import DeferredList
+from twisted.python.failure import Failure
 
 MAX_THREADS_WAITING = 10
 MAX_WAIT_FOR_WMI_REQUEST = 10
@@ -118,7 +119,7 @@ class WinCollector(PBDaemon):
             deferreds = self.processLoop()
             if self.options.cycle:
                 self.heartbeat()
-        except Exception, ex:
+        except (Failure, Exception), ex:
             self.log.exception("Error processing main loop")
         delay = time.time() - now
         if self.options.cycle:
