@@ -144,3 +144,4 @@ import fixManufacturersLocation
 import addeventmenuitem
 import runcommandspermission
 import winmodelerUnderModeler
+import removeWinModelerGraphPoints
