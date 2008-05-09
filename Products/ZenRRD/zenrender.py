@@ -65,6 +65,10 @@ class zenrender(PBDaemon):
         self.rs = RenderServer(self.name)
 
     def remote_render(self, *args, **kw):
+        try:
+            del kw['ms']
+        except KeyError:
+            pass
         return self.rs.render(*args, **kw)
 
     def remote_packageRRDFiles(self, *args, **kw):
