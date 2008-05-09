@@ -54,6 +54,10 @@ class PingConfig(PerformanceConfig):
         return tree.root
 
 
+    def getDeviceConfig(self, device):
+        return device
+
+
     def lookupByIp(self, dmd, fallbackIp):
         """Try to find the root device by our IP
         """
@@ -69,4 +73,4 @@ class PingConfig(PerformanceConfig):
               pingtree.addDevice(device)
 
     def sendDeviceConfig(self, listener, config):
-        listener.callRemote('updateConfig')
+        return listener.callRemote('updateConfig')

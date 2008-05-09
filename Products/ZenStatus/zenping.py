@@ -30,7 +30,7 @@ from Products.ZenStatus import pingtree
 from Products.ZenUtils.Utils import unused
 unused(pingtree)                        # needed for pb
 
-from Products.ZenEvents.ZenEventClasses import Status_Ping
+from Products.ZenEvents.ZenEventClasses import Status_Ping, Clear
 from Products.ZenHub.PBDaemon import FakeRemote, PBDaemon
 from Products.ZenUtils.DaemonStats import DaemonStats
 from Products.ZenUtils.Driver import drive, driveLater
@@ -57,7 +57,9 @@ class ZenPing(PBDaemon):
     reconfigured = True
     loadingConfig = None
 
+
     def __init__(self):
+        self.pingtree = None
         PBDaemon.__init__(self, keeproot=True)
         if not self.options.useFileDescriptor:
             self.openPrivilegedPort('--ping')
@@ -75,16 +77,19 @@ class ZenPing(PBDaemon):
     def config(self):
         return self.services.get('PingConfig', FakeRemote())
 
+
     def stopOnError(self, error):
         self.log.exception(error)
         self.stop()
         return error
+
 
     def connected(self):
         self.log.debug("Connected, getting config")
         d = drive(self.loadConfig)
         d.addCallback(self.pingCycle)
         d.addErrback(self.stopOnError)
+
 
     def sendPingEvent(self, pj):
         "Send an event based on a ping job to the event backend."
@@ -103,7 +108,7 @@ class ZenPing(PBDaemon):
         self.sendEvent(evt)
 
     def loadConfig(self, driver):
-        "Get the configuration for zenpin"
+        "Get the configuration for zenping"
 
         if self.loadingConfig:
             self.log.warning("Configuration still loading.  Started at %s" %
@@ -114,19 +119,7 @@ class ZenPing(PBDaemon):
 
         self.log.info('fetching monitor properties')
         yield self.config().callRemote('propertyItems')
-        items = dict(driver.next())
-        for att in ("pingTimeOut",
-                    "pingTries",
-                    "pingChunk",
-                    "pingCycleInterval",
-                    "configCycleInterval",
-                    "maxPingFailures",
-                    ):
-            before = getattr(self, att)
-            after = items.get(att, before)
-            setattr(self, att, after)
-        self.configCycleInterval *= 60
-        self.reconfigured = True
+        self.copyItems(driver.next())
 
         driveLater(self.configCycleInterval, self.loadConfig)
 
@@ -149,7 +142,8 @@ class ZenPing(PBDaemon):
         yield self.config().callRemote('getPingTree',
                                        self.options.name,
                                        findIp())
-        self.pingtree = driver.next()
+        oldtree, self.pingtree = self.pingtree, driver.next()
+        self.clearDeletedDevices(oldtree)
 
         self.rrdStats.gauge('configTime',
                             self.configCycleInterval,
@@ -313,6 +307,12 @@ class ZenPing(PBDaemon):
             self.sendPingEvent(pj)
 
 
+    def remote_setPropertyItems(self, items):
+        "The config has changed, maybe the device list is different"
+        self.copyItems(items)
+        self.remote_updateConfig()
+
+        
     def remote_updateConfig(self):
         self.log.debug("Asynch update config")
         if self.loadingConfig:
@@ -322,10 +322,45 @@ class ZenPing(PBDaemon):
             self.log.error("Error loading config: %s" % result)
         d.addErrback(reportError)
 
+
+    def copyItems(self, items):
+        items = dict(items)
+        for att in ("pingTimeOut",
+                    "pingTries",
+                    "pingChunk",
+                    "pingCycleInterval",
+                    "configCycleInterval",
+                    "maxPingFailures",
+                    ):
+            before = getattr(self, att)
+            after = items.get(att, before)
+            setattr(self, att, after)
+        self.configCycleInterval *= 60
+        self.reconfigured = True
+
+
+    def clearDevice(self, device):
+        self.sendEvent(dict(device=device,
+                            eventClass=Status_Ping,
+                            summary="No longer testing device",
+                            severity=Clear))
+
+
+    def clearDeletedDevices(self, oldtree):
+        "Send clears for any device we stop pinging"
+        down = set()
+        if oldtree:
+            down = set([pj.hostname for pj in oldtree.pjgen() if pj.status])
+        all = set([pj.hostname for pj in self.pingtree.pjgen()])
+        for device in down - all:
+            self.clearDevice(device)
+
+
     def remote_deleteDevice(self, device):
         self.log.debug("Asynch delete device %s" % device)
+        self.clearDevice(device)
         self.remote_updateConfig()
-        
+
 
 def findIp():
     try:
