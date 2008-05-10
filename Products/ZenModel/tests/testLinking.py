@@ -58,6 +58,46 @@ class TestLinking(ZenModelBaseTest):
             iface = dev.os.interfaces._getOb('eth%d'%iid)
             iface.addIpAddress(subnet.next())
 
+    def testzDrawMapLinksProperty(self):
+        devs = self._makeDevices(6)
+
+        devs[0].setLocation('/A')
+        devs[1].setLocation('/A')
+        devs[2].setLocation('/B')
+        devs[3].setLocation('/C')
+        devs[4].setLocation('/D')
+        devs[5].setLocation('/A')
+
+        manage_addIpInterface(devs[0].os.interfaces, 'eth0', True)
+        iface0 = devs[0].os.interfaces._getOb('eth0')
+        manage_addIpInterface(devs[1].os.interfaces, 'eth0', True)
+        iface1 = devs[1].os.interfaces._getOb('eth0')
+        manage_addIpInterface(devs[2].os.interfaces, 'eth0', True)
+        iface2 = devs[2].os.interfaces._getOb('eth0')
+        manage_addIpInterface(devs[3].os.interfaces, 'eth0', True)
+        iface3 = devs[3].os.interfaces._getOb('eth0')
+        manage_addIpInterface(devs[4].os.interfaces, 'eth0', True)
+        iface4 = devs[4].os.interfaces._getOb('eth0')
+        manage_addIpInterface(devs[5].os.interfaces, 'eth0', True)
+        iface5 = devs[5].os.interfaces._getOb('eth0')
+
+        iface0.addIpAddress('192.168.254.9/30')
+        iface2.addIpAddress('192.168.254.10/30')
+
+        iface1.addIpAddress('192.168.254.5/30')
+        iface3.addIpAddress('192.168.254.6/30')
+
+        iface4.addIpAddress('192.168.254.1/30')
+        iface5.addIpAddress('192.168.254.2/30')
+
+        nononet = self.dmd.Networks.getNet('192.168.254.8')
+        nononet.zDrawMapLinks = False
+
+        links = self.dmd.ZenLinkManager.getChildLinks(self.dmd.Locations)
+        links = simplejson.loads(links)
+        self.assertEqual(len(links), 2)
+
+
     def testSlash30Nets(self):
         devs = self._makeDevices(6)
 

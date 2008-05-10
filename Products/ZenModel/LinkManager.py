@@ -168,7 +168,8 @@ class LinkManager(Folder):
 
         bynet = {}
         for k, g in groupby(links, _whichnet):
-            bynet.setdefault(k, []).extend(g)
+            if getattr(self.dmd.Networks.getNet(k), 'zDrawMapLinks', True):
+                bynet.setdefault(k, []).extend(g)
 
         final = {}
         linkobs = []
