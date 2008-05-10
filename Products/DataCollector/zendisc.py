@@ -19,7 +19,9 @@ from Products.ZenUtils.Exceptions import ZentinelException
 from Products.ZenUtils.Utils import unused
 from Products.ZenUtils.Driver import drive
 from Products.ZenUtils.IpUtil import asyncNameLookup
+from Products.ZenUtils.IpUtil import isip
 from Products.ZenUtils.NJobs import NJobs
+from Products.ZenModel.Exceptions import NoIPAddress
 from Products.ZenEvents.ZenEventClasses import Status_Snmp
 from Products.ZenEvents.Event import Info
 from Products.ZenStatus.AsyncPing import Ping
@@ -194,6 +196,7 @@ class ZenDisc(ZenModeler):
         return drive(inner)
 
 
+
     def discoverDevice(self, ip, devicepath="/Discovered", prodState=1000):
         """Discover a device based on its ip address.
         """
@@ -322,6 +325,33 @@ class ZenDisc(ZenModeler):
             self.log.info("Result: %s", results)
         self.main()
 
+    def createDevice(self, driver):
+        """
+        Add a device to the system by name or ip.
+        """
+        deviceName = self.options.device
+        self.log.info("Looking for %s" % deviceName)
+        ip = None
+        if isip(deviceName):
+            ip = deviceName
+        else:
+            try:
+                ip = socket.gethostbyname(deviceName)
+            except socket.error: 
+                ip = ""
+        if not ip:
+            raise NoIPAddress("No IP found for name %s" % deviceName)
+        else:
+            self.log.info("Found IP %s for device %s" % (ip, deviceName))
+            yield self.config().callRemote('getDeviceConfig', [deviceName])
+            me, = driver.next() or [None]
+            if not me or self.options.remodel:
+                yield self.discoverDevice(ip,
+                                         devicepath=self.options.deviceclass,
+                                         prodState=self.options.productionState)
+                yield succeed("Discovered device.")
+                driver.next()
+
     def walkDiscovery(self, driver):
         myname = socket.getfqdn()
         self.log.info("my hostname = %s", myname)
@@ -364,35 +394,37 @@ class ZenDisc(ZenModeler):
         self.log.info('connected to ZenHub')
         if self.options.walk:
             d = drive(self.walkDiscovery)
+        elif self.options.device:
+            d = drive(self.createDevice)
         else:
             d = drive(self.collectNet)
         d.addBoth(self.printResults)
 
     def autoAllocate(self, device=None):
-	"""Execute a script that will auto allocate devices into their 
-	Device Classes"""
-	self.log.debug("trying to auto-allocate device %s" % device.id )
-	if not device:
-	    return
-
-	script = getattr(device, "zAutoAllocateScript", None)
-	self.log.debug("no auto-allocation script found")
-	if script:
-	    import string
-	    script = string.join(script, "\n")
-	    self.log.debug("using script\n%s" % script)
-	    try:
-		compile(script, "zAutoAllocateScript", "exec")
-	    except:
-		self.log.error("zAutoAllocateScript contains error")
-		return
-	    vars = {'dev': device, 'log': self.log}
-	    try:
-	    	exec(script, vars)
-	    except:
-		self.log.error("error executing zAutoAllocateScript:\n%s" % script)
-		return vars.get('devicePath', None)
-	return 
+        """Execute a script that will auto allocate devices into their 
+        Device Classes"""
+        self.log.debug("trying to auto-allocate device %s" % device.id )
+        if not device:
+            return
+        script = getattr(device, "zAutoAllocateScript", None)
+        self.log.debug("no auto-allocation script found")
+        if script:
+            import string
+            script = string.join(script, "\n")
+            self.log.debug("using script\n%s" % script)
+            try:
+                compile(script, "zAutoAllocateScript", "exec")
+            except:
+                self.log.error("zAutoAllocateScript contains error")
+                return
+            vars = {'dev': device, 'log': self.log}
+            try:
+                exec(script, vars)
+            except:
+                self.log.error(
+                    "error executing zAutoAllocateScript:\n%s" % script)
+            return vars.get('devicePath', None)
+        return 
 
 
     def buildOptions(self):

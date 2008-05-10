@@ -125,7 +125,6 @@ class DiscoverService(ModelerService):
         self.dmd.ZenEventManager.sendEvent(evt)
 
 
-
     @translateError
     def remote_createDevice(self, ip, **kw):
         """Create a device.
@@ -135,7 +134,7 @@ class DiscoverService(ModelerService):
         """
         if not isip(ip):
             ip = socket.gethostbyname(ip)
-        ipobj = self.dmd.Networks.findIp(ip)
+        ipobj = self.dmd.Networks.createIp(ip)
         if not ipobj and not getattr(ipobj, "zAutoDiscover", True): 
             # self.log.info("ip '%s' on no auto-discover, skipping",ip)
             return
