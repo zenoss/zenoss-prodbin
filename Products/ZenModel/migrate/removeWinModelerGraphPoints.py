@@ -15,7 +15,7 @@ import Migrate
 class RemoveWinModelerGraphPoints(Migrate.Step):
     version = Migrate.Version(2, 2, 0)
 
-    def balete(self, dmd, path):
+    def deleteLastObjectOnPath(self, dmd, path):
         parts = path.split('/')
         obj = dmd
         for part in parts[:-1]:
@@ -31,7 +31,7 @@ class RemoveWinModelerGraphPoints(Migrate.Step):
             ]
         for path in paths:
             try:
-                self.balete(dmd, path)
+                self.deleteLastObjectOnPath(dmd, path)
             except AttributeError:
                 pass
             
