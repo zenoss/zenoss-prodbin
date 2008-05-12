@@ -122,6 +122,7 @@ class Report:
         w += ' AND firstTime <= %(endDate)s '
         w += ' AND firstTime != lastTime '
         w += " AND eventClass = '%(eventClass)s' "
+        w += " AND prodState >= 1000 "
         if self.device:
             w += " AND device = '%(device)s' "
         if self.component:
