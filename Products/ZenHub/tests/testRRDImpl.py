@@ -28,7 +28,7 @@ class TestRRDImpl(BaseTestCase):
         from Products.ZenHub.services.RRDImpl import RRDImpl
         from Products.ZenModel.Device import manage_createDevice
         d = manage_createDevice(self.dmd,
-                                deviceName='127.0.0.10',
+                                deviceName='127.0.0.1',
                                 devicePath='/Test')
         from Products.ZenModel.RRDTemplate import manage_addRRDTemplate
         manage_addRRDTemplate(self.dmd.Devices.Test.rrdTemplates, 'Device')
