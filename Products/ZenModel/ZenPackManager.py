@@ -46,7 +46,7 @@ class ZenPackManager(ZenModelRM):
     default_catalog = 'zenPackNameSearch'
 
     _relations = ZenModelRM._relations + (
-        ('packs', ToManyCont(ToOne, 'Products.ZenModel.ZenPack', 'root')),
+        ('packs', ToManyCont(ToOne, 'Products.ZenModel.ZenPack', 'manager')),
         )
 
     factory_type_information = (
