@@ -28,6 +28,7 @@ class MakeZenPackManager(Migrate.Step):
         if not getattr(dmd, 'ZenPackManager', None):
             manage_addZenPackManager(dmd, 'ZenPackManager')
             for zp in dmd.packs():
+                zp.buildRelations()
                 dmd.packs._delObject(zp.id)
                 zp = aq_base(zp)
                 dmd.ZenPackManager.packs._setObject(zp.id, zp)
