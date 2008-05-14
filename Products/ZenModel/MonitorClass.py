@@ -30,6 +30,7 @@ from Products.ZenUtils.Utils import checkClass
 from ZenModelRM import ZenModelRM
 
 from RRDTemplate import RRDTemplate
+from TemplateContainer import TemplateContainer
 
 def manage_addMonitorClass(context, id, title = None, REQUEST = None):
     """make a device class"""
@@ -44,7 +45,7 @@ addMonitorClass = DTMLFile('dtml/addMonitorClass',globals())
 from Products.ZenRelations.RelSchema import ToManyCont, ToOne
 
 
-class MonitorClass(ZenModelRM, Folder):
+class MonitorClass(ZenModelRM, Folder, TemplateContainer):
     #isInTree = 1
     meta_type = "MonitorClass"
     sub_class = 'MonitorClass'
@@ -79,10 +80,7 @@ class MonitorClass(ZenModelRM, Folder):
         )
     
     security = ClassSecurityInfo()
-    _relations = ZenModelRM._relations + (
-        ('rrdTemplates', ToManyCont(ToOne, 'Products.ZenModel.RRDTemplate', 'deviceClass')),
-        )
-
+    _relations = TemplateContainer._relations
 
     def __init__(self, id, title=None, buildRelations=True):
         ZenModelRM.__init__(self, id, title, buildRelations)

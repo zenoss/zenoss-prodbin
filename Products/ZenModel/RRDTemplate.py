@@ -117,11 +117,16 @@ class RRDTemplate(ZenModelRM, ZenPackable):
     # by the graphDefinitionAndFriends migrate script for 2.1
 
     _relations =  ZenPackable._relations + (
-        ("deviceClass", ToOne(ToManyCont,"Products.ZenModel.DeviceClass", "rrdTemplates")),
-        ("datasources", ToManyCont(ToOne,"Products.ZenModel.RRDDataSource", "rrdTemplate")),
-        ("graphs", ToManyCont(ToOne,"Products.ZenModel.RRDGraph", "rrdTemplate")),
-        ("thresholds", ToManyCont(ToOne,"Products.ZenModel.ThresholdClass", "rrdTemplate")),
-        ("graphDefs", ToManyCont(ToOne,"Products.ZenModel.GraphDefinition", "rrdTemplate")),
+        ("deviceClass", ToOne(
+            ToManyCont,"Products.ZenModel.TemplateContainer", "rrdTemplates")),
+        ("datasources", ToManyCont(
+            ToOne,"Products.ZenModel.RRDDataSource", "rrdTemplate")),
+        ("graphs", ToManyCont(
+            ToOne,"Products.ZenModel.RRDGraph", "rrdTemplate")),
+        ("thresholds", ToManyCont(
+            ToOne,"Products.ZenModel.ThresholdClass", "rrdTemplate")),
+        ("graphDefs", ToManyCont(
+            ToOne,"Products.ZenModel.GraphDefinition", "rrdTemplate")),
         )
 
 

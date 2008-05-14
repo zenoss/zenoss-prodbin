@@ -45,6 +45,7 @@ from Products.ZenUtils.FakeRequest import FakeRequest
 import RRDTemplate
 from DeviceOrganizer import DeviceOrganizer
 from ZenPackable import ZenPackable
+from TemplateContainer import TemplateContainer
 
 _marker = "__MARKER___"
 
@@ -59,7 +60,7 @@ def manage_addDeviceClass(context, id, title = None, REQUEST = None):
 addDeviceClass = DTMLFile('dtml/addDeviceClass',globals())
 
 
-class DeviceClass(DeviceOrganizer, ZenPackable):
+class DeviceClass(DeviceOrganizer, ZenPackable, TemplateContainer):
     """
     DeviceClass is a device organizer that manages the primary classification
     of device objects within the zenoss system.  It manages properties
@@ -84,9 +85,9 @@ class DeviceClass(DeviceOrganizer, ZenPackable):
 
     default_catalog = 'deviceSearch'
     
-    _relations = DeviceOrganizer._relations + ZenPackable._relations + (
+    _relations = DeviceOrganizer._relations + ZenPackable._relations + \
+                TemplateContainer._relations + (
         ("devices", ToManyCont(ToOne,"Products.ZenModel.Device","deviceClass")),
-        ("rrdTemplates", ToManyCont(ToOne,"Products.ZenModel.RRDTemplate","deviceClass")),
         )
 
     # Screen action bindings (and tab definitions)
