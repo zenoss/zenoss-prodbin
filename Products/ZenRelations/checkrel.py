@@ -22,6 +22,17 @@ import Globals
 from utils import importClass, importClasses
 from Products.ZenRelations.Exceptions import ZenSchemaError
 
+def lookupSchema(cls, relname):
+    """
+    Lookup the schema definition for a relationship. 
+    All base classes are checked until RelationshipManager is found.
+    """
+    for name, schema in cls._relations:
+        if name == relname: return schema
+    raise ZenSchemaError("Schema for relation %s not found on %s" %
+                            (relname, cls.__name__))
+
+
 def checkRelationshipSchema(cls, baseModule):
     """
     Walk all relationship schema definitions and confirm that they
@@ -33,10 +44,9 @@ def checkRelationshipSchema(cls, baseModule):
         except AttributeError, e:
             logging.critical("RemoteClass '%s' from '%s.%s' not found",
                         rel.remoteClass, cls.__name__, relname)
-            continue
-                        
+            continue                        
         try:
-            rschema = remoteClass.lookupSchema(rel.remoteName)
+            rschema = lookupSchema(remoteClass, rel.remoteName)
         except ZenSchemaError, e:
             logging.critical("Inverse def '%s' for '%s.%s' not found on '%s'",
                 rel.remoteName, cls.__name__, relname,rel.remoteClass)
@@ -45,6 +55,7 @@ def checkRelationshipSchema(cls, baseModule):
             logging.critical("RemoteClass '%s' for '%s.%s' problem.",
                 rel.remoteName, cls.__name__, relname)
             logging.critical(e)
+            continue
         try:
             localClass = importClass(rschema.remoteClass, None)
         except AttributeError, e:
@@ -71,6 +82,6 @@ classList = importClasses(basemodule=baseModule,
             skipnames=("ZentinelPortal", "ZDeviceLoader"))
 
 for classdef in classList:
-    if hasattr(classdef, "lookupSchema"):
+    if hasattr(classdef, '_relations'):
         logging.info("checking class %s...", classdef.__name__)
         checkRelationshipSchema(classdef, baseModule)
