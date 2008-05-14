@@ -39,7 +39,8 @@ class TemperatureSensor(HWComponent):
     )
 
     _relations = HWComponent._relations + (
-        ("hw", ToOne(ToManyCont, "Products.ZenModel.DeviceHW", "fans")),
+        ("hw", ToOne(
+            ToManyCont, "Products.ZenModel.DeviceHW", "temperaturesensors")),
         )
 
     
