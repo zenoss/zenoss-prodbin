@@ -57,9 +57,9 @@ class RRDThreshold(ZenModelRM, ZenPackable):
                  {'id':'enabled', 'type':'boolean', 'mode':'w'},
                 )
 
-    _relations =  ZenPackable._relations + (
-        ("rrdTemplate", ToOne(ToManyCont,"Products.ZenModel.RRDTemplate", "thresholds")),
-        )
+#    _relations =  ZenPackable._relations + (
+#        ("rrdTemplate", ToOne(ToManyCont,"Products.ZenModel.RRDTemplate", "thresholds")),
+#        )
 
 
     factory_type_information = ( 
