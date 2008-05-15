@@ -336,10 +336,7 @@ def InstallDistAsZenPack(dmd, dist, filesOnly=False):
         if existing:
             for p in existing.packables():
                 packables.append(p)
-                try:
-                    existing.packables.removeRelation(p)
-                except ObjectNotFound:
-                    pass
+                existing.packables.removeRelation(p)
             if existing.isEggPack():
                 forceNoFileDeletion = existing.eggPath() == dist.location
                 RemoveZenPack(dmd, existing.id, 

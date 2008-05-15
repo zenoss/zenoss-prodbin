@@ -87,7 +87,9 @@ class ToOneRelationship(RelationshipBase):
             self.obj = None 
             self.__primary_parent__._p_changed = True
         else:
-            raise ObjectNotFound
+            raise ObjectNotFound, "on %s: %s is not %s" % (
+                            self.getPrimaryId(), obj.getPrimaryId(), 
+                            self.obj.getPrimaryId())
 
 
     def _remoteRemove(self, obj=None):

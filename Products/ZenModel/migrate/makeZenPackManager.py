@@ -29,9 +29,7 @@ class MakeZenPackManager(Migrate.Step):
             manage_addZenPackManager(dmd, 'ZenPackManager')
             for zp in dmd.packs():
                 zp.buildRelations()
-                dmd.packs._delObject(zp.id)
-                zp = aq_base(zp)
-                dmd.ZenPackManager.packs._setObject(zp.id, zp)
+                zp.moveObject(dmd.packs, dmd.ZenPackManager.packs)
                 
         if getattr(dmd, ZENPACK_PERSISTENCE_CATALOG, None) is None:
             CreateZenPackPersistenceCatalog(dmd)

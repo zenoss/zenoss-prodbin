@@ -196,6 +196,17 @@ class RelationshipManager(PrimaryPathObjectManager, ZenPropertyManager):
         return 0
 
 
+    def moveObject(self, srcRelationship, destRelationship):
+        """
+        Move a relationship manager without deleting its relationships.
+        """
+        self._operation = 1
+        srcRelationship._delObject(self.id)
+        self = aq_base(self)
+        destRelationship._setObject(self.id, self)
+        return destRelationship._getOb(self.id)
+
+
     ##########################################################################
     #
     # Functions for examining a RelationshipManager's schema
