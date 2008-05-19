@@ -177,13 +177,13 @@ class SyslogProcessor(object):
         syslog events we use the summary of the event to perform a full text
         or'ed search.
         """
-        if hasattr(evt, 'eventClassKey') or hasattr(evt, 'eventClass'):
+        if evt.has_key('eventClassKey') or evt.has_key( 'eventClass'):
             return evt
-        elif hasattr(evt, 'ntevid'):
+        elif evt.has_key( 'ntevid'):
             evt['eventClassKey'] = "%s_%s" % (evt['component'],evt['ntevid'])
-        elif hasattr(evt, 'component'):
+        elif evt.has_key( 'component'):
             evt['eventClassKey'] = evt['component']
-        if hasattr(evt, 'eventClassKey'): 
+        if evt.has_key( 'eventClassKey'): 
             slog.debug("eventClassKey=%s", evt['eventClassKey'])
             try:
                 evt['eventClassKey'] = evt['eventClassKey'].decode('latin-1')
