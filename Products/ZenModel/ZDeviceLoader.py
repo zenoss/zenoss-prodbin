@@ -28,7 +28,6 @@ from AccessControl import Permissions as permissions
 
 from OFS.SimpleItem import SimpleItem
 
-from Device import manage_createDevice
 from Products.ZenUtils.Utils import isXmlRpc, setupLoggingHeader, clearWebLoggingStream
 from Products.ZenUtils.Exceptions import ZentinelException
 from Products.ZenModel.Exceptions import DeviceExistsError, NoSnmp
@@ -86,7 +85,7 @@ class ZDeviceLoader(ZenModelItem,SimpleItem):
             osManufacturer="", osProductName="",
             locationPath="", groupPaths=[], systemPaths=[],
             performanceMonitor="localhost",
-            discoverProto="snmp",REQUEST = None):
+            discoverProto="snmp",priority=3,REQUEST=None):
         """
         Load a device into the database connecting its major relations
         and collecting its configuration. 
@@ -98,16 +97,24 @@ class ZDeviceLoader(ZenModelItem,SimpleItem):
         print xmlrpc
         if REQUEST and not xmlrpc:
             handler = setupLoggingHeader(self, REQUEST)
+    
+        """
+        Get performance monitor and call createDevice so that the correct
+        version (local/remote) of createDevice gets invoked
+        """
+        monitor = self.getDmdRoot("Monitors").getPerformanceMonitor(
+                                                performanceMonitor)
         
         try:
-            device = manage_createDevice(self, deviceName, devicePath,
-                tag, serialNumber,
-                zSnmpCommunity, zSnmpPort, zSnmpVer,
-                rackSlot, productionState, comments,
-                hwManufacturer, hwProductName,
-                osManufacturer, osProductName,
-                locationPath, groupPaths, systemPaths,
-                performanceMonitor, discoverProto)
+            device = monitor.createDevice(self, deviceName, devicePath,
+                                    tag, serialNumber,
+                                    zSnmpCommunity, zSnmpPort, zSnmpVer,
+                                    rackSlot, productionState, comments,
+                                    hwManufacturer, hwProductName,
+                                    osManufacturer, osProductName,
+                                    locationPath, groupPaths, systemPaths,
+                                    performanceMonitor, discoverProto, 
+                                    priority,REQUEST)                                        
             transaction.commit()
         except (SystemExit, KeyboardInterrupt): raise
         except ZentinelException, e:
@@ -124,8 +131,6 @@ class ZDeviceLoader(ZenModelItem,SimpleItem):
             log.exception('load of device %s failed' % deviceName)
             transaction.abort()
         else:
-            if discoverProto != "none":
-                device.collectDevice(setlog=False, REQUEST=REQUEST)
             log.info("Device %s loaded!" % deviceName)
 
         if REQUEST and not xmlrpc:

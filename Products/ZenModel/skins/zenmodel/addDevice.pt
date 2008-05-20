@@ -56,14 +56,28 @@
         </tr>
         <tr>
             <td class="tableheader" align="left">Discovery Protocol</td>
-            <td class="tablevalues" align="left" colspan=3>
+            <td class="tablevalues" align="left" >
                 <select class="tablevalues" name="discoverProto">
-                    <option value="snmp">snmp</option>
+                    <option value="auto">auto</option>
                     <!--
                     <option value="ssh">ssh</option>
                     <option value="portscan">portscan</option>
                     -->
                     <option value="none">none</option> 
+                </select>
+            </td>
+            <td class="tableheader" align="left">Collector</td>
+            <td class="tablevalues" align="left">
+                <select class="tablevalues" name="performanceMonitor"
+                tal:define="
+                crks python:here.getDmdRoot('Monitors').getPerformanceMonitorNames();
+                curcrk here/getPerformanceServerName | request/performanceMonitor |
+                    string:localhost"
+                >
+                    <option tal:repeat="crk crks" 
+                        tal:attributes="value crk; 
+                            selected python:curcrk and crk in curcrk"
+                        tal:content="crk">localhost</option>
                 </select>
             </td>
         </tr>
@@ -317,22 +331,6 @@
                   onkeypress="return submitViaEnter(event,'addDeviceGroup');"/>
                 <input class="tableheader" type="submit" 
                     name="addDeviceGroup:method" value="Add" />
-            </td>
-        </tr>
-        <tr>
-            <td class="tableheader" align="left">Collector</td>
-            <td class="tablevalues" align="left" colspan=3>
-                <select class="tablevalues" name="performanceMonitor"
-                tal:define="
-                crks python:here.getDmdRoot('Monitors').getPerformanceMonitorNames();
-                curcrk here/getPerformanceServerName | request/performanceMonitor |
-                    string:localhost"
-                >
-                    <option tal:repeat="crk crks" 
-                        tal:attributes="value crk; 
-                            selected python:curcrk and crk in curcrk"
-                        tal:content="crk">localhost</option>
-                </select>
             </td>
         </tr>
         <tr>

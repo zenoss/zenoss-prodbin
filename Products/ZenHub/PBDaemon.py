@@ -18,6 +18,7 @@ Base for daemons that connect to zenhub
 '''
 
 import Globals
+import sys
 from Products.ZenUtils.ZenDaemon import ZenDaemon
 from Products.ZenEvents.ZenEventClasses import Heartbeat
 from Products.ZenUtils.PBUtil import ReconnectingPBClientFactory
@@ -88,6 +89,7 @@ class PBDaemon(ZenDaemon, pb.Referenceable):
     initialServices = ['EventService']
     heartbeatEvent = {'eventClass':Heartbeat}
     heartbeatTimeout = 60*3
+    _customexitcode = 0
     
     def __init__(self, noopts=0, keeproot=False):
         ZenDaemon.__init__(self, noopts, keeproot)
@@ -204,6 +206,8 @@ class PBDaemon(ZenDaemon, pb.Referenceable):
         d.addCallbacks(callback, errback)
         reactor.run()
         self.log.info('%s shutting down' % self.name)
+        if self._customexitcode:
+            sys.exit(self._customexitcode)
 
     def sigTerm(self, signum=None, frame=None):
         try:

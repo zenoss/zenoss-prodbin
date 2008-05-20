@@ -37,22 +37,30 @@ except ImportError:
         s = s.replace('\n','')
         return s
 import xmlrpclib
-
+        
 from AccessControl import ClassSecurityInfo
+from AccessControl import Permissions as permissions
 from Globals import DTMLFile
 from Globals import InitializeClass
-
-from Products.PythonScripts.standard import url_quote
-from AccessControl import Permissions as permissions
-from Products.ZenModel.ZenossSecurity import *
-
-from Products.ZenRelations.RelSchema import *
-
-from Products.ZenUtils.Utils import basicAuthUrl, zenPath
-
 from Monitor import Monitor
-from StatusColor import StatusColor
+from Products.PythonScripts.standard import url_quote
+from Products.ZenModel.ZenossSecurity import *
+from Products.ZenRelations.RelSchema import *
+from Products.ZenUtils.Utils import basicAuthUrl, zenPath
 from Products.ZenUtils.Utils import unused
+from Products.ZenUtils.Utils import isXmlRpc
+from Products.ZenUtils.Utils import setupLoggingHeader
+from Products.ZenUtils.Utils import executeCommand
+from Products.ZenUtils.Utils import clearWebLoggingStream
+from Products.ZenModel.Exceptions import DeviceExistsError
+from Products.ZenUtils.IpUtil import isip
+from Products.ZenModel.Device import manage_createDevice
+from StatusColor import StatusColor
+
+
+
+
+
 
 PERF_ROOT=None
 
@@ -369,6 +377,123 @@ class PerformanceConf(Monitor, StatusColor):
             if dev.monitorDevice() and not dev.zPingMonitorIgnore: 
                 devices.append(dev)
         return devices
+    
+    def createDevice(self, context, deviceName, devicePath="/Discovered",
+            tag="", serialNumber="",
+            zSnmpCommunity="", zSnmpPort=161, zSnmpVer="",
+            rackSlot=0, productionState=1000, comments="",
+            hwManufacturer="", hwProductName="",
+            osManufacturer="", osProductName="",
+            locationPath="", groupPaths=[], systemPaths=[],
+            performanceMonitor="localhost",
+            discoverProto="snmp", priority=3, REQUEST = None):
+        
+        """
+        Create a device in a performance monitor specific fashion.
+        Creates device by delegating to manage_createDevice
+        @rtype: Device
+        """
+       
+        if isip(deviceName) and self.getDmdRoot('Networks').findIp(deviceName):
+            device = self.getDmdRoot('Networks').findIp(deviceName)
+            raise DeviceExistsError("Ip %s exists on %s" % (deviceName, device.id))
+        elif self.getDmdRoot("Devices").findDevice(deviceName):
+            raise DeviceExistsError("Device %s already exists" % deviceName)
+        
+        
+        device = None
+        if discoverProto == "none":
+            device = manage_createDevice(self, deviceName, devicePath,
+                tag, serialNumber,
+                zSnmpCommunity, zSnmpPort, zSnmpVer,
+                rackSlot, productionState, comments,
+                hwManufacturer, hwProductName,
+                osManufacturer, osProductName,
+                locationPath, groupPaths, systemPaths,
+                performanceMonitor, discoverProto)
+        else:
+            device = self._createDevice(deviceName, devicePath, productionState,
+                                performanceMonitor, discoverProto, zSnmpPort, 
+                                zSnmpCommunity, REQUEST)
+#need to call zendisc and interpret exit codes?  Then update properties.
+            
+            if device:
+                device.manage_editDevice(tag=tag,
+                          serialNumber=serialNumber,
+                          rackSlot=rackSlot,
+                          productionState=productionState,
+                          comments=comments,
+                          hwManufacturer=hwManufacturer,
+                          hwProductName = hwProductName,
+                          osManufacturer = osManufacturer,
+                          osProductName = osProductName,
+                          locationPath = locationPath,
+                          groupPaths = groupPaths,
+                          systemPaths = systemPaths,
+                          performanceMonitor = performanceMonitor,
+                          priority = priority)
+            else:
+                log.info("no device returned")
+        return device        
 
+    def _createDevice(self, deviceName, devicePath= "/Discovered", 
+                      productionState=1000, performanceMonitor="localhost", 
+                      discoverProto="snmp", zSnmpPort=161,zSnmpCommunity="", 
+                      REQUEST=None):
+        """
+        Actual implementation for creating/adding a device to the system.
+        """
+        zm = zenPath('bin', 'zendisc')
+        zendiscCmd = [zm, 'run', '--now','-d', deviceName,
+                     '--monitor', performanceMonitor, 
+                     '--deviceclass', devicePath,
+                     '--snmp-port', str(zSnmpPort) ]
+        if zSnmpCommunity != "":
+            zendiscCmd.extend(["--snmp-community", zSnmpCommunity])
+            
+        
+        if REQUEST: zendiscCmd.append("--weblog")
+        
+        result = executeCommand(zendiscCmd, REQUEST)
+        if result == 3:
+            raise DeviceExistsError("ZenDisc found existing Device" )
+        log.info("zendisc result : %s" % result)
+        self.dmd._p_jar.sync()
+        device = self.getDmdRoot("Devices").findDevice(deviceName)
+        if not device:
+            raise Exception("ZenDisc did not create device %s" % deviceName)
+        return device
+        
+    def _executeZenDiscCommand(self, zendiscCmd, REQUEST=None):
+        """
+        execute a the given zendisc command and return result
+        """
+        result = executeCommand(zendiscCmd, REQUEST) 
+        return result
+
+    def collectDevice(self, device=None, setlog=True, REQUEST=None, 
+                      generateEvents=False):
+        """
+        Collect the configuration of this device AKA Model Device
+        
+        @param setlog: If true, set up the output log of this process
+        @permission: ZEN_MANAGE_DEVICE
+        """
+        
+        xmlrpc = isXmlRpc(REQUEST)
+        if setlog and REQUEST and not xmlrpc:
+            handler = setupLoggingHeader(self, REQUEST)
+
+        zm = zenPath('bin', 'zenmodeler')
+        zenmodelerCmd = [zm, 'run', '--now','-F','-d', device.id]
+        if REQUEST: zenmodelerCmd.append("--weblog")
+        result = executeCommand(zenmodelerCmd, REQUEST)
+        if result and xmlrpc: return result
+        log.info("configuration collected")
+        
+        if setlog and REQUEST and not xmlrpc:
+            clearWebLoggingStream(handler)
+        
+        if xmlrpc: return 0
 
 InitializeClass(PerformanceConf)

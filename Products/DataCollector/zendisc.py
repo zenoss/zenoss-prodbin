@@ -160,6 +160,13 @@ class ZenDisc(ZenModeler):
             self.log.debug("Doing SNMP lookup on device %s", ip)
             yield self.config().callRemote('getSnmpConfig', devicePath)
             communities, port, version, timeout, retries = driver.next()
+
+            # Override with the stuff passed in
+            if self.options.zSnmpVer: version = self.options.zSnmpVer
+            if self.options.zSnmpPort: port = self.options.zSnmpPort
+            if self.options.zSnmpCommunity: 
+                communities = (self.options.zSnmpCommunity,) + communities
+
             versions = ("v2c", "v1")
             if '1' in version:
                 versions = list(versions)
@@ -209,25 +216,46 @@ class ZenDisc(ZenModeler):
         def inner(driver):
             try:
                 name = ip
+                useDeviceName = False
+                if self.options.device and not isip(self.options.device):
+                    name = self.options.device
+                    useDeviceName = True
                 kw = dict(deviceName=name,
                           discoverProto=None,
                           devicePath=devicepath,
                           performanceMonitor=self.options.monitor)
+                
+                snmpDeviceInfo = None
                 if not self.options.nosnmp:
                     self.log.debug("Scanning device with address %s", ip)
                     yield self.findRemoteDeviceInfo(ip, devicepath)
-                    deviceInfo = driver.next()
-                    if deviceInfo:
-                        community, port, ver, snmpname = deviceInfo
+                    snmpDeviceInfo = driver.next()
+                    if snmpDeviceInfo:
+                        community, port, ver, snmpname = snmpDeviceInfo
                         kw.update(dict(deviceName=snmpname,
                                        zSnmpCommunity=community,
                                        zSnmpPort=port,
                                        zSnmpVer=ver))
-                yield asyncNameLookup(ip)
-                try:
-                    kw.update(dict(deviceName=driver.next()))
-                except Exception, ex:
-                    self.log.debug("Failed to lookup %s (%s)" % (ip, ex))
+                if not snmpDeviceInfo or self.options.nosnmp: 
+                    """use the port set via commandline incase 
+                    findRemoteDeviceInfo did not return data; this should
+                    make sure the device is created with correct snmp 
+                    options and zenmodeler runs with correct options"""   
+                    if self.options.zSnmpPort: 
+                        kw.update(dict(zSnmpPort=self.options.zSnmpPort))
+                    if self.options.zSnmpVer: 
+                        kw.update(dict(zSnmpVer=self.options.zSnmpVer))
+                    if self.options.zSnmpCommunity: 
+                        kw.update(dict(zSnmpCommunity=
+                                       self.options.zSnmpCommunity))
+                if useDeviceName:
+                    kw.update(dict(deviceName=name))
+                else:
+                    yield asyncNameLookup(ip)   
+                    try:
+                        kw.update(dict(deviceName=driver.next()))
+                    except Exception, ex:
+                        self.log.debug("Failed to lookup %s (%s)" % (ip, ex))
                 yield self.config().callRemote('createDevice', ip, **kw)
                 result = driver.next()
                 if isinstance(result, Failure):
@@ -244,6 +272,8 @@ class ZenDisc(ZenModeler):
                         if not self.options.remodel:
                             self.log.info("ip '%s' on device '%s' skipping",
                                           ip, dev.id)
+                            if self.options.device:
+                                self._customexitcode = 3
                             yield succeed(dev)
                             driver.next()
                             return
@@ -451,6 +481,12 @@ class ZenDisc(ZenModeler):
         self.parser.add_option('--chunk', dest='chunkSize', 
                     default=10, type="int",
                     help="number of in flight ping packets")
+        self.parser.add_option('--snmp-version', dest='zSnmpVer', 
+                    help="SNMP version of the target")
+        self.parser.add_option('--snmp-community', dest='zSnmpCommunity', 
+                    help="SNMP community string of the target")
+        self.parser.add_option('--snmp-port', dest='zSnmpPort', 
+                    type="int", help="SNMP port of the target")
         self.parser.add_option('--snmp-missing', dest='snmpMissing',
                     action="store_true", default=False,
                     help="send an event if SNMP is not found on the device")
@@ -469,7 +505,6 @@ class ZenDisc(ZenModeler):
         self.parser.add_option('--useFileDescriptor',
                     dest='useFileDescriptor', default=None,
                     help="Use the given (priveleged) file descriptor for ping")
-
         self.parser.add_option('--assign-devclass-script', dest='autoAllocate',
                     action="store_true", default=False,
                     help="have zendisc auto allocate devices after discovery")

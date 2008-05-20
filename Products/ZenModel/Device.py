@@ -159,7 +159,7 @@ def manage_createDevice(context, deviceName, devicePath="/Discovered",
 def findCommunity(context, ip, devicePath, 
                   community="", port=None, version=None):
     """
-    Find the SNMP community and version for an p address using zSnmpCommunities.
+    Find the SNMP community and version for an ip address using zSnmpCommunities.
     
     @rtype: tuple of (community, port, version, device name)
     """
@@ -1077,8 +1077,9 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
             log.info("setting system %s" % systemPaths)
             self.setSystems(systemPaths)
 
-        log.info("setting performance monitor to %s" % performanceMonitor)
-        self.setPerformanceMonitor(performanceMonitor)
+        if performanceMonitor != self.getPerformanceServerName():
+            log.info("setting performance monitor to %s" % performanceMonitor)
+            self.setPerformanceMonitor(performanceMonitor)
        
         self.setLastChange()
         self.index_object()
@@ -1579,20 +1580,9 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
         @todo: generateEvents param is not being used.
         """
         unused(generateEvents)
-        
         xmlrpc = isXmlRpc(REQUEST)
-        if setlog and REQUEST and not xmlrpc:
-            handler = setupLoggingHeader(self, REQUEST)
-
-        zm = zenPath('bin', 'zenmodeler')
-        zenmodelerCmd = [zm, 'run', '--now','-F','-d', self.id]
-        if REQUEST: zenmodelerCmd.append("--weblog")
-        result = executeCommand(zenmodelerCmd, REQUEST)
-        if result and xmlrpc: return result
-        log.info("configuration collected")
-        
-        if setlog and REQUEST and not xmlrpc:
-            clearWebLoggingStream(handler)
+        perfConf = self.getPerformanceServer()
+        perfConf.collectDevice(self, setlog, REQUEST)
         
         if xmlrpc: return 0
 

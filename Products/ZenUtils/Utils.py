@@ -591,11 +591,12 @@ def setupLoggingHeader(context, REQUEST):
 
 def executeCommand(cmd, REQUEST):
     xmlrpc = isXmlRpc(REQUEST)
+    result = 0
     try:
-	if REQUEST:
-        	response = REQUEST.RESPONSE
-	else:
-		response = sys.stdout
+        if REQUEST:
+            response = REQUEST.RESPONSE
+        else:
+            response = sys.stdout
         log.info('Executing command: %s' % ' '.join(cmd))
         f = Popen4(cmd)
         while 1:
@@ -616,7 +617,10 @@ def executeCommand(cmd, REQUEST):
     except: 
         if xmlrpc: return 1
         raise
-    return 0
+    else:
+        result = f.wait()
+        result = int(hex(result)[:-2], 16)
+    return result
 
 def ipsort(a, b):
     # Strip off netmasks
