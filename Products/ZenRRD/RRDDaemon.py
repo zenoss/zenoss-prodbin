@@ -97,7 +97,10 @@ class RRDDaemon(PBDaemon):
 
     def logError(self, msg, error):
         if isinstance(error, failure.Failure):
-            self.log.exception(error)
+            if isinstance(error.value, error.TimeoutError):
+                self.log.warning("Timeout Error")
+            else:
+                self.log.exception(error)
         else:
             self.log.error('%s %s', msg, error)
 

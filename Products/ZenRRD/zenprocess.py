@@ -562,9 +562,9 @@ class zenprocess(SnmpDaemon):
 
     def storePerfStats(self, results, device):
         "Save the performance data in RRD files"
-        for result in results:
-            if not result[0]:
-                self.error(results)
+        for success, result in results:
+            if not success:
+                self.error(result)
                 return results
         self.clearSnmpError(device.name,
                             'Process table up for device %s' % device.name)
