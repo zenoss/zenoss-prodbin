@@ -421,21 +421,28 @@ class GraphDefinition(ZenModelRM, ZenPackable):
                         if upToPoint is None or gp.sequence < upToPoint]
             if threshGps:
                 for index, gp in enumerate(threshGps):
-                    cmds = gp.getGraphCmds(cmds, context, rrdDir,
+                    try:
+                        cmds = gp.getGraphCmds(cmds, context, rrdDir,
                                         self.hasSummary, index+idxOffset,
                                         multiid, prefix)
-
+                    except (KeyError, NameError), e:
+                        cmds.append('COMMENT: UNKOWN VALUE IN '
+                            'GRAPHPOINT %s\: %s' % (gp.id, str(e)))
         gpList = [gp for gp in self.getGraphPoints(includeThresholds=False)
                     if upToPoint is None or gp.sequence < upToPoint]
         for index, gp in enumerate(gpList):
-            cmds = gp.getGraphCmds(cmds, context, rrdDir, 
+            try:
+                cmds = gp.getGraphCmds(cmds, context, rrdDir, 
                                         self.hasSummary, index+idxOffset,
                                         multiid, prefix)
+            except (KeyError, NameError), e:
+                cmds.append('COMMENT: UNKNOWN VALUE IN GRAPHPOINT '
+                        '%s\: %s' % (gp.id, str(e)))
         if self.custom and includeSetup \
             and not upToPoint:
             try:
                 res = talesEval("string:"+str(self.custom), context)
-            except KeyError, e:
+            except (KeyError, NameError), e:
                 res = 'COMMENT:UNKNOWN VALUE IN CUSTOM COMMANDS\: %s' % str(e)
             res = [l for l in res.split('\n') if l.strip()]
             cmds.extend(res)
