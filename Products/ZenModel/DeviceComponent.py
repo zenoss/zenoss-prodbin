@@ -38,6 +38,7 @@ class DeviceComponent(Lockable):
 
     security = ClassSecurityInfo()
 
+    perfmonInstance = None
 
     def getParentDeviceName(self):
         """
