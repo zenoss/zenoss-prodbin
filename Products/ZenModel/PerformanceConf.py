@@ -443,18 +443,18 @@ class PerformanceConf(Monitor, StatusColor):
         """
         Actual implementation for creating/adding a device to the system.
         """
-        zm = zenPath('bin', 'zendisc')
-        zendiscCmd = [zm, 'run', '--now','-d', deviceName,
+        zendiscCmd = ['run', '--now','-d', deviceName,
                      '--monitor', performanceMonitor, 
                      '--deviceclass', devicePath,
                      '--snmp-port', str(zSnmpPort) ]
+        
         if zSnmpCommunity != "":
             zendiscCmd.extend(["--snmp-community", zSnmpCommunity])
             
         
         if REQUEST: zendiscCmd.append("--weblog")
         
-        result = executeCommand(zendiscCmd, REQUEST)
+        result = self._executeZenDiscCommand(zendiscCmd, REQUEST)
         if result == 3:
             raise DeviceExistsError("ZenDisc found existing Device" )
         log.info("zendisc result : %s" % result)
@@ -464,10 +464,13 @@ class PerformanceConf(Monitor, StatusColor):
             raise Exception("ZenDisc did not create device %s" % deviceName)
         return device
         
-    def _executeZenDiscCommand(self, zendiscCmd, REQUEST=None):
+    def _executeZenDiscCommand(self, zendiscOptions, REQUEST=None):
         """
-        execute a the given zendisc command and return result
+        execute zendisc  given zendisc options and return result
         """
+        zm = zenPath('bin', 'zendisc')
+        zendiscCmd = [zm]
+        zendiscCmd.extend(zendiscOptions)
         result = executeCommand(zendiscCmd, REQUEST) 
         return result
 
