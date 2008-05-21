@@ -67,6 +67,11 @@ class TestDevice(ZenModelBaseTest):
         self.assert_('/Test/Loc' in self.dmd.Locations.getOrganizerNames())
 
 
+    def testSetHWTag(self):
+        self.dev.setHWTag('my test asset tag')
+        self.assert_(self.dev.getHWTag() == 'my test asset tag')
+
+
     def testSetHWSerialNumber(self):
         self.dev.setHWSerialNumber('testSWKey')
         self.assert_(self.dev.getHWSerialNumber() == 'testSWKey')

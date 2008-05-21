@@ -684,6 +684,23 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
         self.os.setProductKey(prodKey)
 
 
+    def getHWTag(self):
+        """
+        DEPRECATED - Return the tag of the device HW.
+        
+        @rtype: string
+        @todo: remove this method and remove the call from testDevice.py
+        """
+        return self.hw.tag
+
+
+    def setHWTag(self, assettag):
+        """
+        Set the asset tag of the device hardware.
+        """
+        self.hw.tag = assettag
+
+
     def setHWProductKey(self, prodKey):
         """
         Set the productKey of the device hardware.
