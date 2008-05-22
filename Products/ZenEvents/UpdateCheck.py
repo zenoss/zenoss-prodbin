@@ -104,6 +104,8 @@ class UpdateCheck:
                 return
         now = long(time.time())
         dmd.lastVersionCheckAttempt = now
+        if not manual:
+            transaction.commit()
         try:
             available = self.getUpdate(dmd, manual)
         except IOError:
