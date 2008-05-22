@@ -485,7 +485,7 @@ class PerformanceConf(Monitor, StatusColor):
         
         xmlrpc = isXmlRpc(REQUEST)
         if setlog and REQUEST and not xmlrpc:
-            handler = setupLoggingHeader(self, REQUEST)
+            handler = setupLoggingHeader(device, REQUEST)
 
         zm = zenPath('bin', 'zenmodeler')
         zenmodelerCmd = [zm, 'run', '--now','-F','-d', device.id]
