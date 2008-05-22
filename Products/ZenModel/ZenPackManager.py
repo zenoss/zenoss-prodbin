@@ -181,7 +181,7 @@ class ZenPackManager(ZenModelRM):
                 if zp.isEggPack():
                     ZenPackCmd.RemoveZenPack(self.dmd, zpId, skipDepsCheck=True)
                 else:
-                    os.system('%s run --remove %s' % (
+                    os.system('%s --remove %s' % (
                                             zenPath('bin', 'zenpack'), zpId))
                     self._p_jar.sync()
         if REQUEST:
