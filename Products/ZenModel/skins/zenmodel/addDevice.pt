@@ -333,17 +333,6 @@
                     name="addDeviceGroup:method" value="Add" />
             </td>
         </tr>
-        <tr>
-            <td class="tableheader" align="left">New Collector</td>
-            <td class="tablevalues" align="left" colspan="3">
-                <input class="tablevalues" type="text" 
-                    size="40" name="newPerformanceMonitor"
-                    onkeypress="return submitViaEnter(event,
-                                            'setPerformanceMonitor');"/>
-                <input class="tableheader" type="submit" 
-                    name="setPerformanceMonitor:method" value="Add" />
-            </td>
-        </tr>
         </tal:block>
         <tr>
             <td class=tableheader align="left" >
