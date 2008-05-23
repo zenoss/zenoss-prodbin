@@ -1,3 +1,4 @@
+
 ###########################################################################
 #
 # This program is part of Zenoss Core, an open source monitoring platform.
@@ -196,7 +197,7 @@ class RelationshipManager(PrimaryPathObjectManager, ZenPropertyManager):
         return 0
 
 
-    def moveObject(self, srcRelationship, destRelationship):
+    def moveMeBetweenRels(self, srcRelationship, destRelationship):
         """
         Move a relationship manager without deleting its relationships.
         """
@@ -207,6 +208,19 @@ class RelationshipManager(PrimaryPathObjectManager, ZenPropertyManager):
         return destRelationship._getOb(self.id)
 
 
+    
+    def moveObject(self, obj, destination):
+        """
+        Move obj from this RM to the destination RM
+        """
+        self._operation = 1
+        self._delObject(obj.id)
+        obj = aq_base(obj)
+        destination._setObject(obj.id, obj)
+        return destination._getOb(obj.id)
+
+
+    
     ##########################################################################
     #
     # Functions for examining a RelationshipManager's schema
@@ -221,6 +235,9 @@ class RelationshipManager(PrimaryPathObjectManager, ZenPropertyManager):
         for name, schema in self._relations:
             if name not in relnames:
                 self._setObject(name, schema.createRelation(name))
+            if name in relnames: relnames.remove(name)
+        for rname in relnames:
+            self._delObject(rname)
 
         
     def lookupSchema(cls, relname):

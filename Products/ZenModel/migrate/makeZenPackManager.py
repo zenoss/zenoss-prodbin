@@ -29,7 +29,7 @@ class MakeZenPackManager(Migrate.Step):
             manage_addZenPackManager(dmd, 'ZenPackManager')
             for zp in dmd.packs():
                 zp.buildRelations()
-                zp.moveObject(dmd.packs, dmd.ZenPackManager.packs)
+                zp.moveMeBetweenRels(dmd.packs, dmd.ZenPackManager.packs)
                 
         if getattr(dmd, ZENPACK_PERSISTENCE_CATALOG, None) is None:
             CreateZenPackPersistenceCatalog(dmd)

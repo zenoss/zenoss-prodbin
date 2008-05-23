@@ -178,7 +178,9 @@ class DeviceClass(DeviceOrganizer, ZenPackable, TemplateContainer):
 
     def moveDevices(self, moveTarget, deviceNames=None, REQUEST=None):
         """
-        Override default moveDevices because this is a contained relation. 
+        Override default moveDevices because this is a contained relation.
+        If the python class bound to a DeviceClass is different we convert to
+        the new python class adding / removing relationships as needed.
         """
         if not moveTarget or not deviceNames: return self()
         target = self.getDmdRoot(self.dmdRootName).getOrganizer(moveTarget)
@@ -186,9 +188,18 @@ class DeviceClass(DeviceOrganizer, ZenPackable, TemplateContainer):
         for devname in deviceNames:
             dev = self.findDevice(devname)
             source = dev.deviceClass()
-            dev._operation = 1 # moving object state
-            source.devices._delObject(devname)
-            target.devices._setObject(devname, dev)
+            dev = dev.moveMeBetweenRels(source.devices, target.devices)
+            if dev.__class__ != dev.getPythonDeviceClass():
+                newdev = dev.getPythonDeviceClass()(
+                                    devname,buildRelations=False)
+                relnames = newdev.getRelationshipNames()
+                for rel in dev.getRelationships():
+                    if rel.id in relnames: 
+                        dev.moveObject(rel, newdev) 
+                newdev.buildRelations()
+                target.devices._delObject(devname)
+                target.devices._setObject(devname, newdev)
+                dev = target.devices._getOb(devname)
             dev.setLastChange()
         if REQUEST:
             REQUEST['message'] = "Devices moved to %s" % moveTarget

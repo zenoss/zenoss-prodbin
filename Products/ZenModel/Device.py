@@ -363,8 +363,8 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
 
     security = ClassSecurityInfo()
     
-    def __init__(self, id):
-        ManagedEntity.__init__(self, id)
+    def __init__(self, id, buildRelations=True):
+        ManagedEntity.__init__(self, id, buildRelations=buildRelations)
         os = OperatingSystem()
         self._setObject(os.id, os)
         hw = DeviceHW()
