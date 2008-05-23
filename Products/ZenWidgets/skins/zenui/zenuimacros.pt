@@ -46,7 +46,10 @@
 </div>
 <script tal:condition="menus"
 tal:content="string:
-    registerSubmenu('${menu}_parent','${menu}_submenu');">javascript madness
+    var loader=YAHOO.zenoss.getLoader();
+    loader.require(['zenossutils']);
+    loader.insert({onSuccess:function(){
+    registerSubmenu('${menu}_parent','${menu}_submenu');}});">javascript madness
 </script>
 </tal:block>
 </tal:block>
@@ -95,7 +98,11 @@ tal:content="string:
 </div>
 </div>
 <script>
-registerMenu('contextmenu_btn', 'contextmenu_items');
+var loader = YAHOO.zenoss.getLoader();
+loader.require(['zenossutils']);
+loader.insert({onSuccess:function(){
+    registerMenu('contextmenu_btn', 'contextmenu_items');
+}});
 </script>
 </tal:block>
 
@@ -203,7 +210,11 @@ mypath python:test(item.action.startswith('javascript'),
         </div>
 
         <script tal:content="string:
-            registerMenu('${menu_id}_btn', '${menu_id}_items');
+            var loader = YAHOO.zenoss.getLoader();
+            loader.require(['zenossutils']);
+            loader.insert({onSuccess:function(){
+                registerMenu('${menu_id}_btn', '${menu_id}_items');
+            }});
         ">
         </script>
     </div>

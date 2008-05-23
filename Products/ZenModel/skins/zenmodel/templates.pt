@@ -173,12 +173,24 @@
             href="zenoss_ie6.css" >
     <![endif]-->
     <script type="text/javascript" src="js/MochiKit.js"></script>
-    <script> var YAHOO_config={load:{base: '/zport/dmd/yui/'}};</script>
     <script type="text/javascript" language="javascript"
         src="/zport/dmd/yui/yahoo/yahoo-min.js"></script>
     <script type="text/javascript" language="javascript"
         src="/zport/dmd/yui/yuiloader/yuiloader-beta-min.js"></script>
     <script type="text/javascript" src="javascript/zenoss-core.js"></script>
+    <script>
+    var loader = YAHOO.zenoss.getLoader();
+    loader.require(['zenossutils']);
+    loader.insert({onSuccess:function(){
+        removeElementAutoCompletes();
+        applyBrowserSpecificStyles();
+        addSelectionBar();
+        checkForCollapsed();
+        connectCheckboxListeners();
+        notifyParentOfNewUrl();
+        zenPageInit();
+    }});
+    </script>
 </tal:block>
 
 <!-- ======================================================

@@ -4,10 +4,6 @@
 <span metal:define-macro="body">
 <link type="text/css" rel="stylesheet" href="css/zengrid.css"/>
 <script type="text/javascript">	var djConfig = { isDebug: true }; </script>
-<script type="text/javascript" src="/zport/js/zenutils.js"></script>
-<script type="text/javascript" src="/zport/javascript/zengrid.js"></script>
-<script type="text/javascript" 
-        src="/zport/portal_skins/zenevents/zeneventsfuncs.js"></script>
 <script type="text/javascript" src="/zport/portal_skins/zenmodel/datePicker.js">
 </script>
 
@@ -114,6 +110,9 @@ menu_id string:HistoryEvent_list;
 <script tal:content="string:
 var eventZenGridBuffer, eventZenGrid;
 addLoadEvent( function() {
+var loader = YAHOO.zenoss.getLoader();
+loader.require(['eventzengrid']);
+loader.insert({onSuccess:function(){
     eventZenGridBuffer = new ZenGridBuffer();
     eventZenGrid = new ZenGrid('gridcontainer', 
         'getJSONHistoryEventsInfo', 'mygrid', eventZenGridBuffer,
@@ -121,7 +120,7 @@ addLoadEvent( function() {
     connect('filter', 'onkeyup', eventZenGrid.doEventLivesearch);
     connect('state', 'onchange', eventZenGrid.refreshFromFormElement);
     connect('severity', 'onchange', eventZenGrid.refreshFromFormElement);
-});">
+}})});">
 </script>
 
 <script type="text/javascript">

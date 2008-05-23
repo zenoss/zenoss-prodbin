@@ -1,8 +1,9 @@
 <tal:block metal:use-macro="here/templates/macros/page1">
 <tal:block metal:fill-slot="contentPane">
 <script>
-    YAHOO.zenoss.loader.require(['container']);
-    YAHOO.zenoss.loader.insert();
+    var loader=YAHOO.zenoss.getLoader();
+    loader.require(['container']);
+    loader.insert();
     function installZenPack(packName) {
         url = '/zport/dmd/ZenPackManager/fetchZenPack';
         qs = {packName:packName};

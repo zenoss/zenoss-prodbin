@@ -92,8 +92,9 @@
                     'component-event-table', mycolumndefs, dataSource, oConfigs);
             }
             addLoadEvent(function() {
-                YAHOO.zenoss.loader.require(["datatable", "datatablesamskin"]);
-                YAHOO.zenoss.loader.insert({onSuccess:makeComponentDataTable});
+                var loader = YAHOO.zenoss.getLoader();
+                loader.require(["datatable", "datatablesamskin"]);
+                loader.insert({onSuccess:makeComponentDataTable});
             });
             </script>
         </div>

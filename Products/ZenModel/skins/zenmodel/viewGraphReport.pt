@@ -38,6 +38,11 @@ function ShowPrintable() {
     }
     printableForm.submit();
 }
+addLoadEvent(function() {
+    var loader = YAHOO.zenoss.getLoader();
+    loader.require(['swoopygraphs']);
+    loader.insert({onSuccess:function(){zenRRDInit()}});
+});
 </script>
 
 
@@ -106,10 +111,6 @@ function ShowPrintable() {
     </tal:block>
     
     
-<script>
-    document.write('<\/script><script src="zenrrdzoom.js"><\/script><script>');
-</script>
-
 <!-- END TABLE CONTENTS -->
 
 </tal:block>

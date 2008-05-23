@@ -17,10 +17,12 @@ function createAnAutocompleter(divId) {
     q.input.name = 'deviceName'
 }
 
-YAHOO.zenoss.loader.require(['zenautocomplete']);
-YAHOO.zenoss.loader.insert(); 
+var loader = YAHOO.zenoss.getLoader();
+loader.require(['zenautocomplete']);
+loader.insert(function(){
+    $('dialog').addLoadEvent('dialog_addAdministeredDevice', function() { createAnAutocompleter('deviceLiveSearch') ;} )
+}); 
 // don't pass it a callback, calling it later manually
-$('dialog').addLoadEvent('dialog_addAdministeredDevice', function() { createAnAutocompleter('deviceLiveSearch') ;} )
 
 </script>
 

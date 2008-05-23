@@ -292,8 +292,5 @@ function geomap_initialize(){
 }
 
 
-addLoadEvent(function() {
-    YAHOO.zenoss.loader.require("container");
-    YAHOO.zenoss.loader.insert({onSuccess:geomap_initialize})
-});
+YAHOO.register('simplegeomap', YAHOO.zenoss, {});
 

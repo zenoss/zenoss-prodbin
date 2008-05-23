@@ -43,27 +43,34 @@ var ZenGraphs = new Array();
         id="refreshRate" size='2' value='60'/>
     <script>
         var button = $('refreshButton');
-        var refreshMgr;
-        function turnRefreshOff() {
-            try {
-                refreshMgr.cancelRefresh();
-            } catch(e) { noop(); }
-            setStyle(button,
-                {'background-image':'url(img/refresh_on.png)'});
-            button.onclick = turnRefreshOn;
-            button.blur();
-        }
-        function turnRefreshOn () {
-            var rate = $('refreshRate').value;
-            var refreshMgr = new RefreshManager(rate, 
-                function(){resetGraphs($('drange_select').value)}
-            );
-            setStyle(button, 
-                {'background-image':'url(img/refresh_off.png)'});
-            button.onclick = turnRefreshOff;
-            button.blur();
-        }
-        turnRefreshOn();
+        var refreshMgr, turnRefreshOff, turnRefreshOn;
+    addLoadEvent(function() {
+        var loader = YAHOO.zenoss.getLoader();
+        loader.require(['swoopygraphs']);
+        loader.insert({onSuccess:function(){
+            zenRRDInit();
+            turnRefreshOff = function() {
+                try {
+                    refreshMgr.cancelRefresh();
+                } catch(e) { noop(); }
+                setStyle(button,
+                    {'background-image':'url(img/refresh_on.png)'});
+                button.onclick = turnRefreshOn;
+                button.blur();
+            }
+            turnRefreshOn = function() {
+                var rate = $('refreshRate').value;
+                var refreshMgr = new RefreshManager(rate, 
+                    function(){resetGraphs($('drange_select').value)}
+                );
+                setStyle(button, 
+                    {'background-image':'url(img/refresh_off.png)'});
+                button.onclick = turnRefreshOff;
+                button.blur();
+            }
+            turnRefreshOn();
+        }});
+    });
     </script>
     <tal:block metal:define-slot="filterslot">
     </tal:block>
@@ -105,9 +112,6 @@ var ZenGraphs = new Array();
 
     </tal:block>
     </tal:block>
-<script>
-    document.write('<\/script><script src="zenrrdzoom.js"><\/script><script>');
-</script>
 
 <!-- END TABLE CONTENTS -->
 

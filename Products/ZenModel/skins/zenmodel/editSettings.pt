@@ -27,8 +27,9 @@ function popupMapHelp() {
     mySimpleDialog.render(currentDocument().body);
     mySimpleDialog.show();
 }
-YAHOO.zenoss.loader.require(['container']);
-YAHOO.zenoss.loader.insert();
+var loader=YAHOO.zenoss.getLoader();
+loader.require(['container']);
+loader.insert();
 </script>
 
 <form method=post tal:attributes="action string:${here/absolute_url_path}">

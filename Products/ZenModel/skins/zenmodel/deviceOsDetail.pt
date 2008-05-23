@@ -31,11 +31,13 @@ var q = new YAHOO.zenoss.zenautocomplete.ZenAutoComplete(
 q.input.name = 'className'
 }
 
-YAHOO.zenoss.loader.require(['zenautocomplete']);
-YAHOO.zenoss.loader.insert(); 
+var loader = YAHOO.zenoss.getLoader();
+loader.require(['zenautocomplete']);
+loader.insert( function(){
+    $('dialog').addLoadEvent('dialog_addIpService', function() { createIpServiceClassAutocompleter('ipServiceClassLiveSearch') ;} )
+    $('dialog').addLoadEvent('dialog_addWinService', function() { createWinServiceClassAutocompleter('winServiceClassLiveSearch') ;} )
+}); 
 // don't pass it a callback, calling it later manually
-$('dialog').addLoadEvent('dialog_addIpService', function() { createIpServiceClassAutocompleter('ipServiceClassLiveSearch') ;} )
-$('dialog').addLoadEvent('dialog_addWinService', function() { createWinServiceClassAutocompleter('winServiceClassLiveSearch') ;} )
 </script>
         
 <tal:block 

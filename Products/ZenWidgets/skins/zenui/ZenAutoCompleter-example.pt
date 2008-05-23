@@ -15,8 +15,9 @@ function createAnAutocompleter() {
     );
 }
 
-YAHOO.zenoss.loader.require(['zenautocomplete']);
-YAHOO.zenoss.loader.insert({onSuccess:createAnAutocompleter}); // pass it a callback
+var loader = YAHOO.zenoss.getLoader();
+loader.require(['zenautocomplete']);
+loader.insert({onSuccess:createAnAutocompleter}); // pass it a callback
 
 </script>
 

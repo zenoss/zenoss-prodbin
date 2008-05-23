@@ -46,8 +46,14 @@ v\:* {
         }
         connect(currentWindow(), 'onresize', maximizeMapHeight);
         addLoadEvent(maximizeMapHeight);
+        addLoadEvent(function(){
+            loader = YAHOO.zenoss.getLoader();
+            loader.require(['simplegeomap']);
+            loader.insert({onSuccess:
+                function() { geomap_initialize(); }
+            });
+        });
     </script>
-    <script type="text/javascript" src="javascript/geomap-2.1.js"> </script>
 </tal:block>
 
 

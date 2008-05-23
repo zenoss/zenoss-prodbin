@@ -7,9 +7,6 @@
 #####################################################
 */
 
-
-
-
 var zoom_factor = 1.5;
 var pan_factor = 3; // Fraction of graph to move
 var drange_re = /&drange=([0-9]*)/;
@@ -492,4 +489,5 @@ function zenRRDInit() {
     }
 }
 
-addLoadEvent(zenRRDInit);
+YAHOO.register('swoopygraphs', YAHOO.zenoss, {});
+

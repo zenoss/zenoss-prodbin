@@ -16,10 +16,6 @@
 </div>
 
 <link type="text/css" rel="stylesheet" href="css/zengrid.css"/>
-<script type="text/javascript" src="/zport/js/zenutils.js"></script>
-<script type="text/javascript" src="/zport/javascript/zengrid.js"></script>
-<script type="text/javascript" 
-        src="/zport/portal_skins/zenevents/zeneventsfuncs.js"></script>
 <form name="control" method="post" 
     tal:attributes="action here/absolute_url_path"
     tal:define="
@@ -88,12 +84,16 @@
 <!-- BEGIN TABLE CONTENTS -->
 <tr><td>
 <div id="gridcontainer" style="width:100%;"> </div>
-<script tal:content="string:
+<script tal:define="ref python:test(here.dmd.ZenUsers.getUserSettings().eventConsoleRefresh, 'On', 'Off')" 
+    tal:content="string:
 var eventZenGridBuffer, eventZenGrid;
 function updateEventConsoleMessage(msg) {
     $('msgbox').innerHTML = msg;
 }
-addLoadEvent( function() {
+addLoadEvent(function(){
+var loader = YAHOO.zenoss.getLoader();
+loader.require(['eventzengrid']);
+loader.insert({onSuccess: function() {
     eventZenGridBuffer = new ZenGridBuffer();
     eventZenGrid = new ZenGrid('gridcontainer', 
         'getJSONEventsInfo', 'mygrid', eventZenGridBuffer, 
@@ -102,20 +102,8 @@ addLoadEvent( function() {
     connect('filter', 'onkeyup', eventZenGrid.doEventLivesearch);
     connect('state', 'onchange', eventZenGrid.refreshFromFormElement);
     connect('severity', 'onchange', eventZenGrid.refreshFromFormElement);
-
-});">
-</script>
-<script tal:condition="
-python:here.dmd.ZenUsers.getUserSettings().eventConsoleRefresh">
-addLoadEvent( function() {
-    eventZenGrid.turnRefreshOn();
-});
-</script>
-<script tal:condition="
-python:not here.dmd.ZenUsers.getUserSettings().eventConsoleRefresh">
-addLoadEvent( function() {
-    eventZenGrid.turnRefreshOff();
-});
+    eventZenGrid.turnRefresh${ref}();
+}})});">
 </script>
 </td></tr>
 <!-- END TABLE CONTENTS -->

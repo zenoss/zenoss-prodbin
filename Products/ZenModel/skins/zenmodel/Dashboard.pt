@@ -44,8 +44,9 @@ function initDashboardPortlets() {
         ContainerObject.rightCol().addPortlet(p3);
     }
 }
-YAHOO.zenoss.loader.require(['portletsource']);
-YAHOO.zenoss.loader.insert({ 'onSuccess':initDashboardPortlets });
+var loader = YAHOO.zenoss.getLoader();
+loader.require(['portletsource']);
+loader.insert({ 'onSuccess':initDashboardPortlets });
 </script>
 </tal:block>
 </tal:block>

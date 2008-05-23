@@ -31,8 +31,14 @@
         }
         connect(currentWindow(), 'onresize', maximizeMapHeight);
         addLoadEvent(maximizeMapHeight);
-    </script>
-    <script type="text/javascript" src="javascript/geomap.js"> </script>
+        addLoadEvent(function(){
+            loader = YAHOO.zenoss.getLoader();
+            loader.require(['geomap']);
+            loader.insert({onSuccess:
+                function() { geomap_initialize(); }
+            });
+        });
+        </script>
 </tal:block>
 </tal:block>
 
