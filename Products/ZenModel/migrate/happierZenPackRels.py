@@ -15,7 +15,7 @@ import Globals
 import Migrate
 
 
-class FixZenPackRels(Migrate.Step):
+class HappierZenPackRels(Migrate.Step):
     version = Migrate.Version(2, 3, 0)
 
     def cutover(self, dmd):
@@ -24,4 +24,4 @@ class FixZenPackRels(Migrate.Step):
             p.manager.obj = dmd.ZenPackManager
 
 
-FixZenPackRels()
+HappierZenPackRels()

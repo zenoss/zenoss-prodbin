@@ -145,4 +145,4 @@ import addeventmenuitem
 import runcommandspermission
 import winmodelerUnderModeler
 import removeWinModelerGraphPoints
-import fixZenPackRels
+import happierZenPackRels
