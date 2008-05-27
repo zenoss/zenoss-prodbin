@@ -141,9 +141,9 @@ ZenGeoMap.prototype = {
             var color = node[1];
             var clicklink = node[2];
             var summarytext = node[3];
+            if (address) {
             if (this.cache.get(address)==null)
                 this.dirtycache = true;
-            if (address) {
             this.geocode(
                 address,
                 bind(function(p){

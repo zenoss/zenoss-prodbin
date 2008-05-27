@@ -145,9 +145,9 @@ ZenGeoMap.prototype = {
                 'simpleLocationGeoMap'
             );
             var summarytext = node[3];
+            if (address) {
             if (this.cache.get(address)==null)
                 this.dirtycache = true;
-            if (address) {
             this.geocode(
                 address,
                 bind(function(p){

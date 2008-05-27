@@ -501,6 +501,8 @@ class DataRoot(ZenModelRM, OrderedFolder, Commandable, ZenMenuable):
             the Google Maps geocode cache
         """
         cache = extractPostContent(REQUEST)
+        try: cache = cache.decode('utf-8')
+        except: pass
         self.geocache = cache
         return True
 
