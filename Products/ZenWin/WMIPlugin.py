@@ -39,3 +39,11 @@ class WMIPlugin(CollectorPlugin):
 
     def queries(self):
         raise NotImplementedError
+    
+    def handleException(self, e, device, log):
+        """
+        Called whenever an exception occurs issuing the WMI queries specified
+        by a plugin. Can be overriden to provide more robust error handling
+        for specific plugin types.
+        """
+        return False

@@ -145,14 +145,22 @@ class zenwinmodeler(WinCollector):
                 pluginName = plugin.name()
                 self.log.debug("Sending queries for plugin: %s", pluginName)
                 self.log.debug("Queries: %s" % str(plugin.queries().values()))
-                result = self.client.boundedCall(mx, 'query', plugin.queries())
-                self.client.results.append((plugin, result))
-                
-                if getattr(plugin, 'getEvents', None):
-                    self.log.info("Sending events returned by plugins")
-                    for evt in plugin.getEvents(device, result, self.log):
-                        self.sendEvent(evt)
-                        
+
+                try:
+                    result = self.client.boundedCall(mx, 'query', plugin.queries())
+                    self.client.results.append((plugin, result))
+
+                    if getattr(plugin, 'getEvents', None):
+                        self.log.info("Sending events returned by plugins")
+                        for evt in plugin.getEvents(device, result, self.log):
+                            self.sendEvent(evt)
+
+                except pywintypes.com_error, e:
+                    msg = self.printComErrorMessage(e)
+                    self.log.warning("WMI Comm Error for plugin '%s': %s", pluginName, msg)
+                    if not plugin.handleException(e, device, self.log):
+                        raise
+
         finally:
             self.niceDoggie(self.cycleInterval())
             self.client.stop()
@@ -181,7 +189,7 @@ class zenwinmodeler(WinCollector):
                 
                 results = plugin.preprocess(results, self.log)
                 datamaps = plugin.process(device, results, self.log)
-                
+
                 # allow multiple maps to be returned from a plugin
                 if type(datamaps) not in \
                 (types.ListType, types.TupleType):
