@@ -1,47 +1,116 @@
 <html>
-<head>
-<title>Zenoss Login</title>
-<link type="text/css" rel="stylesheet" href="login_form.css" />
-<!--[if IE 7]><style>#errorbox{left:-50px;margin-top:-5px;}</style><![endif]-->
-</head>
+    <head>
+        <title>Zenoss Login</title>
+        <style>
+            .inputbox {
+                position: absolute;
+                border: medium none;
+                background: transparent none;
+                left: 367px;
+                width: 180px;
+                z-index: 2;
+                font-size: 110%;
+                color: #444;
+                text-align: center;
+            }
+            .submitbutton {
+                position: absolute;
+                z-index: 2;
+                background: transparent url('zenoss-login-button.png');
+                top: 245px;
+                left: 466px;
+                width: 90px;
+                height: 32px;
+                border: medium none;
+                cursor: hand; cursor: pointer;
+            }
+            body {
+                margin: 0;
+                padding: 0;
+                background-color: #888;
+            }
+            #topbar {
+                height: 20%;
+            }
+            #middlebar {
+                text-align:center;
+                height:360px;
+                border-width: 2px 0;
+                border-style: solid;
+                border-color: #444;
+                background-color:#f4f4f4;
+            }
+            #container {
+                position: relative;
+                width:671px;
+                margin: 0 auto;
+                height:360px;
+            }
+            #loginimg {
+                position: absolute;
+                top: 0;
+                left: -50px;
+                z-index: 1;
+            }
+            #errorbox {
+                position: absolute;
+                z-index: 2;
+                width: 300px;
+                top: 250px;
+                left: 210px;
+            }
+            span.error {
+                font-family: sans-serif;
+                color: #8B0000;
+            }
+            #copyright {
+                color: #4e7aba;
+                font-size: 70%;
+                font-family: sans-serif;
+                text-align: center;
+                width: 300px;
+                position: absolute;
+                z-index: 2;
+                top: 300px;
+                left: 265px;
+            }
+        </style>
+    </head>
 
-<body onload="document.loginform.__ac_name.focus();">
+    <body onload="document.getElementById('username').focus();">
+        <div id="topbar"></div>
+        <form name="loginform" 
+              tal:attributes="action string:${here/absolute_url}/login">
+                <input type="hidden" name="came_from" value="" 
+                       tal:attributes="value request/came_from | string:"/>
+                <input type="hidden" name="submitted" value="true" />
+            <div id="middlebar">
+                <div id="container">
+                    <img id="loginimg" src="zenoss-login.png"/>
+                    <input id="username" type="text" name="__ac_name" 
+                           class="inputbox" style="top:160px"/>
+                    <input type="password" name="__ac_password" 
+                           class="inputbox" style="top:202px;"/>
+                    <div id="errorbox">
+                        <tal:block define="msg here/getLoginMessage"
+                            tal:omit-tag=""
+                            tal:on-error="string:">
+                            <span class="error" tal:condition="msg" 
+                                  tal:content="structure msg" />
+                        </tal:block>
+                    </div>
+                    <input type="submit" name="submit" 
+                           class="submitbutton" value=""/>
+                    <div id="copyright">
+                        <p>Copyright &copy; 2005-2008 Zenoss, Inc. | Version
+                        <span tal:content="
+                                here/dmd/About/getZenossVersionShort"/>
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </body>
 
-<div id="darkloginbox">
-<div id="loginimage">
 
-<div id="loginboxwrapper">
-<div id="loginboxtop">&nbsp;</div>
-<div id="loginboxmiddle">
-<img src="logo_login.gif" width="181" height="55" /><div id="form">
-<form method="post" name="loginform" tal:attributes="action string:${here/absolute_url}/login">
-<input type="hidden" name="came_from" value="" tal:attributes="value request/came_from | string:"/>
-<input type="hidden" name="submitted" value="true" />
-<table cellspacing="0">
-<tr>
-<td><label>Username:</label></td><td><input type="text" name="__ac_name" size="20" /></td>
-</tr>
-<tr>
-<td><label>Password:</label></td><td><input type="password" name="__ac_password" size="20" /></td>
-</tr>
-<tr>
-<td colspan="2" style="text-align: right;"><input type="submit" name="submit" value="submit" />
-<div id="errorbox">
-    <tal:block define="msg here/getLoginMessage"
-        tal:omit-tag=""
-        tal:on-error="string:">
-        <span class="error" tal:condition="msg" tal:content="structure msg" />
-    </tal:block>
-</div>
-</td>
-</tr>
-</table>
-</form>
-</div></div>
-<div id="loginboxbottom">&nbsp;</div>
-</div></div>
-<p id="info">Copyright &copy; 2007, 2008 Zenoss, Inc. | 
-    Version <span tal:content="here/dmd/About/getZenossVersionShort" /></p>
-<img src="dark_loginbox_bottom_blue.gif" width="622" height="34" /></div>
-</body>
 </html>
