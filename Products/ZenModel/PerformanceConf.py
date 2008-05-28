@@ -487,10 +487,9 @@ class PerformanceConf(Monitor, StatusColor):
         if setlog and REQUEST and not xmlrpc:
             handler = setupLoggingHeader(device, REQUEST)
 
-        zm = zenPath('bin', 'zenmodeler')
-        zenmodelerCmd = [zm, 'run', '--now','-F','-d', device.id]
-        if REQUEST: zenmodelerCmd.append("--weblog")
-        result = executeCommand(zenmodelerCmd, REQUEST)
+        zenmodelerOpts = ['run', '--now','-F','-d', device.id]
+        if REQUEST: zenmodelerOpts.append("--weblog")
+        result = _executeZenModelerCommand(zenmodelerOpts, REQUEST)
         if result and xmlrpc: return result
         log.info("configuration collected")
         
@@ -498,5 +497,15 @@ class PerformanceConf(Monitor, StatusColor):
             clearWebLoggingStream(handler)
         
         if xmlrpc: return 0
+
+    def _executeZenModelerCommand(self, zenmodelerOpts, REQUEST=None):
+        """
+        execute zenmodeler  given zendmodeler options and return result
+        """
+        zm = zenPath('bin', 'zenmodeler')
+        zenmodelerCmd = [zm]
+        zenmodelerCmd.extend(zenmodelerOpts)
+        result = executeCommand(zenmodelerCmd, REQUEST) 
+        return result
 
 InitializeClass(PerformanceConf)
