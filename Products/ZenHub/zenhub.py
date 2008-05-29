@@ -198,11 +198,13 @@ class ZenHub(ZCmdBase):
                        summary="%s started" % self.name,
                        severity=0)
         reactor.callLater(5, self.processQueue)
-        self.rrdStats = DaemonStats()
-        self.rrdStats.configWithMonitor('zenhub', self.getPerformanceConf())
+        self.rrdStats = self.getRRDStats()
 
-    def getPerformanceConf(self):
-        return self.dmd.Monitors.Performance._getOb(self.options.monitor)
+    def getRRDStats(self):
+        rrdStats = DaemonStats()
+        perfConf = self.dmd.Monitors.Performance._getOb(self.options.monitor)
+        rrdStats.configWithMonitor('zenhub', perfConf)
+        return rrdStats
 
     def zeoConnect(self):
         """
