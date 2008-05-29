@@ -1,0 +1,62 @@
+<tal:block metal:define-macro="panetoggle">
+<div id="paneToggle">
+</div>
+<style tal:condition="python:'Zenoss_Collapsed_Menu' in 
+                        here.REQUEST.HTTP_COOKIE">
+    #leftPane { display:none;}
+    #rightPane { margin-left:12px;}
+    #paneToggle { 
+        display:none;
+        background-image: url('img/paneToggle_bg_collapsed.gif');
+        border-right: medium none;
+    }
+    #leftPaneToggle{ display:block;
+        background:transparent url('img/leftpanetoggle_bg.gif') top
+        left repeat-x;
+        height: 30px;
+        width: 30px;
+    }
+    #breadCrumbPane{ padding-left: 35px;}
+
+</style>
+</tal:block>
+
+
+
+<tal:block metal:define-macro="head1">
+    <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+    <link rel="shortcut icon"
+          href="/zport/dmd/favicon.ico"
+          type="image/x-icon"/>
+    <link rel="stylesheet" type="text/css" 
+          href="yui/grids/grids-min.css"/>
+    <link rel="stylesheet" type="text/css" title="zenoss"
+        href="/zport/portal_skins/zenoss.css" >
+    <!--[if IE 7]>
+        <link rel="stylesheet" type="text/css" title="zenoss"
+            href="zenoss_ie.css" >
+    <![endif]-->
+    <!--[if IE 6]>
+        <link rel="stylesheet" type="text/css" title="zenoss"
+            href="zenoss_ie6.css" >
+    <![endif]-->
+    <script type="text/javascript" src="js/MochiKit.js"></script>
+    <script type="text/javascript" language="javascript"
+        src="/zport/dmd/yui/yahoo/yahoo-min.js"></script>
+    <script type="text/javascript" language="javascript"
+        src="/zport/dmd/yui/yuiloader/yuiloader-beta-min.js"></script>
+    <script type="text/javascript" src="javascript/zenoss-core.js"></script>
+    <script>
+    var loader = YAHOO.zenoss.getLoader();
+    loader.require(['zenossutils']);
+    loader.insert({onSuccess:function(){
+        removeElementAutoCompletes();
+        applyBrowserSpecificStyles();
+        addSelectionBar();
+        checkForCollapsed();
+        connectCheckboxListeners();
+        notifyParentOfNewUrl();
+        zenPageInit();
+    }});
+    </script>
+</tal:block>
