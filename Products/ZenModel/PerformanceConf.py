@@ -400,7 +400,8 @@ class PerformanceConf(Monitor, StatusColor):
         elif self.getDmdRoot("Devices").findDevice(deviceName):
             raise DeviceExistsError("Device %s already exists" % deviceName)
         
-        
+        if devicePath == "":
+            devicePath = "/"
         device = None
         if discoverProto == "none":
             device = manage_createDevice(self, deviceName, devicePath,
@@ -489,7 +490,7 @@ class PerformanceConf(Monitor, StatusColor):
 
         zenmodelerOpts = ['run', '--now','-F','-d', device.id]
         if REQUEST: zenmodelerOpts.append("--weblog")
-        result = _executeZenModelerCommand(zenmodelerOpts, REQUEST)
+        result = self._executeZenModelerCommand(zenmodelerOpts, REQUEST)
         if result and xmlrpc: return result
         log.info("configuration collected")
         
