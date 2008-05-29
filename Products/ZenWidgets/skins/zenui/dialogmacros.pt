@@ -1,7 +1,7 @@
 <!--============Basic dialog box wrapper===============-->
 <tal:block metal:define-macro="dialog">
 <div id="dialog" class="dialog" style="visibility:hidden;position:absolute"> 
-<div id="dialog_innercontent" style="visibility:visible">
+<div id="dialog_innercontent">
     <tal:block metal:define-slot="dialog_content">
         This is a dialog box.
 	</tal:block>

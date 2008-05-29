@@ -919,9 +919,10 @@ Dialog.Box.prototype = {
         setStyle(this.box, {
             'position':'absolute',
             'z-index':'5001',
-            'visibility':'visible',
             'display':'none'});
+        setStyle('dialog_innercontent', {'visibility':'visible'});
         setStyle('dialog_content', {'visibility':'visible'});
+        setStyle(this.box, {'visibility':'visible'});
     },
     addLoadEvent: function(id, func) {
         if (!(id in this.loadEvents)) this.loadEvents[id] = [];
