@@ -278,7 +278,9 @@ class ZPLSkins(ZenPackLoader):
 
     def load(self, pack, app):
         from Products.ZenUtils.Skins import registerSkin
-        registerSkin(app.zport.dmd, pack.path(''))
+        skinsDir = pack.path('')
+        if os.path.isdir(skinsDir):
+            registerSkin(app.zport.dmd, skinsDir)
 
 
     def upgrade(self, pack, app):
@@ -288,7 +290,9 @@ class ZPLSkins(ZenPackLoader):
 
     def unload(self, pack, app, leaveObjects=False):
         from Products.ZenUtils.Skins import unregisterSkin
-        unregisterSkin(app.zport.dmd, pack.path(''))
+        skinsDir = pack.path('')
+        if os.path.isdir(skinsDir):
+            unregisterSkin(app.zport.dmd, skinsDir)
 
 
     def list(self, pack, unused):
