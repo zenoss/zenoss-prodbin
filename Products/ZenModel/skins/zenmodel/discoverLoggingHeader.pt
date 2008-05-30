@@ -1,39 +1,31 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML Basic 1.0//EN"
+"http://www.w3.org/TR/xhtml-basic/xhtml-basic10.dtd">
 <html> 
-    <head metal:use-macro="here/templates/macros/head1"/>
+    <head>
+    <tal:block metal:use-macro="here/templates/macros/head1"/>
+    <tal:block metal:use-macro="here/zenuimacros/macros/jsutils"/>
+    </head>
 	<body>
-    <div id="frame">
-    <div metal:use-macro="here/templates/macros/topPane"/>
-    <div id="infoBar">
-        <div id="leftPaneToggle"></div>
-        <div id="breadCrumbPane">
-           <span metal:use-macro="here/miscmacros/macros/breadCrumbs" />
-        </div>
-        <tal:block metal:use-macro="here/templates/macros/infoBarExtra"/>
-    </div>
-    <div id="paneToggle"></div>
-    <style tal:condition="python:'Zenoss_Collapsed_Menu' in
-                           here.REQUEST.HTTP_COOKIE">              
-                #leftPane { display:none;}
-                #rightPane { margin-left:12px;}
-                #paneToggle { 
-                    background-image: url('paneToggle_bg_collapsed.gif');
-                    border-right: medium none;
-                }
-                #leftPaneToggle{ display:block;
-                    background:transparent url(img/leftpanetoggle_bg.gif) top
-                    left repeat-x;
-                    height: 30px;
-                    width: 30px;
-                }
-                #breadCrumbPane{ padding-left: 35px;}
+    <tal:block metal:use-macro="here/dialogmacros/macros/proxyForm"/>
+    <tal:block metal:use-macro="here/dialogmacros/macros/dialog_with_buttons"/>
+	   <div id="frame">
+            <form name="proxy_form" id="proxy_form"
+                style="position:absolute;visibility:hidden"
+                tal:attributes="action here/absolute_url_path"></form>
+            <div metal:use-macro="here/templates/macros/topPane"/>
+            <div id="infoBar">
+                <div id="leftPaneToggle"></div>
+               <div metal:use-macro="here/miscmacros/macros/breadCrumbs" />
+                <tal:block metal:use-macro="here/templates/macros/infoBarExtra"/>
+            </div>
+            <tal:block metal:use-macro="
+                here/maintemplate-extras/macros/panetoggle"/>
+            <div metal:use-macro="here/leftPane/macros/leftPane"/>
+	        <div id="rightPane"/>
+            <div metal:use-macro="here/templates/macros/tabsPane"/>
+            <div id="contentPane">
 
-    </style>
-    <div metal:use-macro="here/templates/macros/leftPane"/>
-    <div id="rightPane"/>
-    <div metal:use-macro="here/templates/macros/tabsPane"/>
-    <div id="contentPane">
-
-        <table class=" zentable">
+        <table class="zentable">
         <tr>
         <th class="tabletitle" colspan="1">
         <div class="tabletitlecontainer">
