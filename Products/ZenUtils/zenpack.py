@@ -47,7 +47,16 @@ def RemoveZenPack(dmd, packName, log=None,
         if log:
             log.debug('No ZenPack named %s in zeo' % packName)
     if zp:
-        zp.remove(dmd, leaveObjects=True)
+        try:
+            # In 2.2 we added an additional parameter to the remove method.
+            # Any ZenPack subclasses that haven't been updated to take the new
+            # parameter will throw a TypeError.
+            # The newer version of zenoss-supplied ZenPacks monkey patch
+            # older installed versions during an upgrade so that the remove
+            # accepts the leaveObjects method.
+            zp.remove(dmd, leaveObjects=True)
+        except TypeError:
+            zp.remove(dmd)
         dmd.ZenPackManager.packs._delObject(packName)
     root = zenPath('Products', packName)
     if deleteFiles:
