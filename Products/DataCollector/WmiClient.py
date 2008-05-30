@@ -50,7 +50,9 @@ class WmiClient(BaseClient, ProcessProtocol):
 
 
     def run(self):
-        modeler = zenPath('bin', 'zenwinmodeler')
+        modeler = self.datacollector.options.zenwinmodeler
+        if not modeler.startswith('/'):
+            modeler = zenPath('bin', modeler)
         args = ('run', '-d', self.device.id)
         if '--weblog' in sys.argv:
             args += ('--weblog',)

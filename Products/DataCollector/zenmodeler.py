@@ -459,6 +459,9 @@ class ZenModeler(PBDaemon):
         self.parser.add_option('--nowmi',
                 dest='nowmi', action="store_true", default=False,
                 help="do not run zenwinmodeler to execute WMI plugins")
+        self.parser.add_option('--zenwinmodeler',
+                dest='zenwinmodeler', default="zenwinmodeler",
+                help="zenwinmodeler command to execute WMI plugins")
         self.parser.add_option('--parallel', dest='parallel', 
                 type='int', default=defaultParallel,
                 help="number of devices to collect from in parallel")
