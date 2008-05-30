@@ -12,9 +12,8 @@ input,textarea {
 }
 
 #frame {
-    /*
     position: relative;
-    */
+    z-index: 1;
 }
 
 #topPane{
@@ -26,6 +25,8 @@ input,textarea {
 	margin: 0px;
     border-bottom: 1px solid black;
     background: transparent url('img/metalbg.gif') top left;
+    position: relative;
+    z-index: 3;
 }
 
 #infoBar {
@@ -37,6 +38,7 @@ input,textarea {
     padding-left: 10px;
     padding-top: 5px;
     position: relative;
+    z-index: 6000;
 }
 
 #messageSlot {
@@ -253,6 +255,8 @@ span.searchform-label {
     padding: 5px;
 	margin-left: 120px;
     margin-right: 10px;
+    position: relative;
+    z-index: 1;
 }
 
 #breadCrumbPane {
