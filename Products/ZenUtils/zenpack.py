@@ -210,7 +210,7 @@ class ZenPackCmd(ZenScriptBase):
             if not isinstance(requires, list):
                 requires = [zp.strip() for zp in requires.split(',')]
             missing = [zp for zp in requires 
-                        if zp not in self.dataroot.packs.objectIds()]
+                    if zp not in self.dataroot.ZenPackManager.packs.objectIds()]
             if missing:
                 self.log.error('ZenPack %s was not installed because'
                                 % self.options.installPackName
