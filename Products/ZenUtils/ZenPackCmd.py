@@ -264,10 +264,11 @@ def InstallEgg(dmd, eggPath, link=False):
                             stderr=subprocess.PIPE,
                             shell=True,
                             cwd=eggPath)
+        out, err = p.communicate()
         p.wait()
-        errors = p.stderr.read()
-        if errors:
-            sys.stderr.write('%s\n' % errors)
+        if p.returncode:
+            raise ZenPackException('Error installing the egg (%s): %s' %
+                                p.returncode, err)
         zpDists = AddDistToWorkingSet(eggPath)
     else:
         zpDists = DoEasyInstall(eggPath)
@@ -736,10 +737,10 @@ def RemoveZenPack(dmd, packName, filesOnly=False, skipDepsCheck=False,
                                         stderr=subprocess.PIPE,
                                         shell=True,
                                         cwd=zp.eggPath())
-                    p.wait()
-                    errors = p.stderr.read()
-                    if errors:
-                        raise ZenPackException(errors)
+                    out, err = p.communicate()
+                    code = p.wait()
+                    if code:
+                        raise ZenPackException(err)
                 else:
                     DoEasyUninstall(packName)
             # elif cleanupEasyInstallPth:

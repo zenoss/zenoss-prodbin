@@ -534,10 +534,10 @@ class ZenossInfo(ZenModelItem, SimpleItem):
         log.info('Telling %s to %s' % (daemonName, action))
         proc = subprocess.Popen([daemonPath, action], stdout=subprocess.PIPE,
                     stderr=subprocess.STDOUT)
+        output, _ = proc.communicate()
         code = proc.wait()
         if code:
-            log.info('Error from %s: %s (%s)' % (daemonName, proc.stdout.read(),
-                        code))
+            log.info('Error from %s: %s (%s)' % (daemonName, output, code))
         if action in ('stop', 'restart'):
             time.sleep(2)
 

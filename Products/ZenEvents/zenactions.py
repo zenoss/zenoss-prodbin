@@ -384,8 +384,8 @@ class ZenActions(ZCmdBase):
                             stderr=subprocess.STDOUT, env=os.environ)
                     # Trying to mimic how twisted returns results to us
                     # sort of.
+                    output, _ = proc.communicate()
                     code = proc.wait()
-                    output = proc.stdout.read()
                     if code:
                         onError(output, startTime)
                     else:
