@@ -35,10 +35,8 @@ def RemoveZenPack(dmd, packName, log=None,
     if not skipDepsCheck:
         for pack in dmd.ZenPackManager.packs():
             if packName in pack.requires:
-                if log:
-                    log.error("Pack %s depends on pack %s, not removing",
-                               pack.id, packName)
-                return False
+                raise ZenPackException('Pack %s depends on pack %s, '
+                                        'not removing' % (pack.id, packName))
     zp = None
     try:
         zp = dmd.ZenPackManager.packs._getOb(packName)

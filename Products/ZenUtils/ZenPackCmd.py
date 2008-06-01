@@ -340,7 +340,7 @@ def InstallDistAsZenPack(dmd, dist, filesOnly=False):
             if existing.isEggPack():
                 forceNoFileDeletion = existing.eggPath() == dist.location
                 RemoveZenPack(dmd, existing.id, 
-                                skipDepsCheck=False, leaveObjects=True,
+                                skipDepsCheck=True, leaveObjects=True,
                                 forceNoFileDeletion=forceNoFileDeletion,
                                 uninstallEgg=False)
             else:
@@ -348,7 +348,7 @@ def InstallDistAsZenPack(dmd, dist, filesOnly=False):
                 # migrate scripts to be run below.
                 deferFileDeletion = True
                 oldzenpack.RemoveZenPack(dmd, existing.id,
-                                skipDepsCheck=False, leaveObjects=True,
+                                skipDepsCheck=True, leaveObjects=True,
                                 deleteFiles=False)
 
         dmd.ZenPackManager.packs._setObject(packName, zenPack)
