@@ -107,7 +107,7 @@ class ZenPackDataSourceMigrateBase(ZenPackMigration):
                 if oldClass and self.dsClass and isinstance(ds, oldClass):
                     ds.__class__ = self.dsClass
                 if self.reIndex and isinstance(ds, self.dsClass):
-                    ds.reIndex()
+                    ds.index_object()
                     
 
 class ZenPack(ZenModelRM):

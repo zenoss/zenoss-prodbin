@@ -146,3 +146,4 @@ import runcommandspermission
 import winmodelerUnderModeler
 import removeWinModelerGraphPoints
 import happierZenPackRels
+import reindexZenPackPerstence
