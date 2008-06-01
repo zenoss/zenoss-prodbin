@@ -72,7 +72,7 @@ class ZenPackPersistence(object):
 
     # Subclasses should set this to the id of the ZenPack or they
     # should override getZenPackName()
-    ZENPACKID = None
+    # ZENPACKID = 'ZenPacks.my.name'
 
     def getZenPackName(self):
         '''
@@ -92,7 +92,8 @@ class ZenPackPersistence(object):
         Return the ZenPack instance that provides this object.
         """
         # NB: we can probably use self.dmd rather than passing in a context
-        return context.dmd.ZenPackManager.packs._getOb(self.ZENPACKID, None)
+        return context.dmd.ZenPackManager.packs._getOb(
+                                            self.getZenPackName(), None)
     
     
     def path(self, *parts):
@@ -116,7 +117,7 @@ class ZenPackPersistence(object):
         """A common method to allow Findables to index themselves."""
         cat = getattr(self, ZENPACK_PERSISTENCE_CATALOG, None)
         if cat is not None:
-            cat.catalog_object(self, self.getPrimaryId())
+            cat.catalog_object(self, self.getPrimaryId())            
         super(ZenPackPersistence, self).index_object()
 
 
