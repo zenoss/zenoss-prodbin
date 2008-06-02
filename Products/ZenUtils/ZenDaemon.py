@@ -100,8 +100,7 @@ class ZenDaemon(CmdBase):
         zlog = logging.getLogger("zen")
         zlog.setLevel(self.options.logseverity)
         if self.options.watchdogPath or \
-           self.options.daemon or \
-           self.options.logpath:
+           self.options.daemon:
             if self.options.logpath:
                 if not os.path.isdir(os.path.dirname(self.options.logpath)):
                     raise SystemExit("logpath:%s doesn't exist" %
