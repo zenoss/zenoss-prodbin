@@ -126,8 +126,10 @@ class RenderServer(RRDToolItem):
     security.declareProtected('View', 'render')
     def render(self, gopts=None, start=None, end=None, drange=None, 
                remoteUrl=None, width=None, ftype='PNG', getImage=True, 
-               graphid='', comment=None, REQUEST=None):
+               graphid='', comment=None, ms=None, REQUEST=None):
         """render a graph and return it"""
+        # ms unused: ms is just a timestamp used to force IE to reload
+        # images
         gopts = zlib.decompress(urlsafe_b64decode(gopts))
         gopts = gopts.split('|')
         gopts = self.removeInvalidRRDReferences(gopts)
