@@ -25,6 +25,22 @@
         tal:define="submitViaEnter string:return submitViaEnter(event,'manage_editDevice')">
 
 <!-- BEGIN TABLE CONTENTS -->
+    <tr>
+      <td class="tableheader" align="left">Collector</td>
+      <td class="tablevalues" align="left">
+        <select class="tablevalues" name="performanceMonitor"
+        tal:define="
+            crks python:here.getDmdRoot('Monitors').getPerformanceMonitorNames();
+            curcrk here/getPerformanceServerName | request/performanceMonitor |
+            string:localhost"
+        >
+      <option tal:repeat="crk crks" 
+          tal:attributes="value crk; 
+          selected python:curcrk and crk in curcrk"
+              tal:content="crk">localhost</option>
+    </select>
+      </td>
+    </tr>
     <span metal:use-macro="here/addDevice/macros/body" />
     <tr>
         <td class=tableheader align="left" >
