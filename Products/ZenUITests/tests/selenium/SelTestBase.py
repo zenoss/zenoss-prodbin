@@ -116,6 +116,37 @@ class SelTestBase(unittest.TestCase):
             self.devicenames=[]
         if not deviceIp in self.devicenames:
             self.devicenames.append(deviceIp)
+
+    def addDeviceModelWindows(self, deviceIp=TARGET, classPath="/Server/Windows"):
+        """Adds a test target device to Zenoss"""
+        # First, make sure the device isn't already in the system.
+        self.waitForElement("query")
+        self.selenium.type("query", deviceIp)
+        self.selenium.submit("searchform")
+        self.selenium.wait_for_page_to_load(self.WAITTIME)
+        if self.selenium.is_element_present("link=%s" %deviceIp):
+            self.selenium.click("link=%s" %deviceIp)
+            self.selenium.wait_for_page_to_load(self.WAITTIME)
+            self.deleteDevice(deviceIp)
+        
+        # Then add the device/model and navigate to its top level page.   
+        self.waitForElement("link=Add Device")
+        self.selenium.click("link=Add Device")
+        self.selenium.wait_for_page_to_load(self.WAITTIME)
+        self.waitForElement("loadDevice:method")
+        self.selenium.type("deviceName", deviceIp)
+        self.selenium.select("devicePath", "label=" + classPath)
+        self.selenium.select('discoverProto', 'label=auto')
+        self.selenium.click("loadDevice:method")
+        self.selenium.wait_for_page_to_load(self.WAITTIME)
+        self.waitForElement("link=" + deviceIp)
+        self.selenium.click("link=" + deviceIp)
+        self.selenium.wait_for_page_to_load(self.WAITTIME)
+        if not hasattr(self, "devicenames"):
+            self.devicenames=[]
+        if not deviceIp in self.devicenames:
+            self.devicenames.append(deviceIp)
+
         
     def deleteDevice(self, devname=None):
         """Delete the test target device from Zenoss test instance"""
