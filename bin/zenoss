@@ -75,9 +75,9 @@ fi
 ZPD=`$ZENHOME/bin/zenpackdaemons --list`
 C="$C $ZPD"
 
-if [ -f "$ZENHOME/bin/daemons.txt" ]
+if [ -f "$ZENHOME/etc/daemons.txt" ]
 then
-    D=`cat $ZENHOME/bin/daemons.txt`
+    D=`cat $ZENHOME/etc/daemons.txt`
     C="$C $D"
 fi
 
