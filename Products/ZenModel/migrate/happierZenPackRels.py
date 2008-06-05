@@ -22,6 +22,7 @@ class HappierZenPackRels(Migrate.Step):
         for p in dmd.ZenPackManager.packs():
             p.buildRelations() # This is probably not necessary
             p.manager.obj = dmd.ZenPackManager
+            p._p_changed = True
 
 
 HappierZenPackRels()
