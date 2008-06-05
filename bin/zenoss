@@ -71,13 +71,9 @@ then
     C="$C zenwin"
     C="$C zeneventlog"
 fi
-for i in $ZENHOME/Products/*/daemons/*
-do
-   if [ -x "$i" ]
-   then
-      C="$C `basename $i`"
-   fi
-done
+
+ZPD=`$ZENHOME/bin/zenpackdaemons --list`
+C="$C $ZPD"
 CMDS=$C
 
 reverse() {
