@@ -13,7 +13,6 @@ Are you sure you want to remove these devices?<br/>
     value="OK"
     onclick="devZenGrid.setDeviceBatchProps('removeDevices','', 
         {'deleteStatus': $('deleteStatus').checked?1:'',
-        'deleteHistory': $('deleteHistory').checked?1:'',
         'deletePerf': $('deletePerf').checked?1:''})"/>
 <input id="dialog_cancel" type="button" value="Cancel"
 onclick="$('dialog').hide()"/>

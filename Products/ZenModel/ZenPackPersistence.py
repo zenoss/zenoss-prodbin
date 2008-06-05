@@ -91,7 +91,6 @@ class ZenPackPersistence(object):
         """
         Return the ZenPack instance that provides this object.
         """
-        # NB: we can probably use self.dmd rather than passing in a context
         return context.dmd.ZenPackManager.packs._getOb(
                                             self.getZenPackName(), None)
     
