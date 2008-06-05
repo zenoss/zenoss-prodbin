@@ -15,31 +15,33 @@ __doc__ = "Manage ZenPack-provided daemons"
 
 import Globals
 import os
-from Products.ZenUtils.ZenScriptBase import ZenScriptBase
-from Products.ZenModel.ZenPack import ZenPackException
+import pkg_resources
+from Products.ZenUtils.CmdBase import CmdBase
+from Products.ZenUtils.ZenPackCmd import ZENPACK_ENTRY_POINT
+from Products.ZenModel.ZenPackLoader import ZPLDaemons
+from Products.ZenUtils.Utils import zenPath
 
 
-def NameZenPackDaemons(dmd, zenPackId=None):
+def NameZenPackDaemons(zenPackId=None):
     """
     Return a list of the names of the daemons provided by the given ZenPack.  
     If no ZenPack is specified then list all daemons provided by all ZenPacks.
     """
-    from Products.ZenModel.ZenPackLoader import ZPLDaemons
     dList = []
-    if zenPackId:
-        objectIds = [zenPackId]
-    else:
-        objectIds = dmd.ZenPackManager.packs.objectIds()
-    for zpId in objectIds:
-        try:
-            zp = dmd.ZenPackManager.packs._getOb(zpId)
-        except AttributeError:
-            continue
-        dList += ZPLDaemons().list(zp, None)
+    zpl = ZPLDaemons()
+    # Get daemons from egg based ZenPacks
+    for entry in pkg_resources.iter_entry_points(ZENPACK_ENTRY_POINT):
+        module = entry.load()
+        dList += zpl.list(os.path.dirname(module.__file__), None)
+    # Get daemons from non-egg ZenPacks
+    prodDir = zenPath('Products')
+    for item in os.listdir(prodDir):
+        if not item.startswith('.'):
+            dList += zpl.list(os.path.join(prodDir, item), None)
     return dList
 
 
-class ZenPackDaemons(ZenScriptBase):
+class ZenPackDaemons(CmdBase):
     """
     Utilities for handling ZenPack-provided daemons
     """
@@ -48,11 +50,11 @@ class ZenPackDaemons(ZenScriptBase):
         """
         Execute the user's request.
         """
-        self.connect()
 
         if self.options.list:
-            dList = NameZenPackDaemons(self.dmd)
-            print '\n'.join(dList)
+            dList = NameZenPackDaemons()
+            if dList:
+                print '\n'.join(dList)
         else:
             self.parser.print_help()
 
@@ -64,13 +66,9 @@ class ZenPackDaemons(ZenScriptBase):
                                action='store_true',
                                help='List the names of ZenPack-supplied daemons'
                                )
-        ZenScriptBase.buildOptions(self)
+        CmdBase.buildOptions(self)
 
 
 if __name__ == '__main__':
-    try:
-        zp = ZenPackDaemons()
-        zp.run()
-    except ZenPackException, e:
-        sys.stderr.write('%s\n' % str(e))
-        sys.exit(-1)
+    zp = ZenPackDaemons()
+    zp.run()

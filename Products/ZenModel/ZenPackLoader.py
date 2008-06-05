@@ -28,7 +28,11 @@ CONFIG_SECTION_ABOUT = 'about'
 
 def findFiles(pack, directory, filter=None):
     result = []
-    for p, ds, fs in os.walk(pack.path(directory)):
+    if isinstance(pack, basestring):
+        path = os.path.join(pack, directory)
+    else:
+        path = pack.path(directory)
+    for p, ds, fs in os.walk(path):
         if not os.path.split(p)[-1].startswith('.'):
             for f in fs:
                 if filter is None or filter(f):
