@@ -548,7 +548,6 @@ class ZenActions(ZCmdBase):
         False otherwise.
         """
         fmt, body = self.format(action, data, clear)
-        msg = fmt % data
         recipients = action.getAddresses()
         if not recipients:
             self.log.warning('failed to page %s on rule %s: %s',
@@ -559,16 +558,16 @@ class ZenActions(ZCmdBase):
         result = False
         for recipient in recipients:
             success, errorMsg = Utils.sendPage(recipient,
-                                               msg,
+                                               fmt,
                                                self.dmd.pageCommand)
             if success:
-                self.log.info('sent page to %s: %s', recipient, msg)
+                self.log.info('sent page to %s: %s', recipient, fmt)
                 # return True if anyone got the page 
                 result = result or success
             else:
                 self.log.info('failed to send page to %s: %s %s',
                               recipient,
-                              msg,
+                              fmt,
                               errorMsg)
         return result
         
