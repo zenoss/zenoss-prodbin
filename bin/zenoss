@@ -74,6 +74,13 @@ fi
 
 ZPD=`$ZENHOME/bin/zenpackdaemons --list`
 C="$C $ZPD"
+
+if [ -f "$ZENHOME/bin/daemons.txt" ]
+then
+    D=`cat $ZENHOME/bin/daemons.txt`
+    C="$C $D"
+fi
+
 CMDS=$C
 
 reverse() {
