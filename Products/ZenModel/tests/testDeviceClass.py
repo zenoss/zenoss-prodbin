@@ -83,6 +83,11 @@ class TestDeviceClass(ZenModelBaseTest):
             self.dmd.Devices.NetworkDevice.Router.getSubDevices())
                         
 
+    def testMoveDevices(self):
+        self.dmd.Devices.moveDevices('/Server', 'testdev')
+        dev = self.dmd.Devices.Server.devices.testdev
+        self.assert_(dev.os.interfaces)
+
     def testOrganizer(self):
         devices = self.dmd.Devices
         dc = devices.createOrganizer('/Test')
