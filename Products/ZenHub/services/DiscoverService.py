@@ -135,7 +135,7 @@ class DiscoverService(ModelerService):
         """
         from Products.ZenModel.Device import getNetworkRoot
         try:
-            netroot = getNetworkRoot(self, 
+            netroot = getNetworkRoot(self.dmd, 
                 kw.get('performanceMonitor', 'localhost'))
             ipobj = netroot.createIp(ip)
             # If we're not supposed to discover this ip, return None
