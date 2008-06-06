@@ -664,10 +664,13 @@ registerDirectory("skins", globals())
         import Products.ZenUtils.ZenPackCmd as ZenPackCmd
         if not self.isEggPack():
             raise ZenPackException('Calling writeSetupValues on non-egg zenpack.')
+        # I don't think we need to specify packages anymore now that we are
+        # using find_packages() in setup.py
         packages = []
         parts = self.id.split('.')
         for i in range(len(parts)):
             packages.append('.'.join(parts[:i+1]))
+
         attrs = dict(
             NAME=self.id,
             VERSION=self.version,
@@ -675,7 +678,7 @@ registerDirectory("skins", globals())
             LICENSE=self.license,
             NAMESPACE_PACKAGES=packages[:-1],
             PACKAGES = packages,
-            INSTALL_REQUIRES = [],
+            INSTALL_REQUIRES = ['%s%s' % d for d in self.dependencies.items()],
             COMPAT_ZENOSS_VERS = self.compatZenossVers,
             PREV_ZENPACK_NAME = self.prevZenPackName,
             )
