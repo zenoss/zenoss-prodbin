@@ -269,18 +269,12 @@ class ZenDisc(ZenModeler):
                     raise ZentinelException(result.value)
                 dev, created = result
 
-                # use the auto-allocate flag to change the device class
-                # FIXME - this does not currently work
-                newPath = self.autoAllocate(dev)
-                if newPath:
-                    yield self.config().callRemote('moveDevice',dev.id,newPath)
-                    driver.next()
-                
                 # if no device came back from createDevice we assume that it
                 # was told to not auto-discover the device.  This seems very
                 # dubious to me! -EAD
                 if not dev:
                     self.log.info("IP '%s' on no auto-discover, skipping",ip)
+                    return
                 else:
                     # A device came back and it already existed.
                     if not created:
@@ -299,6 +293,14 @@ class ZenDisc(ZenModeler):
                             self.log.info("IP '%s' on device '%s' remodel",
                                           ip, dev.id)
                     self.sendDiscoveredEvent(ip, dev)
+                
+                # use the auto-allocate flag to change the device class
+                # FIXME - this does not currently work
+                newPath = self.autoAllocate(dev)
+                if newPath:
+                    yield self.config().callRemote('moveDevice',dev.id,newPath)
+                    driver.next()
+                
                 # the device that we found/created or that should be remodeled
                 # is added to the list of devices to be modeled later
                 if not self.options.nosnmp:
