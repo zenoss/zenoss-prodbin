@@ -215,17 +215,14 @@ class ZenDisc(ZenModeler):
                 return succeed(None)
         def inner(driver):
             try:
-                name = ip
-                useDeviceName = False
-                if self.options.device and not isip(self.options.device):
-                    name = self.options.device
-                    useDeviceName = True
-                kw = dict(deviceName=name,
+                kw = dict(deviceName=ip,
                           discoverProto=None,
                           devicePath=devicepath,
                           performanceMonitor=self.options.monitor)
                 
                 snmpDeviceInfo = None
+                # if we are using SNMP, lookup the device SNMP info and use the
+                # name defined there for deviceName
                 if not self.options.nosnmp:
                     self.log.debug("Scanning device with address %s", ip)
                     yield self.findRemoteDeviceInfo(ip, devicepath)
@@ -236,6 +233,22 @@ class ZenDisc(ZenModeler):
                                        zSnmpCommunity=community,
                                        zSnmpPort=port,
                                        zSnmpVer=ver))
+                # if we are discovering a single device and a name was passed
+                # in instead of an IP we use the passed in name not the IP
+                if self.options.device and not isip(self.options.device):
+                    kw['deviceName'] = self.options.device
+                else:
+                # An IP was passed in so we do a reverse lookup on it to get
+                # deviceName
+                    yield asyncNameLookup(ip)   
+                    try:
+                        kw.update(dict(deviceName=driver.next()))
+                    except Exception, ex:
+                        self.log.debug("Failed to lookup %s (%s)" % (ip, ex))
+
+                # if there is no SNMP lookup or the lookup failed set the SNMP
+                # info that was passed in on the command line so that it will
+                # flow through to createDevice. 
                 if not snmpDeviceInfo or self.options.nosnmp: 
                     """use the port set via commandline incase 
                     findRemoteDeviceInfo did not return data; this should
@@ -248,45 +261,52 @@ class ZenDisc(ZenModeler):
                     if self.options.zSnmpCommunity: 
                         kw.update(dict(zSnmpCommunity=
                                        self.options.zSnmpCommunity))
-                if useDeviceName:
-                    kw.update(dict(deviceName=name))
-                else:
-                    yield asyncNameLookup(ip)   
-                    try:
-                        kw.update(dict(deviceName=driver.next()))
-                    except Exception, ex:
-                        self.log.debug("Failed to lookup %s (%s)" % (ip, ex))
+
+                # now create the device by calling zenhub
                 yield self.config().callRemote('createDevice', ip, **kw)
                 result = driver.next()
                 if isinstance(result, Failure):
                     raise ZentinelException(result.value)
                 dev, created = result
+
+                # use the auto-allocate flag to change the device class
+                # FIXME - this does not currently work
                 newPath = self.autoAllocate(dev)
                 if newPath:
-                    yield self.config().callRemote('moveDevice', dev.id, newPath)
-                    drive.next()
+                    yield self.config().callRemote('moveDevice',dev.id,newPath)
+                    driver.next()
+                
+                # if no device came back from createDevice we assume that it
+                # was told to not auto-discover the device.  This seems very
+                # dubious to me! -EAD
                 if not dev:
-                    self.log.info("ip '%s' on no auto-discover, skipping",ip)
+                    self.log.info("IP '%s' on no auto-discover, skipping",ip)
                 else:
+                    # A device came back and it already existed.
                     if not created:
+                        # if we shouldn't remodel skip the device by returning
+                        # at the end of this block
                         if not self.options.remodel:
-                            self.log.info("ip '%s' on device '%s' skipping",
-                                          ip, dev.id)
+                            self.log.info("Found IP '%s' on device '%s';"
+                                          " skipping discovery", ip, dev.id)
                             if self.options.device:
                                 self._customexitcode = 3
                             yield succeed(dev)
                             driver.next()
                             return
                         else:
-                            self.log.info("ip '%s' on device '%s' remodel",
+                        # we continue on to model the device.
+                            self.log.info("IP '%s' on device '%s' remodel",
                                           ip, dev.id)
                     self.sendDiscoveredEvent(ip, dev)
+                # the device that we found/created or that should be remodeled
+                # is added to the list of devices to be modeled later
                 if not self.options.nosnmp:
                     self.discovered.append(dev.id)
                 yield succeed(dev)
                 driver.next()
             except ZentinelException, e:
-                self.log.warn(e)
+                self.log.exception(e)
                 evt = dict(device=ip,
                            component=ip,
                            ipAddress=ip,
@@ -366,21 +386,24 @@ class ZenDisc(ZenModeler):
             ip = deviceName
         else:
             try:
+                # FIXME ZenUtils.IpUtil.asyncIpLookup is probably a better tool
+                # for this, but it hasn't been tested, so it's for another day
                 ip = socket.gethostbyname(deviceName)
             except socket.error: 
                 ip = ""
         if not ip:
             raise NoIPAddress("No IP found for name %s" % deviceName)
         else:
-            self.log.info("Found IP %s for device %s" % (ip, deviceName))
+            self.log.debug("Found IP %s for device %s" % (ip, deviceName))
             yield self.config().callRemote('getDeviceConfig', [deviceName])
             me, = driver.next() or [None]
             if not me or self.options.remodel:
                 yield self.discoverDevice(ip,
-                                         devicepath=self.options.deviceclass,
-                                         prodState=self.options.productionState)
-                yield succeed("Discovered device.")
+                                     devicepath=self.options.deviceclass,
+                                     prodState=self.options.productionState)
+                yield succeed("Discovered device %s." % deviceName)
                 driver.next()
+
 
     def walkDiscovery(self, driver):
         myname = socket.getfqdn()

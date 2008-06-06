@@ -22,6 +22,7 @@ __version__ = "$Revision: 1.30 $"[11:-2]
 
 import os
 import zlib
+import socket
 import logging
 log = logging.getLogger("zen.PerformanceConf")
 
@@ -43,6 +44,7 @@ from AccessControl import Permissions as permissions
 from Globals import DTMLFile
 from Globals import InitializeClass
 from Monitor import Monitor
+from Products.ZenModel.Device import checkDeviceExists
 from Products.PythonScripts.standard import url_quote
 from Products.ZenModel.ZenossSecurity import *
 from Products.ZenRelations.RelSchema import *
@@ -195,6 +197,14 @@ class PerformanceConf(Monitor, StatusColor):
                     RRA:MAX:0.5:288:600'''
         """
         return "\n".join(self.defaultRRDCreateCommand)
+
+
+    def findDevice(self, deviceName):
+        brains = self.dmd.Devices._findDevice(deviceName)
+        for brain in brains:
+            device = brain.getObject()
+            if device.getPerformanceServerName() == self.id:
+                return device
 
 
     def buildGraphUrlFromCommands(self, gopts, drange):
@@ -386,24 +396,23 @@ class PerformanceConf(Monitor, StatusColor):
             osManufacturer="", osProductName="",
             locationPath="", groupPaths=[], systemPaths=[],
             performanceMonitor="localhost",
-            discoverProto="snmp", priority=3, REQUEST = None):
-        
+            discoverProto="snmp", priority=3, manageIp="", REQUEST=None):
         """
         Create a device in a performance monitor specific fashion.
         Creates device by delegating to manage_createDevice
         @rtype: Device
         """
-       
-        if isip(deviceName) and self.getDmdRoot('Networks').findIp(deviceName):
-            device = self.getDmdRoot('Networks').findIp(deviceName)
-            raise DeviceExistsError("Ip %s exists on %s" % (deviceName, device.id))
-        elif self.getDmdRoot("Devices").findDevice(deviceName):
-            raise DeviceExistsError("Device %s already exists" % deviceName)
-        
         if devicePath == "":
             devicePath = "/"
         device = None
         if discoverProto == "none":
+            # If you're adding a device manually, we will try to do the lookup
+            # locally.
+            if not manageIp:
+                try:
+                    manageIp = socket.gethostbyname(deviceName)
+                except socket.error: 
+                    pass
             device = manage_createDevice(self, deviceName, devicePath,
                 tag, serialNumber,
                 zSnmpCommunity, zSnmpPort, zSnmpVer,
@@ -411,13 +420,11 @@ class PerformanceConf(Monitor, StatusColor):
                 hwManufacturer, hwProductName,
                 osManufacturer, osProductName,
                 locationPath, groupPaths, systemPaths,
-                performanceMonitor, discoverProto)
+                performanceMonitor, discoverProto, priority, manageIp)
         else:
             device = self._createDevice(deviceName, devicePath, productionState,
                                 performanceMonitor, discoverProto, zSnmpPort, 
                                 zSnmpCommunity, REQUEST)
-#need to call zendisc and interpret exit codes?  Then update properties.
-            
             if device:
                 device.manage_editDevice(tag=tag,
                           serialNumber=serialNumber,
@@ -434,7 +441,7 @@ class PerformanceConf(Monitor, StatusColor):
                           performanceMonitor = performanceMonitor,
                           priority = priority)
             else:
-                log.info("no device returned")
+                log.debug("No device returned.")
         return device        
 
     def _createDevice(self, deviceName, devicePath= "/Discovered", 
@@ -448,22 +455,12 @@ class PerformanceConf(Monitor, StatusColor):
                      '--monitor', performanceMonitor, 
                      '--deviceclass', devicePath,
                      '--snmp-port', str(zSnmpPort) ]
-        
         if zSnmpCommunity != "":
             zendiscCmd.extend(["--snmp-community", zSnmpCommunity])
-            
-        
         if REQUEST: zendiscCmd.append("--weblog")
-        
-        result = self._executeZenDiscCommand(zendiscCmd, REQUEST)
-        if result == 3:
-            raise DeviceExistsError("ZenDisc found existing Device" )
-        log.info("zendisc result : %s" % result)
+        self._executeZenDiscCommand(zendiscCmd, REQUEST)
         self.dmd._p_jar.sync()
-        device = self.getDmdRoot("Devices").findDevice(deviceName)
-        if not device:
-            raise Exception("ZenDisc did not create device %s" % deviceName)
-        return device
+        return self.getDmdRoot("Devices").findDevice(deviceName)
         
     def _executeZenDiscCommand(self, zendiscOptions, REQUEST=None):
         """

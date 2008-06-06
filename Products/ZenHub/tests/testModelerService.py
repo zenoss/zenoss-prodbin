@@ -23,19 +23,23 @@ class TestModelerService(BaseTestCase):
         devices = self.dmd.Devices
         devices.createOrganizer("Server")
         devices.createOrganizer("Network")
+
         dev = self.dmd.Devices.Server.createInstance("localhost")
-        dev.zCollectorPlugins = ['zenoss.snmp.HRSWRunMap']
-        dev = self.dmd.Devices.Network.createInstance("router")
         dev.setPerformanceMonitor('localhost')
-        dev.zCollectorPlugins = ['zenoss.snmp.InterfaceMap']
+        dev.zCollectorPlugins = ['zenoss.snmp.HRSWRunMap']
+
+        dev2 = self.dmd.Devices.Network.createInstance("router")
+        dev2.setPerformanceMonitor('localhost')
+        dev2.zCollectorPlugins = ['zenoss.snmp.InterfaceMap']
 
     def test1(self):
         self.assertTrue(self.dmd)
         m = ModelerService(self.dmd, 'localhost')
         servers = m.remote_getDeviceListByOrganizer('Server')
         self.assertTrue(servers==['localhost'])
-        self.assertTrue(m.remote_getDeviceListByMonitor('localhost') ==
-                        ['router'])
+        mylist = m.remote_getDeviceListByMonitor('localhost')
+        self.assert_('router' in mylist)
+        self.assert_('localhost' in mylist)
 
     def testDeviceProxy(self):
         self.assertTrue(self.dmd)

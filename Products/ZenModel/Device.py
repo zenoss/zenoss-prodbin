@@ -58,6 +58,29 @@ from ZenossSecurity import *
 from Products.ZenUtils.Utils import edgesToXML
 from Products.ZenUtils import NetworkTree
 
+
+def getNetworkRoot(context, performanceMonitor):
+    """
+    Return the default network root.
+    """
+    return context.getDmdRoot('Networks')
+
+
+def checkDeviceExists(context, deviceName, ip, performanceMonitor):
+    netroot = getNetworkRoot(context, performanceMonitor)
+    if ip:
+        ipobj = netroot.findIp(ip)
+        if ipobj:
+            dev = ipobj.device()
+            if dev:
+                raise DeviceExistsError("Ip %s exists on %s" % (ip, dev.id),dev)
+    mon = context.Monitors.getPerformanceMonitor(performanceMonitor)
+    dev = mon.findDevice(deviceName)
+    if dev:
+        raise DeviceExistsError("Device %s already exists" % deviceName,dev)
+    return deviceName, ip
+
+
 def manage_createDevice(context, deviceName, devicePath="/Discovered",
             tag="", serialNumber="",
             zSnmpCommunity="", zSnmpPort=161, zSnmpVer="",
@@ -66,7 +89,7 @@ def manage_createDevice(context, deviceName, devicePath="/Discovered",
             osManufacturer="", osProductName="",
             locationPath="", groupPaths=[], systemPaths=[],
             performanceMonitor="localhost",
-            discoverProto="snmp", priority=3, manageIp=None):
+            discoverProto="snmp", priority=3, manageIp=""):
     """
     Device factory creates a device and sets up its relations and collects its
     configuration. SNMP Community discovery also happens here. If an IP is
@@ -75,66 +98,13 @@ def manage_createDevice(context, deviceName, devicePath="/Discovered",
     
     @rtype: Device
     """
-    ip = None
-    if isip(deviceName):
-        ip = deviceName
-        deviceName = ""
-    if manageIp and isip(manageIp):
-        ip = manageIp
-    if ip:
-        ipobj = context.getDmdRoot('Networks').findIp(ip)
-        if ipobj:
-            dev = ipobj.device()
-            if dev:
-                raise DeviceExistsError("Ip %s exists on %s" % (ip, dev.id))
-    else:
-        deviceName = context.prepId(deviceName)
-        try: ip = socket.gethostbyname(deviceName)
-        except socket.error: ip = ""
-        if context.getDmdRoot("Devices").findDevice(deviceName):
-            raise DeviceExistsError("Device %s already exists" % deviceName)
-    if not ip:
-        raise NoIPAddress("No IP found for name %s" % deviceName)
-    if discoverProto == "snmp":
-        zSnmpCommunity, zSnmpPort, zSnmpVer, snmpname = \
-                        findCommunity(context, ip, devicePath,
-                                      zSnmpCommunity, zSnmpPort, zSnmpVer)
-        log.debug("device community = %s", zSnmpCommunity)
-        log.debug("device version = %s", zSnmpVer)
-        log.debug("device name = %s", snmpname)
-        if not deviceName:
-            # use the ptr record we already have
-            try:
-                ptrName = ''
-                if ipobj and ipobj.ptrName:
-                    ptrName = ipobj.ptrName
-                if ptrName and socket.gethostbyname(ptrName):
-                    deviceName = ptrName
-            except socket.error: pass
-            
-            # lookup the ptr record
-            try:
-                if not deviceName and ip:
-                    deviceName = socket.gethostbyaddr(ip)[0]
-            except socket.error: pass
-
-            # use the snmpname
-            if not deviceName and snmpname:
-                deviceName = snmpname
-                
-            # give up: use ip
-            if not deviceName:
-                log.warn("unable to name device using ip '%s'", ip)
-                deviceName = ip
-    elif discoverProto == "command":
-        raise ZenModelError("discover protocol 'ssh' not implemented yet")
-    if not deviceName:
-        deviceName = ip
-    log.info("device name '%s' for ip '%s'", deviceName, ip)
+    checkDeviceExists(context, deviceName, manageIp, performanceMonitor)
+    deviceName = context.prepId(deviceName)
+    log.info("device name '%s' for ip '%s'", deviceName, manageIp)
     deviceClass = context.getDmdRoot("Devices").createOrganizer(devicePath)
     deviceName = context.prepId(deviceName)
     device = deviceClass.createInstance(deviceName)
-    device.setManageIp(ip)
+    device.setManageIp(manageIp)
     device.manage_editDevice(
                 tag, serialNumber,
                 zSnmpCommunity, zSnmpPort, zSnmpVer,
@@ -143,16 +113,6 @@ def manage_createDevice(context, deviceName, devicePath="/Discovered",
                 osManufacturer, osProductName,
                 locationPath, groupPaths, systemPaths,
                 performanceMonitor, priority)
-# Not sure why this was important but it causes issues if
-# we are adding an alias to an existing box.  It will take
-# away that boxes IP.  It also seems to make a network with
-# the wrong netmask.
-#    if discoverProto == "none":
-#        from Products.ZenModel.IpInterface import IpInterface
-#        tmpInterface = IpInterface('eth0')
-#        device.os.interfaces._setObject('eth0', tmpInterface)
-#        interface = device.getDeviceComponents()[0]
-#        interface.addIpAddress(device.getManageIp())
     return device
 
 

@@ -35,6 +35,9 @@ class HubService(pb.Referenceable):
         self.listeners = []
         self.callTime = 0.
 
+    def getPerformanceMonitor(self):
+        return self.dmd.Monitors.getPerformanceMonitor(self.instance)
+
     def remoteMessageRecieved(self, broker, message, args, kw):
         now = time.time()
         try:

@@ -33,6 +33,9 @@ class WrongSubnetError(ZenModelError):
 
 class DeviceExistsError(ZenModelError):
     """a device with this fqdn is already in the dmd"""
+    def __init__(self, msg, dev):
+        ZenModelError.__init__(self, msg)
+        self.dev = dev
 
 class PathNotFoundError(ZenModelError):
     """no object found in the dmd at the path given"""

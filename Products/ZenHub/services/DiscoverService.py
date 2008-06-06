@@ -20,6 +20,7 @@ from Products.ZenEvents.ZenEventClasses import Status_Ping
 from Products.ZenModel.Device import manage_createDevice
 from Products.ZenUtils.IpUtil import isip
 from Products.ZenHub.PBDaemon import translateError
+from Products.ZenModel.Exceptions import DeviceExistsError
 
 import transaction
 
@@ -132,17 +133,18 @@ class DiscoverService(ModelerService):
         @param ip: The manageIp of the device
         @param kw: The args to manage_createDevice.
         """
-        if not isip(ip):
-            ip = socket.gethostbyname(ip)
-        ipobj = self.dmd.Networks.createIp(ip)
-        if not ipobj and not getattr(ipobj, "zAutoDiscover", True): 
-            # self.log.info("ip '%s' on no auto-discover, skipping",ip)
-            return
-        if ipobj.device():
-            return self.createDeviceProxy(ipobj.device()), False
+        from Products.ZenModel.Device import getNetworkRoot
         try:
+            netroot = getNetworkRoot(self, 
+                kw.get('performanceMonitor', 'localhost'))
+            ipobj = netroot.createIp(ip)
+            # If we're not supposed to discover this ip, return None
+            if not getattr(ipobj, 'zAutoDiscover', True):
+                return
             kw['manageIp'] = ip
             dev = manage_createDevice(self.dmd, **kw)
+        except DeviceExistsError, e:
+            return self.createDeviceProxy(e.dev), False
         except Exception, ex:
             raise pb.CopyableFailure(ex)
         transaction.commit()
@@ -155,7 +157,7 @@ class DiscoverService(ModelerService):
         Return the ips that the device's indirect routes point to
         which aren't currently connected to devices.
         """
-        dev = self.dmd.Devices.findDevice(device)
+        dev = self.getPerformanceMonitor().findDevice(device)
         ips = []
         for r in dev.os.routes():
             ipobj = r.nexthop()

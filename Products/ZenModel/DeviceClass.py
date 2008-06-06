@@ -151,8 +151,6 @@ class DeviceClass(DeviceOrganizer, ZenPackable, TemplateContainer):
         walk up the primary aq path looking for a python instance class that
         matches the name of the closest node in the device tree.
         """
-        dev = self.findDevice(id)
-        if dev: return dev
         pyClass = self.getPythonDeviceClass()
         dev = pyClass(id)
         self.devices._setObject(id, dev)
@@ -357,7 +355,8 @@ class DeviceClass(DeviceOrganizer, ZenPackable, TemplateContainer):
         return devices
 
     def _findDevice(self, devicename):
-        query = Or(MatchGlob('id', devicename), Eq('getDeviceIp', devicename))
+        query = Or(MatchGlob('id', devicename), 
+                   Eq('getDeviceIp', devicename))
         return self._getCatalog().evalAdvancedQuery(query)
 
 
@@ -371,12 +370,7 @@ class DeviceClass(DeviceOrganizer, ZenPackable, TemplateContainer):
     def findDevice(self, devicename):
         """look up device in catalog and return it"""
         ret = self._findDevice(devicename)
-        if not ret: return None
-        try:
-            devobj = self.getObjByPath(ret[0].getPrimaryId)
-            return devobj
-        except KeyError:
-            log.warn("bad path '%s' in index deviceSearch", ret[0].getPrimaryId)
+        if ret: return ret[0].getObject()
 
 
     security.declareProtected('View', 'jsonGetDeviceNames')

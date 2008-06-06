@@ -90,7 +90,7 @@ class SnmpPerfConfig(PerformanceConfig):
         "Fetch the configs for the given devices"
         result = []
         for d in devices:
-            device = self.dmd.Devices.findDevice(d)
+            device = self.getPerformanceMonitor().findDevice(d)
             if device:
                 config = self.getDeviceConfig(device)
                 if config:

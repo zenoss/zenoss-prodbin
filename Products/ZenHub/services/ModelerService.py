@@ -51,7 +51,7 @@ class ModelerService(PerformanceConfig):
     def remote_getDeviceConfig(self, names):
         result = []
         for name in names:
-            device = self.dmd.Devices.findDevice(name)
+            device = self.getPerformanceMonitor().findDevice(name)
             if not device:
                 continue
             device = device.primaryAq()
@@ -76,7 +76,7 @@ class ModelerService(PerformanceConfig):
     @translateError
     def remote_applyDataMaps(self, device, maps):
         from Products.DataCollector.ApplyDataMap import ApplyDataMap
-        device = self.dmd.Devices.findDevice(device)
+        device = self.getPerformanceMonitor().findDevice(device)
         adm = ApplyDataMap()
         changed = False
         for map in maps:
@@ -93,7 +93,7 @@ class ModelerService(PerformanceConfig):
 
     @translateError
     def remote_setSnmpLastCollection(self, device):
-        device = self.dmd.Devices.findDevice(device)
+        device = self.getPerformanceMonitor().findDevice(device)
         device.setSnmpLastCollection()
 
     def pushConfig(self, device):

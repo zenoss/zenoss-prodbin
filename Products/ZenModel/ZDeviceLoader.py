@@ -114,8 +114,7 @@ class ZDeviceLoader(ZenModelItem,SimpleItem):
                                     osManufacturer, osProductName,
                                     locationPath, groupPaths, systemPaths,
                                     performanceMonitor, discoverProto, 
-                                    priority,REQUEST)                                        
-            transaction.commit()
+                                    priority, "", REQUEST)
         except (SystemExit, KeyboardInterrupt): raise
         except ZentinelException, e:
             log.info(e)

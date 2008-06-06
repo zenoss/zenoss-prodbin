@@ -93,7 +93,7 @@ class ZenModeler(PBDaemon):
     def configure(self):
         # add in the code to fetch cycle time, etc.
         def inner(driver):
-            self.log.info('fetching monitor properties')
+            self.log.debug('fetching monitor properties')
             yield self.config().callRemote('propertyItems')
             items = dict(driver.next())
             for att in ("modelerCycleInterval", "configCycleInterval"):
@@ -102,15 +102,15 @@ class ZenModeler(PBDaemon):
                 setattr(self, att, after)
             reactor.callLater(self.configCycleInterval * 60, self.configure)
 
-            self.log.info("getting threshold classes")
+            self.log.debug("getting threshold classes")
             yield self.config().callRemote('getThresholdClasses')
             self.remote_updateThresholdClasses(driver.next())
 
-            self.log.info("fetching default RRDCreateCommand")
+            self.log.debug("fetching default RRDCreateCommand")
             yield self.config().callRemote('getDefaultRRDCreateCommand')
             createCommand = driver.next()
 
-            self.log.info("getting collector thresholds")
+            self.log.debug("getting collector thresholds")
             yield self.config().callRemote('getCollectorThresholds')
             self.rrdStats.config(self.options.monitor,
                                  self.name,
@@ -562,7 +562,7 @@ class ZenModeler(PBDaemon):
 
         self.start = time.time()
 
-        self.log.info("starting collector loop")
+        self.log.debug("starting collector loop")
         yield self.getDeviceList()
         self.devicegen = iter(driver.next())
         d = drive(self.fillCollectionSlots)
