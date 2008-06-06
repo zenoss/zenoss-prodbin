@@ -97,7 +97,8 @@ class RRDDaemon(PBDaemon):
 
     def logError(self, msg, error):
         if isinstance(error, failure.Failure):
-            if isinstance(error.value, error.TimeoutError):
+            from twisted.internet.error import TimeoutError
+            if isinstance(error.value, TimeoutError):
                 self.log.warning("Timeout Error")
             else:
                 self.log.exception(error)
