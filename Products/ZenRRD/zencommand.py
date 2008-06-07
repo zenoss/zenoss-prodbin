@@ -561,7 +561,7 @@ class zencommand(RRDDaemon):
                                     component=cmd.component)
             self.deviceIssues.add(issueKey)
         if severity == 0:
-            self.sendEvent(dict(device=dc.device,
+            self.sendEvent(dict(device=cmd.deviceConfig.device,
                                 eventClass=cmd.eventClass,
                                 eventKey=cmd.eventKey,
                                 component=cmd.component,
