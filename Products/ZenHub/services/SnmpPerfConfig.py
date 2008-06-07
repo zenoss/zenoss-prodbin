@@ -27,6 +27,7 @@ def getComponentConfig(comp):
         for ds in templ.getRRDDataSources("SNMP"):
             if not ds.enabled: continue
             oid = ds.oid
+            if not oid: continue
             snmpindex = getattr(comp, "ifindex", comp.snmpindex)
             if snmpindex: oid = "%s.%s" % (oid, snmpindex)
             for dp in ds.getRRDDataPoints():
