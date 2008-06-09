@@ -533,7 +533,7 @@ class DataRoot(ZenModelRM, OrderedFolder, Commandable, ZenMenuable):
             obj=None
         if not obj:
             try:
-                obj = self.Networks.getNet(objid)
+                obj = self.Networks.findNet(objid)
             except IpAddressError:
                 return None
         if not obj: return None
@@ -553,7 +553,7 @@ class DataRoot(ZenModelRM, OrderedFolder, Commandable, ZenMenuable):
             obj = self.Devices.findDevice(devid)
         except: obj=None
         if not obj:
-            obj = self.Networks.getNet(objid)
+            obj = self.Networks.findNet(objid)
         if not obj:
             return '<graph><Start name="%s"/></graph>' % objid
         return obj.getXMLEdges(int(depth), filter, 
