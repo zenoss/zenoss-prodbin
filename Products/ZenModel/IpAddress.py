@@ -250,16 +250,16 @@ class IpAddress(ManagedEntity, Layer3Linkable):
 
     def ipAddressId(self):
         """
-        The device id, for indexing purposes.
+        The ipAddress id, for indexing purposes.
         """
-        return self.id
+        return self.getPrimaryId()
 
     def networkId(self):
         """
         The network id, for indexing purposes.
         """
         n = self.network()
-        if n: return n.id
+        if n: return n.getPrimaryId()
         else: return None
 
 InitializeClass(IpAddress)
