@@ -19,6 +19,10 @@ class ReindexIpAddressNetworkIds(Migrate.Step):
 
     def cutover(self, dmd):
         for brain in dmd.ZenLinkManager.layer3_catalog():
-            brain.getObject().index_object()
+            try:
+                ob = brain.getObject()
+                ob.index_object()
+            except:
+                pass
 
 ReindexIpAddressNetworkIds()
