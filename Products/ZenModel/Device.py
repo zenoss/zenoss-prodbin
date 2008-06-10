@@ -1060,8 +1060,6 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
        
         self.setLastChange()
         self.index_object()
-        for comp in self.getDeviceComponentsNoIndexGen():
-            comp.index_object()
         if REQUEST:
             from Products.ZenUtils.Time import SaveMessage
             REQUEST['message'] = SaveMessage()
