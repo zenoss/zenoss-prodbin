@@ -59,11 +59,6 @@ from Products.ZenUtils.IpUtil import isip
 from Products.ZenModel.Device import manage_createDevice
 from StatusColor import StatusColor
 
-
-
-
-
-
 PERF_ROOT=None
 
 def performancePath(target):
@@ -206,6 +201,8 @@ class PerformanceConf(Monitor, StatusColor):
             if device.getPerformanceServerName() == self.id:
                 return device
 
+    def getNetworkRoot(self):
+        return self.dmd.Networks
 
     def buildGraphUrlFromCommands(self, gopts, drange):
         ''' Return a url for the given graph options and date range

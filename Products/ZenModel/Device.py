@@ -67,14 +67,14 @@ def getNetworkRoot(context, performanceMonitor):
 
 
 def checkDeviceExists(context, deviceName, ip, performanceMonitor):
-    netroot = getNetworkRoot(context, performanceMonitor)
+    mon = context.Monitors.getPerformanceMonitor(performanceMonitor)
+    netroot = mon.getNetworkRoot()
     if ip:
         ipobj = netroot.findIp(ip)
         if ipobj:
             dev = ipobj.device()
             if dev:
                 raise DeviceExistsError("Ip %s exists on %s" % (ip, dev.id),dev)
-    mon = context.Monitors.getPerformanceMonitor(performanceMonitor)
     dev = mon.findDevice(deviceName)
     if dev:
         raise DeviceExistsError("Device %s already exists" % deviceName,dev)
