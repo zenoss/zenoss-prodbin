@@ -14,19 +14,20 @@ from Exceptions import ZenImportError
 
 def importClass(classpath, baseModule=None):
     """lookup a class by its path use baseModule path if passed"""
+    import sys
     if baseModule: classpath = ".".join((baseModule, classpath))
+    parts = classpath.split('.')
     try:
         mod = __import__(classpath)
-    except ImportError:
+        mod = sys.modules[classpath]
+    except (ImportError, KeyError):
         try:
-            mod = __import__(".".join(classpath.split(".")[:-1]))
+            base = ".".join(parts[:-1])
+            mod = __import__(base)
+            mod = sys.modules[base]
         except:
             raise ZenImportError("failed importing class %s" % classpath)
-    for comp in classpath.split(".")[1:]:
-        mod = getattr(mod, comp)
-    classdef = getattr(mod, comp, None)
-    if classdef: mod = classdef
-    return mod
+    return getattr(mod, parts[-1], mod)
 
 
 def importClasses(basemodule=None, skipnames=()):
