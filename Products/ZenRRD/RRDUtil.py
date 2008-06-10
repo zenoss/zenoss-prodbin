@@ -68,6 +68,8 @@ class RRDUtil:
                 value = long(value)
             except (TypeError, ValueError):
                 return None
+        else:
+            value = float(value)
         try:
             rrdtool.update(filename, 'N:%s' % value)
             log.debug('%s: %r', filename, value)
