@@ -251,8 +251,9 @@ def importClass(modulePath, classname=""):
     try:
         if not classname: classname = modulePath.split(".")[-1]
         try:
-            mod = __import__(modulePath, globals(), locals(), classname)
-        except ValueError, ex:
+            __import__(modulePath, globals(), locals(), classname)
+            mod = sys.modules[modulePath]
+        except (ValueError, ImportError, KeyError), ex:
             raise ex
         
         return getattr(mod, classname)
