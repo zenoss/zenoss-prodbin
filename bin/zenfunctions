@@ -41,7 +41,7 @@ shift
 
 pidFile() {
    if [ -z "$PIDFILE" ] ; then
-       MONITOR=`grep monitor $1 2>/dev/null | tr -d '\r' | tail -1 | awk '{ print $2 }'`
+       MONITOR=`grep '^[ 	]*monitor' $1 2>/dev/null | tr -d '\r' | tail -1 | awk '{ print $2 }'`
        if [ -z "$MONITOR" ] ; then MONITOR=localhost ; fi
        PIDFILE="$VARDIR/`basename $PRGNAME .py`-$MONITOR.pid"
    fi
