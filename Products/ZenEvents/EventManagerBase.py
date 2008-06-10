@@ -531,7 +531,7 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
                     retdata = []
                     # iterate through the data results and convert to python
                     # objects
-                    if self.checkRemotePerm(ZEN_MANAGE_DMD, self.dmd.Events):
+                    if self.checkRemotePerm(ZEN_VIEW, self.dmd.Events):
                         eventPermission = True
                     else:
                         eventPermission = False
@@ -1423,7 +1423,7 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
         for devname in devices:
             dev = devclass.findDevice(devname)
             if dev:
-                if (not self.checkRemotePerm(ZEN_MANAGE_DMD, dev)
+                if (not self.checkRemotePerm(ZEN_VIEW, dev)
                     or dev.productionState < self.prodStateDashboardThresh
                     or dev.priority < self.priorityDashboardThresh):
                     continue
@@ -1473,7 +1473,7 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
         devs = islice((x.getObject() for x in objects), 100)
         mydict = {'columns':['Device', 'Prod State'], 'data':[]}
         for dev in devs:
-            if not self.checkRemotePerm(ZEN_MANAGE_DMD, dev): continue
+            if not self.checkRemotePerm(ZEN_VIEW, dev): continue
             mydict['data'].append({
                 'Device' : dev.getPrettyLink(), 
                 'Prod State' : dev.getProdState()

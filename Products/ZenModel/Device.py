@@ -722,7 +722,7 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
         """
         loc = self.location()
         if loc: 
-            if self.checkRemotePerm(ZEN_MANAGE_DMD, loc):
+            if self.checkRemotePerm(ZEN_VIEW, loc):
                 return "<a href='%s'>%s</a>" % (loc.getPrimaryUrlPath(),
                                                 loc.getOrganizerName())
             else:
@@ -1720,7 +1720,7 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
         id = '<a class="tablevalues" href="%s">%s</a>' % (
                             url, self.getId())
         ip = self.getDeviceIp()
-        if self.checkRemotePerm(ZEN_MANAGE_DMD, self.deviceClass()):
+        if self.checkRemotePerm(ZEN_VIEW, self.deviceClass()):
             path = '<a href="/zport/dmd/Devices%s">%s</a>' % (classurl,classurl)
         else:
             path = classurl
@@ -1855,7 +1855,7 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
         name = self.id
         linktemplate = "<a href='"+href+"' class='prettylink'>%s</a>"
         rendered = template % (icon, name)
-        if not self.checkRemotePerm(ZEN_MANAGE_DMD, self):
+        if not self.checkRemotePerm(ZEN_VIEW, self):
             return rendered
         else:
             return linktemplate % rendered
