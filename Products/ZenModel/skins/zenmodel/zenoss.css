@@ -159,17 +159,18 @@ div.logo {
 #settings div.searchbox input[type="text"]{
     background: transparent none no-repeat;
     border: medium none;
-    margin-top: -13px;
     margin-left: 62px;
     color: #444;
     width: 90px;
+    position: relative;
+    top: -18px;
 }
 
 span.searchform-label {
     position:relative;
     left:-6em;
     font-size:80%;
-    top:2px;
+    top:-2px;
     color:#bbb;
 }
 

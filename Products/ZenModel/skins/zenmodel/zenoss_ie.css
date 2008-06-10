@@ -101,8 +101,8 @@ table.tabtable,
     top: 2px;
 }
 #settings div.searchbox input[type="text"] {
-    margin-top: -30px;
-    margin-left: 62px;
+    margin-top: -8px;
+    margin-left: 63px;
 }
 
 #tabsPane table td.contextmenutab .menu {
