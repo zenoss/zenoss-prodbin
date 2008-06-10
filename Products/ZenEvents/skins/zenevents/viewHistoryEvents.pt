@@ -4,6 +4,7 @@
 <span metal:define-macro="body">
 <link type="text/css" rel="stylesheet" href="css/zengrid.css"/>
 <script type="text/javascript">	var djConfig = { isDebug: true }; </script>
+<script src="zeneventsfuncs.js"></script>
 <script type="text/javascript" src="/zport/portal_skins/zenmodel/datePicker.js">
 </script>
 

@@ -9,12 +9,12 @@
 </tal:block>
 
 <tal:block metal:fill-slot="contentPane">
+<script src="zeneventsfuncs.js"></script>
 
 <div class='tinylink-container'>
     <a class="tinylink" href="viewHistoryEvents">View Event History...</a>
     <div id='msgbox' class='msgbox'></div>
 </div>
-
 <link type="text/css" rel="stylesheet" href="css/zengrid.css"/>
 <form name="control" method="post" 
     tal:attributes="action here/absolute_url_path"
