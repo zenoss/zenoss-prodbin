@@ -23,8 +23,7 @@ class MySqlSendEventTest(BaseTestCase):
     def setUp(self):
         BaseTestCase.setUp(self)
         self.zem = self.dmd.ZenEventManager
-        self.dmd.Devices.createInstance(TEST_DEVICE)
-        self.d = self.dmd.Devices.findDevice(TEST_DEVICE)
+        self.d = self.dmd.Devices.createInstance(TEST_DEVICE)
 
 
     def tearDown(self):
