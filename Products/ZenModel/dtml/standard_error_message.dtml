@@ -33,7 +33,7 @@
 	   <div id="frame">
             <div id="topPane">
 
-    <div class="logo">| Core</div>
+    <div class="logo"></div>
     <div id="settings">
 
     <div class="searchbox">
