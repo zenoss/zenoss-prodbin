@@ -43,7 +43,7 @@ class ZenBackup(ZenBackupBase):
         # zeoup.py should live in either $ZOPEHOME/lib/bin/ (for the
         # appliance) or in $ZENHOME/bin (other installs.)
         zeoup = self.findBin('zeoup.py')
-        cmd = '%s %s -p 8100' % (zenPath('bin', 'python'), zeoup)
+        cmd = '%s %s -p 8100 -h localhost' % (zenPath('bin', 'python'), zeoup)
         output = commands.getoutput(cmd)
         return output.startswith('Elapsed time:')
 
