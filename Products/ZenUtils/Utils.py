@@ -552,10 +552,12 @@ def edgesToXML(edges, start=()):
 
 def zenPath(*args):
     args = [a.strip('/') for a in args]
-    zenhome = os.environ['ZENHOME']
+    zenhome = os.environ['ZENHOME'] 
     target = os.path.join(zenhome, *args)
     if( not os.path.exists(target) ):
-        target = os.path.join(zenhome, '..', 'common', *args)
+        test = os.path.join(zenhome, '..', 'common', *args)
+        if( os.path.exists(test) ):
+            target = test
     return target
 
 def extractPostContent(REQUEST):
