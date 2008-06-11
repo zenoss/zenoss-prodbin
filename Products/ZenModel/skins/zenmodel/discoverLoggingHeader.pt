@@ -15,7 +15,9 @@
             <div metal:use-macro="here/templates/macros/topPane"/>
             <div id="infoBar">
                 <div id="leftPaneToggle"></div>
+                <div id="breadCrumbPane">
                <div metal:use-macro="here/miscmacros/macros/breadCrumbs" />
+               </div>
                 <tal:block metal:use-macro="here/templates/macros/infoBarExtra"/>
             </div>
             <tal:block metal:use-macro="
