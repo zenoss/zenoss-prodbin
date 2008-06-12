@@ -48,7 +48,7 @@ from Products.ZenModel.Device import checkDeviceExists
 from Products.PythonScripts.standard import url_quote
 from Products.ZenModel.ZenossSecurity import *
 from Products.ZenRelations.RelSchema import *
-from Products.ZenUtils.Utils import basicAuthUrl, zenPath
+from Products.ZenUtils.Utils import basicAuthUrl, zenPath, binPath
 from Products.ZenUtils.Utils import unused
 from Products.ZenUtils.Utils import isXmlRpc
 from Products.ZenUtils.Utils import setupLoggingHeader
@@ -463,7 +463,7 @@ class PerformanceConf(Monitor, StatusColor):
         """
         execute zendisc  given zendisc options and return result
         """
-        zm = zenPath('bin', 'zendisc')
+        zm = binPath('zendisc')
         zendiscCmd = [zm]
         zendiscCmd.extend(zendiscOptions)
         result = executeCommand(zendiscCmd, REQUEST) 
@@ -497,7 +497,7 @@ class PerformanceConf(Monitor, StatusColor):
         """
         execute zenmodeler  given zendmodeler options and return result
         """
-        zm = zenPath('bin', 'zenmodeler')
+        zm = binPath('zenmodeler')
         zenmodelerCmd = [zm]
         zenmodelerCmd.extend(zenmodelerOpts)
         result = executeCommand(zenmodelerCmd, REQUEST) 

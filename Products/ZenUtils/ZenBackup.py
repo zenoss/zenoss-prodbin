@@ -27,7 +27,7 @@ from datetime import date
 import ConfigParser
 import commands
 import tarfile
-from Products.ZenUtils.Utils import zenPath
+from Products.ZenUtils.Utils import zenPath, binPath
 from ZenBackupBase import *
 
 
@@ -42,8 +42,8 @@ class ZenBackup(ZenBackupBase):
         '''
         # zeoup.py should live in either $ZOPEHOME/lib/bin/ (for the
         # appliance) or in $ZENHOME/bin (other installs.)
-        zeoup = self.findBin('zeoup.py')
-        cmd = '%s %s -p 8100 -h localhost' % (zenPath('bin', 'python'), zeoup)
+        cmd = '%s %s -p 8100 -h localhost' % (
+                                        binPath('python'), binPath('zeoup.py'))
         output = commands.getoutput(cmd)
         return output.startswith('Elapsed time:')
 
@@ -208,7 +208,7 @@ class ZenBackup(ZenBackupBase):
         repozoDir = os.path.join(tempDir, 'repozo')
         os.mkdir(repozoDir, 0750)
         cmd = ('%s %s --backup --full ' % 
-                (zenPath('bin', 'python'), self.findBin('repozo.py')) +
+                (binPath('python'), binPath('repozo.py')) +
                 '--repository %s --file %s' %
                 (repozoDir, zenPath('var', 'Data.fs')))
         if os.system(cmd): return -1

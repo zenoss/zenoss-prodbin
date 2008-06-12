@@ -15,7 +15,7 @@ __doc__='Base Classes for loading gunk in a ZenPack'
 
 import Globals
 from Products.ZenReports.ReportLoader import ReportLoader
-from Products.ZenUtils.Utils import zenPath
+from Products.ZenUtils.Utils import binPath
 
 import os
 import ConfigParser
@@ -171,7 +171,7 @@ class ZPLDaemons(ZenPackLoader):
 
 
     def binPath(self, daemon):
-        return zenPath('bin', os.path.basename(daemon))
+        return binPath(os.path.basename(daemon))
 
 
     def _genConfFile(self, pack):
@@ -182,7 +182,7 @@ class ZPLDaemons(ZenPackLoader):
         # nor caring if it throws an exception.  The conf file is nice
         # to provide, but not important.
         try:
-            subprocess.Popen(zenPath('bin', 'create_sample_config.sh'),
+            subprocess.Popen(binPath('create_sample_config.sh'),
                             stdout=subprocess.PIPE,
                             stderr=subprocess.PIPE,
                             cwd=pack.path())

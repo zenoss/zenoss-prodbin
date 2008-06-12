@@ -24,7 +24,7 @@ from AccessControl import ClassSecurityInfo
 from Products.ZenModel.ZenModelItem import ZenModelItem
 from Products.ZenUtils import Time
 from Products.ZenUtils.Version import *
-from Products.ZenUtils.Utils import zenPath
+from Products.ZenUtils.Utils import zenPath, binPath
 
 from Products.ZenEvents.UpdateCheck import UpdateCheck, parseVersion
 
@@ -190,7 +190,7 @@ class ZenossInfo(ZenModelItem, SimpleItem):
             v = Version(*getRRDToolVersion())
             v.full()
         """
-        cmd = zenPath('bin', 'rrdtool')
+        cmd = binPath('rrdtool')
         if not os.path.exists(cmd):
             cmd = 'rrdtool'
         fd = os.popen(cmd)
@@ -410,7 +410,7 @@ class ZenossInfo(ZenModelItem, SimpleItem):
         """
         Get the list of supported Zenoss daemons.
         """
-        masterScript = zenPath('bin', 'zenoss')
+        masterScript = binPath('zenoss')
         daemons = []
         for line in os.popen("%s list" % masterScript).readlines():
             daemons.append(line.strip())
@@ -528,7 +528,7 @@ class ZenossInfo(ZenModelItem, SimpleItem):
         """
         import time
         import subprocess
-        daemonPath = zenPath('bin', daemonName)
+        daemonPath = binPath(daemonName)
         if not os.path.isfile(daemonPath):
             return
         log.info('Telling %s to %s' % (daemonName, action))

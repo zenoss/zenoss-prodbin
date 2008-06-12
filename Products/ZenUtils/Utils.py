@@ -551,6 +551,23 @@ def edgesToXML(edges, start=()):
     return xmldoc
 
 def zenPath(*args):
+    """
+    Return a path relative to $ZENHOME specified by joining args.  The path
+    is not guaranteed to exist on the filesystem.
+    
+    >>> import os
+    >>> zenHome = os.environ['ZENHOME']
+    >>> zenPath() == zenHome
+    True
+    >>> zenPath('Products') == os.path.join(zenHome, 'Products')
+    True
+    >>> zenPath('/Products/') == zenPath('Products')
+    True
+    >>> 
+    >>> zenPath('Products', 'foo') == zenPath('Products/foo')
+    True
+
+    """
     args = [a.strip('/') for a in args]
     return os.path.join(os.environ['ZENHOME'], *args)
 
@@ -561,6 +578,12 @@ def zopePath(*args):
     If ZOPEHOME is not defined or is empty then return ''.
     NOTE: A non-empty return value does not guarantee that the path exists,
     just that ZOPEHOME is defined.
+    
+    >>> import os
+    >>> zopeHome = os.environ.setdefault('ZOPEHOME', '/something')
+    >>> zopePath('bin') == os.path.join(zopeHome, 'bin')
+    True
+    
     """
     args = [a.strip('/') for a in args]
     if os.environ.get('ZOPEHOME', ''):
@@ -571,6 +594,15 @@ def binPath(fileName):
     """
     Search for the given file in a list of possible locations.  Return
     either the full path to the file or '' if the file was not found.
+    
+    >>> len(binPath('zenoss')) > 0
+    True
+    >>> len(binPath('zeoup.py')) > 0
+    True
+    >>> len(binPath('check_http')) > 0
+    True
+    >>> binPath('Idontexistreally') == ''
+    True
     """
     # bin and libexec are the usual suspect locations.
     # ../common/bin and ../common/libexec are additional options for bitrock

@@ -17,7 +17,7 @@ from twisted.internet import error
 
 import sys
 
-from Products.ZenUtils.Utils import zenPath
+from Products.ZenUtils.Utils import binPath
 from BaseClient import BaseClient
 
 class WmiClient(BaseClient, ProcessProtocol):
@@ -52,7 +52,7 @@ class WmiClient(BaseClient, ProcessProtocol):
     def run(self):
         modeler = self.datacollector.options.zenwinmodeler
         if not modeler.startswith('/'):
-            modeler = zenPath('bin', modeler)
+            modeler = binPath(modeler)
         args = ('run', '-d', self.device.id)
         if '--weblog' in sys.argv:
             args += ('--weblog',)

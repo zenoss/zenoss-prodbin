@@ -15,7 +15,7 @@ __doc__ = "Manage ZenPacks"
 
 import Globals
 from Products.ZenUtils.ZenScriptBase import ZenScriptBase
-from Products.ZenUtils.Utils import cleanupSkins, zenPath
+from Products.ZenUtils.Utils import cleanupSkins, zenPath, binPath
 from Products.ZenModel.ZenPack import ZenPackException, \
                                         ZenPackNotFoundException, \
                                         ZenPackNeedMigrateException
@@ -256,7 +256,7 @@ def InstallEgg(dmd, eggPath, link=False):
 
     # Install the egg
     if link:
-        cmd = ('%s setup.py develop ' % zenPath('bin', 'python') +
+        cmd = ('%s setup.py develop ' % binPath('python') +
                 '--site-dirs=%s ' % zenPackDir +
                 '-d %s' % zenPackDir)
         p = subprocess.Popen(cmd,
@@ -729,7 +729,7 @@ def RemoveZenPack(dmd, packName, filesOnly=False, skipDepsCheck=False,
                 if zp.isDevelopment():
                     zenPackDir = zenPath('ZenPacks')
                     cmd = ('%s setup.py develop -u '
-                            % zenPath('bin', 'python') +
+                            % binPath('python') +
                             '--site-dirs=%s ' % zenPackDir +
                             '-d %s' % zenPackDir)
                     p = subprocess.Popen(cmd,

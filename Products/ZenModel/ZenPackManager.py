@@ -20,7 +20,7 @@ from ZenModelRM import ZenModelRM
 from Products.ZenRelations.RelSchema import *
 from AccessControl import ClassSecurityInfo
 from ZenossSecurity import ZEN_MANAGE_DMD
-from Products.ZenUtils.Utils import zenPath
+from Products.ZenUtils.Utils import binPath
 import os
 
 def manage_addZenPackManager(context, newId='', REQUEST=None):
@@ -182,7 +182,7 @@ class ZenPackManager(ZenModelRM):
                     ZenPackCmd.RemoveZenPack(self.dmd, zpId, skipDepsCheck=True)
                 else:
                     os.system('%s --remove %s' % (
-                                            zenPath('bin', 'zenpack'), zpId))
+                                            binPath('zenpack'), zpId))
                     self._p_jar.sync()
         if REQUEST:
             return self.callZenScreen(REQUEST)

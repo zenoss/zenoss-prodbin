@@ -19,8 +19,8 @@ class WinModelerUnderModeler(Migrate.Step):
     
     def cutover(self, dmd):
         import os
-        from Products.ZenUtils.Utils import zenPath
-        os.system('%s stop >/dev/null 2>&1' % zenPath('bin', 'zenwinmodeler'))
+        from Products.ZenUtils.Utils import binPath
+        os.system('%s stop >/dev/null 2>&1' % binPath('zenwinmodeler'))
         conn = dmd.ZenEventManager.connect()
         curr = conn.cursor()
         curr.execute("delete from heartbeat where component = 'zenwinmodeler'")

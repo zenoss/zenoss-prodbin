@@ -25,7 +25,7 @@ import pwd
 import logging
 
 from CmdBase import CmdBase
-from Utils import zenPath, HtmlFormatter
+from Utils import zenPath, HtmlFormatter, binPath
 
 # Daemon creation code below based on Recipe by Chad J. Schroeder
 # File mode creation mask of the daemon.
@@ -72,7 +72,7 @@ class ZenDaemon(CmdBase):
 
     def openPrivilegedPort(self, *address):
         """Execute under zensocket, providing the args to zensocket"""
-        zensocket = zenPath('bin', 'zensocket')
+        zensocket = binPath('zensocket')
         cmd = [zensocket, zensocket] + list(address) + ['--'] + \
               [sys.executable] + sys.argv + \
               ['--useFileDescriptor=$privilegedSocket']

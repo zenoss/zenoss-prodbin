@@ -42,7 +42,7 @@ from DeviceOrganizer import DeviceOrganizer
 from Products.ZenModel.Exceptions import *
 
 from Products.ZenUtils.Utils import isXmlRpc, setupLoggingHeader, executeCommand
-from Products.ZenUtils.Utils import zenPath, clearWebLoggingStream
+from Products.ZenUtils.Utils import binPath, clearWebLoggingStream
 from Products.ZenUtils import NetworkTree
 from Products.ZenUtils.Utils import edgesToXML
 from Products.ZenUtils.Utils import unused
@@ -457,7 +457,7 @@ class IpNetwork(DeviceOrganizer):
 	    	cmd = talesEval('string:' + zDiscCommand, organizer).split(" ")
 	    else:
 		cmd = ["zendisc", "run", "--weblog", "--net", organizer.id]
-            zd = zenPath('bin', 'zendisc')
+            zd = binPath('zendisc')
             zendiscCmd = [zd] + cmd[1:]
             result = executeCommand(zendiscCmd, REQUEST)
             if result and xmlrpc: return result

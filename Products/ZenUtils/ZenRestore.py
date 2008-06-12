@@ -23,7 +23,7 @@ import sys
 import os
 import os.path
 import ConfigParser
-from Products.ZenUtils.Utils import zenPath
+from Products.ZenUtils.Utils import zenPath, binPath
 
 from ZenBackupBase import *
 
@@ -151,15 +151,15 @@ class ZenRestore(ZenBackupBase):
         if not os.path.isfile(zenPath('var', 'Data.fs')):
             self.msg('There does not appear to be a zeo database.'
                         ' Starting zeo to create one.')
-            os.system(zenPath('bin', 'zeoctl') + 'start > /dev/null')
-            os.system(zenPath('bin', 'zeoctl') + 'stop > /dev/null')
+            os.system(binPath('zeoctl') + 'start > /dev/null')
+            os.system(binPath('zeoctl') + 'stop > /dev/null')
         
         # Restore zopedb
         self.msg('Restoring the zeo database.')
         repozoDir = os.path.join(tempDir, 'repozo')
         cmd ='%s %s --recover --repository %s --output %s' % (
-                    zenPath('bin', 'python'),
-                    self.findBin('repozo.py'),
+                    binPath('python'),
+                    binPath('repozo.py'),
                     repozoDir,
                     zenPath('var', 'Data.fs'))
         if os.system(cmd): return -1

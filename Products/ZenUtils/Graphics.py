@@ -62,10 +62,10 @@ class NetworkGraph(object):
 
     def setGraphFromEdges(self, edges, directed=True):
         import os
-        from Utils import zenPath
+        from Utils import binPath
         config = zenPath('lib/graphviz/config')
         if not os.path.exists(config) or os.path.getsize(config) == 0:
-            os.system(zenPath("bin/dot") + " -c")
+            os.system(binPath("dot") + " -c")
         import pydot
         graph = pydot.graph_from_edges(edges, directed=directed)
         graph.ranksep = '1.5'

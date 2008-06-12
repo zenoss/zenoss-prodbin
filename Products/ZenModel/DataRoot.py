@@ -36,7 +36,7 @@ import sys
 from sets import Set
 import string
 
-from Products.ZenUtils.Utils import zenPath
+from Products.ZenUtils.Utils import zenPath, binPath
 from Products.ZenUtils.Utils import extractPostContent
 
 from ZenModelRM import ZenModelRM
@@ -625,7 +625,7 @@ class DataRoot(ZenModelRM, OrderedFolder, Commandable, ZenMenuable):
             REQUEST.RESPONSE.write(str(header))        
         write('')
         try:
-            cmd = '%s/zenbackup -v' % zenPath('bin')
+            cmd = binPath(zenbackup) + ' -v'
             if not includeEvents:
                 cmd += ' --no-eventsdb'
             if includeMysqlLogin:

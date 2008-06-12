@@ -80,21 +80,3 @@ class ZenBackupBase(CmdBase):
         else:
             dir = tempfile.mkdtemp()
         return dir
-
-
-    def findBin(self, name, failIfNotFound=True):
-        """
-        Find the file of the given name in either $ZENHOME/bin or in
-        $ZOPEHOME/bin.  Return the path to the file if found.
-        """
-        zopeHome = os.getenv('ZOPEHOME')
-        path = zenPath('bin', name)
-        if os.path.isfile(path):
-            return path
-        if zopeHome:
-            path = os.path.join(zopeHome, 'bin', name)
-            if os.path.isfile(path):
-                return path
-        if failIfNotFound:
-            raise Exception('Could not find %s' % name)
-        return ''
