@@ -552,13 +552,37 @@ def edgesToXML(edges, start=()):
 
 def zenPath(*args):
     args = [a.strip('/') for a in args]
-    zenhome = os.environ['ZENHOME'] 
-    target = os.path.join(zenhome, *args)
-    if( not os.path.exists(target) ):
-        test = os.path.join(zenhome, '..', 'common', *args)
-        if( os.path.exists(test) ):
-            target = test
-    return target
+    return os.path.join(os.environ['ZENHOME'], *args)
+
+def zopePath(*args):
+    """
+    Similar to zenPath() except that this constructs a path based on
+    ZOPEHOME rather than ZENHOME.  This is useful on the appliance.
+    If ZOPEHOME is not defined or is empty then return ''.
+    NOTE: A non-empty return value does not guarantee that the path exists,
+    just that ZOPEHOME is defined.
+    """
+    args = [a.strip('/') for a in args]
+    if os.environ.get('ZOPEHOME', ''):
+        return os.path.join(os.environ['ZOPEHOME'], *args)
+    return ''
+
+def binPath(fileName):
+    """
+    Search for the given file in a list of possible locations.  Return
+    either the full path to the file or '' if the file was not found.
+    """
+    # bin and libexec are the usual suspect locations.
+    # ../common/bin and ../common/libexec are additional options for bitrock
+    # $ZOPEHOME/bin is an additional option for appliance
+    for path in (zenPath(d, fileName) for d in (
+                'bin', 'libexec', '../common/bin', '../common/libexec')):
+        if os.path.isfile(path):
+            return path
+    path = zopePath('bin', fileName)
+    if os.path.isfile(path):
+        return path
+    return ''
 
 def extractPostContent(REQUEST):
     """
