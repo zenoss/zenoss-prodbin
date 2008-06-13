@@ -68,6 +68,8 @@ class OSProcess(OSComponent, Commandable, ZenPackable):
     parameters = ""
     _procKey = ""
 
+    collectors = ('zenprocess,)
+
     _properties = OSComponent._properties + (
         {'id':'procName', 'type':'string', 'mode':'w'},
         {'id':'parameters', 'type':'string', 'mode':'w'},
