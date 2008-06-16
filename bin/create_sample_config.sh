@@ -46,8 +46,11 @@ for daemonctl in * ; do
      # Don't overwrite possibly user-customized files!
      #
      if [ ! -f $CFGFILE ] ; then
-        echo "Creating configuration file for $PRGNAME..."
-        `$PRGNAME genconf > $CFGFILE`
+        $PRGNAME genconf
+        if [ "$?" -eq "0" ]; then
+            echo "Creating configuration file for $PRGNAME..."
+            `$PRGNAME genconf > $CFGFILE`
+        fi
      fi
 done
 
