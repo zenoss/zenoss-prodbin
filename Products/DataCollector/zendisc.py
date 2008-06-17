@@ -165,7 +165,7 @@ class ZenDisc(ZenModeler):
             if self.options.zSnmpVer: version = self.options.zSnmpVer
             if self.options.zSnmpPort: port = self.options.zSnmpPort
             if self.options.zSnmpCommunity: 
-                communities = (self.options.zSnmpCommunity,) + communities
+                communities = (self.options.zSnmpCommunity,) + tuple(communities)
 
             versions = ("v2c", "v1")
             if '1' in version:
