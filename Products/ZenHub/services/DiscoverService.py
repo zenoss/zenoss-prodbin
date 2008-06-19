@@ -140,7 +140,7 @@ class DiscoverService(ModelerService):
             ipobj = netroot.createIp(ip)
             # If we're not supposed to discover this ip, return None
             if not getattr(ipobj, 'zAutoDiscover', True):
-                return
+                return None, False
             kw['manageIp'] = ip
             dev = manage_createDevice(self.dmd, **kw)
         except DeviceExistsError, e:
