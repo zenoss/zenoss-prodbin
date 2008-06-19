@@ -32,7 +32,7 @@ parsers = (
 # ntsyslog windows msg
 r"^(?P<component>.+)\[(?P<ntseverity>\D+)\] (?P<ntevid>\d+) (?P<summary>.*)",
 
-# cisco msg with card inicator
+# cisco msg with card indicator
 r"%CARD-\S+:(SLOT\d+) %(?P<eventClassKey>\S+): (?P<summary>.*)",
 
 # cisco standard msg
