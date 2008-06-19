@@ -15,6 +15,9 @@
 from CollectorPlugin import SnmpPlugin, GetTableMap
 import re
 
+# sda, hda, sdaa, c0d0, c0t0d0s2, etc.
+DISK_PATTERN = '^[hs]d[a-z]{1,2}$|'\/c[0-9]{1,2}(t[0-9]{1,2}){0,1}d[0-9]{1,2}(s2){0,1}$'
+
 class UCDHardDiskMap(SnmpPlugin):
     """Map UCD-DISKIO-MIB to HardDisk"""
 
@@ -39,7 +42,7 @@ class UCDHardDiskMap(SnmpPlugin):
         rm = self.relMap()
         for oid, disk in dtable.items():
             om = self.objectMap(disk)
-            if not re.search('^[hs]d[a-z]$', om.id): continue
+            if not re.search(DISK_PATTERN, om.id): continue
             om.id = self.prepId(om.id)
             om.snmpindex = oid
             rm.append(om)
