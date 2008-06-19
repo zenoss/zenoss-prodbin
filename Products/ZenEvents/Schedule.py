@@ -77,11 +77,11 @@ class Schedule:
                 for c in organizer.getSubOrganizers():
                     result.extend(c.maintenanceWindows())
                 result.extend(organizer.maintenanceWindows())
-        for lst in [self.dmd.ZenUsers.getAllUserSettings(),
-                    self.dmd.ZenUsers.getAllGroupSettings()]:
-            for us in lst:
-                for ar in us.objectValues(spec="ActionRule"):
-                    result.extend([w for w in ar.windows() if w.enabled])
+            for lst in [self.dmd.ZenUsers.getAllUserSettings(),
+                        self.dmd.ZenUsers.getAllGroupSettings()]:
+                for us in lst:
+                    for ar in us.objectValues(spec="ActionRule"):
+                        result.extend([w for w in ar.windows() if w.enabled])
         return result
         
     def run(self):
