@@ -49,6 +49,7 @@ class FixOldTemplates(Migrate.Step):
         graph.maxy = 100
         for gp in graph.graphPoints():
             if gp.id != 'usedBlocks': continue
+            gp.lineType = 'AREA'
             gp.format = '%5.2lf%%'
             gp.legend = 'Used'
             gp.rpn = '${here/totalBlocks},/,100,*'
