@@ -95,6 +95,8 @@ class ModelerService(PerformanceConfig):
     def remote_setSnmpLastCollection(self, device):
         device = self.getPerformanceMonitor().findDevice(device)
         device.setSnmpLastCollection()
+        from transaction import commit
+        commit()
 
     def pushConfig(self, device):
         from twisted.internet.defer import succeed
