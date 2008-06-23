@@ -16,7 +16,7 @@ from CollectorPlugin import SnmpPlugin, GetTableMap
 import re
 
 # sda, hda, sdaa, c0d0, c0t0d0s2, etc.
-DISK_PATTERN = '^[hs]d[a-z]{1,2}$|'\/c[0-9]{1,2}(t[0-9]{1,2}){0,1}d[0-9]{1,2}(s2){0,1}$'
+DISK_PATTERN = '^[hs]d[a-z]{1,2}$|\/c[0-9]{1,2}(t[0-9]{1,2}){0,1}d[0-9]{1,2}(s2){0,1}$'
 
 class UCDHardDiskMap(SnmpPlugin):
     """Map UCD-DISKIO-MIB to HardDisk"""
