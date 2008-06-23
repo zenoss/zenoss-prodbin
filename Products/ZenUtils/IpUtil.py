@@ -160,13 +160,27 @@ def getnetstr(ip, netmask):
 
 def asyncNameLookup(address, uselibcresolver = True):
     if uselibcresolver:
+        # This is the most reliable way to do a lookup use it 
         from twisted.internet import threads
         import socket
         return threads.deferToThread(lambda : socket.gethostbyaddr(address)[0])
     else:
+        # There is a problem with this method because it will ignore /etc/hosts
         address = '.'.join(address.split('.')[::-1]) + '.in-addr.arpa'
         d = lookupPointer(address, [1,2,4])
         def ip(result):
             return str(result[0][0].payload.name)
         d.addCallback(ip)
         return d
+
+def asyncIpLookup(name):
+    """
+    Look up an IP based on the name passed in.  We use gethostbyname to make
+    sure that we use /etc/hosts as mentioned above.
+
+    This hasn't been tested.
+    """
+    from twisted.internet import threads
+    import socket
+    return threads.deferToThread(lambda : socket.gethostbyname(name))
+
