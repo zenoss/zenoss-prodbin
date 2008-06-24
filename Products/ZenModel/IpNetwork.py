@@ -158,6 +158,10 @@ class IpNetwork(DeviceOrganizer):
         if netmask == 0:
             raise ValueError("netip '%s' without netmask", netip)
         netip = getnetstr(netip,netmask)
+        #check to see if network already exists instead of creating a new one
+        root = self.getDmdRoot("Networks")
+        existingnetwork = root.findNet(netip, netmask)
+        if existingnetwork: return existingnetwork
         netTree = getattr(self, 'zDefaultNetworkTree', defaultNetworkTree)
         netTree = map(int, netTree)
         netobj = self
