@@ -306,7 +306,7 @@ class ApplyDataMap(object):
             if realdevice.sendEventWhenBlocked():
                 self.logEvent(realdevice, id, Change_Add_Blocked, 
                                 msg, Event.Warning)
-            return False
+            return False, None
         rel = device._getOb(relname, None)
         if not rel:
             raise ObjectCreationError(
