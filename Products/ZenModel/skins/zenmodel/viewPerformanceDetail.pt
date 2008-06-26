@@ -40,7 +40,7 @@ var ZenGraphs = new Array();
                url(img/refresh_on.png) no-repeat;
                cursor:pointer;height:20px;"/>
     <input class="tableheader" type="text" name="refreshRate" 
-        id="refreshRate" size='2' value='60'/>
+        id="refreshRate" size='2' value='300'/>
     <script>
         var button = $('refreshButton');
         var refreshMgr, turnRefreshOff, turnRefreshOn;
@@ -50,9 +50,8 @@ var ZenGraphs = new Array();
         loader.insert({onSuccess:function(){
             zenRRDInit();
             turnRefreshOff = function() {
-                try {
+                if (refreshMgr)
                     refreshMgr.cancelRefresh();
-                } catch(e) { noop(); }
                 setStyle(button,
                     {'background-image':'url(img/refresh_on.png)'});
                 button.onclick = turnRefreshOn;
@@ -60,7 +59,7 @@ var ZenGraphs = new Array();
             }
             turnRefreshOn = function() {
                 var rate = $('refreshRate').value;
-                var refreshMgr = new RefreshManager(rate, 
+                refreshMgr = new RefreshManager(rate, 
                     function(){resetGraphs($('drange_select').value)}
                 );
                 setStyle(button, 
