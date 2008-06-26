@@ -166,13 +166,14 @@ class ApplyDataMap(object):
                 else: 
                     seenids[objmap.id] = 1
                 if objmap.id in relids:
-                    objchange = False
                     obj = rel._getOb(objmap.id)
                     objchange = self._updateObject(obj, objmap)
                     if not changed: changed = objchange
                     relids.remove(objmap.id)
                 else:
-                    changed = self._createRelObject(device, objmap, rname)
+                    objchange, obj = self._createRelObject(device, objmap, rname)
+                    if objchange: changed = True
+                    if obj: relids.remove(obj.id)
             elif isinstance(objmap, ZenModelRM):
                 self.logChange(device, objmap.id, Change_Add,
                             "linking object %s to device %s relation %s" % (
@@ -180,7 +181,9 @@ class ApplyDataMap(object):
                 device.addRelation(rname, objmap)
                 changed = True
             else:
-                changed = self._createRelObject(device, objmap, rname)
+                objchange, obj = self._createRelObject(device, objmap, rname)
+                if objchange: changed = True
+                if obj: relids.remove(obj.id)
 
         for id in relids: 
             obj = rel._getOb(id)
@@ -286,7 +289,7 @@ class ApplyDataMap(object):
             remoteObj = constructor(device, objmap)
         if remoteObj is None:
             log.debug("Constructor returned None")
-            return False
+            return False, None
         id = remoteObj.id
         if not remoteObj: 
             raise ObjectCreationError(
@@ -318,7 +321,7 @@ class ApplyDataMap(object):
             rel._setObject(remoteObj.id, remoteObj)
             remoteObj = rel._getOb(remoteObj.id)
             changed = True
-        return self._updateObject(remoteObj, objmap) or changed
+        return self._updateObject(remoteObj, objmap) or changed, remoteObj
 
 
     def stop(self): pass 
