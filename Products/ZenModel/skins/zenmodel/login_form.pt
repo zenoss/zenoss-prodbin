@@ -3,19 +3,19 @@
         <title>Zenoss Login</title>
         <style>
             .inputbox {
-                position: absolute;
                 border: medium none;
                 background: transparent none;
-                left: 367px;
                 width: 180px;
-                z-index: 2;
                 font-size: 110%;
                 color: #444;
                 text-align: center;
+                position: absolute;
+                left: 367px;
+                z-index: 100;
             }
             .submitbutton {
                 position: absolute;
-                z-index: 2;
+                z-index: 100;
                 background: transparent url('zenoss-login-button.png');
                 top: 245px;
                 left: 466px;
@@ -24,13 +24,18 @@
                 border: medium none;
                 cursor: hand; cursor: pointer;
             }
+            * { zoom: 1; } /* IE7 compatibility */
             body {
                 margin: 0;
                 padding: 0;
                 background-color: #888;
+                position: relative;
+                z-index: 0;
             }
             #topbar {
                 height: 20%;
+                position: relative;
+                z-index: 0;
             }
             #middlebar {
                 text-align:center;
@@ -39,25 +44,30 @@
                 border-style: solid;
                 border-color: #444;
                 background-color:#f4f4f4;
+                position: relative;
+                z-index: 1;
             }
             #container {
-                position: relative;
                 width:671px;
                 margin: 0 auto;
                 height:360px;
+                position: relative;
+                z-index: 1;
             }
             #loginimg {
                 position: absolute;
+                height: 360px;
+                width: 671px;
                 top: 0;
                 left: -50px;
-                z-index: 1;
+                z-index: 2;
             }
             #errorbox {
-                position: absolute;
-                z-index: 2;
                 width: 300px;
+                position: absolute;
                 top: 250px;
                 left: 210px;
+                z-index: 100;
             }
             span.error {
                 font-family: sans-serif;
@@ -70,9 +80,9 @@
                 text-align: center;
                 width: 300px;
                 position: absolute;
-                z-index: 2;
                 top: 300px;
                 left: 265px;
+                z-index: 2;
             }
         </style>
     </head>
@@ -86,7 +96,10 @@
                 <input type="hidden" name="submitted" value="true" />
             <div id="middlebar">
                 <div id="container">
-                    <img id="loginimg" src="zenoss-login.png"/>
+                    <div id="loginimg" 
+                        style="background:transparent url(zenoss-login.png)
+                        no-repeat">
+                    </div>
                     <input id="username" type="text" name="__ac_name" 
                            class="inputbox" style="top:160px"/>
                     <input type="password" name="__ac_password" 
