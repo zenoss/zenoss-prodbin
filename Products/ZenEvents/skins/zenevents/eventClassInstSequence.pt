@@ -9,6 +9,9 @@
         batch python:here.ZenTableManager.getBatch(tableName,objects,
                                                     sortedHeader='sequence'); 
             tabletitle string:">
+        <input type='hidden' name='tableName' tal:attributes="value tableName" />
+        <input type="hidden" name="zenScreenName" 
+                tal:attributes="value template/id"/>
         <tal:block metal:use-macro="here/zenuimacros/macros/zentable">
 
         <!--====Optional titlebar slots=============
@@ -24,9 +27,6 @@
         <tal:block metal:fill-slot="zentablecontents">
         <!-- BEGIN TABLE CONTENTS -->
             
-    <input type='hidden' name='tableName' tal:attributes="value tableName" />
-    <input type="hidden" name="zenScreenName" 
-            tal:attributes="value template/id"/>
     
     <tr>
         <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
