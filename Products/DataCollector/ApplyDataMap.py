@@ -169,11 +169,11 @@ class ApplyDataMap(object):
                     obj = rel._getOb(objmap.id)
                     objchange = self._updateObject(obj, objmap)
                     if not changed: changed = objchange
-                    relids.remove(objmap.id)
+                    if objmap.id in relids: relids.remove(objmap.id)
                 else:
                     objchange, obj = self._createRelObject(device, objmap, rname)
                     if objchange: changed = True
-                    if obj: relids.remove(obj.id)
+                    if obj and obj.id in relids: relids.remove(obj.id)
             elif isinstance(objmap, ZenModelRM):
                 self.logChange(device, objmap.id, Change_Add,
                             "linking object %s to device %s relation %s" % (
@@ -183,7 +183,7 @@ class ApplyDataMap(object):
             else:
                 objchange, obj = self._createRelObject(device, objmap, rname)
                 if objchange: changed = True
-                if obj: relids.remove(obj.id)
+                if obj and obj.id in relids: relids.remove(obj.id)
 
         for id in relids: 
             obj = rel._getOb(id)
