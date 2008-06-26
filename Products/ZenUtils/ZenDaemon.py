@@ -66,7 +66,7 @@ class ZenDaemon(CmdBase):
            except OSError:
               raise SystemExit("ERROR: unable to open pid file %s" %
                                self.pidfile)
-        if self.options.watchdog:
+        if self.options.watchdog and not self.options.watchdogPath:
             self.becomeWatchdog()
 
 
