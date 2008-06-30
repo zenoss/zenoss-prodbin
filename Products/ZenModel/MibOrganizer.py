@@ -163,11 +163,10 @@ class MibOrganizer(Organizer, ZenPackable):
         """Go through all devices in this tree and reindex them."""
         zcat = self._getOb(self.default_catalog)
         zcat.manage_catalogClear()
-        for mibmod in self.mibs():
-            mibmod.index_object()
-        for miborg in self.getSubOrganizers():
-            for mibmod in miborg.mibs():
-                mibmod.index_object()
+        for org in [self,] + self.getSubOrganizers():
+            for mib in org.mibs():
+                for thing in mib.nodes() + mib.notifications():
+                    thing.index_object()
 
 
     def createCatalog(self):
