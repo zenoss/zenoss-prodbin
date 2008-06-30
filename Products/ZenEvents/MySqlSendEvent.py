@@ -308,8 +308,8 @@ class MySqlSendEventMixin:
         update += "set clearid = '%s' where " % evt.evid
         w = []
         w.append("%s='%s'" % (self.deviceField, evt.device))
-        w.append("%s='%s'" % (self.componentField, evt.component))
-        w.append("eventKey='%s'" % evt.eventKey)
+        w.append("%s='%s'" % (self.componentField, self.escape(evt.component)))
+        w.append("eventKey='%s'" % self.escape(evt.eventKey))
         update += " and ".join(w)
         w = []
         for cls in clearcls:
