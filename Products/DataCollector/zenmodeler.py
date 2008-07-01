@@ -44,6 +44,8 @@ from Products.DataCollector import Plugins
 unused(DeviceProxy)
 unused(Plugins)
 
+from socket import fqdn
+
 class ZenModeler(PBDaemon):
 
     name = 'zenmodeler'
@@ -395,14 +397,12 @@ class ZenModeler(PBDaemon):
         ARBITRARY_BEAT = 30
         reactor.callLater(ARBITRARY_BEAT, self.heartbeat)
         if self.options.cycle:
-            # as long as we started recently, send a heartbeat
-            if not self.start or time.time() - self.start < self.cycleTime()*3:
-                evt = dict(eventClass=Heartbeat,
-                           component='zenmodeler',
-                           device=self.options.monitor,
-                           timeout=3*ARBITRARY_BEAT)
-                self.sendEvent(evt)
-                self.niceDoggie(self.cycleTime())
+            evt = dict(eventClass=Heartbeat,
+                       component='zenmodeler',
+                       device=getfqdn(),
+                       timeout=3*ARBITRARY_BEAT)
+            self.sendEvent(evt)
+            self.niceDoggie(self.cycleTime())
 
 
     def checkStop(self, unused = None):
