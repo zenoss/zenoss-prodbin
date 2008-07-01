@@ -336,6 +336,9 @@ class MySqlSendEventMixin:
 
     def escape(self, value):
         """Prepare string values for db by escaping special characters."""
+        if type(value) not in types.StringTypes:
+            return value
+            
         import _mysql
         if type(value) == type(u''):
             return _mysql.escape_string(value.encode('iso-8859-1'))
