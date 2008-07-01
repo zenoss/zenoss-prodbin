@@ -1,3 +1,4 @@
+
 var Class = YAHOO.zenoss.Class;
 
 setInnerHTML = YAHOO.zenoss.setInnerHTML;
