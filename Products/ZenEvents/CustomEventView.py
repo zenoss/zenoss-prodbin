@@ -177,7 +177,26 @@ class CustomEventView(ZenModelRM, EventFilter):
                                 self.getOrderBy(),
                                 **kwargs)
     getEventHistoryList = getEventList
+    
+    
+    def getEventDetailFromStatusOrHistory(self, evid=None, 
+                                            dedupid=None, better=False):
+        """
+        Return the event detail for an event within the context of a device
+        or other device organizer 
+        """
+        evt = self.getEventManager().getEventDetailFromStatusOrHistory(
+                                        evid, dedupid, better)
+        return evt.__of__(self)
         
+        
+    def manage_addLogMessage(self, evid=None, message='', REQUEST=None):
+        """
+        Add a log message to an event
+        """
+        self.getEventManager().manage_addLogMessage(evid, message)
+        if REQUEST: return self.callZenScreen(REQUEST)
+
 
     security.declareProtected('Manage Events','manage_deleteEvents')
     def manage_deleteEvents(self, evids=(), REQUEST=None):
