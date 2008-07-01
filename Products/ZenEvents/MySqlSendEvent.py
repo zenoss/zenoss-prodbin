@@ -307,7 +307,7 @@ class MySqlSendEventMixin:
         update = "update %s " % self.statusTable
         update += "set clearid = '%s' where " % evt.evid
         w = []
-        w.append("%s='%s'" % (self.deviceField, evt.device))
+        w.append("%s='%s'" % (self.deviceField, self.escape(evt.device)))
         w.append("%s='%s'" % (self.componentField, self.escape(evt.component)))
         w.append("eventKey='%s'" % self.escape(evt.eventKey))
         update += " and ".join(w)
