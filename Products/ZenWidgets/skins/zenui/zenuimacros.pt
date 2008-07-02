@@ -1,3 +1,4 @@
+
 <tal:block metal:define-macro="basemenu"
     tal:condition="python:hasattr(here, 'getMenus')">
 
