@@ -44,7 +44,7 @@ from Products.DataCollector import Plugins
 unused(DeviceProxy)
 unused(Plugins)
 
-from socket import fqdn
+from socket import getfqdn
 
 class ZenModeler(PBDaemon):
 
