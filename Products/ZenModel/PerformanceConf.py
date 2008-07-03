@@ -196,13 +196,12 @@ class PerformanceConf(Monitor, StatusColor):
 
     def findDevice(self, deviceName):
         brains = self.dmd.Devices._findDevice(deviceName)
-        for brain in brains:
-            device = brain.getObject()
-            if device.getPerformanceServerName() == self.id:
-                return device
+        if brains: return brains[0].getObject()
+
 
     def getNetworkRoot(self):
         return self.dmd.Networks
+
 
     def buildGraphUrlFromCommands(self, gopts, drange):
         ''' Return a url for the given graph options and date range
