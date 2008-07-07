@@ -10,7 +10,6 @@
 # For complete information please visit: http://www.zenoss.com/oss/
 #
 ###########################################################################
-#! /usr/bin/env python 
 
 from Products.ZenHub.HubService import HubService
 from twisted.web import resource, server
@@ -74,12 +73,15 @@ class Render(resource.Resource):
                     request.setHeader('Content-type', 'text/xml')
                     d = listener.callRemote(str(command), *args)
                     def write(result):
-                        response = xmlrpclib.dumps((result,),
-                                                   methodresponse=True)
-                        request.write(response)
+                        try:
+                            response = xmlrpclib.dumps((result,),
+                                                       methodresponse=True)
+                            request.write(response)
+                        except Exception, ex:
+                            log.error("Unable to %s: %s", command, ex)
                         request.finish()
                     def error(reason):
-                        log.error("Unable to fetch graph: %s", reason)
+                        log.error("Unable to %s: %s", command, reason)
                         request.finish()
                     d.addCallbacks(write, error)
                     return server.NOT_DONE_YET
