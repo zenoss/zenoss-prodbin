@@ -186,6 +186,7 @@ class OperatingSystem(Software):
             REQUEST['message'] = 'IpInterface created'
             REQUEST['RESPONSE'].redirect(
                 self.interfaces._getOb(id).absolute_url())
+            self._p_changed = True
             return self.callZenScreen(REQUEST)
 
     def deleteIpInterfaces(self, componentNames=[], REQUEST=None):
@@ -234,6 +235,7 @@ class OperatingSystem(Software):
                                     wsc.id,
                                     wsc.description,
                                     userCreated=userCreated)
+            self._p_changed = True
         elif REQUEST:
             REQUEST['message'] = \
                 'Could not find a WinService named %s' % className
@@ -289,6 +291,7 @@ class OperatingSystem(Software):
         """Add an OSProcess.
         """
         osp = manage_addOSProcess(self.processes, className, userCreated)
+        self._p_changed = True
         if REQUEST:
             REQUEST['message'] = 'OSProcess created'
             REQUEST['RESPONSE'].redirect(osp.absolute_url())
@@ -340,6 +343,7 @@ class OperatingSystem(Software):
                                 protocol,
                                 ipsc.port, 
                                 userCreated=userCreated)
+            self._p_changed = True
         elif REQUEST:
             REQUEST['message'] = \
                 'Could not find an IpService named %s' % className
@@ -391,6 +395,7 @@ class OperatingSystem(Software):
         """
         fsid = prepId(id)
         manage_addFileSystem(self.filesystems, id, userCreated)
+        self._p_changed = True
         if REQUEST:
             REQUEST['message'] = 'FileSystem created'
             REQUEST['RESPONSE'].redirect(
@@ -445,6 +450,7 @@ class OperatingSystem(Software):
                                 routeproto, 
                                 routetype, 
                                 userCreated=userCreated)
+        self._p_changed = True
         if REQUEST:
             REQUEST['message'] = 'IpRouteEntry created'
             REQUEST['RESPONSE'].redirect(self.absolute_url())

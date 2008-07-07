@@ -327,7 +327,7 @@ class zenprocess(SnmpDaemon):
             
 
     def remote_updateDevice(self, cfg):
-        self.log.debug("Async config update for %s", cfg[1][0])
+        self.log.debug("Async config update for %s", cfg.name)
         self.updateDevices([cfg],[])
 
     
