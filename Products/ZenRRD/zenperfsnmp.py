@@ -486,6 +486,8 @@ class zenperfsnmp(SnmpDaemon):
         if evtSvc:
             d = evtSvc.callRemote('getDevicePingIssues')
             d.addBoth(self.setUnresponsiveDevices)
+        else:
+            self.setUnresponsiveDevices('No event service')
 
 
     def setUnresponsiveDevices(self, arg):
