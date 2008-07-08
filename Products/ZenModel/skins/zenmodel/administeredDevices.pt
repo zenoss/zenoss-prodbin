@@ -22,7 +22,7 @@ loader.require(['zenautocomplete']);
 loader.insert({onSuccess:function(){
     $('dialog').addLoadEvent('dialog_addAdministeredDevice', function(){
         createAnAutocompleter('deviceLiveSearch');})
-}); 
+}}); 
 // don't pass it a callback, calling it later manually
 
 </script>
