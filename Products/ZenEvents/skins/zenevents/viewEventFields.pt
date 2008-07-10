@@ -64,17 +64,31 @@
 </tal:block>
 <tal:block metal:define-macro="eventFields">
 <style>table.zentable {border-top: 1px solid black;}</style>
-<table class="zentable" cellpadding="3" cellspacing="1">
+<table class="zentable" cellpadding="3" cellspacing="1"
+    tal:define="sfields python:('message', 'severity', 'eventState',
+                                'prodState', 'DevicePriority',
+                                'priority')">
+                                       
     <tr>
         <th class="tableheader">Field</th>
         <th class="tableheader">Value</th>
     </tr>
     <tr tal:repeat="field fields">
         <td class="tableheader" tal:content="python:field[0]">field</td>
-        <td class=tablevalues tal:condition="python:field[0]!='message'"
+        <td class=tablevalues tal:condition="python:field[0] not in sfields"
             tal:content="python:field[1]">value</td>
         <td class="tablevalues" tal:condition="python:field[0]=='message'">
             <pre tal:content="python:field[1]"></pre></td>
+        <td class="tablevalues" tal:condition="python:field[0]=='severity'"
+            tal:content="python:here.convertEventField('severity', field[1])"/>
+        <td class="tablevalues" tal:condition="python:field[0]=='eventState'"
+            tal:content="python:here.convertEventField('eventState', field[1])"/>
+        <td class="tablevalues" tal:condition="python:field[0]=='prodState'"
+            tal:content="python:here.convertEventField('prodState', field[1])"/>
+        <td class="tablevalues" tal:condition="python:field[0]=='DevicePriority'"
+            tal:content="python:here.convertEventField('DevicePriority', field[1])"/>
+        <td class="tablevalues" tal:condition="python:field[0]=='priority'"
+            tal:content="python:here.convertEventField('priority', field[1])"/>
     </tr>
 </table>
 </tal:block>

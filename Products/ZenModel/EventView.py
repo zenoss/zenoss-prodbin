@@ -132,6 +132,10 @@ class EventView(object):
         evt = self.getEventManager().getEventDetailFromStatusOrHistory(
                                         evid, dedupid, better)
         return evt.__of__(self)
+        
+        
+    def convertEventField(self, field, value, default=""):
+        return self.getEventManager().convertEventField(field, value, default)
 
 
     def manage_addLogMessage(self, evid=None, message='', REQUEST=None):

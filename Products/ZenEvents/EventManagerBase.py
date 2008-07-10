@@ -1670,6 +1670,37 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
         except IndexError:
             return "Unknown"
 
+            
+    def convertEventField(self, field, value, default=""):
+        """
+        Convert numeric values commonly found in events to their textual
+        representation.
+        """
+        if not value: return default
+        try:
+            value = int(value)
+        except ValueError:
+            return "unknown (%r)" % (value,)
+
+        if field == 'severity' and self.severities.has_key(value):
+            return "%s (%d)" % (self.severities[value], value)
+        elif field == "priority" and self.priorities.has_key(value):
+            return "%s (%d)" % (self.priorities[value], value)
+        elif field == 'eventState':
+            if value < len(here.eventStateConversions):
+                return "%s (%d)" % (self.eventStateConversions[value], value)
+        elif field == "prodState":
+            prodState = self.dmd.convertProdState(value)
+            if isinstance(prodState, types.StringType):
+                return "%s (%d)" % (prodState, value)
+        elif field == "DevicePriority":
+            priority = self.dmd.convertPriority(value)
+            if isinstance(priority, types.StringType):
+                return "%s (%d)" % (priority, value)
+
+        return "unknown (%r)" % (value,)
+
+
     def getStatusCssClass(self, status):
         if status < 0: status = "unknown"
         elif status > 3: status = 3

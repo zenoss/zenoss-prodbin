@@ -190,6 +190,10 @@ class CustomEventView(ZenModelRM, EventFilter):
         return evt.__of__(self)
         
         
+    def convertEventField(self, field, value, default=""):
+        return self.getEventManager().convertEventField(field, value, defalt)
+        
+        
     def manage_addLogMessage(self, evid=None, message='', REQUEST=None):
         """
         Add a log message to an event
