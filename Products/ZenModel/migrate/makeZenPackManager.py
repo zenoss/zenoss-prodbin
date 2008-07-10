@@ -16,7 +16,6 @@ __doc__='''
 '''
 import Globals
 import Migrate
-from Acquisition import aq_base
 from Products.ZenModel.ZenPackManager import manage_addZenPackManager
 from Products.ZenModel.ZenPackPersistence import ZENPACK_PERSISTENCE_CATALOG, \
                                             CreateZenPackPersistenceCatalog

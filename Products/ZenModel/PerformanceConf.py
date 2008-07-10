@@ -44,7 +44,6 @@ from AccessControl import Permissions as permissions
 from Globals import DTMLFile
 from Globals import InitializeClass
 from Monitor import Monitor
-from Products.ZenModel.Device import checkDeviceExists
 from Products.PythonScripts.standard import url_quote
 from Products.ZenModel.ZenossSecurity import *
 from Products.ZenRelations.RelSchema import *
@@ -54,8 +53,6 @@ from Products.ZenUtils.Utils import isXmlRpc
 from Products.ZenUtils.Utils import setupLoggingHeader
 from Products.ZenUtils.Utils import executeCommand
 from Products.ZenUtils.Utils import clearWebLoggingStream
-from Products.ZenModel.Exceptions import DeviceExistsError
-from Products.ZenUtils.IpUtil import isip
 from Products.ZenModel.Device import manage_createDevice
 from StatusColor import StatusColor
 

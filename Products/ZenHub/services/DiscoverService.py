@@ -18,14 +18,12 @@ from Products.ZenUtils.IpUtil import numbip, strip
 from Products.ZenEvents.Event import Event
 from Products.ZenEvents.ZenEventClasses import Status_Ping
 from Products.ZenModel.Device import manage_createDevice
-from Products.ZenUtils.IpUtil import isip
 from Products.ZenHub.PBDaemon import translateError
 from Products.ZenModel.Exceptions import DeviceExistsError
 
 import transaction
 
 from twisted.spread import pb
-import socket
 import math
 
 from ModelerService import ModelerService

@@ -304,7 +304,6 @@ def InstallDistAsZenPack(dmd, dist, filesOnly=False):
     Given an installed dist, install it into Zenoss as a ZenPack.
     Return the ZenPack instance.
     """
-    from Products.ZenRelations.Exceptions import ObjectNotFound
     # Instantiate ZenPack
     entryMap = pkg_resources.get_entry_map(dist, ZENPACK_ENTRY_POINT)
     if not entryMap or len(entryMap) > 1:
@@ -370,18 +369,6 @@ def InstallDistAsZenPack(dmd, dist, filesOnly=False):
     cleanupSkins(dmd)
     transaction.commit()
     return zenPack
-
-
-def DiscoverAndInstall(dmd, zpNames):
-    """
-    Discover installed eggs that provide zenoss.zenpacks entry points.
-    Install into Zenoss those that aren't already.
-    """
-    dists = DiscoverEggs(dmd, zenPackId)
-    installed = []
-    for d in dists:
-        installed.append(InstallDistAsZenPack(dmd, d))
-    return installed
 
 
 def DiscoverEggs(dmd, zenPackId):

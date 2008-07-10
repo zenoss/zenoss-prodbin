@@ -18,10 +18,8 @@ __doc__='''zenbackupcommon.py
 Common code for zenbackup.py and zenrestore.py
 '''
 
-import os
 import tempfile
 from CmdBase import CmdBase
-from Products.ZenUtils.Utils import zenPath
 
 
 BACKUP_DIR = 'zenbackup'

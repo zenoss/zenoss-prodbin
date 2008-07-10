@@ -14,6 +14,7 @@
 import unittest
 
 from Products.ZenTestCase.BaseTestCase import BaseTestCase
+from Products.ZenUtils.Utils import zenPath
 
 class TestRRDImpl(BaseTestCase):
 

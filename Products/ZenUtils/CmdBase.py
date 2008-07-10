@@ -30,8 +30,8 @@ from optparse import OptionParser, SUPPRESS_HELP, NO_DEFAULT
 # This pkg_resources import works around the problem.
 # See http://dev.zenoss.org/trac/ticket/3146 for details
 import pkg_resources
-
 from Products.ZenUtils.Utils import unused
+unused(pkg_resources)
 
 def parseconfig(options):
     """parse a config file which has key value pairs delimited by white space"""
@@ -174,66 +174,66 @@ be seen on the display."""
     def generate_configs( self, parser, options ):
         """Create a configuration file based on the long-form of the option names"""
 
-	#
-	# Header for the configuration file
-	#
+        #
+        # Header for the configuration file
+        #
         unused(options)
-	daemon_name= os.path.basename( sys.argv[0] )
-	daemon_name= daemon_name.replace( '.py', '' )
+        daemon_name= os.path.basename( sys.argv[0] )
+        daemon_name= daemon_name.replace( '.py', '' )
 
-	print """#
+        print """#
 # Configuration file for %s
 #
 #  To enable a particular option, uncomment the desired entry.
 #
-# Parameter	Setting
-# ---------	-------""" % ( daemon_name )
+# Parameter     Setting
+# ---------     -------""" % ( daemon_name )
 
 
-	options_to_ignore= ( 'help', 'version', '', 'genconf', 'genxmltable' )
+        options_to_ignore= ( 'help', 'version', '', 'genconf', 'genxmltable' )
 
-	#
-	# Create an entry for each of the command line flags
-	#
-	# NB: Ideally, this should print out only the option parser dest
-	#     entries, rather than the command line options.
-	#
-	import re
-	for opt in parser.option_list:
-		if opt.help is SUPPRESS_HELP:
-			continue
+        #
+        # Create an entry for each of the command line flags
+        #
+        # NB: Ideally, this should print out only the option parser dest
+        #     entries, rather than the command line options.
+        #
+        import re
+        for opt in parser.option_list:
+                if opt.help is SUPPRESS_HELP:
+                        continue
 
-		#
-		# Get rid of the short version of the command
-		#
-		option_name= re.sub( r'.*/--', '', "%s" % opt )
+                #
+                # Get rid of the short version of the command
+                #
+                option_name= re.sub( r'.*/--', '', "%s" % opt )
 
-		#
-		# And what if there's no short version?
-		#
-		option_name= re.sub( r'^--', '', "%s" % option_name )
+                #
+                # And what if there's no short version?
+                #
+                option_name= re.sub( r'^--', '', "%s" % option_name )
 
-		#
-		# Don't display anything we shouldn't be displaying
-		#
-		if option_name in options_to_ignore:
-			continue
+                #
+                # Don't display anything we shouldn't be displaying
+                #
+                if option_name in options_to_ignore:
+                        continue
 
                 if opt.dest:
                     option_name = opt.dest
 
-		#
-		# Find the actual value specified on the command line, if any, 
-		# and display it
-		#
-		value= getattr( parser.values,  opt.dest )
+                #
+                # Find the actual value specified on the command line, if any, 
+                # and display it
+                #
+                value= getattr( parser.values,  opt.dest )
 
-		default_value= parser.defaults.get( opt.dest )
-       		if default_value is NO_DEFAULT or default_value is None:
-			default_value= ""
-		default_string= ""
-		if default_value != "":
-			default_string= ", default: " + str( default_value )
+                default_value= parser.defaults.get( opt.dest )
+                if default_value is NO_DEFAULT or default_value is None:
+                        default_value= ""
+                default_string= ""
+                if default_value != "":
+                        default_string= ", default: " + str( default_value )
 
                 comment=  self.pretty_print_config_comment( opt.help + default_string )
 
@@ -241,29 +241,29 @@ be seen on the display."""
                 # NB: I would prefer to use tabs to separate the parameter name
                 #     and value, but I don't know that this would work.
                 #
-		print """#
+                print """#
 # %s
 #%s %s""" % ( comment, option_name, value )
 
-	#
-	# Pretty print and exit
-	#
-	print "#"
-	sys.exit( 0 )
+        #
+        # Pretty print and exit
+        #
+        print "#"
+        sys.exit( 0 )
 
 
 
     def generate_xml_table( self, parser, options ):
         """Create a Docbook table based on the long-form of the option names"""
 
-	#
-	# Header for the configuration file
-	#
+        #
+        # Header for the configuration file
+        #
         unused(options)
-	daemon_name= os.path.basename( sys.argv[0] )
-	daemon_name= daemon_name.replace( '.py', '' )
+        daemon_name= os.path.basename( sys.argv[0] )
+        daemon_name= daemon_name.replace( '.py', '' )
 
-	print """<?xml version="1.0" encoding="UTF-8"?>
+        print """<?xml version="1.0" encoding="UTF-8"?>
 
 <section version="4.0" xmlns="http://docbook.org/ns/docbook"
    xmlns:xlink="http://www.w3.org/1999/xlink"
@@ -293,40 +293,40 @@ be seen on the display."""
 """ % ( daemon_name, daemon_name, daemon_name, daemon_name )
 
 
-	options_to_ignore= ( 'help', 'version', '', 'genconf', 'genxmltable' )
+        options_to_ignore= ( 'help', 'version', '', 'genconf', 'genxmltable' )
 
-	#
-	# Create an entry for each of the command line flags
-	#
-	# NB: Ideally, this should print out only the option parser dest
-	#     entries, rather than the command line options.
-	#
-	import re
-	for opt in parser.option_list:
-		if opt.help is SUPPRESS_HELP:
-			continue
+        #
+        # Create an entry for each of the command line flags
+        #
+        # NB: Ideally, this should print out only the option parser dest
+        #     entries, rather than the command line options.
+        #
+        import re
+        for opt in parser.option_list:
+                if opt.help is SUPPRESS_HELP:
+                        continue
 
-		#
-		# Create a Docbook-happy version of the option strings
-		# Yes, <arg></arg> would be better semantically, but the output
-		# just looks goofy in a table.  Use literal instead.
-		#
-		all_options= '<literal>' + re.sub( r'/', '</literal>,</para> <para><literal>', "%s" % opt ) + '</literal>'
+                #
+                # Create a Docbook-happy version of the option strings
+                # Yes, <arg></arg> would be better semantically, but the output
+                # just looks goofy in a table.  Use literal instead.
+                #
+                all_options= '<literal>' + re.sub( r'/', '</literal>,</para> <para><literal>', "%s" % opt ) + '</literal>'
 
-		#
-		# Don't display anything we shouldn't be displaying
-		#
-		option_name= re.sub( r'.*/--', '', "%s" % opt )
-		option_name= re.sub( r'^--', '', "%s" % option_name )
-		if option_name in options_to_ignore:
-			continue
+                #
+                # Don't display anything we shouldn't be displaying
+                #
+                option_name= re.sub( r'.*/--', '', "%s" % opt )
+                option_name= re.sub( r'^--', '', "%s" % option_name )
+                if option_name in options_to_ignore:
+                        continue
 
-		default_value= parser.defaults.get( opt.dest )
-       		if default_value is NO_DEFAULT or default_value is None:
-			default_value= ""
-		default_string= ""
-		if default_value != "":
-			default_string= "<para> Default: <literal>" + str( default_value ) + "</literal></para>\n"
+                default_value= parser.defaults.get( opt.dest )
+                if default_value is NO_DEFAULT or default_value is None:
+                        default_value= ""
+                default_string= ""
+                if default_value != "":
+                        default_string= "<para> Default: <literal>" + str( default_value ) + "</literal></para>\n"
 
                 comment= self.pretty_print_config_comment( opt.help )
 
@@ -334,7 +334,7 @@ be seen on the display."""
 # TODO: Determine the variable name used and display the --option_name=variable_name
 #
                 if opt.action in [ 'store_true', 'store_false' ]:
-		   print """<row>
+                   print """<row>
 <entry> <para>%s</para> </entry>
 <entry>
 <para>%s</para>
@@ -345,8 +345,8 @@ be seen on the display."""
                 else:
                    target= '=<replaceable>' +  opt.dest.lower() + '</replaceable>'
                    all_options= all_options + target
-		   all_options= re.sub( r',', target + ',', all_options )
-		   print """<row>
+                   all_options= re.sub( r',', target + ',', all_options )
+                   print """<row>
 <entry> <para>%s</para> </entry>
 <entry>
 <para>%s</para>
@@ -356,15 +356,15 @@ be seen on the display."""
 
 
 
-	#
-	# Close the table elements
-	#
-	print """</tbody></tgroup>
+        #
+        # Close the table elements
+        #
+        print """</tbody></tgroup>
 </table>
 <para />
 </section>
 """
-	sys.exit( 0 )
+        sys.exit( 0 )
 
 
 

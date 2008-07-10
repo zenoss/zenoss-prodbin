@@ -30,7 +30,6 @@ from Products.ZenModel.ZVersion import VERSION
 
 import sys
 import logging
-import operator
 from textwrap import wrap
 log = logging.getLogger("zen.migrate")
 

@@ -21,8 +21,8 @@ from _mysql_exceptions import OperationalError
 
 from urllib import quote as urlquote
 
-from Products.ZenUtils.Utils import isXmlRpc, setupLoggingHeader, executeCommand
-from Products.ZenUtils.Utils import zenPath, unused, clearWebLoggingStream
+from Products.ZenUtils.Utils import isXmlRpc
+from Products.ZenUtils.Utils import unused
 from Products.ZenUtils import Time
 import RRDView
 from Products.ZenUtils.IpUtil import checkip, IpAddressError, maskToBits
@@ -41,7 +41,6 @@ from ZODB.POSException import POSError
 from Products.DataCollector.ApplyDataMap import ApplyDataMap
 
 from Products.ZenRelations.RelSchema import *
-from Products.ZenUtils.IpUtil import isip
 from Commandable import Commandable
 from Lockable import Lockable
 from MaintenanceWindowable import MaintenanceWindowable

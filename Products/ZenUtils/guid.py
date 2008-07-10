@@ -17,7 +17,7 @@ Generate a globally unique id that is used for events.  The id has 4 parts:
  * time - 8 hex characters - refreshed when counter wraps
  * decrementing number - 7 hex characters
 """
-import math, sys, time, random, threading, os, re
+import time, random, threading, os, re
 
 def _getmac():
     """

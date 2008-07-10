@@ -42,8 +42,6 @@ def manage_addMonitorClass(context, id, title = None, REQUEST = None):
 
 addMonitorClass = DTMLFile('dtml/addMonitorClass',globals())
 
-from Products.ZenRelations.RelSchema import ToManyCont, ToOne
-
 
 class MonitorClass(ZenModelRM, Folder, TemplateContainer):
     #isInTree = 1
