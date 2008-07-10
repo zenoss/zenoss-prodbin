@@ -21,7 +21,6 @@ from _mysql_exceptions import OperationalError
 
 from urllib import quote as urlquote
 
-from Products.ZenUtils.Graphics import NetworkGraph
 from Products.ZenUtils.Utils import isXmlRpc, setupLoggingHeader, executeCommand
 from Products.ZenUtils.Utils import zenPath, unused, clearWebLoggingStream
 from Products.ZenUtils import Time
@@ -152,7 +151,7 @@ def findCommunity(context, ip, devicePath,
             except (SystemExit, KeyboardInterrupt, POSError): raise
             except: pass #keep trying until we run out
         if goodcommunity:
-	        break
+                break
     else:
         raise NoSnmp("no snmp found for ip = %s" % ip)
     return (goodcommunity, port, goodversion, devname)
@@ -933,38 +932,6 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
         return dclass.getPeerDeviceClassNames(self.__class__)
 
 
-    security.declareProtected(ZEN_VIEW, 'getRouterGraph')
-    def getRouterGraph(self):
-        """
-        Return a graph representing the relative routers
-        
-        @rtype: graph
-        @permission: ZEN_VIEW
-        """
-        from Products.ZenStatus import pingtree
-        node = pingtree.buildTree(self)
-        g = NetworkGraph(node=node, parentName=self.id)
-        #g.format = 'svg'
-        self.REQUEST.RESPONSE.setHeader('Content-Type', 'image/%s' % g.format)
-        return g.render()
-
-
-    security.declareProtected(ZEN_VIEW, 'getNetworkGraph')
-    def getNetworkGraph(self):
-        """
-        Return a graph representing the relative routers as well as the
-        networks
-        
-        @rtype: graph
-        @permission: ZEN_VIEW
-        """
-        from Products.ZenStatus import pingtree
-        node = pingtree.buildTree(self)
-        g = NetworkGraph(node=node, parentName=self.id)
-        #g.format = 'svg'
-        self.REQUEST.RESPONSE.setHeader('Content-Type', 'image/%s' % g.format)
-        return g.render(withNetworks=True)
-        
     ####################################################################
     # Edit functions used to manage device relations and other attributes
     ####################################################################
@@ -1890,44 +1857,44 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
 
         processes = self.getDmdRoot("Processes")
         pcs = list(processes.getSubOSProcessClassesGen())
-	log.debug("zenoss processes: %s" % pcs)
+        log.debug("zenoss processes: %s" % pcs)
         pcs.sort(lambda a, b: cmp(a.sequence,b.sequence))
       
-	#some debug output 
+        #some debug output 
         procs = Set()
-	if log.isEnabledFor(10):
-	    log.debug("=== snmp process information received ===")
-	    for p in scanResults:
-		log.debug("process: %s" % p)
-	    log.debug("=== processes stored/defined in Zenoss ===")
-	    for p in pcs:
-		log.debug("%s\t%s" % (p.id, p.regex))
+        if log.isEnabledFor(10):
+            log.debug("=== snmp process information received ===")
+            for p in scanResults:
+                log.debug("process: %s" % p)
+            log.debug("=== processes stored/defined in Zenoss ===")
+            for p in pcs:
+                log.debug("%s\t%s" % (p.id, p.regex))
 
         procs = Set()
-	
-	#get the processes defined in Zenoss
+        
+        #get the processes defined in Zenoss
         processes = self.getDmdRoot("Processes")
         pcs = list(processes.getSubOSProcessClassesGen())
-	log.debug("zenoss processes: %s" % pcs)
+        log.debug("zenoss processes: %s" % pcs)
         pcs.sort(lambda a, b: cmp(a.sequence,b.sequence))
       
-	#some debug output 
-	if log.isEnabledFor(10):
-	    log.debug("=== snmp process information received ===")
-	    for p in scanResults:
-		log.debug("process: %s" % p)
-	
-	    log.debug("=== processes stored/defined in Zenoss ===")
-	    for p in pcs:
-		log.debug("%s\t%s" % (p.id, p.regex))
+        #some debug output 
+        if log.isEnabledFor(10):
+            log.debug("=== snmp process information received ===")
+            for p in scanResults:
+                log.debug("process: %s" % p)
+        
+            log.debug("=== processes stored/defined in Zenoss ===")
+            for p in pcs:
+                log.debug("%s\t%s" % (p.id, p.regex))
 
         maps = []
-	for om in relmap.maps:
+        for om in relmap.maps:
             om = ObjectMap(proc)
             fullname = (om.procName + " " + om.parameters).rstrip()
-	    log.debug("current process: %s" % fullname)
+            log.debug("current process: %s" % fullname)
             
-	    for pc in pcs:
+            for pc in pcs:
                 if pc.match(fullname):
                     om.setOSProcessClass = pc.getPrimaryDmdId()
                     id = om.procName
@@ -1938,7 +1905,7 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
                     om.id = self.prepId(id)
                     if id not in procs:
                         procs.add(id)
-			log.debug("adding %s" % fullname)
+                        log.debug("adding %s" % fullname)
                         maps.append(om)
                     break
         relmap.maps = maps
