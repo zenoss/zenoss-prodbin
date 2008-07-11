@@ -1676,7 +1676,7 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
         Convert numeric values commonly found in events to their textual
         representation.
         """
-        if not value: return default
+        if value is None: return default
         try:
             value = int(value)
         except ValueError:
@@ -1688,7 +1688,7 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
             return "%s (%d)" % (self.priorities[value], value)
         elif field == 'eventState':
             if value < len(self.eventStateConversions):
-                return "%s (%d)" % (self.eventStateConversions[value], value)
+                return "%s (%d)" % (self.eventStateConversions[value][0], value)
         elif field == "prodState":
             prodState = self.dmd.convertProdState(value)
             if isinstance(prodState, types.StringType):
