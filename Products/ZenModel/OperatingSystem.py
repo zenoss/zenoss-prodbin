@@ -101,6 +101,9 @@ class OperatingSystem(Software):
                 ippath.append(ip)
                 return ippath
             if route.matchTarget(target.getManageIp()):
+                if route.routetype == 'direct':
+                    nextdev = target
+                    break
                 nextdev = route.getNextHopDevice()
                 break
         else:
