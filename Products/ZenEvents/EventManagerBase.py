@@ -1687,7 +1687,7 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
         elif field == "priority" and self.priorities.has_key(value):
             return "%s (%d)" % (self.priorities[value], value)
         elif field == 'eventState':
-            if value < len(here.eventStateConversions):
+            if value < len(self.eventStateConversions):
                 return "%s (%d)" % (self.eventStateConversions[value], value)
         elif field == "prodState":
             prodState = self.dmd.convertProdState(value)
