@@ -85,7 +85,7 @@ class ZenDaemon(CmdBase):
         if myname.endswith('.py'): myname = myname[:-3]
         monitor = getattr(self.options, 'monitor', 'localhost')
         myname = "%s-%s.pid" % (myname, monitor)
-        if self.options.watchdog:
+        if self.options.watchdog and not self.options.watchdogPath:
            self.pidfile =  zenPath("var", 'watchdog-%s' % myname)
         else:
            self.pidfile =  zenPath("var", myname)
