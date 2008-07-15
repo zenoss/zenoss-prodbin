@@ -1957,12 +1957,14 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
 
 
     security.declareProtected('Manage Events','manage_setEventStates')
-    def manage_setEventStates(self, eventState=None, evids=(), REQUEST=None):
+    def manage_setEventStates(self, eventState=None, evids=(), 
+                              userid="", REQUEST=None):
         reason = None
         if eventState and evids:
             eventState = int(eventState)
             userid = ""
-            if eventState > 0: userid = getSecurityManager().getUser()
+            if eventState > 0 and not userid: 
+                userid = getSecurityManager().getUser()
             update = "update status set eventState=%s, ownerid='%s' " % (
                         eventState, userid)
             whereClause = "where evid in (" 
