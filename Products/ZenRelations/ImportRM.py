@@ -86,6 +86,8 @@ class ImportRM(ZCmdBase, ContentHandler):
     def endElement(self, name):
         if name in ('object', 'tomany', 'tomanycont'):
             obj = self.objstack.pop()
+            if hasattr(aq_base(obj), 'index_object'):
+                obj.index_object()
             if self.rootpath == obj.getPrimaryId():
                 self.log.info("calling reIndex %s", obj.getPrimaryId())
                 obj.reIndex()
