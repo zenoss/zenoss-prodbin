@@ -25,6 +25,7 @@ import transaction
 from urlparse import urlparse
 from xml.dom.minidom import parse
 
+import Globals
 from Products.ZenUtils.ZCmdBase import ZCmdBase
 
 from Products.ZenRelations.Exceptions import *
