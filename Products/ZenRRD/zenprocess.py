@@ -201,9 +201,9 @@ class Device(pb.Copyable, pb.RemoteCopy):
     def updateConfig(self, cfg):
         if self is cfg:
             return
-        self.snmpConnInfo = cfg.ConnInfo
+        self.snmpConnInfo = cfg.snmpConnInfo
         unused = Set(self.processes.keys())
-        for update in cfg.processes:
+        for update in cfg.processes.values():
             unused.discard(update.name)
             p = self.processes.setdefault(update.name, Process())
             p.updateConfig(update)
@@ -336,7 +336,7 @@ class zenprocess(SnmpDaemon):
         for cfg in cfgs:
             received.add(cfg.name)
             d = self._devices.setdefault(cfg.name, cfg)
-            d.updateConfig(d)
+            d.updateConfig(cfg)
             self.thresholds.updateForDevice(cfg.name, cfg.thresholds)
         for doomed in Set(fetched) - received:
             if doomed in self._devices:
