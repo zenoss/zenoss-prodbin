@@ -34,14 +34,17 @@ def expandPackDir(fulldir):
 def findZenPackDirectories():
     zenpackhome = zenhome('ZenPacks')
     dirs = []
-    for item in os.listdir(zenpackhome):
-        fullpath = zenhome('ZenPacks', item)
-        if os.path.isdir(fullpath): 
-            dirs.append(expandPackDir(fullpath))
-        elif item.endswith('.egg-link'):
-            f = file(fullpath) 
-            dirs.append(expandPackDir(f.readline().strip()))
-            f.close()
+    try:
+        for item in os.listdir(zenpackhome):
+            fullpath = zenhome('ZenPacks', item)
+            if os.path.isdir(fullpath): 
+                dirs.append(expandPackDir(fullpath))
+            elif item.endswith('.egg-link'):
+                f = file(fullpath) 
+                dirs.append(expandPackDir(f.readline().strip()))
+                f.close()
+    except OSError:
+        pass
     return dirs
 
 def findTestableProducts(packages=[], regex=None):
