@@ -20,39 +20,63 @@ def findSeleniumTests(packages=[], regex=None):
     if not regex: regex = 'testAll'
     regex += '.py'
     for prod in prods:
-        selpath = zenhome('Products', prod, 'tests', 'selenium', regex)
+        selpath = os.path.join(prod, 'tests', 'selenium', regex)
         if os.path.exists(selpath):
             results.append(selpath)
     return results
 
+def expandPackDir(fulldir):
+    dir = fulldir.rstrip('/').split('/')[-1]
+    if dir.startswith('ZenPacks.zenoss.'):
+        return os.path.join(fulldir, *dir.split('.')[:-1])
+    return fulldir
+
+def findZenPackDirectories():
+    zenpackhome = zenhome('ZenPacks')
+    dirs = []
+    for item in os.listdir(zenpackhome):
+        fullpath = zenhome('ZenPacks', item)
+        if os.path.isdir(fullpath): 
+            dirs.append(expandPackDir(fullpath))
+        elif item.endswith('.egg-link'):
+            f = file(fullpath) 
+            dirs.append(expandPackDir(f.readline().strip()))
+            f.close()
+    return dirs
+
 def findTestableProducts(packages=[], regex=None):
     results = []
-    for root, dirs, files in os.walk(zenhome('Products')):
-        for dir in dirs:
-            if packages and dir not in packages: continue
-            if (not (dir.startswith('Zen') or 
-                     dir=='DataCollector') or 
-                dir in ('ZenTestRunner', 'ZenUITests')): 
-                continue
-            newdir = os.path.join(root, dir)
-            if 'tests' in os.listdir(newdir): 
-                if regex:
-                    f = os.path.join(newdir, 'tests', regex+'.py')
-                    if os.path.exists(f):
-                        results.append(dir)
-                else:
-                    results.append(dir)
+    for target in findZenPackDirectories() + [zenhome('Products')]:
+        for root, dirs, files in os.walk(target):
+            for dir in dirs:
+                if packages and dir not in packages: continue
+                if target.endswith('Products'):
+                    if (not (dir.startswith('Zen') or 
+                             dir=='DataCollector') or 
+                        dir in ('ZenTestRunner')): 
+                        continue
+                newdir = os.path.join(root, dir)
+                if 'tests' in os.listdir(newdir): 
+                    if regex:
+                        f = os.path.join(newdir, 'tests', regex+'.py')
+                        if os.path.exists(f):
+                            results.append(dir)
+                    else:
+                        results.append(newdir)
     return results
 
-def runSeleniumTests(packages=[], regex=None):
-    for testscript in findSeleniumTests(packages, regex):
-        exitcodes.append(call([testscript]))
+def runSeleniumTests(packages=[], regex=None, zenoss_server=None, 
+                    selenium_server=None):
+    tests = findSeleniumTests(packages, regex)
+    for testscript in tests:
+        exitcodes.append(call([testscript, zenoss_server, selenium_server]))
 
 def runUnitTests(packages=[], regex=None, coverage=False):
     for prod in findTestableProducts(packages, regex):
+        if 'ZenUITests' in prod: continue
         parts = [ zenhome('bin', 'zopectl'), 'test']
         if coverage: parts.append('--coverage')
-        parts.extend(['--libdir', zenhome('Products', prod)])
+        parts.extend(['--libdir', prod])
         if regex: parts.append(regex)
         exitcodes.append(call(parts))
 
@@ -85,13 +109,19 @@ def main():
                       action="store_true", default=False)
     parser.add_option('-n', '--name', 
                       help="The name of a test module.")
+    parser.add_option('--selenium-server', 
+                      help="The server hosting the selenium jar")
+    parser.add_option('--zenoss-server', help=(
+                            "The Zenoss server against which"
+                            " Selenium should test"))
     options, args = parser.parse_args()
 
     if options.type in ('unit', 'all'):
         runUnitTests(args, options.name, options.coverage)
 
     if options.type in ('selenium', 'all'):
-        runSeleniumTests(args, options.name)
+        runSeleniumTests(args, options.name, options.zenoss_server,
+                         options.selenium_server)
 
 
 if __name__=="__main__":

@@ -17,7 +17,7 @@
 # Adam Modlin and Nate Avers
 #
 
-import time, os
+import time, os, sys
 import unittest
 from util.selTestUtils import *
 
@@ -25,10 +25,10 @@ from util.selenium import selenium
 
 
 ### BEGIN GLOBAL DEFS ###
-HOST        =   "nightlytest.zenoss.loc"         # Zenoss instance to test
+HOST        =   "localhost"         # Zenoss instance to test
 USER        =   "admin"                 # Username for HOST
 PASS        =   "zenoss"                # Password for HOST
-SERVER      =   "nightlytest.zenoss.loc"         # Hosts the selenium jar file
+SERVER      =   "selenium.zenoss.loc"         # Hosts the selenium jar file
 TARGET      =   "nightlytest.zenoss.loc"         # Added/deleted in HOST
 BROWSER     =   "*firefox"             # Can also be "*iexplore"
 WAITTIME    =   "60000"                 # Time to wait for page loads in milliseconds
@@ -39,10 +39,15 @@ here = lambda x:os.path.join(os.path.dirname(__file__), x)
 if os.path.exists(here('_seleniumtestdata.py')):
     from _seleniumtestdata import *
 
+usage = "testAll.py HOST SERVER"
+for i, var in enumerate(usage.split()[1:]):
+    try: exec("%s=sys.argv[%s]" % (var, i+1))
+    except IndexError: pass
+
 class SelTestBase(unittest.TestCase):
     """Base class for Zenoss Selenium tests.
         All test classes should inherit this."""
-	
+    
     def setUp(self):
         """Run at the start of each test"""
         self.WAITTIME = WAITTIME
