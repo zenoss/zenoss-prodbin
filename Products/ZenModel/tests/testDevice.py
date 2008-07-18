@@ -19,7 +19,7 @@ import time
 from DateTime import DateTime
 
 from Products.ZenModel.Exceptions import *
-from Products.ZenModel.Device import Device
+from Products.ZenModel.Device import Device, manage_createDevice
 from Products.ZenModel.IpRouteEntry import IpRouteEntry
 
 from ZenModelBaseTest import ZenModelBaseTest
@@ -40,13 +40,25 @@ class TestDevice(ZenModelBaseTest):
         man.createManufacturer('Unknown')
 
 
-    def testcreateInstanceDevice(self):
-        devices = self.dmd.Devices
-        self.assert_(isinstance(self.dev, Device))
-        self.assert_(self.dev.deviceClass() == devices)
-        self.assert_(self.dev.getDeviceClassName() == "/")
-    
-                            
+    def testManage_createDevice(self):
+        dev = manage_createDevice(self.dmd, 'mydevice', '/')
+        self.assert_(isinstance(dev, Device))
+        self.assert_(dev.deviceClass() == self.dmd.Devices)
+        self.assert_(dev.getDeviceClassName() == "/")
+
+
+    def testManage_createDeviceDup(self):
+        dev = manage_createDevice(self.dmd, 'mydevice', '/')
+        self.assertRaises(DeviceExistsError, 
+                          manage_createDevice, self.dmd, 'mydevice', '/')
+
+
+    def testManage_createDeviceDupIp(self):
+        dev = manage_createDevice(self.dmd, 'mydevice', '/', manageIp='1.1.1.1')
+        self.assertRaises(DeviceExistsError, 
+          manage_createDevice, self.dmd, 'mydevice2', '/', manageIp='1.1.1.1')
+
+
     def testIpRouteCreation(self):
         ipr = IpRouteEntry("1.2.3.4_24")
         self.dev.os.routes._setObject(ipr.id, ipr)
