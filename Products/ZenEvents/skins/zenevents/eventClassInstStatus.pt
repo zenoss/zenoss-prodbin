@@ -95,8 +95,9 @@
       <td class="tableheader" colspan="6">Transform</td>
     </tr>
     <tr>
-      <td class="tablevalues" colspan="6" tal:content="here/transform">
-        code</td>
+      <td class="tablevalues" colspan="6" >
+        <pre tal:content="here/transform">code</pre>
+      </td>
     </tr>
     <tr>
       <td class="tableheader" colspan="6">Explanation</td>
