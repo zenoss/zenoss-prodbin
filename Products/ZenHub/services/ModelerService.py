@@ -77,7 +77,7 @@ class ModelerService(PerformanceConfig):
     def remote_applyDataMaps(self, device, maps):
         from Products.DataCollector.ApplyDataMap import ApplyDataMap
         device = self.getPerformanceMonitor().findDevice(device)
-        adm = ApplyDataMap()
+        adm = ApplyDataMap(self)
         changed = False
         for map in maps:
             if adm._applyDataMap(device, map):
