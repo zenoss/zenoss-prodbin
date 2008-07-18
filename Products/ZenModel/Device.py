@@ -76,6 +76,9 @@ def checkDeviceExists(context, deviceName, ip, performanceMonitor):
     dev = mon.findDevice(deviceName)
     if dev:
         raise DeviceExistsError("Device %s already exists" % deviceName,dev)
+    dev = mon.findDevice(ip)
+    if dev:
+        raise DeviceExistsError("Manage IP %s already exists" % deviceName,ip)
     return deviceName, ip
 
 
@@ -1549,7 +1552,9 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
         # if deleteHistory:
         #     self.getEventManager().manage_deleteHistoricalEvents(self.getId())
         if deletePerf:
-            self.getPerformanceServer().deleteRRDFiles(self.id)
+            perfserv = self.getPerformanceServer()
+            if perfserv:
+                perfserv.deleteRRDFiles(self.id)
         parent._delObject(self.getId())
         if REQUEST:
             if parent.getId()=='devices': 
