@@ -98,10 +98,11 @@ class ZenModeler(PBDaemon):
             self.log.debug('fetching monitor properties')
             yield self.config().callRemote('propertyItems')
             items = dict(driver.next())
-            for att in ("modelerCycleInterval", "configCycleInterval"):
-                before = getattr(self, att)
-                after = items.get(att, before)
-                setattr(self, att, after)
+            if self.options.cycletime == 0:
+                self.modelerCycleInterval = items.get('modelerCycleInterval',
+                                            self.modelerCycleInterval)
+            self.configCycleInterval = items.get('configCycleInterval',
+                                                self.configCycleInterval)
             reactor.callLater(self.configCycleInterval * 60, self.configure)
 
             self.log.debug("getting threshold classes")
@@ -466,7 +467,7 @@ class ZenModeler(PBDaemon):
                 type='int', default=defaultParallel,
                 help="number of devices to collect from in parallel")
         self.parser.add_option('--cycletime',
-                dest='cycletime',default=720,type='int',
+                dest='cycletime',default=0,type='int',
                 help="run collection every x minutes")
         self.parser.add_option('--ignore',
                 dest='ignorePlugins',default="",
@@ -541,14 +542,14 @@ class ZenModeler(PBDaemon):
         if self.options.device:
             self.log.info("collecting for device %s", self.options.device)
             return succeed([self.options.device])
-        elif self.options.monitor:
-            self.log.info("collecting for monitor %s", self.options.monitor)
-            return self.config().callRemote('getDeviceListByMonitor',
-                                            self.options.monitor)
-        else:
+        elif self.options.path:
             self.log.info("collecting for path %s", self.options.path)
             return self.config().callRemote('getDeviceListByOrganizer',
                                             self.options.path)
+        else:
+            self.log.info("collecting for monitor %s", self.options.monitor)
+            return self.config().callRemote('getDeviceListByMonitor',
+                                            self.options.monitor)
         
 
 
