@@ -252,7 +252,7 @@ class ZenPack(ZenModelRM):
             recover.reverse()
             for r in recover:
                 r.recover(self)
-            raise ex
+            raise
 
 
     def list(self, app):
