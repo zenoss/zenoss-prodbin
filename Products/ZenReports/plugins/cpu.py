@@ -42,6 +42,11 @@ class cpu:
                 if cpuPercent is not None:
                     cpuPercent /= 100
 
+            if cpuPercent is None:
+                cpuPercent = d.getRRDValue('cpu5min', **summary)
+                if cpuPercent is not None:
+                    cpuPercent /= 100
+
             r = Utils.Record(device=d,
                              laLoadInt5=laLoadInt5,
                              cpuPercent=cpuPercent)

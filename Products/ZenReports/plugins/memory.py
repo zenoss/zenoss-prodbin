@@ -21,7 +21,7 @@ class memory:
         reversedSummary = Utilization.reversedSummary(summary)
 
         report = []
-        freeNames = ['memAvailReal', 'memBuffer', 'memCached']
+        freeNames = ['memAvailReal', 'memBuffer', 'memCached', 'mem5minFree']
         fetchNames = ['memoryAvailableKBytes', 'memAvailSwap', ] + freeNames
         for d in Utilization.filteredDevices(dmd, args):
             totalReal = d.hw.totalMemory
@@ -29,7 +29,8 @@ class memory:
                 totalReal = None
             result = d.getRRDValues(fetchNames, **summary) or {}
             winMem = result.get('memoryAvailableKBytes', None)
-            availableReal = result.get('memAvailReal', winMem)
+            ciscoMem = result.get('mem5minFree', winMem)
+            availableReal = result.get('memAvailReal', ciscoMem)
             buffered = result.get('memBuffer', None)
             cached = result.get('memCached', None)
             availableSwap = result.get('memAvailSwap', None)
