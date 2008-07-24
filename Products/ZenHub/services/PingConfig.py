@@ -32,7 +32,8 @@ class PingConfig(PerformanceConfig):
             conn.close()
 
     def getPingTree(self, dmd, root, fallbackIp):
-        me = self.getPerformanceMonitor().findDevice(root)
+        pm = dmd.Monitors.getPerformanceMonitor(self.instance)
+        me = pm.findDevice(root)
         if not me:
             me = self.lookupByIp(dmd, fallbackIp)
         if me: 
