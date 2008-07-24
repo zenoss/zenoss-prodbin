@@ -121,9 +121,9 @@ def WriteSetup(setupPath, values):
         if values.has_key(key):
             value = values[key]
             if isinstance(value, basestring):
-                fmt = "%s = '%s'\n"
+                fmt = '%s = "%s"\n'
             else:
-                fmt = "%s = %s\n"
+                fmt = '%s = %s\n'
             newLines.append(fmt % (key, value))
         else:
             newLines.append(line)
