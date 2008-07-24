@@ -26,8 +26,8 @@ class WinServiceMap(WMIPlugin):
     relname = "winservices"
     modname = "Products.ZenModel.WinService"
     
-    attrs = ("acceptpause","acceptstop","name","caption",
-             "pathname","servicetype","startmode","startname","state")
+    attrs = ("acceptPause","acceptStop","name","caption",
+             "pathName","serviceType","startMode","startName","state")
     
     def queries(self):
         return {
@@ -85,7 +85,7 @@ class WinServiceMap(WMIPlugin):
             om.id = prepId(svc.name)
             om.setServiceClass = {'name':svc.name, 'description':svc.caption}
             for att in self.attrs:
-                if att in ("name", "caption"): continue
+                if att in ("name", "caption", "state"): continue
                 setattr(om, att, getattr(svc, att, "")) 
             rm.append(om)
         
