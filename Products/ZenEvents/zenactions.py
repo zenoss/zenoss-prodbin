@@ -605,7 +605,7 @@ class ZenActions(ZCmdBase):
         emsg['Subject'] = fmt
         emsg['From'] = self.dmd.getEmailFrom()
         emsg['To'] = ', '.join(addr)
-        emsg['Date'] = DateTime().rfc822()
+        emsg['Date'] = time.ctime()
         result, errorMsg = Utils.sendEmail(emsg, self.dmd.smtpHost,
                     self.dmd.smtpPort, self.dmd.smtpUseTLS, self.dmd.smtpUser, 
                     self.dmd.smtpPass)
