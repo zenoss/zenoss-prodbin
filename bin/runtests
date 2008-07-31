@@ -77,11 +77,21 @@ def runSeleniumTests(packages=[], regex=None, zenoss_server=None,
 def runUnitTests(packages=[], regex=None, coverage=False):
     for prod in findTestableProducts(packages, regex):
         if 'ZenUITests' in prod: continue
-        parts = [ zenhome('bin', 'zopectl'), 'test']
+        python = zenhome('bin', 'python')
+        zdctl = zenhome('lib', 'python', 'Zope2', 'Startup', 'zopectl.py')
+        cfgfile = zenhome('etc', 'zope.conf')
+        swhome = zenhome('lib', 'python')
+        parts = [python, zdctl, '-C', cfgfile, 'test']
         if coverage: parts.append('--coverage')
         parts.extend(['--libdir', prod])
         if regex: parts.append(regex)
-        exitcodes.append(call(parts))
+        env = os.environ.copy()
+        env.update({
+            'PYTHONPATH': swhome + ":" + env['PYTHONPATH'],
+            'INSTANCE_HOME': zenhome(),
+            'SOFTWARE_HOME': swhome
+        })
+        exitcodes.append(call(parts, env=env))
 
 usage="""%prog [options] [package1 [package2]]
 
