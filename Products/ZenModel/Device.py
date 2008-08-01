@@ -74,9 +74,9 @@ def checkDeviceExists(context, deviceName, ip, performanceMonitor):
             if dev:
                 raise DeviceExistsError("Ip %s exists on %s" % (ip, dev.id),dev)
     if deviceName and mon.findDevice(deviceName):
-        raise DeviceExistsError("Device %s already exists" % deviceName,dev)
+        raise DeviceExistsError("Device %s already exists" % deviceName, deviceName)
     if ip and mon.findDevice(ip):
-        raise DeviceExistsError("Manage IP %s already exists" % ip,ip)
+        raise DeviceExistsError("Manage IP %s already exists" % ip, ip)
     return deviceName, ip
 
 
