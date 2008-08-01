@@ -35,6 +35,7 @@ class Device(TestBaseClass, PropertyManager):
         ("location", ToOne(ToMany, 
             TS + "Location", "devices")),
         ("groups", ToMany(ToMany, TS + "Group", "devices")),
+        ("organizer", ToOne(ToManyCont, TS + "Organizer", "devices")),
         ("interfaces", ToManyCont(ToOne, TS + "IpInterface", "device")),
         )
     pingStatus = 0 
@@ -79,6 +80,7 @@ class Organizer(TestBaseClass):
     _relations = (
     ("parent", ToOne(ToManyCont, TS + "Organizer","children")),
     ("children", ToManyCont(ToOne, TS + "Organizer","parent")),
+    ("devices", ToManyCont(ToOne, TS + "Device","organizer")),
     )
     def buildOrgProps(self):
         self._setProperty("zFloat", -1.0, type="float")

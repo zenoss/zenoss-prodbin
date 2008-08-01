@@ -113,6 +113,30 @@ class RelationshipManagerTest(ZenRelationsBaseTest):
     def testGetProperties(self):
         pass
 
+    def testMoveMeBetweenRels(self):
+        dev = self.create(self.dmd, Device, "dev")
+        eth0 = self.create(dev.interfaces, IpInterface, "eth0")
+        dev2 = self.create(self.dmd, Device, "dev2")
+        eth0.moveMeBetweenRels(dev.interfaces, dev2.interfaces)
+        self.failUnless(len(dev.interfaces()) == 0)
+        self.failUnless(len(dev2.interfaces()) == 1)
+        self.failUnless(dev2.interfaces.eth0.device() == dev2)
+                
+    
+    def testMoveMeBetweenRels2(self):
+        org1 = self.create(self.dmd, Organizer, 'org1')
+        org2 = self.create(self.dmd, Organizer, 'org2')
+        dev = self.create(self.dmd.org1.devices, Device, "dev")
+        eth0 = self.create(dev.interfaces, IpInterface, 'eth0')
+        loc = self.create(self.dmd, Location, 'anna')
+        loc.devices.addRelation(dev)
+        dev.moveMeBetweenRels(org1.devices, org2.devices)
+        self.failUnless(len(org1.devices()) == 0)
+        self.failUnless(len(org2.devices()) == 1)
+        self.failUnless(org2.devices.dev.organizer() == org2)
+        self.assert_(dev.interfaces.eth0)
+        self.assert_(len(loc.devices()) > 0)
+                
     
 from Products.ZenRelations.ToOneRelationship import manage_addToOneRelationship
 
