@@ -164,8 +164,6 @@ class Organizer(ZenModelRM, EventView):
         @rtype: integer
         @permission: ZEN_COMMON
         
-        >>> dmd.Devices.countChildren()
-        24
         """
         if spec is None:
             spec = self.meta_type
