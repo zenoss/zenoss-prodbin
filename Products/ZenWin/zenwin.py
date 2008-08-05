@@ -16,14 +16,13 @@ import pywintypes
 import pythoncom
 
 import Globals
-from WinCollector import WinCollector
-from Constants import TIMEOUT_CODE
-from Products.ZenEvents.ZenEventClasses import Status_Wmi_Conn, Status_WinService
+from Products.ZenWin.WinCollector import WinCollector
+from Products.ZenWin.WMIClient import WMIClient
+from Products.ZenWin.Constants import TIMEOUT_CODE
+from Products.ZenEvents.ZenEventClasses import Status_Wmi, Status_WinService
 from Products.ZenEvents import Event
 
 ERRtimeout = 1726
-
-MAX_WAIT_FOR_WMI_REQUEST = 10
 
 class zenwin(WinCollector):
 
@@ -60,6 +59,12 @@ class zenwin(WinCollector):
         self.sendEvent(self.mkevt(device.id, name, msg, severity))
         self.log.info("svc down %s, %s", device.id, name)
             
+    def reportServices(self, device):
+        for name, (status, severity) in device.services.items():
+            if severity > 0:
+                msg = self.statmsg % (name, "down")
+                self.sendEvent(self.mkevt(device.id, name, msg, severity))
+            
     def serviceRunning(self, device, name):
         self.log.info('%s: %s running' % (device.id, name))
         if name not in device.services: return
@@ -75,10 +80,9 @@ class zenwin(WinCollector):
         if not device.services:
             return None
         wql = "select Name from Win32_Service where State='Running'"
-        wmic = self.getProxy('Products/ZenWin/Query.py', 'Query')
-        mx = MAX_WAIT_FOR_WMI_REQUEST
-        wmic.start(mx, device)
-        q = wmic.boundedCall(mx, 'query', dict(query=wql))
+        wmic = WMIClient(device)
+        wmic.connect()
+        q = wmic.query(dict(query=wql))
         svcs = [ svc.name for svc in q['query'] ]
         for name, (status, severity) in device.services.items():
             self.log.debug("service: %s status: %d", name, status)
@@ -86,7 +90,7 @@ class zenwin(WinCollector):
                 self.serviceStopped(device, name)
             elif status > 0:
                 self.serviceRunning(device, name)
-        wmic.stop()
+        wmic.close()
 
 
     def processDevice(self, device):
@@ -95,33 +99,33 @@ class zenwin(WinCollector):
         
         # device won't have any attributes
         if not device.plugins: return
-        w = self.watchers.get(device.id, None)
-        if not w:
-            self.scanDevice(device)
-            self.deviceUp(device)
-            self.watchers[device.id] = w = self.getWatcher(device, wql)
         try:
-            self.log.debug("Querying %s", device.id)
-            s = w.boundedCall(MAX_WAIT_FOR_WMI_REQUEST, 'nextEvent', 
-                int(self.options.queryTimeout))
-            self.deviceUp(device)
-            if not s.state:
-                return
-            if s.state == 'Stopped':
-                self.serviceStopped(device, s.name)
-            if s.state == 'Running':
-                self.serviceRunning(device, s.name)
+            w = self.watchers.get(device.id, None)
+            if not w:
+                self.scanDevice(device)
+                self.deviceUp(device)
+                self.watchers[device.id] = w = self.getWatcher(device, wql)
+            else:
+                self.reportServices(device)
+                self.log.debug("Querying %s", device.id)
+                s = w.nextEvent(int(self.options.queryTimeout))
+                self.deviceUp(device)
+                if not s.state:
+                    return
+                if s.state == 'Stopped':
+                    self.serviceStopped(device, s.name)
+                if s.state == 'Running':
+                    self.serviceRunning(device, s.name)
         except pywintypes.com_error, e:
             code,txt,info,param = e
             if info:
                 wcode, source, descr, hfile, hcont, scode = info
+                scode = abs(scode)
                 if wcode == ERRtimeout:
                     return
-                self.log.debug("Codes: %r %r %r %r %r %r" % info)
-                scode = abs(scode)
-            if scode != TIMEOUT_CODE:
-                self.deviceDown(device, '%d: %s' % (code, txt))
-
+                self.log.debug("Codes: %r" % (info,))
+                if scode != TIMEOUT_CODE:
+                    self.deviceDown(device, '%d: %s' % (code, txt))
     def processLoop(self):
         pythoncom.PumpWaitingMessages()
         for device in self.devices:
@@ -138,12 +142,13 @@ class zenwin(WinCollector):
 
     def deviceDown(self, device, message):
         if device.id in self.watchers:
-            del self.watchers[device.id]
+            w = self.watchers.pop(device.id)
+            w.close()
         msg = self.printComErrorMessage(message)
         if not msg:
             msg = "WMI connect error on %s: %s" % (device.id, message)
         self.sendEvent(dict(summary=msg,
-                            eventClass=Status_Wmi_Conn,
+                            eventClass=Status_Wmi,
                             device=device.id,
                             severity=Event.Error,
                             agent=self.agent,
@@ -157,7 +162,7 @@ class zenwin(WinCollector):
             self.log.info("WMI Connection to %s up" % device.id)
             msg = "WMI connection to %s up." % device.id
             self.sendEvent(dict(summary=msg,
-                                eventClass=Status_Wmi_Conn,
+                                eventClass=Status_Wmi,
                                 device=device.id,
                                 severity=Event.Clear,
                                 agent=self.agent,

@@ -15,9 +15,9 @@ import types
 import pywintypes
 
 import Globals
-from WinCollector import WinCollector
+from Products.ZenWin.WinCollector import WinCollector
 from Products.ZenEvents.ZenEventClasses import \
-     Status_WinService, Status_Wmi_Conn
+     Status_WinService, Status_Wmi
 
 from Products.ZenEvents import Event
 
@@ -27,7 +27,7 @@ from Products.ZenHub.PBDaemon import FakeRemote
 from twisted.internet import reactor
 from twisted.internet.defer import DeferredList
 
-MAX_WAIT_FOR_WMI_REQUEST = 20
+from Products.ZenWin.WMIClient import WMIClient
 
 class Client:
 
@@ -35,16 +35,12 @@ class Client:
         self.proxy = proxy
         self.plugins = plugins
         self.results = []
-        self.proxy.start(MAX_WAIT_FOR_WMI_REQUEST, device)
-
-    def boundedCall(self, timeout, method, *args, **kw):
-        return self.proxy.boundedCall(timeout, method, *args, **kw)
+        
+    def query(self, queries):
+        return self.proxy.query(queries)
 
     def getResults(self):
         return self.results
-
-    def stop(self):
-        self.proxy.stop()
 
 
 class zenwinmodeler(WinCollector):
@@ -104,6 +100,16 @@ class zenwinmodeler(WinCollector):
     def collectDevice(self, device):
         """Collect the service info and build datamap using WMI.
         """
+        if device.zWinUser == '':
+            self.sendEvent(dict(eventClass=Status_Wmi,
+                                device=device.id,
+                                agent=self.agent,
+                                component=self.name,
+                                severity=Event.Warning,
+                                summary=
+                                "You must set the zProperties "
+                                "zWinPassword and zWinUser "))
+            return
         hostname = device.getId()
         self.client = None
         try:
@@ -117,10 +123,9 @@ class zenwinmodeler(WinCollector):
                 self.log.info('User: %s' % device.zWinUser)
                 self.log.info("Plugins: %s", 
                               ", ".join(map(lambda p: p.name(), plugins)))
-                self.client = Client(
-                    self.getProxy('Products/ZenWin/Query.py', 'Query'),
-                    device,
-                    plugins)
+                wmic = WMIClient(device)
+                wmic.connect()
+                self.client = Client(wmic, device, plugins)
             if not self.client or not plugins:
                 self.log.warn("WMIClient creation failed")
                 return
@@ -132,29 +137,19 @@ class zenwinmodeler(WinCollector):
                 self.log.warning("WMI Com error: %s", msg)
             if info:
                 wcode, source, descr, hfile, hcont, scode = info
-                if scode == 1326 and device.zWinPassword == '':
-                    self.log.warning("You must set the zProperty "
-                                     "zWinPassword for device %s.", hostname)
             return
         except:
             self.log.exception("Error opening WMIClient")
             return
         try:
-            mx = MAX_WAIT_FOR_WMI_REQUEST
             for plugin in self.client.plugins:
                 pluginName = plugin.name()
                 self.log.debug("Sending queries for plugin: %s", pluginName)
                 self.log.debug("Queries: %s" % str(plugin.queries().values()))
 
                 try:
-                    result = self.client.boundedCall(mx, 'query', plugin.queries())
+                    result = self.client.query(plugin.queries())
                     self.client.results.append((plugin, result))
-
-                    if getattr(plugin, 'getEvents', None):
-                        self.log.info("Sending events returned by plugins")
-                        for evt in plugin.getEvents(device, result, self.log):
-                            self.sendEvent(evt)
-
                 except pywintypes.com_error, e:
                     msg = self.printComErrorMessage(e)
                     self.log.warning("WMI Comm Error for plugin '%s': %s", pluginName, msg)
@@ -163,7 +158,6 @@ class zenwinmodeler(WinCollector):
 
         finally:
             self.niceDoggie(self.cycleInterval())
-            self.client.stop()
 
     def checkCollection(self, device):
         if self.options.device and device.getId() != self.options.device:
@@ -252,7 +246,7 @@ class zenwinmodeler(WinCollector):
         self.log.error(why.getErrorMessage())
 
     def sendFail(self, name, msg=""):
-        evtclass = Status_Wmi_Conn
+        evtclass = Status_Wmi
         sev = Event.Warning
         if not msg:
             msg = "WMI connection failed %s" % name

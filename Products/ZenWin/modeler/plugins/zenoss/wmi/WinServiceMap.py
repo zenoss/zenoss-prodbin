@@ -35,44 +35,6 @@ class WinServiceMap(WMIPlugin):
         (",".join(self.attrs)),
     }
     
-    def getEvents(self, device, results, log):
-        runningServices = []
-        for svc in results["Win32_Service"]:
-            if svc.state == "Running":
-                runningServices.append(svc.name)
-        # BUILD EVENT LIST TO SEND
-        events = []
-        for name, (status, severity) in device.services.items():
-            if name in runningServices:
-                log.info('%s: %s running' % (device.id, name)) 
-                device.services[name] = 0, severity
-                if status != 0:
-                    msg = STATMSG % (name, "up")
-                    events.append(dict(summary=msg,
-                        eventClass=Status_WinService,
-                        device=device.id,
-                        severity=0,
-                        agent="zenwinmodeler",
-                        component=name,
-                        eventGroup= "StatusTest",
-                        manager=getfqdn())) 
-                    log.info("svc up %s, %s", device.id, name) 
-            else:
-                log.warning('%s: %s stopped' % (device.id, name))
-                device.services[name] = status + 1, severity
-                msg = STATMSG % (name, "down")
-                log.critical(msg)
-                events.append(dict(summary=msg,
-                    eventClass=Status_WinService,
-                    device=device.id,
-                    severity=severity,
-                    agent="zenwinmodeler",
-                    component=name,
-                    eventGroup= "StatusTest",
-                    manager=getfqdn()))
-                log.info("svc down %s, %s", device.id, name) 
-        return events
-        
     def process(self, device, results, log):
         """
         Collect win service info from this device.

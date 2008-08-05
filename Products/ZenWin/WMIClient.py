@@ -15,8 +15,8 @@ import os
 import socket
 import win32com.client
 import logging
-from ProcessProxy import zenPath
-log = logging.getLogger("zen.WMIClient.WMIClient")
+from Products.ZenUtils.Utils import zenPath
+log = logging.getLogger("zen.WMIClient")
 
 locator = win32com.client.Dispatch("WbemScripting.SWbemLocator")
 refresher = win32com.client.Dispatch("WbemScripting.SWbemRefresher")
@@ -92,9 +92,6 @@ class WMIClient(object):
         self.datacollector = datacollector
         self.plugins = plugins
 
-        #self._getdata = {}
-        #self._tabledata = {}
-        
         self.results = []
 
     @watchForFailure

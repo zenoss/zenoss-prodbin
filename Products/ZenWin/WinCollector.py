@@ -22,8 +22,8 @@ from Products.ZenEvents.ZenEventClasses import Error, App_Start, Clear, Status_W
 from Products.ZenUtils.Driver import drive, driveLater
 from Products.ZenUtils.Utils import zenPath
 from Products.ZenWin import WMIClient
-
-from Constants import ERROR_CODE_MAP
+from Products.ZenWin.Watcher import Watcher
+from Products.ZenWin.Constants import ERROR_CODE_MAP
 
 from Products.ZenUtils.Utils import unused
 from Products.DataCollector import DeviceProxy # This is needed by pb
@@ -31,14 +31,10 @@ unused(DeviceProxy)
 from Products.DataCollector.Plugins import PluginLoader # This is needed by pb
 unused(PluginLoader)
 
-from ProcessProxy import ProcessProxy, ProcessProxyError
-from NullProxy import NullProxy
-
 from twisted.internet.defer import DeferredList
 from twisted.python.failure import Failure
 
 MAX_THREADS_WAITING = 10
-MAX_WAIT_FOR_WMI_REQUEST = 10
 DEFAULT_QUERY_TIMEOUT = 100
 
 class WinCollector(PBDaemon):
@@ -70,26 +66,16 @@ class WinCollector(PBDaemon):
                             component=self.name))
         for device, where in WMIClient.failures(clean=True):
             self.sendEvent(dict(
-                summary='Wmi communication failure during %s' % (where,),
+                summary='Wmi communication failure',
+                method=where,
                 eventClass=Status_Wmi_Conn,
                 device=device,
                 severity=Error))
 
-    def getProxy(self, filename, classname):
-        filename = zenPath(filename)
-        if self.options.proxywmi:
-            return ProcessProxy(filename, classname)
-        return NullProxy(filename, classname)
-
     def getWatcher(self, device, query):
-        wmic = self.getProxy('Products/ZenWin/Watcher.py', 'Watcher')
-        try:
-            wmic.start(MAX_WAIT_FOR_WMI_REQUEST, device, query)
-            self.log.debug("Connected to %s" % device.id)
-            return wmic
-        except ProcessProxyError:
-            wmic.stop()
-            raise
+        wmic = Watcher(device, query)
+        self.log.debug("Connected to %s" % device.id)
+        return wmic
 
     def remote_notifyConfigChanged(self):
         self.log.info("Async config notification")

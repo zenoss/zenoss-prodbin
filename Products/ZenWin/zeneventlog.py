@@ -18,14 +18,12 @@ import pythoncom
 
 
 import Globals
-from Products.ZenEvents.ZenEventClasses import Status_Wmi_Conn
+from Products.ZenEvents.ZenEventClasses import Status_Wmi
 from Products.ZenEvents import Event
 
-from WinCollector import WinCollector
-from Constants import TIMEOUT_CODE, RPC_ERROR_CODE
-from ProcessProxy import ProcessProxyError
+from Products.ZenWin.WinCollector import WinCollector
+from Products.ZenWin.Constants import TIMEOUT_CODE, RPC_ERROR_CODE
 
-MAX_WAIT_FOR_WMI_REQUEST = 10
 
 class zeneventlog(WinCollector):
 
@@ -59,13 +57,13 @@ class zeneventlog(WinCollector):
             w = self.watchers[device.id]
 
             while 1:
-                lrec = w.boundedCall(MAX_WAIT_FOR_WMI_REQUEST, 'nextEvent')
+                lrec = w.nextEvent()
                 if not lrec.message:
                     continue
                 self.events += 1
                 self.sendEvent(self.mkevt(device.id, lrec))
+            return
         except pywintypes.com_error, e:
-            msg = "wmi connection failed: "
             code,txt,info,param = e
             wmsg = "%s: %s" % (abs(code), txt)
             if info:
@@ -73,28 +71,24 @@ class zeneventlog(WinCollector):
                 scode = abs(scode)
                 if descr:
                     wmsg = descr.strip()
-            msg += wmsg
-            if scode == TIMEOUT_CODE:
-                self.log.debug("timeout (no events) %s", device.id)
-            elif scode == RPC_ERROR_CODE:
-                self.log.warn("%s %s", device.id, msg)
-            else:
-                self.log.warn("%s %s", device.id, msg)
-                self.log.warn("removing %s", device.id)
-                self.devices.remove(device)
-        except ProcessProxyError, ex:
-            import traceback
-            traceback.print_exc()
-            self.sendEvent(dict(summary="WMI Timeout",
-                                eventClass=Status_Wmi_Conn,
+                if scode == TIMEOUT_CODE:
+                    self.log.debug("timeout (no events) %s", device.id)
+                    return
+                elif scode == RPC_ERROR_CODE:
+                    self.log.warn("%s %s", device.id,
+                                  "wmi connection failed: ", wmsg)
+        except Exception, ex:
+            self.log.exception("Exception getting windows events: %s", ex)
+            self.sendEvent(dict(summary="Error reading wmi events",
+                                exception=str(ex),
+                                eventClass=Status_Wmi,
                                 device=device.id,
                                 severity=Event.Error,
                                 agent=self.agent))
-            self.wmiprobs.append(device.id)
-            self.log.warning("WMI Connection to %s timed out" % device.id)
-            if self.watchers.has_key(device.id):
-                self.watchers[device.id].stop()
-                del self.watchers[device.id]
+        self.log.warning("Closing any watcher to %s", device.id)
+        if self.watchers.has_key(device.id):
+            w = self.watchers.pop(device.id)
+            w.close()
 
         
         
@@ -114,7 +108,6 @@ class zeneventlog(WinCollector):
             finally:
                 self.niceDoggie(cycle)
 
-        gc.collect()
         self.log.info("Com InterfaceCount: %d", pythoncom._GetInterfaceCount())
         self.log.info("Com GatewayCount: %d", pythoncom._GetGatewayCount())
         for ev in (self.rrdStats.counter('events', cycle, self.events) +
