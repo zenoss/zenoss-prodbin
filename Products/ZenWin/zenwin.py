@@ -21,6 +21,7 @@ from Products.ZenWin.WMIClient import WMIClient
 from Products.ZenWin.Constants import TIMEOUT_CODE
 from Products.ZenEvents.ZenEventClasses import Status_Wmi, Status_WinService
 from Products.ZenEvents import Event
+from sets import Set
 
 ERRtimeout = 1726
 
@@ -61,16 +62,16 @@ class zenwin(WinCollector):
             
     def reportServices(self, device):
         for name, (status, severity) in device.services.items():
-            if severity > 0:
+            if status > 0:
                 msg = self.statmsg % (name, "down")
                 self.sendEvent(self.mkevt(device.id, name, msg, severity))
             
     def serviceRunning(self, device, name):
-        self.log.info('%s: %s running' % (device.id, name))
         if name not in device.services: return
         status, severity = device.services[name]
         device.services[name] = 0, severity
         if status != 0:
+            self.log.info('%s: %s running' % (device.id, name))
             msg = self.statmsg % (name, "up")
             self.sendEvent(self.mkevt(device.id, name, msg, 0))
             self.log.info("svc up %s, %s", device.id, name)
@@ -83,13 +84,13 @@ class zenwin(WinCollector):
         wmic = WMIClient(device)
         wmic.connect()
         q = wmic.query(dict(query=wql))
-        svcs = [ svc.name for svc in q['query'] ]
-        for name, (status, severity) in device.services.items():
-            self.log.debug("service: %s status: %d", name, status)
-            if name not in svcs:
-                self.serviceStopped(device, name)
-            elif status > 0:
-                self.serviceRunning(device, name)
+        running = Set([ svc.name for svc in q['query'] ])
+        monitored = Set(device.services.keys())
+        self.log.debug("services: %s", monitored)
+        for name in monitored - running:
+            self.serviceStopped(device, name)
+        for name in monitored & running:
+            self.serviceRunning(device, name)
         wmic.close()
 
 
