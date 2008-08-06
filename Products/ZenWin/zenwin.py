@@ -18,7 +18,7 @@ import pythoncom
 import Globals
 from Products.ZenWin.WinCollector import WinCollector
 from Products.ZenWin.WMIClient import WMIClient
-from Products.ZenWin.Constants import TIMEOUT_CODE
+from Products.ZenWin.Constants import TIMEOUT_CODE, ERROR_CODE_MAP
 from Products.ZenEvents.ZenEventClasses import Status_Wmi, Status_WinService
 from Products.ZenEvents import Event
 from sets import Set
@@ -126,7 +126,9 @@ class zenwin(WinCollector):
                     return
                 self.log.debug("Codes: %r" % (info,))
                 if scode != TIMEOUT_CODE:
-                    self.deviceDown(device, '%d: %s' % (code, txt))
+                    msg = '%d: %s' % (code, txt)
+                    msg = ERROR_CODE_MAP.get(str(scode), [None, msg])[1]
+                    self.deviceDown(device, msg)
     def processLoop(self):
         pythoncom.PumpWaitingMessages()
         for device in self.devices:
