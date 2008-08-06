@@ -49,16 +49,22 @@ def prepForFailure(device, operation):
     fp.close()
 
 def success(device):
-    os.unlink(_filename(device))
+    try:
+        os.unlink(_filename(device))
+    except IOError:
+        pass
 
 def failures(clean=False):
     result = []
     for path, dirs, files in os.walk(zenPath('var', _myname())):
         for f in files:
             fullname = os.path.join(path, f)
-            result.append( (f, file(fullname).read()[:-1]) )
-            if clean:
-                os.unlink(fullname)
+            try:
+                result.append( (f, file(fullname).read()[:-1]) )
+                if clean:
+                    os.unlink(fullname)
+            except IOError:
+                pass
     return result
 
 def watchForFailure(method):
