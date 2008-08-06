@@ -49,7 +49,7 @@
       </td>
       <td class="tablevalues" colspan="3" tal:condition="editable">
           <textarea tal:condition="editable"
-                    name="setIpAddresses:lines"
+                    name="ips:lines"
                     tal:attributes="class string:tablevalues; 
                             cols string:40;
                             rows string:5;"
