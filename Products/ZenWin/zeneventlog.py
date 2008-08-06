@@ -58,7 +58,7 @@ class zeneventlog(WinCollector):
             w = self.watchers[device.id]
 
             while 1:
-                lrec = w.nextEvent()
+                lrec = w.nextEvent(int(self.options.queryTimeout))
                 if not lrec.message:
                     continue
                 self.events += 1
