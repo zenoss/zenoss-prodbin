@@ -53,6 +53,7 @@ class zeneventlog(WinCollector):
                   """and TargetInstance.EventType <= %d"""\
                   % device.zWinEventlogMinSeverity
             if not self.watchers.has_key(device.id):
+                self.log.warning("Creating watcher of %s", device.id)
                 self.watchers[device.id] = self.getWatcher(device, wql)
             w = self.watchers[device.id]
 
@@ -85,7 +86,7 @@ class zeneventlog(WinCollector):
                                 device=device.id,
                                 severity=Event.Error,
                                 agent=self.agent))
-        self.log.warning("Closing any watcher to %s", device.id)
+        self.log.warning("Closing watcher of %s", device.id)
         if self.watchers.has_key(device.id):
             w = self.watchers.pop(device.id)
             w.close()
@@ -108,8 +109,8 @@ class zeneventlog(WinCollector):
             finally:
                 self.niceDoggie(cycle)
 
-        self.log.info("Com InterfaceCount: %d", pythoncom._GetInterfaceCount())
-        self.log.info("Com GatewayCount: %d", pythoncom._GetGatewayCount())
+        self.log.debug("Com InterfaceCount: %d", pythoncom._GetInterfaceCount())
+        self.log.debug("Com GatewayCount: %d", pythoncom._GetGatewayCount())
         for ev in (self.rrdStats.counter('events', cycle, self.events) +
                    self.rrdStats.gauge('comInterfaceCount', cycle,
                                        pythoncom._GetInterfaceCount()) +
