@@ -39,6 +39,8 @@ ZenGeoMap.prototype = {
         this.mgr = new GMarkerManager(this.map);
         this.geocodetimeout = 500;
         this.markerchecking = null;
+        this._markerregistry = {};
+        this._polylineregistry = [];
         bindMethods(this);
     },
     geocode: function(address, callback) {
@@ -87,7 +89,7 @@ ZenGeoMap.prototype = {
         colors = ['green', 'grey', 'blue', 'yellow', 'orange', 'red'];
         severity = findValue(colors, color);
         newsize = 16 + severity;
-        this.baseIcon.iconSize = new GSize(newsize, newsize)
+        this.baseIcon.iconSize = new GSize(newsize, newsize);
         function colorImportance (marker, b) {
             return GOverlay.getZIndex(marker.getPoint().lat()) + 
                       findValue(colors, color)*10000000;
@@ -127,8 +129,25 @@ ZenGeoMap.prototype = {
         f.addCallback(bind(function(p){
             var polyline = new GPolyline(points, color, 3);
             this.map.addOverlay(polyline);
+            this._polylineregistry.push(polyline);
             lock2.release();
         }, this));
+    },
+    getOrCreateMarker: function(p, color){
+        var marker = this._markerregistry[p];
+        var isnew = (typeof(marker)=='undefined');
+        if (isnew) {
+            marker = this.Dot(p, color);
+        } else {
+            newimage = "img/" + color + "_dot.png";
+            if (marker.getIcon().image!=newimage) {
+                this.map.removeOverlay(marker);
+                marker = this.Dot(p, color);
+                isnew = true;
+            }
+        }
+        this._markerregistry[p] = marker;
+        return [marker, isnew];
     },
     addMarkers: function(nodedata){
         var ready_markers = [];
@@ -156,16 +175,22 @@ ZenGeoMap.prototype = {
                         "Geocoding " + nummarkers + " of " + nodelen + " addresses..."
                     );
                     if (p) {
-                        var marker = this.Dot(p, color);
-                        this.bounds.extend(p);
-                        GEvent.addListener(marker, "click", function(){
-                           if (clicklink.search('ocationGeoMap')>0){
-                               location.href = clicklink;
-                           } else {
-                            currentWindow().parent.location.href = clicklink;
-                           }
-                        });
-                        ready_markers.push(marker);
+                        markerpair = this.getOrCreateMarker(p, color);
+                        var marker = markerpair[0];
+                        var isNew = markerpair[1];
+                        if (isNew) {
+                            this.bounds.extend(p);
+                            ready_markers.push(marker);
+                            GEvent.addListener(marker, "click", function(){
+                               if (clicklink.search('ocationGeoMap')>0){
+                                   location.href = clicklink;
+                               } else {
+                                currentWindow().parent.location.href = clicklink;
+                               }
+                            });
+                        } else {
+                            marker.redraw(true);
+                        }
                         GLOB_MARKERDATA.push([marker, clicklink, summarytext]);
                     }
                 }, this)
@@ -200,13 +225,17 @@ ZenGeoMap.prototype = {
         }
         this.dirtycache = false;
     },
+    clearPolylines: function() {
+        forEach(this._polylineregistry, function(o){
+            this.map.removeOverlay(o);
+        });
+    },
     doDraw: function(results) {
         var nodedata = results.nodedata;
         var linkdata = results.linkdata;
         this.mgr = new GMarkerManager(this.map);
-        //this.mgr.refresh();
-        this.map.clearOverlays();
         this.addMarkers(nodedata);
+        this.clearPolylines();
         for (j=0;j<linkdata.length;j++) {
             this.addPolyline(linkdata[j]);
         }
@@ -243,8 +272,16 @@ function _getGMMarkerImage(marker) {
     return myval;
 }
 
+function getuid(m) {
+    // Gives you a (sort of) unique id for a marker
+    p = m.getPoint();
+    id = String(p.x) + String(p.y);
+    return id.replace(/[^a-zA-Z0-9]+/g, '');
+}
+
 function post_process(m) {
     var marker = m[0];
+    var uid = getuid(marker);
     var clicklink = m[1];
     var summarytext = m[2];
     var markerimg = _getGMMarkerImage(marker);
@@ -252,10 +289,8 @@ function post_process(m) {
                     "yui-skin-sam")
     addElementClass(markerimg.ownerDocument.body, 
                     "zenoss-gmaps")
-    //summarytext = YAHOO.zenoss.unescapeHTML(summarytext);
-    randint = parseInt(Math.random()*100000);
     var ttip = new YAHOO.widget.Tooltip(
-        randint+"_tooltip",
+        uid+"_tooltip",
         {
             context:markerimg, 
             text:summarytext
