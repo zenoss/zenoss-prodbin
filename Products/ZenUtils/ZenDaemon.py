@@ -59,14 +59,11 @@ class ZenDaemon(CmdBase):
             if self.options.daemon:
                 self.changeUser()
                 self.becomeDaemon()
-        # if we are daemonizing non-watchdog, or child of a watchdog:
-        if ((self.options.daemon and not self.options.watchdog) or 
-            self.options.watchdogPath):
-           try:
-              self.writePidFile()
-           except OSError:
-              raise SystemExit("ERROR: unable to open pid file %s" %
-                               self.pidfile)
+        try:
+           self.writePidFile()
+        except OSError:
+           raise SystemExit("ERROR: unable to open pid file %s" %
+                            self.pidfile)
         if self.options.watchdog and not self.options.watchdogPath:
             self.becomeWatchdog()
 
