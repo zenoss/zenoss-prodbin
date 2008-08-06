@@ -75,9 +75,7 @@ class zeneventlog(WinCollector):
                 if scode == TIMEOUT_CODE:
                     self.log.debug("timeout (no events) %s", device.id)
                     return
-                elif scode == RPC_ERROR_CODE:
-                    self.log.warn("%s %s", device.id,
-                                  "wmi connection failed: ", wmsg)
+            self.log.warn("%s %s", device.id, "wmi connection failed: ", wmsg)
         except Exception, ex:
             self.log.exception("Exception getting windows events: %s", ex)
             self.sendEvent(dict(summary="Error reading wmi events",
