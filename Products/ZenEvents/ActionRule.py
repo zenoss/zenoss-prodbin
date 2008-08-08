@@ -203,11 +203,12 @@ class ActionRule(ZenModelRM, EventFilter):
 
 
     def manage_beforeDelete(self, item, container):
-        """Clear state in alert_state before we are deleted.
         """
-        from Products.ZenUtils.Utils import unused
-        unused(item, container)
+        Clear state in alert_state before we are deleted.
+        Also need to unindex the actionrulewindows
+        """
         self._clearAlertState()
+        super(ActionRule, self).manage_beforeDelete(item, container)
 
 
     def _clearAlertState(self):
@@ -289,6 +290,6 @@ class ActionRule(ZenModelRM, EventFilter):
         if REQUEST:
             REQUEST['message'] = "Active Period Deleted"
             return self.callZenScreen(REQUEST)
-                          
+      
 
 InitializeClass(ActionRule)

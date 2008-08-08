@@ -535,6 +535,15 @@ class UserSettings(ZenModelRM):
                owner.getUserName() == user.getUserName()
 
 
+    def manage_beforeDelete(self, item, container):
+        """
+        ActionRuleWindows need to be unindexed
+        """
+        super(ZenModelRM, self).manage_beforeDelete(item, container)
+        for ar in self.getActionRules():
+            ar.manage_beforeDelete(item, container)
+
+
     security.declareProtected(ZEN_CHANGE_SETTINGS, 'manage_editUserSettings')
     def manage_editUserSettings(self, password=None, sndpassword=None,
                                 roles=None, groups=None, domains=None,
