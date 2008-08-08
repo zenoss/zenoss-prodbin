@@ -13,7 +13,6 @@
 
 import Globals
 from Products.ZenWin.WMIClient import WMIClient
-import sys
 
 import logging
 log = logging.getLogger('zen.Watcher')

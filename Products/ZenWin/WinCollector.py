@@ -20,7 +20,6 @@ import Globals
 from Products.ZenHub.PBDaemon import FakeRemote, PBDaemon
 from Products.ZenEvents.ZenEventClasses import Error, App_Start, Clear, Status_Wmi_Conn
 from Products.ZenUtils.Driver import drive, driveLater
-from Products.ZenUtils.Utils import zenPath
 from Products.ZenWin import WMIClient
 from Products.ZenWin.Watcher import Watcher
 from Products.ZenWin.Constants import ERROR_CODE_MAP

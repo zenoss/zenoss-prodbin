@@ -11,7 +11,6 @@
 #
 ###########################################################################
 
-import gc
 from socket import getfqdn
 import pywintypes
 import pythoncom
@@ -23,7 +22,7 @@ from Products.ZenEvents import Event
 
 from Products.ZenWin.WinCollector import WinCollector
 from Products.ZenWin.Constants import \
-     TIMEOUT_CODE, RPC_ERROR_CODE, ERROR_CODE_MAP
+     TIMEOUT_CODE, ERROR_CODE_MAP
 
 
 class zeneventlog(WinCollector):
@@ -76,7 +75,7 @@ class zeneventlog(WinCollector):
                 if scode == TIMEOUT_CODE:
                     self.log.debug("timeout (no events) %s", device.id)
                     return
-                wmsg = ERROR_CODE_MAP.get(str(scode), [None, msg])[1]
+                wmsg = ERROR_CODE_MAP.get(str(scode), [None, wmsg])[1]
             self.log.warn("%s %s", device.id, "wmi connection failed: ", wmsg)
         except Exception, ex:
             self.log.exception("Exception getting windows events: %s", ex)
