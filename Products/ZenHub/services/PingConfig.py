@@ -22,13 +22,14 @@ class PingConfig(PerformanceConfig):
     @threaded
     @translateError
     def remote_getPingTree(self, root, fallbackIp):
-        conn = self.dmd._p_jar._db.open()
+        from transaction._manager import ThreadTransactionManager
+        conn = self.dmd._p_jar._db.open(
+                transaction_manager=ThreadTransactionManager())
         try:
-            dmd = conn.root()['Application'].zport.dmd
-            return self.getPingTree(dmd, root, fallbackIp)
+            dmd2 = conn.root()['Application'].zport.dmd
+            return self.getPingTree(dmd2, root, fallbackIp)
         finally:
-            import transaction
-            transaction.abort()
+            conn.transaction_manager.abort()
             conn.close()
 
     def getPingTree(self, dmd, root, fallbackIp):
