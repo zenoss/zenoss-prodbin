@@ -206,7 +206,16 @@ class CustomEventView(ZenModelRM, EventFilter):
     def manage_deleteEvents(self, evids=(), REQUEST=None):
         """Delete events form this managed entity.
         """
-        return self.getEventManager().manage_deleteEvents(evids, REQUEST)
+        # If we pass REQUEST in to the getEventManager().manage_deleteEvents()
+        # call we don't get a proper refresh of the event console.  It only
+        # works if self.callZenScreen() is called from here rather than down
+        # in the event manager.  I'm not sure why.  Using FakeResult to fetch
+        # the message seems like best workaround for now.
+        request = FakeRequest()
+        self.getEventManager().manage_deleteEvents(evids, request)
+        if REQUEST:
+            request.setMessage(REQUEST)
+            return self.callZenScreen(REQUEST)
 
 
     security.declareProtected('Manage Events','manage_deleteHeartbeat')
@@ -258,7 +267,7 @@ class CustomEventView(ZenModelRM, EventFilter):
         return self.zmanage_editProperties(REQUEST)
 
 
-    #security.declareProtected('Manage Events','manage_deleteBatchEvents')
+    security.declareProtected('Manage Events','manage_deleteBatchEvents')
     def manage_deleteBatchEvents(self, selectstatus='none', goodevids=[],
                                     badevids=[], filter='', 
                                     offset=0, count=50, fields=[], 
