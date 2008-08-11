@@ -40,7 +40,7 @@ from UpdateCheck import UpdateCheck
 from Products.ZenUtils import Utils
 from twisted.internet import reactor
 from twisted.internet.protocol import ProcessProtocol
-from DateTime import DateTime
+from email.Utils import formatdate
 
 def _capitalize(s):
     return s[0:1].upper() + s[1:]
@@ -605,7 +605,7 @@ class ZenActions(ZCmdBase):
         emsg['Subject'] = fmt
         emsg['From'] = self.dmd.getEmailFrom()
         emsg['To'] = ', '.join(addr)
-        emsg['Date'] = DateTime().rfc822()
+        emsg['Date'] = formatdate(None, True)
         result, errorMsg = Utils.sendEmail(emsg, self.dmd.smtpHost,
                     self.dmd.smtpPort, self.dmd.smtpUseTLS, self.dmd.smtpUser, 
                     self.dmd.smtpPass)
