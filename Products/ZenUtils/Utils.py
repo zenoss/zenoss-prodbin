@@ -569,7 +569,14 @@ def zenPath(*args):
 
     """
     args = [a.strip('/') for a in args]
-    return os.path.join(os.environ['ZENHOME'], *args)
+    path = os.path.join(os.environ['ZENHOME'], *args)
+    #test if ZENHOME based path exists and if not try bitrock style path.
+    #if neither exists return the ZENHOME based path
+    if(not os.path.exists(path)):
+        testPath = os.path.join(os.environ['ZENHOME'], "..", "common", *args)
+        if(os.path.exists(testPath)):
+            path = testPath
+    return path
 
 def zopePath(*args):
     """
