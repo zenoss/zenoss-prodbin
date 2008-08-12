@@ -10,7 +10,7 @@ GoogleMapsDatasource.prototype = {
         var url = '/zport/dmd' + this.baseLoc + 
                   '/simpleLocationGeoMap';
         html = '<iframe src="' + url + '" ' +
-               'style="border:medium none;margin:0;padding:0;'+
+               'style="border:medium none;margin:-2px 0px;padding:0px;'+
                'width:100%;height:100%;"/>';
         callback({responseText:html});
     }
