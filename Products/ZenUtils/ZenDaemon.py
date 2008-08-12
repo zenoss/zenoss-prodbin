@@ -42,7 +42,6 @@ if (hasattr(os, "devnull")):
 else:
    REDIRECT_TO = "/dev/null"
 
-DEFAULT_START_TIMEOUT = 10*60*60
 
 class ZenDaemon(CmdBase):
 
@@ -191,7 +190,8 @@ class ZenDaemon(CmdBase):
             zenPath('var'), self.__class__.__name__, os.getpid())
         # time between child reports: default to 2x the default cycle time
         cycleTime = getattr(self.options, 'cycleTime', 1200)
-        startTimeout = getattr(self.options, 'starttimeout', DEFAULT_START_TIMEOUT)
+        # Default start timeout should be cycle time plus a couple of minutes
+        startTimeout = getattr(self.options, 'starttimeout', cycleTime + 120)
         maxTime = getattr(self.options, 'maxRestartTime', 600)
         watchdog = Watcher(socketPath,
                            cmd,
@@ -233,7 +233,6 @@ class ZenDaemon(CmdBase):
         self.parser.add_option('--startTimeOut',
                                dest='starttimeout',
                                type="int",
-                               default=DEFAULT_START_TIMEOUT,
                                help="wait seconds for initial heartbeat")
 
 
