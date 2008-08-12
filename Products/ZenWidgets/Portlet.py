@@ -16,6 +16,7 @@ from os.path import basename, exists
 from Products.ZenRelations.RelSchema import *
 from Products.ZenModel.ZenModelRM import ZenModelRM
 from Globals import InitializeClass
+from Products.ZenUtils.Utils import zenPath
 
 class PortletSourceNotFound(Exception): pass
 
@@ -62,12 +63,15 @@ class Portlet(ZenModelRM):
         self.preview = preview
         self._read_source()
 
+    def _getSourcePath(self):
+        return zenPath(self.sourcepath)
+
     def check(self):
-        return exists(self.sourcepath)
+        return exists(self._getSourcePath())
 
     def _read_source(self):
         try:
-            f = file(self.sourcepath)
+            f = file(self._getSourcePath())
         except IOError, e:
             raise PortletSourceNotFound, e
         self.source = f.read()

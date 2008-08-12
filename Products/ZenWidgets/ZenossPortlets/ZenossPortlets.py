@@ -11,45 +11,49 @@
 #
 ###########################################################################
 
+import os
 from Products.ZenModel.ZenossSecurity import *
-from Products.ZenUtils.Utils import zenPath
 
-def portletpath(*args):
-    return zenPath('/Products/ZenWidgets', *args)
+def _portletpath(*args):
+    """
+    Shortcut, since these all live in the same directory. Portlet needs a path
+    relative to $ZENHOME.
+    """
+    return os.path.join('Products','ZenWidgets','ZenossPortlets', *args)
 
 portlets = [
     {
-     'sourcepath':  portletpath('ZenossPortlets/HeartbeatsPortlet.js'), 
+     'sourcepath':  _portletpath('HeartbeatsPortlet.js'), 
      'id':          'HeartbeatsPortlet', 
      'title': 'Zenoss Issues',
      'permission':  ZEN_MANAGE_DMD
     },
     {
-     'sourcepath':  portletpath('ZenossPortlets/GoogleMapsPortlet.js'), 
+     'sourcepath':  _portletpath('GoogleMapsPortlet.js'), 
      'id':          'GoogleMapsPortlet', 
      'title': 'Google Maps',
      'permission':  ZEN_VIEW
     },
     {
-     'sourcepath':  portletpath('ZenossPortlets/DeviceIssuesPortlet.js'), 
+     'sourcepath':  _portletpath('DeviceIssuesPortlet.js'), 
      'id':          'DeviceIssuesPortlet', 
      'title': 'Device Issues',
      'permission':  ZEN_COMMON
     },
     {
-     'sourcepath':  portletpath('ZenossPortlets/TopLevelOrgsPortlet.js'), 
+     'sourcepath':  _portletpath('TopLevelOrgsPortlet.js'), 
      'id':          'TopLevelOrgsPortlet', 
      'title': 'Top Level Organizers',
      'permission':  ZEN_VIEW
     },
     {
-     'sourcepath':  portletpath('ZenossPortlets/WatchListPortlet.js'), 
+     'sourcepath':  _portletpath('WatchListPortlet.js'), 
      'id':          'WatchListPortlet', 
      'title': 'Watch List',
      'permission':  ZEN_COMMON
     },
     {
-     'sourcepath':  portletpath('ZenossPortlets/productionStatePortlet.js'), 
+     'sourcepath':  _portletpath('productionStatePortlet.js'), 
      'id':          'ProdStatePortlet', 
      'title': 'Production States',
      'permission':  ZEN_COMMON
