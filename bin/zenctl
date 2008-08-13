@@ -79,6 +79,11 @@ set_perms() {
 fresh_install_pre() {
     echo "Zenoss not initialized.  Performing first-boot initialization..."
 
+    if [ `id -u` != 0 ]; then
+        echo "Must be root when starting this service for the first time after an install."
+        exit 1
+    fi
+
     # location of where we copy configuration items to
     ZEN_ETC=${ZENHOME}/etc
 
@@ -114,6 +119,11 @@ fresh_install_post() {
 # and BEFORE the zenoss processes are started
 upgrade_pre() {
     echo "Zenoss upgraded.  Running data migration scripts..."
+
+    if [ `id -u` != 0 ]; then
+        echo "Must be root when starting this service for the first time after an upgrade."
+        exit 1
+    fi
 
     # run the first time initialization pre-run script
     set_perms
