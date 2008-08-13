@@ -1,4 +1,5 @@
-<tal:block metal:define-macro="vertical">
+<tal:block metal:define-macro="vertical"
+    tal:on-error="structure python:here.dmd.error_handler(error)">
 <tal:block tal:define="
     zem python:here.ZenEventManager;
     colors python:'red orange yellow blue grey green'.split();
@@ -27,8 +28,7 @@
 </tal:block>
 
 <table width='100%' metal:define-macro="eventrainbow"
-    tal:on-error="structure string: 
-        <span class='errorvalues'>Events unavailable</span>"
+    tal:on-error="structure python:here.dmd.error_handler(error)"
     tal:define="
         default  python:1;
         severity severity | default">
@@ -42,14 +42,14 @@
   </tr>
 </table>
 
-<tal:block metal:define-macro="horizontal">
+<tal:block metal:define-macro="horizontal"
+    tal:on-error="structure python:here.dmd.error_handler(error)">
 <tal:block tal:define="
     zem python:here.ZenEventManager;
     colors python:'red orange yellow blue grey green'.split();
     summaries python:zem.getEventSummaryME(here, 0);
     totals python:[x[2] for x in summaries];
-    ackstatus python:[x[2]-x[1] for x in summaries];
-    ">
+    ackstatus python:[x[2]-x[1] for x in summaries]; " >
     <div class="horizontal-rainbow"
     onclick="location.href=YAHOO.zenoss.templateFreeURL+'/viewEvents'">
         <tal:block tal:repeat="evnum python:totals[:-1]">

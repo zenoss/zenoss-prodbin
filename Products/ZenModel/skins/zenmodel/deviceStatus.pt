@@ -30,7 +30,8 @@
         <div class="yui-b yui-z2">
             <dl class="faux-table">
                 <dt class="first">Availability</dt>
-                    <dd class="first" tal:content="here/availability"/>
+                    <dd class="first" tal:content="here/availability"
+                        tal:on-error="structure python:here.dmd.error_handler(error)"/>
                 <dt>Uptime</dt>
                     <dd tal:content="here/uptimeStr"/>
                 <dt>State</dt>
@@ -76,8 +77,9 @@
             <script tal:define="evsum here/getDeviceComponentEventSummary"
               tal:content="structure string:
               var devcompevsum = ${evsum};
-              compevsum = devcompevsum;
-            "></script>
+              compevsum = devcompevsum;"
+              tal:on-error="structure python:here.dmd.error_handler(error)"
+            ></script>
             <script>
             function makeComponentDataTable() {
                 var columns = compevsum.columns;

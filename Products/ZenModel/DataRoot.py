@@ -39,6 +39,8 @@ import string
 from Products.ZenUtils.Utils import zenPath, binPath
 from Products.ZenUtils.Utils import extractPostContent
 
+from Products.ZenEvents.Exceptions import *
+
 from ZenModelRM import ZenModelRM
 from ZenossSecurity import ZEN_COMMON, ZEN_MANAGE_DMD
 
@@ -700,6 +702,26 @@ class DataRoot(ZenModelRM, OrderedFolder, Commandable, ZenMenuable):
         for the correct product.
         """
         return getattr(self, 'productName', 'core')
+
+
+    def error_handler(self, error=None):
+        """
+        Returns pretty messages when errors are raised in templates.
+
+        Access this method from a template like so:
+            <div tal:content="..."
+                 ...
+                 tal:on-error="structure python:here.dmd.error_handler(error)">
+
+        @param error: A TALES.ErrorInfo instance with attributes type, value
+                      and traceback.
+        """
+        if error.type==MySQLConnectionError:
+            msg = "Unable to connect to the MySQL server."
+        else: 
+            raise 
+        return '<b class="errormsg">%s</b>' % msg
+
 
 
 InitializeClass(DataRoot)

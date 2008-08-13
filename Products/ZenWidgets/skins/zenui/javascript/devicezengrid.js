@@ -163,8 +163,10 @@ DeviceZenGridBuffer.prototype = {
 var DeviceZenGrid = Class.create();
 
 DeviceZenGrid.prototype = {
-    __init__: function(container, url, gridId, buffer, absurl) {
+    __init__: function(container, url, gridId, buffer, absurl,
+                       messageCallback) {
         bindMethods(this);
+        this.message = messageCallback || function(msg){noop()};
         this.absurl = absurl;
         this.container = $(container);
         this.gridId = gridId;
@@ -295,7 +297,7 @@ DeviceZenGrid.prototype = {
         this.askformore = loadJSONDoc(this.url, qs);
         this.askformore.addErrback(bind(function(x) { 
             callLater(5, bind(function(){
-            alert('Cannot communicate with the server!');
+            this.message('Unable to communicate with the server.');
             delete this.askformore;
             this.killLoading()}, this))
         }, this));
@@ -330,7 +332,7 @@ DeviceZenGrid.prototype = {
         this.askformore = loadJSONDoc(url, qs);
         this.askformore.addErrback(bind(function(x) { 
             callLater(5, bind(function(){
-            alert('Cannot communicate with the server!');
+            this.message('Unable to communicate with the server.');
             delete this.askformore;
             this.killLoading()}, this))
         }, this));
@@ -625,7 +627,8 @@ DeviceZenGrid.prototype = {
             [
                 LI({'id':'setSelectAll'}, 'All'),
                 LI({'id':'setSelectNone'}, 'None')
-            ])
+            ]),
+            SPAN({'style':'margin-left:2em','id':'msgbox', 'class':'errormsg'}, '')
         ]
         );
         this.headers = TABLE( {id: getId('headers'), 'class':"zg_headers",

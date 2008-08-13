@@ -495,6 +495,12 @@ tbody.zentablecontents tr {
     background-color: #CCCCCC;
 }
 
+.errormsg {
+    /*font-size: 10pt;*/
+    font-weight: bold; 
+    color: #c00;
+}
+
 a.tabletitle {  
 	display: block;
 	color: white;

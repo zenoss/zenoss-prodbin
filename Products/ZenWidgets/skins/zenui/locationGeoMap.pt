@@ -16,11 +16,12 @@
     "></script>
     <script tal:content="string:
         var geocodecache;
+        var eventsdb=true;
         var nodedata = ${here/getChildGeomapData};
         var linkdata = ${here/getChildLinks};
         var cachestring = '${here/dmd/getGeoCache}';
-        if (cachestring) geocodecache = evalJSON(cachestring);
-    "></script>
+        if (cachestring) geocodecache = evalJSON(cachestring);"
+    tal:on-error="string:var eventsdb=false;"></script>
     <script>
         function maximizeMapHeight() {
             mapdiv = $('geomapcontainer');
@@ -31,13 +32,15 @@
         }
         connect(currentWindow(), 'onresize', maximizeMapHeight);
         addLoadEvent(maximizeMapHeight);
-        addLoadEvent(function(){
-            loader = YAHOO.zenoss.getLoader();
-            loader.require(['geomap']);
-            loader.insert({onSuccess:
-                function() { geomap_initialize(); }
+        if (eventsdb) {
+            addLoadEvent(function(){
+                loader = YAHOO.zenoss.getLoader();
+                loader.require(['geomap']);
+                loader.insert({onSuccess:
+                    function() { geomap_initialize(); }
+                });
             });
-        });
+        }
         </script>
 </tal:block>
 </tal:block>
@@ -49,7 +52,9 @@
 </tal:block>
 
 <tal:block metal:fill-slot="contentPane">
-<div id="geomapcontainer">
+
+<div id="geomapcontainer" tal:define="dummy here/getChildGeomapData"
+    tal:on-error="structure python:here.dmd.error_handler(error)">
 
     <!-- Google Maps javascript adds map here -->
 

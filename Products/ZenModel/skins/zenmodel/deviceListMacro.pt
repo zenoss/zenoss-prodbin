@@ -253,6 +253,9 @@
                     'true', 'false')">
     <script tal:content="string:
     var devZenGridBuffer, devZenGrid;
+    function updateDeviceListMessage(msg) {
+        $('msgbox').innerHTML = msg;
+    }
     loader = YAHOO.zenoss.getLoader();
     loader.require(['devicezengrid']);
     loader.insert({onSuccess: function() {
@@ -260,7 +263,7 @@
         devZenGridBuffer = new DeviceZenGridBuffer();
         devZenGrid = new DeviceZenGrid('gridcontainer',
             'getJSONDeviceInfo', 'mygrid', devZenGridBuffer,
-            '${here/absolute_url_path}');
+            '${here/absolute_url_path}', updateDeviceListMessage);
         connect('filter', 'onkeypress', devZenGrid.doEventLivesearch);
     }});
 "></script>

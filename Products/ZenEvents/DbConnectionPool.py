@@ -13,6 +13,7 @@
 import MySQLdb
 import MySQLdb.converters
 from MySQLdb.constants import FIELD_TYPE
+from Exceptions import MySQLConnectionError
 
 import time
 import DateTime
@@ -92,8 +93,11 @@ class DbConnectionPool:
             host, database = database, 'events'
         if port:
             port = int(port)
-        conn = MySQLdb.connect(host=host, user=username,
-                               port=port, passwd=password, 
-                               db=database, conv=mysqlconv, reconnect=1)
-        conn.autocommit(1)
-        return conn
+        try:
+            conn = MySQLdb.connect(host=host, user=username,
+                                   port=port, passwd=password, 
+                                   db=database, conv=mysqlconv, reconnect=1)
+            conn.autocommit(1)
+            return conn
+        except:
+            raise MySQLConnectionError
