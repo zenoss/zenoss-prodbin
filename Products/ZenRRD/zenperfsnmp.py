@@ -503,7 +503,8 @@ class zenperfsnmp(SnmpDaemon):
         
     def readDevices(self, unused=None):
         'Periodically fetch the performance values from all known devices'
-        
+        self.heartbeat()
+
         if self.status and not self.status.finished():
             _, _, _, age = self.status.stats()
             self.log.warning("There are still %d devices to query",
@@ -538,7 +539,6 @@ class zenperfsnmp(SnmpDaemon):
         self.log.info("sent %d OID requests", oidsRequested)
         self.log.info("collected %d of %d devices in %.2f" %
                       (success, total, runtime))
-        self.heartbeat()
         
         cycle = self.perfsnmpCycleInterval
         self.sendEvents(
