@@ -2044,8 +2044,10 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
             # event console.  Don't bother rendering anything in this case.
             if getattr(REQUEST, 'dontRender', False):
                 return ''
-            if len(evids) == 1 and evmap: return evmap()
-            elif evclass and evmap: return evclass()
+            if len(evids) == 1 and evmap:
+                REQUEST['RESPONSE'].redirect(evmap.absolute_url())
+            elif evclass and evmap:
+                REQUEST['RESPONSE'].redirect(evclass.absolute_url())
 
 
     security.declareProtected('Manage EventManager','manage_refreshConversions')
