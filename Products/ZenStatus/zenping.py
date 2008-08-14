@@ -314,13 +314,7 @@ class ZenPing(PBDaemon):
 
         
     def remote_updateConfig(self):
-        self.log.debug("Asynch update config")
-        if self.loadingConfig:
-            return
-        d = drive(self.loadConfig)
-        def reportError(result):
-            self.log.error("Error loading config: %s" % result)
-        d.addErrback(reportError)
+        self.log.debug("Ignoring Asynch update config")
 
 
     def copyItems(self, items):
