@@ -195,7 +195,7 @@ class FileSystem(OSComponent):
         blocks = self.cacheRRDValue('usedBlocks', default)
         if blocks is not None:
             return long(blocks)
-        else:
+        elif self.blockSize:
             # no usedBlocks datapoint, so this is probably a Windows device
             # using perfmon for data collection and therefore we'll look for
             # the freeMegabytes datapoint
