@@ -81,9 +81,11 @@ class Watcher:
     def __init__(self,
                  socketPath,
                  cmd,
-                 startTimeout = 120,
+                 startTimeout = None,
                  cycleTimeout = 1,
                  maxTime = 30):
+        if startTimeout == None:
+            startTimeout = 120
         self.socketPath = socketPath
         self.cmd = cmd
         self.startTimeout = startTimeout
