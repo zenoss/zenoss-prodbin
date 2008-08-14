@@ -63,13 +63,18 @@ class WinCollector(PBDaemon):
                             device=self.options.monitor,
                             severity=Clear,
                             component=self.name))
-        for device, where in WMIClient.failures(clean=True):
-            self.sendEvent(dict(
-                summary='Wmi communication failure',
-                method=where,
-                eventClass=Status_Wmi_Conn,
-                device=device,
-                severity=Error))
+        self.checkFailures()
+
+        
+    def checkFailures(self):
+        if self.options.watchdog:
+            for device, where in WMIClient.failures(clean=True):
+                self.sendEvent(dict(
+                    summary='Wmi communication failure',
+                    method=where,
+                    eventClass=Status_Wmi_Conn,
+                    device=device,
+                    severity=Error))
 
     def getWatcher(self, device, query):
         wmic = Watcher(device, query)

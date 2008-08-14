@@ -74,6 +74,10 @@ class zenwinmodeler(WinCollector):
             self.collectorPlugins[pname] = plugin
         return result
 
+    def checkFailures(self):
+        "Turn off failure checking since zenwinmodeler runs as a child process"
+        pass
+
 
     def config(self):
         "Get the ModelerService"
