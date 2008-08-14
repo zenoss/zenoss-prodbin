@@ -51,7 +51,7 @@ def prepForFailure(device, operation):
 def success(device):
     try:
         os.unlink(_filename(device))
-    except IOError:
+    except OSError:
         pass
 
 def failures(clean=False):
@@ -63,7 +63,7 @@ def failures(clean=False):
                 result.append( (f, file(fullname).read()[:-1]) )
                 if clean:
                     os.unlink(fullname)
-            except IOError:
+            except OSError:
                 pass
     return result
 
