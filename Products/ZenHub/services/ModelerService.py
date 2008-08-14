@@ -28,9 +28,12 @@ class ModelerService(PerformanceConfig):
         if self.plugins is None:
             self.plugins = {}
             for loader in loadPlugins(self.dmd):
-                plugin = loader.create()
-                plugin.loader = loader
-                self.plugins[plugin.name()] = plugin
+                try:
+                    plugin = loader.create()
+                    plugin.loader = loader
+                    self.plugins[plugin.name()] = plugin
+                except Exception, ex:
+                    log.exception(ex)
     
         result = DeviceProxy()
         result.id = dev.getId()
