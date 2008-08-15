@@ -83,6 +83,13 @@ class PortletManager(ZenModelRM):
             if portlet.id==id or portlet.sourcepath==sourcepath: return portlet
         return None
 
+    def update_source(self, REQUEST=None):
+        """
+        Reread the source files for all portlets.
+        """
+        for portlet in self.portlets():
+            portlet._read_source()
+
     def get_source(self, REQUEST=None):
         """
         Return the source of the portlets permitted to this user as a

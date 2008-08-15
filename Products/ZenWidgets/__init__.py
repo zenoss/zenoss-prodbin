@@ -29,6 +29,14 @@ try:
     registerDirectory('skins', globals())
 except ImportError: pass
 
+def update_portlets(app):
+    """
+    Reread in portlet source on startup. If this is the initial load, and
+    objects don't exist yet, don't do anything.
+    """
+    if hasattr(app, 'zport') and hasattr(app.zport, 'ZenPortletManager'):
+        app.zport.ZenPortletManager.update_source()
+
 def initialize(registrar):
     registrar.registerClass(
         ZenTableManager,
@@ -36,6 +44,7 @@ def initialize(registrar):
         constructors = (manage_addZenTableManager,),
         icon = "ZenTableManager_icon.gif"
     )
+    update_portlets(registrar._ProductContext__app)
 
 # Enable gzip compression of static files
 import FileGzipper
