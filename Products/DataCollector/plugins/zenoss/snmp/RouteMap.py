@@ -29,7 +29,8 @@ class RouteMap(SnmpPlugin):
     modname = "Products.ZenModel.IpRouteEntry"
     deviceProperties = \
                 SnmpPlugin.deviceProperties + ('zRouteMapCollectOnlyLocal',
-                                               'zRouteMapCollectOnlyIndirect')
+                                               'zRouteMapCollectOnlyIndirect',
+                                               'zRouteMapMaxRoutes')
     columns = {
         '.1' : 'id',
         '.2': 'setInterfaceIndex',
@@ -59,6 +60,7 @@ class RouteMap(SnmpPlugin):
         routetable = tabledata.get("routetable")
         localOnly = getattr(device, 'zRouteMapCollectOnlyLocal', False)
         indirectOnly = getattr(device, 'zRouteMapCollectOnlyIndirect', False)
+        maxRoutes = getattr(device, 'zRouteMapMaxRoutes', 500)
         rm = self.relMap()
         for route in routetable.values():
             om = self.objectMap(route)
@@ -81,6 +83,9 @@ class RouteMap(SnmpPlugin):
             om.routetype = self.mapSnmpVal(om.routetype, self.routeTypeMap)
             if indirectOnly and om.routetype != 'indirect':
                 continue
+            if len(rm.maps) > maxRoutes:
+                log.error("Maximum number of routes (%d) exceeded", maxRoutes)
+                return 
             rm.append(om)
         return rm
   

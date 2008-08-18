@@ -717,6 +717,7 @@ class DeviceClass(DeviceOrganizer, ZenPackable, TemplateContainer):
         devs._setProperty("zSnmpPrivType", "")
         devs._setProperty("zRouteMapCollectOnlyLocal", False, type="boolean")
         devs._setProperty("zRouteMapCollectOnlyIndirect", False, type="boolean")
+        devs._setProperty("zRouteMapMaxRoutes", 500, type="int")
         devs._setProperty("zInterfaceMapIgnoreTypes", "")
         devs._setProperty("zInterfaceMapIgnoreNames", "")
         devs._setProperty("zFileSystemMapIgnoreTypes", [], type="lines")
