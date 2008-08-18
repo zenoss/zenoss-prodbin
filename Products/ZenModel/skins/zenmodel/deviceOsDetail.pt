@@ -147,7 +147,8 @@ loader.insert( function(){
 
 </form>
 <form method="post" tal:attributes="action here/os/absolute_url"
-        name="winServiceListForm">
+        name="winServiceListForm"
+        tal:condition="not:here/zWmiMonitorIgnore">
 
 <tal:block 
     tal:define="tableName string:winserviceslist;
