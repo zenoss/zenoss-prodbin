@@ -185,12 +185,15 @@ class Collection(ZenModelRM):
         ''' Return a deduped list of devices and components represented
         by this collection's collectionitems
         '''
-        things = {}
-        for collectionItem in self.items():
+        things = []
+        tset = set()
+        for collectionItem in self.getItems():
             devsAndComps = collectionItem.getDevicesAndComponents()
             for devOrComp in devsAndComps:
-                things[devOrComp.getPrimaryId()] = devOrComp
-        return things.values()
-
+                tid = devOrComp.getPrimaryId()
+                if tid not in tset:
+                    tset.add(tid)
+                    things.append(devOrComp)
+        return things
         
 InitializeClass(Collection)
