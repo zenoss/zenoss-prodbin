@@ -33,10 +33,10 @@ q.input.name = 'className'
 
 var loader = YAHOO.zenoss.getLoader();
 loader.require(['zenautocomplete']);
-loader.insert( function(){
+loader.insert({onSuccess:function(){
     $('dialog').addLoadEvent('dialog_addIpService', function() { createIpServiceClassAutocompleter('ipServiceClassLiveSearch') ;} )
     $('dialog').addLoadEvent('dialog_addWinService', function() { createWinServiceClassAutocompleter('winServiceClassLiveSearch') ;} )
-}); 
+}});
 // don't pass it a callback, calling it later manually
 </script>
         
