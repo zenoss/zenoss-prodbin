@@ -529,7 +529,15 @@ class ZenActions(ZCmdBase):
         if clear:
             fmt = action.clearFormat
             body = action.clearBody
-        return fmt % data, body % data
+        try:
+            fmt = fmt % data
+        except Exception, ex:
+            fmt = "Error formatting event: %s" % (str(ex),)
+        try:
+            body = body % data
+        except Exception, ex:
+            body = "Error formatting event body: %s" % (str(ex),)
+        return fmt, body
 
     def stripTags(self, data):
         """A quick html => plaintext converter
