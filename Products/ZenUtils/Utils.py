@@ -707,9 +707,14 @@ def unsigned(v):
     1
     >>> unsigned(1e6)
     1000000
+    >>> unsigned(1e10)
+    10000000000
     '''
-    import ctypes
-    return int(ctypes.c_uint32(long(v)).value)
+    v = long(v)
+    if v < 0:
+        import ctypes
+        return int(ctypes.c_uint32(v).value)
+    return v
 
 
 def executeStreamCommand(cmd, writefunc, timeout=30):
