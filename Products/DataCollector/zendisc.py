@@ -46,8 +46,8 @@ class ZenDisc(ZenModeler):
 
     def __init__(self,noopts=0,app=None,single=True, keeproot=True):
         ZenModeler.__init__(self, noopts, app, single, keeproot)
-	if not self.options.useFileDescriptor:
-	    self.openPrivilegedPort('--ping')
+        if not self.options.useFileDescriptor:
+            self.openPrivilegedPort('--ping')
         self.discovered = []
         sock = None
         if self.options.useFileDescriptor:
@@ -262,8 +262,15 @@ class ZenDisc(ZenModeler):
                         kw.update(dict(zSnmpCommunity=
                                        self.options.zSnmpCommunity))
 
+
+                # If it's discovering a particular device, 
+                # ignore zAutoDiscover limitations
+                forceDiscovery = bool(self.options.device) 
+
                 # now create the device by calling zenhub
-                yield self.config().callRemote('createDevice', ip, **kw)
+                yield self.config().callRemote('createDevice', ip, 
+                                   force=forceDiscovery, **kw)
+
                 result = driver.next()
                 if isinstance(result, Failure):
                     raise ZentinelException(result.value)

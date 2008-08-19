@@ -125,7 +125,7 @@ class DiscoverService(ModelerService):
 
 
     @translateError
-    def remote_createDevice(self, ip, **kw):
+    def remote_createDevice(self, ip, force=False, **kw):
         """Create a device.
 
         @param ip: The manageIp of the device
@@ -137,7 +137,7 @@ class DiscoverService(ModelerService):
                 kw.get('performanceMonitor', 'localhost'))
             ipobj = netroot.createIp(ip)
             # If we're not supposed to discover this ip, return None
-            if not getattr(ipobj, 'zAutoDiscover', True):
+            if not force and not getattr(ipobj, 'zAutoDiscover', True):
                 return None, False
             kw['manageIp'] = ip
             dev = manage_createDevice(self.dmd, **kw)
