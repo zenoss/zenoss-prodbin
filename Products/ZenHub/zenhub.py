@@ -22,8 +22,6 @@ $Id$
 
 __version__ = "$Revision$"[11:-2]
 
-from socket import getfqdn
-
 from twisted.cred import portal, checkers, credentials
 from twisted.spread import pb
 
@@ -284,7 +282,7 @@ class ZenHub(ZCmdBase):
         @return: None
         """
         if not 'device' in kw:
-            kw['device'] = getfqdn()
+            kw['device'] = self.options.monitor
         if not 'component' in kw:
             kw['component'] = self.name
         try:
@@ -345,7 +343,7 @@ class ZenHub(ZCmdBase):
         @return: None
         """
         seconds = 30
-        evt = EventHeartbeat(getfqdn(), self.name, 3*seconds)
+        evt = EventHeartbeat(self.options.monitor, self.name, 3*seconds)
         self.zem.sendEvent(evt)
         self.niceDoggie(seconds)
         reactor.callLater(seconds, self.heartbeat)

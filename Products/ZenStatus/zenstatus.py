@@ -227,10 +227,9 @@ class ZenStatus(PBDaemon):
         if not self.options.cycle:
             self.stop()
             return
-        from socket import getfqdn
         heartbeatevt = dict(eventClass=Heartbeat,
                             component='zenstatus',
-                            device=getfqdn())
+                            device=self.options.monitor)
         self.sendEvent(heartbeatevt, timeout=self.statusCycleInterval*3)
         self.niceDoggie(self.statusCycleInterval)
         for ev in (self.rrdStats.gauge('cycleTime',

@@ -42,6 +42,8 @@ from twisted.internet import reactor
 from twisted.internet.protocol import ProcessProtocol
 from email.Utils import formatdate
 
+DEFAULT_MONITOR = "localhost"
+
 def _capitalize(s):
     return s[0:1].upper() + s[1:]
 
@@ -68,7 +70,7 @@ class EventCommandProtocol(ProcessProtocol):
         if code == 0:
             self.server.log.debug("Command %s says: %s", self.cmd.id, self.data)
             summary = self.data or "<command produced no output>"
-            self.server.sendEvent(Event.Event(device=socket.getfqdn(),
+            self.server.sendEvent(Event.Event(device=self.options.monitor,
                                               eventClass=Cmd_Ok,
                                               summary=summary,
                                               severity=Event.Clear,
@@ -86,7 +88,7 @@ class EventCommandProtocol(ProcessProtocol):
             self.server.log.error("Command %s, exit code %d: %s",
                                   self.cmd.id, code, self.error)
             summary="Error running: %s: %s" % (self.cmd.id, self.error)
-        self.server.sendEvent(Event.Event(device=socket.getfqdn(),
+        self.server.sendEvent(Event.Event(device=self.options.monitor,
                                           eventClass=Cmd_Fail,
                                           summary=summary,
                                           severity=Event.Error,
@@ -142,7 +144,7 @@ class ZenActions(ZCmdBase):
         self.actions = []
         self.loadActionRules()
         self.updateCheck = UpdateCheck()
-        self.sendEvent(Event.Event(device=socket.getfqdn(), 
+        self.sendEvent(Event.Event(device=self.options.monitor, 
                         eventClass=App_Start, 
                         summary="zenactions started",
                         severity=0, component="zenactions"))
@@ -510,7 +512,7 @@ class ZenActions(ZCmdBase):
         """Send a heartbeat event for this monitor.
         """
         timeout = self.options.cycletime*3
-        evt = Event.EventHeartbeat(socket.getfqdn(), "zenactions", timeout)
+        evt = Event.EventHeartbeat(self.options.monitor, "zenactions", timeout)
         self.sendEvent(evt)
         self.niceDoggie(self.options.cycletime)
 
@@ -518,7 +520,7 @@ class ZenActions(ZCmdBase):
     def stop(self):
         self.running = False
         self.log.info("stopping")
-        self.sendEvent(Event.Event(device=socket.getfqdn(), 
+        self.sendEvent(Event.Event(device=self.options.monitor, 
                         eventClass=App_Stop, 
                         summary="zenactions stopped",
                         severity=3, component="zenactions"))
@@ -634,6 +636,10 @@ class ZenActions(ZCmdBase):
             '--zopeurl', dest='zopeurl',
             default='http://%s:%d' % (socket.getfqdn(), 8080),
             help="http path to the root of the zope server")
+        self.parser.add_option("--monitor", dest="monitor",
+            default=DEFAULT_MONITOR,
+            help="Name of monitor instance to use for heartbeat "
+                " events. Default is %s." % DEFAULT_MONITOR)
 
 
     def sigTerm(self, signum=None, frame=None):

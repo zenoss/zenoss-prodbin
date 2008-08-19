@@ -54,8 +54,6 @@ def translateError(callable):
 from Products.ZenEvents.ZenEventClasses import App_Start, App_Stop, \
                                                 Clear, Warning
 
-from socket import getfqdn
-
 PB_PORT = 8789
 
 startEvent = {
@@ -99,7 +97,7 @@ class PBDaemon(ZenDaemon, pb.Referenceable):
         self.eventQueue = []
         self.startEvent = startEvent.copy()
         self.stopEvent = stopEvent.copy()
-        details = dict(component=self.name, device=getfqdn())
+        details = dict(component=self.name, device=self.options.monitor)
         for evt in self.startEvent, self.stopEvent, self.heartbeatEvent:
             evt.update(details)
         self.initialConnect = defer.Deferred()

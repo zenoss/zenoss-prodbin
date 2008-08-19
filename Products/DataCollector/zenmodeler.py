@@ -44,8 +44,6 @@ from Products.DataCollector import Plugins
 unused(DeviceProxy)
 unused(Plugins)
 
-from socket import getfqdn
-
 class ZenModeler(PBDaemon):
 
     name = 'zenmodeler'
@@ -400,7 +398,7 @@ class ZenModeler(PBDaemon):
         if self.options.cycle:
             evt = dict(eventClass=Heartbeat,
                        component='zenmodeler',
-                       device=getfqdn(),
+                       device=self.options.monitor,
                        timeout=3*ARBITRARY_BEAT)
             self.sendEvent(evt)
             self.niceDoggie(self.cycleTime())
