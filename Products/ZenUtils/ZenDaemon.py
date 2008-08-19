@@ -49,7 +49,7 @@ class ZenDaemon(CmdBase):
     
     def __init__(self, noopts=0, keeproot=False):
         CmdBase.__init__(self, noopts)
-        self.pidfile = 'unknown'
+        self.pidfile = None
         self.keeproot=keeproot
         self.reporter = None
         from twisted.internet import reactor
@@ -58,11 +58,11 @@ class ZenDaemon(CmdBase):
             if self.options.daemon:
                 self.changeUser()
                 self.becomeDaemon()
-        try:
-           self.writePidFile()
-        except OSError:
-           raise SystemExit("ERROR: unable to open pid file %s" %
-                            self.pidfile)
+                try:
+                   self.writePidFile()
+                except OSError:
+                   raise SystemExit("ERROR: unable to open pid file %s" %
+                                    (self.pidfile or '(unknown)'))
         if self.options.watchdog and not self.options.watchdogPath:
             self.becomeWatchdog()
 
