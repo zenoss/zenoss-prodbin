@@ -127,7 +127,7 @@ class PBDaemon(ZenDaemon, pb.Referenceable):
         factory.startLogin(c)
         def timeout(d):
             if not d.called:
-                d.errback(TimeoutError("Connection to ZenHub timed out"))
+                self.log.error('Timeout connecting to zenhub: is it running?')
         reactor.callLater(self.options.hubtimeout, timeout, self.initialConnect)
         return self.initialConnect
 
@@ -195,13 +195,7 @@ class PBDaemon(ZenDaemon, pb.Referenceable):
             self.sendEvent(self.startEvent)
             self.connected()
             return result
-        def errback(error):
-            if (isinstance(error, Failure) and \
-                isinstance(error.value, TimeoutError)):
-                self.log.error('Timeout connecting to zenhub: is it running?')
-            else:
-                self.log.error('Unable to connect to zenhub: \n%s' % error)
-        d.addCallbacks(callback, errback)
+        d.addCallback(callback)
         reactor.run()
         self.log.info('%s shutting down' % self.name)
         if self._customexitcode:
