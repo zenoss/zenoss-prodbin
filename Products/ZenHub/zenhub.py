@@ -223,8 +223,6 @@ class ZenHub(ZCmdBase):
 
         # the cache needs to be persistent to get changes
         # made when it was not running
-        if self.options.pcachename is None:
-            self.options.pcachename = 'zenhub'
         storage = ClientStorage((self.options.host, self.options.port),
                                 client=self.options.pcachename,
                                 var=self.options.pcachedir,
