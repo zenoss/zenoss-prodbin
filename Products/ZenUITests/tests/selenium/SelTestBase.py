@@ -25,10 +25,10 @@ from util.selenium import selenium
 
 
 ### BEGIN GLOBAL DEFS ###
-HOST        =   "localhost"         # Zenoss instance to test
+HOST        =   "nightlytest.zenoss.loc"         # Zenoss instance to test
 USER        =   "admin"                 # Username for HOST
 PASS        =   "zenoss"                # Password for HOST
-SERVER      =   "selenium.zenoss.loc"         # Hosts the selenium jar file
+SERVER      =   "nightlytest.zenoss.loc"         # Hosts the selenium jar file
 TARGET      =   "nightlytest.zenoss.loc"         # Added/deleted in HOST
 BROWSER     =   "*firefox"             # Can also be "*iexplore"
 WAITTIME    =   "60000"                 # Time to wait for page loads in milliseconds
@@ -113,6 +113,36 @@ class SelTestBase(unittest.TestCase):
         self.selenium.type("deviceName", deviceIp)
         self.selenium.select("devicePath", "label=" + classPath)
         self.selenium.select('discoverProto', 'label=none')
+        self.selenium.click("loadDevice:method")
+        self.selenium.wait_for_page_to_load(self.WAITTIME)
+        self.waitForElement("link=" + deviceIp)
+        self.selenium.click("link=" + deviceIp)
+        self.selenium.wait_for_page_to_load(self.WAITTIME)
+        if not hasattr(self, "devicenames"):
+            self.devicenames=[]
+        if not deviceIp in self.devicenames:
+            self.devicenames.append(deviceIp)
+
+    def addDeviceModel(self, deviceIp=TARGET, classPath="/Server/Linux"):
+        """Adds a test target device to Zenoss"""
+        # First, make sure the device isn't already in the system.
+        self.waitForElement("query")
+        self.selenium.type("query", deviceIp)
+        self.selenium.submit("searchform")
+        self.selenium.wait_for_page_to_load(self.WAITTIME)
+        if self.selenium.is_element_present("link=%s" %deviceIp):
+            self.selenium.click("link=%s" %deviceIp)
+            self.selenium.wait_for_page_to_load(self.WAITTIME)
+            self.deleteDevice(deviceIp)
+        
+        # Then add the device and navigate to its top level page.   
+        self.waitForElement("link=Add Device")
+        self.selenium.click("link=Add Device")
+        self.selenium.wait_for_page_to_load(self.WAITTIME)
+        self.waitForElement("loadDevice:method")
+        self.selenium.type("deviceName", deviceIp)
+        self.selenium.select("devicePath", "label=" + classPath)
+        self.selenium.select('discoverProto', 'label=auto')
         self.selenium.click("loadDevice:method")
         self.selenium.wait_for_page_to_load(self.WAITTIME)
         self.waitForElement("link=" + deviceIp)
