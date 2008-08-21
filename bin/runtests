@@ -33,7 +33,6 @@ def findSeleniumTests(packages=[], regex=None):
     results = []
     if not regex: regex = 'testAll'
     regex += '.py'
-    print prods
     for prod in prods:
         selpath = os.path.join(prod, 'tests', 'selenium', regex)
         if os.path.exists(selpath):
@@ -84,11 +83,17 @@ def findTestableProducts(packages=[], regex=None, testdir='tests'):
     results = overrideCoreTests(results)
     return results
 
-def runSeleniumTests(packages=[], regex=None, zenoss_server=None, 
+def runSeleniumTests(packages=[], regex=None, 
+                    zenoss_server=None, 
                     selenium_server=None):
     tests = findSeleniumTests(packages, regex)
     for testscript in tests:
-        exitcodes.append(call([testscript, zenoss_server, selenium_server]))
+        command = ["python", testscript]
+        for arg in (zenoss_server, selenium_server):
+            if arg is not None: 
+                command.append(arg)
+        rc = call(command)
+        exitcodes.append(rc)
 
 def runUnitTests(packages=[], regex=None, coverage=False):
     for prod in findTestableProducts(packages, regex):
