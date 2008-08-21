@@ -244,22 +244,26 @@ loader.insert({onSuccess:function(){
     objects here/os/processes/objectValuesAll;
     tabletitle string:OS Processes;
     batch python:here.ZenTableManager.getBatch(tableName,objects,
-                                            sortedHeader='getOSProcessClass');
+                                            sortedHeader='getOSProcessClass',
+                                            onlyMonitored=True);
+    ts python:here.ZenTableManager.getTableState(tableName);
     menu_id string:OSProcess;
     showfilterbox python:True;">
-
+<input type='hidden' name='tableName'
+    tal:attributes="value tableName" />
 <tal:block metal:use-macro="here/zenuimacros/macros/zentable">
-
-<!--==================== 
-Optional titlebar stuff
-
-<tal:block metal:fill-slot="menuslot">
-</tal:block>
 <tal:block metal:fill-slot="filterslot">
+    <div style="position:absolute;right:200px;top:0px;">
+			Monitored
+			<input class="navcontrol" type="checkbox"
+				name="onlyMonitored"
+				onchange="this.form.submit()"
+				value="1"
+                style="margin-top:-2px;margin-bottom:2px;"
+				tal:attributes="checked ts/onlyMonitored" />
+    </div>
+    <tal:block metal:use-macro="here/zenuimacros/macros/filterbox"/>
 </tal:block>
-
-  ====================-->
-
 <tal:block metal:fill-slot="zentablecontents">
 
 <!-- BEGIN TABLE CONTENTS -->
@@ -310,7 +314,7 @@ Optional titlebar stuff
     </tal:block>
     <tr>
         <td colspan="7" class="tableheader" align='center'>
-        <form metal:use-macro="here/zenTableNavigation/macros/navtool"></form>
+        <form metal:use-macro="here/zenTableNavigation/macros/navtoolnoform"></form>
         </td>
     </tr>
 
