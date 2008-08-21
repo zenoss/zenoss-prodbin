@@ -58,7 +58,7 @@ class ZenDaemon(CmdBase):
             if self.options.daemon:
                 self.changeUser()
                 self.becomeDaemon()
-            if self.options.daemon or self.options.watchdogPath::
+            if self.options.daemon or self.options.watchdogPath:
                 try:
                    self.writePidFile()
                 except OSError:
