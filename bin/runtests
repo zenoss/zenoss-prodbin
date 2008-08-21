@@ -14,11 +14,26 @@ STDOUT = sys.stdout
 
 exitcodes = []
 
+def overrideCoreTests(results):
+    """
+    Check to see if a commercial skin is installed. If so, don't run the core
+    tests.
+    """
+    commercial = False
+    for result in results:
+        if "Skin" in result:
+            commercial=True
+    if commercial:
+        results.remove(zenhome('Products', 'ZenUITests'))
+    return results
+    
+
 def findSeleniumTests(packages=[], regex=None):
-    prods = findTestableProducts(packages, regex)
+    prods = findTestableProducts(packages, regex, testdir="tests/selenium")
     results = []
     if not regex: regex = 'testAll'
     regex += '.py'
+    print prods
     for prod in prods:
         selpath = os.path.join(prod, 'tests', 'selenium', regex)
         if os.path.exists(selpath):
@@ -47,7 +62,7 @@ def findZenPackDirectories():
         pass
     return dirs
 
-def findTestableProducts(packages=[], regex=None):
+def findTestableProducts(packages=[], regex=None, testdir='tests'):
     results = []
     for target in findZenPackDirectories() + [zenhome('Products')]:
         for root, dirs, files in os.walk(target):
@@ -61,11 +76,12 @@ def findTestableProducts(packages=[], regex=None):
                 newdir = os.path.join(root, dir)
                 if 'tests' in os.listdir(newdir): 
                     if regex:
-                        f = os.path.join(newdir, 'tests', regex+'.py')
+                        f = os.path.join(newdir, testdir, regex+'.py')
                         if os.path.exists(f):
-                            results.append(dir)
+                            results.append(newdir)
                     else:
                         results.append(newdir)
+    results = overrideCoreTests(results)
     return results
 
 def runSeleniumTests(packages=[], regex=None, zenoss_server=None, 
