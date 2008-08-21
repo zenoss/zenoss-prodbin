@@ -43,6 +43,7 @@ usage = "testAll.py HOST SERVER"
 for i, var in enumerate(usage.split()[1:]):
     try: exec("%s=sys.argv[%s]" % (var, i+1))
     except IndexError: pass
+sys.argv[:] = [sys.argv[0]]
 
 class SelTestBase(unittest.TestCase):
     """Base class for Zenoss Selenium tests.
