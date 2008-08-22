@@ -15,9 +15,6 @@
 from CollectorPlugin import SnmpPlugin, GetTableMap
 import re
 
-# sda, hda, sdaa, c0d0, c0t0d0s2, etc.
-DISK_PATTERN = '^[hs]d[a-z]{1,2}$|\/c[0-9]{1,2}(t[0-9]{1,2}){0,1}d[0-9]{1,2}(s2){0,1}$'
-
 class UCDHardDiskMap(SnmpPlugin):
     """Map UCD-DISKIO-MIB to HardDisk"""
 
@@ -25,6 +22,8 @@ class UCDHardDiskMap(SnmpPlugin):
     modname = "Products.ZenModel.HardDisk"
     relname = "harddisks"
     compname = "hw"
+    deviceProperties = \
+        SnmpPlugin.deviceProperties + ('zHardDiskMapMatch',)
 
     snmpGetTableMaps = (
         GetTableMap('diskIOTable', '.1.3.6.1.4.1.2021.13.15.1.1', {
@@ -39,10 +38,13 @@ class UCDHardDiskMap(SnmpPlugin):
         getdata, tabledata = results
         dtable = tabledata.get("diskIOTable")
         if not dtable: return
+        diskmatch = re.compile(
+                getattr(device, 'zHardDiskMapMatch', 'WillNotEverMatch'))
+
         rm = self.relMap()
         for oid, disk in dtable.items():
             om = self.objectMap(disk)
-            if not re.search(DISK_PATTERN, om.id): continue
+            if not diskmatch.search(om.id): continue
             om.id = self.prepId(om.id)
             om.snmpindex = oid
             rm.append(om)
