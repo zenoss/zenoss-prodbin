@@ -541,6 +541,8 @@ class zencommand(RRDDaemon):
         issueKey = cmd.deviceConfig.device, cmd.eventClass, cmd.eventKey
         if output.find('|') >= 0:
             msg, values = output.split('|', 1)
+        elif cmd.parser == 'Nagios':
+            msg, values = output, ''
         elif CacParser.search(output):
             msg, values = '', output
         else:

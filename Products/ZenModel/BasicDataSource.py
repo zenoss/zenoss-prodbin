@@ -45,16 +45,19 @@ class BasicDataSource(RRDDataSource.RRDDataSource):
     __pychecker__='no-override'
 
     sourcetypes = ('SNMP', 'COMMAND')
+    parsers = ('Auto', 'Nagios', 'Cacti')
     
     sourcetype = 'SNMP'
     eventClass = Cmd_Fail
     oid = ''
+    parser = "Auto"
 
     usessh = False
 
     _properties = RRDDataSource.RRDDataSource._properties + (
         {'id':'oid', 'type':'string', 'mode':'w'},
         {'id':'usessh', 'type':'boolean', 'mode':'w'},
+        {'id':'parser', 'type':'string', 'mode':'w'},
         )
 
     _relations = RRDDataSource.RRDDataSource._relations + (

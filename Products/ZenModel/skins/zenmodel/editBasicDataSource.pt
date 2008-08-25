@@ -123,6 +123,18 @@
           <td class="tablevalues" tal:condition="not:editable" 
                 tal:content="here/cycletime"/>
         </tr>
+        <tr tal:condition="python:here.sourcetype=='COMMAND'">
+            <td class="tableheader">Parser</td>
+            <td class="tablevalues" tal:condition="editable">
+                <select class="tablevalues" name="parser:string">
+                    <option tal:repeat="par here/parsers"
+                            tal:content="par"
+                            tal:attributes="selected python:par==here.parser; value par"/>
+                </select>
+            </td>
+            <td class="tablevalues" tal:condition="not:editable"
+                tal:content="here/parser"/>
+        </tr>
 
 
         <tr>
