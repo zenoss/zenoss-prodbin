@@ -118,7 +118,7 @@ class TemperatureSensor(HWComponent):
 
 
     def viewName(self):
-        return id
+        return self.id
     name = viewName
 
 InitializeClass(TemperatureSensor)
