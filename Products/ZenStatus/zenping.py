@@ -36,6 +36,7 @@ from Products.ZenUtils.DaemonStats import DaemonStats
 from Products.ZenUtils.Driver import drive, driveLater
 
 from twisted.internet import reactor
+from twisted.python import failure
 
 class ZenPing(PBDaemon):
 
@@ -56,6 +57,7 @@ class ZenPing(PBDaemon):
     jobs = 0
     reconfigured = True
     loadingConfig = None
+    lastConfig = None
 
 
     def __init__(self):
@@ -71,6 +73,7 @@ class ZenPing(PBDaemon):
             if self.options.useFileDescriptor is not None:
                 fd = int(self.options.useFileDescriptor)
             self.pinger = Ping(self.pingTries, self.pingTimeOut, fd)
+        self.lastConfig = time.time() - self.options.minconfigwait
         self.log.info("started")
 
 
@@ -114,6 +117,11 @@ class ZenPing(PBDaemon):
             self.log.warning("Configuration still loading.  Started at %s" %
                              time.strftime('%x %X', self.loadingConfig))
             return
+
+        if (self.lastConfig and
+            (time.time() - self.lastConfig) < self.options.minconfigwait):
+            self.log.debug("Config recently updated: not fetching")
+            return
         
         self.loadingConfig = time.time()
 
@@ -149,6 +157,7 @@ class ZenPing(PBDaemon):
                             self.configCycleInterval,
                             time.time() - self.loadingConfig)
         self.loadingConfig = None
+        self.lastConfig = time.time()
 
 
     def buildOptions(self):
@@ -172,6 +181,13 @@ class ZenPing(PBDaemon):
                                default=None,
                                help=
                                "use the given (privileged) file descriptor")
+        self.parser.add_option('--minConfigWait',
+                               dest='minconfigwait',
+                               default=300,
+                               type='int',
+                               help=
+                               "the minimal time, in seconds, "
+                               "between refreshes of the config")
 
 
     def pingCycle(self, unused=None):
@@ -314,7 +330,12 @@ class ZenPing(PBDaemon):
 
         
     def remote_updateConfig(self):
-        self.log.debug("Ignoring Asynch update config")
+        self.log.debug("Asynch update config")
+        d = drive(self.loadConfig)
+        def logResults(v):
+            if isinstance(v, failure.Failure):
+                log.error("Unable to reload config for asynchronous update")
+        d.addBoth(logResults)
 
 
     def copyItems(self, items):
