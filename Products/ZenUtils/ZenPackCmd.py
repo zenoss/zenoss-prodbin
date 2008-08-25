@@ -268,7 +268,7 @@ def InstallEgg(dmd, eggPath, link=False):
         p.wait()
         if p.returncode:
             raise ZenPackException('Error installing the egg (%s): %s' %
-                                p.returncode, err)
+                                (p.returncode, err))
         zpDists = AddDistToWorkingSet(eggPath)
     else:
         zpDists = DoEasyInstall(eggPath)
