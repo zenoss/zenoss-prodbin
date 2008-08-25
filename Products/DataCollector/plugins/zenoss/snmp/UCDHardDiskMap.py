@@ -45,6 +45,7 @@ class UCDHardDiskMap(SnmpPlugin):
         for oid, disk in dtable.items():
             om = self.objectMap(disk)
             if not diskmatch.search(om.id): continue
+            om.description = om.id
             om.id = self.prepId(om.id)
             om.snmpindex = oid
             rm.append(om)

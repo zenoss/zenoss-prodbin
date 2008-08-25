@@ -1,18 +1,20 @@
 <tal:block metal:use-macro="here/templates/macros/page2">
 <tal:block metal:fill-slot="contentPane">
 
-<form method=post 
-    tal:attributes="action string:${here/absolute_url_path}">
-    <input type="hidden" name="zenScreenName" 
-        tal:attributes="value template/id" /> 
-<table metal:define-macro="objectperf" 
-    border=0 cellpadding=3 width=100% 
-    align="center" bgcolor="#ffffff" cellspacing=1
-    >
-    <tr><th class="tabletitle" align="left" colspan="6">HardDisk</th></tr>
+<form method="post" tal:attributes="action string:${here/absolute_url_path}"
+    tal:define="manager python:here.has_permission('Change Device')">
+
+<input type="hidden" name="zenScreenName" tal:attributes="value template/id" />
+
+<tal:block metal:define-macro="objectperf" tal:define="
+                tabletitle string:Hard Disk;
+                menu_id string:Lockable">
+<tal:block metal:use-macro="here/zenuimacros/macros/zentable">
+
+<tal:block metal:fill-slot="zentablecontents">
     <tr>
-      <td class=tableheader width="16%" align=left>Name</td>
-      <td class=tablevalues width="16%" tal:content="here/description">sd0</td>
+      <td class="tableheader" align=left>Name</td>
+      <td class="tablevalues" tal:content="here/description">sd0</td>
         <td class="tableheader">Monitor</td>
         <td class="tablevalues">
             <select class="tablevalues"  name="monitor:boolean">
@@ -22,18 +24,21 @@
         </td>
       </tr>
       <tr>
-      <td class=tableheader width="16%" align=left>Snmp Index</td>
-      <td class=tablevalues width="16%" tal:content="here/snmpindex">1</td>
-      <td class=tableheader width="16%" align=left>Host Resources Index</td>
-      <td class=tablevalues width="16%" tal:content="here/hostresindex">1</td>
+      <td class="tableheader" align=left>Snmp Index</td>
+      <td class="tablevalues" tal:content="here/snmpindex">1</td>
+      <td class="tableheader" align=left>Host Resources Index</td>
+      <td class="tablevalues" tal:content="here/hostresindex">1</td>
     </tr>
-    <tr tal:condition="here/isManager">
-        <td align="left"  class="tableheader" colspan="4">
+    <tr tal:condition="manager">
+        <td align="left" class="tableheader" colspan="4">
             <input class="tableheader" type="submit" value=" Save "
                 name="zmanage_editProperties:method" />
         </td>
     </tr>
-</table>
+</tal:block>
+</tal:block>
+</tal:block>
+
 </form>
 <br/>
 <tal:block tal:condition="here/monitored" >
