@@ -146,25 +146,23 @@ class IpNetwork(DeviceOrganizer):
     
     def createNet(self, netip, netmask=24):
         """
-        Return and create if nessesary network.  netip is in the form
+        Return and create if necessary network.  netip is in the form
         1.1.1.0/24 or with netmask passed as parameter.  Subnetworks created
         based on the zParameter zDefaulNetworkTree.
         Called by IpNetwork.createIp and IpRouteEntry.setTarget
         """
         if netip.find("/") > -1: netip, netmask = netip.split("/",1)
         netmask = int(netmask)
-        netobj = self.getNet(netip)
-        if netobj and netobj.netmask == netmask: return netobj
+        netroot = self.dmd.getDmdRoot("Networks")
+        netobj = netroot.getNet(netip)
+        if netobj and netobj.netmask == netmask: # Network already exists.
+            return netobj
         if netmask == 0:
             raise ValueError("netip '%s' without netmask", netip)
         netip = getnetstr(netip,netmask)
-        #check to see if network already exists instead of creating a new one
-        root = self.getDmdRoot("Networks")
-        existingnetwork = root.findNet(netip, netmask)
-        if existingnetwork: return existingnetwork
         netTree = getattr(self, 'zDefaultNetworkTree', defaultNetworkTree)
         netTree = map(int, netTree)
-        netobj = self
+        netobj = netobj and netobj or netroot
         for treemask in netTree:
             if treemask >= netmask:
                 netobj = netobj.addSubNetwork(netip, netmask)
@@ -449,29 +447,29 @@ class IpNetwork(DeviceOrganizer):
         
         if REQUEST and not xmlrpc:
             handler = setupLoggingHeader(self, REQUEST)
-	zDiscCommand = "empty"
+        zDiscCommand = "empty"
         
-	from Products.ZenUtils.ZenTales import talesEval
+        from Products.ZenUtils.ZenTales import talesEval
 
         orgroot = self.getDmdRoot(self.dmdRootName)
         for organizerName in organizerPaths:
             organizer = orgroot._getNet(organizerName)
-      	    zDiscCommand = getattr(organizer, "zZenDiscCommand", None)
-	    if zDiscCommand:
-	    	cmd = talesEval('string:' + zDiscCommand, organizer).split(" ")
-	    else:
-		cmd = ["zendisc", "run", "--weblog", "--net", organizer.id]
+            zDiscCommand = getattr(organizer, "zZenDiscCommand", None)
+            if zDiscCommand:
+                cmd = talesEval('string:' + zDiscCommand, organizer).split(" ")
+            else:
+                cmd = ["zendisc", "run", "--weblog", "--net", organizer.id]
             zd = binPath('zendisc')
             zendiscCmd = [zd] + cmd[1:]
             result = executeCommand(zendiscCmd, REQUEST)
             if result and xmlrpc: return result
- 				
+
         log.info('Done')
-        
+
         if REQUEST and not xmlrpc:
             self.loaderFooter(REQUEST.RESPONSE)
             clearWebLoggingStream(handler)
-            
+
         if xmlrpc: return 0
 
 

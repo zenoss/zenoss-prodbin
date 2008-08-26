@@ -75,6 +75,15 @@ class TestIpNetwork(ZenModelBaseTest):
         self.assert_(net in dmdNet.getSubNetworks())
         subNet = dmdNet.addSubNetwork('1.2.4.0',24)
         self.assert_(subNet in dmdNet.getSubNetworks())
+
+
+    def testAutomaticNesting(self):
+        dmdNet = self.dmd.Networks
+        dmdNet.createNet('1.2.0.0/16')
+        dmdNet.createNet('1.2.3.0/24')
+        net = dmdNet.findNet('1.2.0.0')
+        subnet = dmdNet.findNet('1.2.3.0')
+        self.assert_(subnet in net.getSubNetworks())
         
 
 def test_suite():
