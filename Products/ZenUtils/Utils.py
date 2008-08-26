@@ -704,11 +704,11 @@ def unsigned(v):
     >>> unsigned(-1)
     4294967295L
     >>> unsigned(1)
-    1
+    1L
     >>> unsigned(1e6)
-    1000000
+    1000000L
     >>> unsigned(1e10)
-    10000000000
+    10000000000L
     '''
     v = long(v)
     if v < 0:
