@@ -71,6 +71,11 @@ class Availability:
         if device and self.component:
             return _findComponent(device, self.component)
         return None
+    def getDeviceLink(self, dmd):
+        device = self.getDevice(dmd)
+        if device:
+            return device.getDeviceLink()
+        return None
 
 InitializeClass(Availability)
 

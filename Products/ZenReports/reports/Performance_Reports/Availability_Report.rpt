@@ -105,12 +105,12 @@
                           tableName,'availability','Availability')"/>
   </tr>
   <tal:block tal:repeat="avail batch">
-    <tr tal:define="dev python:avail.getDevice(here.dmd);
+    <tr tal:define="dev python:avail.getDeviceLink(here.dmd);
                     comp python:avail.getComponent(dev);" 
     >
       <td class="tablevalues"
           tal:condition="dev"
-          tal:content="structure python:dev.getDeviceLink()"/>
+          tal:content="structure dev"/>
       <td class="tablevalues"
           tal:condition="not:dev"
           tal:content="avail/device"/>
