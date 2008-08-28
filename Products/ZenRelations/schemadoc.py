@@ -93,8 +93,8 @@ class HtmlGenerator(object):
             self.td(name)
             self.td(rel.__class__.__name__)
             self.td(rel.remoteType.__name__)
-            self.td("""<a href="%s">%s</a>""" % 
-                    (self.getHref(rel.remoteClass), rel.remoteClass))
+            self.td("""<a href="%s.html">%s</a>""" % 
+                    (rel.remoteClass, rel.remoteClass))
                                             
             self.td(rel.remoteName)
             self.of.write("</tr>")
