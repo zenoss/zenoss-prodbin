@@ -41,7 +41,7 @@ def getComponentCommands(comp):
             cmd.eventClass = ds.eventClass
             cmd.eventKey = key
             cmd.severity = ds.severity
-            cmd.parser = ds.parser
+            cmd.parser = getattr(ds, "parser", "Auto")
             cmd.command = ds.getCommand(comp)
             cmd.points = points
             result.append(cmd)
