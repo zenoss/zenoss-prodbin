@@ -13,7 +13,7 @@
 rm -rf $ZENHOME/zendocs/api
 mkdir -p $ZENHOME/zendocs/api
 cd $ZENHOME/Products
-$ZENHOME/bin/zopectl run $ZENHOME/bin/epydoc -v --html -o \
+$ZENHOME/bin/zopectl run $ZENHOME/bin/epydoc -v --parse-only --html -o \
     $ZENHOME/zendocs/api --exclude='.*plugin.*' \
     --exclude='migrate' --exclude='tests' --exclude='twisted' \
     --name=Zenoss --inheritance listed $ZENPRODUCTS

@@ -27,7 +27,7 @@ export PYTHONPATH
 VARDIR=$ZENHOME/var
 CFGDIR=$ZENHOME/etc
 
-ZENPRODUCTS="ZenModel ZenHub ZenReports ZenWin ZenUtils SiteScopeParser ZenRelations ZenStatus SnmpCollector ZenRRD DataCollector ZenWidgets ZenEvents"
+ZENPRODUCTS="ZenModel ZenHub ZenReports ZenWin ZenUtils  ZenRelations ZenStatus ZenRRD DataCollector ZenWidgets ZenEvents ZenWidgets ZenWin"
 
 SYS=`uname`
 PS="ps -eo pid"
