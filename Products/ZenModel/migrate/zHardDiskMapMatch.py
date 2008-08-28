@@ -21,8 +21,8 @@ class zHardDiskMapMatch(Migrate.Step):
     version = Migrate.Version(2, 3, 0)
     
     def cutover(self, dmd):
-        #if dmd.Devices.hasProperty('zHardDiskMapMatch'):
-        #    return
+        if dmd.Devices.hasProperty('zHardDiskMapMatch'):
+            return
 
         dmd.Devices._setProperty('zHardDiskMapMatch',
                 '', 'string', 'Regex that disks must match to be modeled', True)
