@@ -122,13 +122,13 @@ class zenwin(WinCollector):
             if info:
                 wcode, source, descr, hfile, hcont, scode = info
                 scode = abs(scode)
-                if wcode == ERRtimeout:
-                    return
                 self.log.debug("Codes: %r" % (info,))
                 if scode != TIMEOUT_CODE:
                     msg = '%d: %s' % (code, txt)
                     msg = ERROR_CODE_MAP.get(str(scode), [None, msg])[1]
                     self.deviceDown(device, msg)
+    
+    
     def processLoop(self):
         pythoncom.PumpWaitingMessages()
         for device in self.devices:
