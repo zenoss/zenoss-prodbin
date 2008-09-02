@@ -50,6 +50,7 @@ class TestMibs(SelTestBase):
         self._deleteMib()
         
     def testEditMibSettings(self):
+        """Tests changing Mib settings"""
         self._addMib()
         self.waitForElement("link=mibTestingString")
         self.selenium.click("link=mibTestingString")
@@ -86,6 +87,7 @@ class TestMibs(SelTestBase):
         self._deleteMib()
     
     def testOIDMappings(self):
+        """Run tests on the OID Mappings settings"""
         self._addMib()
         self.waitForElement("link=mibTestingString")
         self.selenium.click("link=mibTestingString")
@@ -110,7 +112,9 @@ class TestMibs(SelTestBase):
                 form_name="oidMappingsForm", testData="oidTestingString")
         self.selenium.wait_for_page_to_load(self.WAITTIME)
         self._deleteMib()
+
     def testTraps(self):
+        """Run tests on Traps"""
         self._addMib()
         self.waitForElement("link=mibTestingString")
         self.selenium.click("link=mibTestingString")
