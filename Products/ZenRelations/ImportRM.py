@@ -42,6 +42,7 @@ from Products.ZenRelations.Exceptions import *
 class ImportRM(ZCmdBase, ContentHandler):
 
     rootpath = ""
+    skipobj = 0
 
     def __init__(self, noopts=0, app=None, keeproot=False):
         ZCmdBase.__init__(self, noopts, app, keeproot)
@@ -60,7 +61,9 @@ class ImportRM(ZCmdBase, ContentHandler):
         
     def startElement(self, name, attrs):
         attrs = self.cleanattrs(attrs)
-        self.state = name
+        if self.skipobj > 0: 
+            self.skipobj += 1
+            return
         self.log.debug("tag %s, context %s", name, self.context().id)
         if name == 'object':
             obj = self.createObject(attrs)
@@ -70,11 +73,19 @@ class ImportRM(ZCmdBase, ContentHandler):
                 self.rootpath = obj.getPrimaryId()
             self.objstack.append(obj)
         elif name == 'tomanycont' or name == 'tomany':
-            self.objstack.append(self.context()._getOb(attrs['id']))
+            nextobj = self.context()._getOb(attrs['id'],None)
+            if nextobj is None: 
+                self.skipobj = 1 
+                return
+            else:
+                self.objstack.append(nextobj)
         elif name == 'toone':
             relname = attrs.get('id')
             self.log.debug("toone %s, on object %s", relname, self.context().id)
-            rel = getattr(aq_base(self.context()),relname)
+            rel = getattr(aq_base(self.context()),relname, None)
+            if rel is None: 
+                print 'skip toone'
+                return
             objid = attrs.get('objid')
             self.addLink(rel, objid)
         elif name == 'link':
@@ -84,6 +95,9 @@ class ImportRM(ZCmdBase, ContentHandler):
 
 
     def endElement(self, name):
+        if self.skipobj > 0: 
+            self.skipobj -= 1
+            return
         if name in ('object', 'tomany', 'tomanycont'):
             obj = self.objstack.pop()
             if hasattr(aq_base(obj), 'index_object'):
@@ -213,7 +227,7 @@ class ImportRM(ZCmdBase, ContentHandler):
                     default=0,
                     help='Do not store changes to the Dmd (for debugging)')
 
-    def loadObjectFromXML(self, objstack=None, xmlfile=''):
+    def loadObjectFromXML(self, xmlfile=''):
         """This method can be used to load data for the root of Zenoss (default
         behavior) or it can be used to operate on a specific point in the
         Zenoss hierarchy (ZODB).
@@ -221,21 +235,14 @@ class ImportRM(ZCmdBase, ContentHandler):
         Upon loading the XML file to be processed, the content of the XML file
         is handled (processed) by the methods in this class.
         """
-        if objstack:
-            self.objstack = [objstack]
-        else:
-            self.objstack = [self.app]
+        self.objstack = [self.app]
         self.links = []
         self.objectnumber = 0
         self.charvalue = ""
-        if xmlfile:
-            # check to see if we're getting the XML from a URL ...
-            schema, host, path, null, null, null = urlparse(xmlfile)
-            if schema and host:
-                self.infile = urllib2.urlopen(xmlfile)
-            # ... or from a file on the file system
-            else:
-                self.infile = open(xmlfile)
+        if xmlfile and type(xmlfile) in types.StringTypes:
+            self.infile = open(xmlfile)
+        elif hasattr(xmlfile, 'read'):
+            self.infile = xmlfile
         elif self.options.infile:
             self.infile = open(self.options.infile)
         else:

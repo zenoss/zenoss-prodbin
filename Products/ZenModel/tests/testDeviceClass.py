@@ -83,11 +83,61 @@ class TestDeviceClass(ZenModelBaseTest):
             self.dmd.Devices.NetworkDevice.Router.getSubDevices())
                         
 
+    def testZPythonClass(self):
+        from Products.ZenModel.tests.CustDevice import CustDevice
+        custdev = self.dmd.Devices.createOrganizer("/CustDev")
+        custdev._setProperty('zPythonClass',
+                             'Products.ZenModel.tests.CustDevice')
+        self.assert_(CustDevice == 
+                     self.dmd.Devices.CustDev.getPythonDeviceClass())
+
+
     def testMoveDevices(self):
         self.dmd.Devices.moveDevices('/Server', 'testdev')
         dev = self.dmd.Devices.Server.devices.testdev
         self.assert_(dev.os.interfaces)
 
+# for some reason these tests blow up all the other ones!!!! -EAD
+#    def testMoveDevicesStandardToCust(self):
+#        anna = self.dmd.Locations.createOrganizer("Annapolis")
+#        group = self.dmd.Groups.createOrganizer("TestGroup")
+#        self.dev.setLocation("/Annapolis")
+#        self.dev.setGroups("/TestGroup")
+#        self.dev.rackSlot = 15
+#        from Products.ZenModel.tests.CustDevice import CustDevice
+#        custdev = self.dmd.Devices.createOrganizer("/CustDev")
+#        custdev._setProperty('zPythonClass',
+#                             'Products.ZenModel.tests.CustDevice')
+#        self.dmd.Devices.moveDevices('/CustDev', 'testdev') 
+#        dev = self.dmd.Devices.findDevice('testdev')
+#        self.assert_(dev.getDeviceClassPath() == "/CustDev")
+#        self.assert_(dev.rackSlot == 15)
+#        self.assert_(dev.__class__ == CustDevice)
+#        self.assert_(dev.location() == anna)
+#        self.assert_(dev in anna.devices())
+#        self.assert_(group in dev.groups())
+#
+#
+#    def testMoveDevicesCustToStandard(self):
+#        from Products.ZenModel.tests.CustDevice import CustDevice
+#        custdev = self.dmd.Devices.createOrganizer("/CustDev")
+#        custdev._setProperty('zPythonClass',
+#                             'Products.ZenModel.tests.CustDevice')
+#        cdev = self.dmd.Devices.CustDev.createInstance('cdev')
+#        anna = self.dmd.Locations.createOrganizer("Annapolis")
+#        group = self.dmd.Groups.createOrganizer("TestGroup")
+#        cdev.setLocation("/Annapolis")
+#        cdev.setGroups("/TestGroup")
+#        cdev.rackSlot = 15
+#        self.dmd.Devices.moveDevices("/", 'cdev')
+#        dev = self.dmd.Devices.findDevice('cdev')
+#        self.assert_(dev.getDeviceClassPath() == "/")
+#        self.assert_(dev.rackSlot == 15)
+#        self.assert_(dev.__class__ == Device)
+#        self.assert_(dev.location() == anna)
+#        self.assert_(group in dev.groups())
+
+    
     def testOrganizer(self):
         devices = self.dmd.Devices
         dc = devices.createOrganizer('/Test')

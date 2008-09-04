@@ -40,9 +40,8 @@ class ExportTest(ZenRelationsBaseTest):
         dev.exportXml(ofile)
         self.assert_(ofile.getvalue() == objwithprops)
 
-
     def testExportToOne(self):
-        "test exporting rm with properties"
+        "test exporting rm with to-one relationship"
         dev = self.build(self.app, Device, "dev")
         loc = self.build(self.app, Location, "loc")
         dev.location.addRelation(loc)
@@ -50,16 +49,14 @@ class ExportTest(ZenRelationsBaseTest):
         dev.exportXml(ofile)
         self.assert_(ofile.getvalue() == objwithtoone)
 
-
     def testExportToMany(self):
-        "test exporting rm with properties"
+        "test exporting rm with to-many relationship"
         dev = self.build(self.app, Device, "dev")
         loc = self.build(self.app, Location, "loc")
         dev.location.addRelation(loc)
         ofile = StringIO.StringIO()
         loc.exportXml(ofile)
         self.assert_(ofile.getvalue() == objwithtomany)
-
 
     def testExportToManyCont(self):
         "test exporting rm with properties"
@@ -70,9 +67,94 @@ class ExportTest(ZenRelationsBaseTest):
         self.assert_(ofile.getvalue() == objwithtomanycont)
 
 
+from Products.ZenRelations.ImportRM import ImportRM
+
 class ImportTest(ZenRelationsBaseTest):
     """Import Tests"""
 
+    def testImportObject(self):
+        "test importing rm without properties"
+        self.failIf(hasattr(self.app, 'loc'))
+        self.failIf(hasattr(self.app, 'dev'))
+        im = ImportRM(noopts=True, app=self.app)
+        infile = StringIO.StringIO(objnoprops)
+        im.loadObjectFromXML(infile)
+        self.assert_(self.app.loc)
+        self.assertEqual('loc', self.app.loc.id)
+        self.assertEqual('Products.ZenRelations.tests.TestSchema',
+                         self.app.loc.__module__)
+        self.assertEqual('Location', self.app.loc.__class__.__name__)
+        self.failIf(hasattr(self.app, 'dev'))
+        
+    def testImportProperties(self):
+        "test importing rm with properties"
+        self.failIf(hasattr(self.app, 'loc'))
+        self.failIf(hasattr(self.app, 'dev'))
+        im = ImportRM(noopts=True, app=self.app)
+        infile = StringIO.StringIO(objwithprops)
+        im.loadObjectFromXML(infile)
+        self.assert_(self.app.dev)
+        self.assertEqual('dev', self.app.dev.id)
+        self.assertEqual('Products.ZenRelations.tests.TestSchema',
+                         self.app.dev.__module__)
+        self.assertEqual('Device', self.app.dev.__class__.__name__)
+        self.assertEqual(0, self.app.dev.pingStatus)
+        self.failIf(hasattr(self.app, 'loc'))
+    
+    def testImportToOne(self):
+        "test importing rm with to-one relationship"
+        self.failIf(hasattr(self.app, 'dev'))
+        loc = self.build(self.app, Location, "loc")
+        self.assert_(hasattr(self.app, 'loc'))
+        im = ImportRM(noopts=True, app=self.app)
+        xml = "<objects>" + objwithtoone + "</objects>"
+        im.loadObjectFromXML(StringIO.StringIO(xml))
+        self.assert_(self.app.dev)
+        self.assert_(self.app.loc)
+        self.assert_(self.app.dev.location())
+        self.assertEqual('loc', self.app.dev.location().id)
+        self.assertEqual(1, len(self.app.loc.devices()))
+        self.assert_('dev', self.app.loc.devices()[0].id)
+
+    def testImportToManyCont(self):
+        "test importing rm with properties"
+        self.failIf(hasattr(self.app, 'loc'))
+        self.failIf(hasattr(self.app, 'dev'))
+        im = ImportRM(noopts=True, app=self.app)
+        infile = StringIO.StringIO(objwithtomanycont)
+        im.loadObjectFromXML(infile)
+        self.assert_(self.app.dev)
+        self.assertEqual(1, len(self.app.dev.interfaces()))
+        self.assert_(self.app.dev.interfaces.eth0)
+        self.assertEqual('IpInterface',
+                         self.app.dev.interfaces.eth0.__class__.__name__)
+        self.assertEqual('dev', self.app.dev.id)
+        self.assertEqual('Products.ZenRelations.tests.TestSchema',
+                         self.app.dev.__module__)
+        self.assertEqual('Device', self.app.dev.__class__.__name__)
+        self.assertEqual(0, self.app.dev.pingStatus)
+        self.failIf(hasattr(self.app, 'loc'))
+
+    def testImportNoSkip(self):
+        """test not skipping vmware relations that are relevant to the vmware 
+        class"""
+        self.failIf(hasattr(self.app, 'dev'))
+        im = ImportRM(noopts=True, app=self.app)
+        infile = StringIO.StringIO(objwithoutskip)
+        im.loadObjectFromXML(infile)
+        self.assert_(self.app.dev)
+        self.assert_(hasattr(self.app.dev, 'guestDevices'))
+
+        
+    def testImportSkip(self):
+        """test skipping vmware relations that are not relevant to the 
+        standard device class"""
+        self.failIf(hasattr(self.app, 'dev'))
+        im = ImportRM(noopts=True, app=self.app)
+        infile = StringIO.StringIO(objwithskip)
+        im.loadObjectFromXML(infile)
+        self.assert_(self.app.dev)
+        self.failIf(hasattr(self.app.dev, 'guestDevices'))
 
 def test_suite():
     from unittest import TestSuite, makeSuite
@@ -80,6 +162,7 @@ def test_suite():
     suite.addTest(makeSuite(ExportTest))
     suite.addTest(makeSuite(ImportTest))
     return suite
+
 
 if __name__ == '__main__':
     framework()

@@ -185,19 +185,51 @@ class DeviceClass(DeviceOrganizer, ZenPackable, TemplateContainer):
         if type(deviceNames) == types.StringType: deviceNames = (deviceNames,)
         for devname in deviceNames:
             dev = self.findDevice(devname)
-            source = dev.deviceClass()
-            dev = dev.moveMeBetweenRels(source.devices, target.devices)
-            if dev.__class__ != dev.getPythonDeviceClass():
-                newdev = dev.getPythonDeviceClass()(
-                                    devname,buildRelations=False)
-                relnames = newdev.getRelationshipNames()
-                for rel in dev.getRelationships():
-                    if rel.id in relnames: 
-                        dev.moveObject(rel, newdev) 
-                newdev.buildRelations()
-                target.devices._delObject(devname)
-                target.devices._setObject(devname, newdev)
-                dev = target.devices._getOb(devname)
+            if not dev: continue
+            source = dev.deviceClass().primaryAq()
+            if dev.__class__ != target.getPythonDeviceClass():
+                import StringIO
+                from Products.ZenRelations.ImportRM import ImportRM
+
+                def switchClass(o, module, klass):
+                    o.seek(0)
+                    l = o.readline()
+                    al = l[1:-2].split()
+                    for i in range(len(al)):
+                        if al[i].startswith('module'):
+                            al[i] = "module='%s'" % module
+                        elif al[i].startswith('class'):
+                            al[i] = "class='%s'" % klass
+                    nl = "<" + " ".join(al) + ">\n"
+                    o.seek(0)
+                    nf = ["<objects>", nl]
+                    nf.extend(o.readlines()[1:])
+                    nf.append('</objects>')
+                    return StringIO.StringIO("".join(nf))
+
+                def devExport(d, module, klass):
+                    o = StringIO.StringIO()
+                    d.exportXml(o)
+                    return switchClass(o, module, klass) 
+
+                def devImport(xmlfile):
+                    im = ImportRM(noopts=True, app=target.devices)
+                    im.loadObjectFromXML(xmlfile)
+
+                module = target.zPythonClass
+                if module: 
+                    klass = target.zPythonClass.split('.')[-1]
+                else:
+                    module = 'Products.ZenModel.Device'
+                    klass = 'Device'
+                xmlfile = devExport(dev, module,klass)
+                source.devices._delObject(devname)
+                devImport(xmlfile)
+            else:
+                dev._operation = 1
+                source.devices._delObject(devname)
+                target.devices._setObject(devname, dev)
+            dev = target.devices._getOb(devname)
             dev.setLastChange()
         if REQUEST:
             REQUEST['message'] = "Devices moved to %s" % moveTarget

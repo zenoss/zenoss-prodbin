@@ -53,3 +53,40 @@ objwithtomanycont = \
 </tomanycont>
 </object>
 """
+
+objwithoutskip = \
+"""<object id='dev' module='ZenPacks.zenoss.ZenVMware.VMwareHost' class='VMwareHost'>
+<tomanycont id='guestDevices'>
+<object id='guest0' module='ZenPacks.zenoss.ZenVMware.VMwareGuest' class='VMwareGuest'>
+</object>
+</tomanycont>
+</object>
+"""
+
+objwithskip = \
+"""<object id='dev' module='Products.ZenModel.Device' class='Device'>
+<tomanycont id='guestDevices'>
+<object id='guest0' module='ZenPacks.zenoss.ZenVMware.VMwareGuest' class='VMwareGuest'>
+</object>
+</tomanycont>
+</object>
+"""
+
+
+devicexml = \
+"""
+<objects>
+<object id='/loc' module='Products.ZenRelations.tests.TestSchema' class='Location'/>
+<object id='dev' module='Products.ZenRelations.tests.TestSchema' class='Device'>
+<property setter="setPingStatus" type="int" id="pingStatus" mode="w" >
+0
+</property>
+<tomanycont id='interfaces'>
+<object id='eth0' module='Products.ZenRelations.tests.TestSchema' class='IpInterface'>
+<toone id='device' objid='dev'/>
+</object>
+</tomanycont>
+<toone id='location' objid='/loc'/>
+</object>
+</objects>
+"""
