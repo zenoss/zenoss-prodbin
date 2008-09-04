@@ -67,7 +67,7 @@ class ExportTest(ZenRelationsBaseTest):
         self.assert_(ofile.getvalue() == objwithtomanycont)
 
 
-from Products.ZenRelations.ImportRM import ImportRM
+from Products.ZenRelations.ImportRM import NoLoginImportRM
 
 class ImportTest(ZenRelationsBaseTest):
     """Import Tests"""
@@ -76,7 +76,7 @@ class ImportTest(ZenRelationsBaseTest):
         "test importing rm without properties"
         self.failIf(hasattr(self.app, 'loc'))
         self.failIf(hasattr(self.app, 'dev'))
-        im = ImportRM(noopts=True, app=self.app)
+        im = NoLoginImportRM(self.app)
         infile = StringIO.StringIO(objnoprops)
         im.loadObjectFromXML(infile)
         self.assert_(self.app.loc)
@@ -90,7 +90,7 @@ class ImportTest(ZenRelationsBaseTest):
         "test importing rm with properties"
         self.failIf(hasattr(self.app, 'loc'))
         self.failIf(hasattr(self.app, 'dev'))
-        im = ImportRM(noopts=True, app=self.app)
+        im = NoLoginImportRM(self.app)
         infile = StringIO.StringIO(objwithprops)
         im.loadObjectFromXML(infile)
         self.assert_(self.app.dev)
@@ -106,7 +106,7 @@ class ImportTest(ZenRelationsBaseTest):
         self.failIf(hasattr(self.app, 'dev'))
         loc = self.build(self.app, Location, "loc")
         self.assert_(hasattr(self.app, 'loc'))
-        im = ImportRM(noopts=True, app=self.app)
+        im = NoLoginImportRM(self.app)
         xml = "<objects>" + objwithtoone + "</objects>"
         im.loadObjectFromXML(StringIO.StringIO(xml))
         self.assert_(self.app.dev)
@@ -120,7 +120,7 @@ class ImportTest(ZenRelationsBaseTest):
         "test importing rm with properties"
         self.failIf(hasattr(self.app, 'loc'))
         self.failIf(hasattr(self.app, 'dev'))
-        im = ImportRM(noopts=True, app=self.app)
+        im = NoLoginImportRM(self.app)
         infile = StringIO.StringIO(objwithtomanycont)
         im.loadObjectFromXML(infile)
         self.assert_(self.app.dev)
@@ -135,22 +135,25 @@ class ImportTest(ZenRelationsBaseTest):
         self.assertEqual(0, self.app.dev.pingStatus)
         self.failIf(hasattr(self.app, 'loc'))
 
-    def testImportNoSkip(self):
-        """test not skipping vmware relations that are relevant to the vmware 
-        class"""
-        self.failIf(hasattr(self.app, 'dev'))
-        im = ImportRM(noopts=True, app=self.app)
-        infile = StringIO.StringIO(objwithoutskip)
-        im.loadObjectFromXML(infile)
-        self.assert_(self.app.dev)
-        self.assert_(hasattr(self.app.dev, 'guestDevices'))
-
+    #
+    # This test fails when ZenVMWare is not installed, so it is commented out
+    #
+    # def testImportNoSkip(self):
+    #     """test not skipping vmware relations that are relevant to the vmware 
+    #     class"""
+    #     self.failIf(hasattr(self.app, 'dev'))
+    #     im = NoLoginImportRM(self.app)
+    #     infile = StringIO.StringIO(objwithoutskip)
+    #     im.loadObjectFromXML(infile)
+    #     self.assert_(self.app.dev)
+    #     self.assert_(hasattr(self.app.dev, 'guestDevices'))
+    #
         
     def testImportSkip(self):
         """test skipping vmware relations that are not relevant to the 
         standard device class"""
         self.failIf(hasattr(self.app, 'dev'))
-        im = ImportRM(noopts=True, app=self.app)
+        im = NoLoginImportRM(self.app)
         infile = StringIO.StringIO(objwithskip)
         im.loadObjectFromXML(infile)
         self.assert_(self.app.dev)

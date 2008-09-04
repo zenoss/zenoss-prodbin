@@ -64,7 +64,7 @@ class ZCmdBase(ZenDaemon):
                     raise
         self.poollock = Lock()
         self.getDataRoot()
-        if not noopts: self.login()
+        self.login()
 
     def zeoConnect(self):
         from ZEO.ClientStorage import ClientStorage

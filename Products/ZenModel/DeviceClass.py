@@ -189,7 +189,7 @@ class DeviceClass(DeviceOrganizer, ZenPackable, TemplateContainer):
             source = dev.deviceClass().primaryAq()
             if dev.__class__ != target.getPythonDeviceClass():
                 import StringIO
-                from Products.ZenRelations.ImportRM import ImportRM
+                from Products.ZenRelations.ImportRM import NoLoginImportRM
 
                 def switchClass(o, module, klass):
                     o.seek(0)
@@ -213,7 +213,7 @@ class DeviceClass(DeviceOrganizer, ZenPackable, TemplateContainer):
                     return switchClass(o, module, klass) 
 
                 def devImport(xmlfile):
-                    im = ImportRM(noopts=True, app=target.devices)
+                    im = NoLoginImportRM(target.devices)
                     im.loadObjectFromXML(xmlfile)
 
                 module = target.zPythonClass
