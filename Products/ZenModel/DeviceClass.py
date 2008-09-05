@@ -231,6 +231,8 @@ class DeviceClass(DeviceOrganizer, ZenPackable, TemplateContainer):
                 target.devices._setObject(devname, dev)
             dev = target.devices._getOb(devname)
             dev.setLastChange()
+            dev.setAdminLocalRoles()
+            dev.index_object()
         if REQUEST:
             REQUEST['message'] = "Devices moved to %s" % moveTarget
             if not isinstance(REQUEST, FakeRequest):

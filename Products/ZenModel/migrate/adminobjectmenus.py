@@ -20,7 +20,7 @@ log = logging.getLogger("zen.migrate")
 from Products.ZenModel.ZenossSecurity import *
 
 class AdminObjectMenus(Migrate.Step):
-    version = Migrate.Version(2, 1, 0)
+    version = Migrate.Version(2, 3, 0)
 
     def cutover(self, dmd):
         
@@ -29,6 +29,13 @@ class AdminObjectMenus(Migrate.Step):
                'action': 'dialog_addAdministeredDevice', 
                 'description': 'Add Device...', 
                 'id': 'addAdministeredDevice', 
+                'isdialog': True, 
+                'ordering': 90.5, 
+                'permissions': (ZEN_CHANGE_ADMIN_OBJECTS,)
+            },
+            {  'action': 'dialog_addAdministeredDeviceClass', 
+                'description': 'Add Device Class...', 
+                'id': 'addAdministeredDeviceClass', 
                 'isdialog': True, 
                 'ordering': 90.4, 
                 'permissions': (ZEN_CHANGE_ADMIN_OBJECTS,)

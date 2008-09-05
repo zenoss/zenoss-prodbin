@@ -696,7 +696,10 @@ class UserSettings(ZenModelRM):
         else:
             try:
                 root = type.capitalize()+'s'
-                mobj = self.getDmdRoot(root).getOrganizer(name)
+                if type == "deviceClass":
+                    mobj = self.getDmdRoot("Devices").getOrganizer(name)
+                else:
+                    mobj = self.getDmdRoot(root).getOrganizer(name)
             except KeyError: pass        
         if not mobj:
             if REQUEST:
