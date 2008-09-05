@@ -143,7 +143,7 @@ class ZenModeler(PBDaemon):
             elif collectTest(name):
                 self.log.debug("--collect %s on %s", name, device.id)
                 result.append(plugin)
-            else:
+            elif not self.options.collectPlugins:
                 self.log.debug("using %s on %s",name, device.id)
                 result.append(plugin)
         return result
