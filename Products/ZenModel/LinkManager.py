@@ -30,13 +30,9 @@ from Products.ZenUtils.NetworkTree import NetworkLink
 security = ClassSecurityInfo()
 
 NODE_IDS = dict(
-    layer_3 = {'IpNetwork':'networkId', 'Device':'deviceId'}
+    layer_3 = {'IpNetwork':'networkId', 'Device':'deviceId'},
+    layer_2 = {'LAN':'lanId', 'Device':'deviceId'}
 )
-
-def allcombos(items):
-    results = []
-    items.pop
-    
 
 def _getComplement(context, layer=3):
     key = 'layer_%d' % layer
@@ -59,8 +55,18 @@ def manage_addLinkManager(context, id="ZenLinkManager"):
     mgr = context._getOb(id)
     _create_catalogs(mgr)
 
-def _create_catalogs(mgr):
-    # Layer 3
+
+def _create_layer2_catalog(mgr):
+    layer_2_indices = (
+        ('lanId', makeCaseInsensitiveFieldIndex),
+        ('macaddress', makeCaseInsensitiveFieldIndex),
+        ('deviceId', makeCaseInsensitiveFieldIndex),
+        ('interfaceId', makeCaseInsensitiveFieldIndex)
+    )
+    mgr._addLinkCatalog('layer2_catalog', layer_2_indices)
+
+
+def _create_layer3_catalog(mgr):
     layer_3_indices = (
         ('networkId', makeCaseInsensitiveFieldIndex),
         ('ipAddressId', makeCaseInsensitiveFieldIndex),
@@ -68,6 +74,11 @@ def _create_catalogs(mgr):
         ('interfaceId', makeCaseInsensitiveFieldIndex)
     )
     mgr._addLinkCatalog('layer3_catalog', layer_3_indices)
+
+
+def _create_catalogs(mgr):
+    _create_layer2_catalog(mgr)
+    _create_layer3_catalog(mgr)
 
 
 class Layer3Link(object):
@@ -260,9 +271,4 @@ class LinkManager(Folder):
                         result.add(n)
         return result
 InitializeClass(LinkManager)
-
-
-
-
-
 

@@ -39,6 +39,7 @@ from Products.ZenUtils.IpUtil import *
 from ConfmonPropManager import ConfmonPropManager
 from OSComponent import OSComponent
 from Products.ZenModel.Exceptions import *
+from Products.ZenModel.Linkable import Layer2Linkable
 
 from Products.ZenModel.ZenossSecurity import *
 
@@ -58,7 +59,7 @@ def manage_addIpInterface(context, id, userCreated, REQUEST = None):
 addIpInterface = DTMLFile('dtml/addIpInterface',globals())
 
 
-class IpInterface(OSComponent):
+class IpInterface(OSComponent, Layer2Linkable):
     """
     IpInterface object
     """
@@ -173,7 +174,16 @@ class IpInterface(OSComponent):
             self.setIpAddresses(value)
         else:
             setattr(self,id,value)
-            #if id == 'macaddress': self.index_object()
+            if id == 'macaddress': 
+                self.index_object()
+
+
+    def index_object(self):
+        """
+        Override the default so that links are indexed.
+        """
+        super(IpInterface, self).index_object()
+        self.index_links()
 
 
     def manage_editProperties(self, REQUEST):
@@ -477,6 +487,25 @@ class IpInterface(OSComponent):
             or getattr(item, "_operation", -1) < 1):
             OSComponent.manage_beforeDelete(self, item, container)
     
+    def deviceId(self):
+        """
+        The device id, for indexing purposes.
+        """
+        d = self.device()
+        if d: return d.id
+        else: return None
+
+    def interfaceId(self):
+        """
+        The interface id, for indexing purposes.
+        """
+        return self.getPrimaryId()
+
+    def lanId(self):
+        """
+        pass
+        """
+        return 'None'
 
 
 InitializeClass(IpInterface)

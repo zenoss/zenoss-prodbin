@@ -154,3 +154,5 @@ import portletpaths
 import zMaxRoutes
 import monitorAsHeartbeatDevice
 import zHardDiskMapMatch
+import layer2catalog
+

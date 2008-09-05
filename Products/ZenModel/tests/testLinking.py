@@ -23,8 +23,32 @@ numpairs = lambda x: (x*(x-1))*0.5
 from Products.ZenModel.IpInterface import manage_addIpInterface
 from ZenModelBaseTest import ZenModelBaseTest
 
+class TestLayer2Linking(ZenModelBaseTest):
 
-class TestLinking(ZenModelBaseTest):
+    def setUp(self):
+        ZenModelBaseTest.setUp(self)
+        self.dev = self.dmd.Devices.createInstance("testdev")
+        manage_addIpInterface(self.dev.os.interfaces, 'eth0', True)
+        self.iface = self.dev.os.interfaces._getOb('eth0')
+        self.mac = '00:11:22:33:44:55'
+        self.iface._setPropValue('macaddress', self.mac)
+        self.catalog = self.dmd.ZenLinkManager.layer2_catalog
+
+    def testIndexAttributes(self):
+        brain = self.catalog()[0]
+        self.assertEqual(brain.deviceId, self.dev.id)
+        self.assertEqual(brain.interfaceId, self.iface.getPrimaryId())
+        self.assertEqual(brain.macaddress, self.mac)
+        self.assertEqual(brain.lanId, 'None')
+
+    def testMacIndex(self):
+        self.assertEqual(self.catalog()[0].macaddress, self.mac)
+        MAC = '55:44:33:22:11:00'
+        self.iface._setPropValue('macaddress', MAC)
+        self.assertEqual(self.catalog()[0].macaddress, MAC)
+
+
+class TestLayer3Linking(ZenModelBaseTest):
 
     def setUp(self):
         ZenModelBaseTest.setUp(self)
@@ -201,7 +225,6 @@ class TestLinking(ZenModelBaseTest):
         self.assertEqual(len(links), 1)
         self.assertEqual(links[0][1], 5)
 
-
     def tearDown(self):
         if self.evids:
             conn = self.zem.connect()
@@ -214,9 +237,9 @@ class TestLinking(ZenModelBaseTest):
         ZenModelBaseTest.tearDown(self)
 
 
-
 def test_suite():
     from unittest import TestSuite, makeSuite
     suite = TestSuite()
-    suite.addTest(makeSuite(TestLinking))
+    suite.addTest(makeSuite(TestLayer3Linking))
+    suite.addTest(makeSuite(TestLayer2Linking))
     return suite

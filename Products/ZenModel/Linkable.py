@@ -25,26 +25,28 @@ class Linkable:
             return None
 
     def index_links(self):
-        raise NotImplementedError
+        cat = self._getLinkCatalog()
+        if cat is not None:
+            cat.catalog_object(self)
+
+
+class Layer2Linkable(Linkable):
+
+    link_catalog = "layer2_catalog"
+
+    def deviceId(self): raise NotImplementedError
+    def interfaceId(self): raise NotImplementedError
+    def macaddress(self): raise NotImplementedError
+    def lanId(self): raise NotImplementedError
 
 
 class Layer3Linkable(Linkable):
 
     link_catalog = "layer3_catalog"
 
-    def index_links(self):
-        cat = self._getLinkCatalog()
-        if cat is not None:
-            cat.catalog_object(self)
+    def deviceId(self): raise NotImplementedError
+    def ipAddressId(self): raise NotImplementedError
+    def networkId(self): raise NotImplementedError
+    def interfaceId(self): raise NotImplementedError
 
-    def deviceId(self):
-        raise NotImplementedError
 
-    def ipAddressId(self):
-        raise NotImplementedError
-
-    def networkId(self):
-        raise NotImplementedError
-
-    def interfaceId(self):
-        raise NotImplementedError
