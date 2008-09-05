@@ -169,6 +169,19 @@ class InterfaceMap(SnmpPlugin):
         if hasattr(om, 'macaddress'): om.macaddress = self.asmac(om.macaddress)
         # Handle misreported operStatus from Linux tun devices
         if om.id.startswith('tun') and om.adminStatus == 1: om.operStatus = 1
+        
+        # Net-SNMP on Linux will always report the speed of bond interfaces as
+        # 10Mbps. This is probably due to the complexity if figuring out the
+        # real speed which would take into account all bonded interfaces and
+        # the bonding method (aggregate/failover). The problem is that 10Mbps
+        # is a really bad default. The following check changes this default to
+        # 1Gbps instead. See the following article that explains how you can
+        # set this per-interface in the device's snmpd.conf for real accuracy.
+        #
+        # http://whocares.de/2007/12/28/speed-up-your-bonds/
+        if om.id.startswith('bond') and om.speed == 1e7:
+            om.speed = 1000000000
+        
         return om
    
 
