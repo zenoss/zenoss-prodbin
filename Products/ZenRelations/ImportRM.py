@@ -39,8 +39,6 @@ from Products.ZenUtils.Utils import getObjByPath
 
 from Products.ZenRelations.Exceptions import *
 
-import logging
-log = logging.getLogger('zen.ImportRM')
 
 class ImportRM(ZCmdBase, ContentHandler):
 
@@ -50,18 +48,6 @@ class ImportRM(ZCmdBase, ContentHandler):
     def __init__(self, noopts=0, app=None, keeproot=False):
         ZCmdBase.__init__(self, noopts, app, keeproot)
         ContentHandler.__init__(self)
-        if hasattr(self.options, 'infile'): 
-            self.infile = self.options.infile
-        else: 
-            self.infile = ""
-        if hasattr(self.options, 'noCommit'): 
-            self.noCommit = self.options.noCommit
-        else:
-            self.noCommit = True
-        if hasattr(self.options, 'noindex'):
-            self.noindex = self.options.noindex
-        else:
-            self.noindex = True
 
     def context(self):
         return self.objstack[-1]
@@ -79,10 +65,10 @@ class ImportRM(ZCmdBase, ContentHandler):
         if self.skipobj > 0: 
             self.skipobj += 1
             return
-        log.debug("tag %s, context %s", name, self.context().id)
+        self.log.debug("tag %s, context %s", name, self.context().id)
         if name == 'object':
             obj = self.createObject(attrs)
-            if (not self.noindex  
+            if (not self.options.noindex  
                 and hasattr(aq_base(obj), 'reIndex')
                 and not self.rootpath):
                 self.rootpath = obj.getPrimaryId()
@@ -96,7 +82,7 @@ class ImportRM(ZCmdBase, ContentHandler):
                 self.objstack.append(nextobj)
         elif name == 'toone':
             relname = attrs.get('id')
-            log.debug("toone %s, on object %s", relname, self.context().id)
+            self.log.debug("toone %s, on object %s", relname, self.context().id)
             rel = getattr(aq_base(self.context()),relname, None)
             if rel is None: 
                 print 'skip toone'
@@ -118,16 +104,16 @@ class ImportRM(ZCmdBase, ContentHandler):
             if hasattr(aq_base(obj), 'index_object'):
                 obj.index_object()
             if self.rootpath == obj.getPrimaryId():
-                log.info("calling reIndex %s", obj.getPrimaryId())
+                self.log.info("calling reIndex %s", obj.getPrimaryId())
                 obj.reIndex()
                 self.rootpath = ""
         elif name == 'objects':
-            log.info("End loading objects")
-            log.info("Processing links")
+            self.log.info("End loading objects")
+            self.log.info("Processing links")
             self.processLinks()
-            if not self.noCommit:
+            if not self.options.noCommit:
                 self.commit()
-            log.info("Loaded %d objects into database" % self.objectnumber)
+            self.log.info("Loaded %d objects into database" % self.objectnumber)
         elif name == 'property':
             self.setProperty(self.context(), self.curattrs, self.charvalue)
             self.charvalue = ""
@@ -158,9 +144,9 @@ class ImportRM(ZCmdBase, ContentHandler):
             obj = self.context()._getOb(obj.id)
             self.objectnumber += 1
             if self.objectnumber % 5000 == 0: transaction.savepoint()
-            log.debug("Added object %s to database" % obj.getPrimaryId())
+            self.log.debug("Added object %s to database" % obj.getPrimaryId())
         else:
-            log.warn("Object %s already exists skipping" % id)
+            self.log.warn("Object %s already exists skipping" % id)
         return obj
 
 
@@ -170,7 +156,7 @@ class ImportRM(ZCmdBase, ContentHandler):
         name = attrs.get('id')
         proptype = attrs.get('type')
         setter = attrs.get("setter",None)
-        log.debug("setting object %s att %s type %s value %s" 
+        self.log.debug("setting object %s att %s type %s value %s" 
                             % (obj.id, name, proptype, value))
         value = value.strip()
         try: value = str(value)
@@ -205,14 +191,14 @@ class ImportRM(ZCmdBase, ContentHandler):
         """walk through all the links that we saved and link them up"""
         for relid, objid in self.links:
             try:
-                log.debug("Linking relation %s to object %s",
+                self.log.debug("Linking relation %s to object %s",
                                 relid,objid)
                 rel = getObjByPath(self.app, relid)
                 obj = getObjByPath(self.app, objid)
                 if not rel.hasobject(obj):
                     rel.addRelation(obj)
             except:
-                log.critical(
+                self.log.critical(
                     "Failed linking relation %s to object %s",relid,objid)
                 #raise
                                 
@@ -258,8 +244,8 @@ class ImportRM(ZCmdBase, ContentHandler):
             self.infile = open(xmlfile)
         elif hasattr(xmlfile, 'read'):
             self.infile = xmlfile
-        elif self.infile:
-            self.infile = open(self.infile)
+        elif self.options.infile:
+            self.infile = open(self.options.infile)
         else:
             self.infile = sys.stdin
         parser = make_parser()
@@ -276,8 +262,16 @@ class ImportRM(ZCmdBase, ContentHandler):
     def commit(self):
         trans = transaction.get()
         trans.note('Import from file %s using %s' 
-                    % (self.infile, self.__class__.__name__))
+                    % (self.options.infile, self.__class__.__name__))
         trans.commit()
+
+
+class SpoofedOptions(object):
+    
+    def __init__(self):
+        self.infile = ""
+        self.noCommit = True
+        self.noindex = True
 
 
 class NoLoginImportRM(ImportRM):
@@ -285,9 +279,10 @@ class NoLoginImportRM(ImportRM):
     def __init__(self, app):
         self.app = app
         ContentHandler.__init__(self)
-        self.infile = ""
-        self.noCommit = True
-        self.noindex = True
+        import logging
+        self.log = logging.getLogger('zen.ImportRM')
+        self.options = SpoofedOptions()    
+
 
 if __name__ == '__main__':
     im = ImportRM()
