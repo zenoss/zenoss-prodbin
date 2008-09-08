@@ -144,7 +144,7 @@ class ZenPOP3(EventServer):
         EventServer.__init__(self)
 
         self.changeUser()
-        self.processor = POPProcessor(self)
+        self.processor = POPProcessor(self,self.options.eventseverity)
         host = self.options.pophost
         port = self.options.popport
         popuser = self.options.popuser
@@ -216,6 +216,11 @@ class ZenPOP3(EventServer):
                                dest='cycletime',
                                default=60,
                                help="Frequency (in secs) to poll POP server")
+        self.parser.add_option('--eventseverity',
+                               dest='eventseverity', 
+                               default="2",
+                               type="int",
+                               help="Severity for events created")
 
 
 

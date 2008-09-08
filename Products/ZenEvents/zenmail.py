@@ -126,7 +126,7 @@ class ZenMail(EventServer):
                                     '--port=%d' % self.options.listenPort)
 
         self.changeUser()
-        self.processor = MailProcessor(self)
+        self.processor = MailProcessor(self, self.options.eventseverity)
 
         self.factory = SMTPFactory(self.processor)
 
@@ -161,6 +161,11 @@ class ZenMail(EventServer):
                                default="25",
                                type="int",
                                help="Alternative listen port to use")
+        self.parser.add_option('--eventseverity',
+                               dest='eventseverity', 
+                               default="2",
+                               type="int",
+                               help="Severity for events created")
 
 
 if __name__ == '__main__':

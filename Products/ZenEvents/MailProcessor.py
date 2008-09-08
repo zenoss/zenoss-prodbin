@@ -56,15 +56,23 @@ class MessageProcessor(object):
     '''Base class for parsing email messages that are retrieved via POP or
     received via SMTP.'''
 
-    def __init__(self, zem): 
+    def __init__(self, zem, defaultSeverity = 2): 
         self.zem = zem
+        self.eventSeverity = defaultSeverity
 
     def process(self, messageStr):
         message = email.message_from_string(messageStr)
         self.message = message
-
-        fromAddr = message.get('From').split('@')[1][:-1]
+        
+        fromAddr = message.get('From')
+        log.debug("process(): From addr is %s" % fromAddr)
+        if not fromAddr or fromAddr.find('@') == -1:
+            log.warning("cannot process message with from address %s" % fromAddr)
+            return
+        
+        fromAddr = message.get('From').split('@')[1].rstrip('>')
         fromAddr = fromAddr.split(' ')[0]
+        log.debug("process(): From addr after processing is %s" % fromAddr)
         try:
             fromIp = socket.gethostbyname(fromAddr)
         except socket.gaierror:
@@ -108,15 +116,15 @@ class MessageProcessor(object):
 
         event = self.buildEventClassKey(event)
         log.info('sending event...')
-        self.zem.sendEvent(event)
+        self.zem.sendEvent(event.__dict__)
         log.info('event sent.')
 
 
     def enrich(self, event, subject):
         unused(subject)
         event.facility = "unknown"
-        event.severity = 5
-
+        event.severity = self.eventSeverity
+        
 
     def buildEventClassKey(self, evt):
         if hasattr(evt, 'eventClassKey') or hasattr(evt, 'eventClass'):
@@ -137,8 +145,8 @@ class POPProcessor(MessageProcessor):
     override the behavior of "process" you should do so by
     implementing it here.'''
 
-    def __init__(self, zem): 
-        MessageProcessor.__init__(self, zem)
+    def __init__(self, zem, defaultSeverity = 2): 
+        MessageProcessor.__init__(self, zem, defaultSeverity)
 
 
 class MailProcessor(MessageProcessor):
@@ -146,8 +154,8 @@ class MailProcessor(MessageProcessor):
     override the behavior of "process" you should do so by
     implementing it here.'''
 
-    def __init__(self, zem): 
-        MessageProcessor.__init__(self, zem)
+    def __init__(self, zem, defaultSeverity = 2): 
+        MessageProcessor.__init__(self, zem, defaultSeverity)
     
 
     
