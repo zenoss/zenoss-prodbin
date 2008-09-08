@@ -36,7 +36,7 @@ class TestLayer2Linking(ZenModelBaseTest):
 
     def testIndexAttributes(self):
         brain = self.catalog()[0]
-        self.assertEqual(brain.deviceId, self.dev.id)
+        self.assertEqual(brain.deviceId, '/zport/dmd/Devices/devices/' + self.dev.id)
         self.assertEqual(brain.interfaceId, self.iface.getPrimaryId())
         self.assertEqual(brain.macaddress, self.mac)
         self.assertEqual(brain.lanId, 'None')
