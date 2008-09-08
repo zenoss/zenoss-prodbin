@@ -492,7 +492,7 @@ class IpInterface(OSComponent, Layer2Linkable):
         The device id, for indexing purposes.
         """
         d = self.device()
-        if d: return d.id
+        if d: return d.getPrimaryId()
         else: return None
 
     def interfaceId(self):
