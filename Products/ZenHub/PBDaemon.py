@@ -27,7 +27,6 @@ from Products.ZenUtils.DaemonStats import DaemonStats
 from twisted.cred import credentials
 from twisted.internet import reactor, defer
 from twisted.internet.error import ConnectionLost
-from twisted.internet.defer import TimeoutError
 from twisted.python.failure import Failure
 from twisted.spread import pb
 

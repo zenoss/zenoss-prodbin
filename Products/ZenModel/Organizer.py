@@ -144,8 +144,8 @@ class Organizer(ZenModelRM, EventView):
         @return: Ids of children within our organizer 
         @rtype: list
         
-        >>> dmd.Devices.childIds()
-        ['Discovered', 'Network', 'Server', 'Printer', 'Power', 'KVM', 'Ping']
+        >>> 'Discovered' in dmd.Devices.childIds()
+        True
         """
         if spec is None:
             spec = self.meta_type

@@ -21,7 +21,6 @@ import time
 import types
 import random
 import simplejson
-from itertools import islice
 import re
 random.seed()
 import logging

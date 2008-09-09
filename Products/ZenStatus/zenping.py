@@ -334,7 +334,7 @@ class ZenPing(PBDaemon):
         d = drive(self.loadConfig)
         def logResults(v):
             if isinstance(v, failure.Failure):
-                log.error("Unable to reload config for asynchronous update")
+                self.log.error("Unable to reload config for async update")
         d.addBoth(logResults)
 
 

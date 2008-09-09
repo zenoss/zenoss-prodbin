@@ -22,9 +22,7 @@ __version__ = "$Revision: 1.3 $"[11:-2]
 import sys
 import os
 import types
-import urllib2
 import transaction
-from urlparse import urlparse
 from xml.sax import make_parser, saxutils
 from xml.sax.handler import ContentHandler
 
@@ -146,7 +144,7 @@ class ImportRM(ZCmdBase, ContentHandler):
             if self.objectnumber % 5000 == 0: transaction.savepoint()
             self.log.debug("Added object %s to database" % obj.getPrimaryId())
         else:
-            self.log.warn("Object %s already exists skipping" % id)
+            self.log.debug("Object %s already exists skipping" % id)
         return obj
 
 

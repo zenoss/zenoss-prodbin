@@ -23,7 +23,6 @@ much better."""
 from Products.DataCollector.plugins.CollectorPlugin import PythonPlugin
 from Products.ZenUtils.Utils import zenPath
 from twisted.internet.utils import getProcessOutput
-from twisted.internet import reactor
 import re
 
 class IpServiceMap(PythonPlugin):
