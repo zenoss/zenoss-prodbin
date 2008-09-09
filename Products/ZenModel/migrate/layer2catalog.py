@@ -19,6 +19,9 @@ from Products.ZenModel.LinkManager import _create_layer2_catalog
 import logging
 log = logging.getLogger("zen.migrate")
 
+import sys
+
+
 class Layer2Catalog(Migrate.Step):
     version = Migrate.Version(2, 3, 0)
 
@@ -31,8 +34,16 @@ class Layer2Catalog(Migrate.Step):
             _create_layer2_catalog(dmd.ZenLinkManager)
 
         # Reindex the interfaces
-        for device in dmd.Devices.getSubDevicesGen():
-            for iface in device.getSubComponents("IpInterface"):
-                iface.index_object()
+        print "Indexing interfaces. This may take a while."
+
+        def _update(i):
+            if   i % 5000 == 0 and i > 0: print i,
+            elif i % 1000 == 0: print '.',
+            sys.stdout.flush()
+
+        for i, iface in enumerate(dmd.Devices.getSubComponents("IpInterface")):
+            iface.index_object()
+            _update(i)
+
 
 Layer2Catalog()
