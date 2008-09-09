@@ -10,7 +10,6 @@
 # For complete information please visit: http://www.zenoss.com/oss/
 #
 ###########################################################################
-#! /usr/bin/env python 
 
 __doc__='''Driver.py
 
@@ -26,6 +25,10 @@ __version__ = "$Revision$"[11:-2]
 
 from twisted.internet import defer, reactor
 from twisted.python import failure
+
+class ShortCircuit:
+    def __init__(self, value):
+        self.value = value
 
 class Driver:
     "Walk an iterable that returns a deferred."
@@ -46,10 +49,13 @@ class Driver:
             self.iter.next().addBoth(self._finish)
         except StopIteration:
             self.defer.callback(self.result)
+        except ShortCircuit, ex:
+            self.result = ex.value
+            self.defer.callback(self.result)
         except Exception, ex:
             self.defer.errback(failure.Failure(ex))
 
-    def next(self):
+    def result(self):
         "Provide the result of the iterable as a value or exception"
         ex = self.result
         if isinstance(self.result, failure.Failure):
@@ -57,20 +63,28 @@ class Driver:
         if isinstance(ex, Exception):
             raise ex
         return self.result
+    next = result                       # historical name for result
+
+    def finish(self, result):
+        raise ShortCircuit(result)
 
     def _finish(self, result):
         "Store the result of the last deferred for use in next()"
         self.result = result
-        self._next()
+        # prevent endless recursion
+        reactor.callLater(0, self._next)
 
 def drive(callable):
     '''Typical use of Driver class:
 
     def walk(driver):
         yield thing1()
-        print "Thing 1 is", driver.next()
-        yeild thing2()
-        print "Thing 2 is", driver.next()
+        a = driver.next()
+        print "Thing 1 is", 
+        yield thing2()
+        b = driver.next()
+        print "Thing 2 is", 
+        driver.finish(a + b)
 
     drive(walk)
 
