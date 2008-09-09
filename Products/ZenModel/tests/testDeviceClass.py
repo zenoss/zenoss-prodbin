@@ -116,7 +116,6 @@ class TestDeviceClass(ZenModelBaseTest):
         self.assert_(group in dev.groups())
 
     def testMoveDevicesCustToStandard(self):
-        from Products.ZenModel.tests.CustDevice import CustDevice
         custdev = self.dmd.Devices.createOrganizer("/CustDev")
         custdev._setProperty('zPythonClass',
                              'Products.ZenModel.tests.CustDevice')

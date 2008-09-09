@@ -13,8 +13,6 @@
 
 from Products.ZenWin.WMIPlugin import WMIPlugin
 from Products.ZenUtils.Utils import prepId
-from Products.ZenEvents.ZenEventClasses import Status_WinService
-from socket import getfqdn
 
 EVENTS = "Events"
 STATMSG = "Windows Service '%s' is %s"
