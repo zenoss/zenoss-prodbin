@@ -11,6 +11,8 @@
 #
 ###########################################################################
 
+import os
+import shutil
 import time
 import types
 import socket
@@ -1591,12 +1593,42 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
             if not isinstance(newId, unicode):
                 newId = self.prepId(newId)
             parent = self.getPrimaryParent()
-            parent.manage_renameObject(self.getId(), newId)
+            oldId=self.getId()
+            
+            # side effect: self.getId() will return newId after this call
+            parent.manage_renameObject(oldId, newId)
+            
+            self.renameDeviceInEvents(oldId, newId)
+            self.renameDeviceInPerformance(oldId, newId)
             self.setLastChange()
         if REQUEST: 
             REQUEST['message'] = "Device %s renamed to %s" % (self.getId(), newId)
             REQUEST['RESPONSE'].redirect("%s/%s" % (parent.absolute_url(), newId))
-            
+
+
+    def renameDeviceInEvents(self, old, new):
+        """update the device column in the status and history tables for rows 
+           associated with this device"""
+        zem=self.dmd.ZenEventManager
+        query="update %%s set device='%s' where device='%s';"%(new, old)
+        sqlscript=''.join([query%t for t in ('status', 'history')])            
+        args=['mysql',
+              '-h%s'%zem.host,
+              '-P%s'%zem.port,
+              '-u%s'%zem.username,
+              '-p%s'%zem.password,
+              '-e%s'%sqlscript,
+              zem.database,
+              ]
+        if not os.fork(): os.execvp('mysql', args)
+
+    def renameDeviceInPerformance(self, old, new):
+        """rename the directory that holds performance data for this device
+           note that the directory must be renamed on all collectors"""
+        root=os.path.dirname(self.fullRRDPath())
+        newpath=os.path.join(root, new)
+        if os.path.exists(newpath): shutil.rmtree(newpath)
+        os.rename(os.path.join(root, old), newpath)
 
     def manage_afterAdd(self, item, container):
         """
