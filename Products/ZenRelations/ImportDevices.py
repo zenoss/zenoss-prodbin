@@ -66,11 +66,7 @@ class ImportDevices(ZCmdBase):
         for tomany in tomanys:
             id = tomany.getAttribute('id')
             links = tomany.getElementsByTagName('link')
-            if id == 'monitors':
-                for link in links:
-                    d['statusMonitors'].append(parse_objid(link.getAttribute('objid'),
-                                                           True))
-            elif id == 'systems':
+            if id == 'systems':
                 for link in links:
                     d['systemPaths'].append(parse_objid(link.getAttribute('objid')))
             elif id == 'groups':
