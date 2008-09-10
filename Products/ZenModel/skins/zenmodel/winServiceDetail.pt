@@ -69,7 +69,7 @@
         <td class="tablevalues" tal:condition="not:manager"
             tal:content="here/monitored"/>
         <td class="tableheader">Fail Severity</td>
-        <td class="tablevalues" tal:condition="editable">
+        <td class="tablevalues" tal:condition="manager">
             <select class="tablevalues" name="severity:int">
                 <option tal:repeat="sev here/getSeverities"
                     tal:content="python:sev[0]"
@@ -77,7 +77,7 @@
                         selected python:sev[1] == here.getFailSeverity()" />
             </select>
         </td>
-        <td class="tablevalues" tal:condition="not:editable"
+        <td class="tablevalues" tal:condition="not:manager"
             tal:content="here/getFailSeverityString"/>
     </tr>
     <tr>
