@@ -97,6 +97,7 @@ class Event(pb.Copyable, pb.RemoteCopy):
         """
         self._fields = fields
         for i in range(len(fields)):
+            if data[i] is None: data[i] = ''
             setattr(self, fields[i], data[i])
 
 
