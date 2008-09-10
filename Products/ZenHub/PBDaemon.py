@@ -116,7 +116,8 @@ class PBDaemon(ZenDaemon, pb.Referenceable):
 
     def connect(self):
         factory = ReconnectingPBClientFactory()
-        self.log.debug("Connecting to %s", self.options.hubhost)
+        self.log.debug("Connecting to %s:%d", self.options.hubhost,
+            self.options.hubport)
         reactor.connectTCP(self.options.hubhost, self.options.hubport, factory)
         username = self.options.hubusername
         password = self.options.hubpassword
@@ -299,22 +300,23 @@ class PBDaemon(ZenDaemon, pb.Referenceable):
 
 
     def buildOptions(self):
-        self.parser.add_option('--hub-host',
+        self.parser.add_option('--hubhost',
                                 dest='hubhost',
                                 default=DEFAULT_HUB_HOST,
                                 help='Host of zenhub daemon.'
                                 ' Default is %s.' % DEFAULT_HUB_HOST)
-        self.parser.add_option('--hub-port',
+        self.parser.add_option('--hubport',
                                 dest='hubport',
+                                type='int',
                                 default=DEFAULT_HUB_PORT,
                                 help='Port zenhub listens on.'
                                     'Default is %s.' % DEFAULT_HUB_PORT)
-        self.parser.add_option('--hub-username',
+        self.parser.add_option('--hubusername',
                                 dest='hubusername',
                                 default=DEFAULT_HUB_USERNAME,
                                 help='Username for zenhub login.'
                                     ' Default is %s.' % DEFAULT_HUB_USERNAME)
-        self.parser.add_option('--hub-password',
+        self.parser.add_option('--hubpassword',
                                 dest='hubpassword',
                                 default=DEFAULT_HUB_PASSWORD,
                                 help='Password for zenhub login.'
