@@ -50,31 +50,33 @@ if [ `id -u` -eq 0 ] ; then
 fi
 
 . $ZENHOME/bin/zenfunctions
+DAEMONS_TXT_ONLY=0
 C=
-C="$C zeoctl"
-C="$C zopectl"
-C="$C zenhub"
-C="$C zenping"
-C="$C zensyslog"
-C="$C zenstatus"
-C="$C zenactions"
-C="$C zentrap"
-C="$C zenmodeler"
-#C="$C zenrender"
-C="$C zenperfsnmp"
-C="$C zencommand"
-C="$C zenprocess"
-#C="$C zenmail"
-$ZENHOME/bin/python -c 'import pywmi' 2>/dev/null
-if [ $? -eq 0 ]
-then
-    C="$C zenwin"
-    C="$C zeneventlog"
+if [ $DAEMONS_TXT_ONLY -ne 1 ] ; then
+	C="$C zeoctl"
+	C="$C zopectl"
+	C="$C zenhub"
+	C="$C zenping"
+	C="$C zensyslog"
+	C="$C zenstatus"
+	C="$C zenactions"
+	C="$C zentrap"
+	C="$C zenmodeler"
+	#C="$C zenrender"
+	C="$C zenperfsnmp"
+	C="$C zencommand"
+	C="$C zenprocess"
+	#C="$C zenmail"
+	$ZENHOME/bin/python -c 'import pywmi' 2>/dev/null
+	if [ $? -eq 0 ]
+	then
+	    C="$C zenwin"
+	    C="$C zeneventlog"
+	fi
+
+	ZPD=`$ZENHOME/bin/zenpackdaemons --list`
+	C="$C $ZPD"
 fi
-
-ZPD=`$ZENHOME/bin/zenpackdaemons --list`
-C="$C $ZPD"
-
 if [ -f "$ZENHOME/etc/daemons.txt" ]
 then
     D=`cat $ZENHOME/etc/daemons.txt`
