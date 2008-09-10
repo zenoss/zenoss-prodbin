@@ -28,6 +28,10 @@ class UCDHardDiskMap(SnmpPlugin):
     snmpGetTableMaps = (
         GetTableMap('diskIOTable', '.1.3.6.1.4.1.2021.13.15.1.1', {
             '.2': 'id',
+            '.3': 'rdb',
+            '.4': 'wtb',
+            '.5': 'rdc',
+            '.6': 'wtc',
             }
         ),
     )
@@ -45,6 +49,11 @@ class UCDHardDiskMap(SnmpPlugin):
         for oid, disk in dtable.items():
             om = self.objectMap(disk)
             if not diskmatch.search(om.id): continue
+            rdb = getattr(om, 'rdb', 0)
+            wtb = getattr(om, 'wtb', 0)
+            rdc = getattr(om, 'rdc', 0)
+            wtc = getattr(om, 'wtc', 0)
+            if rdb + wtb + rdc + wtc <= 0: continue
             om.description = om.id
             om.id = self.prepId(om.id)
             om.snmpindex = oid
