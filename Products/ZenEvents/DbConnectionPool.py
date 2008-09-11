@@ -10,9 +10,6 @@
 # For complete information please visit: http://www.zenoss.com/oss/
 #
 ###########################################################################
-import MySQLdb
-import MySQLdb.converters
-from MySQLdb.constants import FIELD_TYPE
 from Exceptions import MySQLConnectionError
 
 import time
@@ -82,6 +79,13 @@ class DbConnectionPool:
 
     def _createConnection(self, host=None, port=None, 
                         username=None, password=None, database=None):
+        # These MySQLdb imports were moved from the top of the file to
+        # here to avoid importing MySQLdb libs at startup.  This is
+        # desirable for DistributedCollector where we are usually
+        # executing on a remote box that may not have mysql libs around.
+        import MySQLdb
+        import MySQLdb.converters
+        from MySQLdb.constants import FIELD_TYPE
         log.debug('Creating a new connection; Pool size: %s' % self.qsize())
         conn = None
         mysqlconv = MySQLdb.converters.conversions.copy()
