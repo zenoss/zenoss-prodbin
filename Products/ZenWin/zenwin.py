@@ -97,7 +97,7 @@ class zenwin(WinCollector):
                 wmic.close()
                 self.log.info("Finished scanning %s", device.id)
             except Exception, ex:
-                log.exception(ex)
+                self.log.exception(ex)
                 raise
         return drive(inner)
 
