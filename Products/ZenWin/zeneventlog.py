@@ -1,7 +1,7 @@
 ###########################################################################
 #
 # This program is part of Zenoss Core, an open source monitoring platform.
-# Copyright (C) 2007, Zenoss Inc.
+# Copyright (C) 2007, 2008 Zenoss Inc.
 #
 # This program is free software; you can redistribute it and/or modify it
 # under the terms of the GNU General Public License version 2 as published by
@@ -11,19 +11,14 @@
 #
 ###########################################################################
 
-from socket import getfqdn
-import pywintypes
-import pythoncom
-
-
 import Globals
+from Products.ZenWin.Watcher import Watcher
+from Products.ZenWin.WinCollector import WinCollector
+from Products.ZenUtils.Driver import drive
 from Products.ZenEvents.ZenEventClasses import Status_Wmi
 from Products.ZenEvents import Event
 
-from Products.ZenWin.WinCollector import WinCollector
-from Products.ZenWin.Constants import \
-     TIMEOUT_CODE, ERROR_CODE_MAP
-
+from twisted.internet import defer
 
 class zeneventlog(WinCollector):
 
@@ -33,109 +28,104 @@ class zeneventlog(WinCollector):
     attributes = WinCollector.attributes + ('eventlogCycleInterval',)
     events = 0
 
-    def __init__(self):
-        WinCollector.__init__(self)
-        self.manager = getfqdn()
-
 
     def fetchDevices(self, driver):
-        yield self.configService().callRemote('getDeviceListByMonitor',
-                                       self.options.monitor)
-        yield self.configService().callRemote('getDeviceConfigAndWinServices', 
-            driver.next())
+        yield self.configService().callRemote(
+            'getDeviceListByMonitor', self.options.monitor)
+        yield self.configService().callRemote(
+            'getDeviceConfigAndWinServices', driver.next())
         self.updateDevices(driver.next())
 
+
     def processDevice(self, device):
+        """Scan a single device."""
         self.log.debug("polling %s", device.id)
-        try:
-            wql = """SELECT * FROM __InstanceCreationEvent where """\
-                  """TargetInstance ISA 'Win32_NTLogEvent' """\
-                  """and TargetInstance.EventType <= %d"""\
-                  % device.zWinEventlogMinSeverity
-            if not self.watchers.has_key(device.id):
-                self.log.warning("Creating watcher of %s", device.id)
-                self.watchers[device.id] = self.getWatcher(device, wql)
-            w = self.watchers[device.id]
+        wql = """SELECT * FROM __InstanceCreationEvent where """\
+              """TargetInstance ISA 'Win32_NTLogEvent' """\
+              """and TargetInstance.EventType <= %d"""\
+              % device.zWinEventlogMinSeverity
+        def inner(driver):
+            try:
+                w = self.watchers.get(device.id, None)
+                if not w:
+                    self.log.debug("Creating watcher of %s", device.id)
+                    w = Watcher(device, wql)
+                    self.log.info("Connecting to %s", device.id)
+                    yield w.connect()
+                    driver.next()
+                    self.log.info("Connected to %s", device.id)
+                    self.watchers[device.id] = w
+                while 1:
+                    yield w.getEvents(int(self.options.queryTimeout))
+                    events = driver.next()
+                    self.log.debug("Got %d events", len(events))
+                    if not events: break
+                    for lrec in events:
+                        self.events += 1
+                        self.sendEvent(self.makeEvent(device.id, lrec))
+            except Exception, ex:
+                self.log.exception("Exception getting windows events: %s", ex)
+                self.sendEvent(dict(summary="Error reading wmi events",
+                                    exception=str(ex),
+                                    eventClass=Status_Wmi,
+                                    device=device.id,
+                                    severity=Event.Error,
+                                    agent=self.agent))
+                self.log.warning("Closing watcher of %s", device.id)
+                if self.watchers.has_key(device.id):
+                    w = self.watchers.pop(device.id)
+                    w.close()
+        return drive(inner)
 
-            while 1:
-                lrec = w.nextEvent(int(self.options.queryTimeout))
-                if not lrec.message:
-                    continue
-                self.events += 1
-                self.sendEvent(self.mkevt(device.id, lrec))
-            return
-        except pywintypes.com_error, e:
-            code,txt,info,param = e
-            wmsg = "%s: %s" % (abs(code), txt)
-            if info:
-                wcode, source, descr, hfile, hcont, scode = info
-                scode = abs(scode)
-                if descr:
-                    wmsg = descr.strip()
-                if scode == TIMEOUT_CODE:
-                    self.log.debug("timeout (no events) %s", device.id)
-                    return
-                wmsg = ERROR_CODE_MAP.get(str(scode), [None, wmsg])[1]
-            self.log.warn("%s %s", device.id, "wmi connection failed: ", wmsg)
-        except Exception, ex:
-            self.log.exception("Exception getting windows events: %s", ex)
-            self.sendEvent(dict(summary="Error reading wmi events",
-                                exception=str(ex),
-                                eventClass=Status_Wmi,
-                                device=device.id,
-                                severity=Event.Error,
-                                agent=self.agent))
-        self.log.warning("Closing watcher of %s", device.id)
-        if self.watchers.has_key(device.id):
-            w = self.watchers.pop(device.id)
-            w.close()
 
-        
-        
     def processLoop(self):
-        """Run WMI queries in two stages ExecQuery in semi-sync mode.
-        then process results later (when they have already returned)
-        """
-        cycle = self.cycleInterval()
-        pythoncom.PumpWaitingMessages()
+        "Fetch event updates from all the devices"
+        devices = []
         for device in self.devices:
-            if not device.plugins: continue
+            if not device.plugins:
+                continue
+            if self.options.device and device.id != self.options.device:
+                continue
             if device.id in self.wmiprobs:
                 self.log.debug("WMI problems on %s: skipping" % device.id)
                 continue
+            devices.append(device)
+        def inner(driver):
             try:
-                self.processDevice(device)
-            finally:
-                self.niceDoggie(cycle)
+                cycle = self.cycleInterval()
+                deferreds = []
+                yield defer.DeferredList(map(self.processDevice, devices))
+                driver.next()
+                self.niceDoggie(self.cycleInterval())
+                for ev in (
+                    self.rrdStats.counter('events', cycle, self.events) +
+                    self.rrdStats.gauge('devices', cycle, len(deferreds))
+                    ):
+                    self.sendEvent(ev)
+            except Exception, ex:
+                self.log.exception(ex)
+        return drive(inner)
 
-        self.log.debug("Com InterfaceCount: %d", pythoncom._GetInterfaceCount())
-        self.log.debug("Com GatewayCount: %d", pythoncom._GetGatewayCount())
-        for ev in (self.rrdStats.counter('events', cycle, self.events) +
-                   self.rrdStats.gauge('comInterfaceCount', cycle,
-                                       pythoncom._GetInterfaceCount()) +
-                   self.rrdStats.gauge('comGatewayCount', cycle,
-                                       pythoncom._GetGatewayCount())):
-            self.sendEvent(ev)
 
-
-    def mkevt(self, name, lrec):
+    def makeEvent(self, name, lrec):
         """Put event in the queue to be sent to the ZenEventManager.
         """
+        lrec = lrec.targetinstance
         evtkey = "%s_%s" % (lrec.sourcename, lrec.eventcode)
         sev = 4 - lrec.eventtype     #lower severity by one level
         if sev < 1: sev = 1
         evt = dict(device=name,
-                    eventClassKey=evtkey,
-                    eventGroup=lrec.logfile,
-                    component=lrec.sourcename,
-                    ntevid=lrec.eventcode,
-                    summary=lrec.message.strip(),
-                    agent="zeneventlog",
-                    severity=sev,
-                    manager=self.manager,
-                    monitor=self.options.monitor)
+                   eventClassKey=evtkey,
+                   eventGroup=lrec.logfile,
+                   component=lrec.sourcename,
+                   ntevid=lrec.eventcode,
+                   summary=lrec.message.strip(),
+                   agent="zeneventlog",
+                   severity=sev,
+                   monitor=self.options.monitor)
         self.log.debug("device:%s msg:'%s'", name, lrec.message)
         return evt
+
 
     def cycleInterval(self):
         return self.eventlogCycleInterval

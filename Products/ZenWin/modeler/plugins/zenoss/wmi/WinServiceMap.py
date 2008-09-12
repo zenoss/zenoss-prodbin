@@ -14,9 +14,6 @@
 from Products.ZenWin.WMIPlugin import WMIPlugin
 from Products.ZenUtils.Utils import prepId
 
-EVENTS = "Events"
-STATMSG = "Windows Service '%s' is %s"
-
 class WinServiceMap(WMIPlugin):
 
     maptype = "WinServiceMap"
@@ -26,16 +23,16 @@ class WinServiceMap(WMIPlugin):
     
     attrs = ("acceptPause","acceptStop","name","caption",
              "pathName","serviceType","startMode","startName","state")
+
     
     def queries(self):
         return {
-     "Win32_Service":"Select %s From Win32_Service" % \
-        (",".join(self.attrs)),
-    }
+            "Win32_Service" :
+            "Select %s From Win32_Service" % (",".join(self.attrs)),
+            }
     
     def process(self, device, results, log):
-        """
-        Collect win service info from this device.
+        """Collect win service info from this device.
         """
         log.info('Processing WinServices for device %s' % device.id)
         

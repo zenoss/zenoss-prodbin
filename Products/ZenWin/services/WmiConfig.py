@@ -25,6 +25,7 @@ from Products.ZenHub.services.ThresholdMixin import ThresholdMixin
 
 class WmiConfig(ModelerService, ThresholdMixin):
 
+
     def __init__(self, dmd, instance):
         ModelerService.__init__(self, dmd, instance)
         self.config = self.dmd.Monitors.Performance._getOb(self.instance)
@@ -45,6 +46,7 @@ class WmiConfig(ModelerService, ThresholdMixin):
                 continue
             self.procrastinator.doLater(object)
 
+
     def push(self, object):
         if (not object.monitorDevice() or
             getattr(object, 'zWmiMonitorIgnore', False)):
@@ -53,6 +55,7 @@ class WmiConfig(ModelerService, ThresholdMixin):
             for listener in self.listeners:
                 listener.callRemote('notifyConfigChanged')
             self.procrastinator.clear()
+
 
     def deleted(self, obj):
         for listener in self.listeners:
