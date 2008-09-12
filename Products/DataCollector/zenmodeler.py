@@ -469,10 +469,10 @@ class ZenModeler(PBDaemon):
                 help="run collection every x minutes")
         self.parser.add_option('--ignore',
                 dest='ignorePlugins',default="",
-                help="Comma separated list of collection maps to ignore")
+                help="Modeler plugins to ignore. Takes a regular expression")
         self.parser.add_option('--collect',
                 dest='collectPlugins',default="",
-                help="Comma separated list of collection maps to use")
+                help="Modeler plugins to use. Takes a regular expression")
         self.parser.add_option('-p', '--path', dest='path',
                 help="start path for collection ie /NetworkDevices")
         self.parser.add_option('-d', '--device', dest='device',
