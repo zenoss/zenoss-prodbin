@@ -11,26 +11,27 @@
 #
 ###########################################################################
 
-import time
-import types
-import re
 import Globals
-import DateTime
-from twisted.internet import reactor
-from twisted.internet.defer import succeed
-
+from Products.ZenWin.WMIClient import WMIClient
 from Products.ZenHub.PBDaemon import FakeRemote, PBDaemon
 from Products.ZenUtils.DaemonStats import DaemonStats
 from Products.ZenUtils.Driver import drive, driveLater
 from Products.ZenUtils.Utils import unused
 from Products.ZenEvents.ZenEventClasses import Heartbeat
 
-import PythonClient
-import SshClient
-import TelnetClient
-import SnmpClient
-import PortscanClient
-import WmiClient
+from PythonClient   import PythonClient
+from SshClient      import SshClient
+from TelnetClient   import TelnetClient, buildOptions as TCbuildOptions
+from SnmpClient     import SnmpClient
+from PortscanClient import PortscanClient
+
+from twisted.internet import reactor
+from twisted.internet.defer import succeed
+
+import time
+import types
+import re
+import DateTime
 
 defaultPortScanTimeout = 5
 defaultParallel = 1
@@ -38,11 +39,10 @@ defaultProtocol = "ssh"
 defaultPort = 22
 defaultStartSleep = 10 * 60
 
+# needed for pb to work
 from Products.DataCollector import DeviceProxy
 from Products.DataCollector import Plugins
-# needed for pb to work
-unused(DeviceProxy)
-unused(Plugins)
+unused(DeviceProxy, Plugins)
 
 class ZenModeler(PBDaemon):
 
@@ -83,12 +83,14 @@ class ZenModeler(PBDaemon):
     def reportError(self, error):
         self.log.error("Error occured: %s", error)
 
+
     def connected(self):
         self.log.debug("Connected to ZenHub")
         d = self.configure()
         d.addCallback(self.heartbeat)
         d.addErrback(self.reportError)
         d.addCallback(self.main)
+
 
     def configure(self):
         # add in the code to fetch cycle time, etc.
@@ -98,9 +100,9 @@ class ZenModeler(PBDaemon):
             items = dict(driver.next())
             if self.options.cycletime == 0:
                 self.modelerCycleInterval = items.get('modelerCycleInterval',
-                                            self.modelerCycleInterval)
+                                                      self.modelerCycleInterval)
             self.configCycleInterval = items.get('configCycleInterval',
-                                                self.configCycleInterval)
+                                                 self.configCycleInterval)
             reactor.callLater(self.configCycleInterval * 60, self.configure)
 
             self.log.debug("getting threshold classes")
@@ -119,9 +121,11 @@ class ZenModeler(PBDaemon):
                                  createCommand)
         return drive(inner)
 
+
     def config(self):
         "Get the ModelerService"
         return self.services.get('ModelerService', FakeRemote())
+
 
     def selectPlugins(self, device, transport):
         """Build a list of active plugins for a device.  
@@ -161,6 +165,7 @@ class ZenModeler(PBDaemon):
         self.snmpCollect(device, ip, timeout)
         self.portscanCollect(device, ip, timeout)
 
+
     def wmiCollect(self, device, ip, timeout):
         "Start the wmi collector"
         if self.options.nowmi:
@@ -175,7 +180,7 @@ class ZenModeler(PBDaemon):
                 self.log.info('wmi collection device %s' % device.id)
                 self.log.info("plugins: %s",
                         ", ".join(map(lambda p: p.name(), plugins)))
-                client = WmiClient.WmiClient(device, self)
+                client = WMIClient(device, self, plugins)
             if not client or not plugins:
                 self.log.warn("wmi client creation failed")
                 return
@@ -184,6 +189,7 @@ class ZenModeler(PBDaemon):
         except Exception:
             self.log.exception("error opening wmi client")
         self.addClient(client, timeout, 'wmi', device.id)
+
 
     def pythonCollect(self, device, ip, timeout):
         """Start local collection client.
@@ -198,7 +204,7 @@ class ZenModeler(PBDaemon):
                 self.log.info('python collection device %s' % device.id)
                 self.log.info("plugins: %s",
                         ", ".join(map(lambda p: p.name(), plugins)))
-                client = PythonClient.PythonClient(device, self, plugins)
+                client = PythonClient(device, self, plugins)
             if not client or not plugins:
                 self.log.warn("python client creation failed")
                 return
@@ -222,18 +228,18 @@ class ZenModeler(PBDaemon):
             protocol = getattr(device, 'zCommandProtocol', defaultProtocol)
             commandPort = getattr(device, 'zCommandPort', defaultPort)
             if protocol == "ssh": 
-                client = SshClient.SshClient(hostname, ip, commandPort, 
-                                    options=self.options,
-                                    plugins=plugins, device=device, 
-                                    datacollector=self)
+                client = SshClient(hostname, ip, commandPort, 
+                                   options=self.options,
+                                   plugins=plugins, device=device, 
+                                   datacollector=self)
                 clientType = 'ssh'
                 self.log.info('using ssh collection device %s' % hostname)
             elif protocol == 'telnet':
                 if commandPort == 22: commandPort = 23 #set default telnet
-                client = TelnetClient.TelnetClient(hostname, ip, commandPort,
-                                    options=self.options,
-                                    plugins=plugins, device=device, 
-                                    datacollector=self)
+                client = TelnetClient(hostname, ip, commandPort,
+                                      options=self.options,
+                                      plugins=plugins, device=device, 
+                                      datacollector=self)
                 clientType = 'telnet'
                 self.log.info('using telnet collection device %s' % hostname)
             else:
@@ -268,12 +274,8 @@ class ZenModeler(PBDaemon):
                 self.log.info('snmp collection device %s' % hostname)
                 self.log.info("plugins: %s", 
                               ", ".join(map(lambda p: p.name(), plugins)))
-                client = SnmpClient.SnmpClient(device.id,
-                                               ip,
-                                               self.options, 
-                                               device,
-                                               self,
-                                               plugins)
+                client = SnmpClient(device.id, ip, self.options, 
+                                    device, self, plugins)
             if not client or not plugins: 
                 self.log.warn("snmp client creation failed")
                 return
@@ -281,6 +283,7 @@ class ZenModeler(PBDaemon):
         except:
             self.log.exception("error opening snmpclient")
         self.addClient(client, timeout, 'snmp', device.id)
+
 
     def addClient(self, obj, timeout, clientType, name):
         if obj:
@@ -309,12 +312,8 @@ class ZenModeler(PBDaemon):
                 self.log.info('portscan collection device %s' % hostname)
                 self.log.info("plugins: %s",
                     ", ".join(map(lambda p: p.name(), plugins)))
-                client = PortscanClient.PortscanClient(device.id,
-                                                       ip,
-                                                       self.options,
-                                                       device,
-                                                       self,
-                                                       plugins)
+                client = PortscanClient(device.id, ip, self.options,
+                                        device, self, plugins)
             if not client or not plugins:
                 self.log.warn("portscan client creation failed")
                 return
@@ -424,6 +423,7 @@ class ZenModeler(PBDaemon):
                 self.stop()
             self.finished = []
 
+
     def fillCollectionSlots(self, driver):
         """If there are any free collection slots fill them up
         """
@@ -495,10 +495,9 @@ class ZenModeler(PBDaemon):
         self.parser.add_option('--now', 
                 dest='now', action="store_true", default=False,
                 help="start daemon now, do not sleep before starting")
-        TelnetClient.buildOptions(self.parser, self.usage)
+        TCbuildOptions(self.parser, self.usage)
     
 
-    
     def processOptions(self):
         if not self.options.path and not self.options.device:
             self.options.path = "/Devices"
@@ -536,6 +535,7 @@ class ZenModeler(PBDaemon):
                 if reactor.running:
                     self.log.exception("Unexpected error in main loop.")
 
+
     def getDeviceList(self):
         if self.options.device:
             self.log.info("collecting for device %s", self.options.device)
@@ -549,7 +549,6 @@ class ZenModeler(PBDaemon):
             return self.config().callRemote('getDeviceListByMonitor',
                                             self.options.monitor)
         
-
 
     def mainLoop(self, driver):
         if self.options.cycle:
@@ -577,6 +576,7 @@ class ZenModeler(PBDaemon):
         d.addCallback(self.timeoutClients)
         return d
 
+
     def collectSingle(self, device):
         self.finished = []
         self.start = time.time()
@@ -584,6 +584,7 @@ class ZenModeler(PBDaemon):
         d = self.drive(self.fillCollectionSlots)
         d.addCallback(self.timeoutClients)
         d.addErrback(self.fillError)
+
 
     def remote_deleteDevice(self, device):
         # we fetch the device list before every scan

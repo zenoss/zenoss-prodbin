@@ -15,6 +15,7 @@ import socket
 
 import Globals
 
+from Products.DataCollector.zenmodeler import ZenModeler
 from Products.ZenUtils.Exceptions import ZentinelException
 from Products.ZenUtils.Utils import unused
 from Products.ZenUtils.Driver import drive
@@ -29,7 +30,6 @@ from Products.ZenHub.PBDaemon import FakeRemote, PBDaemon
 from Products.ZenHub.services  import DiscoverService, ModelerService
 unused(DiscoverService, ModelerService) # for pb
 
-from zenmodeler import ZenModeler
 
 from twisted.internet.defer import succeed
 from twisted.python.failure import Failure
