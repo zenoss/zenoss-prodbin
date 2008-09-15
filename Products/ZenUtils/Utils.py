@@ -773,7 +773,7 @@ def json(f):
 
         >>> @json
         ... def f():
-        ...     return [dict(a=1), "123", 123]
+        ...     return (dict(a=1L), u"123", 123)
         ...
         >>> print f()
         [{"a": 1}, "123", 123]
