@@ -111,7 +111,8 @@ class MessageProcessor(object):
             payload = payloads
 
         body = payload
-        event.summary = body
+        event.summary = subject
+        event.message = body
         self.enrich(event, subject)
 
         event = self.buildEventClassKey(event)
