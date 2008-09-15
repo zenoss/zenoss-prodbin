@@ -781,5 +781,9 @@ def json(f):
     """
     def inner(*args, **kwargs):
         return simplejson.dumps(f(*args, **kwargs))
+    # Make it well behaved
+    inner.__name__ = f.__name__
+    inner.__dict__.update(f.__dict__)
+    inner.__doc__ = f.__doc__
     return inner
 
