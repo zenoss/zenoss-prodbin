@@ -741,8 +741,25 @@ def executeStreamCommand(cmd, writefunc, timeout=30):
         os.kill(child.pid, signal.SIGKILL)
 
 
+def monkeypatch(target):
+    """
+    A decorator to patch the decorated function into the given class.
 
+        >>> @monkeypatch('Products.ZenModel.DataRoot.DataRoot')
+        ... def do_nothing_at_all(self):
+        ...     print "I do nothing at all."
+        ...
+        >>> from Products.ZenModel.DataRoot import DataRoot
+        >>> hasattr(DataRoot, 'do_nothing_at_all')
+        True
+        >>> DataRoot('dummy').do_nothing_at_all()
+        I do nothing at all.
 
-
-
+    """
+    if isinstance(target, basestring):
+        mod, klass = target.rsplit('.', 1)
+        target = importClass(mod, klass)
+    def patcher(func):
+        setattr(target, func.__name__, func)
+    return patcher
 
