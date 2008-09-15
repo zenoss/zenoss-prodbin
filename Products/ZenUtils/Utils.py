@@ -761,5 +761,6 @@ def monkeypatch(target):
         target = importClass(mod, klass)
     def patcher(func):
         setattr(target, func.__name__, func)
+        return func
     return patcher
 
