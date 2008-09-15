@@ -138,6 +138,7 @@ class EventView(object):
         return self.getEventManager().convertEventField(field, value, default)
 
 
+    security.declareProtected('Manage Events','manage_addLogMessage')
     def manage_addLogMessage(self, evid=None, message='', REQUEST=None):
         """
         Add a log message to an event

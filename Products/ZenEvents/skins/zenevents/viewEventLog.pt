@@ -18,7 +18,7 @@
         <td class="tablevalues" tal:content="python:log[0]">user</td>
         <td class="tablevalues" tal:content="python:log[2]">text</td>
     </tr>
-    <tr tal:condition="python: here.has_permission('Manage EventManager')">
+    <tr tal:condition="python: here.has_permission('Manage Events')">
       <td class='tableheader' colspan='3'>
         <form method='post' 
               tal:attributes="action string:${here/absolute_url_path}">
