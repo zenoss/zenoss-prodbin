@@ -29,6 +29,7 @@ import types
 import logging
 import re
 import socket
+import simplejson
 from sets import Set
 log = logging.getLogger("zen.Utils")
 
@@ -763,4 +764,22 @@ def monkeypatch(target):
         setattr(target, func.__name__, func)
         return func
     return patcher
+
+
+def json(f):
+    """
+    Decorator that serializes the return value of the decorated function as
+    JSON.
+
+        >>> @json
+        ... def f():
+        ...     return [dict(a=1), "123", 123]
+        ...
+        >>> print f()
+        [{"a": 1}, "123", 123]
+
+    """
+    def inner(*args, **kwargs):
+        return simplejson.dumps(f(*args, **kwargs))
+    return inner
 
