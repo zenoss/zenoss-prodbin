@@ -89,8 +89,8 @@ class POPProtocol(POP3Client):
 
 
     def _delete(self, unused):
+        deleters = []
         if not self.factory.nodelete:
-            deleters = []
             for index in range(len(self.sizes)):
                 log.info('deleting message  #%d...' % index)
                 d = self.delete(index)
