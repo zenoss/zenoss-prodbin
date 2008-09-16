@@ -51,31 +51,19 @@ class TestDaemons(SelTestBase):
         sel.click("link=view config")
         sel.wait_for_page_to_load("30000")
         sel.click("//div[@id='contentPane']/table/tbody/tr[2]/td/table/tbody[2]/tr[1]/td/pre")
-        try: self.failUnless(sel.is_text_present("ZEO configuration file"))
-        except AssertionError, e: self.verificationErrors.append(str(e))
+        self.failUnless(sel.is_text_present("ZEO configuration file"))
         sel.click("link=edit this configuration")
         sel.wait_for_page_to_load("30000")
         self.failUnless(sel.is_editable("data"))
-        try: self.assertEqual("# ZEO configuration file %define INSTANCE /usr/local/zenoss <zeo> address 8100 read-only false invalidation-queue-size 100 # pid-filename $INSTANCE/var/ZEO.pid # monitor-address PORT # transaction-timeout SECONDS </zeo> <filestorage 1> path $INSTANCE/var/Data.fs </filestorage> <eventlog> level info <logfile> path $INSTANCE/log/zeo.log </logfile> </eventlog> <runner> program $INSTANCE/bin/runzeo socket-name $INSTANCE/etc/zeo.zdsock daemon true forever false backoff-limit 10 exit-codes 0, 2 directory $INSTANCE default-to-interactive true # user zope python /usr/local/zenoss/bin/python zdrun /usr/local/zenoss/lib/python/zdaemon/zdrun.py # This logfile should match the one in the zeo.conf file. # It is used by zdctl's logtail command, zdrun/zdctl doesn't write it. logfile $INSTANCE/log/zeo.log </runner>", sel.get_text("data"))
-        except AssertionError, e: self.verificationErrors.append(str(e))
-        sel.type("data", "# ZEO configuration file\n\n%define INSTANCE /usr/local/zenoss\n\n<zeo>\n  address 8100\n  read-only false\n  invalidation-queue-size 100\n  # pid-filename $INSTANCE/var/ZEO.pid\n  # monitor-address PORT\n  # transaction-timeout SECONDS\n</zeo>\n\n<filestorage 1>\n  path $INSTANCE/var/Data.fs\n</filestorage>\n\n<eventlog>\n  level info\n  <logfile>\n    path $INSTANCE/log/zeo.log\n  </logfile>\n</eventlog>\n\n<runner>\n  program $INSTANCE/bin/runzeo\n  socket-name $INSTANCE/etc/zeo.zdsock\n  daemon true\n  forever false\n  backoff-limit 10\n  exit-codes 0, 2\n  directory $INSTANCE\n  default-to-interactive true\n  # user zope\n  python /usr/local/zenoss/bin/python\n  zdrun /usr/local/zenoss/lib/python/zdaemon/zdrun.py\n\n  # This logfile should match the one in the zeo.conf file.\n  # It is used by zdctl's logtail command, zdrun/zdctl doesn't write it.\n  logfile $INSTANCE/log/zeo.log\n</runner>\nTesting Time!")
+        self.failUnless("daemon true forever false backoff-limit 10 exit-codes 0, 2 directory $INSTANCE default-to-interactive true" in sel.get_text("data"))
         sel.click("manage_saveConfigData:method")
         sel.wait_for_page_to_load("30000")
-        try: self.failUnless(sel.is_text_present("# ZEO configuration file\n\n%define INSTANCE /usr/local/zenoss\n\n<zeo>\n address 8100\n read-only false\n invalidation-queue-size 100\n # pid-filename $INSTANCE/var/ZEO.pid\n # monitor-address PORT\n # transaction-timeout SECONDS\n</zeo>\n\n<filestorage 1>\n path $INSTANCE/var/Data.fs\n</filestorage>\n\n<eventlog>\n level info\n <logfile>\n path $INSTANCE/log/zeo.log\n </logfile>\n</eventlog>\n\n<runner>\n program $INSTANCE/bin/runzeo\n socket-name $INSTANCE/etc/zeo.zdsock\n daemon true\n forever false\n backoff-limit 10\n exit-codes 0, 2\n directory $INSTANCE\n default-to-interactive true\n # user zope\n python /usr/local/zenoss/bin/python\n zdrun /usr/local/zenoss/lib/python/zdaemon/zdrun.py\n\n # This logfile should match the one in the zeo.conf file.\n # It is used by zdctl's logtail command, zdrun/zdctl doesn't write it.\n logfile $INSTANCE/log/zeo.log\n</runner>\nTesting Time!"))
-        except AssertionError, e: self.verificationErrors.append(str(e))
-        sel.click("link=edit this configuration")
-        sel.wait_for_page_to_load("30000")
-        sel.type("data", "# ZEO configuration file\n\n%define INSTANCE /usr/local/zenoss\n\n<zeo>\n  address 8100\n  read-only false\n  invalidation-queue-size 100\n  # pid-filename $INSTANCE/var/ZEO.pid\n  # monitor-address PORT\n  # transaction-timeout SECONDS\n</zeo>\n\n<filestorage 1>\n  path $INSTANCE/var/Data.fs\n</filestorage>\n\n<eventlog>\n  level info\n  <logfile>\n    path $INSTANCE/log/zeo.log\n  </logfile>\n</eventlog>\n\n<runner>\n  program $INSTANCE/bin/runzeo\n  socket-name $INSTANCE/etc/zeo.zdsock\n  daemon true\n  forever false\n  backoff-limit 10\n  exit-codes 0, 2\n  directory $INSTANCE\n  default-to-interactive true\n  # user zope\n  python /usr/local/zenoss/bin/python\n  zdrun /usr/local/zenoss/lib/python/zdaemon/zdrun.py\n\n  # This logfile should match the one in the zeo.conf file.\n  # It is used by zdctl's logtail command, zdrun/zdctl doesn't write it.\n  logfile $INSTANCE/log/zeo.log\n</runner>")
-        sel.click("manage_saveConfigData:method")
-        sel.wait_for_page_to_load("30000")
-        try: self.failUnless(sel.is_text_present("# ZEO configuration file\n\n%define INSTANCE /usr/local/zenoss\n\n<zeo>\n address 8100\n read-only false\n invalidation-queue-size 100\n # pid-filename $INSTANCE/var/ZEO.pid\n # monitor-address PORT\n # transaction-timeout SECONDS\n</zeo>\n\n<filestorage 1>\n path $INSTANCE/var/Data.fs\n</filestorage>\n\n<eventlog>\n level info\n <logfile>\n path $INSTANCE/log/zeo.log\n </logfile>\n</eventlog>\n\n<runner>\n program $INSTANCE/bin/runzeo\n socket-name $INSTANCE/etc/zeo.zdsock\n daemon true\n forever false\n backoff-limit 10\n exit-codes 0, 2\n directory $INSTANCE\n default-to-interactive true\n # user zope\n python /usr/local/zenoss/bin/python\n zdrun /usr/local/zenoss/lib/python/zdaemon/zdrun.py\n\n # This logfile should match the one in the zeo.conf file.\n # It is used by zdctl's logtail command, zdrun/zdctl doesn't write it.\n logfile $INSTANCE/log/zeo.log\n</runner>"))
-        except AssertionError, e: self.verificationErrors.append(str(e))
+        self.failUnless(sel.is_text_present("ZEO configuration file"))
         sel.click("link=Daemons")
         sel.wait_for_page_to_load("30000")
         sel.click("link=view log")
         sel.wait_for_page_to_load("30000")
-        try: self.failUnless(sel.is_text_present("zeoctl Log File"))
-        except AssertionError, e: self.verificationErrors.append(str(e))
+        self.failUnless(sel.is_text_present("zeoctl Log File"))
         sel.click("link=Daemons")
         sel.wait_for_page_to_load("30000")
         self.failUnless(sel.is_element_present("//div[@id='contentPane']/div/div/div[2]/table/tbody/tr[1]/td[4]/img[@src='/zport/dmd/img/green_dot.png']"))
@@ -468,7 +456,7 @@ class TestDaemons(SelTestBase):
  
 
 
-    def testZenCommand(self):
+    def _testZenCommand(self):
         """Tests the ZenCommand Daemon"""
         sel = self.selenium
         self._goToDaemons()
