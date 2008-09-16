@@ -50,7 +50,7 @@ class WinCollector(PBDaemon):
         self.log.info("Async config notification")
         if self.reconfigureTimeout and not self.reconfigureTimeout.called:
             self.reconfigureTimeout.cancel()
-        self.reconfigureTimeout = reactor.callLater(5, drive, self.reconfigure)
+        self.reconfigureTimeout = reactor.callLater(30, drive, self.reconfigure)
 
 
     def stopScan(self, unused=None):
@@ -72,14 +72,15 @@ class WinCollector(PBDaemon):
                 self.heartbeat()
                 cycle = self.cycleInterval()
                 driveLater(max(0, cycle - delay), self.scanCycle)
+                count = len(self.devices)
+                if self.options.device:
+                    count = 1
                 self.sendEvents(
                     self.rrdStats.gauge('cycleTime', cycle, delay) +
-                    self.rrdStats.gauge('devices', cycle,
-                                        len(self.devices))
+                    self.rrdStats.gauge('devices', cycle, count)
                     )
                 self.log.info("Scanned %d devices in %.1f seconds",
-                              len(self.devices),
-                              delay)
+                              count, delay)
         except (Failure, Exception), ex:
             self.log.exception("Error processing main loop")
 
