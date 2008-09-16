@@ -241,7 +241,7 @@ class GetTableMap(object):
     
     def __init__(self, name, tableoid, colmap):
         self.name = name
-        self.tableoid = tableoid
+        self.tableoid = tableoid.lstrip('.')
         self.colmap = colmap
         self._oids = {}
         for numb, name in self.colmap.items():

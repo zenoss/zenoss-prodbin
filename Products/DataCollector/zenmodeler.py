@@ -337,35 +337,39 @@ class ZenModeler(PBDaemon):
         device = collectorClient.device
         self.log.debug("client for %s finished collecting", device.id)
         def processClient(driver):
-            self.log.debug("processing data for device %s", device.id)
-            devchanged = False
-            maps = []
-            for plugin, results in collectorClient.getResults():
-                self.log.debug("processing plugin %s on device %s",
-                               plugin.name(), device.id)
-                if not results: 
-                    self.log.warn("plugin %s no results returned",
-                                  plugin.name())
-                    continue
+            try:
+                self.log.debug("processing data for device %s", device.id)
+                devchanged = False
+                maps = []
+                for plugin, results in collectorClient.getResults():
+                    self.log.debug("processing plugin %s on device %s",
+                                   plugin.name(), device.id)
+                    if not results: 
+                        self.log.warn("plugin %s no results returned",
+                                      plugin.name())
+                        continue
 
-                results = plugin.preprocess(results, self.log)
-                datamaps = plugin.process(device, results, self.log)
+                    results = plugin.preprocess(results, self.log)
+                    datamaps = plugin.process(device, results, self.log)
 
-                # allow multiple maps to be returned from one plugin
-                if type(datamaps) not in (types.ListType, types.TupleType):
-                    datamaps = [datamaps,]
-                if datamaps:
-                    maps += [m for m in datamaps if m]
-            if maps:
-                yield self.config().callRemote('applyDataMaps', device.id, maps)
-                if driver.next():
-                    devchanged = True
-            if devchanged:
-                self.log.info("changes applied")
-            else:
-                self.log.info("no change detected")
-            yield self.config().callRemote('setSnmpLastCollection', device.id)
-            driver.next()
+                    # allow multiple maps to be returned from one plugin
+                    if type(datamaps) not in (types.ListType, types.TupleType):
+                        datamaps = [datamaps,]
+                    if datamaps:
+                        maps += [m for m in datamaps if m]
+                if maps:
+                    yield self.config().callRemote('applyDataMaps', device.id, maps)
+                    if driver.next():
+                        devchanged = True
+                if devchanged:
+                    self.log.info("changes applied")
+                else:
+                    self.log.info("no change detected")
+                yield self.config().callRemote('setSnmpLastCollection', device.id)
+                driver.next()
+            except Exception, ex:
+                self.log.exception(ex)
+                raise
 
         def processClientFinished(result):
             if not result:
