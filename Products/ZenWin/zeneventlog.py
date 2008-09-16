@@ -46,6 +46,7 @@ class zeneventlog(WinCollector):
               % device.zWinEventlogMinSeverity
         def inner(driver):
             try:
+                self.niceDoggie(self.cycleInterval())
                 w = self.watchers.get(device.id, None)
                 if not w:
                     self.log.debug("Creating watcher of %s", device.id)
@@ -96,7 +97,6 @@ class zeneventlog(WinCollector):
                 deferreds = []
                 yield defer.DeferredList(map(self.processDevice, devices))
                 driver.next()
-                self.niceDoggie(self.cycleInterval())
                 for ev in (
                     self.rrdStats.counter('events', cycle, self.events) +
                     self.rrdStats.gauge('devices', cycle, len(deferreds))
