@@ -82,8 +82,9 @@ class TestDeviceList(TestDeviceListBase):
         self.selenium.click("link=Devices")
         self.waitForElement("link=Server")
         self.selenium.click("link=Server")
-        if self.selenium.is_element_present("link=/Server/testingString"):
-            self._deleteSubclass()
+        self.selenium.wait_for_page_to_load("30000")
+        if self.selenium.is_element_present("link=testingString"):
+            self.deleteDialog()
         self.addDialog(addMethod="manage_addOrganizer:method",new_id=("text",
                     "testingString"))
         self.selenium.wait_for_page_to_load(self.WAITTIME)
@@ -147,6 +148,13 @@ class TestDeviceList(TestDeviceListBase):
         self.selenium.do_command("waitForText",
                 ['id=messageSlot', 'Devices moved to /Server/testingString'])
         self.waitForElement("name=evids:list " + curtarget)
+        self.waitForElement("link=/Server/testingString")
+        self.selenium.do_command('assertElementPresent',
+                ['link=/Server/testingString'])
+        self.selenium.click("link=Device List")
+        self.selenium.wait_for_page_to_load("30000")
+        self.waitForElement("name=evids:list " + curtarget)
+        self.waitForElement("link=/Server/testingString")
         self.selenium.do_command('assertElementPresent',
                 ['link=/Server/testingString'])
         self._deleteSubClass()
