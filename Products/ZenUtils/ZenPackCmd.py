@@ -31,6 +31,9 @@ import string
 import tempfile
 import subprocess
 import socket
+import logging
+
+log = logging.getLogger('zen.ZenPackCMD')
 
 #import zenpacksupport
 
@@ -226,7 +229,11 @@ def InstallEggAndZenPack(dmd, eggPath, link=False,
     try:
         zpDists = InstallEgg(dmd, eggPath, link=link)
         for d in zpDists:
-            zenPacks.append(InstallDistAsZenPack(dmd, d, filesOnly=filesOnly))
+            zenPacks.append(InstallDistAsZenPack(dmd,
+                                                d,
+                                                eggPath, 
+                                                link, 
+                                                filesOnly=filesOnly))
     except:
         if sendEvent:
             ZPEvent(dmd, 4, 'Error installing ZenPack %s' % eggPath,
@@ -299,7 +306,7 @@ def InstallEgg(dmd, eggPath, link=False):
 #     return zpNames
 
 
-def InstallDistAsZenPack(dmd, dist, filesOnly=False):
+def InstallDistAsZenPack(dmd, dist, eggPath, link=False, filesOnly=False):
     """
     Given an installed dist, install it into Zenoss as a ZenPack.
     Return the ZenPack instance.
@@ -311,18 +318,30 @@ def InstallDistAsZenPack(dmd, dist, filesOnly=False):
                 ' zenoss.zenpacks entry point.  This egg appears to contain'
                 ' %s such entry points.' % len(entryMap))
     packName, packEntry = entryMap.items()[0]
-    module = packEntry.load()
-    if hasattr(module, 'ZenPack'):
-        zenPack = module.ZenPack(packName)
-    else:
-        zenPack = ZenPack(packName)
-    zenPack.eggPack = True
-    CopyMetaDataToZenPackObject(dist, zenPack)
-
-    if filesOnly:
-        for loader in (ZPL.ZPLDaemons(), ZPL.ZPLBin(), ZPL.ZPLLibExec()):
-            loader.load(zenPack, None)
-    else:
+    zenPack = None;
+    runExternalZenpack = True
+    #if zenpack with same name exists we can't load both modules
+    #installing new egg zenpack will be done in a sub process
+    existing = dmd.ZenPackManager.packs._getOb(packName, None)
+    if existing:
+        log.info("Previous ZenPack exists with same name %s" % packName)
+    if filesOnly or not existing:
+        #running files only or zenpack by same name doesn't already exists
+        # so no need to install the zenpack in an external process
+        runExternalZenpack = False
+        module = packEntry.load()
+        if hasattr(module, 'ZenPack'):
+            zenPack = module.ZenPack(packName)
+        else:
+            zenPack = ZenPack(packName)
+        zenPack.eggPack = True
+        CopyMetaDataToZenPackObject(dist, zenPack)
+        if filesOnly:
+            for loader in (ZPL.ZPLDaemons(), ZPL.ZPLBin(), ZPL.ZPLLibExec()):
+                loader.load(zenPack, None)
+    
+        
+    if not filesOnly:
         # Look for an installed ZenPack to be upgraded.  In this case
         # upgraded means that it is removed before the new one is installed
         # but that its objects are not removed and the packables are
@@ -331,6 +350,7 @@ def InstallDistAsZenPack(dmd, dist, filesOnly=False):
         if not existing and zenPack.prevZenPackName:
             existing = dmd.ZenPackManager.packs._getOb(
                                 zenPack.prevZenPackName, None)
+        
         deferFileDeletion = False
         packables = []
         if existing:
@@ -350,10 +370,28 @@ def InstallDistAsZenPack(dmd, dist, filesOnly=False):
                 oldzenpack.RemoveZenPack(dmd, existing.id,
                                 skipDepsCheck=True, leaveObjects=True,
                                 deleteFiles=False)
-
-        dmd.ZenPackManager.packs._setObject(packName, zenPack)
+        if runExternalZenpack:
+            log.info("installing zenpack %s; launching process" % packName)
+            cmd = [binPath('zenpack'), "--install"]
+            if link:
+                cmd += ["--link"]
+            cmd += [eggPath]
+            cmdStr = " ".join(cmd)
+            log.debug("launching sub process command: %s" % cmdStr)
+            p = subprocess.Popen(cmdStr,
+                            shell=True)
+            out, err = p.communicate()
+            p.wait()
+            if p.returncode:
+                raise ZenPackException('Error installing the egg (%s): %s' %
+                                       (p.returncode, err))
+            dmd._p_jar.sync()
+        else:
+            dmd.ZenPackManager.packs._setObject(packName, zenPack)
+            zenPack = dmd.ZenPackManager.packs._getOb(packName)
+            zenPack.install(dmd)
+            
         zenPack = dmd.ZenPackManager.packs._getOb(packName)
-        zenPack.install(dmd)
         for p in packables:
             zenPack.packables.addRelation(p)
         if deferFileDeletion:
