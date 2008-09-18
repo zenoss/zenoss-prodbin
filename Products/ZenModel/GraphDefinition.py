@@ -514,7 +514,7 @@ class GraphDefinition(ZenModelRM, ZenPackable):
                 and gp.dpName == dpName]
 
 
-    def getUniqueDpNames(self, limit=100):
+    def getUniqueDpNames(self, limit=None):
         '''
         Get a list of all unique datapoint names
         '''
@@ -527,7 +527,7 @@ class GraphDefinition(ZenModelRM, ZenPackable):
                 if hasattr(ds, 'datapoints'):
                     for dp in ds.datapoints():
                         dpNames.add(dp.name())
-            if len(dpNames) >= limit:
+            if limit and len(dpNames) >= limit:
                 break
         dpNames = list(dpNames)
         dpNames.sort()
