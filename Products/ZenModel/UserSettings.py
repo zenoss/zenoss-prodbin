@@ -884,6 +884,11 @@ class GroupSettings(UserSettings):
                 'action'        : 'administeredDevices', 
                 'permissions'   : (ZEN_CHANGE_ADMIN_OBJECTS,)
                 },
+                {'name'         : 'Event Views',
+                'action'        : 'editEventViews',
+                # ideally make this its own permission
+                'permissions'   : (ZEN_CHANGE_SETTINGS,),
+                },
                 {'name'         : 'Alerting Rules',
                 'action'        : 'editActionRules',
                 'permissions'   : (ZEN_CHANGE_ALERTING_RULES,),
