@@ -372,10 +372,10 @@ def InstallDistAsZenPack(dmd, dist, eggPath, link=False, filesOnly=False):
                                 deleteFiles=False)
         if runExternalZenpack:
             log.info("installing zenpack %s; launching process" % packName)
-            cmd = [binPath('zenpack'), "--install"]
+            cmd = [binPath('zenpack')]
             if link:
                 cmd += ["--link"]
-            cmd += [eggPath]
+            cmd += ["--install", eggPath]
             cmdStr = " ".join(cmd)
             log.debug("launching sub process command: %s" % cmdStr)
             p = subprocess.Popen(cmdStr,
