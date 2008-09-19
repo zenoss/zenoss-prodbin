@@ -20,6 +20,8 @@ $Id: MonitorClass.py,v 1.11 2004/04/09 00:34:39 edahl Exp $"""
 
 __version__ = "$Revision$"[11:-2]
 
+import types
+
 from Globals import DTMLFile
 from Globals import InitializeClass
 from AccessControl import ClassSecurityInfo
@@ -110,10 +112,12 @@ class MonitorClass(ZenModelRM, Folder, TemplateContainer):
         return retdata
 
 
-    def manage_removeMonitor(self, ids = None, submon = None, REQUEST=None):
+    def manage_removeMonitor(self, ids = None, submon = "", REQUEST=None):
         'Add an object of sub_class, from a module of the same name'
         msg = ''
-        child = self._getOb(submon) or self
+        if type(ids) in types.StringTypes:
+            ids = (ids,)
+        child = self._getOb(submon, self) 
         if ids:
             if len(ids) < len(child._objects):
                 num = 0
