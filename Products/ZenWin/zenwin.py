@@ -148,7 +148,8 @@ class zenwin(WinCollector):
             if device.id in self.wmiprobs:
                 self.log.debug("WMI problems on %s: skipping" % device.id)
                 continue
-            deferreds.append(self.processDevice(device))
+            if not self.options.device or device.id == self.options.device:
+                deferreds.append(self.processDevice(device))
         return defer.DeferredList(deferreds)
 
 

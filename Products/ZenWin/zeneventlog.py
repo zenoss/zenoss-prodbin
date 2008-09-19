@@ -67,6 +67,7 @@ class zeneventlog(WinCollector):
             except Exception, ex:
                 self.log.exception("Exception getting windows events: %s", ex)
                 self.sendEvent(dict(summary="Error reading wmi events",
+                                    component=self.agent,
                                     exception=str(ex),
                                     eventClass=Status_Wmi,
                                     device=device.id,
