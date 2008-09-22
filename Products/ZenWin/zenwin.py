@@ -110,9 +110,9 @@ class zenwin(WinCollector):
                """TargetInstance ISA 'Win32_Service' """)
         def inner(driver):
             try:
+                self.niceDoggie(self.cycleInterval())
                 w = self.watchers.get(device.id, None)
                 if not w:
-                    self.niceDoggie(self.winCycleInterval)
                     yield self.scanDevice(device)
                     driver.next()
                     self.deviceUp(device)
@@ -133,10 +133,10 @@ class zenwin(WinCollector):
                             if s.state == 'Running':
                                 self.serviceRunning(device, s.name)
             except Exception, ex:
-                self.deviceDown(device, "Error reading device (%s)" % ex)
                 self.log.exception(ex)
+                self.deviceDown(device, "Error reading services", ex)
                 raise
-            self.niceDoggie(self.winCycleInterval)
+            self.niceDoggie(self.cycleInterval())
         if not device.plugins:
             return defer.succeed(None)
         return drive(inner)
@@ -153,12 +153,13 @@ class zenwin(WinCollector):
         return defer.DeferredList(deferreds)
 
 
-    def deviceDown(self, device, message):
+    def deviceDown(self, device, message, exception):
         if device.id in self.watchers:
             w = self.watchers.pop(device.id)
             w.close()
         self.sendEvent(dict(summary=message,
                             eventClass=Status_Wmi,
+                            exception=str(exception),
                             device=device.id,
                             severity=Error,
                             agent=self.agent,
@@ -187,9 +188,9 @@ class zenwin(WinCollector):
 
     def fetchDevices(self, driver):
         yield self.configService().callRemote('getDeviceListByMonitor',
-                                       self.options.monitor)
+                                              self.options.monitor)
         yield self.configService().callRemote('getDeviceConfigAndWinServices', 
-            driver.next())
+                                              driver.next())
         self.updateDevices(driver.next())
 
 
