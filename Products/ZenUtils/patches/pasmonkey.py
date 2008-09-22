@@ -54,6 +54,8 @@ def login(self):
 
     FIXME - I don't think we need this any more now that the EULA is gone -EAD
     """
+    import urllib
+
     request = self.REQUEST
     response = request['RESPONSE']
     
@@ -76,13 +78,13 @@ def login(self):
             came_from = urlparse.urlunsplit(parts)
     else:
         came_from = '/zport/dmd?%s' % submittedQs
-#    if self.dmd.acceptedTerms:
-#        url = came_from
-#    else:
-#        url = "%s/zenoss_terms/?came_from=%s" % (
-#                    self.absolute_url(), urllib.quote(came_from))
+    if self.dmd.acceptedTerms:
+        url = came_from
+    else:
+        url = "%s/zenoss_terms/?came_from=%s" % (
+                    self.absolute_url(), urllib.quote(came_from))
 
-    return response.redirect(came_from)
+    return response.redirect(url)
 
 CookieAuthHelper.CookieAuthHelper.login = login
 
