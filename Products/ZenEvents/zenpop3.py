@@ -76,11 +76,7 @@ class POPProtocol(POP3Client):
 
         deferreds = defer.DeferredList(retreivers) 
         deferreds.addCallback(self._delete)
-
-        if self.factory.cycle:
-            return deferreds.addCallback(self._finished)
-        else:
-            return deferreds.addCallback(self.factory.scanComplete)
+        return deferreds.addCallback(self.scanComplete)
 
 
     def _gotMessageLines(self, messageLines):
@@ -98,12 +94,11 @@ class POPProtocol(POP3Client):
 
         deferreds = defer.DeferredList(deleters)
         return deferreds
-
-
-    def _finished(self, unused):
-        log.info('sleeping for %d seconds.' % self.factory.cycletime)
-        reactor.callLater(self.factory.cycletime, self.retrieveAndParse)
-
+    
+    
+    def scanComplete(self, unused):
+        log.info("scan complete")
+        self.quit()
     
     
 class POPFactory(protocol.ClientFactory):
@@ -112,16 +107,12 @@ class POPFactory(protocol.ClientFactory):
     
     protocol = POPProtocol
 
-    def __init__(self, user, passwd, 
-                 processor, cycletime, cycle, nodelete, finish):
+    def __init__(self, user, passwd, processor, nodelete):
         self.user = user
         self.passwd = passwd
         self.processor = processor
-        self.cycletime = cycletime
-        self.cycle = cycle
         self.deferred = defer.Deferred()
         self.nodelete = nodelete
-        self.finish = finish
 
 
     def handleMessage(self, messageData):
@@ -132,11 +123,6 @@ class POPFactory(protocol.ClientFactory):
         self.deferred.errback(reason)
 
 
-    def scanComplete(self, unused):
-        log.info("scan complete")
-        self.finish()
-
-
 class ZenPOP3(EventServer):
     name = 'zenpop3'
 
@@ -145,42 +131,41 @@ class ZenPOP3(EventServer):
 
         self.changeUser()
         self.processor = POPProcessor(self,self.options.eventseverity)
-        host = self.options.pophost
-        port = self.options.popport
+        self.host = self.options.pophost
+        self.port = self.options.popport
         popuser = self.options.popuser
         poppasswd = self.options.poppass
-        usessl = self.options.usessl
-        cycletime = int(self.options.cycletime)
-        cycle = int(self.options.cycle)
-        nodelete = int(self.options.nodelete)
-
+        
         log.info("credentials user: %s; pass: %s" % (popuser, 
-                                                     len(poppasswd) * '*'))
+            len(poppasswd) * '*'))
+        
         self.factory = POPFactory(popuser, poppasswd, 
-                                  self.processor, cycletime, cycle, nodelete,
-                                  self._finish)
-        log.info("connecting to pop server: %s:%s" % (host, port))
+            self.processor, self.options.nodelete)
+        log.info("connecting to pop server: %s:%s" % (self.host, self.port))
         self.factory.deferred.addErrback(self.handleError)
         
-        if usessl:
+        self.checkForMessages()
+    
+
+    def checkForMessages(self):
+        if self.options.usessl:
             log.info("connecting to server using SSL")
             from twisted.internet.ssl import ClientContextFactory
-            reactor.connectSSL(host, port, self.factory, ClientContextFactory())
+            reactor.connectSSL(self.host, self.port, self.factory,
+                ClientContextFactory())
         else:
-            log.info("connceting to server using plaintext")
-            reactor.connectTCP(host, port, self.factory)
+            log.info("connecting to server using plaintext")
+            reactor.connectTCP(self.host, self.port, self.factory)
+                
         self.heartbeat()
+        reactor.callLater(self.options.cycletime, self.checkForMessages)
 
 
     def handleError(self, error):
         log.error(error)
         log.error(error.getErrorMessage())
 
-        self.finish()
-
-
-    def _finish(self):
-        self.finish()
+        self.stop()
 
 
     def buildOptions(self):
@@ -214,6 +199,7 @@ class ZenPOP3(EventServer):
                                help="POP password to auth using")
         self.parser.add_option('--cycletime',
                                dest='cycletime',
+                               type="int",
                                default=60,
                                help="Frequency (in secs) to poll POP server")
         self.parser.add_option('--eventseverity',
