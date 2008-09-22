@@ -22,9 +22,12 @@ from Products.ZenRelations.RelSchema import *
 from Products.ZenModel.BasicDataSource import BasicDataSource
 from Products.ZenModel.BuiltInDS import BuiltInDS
 from Products.ZenModel.ConfigurationError import ConfigurationError
+from Products.ZenUtils.Utils import importClass
 from RRDDataPoint import SEPARATOR
 from ZenPackable import ZenPackable
 
+import logging
+log = logging.getLogger('zen.RRDTemplate')
 
 RRDTEMPLATE_CATALOG = 'searchRRDTemplates'
 
@@ -108,9 +111,11 @@ class RRDTemplate(ZenModelRM, ZenPackable):
     security = ClassSecurityInfo()
   
     description = ""
+    targetPythonClass = "Products.ZenModel.Device"
 
     _properties = (
         {'id':'description', 'type':'text', 'mode':'w'},
+        {'id':'targetPythonClass', 'type':'string', 'mode':'w'},
         )
 
     # The graphs relationship can be removed post 2.1.  It is needed
@@ -277,6 +282,20 @@ class RRDTemplate(ZenModelRM, ZenPackable):
             else:
                 return self.callZenScreen(REQUEST)
         return ds
+
+
+    def getTargetPythonClass(self):
+        """
+        Returns the python class object that this template can be bound to.
+        """
+        from Products.ZenModel.Device import Device
+        cname = getattr(self, "targetPythonClass", None)
+        if cname:
+            try:
+                return importClass(cname)
+            except ImportError:
+                log.exception("Unable to import class " + cname)
+        return Device
 
 
     def manage_deleteRRDDataSources(self, ids=(), REQUEST=None):

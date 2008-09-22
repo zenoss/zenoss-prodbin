@@ -520,9 +520,11 @@ class DeviceClass(DeviceOrganizer, ZenPackable, TemplateContainer):
         "Returns all available templates"
         def cmpTemplates(a, b):
             return cmp(a.id.lower(), b.id.lower())
-        t = self.getRRDTemplates()
-        t.sort(cmpTemplates)
-        return t
+        templates = self.getRRDTemplates()
+        templates.sort(cmpTemplates)
+        pdc = self.getPythonDeviceClass()
+        return [ t for t in templates
+            if issubclass(pdc, t.getTargetPythonClass()) ]
 
 
     def bindTemplates(self, ids=(), REQUEST=None):

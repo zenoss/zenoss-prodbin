@@ -34,6 +34,15 @@
             tal:content="here/id"/>
     </tr>
     <tr>
+        <td class="tableheader">Target Class</td>
+        <td class="tablevalues" tal:condition="here/isManager">
+            <input class="tablevalues" type="text" name="targetPythonClass"
+                size="40" tal:attributes="value here/targetPythonClass" />
+        </td>
+        <td class="tablevalues" tal:condition="not:here/isManager"
+            tal:content="here/targetPythonClass"/>
+    </tr>
+    <tr>
     <td class="tableheader" colspan="2">Description</td>
     </tr>
     <tr>

@@ -1817,7 +1817,9 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
         def cmpTemplates(a, b):
             return cmp(a.id.lower(), b.id.lower())
         templates.sort(cmpTemplates)
-        return templates
+        return [ t for t in templates
+            if isinstance(self, t.getTargetPythonClass()) ]
+
 
     security.declareProtected(ZEN_VIEW, 'getLinks')
     def getLinks(self, OSI_layer='3'):
