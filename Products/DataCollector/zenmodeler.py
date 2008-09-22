@@ -350,7 +350,8 @@ class ZenModeler(PBDaemon):
                         continue
 
                     results = plugin.preprocess(results, self.log)
-                    datamaps = plugin.process(device, results, self.log)
+                    if results:
+                        datamaps = plugin.process(device, results, self.log)
 
                     # allow multiple maps to be returned from one plugin
                     if type(datamaps) not in (types.ListType, types.TupleType):
