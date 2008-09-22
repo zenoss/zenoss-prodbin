@@ -31,8 +31,8 @@ class SysedgeDiskMap(SnmpPlugin):
     deviceProperties = \
                 SnmpPlugin.deviceProperties + ('zSysedgeDiskMapIgnoreNames',)
 
-    hrDeviceDescr = "1.3.6.1.2.1.25.3.2.1.3"
-    diskStatsTable = "1.3.6.1.4.1.546.12.1.1"
+    hrDeviceDescr = ".1.3.6.1.2.1.25.3.2.1.3"
+    diskStatsTable = ".1.3.6.1.4.1.546.12.1.1"
     diskMap = {
         '.1':'snmpindex',
         '.9':'hostresindex',
