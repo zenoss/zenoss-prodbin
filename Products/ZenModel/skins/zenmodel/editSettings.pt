@@ -71,14 +71,14 @@ loader.insert();
     <tr>
       <td class="noselect tableheader" title="Use this only if authentication is required" align="left">SMTP Username (blank for none)</td>
       <td class="tablevalues">
-        <input class="tablevalues" title="Use this only if authentication is required" type="text" name="smtpUser"
+        <input class="tablevalues" autocomplete="off" title="Use this only if authentication is required" type="text" name="smtpUser"
             tal:attributes="value here/smtpUser|string:" />
       </td>
     </tr>    
     <tr>
       <td class="noselect tableheader" title="Use this only if authentication is required" align="left">SMTP Password (blank for none)</td>
       <td class="tablevalues">
-        <input class="tablevalues" title="Use this only if authentication is required" type="password" name="smtpPass"
+        <input class="tablevalues" autocomplete="off" title="Use this only if authentication is required" type="password" name="smtpPass"
             tal:attributes="value here/smtpPass|string:" />
       </td>
     </tr>

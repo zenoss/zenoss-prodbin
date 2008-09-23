@@ -143,14 +143,14 @@
     <tr>
       <td class="tableheader" align="left">Render User</td>
       <td class="tablevalues">
-        <input class="tablevalues" type="text" name="renderuser" 
+        <input class="tablevalues" autocomplete="off" type="text" name="renderuser" 
             tal:attributes="value here/renderuser" />
       </td>
     </tr>
     <tr>
       <td class="tableheader" align="left">Render Password</td>
       <td class="tablevalues">
-        <input class="tablevalues" type="password" name="renderpass" 
+        <input class="tablevalues" autocomplete="off" type="password" name="renderpass" 
             tal:attributes="value here/renderpass" />
       </td>
     </tr>
