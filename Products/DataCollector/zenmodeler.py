@@ -348,6 +348,7 @@ class ZenModeler(PBDaemon):
                                       plugin.name())
                         continue
 
+                    datamaps = []
                     results = plugin.preprocess(results, self.log)
                     if results:
                         datamaps = plugin.process(device, results, self.log)
