@@ -98,7 +98,7 @@ class WMIClient(object):
                 yield defer.succeed(queryResult)
                 driver.next()
             except Exception, ex:
-                log.exception(ex)
+                log.debug("Exception collecting query: %s", str(ex))
                 raise
         return drive(inner)
 
