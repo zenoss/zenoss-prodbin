@@ -2150,6 +2150,7 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
             curs.execute(insert)
         finally: self.close(conn)
         self.clearCache('evid' + evid)
+        self.dmd.ZenEventHistory.clearCache('evid' + evid)
         if REQUEST: return self.callZenScreen(REQUEST)
 
     security.declareProtected('Manage EventManager', 'manage_addCommand')
