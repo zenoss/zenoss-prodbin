@@ -105,7 +105,7 @@ class PBDaemon(ZenDaemon, pb.Referenceable):
     def gotPerspective(self, perspective):
         ''' This gets called every time we reconnect.
         '''
-        self.log.warning("Reconnected to ZenHub")
+        self.log.info("Connected to ZenHub")
         self.perspective = perspective
         d2 = self.getInitialServices()
         if self.initialConnect:

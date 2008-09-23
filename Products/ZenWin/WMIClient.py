@@ -42,6 +42,8 @@ def _myname():
 def _filename(device):
     return zenPath('var', _myname(), device)
 
+class BadCredentials(Exception): pass
+
 class WMIClient(object):
 
     def __init__(self, device, datacollector=None, plugins=[]):
@@ -62,7 +64,12 @@ class WMIClient(object):
 
 
     def connect(self):
-        log.debug("connect to %s, user %s", self.host, self.user)
+        log.debug("connect to %s, user %r", self.host, self.user)
+        if not self.user:
+            log.warning("Windows login name is unset: "
+                        "please specify zWinUser and "
+                        "zWinPassword zProperties before adding devices.")
+            raise BadCredentials("Username is empty")
         self._wmi = Query()
         creds = '%s%%%s' % (self.user, self.passwd)
         return self._wmi.connect(eventContext, self.host, creds)
@@ -112,7 +119,6 @@ class WMIClient(object):
                 self.close()
             except Exception, ex:
                 self.close()
-                log.exception(ex)
                 raise
         d = drive(inner)
         def finish(result):

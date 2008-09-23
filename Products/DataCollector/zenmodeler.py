@@ -85,7 +85,6 @@ class ZenModeler(PBDaemon):
 
 
     def connected(self):
-        self.log.debug("Connected to ZenHub")
         d = self.configure()
         d.addCallback(self.heartbeat)
         d.addErrback(self.reportError)
