@@ -163,7 +163,7 @@ class PBDaemon(ZenDaemon, pb.Referenceable):
         def errback(error, serviceName):
             self.log.debug('errback after getting service %s' % serviceName)
             self.log.error('Could not retrieve service %s' % serviceName)
-            if serviceName in self.service:
+            if serviceName in self.services:
                 del self.services[serviceName]
             #return error
         d = self.perspective.callRemote('getService',
