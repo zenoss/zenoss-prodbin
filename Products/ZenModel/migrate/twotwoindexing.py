@@ -18,7 +18,7 @@ import logging
 log = logging.getLogger("zen.migrate")
 
 class TwoTwoIndexing(Migrate.Step):
-    version = Migrate.Version(2, 2, 0)
+    version = Migrate.Version(2, 2, 5)
 
     def __init__(self):
         Migrate.Step.__init__(self)
@@ -60,6 +60,11 @@ class TwoTwoIndexing(Migrate.Step):
 
         # Need to index the rrdTemplates on perf monitors too
         map(indexit, dmd.Monitors.getAllRRDTemplates())
-            
+        
+        # Need to make sure user alerting rule schedule are indexed
+        for us in dmd.ZenUsers.objectValues(spec=['UserSettings', 'GroupSettings']):
+            for ar in us.objectValues(spec="ActionRule"):
+                map(indexit, ar.windows())
+
 
 twotwoindexing = TwoTwoIndexing()
