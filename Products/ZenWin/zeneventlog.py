@@ -120,7 +120,7 @@ class zeneventlog(WinCollector):
                    eventGroup=lrec.logfile,
                    component=lrec.sourcename,
                    ntevid=lrec.eventcode,
-                   summary=lrec.message.strip(),
+                   summary=str(lrec.message).strip(),
                    agent="zeneventlog",
                    severity=sev,
                    monitor=self.options.monitor)
