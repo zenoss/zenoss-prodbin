@@ -44,6 +44,8 @@ def rpneval(value, rpn):
             except ZeroDivisionError:
                 value = 0
             stack.append(value)
+        elif next.upper() == 'ABS':
+            stack.append(abs(float(stack.pop())))            
         else:
             stack.append(float(next))
     return stack[0]
