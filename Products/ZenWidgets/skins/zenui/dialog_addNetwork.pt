@@ -2,8 +2,8 @@
 <span id="errmsg" style="color:red;"></span>
 <br/>
 <p style="text-align:right;">
-<span id="new_id_label">ID:&nbsp;</span>
-<input id="new_id" name="newPath">
+<span id="new_id_label">Network / Subnet mask:&nbsp;</span>
+<input id="new_id" name="newPath" title="eg 10.10.0.0/16 or 192.168.10.0/24" >
 <input type="hidden" id="checkValidIdPath" 
         tal:attributes="value here/getPrimaryUrlPath"><br/>
 </p>
