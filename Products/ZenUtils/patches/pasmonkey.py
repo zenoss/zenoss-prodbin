@@ -35,6 +35,7 @@ if not hasattr(pas, '_createInitialUser'):
 # monkey patches for the PAS login form
 from Products.PluggableAuthService.plugins import CookieAuthHelper
 import urlparse
+from cgi import parse_qs
 
 def manage_afterAdd(self, item, container):
     """We don't want CookieAuthHelper setting the login attribute, we we'll
@@ -58,24 +59,27 @@ def login(self):
 
     request = self.REQUEST
     response = request['RESPONSE']
-    
+
     login = request.get('__ac_name', '')
     password = request.get('__ac_password', '')
     submitted = request.get('submitted', '')
-    
+
     pas_instance = self._getPAS()
-    
+
     if pas_instance is not None:
         pas_instance.updateCredentials(request, response, login, password)
-    
+
     came_from = request.form.get('came_from') or ''
-    submittedQs = 'submitted=%s' % submitted
     if came_from:
         parts = urlparse.urlsplit(came_from)
-        if 'submitted' not in [p.split('=')[0] for p in parts[3].split('&')]:
-            queryPart = '&'.join([parts[3], submittedQs])
-            parts = (parts[:3] + (queryPart,) + parts[4:])
-            came_from = urlparse.urlunsplit(parts)
+        querydict = parse_qs(parts[3])
+        if querydict.has_key('terms'):
+            del querydict['terms']
+        if 'submitted' not in querydict.keys():
+            querydict['submitted'] = submitted
+        newqs = urllib.urlencode(querydict, doseq=True)
+        parts = parts[:3] + (newqs,) + parts[4:]
+        came_from = urlparse.urlunsplit(parts)
     else:
         came_from = '/zport/dmd?%s' % submittedQs
     if self.dmd.acceptedTerms:
@@ -94,7 +98,7 @@ def termsCheck(self):
     """
     request = self.REQUEST
     response = request['RESPONSE']
-    
+
     acceptStatus = request.form.get('terms') or ''
     url = request.form.get('came_from') or self.absolute_url()
 
