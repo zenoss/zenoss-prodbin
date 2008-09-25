@@ -464,6 +464,18 @@ class PerformanceConf(Monitor, StatusColor):
         zendiscCmd.extend(zendiscOptions)
         result = executeCommand(zendiscCmd, REQUEST) 
         return result
+    
+    def executeCollectorCommand(self, command, args, REQUEST=None):
+        """
+        executes the collector based daemon command. 
+        command should is the collector daemon to run, should not include path
+        args is a list of arguments for the command 
+        """
+        cmd = binPath(command)
+        daemonCmd = [cmd]
+        daemonCmd.extend(args)
+        result = executeCommand(daemonCmd, REQUEST) 
+        return result
 
     def collectDevice(self, device=None, setlog=True, REQUEST=None, 
                       generateEvents=False):
