@@ -46,6 +46,7 @@ class WmiConfig(HubService, ThresholdMixin):
             if not dev.monitorDevice(): continue
             if getattr(dev, 'zWmiMonitorIgnore', False): continue
             user = getattr(dev,'zWinUser','')
+            if not user: continue
             passwd = getattr(dev, 'zWinPassword', '')
             sev = getattr(dev, 'zWinEventlogMinSeverity', '')
             devinfo.append((dev._lastChange,
