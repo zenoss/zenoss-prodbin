@@ -11,6 +11,9 @@
 #
 ###########################################################################
 
+__doc__= """Collector classes for the different methods of collecting data from devices
+"""
+
 import struct
 from sets import Set
 
@@ -24,7 +27,7 @@ from Products.ZenHub.services.PerformanceConfig import ATTRIBUTES
 
 class CollectorPlugin:
     """
-
+    Base class for Collector plugins
     """
 
     order = 100
@@ -44,6 +47,9 @@ class CollectorPlugin:
     isip = iputil.isip
     
     def prepId(self, id, subchar='_'):
+        """Return the global prep ID
+        """
+        # TODO: document what this means and why we care
         return globalPrepId(id, subchar)
 
     def maskToBits(self, mask):
@@ -58,6 +64,8 @@ class CollectorPlugin:
 
 
     def objectMap(self, data={}):
+        """Create an object map from the data
+        """
         om = ObjectMap(data)
         om.compname = self.compname
         om.modname = self.modname
@@ -66,6 +74,8 @@ class CollectorPlugin:
 
 
     def relMap(self):
+        """Create a relationship map.
+        """
         relmap = RelationshipMap()
         relmap.relname = self.relname
         relmap.compname = self.compname
@@ -108,6 +118,8 @@ class CollectorPlugin:
         return rescols == cols
 
     def copyDataToProxy(self, device, proxy):
+        """For anything monitored indirectly, copy it's status to the proxy device
+        """
         for prop in self.deviceProperties:
             if hasattr(device, prop):
                 setattr(proxy, prop, getattr(device, prop))
@@ -126,6 +138,7 @@ class CollectorPlugin:
         return "%d/%02d/%02d %02d:%02d:%02d" % datear[:6]
 
 
+
 class PythonPlugin(CollectorPlugin):
     """
     A PythonPlugin defines a native Python collection routine and a parsing
@@ -133,8 +146,12 @@ class PythonPlugin(CollectorPlugin):
     PythonPlugin must implement the collect and process methods.
     """
     transport = "python"
+
     def collect(self, device, log):
+        """Dummy collector to be implemented by the actual collector.
+        """
         pass
+
 
 
 class CommandPlugin(CollectorPlugin):
@@ -161,10 +178,10 @@ class CommandPlugin(CollectorPlugin):
 
 class SnmpPlugin(CollectorPlugin):
     """
-    An SnmpPlugin defines a mapping from snmp mib values to a datamap. 
-    A valid SnmpPlugin must define collectoids a list of oids to be collected
-    and the process method which converts the oid data to a datamap.  It
-    can override the condition method if nessesary.
+    An SnmpPlugin defines a mapping from SNMP MIB values to a datamap. 
+    A valid SnmpPlugin must define 'collectoids' (a list of OIDs to be collected)
+    and the process() method which converts the OID data to a datamap.  It
+    can override the condition() method if nessesary.
     """
 
     transport = "snmp"
@@ -177,13 +194,15 @@ class SnmpPlugin(CollectorPlugin):
 
 
     def condition(self, device, log):
-        """Default snmp condition is true but it can be overridden.
-        Default test is to check for condition oids.
+        """Default SNMP condition is true but it can be overridden.
+        Default test is to check for condition OIDs.
         """
         return True
 
 
     def preprocess(self, results, log):
+        """Gather raw data for process() to process
+        """
         getdata, tabledatas = results
         if self.snmpGetMap:
             getdata = self.snmpGetMap.mapdata(getdata)
@@ -195,7 +214,7 @@ class SnmpPlugin(CollectorPlugin):
 
 
     def asmac(self, val):
-        """Convert a byte string to a mac address string.
+        """Convert a byte string to a MAC address string.
         """
         mac = []
         for char in val:
@@ -207,7 +226,7 @@ class SnmpPlugin(CollectorPlugin):
 
 
     def asip(self, val):
-        """Convert a byte string to an ip address string.
+        """Convert a byte string to an IP address string.
         """
         return ".".join(map(str, struct.unpack('!4B', val)))
 
@@ -215,18 +234,24 @@ class SnmpPlugin(CollectorPlugin):
         
 class GetMap(object):
     """
-    Map oids in a get to their names.
+    Map OIDs found from an SNMP get operation to their names.
     """
 
     def __init__(self, oidmap):
+        """Initializer
+        """
         self.oidmap = oidmap
 
 
     def getoids(self):
+        """Return the OID names
+        """
         return self.oidmap.keys()
 
 
     def mapdata(self, results):
+        """Create a dictionary from our SNMP get results
+        """
         data = {}
         for oid, value in results.items():
             data[self.oidmap[oid]] = value
@@ -236,10 +261,12 @@ class GetMap(object):
     
 class GetTableMap(object):
     """
-    Map snmp table oids to their column names.
+    Map SNMP table OIDs to their column names.
     """
     
     def __init__(self, name, tableoid, colmap):
+        """Initializer
+        """
         self.name = name
         self.tableoid = tableoid
         self.colmap = colmap
@@ -249,14 +276,14 @@ class GetTableMap(object):
 
 
     def getoids(self):
-        """Return the raw oids used to get this table.
+        """Return the raw OIDs used to get this table.
         """
         return self._oids.keys()
 
 
     def mapdata(self, results):
-        """Map data from format return by table get (which is column based)
-        to row based format data[rowidx][colname].
+        """Map data from the format returned by SNMP table get (which is column-based)
+        to a row-based format. eg data[rowidx][colname]
         """
         data = {}
         for col, rows in results.items():
@@ -267,4 +294,4 @@ class GetTableMap(object):
                 data.setdefault(ridx, {})
                 data[ridx][name] = value
         return data
-        
+

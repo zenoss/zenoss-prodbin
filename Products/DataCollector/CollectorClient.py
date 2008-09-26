@@ -13,20 +13,15 @@
 
 __doc__="""CollectorClient
 
-Base class for Telnet and Ssh client collectors
+Base class for client collectors
 
-Device Tree Parameters are:
+zCommandLoginTries - number of times to attempt to login
+zCommandPathList - list of paths to check for a command
+zCommandExistanceCheck - shell command issued to look for an executable
+                        must echo succ if the executable is found
+                        default: test -f executable
 
-zCommandLoginTries - number of times to try login default: 1
-zCommandPathList - list of path to check for a command
-zCommandExistanceCheck - shell command issued to look for executible
-                        must echo succ if executible is found
-                        default: test -f executible
-
-$Id: CollectorClient.py,v 1.5 2004/04/05 02:05:30 edahl Exp $"""
-
-
-__version__ = "$Revision: 1.5 $"[11:-2]
+"""
 
 import os, sys
 import logging
@@ -37,12 +32,17 @@ from twisted.internet import protocol
 from BaseClient import BaseClient
 
 class CollectorClient(BaseClient, protocol.ClientFactory):
+    """Data collector client class to be subclassed by different types
+    collector protocols
+    """
     
     maintainConnection = False 
     cmdindex = 0
     
     def __init__(self, hostname, ip, port, plugins=None, options=None, 
                     device=None, datacollector=None, alog=None):
+        """Gather our required zProperties
+        """
         BaseClient.__init__(self, device, datacollector)
         from Products.ZenUtils.Utils import unused
         unused(alog)
@@ -68,7 +68,7 @@ class CollectorClient(BaseClient, protocol.ClientFactory):
             defaultSearchPath = options.searchPath
             defaultExistanceTest = options.existenceTest
             
-        if device: # if we are in zope look for parameters in aq path
+        if device: # if we are in Zope look for parameters in the acquisition path
             self.username = getattr(device, 
                         'zCommandUsername', defaultUsername)
             self.password = getattr(device, 
@@ -100,6 +100,8 @@ class CollectorClient(BaseClient, protocol.ClientFactory):
 
     
     def addCommand(self, command):
+        """Add a command to the list of commands to gather data
+        """
         if type(command) == type(''):
             self._commands.append(command)
         else:
@@ -107,26 +109,31 @@ class CollectorClient(BaseClient, protocol.ClientFactory):
 
 
     def addResult(self, command, data, exitCode):
-        "add a result pair to the results store"
+        """Add a result pair to the results store
+        """
         plugin = self.cmdmap.get(command, command)
         self.results.append((plugin, data))
 
   
     def getCommands(self):
+        """The commands which we will use to collect data
+        """
         return self._commands
 
 
     def getResults(self):
+        """Return all of the results we have collected so far
+        """
         return self.results
 
 
     def commandsFinished(self):
-        """called by protocol to see if all commands have been run"""
+        """Called by protocol to see if all commands have been run"""
         return len(self.results) == len(self._commands)
 
 
     def clientFinished(self):
-        """tell the datacollector that we are all done"""
+        """Tell the datacollector that we are all done"""
         log.info("command client finished collection for %s",self.hostname)
         self.cmdindex = 0
         if self.datacollector:
@@ -135,7 +142,7 @@ class CollectorClient(BaseClient, protocol.ClientFactory):
         
 
 def buildOptions(parser=None, usage=None):
-    "build options list that both telnet and ssh use"
+    "Build a list of command-line options we will accept"
    
     #Default option values
     if os.environ.has_key('USER'):
@@ -155,8 +162,7 @@ def buildOptions(parser=None, usage=None):
 
     if not parser:
         from optparse import OptionParser
-        parser = OptionParser(usage=usage, 
-                                   version="%prog " + __version__)
+        parser = OptionParser(usage=usage, )
   
     parser.add_option('-u', '--user',
                 dest='username',
@@ -170,21 +176,21 @@ def buildOptions(parser=None, usage=None):
                 dest='loginTries',
                 default=defaultLoginTries,
                 type = 'int',
-                help='number of times to try login')
+                help='Number of times to attempt to login')
     parser.add_option('-L', '--loginTimeout',
                 dest='loginTimeout',
                 type = 'float',
                 default = defaultLoginTimeout,
-                help='timeout login expect statments')
+                help='Timeout period (secs) to find login expect statments')
     parser.add_option('-T', '--commandTimeout',
                 dest='commandTimeout',
                 type = 'float',
                 default = defaultCommandTimeout,
-                help='timeout when issuing a command')
+                help='Timeout period (secs) after issuing a command')
     parser.add_option('-K', '--keyPath',
                 dest='keyPath',
                 default = defaultKeyPath,
-                help='Path to use when looking for keys')                
+                help='Path to use when looking for SSH keys')                
     parser.add_option('-s', '--searchPath',
                 dest='searchPath',
                 default=defaultSearchPath,
@@ -192,7 +198,7 @@ def buildOptions(parser=None, usage=None):
     parser.add_option('-e', '--existenceTest',
                 dest='existenceTest',
                 default=defaultExistanceTest,
-                help='how to check for command')
+                help='How to check if a command is available or not')
     if not parser.has_option('-v'):
         parser.add_option('-v', '--logseverity',
                     dest='logseverity',
@@ -203,6 +209,8 @@ def buildOptions(parser=None, usage=None):
 
 
 def parseOptions(parser, port):
+    """Option parser
+    """
     options, args = parser.parse_args()
     if len(args) < 2: 
         parser.print_help()
