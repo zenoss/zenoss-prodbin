@@ -67,7 +67,7 @@ if [ $DAEMONS_TXT_ONLY -ne 1 ] ; then
 	C="$C zencommand"
 	C="$C zenprocess"
 	#C="$C zenmail"
-	$ZENHOME/bin/python -c 'import pywmi' 2>/dev/null
+	$ZENHOME/bin/python -c 'import pysamba' 2>/dev/null
 	if [ $? -eq 0 ]
 	then
 	    C="$C zenwin"
