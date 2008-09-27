@@ -78,10 +78,17 @@ def clearWebLoggingStream(handler):
     rlog.removeHandler(handler)
 
 
-def convToUnits(numb, divby=1024.0):
-    """Convert a number to its human readable form. ie: 4GB, 4MB, etc.
+def convToUnits(numb, divby=1024.0, unitstr="B"):
     """
-    units = ('B','KB','MB','GB','TB','PB')
+    Convert a number to its human readable form. ie: 4GB, 4MB, etc.
+
+        >>> convToUnits(123456789)
+        '117.7MB'
+        >>> convToUnits(123456789, 1000, "Hz")
+        '123.5MHz'
+
+    """
+    units = map(lambda x:x + unitstr, ('','K','M','G','T','P'))
     numb = float(numb)
     sign = 1
     if numb < 0:
