@@ -2,8 +2,11 @@
 	objects python:list(here.getDmdRoot('Devices').getMonitoredComponents());
 	tableName string: allmonitoredcomps;
 	batch python:here.ZenTableManager.getBatch(tableName,objects);
-	exportFields python:['id', 'name', 'meta_type',
-						'getInstDescription', 'getStatusString'];">
+	exportFields python:[('getParentDeviceName','Device'), 
+						 ('name','Component'), 
+						 ('meta_type', 'Type'),
+						 ('getInstDescription','Description'), 
+						 ('getStatusString','Status')];">
 <tal:block metal:use-macro="here/reportMacros/macros/exportableReport">
 <tal:block metal:fill-slot="report">
 

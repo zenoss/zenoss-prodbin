@@ -817,7 +817,7 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
         @rtype: string
         @permission: ZEN_VIEW
         """
-        return Time.LocalDateTime(float(self._lastChange))
+        return Time.LocalDateTimeSecsResolution(float(self._lastChange))
 
 
     security.declareProtected(ZEN_VIEW, 'getSnmpLastCollection')
@@ -839,7 +839,7 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
         @rtype: string
         @permission: ZEN_VIEW
         """
-        return Time.LocalDateTime(float(self._snmpLastCollection))
+        return Time.LocalDateTimeSecsResolution(float(self._snmpLastCollection))
 
 
     security.declareProtected(ZEN_ADMIN_DEVICE, 'setManageIp')

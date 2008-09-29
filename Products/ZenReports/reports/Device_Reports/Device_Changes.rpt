@@ -5,6 +5,7 @@
 	batch python:here.ZenTableManager.getBatch(tableName,objects,
             sortedHeader='getLastChange',sortedSence='desc');
 	exportFields python:[('id', 'Name'),
+						('getDeviceClassPath', 'Class'),
 						('getCreatedTimeString', 'FirstSeen'),
 						('getSnmpLastCollectionString', 'Collection'),
 						('getLastChangeString', 'Change')];
