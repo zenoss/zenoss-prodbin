@@ -70,7 +70,7 @@ class EventCommandProtocol(ProcessProtocol):
         if code == 0:
             self.server.log.debug("Command %s says: %s", self.cmd.id, self.data)
             summary = self.data or "<command produced no output>"
-            self.server.sendEvent(Event.Event(device=self.options.monitor,
+            self.server.sendEvent(Event.Event(device=self.server.options.monitor,
                                               eventClass=Cmd_Ok,
                                               summary=summary,
                                               severity=Event.Clear,
@@ -88,7 +88,7 @@ class EventCommandProtocol(ProcessProtocol):
             self.server.log.error("Command %s, exit code %d: %s",
                                   self.cmd.id, code, self.error)
             summary="Error running: %s: %s" % (self.cmd.id, self.error)
-        self.server.sendEvent(Event.Event(device=self.options.monitor,
+        self.server.sendEvent(Event.Event(device=self.server.options.monitor,
                                           eventClass=Cmd_Fail,
                                           summary=summary,
                                           severity=Event.Error,
