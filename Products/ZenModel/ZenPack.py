@@ -16,7 +16,7 @@ from Products.ZenModel.ZenModelRM import ZenModelRM
 from Products.ZenRelations.RelSchema import *
 from Products.ZenUtils.Utils import importClass, zenPath
 from Products.ZenUtils.Version import getVersionTupleFromString
-from Products.ZenModel.migrate.Migrate import Version
+from Products.ZenUtils.Version import Version as VersionBase
 from Products.ZenModel.ZenPackLoader import *
 from AccessControl import ClassSecurityInfo
 from ZenossSecurity import ZEN_MANAGE_DMD
@@ -49,6 +49,9 @@ class ZenPackDependentsException(ZenPackException):
 class ZenPackDevelopmentModeExeption(ZenPackException):
     pass
 
+class Version(VersionBase):
+    def __init__(self, *args, **kw):
+        VersionBase.__init__(self, 'Zenoss', *args, **kw)
 
 
 def eliminateDuplicates(objs):
