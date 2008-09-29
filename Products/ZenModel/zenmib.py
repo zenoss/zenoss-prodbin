@@ -104,7 +104,8 @@ class zenmib(ZCmdBase):
         result = {}
         self.log.debug("%s", mibname.split('/')[-1])
         dependencies = self.generateDependenciesForSMIDump(mibname, depmap)
-        dump = 'smidump -fpython %s "%s" 2>/dev/null' % (dependencies, mibname)
+        dump = 'smidump -k -fpython %s "%s" 2>/dev/null' % (
+            dependencies, mibname)
         self.log.debug('running %s', dump)
         exec os.popen(dump) in result
         mib = result.get('MIB', None)
