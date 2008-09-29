@@ -1056,6 +1056,7 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
         @rtype: boolean
         """
         return (self.monitorDevice()
+                and self.getManageIp()
                 and not self.zSnmpMonitorIgnore
                 and (self.zSnmpCommunity or
                      getattr(self, 'zSnmpSecurityName', None)))
