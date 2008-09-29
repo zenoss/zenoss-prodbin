@@ -103,5 +103,5 @@ class DbConnectionPool:
                                    db=database, conv=mysqlconv, reconnect=1)
             conn.autocommit(1)
             return conn
-        except:
-            raise MySQLConnectionError
+        except Exception, e:
+            raise MySQLConnectionError(str(e))
