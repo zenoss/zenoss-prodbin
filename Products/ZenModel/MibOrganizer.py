@@ -84,8 +84,15 @@ class MibOrganizer(Organizer, ZenPackable):
     def oid2name(self, oid):
         """Return a name in for and oid.
         """
-        brains = self.getDmdRoot("Mibs").mibSearch({'oid': oid})
-        if len(brains) > 0: return brains[0].id
+        mibSearch = self.getDmdRoot("Mibs").mibSearch
+        oidlist = oid.strip('.').split('.')
+        for i in range(len(oidlist), 0, -1):
+            brains = mibSearch({'oid': '.'.join(oidlist[:i])})
+            if len(brains) < 1: continue
+            if len(oidlist[i:]) > 0:
+                return "%s.%s" % (brains[0].id, '.'.join(oidlist[i:]))
+            else:
+                return brains[0].id
         return ""
 
      
