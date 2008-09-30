@@ -37,6 +37,22 @@ def manage_addMibOrganizer(context, id, REQUEST = None):
 addMibOrganizer = DTMLFile('dtml/addMibOrganizer',globals())
 
 
+def _oid2name(mibSearch, oid):
+    """Return a name for an oid. This function is extracted out of the
+    MibOrganizer class and takes mibSearch as a parameter to make it easier to
+    unit test.
+    """
+    oidlist = oid.strip('.').split('.')
+    for i in range(len(oidlist), 0, -1):
+        brains = mibSearch(oid='.'.join(oidlist[:i]))
+        if len(brains) < 1: continue
+        if len(oidlist[i:]) > 0:
+            return "%s.%s" % (brains[0].id, '.'.join(oidlist[i:]))
+        else:
+            return brains[0].id
+    return ""
+
+
 class MibOrganizer(Organizer, ZenPackable):
     """
     DeviceOrganizer is the base class for device organizers.
@@ -82,20 +98,11 @@ class MibOrganizer(Organizer, ZenPackable):
   
 
     def oid2name(self, oid):
-        """Return a name in for and oid.
+        """Return a name for an oid.
         """
-        mibSearch = self.getDmdRoot("Mibs").mibSearch
-        oidlist = oid.strip('.').split('.')
-        for i in range(len(oidlist), 0, -1):
-            brains = mibSearch({'oid': '.'.join(oidlist[:i])})
-            if len(brains) < 1: continue
-            if len(oidlist[i:]) > 0:
-                return "%s.%s" % (brains[0].id, '.'.join(oidlist[i:]))
-            else:
-                return brains[0].id
-        return ""
-
-     
+        return _oid2name(self.getDmdRoot("Mibs").mibSearch, oid)
+        
+ 
     def name2oid(self, name):
         """Return an oid based on a name in the form MIB::name.
         """

@@ -16,8 +16,56 @@ if __name__ == '__main__':
 
 from Products.ZenModel.Exceptions import *
 from Products.ZenModel.MibOrganizer import *
+from Products.ZenModel.MibOrganizer import _oid2name
 
 from ZenModelBaseTest import ZenModelBaseTest
+import unittest
+
+
+class MockBrain(object):
+
+    def __init__(self, oid=None, id=None):
+        self.oid = oid
+        self.id = id
+
+
+class MockCatalog(object):
+
+    def __init__(self, *brains):
+        self.brains = brains
+        
+    def __call__(self, **query):
+        matches = list(self.brains[:])
+        for brain in self.brains:
+            for query_key in query.keys():
+                if not hasattr(brain, query_key):
+                    raise Exception('brain is missing %s' % query_key)
+                if getattr(brain, query_key) != query[query_key]:
+                    matches.remove(brain)
+                    break
+        return matches
+
+
+class TestOid2Name(unittest.TestCase):
+    """tests the oid2name function
+    """
+    
+    def runTest(self):
+        brain = MockBrain(oid='1.3.6.1.4.1.4743.1.2.2.66',
+                          id='expedIfBssAAAVlanAtts')
+        mibSearch = MockCatalog(brain)
+        self.doassert('expedIfBssAAAVlanAtts', 
+                      _oid2name(mibSearch, '.1.3.6.1.4.1.4743.1.2.2.66'))
+        self.doassert('expedIfBssAAAVlanAtts.0', 
+                      _oid2name(mibSearch, '.1.3.6.1.4.1.4743.1.2.2.66.0'))
+        self.doassert('expedIfBssAAAVlanAtts.14', 
+                      _oid2name(mibSearch, '.1.3.6.1.4.1.4743.1.2.2.66.14'))
+        self.doassert('', 
+                      _oid2name(mibSearch, '.455.4.33.22.78'))
+
+    def doassert(self, expected, actual):
+        self.assertEqual(expected, actual, 
+                         'expected "%s" but got "%s"' % (expected, actual))
 
 
 class TestMibOrganizer(ZenModelBaseTest):
@@ -91,6 +139,7 @@ class TestMibOrganizer(ZenModelBaseTest):
 def test_suite():
     from unittest import TestSuite, makeSuite
     suite = TestSuite()
+    suite.addTest(makeSuite(TestOid2Name))
     suite.addTest(makeSuite(TestMibOrganizer))
     return suite
 
