@@ -9,9 +9,10 @@
         tal:attributes="value template/id" /> 
 
 
-        <tal:block tal:define="editable here/isManager; 
-        message string:State at time:;
-        tabletitle string: ${message} ${here/getNowString}">
+        <tal:block tal:define="
+            editable python:here.has_permission('Maintenance Windows Edit');
+            message string:State at time:;
+            tabletitle string: ${message} ${here/getNowString}">
         <tal:block metal:use-macro="here/zenuimacros/macros/zentable">
 
         <!--====Optional titlebar slots=============
@@ -45,7 +46,7 @@
     <tr>
         <td class="tableheader">Start</td>
         <td class="tablevalues" tal:condition="not:editable" 
-            tal:content="here/niceStart"/>
+            tal:content="here/niceStartDateTime"/>
         <td class="tablevalues" tal:condition="editable">
 	    <input type="text" name="startDate" 
 		   readonly="true"
