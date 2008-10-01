@@ -24,6 +24,7 @@ from AccessControl import getSecurityManager
 from OFS.OrderedFolder import OrderedFolder
 from Globals import DTMLFile
 from Globals import InitializeClass
+from Globals import DevelopmentMode
 from Products.ZenModel.SiteError import SiteError
 from Products.ZenModel.ZenModelBase import ZenModelBase
 from Products.ZenModel.ZenMenuable import ZenMenuable
@@ -38,6 +39,7 @@ import string
 
 from Products.ZenUtils.Utils import zenPath, binPath
 from Products.ZenUtils.Utils import extractPostContent
+from Products.ZenUtils.Utils import json
 
 from Products.ZenEvents.Exceptions import *
 
@@ -722,6 +724,11 @@ class DataRoot(ZenModelRM, OrderedFolder, Commandable, ZenMenuable):
             raise 
         return '<b class="errormsg">%s</b>' % msg
 
-
+    @json
+    def isDebugMode(self):
+        """
+        Whether we're in debug mode, so that javascript will behave accordingly
+        """
+        return DevelopmentMode
 
 InitializeClass(DataRoot)

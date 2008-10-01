@@ -40,6 +40,9 @@
         <link rel="stylesheet" type="text/css" title="zenoss"
             href="zenoss_ie6.css" >
     <![endif]-->
+    <script tal:content="string:
+        var DEBUG_MODE = ${here/dmd/isDebugMode};
+    "></script>
     <script type="text/javascript" src="js/MochiKit.js"></script>
     <script type="text/javascript" language="javascript"
         src="/zport/dmd/yui/yahoo/yahoo-min.js"></script>

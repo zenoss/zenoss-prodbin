@@ -1,22 +1,24 @@
+//var DEBUG_MODE = true;
+if (typeof(DEBUG_MODE)=='undefined') var DEBUG_MODE = false;
+
 // Graceful degradation of Firebug console object
 // via http://ajaxian.com/archives/graceful-degradation-of-firebug-console-object
 if (! ("console" in window) || !("firebug" in console)) {
-    var names = ["log", "debug", "info", "warn", "error", "assert", "dir", "dirxml", "group"
-                 , "groupEnd", "time", "timeEnd", "count", "trace", "profile", "profileEnd"];
+    var names = ["log", "debug", "info", "warn", "error", "assert", 
+                 "dir", "dirxml", "group", "groupEnd", "time", "timeEnd", 
+                 "count", "trace", "profile", "profileEnd"];
     window.console = {};
-    for (var i = 0; i <names.length; ++i) window.console[names[i]] = function() {};
-}
+    for (var i = 0; i <names.length; ++i) window.console[names[i]] = function() {};}
 
 // Set up the Javascript loader
 function getLoader() {
-    loader = new YAHOO.util.YUILoader({
-        onProgress: function(o) {
-            console.info(o.name + " module loaded.");
-        },
+    configObj = {
         onFailure: function(msg, xhrreq) {
             console.warn('FAILURE: ' + msg)
         }
-    });
+    };
+    if (DEBUG_MODE) configObj.filter = 'DEBUG';
+    loader = new YAHOO.util.YUILoader(configObj);
     loader.base = '/zport/dmd/yui/';
 
     // Register zenoss scripts
@@ -95,3 +97,8 @@ YAHOO.namespace("zenoss");
 // Put the loader somewhere accessible
 YAHOO.zenoss.getLoader = getLoader;
 
+if (DEBUG_MODE) {
+    loader = getLoader();
+    loader.require(['logger']);
+    loader.insert({onSuccess:function(){YAHOO.widget.Logger.enableBrowserConsole()}})
+}
