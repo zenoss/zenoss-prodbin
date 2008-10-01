@@ -244,7 +244,7 @@ loader.insert({onSuccess:function(){
     objects here/os/processes/objectValuesAll;
     tabletitle string:OS Processes;
     batch python:here.ZenTableManager.getBatch(tableName,objects,
-                                            sortedHeader='getOSProcessClass',
+                                            sortedHeader='name',
                                             onlyMonitored=True);
     ts python:here.ZenTableManager.getTableState(tableName);
     menu_id string:OSProcess;
@@ -270,9 +270,9 @@ loader.insert({onSuccess:function(){
     <tr>
         <th class="tableheader" width="20"></th>
         <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
-                tableName,'getOSProcessClass','Class')"/>
-        <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
                 tableName,'name','Name')"/>
+        <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
+                tableName,'getOSProcessClass','Class')"/>
         <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
                 tableName,'alertOnRestart','Restarts')"/>
         <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
@@ -289,13 +289,13 @@ loader.insert({onSuccess:function(){
            <input type="checkbox" name="componentNames:list" 
                   tal:attributes="value proc/getRelationshipManagerId"/>
         </td>
-        <td class="tablevalues" 
-                tal:content="structure proc/getOSProcessClassLink"/>
         <td class="tablevalues">
            <tal:block 
             tal:content="structure python:proc.urlLink(text=proc.name()[:50],
              attrs={'class':'tablevalues'})"/>
         </td>
+        <td class="tablevalues" 
+                tal:content="structure proc/getOSProcessClassLink"/>
         <td class="tablevalues" tal:content="proc/alertOnRestart"/>
         <td class="tablevalues" tal:content="proc/getFailSeverityString"/>
         <td class="tablevalues" align="center" width="40">
