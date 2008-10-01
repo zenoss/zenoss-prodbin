@@ -6,6 +6,9 @@
 <property type='text' id='description' mode='w' >
 Basic template that only collects sysUpTime.
 </property>
+<property type="string" id="targetPythonClass" mode="w" >
+Products.ZenModel.Device
+</property>
 <tomanycont id='datasources'>
 <object id='sysUpTime' module='Products.ZenModel.RRDDataSource' class='RRDDataSource'>
 <property type='string' id='oid' mode='w' >
@@ -32,6 +35,9 @@ True
 <object id='ethernetCsmacd' module='Products.ZenModel.RRDTemplate' class='RRDTemplate'>
 <property type='text' id='description' mode='w' >
 Standard ethernet interface template with 75% utilization threshold
+</property>
+<property type="string" id="targetPythonClass" mode="w" >
+Products.ZenModel.IpInterface
 </property>
 <tomanycont id='datasources'>
 <object id='ifInErrors' module='Products.ZenModel.RRDDataSource' class='RRDDataSource'>
@@ -327,6 +333,9 @@ here.speed / 8 * .75
 <object id='Device' module='Products.ZenModel.RRDTemplate' class='RRDTemplate'>
 <property type='text' id='description' mode='w' >
 Net-SNMP template for late vintage unix device.  Has CPU threshold.
+</property>
+<property type="string" id="targetPythonClass" mode="w" >
+Products.ZenModel.Device
 </property>
 <tomanycont id='datasources'>
 <object id='laLoadInt5' module='Products.ZenModel.RRDDataSource' class='RRDDataSource'>
@@ -721,6 +730,9 @@ True
 <property type='text' id='description' mode='w' >
 Filesystem template that uses HOST-RESOURCES mib.
 </property>
+<property type="string" id="targetPythonClass" mode="w" >
+Products.ZenModel.FileSystem
+</property>
 <tomanycont id='datasources'>
 <object id='usedBlocks' module='Products.ZenModel.RRDDataSource' class='RRDDataSource'>
 <property type='string' id='oid' mode='w' >
@@ -817,6 +829,9 @@ here.totalBlocks * .9
 <object id='Device' module='Products.ZenModel.RRDTemplate' class='RRDTemplate'>
 <property type='text' id='description' mode='w' >
 Windows template that requires Informant MIB
+</property>
+<property type="string" id="targetPythonClass" mode="w" >
+Products.ZenModel.Device
 </property>
 <tomanycont id='datasources'>
 <object id='cpuPercentProcessorTime' module='Products.ZenModel.RRDDataSource' class='RRDDataSource'>
@@ -1045,6 +1060,9 @@ True
 <object id='HardDisk' module='Products.ZenModel.RRDTemplate' class='RRDTemplate'>
 <property type='text' id='description' mode='w' >
 HardDisk I/O template that requries Informat MIB
+</property>
+<property type="string" id="targetPythonClass" mode="w" >
+Products.ZenModel.HardDisk
 </property>
 <tomanycont id='datasources'>
 <object id='lDiskDiskReadBytesPerSec' module='Products.ZenModel.RRDDataSource' class='RRDDataSource'>

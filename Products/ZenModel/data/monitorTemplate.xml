@@ -9,6 +9,9 @@ MonitorClass
 <property type="text" id="description" mode="w" >
 Graphs and Thresholds for Core Collectors
 </property>
+<property type="string" id="targetPythonClass" mode="w" >
+Products.ZenModel.PerformanceConf
+</property>
 <tomanycont id='datasources'>
 <object id='zencommand' module='Products.ZenModel.BuiltInDS' class='BuiltInDS'>
 <property select_variable="sourcetypes" type="selection" id="sourcetype" mode="w" >
@@ -1404,6 +1407,9 @@ AVERAGE
 <object id='PerformanceConf' module='Products.ZenModel.RRDTemplate' class='RRDTemplate'>
 <property type="text" id="description" mode="w" >
 Graphs and Thresholds for Core Collectors
+</property>
+<property type="string" id="targetPythonClass" mode="w" >
+Products.ZenModel.PerformanceConf
 </property>
 <tomanycont id='datasources'>
 <object id='zencommand' module='Products.ZenModel.BuiltInDS' class='BuiltInDS'>

@@ -167,6 +167,9 @@ False
 <property type="text" id="description" mode="w" >
 Basic template that only collects sysUpTime.
 </property>
+<property type="string" id="targetPythonClass" mode="w" >
+Products.ZenModel.Device
+</property>
 <tomanycont id='datasources'>
 <object id='sysUpTime' module='Products.ZenModel.BasicDataSource' class='BasicDataSource'>
 <property select_variable="sourcetypes" type="selection" id="sourcetype" mode="w" >
@@ -207,10 +210,16 @@ True
 <property type="text" id="description" mode="w" >
 Place holder for future use.
 </property>
+<property type="string" id="targetPythonClass" mode="w" >
+Products.ZenModel.IpService
+</property>
 </object>
 <object id='OSProcess' module='Products.ZenModel.RRDTemplate' class='RRDTemplate'>
 <property type="text" id="description" mode="w" >
 Monitors for OSProcess object
+</property>
+<property type="string" id="targetPythonClass" mode="w" >
+Products.ZenModel.OSProcess
 </property>
 <tomanycont id='datasources'>
 <object id='count' module='Products.ZenModel.BasicDataSource' class='BasicDataSource'>
@@ -607,10 +616,16 @@ AVERAGE
 <property type="text" id="description" mode="w" >
 Place holder for future use.
 </property>
+<property type="string" id="targetPythonClass" mode="w" >
+Products.ZenModel.WinService
+</property>
 </object>
 <object id='ethernetCsmacd' module='Products.ZenModel.RRDTemplate' class='RRDTemplate'>
 <property type="text" id="description" mode="w" >
 Standard ethernet interface template with 75% utilization threshold
+</property>
+<property type="string" id="targetPythonClass" mode="w" >
+Products.ZenModel.IpInterface
 </property>
 <tomanycont id='datasources'>
 <object id='ifInErrors' module='Products.ZenModel.BasicDataSource' class='BasicDataSource'>
@@ -1295,6 +1310,9 @@ AVERAGE
 <property type="text" id="description" mode="w" >
 Template for 64-bit interface counters.  Must use SNMP v2c for it to work.
 </property>
+<property type="string" id="targetPythonClass" mode="w" >
+Products.ZenModel.IpInterface
+</property>
 <tomanycont id='datasources'>
 <object id='ifHCInOctets' module='Products.ZenModel.BasicDataSource' class='BasicDataSource'>
 <property select_variable="sourcetypes" type="selection" id="sourcetype" mode="w" >
@@ -1916,6 +1934,9 @@ NewDeviceMap|DeviceMap|InterfaceMap|RouteMap|ifconfig|netstat_rn
 <property type="text" id="description" mode="w" >
 Cisco template that collects cpu and free memory.  Has CPU threshold at 90%
 </property>
+<property type="string" id="targetPythonClass" mode="w" >
+Products.ZenModel.Device
+</property>
 <tomanycont id='datasources'>
 <object id='cpu5min' module='Products.ZenModel.BasicDataSource' class='BasicDataSource'>
 <property select_variable="sourcetypes" type="selection" id="sourcetype" mode="w" >
@@ -2268,6 +2289,9 @@ AVERAGE
 <object id='Device' module='Products.ZenModel.RRDTemplate' class='RRDTemplate'>
 <property type="text" id="description" mode="w" >
 Net-SNMP template for late vintage unix device.  Has CPU threshold.
+</property>
+<property type="string" id="targetPythonClass" mode="w" >
+Products.ZenModel.Device
 </property>
 <tomanycont id='datasources'>
 <object id='laLoadInt5' module='Products.ZenModel.BasicDataSource' class='BasicDataSource'>
@@ -3319,6 +3343,9 @@ AVERAGE
 <property type="text" id="description" mode="w" >
 Filesystem template that uses HOST-RESOURCES mib. Has a 90% threshold.
 </property>
+<property type="string" id="targetPythonClass" mode="w" >
+Products.ZenModel.FileSystem
+</property>
 <tomanycont id='datasources'>
 <object id='usedBlocks' module='Products.ZenModel.BasicDataSource' class='BasicDataSource'>
 <property select_variable="sourcetypes" type="selection" id="sourcetype" mode="w" >
@@ -3529,6 +3556,9 @@ False
 <object id='Device' module='Products.ZenModel.RRDTemplate' class='RRDTemplate'>
 <property type="text" id="description" mode="w" >
 Windows template that requires Informant MIB
+</property>
+<property type="string" id="targetPythonClass" mode="w" >
+Products.ZenModel.Device
 </property>
 <tomanycont id='datasources'>
 <object id='cpuPercentProcessorTime' module='Products.ZenModel.BasicDataSource' class='BasicDataSource'>
@@ -4006,6 +4036,9 @@ AVERAGE
 <property type="text" id="description" mode="w" >
 HardDisk I/O template that requries Informat MIB
 </property>
+<property type="string" id="targetPythonClass" mode="w" >
+Products.ZenModel.HardDisk
+</property>
 <tomanycont id='datasources'>
 <object id='lDiskDiskReadBytesPerSec' module='Products.ZenModel.BasicDataSource' class='BasicDataSource'>
 <property select_variable="sourcetypes" type="selection" id="sourcetype" mode="w" >
@@ -4226,6 +4259,9 @@ True
 <property type="text" id="description" mode="w" >
 Blank device template.  No collection on port scanned devices.
 </property>
+<property type="string" id="targetPythonClass" mode="w" >
+Products.ZenModel.Device
+</property>
 </object>
 </tomanycont>
 </object>
@@ -4240,6 +4276,9 @@ True
 <object id='Device' module='Products.ZenModel.RRDTemplate' class='RRDTemplate'>
 <property type="text" id="description" mode="w" >
 ZenPlugin template for late vintage unix device.  Has CPU threshold.
+</property>
+<property type="string" id="targetPythonClass" mode="w" >
+Products.ZenModel.Device
 </property>
 <tomanycont id='datasources'>
 <object id='cpu' module='Products.ZenModel.BasicDataSource' class='BasicDataSource'>
@@ -5162,6 +5201,9 @@ AVERAGE
 <property type="text" id="description" mode="w" >
 Filesystem template that uses ZenPlugins
 </property>
+<property type="string" id="targetPythonClass" mode="w" >
+Products.ZenModel.FileSystem
+</property>
 <tomanycont id='datasources'>
 <object id='disk' module='Products.ZenModel.BasicDataSource' class='BasicDataSource'>
 <property select_variable="sourcetypes" type="selection" id="sourcetype" mode="w" >
@@ -5524,6 +5566,9 @@ AVERAGE
 <object id='ethernetCsmacd' module='Products.ZenModel.RRDTemplate' class='RRDTemplate'>
 <property type="text" id="description" mode="w" >
 Ethernet interface template for ZenPlugins with 75% utilization threshold
+</property>
+<property type="string" id="targetPythonClass" mode="w" >
+Products.ZenModel.IpInterface
 </property>
 <tomanycont id='datasources'>
 <object id='intf' module='Products.ZenModel.BasicDataSource' class='BasicDataSource'>
@@ -6075,6 +6120,9 @@ True
 <property type="text" id="description" mode="w" >
 APC Device Profile that tracks battery capacity, load and runtime
 </property>
+<property type="string" id="targetPythonClass" mode="w" >
+Products.ZenModel.Device
+</property>
 <tomanycont id='datasources'>
 <object id='batteryCapacity' module='Products.ZenModel.BasicDataSource' class='BasicDataSource'>
 <property select_variable="sourcetypes" type="selection" id="sourcetype" mode="w" >
@@ -6528,6 +6576,9 @@ True
 <object id='Device' module='Products.ZenModel.RRDTemplate' class='RRDTemplate'>
 <property type="text" id="description" mode="w" >
 Blank Template.
+</property>
+<property type="string" id="targetPythonClass" mode="w" >
+Products.ZenModel.Device
 </property>
 </object>
 </tomanycont>

@@ -6,6 +6,9 @@
 <property type='text' id='description' mode='w' >
 Monitors for OSProcess object
 </property>
+<property type="string" id="targetPythonClass" mode="w" >
+Products.ZenModel.OSProcess
+</property>
 <tomanycont id='datasources'>
 <object id='cpu' module='Products.ZenModel.RRDDataSource' class='RRDDataSource'>
 <property select_variable='rrdtypes' type='selection' id='rrdtype' mode='w' >
@@ -130,6 +133,9 @@ True
 <object id='OSProcessCount' module='Products.ZenModel.RRDTemplate' class='RRDTemplate'>
 <property type='text' id='description' mode='w' >
 Template used when counting processes
+</property>
+<property type="string" id="targetPythonClass" mode="w" >
+Products.ZenModel.OSProcess
 </property>
 <tomanycont id='datasources'>
 <object id='count' module='Products.ZenModel.RRDDataSource' class='RRDDataSource'>
