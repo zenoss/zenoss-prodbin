@@ -196,9 +196,10 @@ class ZenBackup(ZenBackupBase):
             self.msg('Skipping backup of events database.')
         else:
             self.msg('Backup up events database.')
-            cmd = 'mysqldump -u"%s" %s --routines %s > %s' % (
+            cmd = 'mysqldump -u"%s" %s %s --routines %s > %s' % (
                         self.options.dbuser,
                         self.getPassArg(),
+                        "--single-transaction",
                         self.options.dbname,
                         os.path.join(tempDir, 'events.sql'))
             if os.system(cmd): return -1
