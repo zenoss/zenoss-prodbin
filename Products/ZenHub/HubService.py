@@ -13,7 +13,6 @@
 from twisted.spread import pb
 
 import logging
-hubLog = logging.getLogger("zenhub")
 import time
 
 def threaded(callable):
@@ -26,9 +25,8 @@ def threaded(callable):
 
 class HubService(pb.Referenceable):
 
-    log = hubLog
-
     def __init__(self, dmd, instance):
+        self.log = logging.getLogger('zen.hub')
         self.dmd = dmd
         self.zem = dmd.ZenEventManager
         self.instance = instance
@@ -38,12 +36,14 @@ class HubService(pb.Referenceable):
     def getPerformanceMonitor(self):
         return self.dmd.Monitors.getPerformanceMonitor(self.instance)
 
-    def remoteMessageRecieved(self, broker, message, args, kw):
+    def remoteMessageReceived(self, broker, message, args, kw):
         now = time.time()
         try:
-            return pb.Referenceable.remoteMessageRecieved(self, broker, message, args, kw)
+            return pb.Referenceable.remoteMessageReceived(self, broker, message, args, kw)
         finally:
-            self.callTime += time.time() - now
+            secs = time.time() - now
+            self.log.debug("Time in %s: %.2f", message, secs)
+            self.callTime += secs
 
     def update(self, object):
         pass
