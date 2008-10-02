@@ -133,6 +133,8 @@ class SyslogProcessor(object):
         MMM HH:MM:SS and host is next token without the characters '[' or ':'.
         """
         slog.debug(msg)
+        m = re.sub("Kiwi_Syslog_Daemon \d+: \d+: "
+            "\S{3} [\d ]{2} [\d ]{2}:[\d ]{2}:[^:]+: ", "", msg)
         m = self.timeParse(msg)
         if m: 
             slog.debug("parseHEADER timestamp=%s", m.group(1))
