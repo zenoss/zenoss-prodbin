@@ -21,12 +21,13 @@ Turn email messages into events.
 $Id$
 '''
 
-from EventServer import EventServer
+import Globals
+
+from Products.ZenEvents.EventServer import EventServer
+from Products.ZenEvents.MailProcessor import POPProcessor
 
 from twisted.mail.pop3client import POP3Client
-from twisted.internet import reactor, protocol, defer
-
-from MailProcessor import POPProcessor
+from twisted.internet import reactor, protocol, defer, error
 
 import logging
 log = logging.getLogger("zen.pop3")
@@ -131,23 +132,25 @@ class ZenPOP3(EventServer):
 
         self.changeUser()
         self.processor = POPProcessor(self,self.options.eventseverity)
-        self.host = self.options.pophost
-        self.port = self.options.popport
-        popuser = self.options.popuser
-        poppasswd = self.options.poppass
         
-        log.info("credentials user: %s; pass: %s" % (popuser, 
-            len(poppasswd) * '*'))
-        
-        self.factory = POPFactory(popuser, poppasswd, 
+        log.info("credentials user: %s; pass: %s" % (self.options.popuser, 
+            len(self.options.poppass) * '*'))
+            
+        self.makeFactory()
+   
+   
+    def makeFactory(self):
+        self.factory = POPFactory(self.options.popuser, self.options.poppass, 
             self.processor, self.options.nodelete)
-        log.info("connecting to pop server: %s:%s" % (self.host, self.port))
         self.factory.deferred.addErrback(self.handleError)
-        
+
+
+    def connected(self):
         self.checkForMessages()
     
 
     def checkForMessages(self):
+        reactor.callLater(self.options.cycletime, self.checkForMessages)
         if self.options.usessl:
             log.info("connecting to server using SSL")
             from twisted.internet.ssl import ClientContextFactory
@@ -155,17 +158,27 @@ class ZenPOP3(EventServer):
                 ClientContextFactory())
         else:
             log.info("connecting to server using plaintext")
-            reactor.connectTCP(self.host, self.port, self.factory)
-                
+            reactor.connectTCP(self.options.pophost, self.options.popport,
+                self.factory)
+        
         self.heartbeat()
-        reactor.callLater(self.options.cycletime, self.checkForMessages)
 
 
-    def handleError(self, error):
-        log.error(error)
-        log.error(error.getErrorMessage())
-
-        self.stop()
+    def handleError(self, err):
+        if err.type == error.TimeoutError:
+            log.error("Timed out connecting to %s:%d",
+                self.options.pophost, self.options.popport)
+        elif err.type == error.ConnectionRefusedError:
+            log.error("Connection refused by %s:%d",
+                self.options.pophost, self.options.popport)
+        elif err.type == error.ConnectError:
+            log.error("Connection failed to %s:%d",
+                self.options.pophost, self.options.popport)
+        else:
+            log.error(err.getErrorMessage())
+            self.stop()
+        
+        self.makeFactory()
 
 
     def buildOptions(self):
