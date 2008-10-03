@@ -18,6 +18,7 @@ from Products.ZenWin.Watcher import Watcher
 from Products.ZenEvents.ZenEventClasses import Status_Wmi, Status_WinService
 from Products.ZenEvents.Event import Error, Clear
 from Products.ZenUtils.Driver import drive
+from pysamba.library import WError
 
 from sets import Set
 
@@ -108,6 +109,7 @@ class zenwin(WinCollector):
         """
         wql = ("""SELECT * FROM __InstanceModificationEvent within 5 where """
                """TargetInstance ISA 'Win32_Service' """)
+        # FIXME: this code looks very similar to the code in zeneventlog
         def inner(driver):
             try:
                 self.niceDoggie(self.cycleInterval())
@@ -132,6 +134,13 @@ class zenwin(WinCollector):
                                 self.serviceStopped(device, s.name)
                             if s.state == 'Running':
                                 self.serviceRunning(device, s.name)
+            except WError, ex:
+                if ex.werror != 0x000006be:
+                    raise
+                self.log.info("%s: Ignoring event %s "
+                              "and restarting connection", device.id, ex)
+                w = self.watchers.pop(device.id)
+                w.close()
             except Exception, ex:
                 self.log.exception(ex)
                 self.deviceDown(device, "Error reading services", ex)

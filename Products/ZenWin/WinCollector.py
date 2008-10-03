@@ -24,6 +24,7 @@ unused(DeviceProxy, PluginLoader)
 
 from twisted.internet import reactor
 from twisted.python.failure import Failure
+from pysamba.library import DEBUGLEVEL
 
 import time
 
@@ -45,6 +46,8 @@ class WinCollector(PBDaemon):
         self.watchers = {}
         PBDaemon.__init__(self)
         self.reconfigureTimeout = None
+        if self.options.logseverity == 0:
+            DEBUGLEVEL.value = 99
 
     def remote_notifyConfigChanged(self):
         self.log.info("Async config notification")

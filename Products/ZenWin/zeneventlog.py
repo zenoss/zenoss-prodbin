@@ -17,6 +17,7 @@ from Products.ZenWin.WinCollector import WinCollector
 from Products.ZenUtils.Driver import drive
 from Products.ZenEvents.ZenEventClasses import Status_Wmi
 from Products.ZenEvents import Event
+from pysamba.library import WError
 
 from twisted.internet import defer
 
@@ -45,6 +46,7 @@ class zeneventlog(WinCollector):
               """and TargetInstance.EventType <= %d"""\
               % device.zWinEventlogMinSeverity
         def inner(driver):
+            # FIXME: this code looks very similar to the code in zenwin
             try:
                 self.niceDoggie(self.cycleInterval())
                 w = self.watchers.get(device.id, None)
@@ -64,6 +66,13 @@ class zeneventlog(WinCollector):
                     for lrec in events:
                         self.events += 1
                         self.sendEvent(self.makeEvent(device.id, lrec))
+            except WError, ex:
+                if ex.werror != 0x000006be:
+                    raise
+                self.log.info("%s: Ignoring event %s "
+                              "and restarting connection", device.id, ex)
+                w = self.watchers.pop(device.id)
+                w.close()
             except Exception, ex:
                 self.log.exception("Exception getting windows events: %s", ex)
                 self.sendEvent(dict(summary="Error reading events",
