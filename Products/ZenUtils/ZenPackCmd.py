@@ -566,6 +566,7 @@ def DoEasyInstall(eggPath):
         args = ['--site-dirs', zenPath('ZenPacks'),
             '-d', zenPath('ZenPacks'),
             # '-i', ZEN_PACK_INDEX_URL,
+            '--allow-hosts', 'None',
             '--record', tempPath,
             '--quiet',
             eggPath]
@@ -643,6 +644,7 @@ def FetchZenPack(zenPackName, zenPackVersion=''):
         args = ['--site-dirs', zenPath('ZenPacks'),
             '-d', zenPath('ZenPacks'),
             '-i', ZEN_PACK_INDEX_URL,
+            '--allow-hosts', 'None',
             '--record', tempPath,
             '--quiet',
             zenPackName]
