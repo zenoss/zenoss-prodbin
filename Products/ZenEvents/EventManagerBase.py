@@ -1421,17 +1421,17 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
             return cmp(a, b)
         for devname in devices:
             dev = devclass.findDevice(devname)
-            if dev:
+            if dev and dev.id == devname:
                 if (not self.checkRemotePerm(ZEN_VIEW, dev)
                     or dev.productionState < self.prodStateDashboardThresh
                     or dev.priority < self.priorityDashboardThresh):
                     continue
                 if simple: alink = devname
                 else: alink = dev.getPrettyLink()
-                try: 
+                try:
                     pill = self.getEventPillME(dev)[0]
-                except IndexError: 
-                    pill = ''
+                except IndexError:
+                    continue
                 evts = [alink,pill]
                 devdata.append(evts)
         devdata.sort(pillcompare)
