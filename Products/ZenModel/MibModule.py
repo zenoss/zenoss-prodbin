@@ -21,6 +21,8 @@ from Products.ZenRelations.RelSchema import *
 from ZenModelRM import ZenModelRM
 from ZenPackable import ZenPackable
 
+import re
+
 class MibModule(ZenModelRM, ZenPackable):
 
     types = ('COUNTER', 'GAUGE', 'DERIVE', 'ABSOLUTE')
@@ -106,7 +108,8 @@ class MibModule(ZenModelRM, ZenPackable):
         """Create a MibNotification 
         """
         from MibNode import MibNode
-        if self.oid2name(kwargs['oid']):
+        name = self.oid2name(kwargs['oid'])
+        if name and not re.search("\.\d+$", name):
             return None
         node = MibNode(id, **kwargs) 
         self.nodes._setObject(node.id, node)
@@ -140,7 +143,8 @@ class MibModule(ZenModelRM, ZenPackable):
         """Create a MibNotification 
         """
         from MibNotification import MibNotification
-        if self.oid2name(kwargs['oid']):
+        name = self.oid2name(kwargs['oid'])
+        if name and not re.search("\.\d+$", name):
             return None
         node = MibNotification(id, **kwargs) 
         self.notifications._setObject(node.id, node)

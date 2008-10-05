@@ -6,11 +6,8 @@
 <input id="new_id" name="id">
 <input type="hidden" id="checkValidIdPath" 
         tal:attributes="value here/absolute_url"><br/><br/>
-OID:&nbsp;<input type="text" name="oid"><br/><br/>
-Type:&nbsp;<select class="tableheader" name="nodetype">
-    <option tal:repeat="type here/types"
-        tal:content="type">/Thing</option>
-</select>
+OID:&nbsp;<input type="text" name="oid">
+<input type="hidden" name="nodetype" value="node"/>
 </p>
 <div id="dialog_buttons">
 <input tal:attributes="id string:dialog_submit;
