@@ -564,6 +564,9 @@ class UserSettings(ZenModelRM):
         # update role info
         roleManager = self.acl_users.roleManager
         origRoles = filter(rolefilter, user.getRoles())
+        # Only Managers can make more Managers
+        if not self.has_role('Manager') and 'Manager' in roles:
+            roles = origRoles
         # if there's a change, then we need to update
         if roles != origRoles and self.isManager():
             from sets import Set as set
@@ -576,7 +579,7 @@ class UserSettings(ZenModelRM):
             for role in addRoles:
                 roleManager.assignRoleToPrincipal(role, self.id)
         
-        # update role info 
+        # update group info 
         groupManager = self.acl_users.groupManager
         origGroups = groupManager.getGroupsForPrincipal(user)
         # if there's a change, then we need to update 
