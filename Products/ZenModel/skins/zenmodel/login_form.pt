@@ -90,6 +90,7 @@
     <body onload="document.getElementById('username').focus();">
         <div id="topbar"></div>
         <form name="loginform" 
+            method="POST"
               tal:attributes="action string:${here/absolute_url}/login">
                 <input type="hidden" name="came_from" value="" 
                        tal:attributes="value request/came_from | string:"/>
