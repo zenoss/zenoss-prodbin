@@ -607,6 +607,17 @@ ZenGrid.prototype = {
         }
         return false;
     },
+    align: function(string) {
+        var s = "00"+string;
+        return s.substring (s.length - 2, s.length);
+    },
+    convertDate: function(data) {
+         var ftb = data.split(server_cti);            
+         var ft = new Date (ftb[1], ftb[2]-1, ftb[3], ftb[4], ftb[5], ftb[6], ftb[7]);
+         var nt = ft.getTime() + server_offset*1000;
+         ft.setTime (ft.getTime() - server_offset*1000);
+         return ft.getFullYear() + "/" + this.align(ft.getMonth()+1) + "/" + this.align(ft.getDate()) + " " + this.align(ft.getHours()) +":" + this.align(ft.getMinutes()) + ":" + this.align(ft.getSeconds());
+    },
     populateTable: function(data) {
         var tableLength = data.length > this.numRows ? 
             this.numRows : data.length;
@@ -620,6 +631,15 @@ ZenGrid.prototype = {
             var mydata = data[numrows];
             setElementClass(rows[numrows], mydata[mydata.length-1])
             var evid = mydata[mydata.length-2];
+//FD
+            mydata[4] = this.convertDate(mydata[4]);
+            //depending on the page viewed, the date can be in field 5 or 3
+            if (mydata[5].match(server_cti)) {
+                mydata[5] = this.convertDate(mydata[5]);
+            } else {
+                mydata[3] = this.convertDate(mydata[3]);
+            }
+//FD
             var chkbox = '<input type="checkbox" name="evids:list" ';
             if (this.shouldBeChecked(evid, mydata[mydata.length-1])) 
                 chkbox+='checked ';

@@ -22,6 +22,7 @@ $Id:$"""
 __version__ = "$$"[11:-2]
 
 import time
+from datetime import datetime
 
 def _maybenow(gmtSecondsSince1970):
     if gmtSecondsSince1970 is None:
@@ -36,6 +37,11 @@ def LocalDateTime(gmtSecondsSince1970 = None):
 def isoDateTime(gmtSecondsSince1970 = None):
     value = _maybenow(gmtSecondsSince1970)
     return time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(value))
+
+def timezoneOffset():
+    delta = datetime.now() - datetime.utcnow()
+    offset = delta.seconds + (86400*delta.days)
+    return int(round(offset, -2))
 
 def LocalDateTimeSecsResolution(gmtSecondsSince1970 = None):
     value = _maybenow(gmtSecondsSince1970)

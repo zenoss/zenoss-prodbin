@@ -185,10 +185,22 @@
     <script tal:content="string: var start_time = '${here/server_time}';">
     var x;
     </script>
+<!-- FD -->
+    <script tal:content="string: var server_timezone = ${here/server_timezone};">
+    var x;
+    </script>
+    <script>
+        var server_cti = new RegExp ("^(....)/(..)/(..) (..):(..)\.(..)");
+        var d = new Date();
+        var local_timezone = -d.getTimezoneOffset()*60;
+        var server_offset = server_timezone-local_timezone;
+    </script>
+<!-- FD -->
     <script>
     var server_time = isoTimestamp(start_time).getTime();
     function updateTime(){
-        var servernow = new Date(server_time+=1000);
+        server_time += 1000;
+        var servernow = new Date(server_time+(1000*server_offset));
         $('system_clock').innerHTML = toISOTime(servernow);
         callLater(1, updateTime)
     }

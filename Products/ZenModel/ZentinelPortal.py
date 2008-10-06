@@ -58,6 +58,9 @@ class ZentinelPortal ( PortalObjectBase ):
     def server_time(self):
         return Time.isoDateTime()
 
+    def server_timezone(self):
+        return Time.timezoneOffset()
+
     security.declareProtected(ZEN_COMMON, 'searchDevices')
     def searchDevices(self, queryString='', REQUEST=None):
         """Returns the concatenation of a device name, ip and mac
