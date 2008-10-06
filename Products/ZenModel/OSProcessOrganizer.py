@@ -141,6 +141,7 @@ class OSProcessOrganizer(Organizer, Commandable, ZenPackable):
         return count
 
 
+    security.declareProtected(ZEN_ADD, 'manage_addOSProcessClass')
     def manage_addOSProcessClass(self, id=None, REQUEST=None):
         """Create a new service class in this Organizer.
         """
