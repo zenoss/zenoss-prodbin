@@ -27,7 +27,12 @@ class Linkable:
     def index_links(self):
         cat = self._getLinkCatalog()
         if cat is not None:
-            cat.catalog_object(self)
+            cat.catalog_object(self, self.getPrimaryId())
+
+    def unindex_links(self):
+        cat = self._getLinkCatalog()
+        if cat is not None:
+            cat.uncatalog_object(self.getPrimaryId())
 
 
 class Layer2Linkable(Linkable):

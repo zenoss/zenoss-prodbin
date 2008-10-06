@@ -1563,7 +1563,7 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
                 perfserv.deleteRRDFiles(self.id)
         parent._delObject(self.getId())
         if REQUEST:
-            if parent.getId()=='devices': 
+            if parent.getId()=='devices':
                 parent = parent.getPrimaryParent()
             REQUEST['RESPONSE'].redirect(parent.absolute_url() +
                                             "/deviceOrganizerStatus"
@@ -1653,7 +1653,19 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
         Moving and renaming don't propagate.
         """
         super(Device,self).manage_beforeDelete(item, container)
+        self.unindex_ips() # Clean up IpAddress links explicitly
         self.unindex_object()
+
+
+    def unindex_ips(self):
+        """
+        IpAddresses aren't contained underneath Device, so manage_beforeDelete
+        won't propagate. Thus we must remove those links explicitly.
+        """
+        cat = self.dmd.ZenLinkManager._getCatalog(layer=3)
+        brains = cat(deviceId=self.id)
+        for brain in brains:
+            brain.getObject().index_links()
 
 
     def cacheComponents(self):

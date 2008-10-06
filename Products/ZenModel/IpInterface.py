@@ -186,6 +186,14 @@ class IpInterface(OSComponent, Layer2Linkable):
         self.index_links()
 
 
+    def unindex_object(self):
+        """
+        Override the default so that links are unindexed.
+        """
+        self.unindex_links()
+        super(IpInterface, self).unindex_object()
+
+
     def manage_editProperties(self, REQUEST):
         """
         Override from propertiyManager so we can trap errors

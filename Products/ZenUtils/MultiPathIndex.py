@@ -72,10 +72,11 @@ class MultiPathIndex(PathIndex):
         if not _isSequenceOfSequences(paths):
             paths = [paths]
 
-        if not self._unindex.has_key(docid):
-            self._unindex[docid] = set()
-            self._length.change(1)
-
+        # Safest to clear out all for this object first
+        if self._unindex.has_key(docid):
+            self.unindex_object(docid)
+        self._unindex[docid] = set()
+        self._length.change(1)
 
         for path in paths:
             if not isinstance(path, (StringType, TupleType, ListType)):

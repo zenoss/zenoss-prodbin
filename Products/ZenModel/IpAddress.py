@@ -232,6 +232,10 @@ class IpAddress(ManagedEntity, Layer3Linkable):
         super(IpAddress, self).index_object()
         self.index_links()
 
+    def unindex_object(self):
+        self.unindex_links()
+        super(IpAddress, self).unindex_object()
+
     def deviceId(self):
         """
         The device id, for indexing purposes.
