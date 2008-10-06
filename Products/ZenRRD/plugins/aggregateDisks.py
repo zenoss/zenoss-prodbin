@@ -19,6 +19,14 @@ try:
 except ImportError:
     from plugin import *
 
+locals().setdefault('REQUEST', None)
+locals().setdefault('name', 'test')
+if locals().has_key('self'):
+    dmd = self.dmd
+if not locals().has_key('dmd'):
+    from Products.ZenUtils.ZCmdBase import ZCmdBase
+    locals()['dmd'] = ZCmdBase().dmd
+
 title = 'Aggregate Disk Use'
 label = 'Gigabytes'
 env = locals().copy()
