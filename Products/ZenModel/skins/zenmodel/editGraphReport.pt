@@ -77,50 +77,6 @@
 </script>
 </tal:block>
 
-<script type="text/javascript">
-    function getThirdList() {
-        var deviceWidget = document.getElementById('deviceIds');
-        var compWidget = document.getElementById('componentPaths');
-        var graphWidget = document.getElementById('graphIds');
-        var url = '/zport/dmd/Devices/jsonGetGraphIds';
-        var deviceIds = getSelection(deviceWidget);
-        var compPaths = getSelection(compWidget);
-        var d = loadJSONDoc(url, 
-        {'deviceIds': deviceIds, 'componentPaths': compPaths});
-        graphWidget.options.length = 0;
-        d.addBoth(updateSelect, graphWidget);
-    }
-        
-    function connectZenWebTextareas() {
-        var resizeArea = function(area) {
-            var vDims = getViewportDimensions();
-            var vPos = getViewportPosition();
-            var aDims = getElementDimensions(area);
-            var aPos = getElementPosition(area);
-            var rightedge_area = aDims.w + aPos.x;
-            var rightedge_vp = vDims.w + vPos.x;
-            aDims.w += rightedge_vp-rightedge_area-50;
-            setElementDimensions(area, aDims);
-        }
-        connect(currentWindow(), 'onresize', function(e) {
-            map(resizeArea, $$('textarea'));
-        });
-        map(resizeArea, $$('textarea'));
-    }
-    
-    
-    function makeConnections() {
-        // This is what keeps the return/enter key in the device filter
-        // field from submitting the form.
-        $('addGraphForm').onsubmit = function() {return false;}
-    
-        connect('saveReportBtn', 'onclick', $('editReportForm'), 'submit');
-        connect('addGraphBtn', 'onclick', $('addGraphForm'), 'submit');
-    }
-    
-    addLoadEvent(makeConnections);
-    addLoadEvent(connectZenWebTextareas);
-</script>
 
 
 <form method="post" id="editReportForm"
@@ -323,6 +279,39 @@
         </tal:block>
         
 </form>
+
+<script type="text/javascript">
+    function getThirdList() {
+        var deviceWidget = document.getElementById('deviceIds');
+        var compWidget = document.getElementById('componentPaths');
+        var graphWidget = document.getElementById('graphIds');
+        var url = '/zport/dmd/Devices/jsonGetGraphIds';
+        var deviceIds = getSelection(deviceWidget);
+        var compPaths = getSelection(compWidget);
+        var d = loadJSONDoc(url, 
+        {'deviceIds': deviceIds, 'componentPaths': compPaths});
+        graphWidget.options.length = 0;
+        d.addBoth(updateSelect, graphWidget);
+    }
+        
+    function initialize() {
+        // This is what keeps the return/enter key in the device filter
+        // field from submitting the form.
+        $('addGraphForm').onsubmit = function() {return false;}
+    
+        YAHOO.util.Event.addListener($('saveReportBtn'), "click", 
+                function(e){$("editReportForm").submit()});
+        YAHOO.util.Event.addListener($('addGraphBtn'), "click", 
+                function(e){$("addGraphForm").submit()});
+
+        connectTextareas();
+    }
+    
+    var loader = YAHOO.zenoss.getLoader();
+    loader.require(['zenossutils', 'event']);
+    loader.insert({'onSuccess':initialize});
+
+</script>
 
 
 </tal:block>
