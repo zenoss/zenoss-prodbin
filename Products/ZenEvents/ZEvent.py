@@ -41,10 +41,12 @@ class ZEvent(Event):
     def getDataListWithLinks(self, fields, cssClass=''):
         """return a list of data elements that map to the fields parameter.
         """
+        def _sanitize(val):
+            return val.replace('<', '&lt;').replace('>','&gt;')
+
         data = []
         for field in fields:
             value = getattr(self, field)
-            _shortvalue = str(value) or ''
             if field == "device":
                 value = urllib.quote('<a class="%s"' % (cssClass) +
                             ' href="/zport/dmd/deviceSearchResults'
@@ -61,6 +63,9 @@ class ZEvent(Event):
                             ' href="/zport/dmd/searchComponents'
                             '?device=%s&component=%s">%s</a>' % (
                                 getattr(self, 'device'), value, _shortvalue))
+            elif field == 'summary':
+                value = urllib.quote(
+                    value.replace('<','&lt;').replace('>','&gt;'))
             else:
                 value = _shortvalue
             data.append(value)
