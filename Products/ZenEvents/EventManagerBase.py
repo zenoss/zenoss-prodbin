@@ -1705,8 +1705,8 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
         if status < 0: status = "unknown"
         elif status > 3: status = 3
         return "zenstatus_%s" % status
-        
-        
+
+
     def getStatusImgSrc(self, status):
         ''' Return the img source for a status number
         '''

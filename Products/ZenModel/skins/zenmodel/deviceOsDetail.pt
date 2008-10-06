@@ -50,6 +50,7 @@ loader.insert({onSuccess:function(){
         showfilterbox python:True;"
     metal:define-macro="interfaceList">
 
+<input type="hidden" name="context" value="interfaces"/>
 <tal:block metal:use-macro="here/zenuimacros/macros/zentable">
 
 
@@ -72,7 +73,8 @@ loader.insert({onSuccess:function(){
                             tableName,'description','Descr')"/>
         <th class="tableheader" align="center" width="30">O</th>
         <th class="tableheader" align="center" width="30">A</th>
-        <th class="tableheader" align="center" width="60">Lock</th>
+       	<th class="tableheader" align="center" width="30">M</th>
+       	<th class="tableheader" align="center" width="60">Lock</th>
     </tr>
     <tr tal:condition="not:batch">
         <th class="tableheader" align="left">
@@ -125,6 +127,12 @@ loader.insert({onSuccess:function(){
                 here.os.getStatusImgSrc(3))" />
       </td>
       <td class="tablevalues" align="center">
+      <img border="0"
+       tal:attributes="src python:test(intf.monitor,
+               here.os.getStatusImgSrc(0),
+               here.os.getStatusImgSrc(3))" />
+      </td>
+      <td class="tablevalues" align="center">
       <img tal:condition="intf/isLockedFromDeletion" 
               border="0" src="locked-delete-icon.png">
       <img tal:condition="intf/isLockedFromUpdates" 
@@ -161,6 +169,7 @@ loader.insert({onSuccess:function(){
     menu_id string:WinService;
     showfilterbox python:True;">
 <input type="hidden" name="tableName" tal:attributes="value tableName"/>
+<input type="hidden" name="context" value="winservices"/>
 <tal:block metal:use-macro="here/zenuimacros/macros/zentable">
 
 <tal:block metal:fill-slot="filterslot">
@@ -192,6 +201,7 @@ loader.insert({onSuccess:function(){
         <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
                         tableName,'getStatus','Status','cmp')"
                         width="60" />
+       	<th class="tableheader" align="center" width="30">M</th>
         <th class="tableheader" align="center" width="60">Lock</th>
     </tr>
     <tal:block tal:repeat="srv batch">
@@ -212,6 +222,12 @@ loader.insert({onSuccess:function(){
         <td class="tablevalues" align="center" width="40">
                 <img border="0" tal:attributes="src 
                 python:here.os.getStatusImgSrc(srv.getStatus())" />
+        </td>
+        <td class="tablevalues" align="center">
+        <img border="0"
+         tal:attributes="src python:test(srv.monitor,
+                 here.os.getStatusImgSrc(0),
+                 here.os.getStatusImgSrc(3))" />
         </td>
         <td class="tablevalues" align="center" width="60">
         <img tal:condition="srv/isLockedFromDeletion" 
@@ -249,6 +265,7 @@ loader.insert({onSuccess:function(){
     ts python:here.ZenTableManager.getTableState(tableName);
     menu_id string:OSProcess;
     showfilterbox python:True;">
+<input type="hidden" name="context" value="processes"/>
 <input type='hidden' name='tableName'
     tal:attributes="value tableName" />
 <tal:block metal:use-macro="here/zenuimacros/macros/zentable">
@@ -280,6 +297,7 @@ loader.insert({onSuccess:function(){
         <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
                         tableName,'getStatus','Status','cmp')"
                         width="60" />
+       	<th class="tableheader" align="center" width="30">M</th>
         <th class="tableheader" align="center" width="60">Lock</th>
     </tr>
     <tal:block tal:repeat="proc batch">
@@ -301,6 +319,12 @@ loader.insert({onSuccess:function(){
         <td class="tablevalues" align="center" width="40">
                 <img border="0" tal:attributes="src 
                         python:here.os.getStatusImgSrc(proc.getStatus())" />
+        </td>
+        <td class="tablevalues" align="center">
+        <img border="0"
+         tal:attributes="src python:test(srv.monitor,
+                 here.os.getStatusImgSrc(0),
+                 here.os.getStatusImgSrc(3))" />
         </td>
         <td class="tablevalues" align="center" width="60">
         <img tal:condition="proc/isLockedFromDeletion" 
@@ -338,6 +362,7 @@ loader.insert({onSuccess:function(){
     ts python:here.ZenTableManager.getTableState(tableName);
     menu_id string:IpService;
     showfilterbox python:True;">
+<input type="hidden" name="context" value="ipservices"/>
 <input type='hidden' name='tableName'
     tal:attributes="value tableName" />
 <tal:block metal:use-macro="here/zenuimacros/macros/zentable">
@@ -378,6 +403,7 @@ loader.insert({onSuccess:function(){
         <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
                         tableName,'getStatus','Status','cmp')"
                         width="60" />
+       	<th class="tableheader" align="center" width="30">M</th>
         <th class="tableheader" align="center" width="60">Lock</th>
     </tr>
     <tal:block tal:repeat="srv batch">
@@ -403,6 +429,12 @@ loader.insert({onSuccess:function(){
          <img border="0" 
           tal:attributes="src python:here.os.getStatusImgSrc(srv.getStatus())"/>
         </td>
+      <td class="tablevalues" align="center">
+      <img border="0"
+       tal:attributes="src python:test(srv.monitor,
+               here.os.getStatusImgSrc(0),
+               here.os.getStatusImgSrc(3))" />
+      </td>
         <td class="tablevalues" align="center" width="60">
         <img tal:condition="srv/isLockedFromDeletion" 
               border="0" src="locked-delete-icon.png">
@@ -437,6 +469,7 @@ loader.insert({onSuccess:function(){
     ts python:here.ZenTableManager.getTableState(tableName);
     menu_id string:FileSystem;
     showfilterbox python:True;">
+<input type="hidden" name="context" value="filesystems"/>
 <tal:block metal:use-macro="here/zenuimacros/macros/zentable">
 
 <tal:block metal:fill-slot="zentablecontents">
@@ -464,6 +497,7 @@ loader.insert({onSuccess:function(){
                             tableName,'storageDevice','Storage Device')">Device
         </th>
         -->
+       	<th class="tableheader" align="center" width="30">M</th>
         <th class="tableheader" align="center" width="60">Lock</th>
     </tr>
     <tr tal:condition="not:objects">
@@ -501,6 +535,12 @@ loader.insert({onSuccess:function(){
         tal:content="fsys/storageDevice">vol
       </td>
       -->
+      <td class="tablevalues" align="center">
+      <img border="0"
+       tal:attributes="src python:test(fsys.monitor,
+               here.os.getStatusImgSrc(0),
+               here.os.getStatusImgSrc(3))" />
+      </td>
       <td class="tablevalues" align="center" width="60">
       <img tal:condition="fsys/isLockedFromDeletion" 
               border="0" src="locked-delete-icon.png">

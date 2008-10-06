@@ -46,14 +46,14 @@ class OperatingSystem(Software):
     )
 
     _relations = Software._relations + (
-        ("interfaces", ToManyCont(ToOne, 
+        ("interfaces", ToManyCont(ToOne,
             "Products.ZenModel.IpInterface", "os")),
         ("routes", ToManyCont(ToOne, "Products.ZenModel.IpRouteEntry", "os")),
         ("ipservices", ToManyCont(ToOne, "Products.ZenModel.IpService", "os")),
-        ("winservices", ToManyCont(ToOne, 
+        ("winservices", ToManyCont(ToOne,
             "Products.ZenModel.WinService", "os")),
         ("processes", ToManyCont(ToOne, "Products.ZenModel.OSProcess", "os")),
-        ("filesystems", ToManyCont(ToOne, 
+        ("filesystems", ToManyCont(ToOne,
             "Products.ZenModel.FileSystem", "os")),
         ("software", ToManyCont(ToOne, "Products.ZenModel.Software", "os")),
     )
@@ -64,7 +64,7 @@ class OperatingSystem(Software):
     routeProtoMap = ('other', 'local', 'netmgmt', 'icmp',
             'egp', 'ggp', 'hello', 'rip', 'is-is', 'es-is',
             'ciscoIgrp', 'bbnSpfIgrp', 'ospf', 'bgp')
-            
+
     factory_type_information = (
         {
             'id'             : 'Device',
@@ -198,6 +198,26 @@ class OperatingSystem(Software):
         if REQUEST: 
             REQUEST['message'] = 'IpInterfaces deleted'
             REQUEST['RESPONSE'].redirect(self.absolute_url())
+            return self.callZenScreen(REQUEST)
+
+    def setComponentMonitored(self, context, componentNames=[],
+                               monitored=True, REQUEST=None):
+        """
+        Set monitored status for selected components.
+        """
+        if isinstance(context, basestring):
+            context = getattr(self, context)
+        if not componentNames: return self()
+        if isinstance(componentNames, basestring):
+            componentNames = (componentNames,)
+        monitored = bool(monitored)
+        for componentName in componentNames:
+            comp = context._getOb(componentName)
+            if comp.monitor != monitored:
+                comp.monitor = monitored
+        if REQUEST:
+            verb = monitored and "enabled" or "disabled"
+            REQUEST['message'] = 'Monitoring ' + verb
             return self.callZenScreen(REQUEST)
 
     def unlockIpInterfaces(self, componentNames=[], REQUEST=None):

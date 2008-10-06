@@ -1,0 +1,15 @@
+<h2>Enable/Disable Monitoring</h2>
+<br/><br/>
+<p style="text-align:center">
+<input type="radio" name="monitored:int" value="1">Enable
+<input type="radio" name="monitored:int" value="0">Disable
+</p>
+<div id="dialog_buttons">
+<br/>
+<input type="submit" name="setComponentMonitored:method" value="OK"
+    tal:attributes="onclick string:return $$('dialog').submit_form(
+                        '${here/os/absolute_url_path}')" />
+<input id="dialog_cancel" type="button" value="Cancel"
+        onclick="$('dialog').hide()"/>
+</div>
+
