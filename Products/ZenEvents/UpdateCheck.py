@@ -50,10 +50,7 @@ class UpdateCheck:
         available = None
         args = {}
         args['pr'] = product
-        if dmd.uuid is None:
-            import commands
-            dmd.uuid = commands.getoutput('uuidgen')
-        args['sk'] = dmd.uuid
+        args['sk'] = dmd.uuid or "NOT ACTIVATED"
         args['ac'] = (manual and '0') or '1'
         args['zv'] = dmd.About.getZenossVersion().long()
         args['pv'] = dmd.About.getPythonVersion().long()
