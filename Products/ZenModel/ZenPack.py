@@ -75,6 +75,8 @@ class ZenPackMigration:
     def migrate(self, pack): pass
     
     def recover(self, pack): pass
+    
+    
 
 
 class ZenPackDataSourceMigrateBase(ZenPackMigration):
@@ -241,7 +243,9 @@ class ZenPack(ZenModelRM):
                     except ImportError, ex:
                         log.exception("Problem loading migration step %s", path)
         # sort them by version number
-        instances.sort()
+        def versionCmp(migrate1, migrate2):
+            return cmp(migrate1.version, migrate2.version)
+        instances.sort(versionCmp)
         # install those that are newer than our pack version
         current = getVersionTupleFromString(self.version)
         recover = []
