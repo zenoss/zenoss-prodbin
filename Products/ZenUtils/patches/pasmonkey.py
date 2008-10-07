@@ -112,7 +112,7 @@ def termsCheck(self):
     else:
         self.dmd.acceptedTerms = True
         import commands
-        dmd.uuid = commands.getoutput('uuidgen')
+        self.dmd.uuid = commands.getoutput('uuidgen')
     return response.redirect(url)
 
 CookieAuthHelper.CookieAuthHelper.termsCheck = termsCheck
