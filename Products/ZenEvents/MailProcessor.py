@@ -77,7 +77,7 @@ class MessageProcessor(object):
             fromIp = socket.gethostbyname(fromAddr)
         except socket.gaierror:
             fromIp = None
-            log.error('hostname lookup failed for host: %s' % fromAddr, exc_info=1)
+            log.info('hostname lookup failed for host: %s' % fromAddr)
 
         subject = message.get('Subject')
 
@@ -101,7 +101,9 @@ class MessageProcessor(object):
         secs = calendar.timegm(dt.utctimetuple())
         log.info('timestamp of event (should be in UTC): %f' % secs)
 
-        event = MailEvent(device=fromAddr, ipAddress=fromIp, rcvtime=secs)
+        event = MailEvent(device=fromAddr, rcvtime=secs)
+        if fromIp:
+            event.ipAddress = fromIp
 
         payloads = message.get_payload()
         payload = 'This is the default message'
