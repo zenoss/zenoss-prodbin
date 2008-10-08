@@ -29,7 +29,7 @@ class HubService(pb.Referenceable):
         return self.dmd.Monitors.getPerformanceMonitor(self.instance)
 
     def remoteMessageReceived(self, broker, message, args, kw):
-        log.debug("Servicing %s in %s", message, self.name())
+        self.log.debug("Servicing %s in %s", message, self.name())
         now = time.time()
         try:
             return pb.Referenceable.remoteMessageReceived(self, broker, message, args, kw)
