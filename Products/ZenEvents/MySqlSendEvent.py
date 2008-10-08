@@ -47,7 +47,12 @@ class MySqlSendEventMixin:
         if type(event) == types.DictType:
             event = buildEventFromDict(event)
 
-        if getattr(event, 'eventClass', Unknown) == Heartbeat:
+        # eventClass defaults to /Unknown at the database level, but we need it
+        # set earlier so the /Unknown event class transform will work.
+        if not getattr(event, 'eventClass', False):
+            event.eventClass = Unknown
+        
+        if event.eventClass == Heartbeat:
             return self._sendHeartbeat(event)
         
         for field in self.requiredEventFields:
@@ -73,7 +78,7 @@ class MySqlSendEventMixin:
         if not event: return
         
         # check again for heartbeat after context processing
-        if getattr(event, 'eventClass', Unknown) == Heartbeat:
+        if event.eventClass == Heartbeat:
             return self._sendHeartbeat(event)
             
 
