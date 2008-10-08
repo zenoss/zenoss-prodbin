@@ -50,9 +50,8 @@ if [ `id -u` -eq 0 ] ; then
 fi
 
 . $ZENHOME/bin/zenfunctions
-DAEMONS_TXT_ONLY=0
 C=
-if [ $DAEMONS_TXT_ONLY -ne 1 ] ; then
+if [ ! -f $ZENHOME/etc/DAEMONS_TXT_ONLY ] ; then
 	C="$C zeoctl"
 	C="$C zopectl"
 	C="$C zenhub"
