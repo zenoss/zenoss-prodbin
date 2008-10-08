@@ -13,27 +13,15 @@
 
 from Products.ZenStatus import pingtree
 from Products.ZenHub.services.PerformanceConfig import PerformanceConfig
-from Products.ZenHub.HubService import threaded
 from Products.ZenHub.PBDaemon import translateError
 from Products.ZenUtils.ZCmdBase import login
 
 class PingConfig(PerformanceConfig):
     "Support zenping configuration loading"
 
-    @threaded
     @translateError
     def remote_getPingTree(self, root, fallbackIp):
-        from transaction._manager import ThreadTransactionManager
-        conn = self.dmd._p_jar._db.open(
-                transaction_manager=ThreadTransactionManager())
-        try:
-            dmd2 = conn.root()['Application'].zport.dmd
-            user = login(dmd2, 'admin')
-            assert user.has_permission('View', dmd2)
-            return self.getPingTree(dmd2, root, fallbackIp)
-        finally:
-            conn.transaction_manager.abort()
-            conn.close()
+        return self.getPingTree(self.dmd, root, fallbackIp)
 
     def getPingTree(self, dmd, root, fallbackIp):
         pm = dmd.Monitors.getPerformanceMonitor(self.instance)

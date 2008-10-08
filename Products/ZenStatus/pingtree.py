@@ -100,7 +100,6 @@ class RouterNode(pb.Copyable, pb.RemoteCopy):
         tree.deviceMap[device.id] = 1
         ip = device.getManageIp()
         if not ip: 
-            log.warn("device '%s' no management ip, skipping.",device.id)
             return
         netobj = device.getDmdRoot("Networks").getNet(ip)
         netname = "default"

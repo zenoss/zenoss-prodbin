@@ -15,14 +15,6 @@ from twisted.spread import pb
 import logging
 import time
 
-def threaded(callable):
-    from twisted.internet.threads import deferToThread
-
-    def callInThread(*args, **kw):
-        "Run the callable in a separate thread."
-        return deferToThread(callable, *args, **kw)
-    return callInThread
-
 class HubService(pb.Referenceable):
 
     def __init__(self, dmd, instance):
@@ -37,6 +29,7 @@ class HubService(pb.Referenceable):
         return self.dmd.Monitors.getPerformanceMonitor(self.instance)
 
     def remoteMessageReceived(self, broker, message, args, kw):
+        log.debug("Servicing %s in %s", message, self.name())
         now = time.time()
         try:
             return pb.Referenceable.remoteMessageReceived(self, broker, message, args, kw)
@@ -51,13 +44,16 @@ class HubService(pb.Referenceable):
     def deleted(self, object):
         pass
 
+    def name(self):
+        return self.__class__.__name__
+
     def addListener(self, remote):
         remote.notifyOnDisconnect(self.removeListener)
-        self.log.info("adding listener")
+        self.log.debug("adding listener for %s:%s", self.instance, self.name())
         self.listeners.append(remote)
 
     def removeListener(self, listener):
-        self.log.warning("removing listener")
+        self.log.debug("removing listener for %s:%s", self.instance, self.name())
         try:
             self.listeners.remove(listener)
         except ValueError:

@@ -29,6 +29,7 @@ from twisted.python import failure
 
 import Globals
 from Products.ZenUtils.Driver import drive, driveLater
+from Products.ZenUtils.Utils import getExitMessage
 
 from Products.ZenRRD.RRDDaemon import RRDDaemon
 from Products.ZenRRD.RRDUtil import RRDUtil
@@ -44,16 +45,6 @@ NagParser = re.compile(r"""([^ =']+|'(.*)'+)=([-0-9.]+)([^;]*;?){0,5}""")
 CacParser = re.compile(r"""([^ :']+|'(.*)'+):([-0-9.]+)""")
 
 MAX_CONNECTIONS=256
-
-EXIT_CODE_MAPPING = {
-    0:'Success',
-    1:'General error',
-    2:'Misuse of shell builtins',
-    126:'Command invoked cannot execute, permissions problem or command is not an executable',
-    127:'Command not found',
-    128:'Invalid argument to exit, exit takes only integers in the range 0-255',
-    130:'Fatal error signal: 2, Command terminated by Control-C'
-}
 
 class TimeoutError(Exception):
     "Error for a defered call taking too long to complete"
@@ -524,15 +515,6 @@ class zencommand(RRDDaemon):
         else:
             log.exception(err.value)
 
-    def getExitMessage(self, exitCode):
-        if exitCode in EXIT_CODE_MAPPING.keys():
-            return EXIT_CODE_MAPPING[exitCode]
-        elif exitCode >= 255:
-            return 'Exit status out of range, exit takes only integer arguments in the range 0-255'
-        elif exitCode > 128:
-            return 'Fatal error signal: %s' % (exitCode-128)
-        return 'Unknown error code: %s' % exitCode
-            
     def parseResults(self, cmd):
         log.debug('The result of "%s" was "%s"', cmd.command, cmd.result.output)
         output = cmd.result.output
@@ -547,7 +529,7 @@ class zencommand(RRDDaemon):
             msg, values = '', output
         else:
             msg, values = output, ''
-        msg = msg.strip() or 'Cmd: %s - Code: %s - Msg: %s' % (cmd.command, exitCode, self.getExitMessage(exitCode))
+        msg = msg.strip() or 'Cmd: %s - Code: %s - Msg: %s' % (cmd.command, exitCode, getExitMessage(exitCode))
         if exitCode == 0:
             severity = 0
         elif exitCode == 2:

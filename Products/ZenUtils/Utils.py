@@ -794,3 +794,24 @@ def json(f):
     inner.__doc__ = f.__doc__
     return inner
 
+
+EXIT_CODE_MAPPING = {
+    0:'Success',
+    1:'General error',
+    2:'Misuse of shell builtins',
+    126:'Command invoked cannot execute, permissions problem or command is not an executable',
+    127:'Command not found',
+    128:'Invalid argument to exit, exit takes only integers in the range 0-255',
+    130:'Fatal error signal: 2, Command terminated by Control-C'
+}
+
+def getExitMessage(exitCode):
+    "Return a nice exit message that corresponds to the given exit status code"
+    if exitCode in EXIT_CODE_MAPPING.keys():
+        return EXIT_CODE_MAPPING[exitCode]
+    elif exitCode >= 255:
+        return 'Exit status out of range, exit takes only integer arguments in the range 0-255'
+    elif exitCode > 128:
+        return 'Fatal error signal: %s' % (exitCode-128)
+    return 'Unknown error code: %s' % exitCode
+
