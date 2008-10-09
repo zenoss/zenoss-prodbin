@@ -15,7 +15,8 @@ __doc__ = "Manage ZenPacks"
 
 import Globals
 from Products.ZenUtils.ZenScriptBase import ZenScriptBase
-from Products.ZenUtils.Utils import cleanupSkins, zenPath, binPath
+from Products.ZenUtils.Utils import cleanupSkins, zenPath, binPath, getObjByPath
+
 from Products.ZenModel.ZenPack import ZenPackException, \
                                         ZenPackNotFoundException, \
                                         ZenPackNeedMigrateException
@@ -32,6 +33,8 @@ import tempfile
 import subprocess
 import socket
 import logging
+import zExceptions
+
 
 log = logging.getLogger('zen.ZenPackCMD')
 
@@ -219,7 +222,8 @@ def ScrubZenPackId(name):
 
 
 def InstallEggAndZenPack(dmd, eggPath, link=False, 
-                            filesOnly=False, sendEvent=True):
+                            filesOnly=False, sendEvent=True, 
+                            previousVersion=None):
     """
     Installs the given egg, instantiates the ZenPack, installs in
     dmd.ZenPackManager.packs, and runs the zenpacks's install method.
@@ -233,7 +237,9 @@ def InstallEggAndZenPack(dmd, eggPath, link=False,
                                                 d,
                                                 eggPath, 
                                                 link, 
-                                                filesOnly=filesOnly))
+                                                filesOnly=filesOnly,
+                                                previousVersion=\
+                                                previousVersion))
     except:
         if sendEvent:
             ZPEvent(dmd, 4, 'Error installing ZenPack %s' % eggPath,
@@ -306,7 +312,8 @@ def InstallEgg(dmd, eggPath, link=False):
 #     return zpNames
 
 
-def InstallDistAsZenPack(dmd, dist, eggPath, link=False, filesOnly=False):
+def InstallDistAsZenPack(dmd, dist, eggPath, link=False, filesOnly=False, 
+                         previousVersion=None):
     """
     Given an installed dist, install it into Zenoss as a ZenPack.
     Return the ZenPack instance.
@@ -353,7 +360,9 @@ def InstallDistAsZenPack(dmd, dist, eggPath, link=False, filesOnly=False):
         
         deferFileDeletion = False
         packables = []
+        upgradingFrom = None
         if existing:
+            upgradingFrom = existing.version
             for p in existing.packables():
                 packables.append(p)
                 existing.packables.removeRelation(p)
@@ -376,6 +385,9 @@ def InstallDistAsZenPack(dmd, dist, eggPath, link=False, filesOnly=False):
             if link:
                 cmd += ["--link"]
             cmd += ["--install", eggPath]
+            if upgradingFrom:
+                cmd += ['--previousversion', upgradingFrom]
+            
             cmdStr = " ".join(cmd)
             log.debug("launching sub process command: %s" % cmdStr)
             p = subprocess.Popen(cmdStr,
@@ -389,11 +401,18 @@ def InstallDistAsZenPack(dmd, dist, eggPath, link=False, filesOnly=False):
         else:
             dmd.ZenPackManager.packs._setObject(packName, zenPack)
             zenPack = dmd.ZenPackManager.packs._getOb(packName)
-            zenPack.install(dmd)
+            zenPack.install(dmd, previousVersion)
             
         zenPack = dmd.ZenPackManager.packs._getOb(packName)
         for p in packables:
-            zenPack.packables.addRelation(p)
+            pId = p.getPrimaryId()
+            try:
+                #make sure packable still exists; could be deleted by a migrate
+                getObjByPath(dmd, pId)
+                log.debug("adding packable relation for id %s", pId)
+                zenPack.packables.addRelation(p)
+            except zExceptions.NotFound:
+                log.debug('did not find packable %s',pId)
         if deferFileDeletion:
             # We skipped deleteing the existing files from filesystem
             # because maybe they'd be needed in migrate scripts.
@@ -927,7 +946,8 @@ class ZenPackCmd(ZenScriptBase):
             installed = InstallEggAndZenPack(
                                 self.dmd, self.options.eggPath,
                                 link=self.options.link,
-                                filesOnly=self.options.filesOnly)
+                                filesOnly=self.options.filesOnly,
+                                previousVersion= self.options.previousVersion)
             PrintInstalled(installed)
         elif self.options.fetch:
             installed = FetchAndInstallZenPack(self.dmd, self.options.fetch)
@@ -1021,6 +1041,11 @@ class ZenPackCmd(ZenScriptBase):
                                default=False,
                                help='install onto filesystem but not into '
                                         'zenoss')
+        self.parser.add_option('--previousversion',
+                               dest='previousVersion',
+                               default=None,
+                               help="Previous version of the zenpack;"
+                                    ' used during upgrades')
         ZenScriptBase.buildOptions(self)
 
 

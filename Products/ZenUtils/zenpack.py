@@ -125,7 +125,8 @@ class ZenPackCmd(ZenScriptBase):
                     self.dmd,
                     self.options.installPackName,
                     link=self.options.link,
-                    filesOnly=False)
+                    filesOnly=False,
+                    previousVersion= self.options.previousVersion)
             if not self.preInstallCheck():
                 self.stop('%s not installed' % self.options.installPackName)
             if os.path.isfile(self.options.installPackName):
@@ -377,6 +378,11 @@ class ZenPackCmd(ZenScriptBase):
                                help='Install the ZenPack files onto the '
                                         'filesystem, but do not install the '
                                         'ZenPack into Zenoss.')
+        self.parser.add_option('--previousversion',
+                               dest='previousVersion',
+                               default=None,
+                               help="Previous version of the zenpack;"
+                                    ' used during upgrades')
 
         ZenScriptBase.buildOptions(self)
 

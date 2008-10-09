@@ -184,12 +184,12 @@ class ZenPack(ZenModelRM):
         ZenModelRM.__init__(self, id, title, buildRelations)
 
 
-    def install(self, app):
+    def install(self, app, previousVersion=None):
         self.stopDaemons()
         for loader in self.loaders:
             loader.load(self, app)
         self.createZProperties(app)
-        self.migrate()
+        self.migrate(previousVersion)
         self.startDaemons()
 
 
@@ -224,7 +224,7 @@ class ZenPack(ZenModelRM):
             self.removeCatalogedObjects(app)
         
 
-    def migrate(self):
+    def migrate(self, previousVersion=None):
         instances = []
         # find all the migrate modules
         root = self.path("migrate")
@@ -246,12 +246,15 @@ class ZenPack(ZenModelRM):
         def versionCmp(migrate1, migrate2):
             return cmp(migrate1.version, migrate2.version)
         instances.sort(versionCmp)
-        # install those that are newer than our pack version
-        current = getVersionTupleFromString(self.version)
+        # install those that are newer than previous or our pack version
+        migrateCutoff = getVersionTupleFromString(self.version)
+        if previousVersion:
+            migrateCutoff = getVersionTupleFromString(previousVersion)
         recover = []
+        
         try:
             for instance in instances:
-                if instance.version >= current:
+                if instance.version >= migrateCutoff:
                     recover.append(instance)
                     instance.migrate(self)
         except Exception, ex:
