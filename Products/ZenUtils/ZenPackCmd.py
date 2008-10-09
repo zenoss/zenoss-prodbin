@@ -401,8 +401,13 @@ def InstallDistAsZenPack(dmd, dist, eggPath, link=False, filesOnly=False,
         else:
             dmd.ZenPackManager.packs._setObject(packName, zenPack)
             zenPack = dmd.ZenPackManager.packs._getOb(packName)
-            zenPack.install(dmd, previousVersion)
-            
+            #hack because ZenPack.install is overridden by a lot of zenpacks
+            #so we can't change the signature of install to take the 
+            #previousVerison
+            zenPack.prevZenPackVersion = previousVersion
+            zenPack.install(dmd)
+            zenPack.prevZenPackVersion = None
+                
         zenPack = dmd.ZenPackManager.packs._getOb(packName)
         for p in packables:
             pId = p.getPrimaryId()

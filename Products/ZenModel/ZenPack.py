@@ -129,6 +129,7 @@ class ZenPack(ZenModelRM):
     license = ''
     compatZenossVers = ''
     prevZenPackName = ''
+    prevZenPackVersion = None
 
     # New-style zenpacks (eggs) have this set to True when they are
     # first installed
@@ -184,11 +185,12 @@ class ZenPack(ZenModelRM):
         ZenModelRM.__init__(self, id, title, buildRelations)
 
 
-    def install(self, app, previousVersion=None):
+    def install(self, app):
         self.stopDaemons()
         for loader in self.loaders:
             loader.load(self, app)
         self.createZProperties(app)
+        previousVersion = self.prevZenPackVersion
         self.migrate(previousVersion)
         self.startDaemons()
 
