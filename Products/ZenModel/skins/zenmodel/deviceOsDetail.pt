@@ -322,7 +322,7 @@ loader.insert({onSuccess:function(){
         </td>
         <td class="tablevalues" align="center">
         <img border="0"
-         tal:attributes="src python:test(srv.monitor,
+         tal:attributes="src python:test(proc.monitor,
                  here.os.getStatusImgSrc(0),
                  here.os.getStatusImgSrc(3))" />
         </td>
