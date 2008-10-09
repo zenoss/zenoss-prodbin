@@ -47,6 +47,7 @@ class ZEvent(Event):
         data = []
         for field in fields:
             value = getattr(self, field)
+            _shortvalue = str(value) or ''
             if field == "device":
                 value = urllib.quote('<a class="%s"' % (cssClass) +
                             ' href="/zport/dmd/deviceSearchResults'
