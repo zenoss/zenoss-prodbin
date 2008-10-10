@@ -620,10 +620,11 @@ class ZenActions(ZCmdBase):
                     self.dmd.smtpPort, self.dmd.smtpUseTLS, self.dmd.smtpUser, 
                     self.dmd.smtpPass)
         if result:
-            self.log.info("sent email:%s to:%s", fmt, addr)
+            self.log.info("rule '%s' sent email:%s to:%s",
+                action.id, fmt, addr)
         else:
-            self.log.info("failed to send email to %s: %s %s",
-                          ','.join(addr), fmt, errorMsg)
+            self.log.info("rule '%s' failed to send email to %s: %s %s",
+                action.id, ','.join(addr), fmt, errorMsg)
         return result
 
 
