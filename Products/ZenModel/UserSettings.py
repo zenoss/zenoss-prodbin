@@ -368,8 +368,11 @@ class UserSettingsManager(ZenModelRM):
         for groupid in groupids:
             self._getOb(groupid).manage_addUsersToGroup(userids) 
         if REQUEST:
-            REQUEST['message'] = \
-                "User %s added to group %s" % (','.join(userids), groupid)
+            if len(groupids) == 0:
+                msg = "No groups selected!"
+            else:
+                msg = "User %s added to group %s" % (','.join(userids), groupid)
+            REQUEST['message'] = msg
             return self.callZenScreen(REQUEST)
 
 
