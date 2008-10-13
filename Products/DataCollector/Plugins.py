@@ -17,6 +17,7 @@ __doc__= """Load plugins from standard locations and from ZenPacks
 from Products.ZenUtils.Utils import importClass, zenPath
 import sys
 import os
+import exceptions
 
 import logging
 log = logging.getLogger('zen.plugins')
@@ -27,9 +28,22 @@ def _plfilter(f):
     """
     return (f.endswith(".py")   and
             not f.startswith('.') and
-            f.find('#') < 0       and 
+            f.find('#') < 0       and
             not f.startswith("_") and
             not f in _pluginskip)
+
+class pluginImportError(exceptions.ImportError):
+    """Capture extra data from pluing exceptions
+    """
+
+    def __init__(self, plugin='', traceback='' ):
+        """Initializer
+        """
+        self.plugin = plugin
+        self.traceback = traceback
+        # The following is needed for zendisc
+        self.args = traceback
+
 
 
 from twisted.spread import pb
@@ -42,20 +56,31 @@ class PluginLoader(pb.Copyable, pb.RemoteCopy):
         """
         self.package = package
         self.modpath = modpath
-    
+
+
     def pluginName(self):
         """Return the name of the plugin
         """
         return self.modpath.split('plugins.').pop()
-        
+
+
     def create(self):
         """Load and compile the code contained in the given plugin
         """
 
         moduleName = self.modpath.split('.')[0]
-        sys.path.insert(0, self.package)
-        const = importClass(self.modpath)
-        sys.path.remove(self.package)
+        try:
+            sys.path.insert(0, self.package)
+            const = importClass(self.modpath)
+            sys.path.remove(self.package)
+
+        except (SystemExit, KeyboardInterrupt):
+            raise
+
+        except:
+            import traceback
+            raise pluginImportError( plugin=self.modpath, \
+                                    traceback=traceback.format_exc() )
 
         del sys.modules[moduleName]
 
@@ -63,6 +88,7 @@ class PluginLoader(pb.Copyable, pb.RemoteCopy):
         return plugin
 
 pb.setUnjellyableForClass(PluginLoader, PluginLoader)
+
 
 
 def _loadPluginDir(pdir):
@@ -76,17 +102,21 @@ def _loadPluginDir(pdir):
         for filename in filter(_plfilter, filenames):
             modpath = os.path.join(path,filename[:-3]).replace("/",".")
             log.debug("Loading: %s", modpath)
+            log.error("Loading: %s", modpath)
             try:
-                collectorPlugins.append( PluginLoader(pdir, modpath) )
+                this_plugin= PluginLoader(pdir, modpath)
+                if this_plugin is not None:
+                    collectorPlugins.append( this_plugin )
             except ImportError:
                 log.exception("Problem loading plugin:%s" % modpath)
     return collectorPlugins
- 
+
 
 
 def loadPlugins(dmd):
     """Load plugins from the Zenoss plugin directory and from the plugin
-    directory from each ZenPack.  Returns them as a list of PluginLoader instances.
+    directory from each ZenPack.
+    Returns them as a list of PluginLoader instances.
     """
     plugins = [x for x in sys.modules if x.startswith("plugins")]
     PDIR = os.path.join(os.path.dirname(__file__), "plugins")
@@ -100,18 +130,20 @@ def loadPlugins(dmd):
 
     try:
         for pack in dmd.ZenPackManager.packs():
-            if pack.isEggPack():
-                 eggPlugins = _loadPluginDir(pack.path('modeler', 'plugins'))
-                 for eggPlugin in eggPlugins:
-                    eggPlugin.modpath = '%s.modeler.plugins.%s' % \
-                        (pack.moduleName(), eggPlugin.modpath)
-                 plugins += eggPlugins
-            else:
-                plugins += _loadPluginDir(pack.path('modeler', 'plugins'))
+            try:
+                if pack.isEggPack():
+                     eggPlugins = _loadPluginDir(pack.path('modeler', 'plugins'))
+                     for eggPlugin in eggPlugins:
+                        eggPlugin.modpath = '%s.modeler.plugins.%s' % \
+                            (pack.moduleName(), eggPlugin.modpath)
+                     plugins += eggPlugins
+                else:
+                    plugins += _loadPluginDir(pack.path('modeler', 'plugins'))
+            except:
+                log.error('Could not load modeler plugins from the %s ZenPack.' \
+                          % pack.name )
 
     except:
         log.error('Could not load modeler plugins from ZenPacks.'
                   ' One of the ZenPacks is missing or broken.')
     return plugins
-
-
