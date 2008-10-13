@@ -79,11 +79,13 @@ def checkDeviceExists(context, deviceName, ip, performanceMonitor):
     if deviceName:
         existingDevices = context.dmd.Devices.primaryAq()._findDevice( deviceName )
         found=False
+        dev=None
         if existingDevices:
             for existingDeviceBrain in existingDevices:
                 existingDevice=existingDeviceBrain.getObject()
                 if existingDevice.id == deviceName:
                     found=True
+                    dev=existingDevice
                     break
             
         if found:
