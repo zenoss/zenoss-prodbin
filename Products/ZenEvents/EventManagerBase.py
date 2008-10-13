@@ -1907,7 +1907,7 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
         import subprocess
         import os
         import Products.ZenUtils.Utils as Utils
-        
+
         cmd = Utils.zenPath('Products', 'ZenUtils', 'ZenDeleteHistory.py')
         if devname:
             args = ['--device=%s' % devname]
@@ -1962,7 +1962,6 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
         reason = None
         if eventState and evids:
             eventState = int(eventState)
-            userid = ""
             if eventState > 0 and not userid: 
                 userid = getSecurityManager().getUser()
             update = "update status set eventState=%s, ownerid='%s' " % (
