@@ -112,52 +112,54 @@ class ZenPing(PBDaemon):
 
     def loadConfig(self, driver):
         "Get the configuration for zenping"
+        try:
+            if self.loadingConfig:
+                self.log.warning("Configuration still loading.  Started at %s" %
+                                 time.asctime(time.localtime(self.loadingConfig)))
+                return
 
-        if self.loadingConfig:
-            self.log.warning("Configuration still loading.  Started at %s" %
-                             time.strftime('%x %X', self.loadingConfig))
-            return
+            if (self.lastConfig and
+                (time.time() - self.lastConfig) < self.options.minconfigwait):
+                self.log.debug("Config recently updated: not fetching")
+                return
 
-        if (self.lastConfig and
-            (time.time() - self.lastConfig) < self.options.minconfigwait):
-            self.log.debug("Config recently updated: not fetching")
-            return
-        
-        self.loadingConfig = time.time()
+            self.loadingConfig = time.time()
 
-        self.log.info('fetching monitor properties')
-        yield self.config().callRemote('propertyItems')
-        self.copyItems(driver.next())
+            self.log.info('fetching monitor properties')
+            yield self.config().callRemote('propertyItems')
+            self.copyItems(driver.next())
 
-        driveLater(self.configCycleInterval, self.loadConfig)
+            driveLater(self.configCycleInterval, self.loadConfig)
 
-        self.log.info("fetching default RRDCreateCommand")
-        yield self.config().callRemote('getDefaultRRDCreateCommand')
-        createCommand = driver.next()
+            self.log.info("fetching default RRDCreateCommand")
+            yield self.config().callRemote('getDefaultRRDCreateCommand')
+            createCommand = driver.next()
 
-        self.log.info("getting threshold classes")
-        yield self.config().callRemote('getThresholdClasses')
-        self.remote_updateThresholdClasses(driver.next())
-        
-        self.log.info("getting collector thresholds")
-        yield self.config().callRemote('getCollectorThresholds')
-        self.rrdStats.config(self.options.monitor,
-                             self.name,
-                             driver.next(), 
-                             createCommand)
+            self.log.info("getting threshold classes")
+            yield self.config().callRemote('getThresholdClasses')
+            self.remote_updateThresholdClasses(driver.next())
 
-        self.log.info("getting ping tree")
-        yield self.config().callRemote('getPingTree',
-                                       self.options.name,
-                                       findIp())
-        oldtree, self.pingtree = self.pingtree, driver.next()
-        self.clearDeletedDevices(oldtree)
+            self.log.info("getting collector thresholds")
+            yield self.config().callRemote('getCollectorThresholds')
+            self.rrdStats.config(self.options.monitor,
+                                 self.name,
+                                 driver.next(), 
+                                 createCommand)
 
-        self.rrdStats.gauge('configTime',
-                            self.configCycleInterval,
-                            time.time() - self.loadingConfig)
-        self.loadingConfig = None
-        self.lastConfig = time.time()
+            self.log.info("getting ping tree")
+            yield self.config().callRemote('getPingTree',
+                                           self.options.name,
+                                           findIp())
+            oldtree, self.pingtree = self.pingtree, driver.next()
+            self.clearDeletedDevices(oldtree)
+
+            self.rrdStats.gauge('configTime',
+                                self.configCycleInterval,
+                                time.time() - self.loadingConfig)
+            self.loadingConfig = None
+            self.lastConfig = time.time()
+        except Exception, ex:
+            self.log.exception(ex)
 
 
     def buildOptions(self):
