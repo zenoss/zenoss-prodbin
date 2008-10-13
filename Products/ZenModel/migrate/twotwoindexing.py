@@ -18,7 +18,7 @@ import logging
 log = logging.getLogger("zen.migrate")
 
 class TwoTwoIndexing(Migrate.Step):
-    version = Migrate.Version(2, 2, 5)
+    version = Migrate.Version(2, 2, 4)
 
     def __init__(self):
         Migrate.Step.__init__(self)
