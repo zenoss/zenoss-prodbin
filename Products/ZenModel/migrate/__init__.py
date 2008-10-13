@@ -157,3 +157,4 @@ import zHardDiskMapMatch
 import layer2catalog
 import differentiateTemplates
 import monitoringmenuitem
+import fixPropertyAccess
