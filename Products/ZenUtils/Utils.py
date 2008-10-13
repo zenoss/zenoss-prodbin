@@ -219,7 +219,7 @@ def getObjByPath(base, path, restricted=0):
             if next is marker:
                 try:
                     next=obj[name]
-                except (AttributeError, KeyError):
+                except AttributeError:
                     # Raise NotFound for easier debugging
                     # instead of AttributeError: __getitem__
                     raise NotFound, name

@@ -416,7 +416,7 @@ def InstallDistAsZenPack(dmd, dist, eggPath, link=False, filesOnly=False,
                 getObjByPath(dmd, pId)
                 log.debug("adding packable relation for id %s", pId)
                 zenPack.packables.addRelation(p)
-            except zExceptions.NotFound:
+            except (KeyError, zExceptions.NotFound):
                 log.debug('did not find packable %s',pId)
         if deferFileDeletion:
             # We skipped deleteing the existing files from filesystem
