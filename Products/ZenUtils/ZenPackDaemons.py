@@ -15,7 +15,9 @@ __doc__ = "Manage ZenPack-provided daemons"
 
 import Globals
 import os
-import pkg_resources
+
+from Products.ZenUtils.PkgResources import pkg_resources
+
 from Products.ZenUtils.CmdBase import CmdBase
 from Products.ZenUtils.ZenPackCmd import ZENPACK_ENTRY_POINT
 from Products.ZenModel.ZenPackLoader import ZPLDaemons

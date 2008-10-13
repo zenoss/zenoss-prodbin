@@ -26,10 +26,12 @@ import sys
 import logging
 from optparse import OptionParser, SUPPRESS_HELP, NO_DEFAULT
 
-# There is a nasty incompatability between pkg_resources and twisted.
+
+# There is a nasty incompatibility between pkg_resources and twisted.
 # This pkg_resources import works around the problem.
 # See http://dev.zenoss.org/trac/ticket/3146 for details
-import pkg_resources
+from Products.ZenUtils.PkgResources import pkg_resources
+
 from Products.ZenUtils.Utils import unused
 unused(pkg_resources)
 

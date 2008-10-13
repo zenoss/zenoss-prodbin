@@ -22,11 +22,11 @@ from Products.ZenModel.ZenPack import ZenPackException, \
                                         ZenPackNeedMigrateException
 from Products.ZenModel.ZenPack import ZenPackDependentsException
 from Products.ZenModel.ZenPack import ZenPack
+from Products.ZenUtils.PkgResources import pkg_resources
 import Products.ZenModel.ZenPackLoader as ZPL
 import zenpack as oldzenpack
 import transaction
 import os, sys
-import pkg_resources
 import shutil
 import string
 import tempfile

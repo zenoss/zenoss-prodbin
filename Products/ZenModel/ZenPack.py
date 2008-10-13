@@ -17,11 +17,11 @@ from Products.ZenRelations.RelSchema import *
 from Products.ZenUtils.Utils import importClass, zenPath
 from Products.ZenUtils.Version import getVersionTupleFromString
 from Products.ZenUtils.Version import Version as VersionBase
+from Products.ZenUtils.PkgResources import pkg_resources
 from Products.ZenModel.ZenPackLoader import *
 from AccessControl import ClassSecurityInfo
 from ZenossSecurity import ZEN_MANAGE_DMD
 import exceptions
-import pkg_resources
 import string
 import subprocess
 from Acquisition import aq_parent
