@@ -60,6 +60,8 @@ from Products.ZenModel.ZenPackManager import manage_addZenPackManager
 from Products.ZenModel.ZenPackPersistence import CreateZenPackPersistenceCatalog
 from Products.ZenModel.RRDTemplate import CreateRRDTemplatesCatalog
 from Products.ZenModel.MaintenanceWindow import createMaintenanceWindowCatalog
+from Products.ZenModel.ZenossSecurity import \
+     MANAGER_ROLE, ZEN_MANAGER_ROLE, ZEN_USER_ROLE, OWNER_ROLE
 
 classifications = {
     'Devices':          DeviceClass,
@@ -108,6 +110,13 @@ class DmdBuilder:
         self.dmd.smtpHost = smtphost
         self.dmd.smtpPort = smtpport
         self.dmd.pageCommand = pagecommand
+        self.dmd.manage_permission('Access contents information',
+                                   ['Authenticated',
+                                    MANAGER_ROLE,
+                                    ZEN_MANAGER_ROLE,
+                                    ZEN_USER_ROLE,
+                                    OWNER_ROLE],
+                                   0)
 
 
     def buildRoots(self):

@@ -197,6 +197,9 @@ class ZentinelPortal ( PortalObjectBase ):
         user = getSecurityManager().getUser()
         if user: return user.has_permission(perm, obj)
 
+    def getZenossVersionShort(self):
+        return self.dmd.About.getZenossVersionShort()
+
 
 Globals.InitializeClass(ZentinelPortal)
 

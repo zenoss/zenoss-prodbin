@@ -117,8 +117,7 @@
                            class="submitbutton" value=""/>
                     <div id="copyright">
                         <p>Copyright &copy; 2005-2008 Zenoss, Inc. | Version
-                        <span tal:content="
-                                here/dmd/About/getZenossVersionShort"/>
+                        <span tal:content="here/getZenossVersionShort"/>
                         </p>
                     </div>
                 </div>
