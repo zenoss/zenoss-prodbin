@@ -87,6 +87,7 @@ class zenhubworker(ZCmdBase, pb.Referenceable):
         @type kw: dictionary
         @param kw: keyword arguments to the method
         """
+        self.syncdb()
         service = self._getService(service, instance)
         m = getattr(service, 'remote_' + method)
         return m(*args, **kw)
