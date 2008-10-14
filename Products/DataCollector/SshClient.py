@@ -28,7 +28,6 @@ import Globals
 from twisted.conch.ssh import transport, userauth, connection
 from twisted.conch.ssh import common, keys, channel
 from twisted.internet import defer, reactor
-from twisted.python import failure
 from Products.ZenEvents import Event
 
 from Exceptions import *

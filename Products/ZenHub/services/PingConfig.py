@@ -14,7 +14,6 @@
 from Products.ZenStatus import pingtree
 from Products.ZenHub.services.PerformanceConfig import PerformanceConfig
 from Products.ZenHub.PBDaemon import translateError
-from Products.ZenUtils.ZCmdBase import login
 
 class PingConfig(PerformanceConfig):
     "Support zenping configuration loading"

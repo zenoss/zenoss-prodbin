@@ -15,8 +15,8 @@ from Products.ZenUtils.ZCmdBase import ZCmdBase
 from Products.ZenUtils.PBUtil import ReconnectingPBClientFactory
 from twisted.cred import credentials
 from twisted.spread import pb
-from twisted.internet import reactor, utils
-from Products.ZenHub.zenhub import HubRealm, PB_PORT
+from twisted.internet import reactor
+from Products.ZenHub.zenhub import PB_PORT
 
 class zenhubworker(ZCmdBase, pb.Referenceable):
     "Execute ZenHub requests in separate process"

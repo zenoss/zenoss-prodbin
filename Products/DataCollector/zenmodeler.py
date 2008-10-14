@@ -23,8 +23,7 @@ from Products.ZenHub.PBDaemon import FakeRemote, PBDaemon
 from Products.ZenUtils.DaemonStats import DaemonStats
 from Products.ZenUtils.Driver import drive, driveLater
 from Products.ZenUtils.Utils import unused
-from Products.ZenEvents.ZenEventClasses import Heartbeat, Clear, \
-       Info, Debug, Warning, Error, Critical
+from Products.ZenEvents.ZenEventClasses import Heartbeat, Error
 
 from PythonClient   import PythonClient
 from SshClient      import SshClient
@@ -333,9 +332,10 @@ class ZenModeler(PBDaemon):
                               % hostname)
 
             else:
+                info = ("Unknown protocol %s for device %s -- "
+                        "defaulting to %s collection method" %
+                        (protocol, hostname, clientType ))
                 self.log.warn( info )
-                info= "Unknown protocol %s for device %s -- defaulting to %s" \
-                " collection method" % (protocol, hostname, clientType )
                 import socket
                 component, _ = os.path.splitext( os.path.basename( sys.argv[0] ) )
                 collector_host= socket.gethostname()

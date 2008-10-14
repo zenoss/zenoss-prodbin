@@ -35,11 +35,9 @@ from Products.ZenUtils.ZCmdBase import ZCmdBase
 from Products.ZenUtils.Utils import zenPath, getExitMessage
 from Products.ZenUtils.DaemonStats import DaemonStats
 from Products.ZenEvents.Event import Event, EventHeartbeat
-from Products.ZenEvents.ZenEventClasses import App_Start, App_Stop
+from Products.ZenEvents.ZenEventClasses import App_Start
 
 from XmlRpcService import XmlRpcService
-
-import logging
 
 import time
 
@@ -499,7 +497,7 @@ class ZenHub(ZCmdBase):
             self.heartbeat()
         reactor.run()
         for worker in self.workers:
-            worker.transport.signalProcess(KILL)
+            worker.transport.signalProcess('KILL')
 
 
     def buildOptions(self):

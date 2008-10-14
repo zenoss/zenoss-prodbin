@@ -17,9 +17,6 @@ import Globals
 import logging
 log = logging.getLogger("zen.migrate")
 
-import sys
-
-
 class DifferentiateTemplates(Migrate.Step):
     version = Migrate.Version(2, 3, 0)
 
