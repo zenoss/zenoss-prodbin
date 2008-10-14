@@ -107,8 +107,8 @@ class MessageProcessor(object):
 
         payloads = message.get_payload()
         payload = 'This is the default message'
-        if type(payloads) == types.ListType:
-            payload = payloads[0].get_payload()
+        while type(payloads) == types.ListType:
+            payloads = payloads[0].get_payload()
         if type(payloads) == types.StringType:
             payload = payloads
 
