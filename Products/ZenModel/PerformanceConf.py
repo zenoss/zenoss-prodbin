@@ -447,23 +447,30 @@ class PerformanceConf(Monitor, StatusColor):
         """
         Actual implementation for creating/adding a device to the system.
         """
-        zendiscCmd = ['run', '--now','-d', deviceName,
-                     '--monitor', performanceMonitor, 
-                     '--deviceclass', devicePath,
-                     '--snmp-port', str(zSnmpPort) ]
-        if zSnmpCommunity != "":
-            zendiscCmd.extend(["--snmp-community", zSnmpCommunity])
-        if REQUEST: zendiscCmd.append("--weblog")
-        self._executeZenDiscCommand(zendiscCmd, REQUEST)
+        
+        self._executeZenDiscCommand(deviceName, devicePath, performanceMonitor,
+                                    discoverProto, zSnmpPort, zSnmpCommunity, 
+                                    REQUEST)
         self.dmd._p_jar.sync()
         return self.getDmdRoot("Devices").findDevice(deviceName)
         
-    def _executeZenDiscCommand(self, zendiscOptions, REQUEST=None):
+    def _executeZenDiscCommand(self, deviceName, devicePath= "/Discovered", 
+                      performanceMonitor="localhost", discoverProto="snmp",
+                      zSnmpPort=161,zSnmpCommunity="", REQUEST=None):
         """
         execute zendisc  given zendisc options and return result
         """
         zm = binPath('zendisc')
         zendiscCmd = [zm]
+        
+        zendiscOptions = ['run', '--now','-d', deviceName,
+                     '--monitor', performanceMonitor, 
+                     '--deviceclass', devicePath,
+                     '--snmp-port', str(zSnmpPort) ]
+        if zSnmpCommunity != "":
+            zendiscOptions.extend(["--snmp-community", zSnmpCommunity])
+        if REQUEST: zendiscOptions.append("--weblog")
+        
         zendiscCmd.extend(zendiscOptions)
         result = executeCommand(zendiscCmd, REQUEST) 
         return result
