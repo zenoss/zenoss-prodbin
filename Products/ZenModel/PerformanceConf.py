@@ -449,7 +449,7 @@ class PerformanceConf(Monitor, StatusColor):
         """
         zendiscCmd = ['run', '--now','-d', deviceName,
                      '--monitor', performanceMonitor, 
-                     '--deviceclass', devicePath,
+                     '--deviceclass', repr(devicePath),
                      '--snmp-port', str(zSnmpPort) ]
         if zSnmpCommunity != "":
             zendiscCmd.extend(["--snmp-community", zSnmpCommunity])
