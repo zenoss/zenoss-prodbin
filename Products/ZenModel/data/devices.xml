@@ -1255,7 +1255,7 @@ False
 %5.2lf%s
 </property>
 <property type="string" id="legend" mode="w" >
-Outbound
+Inbound
 </property>
 <property type="long" id="limit" mode="w" >
 -1
@@ -1287,7 +1287,7 @@ False
 %5.2lf%s
 </property>
 <property type="string" id="legend" mode="w" >
-Inbound
+Outbound
 </property>
 <property type="long" id="limit" mode="w" >
 -1

@@ -158,3 +158,4 @@ import layer2catalog
 import differentiateTemplates
 import monitoringmenuitem
 import fixPropertyAccess
+import fixOldTemplates_23
