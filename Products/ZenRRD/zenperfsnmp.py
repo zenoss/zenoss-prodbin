@@ -618,7 +618,6 @@ class zenperfsnmp(SnmpDaemon):
                        component=name,
                        severity=Event.Info)
         self.log.warn(summary)
-        del proxy.oidMap[oid]
         
 
     def storeValues(self, updates, deviceName):
