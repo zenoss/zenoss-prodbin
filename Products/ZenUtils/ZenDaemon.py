@@ -93,7 +93,8 @@ class ZenDaemon(CmdBase):
     def setupLogging(self):
         rlog = logging.getLogger()
         rlog.setLevel(logging.WARN)
-        mname = self.__class__.__name__
+        if hasattr(self, 'mname'): mname = self.mname
+        else: mname = self.__class__.__name__
         self.log = logging.getLogger("zen."+ mname)
         zlog = logging.getLogger("zen")
         zlog.setLevel(self.options.logseverity)
