@@ -102,7 +102,6 @@ def _loadPluginDir(pdir):
         for filename in filter(_plfilter, filenames):
             modpath = os.path.join(path,filename[:-3]).replace("/",".")
             log.debug("Loading: %s", modpath)
-            log.error("Loading: %s", modpath)
             try:
                 this_plugin= PluginLoader(pdir, modpath)
                 if this_plugin is not None:
