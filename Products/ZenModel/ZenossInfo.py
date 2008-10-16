@@ -436,6 +436,14 @@ class ZenossInfo(ZenModelItem, SimpleItem):
         finally:
            fh.close()
 
+    def _getLogPath(self, daemon):
+        """
+        Returns the path the log file for the daemon this is monkey-patched
+        in the distributed collector zenpack to support the localhost
+        subdirectory.
+        """
+        return zenPath('log', "%s.log" % daemon)
+
     def getLogData(self, daemon, kb=500):
         """
         Get the last kb kilobytes of a daemon's log file contents.
@@ -449,7 +457,7 @@ class ZenossInfo(ZenModelItem, SimpleItem):
             daemon = 'event'
         elif daemon == 'zeoctl':
             daemon = 'zeo'
-        filename = zenPath('log', "%s.log" % daemon)
+        filename = self._getLogPath(daemon)
         # if there is no data read, we don't want to return something that can
         # be interptreted as "None", so we make the default a single white
         # space
