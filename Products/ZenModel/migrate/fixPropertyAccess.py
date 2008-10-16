@@ -17,7 +17,7 @@ from Products.ZenModel.ZenossSecurity import \
      MANAGER_ROLE, ZEN_MANAGER_ROLE, ZEN_USER_ROLE, OWNER_ROLE
 
 class fixPropertyAccess(Migrate.Step):
-    version = Migrate.Version(2, 2, 5)
+    version = Migrate.Version(2, 1, 4)
     
     def cutover(self, dmd):
         dmd.manage_permission('Access contents information',
