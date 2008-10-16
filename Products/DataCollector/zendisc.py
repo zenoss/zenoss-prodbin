@@ -291,7 +291,7 @@ class ZenDisc(ZenModeler):
                             self.log.info("Found IP '%s' on device '%s';"
                                           " skipping discovery", ip, dev.id)
                             if self.options.device:
-                                self._customexitcode = 3
+                                self.setExitCode(3)
                             yield succeed(dev)
                             driver.next()
                             return
