@@ -185,7 +185,7 @@ class PBDaemon(ZenDaemon, pb.Referenceable):
 
     def connected(self):
         pass
-    
+
     def run(self):
         self.log.debug('run')
         d = self.connect()
@@ -206,6 +206,9 @@ class PBDaemon(ZenDaemon, pb.Referenceable):
             ZenDaemon.sigTerm(self, signum, frame)
         except SystemExit:
             pass
+
+    def setExitCode(self, exitcode):
+        self._customexitcode = exitcode
 
     def stop(self):
         if reactor.running and not self.stopped:
