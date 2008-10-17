@@ -18,7 +18,6 @@ Fix templates for defect #2719
 $Id:$
 '''
 import Migrate
-import re
 
 class FixOldTemplates_23(Migrate.Step):
     version = Migrate.Version(2, 3, 0)
