@@ -1947,7 +1947,7 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
         if type(evids) == type(''):
             evids = [evids]
         request = FakeRequest()
-        self.manage_setEventStates(1 , evids, request)
+        self.manage_setEventStates(1 , evids, REQUEST=request)
         if REQUEST:
             dest = '/zport/dmd/Events/viewEvents'
             if request.get('message', ''):
