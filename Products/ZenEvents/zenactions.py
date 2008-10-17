@@ -57,42 +57,54 @@ class EventCommandProtocol(ProcessProtocol):
         self.timeout = reactor.callLater(cmd.defaultTimeout, self.timedOut)
 
     def timedOut(self):
-        self.server.log.error("Command %s timed out" % self.cmd.id)
         self.timeout = None
+        self.server.log.error("Command %s timed out" % self.cmd.id)
+        self.server.sendEvent(Event.Event(
+            device=self.server.options.monitor,
+            eventClass=Cmd_Fail,
+            severity=Event.Error,
+            component="zenactions",
+            eventKey=self.cmd.id,
+            summary="Timeout running %s" % (self.cmd.id,),
+            ))
 
     def processEnded(self, reason):
-        self.server.log.debug("Command finished: %s" % reason)
+        self.server.log.debug("Command finished: %s" % reason.getErrorMessage())
         code = 1
         try:
             code = reason.value.exitCode
-        except AttributeError, ex:
+        except AttributeError:
             pass
-        if code == 0:
-            self.server.log.debug("Command %s says: %s", self.cmd.id, self.data)
-            summary = self.data or "<command produced no output>"
-            self.server.sendEvent(Event.Event(device=self.server.options.monitor,
-                                              eventClass=Cmd_Ok,
-                                              summary=summary,
-                                              severity=Event.Clear,
-                                              component="zenactions"))
-            return
+
+        # The process has ended. We can cancel the timeout now.
         if self.timeout:
             self.timeout.cancel()
             self.timeout = None
-            summary="Timeout running: %s: %s" % (self.cmd.id,
-                                                 'command timed out')
+        
+        if code == 0:
+            cmdData = self.data or "<command produced no output>"
+            self.server.log.debug("Command %s says: %s", self.cmd.id, cmdData)
+            self.server.sendEvent(Event.Event(
+                device=self.server.options.monitor,
+                eventClass=Cmd_Fail,
+                severity=Event.Clear,
+                component="zenactions",
+                eventKey=self.cmd.id,
+                summary="Command succeeded: %s: %s" % (
+                    self.cmd.id, cmdData),
+                ))
         else:
-            summary="Error running: %s: %s" % (self.cmd.id,
-                                               'command timed out')
-        if self.error:
-            self.server.log.error("Command %s, exit code %d: %s",
-                                  self.cmd.id, code, self.error)
-            summary="Error running: %s: %s" % (self.cmd.id, self.error)
-        self.server.sendEvent(Event.Event(device=self.server.options.monitor,
-                                          eventClass=Cmd_Fail,
-                                          summary=summary,
-                                          severity=Event.Error,
-                                          component="zenactions"))
+            cmdError = self.error or "<command produced no output>"
+            self.server.log.error("Command %s says %s", self.cmd.id, cmdError)
+            self.server.sendEvent(Event.Event(
+                device=self.server.options.monitor,
+                eventClass=Cmd_Fail,
+                severity=Event.Error,
+                component="zenactions",
+                eventKey=self.cmd.id,
+                summary="Error running: %s: %s" % (
+                    self.cmd.id, cmdError),
+                ))
 
     def outReceived(self, text):
         self.data += text
