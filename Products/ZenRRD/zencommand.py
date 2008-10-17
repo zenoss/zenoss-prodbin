@@ -40,7 +40,7 @@ from twisted.spread import pb
 
 import re
 # how to parse each value from a nagios command
-NagParser = re.compile(r"""([^ =']+|'(.*)'+)=([-0-9.]+)([^;]*;?){0,5}""")
+NagParser = re.compile(r"""([^ =']+|'(.*)'+)=([-0-9.eE]+)([^;]*;?){0,5}""")
 # how to parse each value from a cacti command
 CacParser = re.compile(r"""([^ :']+|'(.*)'+):([-0-9.]+)""")
 
