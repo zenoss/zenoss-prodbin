@@ -46,13 +46,9 @@ setup(
     # in the binary egg when it is built.
     include_package_data = True,
     
-    # Tell setuptools what non-python files should also be included
-    # with the binary egg.
-    package_data = { 
-         '': ['*.txt'],
-         NAME: ['objects/*','skins/*/*','services/*', 'reports/*/*',
-                'modeler/*/*', 'daemons/*', 'lib/*', 'libexec/*'],
-         },  
+    # The MANIFEST.in file is the recommended way of including additional files
+    # in your ZenPack. package_data is another.
+    #package_data = {}
 
     # Indicate dependencies on other python modules or ZenPacks.  This line
     # is modified by zenoss when the ZenPack edit page is submitted.  Zenoss
