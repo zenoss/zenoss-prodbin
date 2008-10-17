@@ -18,11 +18,13 @@ from Products.ZenWin.Watcher import Watcher
 from Products.ZenEvents.ZenEventClasses import Status_Wmi, Status_WinService
 from Products.ZenEvents.Event import Error, Clear
 from Products.ZenUtils.Driver import drive
+from Products.ZenUtils.Timeout import timeout
 from pysamba.library import WError
 
 from sets import Set
 
 from twisted.internet import defer
+from twisted.python import failure
 
 class zenwin(WinCollector):
 
@@ -103,13 +105,20 @@ class zenwin(WinCollector):
         return drive(inner)
 
 
-    def processDevice(self, device):
+    def processDevice(self, device, timeoutSecs):
         """Run WMI queries in two stages. First get the current state,
         then incremental updates thereafter.
         """
         wql = ("""SELECT * FROM __InstanceModificationEvent within 5 where """
                """TargetInstance ISA 'Win32_Service' """)
         # FIXME: this code looks very similar to the code in zeneventlog
+        def cleanup(result=None):
+            self.log.warning("Closing watcher of %s", device.id)
+            if isinstance(result, failure.Failure):
+                self.deviceDown(device, "Error reading services", result)
+            if self.watchers.has_key(device.id):
+                w = self.watchers.pop(device.id, None)
+                w.close()
         def inner(driver):
             try:
                 self.niceDoggie(self.cycleInterval())
@@ -139,29 +148,18 @@ class zenwin(WinCollector):
                     raise
                 self.log.info("%s: Ignoring event %s "
                               "and restarting connection", device.id, ex)
-                w = self.watchers.pop(device.id)
-                w.close()
+                cleanup()
             except Exception, ex:
                 self.log.exception(ex)
-                self.deviceDown(device, "Error reading services", ex)
                 raise
             self.niceDoggie(self.cycleInterval())
         if not device.plugins:
             return defer.succeed(None)
-        return drive(inner)
+        d = timeout(drive(inner), timeoutSecs)
+        d.addErrback(cleanup)
+        return d
         
     
-    def processLoop(self):
-        deferreds = []
-        for device in self.devices:
-            if device.id in self.wmiprobs:
-                self.log.debug("WMI problems on %s: skipping" % device.id)
-                continue
-            if not self.options.device or device.id == self.options.device:
-                deferreds.append(self.processDevice(device))
-        return defer.DeferredList(deferreds)
-
-
     def deviceDown(self, device, message, exception):
         if device.id in self.watchers:
             w = self.watchers.pop(device.id)

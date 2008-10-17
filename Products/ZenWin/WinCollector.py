@@ -22,7 +22,7 @@ from Products.DataCollector import DeviceProxy
 from Products.DataCollector.Plugins import PluginLoader
 unused(DeviceProxy, PluginLoader)
 
-from twisted.internet import reactor
+from twisted.internet import reactor, defer
 from twisted.python.failure import Failure
 from pysamba.library import DEBUGLEVEL
 
@@ -62,18 +62,28 @@ class WinCollector(PBDaemon):
 
     def scanCycle(self, driver):
         now = time.time()
+        cycle = self.cycleInterval()
         try:
             yield self.eventService().callRemote('getWmiConnIssues')
             self.wmiprobs = [e[0] for e in driver.next()]
             self.log.debug("Wmi Probs %r", self.wmiprobs)
-            yield self.processLoop()
+            devices = []
+            for device in self.devices:
+                if not device.plugins:
+                    continue
+                if self.options.device and device.id != self.options.device:
+                    continue
+                if device.id in self.wmiprobs:
+                    self.log.debug("WMI problems on %s: skipping" % device.id)
+                    continue
+                devices.append(device)
+            yield self.processLoop(devices, cycle)
             driver.next()
             delay = time.time() - now
             if not self.options.cycle:
                 self.stopScan()
             else:
                 self.heartbeat()
-                cycle = self.cycleInterval()
                 driveLater(max(0, cycle - delay), self.scanCycle)
                 count = len(self.devices)
                 if self.options.device:
@@ -88,7 +98,14 @@ class WinCollector(PBDaemon):
             self.log.exception("Error processing main loop")
 
 
-    def processLoop(self):
+    def processLoop(self, devices, timeoutSecs):
+        deferreds = []
+        for device in devices:
+            deferreds.append(self.processDevice(device, timeoutSecs))
+        return defer.DeferredList(deferreds)
+
+
+    def processDevice(self, device, timeoutSecs):
         raise NotImplementedError("You must override this method.")
 
 

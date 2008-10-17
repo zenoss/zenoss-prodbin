@@ -15,11 +15,13 @@ import Globals
 from Products.ZenWin.Watcher import Watcher
 from Products.ZenWin.WinCollector import WinCollector
 from Products.ZenUtils.Driver import drive
+from Products.ZenUtils.Timeout import timeout
 from Products.ZenEvents.ZenEventClasses import Status_Wmi
 from Products.ZenEvents import Event
 from pysamba.library import WError
 
 from twisted.internet import defer
+from twisted.python import failure
 
 class zeneventlog(WinCollector):
 
@@ -38,15 +40,29 @@ class zeneventlog(WinCollector):
         self.updateDevices(driver.next())
 
 
-    def processDevice(self, device):
+    def processDevice(self, device, timeoutSecs):
         """Scan a single device."""
         self.log.debug("polling %s", device.id)
         wql = """SELECT * FROM __InstanceCreationEvent where """\
               """TargetInstance ISA 'Win32_NTLogEvent' """\
               """and TargetInstance.EventType <= %d"""\
               % device.zWinEventlogMinSeverity
+
+        # FIXME: this code looks very similar to the code in zenwin
+        def cleanup(result=None):
+            self.log.warning("Closing watcher of %s", device.id)
+            if isinstance(result, failure.Failure):
+                self.sendEvent(dict(summary="Error reading events",
+                                    component=self.agent,
+                                    exception=str(result),
+                                    eventClass=Status_Wmi,
+                                    device=device.id,
+                                    severity=Event.Error,
+                                    agent=self.agent))
+            if self.watchers.has_key(device.id):
+                w = self.watchers.pop(device.id, None)
+                w.close()
         def inner(driver):
-            # FIXME: this code looks very similar to the code in zenwin
             try:
                 self.niceDoggie(self.cycleInterval())
                 w = self.watchers.get(device.id, None)
@@ -71,50 +87,25 @@ class zeneventlog(WinCollector):
                     raise
                 self.log.info("%s: Ignoring event %s "
                               "and restarting connection", device.id, ex)
-                w = self.watchers.pop(device.id)
-                w.close()
+                cleanup()
             except Exception, ex:
                 self.log.exception("Exception getting windows events: %s", ex)
-                self.sendEvent(dict(summary="Error reading events",
-                                    component=self.agent,
-                                    exception=str(ex),
-                                    eventClass=Status_Wmi,
-                                    device=device.id,
-                                    severity=Event.Error,
-                                    agent=self.agent))
-                self.log.warning("Closing watcher of %s", device.id)
-                if self.watchers.has_key(device.id):
-                    w = self.watchers.pop(device.id)
-                    w.close()
-        return drive(inner)
+                raise
+        d = timeout(drive(inner), timeoutSecs)
+        d.addErrback(cleanup)
+        return d
 
 
-    def processLoop(self):
-        "Fetch event updates from all the devices"
-        devices = []
-        for device in self.devices:
-            if not device.plugins:
-                continue
-            if self.options.device and device.id != self.options.device:
-                continue
-            if device.id in self.wmiprobs:
-                self.log.debug("WMI problems on %s: skipping" % device.id)
-                continue
-            devices.append(device)
-        def inner(driver):
-            try:
-                cycle = self.cycleInterval()
-                deferreds = []
-                yield defer.DeferredList(map(self.processDevice, devices))
-                driver.next()
-                for ev in (
-                    self.rrdStats.counter('events', cycle, self.events) +
-                    self.rrdStats.gauge('devices', cycle, len(deferreds))
-                    ):
-                    self.sendEvent(ev)
-            except Exception, ex:
-                self.log.exception(ex)
-        return drive(inner)
+    def processLoop(self, devices, timeoutSecs):
+        def postStats(result):
+            self.sendEvents(
+                self.rrdStats.counter('events',
+                                      self.cycleInterval(),
+                                      self.events))
+            return result
+        d = WinCollector.processLoop(self, devices, timeoutSecs)
+        d.addBoth(postStats)
+        return d
 
 
     def makeEvent(self, name, lrec):
