@@ -709,8 +709,8 @@ def ipsort(a, b):
 def unsigned(v):
     '''Convert negative 32-bit values into the 2s compliment unsigned value
 
-    >>> unsigned(-1)
-    4294967295L
+    >>> str(unsigned(-1))
+    '4294967295'
     >>> unsigned(1)
     1L
     >>> unsigned(1e6)
