@@ -521,6 +521,7 @@ class DataRoot(ZenModelRM, OrderedFolder, Commandable, ZenMenuable):
         cachestr = self.geocache
         for char in ('\\r', '\\n'):
             cachestr = cachestr.replace(char, ' ')
+        cachestr = cachestr.replace("'", r"\'")
         return cachestr
 
     def goToStatusPage(self, objid, REQUEST=None):
