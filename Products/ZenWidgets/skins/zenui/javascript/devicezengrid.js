@@ -456,23 +456,19 @@ DeviceZenGrid.prototype = {
             this.refreshWithParams({'orderby':f , 'orderdir':'asc'});
         }
         }
-
     },
     refreshWidths: function() {
-        var widths = this.getColLengths();
-        var parentwidth = getElementDimensions(this.viewport).w;
-        this.abswidths = new Array();
-        for (i=0;i<widths.length;i++) {
-            var p = widths[i];
-            var myw = parseInt(parentwidth*(p/100));
-            this.abswidths[i] = myw;
-        }
+        var abswidths = [];
+        forEach(this.headers.getElementsByTagName('td'), function(cell){
+            var myw = getElementDimensions(cell).w;
+            abswidths.push(myw);
+        });
+        this.abswidths = abswidths;
     },
     refreshFields: function() {
         var updateColumns = bind(function() {
             var numcols = this.fields.length;
             var fields = map(function(x){return x[0]}, this.fields);
-            this.refreshWidths();
             this.colgroup = swapDOM(this.colgroup, this.getColgroup());
             this.headcolgroup = swapDOM(this.headcolgroup, this.getColgroup());
             var headerrow = this.getBlankRow('head');
@@ -481,6 +477,7 @@ DeviceZenGrid.prototype = {
             this.populateRow(headerrow, fields);
             cells = this.headers.getElementsByTagName('td');
             this.connectHeaders(cells);
+            this.refreshWidths();
             this.setTableNumRows(this.numRows);
             if (this.lock.locked) this.lock.release();
         }, this);
@@ -537,6 +534,7 @@ DeviceZenGrid.prototype = {
         }
         rows = this.rowEls;
         disconnectAllTo(this.markAsChecked);
+        this.refreshWidths();
         for (i=0;i<rows.length&&i<data.length;i++) {
             var mydata = data[i];
             setElementClass(rows[i], (this.lastOffset+i)%2?'odd':'even')
@@ -555,9 +553,10 @@ DeviceZenGrid.prototype = {
                 connect($(evid), 'onclick', this.markAsChecked);
             }
             for (j=isManager?1:0;j<yo.length;j++) {
-                var cellwidth = this.abswidths[j]
+                var cellwidth = this.abswidths[j] - 9;
                 YAHOO.zenoss.setInnerHTML(divs[j], unescape(mydata[j]));
                 yo[j].title = scrapeText(divs[j]);
+                setStyle(divs[j], {'width':cellwidth+'px'});
             }
 
         }

@@ -500,23 +500,19 @@ ZenGrid.prototype = {
             });
             this.refreshWithParams({'orderby':f + ' ASC'});
         }
-
     },
     refreshWidths: function() {
-        var widths = this.getColLengths();
-        var parentwidth = getElementDimensions(this.viewport).w;
-        this.abswidths = new Array();
-        for (i=0;i<widths.length;i++) {
-            var p = widths[i];
-            var myw = parseInt(parentwidth*(p/100));
-            this.abswidths[i] = myw;
-        }
+        var abswidths = [];
+        forEach(this.headers.getElementsByTagName('td'), function(cell){
+            var myw = getElementDimensions(cell).w;
+            abswidths.push(myw);
+        });
+        this.abswidths = abswidths;
     },
     refreshFields: function() {
         var updateColumns = bind(function() {
             var numcols = this.fields.length;
             var fields = map(function(x){return x[0]}, this.fields);
-            this.refreshWidths();
             this.colgroup = swapDOM(this.colgroup, this.getColgroup());
             this.headcolgroup = swapDOM(this.headcolgroup, this.getColgroup());
             var headerrow = this.getBlankRow('head');
@@ -525,6 +521,7 @@ ZenGrid.prototype = {
             this.populateRow(headerrow, fields);
             cells = this.headers.getElementsByTagName('td');
             this.connectHeaders(cells);
+            this.refreshWidths();
             this.setTableNumRows(this.numRows);
             if (this.lock.locked) this.lock.release();
         }, this);
@@ -606,6 +603,7 @@ ZenGrid.prototype = {
         }
         var rows = this.rowEls;
         disconnectAllTo(this.markAsChecked);
+        this.refreshWidths();
         for (var numrows=0;numrows<rows.length&&numrows<data.length;numrows++) {
             var mydata = data[numrows];
             setElementClass(rows[numrows], mydata[mydata.length-1])
@@ -643,9 +641,10 @@ ZenGrid.prototype = {
             divs[yo.length-1].title = "View detailed information" + 
                 " about this event."
             for (var j=isManager?1:0;j<yo.length-1;j++) {
-                var cellwidth = this.abswidths[j]
+                var cellwidth = this.abswidths[j] - 9;
                 setInnerHTML(divs[j], unescape(mydata[j]));
                 yo[j].title = scrapeText(divs[j]);
+                setStyle(divs[j], {'width':cellwidth+'px'});
             }
 
         }
@@ -857,26 +856,6 @@ ZenGrid.prototype = {
         this.updateStatusBar(this.lastOffset);
         this.viewportHeight = getViewportDimensions().h;
     },
-    resizeColumn: function(index, fromindex, pixeldiff) {
-        var cols = this.colgroup.getElementsByTagName('col');
-        var hcols = this.headcolgroup.getElementsByTagName('col');
-        var oldint = parseFloat(cols[index].width);
-        var parentwidth = getElementDimensions(this.viewport).w;
-        var old = (oldint/100.00) * parentwidth;
-        var neww = (old + pixeldiff)/parentwidth * 100.00;
-        var tofield = this.fields[index][0];
-        var toval = this.fieldMapping[tofield];
-        var fromfield = this.fields[fromindex][0];
-        var fromval = this.fieldMapping[fromfield];
-        neww = oldint-neww;
-        if (toval-neww<0) neww=toval;
-        else if (fromval+neww<0) neww=-fromval;
-        this.fieldMapping[tofield] = Math.max(toval-neww, 0);
-        this.fieldMapping[fromfield] = Math.max(fromval+neww, 0);
-        this.colgroup = swapDOM(this.colgroup, this.getColgroup());
-        this.headcolgroup = swapDOM(this.headcolgroup, this.getColgroup());
-        //this.refreshTable(this.lastOffset);
-    },
     deleteBatch: function() {
         var url = this.absurl + '/manage_deleteBatchEvents';
         var selectstatus = this.selectstatus;
@@ -946,4 +925,3 @@ ZenGrid.prototype = {
             }, this));
     }
 }
-
