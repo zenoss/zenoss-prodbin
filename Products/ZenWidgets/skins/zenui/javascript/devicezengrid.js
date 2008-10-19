@@ -50,6 +50,8 @@ var DeviceZenGridBuffer = Class.create();
 
 DeviceZenGridBuffer.prototype = {
     __init__: function(url) {
+        this.logger = new YAHOO.widget.LogWriter("ZenGridBuffer");
+        this.logger.log("A new buffer has been created.")
         this.startPos = 0;
         this.size = 0;
         this.rows = new Array();
@@ -70,6 +72,10 @@ DeviceZenGridBuffer.prototype = {
     endPos: function() {return this.startPos + this.rows.length;},
     querySize: function(newOffset) {
         var newSize = 0;
+        this.logger.log("querySize(): Calculating new query size from offset " + newOffset);
+        if (this.totalRows!=0) {
+            if (newOffset>=this.totalRows) return 0;
+        }
         if (newOffset >= this.startPos) { //appending
             var endQueryOffset = this.maxQuery + this.grid.lastOffset;
             newSize = endQueryOffset - newOffset;
@@ -78,25 +84,20 @@ DeviceZenGridBuffer.prototype = {
         } else { // prepending
             newSize = Math.min(this.startPos - newOffset, this.maxQuery);
         }
+        newSize = Math.max(0, newSize);
+        newSize = Math.min(newSize, this.maxQuery, this.totalRows?this.totalRows-newOffset:this.maxQuery);
+        this.logger.log("Query size: " + newSize);
         return newSize;
     },
     queryOffset: function(offset) {
+        this.logger.log("queryOffset(): Calculating new query offset from offset " + offset);
         var newOffset = offset;
-        var goingup = Math.abs(this.startPos - this.grid.lastOffset);
-        var goingdown = Math.abs(this.grid.lastOffset - this.endPos());
-        var reverse = goingup < goingdown;
+        var reverse = this.grid.lastOffset > offset;
         if (offset > this.startPos && !reverse){ 
             newOffset = Math.max(offset, this.endPos()); //appending
         }
         else if (offset > this.startPos && reverse) {
-            newOffset = Math.max(0, 
-                offset - this.maxQuery + (2*this.tolerance()));
-            if (offset-newOffset-this.maxQuery<this.tolerance()) {
-                newOffset += this.tolerance()
-            }
-            if (offset-newOffset-this.maxQuery<this.tolerance()) {
-                newOffset += (2*this.tolerance());
-            }
+            newOffset = offset - this.maxQuery;
         }
         else if (offset + this.maxQuery >= this.startPos) {
             newOffset = Math.max(this.startPos - this.maxQuery, 0); //prepending
@@ -105,9 +106,13 @@ DeviceZenGridBuffer.prototype = {
                 newOffset = Math.min(offset, newOffset + (2*this.tolerance()));
             }
         }
+        this.logger.log("Query offset: " + newOffset);
+        newOffset = Math.max(0, newOffset); // Disallow negatives
+        newOffset = Math.min(newOffset, this.totalRows); // No more than we have
         return newOffset;
     },
     getRows: function(start, count) {
+        this.logger.log("Asking for " + count + " rows starting from " + start);
         var bPos = start - this.startPos;
         var ePos = Math.min(bPos+count, this.size);
         var results = new Array();
@@ -166,6 +171,7 @@ DeviceZenGrid.prototype = {
     __init__: function(container, url, gridId, buffer, absurl,
                        messageCallback) {
         bindMethods(this);
+        this.logger = new YAHOO.widget.LogWriter("ZenGrid");
         this.message = messageCallback || function(msg){noop()};
         this.absurl = absurl;
         this.container = $(container);
@@ -285,39 +291,14 @@ DeviceZenGrid.prototype = {
         this.refreshTable(this.lastOffset);
     },
     refresh: function() {
-        bufOffset = this.buffer.startPos;
-        qs = update(this.lastparams, {
-                'offset':this.buffer.startPos,
-                'count':this.numRows });
-        var isMSIE//@cc_on=1;
-        if (isMSIE) {
-            qs.ms= new Date().getTime();
-        }
-        if ('askformore' in this) this.askformore.cancel();
-        this.askformore = loadJSONDoc(this.url, qs);
-        this.askformore.addErrback(bind(function(x) { 
-            callLater(5, bind(function(){
-            this.message('Unable to communicate with the server.');
-            delete this.askformore;
-            this.killLoading()}, this))
-        }, this));
-        this.askformore.addCallback(
-            bind(function(r) {
-                result = r; 
-                this.buffer.totalRows = result[1];
-                this.setScrollHeight(this.rowToPixel(this.buffer.totalRows));
-                this.buffer.clear();
-                this.buffer.update(result[0], bufOffset);
-                this.updateStatusBar(this.lastOffset);
-                this.populateTable(this.buffer.getRows(this.lastOffset, this.numRows));
-                delete this.askformore;
-            }, this)
-        );
+        this.buffer.clear();
+        this.query(this.lastOffset);
     },
     query: function(offset) {
+        this.logger.log("query(" + offset + ")");
         var url = this.url || 'getJSONDeviceInfo';
-        this.lastOffset = offset;
         bufOffset = this.buffer.queryOffset(offset);
+        this.lastOffset = offset;
         bufSize = this.buffer.querySize(bufOffset);
         if (bufSize==0) {
             if (this.lock.locked) this.lock.release();
@@ -349,7 +330,7 @@ DeviceZenGrid.prototype = {
     refreshTable: function(offset) {
         this.showLoading();
         var lastOffset = this.lastOffset;
-        this.lastOffset = offset;
+        //this.lastOffset = offset;
         this.scrollbar.scrollTop = this.rowToPixel(offset);
         var inRange = this.buffer.isInRange(offset);
         var isMSIE//@cc_on=1;
