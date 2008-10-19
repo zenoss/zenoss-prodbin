@@ -198,10 +198,18 @@
 <!-- FD -->
     <script>
     var server_time = isoTimestamp(start_time).getTime();
+    function server_now() {
+        return new Date(server_time+(1000*server_offset));
+    }
+    function getServerTime() {
+        return toISOTime(server_now());
+    }
+    function getServerTimestamp() {
+        return toISOTimestamp(server_now());
+    }
     function updateTime(){
         server_time += 1000;
-        var servernow = new Date(server_time+(1000*server_offset));
-        $('system_clock').innerHTML = toISOTime(servernow);
+        $('system_clock').innerHTML = getServerTime();
         callLater(1, updateTime)
     }
     addLoadEvent(updateTime)

@@ -216,7 +216,7 @@ ZenGrid.prototype = {
             var isMSIE//@cc_on=1;
             if (!isMSIE) this.resizeTable();
             this.message('Last updated ' + 
-                         toISOTimestamp(new Date()) + '.');
+                         getServerTimestamp() + '.');
             if (this.lock.locked) this.lock.release();
         }, this));
         this.addMouseWheelListening();
