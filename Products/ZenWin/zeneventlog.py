@@ -20,7 +20,6 @@ from Products.ZenEvents.ZenEventClasses import Status_Wmi
 from Products.ZenEvents import Event
 from pysamba.library import WError
 
-from twisted.internet import defer
 from twisted.python import failure
 
 class zeneventlog(WinCollector):

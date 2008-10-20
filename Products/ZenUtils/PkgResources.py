@@ -22,4 +22,7 @@ warnings.filterwarnings('ignore', '.*_xmlplus.*', UserWarning)
 # See http://dev.zenoss.org/trac/ticket/3146 for details
 import pkg_resources
 
+from Products.ZenUtils.Utils import unused
+unused(pkg_resources)
+
 __all__ = ['pkg_resources']

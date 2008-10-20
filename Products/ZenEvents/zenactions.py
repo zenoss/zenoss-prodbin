@@ -33,7 +33,7 @@ from _mysql_exceptions import OperationalError, ProgrammingError
 from Products.ZenUtils.ZCmdBase import ZCmdBase
 from Products.ZenUtils.ZenTales import talesCompile, getEngine
 from ZenEventClasses import App_Start, App_Stop, Status_Heartbeat 
-from ZenEventClasses import Cmd_Ok, Cmd_Fail
+from ZenEventClasses import Cmd_Fail
 import Event
 from Schedule import Schedule
 from UpdateCheck import UpdateCheck
