@@ -81,6 +81,7 @@ def login(self):
         parts = parts[:3] + (newqs,) + parts[4:]
         came_from = urlparse.urlunsplit(parts)
     else:
+        submittedQs = 'submitted=%s' % submitted
         came_from = '/zport/dmd?%s' % submittedQs
     if self.dmd.acceptedTerms:
         url = came_from
