@@ -50,8 +50,6 @@ var ZenGridBuffer = Class.create();
 
 ZenGridBuffer.prototype = {
     __init__: function(url) {
-        this.logger = new YAHOO.widget.LogWriter("ZenGridBuffer");
-        this.logger.log("A new buffer has been created.")
         this.startPos = 0;
         this.size = 0;
         this.rows = new Array();
@@ -72,7 +70,6 @@ ZenGridBuffer.prototype = {
     endPos: function() {return this.startPos + this.rows.length;},
     querySize: function(newOffset) {
         var newSize = 0;
-        this.logger.log("querySize(): Calculating new query size from offset " + newOffset);
         if (this.totalRows!=0) {
             if (newOffset>=this.totalRows) return 0;
         }
@@ -86,11 +83,9 @@ ZenGridBuffer.prototype = {
         }
         newSize = Math.max(0, newSize);
         newSize = Math.min(newSize, this.maxQuery, this.totalRows?this.totalRows-newOffset:this.maxQuery);
-        this.logger.log("Query size: " + newSize);
         return newSize;
     },
     queryOffset: function(offset) {
-        this.logger.log("queryOffset(): Calculating new query offset from offset " + offset);
         var newOffset = offset;
         var reverse = this.grid.lastOffset > offset;
         if (offset > this.startPos && !reverse){ 
@@ -106,13 +101,11 @@ ZenGridBuffer.prototype = {
                 newOffset = Math.min(offset, newOffset + (2*this.tolerance()));
             }
         }
-        this.logger.log("Query offset: " + newOffset);
         newOffset = Math.max(0, newOffset); // Disallow negatives
         newOffset = Math.min(newOffset, this.totalRows); // No more than we have
         return newOffset;
     },
     getRows: function(start, count) {
-        this.logger.log("Asking for " + count + " rows starting from " + start);
         var bPos = start - this.startPos;
         var ePos = Math.min(bPos+count, this.size);
         var results = new Array();
@@ -171,7 +164,6 @@ ZenGrid.prototype = {
     __init__: function(container, url, gridId, buffer, absurl, isHistory,
                        messageCallback) {
         bindMethods(this);
-        this.logger = new YAHOO.widget.LogWriter("ZenGrid");
         this.absurl = absurl;
         this.isHistory = isHistory || 0;
         this.message = messageCallback || function(msg){noop()};
@@ -339,7 +331,6 @@ ZenGrid.prototype = {
         this.query(this.lastOffset);
     },
     query: function(offset) {
-        this.logger.log("query(" + offset + ")");
         var url = this.url || 'getJSONEventsInfo';
         bufOffset = this.buffer.queryOffset(offset);
         this.lastOffset = offset;
@@ -410,7 +401,7 @@ ZenGrid.prototype = {
                 myrows = this.buffer.getRows(offset, this.numRows);
                 this.populateTable(myrows);
             } catch(e) { 
-                this.logger.log("We have a problem of sorts.");
+                console.log("We have a problem of sorts.");
             }
             this.killLoading();
         }, this));
