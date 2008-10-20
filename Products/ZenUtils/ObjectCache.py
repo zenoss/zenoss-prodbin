@@ -63,6 +63,7 @@ class ObjectCache(Persistent):
     def clearCache(self, key=None):
         """Clear the cache.
         """
+        self.initCache()
         if key is not None:
             try:
                 del self._v_cache[key]
