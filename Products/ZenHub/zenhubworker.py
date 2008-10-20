@@ -17,6 +17,7 @@ from twisted.cred import credentials
 from twisted.spread import pb
 from twisted.internet import reactor
 from Products.ZenHub.zenhub import PB_PORT
+from ZODB.POSException import ConflictError
 
 class zenhubworker(ZCmdBase, pb.Referenceable):
     "Execute ZenHub requests in separate process"
@@ -87,10 +88,18 @@ class zenhubworker(ZCmdBase, pb.Referenceable):
         @type kw: dictionary
         @param kw: keyword arguments to the method
         """
-        self.syncdb()
         service = self._getService(service, instance)
         m = getattr(service, 'remote_' + method)
-        return m(*args, **kw)
+        def runOnce():
+            self.syncdb()
+            return m(*args, **kw)
+        for i in range(4):
+            try:
+                return runOnce()
+            except ConflictError, ex:
+                pass
+        # one last try, but don't hide the exception
+        return runOnce()
 
     def buildOptions(self):
         """Options, mostly to find where zenhub lives
