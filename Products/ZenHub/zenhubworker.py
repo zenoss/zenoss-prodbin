@@ -19,6 +19,7 @@ from twisted.internet import reactor
 from Products.ZenHub.zenhub import PB_PORT
 from ZODB.POSException import ConflictError
 from transaction import commit
+from Products.ZenHub.PBDaemon import translateError
 
 class zenhubworker(ZCmdBase, pb.Referenceable):
     "Execute ZenHub requests in separate process"
@@ -72,6 +73,7 @@ class zenhubworker(ZCmdBase, pb.Referenceable):
             self.services[name, instance] = svc
             return svc
 
+    @translateError
     def remote_execute(self, service, instance, method, args, kw):
         """Execute requests on behalf of zenhub
         @type service: string
