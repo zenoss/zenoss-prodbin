@@ -18,6 +18,7 @@ from twisted.spread import pb
 from twisted.internet import reactor
 from Products.ZenHub.zenhub import PB_PORT
 from ZODB.POSException import ConflictError
+from transaction import commit
 
 class zenhubworker(ZCmdBase, pb.Referenceable):
     "Execute ZenHub requests in separate process"
@@ -92,7 +93,9 @@ class zenhubworker(ZCmdBase, pb.Referenceable):
         m = getattr(service, 'remote_' + method)
         def runOnce():
             self.syncdb()
-            return m(*args, **kw)
+            res = m(*args, **kw)
+            commit()
+            return res
         for i in range(4):
             try:
                 return runOnce()
