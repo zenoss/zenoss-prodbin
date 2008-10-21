@@ -79,12 +79,23 @@ class TestIpNetwork(ZenModelBaseTest):
 
     def testAutomaticNesting(self):
         dmdNet = self.dmd.Networks
+        dmdNet.zDefaultNetworkTree = ['24', '32']
         dmdNet.createNet('1.2.0.0/16')
         dmdNet.createNet('1.2.3.0/24')
         net = dmdNet.findNet('1.2.0.0')
         subnet = dmdNet.findNet('1.2.3.0')
-        self.assert_(subnet in net.getSubNetworks())
-        
+        self.assert_(subnet in net.children())
+
+
+    def testAutomaticNesting2(self):
+        dmdNet = self.dmd.Networks
+        dmdNet.zDefaultNetworkTree = ['8', '16', '24', '32']
+        dmdNet.createNet('1.2.3.0/24')
+        dmdNet.createNet('1.2.4.0/24')
+        net = dmdNet.findNet('1.2.0.0')
+        self.assert_(dmdNet.findNet('1.2.3.0') in net.children())
+        self.assert_(dmdNet.findNet('1.2.4.0') in net.children())
+
 
 def test_suite():
     from unittest import TestSuite, makeSuite

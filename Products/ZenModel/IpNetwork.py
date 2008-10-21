@@ -162,7 +162,13 @@ class IpNetwork(DeviceOrganizer):
         netip = getnetstr(netip,netmask)
         netTree = getattr(self, 'zDefaultNetworkTree', defaultNetworkTree)
         netTree = map(int, netTree)
-        netobj = netobj and netobj or netroot
+        if netobj:
+            # strip irrelevant values from netTree if we're not starting at /0
+            netTree = [ m for m in netTree if m > netobj.netmask ]
+        else:
+            # start at /Networks if no containing network was found
+            netobj = netroot
+
         for treemask in netTree:
             if treemask >= netmask:
                 netobj = netobj.addSubNetwork(netip, netmask)
