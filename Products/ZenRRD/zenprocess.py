@@ -474,15 +474,14 @@ class zenprocess(SnmpDaemon):
             
         # report alive processes
         for config, pids in afterByConfig.items():
-            if config.status > 0:
-                summary = "Process up: %s" % config.originalName
-                self.sendEvent(self.statusEvent,
-                               device=device.name,
-                               summary=summary,
-                               component=config.originalName,
-                               severity=Event.Clear)
-                config.status = 0
-                log.debug(summary)
+            summary = "Process up: %s" % config.originalName
+            self.sendEvent(self.statusEvent,
+                           device=device.name,
+                           summary=summary,
+                           component=config.originalName,
+                           severity=Event.Clear)
+            config.status = 0
+            log.debug(summary)
 
         for p in new:
             log.debug("Found new %s pid %d on %s" % (
