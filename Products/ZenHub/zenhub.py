@@ -41,6 +41,10 @@ from XmlRpcService import XmlRpcService
 
 import time
 
+# required to allow modeling with zenhubworker
+import Products.DataCollector.plugins.DataMaps
+
+
 XML_RPC_PORT = 8081
 PB_PORT = 8789
 

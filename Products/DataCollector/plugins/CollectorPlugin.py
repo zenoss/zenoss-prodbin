@@ -19,7 +19,7 @@ from sets import Set
 
 import Products.ZenUtils.IpUtil as iputil
 
-from DataMaps import ObjectMap, RelationshipMap
+from Products.DataCollector.plugins.DataMaps import ObjectMap, RelationshipMap
 
 from Products.ZenUtils.Utils import prepId as globalPrepId
 
