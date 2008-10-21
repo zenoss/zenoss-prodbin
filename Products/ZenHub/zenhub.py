@@ -445,6 +445,7 @@ class ZenHub(ZCmdBase):
             os.write(fd, "hubport %s\n" % self.options.pbport)
             os.write(fd, "username %s\n" % self.workerUsername)
             os.write(fd, "password %s\n" % self.workerPassword)
+            os.write(fd, "host %s\n" % self.options.host)
         finally:
             os.close(fd)
         # start the worker
