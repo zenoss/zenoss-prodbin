@@ -18,6 +18,12 @@ function getLoader() {
         }
     };
     if (DEBUG_MODE) configObj.filter = 'DEBUG';
+    else {
+        configObj.filter = {
+            'searchExp': "\\.js",
+            'replaceStr': ".js?_dc=" + VERSION_ID
+        }
+    }
     loader = new YAHOO.util.YUILoader(configObj);
     loader.base = '/zport/dmd/yui/';
 

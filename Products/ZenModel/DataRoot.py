@@ -732,4 +732,13 @@ class DataRoot(ZenModelRM, OrderedFolder, Commandable, ZenMenuable):
         """
         return DevelopmentMode
 
+    def versionId(self):
+        """
+        Get a string representative of the code version, to override JS
+        caching.
+        """
+        return self.About.getZenossVersion().full().replace(
+            'Zenoss','').replace(' ','').replace('.','')
+
+
 InitializeClass(DataRoot)

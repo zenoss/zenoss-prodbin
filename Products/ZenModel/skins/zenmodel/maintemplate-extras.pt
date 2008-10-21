@@ -42,6 +42,7 @@
     <![endif]-->
     <script tal:content="string:
         var DEBUG_MODE = ${here/dmd/isDebugMode};
+        var VERSION_ID = '${here/dmd/versionId}';
     "></script>
     <script type="text/javascript" src="js/MochiKit.js"></script>
     <script type="text/javascript" language="javascript"
