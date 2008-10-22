@@ -391,6 +391,9 @@ class ZenossInfo(ZenModelItem, SimpleItem):
             name = 'Z2'
         elif name == 'zeoctl':
             name = 'ZEO'
+        elif '_' in name:
+            collector, daemon = name.split('_', 1)
+            name = '%s-%s' % (daemon, collector)
         else:
             name = "%s-localhost" % name
         pidFile = zenPath('var', '%s.pid' % name)
