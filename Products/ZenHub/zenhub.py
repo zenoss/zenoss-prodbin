@@ -32,7 +32,7 @@ from zope.interface import implements
 import Globals
 
 from Products.ZenUtils.ZCmdBase import ZCmdBase
-from Products.ZenUtils.Utils import zenPath, getExitMessage
+from Products.ZenUtils.Utils import zenPath, getExitMessage, unused
 from Products.ZenUtils.DaemonStats import DaemonStats
 from Products.ZenEvents.Event import Event, EventHeartbeat
 from Products.ZenEvents.ZenEventClasses import App_Start
@@ -42,7 +42,8 @@ from XmlRpcService import XmlRpcService
 import time
 
 # required to allow modeling with zenhubworker
-import Products.DataCollector.plugins.DataMaps
+from Products.DataCollector.plugins import DataMaps
+unused(DataMaps)
 
 
 XML_RPC_PORT = 8081
