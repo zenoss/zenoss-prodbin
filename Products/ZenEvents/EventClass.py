@@ -29,6 +29,7 @@ from Acquisition import aq_base
 
 from Products.ZenRelations.RelSchema import *
 from EventClassInst import EventClassInst, EventClassPropertyMixin
+from Products.ZenEvents.ZenEventClasses import Unknown
 
 from Products.ZenModel.Organizer import Organizer
 from Products.ZenModel.ZenPackable import ZenPackable
@@ -181,8 +182,11 @@ class EventClass(EventClassPropertyMixin, Organizer, ManagedEntity, ZenPackable)
                 log.debug("EventClass:%s matched", evtcl.getOrganizerName())
                 break
         else:
-            evtcl = None
-            log.debug("No EventClass matched")
+            try:
+                return self.getDmdRoot("Events").getOrganizer(Unknown)
+            except KeyError:
+                evtcl = None
+                log.debug("No EventClass matched")
         return evtcl
 
 
