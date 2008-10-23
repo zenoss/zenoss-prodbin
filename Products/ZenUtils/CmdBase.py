@@ -63,6 +63,11 @@ class CmdBase:
     doesLogging = True
 
     def __init__(self, noopts=0):
+        
+        # We must import ZenossStartup at this point so that all Zenoss daemons
+        # and tools will have any ZenPack monkey-patched methods available.
+        import Products.ZenossStartup
+        
         self.usage = "%prog [options]"
         self.noopts = noopts
         self.args = []
