@@ -94,7 +94,6 @@ class ZenModeler(PBDaemon):
         self.clients = []
         self.finished = []
         self.devicegen = None
-        self.slowDown = False
 
     def reportError(self, error):
         """Log errors that have occurred
@@ -591,9 +590,7 @@ class ZenModeler(PBDaemon):
         calls checkStop()
         """
         count = len(self.clients)
-        while ( count < self.options.parallel and
-                self.devicegen and
-                not self.slowDown ):
+        while count < self.options.parallel and self.devicegen:
             try:
                 device = self.devicegen.next()
                 yield self.config().callRemote('getDeviceConfig', [device])
@@ -623,9 +620,6 @@ class ZenModeler(PBDaemon):
         self.parser.add_option('--nowmi',
                 dest='nowmi', action="store_true", default=False,
                 help="Do not execute WMI plugins")
-        self.parser.add_option('--zenwinmodeler',
-                dest='zenwinmodeler', default="zenwinmodeler",
-                help="Execute WMI plugins")
         self.parser.add_option('--parallel', dest='parallel',
                 type='int', default=defaultParallel,
                 help="Number of devices to collect from in parallel")
@@ -706,7 +700,6 @@ class ZenModeler(PBDaemon):
                 while reactor.running:
                     reactor.runUntilCurrent()
                     timeout = reactor.timeout()
-                    self.slowDown = timeout < 0.01
                     reactor.doIteration(timeout)
             except:
                 if reactor.running:
@@ -781,6 +774,5 @@ class ZenModeler(PBDaemon):
 if __name__ == '__main__':
     dc = ZenModeler()
     dc.processOptions()
-    # hook to detect slowdown
     reactor.run = dc.reactorLoop
     dc.run()
