@@ -29,10 +29,11 @@
                     tableName,'description','Description')"/>
     </tr>
     <tal:block tal:repeat="temp batch">
-    <tr tal:define="odd repeat/temp/odd"
+    <tr tal:define="odd repeat/temp/odd;
+                    lnames here/rrdTemplates/objectIds"
         tal:attributes="class python:'tablevalues ' + test(odd,'odd','even')">
         <td>
-            <input tal:condition="python:here.isManager()" 
+            <input tal:condition="python:here.isManager() and temp.id in lnames" 
                 type="checkbox" name="paths:list" 
                 tal:attributes="value temp/absolute_url_path"/>
         </td>
