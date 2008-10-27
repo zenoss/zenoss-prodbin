@@ -11,8 +11,8 @@
 #
 ###########################################################################
 
-from CollectorPlugin import CommandPlugin
-from DataMaps import ObjectMap
+from Products.DataCollector.plugins.CollectorPlugin import CommandPlugin
+from Products.DataCollector.plugins.DataMaps import ObjectMap
 
 MULTIPLIERS = {
     'M' : 1024 * 1024,
