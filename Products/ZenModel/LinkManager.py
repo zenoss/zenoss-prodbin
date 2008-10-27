@@ -149,6 +149,7 @@ class LinkManager(Folder):
         result = {}
         locs = organizer.children()
         locpaths = ['/'.join(loc.getPrimaryPath()) for loc in locs]
+        locpaths.reverse() # otherwise the "startswith" call gets too eager
         path = '/'.join(organizer.getPhysicalPath())
         subdevs = catalog(path=path)
         subids = dict((x.id, x.path) for x in subdevs)
