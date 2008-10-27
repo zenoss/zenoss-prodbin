@@ -13,7 +13,8 @@
 
 import Globals
 from Products.ZenHub.PBDaemon import PBDaemon, FakeRemote
-from Products.ZenEvents.ZenEventClasses import App_Start, Clear
+from Products.ZenEvents.ZenEventClasses import App_Start, Clear, Status_Wmi
+from Products.ZenEvents.Event import Error
 from Products.ZenUtils.Driver import drive, driveLater
 from Products.ZenUtils.Utils import unused
 
@@ -33,6 +34,8 @@ DEFAULT_QUERY_TIMEOUT = 100
 class WinCollector(PBDaemon):
 
     configCycleInterval = 20.
+    # Short text description of what this collector does: set in sub-classes
+    whatIDo = "Override whatIDo in a subclass"
 
     initialServices = PBDaemon.initialServices + [
         'Products.ZenWin.services.WmiConfig'
@@ -54,7 +57,6 @@ class WinCollector(PBDaemon):
         if self.reconfigureTimeout and not self.reconfigureTimeout.called:
             self.reconfigureTimeout.cancel()
         self.reconfigureTimeout = reactor.callLater(30, drive, self.reconfigure)
-
 
     def stopScan(self, unused=None):
         self.stop()
@@ -121,7 +123,11 @@ class WinCollector(PBDaemon):
 
     def updateDevices(self, devices):
         self.devices = devices
-
+        for deviceName, watcher in self.watchers.items():
+            self.log.warning("Updating devices, closing WMI connection to %s",
+                             deviceName)
+            watcher.close()
+        self.watchers = {}
 
     def remote_deleteDevice(self, deviceId):
         self.devices = [i for i in self.devices if i.id != deviceId]
@@ -155,7 +161,33 @@ class WinCollector(PBDaemon):
         self.start()
         d = drive(self.scanCycle)
 
-    
+
+    def deviceDown(self, device, error):
+        summary = ("Could not %s (%s). "
+                   "Check your username/password settings and "
+                   "verify network connectivity." % (self.whatIDo, error))
+        self.sendEvent(dict(summary=summary,
+                            component=self.agent,
+                            eventClass=Status_Wmi,
+                            device=device.id,
+                            severity=Error,
+                            agent=self.agent))
+        self.log.warning("Closing watcher of %s", device.id)
+        if self.watchers.has_key(device.id):
+            w = self.watchers.pop(device.id, None)
+            w.close()
+
+
+    def deviceUp(self, device):
+        msg = "WMI connection to %s up." % device.id
+        self.sendEvent(dict(summary=msg,
+                            eventClass=Status_Wmi,
+                            device=device.id,
+                            severity=Clear,
+                            agent=self.agent,
+                            component=self.name))
+
+
     def reconfigure(self, driver):
         try:
             yield self.eventService().callRemote('getWmiConnIssues')

@@ -15,8 +15,7 @@ import Globals
 from Products.ZenWin.WMIClient import WMIClient
 from Products.ZenWin.WinCollector import WinCollector
 from Products.ZenWin.Watcher import Watcher
-from Products.ZenEvents.ZenEventClasses import Status_Wmi, Status_WinService
-from Products.ZenEvents.Event import Error, Clear
+from Products.ZenEvents.ZenEventClasses import Status_WinService
 from Products.ZenUtils.Driver import drive
 from Products.ZenUtils.Timeout import timeout
 from pysamba.library import WError
@@ -29,6 +28,7 @@ from twisted.python import failure
 class zenwin(WinCollector):
 
     name = agent = "zenwin"
+    whatIDo = "read the status of Windows services"
     attributes = WinCollector.attributes + ('winCycleInterval',)
 
     def __init__(self):
@@ -113,12 +113,8 @@ class zenwin(WinCollector):
                """TargetInstance ISA 'Win32_Service' """)
         # FIXME: this code looks very similar to the code in zeneventlog
         def cleanup(result=None):
-            self.log.warning("Closing watcher of %s", device.id)
             if isinstance(result, failure.Failure):
-                self.deviceDown(device, "Error reading services", result)
-            if self.watchers.has_key(device.id):
-                w = self.watchers.pop(device.id, None)
-                w.close()
+                self.deviceDown(device, result.getErrorMessage())
         def inner(driver):
             try:
                 self.niceDoggie(self.cycleInterval())
@@ -126,7 +122,6 @@ class zenwin(WinCollector):
                 if not w:
                     yield self.scanDevice(device)
                     driver.next()
-                    self.deviceUp(device)
                     w = Watcher(device, wql)
                     yield w.connect()
                     driver.next()
@@ -137,12 +132,12 @@ class zenwin(WinCollector):
                     yield w.getEvents(int(self.options.queryTimeout))
                     for s in driver.next():
                         s = s.targetinstance
-                        self.deviceUp(device)
                         if s.state:
                             if s.state == 'Stopped':
                                 self.serviceStopped(device, s.name)
                             if s.state == 'Running':
                                 self.serviceRunning(device, s.name)
+                self.deviceUp(device)
             except WError, ex:
                 if ex.werror != 0x000006be:
                     raise
@@ -160,34 +155,6 @@ class zenwin(WinCollector):
         return d
         
     
-    def deviceDown(self, device, message, exception):
-        if device.id in self.watchers:
-            w = self.watchers.pop(device.id)
-            w.close()
-        self.sendEvent(dict(summary=message,
-                            eventClass=Status_Wmi,
-                            exception=str(exception),
-                            device=device.id,
-                            severity=Error,
-                            agent=self.agent,
-                            component=self.name))
-        self.wmiprobs.append(device.id)
-        self.log.warning("WMI Connection to %s went down" % device.id)
-
-
-    def deviceUp(self, device):
-        if device.id in self.wmiprobs:
-            self.wmiprobs.remove(device.id)
-            self.log.info("WMI Connection to %s up" % device.id)
-            msg = "WMI connection to %s up." % device.id
-            self.sendEvent(dict(summary=msg,
-                                eventClass=Status_Wmi,
-                                device=device.id,
-                                severity=Clear,
-                                agent=self.agent,
-                                component=self.name))
-
-
     def updateConfig(self, cfg):
         WinCollector.updateConfig(self, cfg)
         self.heartbeatTimeout = self.winCycleInterval * 3

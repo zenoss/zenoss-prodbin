@@ -16,8 +16,6 @@ from Products.ZenWin.Watcher import Watcher
 from Products.ZenWin.WinCollector import WinCollector
 from Products.ZenUtils.Driver import drive
 from Products.ZenUtils.Timeout import timeout
-from Products.ZenEvents.ZenEventClasses import Status_Wmi
-from Products.ZenEvents import Event
 from pysamba.library import WError
 
 from twisted.python import failure
@@ -25,7 +23,7 @@ from twisted.python import failure
 class zeneventlog(WinCollector):
 
     name = agent = "zeneventlog"
-
+    whatIDo = "read the Windows event log"
     eventlogCycleInterval = 5*60
     attributes = WinCollector.attributes + ('eventlogCycleInterval',)
     events = 0
@@ -49,18 +47,8 @@ class zeneventlog(WinCollector):
 
         # FIXME: this code looks very similar to the code in zenwin
         def cleanup(result=None):
-            self.log.warning("Closing watcher of %s", device.id)
             if isinstance(result, failure.Failure):
-                self.sendEvent(dict(summary="Error reading events",
-                                    component=self.agent,
-                                    exception=str(result),
-                                    eventClass=Status_Wmi,
-                                    device=device.id,
-                                    severity=Event.Error,
-                                    agent=self.agent))
-            if self.watchers.has_key(device.id):
-                w = self.watchers.pop(device.id, None)
-                w.close()
+                self.deviceDown(device, result.getErrorMessage())
         def inner(driver):
             try:
                 self.niceDoggie(self.cycleInterval())
@@ -81,6 +69,7 @@ class zeneventlog(WinCollector):
                     for lrec in events:
                         self.events += 1
                         self.sendEvent(self.makeEvent(device.id, lrec))
+                self.deviceUp(device)
             except WError, ex:
                 if ex.werror != 0x000006be:
                     raise
