@@ -67,6 +67,7 @@ class CmdBase:
         # We must import ZenossStartup at this point so that all Zenoss daemons
         # and tools will have any ZenPack monkey-patched methods available.
         import Products.ZenossStartup
+        unused(Products.ZenossStartup)
         
         self.usage = "%prog [options]"
         self.noopts = noopts
