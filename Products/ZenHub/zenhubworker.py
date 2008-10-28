@@ -11,15 +11,19 @@
 #
 ###########################################################################
 import Globals
+from Products.DataCollector.Plugins import loadPlugins
+from Products.ZenHub.zenhub import PB_PORT
+from Products.ZenHub.PBDaemon import translateError
 from Products.ZenUtils.ZCmdBase import ZCmdBase
 from Products.ZenUtils.PBUtil import ReconnectingPBClientFactory
+
 from twisted.cred import credentials
 from twisted.spread import pb
 from twisted.internet import reactor
-from Products.ZenHub.zenhub import PB_PORT
 from ZODB.POSException import ConflictError
 from transaction import commit
-from Products.ZenHub.PBDaemon import translateError
+
+import pickle
 
 class zenhubworker(ZCmdBase, pb.Referenceable):
     "Execute ZenHub requests in separate process"
@@ -27,6 +31,7 @@ class zenhubworker(ZCmdBase, pb.Referenceable):
     def __init__(self):
         ZCmdBase.__init__(self)
         self.zem = self.dmd.ZenEventManager
+        loadPlugins(self.dmd)
         self.services = {}
         factory = ReconnectingPBClientFactory()
         self.log.debug("Connecting to %s:%d",
@@ -74,7 +79,7 @@ class zenhubworker(ZCmdBase, pb.Referenceable):
             return svc
 
     @translateError
-    def remote_execute(self, service, instance, method, args, kw):
+    def remote_execute(self, service, instance, method, args):
         """Execute requests on behalf of zenhub
         @type service: string
         @param service: the name of a service, like PingConfig
@@ -93,6 +98,8 @@ class zenhubworker(ZCmdBase, pb.Referenceable):
         """
         service = self._getService(service, instance)
         m = getattr(service, 'remote_' + method)
+        # now that the service is loaded, we can unpack the arguments
+        args, kw = pickle.loads(args)
         def runOnce():
             self.syncdb()
             res = m(*args, **kw)

@@ -31,6 +31,7 @@ from zope.interface import implements
 
 import Globals
 
+from Products.DataCollector.Plugins import loadPlugins
 from Products.ZenUtils.ZCmdBase import ZCmdBase
 from Products.ZenUtils.Utils import zenPath, getExitMessage, unused
 from Products.ZenUtils.DaemonStats import DaemonStats
@@ -40,10 +41,8 @@ from Products.ZenEvents.ZenEventClasses import App_Start
 from XmlRpcService import XmlRpcService
 
 import time
+import pickle
 
-# required to allow modeling with zenhubworker
-from Products.DataCollector.plugins import DataMaps
-unused(DataMaps)
 
 
 XML_RPC_PORT = 8081
@@ -180,7 +179,11 @@ class WorkerInterceptor(pb.Referenceable):
         instance = self.service.instance
         args = broker.unserialize(args)
         kw = broker.unserialize(kw)
-        result = self.zenhub.deferToWorker( (svc, instance, message, args, kw) )
+        # hide the types in the args: subverting the jelly protection mechanism,
+        # but the types just passed through and the worker may not have loaded
+        # the required service before we try passing types for that service
+        args = pickle.dumps( (args, kw) )
+        result = self.zenhub.deferToWorker( (svc, instance, message, args) )
         return broker.serialize(result, self.perspective)
 
     def addListener(self, listener):
@@ -242,6 +245,7 @@ class ZenHub(ZCmdBase):
 
         ZCmdBase.__init__(self)
         self.zem = self.dmd.ZenEventManager
+        loadPlugins(self.dmd)
         self.services = {}
 
         er = HubRealm(self)
