@@ -25,4 +25,4 @@ fi
 # apply patch
 cd $ZENHOME/Products
 echo "patch --strip $STRIP < ${DFILE}"
-patch --strip $STRIP < ${DFILE}
+patch -b --strip $STRIP < ${DFILE}
