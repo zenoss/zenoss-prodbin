@@ -15,7 +15,11 @@ from Products.DataCollector.Plugins import loadPlugins
 from Products.ZenHub.zenhub import PB_PORT
 from Products.ZenHub.PBDaemon import translateError
 from Products.ZenUtils.ZCmdBase import ZCmdBase
+from Products.ZenUtils.Utils import unused
 from Products.ZenUtils.PBUtil import ReconnectingPBClientFactory
+# required to allow modeling with zenhubworker
+from Products.DataCollector.plugins import DataMaps
+unused(DataMaps)
 
 from twisted.cred import credentials
 from twisted.spread import pb

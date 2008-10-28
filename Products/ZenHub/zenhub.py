@@ -38,6 +38,11 @@ from Products.ZenUtils.DaemonStats import DaemonStats
 from Products.ZenEvents.Event import Event, EventHeartbeat
 from Products.ZenEvents.ZenEventClasses import App_Start
 
+# required to allow modeling with zenhubworker
+from Products.ZenUtils.Utils import unused
+from Products.DataCollector.plugins import DataMaps
+unused(DataMaps)
+
 from XmlRpcService import XmlRpcService
 
 import time
@@ -463,7 +468,7 @@ class ZenHub(ZCmdBase):
                 self.log.debug("Worker reports %s" % (data,))
 
             def errReceived(s, data):
-                self.log.warning("Worker reports as error %s" % (data,))
+                self.log.info("Worker reports %s" % (data,))
                 
             def processEnded(s, reason):
                 os.unlink(tmp)
