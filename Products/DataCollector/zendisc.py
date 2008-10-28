@@ -219,7 +219,7 @@ class ZenDisc(ZenModeler):
                           discoverProto=None,
                           devicePath=devicepath,
                           performanceMonitor=self.options.monitor)
-                
+
                 snmpDeviceInfo = None
                 # if we are using SNMP, lookup the device SNMP info and use the
                 # name defined there for deviceName
@@ -228,11 +228,12 @@ class ZenDisc(ZenModeler):
                     yield self.findRemoteDeviceInfo(ip, devicepath)
                     snmpDeviceInfo = driver.next()
                     if snmpDeviceInfo:
-                        community, port, ver, snmpname = snmpDeviceInfo
-                        kw.update(dict(deviceName=snmpname,
-                                       zSnmpCommunity=community,
-                                       zSnmpPort=port,
-                                       zSnmpVer=ver))
+                        keys = ('zSnmpCommunity', 'zSnmpPort', 'zSnmpVer', 
+                                'deviceName')
+                        snmpDeviceInfo = dict(zip(keys, snmpDeviceInfo))
+                        for k, v in snmpDeviceInfo.iteritems():
+                            # Only override if not empty
+                            if v: kw[k] = v
                 # if we are discovering a single device and a name was passed
                 # in instead of an IP we use the passed in name not the IP
                 if self.options.device and not isip(self.options.device):
@@ -240,7 +241,7 @@ class ZenDisc(ZenModeler):
                 else:
                 # An IP was passed in so we do a reverse lookup on it to get
                 # deviceName
-                    yield asyncNameLookup(ip)   
+                    yield asyncNameLookup(ip)
                     try:
                         kw.update(dict(deviceName=driver.next()))
                     except Exception, ex:
