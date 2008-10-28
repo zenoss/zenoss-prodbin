@@ -501,38 +501,6 @@ True
 </object>
 </tomanycont>
 </object>
-<object id='zenwinmodeler' module='Products.ZenModel.BuiltInDS' class='BuiltInDS'>
-<property select_variable="sourcetypes" type="selection" id="sourcetype" mode="w" >
-Built-In
-</property>
-<property type="boolean" id="enabled" mode="w" >
-True
-</property>
-<property type="int" id="severity" mode="w" >
-3
-</property>
-<property type="int" id="cycletime" mode="w" >
-300
-</property>
-<tomanycont id='datapoints'>
-<object id='cycleTime' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
-<property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
-GAUGE
-</property>
-<property type="boolean" id="isrow" mode="w" >
-True
-</property>
-</object>
-<object id='devices' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
-<property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
-GAUGE
-</property>
-<property type="boolean" id="isrow" mode="w" >
-True
-</property>
-</object>
-</tomanycont>
-</object>
 </tomanycont>
 <tomanycont id='thresholds'>
 <object id='zeneventlog cycle time' module='Products.ZenModel.MinMaxThreshold' class='MinMaxThreshold'>
@@ -644,26 +612,6 @@ True
 </property>
 <property type="string" id="maxval" mode="w" >
 here.winCycleInterval * 0.8
-</property>
-<property type="string" id="eventClass" mode="w" >
-/Perf
-</property>
-<property type="int" id="severity" mode="w" >
-4
-</property>
-<property type="int" id="escalateCount" mode="w" >
-5
-</property>
-</object>
-<object id='zenwinmodeler cycle time' module='Products.ZenModel.MinMaxThreshold' class='MinMaxThreshold'>
-<property type="lines" id="dsnames" mode="w" >
-['zenwinmodeler_cycleTime']
-</property>
-<property type="boolean" id="enabled" mode="w" >
-True
-</property>
-<property type="string" id="maxval" mode="w" >
-here.winmodelerCycleInterval *0.8
 </property>
 <property type="string" id="eventClass" mode="w" >
 /Perf
@@ -987,7 +935,7 @@ AVERAGE
 </object>
 <object id='zenmodeler' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint'>
 <property type="long" id="sequence" mode="w" >
-6
+5
 </property>
 <property select_variable="lineTypes" type="selection" id="lineType" mode="w" >
 LINE
@@ -1137,38 +1085,6 @@ ${graphPoint/id}
 </property>
 <property type="string" id="dpName" mode="w" >
 zenwin_cycleTime
-</property>
-<property type="string" id="cFunc" mode="w" >
-AVERAGE
-</property>
-</object>
-<object id='zenwinmodeler' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint'>
-<property type="long" id="sequence" mode="w" >
-5
-</property>
-<property select_variable="lineTypes" type="selection" id="lineType" mode="w" >
-LINE
-</property>
-<property type="long" id="lineWidth" mode="w" >
-1
-</property>
-<property type="boolean" id="stacked" mode="w" >
-False
-</property>
-<property type="string" id="format" mode="w" >
-%5.2lf%s
-</property>
-<property type="string" id="legend" mode="w" >
-${graphPoint/id}
-</property>
-<property type="long" id="limit" mode="w" >
--1
-</property>
-<property type="string" id="rpn" mode="w" >
-100,*,${here/winmodelerCycleInterval},/
-</property>
-<property type="string" id="dpName" mode="w" >
-zenwinmodeler_cycleTime
 </property>
 <property type="string" id="cFunc" mode="w" >
 AVERAGE
@@ -1900,38 +1816,6 @@ True
 </object>
 </tomanycont>
 </object>
-<object id='zenwinmodeler' module='Products.ZenModel.BuiltInDS' class='BuiltInDS'>
-<property select_variable="sourcetypes" type="selection" id="sourcetype" mode="w" >
-Built-In
-</property>
-<property type="boolean" id="enabled" mode="w" >
-True
-</property>
-<property type="int" id="severity" mode="w" >
-3
-</property>
-<property type="int" id="cycletime" mode="w" >
-300
-</property>
-<tomanycont id='datapoints'>
-<object id='cycleTime' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
-<property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
-GAUGE
-</property>
-<property type="boolean" id="isrow" mode="w" >
-True
-</property>
-</object>
-<object id='devices' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
-<property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
-GAUGE
-</property>
-<property type="boolean" id="isrow" mode="w" >
-True
-</property>
-</object>
-</tomanycont>
-</object>
 </tomanycont>
 <tomanycont id='thresholds'>
 <object id='zeneventlog cycle time' module='Products.ZenModel.MinMaxThreshold' class='MinMaxThreshold'>
@@ -2043,26 +1927,6 @@ True
 </property>
 <property type="string" id="maxval" mode="w" >
 here.winCycleInterval * 0.8
-</property>
-<property type="string" id="eventClass" mode="w" >
-/Perf
-</property>
-<property type="int" id="severity" mode="w" >
-4
-</property>
-<property type="int" id="escalateCount" mode="w" >
-5
-</property>
-</object>
-<object id='zenwinmodeler cycle time' module='Products.ZenModel.MinMaxThreshold' class='MinMaxThreshold'>
-<property type="lines" id="dsnames" mode="w" >
-['zenwinmodeler_cycleTime']
-</property>
-<property type="boolean" id="enabled" mode="w" >
-True
-</property>
-<property type="string" id="maxval" mode="w" >
-here.winmodelerCycleInterval *0.8
 </property>
 <property type="string" id="eventClass" mode="w" >
 /Perf
@@ -2386,7 +2250,7 @@ AVERAGE
 </object>
 <object id='zenmodeler' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint'>
 <property type="long" id="sequence" mode="w" >
-6
+5
 </property>
 <property select_variable="lineTypes" type="selection" id="lineType" mode="w" >
 LINE
@@ -2536,38 +2400,6 @@ ${graphPoint/id}
 </property>
 <property type="string" id="dpName" mode="w" >
 zenwin_cycleTime
-</property>
-<property type="string" id="cFunc" mode="w" >
-AVERAGE
-</property>
-</object>
-<object id='zenwinmodeler' module='Products.ZenModel.DataPointGraphPoint' class='DataPointGraphPoint'>
-<property type="long" id="sequence" mode="w" >
-5
-</property>
-<property select_variable="lineTypes" type="selection" id="lineType" mode="w" >
-LINE
-</property>
-<property type="long" id="lineWidth" mode="w" >
-1
-</property>
-<property type="boolean" id="stacked" mode="w" >
-False
-</property>
-<property type="string" id="format" mode="w" >
-%5.2lf%s
-</property>
-<property type="string" id="legend" mode="w" >
-${graphPoint/id}
-</property>
-<property type="long" id="limit" mode="w" >
--1
-</property>
-<property type="string" id="rpn" mode="w" >
-100,*,${here/winmodelerCycleInterval},/
-</property>
-<property type="string" id="dpName" mode="w" >
-zenwinmodeler_cycleTime
 </property>
 <property type="string" id="cFunc" mode="w" >
 AVERAGE
