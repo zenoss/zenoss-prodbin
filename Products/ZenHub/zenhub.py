@@ -40,8 +40,8 @@ from Products.ZenEvents.ZenEventClasses import App_Start
 
 # required to allow modeling with zenhubworker
 from Products.ZenUtils.Utils import unused
-from Products.DataCollector.plugins import DataMaps
-unused(DataMaps)
+import Products.DataCollector.plugins.DataMaps
+unused(Products.DataCollector.plugins)
 
 from XmlRpcService import XmlRpcService
 
