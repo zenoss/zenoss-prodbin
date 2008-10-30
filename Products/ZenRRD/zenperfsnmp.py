@@ -616,7 +616,7 @@ class zenperfsnmp(SnmpDaemon):
                        device=deviceName,
                        summary=summary,
                        component=name,
-                       severity=Event.Info)
+                       severity=Event.Debug)
         self.log.warn(summary)
         
 
