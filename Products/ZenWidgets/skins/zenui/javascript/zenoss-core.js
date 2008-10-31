@@ -1,5 +1,6 @@
 //var DEBUG_MODE = true;
 if (typeof(DEBUG_MODE)=='undefined') var DEBUG_MODE = false;
+if (typeof(VERSION_ID)=='undefined') var VERSION_ID = '';
 
 // Graceful degradation of Firebug console object
 // via http://ajaxian.com/archives/graceful-degradation-of-firebug-console-object
