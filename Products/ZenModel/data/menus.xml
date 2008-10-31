@@ -3235,6 +3235,26 @@ True
 90.0
 </property>
 </object>
+<object id='changeMonitoring' module='Products.ZenModel.ZenMenuItem' class='ZenMenuItem'>
+<property type="text" id="description" mode="w" >
+Monitoring...
+</property>
+<property type="text" id="action" mode="w" >
+dialog_changeMonitoring
+</property>
+<property type="boolean" id="isglobal" mode="w" >
+True
+</property>
+<property type="lines" id="permissions" mode="w" >
+('Manage DMD',)
+</property>
+<property type="boolean" id="isdialog" mode="w" >
+True
+</property>
+<property type="float" id="ordering" mode="w" >
+0.0
+</property>
+</object>
 <object id='deleteOSProcesses' module='Products.ZenModel.ZenMenuItem' class='ZenMenuItem'>
 <property type="text" id="description" mode="w" >
 Delete OSProcesses...
@@ -3329,26 +3349,6 @@ Add to ZenPack...
 </property>
 <property type="text" id="action" mode="w" >
 dialog_addToZenPack
-</property>
-<property type="boolean" id="isglobal" mode="w" >
-True
-</property>
-<property type="lines" id="permissions" mode="w" >
-('Manage DMD',)
-</property>
-<property type="boolean" id="isdialog" mode="w" >
-True
-</property>
-<property type="float" id="ordering" mode="w" >
-0.0
-</property>
-</object>
-<object id='changeMonitoring' module='Products.ZenModel.ZenMenuItem' class='ZenMenuItem'>
-<property type="text" id="description" mode="w" >
-Monitoring...
-</property>
-<property type="text" id="action" mode="w" >
-dialog_changeMonitoring
 </property>
 <property type="boolean" id="isglobal" mode="w" >
 True
