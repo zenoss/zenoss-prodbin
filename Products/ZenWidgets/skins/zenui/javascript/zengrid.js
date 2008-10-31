@@ -585,8 +585,10 @@ ZenGrid.prototype = {
         return s.substring (s.length - 2, s.length);
     },
     convertDate: function(data) {
+        // This is on templates.pt, but just to make sure we'll redefine it here
+        var server_cti = new RegExp ("^(....)/(..)/(..) (..):(..)\.(..)");
         // Make sure we're dealing with something that could be a date
-        if (data.indexOf('/')==-1) return data;
+        if (!data.match(server_cti)) return data;
         // Make it ISO 8601 compliant
         newdata = data.replace(/\//g, '-')
         // Try to make a Date out of the string
