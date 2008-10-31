@@ -50,7 +50,7 @@ class MonitoringMenuItem(Migrate.Step):
                         'ordering': 0.0,
                         'permissions': ('Manage DMD',)},
                      ],
-            'OSProcess_list': [
+            'OSProcess': [
                      {  'action': 'dialog_changeMonitoring',
                         'isdialog': True,
                         'description': 'Monitoring...',
