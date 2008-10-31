@@ -585,11 +585,18 @@ ZenGrid.prototype = {
         return s.substring (s.length - 2, s.length);
     },
     convertDate: function(data) {
+        // Make sure we're dealing with something that could be a date
+        if (data.indexOf('/')==-1) return data;
+        // Make it ISO 8601 compliant
         newdata = data.replace(/\//g, '-')
+        // Try to make a Date out of the string
         ft = isoTimestamp(newdata)
+        // If we didn't end up with a Date, stop right here
         if (!isDate(ft)) return data;
+        // Account for sever time and timezone differences
         var nt = ft.getTime() + server_offset*1000;
         ft.setTime (ft.getTime() - server_offset*1000);
+        // Turn it back into a Zenossy string
         return toISOTimestamp(ft).replace(/\-/g, '/')
     },
     populateTable: function(data) {
