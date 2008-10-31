@@ -31,6 +31,9 @@ False
 <property visible="True" type="boolean" id="zRouteMapCollectOnlyIndirect" >
 False
 </property>
+<property visible="True" type="int" id="zRouteMapMaxRoutes" >
+500
+</property>
 <property visible="True" type="int" id="zIpServiceMapMaxPort" >
 1024
 </property>
@@ -193,6 +196,9 @@ True
 <property type="boolean" id="usessh" mode="w" >
 False
 </property>
+<property type="string" id="parser" mode="w" >
+Auto
+</property>
 <tomanycont id='datapoints'>
 <object id='sysUpTime' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
@@ -241,6 +247,9 @@ True
 <property type="boolean" id="usessh" mode="w" >
 False
 </property>
+<property type="string" id="parser" mode="w" >
+Auto
+</property>
 <tomanycont id='datapoints'>
 <object id='count' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
@@ -271,6 +280,9 @@ True
 <property type="boolean" id="usessh" mode="w" >
 False
 </property>
+<property type="string" id="parser" mode="w" >
+Auto
+</property>
 <tomanycont id='datapoints'>
 <object id='cpu' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
@@ -300,6 +312,9 @@ True
 </property>
 <property type="boolean" id="usessh" mode="w" >
 False
+</property>
+<property type="string" id="parser" mode="w" >
+Auto
 </property>
 <tomanycont id='datapoints'>
 <object id='mem' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
@@ -653,6 +668,9 @@ True
 <property type="boolean" id="usessh" mode="w" >
 False
 </property>
+<property type="string" id="parser" mode="w" >
+Auto
+</property>
 <tomanycont id='datapoints'>
 <object id='ifInErrors' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
@@ -688,6 +706,9 @@ True
 </property>
 <property type="boolean" id="usessh" mode="w" >
 False
+</property>
+<property type="string" id="parser" mode="w" >
+Auto
 </property>
 <tomanycont id='datapoints'>
 <object id='ifInOctets' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
@@ -725,6 +746,9 @@ True
 <property type="boolean" id="usessh" mode="w" >
 False
 </property>
+<property type="string" id="parser" mode="w" >
+Auto
+</property>
 <tomanycont id='datapoints'>
 <object id='ifInUcastPackets' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
@@ -761,6 +785,9 @@ True
 <property type="boolean" id="usessh" mode="w" >
 False
 </property>
+<property type="string" id="parser" mode="w" >
+Auto
+</property>
 <tomanycont id='datapoints'>
 <object id='ifOperStatus' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
@@ -793,6 +820,9 @@ True
 </property>
 <property type="boolean" id="usessh" mode="w" >
 False
+</property>
+<property type="string" id="parser" mode="w" >
+Auto
 </property>
 <tomanycont id='datapoints'>
 <object id='ifOutErrors' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
@@ -830,6 +860,9 @@ True
 <property type="boolean" id="usessh" mode="w" >
 False
 </property>
+<property type="string" id="parser" mode="w" >
+Auto
+</property>
 <tomanycont id='datapoints'>
 <object id='ifOutOctets' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
@@ -865,6 +898,9 @@ True
 </property>
 <property type="boolean" id="usessh" mode="w" >
 False
+</property>
+<property type="string" id="parser" mode="w" >
+Auto
 </property>
 <tomanycont id='datapoints'>
 <object id='ifOutUcastPackets' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
@@ -1339,6 +1375,9 @@ True
 <property type="boolean" id="usessh" mode="w" >
 False
 </property>
+<property type="string" id="parser" mode="w" >
+Auto
+</property>
 <tomanycont id='datapoints'>
 <object id='ifHCInOctets' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
@@ -1371,6 +1410,9 @@ True
 </property>
 <property type="boolean" id="usessh" mode="w" >
 False
+</property>
+<property type="string" id="parser" mode="w" >
+Auto
 </property>
 <tomanycont id='datapoints'>
 <object id='ifHCInUcastPkts' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
@@ -1405,6 +1447,9 @@ True
 <property type="boolean" id="usessh" mode="w" >
 False
 </property>
+<property type="string" id="parser" mode="w" >
+Auto
+</property>
 <tomanycont id='datapoints'>
 <object id='ifHCOutOctets' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
@@ -1437,6 +1482,9 @@ True
 </property>
 <property type="boolean" id="usessh" mode="w" >
 False
+</property>
+<property type="string" id="parser" mode="w" >
+Auto
 </property>
 <tomanycont id='datapoints'>
 <object id='ifHCOutUcastPkts' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
@@ -1471,6 +1519,9 @@ True
 <property type="boolean" id="usessh" mode="w" >
 False
 </property>
+<property type="string" id="parser" mode="w" >
+Auto
+</property>
 <tomanycont id='datapoints'>
 <object id='ifInErrors' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
@@ -1503,6 +1554,9 @@ True
 </property>
 <property type="boolean" id="usessh" mode="w" >
 False
+</property>
+<property type="string" id="parser" mode="w" >
+Auto
 </property>
 <tomanycont id='datapoints'>
 <object id='ifOutErrors' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
@@ -1994,6 +2048,9 @@ True
 <property type="boolean" id="usessh" mode="w" >
 False
 </property>
+<property type="string" id="parser" mode="w" >
+Auto
+</property>
 <tomanycont id='datapoints'>
 <object id='cpu5min' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
@@ -2027,6 +2084,9 @@ True
 <property type="boolean" id="usessh" mode="w" >
 False
 </property>
+<property type="string" id="parser" mode="w" >
+Auto
+</property>
 <tomanycont id='datapoints'>
 <object id='mem5minFree' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
@@ -2059,6 +2119,9 @@ True
 </property>
 <property type="boolean" id="usessh" mode="w" >
 False
+</property>
+<property type="string" id="parser" mode="w" >
+Auto
 </property>
 <tomanycont id='datapoints'>
 <object id='sysUpTime' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
@@ -2350,6 +2413,9 @@ True
 <property type="boolean" id="usessh" mode="w" >
 False
 </property>
+<property type="string" id="parser" mode="w" >
+Auto
+</property>
 <tomanycont id='datapoints'>
 <object id='laLoadInt5' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
@@ -2382,6 +2448,9 @@ True
 </property>
 <property type="boolean" id="usessh" mode="w" >
 False
+</property>
+<property type="string" id="parser" mode="w" >
+Auto
 </property>
 <tomanycont id='datapoints'>
 <object id='memAvailReal' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
@@ -2416,6 +2485,9 @@ True
 <property type="boolean" id="usessh" mode="w" >
 False
 </property>
+<property type="string" id="parser" mode="w" >
+Auto
+</property>
 <tomanycont id='datapoints'>
 <object id='memAvailSwap' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
@@ -2448,6 +2520,9 @@ True
 </property>
 <property type="boolean" id="usessh" mode="w" >
 False
+</property>
+<property type="string" id="parser" mode="w" >
+Auto
 </property>
 <tomanycont id='datapoints'>
 <object id='memBuffer' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
@@ -2482,6 +2557,9 @@ True
 <property type="boolean" id="usessh" mode="w" >
 False
 </property>
+<property type="string" id="parser" mode="w" >
+Auto
+</property>
 <tomanycont id='datapoints'>
 <object id='memCached' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
@@ -2514,6 +2592,9 @@ True
 </property>
 <property type="boolean" id="usessh" mode="w" >
 False
+</property>
+<property type="string" id="parser" mode="w" >
+Auto
 </property>
 <tomanycont id='datapoints'>
 <object id='ssCpuRawIdle' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
@@ -2551,6 +2632,9 @@ True
 <property type="boolean" id="usessh" mode="w" >
 False
 </property>
+<property type="string" id="parser" mode="w" >
+Auto
+</property>
 <tomanycont id='datapoints'>
 <object id='ssCpuRawSystem' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
@@ -2586,6 +2670,9 @@ True
 </property>
 <property type="boolean" id="usessh" mode="w" >
 False
+</property>
+<property type="string" id="parser" mode="w" >
+Auto
 </property>
 <tomanycont id='datapoints'>
 <object id='ssCpuRawUser' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
@@ -2623,6 +2710,9 @@ True
 <property type="boolean" id="usessh" mode="w" >
 False
 </property>
+<property type="string" id="parser" mode="w" >
+Auto
+</property>
 <tomanycont id='datapoints'>
 <object id='ssCpuRawWait' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
@@ -2658,6 +2748,9 @@ True
 </property>
 <property type="boolean" id="usessh" mode="w" >
 False
+</property>
+<property type="string" id="parser" mode="w" >
+Auto
 </property>
 <tomanycont id='datapoints'>
 <object id='sysUpTime' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
@@ -3402,6 +3495,9 @@ True
 </property>
 <property type="boolean" id="usessh" mode="w" >
 False
+</property>
+<property type="string" id="parser" mode="w" >
+Auto
 </property>
 <tomanycont id='datapoints'>
 <object id='usedBlocks' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
@@ -4993,6 +5089,9 @@ True
 <property type="boolean" id="usessh" mode="w" >
 False
 </property>
+<property type="string" id="parser" mode="w" >
+Auto
+</property>
 <tomanycont id='datapoints'>
 <object id='cpuPercentProcessorTime' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
@@ -5025,6 +5124,9 @@ True
 </property>
 <property type="boolean" id="usessh" mode="w" >
 False
+</property>
+<property type="string" id="parser" mode="w" >
+Auto
 </property>
 <tomanycont id='datapoints'>
 <object id='memoryAvailableKBytes' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
@@ -5059,6 +5161,9 @@ True
 <property type="boolean" id="usessh" mode="w" >
 False
 </property>
+<property type="string" id="parser" mode="w" >
+Auto
+</property>
 <tomanycont id='datapoints'>
 <object id='memoryPagesPerSec' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
@@ -5091,6 +5196,9 @@ True
 </property>
 <property type="boolean" id="usessh" mode="w" >
 False
+</property>
+<property type="string" id="parser" mode="w" >
+Auto
 </property>
 <tomanycont id='datapoints'>
 <object id='sysUpTime' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
@@ -5472,6 +5580,9 @@ True
 <property type="boolean" id="usessh" mode="w" >
 False
 </property>
+<property type="string" id="parser" mode="w" >
+Auto
+</property>
 <tomanycont id='datapoints'>
 <object id='lDiskDiskReadBytesPerSec' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
@@ -5504,6 +5615,9 @@ True
 </property>
 <property type="boolean" id="usessh" mode="w" >
 False
+</property>
+<property type="string" id="parser" mode="w" >
+Auto
 </property>
 <tomanycont id='datapoints'>
 <object id='lDiskDiskWriteBytesPerSec' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
@@ -6947,6 +7061,9 @@ ${zCommandPath}/zenplugin.py cpu
 <property type="boolean" id="usessh" mode="w" >
 True
 </property>
+<property type="string" id="parser" mode="w" >
+Auto
+</property>
 <tomanycont id='datapoints'>
 <object id='laLoadInt1' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
@@ -7095,6 +7212,9 @@ ${zCommandPath}/zenplugin.py mem
 <property type="boolean" id="usessh" mode="w" >
 True
 </property>
+<property type="string" id="parser" mode="w" >
+Auto
+</property>
 <tomanycont id='datapoints'>
 <object id='hrMemorySize' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
@@ -7175,6 +7295,9 @@ ${zCommandPath}/zenplugin.py uptime
 </property>
 <property type="boolean" id="usessh" mode="w" >
 True
+</property>
+<property type="string" id="parser" mode="w" >
+Auto
 </property>
 <tomanycont id='datapoints'>
 <object id='sysUpTime' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
@@ -7874,6 +7997,9 @@ ${zCommandPath}/zenplugin.py disk ${here/mount}
 <property type="boolean" id="usessh" mode="w" >
 True
 </property>
+<property type="string" id="parser" mode="w" >
+Auto
+</property>
 <tomanycont id='datapoints'>
 <object id='availBlocks' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
@@ -8239,6 +8365,9 @@ ${zCommandPath}/zenplugin.py intf ${here/id}
 </property>
 <property type="boolean" id="usessh" mode="w" >
 True
+</property>
+<property type="string" id="parser" mode="w" >
+Auto
 </property>
 <tomanycont id='datapoints'>
 <object id='ifInErrors' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
@@ -8790,6 +8919,9 @@ True
 <property type="boolean" id="usessh" mode="w" >
 False
 </property>
+<property type="string" id="parser" mode="w" >
+Auto
+</property>
 <tomanycont id='datapoints'>
 <object id='batteryCapacity' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
@@ -8822,6 +8954,9 @@ True
 </property>
 <property type="boolean" id="usessh" mode="w" >
 False
+</property>
+<property type="string" id="parser" mode="w" >
+Auto
 </property>
 <tomanycont id='datapoints'>
 <object id='batteryOutputLoad' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
@@ -8856,6 +8991,9 @@ True
 <property type="boolean" id="usessh" mode="w" >
 False
 </property>
+<property type="string" id="parser" mode="w" >
+Auto
+</property>
 <tomanycont id='datapoints'>
 <object id='batteryRunTimeRemaining' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
@@ -8888,6 +9026,9 @@ True
 </property>
 <property type="boolean" id="usessh" mode="w" >
 False
+</property>
+<property type="string" id="parser" mode="w" >
+Auto
 </property>
 <tomanycont id='datapoints'>
 <object id='sysUpTime' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
