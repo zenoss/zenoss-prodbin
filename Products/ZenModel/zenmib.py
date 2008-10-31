@@ -104,7 +104,9 @@ class zenmib(ZCmdBase):
         result = {}
         self.log.debug("%s", mibname.split('/')[-1])
         dependencies = self.generateDependenciesForSMIDump(mibname, depmap)
-        dump = 'smidump -k -fpython %s "%s" 2>/dev/null' % (
+        # Need to update to libsmi 0.48 before we can use -k (tickets 3785, 3928)
+        #dump = 'smidump -k -fpython %s "%s" 2>/dev/null' % (
+        dump = 'smidump -fpython %s "%s" 2>/dev/null' % (
             dependencies, mibname)
         self.log.debug('running %s', dump)
         exec os.popen(dump) in result
