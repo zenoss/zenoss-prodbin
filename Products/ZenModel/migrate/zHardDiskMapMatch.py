@@ -28,14 +28,16 @@ class zHardDiskMapMatch(Migrate.Step):
                 '', 'string', 'Regex that disks must match to be modeled', True)
 
         try:
-            dmd.Devices.Server.Windows._setProperty('zHardDiskMapMatch', '.*')
+            if not dmd.Devices.Server.Windows.hasProperty('zHardDiskMapMatch'):
+                dmd.Devices.Server.Windows._setProperty('zHardDiskMapMatch', '.*')
         except AttributeError:
             pass
 
         try:
-            dmd.Devices.Server.Linux._setProperty('zHardDiskMapMatch',
-                    '^[hs]d[a-z]\d+$|c\d+t\d+d\d+s\d+$|^cciss\/c\dd\dp\d$|' \
-                    '^dm\-\d$')
+            if not dmd.Devices.Server.Linux.hasProperty('zHardDiskMapMatch'):
+                dmd.Devices.Server.Linux._setProperty('zHardDiskMapMatch',
+                                                      '^[hs]d[a-z]\d+$|c\d+t\d+d\d+s\d+$|^cciss\/c\dd\dp\d$|' \
+                                                      '^dm\-\d$')
         except AttributeError:
             pass
 
