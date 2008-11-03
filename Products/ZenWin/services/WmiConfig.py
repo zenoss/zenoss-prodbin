@@ -19,6 +19,8 @@ Provides Wmi config to zenwin clients.
 from Products.ZenHub.services.ModelerService import ModelerService
 from Products.ZenModel.Device import Device
 from Products.ZenModel.DeviceClass import DeviceClass
+from Products.ZenModel.WinService import WinService
+from Products.ZenModel.ServiceClass import ServiceClass
 
 from Products.ZenHub.services.Procrastinator import Procrastinate
 from Products.ZenHub.services.ThresholdMixin import ThresholdMixin
@@ -39,6 +41,11 @@ class WmiConfig(ModelerService, ThresholdMixin):
     def update(self, object):
         if isinstance(object, DeviceClass):
             objects = object.getSubDevices()
+        elif isinstance(object, WinService):
+            objects = [object.device()]
+        elif isinstance(object, ServiceClass):
+            objects = [ i.device() for i in object.instances() \
+                if isinstance(i, WinService) ]
         else:
             objects = [object]
         for object in objects:
