@@ -16,6 +16,7 @@ from Products.ZenWin.Watcher import Watcher
 from Products.ZenWin.WinCollector import WinCollector
 from Products.ZenUtils.Driver import drive
 from Products.ZenUtils.Timeout import timeout
+from Products.ZenEvents.ZenEventClasses import Error, Warning, Info, Debug
 from pysamba.library import WError
 
 from twisted.python import failure
@@ -101,8 +102,13 @@ class zeneventlog(WinCollector):
         """
         lrec = lrec.targetinstance
         evtkey = "%s_%s" % (lrec.sourcename, lrec.eventcode)
-        sev = 4 - lrec.eventtype     #lower severity by one level
-        if sev < 1: sev = 1
+        sev = Debug
+        if lrec.eventtype == 1:
+            sev = Error # error
+        elif lrec.eventtype == 2:
+            sev = Warning # warning
+        elif lrec.eventtype in (3, 4, 5):
+            sev = Info # information, security audit success & failure
         evt = dict(device=name,
                    eventClassKey=evtkey,
                    eventGroup=lrec.logfile,
