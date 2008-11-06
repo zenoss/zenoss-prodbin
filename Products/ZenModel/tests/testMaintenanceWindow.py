@@ -61,6 +61,24 @@ class TestMaintenanceWindows(ZenModelBaseTest):
         m.set(t, P, m.FSOTM)
         self.assert_(m.next(t+1) == c)
 
+        # DST
+        m.set(t, P, m.DAILY)
+        tt = time.mktime( (2008, 11, 1, 12, 10, 9, 0, 0, -1) )
+        c = time.mktime( (2008, 11, 2, 12, 10, 9, 0, 0, -1) )
+        self.assert_(m.next(tt + P) == c)
+        
+        m.set(t, P, m.WEEKLY)
+        c = time.mktime( (2008, 11, 7, 12, 10, 9, 0, 0, -1) )
+        self.assert_(m.next(tt + P) == c)
+
+        m.set(t, P, m.EVERY_WEEKDAY)
+        c = time.mktime( (2008, 11, 3, 12, 10, 9, 0, 0, -1) )
+        self.assert_(m.next(tt + P) == c)
+
+        m.set(t, P, m.FSOTM)
+        c = time.mktime( (2008, 11, 1, 12, 10, 9, 0, 0, -1) )
+        self.assert_(m.next(tt + P) == c)
+
         # skips
         m.skip = 2
         m.set(t, P, m.DAILY)
