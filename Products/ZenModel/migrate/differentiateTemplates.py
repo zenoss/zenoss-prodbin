@@ -18,10 +18,11 @@ import logging
 log = logging.getLogger("zen.migrate")
 
 class DifferentiateTemplates(Migrate.Step):
-    version = Migrate.Version(2, 3, 0)
+    version = Migrate.Version(2, 3, 1)
 
     def cutover(self, dmd):
-        
+        defaultClass = "Products.ZenModel.Device"
+                
         # Maps of template to class. Does not include IpInterface templates
         tmap = {
             "Fan": "Products.ZenModel.Fan",
@@ -42,7 +43,8 @@ class DifferentiateTemplates(Migrate.Step):
             }
         
         for t in dmd.Devices.getAllRRDTemplates():
-            if getattr(t, "targetPythonClass", None): continue
+            if getattr(t, "targetPythonClass", defaultClass) != defaultClass:
+                continue
             if not tmap.has_key(t.id): continue
             t.targetPythonClass = tmap[t.id]
         
@@ -50,7 +52,8 @@ class DifferentiateTemplates(Migrate.Step):
         # the possible names could be for templates that get bound to them.
         for c in dmd.Devices.getSubComponents(meta_type="IpInterface"):
             for t in c.getRRDTemplates():
-                if getattr(t, "targetPythonClass", None): continue
+                if getattr(t, "targetPythonClass", defaultClass) != defaultClass:
+                    continue
                 t.targetPythonClass = "Products.ZenModel.IpInterface"
 
 
