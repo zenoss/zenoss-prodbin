@@ -89,6 +89,9 @@ def login(self):
         url = "%s/zenoss_terms/?came_from=%s" % (
                     self.absolute_url(), urllib.quote(came_from))
 
+    if self.dmd.uuid is None:
+        import commands
+        self.dmd.uuid = commands.getoutput('uuidgen')
     return response.redirect(url)
 
 CookieAuthHelper.CookieAuthHelper.login = login
