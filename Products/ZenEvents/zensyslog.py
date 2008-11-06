@@ -52,7 +52,8 @@ class ZenSyslog(DatagramProtocol, EventServer):
         if not self.options.useFileDescriptor and \
                self.options.syslogport < 1024:
             self.openPrivilegedPort('--listen', '--proto=udp',
-                                    '--port=%d' % self.options.syslogport)
+                '--port=%s:%d' % (self.options.listenip,
+                self.options.syslogport))
         self.changeUser()
         self.minpriority = self.options.minpriority
         self.processor = None
@@ -69,7 +70,8 @@ class ZenSyslog(DatagramProtocol, EventServer):
         if self.options.useFileDescriptor is not None:
             self.useUdpFileDescriptor(int(self.options.useFileDescriptor))
         else:
-            reactor.listenUDP(self.options.syslogport, self)
+            reactor.listenUDP(self.options.syslogport, self,
+                interface=self.options.listenip)
 
 
     def expand(self, msg, client_address):
@@ -173,6 +175,9 @@ class ZenSyslog(DatagramProtocol, EventServer):
         self.parser.add_option('--syslogport',
             dest='syslogport', default=SYSLOG_PORT, type='int',
             help="Port number to use for syslog events")
+        self.parser.add_option('--listenip',
+            dest='listenip', default='0.0.0.0',
+            help="IP address to listen on. Default is 0.0.0.0")
         self.parser.add_option('--useFileDescriptor',
                                dest='useFileDescriptor',
                                type='int',

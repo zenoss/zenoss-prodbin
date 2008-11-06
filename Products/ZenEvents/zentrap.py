@@ -71,14 +71,16 @@ class ZenTrap(EventServer):
         EventServer.__init__(self)
         if not self.options.useFileDescriptor and self.options.trapport < 1024:
             self.openPrivilegedPort('--listen', '--proto=udp',
-                                    '--port=%d' % self.options.trapport)
+                '--port=%s:%d' % (self.options.listenip,
+                self.options.trapport))
         self.session = netsnmp.Session()
         if self.options.useFileDescriptor is not None:
             fileno = int(self.options.useFileDescriptor)
             # open port 1162, but then dup fileno onto it
-            self.session.awaitTraps('0.0.0.0:1162', fileno)
+            self.session.awaitTraps('%s:1162' % self.options.listenip, fileno)
         else:
-            self.session.awaitTraps('0.0.0.0:%d' % self.options.trapport)
+            self.session.awaitTraps('%s:%d' % (
+                self.options.listenip, self.options.trapport))
         self.oidCache = {}
         self.session.callback = self.handleTrap
         twistedsnmp.updateReactor()
@@ -209,9 +211,11 @@ class ZenTrap(EventServer):
     def buildOptions(self):
         EventServer.buildOptions(self)
         self.parser.add_option('--trapport', '-t',
-                               help=('Listen for SNMP traps on this '
-                                     'port rather than the default'),
-                               dest='trapport', type='int', default=TRAP_PORT)
+            dest='trapport', type='int', default=TRAP_PORT,
+            help="Listen for SNMP traps on this port rather than the default")
+        self.parser.add_option('--listenip',
+            dest='listenip', default='0.0.0.0',
+            help="IP address to listen on. Default is 0.0.0.0")
         self.parser.add_option('--useFileDescriptor',
                                dest='useFileDescriptor',
                                type='int',
