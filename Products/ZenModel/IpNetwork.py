@@ -465,6 +465,8 @@ class IpNetwork(DeviceOrganizer):
                 cmd = talesEval('string:' + zDiscCommand, organizer).split(" ")
             else:
                 cmd = ["zendisc", "run", "--weblog", "--net", organizer.id]
+                if getattr(organizer, "zSnmpStrictDiscovery", False):
+                    cmd += ["--snmp-strict-discovery"]
             zd = binPath('zendisc')
             zendiscCmd = [zd] + cmd[1:]
             result = executeCommand(zendiscCmd, REQUEST)

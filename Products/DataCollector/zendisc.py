@@ -61,7 +61,7 @@ class ZenDisc(ZenModeler):
         return self.services.get('DiscoverService', FakeRemote())
 
     def discoverIps(self, nets):
-        """Ping all ips, create entries in the network if nessesary.
+        """Ping all ips, create entries in the network if necessary.
 
         @return deferred: successful result is a list of IPs that were added
         """
@@ -234,6 +234,15 @@ class ZenDisc(ZenModeler):
                         for k, v in snmpDeviceInfo.iteritems():
                             # Only override if not empty
                             if v: kw[k] = v
+                    # if we are using SNMP, did not find any snmp info,
+                    # and we are in strict discovery mode, do not
+                    # create a device
+                    elif self.options.zSnmpStrictDiscovery:
+                        self.log.info('zSnmpStrictDiscovery is True.  ' +
+                                      'Not creating device for %s.'
+                                      % ip )
+                        return
+                        
                 # if we are discovering a single device and a name was passed
                 # in instead of an IP we use the passed in name not the IP
                 if self.options.device and not isip(self.options.device):
@@ -537,7 +546,7 @@ class ZenDisc(ZenModeler):
                     help="Recurse into subnets for discovery")
         self.parser.add_option('--useFileDescriptor',
                     dest='useFileDescriptor', default=None,
-                    help="Use the given (priveleged) file descriptor for ping")
+                    help="Use the given (privileged) file descriptor for ping")
         self.parser.add_option('--assign-devclass-script', dest='autoAllocate',
                     action="store_true", default=False,
                     help="have zendisc auto allocate devices after discovery")
@@ -548,6 +557,10 @@ class ZenDisc(ZenModeler):
                     default=0,
                     type='int',
                     help="Collect a maximum number of devices. Default is no limit.")
+        self.parser.add_option('--snmp-strict-discovery', 
+                    dest='zSnmpStrictDiscovery',
+                    action="store_true", default=False,
+                    help="Only add devices that can be modeled via snmp." )
 
 
 

@@ -1,5 +1,10 @@
 <?xml version="1.0"?>
 <objects>
+<object id='/zport/dmd/Networks' module='Products.ZenModel.IpNetwork' class='IpNetwork'>
+<property visible="True" type="boolean" id="zSnmpStrictDiscovery" >
+False
+</property>
+</object>
 <object id='/zport/dmd/Devices' module='Products.ZenModel.DeviceClass' class='DeviceClass'>
 <property visible="True" type="int" id="zProdStateThreshold" >
 300
