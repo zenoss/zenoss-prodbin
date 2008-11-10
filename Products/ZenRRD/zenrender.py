@@ -57,12 +57,20 @@ class HttpRender(resource.Resource):
 
 class zenrender(PBDaemon):
 
-    initialServices = ['ZenRender']
+    initialServices = ['EventService', 'ZenRender']
     name = 'zenrender'
 
     def __init__(self):
         PBDaemon.__init__(self)
         self.rs = RenderServer(self.name)
+    
+    def connected(self):
+        if self.options.cycle:
+            self.heartbeat()
+    
+    def heartbeat(self):
+        reactor.callLater(self.heartbeatTimeout / 3, self.heartbeat)
+        PBDaemon.heartbeat(self)
 
     def remote_render(self, *args, **kw):
         return self.rs.render(*args, **kw)
