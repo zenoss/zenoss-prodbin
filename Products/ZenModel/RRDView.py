@@ -83,11 +83,11 @@ class RRDView(object):
         return value
 
 
-    def getRRDValue(self, dsname, start=None, end=None, function="LAST"):
+    def getRRDValue(self, dsname, **kwargs):
         """Return a single rrd value from its file using function.
         """
         dsnames = (dsname,)
-        results = self.getRRDValues(dsnames, start, end, function)
+        results = self.getRRDValues(dsnames, **kwargs)
         if results:
             return results[dsname]
 
@@ -109,8 +109,10 @@ class RRDView(object):
         return result
         
         
-    def getRRDValues(self, dsnames, start=None, end=None, function="LAST"):
-        """Return a dict of key value pairs where dsnames are the keys.
+    def getRRDValues(self, dsnames, start=None, end=None, function="LAST",
+                     format="%.2lf"):
+        """
+        Return a dict of key value pairs where dsnames are the keys.
         """
         try:
             if not start:
@@ -131,7 +133,7 @@ class RRDView(object):
                 gopts.append("DEF:%s_r=%s:ds0:AVERAGE" % (dsname,filename))
                 gopts.append("CDEF:%s_c=%s_r%s" % (dsname,dsname,rpn))
                 gopts.append("VDEF:%s=%s_c,%s" % (dsname,dsname,function))
-                gopts.append("PRINT:%s:%%.2lf" % (dsname))
+                gopts.append("PRINT:%s:%s" % (dsname, format))
                 gopts.append("--start=%d" % start)
                 if end:
                     gopts.append("--end=%d" % end)
