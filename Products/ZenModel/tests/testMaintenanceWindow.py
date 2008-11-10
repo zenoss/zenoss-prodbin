@@ -62,22 +62,37 @@ class TestMaintenanceWindows(ZenModelBaseTest):
         self.assert_(m.next(t+1) == c)
 
         # DST
-        m.set(t, P, m.DAILY)
-        tt = time.mktime( (2008, 11, 1, 12, 10, 9, 0, 0, -1) )
-        c = time.mktime( (2008, 11, 2, 12, 10, 9, 0, 0, -1) )
-        self.assert_(m.next(tt + P) == c)
-        
-        m.set(t, P, m.WEEKLY)
-        c = time.mktime( (2008, 11, 7, 12, 10, 9, 0, 0, -1) )
-        self.assert_(m.next(tt + P) == c)
+        FSOTM_Map = {
+            # DST day      following first sunday of the month
+            (2008, 3, 9):  (2008, 4, 6),
+            (2008, 11, 2): (2008, 12, 7),
+            }
+        for (yy, mm, dd), sunday in FSOTM_Map.items():
+            duration = 3*60
+            tt = time.mktime( (yy, mm, dd, 12, 10, 9, 0, 0, -1) )
+            m.set(tt, duration, m.DAILY)
+            c = time.mktime( (yy, mm, dd + 1, 12, 10, 9, 0, 0, -1) )
+            self.assert_(m.next(tt + duration) == c)
 
-        m.set(t, P, m.EVERY_WEEKDAY)
-        c = time.mktime( (2008, 11, 3, 12, 10, 9, 0, 0, -1) )
-        self.assert_(m.next(tt + P) == c)
+            m.set(tt, duration, m.WEEKLY)
+            c = time.mktime( (yy, mm, dd + 7, 12, 10, 9, 0, 0, -1) )
+            self.assert_(m.next(tt + duration) == c)
 
-        m.set(t, P, m.FSOTM)
-        c = time.mktime( (2008, 11, 1, 12, 10, 9, 0, 0, -1) )
-        self.assert_(m.next(tt + P) == c)
+            m.set(tt, duration, m.EVERY_WEEKDAY)
+            c = time.mktime( (yy, mm, dd + 1, 12, 10, 9, 0, 0, -1) )
+            self.assert_(m.next(tt + duration) == c)
+
+            m.set(tt, duration, m.FSOTM)
+            c = time.mktime( sunday + (12, 10, 9, 0, 0, -1) )
+            self.assert_(m.next(tt + duration) == c)
+
+            # DST: check that a 3-hour range ends at the proper time
+            tt = time.mktime( (yy, mm, dd, 0, 10, 9, 0, 0, -1) )
+            m.set(tt, duration, m.DAILY)
+            m.started = tt
+            c = time.mktime( (yy, mm, dd, 3, 10, 8, 0, 0, -1) )
+            self.assert_(m.nextEvent(tt) == c)
+            m.started = None
 
         # skips
         m.skip = 2

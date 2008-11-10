@@ -274,7 +274,7 @@ class MaintenanceWindow(ZenModelRM):
     def nextEvent(self, now):
         "Return the time of the next begin() or end()"
         if self.started:
-            return self.started + self.duration * 60 - 1
+            return self.adjustDST(self.started + self.duration * 60 - 1)
         # ok, so maybe "now" is a little late: start anything that
         # should have been started by now
         return self.next(now - self.duration * 60 + 1)
@@ -291,6 +291,9 @@ class MaintenanceWindow(ZenModelRM):
 
 
     def next(self, now = None):
+        return self.adjustDST(self._next(now))
+        
+    def _next(self, now):
         """From Unix time_t now value, return next time_t value
         for the window to start, or None"""
 
@@ -402,6 +405,19 @@ class MaintenanceWindow(ZenModelRM):
             self.end()
         else:
             self.begin(now)
+
+    def adjustDST(self, result):
+        if self.started:
+            startTime = time.localtime(self.started)
+        else:
+            startTime = time.localtime(self.start)
+        resultTime = time.localtime(result)
+        if startTime.tm_isdst == resultTime.tm_isdst:
+            return result
+        if startTime.tm_isdst:
+            return result + 60*60
+        return result - 60*60
+        
 
 DeviceMaintenanceWindow = MaintenanceWindow
 OrganizerMaintenanceWindow = MaintenanceWindow
