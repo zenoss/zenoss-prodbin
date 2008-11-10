@@ -90,6 +90,7 @@ class ThresholdGraphPoint(GraphPoint):
                 gps = self.graphDef.getDataPointGraphPoints(dpName)
                 if gps:
                     gp = gps[0]
+                    gp.legend = gp.talesEval(gp.legend, context)
                 else:
                     gp = None
                 related[dpName] = gp
@@ -111,13 +112,14 @@ class ThresholdGraphPoint(GraphPoint):
             threshInst = threshClass.createThresholdInstance(context)
             namespace = self.addPrefix(prefix, self.id)
             color = self.getThresholdColor(idx)
+            legend = self.talesEval(self.legend, context)
             template = self.graphDef.rrdTemplate() or None
             # We can't get templates when doing mgr
             # need to refactor threshinst to not take template.
             # Looks like it's not being used anyway.
             gopts = threshInst.getGraphElements(
                         template, context, gopts, namespace, 
-                        color, relatedGps)
+                        color, legend, relatedGps)
         return cmds + gopts
 
 

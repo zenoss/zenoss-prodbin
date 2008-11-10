@@ -251,7 +251,7 @@ class MinMaxThresholdInstance(ThresholdInstance):
 
 
     def getGraphElements(self, template, context, gopts, namespace, color, 
-                         relatedGps):
+                         legend, relatedGps):
         """Produce a visual indication on the graph of where the
         threshold applies."""
         unused(template, namespace)
@@ -270,28 +270,30 @@ class MinMaxThresholdInstance(ThresholdInstance):
         result = []
         if n:
             result += [
-                "HRULE:%s%s:%s\\j" % (n, color, self.getMinLabel(n)),
+                "HRULE:%s%s:%s\\j" % (n, color,
+                    legend or self.getMinLabel(n, relatedGps)),
                 ]
         if x:
             result += [
-                "HRULE:%s%s:%s\\j" % (x, color, self.getMaxLabel(x))
+                "HRULE:%s%s:%s\\j" % (x, color,
+                    legend or self.getMaxLabel(x, relatedGps))
                 ]
         return gopts + result
 
 
-    def getMinLabel(self, minval):
+    def getMinLabel(self, minval, relatedGps):
         """build a label for a min threshold"""
-        return "%s < %s" % (self.getNames(), self.setPower(minval))
+        return "%s < %s" % (self.getNames(relatedGps), self.setPower(minval))
 
 
-    def getMaxLabel(self, maxval):
+    def getMaxLabel(self, maxval, relatedGps):
         """build a label for a max threshold"""
-        return "%s > %s" % (self.getNames(),self.setPower(maxval))
+        return "%s > %s" % (self.getNames(relatedGps),self.setPower(maxval))
 
-    def getNames(self):
-        names = list(Set([x.split('_', 1)[1] for x in self.dataPointNames]))
-        names.sort()
-        return ', '.join(names)
+
+    def getNames(self, relatedGps):
+        legends = [ getattr(gp, 'legend', gp) for gp in relatedGps.values() ]
+        return ', '.join(legends)
 
 
     def setPower(self, number):
