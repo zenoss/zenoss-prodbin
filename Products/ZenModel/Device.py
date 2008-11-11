@@ -1640,8 +1640,12 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
         """
         root = os.path.dirname(self.fullRRDPath())
         oldpath = os.path.join(root, old)
-        if os.path.exists(oldpath):
-            newpath = os.path.join(root, new)
+        newpath = os.path.join(root, new)
+        perfsvr = self.getPerformanceServer()
+        if hasattr(perfsvr, 'isLocalHost') and not perfsvr.isLocalHost():
+            command = 'mv "%s" "%s"' % (oldpath, newpath)
+            perfsvr.executeCommand(command, 'zenoss')
+        elif os.path.exists(oldpath):
             if os.path.exists(newpath): shutil.rmtree(newpath)
             os.rename(oldpath, newpath)
 
