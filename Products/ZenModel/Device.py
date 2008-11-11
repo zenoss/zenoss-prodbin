@@ -1635,12 +1635,15 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
         if not os.fork(): os.execvp('mysql', args)
 
     def renameDeviceInPerformance(self, old, new):
-        """rename the directory that holds performance data for this device
-           note that the directory must be renamed on all collectors"""
-        root=os.path.dirname(self.fullRRDPath())
-        newpath=os.path.join(root, new)
-        if os.path.exists(newpath): shutil.rmtree(newpath)
-        os.rename(os.path.join(root, old), newpath)
+        """
+        Rename the directory that holds performance data for this device.
+        """
+        root = os.path.dirname(self.fullRRDPath())
+        oldpath = os.path.join(root, old)
+        if os.path.exists(oldpath):
+            newpath = os.path.join(root, new)
+            if os.path.exists(newpath): shutil.rmtree(newpath)
+            os.rename(oldpath, newpath)
 
     def manage_afterAdd(self, item, container):
         """
