@@ -407,6 +407,8 @@ class MaintenanceWindow(ZenModelRM):
             self.begin(now)
 
     def adjustDST(self, result):
+        if result is None:
+            return None
         if self.started:
             startTime = time.localtime(self.started)
         else:
