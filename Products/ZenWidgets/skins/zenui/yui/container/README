@@ -1,5 +1,205 @@
 Container Release Notes
 
+*** version 2.6.0 ***
+
+Changes:
+--------
+
++ 1px rounded corners in Sam-Skin, added in 2.3.0, are no longer
+  rendered in IE6 or IE7.
+  
+  hasLayout and relative positioning applied 
+  to the header, body and footer elements to achieve the 1px 
+  rounded corners had functional side effects (such as the inability
+  to shrink-wrap auto width containers, and the creation of invalid
+  stacking contexts)
+  
+  1px rounded corners can be re-applied with a CSS patch if required,
+  as discussed on the container documentation web page.
+  
++ We now attempt to focus the first focusable element inside a Panel,
+  when it is shown (as is done with Dialog).
+  
++ Setting the "height" configuration property will now result in the 
+  container's body element being resized to fill out any empty 
+  vertical space. This behavior can be configured using the 
+  "autofillheight" configuration property discussed below.
+
+Added the following features:
+-----------------------------
+
++ Added a new "preventcontextoverlap" configuration property used 
+  to manage whether or not an Overlay instance should overlap its 
+  context element (defined using the "context" configuration property)
+  when the "constraintoviewport" configuration property is set 
+  to "true".
+
++ Added ability to specify event triggers when using the "context"
+  configuration property. The container wil re-align itself with 
+  the context element in response to these trigger events.
+
+  See context configuration property documentation for usage details.
+  
++ Added "autofillheight" configuration property, which is set to "body"
+  by default. This configuration property can be used to specify which
+  of the 3 container element - "header", "body", "footer" should be
+  resized to fill out any remaining vertical space when the container's
+  "height" configuration property is set.
+
+  The property can be set to false/null to disable the feature if 
+  desired.
+  
++ Panel now supports focusFirst and focusLast methods, as 
+  well as tab, shift-tab looping when modal (similar to Dialog).
+
+Fixed the following bugs:
+-------------------------
+
++ Fixed issue with tooltip iframe remaining visible in situations
+  where the page was scrolled down.
+  
++ Fixed OverlayManager.find to return null, if the Overlay cannot
+  be found.
+
++ OverlayManager no longer overwrites focus or blur methods on the 
+  registered container, if they already exist (e.g. for Menu). Instead
+  it registers focus/blur event listeners to maintain OverlayManager
+  state in such situations.
+  
++ Panels/Dialogs without a fixed width specified (auto width containers) 
+  now shrink-wrap correctly in IE6, IE7 (see 1px rounded corner discussion 
+  above)
+
++ Added text to the close icon, to enhance accessibility for screen 
+  readers. Also changed the close icon element from a span, to an anchor
+  to facilate keyboard tab access.
+  
++ Added title to text resize monitor iframe, to assist screen readers.
+
++ Fixed modal mask resizing when going from a larger to a smaller window
+  size.
+  
++ hideMaskEvent is now fired after all modal mask relatd state changes 
+  (including changes to the document.body) have taken place. 
+  
+  Originally it was fired before removing the "masked" class from 
+  document.body.
+  
++ Fixed Sam Skin look/feel for default Dialog buttons. Originally 
+  disabled default buttons looked the same as enabled default buttons.
+  
++ Fixed asynchronous Dialog submission failure for cases where the form
+  contained elements named "action" or "method".
+  
++ Fixed Dialog button focus methods when using YUI Buttons.
+
++ Modal Dialogs buttons are now included in the tab, shift-tab flow. 
+  Originally buttons in Modal dialogs were unreachable when tabbing.
+  
++ Individual focus handlers attached to all non-container focusable
+  elements (used to enforce modality), resulted in poor performance 
+  when showing/hiding modal Panels, especially in IE, on pages with
+  a large number of focusable elements.
+  
+  Instead of individual listeners, Panel now registers a single 
+  focus listener on the document to enforce modality, improving
+  performance and scalability for modal solutions.
+  
++ Files for optional component dependencies (e.g. animation, dragdrop,
+  connection) can now be included after container's js files, without
+  breaking related functionality.
+  
++ Fixed Config to remove (null out) current entry from the 
+  config queue, before invoking fireEvent for the entry, to 
+  keep it from being re-added to the end of the queue if 
+  listeners were to set a property which superceded the entry.
+
+*** version 2.5.2 ***
+
++ No change.
+
+*** version 2.5.1 ***
+
+Fixed the following bugs:
+-------------------------
+
++ Module.setBody, setHeader and setFooter methods now accept
+  DocumentFragments. This feature was implicitly available
+  in versions prior to 2.5.0 and is now officially supported.
+
+Changes:
+--------
+
++ Optimized addition of Modality focus handlers on masked
+  elements (which are used to enforce modality) and added 
+  ability to disable feature, to avoid timeout script errors 
+  in IE if your page contains a very large number of focusable 
+  elements.
+
+  Additionally changes to Event in 2.5.1 should allow
+  for increased scalability, when using Modal panels containing
+  large numbers of focusable elements on the page.
+
+  Added a YAHOO.widget.Panel.FOCUSABLE property, defining 
+  the set of elements which should have focus handlers applied 
+  when covered by the Modal mask.
+
+  If you wish to disable the addition of focus handlers to all
+  focusable elements on the page when a Modal Panel is displayed,
+  the property can be set to an empty array:
+
+        YAHOO.widget.Panel.FOCUSABLE = [];
+
+  NOTE: This will mean that elements under mask may still be
+  accessible using the keyboard, however the mask will still 
+  prevent mouse access to elements.
+
+*** version 2.5.0 ***
+
+Fixed the following bugs:
+-------------------------
+
++ We now add the text resize monitor iframe to the DOM in a timeout,
+  to help alleviate the perpetual loading indicator seen in 
+  Firefox 2.0.0.8 (Gecko 1.8.1.8) and above on Windows.
+
++ Changed the closing script tag string used in the resize monitor, to 
+  allow container-min.js, container_core-min.js content to be used inline.
+
++ Fixed problem with underlay size being too short in IE6 when setting up
+  an initially visible Dialog with buttons.
+  
++ Removed overflow:auto applied to the modal mask for all browsers other 
+  than gecko/MacOS to help avoid the "missing text cursor" Gecko bug. 
+  Overflow:auto is still applied to for Gecko/MacOS to help avoid 
+  scrollbar bleedthrough, another Gecko bug (discussed in Container's 
+  known issues section).
+  
+Added the following features:
+-----------------------------
+
++ Added a "hideaftersubmit" config property to Dialog, to allow the end
+  user to configure whether or not the Dialog should be hidden after
+  it has been submitted. By default it is set to false, to provide 
+  backwards compatibility.
+  
++ Added contextMouseOverEvent, contextMouseOutEvent and 
+  contextTriggerEvent events to Tooltip, which provide access to the 
+  context element when the user mouses over a context element, mouses 
+  out of a context element, and before a tooltip is about to be 
+  triggered (displayed) for a context element. See the API docs for
+  these events for futher details.
+  
++ Added a "disabled" config property to Tooltip, to allow the user
+  to dynamically disable a tooltip.
+  
+Changes:
+--------
+
++ Optimized constraintoviewport handling for Overlays which haven't
+  been specifically positioned, so that the constraint checks aren't
+  made before every show.
+
 *** version 2.4.0 ***
 
 Fixed the following bugs:

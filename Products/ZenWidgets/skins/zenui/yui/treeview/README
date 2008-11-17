@@ -1,5 +1,31 @@
 TreeView - Release Notes
 
+2.6.0
+  * Keyboard Navigation
+  * Delegated event listeners replace the inline listeners
+  * Tree serialization/deserialization
+  * Build tree from existing markup
+  * Node click and dblclick events
+  * DateNode (calendar control integration)
+  * Editable node labels (double-click to edit the label)
+  * render/destroy methods
+
+2.5.2
+  * Made CSS adjustments to work with base.css
+
+2.5.1
+  * No change
+
+2.5.0
+  * Added isLeaf property to Node that allows dynamically loaded trees to
+    have nodes that are not dynamically loaded (without configuring dynamic
+    load for each individual dynamic node, which was the requirement previously).  
+    If set to true, dynamic loading will be disabled for the node and it 
+    will always have the leaf node presentation (rather than the expand icon).
+  * Made CSS adjustments to work with base.css
+  * HTMLNode: removed unused property 'content', and documented the correct
+    property 'html'.
+
 2.4.0
   * added TreeView getNodeByElement, which will return a YAHOO.widget.Node 
     reference for any ancestor HTML element of a node in the tree.

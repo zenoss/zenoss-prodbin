@@ -45,6 +45,7 @@ td.cell {
     height: 20px;
     position: relative;
     left: 1px;
+    margin-bottom: 0;
 }
 .zg_headers td.cell {
     font-weight: bold;

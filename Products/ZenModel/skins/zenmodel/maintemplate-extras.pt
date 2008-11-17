@@ -29,7 +29,9 @@
           href="/zport/dmd/favicon.ico"
           type="image/x-icon"/>
     <link rel="stylesheet" type="text/css" 
-          href="yui/grids/grids-min.css"/>
+          href="yui/reset-fonts-grids/reset-fonts-grids.css"/>
+    <link rel="stylesheet" type="text/css" 
+          href="yui/base/base-min.css"/>
     <link rel="stylesheet" type="text/css" title="zenoss"
         href="/zport/portal_skins/zenoss.css" >
     <!--[if IE 7]>
@@ -48,7 +50,7 @@
     <script type="text/javascript" language="javascript"
         src="/zport/dmd/yui/yahoo/yahoo-min.js"></script>
     <script type="text/javascript" language="javascript"
-        src="/zport/dmd/yui/yuiloader/yuiloader-beta-min.js"></script>
+        src="/zport/dmd/yui/yuiloader/yuiloader-min.js"></script>
     <script type="text/javascript" src="javascript/zenoss-core.js"></script>
     <script>
     var loader = YAHOO.zenoss.getLoader();

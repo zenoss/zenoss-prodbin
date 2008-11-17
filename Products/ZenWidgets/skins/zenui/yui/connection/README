@@ -1,5 +1,45 @@
 Connection Manager Release Notes
 
+*** version 2.6.0 ***
+
+* setForm optimization for select-one elements.
+
+* File upload transactions that include encoded POST data will have the keys and
+values decoded before they are used to create the form fields, to avoid having
+the data encoded twice.
+
+*** version 2.5.2 ***
+
+* In file upload transactions, in Safari 3.x, fail to send the file data.  This
+is due to Safari evaluating the condition statement "if(formObject.encoding){}"
+as true.  This results in the incorrect attribute being set, the correct
+attribute being "enctype."  The conditional check now explicitly verifies for
+IE, before setting the appropriate attribute.
+
+* NOTE: File uploads using setForm() does not function as expected in Opera
+9.27.  The file and data upload phase works as expected, however the server
+response cannot be read.  Specifically, "onload" for an iframe is triggered when
+the iframe is appended into the DOM.  This results in the upload callback being
+fired immediately, before the transaction is complete, and before the response
+data are available.
+
+This condition is documented in Opera's bug tracking system: 295719 and appears
+to have been fixed as of Opera 9.50 b2.
+
+*** version 2.5.1 ***
+
+* no changes.
+
+*** version 2.5.0 ***
+
+* setForm() can now detects HTTPS in the URI for file upload transactions.  The
+third, boolean argument for HTTPS when using IE is no longer necessary.
+
+* [FIXED] SF1882101.  POST transactions without a message will now have a
+Content-Length value set to 0 for FF 2.x.  This is accomplished by passing a
+value of empty string instead of null to XHR's send().  All other A-Grade
+browsers remain unaffected and perform correctly.
+
 *** version 2.4.0 ***
 
 * [FIXED] SF1804153.  Transactions initialized with setForm() now properly clear
@@ -252,4 +292,11 @@ and returns false if the connection object is no longer available.
 *** version 0.9.0 ***
 
 * Initial release
+
+
+
+
+
+
+
 
