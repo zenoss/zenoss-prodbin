@@ -2,27 +2,65 @@
 CHANGESET=$1
 # check to see if changeset or file have been specified
 # and whether ZENHOME is directory
-if [ -z "$CHANGESET" -a -d $ZENHOME ]; then
-    echo "Specify changeset or patch file."
-    exit 1
+if [ ! -z "$ZENHOME" -a ! -d $ZENHOME ]; then
+    echo "Unable to determine \$ZENHOME (ie where the patches should be applied)" >&2
+    exit 1 
+fi 
+if [ -z "$CHANGESET" ]; then
+    echo "Specify a changeset or a patch file." >&2 
+    exit 1 
+fi 
+
+# NB: The appliances don't have 'which'
+WHICH=which
+$WHICH which >/dev/null 2>&1
+if [ $? -gt 1 ] ; then   #  1- missing file, 127 - bad command
+   which() { whereis $* | awk '{ print $2; }'; }
+   $WHICH whereis >/dev/null 2>&1
+   if [ $? -gt 1 ] ; then
+      echo "Unable to find 'which' or 'whereis' -- exiting" >&2
+      exit 1
+   fi
 fi
+
+# sanity check for patch...
+if [ ! -x "`$WHICH patch 2>/dev/null`" ]; then 
+    echo "Please install 'patch' or ensure 'patch' is in \$PATH" >&2 
+    exit 1 
+fi 
+
 
 # use a diff file
 if [ -e "$CHANGESET" ];	then
-    echo "using file ${CHANGESET}"
+    echo "Using the file ${CHANGESET} as the patch source..."
     cp `pwd`/${CHANGESET} $ZENHOME/Products
     DFILE=${CHANGESET}
     STRIP=4
-# get diff from svn
+
 else
+# get diff from svn
+    # sanity check for wget...
+    if [ -x "$($WHICH curl 2>/dev/null)" ]; then 
+       get=curl 
+    elif [ -x "$($WHICH wget 2>/dev/null)" ]; then 
+       get="wget -q -O -" 
+    else 
+        echo "Please install 'wget' or 'curl' to download patches" >&2 
+       exit 1
+    fi
+
+    echo "Getting patch from Internet..."
     echo "http://dev.zenoss.org/trac/changeset/${CHANGESET}?format=diff&new=${CHANGESET}"
-    curl "http://dev.zenoss.org/trac/changeset/${CHANGESET}?format=diff&new=${CHANGESET}" \
+    $get "http://dev.zenoss.org/trac/changeset/${CHANGESET}?format=diff&new=${CHANGESET}" \
     > ${ZENHOME}/Products/r${CHANGESET}.patch
     DFILE=r${CHANGESET}.patch
     STRIP=3
 fi
 
 # apply patch
+echo
+echo "Applying patch..."
 cd $ZENHOME/Products
 echo "patch --strip $STRIP < ${DFILE}"
 patch -b --strip $STRIP < ${DFILE}
+
