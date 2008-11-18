@@ -14,10 +14,8 @@
 __doc__="""ZenDaemon
 
 Base class for making deamon programs
+"""
 
-$Id: ZenDaemon.py,v 1.9 2003/08/29 20:33:10 edahl Exp $"""
-
-__version__ = "$Revision: 1.9 $"[11:-2]
 
 import sys
 import os
@@ -44,10 +42,17 @@ else:
 
 
 class ZenDaemon(CmdBase):
+    """
+    Base class for creating daemons
+    """
 
     pidfile = None
     
     def __init__(self, noopts=0, keeproot=False):
+        """
+        Initializer that takes care of basic daemon options.
+        Creates a PID file.
+        """
         CmdBase.__init__(self, noopts)
         self.pidfile = None
         self.keeproot=keeproot
@@ -62,8 +67,10 @@ class ZenDaemon(CmdBase):
                 try:
                    self.writePidFile()
                 except OSError:
-                   raise SystemExit("ERROR: unable to open pid file %s" %
-                                    (self.pidfile or '(unknown)'))
+                   msg= "ERROR: unable to open PID file %s" % \
+                                    (self.pidfile or '(unknown)')
+                   raise SystemExit(msg)
+
         if self.options.watchdog and not self.options.watchdogPath:
             self.becomeWatchdog()
 
@@ -78,6 +85,9 @@ class ZenDaemon(CmdBase):
 
 
     def writePidFile(self):
+        """
+        Write the PID file to disk
+        """
         myname = sys.argv[0].split(os.sep)[-1]
         if myname.endswith('.py'): myname = myname[:-3]
         monitor = getattr(self.options, 'monitor', 'localhost')
@@ -91,6 +101,9 @@ class ZenDaemon(CmdBase):
         fp.close()
 
     def setupLogging(self):
+        """
+        Create formating for log entries and set default log level
+        """
         rlog = logging.getLogger()
         rlog.setLevel(logging.WARN)
         if hasattr(self, 'mname'): mname = self.mname
@@ -120,6 +133,9 @@ class ZenDaemon(CmdBase):
 
 
     def changeUser(self):
+        """
+        Switch identity to the appropriate Unix user
+        """
         if not self.keeproot:
             try:
                 cname = pwd.getpwuid(os.getuid())[0]
@@ -168,6 +184,9 @@ class ZenDaemon(CmdBase):
 
 
     def sigTerm(self, signum=None, frame=None):
+        """
+        Signal handler for the SIGTERM signal.
+        """
         # This probably won't be called when running as daemon.
         # See ticket #1757
         from Products.ZenUtils.Utils import unused
@@ -175,12 +194,16 @@ class ZenDaemon(CmdBase):
         stop = getattr(self, "stop", None)
         if callable(stop): stop()
         if self.pidfile and os.path.exists(self.pidfile):
-            self.log.info("delete pidfile %s", self.pidfile)
+            self.log.info("Deleting PID file %s ...", self.pidfile)
             os.remove(self.pidfile)
         self.log.info('Daemon %s shutting down' % self.__class__.__name__)
         raise SystemExit
 
+
     def becomeWatchdog(self):
+        """
+        Watch the specified daemon and restart it if necessary.
+        """
         from Products.ZenUtils.Watchdog import Watcher, log
         log.setLevel(self.options.logseverity)
         cmd = sys.argv[:]
@@ -188,8 +211,10 @@ class ZenDaemon(CmdBase):
             cmd.remove('--watchdog')
         if '--daemon' in cmd:
             cmd.remove('--daemon')
+
         socketPath = '%s/.%s-watchdog-%d' % (
             zenPath('var'), self.__class__.__name__, os.getpid())
+
         # time between child reports: default to 2x the default cycle time
         cycleTime = getattr(self.options, 'cycleTime', 1200)
         # Default start timeout should be cycle time plus a couple of minutes
@@ -214,18 +239,21 @@ class ZenDaemon(CmdBase):
            self.reporter.niceDoggie(timeout)
 
     def buildOptions(self):
+        """
+        Standard set of command-line options.
+        """
         CmdBase.buildOptions(self)
         self.parser.add_option('--uid',dest='uid',default="zenoss",
-                help='user to become when running default:zenoss')
+                help='User to become when running default:zenoss')
         self.parser.add_option('-c', '--cycle',dest='cycle',
                 action="store_true", default=False,
-                help="Cycle continuously on cycleInterval from zope")
+                help="Cycle continuously on cycleInterval from Zope")
         self.parser.add_option('-D', '--daemon', default=False,
                 dest='daemon',action="store_true",
-                help="Become a unix daemon")
+                help="Launch into the background")
         self.parser.add_option('--weblog', default=False,
                 dest='weblog',action="store_true",
-                help="output log info in html table format")
+                help="output log info in HTML table format")
         self.parser.add_option('--watchdog', default=False,
                                dest='watchdog', action="store_true",
                                help="Run under a supervisor which will restart it")
@@ -235,6 +263,6 @@ class ZenDaemon(CmdBase):
         self.parser.add_option('--startTimeOut',
                                dest='starttimeout',
                                type="int",
-                               help="wait seconds for initial heartbeat")
+                               help="Wait seconds for initial heartbeat")
 
 

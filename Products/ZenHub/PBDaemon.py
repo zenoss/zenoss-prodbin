@@ -89,7 +89,13 @@ class PBDaemon(ZenDaemon, pb.Referenceable):
     _customexitcode = 0
     
     def __init__(self, noopts=0, keeproot=False):
-        ZenDaemon.__init__(self, noopts, keeproot)
+        try:
+            ZenDaemon.__init__(self, noopts, keeproot)
+        except:
+            import traceback
+            self.log.critical( traceback.format_exc( 0 ) )
+            sys.exit(1)
+
         self.rrdStats = DaemonStats()
         self.perspective = None
         self.services = {}
