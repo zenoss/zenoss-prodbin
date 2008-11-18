@@ -90,7 +90,7 @@ class ZenModeler(PBDaemon):
         if self.options.device:
             self.single = True
         self.modelerCycleInterval = self.options.cycletime
-        self.collage = self.options.collage / 1440.0
+        self.collage = float( self.options.collage ) / 1440.0
         self.clients = []
         self.finished = []
         self.devicegen = None
