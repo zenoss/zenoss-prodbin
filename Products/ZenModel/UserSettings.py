@@ -232,18 +232,38 @@ class UserSettingsManager(ZenModelRM):
     security.declareProtected(ZEN_MANAGE_DMD, 'manage_addUser')
     def manage_addUser(self, userid, password=None,roles=("ZenUser",),
                     REQUEST=None,**kw):
-        """Add a zenoss user to the system and set its default properties.
+        """
+        Add a Zenoss user to the system and set the user's default properties.
+
+        @parameter userid: username to add
+        @parameter password: password for the username
+        @parameter roles: tuple of role names
+        @parameter REQUEST: Zope object containing details about this request
         """
         if not userid: return
+
+        illegal_usernames= [ 'user', ]
+
+        user_name= userid.lower()
+        if user_name in illegal_usernames:
+            if REQUEST:
+                REQUEST['message'] = "The username '%s' is reserved." %\
+                    userid
+                return self.callZenScreen(REQUEST)
+            else:
+                return None
+
         if password is None:
             password = self.generatePassword()
+
         self.acl_users._doAddUser(userid,password,roles,"")
         user = self.acl_users.getUser(userid)
         ufolder = self.getUserSettings(userid)
         if REQUEST: kw = REQUEST.form
         ufolder.updatePropsFromDict(kw)
+
         if REQUEST:
-            REQUEST['message'] = "User added"
+            REQUEST['message'] = "User '%s' added" % userid
             return self.callZenScreen(REQUEST)
         else:
             return user
