@@ -93,6 +93,11 @@ class TestZenHub(unittest.TestCase):
     def tearDown(self):
         sys.argv = self.before
 
+    def testPbRegistration(self):
+        from twisted.spread.jelly import unjellyableRegistry
+        self.assertTrue(unjellyableRegistry.has_key('DataMaps.ObjectMap'))
+        self.assertTrue(unjellyableRegistry.has_key('Products.DataCollector.plugins.DataMaps.ObjectMap'))
+
     def testGetService(self):
         client = TestClient(self, self.base + count)
         self.zenhub.main()

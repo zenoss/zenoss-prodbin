@@ -37,11 +37,20 @@ from Products.ZenUtils.Utils import zenPath, getExitMessage, unused
 from Products.ZenUtils.DaemonStats import DaemonStats
 from Products.ZenEvents.Event import Event, EventHeartbeat
 from Products.ZenEvents.ZenEventClasses import App_Start
-
-# required to allow modeling with zenhubworker
 from Products.ZenUtils.Utils import unused
-import Products.DataCollector.plugins.DataMaps
-unused(Products.DataCollector.plugins)
+
+# Due to the manipulation of sys.path during the loading of plugins,
+# we can get ObjectMap imported both as DataMaps.ObjectMap and the
+# full-path from Products.  The following gets the class registered
+# with the jelly serialization engine under both names:
+#
+#  1st: get Products.DataCollector.plugins.DataMaps.ObjectMap
+from Products.DataCollector.plugins.DataMaps import ObjectMap
+#  2nd: get DataMaps.ObjectMap
+import sys
+sys.path.insert(0, zenPath('Products', 'DataCollector', 'plugins'))
+import DataMaps
+unused(DataMaps, ObjectMap)
 
 from XmlRpcService import XmlRpcService
 
