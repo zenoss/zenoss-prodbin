@@ -12,14 +12,11 @@
 #
 ###########################################################################
 
-__doc__='''zenperfsnmp
+__doc__="""zenperfsnmp
 
-Gets snmp performance data and stores it in the RRD files.
+Gets SNMP performance data and stores it in RRD files.
 
-$Id$
-'''
-
-__version__ = "$Revision$"[11:-2]
+"""
 
 import os
 import time
@@ -40,7 +37,7 @@ from Products.ZenModel.PerformanceConf import performancePath
 from Products.ZenEvents import Event
 from Products.ZenEvents.ZenEventClasses \
      import Perf_Snmp, Status_Snmp, Status_RRD
-from Products.ZenEvents.ZenEventClasses import Critical, Clear
+from Products.ZenEvents.ZenEventClasses import Critical, Clear, Debug
 
 from Products.ZenRRD.RRDUtil import RRDUtil
 from SnmpDaemon import SnmpDaemon
@@ -56,10 +53,22 @@ MAX_SNMP_REQUESTS = 20
 DEVICE_LOAD_CHUNK_SIZE = 2
 
 def makeDirs(dir):
-    if not os.path.exists(dir):
+    """
+    Wrapper around makedirs that sanity checks before running
+    """
+    if os.path.exists(dir):
+        return
+
+    try:
         os.makedirs(dir, 0750)
+    except Exception, ex:
+        log.critical( "Unable to create directories for %s because %s" % ( dir, ex ) )
+
 
 def read(fname):
+    """
+    Wrapper around the standard function to open a file and read its contents
+    """
     if os.path.exists(fname):
         fp = file(fname, 'rb')
         try:
@@ -68,43 +77,72 @@ def read(fname):
             fp.close()
     return ''
 
+
 def write(fname, data):
+    """
+    Wrapper around the standard function to open a file and write data
+    """
     makeDirs(os.path.dirname(fname))
-    fp = open(fname, 'wb')
+
     try:
-        fp.write(data)
-    finally:
-        fp.close()
+        fp = open(fname, 'wb')
+        try:
+            fp.write(data)
+        finally:
+            fp.close()
+
+    except Exception, ex:
+        log.critical( "Unable to write data to %s because %s" % ( fname, ex ) )
+
 
 def unlink(fname):
+    """
+    Wrapper around the standard function to delete a file
+    """
     if os.path.exists(fname):
         os.unlink(fname)
 
 def chunk(lst, n):
-    'break lst into n-sized chunks'
+    """
+    Break lst into n-sized chunks
+    """
     return [lst[i:i+n] for i in range(0, len(lst), n)]
 
 try:
     sorted = sorted                     # added in python 2.4
 except NameError:
     def sorted(lst, *args, **kw):
+        """
+        Keep things sane in a pre-python 2.4 environment
+        """
         lst.sort(*args, **kw)
         return lst
 
 def firsts(lst):
-    'the first element of every item in a sequence'
+    """
+    The first element of every item in a sequence
+    """
     return [item[0] for item in lst]
 
 def checkException(alog, function, *args, **kw):
+    """
+    Execute the function with arguments and keywords.
+    If there is an exception, log it using the given
+    logging function 'alog'.
+    """
     try:
         return function(*args, **kw)
     except Exception, ex:
         alog.exception(ex)
         raise ex
 
+
+
 from twisted.spread import pb
 class SnmpConfig(pb.Copyable, pb.RemoteCopy):
-    "A class to transfer the SNMP collection data to zenperfsnmp"
+    """
+    A class to transfer the SNMP collection data to zenperfsnmp
+    """
 
     lastChangeTime = 0.
     device = ''
@@ -116,17 +154,24 @@ pb.setUnjellyableForClass(SnmpConfig, SnmpConfig)
 
         
 class Status:
-    'keep track of the status of many parallel requests'
+    """
+    Keep track of the status of many parallel requests
+    """
     _success = _fail = 0
     _startTime = _stopTime = 0.0
     _deferred = None
 
     def __init__(self):
+        """
+        Initializer
+        """
         self._allDevices = Set()
         self._reported = Set()
     
     def start(self, devices):
-        'start the clock'
+        """
+        Record our start time, and return a deferred for our devices
+        """
         self._allDevices = Set(devices)
         self._reported = Set()
         self._startTime = time.time()
@@ -136,7 +181,9 @@ class Status:
 
 
     def record(self, name, successOrFailure):
-        'Record success or failure'
+        """
+        Record success or failure
+        """
         if name in self._reported:
             log.error("Device %s is reporting more than once", name)
             return
@@ -148,19 +195,25 @@ class Status:
 
         
     def success(self, *unused):
-        'record a successful result'
+        """
+        Record a successful result
+        """
         self._success += 1
         self._checkFinished()
 
 
     def fail(self, *unused):
-        'record a failed operation'
+        """
+        Record a failed operation
+        """
         self._fail += 1
         self._checkFinished()
 
 
     def _checkFinished(self):
-        'determine the stopping point'
+        """
+        Determine the stopping point and log our current stats
+        """
         if self.finished():
             self._stopTime = time.time()
             if not self._deferred.called:
@@ -169,12 +222,20 @@ class Status:
 
 
     def finished(self):
-        'determine if we have finished everything'
+        """
+        Determine if we have finished everything
+        """
         return self.outstanding() <= 0
 
 
     def stats(self):
-        'provide a summary of the effort'
+        """
+        Return a tuple with:
+         * number of devices
+         * number of successful operations
+         * number of failed operations
+         * amount of time since our last start() operation
+        """
         age = self._stopTime - self._startTime
         if not self._startTime:
             age = 0.0
@@ -184,16 +245,22 @@ class Status:
 
 
     def outstanding(self):
-        'return the number of unfinished operations'
+        """
+        Return the number of unfinished operations
+        """
         return len(self.outstandingNames())
 
     def outstandingNames(self):
-        'return the number of unfinished operations'
+        """
+        Return the set of unfinished operations
+        """
         return self._allDevices - self._reported
 
 
 class SnmpStatus:
-    "track and report SNMP status failures"
+    """
+    Track and report SNMP status failures
+    """
 
     snmpStatusEvent = {'eventClass': Status_Snmp,
                        'component': 'snmp',
@@ -201,21 +268,26 @@ class SnmpStatus:
 
     
     def __init__(self, snmpState):
+        """
+        Initializer
+        """
         self.count = snmpState
 
 
     def updateStatus(self, deviceName, success, eventCb):
-        'Send events on snmp failures'
+        """
+        Send up/down events based on SNMP results
+        """
         if success:
             if self.count > 0:
-                summary='snmp agent up'
+                summary='SNMP agent up'
                 eventCb(self.snmpStatusEvent, 
                         device=deviceName, summary=summary,
                         severity=Event.Clear)
                 log.info(summary)
             self.count = 0
         else:
-            summary='snmp agent down'
+            summary='SNMP agent down'
             eventCb(self.snmpStatusEvent,
                     device=deviceName, summary=summary,
                     severity=Event.Error)
@@ -223,17 +295,22 @@ class SnmpStatus:
             self.count += 1
 
 
+
 class OidData:
     def update(self, name, path, dataStorageType, rrdCreateCommand, minmax):
+        """
+        Container for these paramaters
+        """
         self.name = name
         self.path = path
         self.dataStorageType = dataStorageType
         self.rrdCreateCommand = rrdCreateCommand
         self.minmax = minmax
 
-
 class zenperfsnmp(SnmpDaemon):
-    "Periodically query all devices for SNMP values to archive in RRD files"
+    """
+    Periodically query all devices for SNMP values to archive in RRD files
+    """
     
     # these names need to match the property values in PerformanceMonitorConf
     maxRrdFileAge = 30 * (24*60*60)     # seconds
@@ -243,16 +320,28 @@ class zenperfsnmp(SnmpDaemon):
     initialServices = SnmpDaemon.initialServices + ['SnmpPerfConfig']
 
     def __init__(self):
+        """
+        Create any base performance directories (if necessary),
+        load cached configuration data and clean up any old RRD files
+        (if specified by --checkAgingFiles)
+        """
         SnmpDaemon.__init__(self, 'zenperfsnmp')
         self.status = None
         self.proxies = {}
         self.queryWorkList = Set()
         self.unresponsiveDevices = Set()
         self.snmpOidsRequested = 0
+
+        self.log.info( "Initializing daemon..." )
+
         perfRoot = performancePath('')
         makeDirs(perfRoot)
-        self.loadConfigs()
+
+        if self.options.cacheconfigs:
+            self.loadConfigs()
+
         self.oldFiles = Set()
+
         # report on files older than a day
         if self.options.checkagingfiles:
             self.oldCheck = FileCleanup(perfRoot, '.*\\.rrd$',
@@ -260,6 +349,7 @@ class zenperfsnmp(SnmpDaemon):
                                         frequency=60)
             self.oldCheck.process = self.reportOldFile
             self.oldCheck.start()
+
         # remove files older than maxRrdFileAge
         self.fileCleanup = FileCleanup(perfRoot, '.*\\.rrd$',
                                        self.maxRrdFileAge,
@@ -267,74 +357,118 @@ class zenperfsnmp(SnmpDaemon):
         self.fileCleanup.process = self.cleanup
         self.fileCleanup.start()
 
+
     def pickleName(self, id):
+        """
+        Return the path to the pickle file for a device
+        """
         return performancePath('Devices/%s/%s-config.pickle' % (id, self.options.monitor))
 
+
+
     def loadConfigs(self):
-        "Read local configuration values at startup"
+        """
+        Read cached configuration values from pickle files at startup.
+
+        NB: We cache in pickles to get a full collect cycle, because
+            loading the initial config can take several minutes.
+        """
+        self.log.info( "Gathering cached configuration information" )
+
         base = performancePath('Devices')
         makeDirs(base)
         root, ds, fs = os.walk(base).next()
         for d in ds:
-            config = read(self.pickleName(d))
+            pickle_name= self.pickleName(d)
+            config = read( pickle_name )
             if config:
                 try:
-                    self.updateDeviceConfig(cPickle.loads(config))
+                    self.log.debug( "Reading cached config info from pickle file %s" % pickle_name )
+                    data= cPickle.loads(config)
+                    self.updateDeviceConfig( data )
+
                 except Exception, ex:
-                    self.log.debug("Ignoring updateDeviceConfigFailure: %s", ex)
+                    self.log.warn( "Received %s while loading cached configs in %s -- ignoring" % (ex, pickle_name ) )
                     try:
-                        os.unlink(self.pickleName(d))
-                    except:
-                        pass
+                        os.unlink( pickle_name )
+                    except Exception, ex:
+                        self.log.warn( "Unable to delete corrupted pickle file %s because %s" % ( pickle_name, ex ) )
+
+
 
     def cleanup(self, fullPath):
+        """
+        Delete an old RRD file
+        """
         self.log.warning("Deleting old RRD file: %s", fullPath)
         os.unlink(fullPath)
         self.oldFiles.discard(fullPath)
 
+
     def reportOldFile(self, fullPath):
+        """
+        Add an RRD file to the list of files to be removed
+        """
         self.oldFiles.add(fullPath)
 
+
     def maybeQuit(self):
-        "Stop if all performance has been fetched, and we aren't cycling"
+        """
+        Stop if all performance has been fetched, and we aren't cycling
+        """
         if not self.options.daemon and \
            not self.options.cycle:
             reactor.callLater(0, reactor.stop)
 
+
     def remote_updateDeviceList(self, devices):
+        """
+        Gather the list of devices from zenhub, update all devices config
+        in the list of devices, and remove any devices that we know about,
+        but zenhub doesn't know about.
+
+        NB: This is callable from within zenhub.
+        """
         SnmpDaemon.remote_updateDeviceList(self, devices)
-        updated = []
+        # NB: Anything not explicitly sent by zenhub should be deleted
+        survivors = []
         doomed = Set(self.proxies.keys())
         for device, lastChange in devices:
             doomed.discard(device)
             proxy = self.proxies.get(device)
             if not proxy or proxy.lastChange < lastChange:
-                updated.append(device)
+                survivors.append(device)
+
         log.info("Deleting %s", doomed)
         for d in doomed:
             del self.proxies[d]
-        if updated:
-            log.info("Fetching configs: %s", updated)
-            d = self.model().callRemote('getDevices', updated)
-            d.addCallback(self.updateDeviceList, updated)
+
+        if survivors:
+            log.info("Fetching configs: %s", survivors)
+            d = self.model().callRemote('getDevices', survivors)
+            d.addCallback(self.updateDeviceList, survivors)
             d.addErrback(self.error)
 
+
+
     def startUpdateConfig(self, driver):
-        'Periodically ask the Zope server for basic configuration data.'
+        """
+        Periodically ask the Zope server for basic configuration data.
+        """
 
         now = time.time()
         
-        log.info("fetching property items")
+        log.info("Fetching property items...")
         yield self.model().callRemote('propertyItems')
         self.setPropertyItems(driver.next())
 
         driveLater(self.configCycleInterval * 60, self.startUpdateConfig)
 
-        log.info("getting threshold classes")
+        log.info("Getting threshold classes...")
         yield self.model().callRemote('getThresholdClasses')
         self.remote_updateThresholdClasses(driver.next())
         
-        log.info("checking for outdated configs")
+        log.info("Checking for outdated configs...")
         current = [(k, v.lastChange) for k, v in self.proxies.items()]
         yield self.model().callRemote('getDeviceUpdates', current)
 
@@ -342,22 +476,22 @@ class zenperfsnmp(SnmpDaemon):
         if self.options.device:
             devices = [self.options.device]
 
-        log.info("fetching configs for %s", repr(devices)[0:800]+'...')
+        log.info("Fetching configs for %s", repr(devices)[0:800]+'...')
         yield self.model().callRemote('getDevices', devices)
         updatedDevices = driver.next()
 
-        log.info("fetching default RRDCreateCommand")
+        log.info("Fetching default RRDCreateCommand...")
         yield self.model().callRemote('getDefaultRRDCreateCommand')
         createCommand = driver.next()
 
         self.rrd = RRDUtil(createCommand, self.perfsnmpCycleInterval)
 
-        log.info("getting collector thresholds")
+        log.info( "Getting collector thresholds..." )
         yield self.model().callRemote('getCollectorThresholds')
         self.rrdStats.config(self.options.monitor, self.name, driver.next(),
                              createCommand)
                 
-        log.info("fetching snmp status")
+        log.info("Fetching SNMP status...")
         yield self.model().callRemote('getSnmpStatus', self.options.device)
         self.updateSnmpStatus(driver.next())
 
@@ -365,6 +499,9 @@ class zenperfsnmp(SnmpDaemon):
         log.info("Initiating incremental device load")
         d = self.updateDeviceList(updatedDevices, devices)
         def report(result):
+            """
+            Twisted deferred errBack to check for errors
+            """
             if result:
                 log.error("Error loading devices: %s", result)
         d.addBoth(report)
@@ -374,8 +511,14 @@ class zenperfsnmp(SnmpDaemon):
 
 
     def updateDeviceList(self, responses, requested):
-        'Update the config for devices devices'
+        """
+        Update the config for devices
+        """
+
         def fetchDevices(driver):
+            """
+            An iterable to go over the list of devices
+            """
             deviceNames = Set()
             length = len(responses)
             log.debug("Fetching configs for %d devices", length)
@@ -399,9 +542,11 @@ class zenperfsnmp(SnmpDaemon):
                 doomed = Set(self.proxies.keys())
                 doomed.discard(self.options.device)
             for name in doomed:
-                self.log.info('removing device %s' % name)
+                self.log.info('Removing device %s' % name)
                 if name in self.proxies:
                     del self.proxies[name]
+
+                # Just in case, delete any pickle files that might exist
                 config = self.pickleName(name)
                 unlink(config)
                 # we could delete the RRD files, too
@@ -418,8 +563,18 @@ class zenperfsnmp(SnmpDaemon):
         return drive(fetchDevices)
 
 
+
     def updateAgentProxy(self, deviceName, snmpConnInfo):
-        "create or update proxy"
+        """
+        Create or update proxy
+
+        @parameter deviceName: device name known by zenhub
+        @type deviceName: string
+        @parameter snmpConnInfo: object information passed from zenhub
+        @type snmpConnInfo: class SnmpConnInfo from Products/ZenHub/services/PerformanceConfig.py
+        @return: connection information from the proxy
+        @rtype: SnmpConnInfo class
+        """
         p = self.proxies.get(deviceName, None)
         if not p:
             p = snmpConnInfo.createSession(protocol=self.snmpPort.protocol,
@@ -428,6 +583,7 @@ class zenperfsnmp(SnmpDaemon):
             p.snmpStatus = SnmpStatus(0)
             p.singleOidMode = False
             p.lastChange = 0
+
         if p.snmpConnInfo != snmpConnInfo:
             t = snmpConnInfo.createSession(protocol=self.snmpPort.protocol,
                                            allowCache=True)
@@ -436,52 +592,77 @@ class zenperfsnmp(SnmpDaemon):
             t.singleOidMode = p.singleOidMode
             t.lastChange = p.lastChange
             p = t
+
         return p
 
+
+
     def updateSnmpStatus(self, status):
-        "Update the Snmp failure counts from Status database"
+        """
+        Update the SNMP failure counts from Status database
+        """
         countMap = dict(status)
         for name, proxy in self.proxies.items():
             proxy.snmpStatus.count = countMap.get(name, 0)
 
 
     def remote_deleteDevice(self, doomed):
+        """
+        Allows zenhub to delete a device from our configuration
+        """
         self.log.debug("Async delete device %s" % doomed)
         if doomed in self.proxies:
              del self.proxies[doomed]
 
 
     def remote_updateDeviceConfig(self, snmpTargets):
-        self.log.debug("Async device update")
+        """
+        Allows zenhub to update our device configuration
+        """
+        self.log.debug("Device updates from zenhub received")
         self.updateDeviceConfig(snmpTargets)
 
 
-    def updateDeviceConfig(self, snmpTargets):
-        'Save the device configuration and create an SNMP proxy to talk to it'
-        cfg = snmpTargets
 
-        self.log.debug("received config for %s", cfg.device)
-        p = self.updateAgentProxy(cfg.device, cfg.connInfo)
-        if p.lastChange < cfg.lastChangeTime:
-            p.lastChange = cfg.lastChangeTime
-            write(self.pickleName(cfg.device), cPickle.dumps(snmpTargets))
+    def updateDeviceConfig(self, configs):
+        """
+        Examine the given device configuration, and if newer update the device
+        as well as its pickle file.
+        If no SNMP proxy created for the device, create one.
+        """
 
+        self.log.debug("Received config for %s", configs.device)
+        p = self.updateAgentProxy(configs.device, configs.connInfo)
+
+        if self.options.cacheconfigs:
+            p.lastChange = configs.lastChangeTime
+            data= cPickle.dumps(configs)
+            pickle_name= self.pickleName(configs.device)
+            self.log.debug( "Updating cached configs in pickle file %s" % pickle_name )
+            write(pickle_name, data)
+
+        # Sanity check all OIDs and prep for eventual RRD file creation
         oidMap, p.oidMap = p.oidMap, {}
-        for name, oid, path, dsType, createCmd, minmax in cfg.oids:
-            createCmd = createCmd.strip()
+        for name, oid, path, dsType, createCmd, minmax in configs.oids:
+            createCmd = createCmd.strip() # RRD create options
             oid = str(oid).strip('.')
-            # beware empty oids
+            # beware empty OIDs
             if oid:
                 oid = '.' + oid
-                p.oidMap[oid] = d = oidMap.setdefault(oid, OidData())
-                d.update(name, path, dsType, createCmd, minmax)
-        self.proxies[cfg.device] = p
-        self.thresholds.updateForDevice(cfg.device, cfg.thresholds)
+                oid_status = oidMap.setdefault(oid, OidData())
+                oid_status.update(name, path, dsType, createCmd, minmax)
+                p.oidMap[oid] = oid_status
+
+        self.proxies[configs.device] = p
+        self.thresholds.updateForDevice(configs.device, configs.thresholds)
+
 
 
     def scanCycle(self, *unused):
+        """
+        """
         reactor.callLater(self.perfsnmpCycleInterval, self.scanCycle)
-        self.log.debug("getting device ping issues")
+        self.log.debug("Getting device ping issues")
         evtSvc = self.services.get('EventService', None)
         if evtSvc:
             d = evtSvc.callRemote('getDevicePingIssues')
@@ -491,7 +672,9 @@ class zenperfsnmp(SnmpDaemon):
 
 
     def setUnresponsiveDevices(self, arg):
-        "remember all the unresponsive devices"
+        """
+        Remember all the unresponsive devices
+        """
         if isinstance(arg, list):
             deviceList = arg
             self.log.debug('unresponsive devices: %r' % deviceList)
@@ -502,7 +685,10 @@ class zenperfsnmp(SnmpDaemon):
 
         
     def readDevices(self, unused=None):
-        'Periodically fetch the performance values from all known devices'
+        """
+        Periodically fetch the performance values from all known devices
+        """
+        
         self.heartbeat()
 
         if self.status and not self.status.finished():
@@ -524,19 +710,26 @@ class zenperfsnmp(SnmpDaemon):
         for unused in range(MAX_SNMP_REQUESTS):
             if not self.queryWorkList: break
             d = self.startReadDevice(self.queryWorkList.pop())
+
             def printError(reason):
+                """
+                Twisted errBack to record a traceback and log messages
+                """
                 from StringIO import StringIO
                 out = StringIO()
                 reason.printTraceback(out)
                 self.log.error(reason)
+
             d.addErrback(printError)
 
 
     def reportRate(self, *unused):
-        'Finished reading all the devices, report stats and maybe stop'
+        """
+        Finished reading all the devices, report stats and maybe stop
+        """
         total, success, failed, runtime = self.status.stats()
         oidsRequested, self.snmpOidsRequested = self.snmpOidsRequested, 0
-        self.log.info("sent %d OID requests", oidsRequested)
+        self.log.info("Sent %d OID requests", oidsRequested)
         self.log.info("collected %d of %d devices in %.2f" %
                       (success, total, runtime))
         
@@ -552,6 +745,9 @@ class zenperfsnmp(SnmpDaemon):
         self.checkOldFiles()
 
     def checkOldFiles(self):
+        """
+        Send an event showing whether we have old files or not
+        """
         if not self.options.checkagingfiles:
             return
         self.oldFiles = Set(
@@ -563,7 +759,7 @@ class zenperfsnmp(SnmpDaemon):
             filenames = [f.lstrip(root) for f in self.oldFiles]
             message = 'RRD files not updated: ' + ' '.join(filenames)
             self.sendEvent(dict(
-                dedupid="%s|%s" % (self.options.monitor, 'rrd files too old'),
+                dedupid="%s|%s" % (self.options.monitor, 'RRD files too old'),
                 severity=Critical,
                 device=self.options.monitor,
                 eventClass=Status_RRD,
@@ -573,41 +769,69 @@ class zenperfsnmp(SnmpDaemon):
                 severity=Clear,
                 device=self.options.monitor,
                 eventClass=Status_RRD,
-                summary='All RRD files have been recently update'))
+                summary='All RRD files have been recently updated'))
 
 
     def startReadDevice(self, deviceName):
-        '''Initiate a request (or several) to read the performance data
-        from a device'''
+        """
+        Initiate a request (or several) to read the performance data
+        from a device
+        """
         proxy = self.proxies.get(deviceName, None)
         if proxy is None:
             return
+
         # ensure that the request will fit in a packet
+        # TODO: sanity check this number
         n = int(proxy.snmpConnInfo.zMaxOIDPerRequest)
         if proxy.singleOidMode:
             n = 1
+
         def getLater(oids):
+            """
+            Return the result of proxy.get( oids, timeoute, tries )
+            """
             return checkException(self.log,
                                   proxy.get,
                                   oids,
                                   proxy.snmpConnInfo.zSnmpTimeout,
                                   proxy.snmpConnInfo.zSnmpTries)
+
+        # Chain a series of deferred actions serially
         proxy.open()
         chain = Chain(getLater, iter(chunk(sorted(proxy.oidMap.keys()), n)))
         d = chain.run()
+
         def closer(arg, proxy):
-            checkException(self.log, proxy.close)
+            """
+            Close the proxy
+            """
+            try:
+                proxy.close()
+            except Exception, ex:
+                self.log.exception(ex)
+                raise ex
+
             return arg
+
         d.addCallback(closer, proxy)
         d.addCallback(self.storeValues, deviceName)
+
+        # Track the total number of OIDs requested this cycle
         self.snmpOidsRequested += len(proxy.oidMap)
+
         return d
 
 
     def badOid(self, deviceName, oid):
+        """
+        Report any bad OIDs (eg to a file log and Zenoss event) and then remove
+        the OID so we dont generate any further errors.
+        """
         proxy = self.proxies.get(deviceName, None)
         if proxy is None:
             return
+
         name = proxy.oidMap[oid].name
         summary = 'Error reading value for "%s" on %s (oid %s is bad)' % (
             name, deviceName, oid)
@@ -618,10 +842,14 @@ class zenperfsnmp(SnmpDaemon):
                        component=name,
                        severity=Event.Debug)
         self.log.warn(summary)
+
+        del proxy.oidMap[oid]
         
 
     def storeValues(self, updates, deviceName):
-        'decode responses from devices and store the elements in RRD files'
+        """
+        Decode responses from devices and store the elements in RRD files
+        """
 
         proxy = self.proxies.get(deviceName, None)
         if proxy is None:
@@ -633,10 +861,11 @@ class zenperfsnmp(SnmpDaemon):
             # empty update is probably a bad OID in the request somewhere
             if success and not update and not proxy.singleOidMode:
                 proxy.singleOidMode = True
-                self.log.warn('Error collecting data on %s, recollecting',
+                self.log.warn('Error collecting data on %s -- retrying in single-OID mode',
                               deviceName)
                 self.startReadDevice(deviceName)
                 return
+
             if not success:
                 if isinstance(update, failure.Failure) and \
                     isinstance(update.value, error.TimeoutError):
@@ -667,7 +896,7 @@ class zenperfsnmp(SnmpDaemon):
         if self.queryWorkList:
             self.startReadDevice(self.queryWorkList.pop())
 
-        if successCount:
+        if successCount and len(updates) > 0:
             successPercent = successCount * 100 / len(updates)
             if successPercent not in (0, 100):
                 self.log.debug("Successful request ratio for %s is %2d%%",
@@ -681,7 +910,9 @@ class zenperfsnmp(SnmpDaemon):
 
 
     def storeRRD(self, device, oid, value):
-        'store a value into an RRD file'
+        """
+        Store a value into an RRD file
+        """
         oidData = self.proxies[device].oidMap.get(oid, None)
         if not oidData: return
 
@@ -700,12 +931,20 @@ class zenperfsnmp(SnmpDaemon):
                 ev['eventKey'] = eventKey
             self.sendThresholdEvent(**ev)
 
+
     def connected(self):
-        "Run forever, fetching and storing"
+        """
+        Run forever, fetching and storing
+        """
+        self.log.debug( "Connected to zenhub" )
         d = drive(self.startUpdateConfig)
         d.addCallbacks(self.scanCycle, self.errorStop)
 
+
     def buildOptions(self):
+        """
+        Build a list of command-line options
+        """
         SnmpDaemon.buildOptions(self)
         self.parser.add_option('--checkAgingFiles',
                                dest='checkagingfiles',
@@ -713,8 +952,17 @@ class zenperfsnmp(SnmpDaemon):
                                default=False,
                                help="Send events when RRD files are not being updated regularly")
 
+        self.parser.add_option('--cacheconfigs',
+                               dest='cacheconfigs',
+                               action="store_true",
+                               default=False,
+                               help="To improve startup times, cache configuration received from zenhub")
+
 
 if __name__ == '__main__':
+    # The following bizarre include is required for PB to be happy
     from Products.ZenRRD.zenperfsnmp import zenperfsnmp
+
     zpf = zenperfsnmp()
     zpf.run()
+
