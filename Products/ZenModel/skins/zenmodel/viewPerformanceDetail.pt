@@ -82,6 +82,7 @@ var ZenGraphs = new Array();
     <tal:block metal:define-slot="descriptionSlot">
     </tal:block>
 
+<tal:block tal:on-error="structure python:here.dmd.error_handler(error)">
     <tal:block tal:repeat="graph python:here.getDefaultGraphDefs(drange=drange)">
     <tal:block tal:define="graphid string:graph_${repeat/graph/index}">
     
@@ -111,6 +112,7 @@ var ZenGraphs = new Array();
 
     </tal:block>
     </tal:block>
+</tal:block>
 
 <!-- END TABLE CONTENTS -->
 

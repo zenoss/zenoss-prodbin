@@ -11,6 +11,12 @@
 #
 ###########################################################################
 
+__doc__= """Zenoss exceptions
+
+Some common exceptions detected by layers close to the GUI,
+which can be caught by things such as dmd.error_handler()
+"""
+
 
 from Products.ZenUtils.Exceptions import ZentinelException
 
@@ -29,6 +35,19 @@ class MySQLConnectionError(ZenEventError):
 
 class ZenEventNotFound(ZenEventError):
     """
-    Lookkup of event failed
+    Lookup of event failed
     """
+
+class pythonThresholdException(ZenEventError):
+    """
+    User-supplied threshold Python expression caused
+    a traceback.
+    """
+
+class rpnThresholdException(ZenEventError):
+    """
+    User-supplied threshold RPN expression caused
+    a traceback.
+    """
+
 

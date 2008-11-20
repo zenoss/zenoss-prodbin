@@ -718,11 +718,17 @@ class DataRoot(ZenModelRM, OrderedFolder, Commandable, ZenMenuable):
 
         @param error: A TALES.ErrorInfo instance with attributes type, value
                       and traceback.
+        @return: HTML fragment with an error message
         """
         if error.type==MySQLConnectionError:
             msg = "Unable to connect to the MySQL server."
+
+        elif error.type in [ pythonThresholdException, rpnThresholdException ]:
+            msg= error.value
+
         else: 
             raise 
+
         return '<b class="errormsg">%s</b>' % msg
 
     @json

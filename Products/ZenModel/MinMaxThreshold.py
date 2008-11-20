@@ -10,6 +10,12 @@
 # For complete information please visit: http://www.zenoss.com/oss/
 #
 ###########################################################################
+
+__doc__= """MinMaxThreshold
+Make threshold comparisons dynamic by using TALES expresssions,
+rather than just number bounds checking.
+"""
+
 import rrdtool
 from AccessControl import Permissions
 
@@ -19,6 +25,8 @@ from ThresholdInstance import ThresholdInstance, ThresholdContext
 from Products.ZenEvents import Event
 from Products.ZenEvents.ZenEventClasses import Perf_Snmp
 from Products.ZenUtils.ZenTales import talesEval, talesEvalStr
+from Products.ZenEvents.Exceptions import pythonThresholdException, \
+        rpnThresholdException
 
 import logging
 log = logging.getLogger('zen.MinMaxCheck')
@@ -27,8 +35,11 @@ from sets import Set
 from Products.ZenUtils.Utils import unused
 import types
 
+
 def rpneval(value, rpn):
-    """simulate rpn evaluation: only handles simple arithmetic"""
+    """
+    Simulate RPN evaluation: only handles simple arithmetic
+    """
     if value is None: return value
     operators = ('+','-','*','/')
     rpn = rpn.split(',')
@@ -52,6 +63,9 @@ def rpneval(value, rpn):
 
 
 class MinMaxThreshold(ThresholdClass):
+    """
+    Threshold class that can evaluate RPNs and Python expressions
+    """
     
     minval = ""
     maxval = ""
@@ -82,7 +96,7 @@ class MinMaxThreshold(ThresholdClass):
         )
 
     def createThresholdInstance(self, context):
-        """Return the config used by the collector to process simple min/max
+        """Return the config used by the collector to process min/max
         thresholds. (id, minval, maxval, severity, escalateCount)
         """
         mmt = MinMaxThresholdInstance(self.id,
@@ -100,7 +114,14 @@ class MinMaxThreshold(ThresholdClass):
         """
         minval = None
         if self.minval:
-            minval = talesEval("python:"+self.minval, context)
+            try:
+                minval = talesEval("python:"+self.minval, context)
+            except:
+                msg= "User-supplied Python expression (%s) for minimum value caused error: %s" % \
+                           ( self.minval,  self.dsnames )
+                log.error( msg )
+                raise pythonThresholdException(msg)
+                minval = None
         return minval
 
 
@@ -109,11 +130,20 @@ class MinMaxThreshold(ThresholdClass):
         """
         maxval = None
         if self.maxval:
-            maxval = talesEval("python:"+self.maxval, context)
+            try:
+                maxval = talesEval("python:"+self.maxval, context)
+            except:
+                msg= "User-supplied Python expression (%s) for maximum value caused error: %s" % \
+                           ( self.maxval,  self.dsnames )
+                log.error( msg )
+                raise pythonThresholdException(msg)
+                maxval = None
         return maxval
 
 InitializeClass(MinMaxThreshold)
 MinMaxThresholdClass = MinMaxThreshold
+
+
 
 class MinMaxThresholdInstance(ThresholdInstance):
     # Not strictly necessary, but helps when restoring instances from
@@ -218,16 +248,16 @@ class MinMaxThresholdInstance(ThresholdInstance):
         thresh = None
         if self.maximum is not None and value > self.maximum:
             thresh = self.maximum
-            how = 'exceeded'
+            how = 'exceeded the maximum'
         if self.minimum is not None and value < self.minimum:
             thresh = self.minimum
-            how = 'not met'
+            how = 'not met the minimum'
         if thresh is not None:
             severity = self.severity
             count = self.incrementCount(dp)
             if self.escalateCount and count >= self.escalateCount:
                 severity = min(severity + 1, 5)
-            summary = 'threshold of %s %s: current value %.2f' % (
+            summary = 'Threshold of %s %s: current value %.2f' % (
                 self.name(), how, float(value))
             return [dict(device=self.context().deviceName,
                          summary=summary,
@@ -238,7 +268,7 @@ class MinMaxThresholdInstance(ThresholdInstance):
         else:
             count = self.getCount(dp)
             if count is None or count > 0:
-                summary = 'threshold of %s restored: current value: %.2f' % (
+                summary = 'Threshold of %s restored: current value: %.2f' % (
                     self.name(), value)
                 self.resetCount(dp)
                 return [dict(device=self.context().deviceName,
@@ -270,31 +300,29 @@ class MinMaxThresholdInstance(ThresholdInstance):
         result = []
         if n:
             result += [
-                "HRULE:%s%s:%s\\j" % (n, color,
-                    legend or self.getMinLabel(n, relatedGps)),
+                "HRULE:%s%s:%s\\j" % (n, color, 
+                          legend or self.getMinLabel(n, relatedGps)),
                 ]
         if x:
             result += [
-                "HRULE:%s%s:%s\\j" % (x, color,
-                    legend or self.getMaxLabel(x, relatedGps))
+                "HRULE:%s%s:%s\\j" % (x, color, 
+                          legend or self.getMaxLabel(x, relatedGps)) 
                 ]
         return gopts + result
 
 
     def getMinLabel(self, minval, relatedGps):
         """build a label for a min threshold"""
-        return "%s < %s" % (self.getNames(relatedGps), self.setPower(minval))
+        return "%s < %s" % (self.getNames(relatedGps), self.setPower(minval)) 
 
 
     def getMaxLabel(self, maxval, relatedGps):
         """build a label for a max threshold"""
-        return "%s > %s" % (self.getNames(relatedGps),self.setPower(maxval))
-
+        return "%s > %s" % (self.getNames(relatedGps), self.setPower(maxval))
 
     def getNames(self, relatedGps):
-        legends = [ getattr(gp, 'legend', gp) for gp in relatedGps.values() ]
-        return ', '.join(legends)
-
+        legends = [ getattr(gp, 'legend', gp) for gp in relatedGps.values() ] 
+        return ', '.join(legends) 
 
     def setPower(self, number):
         powers = ("k", "M", "G")
