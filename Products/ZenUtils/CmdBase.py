@@ -15,11 +15,7 @@ __doc__="""CmdBase
 
 Provide utility functions for logging and config file parsing
 to command line programs
-
-
-$Id: CmdBase.py,v 1.10 2004/04/04 02:22:21 edahl Exp $"""
-
-__version__ = "$Revision: 1.10 $"[11:-2]
+"""
 
 import os
 import sys
@@ -35,30 +31,12 @@ from Products.ZenUtils.PkgResources import pkg_resources
 from Products.ZenUtils.Utils import unused
 unused(pkg_resources)
 
-def parseconfig(options):
-    """parse a config file which has key value pairs delimited by white space"""
-    if not os.path.exists(options.configfile):
-        print >>sys.stderr, "WARN: config file %s not found skipping" % (
-                            options.configfile)
-        return
-    lines = open(options.configfile).readlines()
-    for line in lines:
-        if line.lstrip().startswith('#'): continue
-        if line.strip() == '': continue
-        key, value = line.split(None, 1)
-        value = value.rstrip('\r\n')
-        key = key.lower()
-        defval = getattr(options, key, None)
-        # hack around for #2290: ignore config file values for
-        # list types when the user has provided a value
-        if type(defval) == type([]) and defval: continue
-        if defval: value = type(defval)(value)
-        setattr(options, key, value)
-
-
 class DMDError: pass
 
 class CmdBase:
+    """
+    Class used for all Zenoss commands
+    """
     
     doesLogging = True
 
@@ -75,20 +53,63 @@ class CmdBase:
         self.parser = None
         self.buildParser()
         self.buildOptions()
+        
         self.parseOptions()
         if self.options.configfile:
-            parseconfig(self.options)
+            self.getConfigFileDefaults( self.options.configfile )
+
+            # We've updated the parser with defaults from configs, now we need
+            # to reparse our command-line to get the correct overrides from
+            # the command-line
+            self.parseOptions()
+
         if self.doesLogging:
             self.setupLogging()
 
 
+    def getConfigFileDefaults(self, filename):
+        """
+        Parse a config file which has key-value pairs delimited by white space,
+        and update the parser's option defaults with these values.
+        """
+        try:
+            lines = open(filename).readlines()
+        except:
+            import traceback
+            print >>sys.stderr, "WARN: unable to read config file %s -- skipping" % \
+                   filename
+            traceback.print_exc(0)
+            return
+
+        for line in lines:
+            if line.lstrip().startswith('#'): continue
+            if line.strip() == '': continue
+
+            key, value = line.split(None, 1)
+            value = value.rstrip('\r\n')
+
+            flag= "--%s" % key
+            option= self.parser.get_option( flag )
+            if option is None:
+                print >>sys.stderr, "WARN: Ignoring unknown option '%s' found in config file" % key
+                continue
+
+            # NB: At this stage, optparse accepts even bogus values
+            #     It will report unhappiness when it parses the arguments
+            self.parser.set_default( option.dest, type(option.type)(value) )
+
+
     def setupLogging(self):
+        """
+        Set common logging options
+        """
         rlog = logging.getLogger()
         rlog.setLevel(logging.WARN)
         mname = self.__class__.__name__
         self.log = logging.getLogger("zen."+ mname)
         zlog = logging.getLogger("zen")
         zlog.setLevel(self.options.logseverity)
+
         if self.options.logpath:
             logdir = self.options.logpath
             if not os.path.isdir(os.path.dirname(logdir)):
@@ -104,12 +125,25 @@ class CmdBase:
 
 
     def buildParser(self):
+        """
+        Create the options parser
+        """
         if not self.parser:
+            from Products.ZenModel.ZenossInfo import ZenossInfo
+            try:
+                zinfo= ZenossInfo()
+                version= zinfo.getZenossVersion()
+            except:
+                from Products.ZenModel.ZVersion import VERSION
+                version= VERSION
             self.parser = OptionParser(usage=self.usage, 
-                                       version="%prog " + __version__)
+                                       version="%prog " + version )
 
     def buildOptions(self):
-        """basic options setup sub classes can add more options here"""
+        """
+        Basic options setup. Other classes should call this before adding
+        more options
+        """
         self.buildParser()
         if self.doesLogging:
             self.parser.add_option('-v', '--logseverity',
@@ -117,17 +151,32 @@ class CmdBase:
                         default=20,
                         type='int',
                         help='Logging severity threshold')
+
             self.parser.add_option('--logpath',dest='logpath',
-                        help='override default logging path')
+                        help='Override the default logging path')
+
         self.parser.add_option("-C", "--configfile", 
                     dest="configfile",
-                    help="config file must define all params (see man)")
+                    help="Use an alternate configuration file" )
+
+        self.parser.add_option("--genconf",
+                               action="store_true",
+                               default=False,
+                               help="Generate a template configuration file" )
+
+        self.parser.add_option("--genxmltable",
+                               action="store_true",
+                               default=False,
+                               help="Generate a Docbook table showing command-line switches." )
+
 
 
 
     def pretty_print_config_comment( self, comment ):
-        """Quick and dirty pretty printer for comments that happen to be longer than can comfortably
-be seen on the display."""
+        """
+        Quick and dirty pretty printer for comments that happen to be longer than can comfortably
+be seen on the display.
+        """
 
         max_size= 40
         #
@@ -180,7 +229,12 @@ be seen on the display."""
 
 
     def generate_configs( self, parser, options ):
-        """Create a configuration file based on the long-form of the option names"""
+        """
+        Create a configuration file based on the long-form of the option names
+
+        @parameter parser: an optparse parser object which contains defaults, help
+        @parameter options: parsed options list containing actual values
+        """
 
         #
         # Header for the configuration file
@@ -262,7 +316,12 @@ be seen on the display."""
 
 
     def generate_xml_table( self, parser, options ):
-        """Create a Docbook table based on the long-form of the option names"""
+        """
+        Create a Docbook table based on the long-form of the option names
+
+        @parameter parser: an optparse parser object which contains defaults, help
+        @parameter options: parsed options list containing actual values
+        """
 
         #
         # Header for the configuration file
@@ -377,16 +436,9 @@ be seen on the display."""
 
 
     def parseOptions(self):
-
-        self.parser.add_option("--genconf",
-                               action="store_true",
-                               default=False,
-                               help="Generate a template configuration file" )
-
-        self.parser.add_option("--genxmltable",
-                               action="store_true",
-                               default=False,
-                               help="Generate a Docbook table showing command-line switches." )
+        """
+        Uses the optparse parse previously populated and performs common options.
+        """
 
         if self.noopts:
             args = []
