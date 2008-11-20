@@ -1,0 +1,13 @@
+<configure
+    xmlns="http://namespaces.zope.org/zope"
+    xmlns:five="http://namespaces.zope.org/five"
+    xmlns:browser="http://namespaces.zope.org/browser"
+    i18n_domain="Products.ZenModel">
+
+    <five:traversable class="Products.ZenModel.ZenModelRM.ZenModelRM"/>
+    <five:traversable class="Products.ZenModel.ZentinelPortal.ZentinelPortal"/>
+    <five:traversable class="Products.ZenModel.DataRoot.DataRoot"/>
+
+    <include package=".browser"/>
+
+</configure>

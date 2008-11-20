@@ -96,46 +96,6 @@ class ZentinelPortal ( PortalObjectBase ):
                 return self.searchDevices(device, REQUEST)
         return [b.getObject() for b in brains]
 
-
-    security.declareProtected(ZEN_COMMON, 'getOrganizerNames')
-    def getOrganizerNames(self, dataRoot='Devices', REQUEST=None):
-        """Return the organizer names to which this user has access
-        """
-        root = self.dmd.getDmdRoot(dataRoot)
-        return root.getOrganizerNames() or '[]'
-
-    security.declareProtected(ZEN_COMMON, 'getJSONDeviceInfo')
-    def getJSONDeviceInfo(self, offset=0, count=50, filter='',
-                          orderby='id', orderdir='asc', REQUEST=None):
-        """
-        Pass-through to the method on /Devices
-        """
-        return self.dmd.Devices.getJSONDeviceInfo(offset, count, filter,
-                                                  orderby, orderdir, REQUEST)
-
-    security.declareProtected(ZEN_COMMON, 'getRootOrganizerInfo')
-    def getRootOrganizerInfo(self, dataRoot, REQUEST=None):
-        """ Return json event summaries for root org """
-        root = self.dmd.getDmdRoot(dataRoot)
-        return root.getSubOrganizersEventSummary() or '[]'
-
-    security.declareProtected(ZEN_COMMON, 'jsonGetDeviceNames')
-    def jsonGetDeviceNames(self):
-        """Return a list of devices for the dashboard
-        """
-        return self.dmd.Devices.jsonGetDeviceNames()
-
-    security.declareProtected('View', 'jsonGetEventClassNames')
-    def jsonGetEventClassNames(self, query=''):
-        """
-        Return a list of all event classes that match the filter.
-        """
-        orgs = self.dmd.Events.getSubOrganizers()
-        paths = ['/'.join(x.getPrimaryPath()) for x in orgs]
-        paths = [p.replace('/zport/dmd','') for p in paths]
-        return simplejson.dumps(paths)
-
-
     security.declareProtected(ZEN_COMMON, 'dotNetProxy')
     def dotNetProxy(self, path='', params={}, REQUEST=None):
         """

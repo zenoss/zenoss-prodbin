@@ -298,7 +298,7 @@ DeviceZenGrid.prototype = {
         var qs = update(this.lastparams, {
             'offset': bufOffset,
             'count': bufSize,
-            'ms': new Date().getTime()
+            '_dc': new Date().getTime()
         });
         if ('askformore' in this) this.askformore.cancel();
         this.askformore = loadJSONDoc(url, qs);

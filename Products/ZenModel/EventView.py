@@ -17,15 +17,22 @@ from _mysql_exceptions import MySQLError
 
 from AccessControl import ClassSecurityInfo
 from Globals import InitializeClass
+from zope.interface import Interface, implements
+
 from Products.ZenUtils.FakeRequest import FakeRequest
-
-
 from Products.ZenUtils.Utils import unused
+
+class IEventView(Interface):
+    """
+    Marker interface for objects which have event views.
+    """
 
 class EventView(object):
 
+    implements(IEventView)
+
     security = ClassSecurityInfo()
-   
+
     def getEventManager(self, table='status'):
         """Return the current event manager for this object.
         """
@@ -38,39 +45,6 @@ class EventView(object):
         """Return the current event history for this object.
         """
         return self.ZenEventHistory
-
-
-    def getJSONEventsInfo(self, offset=0, count=50, fields=[], 
-                          getTotalCount=True, 
-                          
-                          filter='', severity=2, state=1, 
-                          orderby='', REQUEST=None):
-        """Return the current event list for this managed entity.
-        """
-        unused(count, fields, filter, getTotalCount, offset, orderby,
-               severity, state)
-        kwargs = locals(); del kwargs['self']
-        return self.getEventManager().getJSONEventsInfo(self, **kwargs)
-
-
-    def getJSONHistoryEventsInfo(self, offset=0, count=50, fields=[], 
-                          getTotalCount=True, 
-                          startdate=None, enddate=None,
-                          filter='', severity=2, state=1, 
-                          orderby='', REQUEST=None):
-        """Return the current event list for this managed entity.
-        """
-        unused(count, enddate, fields, filter, getTotalCount, offset, orderby,
-               severity, startdate, state)
-        kwargs = locals(); del kwargs['self']
-        return self.getEventHistory().getJSONEventsInfo(self, **kwargs)
-
-
-    def getJSONFields(self, history=False):
-        """Return the current event list for this managed entity.
-        """
-        if history: return self.getEventHistory().getJSONFields(self)
-        else: return self.getEventManager().getJSONFields(self)
 
 
     def getStatus(self, statusclass=None, **kwargs):
@@ -89,20 +63,20 @@ class EventView(object):
         # used to avoid pychecker complaint about wrong # of args to getStatus
         f = self.getStatus
         return self.convertStatus(f(statclass, **kwargs))
-                                                        
-    
+
+
     def getEventSummary(self, severity=1, state=1, prodState=None):
         """Return an event summary list for this managed entity.
         """
         return self.getEventManager().getEventSummaryME(self, severity, state, prodState)
 
-    
+
     def getEventOwnerList(self, severity=0, state=1):
         """Return list of event owners for this mangaed entity.
         """
         return self.getEventManager().getEventOwnerListME(self, severity, state)
 
-    
+
     def getStatusImgSrc(self, status):
         ''' Return the image source for a status number
         '''

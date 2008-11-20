@@ -15,15 +15,13 @@ from Globals import InitializeClass
 from Acquisition import aq_parent
 from AccessControl import ClassSecurityInfo, getSecurityManager
 
-import simplejson
-
 from Products.ZenRelations.RelSchema import *
 from Products.ZenUtils.Exceptions import ZentinelException
 
 from EventView import EventView
 from ZenModelRM import ZenModelRM
 from ZenossSecurity import *
-        
+
 class Organizer(ZenModelRM, EventView):
     """
     The base for all hierarchical organization classes.  It allows Organizers
@@ -39,7 +37,7 @@ class Organizer(ZenModelRM, EventView):
                    )
 
     _relations = ZenModelRM._relations
- 
+
     security = ClassSecurityInfo()
     security.declareObjectProtected(ZEN_VIEW)
 
@@ -64,16 +62,16 @@ class Organizer(ZenModelRM, EventView):
         if text is None: text = self.getOrganizerName()
         return ZenModelRM.urlLink(self, text=text, url=url, attrs=attrs)
 
-        
+
     def childMoveTargets(self):
         """ 
         Returns a list of all organizer names 
         under the same root excluding ourselves
-        
+
         @return: A list of organizers excluding our self.
         @rtype: list
         @todo: We should be using either deviceMoveTargets or childMoveTargets
-            
+
         >>> dmd.Events.getOrganizerName() in dmd.Events.childMoveTargets()
         False
         """ 
@@ -81,30 +79,20 @@ class Organizer(ZenModelRM, EventView):
         return filter(lambda x: x != myname, 
                     self.getDmdRoot(self.dmdRootName).getOrganizerNames())
 
-    def childMoveTargetsJSON(self):
-        """
-        Returns a list of all organizer names  under the same root excluding
-        ourselves (as a json dump)
-        
-        @return: Organizer names under a the same organizer root as a json dump
-        @rtype: list
-        """
-        return simplejson.dumps(self.childMoveTargets());
-
     def getChildMoveTarget(self, moveTargetName):
         """
         Returns an organizer under the same root.
-        
+
         @param moveTargetName: Name of the organizer
         @type moveTargetName: string
         @rtype: Organizer
-        
+
         >>> dmd.Devices.getChildMoveTarget('Server')
         <DeviceClass at /zport/dmd/Devices/Server>
         """
         return self.getDmdRoot(self.dmdRootName).getOrganizer(moveTargetName)
-        
-           
+
+
     security.declareProtected(ZEN_COMMON, "children")
     def children(self, sort=False, checkPerm=True, spec=None):
         """

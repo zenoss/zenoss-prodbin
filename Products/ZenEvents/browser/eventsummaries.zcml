@@ -1,0 +1,42 @@
+<configure
+    xmlns="http://namespaces.zope.org/zope"
+    xmlns:five="http://namespaces.zope.org/five"
+    xmlns:browser="http://namespaces.zope.org/browser"
+    i18n_domain="Products.ZenModel">
+
+    <browser:page
+        for="Products.ZenModel.DeviceOrganizer.DeviceOrganizer"
+        name="getSubOrganizersEventSummary"
+        class=".EventPillsAndSummaries.SubOrganizersEventSummary"
+        permission="zope2.View"
+        />
+
+    <browser:page
+        for="Products.ZenModel.DeviceOrganizer.DeviceOrganizer"
+        name="getSubDevicesEventSummary"
+        class=".EventPillsAndSummaries.SubDevicesEventSummary"
+        permission="zope2.View"
+        />
+
+    <browser:page
+        for="Products.ZenModel.DeviceOrganizer.DeviceOrganizer"
+        name="getEventSummaryJSON"
+        class=".EventPillsAndSummaries.SubDevicesEventSummary"
+        permission="zope2.View"
+        />
+
+    <browser:page
+        for="Products.ZenModel.Device.Device"
+        name="getEventPill"
+        class=".EventPillsAndSummaries.SinglePill"
+        permission="zope2.View"
+        />
+
+    <browser:page
+        for="Products.ZenModel.DeviceOrganizer.DeviceOrganizer"
+        name="getEventPill"
+        class=".EventPillsAndSummaries.SinglePill"
+        permission="zope2.View"
+        />
+
+</configure>

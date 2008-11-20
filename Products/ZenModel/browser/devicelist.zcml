@@ -1,0 +1,22 @@
+<configure
+    xmlns="http://namespaces.zope.org/zope"
+    xmlns:five="http://namespaces.zope.org/five"
+    xmlns:browser="http://namespaces.zope.org/browser"
+    i18n_domain="Products.ZenModel">
+
+
+    <browser:page
+        for="*"
+        name="getJSONDeviceInfo"
+        class=".DeviceList.DeviceList"
+        permission="zope2.View"
+        />
+
+    <browser:page
+        for="..Organizer.Organizer"
+        name="setDeviceBatchProps"
+        class=".DeviceList.DeviceBatch"
+        permission="zope2.View"
+        />
+
+</configure>

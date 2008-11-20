@@ -639,7 +639,8 @@ TableDatasource.prototype = {
     },
     get: function(callback) {
         queryarguments = this.queryArguments;
-        queryarguments['ms'] = String(new Date().getTime());
+        if ('ms' in queryarguments) delete queryarguments['ms'];
+        queryarguments['_dc'] = String(new Date().getTime());
         var d = doXHR(this.url, {
             method: this.method,
             queryString: queryarguments,

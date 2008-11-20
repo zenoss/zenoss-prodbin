@@ -17,9 +17,11 @@ log = logging.getLogger("zen.EventView")
 from Globals import DTMLFile, InitializeClass
 from AccessControl import ClassSecurityInfo
 from Acquisition import aq_parent
+from zope.interface import implements
 
 from Products.ZenModel.ZenModelRM import ZenModelRM
 from Products.ZenEvents.EventFilter import EventFilter
+from Products.ZenModel.EventView import IEventView
 from Products.ZenUtils.FakeRequest import FakeRequest
 
 from Products.ZenUtils.Utils import unused
@@ -36,7 +38,9 @@ addCustomEventView = DTMLFile('dtml/addCustomEventView',globals())
 __pychecker__='no-argsused no-varargsused'
 
 class CustomEventView(ZenModelRM, EventFilter):
-    
+
+    implements(IEventView)
+
     meta_type = "CustomEventView"
 
     type = "status"
@@ -44,20 +48,20 @@ class CustomEventView(ZenModelRM, EventFilter):
     orderby = ""
     where = ""
     resultFields = ()
-    
+
     _properties = ZenModelRM._properties + (
-        {'id':'type', 'type':'selection', 
+        {'id':'type', 'type':'selection',
             'select_variable':'evtypes', 'mode':'w'},
         {'id':'orderby', 'type':'string', 'mode':'w'},
         {'id':'where', 'type':'text', 'mode':'w'},
         {'id':'resultFields', 'type':'lines', 'mode':'w'},
     )
 
-    factory_type_information = ( 
-        { 
+    factory_type_information = (
+        {
             'immediate_view' : 'getEventView',
             'actions'        :
-            ( 
+            (
                 { 'id'            : 'view'
                 , 'name'          : 'View'
                 , 'action'        : 'getEventView'
@@ -100,10 +104,10 @@ class CustomEventView(ZenModelRM, EventFilter):
         """
         if self.type == "status":
             return self.viewEvents()
-        else:    
+        else:
             return self.viewHistoryEvents()
-        
-   
+
+
     def getEventManager(self):
         """Return the current event manager for this object.
         """
@@ -112,36 +116,6 @@ class CustomEventView(ZenModelRM, EventFilter):
         else:
             return self.ZenEventHistory
 
-
-    def getJSONEventsInfo(self, offset=0, count=50, fields=[], 
-                          getTotalCount=True, 
-                          filter='', severity=2, state=1, 
-                          orderby='', REQUEST=None):
-        """Return the current event list for this managed entity.
-        """
-        unused(count, fields, filter, getTotalCount, offset,
-               orderby, severity, state)
-        kwargs = locals(); del kwargs['self']
-        return self.getEventManager().getJSONEventsInfo(self, **kwargs)
-
-
-    def getJSONHistoryEventsInfo(self, offset=0, count=50, fields=[], 
-                          getTotalCount=True, 
-                          startdate=None, enddate=None,
-                          filter='', severity=2, state=1, 
-                          orderby='', REQUEST=None):
-        """Return the current event list for this managed entity.
-        """
-        unused(count, enddate, fields, filter, getTotalCount, offset, orderby,
-               severity, startdate, state)
-        kwargs = locals(); del kwargs['self']
-        return self.getEventManager().getJSONEventsInfo(self, **kwargs)
-
-    def getJSONFields(self, history=False):
-        """Return the current event list for this managed entity.
-        """
-        if history: return self.ZenEventHistory.getJSONFields(self)
-        else: return self.ZenEventManager.getJSONFields(self)
 
     def getResultFields(self):
         if self.resultFields:
@@ -177,8 +151,8 @@ class CustomEventView(ZenModelRM, EventFilter):
                                 self.getOrderBy(),
                                 **kwargs)
     getEventHistoryList = getEventList
-    
-    
+
+
     def getEventDetailFromStatusOrHistory(self, evid=None, 
                                             dedupid=None, better=False):
         """

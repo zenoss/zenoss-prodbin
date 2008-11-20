@@ -68,7 +68,7 @@ class DeviceClass(DeviceOrganizer, ZenPackable, TemplateContainer):
     many different sub systems within zenoss.
     It also handles the creation of new devices in the system.
     """
-   
+
     # Organizer configuration
     dmdRootName = "Devices"
 
@@ -84,7 +84,7 @@ class DeviceClass(DeviceOrganizer, ZenPackable, TemplateContainer):
     #    {'label' : 'Find', 'action' : 'manageDeviceSearch'},)
 
     default_catalog = 'deviceSearch'
-    
+
     _relations = DeviceOrganizer._relations + ZenPackable._relations + \
                 TemplateContainer._relations + (
         ("devices", ToManyCont(ToOne,"Products.ZenModel.Device","deviceClass")),
@@ -261,40 +261,6 @@ class DeviceClass(DeviceOrganizer, ZenPackable, TemplateContainer):
                 return self.callZenScreen(REQUEST)
 
 
-    security.declareProtected('Change Device', 'setDeviceBatchProps')
-    def setDeviceBatchProps(self, method='', extraarg=None,
-                            selectstatus='none', goodevids=[],
-                            badevids=[], offset=0, count=50, filter='',
-                            orderby='id', orderdir='asc', REQUEST=None):
-        """docstring"""
-        if not method: return self()
-        d = {'lockDevicesFromUpdates':'sendEventWhenBlocked',
-             'lockDevicesFromDeletion':'sendEventWhenBlocked',
-             'unlockDevices':'',
-             'setGroups':'groupPaths',
-             'setSystems':'systemPaths',
-             'setLocation':'locationPath',
-             'setPerformanceMonitor':'performanceMonitor',
-             'moveDevices':'moveTarget',
-             'removeDevices':('deleteStatus', 'deleteHistory', 'deletePerf'),
-             'setProdState':'state',
-             'setPriority':'priority'
-            }
-        request = FakeRequest()
-        argdict = dict(REQUEST=request)
-        if d[method]:
-            if type(d[method]) in [tuple, list]:
-                for argName in d[method]:
-                    argdict[argName] = REQUEST.get(argName, None)
-            else:
-                argdict[d[method]] = extraarg
-        action = getattr(self, method)
-        argdict['deviceNames'] = self.getDeviceBatch(selectstatus, 
-                                  goodevids, badevids, offset, count, 
-                                  filter, orderby, orderdir)
-        return action(**argdict)
-
-
     security.declareProtected('View', 'getEventDeviceInfo')
     def getEventDeviceInfo(self):
         """getEventDeviceInfo() -> return the info for NcoEventPopulator"""
@@ -407,74 +373,6 @@ class DeviceClass(DeviceOrganizer, ZenPackable, TemplateContainer):
         if ret: return ret[0].getObject()
 
 
-    security.declareProtected('View', 'jsonGetDeviceNames')
-    def jsonGetDeviceNames(self, query=''):
-        ''' Return a list of all device names that match the filter.
-        '''
-        brains = self.deviceSearch.evalAdvancedQuery(
-                                MatchGlob('id', query.rstrip('*') + '*'))
-        deviceIds = [b.id for b in brains]
-        deviceIds.sort(lambda x, y: cmp(x.lower(), y.lower()))
-        return simplejson.dumps(deviceIds)
-
-
-    security.declareProtected('View', 'jsonGetComponentPaths')
-    def jsonGetComponentPaths(self, deviceIds=()):
-        '''
-        Return a list of all components that match device in the form
-        (componentPath, componentName)
-        '''
-        # FIXME This needs to use the new catalog
-        from sets import Set
-        paths = Set()
-        if isinstance(deviceIds, basestring):
-            deviceIds = [deviceIds]
-        for devId in deviceIds:
-            d = self.findDevice(devId)
-            if d:
-                dPathLen = len(d.getPrimaryId()) + 1
-                for comp in d.getMonitoredComponents():
-                    paths.add((comp.getPrimaryId()[dPathLen:], comp.name()))
-        paths = list(paths)
-        paths.sort(lambda x,y: cmp(x[0], y[0]))
-        return simplejson.dumps(paths)
-        
-        
-    security.declareProtected('View', 'jsonGetGraphIds')
-    def jsonGetGraphIds(self, deviceIds=(), componentPaths=()):
-        ''' Get a list of the graph defs available for the given device
-        and component.
-        '''
-        from sets import Set
-        graphIds = Set()
-        if isinstance(deviceIds, basestring):
-            deviceIds = [deviceIds]
-        if isinstance(componentPaths, basestring):
-            componentPaths = [componentPaths]
-        if not componentPaths:
-            componentPaths = ('',)
-        
-        for devId in deviceIds:
-            thing = self.findDevice(devId)
-            if thing:
-                for compPath in componentPaths:
-                    compPath = compPath or ''
-                    parts = compPath.split('/')
-                    for part in parts:
-                        if part:
-                            if hasattr(thing, part):
-                                thing = getattr(thing, part)
-                            else:
-                                break
-                    else:
-                        for t in thing.getRRDTemplates():
-                            for g in t.getGraphDefs():
-                                graphIds.add(g.id)
-        graphIds = list(graphIds)
-        graphIds.sort()
-        return simplejson.dumps(graphIds)
-
-
     def findDevicePingStatus(self, devicename):
         """look up device in catalog and return its pingStatus"""
         dev = self.findDevice(devicename)
@@ -514,7 +412,7 @@ class DeviceClass(DeviceOrganizer, ZenPackable, TemplateContainer):
             except AttributeError:
                 pass
         return templates.values()
-            
+
 
     def getAvailableTemplates(self):
         "Returns all available templates"
@@ -546,7 +444,7 @@ class DeviceClass(DeviceOrganizer, ZenPackable, TemplateContainer):
         Return all RRDTemplates at this level and below in the object tree.
         If rrdts is provided then it must be a list of RRDTemplates which
         will be extended with the templates from here and returned.
-        
+
         The original getAllRRDTemplates() method has been renamed
         getAllRRDTemplatesPainfully().  It walks the object tree looking
         for templates which is a very slow way of going about things.
@@ -554,7 +452,7 @@ class DeviceClass(DeviceOrganizer, ZenPackable, TemplateContainer):
         searchRRDTemplates catalog to speed things up dramatically.
         YieldAllRRDTemplates is smart enough to revert to 
         getAllRRDTemplatesPainfully if the catalog is not present.
-        
+
         The searchRRDTemplates catalog was added in 2.2
         """
         if rrdts == None:
@@ -579,8 +477,8 @@ class DeviceClass(DeviceOrganizer, ZenPackable, TemplateContainer):
         for child in self.children():
             child.getAllRRDTemplatesPainfully(rrdts)
         return rrdts
-    
-    
+
+
     security.declareProtected('Add DMD Objects', 'manage_addRRDTemplate')
     def manage_addRRDTemplate(self, id, REQUEST=None):
         """Add an RRDTemplate to this DeviceClass.
@@ -592,7 +490,7 @@ class DeviceClass(DeviceOrganizer, ZenPackable, TemplateContainer):
         if REQUEST: 
             REQUEST['message'] = "Template added"
             return self.callZenScreen(REQUEST)
-            
+
 
     def manage_copyRRDTemplates(self, ids=(), REQUEST=None):
         """Put a reference to the objects named in ids in the clip board"""
@@ -616,7 +514,7 @@ class DeviceClass(DeviceOrganizer, ZenPackable, TemplateContainer):
         if cb_copy_data: cp = cb_copy_data
         elif REQUEST:
             cp = REQUEST.get("__cp",None)
-        
+
         if cp:
             if moveTarget:
                 target = self.getDmdRoot(self.dmdRootName).getOrganizer(moveTarget)
@@ -625,7 +523,7 @@ class DeviceClass(DeviceOrganizer, ZenPackable, TemplateContainer):
             target.rrdTemplates.manage_pasteObjects(cp)
         else:
             target = None
-            
+
         if REQUEST:
             REQUEST['RESPONSE'].setCookie('__cp', 'deleted', path='/zport/dmd',
                             expires='Wed, 31-Dec-97 23:59:59 GMT')
@@ -696,7 +594,7 @@ class DeviceClass(DeviceOrganizer, ZenPackable, TemplateContainer):
         zcat.addColumn('getPrimaryId')
         zcat.addColumn('id')
         zcat.addColumn('path')
-    
+
         # make catalog for device components
         manage_addZCatalog(self, "componentSearch", "componentSearch")
         zcat = self._getOb("componentSearch")
@@ -711,7 +609,7 @@ class DeviceClass(DeviceOrganizer, ZenPackable, TemplateContainer):
         zcat.addIndex('monitored', 'FieldIndex')
         zcat.addColumn('getPrimaryId')
         zcat.addColumn('meta_type')
-        
+
 
     def reIndex(self):
         """Go through all devices in this tree and reindex them."""
@@ -769,7 +667,7 @@ class DeviceClass(DeviceOrganizer, ZenPackable, TemplateContainer):
         #FIXME - should this be added to allow for more flexability of
         # RRDTemplate binding?
         #devs._setProperty("zRRDTemplateName", "")
-        
+
         # Ping monitor properties
         devs._setProperty("zPingInterfaceName", "")
         devs._setProperty("zPingInterfaceDescription", "")
@@ -843,8 +741,8 @@ class DeviceClass(DeviceOrganizer, ZenPackable, TemplateContainer):
         if REQUEST:
             REQUEST['message'] = 'Changes to %s pushed to collectors' % self.id
             return self.callZenScreen(REQUEST)
-            
-            
+
+
     security.declareProtected('Change Device', 'setLastChange')
     def setLastChange(self, value=None):
         """Set the changed datetime for this device. value default is now.
@@ -854,5 +752,4 @@ class DeviceClass(DeviceOrganizer, ZenPackable, TemplateContainer):
         self._lastChange = float(value)
 
 
-        
 InitializeClass(DeviceClass)

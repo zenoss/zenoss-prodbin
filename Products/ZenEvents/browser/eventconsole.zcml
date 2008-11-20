@@ -1,0 +1,35 @@
+<configure
+    xmlns="http://namespaces.zope.org/zope"
+    xmlns:five="http://namespaces.zope.org/five"
+    xmlns:browser="http://namespaces.zope.org/browser"
+    i18n_domain="Products.ZenEvents">
+
+    <browser:page
+        for="Products.ZenModel.EventView.IEventView"
+        name="getJSONEventsInfo"
+        class=".EventConsole.EventConsole"
+        permission="zope2.View"
+        />
+
+    <browser:page
+        for="Products.ZenModel.EventView.IEventView"
+        name="getJSONFields"
+        class=".EventConsole.EventConsoleFields"
+        permission="zope2.View"
+        />
+
+    <browser:page
+        for="Products.ZenModel.EventView.IEventView"
+        name="getJSONHistoryEventsInfo"
+        class=".EventConsole.HistoryConsole"
+        permission="zope2.View"
+        />
+
+    <browser:page
+        for="Products.ZenModel.EventView.IEventView"
+        name="getJSONHistoryFields"
+        class=".EventConsole.HistoryConsoleFields"
+        permission="zope2.View"
+        />
+
+</configure>

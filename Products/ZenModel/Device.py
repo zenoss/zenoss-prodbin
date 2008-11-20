@@ -58,6 +58,9 @@ from ZenossSecurity import *
 from Products.ZenUtils.Utils import edgesToXML
 from Products.ZenUtils import NetworkTree
 
+from zope.interface import implements
+from EventView import IEventView
+
 
 def getNetworkRoot(context, performanceMonitor):
     """
@@ -195,6 +198,8 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
     that is made up of software running on hardware. It currently must be IP
     enabled but maybe this will change.
     """
+
+    implements(IEventView)
 
     event_key = portal_type = meta_type = 'Device'
     
@@ -1882,7 +1887,7 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
     def getPrettyLink(self):
         """
         Gets a link to this device, plus an icon
-        
+
         @rtype: HTML text
         @permission: ZEN_VIEW
         """
@@ -1899,28 +1904,6 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
         else:
             return linktemplate % rendered
 
-    security.declareProtected(ZEN_VIEW, 'getEventPill')
-    def getEventPill(self, showGreen=True):
-        """
-        Gets an event pill representing the highest severity
-        See EventManagerBase.getEventPillME
-
-        @rtype: JSON data
-        @permission: ZEN_VIEW
-        """
-        pill = self.ZenEventManager.getEventPillME(self, showGreen=showGreen)
-        if type(pill)==type([]) and len(pill)==1: return pill[0]
-        return pill
-
-    def getDeviceComponentEventSummary(self):
-        """
-        Gets datatable-ready string of components and summaries.
-        See EventManagerBase.getDeviceComponentEventSummary
-        
-        @rtype: JSON data
-        """
-        return self.dmd.ZenEventManager.getDeviceComponentEventSummary(self)
-
 
     def updateProcesses(self, relmaps):
         "Uses ProcessClasses to create processes to monitor"
@@ -1931,7 +1914,7 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
         pcs = list(processes.getSubOSProcessClassesGen())
         log.debug("zenoss processes: %s" % pcs)
         pcs.sort(lambda a, b: cmp(a.sequence,b.sequence))
-      
+
         #some debug output 
         procs = Set()
         if log.isEnabledFor(10):
@@ -1943,19 +1926,19 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
                 log.debug("%s\t%s" % (p.id, p.regex))
 
         procs = Set()
-        
+
         #get the processes defined in Zenoss
         processes = self.getDmdRoot("Processes")
         pcs = list(processes.getSubOSProcessClassesGen())
         log.debug("zenoss processes: %s" % pcs)
         pcs.sort(lambda a, b: cmp(a.sequence,b.sequence))
-      
+
         #some debug output 
         if log.isEnabledFor(10):
             log.debug("=== snmp process information received ===")
             for p in scanResults:
                 log.debug("process: %s" % p)
-        
+
             log.debug("=== processes stored/defined in Zenoss ===")
             for p in pcs:
                 log.debug("%s\t%s" % (p.id, p.regex))
@@ -1965,7 +1948,7 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
             om = ObjectMap(proc)
             fullname = (om.procName + " " + om.parameters).rstrip()
             log.debug("current process: %s" % fullname)
-            
+
             for pc in pcs:
                 if pc.match(fullname):
                     om.setOSProcessClass = pc.getPrimaryDmdId()

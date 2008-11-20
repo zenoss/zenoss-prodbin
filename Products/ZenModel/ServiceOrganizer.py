@@ -12,7 +12,6 @@
 ###########################################################################
 
 import types
-import simplejson
 import logging
 log = logging.getLogger("zen.ServiceOrganizer")
 
@@ -238,24 +237,13 @@ class ServiceOrganizer(Organizer, Commandable, ZenPackable):
             targets += sc.getUserCommandTargets()
         for so in self.children():
             targets += so.getUserCommandTargets()
-        return targets            
+        return targets
 
 
     def getUrlForUserCommands(self):
         return self.getPrimaryUrlPath() + '/serviceOrganizerManage'
 
-    
-    def getServiceLiveSearchList(self):
-        """ Get a list of id and descriptions for a live search
-        """
-        liveSearchList = []
-        for srv in self.getSubInstancesGen(rel='serviceclasses'):
-            if getattr(srv, 'description', None):
-                liveSearchList.append('%s [%s]' % (srv.id, srv.description))
-            else:
-                liveSearchList.append(srv.id)
-        return simplejson.dumps(liveSearchList)
-    
+
     def parseServiceLiveSearchString(self, str):
         """ Parse a string of id and description from a live search
         """

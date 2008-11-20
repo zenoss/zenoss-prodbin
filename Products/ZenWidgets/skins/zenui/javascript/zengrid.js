@@ -352,7 +352,7 @@ ZenGrid.prototype = {
         });
         var isMSIE//@cc_on=1;
         if (isMSIE) {
-            qs.ms= new Date().getTime();
+            qs._dc= new Date().getTime();
         }
         if ('askformore' in this) this.askformore.cancel()
         this.askformore = loadJSONDoc(url, qs);

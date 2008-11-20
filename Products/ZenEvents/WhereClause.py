@@ -11,14 +11,14 @@
 #
 ###########################################################################
 import types
-import simplejson
+from Products.ZenUtils.json import json
 
 def q(s):
     # turn string "fo'o" -> "'fo''o'"
     return "'%s'" % "''".join(s.split("'"))
 
 class Error(Exception): pass
-                             
+
 class WhereJavaScript:
     "Base class for converting to/from javascript"
     type = 'unknown'
@@ -215,6 +215,7 @@ class _Parser:
 
 where = _Parser(_ParseSpec)
 
+@json
 def toJavaScript(meta, clause):
     # sql is case insensitive, map column names to lower-case versions
     lmeta = dict([(n.lower(), n) for n in meta.keys()])
@@ -236,7 +237,7 @@ def toJavaScript(meta, clause):
     result = []
     recurse(tree, result)
     result.sort()
-    return simplejson.dumps(result)
+    return result
 
 def fromFormVariables(meta, form):
     result = []

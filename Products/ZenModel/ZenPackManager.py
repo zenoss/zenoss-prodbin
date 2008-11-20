@@ -311,5 +311,4 @@ class ZenPackManager(ZenModelRM):
         return ob.__class__.__module__
 
 
-
 InitializeClass(ZenPackManager)

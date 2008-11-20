@@ -33,50 +33,9 @@ class ZEvent(Event):
         self._baseurl = manager.absolute_url_path()
         self.eventPermission = eventPermission
 
-    def getDataForJSON(self, fields):
-        """ returns data ready for serialization
-        """
-        return self.getDataListWithLinks(list(fields)+['evid'])
-
-    def getDataListWithLinks(self, fields, cssClass=''):
-        """return a list of data elements that map to the fields parameter.
-        """
-        def _sanitize(val):
-            return val.replace('<', '&lt;').replace('>','&gt;')
-
-        data = []
-        for field in fields:
-            value = getattr(self, field)
-            _shortvalue = str(value) or ''
-            if field == "device":
-                value = urllib.quote('<a class="%s"' % (cssClass) +
-                            ' href="/zport/dmd/deviceSearchResults'
-                            '?query=%s">%s</a>' % (value, _shortvalue))
-            elif field == 'eventClass':
-                _shortvalue = _shortvalue.replace('/','/&shy;')
-                if not self.eventPermission: 
-                    value = _shortvalue
-                else:
-                    value = urllib.quote('<a class="%s" ' % (cssClass) +
-                      'href="/zport/dmd/Events%s">%s</a>' % (value,_shortvalue))
-            elif field == 'component' and getattr(self, 'device', None):
-                value = urllib.quote('<a class="%s"' % (cssClass) +
-                            ' href="/zport/dmd/searchComponents'
-                            '?device=%s&component=%s">%s</a>' % (
-                                getattr(self, 'device'), value, _shortvalue))
-            elif field == 'summary':
-                value = urllib.quote(
-                    value.replace('<','&lt;').replace('>','&gt;'))
-            else:
-                value = _shortvalue
-            data.append(value)
-        return data
-
-
     def getEventDetailHref(self):
         """build an href to call the detail of this event"""
         return "%s/viewEventFields?evid=%s" % (self._baseurl, self.evid)
-
 
     def getCssClass(self):
         """return the css class name to be used for this event.

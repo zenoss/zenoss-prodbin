@@ -29,7 +29,7 @@ import types
 import logging
 import re
 import socket
-import simplejson
+import warnings
 from sets import Set
 log = logging.getLogger("zen.Utils")
 
@@ -773,25 +773,34 @@ def monkeypatch(target):
     return patcher
 
 
+from Products.ZenUtils.json import json as _json
 def json(f):
     """
     Decorator that serializes the return value of the decorated function as
     JSON.
 
-        >>> @json
-        ... def f():
-        ...     return (dict(a=1L), u"123", 123)
-        ...
-        >>> print f()
-        [{"a": 1}, "123", 123]
-
+    Use of the C{ZenUtils.Utils.json} decorator is deprecated. Please import
+    from C{ZenUtils.json}.
     """
-    def inner(*args, **kwargs):
-        return simplejson.dumps(f(*args, **kwargs))
-    # Make it well behaved
-    inner.__name__ = f.__name__
-    inner.__dict__.update(f.__dict__)
-    inner.__doc__ = f.__doc__
+    warnings.warn("Use of the ZenUtils.Utils.json decorator is deprecated. "
+                   "Please import from Products.ZenWidgets.json",
+                   DeprecationWarning)
+    return _json(f)
+
+
+def formreq(f):
+    """
+    Decorator to pass in request.form information as arguments to a method.
+
+    These are intended to decorate methods of BrowserViews.
+    """
+    def inner(self, *args, **kwargs):
+        kwargs.update(self.request.form)
+        # Get rid of useless Zope thing that appears when no querystring
+        if kwargs.has_key('-C'): del kwargs['-C']
+        # Get rid of kw used to prevent browser caching
+        if kwargs.has_key('_dc'): del kwargs['_dc']
+        return f(self, *args, **kwargs)
     return inner
 
 

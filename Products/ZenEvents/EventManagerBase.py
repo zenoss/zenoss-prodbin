@@ -34,7 +34,6 @@ import DateTime
 from Products.ZenModel.ZenossSecurity import *
 
 from Products.ZenUtils.ObjectCache import ObjectCache
-from Products.ZenUtils.Utils import extractPostContent
 
 from Products.AdvancedQuery import Eq, Or
 
@@ -450,7 +449,7 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
                                     where=where,**kwargs)
         return [ev.evid for ev in events]
 
-        
+
     def getEventList(self, resultFields=None, where="", orderby="",
             severity=None, state=2, startdate=None, enddate=None, offset=0,
             rows=0, getTotalCount=False, filter="", **kwargs):
@@ -577,211 +576,6 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
             log.exception("event summary for %s failed" % me.getDmdKey())
             raise
 
-    def getEventPillME(self, me, number=1, showGreen=False):
-        """ 
-        Get HTML code displaying the maximum event severity and the number of
-        events of that severity on a particular L{ManagedEntity} in a pleasing
-        pill-shaped container. Optionally return pills for lesser severities as
-        well. Optionally return a green pill if there are no events (normally no
-        events in a severity will not yield a result).
-
-        @param me: The object regarding which event data should be queried.
-        @type me: L{ManagedEntity}
-        @param number: The number of pills to return
-        @type number: int
-        @param showGreen: Whether to return an empty green pill if all is well
-        @type showGreen: bool
-        @return: HTML strings ready for template inclusion
-        @rtype: list
-        """ 
-        try:
-            evsum = self.getEventSummaryME(me, 0)
-            summary =[x[2] for x in evsum]
-            colors = "red orange yellow blue grey".split()
-            info = ["%s out of %s acknowledged" % (x[1],x[2])
-                    for x in evsum]
-            results = zip(colors, [me.getPrimaryUrlPath()]*5, info, summary)
-            template = ('<div class="evpill-%s" onclick="location.href='
-                        '\'%s/viewEvents\'" title="%s">%s</div>')
-            pills = []
-            for i, result in enumerate(results):
-                color, path, info, summary = result
-                if evsum[i][1]>=evsum[i][2]: 
-                    if color!='green': color += '-acked'
-                result = color, path, info, summary
-                if (result[3]): 
-                    pills.append(template % result)
-                if len(pills)==number: return pills
-            if (showGreen):
-                color = 'green'
-                summary = ' '
-                info = 'No events'
-                result = (color, path, info, summary)
-                pills.append(template % result)
-            return pills
-        except:
-            log.exception("event summary for %s failed" % me.getDmdKey())
-            return None
-
-    def getDeviceComponentEventSummary(self, device, REQUEST=None):
-        """ 
-        Return a list of categories of components on a device along with event
-        pills for the maximum severity event on each category in the form of a
-        JSON object ready for inclusion in a YUI data table. If a category
-        contains components with events, the component and its associated event
-        pill are returned as a separate (indented) row.
-
-        @param device: The device for which to gather component data
-        @type device: L{Device}
-        @return: A JSON-formatted string representation of the columns and rows
-            of the table
-        @rtype: string
-        """
-        mydict = {'columns':[], 'data':[]}
-        mydict['columns'] = ['Component Type', 'Status']
-        devdata = []
-        query = { 'getParentDeviceName':device.id,}
-        brains = device.componentSearch(query)
-        metatypes = Set([str(x.meta_type) for x in brains])
-        resultdict = {}
-        for mt in metatypes: resultdict[mt] = {}
-        evpilltemplate = ('<img src="img/%s_dot.png" '
-                          'width="15" height="15" '
-                          'style="cursor:hand;cursor:pointer" '
-                          'onclick="location.href'
-                          '=\'%s/viewEvents\'"/>')
-        linktemplate = ("<a href='%s' class='prettylink'>"
-                        "<div class='device-icon-container'>%s "
-                        "</div>%s</a>")
-        colors = "green grey blue yellow orange red".split()
-        indent = "&nbsp;"*8
-        def getcompfrombrains(id):
-            for comp in brains:
-                compid = comp.getPrimaryId.split('/')[-1]
-                if compid==id: 
-                    return comp.getPrimaryId, comp.meta_type, comp.getPath()
-            return None, None, None
-        devurl = device.getPrimaryUrlPath()
-        ostab = devurl.rstrip('/') + '/os'
-        for event in self.getEventListME(device):
-            if not len(event.component): continue
-            id, metatype, url = getcompfrombrains(event.component)
-            if id is None or metatype is None or url is None: 
-                id, metatype, url = event.component, 'Other', devurl + '/os'
-            tally = resultdict.setdefault(metatype, 
-                            {'sev':event.severity, 
-                             'components': {id: (event.severity, 1, id, ostab)}})
-            tally.setdefault('sev', event.severity)
-            tally.setdefault('components', {id: (event.severity, 0, id, ostab)})
-            if tally['sev'] < event.severity: tally['sev'] = event.severity
-            comp = tally['components'].setdefault(id, (event.severity, 0, 
-                                                       id, ostab))
-            comptotal = tally['components'][id][1]
-            compsev = tally['components'][id][0]
-            newsev = compsev
-            if event.severity > compsev: newsev = event.severity
-            tally['components'][id] = (newsev, comptotal+1, id, url)
-        r = resultdict
-        categorysort = [(r[x]['sev'], len(r[x]['components']), x,
-                         r[x]['components'].values()) for x in r if r[x]]
-        categorysort.sort(); categorysort.reverse()
-        categorysort.extend([(0, 0, x, []) for x in r if not r[x]])
-        for bunch in categorysort:
-            catsev, catnum, catname, comps = bunch
-            catlink = ostab
-            catcolor = colors[catsev]
-            evpill = evpilltemplate % (catcolor, device.getPrimaryUrlPath())
-            if catnum: evpill = ''
-            devdata.append((linktemplate % (catlink, '', catname), evpill))
-            comps.sort()
-            for comp in comps:
-                compsev, compnum, complink, compurl = comp
-                compcolor = colors[compsev]
-                if not complink.startswith('/zport'): 
-                    compname = complink
-                    complink = devurl.rstrip('/') + '/viewEvents'
-                else: 
-                    compname = complink.split('/')[-1]
-                    complink = compurl.rstrip('/') + '/viewEvents'
-                if not compname: continue
-                compname = "<strong>%s</strong>" % compname
-                devdata.append(
-                    (linktemplate % (complink, '', indent+compname),
-                     evpilltemplate % (compcolor, 
-                                       device.getPrimaryUrlPath())
-                    )
-                )
-        mydict['data'] = [{'Component Type':x[0],
-                           'Status':x[1]} for x in devdata]
-        return simplejson.dumps(mydict)
-
-    def getObjectsEventSummaryJSON(self, objects, REQUEST=None):
-        """
-        Return an HTML link and event pill for each object passed as a JSON
-        object ready for inclusion in a YUI data table.
-
-        @param objects: The objects for which to create links and pills.
-        @type objects: list
-        @return: A JSON-formatted string representation of the columns and rows
-            of the table
-        @rtype: string
-        """ 
-        mydict = {'columns':[], 'data':[]}
-        mydict['columns'] = ['Object', 'Events']
-        getcolor = re.compile(r'class=\"evpill-(.*?)\"', re.S|re.I|re.M).search
-        colors = "red orange yellow blue grey green".split()
-        def pillcompare(a,b):
-            a, b = map(lambda x:getcolor(x[1]), (a, b))
-            def getindex(x):
-                try: 
-                    color = x.groups()[0]
-                    smallcolor = x.groups()[0].replace('-acked','')
-                    isacked = 'acked' in color
-                    index = colors.index(x.groups()[0].replace('-acked',''))
-                    if isacked: index += .5
-                    return index
-                except: return 5
-            a, b = map(getindex, (a, b))
-            return cmp(a, b)
-        devdata = []
-        for obj in objects:
-            alink = obj.getPrettyLink()
-            pill = self.getEventPillME(obj, showGreen=True)
-            if type(pill)==type([]): pill = pill[0]
-            devdata.append([alink, pill])
-        devdata.sort(pillcompare)
-        mydict['data'] = [{'Object':x[0],'Events':x[1]} for x in devdata]
-        return simplejson.dumps(mydict)
-
-    def getEntityListEventSummary(self, entities=[], REQUEST=None):
-        """
-        A wrapper for L{getObjectsEventSummaryJSON} that accepts a list of
-        paths to Zope objects which it then attempts to resolve. If no list of
-        paths is given, it will try to read them from the POST data of the
-        REQUEST object.
-
-        @param entities: A list of paths that should be resolved into objects
-            and passed to L{getObjectsEventSummaryJSON}.
-        @type entities: list
-        @return: A JSON-formatted string representation of the columns and rows
-            of the table
-        @rtype: string
-        """
-        if not entities:
-            entities = simplejson.loads(extractPostContent(REQUEST), 
-                                        encoding = 'ascii')
-        if type(entities)==type(''): entities = [entities]
-        def getob(e):
-            e = str(e)
-            try:
-                if not e.startswith('/zport/dmd'):
-                    bigdev = '/zport/dmd' + e
-                obj = self.dmd.unrestrictedTraverse(bigdev)
-            except KeyError: 
-                obj = self.dmd.Devices.findDevice(e)
-            if self.has_permission("View", obj): return obj
-        entities = filter(lambda x:x is not None, map(getob, entities))
-        return self.getObjectsEventSummaryJSON(entities, REQUEST)
 
     def getEventSummary(self, where="", severity=1, state=1, prodState=None):
         """
@@ -1330,7 +1124,6 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
             where += fmt % (field, value)
         return where
 
-
     def _setupDateRange(self, startdate=None,
                               enddate=None):
         """
@@ -1350,222 +1143,6 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
         startdate = self.dateDB(startdate)
         enddate = self.dateDB(enddate)
         return startdate, enddate
-    
-   
-    security.declareProtected(ZEN_COMMON,'getDashboardInfo')
-    def getDashboardInfo(self, simple=False, organizer='Devices', REQUEST=None):
-        """Return a dictionary that has all info for the dashboard.
-        """
-        data = self.checkCache("dashboardinfo%s" % simple)
-        if data: return data
-        data = {}
-        data['systemevents'] = self.getOrganizerSummary(
-                                        organizer,'viewEvents', simple)
-        # Dashboard just wants the first 3 elements of each heartbeat
-        data['heartbeat'] = [h[:3] for h in self.getHeartbeat()]
-        data['deviceevents'] = self.getDeviceDashboard(simple)
-        self.addToCache("dashboardinfo", data)
-        self.cleanCache()
-        if REQUEST:
-            REQUEST.RESPONSE.setHeader('Cache-Control', 'no-cache')
-            REQUEST.RESPONSE.setHeader('Expires', '-1')
-            REQUEST.RESPONSE.setHeader("Pragma", "no-cache")
-        return data
-
-
-    def getDeviceIssuesJSON(self):
-        """ Get devices with issues in a form suitable
-            for a portlet on the dashboard.
-        """
-        mydict = {'columns':[], 'data':[]}
-        mydict['columns'] = ['Device', 'Events']
-        deviceinfo = self.getDeviceDashboard()
-        for alink, pill in deviceinfo:
-            mydict['data'].append({'Device':alink, 
-                                   'Events':pill})
-        return simplejson.dumps(mydict)
-
-    def getHeartbeatIssuesJSON(self):
-        """ Get heartbeat issues in a form suitable
-            for a portlet on the dashboard.
-        """
-        mydict = {'columns':[], 'data':[]}
-        mydict['columns'] = ['Device', 'Daemon', 'Seconds']
-        heartbeats = self.getHeartbeat()
-        for Device, Daemon, Seconds, dummy in heartbeats:
-            mydict['data'].append({'Device':Device,
-                'Daemon':Daemon, 'Seconds':Seconds})
-        return simplejson.dumps(mydict)
-        
-
-    def getDeviceDashboard(self, simple=False):
-        """return device info for bad device to dashboard"""
-        devices = [d[0] for d in self.getDeviceIssues(
-                            severity=4, state=1)]
-        devdata = []
-        devclass = self.getDmdRoot("Devices")
-        getcolor = re.compile(r'class=\"evpill-(.*?)\"', re.S|re.I|re.M).search
-        colors = "red orange yellow blue grey green".split()
-        def pillcompare(a,b):
-            a, b = map(lambda x:getcolor(x[1]), (a, b))
-            def getindex(x):
-                try: 
-                    color = x.groups()[0]
-                    smallcolor = x.groups()[0].replace('-acked','')
-                    isacked = 'acked' in color
-                    index = colors.index(x.groups()[0].replace('-acked',''))
-                    if isacked: index += .5
-                    return index
-                except: return 5
-            a, b = map(getindex, (a, b))
-            return cmp(a, b)
-        for devname in devices:
-            dev = devclass.findDevice(devname)
-            if dev and dev.id == devname:
-                if (not self.checkRemotePerm(ZEN_VIEW, dev)
-                    or dev.productionState < self.prodStateDashboardThresh
-                    or dev.priority < self.priorityDashboardThresh):
-                    continue
-                if simple: alink = devname
-                else: alink = dev.getPrettyLink()
-                try:
-                    pill = self.getEventPillME(dev)[0]
-                except IndexError:
-                    continue
-                evts = [alink,pill]
-                devdata.append(evts)
-        devdata.sort(pillcompare)
-        return devdata[:100]
-
-
-    def getOrganizerSummary(self, rootname='Systems',template='',simple=False):
-        """Return systems info for dashboard."""
-        root = self.getDmdRoot(rootname)
-        data = []
-        for sys in root.children():
-            if simple:
-                alink = sys.getOrganizerName()
-            else:
-                alink = "<a href='%s/%s'>%s</a>" % (
-                        sys.getPrimaryUrlPath(),template,
-                        sys.getOrganizerName())
-            evts = [ alink ]
-            evts.extend(map(evtprep, sys.getEventSummary(prodState=1000)))
-            data.append(evts)
-        data.sort()
-        return data
-        
-
-    def getDevProdStateJSON(self, prodStates=['Maintenance'], REQUEST=None):
-        """
-        Return a map of device to production state in a format suitable for a
-        YUI data table.
-        """
-        if type(prodStates)==type(''): prodStates = [prodStates]
-        orderby, orderdir = 'id', 'asc'
-        catalog = getattr(self.dmd.Devices, self.dmd.Devices.default_catalog)
-        queries = []
-        for state in prodStates:
-            queries.append(Eq('getProdState', state))
-        query = Or(*queries)
-        objects = catalog.evalAdvancedQuery(query, ((orderby, orderdir),))
-        devs = (x.getObject() for x in objects)
-        mydict = {'columns':['Device', 'Prod State'], 'data':[]}
-        for dev in devs:
-            if not self.checkRemotePerm(ZEN_VIEW, dev): continue
-            mydict['data'].append({
-                'Device' : dev.getPrettyLink(), 
-                'Prod State' : dev.getProdState()
-            })
-        mydict['data'] = mydict['data'][:100]
-        return simplejson.dumps(mydict)
-
-
-    def getOrganizerDashboard(self):
-        return {
-                'systemevents': self.getOrganizerSummary(),
-                'locationevents': self.getOrganizerSummary('Locations')
-        }
-
-    def getSummaryDashboard(self, REQUEST=None):
-        '''Build summary of serveral zope servers'''
-        import urllib, re
-        user = 'admin'; pw = 'zenoss'
-        servernames = ['zenoss', 'tilde']
-        dashurl = "<a href='http://%s:8080/zport/dmd/'>%s</a>"
-        sumurl = 'http://%s:%s@%s:8080/zport/dmd/Systems/getEventSummary'
-        infourl = 'http://%s:%s@%s:8080/zport/dmd/ZenEventManager/getDashboardInfo'
-        info = {'deviceevents': [], 'systemevents': [], 'heartbeat': []}
-
-        def getData(user, pw, urlfmt):
-            data = ''
-            try:
-                url = urlfmt % (user, pw, s)
-                data = urllib.urlopen(url).read()
-                if re.search('zenevents_5_noack', data): 
-                    return data
-            except IOError: pass
-
-        zenossdata = []
-        for s in servernames:
-                data = getData(user, pw, sumurl)
-                if not data: continue
-                evts = [ dashurl % (s, s) ] 
-                evts.extend(map(evtprep, eval(data)))
-                zenossdata.append(evts)
-        zenossdata.sort()
-        info['systemevents'] = zenossdata
-        for s in servernames:
-            data = getData(user, pw, infourl)
-            if not data: continue
-            data = eval(data)
-            info['deviceevents'].extend(data['deviceevents'])
-            info['heartbeat'].extend(data['heartbeat'])
-            
-        if REQUEST:
-            REQUEST.RESPONSE.setHeader('Cache-Control', 'no-cache')
-            REQUEST.RESPONSE.setHeader('Expires', '-1')
-            REQUEST.RESPONSE.setHeader("Pragma", "no-cache")
-        return info
-            
-    security.declareProtected('View','getJSONEventsInfo')
-    def getJSONEventsInfo(self, context, offset=0, count=50,
-                          getTotalCount=True, 
-                          startdate=None, enddate=None,
-                          filter='', severity=2, state=1, 
-                          orderby='', **kwargs):
-        """ Event data in JSON format.
-        """
-        
-        unused(kwargs)
-        if hasattr(context, 'getResultFields'):
-            fields = context.getResultFields()
-        else:
-            if hasattr(context, 'event_key'): base = context
-            else: base = self.dmd.Events
-            fields = self.lookupManagedEntityResultFields(base.event_key)
-        data, totalCount = self.getEventListME(context, 
-            offset=offset, rows=count, resultFields=fields,
-            getTotalCount=getTotalCount, filter=filter, severity=severity,
-            state=state, orderby=orderby, startdate=startdate, enddate=enddate)
-        results = [x.getDataForJSON(fields) + [x.getCssClass()] for x in data]
-        return simplejson.dumps((results, totalCount))
-
-
-    security.declareProtected('View','getJSONFields')
-    def getJSONFields(self, context):
-        if hasattr(context, 'getResultFields'):
-            fields = context.getResultFields()
-        else:
-            if hasattr(context, 'event_key'): base = context
-            else: base = self.dmd.Events
-            fields = self.lookupManagedEntityResultFields(base.event_key)
-        lens = map(self.getAvgFieldLength, fields)
-        total = sum(lens)
-        lens = map(lambda x:x/total*100, lens)
-        zipped = zip(fields, lens)
-        return simplejson.dumps(zipped)
-
 
     def getAvgFieldLength(self, fieldname):
         conn = self.connect()
@@ -1580,7 +1157,7 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
         try: return float(avglen[0])
         except TypeError: return 10. 
 
-        
+
     #==========================================================================
     # Event sending functions
     #==========================================================================
@@ -1604,7 +1181,7 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
         """Send an event to the backend.
         """
         raise NotImplementedError
-            
+
 
     #==========================================================================
     # Schema management functions

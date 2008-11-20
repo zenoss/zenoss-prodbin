@@ -14,7 +14,6 @@
 from sets import Set as set
 from itertools import groupby
 
-from simplejson import dumps
 from Acquisition import aq_base
 
 from Globals import InitializeClass

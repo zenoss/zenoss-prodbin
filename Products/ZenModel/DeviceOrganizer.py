@@ -449,7 +449,7 @@ class DeviceOrganizer(Organizer, DeviceManagerBase, Commandable, ZenMenuable,
         [ d.collectDevice() for d in self.getSubDevices() ]
         if REQUEST:
             return self.callZenScreen(REQUEST)
-             
+
     def _status(self, type, devrel="devices"):
         """build status info for device in this device group"""
         status = 0
@@ -461,8 +461,7 @@ class DeviceOrganizer(Organizer, DeviceManagerBase, Commandable, ZenMenuable,
             if getattr(device, statatt, -1)() > 0:
                 status += 1
         return status
-    
-   
+
     def statusColor(self, status):
         """colors for status fields for device groups"""
         retval = '#00ff00'
@@ -476,74 +475,14 @@ class DeviceOrganizer(Organizer, DeviceManagerBase, Commandable, ZenMenuable,
             retval = '#ff0000'
         return retval
 
-
     def getUserCommandTargets(self):
         ''' Called by Commandable.doCommand() to ascertain objects on which
         a UserCommand should be executed.
         '''
         return self.getSubDevices()
-        
-        
+
     def getUrlForUserCommands(self):
         return self.getPrimaryUrlPath() + '/deviceOrganizerManage'
-
-
-    def getAdvancedQueryDeviceList(self, offset=0, count=50, filter='',
-                                   orderby='id', orderdir='asc'):
-        catalog = getattr(self, self.default_catalog)
-        filter = '(?is).*%s.*' % filter
-        filterquery = Or(
-            MatchRegexp('id', filter),
-            MatchRegexp('getDeviceIp', filter),
-            MatchRegexp('getProdState', filter),
-            MatchRegexp('getDeviceClassPath', filter)
-        )
-        query = Eq('getPhysicalPath', self.absolute_url_path()
-                    ) & filterquery
-        objects = catalog.evalAdvancedQuery(query, ((orderby, orderdir),))
-        objects = list(objects)
-        totalCount = len(objects)
-        offset, count = int(offset), int(count)
-        obs = objects[offset:offset+count]
-        return totalCount, obs
-
-
-    def getJSONDeviceInfo(self, offset=0, count=50, filter='',
-                          orderby='id', orderdir='asc', REQUEST=None):
-        """yo"""
-        totalCount, devicelist = self.getAdvancedQueryDeviceList(
-                offset, count, filter, orderby, orderdir)
-        obs = [x.getObject() for x in devicelist]
-        if orderby=='getDeviceIp': obs.sort(lambda a,b:ipsort(a.getDeviceIp(), b.getDeviceIp()))
-        if orderdir=='desc': obs.reverse()
-        results = [ob.getDataForJSON() + ['odd'] for ob in obs]
-        return simplejson.dumps((results, totalCount))
-
-
-    def getDeviceBatch(self, selectstatus='none', goodevids=[],
-                       badevids=[], offset=0, count=50, filter='',
-                       orderby='id', orderdir='asc'):
-        unused(count, offset, orderby, orderdir)
-        if not isinstance(goodevids, (list, tuple)):
-            goodevids = [goodevids]
-        if not isinstance(badevids, (list, tuple)):
-            badevids = [badevids]
-        if selectstatus=='all':
-            idquery = ~In('id', badevids)
-        else:
-            idquery = In('id', goodevids)
-        filter = '(?is).*%s.*' % filter
-        filterquery = Or(
-            MatchRegexp('id', filter),
-            MatchRegexp('getDeviceIp', filter),
-            MatchRegexp('getProdState', filter),
-            MatchRegexp('getDeviceClassPath', filter)
-        )
-        query = Eq('getPhysicalPath', self.absolute_url_path()) & idquery
-        query = query & filterquery
-        catalog = getattr(self, self.default_catalog)
-        objects = catalog.evalAdvancedQuery(query)
-        return [x['id'] for x in objects]
 
     def getLinks(self, recursive=True):
         """ Return all Links on all interfaces on all
@@ -558,19 +497,11 @@ class DeviceOrganizer(Organizer, DeviceManagerBase, Commandable, ZenMenuable,
             alllinks.extend(list(device.getLinks()))
         return alllinks
 
-
     security.declareProtected(ZEN_VIEW, 'getIconPath')
     def getIconPath(self):
         """ Override the zProperty icon path and return a folder
         """
         return "/zport/dmd/img/icons/folder.png"
-
-    security.declareProtected(ZEN_VIEW, 'getEventPill')
-    def getEventPill(self, showGreen=True):
-        """ Gets event pill for worst severity """
-        pill = self.ZenEventManager.getEventPillME(self, showGreen=showGreen)
-        if type(pill)==type([]) and len(pill)==1: return pill[0]
-        return pill
 
     security.declareProtected(ZEN_VIEW, 'getPrettyLink')
     def getPrettyLink(self, noicon=False, shortDesc=False):
@@ -588,18 +519,5 @@ class DeviceOrganizer(Organizer, DeviceManagerBase, Commandable, ZenMenuable,
             return rendered
         else:
             return linktemplate % rendered
-
-    def getSubOrganizersEventSummary(self, REQUEST=None):
-        """ Gets event summaries of immediate child organizers """
-        objects = self.children()
-        return self.ZenEventManager.getObjectsEventSummaryJSON(objects, REQUEST)
-
-    def getSubDevicesEventSummary(self, REQUEST=None):
-        """ Gets event summaries of child devices """
-        devs = self.devices()
-        return self.ZenEventManager.getObjectsEventSummaryJSON(devs, REQUEST)
-
-    def getEventSummaryJSON(self, REQUEST=None):
-        return self.ZenEventManager.getObjectsEventSummary([self], REQUEST)
 
 InitializeClass(DeviceOrganizer)

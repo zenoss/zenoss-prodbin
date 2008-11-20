@@ -1,0 +1,42 @@
+<configure
+    xmlns="http://namespaces.zope.org/zope"
+    xmlns:five="http://namespaces.zope.org/five"
+    xmlns:browser="http://namespaces.zope.org/browser"
+    i18n_domain="Products.ZenModel">
+
+    <browser:page
+        for="*"
+        name="getRootOrganizerInfo"
+        class=".Portlets.TopLevelOrganizerPortletView"
+        permission="zope2.View"
+        />
+
+    <browser:page
+        for="*"
+        name="getDevProdStateJSON"
+        class=".Portlets.ProductionStatePortletView"
+        permission="zope2.View"
+        />
+
+    <browser:page
+        for="*"
+        name="getEntityListEventSummary"
+        class=".Portlets.WatchListPortletView"
+        permission="zope2.View"
+        />
+
+    <browser:page
+        for="*"
+        name="getHeartbeatIssuesJSON"
+        class=".Portlets.HeartbeatPortletView"
+        permission="zope2.View"
+        />
+
+    <browser:page
+        for="*"
+        name="getDeviceIssuesJSON"
+        class=".Portlets.DeviceIssuesPortletView"
+        permission="zope2.View"
+        />
+
+</configure>

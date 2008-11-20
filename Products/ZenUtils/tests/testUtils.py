@@ -15,4 +15,5 @@ import unittest
 
 def test_suite():
     suite = DocTestSuite('Products.ZenUtils.Utils')
-    return unittest.TestSuite([suite])
+    jsonsuite = DocTestSuite('Products.ZenUtils.json')
+    return unittest.TestSuite([suite, jsonsuite])
