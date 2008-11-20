@@ -91,7 +91,8 @@ class PBDaemon(ZenDaemon, pb.Referenceable):
     def __init__(self, noopts=0, keeproot=False):
         try:
             ZenDaemon.__init__(self, noopts, keeproot)
-        except:
+
+        except IOError:
             import traceback
             self.log.critical( traceback.format_exc( 0 ) )
             sys.exit(1)
