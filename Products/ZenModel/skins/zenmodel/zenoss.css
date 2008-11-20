@@ -1666,6 +1666,11 @@ div.zenportlet .yui-skin-sam .yui-dt-table td {
 }
 
 /* TABLES */
+
+#gridcontainer table {
+    border-collapse: separate;
+}
+
 table.innerzentable {
     margin: 0px;
     padding: 0pt;
