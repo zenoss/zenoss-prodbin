@@ -66,10 +66,12 @@ class Render(resource.Resource):
 
     def render_POST(self, request):
         "Deal with XML-RPC requests"
+        content = request.content.read()
         for instance, renderer in self.renderers.items():
+            if instance != request.postpath[-1]: continue
             for listener in renderer.listeners:
                 try:
-                    args, command = xmlrpclib.loads(request.content.read())
+                    args, command = xmlrpclib.loads(content)
                     request.setHeader('Content-type', 'text/xml')
                     d = listener.callRemote(str(command), *args)
                     def write(result):
