@@ -23,7 +23,8 @@ $Id$
 __version__ = "$Revision$"[11:-2]
 
 from twisted.cred import portal, checkers, credentials
-from twisted.spread import pb
+from twisted.spread import pb, banana
+banana.SIZE_LIMIT = 1024 * 1024 * 10
 
 from twisted.internet import reactor, protocol, defer
 from twisted.web import server, xmlrpc
@@ -432,21 +433,22 @@ class ZenHub(ZCmdBase):
         """Parcel out a method invocation to an available worker process
         """
         while self.workList:
-            for worker in self.workers:
+            for i, worker in enumerate(self.workers):
                 # linear search is not ideal, but simple enough
                 if not worker.busy:
                     d, args = self.workList.pop(0)
                     worker.busy = True
-                    def finished(result):
-                        worker.busy = False
+                    def finished(result, finishedWorker):
+                        finishedWorker.busy = False
                         self.giveWorkToWorkers()
                         return result
+                    self.log.debug("Giving work to worker %d", i)
                     d2 = worker.callRemote('execute', *args)
-                    d2.addBoth(finished)
+                    d2.addBoth(finished, worker)
                     d2.chainDeferred(d)
                     break
             else:
-                # all workers are busy
+                self.log.debug("all workers are busy")
                 break
 
     def createWorker(self):
