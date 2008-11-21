@@ -1,102 +1,93 @@
 <tal:block metal:use-macro="here/templates/macros/page2">
 <tal:block metal:fill-slot="contentPane">
 
-
-    <tal:block metal:use-macro="here/zenuimacros/macros/zentable-slidingdoors">
-        <tal:block metal:fill-slot='title'>
-        Zenoss Daemons
-        </tal:block>
-
-        <tal:block metal:fill-slot="body">
-            
-    <table style="margin-top:4px">
-    <colgroup>
-        <col width="25%">
-        <col width="15%">
-        <col width="20%">
-        <col width="30%">
-        <col width="10%">
-        <col width="0*">
-    <colgroup>
-    <thead>
+<tal:block tal:define="
+    tableName string:daemonList;
+    tabletitle string:Zenoss Daemons;
+    ztm here/ZenTableManager;
+    objects here/getZenossDaemonStates;
+    batch python:ztm.getBatch(tableName, objects);">
+    
+<tal:block metal:use-macro="here/zenuimacros/macros/zentable">
+<tal:block metal:fill-slot="zentablecontents">
+<colgroup>
+    <col width="25%">
+    <col width="15%">
+    <col width="20%">
+    <col width="30%">
+    <col width="10%">
+    <col width="0*">
+<colgroup>
+<thead>
+    <tr>
+        <th tal:replace="structure python:ztm.getTableHeader(
+            tableName,'name','Zenoss Daemon')"/>
+        <th tal:replace="structure python:ztm.getTableHeader(
+            tableName,'pid','PID')"/>
+        <th class="tableheader">Log File</th>
+        <th class="tableheader">Configuration</th>
+        <th class="tableheader">State</th>
+        <th class="tableheader" colspan="2">Actions</th>
+    </tr>
+</thead>
+<tbody tal:define="url string:${here/absolute_url_path}">
+    <tal:block tal:repeat="daemon batch">
+    <tr tal:define="odd repeat/daemon/odd"
+        tal:attributes="class python:test(odd, 'odd', 'even')">
         
-        <tr>
-            <th class="tableheader" nowrap>
-                Zenoss Daemon
-            </th>
-            <th class="tableheader">
-                PID
-            </th>
-            <th class="tableheader" nowrap>
-                Log File
-            </th>
-            <th class="tableheader">
-                Configuration
-            </th>
-            <th class="tableheader">
-                State
-            </th>
-            <th class="tableheader" colspan="2">
-                Actions
-            </th>
-        </tr>
-    </thead>
-    <tbody tal:define="url string:${here/absolute_url_path}">
-        <tr tal:repeat="daemon here/getZenossDaemonStates">
-            <th class="tableheader noselect"
-              tal:attributes="title daemon/tooltip" tal:content="daemon/name" />
-            <td class="tablevalues" tal:content="daemon/pid" />
-            <td class="tablevalues" nowrap><a tal:attributes="
-                href string:${url}/viewDaemonLog?daemon=${daemon/name}">view log</a></td>
-            <td class="tablevalues" nowrap style="padding: 0px 20px">
-                <a tal:attributes="
-                    href string:${url}/viewDaemonConfig?daemon=${daemon/name}"
-                    style="margin-right: 2em;">
-                    view config</a> 
-                <a tal:attributes="
-                href string:${url}/editDaemonConfig?daemon=${daemon/name}">
-                    edit config</a>
-            </td>
-            <td class="tablevalues" tal:define="color python:test(
-                daemon['color']=='#0F0', 'green', 'red')"
-                style="text-align:center;">
-            <img tal:attributes="src string:/zport/dmd/img/${color}_dot.png"/>
-            </td>
-            <td class="tablevalues" nowrap>
-                <form method="post" tal:define="name daemon/buttons/button1"
-                    tal:attributes="action url"  style="display:inline;">
-                <input type="hidden" name="action" tal:attributes="
-                    value name" />
-                <input type="hidden" name="daemon" tal:attributes="
-                    value daemon/name" />
-                <input type="submit" name="manage_daemonAction:method"
-                    tal:attributes="value name;" style="width: 5em;" />
-                </form>
-                <form action="" method="post" tal:define="name daemon/buttons/button2"
-                    tal:attributes="action url" style="display:inline;">
-                <input type="hidden" name="action" tal:attributes="
-                    value name" />
-                <input type="hidden" name="daemon" tal:attributes="
-                    value daemon/name" />
-                <tal:block condition="daemon/buttons/button2state">
-                <input type="submit" name="manage_daemonAction:method"
-                    tal:attributes="value name;" />
-                </tal:block>
-                <tal:block condition="not:daemon/buttons/button2state">
-                <input type="submit" disabled="True" 
-                    tal:attributes="value name;" />
-                </tal:block>
-                </form>
-            </td>
-        </tr>
-    </tbody>
-
-        </table>
-
-        </tal:block>
-        </tal:block>
-        
+        <td class="tablevalue noselect"
+          tal:attributes="title daemon/tooltip" tal:content="daemon/name" />
+        <td class="tablevalues" tal:content="daemon/pid" />
+        <td class="tablevalues" nowrap><a tal:attributes="
+            href string:${url}/viewDaemonLog?daemon=${daemon/name}">view log</a></td>
+        <td class="tablevalues" nowrap style="padding: 0px 20px">
+            <a tal:attributes="
+                href string:${url}/viewDaemonConfig?daemon=${daemon/name}"
+                style="margin-right: 2em;">
+                view config</a> 
+            <a tal:attributes="
+            href string:${url}/editDaemonConfig?daemon=${daemon/name}">
+                edit config</a>
+        </td>
+        <td class="tablevalues" tal:define="color python:test(
+            daemon['color']=='#0F0', 'green', 'red')"
+            style="text-align:center;">
+        <img tal:attributes="src string:/zport/dmd/img/${color}_dot.png"/>
+        </td>
+        <td class="tablevalues" nowrap>
+            <form method="post" tal:define="name daemon/buttons/button1"
+                tal:attributes="action url"  style="display:inline;">
+            <input type="hidden" name="action" tal:attributes="
+                value name" />
+            <input type="hidden" name="daemon" tal:attributes="
+                value daemon/name" />
+            <input type="submit" name="manage_daemonAction:method"
+                tal:attributes="value name;" style="width: 5em;" />
+            </form>
+            <form action="" method="post" tal:define="name daemon/buttons/button2"
+                tal:attributes="action url" style="display:inline;">
+            <input type="hidden" name="action" tal:attributes="
+                value name" />
+            <input type="hidden" name="daemon" tal:attributes="
+                value daemon/name" />
+            <tal:block condition="daemon/buttons/button2state">
+            <input type="submit" name="manage_daemonAction:method"
+                tal:attributes="value name;" />
+            </tal:block>
+            <tal:block condition="not:daemon/buttons/button2state">
+            <input type="submit" disabled="True" 
+                tal:attributes="value name;" />
+            </tal:block>
+            </form>
+        </td>
+    </tr>
+    </tal:block>
+</tbody>
 
 </tal:block>
 </tal:block>
 
+</tal:block>        
+
+</tal:block>
+</tal:block>

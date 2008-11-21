@@ -84,8 +84,9 @@ class ZenTableManager(SimpleItem, PropertyManager):
 
     def getDefaultBatchSize(self):
         dbs = self.defaultBatchSize
-        user = self.ZenUsers.getUserSettings()
-        if user: dbs = user.defaultPageSize
+        zu = getattr(self, "ZenUsers", None)
+        if zu and zu.getUserSettings():
+            dbs = zu.getUserSettings().defaultPageSize
         return dbs
 
 
