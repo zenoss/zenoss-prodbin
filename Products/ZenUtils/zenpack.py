@@ -76,6 +76,7 @@ class ZenPackCmd(ZenScriptBase):
         "Execute the user's request"
         
         if self.args:
+            print "Require one of --install, --remove or --list flags."
             self.parser.print_help()
             return
         
