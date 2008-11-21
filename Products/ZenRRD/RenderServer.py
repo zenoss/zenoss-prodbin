@@ -13,11 +13,9 @@
 
 __doc__="""RenderServer
 
-Frontend that passes rrd graph options to rrdtool to render.  
-
-$Id: RenderServer.py,v 1.14 2003/06/04 18:25:58 edahl Exp $"""
-
-__version__ = "$Revision: 1.14 $"[11:-2]
+Frontend that passes RRD graph options to rrdtool to render,
+and then returns an URL to access the rendered graphic file.
+"""
 
 import os
 import time
@@ -57,7 +55,9 @@ log = logging.getLogger("RenderServer")
 
 
 def manage_addRenderServer(context, id, REQUEST = None):
-    """make a RenderServer"""
+    """
+    Make a RenderServer
+    """
     rs = RenderServer(id)
     context._setObject(id, rs)
     if REQUEST is not None:
@@ -68,6 +68,10 @@ addRenderServer = DTMLFile('dtml/addRenderServer',globals())
 
 
 class RenderServer(RRDToolItem):
+    """
+    Base class for turning graph requests into graphics.
+    NB: Any log messages get logged into the event.log file.
+    """
 
     meta_type = "RenderServer"
 
@@ -85,13 +89,16 @@ class RenderServer(RRDToolItem):
         """
         Check the cmds list for DEF commands.  For each one check that the rrd
         file specified actually exists.  Return a list of commands which
-        excludes commands referencing or depending on non-existent rrd files.
+        excludes commands referencing or depending on non-existent RRD files.
+
+        @param cmds: list of RRD commands
+        @return: sanitized list of RRD commands
         """
         newCmds = []
         badNames = Set()
         for cmd in cmds:
             if cmd.startswith('DEF:'):
-                # Check for existence of the rrd file
+                # Check for existence of the RRD file
                 vName, rrdFile = cmd.split(':')[1].split('=', 1)
                 if not os.path.isfile(rrdFile):
                     badNames.add(vName)
@@ -107,11 +114,13 @@ class RenderServer(RRDToolItem):
                     desc = ' '.join([p for p in (devName,compName,dpName) if p])
                     newCmds.append('COMMENT:MISSING RRD FILE\: %s' % desc)
                     continue
+
             elif cmd.startswith('VDEF:') or cmd.startswith('CDEF:'):
                 vName, expression = cmd.split(':', 1)[1].split('=', 1)
                 if Set(expression.split(',')) & badNames:
                     badNames.add(vName)
                     continue
+
             elif not cmd.startswith('COMMENT'):
                 try:
                     vName = cmd.split(':')[1].split('#')[0]
@@ -127,9 +136,23 @@ class RenderServer(RRDToolItem):
     def render(self, gopts=None, start=None, end=None, drange=None, 
                remoteUrl=None, width=None, ftype='PNG', getImage=True, 
                graphid='', comment=None, ms=None, REQUEST=None):
-        """render a graph and return it"""
-        # ms unused: ms is just a timestamp used to force IE to reload
-        # images
+        """
+        Render a graph and return it
+
+        @param gopts: RRD graph creation options
+        @param start: requested start of data to graph
+        @param end: requested start of data to graph
+        @param drange: min/max values of the graph
+        @param remoteUrl: if the RRD is not here, where it lives
+        @param width: size of graphic to create
+        @param ftype: file type of graphic (eg PNG)
+        @param getImage: return the graph or a script location
+        @param graphid: (hopefully) unique identifier of a graph
+        @param comment: RRD graph comment
+        @param ms: a timestamp used to force IE to reload images
+        @param REQUEST: URL-marshalled object containg URL options
+        @return: graph or script location
+        """
         gopts = zlib.decompress(urlsafe_b64decode(gopts))
         gopts = gopts.split('|')
         gopts = self.removeInvalidRRDReferences(gopts)
@@ -162,17 +185,19 @@ class RenderServer(RRDToolItem):
                 gopts.insert(0, '--end=%d' % end)
                 gopts.insert(0, '--start=%d' % start)
                 gopts.insert(0, filename)
-                log.debug("opts: %r", (gopts,))
+                log.debug("RRD graphing options: %r", (gopts,))
                 try:
                     rrdtool.graph(*gopts)
                 except Exception, ex:    
                     if ex.args[0].find('No such file or directory') > -1:
                         return None
-                    log.exception("failed generating graph")
+                    log.exception("Failed to generate a graph")
                     log.warn(" ".join(gopts))
-                    raise
+                    return None
+
             self.addGraph(id, filename)
             graph = self.getGraph(id, ftype, REQUEST)
+
         if getImage: 
             return graph
         else: 
@@ -191,7 +216,13 @@ class RenderServer(RRDToolItem):
         If datapoint is not None then delete the file corresponding to that dp.
         Else if datasource is not None then delete the files corresponding to
           all datapoints in the datasource.
-        Else delete all rrd files associated with the given device.
+        Else delete all RRD files associated with the given device.
+
+        @param device: device name
+        @param datasource: RRD datasource (DS) name
+        @param datapoint: RRD datapoint name (lives in a DS)
+        @param remoteUrl: if the RRD is not here, where it lives
+        @param REQUEST: URL-marshalled object containg URL options
         """
         devDir = performancePath('/Devices/%s' % device)
         if not os.path.isdir(devDir):
@@ -224,33 +255,58 @@ class RenderServer(RRDToolItem):
 
 
     def packageRRDFiles(self, device, REQUEST=None):
-        """Tar a package of RRDFiles"""
+        """
+        Tar up RRD files into a nice, neat package
+
+        @param device: device name
+        @param REQUEST: URL-marshalled object containg URL options
+        """
         srcdir = performancePath('/Devices/%s' % device)
         tarfilename = '%s/%s.tgz' % (self.tmpdir, device)
+        log.debug( "tarring up %s into %s" % ( srcdir, tarfilename ))
         tar = tarfile.open(tarfilename, "w:gz")
         for file in os.listdir(srcdir):
             tar.add('%s/%s' % (srcdir, file), '/%s' % os.path.basename(file))
         tar.close()
 
     def unpackageRRDFiles(self, device, REQUEST=None):
-        """Untar a package of RRDFiles"""
+        """
+        Untar a package of RRDFiles
+
+        @param device: device name
+        @param REQUEST: URL-marshalled object containg URL options
+        """
         destdir = performancePath('/Devices/%s' % device)
         tarfilename = '%s/%s.tgz' % (self.tmpdir, device)
+        log.debug( "Untarring %s into %s" % ( tarfilename, destdir ))
         tar = tarfile.open(tarfilename, "r:gz")
         for file in tar.getmembers():
             tar.extract(file, destdir)
         tar.close()
 
     def receiveRRDFiles(self, REQUEST=None):
-        """receive a device's RRD Files from another server"""
+        """
+        Receive a device's RRD Files from another server
+        This function is called by sendRRDFiles()
+
+        @param REQUEST: 'tarfile', 'tarfilename'
+        @type REQUEST: URL-marshalled parameters
+        """
         tarfile = REQUEST.get('tarfile')
         tarfilename = REQUEST.get('tarfilename')
+        log.debug( "Receiving %s ..." % ( tarfilename ))
         f=open('%s/%s' % (self.tmpdir, tarfilename), 'wb')
         f.write(urllib.unquote(tarfile))
         f.close()
                 
     def sendRRDFiles(self, device, server, REQUEST=None):
-        """Move a package of RRDFiles"""
+        """
+        Move a package of RRDFiles
+
+        @param device: device name
+        @param server: another RenderServer instance
+        @param REQUEST: URL-marshalled object containg URL options
+        """
         tarfilename = '%s.tgz' % device
         f=open('%s/%s' % (self.tmpdir, tarfilename), 'rb')
         tarfilebody=f.read()
@@ -258,21 +314,31 @@ class RenderServer(RRDToolItem):
         # urlencode the id, title and file
         params = urllib.urlencode({'tarfilename': tarfilename,
             'tarfile':tarfilebody})
-        # send the file to zope
+
+        # send the file to Zope
         perfMon = self.dmd.getDmdRoot("Monitors").getPerformanceMonitor(server)
         if perfMon.renderurl.startswith('http'):
             remoteUrl = '%s/receiveRRDFiles' % (perfMon.renderurl)
+            log.debug( "Sending %s to %s ..." % ( tarfilename, remoteUrl ))
             urllib.urlopen(remoteUrl, params)
             
     
     def moveRRDFiles(self, device, destServer, srcServer=None, REQUEST=None):
-        """send a device's RRD Files to another server"""
+        """
+        Send a device's RRD files to another server
+
+        @param device: device name
+        @param destServer: another RenderServer instance
+        @param srcServer: another RenderServer instance
+        @param REQUEST: URL-marshalled object containg URL options
+        """
         monitors = self.dmd.getDmdRoot("Monitors")
         destPerfMon = monitors.getPerformanceMonitor(destServer)
         if srcServer:
             srcPerfMon = monitors.getPerformanceMonitor(srcServer)
             remoteUrl = '%s/moveRRDFiles?device=%s&destServer=%s' % (srcPerfMon.renderurl, device, destServer)
             urllib.urlopen(remoteUrl)
+
         else:
             self.packageRRDFiles(device, REQUEST)
             self.sendRRDFiles(device, destServer, REQUEST)
@@ -284,27 +350,38 @@ class RenderServer(RRDToolItem):
             
     security.declareProtected('View', 'plugin')
     def plugin(self, name, REQUEST=None):
-        "render a custom graph and return it"
+        """
+        Render a custom graph and return it
+
+        @param name: plugin name from Products/ZenRRD/plugins
+        @return: graph or None
+        """
         try:
             m = zenPath('Products/ZenRRD/plugins/%s.py' % name)
+            log.debug( "Trying plugin %s to generate a graph..." % m )
             graph = None
             exec open(m)
             return graph
         except Exception, ex:
-            log.exception("failed generating graph from plugin %s" % name)
+            log.exception("Failed generating graph from plugin %s" % name)
             raise
 
 
     security.declareProtected('GenSummary', 'summary')
     def summary(self, gopts):
-        """return summary information as a list but no graph"""
+        """
+        Return summary information as a list but no graph
+
+        @param gopts: RRD graph options
+        @return: values from the graph
+        """
         gopts.insert(0, '/dev/null') #no graph generated
         try:
             values = rrdtool.graph(*gopts)[2]
         except Exception, ex:
             if ex.args[0].find('No such file or directory') > -1:
                 return None
-            log.exception("failed generating summary")
+            log.exception("Failed while generating summary")
             log.warn(" ".join(gopts))
             raise
         return values
@@ -312,7 +389,9 @@ class RenderServer(RRDToolItem):
 
     security.declareProtected('GenSummary', 'currentValues')
     def currentValues(self, paths):
-        """return latest values"""
+        """
+        Return the latest values recorded in the RRD file
+        """
         try:
             def value(p):
                 v = None
@@ -334,21 +413,40 @@ class RenderServer(RRDToolItem):
                     if str(v) == 'nan': v = None
                 return v
             return map(value, paths)
+
         except NameError:
-            log.warn("It appears that the rrdtool bindings are not installed properly.")
+            log.exception("It appears that the rrdtool bindings are not installed properly.")
+
         except Exception, ex:
             if ex.args[0].find('No such file or directory') > -1:
                 return None
-            log.exception("failed generating summary")
+            log.exception("Failed while generating current values")
             raise
         
 
     def rrdcmd(self, gopts, ftype='PNG'):
+        """
+        Generate the RRD command using the graphing options specified.
+
+        @param gopts: RRD graphing options
+        @param ftype: graphic file type (eg PNG)
+        @return: RRD command usable on the command-line
+        @rtype: string
+        """
         filename, gopts = self._setfile(gopts, ftype)
         return "rrdtool graph " + " ".join(gopts)
 
 
     def graphId(self, gopts, drange, ftype):
+        """
+        Generate a graph id based on a hash of values
+
+        @param gopts: RRD graphing options
+        @param drange: min/max values of the graph
+        @param ftype: graphic file's type (eg PNG)
+        @return: An id for this graph usable in URLs
+        @rtype: string
+        """
         import md5
         id = md5.new(''.join(gopts)).hexdigest() 
         id += str(drange) + '.' + ftype.lower()
@@ -366,7 +464,9 @@ class RenderServer(RRDToolItem):
 
 
     def setupCache(self):
-        """make new cache if we need one"""
+        """
+        Make a new cache if we need one
+        """
         if not hasattr(self, '_v_cache') or not self._v_cache:
             tmpfolder = self.getPhysicalRoot().temp_folder
             if not hasattr(tmpfolder, self.cacheName):
@@ -377,7 +477,12 @@ class RenderServer(RRDToolItem):
 
 
     def addGraph(self, id, filename):
-        """add graph to temporary folder"""
+        """
+        Add a graph to temporary folder
+
+        @param id: graph id
+        @param filename: cacheable graphic file
+        """
         cache = self.setupCache()
         graph = self._loadfile(filename)
         if graph: 
@@ -386,21 +491,31 @@ class RenderServer(RRDToolItem):
                 os.remove(filename)
             except OSError, e:
                 if e.errno == 2: 
-                    log.debug("%s: %s" % (e.strerror, e.filename))
+                    log.debug("Unable to remove cached graph %s: %s" \
+                        % (e.strerror, e.filename))
                 else: 
                     raise e
         cache.cleanCache()
 
 
     def getGraph(self, id, ftype, REQUEST):
-        """get a previously generated graph"""
+        """
+        Get a previously generated graph
+
+        @param id: graph id
+        @param ftype: file type of graphic (eg PNG)
+        @param REQUEST: graph id
+        """
         cache = self.setupCache()
         ftype = ftype.lower()
-        mimetype = mimetypes.guess_type('.%s'%ftype)[0]
-        if not mimetype: mimetype = 'image/%s' % ftype
+
         if REQUEST:
+            mimetype = mimetypes.guess_type('.%s'%ftype)[0]
+            if not mimetype:
+                mimetype = 'image/%s' % ftype
             response = REQUEST.RESPONSE
             response.setHeader('Content-Type', mimetype)
+
         return cache.checkCache(id)
 
 

@@ -25,11 +25,13 @@ from ThresholdInstance import ThresholdInstance, ThresholdContext
 from Products.ZenEvents import Event
 from Products.ZenEvents.ZenEventClasses import Perf_Snmp
 from Products.ZenUtils.ZenTales import talesEval, talesEvalStr
-from Products.ZenEvents.Exceptions import pythonThresholdException
+from Products.ZenEvents.Exceptions import pythonThresholdException, \
+        rpnThresholdException
 
 import logging
 log = logging.getLogger('zen.MinMaxCheck')
 
+from sets import Set
 from Products.ZenUtils.Utils import unused
 import types
 
@@ -278,6 +280,15 @@ class MinMaxThresholdInstance(ThresholdInstance):
         return []
 
 
+    def raiseRPNExc( self ):
+        """
+        Raise an RPN exception, taking care to log all details.
+        """
+        msg= "The following RPN exception is from user-supplied code."
+        log.exception( msg )
+        raise rpnThresholdException(msg)
+
+
     def getGraphElements(self, template, context, gopts, namespace, color, 
                          legend, relatedGps):
         """Produce a visual indication on the graph of where the
@@ -285,26 +296,43 @@ class MinMaxThresholdInstance(ThresholdInstance):
         unused(template, namespace)
         if not color.startswith('#'):
             color = '#%s' % color
-        n = self.minimum
-        x = self.maximum
+        minval = self.minimum
+        maxval = self.maximum
         if not self.dataPointNames:
             return gopts
         gp = relatedGps[self.dataPointNames[0]]
+
+        # Attempt any RPN expressions
         rpn = getattr(gp, 'rpn', None)
         if rpn:
-            rpn = talesEvalStr(rpn, context)
-            n = rpneval(n, rpn)
-            x = rpneval(x, rpn)
+            try:
+                rpn = talesEvalStr(rpn, context)
+            except:
+                raiseRPNExc()
+                return gopts
+
+            try:
+                minval = rpneval(minval, rpn)
+            except:
+                minval= 0
+                raiseRPNExc()
+
+            try:
+                maxval = rpneval(maxval, rpn)
+            except:
+                maxval= 0
+                raiseRPNExc()
+
         result = []
-        if n:
+        if minval:
             result += [
-                "HRULE:%s%s:%s\\j" % (n, color, 
-                          legend or self.getMinLabel(n, relatedGps)),
+                "HRULE:%s%s:%s\\j" % (minval, color, 
+                          legend or self.getMinLabel(minval, relatedGps)),
                 ]
-        if x:
+        if maxval:
             result += [
-                "HRULE:%s%s:%s\\j" % (x, color, 
-                          legend or self.getMaxLabel(x, relatedGps)) 
+                "HRULE:%s%s:%s\\j" % (maxval, color, 
+                          legend or self.getMaxLabel(maxval, relatedGps)) 
                 ]
         return gopts + result
 
