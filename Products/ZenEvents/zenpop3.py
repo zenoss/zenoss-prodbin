@@ -154,8 +154,8 @@ class ZenPOP3(EventServer):
         if self.options.usessl:
             log.info("connecting to server using SSL")
             from twisted.internet.ssl import ClientContextFactory
-            reactor.connectSSL(self.host, self.port, self.factory,
-                ClientContextFactory())
+            reactor.connectSSL(self.options.pophost, self.options.popport,
+                self.factory, ClientContextFactory())
         else:
             log.info("connecting to server using plaintext")
             reactor.connectTCP(self.options.pophost, self.options.popport,
