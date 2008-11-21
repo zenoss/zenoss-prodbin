@@ -34,7 +34,7 @@
         />
 
     <browser:page
-        for="*"
+        for="Products.ZenModel.ZentinelPortal.ZentinelPortal"
         name="getOrganizerNames"
         class=".Autocompleters.OrganizerNames"
         permission="zope2.View"
