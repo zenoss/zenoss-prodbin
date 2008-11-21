@@ -24,15 +24,13 @@ from ZenMenuable import ZenMenuable
 from MaintenanceWindowable import MaintenanceWindowable
 from AdministrativeRoleable import AdministrativeRoleable
 
-from Products.AdvancedQuery import MatchRegexp, Eq, Or, In
 from Products.CMFCore.utils import getToolByName
 
 from Products.ZenRelations.RelSchema import *
-import simplejson
 
 from ZenossSecurity import *
 
-from Products.ZenUtils.Utils import unused, ipsort
+from Products.ZenUtils.Utils import unused 
 
 import logging
 LOG = logging.getLogger('ZenModel.DeviceOrganizer')

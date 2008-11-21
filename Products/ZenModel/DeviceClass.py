@@ -20,7 +20,6 @@ __version__ = "$Revision: 1.76 $"[11:-2]
 import types
 import time
 import transaction
-import simplejson
 import logging
 log = logging.getLogger('zen.DeviceClass')
 

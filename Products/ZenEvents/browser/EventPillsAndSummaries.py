@@ -15,7 +15,6 @@ import re
 
 from Products.Five.browser import BrowserView
 from Products.ZenUtils.json import json
-from Products.ZenUtils.Utils import formreq
 
 class SinglePill(BrowserView):
     def __call__(self):
@@ -150,6 +149,5 @@ def getEventPillME(zem, me, number=1, showGreen=True):
             pills.append(template % result)
         return pills
     except:
-        log.exception("event summary for %s failed" % me.getDmdKey())
         return None
 

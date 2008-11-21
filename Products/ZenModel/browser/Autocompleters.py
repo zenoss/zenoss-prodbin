@@ -13,7 +13,7 @@
 
 from Products.Five.browser import BrowserView
 from Products.ZenUtils.json import json
-from Products.ZenUtils.Utils import unused, formreq
+from Products.ZenUtils.Utils import formreq
 from Products.AdvancedQuery import MatchGlob
 
 

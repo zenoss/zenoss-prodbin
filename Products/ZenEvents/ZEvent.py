@@ -11,8 +11,6 @@
 #
 ###########################################################################
 
-import urllib
-
 from Globals import InitializeClass
 from AccessControl import ClassSecurityInfo
 

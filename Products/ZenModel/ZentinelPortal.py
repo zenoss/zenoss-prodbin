@@ -16,7 +16,6 @@ $Id: ZentinelPortal.py,v 1.17 2004/04/08 15:35:25 edahl Exp $
 """
 
 import urllib, urlparse
-import simplejson
 import re
 
 import Globals

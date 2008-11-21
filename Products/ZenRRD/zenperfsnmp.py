@@ -37,7 +37,7 @@ from Products.ZenModel.PerformanceConf import performancePath
 from Products.ZenEvents import Event
 from Products.ZenEvents.ZenEventClasses \
      import Perf_Snmp, Status_Snmp, Status_RRD
-from Products.ZenEvents.ZenEventClasses import Critical, Clear, Debug
+from Products.ZenEvents.ZenEventClasses import Critical, Clear
 
 from Products.ZenRRD.RRDUtil import RRDUtil
 from SnmpDaemon import SnmpDaemon

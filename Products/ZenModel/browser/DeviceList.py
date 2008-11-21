@@ -14,7 +14,7 @@
 from Products.Five.browser import BrowserView
 from Products.ZenModel.DeviceOrganizer import DeviceOrganizer
 from Products.ZenUtils.json import json
-from Products.ZenUtils.Utils import formreq, unused
+from Products.ZenUtils.Utils import formreq, unused, ipsort
 from Products.AdvancedQuery import MatchRegexp, Or, Eq, In
 from Products.ZenUtils.FakeRequest import FakeRequest
 

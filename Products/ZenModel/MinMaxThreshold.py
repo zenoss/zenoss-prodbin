@@ -25,13 +25,11 @@ from ThresholdInstance import ThresholdInstance, ThresholdContext
 from Products.ZenEvents import Event
 from Products.ZenEvents.ZenEventClasses import Perf_Snmp
 from Products.ZenUtils.ZenTales import talesEval, talesEvalStr
-from Products.ZenEvents.Exceptions import pythonThresholdException, \
-        rpnThresholdException
+from Products.ZenEvents.Exceptions import pythonThresholdException
 
 import logging
 log = logging.getLogger('zen.MinMaxCheck')
 
-from sets import Set
 from Products.ZenUtils.Utils import unused
 import types
 

@@ -20,8 +20,6 @@ __version__ = "$Revision: 1.6 $"[11:-2]
 import time
 import types
 import random
-import simplejson
-import re
 random.seed()
 import logging
 log = logging.getLogger("zen.Events")
@@ -35,7 +33,6 @@ from Products.ZenModel.ZenossSecurity import *
 
 from Products.ZenUtils.ObjectCache import ObjectCache
 
-from Products.AdvancedQuery import Eq, Or
 
 from ZEvent import ZEvent
 from EventDetail import EventDetail
@@ -49,7 +46,6 @@ from Products.ZenRelations.RelSchema import *
 from Products.ZenUtils import Time
 from Products.ZenUtils.FakeRequest import FakeRequest
 from Products.ZenEvents.ZenEventClasses import Status_Ping, Status_Wmi_Conn
-from sets import Set
 
 from ZenEventClasses import Unknown
 
