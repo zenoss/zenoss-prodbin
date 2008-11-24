@@ -19,6 +19,7 @@ from AccessControl import ClassSecurityInfo, Permissions
 from ZenModelRM import ZenModelRM
 
 from Products.ZenRelations.RelSchema import *
+from Products.ZenModel.RRDDataSource import SimpleRRDDataSource
 from Products.ZenModel.BasicDataSource import BasicDataSource
 from Products.ZenModel.BuiltInDS import BuiltInDS
 from Products.ZenModel.ConfigurationError import ConfigurationError
@@ -274,6 +275,7 @@ class RRDTemplate(ZenModelRM, ZenPackable):
             ds = self.getDataSourceInstance(id, dsOption)
             self.datasources._setObject(ds.id, ds)
             ds = self.datasources._getOb(ds.id)
+            if isinstance(ds, SimpleRRDDataSource): ds.addDataPoints()
         if REQUEST:
             if ds:
                 REQUEST['message'] = "Data source %s added" % ds.id

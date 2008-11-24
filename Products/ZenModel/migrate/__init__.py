@@ -160,4 +160,4 @@ import monitoringmenuitem
 import fixPropertyAccess
 import fixOldTemplates_23
 import addSnmpStrictDiscoveryFlag
-
+import simpleDataPoint_list

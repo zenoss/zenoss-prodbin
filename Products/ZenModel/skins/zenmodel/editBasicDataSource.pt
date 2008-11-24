@@ -9,7 +9,8 @@
 
 
         <tal:block tal:define="message request/message | string:State at time:; 
-            tabletitle string:${message} ${here/getNowString}">
+            tabletitle string:${message} ${here/getNowString};
+            menu_id python:test(here.sourcetype=='SNMP', 'SimpleDataPoint_list');">
         <tal:block metal:use-macro="here/zenuimacros/macros/zentable">
 
         <!--====Optional titlebar slots=============
@@ -49,6 +50,7 @@
         <td class="tablevalues" tal:condition="not:editable" 
             tal:content="here/enabled"/>
     </tr>
+    
     <tr tal:condition="python:here.sourcetype=='SNMP'">
         <td class="tableheader">OID</td>
         <td class="tablevalues" tal:condition="editable">
@@ -58,6 +60,50 @@
       <td class="tablevalues" tal:condition="not:editable"
         tal:content="here/oid"/>
     </tr>
+        
+        <tr tal:condition="python:here.sourcetype=='SNMP'">
+          <td class="tableheader">Type</td>
+          <td class="tablevalues" tal:condition="here/isManager">
+            <select class="tablevalues" name="rrdtype"
+            tal:define="curtype python:here.datapoints()[0].rrdtype">
+                <option tal:repeat="type python:here.datapoints()[0].rrdtypes" 
+                    tal:attributes="value type; 
+                        selected python:curtype == type"
+                    tal:content="python:type">localhost</option>
+            </select>
+            </td>
+          <td class="tablevalues" tal:condition="not:here/isManager"
+            tal:content="python:here.datapoints()[0].rrdtype"/>
+        </tr>
+        <tr tal:condition="python:here.sourcetype=='SNMP'">
+            <td class="tableheader">RRD Min</td>
+            <td class="tablevalues" tal:condition="here/isManager">
+            <input class="tablevalues" type="text" name="rrdmin" size="40"
+                tal:attributes="value python:here.datapoints()[0].rrdmin" />
+            </td>
+          <td class="tablevalues" tal:condition="not:here/isManager"
+            tal:content="python:here.datapoints()[0].rrdmin"/>
+        </tr>
+        <tr tal:condition="python:here.sourcetype=='SNMP'">
+            <td class="tableheader">RRD Max</td>
+            <td class="tablevalues" tal:condition="here/isManager">
+            <input class="tablevalues" type="text" name="rrdmax" size="40"
+                tal:attributes="value python:here.datapoints()[0].rrdmax" />
+            </td>
+          <td class="tablevalues" tal:condition="not:here/isManager"
+            tal:content="python:here.datapoints()[0].rrdmax"/>
+        </tr>
+        <tr tal:condition="python:here.sourcetype=='SNMP'">
+            <td class="tableheader">Create Cmd</td>
+            <td class="tablevalues" tal:condition="here/isManager">
+            <textarea class="tablevalues" rows="5" cols="50"
+                name="createCmd:text" 
+                tal:content="python:here.datapoints()[0].createCmd">
+            </textarea>
+            </td>
+          <td class="tablevalues" tal:condition="not:here/isManager"
+            tal:content="python:here.datapoints()[0].createCmd"/>
+        </tr>
 
     <tal:block tal:condition="python:here.sourcetype in ('COMMAND')">
         <tr>
@@ -185,6 +231,7 @@
 
 </form>
 
+<tal:block tal:condition="python:here.sourcetype in ('COMMAND')">
 <form name="dataPointsList" method="post" tal:attributes="action here/absolute_url_path">
 
 
@@ -242,6 +289,7 @@
         
 
 </form>
+</tal:block>
 
 <!----------------------------------------------------------------->
 </tal:block>

@@ -40,7 +40,7 @@ def checkOid(oid):
     return oid
 
 
-class BasicDataSource(RRDDataSource.RRDDataSource):
+class BasicDataSource(RRDDataSource.SimpleRRDDataSource):
 
     __pychecker__='no-override'
 
@@ -80,6 +80,13 @@ class BasicDataSource(RRDDataSource.RRDDataSource):
 
     security = ClassSecurityInfo()
 
+    def addDataPoints(self):
+        """
+        Overrides method defined in SimpleRRDDataSource. Only sync the
+        datapoint with the datasource if the datasource type is SNMP.
+        """
+        if self.sourcetype == 'SNMP':
+            RRDDataSource.SimpleRRDDataSource.addDataPoints(self)
 
     def getDescription(self):
         if self.sourcetype == "SNMP":
@@ -101,6 +108,7 @@ class BasicDataSource(RRDDataSource.RRDDataSource):
     def zmanage_editProperties(self, REQUEST=None):
         'add some validation'
         if REQUEST:
+            
             oid = REQUEST.get('oid', '')
             if oid:
                 try: 
@@ -108,7 +116,8 @@ class BasicDataSource(RRDDataSource.RRDDataSource):
                 except ValueError:
                     REQUEST['message'] = "%s is an invalid OID" % oid 
                     return self.callZenScreen(REQUEST)
-        return RRDDataSource.RRDDataSource.zmanage_editProperties(
+            
+        return RRDDataSource.SimpleRRDDataSource.zmanage_editProperties(
                                                                 self, REQUEST)
 
     security.declareProtected('Change Device', 'manage_testDataSource')

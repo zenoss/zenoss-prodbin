@@ -241,3 +241,77 @@ class RRDDataSource(ZenModelRM, ZenPackable):
 
     def zmanage_editProperties(self, REQUEST=None, ignored=None):
         return ZenModelRM.zmanage_editProperties(self, REQUEST)
+
+
+class SimpleRRDDataSource(RRDDataSource):
+    """
+    A SimpleRRDDataSource has a single datapoint that shares the name of the 
+    data source.
+    """
+    
+    def addDataPoints(self):
+        """
+        Make sure there is exactly one datapoint and that it has the same name
+        as the datasource.
+        """
+        dpid = self.prepId(self.id)
+        remove = [d for d in self.datapoints() if d.id != dpid]
+        for dp in remove:
+            self.datapoints._delObject(dp.id)
+        if not self.datapoints._getOb(dpid, None):
+            self.manage_addRRDDataPoint(dpid)
+    
+    def zmanage_editProperties(self, REQUEST=None):
+        """
+        Overrides the method defined in RRDDataSource. Called when user clicks
+        the Save button on the Data Source editor page.
+        """
+        self.addDataPoints()
+        
+        if REQUEST and self.datapoints():
+
+            datapoint = self.datapoints()[0]
+
+            if REQUEST.has_key('rrdtype'):
+                if REQUEST['rrdtype'] in datapoint.rrdtypes:
+                    datapoint.rrdtype = REQUEST['rrdtype']
+                else:
+                    REQUEST['message'] = "%s is an invalid Type" % rrdtype
+                    return self.callZenScreen(REQUEST)
+            
+            if REQUEST.has_key('rrdmin'):
+                value = REQUEST['rrdmin']
+                if value != '': 
+                    try:
+                        value = long(value)
+                    except ValueError:
+                        msg = "%s is an invalid RRD Min"
+                        REQUEST['message'] = msg % value
+                        return self.callZenScreen(REQUEST)
+                datapoint.rrdmin = value
+            
+            if REQUEST.has_key('rrdmax'):
+                value = REQUEST['rrdmax']
+                if value != '': 
+                    try:
+                        value = long(value)
+                    except ValueError:
+                        msg = "%s is an invalid RRD Max"
+                        REQUEST['message'] = msg % value
+                        return self.callZenScreen(REQUEST)
+                datapoint.rrdmax = value
+            
+            if REQUEST.has_key('createCmd'):
+                datapoint.createCmd = REQUEST['createCmd']
+        
+        return RRDDataSource.zmanage_editProperties(self, REQUEST)
+
+
+    def manage_addDataPointsToGraphs(self, ids=(), graphIds=(), REQUEST=None):
+        """
+        Override method in super class.  ids will always be an empty tuple, so
+        call the super class's method with the single datapoint as the ids.
+        """
+        return RRDDataSource.manage_addDataPointsToGraphs(self, 
+                (self.datapoints()[0].id,), graphIds, REQUEST)
+
