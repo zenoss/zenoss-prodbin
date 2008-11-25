@@ -99,7 +99,7 @@ fresh_install_pre() {
     # run the first time initialization pre-run script
     set_perms
     ${ZENHOME}/bin/zenoss_init_pre
-    if [ $? > 0 ] ; then
+    if [ $? -gt 0 ] ; then
       exit 1
     fi
     set_perms
@@ -129,7 +129,7 @@ upgrade_pre() {
     # run the first time initialization pre-run script
     set_perms
     ${ZENHOME}/bin/zenoss_upgrade_pre
-    if [ $? > 0 ] ; then
+    if [ $? -gt 0 ] ; then
       exit 1
     fi
     set_perms
