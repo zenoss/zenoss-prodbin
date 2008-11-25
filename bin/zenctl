@@ -90,9 +90,7 @@ init_install_log() {
     # Setup for logging output into FIFO
     if [ ! -e $INSTALL_PIPE ]; then
          mkfifo $INSTALL_PIPE
-         rc=$?
-         echo "rc = $rc"
-         if [ $? >0 ] ; then
+         if [ $? -gt 0 ] ; then
              echo "Unable to allow simultaneous logging and visible output."
              echo "Defaulting to visible output only."
              echo "To get a log, hit ctl+c within the next 10 seconds and resolve the above issue"
