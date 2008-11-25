@@ -47,6 +47,11 @@ export ZOPE_USERNAME="admin"
 export ZOPE_PASSWORD="zenoss"
 export ZOPE_LISTEN_PORT="8080"
 export PYTHON="/opt/zenoss/bin/python"
+export INSTALL_LOG="$ZENHOME/log/install.log"
+# NB: This crude hack is to add output while preserving return codes
+# Uses the concepts from http://www.travishartwell.net/blog/2006/08/19_2220
+export INSTALL_PIPE="$ZENHOME/log/logging.fifo"
+export DELIM="-------------------------" # delimiter in log file
 
 # signature of zenoss having been installed for the first time (but
 # not configured yet)
@@ -72,6 +77,41 @@ set_perms() {
     done
 }
 
+init_install_log() {
+    stage=$1
+
+    echo $DELIM >> $INSTALL_LOG
+    echo $stage
+    echo $stage >> $INSTALL_LOG
+    date >> $INSTALL_LOG
+    uname -a >> $INSTALL_LOG
+    echo $DELIM >> $INSTALL_LOG
+
+    # Setup for logging output into FIFO
+    if [ ! -e $INSTALL_PIPE ]; then
+         mkfifo $INSTALL_PIPE
+         rc=$?
+         echo "rc = $rc"
+         if [ $? >0 ] ; then
+             echo "Unable to allow simultaneous logging and visible output."
+             echo "Defaulting to visible output only."
+             echo "To get a log, hit ctl+c within the next 10 seconds and resolve the above issue"
+             sleep 10
+             echo "Continuing with install process..."
+             return
+         fi
+    fi
+
+    # Spawn an instance of 'tee' to capture the output to a file
+    # as well as displaying output to the user
+    exec 3>&1 4>&2
+    tee -a $INSTALL_LOG < $INSTALL_PIPE >&3 &
+    tee_pid=$!
+    exec > $INSTALL_PIPE 2>&1
+}
+
+
+
 # these commands are run when zenoss was installed for the first time
 # and BEFORE the zenoss processes are started
 fresh_install_pre() {
@@ -96,6 +136,8 @@ fresh_install_pre() {
     fi
     cp ${ZEN_ETC}/snmpd.conf ${SNMPD_CONF}
     
+    init_install_log "Fresh install pre steps"
+ 
     # run the first time initialization pre-run script
     set_perms
     ${ZENHOME}/bin/zenoss_init_pre
@@ -111,12 +153,17 @@ fresh_install_pre() {
 # these commands are run when zenoss was installed for the first time
 # but AFTER the zenoss processes are started
 fresh_install_post() {
+    echo
+    echo "Fresh install post step"
+
     # run the first time initialization post-run script
     ${ZENHOME}/bin/zenoss_init_post
+
+    echo "Zenoss installation completed."
 }
 
 
-# these commands are run when zenoss is started after being upgraded
+
 # and BEFORE the zenoss processes are started
 upgrade_pre() {
     echo "Zenoss upgraded.  Running data migration scripts..."
@@ -126,25 +173,35 @@ upgrade_pre() {
         exit 1
     fi
 
-    # run the first time initialization pre-run script
+    init_install_log "Upgrade pre step"
+
+    # run the upgrade pre-run script
     set_perms
     ${ZENHOME}/bin/zenoss_upgrade_pre
     if [ $? -gt 0 ] ; then
       exit 1
-    fi
+    fi  
     set_perms
 
-    echo "Zenoss upgrade complete."
+    echo "Zenoss upgrade pre-restart commands complete."
 }
 
 
 # these commands are run when zenoss is started after being upgraded
 # but AFTER the zenoss processes are started
 upgrade_post() {
+    echo
+    echo "Upgrade install post step"
 
-    # run the first time initialization post-run script
+    # run the upgrade post-run script
+    set_perms
     ${ZENHOME}/bin/zenoss_upgrade_post
+    if [ $? -gt 0 ] ; then
+      exit 1
+    fi  
+    set_perms
 
+    echo "Zenoss upgrade complete."
 }
 
 
@@ -156,7 +213,7 @@ upgrade_post() {
 # this allows us to do things like zeneventbuild, or zenmigrate.  then
 # we start up zenoss.  lastly we run the post functions after zenoss
 # is up and running.  this allows us to do things like "add localhost
-# to the zenoss database through the web UI"
+# to the zenoss database through the web UI
 #
 
 # run the firstboot if this is the first time zenoss was started
@@ -186,4 +243,13 @@ fi
 if [ "$1" = start -a -f ${UPGRADED} ]; then
     upgrade_post
     rm ${UPGRADED}
+fi
+
+# Just in case we log, wait for the tee to finish
+if [ -z "$tee_pid" ] ; then
+    # Cleanup -- leave the fifo alone
+    exec 1>&3 3>&- 2>&4 4>&-
+
+    # Zombies are bad. Bad zombies
+    wait $tee_pid
 fi
