@@ -13,11 +13,9 @@
 
 __doc__="""Utils
 
-General Utility function module
+General utility functions module
 
-$Id: Utils.py,v 1.15 2004/04/04 02:22:38 edahl Exp $"""
-
-__version__ = "$Revision: 1.15 $"[11:-2]
+"""
 
 import sys
 import select
@@ -29,7 +27,7 @@ import types
 import logging
 import re
 import socket
-import warnings
+import simplejson
 from sets import Set
 log = logging.getLogger("zen.Utils")
 
@@ -45,6 +43,9 @@ from Acquisition import aq_inner, aq_parent
 from Products.ZenUtils.Exceptions import ZenPathError, ZentinelException
 
 class HtmlFormatter(logging.Formatter):
+    """
+    Formatter for the logging class
+    """
 
     def __init__(self):
         logging.Formatter.__init__(self, 
@@ -56,12 +57,27 @@ class HtmlFormatter(logging.Formatter):
         "%Y-%m-%d %H:%M:%S")
 
     def formatException(self, exc_info):
+        """
+        Format a Python exception
+
+        @param exc_info: Python exception containing a description of what went wrong
+        @type exc_info: Python exception class
+        @return: formatted exception
+        @rtype: string
+        """
         exc = logging.Formatter.formatException(self,exc_info)
         return """<tr class="tablevalues"><td colspan="4">%s</td></tr>""" % exc
 
 
 def setWebLoggingStream(stream):
-    """Setup logging to log to a browser using a request object."""
+    """
+    Setup logging to log to a browser using a request object.
+
+    @param stream: IO stream
+    @type stream: stream class
+    @return: logging handler
+    @rtype: logging handler
+    """
     handler = logging.StreamHandler(stream)
     handler.setFormatter(HtmlFormatter())
     rlog = logging.getLogger()
@@ -73,20 +89,33 @@ def setWebLoggingStream(stream):
 
 
 def clearWebLoggingStream(handler):
-    """Clear our web logger."""
+    """
+    Clear our web logger.
+
+    @param handler: logging handler
+    @type handler: logging handler
+    """
     rlog = logging.getLogger()
     rlog.removeHandler(handler)
 
 
 def convToUnits(numb, divby=1024.0, unitstr="B"):
     """
-    Convert a number to its human readable form. ie: 4GB, 4MB, etc.
+    Convert a number to its human-readable form. ie: 4GB, 4MB, etc.
 
         >>> convToUnits(123456789)
         '117.7MB'
         >>> convToUnits(123456789, 1000, "Hz")
         '123.5MHz'
 
+    @param numb: base number
+    @type numb: number
+    @param divby: divisor to use to convert to appropriate prefix
+    @type divby: number
+    @param unitstr: base unit of the number
+    @type unitstr: string
+    @return: number with appropriate units
+    @rtype: string
     """
     units = map(lambda x:x + unitstr, ('','K','M','G','T','P'))
     numb = float(numb)
@@ -101,7 +130,20 @@ def convToUnits(numb, divby=1024.0, unitstr="B"):
         
 
 def travAndColl(obj, toonerel, collect, collectname):
-    """walk a series of to one rels collecting collectname into collect"""
+    """
+    Walk a series of to one rels collecting collectname into collect
+
+    @param obj: object inside of Zope
+    @type obj: object
+    @param toonerel: a to-one relationship object
+    @type toonerel: toonerel object
+    @param collect: object list
+    @type collect: list
+    @param collectname: name inside of the to-one relation object
+    @type collectname: string
+    @return: list of objects
+    @rtype: list
+    """
     #from Acquisition import aq_base
     value = getattr(aq_base(obj), collectname, None)
     if value:
@@ -115,8 +157,18 @@ def travAndColl(obj, toonerel, collect, collectname):
 
 
 def getObjByPath(base, path, restricted=0):
-    """Get a Zope object by its path (e.g. '/Devices/Server/Linux').
-       Mostly a stripdown of unrestrictedTraverse method from Zope 2.8.8.
+    """
+    Get a Zope object by its path (e.g. '/Devices/Server/Linux').
+    Mostly a stripdown of unrestrictedTraverse method from Zope 2.8.8.
+
+    @param base: base part of a path
+    @type base: string
+    @param path: path to an object inside of the DMD
+    @type path: string
+    @param restricted: flag indicated whether to use securityManager
+    @type restricted: integer
+    @return: object pointed to by the path
+    @rtype: object
     """
     if not path:
         return base
@@ -232,7 +284,16 @@ def getObjByPath(base, path, restricted=0):
 
 
 def checkClass(myclass, className):
-    """perform issubclass using class name as string"""
+    """
+    Perform issubclass using class name as string
+
+    @param myclass: generic object
+    @type myclass: object
+    @param className: name of a class
+    @type className: string
+    @return: the value 1 if found or None
+    @rtype: integer or None
+    """
     if myclass.__name__ == className:
         return 1
     for mycl in myclass.__bases__:
@@ -241,20 +302,41 @@ def checkClass(myclass, className):
 
 
 def lookupClass(productName, classname=None):
-        """look in sys.modules for our class"""
-        if sys.modules.has_key(productName):
-            mod = sys.modules[productName]
-        elif sys.modules.has_key("Products."+productName):
-            mod = sys.modules["Products."+productName]
-        else:
-            return None
-        if not classname:
-            classname = productName.split('.')[-1]
-        return getattr(mod,classname)
+    """
+    look in sys.modules for our class
+
+    @param productName: object in Products
+    @type productName: string
+    @param classname: class name
+    @type classname: string
+    @return: object at the classname in Products
+    @rtype: object or None
+    """
+    if sys.modules.has_key(productName):
+       mod = sys.modules[productName]
+
+    elif sys.modules.has_key("Products."+productName):
+       mod = sys.modules["Products."+productName]
+
+    else:
+       return None
+
+    if not classname:
+       classname = productName.split('.')[-1]
+
+    return getattr(mod,classname)
 
 
 def importClass(modulePath, classname=""):
-    """Import a class from the module given.
+    """
+    Import a class from the module given.
+
+    @param modulePath: path to module in sys.modules
+    @type modulePath: string
+    @param classname: name of a class
+    @type classname: string
+    @return: the class in the module
+    @rtype: string
     """
     try:
         if not classname: classname = modulePath.split(".")[-1]
@@ -271,29 +353,64 @@ def importClass(modulePath, classname=""):
 
 
 def cleanstring(value):
-    """take the trailing \x00 off the end of a string"""
+    """
+    Take the trailing \x00 off the end of a string
+
+    @param unitstr: sample string
+    @type unitstr: string
+    @return: cleaned string
+    @rtype: string
+    """
     if type(value) in types.StringTypes:
         value = value.split('\0')[0]
     return value
 
 
-def getSubObjects(base, filter=None, decend=None, retobjs=None):
-    """do a depth first search looking for objects that the function filter
-    returns as true. If decend is passed it will check to see if we
-    should keep going down or not"""
+def getSubObjects(base, filter=None, descend=None, retobjs=None):
+    """
+    Do a depth-first search looking for objects that the function filter
+    returns as True. If descend is passed it will check to see if we
+    should keep going down or not
+
+    @param base: base object to start search
+    @type base: object
+    @param filter: filter to apply to each object to determine if it gets added to the returned list
+    @type filter: function or None
+    @param descend: function to apply to each object to determine whether or not to continue searching
+    @type descend: function or None
+    @param retobjs: list of objects found
+    @type retobjs: list
+    @return: list of objects found
+    @rtype: list
+    """
     if not retobjs: retobjs = []
     for obj in base.objectValues():
         if not filter or filter(obj):
             retobjs.append(obj)
-        if not decend or decend(obj):
-            retobjs = getSubObjects(obj, filter, decend, retobjs)
+        if not descend or descend(obj):
+            retobjs = getSubObjects(obj, filter, descend, retobjs)
     return retobjs
 
 
-def getSubObjectsMemo(base, filter=None, decend=None, memo={}):
-    """do a depth first search looking for objects that the function filter
-    returns as true. If decend is passed it will check to see if we
-    should keep going down or not"""
+def getSubObjectsMemo(base, filter=None, descend=None, memo={}):
+    """
+    Do a depth-first search looking for objects that the function filter
+    returns as True. If descend is passed it will check to see if we
+    should keep going down or not.
+
+    This is a Python iterable.
+
+    @param base: base object to start search
+    @type base: object
+    @param filter: filter to apply to each object to determine if it gets added to the returned list
+    @type filter: function or None
+    @param descend: function to apply to each object to determine whether or not to continue searching
+    @type descend: function or None
+    @param memo: dictionary of objects found (unused)
+    @type memo: dictionary
+    @return: list of objects found
+    @rtype: list
+    """
     from Products.ZenRelations.RelationshipManager \
         import RelationshipManager
     if base.meta_type == "To One Relationship":
@@ -306,13 +423,20 @@ def getSubObjectsMemo(base, filter=None, decend=None, memo={}):
             continue
         if not filter or filter(obj):
             yield obj
-        if not decend or decend(obj):
-            for x in getSubObjectsMemo(obj, filter, decend, memo):
+        if not descend or descend(obj):
+            for x in getSubObjectsMemo(obj, filter, descend, memo):
                 yield x
 
 
 def getAllConfmonObjects(base):
-    """get all ZenModelRM objects in database"""
+    """
+    Get all ZenModelRM objects in database
+
+    @param base: base object to start searching
+    @type base: object
+    @return: list of objects
+    @rtype: list
+    """
     from Products.ZenModel.ZenModelRM import ZenModelRM
     from Products.ZenModel.ZenModelBase import ZenModelBase
     from Products.ZenRelations.ToManyContRelationship \
@@ -321,59 +445,62 @@ def getAllConfmonObjects(base):
         import ToManyRelationship
     from Products.ZenRelations.ToOneRelationship \
         import ToOneRelationship
-    def decend(obj):
+
+    def descend(obj):
+        """
+        Function to determine whether or not to continue searching
+        @param obj: object
+        @type obj: object
+        @return: True if we want to keep searching
+        @rtype: boolean
+        """
         return (
                 isinstance(obj, ZenModelBase) or 
                 isinstance(obj, ToManyContRelationship) or
                 isinstance(obj, ToManyRelationship) or
                 isinstance(obj, ToOneRelationship))
+
     def filter(obj):
+        """
+        Filter function to decide whether it's an object we
+        want to know about or not.
+
+        @param obj: object
+        @type obj: object
+        @return: True if we want to keep it
+        @rtype: boolean
+        """
         return isinstance(obj, ZenModelRM) and obj.id != "dmd"
-    return getSubObjectsMemo(base, filter=filter, decend=decend)
+
+    return getSubObjectsMemo(base, filter=filter, descend=descend)
+
 
 def zenpathsplit(pathstring):
-    """split a zen path and clean up any blanks or bogus spaces in it"""
+    """
+    Split a zen path and clean up any blanks or bogus spaces in it
+
+    @param pathstring: a path inside of ZENHOME
+    @type pathstring: string
+    @return: a path
+    @rtype: string
+    """
     path = pathstring.split("/")
     path = filter(lambda x: x, path)
     path = map(lambda x: x.strip(), path)
     return path
 
-def zenpathjoin(pathar):
-    """build a zenpath in its string form"""
-    return "/" + "/".join(pathar)
 
-def OLDgetHierarchyObj(root, name, factory, lastfactory=None, 
-                    relpath=None, lastrelpath=None, llog=None):
-    """build and return the path to an object 
-    based on a hierarchical name (ex /Mail/Mta) relative
-    to the root passed in.  If lastfactory is passed the leaf object
-    will be created with it instead of factory. 
-    relpath is the relationship within which we will recurse as
-    objects are created.  Having the relationship in the path passed
-    is optional."""
-    unused(llog)
-    path = zenpathsplit(name)
-    for id in path:
-        if id == relpath: continue
-        if getattr(aq_base(root), id, False):
-            nextroot = getattr(root, id)
-        else:
-            if id == path[-1]:
-                if lastrelpath: relpath = lastrelpath
-                if lastfactory: factory = lastfactory 
-            if relpath and getattr(aq_base(root), relpath, False):
-                relobj = getattr(root, relpath)
-                if not getattr(aq_base(relobj), id, False):
-                    log.debug("creating object with id %s in relation %s",
-                                id, relobj.getId())
-                    factory(relobj, id)
-                nextroot = relobj._getOb(id)
-            else:
-                log.debug("creating object with id %s", id)
-                factory(root, id)
-                nextroot = root._getOb(id)
-        root = nextroot
-    return root
+
+def zenpathjoin(pathar):
+    """
+    Build a zenpath in its string form
+
+    @param pathstring: a path
+    @type pathstring: string
+    @return: a path
+    @rtype: string
+    """
+    return "/" + "/".join(pathar)
 
 
 def createHierarchyObj(root, name, factory, relpath="", llog=None):
@@ -381,6 +508,19 @@ def createHierarchyObj(root, name, factory, relpath="", llog=None):
     Create a hierarchy object from its path we use relpath to skip down
     any missing relations in the path and factory is the constructor for 
     this object.
+
+    @param root: root from which to start
+    @type root: object
+    @param name: path to object
+    @type name: string
+    @param factory: factory object to create
+    @type factory: factory object
+    @param relpath: relationship within which we will recurse as objects are created, if any
+    @type relpath: object
+    @param llog: unused
+    @type llog: object
+    @return: root object of a hierarchy
+    @rtype: object
     """
     unused(llog)
     rootName = root.id
@@ -395,11 +535,23 @@ def createHierarchyObj(root, name, factory, relpath="", llog=None):
             newobj = factory(id)
             root._setObject(id, newobj)
         root = getattr(root, id)
+
     return root
 
 
 def getHierarchyObj(root, name, relpath=None):
-    """Return an object using its path relations are optional in the path."""
+    """
+    Return an object using its path relations are optional in the path.
+
+    @param root: root from which to start
+    @type root: object
+    @param name: path to object
+    @type name: string
+    @param relpath: relationship within which we will recurse as objects are created, if any
+    @type relpath: object
+    @return: root object of a hierarchy
+    @rtype: object
+    """
     for id in zenpathsplit(name):
         if id == relpath or getattr(aq_base(root), relpath, False):
             root = getattr(root, relpath)
@@ -407,13 +559,25 @@ def getHierarchyObj(root, name, relpath=None):
             raise ZenPathError("Path %s id %s not found on object %s" %
                                 (name, id, root.getPrimaryId()))
         root = getattr(root, id, None)
+
     return root
     
 
 
 def basicAuthUrl(username, password, url):
-    """add the username and password to a url in the form
-    http://username:password@host/path"""
+    """
+    Add the username and password to a url in the form
+    http://username:password@host/path
+
+    @param username: username
+    @type username: string
+    @param password: password
+    @type password: string
+    @param url: base URL to add username/password info
+    @type url: string
+    @return: URL with auth information incorporated
+    @rtype: string
+    """
     urlar = url.split('/')
     if not username or not password or urlar[2].find('@') > -1: 
         return url 
@@ -423,8 +587,14 @@ def basicAuthUrl(username, password, url):
 
 
 def prepId(id, subchar='_'):
-    """Make an id with valid url characters. Subs [^a-zA-Z0-9-_,.$\(\) ]
+    """
+    Make an id with valid url characters. Subs [^a-zA-Z0-9-_,.$\(\) ]
     with subchar.  If id then starts with subchar it is removed.
+
+    @param id: user-supplied id
+    @type id: string
+    @return: valid id
+    @rtype: string
     """
     _prepId = re.compile(r'[^a-zA-Z0-9-_,.$\(\) ]').sub
     _cleanend = re.compile(r"%s+$" % subchar).sub
@@ -440,10 +610,27 @@ def prepId(id, subchar='_'):
     id = id.strip()
     return str(id)
 
+
 def sendEmail(emsg, host, port=25, usetls=0, usr='', pwd=''):
-    ''' Send an email.  Return a tuple:
+    """
+    Send an email.  Return a tuple:
     (sucess, message) where sucess is True or False.
-    '''
+
+    @param emsg: message to send
+    @type emsg: string
+    @param host: name of e-mail server
+    @type host: string
+    @param port: port number to communicate to the e-mail server
+    @type port: integer
+    @param usetls: boolean-type integer to specify whether to use TLS
+    @type usetls: integer
+    @param usr: username for TLS
+    @type usr: string
+    @param pwd: password for TLS
+    @type pwd: string
+    @return: (sucess, message) where sucess is True or False.
+    @rtype: tuple
+    """
     import smtplib
     fromaddr = emsg['From']
     toaddr = emsg['To'].split(', ')
@@ -467,9 +654,19 @@ def sendEmail(emsg, host, port=25, usetls=0, usr='', pwd=''):
     
     
 def sendPage(recipient, msg, pageCommand):
-    ''' Send a page.  Return a tuple: (success, message) where
+    """
+    Send a page.  Return a tuple: (success, message) where
     sucess is True or False.
-    '''
+
+    @param recipient: name to where a page should be sent
+    @type recipient: string
+    @param msg: message to send
+    @type msg: string
+    @param pageCommand: command that will send a page
+    @type pageCommand: string
+    @return: (sucess, message) where sucess is True or False.
+    @rtype: tuple
+    """
     import subprocess
     env = dict(os.environ)
     env["RECIPIENT"] = recipient
@@ -485,6 +682,16 @@ def sendPage(recipient, msg, pageCommand):
        
 
 def zdecode(context, value):
+    """
+    Convert a string using the decoding found in zCollectorDecoding
+
+    @param context: Zope object
+    @type context: object
+    @param value: input string
+    @type value: string
+    @return: converted string
+    @rtype: string
+    """
     if type(value) == type(''):
         decoding = getattr(context, 'zCollectorDecoding', 'latin-1')
         value = value.decode(decoding)
@@ -492,18 +699,46 @@ def zdecode(context, value):
 
 
 def localIpCheck(context, ip):
-    """Test to see if ip it should not be included in the network map."""
+    """
+    Test to see if an IP should not be included in the network map.
+    Uses the zLocalIpAddresses to decide.
+
+    @param context: Zope object
+    @type context: object
+    @param ip: IP address
+    @type ip: string
+    @return: regular expression match or None (if not found)
+    @rtype: re match object
+    """
     return re.search(getattr(context, 'zLocalIpAddresses', '^$'), ip) 
 
 def localInterfaceCheck(context, intname):
-    """Test to see if ips on an in should not be included in the network map."""
+    """
+    Test to see if an interface should not be included in the network map.
+    Uses the zLocalInterfaceNames to decide.
+
+    @param context: Zope object
+    @type context: object
+    @param intname: network interface name
+    @type intname: string
+    @return: regular expression match or None (if not found)
+    @rtype: re match object
+    """
     return re.search(getattr(context, 'zLocalInterfaceNames', '^$'), intname)
 
 
 def cmpClassNames(obj, classnames):
-    """ Check to see if any of an object's base classes 
-        are in a list of class names. Like isinstance(), 
-        but without requiring a class to compare against.
+    """
+    Check to see if any of an object's base classes 
+    are in a list of class names. Like isinstance(), 
+    but without requiring a class to compare against.
+
+    @param obj: object
+    @type obj: object
+    @param classnames: class names
+    @type classnames: list of strings
+    @return: result of the comparison
+    @rtype: boolean
     """
     finalnames = Set()
     x = [obj.__class__]
@@ -513,7 +748,24 @@ def cmpClassNames(obj, classnames):
         finalnames.add(thisclass.__name__)
     return bool( Set(classnames).intersection(finalnames) )
 
+
 def resequence(context, objects, seqmap, origseq, REQUEST):
+    """
+    Resequence a seqmap
+
+    @param context: Zope object
+    @type context: object
+    @param objects: objects
+    @type objects: list
+    @param seqmap: sequence map
+    @type seqmap: list
+    @param origseq: sequence map
+    @type origseq: list
+    @param REQUEST: Zope REQUEST object
+    @type REQUEST: Zope REQUEST object
+    @return:
+    @rtype: string
+    """
     if seqmap and origseq:
         try:
             origseq = tuple([long(s) for s in origseq])
@@ -526,21 +778,45 @@ def resequence(context, objects, seqmap, origseq, REQUEST):
             for oldSeq, newSeq in zip(origseq, seqmap):
                 orig[oldSeq].sequence = newSeq
     def sort(x):
+        """
+        @param x: unordered sequence items
+        @type x: list
+        @return: ordered sequence items
+        @rtype: list
+        """
         x = list(x)
         x.sort(lambda a, b: cmp(a.sequence, b.sequence))
         return x
+
     for i, obj in enumerate(sort(objects)):
         obj.sequence = i
+
     if REQUEST:
         return context.callZenScreen(REQUEST)
     
+
 def cleanupSkins(dmd):
+    """
+    Prune out objects
+
+    @param dmd: Device Management Database
+    @type dmd: DMD object
+    """
     ps = dmd.getPhysicalRoot().zport.portal_skins
     layers = ps._objects
     layers = filter(lambda x:getattr(ps, x['id'], False), layers)
     ps._objects = tuple(layers)
 
+
 def edgesToXML(edges, start=()):
+    """
+    Convert edges to an XML file
+
+    @param edges: edges
+    @type edges: list
+    @return: XML-formatted string
+    @rtype: string
+    """
     nodet = '<Node id="%s" prop="%s" icon="%s" color="%s"/>'
     edget = '<Edge fromID="%s" toID="%s"/>'
     xmlels = ['<Start name="%s" url="%s"/>' % start]
@@ -553,10 +829,13 @@ def edgesToXML(edges, start=()):
         if node1 not in nodeels: nodeels.append(node1)
         if node2 not in nodeels: nodeels.append(node2)
         if edge1 not in edgeels: edgeels.append(edge1)
+
     xmlels.extend(nodeels)
     xmlels.extend(edgeels)
     xmldoc = "<graph>%s</graph>" % ''.join(list(xmlels))
+
     return xmldoc
+
 
 def zenPath(*args):
     """
@@ -567,6 +846,8 @@ def zenPath(*args):
     >>> zenHome = os.environ['ZENHOME']
     >>> zenPath() == zenHome
     True
+    >>> zenPath( '' ) == zenHome
+    True
     >>> zenPath('Products') == os.path.join(zenHome, 'Products')
     True
     >>> zenPath('/Products/') == zenPath('Products')
@@ -574,17 +855,53 @@ def zenPath(*args):
     >>> 
     >>> zenPath('Products', 'foo') == zenPath('Products/foo')
     True
+    # NB: The following is *NOT* true for os.path.join()
+    >>> zenPath('/Products', '/foo') == zenPath('Products/foo')
+    True
+    >>> zenPath(zenPath('Products')) == zenPath('Products')
+    True
+    >>> zenPath(zenPath('Products'), 'orange', 'blue' ) == zenPath('Products', 'orange', 'blue' )
+    True
+    # Pathological case
+    # NB: need to expand out the array returned by split()
+    >>> zenPath() == zenPath( *'/'.split(zenPath()) )
+    True
 
+    @param *args: path components starting from $ZENHOME
+    @type *args: strings
+    @todo: determine what the correct behaviour should be if $ZENHOME is a symlink!
     """
-    args = [a.strip('/') for a in args]
-    path = os.path.join(os.environ['ZENHOME'], *args)
-    #test if ZENHOME based path exists and if not try bitrock style path.
-    #if neither exists return the ZENHOME based path
-    if(not os.path.exists(path)):
-        testPath = os.path.join(os.environ['ZENHOME'], "..", "common", *args)
+    zenhome = os.environ.get( 'ZENHOME', '' )
+
+    path = zenhome
+    if args:
+        # Hugely bizarre (but documented!) behaviour with os.path.join()
+        # >>> import os.path
+        # >>> os.path.join( '/blue', 'green' )
+        # '/blue/green'
+        # >>> os.path.join( '/blue', '/green' )
+        # '/green'
+        # WTF???  Work around the brain damage...
+        base = args[0]
+        path_args = [a.strip('/') for a in args]
+
+        pathological_case = os.path.join( *path_args )
+        if pathological_case.startswith( zenhome ):
+            pass
+
+        elif not base.startswith( zenhome ):
+            path_args.insert( 0, zenhome )
+
+        path = os.path.join( *path_args )
+
+    #test if ZENHOME based path exists and if not try bitrock-style path.
+    #if neither exists return the ZENHOME-based path
+    if not os.path.exists(path):
+        testPath = os.path.join(zenhome, "..", "common", *args)
         if(os.path.exists(testPath)):
             path = testPath
     return path
+
 
 def zopePath(*args):
     """
@@ -598,12 +915,30 @@ def zopePath(*args):
     >>> zopeHome = os.environ.setdefault('ZOPEHOME', '/something')
     >>> zopePath('bin') == os.path.join(zopeHome, 'bin')
     True
+    >>> zopePath(zopePath('bin')) == zopePath('bin')
+    True
     
+    @param *args: path components starting from $ZOPEHOME
+    @type *args: strings
     """
-    args = [a.strip('/') for a in args]
-    if os.environ.get('ZOPEHOME', ''):
-        return os.path.join(os.environ['ZOPEHOME'], *args)
-    return ''
+    zopehome = os.environ.get('ZOPEHOME', '')
+    path = zopehome
+    if args:
+        # See notes for zenPath() about some oddities found here
+        base = args[0]
+        path_args = [a.strip('/') for a in args]
+
+        pathological_case = os.path.join( *path_args )
+        if pathological_case.startswith( zopehome ):
+            pass
+
+        elif not base.startswith( zopehome ):
+            path_args.insert( 0, zopehome )
+
+        path = os.path.join( *path_args )
+        
+    return path
+
 
 def binPath(fileName):
     """
@@ -618,6 +953,11 @@ def binPath(fileName):
     True
     >>> binPath('Idontexistreally') == ''
     True
+
+    @param fileName: name of executable
+    @type fileName: string
+    @return: path to file or '' if not found
+    @rtype: string
     """
     # bin and libexec are the usual suspect locations.
     # ../common/bin and ../common/libexec are additional options for bitrock
@@ -631,10 +971,16 @@ def binPath(fileName):
         return path
     return ''
 
+
 def extractPostContent(REQUEST):
     """
     IE puts the POST content in one place in the REQUEST object, and Firefox in
     another. Thus we need to try both.
+
+    @param REQUEST: Zope REQUEST object
+    @type REQUEST: Zope REQUEST object
+    @return: POST content
+    @rtype: string
     """
     try:
         try:
@@ -646,17 +992,45 @@ def extractPostContent(REQUEST):
     except: result = ''
     return result
 
-def unused(*args):                      # useful for shutting up pychecker
+
+def unused(*args):
+    """
+    A no-op function useful for shutting up pychecker
+
+    @param *args: arbitrary arguments
+    @type *args: objects
+    @return: count of the objects
+    @rtype: integer
+    """
     return len(args)
 
 
 def isXmlRpc(REQUEST):
+    """
+    Did we receive a XML-RPC call?
+
+    @param REQUEST: Zope REQUEST object
+    @type REQUEST: Zope REQUEST object
+    @return: True if REQUEST is an XML-RPC call
+    @rtype: boolean
+    """
     if REQUEST and REQUEST['CONTENT_TYPE'].find('xml') > -1:
         return True
     else:
         return False
 
+
 def setupLoggingHeader(context, REQUEST):
+    """
+    Extract out the 2nd outermost table
+
+    @param context: Zope object
+    @type context: Zope object
+    @param REQUEST: Zope REQUEST object
+    @type REQUEST: Zope REQUEST object
+    @return: response
+    @rtype: string
+    """
     response = REQUEST.RESPONSE
     dlh = context.discoverLoggingHeader()
     idx = dlh.rindex("</table>")
@@ -664,10 +1038,21 @@ def setupLoggingHeader(context, REQUEST):
     idx = dlh.rindex("</table>")
     dlh = dlh[:idx]
     response.write(str(dlh[:idx]))
+
     return setWebLoggingStream(response)
 
 
 def executeCommand(cmd, REQUEST):
+    """
+    Execute the command and return the output
+
+    @param cmd: command to execute
+    @type cmd: string
+    @param REQUEST: Zope REQUEST object
+    @type REQUEST: Zope REQUEST object
+    @return: result of executing the command
+    @rtype: string
+    """
     xmlrpc = isXmlRpc(REQUEST)
     result = 0
     try:
@@ -700,14 +1085,27 @@ def executeCommand(cmd, REQUEST):
         result = int(hex(result)[:-2], 16)
     return result
 
+
 def ipsort(a, b):
+    """
+    Compare (cmp()) a + b's IP addresses
+    These addresses may contain subnet mask info.
+
+    @param a: IP address
+    @type a: string
+    @param b: IP address
+    @type b: string
+    @return: result of cmp(a.ip,b.ip)
+    @rtype: boolean
+    """
     # Strip off netmasks
     a, b = map(lambda x:x.rsplit("/")[0], (a, b))
     return cmp(*map(socket.inet_aton, (a, b)))
 
 
 def unsigned(v):
-    '''Convert negative 32-bit values into the 2s compliment unsigned value
+    """
+    Convert negative 32-bit values into the 2's complement unsigned value
 
     >>> str(unsigned(-1))
     '4294967295'
@@ -717,7 +1115,12 @@ def unsigned(v):
     1000000L
     >>> unsigned(1e10)
     10000000000L
-    '''
+
+    @param v: number
+    @type v: negative 32-bit number
+    @return: 2's complement unsigned value
+    @rtype: unsigned int
+    """
     v = long(v)
     if v < 0:
         import ctypes
@@ -728,6 +1131,13 @@ def unsigned(v):
 def executeStreamCommand(cmd, writefunc, timeout=30):
     """
     Execute cmd in the shell and send the output to writefunc.
+
+    @param cmd: command to execute
+    @type cmd: string
+    @param writefunc: output function
+    @type writefunc: function
+    @param timeout: maxium number of seconds to wait for the command to execute
+    @type timeout: number
     """
     child = popen2.Popen4(cmd)
     flags = fcntl.fcntl(child.fromchild, fcntl.F_GETFL)
@@ -763,6 +1173,11 @@ def monkeypatch(target):
         >>> DataRoot('dummy').do_nothing_at_all()
         I do nothing at all.
 
+
+    @param target: class
+    @type target: class object
+    @return: decorator function return
+    @rtype: function
     """
     if isinstance(target, basestring):
         mod, klass = target.rsplit('.', 1)
@@ -773,34 +1188,30 @@ def monkeypatch(target):
     return patcher
 
 
-from Products.ZenUtils.json import json as _json
 def json(f):
     """
     Decorator that serializes the return value of the decorated function as
     JSON.
 
-    Use of the C{ZenUtils.Utils.json} decorator is deprecated. Please import
-    from C{ZenUtils.json}.
-    """
-    warnings.warn("Use of the ZenUtils.Utils.json decorator is deprecated. "
-                   "Please import from Products.ZenWidgets.json",
-                   DeprecationWarning)
-    return _json(f)
+        >>> @json
+        ... def f():
+        ...     return (dict(a=1L), u"123", 123)
+        ...
+        >>> print f()
+        [{"a": 1}, "123", 123]
 
 
-def formreq(f):
+    @param f: class
+    @type f: class object
+    @return: decorator function return
+    @rtype: function
     """
-    Decorator to pass in request.form information as arguments to a method.
-
-    These are intended to decorate methods of BrowserViews.
-    """
-    def inner(self, *args, **kwargs):
-        kwargs.update(self.request.form)
-        # Get rid of useless Zope thing that appears when no querystring
-        if kwargs.has_key('-C'): del kwargs['-C']
-        # Get rid of kw used to prevent browser caching
-        if kwargs.has_key('_dc'): del kwargs['_dc']
-        return f(self, *args, **kwargs)
+    def inner(*args, **kwargs):
+        return simplejson.dumps(f(*args, **kwargs))
+    # Make it well behaved
+    inner.__name__ = f.__name__
+    inner.__dict__.update(f.__dict__)
+    inner.__doc__ = f.__doc__
     return inner
 
 
@@ -815,7 +1226,14 @@ EXIT_CODE_MAPPING = {
 }
 
 def getExitMessage(exitCode):
-    "Return a nice exit message that corresponds to the given exit status code"
+    """
+    Return a nice exit message that corresponds to the given exit status code
+
+    @param exitCode: process exit code
+    @type exitCode: integer
+    @return: human-readable version of the exit code
+    @rtype: string
+    """
     if exitCode in EXIT_CODE_MAPPING.keys():
         return EXIT_CODE_MAPPING[exitCode]
     elif exitCode >= 255:
