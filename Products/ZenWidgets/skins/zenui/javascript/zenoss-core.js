@@ -12,7 +12,12 @@ if (! ("console" in window) || !("firebug" in console)) {
     for (var i = 0; i <names.length; ++i) window.console[names[i]] = function() {};}
 
 // Set up the Javascript loader
-function getLoader() {
+function getLoader(withtests) {
+    /**
+    * Get a YAHOO.util.YUILoader configured to load Zenoss-specific skins and
+    * scripts. Optionally register test modules with the loader.
+    */
+    var withtests = withtests || false;
     configObj = {
         onFailure: function(msg, xhrreq) {
             console.warn('FAILURE: ' + msg)
@@ -95,6 +100,15 @@ function getLoader() {
         fullpath: '/zport/dmd/zenrrdzoom.js',
         requires: ['zenossutils']
     });
+
+    if (withtests) {
+        loader.addModule({
+            name: 'test_example',
+            type: 'js',
+            fullpath: '/zport/dmd/javascript/tests/test_example.js',
+            requires: ['yuitest']
+        });
+    }
     return loader;
 }
 
@@ -108,4 +122,25 @@ if (DEBUG_MODE) {
     loader = getLoader();
     loader.require(['logger']);
     loader.insert({onSuccess:function(){YAHOO.widget.Logger.enableBrowserConsole()}})
+}
+
+function runtests(pkg) {
+    /**
+    * Run tests associated with a package.
+    *
+    * Test package must be included in the getLoader function, above, and must
+    * include TestSuites and/or TestCases that register themselves with
+    * YAHOO.tool.TestRunner. See tests/test_example.js for an example.
+    */
+    loader = getLoader(true);
+    loader.require(['logger', 'yuitest', 'test_'+pkg])
+    loader.insert({
+        onSuccess: function(){
+            var oLogger = new YAHOO.tool.TestLogger();
+            YAHOO.tool.TestRunner.run();
+        },
+        onFailure: function(o) {
+            console.log(o.msg);
+        }
+    });
 }
