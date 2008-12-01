@@ -837,6 +837,50 @@ def edgesToXML(edges, start=()):
     return xmldoc
 
 
+def sane_pathjoin(base_path, *args ):
+    """
+    Joins paths in a saner manner than os.path.join()
+
+    @param base_path: base path to assume everything is rooted from
+    @type base_path: string
+    @param *args: path components starting from $ZENHOME
+    @type *args: strings
+    @return: sanitized path
+    @rtype: string
+    """
+    path = base_path
+    if args:
+        # Hugely bizarre (but documented!) behaviour with os.path.join()
+        # >>> import os.path
+        # >>> os.path.join( '/blue', 'green' )
+        # '/blue/green'
+        # >>> os.path.join( '/blue', '/green' )
+        # '/green'
+        # Work around the brain damage...
+        base = args[0]
+        if base.startswith( base_path ):
+            path_args = [ base ] + [a.strip('/') for a in args[1:] if a != '' ]
+        else:
+            path_args = [a.strip('/') for a in args if a != '' ]
+
+        # Empty strings get thrown out so we may not have anything
+        if len(path_args) > 0:
+            # What if the user splits up base_path and passes it in?
+            pathological_case = os.path.join( *path_args )
+            if pathological_case.startswith( base_path ):
+                pass
+
+            elif not base.startswith( base_path ):
+                path_args.insert( 0, base_path )
+
+            # Note: passing in a list to os.path.join() returns a list,
+            #       again completely unlike string join()
+            path = os.path.join( *path_args )
+
+    # os.path.join( '/blue', '' ) returns '/blue/' -- egads!
+    return path.rstrip('/')
+
+
 def zenPath(*args):
     """
     Return a path relative to $ZENHOME specified by joining args.  The path
@@ -873,31 +917,13 @@ def zenPath(*args):
     """
     zenhome = os.environ.get( 'ZENHOME', '' )
 
-    path = zenhome
-    if args:
-        # Hugely bizarre (but documented!) behaviour with os.path.join()
-        # >>> import os.path
-        # >>> os.path.join( '/blue', 'green' )
-        # '/blue/green'
-        # >>> os.path.join( '/blue', '/green' )
-        # '/green'
-        # WTF???  Work around the brain damage...
-        base = args[0]
-        path_args = [a.strip('/') for a in args]
-
-        pathological_case = os.path.join( *path_args )
-        if pathological_case.startswith( zenhome ):
-            pass
-
-        elif not base.startswith( zenhome ):
-            path_args.insert( 0, zenhome )
-
-        path = os.path.join( *path_args )
+    path = sane_pathjoin( zenhome, *args )
 
     #test if ZENHOME based path exists and if not try bitrock-style path.
     #if neither exists return the ZENHOME-based path
     if not os.path.exists(path):
-        testPath = os.path.join(zenhome, "..", "common", *args)
+        brPath = os.path.realpath(os.path.join(zenhome, '..', 'common'))
+        testPath = sane_pathjoin(brPath, *args)
         if(os.path.exists(testPath)):
             path = testPath
     return path
@@ -922,22 +948,7 @@ def zopePath(*args):
     @type *args: strings
     """
     zopehome = os.environ.get('ZOPEHOME', '')
-    path = zopehome
-    if args:
-        # See notes for zenPath() about some oddities found here
-        base = args[0]
-        path_args = [a.strip('/') for a in args]
-
-        pathological_case = os.path.join( *path_args )
-        if pathological_case.startswith( zopehome ):
-            pass
-
-        elif not base.startswith( zopehome ):
-            path_args.insert( 0, zopehome )
-
-        path = os.path.join( *path_args )
-        
-    return path
+    return sane_pathjoin( zopehome, *args )
 
 
 def binPath(fileName):
