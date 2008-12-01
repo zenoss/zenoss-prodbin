@@ -143,7 +143,7 @@ class SshClientTransport(transport.SSHClientTransport):
         #blowing off host key right now, should store and check
         from Products.ZenUtils.Utils import unused
         unused(hostKey)
-        log.debug('%s host key: %s' % (self.factory.hostname, fingerprint))
+        log.debug('%s host fingerprint: %s' % (self.factory.hostname, fingerprint))
         return defer.succeed(1)
 
 
@@ -167,6 +167,7 @@ class SshClientTransport(transport.SSHClientTransport):
         """
         message= 'SSH error from remote device (code %d): %s\n' % \
                  ( reasonCode, str( description ) )
+        log.warn( message )
         sendEvent( self, message=message )
         transport.SSHClientTransport.receiveError(self, reasonCode, description )
 
@@ -179,6 +180,7 @@ class SshClientTransport(transport.SSHClientTransport):
         @type seqnum: integer
         """
         message= "Got 'unimplemented' SSH message, seqnum= %d" % seqnum
+        log.info( message )
         sendEvent( self, message=message )
         transport.SSHClientTransport.receiveUnimplemented(self, seqnum)
 
@@ -195,6 +197,7 @@ class SshClientTransport(transport.SSHClientTransport):
         @type lang: integer
         """
         message= "Debug message from remote device (%s): %s" % ( str(lang), str(message) )
+        log.info( message )
         sendEvent( self, message=message, severity=Event.Debug )
 
         transport.SSHClientTransport.receiveDebug(self, alwaysDisplay, message, lang )
@@ -248,18 +251,15 @@ class SshUserAuth(userauth.SSHUserAuthClient):
                 sendEvent( self, message=message )
                 raise SshClientError( message )
 
-        log.debug('Attempting to authenticate using username: %s' % user)
         userauth.SSHUserAuthClient.__init__(self, user, instance)
         self.user = user
         self.factory = factory
-        self.first_attempt= True  #  workaround for 'extra' auth failure
 
 
     def getPassword(self, unused=None):
         """
-        Return a deferred object of success if there's a password and
-        we haven't gone past the number of retry attempts.
-        Otherwise return fail (ie password authentication failure)
+        Return a deferred object of success if there's a password or
+        return fail (ie no zCommandPassword specified)
 
         @param unused: unused (unused)
         @type unused: string
@@ -268,21 +268,14 @@ class SshUserAuth(userauth.SSHUserAuthClient):
         """
 
         if not self.factory.password:
-            message= "SshUserAuth: no password able to be extracted"
-            log.error( message )
-            sendEvent( self, message=message )
-            self.factory.clientFinished()
-            return defer.fail( SshClientError( message ) )
-
-        elif self.factory.loginTries <= 0:
-            message= "SSH connection aborted after maximum login attempts."
+            message= "SshUserAuth: no password found -- " + \
+                     "has zCommandPassword been set?"
             log.error( message )
             sendEvent( self, message=message )
             self.factory.clientFinished()
             return defer.fail( SshClientError( message ) )
 
         else:
-            self.factory.loginTries -= 1
             return defer.succeed(self.factory.password)
 
 
@@ -293,14 +286,12 @@ class SshUserAuth(userauth.SSHUserAuthClient):
         @return: SSH public key
         @rtype: string
         """
-
-        log.debug('Getting SSH public key from %s' % self.factory.keyPath)
         keyPath = os.path.expanduser( self.factory.keyPath )
-        log.debug('Expanded key path from %s to %s' % ( self.factory.keyPath, keyPath))
+        log.debug('Expanded SSH public key path from zKeyPath %s to %s' % ( self.factory.keyPath, keyPath))
+
         path = None
         if os.path.exists(keyPath):
             path = keyPath
-
         else:
             log.debug( "SSH public key path %s doesn't exist" % keyPath )
             return
@@ -311,21 +302,74 @@ class SshUserAuth(userauth.SSHUserAuthClient):
     def ssh_USERAUTH_FAILURE( self, packet):
         """
         Called when the SSH session can't authenticate.
-        Note that Twisted seems to attempt to authenticate
-           once with unknown stuff before trying the user's
-           credentials.
+        NB: This function is also called as an initializer
+            to start the connections.
 
         @param packet: returned packet from the host
         @type packet: object
         """
-        if not self.first_attempt:
+        from twisted.conch.ssh.common import getNS
+        canContinue, partial = getNS(packet)
+        canContinue = canContinue.split(',')
+
+        from Products.ZenUtils.Utils import unused
+        unused(partial)
+
+        lastAuth= getattr( self, "lastAuth", '')
+        if lastAuth == '' or lastAuth == 'none':
+            pass   # Start our connection
+
+        elif lastAuth == 'publickey':
+            self.authenticatedWith.append(self.lastAuth)
+            message= "SSH login to %s with SSH keys failed" % \
+                      self.factory.hostname
+            log.error( message )
+            sendEvent( self, message=message )
+
+        elif lastAuth == 'password':
             message= "SSH login to %s with username %s failed" % \
                      ( self.factory.hostname, self.user )
             log.error( message )
             sendEvent( self, message=message )
 
-        self.first_attempt= False
-        userauth.SSHUserAuthClient.ssh_USERAUTH_FAILURE( self, packet )
+            self.factory.loginTries -= 1
+            log.debug( "Decremented loginTries count to %d" % self.factory.loginTries )
+
+            if self.factory.loginTries <= 0:
+                message= "SSH connection aborted after maximum login attempts."
+                log.error( message )
+                sendEvent( self, message=message )
+
+            else:
+                return self.tryAuth('password')
+
+
+            self.authenticatedWith.append(self.lastAuth)
+
+        # Straight from the nasty Twisted code
+        def _(x, y):
+            try:
+                i1 = self.preferredOrder.index(x)
+            except ValueError:
+                return 1
+            try:
+                i2 = self.preferredOrder.index(y)
+            except ValueError:
+                return -1
+            return cmp(i1, i2)
+
+        canContinue.sort(_)
+        log.debug( 'Sorted list of authentication methods: %s' % canContinue)
+        for method in canContinue:
+            if method not in self.authenticatedWith:
+                log.debug( "Attempting method %s" % method )
+                if self.tryAuth(method):
+                    return
+
+        log.debug( "All authentication methods attempted" )
+        self.factory.clientFinished()
+        self.transport.sendDisconnect(transport.DISCONNECT_NO_MORE_AUTH_METHODS_AVAILABLE, 'No more authentication methods available')
+
 
 
     def getPrivateKey(self):
@@ -336,9 +380,8 @@ class SshUserAuth(userauth.SSHUserAuthClient):
         @rtype: Twisted deferred object
         """
 
-        log.debug('Getting SSH private key from %s' % self.factory.keyPath)
         keyPath = os.path.expanduser(self.factory.keyPath)
-        log.debug('Expanded key path from %s to %s' % ( self.factory.keyPath, keyPath))
+        log.debug('Expanded SSH private key path from zKeyPath %s to %s' % ( self.factory.keyPath, keyPath))
         path = None
         if os.path.exists(keyPath):
             path = keyPath
@@ -362,7 +405,7 @@ class SshConnection(connection.SSHConnection):
         @param factory: factory containing the connection info
         @type factory: Twisted factory object
         """
-        log.debug( "creating new SSH connection..." )
+        log.debug( "Creating new SSH connection..." )
         connection.SSHConnection.__init__(self)
         self.factory = factory
 
@@ -479,7 +522,7 @@ class CommandChannel(channel.SSHChannel):
         channel.SSHChannel.__init__(self, conn=conn)
         self.command = command
         self.exitCode = None
-        log.debug( "started the channel" )
+        log.debug( "Started the channel for command: %s" % command )
 
 
     def openFailed(self, reason):
@@ -519,16 +562,15 @@ class CommandChannel(channel.SSHChannel):
         @rtype: Twisted channel
         """
 
-        log.debug('opening command channel for %s' % self.command)
+        log.debug('Opening command channel for %s' % self.command)
         self.data = ''
-        log.debug('running command remotely: exec %s' % self.command)
 
         #  Notes for sendRequest:
         # 'exec'      - execute the following command and exit
         # common.NS() - encodes the command as a length-prefixed string
         # wantReply   - reply to let us know the process has been started
         d = self.conn.sendRequest(self, 'exec', common.NS(self.command),
-                                  wantReply = 1)
+                                  wantReply=1)
         return d
 
 
@@ -548,7 +590,7 @@ class CommandChannel(channel.SSHChannel):
         Response stream from the device.  Can be called multiple times.
 
         @param data: returned value from device
-        @type data: packet
+        @type data: string
         """
         self.data += data
 
@@ -558,7 +600,8 @@ class CommandChannel(channel.SSHChannel):
         Cleanup for the channel, as both ends have closed the channel.
         """
 
-        log.debug('command %s data: %s' % (self.command, repr(self.data)))
+        log.debug('Closed command channel for command %s with data: %s' % \
+                   (self.command, repr(self.data)))
         self.conn.factory.addResult(self.command, self.data, self.exitCode)
         self.loseConnection()
 
@@ -569,11 +612,11 @@ class CommandChannel(channel.SSHChannel):
 
 class SshClient(CollectorClient.CollectorClient):
     """
-        SSH Collector class to connect to a particular device
+    SSH Collector class to connect to a particular device
     """
 
     def __init__(self, hostname, ip, port=22, plugins=[], options=None,
-                    device=None, datacollector=None):
+                    device=None, datacollector=None ):
         """
         Initializer
 
@@ -634,9 +677,13 @@ class SshClient(CollectorClient.CollectorClient):
         CollectorClient.CollectorClient.addCommand(self, commands)
         if type(commands) == type(''):
             commands = (commands,)
+
+        # The following code never gets called, AFAIK
         if self.connection:
+            print "Called SSHCLIENT addcommand"
             for cmd in commands:
                 self.connection.addCommand(cmd)
+            print "Called self.connection._commands= %s" % self.connection.factory._commands
 
 
     def clientConnectionFailed( self, connector, reason ):
@@ -660,37 +707,47 @@ class SshClient(CollectorClient.CollectorClient):
         """
         Called when the connection gets closed.
         """
-        pass
+        log.debug( "Connection closed" )
         #self.connection.loseConnection()
 
 
-def buildOptions( parser ):
-    """
-    Test harness build options
-
-    @param parser: an instance of the optparse library
-    """
 
 def main():
     """
     Test harness main()
+
+    Usage:
+
+    python SshClient.py hostname[:port] comand [command]
+
+    Each command must be enclosed in quotes (") to be interpreted
+    properly as a complete unit.
     """
     import socket
+    from itertools import chain
+    import pprint
+
+    logging.basicConfig()
+
     parser = CollectorClient.buildOptions()
     options = CollectorClient.parseOptions(parser,22)
+    log.setLevel(options.logseverity)
+
     client = SshClient(options.hostname,
                        socket.gethostbyname(options.hostname),
                        options.port,
-                commands=options.commands, options=options)
-    def stop():
-        if client.commandsFinished():
-            reactor.stop()
-        else:
-            reactor.callLater(1, stop)
-    stop()
+                       options=options)
+
+    # Rather than getting info from zenhub, just pass our
+    # commands in
+    client.getCommands= lambda: chain( options.commands )
+
     client.run()
+
+    client.clientFinished= reactor.stop
+    client._commands.append( options.commands )
     reactor.run()
-    import pprint
+
     pprint.pprint(client.getResults())
 
 
