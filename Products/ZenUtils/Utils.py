@@ -1188,6 +1188,7 @@ def monkeypatch(target):
     return patcher
 
 
+from Products.ZenWidgets.json import json as _json
 def json(f):
     """
     Decorator that serializes the return value of the decorated function as
