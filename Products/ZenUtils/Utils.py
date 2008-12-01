@@ -1188,7 +1188,7 @@ def monkeypatch(target):
     return patcher
 
 
-from Products.ZenWidgets.json import json as _json
+from Products.ZenUtils.json import json as _json
 def json(f):
     """
     Decorator that serializes the return value of the decorated function as
@@ -1211,7 +1211,7 @@ def json(f):
     @deprecated: import from Products.ZenWidgets.json
     """
     warnings.warn("Use of the ZenUtils.Utils.json decorator is deprecated. " 
-                  "Please import from Products.ZenWidgets.json", 
+                  "Please import from Products.ZenUtils.json", 
                   DeprecationWarning) 
     return _json(f) 
 
