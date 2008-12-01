@@ -27,7 +27,7 @@ import types
 import logging
 import re
 import socket
-import simplejson
+import warnings
 from sets import Set
 log = logging.getLogger("zen.Utils")
 
