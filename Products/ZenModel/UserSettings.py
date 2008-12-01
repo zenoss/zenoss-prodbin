@@ -242,6 +242,8 @@ class UserSettingsManager(ZenModelRM):
         """
         if not userid: return
 
+        userid= userid.strip()
+
         illegal_usernames= [ 'user', ]
 
         user_name= userid.lower()
