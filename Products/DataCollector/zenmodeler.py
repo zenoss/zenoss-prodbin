@@ -56,7 +56,8 @@ from Products.DataCollector import Plugins
 unused(DeviceProxy, Plugins)
 
 class ZenModeler(PBDaemon):
-    """Daemon class to attach to zenhub and pass along
+    """
+    Daemon class to attach to zenhub and pass along
     device configuration information.
     """
 
@@ -66,8 +67,12 @@ class ZenModeler(PBDaemon):
     generateEvents = True
     configCycleInterval = 360
 
-    def __init__(self, noopts=0, app=None, single=False, keeproot=False):
-        """Initalizer
+    def __init__(self, single=False ):
+        """
+        Initalizer
+
+        @param single: collect from a single device?
+        @type single: boolean
         """
         PBDaemon.__init__(self)
         # FIXME: cleanup --force option #2660
@@ -96,13 +101,18 @@ class ZenModeler(PBDaemon):
         self.devicegen = None
 
     def reportError(self, error):
-        """Log errors that have occurred
+        """
+        Log errors that have occurred
+
+        @param error: error message
+        @type error: string
         """
         self.log.error("Error occured: %s", error)
 
 
     def connected(self):
-        """Called after connected to the zenhub service
+        """
+        Called after connected to the zenhub service
         """
         d = self.configure()
         d.addCallback(self.heartbeat)
@@ -111,11 +121,16 @@ class ZenModeler(PBDaemon):
 
 
     def configure(self):
-        """Get our configuration from zenhub
+        """
+        Get our configuration from zenhub
         """
         # add in the code to fetch cycle time, etc.
         def inner(driver):
-            """Generator function to gather our configuration
+            """
+            Generator function to gather our configuration
+
+            @param driver: driver object
+            @type driver: driver object
             """
             self.log.debug('fetching monitor properties')
             yield self.config().callRemote('propertyItems')
@@ -145,18 +160,27 @@ class ZenModeler(PBDaemon):
 
 
     def config(self):
-        """Get the ModelerService
+        """
+        Get the ModelerService
         """
         return self.services.get('ModelerService', FakeRemote())
 
 
     def selectPlugins(self, device, transport):
-        """Build a list of active plugins for a device, based on:
+        """
+        Build a list of active plugins for a device, based on:
 
         * the --collect command-line option which is a regex
         * the --ignore command-line option which is a regex
         * transport which is a string describing the type of plugin
-            (eg python, ssh, snmp, telnet, cmd)
+
+        @param device: device to collect against
+        @type device: string
+        @param transport: python, ssh, snmp, telnet, cmd
+        @type transport: string
+        @return: results of the plugin
+        @type: string
+        @todo: determine if an event for the collector AND the device should be sent
         """
         plugins = []
         valid_loaders = []
@@ -230,7 +254,11 @@ class ZenModeler(PBDaemon):
 
 
     def collectDevice(self, device):
-        """Collect data from a single device.
+        """
+        Collect data from a single device.
+
+        @param device: device to collect against
+        @type device: string
         """
         clientTimeout = getattr(device, 'zCollectorClientTimeout', 180)
         ip = device.manageIp
@@ -244,7 +272,15 @@ class ZenModeler(PBDaemon):
 
 
     def wmiCollect(self, device, ip, timeout):
-        """Start the Windows Management Instrumentation (WMI) collector
+        """
+        Start the Windows Management Instrumentation (WMI) collector
+
+        @param device: device to collect against
+        @type device: string
+        @param ip: IP address of device to collect against
+        @type ip: string
+        @param timeout: timeout before failing the connection
+        @type timeout: integer
         """
         if self.options.nowmi:
             return
@@ -272,7 +308,15 @@ class ZenModeler(PBDaemon):
 
 
     def pythonCollect(self, device, ip, timeout):
-        """Start local Python collection client.
+        """
+        Start local Python collection client.
+
+        @param device: device to collect against
+        @type device: string
+        @param ip: IP address of device to collect against
+        @type ip: string
+        @param timeout: timeout before failing the connection
+        @type timeout: integer
         """
         client = None
         try:
@@ -295,7 +339,15 @@ class ZenModeler(PBDaemon):
 
 
     def cmdCollect(self, device, ip, timeout):
-        """Start shell command collection client.
+        """
+        Start shell command collection client.
+
+        @param device: device to collect against
+        @type device: string
+        @param ip: IP address of device to collect against
+        @type ip: string
+        @param timeout: timeout before failing the connection
+        @type timeout: integer
         """
         client = None
         clientType = 'snmp' # default to SNMP if we can't figure out a protocol
@@ -309,7 +361,6 @@ class ZenModeler(PBDaemon):
 
             protocol = getattr(device, 'zCommandProtocol', defaultProtocol)
             commandPort = getattr(device, 'zCommandPort', defaultPort)
-            self.log.error( "Found the protocol %s" % protocol )
 
             if protocol == "ssh":
                 client = SshClient(hostname, ip, commandPort,
@@ -357,7 +408,15 @@ class ZenModeler(PBDaemon):
 
 
     def snmpCollect(self, device, ip, timeout):
-        """Start SNMP collection client.
+        """
+        Start SNMP collection client.
+
+        @param device: device to collect against
+        @type device: string
+        @param ip: IP address of device to collect against
+        @type ip: string
+        @param timeout: timeout before failing the connection
+        @type timeout: integer
         """
         client = None
         try:
@@ -389,8 +448,18 @@ class ZenModeler(PBDaemon):
 
 
     def addClient(self, device, timeout, clientType, name):
-        """If device is not None, schedule the device to be collected.
+        """
+        If device is not None, schedule the device to be collected.
         Otherwise log an error.
+
+        @param device: device to collect against
+        @type device: string
+        @param timeout: timeout before failing the connection
+        @type timeout: integer
+        @param clientType: description of the plugin type
+        @type clientType: string
+        @param name: plugin name
+        @type name: string
         """
         if device:
             device.timeout = timeout
@@ -404,7 +473,15 @@ class ZenModeler(PBDaemon):
 
     # XXX double-check this, once the implementation is in place
     def portscanCollect(self, device, ip, timeout):
-        """Start portscan collection client.
+        """
+        Start portscan collection client.
+
+        @param device: device to collect against
+        @type device: string
+        @param ip: IP address of device to collect against
+        @type ip: string
+        @param timeout: timeout before failing the connection
+        @type timeout: integer
         """
         client = None
         try:
@@ -430,7 +507,13 @@ class ZenModeler(PBDaemon):
 
 
     def checkCollection(self, device):
-        """See how old the data is that we've collected
+        """
+        See how old the data is that we've collected
+
+        @param device: device to collect against
+        @type device: string
+        @return: is the SNMP status number > 0 and is the last collection time + collage older than now?
+        @type: boolean
         """
         age = device.getSnmpLastCollection() + self.collage
         if device.getSnmpStatusNumber() > 0 and age >= DateTime.DateTime():
@@ -440,7 +523,14 @@ class ZenModeler(PBDaemon):
 
 
     def clientFinished(self, collectorClient):
-        """Callback that processes the return values from a device.
+        """
+        Callback that processes the return values from a device.
+        Python iterable.
+
+        @param collectorClient: collector instance
+        @type collectorClient: collector class
+        @return: Twisted deferred object
+        @type: Twisted deferred object
         """
         device = collectorClient.device
         self.log.debug("Client for %s finished collecting", device.id)
@@ -515,7 +605,11 @@ class ZenModeler(PBDaemon):
                 raise
 
         def processClientFinished(result):
-            """Called after the client collection finishes
+            """
+            Called after the client collection finishes
+
+            @param result: object (unused)
+            @type result: object
             """
             if not result:
                 self.log.debug("Client %s finished" % device.id)
@@ -531,25 +625,40 @@ class ZenModeler(PBDaemon):
                               device.id)
             d = drive(self.fillCollectionSlots)
             d.addErrback(self.fillError)
+
         d = drive(processClient)
         d.addBoth(processClientFinished)
 
 
 
     def fillError(self, reason):
-        """Twisted errback routine to log an error when
+        """
+        Twisted errback routine to log an error when
         unable to collect some data
+
+        @param reason: error message
+        @type reason: string
         """
         self.log.error("Unable to fill collection slots: %s" % reason)
 
+
     def cycleTime(self):
-        """Return our cycle time (in minutes)
+        """
+        Return our cycle time (in minutes)
+
+        @return: cycle time
+        @rtype: integer
         """
         return self.modelerCycleInterval * 60
 
+
     def heartbeat(self, ignored=None):
-        """Twisted keep-alive mechanism to ensure that
+        """
+        Twisted keep-alive mechanism to ensure that
         we're still connected to zenhub
+
+        @param ignored: object (unused)
+        @type ignored: object
         """
         ARBITRARY_BEAT = 30
         reactor.callLater(ARBITRARY_BEAT, self.heartbeat)
@@ -563,8 +672,12 @@ class ZenModeler(PBDaemon):
 
 
     def checkStop(self, unused = None):
-        """Check to see if there's anything to do.
+        """
+        Check to see if there's anything to do.
         If there isn't, report our statistics and exit.
+
+        @param unused: unused (unused)
+        @type unused: string
         """
         if self.clients: return
         if self.devicegen: return
@@ -586,8 +699,12 @@ class ZenModeler(PBDaemon):
 
 
     def fillCollectionSlots(self, driver):
-        """An iterator which either returns a device to collect or
+        """
+        An iterator which either returns a device to collect or
         calls checkStop()
+
+        @param driver: driver object
+        @type driver: driver object
         """
         count = len(self.clients)
         while count < self.options.parallel and self.devicegen:
@@ -611,7 +728,8 @@ class ZenModeler(PBDaemon):
 
 
     def buildOptions(self):
-        """Build our list of command-line options
+        """
+        Build our list of command-line options
         """
         PBDaemon.buildOptions(self)
         self.parser.add_option('--debug',
@@ -659,7 +777,8 @@ class ZenModeler(PBDaemon):
 
 
     def processOptions(self):
-        """Check what the user gave us vs what we'll accept
+        """
+        Check what the user gave us vs what we'll accept
         for command-line options
         """
         if not self.options.path and not self.options.device:
@@ -671,8 +790,12 @@ class ZenModeler(PBDaemon):
 
 
     def timeoutClients(self, unused=None):
-        """Check to see which clients have timed out and which ones haven't.
+        """
+        Check to see which clients have timed out and which ones haven't.
         Stop processing anything that's timed out.
+
+        @param unused: unused (unused)
+        @type unused: string
         """
         reactor.callLater(1, self.timeoutClients)
         active = []
@@ -692,7 +815,8 @@ class ZenModeler(PBDaemon):
 
 
     def reactorLoop(self):
-        """Twisted main loop
+        """
+        Twisted main loop
         """
         reactor.startRunning()
         while reactor.running:
@@ -708,11 +832,15 @@ class ZenModeler(PBDaemon):
 
 
     def getDeviceList(self):
-        """Get the list of devices for which we are collecting:
+        """
+        Get the list of devices for which we are collecting:
         * if -d devicename was used, use the devicename
         * if a class path flag was supplied, gather the devices
           along that organizer
         * otherwise get all of the devices associated with our collector
+
+        @return: list of devices
+        @rtype: list
         """
         if self.options.device:
             self.log.info("Collecting for device %s", self.options.device)
@@ -732,7 +860,13 @@ class ZenModeler(PBDaemon):
 
 
     def mainLoop(self, driver):
-        """Main collection loop
+        """
+        Main collection loop, a Python iterable
+
+        @param driver: driver object
+        @type driver: driver object
+        @return: Twisted deferred object
+        @rtype: Twisted deferred object
         """
         if self.options.cycle:
             driveLater(self.cycleTime(), self.mainLoop)
@@ -755,7 +889,13 @@ class ZenModeler(PBDaemon):
 
 
     def main(self, unused=None):
-        """Wrapper around the mainLoop
+        """
+        Wrapper around the mainLoop
+
+        @param unused: unused (unused)
+        @type unused: string
+        @return: Twisted deferred object
+        @rtype: Twisted deferred object
         """
         self.finished = []
         d = drive(self.mainLoop)
@@ -765,7 +905,12 @@ class ZenModeler(PBDaemon):
 
 
     def remote_deleteDevice(self, device):
-        """Stub function
+        """
+        Stub function
+
+        @param device: device name (unused)
+        @type device: string
+        @todo: implement
         """
         # we fetch the device list before every scan
         self.log.debug("Asynch deleteDevice %s" % device)

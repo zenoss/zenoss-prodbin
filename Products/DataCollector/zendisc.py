@@ -11,6 +11,10 @@
 #
 ###########################################################################
 
+__doc__ = """zendisc
+Scan networks and routes looking for devices to add to the ZODB
+"""
+
 import socket
 
 import Globals
@@ -38,14 +42,22 @@ from twisted.names.error import DNSNameError
 
 
 class ZenDisc(ZenModeler):
-    "Scan networks and routes looking for devices to add to the Model"
+    """
+    Scan networks and routes looking for devices to add to the ZODB
+    """
 
     initialServices = PBDaemon.initialServices + ['DiscoverService']
     name = 'zendisc'
     scanned = 0
 
-    def __init__(self,noopts=0,app=None,single=True, keeproot=True):
-        ZenModeler.__init__(self, noopts, app, single, keeproot)
+    def __init__(self, single=True ):
+        """
+        Initalizer
+
+        @param single: collect from a single device?
+        @type single: boolean
+        """
+        ZenModeler.__init__(self, single )
         if not self.options.useFileDescriptor:
             self.openPrivilegedPort('--ping')
         self.discovered = []
@@ -57,15 +69,33 @@ class ZenDisc(ZenModeler):
                          sock=sock)
 
     def config(self):
-        "Get the DiscoverService"
+        """
+        Get the DiscoverService
+
+        @return: a DiscoverService from zenhub
+        @rtype: function
+        """
         return self.services.get('DiscoverService', FakeRemote())
 
-    def discoverIps(self, nets):
-        """Ping all ips, create entries in the network if necessary.
 
-        @return deferred: successful result is a list of IPs that were added
+    def discoverIps(self, nets):
+        """
+        Ping all ips, create entries in the network if necessary.
+
+        @param nets: list of networks to discover
+        @type nets: list
+        @return: successful result is a list of IPs that were added
+        @rtype: Twisted deferred
         """
         def inner(driver):
+            """
+            Twisted driver class to iterate through devices
+
+            @param driver: Zenoss driver
+            @type driver: Zenoss driver
+            @return: successful result is a list of IPs that were added
+            @rtype: Twisted deferred
+            """
             ips = []
             goodCount = 0
             ips = []
@@ -74,10 +104,10 @@ class ZenDisc(ZenModeler):
                 if self.options.subnets and len(net.children()) > 0:
                     continue
                 if not getattr(net, "zAutoDiscover", False): 
-                    self.log.warn("skipping network %s zAutoDiscover is False"
+                    self.log.info("Skipping network %s because zAutoDiscover is False"
                                   % net.id)
                     continue
-                self.log.info("discover network '%s'", net.id)
+                self.log.info("Discover network '%s'", net.id)
                 yield NJobs(self.options.chunkSize,
                             self.ping.ping,
                             net.fullIpList()).start()
@@ -87,7 +117,7 @@ class ZenDisc(ZenModeler):
                 badips = [
                     v.value.ipaddr for v in results if isinstance(v, Failure)]
                 goodCount += len(goodips)
-                self.log.debug("Got %d good ips and %d bad ips",
+                self.log.debug("Got %d good IPs and %d bad IPs",
                                len(goodips), len(badips))
                 yield self.config().callRemote('pingStatus',
                                                net,
@@ -96,20 +126,38 @@ class ZenDisc(ZenModeler):
                                                self.options.resetPtr,
                                                self.options.addInactive)
                 ips += driver.next()
-                self.log.info("discovered %s active ips", goodCount)
+                self.log.info("Discovered %s active ips", goodCount)
             # make sure this is the return result for the driver
             yield succeed(ips)
             driver.next()
+
         d = drive(inner)
         return d
        
 
     def discoverRouters(self, rootdev, seenips=None):
-        """Discover all default routers based on dmd configuration.
+        """
+        Discover all default routers based on DMD configuration.
+
+        @param rootdev: device root in DMD
+        @type rootdev: device class
+        @param seenips: list of IP addresses
+        @type seenips: list of strings
+        @return: Twisted/Zenoss Python iterable
+        @rtype: Python iterable
         """
         if not seenips:
             seenips = []
+
         def inner(driver):
+            """
+            Twisted driver class to iterate through devices
+
+            @param driver: Zenoss driver
+            @type driver: Zenoss driver
+            @return: successful result is a list of IPs that were added
+            @rtype: Twisted deferred
+            """
             yield self.config().callRemote('followNextHopIps', rootdev.id)
             for ip in driver.next():
                 if ip in seenips:
@@ -122,11 +170,20 @@ class ZenDisc(ZenModeler):
                     continue
                 yield self.discoverRouters(router, seenips)
                 driver.next()
+
         return drive(inner)
             
 
     def sendDiscoveredEvent(self, ip, dev=None, sev=2):
-        """Send an device discovered event.
+        """
+        Send a 'device discovered' event through zenhub
+
+        @param ip: IP addresses
+        @type ip: strings
+        @param dev: remote device name
+        @type dev: device object
+        @param sev: severity
+        @type sev: integer
         """
         devname = comp = ip
         if dev: 
@@ -143,20 +200,55 @@ class ZenDisc(ZenModeler):
                         ips, 
                         devicepath="/Discovered",
                         prodState=1000):
-        """Discover devices by active ips that are not associated with a device.
+        """
+        Discover devices by active ips that are not associated with a device.
+
+        @param ips: list of IP addresses
+        @type ips: list of strings
+        @param devicepath: where in the DMD to put any discovered devices
+        @type devicepath: string
+        @param prodState: production state (see Admin Guide for a description)
+        @type prodState: integer
+        @return: Twisted/Zenoss Python iterable
+        @rtype: Python iterable
         """
         def discoverDevice(ip):
+            """
+            Discover a particular device
+            NB: Wrapper around self.discoverDevice()
+
+            @param ip: IP address
+            @type ip: string
+            @return: Twisted/Zenoss Python iterable
+            @rtype: Python iterable
+            """
             return self.discoverDevice(ip, devicepath, prodState)
+
         return NJobs(self.options.parallel, discoverDevice, ips).start()
 
-    def findRemoteDeviceInfo(self, ip, devicePath):
-        """Scan a device for ways of naming it: PTR DNS record or a SNMP name
 
-        @return deferred: result is None or
-                a tuple containing (community, port, version, snmp name)
+    def findRemoteDeviceInfo(self, ip, devicePath):
+        """
+        Scan a device for ways of naming it: PTR DNS record or a SNMP name
+
+        @param ip: IP address
+        @type ip: string
+        @param devicePath: where in the DMD to put any discovered devices
+        @type devicePath: string
+        @return: result is None or a tuple containing (community, port, version, snmp name)
+        @rtype: deferred: Twisted deferred
         """
         from pynetsnmp.twistedsnmp import AgentProxy
+
         def inner(driver):
+            """
+            Twisted driver class to iterate through devices
+
+            @param driver: Zenoss driver
+            @type driver: Zenoss driver
+            @return: successful result is a list of IPs that were added
+            @rtype: Twisted deferred
+            """
             self.log.debug("Doing SNMP lookup on device %s", ip)
             yield self.config().callRemote('getSnmpConfig', devicePath)
             communities, port, version, timeout, retries = driver.next()
@@ -200,12 +292,22 @@ class ZenDisc(ZenModeler):
                 yield succeed(None)
             driver.next()
             self.log.debug("Finished SNMP lookup on device %s", ip)
+
         return drive(inner)
 
 
-
     def discoverDevice(self, ip, devicepath="/Discovered", prodState=1000):
-        """Discover a device based on its ip address.
+        """
+        Discover a device based on its IP address.
+
+        @param ip: IP address
+        @type ip: string
+        @param devicepath: where in the DMD to put any discovered devices
+        @type devicepath: string
+        @param prodState: production state (see Admin Guide for a description)
+        @type prodState: integer
+        @return: Twisted/Zenoss Python iterable
+        @rtype: Python iterable
         """
         self.scanned += 1
         if self.options.maxdevices:
@@ -213,7 +315,17 @@ class ZenDisc(ZenModeler):
                 self.log.info("Limit of %d devices reached" %
                               self.options.maxdevices)
                 return succeed(None)
+
         def inner(driver):
+            """
+            Twisted driver class to iterate through devices
+
+            @param driver: Zenoss driver
+            @type driver: Zenoss driver
+            @return: successful result is a list of IPs that were added
+            @rtype: Twisted deferred
+            @todo: modularize this function (130+ lines is ridiculous)
+            """
             try:
                 kw = dict(deviceName=ip,
                           discoverProto=None,
@@ -337,12 +449,22 @@ class ZenDisc(ZenModeler):
                 if self.options.snmpMissing:
                     self.sendEvent(evt)
             except Exception, e:
-                self.log.exception("failed device discovery for '%s'", ip)
+                self.log.exception("Failed device discovery for '%s'", ip)
             self.log.debug("Finished scanning device with address %s", ip)
+
         return drive(inner)
 
 
     def collectNet(self, driver):
+        """
+        Twisted driver class to iterate through networks
+
+        @param driver: Zenoss driver
+        @type driver: Zenoss driver
+        @return: successful result is a list of IPs that were added
+        @rtype: Twisted deferred
+        """
+
         import types
         # net option from the config file is a string
         if type(self.options.net) in types.StringTypes:
@@ -380,6 +502,15 @@ class ZenDisc(ZenModeler):
             except Exception, ex:
                 self.log.exception("Error performing net discovery on %s", ex)
         def discoverDevice(ip):
+            """
+            Discover a particular device
+            NB: Wrapper around self.discoverDevice()
+
+            @param ip: IP address
+            @type ip: string
+            @return: Twisted/Zenoss Python iterable
+            @rtype: Python iterable
+            """
             return self.discoverDevice(ip, 
                                        self.options.deviceclass,
                                        self.options.productionState)
@@ -387,16 +518,29 @@ class ZenDisc(ZenModeler):
         yield succeed("Discovered %d devices" % count)
         driver.next()
 
+
     def printResults(self, results):
+        """
+        Display the results that we've obtained
+
+        @param results: what we've discovered
+        @type results: string
+        """
         if isinstance(results, Failure):
             self.log.error("Error: %s", results)
         else:
             self.log.info("Result: %s", results)
         self.main()
 
+
     def createDevice(self, driver):
         """
-        Add a device to the system by name or ip.
+        Add a device to the system by name or IP.
+
+        @param driver: driver object
+        @type driver: Twisted/Zenoss object
+        @return: Twisted deferred
+        @rtype: Twisted deferred
         """
         deviceName = self.options.device
         self.log.info("Looking for %s" % deviceName)
@@ -425,14 +569,21 @@ class ZenDisc(ZenModeler):
 
 
     def walkDiscovery(self, driver):
+        """
+        Python iterable to go through discovery
+
+        @return: Twisted deferred
+        @rtype: Twisted deferred
+        """
         myname = socket.getfqdn()
-        self.log.info("my hostname = %s", myname)
+        self.log.debug("My hostname = %s", myname)
         myip = None
         try:
             myip = socket.gethostbyname(myname)
-            self.log.info("my ip = %s", myip)
+            self.log.debug("My IP address = %s", myip)
         except (socket.error, DNSNameError):
-            self.log.warn("failed lookup of my ip for name %s", myname)
+            self.log.warn("Failed lookup of my IP for name %s", myname)
+
         yield self.config().callRemote('getDeviceConfig', [myname])
         me, = driver.next() or [None]
         if not me or self.options.remodel:
@@ -441,15 +592,17 @@ class ZenDisc(ZenModeler):
                                       prodState=self.options.productionState)
             me = driver.next()
         if not me:
-            raise SystemExit("snmp discover of self '%s' failed" % myname)
+            raise SystemExit("SNMP discover of self '%s' failed" % myname)
         if not myip:
             myip = me.manageIp
         if not myip: 
-            raise SystemExit("can't find my ip for name %s" % myname)
+            raise SystemExit("Can't find my IP for name %s" % myname)
+
         yield self.discoverRouters(me, [myip])
+
         driver.next()
         if self.options.routersonly:
-            self.log.info("only routers discovered, skipping ping sweep.")
+            self.log.info("Only routers discovered, skipping ping sweep.")
         else:
             yield self.config().callRemote('getSubNetworks')
             yield self.discoverIps(driver.next())
@@ -458,23 +611,45 @@ class ZenDisc(ZenModeler):
                 yield self.discoverDevices(ips)
                 driver.next()
 
+
     def getDeviceList(self):
-        "Our device list comes from our list of newly discovered devices"
+        """
+        Our device list comes from our list of newly discovered devices
+
+        @return: list of discovered devices
+        @rtype: Twisted succeed() object
+        """
         return succeed(self.discovered)
 
+
     def connected(self):
-        self.log.info('connected to ZenHub')
+        """
+        Called by Twisted once a connection has been established.
+        """
+        self.log.info('Connected to ZenHub')
         if self.options.walk:
             d = drive(self.walkDiscovery)
+
         elif self.options.device:
             d = drive(self.createDevice)
+
         else:
             d = drive(self.collectNet)
+
         d.addBoth(self.printResults)
 
+
     def autoAllocate(self, device=None):
-        """Execute a script that will auto allocate devices into their 
-        Device Classes"""
+        """
+        Execute a script that will auto allocate devices into their 
+        Device Classes
+
+        @param device: device object
+        @type device: device object
+        @return: Device class path to put the new device
+        @rtype: string
+        @todo: make it actually work
+        """
         self.log.debug("trying to auto-allocate device %s" % device.id )
         if not device:
             return
@@ -500,23 +675,26 @@ class ZenDisc(ZenModeler):
 
 
     def buildOptions(self):
+        """
+        Command-line option builder for optparse
+        """
         ZenModeler.buildOptions(self)
         self.parser.add_option('--net', dest='net', action="append",  
-                    help="discover all device on this network")
+                    help="Discover all device on this network")
         self.parser.add_option('--deviceclass', dest='deviceclass',
                     default="/Discovered",
-                    help="default device class for discovered devices")
+                    help="Default device class for discovered devices")
         self.parser.add_option('--prod_state', dest='productionState',
                     default=1000,
-                    help="initial production state for discovered devices")
+                    help="Initial production state for discovered devices")
         self.parser.add_option('--remodel', dest='remodel',
                     action="store_true", default=False,
-                    help="remodel existing objects")
+                    help="Remodel existing objects")
         self.parser.add_option('--routers', dest='routersonly',
                     action="store_true", default=False,
-                    help="only discover routers")
+                    help="Only discover routers")
         self.parser.add_option('--tries', dest='tries', default=1, type="int",
-                    help="how many ping tries")
+                    help="How many ping tries")
         self.parser.add_option('--timeout', dest='timeout', 
                     default=2, type="float",
                     help="ping timeout in seconds")
@@ -531,10 +709,10 @@ class ZenDisc(ZenModeler):
                     type="int", help="SNMP port of the target")
         self.parser.add_option('--snmp-missing', dest='snmpMissing',
                     action="store_true", default=False,
-                    help="send an event if SNMP is not found on the device")
+                    help="Send an event if SNMP is not found on the device")
         self.parser.add_option('--add-inactive', dest='addInactive',
                     action="store_true", default=False,
-                    help="add all IPs found, even if they are unresponsive")
+                    help="Add all IPs found, even if they are unresponsive")
         self.parser.add_option('--reset-ptr', dest='resetPtr',
                     action="store_true", default=False,
                     help="Reset all ip PTR records")
