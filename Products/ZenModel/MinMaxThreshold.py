@@ -354,7 +354,7 @@ class MinMaxThresholdInstance(ThresholdInstance):
         powers = ("k", "M", "G")
         if number < 1000: return number
         for power in powers:
-            number = number / 1000
+            number = number / 1000.0
             if number < 1000:  
                 return "%0.2f%s" % (number, power)
         return "%.2f%s" % (number, powers[-1])
