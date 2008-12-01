@@ -118,10 +118,13 @@ class ZenPing(PBDaemon):
                                  time.asctime(time.localtime(self.loadingConfig)))
                 return
 
-            if (self.lastConfig and
-                (time.time() - self.lastConfig) < self.options.minconfigwait):
-                self.log.debug("Config recently updated: not fetching")
-                return
+            if self.lastConfig:
+                configwait = time.time() - self.lastConfig
+                delay = self.options.minconfigwait - configwait
+                if delay > 0:
+                    reactor.callLater(delay, self.remote_updateConfig)
+                    self.log.debug("Config recently updated: not fetching")
+                    return
 
             self.loadingConfig = time.time()
 
