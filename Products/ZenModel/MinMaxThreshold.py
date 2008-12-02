@@ -31,7 +31,6 @@ from Products.ZenEvents.Exceptions import pythonThresholdException, \
 import logging
 log = logging.getLogger('zen.MinMaxCheck')
 
-from sets import Set
 from Products.ZenUtils.Utils import unused
 import types
 
@@ -308,20 +307,20 @@ class MinMaxThresholdInstance(ThresholdInstance):
             try:
                 rpn = talesEvalStr(rpn, context)
             except:
-                raiseRPNExc()
+                self.raiseRPNExc()
                 return gopts
 
             try:
                 minval = rpneval(minval, rpn)
             except:
                 minval= 0
-                raiseRPNExc()
+                self.raiseRPNExc()
 
             try:
                 maxval = rpneval(maxval, rpn)
             except:
                 maxval= 0
-                raiseRPNExc()
+                self.raiseRPNExc()
 
         result = []
         if minval:
