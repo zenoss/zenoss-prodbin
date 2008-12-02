@@ -39,7 +39,7 @@ import string
 
 from Products.ZenUtils.Utils import zenPath, binPath
 from Products.ZenUtils.Utils import extractPostContent
-from Products.ZenUtils.Utils import json
+from Products.ZenUtils.json import json
 
 from Products.ZenEvents.Exceptions import *
 
