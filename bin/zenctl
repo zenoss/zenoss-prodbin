@@ -244,7 +244,7 @@ if [ "$1" = start -a -f ${UPGRADED} ]; then
 fi
 
 # Just in case we log, wait for the tee to finish
-if [ -z "$tee_pid" ] ; then
+if [ ! -z "$tee_pid" ] ; then
     # Cleanup -- leave the fifo alone
     exec 1>&3 3>&- 2>&4 4>&-
 
