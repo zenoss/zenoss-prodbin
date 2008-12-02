@@ -899,6 +899,7 @@ def zenPath(*args):
     >>> 
     >>> zenPath('Products', 'foo') == zenPath('Products/foo')
     True
+
     # NB: The following is *NOT* true for os.path.join()
     >>> zenPath('/Products', '/foo') == zenPath('Products/foo')
     True
@@ -906,6 +907,7 @@ def zenPath(*args):
     True
     >>> zenPath(zenPath('Products'), 'orange', 'blue' ) == zenPath('Products', 'orange', 'blue' )
     True
+
     # Pathological case
     # NB: need to expand out the array returned by split()
     >>> zenPath() == zenPath( *'/'.split(zenPath()) )
