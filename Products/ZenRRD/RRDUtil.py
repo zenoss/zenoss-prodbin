@@ -11,32 +11,104 @@
 #
 ###########################################################################
 
+__doc__ = """RRDUtil
+
+Wrapper routines around the rrdtool library.
+"""
+
 import logging
 log = logging.getLogger("zen.RRDUtil")
 
 def _checkUndefined(x):
+    """
+    Sanity check on the min, max values
+
+    @param x: RRD min or max value
+    @type x: number
+    @return: Either the number or 'U' (for undefined)
+    @rtype: number or string
+    """
     if x is None or x == '' or x == -1 or x == '-1':
         return 'U'
     return x
 
+
+
 class RRDUtil:
+    """
+    Wrapper class around rrdtool
+    """
+
     def __init__(self, defaultRrdCreateCommand, defaultCycleTime):
+        """
+        Initializer
+
+        The RRD creation command is only used if the RRD file doesn't
+        exist and no rrdCommand was specified with the save() method.
+
+        @param defaultRrdCreateCommand: RRD creation command
+        @type defaultRrdCreateCommand: string
+        @param defaultCycleTime: expected time to periodically collect data
+        @type defaultCycleTime: integer
+        """
         self.defaultRrdCreateCommand = defaultRrdCreateCommand
         self.defaultCycleTime = defaultCycleTime
         self.dataPoints = 0
         self.cycleDataPoints = 0
 
+
     def endCycle(self):
+        """
+        Report on the number of data points collected in a cycle,
+        and reset the counter for a new cycle.
+
+        @return: number of data points collected during the cycle
+        @rtype: number
+        """
         result = self.cycleDataPoints
         self.cycleDataPoints = 0
         return result
 
+
     def performancePath(self, path):
+        """
+        Given a path, return its location from $ZENHOME and the
+        perf/ directories.
+
+        @param path: name for a datapoint in a path (eg device/component/datasource_datapoint)
+        @type path: string
+        @return: absolute path
+        @rtype: string
+        """
         from Products.ZenModel.PerformanceConf import performancePath
         return performancePath(path)
 
+
     def save(self, path, value, rrdType, rrdCommand=None, cycleTime=None,
              min='U', max='U'):
+        """
+        Save the value provided in the command to the RRD file specified in path.
+
+        If the RRD file does not exist, use the rrdType, rrdCommand, min and
+        max parameters to create the file.
+
+        @param path: name for a datapoint in a path (eg device/component/datasource_datapoint)
+        @type path: string
+        @param value: value to store into the RRD file
+        @type value: number
+        @param rrdType: RRD data type (eg ABSOLUTE, DERIVE, COUNTER)
+        @type rrdType: string
+        @param rrdCommand: RRD file creation command
+        @type rrdCommand: string
+        @param cycleTime: length of a cycle
+        @type cycleTime: number
+        @param min: minimum value acceptable for this metric
+        @type min: number
+        @param max: maximum value acceptable for this metric
+        @type max: number
+        @return: the parameter value converted to a number
+        @rtype: number or None
+        """
         import rrdtool, os
 
         if value is None: return None
@@ -51,7 +123,7 @@ class RRDUtil:
         if not rrdCommand:
             rrdCommand = self.defaultRrdCreateCommand
         if not os.path.exists(filename):
-            log.debug("create new rrd %s", filename)
+            log.debug("Creating new RRD file %s", filename)
             dirname = os.path.dirname(filename)
             if not os.path.exists(dirname):
                 os.makedirs(dirname, 0750)
@@ -75,7 +147,7 @@ class RRDUtil:
             log.debug('%s: %r', filename, value)
         except rrdtool.error, err:
             # may get update errors when updating too quickly
-            log.error('rrd error %s %s', err, path)
+            log.error('rrdtool reported error %s %s', err, path)
 
         if rrdType in ('COUNTER', 'DERIVE'):
             startStop, names, values = \
