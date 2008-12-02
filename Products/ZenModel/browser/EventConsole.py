@@ -13,7 +13,7 @@
 
 import urllib
 from Products.Five.browser import BrowserView
-from Products.Five.browser.pagetemplatefile import ViewPageTemplateFile
+#from Products.Five.browser.pagetemplatefile import ViewPageTemplateFile
 from Products.ZenUtils.json import json
 from Products.ZenUtils.Utils import unused
 
