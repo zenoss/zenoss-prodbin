@@ -121,9 +121,14 @@ class IpService(Service):
         
 
     def cantMonitor(self):
-        """Return true if IpService only listens on 127.0.0.1.
         """
-        return len(self.ipaddresses) == 1 and "127.0.0.1" in self.ipaddresses
+        Return true if IpService only listens on 127.0.0.1, or if it is a UDP
+        service.
+        """
+        return self.protocol == 'udp' \
+                or ( len(self.ipaddresses) == 1 
+                     and "127.0.0.1" in self.ipaddresses )
+                  
 
 
     def getInstDescription(self):

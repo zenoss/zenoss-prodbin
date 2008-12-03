@@ -426,11 +426,11 @@ loader.insert({onSuccess:function(){
         </td>
         <td class="tablevalues" tal:content="srv/getDescription"/>
         <td class="tablevalues" align="center" width="40">
-         <img border="0" 
+         <img tal:condition="python:not srv.cantMonitor()" border="0" 
           tal:attributes="src python:here.os.getStatusImgSrc(srv.getStatus())"/>
         </td>
       <td class="tablevalues" align="center">
-      <img border="0"
+      <img tal:condition="python:not srv.cantMonitor()" border="0"
        tal:attributes="src python:test(srv.monitor,
                here.os.getStatusImgSrc(0),
                here.os.getStatusImgSrc(3))" />
