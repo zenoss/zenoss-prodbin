@@ -10,10 +10,12 @@
 # For complete information please visit: http://www.zenoss.com/oss/
 #
 ###########################################################################
-from zope.testing.doctestunit import DocTestSuite
 import unittest
+import warnings
+from zope.testing.doctestunit import DocTestSuite
 
 def test_suite():
+    warnings.filterwarnings( 'ignore' )
     suite = DocTestSuite('Products.ZenUtils.Utils')
     jsonsuite = DocTestSuite('Products.ZenUtils.json')
     return unittest.TestSuite([suite, jsonsuite])
