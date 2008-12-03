@@ -61,15 +61,6 @@ def bp2ip(ptr):
     "Convert a pointer to 4 bytes to a dotted-ip-address"
     return '.'.join([str(ptr[i]) for i in range(4)])
 
-# required to decode generic SNMPv1 traps
-genericTrapTypes = {
-    0: 'snmp_coldStart',
-    1: 'snmp_warmStart',
-    2: 'snmp_linkDown',
-    3: 'snmp_linkUp',
-    4: 'snmp_authenticationFailure',
-    5: 'snmp_egpNeighorLoss',
-    }
 
 class ZenTrap(EventServer):
     'Listen for SNMP traps and turn them into events'
@@ -159,24 +150,20 @@ class ZenTrap(EventServer):
                 # SNMP v1
                 variables = netsnmp.getResult(pdu)
                 addr[0] = '.'.join(map(str, [pdu.agent_addr[i] for i in range(4)]))
+                enterprise = lp2oid(pdu.enterprise, pdu.enterprise_length)
+                yield self.oid2name(enterprise)
+                eventType = driver.next()
                 generic = pdu.trap_type
-                
-                # if type is generic, use the static generic name
-                eventType = genericTrapTypes.get(generic)
-                
-                # if type is enterprise, do an oid2name lookup
-                if not eventType:
-                    enterprise = lp2oid(pdu.enterprise, pdu.enterprise_length)
-                    oid = "%s.%s" % (enterprise, pdu.specific_type)
-                    
-                    # specific check for 8072 is to remain compatible with the
-                    # way Zenoss was previously handling the incorrect trap
-                    # OID sent by Net-SNMP agents.
-                    if enterprise.startswith('1.3.6.1.4.1.8072.4'):
-                        oid = "%s.0.%s" % (enterprise, pdu.specific_type)
-                        
-                    yield self.oid2name(oid)
-                    eventType = driver.next()
+                specific = pdu.specific_type
+                yield self.oid2name('%s.0.%d' % (enterprise, specific))
+                eventType = { 0 : 'snmp_coldStart',
+                              1 : 'snmp_warmStart',
+                              2 : 'snmp_linkDown',
+                              3 : 'snmp_linkUp',
+                              4 : 'snmp_authenticationFailure',
+                              5 : 'snmp_egpNeighorLoss',
+                              6 : driver.next()
+                              }.get(generic, eventType + "_%d" % specific)
                 for oid, value in variables:
                     oid = '.'.join(map(str, oid))
                     yield self.oid2name(oid)
