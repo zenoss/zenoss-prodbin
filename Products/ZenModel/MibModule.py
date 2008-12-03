@@ -21,7 +21,6 @@ from Products.ZenRelations.RelSchema import *
 from ZenModelRM import ZenModelRM
 from ZenPackable import ZenPackable
 
-import re
 
 class MibModule(ZenModelRM, ZenPackable):
 
