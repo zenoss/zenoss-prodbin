@@ -11,14 +11,11 @@
 #
 ###########################################################################
 
-__doc__='''SnmpDaemon
+__doc__ = """SnmpDaemon
 
 Common performance monitoring daemon code for zenperfsnmp and zenprocess.
 
-$Id$
-'''
-
-__version__ = "$Revision$"[11:-2]
+"""
 
 from RRDDaemon import RRDDaemon
 
@@ -30,10 +27,24 @@ class SnmpDaemon(RRDDaemon):
 
     properties = RRDDaemon.properties + ('snmpCycleInterval',)
     
-    def __init__(self, name):
-        RRDDaemon.__init__(self, name)
+    def __init__(self, name, noopts=False):
+        """
+        Initializer for common SNMP daemon classes
+
+        @param name: name of the daemon
+        @type name: string
+        @param noopts: process command-line arguments?
+        @type noopts: boolean
+        """
+        RRDDaemon.__init__(self, name, noopts)
         self.snmpPort = snmpprotocol.port()
         
     def setPropertyItems(self, items):
+        """
+        Set all of the specified zProperties.
+
+        @param items: kwargs
+        @type items: list
+        """
         RRDDaemon.setPropertyItems(self, items)
         self.heartbeatTimeout = self.snmpCycleInterval*3

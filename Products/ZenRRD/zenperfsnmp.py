@@ -36,7 +36,7 @@ from Products.ZenUtils.Driver import drive, driveLater
 from Products.ZenModel.PerformanceConf import performancePath
 from Products.ZenEvents import Event
 from Products.ZenEvents.ZenEventClasses \
-     import Perf_Snmp, Status_Snmp, Status_RRD
+     import Perf_Snmp, Status_Snmp, Status_Perf
 from Products.ZenEvents.ZenEventClasses import Critical, Clear
 
 from Products.ZenRRD.RRDUtil import RRDUtil
@@ -319,13 +319,13 @@ class zenperfsnmp(SnmpDaemon):
     properties = SnmpDaemon.properties + ('perfsnmpCycleInterval',)
     initialServices = SnmpDaemon.initialServices + ['SnmpPerfConfig']
 
-    def __init__(self):
+    def __init__(self, noopts=0):
         """
         Create any base performance directories (if necessary),
         load cached configuration data and clean up any old RRD files
         (if specified by --checkAgingFiles)
         """
-        SnmpDaemon.__init__(self, 'zenperfsnmp')
+        SnmpDaemon.__init__(self, 'zenperfsnmp', noopts)
         self.status = None
         self.proxies = {}
         self.queryWorkList = Set()
@@ -762,13 +762,13 @@ class zenperfsnmp(SnmpDaemon):
                 dedupid="%s|%s" % (self.options.monitor, 'RRD files too old'),
                 severity=Critical,
                 device=self.options.monitor,
-                eventClass=Status_RRD,
+                eventClass=Status_Perf,
                 summary=message))
         else:
             self.sendEvent(dict(
                 severity=Clear,
                 device=self.options.monitor,
-                eventClass=Status_RRD,
+                eventClass=Status_Perf,
                 summary='All RRD files have been recently updated'))
 
 
@@ -912,16 +912,56 @@ class zenperfsnmp(SnmpDaemon):
     def storeRRD(self, device, oid, value):
         """
         Store a value into an RRD file
+
+        @param device: remote device name
+        @type device: string
+        @param oid: SNMP OID used as our performance metric
+        @type oid: string
+        @param value: data to be stored
+        @type value: number
         """
         oidData = self.proxies[device].oidMap.get(oid, None)
         if not oidData: return
 
         min, max = oidData.minmax
-        value = self.rrd.save(oidData.path,
-                              value,
-                              oidData.dataStorageType,
-                              oidData.rrdCreateCommand,
-                              min=min, max=max)
+        try:
+            value = self.rrd.save(oidData.path,
+                                  value,
+                                  oidData.dataStorageType,
+                                  oidData.rrdCreateCommand,
+                                  min=min, max=max)
+        except Exception, ex:
+            summary= "Unable to save data for OID %s in RRD %s" % \
+                              ( oid, oidData.path )
+            self.log.critical( summary )
+
+            message= """Data was value= %s, type=%s, min=%s, max=%s
+RRD create command: %s""" % \
+                     ( value, oidData.dataStorageType, min, max, \
+                       oidData.rrdCreateCommand )
+            self.log.critical( message )
+            self.log.exception( ex )
+
+            import traceback
+            trace_info= traceback.format_exc()
+
+            evid= self.sendEvent(dict(
+                dedupid="%s|%s" % (self.options.monitor, 'RRD write failure'),
+                severity=Critical,
+                device=self.options.monitor,
+                eventClass=Status_Perf,
+                component="RRD",
+                oid=oid,
+                path=oidData.path,
+                message=message,
+                traceback=trace_info,
+                summary=summary))
+
+            # For test harness purposes
+            self.last_evid= evid
+
+            # Skip thresholds
+            return
 
         for ev in self.thresholds.check(oidData.path, time.time(), value):
             eventKey = oidData.path.rsplit('/')[-1]
@@ -930,6 +970,7 @@ class zenperfsnmp(SnmpDaemon):
             else:
                 ev['eventKey'] = eventKey
             self.sendThresholdEvent(**ev)
+
 
 
     def connected(self):

@@ -12,14 +12,10 @@
 #
 ###########################################################################
 
-__doc__='''RRDDaemon
+__doc__= """RRDDaemon
 
 Common performance monitoring daemon code for performance daemons.
-
-$Id$
-'''
-
-__version__ = "$Revision$"[11:-2]
+"""
 
 import socket
 
@@ -45,7 +41,9 @@ COMMON_EVENT_INFO = {
     
 
 class RRDDaemon(PBDaemon):
-    'Holds the code common to performance gathering daemons.'
+    """
+    Holds the code common to performance gathering daemons.
+    """
 
     properties = ('configCycleInterval',)
     configCycleInterval = 20            # minutes
@@ -53,27 +51,60 @@ class RRDDaemon(PBDaemon):
     shutdown = False
     thresholds = None
 
-    def __init__(self, name):
+    def __init__(self, name, noopts=False):
+        """
+        Initializer
+
+        @param name: name of the daemon
+        @type name: string
+        @param noopts: process command-line arguments?
+        @type noopts: boolean
+        """
         self.events = []
         self.name = name
-        PBDaemon.__init__(self)
+        PBDaemon.__init__(self, noopts)
         self.thresholds = Thresholds()
 
+
     def getDevicePingIssues(self):
+        """
+        Determine which devices we shouldn't expect to hear back from.
+
+        @return: list of devices
+        @rtype: list
+        """
         return self.eventService().callRemote('getDevicePingIssues')
 
+
     def remote_setPropertyItems(self, items):
+        """
+        Set zProperties provided from zenhub.
+
+        @param items: list of zProperties to obtain
+        @type items: list
+        """
         self.log.debug("Async update of collection properties")
         self.setPropertyItems(items)
 
 
     def remote_updateDeviceList(self, devices):
+        """
+        Callable from zenhub.
+
+        @param devices: list of devices (unused)
+        @type devices: list
+        """
         unused(devices)
         self.log.debug("Async update of device list")
 
 
     def setPropertyItems(self, items):
-        'extract configuration elements used by this server'
+        """
+        Set zProperties
+
+        @param items: list of zProperties
+        @type items: list
+        """
         table = dict(items)
         for name in self.properties:
             value = table.get(name, None)
@@ -84,18 +115,35 @@ class RRDDaemon(PBDaemon):
 
 
     def sendThresholdEvent(self, **kw):
+        """
         "Send the right event class for threshhold events"
+
+        @param kw: keyword arguments describing an event
+        @type kw: dictionary of keyword arguments
+        """
         self.sendEvent({}, **kw)
 
 
     def buildOptions(self):
+        """
+        Command-line options to add
+        """
         PBDaemon.buildOptions(self)
         self.parser.add_option('-d', '--device',
                                dest='device',
                                default='',
                                help="Specify a specific device to monitor")
 
+
     def logError(self, msg, error):
+        """
+        Log messages to the logger
+
+        @param msg: the message
+        @type msg: string
+        @param error: an exception
+        @type error: Exception
+        """
         if isinstance(error, failure.Failure):
             from twisted.internet.error import TimeoutError
             if isinstance(error.value, TimeoutError):
@@ -105,16 +153,37 @@ class RRDDaemon(PBDaemon):
         else:
             self.log.error('%s %s', msg, error)
 
+
     def error(self, error):
-        'Log an error, including any traceback data for a failure Exception'
+        """
+        Log an error, including any traceback data for a failure Exception
+        Stop if we got the --cycle command-line option.
+
+        @param error: the error message
+        @type error: string
+        """
         self.logError('Error', error)
         if not self.options.cycle:
             self.stop()
 
+
     def errorStop(self, why):
+        """
+        Twisted callback to receive fatal messages.
+
+        @param why: the error message
+        @type why: string
+        """
         self.error(why)
         self.stop()
 
+
     def model(self):
+        """
+        Return the list of services from zenhub
+
+        @return: list of services
+        @rtype: list
+        """
         return self.services.get(self.initialServices[-1], FakeRemote())
 

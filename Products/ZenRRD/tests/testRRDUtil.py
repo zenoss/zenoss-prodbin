@@ -38,6 +38,10 @@ class TestRRDUtil(BaseTestCase):
         #createcmd= self.dmd.Devices.findDevice(testdev).getPerformanceServer().getDefaultRRDCreateCommand()
         self.createcmd= 'RRA:AVERAGE:0.5:1:600\nRRA:AVERAGE:0.5:6:600\nRRA:AVERAGE:0.5:24:600\nRRA:AVERAGE:0.5:288:600\nRRA:MAX:0.5:6:600\nRRA:MAX:0.5:24:600\nRRA:MAX:0.5:288:600'
 
+        rrd= RRDUtil( '', 60 )
+        self.perfpath= rrd.performancePath( "tests" )
+
+
     def testGoodSave(self):
         """
         Sanity check to make sure that RRD stores work
@@ -133,6 +137,17 @@ class TestRRDUtil(BaseTestCase):
         rrd.performancePath= lambda(x): "/"
         self.assertRaises( Exception, rrd.save, "/", 666.0, 'COUNTER' )
 
+    def tearDown(self):
+        """
+        Clean up after our tests
+        """
+        import shutil
+        try:
+            shutil.rmtree( self.perfpath )
+        except:
+            pass
+
+        BaseTestCase.tearDown(self)
 
 
 def test_suite():
