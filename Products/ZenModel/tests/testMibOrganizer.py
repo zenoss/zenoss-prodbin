@@ -53,17 +53,43 @@ class TestOid2Name(unittest.TestCase):
     def runTest(self):
         brain = MockBrain(oid='1.3.6.1.4.1.4743.1.2.2.66',
                           id='expedIfBssAAAVlanAtts')
-        mibSearch = MockCatalog(brain)
-        self.doassert('expedIfBssAAAVlanAtts', 
-                      _oid2name(mibSearch, '.1.3.6.1.4.1.4743.1.2.2.66'))
-        self.doassert('expedIfBssAAAVlanAtts.0', 
-                      _oid2name(mibSearch, '.1.3.6.1.4.1.4743.1.2.2.66.0'))
-        self.doassert('expedIfBssAAAVlanAtts.14', 
-                      _oid2name(mibSearch, '.1.3.6.1.4.1.4743.1.2.2.66.14'))
-        self.doassert('', 
-                      _oid2name(mibSearch, '.455.4.33.22.78'))
+        self.mibSearch = MockCatalog(brain)
+        
+        # exact matching without stripping
+        self.doassert(
+            '.1.3.6.1.4.1.4743.1.2.2.66', 'expedIfBssAAAVlanAtts',
+            exactMatch=True, strip=False)
+        self.doassert(
+            '.1.3.6.1.4.1.4743.1.2.2.66.0', '',
+            exactMatch=True, strip=False)
+        
+        # exact matching with stripping
+        self.doassert(
+            '.1.3.6.1.4.1.4743.1.2.2.66', 'expedIfBssAAAVlanAtts',
+            exactMatch=True, strip=True,)
+        self.doassert(
+            '.1.3.6.1.4.1.4743.1.2.2.66.0', '',
+            exactMatch=True, strip=True)
 
-    def doassert(self, expected, actual):
+        # partial matching without stripping
+        self.doassert(
+            '.1.3.6.1.4.1.4743.1.2.2.66', 'expedIfBssAAAVlanAtts',
+            exactMatch=False, strip=False)
+        self.doassert(
+            '.1.3.6.1.4.1.4743.1.2.2.66.0', 'expedIfBssAAAVlanAtts.0',
+            exactMatch=False, strip=False)
+
+        # partial matching with stripping
+        self.doassert(
+            '.1.3.6.1.4.1.4743.1.2.2.66', 'expedIfBssAAAVlanAtts',
+            exactMatch=False, strip=True)
+        self.doassert(
+            '.1.3.6.1.4.1.4743.1.2.2.66.0', 'expedIfBssAAAVlanAtts',
+            exactMatch=False, strip=True)
+    
+    
+    def doassert(self, oid, expected, exactMatch, strip):
+        actual = _oid2name(self.mibSearch, oid, exactMatch, strip)
         self.assertEqual(expected, actual, 
                          'expected "%s" but got "%s"' % (expected, actual))
 

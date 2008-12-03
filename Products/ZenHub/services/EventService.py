@@ -66,11 +66,7 @@ class EventService(HubService, ThresholdMixin):
         return self.zem.defaultPriority
 
     @translateError
-    def remote_oid2name(self, oid):
+    def remote_oid2name(self, oid, exactMatch=True, strip=False):
         "get oids, even if we're handed slightly wrong values"
-        name = self.dmd.Mibs.oid2name(oid)
-        if not name:
-            name = self.dmd.Mibs.oid2name(oid.rsplit('.', 1)[0])
-        if name:
-            return name
-        return oid
+        name = self.dmd.Mibs.oid2name(oid, exactMatch, strip)
+        return name or oid

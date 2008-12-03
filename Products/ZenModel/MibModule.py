@@ -108,8 +108,7 @@ class MibModule(ZenModelRM, ZenPackable):
         """Create a MibNotification 
         """
         from MibNode import MibNode
-        name = self.oid2name(kwargs['oid'])
-        if name and not re.search("\.\d+$", name):
+        if self.oid2name(kwargs['oid'], exactMatch=True, strip=False):
             return None
         node = MibNode(id, **kwargs) 
         self.nodes._setObject(node.id, node)
@@ -143,8 +142,7 @@ class MibModule(ZenModelRM, ZenPackable):
         """Create a MibNotification 
         """
         from MibNotification import MibNotification
-        name = self.oid2name(kwargs['oid'])
-        if name and not re.search("\.\d+$", name):
+        if self.oid2name(kwargs['oid'], exactMatch=True, strip=False):
             return None
         node = MibNotification(id, **kwargs) 
         self.notifications._setObject(node.id, node)

@@ -37,16 +37,25 @@ def manage_addMibOrganizer(context, id, REQUEST = None):
 addMibOrganizer = DTMLFile('dtml/addMibOrganizer',globals())
 
 
-def _oid2name(mibSearch, oid):
+def _oid2name(mibSearch, oid, exactMatch=True, strip=False):
     """Return a name for an oid. This function is extracted out of the
     MibOrganizer class and takes mibSearch as a parameter to make it easier to
     unit test.
     """
-    oidlist = oid.strip('.').split('.')
+    oid = oid.strip('.')
+    
+    if exactMatch:
+        brains = mibSearch(oid=oid)
+        if len(brains) > 0:
+            return brains[0].id
+        else:
+            return ""
+
+    oidlist = oid.split('.')
     for i in range(len(oidlist), 0, -1):
         brains = mibSearch(oid='.'.join(oidlist[:i]))
         if len(brains) < 1: continue
-        if len(oidlist[i:]) > 0:
+        if len(oidlist[i:]) > 0 and not strip:
             return "%s.%s" % (brains[0].id, '.'.join(oidlist[i:]))
         else:
             return brains[0].id
@@ -97,10 +106,11 @@ class MibOrganizer(Organizer, ZenPackable):
             self.createCatalog()
   
 
-    def oid2name(self, oid):
+    def oid2name(self, oid, exactMatch=True, strip=False):
         """Return a name for an oid.
         """
-        return _oid2name(self.getDmdRoot("Mibs").mibSearch, oid)
+        return _oid2name(self.getDmdRoot("Mibs").mibSearch, oid,
+            exactMatch, strip)
         
  
     def name2oid(self, name):

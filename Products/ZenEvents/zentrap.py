@@ -85,17 +85,20 @@ class ZenTrap(EventServer):
         self.session.callback = self.handleTrap
         twistedsnmp.updateReactor()
 
-    def oid2name(self, oid):
+    def oid2name(self, oid, exactMatch=True, strip=False):
         'get oid name from cache or ZenHub'
         if type(oid) == type(()):
             oid = '.'.join(map(str, oid))
-        if self.oidCache.has_key(oid):
-            return defer.succeed(self.oidCache[oid])
-        d = self.model().callRemote('oid2name', oid)
-        def cache(name):
-            self.oidCache[oid] = name
+        cacheKey = "%s:%r:%r" % (oid, exactMatch, strip)
+        if self.oidCache.has_key(cacheKey):
+            return defer.succeed(self.oidCache[cacheKey])
+        self.log.debug("OID cache miss on %s (exactMatch=%r, strip=%r)" % (
+            oid, exactMatch, strip))
+        d = self.model().callRemote('oid2name', oid, exactMatch, strip)
+        def cache(name, key):
+            self.oidCache[key] = name
             return name
-        d.addCallback(cache)
+        d.addCallback(cache, cacheKey)
         return d
 
     def handleTrap(self, pdu):
@@ -142,20 +145,34 @@ class ZenTrap(EventServer):
                     oid = '.'.join(map(str, oid))
                     # SNMPv2-MIB/snmpTrapOID
                     if oid == '1.3.6.1.6.3.1.1.4.1.0':
-                        yield self.oid2name(value)
+                        yield self.oid2name(value, exactMatch=False, strip=False)
                         eventType = driver.next()
-                    yield self.oid2name(oid)
-                    result[driver.next()] = value
+                    else:
+                        yield self.oid2name(oid, exactMatch=False, strip=True)
+                        result[driver.next()] = value
             elif pdu.version == 0:
                 # SNMP v1
                 variables = netsnmp.getResult(pdu)
                 addr[0] = '.'.join(map(str, [pdu.agent_addr[i] for i in range(4)]))
                 enterprise = lp2oid(pdu.enterprise, pdu.enterprise_length)
-                yield self.oid2name(enterprise)
+                yield self.oid2name(enterprise, exactMatch=False, strip=False)
                 eventType = driver.next()
                 generic = pdu.trap_type
                 specific = pdu.specific_type
-                yield self.oid2name('%s.0.%d' % (enterprise, specific))
+                oid = "%s.%d" % (enterprise, specific)
+                
+                # Some vendors form their trap MIBs to insert a 0 before the
+                # specific part of the v1 trap, but the device doesn't actually
+                # send the 0. Unfortunately we have to make explicit exceptions
+                # for these to get the OIDs decoded properly.
+                for entNum in (
+                    1916, # Extreme Networks
+                    8072, # Net-SNMP
+                    ):
+                    if enterprise.startswith("1.3.6.1.4.1.%d" % entNum):
+                        oid = "%s.0.%d" % (enterprise, specific)
+                
+                yield self.oid2name(oid, exactMatch=False, strip=False)
                 eventType = { 0 : 'snmp_coldStart',
                               1 : 'snmp_warmStart',
                               2 : 'snmp_linkDown',
@@ -166,7 +183,7 @@ class ZenTrap(EventServer):
                               }.get(generic, eventType + "_%d" % specific)
                 for oid, value in variables:
                     oid = '.'.join(map(str, oid))
-                    yield self.oid2name(oid)
+                    yield self.oid2name(oid, exactMatch=False, strip=True)
                     result[driver.next()] = value
             else:
                 self.log.error("Unable to handle trap version %d", pdu.version)
