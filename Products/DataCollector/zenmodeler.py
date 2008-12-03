@@ -846,17 +846,10 @@ class ZenModeler(PBDaemon):
             self.log.info("Collecting for device %s", self.options.device)
             return succeed([self.options.device])
 
-        elif self.options.path:
-            self.log.info("Collecting for path %s", self.options.path)
-            return self.config().callRemote('getDeviceListByOrganizer',
-                                            self.options.path)
-        else:
-            # NB: This should never be called as processOptions()
-            #     sets self.options.path
-            self.log.info("Collecting for collector %s", self.options.monitor)
-            return self.config().callRemote('getDeviceListByMonitor',
-                                            self.options.monitor)
-
+        self.log.info("Collecting for path %s", self.options.path)
+        return self.config().callRemote('getDeviceListByOrganizer',
+                                        self.options.path,
+                                        self.options.monitor)
 
 
     def mainLoop(self, driver):

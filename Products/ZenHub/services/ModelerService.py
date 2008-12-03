@@ -72,9 +72,12 @@ class ModelerService(PerformanceConfig):
         return [d.id for d in monitor.devices.objectValuesGen()]
     
     @translateError
-    def remote_getDeviceListByOrganizer(self, organizer):
+    def remote_getDeviceListByOrganizer(self, organizer, monitor=None):
+        if monitor is None:
+            monitor = self.instance
         root = self.dmd.Devices.getOrganizer(organizer)
-        return [d.id for d in root.getSubDevicesGen()]
+        return [d.id for d in root.getSubDevicesGen() \
+            if d.getPerformanceServerName() == monitor]
 
     @translateError
     def remote_applyDataMaps(self, device, maps):
