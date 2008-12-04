@@ -11,6 +11,7 @@
 #
 ###########################################################################
 
+import os
 import os.path
 import logging
 from exceptions import *
@@ -174,6 +175,11 @@ class Testzenperfsnmp(BaseTestCase):
         """
         Can't write to disk
         """
+        # Verify that we're not root first... 
+        if os.geteiud() == 0:
+            print "Can't run testUnableToWrite check if running as root"
+            return
+
         # related to http://dev.zenoss.org/trac/ticket/3987
         oid= "1.3.6.1.666.1.0"
 
@@ -181,14 +187,13 @@ class Testzenperfsnmp(BaseTestCase):
         self.rrdsave_setup( oid, data )
         old = self.zpf.rrd.performancePath
 
-        # Should probably verify that we're not root first...
         # This will try to create a /.rrd file, which should fail
         self.zpf.rrd.performancePath= lambda(x): "/"
 
         # Fake it out as we aren't really connected to zenhub
         self.zpf.sendEvent = self.zem.sendEvent
 
-        self.assertEquals( self.zpf.storeRRD( self.name, oid, 666.0 ), None )
+        self.zpf.storeRRD( self.name, oid, 666.0 )
         self.zpf.rrd.performancePath = old
 
         # Now check for our event...
@@ -199,6 +204,7 @@ class Testzenperfsnmp(BaseTestCase):
         #self.showevent( event )
         self.assertEquals( event.device, self.name )
         self.assertEquals( event.summary, "Unable to save data for OID 1.3.6.1.666.1.0 in RRD tests/Testzenperfsnmp" )
+
 
     def tearDown(self):
         """

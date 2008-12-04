@@ -131,11 +131,15 @@ class TestRRDUtil(BaseTestCase):
         """
         Can't write to a file
         """
-        rrd= RRDUtil( self.createcmd, 60 )
+        # Verify that we're not root first...
+        if os.geteiud() == 0:
+            print "Can't run testNotWritableRRD check if running as root"
+            return
 
-        # Should probably verify that we're not root first...
+        rrd= RRDUtil( self.createcmd, 60 )
         rrd.performancePath= lambda(x): "/"
         self.assertRaises( Exception, rrd.save, "/", 666.0, 'COUNTER' )
+
 
     def tearDown(self):
         """
@@ -148,6 +152,7 @@ class TestRRDUtil(BaseTestCase):
             pass
 
         BaseTestCase.tearDown(self)
+
 
 
 def test_suite():
