@@ -17,13 +17,15 @@ Implementation of basic RRD services for zenhub
 """
 
 import os.path
+import logging
+import time
 
 from Products.ZenRRD.RRDUtil import RRDUtil
+from Products.ZenEvents.ZenEventClasses import Critical, Status_Perf
 
-import logging
+
 log = logging.getLogger("zenhub")
 
-import time
 
 
 class RRDImpl:
@@ -93,13 +95,45 @@ class RRDImpl:
                          "could not be converted to a long" % \
                          (value, dp.rrdtype))
 
-        value = rrd.save(os.path.join(dev.rrdPath(), dp.name()),
+        path = os.path.join(dev.rrdPath(), dp.name())
+        try:
+            value = rrd.save( path,
                         value, 
                         dp.rrdtype,
                         rrdCreateCmd,
                         dp.datasource.cycletime,
                         dp.rrdmin,
                         dp.rrdmax)
+
+        except Exception, ex:
+            summary= "Unable to save data in zenhub for RRD %s" % \
+                              path
+            log.critical( summary )
+
+            message= "Data was value= %s, type=%s, min=%s, max=%s" % \
+                     ( value, dp.rrdtype, dp.rrdmin, dp.rrdmax, )
+            log.critical( message )
+            log.exception( ex )
+
+            import traceback
+            trace_info= traceback.format_exc()
+
+            evid= self.zem.sendEvent(dict(
+                dedupid="%s|%s" % (devId, 'RRD write failure'),
+                severity=Critical,
+                device=devId,
+                eventClass=Status_Perf,
+                component="RRD",
+                compType=compType,
+                compId=compId,
+                datapoint=dpName,
+                message=message,
+                traceback=trace_info,
+                summary=summary))
+
+            # Skip thresholds
+            return
+
         self.checkThresholds(dev, dp, value)
         return value
 
