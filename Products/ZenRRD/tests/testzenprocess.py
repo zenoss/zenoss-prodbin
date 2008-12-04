@@ -146,8 +146,7 @@ class Testzenprocess(BaseTestCase):
         """
         import shutil
         try:
-            #shutil.rmtree( self.perfpath )
-            pass
+            shutil.rmtree( self.perfpath )
         except:
             pass
 
