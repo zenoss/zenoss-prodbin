@@ -12,14 +12,10 @@
 #
 ###########################################################################
 
-__doc__='''zenprocess
+__doc__= """zenprocess
 
-Gets snmp process performance data and stores it in RRD files.
-
-$Id$
-'''
-
-__version__ = "$Revision$"[11:-2]
+Gets SNMP process performance data and stores it in RRD files.
+"""
 
 import logging
 import time
@@ -34,7 +30,8 @@ from Products.ZenUtils.Driver import drive, driveLater
 from Products.ZenUtils.NJobs import NJobs
 from Products.ZenUtils.Chain import Chain
 from Products.ZenEvents import Event
-from Products.ZenEvents.ZenEventClasses import Status_Snmp, Status_OSProcess
+from Products.ZenEvents.ZenEventClasses import Status_Snmp, \
+      Status_OSProcess, Critical, Status_Perf
 
 from Products.ZenRRD.RRDUtil import RRDUtil
 from SnmpDaemon import SnmpDaemon
@@ -107,8 +104,8 @@ class Pid:
         return '<Pid> memory: %s cpu: %s' % (self.memory, self.cpu)
     __repr__ = __str__
 
-from twisted.spread import pb
 
+from twisted.spread import pb
 class Process(pb.Copyable, pb.RemoteCopy):
     'track process-specific configuration data'
     name = None
@@ -238,8 +235,8 @@ class zenprocess(SnmpDaemon):
     restarted = 0
     parallelJobs = DEFAULT_PARALLEL_JOBS
 
-    def __init__(self):
-        SnmpDaemon.__init__(self, 'zenprocess')
+    def __init__(self, noopts=False):
+        SnmpDaemon.__init__(self, 'zenprocess', noopts)
         self._devices = {}
         self.scanning = None
         self.downDevices = Set()
@@ -591,9 +588,60 @@ class zenprocess(SnmpDaemon):
 
     def save(self, deviceName, pidName, statName, value, rrdType,
              min='U', max='U'):
-        "Save an value in the right path in RRD files"
+        """
+        Save a value into an RRD file
+
+        @param deviceName: name of the remote device (ie a hostname)
+        @type deviceName: string
+        @param pidName: process id of the monitored process
+        @type pidName: string
+        @param statName: metric name
+        @type statName: string
+        @param value: data to be stored
+        @type value: number
+        @param rrdType: RRD data type (eg ABSOLUTE, DERIVE, COUNTER)
+        @type rrdType: string
+        @param min: minimum value acceptable for this metric
+        @type min: number
+        @param max: maximum value acceptable for this metric
+        @type max: number
+        """
         path = 'Devices/%s/os/processes/%s/%s' % (deviceName, pidName, statName)
-        value = self.rrd.save(path, value, rrdType, min=min, max=max)
+        try:
+            value = self.rrd.save(path, value, rrdType, min=min, max=max)
+
+        except Exception, ex:
+            summary= "Unable to save data for process-monitor RRD %s" % \
+                              path
+            self.log.critical( summary )
+
+            message= "Data was value= %s, type=%s, min=%s, max=%s" % \
+                     ( value, rrdType, min, max, )
+            self.log.critical( message )
+            self.log.exception( ex )
+
+            import traceback
+            trace_info= traceback.format_exc()
+
+            evid= self.sendEvent(dict(
+                dedupid="%s|%s" % (self.options.monitor, 'RRD write failure'),
+                severity=Critical,
+                device=self.options.monitor,
+                eventClass=Status_Perf,
+                component="RRD",
+                pidName=pidName,
+                statName=statName,
+                path=path,
+                message=message,
+                traceback=trace_info,
+                summary=summary))
+
+            # For test harness purposes
+            self.last_evid= evid
+
+            # Skip thresholds
+            return
+
         for ev in self.thresholds.check(path, time.time(), value):
             self.sendThresholdEvent(**ev)
             
