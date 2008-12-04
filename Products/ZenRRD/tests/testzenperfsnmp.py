@@ -163,24 +163,15 @@ class Testzenperfsnmp(BaseTestCase):
         self.assertRaises( KeyError, self.zpf.storeRRD, "nessie", oid, 666.0 )
 
 
-    def showevent(self, event):
-        """
-        For debugging purposes, display an event
-        """
-        for field in event._fields:
-            print "\t%s= %s" % (field, getattr(event, field) )
-
-
     def testUnableToWrite(self):
         """
         Can't write to disk
         """
-        # Verify that we're not root first... 
+        # Verify that we're not root first...
         if os.geteuid() == 0:
             print "Can't run testUnableToWrite check if running as root"
             return
 
-        # related to http://dev.zenoss.org/trac/ticket/3987
         oid= "1.3.6.1.666.1.0"
 
         data = self.oidData
@@ -190,20 +181,17 @@ class Testzenperfsnmp(BaseTestCase):
         # This will try to create a /.rrd file, which should fail
         self.zpf.rrd.performancePath= lambda(x): "/"
 
-        # Fake it out as we aren't really connected to zenhub
-        self.zpf.sendEvent = self.zem.sendEvent
+        # Fake out sendEvent
+        evts = []
+        def append(evt):
+            if evt['severity'] != 0:
+                evts.append(evt)
+        self.zpf.sendEvent = append
 
         self.zpf.storeRRD( self.name, oid, 666.0 )
         self.zpf.rrd.performancePath = old
 
-        # Now check for our event...
-        evid= self.zpf.last_evid
-        self.assertNotEquals( evid, None )
-        event = self.zem.getEventDetail(evid)
-
-        #self.showevent( event )
-        self.assertEquals( event.device, self.name )
-        self.assertEquals( event.summary, "Unable to save data for OID 1.3.6.1.666.1.0 in RRD tests/Testzenperfsnmp" )
+        self.assertNotEquals( len(evts), 0 )
 
 
     def tearDown(self):

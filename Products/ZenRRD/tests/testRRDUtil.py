@@ -137,6 +137,7 @@ class TestRRDUtil(BaseTestCase):
             return
 
         rrd= RRDUtil( self.createcmd, 60 )
+
         rrd.performancePath= lambda(x): "/"
         self.assertRaises( Exception, rrd.save, "/", 666.0, 'COUNTER' )
 

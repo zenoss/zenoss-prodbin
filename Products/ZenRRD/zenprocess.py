@@ -636,9 +636,6 @@ class zenprocess(SnmpDaemon):
                 traceback=trace_info,
                 summary=summary))
 
-            # For test harness purposes
-            self.last_evid= evid
-
             # Skip thresholds
             return
 

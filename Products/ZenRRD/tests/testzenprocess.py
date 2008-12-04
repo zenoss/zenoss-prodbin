@@ -101,14 +101,6 @@ class Testzenprocess(BaseTestCase):
         self.zproc.save( self.name, self.pidname, self.statname, 666.0, 'ABSOLUTE')
 
 
-    def showevent(self, event):
-        """
-        For debugging purposes, display an event
-        """
-        for field in event._fields:
-            print "\t%s= %s" % (field, getattr(event, field) )
-
-
     def testUnableToWrite(self):
         """
         Can't write to disk
@@ -123,21 +115,17 @@ class Testzenprocess(BaseTestCase):
         # This will try to create a /.rrd file, which should fail
         self.zproc.rrd.performancePath= lambda(x): "/"
 
-        # Fake it out as we aren't really connected to zenhub
-        self.zproc.sendEvent = self.zem.sendEvent
+        # Fake out sendEvent
+        evts = []
+        def append(evt):
+            if evt['severity'] != 0:
+                evts.append(evt)
+        self.zproc.sendEvent = append
 
         self.zproc.save( self.name, self.pidname, self.statname, 666.0, 'ABSOLUTE')
         self.zproc.rrd.performancePath = old
 
-        # Now check for our event...
-        evid= self.zproc.last_evid
-        self.assertNotEquals( evid, None )
-        event = self.zem.getEventDetail(evid)
-
-        #self.showevent( event )
-        self.assertEquals( event.device, self.name )
-        
-        self.assertEquals( event.summary, "Unable to save data for process-monitor RRD Devices/Testzenprocess/os/processes/testpid/teststat" )
+        self.assertNotEquals( len(evts), 0 )
 
 
     def tearDown(self):
