@@ -10,6 +10,12 @@
 # For complete information please visit: http://www.zenoss.com/oss/
 #
 ###########################################################################
+
+__doc__ = """RRDImpl
+
+Implementation of basic RRD services for zenhub
+"""
+
 import os.path
 
 from Products.ZenRRD.RRDUtil import RRDUtil
@@ -21,11 +27,21 @@ import time
 
 
 class RRDImpl:
-    # list of rrd types that only accept long or integer values (no floats!)
+    """
+    RRDUtil wrapper class for zenhub
+    """
+
+    # list of RRD types that only accept long or integer values (no floats!)
     LONG_RRD_TYPES = ['COUNTER', 'DERIVE']
 
     def __init__(self, dmd):
-        # rrd is a dictionary of RRDUtil instances
+        """
+        Initializer
+
+        @param dmd: Device Management Database (DMD) reference
+        @type dmd: dmd object
+        """
+        # RRD is a dictionary of RRDUtil instances
         self.rrd = {}
         # counts is a dictionary of integers tracking how many times
         # each threshold has been exceeded sequentially.
@@ -36,8 +52,23 @@ class RRDImpl:
 
 
     def writeRRD(self, devId, compType, compId, dpName, value):
-        """Write the given data to it's rrd file.
+        """
+        Write the given data to its RRD file.
         Also check any thresholds and send events if value is out of bounds.
+        Note that if the write does not succeed, a None value is returned.
+
+        @param devId: device name (as known by DMD)
+        @type devId: string
+        @param compType: component type (found in objects meta_type field)
+        @type compType: string
+        @param compId:  name of the component
+        @type compId: string
+        @param dpName: name of the data point
+        @type dpName: string
+        @param value: performance metric to store
+        @type value: number
+        @return: valid value (ie long or float) or None
+        @rtype: number or None
         """
         log.debug('Writing %s %s' % (dpName, value))
         dev = self.getDeviceOrComponent(devId, compType, compId)
@@ -58,7 +89,7 @@ class RRDImpl:
             try:
                 value = long(value)
             except ValueError:
-                log.warn("value '%s' received for data point '%s' that " \
+                log.warn("Value '%s' received for data point '%s' that " \
                          "could not be converted to a long" % \
                          (value, dp.rrdtype))
 
@@ -74,14 +105,32 @@ class RRDImpl:
 
 
     def getDefaultRRDCreateCommand(self, device):
+        """
+        Get the overridable create command for new RRD files.
+
+        @param device: device object from in DMD
+        @type device: device object
+        @return: RRD create command
+        @rtype: string
+        """
         return device.perfServer().getDefaultRRDCreateCommand()
         
 
     def getDeviceOrComponent(self, devId, compId, compType):
-        ''' If a compId is given then try to return that component.  If unable
+        """
+        If a compId is given then try to return that component.  If unable
         to find it or if compId is not specified then try to return the
         given device.  If unable to find then return None.
-        '''
+
+        @param devId: device name (as known by DMD)
+        @type devId: string
+        @param compId:  name of the component
+        @type compId: string
+        @param compType: component type (found in objects meta_type field)
+        @type compType: string
+        @return: device or component object
+        @rtype: object
+        """
         d = None
         device = self.dmd.Devices.findDevice(devId)
         if device:
@@ -96,12 +145,21 @@ class RRDImpl:
         
 
     def checkThresholds(self, dev, dp, value):
-        ''' Check the given value against any thresholds.  Count the number of
+        """
+        Check the given value against any thresholds.  Count the number of
         times a dp has exceeded a given threshold in self.counts.  Send events
         as appropriate.
-        '''
+
+        @param dev: device or component object
+        @type dev: object
+        @param dp: datapoint
+        @type dp: RRD datapoint object
+        @param value: performance metric to compare
+        @type value: number
+        """
         if value is None:
             return
+
         # Loop through the enabled thresholds on the template containing
         # this datapoint.
         for t in [t for t in dp.datasource.rrdTemplate.thresholds()
