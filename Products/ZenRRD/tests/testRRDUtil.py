@@ -132,7 +132,7 @@ class TestRRDUtil(BaseTestCase):
         Can't write to a file
         """
         # Verify that we're not root first...
-        if os.geteiud() == 0:
+        if os.geteuid() == 0:
             print "Can't run testNotWritableRRD check if running as root"
             return
 

@@ -176,7 +176,7 @@ class Testzenperfsnmp(BaseTestCase):
         Can't write to disk
         """
         # Verify that we're not root first... 
-        if os.geteiud() == 0:
+        if os.geteuid() == 0:
             print "Can't run testUnableToWrite check if running as root"
             return
 
