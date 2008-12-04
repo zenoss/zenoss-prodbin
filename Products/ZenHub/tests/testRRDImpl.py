@@ -18,7 +18,6 @@ from exceptions import *
 from Products.ZenTestCase.BaseTestCase import BaseTestCase
 from Products.ZenHub.services.RRDImpl import RRDImpl
 from Products.ZenRRD.RRDUtil import RRDUtil
-from Products.ZenModel.FileSystem import FileSystem
 from Products.ZenModel.Exceptions import *
 
 
