@@ -441,6 +441,10 @@ def InstallDistAsZenPack(dmd, dist, eggPath, link=False, filesOnly=False,
                 else:
                     shutil.rmtree(oldZpDir)
         except AttributeError:
+            # If this happens in the child process or during the non-upgrade
+            # flow, reraise the exception
+            if not runExternalZenpack:
+                raise
             # This is the signature error of class-loading issues
             # during zenpack upgrade.  The final state should be okay,
             # except that modified packables may be lost.
