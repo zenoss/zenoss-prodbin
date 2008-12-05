@@ -1,7 +1,7 @@
 CREATE TABLE IF NOT EXISTS status
 (
     dedupid         varchar(255) not null,
-    evid            char(25) not null,
+    evid            char(36) not null,
     device          varchar(128) not null,
     component       varchar(255) default "",
     eventClass      varchar(128) default "/Unknown",
@@ -43,7 +43,7 @@ CREATE TABLE IF NOT EXISTS status
 CREATE TABLE IF NOT EXISTS history
 (
     dedupid         varchar(255) not null,
-    evid            char(25) not null,
+    evid            char(36) not null,
     device          varchar(128) not null,
     component       varchar(255) default "",
     eventClass      varchar(128) default "/Unknown",
@@ -134,7 +134,7 @@ CREATE TABLE IF NOT EXISTS heartbeat
 
 CREATE TABLE IF NOT EXISTS alert_state
 (
-    evid        char(25) not null,
+    evid        char(36) not null,
     userid      varchar(64),
     rule        varchar(255),
     lastSent    timestamp default now(),
@@ -144,7 +144,7 @@ CREATE TABLE IF NOT EXISTS alert_state
 
 CREATE TABLE IF NOT EXISTS log
 (
-    evid        char(25) not null,
+    evid        char(36) not null,
     userName    varchar(64),
     ctime       timestamp,
     text        text,
@@ -154,7 +154,7 @@ CREATE TABLE IF NOT EXISTS log
 
 CREATE TABLE IF NOT EXISTS detail
 (
-    evid        char(25) not null,
+    evid        char(36) not null,
     sequence    int,
     name        varchar(255),
     value       varchar(255),

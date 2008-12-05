@@ -15,10 +15,8 @@ __doc__='''ZenModel.migrate.__init__.py
 
 Use __init__.py to get all the upgrade modules imported.
 
-$Id$
 '''
 
-__version__ = "$Revision$"[11:-2]
 
 # by virtue of being a migration script, we often import deprecated modules
 import warnings
@@ -161,3 +159,4 @@ import fixPropertyAccess
 import fixOldTemplates_23
 import addSnmpStrictDiscoveryFlag
 import simpleDataPoint_list
+import uuidEventIds
