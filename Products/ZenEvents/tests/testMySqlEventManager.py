@@ -57,7 +57,7 @@ class MySqlEventManagerTest(unittest.TestCase):
     
     def testSendEvent(self):
         self.zem.sendEvent(self.evt) 
-        evts = self.zem.getEventList(where="device='dev.test.com'")
+        evts = self.zem.getEventList(where="device='%s'" % self.evt.device)
         self.assert_(len(evts) == 1)
         self.assert_(evts[0].summary == self.evt.summary)
 
@@ -65,7 +65,7 @@ class MySqlEventManagerTest(unittest.TestCase):
     def testSendEventDup(self):
         self.zem.sendEvent(self.evt.__dict__)
         self.zem.sendEvent(self.evt.__dict__) 
-        evts = self.zem.getEventList(where="device='dev.test.com'")
+        evts = self.zem.getEventList(where="device='%s'" % self.evt.device)
         self.assert_(len(evts) == 1)
         self.assert_(evts[0].count == 2)
 
@@ -99,6 +99,31 @@ class MySqlEventManagerTest(unittest.TestCase):
         evt = self.zem.sendEvent(self.evt)
         evdetail = self.zem.getEventDetail(dedupid=self.evt.dedupid)
         feilds = evdetail.getEventFields()
+
+
+    def testMoveEventToHistory(self):
+        # NB: when we delete an event, the MySQL DB trigger moves 
+        #     the event to the 'history' table
+        evid= self.zem.sendEvent(self.evt) 
+        evts = self.zem.getEventList(where="device='%s'" % self.evt.device)
+        self.assert_(len(evts) == 1)
+        self.assert_(evts[0].evid == evid )
+        self.assert_(evts[0].summary == self.evt.summary)
+
+        # Now move the event to history
+        self.dmd.ZenEventManager.manage_deleteEvents( evid )
+        evts = self.zem.getEventList(where="device='%s'" % self.evt.device)
+        self.assert_(len(evts) == 0)
+
+        self.assertRaises( ZenEventNotFound, self.dmd.ZenEventManager.getEventDetail, evid )
+
+        try:
+            event = self.dmd.ZenEventHistory.getEventDetail( evid )
+        except ZenEventNotFound:
+            self.fail( "Unable to find evid %s in database after moving to history" % evid )
+
+        self.assert_( event is not None )
+        self.assert_(event.evid == evid )
 
     
 def test_suite():
