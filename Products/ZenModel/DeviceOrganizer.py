@@ -11,6 +11,10 @@
 #
 ###########################################################################
 
+__doc__ = """DeviceOrganizer
+Base class for device organizers
+"""
+
 from itertools import ifilter
 from types import StringTypes
 
@@ -129,7 +133,7 @@ class DeviceOrganizer(Organizer, DeviceManagerBase, Commandable, ZenMenuable,
     def getSubDevices_recursive(self, devfilter=None, devrel="devices"):
         devrelobj = getattr(self, devrel, None)
         if not devrelobj:
-            raise AttributeError, "%s not found on %s" % (devrel, self.id)
+            raise AttributeError( "%s not found on %s" % (devrel, self.id) )
         devices = filter(devfilter, devrelobj())
         devices = [ dev for dev in devices
                     if self.checkRemotePerm(ZEN_VIEW, dev)]
@@ -142,7 +146,7 @@ class DeviceOrganizer(Organizer, DeviceManagerBase, Commandable, ZenMenuable,
         """get all the devices under and instance of a DeviceGroup"""
         devrelobj = getattr(self, devrel, None)
         if not devrelobj: 
-            raise AttributeError, "%s not found on %s" % (devrel, self.id)
+            raise AttributeError( "%s not found on %s" % (devrel, self.id) )
         for dev in devrelobj.objectValuesGen():
             yield dev
         for subgroup in self.children():
@@ -153,7 +157,7 @@ class DeviceOrganizer(Organizer, DeviceManagerBase, Commandable, ZenMenuable,
         """get all the devices under and instance of a DeviceGroup"""
         devices = getattr(self, devrel, None)
         if not devices: 
-            raise AttributeError, "%s not found on %s" % (devrel, self.id)
+            raise AttributeError( "%s not found on %s" % (devrel, self.id) )
 
 
     def getMonitoredComponents(self):
@@ -454,7 +458,7 @@ class DeviceOrganizer(Organizer, DeviceManagerBase, Commandable, ZenMenuable,
         statatt = "get%sStatusNumber" % type
         devices = getattr(self, devrel, None)
         if not devices: 
-            raise AttributeError, "%s not found on %s" % (devrel, self.id)
+            raise AttributeError( "%s not found on %s" % (devrel, self.id) )
         for device in devices():
             if getattr(device, statatt, -1)() > 0:
                 status += 1

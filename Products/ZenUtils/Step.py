@@ -11,11 +11,11 @@
 #
 ###########################################################################
 
-__doc__='''Step
+__doc__ = """Step
 
 Utility for chaining defered actions.
 
-'''
+"""
 
 from twisted.internet import reactor, defer
 
@@ -53,7 +53,7 @@ def Step(iterable):
         if hasattr(iterable, '__iter__'):
             iterable = iter(iterable)
         else:
-            raise RuntimeError, 'Must pass an iterable object to step'
+            raise RuntimeError( 'Must pass an iterable object to step' )
             
     # finalD is the deferred that will trigger when iterable is exhausted
     finalD = defer.Deferred()

@@ -72,7 +72,7 @@ class ToManyContRelationship(ToManyRelationshipBase):
         if self.__dict__.has_key("_objects"):
             objects = self.__dict__['_objects']
             if objects.has_key(name): return objects[name]
-        raise AttributeError, name
+        raise AttributeError( "Unable to find the attribute '%s'" % name )
 
 
     def __hasattr__(self, name):
@@ -195,7 +195,7 @@ class ToManyContRelationship(ToManyRelationshipBase):
         if self._objects.has_key(id):
             return self._objects[id].__of__(self)
         elif default == zenmarker:
-            raise AttributeError, id
+            raise AttributeError( "Unable to find %s" % id )
         return default
 
 

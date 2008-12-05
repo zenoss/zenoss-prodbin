@@ -15,10 +15,7 @@ __doc__="""ToOneRelationship
 
 ToOneRelationship is a class used on a RelationshipManager
 to give it toOne management Functions.
-
-$Id: ToOneRelationship.py,v 1.23 2003/10/02 20:48:22 edahl Exp $"""
-
-__version__ = "$Revision: 1.23 $"[11:-2]
+"""
 
 import logging
 log = logging.getLogger("zen.Relations")
@@ -87,9 +84,9 @@ class ToOneRelationship(RelationshipBase):
             self.obj = None 
             self.__primary_parent__._p_changed = True
         else:
-            raise ObjectNotFound, "on %s: %s is not %s" % (
+            raise ObjectNotFound( "on %s: %s is not %s" % (
                             self.getPrimaryId(), obj.getPrimaryId(), 
-                            self.obj.getPrimaryId())
+                            self.obj.getPrimaryId()) )
 
 
     def _remoteRemove(self, obj=None):

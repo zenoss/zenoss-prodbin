@@ -13,11 +13,8 @@
 
 __doc__="""utils
 
-utility functions for RRDProduct
-
-$Id: utils.py,v 1.9 2003/05/12 16:13:28 edahl Exp $"""
-
-__version__ = "$Revision: 1.9 $"[11:-2]
+RRD utility functions
+"""
 
 from sets import Set
 from Acquisition import aq_chain
@@ -25,10 +22,18 @@ from Acquisition import aq_chain
 from Exceptions import RRDObjectNotFound, TooManyArgs
 
 def loadargs(obj, args):
-    """Load data into a RRD Object"""
+    """
+    Load data into a RRD Object
+
+    @param obj: RRD object
+    @type obj: RRD object
+    @param args: arguments
+    @type args: list of strings
+    """
     import string
     arglen = len(args)
-    if arglen > len(obj._properties): raise TooManyArgs, "Too many args"
+    if arglen > len(obj._properties):
+        raise TooManyArgs( "Too many args" )
     i = 0
     for arg in args:
         if i > arglen: break
@@ -57,30 +62,69 @@ def loadargs(obj, args):
 
 
 def prefixid(idprefix, id):
-    """see if prefix needs to be added to id"""
+    """
+    See if prefix needs to be added to id
+
+    @param idprefix: prefix
+    @type idprefix: string
+    @param id: identifier
+    @type id: string
+    @return: add the prefix with a '-' in between
+    @rtype: string
+    """
     if id.find(idprefix) != 0:
         id = idprefix + '-' + id    
     return id
 
 
 def rootid(idprefix, id):
+    """
+    See if prefix needs to be removed from id
+
+    @param idprefix: prefix
+    @type idprefix: string
+    @param id: identifier
+    @type id: string
+    @return: remove the prefix with a '-' in between or return None
+    @rtype: string or None
+    """
     if idprefix[-1] != '-': idprefix += '-'
     if id.find(idprefix) == 0:
         return id[len(idprefix):]
 
 
 def walkupconfig(context, name):
+    """
+    Given a Zope context, try to find the rrdconfig object
+    for the name.
+    Raises RRDObjectNotFound if not found.
+
+    @param context: Zope context
+    @type context: Zope context object
+    @param name: RRDView name
+    @type name: string
+    @return: rrdconfig object or None
+    @rtype: rrdconfig object
+    """
     if not name: return
     while 1:
         if hasattr(context, 'rrdconfig') and hasattr(context.rrdconfig, name):
             return getattr(context.rrdconfig, name)
         context = context.aq_parent
         if context.id == 'dmd':
-            raise RRDObjectNotFound,"Object %s not found in context %s" % \
-                                    (name, context.getPrimaryUrlPath())
+            raise RRDObjectNotFound( "Object %s not found in context %s" % \
+                                    (name, context.getPrimaryUrlPath()))
               
 
 def templateNames(context):
+    """
+    Return template names in the given context
+
+    @param context: Zope context
+    @type context: Zope context object
+    @return: names of the templates
+    @rtype: set of strings
+    """
     names = Set()
     for obj in aq_chain(context):
         rrdconfig = getattr(obj, 'rrdconfig', None)
@@ -91,22 +135,57 @@ def templateNames(context):
         
 
 def getRRDView(context, name):
-    """lookup an rrdview based on its name"""
+    """
+    Lookup an RRDView based on its name
+
+    @param context: Zope context
+    @type context: Zope context object
+    @param name: RRDView name
+    @type name: string
+    @return: rrdconfig object or None
+    @rtype: rrdconfig object
+    """
     return walkupconfig(context, 'RRDView-'+name)
 
 
 def getRRDTargetType(context, name):
-    """lookup an rrdtargettype based on its name"""
+    """
+    Lookup an rrdtargettype based on its name
+
+    @param context: Zope context
+    @type context: Zope context object
+    @param name: RRDView name
+    @type name: string
+    @return: rrdconfig object or None
+    @rtype: rrdconfig object
+    """
     return walkupconfig(context, 'RRDTargetType-'+name)
 
 
 def getRRDDataSource(context, name):
-    """lookup an rrddatasource based on its name"""
+    """
+    Lookup an rrddatasource based on its name
+
+    @param context: Zope context
+    @type context: Zope context object
+    @param name: RRDView name
+    @type name: string
+    @return: rrdconfig object or None
+    @rtype: rrdconfig object
+    """
     return walkupconfig(context, 'RRDDataSource-'+name)
 
 
 def rpneval(value, rpn):
-    """totally bogus rpn valuation only works with one level stack"""
+    """
+    Totally bogus RPN evaluation only works with one-level stack
+
+    @param value: something that can be used as a number
+    @type value: string
+    @param rpn: Reverse Polish Notatio (RPN) expression
+    @type rpn: string
+    @todo: make unbogus
+    """
     if type(value) == type(''): return value
     operators = ('+','-','*','/')
     rpn = rpn.split(',')

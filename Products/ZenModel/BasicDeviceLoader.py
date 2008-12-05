@@ -18,10 +18,7 @@ only needs to have a list of machines.  It uses the Classifier system
 to figure out where in the DeviceClass a new device should be created.
 If no location is found it will use a specified default path or put
 the device in the top level of the DevicesClass tree.
-
-$Id: BasicDeviceLoader.py,v 1.19 2004/04/04 01:51:19 edahl Exp $"""
-
-__version__ = "$Revision: 1.19 $"[11:-2]
+"""
 
 from logging import info
 
@@ -90,14 +87,14 @@ class BasicDeviceLoader:
                                         snmpCommunity, snmpPort,
                                         loginName, loginPassword)
             if not self.classificationEntry:
-                raise NotImplemented, \
-                    "classifier failed to classify device %s" % deviceName
+                raise NotImplemented(
+                    "Classifier failed to classify device %s" % deviceName)
             devicePath = self.classificationEntry.getDeviceClassPath
 
         deviceClass = self.getDmdRoot("Devices").getOrganizer(devicePath)
         if not deviceClass:
-            raise PathNotFoundError, \
-                "Path to device %s is not valid" % deviceName
+            raise PathNotFoundError(
+                "Path to device %s is not valid" % deviceName)
         return deviceClass.createInstance(deviceName)
 
 

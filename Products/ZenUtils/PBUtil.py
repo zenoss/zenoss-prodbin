@@ -15,7 +15,8 @@
 
 # flumotion has nearly the same code
 
-"""Base classes handy for use with PB clients.
+__doc__ = """PBUtil
+Base classes handy for use with PB clients.
 """
 
 from twisted.spread import pb
@@ -95,7 +96,7 @@ class ReconnectingPBClientFactory(PBClientFactory,
     # oldcred methods
 
     def getPerspective(self, *args):
-        raise RuntimeError, "getPerspective is one-shot: use startGettingPerspective instead"
+        raise RuntimeError( "getPerspective is one-shot: use startGettingPerspective instead" )
 
     def startGettingPerspective(self, username, password, serviceName,
                                 perspectiveName=None, client=None):
@@ -120,7 +121,7 @@ class ReconnectingPBClientFactory(PBClientFactory,
     def login(self, credentials, client=None):
         from Products.ZenUtils.Utils import unused
         unused(credentials, client)
-        raise RuntimeError, "login is one-shot: use startLogin instead"
+        raise RuntimeError( "Login is one-shot: use startLogin instead" )
 
     def startLogin(self, credentials, client=None):
         self._credentials = credentials

@@ -11,6 +11,10 @@
 #
 ###########################################################################
 
+__doc__ = """CheckBasicInstall
+Sanity checker
+"""
+
 import Globals
 from ZenScriptBase import ZenScriptBase
 
@@ -68,8 +72,14 @@ class BadInstallError(Exception):
     """
 
 class CheckBasicInstall(ZenScriptBase):
+    """
+    Verify that all organizers were properly installed
+    """
 
     def check(self):
+        """
+        Sanity check that all organizers are available
+        """
         _allgood = True
         for path in PATHS:
             try:
@@ -78,7 +88,7 @@ class CheckBasicInstall(ZenScriptBase):
                 self.log.critical(' Object %s not found.' % path)
                 _allgood = False
         if not _allgood:
-            raise BadInstallError, 'This Zenoss database was not built properly.'
+            raise BadInstallError( 'This Zenoss database was not built properly.' )
 
 
 if __name__ == "__main__":

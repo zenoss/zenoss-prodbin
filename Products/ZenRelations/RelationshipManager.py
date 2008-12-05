@@ -12,14 +12,11 @@
 #
 ###########################################################################
 
-__doc__="""RelationshipManager
+__doc__ = """RelationshipManager
 
 RelationshipManager is a mix in class to manage relationships
 defined by the SchemaManager.  
-
-$Id: RelationshipManager.py,v 1.41 2004/04/13 22:02:18 edahl Exp $"""
-
-__version__ = "$Revision: 1.41 $"[11:-2]
+"""
 
 from xml.sax import saxutils
 
@@ -366,7 +363,7 @@ class RelationshipManager(PrimaryPathObjectManager, ZenPropertyManager):
             Tabs.manage_workspace(self, REQUEST)
         else:
             from zExceptions import Redirect
-            raise Redirect, myp+'/manage_workspace'
+            raise Redirect( myp+'/manage_workspace' )
 
 
     

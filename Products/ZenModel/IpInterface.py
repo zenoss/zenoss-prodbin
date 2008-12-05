@@ -15,10 +15,7 @@ __doc__="""IpInterface
 
 IpInterface is a collection of devices and subsystems that make
 up a business function
-
-$Id: IpInterface.py,v 1.59 2004/04/23 03:01:02 edahl Exp $"""
-
-__version__ = "$Revision: 1.59 $"[11:-2]
+"""
 
 import re
 import copy
@@ -214,7 +211,7 @@ class IpInterface(OSComponent, Layer2Linkable):
         if name == 'ips':
             return self.getIpAddresses()
         else:
-            raise AttributeError, name
+            raise AttributeError( name )
 
   
     def _prepIp(self, ip, netmask=24):

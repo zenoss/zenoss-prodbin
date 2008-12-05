@@ -153,14 +153,14 @@ class ZenDaemon(CmdBase):
         try:
             pid = os.fork()
         except OSError, e:
-            raise Exception, "%s [%d]" % (e.strerror, e.errno)
+            raise Exception( "%s [%d]" % (e.strerror, e.errno) )
 
         if (pid == 0):  # The first child.
             os.setsid()
             try:
                 pid = os.fork() # Fork a second child.
             except OSError, e:
-                raise Exception, "%s [%d]" % (e.strerror, e.errno)
+                raise Exception( "%s [%d]" % (e.strerror, e.errno) )
 
             if (pid == 0):      # The second child.
                 os.chdir(WORKDIR)

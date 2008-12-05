@@ -11,13 +11,10 @@
 #
 ###########################################################################
 
-__doc__="""IpAddress
+__doc__ = """IpAddress
 
 IpAddress represents a device residing on an IP network.
-
-$Id: IpAddress.py,v 1.42 2004/04/15 00:54:14 edahl Exp $"""
-
-__version__ = "$Revision: 1.42 $"[11:-2]
+"""
 
 import socket
 import logging
@@ -128,7 +125,7 @@ class IpAddress(ManagedEntity, Layer3Linkable):
         if name == 'netmask':
             return self._netmask
         else:
-            raise AttributeError, name
+            raise AttributeError( name )
 
 
     security.declareProtected('Change Device', 'setIpAddress')
@@ -145,8 +142,8 @@ class IpAddress(ManagedEntity, Layer3Linkable):
         if netip == network.id:
             network._renameObject(aqself.id, ip)
         else:
-            raise WrongSubnetError, \
-                    "Ip %s is in a different subnet than %s" % (ip, self.id)
+            raise WrongSubnetError(
+                    "Ip %s is in a different subnet than %s" % (ip, self.id) )
                     
 
 

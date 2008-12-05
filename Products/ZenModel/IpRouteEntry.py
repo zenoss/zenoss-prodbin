@@ -14,10 +14,7 @@
 __doc__="""RouteEntry
 
 RouteEntry represents a group of devices
-
-$Id: IpRouteEntry.py,v 1.12 2004/04/12 16:33:15 edahl Exp $"""
-
-__version__ = "$Revision: 1.12 $"[11:-2]
+"""
 
 import re
 
@@ -118,7 +115,7 @@ class IpRouteEntry(OSComponent):
         if name == 'nexthopip':
             return self.getNextHopIp()
         else:
-            raise AttributeError, name
+            raise AttributeError( name )
   
 
     security.declareProtected('View', 'getNextHopDeviceLink')

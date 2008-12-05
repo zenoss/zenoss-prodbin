@@ -11,14 +11,11 @@
 #
 ###########################################################################
 
-__doc__="""IpNetwork
+__doc__ = """IpNetwork
 
 IpNetwork represents an IP network which contains
 many IP addresses.
-
-$Id: IpNetwork.py,v 1.22 2004/04/12 16:21:25 edahl Exp $"""
-
-__version__ = "$Revision: 1.22 $"[11:-2]
+"""
 
 import math
 import transaction
@@ -395,7 +392,7 @@ class IpNetwork(DeviceOrganizer):
         ret = searchCatalog(dict(id=ip))
         if not ret: return None
         if len(ret) > 1:
-            raise IpAddressConflict, "IP address conflict for IP: %s" % ip
+            raise IpAddressConflict( "IP address conflict for IP: %s" % ip )
         return ret[0].getObject()
 
     

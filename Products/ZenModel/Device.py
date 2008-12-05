@@ -11,6 +11,10 @@
 #
 ###########################################################################
 
+__doc__ = """Device
+Base device (remote computer) class
+"""
+
 import os
 import shutil
 import time
@@ -174,7 +178,7 @@ def findCommunity(context, ip, devicePath,
         if goodcommunity:
                 break
     else:
-        raise NoSnmp("no snmp found for ip = %s" % ip)
+        raise NoSnmp("No SNMP found for IP = %s" % ip)
     return (goodcommunity, port, goodversion, devname)
 
 def manage_addDevice(context, id, REQUEST = None):
@@ -461,7 +465,7 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
         elif name == 'snmpLastCollection':
             return DateTime(self._snmpLastCollection)
         else:
-            raise AttributeError, name
+            raise AttributeError( name )
 
 
     def _setPropValue(self, id, value):
@@ -525,7 +529,7 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
         if ippath is None: ippath=[]
         if type(target) in types.StringTypes:
             target = self.findDevice(target)
-            if not target: raise ValueError("target %s not found in dmd",target)
+            if not target: raise ValueError("Target %s not found in DMD" % target)
         return self.os.traceRoute(target, ippath)
 
     
@@ -1410,7 +1414,7 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
         relPaths = filter(lambda x: x.strip(), relPaths)
         rel = getattr(self, relName, None)
         if not rel:
-            raise AttributeError, "Relation %s not found" % relName
+            raise AttributeError( "Relation %s not found" % relName)
         curRelIds = {}
         for value in rel.objectValuesAll():
             curRelIds[value.getOrganizerName()] = value

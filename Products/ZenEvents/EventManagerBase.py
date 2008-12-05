@@ -11,11 +11,9 @@
 #
 ###########################################################################
 
-"""
+__doc__ = """EventManagerBase
 Data connector to backend of the event management system.
 """
-
-__version__ = "$Revision: 1.6 $"[11:-2]
 
 import time
 import types
@@ -606,7 +604,17 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
         return event
 
     def getEventDetail(self, evid=None, dedupid=None, better=False):
-        """Return an EventDetail object for a particular event.
+        """
+        Return an EventDetail object for a particular event.
+
+        @param evid: Event ID
+        @type evid: string
+        @param dedupid: string used to determine duplicates
+        @type dedupid: string
+        @param better: provide even more detail than normal?
+        @type better: boolean
+        @return: fields from the event
+        @rtype: EventDetail object
         """
         idfield = evid and "evid" or "dedupid"
         if not evid: evid = dedupid
@@ -624,7 +632,7 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
             curs.execute(selectevent)
             evrow = curs.fetchone()
             if not evrow:
-                raise (ZenEventNotFound,"Event evid %s not found" % evid)
+                raise ZenEventNotFound( "Event id '%s' not found" % evid)
             evdata = map(self.convert, fields, evrow)
             if better:
                 event = BetterEventDetail(self, fields, evdata)
@@ -655,6 +663,7 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
         self.addToCache(cachekey, event)
         self.cleanCache()
         return event
+
 
     def getStatusME(self, me, statusclass=None, **kwargs):
         """
@@ -1067,17 +1076,30 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
 
 
     def lookupManagedEntityWhere(self, me):
-        """Lookup and build where clause for managed entity.
+        """
+        Lookup and build where clause for managed entity.
+
+        @param me: managed entity
+        @type me: object
+        @return: where clause
+        @rtype: string
         """
         key = me.event_key + "Where"
         wheretmpl = getattr(aq_base(self), key, False)
         if not wheretmpl:
-            raise ValueError("no where found for event_key %s" % me.event_key)
+            raise ValueError("No 'where' clause found for event_key %s" % me.event_key)
         return eval(wheretmpl,{'me':me})
 
 
     def lookupManagedEntityField(self, event_key):
-        """Lookup database field for managed entity default is event_key.
+        """
+        Lookup database field for managed entity default 
+        using event_key.
+
+        @param event_key: event
+        @type event_key: string
+        @return: field for the managed entity
+        @rtype: object
         """
         key = event_key + "Field"
         return getattr(aq_base(self), key, event_key)
@@ -1174,7 +1196,12 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
 
     security.declareProtected('Send Events', 'sendEvent')
     def sendEvent(self, event):
-        """Send an event to the backend.
+        """
+        Send an event to the backend.
+
+        @param event: event
+        @type event: event object
+        @todo: implement
         """
         raise NotImplementedError
 
@@ -1329,7 +1356,12 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
 
 
     def escape(self, value):
-        """Prepare string values for db by escaping special characters.
+        """
+        Prepare string values for db by escaping special characters.
+
+        @param value: string
+        @type value: string
+        @todo: implement
         """
         raise NotImplementedError
 

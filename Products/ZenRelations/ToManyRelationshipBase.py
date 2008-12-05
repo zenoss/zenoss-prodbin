@@ -12,9 +12,10 @@
 ###########################################################################
 
 
-__doc__="""$Id: ToManyRelationship.py,v 1.48 2003/11/12 22:05:48 edahl Exp $"""
+__doc__ = """ToManyRelationshipBase
+Base class for 1:n relations
+"""
 
-__version__ = "$Revision: 1.48 $"[11:-2]
 
 # Base classes for ToManyRelationshipBase
 #from PrimaryPathObjectManager import PrimaryPathObjectManager
@@ -107,7 +108,7 @@ class ToManyRelationshipBase(
         else:    
             obj = self._getOb(self, id)
             from zExceptions import Redirect
-            raise Redirect, (obj.getPrimaryUrlPath()+'/manage_workspace')
+            raise Redirect( (obj.getPrimaryUrlPath()+'/manage_workspace') )
                                         
 
 InitializeClass(ToManyRelationshipBase)

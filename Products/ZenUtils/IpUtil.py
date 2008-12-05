@@ -15,9 +15,7 @@ __doc__="""Util
 
 Utility functions for the Confmon Product
 
-$Id: IpUtil.py,v 1.4 2002/12/18 18:50:47 edahl Exp $"""
-
-__version__ = "$Revision: 1.4 $"[11:-2]
+"""
 
 import types
 import re
@@ -40,7 +38,7 @@ def checkip(ip):
     try:
         octs = ip.split('.')
     except:
-        raise IpAddressError, '%s is not a dot delimited address' % ip
+        raise IpAddressError( '%s is not a dot delimited address' % ip )
     retval = 1
     #if len(octs) != 4 or int(octs[0]) == 0: 
     if len(octs) != 4:
@@ -53,7 +51,7 @@ def checkip(ip):
             except:
                 retval = 0
     if not retval:
-        raise IpAddressError, "%s is an invalid address" % ip
+        raise IpAddressError( "%s is an invalid address" % ip )
     return retval
 
 

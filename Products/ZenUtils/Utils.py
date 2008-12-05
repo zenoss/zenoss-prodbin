@@ -202,7 +202,7 @@ def getObjByPath(base, path, restricted=0):
         base = base.getPhysicalRoot()
         if (restricted 
             and not securityManager.validate(None, None, None, base)):
-            raise Unauthorized, base
+            raise Unauthorized( base )
 
     obj = base
     while path:
@@ -210,14 +210,14 @@ def getObjByPath(base, path, restricted=0):
 
         if name[0] == '_':
             # Never allowed in a URL.
-            raise NotFound, name
+            raise NotFound( name )
 
         if name == '..':
             next = aq_parent(obj)
             if next is not _none:
                 if restricted and not securityManager.validate(
                     obj, obj,name, next):
-                    raise Unauthorized, name
+                    raise Unauthorized( name )
                 obj = next
                 continue
 
@@ -254,7 +254,7 @@ def getObjByPath(base, path, restricted=0):
                            guarded_getattr(obj, name, marker) is next:
                         validated = 1
                 if not validated:
-                    raise Unauthorized, name
+                    raise Unauthorized( name )
         else:
             if restricted:
                 next = guarded_getattr(obj, name, marker)
@@ -274,10 +274,10 @@ def getObjByPath(base, path, restricted=0):
                 except AttributeError:
                     # Raise NotFound for easier debugging
                     # instead of AttributeError: __getitem__
-                    raise NotFound, name
+                    raise NotFound( name )
                 if restricted and not securityManager.validate(
                     obj, obj, _none, next):
-                    raise Unauthorized, name
+                    raise Unauthorized( name )
         obj = next
     return obj
 
@@ -348,7 +348,7 @@ def importClass(modulePath, classname=""):
         
         return getattr(mod, classname)
     except AttributeError:
-        raise ImportError("failed importing class %s from module %s" % (
+        raise ImportError("Failed while importing class %s from module %s" % (
                             classname, modulePath))
 
 

@@ -11,21 +11,23 @@
 #
 ###########################################################################
 
-__doc__="""CmdBase
+__doc__="""LocationDump
 
 Dump location data from pre 0.11.7 database to text to be reloaded
 in new location format
-
-$Id: LocationDump.py,v 1.4 2003/11/21 21:18:11 edahl Exp $"""
-
-__version__ = "$Revision: 1.4 $"[11:-2]
-
+"""
 
 from ZCmdBase import ZCmdBase
 
 class LocationDump(ZCmdBase):
+    """
+    Dump location data
+    """
     
     def dump(self):
+        """
+        Dump location data to the specified output file.
+        """
         outfile = open(self.options.outfile, "w")
         if not hasattr(self.dataroot, "getSubDevices"):
             raise RuntimeError, "dataroot doesn't have getSubDevices"
@@ -44,6 +46,9 @@ class LocationDump(ZCmdBase):
 
 
     def buildOptions(self):
+        """
+        Command-line options for LocationDump
+        """
         ZCmdBase.buildOptions(self)
         self.parser.add_option('-o', '--outfile',
                     dest='outfile',
