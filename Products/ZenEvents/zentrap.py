@@ -61,6 +61,18 @@ def bp2ip(ptr):
     "Convert a pointer to 4 bytes to a dotted-ip-address"
     return '.'.join([str(ptr[i]) for i in range(4)])
 
+# Some vendors form their trap MIBs to insert a 0 before the
+# specific part of the v1 trap, but the device doesn't actually
+# send the 0. Unfortunately we have to make explicit exceptions
+# for these to get the OIDs decoded properly.
+expandableV1Prefixes = (
+    '1.3.6.1.2.1.17',        # Spanning Tree Protocol
+    '1.3.6.1.4.1.1916',      # Extreme Networks
+    '1.3.6.1.4.1.6247',      # Comtech
+    '1.3.6.1.4.1.8072',      # Net-SNMP
+    '1.3.6.1.4.1.12394.1.2', # Rainbow
+    )
+
 
 class ZenTrap(EventServer):
     'Listen for SNMP traps and turn them into events'
@@ -160,18 +172,10 @@ class ZenTrap(EventServer):
                 generic = pdu.trap_type
                 specific = pdu.specific_type
                 oid = "%s.%d" % (enterprise, specific)
-                
-                # Some vendors form their trap MIBs to insert a 0 before the
-                # specific part of the v1 trap, but the device doesn't actually
-                # send the 0. Unfortunately we have to make explicit exceptions
-                # for these to get the OIDs decoded properly.
-                for entNum in (
-                    1916, # Extreme Networks
-                    8072, # Net-SNMP
-                    ):
-                    if enterprise.startswith("1.3.6.1.4.1.%d" % entNum):
+                for oidPrefix in expandableV1Prefixes:
+                    if enterprise.startswith(oidPrefix):
                         oid = "%s.0.%d" % (enterprise, specific)
-                
+                                
                 yield self.oid2name(oid, exactMatch=False, strip=False)
                 eventType = { 0 : 'snmp_coldStart',
                               1 : 'snmp_warmStart',
