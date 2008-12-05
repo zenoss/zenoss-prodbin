@@ -95,7 +95,7 @@ class EventConsole(BrowserView):
             else:
                 value = _shortvalue
             data.append(value)
-        data.append('evid')
+        data.append(zevent.evid)
         data.append(zevent.getCssClass())
         return data
 
