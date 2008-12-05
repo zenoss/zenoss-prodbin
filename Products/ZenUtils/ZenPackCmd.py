@@ -220,6 +220,10 @@ def ScrubZenPackId(name):
 #   ZenPack Installation
 ########################################
 
+class NonCriticalInstallError(Exception):
+    def __init__(self, message):
+        Exception.__init__(self, message)
+        self.message = message
 
 def InstallEggAndZenPack(dmd, eggPath, link=False, 
                             filesOnly=False, sendEvent=True, 
@@ -230,16 +234,23 @@ def InstallEggAndZenPack(dmd, eggPath, link=False,
     Returns a list of ZenPacks that were installed.
     """
     zenPacks = []
+    nonCriticalErrorEncountered = False
     try:
         zpDists = InstallEgg(dmd, eggPath, link=link)
         for d in zpDists:
-            zenPacks.append(InstallDistAsZenPack(dmd,
-                                                d,
-                                                eggPath, 
-                                                link, 
-                                                filesOnly=filesOnly,
-                                                previousVersion=\
-                                                previousVersion))
+            try:
+                zp = InstallDistAsZenPack(dmd,
+                                          d,
+                                          eggPath, 
+                                          link, 
+                                          filesOnly=filesOnly,
+                                          previousVersion=\
+                                            previousVersion)
+                zenPacks.append(zp)
+            except NonCriticalInstallError, ex:
+                nonCriticalErrorEncountered = True
+                if sendEvent:
+                    ZPEvent(dmd, 3, ex.message)
     except:
         if sendEvent:
             ZPEvent(dmd, 4, 'Error installing ZenPack %s' % eggPath,
@@ -249,7 +260,7 @@ def InstallEggAndZenPack(dmd, eggPath, link=False,
         zenPackIds = [zp.id for zp in zenPacks]
         if zenPackIds:
             ZPEvent(dmd, 2, 'Installed ZenPacks %s' % ','.join(zenPackIds))
-        else:
+        elif not nonCriticalErrorEncountered:
             ZPEvent(dmd, 4, 'Unable to install %s' % eggPath)
     return zenPacks
 
@@ -408,25 +419,38 @@ def InstallDistAsZenPack(dmd, dist, eggPath, link=False, filesOnly=False,
             zenPack.install(dmd)
             zenPack.prevZenPackVersion = None
                 
-        zenPack = dmd.ZenPackManager.packs._getOb(packName)
-        for p in packables:
-            pId = p.getPrimaryId()
-            try:
-                #make sure packable still exists; could be deleted by a migrate
-                getObjByPath(dmd, pId)
-                log.debug("adding packable relation for id %s", pId)
-                zenPack.packables.addRelation(p)
-            except (KeyError, zExceptions.NotFound):
-                log.debug('did not find packable %s',pId)
-        if deferFileDeletion:
-            # We skipped deleteing the existing files from filesystem
-            # because maybe they'd be needed in migrate scripts.
-            # Delete them now
-            oldZpDir = zenPath('Products', existing.id)
-            if os.path.islink(oldZpDir):
-                os.remove(oldZpDir)
-            else:
-                shutil.rmtree(oldZpDir)
+        
+        try:
+            zenPack = dmd.ZenPackManager.packs._getOb(packName)
+            for p in packables:
+                pId = p.getPrimaryId()
+                try:
+                    #make sure packable still exists; could be deleted by a migrate
+                    getObjByPath(dmd, pId)
+                    log.debug("adding packable relation for id %s", pId)
+                    zenPack.packables.addRelation(p)
+                except (KeyError, zExceptions.NotFound):
+                    log.debug('did not find packable %s',pId)
+            if deferFileDeletion:
+                # We skipped deleting the existing files from filesystem
+                # because maybe they'd be needed in migrate scripts.
+                # Delete them now
+                oldZpDir = zenPath('Products', existing.id)
+                if os.path.islink(oldZpDir):
+                    os.remove(oldZpDir)
+                else:
+                    shutil.rmtree(oldZpDir)
+        except AttributeError:
+            # This is the signature error of class-loading issues
+            # during zenpack upgrade.  The final state should be okay,
+            # except that modified packables may be lost.
+            message = "There has been an error during the post-" + \
+                      "installation steps for the zenpack %s.  In most " + \
+                      "cases, no further action is required.  If issues " + \
+                      "persist, please reinstall this zenpack."
+            message = message % packName
+            log.warning( message )
+            raise NonCriticalInstallError( message )
 
     cleanupSkins(dmd)
     transaction.commit()
