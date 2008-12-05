@@ -144,6 +144,10 @@ class ActionRule(ZenModelRM, EventFilter):
         result = Set()
         result.update(re.findall("%\((\S+)\)s", self.format))
         result.update(re.findall("%\((\S+)\)s", self.body))
+        result.update([ f for f in re.findall("%\((\S+)\)s", self.clearFormat) \
+            if not f.startswith('clear') ])
+        result.update([ f for f in re.findall("%\((\S+)\)s", self.clearBody) \
+            if not f.startswith('clear') ])
         result.update(map(_downcase, re.findall("%\(clear(\S+)\)s", self.clearFormat)))
         result.update(map(_downcase, re.findall("%\(clear(\S+)\)s", self.clearBody)))
         notDb = Set('orEventSummary eventUrl eventsUrl ackUrl deleteUrl severityString'.split())
