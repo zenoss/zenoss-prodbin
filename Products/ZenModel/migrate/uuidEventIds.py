@@ -20,7 +20,6 @@ See http://dev.zenoss.org/trac/ticket/3696 for more details.
 import Migrate
 
 from MySQLdb import OperationalError
-from MySQLdb.constants.ER import DUP_KEYNAME
 
 affected_columns = [
   ('status', 'evididx', 'evid'),
