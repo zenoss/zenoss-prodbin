@@ -12,17 +12,15 @@
 ###########################################################################
 
 __doc__="""Exceptions
-
-$Id: Exceptions.py,v 1.3 2003/09/25 15:04:19 edahl Exp $"""
-
-__version__ = "$Revision: 1.3 $"[11:-2]
+Common exceptions for data collectors
+"""
 
 from Products.ZenUtils.Exceptions import ZentinelException
 
 class DataCollectorError(ZentinelException): pass
 
 class ObjectCreationError(DataCollectorError):
-    "failed to create a related object while appling maps"
+    "Failed to create a related object while appling maps"
     pass
 
 class LoginFailed(DataCollectorError):
@@ -30,21 +28,21 @@ class LoginFailed(DataCollectorError):
     pass
 
 class CommandTimeout(DataCollectorError):
-    "full command response was not received before timeout was reached"
+    "Full command response was not received before timeout was reached"
     pass
 
 class StateTimeout(DataCollectorError): 
-    "a timeout occured while we were waiting for some data"
+    "A timeout occured while we were waiting for some data"
     pass
 
 class NoServerFound(DataCollectorError): 
-    "no telnet or ssh server found on a machine at the given port"
+    "No telnet or ssh server found on a machine at the given port"
     pass
 
 class CommandNotFound(DataCollectorError): 
-    "no command found to run"
+    "No command found to run"
     pass
 
 class NoValidConnection(DataCollectorError):
-    "no valid connection found to make"
+    "No valid connection found to make"
     pass

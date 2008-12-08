@@ -11,13 +11,5 @@
 #
 ###########################################################################
 
-"""__init__
-
-Initializer for netcool connector product
-
-$Id: __init__.py,v 1.2 2003/10/01 20:56:37 edahl Exp $"""
-
-__version__ = "$Revision: 1.2 $"[11:-2]
-
 def initialize(registrar):
     pass

@@ -32,7 +32,8 @@ from twisted.internet import protocol
 from BaseClient import BaseClient
 
 class CollectorClient(BaseClient, protocol.ClientFactory):
-    """Data collector client class to be subclassed by different types
+    """
+    Data collector client class to be subclassed by different types
     collector protocols
     """
     
@@ -41,7 +42,25 @@ class CollectorClient(BaseClient, protocol.ClientFactory):
     
     def __init__(self, hostname, ip, port, plugins=None, options=None, 
                     device=None, datacollector=None, alog=None):
-        """Gather our required zProperties
+        """
+        Gather our required zProperties
+
+        @param hostname: name of the remote device
+        @type hostname: string
+        @param ip: IP address of the remote device
+        @type ip: string
+        @param port: IP port number to listen on
+        @type port: integer
+        @param plugins: plugins to run
+        @type plugins: list
+        @param options: optparse options
+        @type options: optparse options object
+        @param device: DMD device object
+        @type device: device object
+        @param datacollector: datacollector
+        @type datacollector: datacollector object
+        @param alog: Python logging class object
+        @type alog: Python logging class object
         """
         BaseClient.__init__(self, device, datacollector)
         from Products.ZenUtils.Utils import unused
@@ -100,7 +119,11 @@ class CollectorClient(BaseClient, protocol.ClientFactory):
 
     
     def addCommand(self, command):
-        """Add a command to the list of commands to gather data
+        """
+        Add a command to the list of commands to gather data
+
+        @param command: command
+        @type command: string
         """
         if type(command) == type(''):
             self._commands.append(command)
@@ -109,31 +132,51 @@ class CollectorClient(BaseClient, protocol.ClientFactory):
 
 
     def addResult(self, command, data, exitCode):
-        """Add a result pair to the results store
+        """
+        Add a result pair to the results store
+
+        @param command: command
+        @type command: string
+        @param data: results of running the command
+        @type data: string
+        @param exitCode: exit code from executing the command
+        @type exitCode: integer
         """
         plugin = self.cmdmap.get(command, command)
         self.results.append((plugin, data))
 
   
     def getCommands(self):
-        """The commands which we will use to collect data
+        """
+        The commands which we will use to collect data
+
+        @return: commands
+        @rtype: list of strings
         """
         return self._commands
 
 
     def getResults(self):
-        """Return all of the results we have collected so far
+        """
+        Return all of the results we have collected so far
+
+        @return: results
+        @rtype: list of strings
         """
         return self.results
 
 
     def commandsFinished(self):
-        """Called by protocol to see if all commands have been run"""
+        """
+        Called by protocol to see if all commands have been run
+        """
         return len(self.results) == len(self._commands)
 
 
     def clientFinished(self):
-        """Tell the datacollector that we are all done"""
+        """
+        Tell the datacollector that we are all done
+        """
         log.info("command client finished collection for %s",self.hostname)
         self.cmdindex = 0
         if self.datacollector:
@@ -141,8 +184,18 @@ class CollectorClient(BaseClient, protocol.ClientFactory):
 
         
 
-def buildOptions(parser=None, usage=None):
-    "Build a list of command-line options we will accept"
+def bjuildOptions(parser=None, usage=None):
+    """
+    Build a list of command-line options we will accept
+
+    @param parser: optparse parser
+    @type parser: optparse object
+    @param usage: description of how to use the program
+    @type usage: string
+    @return: optparse parser
+    @rtype: optparse object
+    """
+
    
     #Default option values
     if os.environ.has_key('USER'):
@@ -209,7 +262,15 @@ def buildOptions(parser=None, usage=None):
 
 
 def parseOptions(parser, port):
-    """Option parser
+    """
+    Command-line option parser
+
+    @param parser: optparse parser
+    @type parser: optparse object
+    @param port: IP port number to listen on
+    @type port: integer
+    @return: parsed options
+    @rtype: object
     """
     options, args = parser.parse_args()
     if len(args) < 2: 

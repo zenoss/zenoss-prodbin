@@ -11,6 +11,10 @@
 #
 ###########################################################################
 
+__doc__ = """PythonClient
+Python performance data collector client
+"""
+
 import logging
 log = logging.getLogger("zen.PythonClient")
 
@@ -21,8 +25,22 @@ from twisted.internet.defer import Deferred, DeferredList
 from twisted.python.failure import Failure
 
 class PythonClient(BaseClient):
+    """
+    Implement the DataCollector Client interface for Python
+    """
+
 
     def __init__(self, device=None, datacollector=None, plugins=[]):
+        """
+        Initializer
+
+        @param device: remote device to use the datacollector
+        @type device: device object
+        @param datacollector: performance data collector object
+        @type datacollector: datacollector object
+        @param plugins: Python-based performance data collector plugin
+        @type plugins: list of plugin objects
+        """
         BaseClient.__init__(self, device, datacollector)
         self.hostname = device.id
         self.plugins = plugins
@@ -30,11 +48,12 @@ class PythonClient(BaseClient):
 
 
     def run(self):
-        """Start Python collection.
+        """
+        Start Python collection.
         """
         deferreds = []
         for plugin in self.plugins:
-            log.debug("running collection for plugin %s", plugin.name())
+            log.debug("Running collection for plugin %s", plugin.name())
             r = plugin.collect(self.device, log)
             if isinstance(r, Deferred):
                 deferreds.append(r)
@@ -48,6 +67,15 @@ class PythonClient(BaseClient):
 
 
     def collectComplete(self, r, plugin):
+        """
+        Twisted deferred error callback used to store the
+        results of the collection run
+
+        @param r: result from the collection run
+        @type r: result or Exception
+        @param plugin: Python-based performance data collector plugin
+        @type plugin: plugin object
+        """
         if plugin is None:
             self.clientFinished()
             return
@@ -60,10 +88,20 @@ class PythonClient(BaseClient):
 
 
     def clientFinished(self):
-        log.info("python client finished collection for %s" % self.device.id)
+        """
+        Stop the collection of performance data
+        """
+        log.info("Python client finished collection for %s" % self.device.id)
         if self.datacollector:
             self.datacollector.clientFinished(self)
 
 
     def getResults(self):
+        """
+        Return the results of the data collection.
+        To be implemented by child classes
+
+        @return: list of results
+        @rtype: list of results
+        """
         return self.results
