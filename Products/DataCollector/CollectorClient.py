@@ -184,7 +184,7 @@ class CollectorClient(BaseClient, protocol.ClientFactory):
 
         
 
-def bjuildOptions(parser=None, usage=None):
+def buildOptions(parser=None, usage=None):
     """
     Build a list of command-line options we will accept
 
