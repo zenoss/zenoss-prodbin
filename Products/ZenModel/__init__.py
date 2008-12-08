@@ -24,10 +24,7 @@ the class factory must be a function at the module level called
 manage_add + class name (ie manage_addDevice)
 
 If there is an icon for the product it should be called class name + _icon.gif
-
-$Id: __init__.py,v 1.50 2004/04/06 02:19:04 edahl Exp $"""
-
-__version__ = "$Revision: 1.50 $"[11:-2]
+"""
 
 import os
 import logging
