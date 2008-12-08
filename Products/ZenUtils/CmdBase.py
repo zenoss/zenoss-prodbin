@@ -131,8 +131,8 @@ class CmdBase:
         if not self.parser:
             from Products.ZenModel.ZenossInfo import ZenossInfo
             try:
-                zinfo= ZenossInfo()
-                version= zinfo.getZenossVersion()
+                zinfo= ZenossInfo('')
+                version= str(zinfo.getZenossVersion())
             except:
                 from Products.ZenModel.ZVersion import VERSION
                 version= VERSION
