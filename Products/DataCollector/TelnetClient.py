@@ -11,9 +11,9 @@
 #
 ###########################################################################
 
-__doc__="""TelnetSession
+__doc__="""TelnetClient
 
-TelnetSession is used by TelnetSession to issue commands to a machine
+TelnetClient is used by TelnetClient to issue commands to a machine
 and return their output over the telnet protocol.
 
 Device Tree Parameters are:
@@ -25,7 +25,7 @@ zTelnetCommandTimeout - default timeout when executing a command default: 5
 zTelnetLoginRegex - regex to match the login prompt default: 'ogin:.$'
 zTelnetPasswordRegex - regext to match the password prompt default: 'assword:.$'
 
-Other Parameters that are used by both TelnetSession and SshTransport:
+Other Parameters that are used by both TelnetClient and SshClient:
 zCommandPathList - list of path to check for a command
 zCommandExistanceCheck - shell command issued to look for executible
                         must echo succ if executible is found
