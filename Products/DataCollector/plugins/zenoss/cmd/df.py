@@ -30,7 +30,7 @@ class df(CommandPlugin):
     oses = ['Linux', 'Darwin', 'SunOS']
 
     def condition(self, device, log):
-        return device.os.uname in self.oses
+        return device.os.uname == '' or device.os.uname in self.oses
 
 
     def process(self, device, results, log):
