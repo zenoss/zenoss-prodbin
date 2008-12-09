@@ -23,12 +23,11 @@ from Products.ZenUtils.ZenDaemon import ZenDaemon
 from Products.ZenEvents.ZenEventClasses import Heartbeat
 from Products.ZenUtils.PBUtil import ReconnectingPBClientFactory
 from Products.ZenUtils.DaemonStats import DaemonStats
-from Products.ZenUtils.Driver import drive, driveLater
+from Products.ZenUtils.Driver import drive
 
 from twisted.cred import credentials
 from twisted.internet import reactor, defer
 from twisted.internet.error import ConnectionLost
-from twisted.python.failure import Failure
 from twisted.spread import pb
 
 class RemoteException(Exception, pb.Copyable, pb.RemoteCopy):
