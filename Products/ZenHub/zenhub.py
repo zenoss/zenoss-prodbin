@@ -432,6 +432,7 @@ class ZenHub(ZCmdBase):
     def giveWorkToWorkers(self):
         """Parcel out a method invocation to an available worker process
         """
+        self.log.debug("worklist has %d items", len(self.workList))
         while self.workList:
             for i, worker in enumerate(self.workers):
                 # linear search is not ideal, but simple enough

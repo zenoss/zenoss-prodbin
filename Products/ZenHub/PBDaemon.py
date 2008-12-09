@@ -23,6 +23,7 @@ from Products.ZenUtils.ZenDaemon import ZenDaemon
 from Products.ZenEvents.ZenEventClasses import Heartbeat
 from Products.ZenUtils.PBUtil import ReconnectingPBClientFactory
 from Products.ZenUtils.DaemonStats import DaemonStats
+from Products.ZenUtils.Driver import drive, driveLater
 
 from twisted.cred import credentials
 from twisted.internet import reactor, defer
@@ -197,9 +198,9 @@ class PBDaemon(ZenDaemon, pb.Referenceable):
         self.log.debug('run')
         d = self.connect()
         def callback(result):
-            self.log.debug('Calling connected.')
-            self.log.debug('connected')
             self.sendEvent(self.startEvent)
+            self.pushEventsLoop()
+            self.log.debug('Calling connected.')
             self.connected()
             return result
         d.addCallback(callback)
@@ -218,6 +219,9 @@ class PBDaemon(ZenDaemon, pb.Referenceable):
         self._customexitcode = exitcode
 
     def stop(self):
+        def stopNow(ignored):
+            if reactor.running:
+                reactor.stop()
         if reactor.running and not self.stopped:
             self.stopped = True
             if 'EventService' in self.services:
@@ -227,12 +231,9 @@ class PBDaemon(ZenDaemon, pb.Referenceable):
                    getattr(self.options, 'cycle', True):
                     self.sendEvent(self.stopEvent)
                 # give the reactor some time to send the shutdown event
-                # we could get more creative an add callbacks for event
-                # sends, which would mean we could wait longer, only as long
-                # as it took to send
-                reactor.callLater(1, reactor.stop)
-            else:
-                reactor.stop()
+                drive(self.pushEvents).addBoth(stopNow)
+                # but not too much time
+                reactor.callLater(1, stopNow)
 
     def sendEvents(self, events):
         map(self.sendEvent, events)
@@ -246,34 +247,42 @@ class PBDaemon(ZenDaemon, pb.Referenceable):
         event['agent'] = self.name
         event['manager'] = self.options.monitor
         event.update(kw)
-        self.log.debug("Sending event %r", event)
-        def errback(error, event):
-            # If we get an error when sending an event we add it back to the 
-            # queue.  This is great if the eventservice is just temporarily
-            # unavailable.  This is not so good if there is a problem with
-            # this event in particular, in which case we'll repeatedly 
-            # attempt to send it.  We need to do some analysis of the error
-            # before sticking event back in the queue.
-            #
-            # Maybe this is overkill and if we have an operable
-            # event service we should just log events that don't get sent
-            # and then drop them.
-            if reactor.running:
-                # don't complain if you get disconnected: you'll reconnect
-                if not (isinstance(error, Failure) and
-                        isinstance(error.value, ConnectionLost)):
-                    self.log.error('Error sending event: %s' % error)
-                self.eventQueue.append(event)
+        self.log.debug("Queueing event %r", event)
         if event:
             self.eventQueue.append(event)
-        evtSvc = self.services.get('EventService', None)
-        if evtSvc:
-            for i in range(len(self.eventQueue)):
-                event = self.eventQueue[0]
-                del self.eventQueue[0]
-                d = evtSvc.callRemote('sendEvent', event)
-                d.addErrback(errback, event)
 
+    def pushEventsLoop(self):
+        """Periodially, wake up and flush events to ZenHub.
+        """
+        reactor.callLater(5, self.pushEventsLoop)
+        drive(self.pushEvents)
+
+    def pushEvents(self, driver):
+        """Flush events to ZenHub.
+        """
+        try:
+            # are we already shutting down?
+            if not reactor.running:
+                return
+            # try to send everything we have, serially
+            while self.eventQueue:
+                # are still connected to ZenHub?
+                evtSvc = self.services.get('EventService', None)
+                if not evtSvc: break
+                # send the events in large bundles, carefully reducing
+                # the eventQueue in case we get in here more than once
+                events = self.eventQueue[:50]
+                self.eventQueue = self.eventQueue[50:]
+                # send the events and wait for the response
+                yield evtSvc.callRemote('sendEvents', events)
+                try:
+                    driver.next()
+                except ConnectionLost, ex:
+                    self.log.error('Error sending event: %s' % ex)
+                    self.eventQueue = events + self.eventQueue
+                    break
+        except Exception, ex:
+            self.log.exception(ex)
 
     def heartbeat(self):
         'if cycling, send a heartbeat, else, shutdown'
