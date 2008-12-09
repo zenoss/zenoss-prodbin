@@ -99,17 +99,21 @@ def clearWebLoggingStream(handler):
     rlog.removeHandler(handler)
 
 
-def convToUnits(numb, divby=1024.0, unitstr="B"):
+def convToUnits(number=0, divby=1024.0, unitstr="B"):
     """
     Convert a number to its human-readable form. ie: 4GB, 4MB, etc.
 
+        >>> convToUnits() # Don't do this!
+        '0.0B'
+        >>> convToUnits(None) # Don't do this!
+        ''
         >>> convToUnits(123456789)
         '117.7MB'
         >>> convToUnits(123456789, 1000, "Hz")
         '123.5MHz'
 
-    @param numb: base number
-    @type numb: number
+    @param number: base number
+    @type number: number
     @param divby: divisor to use to convert to appropriate prefix
     @type divby: number
     @param unitstr: base unit of the number
@@ -118,7 +122,11 @@ def convToUnits(numb, divby=1024.0, unitstr="B"):
     @rtype: string
     """
     units = map(lambda x:x + unitstr, ('','K','M','G','T','P'))
-    numb = float(numb)
+    try:
+        numb = float(number)
+    except:
+        return ''
+
     sign = 1
     if numb < 0:
         numb = abs(numb)
