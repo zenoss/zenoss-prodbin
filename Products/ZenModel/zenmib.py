@@ -416,7 +416,11 @@ class zenmib(ZCmdBase):
         Main loop of the program
         """
         # Prepare to load the default MIBs
-        smimibdir = zenPath('share/mibs')
+        smimibdir = self.options.mibsdir
+        if not os.path.exists( smimibdir ):
+            self.log.error("The directory %s doesn't exist!" % smimibdir )
+            sys.exit(1)
+
         ietf, iana, irtf, tubs, site = \
               map(lambda x: os.path.join(smimibdir, x),
                   'ietf iana irtf tubs site'.split())
@@ -457,6 +461,9 @@ class zenmib(ZCmdBase):
         Command-line options
         """
         ZCmdBase.buildOptions(self)
+        self.parser.add_option('--mibsdir', 
+                               dest='mibsdir', default=zenPath('share/mibs'),
+                               help="Directory of input MIB files [ default: %default ]")
         self.parser.add_option('--path', 
                                dest='path', default="/",
                                help="Path to load MIB into the DMD")
