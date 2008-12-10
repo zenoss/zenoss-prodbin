@@ -11,6 +11,16 @@
 #
 ###########################################################################
 
+__doc__ = """ZenPack
+ZenPacks base definitions
+"""
+
+import exceptions
+import string
+import subprocess
+import os
+import sys
+
 from Globals import InitializeClass
 from Products.ZenModel.ZenModelRM import ZenModelRM
 from Products.ZenRelations.RelSchema import *
@@ -21,14 +31,9 @@ from Products.ZenUtils.PkgResources import pkg_resources
 from Products.ZenModel.ZenPackLoader import *
 from AccessControl import ClassSecurityInfo
 from ZenossSecurity import ZEN_MANAGE_DMD
-import exceptions
-import string
-import subprocess
 from Acquisition import aq_parent
-import os, sys
 from Products.ZenModel.ZVersion import VERSION as ZENOSS_VERSION
 
-__doc__="ZenPacks base definitions"
 
 
 class ZenPackException(exceptions.Exception):
@@ -55,8 +60,29 @@ class Version(VersionBase):
 
 
 def eliminateDuplicates(objs):
+    """
+    Given a list of objects, return the sorted list of unique objects
+    where uniqueness is based on the getPrimaryPath() results.
+
+    @param objs: list of objects
+    @type objs: list of objects
+    @return: sorted list of objects
+    @rtype: list of objects
+    """
+
     def compare(x, y):
+        """
+        Comparison function based on getPrimaryPath()
+
+        @param x: object
+        @type x: object
+        @param y: object
+        @type y: object
+        @return: cmp-style return code
+        @rtype: numeric
+        """
         return cmp(x.getPrimaryPath(), y.getPrimaryPath())
+
     objs.sort(compare)
     result = []
     for obj in objs:
@@ -70,11 +96,28 @@ def eliminateDuplicates(objs):
 
 
 class ZenPackMigration:
+    """
+    Base class for defining migration methods
+    """
     version = Version(0, 0, 0)
     
-    def migrate(self, pack): pass
-    
-    def recover(self, pack): pass
+    def migrate(self, pack):
+        """
+        ZenPack-specific migrate() method to be overridden
+
+        @param pack: ZenPack object
+        @type pack: ZenPack object
+        """
+        pass
+     
+    def recover(self, pack):
+        """
+        ZenPack-specific recover() method to be overridden
+
+        @param pack: ZenPack object
+        @type pack: ZenPack object
+        """
+        pass
     
     
 
@@ -96,6 +139,12 @@ class ZenPackDataSourceMigrateBase(ZenPackMigration):
     reIndex = False
     
     def migrate(self, pack):
+        """
+        Attempt to import oidDsModuleName and then any templates
+
+        @param pack: ZenPack object
+        @type pack: ZenPack object
+        """
         if self.oldDsModuleName and self.oldDsClassName and self.dsClass:
             try:
                 exec('import %s' % self.oldDsModuleName)
@@ -116,8 +165,10 @@ class ZenPackDataSourceMigrateBase(ZenPackMigration):
                     
 
 class ZenPack(ZenModelRM):
-    '''The root of all ZenPacks: has no implementation,
-    but sits here to be the target of the Relation'''
+    """
+    The root of all ZenPacks: has no implementation,
+    but sits here to be the target of the Relation
+    """
 
     objectPaths = None
     
@@ -142,12 +193,15 @@ class ZenPack(ZenModelRM):
                 
     _properties = ZenModelRM._properties + (
         {'id':'objectPaths','type':'lines','mode':'w'},
-        {'id':'version', 'type':'string', 'mode':'w'},
-        {'id':'author', 'type':'string', 'mode':'w'},
-        {'id':'organization', 'type':'string', 'mode':'w'},
-        {'id':'url', 'type':'string', 'mode':'w'},
-        {'id':'license', 'type':'string', 'mode':'w'},
-        {'id':'compatZenossVers', 'type':'string', 'mode':'w'},
+        {'id':'version', 'type':'string', 'mode':'w', 'description':'ZenPack version'},
+        {'id':'author', 'type':'string', 'mode':'w', 'description':'ZenPack author'},
+        {'id':'organization', 'type':'string', 'mode':'w',
+              'description':'Sponsoring organization for the ZenPack'},
+        {'id':'url', 'type':'string', 'mode':'w', 'description':'Homepage for the ZenPack'},
+        {'id':'license', 'type':'string', 'mode':'w',
+              'description':'Name of the license under which this ZenPack is available'},
+        {'id':'compatZenossVers', 'type':'string', 'mode':'w',
+              'description':'Which Zenoss versions can load this ZenPack'},
     )
 
     _relations =  (
@@ -186,6 +240,12 @@ class ZenPack(ZenModelRM):
 
 
     def install(self, app):
+        """
+        Stop daemons, load any loaders, create zProperties, migrate and start daemons
+
+        @param app: ZenPack
+        @type app: ZenPack object
+        """
         self.stopDaemons()
         for loader in self.loaders:
             loader.load(self, app)
@@ -202,6 +262,9 @@ class ZenPack(ZenModelRM):
         NB: Newer ZenPacks (egg style) do not use this upgrade method.  Instead
         the proper method is to remove(leaveObjects=True) and install again.
         See ZenPackCmd.InstallDistAsZenPack().
+
+        @param app: ZenPack
+        @type app: ZenPack object
         """
         self.stopDaemons()
         for loader in self.loaders:
@@ -217,6 +280,11 @@ class ZenPack(ZenModelRM):
         the instance from ZenPackManager.packs  This is sometimes called during 
         the course of an upgrade where the loaders' unload methods need to
         be run.
+
+        @param app: ZenPack
+        @type app: ZenPack object
+        @param leaveObjects: remove zProperties and things?
+        @type leaveObjects: boolean
         """
         self.stopDaemons()
         for loader in self.loaders:
@@ -227,6 +295,12 @@ class ZenPack(ZenModelRM):
         
 
     def migrate(self, previousVersion=None):
+        """
+        Migrate to a new version
+
+        @param previousVersion: previous version number
+        @type previousVersion: string
+        """
         instances = []
         # find all the migrate modules
         root = self.path("migrate")
@@ -268,6 +342,14 @@ class ZenPack(ZenModelRM):
 
 
     def list(self, app):
+        """
+        Show the list of loaders
+
+        @param app: ZenPack
+        @type app: ZenPack object
+        @return: list of loaders
+        @rtype: list of objects
+        """
         result = []
         for loader in self.loaders:
             result.append((loader.name,
@@ -276,12 +358,24 @@ class ZenPack(ZenModelRM):
         
         
     def createZProperties(self, app):
+        """
+        Create zProperties in the ZenPack's self.packZProperties
+
+        @param app: ZenPack
+        @type app: ZenPack object
+        """
         for name, value, pType in self.packZProperties:
             if not app.zport.dmd.Devices.hasProperty(name):
                 app.zport.dmd.Devices._setProperty(name, value, pType)
         
         
     def removeZProperties(self, app):
+        """
+        Remove any zProperties defined in the ZenPack
+
+        @param app: ZenPack
+        @type app: ZenPack object
+        """
         for name, value, pType in self.packZProperties:
             app.zport.dmd.Devices._delProperty(name)
 
@@ -290,6 +384,9 @@ class ZenPack(ZenModelRM):
         """
         Delete all objects in the zenPackPersistence catalog that are
         associated with this zenpack.
+
+        @param app: ZenPack
+        @type app: ZenPack object
         """
         objects = self.getCatalogedObjects()
         for o in objects:
@@ -402,6 +499,14 @@ class ZenPack(ZenModelRM):
     def manage_exportPack(self, download="no", REQUEST=None):
         """
         Export the ZenPack to the /export directory
+
+        @param download: download to client's desktop? ('yes' vs anything else)
+        @type download: string
+        @type download: string
+        @param REQUEST: Zope REQUEST object
+        @type REQUEST: Zope REQUEST object
+        @todo: make this more modular
+        @todo: add better XML headers
         """
         if not self.isDevelopment():
             msg = 'Only ZenPacks installed in development mode can be exported.'
@@ -414,8 +519,10 @@ class ZenPack(ZenModelRM):
         xml = StringIO()
         
         # Write out packable objects
+        # TODO: When the DTD gets created, add the reference here
         xml.write("""<?xml version="1.0"?>\n""")
         xml.write("<objects>\n")
+
         packables = eliminateDuplicates(self.packables())
         for obj in packables:
             # obj = aq_base(obj)
@@ -517,6 +624,9 @@ registerDirectory("skins", globals())
     def manage_download(self, REQUEST):
         """
         Download the already exported zenpack from $ZENHOME/export
+
+        @param REQUEST: Zope REQUEST object
+        @type REQUEST: Zope REQUEST object
         """
         if self.isEggPack():
             filename = self.eggName()
@@ -561,9 +671,9 @@ registerDirectory("skins", globals())
         return self._getClassesByPath('thresholds')
 
     def getFilenames(self):
-        '''
+        """
         Get the filenames of a ZenPack exclude .svn, .pyc and .xml files 
-        '''
+        """
         filenames = []
         for root, dirs, files in os.walk(self.path()):
             if root.find('.svn') == -1:
@@ -633,9 +743,9 @@ registerDirectory("skins", globals())
     def isDevelopment(self):
         """
         Return True if
-        1) the pack is an old-style zenpack (not a python egg)
+        1) the pack is an old-style ZenPack (not a Python egg)
         or
-        2) the pack is a python egg and is a source install (includes a
+        2) the pack is a Python egg and is a source install (includes a
         setup.py file)
 
         Returns False otherwise.
