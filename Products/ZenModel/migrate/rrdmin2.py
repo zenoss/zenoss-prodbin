@@ -23,7 +23,7 @@ def _cutoverTemplate(template):
 def _convertFile(filename):
     import rrdtool
     try:
-        if rrdtool.info(filename)['ds']['ds0']['type'] == 'COUNTER':
+        if rrdtool.info(filename)['ds[ds0].type'] == 'COUNTER':
             rrdtool.tune(filename,
                          '-d', 'ds0:DERIVE',
                          '-i', 'ds0:0')

@@ -178,7 +178,7 @@ class MinMaxThresholdInstance(ThresholdInstance):
         if dp in self._rrdInfoCache:
             return self._rrdInfoCache[dp]
         data = rrdtool.info(self.context().path(dp))
-        value = data['step'], data['ds']['ds0']['type']
+        value = data['step'], data['ds[ds0].type']
         self._rrdInfoCache[dp] = value
         return value
 

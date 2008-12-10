@@ -23,6 +23,7 @@ from Products.ZenModel.PerformanceConf import performancePath
 from Products.ZenUtils.ZCmdBase import ZCmdBase
 
 import os
+from itertools import *
 import rrdtool
 import logging
 log = logging.getLogger('zen.updateStep')
@@ -48,7 +49,7 @@ class UpdateStep(ZCmdBase):
                              '--end', str(end))
         (start, end, resolution), unused, data = data
         rnd = lambda x: x
-        if info['ds']['ds0']['type'] == 'COUNTER':
+        if info['ds[ds0].type'] == 'COUNTER':
             rnd = lambda x: int(x+0.5)
         result = []
         for i, (v,) in enumerate(data):
@@ -64,23 +65,34 @@ class UpdateStep(ZCmdBase):
                                '.' + os.path.basename(fullpath))
         # get type, old step
         info = rrdtool.info(fullpath)
-        dataType = info['ds']['ds0']['type']
-        rra = info['rra']
+        dataType = info['ds[ds0].type']
+
         try:
             os.unlink(newpath)
         except OSError:
             pass
+
+        rraList = []
+        for rraIndex in count():
+            rra = {}
+            rra['pdp_per_row'] = info.get('rra[%s].pdp_per_row' % rraIndex)
+            rra['rows'] = info.get('rra[%s].rows' % rraIndex)
+            if rra['pdp_per_row'] is None or rra['rows'] is None:
+                break
+            rraList.append(rra)
+
         # Collect some information about the current file:
         # how far back can the data go?
-        earliest = start = info['last_update']
+        earliest = info['last_update']
+
         # how wide is the biggest data point?
         biggest = 0
-        for rra in info['rra']:
-            step = info['step']
-            pdp_per_row = rra['pdp_per_row']
-            rows = rra['rows']
-            earliest = min(earliest, start - pdp_per_row*step*rows)
-            biggest = max(biggest, pdp_per_row*step)
+            
+        for rra in rraList:
+            size = rra['pdp_per_row'] * info['step']
+            earliest = min(earliest, info['last_update'] - rra['rows'] * size)
+            biggest = max(biggest, size)
+            
         # create a file with the correct step to accept the data
         rrdtool.create(
             newpath,
@@ -88,10 +100,13 @@ class UpdateStep(ZCmdBase):
             '--start', str(earliest),
             '--step', str(self.options.step),
             *self.defaultRRDCommand.split())
+            
         # extract the time and values from each archive
         updates = {}
-        for rra in info['rra']:
+        
+        for rra in rraList:            
             self.processRRA(fullpath, rra, info, updates)
+            
         # get the times in order
         updates = updates.items()
         updates.sort()
