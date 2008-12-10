@@ -1609,21 +1609,37 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
         Rename device from the DMD
 
         @permission: ZEN_ADMIN_DEVICE
+        @param newId: new name
+        @type newId: string
+        @param REQUEST: Zope REQUEST object
+        @type REQUEST: Zope REQUEST object
         """
-        if newId:
-            if not isinstance(newId, unicode):
-                newId = self.prepId(newId)
-            parent = self.getPrimaryParent()
-            oldId=self.getId()
-            
-            # side effect: self.getId() will return newId after this call
-            parent.manage_renameObject(oldId, newId)
-            
-            self.renameDeviceInEvents(oldId, newId)
-            self.renameDeviceInPerformance(oldId, newId)
-            self.setLastChange()
+        parent = self.getPrimaryParent()
+        oldId = self.getId()
+        if newId is None:
+            if REQUEST:
+                REQUEST['RESPONSE'].redirect("%s/%s" % (parent.absolute_url(), oldId))
+            return
+
+        if not isinstance(newId, unicode):
+            newId = self.prepId(newId)
+
+        newId = newId.strip()
+
+        if newId == '' or newId == oldId:
+            if REQUEST:
+                REQUEST['RESPONSE'].redirect("%s/%s" % (parent.absolute_url(), oldId))
+            return
+
+        # side effect: self.getId() will return newId after this call
+        parent.manage_renameObject(oldId, newId)
+
+        self.renameDeviceInEvents(oldId, newId)
+        self.renameDeviceInPerformance(oldId, newId)
+        self.setLastChange()
+
         if REQUEST: 
-            REQUEST['message'] = "Device %s renamed to %s" % (self.getId(), newId)
+            REQUEST['message'] = "Device %s renamed to %s" % (oldId, newId)
             REQUEST['RESPONSE'].redirect("%s/%s" % (parent.absolute_url(), newId))
 
 
