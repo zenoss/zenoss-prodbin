@@ -1119,6 +1119,10 @@ def ipsort(a, b):
     @return: result of cmp(a.ip,b.ip)
     @rtype: boolean
     """
+    # Use 0.0.0.0 instead of blank string
+    if not a: a = "0.0.0.0"
+    if not b: b = "0.0.0.0"
+    
     # Strip off netmasks
     a, b = map(lambda x:x.rsplit("/")[0], (a, b))
     return cmp(*map(socket.inet_aton, (a, b)))
