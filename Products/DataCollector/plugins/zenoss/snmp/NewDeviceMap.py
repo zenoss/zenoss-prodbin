@@ -50,6 +50,9 @@ class NewDeviceMap(SnmpPlugin):
 
         #IBM PowerPC CHRP Computer Machine Type: 0x0800004c Processor id: 000919754C00 Base Operating System Runtime AIX version: 05.02.0000.0050 TCP/IP Client Support version: 05.02.0000.0051
         re.compile(r'^(IBM).*(AIX.*) TCP'),
+        
+        # Lantronix SLC
+        re.compile(r'(SLC\d+), (Firmware Version .+)'),
    
         #GENERIC unix
         re.compile(r'(\S+) \S+ (\S+)'),                 # unix
