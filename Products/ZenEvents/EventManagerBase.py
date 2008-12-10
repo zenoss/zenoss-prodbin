@@ -1757,16 +1757,47 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
         self.dmd.ZenEventHistory.clearCache('evid' + evid)
         if REQUEST: return self.callZenScreen(REQUEST)
 
+
     security.declareProtected('Manage EventManager', 'manage_addCommand')
     def manage_addCommand(self, id, REQUEST=None):
-        "add a new EventCommand"
+        """
+        Add a new EventCommand
+
+        @param id: new command name
+        @type id: string
+        @param REQUEST: Zope REQUEST object
+        @type REQUEST: Zope REQUEST object
+        """
+        if id is None:
+            if REQUEST:
+                return self.callZenScreen(REQUEST)
+            return
+
+        if not isinstance(id, unicode):
+            id = self.prepId(id)
+
+        id = id.strip()
+        if id == '':
+            if REQUEST:
+                return self.callZenScreen(REQUEST)
+            return
+
         ec = EventCommand(id)
         self.commands._setObject(id, ec)
-        if REQUEST: return self.callZenScreen(REQUEST)
+        if REQUEST:
+            return self.callZenScreen(REQUEST)
+
 
     security.declareProtected('Manage EventManager', 'manage_deleteCommands')
-    def manage_deleteCommands(self, ids, REQUEST=None):
-        "add a new EventCommand"
+    def manage_deleteCommands(self, ids=[], REQUEST=None):
+        """
+        Delete an EventCommand
+
+        @param ids: commands to delete
+        @type ids: list of strings
+        @param REQUEST: Zope REQUEST object
+        @type REQUEST: Zope REQUEST object
+        """
         for id in ids:
             self.commands._delObject(id)
         if REQUEST: return self.callZenScreen(REQUEST)
