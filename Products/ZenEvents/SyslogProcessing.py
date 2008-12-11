@@ -11,11 +11,9 @@
 #
 ###########################################################################
 
-__doc__='''SyslogProcessing
-
+__doc__ = """SyslogProcessing
 Class for turning syslog events into Zenoss Events
-
-'''
+"""
 
 import re
 import logging
@@ -53,6 +51,8 @@ r"(?P<component>\S+): (?P<summary>.*)",
 # adtran devices
 r"^(?P<deviceModel>[^\[]+)\[(?P<deviceManufacturer>ADTRAN)\]:(?P<component>[^\|]+\|\d+\|\d+)\|(?P<summary>.*)",
 
+r"^date=.+ (?P<summary>devname=.+ log_id=(?P<eventClassKey>\d+) type=(?P<component>\S+).+)",
+
 # proprietary message passing system
 r"^(?P<component>\S+)(\.|\s)[A-Z]{3} \d \S+ \d\d:\d\d:\d\d-\d\d:\d\d:\d\d \d{5} \d{2} \d{5} \S+ \d{4} \d{3,5} (- )*(?P<summary>.*) \d{4} \d{4}",
 ) 
@@ -60,12 +60,34 @@ r"^(?P<component>\S+)(\.|\s)[A-Z]{3} \d \S+ \d\d:\d\d:\d\d-\d\d:\d\d:\d\d \d{5} 
 # compile regex parsers on load
 compiledParsers = []
 for regex in parsers:
-    compiledParsers.append(re.compile(regex)) 
+    try:
+        compiled = re.compile(regex)
+        compiledParsers.append(compiled) 
+    except:
+        pass
 
 
 class SyslogProcessor(object):
+    """
+    Class to process syslog messages and convert them into events viewable
+    in the Zenoss event console.
+    """
 
     def __init__(self,sendEvent,minpriority,parsehost,monitor,defaultPriority): 
+        """
+        Initializer
+
+        @param sendEvent: message from a remote host
+        @type sendEvent: string
+        @param minpriority: ignore anything under this priority
+        @type minpriority: integer
+        @param parsehost: hostname where this parser is running
+        @type parsehost: string
+        @param monitor: name of the distributed collector monitor
+        @type monitor: string
+        @param defaultPriority: priority to use if it can't be understood from the received packet
+        @type defaultPriority: integer
+        """
         self.minpriority = minpriority
         self.parsehost = parsehost
         self.sendEvent = sendEvent
@@ -74,6 +96,18 @@ class SyslogProcessor(object):
 
 
     def process(self, msg, ipaddr, host, rtime):
+        """
+        Process an event from syslog and convert to a Zenoss event
+
+        @param msg: message from a remote host
+        @type msg: string
+        @param ipaddr: IP address of the remote host
+        @type ipaddr: string
+        @param host: remote host's name
+        @type host: string
+        @param rtime: time as reported by the remote host
+        @type rtime: string
+        """
         evt = dict(device=host,
                    ipAddress=ipaddr,
                    firstTime=rtime,
@@ -96,6 +130,13 @@ class SyslogProcessor(object):
     def parsePRI(self, evt, msg):
         """
         Parse RFC-3164 PRI part of syslog message to get facility and priority.
+
+        @param evt: dictionary of event properties
+        @type evt: dictionary
+        @param msg: message from host
+        @type msg: string
+        @return: tuple of dictionary of event properties and the message
+        @type: (dictionary, string)
         """
         pri = self.defaultPriority
         fac = None
@@ -115,7 +156,13 @@ class SyslogProcessor(object):
 
 
     def defaultSeverityMap(self, pri):
-        """Default mapping from syslog priority to severity.
+        """
+        Default mapping from syslog priority to severity.
+
+        @param pri: syslog priority from host
+        @type pri: integer
+        @return: numeric severity
+        @type: integer
         """
         sev = 1
         if pri < 3: sev = 5
@@ -129,8 +176,16 @@ class SyslogProcessor(object):
         re.compile("^(\S{3} [\d ]{2} [\d ]{2}:[\d ]{2}:[\d ]{2}) (.*)").search
     notHostSearch = re.compile("[\[:]").search
     def parseHEADER(self, evt, msg):
-        """Parse RFC-3164 HEADER part of syslog message.  TIMESTAMP format is:
+        """
+        Parse RFC-3164 HEADER part of syslog message.  TIMESTAMP format is:
         MMM HH:MM:SS and host is next token without the characters '[' or ':'.
+
+        @param evt: dictionary of event properties
+        @type evt: dictionary
+        @param msg: message from host
+        @type msg: string
+        @return: tuple of dictionary of event properties and the message
+        @type: (dictionary, string)
         """
         slog.debug(msg)
         m = re.sub("Kiwi_Syslog_Daemon \d+: \d+: "
@@ -156,8 +211,16 @@ class SyslogProcessor(object):
 
 
     def parseTag(self, evt, msg):
-        """Parse the RFC-3164 tag of the syslog message using the regex defined
+        """
+        Parse the RFC-3164 tag of the syslog message using the regex defined
         at the top of this module.
+
+        @param evt: dictionary of event properties
+        @type evt: dictionary
+        @param msg: message from host
+        @type msg: string
+        @return: dictionary of event properties
+        @type: dictionary
         """
         slog.debug(msg)
         for parser in compiledParsers:        
@@ -174,10 +237,16 @@ class SyslogProcessor(object):
 
 
     def buildEventClassKey(self, evt):
-        """Build the key used to find an events dictionary record. If eventClass
+        """
+        Build the key used to find an events dictionary record. If eventClass
         is defined it is used. For NT events "Source_Evid" is used. For other
         syslog events we use the summary of the event to perform a full text
         or'ed search.
+
+        @param evt: dictionary of event properties
+        @type evt: dictionary
+        @return: dictionary of event properties
+        @type: dictionary
         """
         if evt.has_key('eventClassKey') or evt.has_key( 'eventClass'):
             return evt
@@ -192,5 +261,5 @@ class SyslogProcessor(object):
             except:
                 evt['eventClassKey'] = evt['eventClassKey'].decode('utf-8')
         else:
-            slog.debug("no eventClassKey assigned")
+            slog.debug("No eventClassKey assigned")
         return evt

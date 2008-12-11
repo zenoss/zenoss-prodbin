@@ -19,6 +19,7 @@ class SyslogProcessingTest(TestCase):
     "FIXME: add more tests"
 
     def sendEvent(self, evt):
+        "Fakeout sendEvent() method"
         self.sent = evt
 
     def testBuildEventClassKey(self):
@@ -35,6 +36,16 @@ class SyslogProcessingTest(TestCase):
                      'component_1234')
         evt = dict(**base)
         self.assert_(s.buildEventClassKey(evt)['eventClassKey'] == 'component')
+
+    def testCheckFortigate(self):
+        "Test of Fortigate syslog message parsing"
+        msg = "date=xxxx devname=blue log_id=987654321 type=myComponent blah blah blah"
+        s = SyslogProcessor(self.sendEvent, 6, False, 'localhost', 3)
+        evt = s.parseTag( {}, msg )
+
+        self.assertEquals( evt.get( 'eventClassKey', '' ), '987654321' )
+        self.assertEquals( evt.get( 'component', '' ), 'myComponent' )
+        self.assertEquals( evt.get( 'summary', '' ), 'devname=blue log_id=987654321 type=myComponent blah blah blah' )
 
 
 def test_suite():
