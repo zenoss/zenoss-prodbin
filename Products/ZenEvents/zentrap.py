@@ -11,11 +11,11 @@
 #
 ###########################################################################
 
-__doc__='''zentrap
+__doc__ = """zentrap
 
 Creates events from SNMP Traps.
 
-'''
+"""
 
 import time
 import sys
@@ -75,7 +75,10 @@ expandableV1Prefixes = (
 
 
 class ZenTrap(EventServer):
-    'Listen for SNMP traps and turn them into events'
+    """
+    Listen for SNMP traps and turn them into events
+    Connects to the EventService service in zenhub.
+    """
 
     name = 'zentrap'
 
@@ -97,29 +100,64 @@ class ZenTrap(EventServer):
         self.session.callback = self.handleTrap
         twistedsnmp.updateReactor()
 
+
     def oid2name(self, oid, exactMatch=True, strip=False):
-        'get oid name from cache or ZenHub'
+        """
+        Get OID name from cache or ZenHub
+
+        @param oid: SNMP Object IDentifier
+        @type oid: string
+        @param exactMatch: unused
+        @type exactMatch: boolean
+        @param strip: unused
+        @type strip: boolean
+        @return Twisted deferred object
+        @rtype: Twisted deferred object
+        @todo: make exactMatch and strip work
+        """
         if type(oid) == type(()):
             oid = '.'.join(map(str, oid))
         cacheKey = "%s:%r:%r" % (oid, exactMatch, strip)
         if self.oidCache.has_key(cacheKey):
             return defer.succeed(self.oidCache[cacheKey])
+
         self.log.debug("OID cache miss on %s (exactMatch=%r, strip=%r)" % (
             oid, exactMatch, strip))
+        # Note: exactMatch and strip are ignored by zenhub
         d = self.model().callRemote('oid2name', oid, exactMatch, strip)
+
         def cache(name, key):
+            """
+            Twisted callback to cache and return the name
+
+            @param name: human-readable-name form of OID
+            @type name: string
+            @param key: key of OID and params
+            @type key: string
+            @return: the name parameter
+            @rtype: string
+            """
             self.oidCache[key] = name
             return name
+
         d.addCallback(cache, cacheKey)
         return d
 
+
     def handleTrap(self, pdu):
+        """
+        Accept a packet from the network and spin off a Twisted
+        deferred to handle the packet.
+
+        @param pdu: raw packet
+        @type pdu: binary
+        """
         ts = time.time()
 
-        # is it a trap?
+        # Is it a trap?
         if pdu.sessid != 0: return
 
-        # what address did it come from?
+        # What address did it come from?
         #   for now, we'll make the scary assumption this data is a
         #   sockaddr_in
         transport = c.cast(pdu.transport_data, c.POINTER(sockaddr_in))
@@ -136,18 +174,47 @@ class ZenTrap(EventServer):
         # for asynchronous processing
         dup = netsnmp.lib.snmp_clone_pdu(c.addressof(pdu))
         if not dup:
-            self.log.error("could not clone PDU for asynchronous processing")
+            self.log.error("Could not clone PDU for asynchronous processing")
             return
         
         def cleanup(result):
+            """
+            Twisted callback to delete a previous memory allocation
+
+            @param result: packet
+            @type result: binary
+            @return: the result parameter
+            @rtype: binary
+            """
             netsnmp.lib.snmp_free_pdu(dup)
             return result
 
         d = self.asyncHandleTrap(addr, dup.contents, ts)
         d.addBoth(cleanup)
 
+
     def asyncHandleTrap(self, addr, pdu, ts):
+        """
+        Twisted callback to process a trap
+
+        @param addr: packet-sending host's IP address, port info
+        @type addr: ( host-ip, port)
+        @param pdu: raw packet
+        @type pdu: binary
+        @param ts: time stamp
+        @type ts: datetime
+        @return: Twisted deferred object
+        @rtype: Twisted deferred object
+        """
         def inner(driver):
+            """
+            Generator function that actually processes the packet
+
+            @param driver: Twisted deferred object
+            @type driver: Twisted deferred object
+            @return: Twisted deferred object
+            @rtype: Twisted deferred object
+            """
             eventType = 'unknown'
             result = {}
             if pdu.version == 1:
@@ -162,6 +229,7 @@ class ZenTrap(EventServer):
                     else:
                         yield self.oid2name(oid, exactMatch=False, strip=True)
                         result[driver.next()] = value
+
             elif pdu.version == 0:
                 # SNMP v1
                 variables = netsnmp.getResult(pdu)
@@ -214,7 +282,7 @@ class ZenTrap(EventServer):
             if pdu.command == netsnmp.SNMP_MSG_INFORM:
                 reply = netsnmp.lib.snmp_clone_pdu(c.addressof(pdu))
                 if not reply:
-                    self.log.error("could not clone PDU for INFORM response")
+                    self.log.error("Could not clone PDU for INFORM response")
                     raise RuntimeError("Cannot respond to INFORM PDU")
                 reply.contents.command = netsnmp.SNMP_MSG_RESPONSE
                 reply.contents.errstat = 0
@@ -223,13 +291,17 @@ class ZenTrap(EventServer):
                                        version=pdu.version)
                 sess.open()
                 if not netsnmp.lib.snmp_send(sess.sess, reply):
-                    netsnmp.lib.snmp_sess_perror("unable to send inform PDU",
+                    netsnmp.lib.snmp_sess_perror("Unable to send inform PDU",
                                                  self.session.sess)
                     netsnmp.lib.snmp_free_pdu(reply)
                 sess.close()
         return drive(inner)
 
+
     def buildOptions(self):
+        """
+        Command-line options to be supported
+        """
         EventServer.buildOptions(self)
         self.parser.add_option('--trapport', '-t',
             dest='trapport', type='int', default=TRAP_PORT,
@@ -241,7 +313,7 @@ class ZenTrap(EventServer):
                                dest='useFileDescriptor',
                                type='int',
                                help=("Read from an existing connection "
-                                     " rather opening a new port."),
+                                     " rather than opening a new port."),
                                default=None)
 
 
