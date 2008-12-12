@@ -457,6 +457,12 @@ class IpNetwork(DeviceOrganizer):
         orgroot = self.getDmdRoot(self.dmdRootName)
         for organizerName in organizerPaths:
             organizer = orgroot._getNet(organizerName)
+            if organizer is None:
+                if xmlrpc: return 1 # XML-RPC error
+                log.error("Couldn't obtain a network entry for '%s' -- does it exist?" % \
+                               organizerName)
+                continue
+
             zDiscCommand = getattr(organizer, "zZenDiscCommand", None)
             if zDiscCommand:
                 cmd = talesEval('string:' + zDiscCommand, organizer).split(" ")
