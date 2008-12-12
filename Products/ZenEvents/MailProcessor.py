@@ -10,7 +10,10 @@
 # For complete information please visit: http://www.zenoss.com/oss/
 #
 ###########################################################################
-#! /usr/bin/env python 
+
+__doc__ = """MailProcessor
+Base class module that other servers will subclass.
+"""
 
 import email, socket, rfc822, types
 import calendar
@@ -25,10 +28,15 @@ log = logging.getLogger("zen.mail")
 
 
 class MailEvent(Event):
+    """
+    Defaults for events created by the processor
+    """
     agent="zenmail"
     eventGroup="mail" 
 
 
+# The following is copied from the Python standard library
+# examples page: http://docs.python.org/library/datetime.html
 ZERO = timedelta(0)
 
 # A class building tzinfo objects for fixed-offset time zones.
@@ -53,38 +61,56 @@ class FixedOffset(tzinfo):
 
 
 class MessageProcessor(object):
-    '''Base class for parsing email messages that are retrieved via POP or
-    received via SMTP.'''
+    """
+    Base class for parsing email messages that are retrieved via POP or
+    received via SMTP.
+    """
 
     def __init__(self, zem, defaultSeverity = 2): 
+        """
+        Initializer
+
+        @param zem: class that provides sendEvent() method
+        @type zem: Zenoss event manager object
+        @param defaultSeverity: severity level to use if we can't figure one out
+        @type defaultSeverity: integer
+        """
         self.zem = zem
         self.eventSeverity = defaultSeverity
 
+
     def process(self, messageStr):
+        """
+        Convert an e-mail message into a Zenoss event.
+
+        @param messageStr: e-mail message
+        @type messageStr: string
+        """
         message = email.message_from_string(messageStr)
         self.message = message
         
         fromAddr = message.get('From')
-        log.debug("process(): From addr is %s" % fromAddr)
+        log.debug("Found a 'from' address of %s" % fromAddr)
         if not fromAddr or fromAddr.find('@') == -1:
-            log.warning("cannot process message with from address %s" % fromAddr)
+            log.warning("Unable to process the 'from' address %s -- ignoring mail" \
+                        % fromAddr)
             return
         
         fromAddr = message.get('From').split('@')[1].rstrip('>')
         fromAddr = fromAddr.split(' ')[0]
-        log.debug("process(): From addr after processing is %s" % fromAddr)
+        log.debug("The from address after processing is '%s'" % fromAddr)
         try:
             fromIp = socket.gethostbyname(fromAddr)
         except socket.gaierror:
             fromIp = None
-            log.info('hostname lookup failed for host: %s' % fromAddr)
+            log.info('Hostname lookup failed for host: %s' % fromAddr)
 
         subject = message.get('Subject')
 
-        # this is tricky...  date comes in with an offset value that
+        # This is tricky...  date comes in with an offset value that
         # represents the number of seconds of difference between the
-        # parsed timezone and UTC.  the events database wants all time
-        # as seconds since the epoch and treats it as UTC.  as a
+        # parsed timezone and UTC.  The events database wants all time
+        # as seconds since the epoch and treats it as UTC.  As a
         # result we have to use the datetime class to do the
         # conversion because the functions in the time module do all
         # kinds of covnersions "to be helpful"
@@ -92,14 +118,14 @@ class MessageProcessor(object):
 
         offset_secs = t[-1]
 
-        # convert the offset in seconds to minutes.  calendar wants minutes
+        # Convert the offset in seconds to minutes.  calendar wants minutes
         offset_mins = offset_secs / 60
         tz = FixedOffset(offset_mins, "Unknown")
 
-        # construct dt using the date and time as well as the timezone 
+        # Construct dt using the date and time as well as the timezone 
         dt = datetime(t[0], t[1], t[2], t[3], t[4], t[5], 0, tz)
         secs = calendar.timegm(dt.utctimetuple())
-        log.info('timestamp of event (should be in UTC): %f' % secs)
+        log.info('Timestamp of the event (should be in UTC): %f' % secs)
 
         event = MailEvent(device=fromAddr, rcvtime=secs)
         if fromIp:
@@ -118,18 +144,34 @@ class MessageProcessor(object):
         self.enrich(event, subject)
 
         event = self.buildEventClassKey(event)
-        log.info('sending event...')
+        log.info('Sending event...')
         self.zem.sendEvent(event.__dict__)
-        log.info('event sent.')
+        log.info('The event has been sent.')
 
 
     def enrich(self, event, subject):
+        """
+        Sanitize the event facility and severity fields.
+
+        @param event: event
+        @type event: simple class
+        @param subject: e-mail subject (unused)
+        @type subject: string
+        """
         unused(subject)
         event.facility = "unknown"
         event.severity = self.eventSeverity
         
 
     def buildEventClassKey(self, evt):
+        """
+        Set the Zenoss eventClassKey
+
+        @param evt: event
+        @type evt: simple class
+        @return: modified event
+        @rtype: simple class
+        """
         if hasattr(evt, 'eventClassKey') or hasattr(evt, 'eventClass'):
             return evt
         elif hasattr(evt, 'ntevid'):
@@ -139,26 +181,44 @@ class MessageProcessor(object):
         if hasattr(evt, 'eventClassKey'): 
             log.debug("eventClassKey=%s", evt.eventClassKey)
         else:
-            log.debug("no eventClassKey assigned")
+            log.debug("No eventClassKey assigned")
         return evt
 
 
+
 class POPProcessor(MessageProcessor):
-    '''Extension point for messages received via POP.  If you need to
+    """
+    Extension point for messages received via POP.  If you need to
     override the behavior of "process" you should do so by
-    implementing it here.'''
+    implementing it here.
+    """
 
     def __init__(self, zem, defaultSeverity = 2): 
+        """
+        Initializer
+
+        @param zem: class that provides sendEvent() method
+        @type zem: Zenoss event manager object
+        @param defaultSeverity: severity level to use if we can't figure one out
+        """
         MessageProcessor.__init__(self, zem, defaultSeverity)
+
 
 
 class MailProcessor(MessageProcessor):
-    '''Extension point for messages received via SMTP.  If you need to
+    """
+    Extension point for messages received via SMTP.  If you need to
     override the behavior of "process" you should do so by
-    implementing it here.'''
+    implementing it here.
+    """
 
     def __init__(self, zem, defaultSeverity = 2): 
-        MessageProcessor.__init__(self, zem, defaultSeverity)
-    
+        """
+        Initializer
 
-    
+        @param zem: class that provides sendEvent() method
+        @type zem: Zenoss event manager object
+        @param defaultSeverity: severity level to use if we can't figure one out
+        """
+        MessageProcessor.__init__(self, zem, defaultSeverity)
+
