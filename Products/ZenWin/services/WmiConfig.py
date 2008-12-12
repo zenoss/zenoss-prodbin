@@ -79,9 +79,6 @@ class WmiConfig(ModelerService, ThresholdMixin):
             if not device:
                 continue
             device = device.primaryAq()
-            if (device.productionState <=
-                getattr(device, 'zProdStateThreshold', 0)):
-                continue
             if not device.monitorDevice(): continue
             if getattr(device, 'zWmiMonitorIgnore', False): continue
             
