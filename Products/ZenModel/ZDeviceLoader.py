@@ -91,6 +91,7 @@ class ZDeviceLoader(ZenModelItem,SimpleItem):
         and collecting its configuration. 
         """         
         if not deviceName: return self.callZenScreen(REQUEST)
+        deviceName = deviceName.replace(' ', '')
         device = None
         
         xmlrpc = isXmlRpc(REQUEST)
@@ -129,6 +130,9 @@ class ZDeviceLoader(ZenModelItem,SimpleItem):
             log.exception(e)
             log.exception('load of device %s failed' % deviceName)
             transaction.abort()
+
+        if device is None:
+            log.error("Unable to add the device %s" % deviceName)
         else:
             log.info("Device %s loaded!" % deviceName)
 
