@@ -135,6 +135,52 @@ class MySqlSendEventTest(BaseTestCase):
         self.assert_(len(self.zem.getHeartbeat()) == 1)
         self.assert_(len(self.zem.getHeartbeat(failures=False)) == 1)
 
+
+    def testBadClearEvent(self):
+        """A Clear message without any previous message"""
+        evt = dict(device=TEST_DEVICE, summary='Test', severity=0,
+              component="Test", )
+        evid = self.zem.sendEvent(evt)
+        self.assertNotEquals(evid, None)
+
+    def testBadCharsInEvent(self):
+        """Test a message with escapable characters in it. eg ' or " """
+        evt = dict(device=TEST_DEVICE, summary='Test', severity=5,
+              component="Test'I do bad things with SQL'", )
+        evid = self.zem.sendEvent(evt)
+        self.assertNotEquals(evid, None)
+
+        evt = dict(device=TEST_DEVICE, summary='Test', severity=5,
+              component="Unbalanced single tick ' in message", )
+        evt['lastTimeField'] = "Test'I do bad things with SQL'"
+        evt['_action'] = "Test'I do bad things with SQL'"
+        evid = self.zem.sendEvent(evt)
+        self.assertNotEquals(evid, None)
+
+    def testBadCharsInClearEvent(self):
+        """Bad chars, but in the clear event"""
+        evt = dict(device=TEST_DEVICE, summary='Test', severity=5,
+              component="Test'I do bad things with SQL'", )
+        evid = self.zem.sendEvent(evt)
+        self.assertNotEquals(evid, None)
+
+        from Products.ZenEvents.Event import Event
+        clear_evt = Event( **evt )
+        clear_evt.severity = 0
+        clear_evt.device = "Test'I do bad things with SQL'"
+        clear_evt.eventKey = "Test'I do bad things with SQL'"
+        clear_evt.evid = "Test'I do bad things with SQL'"
+        clear_evt.lastTimeField = "Test'I do bad things with SQL'"
+        clear_evt.evil = "Test'I do bad things with SQL'"
+        clear_evt._action = "Test'I do bad things with SQL'"
+        clear_evt._clearClasses.append( 'evil' )
+
+        # Mess with a backdoor...
+        clear_evt._clearClasses.append( clear_evt.evil )
+        clear_evid = self.zem.sendEvent(clear_evt)
+        self.assertEquals(clear_evid, None)
+
+
 def test_suite():
     from unittest import TestSuite, makeSuite
     suite = TestSuite()

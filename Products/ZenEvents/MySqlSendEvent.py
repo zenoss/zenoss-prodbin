@@ -1,7 +1,7 @@
 ###########################################################################
 #
 # This program is part of Zenoss Core, an open source monitoring platform.
-# Copyright (C) 2007, Zenoss Inc.
+# Copyright (C) 2008, Zenoss Inc.
 #
 # This program is free software; you can redistribute it and/or modify it
 # under the terms of the GNU General Public License version 2 as published by
@@ -10,6 +10,11 @@
 # For complete information please visit: http://www.zenoss.com/oss/
 #
 ###########################################################################
+
+__doc__ = """MySqlSendEvent
+Populate the events database with incoming events
+"""
+
 import types
 import threading
 from Queue import Queue, Empty
@@ -26,6 +31,17 @@ from ZenEventClasses import Heartbeat, Unknown
 from Products.ZenEvents.Exceptions import *
 
 def execute(cursor, statement):
+    """
+    Run a MySQL statement and return the results.
+    If there's an error, logs it then re-raises the exception.
+
+    @param cursor: an open connection to MySQL
+    @type cursor: database connection
+    @param statement: MySQL statement
+    @type statement: string
+    @return: result of the statement
+    @rtype: string
+    """
     try:
         result = cursor.execute(statement)
         log.debug("%s: --> %d" % (statement, result) )
@@ -35,14 +51,21 @@ def execute(cursor, statement):
         raise ex
     return result
 
+
 class MySqlSendEventMixin:
     """
-    Mix-in class that takes a mysql db connection and builds inserts that
-    send the event to the backend.
+    Mix-in class that takes a MySQL db connection and builds inserts that
+    sends the event to the backend.
     """
 
     def sendEvent(self, event):
-        """Send an event to the backend.
+        """
+        Send an event to the backend.
+
+        @param event: an event
+        @type event: Event class
+        @return: event id or None
+        @rtype: string
         """
         if type(event) == types.DictType:
             event = buildEventFromDict(event)
@@ -57,6 +80,13 @@ class MySqlSendEventMixin:
         
         #FIXME - ungly hack to make sure severity is an int
         event.severity = int(event.severity)
+
+        # Check for nasty haxor tricks
+        known_actions = [ 'history', 'drop', 'status', 'heartbeat',
+                          'alert_state', 'log', 'detail',
+                        ]
+        if hasattr( event, '_action' ) and event._action not in known_actions:
+            event._action = 'status'
         
         # If either message or summary is empty then try to copy from the other.
         # Make sure summary is truncated to 128
@@ -104,7 +134,16 @@ class MySqlSendEventMixin:
             cleanup()
         return evid
 
+
     def doSendEvent(self, event):
+        """
+        Actually write the sanitized event into the database
+
+        @param event: event   
+        @type event: Event class
+        @return: event id or None
+        @rtype: string
+        """
         insert = ""
         statusdata, detaildata = self.eventDataMaps(event)
         conn = self.connect()
@@ -119,7 +158,7 @@ class MySqlSendEventMixin:
                 if clearcls:
                     rows = execute(curs, self.buildClearUpdate(event, clearcls))
                     if not rows:
-                        return ''
+                        return None
                     insert = ('insert into log '
                               '(evid, userName, text) '
                               'select evid, "admin", "auto cleared"'
@@ -147,18 +186,30 @@ class MySqlSendEventMixin:
     def _findByIp(self, ipaddress, networks):
         """
         Find and ip by looking up it up in the Networks catalog.
+
+        @param ipaddress: IP address
+        @type ipaddress: string
+        @param networks: DMD network object
+        @type networks: DMD object
+        @return: device object
+        @rtype: device object
         """
-        log.debug("looking up ip %s",ipaddress)
+        log.debug("Looking up IP %s" % ipaddress)
         ipobj = networks.findIp(ipaddress)
         if ipobj and ipobj.device():
             device = ipobj.device()
-            log.debug("ip %s -> %s", ipobj.id, device.id)
+            log.debug("IP %s -> %s", ipobj.id, device.id)
             return device
 
 
     def getNetworkRoot(self, evt):
         """
         Return the network root and event
+
+        @param evt: event
+        @type evt: Event class
+        @return: DMD object and the event
+        @rtype: DMD object, evt
         """
         return self.getDmdRoot('Networks'), evt
 
@@ -167,6 +218,11 @@ class MySqlSendEventMixin:
         """
         Apply event and devices contexts to the event.
         Only valid if this object has zeo connection.
+
+        @param evt: event
+        @type evt: Event class
+        @return: updated event
+        @rtype: Event class
         """
         events = self.getDmdRoot("Events")
         devices = self.getDmdRoot("Devices")
@@ -202,6 +258,13 @@ class MySqlSendEventMixin:
     def applyDeviceContext(self, device, evt):
         """
         Apply event attributes from device context.
+
+        @param device: device from DMD
+        @type device: device object
+        @param evt: event
+        @type evt: Event class
+        @return: updated event
+        @rtype: Event class
         """
         if not hasattr(evt, 'ipAddress'): evt.ipAddress = device.manageIp
         evt.prodState = device.productionState
@@ -214,7 +277,11 @@ class MySqlSendEventMixin:
 
 
     def _sendHeartbeat(self, event):
-        """Build insert to add heartbeat record to heartbeat table.
+        """
+        Add a heartbeat record to the heartbeat table.
+
+        @param event: event
+        @type event: Event class
         """
         evdict = {}
         if hasattr(event, "device"):
@@ -246,11 +313,21 @@ class MySqlSendEventMixin:
         except OperationalError, e:
             raise ZenBackendFailure(str(e))
 
+
     def buildStatusInsert(self, statusdata, table, evid):
         """
         Build an insert statement for the status table that looks like this:
         insert into status set device='box', count=1, ...
             on duplicate key update count=count+1, lastTime=23424.34;
+
+        @param statusdata: event
+        @type statusdata: dictionary
+        @param table: name of the table to insert into
+        @type table: string
+        @param evid: event id
+        @type evid: string
+        @return: MySQL insert command string
+        @rtype: string
         """
         insert = self.buildInsert(statusdata, table)
         fields = []
@@ -270,8 +347,16 @@ class MySqlSendEventMixin:
 
 
     def buildDetailInsert(self, evid, detaildict):
-        """Build an insert to add detail values from an event to the details
+        """
+        Build an insert to add detail values from an event to the details
         table.
+
+        @param evid: event id
+        @type evid: string
+        @param detaildict: event
+        @type detaildict: dictionary
+        @return: MySQL insert command string
+        @rtype: string
         """
         insert = "insert into %s (evid, name, value) values " % self.detailTable
         var = [] 
@@ -287,6 +372,13 @@ class MySqlSendEventMixin:
         """
         Build a insert statement for that looks like this:
         insert into status set field='value', field=1, ...
+
+        @param datadict: event
+        @type datadict: dictionary
+        @param table: name of the table to insert into
+        @type table: string
+        @return: MySQL insert command string
+        @rtype: string
         """
         insert = "insert into %s set " % table
         fields = []
@@ -302,7 +394,15 @@ class MySqlSendEventMixin:
 
 
     def buildClearUpdate(self, evt, clearcls):
-        """Build an update statement that will clear related events.
+        """
+        Build an update statement that will clear related events.
+
+        @param evt: event
+        @type evt: Event class
+        @param clearcls: other fields to use to define 'related events'
+        @type clearcls: list of strings
+        @return: MySQL update command string
+        @rtype: string
         """
         update = "update %s " % self.statusTable
         update += "set clearid = '%s' where " % evt.evid
@@ -313,14 +413,20 @@ class MySqlSendEventMixin:
         update += " and ".join(w)
         w = []
         for cls in clearcls:
-            w.append("%s='%s'" % (self.eventClassField, cls)) 
+            w.append("%s='%s'" % (self.eventClassField, self.escape(cls))) 
         if w:
             update += " and (" + " or ".join(w) + ")"
         return update
 
     
     def eventDataMaps(self, event):
-        """Return tuple (statusdata, detaildata) for this event.
+        """
+        Return tuple (statusdata, detaildata) for this event.
+
+        @param event: event
+        @type event: Event class
+        @return: (statusdata, detaildata)
+        @rtype: tuple of dictionaries
         """
         statusfields = self.getFieldList()
         statusdata = {}
@@ -335,7 +441,14 @@ class MySqlSendEventMixin:
 
 
     def escape(self, value):
-        """Prepare string values for db by escaping special characters."""
+        """
+        Prepare string values for db by escaping special characters.
+
+        @param value: string containing possibly nasty characters
+        @type value: string
+        @return: escaped string
+        @rtype: string
+        """
         if type(value) not in types.StringTypes:
             return value
             
@@ -348,7 +461,7 @@ class MySqlSendEventMixin:
 
 class MySqlSendEvent(MySqlSendEventMixin):
     """
-    class that can connect to backend must be passed:
+    Class that can connect to backend must be passed:
         username - backend username to use
         password - backend password
         database - backend database name
@@ -381,14 +494,27 @@ class MySqlSendEvent(MySqlSendEventMixin):
             setattr(self, att, value)
         self._fieldlist = zem.getFieldList()
         
-    def stop(self): pass
+    def stop(self):
+        """
+        To be implemented by the subclass
+        """
+        pass
 
 
     def getFieldList(self):
+        """
+        Return the list of fields
+
+        @return: list of fields
+        @rtype: list
+        """
         return self._fieldlist
 
 
 class MySqlSendEventThread(threading.Thread, MySqlSendEvent):
+    """
+    Wrapper around MySQL database connection
+    """
   
     running = True
 
@@ -400,13 +526,17 @@ class MySqlSendEventThread(threading.Thread, MySqlSendEvent):
         self._evqueue = Queue()
 
     def sendEvent(self, evt):
-        """Called from main thread to put an event on to the send queue.
+        """
+        Called from main thread to put an event on to the send queue.
         """
         return self._evqueue.put(evt)
 
 
     def run(self):
-        log.info("starting")
+        """
+        Main event loop
+        """
+        log.info("Starting")
         while not self._evqueue.empty() or self.running:
             try:
                 evt = self._evqueue.get(True,1)
@@ -416,12 +546,13 @@ class MySqlSendEventThread(threading.Thread, MySqlSendEvent):
                 log.warn(e)
             except Exception, e:
                 log.exception(e)
-        log.info("stopped")
+        log.info("Stopped")
                 
     
     def stop(self):
-        """Called from main thread to stop this thread.
         """
-        log.info("stopping...")
+        Called from main thread to stop this thread.
+        """
+        log.info("Stopping...")
         self.running = False
         self.join(3)
