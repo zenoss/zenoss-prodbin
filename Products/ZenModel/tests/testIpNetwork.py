@@ -22,6 +22,7 @@ class TestIpNetwork(ZenModelBaseTest):
 
 
     def testIpNetCreation(self):
+        "Create valid networks"
         net = self.dmd.Networks.createNet("1.2.3.0/24")
         self.assert_("1.2.3.0" in self.dmd.Networks.objectIds())
         self.assert_(self.dmd.Networks.getNet('1.2.3.0') == net)
@@ -30,13 +31,36 @@ class TestIpNetwork(ZenModelBaseTest):
         self.assert_(self.dmd.Networks.getNet('2.3.4.0') == net)
         
         
-    def testIpNetCreation2(self):
-        net = self.dmd.Networks.createNet("1.2.3.4/24")
+    def testBadIpNetCreation(self):
+        "Test evil network masks"
+        net = self.dmd.Networks.createNet("1.2.3.4/24", None)
         self.assert_("1.2.3.0" in self.dmd.Networks.objectIds())
         self.assert_(self.dmd.Networks.getNet('1.2.3.0') == net)
-        net = self.dmd.Networks.createNet('2.3.4.5',24)
+
+        net = self.dmd.Networks.createNet('2.3.4.5',None)
         self.assert_('2.3.4.0' in self.dmd.Networks.objectIds())
         self.assert_(self.dmd.Networks.getNet('2.3.4.0') == net)
+
+        net = self.dmd.Networks.createNet('2.3.4.5',-1)
+        self.assert_('2.3.4.0' in self.dmd.Networks.objectIds())
+        self.assert_(self.dmd.Networks.getNet('2.3.4.0') == net)
+
+        net = self.dmd.Networks.createNet('2.3.4.5',64)
+        self.assert_('2.3.4.0' in self.dmd.Networks.objectIds())
+        self.assert_(self.dmd.Networks.getNet('2.3.4.0') == net)
+
+        net = self.dmd.Networks.createNet("1.2.3.4////24", None)
+        self.assert_("1.2.3.0" in self.dmd.Networks.objectIds())
+        self.assert_(self.dmd.Networks.getNet('1.2.3.0') == net)
+
+        net = self.dmd.Networks.createNet("1.2.3.4/evil", None)
+        self.assert_("1.2.3.0" in self.dmd.Networks.objectIds())
+        self.assert_(self.dmd.Networks.getNet('1.2.3.0') == net)
+
+        net = self.dmd.Networks.createNet("1.2.3.4", "more evil")
+        self.assert_("1.2.3.0" in self.dmd.Networks.objectIds())
+        self.assert_(self.dmd.Networks.getNet('1.2.3.0') == net)
+
         
         
     def testIpCreation(self):

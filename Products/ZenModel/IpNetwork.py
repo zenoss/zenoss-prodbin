@@ -147,9 +147,22 @@ class IpNetwork(DeviceOrganizer):
         1.1.1.0/24 or with netmask passed as parameter.  Subnetworks created
         based on the zParameter zDefaulNetworkTree.
         Called by IpNetwork.createIp and IpRouteEntry.setTarget
+        If the netmask is invalid, then a netmask of 24 is assumed.
+
+        @param netip: network IP address start
+        @type netip: string
+        @param netmask: network mask
+        @type netmask: integer
+        @todo: investigate IPv6 issues
         """
         if netip.find("/") > -1: netip, netmask = netip.split("/",1)
-        netmask = int(netmask)
+        try:
+            netmask = int(netmask)
+        except (TypeError, ValueError):
+            netmask = 24
+        if netmask < 0 or netmask >= 64:
+            netmask = 24
+
         netroot = self.dmd.getDmdRoot("Networks")
         netobj = netroot.getNet(netip)
         if netobj and netobj.netmask == netmask: # Network already exists.
