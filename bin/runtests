@@ -1,37 +1,75 @@
-#!/usr/bin/env python
+#! /usr/bin/env python
+# -*- coding: utf-8 -*-
+# ##########################################################################
+#
+# This program is part of Zenoss Core, an open source monitoring platform.
+# Copyright (C) 2008, Zenoss Inc.
+#
+# This program is free software; you can redistribute it and/or modify it
+# under the terms of the GNU General Public License version 2 as published by
+# the Free Software Foundation.
+#
+# For complete information please visit: http://www.zenoss.com/oss/
+#
+# ##########################################################################
 
-import os, sys
+__doc__ = """runtests
+Run unit and Selenium (functional) tests for Zenoss
+"""
+
+import os
+import os.path
+import glob
+import sys
 from subprocess import call
 import optparse
 import time
 
 ZENHOME = os.environ['ZENHOME']
 ZOPEHOME = os.environ.get('ZOPEHOME', ZENHOME)
-zenhome = lambda *args:os.path.join(ZENHOME, *args)
-zopehome = lambda *args:os.path.join(ZOPEHOME, *args)
+zenhome = lambda *args: os.path.join(ZENHOME, *args)
+zopehome = lambda *args: os.path.join(ZOPEHOME, *args)
 
 STDOUT = sys.stdout
 
 exitcodes = []
 
+
 def overrideCoreTests(results):
     """
     Check to see if a commercial skin is installed. If so, don't run the core
     tests.
+    
+    @param results: list of directories
+    @type results: list of strings
+    @return: results without core tests
+    @rtype: list of strings
     """
     commercial = False
     for result in results:
-        if "Skin" in result:
-            commercial=True
+        if 'Skin' in result:
+            commercial = True
     if commercial:
         results.remove(zenhome('Products', 'ZenUITests'))
     return results
-    
+
 
 def findSeleniumTests(packages=[], regex=None):
-    prods = findTestableProducts(packages, regex, testdir="tests/selenium")
+    """
+    Find Selenium tests
+    
+    @param packages: packages
+    @type packages: string
+    @param regex: regular expression to determine to include or not
+    @type regex: string
+    @return: directories containing Selenium tests
+    @rtype: list of strings
+    """
+    prods = findTestableProducts(packages, regex,
+                                 testdir='tests/selenium')
     results = []
-    if not regex: regex = 'testAll'
+    if not regex:
+        regex = 'testAll'
     regex += '.py'
     for prod in prods:
         selpath = os.path.join(prod, 'tests', 'selenium', regex)
@@ -39,82 +77,185 @@ def findSeleniumTests(packages=[], regex=None):
             results.append(selpath)
     return results
 
+
+def demangleEggName(eggdir, name):
+    """
+    Deals with Python egg edge cases to expand out the directories.
+    Python eggs mangle the names, so '-' gets changed
+    to '_' at a *lower* level subdirectory.
+
+    @param eggdir: path to the ZenPack
+    @type eggdir: string
+    @param name: name of the ZenPack
+    @type name: string
+    @return: path to the ZenPack
+    @rtype: string
+    """
+    path = eggdir
+    components = name.split( '.', 2 ) # ie a list with three items
+    # Note, we discard the last item to satisfy findTestableProducts
+    for component in components[0:1]:
+        if os.path.isdir( os.path.join( path, component )):
+            path = os.path.join( path, component )
+            continue
+
+        newcomponent = component.split( '-', 1 )[0] + '*'
+        found = glob.glob( os.path.join( os.path.join( path, newcomponent )) )
+        if len(found) != 1:
+            # Ouch! Something bad happened
+            print "Unable to find egg directory from %s and %s" % \
+                  (path, component)
+            return fulldir
+        path = os.path.join( path, found[0] )
+    return path
+
+
 def expandPackDir(fulldir):
-    dir = fulldir.rstrip('/').split('/')[-1]
-    if dir.startswith('ZenPacks.zenoss.'):
-        return os.path.join(fulldir, *dir.split('.')[:-1])
-    return fulldir
+    """
+    Expand Zenoss ZenPack directory names.
+
+    This handles old-style ZenPacks as well as egg-style.
+    
+    @param fulldir: path to the ZenPack
+    @type fulldir: string
+    @return: path to the ZenPack
+    @rtype: string
+    """
+    name = os.path.basename(fulldir)
+    if not name.endswith('.egg'):
+        # Old-style ZenPack
+        return fulldir
+    return demangleEggName(fulldir, name)
+
 
 def findZenPackDirectories():
+    """
+    Get the list of ZenPacks with tests
+    
+    @return: list of ZenPack directories
+    @rtype: list of strings
+    """
     zenpackhome = zenhome('ZenPacks')
     dirs = []
     try:
         for item in os.listdir(zenpackhome):
             fullpath = zenhome('ZenPacks', item)
-            if os.path.isdir(fullpath): 
+            if os.path.isdir(fullpath):
                 dirs.append(expandPackDir(fullpath))
             elif item.endswith('.egg-link'):
-                f = file(fullpath) 
+                f = file(fullpath)
                 dirs.append(expandPackDir(f.readline().strip()))
                 f.close()
     except OSError:
         pass
     return dirs
 
+
 def findTestableProducts(packages=[], regex=None, testdir='tests'):
+    """
+    Get the list of Zope Products with tests
+    
+    @param packages: packages to run tests
+    @type packages: list of strings
+    @param regex: regular expression to determine to include or not
+    @type regex: string
+    @param testdir: directory name containing test files
+    @type testdir: string
+    @return: list of Zope Product directories
+    @rtype: list of strings
+    """
     results = []
     for target in findZenPackDirectories() + [zenhome('Products')]:
         for root, dirs, files in os.walk(target):
             for dir in dirs:
-                if packages and dir not in packages: continue
+                if packages and dir not in packages:
+                    continue
+                # Sigh. We need to make sure no-one ends a ZenPack with 'Products'
                 if target.endswith('Products'):
-                    if (not (dir.startswith('Zen') or 
-                             dir=='DataCollector') or 
-                        dir in ('ZenTestRunner')): 
+                    if not (dir.startswith('Zen') or dir
+                             == 'DataCollector') or dir\
+                         in 'ZenTestRunner':
                         continue
                 newdir = os.path.join(root, dir)
-                if 'tests' in os.listdir(newdir): 
+                if testdir in os.listdir(newdir):
                     if regex:
-                        f = os.path.join(newdir, testdir, regex+'.py')
+                        f = os.path.join(newdir, testdir, regex + '.py')
                         if os.path.exists(f):
                             results.append(newdir)
                     else:
                         results.append(newdir)
     results = overrideCoreTests(results)
+    if not results:
+        print "No %s directories found for %s" % (testdir, packages)
     return results
 
-def runSeleniumTests(packages=[], regex=None, 
-                    zenoss_server=None, 
-                    selenium_server=None):
+
+def runSeleniumTests(
+    packages=[],
+    regex=None,
+    zenoss_server=None,
+    selenium_server=None,
+    ):
+    """
+    Run any Selenium tests that match the regular expression.
+    
+    @param packages: packages
+    @type packages: list of strings
+    @param regex: Regular expression
+    @type regex: string
+    @param zenoss_server: Zenoss server
+    @type zenoss_server: string
+    @param selenium_server: Selenium server name
+    @type selenium_server: string
+    """
     tests = findSeleniumTests(packages, regex)
     for testscript in tests:
-        command = ["python", testscript]
+        command = ['python', testscript]
         for arg in (zenoss_server, selenium_server):
-            if arg is not None: 
+            if arg is not None:
                 command.append(arg)
         rc = call(command)
         exitcodes.append(rc)
 
-def runUnitTests(packages=[], regex=None, coverage=False):
+
+def runUnitTests(packages=[], regex=None, coverage=False, show_tests=False):
+    """
+    Run unit tests for any packages that match the regular expression.
+    
+    @param packages: packages
+    @type packages: list of strings
+    @param regex: regular expression
+    @type regex: string
+    @param coverage: coverage
+    @type coverage: string
+    @param show_tests: run or just display the test name?
+    @type show_tests: boolean
+    """
     for prod in findTestableProducts(packages, regex):
-        if 'ZenUITests' in prod: continue
+        if 'ZenUITests' in prod:
+            continue
+        if show_tests:
+            print prod
+            continue
         python = zenhome('bin', 'python')
-        zdctl = zenhome('lib', 'python', 'Zope2', 'Startup', 'zopectl.py')
+        zdctl = zenhome('lib', 'python', 'Zope2', 'Startup',
+                        'zopectl.py')
         cfgfile = zenhome('etc', 'zope.conf')
         swhome = zenhome('lib', 'python')
         parts = [python, zdctl, '-C', cfgfile, 'test']
-        if coverage: parts.append('--coverage')
+        if coverage:
+            parts.append('--coverage')
         parts.extend(['--libdir', prod])
-        if regex: parts.append(regex)
+        if regex:
+            parts.append(regex)
         env = os.environ.copy()
-        env.update({
-            'PYTHONPATH': swhome + ":" + env['PYTHONPATH'],
-            'INSTANCE_HOME': zenhome(),
-            'SOFTWARE_HOME': swhome
-        })
+        env.update({'PYTHONPATH': swhome + ':' + env['PYTHONPATH'],
+                   'INSTANCE_HOME': zenhome(), 'SOFTWARE_HOME': swhome})
         exitcodes.append(call(parts, env=env))
 
-usage="""%prog [options] [package1 [package2]]
+
+usage = \
+    """%prog [options] [package1 [package2]]
 
 Run Zenoss tests against specified packages.  
 
@@ -132,33 +273,37 @@ the Device tests, use:
     runtests --type unit --name testDevice ZenModel
 """
 
-def main():
 
-    parser = optparse.OptionParser( prog='runtests', usage=usage)
-    parser.add_option('-t', '--type', 
-                      help="The test types to run.", 
-                      default="all")
-    parser.add_option('-c', '--coverage', 
-                      help="Compile coverage stats",
-                      action="store_true", default=False)
-    parser.add_option('-n', '--name', 
-                      help="The name of a test module.")
-    parser.add_option('--selenium-server', 
-                      help="The server hosting the selenium jar")
-    parser.add_option('--zenoss-server', help=(
-                            "The Zenoss server against which"
-                            " Selenium should test"))
-    options, args = parser.parse_args()
+def main():
+    parser = optparse.OptionParser(prog='runtests', usage=usage)
+    parser.add_option('-t', '--type', help='The test types to run.',
+                      default='all')
+    parser.add_option('-c', '--coverage', help='Compile coverage statistics'
+                      , action='store_true', default=False)
+    parser.add_option('-n', '--name', help='The name of a test module.')
+    parser.add_option('--selenium-server',
+                      help='The server hosting the Selenium jar')
+    parser.add_option('--zenoss-server',
+                      help='The Zenoss server against which Selenium should test'
+                      )
+    parser.add_option('--list', default=False, action='store_true',
+                      help='The server hosting the Selenium jar')
+
+    (options, args) = parser.parse_args()
+
+    if options.type not in ('unit', 'selenium', 'all'):
+        print "Unknown test type %s -- exiting" % options.type
+        sys.exit(1)
 
     if options.type in ('unit', 'all'):
-        runUnitTests(args, options.name, options.coverage)
+        runUnitTests(args, options.name, options.coverage, options.list)
 
     if options.type in ('selenium', 'all'):
         runSeleniumTests(args, options.name, options.zenoss_server,
-                         options.selenium_server)
+                         options.selenium_server, options.list)
 
 
-if __name__=="__main__":
+if __name__ == '__main__':
     start = time.time()
     main()
     if exitcodes:
