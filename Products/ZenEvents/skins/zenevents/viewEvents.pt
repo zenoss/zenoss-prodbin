@@ -12,7 +12,9 @@
 <script src="zeneventsfuncs.js"></script>
 
 <div class='tinylink-container'>
-    <a class="tinylink" href="viewHistoryEvents">View Event History...</a>
+    <a class="tinylink" 
+        tal:attributes="href string:${here/absolute_url_path}/viewHistoryEvents">
+        View Event History...</a>
     <div id='msgbox' class='msgbox'></div>
 </div>
 <link type="text/css" rel="stylesheet" href="css/zengrid.css"/>
