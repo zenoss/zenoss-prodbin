@@ -36,7 +36,7 @@ from Products.ZenRelations.RelSchema import *
 from Products.ZenUtils.Search import makeCaseInsensitiveFieldIndex
 from Products.ZenUtils.Search import makeCaseInsensitiveKeywordIndex
 from Products.ZenUtils.Search import makePathIndex, makeMultiPathIndex
-from Products.ZenUtils.Utils import importClass
+from Products.ZenUtils.Utils import importClass, zenPath
 
 from Products.ZenUtils.FakeRequest import FakeRequest
 
@@ -770,7 +770,7 @@ class DeviceClass(DeviceOrganizer, ZenPackable, TemplateContainer):
         devs._setProperty("zCommandCommandTimeout", 10.0, type="float")
         devs._setProperty("zCommandSearchPath", [], type="lines")
         devs._setProperty("zCommandExistanceTest", "test -f %s")
-        devs._setProperty("zCommandPath", "/opt/zenoss/libexec")
+        devs._setProperty("zCommandPath", zenPath("libexec"))
         devs._setProperty("zTelnetLoginRegex", "ogin:.$")
         devs._setProperty("zTelnetPasswordRegex", "assword:")
         devs._setProperty("zTelnetSuccessRegexList",
