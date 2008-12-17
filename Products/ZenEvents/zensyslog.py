@@ -25,6 +25,7 @@ import socket
 from twisted.internet.protocol import DatagramProtocol
 from twisted.internet import reactor
 from twisted.python import failure
+from twisted.internet import defer
 
 import Globals
 from Products.ZenEvents.EventServer import EventServer
@@ -78,6 +79,34 @@ class ZenSyslog(DatagramProtocol, EventServer):
                               interface=self.options.listenip)
 
 
+    def configure(self):
+        """
+        Initialize the daemon
+        
+        @return: Twisted deferred object
+        @rtype: Twisted deferred object
+        """
+        def inner(driver):
+            """
+            Generator function to gather zProperites and then initialize.
+            
+            @param driver: driver
+            @type driver: string
+            @return: Twisted deferred object
+            @rtype: Twisted deferred object
+            """
+            yield EventServer.configure(self)
+            driver.next()
+            self.log.info('Fetching the default syslog priority')
+            yield self.model().callRemote('getDefaultPriority')
+            self.processor = SyslogProcessor(self.sendEvent,
+                    self.options.minpriority, self.options.parsehost,
+                    self.options.monitor, driver.next())
+            self.log.info('Configuration finished')
+
+        return drive(inner)
+
+
     def expand(self, msg, client_address):
         """
         Expands a syslog message into a string format suitable for writing
@@ -91,7 +120,6 @@ class ZenSyslog(DatagramProtocol, EventServer):
         @return: message
         @rtype: string
         """
-
         # pri := facility * severity
         stop = msg.find('>')
 
@@ -136,48 +164,19 @@ class ZenSyslog(DatagramProtocol, EventServer):
         @param client_address: IP info of the remote device (ipaddr, port)
         @type client_address: tuple of (string, number)
         """
-
         (ipaddr, port) = client_address
         if self.options.logorig:
             if self.options.logformat == 'human':
                 message = self.expand(msg, client_address)
             else:
                 message = msg
-
             self.olog.info(message)
 
-        asyncNameLookup(ipaddr).addBoth(self.gotHostname, (msg, ipaddr,
-                time.time()))
-
-
-    def configure(self):
-        """
-        Initialize the daemon
-        
-        @return: Twisted deferred object
-        @rtype: Twisted deferred object
-        """
-
-        def inner(driver):
-            """
-            Generator function to gather zProperites and then initialize.
-            
-            @param driver: driver
-            @type driver: string
-            @return: Twisted deferred object
-            @rtype: Twisted deferred object
-            """
-
-            yield EventServer.configure(self)
-            driver.next()
-            self.log.info('Fetching the default syslog priority')
-            yield self.model().callRemote('getDefaultPriority')
-            self.processor = SyslogProcessor(self.sendEvent,
-                    self.options.minpriority, self.options.parsehost,
-                    self.options.monitor, driver.next())
-            self.log.info('Configuration finished')
-
-        return drive(inner)
+        if self.options.noreverseLookup:
+            d = defer.succeed(ipaddr)
+        else:
+            d = asyncNameLookup(ipaddr)
+        d.addBoth(self.gotHostname, (msg, ipaddr, time.time()))
 
 
     def gotHostname(self, response, data):
@@ -189,9 +188,9 @@ class ZenSyslog(DatagramProtocol, EventServer):
         @param data: (msg, ipaddr, rtime)
         @type data: tuple of (string, string, datetime object)
         """
-
         (msg, ipaddr, rtime) = data
         host = ipaddr
+        self.log.debug( "Response = %s" % response )
         if not isinstance(response, failure.Failure):
             host = response
         if self.processor:
@@ -202,7 +201,6 @@ class ZenSyslog(DatagramProtocol, EventServer):
         """
         Command-line options
         """
-
         EventServer.buildOptions(self)
         self.parser.add_option('--dmdpath', dest='dmdpath',
                                default='/zport/dmd',
@@ -241,6 +239,10 @@ class ZenSyslog(DatagramProtocol, EventServer):
                                dest='useFileDescriptor', type='int',
                                help='Read from an existing connection rather opening a new port.'
                                , default=None)
+        self.parser.add_option('--noreverseLookup', dest='noreverseLookup',
+                               action='store_true', default=False,
+                               help="Don't convert the remote device's IP address to a hostname."
+                               )
 
 
 if __name__ == '__main__':
