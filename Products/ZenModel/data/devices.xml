@@ -4,6 +4,9 @@
 <property visible="True" type="boolean" id="zSnmpStrictDiscovery" >
 False
 </property>
+<property visible="True" type="boolean" id="zPreferSnmpNaming" >
+False
+</property>
 </object>
 <object id='/zport/dmd/Devices' module='Products.ZenModel.DeviceClass' class='DeviceClass'>
 <property visible="True" type="int" id="zProdStateThreshold" >

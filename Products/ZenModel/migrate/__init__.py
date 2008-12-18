@@ -160,3 +160,5 @@ import fixOldTemplates_23
 import addSnmpStrictDiscoveryFlag
 import simpleDataPoint_list
 import uuidEventIds
+import addPreferSnmpNamingFlag
+

@@ -483,6 +483,8 @@ class IpNetwork(DeviceOrganizer):
                 cmd = ["zendisc", "run", "--weblog", "--net", organizer.id]
                 if getattr(organizer, "zSnmpStrictDiscovery", False):
                     cmd += ["--snmp-strict-discovery"]
+                if getattr(organizer, "zPreferSnmpNaming", False):
+                    cmd += ["--prefer-snmp-naming"]
             zd = binPath('zendisc')
             zendiscCmd = [zd] + cmd[1:]
             result = executeCommand(zendiscCmd, REQUEST)

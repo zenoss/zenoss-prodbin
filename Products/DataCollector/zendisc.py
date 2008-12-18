@@ -355,13 +355,26 @@ class ZenDisc(ZenModeler):
                                       % ip )
                         return
                         
-                # if we are discovering a single device and a name was passed
-                # in instead of an IP we use the passed in name not the IP
-                if self.options.device and not isip(self.options.device):
+                # RULES FOR DEVICE NAMING:
+                # 1. If zPreferSnmpNaming is true: 
+                #        If snmp name is returned, use snmp name. Otherwise, 
+                #        use the passed device name.  If no device name was passed,
+                #        do a dns lookup on the ip.
+                # 2. If zPreferSnmpNaming is false: 
+                #        If we are discovering a single device and a name is 
+                #        passed in instead of an IP, use the passed-in name.
+                #        Otherwise, do a dns lookup on the ip. 
+                #import pydevd;pydevd.settrace()
+                if self.options.zPreferSnmpNaming and \
+                   not isip( kw['deviceName'] ):
+                    # In this case, we want to keep kw['deviceName'] as-is,
+                    # because it is what we got from snmp
+                    pass
+                elif self.options.device and not isip(self.options.device):
                     kw['deviceName'] = self.options.device
                 else:
-                # An IP was passed in so we do a reverse lookup on it to get
-                # deviceName
+                    # An IP was passed in so we do a reverse lookup on it to get
+                    # deviceName
                     yield asyncNameLookup(ip)
                     try:
                         kw.update(dict(deviceName=driver.next()))
@@ -739,6 +752,10 @@ class ZenDisc(ZenModeler):
                     dest='zSnmpStrictDiscovery',
                     action="store_true", default=False,
                     help="Only add devices that can be modeled via snmp." )
+        self.parser.add_option('--prefer-snmp-naming', 
+                    dest='zPreferSnmpNaming',
+                    action="store_true", default=False,
+                    help="Prefer snmp name to dns name when modeling via snmp." )
 
 
 
