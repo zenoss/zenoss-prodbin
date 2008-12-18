@@ -68,6 +68,7 @@ def bp2ip(ptr):
 expandableV1Prefixes = (
     '1.3.6.1.2.1.17',        # Spanning Tree Protocol
     '1.3.6.1.4.1.1916',      # Extreme Networks
+    '1.3.6.1.4.1.2636.4',    # Juniper
     '1.3.6.1.4.1.6247',      # Comtech
     '1.3.6.1.4.1.8072',      # Net-SNMP
     '1.3.6.1.4.1.12394.1.2', # Rainbow
