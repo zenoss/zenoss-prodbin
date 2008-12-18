@@ -22,8 +22,9 @@ __version__ = '$Revision: 1.2 $'[11:-2]
 import re
 
 from Products.ZenUtils.Utils import unsigned
-from CollectorPlugin import SnmpPlugin, GetTableMap
-from DataMaps import ObjectMap
+from Products.DataCollector.plugins.DataMaps import ObjectMap
+from Products.DataCollector.plugins.CollectorPlugin \
+    import SnmpPlugin, GetTableMap
 
 class HRFileSystemMap(SnmpPlugin):
 
