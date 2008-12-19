@@ -32,6 +32,7 @@ from AccessControl import Permissions as permissions
 from Products.AdvancedQuery import MatchGlob, Or, Eq
 from Products.CMFCore.utils import getToolByName
 
+from Products.ZenModel.ZenossSecurity import *
 from Products.ZenRelations.RelSchema import *
 from Products.ZenUtils.Search import makeCaseInsensitiveFieldIndex
 from Products.ZenUtils.Search import makeCaseInsensitiveKeywordIndex
@@ -403,7 +404,7 @@ class DeviceClass(DeviceOrganizer, ZenPackable, TemplateContainer):
                 devices.append(devobj)
             except KeyError:
                 log.warn("bad path '%s' in index" % brain.getPrimaryId)
-                
+
         return devices
 
     def _findDevice(self, devicename):
@@ -560,6 +561,8 @@ class DeviceClass(DeviceOrganizer, ZenPackable, TemplateContainer):
             return self.callZenScreen(REQUEST)
 
 
+    security.declareProtected(ZEN_EDIT_LOCAL_TEMPLATES,
+                              'manage_copyRRDTemplates')
     def manage_copyRRDTemplates(self, ids=(), REQUEST=None):
         """
         Put a reference to the objects named in ids in the clip board
@@ -577,6 +580,8 @@ class DeviceClass(DeviceOrganizer, ZenPackable, TemplateContainer):
         return cp
 
 
+    security.declareProtected(ZEN_EDIT_LOCAL_TEMPLATES,
+                              'manage_pasteRRDTemplates')
     def manage_pasteRRDTemplates(self, moveTarget=None, cb_copy_data=None, REQUEST=None):
         """
         Paste RRDTemplates that have been copied before.
@@ -613,6 +618,8 @@ class DeviceClass(DeviceOrganizer, ZenPackable, TemplateContainer):
                 return self.callZenScreen(REQUEST)
 
 
+    security.declareProtected(ZEN_EDIT_LOCAL_TEMPLATES,
+                              'manage_copyAndPasteRRDTemplates')
     def manage_copyAndPasteRRDTemplates(self, ids=(), copyTarget=None, REQUEST=None):
         """
         Copy the selected templates into the specified device class.
@@ -627,6 +634,8 @@ class DeviceClass(DeviceOrganizer, ZenPackable, TemplateContainer):
         return self.manage_pasteRRDTemplates(copyTarget, cp, REQUEST)
 
 
+    security.declareProtected(ZEN_EDIT_LOCAL_TEMPLATES,
+                              'manage_deleteRRDTemplates')
     def manage_deleteRRDTemplates(self, ids=(), paths=(), REQUEST=None):
         """
         Delete RRDTemplates from this DeviceClass 
