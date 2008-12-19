@@ -375,17 +375,21 @@ class zenprocess(SnmpDaemon):
         def go(driver):
             try:
                 device.open()
-                try:
-                    yield self.scanDevice(device)
-                    driver.next()
-                    yield self.fetchPerf(device)
-                    driver.next()
-                finally:
-                    device.close()
+                yield self.scanDevice(device)
+                driver.next()
+                yield self.fetchPerf(device)
+                driver.next()
             except:
                 log.debug('Failed to scan device %s' % device.name)
 
+        def close(res):
+            try:
+                device.close()
+            except:
+                log.debug("Failed to close device %s" % device.name)
+
         d = drive(go)
+        d.addBoth(close)
         return d
 
 
