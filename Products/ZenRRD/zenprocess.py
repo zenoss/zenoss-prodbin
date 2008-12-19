@@ -372,16 +372,22 @@ class zenprocess(SnmpDaemon):
 
 
     def oneDevice(self, device):
-        device.open()
         def go(driver):
-            yield self.scanDevice(device)
-            driver.next()
-            yield self.fetchPerf(device)
-            driver.next()
+            try:
+                device.open()
+                try:
+                    yield self.scanDevice(device)
+                    driver.next()
+                    yield self.fetchPerf(device)
+                    driver.next()
+                finally:
+                    device.close()
+            except:
+                log.debug('Failed to scan device %s' % device.name)
+
         d = drive(go)
-        d.addBoth(device.close)
         return d
-        
+
 
     def scanDevice(self, device):
         "Fetch all the process info"
@@ -536,9 +542,8 @@ class zenprocess(SnmpDaemon):
                 if isinstance(result , Exception):
                     log.error("Error scanning device: %s", result)
                     break
-            else:
-                self.cycleTime = time.time() - start
-                self.heartbeat()
+            self.cycleTime = time.time() - start
+            self.heartbeat()
 
         drive(doPeriodic).addCallback(checkResults)
 
