@@ -685,10 +685,8 @@ class SshClient(CollectorClient.CollectorClient):
 
         # The following code never gets called, AFAIK
         if self.connection:
-            print "Called SSHCLIENT addcommand"
             for cmd in commands:
                 self.connection.addCommand(cmd)
-            print "Called self.connection._commands= %s" % self.connection.factory._commands
 
 
     def clientConnectionFailed( self, connector, reason ):
