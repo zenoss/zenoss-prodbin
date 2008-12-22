@@ -20,7 +20,7 @@ class ifconfig(CommandPlugin):
     ifconfig maps a Darwin ifconfig command to the interfaces relation.
     """
     maptype = "InterfaceMap" 
-    command = '/sbin/ifconfig'
+    command = '/sbin/ifconfig -a'
     compname = "os"
     relname = "interfaces"
     modname = "Products.ZenModel.IpInterface"

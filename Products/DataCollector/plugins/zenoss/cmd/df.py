@@ -20,7 +20,7 @@ class df(CommandPlugin):
     Run df -k to model filesystem information. Should work on most *nix.
     """
     maptype = "FilesystemMap" 
-    command = '/bin/df -k'
+    command = '/bin/df -Pk'
     compname = "os"
     relname = "filesystems"
     modname = "Products.ZenModel.FileSystem"

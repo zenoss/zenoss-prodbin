@@ -178,7 +178,7 @@ def loadPlugins(dmd):
                     plugins += _loadPluginDir(pack.path('modeler', 'plugins'))
             except:
                 log.error('Could not load modeler plugins from the %s ZenPack.' \
-                          % pack.name )
+                          % str(pack) )
 
     except:
         log.error('Could not load modeler plugins from ZenPacks.'

@@ -29,6 +29,7 @@ from twisted.conch.ssh import transport, userauth, connection
 from twisted.conch.ssh import common, keys, channel
 from twisted.internet import defer, reactor
 from Products.ZenEvents import Event
+from Products.ZenUtils.Utils import getExitMessage
 
 from Exceptions import *
 
@@ -583,6 +584,10 @@ class CommandChannel(channel.SSHChannel):
         """
         import struct
         self.exitCode = struct.unpack('>L', data)[0]
+        log.debug("Exit code for %s is %d: %s",
+                  self.command,
+                  self.exitCode,
+                  getExitMessage(self.exitCode))
 
 
     def dataReceived(self, data):

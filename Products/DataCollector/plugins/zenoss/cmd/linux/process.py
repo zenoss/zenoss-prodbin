@@ -20,7 +20,7 @@ class process(CommandPlugin):
     maps ps output to process
     """
     maptype = "OSProcessMap" 
-    command = 'ps axho comm,args'
+    command = 'ps axho args'
     compname = "os"
     relname = "processes"
     modname = "Products.ZenModel.OSProcess"
@@ -37,15 +37,9 @@ class process(CommandPlugin):
         rm = self.relMap()
 
         for line in results.split("\n"):
-            vals = line.split()
-            if len(vals) == 0:
-                continue
-
-            procName = vals[0]
-            parameters = string.join(vals[1:], ' ')
-            
-            proc = dict(procName=procName, parameters=parameters)
+            vals = line.split(None, 1)
+            if len(vals) != 2: continue
+            proc = dict(procName=vals[0], parameters=vals[1])
             om = self.objectMap(proc)
             rm.append(om)
-
         return rm

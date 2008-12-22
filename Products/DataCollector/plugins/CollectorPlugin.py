@@ -164,6 +164,7 @@ class CommandPlugin(CollectorPlugin):
     transport = "command"
     command = ""
     deviceProperties = CollectorPlugin.deviceProperties + (
+        'zCommandPort',
         'zCommandProtocol', 
         'zCommandUsername', 
         'zCommandPassword', 

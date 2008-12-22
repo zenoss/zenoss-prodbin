@@ -27,6 +27,7 @@ class process(CommandPlugin):
     compname = "os"
     relname = "processes"
     modname = "Products.ZenModel.OSProcess"
+    classname = "createFromObjectMap"
 
 
     def condition(self, device, log):
@@ -37,42 +38,10 @@ class process(CommandPlugin):
         log.info('Collecting process information for device %s' % device.id)
 
         rm = self.relMap()
-
-        procs = Set()
-
-        for line in results.split("\n"):
-            if line.strip() in ['', 'COMMAND']:
-                continue
-
-            vals = line.split()
-
-            if len(vals) == 0:
-                continue
-
-            procName = vals[0]
-            parameters = string.join(vals[1:], ' ')
-
-            proc = {
-                'procName' : procName,
-                'parameters' : parameters
-                }
-
+        for line in results.split("\n")[1:]:
+            vals = line.split(None, 1)
+            if len(vals) != 2: continue
+            proc = dict(procName=vals[0], parameters=vals[1])
             om = self.objectMap(proc)
-            fullname = (om.procName + " " + om.parameters).rstrip()
-
-            processes = device.getDmdRoot("Processes")
-            for pc in processes.getSubOSProcessClassesGen():
-                if pc.match(fullname):
-                    om.setOSProcessClass = pc.getPrimaryDmdId()
-                    id = om.procName
-                    parameters = om.parameters.strip()
-                    if parameters and not pc.ignoreParameters:
-                        parameters = md5.md5(parameters).hexdigest()
-                        id += ' ' + parameters
-                    om.id = self.prepId(id)
-                    if id not in procs:
-                        procs.add(id)
-                        rm.append(om)
-                    break
-
+            rm.append(om)
         return rm
