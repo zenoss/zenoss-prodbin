@@ -13,18 +13,23 @@
 
 from Products.ZenRRD.ComponentCommandParser import ComponentCommandParser
 
-class ifconfig(ComponentCommandParser):
+class netstat(ComponentCommandParser):
 
-    componentSplit = '\n\n'
-
-    componentScanner = '^(?P<component>.*):?[ \t]+Link '
+    componentScanner = '^(?P<component>[^ ]*)[*]? '
 
     scanners = [
-        r' RX packets:(?P<ifInPackets>\d+) errors:(?P<ifInErrors>\d+)',
-        r' TX packets:(?P<ifOutPackets>\d+) errors:(?P<ifOutErrors>\d+)',
-        r' RX bytes:(?P<ifInOctets>\d+) ',
-        r' TX bytes:(?P<ifOutOctets>\d+) ',
+        r' +(?P<mtu>\d+) .* '
+        r' (?P<ifInPackets>\d+)'
+        r' +(?P<ifInErrors>\d*)-?'
+        r' +(?P<ifInOctets>\d+)'
+        r' +(?P<ifOutPackets>\d+)'
+        r' +(?P<ifOutErrors>\d*)-?'
+        r' +(?P<ifOutOctets>\d+)'
+        r' +(?P<lastColumn>\d*)-?$',
         ]
 
     componentScanValue = 'interfaceName'
     
+    def processResults(self, cmd, result):
+        import pdb; pdb.set_trace()
+        ComponentCommandParser.processResults(self, cmd, result)

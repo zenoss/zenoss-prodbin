@@ -10,21 +10,3 @@
 # For complete information please visit: http://www.zenoss.com/oss/
 #
 ###########################################################################
-
-from Products.ZenRRD.ComponentCommandParser import ComponentCommandParser
-
-class ifconfig(ComponentCommandParser):
-
-    componentSplit = '\n\n'
-
-    componentScanner = '^(?P<component>.*):?[ \t]+Link '
-
-    scanners = [
-        r' RX packets:(?P<ifInPackets>\d+) errors:(?P<ifInErrors>\d+)',
-        r' TX packets:(?P<ifOutPackets>\d+) errors:(?P<ifOutErrors>\d+)',
-        r' RX bytes:(?P<ifInOctets>\d+) ',
-        r' TX bytes:(?P<ifOutOctets>\d+) ',
-        ]
-
-    componentScanValue = 'interfaceName'
-    

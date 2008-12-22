@@ -18,7 +18,7 @@ class uptime(CommandParser):
     
     def processResults(self, cmd, result):
         output = cmd.result.output
-        match = re.search(' up ([0-9]+) days, ([0-9]+)(:([0-9+]))?', output)
+        match = re.search(r' up (\d+) days, (\d+)(:(\d+))?', output)
         dps = dict([(dp.id, dp) for dp in cmd.points])
         if match:
             uptime = (
@@ -28,7 +28,9 @@ class uptime(CommandParser):
                 ) * 100
             if 'sysUpTime' in dps:
                 result.values.append( (dps['sysUpTime'], uptime) )
-        match = re.search(' load averages?: (.*), (.*), (.*)$', output)
+        match = re.search(r' load averages?: '
+                          r'([0-9.]+),? ([0-9.]+),? ([0-9.]+)$',
+                          output)
         if match:
             for i, dp in enumerate(['laLoadInt1', 'laLoadInt5', 'laLoadInt15']):
                 if dp in dps:

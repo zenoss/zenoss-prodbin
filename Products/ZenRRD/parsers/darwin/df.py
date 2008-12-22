@@ -13,18 +13,18 @@
 
 from Products.ZenRRD.ComponentCommandParser import ComponentCommandParser
 
-class ifconfig(ComponentCommandParser):
+class df(ComponentCommandParser):
 
-    componentSplit = '\n\n'
+    componentSplit = '\n'
 
-    componentScanner = '^(?P<component>.*):?[ \t]+Link '
+    componentScanner = '% (?P<component>/.*)'
 
     scanners = [
-        r' RX packets:(?P<ifInPackets>\d+) errors:(?P<ifInErrors>\d+)',
-        r' TX packets:(?P<ifOutPackets>\d+) errors:(?P<ifOutErrors>\d+)',
-        r' RX bytes:(?P<ifInOctets>\d+) ',
-        r' TX bytes:(?P<ifOutOctets>\d+) ',
+        r' (?P<totalBlocks>\d+) +(?P<usedBlocks>\d+) '
+        r'+(?P<availableBlocks>\d+) +(?P<percentUsed>\d+)% '
+        r'+(?P<usedInodes>\d+) +(?P<freeInodes>\d+) '
+        r'+(?P<percentInodesUsed>\d+)%'
         ]
-
-    componentScanValue = 'interfaceName'
     
+    componentScanValue = 'mount'
+
