@@ -10,7 +10,7 @@ class ps(CommandParser):
 
     def dataForParser(self, context, datapoint):
         id, name, ignoreParams, alertOnRestart, failSeverity = \
-            datapoint.getOSProcessConf()
+            context.getOSProcessConf()
         return dict(processName=name,
                     ignoreParams=ignoreParams,
                     alertOnRestart=alertOnRestart,
