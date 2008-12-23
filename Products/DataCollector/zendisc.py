@@ -105,9 +105,9 @@ class ZenDisc(ZenModeler):
                     continue
                 if not getattr(net, "zAutoDiscover", False): 
                     self.log.info("Skipping network %s because zAutoDiscover is False"
-                                  % net.id)
+                                  % net.getNetworkName())
                     continue
-                self.log.info("Discover network '%s'", net.id)
+                self.log.info("Discover network '%s'", net.getNetworkName())
                 yield NJobs(self.options.chunkSize,
                             self.ping.ping,
                             net.fullIpList()).start()

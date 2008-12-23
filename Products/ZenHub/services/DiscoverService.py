@@ -57,6 +57,9 @@ class IpNetProxy(pb.Copyable, pb.RemoteCopy):
         start = int(ipnumb + 1)
         end = int(ipnumb + maxip - 1)
         return map(strip, range(start,end))
+    
+    def getNetworkName(self):
+        return "%s/%d" % (self.id, self.netmask)
 
 pb.setUnjellyableForClass(IpNetProxy, IpNetProxy)
 
