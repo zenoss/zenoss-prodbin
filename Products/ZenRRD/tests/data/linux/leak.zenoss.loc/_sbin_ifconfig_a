@@ -1,0 +1,27 @@
+/sbin/ifconfig -a
+eth0      Link encap:Ethernet  HWaddr 00:0C:29:96:8A:0F  
+          inet addr:10.87.209.91  Bcast:10.87.209.255  Mask:255.255.255.0
+          inet6 addr: fe80::20c:29ff:fe96:8a0f/64 Scope:Link
+          UP BROADCAST RUNNING MULTICAST  MTU:1500  Metric:1
+          RX packets:15305 errors:0 dropped:0 overruns:0 frame:0
+          TX packets:12843 errors:0 dropped:0 overruns:0 carrier:0
+          collisions:0 txqueuelen:1000 
+          RX bytes:2151990 (2.0 MiB)  TX bytes:1768340 (1.6 MiB)
+          Interrupt:59 Base address:0x2000 
+
+lo        Link encap:Local Loopback  
+          inet addr:127.0.0.1  Mask:255.0.0.0
+          inet6 addr: ::1/128 Scope:Host
+          UP LOOPBACK RUNNING  MTU:16436  Metric:1
+          RX packets:5803 errors:0 dropped:0 overruns:0 frame:0
+          TX packets:5803 errors:0 dropped:0 overruns:0 carrier:0
+          collisions:0 txqueuelen:0 
+          RX bytes:454422 (443.7 KiB)  TX bytes:454422 (443.7 KiB)
+
+sit0      Link encap:IPv6-in-IPv4  
+          NOARP  MTU:1480  Metric:1
+          RX packets:0 errors:0 dropped:0 overruns:0 frame:0
+          TX packets:0 errors:0 dropped:0 overruns:0 carrier:0
+          collisions:0 txqueuelen:0 
+          RX bytes:0 (0.0 b)  TX bytes:0 (0.0 b)
+

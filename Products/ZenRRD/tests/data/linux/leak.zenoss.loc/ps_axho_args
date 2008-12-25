@@ -1,0 +1,73 @@
+ps axho args
+init [3]         
+[migration/0]
+[ksoftirqd/0]
+[watchdog/0]
+[events/0]
+[khelper]
+[kthread]
+[kblockd/0]
+[kacpid]
+[cqueue/0]
+[khubd]
+[kseriod]
+[pdflush]
+[kswapd0]
+[aio/0]
+[kpsmoused]
+[scsi_eh_0]
+[ata/0]
+[ata_aux]
+[ksnapd]
+[kjournald]
+[kauditd]
+/sbin/udevd -d
+[kmpathd/0]
+[kjournald]
+/sbin/dhclient -1 -q -lf /var/lib/dhclient/dhclient-eth0.leases -pf /var/run/dhclient-eth0.pid eth0
+auditd
+/sbin/audispd
+/usr/sbin/restorecond
+syslogd -m 0
+klogd -x
+mcstransd
+portmap
+rpc.statd
+rpc.idmapd
+dbus-daemon --system
+/usr/sbin/hcid
+/usr/sbin/sdpd
+[krfcommd]
+pcscd
+/usr/bin/hidd --server
+automount
+/usr/sbin/acpid
+/usr/sbin/sshd
+cupsd
+sendmail: accepting connections
+sendmail: Queue runner@01:00:00 for /var/spool/clientmqueue
+gpm -m /dev/input/mice -t exps2
+crond
+/usr/sbin/atd
+hald
+hald-runner
+hald-addon-acpi: listening on acpid socket /var/run/acpid.socket
+hald-addon-keyboard: listening on /dev/input/event0
+hald-addon-storage: polling /dev/hdc
+/usr/sbin/smartd -q never
+/sbin/mingetty tty1
+/sbin/mingetty tty2
+/sbin/mingetty tty3
+/sbin/mingetty tty4
+/sbin/mingetty tty5
+/sbin/mingetty tty6
+/usr/bin/python -tt /usr/sbin/yum-updatesd
+/usr/libexec/gam_server
+/usr/sbin/snmpd
+sshd: root@pts/0 
+-bash
+su - zenoss
+-bash
+[pdflush]
+bash ./createtest.sh
+ps axho args

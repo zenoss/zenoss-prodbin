@@ -1,0 +1,5 @@
+/bin/df -Pk
+Filesystem         1024-blocks      Used Available Capacity Mounted on
+/dev/mapper/VolGroup00-LogVol00   6983168   2681560   3941160      41% /
+/dev/sda1               101086     17759     78108      19% /boot
+tmpfs                   517644         0    517644       0% /dev/shm

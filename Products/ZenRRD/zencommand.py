@@ -15,9 +15,7 @@ __doc__=''' ZenCommand
 
 Run Command pluggins periodically.
 
-$Id$'''
-
-__version__ = "$Revision$"[11:-2]
+'''
 
 import time
 import logging
@@ -38,11 +36,7 @@ from Products.DataCollector.SshClient import SshClient
 from sets import Set
 from twisted.spread import pb
 
-import re
-# how to parse each value from a nagios command
-NagParser = re.compile(r"""([^ =']+|'(.*)'+)=([-0-9.eE]+)([^;]*;?){0,5}""")
-# how to parse each value from a cacti command
-CacParser = re.compile(r"""([^ :']+|'(.*)'+):([-0-9.]+)""")
+from Products.ZenRRD.CommandParser import getParser, ParsedResults
 
 MAX_CONNECTIONS=256
 
@@ -117,7 +111,6 @@ class ProcessRunner(ProcessProtocol):
         log.debug('Command: %r' % self.command)
         log.debug('Output: %r' % self.output)
         
-        self.output = [s.strip() for s in self.output.split('\n')][0]
         if self.stopped:
             d, self.stopped = self.stopped, None
             if not d.called:
@@ -254,6 +247,7 @@ class SshRunner:
         self.output, self.exitCode = value
         return self
 
+
 class DeviceConfig(pb.Copyable, pb.RemoteCopy):
     lastChange = 0.
     device = ''
@@ -264,16 +258,20 @@ class DeviceConfig(pb.Copyable, pb.RemoteCopy):
     loginTimeout = 0.
     commandTimeout = 0.
     keyPath = ''
-    maxOids = 20
 pb.setUnjellyableForClass(DeviceConfig, DeviceConfig)
 
 
-class CommandConfig:
-    def __init__(self, dictionary):
-        d = dictionary.copy()
-        d['self'] = self
-        self.__dict__.update(dictionary)
-    
+class DataPointConfig(pb.Copyable, pb.RemoteCopy):
+    id = ''
+    component = ''
+    rrdPath = ''
+    rrdType = None
+    rrdCreateCommand = ''
+    rrdMin = None
+    rrdMax = None
+    def __init__(self):
+        self.data = {}
+pb.setUnjellyableForClass(DataPointConfig, DataPointConfig)
 
 class Cmd(pb.Copyable, pb.RemoteCopy):
     "Holds the config of every command to be run"
@@ -282,7 +280,6 @@ class Cmd(pb.Copyable, pb.RemoteCopy):
     cycleTime = None
     eventClass = None
     eventKey = None
-    component = None
     severity = 3
     lastStart = 0
     lastStop = 0
@@ -290,7 +287,7 @@ class Cmd(pb.Copyable, pb.RemoteCopy):
 
 
     def __init__(self):
-        self.points = {}
+        self.points = []
 
     def running(self):
         return self.lastStop < self.lastStart 
@@ -338,17 +335,19 @@ class Cmd(pb.Copyable, pb.RemoteCopy):
         self.cycleTime = max(cfg.cycleTime, 1)
         self.eventKey = cfg.eventKey
         self.eventClass = cfg.eventClass
-        self.component = cfg.component
         self.severity = cfg.severity
         self.command = str(cfg.command)
-        points = {}
-        for p in cfg.points:
-            points[p[0]] = p[1:]
-        self.points = points
+        self.points = cfg.points
 
-    def key(self, point):
+    def getEventKey(self, point):
         # fetch datapoint name from filename path and add it to the event key
-        return self.eventKey + '|' + self.points[point][0].split('/')[-1]
+        return self.eventKey + '|' + point.rrdPath.split('/')[-1]
+
+    def commandKey(self):
+        "Provide a value that establishes the uniqueness of this command"
+        return '%'.join(map(str, [self.useSsh, self.cycleTime,
+                                  self.severity, self.command]))
+
 pb.setUnjellyableForClass(Cmd, Cmd)
 
 class Options:
@@ -372,7 +371,6 @@ class zencommand(RRDDaemon):
         RRDDaemon.__init__(self, 'zencommand')
         self.schedule = []
         self.timeout = None
-        self.deviceIssues = Set()
         self.pool = SshPool()
         self.executed = 0
 
@@ -502,82 +500,48 @@ class zencommand(RRDDaemon):
         if isinstance(err.value, TimeoutError):
             cmd, = err.value.args
             dc = cmd.deviceConfig
-            msg = "Command timed out on device %s: %s" % (dc.device, cmd.command)
+            msg = "Command timed out on device %s: %r" % (dc.device, cmd.command)
             log.warning(msg)
             issueKey = dc.device, cmd.eventClass, cmd.eventKey
-            self.deviceIssues.add(issueKey)
             self.sendEvent(dict(device=dc.device,
                                 eventClass=cmd.eventClass,
                                 eventKey=cmd.eventKey,
-                                component=cmd.component,
                                 severity=cmd.severity,
                                 summary=msg))
         else:
             log.exception(err.value)
 
     def parseResults(self, cmd):
-        log.debug('The result of "%s" was "%s"', cmd.command, cmd.result.output)
-        output = cmd.result.output
-        exitCode = cmd.result.exitCode
-        severity = cmd.severity
-        issueKey = cmd.deviceConfig.device, cmd.eventClass, cmd.eventKey
-        if output.find('|') >= 0:
-            msg, values = output.split('|', 1)
-        elif cmd.parser == 'Nagios':
-            msg, values = output, ''
-        elif CacParser.search(output):
-            msg, values = '', output
-        else:
-            msg, values = output, ''
-        msg = msg.strip() or 'Cmd: %s - Code: %s - Msg: %s' % (cmd.command, exitCode, getExitMessage(exitCode))
-        if exitCode == 0:
-            severity = 0
-        elif exitCode == 2:
-            severity = min(severity + 1, 5)
-        if severity or issueKey in self.deviceIssues:
-            self.sendThresholdEvent(device=cmd.deviceConfig.device,
-                                    summary=msg,
-                                    severity=severity,
-                                    message=msg,
-                                    performanceData=values,
-                                    eventKey=cmd.eventKey,
-                                    eventClass=cmd.eventClass,
-                                    component=cmd.component)
-            self.deviceIssues.add(issueKey)
-        if severity == 0:
-            self.sendEvent(dict(device=cmd.deviceConfig.device,
-                                eventClass=cmd.eventClass,
-                                eventKey=cmd.eventKey,
-                                component=cmd.component,
-                                severity=severity,
-                                summary=msg))
-            self.deviceIssues.discard(issueKey)
+        log.debug('The result of "%s" was "%r"', cmd.command, cmd.result.output)
+        results = ParsedResults()
+        try:
+            parser = getParser(cmd.parser)
+        except Exception, ex:
+            self.log.exception("Error loading parser %s", cmd.parser)
+            return
+        parser.processResults(cmd, results)
 
-        for value in values.split(' '):
-            if value.find('=') > 0:
-                parts = NagParser.match(value)
-            else:
-                parts = CacParser.match(value)
-            if not parts: continue
-            label = parts.group(1).replace("''", "'")
-            try:
-                value = float(parts.group(3))
-            except:
-                value = 'U'
-            if cmd.points.has_key(label):
-                path, type, command, (minv, maxv) = cmd.points[label]
-                log.debug("storing %s = %s in: %s" % (label, value, path))
-                value = self.rrd.save(path, value, type, command,
-                                      cmd.cycleTime, minv, maxv)
-                log.debug("rrd save result: %s" % value)
-                for ev in self.thresholds.check(path, time.time(), value):
-                    eventKey = cmd.key(label)
-                    if ev.has_key('eventKey'):
-                        ev['eventKey'] = '%s|%s' % (eventKey, ev['eventKey'])
-                    else:
-                        ev['eventKey'] = eventKey
-                    ev['component'] = cmd.component
-                    self.sendThresholdEvent(**ev)
+        for ev in results.events:
+            self.sendEvent(ev, device=cmd.deviceConfig.device)
+
+        for dp, value in results.values:
+            log.debug("storing %s = %s in: %s" % (dp.id, value, dp.rrdPath))
+            value = self.rrd.save(dp.rrdPath,
+                                  value,
+                                  dp.rrdType,
+                                  dp.rrdCreateCommand,
+                                  cmd.cycleTime,
+                                  dp.rrdMin,
+                                  dp.rrdMax)
+            log.debug("rrd save result: %s" % value)
+            for ev in self.thresholds.check(dp.rrdPath, time.time(), value):
+                eventKey = cmd.getEventKey(dp)
+                if ev.has_key('eventKey'):
+                    ev['eventKey'] = '%s|%s' % (eventKey, ev['eventKey'])
+                else:
+                    ev['eventKey'] = eventKey
+                ev['component'] = dp.component
+                self.sendEvent(ev)
 
     def fetchConfig(self):
         def doFetchConfig(driver):

@@ -13,49 +13,56 @@
 
 from PerformanceConfig import PerformanceConfig
 from ZODB.POSException import POSError
-from Products.ZenRRD.zencommand import Cmd, DeviceConfig
+from Products.ZenRRD.zencommand import Cmd, DeviceConfig, DataPointConfig
+from Products.ZenRRD.CommandParser import getParser
 from Products.ZenHub.PBDaemon import translateError
 
-def getComponentCommands(comp):
+
+def getComponentCommands(comp, commandCache, commandSet):
     """Return list of command definitions.
     """
-    result = []
     perfServer = comp.device().getPerformanceServer()
     for templ in comp.getRRDTemplates():
         basepath = comp.rrdPath()
         for ds in templ.getRRDDataSources('COMMAND'):
             if not ds.enabled: continue
+            parserName = getattr(ds, "parser", "Auto")
+            parser = getParser(parserName)
             points = []
             for dp in ds.getRRDDataPoints():
-                points.append(
-                    (dp.id,
-                     "/".join((basepath, dp.name())),
-                     dp.rrdtype,
-                     dp.getRRDCreateCommand(perfServer),
-                     (dp.rrdmin, dp.rrdmax)))
-            key = ds.eventKey or ds.id
+                dpc = DataPointConfig()
+                dpc.id = dp.id
+                dpc.component = comp.id
+                dpc.rrdPath = "/".join((basepath, dp.name()))
+                dpc.rrdType = dp.rrdtype
+                dpc.rrdCreateCommand = dp.getRRDCreateCommand(perfServer)
+                dpc.rrdMin = dp.rrdmin
+                dpc.rrdMax = dp.rrdmax
+                dpc.data = parser.dataForParser(comp, dp)
+                points.append(dpc)
             cmd = Cmd()
             cmd.useSsh = getattr(ds, 'usessh', False)
             cmd.cycleTime = ds.cycletime
             cmd.component = ds.getComponent(comp)
             cmd.eventClass = ds.eventClass
-            cmd.eventKey = key
+            cmd.eventKey = ds.eventKey or ds.id
             cmd.severity = ds.severity
-            cmd.parser = getattr(ds, "parser", "Auto")
+            cmd.parser = parserName
             cmd.command = ds.getCommand(comp)
-            cmd.points = points
-            result.append(cmd)
-    return (result, comp.getThresholdInstances('COMMAND'))
+            cmd = commandCache.setdefault(cmd.commandKey(), cmd)
+            cmd.points.extend(points)
+            commandSet.add(cmd)
+    return comp.getThresholdInstances('COMMAND')
 
 
 def getDeviceCommands(dev):
     if not dev.monitorDevice():
         return None
-    cmds, threshs = getComponentCommands(dev)
+    cache = {}
+    cmds = set()
+    threshs = getComponentCommands(dev, cache, cmds)
     for o in dev.getMonitoredComponents(collector="zencommand"):
-        c, t = getComponentCommands(o)
-        cmds.extend(c)
-        threshs.extend(t)
+        threshs.extend(getComponentCommands(o, cache, cmds))
     if cmds:
         d = DeviceConfig()
         d.lastChange = dev.getLastChange()
@@ -68,7 +75,7 @@ def getDeviceCommands(dev):
         d.commandTimeout = dev.zCommandCommandTimeout
         d.keyPath = dev.zKeyPath
         d.maxOids = dev.zMaxOIDPerRequest
-        d.commands = cmds
+        d.commands = list(cmds)
         d.thresholds = threshs
         return d
     return None

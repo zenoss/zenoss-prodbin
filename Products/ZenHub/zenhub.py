@@ -59,7 +59,6 @@ import time
 import pickle
 
 
-
 XML_RPC_PORT = 8081
 PB_PORT = 8789
 
@@ -177,10 +176,11 @@ class HubRealm(object):
             raise NotImplementedError
         return pb.IPerspective, self.hubAvitar, lambda:None
 
+
 class WorkerInterceptor(pb.Referenceable):
-    """Redirect service requests to one of the worker processes, but
-    everything else (like change notifications) go through locally
-    hosted services."""
+    """Redirect service requests to one of the worker processes. Note
+    that everything else (like change notifications) go through
+    locally hosted services."""
 
     callTime = 0.
 
@@ -229,7 +229,7 @@ class ZenHub(ZCmdBase):
 
     The remote collectors connect the ZenHub and request configuration
     information and stay connected.  When changes are detected in the
-    Zeo database configuration updates are sent out to collectors
+    Zeo database, configuration updates are sent out to collectors
     asynchronously.  In this way, changes made in the web GUI can
     affect collection immediately, instead of waiting for a
     configuration cycle.
@@ -294,16 +294,16 @@ class ZenHub(ZCmdBase):
         """
         from ZEO.cache import ClientCache as ClientCacheBase
         class ClientCache(ClientCacheBase):
+            "A sub-class to notice object invalidation notifications"
             def invalidate(s, oid, version, tid):
                 self.changes.insert(0, oid)
                 ClientCacheBase.invalidate(s, oid, version, tid)
 
         from ZEO.ClientStorage import ClientStorage as ClientStorageBase
         class ClientStorage(ClientStorageBase):
+            "Override the caching class to intercept messages"
             ClientCacheClass = ClientCache
 
-        # the cache needs to be persistent to get changes
-        # made when it was not running
         storage = ClientStorage((self.options.host, self.options.port),
                                 client=self.options.pcachename,
                                 var=self.options.pcachedir,
@@ -399,7 +399,9 @@ class ZenHub(ZCmdBase):
         @param name: the dotted-name of the module to load
         (uses @L{Products.ZenUtils.Utils.importClass})
         @param instance: string
-        @param instance: each service serves only one specific collector instances (like 'localhost').  instance defines the collector's instance name.
+        @param instance: each service serves only one specific collector
+        instances (like 'localhost').  instance defines the collector's
+        instance name.
         @return: a service loaded from ZenHub/services or one of the zenpacks.
         """
         try:

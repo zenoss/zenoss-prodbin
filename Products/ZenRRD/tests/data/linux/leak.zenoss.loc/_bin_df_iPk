@@ -1,0 +1,5 @@
+/bin/df -iPk
+Filesystem            Inodes   IUsed   IFree IUse% Mounted on
+/dev/mapper/VolGroup00-LogVol00 1802240  103708 1698532    6% /
+/dev/sda1              26104      39   26065    1% /boot
+tmpfs                 129411       1  129410    1% /dev/shm
