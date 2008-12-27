@@ -270,8 +270,8 @@ class PerformanceConf(Monitor, StatusColor):
         else:
             server = self.getObjByPath(renderurl)
         return server.summary(gopts)
-
-
+    
+    
     def currentValues(self, paths):
         "fill out full path and call to server"
         url = self.renderurl
@@ -420,22 +420,26 @@ class PerformanceConf(Monitor, StatusColor):
                                 zSnmpCommunity, REQUEST)
             if device:
                 device.manage_editDevice(tag=tag,
-                          serialNumber=serialNumber,
-                          rackSlot=rackSlot,
-                          zSnmpPort=zSnmpPort,
-                          zSnmpCommunity=zSnmpCommunity,
-                          zSnmpVer=zSnmpVer,
-                          productionState=productionState,
-                          comments=comments,
-                          hwManufacturer=hwManufacturer,
-                          hwProductName = hwProductName,
-                          osManufacturer = osManufacturer,
-                          osProductName = osProductName,
-                          locationPath = locationPath,
-                          groupPaths = groupPaths,
-                          systemPaths = systemPaths,
-                          performanceMonitor = performanceMonitor,
-                          priority = priority)
+                    serialNumber=serialNumber,
+                    rackSlot=rackSlot,
+                    zSnmpPort=zSnmpPort,
+                    zSnmpCommunity=zSnmpCommunity,
+                    zSnmpVer=zSnmpVer,
+                    productionState=productionState,
+                    comments=comments,
+                    hwManufacturer=hwManufacturer or \
+                        device.hw.getManufacturerName(),
+                    hwProductName=hwProductName or \
+                        device.hw.getProductName(),
+                    osManufacturer=osManufacturer \
+                        or device.os.getManufacturerName(),
+                    osProductName=osProductName \
+                        or device.os.getProductName(),
+                    locationPath=locationPath,
+                    groupPaths=groupPaths,
+                    systemPaths=systemPaths,
+                    performanceMonitor=performanceMonitor,
+                    priority=priority)
             else:
                 log.debug("No device returned.")
         return device        
