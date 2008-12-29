@@ -53,14 +53,14 @@ def manage_addDataRoot(context, id, title = None, REQUEST = None):
 
     if REQUEST is not None:
         REQUEST['RESPONSE'].redirect(context.absolute_url() + '/manage_main')
-                                     
+
 
 addDataRoot = DTMLFile('dtml/addDataRoot',globals())
 
 __pychecker__='no-override'
 
 class DataRoot(ZenModelRM, OrderedFolder, Commandable, ZenMenuable):
-    
+
     meta_type = portal_type = 'DataRoot'
 
     manage_main = OrderedFolder.manage_main
@@ -517,7 +517,8 @@ class DataRoot(ZenModelRM, OrderedFolder, Commandable, ZenMenuable):
         self.geocache = ''
 
     security.declareProtected(ZEN_COMMON, 'getGeoCache')
-    def getGeoCache(self, REQUEST=None):
+    @json
+    def getGeoCache(self):
         cachestr = self.geocache
         for char in ('\\r', '\\n'):
             cachestr = cachestr.replace(char, ' ')
@@ -525,7 +526,7 @@ class DataRoot(ZenModelRM, OrderedFolder, Commandable, ZenMenuable):
         return cachestr
 
     def goToStatusPage(self, objid, REQUEST=None):
-        """ Find a device or network and redirect 
+        """ Find a device or network and redirect
             to its status page.
         """
         import urllib
@@ -534,7 +535,7 @@ class DataRoot(ZenModelRM, OrderedFolder, Commandable, ZenMenuable):
             devid = objid
             if not devid.endswith('*'): devid += '*'
             obj = self.Devices.findDevice(devid)
-        except: 
+        except:
             obj=None
         if not obj:
             try:

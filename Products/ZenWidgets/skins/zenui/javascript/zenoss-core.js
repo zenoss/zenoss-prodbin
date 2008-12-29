@@ -89,12 +89,6 @@ function getLoader(withtests) {
         requires: ['zenossutils', 'container', 'json']
     });
     loader.addModule({
-        name: 'simplegeomap',
-        type: 'js',
-        fullpath: '/zport/dmd/javascript/geomap-2.1.js',
-        requires: ['zenossutils', 'container', 'json']
-    });
-    loader.addModule({
         name: 'swoopygraphs',
         type: 'js',
         fullpath: '/zport/dmd/zenrrdzoom.js',

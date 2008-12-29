@@ -1,6 +1,18 @@
-var Class = YAHOO.zenoss.Class;
+var IS_MAP_PORTLET = IS_MAP_PORTLET || false;
 
-var GLOB_MARKERDATA = [];
+YAHOO.namespace('zenoss.geomap');
+
+(function() { // Private namespace
+
+var Z = YAHOO.zenoss,             // Internal shorthand
+    W = YAHOO.widget,             // Internal shorthand
+    GLOB_MARKERDATA = [],         // Cache for marker stuff
+    ZenGeoMap = Z.Class.create(); // The main class
+
+/** ZenossLocationCache
+ *  A Google GGeocodeCache with the ability to restore from a serialized version
+ *  of the cache object.
+ */
 
 function ZenossLocationCache() {
     GGeocodeCache.apply(this);
@@ -9,18 +21,26 @@ function ZenossLocationCache() {
 ZenossLocationCache.prototype = new GGeocodeCache();
 ZenossLocationCache.prototype.reset = function() {
     GGeocodeCache.prototype.reset.call(this);
+    // Iterate over the attributes at the top level to get the name of the main
+    // cache. Google likes to rename them arbitrarily; this makes it so we
+    // don't care.
     if (geocodecache) {
       for (key in geocodecache)
           var mycache = geocodecache[key];
     } else {
       var mycache = [];
     }
+    // Now put each record into the current cache.
     forEach(keys(mycache), method(this, function(x) {
         this.put(mycache[x].name, mycache[x]);
     }));
 }
 
-var ZenGeoMap = Class.create();
+/* ZenGeoMap
+ * A class wrapping Google Maps that manages node creation and communication
+ * with Zenoss.
+ */
+
 ZenGeoMap.prototype = {
     __init__: function(container){
         this.lock = new DeferredLock();
@@ -38,6 +58,9 @@ ZenGeoMap.prototype = {
         this.geocodelock = new DeferredLock();
         this.mgr = new GMarkerManager(this.map);
         this.geocodetimeout = 500;
+        this.markerchecking = null;
+        this._markerregistry = {};
+        this._polylineregistry = [];
         bindMethods(this);
     },
     geocode: function(address, callback) {
@@ -67,7 +90,7 @@ ZenGeoMap.prototype = {
                 callLater(this.geocodetimeout/1000, method(this, function(){
                         this.geocodelock.release()}));
             } else {
-                YAHOO.zenoss.geocodingdialog.show();
+                Z.geomap.geocodingdialog.show();
                 this.geocoder.getLocations(address, checkStatus);
             }
         });
@@ -126,14 +149,31 @@ ZenGeoMap.prototype = {
         f.addCallback(bind(function(p){
             var polyline = new GPolyline(points, color, 3);
             this.map.addOverlay(polyline);
+            this._polylineregistry.push(polyline);
             lock2.release();
         }, this));
+    },
+    getOrCreateMarker: function(p, color){
+        var marker = this._markerregistry[p];
+        var isnew = (typeof(marker)=='undefined');
+        if (isnew) {
+            marker = this.Dot(p, color);
+        } else {
+            newimage = "img/" + color + "_dot.png";
+            if (marker.getIcon().image!=newimage) {
+                this.map.removeOverlay(marker);
+                marker = this.Dot(p, color);
+                isnew = true;
+            }
+        }
+        this._markerregistry[p] = marker;
+        return [marker, isnew];
     },
     addMarkers: function(nodedata){
         var ready_markers = [];
         var nummarkers = 0;
         var nodelen = nodedata.length;
-        YAHOO.zenoss.geocodingdialog.setHeader(
+        Z.geomap.geocodingdialog.setHeader(
             "Geocoding " + nummarkers + " of " + nodelen + " addresses..."
         );
         function makeMarker(node) {
@@ -148,15 +188,26 @@ ZenGeoMap.prototype = {
                 address,
                 bind(function(p){
                     nummarkers += 1;
-                    YAHOO.zenoss.geocodingdialog.setHeader(
+                    Z.geomap.geocodingdialog.setHeader(
                         "Geocoding " + nummarkers + " of " + nodelen + " addresses..."
                     );
                     if (p) {
-                        var marker = this.Dot(p, color);
-                        this.bounds.extend(p);
-                        GEvent.addListener(marker, "click", function(){
-                           location.href = clicklink});
-                        ready_markers.push(marker);
+                        markerpair = this.getOrCreateMarker(p, color);
+                        var marker = markerpair[0];
+                        var isNew = markerpair[1];
+                        if (isNew) {
+                            this.bounds.extend(p);
+                            ready_markers.push(marker);
+                            GEvent.addListener(marker, "click", function(){
+                               if (clicklink.search('ocationGeoMap')>0){
+                                   location.href = clicklink;
+                               } else {
+                                currentWindow().parent.location.href = clicklink;
+                               }
+                            });
+                        } else {
+                            marker.redraw(true);
+                        }
                         GLOB_MARKERDATA.push([marker, clicklink, summarytext]);
                     }
                 }, this)
@@ -168,11 +219,11 @@ ZenGeoMap.prototype = {
         function checkMarkers() {
             if (nodelen == nummarkers) {
                 this.mgr.addMarkers(ready_markers, 0);
-                YAHOO.zenoss.geocodingdialog.hide();
+                Z.geomap.geocodingdialog.hide();
                 this.showAllMarkers();
-                //forEach(markerdata, post_process);
             } else {
-                callLater(0.2, checkMarkers);
+                try {this.markerchecking.cancel()}catch(e){noop();}
+                this.markerchecking = callLater(0.2, checkMarkers);
             }
         }
         var checkMarkers = method(this, checkMarkers);
@@ -190,7 +241,39 @@ ZenGeoMap.prototype = {
             );
         }
         this.dirtycache = false;
-        //this.lock.release();
+    },
+    clearPolylines: function() {
+        forEach(this._polylineregistry, function(o){
+            this.map.removeOverlay(o);
+        });
+    },
+    doDraw: function(results) {
+        var nodedata = results.nodedata;
+        var linkdata = results.linkdata;
+        this.mgr = new GMarkerManager(this.map);
+        this.addMarkers(nodedata);
+        this.clearPolylines();
+        for (j=0;j<linkdata.length;j++) {
+            this.addPolyline(linkdata[j]);
+        }
+        callLater(0.5, function(){ // Don't understand why this is necessary, but it works
+            for (g=0;g<GLOB_MARKERDATA.length;g++) {
+                post_process(GLOB_MARKERDATA[g]);
+            }
+            GLOB_MARKERDATA = [];
+        });
+    },
+    refresh: function() {
+        var results = {
+            'nodedata':[],
+            'linkdata':[]
+        };
+        var myd = loadJSONDoc('getChildGeomapData');
+        myd.addCallback(function(x){results['nodedata']=x});
+        var myd2 = loadJSONDoc('getChildLinks');
+        myd2.addCallback(function(x){results['linkdata']=x});
+        var bigd = new DeferredList([myd, myd2], false, false, true);
+        bigd.addCallback(method(this, function(){this.doDraw(results)}));
     }
 }
 
@@ -206,8 +289,16 @@ function _getGMMarkerImage(marker) {
     return myval;
 }
 
+function getuid(m) {
+    // Gives you a (sort of) unique id for a marker
+    p = m.getPoint();
+    id = String(p.x) + String(p.y);
+    return id.replace(/[^a-zA-Z0-9]+/g, '');
+}
+
 function post_process(m) {
     var marker = m[0];
+    var uid = getuid(marker);
     var clicklink = m[1];
     var summarytext = m[2];
     var markerimg = _getGMMarkerImage(marker);
@@ -215,10 +306,9 @@ function post_process(m) {
                     "yui-skin-sam")
     addElementClass(markerimg.ownerDocument.body, 
                     "zenoss-gmaps")
-    summarytext = YAHOO.zenoss.unescapeHTML(summarytext);
     randint = parseInt(Math.random()*100000);
-    var ttip = new YAHOO.widget.Tooltip(
-        randint+"_tooltip",
+    var ttip = new W.Tooltip(
+        uid+"_tooltip",
         {
             context:markerimg, 
             text:summarytext
@@ -226,8 +316,8 @@ function post_process(m) {
     );
 }
 
-function geomap_initialize(){
-    YAHOO.zenoss.geocodingdialog = new YAHOO.widget.Panel("geocoding",
+Z.geomap.initialize = function (container) {
+    Z.geomap.geocodingdialog = new W.Panel("geocoding",
         {   width:"240px",
             fixedcenter:true,
             close:false,
@@ -237,29 +327,25 @@ function geomap_initialize(){
             visible:false
         }
     );
-    YAHOO.zenoss.geocodingdialog.setHeader("Geocoding 1 of 30 addresses...")
-    YAHOO.zenoss.geocodingdialog.setBody(
+    Z.geomap.geocodingdialog.setHeader("Geocoding 1 of 30 addresses...")
+    Z.geomap.geocodingdialog.setBody(
             '<img src="http://us.i1.yimg.com/us.yimg.com/'+
             'i/us/per/gr/gp/rel_interstitial_loading.gif" />'
     );
-    var x = new ZenGeoMap($('geomapcontainer'));
+    var x = new ZenGeoMap($(container));
     connect(currentWindow(), 'onunload', GUnload);
 
     addElementClass($('geomapcontainer'), "yui-skin-sam");
-    YAHOO.zenoss.geocodingdialog.render($('geomapcontainer'));
-
-    callLater(0.5, function(){ // Don't understand why this is necessary, but it works
-        for (g=0;g<GLOB_MARKERDATA.length;g++) {
-            post_process(GLOB_MARKERDATA[g]);
-        }
-    });
-
-    x.addMarkers(nodedata);
-    for (j=0;j<linkdata.length;j++) {
-        x.addPolyline(linkdata[j]);
+    Z.geomap.geocodingdialog.render($('geomapcontainer'));
+    x.refresh();
+    if (IS_MAP_PORTLET) {
+        var portlet_id = currentWindow().frameElement.parentNode.id.replace(
+            '_body', '');
+        var pobj = currentWindow().parent.ContainerObject.portlets[portlet_id];
+        pobj.mapobject = x;
     }
-
 }
 
+})(); // End private namespace
 
-YAHOO.register('geomap', YAHOO.zenoss, {});
+YAHOO.register('geomap', YAHOO.zenoss.geomap, {});
