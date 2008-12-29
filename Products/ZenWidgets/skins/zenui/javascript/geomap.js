@@ -142,7 +142,7 @@ ZenGeoMap.prototype = {
             var clicklink = node[2];
             var summarytext = node[3];
             if (address) {
-            if (this.cache.get(address)==null)
+            if (typeof(this.cache.get(address))=='undefined')
                 this.dirtycache = true;
             this.geocode(
                 address,
@@ -180,7 +180,7 @@ ZenGeoMap.prototype = {
     },
     saveCache: function() {
         if (this.dirtycache) {
-            cachestr = serializeJSON(this.cache);
+            cachestr = YAHOO.lang.JSON.stringify(this.cache);
             savereq = doXHR( 
                 '/zport/dmd/setGeocodeCache', 
                 {'sendContent':cachestr,
