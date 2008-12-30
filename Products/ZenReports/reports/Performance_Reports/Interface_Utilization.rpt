@@ -1,8 +1,17 @@
 <tal:block tal:define="
-    objects python:here.ReportServer.plugin('interface', here.REQUEST);
+    tableName string: interfaceutilreport;
+    tm here/ZenTableManager;
+    sts python:tm.setReqTableState;
+    deviceClass python:sts(tableName, 'deviceClass');
+    deviceFilter python:sts(tableName, 'deviceFilter');
+    startDate python:sts(tableName, 'startDate');
+    endDate python:sts(tableName, 'endDate');
+    summaryType python:sts(tableName, 'how');
+    tableState python:tm.getTableState(tableName, sortedHeader='percentUsed',
+                                       sortedSence='desc');
+    objects python:here.ReportServer.plugin('interface', tableState);
     objects python: (hasattr(request, 'doExport') and list(objects)) or objects;
     exportFields python:['device', 'speed', 'input', 'output', 'total', 'percentUsed'];
-    tableName string: interfaceutilreport;
     batch python:here.ZenTableManager.getBatch(tableName,objects,sortedHeader='percentUsed', sortedSence='desc');
 ">
 <tal:block metal:use-macro="here/reportMacros/macros/exportableReport">

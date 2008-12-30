@@ -75,6 +75,19 @@ class ZenTableState:
         self.showAll = False
         self.setTableStateFromKeys(keys)
 
+    def keys(self):
+        """
+        Behave like a REQUEST, for report plugins that use REQUEST to pull
+        objects (for example, the interface plugin)
+        """
+        return self.__dict__.keys()
+
+    def values(self):
+        """
+        Behave like a REQUEST, for report plugins that use REQUEST to
+        pull objects (for example, the interface plugin).
+        """
+        return self.__dict__.values()
 
     def setTableStateFromKeys(self, keys):
         self.__dict__.update(keys)
