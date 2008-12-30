@@ -24,6 +24,7 @@ from Products.ZenModel.IpRouteEntry import IpRouteEntry
 
 from ZenModelBaseTest import ZenModelBaseTest
 
+
 class TestDevice(ZenModelBaseTest):
 
 
@@ -203,7 +204,7 @@ class TestDevice(ZenModelBaseTest):
         self.dev.setGroups([])
         groupNames = self.dev.getDeviceGroupNames()
         self.assert_('/Third/Test/Group' not in groupNames)
-        
+
 
     def testSetPerformanceMonitor(self):
         self.dev.setPerformanceMonitor('perfMon')
@@ -230,6 +231,14 @@ class TestDevice(ZenModelBaseTest):
         d = self.dmd.Devices.createInstance('localhost')
         d.setManageIp()
         self.assert_(d.getManageIp() == '127.0.0.1')
+
+    def test_zPythonClass(self):
+        self.dmd.Devices.zPythonClass = \
+                "Products.ZenModel.tests.ClassTestDevice"
+        d = self.dmd.Devices.createInstance('testingclass')
+        # Import the long way so isinstance recognizes they're the same
+        from Products.ZenModel.tests.ClassTestDevice import ClassTestDevice
+        self.assert_(isinstance(d, ClassTestDevice))
 
 
     def testManage_editDevice(self):
