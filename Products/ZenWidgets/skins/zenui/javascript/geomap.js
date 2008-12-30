@@ -25,6 +25,8 @@ ZenossLocationCache.prototype.reset = function() {
     // cache. Google likes to rename them arbitrarily; this makes it so we
     // don't care.
     if (geocodecache) {
+        if (typeof(geocodecache)=="string")
+            geocodecache = YAHOO.lang.JSON.parse(geocodecache);
       for (key in geocodecache)
           var mycache = geocodecache[key];
     } else {
