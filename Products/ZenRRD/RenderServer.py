@@ -385,7 +385,26 @@ class RenderServer(RRDToolItem):
             log.warn(" ".join(gopts))
             raise
         return values
-        
+
+
+    security.declareProtected('GenSummary', 'fetchValues')
+    def fetchValues(self, paths, cf, resolution, start, end=None):
+        if end is None:
+            end = int(time.time() / resolution) * resolution
+        values = []
+        try:
+            for path in paths:
+                values.append(rrdtool.fetch(path, cf, "-r %d" % resolution,
+                    "-s %s" % start,"-e %s" % end))
+            return values
+        except NameError:
+            log.exception("It appears that the rrdtool bindings are not installed properly.")
+        except Exception, ex:
+            if ex.args[0].find('No such file or directory') > -1:
+                return None
+            log.exception("Failed while generating current values")
+            raise
+
 
     security.declareProtected('GenSummary', 'currentValues')
     def currentValues(self, paths):

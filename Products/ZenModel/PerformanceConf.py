@@ -272,6 +272,18 @@ class PerformanceConf(Monitor, StatusColor):
         return server.summary(gopts)
     
     
+    def fetchValues(self, paths, cf, resolution, start, end=None):
+        url = self.renderurl
+        if url.startswith("http"):
+            url = basicAuthUrl(self.renderuser, self.renderpass, self.renderurl)
+            server = xmlrpclib.Server(url)
+        else:
+            if not self.renderurl: raise KeyError
+            server = self.getObjByPath(self.renderurl)
+        return server.fetchValues(map(performancePath, paths), cf, resolution,
+            start, end)
+
+
     def currentValues(self, paths):
         "fill out full path and call to server"
         url = self.renderurl

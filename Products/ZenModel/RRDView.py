@@ -107,8 +107,23 @@ class RRDView(object):
                     result = dp
                     break
         return result
-        
-        
+    
+    
+    def fetchRRDValues(self, dpnames, cf, resolution, start, end=None):
+        paths = []
+        for dpname in dpnames:
+            paths.append(self.getRRDFileName(dpname))
+        return self.device().getPerformanceServer().fetchValues(paths,
+            cf, resolution, start, end)
+    
+    
+    def fetchRRDValue(self, dpname, cf, resolution, start, end=None):
+        r = self.fetchRRDValues([dpname,], cf, resolution, start, end=None)
+        if r is not None:
+            return r[0]
+        return None
+    
+    
     def getRRDValues(self, dsnames, start=None, end=None, function="LAST",
                      format="%.2lf"):
         """
