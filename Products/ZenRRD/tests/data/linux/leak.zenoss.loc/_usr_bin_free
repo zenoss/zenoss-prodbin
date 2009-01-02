@@ -1,0 +1,5 @@
+/usr/bin/free
+             total       used       free     shared    buffers     cached
+Mem:       1035288     292944     742344          0      64964     162944
+-/+ buffers/cache:      65036     970252
+Swap:      1048568          0    1048568

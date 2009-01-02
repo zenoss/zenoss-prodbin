@@ -17,10 +17,10 @@
               ifInOctets=2151990,
               ifOutOctets=1768340),
 
-'lo0': dict(ifInPackets=5803,
+'lo': dict(ifInPackets=5803,
             ifInErrors=0,
-            ifOutPackets=0,
-            ifOutErrors=5803,
+            ifOutPackets=5803,
+            ifOutErrors=0,
             ifInOctets=454422,
             ifOutOctets=454422),
 

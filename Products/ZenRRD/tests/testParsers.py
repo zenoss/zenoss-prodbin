@@ -13,14 +13,7 @@
 from Products.ZenTestCase.BaseTestCase import BaseTestCase
 from Products.ZenRRD.CommandParser import ParsedResults
 
-from Products.ZenRRD.parsers.ps import ps
-from Products.ZenRRD.parsers.linux.df import df
-from Products.ZenRRD.parsers.linux.dfi import dfi
-from Products.ZenRRD.parsers.linux.ifconfig import ifconfig
-
-
 import os, sys
-
 from pprint import pprint, pformat
 
 
@@ -33,7 +26,7 @@ class Object(object):
 
 def createPoints(expected):
     """
-    Create data points for a ComponentCommandParser from a mapping of expected
+    Create data points for a CommandParser from a mapping of expected
     values.
     """
     points = []
@@ -52,6 +45,85 @@ def createPoints(expected):
 
 class TestParsers(BaseTestCase):
 
+    def _testParser(self, parserMap, datadir, filename):
+
+        # read the data file
+        datafile = open('%s/%s' % (datadir, filename))
+        command = datafile.readline().rstrip("\n")
+        output = "".join(datafile.readlines())
+        datafile.close()
+        
+        # read the file containing the expected values
+        expectedfile = open('%s/%s.py' % (datadir, filename))
+        expected = eval("".join(expectedfile.readlines()))
+        expectedfile.close()
+        
+        cmd = Object()
+        cmd.points = createPoints(expected)
+        cmd.result = Object()
+        cmd.result.output = output
+        results = ParsedResults()
+        Parser = parserMap.get(command)
+
+        if Parser:
+            parser = Parser()
+        else:
+            self.fail("No parser for %s" % command)
+        
+        parser.processResults(cmd, results)
+        
+        self.assertEqual(len(cmd.points), len(results.values),
+            "%s expected %s values, actual %s" % (filename, len(cmd.points), 
+            len(results.values)))
+        
+        counter = 0
+        
+        for value in results.values:
+            self.assertEqual(value[0].expected, value[1])
+            counter += 1
+            
+        return counter
+
+
+    def testParsers(self):
+        """
+        Test all of the parsers that have test data files in the data
+        directory.
+        """
+        
+        from Products.ZenRRD.parsers.linux.df import df
+        from Products.ZenRRD.parsers.linux.dfi import dfi
+        from Products.ZenRRD.parsers.linux.ifconfig import ifconfig
+        from Products.ZenRRD.parsers.linux.free import free
+        from Products.ZenRRD.parsers.uptime import uptime
+        
+        parserMap = {'/bin/df -Pk': df,
+                     '/bin/df -iPk': dfi,
+                     '/sbin/ifconfig -a': ifconfig,
+                     '/usr/bin/free': free,
+                     '/usr/bin/uptime': uptime,
+                     }
+        
+        datadir = "%s/data/linux/leak.zenoss.loc" % os.path.dirname(__file__)
+        
+        def filenames():
+            for entry in os.listdir(datadir):
+                if not entry.startswith(".") and not entry.endswith(".py"):
+                    yield entry
+        
+        counter = 0
+        
+        for filename in filenames():
+            counter += self._testParser(parserMap, datadir, filename)
+            
+        self.assert_(counter > 0, counter)
+        print "testParsers made", counter, "assertions."
+
+
+class TestPsParser(BaseTestCase):
+    """
+    A one-off test of the ps parser that does not use the data files.
+    """
     def testPs(self):
         deviceConfig = Object()
         deviceConfig.device = 'localhost'
@@ -82,6 +154,7 @@ class TestParsers(BaseTestCase):
 234 1 00:00:00 anotherJob a b c
 """
         results = ParsedResults()
+        from Products.ZenRRD.parsers.ps import ps
         parser = ps()
         parser.processResults(cmd, results)
         assert len(results.values)
@@ -110,44 +183,10 @@ class TestParsers(BaseTestCase):
             else:
                 raise AssertionError("unexpected event")
 
-    def _testParser(self, command, filename, Parser):
-        datadir = "%s/data/linux/leak.zenoss.loc" % os.path.dirname(__file__)
-
-        # read the data file
-        datafile = open('%s/%s' % (datadir, filename))
-        commandUsed = datafile.readline().rstrip("\n")
-        self.assertEqual(command, commandUsed)
-        output = "".join(datafile.readlines())
-        datafile.close()
-        
-        # read the file containing the expected values
-        expectedfile = open('%s/%s.py' % (datadir, filename))
-        expected = eval("".join(expectedfile.readlines()))
-        expectedfile.close()
-        
-        cmd = Object()
-        cmd.points = createPoints(expected)
-        cmd.result = Object()
-        cmd.result.output = output
-        results = ParsedResults()
-        parser = Parser()
-        parser.processResults(cmd, results)
-        
-        for value in results.values:
-            self.assertEqual(value[0].expected, value[1])
-
-        
-    def test_df(self):
-        self._testParser('/bin/df -Pk', '_bin_df_Pk', df)
-
-    def test_dfi(self):
-        self._testParser('/bin/df -iPk', '_bin_df_iPk', dfi)
-
-    def test_ifconfig(self):
-        self._testParser('/sbin/ifconfig -a', '_sbin_ifconfig_a', ifconfig)
 
 def test_suite():
     from unittest import TestSuite, makeSuite
     suite = TestSuite()
     suite.addTest(makeSuite(TestParsers))
+    suite.addTest(makeSuite(TestPsParser))
     return suite

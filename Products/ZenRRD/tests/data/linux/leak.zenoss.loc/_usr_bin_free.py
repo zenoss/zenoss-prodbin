@@ -10,18 +10,12 @@
 # For complete information please visit: http://www.zenoss.com/oss/
 #
 ###########################################################################
-
-{'/': dict(totalInodes=1802240,
-           usedInodes=103708,
-           availableInodes=1698532,
-           percentInodesUsed=6),
-              
- '/boot': dict(totalInodes=26104,
-               usedInodes=39,
-               availableInodes=26065,
-               percentInodesUsed=1),
-                     
- '/dev/shm': dict(totalInodes=129411,
-                  usedInodes=1,
-                  availableInodes=129410,
-                  percentInodesUsed=1)}
+{'foo': dict(hrMemorySize=1035288,
+             memUsed=292944,
+             memAvailReal=742344,
+             memShared=0,
+             memBuffer=64964,
+             memCached=162944,
+             hrSwapSize=1048568,
+             memUsedSwap=0,
+             memAvailSwap=1048568)}
