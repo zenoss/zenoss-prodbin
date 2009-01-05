@@ -214,8 +214,8 @@ class ZenModeler(PBDaemon):
                 self.log.error( info )
                 evt[ 'message' ]= info
 
-                info= "Due to import errors, removing the %s plugin"
-                " from this collection cycle." % import_error.plugin
+                info= ("Due to import errors, removing the %s plugin"
+                       " from this collection cycle.") % import_error.plugin
                 self.log.error( info )
                 evt[ 'message' ] += "%s\n" % info
                 self.sendEvent( evt )
