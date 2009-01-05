@@ -63,17 +63,6 @@ def bp2ip(ptr):
     "Convert a pointer to 4 bytes to a dotted-ip-address"
     return '.'.join([str(ptr[i]) for i in range(4)])
 
-# Some vendors form their trap MIBs to insert a 0 before the
-# specific part of the v1 trap, but the device doesn't actually
-# send the 0. Unfortunately we have to make explicit exceptions
-# for these to get the OIDs decoded properly.
-expandableV1Prefixes = (
-    '1.3.6.1.2.1.17',        # Spanning Tree Protocol
-    '1.3.6.1.4.1.1916',      # Extreme Networks
-    '1.3.6.1.4.1.6247',      # Comtech
-    '1.3.6.1.4.1.8072',      # Net-SNMP
-    '1.3.6.1.4.1.12394.1.2', # Rainbow
-    )
 
 class FakePacket(object):
     """
@@ -314,7 +303,6 @@ class ZenTrap(EventServer):
         @type strip: boolean
         @return: Twisted deferred object
         @rtype: Twisted deferred object
-        @todo: make exactMatch and strip work
         """
         if type(oid) == type(()):
             oid = '.'.join(map(str, oid))
@@ -324,7 +312,6 @@ class ZenTrap(EventServer):
 
         self.log.debug("OID cache miss on %s (exactMatch=%r, strip=%r)" % (
             oid, exactMatch, strip))
-        # Note: exactMatch and strip are ignored by zenhub
         d = self.model().callRemote('oid2name', oid, exactMatch, strip)
 
         def cache(name, key):
@@ -457,24 +444,38 @@ class ZenTrap(EventServer):
                 variables = self.getResult(pdu)
                 addr[0] = '.'.join(map(str, [pdu.agent_addr[i] for i in range(4)]))
                 enterprise = self.getEnterpriseString(pdu)
-                yield self.oid2name(enterprise, exactMatch=False, strip=False)
                 eventType = driver.next()
                 generic = pdu.trap_type
                 specific = pdu.specific_type
-                oid = "%s.%d" % (enterprise, specific)
-                for oidPrefix in expandableV1Prefixes:
-                    if enterprise.startswith(oidPrefix):
-                        oid = "%s.0.%d" % (enterprise, specific)
-                                
-                yield self.oid2name(oid, exactMatch=False, strip=False)
-                eventType = { 0 : 'snmp_coldStart',
-                              1 : 'snmp_warmStart',
-                              2 : 'snmp_linkDown',
-                              3 : 'snmp_linkUp',
-                              4 : 'snmp_authenticationFailure',
-                              5 : 'snmp_egpNeighorLoss',
-                              6 : driver.next()
-                              }.get(generic, eventType + "_%d" % specific)
+                
+                # Try an exact match with a .0. inserted between enterprise and
+                # specific OID. It seems that MIBs frequently expect this .0.
+                # to exist, but the device's don't send it in the trap.
+                oid = "%s.0.%d" % (enterprise, specific)
+                yield self.oid2name(oid, exactMatch=True, strip=False)
+                name = driver.next()
+                
+                # If we didn't get a match with the .0. inserted we will try
+                # resolving withing the .0. inserted and allow partial matches.
+                if name == oid:
+                    oid = "%s.%d" % (enterprise, specific)
+                    yield self.oid2name(oid, exactMatch=False, strip=False)
+                    name = driver.next()
+
+                # Look for the standard trap types and decode them without
+                # relying on any MIBs being loaded.
+                eventType = {
+                    0: 'snmp_coldStart',
+                    1: 'snmp_warmStart',
+                    2: 'snmp_linkDown',
+                    3: 'snmp_linkUp',
+                    4: 'snmp_authenticationFailure',
+                    5: 'snmp_egpNeighorLoss',
+                    6: name,
+                    }.get(generic, name)
+                
+                # Decode all variable bindings. Allow partial matches and strip
+                # off any index values.
                 for oid, value in variables:
                     oid = '.'.join(map(str, oid))
                     yield self.oid2name(oid, exactMatch=False, strip=True)
