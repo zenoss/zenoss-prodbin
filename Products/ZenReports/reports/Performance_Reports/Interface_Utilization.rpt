@@ -1,12 +1,6 @@
 <tal:block tal:define="
     tableName string: interfaceutilreport;
     tm here/ZenTableManager;
-    sts python:tm.setReqTableState;
-    deviceClass python:sts(tableName, 'deviceClass');
-    deviceFilter python:sts(tableName, 'deviceFilter');
-    startDate python:sts(tableName, 'startDate');
-    endDate python:sts(tableName, 'endDate');
-    summaryType python:sts(tableName, 'how');
     tableState python:tm.getTableState(tableName, sortedHeader='percentUsed',
                                        sortedSence='desc');
     objects python:here.ReportServer.plugin('interface', tableState);
