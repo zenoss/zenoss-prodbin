@@ -230,9 +230,16 @@ class ZenossInfo(ZenModelItem, SimpleItem):
 
     
     def getZenossRevision(self):
+        """
+        Determine the Zenoss version number
+
+        @return: version number or ''
+        @rtype: string
+        """
         try:
-            os.chdir(zenPath('Products'))
-            fd = os.popen("svn info 2>/dev/null | grep Revision | awk '{print $2}'")
+            products = zenPath("Products")
+            cmd = "svn info '%s' 2>/dev/null | awk '/Revision/ {print $2}'" % products
+            fd = os.popen(cmd)
             return fd.readlines()[0].strip()
         except:
             return ''
