@@ -1,4 +1,4 @@
-#! /usr/bin/env bash
+#!/usr/bin/env bash
 #############################################################################
 # This program is part of Zenoss Core, an open source monitoring platform.
 # Copyright (C) 2007, Zenoss Inc.
@@ -10,7 +10,8 @@
 # For complete information please visit: http://www.zenoss.com/oss/
 #############################################################################
 
-# For some reason the zenfunctions line eats part of $*.  Store
-# value now to use in call to zendmd.py
+ARGS="$@"
+
 . $ZENHOME/bin/zenfunctions
-$PYTHON -i $ZENHOME/Products/ZenModel/zendmd.py "$CMD" $*
+
+exec $ZENHOME/bin/python $ZENHOME/Products/ZenModel/zendmd.py $ARGS
