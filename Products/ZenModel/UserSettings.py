@@ -590,7 +590,7 @@ class UserSettings(ZenModelRM):
         roleManager = self.acl_users.roleManager
         origRoles = filter(rolefilter, user.getRoles())
         # Only Managers can make more Managers
-        if not self.has_role('Manager') and 'Manager' in roles:
+        if not self.has_role('Manager') and roles and 'Manager' in roles:
             roles = origRoles
         # if there's a change, then we need to update
         if roles != origRoles and self.isManager():
