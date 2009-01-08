@@ -39,7 +39,6 @@ CONF_FILE = os.path.join(os.environ['ZENHOME'], 'etc', 'zope.conf')
 Zope2.configure(CONF_FILE)
 
 # Now we have the right paths, so we can do the rest of the imports
-import transaction
 from Products.CMFCore.utils import getToolByName
 from AccessControl.SecurityManagement import newSecurityManager
 from AccessControl.SecurityManagement import noSecurityManager
@@ -64,7 +63,7 @@ def _customStuff():
     """
 
     import socket
-    from transaction import commit, abort
+    from transaction import commit
     from pprint import pprint
 
     # Connect to the database, set everything up

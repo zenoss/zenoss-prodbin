@@ -13,8 +13,8 @@
 from Products.ZenTestCase.BaseTestCase import BaseTestCase
 from Products.ZenRRD.CommandParser import ParsedResults
 
-import os, sys
-from pprint import pprint, pformat
+import os
+from pprint import pformat
 
 
 class Object(object): 

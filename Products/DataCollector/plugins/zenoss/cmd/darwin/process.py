@@ -11,11 +11,7 @@
 #
 ###########################################################################
 
-import string
-
 from CollectorPlugin import CommandPlugin
-from sets import Set
-import md5
 
 
 class process(CommandPlugin):

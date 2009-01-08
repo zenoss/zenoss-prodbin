@@ -12,7 +12,6 @@
 ###########################################################################
 
 from Products.ZenRRD.CommandParser import CommandParser
-import re
 
 class cpu(CommandParser):
     def processResults(self, cmd, result):

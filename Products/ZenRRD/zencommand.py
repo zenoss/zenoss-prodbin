@@ -27,7 +27,6 @@ from twisted.python import failure
 
 import Globals
 from Products.ZenUtils.Driver import drive, driveLater
-from Products.ZenUtils.Utils import getExitMessage
 
 from Products.ZenRRD.RRDDaemon import RRDDaemon
 from Products.ZenRRD.RRDUtil import RRDUtil
