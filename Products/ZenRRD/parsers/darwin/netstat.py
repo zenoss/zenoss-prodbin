@@ -31,5 +31,4 @@ class netstat(ComponentCommandParser):
     componentScanValue = 'interfaceName'
     
     def processResults(self, cmd, result):
-        import pdb; pdb.set_trace()
         ComponentCommandParser.processResults(self, cmd, result)
