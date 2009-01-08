@@ -12,17 +12,15 @@
 ###########################################################################
 
 __doc__='''
-
-Add zSnmpStrictDiscovery z property.  If True, discoverDevices will not create
-new devices for found ip's unless they return snmp info
-
-$Id:$
+Add zSnmpStrictDiscovery Z property.  If True, discoverDevices will not create
+new devices for found IP's unless they return SNMP info
 '''
+
 import Migrate
 import transaction
 
 class addSnmpStrictDiscoveryFlag(Migrate.Step):
-    version = Migrate.Version(2, 3, 0)
+    version = Migrate.Version(2, 4, 0)
 
     def cutover(self, dmd):
         dmd.Networks._setProperty('zSnmpStrictDiscovery',False,'boolean')
