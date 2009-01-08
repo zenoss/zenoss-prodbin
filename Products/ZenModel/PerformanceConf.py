@@ -430,10 +430,23 @@ class PerformanceConf(Monitor, StatusColor):
             device = self._createDevice(deviceName, devicePath, productionState,
                                 performanceMonitor, discoverProto, zSnmpPort, 
                                 zSnmpCommunity, REQUEST)
+            
+            # If the device was successfully created we need to then set more
+            # information that was passed in through the web form such as
+            # location and system.
+            #
+            # We must be careful not to overwrite things that were modeled
+            # such as hardware and operating system information.
             if device:
-                device.manage_editDevice(tag=tag,
-                    serialNumber=serialNumber,
-                    rackSlot=rackSlot,
+                if device.hasProperty('zSnmpVer'):
+                    zSnmpVer = device.zSnmpVer
+                if device.hasProperty('zSnmpCommunity'):
+                    zSnmpCommunity = device.zSnmpCommunity
+                
+                device.manage_editDevice(
+                    tag=device.hw.tag or tag,
+                    serialNumber=device.hw.serialNumber or serialNumber,
+                    rackSlot=device.rackSlot or rackSlot,
                     zSnmpPort=zSnmpPort,
                     zSnmpCommunity=zSnmpCommunity,
                     zSnmpVer=zSnmpVer,
