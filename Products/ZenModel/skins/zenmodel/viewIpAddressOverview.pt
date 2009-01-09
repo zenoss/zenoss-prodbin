@@ -32,9 +32,13 @@
         </td>
         <td class=tablevalues align=left>
             <a class=tablevalues 
-                tal:condition="here/getDeviceUrl"
+                tal:condition="python:here.getDeviceName() != 'No Device'"
                 tal:content="here/getDeviceName" 
                 tal:attributes="href here/getDeviceUrl">device</a>
+            <a class=tablevalues 
+                tal:condition="python:here.getDeviceName() == 'No Device'"
+                tal:attributes="href python:'/zport/dmd/addDevice?deviceName=' + here.getIpAddress().split('/')[0]">
+                Add Device</a>
             <span tal:condition="not: here/getDeviceUrl" 
                 tal:content="here/getDeviceName" />
         </td>
