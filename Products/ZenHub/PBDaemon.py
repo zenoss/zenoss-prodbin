@@ -232,7 +232,7 @@ class PBDaemon(ZenDaemon, pb.Referenceable):
                 # give the reactor some time to send the shutdown event
                 drive(self.pushEvents).addBoth(stopNow)
                 # but not too much time
-                reactor.callLater(1, stopNow)
+                reactor.callLater(1, stopNow, True) # requires bogus arg
 
     def sendEvents(self, events):
         map(self.sendEvent, events)
