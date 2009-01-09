@@ -12,7 +12,6 @@
 ###########################################################################
 
 __doc__="""DmdBuilder
-
 DmdBuilder builds out the core containment structure used in the dmd database.
 
 Devices
@@ -23,9 +22,7 @@ ServiceAreas
 Services
 Systems
 
-$Id: DmdBuilder.py,v 1.11 2004/04/06 22:33:07 edahl Exp $"""
-
-__version__ = "$Revision: 1.11 $"[11:-2]
+"""
 
 from Products.ZenModel.DeviceClass import DeviceClass
 from Products.ZenModel.Location import Location
@@ -134,15 +131,20 @@ class DmdBuilder:
 
 
     def buildUserCommands(self):
-        for id, cmd in (
-                ('ping', 'ping -c2 ${device/manageIp}'),
-                ('traceroute', 'traceroute -q 1 -w 2 ${device/manageIp}'),
-                ('DNS forward', 'host ${device/manageIp}'),
-                ('DNS reverse', 'host ${device/id}'),
+        for id, cmd, desc in (
+                ('ping', 'ping -c2 ${device/manageIp}',
+                 "Is the device responding to ping?"),
+                ('traceroute', 'traceroute -q 1 -w 2 ${device/manageIp}',
+                 "Show the route to the device"),
+                ('DNS forward', 'host ${device/id}',
+                 "Name to IP address lookup"),
+                ('DNS reverse', 'host ${device/manageIp}',
+                 "IP address to name lookup"),
                 ('snmpwalk', 'snmpwalk -v1 -c${device/zSnmpCommunity}'
-                                ' ${here/manageIp} system'),
+                 ' ${here/manageIp} system',
+                 "Display the OIDs available on a device"),
                 ):
-            self.dmd.manage_addUserCommand(id, cmd=cmd)
+            self.dmd.manage_addUserCommand(id, cmd=cmd, desc=desc)
 
         
     def addroots(self, base, rlist, classType=None, isInTree=False):

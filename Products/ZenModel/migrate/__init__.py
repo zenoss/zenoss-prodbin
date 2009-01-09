@@ -161,4 +161,5 @@ import addSnmpStrictDiscoveryFlag
 import simpleDataPoint_list
 import uuidEventIds
 import addPreferSnmpNamingFlag
+import correctDNSlookupCommands
 
