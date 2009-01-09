@@ -21,6 +21,7 @@ import time
 import sys
 import socket
 import cPickle
+from exceptions import EOFError, IOError
 
 # Magical interfacing with C code
 import ctypes as c
@@ -191,7 +192,7 @@ class ZenTrap(EventServer):
 
         # Here's where we start to encounter differences between packet types
         if pdu.version == 0:
-            packet.agent_addr = pdu.agent_addr
+            packet.agent_addr =  [pdu.agent_addr[i] for i in range(4)]
             packet.trap_type = pdu.trap_type
             packet.specific_type = pdu.specific_type
             packet.enterprise = self.getEnterpriseString(pdu)
@@ -256,9 +257,10 @@ class ZenTrap(EventServer):
                 fp.close()
                 self.loaded += 1
 
-            except IOError:
+            except (IOError, EOFError):
                 fp.close()
                 self.log.exception( "Unable to load packet data from %s" % file )
+                continue
 
             self.replay(pdu)
 
@@ -499,7 +501,7 @@ class ZenTrap(EventServer):
             result.setdefault('monitor', self.options.monitor)
             self.sendEvent(result)
 
-            # Dont' attempt to respond back if we're replaying packets
+            # Don't attempt to respond back if we're replaying packets
             if len(self.options.replayFilePrefix) > 0:
                 self.replayed += 1
                 return
