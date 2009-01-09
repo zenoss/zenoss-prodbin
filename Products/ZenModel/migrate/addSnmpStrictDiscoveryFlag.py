@@ -23,6 +23,11 @@ class addSnmpStrictDiscoveryFlag(Migrate.Step):
     version = Migrate.Version(2, 4, 0)
 
     def cutover(self, dmd):
+        # Quick sanity check
+        props = dmd.Networks.zenPropertyIds()
+        if 'zSnmpStrictDiscovery' in props:
+            return
+
         dmd.Networks._setProperty('zSnmpStrictDiscovery',False,'boolean')
         transaction.commit()
 
