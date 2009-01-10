@@ -24,6 +24,7 @@ from Products.ZenModel.BasicDataSource import BasicDataSource
 from Products.ZenModel.BuiltInDS import BuiltInDS
 from Products.ZenModel.ConfigurationError import ConfigurationError
 from Products.ZenUtils.Utils import importClass
+from Products.ZenWidgets import messaging
 from RRDDataPoint import SEPARATOR
 from ZenPackable import ZenPackable
 
@@ -65,7 +66,7 @@ def YieldAllRRDTemplates(root, criteria=None):
     DeviceClass.getAllRRDTemplatesPainfully().  In this case root must
     be a DeviceClass and criteria is ignored. (This is compatible with 
     previous DeviceClass.getAllRRDTemplates usage.)
-    
+
     The searchRRDTemplates catalog was added in 2.2
     """
     zcat = getattr(root, RRDTEMPLATE_CATALOG, None)
@@ -86,7 +87,7 @@ def manage_addRRDTemplate(context, id, REQUEST = None):
     context._setObject(tt.id, tt)
     if REQUEST is not None:
         REQUEST['RESPONSE'].redirect(context.absolute_url()+'/manage_main')
-                                     
+
 
 addRRDTemplate = DTMLFile('dtml/addRRDTemplate',globals())
 
@@ -106,11 +107,11 @@ def crumbspath(templ, crumbs, idx=-1):
 class RRDTemplate(ZenModelRM, ZenPackable):
 
     meta_type = 'RRDTemplate'
-    
+
     default_catalog = RRDTEMPLATE_CATALOG
 
     security = ClassSecurityInfo()
-  
+
     description = ""
     targetPythonClass = "Products.ZenModel.Device"
 
@@ -278,7 +279,10 @@ class RRDTemplate(ZenModelRM, ZenPackable):
             if isinstance(ds, SimpleRRDDataSource): ds.addDataPoints()
         if REQUEST:
             if ds:
-                REQUEST['message'] = "Data source %s added" % ds.id
+                messaging.IMessageSender(self).sendToBrowser(
+                    'Datasource Added',
+                    "Data source %s added" % ds.id
+                )
                 url = '%s/datasources/%s' % (self.getPrimaryUrlPath(), ds.id)
                 return REQUEST['RESPONSE'].redirect(url)
             else:
@@ -309,7 +313,7 @@ class RRDTemplate(ZenModelRM, ZenPackable):
                     obj.dsnames.remove(id)
                     if not obj.dsnames:
                         rel._delObject(obj.id)
-            
+
         if not ids: return self.callZenScreen(REQUEST)
         for id in ids:
             self._p_changed = True
@@ -324,16 +328,17 @@ class RRDTemplate(ZenModelRM, ZenPackable):
                         perfConf = d.getPerformanceServer()
                         if perfConf:
                             perfConf.deleteRRDFiles(device=d, datasource=id)
-                        
+
                 self.datasources._delObject(id)
                 clean(self.graphs, id)
                 clean(self.thresholds, id)
 
         if REQUEST:
-            if len(ids) == 1:
-                REQUEST['message'] = 'Data source %s deleted.' % ids[0]
-            elif len(ids) > 1:
-                REQUEST['message'] = 'Data sources %s deleted.' % ', '.join(ids)
+            messaging.IMessageSender(self).sendToBrowser(
+                'Datasources Deleted',
+                'Datasource%s %s deleted.' % (len(ids)==1 and '' or 's',
+                                              ', '.join(ids))
+            )
             return self.callZenScreen(REQUEST)
 
 
@@ -347,13 +352,16 @@ class RRDTemplate(ZenModelRM, ZenPackable):
         org = self.thresholds._getOb(org.id)
         if REQUEST:
             if org:
-                REQUEST['message'] = 'Threshold %s added' % org.id
+                messaging.IMessageSender(self).sendToBrowser(
+                    'Threshold Added',
+                    'Threshold "%s" added' % org.id
+                )
                 url = '%s/thresholds/%s' % (self.getPrimaryUrlPath(), org.id)
                 return REQUEST['RESPONSE'].redirect(url)
             else:
                 return self.callZenScreen(REQUEST)
         return org
-            
+
 
     def manage_deleteRRDThresholds(self, ids=(), REQUEST=None):
         """Delete RRDThresholds from this DeviceClass 
@@ -363,10 +371,11 @@ class RRDTemplate(ZenModelRM, ZenPackable):
             if getattr(self.thresholds,id,False):
                 self.thresholds._delObject(id)
         if REQUEST:
-            if len(ids) == 1:
-                REQUEST['message'] = 'Threshold %s deleted.' % ids[0]
-            elif len(ids) > 1:
-                REQUEST['message'] = 'Thresholds %s deleted.' % ', '.join(ids)
+            messaging.IMessageSender(self).sendToBrowser(
+                'Thresholds Deleted',
+                'Threshold%s %s deleted.' % (len(ids)==1 and '' or 's',
+                                              ', '.join(ids))
+            )
             return self.callZenScreen(REQUEST)
 
 
@@ -382,11 +391,14 @@ class RRDTemplate(ZenModelRM, ZenPackable):
         self.graphDefs._setObject(graph.id, graph)
         graph = self.graphDefs._getOb(graph.id)
         if REQUEST:
-            REQUEST['message'] = 'Graph %s added' % graph.id
+            messaging.IMessageSender(self).sendToBrowser(
+                'Graph Added',
+                'Graph "%s" added' % graph.id
+            )
             url = '%s/graphDefs/%s' % (self.getPrimaryUrlPath(), graph.id)
             return REQUEST['RESPONSE'].redirect(url)
         return graph
-        
+
 
     security.declareProtected('Manage DMD', 'manage_deleteGraphDefinitions')
     def manage_deleteGraphDefinitions(self, ids=(), REQUEST=None):
@@ -396,10 +408,11 @@ class RRDTemplate(ZenModelRM, ZenPackable):
             self.graphDefs._delObject(id)
             self.manage_resequenceGraphDefs()
         if REQUEST:
-            if len(ids) == 1:
-                REQUEST['message'] = 'Graph %s deleted.' % ids[0]
-            elif len(ids) > 1:
-                REQUEST['message'] = 'Graphs %s deleted.' % ', '.join(ids)
+            messaging.IMessageSender(self).sendToBrowser(
+                'Graphs Deleted',
+                'Graph%s %s deleted.' % (len(ids)==1 and '' or 's',
+                                              ', '.join(ids))
+            )
             return self.callZenScreen(REQUEST)
 
 
@@ -429,8 +442,10 @@ class RRDTemplate(ZenModelRM, ZenPackable):
                     graphIds)
         numAdded = len(newGraphPoints)
         if REQUEST:
-            REQUEST['message'] = 'Added %s GraphPoint%s' % (
-                numAdded, numAdded != 1 and 's' or '')
+            messaging.IMessageSender(self).sendToBrowser(
+                'Graph Points Added',
+                'Added %s GraphPoint%s' % (numAdded, numAdded != 1 and 's' or '')
+            )
             return self.callZenScreen(REQUEST)
         return newGraphPoints
 
@@ -452,19 +467,21 @@ class RRDTemplate(ZenModelRM, ZenPackable):
                                                                 [thresh.id])
         if REQUEST:
             numAdded = len(newGps)
-            REQUEST['message'] = 'Added %s GraphPoint%s' % (
-                numAdded, numAdded != 1 and 's' or '')
+            messaging.IMessageSender(self).sendToBrowser(
+                'Graph Points Added',
+                'Added %s GraphPoint%s' % (numAdded, numAdded != 1 and 's' or '')
+            )
             return self.callZenScreen(REQUEST)
         return newGps
-                            
+
 
     def getDataSourceClasses(self):
         dsClasses = [BasicDataSource, BuiltInDS]
         for zp in self.dmd.ZenPackManager.packs():
             dsClasses += zp.getDataSourceClasses()
         return dsClasses
-        
-        
+
+
     def getDataSourceOptions(self):
         ''' Returns a list of the available datasource options as a list
         of (display name, dsOption)
@@ -474,7 +491,7 @@ class RRDTemplate(ZenModelRM, ZenPackable):
             dsTypes += [(t, '%s.%s' % (dsClass.__name__, t)) 
                             for t in dsClass.sourcetypes]
         return dsTypes
-        
+
 
     def getDataSourceInstance(self, id, dsOption):
         ''' Given one of the dsOptions returned by getDataSourceOptions)
@@ -498,8 +515,8 @@ class RRDTemplate(ZenModelRM, ZenPackable):
         for zp in self.dmd.ZenPackManager.packs():
             thresholdClasses += zp.getThresholdClasses()
         return map(lambda x: (x, x.__name__), thresholdClasses)
-        
-        
+
+
     def getThresholdClass(self, id, thresholdClassName):
         ''' Given one of the dsOptions returned by getDataSourceOptions)
         return an instance of the that RRDDataSource subclass.

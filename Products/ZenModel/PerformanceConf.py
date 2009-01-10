@@ -54,6 +54,7 @@ from Products.ZenUtils.Utils import setupLoggingHeader
 from Products.ZenUtils.Utils import executeCommand
 from Products.ZenUtils.Utils import clearWebLoggingStream
 from Products.ZenModel.Device import manage_createDevice
+from Products.ZenWidgets import messaging
 from StatusColor import StatusColor
 
 PERF_ROOT=None
@@ -364,18 +365,30 @@ class PerformanceConf(Monitor, StatusColor):
                               REQUEST=None):
         """ Provide a method to set performance monitor from any organizer """
         if not performanceMonitor:
-            if REQUEST: REQUEST['message'] = "No Monitor Selected"
+            if REQUEST: 
+                messaging.IMessageSender(self).sendToBrowser(
+                    'Error',
+                    'No monitor was selected.',
+                    priority=messaging.WARNING
+                )
             return self.callZenScreen(REQUEST)
         if deviceNames is None:
-            if REQUEST: REQUEST['message'] = "No Devices Selected"
+            if REQUEST: 
+                messaging.IMessageSender(self).sendToBrowser(
+                    'Error',
+                    'No devices were selected.',
+                    priority=messaging.WARNING
+                )
             return self.callZenScreen(REQUEST)
         for devName in deviceNames:
             dev = self.devices._getOb(devName)
             dev = dev.primaryAq()
             dev.setPerformanceMonitor(performanceMonitor)
         if REQUEST: 
-            REQUEST['message'] = "Performance monitor set to %s" % (
-                                    performanceMonitor)
+            messaging.IMessageSender(self).sendToBrowser(
+                'Monitor Set',
+                'Performance monitor was set to %s.' % performanceMonitor
+            )
             if REQUEST.has_key('oneKeyValueSoInstanceIsntEmptyAndEvalToFalse'):
                 return REQUEST['message']
             else:

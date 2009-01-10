@@ -25,6 +25,7 @@ from Products.PageTemplates.Expressions import getEngine
 
 from Products.ZenUtils.ZenTales import talesCompile
 from Products.ZenRelations.RelSchema import *
+from Products.ZenWidgets import messaging
 
 from ZenModelRM import ZenModelRM
 from ZenPackable import ZenPackable
@@ -36,7 +37,7 @@ def manage_addRRDDataSource(context, id, dsOption, REQUEST = None):
    context._setObject(ds.id, ds)
    if REQUEST is not None:
        REQUEST['RESPONSE'].redirect(context.absolute_url()+'/manage_main')
-                                     
+
 
 class RRDDataSource(ZenModelRM, ZenPackable):
 
@@ -120,7 +121,6 @@ class RRDDataSource(ZenModelRM, ZenPackable):
         dp = self.datapoints._getOb(dp.id)
         if REQUEST:
             if dp:
-                #REQUEST['message'] = "Command Added"
                 url = '%s/datapoints/%s' % (self.getPrimaryUrlPath(), dp.id)
                 REQUEST['RESPONSE'].redirect(url)
             return self.callZenScreen(REQUEST)
@@ -176,8 +176,10 @@ class RRDDataSource(ZenModelRM, ZenPackable):
                                                                 [dp.name()])
         if REQUEST:
             numNew = len(newGps)
-            REQUEST['message'] = '%s GraphPoint%s added' % (
-                        numNew, numNew != 1 and 's' or '')
+            messaging.IMessageSender(self).sendToBrowser(
+                'Graph Points Added',
+                '%s GraphPoint%s added' % (numNew, numNew != 1 and 's' or '')
+            )
             return self.callZenScreen(REQUEST)
         return newGps
 
@@ -260,14 +262,14 @@ class SimpleRRDDataSource(RRDDataSource):
             self.datapoints._delObject(dp.id)
         if not self.datapoints._getOb(dpid, None):
             self.manage_addRRDDataPoint(dpid)
-    
+
     def zmanage_editProperties(self, REQUEST=None):
         """
         Overrides the method defined in RRDDataSource. Called when user clicks
         the Save button on the Data Source editor page.
         """
         self.addDataPoints()
-        
+
         if REQUEST and self.datapoints():
 
             datapoint = self.datapoints()[0]
@@ -276,34 +278,44 @@ class SimpleRRDDataSource(RRDDataSource):
                 if REQUEST['rrdtype'] in datapoint.rrdtypes:
                     datapoint.rrdtype = REQUEST['rrdtype']
                 else:
-                    REQUEST['message'] = "%s is an invalid Type" % rrdtype
+                    messaging.IMessageSender(self).sendToBrowser(
+                        'Error',
+                        "%s is an invalid Type" % rrdtype,
+                        priority=messaging.WARNING
+                    )
                     return self.callZenScreen(REQUEST)
-            
+
             if REQUEST.has_key('rrdmin'):
                 value = REQUEST['rrdmin']
                 if value != '': 
                     try:
                         value = long(value)
                     except ValueError:
-                        msg = "%s is an invalid RRD Min"
-                        REQUEST['message'] = msg % value
+                        messaging.IMessageSender(self).sendToBrowser(
+                            'Error',
+                            "%s is an invalid RRD Min" % value,
+                            priority=messaging.WARNING
+                        )
                         return self.callZenScreen(REQUEST)
                 datapoint.rrdmin = value
-            
+
             if REQUEST.has_key('rrdmax'):
                 value = REQUEST['rrdmax']
                 if value != '': 
                     try:
                         value = long(value)
                     except ValueError:
-                        msg = "%s is an invalid RRD Max"
-                        REQUEST['message'] = msg % value
+                        messaging.IMessageSender(self).sendToBrowser(
+                            'Error',
+                            "%s is an invalid RRD Max" % value,
+                            priority=messaging.WARNING
+                        )
                         return self.callZenScreen(REQUEST)
                 datapoint.rrdmax = value
-            
+
             if REQUEST.has_key('createCmd'):
                 datapoint.createCmd = REQUEST['createCmd']
-        
+
         return RRDDataSource.zmanage_editProperties(self, REQUEST)
 
 
@@ -312,6 +324,6 @@ class SimpleRRDDataSource(RRDDataSource):
         Override method in super class.  ids will always be an empty tuple, so
         call the super class's method with the single datapoint as the ids.
         """
-        return RRDDataSource.manage_addDataPointsToGraphs(self, 
+        return RRDDataSource.manage_addDataPointsToGraphs(self,
                 (self.datapoints()[0].id,), graphIds, REQUEST)
 

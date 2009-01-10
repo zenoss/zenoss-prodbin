@@ -30,6 +30,7 @@ from Acquisition import aq_base
 from OFS.Folder import Folder
 from Products.ZenUtils.Utils import checkClass
 from ZenModelRM import ZenModelRM
+from Products.ZenWidgets import messaging
 
 from RRDTemplate import RRDTemplate
 from TemplateContainer import TemplateContainer
@@ -125,15 +126,23 @@ class MonitorClass(ZenModelRM, Folder, TemplateContainer):
                     if child.hasObject(id):
                         child._delObject(id)
                         num += 1
-                msg = 'Deleted %s monitors' % num
-                        
+                messaging.IMessageSender(self).sendToBrowser(
+                    'Monitors Deleted',
+                    'Deleted monitors: %s' % (', '.join(ids))
+                )
             else:
-                msg = 'You must have at least one monitor'
+                messaging.IMessageSender(self).sendToBrowser(
+                    'Error',
+                    'You must have at least one monitor.',
+                    priority=messaging.WARNING
+                )
         else:
-            msg = 'No monitors are selected'
+            messaging.IMessageSender(self).sendToBrowser(
+                'Error',
+                'No monitors were selected.',
+                priority=messaging.WARNING
+            )
         if REQUEST:
-            if msg:
-                REQUEST['message'] = msg
             return self.callZenScreen(REQUEST)
 
 
@@ -145,8 +154,11 @@ class MonitorClass(ZenModelRM, Folder, TemplateContainer):
                                                       child.sub_class), values)
         ctor = values[child.sub_class]
         if id: child._setObject(id, ctor(id))
-        if REQUEST: 
-            REQUEST['message'] = 'Monitor created'
+        if REQUEST:
+            messaging.IMessageSender(self).sendToBrowser(
+                'Monitor Created',
+                'Monitor %s was created.' % id
+            )
             return self.callZenScreen(REQUEST)
 
 
@@ -185,13 +197,16 @@ class MonitorClass(ZenModelRM, Folder, TemplateContainer):
         id = self.prepId(id)
         org = RRDTemplate(id)
         self.rrdTemplates._setObject(org.id, org)
-        if REQUEST: 
-            REQUEST['message'] = "Template added"
+        if REQUEST:
+            messaging.IMessageSender(self).sendToBrowser(
+                'Template Added',
+                'Template %s was created.' % id
+            )
             return self.callZenScreen(REQUEST)
-            
+
 
     def manage_deleteRRDTemplates(self, ids=(), paths=(), REQUEST=None):
-        """Delete RRDTemplates from this MonitorClass 
+        """Delete RRDTemplates from this MonitorClass
         (skips ones in other Classes)
         """
         if not ids and not paths:
@@ -201,12 +216,15 @@ class MonitorClass(ZenModelRM, Folder, TemplateContainer):
         for path in paths:
             id = path.split('/')[-1]
             self.rrdTemplates._delObject(id)
-        if REQUEST: 
-            REQUEST['message'] = "Templates deleted"
+        if REQUEST:
+            messaging.IMessageSender(self).sendToBrowser(
+                'Templates Deleted',
+                'Templates were deleted: %s' % (', '.join(ids))
+            )
             return self.callZenScreen(REQUEST)
 
     def getSubDevicesGen(self):
         return []
 
-    
+
 InitializeClass(MonitorClass)

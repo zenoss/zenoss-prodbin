@@ -20,6 +20,7 @@ from AccessControl import Permissions
 from Products.ZenModel.ZenossSecurity import *
 from Commandable import Commandable
 from Products.ZenRelations.RelSchema import *
+from Products.ZenWidgets import messaging
 from ZenPackable import ZenPackable
 
 from ZenModelRM import ZenModelRM
@@ -149,7 +150,10 @@ class OSProcessClass(ZenModelRM, Commandable, ZenPackable):
         self.ignoreParameters = ignoreParameters
         if REQUEST:
             from Products.ZenUtils.Time import SaveMessage
-            REQUEST['message'] = SaveMessage()
+            messaging.IMessageSender(self).sendToBrowser(
+                'Product Class Saved',
+                SaveMessage()
+            )
             return self.callZenScreen(REQUEST, redirect)
    
 

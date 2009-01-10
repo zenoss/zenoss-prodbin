@@ -25,6 +25,7 @@ from Acquisition import aq_base, aq_chain
 from Products.PageTemplates.Expressions import getEngine
 from Products.ZenUtils.ZenTales import talesCompile
 from Products.ZenUtils.Utils import unused
+from Products.ZenWidgets import messaging
 from DateTime import DateTime
 import os
 import popen2
@@ -59,14 +60,15 @@ class Commandable:
             uc.command = cmd
         if REQUEST:
             if uc:
-                url = '%s/userCommands/%s?message=%s' % (
-                    self.getPrimaryUrlPath(), uc.id, 'Command Added')
-                REQUEST['RESPONSE'].redirect(url)
-            REQUEST['message'] = 'Command Added'
+                messaging.IMessageSender(self).sendToBrowser(
+                    'Command Added',
+                    'User command %s has been created.' % newId
+                )
+                REQUEST['RESPONSE'].redirect(uc.getPrimaryUrlPath())
             return self.callZenScreen(REQUEST)
         return uc
 
-         
+
     security.declareProtected(ZEN_DEFINE_COMMANDS_EDIT, 
         'manage_deleteUserCommand')
     def manage_deleteUserCommand(self, ids=(), REQUEST=None):
@@ -76,10 +78,13 @@ class Commandable:
             ids = [ids]
         for id in ids:
             self.userCommands._delObject(id)
-        if self.meta_type == 'Device':            
+        if self.meta_type == 'Device':
             self.setLastChange()
         if REQUEST:
-            REQUEST['message'] = "Command(s) Deleted"
+            messaging.IMessageSender(self).sendToBrowser(
+                'Commands Deleted',
+                'User commands %s have been deleted.' % " ".join(ids)
+            )
             return self.callZenScreen(REQUEST)
 
     security.declareProtected(ZEN_DEFINE_COMMANDS_EDIT, 
@@ -91,7 +96,7 @@ class Commandable:
         if command:
             command.manage_changeProperties(**REQUEST.form)
         return self.redirectToUserCommands(REQUEST)
-        
+
 
     security.declareProtected(ZEN_RUN_COMMANDS, 'manage_doUserCommand')
     def manage_doUserCommand(self, commandId=None, REQUEST=None):

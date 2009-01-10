@@ -39,9 +39,11 @@ function initDashboardPortlets() {
         p1 = new YAHOO.zenoss.portlet.ProdStatePortlet({id:'prodstates'});
         p2 = new YAHOO.zenoss.portlet.DeviceIssuesPortlet({id:'devissues'});
         p3 = new YAHOO.zenoss.portlet.WatchListPortlet({id:'watchlist'});
+        p4 = new YAHOO.zenoss.portlet.UserMsgsPortlet({id:'usermsgs'});
         ContainerObject.leftCol().addPortlet(p1);
-        ContainerObject.middleCol().addPortlet(p2);
-        ContainerObject.rightCol().addPortlet(p3);
+        ContainerObject.leftCol().addPortlet(p2);
+        ContainerObject.middleCol().addPortlet(p3);
+        ContainerObject.rightCol().addPortlet(p4);
     }
 }
 var loader = YAHOO.zenoss.getLoader();

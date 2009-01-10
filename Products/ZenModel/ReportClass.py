@@ -30,6 +30,7 @@ from ZenPackable import ZenPackable
 from ZenossSecurity import ZEN_COMMON
 from Products.ZenRelations.RelSchema import *
 from Products.ZenUtils.Utils import unused
+from Products.ZenWidgets import messaging
 
 def manage_addReportClass(context, id, title = None, REQUEST = None):
     """make a device class"""
@@ -37,7 +38,10 @@ def manage_addReportClass(context, id, title = None, REQUEST = None):
     context._setObject(id, dc)
 
     if REQUEST is not None:
-        REQUEST['message'] = "Report organizer created"
+        messaging.IMessageSender(self).sendToBrowser(
+            'Report Organizer Created',
+            'Report organizer %s was created.' % id
+        )
         REQUEST['RESPONSE'].redirect(context.absolute_url() + '/manage_main') 
 
 addReportClass = DTMLFile('dtml/addReportClass',globals())
@@ -110,7 +114,10 @@ class ReportClass(Organizer, ZenPackable):
         dc = rClass(id, title)
         self._setObject(id, dc)
         if REQUEST:
-            REQUEST['message'] = "Report organizer created"
+            messaging.IMessageSender(self).sendToBrowser(
+                'Report Organizer Created',
+                'Report organizer %s was created.' % id
+            )
             return self.callZenScreen(REQUEST)
 
 
@@ -123,16 +130,15 @@ class ReportClass(Organizer, ZenPackable):
             if self.checkRemotePerm('View', r):
                 reports.append(r)
         return reports
-                
 
-        
+
     def countReports(self):
         """Return a count of all our contained children."""
         count = len(self.reports())
         for child in self.children():
             count += child.countReports()
         return count
-        
+
 
     security.declareProtected('Manage DMD', 'manage_addGraphReport')
     def manage_addGraphReport(self, id, REQUEST=None):
@@ -143,10 +149,13 @@ class ReportClass(Organizer, ZenPackable):
             gr = GraphReport(id)
             self._setObject(id, gr)
         if REQUEST:
-            REQUEST['message'] = "Graph report created"
+            messaging.IMessageSender(self).sendToBrowser(
+                'Report Created',
+                'Graph report %s was created.' % id
+            )
             return self.callZenScreen(REQUEST)
 
-    
+
     def moveReports(self, moveTarget, ids=None, REQUEST=None):
         """Move a report from here organizer to moveTarget.
         """
@@ -159,9 +168,12 @@ class ReportClass(Organizer, ZenPackable):
             self._delObject(rptname)
             target._setObject(rptname, rpt)
         if REQUEST:
-            REQUEST['message'] = "Device reports moved"
+            messaging.IMessageSender(self).sendToBrowser(
+                'Reports Moved',
+                'Reports %s were moved to %s.' % (', '.join(ids), moveTarget)
+            )
             REQUEST['RESPONSE'].redirect(target.getPrimaryUrlPath())
-    
+
 
     def exportXmlHook(self, ofile, ignorerels):
         """patch to export all device components
@@ -170,7 +182,7 @@ class ReportClass(Organizer, ZenPackable):
         for o in self.reports():
             if hasattr(aq_base(o), 'exportXml'):
                 o.exportXml(ofile, ignorerels)
-     
+
 
 
 InitializeClass(ReportClass)

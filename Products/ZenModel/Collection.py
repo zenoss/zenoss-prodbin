@@ -22,6 +22,7 @@ from AccessControl import ClassSecurityInfo, Permissions
 from Globals import DTMLFile
 from Products.ZenRelations.RelSchema import *
 from ZenModelRM import ZenModelRM
+from Products.ZenWidgets import messaging
 
 
 def manage_addCollection(context, id, REQUEST = None):
@@ -131,10 +132,12 @@ class Collection(ZenModelRM):
                 self.createCollectionItem(
                                     orgPath='/Locations' + loc, recurse=recurse)
                 count += 1
-            
+
         if REQUEST:
-            REQUEST['message'] = ' %s item%s added' % (count,
-                count > 1 and 's' or '')
+            messaging.IMessageSender(self).sendToBrowser(
+                'Items Added',
+                ' %s item%s added' % (count, count > 1 and 's' or '')
+            )
             return self.callZenScreen(REQUEST)
 
 
@@ -146,7 +149,11 @@ class Collection(ZenModelRM):
             self.items._delObject(id)
         self.manage_resequenceCollectionItems()
         if REQUEST:
-            REQUEST['message'] = 'Item%s deleted' % (len(ids) > 1 and 's' or '')
+            count = len(ids)
+            messaging.IMessageSender(self).sendToBrowser(
+                'Items Deleted',
+                ' %s item%s deleted' % (count, count > 1 and 's' or '')
+            )
             return self.callZenScreen(REQUEST)
 
 

@@ -11,6 +11,7 @@
 #
 ###########################################################################
 
+import sys
 from Globals import InitializeClass
 from AccessControl import ClassSecurityInfo
 from ZenModelRM import ZenModelRM
@@ -18,7 +19,7 @@ from Products.ZenRelations.RelSchema import *
 from RRDView import GetRRDPath
 from PerformanceConf import performancePath
 from ZenossSecurity import ZEN_MANAGE_DMD
-import sys
+from Products.ZenWidgets import messaging
 
 def manage_addMultiGraphReport(context, id, REQUEST = None):
     ''' Create a new MultiGraphReport
@@ -102,7 +103,11 @@ class MultiGraphReport(ZenModelRM):
             self.graphGroups._delObject(id)
         self.manage_resequenceGraphGroups()
         if REQUEST:
-            REQUEST['message'] = 'Group%s deleted' % len(ids) > 1 and 's' or ''
+            messaging.IMessageSender(self).sendToBrowser(
+                'Groups Deleted',
+                'Group%s deleted: %s' % (len(ids) > 1 and 's' or '',
+                                         ', '.join(ids))
+            )
             return self.callZenScreen(REQUEST)
 
 
@@ -112,7 +117,7 @@ class MultiGraphReport(ZenModelRM):
         """
         from Products.ZenUtils.Utils import resequence
         return resequence(self, self.graphGroups(), seqmap, origseq, REQUEST)
-    
+
 
     def getGraphGroups(self):
         """get the ordered groups
@@ -122,7 +127,7 @@ class MultiGraphReport(ZenModelRM):
         groups = [g for g in self.graphGroups()]
         groups.sort(cmpGroups)
         return groups
-    
+
     ### Collections
 
     security.declareProtected('Manage DMD', 'getCollections')
@@ -156,7 +161,11 @@ class MultiGraphReport(ZenModelRM):
         for id in ids:
             self.collections._delObject(id)
         if REQUEST:
-            REQUEST['message'] = 'Collection%s deleted' % len(ids) > 1 and 's' or ''
+            messaging.IMessageSender(self).sendToBrowser(
+                'Collections Deleted',
+                'Collection%s deleted: %s' % (len(ids) > 1 and 's' or '',
+                                         ', '.join(ids))
+            )
             return self.callZenScreen(REQUEST)
 
 
@@ -209,10 +218,11 @@ class MultiGraphReport(ZenModelRM):
             self.graphDefs._delObject(id)
             self.manage_resequenceGraphDefs()
         if REQUEST:
-            if len(ids) == 1:
-                REQUEST['message'] = 'Graph %s deleted.' % ids[0]
-            elif len(ids) > 1:
-                REQUEST['message'] = 'Graphs %s deleted.' % ', '.join(ids)
+            messaging.IMessageSender(self).sendToBrowser(
+                'Graphs Deleted',
+                'Graph%s deleted: %s' % (len(ids) > 1 and 's' or '',
+                                         ', '.join(ids))
+            )
             return self.callZenScreen(REQUEST)
 
 

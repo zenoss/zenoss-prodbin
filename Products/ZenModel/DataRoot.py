@@ -30,6 +30,7 @@ from Products.ZenModel.ZenModelBase import ZenModelBase
 from Products.ZenModel.ZenMenuable import ZenMenuable
 from Products.ZenRelations.RelSchema import *
 from Products.ZenUtils.IpUtil import IpAddressError
+from Products.ZenWidgets import messaging
 from Commandable import Commandable
 import socket
 import os
@@ -690,10 +691,17 @@ class DataRoot(ZenModelRM, OrderedFolder, Commandable, ZenMenuable):
                         if res == 0:
                             count += 1
             if REQUEST:
-                REQUEST['messag'] = '%s files deleted' % count
+                messaging.IMessageSender(self).sendToBrowser(
+                    'Backups Deleted',
+                    '%s backup files have been deleted.' % count
+                )
         else:
             if REQUEST:
-                REQUEST['message'] = 'Unable to find $ZENHOME/backups'
+                messaging.IMessageSender(self).sendToBrowser(
+                    'Backup Directory Missing',
+                    'Unable to find $ZENHOME/backups.',
+                    priority=messaging.WARNING
+                )
         if REQUEST:
             return self.callZenScreen(REQUEST)
 

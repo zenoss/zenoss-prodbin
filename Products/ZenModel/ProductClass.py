@@ -24,6 +24,7 @@ from Globals import InitializeClass
 from AccessControl import ClassSecurityInfo
 from AccessControl import Permissions as permissions
 from Products.ZenModel.ZenossSecurity import *
+from Products.ZenWidgets import messaging
 
 from ZenModelRM import ZenModelRM
 from ZenPackable import ZenPackable
@@ -175,8 +176,11 @@ class ProductClass(ZenModelRM, ZenPackable):
         self.name = name
         if REQUEST:
             from Products.ZenUtils.Time import SaveMessage
-            REQUEST['message'] = SaveMessage()
+            messaging.IMessageSender(self).sendToBrowser(
+                'Product Class Saved',
+                SaveMessage()
+            )
             return self.callZenScreen(REQUEST, redirect)
-   
+
 
 InitializeClass(ProductClass)

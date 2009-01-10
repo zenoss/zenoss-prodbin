@@ -81,6 +81,14 @@ class DeviceBatch(BrowserView):
     def __call__(self, *args, **kwargs):
         return self._setDeviceBatchProps(*args, **kwargs)
 
+    @property
+    def id(self):
+        """
+        This can appear in the acquisition chain, and ZenModelBase.getDmd needs
+        an id attribute.
+        """
+        return self.context.id
+
     def _setDeviceBatchProps(self, method='', extraarg=None,
                             selectstatus='none', goodevids=[],
                             badevids=[], offset=0, count=50, filter='',

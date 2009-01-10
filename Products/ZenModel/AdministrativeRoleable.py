@@ -21,6 +21,7 @@ from AccessControl import ClassSecurityInfo
 from Products.ZenModel.AdministrativeRole import AdministrativeRole
 from Globals import InitializeClass
 from ZenossSecurity import *
+from Products.ZenWidgets import messaging
 
 class AdministrativeRoleable:
     
@@ -31,7 +32,7 @@ class AdministrativeRoleable:
     def getAdministrativeRoles(self):
         "Get the Admin Roles on this device"
         return self.adminRoles.objectValuesAll()
-        
+
     security.declareProtected(ZEN_ADMINISTRATORS_EDIT, 
         'manage_addAdministrativeRole')
     def manage_addAdministrativeRole(self, newId=None, REQUEST=None):
@@ -41,10 +42,13 @@ class AdministrativeRoleable:
         self.setAdminLocalRoles()
         if REQUEST:
             if us:
-                REQUEST['message'] = "Administrative Role Added"
+                messaging.IMessageSender(self).sendToBrowser(
+                    'Admin Role Added',
+                    'The %s administrative role has been added.' % newId
+                )
             return self.callZenScreen(REQUEST)
 
-    security.declareProtected(ZEN_ADMINISTRATORS_EDIT, 
+    security.declareProtected(ZEN_ADMINISTRATORS_EDIT,
         'manage_editAdministrativeRoles')
     def manage_editAdministrativeRoles(self, ids=(), role=(), 
                                         level=(), REQUEST=None):
@@ -56,10 +60,14 @@ class AdministrativeRoleable:
             level = [level]
         for i, id in enumerate(ids):
             ar = self.adminRoles._getOb(id)
-            ar.update(role[i], level[i]) 
+            ar.update(role[i], level[i])
         self.setAdminLocalRoles()
         if REQUEST:
-            REQUEST['message'] = "Administrative Roles Updated"
+            messaging.IMessageSender(self).sendToBrowser(
+                'Admin Roles Updated',
+                ('The following administrative roles have been updated: '
+                 '%s' % ", ".join(newId))
+            )
             return self.callZenScreen(REQUEST)
 
 
@@ -76,7 +84,11 @@ class AdministrativeRoleable:
         self.setAdminLocalRoles()
         if REQUEST:
             if delids:
-                REQUEST['message'] = "Administrative Roles Deleted"
+                messaging.IMessageSender(self).sendToBrowser(
+                    'Admin Roles Deleted',
+                    ('The following administrative roles have been deleted: '
+                     '%s' % ", ".join(delids))
+                )
             return self.callZenScreen(REQUEST)
 
     def manage_listAdministrativeRoles(self):

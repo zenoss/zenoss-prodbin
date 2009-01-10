@@ -20,6 +20,7 @@ from AccessControl import ClassSecurityInfo
 from Globals import DTMLFile
 from ReportClass import ReportClass
 from Globals import InitializeClass
+from Products.ZenWidgets import messaging
 
 
 def manage_addDeviceReportClass(context, id, title = None, REQUEST = None):
@@ -28,15 +29,20 @@ def manage_addDeviceReportClass(context, id, title = None, REQUEST = None):
     frc = DeviceReportClass(id, title)
     context._setObject(id, frc)
     if REQUEST is not None:
-        REQUEST['message'] = "Report organizer created"
-        return REQUEST['RESPONSE'].redirect(context.absolute_url() + '/manage_main') 
+        messaging.IMessageSender(self).sendToBrowser(
+            'Organizer Created',
+            'Device report organizer %s was created.' % id
+        )
+        return REQUEST['RESPONSE'].redirect(
+            context.absolute_url() + '/manage_main')
 
 addDeviceReportClass = DTMLFile('dtml/addDeviceReportClass',globals())
+
 
 class DeviceReportClass(ReportClass):
 
     portal_type = meta_type = "DeviceReportClass"
-    
+
     security = ClassSecurityInfo()
 
     def getReportClass(self):

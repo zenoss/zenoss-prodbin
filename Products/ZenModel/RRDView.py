@@ -20,6 +20,7 @@ log = logging.getLogger("zen.RRDView")
 from Acquisition import aq_chain
 
 from Products.ZenUtils import Map
+from Products.ZenWidgets import messaging
 
 from Products.ZenModel.ConfigurationError import ConfigurationError
 
@@ -308,7 +309,7 @@ class RRDView(object):
 
     def getRRDContextData(self, context):
         return context
-        
+
     def getThresholdInstances(self, dsType):
         result = []
         for template in self.getRRDTemplates():
@@ -326,6 +327,7 @@ class RRDView(object):
                         break
         return result
 
+
     def makeLocalRRDTemplate(self, templateName=None, REQUEST=None):
         """Make a local copy of our RRDTemplate if one doesn't exist.
         """
@@ -334,8 +336,11 @@ class RRDView(object):
             ct = self.getRRDTemplateByName(templateName)._getCopy(self)
             ct.id = templateName
             self._setObject(ct.id, ct)
-        if REQUEST: 
-            REQUEST['message'] = 'Local copy %s created' % templateName
+        if REQUEST:
+            messaging.IMessageSender(self).sendToBrowser(
+                'Template Created',
+                'Local copy "%s" created.' % templateName
+            )
             return self.callZenScreen(REQUEST)
 
 
@@ -345,8 +350,11 @@ class RRDView(object):
         if templateName is None: templateName = self.getRRDTemplateName()
         if self.isLocalName(templateName):
             self._delObject(templateName)
-        if REQUEST: 
-            REQUEST['message'] = 'Local copy %s removed' % templateName
+        if REQUEST:
+            messaging.IMessageSender(self).sendToBrowser(
+                'Template Removed',
+                'Local copy "%s" removed.' % templateName
+            )
             return self.callZenScreen(REQUEST)
 
 

@@ -22,6 +22,7 @@ from AccessControl import ClassSecurityInfo, Permissions
 from Globals import InitializeClass
 from Products.ZenEvents.ZenEventClasses import Cmd_Fail
 from Products.ZenUtils.Utils import executeStreamCommand
+from Products.ZenWidgets import messaging
 from copy import copy
 import cgi, time
 
@@ -108,15 +109,18 @@ class BasicDataSource(RRDDataSource.SimpleRRDDataSource):
     def zmanage_editProperties(self, REQUEST=None):
         'add some validation'
         if REQUEST:
-            
             oid = REQUEST.get('oid', '')
             if oid:
-                try: 
+                try:
                     REQUEST.form['oid'] = checkOid(oid)
                 except ValueError:
-                    REQUEST['message'] = "%s is an invalid OID" % oid 
+                    messaging.IMessageSender(self).sendToBrowser(
+                        'Invalid OID',
+                        "%s is an invalid OID." % oid,
+                        priority=messaging.WARNING
+                    )
                     return self.callZenScreen(REQUEST)
-            
+
         return RRDDataSource.SimpleRRDDataSource.zmanage_editProperties(
                                                                 self, REQUEST)
 
@@ -144,14 +148,18 @@ class BasicDataSource(RRDDataSource.SimpleRRDDataSource):
                     l = cgi.escape(l)
                     l = l.replace('\n', endLine + startLine)
                     out.write(startLine + l + endLine)
-        
+
         # Determine which device to execute against
         device = None
         if testDevice:
             # Try to get specified device
             device = self.findDevice(testDevice)
             if not device:
-                REQUEST['message'] = 'Cannot find device matching %s' % testDevice
+                messaging.IMessageSender(self).sendToBrowser(
+                    'No device found',
+                    'Cannot find device matching %s.' % testDevice,
+                    priority=messaging.WARNING
+                )
                 return self.callZenScreen(REQUEST)
         elif hasattr(self, 'device'):
             # ds defined on a device, use that device
@@ -164,7 +172,11 @@ class BasicDataSource(RRDDataSource.SimpleRRDDataSource):
                 # No devices in this class, bail out
                 pass
         if not device:
-            REQUEST['message'] = 'Cannot determine a device to test against.'
+            messaging.IMessageSender(self).sendToBrowser(
+                'No Testable Device',
+                'Cannot determine a device against which to test.',
+                priority=messaging.WARNING
+            )
             return self.callZenScreen(REQUEST)
 
         # Get the command to run
@@ -176,16 +188,24 @@ class BasicDataSource(RRDDataSource.SimpleRRDDataSource):
             snmpinfo['oid'] = self.getDescription()
             command = snmptemplate % snmpinfo
         else:
-            REQUEST['message']='Unable to test %s datasources' % self.sourcetype
+            messaging.IMessageSender(self).sendToBrowser(
+                'Test Failed',
+                'Unable to test %s datasources' % self.sourcetype,
+                priority=messaging.WARNING
+            )
             return self.callZenScreen(REQUEST)
         if not command:
-            REQUEST['message'] = 'Unable to create test command.'
+            messaging.IMessageSender(self).sendToBrowser(
+                'Test Failed',
+                'Unable to create test command.',
+                priority=messaging.WARNING
+            )
             return self.callZenScreen(REQUEST)
 
         # Render
         header, footer = self.commandTestOutput().split('OUTPUT_TOKEN')
         out.write(str(header))
-        
+
         write('Executing command against %s' % device.id)
         write('')
         start = time.time()

@@ -25,6 +25,7 @@ from Globals import DTMLFile, InitializeClass
 from AccessControl import ClassSecurityInfo
 from AccessControl import Permissions as permissions
 from Products.ZenModel.ZenossSecurity import *
+from Products.ZenWidgets import messaging
 
 from Products.ZenRelations.RelSchema import *
 
@@ -147,8 +148,6 @@ class Manufacturer(ZenModelRM, ZenPackable):
             obj._operation = 1 # moving object state
             self.products._delObject(id)
             target.products._setObject(id, obj)
-        #if REQUEST:
-        #    REQUEST['RESPONSE'].redirect(target.getPrimaryUrlPath())
         if REQUEST: return self.callZenScreen(REQUEST)
 
 
@@ -199,7 +198,10 @@ class Manufacturer(ZenModelRM, ZenPackable):
         self.country = country
         if REQUEST:
             from Products.ZenUtils.Time import SaveMessage
-            REQUEST['message'] = SaveMessage()
+            messaging.IMessageSender(self).sendToBrowser(
+                'Saved',
+                SaveMessage()
+            )
             return self.callZenScreen(REQUEST, redirect)
 
 

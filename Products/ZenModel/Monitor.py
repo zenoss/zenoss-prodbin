@@ -26,6 +26,7 @@ from Globals import InitializeClass
 from ZenModelRM import ZenModelRM
 from DeviceManagerBase import DeviceManagerBase
 from RRDView import RRDView
+from Products.ZenWidgets import messaging
 
 class Monitor(ZenModelRM, DeviceManagerBase, RRDView):
     meta_type = 'Monitor'
@@ -43,32 +44,45 @@ class Monitor(ZenModelRM, DeviceManagerBase, RRDView):
         """see IManageDevice"""
         mroot = self.getDmdRoot("Monitors")._getOb(self.monitorRootName)
         return filter(lambda x: x != self.id, mroot.objectIds())
-           
+
 
     def getDeviceMoveTarget(self, moveTargetName):
         """see IManageDevice"""
         mroot = self.getDmdRoot("Monitors")._getOb(self.monitorRootName)
         return mroot._getOb(moveTargetName)
 
-    
+
     def getOrganizerName(self):
         """Return the DMD path of an Organizer without its dmdSubRel names."""
         return self.id
 
-    def setPerformanceMonitor(self, performanceMonitor=None, deviceNames=None, REQUEST=None):
+    def setPerformanceMonitor(self, performanceMonitor=None, deviceNames=None, 
+                              REQUEST=None):
         """ Provide a method to set performance monitor from any organizer """
         if not performanceMonitor:
-            if REQUEST: REQUEST['message'] = "No Monitor Selected"
+            if REQUEST:
+                messaging.IMessageSender(self).sendToBrowser(
+                    'Error',
+                    'No monitor was selected.',
+                    priority=messaging.WARNING
+                )
             return self.callZenScreen(REQUEST)
         if deviceNames is None:
-            if REQUEST: REQUEST['message'] = "No Devices Selected"
+            if REQUEST:
+                messaging.IMessageSender(self).sendToBrowser(
+                    'Error',
+                    'No devices were selected.',
+                    priority=messaging.WARNING
+                )
             return self.callZenScreen(REQUEST)
         for devname in deviceNames:
             dev = self.devices._getOb(devname)
             dev.setPerformanceMonitor(performanceMonitor)
-        if REQUEST: 
-            REQUEST['message'] = "Performance monitor set to %s" % (
-                                    performanceMonitor)
+        if REQUEST:
+            messaging.IMessageSender(self).sendToBrowser(
+                'Monitor Set',
+                'Performance monitor was set to %s.' % performanceMonitor
+            )
             if REQUEST.has_key('oneKeyValueSoInstanceIsntEmptyAndEvalToFalse'):
                 return REQUEST['message']
             else:

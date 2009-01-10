@@ -21,6 +21,7 @@ from AccessControl import ClassSecurityInfo, getSecurityManager
 
 from Products.ZenRelations.RelSchema import *
 from Products.ZenUtils.Exceptions import ZentinelException
+from Products.ZenWidgets import messaging
 
 from EventView import EventView
 from ZenModelRM import ZenModelRM
@@ -188,13 +189,16 @@ class Organizer(ZenModelRM, EventView):
                 self._setObject(org.id, org)
         except ZentinelException, e:
             if REQUEST: 
-                REQUEST['message'] = 'Error: %s' % e
+                messaging.IMessageSender(self).sendToBrowser(
+                    'Error', e, priority=messaging.WARNING)
                 return self.callZenScreen(REQUEST)
         if REQUEST:
-            REQUEST['message'] = "%s %s added" % (self.__class__.__name__, 
-                newPath)
+            messaging.IMessageSender(self).sendToBrowser(
+                'Organizer Added',
+                '%s "%s" was created.' % (self.__class__.__name__, newPath)
+            )
             return self.callZenScreen(REQUEST)
-            
+
 
     security.declareProtected(ZEN_DELETE, 'manage_deleteOrganizer')
     def manage_deleteOrganizer(self, orgname, REQUEST=None):
@@ -219,8 +223,10 @@ class Organizer(ZenModelRM, EventView):
         else:
             self._delObject(orgname)
         if REQUEST: 
-            REQUEST['message'] = "%s %s deleted" % (self.__class__.__name__, 
-                orgname)
+            messaging.IMessageSender(self).sendToBrowser(
+                'Organizer Deleted',
+                '%s "%s" was deleted.' % (self.__class__.__name__, orgname)
+            )
             return self.callZenScreen(REQUEST)
 
 
@@ -228,32 +234,39 @@ class Organizer(ZenModelRM, EventView):
     def manage_deleteOrganizers(self, organizerPaths=None, REQUEST=None):
         """
         Delete a list of Organizers from the database using their ids.
-        
+
         @param organizerPaths: Names of organizer to be deleted
         @type organizerPaths: list
         @permission: ZEN_DELETE
-        
+
         >>> dmd.Devices.manage_deleteOrganizers(['/Devices/Server/Linux',
         ... '/Devices/Server/Windows'])   
         """
         if not organizerPaths: 
-            REQUEST['message'] = "Organizer not specified, not deleted"
+            messaging.IMessageSender(self).sendToBrowser(
+                'Error',
+                'No organizers were specified.',
+                priority=messaging.WARNING
+            )
             return self.callZenScreen(REQUEST)
         for organizerName in organizerPaths:
             self.manage_deleteOrganizer(organizerName)
         if REQUEST:
             plural = ''
             if len(organizerPaths) > 1: plural = 's'
-            REQUEST['message'] = "%s%s %s deleted" % (self.__class__.__name__, 
-                                        plural, ', '.join(organizerPaths))
+            messaging.IMessageSender(self).sendToBrowser(
+                'Organizers Deleted',
+                '%s%s %s were deleted.' % (self.__class__.__name__,
+                                    plural, ', '.join(organizerPaths))
+            )
             return self.callZenScreen(REQUEST)
-            
-    
+
+
     def deviceMoveTargets(self):
         """
         DEPRECATED - see childMoveTargets
         Return list of all organizers excluding our self.
-        
+
         @return: A sorted list of organizers excluding our self.
         @rtype: list
         @todo: We should be using either deviceMoveTargets or childMoveTargets
@@ -263,16 +276,16 @@ class Organizer(ZenModelRM, EventView):
         targets.sort(lambda x,y: cmp(x.lower(), y.lower()))
         return targets
 
-   
+
     def moveOrganizer(self, moveTarget, organizerPaths=None, REQUEST=None):
         """
         Move organizers under this organizer to another organizer
-        
+
         @param moveTarget: Name of the destination organizer
         @type moveTarget: string
         @param organizerPaths: Paths of organizers to be moved
         @type organizerPaths: list
-                      
+
         >>> dmd.Events.Status.moveOrganizer('/Events/Ignore',
         ... ['Ping', 'Snmp'])        
         """
@@ -290,17 +303,25 @@ class Organizer(ZenModelRM, EventView):
             if movedStuff: 
                 plural = ''
                 if len(organizerPaths) > 1: plural = 's'
-                REQUEST['message'] = "%s%s %s moved to %s" % (self.__class__.__name__,
-                    plural, ', '.join(organizerPaths), moveTarget)
-            else: REQUEST['message'] = "No %s were moved" % self.__class__.__name__
+                messaging.IMessageSender(self).sendToBrowser(
+                    'Organizers Moved',
+                    '%s%s %s were moved to %s.' % (self.__class__.__name__,
+                                plural, ', '.join(organizerPaths), moveTarget)
+                )
+            else:
+                messaging.IMessageSender(self).sendToBrowser(
+                    'Error',
+                    'No %s were moved.' % self.__class__.__name__,
+                    priority=messaging.WARNING
+                )
             return target.callZenScreen(REQUEST)
-            
-            
+
+
     def createOrganizer(self, path):
         """
         Creates an organizer with a specified path. 
         Use manage_addOrganizer instead
-        
+
         @param path: Path of the organizer to create
         @type path: string
         @return: Organizer created with the specified path

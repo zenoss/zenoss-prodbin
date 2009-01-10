@@ -17,10 +17,12 @@ from Products.ZenModel.ZenossSecurity import *
 
 from Products.ZenRelations.RelSchema import *
 from Products.ZenUtils.Utils import prepId
+from Products.ZenWidgets import messaging
 
 from Service import Service
 
-def manage_addWinService(context, id, description, userCreated=None, REQUEST=None):
+def manage_addWinService(context, id, description, userCreated=None, 
+                         REQUEST=None):
     """make a device"""
     s = WinService(id)
     context._setObject(id, s)
@@ -33,7 +35,8 @@ def manage_addWinService(context, id, description, userCreated=None, REQUEST=Non
         REQUEST['RESPONSE'].redirect(context.absolute_url()
                                   +'/manage_main')
     return s
-                                                                                                           
+
+
 class WinService(Service):
     """Windows Service Class
     """
@@ -46,7 +49,7 @@ class WinService(Service):
     startMode = ""
     startName = ""
     collectors = ('zenwin',)
-   
+
     _properties = Service._properties + (
         {'id': 'acceptPause', 'type':'boolean', 'mode':'w'},
         {'id': 'acceptStop', 'type':'boolean', 'mode':'w'},
@@ -60,11 +63,11 @@ class WinService(Service):
         ("os", ToOne(ToManyCont, "Products.ZenModel.OperatingSystem", "winservices")),
     )
 
-    factory_type_information = ( 
-        { 
+    factory_type_information = (
+        {
             'immediate_view' : 'winServiceDetail',
             'actions'        :
-            ( 
+            (
                 { 'id'            : 'status'
                 , 'name'          : 'Status'
                 , 'action'        : 'winServiceDetail'
@@ -155,7 +158,10 @@ class WinService(Service):
         tmpl = super(WinService, self).manage_editService(monitor, severity,
                                                     REQUEST=REQUEST)
         if REQUEST and renamed:
-            REQUEST['message'] = "Object renamed to: %s" % self.id
+            messaging.IMessageSender(self).sendToBrowser(
+                'Service Renamed',
+                "Object renamed to: %s" % self.id
+            )
             return self.callZenScreen(REQUEST, renamed)
         return tmpl
 

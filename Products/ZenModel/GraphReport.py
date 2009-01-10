@@ -17,6 +17,7 @@ from ZenModelRM import ZenModelRM
 from Products.ZenRelations.RelSchema import *
 from GraphReportElement import GraphReportElement
 from Products.ZenUtils.ZenTales import talesCompile, getEngine
+from Products.ZenWidgets import messaging
 from DateTime import DateTime
 
 def manage_addGraphReport(context, id, REQUEST = None):
@@ -143,7 +144,11 @@ class GraphReport(ZenModelRM):
             self.elements._delObject(id)
         self.manage_resequenceGraphReportElements()
         if REQUEST:
-            REQUEST['message'] = 'Graph%s deleted' % (len(ids)>1 and 's' or '')
+            messaging.IMessageSender(self).sendToBrowser(
+                'Graphs Deleted',
+                '%s graph%s were deleted.' % (len(ids),
+                                              len(ids)>1 and 's' or '')
+            )
             return self.callZenScreen(REQUEST)
 
 

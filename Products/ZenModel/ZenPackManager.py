@@ -21,6 +21,7 @@ from Products.ZenRelations.RelSchema import *
 from AccessControl import ClassSecurityInfo
 from ZenossSecurity import ZEN_MANAGE_DMD
 from Products.ZenUtils.Utils import binPath
+from Products.ZenWidgets import messaging
 import os
 
 def manage_addZenPackManager(context, newId='', REQUEST=None):
@@ -119,7 +120,8 @@ class ZenPackManager(ZenModelRM):
             msg = 'Your Zenoss database appears to be out of date. Try ' \
                     'running zenmigrate to update.'
             if REQUEST:
-                REQUEST['message'] = msg
+                messaging.IMessageSender(self).sendToBrowser(
+                    'Error', msg, priority=messaging.WARNING)
                 return self.callZenScreen(REQUEST)
             from ZenPack import ZenPackNeedMigrateException
             raise ZenPackNeedMigrateException(msg)
@@ -130,21 +132,24 @@ class ZenPackManager(ZenModelRM):
             packId = msgOrId
         else:
             if REQUEST:
-                REQUEST['message'] = msgOrId
+                messaging.IMessageSender(self).sendToBrowser(
+                    'Add ZenPack', msgOrId)
                 return self.callZenScreen(REQUEST, redirect=False)
             from ZenPack import ZenPackException
             raise ZenPackException(msgOrId)
-        
+
         # Create it
         zpDir = ZenPackCmd.CreateZenPack(packId)
-        
+
         # Install it
         zenPacks = ZenPackCmd.InstallEggAndZenPack(self.dmd, zpDir, link=True)
         zenPack = self.packs._getOb(packId, None)
         if REQUEST:
             if zenPack:
                 return REQUEST['RESPONSE'].redirect(zenPack.getPrimaryUrlPath())
-            REQUEST['message'] = 'There was an error creating the ZenPack.'
+            messaging.IMessageSender(self).sendToBrowser(
+                'Error', 'There was an error creating the ZenPack.',
+                priority=messaging.WARNING)
             return self.callZenScreen(REQUEST)
         return zenPack
 
@@ -161,7 +166,8 @@ class ZenPackManager(ZenModelRM):
             msg = 'Your Zenoss database appears to be out of date. Try ' \
                     'running zenmigrate to update.'
             if REQUEST:
-                REQUEST['message'] = msg
+                messaging.IMessageSender(self).sendToBrowser(
+                    'Error', msg, priority=messaging.WARNING)
                 return self.callZenScreen(REQUEST)
             from ZenPack import ZenPackNeedMigrateException
             raise ZenPackNeedMigrateException(msg)
@@ -171,7 +177,8 @@ class ZenPackManager(ZenModelRM):
             msg = 'The following ZenPacks depend on one or more of the ' + \
                 ' ZenPacks you are trying to remove: %s' % ','.join(dependents)
             if REQUEST:
-                REQUEST['message'] = msg
+                messaging.IMessageSender(self).sendToBrowser(
+                    'Error', msg, priority=messaging.WARNING)
                 return self.callZenScreen(REQUEST)
             from ZenPack import ZenPackDependentsException
             raise ZenPackDependentsException(msg)
@@ -219,7 +226,8 @@ class ZenPackManager(ZenModelRM):
             msg = 'Your Zenoss database appears to be out of date. Try ' \
                     'running zenmigrate to update.'
             if REQUEST:
-                REQUEST['message'] = msg
+                messaging.IMessageSender(self).sendToBrowser(
+                    'Error', msg, priority=messaging.WARNING)
                 return self.callZenScreen(REQUEST)
             from ZenPack import ZenPackNeedMigrateException
             raise ZenPackNeedMigrateException(msg)

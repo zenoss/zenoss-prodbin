@@ -20,6 +20,7 @@ from Products.ZenRelations.RelSchema import *
 
 from ZenModelRM import ZenModelRM
 from ZenPackable import ZenPackable
+from Products.ZenWidgets import messaging
 
 
 class MibModule(ZenModelRM, ZenPackable):
@@ -89,17 +90,29 @@ class MibModule(ZenModelRM, ZenPackable):
             if id in ids:
                 self.nodes._delObject(id)
         if REQUEST:
-            REQUEST['message'] = 'OID Mappings deleted'
+            messaging.IMessageSender(self).sendToBrowser(
+                'Mappings Deleted',
+                'Mib nodes deleted: %s' % (', '.join(ids))
+            )
             return self.callZenScreen(REQUEST)
 
 
     def addMibNode(self, id, oid, nodetype, REQUEST=None):
-        """Add a MibNode 
+        """Add a MibNode
         """
         node = self.createMibNode(id, oid=oid, nodetype=nodetype)
         if REQUEST:
-            if node: REQUEST['message'] = 'OID Mapping created'
-            else: REQUEST['message'] = 'Invalid OID'
+            if node:
+                messaging.IMessageSender(self).sendToBrowser(
+                    'Mib Node Added',
+                    'Node %s was created with oid %s.' % (id, oid)
+                )
+            else:
+                messaging.IMessageSender(self).sendToBrowser(
+                    'Invalid OID',
+                    'OID %s is invalid.' % oid,
+                    priority=messaging.WARNING
+                )
             return self.callZenScreen(REQUEST)
 
 
@@ -123,7 +136,10 @@ class MibModule(ZenModelRM, ZenPackable):
             if id in ids:
                 self.notifications._delObject(id)
         if REQUEST:
-            REQUEST['message'] = 'Traps deleted'
+            messaging.IMessageSender(self).sendToBrowser(
+                'Traps Deleted',
+                'Traps deleted: %s' % (', '.join(ids))
+            )
             return self.callZenScreen(REQUEST)
 
 
@@ -132,11 +148,20 @@ class MibModule(ZenModelRM, ZenPackable):
         """
         notification = self.createMibNotification(id, oid=oid, nodetype=nodetype)
         if REQUEST:
-            if notification: REQUEST['message'] = 'Trap created'
-            else: REQUEST['message'] = 'Invalid OID'
+            if notification: 
+                messaging.IMessageSender(self).sendToBrowser(
+                    'Trap added',
+                    'Trap %s was created with oid %s.' % (id, oid)
+                )
+            else:
+                messaging.IMessageSender(self).sendToBrowser(
+                    'Invalid OID',
+                    'OID %s is invalid.' % oid,
+                    priority=messaging.WARNING
+                )
             return self.callZenScreen(REQUEST)
-            
-            
+
+
     def createMibNotification(self, id, **kwargs):
         """Create a MibNotification 
         """

@@ -21,6 +21,7 @@ from Products.ZenModel.ZenossSecurity import *
 
 from Products.ZenRelations.RelSchema import *
 from Products.ZenUtils.Search import makeCaseInsensitiveKeywordIndex
+from Products.ZenWidgets import messaging
 
 from Organizer import Organizer
 from MibModule import MibModule
@@ -149,7 +150,10 @@ class MibOrganizer(Organizer, ZenPackable):
         mm = MibModule(id)
         self.mibs._setObject(id, mm)
         if REQUEST:
-            REQUEST['message'] = "Mib Module created"
+            messaging.IMessageSender(self).sendToBrowser(
+                'Mib Module Created',
+                'Mib module %s was created.' % id
+            )
             return self.callZenScreen(REQUEST)
         else:
             return self.mibs._getOb(id)
@@ -163,7 +167,10 @@ class MibOrganizer(Organizer, ZenPackable):
         for id in ids:
             self.mibs._delObject(id)
         if REQUEST: 
-            REQUEST['message'] = "Mib Module deleted"
+            messaging.IMessageSender(self).sendToBrowser(
+                'Mib Module Deleted',
+                'Mib modules deleted: %s' % ', '.join(ids)
+            )
             return self()
 
 
@@ -179,7 +186,10 @@ class MibOrganizer(Organizer, ZenPackable):
             self.mibs._delObject(id)
             target.mibs._setObject(id, rec)
         if REQUEST:
-            REQUEST['message'] = "Mib Module moved"
+            messaging.IMessageSender(self).sendToBrowser(
+                'Mib Module Moved',
+                'Mib modules moved to %s.' % moveTarget
+            )
             REQUEST['RESPONSE'].redirect(target.getPrimaryUrlPath())
 
 

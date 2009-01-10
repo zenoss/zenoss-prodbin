@@ -29,6 +29,7 @@ from Commandable import Commandable
 from ZenPackable import ZenPackable
 
 from Products.ZenRelations.RelSchema import *
+from Products.ZenWidgets import messaging
 
 from ZenModelRM import ZenModelRM
 
@@ -185,18 +186,21 @@ class ServiceClass(ZenModelRM, Commandable, ZenPackable):
             self.serviceKeys = serviceKeys
             self.index_object()
         self.port = port
-        self.description = description        
+        self.description = description
         if REQUEST:
             from Products.ZenUtils.Time import SaveMessage
-            REQUEST['message'] = SaveMessage()
+            messaging.IMessageSender(self).sendToBrowser(
+                'Service Class Saved',
+                SaveMessage()
+            )
             return self.callZenScreen(REQUEST, redirect)
-   
+
 
     def getUserCommandTargets(self):
         ''' Called by Commandable.doCommand() to ascertain objects on which
         a UserCommand should be executed.
         '''
-        return self.instances()        
+        return self.instances()
 
 
     def getUrlForUserCommands(self):

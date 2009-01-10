@@ -20,6 +20,7 @@ from Globals import InitializeClass
 from ZenossSecurity import *
 from MaintenanceWindow import MaintenanceWindow
 from Products.ZenUtils.Utils import prepId
+from Products.ZenWidgets import messaging
 
 class MaintenanceWindowable:
 
@@ -30,8 +31,8 @@ class MaintenanceWindowable:
     def getMaintenanceWindows(self):
         "Get the Maintenance Windows on this device"
         return self.maintenanceWindows.objectValuesAll()
-    
-    security.declareProtected(ZEN_MAINTENANCE_WINDOW_EDIT, 
+
+    security.declareProtected(ZEN_MAINTENANCE_WINDOW_EDIT,
         'manage_addMaintenanceWindow')
     def manage_addMaintenanceWindow(self, newId=None, REQUEST=None):
         "Add a Maintenance Window to this device"
@@ -46,7 +47,10 @@ class MaintenanceWindowable:
                 self.setLastChange()
         if REQUEST:
             if mw:
-                REQUEST['message'] = "Maintenace Window Added"
+                messaging.IMessageSender(self).sendToBrowser(
+                    'Window Added',
+                    'Maintenance window "%s" has been created.' % mw.name
+                )
             return self.callZenScreen(REQUEST)
 
 
@@ -63,7 +67,10 @@ class MaintenanceWindowable:
             # Only Device and DeviceClass have setLastChange for now.
             self.setLastChange()
         if REQUEST:
-            REQUEST['message'] = "Maintenance Window Deleted"
+            messaging.IMessageSender(self).sendToBrowser(
+                'Windows Deleted',
+                'Maintenance windows deleted: %s' % ', '.join(maintenanceIds)
+            )
             return self.callZenScreen(REQUEST)
 
 

@@ -38,6 +38,7 @@ from Products.ZenUtils.Search import makeCaseInsensitiveFieldIndex
 from Products.ZenUtils.Search import makeCaseInsensitiveKeywordIndex
 from Products.ZenUtils.Search import makePathIndex, makeMultiPathIndex
 from Products.ZenUtils.Utils import importClass, zenPath
+from Products.ZenWidgets import messaging
 
 from Products.ZenUtils.FakeRequest import FakeRequest
 
@@ -277,6 +278,8 @@ class DeviceClass(DeviceOrganizer, ZenPackable, TemplateContainer):
             dev.setAdminLocalRoles()
             dev.index_object()
         if REQUEST:
+            messaging.IMessageSender(self).sendToBrowser(title='Devices Moved',
+                                   body="Devices were moved to %s." % moveTarget)
             REQUEST['message'] = "Devices moved to %s" % moveTarget
             if not isinstance(REQUEST, FakeRequest):
                 REQUEST['RESPONSE'].redirect(target.getPrimaryUrlPath())
@@ -299,7 +302,10 @@ class DeviceClass(DeviceOrganizer, ZenPackable, TemplateContainer):
             dev.deleteDevice(deleteStatus=deleteStatus, 
                         deleteHistory=deleteHistory, deletePerf=deletePerf)
         if REQUEST:
-            REQUEST['message'] = "Devices deleted"
+            messaging.IMessageSender(self).sendToBrowser(
+                'Devices Deleted',
+                "Devices were deleted: %s." % ', '.join(deviceNames)
+            )
             if REQUEST.has_key('oneKeyValueSoInstanceIsntEmptyAndEvalToFalse'):
                 return REQUEST['message']
             else:
@@ -503,7 +509,10 @@ class DeviceClass(DeviceOrganizer, ZenPackable, TemplateContainer):
             self.setZenProperty('zDeviceTemplates', ['Device'])
         else:
             self.deleteZenProperty('zDeviceTemplates')
-        REQUEST['message'] = 'Template bindings reset'
+        messaging.IMessageSender(self).sendToBrowser(
+            'Bindings Reset',
+            'Template bindings for this class were reset.'
+        )
         return self.callZenScreen(REQUEST)
 
 
@@ -556,8 +565,11 @@ class DeviceClass(DeviceOrganizer, ZenPackable, TemplateContainer):
         id = self.prepId(id)
         org = RRDTemplate.RRDTemplate(id)
         self.rrdTemplates._setObject(org.id, org)
-        if REQUEST: 
-            REQUEST['message'] = "Template added"
+        if REQUEST:
+            messaging.IMessageSender(self).sendToBrowser(
+                'Template Added',
+                'The "%s" template has been created.' % id
+            )
             return self.callZenScreen(REQUEST)
 
 
@@ -575,7 +587,10 @@ class DeviceClass(DeviceOrganizer, ZenPackable, TemplateContainer):
             resp=REQUEST['RESPONSE']
             resp.setCookie('__cp', cp, path='/zport/dmd')
             REQUEST['__cp'] = cp
-            REQUEST['message'] = "Templates copied"
+            messaging.IMessageSender(self).sendToBrowser(
+                'Templates Copied',
+                'Templates have been copied: %s' % ', '.join(ids)
+            )
             return self.callZenScreen(REQUEST)
         return cp
 
@@ -608,13 +623,16 @@ class DeviceClass(DeviceOrganizer, ZenPackable, TemplateContainer):
                 message = "Template(s) moved to %s" % moveTarget
             else:
                 message = None
+            messaging.IMessageSender(self).sendToBrowser(
+                'Templates Moved',
+                message
+            )
             if not isinstance(REQUEST, FakeRequest):
                 url = target.getPrimaryUrlPath() + '/perfConfig'
                 if message:
                     url += '?message=%s' % message
                 REQUEST['RESPONSE'].redirect(url)
             else:
-                REQUEST['message'] = message
                 return self.callZenScreen(REQUEST)
 
 
@@ -625,10 +643,18 @@ class DeviceClass(DeviceOrganizer, ZenPackable, TemplateContainer):
         Copy the selected templates into the specified device class.
         """
         if not ids:
-            REQUEST['message'] = "No Templates Selected"
+            messaging.IMessageSender(self).sendToBrowser(
+                'Invalid',
+                'No templates were selected.',
+                priority=messaging.WARNING
+            )
             return self.callZenScreen(REQUEST)
         if copyTarget is None:
-            REQUEST['message'] = "No Target Selected"
+            messaging.IMessageSender(self).sendToBrowser(
+                'Invalid',
+                'No target was selected.',
+                priority=messaging.WARNING
+            )
             return self.callZenScreen(REQUEST)
         cp = self.manage_copyRRDTemplates(ids)
         return self.manage_pasteRRDTemplates(copyTarget, cp, REQUEST)
@@ -654,7 +680,10 @@ class DeviceClass(DeviceOrganizer, ZenPackable, TemplateContainer):
             else:
                 temp.device()._delObject(temp.id)
         if REQUEST: 
-            REQUEST['message'] = "Templates deleted"
+            messaging.IMessageSender(self).sendToBrowser(
+                'Templates Deleted',
+                'Templates were deleted: %s' % ", ".join(ids)
+            )
             return self.callZenScreen(REQUEST)
 
 
@@ -840,7 +869,10 @@ class DeviceClass(DeviceOrganizer, ZenPackable, TemplateContainer):
         """
         self._p_changed = True
         if REQUEST:
-            REQUEST['message'] = 'Changes to %s pushed to collectors' % self.id
+            messaging.IMessageSender(self).sendToBrowser(
+                'Pushed Changes',
+                'Changes to %s were pushed to collectors.' % self.id
+            )
             return self.callZenScreen(REQUEST)
 
 

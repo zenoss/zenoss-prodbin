@@ -26,6 +26,7 @@ from Products.ZenRelations.RelSchema import *
 
 from OSComponent import OSComponent
 from Products.ZenUtils.Utils import prepId
+from Products.ZenWidgets import messaging
 
 from Products.ZenModel.ZenossSecurity import *
 
@@ -38,7 +39,7 @@ def manage_addFileSystem(context, id, userCreated, REQUEST=None):
     fs.mount = id
     if userCreated: fs.setUserCreateFlag()
     if REQUEST is not None:
-        REQUEST['RESPONSE'].redirect(context.absolute_url()+'/manage_main') 
+        REQUEST['RESPONSE'].redirect(context.absolute_url()+'/manage_main')
 
 addFileSystem = DTMLFile('dtml/addFileSystem',globals())
 
@@ -50,7 +51,7 @@ class FileSystem(OSComponent):
     portal_type = meta_type = 'FileSystem'
 
     manage_editFileSystemForm = DTMLFile('dtml/manageEditFileSystem',globals())
-    
+
     mount = ""
     storageDevice = ""
     type = ""
@@ -73,7 +74,7 @@ class FileSystem(OSComponent):
     _relations = OSComponent._relations + (
         ("os", ToOne(ToManyCont, "Products.ZenModel.OperatingSystem", "filesystems")),
         )
-    
+
 
     factory_type_information = ( 
         { 
@@ -246,12 +247,15 @@ class FileSystem(OSComponent):
             self.totalFiles = totalFiles
             self.maxNameLen = maxNameLen
             self.snmpindex = snmpindex
-        
+
         self.monitor = monitor
         self.index_object()
 
         if REQUEST:
-            REQUEST['message'] = "FileSystem updated"
+            messaging.IMessageSender(self).sendToBrowser(
+                'Filesystem Updated',
+                'Filesystem %s was edited.' % self.id
+            )
             return self.callZenScreen(REQUEST)
 
 

@@ -20,6 +20,7 @@ from AccessControl import ClassSecurityInfo
 from Globals import DTMLFile
 from ReportClass import ReportClass
 from Globals import InitializeClass
+from Products.ZenWidgets import messaging
 
 
 def manage_addGraphReportClass(context, id, title = None, REQUEST = None):
@@ -28,15 +29,18 @@ def manage_addGraphReportClass(context, id, title = None, REQUEST = None):
     rc = GraphReportClass(id, title)
     context._setObject(rc.id, rc)
     if REQUEST is not None:
-        REQUEST['message'] = "Report organizer created"
-        REQUEST['RESPONSE'].redirect(context.absolute_url() + '/manage_main') 
+        messaging.IMessageSender(self).sendToBrowser(
+            'Report Organizer Created',
+            'Report organizer %s was created.' % id
+        )
+        REQUEST['RESPONSE'].redirect(context.absolute_url() + '/manage_main')
 
 addGraphReportClass = DTMLFile('dtml/addGraphReportClass',globals())
 
 class GraphReportClass(ReportClass):
 
     portal_type = meta_type = "GraphReportClass"
-    
+
     security = ClassSecurityInfo()
 
     def getReportClass(self):

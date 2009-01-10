@@ -24,6 +24,7 @@ import Globals
 from AccessControl import ClassSecurityInfo, Permissions
 
 from Products.ZenRelations.RelSchema import *
+from Products.ZenWidgets import messaging
 
 from ZenModelRM import ZenModelRM
 from ZenPackable import ZenPackable
@@ -36,7 +37,7 @@ def manage_addRRDDataPoint(context, id, REQUEST = None):
     context._setObject(dp.id, dp)
     if REQUEST is not None:
         REQUEST['RESPONSE'].redirect(context.absolute_url()+'/manage_main')
-                                     
+
 #addRRDDataPoint = DTMLFile('dtml/addRRDDataPoint',globals())
 
 SEPARATOR = '_'
@@ -154,7 +155,10 @@ class RRDDataPoint(ZenModelRM, ZenPackable):
                         msgs.append('Unable to convert "%s" to a number' % v)
             msgs = ', '.join(msgs)
             if msgs:
-                REQUEST['message'] = msgs[0].capitalize() + msgs[1:] + ", at Time:"
+                messaging.IMessageSender(self).sendToBrowser(
+                    'Properties Saved',
+                    msgs[0].capitalize() + msgs[1:]
+                )
                 return self.callZenScreen(REQUEST, False)
-        
+
         return ZenModelRM.zmanage_editProperties(self, REQUEST)

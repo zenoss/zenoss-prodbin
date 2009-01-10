@@ -54,7 +54,7 @@
     <script type="text/javascript" src="javascript/zenoss-core.js"></script>
     <script>
     var loader = YAHOO.zenoss.getLoader();
-    loader.require(['zenossutils']);
+    loader.require(['zenossutils', 'uifeedback']);
     loader.insert({onSuccess:function(){
         removeElementAutoCompletes();
         applyBrowserSpecificStyles();
@@ -63,6 +63,7 @@
         connectCheckboxListeners();
         notifyParentOfNewUrl();
         zenPageInit();
+        YAHOO.zenoss.Messenger.initialize();
     }});
     </script>
 </tal:block>

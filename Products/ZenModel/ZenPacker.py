@@ -12,6 +12,7 @@
 ###########################################################################
 import Globals
 from AccessControl import ClassSecurityInfo
+from Products.ZenWidgets import messaging
 
 class ZenPacker(object):
     security = ClassSecurityInfo()
@@ -43,7 +44,8 @@ class ZenPacker(object):
                     message = 'Nothing to save'
         if REQUEST:
             if isinstance(pack, ZenPack):
-                REQUEST['message'] = message
+                messaging.IMessageSender(self).sendToBrowser(
+                    'Add To ZenPack', message)
             return self.callZenScreen(REQUEST)
 
     def findObject(self, id):

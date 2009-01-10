@@ -30,6 +30,7 @@ from Products.ZenRelations.RelSchema import *
 from Products.ZenUtils import Time
 from Products.ZenUtils.Utils import unused
 from Products.ZenUtils import DotNetCommunication
+from Products.ZenWidgets import messaging
 
 from ZenossSecurity import *
 from ZenModelRM import ZenModelRM
@@ -54,7 +55,7 @@ class UserSettingsManager(ZenModelRM):
     """Manage zenoss user folders.
     """
     security = ClassSecurityInfo()
-    
+
     meta_type = "UserSettingsManager"
 
     #zPrimaryBasePath = ("", "zport")
@@ -249,8 +250,11 @@ class UserSettingsManager(ZenModelRM):
         user_name= userid.lower()
         if user_name in illegal_usernames:
             if REQUEST:
-                REQUEST['message'] = "The username '%s' is reserved." %\
-                    userid
+                messaging.IMessageSender(self).sendToBrowser(
+                    'Error',
+                    'The username "%s" is reserved.' % userid,
+                    priority=messaging.WARNING
+                )
                 return self.callZenScreen(REQUEST)
             else:
                 return None
@@ -265,7 +269,10 @@ class UserSettingsManager(ZenModelRM):
         ufolder.updatePropsFromDict(kw)
 
         if REQUEST:
-            REQUEST['message'] = "User '%s' added" % userid
+            messaging.IMessageSender(self).sendToBrowser(
+                'User Added',
+                'User "%s" has been created.' % userid
+            )
             return self.callZenScreen(REQUEST)
         else:
             return user
@@ -287,13 +294,21 @@ class UserSettingsManager(ZenModelRM):
         user = self.acl_users.getUser(userid)
         if not user:
             if REQUEST:
-                REQUEST['message'] = "user %s not found" % userid
+                messaging.IMessageSender(self).sendToBrowser(
+                    'Error',
+                    'User "%s" was not found.' % userid,
+                    priority=messaging.WARNING
+                )
                 return self.callZenScreen(REQUEST)
             else:
                 return
         if password and password != sndpassword:
             if REQUEST:
-                REQUEST['message'] = "passwords didn't match no change: "
+                messaging.IMessageSender(self).sendToBrowser(
+                    'Error',
+                    "Passwords didn't match. No change.",
+                    priority=messaging.WARNING
+                )
                 return self.callZenScreen(REQUEST)
             else:
                 raise ValueError("passwords don't match")
@@ -304,7 +319,10 @@ class UserSettingsManager(ZenModelRM):
         ufolder = self.getUserSettings(userid)
         ufolder.updatePropsFromDict(kw)
         if REQUEST:
-            REQUEST['message'] = Time.SaveMessage()
+            messaging.IMessageSender(self).sendToBrowser(
+                'Settings Saved',
+                Time.SaveMessage()
+            )
             return self.callZenScreen(REQUEST)
         else:
             return user
@@ -320,9 +338,13 @@ class UserSettingsManager(ZenModelRM):
         # XXX this needs to be reviewed when new plugins are added, such as the
         # LDAP plugin 
         if 'admin' in userids:
-            REQUEST['message'] = "Cannot delete admin user. No users were deleted."
+            messaging.IMessageSender(self).sendToBrowser(
+                'Error',
+                "Cannot delete admin user. No users were deleted.",
+                messaging.WARNING
+            )
             return self.callZenScreen(REQUEST)
-            
+
         ifaces = [interfaces.plugins.IUserAdderPlugin]
         getPlugins = self.acl_users.plugins.listPlugins
         plugins = [ getPlugins(x)[0][1] for x in ifaces ]
@@ -342,9 +364,12 @@ class UserSettingsManager(ZenModelRM):
                     mobj = ar.managedObject().primaryAq()
                     mobj.adminRoles._delObject(ar.id)
                 self._delObject(userid)
-        
+
         if REQUEST:
-            REQUEST['message'] = "Users deleted"
+            messaging.IMessageSender(self).sendToBrowser(
+                'Users Deleted',
+                "Users were deleted: %s." % (', '.join(userids))
+            )
             return self.callZenScreen(REQUEST)
 
 
@@ -358,7 +383,10 @@ class UserSettingsManager(ZenModelRM):
         except KeyError: pass
         self.getGroupSettings(groupid)
         if REQUEST:
-            REQUEST['message'] = "Group %s added" % groupid
+            messaging.IMessageSender(self).sendToBrowser(
+                'Group Added',
+                'Group "%s" has been created.' % groupid
+            )
             return self.callZenScreen(REQUEST)
 
 
@@ -375,7 +403,10 @@ class UserSettingsManager(ZenModelRM):
                 gm.removeGroup(groupid)
             except KeyError: pass
         if REQUEST:
-            REQUEST['message'] = "Groups deleted"
+            messaging.IMessageSender(self).sendToBrowser(
+                'Groups Deleted',
+                "Groups were deleted: %s." % (', '.join(groupids))
+            )
             return self.callZenScreen(REQUEST)
 
 
@@ -391,10 +422,17 @@ class UserSettingsManager(ZenModelRM):
             self._getOb(groupid).manage_addUsersToGroup(userids) 
         if REQUEST:
             if len(groupids) == 0:
-                msg = "No groups selected!"
+                messaging.IMessageSender(self).sendToBrowser(
+                    'Error',
+                    'No groups were selected.',
+                    priority=messaging.WARNING
+                )
             else:
-                msg = "User %s added to group %s" % (','.join(userids), groupid)
-            REQUEST['message'] = msg
+                messaging.IMessageSender(self).sendToBrowser(
+                    'Groups Modified',
+                    'Users %s were added to group %s.' % (
+                        ','.join(userids), groupid)
+                )
             return self.callZenScreen(REQUEST)
 
 
@@ -404,7 +442,7 @@ class UserSettingsManager(ZenModelRM):
         userSettings = self.getUserSettings(userid)
         msg = userSettings.manage_emailTest()
         if msg:
-            REQUEST['message'] = msg
+            messaging.IMessageSender(self).sendToBrowser('Email Test', msg)
         if REQUEST:
             return self.callZenScreen(REQUEST)
 
@@ -415,7 +453,7 @@ class UserSettingsManager(ZenModelRM):
         userSettings = self.getUserSettings(userid)
         msg = userSettings.manage_pagerTest()
         if msg:
-            REQUEST['message'] = msg
+            messaging.IMessageSender(self).sendToBrowser('Pager Test', msg)
         if REQUEST:
             return self.callZenScreen(REQUEST)
 
@@ -474,7 +512,7 @@ class UserSettings(ZenModelRM):
     eventConsoleRefresh = True
     zenossNetUser = ''
     zenossNetPassword = ''
-    
+
     _properties = ZenModelRM._properties + (
         {'id':'email', 'type':'string', 'mode':'w'},
         {'id':'pager', 'type':'string', 'mode':'w'},
@@ -491,10 +529,14 @@ class UserSettings(ZenModelRM):
         {'id':'zenossNetUser', 'type':'string', 'mode':'w'},
         {'id':'zenossNetPassword', 'type':'string', 'mode':'w'},
     )
- 
+
 
     _relations =  (
-        ("adminRoles", ToMany(ToOne, "Products.ZenModel.AdministrativeRole", "userSetting")),
+        ("adminRoles", ToMany(ToOne, "Products.ZenModel.AdministrativeRole",
+                              "userSetting")),
+        ("messages", ToManyCont(ToOne,
+            "Products.ZenWidgets.PersistentMessage.PersistentMessage",
+            "messageQueue")),
     )
 
    # Screen action bindings (and tab definitions)
@@ -581,7 +623,11 @@ class UserSettings(ZenModelRM):
             user = self.getPhysicalRoot().acl_users.getUser(self.id)
         if not user:
             if REQUEST:
-                REQUEST['message'] = "user %s not found" % self.id
+                messaging.IMessageSender(self).sendToBrowser(
+                    'Error',
+                    'User %s not found.' % self.id,
+                    priority=messaging.WARNING
+                )
                 return self.callZenScreen(REQUEST)
             else:
                 return
@@ -638,21 +684,27 @@ class UserSettings(ZenModelRM):
         if password:
             if password.find(':') >= 0:
                 if REQUEST:
-                    REQUEST['message'] = \
-                        "Passwords cannot contain a ':'. Password not updated."
+                    messaging.IMessageSender(self).sendToBrowser(
+                        'Error',
+                        'Passwords cannot contain a ":". Password not updated.',
+                        priority=messaging.WARNING
+                    )
                     return self.callZenScreen(REQUEST)
                 else:
                     raise ValueError("Passwords cannot contain a ':' ") 
             elif password != sndpassword:
                 if REQUEST:
-                    REQUEST['message'] = \
-                        "Passwords didn't match! Password not updated. "
+                    messaging.IMessageSender(self).sendToBrowser(
+                        'Error',
+                        'Passwords did not match. Password not updated.',
+                        priority=messaging.WARNING
+                    )
                     return self.callZenScreen(REQUEST)
                 else:
                     raise ValueError("Passwords don't match")
             else:
                 try: userManager.updateUserPassword(self.id, password)
-                except KeyError: 
+                except KeyError:
                     self.getPhysicalRoot().acl_users.userManager.updateUserPassword(
                                     self.id, password)
                 loggedInUser = REQUEST['AUTHENTICATED_USER']
@@ -664,7 +716,10 @@ class UserSettings(ZenModelRM):
 
         # finish up
         if REQUEST:
-            REQUEST['message'] = Time.SaveMessage()
+            messaging.IMessageSender(self).sendToBrowser(
+                'Settings Saved',
+                Time.SaveMessage()
+            )
             return self.callZenScreen(REQUEST)
         else:
             return user
@@ -731,22 +786,31 @@ class UserSettings(ZenModelRM):
             except KeyError: pass        
         if not mobj:
             if REQUEST:
-                REQUEST['message'] = "%s %s not found"%(type.capitalize(),name)
+                messaging.IMessageSender(self).sendToBrowser(
+                    'Error',
+                    "%s %s not found"%(type.capitalize(),name),
+                    priority=messaging.WARNING
+                )
                 return self.callZenScreen(REQUEST)
             else: return
         roleNames = [ r.id for r in mobj.adminRoles() ]
         if self.id in roleNames:
             if REQUEST:
-                REQUEST['message'] = \
-                "Administrative Role for %s %s for user %s already exists" % \
-                    (type, name, self.id)
+                messaging.IMessageSender(self).sendToBrowser(
+                    'Error',
+                    (("Administrative Role for %s %s "
+                     "for user %s already exists.") % (type, name, self.id)),
+                    priority=messaging.WARNING
+                )
                 return self.callZenScreen(REQUEST)
             else: return
         mobj.manage_addAdministrativeRole(self.id)
         if REQUEST:
-            REQUEST['message'] = \
-            "Administrative Role for %s %s for user %s added" % \
-                (type, name, self.id) 
+            messaging.IMessageSender(self).sendToBrowser(
+                'Role Added',
+                ("Administrative Role for %s %s for user %s added" % 
+                    (type, name, self.id))
+            )
             return self.callZenScreen(REQUEST)
 
 
@@ -770,9 +834,12 @@ class UserSettings(ZenModelRM):
             mobj.manage_editAdministrativeRoles(self.id, role[i], level[i])
         if REQUEST:
             if ids:
-                REQUEST['message'] = "Administrative Roles Updated"
+                messaging.IMessageSender(self).sendToBrowser(
+                    'Roles Updated',
+                    "Administrative roles were updated."
+                )
             return self.callZenScreen(REQUEST)
-        
+
 
     security.declareProtected(ZEN_CHANGE_ADMIN_OBJECTS,
         'manage_deleteAdministrativeRole')
@@ -787,7 +854,10 @@ class UserSettings(ZenModelRM):
             mobj.manage_deleteAdministrativeRole(self.id)
         if REQUEST:
             if delids:
-                REQUEST['message'] = "Administrative Roles Deleted"
+                messaging.IMessageSender(self).sendToBrowser(
+                    'Roles Deleted',
+                    "Administrative roles were deleted."
+                )
             return self.callZenScreen(REQUEST)
 
 
@@ -834,7 +904,10 @@ class UserSettings(ZenModelRM):
         else:
             msg = 'Test email not sent, user has no email address.'
         if REQUEST:
-            REQUEST['message'] = msg.replace("'", "\\'")
+            messaging.IMessageSender(self).sendToBrowser(
+                'Email Test',
+                msg.replace("'", "\\'")
+            )
             return self.callZenScreen(REQUEST)
         else:
             return msg
@@ -863,7 +936,8 @@ class UserSettings(ZenModelRM):
         if not destPagers:
             msg = 'Test page not sent, user has no pager number.'
         if REQUEST:
-            REQUEST['message'] = msg
+            messaging.IMessageSender(self).sendToBrowser(
+                'Pager Test', msg)
             return self.callZenScreen(REQUEST)
         else:
             return msg
@@ -930,7 +1004,6 @@ class GroupSettings(UserSettings):
     def _getG(self):
         return self.zport.acl_users.groupManager
 
-
     security.declareProtected(ZEN_MANAGE_DMD, 'manage_addUsersToGroup')
     def manage_addUsersToGroup( self, userids, REQUEST=None ):
         """ Add user to this group
@@ -940,14 +1013,15 @@ class GroupSettings(UserSettings):
         for userid in userids:
             self._getG().addPrincipalToGroup( userid, self.id )
         if REQUEST:
-            REQUEST['message'] = 'Added %s to Group %s' % (','.join(userids), self.id)
+            messaging.IMessageSender(self).sendToBrowser(
+                'Users Added',
+                'Added %s to Group %s' % (','.join(userids), self.id)
+            )
             return self.callZenScreen(REQUEST)
-
 
     security.declareProtected(ZEN_MANAGE_DMD, 'manage_deleteUserFromGroup')
     def manage_deleteUserFromGroup( self, userid ):
         self._getG().removePrincipalFromGroup( userid, self.id )
-        
 
     security.declareProtected(ZEN_MANAGE_DMD, 'manage_deleteUsersFromGroup')
     def manage_deleteUsersFromGroup(self, userids=(), REQUEST=None ):
@@ -956,13 +1030,16 @@ class GroupSettings(UserSettings):
         for userid in userids:
             self.manage_deleteUserFromGroup(userid)
         if REQUEST:
-            REQUEST['message'] = 'Deleted users from Group %s' % self.id
+            messaging.IMessageSender(self).sendToBrowser(
+                'Users Removed',
+                'Deleted users from Group %s' % self.id
+            )
             return self.callZenScreen(REQUEST)
 
     def getMemberUserSettings(self):
         return [ self.getUserSettings(u[0])
          for u in self._getG().listAssignedPrincipals(self.id) ]
-        
+
     def getMemberUserIds(self):
         return [ u[0] for u in self._getG().listAssignedPrincipals(self.id) ]
 
@@ -981,6 +1058,6 @@ class GroupSettings(UserSettings):
             result.extend(self.getUserSettings(username).getPagerAddresses())
         return result
 
-    
+
 InitializeClass(UserSettingsManager)
 InitializeClass(UserSettings)

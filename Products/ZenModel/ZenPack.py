@@ -29,6 +29,7 @@ from Products.ZenUtils.Version import getVersionTupleFromString
 from Products.ZenUtils.Version import Version as VersionBase
 from Products.ZenUtils.PkgResources import pkg_resources
 from Products.ZenModel.ZenPackLoader import *
+from Products.ZenWidgets import messaging
 from AccessControl import ClassSecurityInfo
 from ZenossSecurity import ZEN_MANAGE_DMD
 from Acquisition import aq_parent
@@ -424,18 +425,28 @@ class ZenPack(ZenModelRM):
                 try:
                     req = pkg_resources.Requirement.parse(depName + vers)
                 except ValueError:
-                    REQUEST['message'] = '%s is not a valid ' % vers + \
-                                            'version specification'
+                    messaging.IMessageSender(self).sendToBrowser(
+                        'Error',
+                        '%s is not a valid version specification.' % vers,
+                        priority=messaging.WARNING
+                    )
                     return self.callZenScreen(REQUEST)
                 zp = self.dmd.ZenPackManager.packs._getOb(depName, None)
                 if not zp:
-                    REQUEST['message'] = '%s is not installed.' % depName
+                    messaging.IMessageSender(self).sendToBrowser(
+                        'Error',
+                        '%s is not installed.' % depName,
+                        priority=messaging.WARNING
+                    )
                     return self.callZenScreen(REQUEST)
                 if not req.__contains__(zp.version):
-                    REQUEST['message'] = ('The required version for %s (%s) '
-                                        % (depName, vers) +
-                                        'does not match the installed version '
-                                        '(%s).' % zp.version)
+                    messaging.IMessageSender(self).sendToBrowser(
+                        'Error',
+                        ('The required version for %s (%s) ' % (depName, vers) +
+                        'does not match the installed version (%s).' %
+                         zp.version),
+                        priority=messaging.WARNING
+                    )
                     return self.callZenScreen(REQUEST)
                 newDeps[depName] = vers
                 REQUEST.form[fieldName] = vers
@@ -450,20 +461,24 @@ class ZenPack(ZenModelRM):
                     req = pkg_resources.Requirement.parse(
                                                 'zenoss%s' % compatZenossVers)
                 except ValueError:
-                    REQUEST['message'] = ('%s is not a valid ' % 
-                                            compatZenossVers +
-                                            'version specification for Zenoss.')
-                    return self.callZenScreen(REQUEST)
+                    messaging.IMessageSender(self).sendToBrowser(
+                        'Error',
+                        ('%s is not a valid version specification for Zenoss.'
+                                                        % compatZenossVers),
+                        priority=messaging.WARNING
+                    )
                 if not req.__contains__(ZENOSS_VERSION):
-                    REQUEST['message'] = ('%s does not match this '
-                                            % compatZenossVers +
-                                            'version of Zenoss (%s)'
-                                            % ZENOSS_VERSION)
+                    messaging.IMessageSender(self).sendToBrowser(
+                        'Error',
+                        ('%s does not match this version of Zenoss (%s).' %
+                            (compatZenossVers, ZENOSS_VERSION)),
+                        priority=messaging.WARNING
+                    )
                     return self.callZenScreen(REQUEST)
                 REQUEST.form['compatZenossVers'] = compatZenossVers
 
         result =  ZenModelRM.zmanage_editProperties(self, REQUEST, redirect)
-        
+
         if self.isEggPack():
             self.writeSetupValues()
             self.buildEggInfo()
@@ -477,8 +492,11 @@ class ZenPack(ZenModelRM):
         for obj in self.packables():
             if obj.getPrimaryUrlPath() in packables:
                 self.packables.removeRelation(obj)
-        if REQUEST: 
-            REQUEST['message'] = 'Deleted objects from ZenPack %s' % self.id 
+        if REQUEST:
+            messaging.IMessageSender(self).sendToBrowser(
+                'Objects Deleted',
+                'Deleted objects from ZenPack %s.' % self.id
+            )
             return self.callZenScreen(REQUEST)
 
 
@@ -491,7 +509,10 @@ class ZenPack(ZenModelRM):
         ZenPackCmd.UploadZenPack(self.dmd, self.id, znetProject, description,
             userSettings.zenossNetUser, userSettings.zenossNetPassword)
         if REQUEST:
-            REQUEST['message'] = 'ZenPack uploaded to Zenoss.net'
+            messaging.IMessageSender(self).sendToBrowser(
+                'ZenPack Uploaded',
+                'ZenPack uploaded to Zenoss.net.'
+            )
             return self.callZenScreen(REQUEST)
 
 
@@ -511,7 +532,8 @@ class ZenPack(ZenModelRM):
         if not self.isDevelopment():
             msg = 'Only ZenPacks installed in development mode can be exported.'
             if REQUEST:
-                REQUEST['message'] = msg
+                messaging.IMessageSender(self).sendToBrowser(
+                        'Error', msg, priority=messaging.WARNING)
                 return self.callZenScreen(REQUEST)
             raise ZenPackDevelopmentModeExeption(msg)
 
@@ -614,10 +636,12 @@ registerDirectory("skins", globals())
         if REQUEST:
             if download == 'yes':
                 REQUEST['doDownload'] = 'yes'
-            REQUEST['message'] = 'ZenPack exported to $ZENHOME/export/%s' % (
-                                                    exportFileName)
+            messaging.IMessageSender(self).sendToBrowser(
+                'ZenPack Exported',
+                'ZenPack exported to $ZENHOME/export/%s' % (exportFileName)
+            )
             return self.callZenScreen(REQUEST)
-            
+
         return exportFileName
 
 
@@ -644,10 +668,13 @@ registerDirectory("skins", globals())
             finally:
                 zf.close()
         else:
-            REQUEST['message'] = 'An error has occured, the ZenPack could not' \
-                                ' be exported.'
-            return self.callZenScreen(REQUEST)    
-        
+            messaging.IMessageSender(self).sendToBrowser(
+                'Error',
+                'An error has occurred. The ZenPack could not be exported.',
+                priority=messaging.WARNING
+            )
+            return self.callZenScreen(REQUEST)
+
 
     def _getClassesByPath(self, name):
         dsClasses = []

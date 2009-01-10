@@ -16,6 +16,7 @@ from Globals import InitializeClass
 from Acquisition import aq_base, aq_chain
 from Products.ZenRelations.RelSchema import *
 from Products.ZenUtils.Utils import cmpClassNames
+from Products.ZenWidgets import messaging
 
 class ZenMenuable:
     """ ZenMenuable is a mixin providing menuing.
@@ -36,7 +37,10 @@ class ZenMenuable:
             mu.description = desc
         if REQUEST:
             if mu:
-                REQUEST['message'] = 'Menu Added'
+                messaging.IMessageSender(self).sendToBrowser(
+                    'Menu Added',
+                    'The menu "%s" has been added.' % mu.id
+                )
                 url = '%s/zenMenus/%s' % (self.getPrimaryUrlPath(), mu.id)
                 return REQUEST['RESPONSE'].redirect(url)
             return self.callZenScreen(REQUEST)
@@ -112,7 +116,7 @@ class ZenMenuable:
         while menus:
             menu = menus.pop()
             self.manage_addItemsToZenMenu(menu, menudict[menu])
-        
+
     security.declareProtected('Change Device', 'manage_deleteZenMenu')
     def manage_deleteZenMenu(self, delids=(), REQUEST=None):
         """ Delete Menu Items from this object """
@@ -122,9 +126,12 @@ class ZenMenuable:
         if self.meta_type == 'Device':
             self.setLastChange()
         if REQUEST:
-            REQUEST['message'] = "Menu(s) Deleted"
+            messaging.IMessageSender(self).sendToBrowser(
+                'Menus Deleted',
+                'The menus %s have been deleted.' % (', '.join(delids))
+            )
             return self.callZenScreen(REQUEST)
-    
+
     #security.declareProtected('View', 'getMenus')
     def getMenus(self, menuids=None, context=None):
         """ Build menus for this context, acquiring ZenMenus

@@ -29,6 +29,7 @@ from ZPublisher.Converters import type_converters
 
 from ZenModelBase import ZenModelBase, iscustprop
 from ZenPacker import ZenPacker
+from Products.ZenWidgets import messaging
 from Products.ZenUtils.Utils import getSubObjects, zenPath
 from Products.ZenRelations.ImportRM import ImportRM
 from Products.ZenRelations.RelationshipManager import RelationshipManager
@@ -58,10 +59,15 @@ class ZenModelRM(ZenModelBase, RelationshipManager, Historical, ZenPacker):
         renamed = False
         if newId and newId != self.getId():
             parent = self.getPrimaryParent()
-            parent.manage_renameObject(self.getId(), newId)
+            oldId = self.getId()
+            parent.manage_renameObject(oldId, newId)
             renamed = True
         if REQUEST:
-            if renamed: REQUEST['message'] = "Object renamed"
+            if renamed:
+                messaging.IMessageSender(self).sendToBrowser(
+                    'Object Renamed',
+                    "Object %s was renamed to %s." % (oldId, newId)
+                )
             return self.callZenScreen(REQUEST, renamed)
         return renamed
 
@@ -90,18 +96,27 @@ class ZenModelRM(ZenModelBase, RelationshipManager, Historical, ZenPacker):
             id = prefix + id
         if not iscustprop(id):
             if REQUEST:
-                REQUEST['message'] = \
-                    "Custom property name should be in this format: cProperty"
+                messaging.IMessageSender(self).sendToBrowser(
+                    'Error',
+                    "Custom property name should be in this format: cProperty",
+                    priority=messaging.WARNING
+                )
                 return self.callZenScreen(REQUEST)
         elif self.hasProperty(id):
             if REQUEST:
-                REQUEST['message'] = \
-                    "Custom property: %s already exists" % id
+                messaging.IMessageSender(self).sendToBrowser(
+                    'Error',
+                    "Custom property: %s already exists" % id,
+                    priority=messaging.WARNING
+                )
                 return self.callZenScreen(REQUEST)
         else:
             self._setProperty(id, value, type, label, visible)
             if REQUEST:
-                REQUEST['message'] = "Custom property: %s added" % id
+                messaging.IMessageSender(self).sendToBrowser(
+                    'Property Added',
+                    "Custom property: %s added" % id
+                )
                 return self.callZenScreen(REQUEST)
 
     def zmanage_exportObject(self, context=None, REQUEST=None):
@@ -143,7 +158,8 @@ class ZenModelRM(ZenModelBase, RelationshipManager, Historical, ZenPacker):
             # push data up to Zenoss.net
             server.postUserTemplate(dataToSend)
         if REQUEST:
-            REQUEST['message'] = msg
+            messaging.IMessageSender(self).sendToBrowser(
+                'Export Object', msg)
             return self.callZenScreen(REQUEST, redirect)
 
 
@@ -175,7 +191,8 @@ class ZenModelRM(ZenModelBase, RelationshipManager, Historical, ZenPacker):
             if doDelete and xmlfile in filenames:
                 os.unlink(xmlfile)
         if REQUEST:
-            REQUEST['message'] = "Objects imported"
+            messaging.IMessageSender(self).sendToBrowser(
+                'Import Objects', 'Objects imported')
             return self.callZenScreen(REQUEST)
 
 
@@ -190,10 +207,13 @@ class ZenModelRM(ZenModelBase, RelationshipManager, Historical, ZenPacker):
         for id in ids:
             self._delProperty(id)
         if REQUEST:
-            REQUEST['message'] = "Properties deleted"
+            messaging.IMessageSender(self).sendToBrowser(
+                'Properties Deleted',
+                'Properties %s have been deleted' % (', '.join(ids))
+            )
             return self.callZenScreen(REQUEST)
 
-   
+
     def zmanage_delObjects(self, ids=(), relation="", REQUEST=None):
         """Delete objects from this object or one of its relations.
         """
@@ -202,9 +222,12 @@ class ZenModelRM(ZenModelBase, RelationshipManager, Historical, ZenPacker):
         for id in ids:
             target._delObject(id)
         if REQUEST:
-            REQUEST['message'] = "Objects deleted"
+            messaging.IMessageSender(self).sendToBrowser(
+                'Objects Deleted',
+                'Objects %s have been deleted' % (', '.join(ids))
+            )
             return self.callZenScreen(REQUEST)
-        
+
 
     security.declareProtected('View', 'getDmdKey')
     def getDmdKey(self):

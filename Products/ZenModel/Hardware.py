@@ -22,6 +22,7 @@ __version__ = "$Revision: 1.5 $"[11:-2]
 from Globals import DTMLFile
 from Globals import InitializeClass
 from AccessControl import ClassSecurityInfo
+from Products.ZenWidgets import messaging
 
 from Products.ZenRelations.RelSchema import *
 
@@ -63,8 +64,11 @@ class Hardware(MEProduct):
                                         productName, manufacturer, **kwargs)
         self.productClass.addRelation(prodobj)
         if REQUEST:
-            REQUEST['message'] = ("Set Manufacturer %s and Product %s at time:" 
-                                    % (manufacturer, productName))
+            messaging.IMessageSender(self).sendToBrowser(
+                'Product Set',
+                'Manufacturer %s and product %s set.' % (manufacturer,
+                                                         productName)
+            )
             return self.callZenScreen(REQUEST)
 
 

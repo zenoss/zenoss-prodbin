@@ -18,6 +18,7 @@ from Globals import InitializeClass
 from AccessControl import ClassSecurityInfo
 
 from Products.ZenUtils.ZenTales import talesEval
+from Products.ZenWidgets import messaging
 
 #from Report import Report
 from ZenModelRM import ZenModelRM
@@ -28,9 +29,12 @@ def manage_addDeviceReport(context, id, title = None, REQUEST = None):
     dc = DeviceReport(id, title)
     context._setObject(id, dc)
     if REQUEST is not None:
-        REQUEST['message'] = "Device report created"
-        return REQUEST['RESPONSE'].redirect(context.absolute_url() + '/manage_main') 
-                   
+        messaging.IMessageSender(self).sendToBrowser(
+            'Report Created',
+            'Device report %s was created.' % id
+        )
+        return REQUEST['RESPONSE'].redirect(context.absolute_url() + '/manage_main')
+
 
 
 class DeviceReport(ZenModelRM):

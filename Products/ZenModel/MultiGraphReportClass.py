@@ -21,6 +21,7 @@ from Globals import DTMLFile
 from ReportClass import ReportClass
 from Products.ZenRelations.RelSchema import *
 from Globals import InitializeClass
+from Products.ZenWidgets import messaging
 
 
 def manage_addMultiGraphReportClass(context, id, title = None, REQUEST = None):
@@ -29,7 +30,10 @@ def manage_addMultiGraphReportClass(context, id, title = None, REQUEST = None):
     frc = MultiGraphReportClass(id, title)
     context._setObject(id, frc)
     if REQUEST is not None:
-        REQUEST['message'] = "Report organizer created"
+        messaging.IMessageSender(self).sendToBrowser(
+            'Organizer Created',
+            'Report organizer %s was created.' % id
+        )
         REQUEST['RESPONSE'].redirect(context.absolute_url() + '/manage_main') 
 
 addMultiGraphReportClass = DTMLFile('dtml/addMultiGraphReportClass',globals())

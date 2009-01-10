@@ -22,6 +22,7 @@ from AccessControl import Permissions
 from Products.ZenRelations.RelSchema import *
 from ZenModelRM import ZenModelRM
 from ZenPackable import ZenPackable
+from Products.ZenWidgets import messaging
 
 def manage_addGraphPoint(context, id, REQUEST = None):
     ''' This is here so than zope will let us copy/paste/rename
@@ -107,7 +108,11 @@ class GraphPoint(ZenModelRM, ZenPackable):
             if len(color) == 6 and IsHex(color):
                 REQUEST.form['color'] = color
             else:
-                REQUEST['message'] = 'Color must be a 6 digit hexadecimal value'
+                messaging.IMessageSender(self).sendToBrowser(
+                    'Invalid Color',
+                    'Color must be a 6-digit hexadecimal value.',
+                    priority=messaging.WARNING
+                )
                 return self.callZenScreen(REQUEST)
         return self.zmanage_editProperties(REQUEST)
 

@@ -31,10 +31,12 @@ from AdministrativeRoleable import AdministrativeRoleable
 from Products.CMFCore.utils import getToolByName
 
 from Products.ZenRelations.RelSchema import *
+from Products.ZenWidgets.interfaces import IMessageSender
 
 from ZenossSecurity import *
 
-from Products.ZenUtils.Utils import unused 
+from Products.ZenUtils.Utils import unused
+from Products.ZenWidgets import messaging
 
 import logging
 LOG = logging.getLogger('ZenModel.DeviceOrganizer')
@@ -233,7 +235,12 @@ class DeviceOrganizer(Organizer, DeviceManagerBase, Commandable, ZenMenuable,
     def moveDevicesToClass(self, moveTarget, deviceNames=None, REQUEST=None):
         """Move Devices from one DeviceClass to Another"""
         if deviceNames is None:
-            if REQUEST: REQUEST['message'] = "No Devices Selected"
+            if REQUEST:
+                messaging.IMessageSender(self).sendToBrowser(
+                    'Error',
+                    'No devices were selected',
+                    priority=messaging.WARNING
+                )
             return self.callZenScreen(REQUEST)
         deviceNames = [ x.split('/')[-1] for x in deviceNames ]
         return self.dmd.Devices.moveDevices(moveTarget, deviceNames, REQUEST)
@@ -247,7 +254,12 @@ class DeviceOrganizer(Organizer, DeviceManagerBase, Commandable, ZenMenuable,
         #check to see if we have the essentials to work with
         if not deviceMethod: return
         if deviceNames is None and not isOrganizer:
-            if REQUEST: REQUEST['message'] = "No Devices Selected"
+            if REQUEST:
+                messaging.IMessageSender(self).sendToBrowser(
+                    'Error',
+                    'No devices were selected',
+                    priority=messaging.WARNING
+                )
             return self.callZenScreen(REQUEST)
         for dev in self._buildDeviceList(deviceNames):
             devMethod = getattr(dev, deviceMethod, None)
@@ -257,7 +269,7 @@ class DeviceOrganizer(Organizer, DeviceManagerBase, Commandable, ZenMenuable,
                 devMethod()
 
 
-    def _buildReturnMessage(self, REQUEST, message, paths=None, \
+    def _buildReturnMessage(self, title, message, paths=None, \
                                checkPaths=False):
         """build the standard return message for the various set
         methods"""
@@ -265,14 +277,14 @@ class DeviceOrganizer(Organizer, DeviceManagerBase, Commandable, ZenMenuable,
             if paths:
                 if type(paths) not in StringTypes:
                     paths = ", ".join(paths)
-                message += paths 
+                message += paths
             else:
                 message = "%s unset" % message.split(" ")[0]
-                
-        if REQUEST.has_key('oneKeyValueSoInstanceIsntEmptyAndEvalToFalse'):
-            return message 
+        if self.REQUEST.has_key('oneKeyValueSoInstanceIsntEmptyAndEvalToFalse'):
+            return message
         else:
-            return self.callZenScreen(REQUEST)
+            IMessageSender(self).sendToBrowser(title, message)
+            return self.callZenScreen(self.REQUEST)
 
 
     def setProdState(self, state, deviceNames=None, 
@@ -283,9 +295,10 @@ class DeviceOrganizer(Organizer, DeviceManagerBase, Commandable, ZenMenuable,
                                     REQUEST, "setProdState")
         if REQUEST:
             statename = self.convertProdState(state)
-            msg = "Production State set to %s" % statename
-            return self._buildReturnMessage(REQUEST, msg)
-        
+            msg = "Production state set to %s for %s." % (statename,
+                                                          " ".join(deviceNames))
+            return self._buildReturnMessage("Production State Changed", msg)
+
 
     def setPriority(self, priority, deviceNames=None, 
                     isOrganizer=False, REQUEST=None):
@@ -295,21 +308,27 @@ class DeviceOrganizer(Organizer, DeviceManagerBase, Commandable, ZenMenuable,
                                     REQUEST, "setPriority")
         if REQUEST:
             priname = self.convertPriority(priority)
-            msg = "Priority set to %s" % priname 
-            return self._buildReturnMessage(REQUEST, msg)
+            msg = "Priority set to %s for %s." % (priname,
+                                                  " ".join(deviceNames))
+            return self._buildReturnMessage('Priority Changed', msg)
 
     
     def setPerformanceMonitor(self, performanceMonitor=None, deviceNames=None, 
                                 isOrganizer=False, REQUEST=None):
         """ Provide a method to set performance monitor from any organizer """
         if not performanceMonitor:
-            if REQUEST: REQUEST['message'] = "No Monitor Selected"
+            if REQUEST: 
+                messaging.IMessageSender(self).sendToBrowser(
+                    'Error',
+                    'No monitor was selected',
+                    priority=messaging.WARNING
+                )
             return self.callZenScreen(REQUEST)
         self._handleOrganizerCall(performanceMonitor, deviceNames, isOrganizer, \
                                     REQUEST, "setPerformanceMonitor")
         if REQUEST: 
             msg = "Collector set to %s" % (performanceMonitor)
-            return self._buildReturnMessage(REQUEST, msg)
+            return self._buildReturnMessage('Collector Set', msg)
  
 
     def setGroups(self, groupPaths=None, deviceNames=None, 
@@ -320,7 +339,7 @@ class DeviceOrganizer(Organizer, DeviceManagerBase, Commandable, ZenMenuable,
                                     REQUEST, "setGroups")
         if REQUEST:
             msg = "Groups set to"
-            return self._buildReturnMessage(REQUEST, msg, groupPaths, True) 
+            return self._buildReturnMessage('Groups Set', msg, groupPaths, True) 
 
 
     def setSystems(self, systemPaths=None, deviceNames=None, 
@@ -331,7 +350,7 @@ class DeviceOrganizer(Organizer, DeviceManagerBase, Commandable, ZenMenuable,
                                     REQUEST, "setSystems")
         if REQUEST:
             msg = "Systems set to"
-            return self._buildReturnMessage(REQUEST, msg, systemPaths, True) 
+            return self._buildReturnMessage('Systems Set', msg, systemPaths, True) 
 
     def setLocation(self, locationPath="", deviceNames=None,
                     isOrganizer=False, REQUEST=None):
@@ -340,7 +359,7 @@ class DeviceOrganizer(Organizer, DeviceManagerBase, Commandable, ZenMenuable,
                                     REQUEST, "setLocation")
         if REQUEST: 
             msg = "Location set to %s" % locationPath
-            return self._buildReturnMessage(REQUEST, msg)
+            return self._buildReturnMessage('Location Set', msg)
 
     def unlockDevices(self, deviceNames=None, isOrganizer=False, REQUEST=None):
         """Unlock devices"""
@@ -348,7 +367,7 @@ class DeviceOrganizer(Organizer, DeviceManagerBase, Commandable, ZenMenuable,
                                     REQUEST, "unlock")
         if REQUEST:
             msg = "Devices unlocked"
-            return self._buildReturnMessage(REQUEST, msg)
+            return self._buildReturnMessage('Devices Unlocked', msg)
 
     def lockDevicesFromDeletion(self, deviceNames=None, 
                     sendEventWhenBlocked=None, isOrganizer=False, REQUEST=None):
@@ -357,7 +376,7 @@ class DeviceOrganizer(Organizer, DeviceManagerBase, Commandable, ZenMenuable,
                                     REQUEST, "lockFromDeletion")
         if REQUEST:
             msg = "Devices locked from deletion"
-            return self._buildReturnMessage(REQUEST, msg)
+            return self._buildReturnMessage('Devices Locked', msg)
 
     def lockDevicesFromUpdates(self, deviceNames=None, 
                 sendEventWhenBlocked=None, isOrganizer=False, REQUEST=None):
@@ -366,7 +385,7 @@ class DeviceOrganizer(Organizer, DeviceManagerBase, Commandable, ZenMenuable,
                                     REQUEST, "lockFromUpdates")
         if REQUEST:
             msg = "Devices locked from updates and deletion"
-            return self._buildReturnMessage(REQUEST, msg)
+            return self._buildReturnMessage('Devices Locked', msg)
 
 
     def index_object(self):
@@ -394,7 +413,10 @@ class DeviceOrganizer(Organizer, DeviceManagerBase, Commandable, ZenMenuable,
             dev = dev.primaryAq()
             dev.setAdminLocalRoles()
         if REQUEST:
-            REQUEST['message'] = "Administrative Role %s added" % newId
+            messaging.IMessageSender(self).sendToBrowser(
+                'Role Added',
+                'Administrative role %s was added.' % newId
+            )
             return self.callZenScreen(REQUEST)
 
 
@@ -410,15 +432,18 @@ class DeviceOrganizer(Organizer, DeviceManagerBase, Commandable, ZenMenuable,
             dev = dev.primaryAq()
             dev.setAdminLocalRoles()
         if REQUEST:
-            REQUEST['message'] = "Administrative Roles Updated"
+            messaging.IMessageSender(self).sendToBrowser(
+                'Role Added',
+                'Administrative roles were updated: %s' % ', '.join(ids)
+            )
             return self.callZenScreen(REQUEST)
-           
+
 
     def manage_deleteAdministrativeRole(self, delids=(), REQUEST=None):
         """
         Overrides AdministrativeRoleable.manage_deleteAdministrativeRole
         Deletes administrators to this DeviceOrganizer
-        
+
         @param delids: Users to delete from this Organizer
         @type delids: tuple of strings
         """
@@ -427,7 +452,11 @@ class DeviceOrganizer(Organizer, DeviceManagerBase, Commandable, ZenMenuable,
             dev = dev.primaryAq()
             dev.setAdminLocalRoles()
         if REQUEST:
-            REQUEST['message'] = "Administrative Roles Deleted"
+            if delids:
+                messaging.IMessageSender(self).sendToBrowser(
+                    'Roles Deleted',
+                    'Administrative roles were deleted: %s' % ', '.join(delids)
+                )
             return self.callZenScreen(REQUEST)
 
 

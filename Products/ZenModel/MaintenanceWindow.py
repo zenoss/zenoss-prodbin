@@ -30,6 +30,7 @@ from ZenossSecurity import *
 from ZenModelRM import ZenModelRM
 from Products.ZenRelations.RelSchema import *
 from Products.ZenUtils import Time
+from Products.ZenWidgets import messaging
 
 def lastDayPreviousMonth(seconds):
     parts = list(time.localtime(seconds))
@@ -218,7 +219,7 @@ class MaintenanceWindow(ZenModelRM):
                 msgs.append(msg)
                 v = None
             return v
-        
+
         msgs = []
         # startHours, startMinutes come from menus.  No need to catch
         # ValueError on the int conversion.
@@ -247,14 +248,16 @@ class MaintenanceWindow(ZenModelRM):
             duration = (durationDays * (60*24) +
                         durationHours * 60 +
                         durationMinutes)
-                        
+
             if duration < 1:
                 msgs.append('Duration must be at least 1 minute.')
         if msgs:
             if REQUEST:
-                if REQUEST.has_key('message'):
-                    del REQUEST['message']
-                REQUEST['message'] = '; '.join(msgs)
+                messaging.IMessageSender(self).sendToBrowser(
+                    'Window Edit Failed',
+                    '\n'.join(msgs),
+                    priority=messaging.WARNING
+                )
         else:
             self.start = t
             self.duration = duration
@@ -266,7 +269,10 @@ class MaintenanceWindow(ZenModelRM):
             if self.started and self.nextEvent(now) < now:
                 self.end()
             if REQUEST:
-                REQUEST['message'] = 'Saved Changes'
+                messaging.IMessageSender(self).sendToBrowser(
+                    'Window Updated',
+                    'Maintenance window changes were saved.'
+                )
         if REQUEST:
             return self.callZenScreen(REQUEST)
 

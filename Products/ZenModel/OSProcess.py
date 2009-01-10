@@ -18,6 +18,7 @@ from Products.ZenModel.ZenossSecurity import *
 
 from Commandable import Commandable
 from Products.ZenRelations.RelSchema import *
+from Products.ZenWidgets import messaging
 from Acquisition import aq_chain
 
 from OSComponent import OSComponent
@@ -228,7 +229,10 @@ class OSProcess(OSComponent, Commandable, ZenPackable):
         self.index_object()
         if not msg: msg.append("No action needed")
         if REQUEST:
-            REQUEST['message'] = ", ".join(msg) + ":"
+            messaging.IMessageSender(self).sendToBrowser(
+                'Process Edited',
+                ", ".join(msg) + ":"
+            )
             return self.callZenScreen(REQUEST)
 
 
@@ -257,8 +261,8 @@ class OSProcess(OSComponent, Commandable, ZenPackable):
         chain = aq_chain(self.getClassObject().primaryAq())
         chain.insert(0, self)
         return chain
-        
-        
+
+
     def getUrlForUserCommands(self):
         """
         Return the url where UserCommands are viewed for this object
@@ -266,11 +270,11 @@ class OSProcess(OSComponent, Commandable, ZenPackable):
         return self.getPrimaryUrlPath() + '/osProcessManage'
 
     def filterAutomaticCreation(self):
-	#get the processes defined in Zenoss
+        # get the processes defined in Zenoss
         processes = self.getDmdRoot("Processes")
         pcs = list(processes.getSubOSProcessClassesGen())
         pcs.sort(lambda a, b: cmp(a.sequence,b.sequence))
-      
+
         for pc in pcs:
             fullname = (self.procName + ' ' + self.parameters).rstrip()
             if pc.match(fullname):

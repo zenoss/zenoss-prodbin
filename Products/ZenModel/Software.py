@@ -27,6 +27,7 @@ from AccessControl import Permissions as permissions
 from Products.ZenModel.ZenossSecurity import *
 
 from Products.ZenRelations.RelSchema import *
+from Products.ZenWidgets import messaging
 
 from MEProduct import MEProduct
 from ZenDate import ZenDate
@@ -36,8 +37,8 @@ def manage_addSoftware(context, id, title = None, REQUEST = None):
     d = Software(id, title)
     context._setObject(id, d)
     if REQUEST is not None:
-        REQUEST['RESPONSE'].redirect(context.absolute_url()+'/manage_main') 
-                                     
+        REQUEST['RESPONSE'].redirect(context.absolute_url()+'/manage_main')
+
 
 addSoftware = DTMLFile('dtml/addSoftware',globals())
 
@@ -119,8 +120,11 @@ class Software(MEProduct):
                                     productName, manufacturer, **kwargs)
         self.productClass.addRelation(prodobj)
         if REQUEST:
-            REQUEST['message'] = ("Set Manufacturer %s and Product %s at time:" 
+            messaging.IMessageSender(self).sendToBrowser(
+                'Product Set',
+                ("Set Manufacturer %s and Product %s."
                                     % (manufacturer, productName))
+            )
             return self.callZenScreen(REQUEST)
 
 

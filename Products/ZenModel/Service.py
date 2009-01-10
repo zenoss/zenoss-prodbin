@@ -26,6 +26,7 @@ from AccessControl import ClassSecurityInfo
 from Commandable import Commandable
 
 from Products.ZenRelations.RelSchema import *
+from Products.ZenWidgets import messaging
 
 from OSComponent import OSComponent
 from ZenPackable import ZenPackable
@@ -35,7 +36,7 @@ class Service(OSComponent, Commandable, ZenPackable):
     Service class
     """
     portal_type = meta_type = 'Service'
-   
+
     _relations = OSComponent._relations + ZenPackable._relations + (
         ("serviceclass", ToOne(ToMany,"Products.ZenModel.ServiceClass","instances")),
         ('userCommands', ToManyCont(ToOne, 'Products.ZenModel.UserCommand', 'commandable')),
@@ -58,7 +59,7 @@ class Service(OSComponent, Commandable, ZenPackable):
         if svccl: return svccl.name
         return ""
 
-    
+
     def monitored(self):
         """
         Should this service be monitored or not. Use ServiceClass aq path. 
@@ -104,7 +105,7 @@ class Service(OSComponent, Commandable, ZenPackable):
         Return an a link to the service class.
         """
         svccl = self.serviceclass()
-        if svccl: 
+        if svccl:
             if self.checkRemotePerm("View", svccl):
                 return "<a href='%s'>%s</a>" % (svccl.getPrimaryUrlPath(),
                                                 svccl.getServiceClassName())
@@ -132,7 +133,10 @@ class Service(OSComponent, Commandable, ZenPackable):
         self.index_object()
         if not msg: msg.append("No action needed")
         if REQUEST:
-            REQUEST['message'] = ", ".join(msg)
+            messaging.IMessageSender(self).sendToBrowser(
+                'Service Edited',
+                ", ".join(msg)
+            )
             return self.callZenScreen(REQUEST, redirect=True)
 
 
@@ -141,7 +145,7 @@ class Service(OSComponent, Commandable, ZenPackable):
         Called by Commandable.doCommand() to ascertain objects on which
         a UserCommand should be executed.
         '''
-        return [self]     
+        return [self]
 
 
     def getUserCommandEnvironment(self):
@@ -161,8 +165,8 @@ class Service(OSComponent, Commandable, ZenPackable):
         chain = aq_chain(self.getClassObject().primaryAq())
         chain.insert(0, self)
         return chain
-        
-        
+
+
     def getUrlForUserCommands(self):
         """
         Return the url where UserCommands are viewed for this object

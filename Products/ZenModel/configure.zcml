@@ -9,5 +9,6 @@
     <five:traversable class="Products.ZenModel.DataRoot.DataRoot"/>
 
     <include package=".browser"/>
+    <include package="zope.app.location"/>
 
 </configure>

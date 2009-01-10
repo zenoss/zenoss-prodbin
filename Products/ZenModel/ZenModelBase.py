@@ -20,7 +20,7 @@ __version__ = "$Revision: 1.17 $"[11:-2]
 import re
 import time
 
-import sys 
+import sys
 from urllib import unquote
 from cgi import escape
 from OFS.ObjectManager import checkValidId as globalCheckValidId
@@ -34,6 +34,7 @@ from Products.ZenUtils.Utils import createHierarchyObj, getHierarchyObj
 from Products.ZenUtils.Utils import getObjByPath
 
 from Products.ZenUtils.Utils import prepId as globalPrepId
+from Products.ZenWidgets import messaging
 
 from ZenossSecurity import *
 
@@ -355,7 +356,7 @@ class ZenModelBase(object):
         """
         Edit a ZenModel object and return its proper page template. 
         Object will be reindexed if nessesary.
-        
+
         @permission: ZEN_MANAGE_DMD
         """
         self.manage_changeProperties(**REQUEST.form)
@@ -363,7 +364,10 @@ class ZenModelBase(object):
         index_object()
         if REQUEST:
             from Products.ZenUtils.Time import SaveMessage
-            REQUEST['message'] = SaveMessage()
+            messaging.IMessageSender(self).sendToBrowser(
+                'Properties Saved',
+                SaveMessage()
+            )
             return self.callZenScreen(REQUEST, redirect=redirect)
 
 
@@ -374,7 +378,7 @@ class ZenModelBase(object):
         Everything before dmd is removed.  A different rootName can be passed
         to stop at a different object in the path.  If subrel is passed any
         relationship name in the path to the object will be removed.
-        
+
         @param rootName: Name of root
         @type rootName: string
         @param subrel: Name of relation
@@ -441,7 +445,7 @@ class ZenModelBase(object):
         """
         for obj in aq_chain(self):
             if obj.id == 'dmd': return obj
-            
+
 
     def getDmdRoot(self, name):
         """
@@ -454,7 +458,7 @@ class ZenModelBase(object):
         dmd = self.getDmd()
         return dmd._getOb(name)
 
-    
+
     def getDmdObj(self, path):
         """
         DEPRECATED Return an object from path that starts at dmd.
@@ -464,7 +468,7 @@ class ZenModelBase(object):
         """
         if path.startswith("/"): path = path[1:]
         return self.getDmd().getObjByPath(path)
-   
+
 
     def getZopeObj(self, path):
         """

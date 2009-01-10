@@ -56,6 +56,19 @@ def set_db_config(host=None, port=None):
     if port: xport = port
     serverconfig.server[0].address = (xhost, xport)
 
+def set_context(ob):
+    from ZPublisher.HTTPRequest import HTTPRequest
+    from ZPublisher.HTTPResponse import HTTPResponse
+    from ZPublisher.BaseRequest import RequestContainer
+    resp = HTTPResponse(stdout=None)
+    env = {
+        'SERVER_NAME':'localhost',
+        'SERVER_PORT':'8080',
+        'REQUEST_METHOD':'GET'
+        }
+    req = HTTPRequest(None, env, resp)
+    return ob.__of__(RequestContainer(REQUEST = req))
+
 
 def _customStuff():
     """
@@ -68,6 +81,15 @@ def _customStuff():
 
     # Connect to the database, set everything up
     app = Zope2.app()
+    app = set_context(app)
+
+    def login(username='admin'):
+        utool = getToolByName(app, 'acl_users')
+        user = utool.getUserById(username)
+        user = user.__of__(utool)
+        newSecurityManager(None, user)
+
+    login('admin')
 
     # Useful references
     zport = app.zport
@@ -84,12 +106,6 @@ def _customStuff():
         dmd.Manufacturers.reIndex()
         dmd.Networks.reIndex()
         commit()
-
-    def login(username='admin'):
-        utool = getToolByName(app, 'acl_users')
-        user = utool.getUserById(username)
-        user = user.__of__(utool)
-        newSecurityManager(None, user)
 
     def logout():
         noSecurityManager()
@@ -114,6 +130,7 @@ def _customStuff():
         result = list(objdir - portaldir - appdir)
         result.sort()
         pprint(result)
+
 
     _CUSTOMSTUFF = locals()
     return _CUSTOMSTUFF

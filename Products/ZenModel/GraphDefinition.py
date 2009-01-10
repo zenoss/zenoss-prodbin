@@ -24,6 +24,7 @@ from Products.ZenRelations.RelSchema import *
 from Globals import InitializeClass
 from AccessControl import ClassSecurityInfo, Permissions
 from ZenModelRM import ZenModelRM
+from Products.ZenWidgets import messaging
 from ZenPackable import ZenPackable
 import logging
 log = logging.getLogger("zen.Device")
@@ -31,11 +32,15 @@ from Acquisition import aq_base
 
 
 def manage_addGraphDefinition(context, id, REQUEST = None):
-    ''' This is here so than zope will let us copy/paste/rename
-    graphpoints.
-    '''
+    """
+    This is here so that Zope will let us copy/paste/rename graph points.
+    """
     if REQUEST:
-        REQUEST['message'] = 'That operation is not supported.'
+        messaging.IMessageSender(self).sendToBrowser(
+            'Unsupported',
+            'That operation is not supported.',
+            priority=messaging.WARNING
+        )
         context.callZenScreen(REQUEST)
 
 class FakeContext:
@@ -323,12 +328,15 @@ class GraphDefinition(ZenModelRM, ZenPackable):
             for dpName in dpNames:
                 newGps += self.addThresholdsForDataPoint(dpName)
         if REQUEST:
-            REQUEST['message'] = '%s Graph Point%s added' % (len(newGps),
-                len(newGps) > 1 and 's' or '')
+            messaging.IMessageSender(self).sendToBrowser(
+                'Graph Points Added',
+                '%s graph point%s were added.' % (len(newGps),
+                    len(newGps) > 1 and 's' or '')
+            )
             return self.callZenScreen(REQUEST)
         return newGps
-        
-        
+
+
     def addThresholdsForDataPoint(self, dpName):
         ''' Make sure that Threshold graph points exist for all thresholds
         that use the given dpName.
@@ -348,7 +356,7 @@ class GraphDefinition(ZenModelRM, ZenPackable):
 
     def manage_addThresholdGraphPoints(self, threshNames, REQUEST=None):
         ''' Create new graph points
-        '''         
+        '''
         from ThresholdGraphPoint import ThresholdGraphPoint
         newGps = []
         for threshName in threshNames:
@@ -357,11 +365,14 @@ class GraphDefinition(ZenModelRM, ZenPackable):
             gp.threshId = threshName
             newGps.append(gp)
         if REQUEST:
-            REQUEST['message'] = '%s Graph Point%s added' % (len(newGps),
-                len(newGps) > 1 and 's' or '')
+            messaging.IMessageSender(self).sendToBrowser(
+                'Graph Points Added',
+                '%s graph point%s were added.' % (len(newGps),
+                    len(newGps) > 1 and 's' or '')
+            )
             return self.callZenScreen(REQUEST)
         return newGps
-            
+
 
     def manage_deleteGraphPoints(self, ids=(), REQUEST=None):
         ''' Deleted given graphpoints
@@ -373,8 +384,11 @@ class GraphDefinition(ZenModelRM, ZenPackable):
                 self.graphPoints._delObject(id)
             self.manage_resequenceGraphPoints()
         if REQUEST:
-            REQUEST['message'] = 'Deleted %s GraphPoint%s' % (
-                num, num > 1 and 's' or '')
+            messaging.IMessageSender(self).sendToBrowser(
+                'Graph Points Deleted',
+                '%s graph point%s were deleted.' % (num,
+                    num > 1 and 's' or '')
+            )
             return self.callZenScreen(REQUEST)
 
 

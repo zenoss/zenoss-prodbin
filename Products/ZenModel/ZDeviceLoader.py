@@ -31,6 +31,7 @@ from OFS.SimpleItem import SimpleItem
 from Products.ZenUtils.Utils import isXmlRpc, setupLoggingHeader, clearWebLoggingStream
 from Products.ZenUtils.Exceptions import ZentinelException
 from Products.ZenModel.Exceptions import DeviceExistsError, NoSnmp
+from Products.ZenWidgets import messaging
 from ZenModelItem import ZenModelItem
 from zExceptions import BadRequest
 
@@ -153,11 +154,15 @@ class ZDeviceLoader(ZenModelItem,SimpleItem):
         try:
             self.getDmdRoot("Manufacturers").createManufacturer(mname)
         except BadRequest, e:
-            if REQUEST: 
-                REQUEST['message'] = str(e)
-            else: 
+            if REQUEST:
+                messaging.IMessageSender(self).sendToBrowser(
+                    'Error',
+                    str(e),
+                    priority=messaging.WARNING
+                )
+            else:
                 raise e
-        
+
         if REQUEST:
             REQUEST[field] = mname
             return self.callZenScreen(REQUEST)
@@ -167,9 +172,13 @@ class ZDeviceLoader(ZenModelItem,SimpleItem):
     def setHWProduct(self, newHWProductName, hwManufacturer, REQUEST=None):
         """set the productName of this device"""
         if not hwManufacturer and REQUEST:
-            REQUEST['message'] = 'Please select a HW Manufacturer'
+            messaging.IMessageSender(self).sendToBrowser(
+                'Error',
+                'Please select a HW Manufacturer',
+                priority=messaging.WARNING
+            )
             return self.callZenScreen(REQUEST) 
-            
+
         self.getDmdRoot("Manufacturers").createHardwareProduct(
                                         newHWProductName, hwManufacturer)
         if REQUEST:
@@ -181,9 +190,13 @@ class ZDeviceLoader(ZenModelItem,SimpleItem):
     def setOSProduct(self, newOSProductName, osManufacturer, REQUEST=None):
         """set the productName of this device"""
         if not osManufacturer and REQUEST:
-            REQUEST['message'] = 'Please select an OS Manufacturer'
+            messaging.IMessageSender(self).sendToBrowser(
+                'Error',
+                'Please select an OS Manufacturer.',
+                priority=messaging.WARNING
+            )
             return self.callZenScreen(REQUEST)
-        
+
         self.getDmdRoot("Manufacturers").createSoftwareProduct(
                                         newOSProductName, osManufacturer, isOS=True)
         if REQUEST:
@@ -198,7 +211,11 @@ class ZDeviceLoader(ZenModelItem,SimpleItem):
             self.getDmdRoot("Locations").createOrganizer(newLocationPath)
         except BadRequest, e:
             if REQUEST:
-                REQUEST['message'] = str(e)
+                messaging.IMessageSender(self).sendToBrowser(
+                    'Error',
+                    str(e),
+                    priority=messaging.WARNING
+                )
             else: 
                 raise e
             
@@ -214,7 +231,11 @@ class ZDeviceLoader(ZenModelItem,SimpleItem):
             self.getDmdRoot("Systems").createOrganizer(newSystemPath)
         except BadRequest, e:
             if REQUEST:
-                REQUEST['message'] = str(e)
+                messaging.IMessageSender(self).sendToBrowser(
+                    'Error',
+                    str(e),
+                    priority=messaging.WARNING
+                )
             else: 
                 raise e
                 
@@ -232,7 +253,11 @@ class ZDeviceLoader(ZenModelItem,SimpleItem):
             self.getDmdRoot("Groups").createOrganizer(newDeviceGroupPath)
         except BadRequest, e:
             if REQUEST:
-                REQUEST['message'] = str(e)
+                messaging.IMessageSender(self).sendToBrowser(
+                    'Error',
+                    str(e),
+                    priority=messaging.WARNING
+                )
             else: 
                 raise e
                 
@@ -250,7 +275,11 @@ class ZDeviceLoader(ZenModelItem,SimpleItem):
             self.getDmdRoot("Monitors").getPerformanceMonitor(newPerformanceMonitor)
         except BadRequest, e:
             if REQUEST:
-                REQUEST['message'] = str(e)
+                messaging.IMessageSender(self).sendToBrowser(
+                    'Error',
+                    str(e),
+                    priority=messaging.WARNING
+                )
             else: 
                 raise e 
         

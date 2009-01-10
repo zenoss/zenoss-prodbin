@@ -64,6 +64,8 @@ from Products.ZenUtils import NetworkTree
 
 from zope.interface import implements
 from EventView import IEventView
+from Products.ZenWidgets.interfaces import IMessageSender
+from Products.ZenWidgets import messaging
 
 
 def getNetworkRoot(context, performanceMonitor):
@@ -82,7 +84,7 @@ def checkDeviceExists(context, deviceName, ip, performanceMonitor):
             dev = ipobj.device()
             if dev:
                 raise DeviceExistsError("Ip %s exists on %s" % (ip, dev.id),dev)
-            
+
     if deviceName:
         existingDevices = context.dmd.Devices.primaryAq()._findDevice( deviceName )
         found=False
@@ -188,9 +190,11 @@ def manage_addDevice(context, id, REQUEST = None):
     serv = Device(id)
     context._setObject(serv.id, serv)
     if REQUEST is not None:
-        REQUEST['message'] = "Device created"
+        messaging.IMessageSender(self).sendToBrowser(
+            'Device Added',
+            'Device %s has been created.' % id
+        )
         REQUEST['RESPONSE'].redirect(context.absolute_url()+'/manage_main')
-                                     
 
 addDevice = DTMLFile('dtml/addDevice',globals())
 
@@ -870,6 +874,7 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
         @rtype: string
         @permission: ZEN_ADMIN_DEVICE
         """
+        origip = ip
         try:
             if ip.find("/") > -1: 
                 ipWithoutNetmask, netmask = ip.split("/",1)
@@ -886,8 +891,14 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
         self.manageIp = ip
         self.index_object()
         if REQUEST:
-            if ip: REQUEST['message'] = "Manage IP set"
-            else: REQUEST['message'] = "Not a valid IP"
+            msgr = IMessageSender(self)
+            if ip:
+                msgr.sendToBrowser('Manage IP Set',
+                   "%s's IP address has been set to %s." % (self.id, ip))
+            else:
+                msgr.sendToBrowser('Invalid IP',
+                  ("%s is an invalid IP address, and no appropriate IP could"
+                  " be found via DNS") % origip)
             return self.callZenScreen(REQUEST)
         else:
             return self.manageIp
@@ -1051,19 +1062,19 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
         if performanceMonitor != self.getPerformanceServerName():
             log.info("setting performance monitor to %s" % performanceMonitor)
             self.setPerformanceMonitor(performanceMonitor)
-       
+
         self.setLastChange()
         self.index_object()
         if REQUEST:
             from Products.ZenUtils.Time import SaveMessage
-            REQUEST['message'] = SaveMessage()
+            IMessageSender(self).sendToBrowser('Saved', SaveMessage())
             return self.callZenScreen(REQUEST)
 
 
     def monitorDevice(self):
         """
         Returns true if the device production state >= zProdStateThreshold.
-        
+
         @rtype: boolean
         """
         return self.productionState >= self.zProdStateThreshold
@@ -1146,13 +1157,21 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
         except OperationalError:
             log.exception("failed to update events with new prodState")
             if REQUEST:
-                REQUEST['message'] = "Failed to update events with new production state"
+                IMessageSender(self).sendToBrowser(
+                    "Update Failed",
+                    "Failed to update events with new production state.",
+                    priority=messaging.WARNING
+                )
                 return self.callZenScreen(REQUEST)
-                
+
         if REQUEST:
-            REQUEST['message'] = "Production state set"
+            IMessageSender(self).sendToBrowser(
+                "Production State Set",
+                "%s's production state was set to %s." % (self.id,
+                                      self.getProductionStateString())
+            )
             return self.callZenScreen(REQUEST)
-    
+
     security.declareProtected(ZEN_CHANGE_DEVICE, 'setPriority')
     def setPriority(self, priority, REQUEST=None):
         """ 
@@ -1173,11 +1192,19 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
         except OperationalError:
             log.exception("failed to update events with new priority")
             if REQUEST:
-                REQUEST['message'] = "Failed to update events with new priority"
+                messaging.IMessageSender(self).sendToBrowser(
+                    'Update Failed',
+                    "Failed to update events with new priority",
+                    priority=messaging.WARNING
+                )
                 return self.callZenScreen(REQUEST)
-                
+
         if REQUEST:
-            REQUEST['message'] = "Priority set"
+            messaging.IMessageSender(self).sendToBrowser(
+                'Priority Udpdated',
+                "Device priority has been set to %s." % (
+                    self.getPriorityString())
+            )
             return self.callZenScreen(REQUEST)
 
     security.declareProtected(ZEN_CHANGE_DEVICE, 'setLastChange')
@@ -1226,7 +1253,10 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
         self.getDmdRoot("Manufacturers").createManufacturer(mname)
         if REQUEST:
             REQUEST[field] = mname
-            REQUEST['message'] = ("Added Manufacturer %s at time:" % mname)
+            messaging.IMessageSender(self).sendToBrowser(
+                'Manufacturer Added',
+                'The %s manufacturer has been created.' % mname
+            )
             return self.callZenScreen(REQUEST)
 
 
@@ -1236,7 +1266,7 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
         """
         DEPRECATED -
         Adds a new hardware product
-        
+
         @permission: ZEN_CHANGE_DEVICE
         @todo: Doesn't really do work on a device object.
         Already exists on ZDeviceLoader
@@ -1248,10 +1278,17 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
             added = True
         if REQUEST:
             if added:
-                REQUEST['message'] = "Hardware product set"
+                messaging.IMessageSender(self).sendToBrowser(
+                    'Product Set',
+                    'Hardware product has been set to %s.' % newHWProductName
+                )
                 REQUEST['hwProductName'] = newHWProductName
             else:
-                REQUEST['message'] = "Hardware product was not set"
+                messaging.IMessageSender(self).sendToBrowser(
+                    'Set Product Failed',
+                    'Hardware product could not be set to %s.'%newHWProductName,
+                    priority=messaging.WARNING
+                )
             return self.callZenScreen(REQUEST)
 
 
@@ -1270,10 +1307,17 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
                                         newOSProductName, osManufacturer, isOS=True)
         if REQUEST:
             if newOSProductName:
-                REQUEST['message'] = "OS Product set"
+                messaging.IMessageSender(self).sendToBrowser(
+                    'Product Set',
+                    'OS product has been set to %s.' % newOSProductName
+                )
                 REQUEST['osProductName'] = newOSProductName
             else:
-                REQUEST['message'] = "OS Product was not set"
+                messaging.IMessageSender(self).sendToBrowser(
+                    'Set Product Failed',
+                    'OS product could not be set to %s.' % newOSProductName,
+                    priority=messaging.WARNING
+                )
             return self.callZenScreen(REQUEST)
 
 
@@ -1297,16 +1341,19 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
         """
         DEPRECATED
         Add a new location and relate it to this device
-        
+
         @todo: Doesn't really do work on a device object.
         Already exists on ZDeviceLoader
         """
         self.getDmdRoot("Locations").createOrganizer(newLocationPath)
         if REQUEST:
             REQUEST['locationPath'] = newLocationPath
-            REQUEST['message'] = "Added Location %s at time:" % newLocationPath
+            messaging.IMessageSender(self).sendToBrowser(
+                'Location Added',
+                'Location %s has been created.' % newLocationPath
+            )
             return self.callZenScreen(REQUEST)
-   
+
 
     security.declareProtected(ZEN_CHANGE_DEVICE, 'setPerformanceMonitor')
     def setPerformanceMonitor(self, performanceMonitor,
@@ -1328,7 +1375,10 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
         self.setLastChange()
                 
         if REQUEST:
-            REQUEST['message'] = "Set Performance %s at time:" % performanceMonitor
+            messaging.IMessageSender(self).sendToBrowser(
+                'Monitor Changed',
+                'Performance monitor has been set to %s.' % performanceMonitor
+            )
             return self.callZenScreen(REQUEST)
 
 
@@ -1356,7 +1406,10 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
         group = self.getDmdRoot("Groups").createOrganizer(newDeviceGroupPath)
         self.addRelation("groups", group)
         if REQUEST:
-            REQUEST['message'] = "Added Group %s at time:" % newDeviceGroupPath
+            messaging.IMessageSender(self).sendToBrowser(
+                'Group Added',
+                'Group %s has been created.' % newDeviceGroupPath
+            )
             return self.callZenScreen(REQUEST)
 
 
@@ -1384,7 +1437,10 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
         sys = self.getDmdRoot("Systems").createOrganizer(newSystemPath)
         self.addRelation("systems", sys)
         if REQUEST:
-            REQUEST['message'] = "System added"
+            messaging.IMessageSender(self).sendToBrowser(
+                'System Added',
+                'System %s has been created.' % newSystemPath
+            )
             return self.callZenScreen(REQUEST)
 
 
@@ -1599,7 +1655,10 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
         """
         self.getEventManager().manage_deleteHeartbeat(self.getId())
         if REQUEST:
-            REQUEST['message'] = "Cleared heartbeat events for %s" % self.id
+            messaging.IMessageSender(self).sendToBrowser(
+                'Heartbeats cleared',
+                "Cleared heartbeat events for %s." % self.id
+            )
         return self.callZenScreen(REQUEST)
 
 
@@ -1639,7 +1698,10 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
         self.setLastChange()
 
         if REQUEST: 
-            REQUEST['message'] = "Device %s renamed to %s" % (oldId, newId)
+            messaging.IMessageSender(self).sendToBrowser(
+                'Device Renamed',
+                "Device %s was renamed to %s." % (oldId, newId)
+            )
             REQUEST['RESPONSE'].redirect("%s/%s" % (parent.absolute_url(), newId))
 
 
@@ -1822,34 +1884,37 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
         """
         self._p_changed = True
         if REQUEST:
-            REQUEST['message'] = 'Changes to %s pushed to collectors' % self.id
+            messaging.IMessageSender(self).sendToBrowser(
+                'Changes Pushed',
+                'Changes to %s pushed to collectors.' % self.id
+            )
             return self.callZenScreen(REQUEST)
-    
+
     security.declareProtected(ZEN_EDIT_LOCAL_TEMPLATES, 'bindTemplates')
     def bindTemplates(self, ids=(), REQUEST=None):
         """
         This will bind available templates to the zDeviceTemplates
-        
+
         @permission: ZEN_EDIT_LOCAL_TEMPLATES
         """
         return self.setZenProperty('zDeviceTemplates', ids, REQUEST)
-    
+
     security.declareProtected(ZEN_EDIT_LOCAL_TEMPLATES, 'removeZDeviceTemplates')
     def removeZDeviceTemplates(self, REQUEST=None):
         """
         Deletes the local zProperty, zDeviceTemplates
-        
+
         @permission: ZEN_EDIT_LOCAL_TEMPLATES
         """
         for id in self.zDeviceTemplates:
             self.removeLocalRRDTemplate(id)
         return self.deleteZenProperty('zDeviceTemplates', REQUEST)
-    
+
     security.declareProtected(ZEN_EDIT_LOCAL_TEMPLATES, 'addLocalTemplate')
     def addLocalTemplate(self, id, REQUEST=None):
         """
         Create a local template on a device
-        
+
         @permission: ZEN_EDIT_LOCAL_TEMPLATES
         """
         from Products.ZenModel.RRDTemplate import manage_addRRDTemplate
@@ -1857,7 +1922,10 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
         if id not in self.zDeviceTemplates:
             self.bindTemplates(self.zDeviceTemplates+[id])
         if REQUEST:
-            REQUEST['message'] = 'Added template %s to %s' % (id, self.id)
+            messaging.IMessageSender(self).sendToBrowser(
+                'Local Template Added',
+                'Added template %s to %s.' % (id, self.id)
+            )
             return self.callZenScreen(REQUEST)
 
     def getAvailableTemplates(self):
