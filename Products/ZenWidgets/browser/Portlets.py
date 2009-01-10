@@ -113,7 +113,7 @@ class WatchListPortletView(BrowserView):
                 if not e.startswith('/zport/dmd'):
                     bigdev = '/zport/dmd' + e
                 obj = self.context.dmd.unrestrictedTraverse(bigdev)
-            except KeyError:
+            except (AttributeError, KeyError):
                 obj = self.context.dmd.Devices.findDevice(e)
             if self.context.has_permission("View", obj): return obj
         entities = filter(lambda x:x is not None, map(getob, entities))

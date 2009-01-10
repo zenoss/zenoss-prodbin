@@ -144,7 +144,8 @@ Portlet.prototype = {
         var dataSource = contents.dataSource;
         var oConfigs = {};
         if (this.dataTable) {
-            this.dataTable.initializeTable(dataSource.liveData);
+            oRequest = {'results':dataSource.liveData}
+            this.dataTable.onDataReturnInitializeTable(null, oRequest);
         } else {
             addElementClass(this.body, 'yui-skin-sam');
             this.dataTable = new YAHOO.widget.DataTable(

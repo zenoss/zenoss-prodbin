@@ -18,7 +18,6 @@ from Products.ZenModel.ZenModelRM import ZenModelRM
 from Globals import InitializeClass
 from Products.ZenUtils.Utils import zenPath
 
-class PortletSourceNotFound(Exception): pass
 
 def manage_addPortlet(self, context, REQUEST=None):
     """
@@ -73,9 +72,10 @@ class Portlet(ZenModelRM):
         try:
             f = file(self._getSourcePath())
         except IOError, e:
-            raise PortletSourceNotFound, e
-        self.source = f.read()
-        f.close()
+            return
+        else:
+            self.source = f.read()
+            f.close()
 
     def get_source(self, debug_mode=False):
         if debug_mode: self._read_source()

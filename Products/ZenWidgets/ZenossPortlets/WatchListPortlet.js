@@ -1,4 +1,5 @@
 var WatchListPortlet = YAHOO.zenoss.Subclass.create(YAHOO.zenoss.portlet.Portlet);
+
 WatchListPortlet.prototype = {
     __class__:"YAHOO.zenoss.portlet.WatchListPortlet",
     __init__: function(args) {
@@ -52,7 +53,8 @@ WatchListPortlet.prototype = {
         var oConfigs = {};
         addElementClass(this.body, 'yui-skin-sam');
         if (this.dataTable) {
-            this.dataTable.initializeTable(dataSource.liveData);
+            oRequest = {'results':dataSource.liveData}
+            this.dataTable.onDataReturnInitializeTable(null, oRequest);
         } else {
             var myDataTable = new YAHOO.widget.DataTable(
                 this.body.id, columnDefs, dataSource, oConfigs);
