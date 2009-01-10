@@ -26,6 +26,7 @@ from Products.ZenModel.ZenModelRM import ZenModelRM
 from Products.ZenRelations.RelSchema import *
 from Products.ZenUtils import Time
 from Products.ZenEvents.EventFilter import EventFilter
+from Products.ZenWidgets import messaging
 
 from ActionRuleWindow import ActionRuleWindow
 def _downcase(s):
@@ -200,8 +201,11 @@ class ActionRule(ZenModelRM, EventFilter):
             if clause:
                 REQUEST.form['where'] = clause
             else:
-                REQUEST['message'] = 'You must have at least one criteria' \
-                        ' in an Alerting Rule.'
+                messaging.IMessageSender(self).sendToBrowser(
+                    'Invalid',
+                    'An alerting rule must have at least one criterion.',
+                    priority=messaging.WARNING
+                )
                 return self.callZenScreen(REQUEST)
         return self.zmanage_editProperties(REQUEST)
 
@@ -266,24 +270,28 @@ class ActionRule(ZenModelRM, EventFilter):
                 return Time.Duration((next + w.duration) - time.time())
         return Time.Duration(w.duration)
 
-
     def repeatNice(self):
         w = self.nextActiveWindow()
         if w is None:
             return "Never"
         return w.repeat
-        
-    security.declareProtected(ZEN_CHANGE_ALERTING_RULES, 'manage_addActionRuleWindow')
+
+    security.declareProtected(ZEN_CHANGE_ALERTING_RULES,
+                              'manage_addActionRuleWindow')
     def manage_addActionRuleWindow(self, newId, REQUEST=None):
         "Add a ActionRule Window to this device"
         if newId:
             mw = ActionRuleWindow(newId)
             self.windows._setObject(newId, mw)
-            if REQUEST: REQUEST['message'] = "Active Period Added"
         if REQUEST:
+            messaging.IMessageSender(self).sendToBrowser(
+                'Active Period Added',
+                'The action rule window has been created successfully.'
+            )
             return self.callZenScreen(REQUEST)
-                          
-    security.declareProtected(ZEN_CHANGE_ALERTING_RULES, 'manage_deleteActionRuleWindow')
+
+    security.declareProtected(ZEN_CHANGE_ALERTING_RULES,
+                              'manage_deleteActionRuleWindow')
     def manage_deleteActionRuleWindow(self, windowIds, REQUEST=None):
         "Delete a ActionRule Window to this device"
         import types
@@ -292,8 +300,11 @@ class ActionRule(ZenModelRM, EventFilter):
         for id in windowIds:
             self.windows._delObject(id)
         if REQUEST:
-            REQUEST['message'] = "Active Period Deleted"
+            messaging.IMessageSender(self).sendToBrowser(
+                'Active Period Deleted',
+                'The action rule window has been removed.'
+            )
             return self.callZenScreen(REQUEST)
-      
+
 
 InitializeClass(ActionRule)

@@ -58,6 +58,12 @@ portlets = [
      'title': 'Production States',
      'permission':  ZEN_COMMON
     },
+    {
+     'sourcepath':  _portletpath('userMessagesPortlet.js'), 
+     'id':          'UserMsgsPortlet', 
+     'title': 'Messages',
+     'permission':  ZEN_COMMON
+    },
 ]
 
 def register_default_portlets(portletmanager):

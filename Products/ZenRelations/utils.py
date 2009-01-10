@@ -45,3 +45,31 @@ def importClasses(basemodule=None, skipnames=()):
         classdef = importClass(prodname, basemodule) 
         classList.append(classdef)
     return classList
+
+
+class ZenRelationshipNameChooser(object):
+    """
+    Adapts a ZenRelation to find a unique id.
+    """
+    def __init__(self, context):
+        self.context = context
+
+    def chooseName(self, name):
+        """
+        Create an id.
+        """
+        dot = name.rfind('.')
+        if dot >= 0:
+            suffix = name[dot:]
+            name = name[:dot]
+        else:
+            suffix = ''
+        n = name + suffix
+        i = 1
+        inuse = self.context.objectIdsAll()
+        while n in inuse:
+            i += 1
+            n = name + str(i) + suffix
+        return str(n)
+
+

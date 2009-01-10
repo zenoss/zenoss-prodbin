@@ -44,6 +44,7 @@ from Products.ZenRelations.RelSchema import *
 from Products.ZenUtils import Time
 from Products.ZenUtils.FakeRequest import FakeRequest
 from Products.ZenEvents.ZenEventClasses import Status_Ping, Status_Wmi_Conn
+from Products.ZenWidgets import messaging
 
 from ZenEventClasses import Unknown
 
@@ -1428,11 +1429,15 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
         # sendEvent insists on a device or a component. Can be bogus.
         if not eventDict['device'] and not eventDict['component']:
             if REQUEST:
-                REQUEST['message'] = 'You must specify a device and/or a component.'
+                messaging.IMessageSender(self).sendToBrowser(
+                    'Invalid Event',
+                    'You must specify a device and/or a component.',
+                    priority=messaging.WARNING
+                )
                 return self.callZenScreen(REQUEST)
             else:
                 return
-        self.sendEvent(eventDict)            
+        self.sendEvent(eventDict)
         if REQUEST:
             REQUEST['RESPONSE'].redirect('/zport/dmd/Events/viewEvents')
 
@@ -1452,8 +1457,11 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
             whereClause = ' where evid in (%s)' % evids
             self.deleteEvents(whereClause, 'Deleted by user')
         if REQUEST:
-            REQUEST['message'] = 'Moved %s event%s to History.' % (
-                                    num, (num != 1 and 's') or '')
+            messaging.IMessageSender(self).sendToBrowser(
+                'Moved To History',
+                '%s event%s have been moved to history.' % (
+                                num, (num != 1 and 's') or '')
+            )
             return self.callZenScreen(REQUEST)
 
     def undeleteEvents(self, whereClause, reason):
@@ -1478,8 +1486,11 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
             evids = ",".join([ "'%s'" % evid for evid in evids])
             whereClause = ' where evid in (%s)' % evids
             self.undeleteEvents(whereClause, 'Undeleted by user')
-        if REQUEST: 
-            REQUEST['message'] = "%s events undeleted." % num
+        if REQUEST:
+            messaging.IMessageSender(self).sendToBrowser(
+                'Undeleted',
+                '%s events have been moved out of history.' % num
+            )
             return self.callZenScreen(REQUEST)
 
 
@@ -1489,7 +1500,10 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
         whereClause = 'where device = "%s"' % devname
         self.deleteEvents(whereClause, 'Device deleted')
         if REQUEST:
-            REQUEST['message'] = 'Deleted all events for %s' % devname
+            messaging.IMessageSender(self).sendToBrowser(
+                'Events Deleted',
+                'Deleted all events for %s' % devname
+            )
             return self.callZenScreen(REQUEST)
 
 
@@ -1528,7 +1542,10 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
         # delete when this might take a while to perform.
         unused(proc)
         if REQUEST:
-            REQUEST['message'] = 'Deleted historical events'
+            messaging.IMessageSender(self).sendToBrowser(
+                'Events Deleted',
+                'Historical events have been deleted.'
+            )
             return self.callZenScreen(REQUEST)
 
 
@@ -1542,7 +1559,10 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
                 curs.execute(delete);
             finally: self.close(conn)
         if REQUEST:
-            REQUEST['message'] = 'Moved heartbeat(s) to History'
+            messaging.IMessageSender(self).sendToBrowser(
+                'Heartbeats Cleared',
+                'Heartbeat events have been moved to the history.'
+            )
             return self.callZenScreen(REQUEST)
 
 
@@ -1580,10 +1600,11 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
                 reason += 'unknown (%d)' % eventState
             self.updateEvents(update, whereClause, reason)
         if REQUEST:
-            if reason:
-                REQUEST['message'] = reason
-            else:
-                REQUEST['message'] = 'no reason'
+            if not reason: reason = ''
+            messaging.IMessageSender(self).sendToBrowser(
+                'Event States Set',
+                reason
+            )
             return self.callZenScreen(REQUEST)
 
 
@@ -1610,7 +1631,7 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
                     evclasskey, curevclass, msg = row
                     if curevclass != Unknown:
                         numNotUnknown += 1
-                        continue                        
+                        continue
                     if not evclasskey:
                         numNoKey += 1
                         continue
@@ -1622,10 +1643,18 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
             finally: self.close(conn)
         elif REQUEST:
             if not evids:
-                REQUEST['message'] = 'No events selected.'
+                messaging.IMessageSender(self).sendToBrowser(
+                    'Error',
+                    'No events selected',
+                    priority=messaging.WARNING
+                )
             elif not eventClass:
-                REQUEST['message'] = 'No event class selected.'
-                
+                messaging.IMessageSender(self).sendToBrowser(
+                    'Error',
+                    'No event class selected',
+                    priority=messaging.WARNING
+                )
+
         if REQUEST:
             msg = REQUEST.get('message', '')
             if numNotUnknown:
@@ -1643,7 +1672,8 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
             msg += (msg and ' ') + 'Created %s event mapping%s.' % (
                             numCreated,
                             (numCreated != 1 and 's') or '')
-            REQUEST['message'] = msg
+
+            messaging.IMessageSender(self).sendToBrowser('Event Map', msg)
             # EventView might pass a fake Request during an ajax call from
             # event console.  Don't bother rendering anything in this case.
             if getattr(REQUEST, 'dontRender', False):
@@ -1661,7 +1691,8 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
         self.loadSchema()
         self.dmd.ZenEventHistory.loadSchema()
         if REQUEST:
-            REQUEST['message'] = 'Event schema refreshed' 
+            messaging.IMessageSender(self).sendToBrowser(
+                'Event Schema', 'Event schema has been refreshed.')
             return self.callZenScreen(REQUEST)
 
 
@@ -1682,7 +1713,8 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
         self.cleanCache(force=1)
         self.dmd.ZenEventHistory.cleanCache(force=1)
         if REQUEST: 
-            REQUEST['message'] = 'Event cache cleared'
+            messaging.IMessageSender(self).sendToBrowser(
+                'Event Cache', 'Event cache has been cleared.')
             return self.callZenScreen(REQUEST)
 
 
@@ -1713,7 +1745,8 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
             curs.execute(sql)
         finally: self.close(conn)
         if REQUEST: 
-            REQUEST['message'] = 'Heartbeats cleared'
+            messaging.IMessageSender(self).sendToBrowser(
+                'Heartbeats Cleared', 'Heartbeats have been cleared.')
             return self.callZenScreen(REQUEST)
 
     security.declareProtected('Manage EventManager','zmanage_editProperties')

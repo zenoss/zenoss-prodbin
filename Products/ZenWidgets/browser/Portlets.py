@@ -11,15 +11,17 @@
 #
 ###########################################################################
 
+import re
+import simplejson
+
 from Products.Five.browser import BrowserView
 from Products.AdvancedQuery import Eq, Or
 
-import re
-import simplejson
+from Products.ZenUtils.Utils import relative_time
 from Products.ZenUtils.json import json
 from Products.ZenUtils.Utils import formreq, extractPostContent
+from Products.ZenWidgets import messaging
 from Products.ZenModel.ZenossSecurity import *
-
 from Products.ZenEvents.browser.EventPillsAndSummaries import \
                                    getObjectsEventSummary, \
                                    ObjectsEventSummary,    \
@@ -199,8 +201,8 @@ class HeartbeatPortletView(BrowserView):
 
     @json
     def getHeartbeatIssuesJSON(self):
-        """ Get heartbeat issues in a form suitable
-            for a portlet on the dashboard.
+        """
+        Get heartbeat issues in a form suitable for a portlet on the dashboard.
 
         @return: A JSON representation of a dictionary describing heartbeats
         @rtype: "{
@@ -216,4 +218,40 @@ class HeartbeatPortletView(BrowserView):
             mydict['data'].append({'Device':Device,
                 'Daemon':Daemon, 'Seconds':Seconds})
         return mydict
+
+
+class UserMessagesPortletView(BrowserView):
+    """
+    User messages in YUI table form, for the dashboard portlet.
+    """
+    @json
+    def __call__(self):
+        """
+        Get heartbeat issues in a form suitable for a portlet on the dashboard.
+
+        @return: A JSON representation of a dictionary describing heartbeats
+        @rtype: "{
+            'columns':['Device', 'Daemon', 'Seconds'],
+            'data':[
+                {'Device':'<a href=/>', 'Daemon':'zenhub', 'Seconds':10}
+            ]}"
+        """
+        ICONS = ['/zport/dmd/img/agt_action_success-32.png',
+                 '/zport/dmd/img/messagebox_warning-32.png',
+                 '/zport/dmd/img/agt_stop-32.png']
+        msgbox = messaging.IUserMessages(self.context)
+        msgs = msgbox.get_messages()
+        cols = ['Message']
+        res = []
+        for msg in msgs:
+            res.append(dict(
+                title = msg.title,
+                imgpath = ICONS[msg.priority],
+                body = msg.body,
+                ago = relative_time(msg.timestamp),
+                deletelink = msg.absolute_url_path() + '/delMsg'
+            ))
+        res.reverse()
+        return { 'columns': cols, 'data': res }
+
 

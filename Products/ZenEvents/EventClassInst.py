@@ -27,6 +27,7 @@ from Products.ZenRelations.RelSchema import *
 from Products.ZenModel.ZenModelRM import ZenModelRM
 from Products.ZenModel.EventView import EventView
 from Products.ZenModel.ZenPackable import ZenPackable
+from Products.ZenWidgets import messaging
 
 def manage_addEventClassInst(context, id, REQUEST = None):
     """make a device class"""
@@ -59,7 +60,7 @@ class EventClassPropertyMixin(object):
                 evt.severity = sev
         updates = {}
         for name in 'resolution', 'explanation':
-	    value = getattr(self, name, None)
+            value = getattr(self, name, None)
             if value is not None and value != '':
                 updates[name] = value
         evt.updateFromDict(updates)
@@ -337,7 +338,8 @@ class EventClassInst(EventClassPropertyMixin, ZenModelRM, EventView,
         self.resolution = resolution
         if REQUEST:
             from Products.ZenUtils.Time import SaveMessage
-            REQUEST['message'] = SaveMessage()
+            messaging.IMessageSender(self).sendToBrowser(
+                'Saved', SaveMessage())
             return self.callZenScreen(REQUEST, redirect)
 
 

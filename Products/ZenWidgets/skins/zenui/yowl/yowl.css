@@ -1,0 +1,59 @@
+#yui_notification_container
+{
+  border: 0px solid red;
+  margin: 0;
+  padding: 0;
+  position: absolute;
+  right: 0px;
+  bottom: 0px;
+  width: 300px;
+}
+
+.notification
+{
+position: relative;
+color: black;
+margin: 3px 3px 3px 3px;
+padding: 6px 6px 6px 6px;
+font-family: Skia, sans-serif;
+min-height: 51px;
+  z-index: 1000;
+}
+.notification .background
+{
+position: absolute;
+left: 0;
+top: 0;
+margin: 0;
+padding: 0;
+width: 100%;
+height: 100%;
+  z-index: -1;
+}
+.notification .icon
+{
+float: left;
+top: 10px;
+left: 10px;
+width: 32px;
+height: 32px;
+margin-right: 15px;
+}
+.notification .icon img
+{
+width: 32px;
+height: 32px;
+}
+.notification .title
+{
+font-weight: bold;
+font-size: small;
+}
+.notification .text
+{
+font-size: x-small;
+}
+.notification.emergency .text
+{
+color: red;
+}

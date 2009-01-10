@@ -18,6 +18,7 @@ from Products.ZenRelations.RelSchema import *
 from Products.ZenModel.ZenModelRM import ZenModelRM
 
 from Products.ZenModel.ZenossSecurity import *
+from Products.ZenWidgets import messaging
 
 from Portlet import Portlet
 
@@ -112,9 +113,11 @@ class PortletManager(ZenModelRM):
             p.permission = REQUEST.form[portlet]
         if REQUEST:
             from Products.ZenUtils.Time import SaveMessage
-            REQUEST['message'] = SaveMessage()
+            messaging.IMessageSender(self).sendToBrowser(
+                'Permissions Saved',
+                SaveMessage()
+            )
             REQUEST['RESPONSE'].redirect('/zport/dmd/editPortletPerms')
 
 
 InitializeClass(PortletManager)
-

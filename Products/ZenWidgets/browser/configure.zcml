@@ -6,4 +6,18 @@
 
     <include package='.' file='portlets.zcml'/>
 
+    <browser:page
+        for="*"
+        class=".messaging.UserMessages"
+        name="getUserMessages"
+        permission="zope2.View"
+        />
+
+    <browser:page
+        for="..interfaces.IMessage"
+        class=".messaging.DeleteMessage"
+        name="delMsg"
+        permission="zope2.View"
+        />
+
 </configure>

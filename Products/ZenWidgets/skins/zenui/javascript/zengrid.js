@@ -874,7 +874,7 @@ ZenGrid.prototype = {
                 this.buffer.clear();
                 this.refreshTable(this.lastOffset);
                 this.setSelectNone();
-                showMessage(r.responseText);
+                YAHOO.zenoss.Messenger.checkMessages();
             }, this));
     },
     undeleteBatch: function() {
@@ -896,7 +896,7 @@ ZenGrid.prototype = {
                 this.buffer.clear();
                 this.refreshTable(this.lastOffset);
                 this.setSelectNone();
-                showMessage(r.responseText);
+                YAHOO.zenoss.Messenger.checkMessages();
             }, this));
 
     },
@@ -920,7 +920,7 @@ ZenGrid.prototype = {
                 this.buffer.clear();
                 this.refreshTable(this.lastOffset);
                 this.setSelectNone();
-                showMessage(r.responseText);
+                YAHOO.zenoss.Messenger.checkMessages();
             }, this));
     }
 }

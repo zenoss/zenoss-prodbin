@@ -1,6 +1,7 @@
 //var DEBUG_MODE = true;
 if (typeof(DEBUG_MODE)=='undefined') var DEBUG_MODE = false;
 if (typeof(VERSION_ID)=='undefined') var VERSION_ID = '';
+var DEBUG_MODE = false;
 
 // Graceful degradation of Firebug console object
 // via http://ajaxian.com/archives/graceful-degradation-of-firebug-console-object
@@ -93,6 +94,30 @@ function getLoader(withtests) {
         type: 'js',
         fullpath: '/zport/dmd/zenrrdzoom.js',
         requires: ['zenossutils']
+    });
+    loader.addModule({
+        name: 'uifeedback',
+        type: 'js',
+        fullpath: '/zport/dmd/javascript/uifeedback.js',
+        requires: ['zenossutils', 'container', 'datasource', 
+                   'connection', 'animation', 'yowl']
+    });
+    loader.addModule({
+        name: 'yowl-base',
+        type: 'js', 
+        fullpath: '/zport/dmd/yowl/yowl.js',
+        requires: ['event', 'animation', 'container']
+    });
+    loader.addModule({
+        name: 'yowl',
+        type: 'js',
+        fullpath: '/zport/dmd/yowl/display-yui.js',
+        requires: ['yowl-base', 'yowl-style']
+    });
+    loader.addModule({
+        name: 'yowl-style',
+        type: 'css',
+        fullpath: '/zport/dmd/yowl/yowl.css'
     });
 
     if (withtests) {

@@ -39,4 +39,11 @@
         permission="zope2.View"
         />
 
+    <browser:page
+        for="*"
+        name="userMessageTable"
+        class=".Portlets.UserMessagesPortletView"
+        permission="zope2.View"
+        />
+
 </configure>
