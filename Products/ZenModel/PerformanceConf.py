@@ -273,11 +273,11 @@ class PerformanceConf(Monitor, StatusColor):
         return server.summary(gopts)
     
     
-    def fetchValues(self, paths, cf, resolution, start, end=None):
+    def fetchValues(self, paths, cf, resolution, start, end=""):
         url = self.renderurl
         if url.startswith("http"):
             url = basicAuthUrl(self.renderuser, self.renderpass, self.renderurl)
-            server = xmlrpclib.Server(url)
+            server = xmlrpclib.Server(url, allow_none=True)
         else:
             if not self.renderurl: raise KeyError
             server = self.getObjByPath(self.renderurl)

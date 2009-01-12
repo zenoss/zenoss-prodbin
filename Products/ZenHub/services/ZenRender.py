@@ -77,7 +77,8 @@ class Render(resource.Resource):
                     def write(result):
                         try:
                             response = xmlrpclib.dumps((result,),
-                                                       methodresponse=True)
+                                                       methodresponse=True,
+                                                       allow_none=True)
                             request.write(response)
                         except Exception, ex:
                             log.error("Unable to %s: %s", command, ex)

@@ -110,7 +110,7 @@ class RRDView(object):
         return result
     
     
-    def fetchRRDValues(self, dpnames, cf, resolution, start, end=None):
+    def fetchRRDValues(self, dpnames, cf, resolution, start, end=""):
         paths = []
         for dpname in dpnames:
             paths.append(self.getRRDFileName(dpname))
@@ -118,8 +118,8 @@ class RRDView(object):
             cf, resolution, start, end)
     
     
-    def fetchRRDValue(self, dpname, cf, resolution, start, end=None):
-        r = self.fetchRRDValues([dpname,], cf, resolution, start, end=None)
+    def fetchRRDValue(self, dpname, cf, resolution, start, end=""):
+        r = self.fetchRRDValues([dpname,], cf, resolution, start, end=end)
         if r is not None:
             return r[0]
         return None

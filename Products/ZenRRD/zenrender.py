@@ -95,6 +95,9 @@ class zenrender(PBDaemon):
 
     def remote_summary(self, *args, **kw):
         return self.rs.summary(*args, **kw)
+    
+    def remote_fetchValues(self, *args, **kw):
+        return self.rs.fetchValues(*args, **kw)
 
     def remote_currentValues(self, *args, **kw):
         return self.rs.currentValues(*args, **kw)

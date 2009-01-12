@@ -388,9 +388,9 @@ class RenderServer(RRDToolItem):
 
 
     security.declareProtected('GenSummary', 'fetchValues')
-    def fetchValues(self, paths, cf, resolution, start, end=None):
-        if end is None:
-            end = int(time.time() / resolution) * resolution
+    def fetchValues(self, paths, cf, resolution, start, end=""):
+        if not end:
+            end = "now"
         values = []
         try:
             for path in paths:
