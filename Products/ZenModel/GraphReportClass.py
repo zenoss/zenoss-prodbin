@@ -29,7 +29,7 @@ def manage_addGraphReportClass(context, id, title = None, REQUEST = None):
     rc = GraphReportClass(id, title)
     context._setObject(rc.id, rc)
     if REQUEST is not None:
-        messaging.IMessageSender(self).sendToBrowser(
+        messaging.IMessageSender(context).sendToBrowser(
             'Report Organizer Created',
             'Report organizer %s was created.' % id
         )

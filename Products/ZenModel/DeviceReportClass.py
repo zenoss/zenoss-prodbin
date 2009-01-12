@@ -29,7 +29,7 @@ def manage_addDeviceReportClass(context, id, title = None, REQUEST = None):
     frc = DeviceReportClass(id, title)
     context._setObject(id, frc)
     if REQUEST is not None:
-        messaging.IMessageSender(self).sendToBrowser(
+        messaging.IMessageSender(context).sendToBrowser(
             'Organizer Created',
             'Device report organizer %s was created.' % id
         )

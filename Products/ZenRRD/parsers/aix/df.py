@@ -11,7 +11,6 @@
 #
 ###########################################################################
 
-from Products.ZenRRD.ComponentCommandParser import ComponentCommandParser
 from Products.ZenRRD.parsers.linux.df import df as df_linux
 
 class df(df_linux):

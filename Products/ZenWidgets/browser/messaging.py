@@ -11,7 +11,6 @@
 #
 ###########################################################################
 
-import time
 from Products.Five.browser import BrowserView
 
 from Products.ZenUtils.json import json

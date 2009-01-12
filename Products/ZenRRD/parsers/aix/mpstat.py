@@ -12,7 +12,6 @@
 ###########################################################################
 
 from Products.ZenRRD.CommandParser import CommandParser
-import re
 
 class mpstat(CommandParser):
 

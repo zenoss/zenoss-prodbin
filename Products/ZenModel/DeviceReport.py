@@ -29,7 +29,7 @@ def manage_addDeviceReport(context, id, title = None, REQUEST = None):
     dc = DeviceReport(id, title)
     context._setObject(id, dc)
     if REQUEST is not None:
-        messaging.IMessageSender(self).sendToBrowser(
+        messaging.IMessageSender(context).sendToBrowser(
             'Report Created',
             'Device report %s was created.' % id
         )

@@ -11,8 +11,6 @@
 #
 ###########################################################################
 
-import string
-
 from CollectorPlugin import CommandPlugin
 
 class process(CommandPlugin):

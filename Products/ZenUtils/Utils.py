@@ -346,7 +346,7 @@ def importClass(modulePath, classname=""):
     @param classname: name of a class
     @type classname: string
     @return: the class in the module
-    @rtype: string
+    @rtype: class
     """
     try:
         if not classname: classname = modulePath.split(".")[-1]
