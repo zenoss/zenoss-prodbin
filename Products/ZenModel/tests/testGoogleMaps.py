@@ -28,7 +28,7 @@ class TestGoogleMaps(ZenModelBaseTest):
         self.loc = self.dmd.Locations.createOrganizer('annapolis')
         self.loc.address = 'Annapolis, MD'
         self.geocodedata = """
-            {"Z":{"annapolis md":{"name":"Annapolis, MD", 
+            {"Z":{"annapolis md":{"name":"Annapolis, MD",
             "Status":{"code":610, "request":"geocode"}}}}
         """.strip()
 
@@ -40,8 +40,8 @@ class TestGoogleMaps(ZenModelBaseTest):
     def testGetGeoCache(self):
         self.dmd.geocache = self.geocodedata
         testdata = self.dmd.getGeoCache()
-        self.assert_('\\r' not in testdata)
-        self.assert_('\\n' not in testdata)
+        self.assert_(r'\\r' not in testdata)
+        self.assert_(r'\\n' not in testdata)
 
     def testClearGeocodeCache(self):
         self.dmd.geocache = self.geocodedata
