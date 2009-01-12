@@ -1,0 +1,7 @@
+/usr/bin/vmstat
+System configuration: lcpu=1 mem=2048MB
+
+kthr    memory              page              faults        cpu    
+----- ----------- ------------------------ ------------ -----------
+ r  b   avm   fre  re  pi  po  fr   sr  cy  in   sy  cs us sy id wa
+ 1  1 153390 328514   0   0   0   0    0   0   0  505  57  0  0 99  0

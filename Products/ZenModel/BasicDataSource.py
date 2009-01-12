@@ -46,7 +46,6 @@ class BasicDataSource(RRDDataSource.SimpleRRDDataSource):
     __pychecker__='no-override'
 
     sourcetypes = ('SNMP', 'COMMAND')
-    parsers = ('Auto', 'Nagios', 'Cacti')
     
     sourcetype = 'SNMP'
     eventClass = Cmd_Fail
@@ -219,5 +218,11 @@ class BasicDataSource(RRDDataSource.SimpleRRDDataSource):
         write('')
         write('DONE in %s seconds' % long(time.time() - start))
         out.write(str(footer))
+
+    def parsers(self):
+        from Products.ZenRRD.CommandParser import getParserNames
+        return getParserNames(self.getDmd())
+
+
 
 InitializeClass(BasicDataSource)

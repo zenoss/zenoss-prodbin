@@ -16,7 +16,7 @@ import re
 
 class uptime(CommandParser):
     
-    uptimePattern = re.compile(r' up ((\d+) days, )?(\d+)(:(\d+))?')
+    uptimePattern = re.compile(r' up ((\d+) days, +)?(\d+)(:(\d+))?')
     
     def processResults(self, cmd, result):
         """

@@ -110,15 +110,17 @@ def test():
             lst.append(d.next())
     def final(v):
         assert lst[-1] == v
+        assert lst == range(10)
+        def unloop(d):
+            yield defer.fail(ZeroDivisionError('hahaha'))
+            d.next()
+        def checkError(err):
+            assert isinstance(err.value, ZeroDivisionError)
+            reactor.stop()
+        drive(unloop).addErrback(checkError)
     drive(loop).addCallback(final)
-    assert lst == range(10)
-    def unloop(d):
-        yield defer.fail(ZeroDivisionError('hahaha'))
-        d.next()
-    def checkError(err):
-        assert isinstance(err.value, ZeroDivisionError)
-    drive(unloop).addErrback(checkError)
         
 
 if __name__ == '__main__':
     test()
+    reactor.run()

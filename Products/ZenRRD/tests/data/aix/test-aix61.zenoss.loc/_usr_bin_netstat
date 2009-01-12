@@ -1,0 +1,7 @@
+/usr/bin/netstat -in
+Name  Mtu   Network     Address           ZoneID    Ipkts Ierrs    Opkts Oerrs  Coll
+en0   1500  link#2      0.9.6b.be.c7.2             165887     0    23346     4     0
+en0   1500  10.204.210  10.204.210.16              165887     0    23346     4     0
+lo0   16896 link#1                                  92754     0    92765     0     0
+lo0   16896 127         127.0.0.1                   92754     0    92765     0     0
+lo0   16896 ::1                                0    92754     0    92765     0     0

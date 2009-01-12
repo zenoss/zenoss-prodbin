@@ -24,11 +24,29 @@ class Object(object):
                 if not attr.startswith('__')]))
 
 
+def createSimplePoints(expected):
+    """
+    Create data points for a ComponentCommandParser from a mapping of expected
+    values.  These points are simple datapoints on the device,
+    not a subcomponent.
+    """
+    points = []
+    
+    for key, value in expected.items():
+        point = Object()
+        point.id = key
+        point.expected = value
+        points.append(point)
+    return points
+
 def createPoints(expected):
     """
     Create data points for a CommandParser from a mapping of expected
     values.
     """
+    if not isinstance(expected.values()[0], dict):
+        return createSimplePoints(expected)
+    
     points = []
     
     for componentScanValue in expected:
@@ -85,12 +103,41 @@ class TestParsers(BaseTestCase):
         return counter
 
 
-    def testParsers(self):
+
+    def _testParsers(self, datadir, parserMap):
         """
         Test all of the parsers that have test data files in the data
         directory.
         """
         
+        datadir = "%s/data/%s" % (
+            os.path.dirname(__file__),
+            datadir
+            )
+        
+        def filenames():
+            for entry in os.listdir(datadir):
+                if (not entry.startswith(".") and \
+                    not entry.endswith(".py") and
+                    entry.find('~') == -1 and
+                    entry.find('#') == -1):
+                    yield entry
+        
+        counter = 0
+        
+        for filename in filenames():
+            counter += self._testParser(parserMap, datadir, filename)
+            
+        self.assert_(counter > 0, counter)
+        print "testParsers made", counter, "assertions."
+
+
+
+    def testLinuxParsers(self):
+        """
+        Test all of the parsers that have test data files in the data
+        directory.
+        """
         from Products.ZenRRD.parsers.linux.df import df
         from Products.ZenRRD.parsers.linux.dfi import dfi
         from Products.ZenRRD.parsers.linux.ifconfig import ifconfig
@@ -104,21 +151,28 @@ class TestParsers(BaseTestCase):
                      '/usr/bin/uptime': uptime,
                      }
         
-        datadir = "%s/data/linux/leak.zenoss.loc" % os.path.dirname(__file__)
-        
-        def filenames():
-            for entry in os.listdir(datadir):
-                if not entry.startswith(".") and not entry.endswith(".py"):
-                    yield entry
-        
-        counter = 0
-        
-        for filename in filenames():
-            counter += self._testParser(parserMap, datadir, filename)
-            
-        self.assert_(counter > 0, counter)
-        print "testParsers made", counter, "assertions."
+        self._testParsers('linux/leak.zenoss.loc', parserMap)
 
+    def testAixParsers(self):
+        """
+        Test all of the parsers that have test data files in the data
+        directory.
+        """
+        from Products.ZenRRD.parsers.aix.df import df
+        from Products.ZenRRD.parsers.aix.swap import swap
+        from Products.ZenRRD.parsers.aix.vmstat import vmstat
+        from Products.ZenRRD.parsers.aix.netstat import netstat
+        from Products.ZenRRD.parsers.aix.mpstat import mpstat
+        from Products.ZenRRD.parsers.uptime import uptime
+        
+        parserMap = {'/usr/bin/df -k': df,
+                     '/usr/bin/vmstat': vmstat,
+                     '/usr/sbin/swap -s': swap,
+                     '/usr/bin/uptime': uptime,
+                     '/usr/bin/netstat -in': netstat,
+                     '/usr/bin/mpstat -aw': mpstat,
+                     }
+        self._testParsers('aix/test-aix61.zenoss.loc', parserMap)
 
 class TestPsParser(BaseTestCase):
     """
