@@ -178,7 +178,11 @@ def findTestableProducts(packages=[], regex=None, testdir='tests'):
                         continue
                 newdir = os.path.join(root, dir)
                 if testdir in os.listdir(newdir):
-                    if regex:
+                    init_file =  os.path.join(newdir, testdir, '__init__.py')
+                    if not os.path.exists(init_file):
+                        print "Warning: missing the %s file -- skipping %s" \
+                              % (init_file, target)
+                    elif regex:
                         f = os.path.join(newdir, testdir, regex + '.py')
                         if os.path.exists(f):
                             results.append(newdir)
@@ -287,7 +291,7 @@ def main():
                       help='The Zenoss server against which Selenium should test'
                       )
     parser.add_option('--list', default=False, action='store_true',
-                      help='The server hosting the Selenium jar')
+                      help='Show the tests to execute.')
 
     (options, args) = parser.parse_args()
 
