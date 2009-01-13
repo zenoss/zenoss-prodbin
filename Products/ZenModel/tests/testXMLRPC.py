@@ -119,7 +119,7 @@ class TestXmlRpc(BaseTestCase):
             msg= traceback.format_exc(limit=0)
             self.fail( msg )
 
-        self.assert_( len(events) == 0 )
+        self.assertEquals( len(events), 0 )
 
 
     def testAddDevice(self):
