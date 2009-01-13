@@ -307,7 +307,7 @@ class DeviceClass(DeviceOrganizer, ZenPackable, TemplateContainer):
                 "Devices were deleted: %s." % ', '.join(deviceNames)
             )
             if REQUEST.has_key('oneKeyValueSoInstanceIsntEmptyAndEvalToFalse'):
-                return REQUEST['message']
+                return 'Devices were deleted: %s.' % ', '.join(deviceNames)
             else:
                 return self.callZenScreen(REQUEST)
 
