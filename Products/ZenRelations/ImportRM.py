@@ -129,7 +129,8 @@ for a ZenPack.
             self.skipobj += 1
             return
 
-        self.log.debug('tag %s, context %s', name, self.context().id)
+        self.log.debug('tag %s, context %s, line %s'  % (
+             name, self.context().id, self._locator.getLineNumber() ))
         if name == 'object':
             obj = self.createObject(attrs)
             if not self.options.noindex and hasattr(aq_base(obj),
@@ -149,7 +150,6 @@ for a ZenPack.
                            self.context().id)
             rel = getattr(aq_base(self.context()), relname, None)
             if rel is None:
-                print 'skip toone'
                 return
             objid = attrs.get('objid')
             self.addLink(rel, objid)
@@ -174,28 +174,35 @@ for a ZenPack.
         if self.skipobj > 0:
             self.skipobj -= 1
             return
+
         if name in ('object', 'tomany', 'tomanycont'):
             obj = self.objstack.pop()
             if hasattr(aq_base(obj), 'index_object'):
                 obj.index_object()
             if self.rootpath == obj.getPrimaryId():
-                self.log.info('calling reIndex %s', obj.getPrimaryId())
+                self.log.info('Calling reIndex %s', obj.getPrimaryId())
                 obj.reIndex()
                 self.rootpath = ''
-        elif name == 'objects':
+
+        elif name == 'objects': # ie end of the file
             self.log.info('End loading objects')
             self.log.info('Processing links')
             self.processLinks()
             if not self.options.noCommit:
                 self.commit()
-            self.log.info('Loaded %d objects into database'
+                self.log.info('Loaded %d objects into the ZODB database'
                            % self.objectnumber)
+            else:
+                self.log.info('Would have created %d objects in the ZODB database'
+                           % self.objectnumber)
+
         elif name == 'property':
             self.setProperty(self.context(), self.curattrs,
                              self.charvalue)
             # We've closed off a tag, so now we need to re-initialize
             # the area that stores the contents of elements
             self.charvalue = ''
+
         elif name in ignoredElements:
             pass
         else: 
@@ -222,6 +229,7 @@ for a ZenPack.
         @return: newly created object
         @rtype: object
         """
+        # Does the object exist already?
         id = attrs.get('id')
         obj = None
         try:
@@ -231,12 +239,21 @@ for a ZenPack.
                 obj = self.context()._getOb(id)
         except (KeyError, AttributeError, NotFound):
             pass
+
         if obj is None:
             klass = importClass(attrs.get('module'), attrs.get('class'))
             if id.find('/') > -1:
                 (contextpath, id) = os.path.split(id)
-                self.objstack.append(getObjByPath(self.context(),
-                        contextpath))
+                try:
+                    pathobj = getObjByPath(self.context(), contextpath)
+                except (KeyError, AttributeError, NotFound):
+                    self.log.warn( "Unable to find context path %s (line %s ?) for %s" % (
+                        contextpath, self._locator.getLineNumber(), id ))
+                    if not self.options.noCommit:
+                        self.log.warn( "Not committing any changes" )
+                        self.options.noCommit = True
+                    return None
+                self.objstack.append(pathobj)
             obj = klass(id)
             self.context()._setObject(obj.id, obj)
             obj = self.context()._getOb(obj.id)
@@ -265,15 +282,16 @@ for a ZenPack.
         name = attrs.get('id')
         proptype = attrs.get('type')
         setter = attrs.get('setter', None)
-        self.log.debug('setting object %s att %s type %s value %s'
+        self.log.debug('Setting object %s attr %s type %s value %s'
                         % (obj.id, name, proptype, value))
+        linenum = self._locator.getLineNumber()
 
         # Sanity check the value
         value = value.strip()
         try:
             value = str(value)
         except UnicodeEncodeError:
-            self.log.warn('UnicodeEncodeError while attempting' + \
+            self.log.warn('UnicodeEncodeError at line %s while attempting' % linenum + \
              ' str(%s) for object %s attribute %s -- ignoring' % (
                            obj.id, name, proptype, value))
 
@@ -284,8 +302,8 @@ for a ZenPack.
                 if type(firstElement) in types.StringTypes:
                     proptype = 'string'
             except (TypeError, IndexError):
-
-                self.log.warn("Error while attempting to use (%s) as the value for object %s attribute %s -- assuming that it's really a string value"
+                self.log.warn("Error at line %s when trying to " % linenum + \
+                    " use (%s) as the value for object %s attribute %s -- assuming a string"
                                % (obj.id, name, proptype, value))
                 proptype = 'string'
 
@@ -300,7 +318,8 @@ for a ZenPack.
             try:
                 value = eval(value)
             except SyntaxError:
-                pass
+                self.log.debug("Non-fatal SyntaxError at line %s while eval'ing '%s'" % (
+                     linenum, value) )
 
         # Actually use the value
         if not obj.hasProperty(name):
