@@ -1,7 +1,9 @@
-###########################################################################
+#! /usr/bin/env python
+# -*- coding: utf-8 -*-
+# ##########################################################################
 #
 # This program is part of Zenoss Core, an open source monitoring platform.
-# Copyright (C) 2007, Zenoss Inc.
+# Copyright (C) 2009, Zenoss Inc.
 #
 # This program is free software; you can redistribute it and/or modify it
 # under the terms of the GNU General Public License version 2 as published by
@@ -9,27 +11,27 @@
 #
 # For complete information please visit: http://www.zenoss.com/oss/
 #
-###########################################################################
+# ##########################################################################
 
-__doc__="""ImportRM
+__doc__ = """ImportRM
+Import RelationshipManager objects into a Zope database
+This provides support methods used by the Python xml.sax library to
+parse and construct an XML document.
 
-Export RelationshipManager objects from a zope database
-
-$Id: ImportRM.py,v 1.3 2003/10/03 16:16:01 edahl Exp $"""
-
-__version__ = "$Revision: 1.3 $"[11:-2]
+Descriptions of the XML document format can be found in the
+Developers Guide.
+"""
 
 import sys
 import os
 import types
 import transaction
+from DateTime import DateTime
 from xml.sax import make_parser, saxutils
 from xml.sax.handler import ContentHandler
 
 from Acquisition import aq_base
 from zExceptions import NotFound
-
-from DateTime import DateTime
 
 from Products.ZenUtils.ZCmdBase import ZCmdBase
 from Products.ZenUtils.Utils import importClass
@@ -39,50 +41,114 @@ from Products.ZenRelations.Exceptions import *
 
 
 class ImportRM(ZCmdBase, ContentHandler):
+    """
+    Wrapper module to interface between Zope and the Python SAX XML library. 
+The xml.sax.parse() calls different routines depending on what it finds. 
 
-    rootpath = ""
+A simple example of a valid XML file can be found in the objects.xml file 
+for a ZenPack. 
+
+ <?xml version="1.0"?> 
+ <objects> 
+   <!-- ('', 'zport', 'dmd', 'Devices', 'rrdTemplates', 'HelloWorld') --> 
+   <object id='/zport/dmd/Devices/rrdTemplates/HelloWorld' module='Products.ZenModel.RRDTemplate' class='RRDTemplate'> 
+     <property type="text" id="description" mode="w" > This is the glorious description that shows up when we click on our RRD template </property> 
+   <tomanycont id='datasources'> 
+     <object id='hello' module='Products.ZenModel.BasicDataSource' class='BasicDataSource'> 
+       <property select_variable="sourcetypes" type="selection" id="sourcetype" mode="w" > SNMP </property> 
+       <property type="boolean" id="enabled" mode="w" > True </property> 
+       <property type="string" id="eventClass" mode="w" > /Cmd/Fail </property> 
+       <property type="int" id="severity" mode="w" > 3 </property> 
+       <property type="int" id="cycletime" mode="w" > 300 </property> 
+       <property type="boolean" id="usessh" mode="w" > False </property> 
+     <tomanycont id='datapoints'> 
+       <object id='hello' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'> 
+           <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" > GAUGE </property> 
+           <property type="boolean" id="isrow" mode="w" > True </property> 
+       </object> 
+     </tomanycont> 
+  </object> 
+
+ <!--    snip  --> 
+
+ </objects> 
+    """
+    rootpath = ''
     skipobj = 0
 
     def __init__(self, noopts=0, app=None, keeproot=False):
+        """
+        Initializer
+        
+        @param noopts: don't use sys.argv for command-line options
+        @type noopts: boolean
+        @param app: app
+        @type app: object
+        @param keeproot: keeproot
+        @type keeproot: boolean
+        """
         ZCmdBase.__init__(self, noopts, app, keeproot)
         ContentHandler.__init__(self)
 
     def context(self):
+        """
+        Return the bottom object in the stack
+        
+        @return:
+        @rtype: object
+        """
         return self.objstack[-1]
 
-
     def cleanattrs(self, attrs):
+        """
+        Convert all attributes to string values
+        
+        @param attrs: (key,val) pairs
+        @type attrs: list
+        @return: same list, but with all values as strings
+        @rtype: list
+        """
         myattrs = {}
-        for key, val in attrs.items():
+        for (key, val) in attrs.items():
             myattrs[key] = str(val)
         return myattrs
 
-        
     def startElement(self, name, attrs):
+        """
+        Function called when the parser finds the starting element
+        in the XML file.
+        
+        @param name: name of the element
+        @type name: string
+        @param attrs: list of (key, value) tuples
+        @type attrs: list
+        """
+        ignoredElements = [ 'objects' ]
         attrs = self.cleanattrs(attrs)
-        if self.skipobj > 0: 
+        if self.skipobj > 0:
             self.skipobj += 1
             return
-        self.log.debug("tag %s, context %s", name, self.context().id)
+
+        self.log.debug('tag %s, context %s', name, self.context().id)
         if name == 'object':
             obj = self.createObject(attrs)
-            if (not self.options.noindex  
-                and hasattr(aq_base(obj), 'reIndex')
-                and not self.rootpath):
+            if not self.options.noindex and hasattr(aq_base(obj),
+                    'reIndex') and not self.rootpath:
                 self.rootpath = obj.getPrimaryId()
             self.objstack.append(obj)
         elif name == 'tomanycont' or name == 'tomany':
-            nextobj = self.context()._getOb(attrs['id'],None)
-            if nextobj is None: 
-                self.skipobj = 1 
+            nextobj = self.context()._getOb(attrs['id'], None)
+            if nextobj is None:
+                self.skipobj = 1
                 return
             else:
                 self.objstack.append(nextobj)
         elif name == 'toone':
             relname = attrs.get('id')
-            self.log.debug("toone %s, on object %s", relname, self.context().id)
-            rel = getattr(aq_base(self.context()),relname, None)
-            if rel is None: 
+            self.log.debug('toone %s, on object %s', relname,
+                           self.context().id)
+            rel = getattr(aq_base(self.context()), relname, None)
+            if rel is None:
                 print 'skip toone'
                 return
             objid = attrs.get('objid')
@@ -91,10 +157,21 @@ class ImportRM(ZCmdBase, ContentHandler):
             self.addLink(self.context(), attrs['objid'])
         elif name == 'property':
             self.curattrs = attrs
-
+        elif name in ignoredElements:
+            pass
+        else: 
+            self.log.warning( "Ignoring an unknown XML element type: %s" % name ) 
 
     def endElement(self, name):
-        if self.skipobj > 0: 
+        """
+        Function called when the parser finds the starting element
+        in the XML file.
+        
+        @param name: name of the ending element
+        @type name: string
+        """
+        ignoredElements = [ 'toone' ]
+        if self.skipobj > 0:
             self.skipobj -= 1
             return
         if name in ('object', 'tomany', 'tomanycont'):
@@ -102,142 +179,204 @@ class ImportRM(ZCmdBase, ContentHandler):
             if hasattr(aq_base(obj), 'index_object'):
                 obj.index_object()
             if self.rootpath == obj.getPrimaryId():
-                self.log.info("calling reIndex %s", obj.getPrimaryId())
+                self.log.info('calling reIndex %s', obj.getPrimaryId())
                 obj.reIndex()
-                self.rootpath = ""
+                self.rootpath = ''
         elif name == 'objects':
-            self.log.info("End loading objects")
-            self.log.info("Processing links")
+            self.log.info('End loading objects')
+            self.log.info('Processing links')
             self.processLinks()
             if not self.options.noCommit:
                 self.commit()
-            self.log.info("Loaded %d objects into database" % self.objectnumber)
+            self.log.info('Loaded %d objects into database'
+                           % self.objectnumber)
         elif name == 'property':
-            self.setProperty(self.context(), self.curattrs, self.charvalue)
-            self.charvalue = ""
-       
+            self.setProperty(self.context(), self.curattrs,
+                             self.charvalue)
+            # We've closed off a tag, so now we need to re-initialize
+            # the area that stores the contents of elements
+            self.charvalue = ''
+        elif name in ignoredElements:
+            pass
+        else: 
+            self.log.warning( "Ignoring an unknown XML element type: %s" % name ) 
 
     def characters(self, chars):
+        """
+        Called by xml.sax.parse() with data found in an element 
+        eg <object>my characters stuff</object> 
+
+        Note that this can be called character by character. 
+        
+        @param chars: chars
+        @type chars: string
+        """
         self.charvalue += saxutils.unescape(chars)
 
-
     def createObject(self, attrs):
-        """create an object and set it into its container"""
+        """
+        Create an object and set it into its container
+        
+        @param attrs: attrs
+        @type attrs: string
+        @return: newly created object
+        @rtype: object
+        """
         id = attrs.get('id')
         obj = None
         try:
-            if id.startswith("/"):
+            if id.startswith('/'):
                 obj = getObjByPath(self.app, id)
             else:
                 obj = self.context()._getOb(id)
-        except (KeyError, AttributeError, NotFound): pass
+        except (KeyError, AttributeError, NotFound):
+            pass
         if obj is None:
             klass = importClass(attrs.get('module'), attrs.get('class'))
-            if id.find("/") > -1:
-                contextpath, id = os.path.split(id)
-                self.objstack.append(
-                    getObjByPath(self.context(), contextpath))
+            if id.find('/') > -1:
+                (contextpath, id) = os.path.split(id)
+                self.objstack.append(getObjByPath(self.context(),
+                        contextpath))
             obj = klass(id)
             self.context()._setObject(obj.id, obj)
             obj = self.context()._getOb(obj.id)
             self.objectnumber += 1
-            if self.objectnumber % 5000 == 0: transaction.savepoint()
-            self.log.debug("Added object %s to database" % obj.getPrimaryId())
+            if self.objectnumber % 5000 == 0:
+                transaction.savepoint()
+            self.log.debug('Added object %s to database'
+                            % obj.getPrimaryId())
         else:
-            self.log.debug("Object %s already exists skipping" % id)
+            self.log.debug('Object %s already exists -- skipping' % id)
         return obj
 
-
     def setProperty(self, obj, attrs, value):
-        """Set the value of a property on an object.
+        """
+        Set the value of a property on an object.
+        
+        @param obj: obj
+        @type obj: string
+        @param attrs: attrs
+        @type attrs: string
+        @param value: value
+        @type value: string
+        @return:
+        @rtype:
         """
         name = attrs.get('id')
         proptype = attrs.get('type')
-        setter = attrs.get("setter",None)
-        self.log.debug("setting object %s att %s type %s value %s" 
-                            % (obj.id, name, proptype, value))
+        setter = attrs.get('setter', None)
+        self.log.debug('setting object %s att %s type %s value %s'
+                        % (obj.id, name, proptype, value))
+
+        # Sanity check the value
         value = value.strip()
-        try: value = str(value)
-        except UnicodeEncodeError: pass
+        try:
+            value = str(value)
+        except UnicodeEncodeError:
+            self.log.warn('UnicodeEncodeError while attempting' + \
+             ' str(%s) for object %s attribute %s -- ignoring' % (
+                           obj.id, name, proptype, value))
+
+        # Guess at how to interpret the value given the property type
         if proptype == 'selection':
             try:
                 firstElement = getattr(obj, name)[0]
                 if type(firstElement) in types.StringTypes:
                     proptype = 'string'
             except (TypeError, IndexError):
+
+                self.log.warn("Error while attempting to use (%s) as the value for object %s attribute %s -- assuming that it's really a string value"
+                               % (obj.id, name, proptype, value))
                 proptype = 'string'
-        if proptype == "date":
-            try: value = float(value)
-            except ValueError: pass
+
+        if proptype == 'date':
+            try:
+                value = float(value)
+            except ValueError:
+                pass
             value = DateTime(value)
-        elif proptype != "string" and proptype != 'text':
-            try: value = eval(value)
-            except SyntaxError: pass
+
+        elif proptype != 'string' and proptype != 'text':
+            try:
+                value = eval(value)
+            except SyntaxError:
+                pass
+
+        # Actually use the value
         if not obj.hasProperty(name):
             obj._setProperty(name, value, type=proptype, setter=setter)
         else:
             obj._updateProperty(name, value)
 
-
     def addLink(self, rel, objid):
-        """build list of links to form after all objects have been created
-        make sure that we don't add other side of a bidirectional relation"""
+        """
+        Build list of links to form after all objects have been created
+        make sure that we don't add other side of a bidirectional relation
+        
+        @param rel: relationship object
+        @type rel: relation object
+        @param objid: objid
+        @type objid: string
+        """
         self.links.append((rel.getPrimaryId(), objid))
 
-
     def processLinks(self):
-        """walk through all the links that we saved and link them up"""
-        for relid, objid in self.links:
+        """
+        Walk through all the links that we saved and link them up
+        """
+        for (relid, objid) in self.links:
             try:
-                self.log.debug("Linking relation %s to object %s",
-                                relid,objid)
+                self.log.debug('Linking relation %s to object %s',
+                               relid, objid)
                 rel = getObjByPath(self.app, relid)
                 obj = getObjByPath(self.app, objid)
                 if not rel.hasobject(obj):
                     rel.addRelation(obj)
             except:
-                self.log.critical(
-                    "Failed linking relation %s to object %s",relid,objid)
-                #raise
-                                
-
+                self.log.critical('Failed linking relation %s to object %s' % (
+                                  relid, objid))
 
     def buildOptions(self):
-        """basic options setup sub classes can add more options here"""
+        """
+        Command-line options specific to this command
+        """
         ZCmdBase.buildOptions(self)
-
-        self.parser.add_option('-i', '--infile',
-                    dest="infile",
-                    help="input file for import default is stdin")
-        
-        self.parser.add_option('-x', '--commitCount',
-                    dest='commitCount',
-                    default=20,
-                    type="int",
-                    help='how many lines should be loaded before commit')
-
-        self.parser.add_option('--noindex',
-                    dest='noindex',action="store_true",default=False,
-                    help='Do not try to index data that was just loaded')
-
-        self.parser.add_option('-n', '--noCommit',
-                    dest='noCommit',
-                    action="store_true",
-                    default=0,
-                    help='Do not store changes to the Dmd (for debugging)')
+        self.parser.add_option('-i', '--infile', dest='infile',
+                               help='Input file for import. Default is stdin'
+                               )
+        self.parser.add_option('--noindex', dest='noindex',
+                               action='store_true', default=False,
+                               help='Do not try to index the freshly loaded objects.'
+                               )
+        self.parser.add_option(
+            '-n',
+            '--noCommit',
+            dest='noCommit',
+            action='store_true',
+            default=0,
+            help='Do not store changes to the DMD (ie for debugging purposes)',
+            )
 
     def loadObjectFromXML(self, xmlfile=''):
-        """This method can be used to load data for the root of Zenoss (default
+        """
+        This method can be used to load data for the root of Zenoss (default
         behavior) or it can be used to operate on a specific point in the
         Zenoss hierarchy (ZODB).
-
+        
         Upon loading the XML file to be processed, the content of the XML file
-        is handled (processed) by the methods in this class.
+        is handled by the methods in this class when called by xml.sax.parse().
+
+        Reads from a file if xmlfile is specified, otherwise reads 
+        from the command-line option --infile.  If no files are found from 
+        any of these places, read from standard input. 
+        
+        @param xmlfile: Name of XML file to load, or file-like object
+        @type xmlfile: string or file-like object
         """
         self.objstack = [self.app]
         self.links = []
         self.objectnumber = 0
-        self.charvalue = ""
+        self.charvalue = ''
         if xmlfile and type(xmlfile) in types.StringTypes:
             self.infile = open(xmlfile)
         elif hasattr(xmlfile, 'read'):
@@ -252,34 +391,50 @@ class ImportRM(ZCmdBase, ContentHandler):
         self.infile.close()
 
     def loadDatabase(self):
-        """The default behavior of loadObjectFromXML() will be to use the Zope
+        """
+        The default behavior of loadObjectFromXML() will be to use the Zope
         app object, and thus operatate on the whole of Zenoss.
         """
         self.loadObjectFromXML()
 
     def commit(self):
+        """
+        Wrapper around the Zope database commit()
+        """
         trans = transaction.get()
-        trans.note('Import from file %s using %s' 
+        trans.note('Import from file %s using %s'
                     % (self.options.infile, self.__class__.__name__))
         trans.commit()
 
 
 class SpoofedOptions(object):
-    
+    """
+    SpoofedOptions
+    """
+
     def __init__(self):
-        self.infile = ""
+        self.infile = ''
         self.noCommit = True
         self.noindex = True
 
 
 class NoLoginImportRM(ImportRM):
-    """An ImportRM that does not call the __init__ method on ZCmdBase"""
+    """
+    An ImportRM that does not call the __init__ method on ZCmdBase
+    """
+
     def __init__(self, app):
+        """
+        Initializer 
+        
+        @param app: app
+        @type app: string
+        """
         self.app = app
         ContentHandler.__init__(self)
         import logging
         self.log = logging.getLogger('zen.ImportRM')
-        self.options = SpoofedOptions()    
+        self.options = SpoofedOptions()
 
 
 if __name__ == '__main__':
