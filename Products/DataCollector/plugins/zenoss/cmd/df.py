@@ -1,7 +1,7 @@
 ###########################################################################
 #
 # This program is part of Zenoss Core, an open source monitoring platform.
-# Copyright (C) 2007, Zenoss Inc.
+# Copyright (C) 2009, Zenoss Inc.
 #
 # This program is free software; you can redistribute it and/or modify it
 # under the terms of the GNU General Public License version 2 as published by
@@ -10,6 +10,10 @@
 # For complete information please visit: http://www.zenoss.com/oss/
 #
 ###########################################################################
+
+__doc__ = """df
+Determine the filesystems to monitor
+"""
 
 import re
 
@@ -27,7 +31,7 @@ class df(CommandPlugin):
     deviceProperties = \
                 CommandPlugin.deviceProperties + ('zFileSystemMapIgnoreNames',)
 
-    oses = ['Linux', 'Darwin', 'SunOS']
+    oses = ['Linux', 'Darwin', 'SunOS', 'AIX']
 
     def condition(self, device, log):
         return device.os.uname == '' or device.os.uname in self.oses
