@@ -34,6 +34,18 @@ class WmiConfig(ModelerService, ThresholdMixin):
         self.procrastinator = Procrastinate(self.push)
 
 
+    def createDeviceProxy(self, dev):
+        result = ModelerService.createDeviceProxy(self, dev)
+        for prop in (
+            'zWmiMonitorIgnore', 
+            'zWinUser',
+            'zWinPassword',
+            'zWinEventlogMinSeverity'):
+            if hasattr(dev, prop):
+                setattr(result, prop, getattr(dev, prop))
+        return result
+
+
     def remote_getConfig(self):
         return self.config.propertyItems()
 

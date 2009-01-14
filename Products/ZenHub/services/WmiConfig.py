@@ -34,6 +34,18 @@ class WmiConfig(HubService, ThresholdMixin):
         self.procrastinator = Procrastinate(self.push)
 
 
+    def createDeviceProxy(self, dev):
+        result = ModelerService.createDeviceProxy(self, dev)
+        for prop in (
+            'zWmiMonitorIgnore', 
+            'zWinUser',
+            'zWinPassword',
+            'zWinEventlogMinSeverity'):
+            if hasattr(dev, prop):
+                setattr(result, prop, getattr(dev, prop))
+        return result
+
+
     @translateError
     def remote_getDeviceWinInfo(self):
         """Return list of (devname,user,passwd,url) for each device.
