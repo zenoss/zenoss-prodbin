@@ -1724,6 +1724,11 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
     def renameDeviceInPerformance(self, old, new):
         """
         Rename the directory that holds performance data for this device.
+
+        @param old: old performance directory name
+        @type old: string
+        @param new: new performance directory name
+        @type new: string
         """
         root = os.path.dirname(self.fullRRDPath())
         oldpath = os.path.join(root, old)
@@ -1733,8 +1738,9 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
             command = 'mv "%s" "%s"' % (oldpath, newpath)
             perfsvr.executeCommand(command, 'zenoss')
         elif os.path.exists(oldpath):
-            if os.path.exists(newpath): shutil.rmtree(newpath)
-            os.rename(oldpath, newpath)
+            if os.path.exists(newpath):
+                shutil.rmtree(newpath)
+            shutil.move(oldpath, newpath)
 
     def manage_afterAdd(self, item, container):
         """
