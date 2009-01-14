@@ -170,7 +170,7 @@ for a ZenPack.
         @param name: name of the ending element
         @type name: string
         """
-        ignoredElements = [ 'toone' ]
+        ignoredElements = [ 'toone', 'link' ]
         if self.skipobj > 0:
             self.skipobj -= 1
             return
