@@ -260,7 +260,7 @@ class ZenDaemon(CmdBase):
         self.parser.add_option('--watchdogPath', default=None,
                                dest='watchdogPath', 
                                help="The path to the watchdog reporting socket")
-        self.parser.add_option('--startTimeOut',
+        self.parser.add_option('--starttimeout',
                                dest='starttimeout',
                                type="int",
                                help="Wait seconds for initial heartbeat")
