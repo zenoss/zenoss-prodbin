@@ -438,7 +438,11 @@ class ZenTrap(EventServer):
                         yield self.oid2name(value, exactMatch=False, strip=False)
                         eventType = driver.next()
                     else:
+                        # Add a detail for the variable binding.
                         yield self.oid2name(oid, exactMatch=False, strip=False)
+                        result[driver.next()] = value
+                        # Add a detail for the index-stripped variable binding.
+                        yield self.oid2name(oid, exactMatch=False, strip=True)
                         result[driver.next()] = value
 
             elif pdu.version == 0:
@@ -480,7 +484,11 @@ class ZenTrap(EventServer):
                 # off any index values.
                 for oid, value in variables:
                     oid = '.'.join(map(str, oid))
+                    # Add a detail for the variable binding.
                     yield self.oid2name(oid, exactMatch=False, strip=False)
+                    result[driver.next()] = value
+                    # Add a detail for the index-stripped variable binding.
+                    yield self.oid2name(oid, exactMatch=False, strip=True)
                     result[driver.next()] = value
             else:
                 self.log.error("Unable to handle trap version %d", pdu.version)
