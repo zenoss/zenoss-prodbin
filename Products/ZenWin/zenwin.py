@@ -55,6 +55,11 @@ class zenwin(WinCollector):
         self.log.warning('%s: %s stopped' % (device.id, name))
         if name not in device.services: return
         status, severity = device.services[name]
+        #status less than 0 is the monitor off state
+        if status < 0 :
+            self.log.debug('monitor is off, ignoring stopped service %s on %s'\
+                        % (name, device.id))
+            return
         device.services[name] = status + 1, severity
         msg = self.statmsg % (name, "down")
         self.sendEvent(self.makeEvent(device.id, name, msg, severity))
@@ -69,6 +74,11 @@ class zenwin(WinCollector):
     def serviceRunning(self, device, name):
         if name not in device.services: return
         status, severity = device.services[name]
+        #status less than 0 is the monitor off state
+        if status < 0 :
+            self.log.debug('monitor is off, ignoring enabled service %s on %s'\
+                           % (name, device.id))
+            return
         device.services[name] = 0, severity
         if status != 0:
             self.log.info('%s: %s running' % (device.id, name))
