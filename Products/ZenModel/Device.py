@@ -1873,6 +1873,8 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
             names = [ldr.pluginName() for ldr in loadPlugins(self.dmd)]
             names.sort()
             return names
+        if propname == 'zCommandProtocol':
+            return ['ssh', 'telnet']
         if propname == 'zSnmpVer':
             return ['v1', 'v2c', 'v3']
         if propname == 'zSnmpAuthType':
