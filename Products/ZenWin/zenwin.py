@@ -128,8 +128,13 @@ class zenwin(WinCollector):
                     self.watchers[device.id] = w
                 else:
                     self.reportServices(device)
-                    self.log.debug("Querying %s", device.id)
-                    yield w.getEvents(int(self.options.queryTimeout))
+                    queryTimeout = self.wmiqueryTimeout
+                    if hasattr( self.options, "queryTimeout") and \
+                        self.options.queryTimeout is not None:
+                        queryTimeout = int(self.options.queryTimeout)
+                    self.log.debug("Querying %s (queryTimeout = %d ms)" % (
+                        device.id, queryTimeout))
+                    yield w.getEvents(queryTimeout)
                     for s in driver.next():
                         s = s.targetinstance
                         if s.state:

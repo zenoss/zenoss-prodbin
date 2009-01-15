@@ -62,8 +62,13 @@ class zeneventlog(WinCollector):
                     driver.next()
                     self.log.info("Connected to %s", device.id)
                     self.watchers[device.id] = w
+
                 while 1:
-                    yield w.getEvents(int(self.options.queryTimeout))
+                    queryTimeout = self.wmiqueryTimeout
+                    if hasattr( self.options, "queryTimeout") and \
+                        self.options.queryTimeout is not None:
+                        queryTimeout = int(self.options.queryTimeout)
+                    yield w.getEvents(queryTimeout)
                     events = driver.next()
                     self.log.debug("Got %d events", len(events))
                     if not events: break
