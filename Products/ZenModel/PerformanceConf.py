@@ -131,6 +131,7 @@ class PerformanceConf(Monitor, StatusColor):
     statusCycleInterval = 60
     winCycleInterval = 60
     winmodelerCycleInterval = 60
+    wmiqueryTimeout = 100
 
     configCycleInterval = 6 * 60
 
@@ -169,6 +170,8 @@ class PerformanceConf(Monitor, StatusColor):
         {'id': 'statusCycleInterval', 'type': 'int', 'mode': 'w'},
         {'id': 'winCycleInterval', 'type': 'int', 'mode': 'w'},
         {'id': 'winmodelerCycleInterval', 'type': 'int', 'mode': 'w'},
+        {'id': 'wmiqueryTimeout', 'type': 'int', 'mode': 'w',
+         'description':"Number of milliseconds to wait for WMI query to respond",},
         {'id': 'configCycleInterval', 'type': 'int', 'mode': 'w'},
         {'id': 'renderurl', 'type': 'string', 'mode': 'w'},
         {'id': 'renderuser', 'type': 'string', 'mode': 'w'},

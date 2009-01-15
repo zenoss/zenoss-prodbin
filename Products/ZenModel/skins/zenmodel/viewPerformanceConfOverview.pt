@@ -49,6 +49,10 @@
       <td class="tablevalues" tal:content="here/winmodelerCycleInterval" />
     </tr>
     <tr>
+      <td class="tableheader">Windows WMI query timeout (millisecs)</td>
+      <td class="tablevalues" tal:content="here/wmiqueryTimeout" />
+    </tr>
+    <tr>
       <td class="tableheader">Config Cycle Interval (mins)</td>
       <td class="tablevalues" tal:content="here/configCycleInterval" />
     </tr>

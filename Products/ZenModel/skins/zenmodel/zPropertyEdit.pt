@@ -84,7 +84,11 @@
                     tal:attributes="value a; selected python:a==pvalue" />
             </select>
             </span>
-            <span tal:condition="python: ptype not in 'boolean lines text'.split() and prop not in 'zEventSeverity zEventAction zFailSeverity'.split()">
+            <span tal:condition="python: here.zenPropIsPassword(prop)" >
+            <input class="tablevalues" size="40" autocomplete="off" type="password"
+                tal:attributes="value pvalue;name python:prop+':'+ptype"/>
+            </span>
+            <span tal:condition="python: ptype not in 'boolean lines text'.split() and prop not in 'zEventSeverity zEventAction zFailSeverity'.split() and not here.zenPropIsPassword(prop)">
             <input class="tablevalues" 
 	           tal:condition="not:popts"
 	    	   type="text" size="40"
