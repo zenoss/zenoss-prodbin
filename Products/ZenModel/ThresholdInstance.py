@@ -27,9 +27,9 @@ class ThresholdContext(pb.Copyable, pb.RemoteCopy):
     
     def __init__(self, context):
         self.deviceName = context.device().id
-        try:
+        if hasattr( context, 'name' ) and callable( getattr( context, 'name' ) ):
             self.componentName = context.name()
-        except AttributeError:
+        else:
             self.componentName = context.id
         if self.componentName == self.deviceName:
             self.componentName = ''
