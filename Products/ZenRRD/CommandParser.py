@@ -116,5 +116,5 @@ def getParserNames(dmd):
                     plugin = plugin[plugin.index('ZenPacks'):]
                     plugin = '.'.join(plugin)
                     result.append(plugin)
-    return result
+    return sorted(result)
     
