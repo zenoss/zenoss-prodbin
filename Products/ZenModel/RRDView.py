@@ -162,8 +162,8 @@ class RRDView(object):
                 if vals is None:
                     vals = [None] * len(dsnames)
             def cvt(val):
-                if val is None:
-                    return val
+                if val is None or val.lower() == "nan":
+                    return None
                 return float(val)
             return dict(zip(names, map(cvt, vals)))
         except Exception, ex:
