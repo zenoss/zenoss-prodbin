@@ -180,6 +180,21 @@ class zeneventlog(WinCollector):
         elif lrec.eventtype in (3, 4, 5):
             sev = Info  # information, security audit success & failure
 
+        self.log.debug( "---- log record info --------------" )
+        for item in dir(lrec):
+            if item[0] == '_':
+                continue
+            self.log.info("%s = %s"  % (item, getattr(lrec, item, '')))
+        self.log.debug( "---- log record info --------------" )
+
+        ts= lrec.timegenerated
+        try:
+            date_ts = '/'.join( [ ts[0:4], ts[4:6], ts[6:8] ])
+            time_ts = ':'.join( [ts[8:10], ts[10:12], ts[12:14] ])
+            ts = date_ts + ' ' + time_ts
+        except:
+            pass
+
         evt = dict(
             device=name,
             eventClassKey=evtkey,
@@ -190,6 +205,11 @@ class zeneventlog(WinCollector):
             agent='zeneventlog',
             severity=sev,
             monitor=self.options.monitor,
+            user=lrec.user,
+            categorystring=lrec.categorystring,
+            originaltime=ts,
+            computername=lrec.computername,
+            eventidentifier=lrec.eventidentifier,
             )
         self.log.debug("Device:%s msg:'%s'", name, lrec.message)
         return evt
