@@ -22,6 +22,7 @@ Related tickets:
   http://dev.zenoss.org/trac/ticket/402
   http://dev.zenoss.org/trac/ticket/443
   http://dev.zenoss.org/trac/ticket/1042
+  http://dev.zenoss.org/trac/ticket/4225
 '''
 
 # monkey patch PAS to allow inituser files, but check to see if we need to
@@ -90,8 +91,8 @@ def login(self):
                     self.absolute_url(), urllib.quote(came_from))
 
     if self.dmd.uuid is None:
-        import commands
-        self.dmd.uuid = commands.getoutput('uuidgen')
+        from uuid.uuid import uuid1
+        self.dmd.uuid = str(uuid1())
     return response.redirect(url)
 
 CookieAuthHelper.CookieAuthHelper.login = login
@@ -115,8 +116,8 @@ def termsCheck(self):
         url += 'terms=Decline'
     else:
         self.dmd.acceptedTerms = True
-        import commands
-        self.dmd.uuid = commands.getoutput('uuidgen')
+        from uuid.uuid import uuid1
+        self.dmd.uuid = str(uuid1())
     return response.redirect(url)
 
 CookieAuthHelper.CookieAuthHelper.termsCheck = termsCheck
