@@ -511,12 +511,25 @@ class zencommand(RRDDaemon):
             log.exception(err.value)
 
     def parseResults(self, cmd):
+        """
+        Process the results of our command-line, send events
+        and check datapoints.
+
+        @param cmd: command
+        @type: cmd object
+        """
         log.debug('The result of "%s" was "%r"', cmd.command, cmd.result.output)
         results = ParsedResults()
         try:
             parser = getParser(cmd.parser)
         except Exception, ex:
-            self.log.exception("Error loading parser %s", cmd.parser)
+            self.log.exception("Error loading parser %s" % cmd.parser)
+            import traceback
+            self.sendEvent(dict(device=cmd.deviceConfig.device,
+                           summary="Error loading parser %s" % cmd.parser,
+                           message=traceback.format_exc(),
+                           agent="zencommand",
+                          ))
             return
         parser.processResults(cmd, results)
 
