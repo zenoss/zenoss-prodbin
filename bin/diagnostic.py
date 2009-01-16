@@ -87,6 +87,7 @@ commands = [
     ('crontab', ('crontab', '-l')),
     ('patches', ('sh', '-c', 'ls -l $ZENHOME/Products/*.patch')),
     ('javaVersion', ('/usr/bin/env', 'java', '-version')),
+    ('zenpacks', ('ls', '-l', '$ZENHOME/ZenPacks')),
 ]
 # These commands only work if you are root
 root_commands = [
@@ -291,11 +292,11 @@ def main():
     os.environ['ZENHOME'] = zenhome
     os.environ['PATH'] += ":%s/bin" % zenhome
     if not getmysqlcreds():
-        skip = skip.union('zenpack',
-                          'mysqlstats',
-                          'heartbeats',
-                          'mysqlstatus',
-                          'zenossInfo')
+        skip = skip.union(['zenpack',
+                           'mysqlstats',
+                           'heartbeats',
+                           'mysqlstatus',
+                           'zenossInfo'])
 
     if 'Daemons' not in skip:
         performance_graphs()
