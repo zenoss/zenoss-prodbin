@@ -270,46 +270,61 @@ def performance_graphs():
         except Exception, ex:
             log.exception("Exception generating an RRD Graph for %s" % filename)
 
+def usage():
+    print >>sys.stderr, """
+Usage:
+  $ZENHOME/bin/python diagnostic.py [-v] [-s] [-h $ZENHOME]
+        -v         print in verbose messages about collection
+        -s         suppress collection of some data (eg. -s Data.fs)
+        -h         set ZENHOME explicity, useful when running the script as root
+    """
+
 def main():
     "Parse args and create a .zip file with the results"
     global log, zenhome, mysqlcreds
-    if sys.platform.find('linux') < 0:
-        print >>sys.stderr, "This script has not been ported to non-linux systems."
-        sys.exit(1)
+    try:
+        if sys.platform.find('linux') < 0:
+            print >>sys.stderr, "This script has not been ported to non-linux systems."
+            return
 
-    level = logging.WARNING
-    skip = set()
-    opts, ignored = getopt.getopt(sys.argv[1:], 's:vh:')
-    for opt, value in opts:
-        if   opt == '-s':
-            skip.add(value)
-        elif opt == '-h':
-            zenhome = value
-        elif opt == '-v':
-            level = logging.DEBUG
-    logging.basicConfig(level=level)
-    log = logging.getLogger("diagnostic")
-    os.environ['ZENHOME'] = zenhome
-    os.environ['PATH'] += ":%s/bin" % zenhome
-    if not getmysqlcreds():
-        skip = skip.union(['zenpack',
-                           'mysqlstats',
-                           'heartbeats',
-                           'mysqlstatus',
-                           'zenossInfo'])
+        level = logging.WARNING
+        skip = set()
+        opts, ignored = getopt.getopt(sys.argv[1:], 's:vh:?')
+        for opt, value in opts:
+            if   opt == '-s':
+                skip.add(value)
+            elif opt == '-h':
+                zenhome = value
+            elif opt == '-v':
+                level = logging.DEBUG
+            else:
+                os.unlink(archive_name)
+                usage()
+                return
+        logging.basicConfig(level=level)
+        log = logging.getLogger("diagnostic")
+        os.environ['ZENHOME'] = zenhome
+        os.environ['PATH'] += ":%s/bin" % zenhome
+        if not getmysqlcreds():
+            skip = skip.union(['zenpack',
+                               'mysqlstats',
+                               'heartbeats',
+                               'mysqlstatus',
+                               'zenossInfo'])
 
-    if 'Daemons' not in skip:
-        performance_graphs()
-    process_functions(functions, skip)
-    process_files(files, skip)
-    process_commands(commands, skip)
-    if os.getuid() == 0:
-        process_commands(root_commands, skip)
-    else:
-        log.warning("Not running as root, ignoring commands that "
-                    "require additional privileges")
-    archive.close()
-    print "Diagnostic data stored in %s" % archive_name
-    os.unlink(mysqlcreds)
+        if 'Daemons' not in skip:
+            performance_graphs()
+        process_functions(functions, skip)
+        process_files(files, skip)
+        process_commands(commands, skip)
+        if os.getuid() == 0:
+            process_commands(root_commands, skip)
+        else:
+            log.warning("Not running as root, ignoring commands that "
+                        "require additional privileges")
+        archive.close()
+        print "Diagnostic data stored in %s" % archive_name
+    finally:
+        os.unlink(mysqlcreds)
 
 main()
