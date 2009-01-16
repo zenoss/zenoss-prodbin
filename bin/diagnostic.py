@@ -97,7 +97,7 @@ root_commands = [
 
 def zenhubConnections():
     "Scan the netstat connection information to see who is connected to zenhub"
-    pids = os.popen('pgrep zenhub.py').read().split()
+    pids = os.popen('pgrep -f zenhub.py').read().split()
     lines = os.popen('netstat -anp 2>/dev/null').read().split('\n')
     result = lines[0:2]
     for line in lines[2:]:
