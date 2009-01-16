@@ -82,12 +82,17 @@ commands = [
                     '-e', 'show status')),
     ('heartbeats', ('mysql', '--defaults-file=%s' % mysqlcreds,
                     '-e', 'select * from heartbeat')),
+    ('eventCount', ('mysql', '--defaults-file=%s' % mysqlcreds,
+                    '-e', 'select count(*) from status')),
+    ('historyCount', ('mysql', '--defaults-file=%s' % mysqlcreds,
+                      '-e', 'select count(*) from history')),
     ('mysqlstatus', ('mysql', '--defaults-file=%s' % mysqlcreds,
                     '-e', 'select * from status')),
     ('crontab', ('crontab', '-l')),
     ('patches', ('sh', '-c', 'ls -l $ZENHOME/Products/*.patch')),
     ('javaVersion', ('/usr/bin/env', 'java', '-version')),
     ('zenpacks', ('ls', '-l', '$ZENHOME/ZenPacks')),
+    ('ifconfig', ('ifconfig', '-a')),
 ]
 # These commands only work if you are root
 root_commands = [
@@ -128,6 +133,7 @@ def zenossInfo():
         result = []
         for record in zsb.dmd.About.getAllVersions():
             result.append('%10s: %s' % (record['header'], record['data']))
+        result.append('%10s: %s' % ('uuid', zsb.dmd.uuid))
         return '\n'.join(result)
     except Exception, ex:
         log.exception(ex)
