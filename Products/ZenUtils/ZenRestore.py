@@ -18,11 +18,12 @@ __doc__='''zenrestore
 Restores a zenoss backup created by zenbackup.
 '''
 
-import Globals
 import sys
 import os
 import os.path
 import ConfigParser
+
+import Globals
 from Products.ZenUtils.Utils import zenPath, binPath
 
 from ZenBackupBase import *
@@ -121,8 +122,8 @@ class ZenRestore(ZenBackupBase):
         rootTempDir = ''
         if self.options.file:
             if not os.path.isfile(self.options.file):
-                sys.stderr('The specified backup file does not exist: %s\n' %
-                                self.options.file)
+                sys.stderr.write('The specified backup file does not exist: %s\n' %
+                      self.options.file)
                 sys.exit(-1)
             # Create temp dir and untar backup into it
             self.msg('Unpacking backup file')
@@ -133,7 +134,7 @@ class ZenRestore(ZenBackupBase):
         else:
             self.msg('Using %s as source of restore' % self.options.dir)
             if not os.path.isdir(self.options.dir):
-                sys.stderr('The specified backup directory does not exist:'
+                sys.stderr.write('The specified backup directory does not exist:'
                                 ' %s\n' % self.options.dir)
                 sys.exit(-1)
             tempDir = self.options.dir
@@ -220,5 +221,3 @@ if __name__ == '__main__':
     zb = ZenRestore()
     if zb.doRestore():
         sys.exit(-1)
-        
-    
