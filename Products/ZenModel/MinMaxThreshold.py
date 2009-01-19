@@ -200,6 +200,15 @@ class MinMaxThresholdInstance(ThresholdInstance):
 
     def resetCount(self, dp):
         self.count[self.countKey(dp)] = 0
+    
+    def fetchLastValue(self, dp, cycleTime):
+        """
+        Fetch the most recent value for a data point from the RRD file.
+        """
+        startStop, names, values = rrdtool.fetch(self.context().path(dp),
+            'AVERAGE', '-s', 'now-%d' % (cycleTime*2), '-e', 'now')
+        values = [ v[0] for v in values if v[0] is not None ]
+        if values: return values[-1]
 
     def check(self, dataPoints):
         """The given datapoints have been updated, so re-evaluate.
@@ -208,12 +217,8 @@ class MinMaxThresholdInstance(ThresholdInstance):
         result = []
         for dp in self.dataPointNames:
             cycleTime, rrdType = self.rrdInfoCache(dp)
-            startStop, names, values = \
-                       rrdtool.fetch(self.context().path(dp), 'AVERAGE',
-                                     '-s', 'now-%d' % (cycleTime*2),
-                                     '-e', 'now')
-            value = values[0][0]
-            result.extend(self.checkRange(dp, value))
+            result.extend(self.checkRange(
+                dp, self.fetchLastValue(dp, cycleTime)))
         return result
 
     def checkRaw(self, dataPoint, timeOf, value):
@@ -227,12 +232,8 @@ class MinMaxThresholdInstance(ThresholdInstance):
         except Exception:
             log.error('Unable to read RRD file for %s' % dataPoint)
             return result
-        if rrdType != 'GAUGE':
-            startStop, names, values = \
-                       rrdtool.fetch(self.context().path(dataPoint), 'AVERAGE',
-                                     '-s', 'now-%d' % (cycleTime*2),
-                                     '-e', 'now')
-            value = values[0][0]
+        if rrdType != 'GAUGE' and value is None:
+            value = self.fetchLastValue(dataPoint, cycleTime)
         result.extend(self.checkRange(dataPoint, value))
         return result
 
