@@ -162,7 +162,7 @@ class InterfaceMap(SnmpPlugin):
         if (dontCollectIntNames 
             and re.search(dontCollectIntNames, om.interfaceName)):
             return None
-        om.type = self.ifTypes.get(str(om.type), "Unknown")
+        om.type = self.ifTypes.get(str(getattr(om, 'type', 1)), "Unknown")
         dontCollectIntTypes = getattr(device, 'zInterfaceMapIgnoreTypes', None)
         if dontCollectIntTypes and re.search(dontCollectIntTypes, om.type):
             return None
