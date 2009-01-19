@@ -211,6 +211,7 @@ class ApplyDataMap(object):
         """
         changed = False
         device = obj.device()
+
         if isinstance(obj, Lockable) and obj.isLockedFromUpdates():
             if device.id == obj.id:
                 msg = 'Update Blocked: %s' % device.id
