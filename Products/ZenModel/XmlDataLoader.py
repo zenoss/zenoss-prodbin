@@ -22,6 +22,7 @@ class XmlDataLoader(ImportRM):
         datadir = os.path.join(os.path.dirname(__file__),"data")
         self.log.info("loading data from:%s", datadir)
         for path, dirname, filenames in os.walk(datadir):
+            filenames.sort()
             for filename in filter(lambda f: f.endswith(".xml"), filenames):
                 self.options.infile = os.path.join(path,filename)
                 self.log.info("loading: %s", self.options.infile)
