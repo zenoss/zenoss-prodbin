@@ -19,6 +19,7 @@ Base for daemons that connect to zenhub
 
 import Globals
 import sys
+import traceback
 from Products.ZenUtils.ZenDaemon import ZenDaemon
 from Products.ZenEvents.ZenEventClasses import Heartbeat
 from Products.ZenUtils.PBUtil import ReconnectingPBClientFactory
@@ -29,6 +30,7 @@ from twisted.cred import credentials
 from twisted.internet import reactor, defer
 from twisted.internet.error import ConnectionLost
 from twisted.spread import pb
+from ZODB.POSException import ConflictError
 
 class RemoteException(Exception, pb.Copyable, pb.RemoteCopy):
     "Exception that can cross the PB barrier"
@@ -39,15 +41,22 @@ class RemoteException(Exception, pb.Copyable, pb.RemoteCopy):
         return Exception.__str__(self) + self.traceback
 
 pb.setUnjellyableForClass(RemoteException, RemoteException)
+
+class RemoteConflictError(RemoteException): pass
+pb.setUnjellyableForClass(RemoteConflictError, RemoteConflictError)
         
 def translateError(callable):
     def inner(*args, **kw):
         try:
             return callable(*args, **kw)
+        except ConflictError, ex:
+            raise RemoteConflictError(
+                'Remote exception: %s: %s' % (ex.__class__, ex),
+                traceback.format_exc())
         except Exception, ex:
-            import traceback
-            raise RemoteException('Remote exception: %s: %s' % (ex.__class__, ex),
-                                  traceback.format_exc())
+            raise RemoteException(
+                'Remote exception: %s: %s' % (ex.__class__, ex),
+                traceback.format_exc())
     return inner
 
 from Products.ZenEvents.ZenEventClasses import App_Start, App_Stop, \

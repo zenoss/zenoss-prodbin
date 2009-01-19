@@ -13,7 +13,7 @@
 import Globals
 from Products.DataCollector.Plugins import loadPlugins
 from Products.ZenHub.zenhub import PB_PORT
-from Products.ZenHub.PBDaemon import translateError
+from Products.ZenHub.PBDaemon import translateError, RemoteConflictError
 from Products.ZenUtils.ZCmdBase import ZCmdBase
 from Products.ZenUtils.Utils import unused
 from Products.ZenUtils.PBUtil import ReconnectingPBClientFactory
@@ -112,7 +112,7 @@ class zenhubworker(ZCmdBase, pb.Referenceable):
         for i in range(4):
             try:
                 return runOnce()
-            except ConflictError, ex:
+            except RemoteConflictError, ex:
                 pass
         # one last try, but don't hide the exception
         return runOnce()
