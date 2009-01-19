@@ -1,0 +1,6 @@
+This directory contains the initial set of objects to be loaded into
+the Zeo Database.
+
+Note that the files are loaded in alphabetical order, so if you create
+new files that depend on older files, make sure the names of the new
+files are lexigraphically later.
