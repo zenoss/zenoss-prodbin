@@ -773,6 +773,7 @@ class DeviceClass(DeviceOrganizer, ZenPackable, TemplateContainer):
         devs._setProperty("zInterfaceMapIgnoreNames", "")
         devs._setProperty("zFileSystemMapIgnoreTypes", [], type="lines")
         devs._setProperty("zFileSystemMapIgnoreNames", "")
+        devs._setProperty("zHardDiskMapMatch", "")
         devs._setProperty("zSysedgeDiskMapIgnoreNames", "")
         devs._setProperty("zIpServiceMapMaxPort", 1024, type="int")
         devs._setProperty("zDeviceTemplates", ["Device"], type="lines")
