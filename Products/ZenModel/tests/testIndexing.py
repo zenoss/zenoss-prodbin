@@ -17,6 +17,8 @@ if __name__ == '__main__':
 
 from ZenModelBaseTest import ZenModelBaseTest
 from Products.ZenModel.IpInterface import manage_addIpInterface
+from Products.ZenModel.WinService import manage_addWinService
+from Products.ZenUtils.FakeRequest import FakeRequest
 
 LOCATION = '/TestLoc/MyLocation'
 GROUP    = '/TestGrp/MyGroup'
@@ -119,6 +121,9 @@ class TestComponentIndexing(ZenModelBaseTest):
         self.iface.addIpAddress(IPADDR)
         self.ipaddress = self.iface.ipaddresses()[0]
         self.net = self.dmd.Networks.getNet(NET)
+        
+        manage_addWinService(self.dev.os.winservices,'wuauserv','test service')
+        self.winService = self.dev.os.winservices._getOb('wuauserv')
 
     def _checkEverything(self):
         for searchcriterion in (dict(macaddress=MAC),
@@ -172,7 +177,72 @@ class TestComponentIndexing(ZenModelBaseTest):
         neworg = self.dmd.Devices.createOrganizer(DEVCLASS+'NEW')
         self.dmd.Devices.moveDevices(DEVCLASS+'NEW', self.dev.id)
         self._checkEverything()
+        
+    def testWinSerivceComponentReindexOnServiceClassZMonitorChange(self):
+        """
+        Ensure the WinServices in the componentSearch catalog are re-indexed 
+        when saveZenProperties is called on the Service Class and zMonitor is 
+        changed
+        """
+        svcClass = self.dmd.Services.WinService.serviceclasses._getOb(self.winService.id)
+        
+        winSvc = self.dev.getMonitoredComponents(type='WinService')
+        #by default monitor is off; should find nothing
+        self.assertFalse( winSvc )
+        monitored = svcClass.zMonitor
+        self.assertFalse( monitored )
+        
+        #fake request and turn zMonitor to true
+        request = FakeRequest()
+        request.form = {'zMonitor': True}
+        kwargs = {'REQUEST': request}
+        svcClass.saveZenProperties(**kwargs)
+        
+        #verify monitored flag changed and that component is now found
+        monitored = svcClass.zMonitor
+        self.assertTrue( monitored )
+        winSvc2 = self.dev.getMonitoredComponents(type='WinService')
+        self.assertTrue ( winSvc2 )
 
+        #test that changing zProperty directly does not affect catalog
+        svcClass.setZenProperty('zMonitor', False)
+        winSvc2 = self.dev.getMonitoredComponents(type='WinService')
+        #catalog will find component even though zMonitor is false
+        #because index was not updated
+        self.assertTrue ( winSvc2 )
+
+    def testWinSerivceComponentReindexOnServiceOrganizerZMonitorChange(self):
+        """
+        Ensure the WinServices in the componentSearch catalog are re-indexed 
+        when saveZenProperties is called on the Service Organizer and zMonitor
+        is Changed 
+        """
+
+        svcOrg = self.dmd.Services
+        winSvc = self.dev.getMonitoredComponents(type='WinService')
+        #by default monitor is off; should find nothing
+        self.assertFalse( winSvc )
+        monitored = svcOrg.zMonitor
+        self.assertFalse( monitored )
+                
+        #fake request and turn zMonitor to true
+        request = FakeRequest()
+        request.form = {'zMonitor': True}
+        kwargs = {'REQUEST': request}
+        svcOrg.saveZenProperties(**kwargs)
+        
+        #verify monitored flag changed and that component is now found
+        monitored = svcOrg.zMonitor
+        self.assertTrue( monitored )
+        winSvc2 = self.dev.getMonitoredComponents(type='WinService')
+        self.assertTrue ( winSvc2 )
+
+        #test that changing zProperty directly does not affect catalog
+        svcOrg.setZenProperty('zMonitor', False)
+        winSvc2 = self.dev.getMonitoredComponents(type='WinService')
+        #catalog will find component even though zMonitor is false
+        #because index was not updated
+        self.assertTrue ( winSvc2 )
 
 def test_suite():
     from unittest import TestSuite, makeSuite

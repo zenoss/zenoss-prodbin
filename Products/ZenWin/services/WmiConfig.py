@@ -21,6 +21,7 @@ from Products.ZenModel.Device import Device
 from Products.ZenModel.DeviceClass import DeviceClass
 from Products.ZenModel.WinService import WinService
 from Products.ZenModel.ServiceClass import ServiceClass
+from Products.ZenModel.ServiceOrganizer import ServiceOrganizer
 
 from Products.ZenHub.services.Procrastinator import Procrastinate
 from Products.ZenHub.services.ThresholdMixin import ThresholdMixin
@@ -51,6 +52,7 @@ class WmiConfig(ModelerService, ThresholdMixin):
 
 
     def update(self, object):
+        objects = []
         if isinstance(object, DeviceClass):
             objects = object.getSubDevices()
         elif isinstance(object, WinService):
@@ -58,6 +60,45 @@ class WmiConfig(ModelerService, ThresholdMixin):
         elif isinstance(object, ServiceClass):
             objects = [ i.device() for i in object.instances() \
                 if isinstance(i, WinService) ]
+        elif isinstance(object, ServiceOrganizer):
+            
+            #only need to find one device with a WinService to determine if a 
+            #config change notification needs to be sent. This is because 
+            #config changes are not sent for each device, if any device has 
+            #changed the notifyConfigChanged method is called on the collector
+            #which tells the collector to re-read the entire configuration
+            def scanHeirarchyForDevice( organizer ):
+                
+                #find device with a winserivce in an organizers service classes
+                def getWinServiceDevice( organizer ):
+                    for sc in organizer.serviceclasses():
+                        for inst in sc.instances():
+                            if isinstance(inst,WinService):
+                                return inst.device()
+                                
+                    return None
+                
+                organizers = [organizer]
+                #iterate through all the organizers and children 'till a device
+                #is found
+                while organizers:
+                    for org in organizers:
+                        device = getWinServiceDevice(org)
+                        if device:
+                            return device
+                    
+                    oldOrgs = organizers
+                    organizers = []
+                    for org in oldOrgs:
+                        organizers.extend(org.children())
+                
+                return None
+                
+            device = scanHeirarchyForDevice( object )
+            
+            if device:
+                objects = [device]
+            
         else:
             objects = [object]
         for object in objects:

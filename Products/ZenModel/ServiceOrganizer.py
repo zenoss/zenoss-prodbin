@@ -25,6 +25,8 @@ from Commandable import Commandable
 from ZenPackable import ZenPackable
 
 from Products.ZenRelations.RelSchema import *
+from Products.ZenRelations.ZenPropertyManager import iszprop
+
 
 from Organizer import Organizer
 from ServiceClass import ServiceClass
@@ -136,6 +138,51 @@ class ServiceOrganizer(Organizer, Commandable, ZenPackable):
             svcorg.serviceclasses._setObject(svccl.id, svccl)
             svccl = svcorg.serviceclasses._getOb(svccl.id)
         return svccl 
+
+    def saveZenProperties(self, pfilt=iszprop, REQUEST=None):
+        """
+        Save all ZenProperties found in the REQUEST.form object.
+        Overridden so that service instances can be re-indexed if needed
+        """
+        #get value to see if it changes
+        monitor = self.zMonitor
+        result = super(ServiceOrganizer, self).saveZenProperties( pfilt, REQUEST)
+        
+        if monitor != self.zMonitor :
+            #indexes need to be updated so that the updated config will be sent
+            #can be slow if done at /Services would be nice to run asynch
+            self._indexServiceClassInstances()
+        return result
+    
+    def deleteZenProperty(self, propname=None, REQUEST=None):
+        """
+        Delete device tree properties from the this DeviceClass object.
+        Overridden to intercept zMonitor changes
+        """
+        monitor = self.zMonitor
+        result = super(ServiceOrganizer, self).deleteZenProperty( propname, REQUEST)
+        if monitor != self.zMonitor :
+            #indexes need to be updated so that the updated config will be sent
+            #can be slow if done at /Services would be nice to run asynch
+            self._indexServiceClassInstances()
+        
+        return result
+
+    def _indexServiceClassInstances(self):
+        """
+        indexes any service class instances in the hierarchy
+        """
+        organizers = [self]
+        while organizers:
+            for org in organizers:
+                for sc in org.serviceclasses():
+                    sc._indexInstances()
+        
+            oldOrgs = organizers
+            organizers = []
+            for org in oldOrgs:
+                organizers.extend(org.children())
+
 
     
     def manage_addServiceClass(self, id=None, REQUEST=None):

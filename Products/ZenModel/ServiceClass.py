@@ -10,7 +10,6 @@
 # For complete information please visit: http://www.zenoss.com/oss/
 #
 ###########################################################################
-
 __doc__="""ServiceClass
 
 The service classification class.  default identifiers, screens,
@@ -29,10 +28,10 @@ from Commandable import Commandable
 from ZenPackable import ZenPackable
 
 from Products.ZenRelations.RelSchema import *
+from Products.ZenRelations.ZenPropertyManager import iszprop
 from Products.ZenWidgets import messaging
 
 from ZenModelRM import ZenModelRM
-
 
 def manage_addServiceClass(context, id=None, REQUEST = None):
     """make a device class"""
@@ -165,6 +164,41 @@ class ServiceClass(ZenModelRM, Commandable, ZenPackable):
         super(ServiceClass,self).manage_beforeDelete(item, container)
         self.unindex_object()
 
+    def saveZenProperties(self, pfilt=iszprop, REQUEST=None):
+        """
+        Save all ZenProperties found in the REQUEST.form object.
+        Overridden so that service instances can be re-indexed if needed
+        """
+        #get value to see if it changes
+        monitor = self.zMonitor
+        result = super(ServiceClass, self).saveZenProperties( pfilt, REQUEST)
+        if monitor != self.zMonitor :
+            #indexes need to be updated so that the updated config will be sent
+            self._indexInstances()
+        
+        return result
+
+    def deleteZenProperty(self, propname=None, REQUEST=None):
+        """
+        Delete device tree properties from the this DeviceClass object.
+        Overridden to intercept zMonitor changes
+        """
+        monitor = self.zMonitor
+        result = super(ServiceClass, self).deleteZenProperty( propname, REQUEST)
+        if monitor != self.zMonitor :
+            #indexes need to be updated so that the updated config will be sent
+            self._indexInstances()
+        
+        return result
+
+    def _indexInstances(self):
+        """
+        index instances of this service class to ensure changes made on the
+        Service Class are reflected in the instances indexes
+        """
+        for inst in self.instances(): 
+                inst = inst.primaryAq()
+                inst.index_object()
 
     security.declareProtected('Manage DMD', 'manage_editServiceClass')
     def manage_editServiceClass(self, name="", monitor=False, serviceKeys="",
