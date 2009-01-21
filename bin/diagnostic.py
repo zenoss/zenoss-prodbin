@@ -54,7 +54,6 @@ files = [
     # name, file
     ('my.cnf', '/etc/mysql/my.cnf'),
     ('my.cnf', '$ZENHOME/mysql/my.cnf'),
-    ('Data.fs', '$ZENHOME/var/Data.fs'),
     ('ZVersion', '$ZENHOME/Products/ZenModel/ZVersion.py'),
     ('etc', '$ZENHOME/etc'),
     ('log', '$ZENHOME/log'),
@@ -295,10 +294,12 @@ def main():
 
         level = logging.WARNING
         skip = set()
-        opts, ignored = getopt.getopt(sys.argv[1:], 's:vh:?')
+        opts, ignored = getopt.getopt(sys.argv[1:], 's:vh:d?')
         for opt, value in opts:
             if   opt == '-s':
                 skip.add(value)
+            elif opt == '-d':
+                files.append( ('Data.fs', '$ZENHOME/var/Data.fs') )
             elif opt == '-h':
                 zenhome = value
             elif opt == '-v':
