@@ -10,148 +10,16 @@
 # For complete information please visit: http://www.zenoss.com/oss/
 #
 ###########################################################################
-from Products.ZenTestCase.BaseTestCase import BaseTestCase
-from Products.ZenRRD.CommandParser import ParsedResults
 
 import os
-from pprint import pformat
+
+from Products.ZenTestCase.BaseTestCase import BaseTestCase
+from Products.ZenRRD.tests.BaseParsersTestCase import BaseParsersTestCase, \
+                                                      Object
+from Products.ZenRRD.CommandParser import ParsedResults
 
 
-class Object(object): 
-    
-    def __repr__(self):
-        return pformat(dict([(attr, getattr(self, attr)) for attr in dir(self) 
-                if not attr.startswith('__')]))
-
-
-def createSimplePoints(expected):
-    """
-    Create data points for a ComponentCommandParser from a mapping of expected
-    values.  These points are simple datapoints on the device,
-    not a subcomponent.
-    """
-    points = []
-    
-    for key, value in expected.items():
-        point = Object()
-        point.id = key
-        point.expected = value
-        points.append(point)
-    return points
-
-def createPoints(expected):
-    """
-    Create data points for a CommandParser from a mapping of expected
-    values.
-    """
-    if not isinstance(expected.values()[0], dict):
-        return createSimplePoints(expected)
-    
-    points = []
-    
-    for componentScanValue in expected:
-        data = dict(componentScanValue=componentScanValue)
-        for id in expected[componentScanValue]:
-            point = Object()
-            point.id = id
-            point.data = data
-            point.expected = expected[componentScanValue][id]
-            points.append(point)
-            
-    return points
-
-
-class TestParsers(BaseTestCase):
-
-    def _testParser(self, parserMap, datadir, filename):
-
-        # read the data file
-        datafile = open('%s/%s' % (datadir, filename))
-        command = datafile.readline().rstrip("\n")
-        output = "".join(datafile.readlines())
-        datafile.close()
-        
-        # read the file containing the expected values
-        expectedfile = open('%s/%s.py' % (datadir, filename))
-        expected = eval("".join(expectedfile.readlines()))
-        expectedfile.close()
-        
-        cmd = Object()
-        cmd.points = createPoints(expected)
-        cmd.result = Object()
-        cmd.result.output = output
-        results = ParsedResults()
-        Parser = parserMap.get(command)
-
-        if Parser:
-            parser = Parser()
-        else:
-            self.fail("No parser for %s" % command)
-        
-        parser.processResults(cmd, results)
-        
-        self.assertEqual(len(cmd.points), len(results.values),
-            "%s expected %s values, actual %s" % (filename, len(cmd.points), 
-            len(results.values)))
-        
-        counter = 0
-        
-        for value in results.values:
-            self.assertEqual(value[0].expected, value[1])
-            counter += 1
-            
-        return counter
-
-
-
-    def _testParsers(self, datadir, parserMap):
-        """
-        Test all of the parsers that have test data files in the data
-        directory.
-        """
-        
-        datadir = "%s/data/%s" % (
-            os.path.dirname(__file__),
-            datadir
-            )
-        
-        def filenames():
-            for entry in os.listdir(datadir):
-                if (not entry.startswith(".") and \
-                    not entry.endswith(".py") and
-                    entry.find('~') == -1 and
-                    entry.find('#') == -1):
-                    yield entry
-        
-        counter = 0
-        
-        for filename in filenames():
-            counter += self._testParser(parserMap, datadir, filename)
-            
-        self.assert_(counter > 0, counter)
-        print "testParsers made", counter, "assertions."
-
-
-
-    def testLinuxParsers(self):
-        """
-        Test all of the parsers that have test data files in the data
-        directory.
-        """
-        from Products.ZenRRD.parsers.linux.df import df
-        from Products.ZenRRD.parsers.linux.dfi import dfi
-        from Products.ZenRRD.parsers.linux.ifconfig import ifconfig
-        from Products.ZenRRD.parsers.linux.free import free
-        from Products.ZenRRD.parsers.uptime import uptime
-        
-        parserMap = {'/bin/df -Pk': df,
-                     '/bin/df -iPk': dfi,
-                     '/sbin/ifconfig -a': ifconfig,
-                     '/usr/bin/free': free,
-                     '/usr/bin/uptime': uptime,
-                     }
-        
-        self._testParsers('linux/leak.zenoss.loc', parserMap)
+class AixParsersTestCase(BaseParsersTestCase):
 
     def testAixParsers(self):
         """
@@ -172,7 +40,12 @@ class TestParsers(BaseTestCase):
                      '/usr/bin/netstat -in': netstat,
                      '/usr/bin/mpstat -aw': mpstat,
                      }
-        self._testParsers('aix/test-aix61.zenoss.loc', parserMap)
+        
+        datadir = "%s/data/aix/test-aix61.zenoss.loc" % (
+                        os.path.dirname(__file__))
+        
+        self._testParsers(datadir, parserMap)
+
 
 class TestPsParser(BaseTestCase):
     """
@@ -241,6 +114,6 @@ class TestPsParser(BaseTestCase):
 def test_suite():
     from unittest import TestSuite, makeSuite
     suite = TestSuite()
-    suite.addTest(makeSuite(TestParsers))
+    suite.addTest(makeSuite(AixParsersTestCase))
     suite.addTest(makeSuite(TestPsParser))
     return suite

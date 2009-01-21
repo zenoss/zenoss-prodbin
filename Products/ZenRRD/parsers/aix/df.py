@@ -1,7 +1,7 @@
 ###########################################################################
 #
 # This program is part of Zenoss Core, an open source monitoring platform.
-# Copyright (C) 2008, Zenoss Inc.
+# Copyright (C) 2009, Zenoss Inc.
 #
 # This program is free software; you can redistribute it and/or modify it
 # under the terms of the GNU General Public License version 2 as published by
@@ -11,9 +11,9 @@
 #
 ###########################################################################
 
-from Products.ZenRRD.parsers.linux.df import df as df_linux
+from Products.ZenRRD.ComponentCommandParser import ComponentCommandParser
 
-class df(df_linux):
+class df(ComponentCommandParser):
 
     componentSplit = '\n'
 
