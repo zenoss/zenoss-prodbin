@@ -11,25 +11,31 @@
 #
 ###########################################################################
 
-__doc__='''PBDaemon
+__doc__ = """PBDaemon
 
 Base for daemons that connect to zenhub
 
-'''
+"""
 
-import Globals
 import sys
 import traceback
+
+import Globals
+
 from Products.ZenUtils.ZenDaemon import ZenDaemon
 from Products.ZenEvents.ZenEventClasses import Heartbeat
 from Products.ZenUtils.PBUtil import ReconnectingPBClientFactory
 from Products.ZenUtils.DaemonStats import DaemonStats
 from Products.ZenUtils.Driver import drive
+from Products.ZenEvents.ZenEventClasses import App_Start, App_Stop, \
+                                                Clear, Warning
 
 from twisted.cred import credentials
 from twisted.internet import reactor, defer
 from twisted.internet.error import ConnectionLost
 from twisted.spread import pb
+from twisted.python.failure import Failure
+
 from ZODB.POSException import ConflictError
 
 class RemoteException(Exception, pb.Copyable, pb.RemoteCopy):
@@ -42,11 +48,27 @@ class RemoteException(Exception, pb.Copyable, pb.RemoteCopy):
 
 pb.setUnjellyableForClass(RemoteException, RemoteException)
 
+# ZODB conflicts
 class RemoteConflictError(RemoteException): pass
 pb.setUnjellyableForClass(RemoteConflictError, RemoteConflictError)
-        
+
+# Invalid monitor specified
+class RemoteBadMonitor(RemoteException): pass
+
 def translateError(callable):
+    """
+    Decorator function to wrap remote exceptions into something
+    understandable by our daemon.
+
+    @parameter callable: function to wrap
+    @type callable: function
+    @return: function's return or an exception
+    @rtype: various
+    """
     def inner(*args, **kw):
+        """
+        Interior decorator
+        """
         try:
             return callable(*args, **kw)
         except ConflictError, ex:
@@ -59,8 +81,6 @@ def translateError(callable):
                 traceback.format_exc())
     return inner
 
-from Products.ZenEvents.ZenEventClasses import App_Start, App_Stop, \
-                                                Clear, Warning
 
 PB_PORT = 8789
 
@@ -119,25 +139,29 @@ class PBDaemon(ZenDaemon, pb.Referenceable):
         self.stopped = False
 
     def gotPerspective(self, perspective):
-        ''' This gets called every time we reconnect.
-        '''
+        """
+        This gets called every time we reconnect.
+
+        @parameter perspective: Twisted perspective object
+        @type perspective: Twisted perspective object
+        """
         self.log.info("Connected to ZenHub")
         self.perspective = perspective
         d2 = self.getInitialServices()
         if self.initialConnect:
-            self.log.debug('chaining getInitialServices with d2')
+            self.log.debug('Chaining getInitialServices with d2')
             self.initialConnect, d = None, self.initialConnect
             d2.chainDeferred(d)
 
 
     def connect(self):
         factory = ReconnectingPBClientFactory()
-        self.log.debug("Connecting to %s:%d", self.options.hubhost,
-            self.options.hubport)
+        self.log.info("Connecting to %s:%d" % (self.options.hubhost,
+            self.options.hubport))
         reactor.connectTCP(self.options.hubhost, self.options.hubport, factory)
         username = self.options.hubusername
         password = self.options.hubpassword
-        self.log.debug("Logging in as %s", username)
+        self.log.debug("Logging in as %s" % username)
         c = credentials.UsernamePassword(username, password)
         factory.gotPerspective = self.gotPerspective
         factory.startLogin(c)
@@ -159,29 +183,34 @@ class PBDaemon(ZenDaemon, pb.Referenceable):
 
 
     def getService(self, serviceName, serviceListeningInterface=None):
-        ''' Attempt to get a service from zenhub.  Returns a deferred.
+        """
+        Attempt to get a service from zenhub.  Returns a deferred.
         When service is retrieved it is stashed in self.services with
         serviceName as the key.  When getService is called it will first
         check self.services and if serviceName is already there it will return
         the entry from self.services wrapped in a defer.succeed
-        '''
+        """
         if self.services.has_key(serviceName):
             return defer.succeed(self.services[serviceName])
+
         def removeService(ignored):
-            self.log.debug('removing service %s' % serviceName)
+            self.log.debug('Removing service %s' % serviceName)
             if serviceName in self.services:
                 del self.services[serviceName]
+
         def callback(result, serviceName):
-            self.log.debug('callback after getting service %s' % serviceName)
+            self.log.debug('Loaded service %s from zenhub' % serviceName)
             self.services[serviceName] = result
             result.notifyOnDisconnect(removeService)
             return result
+
         def errback(error, serviceName):
             self.log.debug('errback after getting service %s' % serviceName)
             self.log.error('Could not retrieve service %s' % serviceName)
             if serviceName in self.services:
                 del self.services[serviceName]
-            #return error
+            return error
+
         d = self.perspective.callRemote('getService',
                                         serviceName,
                                         self.options.monitor,
@@ -191,11 +220,22 @@ class PBDaemon(ZenDaemon, pb.Referenceable):
         return d
 
     def getInitialServices(self):
-        self.log.debug('setting up services %s' %
-                ', '.join([n for n in self.initialServices]))
+        """
+        After connecting to zenhub, gather our initial list of services.
+        """
+        def errback(error):
+            if isinstance(error, Failure):
+                self.log.critical( "Invalid monitor: %s" % self.options.monitor)
+                reactor.stop()
+                return defer.fail(RemoteBadMonitor(
+                           "Invalid monitor: %s" % self.options.monitor))
+
+        self.log.debug('Setting up initial services: %s' % \
+                ', '.join(self.initialServices))
         d = defer.DeferredList(
             [self.getService(name) for name in self.initialServices],
             fireOnOneErrback=True, consumeErrors=True)
+        d.addErrback(errback)
         return d
 
 
@@ -203,7 +243,7 @@ class PBDaemon(ZenDaemon, pb.Referenceable):
         pass
 
     def run(self):
-        self.log.debug('run')
+        self.log.debug('Starting PBDaemon initialization')
         d = self.connect()
         def callback(result):
             self.sendEvent(self.startEvent)
@@ -226,7 +266,7 @@ class PBDaemon(ZenDaemon, pb.Referenceable):
     def setExitCode(self, exitcode):
         self._customexitcode = exitcode
 
-    def stop(self):
+    def stop(self, ignored=''):
         def stopNow(ignored):
             if reactor.running:
                 reactor.stop()
@@ -242,6 +282,11 @@ class PBDaemon(ZenDaemon, pb.Referenceable):
                 drive(self.pushEvents).addBoth(stopNow)
                 # but not too much time
                 reactor.callLater(1, stopNow, True) # requires bogus arg
+                self.log.debug( "Sent a 'stop' event" )
+            else:
+                self.log.debug( "No event sent as no EventService available." )
+        else:
+            self.log.debug( "stop() called when not running" )
 
     def sendEvents(self, events):
         map(self.sendEvent, events)
@@ -256,8 +301,8 @@ class PBDaemon(ZenDaemon, pb.Referenceable):
         event['manager'] = self.options.monitor
         event.update(kw)
         self.log.debug("Queueing event %r", event)
-        if event:
-            self.eventQueue.append(event)
+        self.eventQueue.append(event)
+        self.log.debug("Total of %d queued events" % len(self.eventQueue))
 
     def pushEventsLoop(self):
         """Periodially, wake up and flush events to ZenHub.

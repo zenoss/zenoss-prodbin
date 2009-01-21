@@ -12,15 +12,17 @@
 #
 ###########################################################################
 
-__doc__='''zenhub
+__doc__ = """zenhub
 
 Provide remote, authenticated, and possibly encrypted two-way
 communications with the Model and Event databases.
 
-$Id$
-'''
+"""
 
-__version__ = "$Revision$"[11:-2]
+from XmlRpcService import XmlRpcService
+
+import time
+import pickle
 
 from twisted.cred import portal, checkers, credentials
 from twisted.spread import pb, banana
@@ -40,6 +42,9 @@ from Products.ZenEvents.Event import Event, EventHeartbeat
 from Products.ZenEvents.ZenEventClasses import App_Start
 from Products.ZenUtils.Utils import unused
 
+from Products.ZenHub.PBDaemon import RemoteBadMonitor
+pb.setUnjellyableForClass(RemoteBadMonitor, RemoteBadMonitor)
+
 # Due to the manipulation of sys.path during the loading of plugins,
 # we can get ObjectMap imported both as DataMaps.ObjectMap and the
 # full-path from Products.  The following gets the class registered
@@ -53,10 +58,6 @@ sys.path.insert(0, zenPath('Products', 'DataCollector', 'plugins'))
 import DataMaps
 unused(DataMaps, ObjectMap)
 
-from XmlRpcService import XmlRpcService
-
-import time
-import pickle
 
 
 XML_RPC_PORT = 8081
@@ -117,7 +118,9 @@ class AuthXmlRpcService(XmlRpcService):
 
 
 class HubAvitar(pb.Avatar):
-    "Connect collectors to their configuration Services"
+    """
+    Connect collectors to their configuration Services
+    """
 
     def __init__(self, hub):
         self.hub = hub
@@ -140,7 +143,7 @@ class HubAvitar(pb.Avatar):
         @return a remote reference to a service
         """
         service = self.hub.getService(serviceName, instance)
-        if listener:
+        if service is not None and listener:
             service.addListener(listener)
         return service
 
@@ -149,7 +152,7 @@ class HubAvitar(pb.Avatar):
         Allow a worker register for work.
         
         @type worker: a pb.RemoteReference
-        @param worker:  a reference to zenhubworker
+        @param worker: a reference to zenhubworker
         @return None
         """
         worker.busy = False
@@ -209,10 +212,6 @@ class WorkerInterceptor(pb.Referenceable):
         "Implement the HubService interface by forwarding to the local service"
         return self.service.removeListener(listener)
         
-    def getPerformanceMonitor(self):
-        "Implement the HubService interface by forwarding to the local service"
-        return self.service.getPerformanceMonitor()
-
     def update(self, object):
         "Implement the HubService interface by forwarding to the local service"
         return self.service.update(object)
@@ -262,6 +261,7 @@ class ZenHub(ZCmdBase):
         self.zem = self.dmd.ZenEventManager
         loadPlugins(self.dmd)
         self.services = {}
+        self.performanceMonitors = self.dmd.Monitors.Performance.getPerformanceMonitorNames()
 
         er = HubRealm(self)
         checker = self.loadChecker()
@@ -280,7 +280,17 @@ class ZenHub(ZCmdBase):
             self.createWorker()
 
     def getRRDStats(self):
+        """
+        Return the most recent RRD statistic information.
+        """
         rrdStats = DaemonStats()
+        performanceMonitors = self.dmd.Monitors.Performance.getPerformanceMonitorNames()
+        if self.options.monitor not in performanceMonitors:
+            self.log.critical( "Performance monitor '%s' is no longer available" % \
+                 self.options.monitor )
+            self.log.info( "Current monitor list: %s" % performanceMonitors )
+            raise RemoteBadMonitor( "Performance monitor '%s' is no longer available" % \
+                 self.options.monitor )
         perfConf = self.dmd.Monitors.Performance._getOb(self.options.monitor)
         rrdStats.configWithMonitor('zenhub', perfConf)
         return rrdStats
@@ -389,6 +399,14 @@ class ZenHub(ZCmdBase):
         return []
 
 
+    def getPerformanceMonitorNames(self):
+        """
+        Return the list of currently valid performance monitors.
+        """
+        self.performanceMonitors = self.dmd.Monitors.Performance.getPerformanceMonitorNames()
+        return self.performanceMonitors
+
+
     def getService(self, name, instance):
         """
         Helper method to load services dynamically for a collector.
@@ -404,8 +422,16 @@ class ZenHub(ZCmdBase):
         instance name.
         @return: a service loaded from ZenHub/services or one of the zenpacks.
         """
+        # Sanity check the names given to us
+        performanceMonitors = self.dmd.Monitors.Performance.getPerformanceMonitorNames()
+        if instance not in self.performanceMonitors:
+            raise RemoteBadMonitor( "The provided performance monitor '%s'" % \
+                 self.options.monitor +
+                 " is not in the current list: %s" % performanceMonitors )
+
         try:
             return self.services[name, instance]
+
         except KeyError:
             from Products.ZenUtils.Utils import importClass
             try:
@@ -519,8 +545,6 @@ class ZenHub(ZCmdBase):
     def main(self):
         """
         Start the main event loop.
-        
-        @return: None
         """
         if self.options.cycle:
             self.heartbeat()
@@ -532,8 +556,6 @@ class ZenHub(ZCmdBase):
     def buildOptions(self):
         """
         Adds our command line options to ZCmdBase command line options.
-
-        @return: None
         """
         ZCmdBase.buildOptions(self)
         self.parser.add_option('--xmlrpcport',
