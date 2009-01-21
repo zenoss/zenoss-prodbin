@@ -164,7 +164,7 @@ if __name__=="__main__":
         set_db_config(opts.host, opts.port)
 
     _banner=("Welcome to the Zenoss dmd command shell!\n"
-             "'dmd' is bound to the DataRoot. 'zhelp()' to get a list of"
+             "'dmd' is bound to the DataRoot. 'zhelp()' to get a list of "
              "commands.")
 
     # Start up the console
