@@ -280,7 +280,8 @@ def usage():
 Usage:
   $ZENHOME/bin/python diagnostic.py [-v] [-s] [-h $ZENHOME]
         -v         print in verbose messages about collection
-        -s         suppress collection of some data (eg. -s Data.fs)
+        -d         include the object database (Data.fs)
+        -s         suppress collection of some data (eg. -s Daemons)
         -h         set ZENHOME explicity, useful when running the script as root
     """
 
