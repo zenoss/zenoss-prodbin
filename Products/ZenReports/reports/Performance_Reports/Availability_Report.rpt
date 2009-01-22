@@ -106,7 +106,7 @@
   </tr>
   <tal:block tal:repeat="avail batch">
     <tr tal:define="dev python:avail.getDeviceLink(here.dmd);
-                    comp python:avail.getComponent(dev);" 
+                    comp python:avail.getComponent(here.dmd);" 
     >
       <td class="tablevalues"
           tal:condition="dev"
