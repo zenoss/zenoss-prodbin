@@ -39,14 +39,16 @@
 #
 
 # environment variables
-export ZENHOME="/opt/zenoss"
-export RUNUSER="zenoss"
-export SNMPD_CONF="/etc/snmp/snmpd.conf"
-export MY_CNF="/etc/my.cnf"
+# NB: Please keep the ZENHOME='**ZENHOME**' idiom alive in the src.  Tags
+#     of this nature are sed substituted at build time based upon the package type.
+export ZENHOME="**ZENHOME**"
+export RUNUSER="**OS_USERNAME**"
+export SNMPD_CONF="**SNMPD_CONF**"
+export MY_CNF="**MY_CNF**"
 export ZOPE_USERNAME="admin"
-export ZOPE_PASSWORD="zenoss"
+export ZOPE_PASSWORD="**ZOPE_PASSWD**"
 export ZOPE_LISTEN_PORT="8080"
-export PYTHON="/opt/zenoss/bin/python"
+export PYTHON="**PYTHON**"
 export INSTALL_LOG="$ZENHOME/log/install.log"
 # NB: This crude hack is to add output while preserving return codes
 # Uses the concepts from http://www.travishartwell.net/blog/2006/08/19_2220
