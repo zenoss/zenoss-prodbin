@@ -91,7 +91,7 @@ commands = [
     ('patches', ('sh', '-c', 'ls -l $ZENHOME/Products/*.patch')),
     ('javaVersion', ('/usr/bin/env', 'java', '-version')),
     ('zenpacks', ('ls', '-l', '$ZENHOME/ZenPacks')),
-    ('ifconfig', ('ifconfig', '-a')),
+    ('ifconfig', ('/sbin/ifconfig', '-a')),
 ]
 # These commands only work if you are root
 root_commands = [
@@ -152,9 +152,9 @@ def getmysqlcreds():
 
     returns True on success, False on failure
     """
-    pids = os.popen('pgrep -f zeo').read().split('\n')
+    pids = os.popen('pgrep -f zeo.py').read().split('\n')
     pids = [int(p) for p in pids if p]
-    if len(pids) < 3:
+    if len(pids) < 1:
         log.warning('zeo is not running')
         return False
     log.debug("Fetching mysql credentials")
@@ -310,7 +310,7 @@ def main():
                 usage()
                 return
         logging.basicConfig(level=level)
-        log = logging.getLogger("diagnostic")
+        log = logging.getLogger("zendiag")
         os.environ['ZENHOME'] = zenhome
         os.environ['PATH'] += ":%s/bin" % zenhome
         if not getmysqlcreds():
