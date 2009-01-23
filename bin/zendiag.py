@@ -11,7 +11,7 @@
 # For complete information please visit: http://www.zenoss.com/oss/
 #
 ###########################################################################
-__doc__="""diagnostic
+__doc__="""zendiag
 
 Gather basic details on an installation into a single zip file for
 reporting to Zenoss support.
@@ -35,7 +35,7 @@ import zipfile
 # Yucky global
 fd, mysqlcreds = tempfile.mkstemp()
 
-archive_name = time.strftime("diagnostic-%Y-%m-%d-%H-%M.zip")
+archive_name = time.strftime("zendiag-%Y-%m-%d-%H-%M.zip")
 archive = zipfile.ZipFile(archive_name, 'w', compression=zipfile.ZIP_DEFLATED)
 
 zenhome = ''
@@ -202,7 +202,7 @@ def process_functions(functions, skip):
         if name in skip: continue
         try:
             output = function(*args, **kw)
-            archiveText('diagnostic/%s.txt' % name, output)
+            archiveText('zendiag/%s.txt' % name, output)
         except Exception, ex:
             log.exception("function %s failed", name)
 
@@ -225,7 +225,7 @@ def process_commands(commands, skip):
                 log.info("%s command returned code %d", name, code)
                 if not output:
                     output = "Error occured, exit code %d\n%s" % (code, error)
-            archiveText('diagnostic/%s.txt' % name, output)
+            archiveText('zendiag/%s.txt' % name, output)
             log.debug("Output for %s:\n%s", name, output)
         except Exception, err:
             log.exception("%s command failed", name)
@@ -250,7 +250,7 @@ def process_files(files, skip):
         for filename, zipname in filenames:
             if os.path.exists(filename) and os.path.isfile(filename):
                 try:
-                    archive.write(filename, 'diagnostic/files/%s' % zipname)
+                    archive.write(filename, 'zendiag/files/%s' % zipname)
                 except Exception, ex:
                     log.exception("could not access %s", filestr)
 
@@ -269,7 +269,7 @@ def performance_graphs():
                              'DEF:ds0=%s:ds0:AVERAGE' % filename,
                              'LINE1:ds0'),
                             stdout=subprocess.PIPE)
-            archive.write(graphName, 'diagnostic/Daemons/%s/%s.png' % (collector,
+            archive.write(graphName, 'zendiag/Daemons/%s/%s.png' % (collector,
                                                                        point))
             os.unlink(graphName)
         except Exception, ex:
@@ -278,7 +278,7 @@ def performance_graphs():
 def usage():
     print >>sys.stderr, """
 Usage:
-  $ZENHOME/bin/python diagnostic.py [-v] [-s] [-h $ZENHOME]
+  $ZENHOME/bin/python zendiag.py [-v] [-s] [-h $ZENHOME]
         -v         print in verbose messages about collection
         -d         include the object database (Data.fs)
         -s         suppress collection of some data (eg. -s Daemons)
