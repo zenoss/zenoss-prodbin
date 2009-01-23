@@ -379,14 +379,14 @@ class SnmpStatus:
                 eventCb(self.snmpStatusEvent, 
                         device=deviceName, summary=summary,
                         severity=Event.Clear)
-                log.info(summary)
+                log.info("%s %s" % (deviceName, summary))
             self.count = 0
         else:
             summary='SNMP agent down'
             eventCb(self.snmpStatusEvent,
                     device=deviceName, summary=summary,
                     severity=Event.Error)
-            log.warn(summary)
+            log.warn("%s %s" % (deviceName, summary))
             self.count += 1
 
 
