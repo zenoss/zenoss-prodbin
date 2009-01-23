@@ -35,7 +35,6 @@ if [ -e "$CHANGESET" ];	then
     echo "Using the file ${CHANGESET} as the patch source..."
     cp `pwd`/${CHANGESET} $ZENHOME/Products
     DFILE=${CHANGESET}
-    STRIP=4
 
 else
 # get diff from svn
@@ -54,13 +53,12 @@ else
     $get "http://dev.zenoss.org/trac/changeset/${CHANGESET}?format=diff&new=${CHANGESET}" \
     > ${ZENHOME}/Products/r${CHANGESET}.patch
     DFILE=r${CHANGESET}.patch
-    STRIP=3
 fi
 
 # apply patch
 echo
 echo "Applying patch..."
 cd $ZENHOME/Products
-echo "patch --strip $STRIP < ${DFILE}"
-patch -b --strip $STRIP < ${DFILE}
+echo "patch -b --strip=3 < ${DFILE}"
+patch -b --strip=3 < ${DFILE}
 
