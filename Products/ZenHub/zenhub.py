@@ -496,6 +496,7 @@ class ZenHub(ZCmdBase):
             os.write(fd, "username %s\n" % self.workerUsername)
             os.write(fd, "password %s\n" % self.workerPassword)
             os.write(fd, "host %s\n" % self.options.host)
+            os.write(fd, "logseverity %s\n" % self.options.logseverity)
         finally:
             os.close(fd)
         # start the worker
