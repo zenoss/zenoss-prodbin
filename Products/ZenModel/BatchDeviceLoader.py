@@ -172,7 +172,7 @@ windows_device2 zWinUser="administrator", zWinPassword='thomas'
             self.applyZProps(devobj, device_specs)
 
             # Default is discoverProto == 'snmp'
-            if device_specs.get('discoverProto', '') != 'none:
+            if device_specs.get('discoverProto', '') != 'none':
                 try:
                     devobj.collectDevice(setlog=self.options.showModelOutput)
                 except (SystemExit, KeyboardInterrupt):
