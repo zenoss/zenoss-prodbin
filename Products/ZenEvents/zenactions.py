@@ -502,8 +502,7 @@ class ZenActions(ZCmdBase):
         except:
             self.log.exception("unexpected exception")
         reactor.callLater(self.options.cycletime, self.runCycle)
-        
-    
+
     def run(self):
         if not self.options.cycle:
             self.sendHeartbeat()
@@ -512,7 +511,6 @@ class ZenActions(ZCmdBase):
         self.schedule.start()
         self.runCycle()
         reactor.run()
-
 
     def sendEvent(self, evt):
         """Send event to the system.

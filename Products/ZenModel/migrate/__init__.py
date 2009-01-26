@@ -163,3 +163,4 @@ import uuidEventIds
 import addPreferSnmpNamingFlag
 import correctDNSlookupCommands
 import usermsgsportlet
+import jobmanager

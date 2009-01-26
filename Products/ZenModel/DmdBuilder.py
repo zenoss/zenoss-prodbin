@@ -54,6 +54,7 @@ from Products.ZenModel.LinkManager import manage_addLinkManager
 from Products.ZenWidgets.PortletManager import manage_addPortletManager
 from Products.ZenWidgets.ZenossPortlets import ZenossPortlets
 from Products.ZenModel.ZenPackManager import manage_addZenPackManager
+from Products.Jobber.manager import manage_addJobManager
 from Products.ZenModel.ZenPackPersistence import CreateZenPackPersistenceCatalog
 from Products.ZenModel.RRDTemplate import CreateRRDTemplatesCatalog
 from Products.ZenModel.MaintenanceWindow import createMaintenanceWindowCatalog
@@ -200,6 +201,7 @@ class DmdBuilder:
                                     history=True)
         manage_addUserSettingsManager(self.dmd)
         manage_addLinkManager(self.dmd)
+        manage_addJobManager(self.dmd)
         manage_addIpNetwork(self.dmd, "Networks")
         manage_addZenPackManager(self.dmd)
         CreateZenPackPersistenceCatalog(self.dmd)

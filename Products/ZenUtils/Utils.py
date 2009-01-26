@@ -1319,7 +1319,7 @@ def readable_time(seconds, precision=1):
     remaining = abs(seconds)
     for name, div in zip(names, mults):
         num = Decimal(str(math.floor(remaining/div)))
-        remaining -= num*div
+        remaining -= int(num)*div
         num = int(num)
         if num:
             result.append('%d %s%s' %(num, name, num>1 and 's' or ''))

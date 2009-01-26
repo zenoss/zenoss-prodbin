@@ -1,0 +1,23 @@
+<configure
+    xmlns="http://namespaces.zope.org/zope"
+    xmlns:five="http://namespaces.zope.org/five"
+    xmlns:browser="http://namespaces.zope.org/browser"
+    i18n_domain="Products.Jobber">
+
+    <browser:page
+        name="delete"
+        for="..interfaces.IJobStatus"
+        class=".jobs.ManageJobView"
+        attribute="delete"
+        permission="zope2.View"
+        />
+
+    <browser:page
+        name="interrupt"
+        for="..interfaces.IJobStatus"
+        class=".jobs.ManageJobView"
+        attribute="interrupt"
+        permission="zope2.View"
+        />
+
+</configure>

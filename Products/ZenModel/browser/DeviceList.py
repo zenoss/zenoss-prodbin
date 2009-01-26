@@ -90,10 +90,9 @@ class DeviceBatch(BrowserView):
         return self.context.id
 
     def _setDeviceBatchProps(self, method='', extraarg=None,
-                            selectstatus='none', goodevids=[],
-                            badevids=[], offset=0, count=50, filter='',
-                            orderby='id', orderdir='asc', REQUEST=None,
-                             **kwargs):
+                             selectstatus='none', goodevids=[],
+                             badevids=[], offset=0, count=50, filter='',
+                             orderby='id', orderdir='asc', **kwargs):
         if not method: return self()
         d = {'lockDevicesFromUpdates':'sendEventWhenBlocked',
              'lockDevicesFromDeletion':'sendEventWhenBlocked',

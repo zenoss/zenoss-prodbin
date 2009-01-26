@@ -1,0 +1,102 @@
+<tal:block metal:use-macro="here/templates/macros/page3">
+<tal:block metal:fill-slot="contentPane">
+<div style="float:right;position:relative;top:1.4em;font-size:0.9em;
+            font-style:italic;color:#222;padding-right:1em;" 
+    tal:content="structure view/daemonstr"></div>
+<h3>Jobs</h3>
+<div id="jobs" style="clear:both"></div>
+<hr/>
+<script>
+(function() {
+
+function initialize() {
+
+    var Y = YAHOO.util,
+        W = YAHOO.widget;
+
+    var pending_ds = new YAHOO.util.XHRDataSource(
+        "/zport/dmd/JobManager/jsonjobs",
+        {
+            responseType: Y.XHRDataSource.TYPE_JSON,
+            responseSchema: {
+                resultsList: "jobs",
+                fields: ["status", "type", "description", "started", 
+                         "finished", "duration", "baseurl", "starttime"]
+            }
+        }
+    );
+
+    function pending_viewLog(config) {
+        var j = pending_table.getRecord(config.target);
+        location.href = j.getData().baseurl + '/viewlog';
+    }
+
+    var formatStatus = function(elCell, oRecord, oColumn, oData) {
+        var imgsrc = '/zport/dmd/img/job'+oData.toLowerCase()+'.gif';
+        elCell.innerHTML = '<' + 'span class="jobstatus">' + 
+                           '<' + 'img src="'+imgsrc+'">' + 
+                           oData + '<' + '/span>';
+    }
+
+    var actionFormatter = function(elCell, oRecord, oColumn, oData) {
+        var status = oRecord.getData().status;
+        var baseurl = oRecord.getData().baseurl;
+        var logimg = IMG({title:'View the log for this job',
+           'class': 'button-action',
+            src:'/zport/dmd/img/button_viewlog.png'}, null);
+        var delimg = IMG({
+           'class': 'button-action',
+           title: 'Delete this job',
+           src:'/zport/dmd/img/button_cancel-20.png'}, null);
+       var container = SPAN({'class':'action-button-container'}, null);
+       YAHOO.util.Event.addListener(logimg, "click", function(){
+            location.href = baseurl + '/viewlog';
+        });
+       YAHOO.util.Event.addListener(delimg, "click", function(e){
+           YAHOO.util.Connect.asyncRequest('GET', baseurl+'/delete');
+           pending_table.deleteRow(e.target);
+        });
+        elCell.appendChild(container);
+        container.appendChild(logimg);
+        if (status=='Running'){
+            var interruptimg = IMG({title:'Ask this job to stop',
+               'class': 'button-action',
+                src:'/zport/dmd/img/button_stop.png'}, null);
+            YAHOO.util.Event.addListener(interruptimg, "click", function(){
+                YAHOO.util.Connect.asyncRequest('GET', baseurl+'/interrupt');
+            });
+            container.appendChild(interruptimg);
+        }
+        container.appendChild(delimg);
+    }
+
+    var pending_table = new W.DataTable("jobs", 
+        [{key:"status", label:"Status", formatter:formatStatus}, 
+         {key:"type", label:"Job Type"}, 
+         {key:"description", label:"Description"},
+         {key:"started", label:"Started"},
+         {key:"finished", label:"Finished"},
+         {key:"duration", label:"Duration"},
+         {key:"actions", label:"Actions", formatter:actionFormatter}],
+         pending_ds);
+
+    //pending_table.subscribe("rowMouseoverEvent",
+    //    pending_table.onEventHighlightRow);
+    //pending_table.subscribe("rowMouseoutEvent",
+    //    pending_table.onEventUnhighlightRow);
+    //pending_table.subscribe("rowClickEvent", pending_viewLog);
+
+    pending_ds.setInterval(5000, null, 
+        pending_table.onDataReturnInitializeTable, pending_table
+    );
+}
+
+loader = YAHOO.zenoss.getLoader();
+loader.require(['connection', 'datasource', 'datatable', 'event']);
+loader.insert({onSuccess:initialize});
+
+})();
+</script>
+
+</tal:block>
+</tal:block>

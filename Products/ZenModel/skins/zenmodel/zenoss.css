@@ -1863,4 +1863,25 @@ span.msg-ago   { font-style: italic; }
 td.msg-ago     { text-align: right !important; padding-right:15px !important;}
 div.msg-markread { background: transparent url("/zport/dmd/img/button_cancel-20.png") center center no-repeat; cursor:pointer; cursor:hand; height:20px; width:20px;}
 
+.action-button-container {
+    white-space: nowrap;
+}
+.button-action {
+    margin: 0.2em;
+    cursor: pointer;
+}
+
+div#jobs>table {
+    width: 100%;
+}
+
+span.jobstatus {
+    line-height: 16px;
+    white-space: nowrap;
+}
+span.jobstatus img {
+    vertical-align: middle;
+    margin-right: 5px;
+}
+
 

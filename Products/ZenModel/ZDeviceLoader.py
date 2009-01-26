@@ -56,7 +56,7 @@ class ZDeviceLoader(ZenModelItem,SimpleItem):
             {'label':'ManualDeviceLoader', 'action':'manualDeviceLoader'},
             ) + SimpleItem.manage_options)
 
-   
+
     security = ClassSecurityInfo()
 
     factory_type_information = (
@@ -89,24 +89,21 @@ class ZDeviceLoader(ZenModelItem,SimpleItem):
             discoverProto="snmp",priority=3,REQUEST=None):
         """
         Load a device into the database connecting its major relations
-        and collecting its configuration. 
-        """         
+        and collecting its configuration.
+        """
         if not deviceName: return self.callZenScreen(REQUEST)
         deviceName = deviceName.replace(' ', '')
         device = None
-        
+
         xmlrpc = isXmlRpc(REQUEST)
-        print xmlrpc
-        if REQUEST and not xmlrpc:
-            handler = setupLoggingHeader(self, REQUEST)
-    
+
         """
         Get performance monitor and call createDevice so that the correct
         version (local/remote) of createDevice gets invoked
         """
         monitor = self.getDmdRoot("Monitors").getPerformanceMonitor(
                                                 performanceMonitor)
-        
+
         try:
             device = monitor.createDevice(self, deviceName, devicePath,
                                     tag, serialNumber,
@@ -135,11 +132,10 @@ class ZDeviceLoader(ZenModelItem,SimpleItem):
         if device is None:
             log.error("Unable to add the device %s" % deviceName)
         else:
-            log.info("Device %s loaded!" % deviceName)
+            log.info("Discovery job scheduled.")
 
         if REQUEST and not xmlrpc:
-            self.loaderFooter(device, REQUEST.RESPONSE)
-            clearWebLoggingStream(handler)
+            REQUEST.RESPONSE.redirect('/zport/dmd/JobManager/joblist')
         if xmlrpc: return 0
 
 
@@ -238,7 +234,7 @@ class ZDeviceLoader(ZenModelItem,SimpleItem):
                 )
             else: 
                 raise e
-                
+
         syss = REQUEST.get('systemPaths', [])
         syss.append(newSystemPath)
         if REQUEST:
@@ -260,7 +256,7 @@ class ZDeviceLoader(ZenModelItem,SimpleItem):
                 )
             else: 
                 raise e
-                
+
         groups = REQUEST.get('groupPaths', [])
         groups.append(newDeviceGroupPath)
         if REQUEST:
@@ -282,7 +278,6 @@ class ZDeviceLoader(ZenModelItem,SimpleItem):
                 )
             else: 
                 raise e 
-        
         if REQUEST:
             REQUEST['performanceMonitor'] = newPerformanceMonitor
             return self.callZenScreen(REQUEST)

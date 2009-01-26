@@ -1,0 +1,24 @@
+<tal:block metal:use-macro="here/templates/macros/page2">
+<tal:block metal:fill-slot="contentPane">
+<style>
+    .logframe {
+        width: 90%;
+        margin: 1em auto;
+        background-color: white;
+        height: 400px;
+        overflow-x: hidden;
+    }
+</style>
+
+<a href="/zport/dmd/JobManager/joblist">&lt;&lt; Back to Job Manager</a>
+<h3 tal:content="view/description"></h3>
+
+<iframe tal:attributes="src view/stream_URI"
+    style="width:100%; 
+           background-color:#fff;
+           border: 2px solid black;
+           height:400px;">
+</iframe>
+
+</tal:block>
+</tal:block>

@@ -43,6 +43,7 @@ from Products.ZenUtils.Utils import binPath, clearWebLoggingStream
 from Products.ZenUtils import NetworkTree
 from Products.ZenUtils.Utils import edgesToXML
 from Products.ZenUtils.Utils import unused
+from Products.Jobber.jobs import ShellCommandJob
 
 def manage_addIpNetwork(context, id, netmask=24, REQUEST = None):
     """make a IpNetwork"""
@@ -55,7 +56,7 @@ def manage_addIpNetwork(context, id, netmask=24, REQUEST = None):
         #manage_addZDeviceDiscoverer(context)
     if REQUEST is not None:
         REQUEST['RESPONSE'].redirect(context.absolute_url()+'/manage_main')
-                                     
+
 
 addIpNetwork = DTMLFile('dtml/addIpNetwork',globals())
 
@@ -66,11 +67,11 @@ defaultNetworkTree = (32,)
 
 class IpNetwork(DeviceOrganizer):
     """IpNetwork object"""
-    
+
     isInTree = True
 
     buildLinks = True
-    
+
     # Organizer configuration
     dmdRootName = "Networks"
 
@@ -83,13 +84,13 @@ class IpNetwork(DeviceOrganizer):
         {'id':'netmask', 'type':'int', 'mode':'w'},
         {'id':'description', 'type':'text', 'mode':'w'},
         )
-    
+
     _relations = DeviceOrganizer._relations + (
         ("ipaddresses", ToManyCont(ToOne, "Products.ZenModel.IpAddress", "network")),
         ("clientroutes", ToMany(ToOne,"Products.ZenModel.IpRouteEntry","target")),
         ("location", ToOne(ToMany, "Products.ZenModel.Location", "networks")),
         )
-                   
+
     # Screen action bindings (and tab definitions)
     factory_type_information = (
         {
@@ -456,15 +457,13 @@ class IpNetwork(DeviceOrganizer):
         and collecting its configuration. 
         """
         xmlrpc = isXmlRpc(REQUEST)
-                  
-        if not organizerPaths: 
+
+        if not organizerPaths:
             if xmlrpc: return 1
             return self.callZenScreen(REQUEST)
-        
-        if REQUEST and not xmlrpc:
-            handler = setupLoggingHeader(self, REQUEST)
+
         zDiscCommand = "empty"
-        
+
         from Products.ZenUtils.ZenTales import talesEval
 
         orgroot = self.getDmdRoot(self.dmdRootName)
@@ -480,21 +479,19 @@ class IpNetwork(DeviceOrganizer):
             if zDiscCommand:
                 cmd = talesEval('string:' + zDiscCommand, organizer).split(" ")
             else:
-                cmd = ["zendisc", "run", "--weblog", "--net", organizer.id]
+                cmd = ["zendisc", "run", "--net", organizer.id]
                 if getattr(organizer, "zSnmpStrictDiscovery", False):
                     cmd += ["--snmp-strict-discovery"]
                 if getattr(organizer, "zPreferSnmpNaming", False):
                     cmd += ["--prefer-snmp-naming"]
             zd = binPath('zendisc')
             zendiscCmd = [zd] + cmd[1:]
-            result = executeCommand(zendiscCmd, REQUEST)
-            if result and xmlrpc: return result
+            status = self.dmd.JobManager.addJob(ShellCommandJob, zendiscCmd)
 
         log.info('Done')
 
         if REQUEST and not xmlrpc:
-            self.loaderFooter(REQUEST.RESPONSE)
-            clearWebLoggingStream(handler)
+            REQUEST.RESPONSE.redirect('/zport/dmd/JobManager/joblist')
 
         if xmlrpc: return 0
 

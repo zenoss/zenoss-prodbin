@@ -66,6 +66,9 @@ from zope.interface import implements
 from EventView import IEventView
 from Products.ZenWidgets.interfaces import IMessageSender
 from Products.ZenWidgets import messaging
+from Products.Jobber.jobs import ShellCommandJob
+from Products.Jobber.status import SUCCESS, FAILURE
+from Products.ZenUtils.Utils import binPath
 
 
 def getNetworkRoot(context, performanceMonitor):
@@ -2063,6 +2066,81 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
 
         adm = ApplyDataMap()
         return adm._applyDataMap(self, relmap)
+
+
+class DeviceCreationJob(ShellCommandJob):
+    def __init__(self, jobid, deviceName, devicePath="/Discovered",
+            tag="", serialNumber="", zSnmpCommunity="", zSnmpPort=161,
+            zSnmpVer="", rackSlot=0, productionState=1000, comments="",
+            hwManufacturer="", hwProductName="", osManufacturer="",
+            osProductName="", locationPath="", groupPaths=[],
+            systemPaths=[], performanceMonitor="localhost",
+            discoverProto="snmp", priority=3, manageIp=""):
+
+        # Create the zendisc command to be run
+        zm = binPath('zendisc')
+        zendiscCmd = [zm]
+        zendiscOptions = ['run', '--now','-d', deviceName,
+                     '--monitor', performanceMonitor, 
+                     '--deviceclass', devicePath,
+                     '--snmp-port', str(zSnmpPort) ]
+        if zSnmpCommunity != "":
+            zendiscOptions.extend(["--snmp-community", zSnmpCommunity])
+        zendiscCmd.extend(zendiscOptions)
+
+        # Store device name for later finding
+        self._deviceName = deviceName
+
+        # Save the device stuff to set after adding
+        self._deviceProps = dict(tag=tag,
+                          serialNumber=serialNumber,
+                          rackSlot=rackSlot,
+                          zSnmpPort=zSnmpPort,
+                          zSnmpCommunity=zSnmpCommunity,
+                          zSnmpVer=zSnmpVer,
+                          productionState=productionState,
+                          comments=comments,
+                          hwManufacturer=hwManufacturer,
+                          hwProductName = hwProductName,
+                          osManufacturer = osManufacturer,
+                          osProductName = osProductName,
+                          locationPath = locationPath,
+                          groupPaths = groupPaths,
+                          systemPaths = systemPaths,
+                          performanceMonitor = performanceMonitor,
+                          priority = priority)
+
+        # Set up the job, passing in the zendisc command and post-job callback
+        super(DeviceCreationJob, self).__init__(jobid, zendiscCmd)
+
+    def finished(self, r):
+        result = self.postDeviceAdd()
+        super(DeviceCreationJob, self).finished(result)
+
+    def postDeviceAdd(self):
+        """
+        Set the properties on the device after it's been added.
+        """
+        self._p_jar.sync()
+        dev = self.dmd.Devices.findDevice(self._deviceName)
+        if dev:
+            props = self._deviceProps
+            # Set up the hw/os props correctly
+            props['hwManufacturer'] = props['hwManufacturer'] or \
+                dev.hw.getManufacturerName()
+            props['hwProductName'] = props['hwProductName'] or \
+                dev.hw.getProductName()
+            props['osManufacturer'] = props['osManufacturer'] or \
+                dev.os.getManufacturerName()
+            props['osProductName'] = props['osProductName'] or \
+                dev.os.getProductName()
+
+            # Store the props on the device
+            dev.manage_editDevice(**props)
+            result = SUCCESS
+        else:
+            result = FAILURE
+        return result
 
 
 InitializeClass(Device)

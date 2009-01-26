@@ -48,7 +48,7 @@ class ZenModelRM(ZenModelBase, RelationshipManager, Historical, ZenPacker):
     isInTree = 0 #should this class show in left nav tree
 
     security = ClassSecurityInfo()
-   
+
     def __init__(self, id, title=None, buildRelations=True):
         self.createdTime = DateTime(time.time())
         RelationshipManager.__init__(self, id, title, buildRelations)

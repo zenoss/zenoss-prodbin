@@ -1,0 +1,46 @@
+<configure
+    xmlns="http://namespaces.zope.org/zope"
+    xmlns:five="http://namespaces.zope.org/five"
+    xmlns:browser="http://namespaces.zope.org/browser"
+    i18n_domain="Products.Jobber">
+
+    <browser:page
+        name="joblist"
+        for="..interfaces.IJobManager"
+        class=".JobListView.JobListView"
+        permission="zope2.View"
+        />
+
+    <browser:page
+        name="jsonjobs"
+        for="..interfaces.IJobManager"
+        class=".JobListView.JobListView"
+        attribute="jsonjobs"
+        permission="zope2.View"
+        />
+
+    <browser:page
+        name="logstream"
+        for="..interfaces.IJobStatus"
+        class=".LogStreamView.LogStreamView"
+        permission="zope2.View"
+        />
+
+    <browser:page
+        name="viewlog"
+        for="..interfaces.IJobStatus"
+        class=".LogStreamView.LogStreamWrapper"
+        permission="zope2.View"
+        />
+
+    <browser:page
+        name="startzenjobs"
+        for="..interfaces.IJobManager"
+        class=".JobListView.JobListView"
+        attribute="start_daemon"
+        permission="zope2.View"
+        />
+
+    <include file="jobs.zcml"/>
+
+</configure>

@@ -64,6 +64,7 @@ from Products.ZenUtils.Utils import setupLoggingHeader
 from Products.ZenUtils.Utils import executeCommand
 from Products.ZenUtils.Utils import clearWebLoggingStream
 from Products.ZenModel.Device import manage_createDevice
+from Products.ZenModel.Device import DeviceCreationJob
 from Products.ZenWidgets import messaging
 from StatusColor import StatusColor
 
@@ -132,7 +133,6 @@ class PerformanceConf(Monitor, StatusColor):
     winCycleInterval = 60
     winmodelerCycleInterval = 60
     wmiqueryTimeout = 100
-
     configCycleInterval = 6 * 60
 
     zenProcessParallelJobs = 10
@@ -510,7 +510,6 @@ class PerformanceConf(Monitor, StatusColor):
                         ds.getName(), inst))
         return '\n'.join(dses)
 
-
     def deleteRRDFiles(self, device, datasource=None, datapoint=None):
         """
         Remove RRD performance data files
@@ -675,93 +674,34 @@ class PerformanceConf(Monitor, StatusColor):
                 performanceMonitor,
                 discoverProto, priority, manageIp)
         else:
-            device = self._createDevice(deviceName, devicePath, productionState,
-                performanceMonitor, discoverProto, zSnmpPort,
-                zSnmpCommunity, REQUEST)
+            self._createDevice(deviceName, devicePath, tag, serialNumber,
+                               zSnmpCommunity, zSnmpPort, zSnmpVer, rackSlot,
+                               productionState, comments, hwManufacturer,
+                               hwProductName, osManufacturer, osProductName,
+                               locationPath, groupPaths, systemPaths,
+                               performanceMonitor, discoverProto, priority,
+                               manageIp, REQUEST)
 
-            # If the device was successfully created we need to then set more
-            # information that was passed in through the web form such as
-            # location and system.
-            #
-            # We must be careful not to overwrite things that were modeled
-            # such as hardware and operating system information.
-            if device:
-                if device.hasProperty('zSnmpVer'):
-                    zSnmpVer = device.zSnmpVer
-                if device.hasProperty('zSnmpCommunity'):
-                    zSnmpCommunity = device.zSnmpCommunity
-
-                device.manage_editDevice(
-                    tag=device.hw.tag or tag,
-                    serialNumber=device.hw.serialNumber or \
-                         serialNumber,
-                    rackSlot=device.rackSlot or rackSlot,
-                    zSnmpPort=zSnmpPort,
-                    zSnmpCommunity=zSnmpCommunity,
-                    zSnmpVer=zSnmpVer,
-                    productionState=productionState,
-                    comments=comments,
-                    hwManufacturer=hwManufacturer or \
-                         device.hw.getManufacturerName(),
-                    hwProductName=hwProductName or \
-                         device.hw.getProductName(),
-                    osManufacturer=osManufacturer or \
-                         device.os.getManufacturerName(),
-                    osProductName=osProductName or \
-                         device.os.getProductName(),
-                    locationPath=locationPath,
-                    groupPaths=groupPaths,
-                    systemPaths=systemPaths,
-                    performanceMonitor=performanceMonitor,
-                    priority=priority
-                    )
-            else:
-                log.debug('No device returned.')
-        return device
-
-
-    def _createDevice(self, deviceName, devicePath='/Discovered',
-        productionState=1000, performanceMonitor='localhost',
-        discoverProto='snmp', zSnmpPort=161, zSnmpCommunity='',
-        REQUEST=None):
+    def _createDevice(self, deviceName, devicePath, tag, serialNumber,
+                      zSnmpCommunity, zSnmpPort, zSnmpVer, rackSlot,
+                      productionState, comments, hwManufacturer, hwProductName,
+                      osManufacturer, osProductName, locationPath, groupPaths,
+                      systemPaths, performanceMonitor, discoverProto, priority,
+                      manageIp, REQUEST=None):
         """
         Actual implementation for creating/adding a device to the system.
-        
-        @param deviceName: Name of a device
-        @type deviceName: string
-        @param devicePath: where to create the new device
-        @type devicePath: string
-        @param productionState: production state
-        @type productionState: string
-        @param performanceMonitor: DMD object that collects from a device
-        @type performanceMonitor: DMD object
-        @param discoverProto: discoverProto
-        @type discoverProto: auto or none
-        @param zSnmpPort: SNMP port
-        @type zSnmpPort: string
-        @param zSnmpCommunity: zSnmpCommunity
-        @type zSnmpCommunity: string
-        @param REQUEST: Zope REQUEST object
-        @type REQUEST: Zope REQUEST object
-        @return: new device
-        @rtype: Device object
         """
-        self._executeZenDiscCommand(
-            deviceName,
-            devicePath,
-            performanceMonitor,
-            discoverProto,
-            zSnmpPort,
-            zSnmpCommunity,
-            REQUEST,
-            )
-        self.dmd._p_jar.sync()
-        return self.getDmdRoot('Devices').findDevice(deviceName)
+        status = self.dmd.JobManager.addJob(DeviceCreationJob, 
+            deviceName, devicePath, tag, serialNumber, zSnmpCommunity,
+            zSnmpPort, zSnmpVer, rackSlot, productionState, comments,
+            hwManufacturer, hwProductName, osManufacturer, osProductName,
+            locationPath, groupPaths, systemPaths, performanceMonitor,
+            discoverProto, priority, manageIp)
 
 
-    def _executeZenDiscCommand(self, deviceName, devicePath='/Discovered',
-        performanceMonitor='localhost', discoverProto='snmp',
-        zSnmpPort=161, zSnmpCommunity='', REQUEST=None):
+    def _executeZenDiscCommand(self, deviceName, devicePath= "/Discovered", 
+                      performanceMonitor="localhost", discoverProto="snmp",
+                      zSnmpPort=161,zSnmpCommunity="", REQUEST=None):
         """
         Execute zendisc on the new device and return result
         
@@ -785,19 +725,15 @@ class PerformanceConf(Monitor, StatusColor):
         zm = binPath('zendisc')
         zendiscCmd = [zm]
 
-        zendiscOptions = [ 'run', '--now', '-d', deviceName,
-            '--monitor', performanceMonitor,
-            '--deviceclass', devicePath,
-            '--snmp-port', str(zSnmpPort) ]
-        if zSnmpCommunity != '':
-            zendiscOptions.extend(['--snmp-community', zSnmpCommunity])
-        if REQUEST:
-            zendiscOptions.append('--weblog')
+        zendiscOptions = ['run', '--now','-d', deviceName,
+                     '--monitor', performanceMonitor, 
+                     '--deviceclass', devicePath,
+                     '--snmp-port', str(zSnmpPort) ]
+        if zSnmpCommunity != "":
+            zendiscOptions.extend(["--snmp-community", zSnmpCommunity])
 
         zendiscCmd.extend(zendiscOptions)
-        result = executeCommand(zendiscCmd, REQUEST)
-        return result
-
+        status = self.dmd.JobManager.addJob(ShellCommandJob, zendiscCmd)
 
     def executeCollectorCommand(self, command, args, REQUEST=None):
         """
@@ -823,7 +759,6 @@ class PerformanceConf(Monitor, StatusColor):
         generateEvents=False):
         """
         Collect the configuration of this device AKA Model Device
-        
         @permission: ZEN_MANAGE_DEVICE
         @param device: Name of a device or entry in DMD
         @type device: string
@@ -851,7 +786,6 @@ class PerformanceConf(Monitor, StatusColor):
 
         if xmlrpc:
             return 0
-
 
     def _executeZenModelerCommand(self, zenmodelerOpts, REQUEST=None):
         """
