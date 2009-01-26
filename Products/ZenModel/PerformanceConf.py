@@ -759,6 +759,7 @@ class PerformanceConf(Monitor, StatusColor):
         generateEvents=False):
         """
         Collect the configuration of this device AKA Model Device
+
         @permission: ZEN_MANAGE_DEVICE
         @param device: Name of a device or entry in DMD
         @type device: string
