@@ -14,7 +14,8 @@
 import os
 import time
 from cStringIO import StringIO
-from posixfile import SEEK_END
+# posixfile module is deprecated, so defining ourselves
+SEEK_END = 2
 
 EOF_MARKER = '<<<<<EOF>>>>>'
 
