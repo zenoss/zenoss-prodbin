@@ -20,13 +20,15 @@ if device.endswith('.'): device = device[:-1]
 parser = OptionParser(usage="usage: %prog [options] summary")
 parser.add_option("-d", "--device", dest="device", default=device,
     help="device from which this event is sent, default: %default")
+parser.add_option("-y", "--eventkey", dest="eventkey", default="",
+    help="eventKey to be used, default: %default")
 parser.add_option("-p", "--component", dest="component", default="",
     help="component from which this event is sent, default: ''")
-parser.add_option("-k", "--classkey", dest="eventClassKey", default="",
+parser.add_option("-k", "--eventclasskey", dest="eventClassKey", default="",
     help="eventClassKey for this event, default: ''")
 parser.add_option("-s", "--severity", dest="severity", default="Warn",
     help="severity of this event: Critical, Error, Warn, Info, Debug, Clear")
-parser.add_option("-c", "--class", dest="eventClass", default=None,
+parser.add_option("-c", "--eventclass", dest="eventClass", default=None,
     help="event class for this event, default: ''")
 parser.add_option("--port", dest="port", default=XML_RPC_PORT,
     help="xmlrpc server port, default: %default")
@@ -48,6 +50,8 @@ if not evt['summary']:
     parser.error('no summary supplied') 
 evt['device'] = opts.device
 evt['component'] = opts.component
+if opts.eventkey:
+    evt['eventKey'] = opts.eventkey
 if opts.eventClassKey:
     evt['eventClassKey'] = opts.eventClassKey
 if opts.eventClass:
