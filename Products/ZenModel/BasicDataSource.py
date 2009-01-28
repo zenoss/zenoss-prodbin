@@ -205,7 +205,7 @@ class BasicDataSource(RRDDataSource.SimpleRRDDataSource):
         header, footer = self.commandTestOutput().split('OUTPUT_TOKEN')
         out.write(str(header))
 
-        write('Executing command against %s' % device.id)
+        write("Executing command\n%s\n   against %s" % (command, device.id))
         write('')
         start = time.time()
         try:
