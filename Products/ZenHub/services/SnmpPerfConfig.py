@@ -18,6 +18,9 @@ from sets import Set
 
 from Products.ZenRRD.zenperfsnmp import SnmpConfig
 
+import logging
+log = logging.getLogger('zen.SnmpPerfConfig')
+
 def getComponentConfig(comp):
     oids = []
     if comp.snmpIgnore(): return None
@@ -44,7 +47,9 @@ def getComponentConfig(comp):
 
 def getDeviceConfig(dev):
     dev = dev.primaryAq()
-    if not dev.snmpMonitorDevice(): return None
+    if not dev.snmpMonitorDevice(): 
+        log.debug("skipping %s SNMP monitoring disabled", dev.id)
+        return None
     result = SnmpConfig()
     oids, threshs = getComponentConfig(dev)
     for comp in dev.os.getMonitoredComponents(collector="zenperfsnmp"):
