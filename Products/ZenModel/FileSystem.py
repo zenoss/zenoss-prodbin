@@ -200,7 +200,7 @@ class FileSystem(OSComponent):
             # no usedBlocks datapoint, so this is probably a Windows device
             # using perfmon for data collection and therefore we'll look for
             # the freeMegabytes datapoint
-            freeMB = self.cacheRRDValue('freeMegabytes', default)
+            freeMB = self.cacheRRDValue('FreeMegabytes', default)
             if freeMB is not None:
                 usedBytes = self.totalBytes() - long(freeMB) * 1024 * 1024
                 return usedBytes / self.blockSize
