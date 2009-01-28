@@ -88,8 +88,11 @@ class DeviceReport(ZenModelRM):
         if self.path != "/": devs = devs.getOrganizer(self.path)
         devlist = devs.getSubDevices()
         if self.deviceQuery:
-            return [ dev for dev in devlist \
-                        if talesEval("python:"+self.deviceQuery, dev) ]
+            try:
+                return [ dev for dev in devlist \
+                            if talesEval("python:"+self.deviceQuery, dev) ]
+            except Exception, e:
+                return e
         return devlist
             
 
@@ -132,23 +135,34 @@ class DeviceReport(ZenModelRM):
         """
         body = []
         for dev in batch:
-            body.append("<tr class='tablevalues'>")
-            for field in self.columns:
-                body.append("<td>")
-                if field == "getId": field += "Link"
-                attr = getattr(dev, field, 'Unknown column')
-                if callable(attr): value = attr()
-                else: value = attr
-                if type(value) in (types.ListType, types.TupleType):
-                    value = ", ".join(value)
-                if (not field.endswith("Link") 
-                    and type(value) in types.StringTypes): 
-                    value = cgi.escape(value)
-                elif type(value) not in types.StringTypes:
-                    value = str(value)
-                body.append(value)
-                body.append("</td>")
-            body.append("</tr>")
+            # If the query is invalid, dev will be an exception string
+            if type(dev) in types.StringTypes:
+                body.extend([
+                    '<tr class="tablevalues">',
+                    '  <td colspan="%d" align="center">' % len(self.columns),
+                    '    Query error: %s' % dev,
+                    '  </td>',
+                    '</tr>',
+                    ])
+            else:
+                body.append("<tr class='tablevalues'>")
+                for field in self.columns:
+                    body.append("<td>")
+                    if field == "getId": field += "Link"
+                    attr = getattr(dev, field, 'Unknown column')
+                    if callable(attr): value = attr()
+                    else: value = attr
+                    if type(value) in (types.ListType, types.TupleType):
+                        value = ", ".join(value)
+                    if (not field.endswith("Link") 
+                        and type(value) in types.StringTypes): 
+                        value = cgi.escape(value)
+                    elif type(value) not in types.StringTypes:
+                        value = str(value)
+                    body.append(value)
+                    body.append("</td>")
+                body.append("</tr>")
+        
         return "\n".join(body)
 
 
