@@ -182,6 +182,10 @@ class InterfaceMap(SnmpPlugin):
         if om.id.startswith('bond') and om.speed == 1e7:
             om.speed = 1000000000
         
+        # Clear out all IP addresses for interfaces that no longer have any.
+        if not hasattr(om, 'setIpAddresses'):
+            om.setIpAddresses = []
+        
         return om
    
 
