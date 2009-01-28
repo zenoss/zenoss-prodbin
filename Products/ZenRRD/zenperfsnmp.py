@@ -1050,6 +1050,10 @@ class zenperfsnmp(SnmpDaemon):
         oidData = self.proxies[device].oidMap.get(oid, None)
         if not oidData: return
 
+        if self.options.showdeviceresults:
+            self.log.info("%s %s raw results = '%s'" % (
+                   device, oid, value))
+
         min, max = oidData.minmax
         try:
             value = self.rrd.save(oidData.path,
@@ -1087,6 +1091,12 @@ RRD create command: %s""" % \
             # Skip thresholds
             return
 
+        if self.options.showdeviceresults:
+            self.log.info("%s %s RRD-converted results = '%s'" % (
+                   device, oid, value))
+            self.log.info("%s %s RRD meta-data: %s, min = %s, max = %s" % (
+                   device, oid, oidData.dataStorageType, min, max))
+
         for ev in self.thresholds.check(oidData.path, time.time(), value):
             eventKey = oidData.path.rsplit('/')[-1]
             if ev.has_key('eventKey'):
@@ -1122,6 +1132,12 @@ RRD create command: %s""" % \
                                action="store_true",
                                default=False,
                                help="To improve startup times, cache configuration received from zenhub")
+
+        self.parser.add_option('--showdeviceresults',
+                               dest='showdeviceresults',
+                               action="store_true",
+                               default=False,
+                               help="Show the raw RRD values. For debugging purposes only.")
 
 
 if __name__ == '__main__':
