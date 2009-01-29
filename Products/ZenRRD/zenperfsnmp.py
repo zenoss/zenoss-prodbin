@@ -1050,10 +1050,7 @@ class zenperfsnmp(SnmpDaemon):
         oidData = self.proxies[device].oidMap.get(oid, None)
         if not oidData: return
 
-        if self.options.showdeviceresults:
-            self.log.info("%s %s raw results = '%s'" % (
-                   device, oid, value))
-
+        raw_value = value
         min, max = oidData.minmax
         try:
             value = self.rrd.save(oidData.path,
@@ -1092,10 +1089,9 @@ RRD create command: %s""" % \
             return
 
         if self.options.showdeviceresults:
-            self.log.info("%s %s RRD-converted results = '%s'" % (
-                   device, oid, value))
-            self.log.info("%s %s RRD meta-data: %s, min = %s, max = %s" % (
-                   device, oid, oidData.dataStorageType, min, max))
+            self.log.info("%s %s results: raw=%s RRD-converted=%s"
+                          " type=%s, min=%s, max=%s" % (
+                   device, oid, raw_value, value, oidData.dataStorageType, min, max))
 
         for ev in self.thresholds.check(oidData.path, time.time(), value):
             eventKey = oidData.path.rsplit('/')[-1]
