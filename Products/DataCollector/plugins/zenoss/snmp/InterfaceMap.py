@@ -13,20 +13,20 @@
 
 __doc__="""InterfaceMap
 
-InterfaceMap maps the interface and ip tables to interface objects
+Gather IP network interface information from SNMP, and 
+create DMD interface objects
 
-$Id: InterfaceMap.py,v 1.24 2003/10/30 18:42:19 edahl Exp $"""
-
-__version__ = '$Revision: 1.24 $'[11:-2]
+"""
 
 import re
 
 from Products.ZenUtils.Utils import cleanstring, unsigned
-
-from CollectorPlugin import SnmpPlugin, GetTableMap
+from Products.DataCollector.plugins.CollectorPlugin import SnmpPlugin, GetTableMap
 
 class InterfaceMap(SnmpPlugin):
-
+    """
+    Map IP network names and aliases to DMD 'interface' objects
+    """
     order = 80
     maptype = "InterfaceMap" 
     compname = "os"
@@ -69,24 +69,100 @@ class InterfaceMap(SnmpPlugin):
         ),
     )
 
-    #dontCollectInterfaceTypes = (1, 18, 76, 77, 81, 134)
-    
-   
-    def process(self, device, results, log):
-        """collect snmp information from this device"""
-        getdata, tabledata = results
-        log.info('processing %s for device %s', self.name(), device.id)
-        rm = self.relMap()
-        iptable = tabledata.get("ipAddrTable") \
-            or tabledata.get("ipNetToMediaTable")
-        iftable = tabledata.get("iftable")
-        ifalias = tabledata.get("ifalias")
-        if iptable is None or iftable is None: return
-        if not ifalias: ifalias = {}
 
-        # add interface alias (cisco description) to iftable
+    def process(self, device, results, log):
+        """
+        From SNMP info gathered from the device, convert them
+        to interface objects.
+        """
+        getdata, tabledata = results
+        log.info('Modeler %s processing data for device %s', self.name(), device.id)
+        log.debug( "%s tabledata = %s" % (device.id,tabledata) )
+        rm = self.relMap()
+        iptable = tabledata.get("ipAddrTable")
+        if not iptable:
+            iptable = tabledata.get("ipNetToMediaTable")
+            if iptable:
+                log.info("Unable to use ipAddrTable -- using ipNetToMediaTable instead")
+            else:
+                log.error("Unable to get data for %s from either ipAddrTable or"
+                          " ipNetToMediaTable -- skipping model" % device.id)
+                return None
+
+        iftable = tabledata.get("iftable")
+        if iftable is None:
+            log.error("Unable to get data for %s for iftable -- skipping model" % device.id)
+            return None
+
+        ifalias = tabledata.get("ifalias", {})
+
+        self.prepIfTable(log, iftable, ifalias)
+
+        omtable = {}
+        for ip, row in iptable.items():
+            #FIXME - not getting ifindex back from HP printer
+            if not row.has_key("ifindex"):
+                log.debug( "IP entry for %s is missing ifindex" % ip)
+                continue
+
+            # Fix data up if it is from the ipNetToMediaTable.
+            if len(ip.split('.')) == 5:
+                if row['iptype'] != 1:
+                    log.debug("iptype (%s) is not 1 -- skipping" % (
+                             row['iptype'] ))
+                    continue
+                ip = '.'.join(ip.split('.')[1:])
+                log.warn("Can't find netmask -- using /24")
+                row['netmask'] = '255.255.255.0'
+
+            strindex = str(row['ifindex'])
+            if not omtable.has_key(strindex) and not iftable.has_key(strindex):
+                log.warn("Skipping %s as it points to missing ifindex %s",
+                            row.get('ipAddress',""), row.get('ifindex',""))
+                continue
+
+            if not omtable.has_key(strindex):
+                om = self.processInt(log, device, iftable[strindex])
+                if not om:
+                    continue
+                rm.append(om)
+                omtable[strindex] = om
+                del iftable[strindex]
+            elif omtable.has_key(strindex): 
+                om = omtable[strindex]
+            else:
+                log.warn("The IP %s points to missing ifindex %s -- skipping" % (
+                         ip, strindex) )
+                continue
+
+            if not hasattr(om, 'setIpAddresses'):
+                om.setIpAddresses = []
+            if row.has_key('ipAddress'):
+                ip = row['ipAddress']
+            if row.has_key('netmask'):
+                ip = ip + "/" + str(self.maskToBits(row['netmask'].strip()))
+
+            om.setIpAddresses.append(ip)
+            #om.ifindex = row.ifindex #FIXME ifindex is not set!
+
+        for iface in iftable.values():
+            om = self.processInt(log, device, iface)
+            if om: rm.append(om)
+
+        return rm
+
+    def prepIfTable(self, log, iftable, ifalias):
+        """
+        Add interface alias (Cisco description) to iftable
+        Sanity check speed
+        """
         for ifidx, data in ifalias.items():
-            if not iftable.has_key(ifidx): continue
+            log.debug( "ifalias %s raw data = %s" % (ifidx,data) )
+            if not iftable.has_key(ifidx):
+                log.debug( "ifidx %s is not in iftable -- skipping" % (
+                           ifidx))
+                continue
+
             iftable[ifidx]['description'] = data.get('description', '')
             # if we collect ifAlias name use it
             # this is in the map subclass InterfaceAliasMap
@@ -97,8 +173,10 @@ class InterfaceMap(SnmpPlugin):
             # handle 10GB interfaces using IF-MIB::ifHighSpeed
             speed = iftable[ifidx].get('speed',0)
             if speed == 4294967295L or speed < 0:
-                try: iftable[ifidx]['speed'] = data['highSpeed']*1e6
-                except KeyError: pass
+                try:
+                    iftable[ifidx]['speed'] = data['highSpeed']*1e6
+                except KeyError:
+                    pass
 
         for ifidx, data in iftable.items():
             try:
@@ -106,47 +184,18 @@ class InterfaceMap(SnmpPlugin):
             except KeyError:
                 pass
 
-        omtable = {}
-        for ip, row in iptable.items():
-            #FIXME - not getting ifindex back from HP printer
-            if not row.has_key("ifindex"): continue
-
-            # Fix data up if it is from the ipNetToMediaTable.
-            if len(ip.split('.')) == 5:
-                if row['iptype'] != 1: continue
-                ip = '.'.join(ip.split('.')[1:])
-                row['netmask'] = '255.255.255.0'
-            strindex = str(row['ifindex'])
-            if not omtable.has_key(strindex) and not iftable.has_key(strindex):
-                log.warn("skipping %s points to missing ifindex %s",
-                            row.get('ipAddress',""), row.get('ifindex',""))
-                continue                                 
-            if not omtable.has_key(strindex):
-                om = self.processInt(device, iftable[strindex])
-                if not om: continue
-                rm.append(om)
-                omtable[strindex] = om
-                del iftable[strindex]
-            elif omtable.has_key(strindex): 
-                om = omtable[strindex]
-            else:
-                log.warn("ip points to missing ifindex %s skipping", strindex) 
-                continue
-            if not hasattr(om, 'setIpAddresses'): om.setIpAddresses = []
-            if row.has_key('ipAddress'): ip = row['ipAddress']
-            if row.has_key('netmask'): ip = ip + "/" + str(self.maskToBits(row['netmask'].strip()))
-            om.setIpAddresses.append(ip)
-            #om.ifindex = row.ifindex #FIXME ifindex is not set!
-
-        for iface in iftable.values():
-            om = self.processInt(device, iface)
-            if om: rm.append(om)
-        return rm
-
-
-    def processInt(self, device, iface):
+    def processInt(self, log, device, iface):
+        """
+        Convert each interface into an object map, if possible
+        Return None if the zProperties match the name or type
+        of this iface.
+        """
         om = self.objectMap(iface)
-        if not hasattr(om, 'id'): return None
+        if not hasattr(om, 'id'):
+            log.debug( "Can't find 'id' after self.objectMap(iface)"
+                       " -- ignoring this interface" )
+            return None
+
         om.id = cleanstring(om.id) #take off \x00 at end of string
         # Left in interfaceName, but added title for
         # the sake of consistency
@@ -156,31 +205,43 @@ class InterfaceMap(SnmpPlugin):
         om.title = om.id
         om.id = self.prepId(om.interfaceName)
         if not om.id:
+            log.debug( "prepId(%s) doesn't return an id -- skipping" % (
+                        om.interfaceName))
             return None
             
         dontCollectIntNames = getattr(device, 'zInterfaceMapIgnoreNames', None)
-        if (dontCollectIntNames 
-            and re.search(dontCollectIntNames, om.interfaceName)):
+        if dontCollectIntNames and re.search(dontCollectIntNames, om.interfaceName):
+            log.debug( "Interface %s matched the zInterfaceMapIgnoreNames zprop '%s'" % (
+                      om.interfaceName, getattr(device, 'zInterfaceMapIgnoreNames')))
             return None
+
         om.type = self.ifTypes.get(str(getattr(om, 'type', 1)), "Unknown")
         dontCollectIntTypes = getattr(device, 'zInterfaceMapIgnoreTypes', None)
         if dontCollectIntTypes and re.search(dontCollectIntTypes, om.type):
+            log.debug( "Interface %s type %s matched the zInterfaceMapIgnoreTypes zprop '%s'" % (
+                      om.interfaceName, om.type, 
+                      getattr(device, 'zInterfaceMapIgnoreTypes')))
             return None
+
         if hasattr(om, 'macaddress'): om.macaddress = self.asmac(om.macaddress)
         # Handle misreported operStatus from Linux tun devices
         if om.id.startswith('tun') and om.adminStatus == 1: om.operStatus = 1
         
         # Net-SNMP on Linux will always report the speed of bond interfaces as
-        # 10Mbps. This is probably due to the complexity if figuring out the
+        # 10Mbps. This is probably due to the complexity of figuring out the
         # real speed which would take into account all bonded interfaces and
         # the bonding method (aggregate/failover). The problem is that 10Mbps
         # is a really bad default. The following check changes this default to
         # 1Gbps instead. See the following article that explains how you can
-        # set this per-interface in the device's snmpd.conf for real accuracy.
+        # manually set this per-interface in the device's snmpd.conf for better
+        # accuracy.
         #
         # http://whocares.de/2007/12/28/speed-up-your-bonds/
         if om.id.startswith('bond') and om.speed == 1e7:
-            om.speed = 1000000000
+            newspeed = 1000000000
+            log.debug( "Resetting bond interface %s speed from %s to %s" % (
+                      om.interfaceName, om.speed, newspeed))
+            om.speed = newspeed
         
         # Clear out all IP addresses for interfaces that no longer have any.
         if not hasattr(om, 'setIpAddresses'):
