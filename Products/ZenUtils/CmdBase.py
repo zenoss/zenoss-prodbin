@@ -71,6 +71,9 @@ class CmdBase:
         """
         Parse a config file which has key-value pairs delimited by white space,
         and update the parser's option defaults with these values.
+
+        @parameter filename: name of configuration file
+        @type filename: string
         """
         try:
             lines = open(filename).readlines()
@@ -81,17 +84,23 @@ class CmdBase:
             traceback.print_exc(0)
             return
 
+        lineno = 0
         for line in lines:
+            lineno += 1
             if line.lstrip().startswith('#'): continue
             if line.strip() == '': continue
 
-            key, value = line.split(None, 1)
-            value = value.rstrip('\r\n')
+            try:
+                key, value = line.strip().split(None, 1)
+            except ValueError:
+                print >>sys.stderr, "WARN: missing value on line %d" % lineno
+                continue
 
             flag= "--%s" % key
             option= self.parser.get_option( flag )
             if option is None:
-                print >>sys.stderr, "WARN: Ignoring unknown option '%s' found in config file" % key
+                print >>sys.stderr, "WARN: Ignoring unknown option '%s' found " \
+                                    "on line %d in config file" % (key, lineno)
                 continue
 
             # NB: At this stage, optparse accepts even bogus values
