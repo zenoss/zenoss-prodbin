@@ -229,6 +229,7 @@ class PBDaemon(ZenDaemon, pb.Referenceable):
                 reactor.stop()
                 return defer.fail(RemoteBadMonitor(
                            "Invalid monitor: %s" % self.options.monitor))
+            return error
 
         self.log.debug('Setting up initial services: %s' % \
                 ', '.join(self.initialServices))
