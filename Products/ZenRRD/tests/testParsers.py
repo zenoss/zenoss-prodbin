@@ -11,40 +11,10 @@
 #
 ###########################################################################
 
-import os
 
 from Products.ZenTestCase.BaseTestCase import BaseTestCase
-from Products.ZenRRD.tests.BaseParsersTestCase import BaseParsersTestCase, \
-                                                      Object
+from Products.ZenRRD.tests.BaseParsersTestCase import Object
 from Products.ZenRRD.CommandParser import ParsedResults
-
-
-class AixParsersTestCase(BaseParsersTestCase):
-
-    def testAixParsers(self):
-        """
-        Test all of the parsers that have test data files in the data
-        directory.
-        """
-        from Products.ZenRRD.parsers.aix.df import df
-        from Products.ZenRRD.parsers.aix.swap import swap
-        from Products.ZenRRD.parsers.aix.vmstat import vmstat
-        from Products.ZenRRD.parsers.aix.netstat import netstat
-        from Products.ZenRRD.parsers.aix.mpstat import mpstat
-        from Products.ZenRRD.parsers.uptime import uptime
-        
-        parserMap = {'/usr/bin/df -k': df,
-                     '/usr/bin/vmstat': vmstat,
-                     '/usr/sbin/swap -s': swap,
-                     '/usr/bin/uptime': uptime,
-                     '/usr/bin/netstat -in': netstat,
-                     '/usr/bin/mpstat -aw': mpstat,
-                     }
-        
-        datadir = "%s/data/aix/test-aix61.zenoss.loc" % (
-                        os.path.dirname(__file__))
-        
-        self._testParsers(datadir, parserMap)
 
 
 class TestPsParser(BaseTestCase):
@@ -114,6 +84,5 @@ class TestPsParser(BaseTestCase):
 def test_suite():
     from unittest import TestSuite, makeSuite
     suite = TestSuite()
-    suite.addTest(makeSuite(AixParsersTestCase))
     suite.addTest(makeSuite(TestPsParser))
     return suite

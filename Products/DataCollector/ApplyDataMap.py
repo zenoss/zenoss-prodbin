@@ -244,20 +244,36 @@ class ApplyDataMap(object):
                 setter = getattr(obj, attname)
                 gettername = attname.replace("set","get") 
                 getter = getattr(obj, gettername, None)
+                
                 if not getter:
+                    
                     log.warn("getter '%s' not found on obj '%s', "
                                   "skipping", gettername, obj.id)
+                    
                 else:
-                    try:
-                        change = value != getter()
-                    except UnicodeDecodeError:
+                    
+                    from plugins.DataMaps import MultiArgs
+                    if isinstance(value, MultiArgs):
+                        
+                        args = value.args
                         change = True
+                        
+                    else:
+                        
+                        args = (value,)
+                        
+                        try:
+                            change = value != getter()
+                        except UnicodeDecodeError:
+                            change = True
+                            
                     if change:
-                        setter(value)
+                        setter(*args)
                         self.logChange(device, obj, Change_Set,
                                     "calling function '%s' with '%s' on "
                                     "object %s" % (attname, value, obj.id))
-                        changed = True            
+                        changed = True
+                        
             else:
                 try:
                     change = att != value

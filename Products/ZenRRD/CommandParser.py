@@ -81,7 +81,9 @@ def getParser(name):
     try:
         return _getParser(name)
     except ImportError, err:
-        log.debug("Failed to import %s in the zenoss location (%s)", name, err)
+        msg = "%s is not a core parser. Attempting to import it from " \
+              "installed zenpacks."
+        log.debug(msg, name)
         return _getPackParser(name)
             
 

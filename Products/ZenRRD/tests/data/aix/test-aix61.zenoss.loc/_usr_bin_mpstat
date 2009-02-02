@@ -1,7 +1,0 @@
-/usr/bin/mpstat -aw
-
-System configuration: lcpu=1 mode=Capped 
-
-cpu    min    maj   mpcs   mpcr    dev   soft    dec     ph     cs    ics  bound     rq   push S3pull  S3grd  S0rd  S1rd  S2rd  S3rd  S4rd  S5rd   sysc    us    sy    wa    id    pc   ilcs   vlcs  istol  bstol
-  0 3475988  22624      0      0 282855 114528 38800662      0 17919543 8724186      1      3      0      0      0 100.0   0.0   0.0   0.0   0.0   0.0 187237673   0.2   0.3   0.0  99.6  1.00      0      0    0.0    0.0
-ALL 3475988  22624      0      0 282855 114528 38800662      0 17919543 8724186      1      3      0      0      0 100.0   0.0   0.0   0.0   0.0   0.0 187237673   0.2   0.3   0.0  99.6  1.00      0      0    0.0    0.0

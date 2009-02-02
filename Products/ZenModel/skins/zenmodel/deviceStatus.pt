@@ -248,7 +248,7 @@
                     tal:content="structure here/rackSlot">x</div>
                    <div tal:condition="not:string:${here/rackSlot}">&nbsp;</div>
                 </dd>
-                <dt>sysName</dt>
+                <dt>Name</dt>
                 <dd> 
                     <div tal:condition="here/snmpSysName"
                         style="font-size:90%" 
@@ -282,7 +282,7 @@
 </div>
 <div style="border-top:1px solid #aaa;background-color:#f2f2f2;">
     <dl class="faux-table">
-    <dt class="first">SNMP Descr</dt>
+    <dt class="first">Description</dt>
     <dd class="first">
         <div tal:condition="here/snmpDescr"
             style="font-size:90%" tal:content="here/snmpDescr">x</div>

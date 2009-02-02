@@ -56,7 +56,10 @@ class df(CommandPlugin):
             if len(spline) != 6: continue
             (om.storageDevice, tblocks, u, a, p, om.mount) = spline
             if skipfsnames and re.search(skipfsnames,om.mount): continue
-            om.totalBlocks = long(tblocks)
+            
+            if tblocks == "-": om.totalBlocks = 0
+            else: om.totalBlocks = long(tblocks)
+            
             om.blockSize = 1024
             om.id = self.prepId(om.mount)
             rm.append(om)

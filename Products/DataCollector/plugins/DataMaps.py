@@ -11,6 +11,8 @@
 #
 ###########################################################################
 
+from pprint import pformat
+
 from twisted.spread import pb
 
 class PBSafe(pb.Copyable, pb.RemoteCopy): pass
@@ -25,7 +27,7 @@ class RelationshipMap(PBSafe):
         self.maps = [ObjectMap(dm, modname=modname) for dm in objmaps ]
     
     def __repr__(self):
-        return '<%s %s>' % (self.__class__.__name__, self.maps.__repr__())
+        return '<%s %s>' % (self.__class__.__name__, pformat(self.maps))
 
     def __iter__(self):
         return iter(self.maps)
@@ -62,6 +64,13 @@ class ObjectMap(PBSafe):
         if name not in self._attrs and not name.startswith("_"):
             self._attrs.append(name)
         self.__dict__[name] = value
+        
+        
+    def __repr__(self):
+        map = {}
+        map.update(self.__dict__)
+        del map["_attrs"]
+        return '<%s %s>' % (self.__class__.__name__, pformat(map))
 
 
     def items(self):
@@ -78,3 +87,19 @@ class ObjectMap(PBSafe):
             setattr(self, key, value)
 
 pb.setUnjellyableForClass(ObjectMap, ObjectMap)
+
+class MultiArgs(PBSafe):
+    """
+    Can be used as the value in an ObjectMap when the key is a function that 
+    takes multiple arguments.
+    """
+    
+    def __init__(self, *args):
+        self.args = args
+        
+        
+    def __repr__(self):
+        return str(self.args)
+    
+    
+pb.setUnjellyableForClass(MultiArgs, MultiArgs)

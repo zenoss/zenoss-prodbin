@@ -64,18 +64,35 @@ def createPoints(expected):
     return points
 
 
+def filenames(datadir):
+    """recursively find and yield data-file filenames starting at datadir"""    
+    
+    for root, subFolders, files in os.walk(datadir):
+        
+        if root.find(".svn") == -1:
+            
+            for entry in files:
+                
+                if (not entry.startswith(".") and \
+                    not entry.endswith(".py") and
+                    entry.find('~') == -1 and
+                    entry.find('#') == -1):
+                    
+                    yield os.path.join(root, entry)
+
+
 class BaseParsersTestCase(BaseTestCase):
 
-    def _testParser(self, parserMap, datadir, filename):
+    def _testParser(self, parserMap, filename):
 
         # read the data file
-        datafile = open('%s/%s' % (datadir, filename))
+        datafile = open(filename)
         command = datafile.readline().rstrip("\n")
         output = "".join(datafile.readlines())
         datafile.close()
         
         # read the file containing the expected values
-        expectedfile = open('%s/%s.py' % (datadir, filename))
+        expectedfile = open('%s.py' % (filename,))
         expected = eval("".join(expectedfile.readlines()))
         expectedfile.close()
         
@@ -111,19 +128,10 @@ class BaseParsersTestCase(BaseTestCase):
         Test all of the parsers that have test data files in the data
         directory.
         """
-        
-        def filenames():
-            for entry in os.listdir(datadir):
-                if (not entry.startswith(".") and \
-                    not entry.endswith(".py") and
-                    entry.find('~') == -1 and
-                    entry.find('#') == -1):
-                    yield entry
-        
         counter = 0
         
-        for filename in filenames():
-            counter += self._testParser(parserMap, datadir, filename)
+        for filename in filenames(datadir):
+            counter += self._testParser(parserMap, filename)
             
         self.assert_(counter > 0, counter)
         print "testParsers made", counter, "assertions."

@@ -670,11 +670,11 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
         return self.os.getProductKey()
 
 
-    def setOSProductKey(self, prodKey):
+    def setOSProductKey(self, prodKey, manufacturer="Unknown"):
         """
         Set the productKey of the device OS.
         """
-        self.os.setProductKey(prodKey)
+        self.os.setProductKey(prodKey, manufacturer)
 
 
     def getHWTag(self):
@@ -694,11 +694,11 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
         self.hw.tag = assettag
 
 
-    def setHWProductKey(self, prodKey):
+    def setHWProductKey(self, prodKey, manufacturer="Unknown"):
         """
         Set the productKey of the device hardware.
         """
-        self.hw.setProductKey(prodKey)
+        self.hw.setProductKey(prodKey, manufacturer)
 
 
     def setHWSerialNumber(self, number):
