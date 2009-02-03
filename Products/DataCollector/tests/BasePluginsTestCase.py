@@ -17,7 +17,9 @@ import logging
 
 from Products.ZenTestCase.BaseTestCase import BaseTestCase
 from Products.ZenRRD.tests.BaseParsersTestCase import Object, filenames
-from Products.DataCollector.plugins.DataMaps import RelationshipMap, ObjectMap
+
+from Products.DataCollector.plugins.DataMaps \
+        import RelationshipMap, ObjectMap, MultiArgs
 
 class BasePluginsTestCase(BaseTestCase):
     
@@ -76,8 +78,8 @@ class BasePluginsTestCase(BaseTestCase):
             
             if isinstance(actual, RelationshipMap):
                 counter += self._testRelationshipMap(expected, actual, filename)
-            elif isinstance(dataMap, ObjectMap):
-                self.fail("Testing ObjectMap is not implemented yet.")
+            elif isinstance(actual, ObjectMap):
+                counter += self._testObjectMap(expected, actual)
             else:
                 self.fail("Data map type %s not supported." % (type(dataMap),))
             
@@ -98,31 +100,33 @@ class BasePluginsTestCase(BaseTestCase):
                 counter += self._testObjectMap(expected[id], objectMapDct[id])
             
             else:
-                self.fail("No ObjectMap with id=%s in the " \
-                          "RelationshipMap returned by the plugin (%s)." % (
-                          id, filename))
+                plugin = os.path.sep.join(filename.split(os.path.sep)[-3:])
+                self.fail("No ObjectMap with id=%s in the RelationshipMap " \
+                          "returned by the plugin (%s).\n%s" % (
+                          id, plugin, relationshipMap))
         
         return counter
         
-    def _testObjectMap(self, expected, actual):
+    def _testObjectMap(self, expectedDct, actualObjMap):
         """
-        Check the expected values against those in the actual DataMap that was
-        returned by the plugin.
+        Check the expected values against those in the actual ObjectMap that
+        was returned by the plugin.
         """
         
         counter = 0
         
-        for key in expected:
+        for key in expectedDct:
             
-            if hasattr(actual, key):
-                
-                self.assertEqual(expected[key], getattr(actual, key))
+            if hasattr(actualObjMap, key):
+                actual = getattr(actualObjMap, key)
+                if isinstance(actual, MultiArgs): actual = actual.args
+                self.assertEqual(expectedDct[key], actual)
                 counter += 1
                 
             else:
                 
-                self.fail("DataMap %s does not have a %s attribute." % (
-                        actual.id, key))
+                self.fail("ObjectMap %s does not have a %s attribute." % (
+                        actual, key))
                         
         return counter
         
