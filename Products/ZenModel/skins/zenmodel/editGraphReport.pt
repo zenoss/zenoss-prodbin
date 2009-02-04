@@ -4,6 +4,7 @@
 <tal:block metal:define-macro="componentSelectorJS">
 <script type="text/javascript" src="/zport/js/MochiKit.js"></script>
 <script type="text/javascript">
+    var displayComponentPath= false;
     
     function updateSelect(widget, options) {
         for (var i = widget.length; i < options.length; i++) {
@@ -14,8 +15,13 @@
     function updateSelectWithDisplay(widget, options) {
         // Each element of options is an array of [value, display]
         for (var i = widget.length; i < options.length; i++) {
-            widget.options[i] = new Option(options[i][1],options[i][0],
+            if( displayComponentPath ) {
+              widget.options[i] = new Option(options[i][0], options[i][0], 
+                             false, false); 
+            } else  {
+              widget.options[i] = new Option(options[i][1],options[i][0],
                                 false, false);
+            }
             //if (findValue(current, options[i][0]) > -1)
             //    widget.options[i].selected = true;
         }
@@ -45,6 +51,10 @@
         getComponentList();
     }
 
+    function componentpath(check) { 
+      displayComponentPath = check; 
+      getComponentList(); 
+    } 
 
     function getComponentList() {
         var deviceWidget = document.getElementById('deviceIds');
@@ -176,6 +186,8 @@
                 id="deviceIds" size="8"
                 onChange="getComponentList(); getThirdList()" multiple="1">
             </select>
+            <br />
+            <input type="checkbox" id="component_path" onclick="javascript:componentpath(this.checked);" />Show component path<br/>
         </td>
 	
     </tr>
