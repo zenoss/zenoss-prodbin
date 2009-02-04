@@ -13,6 +13,10 @@
 
 from Products.ZenRRD.CommandParser import CommandParser
 import re
+from pprint import pformat
+import logging
+
+log = logging.getLogger("zen.ComponentCommandParser")
 
 class ComponentCommandParser(CommandParser):
 
@@ -55,5 +59,7 @@ class ComponentCommandParser(CommandParser):
                         if dp is not None:
                             if value in ('-', ''): value = 0
                             result.values.append( (dp, float(value) ) )
+                            
+        log.debug(pformat(result))
         return result
     

@@ -18,6 +18,7 @@ Run Command pluggins periodically.
 '''
 
 import time
+from pprint import pformat
 import logging
 log = logging.getLogger("zen.zencommand")
 
@@ -268,8 +269,13 @@ class DataPointConfig(pb.Copyable, pb.RemoteCopy):
     rrdCreateCommand = ''
     rrdMin = None
     rrdMax = None
+    
     def __init__(self):
         self.data = {}
+    
+    def __repr__(self):
+        return pformat((self.data, self.id))
+    
 pb.setUnjellyableForClass(DataPointConfig, DataPointConfig)
 
 class Cmd(pb.Copyable, pb.RemoteCopy):
