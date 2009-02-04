@@ -21,9 +21,65 @@ from Products.ZenRRD.CommandParser import CommandParser
 log = logging.getLogger("zen.zencommand")
 
 
+UPTIME_PATTERN = re.compile(
+    r"up +(?:(?P<days>\d+) days?, +)?(?:(?P<hours>\d+):)?(?P<minutes>\d+)")
+
+UPTIME_FORMAT = "uptime: days=%(days)s, hours=%(hours)s, minutes=%(minutes)s"
+
+
+def parseUptime(output):
+    """
+    Parse the uptime command's output capturing the days, hours and minutes
+    that the system has been up. Returns a dictionary of the captured values.
+    
+    >>> UPTIME_FORMAT % parseUptime("up 1 day, 1:42")
+    'uptime: days=1, hours=1, minutes=42'
+    
+    >>> UPTIME_FORMAT % parseUptime("up 5 days, 1:42")
+    'uptime: days=5, hours=1, minutes=42'
+    
+    >>> UPTIME_FORMAT % parseUptime("up 3 days, 6 min")
+    'uptime: days=3, hours=0, minutes=6'
+    
+    >>> UPTIME_FORMAT % parseUptime("up 1:14")
+    'uptime: days=0, hours=1, minutes=14'
+    
+    >>> UPTIME_FORMAT % parseUptime("up 4 min")
+    'uptime: days=0, hours=0, minutes=4'
+    
+    """
+    
+    match = UPTIME_PATTERN.search(output)
+    
+    if match:
+        uptime = dict([(k, int(v)) for k, v in match.groupdict(0).items()])
+        log.debug(UPTIME_FORMAT % uptime)
+    else:
+        uptime = None
+        log.debug("uptime: no match")
+        
+    return uptime
+    
+    
+def asTimeticks(days=0, hours=0, minutes=0):
+    return ((days * 24 + hours) * 60 + minutes) * 60 * 100
+    
+    
+def parseSysUpTime(output):
+    """
+    Parse the sysUpTime (measured in timeticks) from the output of the uptime
+    command.    
+    """
+    uptime = parseUptime(output)
+    
+    if uptime: sysUpTime = asTimeticks(**uptime)
+    else     : sysUpTime = None
+    
+    return sysUpTime
+    
+    
 class uptime(CommandParser):
     
-    uptimePattern = re.compile(r' up +((\d+) days, +)?((\d+):)?(\d+)')
     
     def processResults(self, cmd, result):
         """
@@ -35,7 +91,7 @@ class uptime(CommandParser):
         dps = dict([(dp.id, dp) for dp in cmd.points])
 
         if 'sysUpTime' in dps:
-            sysUpTime = self.parseSysUpTime(output)
+            sysUpTime = parseSysUpTime(output)
             if sysUpTime:
                 result.values.append((dps['sysUpTime'], sysUpTime))
                 
@@ -47,29 +103,3 @@ class uptime(CommandParser):
                 if dp in dps:
                     result.values.append( (dps[dp], float(match.group(i + 1))) )
         return result
-
-
-    def parseSysUpTime(self, output):
-        """
-        Parse the sysUpTime from the output of the uptime command.  There are
-        multiple formats:
-            up 5 days, 1:42    => 5 days, 1 hour, 42 minutes
-            up 3 days, 6 min,  => 3 days, 0 hour,  6 minutes
-            up 1:14            => 0 days, 1 hour, 14 minutes
-            up 4 min,          => 0 days, 0 hour,  4 minutes
-        """
-        
-        match = self.uptimePattern.search(output)
-        
-        if match:
-            days = int(match.group(2) or 0)
-            hours = int(match.group(4) or 0)
-            minutes = int(match.group(5) or 0)
-            log.debug("uptime: days=%s, hours=%s, minutes=%s" % (
-                    days, hours, minutes))
-            uptime = ((days * 24 + hours) * 60 + minutes) * 60 * 100
-        else:
-            log.debug("uptime: no match")
-            uptime = None
-        
-        return uptime
