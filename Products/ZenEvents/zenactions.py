@@ -376,7 +376,7 @@ class ZenActions(ZCmdBase):
                                 'lastDeleteHistoricalEvents_days', None)
             now = datetime.datetime.now()
             if not lastRun \
-                    or now - lastRun > datetime.timedelta(maxDays) \
+                    or now - lastRun > datetime.timedelta(1) \
                     or lastAge != maxDays \
                     or force:
                 self.log.info('Deleting historical events older than %s days' %
