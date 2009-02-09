@@ -105,12 +105,12 @@ class GraphPoint(ZenModelRM, ZenPackable):
 
         color = REQUEST.get('color', '').strip().lstrip('#').upper()
         if color:
-            if len(color) == 6 and IsHex(color):
+            if len(color) in (6, 8) and IsHex(color):
                 REQUEST.form['color'] = color
             else:
                 messaging.IMessageSender(self).sendToBrowser(
                     'Invalid Color',
-                    'Color must be a 6-digit hexadecimal value.',
+                    'Color must be a 6 or 8-digit hexadecimal value.',
                     priority=messaging.WARNING
                 )
                 return self.callZenScreen(REQUEST)
