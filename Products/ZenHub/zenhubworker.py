@@ -28,6 +28,7 @@ from ZODB.POSException import ConflictError
 from transaction import commit
 
 import pickle
+import time
 
 class zenhubworker(ZCmdBase, pb.Referenceable):
     "Execute ZenHub requests in separate process"
@@ -100,6 +101,8 @@ class zenhubworker(ZCmdBase, pb.Referenceable):
         @type kw: dictionary
         @param kw: keyword arguments to the method
         """
+        self.log.debug("Servicing %s in %s", method, service)
+        now = time.time()
         service = self._getService(service, instance)
         m = getattr(service, 'remote_' + method)
         # now that the service is loaded, we can unpack the arguments
@@ -109,13 +112,18 @@ class zenhubworker(ZCmdBase, pb.Referenceable):
             res = m(*args, **kw)
             commit()
             return res
-        for i in range(4):
-            try:
-                return runOnce()
-            except RemoteConflictError, ex:
-                pass
-        # one last try, but don't hide the exception
-        return runOnce()
+        try:
+            for i in range(4):
+                try:
+                    return runOnce()
+                except RemoteConflictError, ex:
+                    pass
+            # one last try, but don't hide the exception
+            return runOnce()
+        finally:
+            secs = time.time() - now
+            self.log.debug("Time in %s: %.2f", method, secs)
+            service.callTime += secs
 
     def buildOptions(self):
         """Options, mostly to find where zenhub lives
