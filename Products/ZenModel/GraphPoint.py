@@ -18,7 +18,8 @@ and builds the nessesary rrd commands.
 """
 
 from Globals import InitializeClass
-from AccessControl import Permissions
+from AccessControl import ClassSecurityInfo, Permissions
+from Products.ZenModel.ZenossSecurity import *
 from Products.ZenRelations.RelSchema import *
 from ZenModelRM import ZenModelRM
 from ZenPackable import ZenPackable
@@ -75,6 +76,7 @@ class GraphPoint(ZenModelRM, ZenPackable):
         '#fb31fb', '#0080ff', '#ff8000', '#800000', 
         )
 
+    security = ClassSecurityInfo()
 
     ## Interface
 
@@ -88,8 +90,9 @@ class GraphPoint(ZenModelRM, ZenPackable):
             crumbs = super(GraphPoint, self).breadCrumbs(terminator)
             return crumbspath(self.graphDef(), crumbs, -3)
         return ZenModelRM.breadCrumbs(self, terminator)
-        
-        
+
+
+    security.declareProtected(ZEN_MANAGE_DMD, 'manage_editProperties')
     def manage_editProperties(self, REQUEST):
         '''
         Process a save request from a GraphPoint edit screen.  Perform
