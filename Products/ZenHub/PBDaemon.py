@@ -116,6 +116,7 @@ class PBDaemon(ZenDaemon, pb.Referenceable):
     heartbeatEvent = {'eventClass':Heartbeat}
     heartbeatTimeout = 60*3
     _customexitcode = 0
+    _sendingEvents = False
     
     def __init__(self, noopts=0, keeproot=False):
         try:
@@ -137,6 +138,7 @@ class PBDaemon(ZenDaemon, pb.Referenceable):
             evt.update(details)
         self.initialConnect = defer.Deferred()
         self.stopped = False
+        self._eventStatus = {}
 
     def gotPerspective(self, perspective):
         """
@@ -301,6 +303,17 @@ class PBDaemon(ZenDaemon, pb.Referenceable):
         event['agent'] = self.name
         event['manager'] = self.options.monitor
         event.update(kw)
+        if not self.options.allowduplicateclears:
+            statusKey = ( event['device'],
+                          event.get('component', None),
+                          event.get('eventKey', None),
+                          event.get('eventClass', None) )
+            severity = event.get('severity', None)
+            status = self._eventStatus.get(statusKey, None)
+            self._eventStatus[statusKey] = severity
+            if severity == Clear and status == Clear:
+                self.log.debug("Dropping useless clear event %r", event)
+                return
         self.log.debug("Queueing event %r", event)
         self.eventQueue.append(event)
         self.log.debug("Total of %d queued events" % len(self.eventQueue))
@@ -308,7 +321,7 @@ class PBDaemon(ZenDaemon, pb.Referenceable):
     def pushEventsLoop(self):
         """Periodially, wake up and flush events to ZenHub.
         """
-        reactor.callLater(5, self.pushEventsLoop)
+        reactor.callLater(self.options.eventflushseconds, self.pushEventsLoop)
         drive(self.pushEvents)
 
     def pushEvents(self, driver):
@@ -318,15 +331,19 @@ class PBDaemon(ZenDaemon, pb.Referenceable):
             # are we already shutting down?
             if not reactor.running:
                 return
+            if self._sendingEvents:
+                return
             # try to send everything we have, serially
+            self._sendingEvents = True
             while self.eventQueue:
                 # are still connected to ZenHub?
                 evtSvc = self.services.get('EventService', None)
                 if not evtSvc: break
                 # send the events in large bundles, carefully reducing
                 # the eventQueue in case we get in here more than once
-                events = self.eventQueue[:50]
-                self.eventQueue = self.eventQueue[50:]
+                chunkSize = self.options.eventflushchunksize
+                events = self.eventQueue[:chunkSize]
+                self.eventQueue = self.eventQueue[chunkSize:]
                 # send the events and wait for the response
                 yield evtSvc.callRemote('sendEvents', events)
                 try:
@@ -335,7 +352,9 @@ class PBDaemon(ZenDaemon, pb.Referenceable):
                     self.log.error('Error sending event: %s' % ex)
                     self.eventQueue = events + self.eventQueue
                     break
+            self._sendingEvents = False
         except Exception, ex:
+            self._sendingEvents = False
             self.log.exception(ex)
 
     def heartbeat(self):
@@ -404,7 +423,29 @@ class PBDaemon(ZenDaemon, pb.Referenceable):
                                dest='hubtimeout',
                                type='int',
                                default=30,
-                               help='Initial time to wait for a ZenHub connection')
+                               help='Initial time to wait for a ZenHub '
+                                    'connection')
+        self.parser.add_option('--allowduplicateclears',
+                               dest='allowduplicateclears',
+                               default=False,
+                               action='store_true',
+                               help='Send clear events even when the most '
+                               'recent event was also a clear event.')
+
+        self.parser.add_option('--eventflushseconds',
+                               dest='eventflushseconds',
+                               default=5.,
+                               type='float',
+                               help='Seconds between attempts to flush '
+                               'events to ZenHub.')
+
+        self.parser.add_option('--eventflushchunksize',
+                               dest='eventflushchunksize',
+                               default=50,
+                               type='int',
+                               help='Number of events to send to ZenHub'
+                               'at one time')
+
 
         ZenDaemon.buildOptions(self)
 
