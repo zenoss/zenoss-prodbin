@@ -75,7 +75,7 @@ class LogFile(object):
         f.flush()
 
     def msg(self, text):
-        self.write(MESSAGE_MARKER + ' ' + text)
+        self.write('%s %s' % (MESSAGE_MARKER, text))
 
     def stream(self):
         f = self.getFile()
