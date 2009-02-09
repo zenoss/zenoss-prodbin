@@ -13,6 +13,7 @@
 
 import os
 import time
+from datetime import datetime
 import transaction
 from twisted.internet import defer, reactor
 from twisted.internet.protocol import ProcessProtocol
@@ -26,7 +27,6 @@ from Products.ZenWidgets import messaging
 from interfaces import IJob
 from status import SUCCESS, FAILURE
 from logfile import LogFile
-import time
 
 class Job(ZenModelRM):
 
@@ -130,8 +130,6 @@ class ProcessRunner(ProcessProtocol):
         """
         We're done. End the job.
         """
-        if self.log is not None:
-            self.log.finish()
         code = 1
         try:
             code = reason.value.exitCode
@@ -141,6 +139,13 @@ class ProcessRunner(ProcessProtocol):
             result = SUCCESS
         else:
             result = FAILURE
+
+        if self.log is not None:
+            now = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+            self.log.msg('Job completed at %s. Result: %s.' % (now, 
+                result==SUCCESS and 'success' or 'failure'))
+            self.log.finish()
+
         self.whenComplete.callback(result)
 
 

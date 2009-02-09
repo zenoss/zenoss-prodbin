@@ -15,9 +15,10 @@ import os
 import time
 from cStringIO import StringIO
 # posixfile module is deprecated, so defining ourselves
-SEEK_END = 2
+SEEK_END = 2 
 
 EOF_MARKER = '<<<<<EOF>>>>>'
+MESSAGE_MARKER = '<<<<<JOBMESSAGE>>>>>'
 
 class LogFile(object):
 
@@ -72,6 +73,9 @@ class LogFile(object):
         offset = 0
         f.write(text)
         f.flush()
+
+    def msg(self, text):
+        self.write(MESSAGE_MARKER + ' ' + text)
 
     def stream(self):
         f = self.getFile()

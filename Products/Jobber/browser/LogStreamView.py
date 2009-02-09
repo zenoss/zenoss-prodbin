@@ -13,6 +13,7 @@
 
 from Products.Five.browser import BrowserView
 from Products.Five.browser.pagetemplatefile import ZopeTwoPageTemplateFile
+from Products.Jobber.logfile import MESSAGE_MARKER
 
 class LogStreamView(BrowserView):
     """
@@ -29,6 +30,13 @@ class LogStreamView(BrowserView):
                 font-family:Monaco,monospace;
                 font-size:14px;">""")
         for line in log.stream():
+            if line.startswith(MESSAGE_MARKER):
+                line = """</pre><pre style="
+                font-family:Monaco,monospace;
+                font-size:14px;color:blue">%s</pre>
+               <pre style="
+                font-family:Monaco,monospace;
+                font-size:14px;">""" % line.lstrip(MESSAGE_MARKER)
             self.request.response.write(line)
             self.request.response.flush()
         self.request.response.write(""" </pre></body></html> """)
