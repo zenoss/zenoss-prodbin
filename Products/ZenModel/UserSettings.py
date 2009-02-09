@@ -436,6 +436,7 @@ class UserSettingsManager(ZenModelRM):
             return self.callZenScreen(REQUEST)
 
 
+    security.declareProtected(ZEN_MANAGE_DMD, 'manage_emailTestAdmin')
     def manage_emailTestAdmin(self, userid, REQUEST=None):
         ''' Do email test for given user
         '''
@@ -447,6 +448,7 @@ class UserSettingsManager(ZenModelRM):
             return self.callZenScreen(REQUEST)
 
 
+    security.declareProtected(ZEN_MANAGE_DMD, 'manage_pagerTestAdmin')
     def manage_pagerTestAdmin(self, userid, REQUEST=None):
         ''' Do pager test for given user
         '''
