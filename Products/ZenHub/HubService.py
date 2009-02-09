@@ -24,6 +24,7 @@ class HubService(pb.Referenceable):
         self.instance = instance
         self.listeners = []
         self.callTime = 0.
+        self.methodPriorityMap = {}
 
     def getPerformanceMonitor(self):
         return self.dmd.Monitors.getPerformanceMonitor(self.instance)
@@ -58,3 +59,8 @@ class HubService(pb.Referenceable):
             self.listeners.remove(listener)
         except ValueError:
             self.warning("Unable to remove listener... ignoring")
+
+    def getMethodPriority(self, methodName):
+        if self.methodPriorityMap.has_key(methodName):
+            return self.methodPriorityMap[methodName]
+        return 0.4

@@ -27,6 +27,10 @@ class EventService(HubService, ThresholdMixin):
     def __init__(self, dmd, instance):
         HubService.__init__(self, dmd, instance)
         self.config = self.dmd.Monitors.Performance._getOb(self.instance)
+        self.methodPriorityMap = {
+            'sendEvent': 0.0,
+            'sendEvents': 0.0,
+            }
 
     @translateError
     def remote_sendEvent(self, evt):

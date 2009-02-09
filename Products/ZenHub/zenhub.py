@@ -453,9 +453,20 @@ class ZenHub(ZCmdBase):
         
         """
         d = defer.Deferred()
-        self.workList.append( (d, args) )
+        svcName, instance, method = args[:3]
+        service = self.getService(svcName, instance).service
+        priority = service.getMethodPriority(method)
+        
+        # Insert job into workList so that it stays sorted by priority
+        for i, job in enumerate(self.workList):
+            if priority < job[1]:
+                self.workList.insert(i, (d, priority, args) )
+        else:
+            self.workList.append( (d, priority, args) )
+        
         self.giveWorkToWorkers()
         return d
+
 
     def giveWorkToWorkers(self):
         """Parcel out a method invocation to an available worker process
@@ -465,20 +476,28 @@ class ZenHub(ZCmdBase):
             for i, worker in enumerate(self.workers):
                 # linear search is not ideal, but simple enough
                 if not worker.busy:
-                    d, args = self.workList.pop(0)
+                    job = self.getJobForWorker(i)
+                    if job is None: continue
                     worker.busy = True
                     def finished(result, finishedWorker):
                         finishedWorker.busy = False
                         self.giveWorkToWorkers()
                         return result
-                    self.log.debug("Giving work to worker %d", i)
-                    d2 = worker.callRemote('execute', *args)
+                    self.log.debug("Giving %s to worker %d", job[2][2], i)
+                    d2 = worker.callRemote('execute', *job[2])
                     d2.addBoth(finished, worker)
-                    d2.chainDeferred(d)
+                    d2.chainDeferred(job[0])
                     break
             else:
                 self.log.debug("all workers are busy")
                 break
+
+    def getJobForWorker(self, workerId):
+        lenWorkers = float(len(self.workers))
+        for i in range(len(self.workList)):
+            priority = self.workList[i][1]
+            if priority < (workerId+1) / lenWorkers:
+                return self.workList.pop(i)
 
     def createWorker(self):
         """Start a worker subprocess
@@ -497,6 +516,7 @@ class ZenHub(ZCmdBase):
             os.write(fd, "password %s\n" % self.workerPassword)
             os.write(fd, "host %s\n" % self.options.host)
             os.write(fd, "logseverity %s\n" % self.options.logseverity)
+            os.write(fd, "cachesize %s\n" % self.options.cachesize)
         finally:
             os.close(fd)
         # start the worker
