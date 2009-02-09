@@ -21,6 +21,7 @@ from sets import Set
 import string
 
 from Products.ZenRelations.RelSchema import *
+from Products.ZenModel.ZenossSecurity import ZEN_MANAGE_DMD
 from Globals import InitializeClass
 from AccessControl import ClassSecurityInfo, Permissions
 from ZenModelRM import ZenModelRM
@@ -297,6 +298,7 @@ class GraphDefinition(ZenModelRM, ZenPackable):
         return gp
         
 
+    security.declareProtected(ZEN_MANAGE_DMD, 'manage_addCustomGraphPoint')
     def manage_addCustomGraphPoint(self, new_id, flavor, REQUEST=None):
         ''' Create a new graphpoint of the given class and id
         '''
@@ -310,6 +312,7 @@ class GraphDefinition(ZenModelRM, ZenPackable):
         return gp
 
 
+    security.declareProtected(ZEN_MANAGE_DMD, 'manage_addDataPointGraphPoints')
     def manage_addDataPointGraphPoints(self, dpNames, includeThresholds=False,
                                                 REQUEST=None):
         ''' Create new graph points
@@ -354,6 +357,7 @@ class GraphDefinition(ZenModelRM, ZenPackable):
         return newGps
 
 
+    security.declareProtected(ZEN_MANAGE_DMD, 'manage_addThresholdGraphPoints')
     def manage_addThresholdGraphPoints(self, threshNames, REQUEST=None):
         ''' Create new graph points
         '''
@@ -374,6 +378,7 @@ class GraphDefinition(ZenModelRM, ZenPackable):
         return newGps
 
 
+    security.declareProtected(ZEN_MANAGE_DMD, 'manage_deleteGraphPoints')
     def manage_deleteGraphPoints(self, ids=(), REQUEST=None):
         ''' Deleted given graphpoints
         '''
@@ -392,6 +397,7 @@ class GraphDefinition(ZenModelRM, ZenPackable):
             return self.callZenScreen(REQUEST)
 
 
+    security.declareProtected(ZEN_MANAGE_DMD, 'manage_resequenceGraphPoints')
     def manage_resequenceGraphPoints(self, seqmap=(), origseq=(), REQUEST=None):
         """Reorder the sequence of the GraphPoints.
         """
