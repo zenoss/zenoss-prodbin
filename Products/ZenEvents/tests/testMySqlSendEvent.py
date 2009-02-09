@@ -32,6 +32,7 @@ class MySqlSendEventTest(BaseTestCase):
             curs = conn.cursor()
             curs.execute("truncate table status")
             curs.execute("truncate table history")
+            curs.execute("truncate table detail")
             curs.execute("truncate table heartbeat")
         finally: 
             self.zem.close(conn)
@@ -179,6 +180,45 @@ class MySqlSendEventTest(BaseTestCase):
         clear_evt._clearClasses.append( clear_evt.evil )
         clear_evid = self.zem.sendEvent(clear_evt)
         self.assertEquals(clear_evid, None)
+    
+    def testHierarchicalTransforms(self):
+        """
+        Are transforms applied down the event class tree properly?
+        """
+        e = self.dmd.Events
+        e.createOrganizer('/LevelOne/LevelTwo')
+        e.LevelOne.transform = "evt.severity = 1\n"
+        e.LevelOne.transform += "evt.levels = 'one'\n"
+        e.LevelOne.LevelTwo.transform = "evt.severity = 2\n"
+        e.LevelOne.LevelTwo.transform += "evt.levels += ',two'\n"
+        
+        mapping = e.LevelOne.LevelTwo.createInstance("testMapping")
+        mapping.eventClassKey = "testMappingKey"
+        mapping.sequence = 0
+        mapping.transform = "evt.severity = 3\n"
+        mapping.transform += "evt.levels += ',three'\n"
+        mapping.index_object()
+        
+        evt = dict(device=TEST_DEVICE, summary="hierarchical transform test",
+            severity=5, eventKey="testOne", eventClass="/LevelOne")
+        evid = self.zem.sendEvent(evt)
+        evt_p = self.zem.getEventDetailFromStatusOrHistory(evid)
+        self.assertEquals(evt_p.severity, 1)
+        self.assertEquals(evt_p._details[0][1], "one")
+
+        evt = dict(device=TEST_DEVICE, summary="hierarchical transform test",
+            severity=5, eventKey="testTwo", eventClass="/LevelOne/LevelTwo")
+        evid = self.zem.sendEvent(evt)
+        evt_p = self.zem.getEventDetailFromStatusOrHistory(evid)
+        self.assertEquals(evt_p.severity, 2)
+        self.assertEquals(evt_p._details[0][1], "one,two")
+
+        evt = dict(device=TEST_DEVICE, summary="hierarchical transform test",
+            severity=5, eventKey="testThree", eventClassKey="testMappingKey")
+        evid = self.zem.sendEvent(evt)
+        evt_p = self.zem.getEventDetailFromStatusOrHistory(evid)
+        self.assertEquals(evt_p.severity, 3)
+        self.assertEquals(evt_p._details[0][1], "one,two,three")
 
 
 def test_suite():

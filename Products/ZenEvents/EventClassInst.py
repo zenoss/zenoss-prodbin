@@ -21,6 +21,7 @@ from Globals import DTMLFile
 from Globals import InitializeClass
 from AccessControl import ClassSecurityInfo
 from AccessControl import Permissions
+from Acquisition import aq_chain
 from Products.ZenModel.ZenossSecurity import *
 
 from Products.ZenRelations.RelSchema import *
@@ -67,12 +68,26 @@ class EventClassPropertyMixin(object):
         return evt
 
     def applyTransform(self, evt, device):
-        if not self.transform: return evt
-        try:
-            variables = {'evt':evt, 'device':device, 'dev':device}
-            exec(self.transform, variables)
-        except Exception, ex:
-            log.error("Error transforming EventClassInst %s (%s)", self.id, ex)
+        """
+        Apply transforms on an event from the top level of the Event Class Tree
+        down to the actual Event Rules (EventClassInst)
+        """     
+        transpath = []
+        for obj in aq_chain(self):
+            # skip over relationships in the aq_chain
+            if not isinstance(obj, EventClassPropertyMixin): continue
+            if obj.id == 'dmd': break
+            transpath.append(obj)
+        transpath.reverse()         
+        variables = {'evt':evt, 'device':device, 'dev':device}
+        for eventclass in transpath:
+            if not eventclass.transform: continue
+            try:
+                log.debug('Applying transform at %s', eventclass.getPrimaryId())
+                exec(eventclass.transform, variables)
+            except Exception, ex:
+                log.error("Error processing transform on Event Class %s (%s)",
+                    eventclass.getPrimaryId(), ex)
         return variables['evt']
 
 
