@@ -32,6 +32,7 @@ from Products.ZenUtils.Utils import isXmlRpc, setupLoggingHeader, clearWebLoggin
 from Products.ZenUtils.Exceptions import ZentinelException
 from Products.ZenModel.Exceptions import DeviceExistsError, NoSnmp
 from Products.ZenWidgets import messaging
+from Products.Jobber.interfaces import IJobStatus
 from ZenModelItem import ZenModelItem
 from zExceptions import BadRequest
 
@@ -135,7 +136,9 @@ class ZDeviceLoader(ZenModelItem,SimpleItem):
             log.info("Discovery job scheduled.")
 
         if REQUEST and not xmlrpc:
-            REQUEST.RESPONSE.redirect('/zport/dmd/JobManager/joblist')
+            # Make sure we're using the jobs system; distributed zendisc won't
+            if IJobStatus.providedBy(device):
+                REQUEST.RESPONSE.redirect(device.absolute_url_path() + '/viewlog')
         if xmlrpc: return 0
 
 

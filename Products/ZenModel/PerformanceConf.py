@@ -674,13 +674,14 @@ class PerformanceConf(Monitor, StatusColor):
                 performanceMonitor,
                 discoverProto, priority, manageIp)
         else:
-            self._createDevice(deviceName, devicePath, tag, serialNumber,
+            device = self._createDevice(deviceName, devicePath, tag, serialNumber,
                                zSnmpCommunity, zSnmpPort, zSnmpVer, rackSlot,
                                productionState, comments, hwManufacturer,
                                hwProductName, osManufacturer, osProductName,
                                locationPath, groupPaths, systemPaths,
                                performanceMonitor, discoverProto, priority,
                                manageIp, REQUEST)
+        return device
 
     def _createDevice(self, deviceName, devicePath, tag, serialNumber,
                       zSnmpCommunity, zSnmpPort, zSnmpVer, rackSlot,
@@ -697,6 +698,7 @@ class PerformanceConf(Monitor, StatusColor):
             hwManufacturer, hwProductName, osManufacturer, osProductName,
             locationPath, groupPaths, systemPaths, performanceMonitor,
             discoverProto, priority, manageIp)
+        return status
 
 
     def _executeZenDiscCommand(self, deviceName, devicePath= "/Discovered", 
