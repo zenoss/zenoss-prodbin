@@ -600,7 +600,11 @@ class UserSettings(ZenModelRM):
         """
         owner = self.getOwner()
         user = getSecurityManager().getUser()
+        if owner.has_role("Manager") and not user.has_role("Manager"):
+            return False
+        
         return user.has_role("Manager") or \
+               user.has_role("ZenManager") or \
                owner.getUserName() == user.getUserName()
 
 
@@ -637,9 +641,31 @@ class UserSettings(ZenModelRM):
         # update role info
         roleManager = self.acl_users.roleManager
         origRoles = filter(rolefilter, user.getRoles())
-        # Only Managers can make more Managers
+        
         if not self.has_role('Manager') and roles and 'Manager' in roles:
-            roles = origRoles
+            if REQUEST:
+                messaging.IMessageSender(self).sendToBrowser(
+                    'Error',
+                    'Only Managers can make more Managers.',
+                    priority=messaging.WARNING
+                )
+                return self.callZenScreen(REQUEST)
+            else:
+                return
+        
+        if not self.has_role('Manager') and origRoles and \
+            'Manager' in origRoles:
+            
+            if REQUEST:
+                messaging.IMessageSender(self).sendToBrowser(
+                    'Error',
+                    'Only Managers can modify other Managers.',
+                    priority=messaging.WARNING
+                )
+                return self.callZenScreen(REQUEST)
+            else:
+                return
+        
         # if there's a change, then we need to update
         if roles != origRoles and self.isManager():
             from sets import Set as set
