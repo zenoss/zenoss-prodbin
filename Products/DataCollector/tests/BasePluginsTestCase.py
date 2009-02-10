@@ -76,12 +76,30 @@ class BasePluginsTestCase(BaseTestCase):
         
         for expected, actual in expectedActuals:
             
-            if isinstance(actual, RelationshipMap):
-                counter += self._testRelationshipMap(expected, actual, filename)
-            elif isinstance(actual, ObjectMap):
-                counter += self._testObjectMap(expected, actual)
-            else:
-                self.fail("Data map type %s not supported." % (type(dataMap),))
+            if isinstance(expected, list):
+                
+                for exp, act in zip(expected, actual):
+                    counter += self._testDataMap(exp, act, filename)
+                    
+            else: 
+                
+                counter += self._testDataMap(expected, actual, filename)
+        
+        return counter        
+                
+    def _testDataMap(self, expected, actual, filename):
+        """
+        Test the DataMap returned by a plugin.
+        """
+        
+        counter = 0
+
+        if isinstance(actual, RelationshipMap):
+            counter += self._testRelationshipMap(expected, actual, filename)
+        elif isinstance(actual, ObjectMap):
+            counter += self._testObjectMap(expected, actual)
+        else:
+            self.fail("Data map type %s not supported." % (type(dataMap),))
             
         return counter
         
@@ -126,7 +144,7 @@ class BasePluginsTestCase(BaseTestCase):
             else:
                 
                 self.fail("ObjectMap %s does not have a %s attribute." % (
-                        actual, key))
+                        actualObjMap, key))
                         
         return counter
         

@@ -80,5 +80,30 @@ class MEProduct(ManagedEntity):
             prodcontext = self.primaryAq()
             return prodcontext.zenPropertyItems()
         return []
-
+        
+        
+    def setDescription(self, description):
+        """
+        Sets the description of the underlying ProductClass
+        """
+        
+        prod = self.productClass()
+        
+        if prod:
+            prod.description = description
+            
+            
+    def getDescription(self):
+        """
+        Gets the description of the underlying ProductClass
+        """
+        
+        prod = self.productClass()
+        
+        if prod: result = prod.description
+        else   : result = None
+        
+        return result
+        
+        
 InitializeClass(MEProduct)
