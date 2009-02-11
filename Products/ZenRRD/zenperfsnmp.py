@@ -160,10 +160,11 @@ class Status:
     Keep track of the status of many parallel requests
     """
 
-    def __init__(self):
+    def __init__(self, daemon):
         """
         Initializer
         """
+        self.daemon = daemon
         self.reset()
         
     def reset(self):
@@ -269,6 +270,7 @@ class Status:
             self._stopTime = time.time()
             if not self._deferred.called:
                 self._deferred.callback(self)
+            self.daemon.heartbeat()
         info = self.stats()
         log.info(
             'success:%d ' % info['numSucceeded'] +
@@ -772,8 +774,6 @@ class zenperfsnmp(SnmpDaemon):
         """
         Periodically fetch the performance values from all known devices
         """
-        self.heartbeat()
-
         # If self.status then this is not the first cycle
         if self.status:
             # pending is a dictionary of devices that haven't responded
@@ -815,7 +815,7 @@ class zenperfsnmp(SnmpDaemon):
         devicesToQuery -= self.unresponsiveDevices
         # Don't query devices we're still waiting for responses from
         devicesToQuery -= Set(pending.keys())
-        self.status = Status()
+        self.status = Status(self)
         d = self.status.start(devicesToQuery, pending)
         d.addCallback(self.reportRate)
         for unused in range(MAX_SNMP_REQUESTS):
