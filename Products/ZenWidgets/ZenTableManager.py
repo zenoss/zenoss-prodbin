@@ -231,6 +231,7 @@ class ZenTableManager(SimpleItem, PropertyManager):
                 return objects
             class Wrapper:
                 def __init__(self, field, cargo):
+                    if callable(field): field = field()
                     self.field = field
                     self.cargo = cargo
             if isinstance(objects[0], dict):
