@@ -461,6 +461,7 @@ class ZenHub(ZCmdBase):
         for i, job in enumerate(self.workList):
             if priority < job[1]:
                 self.workList.insert(i, (d, priority, args) )
+                break
         else:
             self.workList.append( (d, priority, args) )
         
