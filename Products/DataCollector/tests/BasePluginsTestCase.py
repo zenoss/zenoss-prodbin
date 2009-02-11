@@ -97,7 +97,7 @@ class BasePluginsTestCase(BaseTestCase):
         if isinstance(actual, RelationshipMap):
             counter += self._testRelationshipMap(expected, actual, filename)
         elif isinstance(actual, ObjectMap):
-            counter += self._testObjectMap(expected, actual)
+            counter += self._testObjectMap(expected, actual, filename)
         else:
             self.fail("Data map type %s not supported." % (type(dataMap),))
             
@@ -115,9 +115,12 @@ class BasePluginsTestCase(BaseTestCase):
         for id in expected:
         
             if objectMapDct.has_key(id):
-                counter += self._testObjectMap(expected[id], objectMapDct[id])
-            
+                
+                counter += self._testObjectMap(expected[id], 
+                        objectMapDct[id], filename)
+                
             else:
+                
                 plugin = os.path.sep.join(filename.split(os.path.sep)[-3:])
                 self.fail("No ObjectMap with id=%s in the RelationshipMap " \
                           "returned by the plugin (%s).\n%s" % (
@@ -125,7 +128,7 @@ class BasePluginsTestCase(BaseTestCase):
         
         return counter
         
-    def _testObjectMap(self, expectedDct, actualObjMap):
+    def _testObjectMap(self, expectedDct, actualObjMap, filename):
         """
         Check the expected values against those in the actual ObjectMap that
         was returned by the plugin.
@@ -136,9 +139,17 @@ class BasePluginsTestCase(BaseTestCase):
         for key in expectedDct:
             
             if hasattr(actualObjMap, key):
+                
                 actual = getattr(actualObjMap, key)
+                
                 if isinstance(actual, MultiArgs): actual = actual.args
-                self.assertEqual(expectedDct[key], actual)
+                
+                if isinstance(actual, str): format = "'%s' != '%s' in %s"
+                else                      : format = "%s != %s in %s"
+                
+                testPath = os.path.join(*filename.split(os.path.sep)[-2:])
+                msg = format % (expectedDct[key], actual, testPath)
+                self.assertEqual(expectedDct[key], actual, msg)
                 counter += 1
                 
             else:

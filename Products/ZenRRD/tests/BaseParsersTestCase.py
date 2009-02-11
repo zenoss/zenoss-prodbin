@@ -28,7 +28,7 @@ class Object(object):
 
 def createSimplePoints(expected):
     """
-    Create data points for a ComponentCommandParser from a mapping of expected
+    Create data points for a CommandParser from a mapping of expected
     values.  These points are simple datapoints on the device,
     not a subcomponent.
     """
@@ -40,11 +40,25 @@ def createSimplePoints(expected):
         point.expected = value
         points.append(point)
     return points
-
-
-def createPoints(expected):
+    
+    
+class Context(object):
     """
-    Create data points for a CommandParser from a mapping of expected
+    A fake context object for CommandParser.dataForParser() calls.  Pass in a
+    key to the initializer and access to any attribute on this object will
+    return that key.
+    """
+    
+    def __init__(self, key):
+        self.key = key
+        
+    def __getattr__(self, name):
+        return self.key
+        
+        
+def createPoints(expected, parser):
+    """
+    Create data points for a ComponentCommandParser from a mapping of expected
     values.
     """
     if not isinstance(expected.values()[0], dict):
@@ -52,13 +66,13 @@ def createPoints(expected):
     
     points = []
     
-    for componentScanValue in expected:
-        data = dict(componentScanValue=componentScanValue)
-        for id in expected[componentScanValue]:
+    for key in expected:
+        
+        for id in expected[key]:
             point = Object()
             point.id = id
-            point.data = data
-            point.expected = expected[componentScanValue][id]
+            point.data = parser.dataForParser(Context(key), None)
+            point.expected = expected[key][id]
             points.append(point)
             
     return points
@@ -96,17 +110,18 @@ class BaseParsersTestCase(BaseTestCase):
         expected = eval("".join(expectedfile.readlines()))
         expectedfile.close()
         
-        cmd = Object()
-        cmd.points = createPoints(expected)
-        cmd.result = Object()
-        cmd.result.output = output
         results = ParsedResults()
         Parser = parserMap.get(command)
-
+        
         if Parser:
             parser = Parser()
         else:
             self.fail("No parser for %s" % command)
+        
+        cmd = Object()
+        cmd.points = createPoints(expected, parser)
+        cmd.result = Object()
+        cmd.result.output = output
         
         parser.processResults(cmd, results)
         
