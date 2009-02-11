@@ -18,8 +18,16 @@
 
 	      ==========================================-->
 
-	  <tal:block metal:fill-slot="zentablecontents">
+	  <tal:block metal:fill-slot="zentablecontents"
+	      tal:define="itrans here/inheritedTransforms">
 	    <!-- BEGIN TABLE CONTENTS -->
+	    <tr>
+	      <td class="tableheader" colspan="2" tal:condition="itrans">
+	          Inherited transforms</td>
+	    </tr>
+	    <tr>
+	      <td class="tablevalues" colspan="2" tal:content="structure itrans"/>
+	    </tr>
 	    <tr>
 	      <td class="tableheader" colspan="2">Transform</td>
 	    </tr>

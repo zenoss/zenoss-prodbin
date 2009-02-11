@@ -72,25 +72,36 @@ class EventClassPropertyMixin(object):
         Apply transforms on an event from the top level of the Event Class Tree
         down to the actual Event Rules (EventClassInst)
         """     
-        transpath = []
-        for obj in aq_chain(self):
-            # skip over relationships in the aq_chain
-            if not isinstance(obj, EventClassPropertyMixin): continue
-            if obj.id == 'dmd': break
-            transpath.append(obj)
-        transpath.reverse()         
+        transpath = self._eventClassPath()
         variables = {'evt':evt, 'device':device, 'dev':device}
         for eventclass in transpath:
             if not eventclass.transform: continue
             try:
-                log.debug('Applying transform at %s', eventclass.getPrimaryId())
+                log.debug('Applying transform at %s',
+                    eventclass.getPrimaryDmdId())
                 exec(eventclass.transform, variables)
             except Exception, ex:
                 log.error("Error processing transform on Event Class %s (%s)",
                     eventclass.getPrimaryId(), ex)
         return variables['evt']
+                 
 
-
+    def inheritedTransforms(self):
+        """
+        Make a string that brings together all the transforms inherited from the
+        base EventClass to self.
+        """
+        transpath = self._eventClassPath()
+        transtext = []
+        for obj in transpath:
+            if not obj.transform: continue 
+            if obj.transform == self.transform: break
+            transtext.append("""<a href='%s/editEventClassTransform'>%s<a>
+                """ % (obj.getPrimaryUrlPath(), obj.getPrimaryDmdId()))
+            transtext.append("<pre>%s</pre>" % obj.transform)
+        return "\n".join(transtext)
+            
+  
     def testTransformStyle(self):
         """Test our transform by compiling it.
         """
@@ -100,7 +111,22 @@ class EventClassPropertyMixin(object):
         except:
             return "color:#FF0000;"
 
-
+        
+    def _eventClassPath(self):
+        """
+        Return the path to our current EventClassInst from the top level
+        EventClass down. We use this to process and display the heirarchy of
+        event transforms.
+        """
+        transpath = []
+        for obj in aq_chain(self):
+            # skip over relationships in the aq_chain
+            if not isinstance(obj, EventClassPropertyMixin): continue
+            if obj.id == 'dmd': break
+            transpath.append(obj)
+        transpath.reverse()
+        return transpath
+        
 # Why is this a subclass of EventView?
 
 class EventClassInst(EventClassPropertyMixin, ZenModelRM, EventView,
