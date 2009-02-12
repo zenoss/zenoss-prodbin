@@ -88,7 +88,7 @@ class EventClassPropertyMixin(object):
             except Exception, ex:
                 log.error("Error processing transform on Event Class %s (%s)",
                     eventclass.getPrimaryId(), ex)
-        return variables['evt']
+        return variables_and_funcs['evt']
                  
 
     def inheritedTransforms(self):
