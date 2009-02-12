@@ -12,7 +12,8 @@
 ###########################################################################
 __doc__="""EventClass.py
 
-$Id: DeviceOrganizer.py,v 1.6 2004/04/22 19:08:47 edahl Exp $"""
+Event class objects
+"""
 
 import types
 import logging
@@ -108,28 +109,11 @@ class EventClass(EventClassPropertyMixin, Organizer, ManagedEntity, ZenPackable)
                 , 'permissions'   : (
                   Permissions.view, )
                 },
-#                { 'id'            : 'historyEvents'
-#                , 'name'          : 'History'
-#                , 'action'        : 'viewHistoryEvents'
-#                , 'permissions'   : (
-#                  Permissions.view, )
-#                },
                 { 'id'            : 'config'
                 , 'name'          : 'zProperties'
                 , 'action'        : 'zPropertyEdit'
                 , 'permissions'   : ("Change Device",)
                 },
-#                { 'id'            : 'transform'
-#                , 'name'          : 'Transform'
-#                , 'action'        : 'editEventClassTransform'
-#                , 'permissions'   : ("Change Device",)
-#                },
-#                { 'id'            : 'viewHistory'
-#                , 'name'          : 'Modifications'
-#                , 'action'        : 'viewHistory'
-#                , 'permissions'   : (
-#                  Permissions.view, )
-#                },
             )
          },
         )
@@ -148,7 +132,11 @@ class EventClass(EventClassPropertyMixin, Organizer, ManagedEntity, ZenPackable)
     severities = dict([(b, a) for a, b in severityConversions])
     
     def getSubEventClasses(self):
-        """Return all EventClass objects below this one.
+        """
+        Return all EventClass objects below this one.
+
+        @return: list of event classes
+        @rtype: list of EventClass
         """
         evts = self.children()
         for subgroup in self.children():
@@ -156,37 +144,68 @@ class EventClass(EventClassPropertyMixin, Organizer, ManagedEntity, ZenPackable)
         return evts
 
 
-    def find(self, query):
+    def find(self, evClassKey):
+        """
+        Look for the eventClassKey mapping in an event class,
+        and return them in sequence number oder, lowest-to-highest.
+
+        @parameter evClassKey: event class key
+        @type evClassKey: string
+        @return: list of event class mappings that match evClassKey, sorted
+        @rtype: list of EventClassInst
+        """
         cat = self._getCatalog()
-        brains = cat({'eventClassKey': query})
-        insts = [ self.getObjByPath(b.getPrimaryId) for b in brains ]
+        matches = cat({'eventClassKey': evClassKey})
+        insts = [ self.getObjByPath(b.getPrimaryId) for b in matches ]
         insts.sort(lambda x,y: cmp(x.sequence, y.sequence))
         return insts
 
     
     def lookup(self, evt, device):
+        """
+        Given an event, return an event class organizer object
+
+        @parameter evt: an event
+        @type evt: dictionary
+        @parameter device: device object
+        @type device: DMD device
+        @return: an event class that matches the mapping
+        @rtype: EventClassInst
+        """
+        if device is None:
+            try:
+                return self.getDmdRoot("Events").getOrganizer(Unknown)
+            except KeyError:
+                log.debug("Unable to find 'Unknown' organizer")
+                return None
+
         evtcls = []
         if getattr(evt, "eventClass", False):
             try:
                 return self.getDmdRoot("Events").getOrganizer(evt.eventClass)
-            except KeyError: pass
-        elif getattr(evt, "eventClassKey", False):
+            except KeyError:
+                log.debug("Unable to find '%s' organizer" % evt.eventClass)
+
+        if getattr(evt, "eventClassKey", False):
             log.debug("lookup eventClassKey:%s", evt.eventClassKey)
             evtcls = self.find(evt.eventClassKey)
+
         if not evtcls: 
             log.debug("lookup eventClassKey:defaultmapping")
             evtcls = self.find("defaultmapping")
+
         for evtcl in evtcls:
             m = evtcl.match(evt, device)
             if m: 
                 log.debug("EventClass:%s matched", evtcl.getOrganizerName())
                 break
         else:
+            log.debug("No EventClass matched")
             try:
                 return self.getDmdRoot("Events").getOrganizer(Unknown)
             except KeyError:
                 evtcl = None
-                log.debug("No EventClass matched")
+                log.debug("Unable to find 'Unknown' organizer")
         return evtcl
 
 

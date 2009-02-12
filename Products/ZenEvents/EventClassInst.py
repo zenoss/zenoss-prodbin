@@ -29,6 +29,8 @@ from Products.ZenModel.ZenModelRM import ZenModelRM
 from Products.ZenModel.EventView import EventView
 from Products.ZenModel.ZenPackable import ZenPackable
 from Products.ZenWidgets import messaging
+from Products.ZenUtils.Utils import convToUnits, zdecode
+
 
 def manage_addEventClassInst(context, id, REQUEST = None):
     """make a device class"""
@@ -73,13 +75,16 @@ class EventClassPropertyMixin(object):
         down to the actual Event Rules (EventClassInst)
         """     
         transpath = self._eventClassPath()
-        variables = {'evt':evt, 'device':device, 'dev':device}
+        variables_and_funcs = {
+            'evt':evt, 'device':device, 'dev':device,
+            'convToUnits':convToUnits, 'zdecode':zdecode,
+        }
         for eventclass in transpath:
             if not eventclass.transform: continue
             try:
                 log.debug('Applying transform at %s',
                     eventclass.getPrimaryDmdId())
-                exec(eventclass.transform, variables)
+                exec(eventclass.transform, variables_and_funcs)
             except Exception, ex:
                 log.error("Error processing transform on Event Class %s (%s)",
                     eventclass.getPrimaryId(), ex)
@@ -275,14 +280,22 @@ class EventClassInst(EventClassPropertyMixin, ZenModelRM, EventView,
 
 
     def match(self, evt, device):
-        """Match an event message against our regex.
+        """
+        Match an event message against our regex.
+
+        @parameter evt: event to match in our mapping
+        @type evt: dictionary
+        @parameter device: device
+        @type device: DMD object
+        @return: boolean
+        @rtype: boolean
         """
         value = False
         log.debug("match on:%s", self.getPrimaryDmdId())
         if self.rule:
             try:
                 log.debug("eval rule:%s", self.rule)
-                value = eval(self.rule, {'evt':evt, 'device': device})
+                value = eval(self.rule, {'evt':evt, 'dev':device, 'device': device})
             except Exception, e:
                 logging.warn("EventClassInst: %s rule failure: %s",
                             self.getDmdKey(), e)
@@ -366,7 +379,7 @@ class EventClassInst(EventClassPropertyMixin, ZenModelRM, EventView,
         """Edit a EventClassInst from a web page.
         """
         redirect = self.rename(name)
-        if self.eventClassKey != eventClassKey:
+        if eventClassKey and self.eventClassKey != eventClassKey:
             self.unindex_object()
             self.sequence = self.eventClass().nextSequenceNumber(eventClassKey)
             self.eventClassKey = eventClassKey

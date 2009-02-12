@@ -79,7 +79,10 @@ class MySqlSendEventMixin:
                     "Required event field %s not found" % field)
         
         #FIXME - ungly hack to make sure severity is an int
-        event.severity = int(event.severity)
+        try:
+            event.severity = int(event.severity)
+        except:
+            event.severity = 1  # Info
 
         # Check for nasty haxor tricks
         known_actions = [ 'history', 'drop', 'status', 'heartbeat',
@@ -108,18 +111,20 @@ class MySqlSendEventMixin:
             
 
         if not hasattr(event, 'dedupid'):
-            dedupid = []
             dedupfields = event.getDedupFields(self.defaultEventId)
             if not getattr(event, "eventKey", ""):
                 if type(dedupfields) != types.ListType:
                     dedupfields = list(dedupfields)
                 dedupfields = dedupfields + ["summary"]
+
+            dedupid = []
             for field in dedupfields:
                 value = getattr(event, field, "")
                 dedupid.append('%s' % value)
             dedupid = map(self.escape, dedupid)
             event.dedupid = "|".join(dedupid)
 
+        # WTH is 'cleanup' supposed to do? Never gets used
         cleanup = lambda : None
         evid = None
         try:
@@ -227,6 +232,9 @@ class MySqlSendEventMixin:
         events = self.getDmdRoot("Events")
         devices = self.getDmdRoot("Devices")
         networks, evt = self.getNetworkRoot(evt)
+
+        # Look for the device by name, then IP 'globally'
+        # and then from the /Network class
         device = None
         if getattr(evt, 'device', None):
             device = devices.findDevice(evt.device)
@@ -236,22 +244,24 @@ class MySqlSendEventMixin:
             device = self._findByIp(evt.device, networks)
         if not device and getattr(evt, 'ipAddress', None):
             device = self._findByIp(evt.ipAddress, networks)
+
         if device:
             evt.device = device.id
-            log.debug("Found device=%s", evt.device)
+            log.debug("Found device %s and adding device-specific"
+                      " rules", evt.device)
             evt = self.applyDeviceContext(device, evt)
+
         evtclass = events.lookup(evt, device)
         if evtclass:
             log.debug("EventClassInst=%s", evtclass.id)
             evt = evtclass.applyExtraction(evt)
             evt = evtclass.applyValues(evt)
             evt = evtclass.applyTransform(evt, device)
+
         if evt._action == "drop": 
-            log.debug("dropping event")
+            log.debug("Dropping event")
             return None
-        if getattr(evtclass, "scUserFunction", False):
-            log.debug("Found scUserFunction")
-            evt = evtclass.scUserFunction(device, evt)
+
         return evt
 
 
@@ -411,6 +421,7 @@ class MySqlSendEventMixin:
         w.append("%s='%s'" % (self.componentField, self.escape(evt.component)))
         w.append("eventKey='%s'" % self.escape(evt.eventKey))
         update += " and ".join(w)
+
         w = []
         for cls in clearcls:
             w.append("%s='%s'" % (self.eventClassField, self.escape(cls))) 
