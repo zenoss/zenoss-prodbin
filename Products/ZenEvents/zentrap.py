@@ -93,7 +93,7 @@ class ZenTrap(EventServer):
             sys.exit(1)
 
         if self.options.captureFilePrefix and not self.options.captureAll and \
-            self.optionscaptureIps == '':
+            self.options.captureIps == '':
             self.log.warn( "Must specify either --captureIps or --captureAll for" + \
                  " --capturePrefix to take effect.  Ignoring option --capturePrefix" )
 
