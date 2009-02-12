@@ -14,14 +14,15 @@
 __doc__="""CmdBase
 
 Provide utility functions for logging and config file parsing
-to command line programs
+to command-line programs
 """
 
 import os
 import sys
+import datetime
 import logging
 from optparse import OptionParser, SUPPRESS_HELP, NO_DEFAULT
-
+from urllib import quote
 
 # There is a nasty incompatibility between pkg_resources and twisted.
 # This pkg_resources import works around the problem.
@@ -177,6 +178,11 @@ class CmdBase:
                                action="store_true",
                                default=False,
                                help="Generate a Docbook table showing command-line switches." )
+
+        self.parser.add_option("--genxmlconfigs",
+                               action="store_true",
+                               default=False,
+                               help="Generate an XML file containing command-line switches." )
 
 
 
@@ -444,6 +450,82 @@ be seen on the display.
 
 
 
+    def generate_xml_configs( self, parser, options ):
+        """
+        Create an XML file that can be used to create Docbook files
+        as well as used as the basis for GUI-based daemon option
+        configuration.
+        """
+
+        #
+        # Header for the configuration file
+        #
+        unused(options)
+        daemon_name= os.path.basename( sys.argv[0] )
+        daemon_name= daemon_name.replace( '.py', '' )
+
+        export_date = datetime.datetime.now()
+
+        print """<?xml version="1.0" encoding="UTF-8"?>
+
+<!-- Default daemon configuration generated on %s -->
+<configuration id="%s" >
+
+""" % ( export_date, daemon_name )
+
+        options_to_ignore= ( 
+            'help', 'version', '', 'genconf', 'genxmltable',
+            'genxmlconfigs',
+        )
+
+        #
+        # Create an entry for each of the command line flags
+        #
+        # NB: Ideally, this should print out only the option parser dest
+        #     entries, rather than the command line options.
+        #
+        import re
+        for opt in parser.option_list:
+                if opt.help is SUPPRESS_HELP:
+                        continue
+
+                #
+                # Don't display anything we shouldn't be displaying
+                #
+                option_name= re.sub( r'.*/--', '', "%s" % opt )
+                option_name= re.sub( r'^--', '', "%s" % option_name )
+                if option_name in options_to_ignore:
+                        continue
+
+                default_value= parser.defaults.get( opt.dest )
+                if default_value is NO_DEFAULT or default_value is None:
+                        default_string= ""
+                else:
+                        default_string= str( default_value )
+
+#
+# TODO: Determine the variable name used and display the --option_name=variable_name
+#
+                if opt.action in [ 'store_true', 'store_false' ]:
+                   print """    <option id="%s" type="%s" default="%s" help="%s" />
+""" % ( option_name, "boolean", default_string, quote(opt.help),  )
+
+                else:
+                   target= opt.dest.lower()
+                   print """    <option id="%s" type="%s" default="%s" target="%s" help="%s" />
+""" % ( option_name, opt.type, quote(default_string), target, quote(opt.help), )
+
+
+        #
+        # Close the table elements
+        #
+        print """
+</configuration>
+"""
+        sys.exit( 0 )
+
+
+
     def parseOptions(self):
         """
         Uses the optparse parse previously populated and performs common options.
@@ -461,3 +543,6 @@ be seen on the display.
 
         if self.options.genxmltable:
             self.generate_xml_table( self.parser, self.options )
+
+        if self.options.genxmlconfigs:
+            self.generate_xml_configs( self.parser, self.options )

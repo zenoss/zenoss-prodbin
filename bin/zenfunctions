@@ -149,6 +149,13 @@ genconf() {
     exec $PYTHON $PRGHOME/$PRGNAME --genconf
 }
 
+genxmlconfigs() {
+    #
+    # Create a suitable default configuration file
+    #
+    exec $PYTHON $PRGHOME/$PRGNAME --genxmlconfigs
+}
+
 
 generic() {
     case "$CMD" in
@@ -173,9 +180,12 @@ generic() {
       genconf)
 	    genconf
 	    ;;
+      genxmlconfigs)
+	    genxmlconfigs
+	    ;;
       *)
 	    cat - <<HELP
-Usage: $0 {run|start|stop|restart|status|help|genconf} [options]
+Usage: $0 {run|start|stop|restart|status|help|genconf|genxmlconfigs} [options]
 
   where the commands are:
 
@@ -197,6 +207,8 @@ Usage: $0 {run|start|stop|restart|status|help|genconf} [options]
     help    - display the options available for the daemon
 
     genconf - create an example configuration file with default settings 
+
+    genxmlconfigs - create an XML file with default settings
 
 HELP
 	    exit 1
