@@ -30,6 +30,7 @@ from Products.CMFCore.PortalObject import PortalObjectBase
 from Products.CMFCore.utils import getToolByName
 
 from Products.ZenUtils import Security, Time
+from Products.ZenUtils.Utils import prepId
 
 from ZenossSecurity import *
 
@@ -83,6 +84,7 @@ class ZentinelPortal ( PortalObjectBase ):
             brains = catalog(getParentDeviceName=device)
         if REQUEST:
             if brains:
+                component = prepId(component)
                 for brain in brains:
                     if brain.getPath().split('/')[-1]==component:
                         raise Redirect(urllib.quote(

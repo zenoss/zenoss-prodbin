@@ -144,7 +144,7 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
     DeviceResultFields = ("component", "eventClass", "summary", "firstTime",
                             "lastTime", "count" )
     ComponentWhere = ("\"(device = '%s' and component = '%s')\""
-                      " % (me.device().getDmdKey(), me.getDmdKey())")
+                      " % (me.device().getDmdKey(), me.name())")
     ComponentResultFields = ("eventClass", "summary", "firstTime",
                             "lastTime", "count" )
     IpAddressWhere = "\"ipAddress='%s'\" % (me.getId())" 
