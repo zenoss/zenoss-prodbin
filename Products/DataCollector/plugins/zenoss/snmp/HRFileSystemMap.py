@@ -68,6 +68,12 @@ class HRFileSystemMap(SnmpPlugin):
             if totalBlocks < 0:
                 fs['totalBlocks'] = unsigned(totalBlocks)
             if not self.checkColumns(fs, self.columns, log): continue
+            
+            # Gentoo and openSUSE report "Virtual memory" as swap. This needs
+            # to be ignored so we can pickup the real swap later in the table.
+            if fs['mount'].lower() == "virtual memory":
+                continue
+                
             fstype = self.typemap.get(fs['type'],None)
             size = long(fs['blockSize'] * totalBlocks)
             if fstype == "ram":
