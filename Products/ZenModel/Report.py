@@ -105,5 +105,13 @@ class Report(ZenModelRM, ZenPackable):
         template = self._template.__of__(self)
         return template.pt_editForm()
     pt_editForm = manage_main
+    
+    
+    def pt_editAction(self, REQUEST, title, text, content_type, expand):
+        """Send changes to our template instead of ourself"""
+        template = self._template.__of__(self)
+        return template.pt_editAction(REQUEST,
+            title, text, content_type, expand)
+
 
 InitializeClass(Report)
