@@ -64,7 +64,6 @@ from Products.ZenUtils.Utils import setupLoggingHeader
 from Products.ZenUtils.Utils import executeCommand
 from Products.ZenUtils.Utils import clearWebLoggingStream
 from Products.ZenModel.Device import manage_createDevice
-from Products.ZenModel.Device import DeviceCreationJob
 from Products.ZenWidgets import messaging
 from StatusColor import StatusColor
 
@@ -681,7 +680,40 @@ class PerformanceConf(Monitor, StatusColor):
                                locationPath, groupPaths, systemPaths,
                                performanceMonitor, discoverProto, priority,
                                manageIp, REQUEST)
-        return device
+            if device:
+                if device.hasProperty('zSnmpVer'):
+                    zSnmpVer = device.zSnmpVer
+                if device.hasProperty('zSnmpCommunity'):
+                    zSnmpCommunity = device.zSnmpCommunity
+
+                device.manage_editDevice(
+                    tag=device.hw.tag or tag,
+                    serialNumber=device.hw.serialNumber or
+                         serialNumber,
+                    rackSlot=device.rackSlot or rackSlot,
+                    zSnmpPort=zSnmpPort,
+                    zSnmpCommunity=zSnmpCommunity,
+                    zSnmpVer=zSnmpVer,
+                    productionState=productionState,
+                    comments=comments,
+                    hwManufacturer=hwManufacturer or
+                         device.hw.getManufacturerName(),
+                    hwProductName=hwProductName or
+                         device.hw.getProductName(),
+                    osManufacturer=osManufacturer or
+                         device.os.getManufacturerName(),
+                    osProductName=osProductName or
+                         device.os.getProductName(),
+                    locationPath=locationPath,
+                    groupPaths=groupPaths,
+                    systemPaths=systemPaths,
+                    performanceMonitor=performanceMonitor,
+                    priority=priority
+                    )
+                return device
+            else:
+                log.debug('No device returned.')
+
 
     def _createDevice(self, deviceName, devicePath, tag, serialNumber,
                       zSnmpCommunity, zSnmpPort, zSnmpVer, rackSlot,
@@ -692,13 +724,12 @@ class PerformanceConf(Monitor, StatusColor):
         """
         Actual implementation for creating/adding a device to the system.
         """
-        status = self.dmd.JobManager.addJob(DeviceCreationJob, 
-            deviceName, devicePath, tag, serialNumber, zSnmpCommunity,
-            zSnmpPort, zSnmpVer, rackSlot, productionState, comments,
-            hwManufacturer, hwProductName, osManufacturer, osProductName,
-            locationPath, groupPaths, systemPaths, performanceMonitor,
-            discoverProto, priority, manageIp)
-        return status
+        self._executeZenDiscCommand(deviceName, devicePath, performanceMonitor,
+                                    discoverProto, zSnmpPort, zSnmpCommunity, 
+                                    REQUEST)
+        self.dmd._p_jar.sync()
+        device = self.getDmdRoot("Devices").findDevice(deviceName)
+        return device
 
 
     def _executeZenDiscCommand(self, deviceName, devicePath= "/Discovered", 
@@ -734,8 +765,10 @@ class PerformanceConf(Monitor, StatusColor):
         if zSnmpCommunity != "":
             zendiscOptions.extend(["--snmp-community", zSnmpCommunity])
 
+        if REQUEST: zendiscOptions.append("--weblog")
         zendiscCmd.extend(zendiscOptions)
-        status = self.dmd.JobManager.addJob(ShellCommandJob, zendiscCmd)
+        result = executeCommand(zendiscCmd, REQUEST)
+        return result
 
     def executeCollectorCommand(self, command, args, REQUEST=None):
         """

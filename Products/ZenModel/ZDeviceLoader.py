@@ -97,6 +97,8 @@ class ZDeviceLoader(ZenModelItem,SimpleItem):
         device = None
 
         xmlrpc = isXmlRpc(REQUEST)
+        if REQUEST and not xmlrpc:
+            handler = setupLoggingHeader(self, REQUEST)
 
         """
         Get performance monitor and call createDevice so that the correct
@@ -133,12 +135,11 @@ class ZDeviceLoader(ZenModelItem,SimpleItem):
         if device is None:
             log.error("Unable to add the device %s" % deviceName)
         else:
-            log.info("Discovery job scheduled.")
+            log.info("Device %s loaded!" % deviceName)
 
         if REQUEST and not xmlrpc:
-            # Make sure we're using the jobs system; distributed zendisc won't
-            if IJobStatus.providedBy(device):
-                REQUEST.RESPONSE.redirect(device.absolute_url_path() + '/viewlog')
+            self.loaderFooter(device, REQUEST.RESPONSE)
+            clearWebLoggingStream(handler)
         if xmlrpc: return 0
 
 
