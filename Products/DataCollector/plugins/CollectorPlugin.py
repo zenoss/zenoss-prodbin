@@ -16,16 +16,15 @@ __doc__= """Collector classes for the different methods of collecting data from 
 
 import struct
 from sets import Set
+from pprint import pformat
 
 import Products.ZenUtils.IpUtil as iputil
-
 from Products.DataCollector.plugins.DataMaps import ObjectMap, RelationshipMap
-
 from Products.ZenUtils.Utils import prepId as globalPrepId
-
 from Products.ZenHub.services.PerformanceConfig import ATTRIBUTES
+import Products.DataCollector.CommandPluginUtils as utils
 
-class CollectorPlugin:
+class CollectorPlugin(object):
     """
     Base class for Collector plugins
     """
@@ -179,9 +178,55 @@ class CommandPlugin(CollectorPlugin):
         'zTelnetSuccessRegexList',
         'zTelnetTermLength',
         )
-
-
-
+        
+        
+class LinuxCommandPlugin(CommandPlugin):
+    """
+    A command plugin for linux that is used by devices in Server/Cmd and 
+    Server/Ssh.
+    """
+    
+    
+    def condition(self, device, log):
+        """
+        If the device resides under the Server/Cmd device class, then only run
+        this plugin if uname has been previously modeled as "Linux". Otherwise
+        always run this plugin.
+        """
+        path = device.deviceClass().getPrimaryUrlPath()
+        
+        if path.startswith("/zport/dmd/Devices/Server/Cmd"):
+            result = device.os.uname == 'Linux'
+        else:
+            result = True
+            
+        return result
+        
+        
+class SoftwareCommandPlugin(CommandPlugin):
+    """
+    A CommandPlugin that collects information about installed software.
+    """
+    
+    
+    def __init__(self, parseResultsFunc):
+        self.parseResultsFunc = parseResultsFunc
+    
+    
+    def process(self, device, results, log):
+        """
+        Return a ReltionshipMap with the installed software.
+        """
+        log.info("Collecting installed software for host %s." % device.id)
+        softwareDicts = self.parseResultsFunc(results)
+        
+        log.debug("First three software dictionaries:\n%s" % (
+                pformat(softwareDicts[:3])),)
+                
+        return utils.createSoftwareRelationshipMap(softwareDicts)
+    
+        
+        
 class SnmpPlugin(CollectorPlugin):
     """
     An SnmpPlugin defines a mapping from SNMP MIB values to a datamap. 

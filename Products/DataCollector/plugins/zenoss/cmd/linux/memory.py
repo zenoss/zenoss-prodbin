@@ -11,7 +11,7 @@
 #
 ###########################################################################
 
-from Products.DataCollector.plugins.CollectorPlugin import CommandPlugin
+from Products.DataCollector.plugins.CollectorPlugin import LinuxCommandPlugin
 from Products.DataCollector.plugins.DataMaps import ObjectMap
 
 MULTIPLIER = {
@@ -21,7 +21,7 @@ MULTIPLIER = {
 }
 
 
-class memory(CommandPlugin):
+class memory(LinuxCommandPlugin):
     """
     maps /proc/meminfo to the memory and swap fields
     """
@@ -30,10 +30,6 @@ class memory(CommandPlugin):
     compname = "os"
     relname = "filesystems"
     modname = "Products.ZenModel.FileSystem"
-
-
-    def condition(self, device, log):
-        return device.os.uname == 'Linux'
 
 
     def process(self, device, results, log):

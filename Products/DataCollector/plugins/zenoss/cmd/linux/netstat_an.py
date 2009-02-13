@@ -11,9 +11,9 @@
 #
 ###########################################################################
 
-from CollectorPlugin import CommandPlugin
+from CollectorPlugin import LinuxCommandPlugin
 
-class netstat_an(CommandPlugin):
+class netstat_an(LinuxCommandPlugin):
     """
     Collect running ip services using netstat -an on a linux box.
     """
@@ -22,12 +22,8 @@ class netstat_an(CommandPlugin):
     compname = "os"
     relname = "ipservices"
     modname = "Products.ZenModel.IpService"
-
-
-    def condition(self, device, log):
-        return device.os.uname == 'Linux'
-
-
+    
+    
     def process(self, device, results, log):
         log.info('Collecting Ip Services for device %s' % device.id)
         rm = self.relMap()

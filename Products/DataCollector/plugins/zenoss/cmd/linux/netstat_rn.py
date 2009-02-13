@@ -17,23 +17,20 @@ NETMASK=2
 FLAGS=3
 INTERFACE=7
 
-from CollectorPlugin import CommandPlugin
+from CollectorPlugin import LinuxCommandPlugin
 
-class netstat_rn(CommandPlugin):
+class netstat_rn(LinuxCommandPlugin):
     
     maptype = "RouteMap" 
     command = 'netstat -rn'
     compname = "os"
     relname = "routes"
     modname = "Products.ZenModel.IpRouteEntry"
-    deviceProperties = CommandPlugin.deviceProperties + (
+    deviceProperties = LinuxCommandPlugin.deviceProperties + (
         'zRouteMapCollectOnlyIndirect',
         )
-
-    def condition(self, device, log):
-        return device.os.uname == 'Linux'
-
-
+        
+        
     def process(self, device, results, log):
         log.info('Collecting routes for device %s' % device.id)
         indirectOnly = getattr(device, 'zRouteMapCollectOnlyIndirect', False)

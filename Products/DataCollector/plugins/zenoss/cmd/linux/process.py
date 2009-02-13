@@ -18,7 +18,22 @@ class process(ProcessCommandPlugin):
     Linux command plugin for parsing ps command output and modeling processes.
     """
     
+    
     command = 'ps axho args'
     
+    
     def condition(self, device, log):
-        return device.os.uname == 'Linux'
+        """
+        If the device resides under the Server/Ssh device class, then always
+        run this plugin.  Otherwise only run this plugin if uname has been
+        previously modeled as "Linux".
+        """
+        path = device.deviceClass().getPrimaryUrlPath()
+        
+        if path.startswith("/zport/dmd/Devices/Server/Ssh"):
+            result = True
+        else:
+            result = device.os.uname == 'Linux'
+            
+        return result
+        

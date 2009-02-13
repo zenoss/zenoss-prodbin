@@ -12,6 +12,8 @@
 ###########################################################################
 
 
+from pprint import pformat
+
 from Products.DataCollector.plugins.CollectorPlugin import CommandPlugin
 
 
@@ -38,7 +40,9 @@ class ProcessCommandPlugin(CommandPlugin):
             relMap.append(self.objectMap({
                 "procName": words[0],
                 "parameters": " ".join(words[1:])}))
-            
-        log.debug(relMap)
+                
+        log.debug("First three modeled processes:\n%s" % 
+                pformat(relMap.maps[:3]))
+                
         return relMap
         

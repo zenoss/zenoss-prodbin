@@ -13,9 +13,9 @@
 
 import re
 
-from Products.DataCollector.plugins.CollectorPlugin import CommandPlugin
+from Products.DataCollector.plugins.CollectorPlugin import LinuxCommandPlugin
 
-class ifconfig(CommandPlugin):
+class ifconfig(LinuxCommandPlugin):
     """
     ifconfig maps a linux ifconfig command to the interfaces relation.
     """
@@ -31,12 +31,8 @@ class ifconfig(CommandPlugin):
         ).search
     v4addr = re.compile("inet addr:(\S+).*Mask:(\S+)").search
     flags = re.compile("^(.*) MTU:(\d+)\s+Metric:.*").search
-
-
-    def condition(self, device, log):
-        return device.os.uname == 'Linux'
-
-
+    
+    
     def process(self, device, results, log):
         log.info('Collecting interfaces for device %s' % device.id)
         rm = self.relMap()
