@@ -326,6 +326,8 @@ ZenGrid.prototype = {
     refresh: function() {
         this.buffer.clear();
         this.refreshTable(this.lastOffset);
+        this.message('Last updated ' + 
+                     getServerTimestamp() + '.');
     },
     query: function(offset) {
         var url = this.url || 'getJSONEventsInfo';
