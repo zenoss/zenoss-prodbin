@@ -126,7 +126,7 @@ class RRDView(object):
     
     
     def getRRDValues(self, dsnames, start=None, end=None, function="LAST",
-                     format="%.2lf"):
+                     format="%.2lf", extraRpn=""):
         """
         Return a dict of key value pairs where dsnames are the keys.
         """
@@ -146,6 +146,9 @@ class RRDView(object):
                 rpn = str(dp.rpn)
                 if rpn:
                     rpn = "," + rpn
+                if extraRpn:
+                    rpn = rpn + "," + extraRpn 
+                    
                 gopts.append("DEF:%s_r=%s:ds0:AVERAGE" % (dsname,filename))
                 gopts.append("CDEF:%s_c=%s_r%s" % (dsname,dsname,rpn))
                 gopts.append("VDEF:%s=%s_c,%s" % (dsname,dsname,function))

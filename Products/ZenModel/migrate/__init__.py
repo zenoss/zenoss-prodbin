@@ -164,3 +164,5 @@ import addPreferSnmpNamingFlag
 import correctDNSlookupCommands
 import usermsgsportlet
 import jobmanager
+import addDataPointAliasMenus
+import addCpuDataPointAliases

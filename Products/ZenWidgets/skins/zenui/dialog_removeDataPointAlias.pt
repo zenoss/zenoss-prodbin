@@ -1,0 +1,16 @@
+<h2>Remove DataPoint Aliases:</h2>
+<form tal:attributes="action here/absolute_url_path;" method="post" name="removeDataPointAliases">
+<input type="hidden" name="zenScreenName" value="here/absolute_url_path"/> 
+
+<select id="ids" name='ids:list' multiple="1">
+    <option tal:repeat="alias here/aliases"
+            tal:attributes="value alias/id" 
+            tal:content="alias/id" />
+</select>
+<br/><br/>
+<div align="center">
+<input type="submit" name="manage_removeDataPointAliases:method" value="Remove"/>
+<input id="dialog_cancel" type="button" value="Cancel" 
+       onclick="$('dialog').hide()"/>
+</div>
+</form>

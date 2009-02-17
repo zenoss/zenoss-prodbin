@@ -7,7 +7,8 @@
 
 
         <tal:block tal:define="message request/message | string:State at time:; 
-            tabletitle string:${message} ${here/getNowString}">
+            tabletitle string:${message} ${here/getNowString};
+			menu_id string:DataPointProperties_list">
         <tal:block metal:use-macro="here/zenuimacros/macros/zentable">
 
         <!--====Optional titlebar slots=============
@@ -75,6 +76,21 @@
       <td class="tablevalues" tal:condition="not:here/isManager"
         tal:content="here/createCmd"/>
     </tr>
+        <tr>
+          <td class="tableheader">Aliases</td>
+          <td class="tablevalues">
+            <tal:block tal:define="aliases python:here.aliases()">
+            <table>
+              <tr tal:repeat="alias aliases">
+                  <td tal:content="alias/id"></td>
+				  <td><b>|</b></td>
+                  <td tal:content="alias/formula"></td>
+              </tr>
+            </table>
+            </tal:block>
+          </td>
+        </tr>
+
     <tr>
         <td class=tableheader align="left" >
         </td>

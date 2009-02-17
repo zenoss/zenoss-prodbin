@@ -65,45 +65,59 @@
           <td class="tableheader">Type</td>
           <td class="tablevalues" tal:condition="here/isManager">
             <select class="tablevalues" name="rrdtype"
-            tal:define="curtype python:here.datapoints()[0].rrdtype">
-                <option tal:repeat="type python:here.datapoints()[0].rrdtypes" 
+            tal:define="curtype python:here.soleDataPoint().rrdtype">
+                <option tal:repeat="type python:here.soleDataPoint().rrdtypes" 
                     tal:attributes="value type; 
                         selected python:curtype == type"
                     tal:content="python:type">localhost</option>
             </select>
             </td>
           <td class="tablevalues" tal:condition="not:here/isManager"
-            tal:content="python:here.datapoints()[0].rrdtype"/>
+            tal:content="python:here.soleDataPoint().rrdtype"/>
         </tr>
         <tr tal:condition="python:here.sourcetype=='SNMP'">
             <td class="tableheader">RRD Min</td>
             <td class="tablevalues" tal:condition="here/isManager">
             <input class="tablevalues" type="text" name="rrdmin" size="40"
-                tal:attributes="value python:here.datapoints()[0].rrdmin" />
+                tal:attributes="value python:here.soleDataPoint().rrdmin" />
             </td>
           <td class="tablevalues" tal:condition="not:here/isManager"
-            tal:content="python:here.datapoints()[0].rrdmin"/>
+            tal:content="python:here.soleDataPoint().rrdmin"/>
         </tr>
         <tr tal:condition="python:here.sourcetype=='SNMP'">
             <td class="tableheader">RRD Max</td>
             <td class="tablevalues" tal:condition="here/isManager">
             <input class="tablevalues" type="text" name="rrdmax" size="40"
-                tal:attributes="value python:here.datapoints()[0].rrdmax" />
+                tal:attributes="value python:here.soleDataPoint().rrdmax" />
             </td>
           <td class="tablevalues" tal:condition="not:here/isManager"
-            tal:content="python:here.datapoints()[0].rrdmax"/>
+            tal:content="python:here.soleDataPoint().rrdmax"/>
         </tr>
         <tr tal:condition="python:here.sourcetype=='SNMP'">
             <td class="tableheader">Create Cmd</td>
             <td class="tablevalues" tal:condition="here/isManager">
             <textarea class="tablevalues" rows="5" cols="50"
                 name="createCmd:text" 
-                tal:content="python:here.datapoints()[0].createCmd">
+                tal:content="python:here.soleDataPoint().createCmd">
             </textarea>
             </td>
           <td class="tablevalues" tal:condition="not:here/isManager"
-            tal:content="python:here.datapoints()[0].createCmd"/>
+            tal:content="python:here.soleDataPoint().createCmd"/>
         </tr>
+	    <tr>
+	      <td class="tableheader">Aliases</td>
+	      <td class="tablevalues">
+	      	<tal:block tal:define="aliases python:here.aliases()">
+	      	<table>
+	      	  <tr tal:repeat="alias aliases">
+		          <td tal:content="alias/id"></td>
+				  <td><b>|</b></td>
+				  <td tal:content="alias/formula"></td>
+			  </tr>
+			</table>
+			</tal:block>
+		  </td>
+	    </tr>
 
     <tal:block tal:condition="python:here.sourcetype in ('COMMAND')">
         <tr>

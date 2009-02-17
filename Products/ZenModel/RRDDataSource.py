@@ -30,14 +30,13 @@ from Products.ZenWidgets import messaging
 from ZenModelRM import ZenModelRM
 from ZenPackable import ZenPackable
 
-
 def manage_addRRDDataSource(context, id, dsOption, REQUEST = None):
    """make a RRDDataSource"""
    ds = context.getDataSourceInstance(id, dsOption, REQUEST=None)
    context._setObject(ds.id, ds)
    if REQUEST is not None:
        REQUEST['RESPONSE'].redirect(context.absolute_url()+'/manage_main')
-
+       
 
 class RRDDataSource(ZenModelRM, ZenPackable):
 
@@ -272,7 +271,7 @@ class SimpleRRDDataSource(RRDDataSource):
 
         if REQUEST and self.datapoints():
 
-            datapoint = self.datapoints()[0]
+            datapoint = self.soleDataPoint()
 
             if REQUEST.has_key('rrdtype'):
                 if REQUEST['rrdtype'] in datapoint.rrdtypes:
@@ -318,6 +317,22 @@ class SimpleRRDDataSource(RRDDataSource):
 
         return RRDDataSource.zmanage_editProperties(self, REQUEST)
 
+    def soleDataPoint(self):
+        """
+        Return the datasource's only datapoint
+        """
+        dps = self.datapoints()
+        if dps:
+            return dps[0]
+    
+    def aliases(self):
+        """
+        Return the datapoint aliases that belong to the datasource's only
+        datapoint
+        """
+        dp = self.soleDataPoint()
+        if dp:
+            return dp.aliases()
 
     def manage_addDataPointsToGraphs(self, ids=(), graphIds=(), REQUEST=None):
         """
@@ -325,5 +340,21 @@ class SimpleRRDDataSource(RRDDataSource):
         call the super class's method with the single datapoint as the ids.
         """
         return RRDDataSource.manage_addDataPointsToGraphs(self,
-                (self.datapoints()[0].id,), graphIds, REQUEST)
+                (self.soleDataPoint().id,), graphIds, REQUEST)
+    
+    def manage_addDataPointAlias(self, id, formula, REQUEST=None):
+        """
+        Add a datapoint alias to the datasource's only datapoint
+        """
+        alias = self.soleDataPoint().manage_addDataPointAlias( id, formula )
+        if REQUEST:
+            return self.callZenScreen( REQUEST )
+        return alias
 
+    def manage_removeDataPointAliases(self, ids=(), REQUEST=None):
+        """
+        Remove the passed aliases from the datasource's only datapoint
+        """
+        self.soleDataPoint().manage_removeDataPointAliases( ids )
+        if REQUEST:
+            return self.callZenScreen(REQUEST)

@@ -1,0 +1,14 @@
+<h2>Add DataPoint Alias:</h2>
+<form tal:attributes="action here/absolute_url_path;" method="post" name="addDataPointAlias">
+<input type="hidden" name="zenScreenName" value="here/absolute_url_path"/> 
+<table>
+<tr><td>Name:       </td><td><input name="id"/></td></tr>
+<tr><td>Formula:       </td><td><input name="formula"/></td></tr>
+</table>
+<br>
+<div align="center">
+<input type="submit" name="manage_addDataPointAlias:method" value="Add"/>
+<input id="dialog_cancel" type="button" value="Cancel" 
+       onclick="$('dialog').hide()"/>
+</div>
+</form>

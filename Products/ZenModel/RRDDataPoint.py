@@ -30,6 +30,7 @@ from ZenModelRM import ZenModelRM
 from ZenPackable import ZenPackable
 
 from Products.ZenUtils.Utils import unused
+from Products.ZenModel.RRDDataPointAlias import manage_addDataPointAlias
 
 def manage_addRRDDataPoint(context, id, REQUEST = None):
     """make a RRDDataPoint"""
@@ -37,7 +38,38 @@ def manage_addRRDDataPoint(context, id, REQUEST = None):
     context._setObject(dp.id, dp)
     if REQUEST is not None:
         REQUEST['RESPONSE'].redirect(context.absolute_url()+'/manage_main')
+        
+def getDataPointsByAliases( context, aliases ):
+    """
+    Retrieve the datapoint/alias pairs for the passed aliases.
+    """
+    for brains in context.dmd.searchRRDTemplates():
+        template = brains.getObject()
+        for datasource in template.datasources():
+            for datapoint in datasource.datapoints():
+                thisDatapointsAliases = dict( 
+                        [ ( dpAlias.id, dpAlias ) for dpAlias in 
+                           datapoint.aliases() ] )
+                found = False
+                foundAlias = None
+                for alias in aliases:
+                    if not found and thisDatapointsAliases.has_key( alias ):
+                        found = True
+                        foundAlias = thisDatapointsAliases[alias]
+                        break
+                    elif alias == datapoint.id:
+                        found = True
+                        break
+                if found:
+                    yield foundAlias, datapoint
 
+def getDataPointsByAlias( context, alias ):
+    """
+    Retrieve the datapoint/alias pairs for the passed alias.
+    """
+    return getDataPointsByAliases( context, [alias] )
+
+                                     
 #addRRDDataPoint = DTMLFile('dtml/addRRDDataPoint',globals())
 
 SEPARATOR = '_'
@@ -89,6 +121,7 @@ class RRDDataPoint(ZenModelRM, ZenPackable):
 
     _relations = ZenPackable._relations + (
         ("datasource", ToOne(ToManyCont,"Products.ZenModel.RRDDataSource","datapoints")),
+        ("aliases", ToManyCont(ToOne, "Products.ZenModel.RRDDataPointAlias","datapoint"))
         )
     
     # Screen action bindings (and tab definitions)
@@ -137,6 +170,50 @@ class RRDDataPoint(ZenModelRM, ZenPackable):
         if self.createCmd:
             return self.createCmd
         return ''
+    
+    def addAlias(self, id, formula=None):
+        """
+        Add a new alias to this datapoint
+        """
+        manage_addDataPointAlias( self, id, formula )
+    
+    def hasAlias(self, aliasId):
+        """
+        Whether this datapoint has an alias of this id
+        """
+        return hasattr( self.aliases, aliasId )
+    
+    def removeAlias(self, aliasId):
+        """
+        Remove any alias with the given id
+        """
+        if self.hasAlias( aliasId ):
+            alias = self.aliases._getOb( aliasId )
+            self.aliases.removeRelation( alias )
+        
+    def getAliasNames(self):
+        """
+        Return all the ids of this datapoint's aliases
+        """
+        return [ alias.id for alias in self.aliases() ]
+    
+    def manage_addDataPointAlias(self, id, formula, REQUEST=None ):
+        """
+        Add an alias to this datapoint
+        """
+        alias = manage_addDataPointAlias( self, id, formula )
+        if REQUEST:
+            return self.callZenScreen(REQUEST)
+        return alias
+    
+    def manage_removeDataPointAliases(self, ids=(), REQUEST=None ):
+        """
+        Remove aliases from this datapoint
+        """
+        for id in ids:
+            self.removeAlias( id )
+        if REQUEST:
+            return self.callZenScreen(REQUEST)
 
 
     security.declareProtected('Manage DMD', 'zmanage_editProperties')

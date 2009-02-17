@@ -2066,6 +2066,10 @@ GAUGE
 <property type="boolean" id="isrow" mode="w" >
 True
 </property>
+<tomanycont id='aliases'>
+<object id='cpu__pct' module='Products.ZenModel.RRDDataPointAlias' class='RRDDataPointAlias'>
+</object>
+</tomanycont>
 </object>
 </tomanycont>
 </object>
@@ -2431,6 +2435,13 @@ GAUGE
 <property type="boolean" id="isrow" mode="w" >
 True
 </property>
+<tomanycont id='aliases'>
+<object id='loadAverage5min' module='Products.ZenModel.RRDDataPointAlias' class='RRDDataPointAlias'>
+<property type='string' id='formula' mode='w'>
+100,/
+</property>
+</object>
+</tomanycont>
 </object>
 </tomanycont>
 </object>
@@ -2614,6 +2625,13 @@ True
 <property type="string" id="rrdmin" mode="w" >
 0
 </property>
+<tomanycont id='aliases'>
+<object id='cpu__pct' module='Products.ZenModel.RRDDataPointAlias' class='RRDDataPointAlias'>
+<property type='string' id='formula' mode='w'>
+__EVAL:str(len(here.hw.cpus())) + ',/,100,EXC,-,0,MAX'
+</property>
+</object>
+</tomanycont>
 </object>
 </tomanycont>
 </object>
@@ -3792,6 +3810,13 @@ GAUGE
 <property type="boolean" id="isrow" mode="w" >
 True
 </property>
+<tomanycont id='aliases'>
+<object id='loadAverage5min' module='Products.ZenModel.RRDDataPointAlias' class='RRDDataPointAlias'>
+<property type='string' id='formula' mode='w'>
+100,/
+</property>
+</object>
+</tomanycont>
 </object>
 </tomanycont>
 </object>
@@ -5113,6 +5138,10 @@ GAUGE
 <property type="boolean" id="isrow" mode="w" >
 True
 </property>
+<tomanycont id='aliases'>
+<object id='cpu__pct' module='Products.ZenModel.RRDDataPointAlias' class='RRDDataPointAlias'>
+</object>
+</tomanycont>
 </object>
 </tomanycont>
 </object>
@@ -5893,6 +5922,13 @@ GAUGE
 <property type="boolean" id="isrow" mode="w" >
 True
 </property>
+<tomanycont id='aliases'>
+<object id='loadAverage5min' module='Products.ZenModel.RRDDataPointAlias' class='RRDDataPointAlias'>
+<property type='string' id='formula' mode='w'>
+100,/
+</property>
+</object>
+</tomanycont>
 </object>
 </tomanycont>
 </object>
@@ -7101,6 +7137,13 @@ GAUGE
 <property type="boolean" id="isrow" mode="w" >
 True
 </property>
+<tomanycont id='aliases'>
+<object id='loadAverage5min' module='Products.ZenModel.RRDDataPointAlias' class='RRDDataPointAlias'>
+<property type='string' id='formula' mode='w'>
+100,/
+</property>
+</object>
+</tomanycont>
 </object>
 <object id='ssCpuRawIdle' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
@@ -7112,6 +7155,13 @@ True
 <property type="string" id="rrdmin" mode="w" >
 0
 </property>
+<tomanycont id='aliases'>
+<object id='cpu__pct' module='Products.ZenModel.RRDDataPointAlias' class='RRDDataPointAlias'>
+<property type='string' id='formula' mode='w'>
+__EVAL:str(len(here.hw.cpus())) + ',/,100,EXC,-,0,MAX'
+</property>
+</object>
+</tomanycont>
 </object>
 <object id='ssCpuRawInterrupt' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
