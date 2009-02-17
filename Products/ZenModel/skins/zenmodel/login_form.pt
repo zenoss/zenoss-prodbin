@@ -116,7 +116,7 @@
                     <input type="submit" name="submit" 
                            class="submitbutton" value=""/>
                     <div id="copyright">
-                        <p>Copyright &copy; 2005-2008 Zenoss, Inc. | Version
+                        <p>Copyright &copy; 2005-2009 Zenoss, Inc. | Version
                         <span tal:content="here/getZenossVersionShort"/>
                         </p>
                     </div>
