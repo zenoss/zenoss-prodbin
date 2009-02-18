@@ -66,8 +66,21 @@ class TestDeviceClass(ZenModelBaseTest):
     def testSearchDevicesMultipleDevices(self):
         devices = self.dmd.Devices
         self.assert_(len(devices.searchDevices("testdev*"))==2)
+        
+    def testFindExact(self):
+        
+        id = 'testdev'
+        devices = self.dmd.Devices
+        devices.createInstance('TESTDEV')
+        #inexact        
+        self.assert_(len(devices._findDevice(id)) == 2)
+        #exact
+        dev = devices.findDeviceExact(id)
+        self.assert_( dev.id == id )
+        
+        self.assert_( not devices.findDeviceExact(None) )
+        self.assert_( not devices.findDeviceExact('badid') )
 
-    
     def testGetPeerDeviceClassNames(self):
         dcnames = self.dev3.getPeerDeviceClassNames()
         self.assert_("/NetworkDevice/Router" in dcnames)
@@ -92,6 +105,12 @@ class TestDeviceClass(ZenModelBaseTest):
                      self.dmd.Devices.CustDev.getPythonDeviceClass())
 
     def testMoveDevices(self):
+        self.dmd.Devices.moveDevices('/Server', 'testdev')
+        dev = self.dmd.Devices.Server.devices.testdev
+        self.assert_(dev.os.interfaces)
+
+    def testMoveDevicesWithPotentialCaseIssue(self):
+        self.dmd.Devices.createInstance( 'TESTDEV' )
         self.dmd.Devices.moveDevices('/Server', 'testdev')
         dev = self.dmd.Devices.Server.devices.testdev
         self.assert_(dev.os.interfaces)

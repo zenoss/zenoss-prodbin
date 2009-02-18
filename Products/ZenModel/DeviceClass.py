@@ -198,7 +198,7 @@ class DeviceClass(DeviceOrganizer, ZenPackable, TemplateContainer):
         target = self.getDmdRoot(self.dmdRootName).getOrganizer(moveTarget)
         if type(deviceNames) == types.StringType: deviceNames = (deviceNames,)
         for devname in deviceNames:
-            dev = self.findDevice(devname)
+            dev = self.findDeviceExact(devname)
             if not dev: continue
             source = dev.deviceClass().primaryAq()
             if dev.__class__ != target.getPythonDeviceClass():
@@ -418,7 +418,6 @@ class DeviceClass(DeviceOrganizer, ZenPackable, TemplateContainer):
                    Eq('getDeviceIp', devicename))
         return self._getCatalog().evalAdvancedQuery(query)
 
-
     def findDevicePath(self, devicename):
         """
         Look up a device and return its path
@@ -427,7 +426,6 @@ class DeviceClass(DeviceOrganizer, ZenPackable, TemplateContainer):
         if not ret: return ""
         return ret[0].getPrimaryId
 
-
     def findDevice(self, devicename):
         """
         Look up device in catalog and return it
@@ -435,6 +433,15 @@ class DeviceClass(DeviceOrganizer, ZenPackable, TemplateContainer):
         ret = self._findDevice(devicename)
         if ret: return ret[0].getObject()
 
+    def findDeviceExact(self, devicename):
+        """
+        Look up device in catalog and return it.  devicename
+        must match device id exactly
+        """
+        for brains in self._getCatalog()(id=devicename):
+            dev = brains.getObject()
+            if dev.id == devicename:
+                return dev
 
     def findDevicePingStatus(self, devicename):
         """
