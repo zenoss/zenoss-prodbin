@@ -275,7 +275,7 @@ class ZenTrap(EventServer):
         @type pdu: binary
         """
         ts = time.time()
-        d = self.asyncHandleTrap((pdu.host, pdu.port), pdu, ts)
+        d = self.asyncHandleTrap([pdu.host, pdu.port], pdu, ts)
 
 
     def replayStop(self):
