@@ -166,7 +166,7 @@
         <li>
         <a tal:attributes="href string:
             http://www.zenoss.com/help?version=${here/dmd/About/getZenossVersionShort}
-        ">Help</a>
+        " target="_blank">Help</a>
         </li>
     </ul>
     <div class="searchbox">
