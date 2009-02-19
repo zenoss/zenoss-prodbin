@@ -68,7 +68,8 @@ class ZenDisc(ZenModeler):
                          self.options.timeout,
                          sock=sock)
 
-    def config(self):
+        
+    def discoverService(self):
         """
         Get the DiscoverService
 
@@ -119,7 +120,7 @@ class ZenDisc(ZenModeler):
                 goodCount += len(goodips)
                 self.log.debug("Got %d good IPs and %d bad IPs",
                                len(goodips), len(badips))
-                yield self.config().callRemote('pingStatus',
+                yield self.discoverService().callRemote('pingStatus',
                                                net,
                                                goodips,
                                                badips,
@@ -158,7 +159,7 @@ class ZenDisc(ZenModeler):
             @return: successful result is a list of IPs that were added
             @rtype: Twisted deferred
             """
-            yield self.config().callRemote('followNextHopIps', rootdev.id)
+            yield self.discoverService().callRemote('followNextHopIps', rootdev.id)
             for ip in driver.next():
                 if ip in seenips:
                     continue
@@ -250,14 +251,14 @@ class ZenDisc(ZenModeler):
             @rtype: Twisted deferred
             """
             self.log.debug("Doing SNMP lookup on device %s", ip)
-            yield self.config().callRemote('getSnmpConfig', devicePath)
+            yield self.discoverService().callRemote('getSnmpConfig', devicePath)
             communities, port, version, timeout, retries = driver.next()
 
             # Override with the stuff passed in
             if self.options.zSnmpVer: version = self.options.zSnmpVer
             if self.options.zSnmpPort: port = self.options.zSnmpPort
             if self.options.zSnmpCommunity: 
-                communities = (self.options.zSnmpCommunity,) + tuple(communities)
+                communities = (self.options.zSnmpCommunity,)+tuple(communities)
 
             versions = ("v2c", "v1")
             if '1' in version:
@@ -403,7 +404,7 @@ class ZenDisc(ZenModeler):
                 forceDiscovery = bool(self.options.device) 
 
                 # now create the device by calling zenhub
-                yield self.config().callRemote('createDevice', ip, 
+                yield self.discoverService().callRemote('createDevice', ip, 
                                    force=forceDiscovery, **kw)
 
                 result = driver.next()
@@ -440,7 +441,8 @@ class ZenDisc(ZenModeler):
                 # FIXME - this does not currently work
                 newPath = self.autoAllocate(dev)
                 if newPath:
-                    yield self.config().callRemote('moveDevice',dev.id,newPath)
+                    yield self.discoverService().callRemote(
+                                    'moveDevice',dev.id,newPath)
                     driver.next()
                 
                 # the device that we found/created or that should be remodeled
@@ -492,7 +494,7 @@ class ZenDisc(ZenModeler):
         count = 0
         devices = []
         if not self.options.net:
-            yield self.config().callRemote('getDefaultNetworks')
+            yield self.discoverService().callRemote('getDefaultNetworks')
             self.options.net = driver.next()
 
         if not self.options.net:
@@ -501,7 +503,7 @@ class ZenDisc(ZenModeler):
         
         for net in self.options.net:
             try:
-                yield self.config().callRemote('getNetworks',
+                yield self.discoverService().callRemote('getNetworks',
                                                net,
                                                self.options.subnets)
                 nets = driver.next()
@@ -571,7 +573,8 @@ class ZenDisc(ZenModeler):
             raise NoIPAddress("No IP found for name %s" % deviceName)
         else:
             self.log.debug("Found IP %s for device %s" % (ip, deviceName))
-            yield self.config().callRemote('getDeviceConfig', [deviceName])
+            yield self.discoverService().callRemote(
+                                        'getDeviceConfig', [deviceName])
             me, = driver.next() or [None]
             if not me or self.options.remodel:
                 yield self.discoverDevice(ip,
@@ -597,7 +600,7 @@ class ZenDisc(ZenModeler):
         except (socket.error, DNSNameError):
             self.log.warn("Failed lookup of my IP for name %s", myname)
 
-        yield self.config().callRemote('getDeviceConfig', [myname])
+        yield self.discoverService().callRemote('getDeviceConfig', [myname])
         me, = driver.next() or [None]
         if not me or self.options.remodel:
             yield self.discoverDevice(myname, 
@@ -617,7 +620,7 @@ class ZenDisc(ZenModeler):
         if self.options.routersonly:
             self.log.info("Only routers discovered, skipping ping sweep.")
         else:
-            yield self.config().callRemote('getSubNetworks')
+            yield self.discoverService().callRemote('getSubNetworks')
             yield self.discoverIps(driver.next())
             ips = driver.next()
             if not self.options.nosnmp: 
@@ -638,14 +641,13 @@ class ZenDisc(ZenModeler):
     def connected(self):
         """
         Called by Twisted once a connection has been established.
-        """
-        self.log.info('Connected to ZenHub')
+        """ 
         if self.options.walk:
             d = drive(self.walkDiscovery)
-
+        
         elif self.options.device:
             d = drive(self.createDevice)
-
+        
         else:
             d = drive(self.collectNet)
 

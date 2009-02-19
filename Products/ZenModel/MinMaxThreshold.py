@@ -178,7 +178,13 @@ class MinMaxThresholdInstance(ThresholdInstance):
         if dp in self._rrdInfoCache:
             return self._rrdInfoCache[dp]
         data = rrdtool.info(self.context().path(dp))
-        value = data['step'], data['ds[ds0].type']
+        # handle both old and new style RRD versions   
+        try:
+            # old style 1.2.x
+            value = data['step'], data['ds']['ds0']['type']
+        except KeyError: 
+            # new style 1.3.x
+            value = data['step'], data['ds[ds0].type']
         self._rrdInfoCache[dp] = value
         return value
 
@@ -229,8 +235,8 @@ class MinMaxThresholdInstance(ThresholdInstance):
         if value is None: return result
         try:
             cycleTime, rrdType = self.rrdInfoCache(dataPoint)
-        except Exception:
-            log.error('Unable to read RRD file for %s' % dataPoint)
+        except Exception:                                          
+            log.exception('Unable to read RRD file for %s' % dataPoint)
             return result
         if rrdType != 'GAUGE' and value is None:
             value = self.fetchLastValue(dataPoint, cycleTime)

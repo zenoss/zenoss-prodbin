@@ -11,6 +11,8 @@
 #
 ###########################################################################
 
+from Acquisition import aq_base
+
 from PerformanceConfig import PerformanceConfig
 from Products.ZenHub.PBDaemon import translateError
 from Products.DataCollector.DeviceProxy import DeviceProxy
@@ -52,9 +54,18 @@ class ModelerService(PerformanceConfig):
             plugin = self.plugins.get(name, None)
             log.debug('checking plugin %s for device %s' % (name, dev.getId()))
             if plugin and plugin.condition(dev, log):
-                log.debug('adding plugin %s for device %s' % (name, dev.getId()))
+                log.debug('adding plugin %s for device %s' % (name,dev.getId()))
                 result.plugins.append(plugin.loader)
                 plugin.copyDataToProxy(dev, result)
+        return result
+
+    @translateError
+    def remote_getClassCollectorPlugins(self):
+        result = []
+        for dc in self.dmd.Devices.getSubOrganizers():
+            localPlugins = getattr(aq_base(dc), 'zCollectorPlugins', False)
+            if not localPlugins: continue
+            result.append((dc.getOrganizerName(), localPlugins))
         return result
 
     @translateError
@@ -87,14 +98,20 @@ class ModelerService(PerformanceConfig):
             if d.getPerformanceServerName() == monitor]
 
     @translateError
-    def remote_applyDataMaps(self, device, maps):
+    def remote_applyDataMaps(self, device, maps, devclass=None):
         from Products.DataCollector.ApplyDataMap import ApplyDataMap
         device = self.getPerformanceMonitor().findDevice(device)
+
         adm = ApplyDataMap(self)
         changed = False
         for map in maps:
             if adm._applyDataMap(device, map):
                 changed = True
+
+        if devclass and devclass != device.getDeviceClassPath():
+            device.moveDevices(devclass,device.id)
+            changed = True
+            
         if changed:
             device.setLastChange()
             import transaction
@@ -110,7 +127,9 @@ class ModelerService(PerformanceConfig):
         device.setSnmpLastCollection()
         from transaction import commit
         commit()
-
+        
+        
+        
     def pushConfig(self, device):
         from twisted.internet.defer import succeed
         return succeed(device)

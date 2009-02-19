@@ -36,6 +36,7 @@ class CollectorPlugin(object):
     compname = ""
     modname = ""
     classname = ""
+    weight = 1
     deviceProperties = ('id',
                         'manageIp',
                         '_snmpLastCollection',

@@ -20,6 +20,7 @@ class InformantHardDiskMap(SnmpPlugin):
     modname = "Products.ZenModel.HardDisk"
     relname = "harddisks"
     compname = "hw"
+    weight = 3
 
     snmpGetTableMaps = (
         GetTableMap('logicalDiskEntry', 

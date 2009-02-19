@@ -30,6 +30,8 @@ from SshClient      import SshClient
 from TelnetClient   import TelnetClient, buildOptions as TCbuildOptions
 from SnmpClient     import SnmpClient
 from PortscanClient import PortscanClient
+                         
+from Products.DataCollector import Classifier
 
 from twisted.internet import reactor
 from twisted.internet.defer import succeed
@@ -42,8 +44,8 @@ import DateTime
 import os
 import os.path
 import sys
-import traceback
-
+import traceback  
+       
 defaultPortScanTimeout = 5
 defaultParallel = 1
 defaultProtocol = "ssh"
@@ -63,7 +65,7 @@ class ZenModeler(PBDaemon):
 
     name = 'zenmodeler'
     initialServices = PBDaemon.initialServices + ['ModelerService']
-
+    
     generateEvents = True
     configCycleInterval = 360
 
@@ -98,7 +100,9 @@ class ZenModeler(PBDaemon):
         self.collage = float( self.options.collage ) / 1440.0
         self.clients = []
         self.finished = []
-        self.devicegen = None
+        self.devicegen = None  
+        
+        
 
     def reportError(self, error):
         """
@@ -113,12 +117,12 @@ class ZenModeler(PBDaemon):
     def connected(self):
         """
         Called after connected to the zenhub service
-        """
+        """             
         d = self.configure()
         d.addCallback(self.heartbeat)
         d.addErrback(self.reportError)
         d.addCallback(self.main)
-
+    
 
     def configure(self):
         """
@@ -133,7 +137,7 @@ class ZenModeler(PBDaemon):
             @type driver: driver object
             """
             self.log.debug('fetching monitor properties')
-            yield self.config().callRemote('propertyItems')
+            yield self.modelService().callRemote('propertyItems')
             items = dict(driver.next())
             if self.options.cycletime == 0:
                 self.modelerCycleInterval = items.get('modelerCycleInterval',
@@ -143,23 +147,28 @@ class ZenModeler(PBDaemon):
             reactor.callLater(self.configCycleInterval * 60, self.configure)
 
             self.log.debug("Getting threshold classes...")
-            yield self.config().callRemote('getThresholdClasses')
+            yield self.modelService().callRemote('getThresholdClasses')
             self.remote_updateThresholdClasses(driver.next())
 
             self.log.debug("Fetching default RRDCreateCommand...")
-            yield self.config().callRemote('getDefaultRRDCreateCommand')
+            yield self.modelService().callRemote('getDefaultRRDCreateCommand')
             createCommand = driver.next()
 
             self.log.debug("Getting collector thresholds...")
-            yield self.config().callRemote('getCollectorThresholds')
+            yield self.modelService().callRemote('getCollectorThresholds')
             self.rrdStats.config(self.options.monitor,
                                  self.name,
                                  driver.next(),
                                  createCommand)
+
+            self.log.debug("Getting collector plugins for each DeviceClass")
+            yield self.modelService().callRemote('getClassCollectorPlugins')
+            self.classCollectorPlugins = driver.next()
+                                             
         return drive(inner)
 
 
-    def config(self):
+    def modelService(self):
         """
         Get the ModelerService
         """
@@ -265,7 +274,7 @@ class ZenModeler(PBDaemon):
         timeout = clientTimeout + time.time()
         self.wmiCollect(device, ip, timeout)
         self.pythonCollect(device, ip, timeout)
-        self.cmdCollect(device, ip, timeout)
+        self.cmdCollect(device, ip, timeout) 
         self.snmpCollect(device, ip, timeout)
         self.portscanCollect(device, ip, timeout)
 
@@ -446,6 +455,40 @@ class ZenModeler(PBDaemon):
         self.addClient(client, timeout, 'SNMP', device.id)
 
 
+######## need to make async test for snmp work at some point -EAD #########
+    # def checkSnmpConnection(self, device):
+    #     """
+    #     Check to see if our current community string is still valid
+    #     
+    #     @param device: the device against which we will check
+    #     @type device: a Device instance
+    #     @return: result is None or a tuple containing 
+    #             (community, port, version, snmp name)
+    #     @rtype: deferred: Twisted deferred
+    #     """
+    #     from pynetsnmp.twistedsnmp import AgentProxy
+    # 
+    #     def inner(driver):
+    #         import pdb; pdb.set_trace() 
+    #         self.log.debug("Checking SNMP community %s on %s",
+    #                         device.zSnmpCommunity, device.id)
+    # 
+    #         oid = ".1.3.6.1.2.1.1.5.0"
+    #         proxy = AgentProxy(device.id,
+    #                            device.zSnmpPort,
+    #                            timeout=device.zSnmpTimeout,
+    #                            community=device.zSnmpCommunity,
+    #                            snmpVersion=device.zSnmpVer,
+    #                            tries=2)
+    #         proxy.open()
+    #         yield proxy.get([oid])
+    #         devname = driver.next().values()[0]
+    #         if devname: 
+    #             yield succeed(True)
+    #         yield succeed(False)  
+    # 
+    #     return drive(inner)
+
 
     def addClient(self, device, timeout, clientType, name):
         """
@@ -536,6 +579,7 @@ class ZenModeler(PBDaemon):
         self.log.debug("Client for %s finished collecting", device.id)
         def processClient(driver):
             try:
+                pluginStats = {}
                 self.log.debug("Processing data for device %s", device.id)
                 devchanged = False
                 maps = []
@@ -552,6 +596,8 @@ class ZenModeler(PBDaemon):
                         results = plugin.preprocess(results, self.log)
                         if results:
                             datamaps = plugin.process(device, results, self.log)
+                        if datamaps:
+                            pluginStats.setdefault(plugin.name(), plugin.weight)
 
                     except (SystemExit, KeyboardInterrupt), ex:
                         self.log.info( "Plugin %s terminated due to external"
@@ -573,7 +619,7 @@ class ZenModeler(PBDaemon):
                               "agent":collector_host, "device":device.id,
                               "severity":Error }
 
-                        info= "Problem while executing plugin %s" % plugin.name()
+                        info= "Problem while executing plugin %s" %plugin.name()
                         self.log.error( info )
                         evt[ 'summary' ]= info
 
@@ -588,22 +634,25 @@ class ZenModeler(PBDaemon):
                         datamaps = [datamaps,]
                     if datamaps:
                         maps += [m for m in datamaps if m]
-                if maps:
-                    yield self.config().callRemote('applyDataMaps', device.id,
-                                                   maps)
+                if maps:                             
+                    deviceClass = Classifier.classifyDevice(pluginStats,
+                                                self.classCollectorPlugins)
+                    yield self.modelService().callRemote(
+                                                'applyDataMaps', device.id,
+                                                maps, deviceClass)
                     if driver.next():
                         devchanged = True
                 if devchanged:
                     self.log.info("Changes in configuration applied")
                 else:
                     self.log.info("No change in configuration detected")
-                yield self.config().callRemote('setSnmpLastCollection',
+                yield self.modelService().callRemote('setSnmpLastCollection',
                                                device.id)
                 driver.next()
             except Exception, ex:
                 self.log.exception(ex)
                 raise
-
+ 
         def processClientFinished(result):
             """
             Called after the client collection finishes
@@ -710,7 +759,7 @@ class ZenModeler(PBDaemon):
         while count < self.options.parallel and self.devicegen:
             try:
                 device = self.devicegen.next()
-                yield self.config().callRemote('getDeviceConfig', [device])
+                yield self.modelService().callRemote('getDeviceConfig', [device])
                 # just collect one device, and let the timer add more
                 devices = driver.next()
                 if devices:
@@ -847,7 +896,7 @@ class ZenModeler(PBDaemon):
             return succeed([self.options.device])
 
         self.log.info("Collecting for path %s", self.options.path)
-        return self.config().callRemote('getDeviceListByOrganizer',
+        return self.modelService().callRemote('getDeviceListByOrganizer',
                                         self.options.path,
                                         self.options.monitor)
 
