@@ -237,8 +237,8 @@ class ApplyDataMap(object):
             if attname[0] == '_': continue
             att = getattr(aq_base(obj), attname, zenmarker)
             if att == zenmarker:
-                log.warn('attribute %s not found on object %s',
-                              attname, obj.id)
+                log.warn('The attribute %s was not found on object %s from device %s',
+                              attname, obj.id, device.id)
                 continue
             if callable(att): 
                 setter = getattr(obj, attname)
