@@ -59,9 +59,9 @@ class LogFile(object):
         offset = 0
         f.seek(0, SEEK_END)
         remaining = f.tell()
-        return self._generate_lines(f, offset, remaining)
+        return self.generate_lines(f, offset, remaining)
 
-    def _generate_lines(self, f, offset, remaining):
+    def generate_lines(self, f, offset, remaining):
         f.seek(offset)
         for line in f.readlines(remaining):
             yield line
@@ -76,25 +76,6 @@ class LogFile(object):
 
     def msg(self, text):
         self.write('%s %s' % (MESSAGE_MARKER, text))
-
-    def stream(self):
-        f = self.getFile()
-        offset = 0
-        f.seek(0, SEEK_END)
-        remaining = f.tell()
-        while True:
-            for line in self._generate_lines(f, offset, remaining):
-                if line.startswith(EOF_MARKER):
-                    raise StopIteration
-                yield line
-            if self.finished:
-                break
-            offset = f.tell()
-            f.seek(0, SEEK_END)
-            remaining = f.tell() - offset
-            del f
-            time.sleep(0.1)
-            f = self.getFile()
 
     def finish(self):
         if self.openfile:

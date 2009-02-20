@@ -31,6 +31,7 @@ import warnings
 import math
 from decimal import Decimal
 from sets import Set
+import asyncore
 log = logging.getLogger("zen.Utils")
 
 from popen2 import Popen4
@@ -41,6 +42,7 @@ from AccessControl import getSecurityManager
 from AccessControl import Unauthorized
 from AccessControl.ZopeGuards import guarded_getattr
 from Acquisition import aq_inner, aq_parent
+from ZServer.HTTPServer import zhttp_channel
 
 from Products.ZenUtils.Exceptions import ZenPathError, ZentinelException
 
@@ -1363,6 +1365,22 @@ def relative_time(t, precision=1, cmptime=None):
     else:
         result = 'in ' + result
     return result
+
+
+def is_browser_connection_open(request):
+    """
+    Check to see if the TCP connection to the browser is still open.
+
+    This might be used to interrupt an infinite while loop, which would
+    preclude the thread from being destroyed even though the connection has
+    been closed.
+    """
+    creation_time = request.environ['channel.creation_time']
+    for cnxn in asyncore.socket_map.values():
+        if (isinstance(cnxn, zhttp_channel) and 
+            cnxn.creation_time==creation_time):
+            return True
+    return False
 
 
 EXIT_CODE_MAPPING = {
