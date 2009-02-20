@@ -293,19 +293,19 @@
 
 <form method="get" name="collectionItemForm"
     tal:attributes="action here/absolute_url_path">
-    <input type="hidden" name="zenScreenName" tal:attributes="value template/id"/>
-    <tal:block tal:define="tableName string:collectionItemList; 
-        objects here/getItems;
+    <tal:block tal:define="
+        tableName string:collectionItemList; 
+        objects here/items;
+        tabletitle string:Collection Items;
         batch python:here.ZenTableManager.getBatch(tableName,objects,
                                                 sortedHeader='sequence'); 
-        tabletitle string:Collection Items;
-		menu_id string:collectionItemList">
-    <input type='hidden' name='tableName' tal:attributes="value tableName" />
-        <tal:block metal:use-macro="here/zenuimacros/macros/zentable">
+        menu_id string:collectionItemList">
 
-        <tal:block metal:fill-slot="zentablecontents">
+<tal:block metal:use-macro="here/zenuimacros/macros/zentable">
+
+<tal:block metal:fill-slot="zentablecontents">
+<!-- BEGIN TABLE CONTENTS -->
             
-    <tal:block>
     <tr>
         <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
                     tableName,'sequence','Seq')"/>
@@ -317,7 +317,8 @@
                     tableName,'getNumDevicesAndComponents','Number of'
                     ' Devices/Components')"/>
     </tr>
-    <tr class="tablevalues" tal:repeat="item batch">
+    <tal:block tal:repeat="item batch">
+    <tr class="tablevalues">
         <td>
             <input tal:condition="here/isManager" 
                 type="text" name="seqmap:list" size="2"
@@ -343,20 +344,12 @@
         <td tal:content="item/getNumDevicesAndComponents"></td>
             
     </tr>
-    <tr>
-        <td class="tablevalues" colspan="4">&nbsp;</td>
-    </tr>
-    <tr>
-        <td class="tablevalues" colspan="3">
-            Total unique devices and components
-        </td>
-        <td class="tablevalues">
-            <tal:block tal:replace="python:len(here.getDevicesAndComponents())">
-            </tal:block>
-        </td>
-    </tr>
     </tal:block>
-
+    <tr>
+        <td colspan="4" class="tableheader" align='center'>
+        <form metal:use-macro="here/zenTableNavigation/macros/navtool"></form>
+        </td>
+    </tr>
         <!-- END TABLE CONTENTS -->
 
         </tal:block>
