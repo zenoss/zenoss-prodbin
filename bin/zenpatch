@@ -6,9 +6,38 @@ if [ ! -z "$ZENHOME" -a ! -d $ZENHOME ]; then
     echo "Unable to determine \$ZENHOME (ie where the patches should be applied)" >&2
     exit 1 
 fi 
-if [ -z "$CHANGESET" ]; then
-    echo "Specify a changeset or a patch file." >&2 
-    exit 1 
+
+if [ -z "$CHANGESET" -o "$CHANGESET" = '--help' -o "$CHANGESET" = '-h' ]; then
+    cmd=`basename $0`
+    cat - >&2  <<USAGE
+  $cmd: Specify a changeset, a patch file or a comand-line flag. 
+
+  Usage:
+$cmd --help
+$cmd --list
+$cmd --guess_ticket
+$cmd changeset
+$cmd filename
+USAGE
+    exit 1
+fi 
+
+if [ $CHANGESET = '--list' ]; then
+    patches=`ls -1 $ZENHOME/Products/*.patch 2>/dev/null | sed -e 's#.*/r\([0-9]\+\).patch#\1#' -e 's#.*/\(.*\).patch#\1#' | sort -n`
+    if [ -z "$patches" ] ; then
+        echo "No patch files or changesets applied using zenpatch"
+    else
+        echo "Patch    URL"
+        echo "-----    ---"
+        for patch in $patches ; do
+            if [ -z "`echo $patch | tr -d 0-9`" ] ; then
+                echo "$patch     http://dev.zenoss.org/trac/changeset/${patch}?new=${patch}"
+            else
+                echo "$patch"
+            fi
+        done
+    fi
+    exit 0
 fi 
 
 # NB: The appliances don't have 'which'
@@ -22,6 +51,33 @@ if [ $? -gt 1 ] ; then   #  1- missing file, 127 - bad command
       exit 1
    fi
 fi
+
+if [ $CHANGESET = '--guess_ticket' ]; then
+    # sanity check for wget...
+    if [ -x "$($WHICH curl 2>/dev/null)" ]; then
+       get="curl -s"
+    elif [ -x "$($WHICH wget 2>/dev/null)" ]; then
+       get="wget -q -O -"
+    else
+        echo "Please install 'wget' or 'curl' to compare patches to fixes" >&2
+       exit 1
+    fi
+    patches=`ls -1 $ZENHOME/Products/*.patch 2>/dev/null | grep /r | sed -e 's#.*/r\([0-9]\+\).patch#\1#' | sort -n`
+    if [ -z "$patches" ] ; then
+        echo "No changesets applied using zenpatch"
+    else
+        echo "Patch    Ticket"
+        echo "-----    ------"
+        for patch in $patches ; do
+            if [ -z "`echo $patch | tr -d 0-9`" ] ; then
+                tickets=`$get http://dev.zenoss.org/trac/changeset/${patch}?new=${patch} | grep Fixes | sed -e 's/.*#\([0-9]\+\).*/\1/'`
+                echo "$patch     $tickets"
+            fi
+        done
+    fi
+    exit 0
+fi
+
 
 # sanity check for patch...
 if [ ! -x "`$WHICH patch 2>/dev/null`" ]; then 
