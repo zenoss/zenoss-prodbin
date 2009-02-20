@@ -69,6 +69,7 @@ from Products.ZenWidgets import messaging
 from Products.Jobber.jobs import ShellCommandJob
 from Products.Jobber.status import SUCCESS, FAILURE
 from Products.ZenUtils.Utils import binPath
+from Products.ZenEvents.browser.EventPillsAndSummaries import getEventPillME
 
 
 def getNetworkRoot(context, performanceMonitor):
@@ -1858,7 +1859,8 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
         else:
             path = classurl
         prod = self.getProdState()
-        evsum = self.getHTMLEventSummary()
+        zem = self.dmd.ZenEventManager
+        evsum = getEventPillME(zem, self)[0]
         return [id, ip, path, prod, evsum, self.getId()]
 
     def exportXmlHook(self, ofile, ignorerels):
