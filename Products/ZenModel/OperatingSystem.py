@@ -222,6 +222,7 @@ class OperatingSystem(Software):
             comp = context._getOb(componentName)
             if comp.monitor != monitored:
                 comp.monitor = monitored
+                comp.index_object()
         if REQUEST:
             verb = monitored and "Enabled" or "Disabled"
             messaging.IMessageSender(self).sendToBrowser(
