@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 CHANGESET=$1
+TICKET=$2
 # check to see if changeset or file have been specified
 # and whether ZENHOME is directory
 if [ ! -z "$ZENHOME" -a ! -d $ZENHOME ]; then
@@ -16,6 +17,7 @@ if [ -z "$CHANGESET" -o "$CHANGESET" = '--help' -o "$CHANGESET" = '-h' ]; then
 $cmd --help
 $cmd --list
 $cmd --guess_ticket
+$cmd --show_ticket_changesets
 $cmd changeset
 $cmd filename
 USAGE
@@ -75,6 +77,26 @@ if [ $CHANGESET = '--guess_ticket' ]; then
             fi
         done
     fi
+    exit 0
+fi
+
+if [ $CHANGESET = '--show_ticket_changesets' ]; then
+    # sanity check for wget...
+    if [ -x "$($WHICH curl 2>/dev/null)" ]; then
+       get="curl -s"
+    elif [ -x "$($WHICH wget 2>/dev/null)" ]; then
+       get="wget -q -O -"
+    else
+       echo "Please install 'wget' or 'curl' to compare patches to fixes" >&2
+       exit 1
+    fi
+    if [ -z "$TICKET" ] ; then
+       echo "Need to supply a ticket number for the --show_ticket_changesets flag"
+       exit 1
+    fi
+    echo "Ticket    Changesets"
+    echo "------    ----------"
+    $get http://dev.zenoss.org/trac/ticket/$TICKET | grep 'class="changeset"' | sed -e 's#.*changeset/\([0-9]\+\)" title="\(.*\)#\1    \2#'
     exit 0
 fi
 
