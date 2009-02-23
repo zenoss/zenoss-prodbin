@@ -33,7 +33,9 @@
     </tr>
     <tr>
       <td class="tableheader">Send String</td>
-      <td class="tablevalues" tal:content="here/sendString"/>
+      <td class="tablevalues">
+        <textarea disabled tal:content="here/sendString"/>
+      </td>
       <td class="tableheader">Expect Regex</td>
       <td class="tablevalues" tal:content="here/expectRegex"/>
     </tr>

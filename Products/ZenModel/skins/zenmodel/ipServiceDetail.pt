@@ -101,9 +101,11 @@
     <tr>
         <td class="tableheader">Send String</td>
         <td class="tablevalues" tal:condition="python:editable">
-            <input tal:attributes="class string:tablevalues;
-                                name string:sendString;
-                                value here/getSendString"/>
+            <textarea name="sendString:string"
+                  tal:attributes="class string:tablevalues;
+                              cols string:40;
+                              rows string:5;"
+                  tal:content="here/getSendString"/>
         </td>
         <td class="tablevalues" tal:condition="python:not editable"
             tal:content="here/getSendString"/>

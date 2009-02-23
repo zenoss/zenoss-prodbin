@@ -55,8 +55,8 @@
     <tr>
         <td class="tableheader">Send String</td>
         <td class="tablevalues" colspan="3">
-        <input class="tablevalues" type="text" name="sendString" size="60"
-            tal:attributes="value here/sendString" />
+        <textarea class="tablevalues" name="sendString" rows="6" cols="60"
+            tal:content="here/sendString" />
         </td>
     </tr>
     <tr>
