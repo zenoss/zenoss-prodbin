@@ -168,8 +168,11 @@ def findTestableProducts(packages=[], regex=None, testdir='tests'):
     for target in findZenPackDirectories() + [zenhome('Products')]:
         for root, dirs, files in os.walk(target):
             for dir in dirs:
-                if packages and dir not in packages:
-                    continue
+                if (packages and 
+                    # ZenPacks have a problem unless you do this
+                    target.split('/')[-1] not in packages and 
+                    dir not in packages):
+                        continue
                 # Sigh. We need to make sure no-one ends a ZenPack with 'Products'
                 if target.endswith('Products'):
                     if not (dir.startswith('Zen') or dir
