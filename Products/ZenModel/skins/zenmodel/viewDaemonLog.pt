@@ -3,8 +3,7 @@
 
 
         <tal:block tal:define="
-        query here/REQUEST/QUERY_STRING;
-        daemon  python:query.split('=')[-1]; 
+        daemon request/form/daemon || string:;
         tabletitle string:${daemon} Log File">
         <tal:block metal:use-macro="here/zenuimacros/macros/zentable">
 
