@@ -21,10 +21,18 @@ def attachCpuAliases( dmd, aliasMap ):
                     if not dp.hasAlias( aliasMap[dp.id][0] ):
                         dp.addAlias( *aliasMap[dp.id] )
 
+def buildDataPointAliasRelations( dmd ):
+    for brain in dmd.searchRRDTemplates():
+        template = brain.getObject()
+        for ds in template.datasources.objectValuesGen():
+            for dp in ds.datapoints.objectValuesGen():
+                dp.buildRelations()
+
 class addCpuDataPointAliases(Migrate.Step):
     version = Migrate.Version(2, 4, 0)
 
     def cutover(self, dmd):
+        buildDataPointAliasRelations( dmd )
         attachCpuAliases( dmd, 
           {'cpu5min' : ('cpu__pct',),
            'ssCpuRawIdle' : ('cpu__pct', "__EVAL:str(len(here.hw.cpus())) " + \
