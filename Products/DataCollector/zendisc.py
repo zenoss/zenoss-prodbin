@@ -77,6 +77,17 @@ class ZenDisc(ZenModeler):
         @rtype: function
         """
         return self.services.get('DiscoverService', FakeRemote())
+    
+    
+    def modelService(self):
+        """
+        Override the ZenModeler.modelService and grab the DiscoverService
+        (which is a ModelerService)
+        
+        @return: a DiscoverService from zenhub
+        @rtype: function
+        """
+        return self.discoverService()
 
 
     def discoverIps(self, nets):
