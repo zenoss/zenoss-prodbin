@@ -51,7 +51,8 @@ def _createInitialUser(self):
 
     plugins = self.plugins.listPlugins(
         interfaces.plugins.IUserEnumerationPlugin)
-    userCounts = [ len(plugin.listUserInfo()) for id, plugin in plugins ]
+    # get the user count, but only for functional plugins
+    userCounts = [ len(plugin.listUserInfo()) for id, plugin in plugins if hasattr(plugin, "listUserInfo")]
 
     if len(userCounts) <= 1:
         info = readUserAccessFile('inituser')
