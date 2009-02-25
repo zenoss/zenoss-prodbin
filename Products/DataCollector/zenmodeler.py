@@ -11,7 +11,7 @@
 #
 ###########################################################################
 
-__doc__= """Discover (aka model) a device and it's components.
+__doc__= """Discover (aka model) a device and its components.
 For instance, find out what Ethernet interfaces and hard disks a server
 has available.
 This information should change much less frequently than performance metrics.
@@ -137,7 +137,7 @@ class ZenModeler(PBDaemon):
             @type driver: driver object
             """
             self.log.debug('fetching monitor properties')
-            yield self.modelService().callRemote('propertyItems')
+            yield self.config().callRemote('propertyItems')
             items = dict(driver.next())
             if self.options.cycletime == 0:
                 self.modelerCycleInterval = items.get('modelerCycleInterval',
@@ -147,28 +147,28 @@ class ZenModeler(PBDaemon):
             reactor.callLater(self.configCycleInterval * 60, self.configure)
 
             self.log.debug("Getting threshold classes...")
-            yield self.modelService().callRemote('getThresholdClasses')
+            yield self.config().callRemote('getThresholdClasses')
             self.remote_updateThresholdClasses(driver.next())
 
             self.log.debug("Fetching default RRDCreateCommand...")
-            yield self.modelService().callRemote('getDefaultRRDCreateCommand')
+            yield self.config().callRemote('getDefaultRRDCreateCommand')
             createCommand = driver.next()
 
             self.log.debug("Getting collector thresholds...")
-            yield self.modelService().callRemote('getCollectorThresholds')
+            yield self.config().callRemote('getCollectorThresholds')
             self.rrdStats.config(self.options.monitor,
                                  self.name,
                                  driver.next(),
                                  createCommand)
 
             self.log.debug("Getting collector plugins for each DeviceClass")
-            yield self.modelService().callRemote('getClassCollectorPlugins')
+            yield self.config().callRemote('getClassCollectorPlugins')
             self.classCollectorPlugins = driver.next()
                                              
         return drive(inner)
 
 
-    def modelService(self):
+    def config(self):
         """
         Get the ModelerService
         """
@@ -637,7 +637,7 @@ class ZenModeler(PBDaemon):
                 if maps:                             
                     deviceClass = Classifier.classifyDevice(pluginStats,
                                                 self.classCollectorPlugins)
-                    yield self.modelService().callRemote(
+                    yield self.config().callRemote(
                                                 'applyDataMaps', device.id,
                                                 maps, deviceClass)
                     if driver.next():
@@ -646,7 +646,7 @@ class ZenModeler(PBDaemon):
                     self.log.info("Changes in configuration applied")
                 else:
                     self.log.info("No change in configuration detected")
-                yield self.modelService().callRemote('setSnmpLastCollection',
+                yield self.config().callRemote('setSnmpLastCollection',
                                                device.id)
                 driver.next()
             except Exception, ex:
@@ -759,7 +759,7 @@ class ZenModeler(PBDaemon):
         while count < self.options.parallel and self.devicegen:
             try:
                 device = self.devicegen.next()
-                yield self.modelService().callRemote('getDeviceConfig', [device])
+                yield self.config().callRemote('getDeviceConfig', [device])
                 # just collect one device, and let the timer add more
                 devices = driver.next()
                 if devices:
@@ -896,7 +896,7 @@ class ZenModeler(PBDaemon):
             return succeed([self.options.device])
 
         self.log.info("Collecting for path %s", self.options.path)
-        return self.modelService().callRemote('getDeviceListByOrganizer',
+        return self.config().callRemote('getDeviceListByOrganizer',
                                         self.options.path,
                                         self.options.monitor)
 
