@@ -13,6 +13,7 @@
 
 from pysamba.twisted.reactor import eventContext
 from pysamba.wbem.Query import Query
+from pysamba.library import WError
 
 from Products.ZenUtils.Utils import zenPath
 from Products.ZenUtils.Driver import drive
@@ -91,7 +92,12 @@ class WMIClient(object):
                     queryResult[tableName] = []
                     while 1:
                         yield result.fetchSome()
-                        more = driver.next()
+                        try:
+                            more = driver.next()
+                        except WError, ex:
+                            msg = 'Received %s from query: %s'
+                            log.error(msg % (ex.why(), query))
+                            raise
                         if not more:
                             break
                         queryResult[tableName].extend(more)

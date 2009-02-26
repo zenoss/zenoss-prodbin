@@ -42,7 +42,7 @@ class WMIPlugin(CollectorPlugin):
     
     def preprocess(self, results, log):
         if isinstance(results, Exception):
-            log.exception(results)
+            log.error(results)
             return None
         return results
 
