@@ -8,6 +8,8 @@
     <five:traversable class="Products.ZenModel.ZentinelPortal.ZentinelPortal"/>
     <five:traversable class="Products.ZenModel.DataRoot.DataRoot"/>
 
+    <include file="permissions.zcml"/>
+
     <include package=".browser"/>
     <include package="zope.app.location"/>
 

@@ -1,0 +1,146 @@
+<configure xmlns="http://namespaces.zope.org/zope"
+           i18n_domain="Five">
+
+  <!-- Permissions here should parallel ZenModel.ZenossSecurity -->
+
+  <permission
+      id="zenoss.Common"
+      title="ZenCommon"
+      />
+
+  <permission
+      id="zenoss.ManageDMD"
+      title="Manage DMD"
+      />
+
+  <permission
+      id="zenoss.Update"
+      title="ZenUpdate"
+      />
+
+  <permission
+      id="zenoss.Delete"
+      title="Delete objects"
+      />
+
+  <permission
+      id="zenoss.Add"
+      title="Add DMD Objects"
+      />
+
+  <permission
+      id="zenoss.View"
+      title="View"
+      />
+
+  <permission
+      id="zenoss.ViewHistory"
+      title="View History"
+      />
+
+  <permission
+      id="zenoss.ViewModifications"
+      title="View Modifications"
+      />
+
+  <permission
+      id="zenoss.ChangeSettings"
+      title="Change Settings"
+      />
+
+  <permission
+      id="zenoss.ChangeAlertingRules"
+      title="Change Alerting Rules"
+      />
+
+  <permission
+      id="zenoss.ChangeEventViews"
+      title="Change Event Views"
+      />
+
+  <permission
+      id="zenoss.ChangeAdminObjects"
+      title="Change Admin Objects"
+      />
+
+  <permission
+      id="zenoss.EditUser"
+      title="Edit Users"
+      />
+
+  <permission
+      id="zenoss.EditUserGroup"
+      title="Edit User Groups"
+      />
+
+  <permission
+      id="zenoss.ChangeDevice"
+      title="Change Device"
+      />
+
+  <permission
+      id="zenoss.AdminDevice"
+      title="Admin Device"
+      />
+
+  <permission
+      id="zenoss.ManageDevice"
+      title="Manage Device"
+      />
+
+  <permission
+      id="zenoss.ManageDeviceStatus"
+      title="Manage Device Status"
+      />
+
+  <permission
+      id="zenoss.zPropertiesEdit"
+      title="zProperties Edit"
+      />
+
+  <permission
+      id="zenoss.zPropertiesView"
+      title="zProperties View"
+      />
+
+  <permission
+      id="zenoss.EditLocalTemplates"
+      title="Edit Local Templates"
+      />
+
+  <permission
+      id="zenoss.RunCommands"
+      title="Run Commands"
+      />
+
+  <permission
+      id="zenoss.DefineCommandsEdit"
+      title="Define Commands Edit"
+      />
+
+  <permission
+      id="zenoss.DefineCommandsView"
+      title="Define Commands View"
+      />
+
+  <permission
+      id="zenoss.MaintenanceWindowEdit"
+      title="Maintenance Windows Edit"
+      />
+
+  <permission
+      id="zenoss.MaintenanceWindowView"
+      title="Maintenance Windows View"
+      />
+
+  <permission
+      id="zenoss.AdministratorsEdit"
+      title="Administrators Edit"
+      />
+
+  <permission
+      id="zenoss.AdministratorsView"
+      title="Administrators View"
+      />
+
+</configure>

@@ -11,6 +11,9 @@
 #
 ###########################################################################
 
+# Any updates to permissions in this file must be reflected in
+# ZenModel/permissions.zcml.
+
 # Zenoss Roles
 ZEN_USER_ROLE = 'ZenUser'
 ZEN_MANAGER_ROLE = 'ZenManager'
