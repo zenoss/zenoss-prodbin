@@ -812,7 +812,7 @@ class PerformanceConf(Monitor, StatusColor):
         zenmodelerOpts = ['run', '--now', '-F', '-d', device.id]
         if REQUEST:
             zenmodelerOpts.append('--weblog')
-        result = self.executeZenModelerCommand(zenmodelerOpts, REQUEST=REQUEST)
+        result = self._executeZenModelerCommand(zenmodelerOpts, REQUEST)
         if result and xmlrpc:
             return result
         log.info('configuration collected')
@@ -823,8 +823,7 @@ class PerformanceConf(Monitor, StatusColor):
         if xmlrpc:
             return 0
 
-    def executeZenModelerCommand(self, zenmodelerOpts, 
-                    modelerName='zenmodeler', REQUEST=None):
+    def _executeZenModelerCommand(self, zenmodelerOpts, REQUEST=None):
         """
         Execute zenmodeler and return result
         
@@ -835,7 +834,7 @@ class PerformanceConf(Monitor, StatusColor):
         @return: results of command
         @rtype: string
         """
-        zm = binPath(modelerName)
+        zm = binPath('zenmodeler')
         zenmodelerCmd = [zm]
         zenmodelerCmd.extend(zenmodelerOpts)
         result = executeCommand(zenmodelerCmd, REQUEST)
