@@ -549,6 +549,7 @@ function connectTextareas() {
 
     map(resizeAll, $$('textarea'));
 }
+addLoadEvent(connectTextareas);
 
 
 /* MENUS */

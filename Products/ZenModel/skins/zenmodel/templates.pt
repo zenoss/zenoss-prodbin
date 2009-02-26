@@ -201,7 +201,7 @@
         $('system_clock').innerHTML = getServerTime();
         callLater(1, updateTime)
     }
-    addLoadEvent(updateTime)
+    addLoadEvent(updateTime);
     </script>
     </div>
 </div>
