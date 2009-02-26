@@ -142,6 +142,11 @@ class IpNetwork(DeviceOrganizer):
         return super(IpNetwork, self).checkValidId(id, prep_id)
     
     
+    def getNetworkRoot(self):
+        """This is a hook method do not remove!"""
+        return self.dmd.getDmdRoot("Networks")
+
+
     def createNet(self, netip, netmask=24):
         """
         Return and create if necessary network.  netip is in the form
@@ -163,8 +168,9 @@ class IpNetwork(DeviceOrganizer):
             netmask = 24
         if netmask < 0 or netmask >= 64:
             netmask = 24
-
-        netroot = self.dmd.getDmdRoot("Networks")
+        
+        #hook method do not remove!
+        netroot = self.getNetworkRoot()
         netobj = netroot.getNet(netip)
         if netobj and netobj.netmask == netmask: # Network already exists.
             return netobj
