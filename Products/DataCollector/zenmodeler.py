@@ -68,6 +68,8 @@ class ZenModeler(PBDaemon):
     
     generateEvents = True
     configCycleInterval = 360
+    
+    classCollectorPlugins = ()
 
     def __init__(self, single=False ):
         """
