@@ -101,7 +101,7 @@ ZenGeoMap.prototype = {
         });
         // Test for latitude/longitude and bypass geocoding if match
         var r = address.match(/^(-?\d+\.?\d*),\s*(-?\d+\.?\d*)/);
-        if (r.length==3) {
+        if (r && r.length==3) {
             callback(new GLatLng(Number(r[1]), Number(r[2])))
         } else {
             lockedreq();
