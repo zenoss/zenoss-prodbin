@@ -261,7 +261,6 @@ class ZenHub(ZCmdBase):
         self.zem = self.dmd.ZenEventManager
         loadPlugins(self.dmd)
         self.services = {}
-        self.performanceMonitors = self.dmd.Monitors.Performance.getPerformanceMonitorNames()
 
         er = HubRealm(self)
         checker = self.loadChecker()
@@ -284,14 +283,7 @@ class ZenHub(ZCmdBase):
         Return the most recent RRD statistic information.
         """
         rrdStats = DaemonStats()
-        performanceMonitors = self.dmd.Monitors.Performance.getPerformanceMonitorNames()
-        if self.options.monitor not in performanceMonitors:
-            self.log.critical( "Performance monitor '%s' is no longer available" % \
-                 self.options.monitor )
-            self.log.info( "Current monitor list: %s" % performanceMonitors )
-            raise RemoteBadMonitor( "Performance monitor '%s' is no longer available" % \
-                 self.options.monitor )
-        perfConf = self.dmd.Monitors.Performance._getOb(self.options.monitor)
+        perfConf = self.dmd.Monitors.Performance._getOb(self.options.monitor, None)
         rrdStats.configWithMonitor('zenhub', perfConf)
         return rrdStats
 
@@ -399,14 +391,6 @@ class ZenHub(ZCmdBase):
         return []
 
 
-    def getPerformanceMonitorNames(self):
-        """
-        Return the list of currently valid performance monitors.
-        """
-        self.performanceMonitors = self.dmd.Monitors.Performance.getPerformanceMonitorNames()
-        return self.performanceMonitors
-
-
     def getService(self, name, instance):
         """
         Helper method to load services dynamically for a collector.
@@ -423,11 +407,9 @@ class ZenHub(ZCmdBase):
         @return: a service loaded from ZenHub/services or one of the zenpacks.
         """
         # Sanity check the names given to us
-        performanceMonitors = self.dmd.Monitors.Performance.getPerformanceMonitorNames()
-        if instance not in self.performanceMonitors:
+        if not self.dmd.Monitors.Performance._getOb(instance, False):
             raise RemoteBadMonitor( "The provided performance monitor '%s'" % \
-                 self.options.monitor +
-                 " is not in the current list: %s" % performanceMonitors )
+                 self.options.monitor + " is not in the current list" )
 
         try:
             return self.services[name, instance]
