@@ -20,6 +20,8 @@ if device.endswith('.'): device = device[:-1]
 parser = OptionParser(usage="usage: %prog [options] summary")
 parser.add_option("-d", "--device", dest="device", default=device,
     help="device from which this event is sent, default: %default")
+parser.add_option("-i", "--ipAddress", dest="ipAddress", default="",
+    help="Ip from which this event was sent, default: %default")
 parser.add_option("-y", "--eventkey", dest="eventkey", default="",
     help="eventKey to be used, default: %default")
 parser.add_option("-p", "--component", dest="component", default="",
@@ -30,6 +32,8 @@ parser.add_option("-s", "--severity", dest="severity", default="Warn",
     help="severity of this event: Critical, Error, Warn, Info, Debug, Clear")
 parser.add_option("-c", "--eventclass", dest="eventClass", default=None,
     help="event class for this event, default: ''")
+parser.add_option("--monitor", dest="monitor", default="localhost",
+    help="monitor from which this event came")
 parser.add_option("--port", dest="port", default=XML_RPC_PORT,
     help="xmlrpc server port, default: %default")
 parser.add_option("--server", dest="server", default="localhost",
@@ -50,12 +54,14 @@ if not evt['summary']:
     parser.error('no summary supplied') 
 evt['device'] = opts.device
 evt['component'] = opts.component
+evt['ipAddress'] = opts.ipAddress
 if opts.eventkey:
     evt['eventKey'] = opts.eventkey
 if opts.eventClassKey:
     evt['eventClassKey'] = opts.eventClassKey
 if opts.eventClass:
     evt['eventClass'] = opts.eventClass
+evt['monitor'] = opts.monitor    
 url = "http://%s@%s:%s" % (opts.auth, opts.server, opts.port)
 serv = ServerProxy(url)
 serv.sendEvent(evt)
