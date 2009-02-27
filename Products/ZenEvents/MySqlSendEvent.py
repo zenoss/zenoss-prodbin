@@ -233,6 +233,14 @@ class MySqlSendEventMixin:
         devices = self.getDmdRoot("Devices")
         networks, evt = self.getNetworkRoot(evt)
 
+        # if the event has a monitor field use the PerformanceConf 
+        # findDevice so that the find is scoped to the monitor (collector)
+        if getattr(evt, 'monitor', False):
+            monitorObj = self.getDmdRoot('Monitors'
+                            ).Performance._getOb(evt.monitor, None)
+            if monitorObj: 
+                devices = monitorObj
+
         # Look for the device by name, then IP 'globally'
         # and then from the /Network class
         device = None
