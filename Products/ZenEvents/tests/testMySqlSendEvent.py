@@ -180,6 +180,34 @@ class MySqlSendEventTest(BaseTestCase):
         clear_evt._clearClasses.append( clear_evt.evil )
         clear_evid = self.zem.sendEvent(clear_evt)
         self.assertEquals(clear_evid, None)
+        
+    def testLongComponentIdInClearEvent(self):
+        """
+        Make sure we handle clear events for components with
+        ids > 255 chars
+        """
+        longComponentId = "X" * 275
+        testEventKey = 'longComponentClearEventKey'
+        evt = dict(device=TEST_DEVICE, summary='Test', severity=5,
+              component=longComponentId, eventKey=testEventKey,
+              eventClass='Device' )
+        evid = self.zem.sendEvent(evt)
+        self.assertNotEquals(evid, None)
+
+        from Products.ZenEvents.Event import Event
+        clear_evt = Event( **evt )
+        clear_evt.severity = 0
+        clear_id = self.zem.sendEvent(clear_evt)
+        
+        extraField=('clearid',)
+        statusEvents = self.zem.getEventList(where="evid='%s'" % evid,
+                                             resultFields=extraField)
+        self.assertEquals( len( statusEvents ), 0 )
+        historyEvents = self.dmd.ZenEventHistory.getEventList(
+                                            where="evid='%s'" % evid,
+                                            resultFields=extraField)
+        self.assertEquals( len( historyEvents ), 1 )
+        self.assertEquals( historyEvents[0].clearid, clear_id )
     
     def testHierarchicalTransforms(self):
         """

@@ -29,6 +29,14 @@ affected_columns = [
   ('detail', 'evididx', 'evid'),
 ]
 
+def dropIndex( curs, table, indexName ):
+    try:
+        curs.execute('alter table %s drop index %s ' %
+            (table, indexName))
+    except OperationalError, e:
+            # Allow for aborted migrate attempts
+            print "\t\tMissing index -- previous migration " + \
+                  "probably failed"
 
 # So why 36?
 # len( str( Products.ZenUtil.guid.generate() ) ) == 36
@@ -39,18 +47,15 @@ class uuidEventIds(Migrate.Step):
         curs = dmd.ZenEventManager.connect().cursor()
         for table, indexName, column in affected_columns:
             print "\tUpdating MySQL event table %s" % table
-            try:
-                curs.execute('alter table %s drop index %s ' %
-                    (table, indexName))
-            except OperationalError, e:
-                    # Allow for aborted migrate attempts
-                    print "\t\tMissing index -- previous migration " + \
-                          "probably failed"
-
+            dropIndex( curs, table, indexName )
             curs.execute('alter table %s modify %s char(36) not null' %
                     (table, column))
             curs.execute('alter table %s add index %s (%s)' %
                     (table, indexName, column))
+        dropIndex( curs, 'status', 'clearidx' )
+        curs.execute('alter table status modify clearid char(36)')
+        curs.execute('alter table status add index clearidx (clearid)')
+        curs.execute('alter table history modify clearid char(36)')
 
 uuidEventIds = uuidEventIds()
 
