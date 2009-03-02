@@ -76,17 +76,23 @@ class CmdBase:
         @parameter filename: name of configuration file
         @type filename: string
         """
+        outlines = []
+        
         try:
-            lines = open(filename).readlines()
+            configFile = open(filename)
+            lines = configFile.readlines()
+            configFile.close()
         except:
             import traceback
             print >>sys.stderr, "WARN: unable to read config file %s -- skipping" % \
                    filename
             traceback.print_exc(0)
             return
-
+        
         lineno = 0
+        modified = False
         for line in lines:
+            outlines.append(line)
             lineno += 1
             if line.lstrip().startswith('#'): continue
             if line.strip() == '': continue
@@ -100,14 +106,24 @@ class CmdBase:
             flag= "--%s" % key
             option= self.parser.get_option( flag )
             if option is None:
-                print >>sys.stderr, "WARN: Ignoring unknown option '%s' found " \
+                print >>sys.stderr, "INFO: Commenting out unknown option '%s' found " \
                                     "on line %d in config file" % (key, lineno)
+                #take the last line off the buffer and comment it out
+                outlines = outlines[:-1]
+                outlines.append('## %s' % line)
+                modified = True
                 continue
-
+            
             # NB: At this stage, optparse accepts even bogus values
             #     It will report unhappiness when it parses the arguments
             self.parser.set_default( option.dest, type(option.type)(value) )
-
+        
+        #if we found bogus options write out the file with commented out bogus 
+        #values
+        if modified:
+            configFile = file(filename, 'w')
+            configFile.writelines(outlines)
+            configFile.close()
 
     def setupLogging(self):
         """
