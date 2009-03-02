@@ -586,6 +586,7 @@ class ZenModeler(PBDaemon):
                 devchanged = False
                 maps = []
                 for plugin, results in collectorClient.getResults():
+                    if plugin is None: continue
                     self.log.debug("Processing plugin %s on device %s ...",
                                    plugin.name(), device.id)
                     if not results:

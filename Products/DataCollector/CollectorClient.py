@@ -142,7 +142,7 @@ class CollectorClient(BaseClient, protocol.ClientFactory):
         @param exitCode: exit code from executing the command
         @type exitCode: integer
         """
-        plugin = self.cmdmap.get(command, command)
+        plugin = self.cmdmap.get(command, None)
         self.results.append((plugin, data))
 
   
