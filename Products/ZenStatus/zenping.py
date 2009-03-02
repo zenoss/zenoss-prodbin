@@ -297,12 +297,18 @@ class ZenPing(PBDaemon):
                 self.ping(pj)
         else:
             failname = pj.checkpath()
+            # walk up the ping tree and find router node with failure
             if failname:
                 pj.eventState = 2 # suppressed FIXME
                 pj.message += (", failed at %s" % failname)
             self.log.warn(pj.message)
             self.sendPingEvent(pj)
-            self.markChildrenDown(pj)
+            # not needed since it will cause suppressed ping events 
+            # to show up twice, once from if failname: sections
+            # and second from markChildrenDown
+            # the "marking" of children never took place anyway
+            # due to iterator status check
+            # self.markChildrenDown(pj)
         
         self.next()
 
@@ -321,6 +327,9 @@ class ZenPing(PBDaemon):
         recurse(self.pingtree)
         if not routers: return
         assert len(routers) == 1
+        # this iterator was previouly useless since
+        # it would have never gotten to the children 
+        # due to the pj.status != 0 check
         children = routers[0].pjgen()
         children.next()                 # skip self
         for pj in children:
