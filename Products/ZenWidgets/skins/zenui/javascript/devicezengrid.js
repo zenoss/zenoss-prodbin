@@ -802,6 +802,10 @@ DeviceZenGrid.prototype = {
         if (!(selectstatus=='none' && goodevids.length==0)) {
             this.showLoading();
             d = doXHR(url, {queryString:qs}); 
+            d.addErrback(bind(function(x) {
+                this.killLoading();
+                YAHOO.zenoss.Messenger.checkMessages();
+            }, this));
             d.addCallback(bind(
                 function(r) { 
                     this.buffer.clear();

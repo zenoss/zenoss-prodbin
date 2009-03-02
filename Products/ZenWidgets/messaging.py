@@ -172,7 +172,7 @@ class MessageSender(object):
 
     def sendToBrowser(self, title, body, priority=INFO, image=None):
         """
-        Create a message and store it on the request object.
+        Create a message and store it on the session object.
 
         @param title: The message title
         @type title: str

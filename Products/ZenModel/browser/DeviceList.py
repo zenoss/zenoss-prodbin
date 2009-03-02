@@ -17,6 +17,8 @@ from Products.ZenUtils.json import json
 from Products.ZenUtils.Utils import formreq, unused, ipsort
 from Products.AdvancedQuery import MatchRegexp, Or, Eq, In
 from Products.ZenUtils.FakeRequest import FakeRequest
+from Products.ZenWidgets import messaging
+from Products.ZenWidgets.interfaces import IMessageSender
 
 class DeviceList(BrowserView):
     """
@@ -93,7 +95,6 @@ class DeviceBatch(BrowserView):
                              selectstatus='none', goodevids=[],
                              badevids=[], offset=0, count=50, filter='',
                              orderby='id', orderdir='asc', **kwargs):
-        if not method: return self()
         d = {'lockDevicesFromUpdates':'sendEventWhenBlocked',
              'lockDevicesFromDeletion':'sendEventWhenBlocked',
              'unlockDevices':'',
@@ -106,6 +107,14 @@ class DeviceBatch(BrowserView):
              'setProdState':'state',
              'setPriority':'priority'
             }
+        if not method or not method in d: 
+            IMessageSender(self.request).sendToBrowser(
+                'Unable to Perform Action',
+                'An empty or invalid action was attempted.',
+                priority=messaging.CRITICAL
+            )
+            return self()
+
         request = FakeRequest()
         argdict = dict(REQUEST=request)
         if d[method]:
@@ -120,7 +129,28 @@ class DeviceBatch(BrowserView):
                                   filter, orderby, orderdir)
         # This will call the method on the context, which will redirect to a
         # new (or the same) screen and set a message
-        return action(**argdict)
+        try:
+            result = action(**argdict)
+        except:
+            msgs = {'lockDevicesFromUpdates':'lock devices from updates',
+                    'lockDevicesFromDeletion':'lock devices from deletion',
+                    'unlockDevices':'unlock devices',
+                    'setGroups':'change device groups',
+                    'setSystems':'change device systems',
+                    'setLocation':'set the location',
+                    'setPerformanceMonitor':'set the performance monitor',
+                    'moveDevices':'move devices',
+                    'removeDevices':'delete devices',
+                    'setProdState':'set production state',
+                    'setPriority':'set priority'
+                }
+            IMessageSender(self.request).sendToBrowser(
+                'Unable to Perform Action',
+                'There was an error attempting to %s.' % msgs[method],
+                priority=messaging.CRITICAL
+            )
+        else:
+            return result
 
     def _getDeviceBatch(self, selectstatus='none', goodevids=[],
                        badevids=[], offset=0, count=50, filter='',
