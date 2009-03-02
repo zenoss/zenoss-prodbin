@@ -49,7 +49,8 @@ function getLoader(withtests) {
         name: "zenautocomplete",
         type: "js",
         fullpath: "/zport/dmd/javascript/zenautocomplete.js",
-        requires: ["autocomplete", "animation", "autocompleteskin","zenossutils"]
+        requires: ["datasource", "autocomplete", "animation",
+                   "autocompleteskin","zenossutils"]
     });
     loader.addModule({
         name: "portlet",

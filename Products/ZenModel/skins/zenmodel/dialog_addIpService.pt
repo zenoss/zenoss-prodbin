@@ -7,7 +7,7 @@
 Protocol
 <br/>
 <select name="protocol">
-<option tal:repeat="e python:('udp','tcp')" tal:content="e"
+<option tal:repeat="e python:('tcp','udp')" tal:content="e"
     tal:attributes="value e"/>
 </select>
 <br/><br/>

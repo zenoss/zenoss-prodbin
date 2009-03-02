@@ -135,7 +135,7 @@ class ServiceList(BrowserView):
         @rtype: "['id1', 'id2', ...]"
         """
         liveSearchList = []
-        for srv in self.context.getSubInstancesGen(rel=dataRoot):
+        for srv in self.context.getSubInstancesGen(rel='serviceclasses'):
             if getattr(srv, 'description', None):
                 liveSearchList.append('%s [%s]' % (srv.id, srv.description))
             else:

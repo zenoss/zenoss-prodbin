@@ -44,10 +44,10 @@ YAHOO.zenoss.zenautocomplete.ZenAutoComplete.prototype = {
         appendChildNodes(this.target, this.container);
     },
     makeAutoCompleter: function(locarray) {
-        this.oACDS = new YAHOO.widget.DS_JSArray(locarray, {
-            queryMatchContains:true});
+        this.oACDS = new YAHOO.util.LocalDataSource(locarray);
         this.oAutoComp = new YAHOO.widget.AutoComplete(this.input, 
             this.results, this.oACDS);
+		this.oAutoComp.queryMatchContains = true;
         this.oAutoComp.typeAhead = false;
         this.oAutoComp.useShadow = true;
         this.oAutoComp.animVert = false;
