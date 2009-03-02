@@ -1181,7 +1181,7 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
     # Event sending functions
     #==========================================================================
 
-    security.declareProtected('Send Events', 'sendEvents')
+    security.declareProtected(ZEN_SEND_EVENTS, 'sendEvents')
     def sendEvents(self, events):
         """Send a group of events to the backend.
         """
@@ -1195,7 +1195,7 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
         return count
 
 
-    security.declareProtected('Send Events', 'sendEvent')
+    security.declareProtected(ZEN_SEND_EVENTS, 'sendEvent')
     def sendEvent(self, event):
         """
         Send an event to the backend.
@@ -1226,7 +1226,7 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
         return value
 
 
-    security.declareProtected("View", "getFieldList")
+    security.declareProtected(ZEN_VIEW, "getFieldList")
     def getFieldList(self):
         """Return a list of all fields in the status table of the  backend.
         """
@@ -1410,7 +1410,7 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
         self.clearCache()
         self.manage_clearCache()
         
-    security.declareProtected('Manage Events','manage_addEvent')
+    security.declareProtected(ZEN_MANAGE_EVENTS,'manage_addEvent')
     def manage_addEvent(self, REQUEST=None):
         ''' Create an event from user supplied data
         '''
@@ -1446,7 +1446,7 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
         self.updateEvents('DELETE FROM status', whereClause, reason)
 
 
-    security.declareProtected('Manage Events','manage_deleteEvents')
+    security.declareProtected(ZEN_MANAGE_EVENTS,'manage_deleteEvents')
     def manage_deleteEvents(self, evids=(), REQUEST=None):
         "Delete the given event ids"
         if type(evids) == type(''):
@@ -1476,7 +1476,7 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
         self.updateEvents( 'DELETE FROM history', whereClause, \
                             reason, 'history')
 
-    security.declareProtected('Manage Events','manage_undeleteEvents')
+    security.declareProtected(ZEN_MANAGE_EVENTS,'manage_undeleteEvents')
     def manage_undeleteEvents(self, evids=(), REQUEST=None):
         "Move the given event ids into status and delete from history"
         if type(evids) == type(''):
@@ -1494,7 +1494,7 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
             return self.callZenScreen(REQUEST)
 
 
-    security.declareProtected('Manage Events','manage_deleteAllEvents')
+    security.declareProtected(ZEN_MANAGE_EVENTS,'manage_deleteAllEvents')
     def manage_deleteAllEvents(self, devname, REQUEST=None):
         "Delete the events for a given Device (used for deleting the device"
         whereClause = 'where device = "%s"' % devname
@@ -1507,7 +1507,7 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
             return self.callZenScreen(REQUEST)
 
 
-    security.declareProtected('Manage Events','manage_deleteHistoricalEvents')
+    security.declareProtected(ZEN_MANAGE_EVENTS,'manage_deleteHistoricalEvents')
     def manage_deleteHistoricalEvents(self, devname=None, agedDays=None,
                                         REQUEST=None):
         """
@@ -1549,7 +1549,7 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
             return self.callZenScreen(REQUEST)
 
 
-    security.declareProtected('Manage Events','manage_deleteHeartbeat')
+    security.declareProtected(ZEN_MANAGE_EVENTS,'manage_deleteHeartbeat')
     def manage_deleteHeartbeat(self, devname, REQUEST=None):
         if devname:
             delete = "delete from heartbeat where device = '%s'" % devname
@@ -1566,7 +1566,7 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
             return self.callZenScreen(REQUEST)
 
 
-    security.declareProtected('Manage Events','manage_ackEvents')
+    security.declareProtected(ZEN_MANAGE_EVENTS,'manage_ackEvents')
     def manage_ackEvents(self, evids=(), REQUEST=None):
         "Ack the given event ids"
         if type(evids) == type(''):
@@ -1581,7 +1581,7 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
                 REQUEST['RESPONSE'].redirect(dest)
 
 
-    security.declareProtected('Manage Events','manage_setEventStates')
+    security.declareProtected(ZEN_MANAGE_EVENTS,'manage_setEventStates')
     def manage_setEventStates(self, eventState=None, evids=(), 
                               userid="", REQUEST=None):
         reason = None
@@ -1608,7 +1608,7 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
             return self.callZenScreen(REQUEST)
 
 
-    security.declareProtected('Manage Events','manage_setEventStates')
+    security.declareProtected(ZEN_MANAGE_EVENTS,'manage_setEventStates')
     def manage_createEventMap(self, eventClass=None, evids=(),
                               REQUEST=None):
         """Create an event map from an event or list of events.
@@ -1684,7 +1684,7 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
                 REQUEST['RESPONSE'].redirect(evclass.absolute_url())
 
 
-    security.declareProtected('Manage EventManager','manage_refreshConversions')
+    security.declareProtected(ZEN_MANAGE_EVENTMANAGER,'manage_refreshConversions')
     def manage_refreshConversions(self, REQUEST=None):
         """get the conversion information from the database server"""
         assert(self == self.dmd.ZenEventManager)
@@ -1696,7 +1696,7 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
             return self.callZenScreen(REQUEST)
 
 
-    security.declareProtected('Manage EventManager','manage_editCache')
+    security.declareProtected(ZEN_MANAGE_EVENTMANAGER,'manage_editCache')
     def manage_editCache(self, timeout=5, clearthresh=20, REQUEST=None):
         """Reset cache values"""
         self.timeout = int(timeout)
@@ -1706,7 +1706,7 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
             return self.editCache(self, REQUEST, manage_tabs_message=message)
 
 
-    security.declareProtected('Manage EventManager','manage_clearCache')
+    security.declareProtected(ZEN_MANAGE_EVENTMANAGER,'manage_clearCache')
     def manage_clearCache(self, REQUEST=None):
         """Reset cache values"""
         assert(self == self.dmd.ZenEventManager)
@@ -1718,7 +1718,7 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
             return self.callZenScreen(REQUEST)
 
 
-    security.declareProtected('Manage EventManager','manage_editEventManager')
+    security.declareProtected(ZEN_MANAGE_EVENTMANAGER,'manage_editEventManager')
     def manage_editEventManager(self, REQUEST=None):
         ''' Call zmanage_editProperties then take care of saving a few
         values to ZenEventHistory
@@ -1735,7 +1735,7 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
         if REQUEST: return self.callZenScreen(REQUEST)
 
    
-    security.declareProtected('Manage EventManager','manage_clearHeartbeats')
+    security.declareProtected(ZEN_MANAGE_EVENTMANAGER,'manage_clearHeartbeats')
     def manage_clearHeartbeats(self, REQUEST=None):
         """truncate heartbeat table"""
         conn = self.connect()
@@ -1749,7 +1749,7 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
                 'Heartbeats Cleared', 'Heartbeats have been cleared.')
             return self.callZenScreen(REQUEST)
 
-    security.declareProtected('Manage EventManager','zmanage_editProperties')
+    security.declareProtected(ZEN_MANAGE_EVENTMANAGER,'zmanage_editProperties')
     def zmanage_editProperties(self, REQUEST=None):
         ''' Need to handle editing of history event fields differently
         '''
@@ -1769,7 +1769,7 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
         editProperties(obj, REQUEST)
         if REQUEST: return self.callZenScreen(REQUEST)
 
-    security.declareProtected('Manage Events', 'manage_addLogMessage')
+    security.declareProtected(ZEN_MANAGE_EVENTS, 'manage_addLogMessage')
     def manage_addLogMessage(self, evid=None, message='', REQUEST=None):
         """
         Add a log message to an event
@@ -1791,7 +1791,7 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
         if REQUEST: return self.callZenScreen(REQUEST)
 
 
-    security.declareProtected('Manage EventManager', 'manage_addCommand')
+    security.declareProtected(ZEN_MANAGE_EVENTMANAGER, 'manage_addCommand')
     def manage_addCommand(self, id, REQUEST=None):
         """
         Add a new EventCommand
@@ -1821,7 +1821,7 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
             return self.callZenScreen(REQUEST)
 
 
-    security.declareProtected('Manage EventManager', 'manage_deleteCommands')
+    security.declareProtected(ZEN_MANAGE_EVENTMANAGER, 'manage_deleteCommands')
     def manage_deleteCommands(self, ids=[], REQUEST=None):
         """
         Delete an EventCommand

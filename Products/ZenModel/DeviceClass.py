@@ -128,15 +128,14 @@ class DeviceClass(DeviceOrganizer, ZenPackable, TemplateContainer):
         @return: list of device paths
         @rtype: list of strings
         """
+        dcnames = []
         if pyclass == None:
             pyclass = self.getPythonDeviceClass()
-            dclass = self.getDmdRoot("Devices")
-            return dclass.getPeerDeviceClassNames(pyclass)
-        dcnames = []
-        if pyclass == self.getPythonDeviceClass():
-            dcnames.append(self.getOrganizerName())
-        for subclass in self.children():
-            dcnames.extend(subclass.getPeerDeviceClassNames(pyclass))
+        dclass = self.getDmdRoot("Devices")
+        for orgname in dclass.getOrganizerNames():
+            org = dclass.getOrganizer(orgname)
+            if pyclass == org.getPythonDeviceClass():
+                dcnames.append(orgname)
         dcnames.sort(lambda a, b: cmp(a.lower(), b.lower()))
         return dcnames
 

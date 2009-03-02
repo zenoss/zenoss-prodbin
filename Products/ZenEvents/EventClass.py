@@ -144,6 +144,22 @@ class EventClass(EventClassPropertyMixin, Organizer, ManagedEntity, ZenPackable)
         return evts
 
 
+    security.declareProtected(ZEN_COMMON, "getOrganizerNames")
+    def getOrganizerNames(self, addblank=False, checkPerm=False):
+        """
+        Returns a list of all organizer names under this organizer. Overridden
+        here so that restricted users can get a list of event classes.
+        
+        @param addblank: If True, add a blank item in the list.
+        @type addblank: boolean
+        @return: The DMD paths of all Organizers below this instance.
+        @rtype: list
+        @permission: ZEN_COMMON
+        """
+        return Organizer.getOrganizerNames(
+            self, addblank=addblank, checkPerm=checkPerm)
+
+
     def find(self, evClassKey):
         """
         Look for the eventClassKey mapping in an event class,

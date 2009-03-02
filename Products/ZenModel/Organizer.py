@@ -368,7 +368,7 @@ class Organizer(ZenModelRM, EventView):
 
 
     security.declareProtected(ZEN_COMMON, "getOrganizerNames")
-    def getOrganizerNames(self, addblank=False):
+    def getOrganizerNames(self, addblank=False, checkPerm=True):
         """
         Returns a list of all organizer names under this organizer
         
@@ -386,7 +386,7 @@ class Organizer(ZenModelRM, EventView):
         """
         groupNames = []
         user = getSecurityManager().getUser()
-        if user.has_permission(ZEN_VIEW, self):
+        if user.has_permission(ZEN_VIEW, self) or not checkPerm:
             groupNames.append(self.getOrganizerName())
         for subgroup in self.children(checkPerm=False):
             groupNames.extend(subgroup.getOrganizerNames())

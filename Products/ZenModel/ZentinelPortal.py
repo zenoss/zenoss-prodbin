@@ -207,6 +207,15 @@ class PortalGenerator:
                         MANAGER_ROLE, OWNER_ROLE])
         mp(ZEN_COMMON, ["Authenticated", ZEN_USER_ROLE, ZEN_MANAGER_ROLE,
                         MANAGER_ROLE, OWNER_ROLE], 1)
+        
+        # Events
+        mp(ZEN_MANAGE_EVENTMANAGER,
+            [ZEN_MANAGER_ROLE, OWNER_ROLE, MANAGER_ROLE,], 1)
+        mp(ZEN_MANAGE_EVENTS,
+            [ZEN_MANAGER_ROLE, OWNER_ROLE, MANAGER_ROLE,], 1)
+        mp(ZEN_SEND_EVENTS,
+            [ZEN_MANAGER_ROLE, OWNER_ROLE, MANAGER_ROLE,], 1)
+        
         mp(ZEN_CHANGE_ALERTING_RULES, 
             [ZEN_MANAGER_ROLE, MANAGER_ROLE, OWNER_ROLE], 1)
         mp(ZEN_CHANGE_ADMIN_OBJECTS, [ZEN_MANAGER_ROLE, MANAGER_ROLE], 1)

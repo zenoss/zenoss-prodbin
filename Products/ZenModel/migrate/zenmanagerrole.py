@@ -1,7 +1,7 @@
 ###########################################################################
 #
 # This program is part of Zenoss Core, an open source monitoring platform.
-# Copyright (C) 2007, Zenoss Inc.
+# Copyright (C) 2007, 2009, Zenoss Inc.
 #
 # This program is free software; you can redistribute it and/or modify it
 # under the terms of the GNU General Public License version 2 as published by
@@ -23,7 +23,7 @@ from Products.ZenModel.ZenossSecurity import *
 
 class ZenManagerRole(Migrate.Step):
 
-    version = Migrate.Version(2, 1, 0)
+    version = Migrate.Version(2, 4, 0)
     
     def addPermissions(self, obj, permission, roles=None, acquire=0):
         if not roles:
@@ -57,6 +57,12 @@ class ZenManagerRole(Migrate.Step):
             [ZEN_MANAGER_ROLE, OWNER_ROLE,MANAGER_ROLE,], 1)
         self.addPermissions(zport, ZEN_VIEW, 
             [ZEN_USER_ROLE,ZEN_MANAGER_ROLE,MANAGER_ROLE,OWNER_ROLE])
+        self.addPermissions(zport, ZEN_MANAGE_EVENTMANAGER,
+            [ZEN_MANAGER_ROLE, OWNER_ROLE,MANAGER_ROLE,], 1)
+        self.addPermissions(zport, ZEN_MANAGE_EVENTS,
+            [ZEN_MANAGER_ROLE, OWNER_ROLE,MANAGER_ROLE,], 1)
+        self.addPermissions(zport, ZEN_SEND_EVENTS,
+            [ZEN_MANAGER_ROLE, OWNER_ROLE,MANAGER_ROLE,], 1)
         self.addPermissions(zport, ZEN_VIEW_HISTORY, 
             [ZEN_USER_ROLE, ZEN_MANAGER_ROLE, MANAGER_ROLE,], 1)
         self.addPermissions(zport, ZEN_COMMON,

@@ -15,6 +15,7 @@ import sys
 from Globals import DTMLFile
 from Globals import InitializeClass
 from AccessControl import ClassSecurityInfo, Permissions
+from Products.ZenModel.ZenossSecurity import ZEN_MANAGE_DMD
 
 from ZenModelRM import ZenModelRM
 
@@ -363,6 +364,7 @@ class RRDTemplate(ZenModelRM, ZenPackable):
         return org
 
 
+    security.declareProtected(ZEN_MANAGE_DMD, 'manage_deleteRRDThresholds')
     def manage_deleteRRDThresholds(self, ids=(), REQUEST=None):
         """Delete RRDThresholds from this DeviceClass 
         """
@@ -379,7 +381,7 @@ class RRDTemplate(ZenModelRM, ZenPackable):
             return self.callZenScreen(REQUEST)
 
 
-    security.declareProtected('Manage DMD', 'manage_addGraphDefinition')
+    security.declareProtected(ZEN_MANAGE_DMD, 'manage_addGraphDefinition')
     def manage_addGraphDefinition(self, new_id, REQUEST=None):
         """Add a GraphDefinition to our RRDTemplate.
         """
@@ -400,7 +402,7 @@ class RRDTemplate(ZenModelRM, ZenPackable):
         return graph
 
 
-    security.declareProtected('Manage DMD', 'manage_deleteGraphDefinitions')
+    security.declareProtected(ZEN_MANAGE_DMD, 'manage_deleteGraphDefinitions')
     def manage_deleteGraphDefinitions(self, ids=(), REQUEST=None):
         """Remove GraphDefinitions from this RRDTemplate.
         """
@@ -416,7 +418,7 @@ class RRDTemplate(ZenModelRM, ZenPackable):
             return self.callZenScreen(REQUEST)
 
 
-    security.declareProtected('Manage DMD', 'manage_resequenceGraphDefs')
+    security.declareProtected(ZEN_MANAGE_DMD, 'manage_resequenceGraphDefs')
     def manage_resequenceGraphDefs(self, seqmap=(), origseq=(), REQUEST=None):
         """Reorder the sequence of the GraphDefinitions.
         """
@@ -425,7 +427,7 @@ class RRDTemplate(ZenModelRM, ZenPackable):
                             seqmap, origseq, REQUEST)
 
 
-    security.declareProtected('Manage DMD', 'manage_addDataSourcesToGraphs')
+    security.declareProtected(ZEN_MANAGE_DMD, 'manage_addDataSourcesToGraphs')
     def manage_addDataSourcesToGraphs(self, ids=(), graphIds=(), REQUEST=None):
         """
         Create GraphPoints for all datapoints in the given datasources (ids)
@@ -450,7 +452,7 @@ class RRDTemplate(ZenModelRM, ZenPackable):
         return newGraphPoints
 
 
-    security.declareProtected('Manage DMD', 'manage_addDataSourcesToGraphs')
+    security.declareProtected(ZEN_MANAGE_DMD, 'manage_addDataSourcesToGraphs')
     def manage_addThresholdsToGraphs(self, ids=(), graphIds=(), REQUEST=None):
         """
         Create GraphPoints for all given thresholds that are not already
@@ -526,6 +528,13 @@ class RRDTemplate(ZenModelRM, ZenPackable):
                 return c(id)
         raise ConfigurationError('Cannot find threshold class %s' %
                                  thresholdClassName)
+
+
+    def getEventClassNames(self):
+        """
+        Get a list of all event class names within the permission scope.
+        """
+        return self.primaryAq().Events.getOrganizerNames()
 
 
 InitializeClass(RRDTemplate)

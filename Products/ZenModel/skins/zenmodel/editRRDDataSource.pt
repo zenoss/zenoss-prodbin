@@ -63,7 +63,7 @@
             <td class="tableheader">Event Class</td>
             <td class="tablevalues" tal:condition="editable">
             <select class="tablevalues" name="eventClass">
-                <option tal:repeat="evtcls here/Events/getOrganizerNames" 
+                <option tal:repeat="evtcls here/getEventClassNames" 
                         tal:content="evtcls"
                         tal:attributes="selected python:evtcls==here.eventClass"/>
             </select>

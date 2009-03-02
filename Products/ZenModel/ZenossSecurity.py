@@ -32,6 +32,11 @@ ZEN_VIEW = 'View'
 ZEN_VIEW_HISTORY = 'View History'
 ZEN_VIEW_MODIFICATIONS='View Modifications'
 
+# Events
+ZEN_MANAGE_EVENTMANAGER = 'Manage EventManager'
+ZEN_MANAGE_EVENTS = 'Manage Events'
+ZEN_SEND_EVENTS = 'Send Events'
+
 # User Settings
 ZEN_CHANGE_SETTINGS = 'Change Settings'
 ZEN_CHANGE_ALERTING_RULES = 'Change Alerting Rules'

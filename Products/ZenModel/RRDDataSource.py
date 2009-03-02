@@ -20,6 +20,7 @@ import os
 
 from DateTime import DateTime
 from AccessControl import ClassSecurityInfo, Permissions
+from Products.ZenModel.ZenossSecurity import ZEN_MANAGE_DMD
 
 from Products.PageTemplates.Expressions import getEngine
 
@@ -110,6 +111,7 @@ class RRDDataSource(ZenModelRM, ZenPackable):
         return False
 
 
+    security.declareProtected(ZEN_MANAGE_DMD, 'manage_addRRDDataPoint')
     def manage_addRRDDataPoint(self, id, REQUEST = None):
         """make a RRDDataPoint"""
         if not id:
@@ -126,6 +128,7 @@ class RRDDataSource(ZenModelRM, ZenPackable):
         return dp
 
 
+    security.declareProtected(ZEN_MANAGE_DMD, 'manage_deleteRRDDataPoints')
     def manage_deleteRRDDataPoints(self, ids=(), REQUEST=None):
         """Delete RRDDataPoints from this RRDDataSource"""
 
@@ -156,7 +159,7 @@ class RRDDataSource(ZenModelRM, ZenPackable):
             return self.callZenScreen(REQUEST)
 
 
-    #security.declareProtected('Manage DMD', 'manage_addDataPointsToGraphs')
+    security.declareProtected(ZEN_MANAGE_DMD, 'manage_addDataPointsToGraphs')
     def manage_addDataPointsToGraphs(self, ids=(), graphIds=(), REQUEST=None):
         """
         Create GraphPoints for all datapoints given datapoints (ids)
@@ -249,6 +252,8 @@ class SimpleRRDDataSource(RRDDataSource):
     A SimpleRRDDataSource has a single datapoint that shares the name of the 
     data source.
     """
+    security = ClassSecurityInfo()
+    
     
     def addDataPoints(self):
         """
@@ -262,6 +267,7 @@ class SimpleRRDDataSource(RRDDataSource):
         if not self.datapoints._getOb(dpid, None):
             self.manage_addRRDDataPoint(dpid)
 
+    security.declareProtected(ZEN_MANAGE_DMD, 'zmanage_editProperties')
     def zmanage_editProperties(self, REQUEST=None):
         """
         Overrides the method defined in RRDDataSource. Called when user clicks
@@ -334,6 +340,7 @@ class SimpleRRDDataSource(RRDDataSource):
         if dp:
             return dp.aliases()
 
+    security.declareProtected(ZEN_MANAGE_DMD, 'manage_addDataPointsToGraphs')
     def manage_addDataPointsToGraphs(self, ids=(), graphIds=(), REQUEST=None):
         """
         Override method in super class.  ids will always be an empty tuple, so
@@ -342,6 +349,7 @@ class SimpleRRDDataSource(RRDDataSource):
         return RRDDataSource.manage_addDataPointsToGraphs(self,
                 (self.soleDataPoint().id,), graphIds, REQUEST)
     
+    security.declareProtected(ZEN_MANAGE_DMD, 'manage_addDataPointAlias')
     def manage_addDataPointAlias(self, id, formula, REQUEST=None):
         """
         Add a datapoint alias to the datasource's only datapoint
@@ -351,6 +359,7 @@ class SimpleRRDDataSource(RRDDataSource):
             return self.callZenScreen( REQUEST )
         return alias
 
+    security.declareProtected(ZEN_MANAGE_DMD, 'manage_removeDataPointAliases')
     def manage_removeDataPointAliases(self, ids=(), REQUEST=None):
         """
         Remove the passed aliases from the datasource's only datapoint
