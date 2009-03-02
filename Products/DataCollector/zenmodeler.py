@@ -853,7 +853,10 @@ class ZenModeler(PBDaemon):
         active = []
         for client in self.clients:
             if client.timeout < time.time():
-                self.log.warn("Client %s timeout", client.hostname)
+                if hasattr(client, 'hostname'):
+                    self.log.warn("Client %s timeout", client.hostname)
+                else:
+                    self.log.warn('Client timeout')
                 self.finished.append(client)
                 client.timedOut = True
                 client.stop()

@@ -49,7 +49,7 @@ class WMIClient(object):
 
     def __init__(self, device, datacollector=None, plugins=[]):
         self.device = device
-        self.host = device.id
+        self.host = self.hostname = device.id
         self._wmi = None
         if socket.getfqdn().lower() == device.id.lower(): 
             self.host = "."
