@@ -9,42 +9,42 @@
         for="*"
         name="jsonGetDeviceNames"
         class=".Autocompleters.DeviceNames"
-        permission="zope2.View"
+        permission="zenoss.Common"
         />
 
     <browser:page
         for="..DeviceClass.DeviceClass"
         name="jsonGetComponentPaths"
         class=".Autocompleters.ComponentPaths"
-        permission="zope2.View"
+        permission="zenoss.Common"
         />
 
     <browser:page
         for="..DeviceClass.DeviceClass"
         name="jsonGetGraphIds"
         class=".Autocompleters.GraphIds"
-        permission="zope2.View"
+        permission="zenoss.Common"
         />
 
     <browser:page
         for="..ServiceOrganizer.ServiceOrganizer"
         name="getServiceLiveSearchList"
         class=".Autocompleters.ServiceList"
-        permission="zope2.View"
+        permission="zenoss.Common"
         />
 
     <browser:page
         for="Products.ZenModel.ZentinelPortal.ZentinelPortal"
         name="getOrganizerNames"
         class=".Autocompleters.OrganizerNames"
-        permission="zope2.View"
+        permission="zenoss.Common"
         />
 
     <browser:page
         for="*"
         name="jsonGetEventClassNames"
         class=".Autocompleters.EventClassNames"
-        permission="zope2.View"
+        permission="zenoss.Common"
         />
 
 

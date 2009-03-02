@@ -9,14 +9,14 @@
         for="*"
         name="getJSONDeviceInfo"
         class=".DeviceList.DeviceList"
-        permission="zope2.View"
+        permission="zenoss.Common"
         />
 
     <browser:page
         for="..Organizer.Organizer"
         name="setDeviceBatchProps"
         class=".DeviceList.DeviceBatch"
-        permission="zope2.View"
+        permission="zenoss.Common"
         />
 
 </configure>

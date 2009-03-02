@@ -8,42 +8,42 @@
         for="*"
         name="getRootOrganizerInfo"
         class=".Portlets.TopLevelOrganizerPortletView"
-        permission="zope2.View"
+        permission="zenoss.Common"
         />
 
     <browser:page
         for="*"
         name="getDevProdStateJSON"
         class=".Portlets.ProductionStatePortletView"
-        permission="zope2.View"
+        permission="zenoss.Common"
         />
 
     <browser:page
         for="*"
         name="getEntityListEventSummary"
         class=".Portlets.WatchListPortletView"
-        permission="zope2.View"
+        permission="zenoss.Common"
         />
 
     <browser:page
         for="*"
         name="getHeartbeatIssuesJSON"
         class=".Portlets.HeartbeatPortletView"
-        permission="zope2.View"
+        permission="zenoss.Common"
         />
 
     <browser:page
         for="*"
         name="getDeviceIssuesJSON"
         class=".Portlets.DeviceIssuesPortletView"
-        permission="zope2.View"
+        permission="zenoss.Common"
         />
 
     <browser:page
         for="*"
         name="userMessageTable"
         class=".Portlets.UserMessagesPortletView"
-        permission="zope2.View"
+        permission="zenoss.Common"
         />
 
 </configure>

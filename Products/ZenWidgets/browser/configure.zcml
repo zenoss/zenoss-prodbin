@@ -4,20 +4,22 @@
     xmlns:browser="http://namespaces.zope.org/browser"
     i18n_domain="Products.ZenWidgets">
 
+    <include package='Products.ZenModel' file='permissions.zcml'/>
+
     <include package='.' file='portlets.zcml'/>
 
     <browser:page
         for="*"
         class=".messaging.UserMessages"
         name="getUserMessages"
-        permission="zope2.View"
+        permission="zenoss.Common"
         />
 
     <browser:page
         for="..interfaces.IMessage"
         class=".messaging.DeleteMessage"
         name="delMsg"
-        permission="zope2.View"
+        permission="zenoss.Common"
         />
 
 </configure>

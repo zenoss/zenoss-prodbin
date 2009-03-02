@@ -4,6 +4,8 @@
     xmlns:browser="http://namespaces.zope.org/browser"
     i18n_domain="Products.ZenEvents">
 
+    <include package="Products.ZenModel" file="permissions.zcml"/>
+
     <include package=".browser"/>
 
 </configure>

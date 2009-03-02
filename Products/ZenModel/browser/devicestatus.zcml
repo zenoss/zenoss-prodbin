@@ -8,7 +8,7 @@
         for="..Device.Device"
         name="getDeviceComponentEventSummary"
         class=".DeviceStatus.DeviceComponentTable"
-        permission="zope2.View"
+        permission="zenoss.Common"
         />
 
 </configure>
