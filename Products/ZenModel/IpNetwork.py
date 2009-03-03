@@ -175,7 +175,7 @@ class IpNetwork(DeviceOrganizer):
         if netobj and netobj.netmask == netmask: # Network already exists.
             return netobj
         if netmask == 0:
-            raise ValueError("netip '%s' without netmask", netip)
+            raise ValueError("netip '%s' without netmask" % netip)
         netip = getnetstr(netip,netmask)
         netTree = getattr(self, 'zDefaultNetworkTree', defaultNetworkTree)
         netTree = map(int, netTree)

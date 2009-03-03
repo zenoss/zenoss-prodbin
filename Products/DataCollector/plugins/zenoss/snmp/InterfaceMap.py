@@ -142,7 +142,11 @@ class InterfaceMap(SnmpPlugin):
             if row.has_key('netmask'):
                 ip = ip + "/" + str(self.maskToBits(row['netmask'].strip()))
 
-            om.setIpAddresses.append(ip)
+            # Ignore IP addresses with a 0.0.0.0 netmask.
+            if ip.endswith("/0"):
+                log.warn("Ignoring IP address with 0.0.0.0 netmask: %s", ip)
+            else:
+                om.setIpAddresses.append(ip)
             #om.ifindex = row.ifindex #FIXME ifindex is not set!
 
         for iface in iftable.values():
