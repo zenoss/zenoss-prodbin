@@ -36,6 +36,7 @@ from Products.ZenRelations.PrimaryPathObjectManager import \
 from ZenModelItem import ZenModelItem
 from ZenPacker import ZenPacker
 from Products.ZenUtils.Search import makeCaseSensitiveKeywordIndex
+from Products.ManagableIndex import FieldIndex
 
 def manage_addManufacturerRoot(context, REQUEST=None):
     """make a Manufacturer class"""
@@ -142,18 +143,16 @@ class ManufacturerRoot(ZenModelItem, PrimaryPathBTreeFolder2, ZenPacker):
 
 
     def getProductNames(self, mname, type=None):
-        """return a list of all products this Manufacturer makes"""
-        osFlag=False
-        if type=="OS": osFlag = True
-        prods = [""]
-        if hasattr(self, mname):
-            manuf = self.getManufacturer(mname)
-            if osFlag:
-                for prod in manuf.products.objectValues(spec="SoftwareClass"):
-                    if prod.isOS: prods.append(prod.id)
-            else: prods.extend(manuf.products.objectIds(spec=type))
-        prods.sort()
-        return prods
+        """return a list of all products this Manufacturer makes"""        
+        productFilter = dict(getManufacturerName=mname)
+        if type == "OS": 
+            productFilter['meta_type'] = "SoftwareClass"
+            productFilter['isOS'] = True
+        elif type:
+            productFilter['meta_type'] = type
+        
+        cat = getattr(self, self.default_catalog)
+        return sorted([''] + [ entry.id for entry in cat(productFilter) ])
 
 
     def findProduct(self, query):
@@ -223,12 +222,18 @@ class ManufacturerRoot(ZenModelItem, PrimaryPathBTreeFolder2, ZenPacker):
         from Products.ZCatalog.ZCatalog import manage_addZCatalog
 
         # XXX update to use ManagableIndex
-        manage_addZCatalog(self, self.default_catalog,
-            self.default_catalog)
+        manage_addZCatalog(self, self.default_catalog, self.default_catalog)
         zcat = self._getOb(self.default_catalog)
         cat = zcat._catalog
-        cat.addIndex('productKeys', makeCaseSensitiveKeywordIndex('productKeys'))
+        cat.addIndex('productKeys',
+            makeCaseSensitiveKeywordIndex('productKeys'))
+        cat.addIndex('meta_type',
+            makeCaseInsensitiveFieldIndex('meta_type'))
+        cat.addIndex('getManufacturerName',
+            makeCaseInsensitiveFieldIndex('getManufacturerName'))
+        cat.addIndex('isOS', FieldIndex('isOS'))
         zcat.addColumn('getPrimaryId')
+        zcat.addColumn('id')
 
 
     def exportXml(self, ofile, ignorerels=[], root=False):

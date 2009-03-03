@@ -135,6 +135,12 @@ class ProductClass(ZenModelRM, ZenPackable):
         return ""
 
 
+    def getManufacturerName(self):
+        if not self.manufacturer():
+            return ''
+        return self.manufacturer().getId()
+
+
     def manage_afterAdd(self, item, container):
         """
         Device only propagates afterAdd if it is the added object.

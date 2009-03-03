@@ -166,3 +166,4 @@ import usermsgsportlet
 import jobmanager
 import addDataPointAliasMenus
 import addCpuDataPointAliases
+import newProductIndexes
