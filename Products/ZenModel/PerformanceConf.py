@@ -809,7 +809,7 @@ class PerformanceConf(Monitor, StatusColor):
         if setlog and REQUEST and not xmlrpc:
             handler = setupLoggingHeader(device, REQUEST)
 
-        zenmodelerOpts = ['run', '--now', '-F', '-d', device.id]
+        zenmodelerOpts = ['run', '--now', '--monitor', self.id, '-F', '-d', device.id]
         if REQUEST:
             zenmodelerOpts.append('--weblog')
         result = self._executeZenModelerCommand(zenmodelerOpts, REQUEST)
