@@ -497,6 +497,7 @@ class ZenTrap(EventServer):
             summary = 'snmp trap %s' % eventType
             self.log.debug(summary)
             community = self.getCommunity(pdu)
+            result['oid'] = oid
             result['device'] = addr[0]
             result.setdefault('component', '')
             result.setdefault('eventClassKey', eventType)
