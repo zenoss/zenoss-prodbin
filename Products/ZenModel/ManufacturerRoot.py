@@ -35,7 +35,8 @@ from Products.ZenRelations.PrimaryPathObjectManager import \
 
 from ZenModelItem import ZenModelItem
 from ZenPacker import ZenPacker
-from Products.ZenUtils.Search import makeCaseSensitiveKeywordIndex
+from Products.ZenUtils.Search import \
+    makeCaseSensitiveKeywordIndex, makeCaseInsensitiveFieldIndex
 from Products.ManagableIndex import FieldIndex
 
 def manage_addManufacturerRoot(context, REQUEST=None):
