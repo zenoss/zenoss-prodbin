@@ -25,6 +25,7 @@ from Products.ZenUtils.Utils import convToUnits
 from Products.ZenRelations.RelSchema import *
 
 from Products.ZenModel.Exceptions import *
+from Products.ZenModel.Service import Service
 
 from IpInterface import manage_addIpInterface
 from WinService import manage_addWinService
@@ -220,8 +221,10 @@ class OperatingSystem(Software):
         monitored = bool(monitored)
         for componentName in componentNames:
             comp = context._getOb(componentName)
-            if comp.monitor != monitored:
+            if comp.monitored() != monitored:
                 comp.monitor = monitored
+                if isinstance(comp, Service):
+                    comp.setAqProperty('zMonitor', monitored, 'boolean')
                 comp.index_object()
         if REQUEST:
             verb = monitored and "Enabled" or "Disabled"
