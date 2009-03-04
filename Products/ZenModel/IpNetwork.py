@@ -472,9 +472,9 @@ class IpNetwork(DeviceOrganizer):
 
         from Products.ZenUtils.ZenTales import talesEval
 
-        orgroot = self.getDmdRoot(self.dmdRootName)
+        orgroot = self.getNetworkRoot()
         for organizerName in organizerPaths:
-            organizer = orgroot._getNet(organizerName)
+            organizer = orgroot.getOrganizer(organizerName)
             if organizer is None:
                 if xmlrpc: return 1 # XML-RPC error
                 log.error("Couldn't obtain a network entry for '%s' -- does it exist?" % \

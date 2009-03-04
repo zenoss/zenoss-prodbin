@@ -168,7 +168,7 @@ class Organizer(ZenModelRM, EventView):
         
 
     security.declareProtected(ZEN_ADD, 'manage_addOrganizer')
-    def manage_addOrganizer(self, newPath, REQUEST=None):
+    def manage_addOrganizer(self, newPath, factory=None, REQUEST=None):
         """
         Adds a new organizer under this organizer. if given a fully qualified
         path it will create an organizer at that path
@@ -180,12 +180,14 @@ class Organizer(ZenModelRM, EventView):
         
         >>> dmd.Devices.manage_addOrganizer('/Devices/DocTest')
         """ 
+        if factory is None: 
+            factory = self.__class__
         if not newPath: return self.callZenScreen(REQUEST)
         try:
             if newPath.startswith("/"):
                 self.createOrganizer(newPath)
             else:
-                org = self.__class__(newPath)
+                org = factory(newPath)
                 self._setObject(org.id, org)
         except ZentinelException, e:
             if REQUEST: 
