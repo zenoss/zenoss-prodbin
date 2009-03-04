@@ -840,6 +840,24 @@ class ZenModeler(PBDaemon):
                              " can be used at a time")
 
 
+    def _timeoutClients(self):
+        """
+        The guts of the timeoutClients method (minus the twisted reactor
+        stuff). Breaking this part out as a separate method facilitates unit
+        testing.
+        """
+        active = []
+        for client in self.clients:
+            if client.timeout < time.time():
+                self.log.warn("Client %s timeout", client.hostname)
+                self.finished.append(client)
+                client.timedOut = True
+                client.stop()
+            else:
+                active.append(client)
+        self.clients = active
+        
+
 
     def timeoutClients(self, unused=None):
         """
@@ -850,19 +868,7 @@ class ZenModeler(PBDaemon):
         @type unused: string
         """
         reactor.callLater(1, self.timeoutClients)
-        active = []
-        for client in self.clients:
-            if client.timeout < time.time():
-                if hasattr(client, 'hostname'):
-                    self.log.warn("Client %s timeout", client.hostname)
-                else:
-                    self.log.warn('Client timeout')
-                self.finished.append(client)
-                client.timedOut = True
-                client.stop()
-            else:
-                active.append(client)
-        self.clients = active
+        self._timeoutClients()
         d = drive(self.fillCollectionSlots)
         d.addCallback(self.checkStop)
         d.addErrback(self.fillError)

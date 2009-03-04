@@ -17,6 +17,7 @@ from pysamba.library import WError
 
 from Products.ZenUtils.Utils import zenPath
 from Products.ZenUtils.Driver import drive
+from Products.DataCollector.BaseClient import BaseClient
 
 from twisted.internet import defer
 
@@ -45,11 +46,12 @@ def _filename(device):
 
 class BadCredentials(Exception): pass
 
-class WMIClient(object):
+class WMIClient(BaseClient):
 
     def __init__(self, device, datacollector=None, plugins=[]):
+        BaseClient.__init__(self, device, datacollector)
         self.device = device
-        self.host = self.hostname = device.id
+        self.host = device.id
         self._wmi = None
         if socket.getfqdn().lower() == device.id.lower(): 
             self.host = "."
