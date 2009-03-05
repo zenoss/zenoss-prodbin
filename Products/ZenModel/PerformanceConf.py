@@ -672,6 +672,7 @@ class PerformanceConf(Monitor, StatusColor):
                 locationPath, groupPaths, systemPaths,
                 performanceMonitor,
                 discoverProto, priority, manageIp)
+            return device
         else:
             device = self._createDevice(deviceName, devicePath, tag, serialNumber,
                                zSnmpCommunity, zSnmpPort, zSnmpVer, rackSlot,
