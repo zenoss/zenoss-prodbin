@@ -57,6 +57,7 @@ class ModelerService(PerformanceConfig):
                 log.debug('adding plugin %s for device %s' % (name,dev.getId()))
                 result.plugins.append(plugin.loader)
                 plugin.copyDataToProxy(dev, result)
+        result.temp_device = dev.isTempDevice()
         return result
 
     @translateError

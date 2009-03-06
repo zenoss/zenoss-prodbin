@@ -63,7 +63,7 @@ class Job(ZenModelRM):
 
     def start(self):
         """
-        This starts off the build. Returns a Deferred that will fire when the
+        This starts off the job. Returns a Deferred that will fire when the
         step finishes.
         """
         whendone = defer.Deferred()

@@ -254,12 +254,6 @@ class ZenDisc(ZenModeler):
             yield self.config().callRemote('getSnmpConfig', devicePath)
             communities, port, version, timeout, retries = driver.next()
 
-            # Override with the stuff passed in
-            if self.options.zSnmpVer: version = self.options.zSnmpVer
-            if self.options.zSnmpPort: port = self.options.zSnmpPort
-            if self.options.zSnmpCommunity: 
-                communities = (self.options.zSnmpCommunity,)+tuple(communities)
-
             versions = ("v2c", "v1")
             if '1' in version:
                 versions = list(versions)
@@ -382,23 +376,6 @@ class ZenDisc(ZenModeler):
                     except Exception, ex:
                         self.log.debug("Failed to lookup %s (%s)" % (ip, ex))
 
-                # if there is no SNMP lookup or the lookup failed set the SNMP
-                # info that was passed in on the command line so that it will
-                # flow through to createDevice. 
-                if not snmpDeviceInfo or self.options.nosnmp: 
-                    """use the port set via commandline incase 
-                    findRemoteDeviceInfo did not return data; this should
-                    make sure the device is created with correct snmp 
-                    options and zenmodeler runs with correct options"""   
-                    if self.options.zSnmpPort: 
-                        kw.update(dict(zSnmpPort=self.options.zSnmpPort))
-                    if self.options.zSnmpVer: 
-                        kw.update(dict(zSnmpVer=self.options.zSnmpVer))
-                    if self.options.zSnmpCommunity: 
-                        kw.update(dict(zSnmpCommunity=
-                                       self.options.zSnmpCommunity))
-
-
                 # If it's discovering a particular device, 
                 # ignore zAutoDiscover limitations
                 forceDiscovery = bool(self.options.device) 
@@ -420,7 +397,7 @@ class ZenDisc(ZenModeler):
                     return
                 else:
                     # A device came back and it already existed.
-                    if not created:
+                    if not created and not dev.temp_device:
                         # if we shouldn't remodel skip the device by returning
                         # at the end of this block
                         if not self.options.remodel:
@@ -465,6 +442,11 @@ class ZenDisc(ZenModeler):
                     self.sendEvent(evt)
             except Exception, e:
                 self.log.exception("Failed device discovery for '%s'", ip)
+
+            else:
+                yield self.config().callRemote('succeedDiscovery', dev.id)
+                driver.next()
+
             self.log.debug("Finished scanning device with address %s", ip)
 
         return drive(inner)
@@ -573,10 +555,9 @@ class ZenDisc(ZenModeler):
             raise NoIPAddress("No IP found for name %s" % deviceName)
         else:
             self.log.debug("Found IP %s for device %s" % (ip, deviceName))
-            yield self.config().callRemote(
-                                        'getDeviceConfig', [deviceName])
+            yield self.config().callRemote('getDeviceConfig', [deviceName])
             me, = driver.next() or [None]
-            if not me or self.options.remodel:
+            if not me or me.temp_device or self.options.remodel:
                 yield self.discoverDevice(ip,
                                      devicepath=self.options.deviceclass,
                                      prodState=self.options.productionState)
@@ -716,12 +697,6 @@ class ZenDisc(ZenModeler):
         self.parser.add_option('--chunk', dest='chunkSize', 
                     default=10, type="int",
                     help="number of in flight ping packets")
-        self.parser.add_option('--snmp-version', dest='zSnmpVer', 
-                    help="SNMP version of the target")
-        self.parser.add_option('--snmp-community', dest='zSnmpCommunity', 
-                    help="SNMP community string of the target")
-        self.parser.add_option('--snmp-port', dest='zSnmpPort', 
-                    type="int", help="SNMP port of the target")
         self.parser.add_option('--snmp-missing', dest='snmpMissing',
                     action="store_true", default=False,
                     help="Send an event if SNMP is not found on the device")

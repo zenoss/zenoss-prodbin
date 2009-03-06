@@ -587,152 +587,6 @@ class PerformanceConf(Monitor, StatusColor):
                 devices.append(dev)
         return devices
 
-
-    def createDevice(self, context, deviceName, devicePath='/Discovered',
-        tag='', serialNumber='',
-        zSnmpCommunity='', zSnmpPort=161, zSnmpVer='',
-        rackSlot=0, productionState=1000, comments='',
-        hwManufacturer='', hwProductName='',
-        osManufacturer='', osProductName='',
-        locationPath='', groupPaths=[], systemPaths=[],
-        performanceMonitor='localhost',
-        discoverProto='snmp', priority=3, manageIp='',
-        REQUEST=None):
-        """
-        Create a device in a performance monitor specific fashion.
-        Creates device by delegating to manage_createDevice
-        
-        
-        @param context: Where you are in the Zope acquisition path
-        @type context: Zope context object
-        @param deviceName: Name of a device
-        @type deviceName: string
-        @param devicePath: where to locate the device in the DMD
-        @type devicePath: string
-        @param tag: asset tag label
-        @type tag: string
-        @param serialNumber: serial number of the hardware
-        @type serialNumber: string
-        @param zSnmpCommunity: SNMP community string
-        @type zSnmpCommunity: string
-        @param zSnmpPort: SNMP port
-        @type zSnmpPort: string
-        @param zSnmpVer: SNMP version
-        @type zSnmpVer: string
-        @param rackSlot: rack location
-        @type rackSlot: string
-        @param productionState: production state (eg Production)
-        @type productionState: string
-        @param comments: User-supplied comments
-        @type comments: string
-        @param hwManufacturer: Manufacturer of the hardware
-        @type hwManufacturer: string
-        @param hwProductName: hardware model name
-        @type hwProductName: string
-        @param osManufacturer: Creator of the OS
-        @type osManufacturer: string
-        @param osProductName: Name of the OS
-        @type osProductName: string
-        @param locationPath: where to put under 'Locations'
-        @type locationPath: string
-        @param groupPaths: where to put under 'Groups'
-        @type groupPaths: string
-        @param systemPaths: where to put under 'Systems'
-        @type systemPaths: string
-        @param performanceMonitor: monitor name
-        @type performanceMonitor: string
-        @param discoverProto: discovery protocol to use (eg auto or none)
-        @type discoverProto: string
-        @param priority: priority
-        @type priority: string
-        @param manageIp: IP address of the device
-        @type manageIp: string
-        @param REQUEST: Zope REQUEST object
-        @type REQUEST: Zope REQUEST object
-        @return: new Device or None
-        @rtype: Device
-        """
-        if devicePath == '':
-            devicePath = '/'
-        device = None
-        if discoverProto == 'none':
-            # If you're adding a device manually, we will try to do the lookup
-            # locally.
-            if not manageIp:
-                try:
-                    manageIp = socket.gethostbyname(deviceName)
-                except socket.error:
-                    pass
-            device = manage_createDevice(self, deviceName, devicePath,
-                tag, serialNumber,
-                zSnmpCommunity, zSnmpPort, zSnmpVer,
-                rackSlot, productionState, comments,
-                hwManufacturer, hwProductName,
-                osManufacturer, osProductName,
-                locationPath, groupPaths, systemPaths,
-                performanceMonitor,
-                discoverProto, priority, manageIp)
-            return device
-        else:
-            device = self._createDevice(deviceName, devicePath, tag, serialNumber,
-                               zSnmpCommunity, zSnmpPort, zSnmpVer, rackSlot,
-                               productionState, comments, hwManufacturer,
-                               hwProductName, osManufacturer, osProductName,
-                               locationPath, groupPaths, systemPaths,
-                               performanceMonitor, discoverProto, priority,
-                               manageIp, REQUEST)
-            if device:
-                if device.hasProperty('zSnmpVer'):
-                    zSnmpVer = device.zSnmpVer
-                if device.hasProperty('zSnmpCommunity'):
-                    zSnmpCommunity = device.zSnmpCommunity
-
-                device.manage_editDevice(
-                    tag=device.hw.tag or tag,
-                    serialNumber=device.hw.serialNumber or
-                         serialNumber,
-                    rackSlot=device.rackSlot or rackSlot,
-                    zSnmpPort=zSnmpPort,
-                    zSnmpCommunity=zSnmpCommunity,
-                    zSnmpVer=zSnmpVer,
-                    productionState=productionState,
-                    comments=comments,
-                    hwManufacturer=hwManufacturer or
-                         device.hw.getManufacturerName(),
-                    hwProductName=hwProductName or
-                         device.hw.getProductName(),
-                    osManufacturer=osManufacturer or
-                         device.os.getManufacturerName(),
-                    osProductName=osProductName or
-                         device.os.getProductName(),
-                    locationPath=locationPath,
-                    groupPaths=groupPaths,
-                    systemPaths=systemPaths,
-                    performanceMonitor=performanceMonitor,
-                    priority=priority
-                    )
-                return device
-            else:
-                log.debug('No device returned.')
-
-
-    def _createDevice(self, deviceName, devicePath, tag, serialNumber,
-                      zSnmpCommunity, zSnmpPort, zSnmpVer, rackSlot,
-                      productionState, comments, hwManufacturer, hwProductName,
-                      osManufacturer, osProductName, locationPath, groupPaths,
-                      systemPaths, performanceMonitor, discoverProto, priority,
-                      manageIp, REQUEST=None):
-        """
-        Actual implementation for creating/adding a device to the system.
-        """
-        self._executeZenDiscCommand(deviceName, devicePath, performanceMonitor,
-                                    discoverProto, zSnmpPort, zSnmpCommunity, 
-                                    REQUEST)
-        self.dmd._p_jar.sync()
-        device = self.getDmdRoot("Devices").findDevice(deviceName)
-        return device
-
-
     def _executeZenDiscCommand(self, deviceName, devicePath= "/Discovered", 
                       performanceMonitor="localhost", discoverProto="snmp",
                       zSnmpPort=161,zSnmpCommunity="", REQUEST=None):
@@ -758,15 +612,11 @@ class PerformanceConf(Monitor, StatusColor):
         """
         zm = binPath('zendisc')
         zendiscCmd = [zm]
-
         zendiscOptions = ['run', '--now','-d', deviceName,
                      '--monitor', performanceMonitor, 
-                     '--deviceclass', devicePath,
-                     '--snmp-port', str(zSnmpPort) ]
-        if zSnmpCommunity != "":
-            zendiscOptions.extend(["--snmp-community", zSnmpCommunity])
-
-        if REQUEST: zendiscOptions.append("--weblog")
+                     '--deviceclass', devicePath]
+        if REQUEST: 
+            zendiscOptions.append("--weblog")
         zendiscCmd.extend(zendiscOptions)
         result = executeCommand(zendiscCmd, REQUEST)
         return result

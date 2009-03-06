@@ -151,6 +151,13 @@ class DiscoverService(ModelerService):
         transaction.commit()
         return self.createDeviceProxy(dev), True
 
+    @translateError
+    def remote_succeedDiscovery(self, id):
+        dev = self.dmd.Devices.findDevice(id)
+        if dev: 
+            dev._temp_device = False
+        transaction.commit()
+        return True
 
     @translateError
     def remote_followNextHopIps(self, device):

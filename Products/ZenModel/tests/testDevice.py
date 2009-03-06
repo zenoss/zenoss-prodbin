@@ -21,6 +21,7 @@ from DateTime import DateTime
 from Products.ZenModel.Exceptions import *
 from Products.ZenModel.Device import Device, manage_createDevice
 from Products.ZenModel.IpRouteEntry import IpRouteEntry
+from Products.ZenModel.ZDeviceLoader import WeblogDeviceLoader
 
 from ZenModelBaseTest import ZenModelBaseTest
 
@@ -291,6 +292,19 @@ class TestDevice(ZenModelBaseTest):
         self.assert_('/sys/path1' in self.dev.getSystemNames())
         self.assert_('/sys/path2' in self.dev.getSystemNames())
         self.assert_(self.dev.getPerformanceServerName() == "perfMon")
+
+    def test_setZProperties(self):
+        decoding = self.dmd.Devices.zCollectorDecoding
+        zProperties = {'zCommandUsername':'testuser',
+                       'zCollectorDecoding':decoding}
+        device = WeblogDeviceLoader(self.dmd, None).load_device(
+                    'testdevice', '/', 'none', zProperties=zProperties)
+        self.assert_(device is not None)
+        self.assertEqual(device.zCommandUsername, 'testuser')
+        self.assertEqual(device.zCollectorDecoding, decoding)
+        self.assertEqual(device.isLocal('zCommandUsername'), True)
+        self.assertEqual(device.isLocal('zCollectorDecoding'), False)
+
 
 def test_suite():
     from unittest import TestSuite, makeSuite

@@ -11,41 +11,19 @@
 #
 ###########################################################################
 
-import zope.interface
+from zope.interface import Interface
 
-class IDeviceManager:
+class IDeviceLoader(Interface):
     """
-    Interface implemented for objects that manage devices, like DeviceOrganizers
-    or monitor configurations.
+    Object with ability to add devices to the database.
     """
-
-    def deviceMoveTargets(self):
+    def load_device():
         """
-        Return a list of potential targets to which a device can be moved.
-        Should remove self from of list.
+        Attempt to load a single device into the database.
         """
 
-    def getDeviceMoveTarget(self, moveTargetName):
+    def load_devices():
         """
-        Return the moveTarget based on its name.
-        """
-
-    def moveDevices(self, moveTarget, deviceNames=None, REQUEST=None):
-        """
-        Move a list of devices from this DeviceManager to another.
+        Attempt to load multiple devices into the database.
         """
 
-    def removeDevices(self, deviceNames=None, deleteStatus=False, 
-                      deleteHistory=False, deletePerf=False, REQUEST=None):
-        """
-        Remove devices from this DeviceManager.
-        """
-
-        
-class IReport(zope.interface.Interface):
-
-    def run(dmd, args):
-        """Dmd is the DataRoot, args are the REQUEST args, this command
-        returns a sequence"""
-
-        

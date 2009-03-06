@@ -19,22 +19,29 @@ $Id: ZDeviceLoader.py,v 1.19 2004/04/22 02:14:12 edahl Exp $"""
 
 __version__ = "$Revision: 1.19 $"[11:-2]
 
+import socket
 from logging import StreamHandler, Formatter, getLogger
 log = getLogger("zen.DeviceLoader")
 
 import transaction
+from zope.interface import implements
 from AccessControl import ClassSecurityInfo
 from AccessControl import Permissions as permissions
 
 from OFS.SimpleItem import SimpleItem
 
-from Products.ZenUtils.Utils import isXmlRpc, setupLoggingHeader, clearWebLoggingStream
+from Products.ZenUtils.Utils import isXmlRpc, setupLoggingHeader 
+from Products.ZenUtils.Utils import binPath, clearWebLoggingStream
 from Products.ZenUtils.Exceptions import ZentinelException
 from Products.ZenModel.Exceptions import DeviceExistsError, NoSnmp
+from Products.ZenModel.Device import manage_createDevice
 from Products.ZenWidgets import messaging
 from Products.Jobber.interfaces import IJobStatus
+from Products.Jobber.jobs import ShellCommandJob
+from Products.Jobber.status import SUCCESS, FAILURE
 from ZenModelItem import ZenModelItem
 from zExceptions import BadRequest
+from Products.ZenModel.interfaces import IDeviceLoader
 
 
 def manage_addZDeviceLoader(context, id="", REQUEST = None):
@@ -46,6 +53,221 @@ def manage_addZDeviceLoader(context, id="", REQUEST = None):
     if REQUEST is not None:
         REQUEST['RESPONSE'].redirect(context.absolute_url()
                                      +'/manage_main')
+
+class BaseDeviceLoader(object):
+    implements(IDeviceLoader)
+
+    context = None
+    request = None
+    deviceobj = None
+
+    def __init__(self, context):
+        self.context = context
+
+    def _set_zProperties(self, zProperties):
+        """
+        Set zProperties on the device object intelligently. 
+        
+        If the new value is different from the inherited value, override on
+        this device. Otherwise, do nothing, so the inheritance remains.
+        """
+        if self.deviceobj is not None:
+            for prop, newvalue in zProperties.iteritems():
+                inherited = getattr(self.deviceobj, prop)
+                if newvalue != inherited:
+                    self.deviceobj.setZenProperty(prop, newvalue)
+
+
+    def run_zendisc(self, deviceName, devicePath, performanceMonitor):
+        """
+        Various ways of doing this should be implemented in subclasses.
+        """
+        raise NotImplementedError
+
+    def cleanup(self):
+        """
+        Delete the device object, presumably because discovery failed.
+        """
+        if self.deviceobj is not None:
+            self.deviceobj._p_jar.sync()
+            if self.deviceobj.isTempDevice(): 
+                # Flag's still True, so discovery failed somehow.  Clean up the
+                # device object.
+                self.deviceobj.deleteDevice(True, True, True)
+                self.deviceobj = None
+
+    def load_device(self, deviceName, devicePath='/Discovered', 
+                    discoverProto='snmp', performanceMonitor='localhost',
+                    manageIp=None, zProperties=None, deviceProperties=None):
+        """
+        Load a single device into the database.
+        """
+        # Make the config dictionaries the proper type
+        try:
+            if zProperties is None:
+                zProperties = {}
+            if deviceProperties is None:
+                deviceProperties = {}
+
+            # Remove spaces from the name
+            deviceName = deviceName.replace(' ', '')
+
+            # If we're not discovering and we have no IP, attempt the IP lookup
+            # locally
+            if discoverProto=='none':
+                if not manageIp:
+                    try:
+                        manageIp = socket.gethostbyname(deviceName)
+                    except socket.error:
+                        pass
+
+            # Make a device object in the database
+            self.deviceobj = manage_createDevice(self.context, deviceName,
+                                 devicePath,
+                                 performanceMonitor=performanceMonitor,
+                                 **deviceProperties)
+
+            # Set zProperties on the device 
+            self._set_zProperties(zProperties)
+
+            # Flag this device as temporary. If discovery goes well, zendisc will
+            # flip this to False.
+            self.deviceobj._temp_device = True
+
+            # Commit to database so everybody can find the new device
+            transaction.commit()
+
+            # If we're not discovering, we're done
+            if discoverProto=='none':
+                return self.deviceobj
+
+            # Otherwise, time for zendisc to do its thing
+            self.run_zendisc(deviceName, devicePath, performanceMonitor)
+
+        finally:
+            # Check discovery's success and clean up accordingly
+            self.cleanup()
+
+        return self.deviceobj
+
+
+class JobDeviceLoader(BaseDeviceLoader):
+    implements(IDeviceLoader)
+
+    def run_zendisc(self, deviceName, devicePath, performanceMonitor):
+        """
+        In this subclass, just create the zendisc command and return it. The
+        job will do the actual running.
+        """
+        zm = binPath('zendisc')
+        zendiscCmd = [zm]
+        zendiscOptions = ['run', '--now','-d', deviceName,
+                     '--monitor', performanceMonitor, 
+                     '--deviceclass', devicePath]
+        zendiscCmd.extend(zendiscOptions)
+        self.zendiscCmd = zendiscCmd
+
+    def cleanup(self):
+        """
+        Delegate cleanup to the Job itself.
+        """
+        pass
+
+
+class DeviceCreationJob(ShellCommandJob):
+    def __init__(self, jobid, deviceName, devicePath="/Discovered", tag="",
+                 serialNumber="", rackSlot=0, productionState=1000,
+                 comments="", hwManufacturer="", hwProductName="",
+                 osManufacturer="", osProductName="", locationPath="",
+                 groupPaths=[], systemPaths=[], performanceMonitor="localhost",
+                 discoverProto="snmp", priority=3, manageIp="",
+                 zProperties=None):
+
+        # Store device name for later finding
+        self.deviceName = deviceName
+        self.devicePath = devicePath
+        self.performanceMonitor = performanceMonitor
+        self.discoverProto = discoverProto
+        self.manageIp = manageIp
+
+        # Save the device stuff to set after adding
+        self.zProperties = zProperties
+        self.deviceProps = dict(tag=tag,
+                          serialNumber=serialNumber,
+                          rackSlot=rackSlot,
+                          productionState=productionState,
+                          comments=comments,
+                          hwManufacturer=hwManufacturer,
+                          hwProductName = hwProductName,
+                          osManufacturer = osManufacturer,
+                          osProductName = osProductName,
+                          locationPath = locationPath,
+                          groupPaths = groupPaths,
+                          systemPaths = systemPaths,
+                          priority = priority)
+
+        # Set up the job, passing in a blank command (gets set later)
+        super(DeviceCreationJob, self).__init__(jobid, '')
+
+    def run(self, r):
+        self._v_loader = JobDeviceLoader(self)
+        # Create the device object and generate the zendisc command
+        try:
+            self._v_loader.load_device(self.deviceName, self.devicePath,
+                                    self.discoverProto,
+                                    self.performanceMonitor, self.manageIp,
+                                    self.zProperties, self.deviceProps)
+        except Exception, e:
+            transaction.commit()
+            log = self.getStatus().getLog()
+            log.write(e.args[0])
+            log.finish()
+            self.finished(FAILURE)
+        else:
+            self.cmd = self._v_loader.zendiscCmd
+            super(DeviceCreationJob, self).run(r)
+
+    def finished(self, r):
+        self._v_loader.cleanup()
+        if self._v_loader.deviceobj is not None and r!=FAILURE:
+            # Discovery succeeded. Really set those properties good.
+            self.postDeviceAdd()
+            result = SUCCESS
+        else:
+            result = FAILURE
+        super(DeviceCreationJob, self).finished(result)
+
+    def postDeviceAdd(self):
+        """
+        Set the properties on the device after it's been added.
+        """
+        self._p_jar.sync()
+        dev = self._v_loader.deviceobj
+        props = self.deviceProps
+        # Set up the hw/os props correctly
+        props['hwManufacturer'] = props['hwManufacturer'] or \
+            dev.hw.getManufacturerName()
+        props['hwProductName'] = props['hwProductName'] or \
+            dev.hw.getProductName()
+        props['osManufacturer'] = props['osManufacturer'] or \
+            dev.os.getManufacturerName()
+        props['osProductName'] = props['osProductName'] or \
+            dev.os.getProductName()
+
+        # Store the props on the device
+        dev.manage_editDevice(**props)
+
+
+class WeblogDeviceLoader(BaseDeviceLoader):
+    def __init__(self, context, request):
+        self.context = context
+        self.request = request
+
+    def run_zendisc(self, deviceName, devicePath, performanceMonitor):
+        collector = self.deviceobj.getPerformanceServer()
+        collector._executeZenDiscCommand(deviceName, devicePath,
+                                         performanceMonitor,
+                                         REQUEST=self.request)
 
 
 class ZDeviceLoader(ZenModelItem,SimpleItem):
@@ -92,32 +314,39 @@ class ZDeviceLoader(ZenModelItem,SimpleItem):
         Load a device into the database connecting its major relations
         and collecting its configuration.
         """
-        if not deviceName: return self.callZenScreen(REQUEST)
-        deviceName = deviceName.replace(' ', '')
         device = None
-
+        if not deviceName: return self.callZenScreen(REQUEST)
         xmlrpc = isXmlRpc(REQUEST)
         if REQUEST and not xmlrpc:
             handler = setupLoggingHeader(self, REQUEST)
 
-        """
-        Get performance monitor and call createDevice so that the correct
-        version (local/remote) of createDevice gets invoked
-        """
-        monitor = self.getDmdRoot("Monitors").getPerformanceMonitor(
-                                                performanceMonitor)
+        loader = WeblogDeviceLoader(self, REQUEST)
 
         try:
-            device = monitor.createDevice(self, deviceName, devicePath,
-                                    tag, serialNumber,
-                                    zSnmpCommunity, zSnmpPort, zSnmpVer,
-                                    rackSlot, productionState, comments,
-                                    hwManufacturer, hwProductName,
-                                    osManufacturer, osProductName,
-                                    locationPath, groupPaths, systemPaths,
-                                    performanceMonitor, discoverProto, 
-                                    priority, "", REQUEST)
-        except (SystemExit, KeyboardInterrupt): raise
+            device = loader.load_device(deviceName, devicePath, discoverProto,
+                                        performanceMonitor,
+                                        zProperties=dict(
+                                            zSnmpCommunity=zSnmpCommunity,
+                                            zSnmpPort=zSnmpPort,
+                                            zSnmpVer=zSnmpVer
+                                        ),
+                                        deviceProperties=dict(
+                                            tag=tag,
+                                            serialNumber=serialNumber,
+                                            rackSlot=rackSlot,
+                                            productionState=productionState,
+                                            comments=comments,
+                                            hwManufacturer=hwManufacturer,
+                                            hwProductName=hwProductName,
+                                            osManufacturer=osManufacturer,
+                                            osProductName=osProductName,
+                                            locationPath=locationPath,
+                                            groupPaths=groupPaths,
+                                            systemPaths=systemPaths,
+                                            priority=priority
+                                        ))
+        except (SystemExit, KeyboardInterrupt): 
+            raise
         except ZentinelException, e:
             log.info(e)
             if xmlrpc: return 1
@@ -131,7 +360,6 @@ class ZDeviceLoader(ZenModelItem,SimpleItem):
             log.exception(e)
             log.exception('load of device %s failed' % deviceName)
             transaction.abort()
-
         if device is None:
             log.error("Unable to add the device %s" % deviceName)
         else:
@@ -141,7 +369,6 @@ class ZDeviceLoader(ZenModelItem,SimpleItem):
             self.loaderFooter(device, REQUEST.RESPONSE)
             clearWebLoggingStream(handler)
         if xmlrpc: return 0
-
 
     def addManufacturer(self, newHWManufacturerName=None,
                         newSWManufacturerName=None, REQUEST=None):
