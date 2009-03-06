@@ -20,6 +20,9 @@ import rrdtool
 import os
 import time
 
+import logging
+log = logging.getLogger("zen.DaemonStats")
+
 def fullname(partial):
     return zenPath('perf', partial + '.rrd')
 
@@ -82,20 +85,23 @@ class DaemonStats:
                            *self.createCommand)
         return base
 
-    
+
     def counter(self, name, cycleTime, value):
         "Write a counter value, return threshold events"
         fileName = self.rrdFile('DERIVE', cycleTime, name, 0)
         if fileName:
             full = fullname(fileName)
-            rrdtool.update(full, 'N:%s' % int(value))
-            startStop, names, values = \
-                       rrdtool.fetch(full, 'AVERAGE',
-                                     '-s', 'now-%d' % (cycleTime*2),
-                                     '-e', 'now')
-            value = values[0][0]
-            if value is not None:
-                return self.thresholds.check(fileName, time.time(), value)
+            try:
+                rrdtool.update(full, 'N:%s' % int(value))
+                startStop, names, values = \
+                    rrdtool.fetch(full, 'AVERAGE',
+                        '-s', 'now-%d' % (cycleTime*2),
+                        '-e', 'now')
+                value = values[0][0]
+                if value is not None:
+                    return self.thresholds.check(fileName, time.time(), value)
+            except rrdtool.error, err:
+                log.error('rrdtool reported error %s %s', err, path)
         return []
 
 
@@ -104,7 +110,10 @@ class DaemonStats:
         fileName = self.rrdFile('GAUGE', cycleTime, name)
         if fileName:
             full = fullname(fileName)
-            rrdtool.update(full, 'N:%s' % value)
+            try:
+                rrdtool.update(full, 'N:%s' % value)
+            except rrdtool.error, err:
+                log.error('rrdtool reported error %s %s', err, path)
         if value is not None:
             return self.thresholds.check(fileName, time.time(), value)
         return []
