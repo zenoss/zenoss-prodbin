@@ -529,15 +529,17 @@ class CommandChannel(channel.SSHChannel):
     def openFailed(self, reason):
         """
         Called when the open fails.
-
-        @param reason: reason object
-        @type reason: reason object
         """
-        message= 'Open of %s failed (error code %d): %s' % \
-                 (self.command, reason.code, str( reason.desc ) )
-        log.warn( message )
-        sendEvent( self, message=message )
-        channel.SSHChannel.openFailed( self, reason )
+        from twisted.conch.error import ConchError
+        if isinstance(reason, ConchError):
+            args = (reason.data, reason.value)
+        else:
+            args = (reason.code, reason.desc)
+        message = 'Open of %s failed (error code %d): %s' % (
+                (self.command,) + args)
+        log.warn(message)
+        sendEvent(self, message=message)
+        channel.SSHChannel.openFailed(self, reason)
 
 
     def extReceived(self, dataType, data ):
