@@ -151,9 +151,10 @@ class RRDUtil:
 
         if rrdType in ('COUNTER', 'DERIVE'):
             startStop, names, values = \
-                       rrdtool.fetch(filename, 'AVERAGE',
-                                     '-s', 'now-%d' % (cycleTime*2),
-                                     '-e', 'now')
-            value = values[0][0]
+                rrdtool.fetch(filename, 'AVERAGE',
+                    '-s', 'now-%d' % (cycleTime*2),
+                    '-e', 'now')
+            values = [ v[0] for v in values if v[0] is not None ]
+            if values: value = values[-1]
+            else: value = None
         return value
-
