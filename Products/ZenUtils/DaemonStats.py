@@ -101,7 +101,7 @@ class DaemonStats:
                 if value is not None:
                     return self.thresholds.check(fileName, time.time(), value)
             except rrdtool.error, err:
-                log.error('rrdtool reported error %s %s', err, path)
+                log.error('rrdtool reported error %s %s', err, full)
         return []
 
 
@@ -113,7 +113,7 @@ class DaemonStats:
             try:
                 rrdtool.update(full, 'N:%s' % value)
             except rrdtool.error, err:
-                log.error('rrdtool reported error %s %s', err, path)
+                log.error('rrdtool reported error %s %s', err, full)
         if value is not None:
             return self.thresholds.check(fileName, time.time(), value)
         return []
