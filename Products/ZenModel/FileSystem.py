@@ -20,6 +20,7 @@ $Id: FileSystem.py,v 1.12 2004/04/06 22:33:23 edahl Exp $"""
 __version__ = "$Revision: 1.12 $"[11:-2]
 from Globals import DTMLFile
 from Globals import InitializeClass
+from AccessControl import ClassSecurityInfo
 
 from Products.ZenUtils.Utils import convToUnits
 from Products.ZenRelations.RelSchema import *
@@ -61,6 +62,8 @@ class FileSystem(OSComponent):
     capacity = 0
     inodeCapacity = 0
     maxNameLen = 0
+
+    security = ClassSecurityInfo()
 
     _properties = OSComponent._properties + (
         {'id':'mount', 'type':'string', 'mode':''},
@@ -231,6 +234,7 @@ class FileSystem(OSComponent):
     name = viewName
 
 
+    security.declareProtected(ZEN_MANAGE_DEVICE, 'manage_editFileSystem')
     def manage_editFileSystem(self, monitor=False,
                 mount=None, storageDevice=None, 
                 type=None, blockSize=None, 
