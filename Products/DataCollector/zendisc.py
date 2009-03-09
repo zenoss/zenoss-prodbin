@@ -25,6 +25,7 @@ from Products.ZenUtils.Utils import unused
 from Products.ZenUtils.Driver import drive
 from Products.ZenUtils.IpUtil import asyncNameLookup
 from Products.ZenUtils.IpUtil import isip
+from Products.ZenUtils.IpUtil import parse_iprange
 from Products.ZenUtils.NJobs import NJobs
 from Products.ZenModel.Exceptions import NoIPAddress
 from Products.ZenEvents.ZenEventClasses import Status_Snmp
@@ -99,7 +100,6 @@ class ZenDisc(ZenModeler):
             """
             ips = []
             goodCount = 0
-            ips = []
             # it would be nice to interleave ping/discover
             for net in nets:
                 if self.options.subnets and len(net.children()) > 0:
@@ -134,7 +134,41 @@ class ZenDisc(ZenModeler):
 
         d = drive(inner)
         return d
-       
+
+    def discoverRanges(self, driver):
+        """
+        Ping all IPs in the range and create devices for the ones that come
+        back.
+
+        @param ranges: list of ranges to discover
+        @type ranges: list
+        """
+        if isinstance(self.options.range, basestring):
+            self.options.range = [self.options.range]
+        # in case someone uses 10.0.0.0-5,192.168.0.1-5 instead of 
+        # --range 10.0.0.0-5 --range 192.168.0.1-5
+        if (isinstance(self.options.range, list) and
+            self.options.range[0].find(",") > -1):
+            self.options.range = [n.strip() for n in 
+                                  self.options.range[0].split(',')]
+        ips = []
+        goodCount = 0
+        for iprange in self.options.range:
+            # Parse to find ips included
+            ips.extend(parse_iprange(iprange))
+        yield NJobs(self.options.chunkSize,
+                    self.ping.ping,
+                    ips).start()
+        results = driver.next()
+        goodips = [v.ipaddr for v in results if not isinstance(v, Failure)]
+        badips = [v.value.ipaddr for v in results if isinstance(v, Failure)]
+        goodCount += len(goodips)
+        self.log.debug("Got %d good IPs and %d bad IPs",
+                       len(goodips), len(badips))
+        yield self.discoverDevices(goodips)
+        yield succeed("Discovered %d active IPs" % goodCount)
+        driver.next()
+
 
     def discoverRouters(self, rootdev, seenips=None):
         """
@@ -628,7 +662,10 @@ class ZenDisc(ZenModeler):
         
         elif self.options.device:
             d = drive(self.createDevice)
-        
+
+        elif self.options.range:
+            d = drive(self.discoverRanges)
+
         else:
             d = drive(self.collectNet)
 
@@ -677,6 +714,8 @@ class ZenDisc(ZenModeler):
         ZenModeler.buildOptions(self)
         self.parser.add_option('--net', dest='net', action="append",  
                     help="Discover all device on this network")
+        self.parser.add_option('--range', dest='range', action='append',
+                    help="Discover all IPs in this range")
         self.parser.add_option('--deviceclass', dest='deviceclass',
                     default="/Discovered",
                     help="Default device class for discovered devices")

@@ -182,3 +182,35 @@ def asyncIpLookup(name):
     import socket
     return threads.deferToThread(lambda : socket.gethostbyname(name))
 
+
+class InvalidIPRangeError(Exception):
+    """
+    Attempted to parse an invalid IP range.
+    """
+
+def parse_iprange(iprange):
+    """
+    Turn a string specifying an IP range into a list of IPs.
+
+    @param iprange: The range string, in the format '10.0.0.a-b'
+    @type iprange: str
+
+        >>> parse_iprange('10.0.0.1-5')
+        ['10.0.0.1', '10.0.0.2', '10.0.0.3', '10.0.0.4', '10.0.0.5']
+        >>> parse_iprange('10.0.0.1')
+        ['10.0.0.1']
+        >>> try: parse_iprange('10.0.0.1-2-3')
+        ... except InvalidIPRangeError: print "Invalid"
+        Invalid
+
+    """
+    # Get the relevant octet
+    net, octet = iprange.rsplit('.', 1)
+    split = octet.split('-')
+    if len(split) > 2: # Nothing we can do about this
+        raise InvalidIPRangeError('%s is an invalid IP range.')
+    elif len(split)==1: # A single IP was passed
+        return [iprange]
+    else:
+        start, end = map(int, split)
+        return ['%s.%s' % (net, x) for x in xrange(start, end+1)]
