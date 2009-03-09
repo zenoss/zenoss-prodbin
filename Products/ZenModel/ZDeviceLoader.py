@@ -121,6 +121,12 @@ class BaseDeviceLoader(object):
                     except socket.error:
                         pass
 
+            # move the zProperties required by manage_createDevice to
+            # deviceProperties
+            for key in 'zSnmpCommunity', 'zSnmpPort', 'zSnmpVer':
+                if zProperties.has_key(key):
+                    deviceProperties[key] = zProperties.pop(key)
+            
             # Make a device object in the database
             self.deviceobj = manage_createDevice(self.context, deviceName,
                                  devicePath,
