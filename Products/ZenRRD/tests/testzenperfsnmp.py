@@ -88,6 +88,7 @@ class Testzenperfsnmp(BaseTestCase):
         # Fake out some options for sending alerts
         self.zpf.options = FakeOptions()
         self.zpf.options.monitor = testdev
+        self.zpf.options.showdeviceresults = False
 
         # Save the following info for our tearDown() script
         self.perfpath= self.zpf.rrd.performancePath( "tests" )
