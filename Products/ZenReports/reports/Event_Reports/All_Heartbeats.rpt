@@ -2,7 +2,7 @@
 	objects  python:here.ZenEventManager.getHeartbeatObjects(failures=False,limit=0);
     tableName string: allheartbeatreport;
     batch python:here.ZenTableManager.getBatch(tableName,objects);
-	exportFields python:[(0, 'device'), (1, 'component'), (2, 'seconds')];
+	exportFields python:['devId', 'comp', 'dtime'];
 	">
 <tal:block metal:use-macro="here/reportMacros/macros/exportableReport">
 <tal:block metal:fill-slot="report">
@@ -31,7 +31,7 @@
     <tr tal:repeat="heart batch">
         <td class="tablevalues" tal:content="structure heart/alink"/>
         <td class="tablevalues" tal:content="heart/comp"/>
-        <td class="tablevalues" align=center tal:content="heart/dtime"/>
+        <td class="tablevalues" align="right" tal:content="heart/dtime"/>
     </tr>
     <tr>
         <td colspan="3" class="tableheader">
