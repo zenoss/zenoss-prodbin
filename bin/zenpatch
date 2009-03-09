@@ -24,6 +24,19 @@ USAGE
     exit 1
 fi 
 
+#are patching from trunk or branch
+findStripSize () {
+    rFILE=${ZENHOME}/Products/$1
+    echo "determinig strip size for ${rFILE}"
+    ssize=3 
+    if [[ `head -1 ${rFILE} | grep branches` ]] ; then
+        ssize=4
+    fi
+    return $ssize
+}
+
+
+
 if [ $CHANGESET = '--list' ]; then
     patches=`ls -1 $ZENHOME/Products/*.patch 2>/dev/null | sed -e 's#.*/r\([0-9]\+\).patch#\1#' -e 's#.*/\(.*\).patch#\1#' | sort -n`
     if [ -z "$patches" ] ; then
@@ -133,10 +146,15 @@ else
     DFILE=r${CHANGESET}.patch
 fi
 
+#get the strip size for branch vs. trunk patches
+findStripSize ${DFILE}
+STRIPSIZE=$?
+
+
 # apply patch
 echo
-echo "Applying patch..."
+echo "Applying patch with strip=${STRIPSIZE}"
 cd $ZENHOME/Products
-echo "patch -b --strip=3 < ${DFILE}"
-patch -b --strip=3 < ${DFILE}
+echo "patch -b --strip=${STRIPSIZE} < ${DFILE}"
+patch -b --strip=${STRIPSIZE} < ${DFILE}
 
