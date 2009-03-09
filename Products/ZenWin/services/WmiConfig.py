@@ -1,7 +1,7 @@
 ###########################################################################
 #
 # This program is part of Zenoss Core, an open source monitoring platform.
-# Copyright (C) 2007, Zenoss Inc.
+# Copyright (C) 2007-2009, Zenoss Inc.
 #
 # This program is free software; you can redistribute it and/or modify it
 # under the terms of the GNU General Public License version 2 as published by
@@ -126,17 +126,27 @@ class WmiConfig(ModelerService, ThresholdMixin):
     def remote_getDeviceConfigAndWinServices(self, names):
         """Return a list of (devname, user, passwd, {'EvtSys':0,'Exchange':0}) 
         """
-        result = []
+        deviceMap = {}
         for name in names:
-            device = self.dmd.Devices.findDevice(name)
+            # try and load the device from the provided list of names, but
+            # exclude the device if a) we can't find it! or b) we've already
+            # found it and created a proxy. The latter is a guard against
+            # two different proxies for the same device being provided which
+            # will cause great grief with the native code DCOM implementation
+            # we use.
+            device = self.dmd.Devices.findDeviceExact(name)
             if not device:
                 continue
+            elif deviceMap.has_key(device.id):
+                continue
+
             device = device.primaryAq()
             if not device.monitorDevice(): continue
             if getattr(device, 'zWmiMonitorIgnore', False): continue
-            
+
             proxy = self.createDeviceProxy(device)
             proxy.id = device.getId()
+
             proxy.services = {}
             for s in device.getMonitoredComponents(type='WinService'):
                 name = s.name()
@@ -144,7 +154,10 @@ class WmiConfig(ModelerService, ThresholdMixin):
                     name = name.encode(s.zCollectorDecoding)
                 proxy.services[name] = (s.getStatus(), 
                                     s.getAqProperty('zFailSeverity'))
+
             if not proxy.services and not device.zWinEventlog: continue
-            result.append(proxy)
-        return result
+
+            deviceMap[device.id] = proxy
+
+        return deviceMap.values()
 
