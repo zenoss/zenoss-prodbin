@@ -25,7 +25,6 @@ class MySqlSendEventTest(BaseTestCase):
         self.zem = self.dmd.ZenEventManager
         self.d = self.dmd.Devices.createInstance(TEST_DEVICE)
 
-
     def tearDown(self):
         conn = self.zem.connect()
         try:

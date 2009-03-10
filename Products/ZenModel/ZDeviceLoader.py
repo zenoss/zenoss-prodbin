@@ -89,12 +89,16 @@ class BaseDeviceLoader(object):
         Delete the device object, presumably because discovery failed.
         """
         if self.deviceobj is not None:
-            self.deviceobj._p_jar.sync()
-            if self.deviceobj.isTempDevice(): 
-                # Flag's still True, so discovery failed somehow.  Clean up the
-                # device object.
-                self.deviceobj.deleteDevice(True, True, True)
-                self.deviceobj = None
+            try: 
+                self.deviceobj._p_jar.sync()
+            except AttributeError:
+                pass
+            else:
+                if self.deviceobj.isTempDevice(): 
+                    # Flag's still True, so discovery failed somehow.  Clean up
+                    # the device object.
+                    self.deviceobj.deleteDevice(True, True, True)
+                    self.deviceobj = None
 
     def load_device(self, deviceName, devicePath='/Discovered', 
                     discoverProto='snmp', performanceMonitor='localhost',
@@ -140,9 +144,6 @@ class BaseDeviceLoader(object):
             # flip this to False.
             self.deviceobj._temp_device = True
 
-            # Commit to database so everybody can find the new device
-            transaction.commit()
-
             # If we're not discovering, we're done
             if discoverProto=='none':
                 return self.deviceobj
@@ -165,6 +166,9 @@ class JobDeviceLoader(BaseDeviceLoader):
         In this subclass, just create the zendisc command and return it. The
         job will do the actual running.
         """
+        # Commit to database so everybody can find the new device
+        transaction.commit()
+
         zm = binPath('zendisc')
         zendiscCmd = [zm]
         zendiscOptions = ['run', '--now','-d', deviceName,
@@ -270,6 +274,8 @@ class WeblogDeviceLoader(BaseDeviceLoader):
         self.request = request
 
     def run_zendisc(self, deviceName, devicePath, performanceMonitor):
+        # Commit to database so everybody can find the new device
+        transaction.commit()
         collector = self.deviceobj.getPerformanceServer()
         collector._executeZenDiscCommand(deviceName, devicePath,
                                          performanceMonitor,

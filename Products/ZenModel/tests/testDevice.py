@@ -21,13 +21,12 @@ from DateTime import DateTime
 from Products.ZenModel.Exceptions import *
 from Products.ZenModel.Device import Device, manage_createDevice
 from Products.ZenModel.IpRouteEntry import IpRouteEntry
-from Products.ZenModel.ZDeviceLoader import WeblogDeviceLoader
+from Products.ZenModel.ZDeviceLoader import BaseDeviceLoader
 
 from ZenModelBaseTest import ZenModelBaseTest
 
 
 class TestDevice(ZenModelBaseTest):
-
 
     def setUp(self):
         ZenModelBaseTest.setUp(self)
@@ -225,6 +224,13 @@ class TestDevice(ZenModelBaseTest):
         self.dev.setProdState(-1)
         self.assert_(not self.dev.monitorDevice())
 
+    def test_zPythonClass(self):
+        self.dmd.Devices.zPythonClass = \
+                "Products.ZenModel.tests.ClassTestDevice"
+        d = self.dmd.Devices.createInstance('testingclass')
+        # Import the long way so isinstance recognizes they're the same
+        from Products.ZenModel.tests.ClassTestDevice import ClassTestDevice
+        self.assert_(isinstance(d, ClassTestDevice))
 
     def testSetManageIp(self):
         self.dev.setManageIp('1.2.3.4')
@@ -233,13 +239,6 @@ class TestDevice(ZenModelBaseTest):
         d.setManageIp()
         self.assert_(d.getManageIp() == '127.0.0.1')
 
-    def test_zPythonClass(self):
-        self.dmd.Devices.zPythonClass = \
-                "Products.ZenModel.tests.ClassTestDevice"
-        d = self.dmd.Devices.createInstance('testingclass')
-        # Import the long way so isinstance recognizes they're the same
-        from Products.ZenModel.tests.ClassTestDevice import ClassTestDevice
-        self.assert_(isinstance(d, ClassTestDevice))
 
 
     def testManage_editDevice(self):
@@ -297,7 +296,7 @@ class TestDevice(ZenModelBaseTest):
         decoding = self.dmd.Devices.zCollectorDecoding
         zProperties = {'zCommandUsername':'testuser',
                        'zCollectorDecoding':decoding}
-        device = WeblogDeviceLoader(self.dmd, None).load_device(
+        device = BaseDeviceLoader(self.dmd).load_device(
                     'testdevice', '/', 'none', zProperties=zProperties)
         self.assert_(device is not None)
         self.assertEqual(device.zCommandUsername, 'testuser')
