@@ -31,10 +31,12 @@ class zenwin(WinCollector):
     whatIDo = "read the status of Windows services"
     attributes = WinCollector.attributes + ('winCycleInterval',)
 
+
     def __init__(self):
         WinCollector.__init__(self)
         self.statmsg = "Windows Service '%s' is %s"
         self.winCycleInterval = 60
+
 
     def makeEvent(self, devname, svcname, msg, sev):
         "Compose an event"
@@ -45,11 +47,13 @@ class zenwin(WinCollector):
                    agent=self.agent,
                    component=svcname,
                    eventGroup= "StatusTest")
+        logmsg = "%s on %s" % (msg, devname)
         if sev > 0:
-            self.log.critical(msg)
+            self.log.critical(logmsg)
         else:
-            self.log.info(msg)
+            self.log.info(logmsg)
         return evt
+
 
     def serviceStopped(self, device, name):
         self.log.warning('%s: %s stopped' % (device.id, name))
@@ -61,15 +65,7 @@ class zenwin(WinCollector):
                         % (name, device.id))
             return
         device.services[name] = status + 1, severity
-        msg = self.statmsg % (name, "down")
-        self.sendEvent(self.makeEvent(device.id, name, msg, severity))
-        self.log.info("svc down %s, %s", device.id, name)
-            
-    def reportServices(self, device):
-        for name, (status, severity) in device.services.items():
-            if status > 0:
-                msg = self.statmsg % (name, "down")
-                self.sendEvent(self.makeEvent(device.id, name, msg, severity))
+
             
     def serviceRunning(self, device, name):
         if name not in device.services: return
@@ -80,13 +76,19 @@ class zenwin(WinCollector):
                            % (name, device.id))
             return
         device.services[name] = 0, severity
-        if status != 0:
-            self.log.info('%s: %s running' % (device.id, name))
-            msg = self.statmsg % (name, "up")
-            self.sendEvent(self.makeEvent(device.id, name, msg, 0))
-            self.log.info("svc up %s, %s", device.id, name)
 
 
+    def reportServices(self, device):
+        for name, (status, severity) in device.services.items():
+            if status == 0:
+                msg = self.statmsg % (name, "up")
+                sev = 0
+            else:
+                msg = self.statmsg % (name, "down")
+                sev = severity
+            self.sendEvent(self.makeEvent(device.id, name, msg, sev))
+
+            
     def scanDevice(self, device):
         "Fetch the current state of the services on a device"
         def inner(driver):
@@ -137,22 +139,25 @@ class zenwin(WinCollector):
                     driver.next()
                     self.watchers[device.id] = w
                 else:
-                    self.reportServices(device)
                     queryTimeout = self.wmiqueryTimeout
                     if hasattr( self.options, "queryTimeout") and \
                         self.options.queryTimeout is not None:
                         queryTimeout = int(self.options.queryTimeout)
                     self.log.debug("Querying %s (queryTimeout = %d ms)" % (
                         device.id, queryTimeout))
-                    yield w.getEvents(queryTimeout)
-                    for s in driver.next():
-                        s = s.targetinstance
-                        if s.state:
-                            if s.state == 'Stopped':
-                                self.serviceStopped(device, s.name)
-                            if s.state == 'Running':
-                                self.serviceRunning(device, s.name)
+                    while True:
+                        yield w.getEvents(queryTimeout, 1)
+                        serviceEvents = driver.next()
+                        if not serviceEvents: break
+                        for s in serviceEvents:
+                            s = s.targetinstance
+                            if s.state:
+                                if s.state == 'Stopped':
+                                    self.serviceStopped(device, s.name)
+                                if s.state == 'Running':
+                                    self.serviceRunning(device, s.name)
                 self.deviceUp(device)
+                self.reportServices(device)
             except WError, ex:
                 if ex.werror != 0x000006be:
                     raise
