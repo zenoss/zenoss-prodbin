@@ -127,7 +127,6 @@ class TestMaintenanceWindows(ZenModelBaseTest):
         self.assert_(m1.nextEvent(t + 1) < m2.nextEvent(t + 1))
 
         from Products.ZenUtils.FakeRequest import FakeRequest
-        r = FakeRequest()
         m.manage_editMaintenanceWindow(
                                          startDate='01/29/2006',
                                          startHours='10',
@@ -138,11 +137,8 @@ class TestMaintenanceWindows(ZenModelBaseTest):
                                          repeat='Weekly',
                                          startProductionState=300,
                                          stopProductionState=-99,
-                                         enabled=True,
-                                         REQUEST=r)
+                                         enabled=True)
 
-        self.assert_(r.has_key('message'))
-        self.assert_(r['message'] == 'Saved Changes')
         self.assert_(m.start == t - 12)
         self.assert_(m.duration == 24*60+61)
         self.assert_(m.repeat == 'Weekly')

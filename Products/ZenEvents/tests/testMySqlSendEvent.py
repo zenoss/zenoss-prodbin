@@ -24,6 +24,8 @@ class MySqlSendEventTest(BaseTestCase):
         BaseTestCase.setUp(self)
         self.zem = self.dmd.ZenEventManager
         self.d = self.dmd.Devices.createInstance(TEST_DEVICE)
+        #dmd.Devices.findDevice() isn't finding TEST_DEVICE w/out reindexing
+        self.d.reIndex()
 
     def tearDown(self):
         conn = self.zem.connect()
