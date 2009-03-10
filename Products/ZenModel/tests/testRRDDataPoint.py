@@ -16,7 +16,6 @@ if __name__ == '__main__':
     execfile(os.path.join(sys.path[0], 'framework.py'))
 
 from ZenModelBaseTest import ZenModelBaseTest
-import transaction
 from Products.ZenModel.RRDDataPoint import getDataPointsByAliases    
 from Products.ZenModel.RRDDataPointAlias import RRDDataPointAlias
 from Products.ZenModel.tests.RRDTestUtils import *

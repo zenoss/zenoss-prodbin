@@ -15,12 +15,10 @@ def createTemplate( dmd, templateName=TEST_TEMPLATE,
         datasource = template.manage_addRRDDataSource( dsName, dsOption )
         for dpName in datapoints:
             datasource.manage_addRRDDataPoint( dpName )
-    transaction.commit()
     return template
 
 def removeTemplate(dmd, templateName=TEST_TEMPLATE):
     dmd.Devices.manage_deleteRRDTemplates( ( templateName, ) )
-    transaction.commit()
 
 def addAliases( template, aliasMap ):
     for key, value in aliasMap.iteritems():
@@ -32,7 +30,6 @@ def addAliases( template, aliasMap ):
 def addAlias( template, dsName, dpName, aliasName, aliasFormula=None):
     dp = template.datasources._getOb( dsName ).datapoints._getOb( dpName )
     dp.addAlias( aliasName, aliasFormula )
-    transaction.commit()
 
 def assertAliasDatapointInMap( test, alias, datapoint, aliasDpMap):        
     aliasPair = ( alias.id, alias.formula )
