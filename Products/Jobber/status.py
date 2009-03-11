@@ -4,9 +4,11 @@ from Products.ZenModel.ZenModelRM import ZenModelRM
 import os
 import sys
 import time
+import copy
 import logging
 from zope.interface import implements
 from twisted.internet import defer
+from twisted.spread import pb
 from interfaces import IJobStatus
 from logfile import LogFile
 import tempfile
@@ -36,8 +38,12 @@ class JobStatus(ZenModelRM):
     finished = None   # Finish time
     result = None
     filename = None
+    properties = None
 
     def __init__(self, job):
+        if self.properties is None:
+            self.properties = {}
+
         self.filename = tempfile.mktemp()
         transaction.commit()
         self.finishDeferreds = []
@@ -48,8 +54,15 @@ class JobStatus(ZenModelRM):
         # Set up references to the job
         self.addRelation('job', job)
 
+    def getUid(self):
+        return self.id.split('_')[-1]
+
     def getLogFileName(self):
-        self._p_jar.sync()
+        try:
+            self._p_jar.sync()
+        except AttributeError: 
+            # No database, probably a unit test
+            pass
         return self.filename
 
     def getLog(self):
@@ -64,6 +77,16 @@ class JobStatus(ZenModelRM):
     def getDuration(self):
         if self.isFinished():
             return self.finished - self.started
+
+    def setProperties(self, **props):
+        self.properties.update(props)
+        self._p_changed = True
+
+    def getProperties(self):
+        return copy.deepcopy(self.properties)
+
+    def setZProperties(self, **zprops):
+        self.properties.setdefault('zProperties', {}).update(zprops)
 
     def getResult(self):
         return self.result
@@ -108,3 +131,27 @@ class JobStatus(ZenModelRM):
 
 
 InitializeClass(JobStatus)
+
+
+class JobStatusProxy(pb.Copyable, pb.RemoteCopy):
+    """
+    Represents a JobStatus object in a daemon.
+    """
+    id = None
+    _properties = None
+
+    def __init__(self, jobstatus):
+        self.id = jobstatus.id.split('_')[-1]
+        self._properties = jobstatus.getProperties()
+
+    def __getitem__(self, name):
+        return self._properties[name]
+
+    def __getattr__(self, attr):
+        return self[attr]
+
+    def getProperties(self):
+        return copy.deepcopy(self._properties)
+
+pb.setUnjellyableForClass(JobStatusProxy, JobStatusProxy)
+

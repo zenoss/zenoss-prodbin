@@ -169,11 +169,14 @@ class JobDeviceLoader(BaseDeviceLoader):
         # Commit to database so everybody can find the new device
         transaction.commit()
 
+        jobid = self.context.getUid()
+
         zm = binPath('zendisc')
         zendiscCmd = [zm]
         zendiscOptions = ['run', '--now','-d', deviceName,
-                     '--monitor', performanceMonitor, 
-                     '--deviceclass', devicePath]
+                          '--monitor', performanceMonitor, 
+                          '--deviceclass', devicePath,
+                          '--job', jobid]
         zendiscCmd.extend(zendiscOptions)
         self.zendiscCmd = zendiscCmd
 
@@ -219,7 +222,11 @@ class DeviceCreationJob(ShellCommandJob):
         # Set up the job, passing in a blank command (gets set later)
         super(DeviceCreationJob, self).__init__(jobid, '')
 
+
     def run(self, r):
+        # Store zProperties on the job
+        self.getStatus().setZProperties(**self.zProperties)
+
         self._v_loader = JobDeviceLoader(self)
         # Create the device object and generate the zendisc command
         try:

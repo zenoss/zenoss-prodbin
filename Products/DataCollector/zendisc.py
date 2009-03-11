@@ -18,6 +18,7 @@ Scan networks and routes looking for devices to add to the ZODB
 import socket
 
 import Globals
+from optparse import SUPPRESS_HELP
 
 from Products.DataCollector.zenmodeler import ZenModeler
 from Products.ZenUtils.Exceptions import ZentinelException
@@ -69,7 +70,7 @@ class ZenDisc(ZenModeler):
                          self.options.timeout,
                          sock=sock)
 
-        
+
     def config(self):
         """
         Get the DiscoverService
@@ -105,8 +106,9 @@ class ZenDisc(ZenModeler):
                 if self.options.subnets and len(net.children()) > 0:
                     continue
                 if not getattr(net, "zAutoDiscover", False): 
-                    self.log.info("Skipping network %s because zAutoDiscover is False"
-                                  % net.getNetworkName())
+                    self.log.info(
+                        "Skipping network %s because zAutoDiscover is False"
+                        % net.getNetworkName())
                     continue
                 self.log.info("Discover network '%s'", net.getNetworkName())
                 yield NJobs(self.options.chunkSize,
@@ -414,6 +416,15 @@ class ZenDisc(ZenModeler):
                 # ignore zAutoDiscover limitations
                 forceDiscovery = bool(self.options.device) 
 
+                # If zProperties are set via a job, get them and pass them in
+                # as well
+                if self.options.job:
+                    yield self.config().callRemote('getJobProperties',
+                                                   self.options.job)
+                    job_props = driver.next()
+                    if job_props is not None:
+                        kw['zProperties'] = job_props.get('zProperties', {})
+
                 # now create the device by calling zenhub
                 yield self.config().callRemote('createDevice', ip, 
                                    force=forceDiscovery, **kw)
@@ -452,8 +463,8 @@ class ZenDisc(ZenModeler):
                 # FIXME - this does not currently work
                 newPath = self.autoAllocate(dev)
                 if newPath:
-                    yield self.config().callRemote(
-                                    'moveDevice',dev.id,newPath)
+                    yield self.config().callRemote('moveDevice', dev.id,
+                                                   newPath)
                     driver.next()
                 
                 # the device that we found/created or that should be remodeled
@@ -772,6 +783,9 @@ class ZenDisc(ZenModeler):
                     dest='zPreferSnmpNaming',
                     action="store_true", default=False,
                     help="Prefer snmp name to dns name when modeling via snmp." )
+        # --job: a development-only option that jobs will use to communicate
+        # their existence to zendisc. Not for users, so help is suppressed.
+        self.parser.add_option('--job', dest='job', help=SUPPRESS_HELP )
 
 
 

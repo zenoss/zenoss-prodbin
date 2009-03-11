@@ -36,6 +36,9 @@ class Job(ZenModelRM):
         ("status", ToOne( ToOne, "Products.Jobber.status.JobStatus", "job")),
     )
 
+    def getUid(self):
+        return self.id.split('_')[-1]
+
     def getDescription(self):
         return self.id
 

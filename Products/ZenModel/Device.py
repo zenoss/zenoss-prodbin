@@ -108,7 +108,8 @@ def manage_createDevice(context, deviceName, devicePath="/Discovered",
             osManufacturer="", osProductName="",
             locationPath="", groupPaths=[], systemPaths=[],
             performanceMonitor="localhost",
-            discoverProto="snmp", priority=3, manageIp=""):
+            discoverProto="snmp", priority=3, manageIp="",
+            zProperties=None):
     """
     Device factory creates a device and sets up its relations and collects its
     configuration. SNMP Community discovery also happens here. If an IP is
@@ -131,7 +132,7 @@ def manage_createDevice(context, deviceName, devicePath="/Discovered",
                 hwManufacturer, hwProductName,
                 osManufacturer, osProductName,
                 locationPath, groupPaths, systemPaths,
-                performanceMonitor, priority)
+                performanceMonitor, priority, zProperties)
     return device
 
 
@@ -1005,8 +1006,8 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
                 hwManufacturer="", hwProductName="",
                 osManufacturer="", osProductName="",
                 locationPath="", groupPaths=[], systemPaths=[],
-                performanceMonitor="localhost",
-                priority=3, REQUEST=None):
+                performanceMonitor="localhost", priority=3, 
+                zProperties=None, REQUEST=None):
         """
         Edit the device relation and attributes.
         
@@ -1022,11 +1023,15 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
         """
         self.hw.tag = tag
         self.hw.serialNumber = serialNumber
-        unused(zSnmpCommunity, zSnmpVer, zSnmpPort)
-        for prop in ('zSnmpCommunity', 'zSnmpVer', 'zSnmpPort'):
-            passedIn = locals()[prop]
-            if passedIn and getattr(self, prop) != passedIn:
-                self.setZenProperty(prop, passedIn)
+
+        # Set zProperties passed in intelligently
+        if zProperties is None: zProperties = {}
+        zProperties.update({'zSnmpCommunity':zSnmpCommunity,
+                           'zSnmpPort':zSnmpPort,
+                           'zSnmpVer':zSnmpVer})
+        for prop, value in zProperties.items():
+            if value and getattr(self, prop) != value:
+                self.setZenProperty(prop, value)
 
         self.rackSlot = rackSlot
         self.setProdState(productionState)

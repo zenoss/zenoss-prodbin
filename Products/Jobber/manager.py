@@ -78,6 +78,25 @@ class JobManager(ZenModelRM):
         transaction.commit()
         return self.jobs._getOb(status.id)
 
+    def getJob(self, jobid):
+        """
+        Return a L{JobStatus} object that matches the id specified.
+
+        @param jobid: id of the L{JobStatus}. The "JobStatus_" prefix is not
+        necessary.
+        @type jobid: str
+        @return: A matching L{JobStatus} object, or None if none is found
+        @rtype: L{JobStatus}, None
+        """
+        # Status objects have ids like 
+        # "ShellCommandJobStatus_7680ef-9234-2875f0abc",
+        # but we only care about the part at the end.
+        uid = jobid.split('_')[-1]
+        for jid in self.jobs.objectIds():
+            if jid.endswith(uid):
+                return self.jobs._getOb(jid)
+        return None
+
     def getUnfinishedJobs(self):
         """
         Return JobStatus objects that have not yet completed, including those

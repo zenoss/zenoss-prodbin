@@ -87,6 +87,15 @@ class TestJobStatus(unittest.TestCase):
         d.addCallback(hasFinished)
         self.j.jobFinished(SUCCESS)
 
+    def test_properties(self):
+        props = {'a':1, 'b':2}
+        self.j.setProperties(**props)
+        self.assert_(self.j.getProperties() == props)
+        # Make sure it's a copy, not same ob
+        self.assert_(self.j.getProperties() is not props)
+        self.j.setProperties(b=3)
+        self.assert_(self.j.getProperties()['b']==3)
+
 
 class TestJobManager(unittest.TestCase):
     def setUp(self):
@@ -100,6 +109,14 @@ class TestJobManager(unittest.TestCase):
         self.assert_(isinstance(stat, JobStatus))
         self.assert_(isinstance(stat.getJob(), Job))
         self.assert_(stat in self.m.jobs())
+
+    def test_getJob(self):
+        stat = self.m.addJob(SucceedingJob)
+        stat2 = self.m.addJob(SucceedingJob)
+        self.assertEqual(self.m.getJob(stat.id), stat)
+        self.assertEqual(self.m.getJob(stat2.id), stat2)
+        self.assertEqual(self.m.getJob(stat.id.split('_')[-1]), stat)
+        self.assert_(self.m.getJob('NotAnId') is None)
 
     def test_getUnfinishedJobs(self):
         status = self.m.addJob(SucceedingJob)

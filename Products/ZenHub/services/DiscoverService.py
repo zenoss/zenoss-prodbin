@@ -18,6 +18,7 @@ from Products.ZenUtils.IpUtil import numbip, strip
 from Products.ZenEvents.Event import Event
 from Products.ZenEvents.ZenEventClasses import Status_Ping
 from Products.ZenModel.Device import manage_createDevice
+from Products.Jobber.status import JobStatusProxy
 from Products.ZenHub.PBDaemon import translateError
 from Products.ZenModel.Exceptions import DeviceExistsError
 
@@ -42,7 +43,7 @@ class IpNetProxy(pb.Copyable, pb.RemoteCopy):
         self.id = ipnet.id
         self._children = map(IpNetProxy, ipnet.children())
         self.netmask = ipnet.netmask
-        for prop in 'zAutoDiscover zDefaulNetworkTree zPingFailThresh'.split():
+        for prop in 'zAutoDiscover zDefaultNetworkTree zPingFailThresh'.split():
             if hasattr(ipnet, prop):
                 setattr(self, prop, getattr(ipnet, prop))
 
@@ -150,6 +151,12 @@ class DiscoverService(ModelerService):
             raise pb.CopyableFailure(ex)
         transaction.commit()
         return self.createDeviceProxy(dev), True
+
+    @translateError
+    def remote_getJobProperties(self, jobid):
+        jobstatus = self.dmd.JobManager.getJob(jobid)
+        if jobstatus: 
+            return JobStatusProxy(jobstatus)
 
     @translateError
     def remote_succeedDiscovery(self, id):
