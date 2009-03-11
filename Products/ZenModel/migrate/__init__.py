@@ -167,3 +167,4 @@ import jobmanager
 import addDataPointAliasMenus
 import addCpuDataPointAliases
 import newProductIndexes
+import unixMonitoring

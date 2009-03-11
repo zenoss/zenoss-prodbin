@@ -391,6 +391,7 @@ if __name__ == '__main__':
     try:
         zp = ZenPackCmd()
         zp.run()
-    except ZenPackException, e:
-        sys.stderr.write('%s\n' % str(e))
+    except Exception, e:
+        sys.stderr.write('ERROR: zenpack command failed. Reason: %s\n' % str(e))
         sys.exit(-1)
+

@@ -131,12 +131,24 @@ for a ZenPack.
 
         self.log.debug('tag %s, context %s, line %s'  % (
              name, self.context().id, self._locator.getLineNumber() ))
+        
         if name == 'object':
+            
             obj = self.createObject(attrs)
+
+            if obj is None:
+                formattedAttrs = ''
+                for key, value in attrs.items():
+                    formattedAttrs += '  * %s: %s\n' % (key, value)
+                raise Exception('Unable to create object using the following '
+                        'attributes:\n%s' % formattedAttrs)
+
             if not self.options.noindex and hasattr(aq_base(obj),
                     'reIndex') and not self.rootpath:
                 self.rootpath = obj.getPrimaryId()
+                
             self.objstack.append(obj)
+
         elif name == 'tomanycont' or name == 'tomany':
             nextobj = self.context()._getOb(attrs['id'], None)
             if nextobj is None:
@@ -406,8 +418,10 @@ for a ZenPack.
             self.infile = sys.stdin
         parser = make_parser()
         parser.setContentHandler(self)
-        parser.parse(self.infile)
-        self.infile.close()
+        try:
+            parser.parse(self.infile)
+        finally:
+            self.infile.close()
 
     def loadDatabase(self):
         """

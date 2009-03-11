@@ -1,12 +1,11 @@
 <?xml version="1.0"?>
 <objects>
-<!-- ('', 'zport', 'dmd', 'Devices', 'Server', 'Ssh') -->
 <object id='/zport/dmd/Devices/Server/Ssh' module='Products.ZenModel.DeviceClass' class='DeviceClass'>
 <property visible="True" type="boolean" id="zSnmpMonitorIgnore" >
 True
 </property>
 <property visible="True" type="lines" id="zCollectorPlugins" >
-['zenoss.cmd.df', 'zenoss.cmd.uname', 'zenoss.portscan.IpServiceMap']
+[]
 </property>
 </object>
 </objects>
