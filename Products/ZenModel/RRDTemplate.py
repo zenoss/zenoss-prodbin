@@ -305,6 +305,7 @@ class RRDTemplate(ZenModelRM, ZenPackable):
         return Device
 
 
+    security.declareProtected(ZEN_MANAGE_DMD, 'manage_deleteRRDDataSources')
     def manage_deleteRRDDataSources(self, ids=(), REQUEST=None):
         """Delete RRDDataSources from this DeviceClass 
         """
