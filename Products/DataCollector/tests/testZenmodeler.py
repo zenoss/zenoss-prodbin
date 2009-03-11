@@ -15,6 +15,7 @@ import logging
 import time
 import unittest
 
+from Products.ZenTestCase.BaseTestCase import BaseTestCase
 from Products.DataCollector.zenmodeler import ZenModeler
 from Products.ZenWin.WMIClient import WMIClient
 
@@ -29,7 +30,7 @@ class FakeDevice(object):
     zWinUser = None
     zWinPassword = None
 
-class TimeoutClientTestCase(unittest.TestCase):
+class TimeoutClientTestCase(BaseTestCase):
     
     def runTest(self):
         # setup
