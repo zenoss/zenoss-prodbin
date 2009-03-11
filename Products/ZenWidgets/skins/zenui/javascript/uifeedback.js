@@ -21,6 +21,41 @@ Yowl.register( 'zenoss', ['info'], ['info'],
 );
 
 /**
+ * Provide our own custom ConnectionManager that lets us keep track of the
+ * outstanding connection so we can then later abort the connection and
+ * prevent our failure callback from being called when it really shouldn't
+**/
+Z.ConnectionManager = {
+
+    lastConn: null,
+
+    abort: function(conn) {
+        return Y.Connect.abort(conn);
+    },
+
+    abortAll: function() {
+        this.abort(this.lastConn);
+    },
+
+    asyncRequest: function(method, uri, callback, postData) {
+        this.lastConn = Y.Connect.asyncRequest(method, uri, callback, postData);
+        return this.lastConn;
+    },
+
+    isCallInProgress: function(conn) {
+        return Y.Connect.isCallInProgress(conn);
+    }
+};
+
+/** 
+ * register a listener for the beforeunload event so that we can cancel
+ * outstanding connections
+**/
+Y.Event.addListener(window, "beforeunload", function(event) {
+    Z.ConnectionManager.abortAll();
+});
+
+/**
  * Singleton object that accepts messages both directly and from periodic
  * polling of the server, and displays them in the browser.
 **/
@@ -37,6 +72,8 @@ Z.Messenger = {
         "/zport/dmd/getUserMessages", 
         // Config object
         { 
+            connMgr: Z.ConnectionManager,
+            connXhrMode: "cancelStaleRequests",
             responseType: Y.XHRDataSource.TYPE_JSON, 
             responseSchema: {
                 resultsList: "messages",
