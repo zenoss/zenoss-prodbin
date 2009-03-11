@@ -144,6 +144,9 @@ class JobStatusProxy(pb.Copyable, pb.RemoteCopy):
         self.id = jobstatus.id.split('_')[-1]
         self._properties = jobstatus.getProperties()
 
+    def get(self, key, default=None):
+        return self._properties.get(key, default)
+
     def __getitem__(self, name):
         return self._properties[name]
 
