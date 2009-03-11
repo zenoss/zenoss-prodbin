@@ -188,8 +188,7 @@ class RRDDataPoint(ZenModelRM, ZenPackable):
         Remove any alias with the given id
         """
         if self.hasAlias( aliasId ):
-            alias = self.aliases._getOb( aliasId )
-            self.aliases.removeRelation( alias )
+            self.aliases._delObject( aliasId )
         
     def getAliasNames(self):
         """
