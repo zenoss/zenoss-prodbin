@@ -142,8 +142,8 @@ class OperatingSystem(Software):
         if type(componentNames) in types.StringTypes: 
             componentNames = (componentNames,)
         for componentName in componentNames:
-            dc = context._getOb(componentName)
-            dc.manage_deleteComponent()
+            dc = context._getOb(componentName, False)
+            if dc: dc.manage_deleteComponent()
         if REQUEST:
             return self.callZenScreen(REQUEST)
 
