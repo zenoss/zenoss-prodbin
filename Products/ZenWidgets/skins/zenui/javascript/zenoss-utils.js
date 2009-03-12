@@ -521,25 +521,14 @@ function checkValidId(e){
 
 function connectTextareas() {
 
-    var vDims, vPos, aDims, aPos, rightedge_area, rightedge_vp;
-
-    var refreshVars = function() {
-        vDims = getViewportDimensions();
-        vPos = getViewportPosition();
-        rightedge_vp = vDims.w + vPos.x;
-        var area = $$('textarea')[0];
-        aDims = getElementDimensions(area);
-        aPos = getElementPosition(area);
-        rightedge_area = aDims.w + aPos.x;
-    }
-
     function resizeAll() {
-        refreshVars();
         map(resizeArea, $$('textarea'));
     }
 
     function resizeArea(area) {
-        var w = aDims.w + rightedge_vp-rightedge_area-50;
+        var td = getFirstParentByTagAndClassName(area, 'td', null);
+        aDims = getElementDimensions(td);
+        var w = aDims.w - 20;
         setElementDimensions(area, {w:w});
     }
 
