@@ -88,7 +88,10 @@ ZenGridBuffer.prototype = {
             newSize = Math.min(this.startPos - newOffset, this.maxQuery);
         }
         newSize = Math.max(0, newSize);
-        newSize = Math.min(newSize, this.maxQuery, this.totalRows?this.totalRows-newOffset:this.maxQuery);
+        maxSizeNeeded = this.totalRows ? 
+                        Math.max(this.maxQuery, this.totalRows-newOffset) : 
+                        this.maxQuery;
+        newSize = Math.min(newSize, this.maxQuery, maxSizeNeeded);
         return newSize;
     },
     queryOffset: function(offset) {
@@ -826,7 +829,7 @@ ZenGrid.prototype = {
         var bottomMargin = 20;
         var roomToWorkWith = maxTableBottom - topOfRows - bottomMargin;
         var maxRows = Math.floor(roomToWorkWith/this.rowSizePlus);
-        var newNumRows = this.buffer.totalRows ?
+        var newNumRows = this.buffer.totalRows?
                          Math.min(maxRows, this.buffer.totalRows) :
                          maxRows;
         this.numRows = newNumRows;
