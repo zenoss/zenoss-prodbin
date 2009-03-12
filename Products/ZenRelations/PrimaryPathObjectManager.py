@@ -17,6 +17,9 @@ $Id: RelationshipBase.py,v 1.26 2003/10/03 16:16:01 edahl Exp $"""
 
 __version__ = "$Revision: 1.26 $"[11:-2]
 
+import logging
+log = logging.getLogger("zen.PrimaryPathObjectManager")
+
 # base classes for PrimaryPathObjectManager
 from RelCopySupport import RelCopyContainer
 from Acquisition import Implicit, aq_base
@@ -103,7 +106,19 @@ class PrimaryPathObjectManager(
 
     def _delObject(self, id, dp=1):
         """When deleted clear __primary_parent__."""
-        obj = self._getOb(id)
+        obj = self._getOb(id, False)
+        if not obj:
+            # Added this check because we are seeing stack traces in the UI. 
+            # We aren't 100% sure what is causing the object to disappear from 
+            # the ObjectManager. It could be that a different user had already 
+            # deleted it or that a single user had two brower tabs open. Ian saw 
+            # a case were the references on an object were wrong (getPrimaryId
+            # pointed to the wrong location) but I'm not sure that is what is 
+            # causing this problem. -EAD
+            log.warning(
+            "Tried to delete object id '%s' but didn't find it on %s", 
+            id, self.getPrimaryId())
+            return
         ObjectManager._delObject(self, id, dp)
         obj.__primary_parent__ = None
 

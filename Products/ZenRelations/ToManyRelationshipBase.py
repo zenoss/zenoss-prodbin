@@ -15,7 +15,8 @@
 __doc__ = """ToManyRelationshipBase
 Base class for 1:n relations
 """
-
+import logging
+log = logging.getLogger('zen.ToManyRelationshipBase')
 
 # Base classes for ToManyRelationshipBase
 #from PrimaryPathObjectManager import PrimaryPathObjectManager
@@ -69,7 +70,12 @@ class ToManyRelationshipBase(
     def _delObject(self, id, dp=1):
         """Emulate ObjectManager deletetion."""
         unused(dp)
-        obj = self._getOb(id)
+        obj = self._getOb(id, False)
+        if not obj:
+            log.warning(
+            "Tried to delete object id '%s' but didn't find it on %s", 
+            id, self.getPrimaryId())
+            return
         self.removeRelation(obj)
         obj.__primary_parent__ = None
 

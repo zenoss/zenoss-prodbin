@@ -177,8 +177,8 @@ class OperatingSystem(Software):
         if type(componentNames) in types.StringTypes: 
             componentNames = (componentNames,)
         for componentName in componentNames:
-            dc = context._getOb(componentName)
-            dc.lockFromUpdates(sendEventWhenBlocked)
+            dc = context._getOb(componentName, False)
+            if dc: dc.lockFromUpdates(sendEventWhenBlocked)
         if REQUEST:
             return self.callZenScreen(REQUEST)
 
@@ -220,8 +220,8 @@ class OperatingSystem(Software):
             componentNames = (componentNames,)
         monitored = bool(monitored)
         for componentName in componentNames:
-            comp = context._getOb(componentName)
-            if comp.monitored() != monitored:
+            comp = context._getOb(componentName, False)
+            if comp and comp.monitored() != monitored:
                 comp.monitor = monitored
                 if isinstance(comp, Service):
                     comp.setAqProperty('zMonitor', monitored, 'boolean')
