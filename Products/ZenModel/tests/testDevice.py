@@ -297,7 +297,8 @@ class TestDevice(ZenModelBaseTest):
         zProperties = {'zCommandUsername':'testuser',
                        'zCollectorDecoding':decoding}
         device = BaseDeviceLoader(self.dmd).load_device(
-                    'testdevice', '/', 'none', zProperties=zProperties)
+                    'testdevice', '/', 'none', 'localhost', 
+                    '1.1.1.1', zProperties=zProperties)
         self.assert_(device is not None)
         self.assertEqual(device.zCommandUsername, 'testuser')
         self.assertEqual(device.zCollectorDecoding, decoding)
