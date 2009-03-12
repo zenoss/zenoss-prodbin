@@ -65,6 +65,7 @@ import transaction
 
 from Products.ZenUtils.ZCmdBase import ZCmdBase
 from Products.ZenUtils.Utils import zenPath
+from zExceptions import BadRequest
 
 
 def walk(*dirs):
@@ -391,12 +392,42 @@ class zenmib(ZCmdBase):
         # Add regular OIDs to the mibmodule + mibnode relationship tree
         if mib.has_key('nodes'):
             for name, values in mib['nodes'].items():
-                mod.createMibNode(name, **values) 
+                try:
+                    mod.createMibNode(name, **values)
+                except BadRequest:
+                    try:
+                        self.log.warn("Unable to add node id '%s' as this"
+                                      " name is reserved for use by Zope",
+                                      name)
+                        newName = '_'.join([name, modname])
+                        self.log.warn("Trying to add node '%s' as '%s'",
+                                  name, newName)
+                        mod.createMibNode(newName, **values)
+                        self.log.warn("Renamed '%s' to '%s' and added to MIB"
+                                  " nodes", name, newName)
+                    except:
+                        self.log.warn("Unable to add '%s' -- skipping",
+                                      name)
 
         # Put SNMP trap information into Products.ZenModel.MibNotification
         if mib.has_key('notifications'):
             for name, values in mib['notifications'].items():
-                mod.createMibNotification(name, **values) 
+                try:
+                    mod.createMibNotification(name, **values)
+                except BadRequest:
+                    try:
+                        self.log.warn("Unable to add trap id '%s' as this"
+                                      " name is reserved for use by Zope",
+                                      name)
+                        newName = '_'.join([name, modname])
+                        self.log.warn("Trying to add trap '%s' as '%s'",
+                                  name, newName)
+                        mod.createMibNotification(newName, **values)
+                        self.log.warn("Renamed '%s' to '%s' and added to MIB"
+                                  " traps", name, newName)
+                    except:
+                        self.log.warn("Unable to add '%s' -- skipping",
+                                      name)
 
         # Add the MIB tree permanently to the DMD except if we get the
         # --nocommit flag.
