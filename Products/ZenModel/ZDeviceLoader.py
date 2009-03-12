@@ -64,20 +64,6 @@ class BaseDeviceLoader(object):
     def __init__(self, context):
         self.context = context
 
-    def _set_zProperties(self, zProperties):
-        """
-        Set zProperties on the device object intelligently. 
-        
-        If the new value is different from the inherited value, override on
-        this device. Otherwise, do nothing, so the inheritance remains.
-        """
-        if self.deviceobj is not None:
-            for prop, newvalue in zProperties.iteritems():
-                inherited = getattr(self.deviceobj, prop)
-                if newvalue != inherited:
-                    self.deviceobj.setZenProperty(prop, newvalue)
-
-
     def run_zendisc(self, deviceName, devicePath, performanceMonitor):
         """
         Various ways of doing this should be implemented in subclasses.
@@ -135,10 +121,9 @@ class BaseDeviceLoader(object):
             self.deviceobj = manage_createDevice(self.context, deviceName,
                                  devicePath,
                                  performanceMonitor=performanceMonitor,
+                                 manageIp=manageIp,
+                                 zProperties=zProperties,
                                  **deviceProperties)
-
-            # Set zProperties on the device 
-            self._set_zProperties(zProperties)
 
             # Flag this device as temporary. If discovery goes well, zendisc will
             # flip this to False.
