@@ -75,11 +75,21 @@ ZenGridBuffer.prototype = {
     },
     endPos: function() {return this.startPos + this.rows.length;},
     querySize: function(newOffset) {
-        //var newSize = 0;
+        var newSize = 0;
         if (this.totalRows!=0) {
             if (newOffset>=this.totalRows) return 0;
         }
-        return this.numRows;
+        if (newOffset >= this.startPos) { //appending
+            var endQueryOffset = this.maxQuery + this.grid.lastOffset;
+            newSize = endQueryOffset - newOffset;
+            if(newOffset==0 && newSize < this.maxQuery)
+                newSize = this.maxQuery;
+        } else { // prepending
+            newSize = Math.min(this.startPos - newOffset, this.maxQuery);
+        }
+        newSize = Math.max(0, newSize);
+        newSize = Math.min(newSize, this.maxQuery, this.totalRows?this.totalRows-newOffset:this.maxQuery);
+        return newSize;
     },
     queryOffset: function(offset) {
         var newOffset = offset;
@@ -102,7 +112,6 @@ ZenGridBuffer.prototype = {
         return newOffset;
     },
     getRows: function(start, count) {
-        //console.log("start: " +start+ " count: " +count+ " this.rows: " +this.rows.length);
         var bPos = start - this.startPos;
         var ePos = Math.min(bPos+count, this.size);
         var results = new Array();
@@ -377,7 +386,7 @@ ZenGrid.prototype = {
             {'table-layout':'fixed'}
         );
         if (inRange) {
-            this.populateTable(this.buffer.getRows(offset, this.buffer.numRows));
+            this.populateTable(this.buffer.getRows(offset, this.numRows));
             if (offset > lastOffset) {
                 if (offset+this.buffer.pageSize < 
                     this.buffer.endPos()-this.buffer.tolerance()) return;
@@ -397,7 +406,7 @@ ZenGrid.prototype = {
             if (this.lock.locked) this.lock.release();
             this.updateStatusBar(offset);
             try {
-                myrows = this.buffer.getRows(offset, this.buffer.numRows);
+                myrows = this.buffer.getRows(offset, this.numRows);
                 this.populateTable(myrows);
             } catch(e) { 
                 console.log("We have a problem of sorts.");
@@ -574,7 +583,8 @@ ZenGrid.prototype = {
         return false;
     },
     populateTable: function(data) {
-        var tableLength = data.length;
+        var tableLength = data.length > this.numRows ? 
+            this.numRows : data.length;
         if (tableLength != this.rowEls.length){ 
             //this.clearTable();
             this.setTableNumRows(tableLength);
@@ -820,8 +830,6 @@ ZenGrid.prototype = {
                          Math.min(maxRows, this.buffer.totalRows) :
                          maxRows;
         this.numRows = newNumRows;
-        this.buffer.numRows = maxRows;
-        //console.log("resizeTable: " + this.buffer.numRows);
         this.setTableNumRows(newNumRows);
         this.refreshTable(this.lastOffset);
         this.updateStatusBar(this.lastOffset);
