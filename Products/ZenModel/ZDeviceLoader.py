@@ -88,7 +88,7 @@ class BaseDeviceLoader(object):
 
     def load_device(self, deviceName, devicePath='/Discovered', 
                     discoverProto='snmp', performanceMonitor='localhost',
-                    manageIp=None, zProperties=None, deviceProperties=None):
+                    manageIp="", zProperties=None, deviceProperties=None):
         """
         Load a single device into the database.
         """
