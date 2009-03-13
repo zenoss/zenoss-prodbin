@@ -32,8 +32,8 @@ class HRFileSystemMap(SnmpPlugin):
     compname = "os"
     relname = "filesystems"
     modname = "Products.ZenModel.FileSystem"
-    deviceProperties =  \
-      SnmpPlugin.deviceProperties + ('zFileSystemMapIgnoreNames',)
+    deviceProperties = SnmpPlugin.deviceProperties + (
+      'zFileSystemMapIgnoreNames', 'zFileSystemMapIgnoreTypes')
 
     columns = {
          '.1': 'snmpindex',
@@ -47,10 +47,17 @@ class HRFileSystemMap(SnmpPlugin):
         GetTableMap('fsTableOid', '.1.3.6.1.2.1.25.2.3.1', columns),
     )
 
-    typemap = { 
+    typemap = {
+        ".1.3.6.1.2.1.25.2.1.1": "other",
         ".1.3.6.1.2.1.25.2.1.2": "ram",
-        ".1.3.6.1.2.1.25.2.1.3": "swap",
+        ".1.3.6.1.2.1.25.2.1.3": "virtualMemory",
         ".1.3.6.1.2.1.25.2.1.4": "fixedDisk",
+        ".1.3.6.1.2.1.25.2.1.5": "removableDisk",
+        ".1.3.6.1.2.1.25.2.1.6": "floppyDisk",
+        ".1.3.6.1.2.1.25.2.1.7": "compactDisk",
+        ".1.3.6.1.2.1.25.2.1.8": "ramDisk",
+        ".1.3.6.1.2.1.25.2.1.9": "flashMemory",
+        ".1.3.6.1.2.1.25.2.1.10": "networkDisk",
         }
 
 
@@ -60,31 +67,54 @@ class HRFileSystemMap(SnmpPlugin):
         getdata, tabledata = results
         fstable = tabledata.get("fsTableOid")
         skipfsnames = getattr(device, 'zFileSystemMapIgnoreNames', None)
+        skipfstypes = getattr(device, 'zFileSystemMapIgnoreTypes', None)
         maps = []
         rm = self.relMap()
         for fs in fstable.values():
+            if not self.checkColumns(fs, self.columns, log): continue
+            
+            # This looks like a duplicate check. Candidate for removal.
             if not fs.has_key("totalBlocks"): continue
             totalBlocks = fs['totalBlocks']
+            
+            # This may now be a redundant check. Candidate for removal.
+            #   http://dev.zenoss.org/trac/ticket/4556
             if totalBlocks < 0:
                 fs['totalBlocks'] = unsigned(totalBlocks)
-            if not self.checkColumns(fs, self.columns, log): continue
             
             # Gentoo and openSUSE report "Virtual memory" as swap. This needs
             # to be ignored so we can pickup the real swap later in the table.
             if fs['mount'].lower() == "virtual memory":
                 continue
-                
-            fstype = self.typemap.get(fs['type'],None)
+            
             size = long(fs['blockSize'] * totalBlocks)
-            if fstype == "ram":
+            if size <= 0:
+                log.info("Skipping %s. 0 total blocks.", fs['mount'])
+                continue
+            
+            fs['type'] = self.typemap.get(fs['type'], "other")
+            size = long(fs['blockSize'] * totalBlocks)
+            
+            # Handle file systems that need to be mapped into other parts of
+            # the model such as total memory or total swap.
+            if fs['type'] == "ram":
                 maps.append(ObjectMap({"totalMemory": size}, compname="hw"))
-            elif fstype == "swap":
+            elif fs['type'] == "virtualMemory":
                 maps.append(ObjectMap({"totalSwap": size}, compname="os"))
-            elif (fstype == "fixedDisk" and size > 0 and 
-                (not skipfsnames or not re.search(skipfsnames,fs['mount']))):
-                om = self.objectMap(fs)
-                om.id = self.prepId(om.mount)
-                rm.append(om)
+            
+            if skipfsnames and re.search(skipfsnames, fs['mount']):
+                log.info("Skipping %s. Matches zFileSystemMapIgnoreNames.",
+                    fs['mount'])
+                continue
+            
+            if skipfstypes and fs['type'] in skipfstypes:
+                log.info("Skipping %s (%s). Matches zFileSystemMapIgnoreTypes.",
+                    fs['mount'], fs['type'])
+                continue
+
+            om = self.objectMap(fs)
+            om.id = self.prepId(om.mount)
+            rm.append(om)
         maps.append(rm)
         return maps
 

@@ -168,3 +168,4 @@ import addDataPointAliasMenus
 import addCpuDataPointAliases
 import newProductIndexes
 import unixMonitoring
+import addDefaultZFileSystemMapIgnoreTypes
