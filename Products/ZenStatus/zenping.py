@@ -297,35 +297,20 @@ class ZenPing(PBDaemon):
                 self.ping(pj)
         else:
             failname = pj.checkpath()
+            # walk up the ping tree and find router node with failure
             if failname:
                 pj.eventState = 2 # suppressed FIXME
                 pj.message += (", failed at %s" % failname)
             self.log.warn(pj.message)
             self.sendPingEvent(pj)
-            self.markChildrenDown(pj)
+            # not needed since it will cause suppressed ping events 
+            # to show up twice, once from if failname: sections
+            # and second from markChildrenDown
+            # the "marking" of children never took place anyway
+            # due to iterator status check
+            # self.markChildrenDown(pj)
         
         self.next()
-
-    def markChildrenDown(self, pj):
-        """If this is a router PingJob, mark all Nodes
-        away from the ping monitor as down"""
-
-        # unfortunately there's no mapping from pj to router, so find it
-        routers = []
-        def recurse(node):
-            if routers: return
-            if node.pj == pj:
-                routers.append(node)
-            for c in node.children:
-                recurse(c)
-        recurse(self.pingtree)
-        if not routers: return
-        assert len(routers) == 1
-        children = routers[0].pjgen()
-        children.next()                 # skip self
-        for pj in children:
-            pj.eventState = 2           # suppress
-            self.sendPingEvent(pj)
 
 
     def remote_setPropertyItems(self, items):

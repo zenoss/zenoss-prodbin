@@ -117,7 +117,9 @@ class RouterNode(pb.Copyable, pb.RemoteCopy):
     def pjgen(self):
         self.pj.reset()
         yield self.pj
-        if self.pj.status != 0: return 
+        # iterators with intelligence are bad
+        # this should be handeled in caller if needed 
+        # removing pj.status != 0 check
         for rnode in self.children:
             for pj in rnode.pjgen():
                 yield pj
@@ -135,7 +137,7 @@ class RouterNode(pb.Copyable, pb.RemoteCopy):
                     continue
                 allNodes.add(node)
                 print node
-                nnodes.extend(node.children)
+                recurse(node.children)
             print
             return nnodes
         return recurse([self,])
@@ -151,9 +153,11 @@ class RouterNode(pb.Copyable, pb.RemoteCopy):
                 last = child
             if last == node: return    
 
-    
     def __str__(self):
-        return "%s->(%s)" % (self.pj.ipaddr, ", ".join(map(str,self.nets)))
+        parentStr = "top"
+        if hasattr(self.parent, "parent"):
+                parentStr = self.parent.pj.ipaddr
+        return "%s<-%s->(%s)" % (parentStr, self.pj.ipaddr, ", ".join(map(str,self.nets)))
 
 pb.setUnjellyableForClass(RouterNode, RouterNode)
 
