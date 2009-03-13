@@ -110,15 +110,14 @@ class WinCollector(PBDaemon):
                 devices.append(device)
             yield self.processLoop(devices, cycle)
             driver.next()
-            delay = time.time() - now
             if not self.options.cycle:
                 self.stopScan()
             else:
                 self.heartbeat()
-                driveLater(max(0, cycle - delay), self.scanCycle)
                 count = len(self.devices)
                 if self.options.device:
                     count = 1
+                delay = time.time() - now
                 self.sendEvents(self.rrdStats.gauge('cycleTime', cycle,
                                 delay) + self.rrdStats.gauge('devices',
                                 cycle, count))
@@ -126,6 +125,12 @@ class WinCollector(PBDaemon):
                               count, delay)
         except (Failure, Exception), ex:
             self.log.exception('Error processing main loop')
+        
+        # Schedule the next scan even if there was an error this time.
+        if self.options.cycle:
+            delay = time.time() - now
+            driveLater(max(0, cycle - delay), self.scanCycle)
+            
 
     def processLoop(self, devices, timeoutSecs):
         """
