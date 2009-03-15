@@ -21,6 +21,7 @@ __version__ = 0.5
 __revision__ = "$Revision: 1.3 $"[11:-2]
 
 
+from Products.Five.browser import BrowserView
 from ZenTableManager import ZenTableManager
 from ZenTableManager import manage_addZenTableManager
 
@@ -50,3 +51,7 @@ def initialize(registrar):
 import FileGzipper
 if 0:
     FileGzipper = None                  # pyflakes
+
+class ExtJSShortcut(BrowserView):
+    def __getitem__(self, name):
+        return self.context.unrestrictedTraverse('++resource++extjs')[name]

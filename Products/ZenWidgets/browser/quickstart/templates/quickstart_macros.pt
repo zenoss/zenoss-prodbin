@@ -1,0 +1,62 @@
+<tal:block metal:define-macro="base">
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML Basic 1.0//EN"
+"http://www.w3.org/TR/xhtml-basic/xhtml-basic10.dtd">
+<html>
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+        <link rel="shortcut icon"
+              href="/zport/dmd/favicon.ico"
+              type="image/x-icon"/>
+        <link rel="stylesheet" type="text/css"
+            href="yui/reset-fonts-grids/reset-fonts-grids.css"/>
+        <link rel="stylesheet" type="text/css"
+            href="/zport/dmd/yui/assets/skins/sam/skin.css"/>
+        <link rel="stylesheet" type="text/css" 
+            href="extjs/resources/css/ext-all.css"/>
+        <link rel="stylesheet" type="text/css"
+            href="/zport/quickstart.css"/>
+        <style tal:condition="python:here.dmd.productName!='core'">
+            html {background-color:#eae9dc} 
+            #header {background-image:url('zent-img/metalbg.gif')}
+        </style>
+        <script type="text/javascript" src="extjs/adapter/ext/ext-base.js"></script>
+        <script type="text/javascript" src="extjs/ext-all.js"></script>
+    </head>
+    <body><div class="yui-skin-sam">
+
+        <div id="header">
+            <div class="logo"></div>
+            <div id="header-extra">
+                <tal:block metal:define-slot="header-extra"/>
+            </div>
+        </div>
+        <div id="content-wrapper">
+            <h1><tal:block metal:define-slot="headline"/></h1>
+            <h2><tal:block metal:define-slot="subheadline"/></h2>
+
+            <div id="content"> <tal:block metal:define-slot="content"/> </div>
+
+            <div id="buttons">
+                <tal:block metal:define-slot="buttons">
+                    <div style="float:left;">
+                    <input type="button" value="< Previous"/>
+                    <input type="button" value="Next >"/>
+                    </div><div style="float:right;">
+                    <input type="button" value="Skip To Dashboard"/>
+                </tal:block>
+            </div>
+        </div>
+        <div id="footer">&copy; 2009 Zenoss, Inc.</div>
+
+
+    </div> 
+    <script metal:define-slot="extra-scripts">
+
+
+    </script>
+    </body>
+</html>
+</tal:block>
+
+<tal:block metal:define-macro="deviceAdd">
+</tal:block>

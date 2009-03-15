@@ -43,7 +43,9 @@ from Products.ZenUtils.Utils import binPath, clearWebLoggingStream
 from Products.ZenUtils import NetworkTree
 from Products.ZenUtils.Utils import edgesToXML
 from Products.ZenUtils.Utils import unused
-from Products.Jobber.jobs import ShellCommandJob
+from Products.Jobber.jobs import ShellCommandJob, JobMessenger
+from Products.Jobber.status import SUCCESS, FAILURE
+from Products.ZenWidgets import messaging
 
 def manage_addIpNetwork(context, id, netmask=24, REQUEST = None):
     """make a IpNetwork"""
@@ -570,4 +572,80 @@ class IpNetwork(DeviceOrganizer):
             return '<a href="%s">%s</a>' % (url, text)
 
 InitializeClass(IpNetwork)
+
+
+
+class AutoDiscoveryJob(ShellCommandJob):
+    """
+    Job encapsulating autodiscovery over a set of IP addresses.
+
+    Accepts a list of strings describing networks OR a list of strings
+    specifying IP ranges, not both. Also accepts a set of zProperties to be
+    set on devices that are discovered.
+    """
+    def __init__(self, jobid, nets=(), ranges=(), zProperties=()):
+        # Store the nets and ranges
+        self.nets = nets
+        self.ranges = ranges
+        self.zProperties = zProperties
+
+        # Set up the job, passing in a blank command (gets set later)
+        super(AutoDiscoveryJob, self).__init__(jobid, '')
+
+    def run(self, r):
+        transaction.commit()
+        log = self.getStatus().getLog()
+
+        # Store zProperties on the job
+        if self.zProperties:
+            self.getStatus().setZProperties(**self.zProperties)
+
+        # Build the zendisc command
+        cmd = [binPath('zendisc')]
+        cmd.extend(['run', '--now', 
+                   '--monitor', 'localhost', 
+                   '--deviceclass', '/Discovered',
+                   '--job', self.getUid()
+                   ])
+        if not self.nets and not self.ranges:
+            # Gotta have something
+            log.write("ERROR: Must pass in a network or a range.")
+            self.finished(FAILURE)
+        elif self.nets and self.ranges:
+            # Can't have both
+            log.write("ERROR: Must pass in either networks or ranges, "
+                      "not both.")
+            self.finished(FAILURE)
+        else:
+            if self.nets:
+                for net in self.nets:
+                    cmd.extend(['--net', net])
+            elif self.ranges:
+                for iprange in self.ranges:
+                    cmd.extend(['--range', iprange])
+            self.cmd = cmd
+            super(AutoDiscoveryJob, self).run(r)
+
+    def finished(self, r):
+        if self.nets:
+            details = 'networks %s' % ', '.join(self.nets)
+        elif self.ranges:
+            details = 'IP ranges %s' % ', '.join(self.ranges)
+        if r==SUCCESS:
+            JobMessenger(self).sendToUser(
+                'Discovery Complete',
+                'Discovery of %s has completed successfully.' % details
+            )
+        elif r==FAILURE:
+            JobMessenger(self).sendToUser(
+                'Discovery Failed',
+                'An error occurred discovering %s.' % details,
+                priority=messaging.WARNING
+            )
+        super(AutoDiscoveryJob, self).finished(r)
+
+
+
+
+
 

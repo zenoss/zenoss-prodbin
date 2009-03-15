@@ -4,6 +4,7 @@
     xmlns:browser="http://namespaces.zope.org/browser"
     i18n_domain="Products.ZenWidgets">
 
+    <include package="zenoss.extjs"/>
     <include package=".browser"/>
 
     <adapter
@@ -22,6 +23,13 @@
         provides=".interfaces.IMessageSender"
         for="*"
         factory=".messaging.MessageSender"
+        />
+
+    <browser:page
+        for="*"
+        name="extjs"
+        class=".ExtJSShortcut"
+        permission="zope2.Public"
         />
 
 </configure>

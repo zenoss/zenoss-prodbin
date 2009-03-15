@@ -1,0 +1,138 @@
+html {
+    background: #8f8f8f;
+    font-family: Helvetica, Arial, sans-serif;
+}
+
+#header {
+    padding-top: 5px;
+    padding-left: 5px;
+    background: transparent url('img/metalbg.gif') top left; 
+    height: 50px;
+    border-bottom: 1px solid black;
+}
+
+#footer {
+    height: 20px;
+    font-size: smaller;
+    text-align: center;
+}
+
+.selected_row {
+    background: #dfe8f6 url('img/ext_rowindicator.gif') right center no-repeat;
+}
+
+#header-extra {
+    float: right;
+    height: 40px;
+    color: white;
+    line-height: 45px;
+}
+
+h1, h2 {
+    color: #222;
+}
+
+h1 {
+    font-size: large;
+    font-weight: bold;
+}
+
+h2 {
+    font-size: 1.1em;
+    margin-bottom: 1em;
+}
+
+#buttons {
+    padding: 1em 10px;
+}
+
+#content-wrapper {
+    padding: 1em;
+    border: 1px solid black;
+    background-color: white;
+    margin: 1em 1em 0 1em;
+}
+
+#content {
+    text-align: left;
+    margin-top: 1.5em;
+    margin: 0 auto;
+    width: 850px;
+}
+
+div.rounded-corners {
+    background: transparent url('img/rounded_bars.gif') center left no-repeat;
+    height: 46px;
+}
+div.inverted-rounded-corners {
+    background: transparent url('img/rounded_bars_inverted.gif') center left no-repeat;
+    height: 46px;
+}
+
+div.logo {
+    float: left;
+    margin: 0.4em;
+    width: 516px;
+    height: 40px;
+    background: transparent url('logo.png') center left no-repeat;
+}      
+
+div#errors {
+    margin: 2em;
+    font-weight: bold;
+}
+
+div#errors img {
+    float: left;
+}
+
+div#errors ul {
+    padding-left: 40px;
+}
+
+div.step-content {
+    width: 800px;
+    height: 250px;
+    margin: 0 auto 0 auto;
+}
+
+div.stepbox {
+    float: left;
+    margin: 0 auto;
+    border: solid thin black;
+    margin: 2em;
+    padding: 0.25em;
+    width: 200px;
+    height: 200px;
+    position: relative;
+}
+
+div.stepbox h3 {
+    text-align: left;
+    font-size: large;
+    font-weight: bold;
+    margin: 0.5em;
+}
+
+div.stepbox p {
+    margin: 0.5em;
+}
+
+div.stepbox img.stepboxicon {
+    position: absolute;
+    top: -15px;
+    left: -5px;
+}
+
+div.stepbox img.stepicon {
+    float:right;
+}
+
+div.form-fields {
+    margin: 0.25em;
+    padding: 0.25em;
+}
+
+div.error {
+    border: dashed thick red;
+}

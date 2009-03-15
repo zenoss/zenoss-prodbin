@@ -1,0 +1,53 @@
+<tal:block metal:use-macro="context/quickstart_macros/base">
+    <tal:block metal:fill-slot="headline"> 
+    Zenoss Setup
+    </tal:block>
+    <tal:block metal:fill-slot="subheadline">
+    In less time than it takes to clean off your desk, you can have Zenoss up
+    and running. So sweep all that clutter into a drawer, and let's get
+    started:
+    </tal:block>
+    <tal:block metal:fill-slot="content">
+        <div class="step-content">
+            <div class="stepbox" id="step1">
+                <img class="stepboxicon" src="img/step1.png" alt="Step 1"/>
+                <img class="stepicon" src="img/user.png" alt="User"/>
+                <h3>Choose User Name and Password</h3>
+                <p>This will be your admin account</p>
+                <p>You can add more users later</p>
+            </div>
+
+            <div class="stepbox" id="step2">
+                <img class="stepboxicon" src="step2.png" alt="Step 2"/>
+                <img class="stepicon" src="img/discoverNetworks.png" alt="Discover Networks"/>
+                <h3>Specify the Networks to Monitor</h3>
+                <p>Autodiscover or add devices manually</p>
+                <p>Use Windows, SNMP, SSH for _____, your choice</p>
+            </div>
+
+            <div style="float: left; width:200px; line-height: 200px; margin-top: 1em;
+                text-align:center">
+                    <button id="start-button" type="button">Get Started!</button>
+                </div>
+            <!-->
+            <div class="stepbox" id="step3">
+                <img class="stepboxicon" src="step3.png" alt="Step 3"/>
+                <img class="stepicon" src="img/configureDevices.png" alt="Configure Devices"/>
+                <h3>Configure Devices</h3>
+                <p>Set-up meaningful thresholds and alerts</p>
+                <p>Leverage our unique inheritance feature that ....</p>
+            </div>
+            -->
+        </div>
+    </tal:block>
+    <tal:block metal:fill-slot="buttons">
+    </tal:block>
+    
+    <script type="text/javascript" metal:fill-slot="extra-scripts">
+    (function(){
+     var button = Ext.get('start-button');
+     button.on('click', function(){location.href='qs-step1'});
+    })();
+    </script>
+
+</tal:block>

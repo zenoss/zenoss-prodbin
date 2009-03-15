@@ -19,7 +19,7 @@ from Products.ZenUtils.Utils import importClass, zenPath
 import sys
 import os
 import exceptions
-
+import imp
 import logging
 log = logging.getLogger('zen.plugins')
 
@@ -92,28 +92,54 @@ class PluginLoader(pb.Copyable, pb.RemoteCopy):
         """
         Load and compile the code contained in the given plugin
         """
-
-        moduleName = self.modpath.split('.')[0]
         try:
-            sys.path.insert(0, self.package)
-            const = importClass(self.modpath)
-            sys.path.remove(self.package)
+            try:
+                # Load the plugins package
+                plugin_pkg = imp.find_module('.', [self.package])
+                plugin_pkg_mod = imp.load_module('_plugins', *plugin_pkg)
 
-        except (SystemExit, KeyboardInterrupt):
-            raise
+                # Modify sys.path (unfortunately, some plugins depend on this)
+                sys.path.insert(0, self.package)
 
-        except:
-            import traceback
-            raise pluginImportError( plugin=self.modpath, \
-                                    traceback=traceback.format_exc() )
+                # Import the module, using the plugins package
+                #
+                # Equivalent to, for example: 
+                #   from _plugins.zenoss.snmp import DeviceMap
+                #
+                clsname = self.modpath.split('.')[-1]
+                mod = __import__('_plugins.' + self.modpath, 
+                                 globals(), 
+                                 locals(),
+                                 [clsname])
 
-        del sys.modules[moduleName]
+                # Clean up now-useless imports
+                for modname in sys.modules.keys():
+                    if modname.startswith('_plugins'):
+                        del sys.modules[modname]
 
+                # Finally, get at the class
+                const = getattr(mod, clsname)
+
+            except (SystemExit, KeyboardInterrupt):
+                raise
+
+            except:
+                import traceback
+                raise pluginImportError(
+                    plugin=self.modpath, traceback=traceback.format_exc() )
+
+        finally:
+            try:
+                sys.path.remove(self.package)
+            except ValueError:
+                # It's already been removed
+                pass
+
+        # The whole point: instantiate the plugin
         plugin = const()
         return plugin
 
 pb.setUnjellyableForClass(PluginLoader, PluginLoader)
-
 
 
 def _loadPluginDir(pdir):

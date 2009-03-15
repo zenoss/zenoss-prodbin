@@ -1085,5 +1085,23 @@ RefreshManager.prototype = {
     }
 }
 
+
+/**
+ * Converts an array of message strings to an HTML list representation that
+ * can be located within some other document container.
+ *
+ * @param {Object} messages an array of messages
+ */
+YAHOO.zenoss.utils.messagesToList = function(messages) {
+    var html = "<ul>\n";
+    for (msg in messages) {
+        // TODO: make each message HTML-safe
+        html += "<li>" + messages[msg] + "</li>\n";
+    }
+    html += "</ul>\n";
+    return html;
+}
+
+
 YAHOO.register("zenossutils", YAHOO.zenoss.utils, {});
 

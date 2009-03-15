@@ -735,12 +735,13 @@ class UserSettings(ZenModelRM):
                 except KeyError:
                     self.getPhysicalRoot().acl_users.userManager.updateUserPassword(
                                     self.id, password)
-                loggedInUser = REQUEST['AUTHENTICATED_USER']
-                # we only want to log out the user if it's *their* passowrd
-                # they've changed, not, for example, if the admin user is
-                # changing another user's password
-                if loggedInUser.getUserName() == self.id:
-                    self.acl_users.logout(REQUEST)
+                if REQUEST:
+                    loggedInUser = REQUEST['AUTHENTICATED_USER']
+                    # we only want to log out the user if it's *their* passowrd
+                    # they've changed, not, for example, if the admin user is
+                    # changing another user's password
+                    if loggedInUser.getUserName() == self.id:
+                        self.acl_users.logout(REQUEST)
 
         # finish up
         if REQUEST:

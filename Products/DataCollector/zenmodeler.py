@@ -804,7 +804,7 @@ class ZenModeler(PBDaemon):
                 help="Modeler plugins to use. Takes a regular expression")
         self.parser.add_option('-p', '--path', dest='path',
                 help="Start class path for collection ie /NetworkDevices")
-        self.parser.add_option('-d', '--device', dest='device',
+        self.parser.add_option('-d', '--device', dest='device', 
                 help="Fully qualified device name ie www.confmon.com")
         self.parser.add_option('-a', '--collage',
                 dest='collage', default=0, type='float',

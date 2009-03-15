@@ -1,0 +1,82 @@
+<configure
+    xmlns="http://namespaces.zope.org/zope"
+    xmlns:five="http://namespaces.zope.org/five"
+    xmlns:browser="http://namespaces.zope.org/browser"
+    i18n_domain="Products.ZenWidgets">
+
+
+    <browser:page
+        for="*"
+        name="quickstart_macros"
+        class=".views.QuickstartBase"
+        permission="zope2.Public"
+        />
+
+    <browser:page
+        for="*"
+        name="quickstart"
+        class=".views.OutlineView"
+        permission="zope2.View"
+        />
+
+    <browser:page
+        for="*"
+        name="qs-step1"
+        class=".userViews.CreateUserView"
+        permission="zope2.View"
+        />
+
+    <!-- Form actions for step 1 -->
+
+        <browser:page
+            for="*"
+            name="qs-createuser"
+            class=".userViews.CreateUserView"
+            attribute="createUser"
+            permission="zope2.View"
+            />
+
+    <!-- End form actions -->
+
+    <browser:page
+        for="*"
+        name="qs-step2"
+        class=".views.DeviceAddView"
+        permission="zope2.View"
+        />
+
+    <!-- Form actions for step 2 -->
+
+        <browser:page
+            for="*"
+            name="manual_add"
+            class=".views.DeviceAddView"
+            attribute="manual"
+            permission="zope2.View"
+            />
+
+        <browser:page
+            for="*"
+            name="auto_add"
+            class=".views.DeviceAddView"
+            attribute="autodiscovery"
+            permission="zope2.View"
+            />
+
+    <!-- End form actions -->
+
+    <browser:page
+        for="*"
+        name="qs-step3"
+        class=".views.OrganizeDevicesView"
+        permission="zope2.View"
+        />
+
+    <browser:page
+        for="*"
+        name="qs-step4"
+        class=".views.CreateCustomGroupsView"
+        permission="zope2.View"
+        />
+
+</configure>

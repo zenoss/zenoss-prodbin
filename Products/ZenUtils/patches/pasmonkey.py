@@ -84,11 +84,13 @@ def login(self):
     else:
         submittedQs = 'submitted=%s' % submitted
         came_from = '/zport/dmd?%s' % submittedQs
-    if self.dmd.acceptedTerms:
-        url = came_from
-    else:
+    if not self.dmd.acceptedTerms:
         url = "%s/zenoss_terms/?came_from=%s" % (
                     self.absolute_url(), urllib.quote(came_from))
+    elif not self.dmd.ranQuickstart:
+        url = "/zport/dmd/quickstart" 
+    else:
+        url = came_from
 
     if self.dmd.uuid is None:
         from uuid.uuid import uuid1

@@ -211,12 +211,20 @@ class DirectoryResource(BrowserView, Resource, OFSTraversable):
     def get(self, name, default=_marker):
         path = self.context.path
         filename = os.path.join(path, name)
-        if not os.path.isfile(filename):
+        # This older version of Five doesn't support recursive
+        # resourceDirectory traversal. This patch fixes that. The functionality
+        # is supported in later versions of Five, so we don't have to worry
+        # about the patch surviving upgrade -- Ian
+        if os.path.isdir(filename): 
+            factory = DirectoryResourceFactory
+        elif os.path.isfile(filename): 
+            ext = name.split('.')[-1]
+            factory = self.resource_factories.get(ext, self.default_factory)
+        else:
             if default is _marker:
                 raise NotFoundError(name)
             return default
-        ext = name.split('.')[-1]
-        factory = self.resource_factories.get(ext, self.default_factory)
+        # Patch ends
         resource = factory(name, filename)(self.request)
         resource.__name__ = name
         resource.__parent__ = self

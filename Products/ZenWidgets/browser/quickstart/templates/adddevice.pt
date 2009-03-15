@@ -1,0 +1,460 @@
+<tal:block metal:use-macro="context/quickstart_macros/base">
+    <tal:block metal:fill-slot="headline"> 
+    <span style="font-size:1.2em;color:#4d81af">
+    You are now logged in as <span tal:content="here/dmd/ZenUsers/getUser"/>.
+    <br/>
+    </span>
+    Step 2: Specify or Discover Devices to Monitor
+    </tal:block>
+    <tal:block metal:fill-slot="subheadline">
+    Add devices to start monitoring with Zenoss.<br/>
+    </tal:block>
+    <tal:block metal:fill-slot="content">
+    <div id="tabs"></div>
+    <br/>
+    <br/>
+    <h1 style="text-align:center;">Or, <a href='/zport/dmd/Dashboard'>Skip to the dashboard</a>.
+
+    </tal:block>
+    <tal:block metal:fill-slot="buttons">
+    </tal:block>
+    <tal:block metal:fill-slot="extra-scripts">
+    <script tal:content="string:
+        var DEFAULT_SNMPCOMMUNITIES = ${view/default_communities};
+    "></script>
+    <script type="text/javascript">
+        var HIHI;
+        Ext.onReady(function(){
+            Ext.QuickTips.init();
+            Ext.form.Field.prototype.msgTarget = 'side';
+
+            Ext.apply(Ext.form.VTypes, {
+                iprangeOrNetwork: function(val, field) {
+                    return (val.match(/^(\d+\.){3}\d+\-\d+/) || 
+                            val.match(/^(\d+\.){3}\d+\/\d+/));
+                },
+                iprangeOrNetworkText: "Please enter a valid IP range or " +
+                                      "<br/>network with subnet mask.<br/>"+
+                                      "e.g., 10.1.1.1-50  or 10.1.1.1/24"
+            });
+
+            var netFieldConfig = {
+                width: '80%',
+                inputType: 'text',
+                name: 'network',
+                allowBlank: true,
+                vtype: 'iprangeOrNetwork'
+            }
+
+            var devFieldConfig = {
+                width: '80%',
+                inputType: 'text',
+                name: 'device',
+                allowBlank: true,
+                enableKeyEvents: true,
+                listeners: {
+                    'blur': function(ob) {
+                      ob.getEl().parent().parent().removeClass('selected_row');
+                    },
+                    'focus': function(ob){
+                        ob.getEl().parent().parent().addClass('selected_row');
+                        idx = Ext.getCmp('devices').items.indexOf(ob);
+                        Ext.getCmp(
+                            'manual_creds').layout.setActiveItem(idx);
+                    },
+                    'valid': function(ob) {
+                        idx = Ext.getCmp('devices').items.indexOf(ob);
+                        cmp = Ext.getCmp('credstitle_' + idx);
+                        if (cmp) cmp.body.update(ob.getValue() + ' Details');
+                    }
+                }
+            }
+
+            var autodiscover = new Ext.FormPanel({
+                bodyStyle: 'padding:5px 5px 0',
+                frame: false,
+                border: false,
+                layout: 'column',
+                width: '100%',
+                defaults: {autoHeight: true, 
+                           columnWidth:0.5,
+                           layout: 'form', 
+                           frame:false, 
+                           border:false},
+                items: [{
+                    items: [
+                        new Ext.form.FieldSet({
+                            id: 'networks',
+                            autoHeight: true,
+                            title: 'Networks/Ranges',
+                            layout: 'form',
+                            bodyStyle: 'padding:0',
+                            hideLabels: 'true',
+                            anchor:'100%',
+                            frame: false,
+                            border: false,
+                            defaultType: 'textfield',
+                            // Don't autodestroy, so we can remove/add 
+                            // the button easily
+                            autoDestroy: false,
+                            items: [
+                                new Ext.Panel({
+                                    border:false,
+                                    style: 'color:#666',
+                                    bodyStyle: 'padding: 5px',
+                                    html: 'Enter networks or IP ranges, e.g.'+
+                                        ' 10.0.0.0/24 or 10.0.0.1-50'
+                                }),
+                                netFieldConfig,
+                                new Ext.Button({
+                                    id: 'add_button',
+                                    text: '+',
+                                    handler: function() {
+                                        // Get the fieldset
+                                        nets = Ext.getCmp('networks');
+                                        // Add a new text field
+                                        var field = nets.add(netFieldConfig);
+                                        // pop the button and append it so it
+                                        // stays on the bottom
+                                        nets.add(nets.remove(
+                                            Ext.getCmp('add_button')
+                                        ));
+                                        // Render the new components
+                                        nets.doLayout();
+                                        field.focus();
+                                    }
+                            })]
+                        }),
+                    ]
+                },{
+                    frame: true,
+                    border: true,
+                    bodyStyle: 'padding: 5px',
+                    items: [
+                        new Ext.form.FieldSet({
+                            id: 'netauth',
+                            autoHeight: true,
+                            layout: 'form',
+                            anchor:'100%',
+                            borderLeft: true,
+                            defaults: {width: '100%'},
+                            title:'Authentication',
+                            frame: false,
+                            border: false,
+                            defaultType: 'textfield',
+                            items: [
+                                new Ext.Panel({
+                                    border:false,
+                                    style: 'color:#666',
+                                    bodyStyle:'padding:5px 0',
+                                    html: 'Enter credentials to be used ' +
+                                          'during this discovery process.'
+                                }),
+                                new Ext.Panel({
+                                    border:false,
+                                    style:'color:#666;font-weight:bold',
+                                    bodyStyle:'padding:5px 0',
+                                    html: 'Windows'
+                                }),{
+                                    width: 200,
+                                    labelStyle: 'padding-left: 20px',
+                                    fieldLabel: 'Username',
+                                    name: 'winusername'
+                                },{
+                                    width: 200,
+                                    labelStyle: 'padding-left: 20px',
+                                    fieldLabel: 'Password',
+                                    inputType: 'password',
+                                    name: 'winpass'
+                                },
+                                new Ext.Panel({
+                                    border:false,
+                                    style:'color:#666;font-weight:bold',
+                                    bodyStyle:'padding:5px 0',
+                                    html: 'SSH'
+                                }),{
+                                    width: 200,
+                                    labelStyle: 'padding-left: 20px',
+                                    fieldLabel: 'Username',
+                                    name: 'sshusername'
+                                },{
+                                    width: 200,
+                                    labelStyle: 'padding-left: 20px',
+                                    fieldLabel: 'Password',
+                                    inputType: 'password',
+                                    name: 'sshpass'
+                                },
+                                new Ext.Panel({
+                                    border:false,
+                                    style:'color:#666;font-weight:bold',
+                                    bodyStyle:'padding:5px 0',
+                                    html: 'SNMP'
+                                }),{
+                                    width: 200,
+                                    xtype: 'textarea',
+                                    labelStyle: 'padding-left: 20px',
+                                    fieldLabel: 'Community Strings',
+                                    name: 'snmpcommunities',
+                                    value: DEFAULT_SNMPCOMMUNITIES
+                                }
+                            ]
+                        })
+                    ]
+                }]
+            });
+
+            var submit_discover = autodiscover.addButton({
+                text: 'Discover',
+                handler: function(){
+                    autodiscover.getForm().submit({url: 'auto_add'});
+                }
+            });
+            
+            function add_card(){
+                var container = Ext.getCmp('manual_creds');
+                var index = container.items.length;
+                var new_card = new Ext.form.FieldSet({
+                    frame: false,
+                    border: false,
+                    autoHeight: true,
+                    labelAlign: 'right',
+                    labelWidth: 50,
+                    items: [
+                        new Ext.Panel({
+                            id: 'credstitle_' + index,
+                            style: {
+                                'font-weight': 'bold',
+                                'font-size': '1.3em',
+                                'color': '#666',
+                                'padding-bottom':'1em'
+                            },
+                            html: 'Details'
+                        }),
+                        new Ext.form.ComboBox({
+                         id: 'combobox_' + index,
+                         hiddenName: 'deviceclass_' + index,
+                         selectOnFocus: true,
+                         width: 200,
+                         listWidth: 200,
+                         style: {
+                             'margin-bottom':'1em'
+                         },
+                         fieldLabel: 'Device Type',
+                         editable: false,
+                         store: [
+                            ['/Server/Linux_snmp', 'Linux Server - SNMP'],
+                            ['/Server/Linux_ssh', 'Linux Server - SSH'],
+                            ['/Server/Windows_win', 'Windows Server'],
+                            ['/Server/Network_snmp', 'Network Device - SNMP'],
+                            ['/Server/Network_ssh', 'Network Device - SSH']
+                         ],
+                         triggerAction: 'all',
+                         forceSelection: true,
+                         selectOnFocus: true,
+                         listeners: {
+                             'select': function(ob) {
+                                 var type = ob.value.split('_')[1];
+                                 var types = ['ssh', 'snmp', 'win'];
+                                 var container = Ext.getCmp('creds_' + index);
+                                 container.layout.setActiveItem(
+                                     types.indexOf(type)
+                                 );
+                             }
+                         }
+                        }),
+                        new Ext.Panel({
+                            layout: 'card',
+                            id: 'creds_' + index,
+                            autoHeight: true,
+                            defaults: {autoHeight: true},
+                            items: [
+                                new Ext.form.FieldSet({
+                                    defaults: {width:'90%'},
+                                    id: 'ssh_' + index,
+                                    title: 'SSH Credentials',
+                                    defaultType: 'textfield',
+                                    items:[{
+                                        name: 'sshuser_' + index,
+                                        fieldLabel: 'Username'
+                                    },{
+                                        name: 'sshpass_' + index,
+                                        inputType: 'password',
+                                        fieldLabel: 'Password'
+                                    }]
+                                }),
+                                new Ext.form.FieldSet({
+                                    defaults: {width:'90%'},
+                                    id: 'snmp_' + index,
+                                    title: 'SNMP Credentials',
+                                    items: [{
+                                        xtype: 'textarea',
+                                        fieldLabel: 'Community Strings',
+                                        name: 'snmpcomm_' + index,
+                                        value: DEFAULT_SNMPCOMMUNITIES
+                                    }]
+
+                                }),
+                                new Ext.form.FieldSet({
+                                    defaults: {width:'90%'},
+                                    id: 'win_' + index,
+                                    title: 'Windows Credentials',
+                                    defaultType: 'textfield',
+                                    items:[{
+                                        name: 'winuser_' + index,
+                                        fieldLabel: 'Username'
+                                    },{
+                                        name: 'winpass_' + index,
+                                        inputType: 'password',
+                                        fieldLabel: 'Password'
+                                    }]
+                                })
+                            ]
+                        })
+                    ]
+                });
+                card = container.add(new_card);
+                container.doLayout();
+                combobox = Ext.getCmp('combobox_' + index);
+                combobox.setValue('/Server/Linux_snmp');
+                combobox.fireEvent('select', combobox);
+            }
+
+            function addDeviceRow() {
+                // Get the fieldset
+                devs = Ext.getCmp('devices');
+                // Add a new text field
+                config = Ext.apply(devFieldConfig, {name:'device_' +
+                    (devs.items.length - 1)});
+                var field = devs.add(config);
+                // pop the button and append it so it
+                // stays on the bottom
+                devs.add(devs.remove(
+                    Ext.getCmp('dev_add_button')
+                ));
+                // Render the new components
+                devs.doLayout();
+                add_card();
+                field.focus();
+            }
+
+            var manualdiscover = new Ext.FormPanel({
+                bodyStyle: {'padding': '5px 5px 0'},
+                frame: false,
+                border: false,
+                layout: 'column',
+                width: '100%',
+                height: 300,
+                defaults: {
+                    autoHeight: true,
+                    columnWidth: 0.5,
+                    layout: 'form',
+                    frame: false,
+                    border: false
+                },
+                items: [{
+                    bodyStyle: {'padding': '5px 5px 0'},
+                    items: [
+                    new Ext.form.FieldSet({
+                        id: 'devices',
+                        autoHeight: true,
+                        title: 'Hostnames/IP Addresses',
+                        layout: 'form',
+                        hideLabels: 'true',
+                        anchor: '100%',
+                        frame: false,
+                        border: false,
+                        defaultType: 'textfield',
+                        autoDestroy: false,
+                        items: [
+                            new Ext.Panel({
+                                bodyStyle: {'padding': '5px'},
+                                border: false,
+                                style: 'color:#666',
+                                html: 'Enter a hostname or IP address' +
+                                      ' for each device you want to add.'
+                            }),
+                            new Ext.Button({
+                                id: 'dev_add_button',
+                                text: '+',
+                                handler: addDeviceRow
+                            })
+                        ]
+                    })]},{
+                        autoHeight: true,
+                        frame:true,
+                        border:true,
+                        items: [{
+                            // Right column
+                            layout: 'card',
+                            id: 'manual_creds',
+                            autoHeight: true,
+                            frame:false,
+                            border:false,
+                            defaults: { labelWidth:100},
+                            activeItem: 0,
+                            items:[
+
+                            ]
+                        }]
+                    }]
+            });
+
+            var submit_manual = manualdiscover.addButton({
+                text: 'Submit',
+                handler: function(){
+                    manualdiscover.getForm().submit({url:'manual_add'});
+                }
+            });
+
+            var tabpanel = new Ext.TabPanel({
+                width: '100%',
+                renderTo: 'tabs',
+                activeTab: 0,
+                //border: false,
+                plain: true,
+                autoHeight: true,
+                defaults:{autoHeight: true},
+                items: [{
+                    id: 'manualtab',
+                    title: 'Manual Add',
+                    items: [manualdiscover]
+                },{
+                    id: 'autotab',
+                    title: 'Autodiscovery',
+                    items: [autodiscover]
+                }]
+            });
+
+            // I don't get why we have to call this explicitly, but otherwise
+            // the stuff in the tab doesn't render.
+            function renderTab(tab){tab.doLayout()}
+            Ext.getCmp('manualtab').on('activate', renderTab);
+            Ext.getCmp('autotab').on('activate', renderTab);
+
+            // Draw it!
+            tabpanel.render();
+
+            addDeviceRow();
+
+            // Redirection for the forms
+            autodiscover.on({'actioncomplete':
+                function(form, action) {
+                    var url = action.result.redirect;
+                    if (url && action.result.success)  
+                        location.href = url;
+                }
+            });
+
+            manualdiscover.on({'actioncomplete':
+                function(form, action) {
+                    var url = action.result.redirect;
+                    if (url && action.result.success)  
+                        location.href = url;
+                }
+            });
+
+        });
+
+    </script>
+    </tal:block>
+</tal:block>

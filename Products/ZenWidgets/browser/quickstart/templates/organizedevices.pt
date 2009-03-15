@@ -1,0 +1,21 @@
+<tal:block metal:use-macro="context/quickstart_macros/base">
+    <tal:block metal:fill-slot="headline"> 
+    Step 3: Create Custom Groups
+    </tal:block>
+    <tal:block metal:fill-slot="subheadline">
+    Organize your devices in a meaningful way (by location, department,
+    business application...)
+    </tal:block>
+    <tal:block metal:fill-slot="content">
+    
+    </tal:block>
+    <tal:block metal:fill-slot="buttons">
+    <div style="float:left">
+        <a href="qs-step2-manual">&lt; Previous</a>
+        <a href="qs-step4">Next &gt;</a>
+    </div>
+    <div style="float:right">
+        <a href="/zport/dmd">Go To Dashboard</a>
+    </div>
+    </tal:block>
+</tal:block>
