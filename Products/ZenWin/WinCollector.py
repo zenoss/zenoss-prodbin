@@ -42,7 +42,7 @@ class WinCollector(PBDaemon):
     Base class to be sub-classed by WMI daemons
     """
     configCycleInterval = 20
-    wmiqueryTimeout = 100
+    wmiqueryTimeout = 1000
 
     # Short text description of what this collector does: set in sub-classes
     whatIDo = 'Override whatIDo in a subclass'
