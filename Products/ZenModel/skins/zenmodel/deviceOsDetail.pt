@@ -130,7 +130,7 @@ loader.insert({onSuccess:function(){
       <img border="0"
        tal:attributes="src python:test(intf.monitor,
                here.os.getStatusImgSrc(0),
-               here.os.getStatusImgSrc(3))" />
+               here.os.getStatusImgSrc(-1))" />
       </td>
       <td class="tablevalues" align="center">
       <img tal:condition="intf/isLockedFromDeletion" 
@@ -225,9 +225,9 @@ loader.insert({onSuccess:function(){
         </td>
         <td class="tablevalues" align="center">
         <img border="0"
-         tal:attributes="src python:test(srv.monitor,
+         tal:attributes="src python:test(srv.monitored(),
                  here.os.getStatusImgSrc(0),
-                 here.os.getStatusImgSrc(3))" />
+                 here.os.getStatusImgSrc(-1))" />
         </td>
         <td class="tablevalues" align="center" width="60">
         <img tal:condition="srv/isLockedFromDeletion" 
@@ -324,7 +324,7 @@ loader.insert({onSuccess:function(){
         <img border="0"
          tal:attributes="src python:test(proc.monitor,
                  here.os.getStatusImgSrc(0),
-                 here.os.getStatusImgSrc(3))" />
+                 here.os.getStatusImgSrc(-1))" />
         </td>
         <td class="tablevalues" align="center" width="60">
         <img tal:condition="proc/isLockedFromDeletion" 
@@ -431,9 +431,9 @@ loader.insert({onSuccess:function(){
         </td>
       <td class="tablevalues" align="center">
       <img tal:condition="python:not srv.cantMonitor()" border="0"
-       tal:attributes="src python:test(srv.monitor,
+       tal:attributes="src python:test(srv.monitored(),
                here.os.getStatusImgSrc(0),
-               here.os.getStatusImgSrc(3))" />
+               here.os.getStatusImgSrc(-1))" />
       </td>
         <td class="tablevalues" align="center" width="60">
         <img tal:condition="srv/isLockedFromDeletion" 
@@ -539,7 +539,7 @@ loader.insert({onSuccess:function(){
       <img border="0"
        tal:attributes="src python:test(fsys.monitor,
                here.os.getStatusImgSrc(0),
-               here.os.getStatusImgSrc(3))" />
+               here.os.getStatusImgSrc(-1))" />
       </td>
       <td class="tablevalues" align="center" width="60">
       <img tal:condition="fsys/isLockedFromDeletion" 
