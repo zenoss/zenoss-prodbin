@@ -337,7 +337,10 @@ class DataRoot(ZenModelRM, OrderedFolder, Commandable, ZenMenuable):
         convs = []
         for item in attribute:
             tup = item.split(':')
-            tup[1] = int(tup[1])
+            try:
+                tup[1] = int(tup[1])
+            except (IndexError, ValueError):
+                continue
             convs.append(tup)
         return convs
 
