@@ -22,6 +22,7 @@ __version__ = "$Revision:$"[11:-2]
 
 import Globals
 from AccessControl import ClassSecurityInfo, Permissions
+from Products.ZenModel.ZenossSecurity import ZEN_VIEW, ZEN_MANAGE_DMD
 
 from Products.ZenRelations.RelSchema import *
 from Products.ZenWidgets import messaging
@@ -152,7 +153,7 @@ class RRDDataPoint(ZenModelRM, ZenPackable):
 
 
 
-    security.declareProtected('View', 'getPrimaryUrlPath')
+    security.declareProtected(ZEN_VIEW, 'getPrimaryUrlPath')
     def getPrimaryUrlPath(self, ignored=None):
         """get the physicalpath as a url"""
         return self.absolute_url_path()
@@ -163,6 +164,7 @@ class RRDDataPoint(ZenModelRM, ZenPackable):
         useful for lists of DataPoints"""
         return '%s%c%s' % (self.datasource().id, SEPARATOR, self.id)
 
+
     def getRRDCreateCommand(self, performanceConf):
         """Get the create command.
         Return '' for the default from performanceConf"""
@@ -170,32 +172,38 @@ class RRDDataPoint(ZenModelRM, ZenPackable):
         if self.createCmd:
             return self.createCmd
         return ''
-    
+
+
     def addAlias(self, id, formula=None):
         """
         Add a new alias to this datapoint
         """
         manage_addDataPointAlias( self, id, formula )
-    
+
+
     def hasAlias(self, aliasId):
         """
         Whether this datapoint has an alias of this id
         """
         return hasattr( self.aliases, aliasId )
-    
+
+
     def removeAlias(self, aliasId):
         """
         Remove any alias with the given id
         """
         if self.hasAlias( aliasId ):
             self.aliases._delObject( aliasId )
-        
+
+    
     def getAliasNames(self):
         """
         Return all the ids of this datapoint's aliases
         """
         return [ alias.id for alias in self.aliases() ]
-    
+
+
+    security.declareProtected(ZEN_MANAGE_DMD, 'manage_addDataPointAlias')
     def manage_addDataPointAlias(self, id, formula, REQUEST=None ):
         """
         Add an alias to this datapoint
@@ -204,7 +212,9 @@ class RRDDataPoint(ZenModelRM, ZenPackable):
         if REQUEST:
             return self.callZenScreen(REQUEST)
         return alias
-    
+
+
+    security.declareProtected(ZEN_MANAGE_DMD, 'manage_removeDataPointAliases')
     def manage_removeDataPointAliases(self, ids=(), REQUEST=None ):
         """
         Remove aliases from this datapoint
@@ -215,7 +225,7 @@ class RRDDataPoint(ZenModelRM, ZenPackable):
             return self.callZenScreen(REQUEST)
 
 
-    security.declareProtected('Manage DMD', 'zmanage_editProperties')
+    security.declareProtected(ZEN_MANAGE_DMD, 'zmanage_editProperties')
     def zmanage_editProperties(self, REQUEST=None, redirect=False):
         """Edit a ZenModel object and return its proper page template
         """
