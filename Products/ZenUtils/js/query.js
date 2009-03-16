@@ -175,16 +175,21 @@ function initializeFilters(current) {
 
   function createElement(propertyName) {
     var property = properties[propertyName];
-    var property = properties[propertyName];
     var table = document.getElementById("filters").getElementsByTagName("table")[0];
     var tr = document.createElement("tr");
     tr.className = propertyName;
 
     var alreadyPresent = false;
+    var negativeMode = false;
     for (var i = 0; i < table.rows.length; i++) {
       if (table.rows[i].className == propertyName) {
         var existingTBody = table.rows[i].parentNode;
         alreadyPresent = true;
+        
+        var m = getChildrenByName(table.rows[i], propertyName + "_mode");
+        if (m.value == "!" || m.value == "!~" || m.value == "!^")
+            negativeMode = true;
+        
         break;
       }
     }
@@ -193,9 +198,11 @@ function initializeFilters(current) {
     var th = document.createElement("th");
     th.scope = "row";
     if (!alreadyPresent) {
-      th.appendChild(createLabel(property.label));
+        th.appendChild(createLabel(property.label));
+    } else if (negativeMode) {
+        th.appendChild(createLabel("and"));
     } else {
-      th.appendChild(createLabel("or"));
+        th.appendChild(createLabel("or"));
     }
     th.align = "right";
     tr.appendChild(th);
@@ -226,7 +233,7 @@ function initializeFilters(current) {
       if (!alreadyPresent || property.type == "compare") {
         // Add the mode selector
         td.className = "mode";
-	var id = propertyName + "_mode";
+        var id = propertyName + "_mode";
         var modeSelect = createSelect(id, modes[property.type]);
         td.appendChild(modeSelect);
         tr.appendChild(td);
@@ -318,16 +325,16 @@ function initializeFilters(current) {
   }
 
   for (var i = 0; i < current.length; i++) {
-    propertyName = current[i][0];
-    for (var j = 0; j < current[i][2].length; j++) {
-	var modeValue = current[i][1];
-        var value = current[i][2][j];
-        tr = createElement(propertyName);
-	var v = getChildrenByName(tr, propertyName);
-	var m = getChildrenByName(tr, propertyName + "_mode");
-	if (m) m.value = modeValue;
-	v.value = value;
-    }
+      propertyName = current[i][0];
+      for (var j = 0; j < current[i][2].length; j++) {
+          var modeValue = current[i][1];
+          var value = current[i][2][j];
+          var tr = createElement(propertyName);
+          var v = getChildrenByName(tr, propertyName);
+          var m = getChildrenByName(tr, propertyName + "_mode");
+          if (m) m.value = modeValue;
+          v.value = value;
+      }
   }
 
 }

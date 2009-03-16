@@ -13,6 +13,12 @@
 import types
 from Products.ZenUtils.json import json
 
+negativeModes = (
+    '!',    # is not
+    '!~',   # does not contain
+    '!^',   # does not begin with
+    )
+
 def q(s):
     # turn string "fo'o" -> "'fo''o'"
     return "'%s'" % "''".join(s.split("'"))
@@ -27,15 +33,18 @@ class WhereJavaScript:
     def genProperties(self, name):
         return '%s:{type:"%s",label:"%s"}' % (name, self.type, self.label)
     def buildClause(self, name, value, mode):
+        foundNegativeMatch = False
         result = []
         for v in value:
-            if not v:
-                return None
-                #raise Error('No value for %s' % name)
+            if not v: return None
+            if mode in negativeModes: foundNegativeMatch = True
             result.append(self.buildClause1(name, v, mode))
         if not result:
             return None
-        return ' or '.join(result)
+        if foundNegativeMatch:
+            return ' and '.join(result)
+        else:
+            return ' or '.join(result)
 
 class Text(WhereJavaScript):
     "Convert to/from javascript for text entries"
