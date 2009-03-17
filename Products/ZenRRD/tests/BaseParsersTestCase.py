@@ -87,8 +87,9 @@ def filenames(datadir):
             
             for entry in files:
                 
-                if (not entry.startswith(".") and \
+                if (not entry.startswith(".") and
                     not entry.endswith(".py") and
+                    not entry.endswith(".pyc") and
                     entry.find('~') == -1 and
                     entry.find('#') == -1):
                     
