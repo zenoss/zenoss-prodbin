@@ -109,13 +109,18 @@ class PluginLoader(pb.Copyable, pb.RemoteCopy):
                 #   from mypackage.zenoss.snmp import DeviceMap
                 #
                 clsname = self.modpath.split('.')[-1]
-                mod = __import__(self.package + '.' + self.modpath, 
-                                 globals(), 
-                                 locals(),
-                                 [clsname])
+                if self.modpath.startswith('ZenPacks'):
+                    # ZenPack plugins are specified absolutely; we can import
+                    # them using the old method
+                    const = importClass(self.modpath)
+                else:
+                    mod = __import__(self.package + '.' + self.modpath, 
+                                     globals(), 
+                                     locals(),
+                                     [clsname])
 
-                # Finally, get at the class
-                const = getattr(mod, clsname)
+                    # Finally, get at the class
+                    const = getattr(mod, clsname)
 
             except (SystemExit, KeyboardInterrupt):
                 raise
