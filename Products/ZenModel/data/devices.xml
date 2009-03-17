@@ -1996,6 +1996,9 @@ NewDeviceMap|DeviceMap|InterfaceMap|RouteMap|ifconfig|netstat_rn
 <property visible="True" type="text" id="zLinks" >
 http://www.zenoss.com
 </property>
+<property visible="True" type="lines" id="zCollectorPlugins" >
+['zenoss.snmp.NewDeviceMap', 'zenoss.snmp.DeviceMap', 'zenoss.snmp.InterfaceMap', 'zenoss.snmp.RouteMap', 'zenoss.cmd.df', 'zenoss.wmi.WinServiceMap', 'zenoss.cmd.uname', 'zenoss.cmd.uname_a']
+</property>
 </object>
 <object id='Network' module='Products.ZenModel.DeviceClass' class='DeviceClass'>
 <property visible="True" type="string" id="zCollectorCollectPlugins" >
