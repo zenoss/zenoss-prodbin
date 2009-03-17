@@ -1,0 +1,2 @@
+class TestPlugin(object):
+    pass

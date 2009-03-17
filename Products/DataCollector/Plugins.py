@@ -94,9 +94,11 @@ class PluginLoader(pb.Copyable, pb.RemoteCopy):
         """
         try:
             try:
-                # Load the plugins package
+                # Load the plugins package using its path as the name to avoid
+                # conflicts. Since we're kicking in the back door slashes in
+                # the name don't matter.
                 plugin_pkg = imp.find_module('.', [self.package])
-                plugin_pkg_mod = imp.load_module('_plugins', *plugin_pkg)
+                plugin_pkg_mod = imp.load_module(self.package, *plugin_pkg)
 
                 # Modify sys.path (unfortunately, some plugins depend on this)
                 sys.path.insert(0, self.package)
@@ -104,18 +106,13 @@ class PluginLoader(pb.Copyable, pb.RemoteCopy):
                 # Import the module, using the plugins package
                 #
                 # Equivalent to, for example: 
-                #   from _plugins.zenoss.snmp import DeviceMap
+                #   from mypackage.zenoss.snmp import DeviceMap
                 #
                 clsname = self.modpath.split('.')[-1]
-                mod = __import__('_plugins.' + self.modpath, 
+                mod = __import__(self.package + '.' + self.modpath, 
                                  globals(), 
                                  locals(),
                                  [clsname])
-
-                # Clean up now-useless imports
-                for modname in sys.modules.keys():
-                    if modname.startswith('_plugins'):
-                        del sys.modules[modname]
 
                 # Finally, get at the class
                 const = getattr(mod, clsname)
