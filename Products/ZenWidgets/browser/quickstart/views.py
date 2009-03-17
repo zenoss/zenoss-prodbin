@@ -65,7 +65,7 @@ class DeviceAddView(BrowserView):
         if isinstance(submitted, basestring):
             submitted = [submitted]
         zProperties = {
-            'zCommandUser': self.request.form.get('sshusername'),
+            'zCommandUsername': self.request.form.get('sshusername'),
             'zCommandPassword': self.request.form.get('sshpass'),
             'zWinUser': self.request.form.get('winusername'),
             'zWinPassword': self.request.form.get('winpass'),
@@ -135,7 +135,7 @@ class DeviceAddView(BrowserView):
             # Set zProps based on type
             if type_=='ssh':
                 zProps = { 
-                    'zCommandUser': self.request.form.get('sshuser_%s' % idx),
+                    'zCommandUsername': self.request.form.get('sshuser_%s' % idx),
                     'zCommandPassword': self.request.form.get(
                         'sshpass_%s' % idx),
                 }
