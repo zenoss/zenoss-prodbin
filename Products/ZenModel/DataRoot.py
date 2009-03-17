@@ -70,6 +70,7 @@ class DataRoot(ZenModelRM, OrderedFolder, Commandable, ZenMenuable):
 
     #setTitle = DTMLFile('dtml/setTitle',globals())
 
+    _rq = True
     uuid = None
     availableVersion = None
     lastVersionCheck = 0
@@ -77,7 +78,6 @@ class DataRoot(ZenModelRM, OrderedFolder, Commandable, ZenMenuable):
     versionCheckOptIn = True
     reportMetricsOptIn = True
     acceptedTerms = True
-    ranQuickstart = False
     smtpHost = 'localhost'
     pageCommand = '$ZENHOME/bin/zensnpp localhost 444 $RECIPIENT'
     smtpPort = 25
@@ -254,6 +254,14 @@ class DataRoot(ZenModelRM, OrderedFolder, Commandable, ZenMenuable):
         from ZVersion import VERSION
         self.version = "Zenoss " + VERSION
 
+
+    def index_html(self):
+        """
+        Override to force redirection to quickstart.
+        """
+        if not self._rq:
+            return self.unrestrictedTraverse('quickstart')()
+        return self()
 
     def getEventCount(self, **kwargs):
         """Return the current event list for this managed entity.

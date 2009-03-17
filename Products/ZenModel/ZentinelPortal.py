@@ -158,6 +158,19 @@ class ZentinelPortal ( PortalObjectBase ):
     def getZenossVersionShort(self):
         return self.About.getZenossVersionShort()
 
+    def getExtraLoginFormContents(self):
+        """
+        On first run, log us in as admin automatically
+        """
+        if not self.dmd._rq:
+            return """
+            var form=document.forms[0];
+            form.__ac_name.value = 'admin';
+            form.__ac_password.value = 'zenoss';
+            form.submit()
+            """
+
+
 
 Globals.InitializeClass(ZentinelPortal)
 

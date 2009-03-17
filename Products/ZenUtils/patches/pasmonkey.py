@@ -87,8 +87,6 @@ def login(self):
     if not self.dmd.acceptedTerms:
         url = "%s/zenoss_terms/?came_from=%s" % (
                     self.absolute_url(), urllib.quote(came_from))
-    elif not self.dmd.ranQuickstart:
-        url = "/zport/dmd/quickstart" 
     else:
         url = came_from
 

@@ -113,7 +113,7 @@
                                   tal:content="structure msg" />
                         </tal:block>
                     </div>
-                    <input type="submit" name="submit" 
+                    <input type="submit" name="submitbutton" 
                            class="submitbutton" value=""/>
                     <div id="copyright">
                         <p>Copyright &copy; 2005-2009 Zenoss, Inc. | Version
@@ -123,6 +123,7 @@
                 </div>
             </div>
         </form>
+        <script tal:content="here/getExtraLoginFormContents"></script>
     </body>
 
 

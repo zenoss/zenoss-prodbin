@@ -105,6 +105,7 @@ class DmdBuilder:
         dmd = DataRoot('dmd')
         self.portal._setObject(dmd.id, dmd)
         self.dmd = self.portal._getOb('dmd')
+        self.dmd._rq = False
         self.dmd.smtpHost = smtphost
         self.dmd.smtpPort = smtpport
         self.dmd.pageCommand = pagecommand
