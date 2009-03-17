@@ -128,7 +128,7 @@ loader.insert({onSuccess:function(){
       </td>
       <td class="tablevalues" align="center">
       <img border="0"
-       tal:attributes="src python:test(intf.monitor,
+       tal:attributes="src python:test(intf.monitored(),
                here.os.getStatusImgSrc(0),
                here.os.getStatusImgSrc(-1))" />
       </td>
@@ -322,7 +322,7 @@ loader.insert({onSuccess:function(){
         </td>
         <td class="tablevalues" align="center">
         <img border="0"
-         tal:attributes="src python:test(proc.monitor,
+         tal:attributes="src python:test(proc.monitored(),
                  here.os.getStatusImgSrc(0),
                  here.os.getStatusImgSrc(-1))" />
         </td>
@@ -537,7 +537,7 @@ loader.insert({onSuccess:function(){
       -->
       <td class="tablevalues" align="center">
       <img border="0"
-       tal:attributes="src python:test(fsys.monitor,
+       tal:attributes="src python:test(fsys.monitored(),
                here.os.getStatusImgSrc(0),
                here.os.getStatusImgSrc(-1))" />
       </td>

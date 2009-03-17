@@ -30,7 +30,7 @@ from Products.ZenModel.Service import Service
 from IpInterface import manage_addIpInterface
 from WinService import manage_addWinService
 from IpService import manage_addIpService
-from OSProcess import manage_addOSProcess
+from OSProcess import manage_addOSProcess, OSProcess
 from IpRouteEntry import manage_addIpRouteEntry
 from FileSystem import manage_addFileSystem
 
@@ -223,7 +223,7 @@ class OperatingSystem(Software):
             comp = context._getOb(componentName, False)
             if comp and comp.monitored() != monitored:
                 comp.monitor = monitored
-                if isinstance(comp, Service):
+                if isinstance(comp, (Service, OSProcess)):
                     comp.setAqProperty('zMonitor', monitored, 'boolean')
                 comp.index_object()
         if REQUEST:
