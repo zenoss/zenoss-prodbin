@@ -431,7 +431,7 @@ class UserSettingsManager(ZenModelRM):
                 messaging.IMessageSender(self).sendToBrowser(
                     'Groups Modified',
                     'Users %s were added to group %s.' % (
-                        ','.join(userids), groupid)
+                        ', '.join(userids), ', '.join(groupids))
                 )
             return self.callZenScreen(REQUEST)
 

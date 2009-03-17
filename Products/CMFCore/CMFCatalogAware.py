@@ -253,10 +253,10 @@ class CMFCatalogAware(Base):
         ob = self
         wftool = self._getWorkflowTool()
         # XXX None ?
+        states = {}
+        chain = []
         if wftool is not None:
             wf_ids = wftool.getChainFor(ob)
-            states = {}
-            chain = []
             for wf_id in wf_ids:
                 wf = wftool.getWorkflowById(wf_id)
                 if wf is not None:
