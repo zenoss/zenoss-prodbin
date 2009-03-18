@@ -7,5 +7,12 @@ True
 <property visible="True" type="lines" id="zCollectorPlugins" >
 []
 </property>
+<tomanycont id='rrdTemplates'>
+<object id='Device' module='Products.ZenModel.RRDTemplate' class='RRDTemplate'>
+<property type="string" id="targetPythonClass" mode="w" >
+Products.ZenModel.Device
+</property>
+</object>
+</tomanycont>
 </object>
 </objects>
