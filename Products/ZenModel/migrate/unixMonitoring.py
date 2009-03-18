@@ -24,5 +24,6 @@ class addUnixMonitoring(Migrate.Step):
             dmd.Devices.Server.manage_addOrganizer('Ssh')
             dmd.Devices.Server.Ssh.zSnmpMonitorIgnore = True
             dmd.Devices.Server.Ssh.zCollectorPlugins = []
+            dmd.Devices.Server.Ssh.manage_addRRDTemplate('Device')
 
 addUnixMonitoring()
