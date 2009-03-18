@@ -106,8 +106,8 @@ class PrimaryPathObjectManager(
 
     def _delObject(self, id, dp=1):
         """When deleted clear __primary_parent__."""
-        obj = self._getOb(id, False)
-        if not obj:
+        obj = self._getOb(id, None)
+        if obj is None:
             # Added this check because we are seeing stack traces in the UI. 
             # We aren't 100% sure what is causing the object to disappear from 
             # the ObjectManager. It could be that a different user had already 
