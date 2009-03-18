@@ -1352,7 +1352,7 @@ def relative_time(t, precision=1, cmptime=None):
         '1 week 3 days ago'
         >>> relative_time(time.time() - 60*60*24*365-1, precision=2)
         '1 year 1 second ago'
-        >>> relative_time(time.time() + 60*60*24*7*2)
+        >>> relative_time(time.time() + 1 + 60*60*24*7*2) # Add 1 for rounding
         'in 2 weeks'
 
     """
