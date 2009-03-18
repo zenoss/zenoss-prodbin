@@ -479,15 +479,15 @@ class IpNetwork(DeviceOrganizer):
             organizer = orgroot.getOrganizer(organizerName)
             if organizer is None:
                 if xmlrpc: return 1 # XML-RPC error
-                log.error("Couldn't obtain a network entry for '%s' -- does it exist?" % \
-                               organizerName)
+                log.error("Couldn't obtain a network entry for '%s' "
+                            "-- does it exist?" % organizerName)
                 continue
 
             zDiscCommand = getattr(organizer, "zZenDiscCommand", None)
             if zDiscCommand:
                 cmd = talesEval('string:' + zDiscCommand, organizer).split(" ")
             else:
-                cmd = ["zendisc", "run", "--net", organizer.id]
+                cmd = ["zendisc", "run", "--net", organizer.getNetworkName()]
                 if getattr(organizer, "zSnmpStrictDiscovery", False):
                     cmd += ["--snmp-strict-discovery"]
                 if getattr(organizer, "zPreferSnmpNaming", False):

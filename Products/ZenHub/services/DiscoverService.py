@@ -68,8 +68,8 @@ class DiscoverService(ModelerService):
 
     @translateError
     def remote_getNetworks(self, net, includeSubNets):
-        "Get network objects to scan"
-        netObj = self.dmd.Networks.findNet(net, includeSubNets)
+        "Get network objects to scan networks should be in CIDR form 1.1.1.0/24"
+        netObj = self.dmd.Networks.getNetworkRoot().findNet(net)
         if not netObj:
             return None
         nets = [netObj]
@@ -81,11 +81,11 @@ class DiscoverService(ModelerService):
     @translateError
     def remote_pingStatus(self, net, goodips, badips, resetPtr, addInactive):
         "Create objects based on ping results"
-        net = self.dmd.Networks.findNet(net.id)
+        net = self.dmd.Networks.getNetworkRoot().findNet(net.id, net.netmask)
         pingthresh = getattr(net, "zPingFailThresh", DEFAULT_PING_THRESH)
         ips = []
         for ip in goodips:
-            ipobj = net.createIp(ip)
+            ipobj = net.createIp(ip, net.netmask)
             if resetPtr:
                 ipobj.setPtrName()
             if not ipobj.device():
@@ -93,9 +93,9 @@ class DiscoverService(ModelerService):
             if ipobj.getStatus(Status_Ping) > 0:
                 self.sendIpStatusEvent(ipobj, sev=0)
         for ip in badips:
-            ipobj = self.dmd.Networks.findIp(ip)
+            ipobj = self.dmd.Networks.getNetworkRoot().findIp(ip)
             if not ipobj and addInactive:
-                ipobj = net.createIp(ip)
+                ipobj = net.createIp(ip, net.netmask)
             if ipobj:
                 if resetPtr:
                     ipobj.setPtrName()
@@ -183,7 +183,8 @@ class DiscoverService(ModelerService):
     @translateError
     def remote_getSubNetworks(self):
         "Fetch proxies for all the networks"
-        return map(IpNetProxy, self.dmd.Networks.getSubNetworks())
+        return map(IpNetProxy,
+                self.dmd.Networks.getNetworkRoot().getSubNetworks())
 
 
     @translateError
