@@ -599,6 +599,7 @@ class AutoDiscoveryJob(ShellCommandJob):
         # Store zProperties on the job
         if self.zProperties:
             self.getStatus().setZProperties(**self.zProperties)
+            transaction.commit() 
 
         # Build the zendisc command
         cmd = [binPath('zendisc')]

@@ -87,6 +87,7 @@ class JobStatus(ZenModelRM):
 
     def setZProperties(self, **zprops):
         self.properties.setdefault('zProperties', {}).update(zprops)
+        self._p_changed = True
 
     def getResult(self):
         return self.result
