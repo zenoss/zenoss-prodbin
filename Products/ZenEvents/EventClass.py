@@ -285,7 +285,8 @@ class EventClass(EventClassPropertyMixin, Organizer, ManagedEntity, ZenPackable)
         if type(ids) == types.StringType: ids = (ids,)
         target = self.getChildMoveTarget(moveTarget)
         for id in ids:
-            rec = self.instances._getOb(id)
+            rec = self.instances._getOb(id, None)
+            if rec is None: continue
             rec._operation = 1 # moving object state
             self.instances._delObject(id)
             target.instances._setObject(id, rec)
