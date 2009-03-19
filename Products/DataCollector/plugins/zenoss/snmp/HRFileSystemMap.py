@@ -1,7 +1,7 @@
 ###########################################################################
 #
 # This program is part of Zenoss Core, an open source monitoring platform.
-# Copyright (C) 2007, Zenoss Inc.
+# Copyright (C) 2007, 2009 Zenoss Inc.
 #
 # This program is free software; you can redistribute it and/or modify it
 # under the terms of the GNU General Public License version 2 as published by
@@ -11,13 +11,11 @@
 #
 ###########################################################################
 
-__doc__="""FileSystemMap
+__doc__ = """FileSystemMap
 
-FileSystemMap maps the interface and ip tables to interface objects
+FileSystemMap maps the filesystems to filesystem objects
 
-$Id: HRFileSystemMap.py,v 1.2 2004/04/07 16:26:53 edahl Exp $"""
-
-__version__ = '$Revision: 1.2 $'[11:-2]
+"""
 
 import re
 
@@ -62,31 +60,36 @@ class HRFileSystemMap(SnmpPlugin):
 
 
     def process(self, device, results, log):
-        """collect snmp information from this device"""
-        log.info('processing %s for device %s', self.name(), device.id)
+        """Process SNMP information from this device"""
+        log.info('Modeler %s processing data for device %s', self.name(), device.id)
         getdata, tabledata = results
+        log.debug("%s tabledata = %s", device.id, tabledata)
         fstable = tabledata.get("fsTableOid")
+        if fstable is None:
+            log.error("Unable to get data for %s from fsTableOid"
+                          " -- skipping model" % device.id)
+            return None
+
         skipfsnames = getattr(device, 'zFileSystemMapIgnoreNames', None)
         skipfstypes = getattr(device, 'zFileSystemMapIgnoreTypes', None)
         maps = []
         rm = self.relMap()
         for fs in fstable.values():
-            if not self.checkColumns(fs, self.columns, log): continue
-            
-            # This looks like a duplicate check. Candidate for removal.
-            if not fs.has_key("totalBlocks"): continue
-            totalBlocks = fs['totalBlocks']
-            
-            # This may now be a redundant check. Candidate for removal.
-            #   http://dev.zenoss.org/trac/ticket/4556
-            if totalBlocks < 0:
-                fs['totalBlocks'] = unsigned(totalBlocks)
+            if not self.checkColumns(fs, self.columns, log):
+                continue
             
             # Gentoo and openSUSE report "Virtual memory" as swap. This needs
             # to be ignored so we can pickup the real swap later in the table.
             if fs['mount'].lower() == "virtual memory":
                 continue
-            
+
+            totalBlocks = fs['totalBlocks']
+
+            # This may now be a redundant check. Candidate for removal.
+            #   http://dev.zenoss.org/trac/ticket/4556
+            if totalBlocks < 0:
+                fs['totalBlocks'] = unsigned(totalBlocks)
+
             size = long(fs['blockSize'] * totalBlocks)
             if size <= 0:
                 log.info("Skipping %s. 0 total blocks.", fs['mount'])
@@ -103,12 +106,12 @@ class HRFileSystemMap(SnmpPlugin):
                 maps.append(ObjectMap({"totalSwap": size}, compname="os"))
             
             if skipfsnames and re.search(skipfsnames, fs['mount']):
-                log.info("Skipping %s. Matches zFileSystemMapIgnoreNames.",
+                log.info("Skipping %s as it matches zFileSystemMapIgnoreNames.",
                     fs['mount'])
                 continue
             
             if skipfstypes and fs['type'] in skipfstypes:
-                log.info("Skipping %s (%s). Matches zFileSystemMapIgnoreTypes.",
+                log.info("Skipping %s (%s) as it matches zFileSystemMapIgnoreTypes.",
                     fs['mount'], fs['type'])
                 continue
 
