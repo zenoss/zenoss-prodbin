@@ -570,6 +570,22 @@ class UserSettings(ZenModelRM):
 
     security = ClassSecurityInfo()
 
+    security.declareProtected('View', 'zentinelTabs')
+    def zentinelTabs(self, templateName):
+        """Return a list of hashs that define the screen tabs for this object.
+        [{'name':'Name','action':'template','selected':False},...]
+        """
+        tabs = super(UserSettings, self).zentinelTabs(templateName)
+        # if we don't have any global roles take away edit tab
+        if self.hasNoGlobalRoles():
+            return tabs[:-1]
+        return tabs
+
+    def hasNoGlobalRoles(self):
+        """This user doesn't have global roles. Used to limit access
+        """
+        return len(self.getUserRoles()) == 0
+
     def getUserRoles(self):
         """Get current roles for this user.
         """

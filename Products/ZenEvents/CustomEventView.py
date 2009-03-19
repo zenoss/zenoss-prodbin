@@ -86,6 +86,9 @@ class CustomEventView(ZenModelRM, EventFilter):
         """
         tabs = super(CustomEventView, self).zentinelTabs(templateName)
         if templateName.endswith("Events"): tabs[0]['selected']=True
+        # if we don't have any global roles take away edit tab
+        if self.hasNoGlobalRoles():
+            return [tabs[0]]
         return tabs
 
 

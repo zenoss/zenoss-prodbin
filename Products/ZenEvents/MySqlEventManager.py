@@ -77,6 +77,7 @@ class MySqlEventManager(MySqlSendEventMixin, EventManagerBase):
         where = self._wand(where, "%s <= %s", self.stateField, state)
         if prodState is not None:
             where = self._wand(where, "%s >= %s", 'prodState', prodState)
+        where = self.restrictedUserFilter(where)
         select += where
         select += " group by severity desc"
         #print select

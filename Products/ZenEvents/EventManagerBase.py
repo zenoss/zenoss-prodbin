@@ -445,6 +445,11 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
         return [ev.evid for ev in events]
 
 
+    def restrictedUserFilter(self, where):
+        """This is a hook do not delete me!"""
+        return where
+
+        
     def getEventList(self, resultFields=None, where="", orderby="",
             severity=None, state=2, startdate=None, enddate=None, offset=0,
             rows=0, getTotalCount=False, filter="", **kwargs):
@@ -480,6 +485,7 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
         """
         unused(kwargs)
         try:
+            where = self.restrictedUserFilter(where)
             if not resultFields:
                 resultFields = self.defaultResultFields
             resultFields = list(resultFields)

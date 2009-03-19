@@ -11,11 +11,16 @@
 #
 ###########################################################################
 
+from AccessControl import ClassSecurityInfo
+from Globals import InitializeClass
+
 class EventFilter(object):
     "Mix-in for objects that query events"
 
     where = None
     formName = 'actionRule'
+
+    security = ClassSecurityInfo()
 
     def getQueryElements(self):
         s = self.genMeta().items()
@@ -122,4 +127,4 @@ Modes = """
             {text:">=",value:">="}]};
 """
 
-
+InitializeClass(EventFilter)
