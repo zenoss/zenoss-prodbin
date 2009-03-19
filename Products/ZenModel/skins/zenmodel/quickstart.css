@@ -93,39 +93,12 @@ div#errors ul {
 div.step-content {
     width: 800px;
     height: 250px;
-    margin: 0 auto 0 auto;
-}
-
-div.stepbox {
-    float: left;
     margin: 0 auto;
-    border: solid thin black;
-    margin: 2em;
-    padding: 0.25em;
-    width: 200px;
-    height: 200px;
-    position: relative;
+    text-align: center;
 }
 
-div.stepbox h3 {
-    text-align: left;
-    font-size: large;
-    font-weight: bold;
-    margin: 0.5em;
-}
-
-div.stepbox p {
-    margin: 0.5em;
-}
-
-div.stepbox img.stepboxicon {
-    position: absolute;
-    top: -15px;
-    left: -5px;
-}
-
-div.stepbox img.stepicon {
-    float:right;
+img.stepbox {
+    margin: 1em;
 }
 
 div.form-fields {
