@@ -100,6 +100,7 @@ class ZenModeler(PBDaemon):
             self.single = True
         self.modelerCycleInterval = self.options.cycletime
         self.collage = float( self.options.collage ) / 1440.0
+        self.pendingNewClients = False
         self.clients = []
         self.finished = []
         self.devicegen = None  
@@ -672,7 +673,7 @@ class ZenModeler(PBDaemon):
                 self.clients.remove(collectorClient)
                 self.finished.append(collectorClient)
             except ValueError:
-                self.log.warn("Client %s not found in in the list"
+                self.log.debug("Client %s not found in in the list"
                               " of active clients",
                               device.id)
             d = drive(self.fillCollectionSlots)
@@ -759,7 +760,10 @@ class ZenModeler(PBDaemon):
         @type driver: driver object
         """
         count = len(self.clients)
-        while count < self.options.parallel and self.devicegen:
+        while count < self.options.parallel and self.devicegen \
+            and not self.pendingNewClients:
+            
+            self.pendingNewClients = True
             try:
                 device = self.devicegen.next()
                 yield self.config().callRemote('getDeviceConfig', [device])
@@ -769,6 +773,8 @@ class ZenModeler(PBDaemon):
                     self.collectDevice(devices[0])
             except StopIteration:
                 self.devicegen = None
+            
+            self.pendingNewClients = False
             break
 
         update = len(self.clients)
