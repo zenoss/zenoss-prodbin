@@ -21,6 +21,31 @@ Yowl.register( 'zenoss', ['info'], ['info'],
 );
 
 /**
+ * A modified XHRDataSource that can accept a callable for request
+ * parameters. Useful for preventing caching by sending current time with
+ * requests.
+ */
+Z.CallableReqDS = function(oLiveData, oConfigs) {
+    // Workaround for bug #2176072 in YUI 2.6.0
+    this.constructor = Y.XHRDataSource;
+    // Chain constructors
+    Z.CallableReqDS.superclass.constructor.call(this, oLiveData, oConfigs);
+    // Set constructor back (also part of fix)
+    this.constructor = Z.CallableReqDS;
+}
+YAHOO.lang.extend(Z.CallableReqDS, Y.XHRDataSource);
+
+Z.CallableReqDS.prototype.makeConnection = function(oRequest, oCallback, 
+                                                  oCaller) {
+    if (typeof(oRequest)=='function') oRequest = oRequest();
+    Z.CallableReqDS.superclass.makeConnection.call(this, oRequest, 
+                                                 oCallback, oCaller)
+}
+
+// Return an IE-cache-busting query string.
+function _defeatCaching(){return '?_dc='+new Date().getTime()}
+
+/**
  * Provide our own custom ConnectionManager that lets us keep track of the
  * outstanding connection so we can then later abort the connection and
  * prevent our failure callback from being called when it really shouldn't
@@ -67,7 +92,7 @@ Z.Messenger = {
     },
 
     // Source of remote data
-    datasource: new Y.XHRDataSource(
+    datasource: new Z.CallableReqDS(
         // Pointer to live data
         "/zport/dmd/getUserMessages", 
         // Config object
@@ -111,7 +136,7 @@ Z.Messenger = {
     // Ask the server for messages once, then keep asking every interval ms
     startPolling: function(interval) {
         this.checkMessages();
-        this.datasource.setInterval(interval, null, this.callbacks);
+        this.datasource.setInterval(interval, _defeatCaching, this.callbacks);
     },
 
     stopPolling: function() {

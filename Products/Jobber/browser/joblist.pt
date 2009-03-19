@@ -12,9 +12,32 @@
 function initialize() {
 
     var Y = YAHOO.util,
+        Z = YAHOO.zenoss,
         W = YAHOO.widget;
 
-    var pending_ds = new YAHOO.util.XHRDataSource(
+    /**
+     * A modified XHRDataSource that can accept a callable for request
+     * parameters. Useful for preventing caching by sending current time with
+     * requests.
+     */
+    Z.CallableReqDS = function(oLiveData, oConfigs) {
+        // Workaround for bug #2176072 in YUI 2.6.0
+        this.constructor = Y.XHRDataSource;
+        // Chain constructors
+        Z.CallableReqDS.superclass.constructor.call(this, oLiveData, oConfigs);
+        // Set constructor back (also part of fix)
+        this.constructor = Z.CallableReqDS;
+    }
+    YAHOO.lang.extend(Z.CallableReqDS, Y.XHRDataSource);
+
+    Z.CallableReqDS.prototype.makeConnection = function(oRequest, oCallback, 
+                                                      oCaller) {
+        if (typeof(oRequest)=='function') oRequest = oRequest();
+        Z.CallableReqDS.superclass.makeConnection.call(this, oRequest, 
+                                                     oCallback, oCaller)
+    }
+
+    var pending_ds = new Z.CallableReqDS(
         "/zport/dmd/JobManager/jsonjobs",
         {
             responseType: Y.XHRDataSource.TYPE_JSON,
@@ -85,8 +108,11 @@ function initialize() {
     //pending_table.subscribe("rowMouseoutEvent",
     //    pending_table.onEventUnhighlightRow);
     //pending_table.subscribe("rowClickEvent", pending_viewLog);
+    
 
-    pending_ds.setInterval(5000, null, 
+    function _defeatCaching(){return '?_dc=' + new Date().getTime()}
+
+    pending_ds.setInterval(5000, _defeatCaching, 
         pending_table.onDataReturnInitializeTable, pending_table
     );
 }
