@@ -24,13 +24,13 @@ class process(ProcessCommandPlugin):
     
     def condition(self, device, log):
         """
-        If the device resides under the Server/Ssh device class, then always
+        If the device resides under the Server/SSH device class, then always
         run this plugin.  Otherwise only run this plugin if uname has been
         previously modeled as "Linux".
         """
         path = device.deviceClass().getPrimaryUrlPath()
         
-        if path.startswith("/zport/dmd/Devices/Server/Ssh"):
+        if path.startswith("/zport/dmd/Devices/Server/SSH"):
             result = True
         else:
             result = device.os.uname == 'Linux'

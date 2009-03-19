@@ -184,7 +184,7 @@ class CommandPlugin(CollectorPlugin):
 class LinuxCommandPlugin(CommandPlugin):
     """
     A command plugin for linux that is used by devices in Server/Cmd and 
-    Server/Ssh.
+    Server/SSH/Linux.
     """
     
     

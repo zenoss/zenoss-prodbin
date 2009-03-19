@@ -11,7 +11,7 @@
 #
 ###########################################################################
 
-"""Adds Server/Ssh
+"""Adds Server/SSH and Server/SSH/Linux device classes
 """
 
 import Migrate
@@ -20,10 +20,12 @@ class addUnixMonitoring(Migrate.Step):
     version = Migrate.Version(2, 4, 0)
 
     def cutover(self, dmd):
-        if not hasattr(dmd.Devices.Server, 'Ssh'):
-            dmd.Devices.Server.manage_addOrganizer('Ssh')
-            dmd.Devices.Server.Ssh.zSnmpMonitorIgnore = True
-            dmd.Devices.Server.Ssh.zCollectorPlugins = []
-            dmd.Devices.Server.Ssh.manage_addRRDTemplate('Device')
+        if not hasattr(dmd.Devices.Server, 'SSH'):
+            dmd.Devices.Server.manage_addOrganizer('SSH')
+            dmd.Devices.Server.SSH.zSnmpMonitorIgnore = True
+            dmd.Devices.Server.SSH.zCollectorPlugins = []
+            dmd.Devices.Server.SSH.manage_addRRDTemplate('Device')
+        if not hasattr(dmd.Devices.Server.SSH, 'Linux'):
+            dmd.Devices.Server.SSH.manage_addOrganizer('Linux')
 
 addUnixMonitoring()
