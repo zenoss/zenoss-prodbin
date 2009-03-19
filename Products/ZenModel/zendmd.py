@@ -86,6 +86,8 @@ def _customStuff():
     def login(username='admin'):
         utool = getToolByName(app, 'acl_users')
         user = utool.getUserById(username)
+        if user is None:
+            user = app.zport.acl_users.getUserById(username)
         user = user.__of__(utool)
         newSecurityManager(None, user)
 
