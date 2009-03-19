@@ -242,11 +242,10 @@
                          fieldLabel: 'Device Type',
                          editable: false,
                          store: [
+                            ['/Server/Windows_win', 'Windows Server - WMI'],
                             ['/Server/Linux_snmp', 'Linux Server - SNMP'],
-                            ['/Server/Linux_ssh', 'Linux Server - SSH'],
-                            ['/Server/Windows_win', 'Windows Server'],
-                            ['/Server/Network_snmp', 'Network Device - SNMP'],
-                            ['/Server/Network_ssh', 'Network Device - SSH']
+                            ['/Server/SSH/Linux_ssh', 'Linux Server - SSH'],
+                            ['/Network_snmp', 'Network Device - SNMP']
                          ],
                          triggerAction: 'all',
                          forceSelection: true,
