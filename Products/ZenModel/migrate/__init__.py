@@ -169,3 +169,4 @@ import addCpuDataPointAliases
 import newProductIndexes
 import unixMonitoring
 import addDefaultZFileSystemMapIgnoreTypes
+import addNmapOptionsZProp

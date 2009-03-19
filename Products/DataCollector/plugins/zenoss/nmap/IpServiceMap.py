@@ -25,6 +25,7 @@ from Products.ZenUtils.Utils import zenPath
 from twisted.internet.utils import getProcessOutput
 import re
 
+NMAPDEFAULTS = "-p 1-1024;-sT;--open;-oG -"
 class IpServiceMap(PythonPlugin):
     
     transport = "python"
@@ -33,16 +34,15 @@ class IpServiceMap(PythonPlugin):
     relname = "ipservices"
     modname = "Products.ZenModel.IpService"
     deviceProperties = PythonPlugin.deviceProperties + (
-        'zIpServiceMapMaxPort',
-        )
-
+        'zNmapPortscanOptions',)
 
     def collect(self, device, log):
-        maxport = getattr(device, 'zIpServiceMapMaxPort', 1024)
-        return getProcessOutput(zenPath('libexec', 'nmap'), [
-            '-sT', '-F', '-oG', '-', device.manageIp])
+        nmapoptions = getattr(device, 'zNmapPortscanOptions', NMAPDEFAULTS) 
+        nmapoptions = nmapoptions.split(";") 
+        nmapoptions.append(device.manageIp)
+        log.info("running nmap plugin with options: %s " % (nmapoptions))
+        return getProcessOutput(zenPath('libexec', 'nmap'), nmapoptions)
 
-    
     def process(self, device, results, log):
         rm = self.relMap()
         line = results.split('\n')[1]
