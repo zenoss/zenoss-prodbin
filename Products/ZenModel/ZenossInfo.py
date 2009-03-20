@@ -163,6 +163,7 @@ class ZenossInfo(ZenModelItem, SimpleItem):
             mysql  Ver 14.12 Distrib 5.0.24, for apple-darwin8.5.1 (i686) using readline 5.0
             mysql  Ver 12.22 Distrib 4.0.24, for pc-linux-gnu (i486)
             mysql  Ver 14.12 Distrib 5.0.24a, for Win32 (ia32)
+            /usr/local/zenoss/mysql/bin/mysql.bin  Ver 14.12 Distrib 5.0.45, for unknown-linux-gnu (x86_64) using readline 5.0
         """
         cmd = 'mysql --version'
         fd = os.popen(cmd)
@@ -170,7 +171,7 @@ class ZenossInfo(ZenModelItem, SimpleItem):
         version = "0"
         if fd.close() is None and len(output) > 0:
             output = output[0].strip()
-            regexString = '(mysql).*Ver [0-9]{2}\.[0-9]{2} '
+            regexString = '.*(mysql).*Ver [0-9]{2}\.[0-9]{2} '
             regexString += 'Distrib ([0-9]+.[0-9]+.[0-9]+)(.*), for (.*\(.*\))'
             regex = re.match(regexString, output)
             if regex:
