@@ -439,12 +439,16 @@ class ZenHub(ZCmdBase):
         service = self.getService(svcName, instance).service
         priority = service.getMethodPriority(method)
         
-        # Insert job into workList so that it stays sorted by priority
-        for i, job in enumerate(self.workList):
-            if priority < job[1]:
-                self.workList.insert(i, (d, priority, args) )
-                break
+        if self.options.prioritize:
+            # Insert job into workList so that it stays sorted by priority.
+            for i, job in enumerate(self.workList):
+                if priority < job[1]:
+                    self.workList.insert(i, (d, priority, args) )
+                    break
+            else:
+                self.workList.append( (d, priority, args) )
         else:
+            # Run jobs on a first come, first serve basis.
             self.workList.append( (d, priority, args) )
         
         self.giveWorkToWorkers()
@@ -476,11 +480,15 @@ class ZenHub(ZCmdBase):
                 break
 
     def getJobForWorker(self, workerId):
-        lenWorkers = float(len(self.workers))
-        for i in range(len(self.workList)):
-            priority = self.workList[i][1]
-            if priority < (workerId+1) / lenWorkers:
-                return self.workList.pop(i)
+        if self.options.anyworker:
+            return self.workList.pop(0)
+        else:
+            # Restrict lower priority jobs to a subset of the workers.
+            lenWorkers = float(len(self.workers))
+            for i in range(len(self.workList)):
+                priority = self.workList[i][1]
+                if priority < (workerId+1) / lenWorkers:
+                    return self.workList.pop(i)
 
     def createWorker(self):
         """Start a worker subprocess
@@ -562,31 +570,27 @@ class ZenHub(ZCmdBase):
         Adds our command line options to ZCmdBase command line options.
         """
         ZCmdBase.buildOptions(self)
-        self.parser.add_option('--xmlrpcport',
-                               '-x',
-                               dest='xmlrpcport',
-                               type='int',
-                               help='Port to use for XML-based Remote Procedure Calls (RPC)',
-                               default=XML_RPC_PORT)
-        self.parser.add_option('--pbport', 
-                               dest='pbport',
-                               type='int',
-                               help="Port to use for Twisted's pb service",
-                               default=PB_PORT)
-        self.parser.add_option('--passwd', 
-                               dest='passwordfile',
-                               type='string',
-                               help='File where passwords are stored',
-                               default=zenPath('etc','hubpasswd'))
-        self.parser.add_option('--monitor', 
-                               dest='monitor',
-                               help='Name of the distributed monitor this hub runs on',
-                               default='localhost')
-        self.parser.add_option('--workers',
-                               dest='workers',
-                               type='int',
-                               default=0,
-                               help="Number of worker instances to handle requests")
+        self.parser.add_option('--xmlrpcport', '-x', dest='xmlrpcport',
+            type='int', default=XML_RPC_PORT,
+            help='Port to use for XML-based Remote Procedure Calls (RPC)')
+        self.parser.add_option('--pbport', dest='pbport',
+            type='int', default=PB_PORT,
+            help="Port to use for Twisted's pb service")
+        self.parser.add_option('--passwd', dest='passwordfile',
+            type='string', default=zenPath('etc','hubpasswd'),
+            help='File where passwords are stored')
+        self.parser.add_option('--monitor', dest='monitor',
+            default='localhost',
+            help='Name of the distributed monitor this hub runs on')
+        self.parser.add_option('--workers', dest='workers',
+            type='int', default=0,
+            help="Number of worker instances to handle requests")
+        self.parser.add_option('--prioritize', dest='prioritize',
+            action='store_true', default=False,
+            help="Run higher priority jobs before lower priority ones")
+        self.parser.add_option('--anyworker', dest='anyworker',
+            action='store_true', default=False,
+            help='Allow any priority job to run on any worker')
 
 if __name__ == '__main__':
     z = ZenHub()
