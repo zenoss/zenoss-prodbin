@@ -584,7 +584,7 @@ class UserSettings(ZenModelRM):
     def hasNoGlobalRoles(self):
         """This user doesn't have global roles. Used to limit access
         """
-        return len(self.getUserRoles()) == 0
+        return self.id != 'admin' and len(self.getUserRoles()) == 0
 
     def getUserRoles(self):
         """Get current roles for this user.
