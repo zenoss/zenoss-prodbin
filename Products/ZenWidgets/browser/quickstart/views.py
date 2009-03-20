@@ -69,7 +69,7 @@ class DeviceAddView(BrowserView):
             'zCommandPassword': self.request.form.get('sshpass'),
             'zWinUser': self.request.form.get('winusername'),
             'zWinPassword': self.request.form.get('winpass'),
-            'zSnmpCommunities': self.request.form.get('snmpcommunities')
+            'zSnmpCommunities': self.request.form.get('snmpcommunities').splitlines()
         }
         # Split rows into networks and ranges
         nets = []
