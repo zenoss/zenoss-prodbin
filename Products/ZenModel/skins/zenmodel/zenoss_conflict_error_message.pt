@@ -1,0 +1,7 @@
+<tal:block metal:use-macro="root/zport/dmd/templates/macros/page3">
+<tal:block metal:fill-slot="contentPane">
+
+<h2>A concurrent access to this object has been detected</h2>
+<p>This can happen under normal operations, where a Zenoss daemon is updating a device at the same time you edit it from the user interface.  Try resubmitting your request (reload your browser) to see if the conflict is now resolved or <a tal:attributes="href request/URL1">navigate back to the object</a></p>
+</tal:block>
+</tal:block>

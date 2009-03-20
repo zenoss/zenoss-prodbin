@@ -1,0 +1,11 @@
+<tal:block metal:use-macro="root/zport/dmd/templates/macros/page3">
+<tal:block metal:fill-slot="contentPane">
+
+
+<h2>There is a serious problem with the MySQL event database</h2>
+<p>Below is the detailed information provided:</p>
+
+<h3 tal:content="options/error_value"></h3>
+
+</tal:block>
+</tal:block>

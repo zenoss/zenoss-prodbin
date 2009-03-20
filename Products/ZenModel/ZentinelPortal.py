@@ -58,6 +58,25 @@ class ZentinelPortal ( PortalObjectBase ):
     def server_time(self):
         return Time.isoDateTime()
 
+
+    security.declareProtected(ZEN_VIEW, 'zenoss_error_message')
+    def zenoss_error_message(self,error_type,error_value,
+                            error_traceback,error_message):
+        """
+        """
+        from ZODB.POSException import ConflictError
+        from Products.ZenEvents.Exceptions import MySQLConnectionError
+        from _mysql_exceptions import MySQLError
+        if isinstance(error_value, ConflictError):
+            return self.zenoss_conflict_error_message()
+        elif isinstance(error_value, MySQLConnectionError) \
+                or isinstance(error_value, MySQLError):
+            return self.zenoss_mysql_error_message(error_value=error_value)
+        return self.zenoss_feedback_error_message(error_type=error_type,
+                                        error_value=error_value,
+                                        error_traceback=error_traceback)
+        
+        
     security.declareProtected(ZEN_COMMON, 'searchDevices')
     def searchDevices(self, queryString='', REQUEST=None):
         """Returns the concatenation of a device name, ip and mac
