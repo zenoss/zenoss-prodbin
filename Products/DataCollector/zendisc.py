@@ -624,12 +624,12 @@ class ZenDisc(ZenModeler):
             myip = socket.gethostbyname(myname)
             self.log.debug("My IP address = %s", myip)
         except (socket.error, DNSNameError):
-            self.log.warn("Failed lookup of my IP for name %s", myname)
+            raise SystemExit("Failed lookup of my IP for name %s", myname)
 
         yield self.config().callRemote('getDeviceConfig', [myname])
         me, = driver.next() or [None]
         if not me or self.options.remodel:
-            yield self.discoverDevice(myname, 
+            yield self.discoverDevice(myip, 
                                       devicepath=self.options.deviceclass, 
                                       prodState=self.options.productionState)
             me = driver.next()
