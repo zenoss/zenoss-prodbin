@@ -104,7 +104,7 @@
           <td class="tablevalues" tal:condition="not:here/isManager"
             tal:content="python:here.soleDataPoint().createCmd"/>
         </tr>
-	    <tr>
+	    <tr tal:condition="python:here.sourcetype!='COMMAND'">
 	      <td class="tableheader">Aliases</td>
 	      <td class="tablevalues">
 	      	<tal:block tal:define="aliases python:here.aliases()">
