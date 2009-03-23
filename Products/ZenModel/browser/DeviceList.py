@@ -20,33 +20,19 @@ from Products.ZenUtils.FakeRequest import FakeRequest
 from Products.ZenWidgets import messaging
 from Products.ZenWidgets.interfaces import IMessageSender
 
-class DeviceList(BrowserView):
+class AdvancedQueryDeviceList(object):
     """
-    Populates the device list.
+    Adapter providing list of devices according to various criteria.
     """
-    @formreq
+    def __init__(self, context):
+        self.context = context
+
     def __call__(self, *args, **kwargs):
-        return self._getJSONDeviceInfo(*args, **kwargs)
-
-    @json
-    def _getJSONDeviceInfo(self, offset=0, count=50, filter='',
-                           orderby='id', orderdir='asc'):
         """
-        Get devices under self according to criteria and return results as
-        JSON.
-
-        @return: A JSON representation of a tuple containing a list of lists of
-        device info, and the total number of matching devices
-        @rtype: "([[a, b, c], [a, b, c]], 17)"
+        Needs to be definition rather than simple reference due to possibility
+        of monkeypatching the hook.
         """
-        totalCount, devicelist = self._getAdvancedQueryDeviceList(
-                offset, count, filter, orderby, orderdir)
-        obs = [x.getObject() for x in devicelist]
-        if orderby=='getDeviceIp':
-            obs.sort(lambda a,b:ipsort(a.getDeviceIp(), b.getDeviceIp()))
-        if orderdir=='desc': obs.reverse()
-        results = [ob.getDataForJSON() + ['odd'] for ob in obs]
-        return results, totalCount
+        return self._getAdvancedQueryDeviceList(*args, **kwargs)
 
     def _getAdvancedQueryDeviceList(self, offset=0, count=50, filter='',
                                    orderby='id', orderdir='asc'):
@@ -72,6 +58,36 @@ class DeviceList(BrowserView):
         offset, count = int(offset), int(count)
         obs = objects[offset:offset+count]
         return totalCount, obs
+
+
+class DeviceList(BrowserView):
+    """
+    Populates the device list.
+    """
+    @formreq
+    def __call__(self, *args, **kwargs):
+        return self._getJSONDeviceInfo(*args, **kwargs)
+
+    @json
+    def _getJSONDeviceInfo(self, offset=0, count=50, filter='',
+                           orderby='id', orderdir='asc'):
+        """
+        Get devices under self according to criteria and return results as
+        JSON.
+
+        @return: A JSON representation of a tuple containing a list of lists of
+        device info, and the total number of matching devices
+        @rtype: "([[a, b, c], [a, b, c]], 17)"
+        """
+        devList = AdvancedQueryDeviceList(self.context)
+        totalCount, devicelist = devList(offset, count, filter, orderby, 
+                                         orderdir)
+        obs = [x.getObject() for x in devicelist]
+        if orderby=='getDeviceIp':
+            obs.sort(lambda a,b:ipsort(a.getDeviceIp(), b.getDeviceIp()))
+        if orderdir=='desc': obs.reverse()
+        results = [ob.getDataForJSON() + ['odd'] for ob in obs]
+        return results, totalCount
 
 
 class DeviceBatch(BrowserView):
