@@ -236,9 +236,6 @@
                          selectOnFocus: true,
                          width: 200,
                          listWidth: 200,
-                         style: {
-                             'margin-bottom':'1em'
-                         },
                          fieldLabel: 'Device Type',
                          editable: false,
                          store: [

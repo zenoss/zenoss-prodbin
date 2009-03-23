@@ -129,6 +129,9 @@ class DeviceAddView(BrowserView):
                       self.request.form.keys())
         # Create jobs based on info passed
         for k in devs:
+            # Just ignore blank device names
+            if not devs[k]: 
+                continue
             idx = k.split('_')[1]
             devclass, type_ = self.request.form.get(
                 'deviceclass_%s' % idx).split('_')

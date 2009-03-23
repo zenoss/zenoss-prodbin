@@ -109,3 +109,6 @@ div.form-fields {
 div.error {
     border: dashed thick red;
 }
+
+div.x-combo-list-inner { text-align: left}
+div.x-combo-list { position: relative; top:-20px; }
