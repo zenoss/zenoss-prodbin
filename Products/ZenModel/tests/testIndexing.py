@@ -177,6 +177,25 @@ class TestComponentIndexing(ZenModelBaseTest):
         neworg = self.dmd.Devices.createOrganizer(DEVCLASS+'NEW')
         self.dmd.Devices.moveDevices(DEVCLASS+'NEW', self.dev.id)
         self._checkEverything()
+
+    def testLayer3LinkUnindexOnNetworkDelete(self):
+        """
+        Ensure that the layerN catalogs are updated when the device is moved
+        """
+        # See that the link has been indexed properly
+        brains = self.layer3cat(deviceId = self.dev.id)
+        self.assertEqual(len(brains), 1)
+        brains = self.layer3cat(networkId = self.net.getPrimaryId())
+        self.assertEqual(len(brains), 1)
+
+        # Delete the network
+        self.dmd.Networks.manage_deleteOrganizer(self.net.id)
+
+        # See that the link has been unindexed
+        brains = self.layer3cat(deviceId = self.dev.id)
+        self.assertEqual(len(brains), 0)
+        brains = self.layer3cat(networkId = self.net.getPrimaryId())
+        self.assertEqual(len(brains), 0)
         
     def testWinSerivceComponentReindexOnServiceClassZMonitorChange(self):
         """
