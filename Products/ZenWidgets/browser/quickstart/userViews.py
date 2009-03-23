@@ -55,7 +55,7 @@ class CreateUserView(BrowserView):
             response.error('username', 'That username already exists.')
         else:
             ret = zenUsers.manage_addUser(userName, userPassword, 
-                              ('ZenManager',), REQUEST=None, email=emailAddress)
+                              ('Manager',), REQUEST=None, email=emailAddress)
             if ret is None:
                 response.error('username',
                                'We were unable to add a user at this time.'
