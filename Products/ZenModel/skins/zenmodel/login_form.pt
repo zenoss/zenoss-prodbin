@@ -123,7 +123,7 @@
                 </div>
             </div>
         </form>
-        <script tal:content="here/getExtraLoginFormContents"></script>
+        <tal:block tal:content="structure here/getExtraLoginFormContents"/>
     </body>
 
 

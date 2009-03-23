@@ -179,16 +179,28 @@ class ZentinelPortal ( PortalObjectBase ):
 
     def getExtraLoginFormContents(self):
         """
-        On first run, log us in as admin automatically
+        On first run, log us in as admin automatically.
+
+        This is done via a proxy form with hidden fields, so that the browser
+        doesn't ask to save the password (which will be changed on the next
+        screen).
         """
         if not self.dmd._rq:
             return """
-            var form=document.forms[0];
-            form.__ac_name.value = 'admin';
-            form.__ac_password.value = 'zenoss';
-            form.submit()
+            <form id="_proxy_form">
+            <input type="hidden" name="__ac_name"/>
+            <input type="hidden" name="__ac_password"/>
+            </form>
+            <script>
+            var origform=document.forms[0];
+            var newform = document.getElementById('_proxy_form');
+            newform.__ac_name.value = 'admin';
+            newform.__ac_password.value = 'zenoss';
+            newform.action = origform.action;
+            newform.method = origform.method;
+            newform.submit()
+            </script>
             """
-
 
 
 Globals.InitializeClass(ZentinelPortal)
