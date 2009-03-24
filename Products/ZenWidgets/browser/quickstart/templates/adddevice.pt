@@ -72,6 +72,7 @@
 
             var autodiscover = new Ext.FormPanel({
                 bodyStyle: 'padding:5px 5px 0',
+                id: 'autodiscoverform',
                 frame: false,
                 border: false,
                 layout: 'column',
@@ -119,6 +120,10 @@
                                         nets.add(nets.remove(
                                             Ext.getCmp('add_button')
                                         ));
+                                        // Register the field with the FormPanel
+                                        form = Ext.getCmp(
+                                            'autodiscoverform').getForm();
+                                        form.add(field);
                                         // Render the new components
                                         nets.doLayout();
                                         field.focus();
@@ -319,14 +324,17 @@
                 // Get the fieldset
                 devs = Ext.getCmp('devices');
                 // Add a new text field
-                config = Ext.apply(devFieldConfig, {name:'device_' +
-                    (devs.items.length - 1)});
+                var idx = devs.items.length - 1;
+                config = Ext.apply(devFieldConfig, {name:'device_' + idx});
                 var field = devs.add(config);
                 // pop the button and append it so it
                 // stays on the bottom
                 devs.add(devs.remove(
                     Ext.getCmp('dev_add_button')
                 ));
+                // Register the field with the FormPanel
+                form = Ext.getCmp('manualdiscoverform').getForm();
+                form.add(field);
                 // Render the new components
                 devs.doLayout();
                 add_card();
@@ -335,6 +343,7 @@
 
             var manualdiscover = new Ext.FormPanel({
                 bodyStyle: {'padding': '5px 5px 0'},
+                id: 'manualdiscoverform',
                 frame: false,
                 border: false,
                 layout: 'column',

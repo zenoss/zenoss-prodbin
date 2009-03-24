@@ -77,6 +77,9 @@ class DeviceAddView(BrowserView):
         for row in submitted:
             if _is_network(row): nets.append(row)
             elif _is_range(row): ranges.append(row)
+        if not nets and not ranges:
+            response.error('network',
+                           'You must enter at least one network or IP range.')
         if nets:
             for net in nets:
                 # Make the network if it doesn't exist, so zendisc has
@@ -127,11 +130,16 @@ class DeviceAddView(BrowserView):
         response = Ext.FormResponse()
         devs = filter(lambda x:x.startswith('device_'), 
                       self.request.form.keys())
+        # Make sure we have at least one device name
+        devnames = filter(lambda x:bool(self.request.form.get(x)), devs)
+        if not devnames:
+            response.error('device_1', 
+                           'You must enter at least one hostname/IP.')
+            return response
         # Create jobs based on info passed
         for k in devs:
-            # Just ignore blank device names
-            if not devs[k]: 
-                continue
+            # Ignore empty device names
+            if not self.request.form.get(k): continue
             idx = k.split('_')[1]
             devclass, type_ = self.request.form.get(
                 'deviceclass_%s' % idx).split('_')
@@ -161,7 +169,7 @@ class DeviceAddView(BrowserView):
         IMessageSender(self.context).sendToUser(
             'Devices Added',
             'Modeling of the following devices has been scheduled: %s' % (
-                ', '.join(devnames)
+                ', '.join(filter(None, devnames))
             )
         )
         response.redirect('/zport/dmd')
