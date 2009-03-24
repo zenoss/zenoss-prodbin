@@ -13,7 +13,7 @@
         tal:attributes="value string:1" />
 <input type="hidden" name="tableName" tal:attributes="value tableName"/>
 <tal:block tal:define="tabletitle string:Device List;
-                       menu_id string:DeviceGrid_list">
+menu_id string:DeviceGrid_list; noselectionbar python:True">
 <tal:block metal:use-macro="here/zenuimacros/macros/zentable">
 
 <tal:block metal:fill-slot="filterslot">
