@@ -79,7 +79,6 @@ class DeviceList(BrowserView):
         device info, and the total number of matching devices
         @rtype: "([[a, b, c], [a, b, c]], 17)"
         """
-        import pdb; pdb.set_trace()
         devList = AdvancedQueryDeviceList(self.context)
         totalCount, devicelist = devList(offset, count, filter, orderby, 
                                          orderdir)
