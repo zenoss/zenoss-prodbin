@@ -82,7 +82,10 @@ DeviceZenGridBuffer.prototype = {
             newSize = Math.min(this.startPos - newOffset, this.maxQuery);
         }
         newSize = Math.max(0, newSize);
-        newSize = Math.min(newSize, this.maxQuery, this.totalRows?this.totalRows-newOffset:this.maxQuery);
+        maxSizeNeeded = this.totalRows ? 
+                        Math.max(this.maxQuery, this.totalRows-newOffset) : 
+                        this.maxQuery;
+        newSize = Math.min(newSize, this.maxQuery, maxSizeNeeded);
         return newSize;
     },
     queryOffset: function(offset) {
