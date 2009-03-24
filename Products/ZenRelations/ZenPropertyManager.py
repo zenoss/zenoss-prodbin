@@ -98,6 +98,32 @@ class ZenPropertyManager(PropertyManager):
             setprops(id=id, type=type, visible=visible)
             self._setPropValue(id, value)
 
+    def _updateProperty(self, id, value):
+        """ This method sets a property on a zope object. It overrides the
+        method in PropertyManager. If Zope is upgraded you will need to check
+        that this method has not changed! It is overridden so that we can catch
+        the ValueError returned from the field2* converters in the class
+        Converters.py
+        """
+
+        from Products.ZenWidgets import messaging
+        self._wrapperCheck(value)
+        if not self.hasProperty(id):
+            raise BadRequest, 'The property %s does not exist' % escape(id)
+        if type(value)==type(''):
+            try:
+                proptype=self.getPropertyType(id) or 'string'
+                if type_converters.has_key(proptype):
+                    value=type_converters[proptype](value)
+                self._setPropValue(id, value)
+            except ValueError:
+                messaging.IMessageSender(self).sendToBrowser(
+                    'Error Saving Property %s' % id,
+                    "New value '%s' is of invalid type \
+                    it should be type '%s'" % (value, proptype),
+                    priority=messaging.CRITICAL
+                )
+
 
     _onlystars = re.compile("^\*+$").search
     security.declareProtected(ZEN_ZPROPERTIES_EDIT, 'manage_editProperties')

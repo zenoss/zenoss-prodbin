@@ -62,7 +62,10 @@ class ZentinelPortal ( PortalObjectBase ):
     security.declareProtected(ZEN_VIEW, 'zenoss_error_message')
     def zenoss_error_message(self,error_type,error_value,
                             error_traceback,error_message):
-        """
+        """Return an error page that is more friendly then the standard stack
+        trace + feedback page for ConflictErrors and MySQL errors (we need to
+        add out of disk space errors). If one of these is not found we return
+        the old stacktrace page
         """
         from ZODB.POSException import ConflictError
         from Products.ZenEvents.Exceptions import MySQLConnectionError

@@ -26,63 +26,63 @@
     <tr>
       <td class="tableheader">Event Log Cycle Interval (secs)</td>
       <td class="tablevalues">
-        <input class="tablevalues" type="text" name="eventlogCycleInterval:int" 
+        <input class="tablevalues" type="text" name="eventlogCycleInterval" 
             size="10" tal:attributes="value here/eventlogCycleInterval"/>
       </td>
     </tr>
     <tr>
       <td class="tableheader">SNMP Performance Cycle Interval (secs)</td>
       <td class="tablevalues">
-        <input class="tablevalues" type="text" name="perfsnmpCycleInterval:int" 
+        <input class="tablevalues" type="text" name="perfsnmpCycleInterval" 
             size="10" tal:attributes="value here/perfsnmpCycleInterval"/>
       </td>
     </tr>
     <tr>
       <td class="tableheader">Process Cycle Interval (secs)</td>
       <td class="tablevalues">
-        <input class="tablevalues" type="text" name="processCycleInterval:int" 
+        <input class="tablevalues" type="text" name="processCycleInterval" 
             size="10" tal:attributes="value here/processCycleInterval"/>
       </td>
     </tr>
     <tr>
       <td class="tableheader" align="left">Process Parallel Jobs</td>
       <td class="tablevalues">
-        <input class="tablevalues" type="text" name="zenProcessParallelJobs:int" 
+        <input class="tablevalues" type="text" name="zenProcessParallelJobs" 
             size="10" tal:attributes="value here/zenProcessParallelJobs" />
       </td>
     </tr>
     <tr>
       <td class="tableheader">Status Cycle Interval (secs)</td>
       <td class="tablevalues">
-        <input class="tablevalues" type="text" name="statusCycleInterval:int" 
+        <input class="tablevalues" type="text" name="statusCycleInterval" 
             size="10" tal:attributes="value here/statusCycleInterval"/>
       </td>
     </tr>
     <tr>
       <td class="tableheader">Windows Service Cycle Interval (secs)</td>
       <td class="tablevalues">
-        <input class="tablevalues" type="text" name="winCycleInterval:int" 
+        <input class="tablevalues" type="text" name="winCycleInterval" 
             size="10" tal:attributes="value here/winCycleInterval"/>
       </td>
     </tr>
     <tr>
       <td class="tableheader">Windows Modeler Cycle Interval (secs)</td>
       <td class="tablevalues">
-        <input class="tablevalues" type="text" name="winmodelerCycleInterval:int" 
+        <input class="tablevalues" type="text" name="winmodelerCycleInterval" 
             size="10" tal:attributes="value here/winmodelerCycleInterval"/>
       </td>
     </tr>
     <tr>
       <td class="tableheader">Windows WMI query timeout (millisecs)</td>
       <td class="tablevalues">
-        <input class="tablevalues" type="text" name="wmiqueryTimeout:int" 
+        <input class="tablevalues" type="text" name="wmiqueryTimeout" 
             size="10" tal:attributes="value here/wmiqueryTimeout"/>
       </td>
     </tr>
     <tr>
       <td class="tableheader">Config Cycle Interval (mins)</td>
       <td class="tablevalues">
-        <input class="tablevalues" type="text" name="configCycleInterval:int" 
+        <input class="tablevalues" type="text" name="configCycleInterval" 
             size="10" tal:attributes="value here/configCycleInterval"/>
       </td>
     </tr>
@@ -96,35 +96,35 @@
     <tr>
       <td class="tableheader">Ping Tries</td>
       <td class="tablevalues">
-        <input class="tablevalues" type="text" name="pingTries:int" 
+        <input class="tablevalues" type="text" name="pingTries" 
             size="10" tal:attributes="value here/pingTries"/>
       </td>
     </tr>
     <tr>
       <td class="tableheader">Maximum Ping Packets in Flight</td>
       <td class="tablevalues">
-        <input class="tablevalues" type="text" name="pingChunk:int" 
+        <input class="tablevalues" type="text" name="pingChunk" 
             size="10" tal:attributes="value here/pingChunk"/>
       </td>
     </tr>
     <tr>
       <td class="tableheader">Ping Cycle Time (secs)</td>
       <td class="tablevalues">
-        <input class="tablevalues" type="text" name="pingCycleInterval:int" 
+        <input class="tablevalues" type="text" name="pingCycleInterval" 
             size="10" tal:attributes="value here/pingCycleInterval"/>
       </td>
     </tr>
     <tr>
       <td class="tableheader">Maximum Ping Failures</td>
       <td class="tablevalues">
-        <input class="tablevalues" type="text" name="maxPingFailures:int" 
+        <input class="tablevalues" type="text" name="maxPingFailures" 
             size="10" tal:attributes="value here/maxPingFailures"/>
       </td>
     </tr>
     <tr>
       <td class="tableheader">Modeler Cycle Interval (mins)</td>
       <td class="tablevalues">
-        <input class="tablevalues" type="text" name="modelerCycleInterval:int" 
+        <input class="tablevalues" type="text" name="modelerCycleInterval" 
             size="10" tal:attributes="value here/modelerCycleInterval"/>
       </td>
     </tr>

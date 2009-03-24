@@ -37,7 +37,7 @@
                     popts python:here.zenPropertyOptions(prop);">
             <span tal:condition="python: ptype=='boolean'">
                 <select class="tablevalues" 
-                    tal:attributes="name python:prop+':'+ptype">
+                    tal:attributes="name python:prop">
                     <option tal:repeat="e python:(True,False)" tal:content="e"
                     tal:attributes="value e; selected python:e==pvalue"/>
                 </select>
@@ -51,7 +51,7 @@
 		</tal:block>
 		<!-- =========== swoopy sortable selector ============ -->
 		<tal:block tal:condition="python:not msie and popts"
-			   tal:define="propName python:prop+':'+ptype;
+			   tal:define="propName python:prop;
                                        ta python:'ta_' + prop;
 				       ul python:'ul_' + prop;">
 		<a tal:attributes="href string:${request/URL1}/zSortableProperty?prop=${prop}">
@@ -62,7 +62,7 @@
 	    </span>
             <span tal:condition="python: prop=='zEventSeverity'">
             <select class="tablevalues" 
-                tal:attributes="name python:prop+':'+ptype">
+                tal:attributes="name python:prop">
                 <option tal:repeat="sev here/dmd/getEventSeverities"
                     tal:content="python:sev[0]"
                     tal:attributes="value python:sev[1]; selected python:sev[1]==pvalue" />
@@ -70,7 +70,7 @@
             </span>
             <span tal:condition="python: prop=='zFailSeverity'">
             <select class="tablevalues" 
-                tal:attributes="name python:prop+':'+ptype">
+                tal:attributes="name python:prop">
                 <option tal:repeat="sev here/dmd/ZenEventManager/getSeverities"
                     tal:content="python:sev[0]"
                     tal:attributes="value python:sev[1]; selected python:sev[1]==pvalue" />
@@ -78,7 +78,7 @@
             </span>
             <span tal:condition="python: prop=='zEventAction'">
             <select class="tablevalues" 
-                tal:attributes="name python:prop+':'+ptype">
+                tal:attributes="name python:prop">
                 <option tal:repeat="a here/dmd/ZenEventManager/getEventActions"
                     tal:content="a"
                     tal:attributes="value a; selected python:a==pvalue" />
@@ -86,16 +86,16 @@
             </span>
             <span tal:condition="python: here.zenPropIsPassword(prop)" >
             <input class="tablevalues" size="40" autocomplete="off" type="password"
-                tal:attributes="value pvalue;name python:prop+':'+ptype"/>
+                tal:attributes="value pvalue;name python:prop"/>
             </span>
             <span tal:condition="python: ptype not in 'boolean lines text'.split() and prop not in 'zEventSeverity zEventAction zFailSeverity'.split() and not here.zenPropIsPassword(prop)">
             <input class="tablevalues" 
 	           tal:condition="not:popts"
 	    	   type="text" size="40"
-                tal:attributes="value pvalue;name python:prop+':'+ptype"/>
+                tal:attributes="value pvalue;name python:prop"/>
             <select tal:condition="popts" 
 	            class="tablevalues" 
-	    	    tal:attributes="name python:prop+':'+ptype">
+	    	    tal:attributes="name python:prop">
 		<option tal:repeat="e python:popts" tal:content="e"
 		       tal:attributes="value e; selected python:e==pvalue"/>
             </select>
