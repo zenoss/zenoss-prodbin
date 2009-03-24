@@ -16,25 +16,21 @@
 
 import Migrate
 
-def hasChild( organizer, id ):
-    for child in organizer.children():
-        if child.id == id:
-            result = True
-            break
-    else:
-            result = False
-    return result
-
 class addUnixMonitoring(Migrate.Step):
     version = Migrate.Version(2, 4, 0)
 
     def cutover(self, dmd):
-        if not hasChild(dmd.Devices.Server, 'SSH'):
-            dmd.Devices.Server.manage_addOrganizer('SSH')
-            dmd.Devices.Server.SSH.zSnmpMonitorIgnore = True
-            dmd.Devices.Server.SSH.zCollectorPlugins = []
-            dmd.Devices.Server.SSH.manage_addRRDTemplate('Device')
-        if not hasChild(dmd.Devices.Server.SSH, 'Linux'):
-            dmd.Devices.Server.SSH.manage_addOrganizer('Linux')
+        server = dmd.findChild('Devices/Server')
+        sshId = 'SSH'
+        if not sshId in server.childIds():
+            server.manage_addOrganizer(sshId)
+            ssh = server.findChild(sshId)
+            ssh.zSnmpMonitorIgnore = True
+            ssh.SSH.zCollectorPlugins = []
+            ssh.SSH.manage_addRRDTemplate('Device')
+        ssh = server.findChild(sshId)
+        linuxId = 'Linux'
+        if not linuxId in ssh.childIds():
+            server.SSH.manage_addOrganizer(linuxId)
 
 addUnixMonitoring()

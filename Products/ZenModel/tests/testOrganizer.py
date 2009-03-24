@@ -66,8 +66,18 @@ class TestOrganizer(ZenModelBaseTest):
         self.assert_(foo not in org.children())
         org.manage_deleteOrganizers(['/test','/number'])
         self.assert_(org.children() == [])
-
-
+        
+    def testGetOrganizer(self):
+        """
+        Tests to make sure that getOrganizer uses acquisition. Sets up org/foo
+        and org/quux organizers and asks for org/foo/quux.
+        """
+        org = self.create(self.dmd, Organizer, "org")
+        org.dmdRootName = "org"
+        foo = org.createOrganizer("/foo")
+        quux = org.createOrganizer("/quux")
+        self.assertEqual(quux, org.getOrganizer("/foo/quux"))
+        
 def test_suite():
     from unittest import TestSuite, makeSuite
     suite = TestSuite()

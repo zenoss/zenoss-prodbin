@@ -365,3 +365,17 @@ class ZenModelRM(ZenModelBase, RelationshipManager, Historical, ZenPacker):
                 self.reindex_all(item)
         return 'done!'
 
+    def findChild(self, path):
+        """
+        Find child using the ids found in path. Path separator is '/'.  This
+        is similar to using attributes, but doesn't use acquisition.  For
+        example, if 'Devices/Server/Linux' exists, but 
+        'Devices/Server/SSH/Linux' does not, then the two methods will behave
+        differently.  dmd.Devices.Server.SSH.Linux will return 
+        'Devices/Server/Linux', whereas this method will throw an exception.
+        """
+        child = self
+        for id in path.split('/'):
+            child = dict(child.objectItems())[id]
+        return child
+    
