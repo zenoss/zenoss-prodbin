@@ -290,15 +290,11 @@ class ZenDisc(ZenModeler):
             yield self.config().callRemote('getSnmpConfig', devicePath)
             communities, port, version, timeout, retries = driver.next()
 
-            versions = ("v2c", "v1")
-            if '1' in version:
-                versions = list(versions)
-                versions.reverse()
             oid = ".1.3.6.1.2.1.1.5.0"
             goodcommunity = ""
             goodversion = ""
             devname = ""
-            for version in versions:
+            for version in ("v2c", "v1"):
                 for community in communities:
                     proxy = AgentProxy(ip,
                                        port,
