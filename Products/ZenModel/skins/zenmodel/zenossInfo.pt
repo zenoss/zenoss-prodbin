@@ -45,9 +45,13 @@
                 href string:${url}/viewDaemonConfig?daemon=${daemon/name}"
                 style="margin-right: 2em;">
                 view config</a> 
-            <a tal:attributes="
-            href string:${url}/editDaemonConfig?daemon=${daemon/name}">
+                <a tal:condition="python:daemon['name'] in [ 'zeoctl', 'zopectl' ]" tal:attributes="
+                href string:${url}/editDaemonConfig?daemon=${daemon/name}">
                 edit config</a>
+
+                <a tal:condition="python:not daemon['name'] in [ 'zeoctl', 'zopectl' ]" tal:attributes="
+                href string:${url}/showDaemonXMLConfig?daemon=${daemon/name}">
+                    edit config</a>
         </td>
         <td class="tablevalues" tal:define="color python:test(
             daemon['color']=='#0F0', 'green', 'red')"
