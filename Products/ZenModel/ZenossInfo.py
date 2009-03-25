@@ -654,7 +654,7 @@ class ZenossInfo(ZenModelItem, SimpleItem):
 
         except:
             info = traceback.format_exc()
-            msg = "Unable to merge XML defaults with config file"
+            msg = "Unable to merge XML defaults with config file" \
                       " %s because %s" % (configfile, info)
             log.error(msg)
             messaging.IMessageSender(self).sendToBrowser(
