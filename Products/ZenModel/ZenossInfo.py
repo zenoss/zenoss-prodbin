@@ -1,7 +1,7 @@
 ###########################################################################
 #
 # This program is part of Zenoss Core, an open source monitoring platform.
-# Copyright (C) 2007, Zenoss Inc.
+# Copyright (C) 2007, 2009 Zenoss Inc.
 #
 # This program is free software; you can redistribute it and/or modify it
 # under the terms of the GNU General Public License version 2 as published by
@@ -12,8 +12,14 @@
 ###########################################################################
 
 import os
+import os.path
 import sys
 import re
+from urllib import unquote
+from subprocess import Popen, PIPE, call
+from xml.dom.minidom import parse
+import shutil
+import traceback
 import logging
 log = logging.getLogger("zen.ZenossInfo")
 
@@ -25,6 +31,7 @@ from Products.ZenModel.ZenModelItem import ZenModelItem
 from Products.ZenUtils import Time
 from Products.ZenUtils.Version import *
 from Products.ZenUtils.Utils import zenPath, binPath
+from Products.ZenWidgets import messaging
 
 from Products.ZenEvents.UpdateCheck import UpdateCheck, parseVersion
 
@@ -229,7 +236,7 @@ class ZenossInfo(ZenModelItem, SimpleItem):
         major, minor, micro, status, release = version.getZopeVersion()
         return Version(name, major, minor, micro)
 
-    
+
     def getZenossRevision(self):
         """
         Determine the Zenoss version number
@@ -267,7 +274,7 @@ class ZenossInfo(ZenModelItem, SimpleItem):
         software.
         """
         versions = (
-        {'header': 'Zenoss', 'data': self.getZenossVersion().full(), 
+        {'header': 'Zenoss', 'data': self.getZenossVersion().full(),
             'href': "http://www.zenoss.com" },
         {'header': 'OS', 'data': self.getOSVersion().full(),
             'href': "http://www.tldp.org" },
@@ -493,7 +500,7 @@ class ZenossInfo(ZenModelItem, SimpleItem):
            return fh.read()
        finally:
            fh.close()
-        
+
     def getConfigData(self, daemon):
         """
         Return the contents of the daemon's config file.
@@ -523,6 +530,211 @@ class ZenossInfo(ZenModelItem, SimpleItem):
         finally:
             fh.close()
         return self.callZenScreen(REQUEST, redirect=True)
+
+    def parseconfig(self, filename=""):
+        """
+        From the given configuration file construct a configuration object
+        """
+        configs = {}
+
+        config_file = open(filename)
+        try:
+            for line in config_file:
+                line = line.strip()
+                if line.startswith('#'): continue
+                if line == '': continue
+
+                try:
+                    key, value = line.split(None, 1)
+                except ValueError:
+                    # Ignore errors
+                    continue
+                configs[key] = value
+        finally:
+            config_file.close()
+
+        return configs
+
+    def show_daemon_xml_configs(self, daemon, REQUEST=None ):
+        """
+        Display the daemon configuration options in an XML format.
+        Merges the defaults with options in the config file.
+        """
+        # Sanity check
+        if not daemon or daemon == '':
+            messaging.IMessageSender(self).sendToBrowser(
+                'Internal Error',
+                'Called without a daemon name',
+                priority=messaging.WARNING
+            )
+            return []
+
+        if daemon in [ 'zeoctl', 'zopectl' ]:
+            return []
+
+        xml_default_name = zenPath( "etc", daemon + ".xml" )
+        try:
+            # Always recreate the defaults file in order to avoid caching issues
+            log.debug("Creating XML config file for %s" % daemon)
+            make_xml = ' '.join([daemon, "genxmlconfigs", ">", xml_default_name])
+            proc = Popen(make_xml, shell=True, stdout=PIPE, stderr=PIPE)
+            output, errors = proc.communicate()
+            proc.wait()
+            if proc.returncode != 0:
+                log.error(errors)
+                messaging.IMessageSender(self).sendToBrowser(
+                    'Internal Error', errors,
+                    priority=messaging.CRITICAL
+                )
+                return [["Output", output, errors, make_xml, "string"]]
+        except Exception, ex:
+            msg = "Unable to execute '%s'\noutput='%s'\nerrors='%s'\nex=%s" % (
+                        make_xml, output, errors, ex)
+            log.error(msg)
+            messaging.IMessageSender(self).sendToBrowser(
+                'Internal Error', msg,
+                priority=messaging.CRITICAL
+            )
+            return [["Error in command", output, errors, make_xml, "string"]]
+
+        try:
+            xml_defaults = parse( xml_default_name )
+        except:
+            info = traceback.format_exc()
+            msg = "Unable to parse XML file %s because %s" % (
+                xml_default_name, info)
+            log.error(msg)
+            messaging.IMessageSender(self).sendToBrowser(
+                'Internal Error', msg,
+                priority=messaging.CRITICAL
+            )
+            return [["Error parsing XML file", xml_default_name, "XML", info, "string"]]
+
+        configfile = self._getConfigFilename(daemon)
+        try:
+            # Grab the current configs
+            current_configs = self.parseconfig( configfile )
+        except:
+            info = traceback.format_exc()
+            msg = "Unable to obtain current configuration from %s because %s" % (
+                       configfile, info)
+            log.error(msg)
+            messaging.IMessageSender(self).sendToBrowser(
+                'Internal Error', msg,
+                priority=messaging.CRITICAL
+            )
+            return [["Configuration file issue", configfile, configfile, info, "string"]]
+
+        all_options = {}
+        ignore_options = ['configfile', 'cycle', 'daemon', 'weblog']
+        try:
+            for option in xml_defaults.getElementsByTagName('option'):
+                id = option.attributes['id'].nodeValue
+                if id in ignore_options:
+                    continue
+                try:
+                    help = unquote(option.attributes['help'].nodeValue)
+                except:
+                    help = ''
+
+                try:
+                    default = unquote(option.attributes['default'].nodeValue)
+                except:
+                    default = ''
+                if default == '[]':  # Attempt at a list argument -- ignore
+                    continue
+
+                all_options[id] = [
+                    id,
+                    current_configs.get(id, default),
+                    default,
+                    help,
+                    option.attributes['type'].nodeValue,
+                ]
+
+        except:
+            info = traceback.format_exc()
+            msg = "Unable to merge XML defaults with config file"
+                      " %s because %s" % (configfile, info)
+            log.error(msg)
+            messaging.IMessageSender(self).sendToBrowser(
+                'Internal Error', msg,
+                priority=messaging.CRITICAL
+            )
+            return [["XML file issue", daemon, xml_default_name, info, "string"]]
+
+        return [all_options[name] for name in sorted(all_options.keys())]
+
+
+    def save_daemon_configs( self, REQUEST=None, **kwargs ):
+        """
+        Save the updated daemon configuration to disk.
+        """
+        if not REQUEST:
+            return
+        elif not hasattr(REQUEST, 'form'):
+            return
+
+        # Sanity check
+        formdata = REQUEST.form
+        ignore_names = ['save_daemon_configs', 'zenScreenName', 'daemon_name']
+
+        daemon = formdata.get('daemon_name', '')
+        if not daemon or daemon in ['zeoctl', 'zopectl']:
+            return
+        for item in ignore_names:
+            del formdata[item]
+
+        if not formdata: # If empty, don't overwrite -- assume an error
+            msg = "Received empty form data for %s config -- ignoring" % (
+                      daemon)
+            log.error(msg)
+            messaging.IMessageSender(self).sendToBrowser(
+                'Internal Error', msg,
+                priority=messaging.CRITICAL
+            )
+            return
+
+        configfile = self._getConfigFilename(daemon)
+        config_file_pre = configfile + ".pre"
+        try:
+            config = open( config_file_pre, 'w' )
+            config.write("# Config file written out from GUI\n")
+            for key, value in formdata.items():
+                if value == '':
+                    continue
+                config.write('%s %s\n' % (key, value))
+            config.close()
+        except Exception, ex:
+            msg = "Couldn't write to %s because %s" % (config_file_pre, ex)
+            log.error(msg)
+            messaging.IMessageSender(self).sendToBrowser(
+                'Internal Error', msg,
+                priority=messaging.CRITICAL
+            )
+            config.close()
+            try:
+                os.unlink(config_file_pre)
+            except:
+                pass
+            return
+
+        # If we got here things succeeded
+        config_file_save = configfile + ".save"
+        try:
+            shutil.copy(configfile, config_file_save)
+        except:
+            log.error("Unable to make backup copy of %s" % configfile)
+            # Don't bother telling the user
+        try:
+            shutil.move(config_file_pre, configfile)
+        except:
+            msg = "Unable to save contents to %s" % configfile
+            log.error(msg)
+            messaging.IMessageSender(self).sendToBrowser(
+                'Internal Error', msg,
+                priority=messaging.CRITICAL
+            )
 
 
     def manage_daemonAction(self, REQUEST):
@@ -592,5 +804,5 @@ class ZenossInfo(ZenModelItem, SimpleItem):
             return True
         return False
 
-    
+
 InitializeClass(ZenossInfo)
