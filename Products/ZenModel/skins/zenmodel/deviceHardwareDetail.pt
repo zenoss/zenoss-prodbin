@@ -87,9 +87,9 @@
 <!-- BEGIN TABLE CONTENTS -->
     <tr>
         <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
-                            tableName,'description','Name')"/>
+                            tableName,'id','Name')"/>
         <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
-                            tableName,'snmpindex','Snmp Index')"/>
+                            tableName,'description','Description')"/>
     </tr>
     <tal:block tal:repeat="disk batch">
     <tr tal:define="odd repeat/disk/odd"
@@ -98,7 +98,7 @@
           <tal:block 
            tal:content="structure python:disk.urlLink(text=disk.getId())"/>
       </td>
-      <td class="tablevalues" tal:content="disk/snmpindex"/>
+      <td class="tablevalues" tal:content="disk/description"/>
     </tr>
     </tal:block>
     <tr>
@@ -252,7 +252,7 @@
 
 <tal:block
     metal:define-macro="cardList"
-    tal:define="tableName string:hardDiskList;
+    tal:define="tableName string:cardList;
     objects here/hw/cards/objectValuesAll;
     tabletitle string:Expansion Cards;
     batch python:here.ZenTableManager.getBatch(tableName,objects,
