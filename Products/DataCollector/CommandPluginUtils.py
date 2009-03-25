@@ -40,7 +40,7 @@ def createSoftwareDict(prodKey, vendor, description, installDate):
     constructing an ObjectMap that represents a Software entity.
     """
     return {"id": Utils.prepId(prodKey),
-            "setProductKey": MultiArgs(prodKey, vendor),
+            "setProductKey": MultiArgs(prodKey, Utils.prepId(vendor)),
             "setDescription": description,
             "setInstallDate": formatDate(installDate)}
             
