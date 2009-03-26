@@ -109,9 +109,10 @@ class ModelerService(PerformanceConfig):
             if adm._applyDataMap(device, map):
                 changed = True
 
-        if devclass and devclass != device.getDeviceClassPath():
-            device.moveDevices(devclass,device.id)
-            changed = True
+        # this will be used later on
+        # if devclass and devclass != device.getDeviceClassPath():
+        #     device.moveDevices(devclass,device.id)
+        #     changed = True
             
         if changed:
             device.setLastChange()
