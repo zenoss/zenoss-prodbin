@@ -44,8 +44,8 @@ class TestDevice(ZenModelBaseTest):
     def testManage_createDevice(self):
         dev = manage_createDevice(self.dmd, 'mydevice', '/')
         self.assert_(isinstance(dev, Device))
-        self.assert_(dev.deviceClass() == self.dmd.Devices)
-        self.assert_(dev.getDeviceClassName() == "/")
+        self.assertEqual(dev.deviceClass(), self.dmd.Devices)
+        self.assertEqual(dev.getDeviceClassName(), "/")
 
 
     def testManage_createDeviceDup(self):
@@ -65,14 +65,14 @@ class TestDevice(ZenModelBaseTest):
         self.dev.os.routes._setObject(ipr.id, ipr)
         ipr = self.dev.os.routes._getOb(ipr.id)
         ipr.setTarget("1.2.3.4/24")
-        self.assert_(ipr.getTarget() == "1.2.3.0/24")
+        self.assertEqual(ipr.getTarget(), "1.2.3.0/24")
         net = ipr.target()
         self.assert_(ipr in net.clientroutes())
         
 
     def testSetLocation(self):
         self.dev.setLocation('/Test/Loc')
-        self.assert_(self.dev.getLocationName() == '/Test/Loc')
+        self.assertEqual(self.dev.getLocationName(), '/Test/Loc')
 
     
     def testAddLocation(self):
@@ -82,47 +82,47 @@ class TestDevice(ZenModelBaseTest):
 
     def testSetHWTag(self):
         self.dev.setHWTag('my test asset tag')
-        self.assert_(self.dev.getHWTag() == 'my test asset tag')
+        self.assertEqual(self.dev.getHWTag(), 'my test asset tag')
 
 
     def testSetHWSerialNumber(self):
         self.dev.setHWSerialNumber('testSWKey')
-        self.assert_(self.dev.getHWSerialNumber() == 'testSWKey')
+        self.assertEqual(self.dev.getHWSerialNumber(), 'testSWKey')
     
 
     def testSetOSProductKey(self):
         unicodeificated = 'ab\xefcd'.decode('latin1')
         self.dev.setOSProductKey(unicodeificated)
-        self.assert_(self.dev.getOSProductKey() == u'ab\xefcd')
+        self.assertEqual(self.dev.getOSProductKey(), u'ab\xefcd')
 
 
     def testSetOSProductKeyViaEditDevice(self):
         self.dev.manage_editDevice(osManufacturer='Apple',
                                    osProductName='Macos 10.4.1')
-        self.assert_(self.dev.getOSProductKey() == 'Darwin 8.1.0')
+        self.assertEqual(self.dev.getOSProductKey(), 'Darwin 8.1.0')
 
 
     def testSetHWProductKey(self):
         self.dev.setHWProductKey('testHWKey')
-        self.assert_(self.dev.getHWProductKey() == 'testHWKey')
+        self.assertEqual(self.dev.getHWProductKey(), 'testHWKey')
 
 
     def testSetHWProductKeyViaEditDevice(self):
         self.dev.manage_editDevice(hwManufacturer='HP',
                                    hwProductName='ProLiant 800')
-        self.assert_(self.dev.getHWProductKey() == 'ProLiant 800')
+        self.assertEqual(self.dev.getHWProductKey(), 'ProLiant 800')
 
 
     def testSetLastChange(self):
         dt = DateTime()
         self.dev.setLastChange(dt)
-        self.assert_(self.dev.getLastChange() == dt)
+        self.assertEqual(self.dev.getLastChange(), dt)
 
 
     def testSetSnmpLastCollection(self):
         dt = DateTime()
         self.dev.setSnmpLastCollection(dt)
-        self.assert_(self.dev.getSnmpLastCollection() == dt)
+        self.assertEqual(self.dev.getSnmpLastCollection(), dt)
 
 
     def testSetHWProduct(self):
@@ -135,12 +135,7 @@ class TestDevice(ZenModelBaseTest):
     def testSetLastPollSnmpUpTime(self):
         dt = DateTime()
         self.dev.setLastPollSnmpUpTime(dt)
-        self.assert_(int(dt) == self.dev.getLastPollSnmpUpTime())
-
-
-#   def testRenameDevice(self):
-#        self.dev.renameDevice('newID')
-#        self.assert_(self.dev.getID() == 'newID')
+        self.assertEqual(int(dt), self.dev.getLastPollSnmpUpTime())
 
 
     def testSetOSProduct(self):
@@ -167,25 +162,17 @@ class TestDevice(ZenModelBaseTest):
         self.assert_('testSWMfr' in self.dev.getDmdRoot("Manufacturers").getManufacturerNames())
 
 
-   #def testGetOsVersion(self):
-   #    self.assert_(self.dev.getOsVersion() == "GET_OS_VERSION_HERE")
-
-
     def testGetOSProductName(self):
         self.dev.manage_editDevice(osManufacturer='Apple',
                                    osProductName='Macos 10.4.1')
-        self.assert_(self.dev.getOSProductName() == "Macos 10.4.1")
+        self.assertEqual(self.dev.getOSProductName(), "Macos 10.4.1")
         
 
     def testSnmpAgeCheck(self):
         self.dev.setSnmpLastCollection()
         time.sleep(0.1)  #because computers are too fast...
-        self.assert_(self.dev.snmpAgeCheck(0) == 1)
-        self.assert_(self.dev.snmpAgeCheck(5) == None)
-
-
-   #def testSetTerminalServer(self):
-   #    self.dev.setTerminalServer('iDontExist')
+        self.assertEqual(self.dev.snmpAgeCheck(0), 1)
+        self.assertEqual(self.dev.snmpAgeCheck(5), None)
 
 
     def testSetGroups(self):
@@ -208,14 +195,14 @@ class TestDevice(ZenModelBaseTest):
 
     def testSetPerformanceMonitor(self):
         self.dev.setPerformanceMonitor('perfMon')
-        self.assert_(self.dev.getPerformanceServerName() == 'perfMon')
+        self.assertEqual(self.dev.getPerformanceServerName(), 'perfMon')
         self.dev.setPerformanceMonitor('perfMon', 'nextMon')
-        self.assert_(self.dev.getPerformanceServerName() == 'nextMon')
+        self.assertEqual(self.dev.getPerformanceServerName(), 'nextMon')
 
 
     def testSetProdState(self):
         self.dev.setProdState(500)
-        self.assert_(self.dev.getProductionStateString() == 'Pre-Production')
+        self.assertEqual(self.dev.getProductionStateString(), 'Pre-Production')
 
 
     def testMonitorDevice(self):
@@ -234,37 +221,37 @@ class TestDevice(ZenModelBaseTest):
 
     def testSetManageIp(self):
         self.dev.setManageIp('1.2.3.4')
-        self.assert_(self.dev.getManageIp() == '1.2.3.4')
+        self.assertEqual(self.dev.getManageIp(), '1.2.3.4')
         d = self.dmd.Devices.createInstance('localhost')
         d.setManageIp()
-        self.assert_(d.getManageIp() == '127.0.0.1')
+        self.assertEqual(d.getManageIp(), '127.0.0.1')
 
 
 
     def testManage_editDevice(self):
         self.dev.manage_editDevice()
 
-        self.assert_(self.dev.hw.tag == '')
-        self.assert_(self.dev.hw.serialNumber == '')
-        self.assert_(self.dev.zSnmpCommunity == self.dmd.Devices.zSnmpCommunity)
-        self.assert_(self.dev.zSnmpPort == 161)
-        self.assert_(self.dev.zSnmpVer == self.dmd.Devices.zSnmpVer)
-        self.assert_(self.dev.rackSlot == 0)
-        self.assert_(self.dev.productionState == 1000)
-        self.assert_(self.dev.comments == "")
-        self.assert_(self.dev.getHWManufacturerName() == "")
-        self.assert_(self.dev.getHWProductName() == "")
-        self.assert_(self.dev.getOSManufacturerName() == "")
-        self.assert_(self.dev.getOSProductName() == "")
-        self.assert_(self.dev.getLocationLink() == "None")
-        self.assert_(self.dev.getLocationName() == "")
-        self.assert_(self.dev.getDeviceGroupNames() == [])
-        self.assert_(self.dev.getSystemNames() == [])
-        self.assert_(self.dev.getPerformanceServerName() == "localhost")
+        self.assertEqual(self.dev.hw.tag, '')
+        self.assertEqual(self.dev.hw.serialNumber, '')
+        self.assertEqual(self.dev.zSnmpCommunity, self.dmd.Devices.zSnmpCommunity)
+        self.assertEqual(self.dev.zSnmpPort, 161)
+        self.assertEqual(self.dev.zSnmpVer, self.dmd.Devices.zSnmpVer)
+        self.assertEqual(self.dev.rackSlot, "")
+        self.assertEqual(self.dev.productionState, 1000)
+        self.assertEqual(self.dev.comments, "")
+        self.assertEqual(self.dev.getHWManufacturerName(), "")
+        self.assertEqual(self.dev.getHWProductName(), "")
+        self.assertEqual(self.dev.getOSManufacturerName(), "")
+        self.assertEqual(self.dev.getOSProductName(), "")
+        self.assertEqual(self.dev.getLocationLink(), "None")
+        self.assertEqual(self.dev.getLocationName(), "")
+        self.assertEqual(self.dev.getDeviceGroupNames(), [])
+        self.assertEqual(self.dev.getSystemNames(), [])
+        self.assertEqual(self.dev.getPerformanceServerName(), "localhost")
 
         self.dev.manage_editDevice(tag='tag', serialNumber='SN123',
                         zSnmpCommunity='theHood', zSnmpPort=121, zSnmpVer='v2',
-                        rackSlot=1, productionState=1000,
+                        rackSlot='1', productionState=1000,
                         comments="cross your fingers", hwManufacturer="HP",
                         hwProductName="hwProd", osManufacturer="Apple",
                         osProductName="osProd", locationPath='/test/loc',
@@ -272,25 +259,25 @@ class TestDevice(ZenModelBaseTest):
                         systemPaths=['/sys/path1','/sys/path2'],
                         performanceMonitor='perfMon')
                         
-        self.assert_(self.dev.hw.tag == 'tag')
-        self.assert_(self.dev.hw.serialNumber == 'SN123')
-        self.assert_(self.dev.zSnmpCommunity == 'theHood')
-        self.assert_(self.dev.zSnmpPort == 121)
-        self.assert_(self.dev.zSnmpVer == 'v2')
-        self.assert_(self.dev.rackSlot == 1)
-        self.assert_(self.dev.productionState == 1000)
-        self.assert_(self.dev.comments == "cross your fingers")
-        self.assert_(self.dev.getHWManufacturerName() == "HP")
-        self.assert_(self.dev.getHWProductName() == "hwProd")
-        self.assert_(self.dev.getOSManufacturerName() == "Apple")
-        self.assert_(self.dev.getOSProductName() == "osProd")
-        self.assert_(self.dev.getLocationLink() == "<a href='/zport/dmd/Locations/test/loc'>/test/loc</a>")
-        self.assert_(self.dev.getLocationName() == '/test/loc')
+        self.assertEqual(self.dev.hw.tag, 'tag')
+        self.assertEqual(self.dev.hw.serialNumber, 'SN123')
+        self.assertEqual(self.dev.zSnmpCommunity, 'theHood')
+        self.assertEqual(self.dev.zSnmpPort, 121)
+        self.assertEqual(self.dev.zSnmpVer, 'v2')
+        self.assertEqual(self.dev.rackSlot, '1')
+        self.assertEqual(self.dev.productionState, 1000)
+        self.assertEqual(self.dev.comments, "cross your fingers")
+        self.assertEqual(self.dev.getHWManufacturerName(), "HP")
+        self.assertEqual(self.dev.getHWProductName(), "hwProd")
+        self.assertEqual(self.dev.getOSManufacturerName(), "Apple")
+        self.assertEqual(self.dev.getOSProductName(), "osProd")
+        self.assertEqual(self.dev.getLocationLink(), "<a href='/zport/dmd/Locations/test/loc'>/test/loc</a>")
+        self.assertEqual(self.dev.getLocationName(), '/test/loc')
         self.assert_('/group/path1' in self.dev.getDeviceGroupNames())
         self.assert_('/group/path2' in self.dev.getDeviceGroupNames())
         self.assert_('/sys/path1' in self.dev.getSystemNames())
         self.assert_('/sys/path2' in self.dev.getSystemNames())
-        self.assert_(self.dev.getPerformanceServerName() == "perfMon")
+        self.assertEqual(self.dev.getPerformanceServerName(), "perfMon")
 
     def test_setZProperties(self):
         decoding = self.dmd.Devices.zCollectorDecoding

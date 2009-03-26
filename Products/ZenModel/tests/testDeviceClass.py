@@ -38,18 +38,18 @@ class TestDeviceClass(ZenModelBaseTest):
     def testCreateInstanceDevice(self):
         devices = self.dmd.Devices
         self.assert_(isinstance(self.dev, Device))
-        self.assert_(self.dev.deviceClass() == devices)
-        self.assert_(self.dev.getDeviceClassName() == "/")
-        self.assert_(devices.countDevices() == 3)
+        self.assertEqual(self.dev.deviceClass(), devices)
+        self.assertEqual(self.dev.getDeviceClassName(), "/")
+        self.assertEqual(devices.countDevices(), 3)
         self.assert_(self.dev in devices.getSubDevices())
-        self.assert_(devices.getPythonDeviceClass() == Device)
+        self.assertEqual(devices.getPythonDeviceClass(), Device)
 
     
     def testCreateInstanceDeviceAndIndex(self):
         devices = self.dmd.Devices
         self.assert_(isinstance(self.dev, Device))
-        self.assert_(self.dev.deviceClass() == devices)
-        self.assert_(self.dev.getDeviceClassName() == "/")
+        self.assertEqual(self.dev.deviceClass(), devices)
+        self.assertEqual(self.dev.getDeviceClassName(), "/")
 
 
     def testSearchDevicesOneDevice(self):
@@ -60,12 +60,12 @@ class TestDeviceClass(ZenModelBaseTest):
     
     def testSearchDevicesNoDevice(self):
         devices = self.dmd.Devices
-        self.assert_(len(devices.searchDevices("adsf"))==0)
+        self.assertEqual(len(devices.searchDevices("adsf")), 0)
 
     
     def testSearchDevicesMultipleDevices(self):
         devices = self.dmd.Devices
-        self.assert_(len(devices.searchDevices("testdev*"))==2)
+        self.assertEqual(len(devices.searchDevices("testdev*")), 2)
         
     def testFindExact(self):
         
@@ -73,10 +73,10 @@ class TestDeviceClass(ZenModelBaseTest):
         devices = self.dmd.Devices
         devices.createInstance('TESTDEV')
         #inexact        
-        self.assert_(len(devices._findDevice(id)) == 2)
+        self.assertEqual(len(devices._findDevice(id)), 2)
         #exact
         dev = devices.findDeviceExact(id)
-        self.assert_( dev.id == id )
+        self.assertEqual( dev.id, id )
         
         self.assert_( not devices.findDeviceExact(None) )
         self.assert_( not devices.findDeviceExact('badid') )
@@ -86,9 +86,6 @@ class TestDeviceClass(ZenModelBaseTest):
         self.assert_("/NetworkDevice/Router" in dcnames)
         self.assert_("/NetworkDevice/Router/Firewall" in dcnames)
         self.assert_("/NetworkDevice/Router/RSM" in dcnames)
-
-        # XXX should this be in here or not?
-        #self.assert_("/Server" not in dcnames)
 
         self.routers.moveDevices('/','testrouter')
         self.assert_(self.dev3 in self.dmd.Devices.getSubDevices())
@@ -101,7 +98,7 @@ class TestDeviceClass(ZenModelBaseTest):
         custdev = self.dmd.Devices.createOrganizer("/CustDev")
         custdev._setProperty('zPythonClass',
                              'Products.ZenModel.tests.CustDevice')
-        self.assert_(CustDevice == 
+        self.assertEqual(CustDevice, 
                      self.dmd.Devices.CustDev.getPythonDeviceClass())
 
     def testMoveDevices(self):
@@ -127,10 +124,10 @@ class TestDeviceClass(ZenModelBaseTest):
                              'Products.ZenModel.tests.CustDevice')
         self.dmd.Devices.moveDevices('/CustDev', 'testdev') 
         dev = self.dmd.Devices.findDevice('testdev')
-        self.assert_(dev.getDeviceClassPath() == "/CustDev")
-        self.assert_(dev.rackSlot == 15)
-        self.assert_(dev.__class__ == CustDevice)
-        self.assert_(dev.location() == anna)
+        self.assertEqual(dev.getDeviceClassPath(), "/CustDev")
+        self.assertEqual(dev.rackSlot, '15')
+        self.assertEqual(dev.__class__, CustDevice)
+        self.assertEqual(dev.location(), anna)
         self.assert_(dev in anna.devices())
         self.assert_(group in dev.groups())
 
@@ -146,10 +143,10 @@ class TestDeviceClass(ZenModelBaseTest):
         cdev.rackSlot = 15
         self.dmd.Devices.moveDevices("/", 'cdev')
         dev = self.dmd.Devices.findDevice('cdev')
-        self.assert_(dev.getDeviceClassPath() == "/")
-        self.assert_(dev.rackSlot == 15)
-        self.assert_(dev.__class__ == Device)
-        self.assert_(dev.location() == anna)
+        self.assertEqual(dev.getDeviceClassPath(), "/")
+        self.assertEqual(dev.rackSlot, '15')
+        self.assertEqual(dev.__class__, Device)
+        self.assertEqual(dev.location(), anna)
         self.assert_(group in dev.groups())
      
     def testOrganizer(self):
@@ -157,10 +154,10 @@ class TestDeviceClass(ZenModelBaseTest):
         dc = devices.createOrganizer('/Test')
         self.assert_(dc in devices.children())
         self.assert_(dc in devices.getSubOrganizers())
-        self.assert_(devices.countChildren() == 6)
+        self.assertEqual(devices.countChildren(), 6)
         self.assert_('Test' in devices.childIds())
         self.assert_('/Test' in devices.getOrganizerNames())
-        self.assert_(devices.getOrganizer('/Test') == dc)
+        self.assertEqual(devices.getOrganizer('/Test'), dc)
         layer = devices.createOrganizer('/Layer')
         devices.moveOrganizer('Layer',['Test'])
         self.assert_('/Layer' in devices.getOrganizerNames())
@@ -174,7 +171,7 @@ class TestDeviceClass(ZenModelBaseTest):
     def testDeviceOrganizer(self):
         devices = self.dmd.Devices
         dc = devices.createOrganizer('/Test')
-        self.assert_(devices.countDevices() == 3)
+        self.assertEqual(devices.countDevices(), 3)
         self.assert_(self.dev in devices.getSubDevices())
         
 
