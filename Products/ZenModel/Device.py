@@ -211,6 +211,7 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
 
     manageIp = ""
     productionState = 1000
+    preMWProductionState = productionState
     snmpAgent = ""
     snmpDescr = ""
     snmpOid = ""
@@ -228,6 +229,8 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
     _properties = ManagedEntity._properties + (
         {'id':'manageIp', 'type':'string', 'mode':'w'},
         {'id':'productionState', 'type':'keyedselection', 'mode':'w',
+           'select_variable':'getProdStateConversions','setter':'setProdState'},
+        {'id':'preMWProductionState', 'type':'keyedselection', 'mode':'w',
            'select_variable':'getProdStateConversions','setter':'setProdState'},
         {'id':'snmpAgent', 'type':'string', 'mode':'w'},
         {'id':'snmpDescr', 'type':'string', 'mode':''},
@@ -1142,15 +1145,23 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
         return self.convertStatus(self.getSnmpStatus())
 
     security.declareProtected(ZEN_CHANGE_DEVICE, 'setProdState')
-    def setProdState(self, state, REQUEST=None):
+    def setProdState(self, state, maintWindowChange=False, REQUEST=None):
         """
         Set the device's production state.
         
+        @parameter state: new production state
         @type state: int
+        @parameter maintWindowChange: are we resetting state from inside a MW?
+        @type maintWindowChange: boolean
         @permission: ZEN_CHANGE_DEVICE
         """
         self.productionState = int(state)
         self.primaryAq().index_object()
+        if not maintWindowChange:
+            # Saves our production state for use at the end of the
+            # maintenance window.
+            self.preMWProductionState = self.productionState
+
         try:
             zem = self.dmd.ZenEventManager
             conn = zem.connect()
@@ -1161,11 +1172,13 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
                     self.productionState, self.id))
             finally: zem.close(conn)
         except OperationalError:
-            log.exception("failed to update events with new prodState")
+            msg = "Failed to update events for %s with new prodState %s" % (
+                        self.id, state)
+            log.exception(msg)
             if REQUEST:
                 IMessageSender(self).sendToBrowser(
                     "Update Failed",
-                    "Failed to update events with new production state.",
+                    msg,
                     priority=messaging.WARNING
                 )
                 return self.callZenScreen(REQUEST)

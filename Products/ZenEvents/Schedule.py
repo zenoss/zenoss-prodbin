@@ -23,6 +23,9 @@ import logging
 import transaction
 from twisted.internet import reactor
 
+from Products.ZenEvents.ZenEventClasses import Status_Update
+import Event
+
 class Schedule:
 
     def __init__(self, options, dmd):
@@ -124,9 +127,28 @@ class Schedule:
         for next, mw in work:
             if next <= now:
                 how = {True:'stopping', False:'starting'}[bool(mw.started)]
-                self.log.debug("Maintenance window "
-                               "%s %s for %s",
-                               how, mw.getId(), mw.target().getId())
+                severity = {True:Event.Clear, False:Event.Info}[bool(mw.started)]
+                # Note: since the MWs always return devices back to their original
+                #       prod state, and there may be many devices, just provide an
+                #       'unknown' production state for stopping
+                prodState = {True:-99, False:mw.startProductionState}[bool(mw.started)]
+                mwId = mw.getId()
+                devices = mw.target().getId()
+                msg = "Maintenance window %s %s for %s" % (how, mwId, devices)
+                self.log.debug(msg)
+                dedupid = '|'.join(["zenactions",self.monitor,mwId,devices])
+                self.sendEvent(Event.Event(
+                    component="zenactions",
+                    severity=severity,
+                    dedupid=dedupid,
+                    eventClass=Status_Update,
+                    eventClassKey="mw_change",
+                    summary=msg,
+                    maintenance_window=mwId,
+                    maintenance_devices=devices,
+                    device=self.monitor,
+                    prodState=prodState,
+                ))
                 self.executeMaintenanceWindow(mw, next)
             else:
                 break

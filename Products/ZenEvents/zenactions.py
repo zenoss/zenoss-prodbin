@@ -153,6 +153,9 @@ class ZenActions(ZCmdBase):
     def __init__(self):
         ZCmdBase.__init__(self)
         self.schedule = Schedule(self.options, self.dmd)
+        self.schedule.sendEvent = self.dmd.ZenEventManager.sendEvent
+        self.schedule.monitor = self.options.monitor
+
         self.actions = []
         self.loadActionRules()
         self.updateCheck = UpdateCheck()
@@ -502,7 +505,8 @@ class ZenActions(ZCmdBase):
         except:
             self.log.exception("unexpected exception")
         reactor.callLater(self.options.cycletime, self.runCycle)
-
+        
+    
     def run(self):
         if not self.options.cycle:
             self.sendHeartbeat()
@@ -511,6 +515,7 @@ class ZenActions(ZCmdBase):
         self.schedule.start()
         self.runCycle()
         reactor.run()
+
 
     def sendEvent(self, evt):
         """Send event to the system.

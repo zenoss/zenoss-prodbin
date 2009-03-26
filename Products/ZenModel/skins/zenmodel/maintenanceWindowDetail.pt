@@ -118,18 +118,7 @@
     </tr>
     <tr>
 	<td class="tableheader" align="left">Stop Production State</td>
-	<td class="tablevalues" align="left">
-	    <select class="tablevalues" name="stopProductionState:int"
-		    tal:define="
-		    pstates here/getProdStateConversions;
-		    curstate here/stopProductionState | python:-99">
-        <option value="-99">Original</option>
-		<option tal:repeat="pstate pstates" 
-		    tal:attributes="value python:pstate[1]; 
-			selected python:curstate == pstate[1]"
-		    tal:content="python:pstate[0]">Production</option>
-	    </select>
-	</td>
+        <td class="tablevalues" align="left">Original</td>
     </tr>
     <tr>
         <td align="left"  class="tableheader" colspan=2>

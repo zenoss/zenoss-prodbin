@@ -10,11 +10,16 @@
 # For complete information please visit: http://www.zenoss.com/oss/
 #
 ###########################################################################
-"""
-MaintenanceWindowable.py
+__doc__ = """MaintenanceWindowable
 
-Created by Marc Irlandez on 2007-04-05.
+Management functions for devices and device classes on their
+maintenance windows.
+
 """
+
+import logging
+log = logging.getLogger("zen.MaintenanceWindowable")
+
 from AccessControl import ClassSecurityInfo
 from Globals import InitializeClass
 from ZenossSecurity import *
@@ -31,8 +36,8 @@ class MaintenanceWindowable:
     def getMaintenanceWindows(self):
         "Get the Maintenance Windows on this device"
         return self.maintenanceWindows.objectValuesAll()
-
-    security.declareProtected(ZEN_MAINTENANCE_WINDOW_EDIT,
+    
+    security.declareProtected(ZEN_MAINTENANCE_WINDOW_EDIT, 
         'manage_addMaintenanceWindow')
     def manage_addMaintenanceWindow(self, newId=None, REQUEST=None):
         "Add a Maintenance Window to this device"
@@ -62,6 +67,19 @@ class MaintenanceWindowable:
         if type(maintenanceIds) in types.StringTypes:
             maintenanceIds = [maintenanceIds]
         for id in maintenanceIds:
+            mw = getattr(self.maintenanceWindows, id)
+            if mw.started:
+                if REQUEST:
+                    msg = "Closing and removing maintenance window " \
+                          "%s which affects %s" % (
+                         mw.displayName(), self.id)
+                    log.info(msg)
+                    messaging.IMessageSender(self).sendToBrowser(
+                        'Window Stopping',
+                        msg,
+                    )
+                mw.end()
+
             self.maintenanceWindows._delObject(id)
         if hasattr(self, 'setLastChange'):
             # Only Device and DeviceClass have setLastChange for now.
