@@ -103,7 +103,7 @@ def checkDeviceExists(context, deviceName, ip, performanceMonitor):
 def manage_createDevice(context, deviceName, devicePath="/Discovered",
             tag="", serialNumber="",
             zSnmpCommunity="", zSnmpPort=161, zSnmpVer="",
-            rackSlot=0, productionState=1000, comments="",
+            rackSlot="", productionState=1000, comments="",
             hwManufacturer="", hwProductName="",
             osManufacturer="", osProductName="",
             locationPath="", groupPaths=[], systemPaths=[],
@@ -218,7 +218,7 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
     snmpContact = ""
     snmpSysName = ""
     snmpLocation = ""
-    rackSlot = 0
+    rackSlot = ""
     comments = ""
     sysedgeLicenseMode = ""
     priority = 3
@@ -240,7 +240,7 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
         {'id':'snmpLocation', 'type':'string', 'mode':''},
         {'id':'snmpLastCollection', 'type':'date', 'mode':''},
         {'id':'snmpAgent', 'type':'string', 'mode':''},
-        {'id':'rackSlot', 'type':'int', 'mode':'w'},
+        {'id':'rackSlot', 'type':'string', 'mode':'w'},
         {'id':'comments', 'type':'text', 'mode':'w'},
         {'id':'sysedgeLicenseMode', 'type':'string', 'mode':''},
         {'id':'priority', 'type':'int', 'mode':'w'},
@@ -998,7 +998,7 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
     def manage_editDevice(self,
                 tag="", serialNumber="",
                 zSnmpCommunity="", zSnmpPort=161, zSnmpVer="",
-                rackSlot=0, productionState=1000, comments="",
+                rackSlot="", productionState=1000, comments="",
                 hwManufacturer="", hwProductName="",
                 osManufacturer="", osProductName="",
                 locationPath="", groupPaths=[], systemPaths=[],

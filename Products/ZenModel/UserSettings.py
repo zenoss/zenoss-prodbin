@@ -721,7 +721,7 @@ class UserSettings(ZenModelRM):
         # update Zenoss user folder settings
         if REQUEST:
             kw = REQUEST.form
-        self.updatePropsFromDict(kw)
+        self.manage_changeProperties(**kw)
 
         # update password info
         userManager = self.acl_users.userManager

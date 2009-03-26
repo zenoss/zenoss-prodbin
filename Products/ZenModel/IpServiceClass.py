@@ -90,7 +90,7 @@ class IpServiceClass(ServiceClass):
     
     def __init__(self, id, serviceKeys=(), description="", port=0):
         ServiceClass.__init__(self, id, serviceKeys, description)
-        self.port = port
+        self._updateProperty('port', port)
 
 
     security.declareProtected('Manage DMD', 'manage_editServiceClass')

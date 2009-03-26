@@ -213,7 +213,7 @@ class IpService(Service):
             self.ipaddresses = ipaddresses
             self.description = description
             self.protocol = protocol
-            self.port = int(port)
+            self._updateProperty('port', port)
             if protocol != self.protocol or port != self.port:
                 self.setServiceClass({'protocol':protocol, 'port':int(port)})
         

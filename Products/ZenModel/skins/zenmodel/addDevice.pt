@@ -95,7 +95,7 @@
             <td class="tableheader" align="left">Snmp Port</td>
             <td class="tablevalues" align="left">
                 <input class="tablevalues" type="text" 
-                    size="25" name="zSnmpPort:int" 
+                    size="25" name="zSnmpPort" 
                     tal:attributes="onkeypress submitViaEnter;
                         value request/zSnmpPort | 
                         device/zSnmpPort | python:161"/>
@@ -153,7 +153,7 @@
              <td class="tableheader" align="left">Rack Slot</td>
             <td class="tablevalues" align="left" colspan="3">
                 <input class="tablevalues" type="text" 
-                    size="25" name="rackSlot:int"
+                    size="25" name="rackSlot"
                     tal:attributes="onkeypress submitViaEnter;
                         value device/rackSlot | 
                         request/rackSlot | python:0"/>

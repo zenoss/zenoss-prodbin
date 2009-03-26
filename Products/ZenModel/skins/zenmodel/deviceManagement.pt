@@ -74,7 +74,7 @@ Optional titlebar stuff
     </select>
     </td>
     <td class="tablevalues">
-    <input class="tablevalues" type='text' name="level:int" size="2"
+    <input class="tablevalues" type='text' name="level" size="2"
     onkeypress="return submitViaEnter(event,'manage_editAdministrativeRoles');"
         tal:attributes="value mw/level">
     </td>    

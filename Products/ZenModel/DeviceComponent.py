@@ -161,7 +161,7 @@ class DeviceComponent(Lockable):
             self._setProperty(prop, value, type=type)
             msg = "Set local %s" % prop
         elif locval is not None and locval != value:
-            setattr(self, prop, value)
+            self._updateProperty(prop, value)
             msg = "Update local %s" % prop
         return msg
 
