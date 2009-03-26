@@ -102,7 +102,7 @@ Device Path is the path to the device in the DeviceClass tree (something like /S
             Snmp Port
         </td>
         <td class="tablevalues" align="left" >
-            <input type="text" name="snmpPort:int" 
+            <input type="text" name="snmpPort" 
             value='161' size="4"/>
         </td>
     </tr>

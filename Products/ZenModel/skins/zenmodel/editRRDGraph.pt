@@ -49,7 +49,7 @@
     <tr>
         <td class="tableheader">Height</td>
         <td class="tablevalues" tal:condition="here/isManager">
-        <input class="tablevalues" type="text" name="height:int" size="30"
+        <input class="tablevalues" type="text" name="height" size="30"
             tal:attributes="value here/height" />
         </td>
       <td class="tablevalues" tal:condition="not:here/isManager" 
@@ -58,7 +58,7 @@
     <tr>
         <td class="tableheader">Width</td>
         <td class="tablevalues" tal:condition="here/isManager">
-        <input class="tablevalues" type="text" name="width:int" size="30"
+        <input class="tablevalues" type="text" name="width" size="30"
             tal:attributes="value here/width" />
         </td>
       <td class="tablevalues" tal:condition="not:here/isManager" 
@@ -74,7 +74,7 @@
     <tr>
         <td class="tableheader">Line Width</td>
         <td class="tablevalues" tal:condition="here/isManager">
-        <input class="tablevalues" type="text" name="linewidth:int" size="30"
+        <input class="tablevalues" type="text" name="linewidth" size="30"
             tal:attributes="value here/linewidth" />
         </td>
         <td class="tablevalues" tal:condition="not:here/isManager" 
@@ -116,7 +116,7 @@
     <tr>
         <td class="tableheader">Min Y</td>
         <td class="tablevalues" tal:condition="here/isManager">
-        <input class="tablevalues" type="text" name="miny:int" size="30"
+        <input class="tablevalues" type="text" name="miny" size="30"
             tal:attributes="value here/miny" />
         </td>
       <td class="tablevalues" tal:condition="not:here/isManager" 
@@ -125,7 +125,7 @@
     <tr>
         <td class="tableheader">Max Y</td>
         <td class="tablevalues" tal:condition="here/isManager">
-        <input class="tablevalues" type="text" name="maxy:int" size="30"
+        <input class="tablevalues" type="text" name="maxy" size="30"
             tal:attributes="value here/maxy" />
         </td>
       <td class="tablevalues" tal:condition="not:here/isManager" 
