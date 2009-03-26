@@ -305,11 +305,24 @@ class TestDevice(ZenModelBaseTest):
         self.assertEqual(device.isLocal('zCommandUsername'), True)
         self.assertEqual(device.isLocal('zCollectorDecoding'), False)
 
+class GetSnmpConnInfoTest(ZenModelBaseTest):
+    
+    def runTest(self):
+        from Products.ZenModel.Device import manage_addDevice
+        from Products.ZenHub.services.PerformanceConfig import ATTRIBUTES
+        devices = self.dmd.findChild('Devices')
+        manage_addDevice(devices, 'test')
+        device = devices.findChild('test')
+        info = device.getSnmpConnInfo()
+        for attribute in ATTRIBUTES:
+            self.assertEqual(getattr(device, attribute), 
+                             getattr(info, attribute))
 
 def test_suite():
     from unittest import TestSuite, makeSuite
     suite = TestSuite()
     suite.addTest(makeSuite(TestDevice))
+    suite.addTest(makeSuite(GetSnmpConnInfoTest))
     return suite
 
 if __name__=="__main__":

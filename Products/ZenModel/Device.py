@@ -601,13 +601,6 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
         Returns an object containing SNMP Connection Info
         
         @rtype: SnmpConnInfo object
-
-        >>> from Products.ZenModel.Device import manage_addDevice
-        >>> manage_addDevice(devices, 'test')
-        >>> lst = devices.test.getSnmpConnInfo().__dict__.items()
-        >>> lst.sort()
-        >>> lst
-        [('id', 'test'), ('manageIp', ''), ('zMaxOIDPerRequest', 40), ('zSnmpAuthPassword', ''), ('zSnmpAuthType', ''), ('zSnmpCommunity', 'public'), ('zSnmpMonitorIgnore', False), ('zSnmpPort', 161), ('zSnmpPrivPassword', ''), ('zSnmpPrivType', ''), ('zSnmpSecurityName', ''), ('zSnmpTimeout', 2.5), ('zSnmpTries', 2), ('zSnmpVer', 'v1')]
         """
         from Products.ZenHub.services.PerformanceConfig import SnmpConnInfo
         return SnmpConnInfo(self)
