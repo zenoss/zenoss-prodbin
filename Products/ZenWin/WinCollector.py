@@ -97,17 +97,18 @@ class WinCollector(PBDaemon):
             self.wmiprobs = [e[0] for e in driver.next()]
             self.log.debug('Wmi Probs %r', self.wmiprobs)
             devices = []
-            for device in self.devices:
-                if not device.plugins:
-                    continue
-                if self.options.device and device.id\
-                     != self.options.device:
-                    continue
-                if device.id in self.wmiprobs:
-                    self.log.debug('WMI problems on %s: skipping'
-                                    % device.id)
-                    continue
-                devices.append(device)
+            if self.devices is not None:
+                for device in self.devices:
+                    if not device.plugins:
+                        continue
+                    if self.options.device and device.id\
+                         != self.options.device:
+                        continue
+                    if device.id in self.wmiprobs:
+                        self.log.debug('WMI problems on %s: skipping'
+                                        % device.id)
+                        continue
+                    devices.append(device)
             yield self.processLoop(devices, cycle)
             driver.next()
             if not self.options.cycle:
