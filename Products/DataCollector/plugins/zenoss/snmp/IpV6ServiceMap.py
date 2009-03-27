@@ -125,6 +125,7 @@ class IpV6ServiceMap(SnmpPlugin):
         getdata, tabledata = results
         tcplisten = tabledata.get("tcplisten")
         udpendpoint = tabledata.get("udpendpoint")
+        if tcplisten is None or udpendpoint is None: return
         rm = self.relMap()
         maxport = getattr(device, 'zIpServiceMapMaxPort', 1024)
         self._reduceByPort(maxport, rm, self._processTcp(tcplisten))
