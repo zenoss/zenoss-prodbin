@@ -15,13 +15,11 @@ import unittest
 import Globals
 import transaction
 
-from Products.ZenUtils.ZCmdBase import ZCmdBase
+from Products.ZenTestCase.BaseTestCase import BaseTestCase
 from Products.ZenEvents.Event import Event
 from Products.ZenEvents.Exceptions import *
 
-zodb = ZCmdBase(noopts=True)
-
-class MySqlEventManagerTest(unittest.TestCase):
+class MySqlEventManagerTest(BaseTestCase):
     """
     To run these tests zport.dmd.ZenEventManager must exist and must be setup
     with a proper config to access the mysql backend.  MySQL must also have
@@ -30,8 +28,7 @@ class MySqlEventManagerTest(unittest.TestCase):
     """
 
     def setUp(self):
-        zodb.getDataRoot()
-        self.dmd = zodb.dmd
+        BaseTestCase.setUp(self)
         self.zem = self.dmd.ZenEventManager
         self.evt = Event()
         self.evt.device = "dev.test.com"
@@ -50,24 +47,23 @@ class MySqlEventManagerTest(unittest.TestCase):
             curs.execute("truncate log")
             curs.execute("truncate history")
         finally: zem.close(conn)
-        zodb.closedb()
-        self.dmd = None
         self.zem = None
+        BaseTestCase.tearDown(self)
 
     
     def testSendEvent(self):
-        self.zem.sendEvent(self.evt) 
+        self.zem.sendEvent(self.evt)
         evts = self.zem.getEventList(where="device='%s'" % self.evt.device)
-        self.assert_(len(evts) == 1)
-        self.assert_(evts[0].summary == self.evt.summary)
+        self.assertEqual(len(evts), 1)
+        self.assertEqual(evts[0].summary, self.evt.summary)
 
 
     def testSendEventDup(self):
         self.zem.sendEvent(self.evt.__dict__)
         self.zem.sendEvent(self.evt.__dict__) 
         evts = self.zem.getEventList(where="device='%s'" % self.evt.device)
-        self.assert_(len(evts) == 1)
-        self.assert_(evts[0].count == 2)
+        self.assertEqual(len(evts), 1)
+        self.assertEqual(evts[0].count, 2)
 
 
     def testEventMissingRequired(self):
@@ -106,14 +102,14 @@ class MySqlEventManagerTest(unittest.TestCase):
         #     the event to the 'history' table
         evid= self.zem.sendEvent(self.evt) 
         evts = self.zem.getEventList(where="device='%s'" % self.evt.device)
-        self.assert_(len(evts) == 1)
-        self.assert_(evts[0].evid == evid )
-        self.assert_(evts[0].summary == self.evt.summary)
+        self.assertEqual(len(evts), 1)
+        self.assertEqual(evts[0].evid, evid )
+        self.assertEqual(evts[0].summary, self.evt.summary)
 
         # Now move the event to history
         self.dmd.ZenEventManager.manage_deleteEvents( evid )
         evts = self.zem.getEventList(where="device='%s'" % self.evt.device)
-        self.assert_(len(evts) == 0)
+        self.assertEqual(len(evts), 0)
 
         self.assertRaises( ZenEventNotFound, self.dmd.ZenEventManager.getEventDetail, evid )
 
@@ -123,7 +119,7 @@ class MySqlEventManagerTest(unittest.TestCase):
             self.fail( "Unable to find evid %s in database after moving to history" % evid )
 
         self.assert_( event is not None )
-        self.assert_(event.evid == evid )
+        self.assertEqual(event.evid, evid )
 
     
 def test_suite():
