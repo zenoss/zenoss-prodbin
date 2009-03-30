@@ -403,7 +403,7 @@ bytes
 False
 </property>
 <property type="boolean" id="base" mode="w" >
-False
+True
 </property>
 <property type="boolean" id="stacked" mode="w" >
 False
