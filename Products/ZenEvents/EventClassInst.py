@@ -86,8 +86,9 @@ class EventClassPropertyMixin(object):
                     eventclass.getPrimaryDmdId())
                 exec(eventclass.transform, variables_and_funcs)
             except Exception, ex:
-                log.error("Error processing transform on Event Class %s (%s)",
-                    eventclass.getPrimaryId(), ex)
+                log.exception(
+                    "Error processing transform on Event Class %s",
+                    eventclass.getPrimaryId())
         return variables_and_funcs['evt']
                  
 
