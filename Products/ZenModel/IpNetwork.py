@@ -606,6 +606,7 @@ class AutoDiscoveryJob(ShellCommandJob):
         cmd.extend(['run', '--now', 
                    '--monitor', 'localhost', 
                    '--deviceclass', '/Discovered',
+                   '--parallel', '8',
                    '--job', self.getUid()
                    ])
         if not self.nets and not self.ranges:
