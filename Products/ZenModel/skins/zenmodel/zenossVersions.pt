@@ -50,14 +50,9 @@
                       onchange="form.submit()"/>
             </td>
         </tr>
-        <tr>
-            <th class="tableheader">Send Anonymous Usage Info with Daily Update Check</th>
-            <td class="tablevalues">
-                <input type="checkbox" name="optInOutMetrics"
-                       tal:attributes="checked here/dmd/reportMetricsOptIn; value here/dmd/reportMetricsOptIn"
-                      onchange="form.submit()"/>
-            </td>
-        </tr>
+        
+        <tal:block metal:use-macro="here/optInMacro/macros/optIn"/>
+        
         <tr>
             <th class="tableheader">Server Key</th>
             <td class="tablevalues">
