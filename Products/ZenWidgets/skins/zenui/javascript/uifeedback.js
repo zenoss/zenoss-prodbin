@@ -181,7 +181,7 @@ Z.Messenger = {
     // Shortcut to send severity CRITICAL messages
     critical: function(message) {
         this.send({
-            title: "Red Alert",
+            title: "Error",
             body: message,
             priority: CRITICAL,
             sticky: true
