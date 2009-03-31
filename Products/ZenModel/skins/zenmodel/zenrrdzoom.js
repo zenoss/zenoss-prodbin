@@ -244,7 +244,7 @@ ZenRRDGraph.prototype = {
     },
 
     setComment : function(comment) {
-        var com_ctr = "\\t\\t\\t\\t to \\t\\t\\t";
+        var com_ctr = "\\t\\t\\t to \\t\\t\\t";
         comment = comment || this.sDate + com_ctr + this.eDate;
         comment = comment.replace(/:/g, '\\:');
         //this.comment = escape("COMMENT:" + comment + "\\c|");
