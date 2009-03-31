@@ -43,6 +43,7 @@ from DateTime import DateTime
 
 from ZODB.POSException import POSError
 
+
 #from Products.SnmpCollector.SnmpCollector import findSnmpCommunity
 from Products.DataCollector.ApplyDataMap import ApplyDataMap
 
@@ -69,6 +70,7 @@ from Products.ZenWidgets import messaging
 from Products.Jobber.status import SUCCESS, FAILURE
 from Products.ZenUtils.Utils import binPath
 from Products.ZenEvents.browser.EventPillsAndSummaries import getEventPillME
+from OFS.CopySupport import CopyError # Yuck, a string exception
 
 
 def getNetworkRoot(context, performanceMonitor):
@@ -1703,19 +1705,25 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
             return
 
         # side effect: self.getId() will return newId after this call
-        parent.manage_renameObject(oldId, newId)
+        try:
+            parent.manage_renameObject(oldId, newId)
+    
+            self.renameDeviceInEvents(oldId, newId)
+            self.renameDeviceInPerformance(oldId, newId)
+            self.setLastChange()
+    
+            if REQUEST: 
+                messaging.IMessageSender(self).sendToBrowser(
+                    'Device Renamed',
+                    "Device %s was renamed to %s." % (oldId, newId)
+                )
+                REQUEST['RESPONSE'].redirect("%s/%s" % (parent.absolute_url(), newId))
 
-        self.renameDeviceInEvents(oldId, newId)
-        self.renameDeviceInPerformance(oldId, newId)
-        self.setLastChange()
-
-        if REQUEST: 
-            messaging.IMessageSender(self).sendToBrowser(
-                'Device Renamed',
-                "Device %s was renamed to %s." % (oldId, newId)
-            )
-            REQUEST['RESPONSE'].redirect("%s/%s" % (parent.absolute_url(), newId))
-
+        except CopyError, e:
+            if REQUEST:
+                messaging.IMessageSender(self).sendToBrowser(
+                    'Device Rename Failed', str(e), messaging.CRITICAL)
+                return self.callZenScreen(REQUEST)
 
     def renameDeviceInEvents(self, old, new):
         """update the device column in the status and history tables for rows 

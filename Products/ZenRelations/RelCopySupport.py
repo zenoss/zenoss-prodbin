@@ -46,11 +46,11 @@ class RelCopyContainer(CopyContainer):
 
     def manage_renameObject(self, id, new_id, REQUEST=None):
         """Rename a particular sub-object"""
-        try: checkValidId(self, new_id)
-        except: raise CopyError, MessageDialog(
-                      title='Invalid Id',
-                      message=sys.exc_info()[1],
-                      action ='manage_main')
+        try: 
+            checkValidId(self, new_id)
+        except: 
+            raise CopyError, sys.exc_info()[1]
+        
         ob=self._getOb(id)
         if ob.wl_isLocked():
             raise ResourceLockedError(
@@ -58,11 +58,11 @@ class RelCopyContainer(CopyContainer):
         if not ob.cb_isMoveable():
             raise CopyError, eNotSupported % escape(id)
         self._verifyObjectPaste(ob)
-        try:    ob._notifyOfCopyTo(self, op=2) # -EAD add rename to semantics
-        except: raise CopyError, MessageDialog(
-                      title='Rename Error',
-                      message=sys.exc_info()[1],
-                      action ='manage_main')
+
+        try:
+            ob._notifyOfCopyTo(self, op=2) # -EAD add rename to semantics
+        except:
+            raise CopyError, sys.exc_info()[1]
         self._delObject(id)
         ob = aq_base(ob)
         ob._setId(new_id)
