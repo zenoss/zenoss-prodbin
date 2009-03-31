@@ -15,6 +15,7 @@ import copy
 import re
 import sre_constants
 import logging
+import transaction
 log = logging.getLogger("zen.Events")
 
 from Globals import DTMLFile
@@ -73,11 +74,12 @@ class EventClassPropertyMixin(object):
         """
         Apply transforms on an event from the top level of the Event Class Tree
         down to the actual Event Rules (EventClassInst)
-        """     
+        """
         transpath = self._eventClassPath()
         variables_and_funcs = {
             'evt':evt, 'device':device, 'dev':device,
             'convToUnits':convToUnits, 'zdecode':zdecode,
+            'txnCommit':transaction.commit
         }
         for eventclass in transpath:
             if not eventclass.transform: continue
