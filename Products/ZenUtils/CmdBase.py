@@ -21,6 +21,8 @@ import os
 import sys
 import datetime
 import logging
+
+from logging import handlers
 from optparse import OptionParser, SUPPRESS_HELP, NO_DEFAULT
 from urllib import quote
 
@@ -63,7 +65,6 @@ class CmdBase:
             # to reparse our command-line to get the correct overrides from
             # the command-line
             self.parseOptions()
-
         if self.doesLogging:
             self.setupLogging()
 
@@ -135,13 +136,14 @@ class CmdBase:
         self.log = logging.getLogger("zen."+ mname)
         zlog = logging.getLogger("zen")
         zlog.setLevel(self.options.logseverity)
-
         if self.options.logpath:
             logdir = self.options.logpath
             if not os.path.isdir(os.path.dirname(logdir)):
                 raise SystemExit("logpath:%s doesn't exist" % logdir)
             logfile = os.path.join(logdir, mname.lower()+".log")
-            h = logging.FileHandler(logfile)
+            maxBytes = self.options.maxLogKiloBytes * 1024
+            backupCount = self.options.maxBackupLogs
+            h = logging.handlers.RotatingFileHandler(logfile, maxBytes, backupCount)
             h.setFormatter(logging.Formatter(
                 "%(asctime)s %(levelname)s %(name)s: %(message)s",
                 "%Y-%m-%d %H:%M:%S"))
@@ -180,6 +182,18 @@ class CmdBase:
 
             self.parser.add_option('--logpath',dest='logpath',
                         help='Override the default logging path')
+            
+            self.parser.add_option('--maxlogsize',
+                        dest='maxLogKiloBytes',
+                        help='Max size of log file in KB; default 10240',
+                        default=10240,
+                        type='int')
+            
+            self.parser.add_option('--maxbackuplogs',
+                        dest='maxBackupLogs',
+                        help='Max number of back up log files; default 3',
+                        default=3,
+                        type='int')
 
         self.parser.add_option("-C", "--configfile", 
                     dest="configfile",

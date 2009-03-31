@@ -21,6 +21,7 @@ import sys
 import os
 import pwd
 import logging
+from logging import handlers
 
 from CmdBase import CmdBase
 from Utils import zenPath, HtmlFormatter, binPath
@@ -121,7 +122,9 @@ class ZenDaemon(CmdBase):
             else:
                 logdir = zenPath("log")
             logfile = os.path.join(logdir, mname.lower()+".log")
-            h = logging.FileHandler(logfile)
+            maxBytes = self.options.maxLogKiloBytes * 1024
+            backupCount = self.options.maxBackupLogs
+            h = logging.handlers.RotatingFileHandler(filename=logfile, maxBytes=maxBytes, backupCount=backupCount)
             h.setFormatter(logging.Formatter(
                 "%(asctime)s %(levelname)s %(name)s: %(message)s",
                 "%Y-%m-%d %H:%M:%S"))
