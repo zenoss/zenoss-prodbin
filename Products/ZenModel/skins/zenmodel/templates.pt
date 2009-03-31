@@ -152,7 +152,7 @@
     <div id="settings">
     <ul>
         <li>
-        <span>
+        <span id="header-username">
         <tal:block tal:content="request/AUTHENTICATED_USER"/>
         </span>
         </li>

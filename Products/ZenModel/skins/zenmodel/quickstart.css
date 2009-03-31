@@ -24,8 +24,9 @@ html {
 #header-extra {
     float: right;
     height: 40px;
-    color: white;
+    color: #eee;
     line-height: 45px;
+    padding-right: 1.3em;
 }
 
 h1, h2 {
@@ -60,6 +61,11 @@ h2 {
     width: 850px;
 }
 
+#header-username {
+    padding-left: 15px;
+    background: transparent url(img/usericon.png) left center no-repeat;
+}
+
 div.rounded-corners {
     background: transparent url('img/rounded_bars.gif') center left no-repeat;
     height: 46px;
@@ -72,9 +78,10 @@ div.inverted-rounded-corners {
 div.logo {
     float: left;
     margin: 0.4em;
+    margin-top: 0;
     width: 516px;
     height: 40px;
-    background: transparent url('logo.png') center left no-repeat;
+    background: transparent url('logo.png') 2px 0px no-repeat;
 }      
 
 div#errors {
@@ -112,3 +119,8 @@ div.error {
 
 div.x-combo-list-inner { text-align: left}
 div.x-combo-list { position: relative; top:-20px; }
+
+.x-tab-hide .x-tab-panel-header {
+    display: none;
+}
+

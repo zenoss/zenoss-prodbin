@@ -27,14 +27,15 @@
         <div id="header">
             <div class="logo"></div>
             <div id="header-extra">
-                <tal:block metal:define-slot="header-extra"/>
+                <tal:block metal:define-slot="username">
+                </tal:block>
             </div>
         </div>
         <div id="content-wrapper">
+            <div id="content"> 
             <h1><tal:block metal:define-slot="headline"/></h1>
             <h2><tal:block metal:define-slot="subheadline"/></h2>
-
-            <div id="content"> <tal:block metal:define-slot="content"/> </div>
+                <tal:block metal:define-slot="content"/> </div>
 
             <div id="buttons">
                 <tal:block metal:define-slot="buttons">

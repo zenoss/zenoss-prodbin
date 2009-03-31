@@ -1,15 +1,23 @@
 <tal:block metal:use-macro="context/quickstart_macros/base">
+<tal:block metal:fill-slot="username">
+<span id="header-username" 
+    tal:content="here/dmd/ZenUsers/getUser">x</span>
+</tal:block>
     <tal:block metal:fill-slot="headline"> 
-    <span style="font-size:1.2em;color:#4d81af">
-    You are now logged in as <span tal:content="here/dmd/ZenUsers/getUser"/>.
-    <br/>
-    </span>
     Step 2: Specify or Discover Devices to Monitor
     </tal:block>
     <tal:block metal:fill-slot="subheadline">
-    Add devices to start monitoring with Zenoss.<br/>
+    To start monitoring with Zenoss:<br/>
     </tal:block>
     <tal:block metal:fill-slot="content">
+    <div id="tabcontrol" style="margin-bottom: 1em;">
+        <span style="margin-right:2em;">
+        <input type="radio" id="manualradio" checked name="tabselect"/>
+        Manually find devices
+        </span>
+        <input type="radio" id="autoradio" name="tabselect"/> Autodiscover devices
+    </div>
+    <hr/>
     <div id="tabs"></div>
     <br/>
     <br/>
@@ -412,10 +420,11 @@
             });
 
             var tabpanel = new Ext.TabPanel({
+                cls: 'x-tab-hide',
                 width: '100%',
                 renderTo: 'tabs',
                 activeTab: 0,
-                //border: false,
+                border: false,
                 plain: true,
                 autoHeight: true,
                 defaults:{autoHeight: true},
@@ -457,6 +466,11 @@
                         location.href = url;
                 }
             });
+
+            Ext.get('manualradio').on('focus', function(){tabpanel.activate(0)});
+            Ext.get('autoradio').on('focus', function(){tabpanel.activate(1)});
+
+            Ext.get('manualradio').dom.checked = true;
 
         });
 

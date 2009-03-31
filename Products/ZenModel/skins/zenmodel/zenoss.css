@@ -1885,3 +1885,7 @@ span.jobstatus img {
 }
 
 
+#header-username {
+    padding-left: 15px;
+    background: transparent url(img/usericon.png) left center no-repeat;
+}
