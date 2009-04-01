@@ -51,10 +51,10 @@ class zeneventlog(WinCollector):
         @return: objects
         @rtype: object
         """
-        yield self.configService().callRemote('getDeviceListByMonitor',
-                self.options.monitor)
-        yield self.configService().callRemote('getDeviceConfigAndWinServices',
-                driver.next())
+        yield self.configService().callRemote('getDeviceListByMonitor', 
+                                              self.options.monitor)
+        yield self.configService().callRemote('getDeviceConfigForEventlog',
+                                              driver.next())
         self.updateDevices(driver.next())
 
     def processDevice(self, device, timeoutSecs):

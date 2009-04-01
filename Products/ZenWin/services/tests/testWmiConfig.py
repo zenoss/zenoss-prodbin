@@ -23,7 +23,64 @@ from Products.ZenWin.services.WmiConfig import WmiConfig
 
 class TestWmiConfig(ZenModelBaseTest):
 
-    def testRemote_getDeviceConfigAndWinServices(self):
+
+    def testRemote_getDeviceConfigForEventlog_simpleFlags(self):
+        """
+        Test fetching set of devices for event log monitoring remotely.
+        """
+        dev = manage_createDevice(self.dmd, 'wmiconfigtest-dev1', 
+                                  '/Server/Windows', manageIp='10.10.10.1')
+        dev.zWmiMonitorIgnore = False
+        dev.zWinEventlog = True
+        dev.setProdState(-1)
+        
+        wmiConfig = WmiConfig(self.dmd, 'localhost')
+        names = [ 'wmiconfigtest-dev1' ]
+        
+        # make sure no proxies are actually returned!
+        proxies = wmiConfig.remote_getDeviceConfigForEventlog(names)
+        self.assertEqual(len(proxies), 0)
+
+        # now set the device back to production and see if it shows up
+        dev.setProdState(1000)
+        proxies = wmiConfig.remote_getDeviceConfigForEventlog(names)
+        self.assertEqual(len(proxies), 1)
+        
+        # now enable zWmiMonitorIgnore
+        dev.zWmiMonitorIgnore = True
+        proxies = wmiConfig.remote_getDeviceConfigForEventlog(names)
+        self.assertEqual(len(proxies), 0)
+        
+        # and finally, reset zWmiMonitorIgnore and disable zWinEventlog
+        dev.zWmiMonitorIgnore = False
+        dev.zWinEventlog = False
+        proxies = wmiConfig.remote_getDeviceConfigForEventlog(names)
+        self.assertEqual(len(proxies), 0)
+
+
+    def testRemote_getDeviceConfigForEventlog_multipleDevices(self):
+        """
+        Test fetching set of devices for event log monitoring remotely.
+        """
+        dev = manage_createDevice(self.dmd, 'wmiconfigtest-dev1', 
+                                  '/Server/Windows', manageIp='10.10.10.1')
+        dev.zWmiMonitorIgnore = False
+        dev.zWinEventlog = True
+
+        dev2 = manage_createDevice(self.dmd, 'wmiconfigtest-dev2', 
+                                   '/Server/Windows', manageIp='10.10.10.2')
+        dev2.zWmiMonitorIgnore = False
+        dev2.zWinEventlog = False
+
+        wmiConfig = WmiConfig(self.dmd, 'localhost')
+        names = [ 'wmiconfigtest-dev1', 'wmiconfigtest-dev2' ]
+        proxies = wmiConfig.remote_getDeviceConfigForEventlog(names)
+
+        # make sure only one proxy was actually returned!
+        self.assertEqual(len(proxies), 1)
+
+
+    def testRemote_getDeviceConfigForEventlog_multipleDevices_dupDevices(self):
         """
         Tests fetching set of device proxies remotely when devices with 
         duplicates mananageIp's exist in the dmd.
@@ -33,6 +90,7 @@ class TestWmiConfig(ZenModelBaseTest):
                                   '/Server/Windows', manageIp='10.10.10.2')
         dev.zWmiMonitorIgnore = False
         dev.zWinEventlog = True
+
         dev2 = manage_createDevice(self.dmd, '10.10.10.1', 
                                    '/Server/Windows', manageIp='10.10.10.1')
         dev2.zWmiMonitorIgnore = False
@@ -42,12 +100,12 @@ class TestWmiConfig(ZenModelBaseTest):
 
         wmiConfig = WmiConfig(self.dmd, 'localhost')
         names = ['wmiconfigtest-dev1', '10.10.10.1']
-        proxies = wmiConfig.remote_getDeviceConfigAndWinServices(names)
+        proxies = wmiConfig.remote_getDeviceConfigForEventlog(names)
 
         # now validate the right thing happened, which is the multiple
         # devices with the same manageIp did not result in two different
         # device proxies back to the same device
-        self.assert_(proxies[0].getId() != proxies[1].getId())
+        self.assertNotEquals(proxies[0].getId(), proxies[1].getId())
 
 
 def test_suite():

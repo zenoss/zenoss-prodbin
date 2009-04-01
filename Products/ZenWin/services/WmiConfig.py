@@ -26,6 +26,9 @@ from Products.ZenModel.ServiceOrganizer import ServiceOrganizer
 from Products.ZenHub.services.Procrastinator import Procrastinate
 from Products.ZenHub.services.ThresholdMixin import ThresholdMixin
 
+import logging
+log = logging.getLogger('zen.ModelerService.WmiConfig')
+
 class WmiConfig(ModelerService, ThresholdMixin):
 
 
@@ -123,10 +126,13 @@ class WmiConfig(ModelerService, ThresholdMixin):
                 listener.callRemote('deleteDevice', obj.id)
 
 
-    def remote_getDeviceConfigAndWinServices(self, names):
-        """Return a list of (devname, user, passwd, {'EvtSys':0,'Exchange':0}) 
+    def _monitoredDevices(self, names):
+        """
+        A generator method that provides a list of devices that are set to be
+        monitored via WMI.
         """
         deviceMap = {}
+
         for name in names:
             # try and load the device from the provided list of names, but
             # exclude the device if a) we can't find it! or b) we've already
@@ -141,8 +147,48 @@ class WmiConfig(ModelerService, ThresholdMixin):
                 continue
 
             device = device.primaryAq()
-            if not device.monitorDevice(): continue
-            if getattr(device, 'zWmiMonitorIgnore', False): continue
+
+            # make sure the device itself is being monitored
+            if not device.monitorDevice():
+                log.debug("Device %s skipped because monitoring is disabled",
+                          device.id)
+                continue
+
+            # now make sure the  WMI specific monitoring flag is enabled
+            if getattr(device, 'zWmiMonitorIgnore', False):
+                log.debug("Device %s skipped because zWmiMonitorIgnore is set",
+                          device.id)
+                continue
+
+            # return the monitored device to the generator caller
+            yield device
+
+
+    def remote_getDeviceConfigForEventlog(self, names):
+        """Return a list of (devname, user, password)
+        """
+        deviceProxies = []
+
+        for device in self._monitoredDevices(names):
+            if not getattr(device, 'zWinEventlog', True):
+                log.debug("Device %s skipped because zWinEventlog is cleared", 
+                          device.id)
+                continue
+
+            proxy = self.createDeviceProxy(device)
+            proxy.id = device.getId()
+
+            deviceProxies.append(proxy)
+            log.debug("Device %s added to proxy list", proxy.id)
+
+        return deviceProxies
+
+
+    def remote_getDeviceConfigAndWinServices(self, names):
+        """Return a list of (devname, user, passwd, {'EvtSys':0,'Exchange':0}) 
+        """
+        deviceProxies = []
+        for device in self._monitoredDevices(names):
 
             proxy = self.createDeviceProxy(device)
             proxy.id = device.getId()
@@ -153,11 +199,16 @@ class WmiConfig(ModelerService, ThresholdMixin):
                 if type(name) == type(u''):
                     name = name.encode(s.zCollectorDecoding)
                 proxy.services[name] = (s.getStatus(), 
-                                    s.getAqProperty('zFailSeverity'))
+                                        s.getAqProperty('zFailSeverity'))
 
-            if not proxy.services and not device.zWinEventlog: continue
+            # don't bother adding this device proxy if there aren't any services
+            # to monitor
+            if not proxy.services:
+                log.debug("Device %s skipped because there are no services",
+                          proxy.id)
+                continue
 
-            deviceMap[device.id] = proxy
+            deviceProxies.append(proxy)
+            log.debug("Device %s added to proxy list", proxy.id)
 
-        return deviceMap.values()
-
+        return deviceProxies
