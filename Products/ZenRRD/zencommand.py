@@ -1,7 +1,7 @@
 ###########################################################################
 #
 # This program is part of Zenoss Core, an open source monitoring platform.
-# Copyright (C) 2007, Zenoss Inc.
+# Copyright (C) 2007, 2009, Zenoss Inc.
 #
 # This program is free software; you can redistribute it and/or modify it
 # under the terms of the GNU General Public License version 2 as published by
@@ -11,20 +11,22 @@
 #
 ###########################################################################
 
-__doc__=''' ZenCommand
+__doc__ = """ZenCommand
 
-Run Command pluggins periodically.
+Run Command plugins periodically.
 
-'''
+"""
 
 import time
 from pprint import pformat
 import logging
 log = logging.getLogger("zen.zencommand")
+from sets import Set
 
 from twisted.internet import reactor, defer, error
 from twisted.internet.protocol import ProcessProtocol
 from twisted.python import failure
+from twisted.spread import pb
 
 import Globals
 from Products.ZenUtils.Driver import drive, driveLater
@@ -33,15 +35,16 @@ from Products.ZenRRD.RRDDaemon import RRDDaemon
 from Products.ZenRRD.RRDUtil import RRDUtil
 from Products.DataCollector.SshClient import SshClient
 
-from sets import Set
-from twisted.spread import pb
-
 from Products.ZenRRD.CommandParser import getParser, ParsedResults
 
-MAX_CONNECTIONS=256
+MAX_CONNECTIONS = 256
+
+
 
 class TimeoutError(Exception):
-    "Error for a defered call taking too long to complete"
+    """
+    Error for a defered call taking too long to complete
+    """
 
     def __init__(self, *args):
         Exception.__init__(self)
@@ -69,7 +72,9 @@ def Timeout(deferred, seconds, obj):
 
 
 class ProcessRunner(ProcessProtocol):
-    "Provide deferred process execution"
+    """
+    Provide deferred process execution
+    """
     stopped = None
     exitCode = None
     output = ''
@@ -78,10 +83,9 @@ class ProcessRunner(ProcessProtocol):
         "Kick off the process: run it local"
         log.debug('running %r' % cmd.command)
 
-        import string
         shell = '/bin/sh'
         self.cmdline = (shell, '-c', 'exec %s' % cmd.command)
-        self.command = string.join(self.cmdline, ' ')
+        self.command = ' '.join(self.cmdline)
         log.debug('cmd line: %r' % self.command)
         reactor.spawnProcess(self, shell, self.cmdline, env=None)
 
@@ -118,12 +122,13 @@ class ProcessRunner(ProcessProtocol):
 
 
 class MySshClient(SshClient):
-    "Connection to SSH server at the remote device"
+    """
+    Connection to SSH server at the remote device
+    """
 
     def __init__(self, *args, **kw):
         SshClient.__init__(self, *args, **kw)
         self.defers = {}
-
 
     def addCommand(self, command):
         "Run a command against the server"
@@ -154,14 +159,16 @@ class MySshClient(SshClient):
 
 
 class SshPool:
-    "Cache all the Ssh connections so they can be managed" 
+    """
+    Cache all the Ssh connections so they can be managed
+    """
 
     def __init__(self):
         self.pool = {}
 
 
     def get(self, cmd):
-        "Make an ssh connection if there isn't one available"
+        "Make a new SSH connection if there isn't one available"
         dc = cmd.deviceConfig
         result = self.pool.get(dc.device, None)
         if result is None:
@@ -206,7 +213,9 @@ class SshPool:
             
 
 class SshRunner:
-    "Run a single command across a cached Ssh connection"
+    """
+    Run a single command across a cached SSH connection
+    """
     exitCode = None
     output = None
 
@@ -279,7 +288,9 @@ class DataPointConfig(pb.Copyable, pb.RemoteCopy):
 pb.setUnjellyableForClass(DataPointConfig, DataPointConfig)
 
 class Cmd(pb.Copyable, pb.RemoteCopy):
-    "Holds the config of every command to be run"
+    """
+    Holds the config of every command to be run
+    """
     command = None
     useSsh = False
     cycleTime = None
@@ -326,7 +337,7 @@ class Cmd(pb.Copyable, pb.RemoteCopy):
         self.result = pr
         self.lastStop = time.time()
         if not isinstance(pr, failure.Failure):
-            log.debug('Process %s stopped (%s), %f elapsed' % (
+            log.debug('Process %s stopped (%s), %.2f seconds elapsed' % (
                 self.name(),
                 pr.exitCode,
                 self.lastStop - self.lastStart))
@@ -413,17 +424,20 @@ def updateCommands(config, currentDict, sendEvent):
             warnUsernameNotSet(config.device, cmd, sendEvent, suppressed)
             if config.device not in suppressed:
                 suppressed.append(config.device)
-            if currentDict.has_key(key):
+            if key in currentDict:
                 del currentDict[key]
             continue
             
-        if currentDict.has_key(key): newCmd = currentDict.pop(key)
+        if key in currentDict: newCmd = currentDict.pop(key)
         else                       : newCmd = cmd
         
         yield newCmd.updateConfig(cmd, config)
 
 
 class zencommand(RRDDaemon):
+    """
+    Daemon code to schedule commands and run them.
+    """
 
     initialServices = RRDDaemon.initialServices + ['CommandConfig']
 
@@ -435,15 +449,15 @@ class zencommand(RRDDaemon):
         self.executed = 0
 
     def remote_deleteDevice(self, doomed):
-        self.log.debug("Async delete device %s" % doomed)
+        self.log.debug("zenhub has asked us to delete device %s" % doomed)
         self.schedule = [c for c in self.schedule if c.deviceConfig.device != doomed]
             
     def remote_updateConfig(self, config):
-        self.log.debug("Async configuration update")
+        self.log.debug("Configuration update from zenhub")
         self.updateConfig([config], [config.device])
 
     def remote_updateDeviceList(self, devices):
-        self.log.debug("Async update device list %s" % devices)
+        self.log.debug("zenhub sent updated device list %s" % devices)
         updated = []
         lastChanges = dict(devices)     # map device name to last change
         keep = []
@@ -453,10 +467,10 @@ class zencommand(RRDDaemon):
                     updated.append(cmd.deviceConfig.device)
                 keep.append(cmd)
             else:
-                log.info("Removing all commands for %s", cmd.deviceConfig.device)
+                self.log.info("Removing all commands for %s", cmd.deviceConfig.device)
         self.schedule = keep
         if updated:
-            log.info("Fetching the config for %s", updated)
+            self.log.info("Fetching the config for %s", updated)
             d = self.model().callRemote('getDataSourceCommands', devices)
             d.addCallback(self.updateConfig, updated)
             d.addErrback(self.error)
@@ -475,7 +489,7 @@ class zencommand(RRDDaemon):
                 continue
             update.extend(updateCommands(cfg, current, self.sendEvent))
         for device, command in current.keys():
-            log.info("Deleting command %s from %s", device, command)
+            self.log.info("Deleting command %s from %s", device, command)
         self.schedule = update
         self.processSchedule()
 
@@ -500,10 +514,10 @@ class zencommand(RRDDaemon):
         
 
     def processSchedule(self, *unused):
-        """Run through the schedule and start anything that needs to be done.
+        """
+        Run through the schedule and start anything that needs to be done.
         Set a timer if we have nothing to do.
         """
-        log.info("%s - schedule has %d commands", '-'*10, len(self.schedule))
         if not self.options.cycle:
             for cmd in self.schedule:
                 if cmd.running() or cmd.lastStart == 0:
@@ -525,6 +539,7 @@ class zencommand(RRDDaemon):
             for c in self.schedule:
                 if c.running():
                     running += 1
+
             for c in self.schedule:
                 if running >= self.options.parallel:
                     break
@@ -534,12 +549,13 @@ class zencommand(RRDDaemon):
                 else:
                     earliest = c.nextRun() - now
                     break
+
             if earliest is not None:
-                log.debug("Next command in %f seconds", earliest)
+                self.log.debug("Next command in %d seconds", int(earliest))
                 self.timeout = reactor.callLater(max(1, earliest),
                                                  self.processSchedule)
         except Exception, ex:
-            log.exception(ex)
+            self.log.exception(ex)
 
             
     def finished(self, cmd):
@@ -556,15 +572,15 @@ class zencommand(RRDDaemon):
             cmd, = err.value.args
             dc = cmd.deviceConfig
             msg = "Command timed out on device %s: %r" % (dc.device, cmd.command)
-            log.warning(msg)
-            issueKey = dc.device, cmd.eventClass, cmd.eventKey
+            self.log.warning(msg)
             self.sendEvent(dict(device=dc.device,
+                                component="zencommand",
                                 eventClass=cmd.eventClass,
                                 eventKey=cmd.eventKey,
                                 severity=cmd.severity,
                                 summary=msg))
         else:
-            log.exception(err.value)
+            self.log.exception(err.value)
 
     def parseResults(self, cmd):
         """
@@ -574,7 +590,7 @@ class zencommand(RRDDaemon):
         @param cmd: command
         @type: cmd object
         """
-        log.debug('The result of "%s" was "%r"', cmd.command, cmd.result.output)
+        self.log.debug('The result of "%s" was "%r"', cmd.command, cmd.result.output)
         results = ParsedResults()
         try:
             parser = getParser(cmd.parser)
@@ -583,6 +599,7 @@ class zencommand(RRDDaemon):
             import traceback
             self.sendEvent(dict(device=cmd.deviceConfig.device,
                            summary="Error loading parser %s" % cmd.parser,
+                           component="zencommand",
                            message=traceback.format_exc(),
                            agent="zencommand",
                           ))
@@ -593,7 +610,7 @@ class zencommand(RRDDaemon):
             self.sendEvent(ev, device=cmd.deviceConfig.device)
 
         for dp, value in results.values:
-            log.debug("storing %s = %s in: %s" % (dp.id, value, dp.rrdPath))
+            self.log.debug("Storing %s = %s into %s" % (dp.id, value, dp.rrdPath))
             value = self.rrd.save(dp.rrdPath,
                                   value,
                                   dp.rrdType,
@@ -601,10 +618,10 @@ class zencommand(RRDDaemon):
                                   cmd.cycleTime,
                                   dp.rrdMin,
                                   dp.rrdMax)
-            log.debug("rrd save result: %s" % value)
+            self.log.debug("RRD save result: %s" % value)
             for ev in self.thresholds.check(dp.rrdPath, time.time(), value):
                 eventKey = cmd.getEventKey(dp)
-                if ev.has_key('eventKey'):
+                if 'eventKey' in ev:
                     ev['eventKey'] = '%s|%s' % (eventKey, ev['eventKey'])
                 else:
                     ev['eventKey'] = eventKey
@@ -650,34 +667,35 @@ class zencommand(RRDDaemon):
                                         time.time() - now))
 
             except Exception, ex:
-                log.exception(ex)
+                self.log.exception(ex)
                 raise
 
         return drive(doFetchConfig)
             
 
     def start(self, driver):
-        """Fetch the configuration and return a deferred for its completion.
-        Also starts the config cycle"""
+        """
+        Fetch the configuration and return a deferred for its completion.
+        Also starts the config cycle
+        """
         ex = None
         try:
-            log.debug('Fetching config')
+            self.log.debug('Fetching configuration from zenhub')
             yield self.fetchConfig()
             driver.next()
-            log.debug('Finished config fetch')
+            self.log.debug('Finished config fetch')
         except Exception, ex:
-            log.exception(ex)
+            self.log.exception(ex)
         driveLater(self.configCycleInterval * 60, self.start)
         if ex:
             raise ex
-
 
     def buildOptions(self):
         RRDDaemon.buildOptions(self)
 
         self.parser.add_option('--parallel', dest='parallel', 
                                default=10, type='int',
-                               help="number of devices to collect at one time")
+                               help="Number of devices to collect at one time")
         
     def connected(self):
         d = drive(self.start).addCallbacks(self.processSchedule, self.errorStop)
