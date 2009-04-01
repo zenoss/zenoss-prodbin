@@ -98,8 +98,11 @@ class BasePluginsTestCase(BaseTestCase):
             counter += self._testRelationshipMap(expected, actual, filename)
         elif isinstance(actual, ObjectMap):
             counter += self._testObjectMap(expected, actual, filename)
+        elif isinstance(actual, list):
+            for exp, act in zip(expected, actual):
+                counter += self._testDataMap(exp, act, filename)
         else:
-            self.fail("Data map type %s not supported." % (type(dataMap),))
+            self.fail("Data map type %s not supported." % (type(actual),))
             
         return counter
         
