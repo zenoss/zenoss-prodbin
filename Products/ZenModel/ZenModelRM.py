@@ -89,7 +89,7 @@ class ZenModelRM(ZenModelBase, RelationshipManager, Historical, ZenPacker):
         Id must start with a 'c' for custom attributes added via the
         Custom Schema tab.
         """
-        if type_converters.has_key(type):
+        if type_converters.has_key(type) and value:
             value=type_converters[type](value)
         id = id.strip()
         if prefix and not id.startswith(prefix):
