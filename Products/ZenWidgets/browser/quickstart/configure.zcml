@@ -42,6 +42,7 @@
         for="*"
         name="qs-step2"
         class=".views.DeviceAddView"
+        template="templates/adddevice.pt"
         permission="zope2.View"
         />
 

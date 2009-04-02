@@ -1,0 +1,37 @@
+<tal:block metal:use-macro="here/templates/macros/page1">
+<tal:block metal:fill-slot="head-local">
+<link rel="stylesheet" type="text/css" href="extjs/resources/css/ext-all.css"/>
+<link rel="stylesheet" type="text/css" href="/zport/quickstart.css"/>
+<script type="text/javascript" src="extjs/adapter/ext/ext-base.js"></script>
+<script type="text/javascript" src="extjs/ext-all.js"></script>
+<style>
+    #settings ul { margin: 1em; margin-left: 2em; }
+</style>
+</tal:block>
+
+<tal:block metal:fill-slot="breadCrumbPane">
+    /<a tal:attributes="
+        href string:${here/absolute_url_path}/${template/id}">Add Device
+    </a>
+</tal:block>
+
+<tal:block metal:fill-slot="contentPane">
+
+<tal:block tal:define="tabletitle string:Add Devices">
+<tal:block metal:use-macro="here/zenuimacros/macros/zentable">
+<tal:block metal:fill-slot="filterslot">
+<a style="float:right;color:white;padding-right:5em;font-size:0.8em" 
+    href="addDevice">Advanced Add...</a>
+</tal:block>
+<tal:block metal:fill-slot="zentablecontents">
+<tr><td style="background-color:white;padding:1em">
+
+    <tal:block metal:use-macro="here/quickstart_macros/deviceAdd"/>
+
+</td></tr>
+</tal:block>
+</tal:block>
+</tal:block>
+
+</tal:block>
+</tal:block>

@@ -51,8 +51,6 @@ class DeviceAddView(BrowserView):
     """
     Specify devices to be added.
     """
-    __call__ = ZopeTwoPageTemplateFile('templates/adddevice.pt')
-
     @json
     def default_communities(self):
         devclass = self.context.dmd.Devices.Discovered.primaryAq()

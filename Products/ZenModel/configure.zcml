@@ -13,4 +13,12 @@
     <include package=".browser"/>
     <include package="zope.app.location"/>
 
+    <browser:page
+        for="*"
+        name="easyAddDevice"
+        class="Products.ZenWidgets.browser.quickstart.views.DeviceAddView"
+        template="./easyAddDevice.pt"
+        permission="zope2.View"
+        />
+
 </configure>
