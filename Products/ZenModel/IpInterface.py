@@ -457,8 +457,19 @@ class IpInterface(OSComponent, Layer2Linkable):
         Return a list containing the appropriate RRDTemplate for this
         IpInterface.  If none is found then the list will contain None.
         """
-        default = self.getRRDTemplateByName(self.getRRDTemplateName()) or \
-                    self.getRRDTemplateByName('ethernetCsmacd')
+        templateName = self.getRRDTemplateName()
+        default = self.getRRDTemplateByName(templateName)
+        
+        # If this interface supports 64bit interfaces, but no 64bit specific
+        # template exists for it, fall back to the 32bit version.
+        if not default and templateName.endswith("_64"):
+            default = self.getRRDTemplateByName(templateName[:-3])
+        
+        # If no specific template exists for this type of interface default to
+        # the ethernetCsmacd template.
+        if not default:
+            default = self.getRRDTemplateByName("ethernetCsmacd")
+        
         if default:
             return [default]
         return []

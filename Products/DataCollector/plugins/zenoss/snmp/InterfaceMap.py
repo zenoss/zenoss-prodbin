@@ -63,8 +63,10 @@ class InterfaceMap(SnmpPlugin):
         # Interface Description
         GetTableMap('ifalias', '.1.3.6.1.2.1.31.1.1.1',
                 {
-                '.18' : 'description',
+                '.6' : 'ifHCInOctets',
+                '.7' : 'ifHCInUcastPkts',
                 '.15' : 'highSpeed',
+                '.18' : 'description',
                 }
         ),
     )
@@ -181,6 +183,11 @@ class InterfaceMap(SnmpPlugin):
                     iftable[ifidx]['speed'] = data['highSpeed']*1e6
                 except KeyError:
                     pass
+            
+            # Detect availability of the high-capacity counters
+            if data.get('ifHCInOctets', None) is not None and \
+                data.get('ifHCInUcastPkts', None) is not None:
+                iftable[ifidx]['hcCounters'] = True
 
         for ifidx, data in iftable.items():
             try:
@@ -226,6 +233,11 @@ class InterfaceMap(SnmpPlugin):
                       om.interfaceName, om.type, 
                       getattr(device, 'zInterfaceMapIgnoreTypes')))
             return None
+        
+        # Append _64 to interface type if high-capacity counters are supported
+        if hasattr(om, 'hcCounters'):
+            om.type += "_64"
+            del(om.hcCounters)
 
         if hasattr(om, 'macaddress'): om.macaddress = self.asmac(om.macaddress)
         # Handle misreported operStatus from Linux tun devices
