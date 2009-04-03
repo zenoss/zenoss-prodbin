@@ -61,7 +61,7 @@
 
 <tal:block metal:define-macro="deviceAdd">
 <style>
-    h3.listitem_master { float:left; color: #222}
+    h3.listitem_master { float:left; color: #222; font-weight: normal}
     span.listitem_detail {float:right; color: #666}
 </style>
 <div id="tabcontrol" style="margin-bottom: 1em;">
