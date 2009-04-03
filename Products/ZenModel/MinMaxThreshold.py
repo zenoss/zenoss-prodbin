@@ -254,16 +254,16 @@ class MinMaxThresholdInstance(ThresholdInstance):
         thresh = None
         if self.maximum is not None and value > self.maximum:
             thresh = self.maximum
-            how = 'exceeded the maximum'
+            how = 'exceeded'
         if self.minimum is not None and value < self.minimum:
             thresh = self.minimum
-            how = 'not met the minimum'
+            how = 'not met'
         if thresh is not None:
             severity = self.severity
             count = self.incrementCount(dp)
             if self.escalateCount and count >= self.escalateCount:
                 severity = min(severity + 1, 5)
-            summary = 'Threshold of %s %s: current value %.2f' % (
+            summary = 'threshold of %s %s: current value %.2f' % (
                 self.name(), how, float(value))
             return [dict(device=self.context().deviceName,
                          summary=summary,

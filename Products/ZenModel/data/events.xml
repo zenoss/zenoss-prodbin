@@ -5168,6 +5168,29 @@ By Default map all FileMaker events to Archive and set severity = 2
 <object id='Memory' module='Products.ZenEvents.EventClass' class='EventClass'>
 </object>
 <object id='Filesystem' module='Products.ZenEvents.EventClass' class='EventClass'>
+<property type="text" id="transform" mode="w">
+if device:
+    for f in device.os.filesystems():
+        if f.name() != evt.component: continue
+
+        # Extract the used blocks from the event's message
+        import re
+        m = re.search("threshold of [^:]+: current value ([\d\.]+)", evt.message)
+        if not m: continue
+    
+        # Get the total blocks from the model. Adjust by specified offset.
+        totalBlocks = f.totalBlocks * getattr(device, "zFileSystemSizeOffset", 1.0)
+        
+        # Calculate the used percent and amount free.
+        usedBlocks = float(m.groups()[0])
+        p = (usedBlocks / totalBlocks) * 100
+        freeAmtGB = ((totalBlocks - usedBlocks) * f.blockSize) / 1073741824
+
+        # Make a nicer summary
+        evt.summary = "disk space threshold: %3.1f%% used (%3.2f GB free)" % (p, freeAmtGB)
+        evt.message = evt.summary
+        break
+</property>
 </object>
 <object id='XmlRpc' module='Products.ZenEvents.EventClass' class='EventClass'>
 </object>

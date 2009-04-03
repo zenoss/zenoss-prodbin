@@ -3584,7 +3584,7 @@ True
 ['#00cc00', '#0000ff', '#00ffff', '#ff0000', '#ffff00', '#cc0000', '#0000cc', '#0080c0', '#8080c0', '#ff0080', '#800080', '#0000a0', '#408080', '#808000', '#000000', '#00ff00', '#fb31fb', '#0080ff', '#ff8000', '#800000']
 </property>
 <property type="text" id="custom" mode="w" >
-CDEF:percent=usedBlocks_usedBlocks,${here/totalBlocks},/,100,*
+CDEF:percent=usedBlocks_usedBlocks,${here/totalBlocks},${here/zFileSystemSizeOffset},*,/,100,*
 AREA:percent#00cc00:utilization
 </property>
 <property type="boolean" id="hasSummary" mode="w" >
@@ -3601,7 +3601,7 @@ True
 True
 </property>
 <property type="string" id="maxval" mode="w" >
-here.totalBlocks * .9
+(here.totalBlocks * here.zFileSystemSizeOffset) * .9
 </property>
 <property type="string" id="eventClass" mode="w" >
 /Perf/Filesystem
@@ -3672,7 +3672,7 @@ Used
 -1
 </property>
 <property type="string" id="rpn" mode="w" >
-${here/totalBlocks},/,100,*
+${here/totalBlocks},${here/zFileSystemSizeOffset},*,/,100,*
 </property>
 <property type="string" id="dpName" mode="w" >
 usedBlocks_usedBlocks
