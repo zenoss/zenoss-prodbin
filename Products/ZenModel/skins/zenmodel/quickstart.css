@@ -124,3 +124,8 @@ div.x-combo-list { position: relative; top:-20px; }
     display: none;
 }
 
+/* Fix discussed here: https://yui-ext.com/forum/showthread.php?p=270748#post270748 */
+.x-form-field-wrap {position: static;}
+.x-form-field-wrap .x-form-trigger {position: static; top: auto; vertical-align: middle;}
+.x-form-field-wrap .x-form-twin-triggers .x-form-trigger {position: static; top: auto; vertical-align: middle;}
+
