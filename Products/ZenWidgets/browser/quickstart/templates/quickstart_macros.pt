@@ -60,6 +60,10 @@
 </tal:block>
 
 <tal:block metal:define-macro="deviceAdd">
+<style>
+    h3.listitem_master { float:left; color: #222}
+    span.listitem_detail {float:right; color: #666}
+</style>
 <div id="tabcontrol" style="margin-bottom: 1em;">
     <span style="margin-right:2em;">
     <input type="radio" id="manualradio" checked name="tabselect"/>
@@ -71,9 +75,11 @@
 <div id="deviceadd_tabs"></div>
 <script tal:content="string:
     var DEFAULT_SNMPCOMMUNITIES = ${view/default_communities};
+    var DEVICE_TYPES = ${view/device_types};
 "></script>
 <script type="text/javascript">
     Ext.onReady(function(){
+
         Ext.QuickTips.init();
         Ext.form.Field.prototype.msgTarget = 'side';
 
@@ -263,6 +269,26 @@
                 autodiscover.getForm().submit({url: 'auto_add'});
             }
         });
+
+        var devtype_store = new Ext.data.Store({
+            autoLoad: true,
+            reader: new Ext.data.JsonReader({
+                data: DEVICE_TYPES,
+                root:   'types',
+                fields: ['value', 'description', 'protocol', 
+                         'shortdesc']
+            }),
+            proxy: new Ext.data.MemoryProxy(DEVICE_TYPES)
+        });
+
+        var resultTpl = new Ext.XTemplate(
+                '<'+'tpl for=".">',
+                '<'+'div class="x-combo-list-item blah">'+
+                '<'+'h3 class="listitem_master"> {description} <'+
+                '/h3><'+'span class="listitem_detail">'+
+                '{protocol}<'+'/span><'+'/div>',
+                '<'+'/tpl>'
+        );
         
         function add_card(){
             var container = Ext.getCmp('manual_creds');
@@ -289,15 +315,15 @@
                      hiddenName: 'deviceclass_' + index,
                      selectOnFocus: true,
                      width: 200,
+                     lazyInit: false,
                      listWidth: 200,
                      fieldLabel: 'Device Type',
                      editable: false,
-                     store: [
-                        ['/Server/Windows_win', 'Windows Server - WMI'],
-                        ['/Server/Linux_snmp', 'Linux Server - SNMP'],
-                        ['/Server/SSH/Linux_ssh', 'Linux Server - SSH'],
-                        ['/Network_snmp', 'Network Device - SNMP']
-                     ],
+                     store: devtype_store,
+                     displayField: 'shortdesc',
+                     tpl: resultTpl,
+                     itemSelector: 'div.blah',
+                     valueField: 'value',
                      triggerAction: 'all',
                      forceSelection: true,
                      selectOnFocus: true,
@@ -365,6 +391,7 @@
             card = container.add(new_card);
             container.doLayout();
             combobox = Ext.getCmp('combobox_' + index);
+            combobox.store.load();
             combobox.setValue('/Server/Linux_snmp');
             combobox.fireEvent('select', combobox);
         }

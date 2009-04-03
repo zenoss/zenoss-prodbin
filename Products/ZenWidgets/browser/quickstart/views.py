@@ -53,8 +53,82 @@ class DeviceAddView(BrowserView):
     """
     @json
     def default_communities(self):
+        """
+        Format the value of Devices.Discovered.zSnmpCommunities for a textarea
+        """
         devclass = self.context.dmd.Devices.Discovered.primaryAq()
         return '\n'.join(devclass.zSnmpCommunities)
+
+    @json
+    def device_types(self):
+        """
+        Build an object for populating an Ext ComboBox representing "device
+        types," which should exactly correspond to DeviceClasses in the system.
+
+        This method iterates over a predetermined list of types we might want
+        to see and checks each DeviceClass for existence (i.e., is the
+        appropriate ZenPack installed?).
+        """
+        # Build the list of all possible types
+        types = dict(
+            win = [
+                ('/Server/Windows/WMI', 'Windows Server', 'WMI')
+            ],
+            snmp = [
+                ('/Server/Windows', 'Windows Server', 'SNMP'),
+                ('/Server/Linux', 'Linux Server', 'SNMP'),
+                ('/Network', 'Generic Switch/Router', 'SNMP'),
+                ('/Network/Cisco', 'Cisco Device', 'SNMP'),
+                ('/Network/BIG-IP', 'BIG-IP Device', 'SNMP'),
+                ('/Network/Firewall/NetScreen', 'NetScreen Firewall', 'SNMP'),
+                ('/Network/Check Point', 'CheckPoint Firewall', 'SNMP'),
+                ('/Storage/Brocade', 'Brocade Storage', 'SNMP'),
+                ('/Storage', 'NetApp Filer', 'SNMP'),
+            ],
+            ssh = [
+                ('/Server/SSH/Linux', 'Linux Server', 'SSH'),
+                ('/Server/SSH/AIX', 'AIX Server', 'SSH'),
+            ])
+
+        def dev_class_exists(path):
+            """
+            Return a boolean indicating whether the specified DeviceClass
+            exists.
+            """
+            try:
+                self.context.unrestrictedTraverse(
+                    '/zport/dmd/Devices' + path)
+            except AttributeError:
+                return False
+            else:
+                return True
+
+        def format_type(credtype, classpath, description, protocol):
+            """
+            Turn information representing a device class into a dictionary of
+            the format our ComboBox expects.
+            """
+            value = '%s_%s' % (classpath, credtype)
+            return dict(value=value, 
+                        shortdesc="%s (%s)" % (description, protocol),
+                        description=description, protocol=protocol)
+
+        # Iterate over all types
+        response = []
+        for credtype, devtypes in types.iteritems():
+            for devtype in devtypes:
+                # Check for existence
+                if dev_class_exists(devtype[0]):
+                    # Exists, so add it to the list
+                    response.append(format_type(credtype, *devtype))
+
+        # Sort alphabetically by description
+        response.sort(key=lambda x:x['description'])
+
+        # Final response needs an object under a defined root, in this case
+        # "types"
+        return dict(types=response)
+
 
     @Ext.form_action
     def autodiscovery(self):
@@ -172,18 +246,4 @@ class DeviceAddView(BrowserView):
         )
         response.redirect('/zport/dmd')
         return response
-
-
-class OrganizeDevicesView(BrowserView):
-    """
-    Configure device classes.
-    """
-    __call__ = ZopeTwoPageTemplateFile('templates/organizedevices.pt')
-
-
-class CreateCustomGroupsView(BrowserView):
-    """
-    Configure device groups.
-    """
-    __call__ = ZopeTwoPageTemplateFile('templates/customgroups.pt')
 

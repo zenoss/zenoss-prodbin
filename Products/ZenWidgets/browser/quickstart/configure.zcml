@@ -66,18 +66,4 @@
 
     <!-- End form actions -->
 
-    <browser:page
-        for="*"
-        name="qs-step3"
-        class=".views.OrganizeDevicesView"
-        permission="zope2.View"
-        />
-
-    <browser:page
-        for="*"
-        name="qs-step4"
-        class=".views.CreateCustomGroupsView"
-        permission="zope2.View"
-        />
-
 </configure>
