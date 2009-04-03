@@ -41,8 +41,10 @@ function ConfirmPagerTest() {
     <tr>
       <td class="tableheader" align="left">Password</td>
       <td class="tablevalues">
-        <input class="tablevalues" type="password" name="password"/>
-        <input class="tablevalues" type="password" name="sndpassword"/>
+        <input class="tablevalues" type="password" name="password"
+            autocomplete="off"/>
+        <input class="tablevalues" type="password" name="sndpassword"
+            autocomplete="off"/>
       </td>
     </tr>
     <tr tal:condition="here/isManager">
