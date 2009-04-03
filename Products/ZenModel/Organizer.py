@@ -296,7 +296,8 @@ class Organizer(ZenModelRM, EventView):
         movedStuff = False
         for organizerName in organizerPaths:
             if moveTarget.find(organizerName) > -1: continue
-            obj = self._getOb(organizerName)
+            obj = self._getOb(organizerName, None)
+            if obj is None: continue
             obj._operation = 1 #move object
             self._delObject(organizerName)
             target._setObject(organizerName, obj)
