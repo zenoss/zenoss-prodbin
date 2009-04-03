@@ -1,7 +1,7 @@
 <tal:block metal:define-macro="body">
 <h2>Set Production State</h2>
 <p>
-<select name="state:int" id="state"
+<select name="state:int" id="state:int"
         tal:define="
         pstates here/getProdStateConversions;
         curstate device/productionState | 
