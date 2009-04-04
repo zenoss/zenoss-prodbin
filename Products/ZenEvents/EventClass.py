@@ -174,6 +174,8 @@ class EventClass(EventClassPropertyMixin, Organizer, ManagedEntity, ZenPackable)
         matches = cat({'eventClassKey': evClassKey})
         insts = [ self.getObjByPath(b.getPrimaryId) for b in matches ]
         insts.sort(lambda x,y: cmp(x.sequence, y.sequence))
+        if evClassKey != "defaultmapping":
+            insts.extend(self.find("defaultmapping"))
         return insts
 
     
@@ -205,10 +207,6 @@ class EventClass(EventClassPropertyMixin, Organizer, ManagedEntity, ZenPackable)
         if getattr(evt, "eventClassKey", False):
             log.debug("lookup eventClassKey:%s", evt.eventClassKey)
             evtcls = self.find(evt.eventClassKey)
-
-        if not evtcls: 
-            log.debug("lookup eventClassKey:defaultmapping")
-            evtcls = self.find("defaultmapping")
 
         for evtcl in evtcls:
             m = evtcl.match(evt, device)
