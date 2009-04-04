@@ -1092,9 +1092,7 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
         """
         return (self.monitorDevice()
                 and self.getManageIp()
-                and not self.zSnmpMonitorIgnore
-                and (self.zSnmpCommunity or
-                     getattr(self, 'zSnmpSecurityName', None)))
+                and not self.zSnmpMonitorIgnore)
 
 
     def getProductionStateString(self):
