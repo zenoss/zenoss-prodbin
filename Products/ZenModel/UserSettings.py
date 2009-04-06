@@ -1049,6 +1049,15 @@ class GroupSettings(UserSettings):
     def _getG(self):
         return self.zport.acl_users.groupManager
 
+
+    def hasNoGlobalRoles(self):
+        """This is a group we never have roles. This is set to false so that
+        fuctionality that would normally be taken away for a restricted user is
+        left in.
+        """
+        return False
+
+
     security.declareProtected(ZEN_MANAGE_DMD, 'manage_addUsersToGroup')
     def manage_addUsersToGroup( self, userids, REQUEST=None ):
         """ Add user to this group
