@@ -116,16 +116,6 @@ class DeviceComponent(Lockable):
         if dev: return dev.getManageIp()
         return ""
 
-    
-    def getRRDTemplateByName(self, name):
-        """
-        Return the closest RRDTemplate named name by walking our aq chain.
-        """
-        try:
-            return getattr(self, name)
-        except AttributeError:
-            return super(DeviceComponent, self).getRRDTemplateByName(name)
-
 
     def getNagiosTemplate(self, unused=None):
         import warnings
