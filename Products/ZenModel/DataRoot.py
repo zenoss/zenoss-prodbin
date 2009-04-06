@@ -45,7 +45,7 @@ from Products.ZenUtils.json import json
 from Products.ZenEvents.Exceptions import *
 
 from ZenModelRM import ZenModelRM
-from ZenossSecurity import ZEN_COMMON, ZEN_MANAGE_DMD
+from ZenossSecurity import ZEN_COMMON, ZEN_MANAGE_DMD, ZEN_VIEW
 
 def manage_addDataRoot(context, id, title = None, REQUEST = None):
     """make a device"""
@@ -380,6 +380,28 @@ class DataRoot(ZenModelRM, OrderedFolder, Commandable, ZenMenuable):
     security.declareProtected('View', 'getAllUserGroups')
     def getAllUserGroups(self):
         return self.acl_users.getGroups()
+
+    
+    security.declareProtected(ZEN_VIEW, 'zenoss_error_message')
+    def zenoss_error_message(self,error_type,error_value,
+                            error_traceback,error_message):
+        """Return an error page that is more friendly then the standard stack
+        trace + feedback page for ConflictErrors and MySQL errors (we need to
+        add out of disk space errors). If one of these is not found we return
+        the old stacktrace page
+        """
+        from ZODB.POSException import ConflictError
+        from Products.ZenEvents.Exceptions import MySQLConnectionError
+        from _mysql_exceptions import MySQLError
+        if isinstance(error_value, ConflictError):
+            return self.zenoss_conflict_error_message()
+        elif isinstance(error_value, MySQLConnectionError) \
+                or isinstance(error_value, MySQLError):
+            return self.zenoss_mysql_error_message(error_value=error_value)
+        return self.zenoss_feedback_error_message(error_type=error_type,
+                                        error_value=error_value,
+                                        error_traceback=error_traceback)
+
 
     def reportError(self):
         ''' send an email to the zenoss error email address
