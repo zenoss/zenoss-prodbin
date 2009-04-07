@@ -14,14 +14,17 @@
 from Products.ZenHub.PBDaemon import translateError
 
 class ThresholdMixin:
+    _cached_thresholdClasses = []
 
     @translateError
     def remote_getThresholdClasses(self):
-        from Products.ZenModel.MinMaxThreshold import MinMaxThreshold
-        classes = [MinMaxThreshold]
-        for pack in self.dmd.ZenPackManager.packs():
-            classes += pack.getThresholdClasses()
-        return map(lambda c: c.__module__, classes)
+        if not self._cached_thresholdClasses:
+            from Products.ZenModel.MinMaxThreshold import MinMaxThreshold
+            classes = [MinMaxThreshold]
+            for pack in self.dmd.ZenPackManager.packs():
+                classes += pack.getThresholdClasses()
+            self._cached_thresholdClasses = map(lambda c: c.__module__, classes)
+        return self._cached_thresholdClasses
 
 
     @translateError
