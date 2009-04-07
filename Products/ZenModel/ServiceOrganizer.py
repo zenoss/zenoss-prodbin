@@ -184,7 +184,7 @@ class ServiceOrganizer(Organizer, Commandable, ZenPackable):
                 organizers.extend(org.children())
 
 
-    
+    security.declareProtected(ZEN_MANAGE_DMD, 'manage_addServiceClass')
     def manage_addServiceClass(self, id=None, REQUEST=None):
         """Create a new service class in this Organizer.
         """
@@ -196,7 +196,8 @@ class ServiceOrganizer(Organizer, Commandable, ZenPackable):
         else:
             return self.serviceclasses._getOb(id)
 
-    
+
+    security.declareProtected(ZEN_MANAGE_DMD, 'manage_addIpServiceClass')
     def manage_addIpServiceClass(self, id=None, REQUEST=None):
         """Create a new service class in this Organizer.
         """
