@@ -156,10 +156,11 @@
                         items: [
                             new Ext.Panel({
                                 border:false,
-                                style: 'color:#666',
+                                cls: 'helptext',
                                 bodyStyle: 'padding: 5px',
-                                html: 'Enter networks or IP ranges, e.g.'+
-                                    ' 10.0.0.0/24 or 10.0.0.1-50'
+                                html: "Enter one or more networks (such " +
+                                "as 10.0.0.0/24) or <"+"br/> IP ranges " +
+                                "(such as 10.0.0.1-50)."
                             }),
                             netFieldConfig,
                             new Ext.Button({
@@ -205,16 +206,27 @@
                         items: [
                             new Ext.Panel({
                                 border:false,
-                                style: 'color:#666',
+                                cls: 'helptext',
+                                style: 'font-size:1em',
                                 bodyStyle:'padding:5px 0',
-                                html: 'Enter credentials to be used ' +
-                                      'during this discovery process.'
+                                html: "Specify credentials to be used " +
+                                "during the discovery process. Zenoss " +
+                                "will apply these to each device it " +
+                                "discovers."
                             }),
                             new Ext.Panel({
                                 border:false,
                                 style:'color:#666;font-weight:bold',
                                 bodyStyle:'padding:5px 0',
                                 html: 'Windows'
+                            }),
+                            new Ext.Panel({
+                                border:false,
+                                cls: 'helptext',
+                                style: 'font-size:1em;margin-bottom:0',
+                                bodyStyle:'padding-left:2em;padding-bottom:5px',
+                                html: "This user must be a member of the "+
+                                 "Local Administrators group."
                             }),{
                                 width: 200,
                                 labelStyle: 'padding-left: 20px',
@@ -249,6 +261,13 @@
                                 style:'color:#666;font-weight:bold',
                                 bodyStyle:'padding:5px 0',
                                 html: 'SNMP'
+                            }), new Ext.Panel({
+                                border:false,
+                                cls: 'helptext',
+                                style: 'font-size:1em;margin-bottom:0',
+                                bodyStyle:'padding-left:2em;padding-bottom:5px;width:300px',
+                                html: "Zenoss will try each of these community" +
+                                 " strings in turn when connecting to the device."
                             }),{
                                 width: 200,
                                 xtype: 'textarea',
@@ -339,6 +358,16 @@
                      }
                     }),
                     new Ext.Panel({
+                        width: 325,
+                        cls: 'helptext',
+                        style: 'font-size: 1em',
+                        bodyStyle: 'padding-left:3em',
+                        border:false,
+                        html: "If your device type is not listed, use " + 
+                         "the default selection. You can add devices of " +
+                         "different types from the Zenoss dashboard."
+                    }),
+                    new Ext.Panel({
                         layout: 'card',
                         id: 'creds_' + index,
                         autoHeight: true,
@@ -346,6 +375,7 @@
                         items: [
                             new Ext.form.FieldSet({
                                 defaults: {width:'90%'},
+                                border: false,
                                 id: 'ssh_' + index,
                                 title: 'SSH Credentials',
                                 defaultType: 'textfield',
@@ -360,9 +390,18 @@
                             }),
                             new Ext.form.FieldSet({
                                 defaults: {width:'90%'},
+                                border: false,
                                 id: 'snmp_' + index,
                                 title: 'SNMP Credentials',
-                                items: [{
+                                items: [
+                                new Ext.Panel({
+                                    border:false,
+                                    cls: 'helptext',
+                                    style: 'font-size:1em;margin-bottom:0',
+                                    bodyStyle:'padding-left:3em;padding-bottom:5px',
+                                    html: "Zenoss will try each of these community" +
+                                     " strings in turn when connecting to the device."
+                                }),{
                                     xtype: 'textarea',
                                     fieldLabel: 'Community Strings',
                                     name: 'snmpcomm_' + index,
@@ -373,9 +412,18 @@
                             new Ext.form.FieldSet({
                                 defaults: {width:'90%'},
                                 id: 'win_' + index,
+                                border: false,
                                 title: 'Windows Credentials',
                                 defaultType: 'textfield',
-                                items:[{
+                                items:[
+                                new Ext.Panel({
+                                    border:false,
+                                    cls: 'helptext',
+                                    style: 'font-size:1em;margin-bottom:0',
+                                    bodyStyle:'padding-left:2em;padding-bottom:5px',
+                                    html: "This user must be a member of the "+
+                                     "Local Administrators group."
+                                }),{
                                     name: 'winuser_' + index,
                                     fieldLabel: 'Username'
                                 },{
@@ -425,6 +473,7 @@
             layout: 'column',
             width: '100%',
             height: 300,
+            autoHeight: true,
             defaults: {
                 autoHeight: true,
                 columnWidth: 0.5,
@@ -448,9 +497,8 @@
                     autoDestroy: false,
                     items: [
                         new Ext.Panel({
-                            bodyStyle: {'padding': '5px'},
+                            cls: 'helptext',
                             border: false,
-                            style: 'color:#666',
                             html: 'Enter a hostname or IP address' +
                                   ' for each device you want to add.'
                         }),

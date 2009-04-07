@@ -7,13 +7,13 @@
     Step 2: Specify or Discover Devices to Monitor
     </tal:block>
     <tal:block metal:fill-slot="subheadline">
-    To start monitoring with Zenoss:<br/>
+    I want Zenoss to:<br/>
     </tal:block>
     <tal:block metal:fill-slot="content">
     <tal:block metal:use-macro="here/quickstart_macros/deviceAdd"/>
     <br/>
     <br/>
-    <h1 style="text-align:center;">Or, <a href='/zport/dmd/Dashboard'>Skip to the dashboard</a>.
+    <h1 style="text-align:center;">Or, <a href='/zport/dmd/Dashboard'>skip to the dashboard</a>.
 
     </tal:block>
     <tal:block metal:fill-slot="buttons">

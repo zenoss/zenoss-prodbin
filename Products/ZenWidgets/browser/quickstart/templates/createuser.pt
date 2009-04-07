@@ -61,17 +61,29 @@
                         border: false,
                         anchor:'100%',
                         layout:'form',
-                        defaults: {width: 175},
                         defaultType: 'textfield',
                         title: "Set admin password",
                         autoHeight: true,
-                        items: [{
+                        items: [new Ext.Panel({
+                            width: 300,
+                            border:false,
+                            cls: 'helptext',
+                            html: "The admin account has extended privileges,"+
+                            " similar to Linux's <"+"span class='noem'>root<"+
+                            "/span> or Windows' <" + "span class='noem'>"+
+                            "Administrator<"+"/span>. "+
+                            "Its use should be limited to administrative"+
+                            " tasks.<"+"br/><"+"br/>Enter and "+
+                              "confirm a password for the admin account."
+                        }),{
+                            width: 175,
                             fieldLabel: 'Admin password',
                             inputType: 'password',
                             name: 'admin-password1',
                             id: 'admin-password1',
                             allowBlank: false
                         },{
+                            width: 175,
                             fieldLabel: 'Retype password',
                             inputType: 'password',
                             vtype: 'password',
@@ -89,22 +101,31 @@
                         anchor:'100%',
                         layout:'form',
                         id: 'userfieldset',
-                        defaults: {width: 175},
                         defaultType: 'textfield',
                         title: "Create your account",
                         autoHeight: true,
-                        items: [{
+                        items: [new Ext.Panel({
+                            width: 300,
+                            border:false,
+                            cls: 'helptext',
+                            html: "Enter information for your personal user "+
+                            "account. You'll use this to perform "+
+                            "most tasks."
+                        }),{
+                            width: 175,
                             id: 'username',
                             fieldLabel: 'User name',
                             name: 'username',
                             allowBlank: false
                         },{
+                            width: 175,
                             fieldLabel: 'Password',
                             inputType: 'password',
                             name: 'password1',
                             id: 'password1',
                             allowBlank: false
                         },{
+                            width: 175,
                             fieldLabel: 'Retype password',
                             inputType: 'password',
                             vtype: 'password',
@@ -112,6 +133,7 @@
                             initialPassField: 'password1',
                             allowBlank: false
                         },{
+                            width: 175,
                             fieldLabel: 'Your email',
                             vtype: 'email',
                             name: 'emailAddress',

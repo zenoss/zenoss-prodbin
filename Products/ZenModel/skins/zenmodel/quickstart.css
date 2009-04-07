@@ -3,6 +3,9 @@ html {
     font-family: Helvetica, Arial, sans-serif;
 }
 
+em { font-style: italic; }
+strong { font-weight: bold; }
+
 #header {
     padding-top: 5px;
     padding-left: 5px;
@@ -122,6 +125,17 @@ div.x-combo-list { position: relative; top:-20px; }
 
 .x-tab-hide .x-tab-panel-header {
     display: none;
+}
+
+.helptext {
+    color: #666;
+    font-style: italic;
+    font-size: 0.9em;
+    margin-bottom: 1em;
+}
+
+span.noem {
+    font-style: normal;
 }
 
 /* Fix discussed here: https://yui-ext.com/forum/showthread.php?p=270748#post270748 */
