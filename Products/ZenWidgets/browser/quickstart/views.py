@@ -229,9 +229,9 @@ class DeviceAddView(BrowserView):
                 }
             elif type_=='snmp':
                 zProps = {
-                    'zSnmpCommunity': self.request.form.get(
+                    'zSnmpCommunities': self.request.form.get(
                         'snmpcomm_%s' % idx
-                    )
+                    ).splitlines()
                 }
             self.context.JobManager.addJob(DeviceCreationJob,
                 deviceName=self.request.form.get(k),
