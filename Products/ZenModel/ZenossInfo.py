@@ -703,6 +703,8 @@ class ZenossInfo(ZenModelItem, SimpleItem):
             for key, value in formdata.items():
                 if value == '':
                     continue
+                if key == value: # Yes, this is strange
+                    value = True
                 config.write('%s %s\n' % (key, value))
             config.close()
         except Exception, ex:

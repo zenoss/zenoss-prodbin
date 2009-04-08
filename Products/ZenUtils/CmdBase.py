@@ -117,7 +117,19 @@ class CmdBase:
             
             # NB: At this stage, optparse accepts even bogus values
             #     It will report unhappiness when it parses the arguments
-            self.parser.set_default( option.dest, type(option.type)(value) )
+            try:
+                if option.action in [ "store_true", "store_false" ]:
+                    if value in ['True', 'true']:
+                        value = True
+                    else:
+                        value = False
+                    self.parser.set_default( option.dest, value )
+                else:
+                    self.parser.set_default( option.dest, type(option.type)(value) )
+            except:
+                print >>sys.stderr, "Bad configuration value for" \
+                    " %s at line %s, value = %s (type %s)" % (
+                    option.dest, lineno, value, option.type )
         
         #if we found bogus options write out the file with commented out bogus 
         #values
