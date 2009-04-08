@@ -114,12 +114,17 @@ class FileSystem(OSComponent):
           },
         )
 
-    
+
+    def getTotalBlocks(self):
+        offset = getattr(self.primaryAq(), 'zFileSystemSizeOffset', 1.0)
+        return int(self.totalBlocks) * offset
+
+
     def totalBytes(self):
         """
         Return the total bytes of a filesytem
         """
-        return int(self.blockSize) * int(self.totalBlocks)
+        return int(self.blockSize) * self.getTotalBlocks()
 
 
     def totalBytesString(self):
@@ -154,7 +159,7 @@ class FileSystem(OSComponent):
         """
         blocks = self.usedBlocks()
         if blocks is not None:
-            return self.blockSize * (self.totalBlocks - self.usedBlocks())
+            return self.blockSize * (self.getTotalBlocks() - self.usedBlocks())
         return None
 
 
