@@ -487,6 +487,10 @@ class ZenDisc(ZenModeler):
             else:
                 yield self.config().callRemote('succeedDiscovery', dev.id)
                 driver.next()
+                #device needs to be the last thing yielded so that
+                #calling methods will get the deviceproxy
+                yield succeed(dev)
+                driver.next()
 
             self.log.debug("Finished scanning device with address %s", ip)
 
