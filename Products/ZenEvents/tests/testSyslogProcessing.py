@@ -38,15 +38,31 @@ class SyslogProcessingTest(TestCase):
         self.assert_(s.buildEventClassKey(evt)['eventClassKey'] == 'component')
 
     def testCheckFortigate(self):
-        "Test of Fortigate syslog message parsing"
+        """
+        Test of Fortigate syslog message parsing
+        """
         msg = "date=xxxx devname=blue log_id=987654321 type=myComponent blah blah blah"
         s = SyslogProcessor(self.sendEvent, 6, False, 'localhost', 3)
         evt = s.parseTag( {}, msg )
 
-        self.assertEquals( evt.get( 'eventClassKey', '' ), '987654321' )
-        self.assertEquals( evt.get( 'component', '' ), 'myComponent' )
-        self.assertEquals( evt.get( 'summary', '' ), 'devname=blue log_id=987654321 type=myComponent blah blah blah' )
+        self.assertEquals( evt.get('eventClassKey'), '987654321' )
+        self.assertEquals( evt.get('component'), 'myComponent' )
+        self.assertEquals( evt.get('summary'), 'devname=blue log_id=987654321 type=myComponent blah blah blah' )
 
+    def testCheckCiscoPortStatus(self):
+        """
+        Test of Cisco port status syslog message parsing
+        """
+        msg = "Process 10532, Nbr 192.168.10.13 on GigabitEthernet2/15 from LOADING to FULL, Loading Done"
+        s = SyslogProcessor(self.sendEvent, 6, False, 'localhost', 3)
+        evt = s.parseTag( {}, msg )
+
+        self.assertEquals( evt.get('device'), '192.168.10.13' )
+        self.assertEquals( evt.get('process_id'), '10532' )
+        self.assertEquals( evt.get('interface'), 'GigabitEthernet2/15' )
+        self.assertEquals( evt.get('start_state'), 'LOADING' )
+        self.assertEquals( evt.get('end_state'), 'FULL' )
+        self.assertEquals( evt.get('summary'), 'Loading Done')
 
 def test_suite():
     suite = TestSuite()
