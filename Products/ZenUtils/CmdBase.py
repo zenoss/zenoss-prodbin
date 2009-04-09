@@ -258,7 +258,7 @@ be seen on the display.
            start_position= max_size - text_window
            while len(line) > max_size + text_window:
                 index= line.find( ' ', start_position )
-                if index != -1:
+                if index > 0:
                      new_comment.append( line[ 0:index ] )
                      line= line[ index: ]
 
