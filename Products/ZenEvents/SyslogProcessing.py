@@ -55,6 +55,9 @@ r"^date=.+ (?P<summary>devname=.+ log_id=(?P<eventClassKey>\d+) type=(?P<compone
 
 # proprietary message passing system
 r"^(?P<component>\S+)(\.|\s)[A-Z]{3} \d \S+ \d\d:\d\d:\d\d-\d\d:\d\d:\d\d \d{5} \d{2} \d{5} \S+ \d{4} \d{3,5} (- )*(?P<summary>.*) \d{4} \d{4}",
+
+# Cisco port state logging info
+r"^Process (?P<process_id>\d+), Nbr (?P<device>\d+\.\d+\.\d+\.\d+) on (?P<interface>\w+/\d+) from (?P<start_state>\w+) to (?P<end_state>\w+), (?P<summary>.+)",
 ) 
 
 # compile regex parsers on load
