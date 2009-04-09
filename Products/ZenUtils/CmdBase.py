@@ -103,7 +103,6 @@ class CmdBase:
             except ValueError:
                 print >>sys.stderr, "WARN: missing value on line %d" % lineno
                 continue
-
             flag= "--%s" % key
             option= self.parser.get_option( flag )
             if option is None:
@@ -338,13 +337,11 @@ be seen on the display.
                 if option_name in options_to_ignore:
                         continue
 
-                if opt.dest:
-                    option_name = opt.dest
-
                 #
                 # Find the actual value specified on the command line, if any, 
                 # and display it
                 #
+                
                 value= getattr( parser.values,  opt.dest )
 
                 default_value= parser.defaults.get( opt.dest )
