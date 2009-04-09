@@ -104,7 +104,7 @@ def getObjectsEventSummary(zem, objects, REQUEST=None):
     mydict['data'] = [{'Object':x[0],'Events':x[1]} for x in devdata]
     return mydict
 
-def getEventPillME(zem, me, number=1, showGreen=True):
+def getEventPillME(zem, me, number=1, minSeverity=0, showGreen=True):
     """
     Get HTML code displaying the maximum event severity and the number of
     events of that severity on a particular L{ManagedEntity} in a pleasing
@@ -124,7 +124,7 @@ def getEventPillME(zem, me, number=1, showGreen=True):
     @rtype: list
     """
     try:
-        evsum = zem.getEventSummaryME(me, 0)
+        evsum = zem.getEventSummaryME(me, minSeverity)
         summary =[x[2] for x in evsum]
         colors = "red orange yellow blue grey".split()
         info = ["%s out of %s acknowledged" % (x[1],x[2])

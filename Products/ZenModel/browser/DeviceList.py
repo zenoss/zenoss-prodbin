@@ -86,7 +86,7 @@ class DeviceList(BrowserView):
         if orderby=='getDeviceIp':
             obs.sort(lambda a,b:ipsort(a.getDeviceIp(), b.getDeviceIp()))
         if orderdir=='desc': obs.reverse()
-        results = [ob.getDataForJSON() + ['odd'] for ob in obs]
+        results = [ob.getDataForJSON(minSeverity=2) + ['odd'] for ob in obs]
         return results, totalCount
 
 

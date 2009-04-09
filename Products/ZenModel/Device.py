@@ -1859,7 +1859,7 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
         html.append('</tr></table>')
         return '\n'.join(html)
 
-    def getDataForJSON(self):
+    def getDataForJSON(self, minSeverity=0):
         """
         Returns data ready for serialization
         """
@@ -1874,7 +1874,7 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
             path = classurl
         prod = self.getProdState()
         zem = self.dmd.ZenEventManager
-        evsum = getEventPillME(zem, self)[0]
+        evsum = getEventPillME(zem, self, 1, minSeverity)[0]
         return [id, ip, path, prod, evsum, self.getId()]
 
     def exportXmlHook(self, ofile, ignorerels):
