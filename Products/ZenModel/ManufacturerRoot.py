@@ -186,14 +186,16 @@ class ManufacturerRoot(ZenModelItem, PrimaryPathBTreeFolder2, ZenPacker):
 
 
     def _getProduct(self, prodName, manufacturer, factory, **kwargs):
-        prod = None
+        prod = self.findProduct(prodName)
+        if prod:
+            # Product already exists. Return it.
+            return prod
+        
+        # Product doesn't already exist. Create it.
         prodid = self.prepId(prodName)
-        if not manufacturer or manufacturer == "Unknown":
-            prod = self.findProduct(prodName)
-        if prod: return prod
         manufobj = self.getManufacturer(manufacturer)
         prod = manufobj._getOb(prodid, None)
-        if not prod:
+        if prod is None:
             prod = factory(prodid, prodName=prodName, **kwargs)
             manufobj.products._setObject(prodid, prod)
             prod = manufobj.products._getOb(prodid)
