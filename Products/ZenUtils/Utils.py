@@ -45,6 +45,7 @@ from Acquisition import aq_inner, aq_parent
 from ZServer.HTTPServer import zhttp_channel
 
 from Products.ZenUtils.Exceptions import ZenPathError, ZentinelException
+from Products.ZenUtils.json import json as _json, unjson
 
 class HtmlFormatter(logging.Formatter):
     """
@@ -1217,7 +1218,6 @@ def monkeypatch(target):
     return patcher
 
 
-from Products.ZenUtils.json import json as _json
 def json(f):
     """
     Decorator that serializes the return value of the decorated function as
@@ -1266,7 +1266,11 @@ def formreq(f):
         @return: decorator function return
         @rtype: function
         """
-        kwargs.update(self.request.form) 
+        if self.request.REQUEST_METHOD=='POST':
+            content = extractPostContent(self.request)
+            args += (unjson(content),)
+        else:
+            kwargs.update(self.request.form)
         # Get rid of useless Zope thing that appears when no querystring 
         if kwargs.has_key('-C'): del kwargs['-C'] 
         # Get rid of kw used to prevent browser caching 

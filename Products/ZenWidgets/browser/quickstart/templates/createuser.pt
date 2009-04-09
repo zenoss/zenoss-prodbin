@@ -90,7 +90,7 @@
                             name: 'admin-password2',
                             initialPassField: 'admin-password1',
                             allowBlank: false
-                        }],
+                        }]
                     })
                 ]
             },{ // 50% column
@@ -138,7 +138,7 @@
                             vtype: 'email',
                             name: 'emailAddress',
                             allowBlank: true
-                        }],
+                        }]
                     })
                 ]
             }]

@@ -185,7 +185,7 @@
                                     field.focus();
                                 }
                         })]
-                    }),
+                    })
                 ]
             },{
                 frame: true,

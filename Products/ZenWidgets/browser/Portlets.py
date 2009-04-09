@@ -104,11 +104,11 @@ class WatchListPortletView(BrowserView):
         return self.getEntityListEventSummary(*args, **kwargs)
 
     @json
-    def getEntityListEventSummary(self, entities=[]):
-        if not entities:
-            entities = simplejson.loads(extractPostContent(self.request),
-                                        encoding = 'ascii')
-        if type(entities)==type(''): entities = [entities]
+    def getEntityListEventSummary(self, entities=None):
+        if entities is None: 
+            entities = []
+        elif isinstance(entities, basestring):
+            entities = [entities]
         def getob(e):
             e = str(e)
             try:
