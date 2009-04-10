@@ -234,7 +234,8 @@ class ZenPropertyManager(PropertyManager):
             if ptype in ("selection", 'multiple selection'): ptype="string"
             if type_converters.has_key(ptype):
                 propvalue=type_converters[ptype](propvalue)
-            self._setProperty(propname, propvalue, type=ptype)
+            if getattr(self, propname, None) != propvalue:
+                self._setProperty(propname, propvalue, type=ptype)
         if REQUEST: return self.callZenScreen(REQUEST)
 
     security.declareProtected(ZEN_ZPROPERTIES_EDIT, 'saveZenProperties')
@@ -248,7 +249,7 @@ class ZenPropertyManager(PropertyManager):
                 if name == 'zCollectorPlugins':
                     if tuple(getattr(self, name, ())) != tuple(value):
                         self.setZenProperty(name, value)
-                elif getattr(self, name, None) != value:
+                else:
                     self.setZenProperty(name, value)
 
         return self.callZenScreen(REQUEST)
