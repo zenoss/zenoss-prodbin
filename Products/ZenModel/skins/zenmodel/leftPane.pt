@@ -34,7 +34,6 @@
     <p id="Management">Management</p>
     <ul>
         <li><a href="/zport/dmd/addDevice">Add Device</a></li>
-        <li><a href="/zport/dmd/JobManager/joblist">Jobs</a></li>
         <li><a href="/zport/dmd/Mibs">MIBs</a></li>
         <li><a href="/zport/dmd/Monitors">Collectors</a></li>
         <li><a href="/zport/dmd/editSettings">Settings</a></li>

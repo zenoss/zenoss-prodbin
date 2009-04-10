@@ -93,6 +93,11 @@ class UserSettingsManager(ZenModelRM):
                 , 'action'        : '../ZenPackManager/viewZenPacks'
                 , 'permissions'   : ( ZEN_MANAGE_DMD, )
                 },
+                { 'id'            : 'jobs'
+                , 'name'          : 'Jobs'
+                , 'action'        : '../joblist'
+                , 'permissions'   : ( "Manage DMD", )
+                },
                 { 'id'            : 'menus'
                 , 'name'          : 'Menus'
                 , 'action'        : '../editMenus'

@@ -6,14 +6,14 @@
 
     <browser:page
         name="joblist"
-        for="..interfaces.IJobManager"
+        for="*"
         class=".JobListView.JobListView"
         permission="zope2.View"
         />
 
     <browser:page
         name="jsonjobs"
-        for="..interfaces.IJobManager"
+        for="*"
         class=".JobListView.JobListView"
         attribute="jsonjobs"
         permission="zope2.View"
@@ -35,7 +35,7 @@
 
     <browser:page
         name="startzenjobs"
-        for="..interfaces.IJobManager"
+        for="*"
         class=".JobListView.JobListView"
         attribute="start_daemon"
         permission="zope2.View"

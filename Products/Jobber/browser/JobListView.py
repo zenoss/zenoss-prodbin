@@ -24,6 +24,8 @@ class JobListView(BrowserView):
     Show which jobs are running.
     """
     __call__ = ZopeTwoPageTemplateFile('joblist.pt')
+    # Give the template object an id so that the tab will be selected
+    __call__.id = 'joblist'
 
     def start_daemon(self):
         self.context.dmd.About.doDaemonAction('zenjobs', 'start')

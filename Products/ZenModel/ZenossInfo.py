@@ -80,6 +80,11 @@ class ZenossInfo(ZenModelItem, SimpleItem):
                 , 'action'        : '../dmd/ZenPackManager/viewZenPacks'
                 , 'permissions'   : ( "Manage DMD", )
                 },
+                { 'id'            : 'jobs'
+                , 'name'          : 'Jobs'
+                , 'action'        : '../dmd/joblist'
+                , 'permissions'   : ( "Manage DMD", )
+                },
                 { 'id'            : 'menus'
                 , 'name'          : 'Menus'
                 , 'action'        : '../dmd/editMenus'

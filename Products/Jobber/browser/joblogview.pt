@@ -1,4 +1,4 @@
-<tal:block metal:use-macro="here/templates/macros/page3">
+<tal:block metal:use-macro="here/templates/macros/page2">
 <tal:block metal:fill-slot="contentPane">
 <style>
     .logframe {
@@ -10,7 +10,7 @@
     }
 </style>
 
-<a href="/zport/dmd/JobManager/joblist">&lt;&lt; Back to Job Manager</a>
+<a href="/zport/dmd/joblist">&lt;&lt; Back to Job Manager</a>
 <h3 tal:content="view/description"></h3>
 <h4>If no output is being displayed, make sure the zenjobs daemon is running.</h4>
 

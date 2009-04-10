@@ -75,6 +75,11 @@ class ZenPackManager(ZenModelRM):
                 , 'action'        : 'viewZenPacks'
                 , 'permissions'   : ( "Manage DMD", )
                 },
+                { 'id'            : 'jobs'
+                , 'name'          : 'Jobs'
+                , 'action'        : '../joblist'
+                , 'permissions'   : ( "Manage DMD", )
+                },
                 { 'id'            : 'menus'
                 , 'name'          : 'Menus'
                 , 'action'        : '../editMenus'
