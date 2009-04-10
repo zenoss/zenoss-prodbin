@@ -395,7 +395,8 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
             if isinstance(REQUEST, FakeRequest) and \
                 REQUEST.has_key('oneKeyValueSoInstanceIsntEmptyAndEvalToFalse'):
                 return REQUEST['message']
-            return self.callZenScreen(REQUEST)
+            REQUEST['RESPONSE'].redirect(self.primaryAq().absolute_url())
+            return
 
 
     def getRRDTemplate(self):
