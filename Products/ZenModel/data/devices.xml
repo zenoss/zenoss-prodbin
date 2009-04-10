@@ -4024,6 +4024,13 @@ GAUGE
 <property type="boolean" id="isrow" mode="w" >
 True
 </property>
+<tomanycont id='aliases'>
+<object id='cpu__pct' module='Products.ZenModel.RRDDataPointAlias' class='RRDDataPointAlias'>
+<property type="string" id="formula" mode="w">
+100,EXC,-
+</property> 
+</object>
+</tomanycont>
 </object>
 </tomanycont>
 </object>
@@ -6064,6 +6071,13 @@ GAUGE
 <property type="boolean" id="isrow" mode="w" >
 True
 </property>
+<tomanycont id='aliases'>
+<object id='cpu__pct' module='Products.ZenModel.RRDDataPointAlias' class='RRDDataPointAlias'>
+<property type="string" id="formula" mode="w">
+100,EXC,-
+</property> 
+</object>
+</tomanycont>
 </object>
 </tomanycont>
 </object>

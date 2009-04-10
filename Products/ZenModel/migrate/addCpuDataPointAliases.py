@@ -21,6 +21,26 @@ def attachCpuAliases( dmd, aliasMap ):
                     if not dp.hasAlias( aliasMap[dp.id][0] ):
                         dp.addAlias( *aliasMap[dp.id] )
 
+def handleCpuIdleOnLinuxes( dmd ):
+    """
+    If there is no ssCpuRawIdle, we want to use ssCpuIdle (as problematic as that
+    might be).  ssCpuIdle has problems because there is no standard for the
+    time period over which the value is averaged.  ssCpuRawIdle has problems
+    because older versions of Net-SNMP started returning zeroes when the value 
+    passed a counter max
+    """
+    for template in [ t.getObject() for t in dmd.searchRRDTemplates()]:
+        templateDpMap={}
+        for ds in template.datasources():
+            dpMap=dict( [(dp.id,dp) for dp in ds.datapoints()] )
+            templateDpMap.update( dpMap )
+        if 'ssCpuIdle' in templateDpMap.keys() and \
+            'ssCpuRawIdle' not in templateDpMap.keys():
+            dp=templateDpMap['ssCpuIdle']
+            if not dp.hasAlias('cpu__pct'):
+                templateDpMap['ssCpuIdle'].addAlias( 'cpu__pct', '100,EXC,-' )
+
+
 def buildDataPointAliasRelations( dmd ):
     for brain in dmd.searchRRDTemplates():
         template = brain.getObject()
@@ -40,6 +60,7 @@ class addCpuDataPointAliases(Migrate.Step):
            'laLoadInt5' : ('loadAverage5min', '100,/'),
            'cpuPercentProcessorTime' : ('cpu__pct',) }
            )
+        handleCpuIdleOnLinuxes( dmd )
 
             
 addCpuDataPointAliases()
