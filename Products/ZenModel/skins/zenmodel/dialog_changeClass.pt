@@ -2,13 +2,9 @@
 <p>
 To which class would you like to move this device?<br/>
 </p> 
-<form action="_"  method="post" 
-        tal:define="device python:here.device()"
-        tal:attributes="action here/REQUEST/URL1">
-<input type="hidden" name="deviceNames" 
-        tal:attributes="value device/getId" />
+<form method="post" tal:attributes="action here/absolute_url">
 <p style="text-align:center;">
-<select class="tableheader" name="moveTarget"
+<select class="tableheader" name="deviceClassPath"
     tal:define="targets here/deviceClassMoveTargets">
     <option value=""></option>
     <option tal:repeat="target targets"
@@ -17,11 +13,11 @@ To which class would you like to move this device?<br/>
 </p>
 <br/>
 <div id="dialog_buttons">
-<input type="submit" name="moveDevices:method"
+<input type="submit" name="changeDeviceClass:method"
       value="OK" />  
 <input tal:attributes="id string:dialog_cancel;
         type string:button;
         value string:Cancel;
         onclick string:$$('dialog').hide()" />
 </div>
-</form>       
+</form>

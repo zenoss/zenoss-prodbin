@@ -60,6 +60,7 @@ from DeviceHW import DeviceHW
 from ZenStatus import ZenStatus
 from Products.ZenModel.Exceptions import *
 from ZenossSecurity import *
+from Products.ZenUtils.FakeRequest import FakeRequest
 from Products.ZenUtils.Utils import edgesToXML
 from Products.ZenUtils import NetworkTree
 
@@ -371,6 +372,31 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
         if flag is None:
             flag = self._temp_device = False
         return flag
+
+
+    security.declareProtected(ZEN_MANAGE_DMD, 'changeDeviceClass')
+    def changeDeviceClass(self, deviceClassPath, REQUEST=None):
+        """
+        Wrapper for DeviceClass.moveDevices. The primary reason to use this
+        method instead of that one is that this one redirects the user to the
+        device in the web interface instead of the new device class.
+        
+        @param deviceClassPath: device class in DMD path
+        @type deviceClassPath: string
+        @param REQUEST: Zope REQUEST object
+        @type REQUEST: Zope REQUEST object
+        """
+        self.deviceClass().moveDevices(deviceClassPath, (self.id,))
+        if REQUEST:
+            messaging.IMessageSender(self).sendToBrowser(
+                title='Device Moved',
+                body="%s was moved to %s." % (self.id, deviceClassPath))
+            REQUEST['message'] = "%s moved to %s" % (self.id, deviceClassPath)
+            if isinstance(REQUEST, FakeRequest) and \
+                REQUEST.has_key('oneKeyValueSoInstanceIsntEmptyAndEvalToFalse'):
+                return REQUEST['message']
+            return self.callZenScreen(REQUEST)
+
 
     def getRRDTemplate(self):
         """
