@@ -26,6 +26,8 @@ import socket
 
 # Regular expressions that parse syslog tags from different sources
 parsers = (
+# generic mark
+r"^(?P<summary>-- (?P<eventClassKey>MARK) --)",
     
 # ntsyslog windows msg
 r"^(?P<component>.+)\[(?P<ntseverity>\D+)\] (?P<ntevid>\d+) (?P<summary>.*)",
@@ -230,7 +232,7 @@ class SyslogProcessor(object):
             evt.update(m.groupdict())
             break
         else:
-            slog.warn("parseTag failed:'%s'", msg)
+            slog.info("No matching parser: '%s'", msg)
             evt['summary'] = msg
         return evt
 

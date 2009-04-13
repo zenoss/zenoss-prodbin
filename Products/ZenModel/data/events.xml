@@ -1153,6 +1153,20 @@ User username@domain.com used ROWLIST_REPLACE to delete all rules in folder 1-8B
 1400
 </property>
 <tomanycont id='instances'>
+<object id='MARK' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
+<property type="string" id="eventClassKey" mode="w" >
+MARK
+</property>
+<property type="int" id="sequence" mode="w" >
+0
+</property>
+<property type="string" id="regex" mode="w" >
+-- MARK --
+</property>
+<property type="string" id="example" mode="w" >
+-- MARK --
+</property>
+</object>
 <object id='defaultmapping' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
 <property type="string" id="eventClassKey" mode="w" >
 defaultmapping

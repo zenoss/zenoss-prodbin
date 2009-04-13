@@ -189,9 +189,9 @@ class ZenSyslog(DatagramProtocol, EventServer):
         @type data: tuple of (string, string, datetime object)
         """
         (msg, ipaddr, rtime) = data
-        host = ipaddr
-        self.log.debug( "Response = %s" % response )
-        if not isinstance(response, failure.Failure):
+        if isinstance(response, failure.Failure):
+            host = ipaddr
+        else:
             host = response
         if self.processor:
             self.processor.process(msg, ipaddr, host, rtime)
