@@ -190,13 +190,6 @@ class EventClass(EventClassPropertyMixin, Organizer, ManagedEntity, ZenPackable)
         @return: an event class that matches the mapping
         @rtype: EventClassInst
         """
-        if device is None:
-            try:
-                return self.getDmdRoot("Events").getOrganizer(Unknown)
-            except KeyError:
-                log.debug("Unable to find 'Unknown' organizer")
-                return None
-
         evtcls = []
         if getattr(evt, "eventClass", False):
             try:
