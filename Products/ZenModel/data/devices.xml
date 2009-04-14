@@ -2025,6 +2025,9 @@ False
 </property>
 </object>
 <object id='Network' module='Products.ZenModel.DeviceClass' class='DeviceClass'>
+<property type="lines" id="devtypes" mode="w" >
+[('Generic Switch/Router', 'SNMP')]
+</property>
 <property visible="True" type="string" id="zCollectorCollectPlugins" >
 InterfaceMap|RouteMap|DeviceMap|IpServceMap
 </property>
@@ -3708,6 +3711,9 @@ AVERAGE
 </object>
 </tomanycont>
 <object id='Linux' module='Products.ZenModel.DeviceClass' class='DeviceClass'>
+<property type="lines" id="devtypes" mode="w" >
+[('Linux Server', 'SNMP')]
+</property>
 <property visible="True" type="string" id="zCollectorIgnorePlugins" >
 HRSWInstalledMap
 </property>
@@ -5115,6 +5121,9 @@ AVERAGE
 </tomanycont>
 </object>
 <object id='Windows' module='Products.ZenModel.DeviceClass' class='DeviceClass'>
+<property type="lines" id="devtypes" mode="w" >
+[('Windows Server', 'SNMP'), ('Windows Server', 'WMI')]
+</property>
 <property visible="True" type="boolean" id="zWinEventlog" >
 True
 </property>
@@ -8975,6 +8984,26 @@ AVERAGE
 </tomanycont>
 </object>
 </tomanycont>
+</object>
+<object id='SSH' module='Products.ZenModel.DeviceClass' class='DeviceClass'>
+<property visible="True" type="boolean" id="zSnmpMonitorIgnore" >
+True
+</property>
+<property visible="True" type="lines" id="zCollectorPlugins" >
+[]
+</property>
+<tomanycont id='rrdTemplates'>
+<object id='Device' module='Products.ZenModel.RRDTemplate' class='RRDTemplate'>
+<property type="string" id="targetPythonClass" mode="w" >
+Products.ZenModel.Device
+</property>
+</object>
+</tomanycont>
+<object id='Linux' module='Products.ZenModel.DeviceClass' class='DeviceClass'>
+<property type="lines" id="devtypes" mode="w" >
+[('Linux Server', 'SSH')]
+</property>
+</object>
 </object>
 </object>
 <object id='Printer' module='Products.ZenModel.DeviceClass' class='DeviceClass'>

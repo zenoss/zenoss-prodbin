@@ -59,6 +59,26 @@ class DeviceAddView(BrowserView):
         devclass = self.context.dmd.Devices.Discovered.primaryAq()
         return '\n'.join(devclass.zSnmpCommunities)
 
+    def _assemble_types_list(self):
+        """
+        Walks all device classes building a list of description/protocol pairs.
+        """
+        ALLOWED_PROTOCOLS = ('SSH', 'SNMP', 'WMI')
+        devclass = self.context.dmd.Devices
+        orgs = devclass.getSubOrganizers()
+        types = []
+        for org in orgs:
+            # Skip it if it doesn't have types registered
+            if not org.devtypes: continue
+            for t in org.devtypes:
+                desc, ptcl = t
+                # Both must be defined
+                if not ptcl or not desc: continue
+                # We only care about orgs with acceptable protocols
+                if ptcl not in ALLOWED_PROTOCOLS: continue
+                types.append((org.getOrganizerName(), desc, ptcl))
+        return types
+
     @json
     def device_types(self):
         """
@@ -69,26 +89,12 @@ class DeviceAddView(BrowserView):
         to see and checks each DeviceClass for existence (i.e., is the
         appropriate ZenPack installed?).
         """
-        # Build the list of all possible types
-        types = dict(
-            win = [
-                ('/Server/Windows/WMI', 'Windows Server', 'WMI')
-            ],
-            snmp = [
-                ('/Server/Windows', 'Windows Server', 'SNMP'),
-                ('/Server/Linux', 'Linux Server', 'SNMP'),
-                ('/Network', 'Generic Switch/Router', 'SNMP'),
-                ('/Network/Cisco', 'Cisco Device', 'SNMP'),
-                ('/Network/BIG-IP', 'BIG-IP Device', 'SNMP'),
-                ('/Network/Firewall/NetScreen', 'NetScreen Firewall', 'SNMP'),
-                ('/Network/Check Point', 'CheckPoint Firewall', 'SNMP'),
-                ('/Storage/Brocade', 'Brocade Storage', 'SNMP'),
-                ('/Storage', 'NetApp Filer', 'SNMP'),
-            ],
-            ssh = [
-                ('/Server/SSH/Linux', 'Linux Server', 'SSH'),
-                ('/Server/SSH/AIX', 'AIX Server', 'SSH'),
-            ])
+        # Turn them into the dictionary format expected
+        types = {'win':[], 'ssh':[], 'snmp':[]}
+        for t in self._assemble_types_list():
+            if   t[2]=='WMI':  types['win'].append(t)
+            elif t[2]=='SNMP': types['snmp'].append(t)
+            elif t[2]=='SSH':  types['ssh'].append(t)
 
         def dev_class_exists(path):
             """

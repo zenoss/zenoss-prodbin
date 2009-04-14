@@ -80,6 +80,12 @@ class DeviceClass(DeviceOrganizer, ZenPackable, TemplateContainer):
 
     default_catalog = 'deviceSearch'
 
+    devtypes = None
+
+    _properties = DeviceOrganizer._properties + (
+                    {'id':'devtypes', 'type':'lines', 'mode':'w'},
+                   )
+
     _relations = DeviceOrganizer._relations + ZenPackable._relations + \
                 TemplateContainer._relations + (
         ("devices", ToManyCont(ToOne,"Products.ZenModel.Device","deviceClass")),
@@ -897,6 +903,24 @@ class DeviceClass(DeviceOrganizer, ZenPackable, TemplateContainer):
         if value is None:
             value = time.time()
         self._lastChange = float(value)
+
+    def register_devtype(self, description, protocol):
+        """
+        Define this class in terms of a description of the devices it should
+        contain and the protocol by which they would normally be monitored.
+        """
+        t = (description, protocol)
+        if self.devtypes is None:
+            self.devtypes = []
+        if t not in self.devtypes:
+            self.devtypes.append(t)
+            self._p_changed = True
+
+    def unregister_devtype(self, description, protocol):
+        t = (description, protocol)
+        if t in self.devtypes:
+            self.devtypes.remove(t)
+            self._p_changed = True
 
 
 InitializeClass(DeviceClass)

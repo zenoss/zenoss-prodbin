@@ -167,12 +167,23 @@ class TestDeviceClass(ZenModelBaseTest):
         self.assert_(layer not in devices.children())
         self.assert_(dc not in devices.getSubOrganizers())
 
-
     def testDeviceOrganizer(self):
         devices = self.dmd.Devices
         dc = devices.createOrganizer('/Test')
         self.assertEqual(devices.countDevices(), 3)
         self.assert_(self.dev in devices.getSubDevices())
+
+    def test_devtypes(self):
+        devices = self.dmd.Devices
+        # Test registration
+        devices.register_devtype('Device', 'SNMP')
+        self.assertEqual(devices.devtypes, [('Device', 'SNMP')])
+        # Test no duplicates
+        devices.register_devtype('Device', 'SNMP')
+        self.assertEqual(devices.devtypes, [('Device', 'SNMP')])
+        # Test removal
+        devices.unregister_devtype('Device', 'SNMP')
+        self.assertEqual(devices.devtypes, [])
         
 
 def test_suite():

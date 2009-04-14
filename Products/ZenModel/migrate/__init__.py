@@ -172,3 +172,4 @@ import addDefaultZFileSystemMapIgnoreTypes
 import addNmapOptionsZProp
 import osProcessMemoryBase1024
 import zFileSystemSizeOffset
+import devtypes
