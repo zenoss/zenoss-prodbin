@@ -110,9 +110,9 @@ class DeviceOrganizer(Organizer, DeviceManagerBase, Commandable, ZenMenuable,
 
         brains = catalog(path="/".join(self.getPhysicalPath()))
         devices = (b.getObject() for b in brains)
-        devices = ifilter(devfilter, devices)
         devices = ifilter(lambda dev:self.checkRemotePerm(ZEN_VIEW, dev),
                           devices)
+        devices = ifilter(devfilter, devices)
         return list(devices)
 
     security.declareProtected(ZEN_VIEW, "getSubDevicesGen")

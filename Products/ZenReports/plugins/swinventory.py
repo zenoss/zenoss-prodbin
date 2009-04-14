@@ -19,14 +19,20 @@ class swinventory:
             if m.id == 'Unknown' or m.meta_type != 'Manufacturer': continue
             for p in m.products.objectValues():
                 if p.meta_type == 'SoftwareClass':
-                    c = p.instances.countObjects()
+                    c = 0
+                    for i in p.instances():
+                        try:
+                            if dmd.checkRemotePerm('View', i.device()):
+                                c += 1
+                        except:
+                            continue
                     if c == 0: continue 
-                    print m.id, p.id, p.instances.countObjects()
+                    print m.id, p.id, c
                     report.append(
                         Utils.Record(
                             manuf = m,
                             soft = p,
-                            count = p.instances.countObjects()
+                            count = c
                         )
                     )
         return report

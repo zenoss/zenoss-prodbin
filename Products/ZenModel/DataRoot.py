@@ -274,6 +274,14 @@ class DataRoot(ZenModelRM, OrderedFolder, Commandable, ZenMenuable):
         return self.ZenEventManager.getEventCount(**kwargs)
 
 
+    security.declareProtected(ZEN_COMMON, 'getEventClassNames')
+    def getEventClassNames(self):
+        """
+        Get a list of all event class names within the permission scope.
+        """
+        return self.Events.getOrganizerNames()
+
+
     def getDmdRoots(self):
         return filter(lambda o: o.isInTree, self.objectValues())
 

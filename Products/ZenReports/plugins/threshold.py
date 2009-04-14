@@ -82,30 +82,39 @@ class threshold:
         totalTime = endDate - startDate
         for k, seconds in sum.items():
             deviceName, componentName, eventClassName = k
+            deviceLink = deviceName
             component = None
+            componentLink = componentName
             eventClass = None
+            eventClassLink = eventClassName
             device = find(deviceName)
-            if device and componentName:
+            if not device or not dmd.checkRemotePerm('View', device): continue
+            deviceLink = device.urlLink()
+            if componentName:
                 for c in device.getMonitoredComponents():
                     if c.name().find(componentName) >= 0:
                         component = c
+                        componentLink = c.urlLink()
                         break
             # get some values useful for the report
             duration = Duration(seconds)
             percent = seconds * 100. / totalTime
             try:
                 eventClass = dmd.Events.getOrganizer(eventClassName)
+                eventClassLink = eventClass.urlLink()
             except KeyError:
                 pass
-            report.append(Utils.Record(deviceName=deviceName,
-                                       device=device,
-                                       componentName=componentName,
-                                       component=component,
-                                       eventClassName=eventClassName,
-                                       eventClass=eventClass,
-                                       count=counts.get(k, 1),
-                                       seconds=seconds,
-                                       percentTime=percent,
-                                       duration=duration))
+            report.append(Utils.Record(
+                deviceName=deviceName,
+                deviceLink=deviceLink,
+                componentName=componentName,
+                componentLink=componentLink,
+                eventClassName=eventClassName,
+                eventClassLink=eventClassLink,
+                count=counts.get(k, 1),
+                seconds=seconds,
+                percentTime=percent,
+                duration=duration))
 
         return report
+

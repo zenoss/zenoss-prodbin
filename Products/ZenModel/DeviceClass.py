@@ -464,12 +464,15 @@ class DeviceClass(DeviceOrganizer, ZenPackable, TemplateContainer):
         res = zcat({'meta_type': meta_type, 'monitored': monitored})
         for b in res:
             try:
-                yield self.getObjByPath(b.getPrimaryId)
+                c = self.getObjByPath(b.getPrimaryId)
+                if self.checkRemotePerm("View", c):
+                    yield c
             except KeyError:
                 log.warn("bad path '%s' in index 'componentSearch'", 
                             b.getPrimaryId)
 
 
+    security.declareProtected("ZenCommon", "getMonitoredComponents")
     def getMonitoredComponents(self):
         """
         Return monitored components for devices within this DeviceDeviceClass

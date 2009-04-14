@@ -64,7 +64,7 @@
     </tr><tr>
        <td class="tableheader">Event Class:</td>
        <td class="tablevalues"><select class="tablevalues" name="eventClass">
-            <option tal:repeat="org here/dmd/Events/getOrganizerNames"
+            <option tal:repeat="org here/getEventClassNames"
                     tal:content="org"
                     tal:attributes="selected python:org==eventClass"/>
            </select>
