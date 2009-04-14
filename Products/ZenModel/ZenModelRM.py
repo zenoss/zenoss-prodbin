@@ -234,8 +234,8 @@ class ZenModelRM(ZenModelBase, RelationshipManager, Historical, ZenPacker):
         """
         Hook to get the name of an object.  Usually its self.getId() but is
         overridden by Organizer to be getOrganizerName.
-
-        >>> dmd.Manufacturers.Cisco.getDmdKey()
+        
+        >>> dmd.Manufacturers.createManufacturer('Cisco').getDmdKey()
         'Cisco'
         >>> dmd.Devices.Server.getDmdKey()
         '/Server'        
