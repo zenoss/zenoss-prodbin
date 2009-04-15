@@ -21,7 +21,7 @@
 
 <form method="POST" tal:attributes="action request/URL; name string:deviceList"
 			tal:define="tabletitle string:Interface Utilization;
-                        showfilterbox python:True;
+                        showfilterbox python:False;
 						tblcolspan string:7">
 <tal:block metal:use-macro="here/zenuimacros/macros/zentable">
 <tal:block metal:fill-slot="zentablecontents">
