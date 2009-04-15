@@ -4,8 +4,8 @@
 <tal:block tal:define="tabletitle string:Jobs">
 <tal:block metal:use-macro="here/zenuimacros/macros/zentable">
 <tal:block metal:fill-slot="filterslot">
-<div style="float:right;font-size:0.9em;
-            font-style:italic;color:#fff;margin-right:56px;"
+<div style="font-size:0.9em;position:absolute;right:0;
+            font-style:italic;color:#fff;"
     tal:content="structure view/daemonstr"></div>
 </tal:block>
 <tal:block metal:fill-slot="zentablecontents">
