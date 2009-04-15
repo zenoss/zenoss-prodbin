@@ -25,10 +25,8 @@ class AddDeviceClassDescriptionAndProtocol(Migrate.Step):
     def cutover(self, dmd):
         for path, desc, protocol in [
             ('/Server/Windows', 'Windows Server', 'SNMP'),
-            ('/Server/Windows', 'Windows Server', 'WMI'),
             ('/Server/Linux', 'Linux Server', 'SNMP'),
             ('/Network', 'Generic Switch/Router', 'SNMP'),
-            ('/Server/SSH/Linux', 'Linux Server', 'SSH'),
         ]:
             try:
                 org = dmd.Devices.unrestrictedTraverse(path[1:])

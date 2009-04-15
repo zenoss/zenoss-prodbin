@@ -5122,7 +5122,7 @@ AVERAGE
 </object>
 <object id='Windows' module='Products.ZenModel.DeviceClass' class='DeviceClass'>
 <property type="lines" id="devtypes" mode="w" >
-[('Windows Server', 'SNMP'), ('Windows Server', 'WMI')]
+[('Windows Server', 'SNMP')]
 </property>
 <property visible="True" type="boolean" id="zWinEventlog" >
 True
@@ -9000,9 +9000,6 @@ Products.ZenModel.Device
 </object>
 </tomanycont>
 <object id='Linux' module='Products.ZenModel.DeviceClass' class='DeviceClass'>
-<property type="lines" id="devtypes" mode="w" >
-[('Linux Server', 'SSH')]
-</property>
 </object>
 </object>
 </object>
