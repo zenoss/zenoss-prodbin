@@ -1,16 +1,42 @@
 <tal:block metal:use-macro="here/templates/macros/page2">
 <tal:block metal:fill-slot="title">Zenoss: Jobs</tal:block>
 <tal:block metal:fill-slot="contentPane">
-<tal:block tal:define="tabletitle string:Jobs">
-<tal:block metal:use-macro="here/zenuimacros/macros/zentable">
-<tal:block metal:fill-slot="filterslot">
-<div style="font-size:0.9em;display:inline;position:absolute;right:0;
-            padding-right:5em;font-style:italic;color:#fff;"
-    tal:content="structure view/daemonstr"></div>
+<style>
+    .rightslot {
+        display: inline;
+        font-size: 0.9em;
+        position:absolute;
+        right: 0;
+        line-height: 25px;
+        font-style:italic;
+        color: #fff;
+        font-weight: normal;
+    }
+</style>
+<!--[if IE 7]>
+<style>
+    .rightslot {
+        line-height: 12px;
+    }
+</style>
+<![endif]-->
+<tal:block metal:use-macro="here/zenuimacros/macros/zentable-slidingdoors">
+<tal:block metal:fill-slot="title">
+Jobs
+<div class="rightslot" tal:content="structure view/daemonstr"></div>
 </tal:block>
-<tal:block metal:fill-slot="zentablecontents">
+<tal:block metal:fill-slot="filterslot">
+</tal:block>
+<tal:block metal:fill-slot="body">
 <tr><td cellpadding=0 cellspacing=0 style="padding:0;margin:0;border:0">
 <div id="jobs" style="clear:both"></div>
+</td></tr>
+</tal:block>
+</tal:block>
+<!--
+<script type='text/javascript' 
+    src='http://getfirebug.com/releases/lite/1.2/firebug-lite-compressed.js'></script>
+-->
 <script>
 (function() {
 
@@ -32,7 +58,7 @@ function initialize() {
         Z.CallableReqDS.superclass.constructor.call(this, oLiveData, oConfigs);
         // Set constructor back (also part of fix)
         this.constructor = Z.CallableReqDS;
-    }
+    };
     YAHOO.lang.extend(Z.CallableReqDS, Y.XHRDataSource);
 
     Z.CallableReqDS.prototype.makeConnection = function(oRequest, oCallback, 
@@ -96,7 +122,7 @@ function initialize() {
             container.appendChild(interruptimg);
         }
         container.appendChild(delimg);
-    }
+    };
 
     var pending_table = new W.DataTable("jobs", 
         [{key:"status", label:"Status", formatter:formatStatus}, 
@@ -108,30 +134,21 @@ function initialize() {
          {key:"actions", label:"Actions", formatter:actionFormatter}],
          pending_ds);
 
-    //pending_table.subscribe("rowMouseoverEvent",
-    //    pending_table.onEventHighlightRow);
-    //pending_table.subscribe("rowMouseoutEvent",
-    //    pending_table.onEventUnhighlightRow);
-    //pending_table.subscribe("rowClickEvent", pending_viewLog);
-    
-
     function _defeatCaching(){return '?_dc=' + new Date().getTime()}
 
-    pending_ds.setInterval(5000, _defeatCaching, 
+    pending_ds.setInterval(10000, _defeatCaching, 
         pending_table.onDataReturnInitializeTable, pending_table
     );
-}
+
+} // End initialize()
 
 loader = YAHOO.zenoss.getLoader();
 loader.require(['connection', 'datasource', 'datatable', 'event']);
-loader.insert({onSuccess:initialize});
+loader.insert({onSuccess: function(){YAHOO.util.Event.onDOMReady(initialize)}});
+
 
 })();
 </script>
-</td></tr>
-</tal:block>
-</tal:block>
-</tal:block>
 
 </tal:block>
 </tal:block>
