@@ -264,7 +264,7 @@ class ZenDisc(ZenModeler):
         return NJobs(self.options.parallel, discoverDevice, ips).start()
 
 
-    def findRemoteDeviceInfo(self, ip, devicePath):
+    def findRemoteDeviceInfo(self, ip, devicePath, deviceSnmpCommunities=None):
         """
         Scan a device for ways of naming it: PTR DNS record or a SNMP name
 
@@ -272,7 +272,11 @@ class ZenDisc(ZenModeler):
         @type ip: string
         @param devicePath: where in the DMD to put any discovered devices
         @type devicePath: string
-        @return: result is None or a tuple containing (community, port, version, snmp name)
+        @param deviceSnmpCommunities: Optional list of SNMP community strings
+            to try, overriding those set on the device class
+        @type deviceSnmpCommunities: list
+        @return: result is None or a tuple containing 
+            (community, port, version, snmp name)
         @rtype: deferred: Twisted deferred
         """
         from pynetsnmp.twistedsnmp import AgentProxy
@@ -289,6 +293,11 @@ class ZenDisc(ZenModeler):
             self.log.debug("Doing SNMP lookup on device %s", ip)
             yield self.config().callRemote('getSnmpConfig', devicePath)
             communities, port, version, timeout, retries = driver.next()
+
+            # Override the device class communities with the ones set on
+            # this device, if they exist
+            if deviceSnmpCommunities is not None:
+                communities = deviceSnmpCommunities
 
             oid = ".1.3.6.1.2.1.1.5.0"
             goodcommunity = ""
@@ -359,12 +368,23 @@ class ZenDisc(ZenModeler):
                           devicePath=devicepath,
                           performanceMonitor=self.options.monitor)
 
+                # If zProperties are set via a job, get them and pass them in
+                if self.options.job:
+                    yield self.config().callRemote('getJobProperties',
+                                                   self.options.job)
+                    job_props = driver.next()
+                    if job_props is not None:
+                        kw['zProperties'] = job_props.get('zProperties', {})
+
                 snmpDeviceInfo = None
                 # if we are using SNMP, lookup the device SNMP info and use the
                 # name defined there for deviceName
                 if not self.options.nosnmp:
                     self.log.debug("Scanning device with address %s", ip)
-                    yield self.findRemoteDeviceInfo(ip, devicepath)
+                    snmpCommunities = kw['zProperties'].get('zSnmpCommunities',
+                                                           None)
+                    yield self.findRemoteDeviceInfo(ip, devicepath,
+                                                    snmpCommunities)
                     snmpDeviceInfo = driver.next()
                     if snmpDeviceInfo:
                         keys = ('zSnmpCommunity', 'zSnmpPort', 'zSnmpVer', 
@@ -412,14 +432,6 @@ class ZenDisc(ZenModeler):
                 # ignore zAutoDiscover limitations
                 forceDiscovery = bool(self.options.device) 
 
-                # If zProperties are set via a job, get them and pass them in
-                # as well
-                if self.options.job:
-                    yield self.config().callRemote('getJobProperties',
-                                                   self.options.job)
-                    job_props = driver.next()
-                    if job_props is not None:
-                        kw['zProperties'] = job_props.get('zProperties', {})
 
                 # now create the device by calling zenhub
                 yield self.config().callRemote('createDevice', ip, 

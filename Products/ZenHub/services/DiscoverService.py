@@ -146,6 +146,13 @@ class DiscoverService(ModelerService):
             kw['manageIp'] = ip
             dev = manage_createDevice(self.dmd, **kw)
         except DeviceExistsError, e:
+            # Update device with latest info from zendisc
+            e.dev.setManageIp(kw['manageIp'])
+            for key in ('manageIp', 'deviceName', 'devicePath', 
+                        'discoverProto'): 
+                del kw[key]
+            e.dev.manage_editDevice(**kw)
+            # Make and return a device proxy
             return self.createDeviceProxy(e.dev), False
         except Exception, ex:
             raise pb.CopyableFailure(ex)
