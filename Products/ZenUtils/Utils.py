@@ -1268,7 +1268,10 @@ def formreq(f):
         """
         if self.request.REQUEST_METHOD=='POST':
             content = extractPostContent(self.request)
-            args += (unjson(content),)
+            try:
+                args += (unjson(content),)
+            except ValueError:
+                kwargs.update(self.request.form)
         else:
             kwargs.update(self.request.form)
         # Get rid of useless Zope thing that appears when no querystring 
