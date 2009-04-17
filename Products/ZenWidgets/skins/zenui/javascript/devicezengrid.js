@@ -94,9 +94,6 @@ DeviceZenGridBuffer.prototype = {
         if (offset > this.startPos && !reverse){ 
             newOffset = Math.max(offset, this.endPos()); //appending
         }
-        else if (offset > this.startPos && reverse) {
-            newOffset = offset - this.maxQuery;
-        }
         else if (offset + this.maxQuery >= this.startPos) {
             newOffset = Math.max(this.startPos - this.maxQuery, 0); //prepending
 
