@@ -587,9 +587,11 @@
             }
         });
 
-        Ext.get('manualradio').on('focus', function(){tabpanel.activate(0)});
-        Ext.get('autoradio').on('focus', function(){tabpanel.activate(1)});
+        // Wire up the radio buttons
+        var manlradio = Ext.get('manualradio');
+        var autoradio = Ext.get('autoradio');
 
+<<<<<<< HEAD:Products/ZenWidgets/browser/quickstart/templates/quickstart_macros.pt
         // IE has an odd problem laying out the containers in this order,
         // so the border is messed up until you switch away from and back to
         // the tab.
@@ -598,6 +600,24 @@
             tabpanel.activate(0);
         }
 
+=======
+        manlradio.on('focus', function(){
+            manlradio.dom.checked = true;
+            tabpanel.activate(0)
+        });
+        autoradio.on('focus', function(){
+            autoradio.dom.checked = true;
+            tabpanel.activate(1)
+        });
+
+        // Safari doesn't fire focus on radio button selection
+        if (Ext.isSafari) {
+            manlradio.on('change', manlradio.focus);
+            autoradio.on('change', autoradio.focus);
+        }
+
+        // Check manual by default
+>>>>>>> 4792:Products/ZenWidgets/browser/quickstart/templates/quickstart_macros.pt
         Ext.get('manualradio').dom.checked = true;
 
     });
