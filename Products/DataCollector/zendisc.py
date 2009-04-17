@@ -373,7 +373,7 @@ class ZenDisc(ZenModeler):
                     yield self.config().callRemote('getJobProperties',
                                                    self.options.job)
                     job_props = driver.next()
-                    if job_props is not None:
+                    if job_props is not None and 'zProperties' in kw:
                         kw['zProperties'] = job_props.get('zProperties', {})
 
                 snmpDeviceInfo = None
@@ -381,8 +381,8 @@ class ZenDisc(ZenModeler):
                 # name defined there for deviceName
                 if not self.options.nosnmp:
                     self.log.debug("Scanning device with address %s", ip)
-                    snmpCommunities = kw['zProperties'].get('zSnmpCommunities',
-                                                           None)
+                    snmpCommunities = kw.get('zProperties', {}).get(
+                        'zSnmpCommunities', None)
                     yield self.findRemoteDeviceInfo(ip, devicepath,
                                                     snmpCommunities)
                     snmpDeviceInfo = driver.next()
