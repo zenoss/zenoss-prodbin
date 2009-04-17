@@ -23,7 +23,7 @@ from Products.ZenUtils.Utils import formreq, extractPostContent
 from Products.ZenWidgets import messaging
 from Products.ZenModel.ZenossSecurity import *
 from Products.ZenEvents.browser.EventPillsAndSummaries import \
-                                   getObjectsEventSummary, \
+                                   getDashboardObjectsEventSummary, \
                                    ObjectsEventSummary,    \
                                    getEventPillME
 
@@ -93,7 +93,7 @@ class WatchListPortletView(BrowserView):
     of the REQUEST object.
 
     @param entities: A list of paths that should be resolved into objects
-        and passed to L{getObjectsEventSummaryJSON}.
+        and passed to L{getDashboardObjectsEventSummaryJSON}.
     @type entities: list
     @return: A JSON-formatted string representation of the columns and rows
         of the table
@@ -119,8 +119,8 @@ class WatchListPortletView(BrowserView):
                 obj = self.context.dmd.Devices.findDevice(e)
             if self.context.has_permission("View", obj): return obj
         entities = filter(lambda x:x is not None, map(getob, entities))
-        return getObjectsEventSummary(self.context.dmd.ZenEventManager,
-                                           entities)
+        return getDashboardObjectsEventSummary(
+            self.context.dmd.ZenEventManager, entities)
 
 
 class DeviceIssuesPortletView(BrowserView):

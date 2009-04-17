@@ -45,7 +45,7 @@ class ObjectsEventSummary(BrowserView):
     def __call__(self):
         zem = self.context.dmd.ZenEventManager
         obs = self._getObs()
-        return getObjectsEventSummary(zem, obs)
+        return getDashboardObjectsEventSummary(zem, obs)
 
     def _getObs(self):
         raise NotImplementedError
@@ -66,7 +66,7 @@ class SingleObjectEventSummary(ObjectsEventSummary):
         return [self]
 
 
-def getObjectsEventSummary(zem, objects, REQUEST=None):
+def getObjectsEventSummary(zem, objects, prodState=None, REQUEST=None):
     """
     Return an HTML link and event pill for each object passed as a JSON
     object ready for inclusion in a YUI data table.
@@ -97,14 +97,24 @@ def getObjectsEventSummary(zem, objects, REQUEST=None):
     devdata = []
     for obj in objects:
         alink = obj.getPrettyLink()
-        pill = getEventPillME(zem, obj, showGreen=True)
+        pill = getEventPillME(zem, obj, showGreen=True, prodState=prodState)
         if type(pill)==type([]): pill = pill[0]
         devdata.append([alink, pill])
     devdata.sort(pillcompare)
     mydict['data'] = [{'Object':x[0],'Events':x[1]} for x in devdata]
     return mydict
 
-def getEventPillME(zem, me, number=1, minSeverity=0, showGreen=True):
+
+def getDashboardObjectsEventSummary(zem, objects, REQUEST=None):
+    """
+    Event summary that takes dashboard production state threshold into account.
+    """
+    thold = zem.dmd.prodStateDashboardThresh
+    return getObjectsEventSummary(zem, objects, thold, REQUEST)
+
+
+def getEventPillME(zem, me, number=1, minSeverity=0, showGreen=True,
+                   prodState=None):
     """
     Get HTML code displaying the maximum event severity and the number of
     events of that severity on a particular L{ManagedEntity} in a pleasing
@@ -124,7 +134,7 @@ def getEventPillME(zem, me, number=1, minSeverity=0, showGreen=True):
     @rtype: list
     """
     try:
-        evsum = zem.getEventSummaryME(me, minSeverity)
+        evsum = zem.getEventSummaryME(me, minSeverity, prodState=prodState)
         summary =[x[2] for x in evsum]
         colors = "red orange yellow blue grey".split()
         info = ["%s out of %s acknowledged" % (x[1],x[2])
