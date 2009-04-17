@@ -22,7 +22,7 @@
 <tal:block metal:fill-slot="filterslot">
 <a style="position:absolute;right:0;color:white;padding-right:5em;
     font-size:0.8em" 
-    href="addDevice">Advanced Add...</a>
+    href="/zport/dmd/addDevice">Advanced Add...</a>
 </tal:block>
 <tal:block metal:fill-slot="zentablecontents">
 <tr><td style="background-color:white;padding:1em">

@@ -31,7 +31,7 @@
 <tal:block metal:fill-slot="filterslot">
 <a style="position:absolute;right:0;color:white;padding-right:5em;
           font-size:0.8em" 
-    href="easyAddDevice">Easy Add...</a>
+    href="/zport/dmd/easyAddDevice">Easy Add...</a>
 </tal:block>
 <tal:block metal:fill-slot="zentablecontents"
         tal:define="submitViaEnter string:return submitViaEnter(event,'loadDevice');">
