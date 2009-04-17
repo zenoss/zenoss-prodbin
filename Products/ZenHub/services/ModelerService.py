@@ -102,25 +102,11 @@ class ModelerService(PerformanceConfig):
     def remote_applyDataMaps(self, device, maps, devclass=None):
         from Products.DataCollector.ApplyDataMap import ApplyDataMap
         device = self.getPerformanceMonitor().findDevice(device)
-
         adm = ApplyDataMap(self)
         changed = False
         for map in maps:
             if adm._applyDataMap(device, map):
                 changed = True
-
-        # this will be used later on
-        # if devclass and devclass != device.getDeviceClassPath():
-        #     device.moveDevices(devclass,device.id)
-        #     changed = True
-            
-        if changed:
-            device.setLastChange()
-            import transaction
-            trans = transaction.get()
-            trans.setUser("datacoll")
-            trans.note("data applied from automated collection")
-            trans.commit()
         return changed
 
     @translateError

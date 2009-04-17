@@ -131,19 +131,29 @@ class ApplyDataMap(object):
     def _applyDataMap(self, device, datamap):
         """Apply a datamap to a device.
         """
-        changed = False
-        tobj = device
-        if getattr(datamap, "compname", None) is None: return changed
-        if datamap.compname: 
-            tobj = getattr(device, datamap.compname)
-        if hasattr(datamap, "relname"):
-            changed = self._updateRelationship(tobj, datamap)
-        elif hasattr(datamap, 'modname'):
-            changed = self._updateObject(tobj, datamap)
+        device.dmd._p_jar.sync()
+        if hasattr(datamap, "compname"):
+            if datamap.compname: 
+                tobj = getattr(device, datamap.compname)
+            else: 
+                tobj = device
+            if hasattr(datamap, "relname"):
+                changed = self._updateRelationship(tobj, datamap)
+            elif hasattr(datamap, 'modname'):
+                changed = self._updateObject(tobj, datamap)
+            else:
+                changed = False
+                log.warn("plugin returned unknown map skipping")
         else:
-            log.warn("plugin returned unknown map skipping")
+            changed = False
+        if changed:
+            device.setLastChange()
+            trans = transaction.get()
+            trans.setUser("datacoll")
+            trans.note("data applied from automated collection")
+            trans.commit()
         return changed
-            
+        
         
     def _updateRelationship(self, device, relmap):
         """Add/Update/Remote objects to the target relationship.

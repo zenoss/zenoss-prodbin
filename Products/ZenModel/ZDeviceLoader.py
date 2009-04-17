@@ -232,33 +232,10 @@ class DeviceCreationJob(ShellCommandJob):
     def finished(self, r):
         self._v_loader.cleanup()
         if self._v_loader.deviceobj is not None and r!=FAILURE:
-            # Discovery succeeded. Really set those properties good.
-            self.postDeviceAdd()
             result = SUCCESS
         else:
             result = FAILURE
         super(DeviceCreationJob, self).finished(result)
-
-    def postDeviceAdd(self):
-        """
-        Set the properties on the device after it's been added.
-        """
-        self._p_jar.sync()
-        dev = self._v_loader.deviceobj
-        props = self.deviceProps
-        # Set up the hw/os props correctly
-        props['hwManufacturer'] = props['hwManufacturer'] or \
-            dev.hw.getManufacturerName()
-        props['hwProductName'] = props['hwProductName'] or \
-            dev.hw.getProductName()
-        props['osManufacturer'] = props['osManufacturer'] or \
-            dev.os.getManufacturerName()
-        props['osProductName'] = props['osProductName'] or \
-            dev.os.getProductName()
-
-        # Store the props on the device
-        dev.manage_editDevice(**props)
-
 
 class WeblogDeviceLoader(BaseDeviceLoader):
     def __init__(self, context, request):
