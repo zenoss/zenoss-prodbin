@@ -43,7 +43,7 @@ function maximizeMapHeight() {
     mapdiv = $('geomapcontainer');
     mapoffset = getElementPosition(mapdiv).y;
     maxbottom = getViewportDimensions().h;
-    newdims = {'h':maxbottom-mapoffset-20};
+    newdims = {'h':maxbottom-mapoffset};
     setElementDimensions(mapdiv, newdims);
 }
 
