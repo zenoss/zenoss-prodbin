@@ -141,11 +141,14 @@ def findZenPackDirectories():
         for item in os.listdir(zenpackhome):
             fullpath = zenhome('ZenPacks', item)
             if os.path.isdir(fullpath):
-                dirs.append(expandPackDir(fullpath))
+                dir = expandPackDir(fullpath)
             elif item.endswith('.egg-link'):
                 f = file(fullpath)
-                dirs.append(expandPackDir(f.readline().strip()))
+                dir = expandPackDir(f.readline().strip())
                 f.close()
+            else:
+                continue
+            dirs.append(os.path.join(dir, 'ZenPacks'))
     except OSError:
         pass
     return dirs
@@ -167,6 +170,14 @@ def findTestableProducts(packages=[], regex=None, testdir='tests'):
     results = []
     for target in findZenPackDirectories() + [zenhome('Products')]:
         for root, dirs, files in os.walk(target):
+            
+            # don't look past a lib directory that is under the ZenPacks
+            # directory
+            rootParts = root.split(os.path.sep)
+            if 'ZenPacks' in rootParts and \
+                    'lib' in rootParts[rootParts.index('ZenPacks'):]:
+                continue
+                
             for dir in dirs:
                 if (packages and 
                     # ZenPacks have a problem unless you do this
