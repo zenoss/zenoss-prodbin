@@ -43,9 +43,11 @@ class ZenManagerRole(Migrate.Step):
         zport = dmd.zport
         if not ZEN_MANAGER_ROLE in zport.__ac_roles__:
             zport.__ac_roles__ += (ZEN_MANAGER_ROLE,)
-        rm = dmd.getPhysicalRoot().acl_users.roleManager
-        if not ZEN_MANAGER_ROLE in rm.listRoleIds():
-            rm.addRole(ZEN_MANAGER_ROLE)
+        rms = (dmd.getPhysicalRoot().acl_users.roleManager,
+                    zport.acl_users.roleManager)
+        for rm in rms:
+            if not ZEN_MANAGER_ROLE in rm.listRoleIds():
+                rm.addRole(ZEN_MANAGER_ROLE)
         
         self.addPermissions(zport, ZEN_CHANGE_DEVICE, 
             [ZEN_MANAGER_ROLE, OWNER_ROLE,MANAGER_ROLE,], 1)
