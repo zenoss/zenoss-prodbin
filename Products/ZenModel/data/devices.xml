@@ -42,6 +42,12 @@ False
 <property visible="True" type="int" id="zRouteMapMaxRoutes" >
 500
 </property>
+<property visible="True" type="lines" id="zFileSystemMapIgnoreTypes" >
+['other', 'ram', 'virtualMemory', 'removableDisk', 'floppyDisk', 'compactDisk', 'ramDisk', 'flashMemory', 'networkDisk']
+</property>
+<property visible="True" type="float" id="zFileSystemSizeOffset" >
+1.0
+</property>
 <property visible="True" type="int" id="zIpServiceMapMaxPort" >
 1024
 </property>
@@ -142,6 +148,9 @@ True
 </property>
 <property visible="True" type="boolean" id="zCollectorLogChanges" >
 True
+</property>
+<property visible="True" type="string" id="zNmapPortscanOptions" >
+-p 1-1024;-sT;--open;-oG -
 </property>
 <tomanycont id='zenMenus'>
 <object id='More' module='Products.ZenModel.ZenMenu' class='ZenMenu'>
@@ -538,7 +547,7 @@ bytes
 False
 </property>
 <property type="boolean" id="base" mode="w" >
-False
+True
 </property>
 <property type="int" id="miny" mode="w" >
 0
@@ -2467,7 +2476,7 @@ True
 </property>
 <tomanycont id='aliases'>
 <object id='loadAverage5min' module='Products.ZenModel.RRDDataPointAlias' class='RRDDataPointAlias'>
-<property type='string' id='formula' mode='w'>
+<property type="string" id="formula" mode="w" >
 100,/
 </property>
 </object>
@@ -2657,7 +2666,7 @@ True
 </property>
 <tomanycont id='aliases'>
 <object id='cpu__pct' module='Products.ZenModel.RRDDataPointAlias' class='RRDDataPointAlias'>
-<property type='string' id='formula' mode='w'>
+<property type="string" id="formula" mode="w" >
 __EVAL:str(len(here.hw.cpus())) + ',/,100,EXC,-,0,MAX'
 </property>
 </object>
@@ -3845,7 +3854,7 @@ True
 </property>
 <tomanycont id='aliases'>
 <object id='loadAverage5min' module='Products.ZenModel.RRDDataPointAlias' class='RRDDataPointAlias'>
-<property type='string' id='formula' mode='w'>
+<property type="string" id="formula" mode="w" >
 100,/
 </property>
 </object>
@@ -4032,9 +4041,9 @@ True
 </property>
 <tomanycont id='aliases'>
 <object id='cpu__pct' module='Products.ZenModel.RRDDataPointAlias' class='RRDDataPointAlias'>
-<property type="string" id="formula" mode="w">
+<property type="string" id="formula" mode="w" >
 100,EXC,-
-</property> 
+</property>
 </object>
 </tomanycont>
 </object>
@@ -5967,7 +5976,7 @@ True
 </property>
 <tomanycont id='aliases'>
 <object id='loadAverage5min' module='Products.ZenModel.RRDDataPointAlias' class='RRDDataPointAlias'>
-<property type='string' id='formula' mode='w'>
+<property type="string" id="formula" mode="w" >
 100,/
 </property>
 </object>
@@ -6082,9 +6091,9 @@ True
 </property>
 <tomanycont id='aliases'>
 <object id='cpu__pct' module='Products.ZenModel.RRDDataPointAlias' class='RRDDataPointAlias'>
-<property type="string" id="formula" mode="w">
+<property type="string" id="formula" mode="w" >
 100,EXC,-
-</property> 
+</property>
 </object>
 </tomanycont>
 </object>
@@ -7189,7 +7198,7 @@ True
 </property>
 <tomanycont id='aliases'>
 <object id='loadAverage5min' module='Products.ZenModel.RRDDataPointAlias' class='RRDDataPointAlias'>
-<property type='string' id='formula' mode='w'>
+<property type="string" id="formula" mode="w" >
 100,/
 </property>
 </object>
@@ -7207,7 +7216,7 @@ True
 </property>
 <tomanycont id='aliases'>
 <object id='cpu__pct' module='Products.ZenModel.RRDDataPointAlias' class='RRDDataPointAlias'>
-<property type='string' id='formula' mode='w'>
+<property type="string" id="formula" mode="w" >
 __EVAL:str(len(here.hw.cpus())) + ',/,100,EXC,-,0,MAX'
 </property>
 </object>
@@ -8272,7 +8281,7 @@ True
 True
 </property>
 <property type="string" id="maxval" mode="w" >
-here.totalBlocks * .9
+(here.totalBlocks * here.zFileSystemSizeOffset) * .9
 </property>
 <property type="string" id="eventClass" mode="w" >
 /Perf/Filesystem
@@ -8343,7 +8352,7 @@ Used
 -1
 </property>
 <property type="string" id="rpn" mode="w" >
-${here/totalBlocks},/,100,*
+${here/totalBlocks},${here/zFileSystemSizeOffset},*,/,100,*
 </property>
 <property type="string" id="dpName" mode="w" >
 disk_usedBlocks
