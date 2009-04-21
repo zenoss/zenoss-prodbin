@@ -61,6 +61,7 @@ class ServiceClass(ZenModelRM, Commandable, ZenPackable):
         {'id':'name', 'type':'string', 'mode':'w'},
         {'id':'serviceKeys', 'type':'lines', 'mode':'w'},
         {'id':'description', 'type':'text', 'mode':'w'},
+        {'id':'port', 'type':'int', 'mode':'w'},
         ) 
 
     _relations = ZenPackable._relations + (
