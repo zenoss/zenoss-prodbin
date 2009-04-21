@@ -373,7 +373,7 @@ class ZenDisc(ZenModeler):
                     yield self.config().callRemote('getJobProperties',
                                                    self.options.job)
                     job_props = driver.next()
-                    if job_props is not None and 'zProperties' in kw:
+                    if job_props is not None:
                         kw['zProperties'] = job_props.get('zProperties', {})
 
                 snmpDeviceInfo = None
