@@ -377,8 +377,11 @@ class zenprocess(SnmpDaemon):
                 device.open()
                 yield self.scanDevice(device)
                 driver.next()
-                yield self.fetchPerf(device)
-                driver.next()
+                
+                # Only fetch performance data if status data was found.
+                if device.snmpStatus == 0:
+                    yield self.fetchPerf(device)
+                    driver.next()
             except:
                 log.debug('Failed to scan device %s' % device.name)
 
@@ -526,6 +529,9 @@ class zenprocess(SnmpDaemon):
                   "%d jobs running %d jobs waiting %d jobs finished" % \
                   (running, unstarted, finished)
             log.error(msg)
+            log.error("Problem devices: %r", [
+                d.name for d in self.devices().values() \
+                    if d.proxy is not None])
             return
 
         start = time.time()
@@ -561,7 +567,8 @@ class zenprocess(SnmpDaemon):
             return defer.succeed(([], device))
         
         d = Chain(device.get, iter(chunk(oids, device.maxOidsPerRequest))).run()
-        d.addBoth(self.storePerfStats, device)
+        d.addCallback(self.storePerfStats, device)
+        d.addErrback(self.deviceFailure, device)
         return d
 
 
@@ -569,7 +576,7 @@ class zenprocess(SnmpDaemon):
         "Save the performance data in RRD files"
         for success, result in results:
             if not success:
-                self.error(result)
+                self.deviceFailure(result, device)
                 return results
         self.clearSnmpError(device.name,
                             'Process table up for device %s' % device.name)
