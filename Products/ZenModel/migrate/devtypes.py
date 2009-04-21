@@ -18,11 +18,20 @@ Set zRouteMapMaxRoutes defaults
 $Id:$
 '''
 import Migrate
+from Products.ZenModel.DeviceOrganizer import DeviceOrganizer
 
 class AddDeviceClassDescriptionAndProtocol(Migrate.Step):
     version = Migrate.Version(2, 4, 0)
 
     def cutover(self, dmd):
+
+        # Make sure all DeviceClasses have the property slot
+        for org in [dmd.Devices] + dmd.Devices.getSubOrganizers():
+            org._properties = DeviceOrganizer._properties + (
+                {'id':'devtypes', 'type':'lines', 'mode':'w'},
+               )
+
+        # Set values for some core organizers
         for path, desc, protocol in [
             ('/Server/Windows', 'Windows Server', 'SNMP'),
             ('/Server/Linux', 'Linux Server', 'SNMP'),
