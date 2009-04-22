@@ -174,6 +174,7 @@ class CommandPlugin(CollectorPlugin):
         'zKeyPath', 
         'zCommandSearchPath', 
         'zCommandExistanceTest',
+        'zSshConcurrentSessions',
         'zTelnetLoginRegex',
         'zTelnetPasswordRegex',
         'zTelnetSuccessRegexList',

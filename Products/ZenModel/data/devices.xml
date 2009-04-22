@@ -152,6 +152,9 @@ True
 <property visible="True" type="string" id="zNmapPortscanOptions" >
 -p 1-1024;-sT;--open;-oG -
 </property>
+<property visible="True" type="int" id="zSshConcurrentSessions" >
+10
+</property>
 <tomanycont id='zenMenus'>
 <object id='More' module='Products.ZenModel.ZenMenu' class='ZenMenu'>
 <tomanycont id='zenMenuItems'>

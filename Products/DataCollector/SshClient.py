@@ -431,7 +431,7 @@ class SshConnection(connection.SSHConnection):
         @param packet: returned packet from the host
         @type packet: object
         """
-        message= "CHANNEL_OPEN_FAILURE: Authentication failure"
+        message= "CHANNEL_OPEN_FAILURE: Try lowering zSshConcurrentSessions"
         log.error( message )
         sendEvent( self, message=message )
         connection.SSHConnection.ssh_CHANNEL_OPEN_FAILURE( self, packet )
@@ -540,6 +540,7 @@ class CommandChannel(channel.SSHChannel):
         log.warn(message)
         sendEvent(self, message=message)
         channel.SSHChannel.openFailed(self, reason)
+        self.conn.factory.clientFinished()
 
 
     def extReceived(self, dataType, data ):
@@ -606,14 +607,12 @@ class CommandChannel(channel.SSHChannel):
         """
         Cleanup for the channel, as both ends have closed the channel.
         """
-
         log.debug('Closed command channel for command %s with data: %s' % \
                    (self.command, repr(self.data)))
         self.conn.factory.addResult(self.command, self.data, self.exitCode)
         self.loseConnection()
 
-        if self.conn.factory.commandsFinished():
-            self.conn.factory.clientFinished()
+        self.conn.factory.channelClosed()
 
 
 
@@ -649,6 +648,8 @@ class SshClient(CollectorClient.CollectorClient):
         self.protocol = SshClientTransport
         self.connection = None
         self.transport = None
+        self.workList = list(self.getCommands())
+        self.concurrentSessions = getattr(device, 'zSshConcurrentSessions', 10)
 
 
     def run(self):
@@ -668,8 +669,19 @@ class SshClient(CollectorClient.CollectorClient):
 
         log.info("Connected to device %s" % self.hostname)
         self.connection = sshconn
-        for cmd in self.getCommands():
-            sshconn.addCommand(cmd)
+        for i in range(min(len(self.workList), self.concurrentSessions - 1)):
+            cmd = self.workList.pop(0)
+            self.connection.addCommand(cmd)
+
+
+    def channelClosed(self):
+        if self.commandsFinished():
+            self.clientFinished()
+            return
+
+        if self.workList:
+            cmd = self.workList.pop(0)
+            self.connection.addCommand(cmd)
 
 
     def addCommand(self, commands):
