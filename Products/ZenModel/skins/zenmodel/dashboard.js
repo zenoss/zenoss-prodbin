@@ -24,7 +24,7 @@ function updateTimestamp(){
 function updateTimestampNow(){
     var d = new Date();
     var h = "Last Updated: ";
-    h += toISOTimestamp(d)
+    h += getServerTimestamp()
     $("dashTime").innerHTML = h;
 }
 

@@ -305,7 +305,7 @@ PortletContainer.prototype = {
     },
     goodConnection: function() {
         setInnerHTML($('connectionmessage'), 
-                'Last updated ' + toISOTimestamp(new Date()) + '.');
+                'Last updated ' + getServerTimestamp() + '.');
     },
     brokenConnection: function() {
         setInnerHTML($('connectionmessage'), 'Lost connection to the server.');
@@ -449,7 +449,7 @@ PortletContainer.prototype = {
         this.portDialogLink = A({'class':"tinylink"}, "Add portlet...");
         this.doRefresh = A({'class':"tinylink"}, "Stop Refresh");
         messagebox = DIV({'class':'msgbox', 'id':'connectionmessage'},
-            'Last updated ' + toISOTimestamp(new Date()) + '.');
+            'Last updated ' + getServerTimestamp() + '.');
         connect(this.dialogLink, "onclick", this.showLayoutDialog);
         connect(this.portDialogLink, "onclick", this.showAddPortletDialog);
         connect(this.doRefresh, "onclick", this.stopRefresh);
