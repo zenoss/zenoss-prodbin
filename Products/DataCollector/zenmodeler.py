@@ -85,7 +85,7 @@ class ZenModeler(PBDaemon):
             if self.options.now:
                 self.log.debug("Run as a daemon, starting immediately.")
             else:
-                self.log.debug("Run as a daemon, waiting %s sec to start." %
+                self.log.info("Run as a daemon, waiting %s sec to start." %
                                defaultStartSleep)
                 time.sleep(defaultStartSleep)
                 self.log.debug("Run as a daemon, slept %s sec, starting now." %
