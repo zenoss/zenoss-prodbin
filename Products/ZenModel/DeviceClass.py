@@ -911,17 +911,18 @@ class DeviceClass(DeviceOrganizer, ZenPackable, TemplateContainer):
         contain and the protocol by which they would normally be monitored.
         """
         t = (description, protocol)
-        if self.devtypes is None:
-            self.devtypes = []
+        if not self.hasProperty('devtypes'):
+            self._setProperty('devtypes', [], 'lines')
         if t not in self.devtypes:
             self.devtypes.append(t)
             self._p_changed = True
 
     def unregister_devtype(self, description, protocol):
         t = (description, protocol)
-        if t in self.devtypes:
-            self.devtypes.remove(t)
-            self._p_changed = True
+        if self.hasProperty('devtypes'):
+            if t in self.devtypes:
+                self.devtypes.remove(t)
+                self._p_changed = True
 
 
 InitializeClass(DeviceClass)
