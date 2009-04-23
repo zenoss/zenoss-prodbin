@@ -12,6 +12,7 @@
 ###########################################################################
 
 import re
+from Acquisition import aq_base
 from Products.Five.browser import BrowserView
 from Products.Five.browser.pagetemplatefile import ZopeTwoPageTemplateFile
 from Products.ZenModel.ZDeviceLoader import DeviceCreationJob
@@ -69,7 +70,7 @@ class DeviceAddView(BrowserView):
         types = []
         for org in orgs:
             # Skip it if it doesn't have types registered
-            if not hasattr(org, 'devtypes') or not org.devtypes: 
+            if not hasattr(aq_base(org), 'devtypes') or not org.devtypes: 
                 continue
             for t in org.devtypes:
                 desc, ptcl = t
