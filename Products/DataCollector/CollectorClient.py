@@ -84,6 +84,7 @@ class CollectorClient(BaseClient, protocol.ClientFactory):
             defaultLoginTimeout = options.loginTimeout
             defaultCommandTimeout = options.commandTimeout
             defaultKeyPath = options.keyPath
+            defaultConcurrentSessions = options.concurrentSessions
             defaultSearchPath = options.searchPath
             defaultExistanceTest = options.existenceTest
             
@@ -100,6 +101,8 @@ class CollectorClient(BaseClient, protocol.ClientFactory):
                         'zCommandCommandTimeout', defaultCommandTimeout)
             self.keyPath = getattr(device, 
                         'zKeyPath', defaultKeyPath)
+            self.concurrentSessions = getattr(device,
+                        'zSshConcurrentSessions', defaultConcurrentSessions)
             self.port = getattr(device, 'zCommandPort', self.port)
             self.searchPath = getattr(device, 
                         'zCommandSearchPath', defaultSearchPath)
@@ -112,12 +115,11 @@ class CollectorClient(BaseClient, protocol.ClientFactory):
             self.loginTimeout = defaultLoginTimeout
             self.commandTimeout = defaultCommandTimeout
             self.keyPath = defaultKeyPath
+            self.concurrentSessions = defaultConcurrentSessions
             self.searchPath = defaultSearchPath
             self.existenceTest = defaultExistanceTest
 
-                    
 
-    
     def addCommand(self, command):
         """
         Add a command to the list of commands to gather data
@@ -207,6 +209,7 @@ def buildOptions(parser=None, usage=None):
     defaultLoginTimeout = 10
     defaultCommandTimeout = 10 
     defaultKeyPath = '~/.ssh/id_dsa'
+    defaultConcurrentSessions = 10
     defaultSearchPath = []
     defaultExistanceTest = 'test -f %s'
 
@@ -243,7 +246,11 @@ def buildOptions(parser=None, usage=None):
     parser.add_option('-K', '--keyPath',
                 dest='keyPath',
                 default = defaultKeyPath,
-                help='Path to use when looking for SSH keys')                
+                help='Path to use when looking for SSH keys')
+    parser.add_option('-S', '--concurrentSessions',
+                dest='concurrentSessions',
+                default = defaultConcurrentSessions,
+                help='Allowable number of concurrent SSH sessions')
     parser.add_option('-s', '--searchPath',
                 dest='searchPath',
                 default=defaultSearchPath,

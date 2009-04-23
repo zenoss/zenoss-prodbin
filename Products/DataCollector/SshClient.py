@@ -649,7 +649,6 @@ class SshClient(CollectorClient.CollectorClient):
         self.connection = None
         self.transport = None
         self.workList = list(self.getCommands())
-        self.concurrentSessions = getattr(device, 'zSshConcurrentSessions', 10)
 
 
     def run(self):
@@ -659,16 +658,7 @@ class SshClient(CollectorClient.CollectorClient):
         reactor.connectTCP(self.ip, self.port, self, self.loginTimeout)
 
 
-    def serviceStarted(self, sshconn):
-        """
-        Run commands that are in the command queue
-
-        @param sshconn: connection to create channels on
-        @type sshconn: Twisted SSH connection
-        """
-
-        log.info("Connected to device %s" % self.hostname)
-        self.connection = sshconn
+    def runCommands(self):
         for i in range(min(len(self.workList), self.concurrentSessions - 1)):
             cmd = self.workList.pop(0)
             self.connection.addCommand(cmd)
@@ -684,6 +674,19 @@ class SshClient(CollectorClient.CollectorClient):
             self.connection.addCommand(cmd)
 
 
+    def serviceStarted(self, sshconn):
+        """
+        Run commands that are in the command queue
+
+        @param sshconn: connection to create channels on
+        @type sshconn: Twisted SSH connection
+        """
+
+        log.info("Connected to device %s" % self.hostname)
+        self.connection = sshconn
+        self.runCommands()
+
+
     def addCommand(self, commands):
         """
         Add a command or commands to queue and open a command
@@ -696,11 +699,7 @@ class SshClient(CollectorClient.CollectorClient):
         CollectorClient.CollectorClient.addCommand(self, commands)
         if type(commands) == type(''):
             commands = (commands,)
-
-        # The following code never gets called, AFAIK
-        if self.connection:
-            for cmd in commands:
-                self.connection.addCommand(cmd)
+        self.workList.extend(commands)
 
 
     def clientConnectionFailed( self, connector, reason ):

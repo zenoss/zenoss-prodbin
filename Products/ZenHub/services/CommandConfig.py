@@ -75,6 +75,7 @@ def getDeviceCommands(dev):
         d.commandTimeout = dev.zCommandCommandTimeout
         d.keyPath = dev.zKeyPath
         d.maxOids = dev.zMaxOIDPerRequest
+        d.concurrentSessions = dev.zSshConcurrentSessions
         d.commands = list(cmds)
         d.thresholds = threshs
         return d

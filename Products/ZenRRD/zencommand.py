@@ -175,7 +175,7 @@ class SshPool:
             log.debug("Creating connection to %s", dc.device)
             options = Options(dc.username, dc.password,
                               dc.loginTimeout, dc.commandTimeout,
-                              dc.keyPath)
+                              dc.keyPath, dc.concurrentSessions)
             # New param KeyPath
             result = MySshClient(dc.device, dc.ipAddress, dc.port,
                                  options=options)
@@ -372,12 +372,14 @@ class Options:
     searchPath=''
     existenceTest=None
 
-    def __init__(self, username, password, loginTimeout, commandTimeout, keyPath):
+    def __init__(self, username, password, loginTimeout, commandTimeout,
+            keyPath, concurrentSessions):
         self.username = username
         self.password = password
         self.loginTimeout=loginTimeout
         self.commandTimeout=commandTimeout
         self.keyPath = keyPath
+        self.concurrentSessions = concurrentSessions
 
 
 def warnUsernameNotSet(device, sshCmd, sendEvent, suppressed):
