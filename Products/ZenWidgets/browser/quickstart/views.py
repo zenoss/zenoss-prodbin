@@ -69,7 +69,8 @@ class DeviceAddView(BrowserView):
         types = []
         for org in orgs:
             # Skip it if it doesn't have types registered
-            if not org.devtypes: continue
+            if not hasattr(org, 'devtypes') or not org.devtypes: 
+                continue
             for t in org.devtypes:
                 desc, ptcl = t
                 # Both must be defined
