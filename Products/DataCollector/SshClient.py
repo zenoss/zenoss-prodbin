@@ -648,6 +648,7 @@ class SshClient(CollectorClient.CollectorClient):
         self.protocol = SshClientTransport
         self.connection = None
         self.transport = None
+        self.openSessions = 0
         self.workList = list(self.getCommands())
 
 
@@ -659,18 +660,23 @@ class SshClient(CollectorClient.CollectorClient):
 
 
     def runCommands(self):
-        for i in range(min(len(self.workList), self.concurrentSessions - 1)):
+        availSessions = (self.concurrentSessions - 1) - self.openSessions
+        log.error("!!! runCommands: %s %s %s", availSessions, self.concurrentSessions, self.openSessions)
+        for i in range(min(len(self.workList), availSessions)):
             cmd = self.workList.pop(0)
+            self.openSessions += 1
             self.connection.addCommand(cmd)
 
 
     def channelClosed(self):
+        self.openSessions -= 1
         if self.commandsFinished():
             self.clientFinished()
             return
 
         if self.workList:
             cmd = self.workList.pop(0)
+            self.openSessions += 1
             self.connection.addCommand(cmd)
 
 
@@ -700,6 +706,10 @@ class SshClient(CollectorClient.CollectorClient):
         if type(commands) == type(''):
             commands = (commands,)
         self.workList.extend(commands)
+        
+        # This code is required when we're reused by zencommand.
+        if self.connection:
+            self.runCommands()
 
 
     def clientConnectionFailed( self, connector, reason ):
