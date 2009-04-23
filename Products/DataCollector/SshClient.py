@@ -661,7 +661,6 @@ class SshClient(CollectorClient.CollectorClient):
 
     def runCommands(self):
         availSessions = (self.concurrentSessions - 1) - self.openSessions
-        log.error("!!! runCommands: %s %s %s", availSessions, self.concurrentSessions, self.openSessions)
         for i in range(min(len(self.workList), availSessions)):
             cmd = self.workList.pop(0)
             self.openSessions += 1
