@@ -18,7 +18,7 @@ Set zRouteMapMaxRoutes defaults
 $Id:$
 '''
 import Migrate
-from Products.ZenModel.DeviceOrganizer import DeviceOrganizer
+import zExceptions
 
 class AddDeviceClassDescriptionAndProtocol(Migrate.Step):
     version = Migrate.Version(2, 4, 0)
@@ -27,9 +27,11 @@ class AddDeviceClassDescriptionAndProtocol(Migrate.Step):
 
         # Make sure all DeviceClasses have the property slot
         for org in [dmd.Devices] + dmd.Devices.getSubOrganizers():
-            org._properties = DeviceOrganizer._properties + (
-                {'id':'devtypes', 'type':'lines', 'mode':'w'},
-               )
+            try:
+                org._setProperty('devtypes', None, type='lines')
+            except zExceptions.BadRequest:
+                # Property is already set here
+                pass
 
         # Set values for some core organizers
         for path, desc, protocol in [

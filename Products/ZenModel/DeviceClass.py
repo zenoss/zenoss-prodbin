@@ -80,8 +80,6 @@ class DeviceClass(DeviceOrganizer, ZenPackable, TemplateContainer):
 
     default_catalog = 'deviceSearch'
 
-    devtypes = None
-
     _properties = DeviceOrganizer._properties + (
                     {'id':'devtypes', 'type':'lines', 'mode':'w'},
                    )
