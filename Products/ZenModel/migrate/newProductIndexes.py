@@ -17,12 +17,16 @@ a device's Edit tab on systems with a large number of products.
 ''' 
 
 __version__ = "$Revision$"[11:-2]
-        
+
+import logging
+ 
 from Products.ZCatalog.Catalog import CatalogError
 from Products.ZenUtils.Search import makeCaseInsensitiveFieldIndex
 from Products.ManagableIndex import FieldIndex
 
 import Migrate
+
+log = logging.getLogger('zen.migrate')
 
 class NewProductIndexes(Migrate.Step):
 
@@ -41,7 +45,7 @@ class NewProductIndexes(Migrate.Step):
 
             zcat.addColumn('id')
 
-            print "Reindexing products. This may take some time..."
+            log.info("Reindexing products. This may take some time...")
             manufacturers.reIndex()
         except CatalogError:
             pass

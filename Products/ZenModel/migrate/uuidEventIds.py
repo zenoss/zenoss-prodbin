@@ -17,9 +17,13 @@ Changes to the MySQL database to add 64-bit-hardware-compatible UUIDs.
 See http://dev.zenoss.org/trac/ticket/3696 for more details.
 """
 
+import logging
+
 import Migrate
 
 from MySQLdb import OperationalError
+
+log = logging.getLogger('zen.migrate')
 
 affected_columns = [
   ('status', 'evididx', 'evid'),
@@ -35,8 +39,7 @@ def dropIndex( curs, table, indexName ):
             (table, indexName))
     except OperationalError, e:
             # Allow for aborted migrate attempts
-            print "\t\tMissing index -- previous migration " + \
-                  "probably failed"
+            log.debug('Failed to drop index %s on table %s', indexName, table)
 
 # So why 36?
 # len( str( Products.ZenUtil.guid.generate() ) ) == 36
@@ -46,7 +49,7 @@ class uuidEventIds(Migrate.Step):
     def cutover(self, dmd):
         curs = dmd.ZenEventManager.connect().cursor()
         for table, indexName, column in affected_columns:
-            print "\tUpdating MySQL event table %s" % table
+            log.info("Updating MySQL event table %s", table)
             dropIndex( curs, table, indexName )
             curs.execute('alter table %s modify %s char(36) not null' %
                     (table, column))
