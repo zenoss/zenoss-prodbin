@@ -25,14 +25,6 @@ class AddDeviceClassDescriptionAndProtocol(Migrate.Step):
 
     def cutover(self, dmd):
 
-        # Make sure all DeviceClasses have the property slot
-        for org in [dmd.Devices] + dmd.Devices.getSubOrganizers():
-            try:
-                org._setProperty('devtypes', None, type='lines')
-            except zExceptions.BadRequest:
-                # Property is already set here
-                pass
-
         # Set values for some core organizers
         for path, desc, protocol in [
             ('/Server/Windows', 'Windows Server', 'SNMP'),
