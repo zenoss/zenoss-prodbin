@@ -911,7 +911,7 @@ class DeviceClass(DeviceOrganizer, ZenPackable, TemplateContainer):
         contain and the protocol by which they would normally be monitored.
         """
         t = (description, protocol)
-        if not self.hasProperty('devtypes'):
+        if not hasattr(self, 'devtypes'):
             self._setProperty('devtypes', [], 'lines')
         if t not in self.devtypes:
             self.devtypes.append(t)
@@ -919,7 +919,7 @@ class DeviceClass(DeviceOrganizer, ZenPackable, TemplateContainer):
 
     def unregister_devtype(self, description, protocol):
         t = (description, protocol)
-        if self.hasProperty('devtypes'):
+        if hasattr(self, 'devtypes'):
             if t in self.devtypes:
                 self.devtypes.remove(t)
                 self._p_changed = True
