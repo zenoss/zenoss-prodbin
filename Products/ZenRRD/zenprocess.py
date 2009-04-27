@@ -468,12 +468,14 @@ class zenprocess(SnmpDaemon):
         dead = before - afterSet
 
         # report pid restarts
+        restarted = {}
         for p in dead:
             config = device.pids[p]
             config.discardPid(p)
             if afterByConfig.has_key(config):
                 self.restarted += 1
                 if config.restart:
+                    restarted[config] = True
                     summary = 'Process restarted: %s' % config.originalName
                     self.sendEvent(self.statusEvent,
                                    device=device.name,
@@ -484,6 +486,7 @@ class zenprocess(SnmpDaemon):
             
         # report alive processes
         for config, pids in afterByConfig.items():
+            if config in restarted: continue
             summary = "Process up: %s" % config.originalName
             self.sendEvent(self.statusEvent,
                            device=device.name,
