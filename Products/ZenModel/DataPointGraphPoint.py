@@ -90,18 +90,22 @@ class DataPointGraphPoint(ComplexGraphPoint):
         # Create the base DEF
         rawName = self.getDsName('%s-raw' % self.id, multiid, prefix)        
         graph.append("DEF:%s=%s:%s:%s" % (rawName, rrdFile, 'ds0', self.cFunc))
+        graph.append("DEF:%s-max=%s:%s:%s" % (rawName, rrdFile, 'ds0', "MAX"))
 
         # If have rpn then create a new CDEF
         if self.rpn:
             rpn = self.talesEval(self.rpn, context)
             rpnName = self.getDsName('%s-rpn' % self.id, multiid, prefix)
             graph.append("CDEF:%s=%s,%s" % (rpnName, rawName, rpn))
+            graph.append("CDEF:%s-max=%s-max,%s" % (rpnName, rawName, rpn))
 
         # If have limit then create a new CDEF
         if self.limit > -1:
             src = self.rpn and rpnName or rawName
             limitName = self.getDsName('%s-limit' % self.id, multiid, prefix)
             graph.append("CDEF:%s=%s,%s,GT,UNKN,%s,IF"%
+                        (limitName,src,self.limit,src))
+            graph.append("CDEF:%s-max=%s-max,%s,GT,UNKN,%s,IF"%
                         (limitName,src,self.limit,src))
                         
         if self.limit > -1:
@@ -150,6 +154,8 @@ class DataPointGraphPoint(ComplexGraphPoint):
         tags = ("cur\:", "avg\:", "max\:")
         for i in range(len(funcs)):
             label = "%s%s" % (tags[i], format or self.DEFAULT_FORMAT)
+            if funcs[i] == "MAX":
+                src += "-max"
             gopts.append(self.summElement(src, funcs[i], label, ongraph))
         gopts[-1] += "\j"
         return gopts
