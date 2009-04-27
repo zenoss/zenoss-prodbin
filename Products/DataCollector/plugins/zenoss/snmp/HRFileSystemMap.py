@@ -80,7 +80,7 @@ class HRFileSystemMap(SnmpPlugin):
             
             # Gentoo and openSUSE report "Virtual memory" as swap. This needs
             # to be ignored so we can pickup the real swap later in the table.
-            if fs['mount'].lower() == "virtual memory":
+            if "virtual memory" in fs['mount'].lower():
                 continue
 
             totalBlocks = fs['totalBlocks']
