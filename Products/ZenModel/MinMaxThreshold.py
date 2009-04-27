@@ -31,7 +31,7 @@ from Products.ZenEvents.Exceptions import pythonThresholdException, \
 import logging
 log = logging.getLogger('zen.MinMaxCheck')
 
-from Products.ZenUtils.Utils import unused
+from Products.ZenUtils.Utils import unused, nanToNone
 import types
 
 
@@ -121,7 +121,7 @@ class MinMaxThreshold(ThresholdClass):
                 log.error( msg )
                 raise pythonThresholdException(msg)
                 minval = None
-        return minval
+        return nanToNone(minval)
 
 
     def getMaxval(self, context):
@@ -137,7 +137,7 @@ class MinMaxThreshold(ThresholdClass):
                 log.error( msg )
                 raise pythonThresholdException(msg)
                 maxval = None
-        return maxval
+        return nanToNone(maxval)
 
 InitializeClass(MinMaxThreshold)
 MinMaxThresholdClass = MinMaxThreshold

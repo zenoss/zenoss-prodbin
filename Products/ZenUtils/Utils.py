@@ -1158,6 +1158,15 @@ def unsigned(v):
     return v
 
 
+def nanToNone(value):
+    import cPickle
+    try:
+        cPickle.dumps(value)
+    except SystemError:
+        return None
+    return value
+
+
 def executeStreamCommand(cmd, writefunc, timeout=30):
     """
     Execute cmd in the shell and send the output to writefunc.
