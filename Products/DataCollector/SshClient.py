@@ -510,6 +510,7 @@ class CommandChannel(channel.SSHChannel):
     """
 
     name = 'session'
+    conn = None
 
     def __init__(self, command, conn=None):
         """
@@ -540,7 +541,9 @@ class CommandChannel(channel.SSHChannel):
         log.warn(message)
         sendEvent(self, message=message)
         channel.SSHChannel.openFailed(self, reason)
-        self.conn.factory.clientFinished()
+        if self.conn is not None:
+            self.conn.factory.clientFinished()
+
 
 
     def extReceived(self, dataType, data ):
