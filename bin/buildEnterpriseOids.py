@@ -15,19 +15,6 @@ import urllib2
 import re
 import unicodedata
 
-# Use this to map manufacturer names from the IANA document to the names that
-# Zenoss uses.
-nameMap = {
-    'Apple Computer, Inc.': 'Apple',
-    'ciscoSystems': 'Cisco',
-    'Hewlett Packard': 'HP',
-    'net snmp': 'Net-SNMP',
-    'Nortel Networks': 'Nortel',
-    'F5 Networks Inc': 'F5 Networks',
-    'Sun Microsystems': 'Sun',
-    }
-
-
 # Bail out if ZENHOME is not set.
 if 'ZENHOME' not in os.environ:
     print "ZENHOME is not set. Run this command as the zenoss user."
@@ -84,10 +71,6 @@ for line in split_contents:
             
             # Escape single and double quotes.
             val = val.replace('"', '\\"').replace("'", "\\'")
-            
-            # Rename the manufacturer if it exists in our map.
-            if val in nameMap:
-                val = nameMap[val]
             
             fo.write("    '%s.%s': '%s',\n" % (iana_prefix, key, val))
         key = None
