@@ -289,12 +289,13 @@ class ZenPing(PBDaemon):
             self.log.debug("first failure '%s'", pj.hostname)
             # if our path back is currently clear add our parent
             # to the ping list again to see if path is really clear
-            # and then re-ping ourself.
             if not pj.checkpath():
                 routerpj = pj.routerpj()
                 if routerpj:
                     self.ping(routerpj)
-                self.ping(pj)
+            # We must now re-run this ping job to actually generate a ping down
+            # event. If there is a problem in the path, it will be suppressed.
+            self.ping(pj)
         else:
             failname = pj.checkpath()
             # walk up the ping tree and find router node with failure
