@@ -1321,7 +1321,15 @@ def readable_time(seconds, precision=1):
     @type t: int
     @rtype: str
 
+        >>> readable_time(None)
+        '0 seconds'
+        >>> readable_time(0)
+        '0 seconds'
+        >>> readable_time(0.12)
+        '0 seconds'
         >>> readable_time(1)
+        '1 second'
+        >>> readable_time(1.5)
         '1 second'
         >>> readable_time(60)
         '1 minute'
@@ -1331,10 +1339,15 @@ def readable_time(seconds, precision=1):
         '3 hours 12 seconds'
 
     """
+    if seconds is None:
+        return '0 seconds'
+    remaining = abs(seconds)
+    if remaining < 1:
+        return '0 seconds'
+
     names = ('year', 'month', 'week', 'day', 'hour', 'minute', 'second')
     mults = (60*60*24*365, 60*60*24*30, 60*60*24*7, 60*60*24, 60*60, 60, 1)
     result = []
-    remaining = abs(seconds)
     for name, div in zip(names, mults):
         num = Decimal(str(math.floor(remaining/div)))
         remaining -= int(num)*div

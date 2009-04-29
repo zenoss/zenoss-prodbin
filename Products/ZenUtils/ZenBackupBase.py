@@ -1,8 +1,8 @@
-#! /usr/bin/env python 
+#! /usr/bin/env python
 ###########################################################################
 #
 # This program is part of Zenoss Core, an open source monitoring platform.
-# Copyright (C) 2007, Zenoss Inc.
+# Copyright (C) 2007, 2009 Zenoss Inc.
 #
 # This program is free software; you can redistribute it and/or modify it
 # under the terms of the GNU General Public License version 2 as published by
@@ -13,7 +13,7 @@
 ###########################################################################
 
 
-__doc__='''zenbackupcommon.py
+__doc__='''ZenBackupBase
 
 Common code for zenbackup.py and zenrestore.py
 '''
@@ -31,8 +31,6 @@ CONFIG_FIELDS = (   ('dbname', 'events', 'database'),
 
 
 class ZenBackupBase(CmdBase):
-
-
     doesLogging = False
 
 
@@ -40,14 +38,17 @@ class ZenBackupBase(CmdBase):
         CmdBase.__init__(self, noopts)
 
     def msg(self, msg):
-        ''' If --verbose then send msg to stdout
+        '''
+        If --verbose then send msg to stdout
         '''
         if self.options.verbose:
             print(msg)
 
 
     def buildOptions(self):
-        """basic options setup sub classes can add more options here"""
+        """
+        Command-line options setup
+        """
         CmdBase.buildOptions(self)
         self.parser.add_option('-v', '--verbose',
                                dest="verbose",
@@ -61,8 +62,12 @@ class ZenBackupBase(CmdBase):
 
 
     def getPassArg(self):
-        ''' Return string to be used as the -p (including the "-p")
-        to mysql commands
+        '''
+        Return string to be used as the -p (including the "-p")
+        to MySQL commands.
+
+        @return: password and flag
+        @rtype: string
         '''
         if self.options.dbpass == None:
             return ''
@@ -70,8 +75,12 @@ class ZenBackupBase(CmdBase):
 
 
     def getTempDir(self):
-        ''' Return directory to be used for temporary storage
+        '''
+        Return directory to be used for temporary storage
         during backup or restore.
+
+        @return: directory name
+        @rtype: string
         '''
         if self.options.tempDir:
             dir = tempfile.mkdtemp('', '', self.options.tempDir)
