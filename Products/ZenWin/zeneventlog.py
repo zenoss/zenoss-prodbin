@@ -39,6 +39,8 @@ class zeneventlog(WinCollector):
     whatIDo = 'read the Windows event log'
     eventlogCycleInterval = 5 * 60
     attributes = WinCollector.attributes + ('eventlogCycleInterval', )
+    deviceAttributes = WinCollector.deviceAttributes + (
+        'zWinEventlog', 'zWinEventlogMinSeverity')
     events = 0
 
     def fetchDevices(self, driver):

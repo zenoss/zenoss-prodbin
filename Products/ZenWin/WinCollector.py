@@ -50,7 +50,9 @@ class WinCollector(PBDaemon):
     initialServices = PBDaemon.initialServices\
          + ['Products.ZenWin.services.WmiConfig']
 
-    attributes = ('configCycleInterval', 'wmiqueryTimeout' )
+    attributes = ('configCycleInterval', 'wmiqueryTimeout')
+    deviceAttributes = (
+        'manageIp', 'zWinPassword', 'zWinUser', 'zWmiMonitorIgnore')
 
     def __init__(self):
         self.wmiprobs = []
@@ -69,8 +71,8 @@ class WinCollector(PBDaemon):
         if self.reconfigureTimeout and \
              not self.reconfigureTimeout.called:
             self.reconfigureTimeout.cancel()
-        self.reconfigureTimeout = reactor.callLater(30, drive,
-                self.reconfigure)
+        self.reconfigureTimeout = reactor.callLater(
+                self.cycleInterval() / 2, drive, self.reconfigure)
 
     def stopScan(self, unused=None):
         """
@@ -183,6 +185,14 @@ class WinCollector(PBDaemon):
         return self.services.get('Products.ZenWin.services.WmiConfig',
                                  FakeRemote())
 
+
+    def devicesEqual(self, d1, d2):
+        for att in self.deviceAttributes:
+            if getattr(d1, att, None) != getattr(d2, att, None):
+                return False
+        return True
+
+
     def updateDevices(self, devices):
         """
         Update device configuration
@@ -191,11 +201,21 @@ class WinCollector(PBDaemon):
         @type devices: list
         """
         self.devices = devices
+        newDevices = {}
+        for d in devices: newDevices[d.id] = d
         for (deviceName, watcher) in self.watchers.items():
-            self.log.warning('Updating devices, closing WMI connection to %s'
-                             , deviceName)
-            watcher.close()
-        self.watchers = {}
+            changed = False
+            if deviceName not in newDevices:
+                self.log.info("Stopping monitoring of %s.", deviceName)
+                changed = True
+            elif not self.devicesEqual(watcher.device, newDevices[deviceName]):
+                self.log.info("Updating configuration of %s.", deviceName)
+                changed = True
+            
+            if changed:
+                del self.watchers[deviceName]
+                watcher.close()        
+
 
     def remote_deleteDevice(self, deviceId):
         """
@@ -205,7 +225,14 @@ class WinCollector(PBDaemon):
         @param deviceId: deviceId
         @type deviceId: string
         """
-        self.devices = [i for i in self.devices if i.id != deviceId]
+        devices = []
+        for d in self.devices:
+            if deviceId == d.id:
+                devices.append(d)
+            else:
+                self.log.info("Stopping monitoring of %s.", deviceId)
+        self.devices = devices
+
 
     def error(self, why):
         """
