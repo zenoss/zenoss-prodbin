@@ -296,7 +296,10 @@ class ZenModelBase(object):
 
         >>> dmd.Devices.getZ('zSnmpPort')
         161
+        >>> dmd.Devices.getZ('zWinPassword')
+        >>>
         """
+        if 'password' in zpropname.lower(): return
         return getattr(self, zpropname)
 
 
