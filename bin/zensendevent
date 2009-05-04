@@ -40,6 +40,10 @@ parser.add_option("--server", dest="server", default="localhost",
     help="xmlrpc server, default: %default")
 parser.add_option("--auth", dest="auth", default="admin:zenoss",
     help="xmlrpc server auth, default: %default")
+parser.add_option("-o", "--other", dest="other", default=[],
+    action='append',
+    help="Specify other event_filed=value arguments. Can be specified"
+         " more than once.")
 
 
 opts, args = parser.parse_args()
@@ -62,6 +66,14 @@ if opts.eventClassKey:
 if opts.eventClass:
     evt['eventClass'] = opts.eventClass
 evt['monitor'] = opts.monitor    
+
+for line in opts.other:
+    try:
+        field, value = line.split('=')
+        evt[field] = value
+    except:
+        pass
+
 url = "http://%s@%s:%s" % (opts.auth, opts.server, opts.port)
 serv = ServerProxy(url)
 serv.sendEvent(evt)
