@@ -89,7 +89,7 @@ class RRDView(object):
         """
         dsnames = (dsname,)
         results = self.getRRDValues(dsnames, **kwargs)
-        if results:
+        if dsname in results:
             return results[dsname]
 
 
