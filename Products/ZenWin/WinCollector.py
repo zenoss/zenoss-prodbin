@@ -228,9 +228,9 @@ class WinCollector(PBDaemon):
         devices = []
         for d in self.devices:
             if deviceId == d.id:
-                devices.append(d)
-            else:
                 self.log.info("Stopping monitoring of %s.", deviceId)
+            else:
+                devices.append(d)
         self.devices = devices
 
 
