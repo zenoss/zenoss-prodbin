@@ -334,8 +334,9 @@ class EventClassInst(EventClassPropertyMixin, ZenModelRM, EventView,
     def sameKey(self):
         """Return a list of all mappings with the same eventClassKey.
         """
-        return self.eventClass().find(self.eventClassKey)
-        
+        return [ i for i in self.eventClass().find(self.eventClassKey) \
+            if i.eventClassKey == self.eventClassKey ]
+
 
     def manage_afterAdd(self, item, container):
         """
