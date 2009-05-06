@@ -39,7 +39,7 @@ class BatchDeviceLoader(ZCmdBase):
 #  /Devices/device_class_name Python-expression
 #  hostname Python-expression
 #
-# For organizers (ie the /Devices path), the Python-expression 
+# For organizers (ie the /Devices path), the Python-expression
 # is used to define defaults to be used for devices listed
 # after the organizer. The defaults that can be specified are:
 #
@@ -66,7 +66,8 @@ device1 comments="A simple device" zSnmpCommunity='blue', zSnmpVer='v1'
 #
 /Devices/Server/Linux zSnmpPort=1543
 # Python strings can use either ' or " -- there's no difference.
-linux_device1 zSnmpCommunity='blue', zSnmpVer="v2c"
+# As a special case, it is also possible to specify the IP address
+linux_device1 manageIp=10.10.10.77, zSnmpCommunity='blue', zSnmpVer="v2c"
 # A '\' at the end of the line allows you to place more
 # expressions on a new line. Don't forget the comma...
 linux_device2 discoverProto='none', zLinks="<a href='http://example.org'>Support site</a>",  \
@@ -95,7 +96,7 @@ windows_device2 zWinUser="administrator", zWinPassword='thomas'
             'REQUEST', 'device', 'self', 'xmlrpc', 'e', 'handler',
         ]
         for opt in unsupportable_args:
-            if self.loader_args.has_key(opt):
+            if opt in self.loader_args:
                 del self.loader_args[opt]
 
     def loadDeviceList(self, args=None):
@@ -169,6 +170,12 @@ windows_device2 zWinUser="administrator", zWinPassword='thomas'
             if devobj is None:
                 continue
 
+            if device_specs.get('manageIp', ''):
+                manageIp = device_specs['manageIp']
+                devobj.setManageIp(manageIp)
+                self.log.info("Setting %s IP address to '%s'",
+                              devobj.id, manageIp)
+
             self.applyZProps(devobj, device_specs)
 
             # Default is discoverProto == 'snmp'
@@ -195,7 +202,7 @@ windows_device2 zWinUser="administrator", zWinPassword='thomas'
         @return: device or None
         @rtype: DMD device object
         """
-        if not device_specs.has_key('deviceName'):
+        if 'deviceName' not in device_specs:
             return None
         name = device_specs['deviceName']
         devobj  = self.dmd.Devices.findDevice(name)
@@ -318,7 +325,7 @@ windows_device2 zWinUser="administrator", zWinPassword='thomas'
                 return None
 
         return configs
-         
+
 
 if __name__=='__main__':
     batchLoader = BatchDeviceLoader()
