@@ -34,6 +34,8 @@ from pynetsnmp import netsnmp, twistedsnmp
 
 from twisted.internet import defer, reactor
 from Products.ZenUtils.Driver import drive
+from Products.ZenUtils.captureReplay import CaptureReplay
+
 
 
 # This is what struct sockaddr_in {} looks like
@@ -73,7 +75,7 @@ class FakePacket(object):
         self.fake = True
 
 
-class ZenTrap(EventServer):
+class ZenTrap(EventServer, CaptureReplay):
     """
     Listen for SNMP traps and turn them into events
     Connects to the EventService service in zenhub.
@@ -87,19 +89,7 @@ class ZenTrap(EventServer):
         self.oidCache = {}
 
         # Command-line argument sanity checking
-        if self.options.captureFilePrefix and len(self.options.replayFilePrefix) > 0:
-            self.log.error( "Can't specify both --captureFilePrefix and -replayFilePrefix" \
-                 " at the same time.  Exiting" )
-            sys.exit(1)
-
-        if self.options.captureFilePrefix and not self.options.captureAll and \
-            self.options.captureIps == '':
-            self.log.warn( "Must specify either --captureIps or --captureAll for" + \
-                 " --capturePrefix to take effect.  Ignoring option --capturePrefix" )
-
-        if len(self.options.replayFilePrefix) > 0:
-            self.connected = self.replayAll
-            return
+        self.processCaptureReplayOptions()
 
         if not self.options.useFileDescriptor and self.options.trapport < 1024:
             self.openPrivilegedPort('--listen', '--proto=udp',
@@ -114,9 +104,6 @@ class ZenTrap(EventServer):
             self.session.awaitTraps('%s:%d' % (
                 self.options.listenip, self.options.trapport))
         self.session.callback = self.receiveTrap
-
-        self.captureSerialNum = 0
-        self.captureIps = self.options.captureIps.split(',')
 
         twistedsnmp.updateReactor()
 
@@ -201,72 +188,6 @@ class ZenTrap(EventServer):
         return packet
 
 
-    def capturePacket(self, addr, pdu):
-        """
-        Store the raw packet for later examination and troubleshooting.
-
-        @param addr: packet-sending host's IP address and port
-        @type addr: (string, number)
-        @param pdu: raw packet
-        @type pdu: binary
-        """
-        # Save the raw data if requested to do so
-        if not self.options.captureFilePrefix:
-            return
-        host = addr[0]
-        if not self.options.captureAll and host not in self.captureIps:
-            self.log.debug( "Received packet from %s, but not in %s" % (host,
-                            self.captureIps))
-            return
-
-        self.log.debug( "Capturing packet from %s" % host )
-        name = "%s-%s-%d" % (self.options.captureFilePrefix, host, self.captureSerialNum)
-        try:
-            packet = self.convertPacketToPython(addr, pdu)
-            capFile = open( name, "wb")
-            data= cPickle.dumps(packet, cPickle.HIGHEST_PROTOCOL)
-            capFile.write(data)
-            capFile.close()
-            self.captureSerialNum += 1
-        except:
-            self.log.exception("Couldn't write capture data to '%s'" % name )
-
-
-    def replayAll(self):
-        """
-        Replay all captured packets using the files specified in
-        the --replayFilePrefix option and then exit.
-
-        Note that this calls the Twisted stop() method
-        """
-        # Note what you are about to see below is a direct result of optparse
-        # adding in the arguments *TWICE* each time --replayFilePrefix is used.
-        import glob
-        files = []
-        for filespec in self.options.replayFilePrefix:
-            files += glob.glob( filespec + '*' )
-
-        self.loaded = 0
-        self.replayed = 0
-        from sets import Set
-        for file in Set(files):
-            self.log.debug( "Attempting to read packet data from '%s'" % file )
-            try:
-                fp = open( file, "rb" )
-                pdu= cPickle.load(fp)
-                fp.close()
-                self.loaded += 1
-
-            except (IOError, EOFError):
-                fp.close()
-                self.log.exception( "Unable to load packet data from %s" % file )
-                continue
-
-            self.replay(pdu)
-
-        self.replayStop()
-
-
     def replay(self, pdu):
         """
         Replay a captured packet
@@ -276,21 +197,6 @@ class ZenTrap(EventServer):
         """
         ts = time.time()
         d = self.asyncHandleTrap([pdu.host, pdu.port], pdu, ts)
-
-
-    def replayStop(self):
-        """
-        Twisted method that we use to override the default stop() method
-        for when we are replaying packets.  This version waits to make
-        sure that all of our deferreds have exited before pulling the plug.
-        """
-        self.log.debug( "Replayed %d of %d packets" % (self.replayed, self.loaded ) )
-        if self.replayed == self.loaded:
-            self.log.info( "Loaded and replayed %d packets" % self.replayed )
-            self.stop()
-        else:
-            reactor.callLater( 1, self.replayStop )
-
 
 
     def oid2name(self, oid, exactMatch=True, strip=False):
@@ -385,7 +291,7 @@ class ZenTrap(EventServer):
         if not dup:
             self.log.error("Could not clone PDU for asynchronous processing")
             return
-        
+
         def cleanup(result):
             """
             Twisted callback to delete a previous memory allocation
@@ -424,7 +330,7 @@ class ZenTrap(EventServer):
             @return: Twisted deferred object
             @rtype: Twisted deferred object
             """
-            self.capturePacket( addr, pdu)
+            self.capturePacket( addr[0], addr, pdu)
 
             eventType = 'unknown'
             result = {}
@@ -453,14 +359,14 @@ class ZenTrap(EventServer):
                 eventType = driver.next()
                 generic = pdu.trap_type
                 specific = pdu.specific_type
-                
+
                 # Try an exact match with a .0. inserted between enterprise and
                 # specific OID. It seems that MIBs frequently expect this .0.
                 # to exist, but the device's don't send it in the trap.
                 oid = "%s.0.%d" % (enterprise, specific)
                 yield self.oid2name(oid, exactMatch=True, strip=False)
                 name = driver.next()
-                
+
                 # If we didn't get a match with the .0. inserted we will try
                 # resolving withing the .0. inserted and allow partial matches.
                 if name == oid:
@@ -479,7 +385,7 @@ class ZenTrap(EventServer):
                     5: 'snmp_egpNeighorLoss',
                     6: name,
                     }.get(generic, name)
-                
+
                 # Decode all variable bindings. Allow partial matches and strip
                 # off any index values.
                 for oid, value in variables:
@@ -552,30 +458,11 @@ class ZenTrap(EventServer):
                                help=("Read from an existing connection "
                                      " rather than opening a new port."),
                                default=None)
-        self.parser.add_option('--captureFilePrefix',
-                               dest='captureFilePrefix',
-                               default=None,
-                               help="Directory and filename to use as a template" + \
-                               "  to store captured raw trap packets.")
-        self.parser.add_option('--captureAll',
-                               dest='captureAll',
-                               action='store_true',
-                               default=False,
-                               help="Capture all packets.")
-        self.parser.add_option('--captureIps',
-                               dest='captureIps',
-                               default='',
-                               help="Comma-separated list of IP addresses to capture.")
-        self.parser.add_option('--replayFilePrefix',
-                               dest='replayFilePrefix',
-                               action='append',
-                               default=[],
-             help="Filename prefix containing captured packet data. Can specify more than once.")
 
+        self.buildCaptureReplayOptions()
 
 
 if __name__ == '__main__':
     z = ZenTrap()
     z.run()
     z.report()
-
