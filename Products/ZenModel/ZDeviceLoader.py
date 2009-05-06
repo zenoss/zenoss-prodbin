@@ -101,6 +101,7 @@ class BaseDeviceLoader(object):
 
             # Remove spaces from the name
             deviceName = deviceName.replace(' ', '')
+            manageIp = manageIp.replace(' ', '')
 
             # If we're not discovering and we have no IP, attempt the IP lookup
             # locally
@@ -186,7 +187,7 @@ class DeviceCreationJob(ShellCommandJob):
         self.devicePath = devicePath
         self.performanceMonitor = performanceMonitor
         self.discoverProto = discoverProto
-        self.manageIp = manageIp
+        self.manageIp = manageIp.replace(' ', '')
 
         # Save the device stuff to set after adding
         self.zProperties = zProperties

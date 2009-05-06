@@ -121,6 +121,7 @@ def manage_createDevice(context, deviceName, devicePath="/Discovered",
     
     @rtype: Device
     """
+    manageIp = manageIp.replace(' ', '')
     checkDeviceExists(context, deviceName, manageIp, performanceMonitor)
     deviceName = context.prepId(deviceName)
     log.info("device name '%s' for ip '%s'", deviceName, manageIp)
@@ -901,6 +902,7 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
         @rtype: string
         @permission: ZEN_ADMIN_DEVICE
         """
+        ip = ip.replace(' ', '')
         origip = ip
         try:
             if ip.find("/") > -1: 
