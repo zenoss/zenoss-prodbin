@@ -197,13 +197,18 @@ class zeneventlog(WinCollector):
         except:
             pass
 
+        event_message = str(lrec.message).strip()
+        if not event_message or event_message == 'None':
+            event_message = "Message text from Windows not available." + \
+                            "  See source system's event log." 
+
         evt = dict(
             device=name,
             eventClassKey=evtkey,
             eventGroup=lrec.logfile,
             component=lrec.sourcename,
             ntevid=lrec.eventcode,
-            summary=str(lrec.message).strip(),
+            summary=event_message,
             agent='zeneventlog',
             severity=sev,
             monitor=self.options.monitor,
