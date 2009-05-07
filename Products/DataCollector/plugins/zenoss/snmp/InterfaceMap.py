@@ -239,7 +239,13 @@ class InterfaceMap(SnmpPlugin):
             om.type += "_64"
             del(om.hcCounters)
 
-        if hasattr(om, 'macaddress'): om.macaddress = self.asmac(om.macaddress)
+        if hasattr(om, 'macaddress'):
+            if isinstance(om.macaddress, basestring):
+                om.macaddress = self.asmac(om.macaddress)
+            else:
+                log.debug("The MAC address for interface %s is invalid (%s)" \
+                         " -- ignoring", om.id, om.macaddress)
+
         # Handle misreported operStatus from Linux tun devices
         if om.id.startswith('tun') and om.adminStatus == 1: om.operStatus = 1
         
