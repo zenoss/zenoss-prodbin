@@ -17,6 +17,7 @@ __doc__= """zenprocess
 Gets SNMP process performance data and stores it in RRD files.
 """
 
+import sys
 import logging
 import time
 from sets import Set
@@ -219,7 +220,8 @@ class Device(pb.Copyable, pb.RemoteCopy):
         t = self.proxy.getTable(oids,
                                 timeout=self.snmpConnInfo.zSnmpTimeout,
                                 retryCount=self.snmpConnInfo.zSnmpTries,
-                                maxRepetitions=repetitions)
+                                maxRepetitions=repetitions,
+                                limit=sys.maxint)
         return t
 pb.setUnjellyableForClass(Device, Device)
 

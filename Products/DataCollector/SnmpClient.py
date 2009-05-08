@@ -11,6 +11,7 @@
 #
 ###########################################################################
 
+import sys
 import logging
 log = logging.getLogger("zen.SnmpClient")
 
@@ -121,7 +122,8 @@ class SnmpClient(BaseClient):
                     rowSize = len(tmap.getoids())
                     maxRepetitions = max(DEFAULT_MAX_OIDS_BACK / rowSize, 1)
                     yield self.proxy.getTable(tmap.getoids(),
-                                              maxRepetitions=maxRepetitions)
+                                              maxRepetitions=maxRepetitions,
+                                              limit=sys.maxint)
                     self._tabledata[pname][tmap] = driver.next()
             except Exception, ex:
                 if not isinstance( ex, error.TimeoutError ):
