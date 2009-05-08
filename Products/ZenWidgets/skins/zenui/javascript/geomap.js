@@ -177,6 +177,9 @@ ZenGeoMap.prototype = {
         this._markerregistry[p] = marker;
         return [marker, isnew];
     },
+    isPortlet: function() {
+        return document.body.innerHTML.search('breadCrumbPane')==-1;
+    },
     addMarkers: function(nodedata){
         var ready_markers = [];
         var nummarkers = 0;
@@ -188,6 +191,10 @@ ZenGeoMap.prototype = {
             var address = node[0];
             var color = node[1];
             var clicklink = node[2];
+            if (this.isPortlet()) {
+                clicklink = clicklink.replace('locationGeoMap', 
+                        'simpleLocationGeoMap');
+            }
             var summarytext = node[3];
             if (address) {
             if (typeof(this.cache.get(address))=='undefined')
