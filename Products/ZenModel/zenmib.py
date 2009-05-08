@@ -110,7 +110,7 @@ class DependencyMap:
         @param dependencies: dependency
         @type dependencies: dependency object
         """
-        if not self.depMap.has_key(name):
+        if name not in self.depMap:
             self.fileMap[filename] = name
             self.depMap[name] = (filename, dependencies)
 
@@ -390,10 +390,12 @@ class zenmib(ZCmdBase):
                 setattr(mod, key, val)
 
         # Add regular OIDs to the mibmodule + mibnode relationship tree
-        if mib.has_key('nodes'):
+        nodes_added = 0
+        if 'nodes' in mib:
             for name, values in mib['nodes'].items():
                 try:
                     mod.createMibNode(name, **values)
+                    nodes_added += 1
                 except BadRequest:
                     try:
                         self.log.warn("Unable to add node id '%s' as this"
@@ -410,10 +412,12 @@ class zenmib(ZCmdBase):
                                       name)
 
         # Put SNMP trap information into Products.ZenModel.MibNotification
-        if mib.has_key('notifications'):
+        traps_added = 0
+        if 'notifications' in mib:
             for name, values in mib['notifications'].items():
                 try:
                     mod.createMibNotification(name, **values)
+                    traps_added += 1
                 except BadRequest:
                     try:
                         self.log.warn("Unable to add trap id '%s' as this"
@@ -428,6 +432,9 @@ class zenmib(ZCmdBase):
                     except:
                         self.log.warn("Unable to add '%s' -- skipping",
                                       name)
+
+        self.log.info("Parsed %d nodes and %d notifications", nodes_added,
+                      traps_added)
 
         # Add the MIB tree permanently to the DMD except if we get the
         # --nocommit flag.
