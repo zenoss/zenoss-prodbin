@@ -207,7 +207,7 @@ class ZenModeler(PBDaemon):
                 self.log.info( "Interrupted by external signal (%s)" % str(ex) )
                 raise
 
-            except Plugins.pluginImportError, import_error:
+            except Plugins.PluginImportError, import_error:
                 import socket
                 component, _ = os.path.splitext( os.path.basename( sys.argv[0] ) )
                 collector_host= socket.gethostname()

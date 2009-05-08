@@ -15,7 +15,7 @@ import unittest
 import Globals
 import os.path
 
-from Products.DataCollector.Plugins import PluginLoader
+from Products.DataCollector.Plugins import PluginLoader, CoreImporter
 
 here = lambda *x:os.path.join(os.path.abspath(os.path.dirname(__file__)), *x)
 TEST_PACKAGE = here('plugins')
@@ -26,7 +26,8 @@ class ImportPlugins(unittest.TestCase):
         """
         A trivial collector plugin.
         """
-        loader = PluginLoader(here('plugins'), 'zenoss.noimports')
+        loader = PluginLoader(here('plugins'), 'zenoss.noimports',
+                              'plugins', CoreImporter())
         # We just care that it doesn't raise anything
         plugin = loader.create()
         self.assertEqual(plugin.MARKER, 'abcdefg')
@@ -35,7 +36,8 @@ class ImportPlugins(unittest.TestCase):
         """
         Collector plugin that does imports from outside the module
         """
-        loader = PluginLoader(here('plugins'), 'zenoss.withimports')
+        loader = PluginLoader(here('plugins'), 'zenoss.withimports',
+                              'plugins', CoreImporter())
         plugin = loader.create()
         self.assert_(plugin.get_re() is not None)
 
@@ -43,8 +45,10 @@ class ImportPlugins(unittest.TestCase):
         """
         Import similar dotted names from different packages.
         """
-        loader1 = PluginLoader(here('plugins'), 'zenoss.noimports')
-        loader2 = PluginLoader(here('otherplugins'), 'zenoss.noimports')
+        loader1 = PluginLoader(here('plugins'), 'zenoss.noimports',
+                               'plugins', CoreImporter())
+        loader2 = PluginLoader(here('otherplugins'), 'zenoss.noimports'                      ,
+                               'plugins', CoreImporter())
         self.assertEqual(loader1.create().MARKER, 'abcdefg')
         self.assertEqual(loader2.create().MARKER, 'gfedcba')
 

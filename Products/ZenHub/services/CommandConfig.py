@@ -14,11 +14,12 @@
 from PerformanceConfig import PerformanceConfig
 from ZODB.POSException import POSError
 from Products.ZenRRD.zencommand import Cmd, DeviceConfig, DataPointConfig
-from Products.ZenRRD.CommandParser import getParser
 from Products.ZenHub.PBDaemon import translateError
+from Products.DataCollector.Plugins import getParserLoader
+import logging
+log = logging.getLogger('zen.CommandConfig')
 
-
-def getComponentCommands(comp, commandCache, commandSet):
+def getComponentCommands(comp, commandCache, commandSet, dmd):
     """Return list of command definitions.
     """
     perfServer = comp.device().getPerformanceServer()
@@ -27,7 +28,11 @@ def getComponentCommands(comp, commandCache, commandSet):
         for ds in templ.getRRDDataSources('COMMAND'):
             if not ds.enabled: continue
             parserName = getattr(ds, "parser", "Auto")
-            parser = getParser(parserName)
+            ploader = getParserLoader(dmd, parserName)
+            if ploader is None:
+                log.error("Could not load %s plugin", parserName)
+                continue
+            parser = ploader.create()
             points = []
             for dp in ds.getRRDDataPoints():
                 dpc = DataPointConfig()
@@ -47,7 +52,7 @@ def getComponentCommands(comp, commandCache, commandSet):
             cmd.eventClass = ds.eventClass
             cmd.eventKey = ds.eventKey or ds.id
             cmd.severity = ds.severity
-            cmd.parser = parserName
+            cmd.parser = ploader
             cmd.command = ds.getCommand(comp)
             cmd = commandCache.setdefault(cmd.commandKey(), cmd)
             cmd.points.extend(points)
@@ -60,9 +65,9 @@ def getDeviceCommands(dev):
         return None
     cache = {}
     cmds = set()
-    threshs = getComponentCommands(dev, cache, cmds)
+    threshs = getComponentCommands(dev, cache, cmds, dev.getDmd())
     for o in dev.getMonitoredComponents(collector="zencommand"):
-        threshs.extend(getComponentCommands(o, cache, cmds))
+        threshs.extend(getComponentCommands(o, cache, cmds, dev.getDmd()))
     if cmds:
         d = DeviceConfig()
         d.lastChange = dev.getLastChange()

@@ -1918,7 +1918,7 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
         """
         if propname == 'zCollectorPlugins':
             from Products.DataCollector.Plugins import loadPlugins
-            names = [ldr.pluginName() for ldr in loadPlugins(self.dmd)]
+            names = [ldr.pluginName for ldr in loadPlugins(self.dmd)]
             names.sort()
             return names
         if propname == 'zCommandProtocol':

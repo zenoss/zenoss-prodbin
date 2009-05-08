@@ -1,7 +1,7 @@
 ###########################################################################
 #
 # This program is part of Zenoss Core, an open source monitoring platform.
-# Copyright (C) 2007, Zenoss Inc.
+# Copyright (C) 2007-2009, Zenoss Inc.
 #
 # This program is free software; you can redistribute it and/or modify it
 # under the terms of the GNU General Public License version 2 as published by
@@ -11,8 +11,31 @@
 #
 ###########################################################################
 
-__doc__= """Plugins
-Load plugins from standard locations and from ZenPacks
+"""
+Load modeling and monitoring plugins from standard locations and from
+ZenPacks.  Most of the entry into this module is via the three functions
+defined at the very bottom of the file. Those functions use the singleton
+PluginManager objects to load the plugins.
+
+Classes -
+    PluginImportError - an exception type
+    PluginLoader - jellyable object that has all the information neccessary
+                   to dynamically import the plugin module and instantiate the
+                   class that shares the module's name
+    CoreImporter - jellyable object that is injected into a PluginLoader.
+                   handles importing of plugins found inside Products
+    PackImporter - same as above but for zenpack plugins
+    BaseLoaderFactory - base class for the two loader factories
+    CoreLoaderFactory - generates the PluginLoaders for core plugins
+    PackLoaderFactory - generates the PluginLoaders for zenpack plugins
+    PluginManager - there is one singleton instance of this class for modeling
+                    plugins and another for monitoring plugins
+                    
+Note that modPath uses a different convention for core versus zenpack plugins.
+
+    core: zenoss.cmd.uname
+    zenpack: ZenPacks.zenoss.AixMonitor.modeler.plugins.zenoss.cmd.uname
+    
 """
 
 from Products.ZenUtils.Utils import importClass, zenPath
@@ -20,25 +43,11 @@ import sys
 import os
 import exceptions
 import imp
+from twisted.spread import pb
 import logging
-log = logging.getLogger('zen.plugins')
+log = logging.getLogger('zen.Plugins')
 
-_pluginskip = ("CollectorPlugin.py", "DataMaps.py")
-def _plfilter(f):
-    """
-    Return a filtered list of plugins
-
-    @param f: plugin name
-    @type f: string
-    """
-    return (f.endswith(".py")   and
-            not f.startswith('.') and
-            f.find('#') < 0       and
-            not f.startswith("_") and
-            not f in _pluginskip)
-
-
-class pluginImportError(exceptions.ImportError):
+class PluginImportError(exceptions.ImportError):
     """
     Capture extra data from plugin exceptions
     """
@@ -57,158 +66,259 @@ class pluginImportError(exceptions.ImportError):
         # The following is needed for zendisc
         self.args = traceback
 
-
-
-from twisted.spread import pb
 class PluginLoader(pb.Copyable, pb.RemoteCopy):
     """
     Class to load plugins
     """
 
-    def __init__(self, package, modpath):
+    def __init__(self, package, modPath, lastModName, importer):
         """
-        Initializer
-
-        @param package: package path where the plugins may be located
-        @type package: string
-        @param modpath: plugin path inside of the package
-        @type modpath: string
+        package - '/'-separated absolute path to the root of the plugins
+                  modules
+        modPath - '.'-spearated module path.  for core plugins, it is rooted
+                  at the package.  for zenpack plugins, it starts with
+                  'ZenPacks'
+        lastModName - name of the last module in modPath that is not part of
+                  of the plugin name
+        importer - object with an importPlugin method used to import the
+                   plugin. the implementation of the import method differs 
+                   between core and zenpack plugins
         """
         self.package = package
-        self.modpath = modpath
-
-
-    def pluginName(self):
-        """
-        Return the name of the plugin
-
-        @return: name of the plugin
-        @rtype: string
-        """
-        return self.modpath.split('plugins.').pop()
-
-
+        self.modPath = modPath
+        self.pluginName = modPath.split(lastModName + '.')[-1]
+        self.importer = importer
+                    
     def create(self):
         """
         Load and compile the code contained in the given plugin
         """
         try:
             try:
-                # Load the plugins package using its path as the name to avoid
-                # conflicts. Since we're kicking in the back door slashes in
-                # the name don't matter.
-                plugin_pkg = imp.find_module('.', [self.package])
-                plugin_pkg_mod = imp.load_module(self.package, *plugin_pkg)
-
-                # Modify sys.path (unfortunately, some plugins depend on this)
+                # Modify sys.path (some plugins depend on this to import other
+                # modules from the plugins root)
                 sys.path.insert(0, self.package)
-
-                # Import the module, using the plugins package
-                #
-                # Equivalent to, for example: 
-                #   from mypackage.zenoss.snmp import DeviceMap
-                #
-                clsname = self.modpath.split('.')[-1]
-                if self.modpath.startswith('ZenPacks'):
-                    # ZenPack plugins are specified absolutely; we can import
-                    # them using the old method
-                    const = importClass(self.modpath)
-                else:
-                    mod = __import__(self.package + '.' + self.modpath, 
-                                     globals(), 
-                                     locals(),
-                                     [clsname])
-
-                    # Finally, get at the class
-                    const = getattr(mod, clsname)
-
+                pluginClass = self.importer.importPlugin(self.package, 
+                                                         self.modPath)
+                return pluginClass()
             except (SystemExit, KeyboardInterrupt):
                 raise
-
             except:
                 import traceback
-                raise pluginImportError(
-                    plugin=self.modpath, traceback=traceback.format_exc() )
-
+                log.debug(traceback.format_exc())
+                raise PluginImportError(
+                    plugin=self.modPath, traceback=traceback.format_exc() )
         finally:
             try:
                 sys.path.remove(self.package)
             except ValueError:
                 # It's already been removed
                 pass
-
-        # The whole point: instantiate the plugin
-        plugin = const()
-        return plugin
-
+                
 pb.setUnjellyableForClass(PluginLoader, PluginLoader)
 
+def _coreModPaths(walker, package):
+    "generates modPath strings for the modules in a core directory"
+    for absolutePath, dirname, filenames in walker.walk(package):
+        if absolutePath == package:
+            modPathBase = []
+        elif absolutePath.startswith(package):
+            modPathBase = absolutePath[len(package)+1:].split(os.path.sep)
+        else:
+            log.debug('absolutePath must start with package: '
+                      'absolutePath=%s, package=%s', absolutePath, package)
+            continue
+        for filename in filenames:
+            if filename.endswith(".py") \
+                    and filename[0] not in ('.', "_") \
+                    and '#' not in filename \
+                    and filename not in ('CollectorPlugin.py', 'DataMaps.py'):
+                yield '.'.join(modPathBase + [filename[:-3]])
+                
+class OsWalker(object):
+    
+    def walk(self, package):
+        return os.walk(package)
+    
+class CoreImporter(pb.Copyable, pb.RemoteCopy):
+    
+    def importPlugin(self, package, modPath):
+        # Load the plugins package using its path as the name to 
+        # avoid conflicts. slashes in the name are OK when using
+        # the imp module.
+        plugin_pkg = imp.find_module('.', [package])
+        imp.load_module(package, *plugin_pkg)
+        # Import the module, using the plugins package
+        #
+        # Equivalent to, for example: 
+        #   from mypackage.zenoss.snmp import DeviceMap
+        #
+        clsname = modPath.split('.')[-1]
+        mod = __import__(package + '.' + modPath, 
+                         globals(),
+                         locals(),
+                         [clsname])
+        # get the class
+        return getattr(mod, clsname)
+        
+pb.setUnjellyableForClass(CoreImporter, CoreImporter)
 
-def _loadPluginDir(pdir):
+class PackImporter(pb.Copyable, pb.RemoteCopy):
+    
+    def importPlugin(self, package, modPath):
+        # ZenPack plugins are specified absolutely; we can import
+        # them using the old method
+        return importClass(modPath)
+        
+pb.setUnjellyableForClass(PackImporter, PackImporter)
+
+class BaseLoaderFactory(object):
+    
+    def __init__(self, walker):
+        self.walker = walker
+    
+    def genLoaders(self, package, lastModName):
+        for coreModPath in _coreModPaths(self.walker, package):
+            yield self._createLoader(package, coreModPath, lastModName)
+            
+class CoreLoaderFactory(BaseLoaderFactory):
+    
+    def _createLoader(self, package, coreModPath, lastModName):
+        return PluginLoader(package, coreModPath, lastModName, CoreImporter())
+        
+class PackLoaderFactory(BaseLoaderFactory):
+    
+    def __init__(self, walker, modPathPrefix):
+        BaseLoaderFactory.__init__(self, walker)
+        self.modPathPrefix = modPathPrefix
+        
+    def _createLoader(self, package, coreModPath, lastModName):
+        packModPath = '%s.%s' % (self.modPathPrefix, coreModPath)
+        return PluginLoader(package, packModPath, lastModName, PackImporter())
+        
+class PluginManager(object):
     """
-    Load the Zenoss default collector plugins
-
-    @param pdir: plugin path parent directory
-    @type pdir: string
-    @return: list of loadable plugins
-    @rtype: list
+    Manages plugin modules.  Finds plugins and returns PluginLoader instances.
+    Keeps a cache of previously loaded plugins.
     """
-    collectorPlugins = []
-    log.debug("Loading collector plugins from: %s", pdir)
-    lpdir = len(pdir)+1
-    for path, dirname, filenames in os.walk(pdir):
-        path = path[lpdir:]
-        for filename in filter(_plfilter, filenames):
-            modpath = os.path.join(path,filename[:-3]).replace("/",".")
-            log.debug("Loading: %s", modpath)
-            try:
-                this_plugin= PluginLoader(pdir, modpath)
-                if this_plugin is not None:
-                    collectorPlugins.append( this_plugin )
-            except ImportError:
-                log.exception("Problem loading plugin:%s" % modpath)
+    
+    def __init__(self, lastModName, packPath, productsPaths):
+        """
+        Adds PluginLoaders for plugins in productsPaths to the pluginLoaders
+        dictionary.
+        
+        lastModName - the directory name where the plugins are found.  this name
+                  is appended to the following paths
+        packPath - path to the directory that holds the plugin modules inside
+                   a zenpack. this path is relative to the zenpack root
+        productsPaths - list of paths to directories that hold plugin
+                   modules. these paths are relative to $ZENHOME/Products
+        
+        a 'path', as used here, is a tuple of directory names
+        """
+        self.pluginLoaders = {} # PluginLoaders by module path
+        self.loadedZenpacks = [] # zenpacks that have been processed
+        self.lastModName = lastModName
+        self.packPath = packPath
+        for path in productsPaths:
+            package = zenPath(*('Products',) + path + (lastModName,))
+            self._addPluginLoaders(CoreLoaderFactory(OsWalker()), package)
+                          
+    def getPluginLoader(self, packs, modPath):
+        """
+        Get the PluginLoader for a specific plugin.
+        
+        packs - list of installed zenpacks (ZenPack instances)
+        modPath - the module path of the plugin
+        """
+        if modPath not in self.pluginLoaders:
+            self.getPluginLoaders(packs)
+        if modPath in self.pluginLoaders:
+            return self.pluginLoaders[modPath]
+                                   
+    def getPluginLoaders(self, packs):
+        """
+        Add the PluginLoaders for the packs to the pluginLoaders dictionary.
+        Return the values of that dictionary.
+        
+        packs - list of installed zenpacks (ZenPack instances)
+        """
+        try:
+            for pack in packs:
+                if pack.moduleName() not in self.loadedZenpacks:
+                    self.loadedZenpacks.append(pack.moduleName())
+                    modPathPrefix = '.'.join((pack.moduleName(),) + 
+                            self.packPath + (self.lastModName,))
+                    factory = PackLoaderFactory(OsWalker(), modPathPrefix)
+                    package = pack.path(*self.packPath + (self.lastModName,))
+                    self._addPluginLoaders(factory, package)
+        except:
+            log.error('Could not load plugins from ZenPacks.'
+                      ' One of the ZenPacks is missing or broken.')
+            import traceback
+            log.debug(traceback.format_exc())
+        return self.pluginLoaders.values()
+        
+    def _addPluginLoaders(self, loaderFactory, package):
+        log.debug("Loading collector plugins from: %s", package)
+        try:
+            loaders = loaderFactory.genLoaders(package, self.lastModName)
+            for loader in loaders:
+                self.pluginLoaders[loader.modPath] = loader
+        except:
+            log.error('Could not load plugins from %s', package)
+            import traceback
+            log.debug(traceback.format_exc())
+            
+class ModelingManager(object):
+    """
+    this class is not intended to be instantiated. instead it is a place to 
+    hold a singleton instance of PluginManager without having them call the
+    constructor when this module is imported.
+    """
+    
+    instance = None
+    
+    @classmethod
+    def getInstance(cls):
+        if cls.instance is None:
+            cls.instance = PluginManager(
+                    lastModName='plugins',
+                    packPath=('modeler',),
+                    productsPaths=[('DataCollector',), 
+                                   ('ZenWin', 'modeler',)])
+        return cls.instance
 
-    return collectorPlugins
-
-
+class MonitoringManager(object):
+    """
+    this class is not intended to be instantiated. instead it is a place to 
+    hold a singleton instance of PluginManager without having them call the
+    constructor when this module is imported.
+    """
+    
+    instance = None
+    
+    @classmethod
+    def getInstance(cls):
+        if cls.instance is None:
+            cls.instance = PluginManager(
+                    lastModName='parsers',
+                    packPath=(),
+                    productsPaths=[('ZenRRD',)])
+        return cls.instance
+        
+def _loadPlugins(pluginManager, dmd):
+    return pluginManager.getPluginLoaders(dmd.ZenPackManager.packs())
 
 def loadPlugins(dmd):
-    """
-    Load plugins from the Zenoss plugin directory and from the plugin
-    directory from each ZenPack.
-    Returns them as a list of PluginLoader instances.
-
-    @param dmd: Device Management Database (DMD) reference
-    @type dmd: dmd object
-    @return: list of loadable plugins
-    @rtype: list
-    """
-    plugins = [x for x in sys.modules if x.startswith("plugins")]
-    PDIR = os.path.join(os.path.dirname(__file__), "plugins")
-    for key in ['zenoss'] + plugins:
-        log.debug("Clearing plugin %s", key)
-        if sys.modules.has_key(key):
-            del sys.modules[key]
-
-    plugins = _loadPluginDir(PDIR)
-    plugins += _loadPluginDir(zenPath('Products/ZenWin/modeler/plugins'))
-
-    try:
-        for pack in dmd.ZenPackManager.packs():
-            try:
-                if pack.isEggPack():
-                     eggPlugins = _loadPluginDir(pack.path('modeler', 'plugins'))
-                     for eggPlugin in eggPlugins:
-                        eggPlugin.modpath = '%s.modeler.plugins.%s' % \
-                            (pack.moduleName(), eggPlugin.modpath)
-                     plugins += eggPlugins
-                else:
-                    plugins += _loadPluginDir(pack.path('modeler', 'plugins'))
-            except:
-                log.error('Could not load modeler plugins from the %s ZenPack.' \
-                          % str(pack) )
-
-    except:
-        log.error('Could not load modeler plugins from ZenPacks.'
-                  ' One of the ZenPacks is missing or broken.')
-    return plugins
+    "Get PluginLoaders for all the modeling plugins"
+    return _loadPlugins(ModelingManager.getInstance(), dmd)
+    
+def loadParserPlugins(dmd):
+    "Get PluginLoaders for all the modeling plugins"
+    return _loadPlugins(MonitoringManager.getInstance(), dmd)
+    
+def getParserLoader(dmd, modPath):
+    "Get a PluginLoader for the given monitoring plugin's module path"
+    return MonitoringManager.getInstance().getPluginLoader(
+            dmd.ZenPackManager.packs(), modPath)

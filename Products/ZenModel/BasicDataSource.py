@@ -220,8 +220,8 @@ class BasicDataSource(RRDDataSource.SimpleRRDDataSource):
         out.write(str(footer))
 
     def parsers(self):
-        from Products.ZenRRD.CommandParser import getParserNames
-        return getParserNames(self.getDmd())
+        from Products.DataCollector.Plugins import loadParserPlugins
+        return sorted([p.modPath for p in loadParserPlugins(self.getDmd())])
 
 
 

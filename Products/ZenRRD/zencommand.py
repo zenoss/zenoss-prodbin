@@ -30,13 +30,15 @@ from twisted.spread import pb
 
 import Globals
 from Products.ZenUtils.Driver import drive, driveLater
-
+from Products.ZenUtils.Utils import unused
 from Products.ZenRRD.RRDDaemon import RRDDaemon
 from Products.ZenRRD.RRDUtil import RRDUtil
 from Products.DataCollector.SshClient import SshClient
 
-from Products.ZenRRD.CommandParser import getParser, ParsedResults
+from Products.ZenRRD.CommandParser import ParsedResults
 
+from Products.DataCollector import Plugins
+unused(Plugins)
 MAX_CONNECTIONS = 256
 
 
@@ -595,7 +597,7 @@ class zencommand(RRDDaemon):
         self.log.debug('The result of "%s" was "%r"', cmd.command, cmd.result.output)
         results = ParsedResults()
         try:
-            parser = getParser(cmd.parser)
+            parser = cmd.parser.create()
         except Exception, ex:
             self.log.exception("Error loading parser %s" % cmd.parser)
             import traceback
