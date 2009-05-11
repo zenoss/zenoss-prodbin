@@ -62,7 +62,7 @@ class zFileSystemSizeOffset(Migrate.Step):
             try:
                 if t.datasources()[0].oid != "1.3.6.1.2.1.25.2.3.1.6":
                     continue
-            except AttributeError:
+            except Exception:
                 continue
             
             for th in t.thresholds():
