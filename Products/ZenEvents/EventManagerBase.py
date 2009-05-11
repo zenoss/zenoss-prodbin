@@ -877,14 +877,9 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
 
     def getAvailability(self, state, **kw):
         import Availability
-        for name in "device", "component", "eventClass", "systems":
+        for name in "device", "component", "eventClass", "systems", "severity":
             if hasattr(state, name):
                 kw.setdefault(name, getattr(state, name))
-        try:
-            kw.setdefault('severity',
-                        dict(self.severityConversions)[state.severity])
-        except (ValueError, KeyError):
-            pass
         for name in "startDate", "endDate":
             if hasattr(state, name):
                 kw.setdefault(name, Time.ParseUSDate(getattr(state, name)))
