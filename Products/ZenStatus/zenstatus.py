@@ -125,7 +125,8 @@ class ZenStatus(PBDaemon):
         self.log.debug("Notification of config change from zenhub")
         if self.reconfigureTimeout and not self.reconfigureTimeout.called:
             self.reconfigureTimeout.cancel()
-        self.reconfigureTimeout = reactor.callLater(5, drive, self.reconfigure)
+        self.reconfigureTimeout = reactor.callLater(
+            self.statusCycleInterval/2, drive, self.reconfigure)
 
     def remote_setPropertyItems(self, items):
         self.log.debug("Async update of collection properties")
