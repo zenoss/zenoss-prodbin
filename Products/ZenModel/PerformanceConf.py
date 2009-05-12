@@ -3,7 +3,7 @@
 # ##########################################################################
 #
 # This program is part of Zenoss Core, an open source monitoring platform.
-# Copyright (C) 2009, Zenoss Inc.
+# Copyright (C) 2006-2009 Zenoss Inc.
 #
 # This program is free software; you can redistribute it and/or modify it
 # under the terms of the GNU General Public License version 2 as published by
@@ -131,6 +131,7 @@ class PerformanceConf(Monitor, StatusColor):
     statusCycleInterval = 60
     winCycleInterval = 60
     winmodelerCycleInterval = 60
+    wmibatchSize = 10
     wmiqueryTimeout = 100
     configCycleInterval = 6 * 60
 
@@ -169,6 +170,8 @@ class PerformanceConf(Monitor, StatusColor):
         {'id': 'statusCycleInterval', 'type': 'int', 'mode': 'w'},
         {'id': 'winCycleInterval', 'type': 'int', 'mode': 'w'},
         {'id': 'winmodelerCycleInterval', 'type': 'int', 'mode': 'w'},
+        {'id': 'wmibatchSize', 'type': 'int', 'mode': 'w',
+         'description':"Number of data objects to retrieve in a single WMI query",},
         {'id': 'wmiqueryTimeout', 'type': 'int', 'mode': 'w',
          'description':"Number of milliseconds to wait for WMI query to respond",},
         {'id': 'configCycleInterval', 'type': 'int', 'mode': 'w'},

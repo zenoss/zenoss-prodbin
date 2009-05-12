@@ -3,7 +3,7 @@
 # ##########################################################################
 #
 # This program is part of Zenoss Core, an open source monitoring platform.
-# Copyright (C) 2009 Zenoss Inc.
+# Copyright (C) 2007-2009 Zenoss Inc.
 #
 # This program is free software; you can redistribute it and/or modify it
 # under the terms of the GNU General Public License version 2 as published by
@@ -42,6 +42,7 @@ class WinCollector(PBDaemon):
     Base class to be sub-classed by WMI daemons
     """
     configCycleInterval = 20
+    wmibatchSize = 10
     wmiqueryTimeout = 1000
 
     # Short text description of what this collector does: set in sub-classes
@@ -50,7 +51,7 @@ class WinCollector(PBDaemon):
     initialServices = PBDaemon.initialServices\
          + ['Products.ZenWin.services.WmiConfig']
 
-    attributes = ('configCycleInterval', 'wmiqueryTimeout')
+    attributes = ('configCycleInterval', 'wmibatchSize', 'wmiqueryTimeout')
     deviceAttributes = (
         'manageIp', 'zWinPassword', 'zWinUser', 'zWmiMonitorIgnore')
 
@@ -60,7 +61,7 @@ class WinCollector(PBDaemon):
         self.watchers = {}
         PBDaemon.__init__(self)
         self.reconfigureTimeout = None
-        if self.options.logseverity == 0:
+        if self.options.logseverity >= 10:
             DEBUGLEVEL.value = 99
 
     def remote_notifyConfigChanged(self):

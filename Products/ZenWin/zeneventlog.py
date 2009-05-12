@@ -3,7 +3,7 @@
 # ##########################################################################
 #
 # This program is part of Zenoss Core, an open source monitoring platform.
-# Copyright (C) 2009 Zenoss Inc.
+# Copyright (C) 2006-2009 Zenoss Inc.
 #
 # This program is free software; you can redistribute it and/or modify it
 # under the terms of the GNU General Public License version 2 as published by
@@ -104,11 +104,17 @@ class zeneventlog(WinCollector):
                     self.watchers[device.id] = w
 
                 while 1:
+                    batchSize = self.wmibatchSize
+                    if hasattr(self.options, "batchSize") and \
+                        self.options.batchSize is not None:
+                        batchSize = int(self.options.batchSize)
+
                     queryTimeout = self.wmiqueryTimeout
-                    if hasattr( self.options, "queryTimeout") and \
+                    if hasattr(self.options, "queryTimeout") and \
                         self.options.queryTimeout is not None:
                         queryTimeout = int(self.options.queryTimeout)
-                    yield w.getEvents(queryTimeout)
+
+                    yield w.getEvents(queryTimeout, batchSize)
                     events = driver.next()
                     self.log.debug('Got %d events', len(events))
                     if not events:
@@ -119,6 +125,7 @@ class zeneventlog(WinCollector):
                 self.deviceUp(device)
 
             except WError, ex:
+                # TODO: verify this error code is still valid
                 if ex.werror != 0x000006be:
                     # OPERATION_COULD_NOT_BE_COMPLETED
                     raise

@@ -73,6 +73,13 @@
       </td>
     </tr>
     <tr>
+      <td class="tableheader">Windows WMI batch size (data objects)</td>
+      <td class="tablevalues">
+        <input class="tablevalues" type="text" name="wmibatchSize" 
+            size="10" tal:attributes="value here/wmibatchSize"/>
+      </td>
+    </tr>
+    <tr>
       <td class="tableheader">Windows WMI query timeout (millisecs)</td>
       <td class="tablevalues">
         <input class="tablevalues" type="text" name="wmiqueryTimeout" 

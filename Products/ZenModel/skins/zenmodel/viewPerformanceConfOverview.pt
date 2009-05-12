@@ -49,6 +49,10 @@
       <td class="tablevalues" tal:content="here/winmodelerCycleInterval" />
     </tr>
     <tr>
+      <td class="tableheader">Windows WMI batch size (data objects)</td>
+      <td class="tablevalues" tal:content="here/wmibatchSize" />
+    </tr>
+    <tr>
       <td class="tableheader">Windows WMI query timeout (millisecs)</td>
       <td class="tablevalues" tal:content="here/wmiqueryTimeout" />
     </tr>

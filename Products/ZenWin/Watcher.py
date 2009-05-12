@@ -1,7 +1,7 @@
 ###########################################################################
 #
 # This program is part of Zenoss Core, an open source monitoring platform.
-# Copyright (C) 2007, 2008 Zenoss Inc.
+# Copyright (C) 2007-2009 Zenoss Inc.
 #
 # This program is free software; you can redistribute it and/or modify it
 # under the terms of the GNU General Public License version 2 as published by
@@ -46,7 +46,7 @@ class Watcher:
                 raise
         return drive(inner)
 
-    def getEvents(self, timeout=0, chunkSize=1):
+    def getEvents(self, timeout=0, chunkSize=10):
         assert self.enum
         name = self.device.id
         log.debug("Fetching events for %s", name)

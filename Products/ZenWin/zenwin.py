@@ -1,7 +1,7 @@
 ###########################################################################
 #
 # This program is part of Zenoss Core, an open source monitoring platform.
-# Copyright (C) 2007, 2008 Zenoss Inc.
+# Copyright (C) 2007-2009 Zenoss Inc.
 #
 # This program is free software; you can redistribute it and/or modify it
 # under the terms of the GNU General Public License version 2 as published by
@@ -139,14 +139,21 @@ class zenwin(WinCollector):
                     driver.next()
                     self.watchers[device.id] = w
                 else:
+                    batchSize = self.wmibatchSize
+                    if hasattr(self.options, "batchSize") and \
+                        self.options.batchSize is not None:
+                        batchSize = int(self.options.batchSize)
+
                     queryTimeout = self.wmiqueryTimeout
-                    if hasattr( self.options, "queryTimeout") and \
+                    if hasattr(self.options, "queryTimeout") and \
                         self.options.queryTimeout is not None:
                         queryTimeout = int(self.options.queryTimeout)
-                    self.log.debug("Querying %s (queryTimeout = %d ms)" % (
-                        device.id, queryTimeout))
+
+                    self.log.debug("Querying %s (queryTimeout = %d ms, batchSize = %d)",
+                                   device.id, queryTimeout, batchSize)
+
                     while True:
-                        yield w.getEvents(queryTimeout, 1)
+                        yield w.getEvents(queryTimeout, batchSize)
                         serviceEvents = driver.next()
                         if not serviceEvents: break
                         for s in serviceEvents:
@@ -159,6 +166,7 @@ class zenwin(WinCollector):
                 self.deviceUp(device)
                 self.reportServices(device)
             except WError, ex:
+                # TODO: validate that this error code is still OK
                 if ex.werror != 0x000006be:
                     raise
                 self.log.info("%s: Ignoring event %s "
