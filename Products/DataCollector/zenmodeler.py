@@ -378,7 +378,7 @@ class ZenModeler(PBDaemon):
                 client = SshClient(hostname, ip, commandPort,
                                    options=self.options,
                                    plugins=plugins, device=device,
-                                   datacollector=self)
+                                   datacollector=self, isLoseConnection=True)
                 clientType = 'ssh'
                 self.log.info('Using SSH collection method for device %s'
                               % hostname)

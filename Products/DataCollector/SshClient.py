@@ -625,7 +625,7 @@ class SshClient(CollectorClient.CollectorClient):
     """
 
     def __init__(self, hostname, ip, port=22, plugins=[], options=None,
-                    device=None, datacollector=None ):
+                    device=None, datacollector=None, isLoseConnection=False):
         """
         Initializer
 
@@ -653,7 +653,7 @@ class SshClient(CollectorClient.CollectorClient):
         self.transport = None
         self.openSessions = 0
         self.workList = list(self.getCommands())
-
+        self.isLoseConnection = isLoseConnection
 
     def run(self):
         """
@@ -673,6 +673,8 @@ class SshClient(CollectorClient.CollectorClient):
     def channelClosed(self):
         self.openSessions -= 1
         if self.commandsFinished():
+            if self.isLoseConnection:
+                self.transport.loseConnection()
             self.clientFinished()
             return
 
