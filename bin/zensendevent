@@ -42,7 +42,7 @@ parser.add_option("--auth", dest="auth", default="admin:zenoss",
     help="xmlrpc server auth, default: %default")
 parser.add_option("-o", "--other", dest="other", default=[],
     action='append',
-    help="Specify other event_filed=value arguments. Can be specified"
+    help="Specify other event_field=value arguments. Can be specified"
          " more than once.")
 
 
