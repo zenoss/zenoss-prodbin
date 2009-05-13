@@ -800,7 +800,7 @@ class ZenModeler(PBDaemon):
                 type='int', default=defaultParallel,
                 help="Number of devices to collect from in parallel")
         self.parser.add_option('--cycletime',
-                dest='cycletime',default=0,type='int',
+                dest='cycletime',default=720,type='int',
                 help="Run collection every x minutes")
         self.parser.add_option('--ignore',
                 dest='ignorePlugins',default="",
