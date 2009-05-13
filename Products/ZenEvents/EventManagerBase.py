@@ -1224,6 +1224,8 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
         #    value = self.severityConversions[idx][0]
         if self.isDate(field):
             value = self.dateString(value)
+        elif field == 'prodState':
+            value = self.dmd.convertProdState(value)            
         return value
 
 
