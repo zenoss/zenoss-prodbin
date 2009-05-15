@@ -220,7 +220,7 @@ class Device(pb.Copyable, pb.RemoteCopy):
         t = self.proxy.getTable(oids,
                                 timeout=self.snmpConnInfo.zSnmpTimeout,
                                 retryCount=self.snmpConnInfo.zSnmpTries,
-                                maxRepetitions=repetitions,)
+                                maxRepetitions=repetitions,
                                 limit=sys.maxint)
         return t
 pb.setUnjellyableForClass(Device, Device)
