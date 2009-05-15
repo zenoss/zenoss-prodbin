@@ -221,8 +221,7 @@ class Device(pb.Copyable, pb.RemoteCopy):
                                 timeout=self.snmpConnInfo.zSnmpTimeout,
                                 retryCount=self.snmpConnInfo.zSnmpTries,
                                 maxRepetitions=repetitions,)
-                                #FIXME adding limit broke this -EAD
-                                #limit=sys.maxint)
+                                limit=sys.maxint)
         return t
 pb.setUnjellyableForClass(Device, Device)
 
