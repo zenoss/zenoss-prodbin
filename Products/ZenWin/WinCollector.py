@@ -399,6 +399,11 @@ class WinCollector(PBDaemon):
                                )
         self.parser.add_option('--queryTimeout', dest='queryTimeout',
                                default=None, type='int',
-              help='The number of milliseconds to wait for WMI query to respond.' + \
-                   ' Overrides the server settings.' )
+                               help='The number of milliseconds to wait for ' + \
+                                    'WMI query to respond. Overrides the ' + \
+                                    'server settings.')
+        self.parser.add_option('--batchSize', dest='batchSize',
+                               default=None, type='int',
+                               help='Number of data objects to retrieve in a ' +
+                                    'single WMI query.')
 
