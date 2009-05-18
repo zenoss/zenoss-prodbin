@@ -314,6 +314,7 @@ class RRDView(object):
         return context
 
     def getThresholdInstances(self, dsType):
+        from Products.ZenEvents.Exceptions import pythonThresholdException
         result = []
         for template in self.getRRDTemplates():
             # if the template refers to a data source name of the right type
@@ -326,7 +327,33 @@ class RRDView(object):
                 if not threshold.enabled: continue
                 for ds in threshold.dsnames:
                     if ds in names:
-                        result.append(threshold.createThresholdInstance(self))
+                        try:
+                            thresh = threshold.createThresholdInstance(self)
+                            result.append(thresh)
+                        except pythonThresholdException, ex:
+                            import transaction
+                            trans = transaction.get()
+                            threshold.manage_changeProperties(enabled=False)
+                            trans.setUser('zenhub')
+                            trans.note("Disabled threshold as it has errors.")
+                            trans.commit()
+
+                            log.warn(ex)
+                            log.info("Disabled threshold %s", threshold.id)
+
+                            zem = self.primaryAq().getEventManager()
+                            import socket
+                            device = socket.gethostname()
+                            path = template.absolute_url_path()
+                            msg = \
+"The threshold %s in template %s has been disabled." % (threshold.id, path)
+                            evt = dict(summary=str(ex), severity=3,
+                                    component='zenhub', message=msg,
+                                    dedupid='zenhub|' + str(ex),
+                                    template=path,
+                                    threshold=threshold.id,
+                                    device=device, eventClass="/Status/Update",)
+                            zem.sendEvent(evt)
                         break
         return result
 
