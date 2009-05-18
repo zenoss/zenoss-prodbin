@@ -1,7 +1,7 @@
 ###########################################################################
 #
 # This program is part of Zenoss Core, an open source monitoring platform.
-# Copyright (C) 2007, Zenoss Inc.
+# Copyright (C) 2007, 2009, Zenoss Inc.
 #
 # This program is free software; you can redistribute it and/or modify it
 # under the terms of the GNU General Public License version 2 as published by
@@ -35,9 +35,9 @@ class InterfaceMap(SnmpPlugin):
     deviceProperties = \
                 SnmpPlugin.deviceProperties + ('zInterfaceMapIgnoreNames',
                                                'zInterfaceMapIgnoreTypes')
-
-    snmpGetTableMaps = (
-        # If table
+    
+    # Interface related tables likely to be used in all subclasses.
+    baseSnmpGetTableMaps = (
         GetTableMap('iftable', '.1.3.6.1.2.1.2.2.1', 
                 {'.1': 'ifindex',
                  '.2': 'id',
@@ -60,14 +60,16 @@ class InterfaceMap(SnmpPlugin):
                  '.3': 'ipaddress',
                  '.4': 'iptype'}
         ),
-        # Interface Description
+    )
+
+    # Base interface tables, plus ones used locally.
+    snmpGetTableMaps = baseSnmpGetTableMaps + (
+        # Extended interface information.
         GetTableMap('ifalias', '.1.3.6.1.2.1.31.1.1.1',
-                {
-                '.6' : 'ifHCInOctets',
-                '.7' : 'ifHCInUcastPkts',
-                '.15' : 'highSpeed',
-                '.18' : 'description',
-                }
+                {'.6' : 'ifHCInOctets',
+                 '.7' : 'ifHCInUcastPkts',
+                 '.15': 'highSpeed',
+                 '.18': 'description'}
         ),
     )
 
@@ -170,12 +172,7 @@ class InterfaceMap(SnmpPlugin):
                 continue
 
             iftable[ifidx]['description'] = data.get('description', '')
-            # if we collect ifAlias name use it
-            # this is in the map subclass InterfaceAliasMap
-            id = data.get('id', None)
-            if id:
-                iftable[ifidx]['id'] = id
-            iftable[ifidx]['description'] = data.get('description', '')
+
             # handle 10GB interfaces using IF-MIB::ifHighSpeed
             speed = iftable[ifidx].get('speed',0)
             if speed == 4294967295L or speed < 0:
