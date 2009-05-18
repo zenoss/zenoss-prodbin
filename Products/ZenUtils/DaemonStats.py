@@ -58,13 +58,6 @@ class DaemonStats:
         self.thresholds.updateList(thresholds)
 
 
-    def configWithMonitor(self, name, monitor):
-        from Products.ZenModel.BuiltInDS import BuiltInDS
-        threshs = monitor.getThresholdInstances(BuiltInDS.sourcetype)
-        createCommand = getattr(monitor, 'defaultRRDCreateCommand', None)
-        self.config(monitor.id, name, threshs, createCommand)
-
-
     def rrdFile(self, type, cycleTime, name, minVal = 'U', maxVal = 'U'):
         """Create an RRD file if it does not exist.
         Returns the basename of the rrdFile, suitable for checking thresholds.

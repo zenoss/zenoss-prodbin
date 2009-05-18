@@ -284,7 +284,12 @@ class ZenHub(ZCmdBase):
         """
         rrdStats = DaemonStats()
         perfConf = self.dmd.Monitors.Performance._getOb(self.options.monitor, None)
-        rrdStats.configWithMonitor('zenhub', perfConf)
+
+        from Products.ZenModel.BuiltInDS import BuiltInDS
+        threshs = perfConf.getThresholdInstances(BuiltInDS.sourcetype)
+        createCommand = getattr(perfConf, 'defaultRRDCreateCommand', None)
+        rrdStats.config(perfConf.id, 'zenhub', threshs, createCommand)
+
         return rrdStats
 
     def zeoConnect(self):
