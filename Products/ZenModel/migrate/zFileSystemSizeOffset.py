@@ -16,6 +16,8 @@ Add zFileSystemSizeOffset to DeviceClass.
 
 '''
 import Migrate
+from Products.ZenModel.MinMaxThreshold import MinMaxThreshold
+
 
 perfFilesystemTransform = """if device:
     for f in device.os.filesystems():
@@ -66,6 +68,9 @@ class zFileSystemSizeOffset(Migrate.Step):
                 continue
             
             for th in t.thresholds():
+                if not isinstance(th,  MinMaxThreshold):
+                    continue
+
                 if "zFileSystemSizeOffset" not in th.maxval:
                     th.maxval = th.maxval.replace("here.totalBlocks",
                         "(here.totalBlocks * here.zFileSystemSizeOffset)")
