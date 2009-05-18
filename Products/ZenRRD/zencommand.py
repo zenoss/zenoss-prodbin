@@ -338,6 +338,13 @@ class Cmd(pb.Copyable, pb.RemoteCopy):
     def processEnded(self, pr):
         self.result = pr
         self.lastStop = time.time()
+        
+        # Check for a condition that could cause zencommand to stop cycling.
+        #   http://dev.zenoss.org/trac/ticket/4936
+        if self.lastStop < self.lastStart:
+           log.debug('System clock went back?')
+           self.lastStop = self.lastStart
+        
         if not isinstance(pr, failure.Failure):
             log.debug('Process %s stopped (%s), %.2f seconds elapsed' % (
                 self.name(),
