@@ -71,8 +71,9 @@ loader.insert({onSuccess:function(){
         <th tal:condition="python: here.getZ('zIfDescription')"
             tal:replace="structure python:here.ZenTableManager.getTableHeader(
                             tableName,'description','Descr')"/>
-        <th class="tableheader" align="center" width="30">O</th>
-        <th class="tableheader" align="center" width="30">A</th>
+        <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
+                        tableName,'getStatus','Status','cmp')"
+                        width="60" />
        	<th class="tableheader" align="center" width="30">M</th>
        	<th class="tableheader" align="center" width="60">Lock</th>
     </tr>
@@ -114,23 +115,15 @@ loader.insert({onSuccess:function(){
           class="tablevalues" tal:content="intf/description">
         A really nice interface
       </td>
-      <td class="tablevalues" align="center">
-      <img border="0"
-        tal:attributes="src python:test(intf.operStatus==1,
-                here.os.getStatusImgSrc(0),
-                here.os.getStatusImgSrc(3))" />
+      <td class="tablevalues" align="center" width="40">
+              <img border="0" tal:attributes="src 
+              python:here.getStatusImgSrc(intf.getStatus())" />
       </td>
       <td class="tablevalues" align="center">
       <img border="0"
-        tal:attributes="src python:test(intf.adminStatus==1,
-                here.os.getStatusImgSrc(0),
-                here.os.getStatusImgSrc(3))" />
-      </td>
-      <td class="tablevalues" align="center">
-      <img border="0"
-       tal:attributes="src python:test(intf.monitored(),
-               here.os.getStatusImgSrc(0),
-               here.os.getStatusImgSrc(-1))" />
+       tal:attributes="src python:test(intf.snmpIgnore(),
+               here.os.getStatusImgSrc(-1),
+               here.os.getStatusImgSrc(0))" />
       </td>
       <td class="tablevalues" align="center">
       <img tal:condition="intf/isLockedFromDeletion" 
@@ -143,7 +136,8 @@ loader.insert({onSuccess:function(){
     </tr>
     </tal:block>
     <tr>
-        <td colspan="9" class="tableheader" align='center'>
+        <td tal:attributes="colspan python:here.getZ('zIfDescription') and 9 or 8"
+            class="tableheader" align='center'>
         <form metal:use-macro="here/zenTableNavigation/macros/navtool"></form>
         </td>
     </tr>

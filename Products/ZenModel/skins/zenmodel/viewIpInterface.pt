@@ -59,7 +59,7 @@
     <tr>
       <td class="tableheader" align=left>Operational Status</td>
       <td class="tablevalues" tal:condition="not:editable"
-        tal:content="python:here.operStatus==1 and 'Up' or 'Down'">
+        tal:content="python:here.getOperStatus()==1 and 'Up' or 'Down'">
         Up
       </td>
       <td class="tablevalues" tal:condition="editable">
@@ -67,12 +67,12 @@
           tal:condition="editable">
           <option tal:repeat="e python:(1,0)" 
                   tal:content="python:e==1 and 'Up' or 'Down'"
-              tal:attributes="value e; selected python:e==here.operStatus"/>
+              tal:attributes="value e; selected python:e==here.getOperStatus()"/>
           </select>
       </td>
       <td class="tableheader" align=left>Administrative Status</td>
       <td class="tablevalues" tal:condition="not:editable"
-        tal:content="python:here.adminStatus==1 and 'Up' or 'Down'">
+        tal:content="python:here.getAdminStatus()==1 and 'Up' or 'Down'">
         Up
       </td>
       <td class="tablevalues" tal:condition="editable">
@@ -80,7 +80,7 @@
           tal:condition="editable">
           <option tal:repeat="e python:(1,0)" 
                   tal:content="python:e==1 and 'Up' or 'Down'"
-              tal:attributes="value e; selected python:e==here.adminStatus"/>
+              tal:attributes="value e; selected python:e==here.getAdminStatus()"/>
           </select>
       </td>
     </tr>

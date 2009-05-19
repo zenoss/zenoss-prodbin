@@ -477,9 +477,42 @@ class IpInterface(OSComponent, Layer2Linkable):
 
     def snmpIgnore(self):
         """
-        Ignore interface that are operationally down.
+        Ignore interface that are administratively down.
         """
-        return self.operStatus > 1 or self.monitor == False
+        # This must be based off the modeled admin status or zenhub could
+        # lock itself up while building configurations.
+        return self.adminStatus > 1 or self.monitor == False
+
+
+    def getAdminStatus(self):
+        """
+        Get the current administrative state of the interface. Prefer real-time
+        value over modeled value.
+        """
+        s = self.cacheRRDValue('ifAdminStatus', None)
+        if s is None: s = self.adminStatus
+        return s
+
+
+    def getOperStatus(self):
+        """
+        Get the current operational state of the interface. Prefer real-time
+        value over modeled value.
+        """
+        s = self.cacheRRDValue('ifOperStatus', None)
+        if s is None: s = self.operStatus
+        return s
+
+
+    def getStatus(self, statClass=None):
+        """
+        Return the status number for this interface.
+        """
+        # Unknown status if we're not monitoring the interface.
+        if self.snmpIgnore():
+            return -1
+        
+        return super(IpInterface, self).getStatus()
 
 
     def niceSpeed(self):
