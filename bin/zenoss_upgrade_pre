@@ -48,6 +48,10 @@ update_conf_files
 /usr/bin/replace /usr/bin/python $ZENHOME/bin/python -- $ZENHOME/bin/* 2>/dev/null
 /usr/bin/replace /usr/bin/python $ZENHOME/bin/python -- $ZENHOME/etc/zeo.conf
 
+# shore up a security hole where ZEO would listen for connections from anywhere
+/usr/bin/replace "address 8100" "address localhost:8100" -- \
+    $ZENHOME/etc/zeo.conf
+
 # set the python shebang to be the proper python
 shebang
 
