@@ -472,7 +472,6 @@ class ZenModeler(PBDaemon):
     #     from pynetsnmp.twistedsnmp import AgentProxy
     # 
     #     def inner(driver):
-    #         import pdb; pdb.set_trace() 
     #         self.log.debug("Checking SNMP community %s on %s",
     #                         device.zSnmpCommunity, device.id)
     # 
