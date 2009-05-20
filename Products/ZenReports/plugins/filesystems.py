@@ -14,29 +14,23 @@
 
 import Globals
 from Products.ZenReports import Utils, Utilization
+from Products.ZenReports.AliasPlugin import AliasPlugin, Column, RRDColumn, \
+                                            TalesColumnHandler
 
-class filesystems:
+class filesystems( AliasPlugin ):
     "The file systems report"
 
-    def run(self, dmd, args):
-        report = []
-        summary = Utilization.getSummaryArgs(dmd, args)
-        for d in Utilization.filteredDevices(dmd, args):
-            for f in d.os.filesystems():
-                if not f.monitored(): continue
-                available, used = None, None
-                used = f.getRRDValue('usedBlocks', **summary)
-                if used:
-                    used = long(used * f.blockSize)
-                    available = f.totalBytes() - used
-                percent = Utils.percent(used, f.totalBytes())
-                r = Utils.Record(device=d,
-                                 deviceName=d.id,
-                                 filesystem=f,
-                                 mount=f.mount,
-                                 usedBytes=used,
-                                 availableBytes=available,
-                                 percentFull=percent,
-                                 totalBytes=f.totalBytes())
-                report.append(r)
-        return report
+    def getColumns(self):
+        ##      alias/dp id : column name
+        return [ Column( 'deviceName', TalesColumnHandler( 'device.id' ) ),
+                 Column( 'mount', TalesColumnHandler( 'component.mount' ) ),
+                 RRDColumn( 'usedBytes', 'usedFilesystemSpace__bytes' ),
+                 Column( 'totalBytes', TalesColumnHandler( 'component.totalBytes()' ) ) ]
+    
+    def getCompositeColumns(self):
+        return [ Column( 'availableBytes', TalesColumnHandler('totalBytes - usedBytes') ),
+                 Column( 'percentFull', TalesColumnHandler( '100 - float(availableBytes) * 100 / float(totalBytes)' ) ) ]
+    
+    def getComponentPath(self):
+        return 'os/filesystems'
+

@@ -10,7 +10,6 @@
 # For complete information please visit: http://www.zenoss.com/oss/
 #
 ###########################################################################
-import transaction
 
 TEST_TEMPLATE = 'test_template'
 DEFAULT_DSDP_MAP = {'ds1':['dp1', 'dp2', 'dp3'],

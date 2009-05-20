@@ -44,6 +44,7 @@ def getDataPointsByAliases( context, aliases ):
     """
     Retrieve the datapoint/alias pairs for the passed aliases.
     """
+    if not aliases: return
     for brains in context.dmd.searchRRDTemplates():
         template = brains.getObject()
         for datasource in template.datasources():
@@ -54,15 +55,11 @@ def getDataPointsByAliases( context, aliases ):
                 found = False
                 foundAlias = None
                 for alias in aliases:
-                    if not found and thisDatapointsAliases.has_key( alias ):
+                    if thisDatapointsAliases.has_key( alias ):
                         found = True
-                        foundAlias = thisDatapointsAliases[alias]
-                        break
-                    elif alias == datapoint.id:
-                        found = True
-                        break
-                if found:
-                    yield foundAlias, datapoint
+                        yield thisDatapointsAliases[alias], datapoint                        
+                if alias == datapoint.id:
+                    yield None, datapoint
 
 def getDataPointsByAlias( context, alias ):
     """

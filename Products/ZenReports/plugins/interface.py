@@ -12,42 +12,36 @@
 ###########################################################################
 
 import Globals
-from Products.ZenReports import Utils, Utilization
 import re
+from Products.ZenReports import Utils, Utilization
+from Products.ZenReports.AliasPlugin import AliasPlugin, RRDColumn, Column, TalesColumnHandler
 
-class interface:
+class interface( AliasPlugin ):
     "The interface usage report"
 
-    def run(self, dmd, args):
-        summary = Utilization.getSummaryArgs(dmd, args)
-        report = []
-        for d in Utilization.filteredDevices(dmd, args):
-
-            isLocal = re.compile(d.zLocalInterfaceNames)
-            for i in d.os.interfaces():
-                if isLocal.match(i.name()): continue
-                if not i.monitored(): continue
-                if i.snmpIgnore(): continue
-                if not i.speed: continue
-                total = None
-                results = i.getRRDValues(['ifHCInOctets',
-                                          'ifInOctets',
-                                          'ifOutOctets',
-                                          'ifHCOutOctets'],
-                                         **summary)
-                input = results.get('ifHCInOctets',
-                                    results.get('ifInOctets', None))
-                output = results.get('ifHCOutOctets',
-                                     results.get('ifOutOctets', None))
-
-                if None not in [input, output]:
-                    total = input + output
-                r = Utils.Record(device=d,
-                                 interface=i,
-                                 speed=i.speed,
-                                 input=input,
-                                 output=output,
-                                 total=total,
-                                 percentUsed=Utils.percent(total, i.speed / 8))
-                report.append(r)
-        return report
+    def getComponentPath(self):
+        return 'os/interfaces'
+    
+    def _getComponents(self, device, componentPath):
+        components=[]
+        isLocal = re.compile(device.zLocalInterfaceNames)
+        for i in device.os.interfaces():
+            if isLocal.match(i.name()): continue
+            if not i.monitored(): continue
+            if i.snmpIgnore(): continue
+            if not i.speed: continue
+            components.append(i)
+        return components
+    
+    def getColumns(self):
+        return [
+                Column('speed', TalesColumnHandler('component.speed')),
+                RRDColumn('input', 'inputOctets__bytes'),
+                RRDColumn('output', 'outputOctets__bytes'),
+                ]
+    
+    def getCompositeColumns(self):
+        return [
+                Column('total',TalesColumnHandler('input+output')),
+                Column('percentUsed',TalesColumnHandler('(long(total)*8)/speed'))
+                ]

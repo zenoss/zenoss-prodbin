@@ -40,10 +40,10 @@
     <tal:block tal:repeat="obj batch">
     <tr>
       <td class="tablevalues" 
-tal:content="structure python:obj.filesystem.getDeviceLink('deviceOsDetail')"/>
+tal:content="structure python:obj.component.getDeviceLink('deviceOsDetail')"/>
       <td class="tablevalues">
-          <a class=tablevalues tal:content="obj/filesystem/mount" 
-             tal:attributes="href obj/filesystem/getPrimaryUrlPath"/>
+          <a class=tablevalues tal:content="obj/component/mount" 
+             tal:attributes="href obj/component/getPrimaryUrlPath"/>
       </td>
       <td class="tablevalues"
         tal:content="python:obj.humanBytes(obj.totalBytes)"/>

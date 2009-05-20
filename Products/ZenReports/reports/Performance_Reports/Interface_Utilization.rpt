@@ -30,7 +30,7 @@
         <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
                             tableName,'device','Device')"/>
         <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
-                            tableName,'interface','Interface')"/>
+                            tableName,'component','Interface')"/>
         <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
                             tableName,'speed','Speed')"/>
         <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
@@ -47,8 +47,8 @@
             tal:attributes="class python:test(odd,'odd','even')">
            <td><a tal:attributes="href r/device/getPrimaryUrlPath"
                   tal:content="r/device/id"/></td>
-           <td><a tal:attributes="href r/interface/getPrimaryUrlPath"
-                  tal:content="r/interface/id"/></td>
+           <td><a tal:attributes="href r/component/getPrimaryUrlPath"
+                  tal:content="r/component/id"/></td>
            <td tal:content="python: r.humanBits(r.speed)"/>
            <td tal:content="python: r.humanBits(r.input, 8)"/>
            <td tal:content="python: r.humanBits(r.output, 8)"/>

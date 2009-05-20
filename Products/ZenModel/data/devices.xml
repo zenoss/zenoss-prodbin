@@ -743,6 +743,10 @@ True
 <property type="string" id="rrdmin" mode="w" >
 0
 </property>
+<tomanycont id='aliases'>
+<object id='inputOctets__bytes' module='Products.ZenModel.RRDDataPointAlias' class='RRDDataPointAlias'>
+</object>
+</tomanycont>
 </object>
 </tomanycont>
 </object>
@@ -896,6 +900,10 @@ True
 <property type="string" id="rrdmin" mode="w" >
 0
 </property>
+<tomanycont id='aliases'>
+<object id='outputOctets__bytes' module='Products.ZenModel.RRDDataPointAlias' class='RRDDataPointAlias'>
+</object>
+</tomanycont>
 </object>
 </tomanycont>
 </object>
@@ -1411,6 +1419,10 @@ True
 <property type="string" id="rrdmin" mode="w" >
 0
 </property>
+<tomanycont id='aliases'>
+<object id='inputOctets__bytes' module='Products.ZenModel.RRDDataPointAlias' class='RRDDataPointAlias'>
+</object>
+</tomanycont>
 </object>
 </tomanycont>
 </object>
@@ -1489,6 +1501,10 @@ True
 <property type="string" id="rrdmin" mode="w" >
 0
 </property>
+<tomanycont id='aliases'>
+<object id='outputOctets__bytes' module='Products.ZenModel.RRDDataPointAlias' class='RRDDataPointAlias'>
+</object>
+</tomanycont>
 </object>
 </tomanycont>
 </object>
@@ -3574,6 +3590,13 @@ GAUGE
 <property type="boolean" id="isrow" mode="w" >
 True
 </property>
+<tomanycont id='aliases'>
+<object id='usedFilesystemSpace__bytes' module='Products.ZenModel.RRDDataPointAlias' class='RRDDataPointAlias'>
+<property type="string" id="formula" mode="w" >
+${component.blockSize},*
+</property>
+</object>
+</tomanycont>
 </object>
 </tomanycont>
 </object>
@@ -8165,6 +8188,13 @@ GAUGE
 <property type="boolean" id="isrow" mode="w" >
 True
 </property>
+<tomanycont id='aliases'>
+<object id='usedFilesystemSpace__bytes' module='Products.ZenModel.RRDDataPointAlias' class='RRDDataPointAlias'>
+<property type="string" id="formula" mode="w" >
+${component.blockSize},*
+</property>
+</object>
+</tomanycont>
 </object>
 <object id='usedInodes' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
@@ -8527,6 +8557,10 @@ True
 <property type="string" id="rrdmin" mode="w" >
 0
 </property>
+<tomanycont id='aliases'>
+<object id='inputOctets__bytes' module='Products.ZenModel.RRDDataPointAlias' class='RRDDataPointAlias'>
+</object>
+</tomanycont>
 </object>
 <object id='ifInUcastPackets' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
@@ -8560,6 +8594,10 @@ True
 <property type="string" id="rrdmin" mode="w" >
 0
 </property>
+<tomanycont id='aliases'>
+<object id='outputOctets__bytes' module='Products.ZenModel.RRDDataPointAlias' class='RRDDataPointAlias'>
+</object>
+</tomanycont>
 </object>
 <object id='ifOutUcastPackets' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
