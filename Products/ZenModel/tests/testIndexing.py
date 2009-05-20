@@ -97,6 +97,20 @@ class TestPathIndexing(ZenModelBaseTest):
         self.assertEqual(len(brains), 1)
         self.assertEqual(brains[0].id, self.dev.id)
         self.assertEqual(brains[0].getObject(), self.dev)
+    
+    
+    def testDeviceReindexOnDeviceClassMove(self):
+        """
+        Test deviceSearch is updated when a device class is moved. 
+        """
+        sourceOrg = self.dmd.Devices.createOrganizer('/Two/Three')
+        dcmDevice = sourceOrg.createInstance('dcmDevice')
+        destOrg = self.dmd.Devices.createOrganizer('/One')
+        self.dmd.Devices.moveOrganizer('/Devices/One', ['Two'])
+        brains = self.devcat(path='/'.join(destOrg.getPrimaryPath()))
+        self.assertEqual(len(brains), 1)
+        self.assertEqual(brains[0].id, dcmDevice.id)
+        self.assertEqual(brains[0].getObject(), dcmDevice)
 
 
 class TestComponentIndexing(ZenModelBaseTest):
@@ -262,6 +276,20 @@ class TestComponentIndexing(ZenModelBaseTest):
         #catalog will find component even though zMonitor is false
         #because index was not updated
         self.assertTrue ( winSvc2 )
+    
+    def testComponentIndexOnDeviceClassMove(self):
+        """
+        Test to make sure that the componentSearch catalog is updated when
+        an entire device class path is moved.
+        """
+        sourceOrg = self.dmd.Devices.createOrganizer('/Two/Three')
+        dcmDevice = sourceOrg.createInstance('dcmDevice')
+        dcmDevice.os.addFileSystem("/boot", False)
+        destOrg = self.dmd.Devices.createOrganizer('/One')
+        self.dmd.Devices.moveOrganizer('/Devices/One', ['Two'])
+        components = dcmDevice.getMonitoredComponents(type='FileSystem')
+        self.assertEqual(components[0].device().id, 'dcmDevice')
+
 
 def test_suite():
     from unittest import TestSuite, makeSuite
