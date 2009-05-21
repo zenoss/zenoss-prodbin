@@ -268,6 +268,7 @@ class UserSettingsManager(ZenModelRM):
             password = self.generatePassword()
 
         self.acl_users._doAddUser(userid,password,roles,"")
+        self.acl_users.ZCacheable_invalidate()
         user = self.acl_users.getUser(userid)
         ufolder = self.getUserSettings(userid)
         if REQUEST: kw = REQUEST.form
@@ -321,6 +322,7 @@ class UserSettingsManager(ZenModelRM):
         if roles is None: roles = user.roles
         if domains is None: domains = user.domains
         self.acl_users._doChangeUser(userid,password,roles,domains)
+        self.acl_users.ZCacheable_invalidate()
         ufolder = self.getUserSettings(userid)
         ufolder.updatePropsFromDict(kw)
         if REQUEST:
@@ -357,6 +359,7 @@ class UserSettingsManager(ZenModelRM):
             try:
                 for plugin in plugins:
                     plugin.removeUser(userid)
+                self.acl_users.ZCacheable_invalidate()
             except KeyError:
                 # this means that there's no user in the acl_users, but that
                 # Zenoss still sees the user; we want to pass on this exception
@@ -385,6 +388,7 @@ class UserSettingsManager(ZenModelRM):
         if not groupid: return
         try:
             self.acl_users.groupManager.addGroup(groupid)
+            self.acl_users.ZCacheable_invalidate()
         except KeyError: pass
         self.getGroupSettings(groupid)
         if REQUEST:
@@ -406,6 +410,7 @@ class UserSettingsManager(ZenModelRM):
             if self._getOb(groupid): self._delObject(groupid)
             try:
                 gm.removeGroup(groupid)
+                self.acl_users.ZCacheable_invalidate()
             except KeyError: pass
         if REQUEST:
             messaging.IMessageSender(self).sendToBrowser(
@@ -473,6 +478,7 @@ class UserSettingsManager(ZenModelRM):
         for fid in userfolders.objectIds():
             if fid not in userids:
                 userfolders._delObject(fid)
+        self.acl_users.ZCacheable_invalidate()
    
 
     def getAllRoles(self):
@@ -763,6 +769,8 @@ class UserSettings(ZenModelRM):
                     # changing another user's password
                     if loggedInUser.getUserName() == self.id:
                         self.acl_users.logout(REQUEST)
+
+        self.acl_users.ZCacheable_invalidate()
 
         # finish up
         if REQUEST:
