@@ -301,7 +301,8 @@ class SshUserAuth(userauth.SSHUserAuthClient):
         @return: SSH public key
         @rtype: string
         """
-        return self._key.blob()
+        if self._key is not None:
+            return self._key.blob()
         
     def getPrivateKey(self):
         """
@@ -310,7 +311,11 @@ class SshUserAuth(userauth.SSHUserAuthClient):
         @return: Twisted deferred object (defer.succeed)
         @rtype: Twisted deferred object
         """
-        return defer.succeed(self._key.keyObject)
+        if self._key is None:
+            keyObject = None
+        else:
+            keyObject = self._key.keyObject
+        return defer.succeed(keyObject)
         
     def ssh_USERAUTH_FAILURE( self, packet):
         """
