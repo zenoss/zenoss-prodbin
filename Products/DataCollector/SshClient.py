@@ -26,7 +26,8 @@ log = logging.getLogger("zen.SshClient")
 import Globals
 
 from twisted.conch.ssh import transport, userauth, connection
-from twisted.conch.ssh import common, keys, channel
+from twisted.conch.ssh import common, channel
+from twisted.conch.ssh.keys import Key
 from twisted.internet import defer, reactor
 from Products.ZenEvents import Event
 from Products.ZenUtils.Utils import getExitMessage
@@ -255,6 +256,7 @@ class SshUserAuth(userauth.SSHUserAuthClient):
         userauth.SSHUserAuthClient.__init__(self, user, instance)
         self.user = user
         self.factory = factory
+        self._key = self._getKey()
 
 
     def getPassword(self, unused=None):
@@ -279,7 +281,19 @@ class SshUserAuth(userauth.SSHUserAuthClient):
         else:
             return defer.succeed(self.factory.password)
 
-
+    def _getKey(self):
+        keyPath = os.path.expanduser(self.factory.keyPath)
+        log.debug('Expanded SSH key path from zKeyPath %s to %s' % (
+                self.factory.keyPath, keyPath))
+        if os.path.exists(keyPath):
+            data = ''.join(open(keyPath).readlines()).strip()
+            key = Key.fromString(data, 
+                               passphrase=self.factory.password)
+        else:
+            key = None
+            log.debug( "SSH key path %s doesn't exist" % keyPath )
+        return key
+        
     def getPublicKey(self):
         """
         Return the SSH public key (using the zProperty zKeyPath) or None
@@ -287,19 +301,17 @@ class SshUserAuth(userauth.SSHUserAuthClient):
         @return: SSH public key
         @rtype: string
         """
-        keyPath = os.path.expanduser( self.factory.keyPath )
-        log.debug('Expanded SSH public key path from zKeyPath %s to %s' % ( self.factory.keyPath, keyPath))
+        return self._key.blob()
+        
+    def getPrivateKey(self):
+        """
+        Return a deferred with the SSH private key (using the zProperty zKeyPath)
 
-        path = None
-        if os.path.exists(keyPath):
-            path = keyPath
-        else:
-            log.debug( "SSH public key path %s doesn't exist" % keyPath )
-            return
-
-        return keys.getPublicKeyString( path + '.pub' )
-
-
+        @return: Twisted deferred object (defer.succeed)
+        @rtype: Twisted deferred object
+        """
+        return defer.succeed(self._key.keyObject)
+        
     def ssh_USERAUTH_FAILURE( self, packet):
         """
         Called when the SSH session can't authenticate.
@@ -370,30 +382,7 @@ class SshUserAuth(userauth.SSHUserAuthClient):
         log.debug( "All authentication methods attempted" )
         self.factory.clientFinished()
         self.transport.sendDisconnect(transport.DISCONNECT_NO_MORE_AUTH_METHODS_AVAILABLE, 'No more authentication methods available')
-
-
-
-    def getPrivateKey(self):
-        """
-        Return a deferred with the SSH private key (using the zProperty zKeyPath)
-
-        @return: Twisted deferred object (defer.succeed)
-        @rtype: Twisted deferred object
-        """
-
-        keyPath = os.path.expanduser(self.factory.keyPath)
-        log.debug('Expanded SSH private key path from zKeyPath %s to %s' % ( self.factory.keyPath, keyPath))
-        path = None
-        if os.path.exists(keyPath):
-            path = keyPath
-        else:
-            log.debug( "SSH private key path %s doesn't exist" % keyPath )
-
-        return defer.succeed(keys.getPrivateKeyObject(path,
-                passphrase=self.factory.password))
-
-
-
+        
 class SshConnection(connection.SSHConnection):
     """
     Wrapper class that starts channels on top of connections.
