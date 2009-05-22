@@ -15,12 +15,12 @@ import os, sys
 if __name__ == '__main__':
   execfile(os.path.join(sys.path[0], 'framework.py'))
 
+from Acquisition import aq_base
 from Products.ZenRelations.tests.TestSchema import *
 from Products.ZenRelations.Exceptions import *
 from Products.ZenRelations.ToOneRelationship import ToOneRelationship
 
 from Products.ZenModel.DeviceClass import DeviceClass
-from Products.ZenModel.IpInterface import manage_addIpInterface
 from Products.ZenModel.tests.ZenModelBaseTest import ZenModelBaseTest
 from Products.ZenModel.PerformanceConf import manage_addPerformanceConf
 
@@ -32,7 +32,6 @@ class TestRelationBi(ZenModelBaseTest):
     def testThingy(self):
 
 
-        # Monkeypatch
         def _remoteRemove(self, obj=None):
             """
             Copied code from ToOneRelationship, plus a raise to make sure it
@@ -41,9 +40,12 @@ class TestRelationBi(ZenModelBaseTest):
             if self.obj:
                 if obj != None and obj != self.obj: raise ObjectNotFound
                 remoteRel = getattr(aq_base(self.obj), self.remoteName())
+
                 # Here's the extra line
                 raise ObjectNotFound('THIS IS A FAKE ERROR')
+
                 remoteRel._remove(self.__primary_parent__)
+        # Monkeypatch
         ToOneRelationship._remoteRemove = _remoteRemove
 
         test = self.dmd.Devices.createOrganizer('test')
@@ -55,9 +57,6 @@ class TestRelationBi(ZenModelBaseTest):
         collector = self.dmd.Monitors.getPerformanceMonitor('collector')
 
         self.assertEqual(len(collector.devices()), 1)
-
-        manage_addIpInterface(dev.os.interfaces, 'eth0', True)
-        iface = dev.os.interfaces._getOb('eth0')
 
         def succeedsWithoutError(callable, *args, **kwargs):
             try:
