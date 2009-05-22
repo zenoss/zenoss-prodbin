@@ -46,8 +46,8 @@ def execute(cursor, statement):
         result = cursor.execute(statement)
         log.debug("%s: --> %d" % (statement, result) )
     except Exception, ex:
-        log.debug(statement)
-        log.exception(ex)
+        log.info("Invalid statement: %s", statement)
+        log.error(str(ex))
         raise ex
     return result
 
