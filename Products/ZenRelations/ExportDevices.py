@@ -160,7 +160,7 @@ class ExportDevices(ZCmdBase):
         @rtype: string
         """
         from Products.ZenModel.ZenossInfo import ZenossInfo
-        zinfo = ZenossInfo()
+        zinfo = ZenossInfo('')
         return str(zinfo.getZenossVersion())
 
 
