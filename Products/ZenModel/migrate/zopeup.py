@@ -1,7 +1,7 @@
 ###########################################################################
 #
 # This program is part of Zenoss Core, an open source monitoring platform.
-# Copyright (C) 2007, Zenoss Inc.
+# Copyright (C) 2009, Zenoss Inc.
 #
 # This program is free software; you can redistribute it and/or modify it
 # under the terms of the GNU General Public License version 2 as published by
@@ -16,7 +16,7 @@ class ZopeUpgrade(Migrate.Step):
     version = Migrate.Version(2, 5, 0)
 
     def cutover(self, dmd):
-        if getattr(zport, '_components', None) is None:
-            zport._components = None
+        if getattr(dmd.zport, '_components', None) is None:
+            dmd.zport._components = None
 
 ZopeUpgrade()
