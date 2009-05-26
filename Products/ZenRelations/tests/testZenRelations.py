@@ -307,6 +307,7 @@ class ToManyContRelationshipTest(ZenRelationsBaseTest):
         org = self.build(self.app, Organizer, "root")
         child = Organizer("child")
         org.children._setObject("child", child)
+        child = org.children._getOb('child')
         self.failUnless(child.parent() == org)
         self.failUnless(child in org.children())
         self.failUnless(org.parent() == None)
