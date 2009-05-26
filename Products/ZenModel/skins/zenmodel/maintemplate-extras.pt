@@ -24,16 +24,15 @@
 
 
 <tal:block metal:define-macro="head1">
-    <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
     <link rel="shortcut icon"
           href="/zport/dmd/favicon.ico"
           type="image/x-icon"/>
-    <link rel="stylesheet" type="text/css" 
+    <link rel="stylesheet" 
           href="yui/reset-fonts-grids/reset-fonts-grids.css"/>
-    <link rel="stylesheet" type="text/css" 
+    <link rel="stylesheet" 
           href="yui/base/base-min.css"/>
-    <link rel="stylesheet" type="text/css" title="zenoss"
-        href="/zport/portal_skins/zenoss.css" >
+    <link rel="stylesheet" href="/zport/portal_skins/zenoss.css" >
     <!--[if IE 7]>
         <link rel="stylesheet" type="text/css" title="zenoss"
             href="zenoss_ie.css" >

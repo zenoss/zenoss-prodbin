@@ -1,8 +1,0 @@
-<?xml version="1.0" ?>
-<cookie-auth xmlns:tal="http://xml.zope.org/namespaces/tal"
-             title="%s" cookie_name="%s" login_path="%s"
-             tal:define="info options/info"
-             tal:attributes="title info/title;
-                             cookie_name info/cookie_name;
-                             login_path info/login_path;
-                            "/>

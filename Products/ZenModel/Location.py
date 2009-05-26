@@ -29,6 +29,8 @@ from Products.ZenRelations.RelSchema import *
 from DeviceOrganizer import DeviceOrganizer
 from ZenPackable import ZenPackable
 
+from Products.ZenUtils.json import json
+
 def manage_addLocation(context, id, description = "", 
                        address="", REQUEST = None):
     """make a Location"""
@@ -115,6 +117,7 @@ class Location(DeviceOrganizer, ZenPackable):
             filter(lambda x:getattr(x, 'address', None), children)
         )
 
+    @json
     def getGeomapData(self):
         """ Returns node info ready for Google Maps """
         address = self.address
@@ -133,6 +136,7 @@ class Location(DeviceOrganizer, ZenPackable):
         summarytext = self.mapTooltip() # mapTooltip is a page template
         return [address, color, link, summarytext]
 
+    @json
     def getChildGeomapData(self):
         """ Returns geomap info on child nodes """
         allnodes = []

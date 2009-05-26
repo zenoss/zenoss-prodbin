@@ -1,0 +1,16 @@
+<configure
+    xmlns="http://namespaces.zope.org/zope"
+    xmlns:five="http://namespaces.zope.org/five">
+
+  <include package="Products.Five" file="meta.zcml" />
+  <include package="Products.Five" file="event.zcml" />
+  <include package="Products.Five" file="permissions.zcml" />
+
+  <include package="Products.ZenModel"/>
+  <include package="Products.ZenEvents"/>
+  <include package="Products.ZenRelations"/>
+  <include package="Products.ZenEvents"/>
+  <include package="Products.Jobber"/>
+
+</configure>
+

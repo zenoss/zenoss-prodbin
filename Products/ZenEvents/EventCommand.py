@@ -74,12 +74,6 @@ class EventCommand(ZenModelRM, Commandable, EventFilter, ZenPackable):
         crumbs.insert(-1,(url,'Event Commands'))
         return crumbs
 
-    
-    def manage_beforeDelete(self, item, unused):
-        """Clear state in alert_state before we are deleted.
-        """
-        self._clearAlertState()
-
 
     def sqlwhere(self):
         """Return sql where to select alert_state data for this event.
@@ -110,3 +104,4 @@ class EventCommand(ZenModelRM, Commandable, EventFilter, ZenPackable):
         
     
 InitializeClass(EventCommand)
+

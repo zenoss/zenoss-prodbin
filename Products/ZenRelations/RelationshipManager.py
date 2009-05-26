@@ -34,6 +34,9 @@ from Globals import InitializeClass
 from AccessControl import ClassSecurityInfo
 from Acquisition import aq_base
 from App.Management import Tabs
+import OFS.subscribers
+import zope.interface
+from OFS.interfaces import IItem
 
 from RelSchema import *
 from Exceptions import *
@@ -75,6 +78,7 @@ class RelationshipManager(PrimaryPathObjectManager, ZenPropertyManager):
         ("tomanyname", ToMany(ToMany, remoteClassStr, remoteName)), 
         )
     """ 
+    zope.interface.implements(IItem)
 
     _relations = ()
 

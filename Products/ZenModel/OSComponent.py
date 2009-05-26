@@ -20,7 +20,6 @@ class OSComponent(DeviceComponent, ManagedEntity):
     """
     Logical Operating System component like a Process, IpInterface, etc.
     """
-    
     isUserCreatedFlag = False
 
     _relations = ManagedEntity._relations + (

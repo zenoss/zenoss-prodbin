@@ -263,7 +263,7 @@ def runUnitTests(packages=[], regex=None, coverage=False, show_tests=False):
         parts = [python, zdctl, '-C', cfgfile, 'test']
         if coverage:
             parts.append('--coverage')
-        parts.extend(['--libdir', prod])
+        parts.extend(['--dir', prod])
         if regex:
             parts.append(regex)
         env = os.environ.copy()

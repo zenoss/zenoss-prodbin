@@ -32,6 +32,7 @@ from Products.ZenUtils.Utils import unused
 from Products.ZenUtils import Time
 import RRDView
 from Products.ZenUtils.IpUtil import checkip, IpAddressError, maskToBits
+from Products.ZenModel.interfaces import IIndexed
 
 # base classes for device
 from ManagedEntity import ManagedEntity
@@ -205,7 +206,7 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
     enabled but maybe this will change.
     """
 
-    implements(IEventView)
+    implements(IEventView, IIndexed)
 
     event_key = portal_type = meta_type = 'Device'
     
@@ -1789,30 +1790,23 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
                 shutil.rmtree(newpath)
             shutil.move(oldpath, newpath)
 
-    def manage_afterAdd(self, item, container):
+
+    def index_object(self):
         """
-        Device only propagates afterAdd if it is the added object.
+        Override so ips get indexed on move.
         """
-        super(Device,self).manage_afterAdd(item, container)
-        self.index_object()
+        super(Device, self).index_object()
+        for iface in self.os.interfaces():
+            for ip in iface.ipaddresses():
+                ip.index_object()
 
 
-    def manage_afterClone(self, item):
+    def unindex_object(self):
         """
-        DEPRECATED
+        Override so ips get unindexed as well.
         """
-        super(Device,self).manage_afterClone(item)
-        self.index_object()
-
-
-    def manage_beforeDelete(self, item, container):
-        """
-        Device only propagates beforeDelete if we are being deleted or copied.
-        Moving and renaming don't propagate.
-        """
-        super(Device,self).manage_beforeDelete(item, container)
-        self.unindex_ips() # Clean up IpAddress links explicitly
-        self.unindex_object()
+        self.unindex_ips()
+        super(Device, self).unindex_object()
 
 
     def unindex_ips(self):
@@ -1823,7 +1817,7 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
         cat = self.dmd.ZenLinkManager._getCatalog(layer=3)
         brains = cat(deviceId=self.id)
         for brain in brains:
-            brain.getObject().index_links()
+            brain.getObject().unindex_links()
 
 
     def cacheComponents(self):

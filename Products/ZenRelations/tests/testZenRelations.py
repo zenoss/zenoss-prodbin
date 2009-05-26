@@ -368,22 +368,45 @@ class ToManyContRelationshipTest(ZenRelationsBaseTest):
 
 
     def testBeforeDeleteOneToManyCont(self):
+        # First build the objects
         dev = self.build(self.app, Device, "dev")
         eth = self.create(dev.interfaces, IpInterface, "eth0")
         eth1 = self.create(dev.interfaces, IpInterface, "eth1")
         self.failUnless(len(dev.interfaces()) == 2)
+
+        # Hook in a handler
+        seen = []
+        def remove_handler(obj, event):
+            seen.append(obj)
+        from zope.component import provideHandler
+        from OFS.interfaces import IObjectWillBeMovedEvent
+        provideHandler(remove_handler, (IpInterface, IObjectWillBeMovedEvent))
+
+        # Delete the relation and make sure the event is fired and the handler
+        # picks it up
         dev.interfaces.removeRelation()
         self.failUnless(len(dev.interfaces()) == 0)
-        self.failUnless(eth.beforeDelete)
-        self.failUnless(eth1.beforeDelete)
+        self.failUnless(eth in seen)
+        self.failUnless(eth1 in seen)
 
 
     def testAfterAddOneToManyCont(self):
+        # Hook up a simple handler
+        from zope.component import provideHandler
+        from zope.app.container.interfaces import IObjectAddedEvent
+        seen = []
+        def add_handler(obj, event):
+            seen.append(obj)
+        provideHandler(add_handler, (IpInterface, IObjectAddedEvent))
+
+        # Add the objects
         dev = self.build(self.app, Device, "dev")
         eth = self.create(dev.interfaces, IpInterface, "eth0")
         eth1 = self.create(dev.interfaces, IpInterface, "eth1")
-        self.failUnless(eth.afterAdd)
-        self.failUnless(eth1.afterAdd)
+
+        # Make sure the events fired
+        self.failUnless(eth in seen)
+        self.failUnless(eth1 in seen)
         self.failUnless(len(dev.interfaces()) == 2)
 
     

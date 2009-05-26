@@ -17,7 +17,7 @@ __doc__="""ZenScriptBase
 from AccessControl.SecurityManagement import newSecurityManager
 from AccessControl.SecurityManagement import noSecurityManager
 from threading import Lock
-from Utils import getObjByPath, zenPath
+from Utils import getObjByPath, zenPath, set_context
 from CmdBase import CmdBase
 
 from Exceptions import ZentinelException
@@ -79,7 +79,7 @@ class ZenScriptBase(CmdBase):
             connection=self.db.open()
             root=connection.root()
             app=root['Application']
-            self.getContext(app)
+            app = set_context(app)
             app._p_jar.sync()
             return app
         finally:
@@ -96,8 +96,9 @@ class ZenScriptBase(CmdBase):
         if self.app: return 
         self.connection=self.db.open()
         root=self.connection.root()
-        self.app=root['Application']
-        self.getContext(self.app)
+        app = root['Application']
+        self.app = set_context(app)
+        self.app._p_jar.sync()
 
 
     def syncdb(self):
@@ -117,20 +118,6 @@ class ZenScriptBase(CmdBase):
         if not self.dataroot:
             self.dataroot = getObjByPath(self.app, self.options.dataroot)
             self.dmd = self.dataroot
-
-
-    def getContext(self, app):
-        from ZPublisher.HTTPRequest import HTTPRequest
-        from ZPublisher.HTTPResponse import HTTPResponse
-        from ZPublisher.BaseRequest import RequestContainer
-        resp = HTTPResponse(stdout=None)
-        env = {
-            'SERVER_NAME':'localhost',
-            'SERVER_PORT':'8080',
-            'REQUEST_METHOD':'GET'
-            }
-        req = HTTPRequest(None, env, resp)
-        return app.__of__(RequestContainer(REQUEST = req))
 
 
     def getDmdObj(self, path):

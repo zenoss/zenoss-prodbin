@@ -1,0 +1,14 @@
+<configure xmlns="http://namespaces.zope.org/zope">
+
+    <adapter
+        for=".ToManyContRelationship.ToManyContRelationship"
+        provides="zope.location.interfaces.ISublocations"
+        factory=".ToManyContRelationship.ToManyContSublocations"
+        />
+
+    <subscriber
+        for=".ToManyContRelationship.ToManyContRelationship
+             zope.component.interfaces.IObjectEvent"
+        handler="zope.app.container.contained.dispatchToSublocations"
+        />
+</configure>

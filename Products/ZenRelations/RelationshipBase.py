@@ -25,16 +25,31 @@ log = logging.getLogger("zen.Relations")
   
 from Globals import InitializeClass
 from Acquisition import aq_base
+from zope import interface
 
 from Products.ZenRelations.Exceptions import *
 from Products.ZenRelations.utils import importClass
 
 from PrimaryPathObjectManager import PrimaryPathManager
 
+from zope.event import notify
+from OFS.event import ObjectWillBeAddedEvent
+from OFS.event import ObjectWillBeRemovedEvent
+from zope.app.container.contained import dispatchToSublocations
+from zope.app.container.contained import ObjectAddedEvent
+from zope.app.container.contained import ObjectRemovedEvent
+from zope.app.container.contained import ContainerModifiedEvent
+
+class IRelationship(interface.Interface):
+    """
+    Marker interface.
+    """
+
 class RelationshipBase(PrimaryPathManager):
     """
     Abstract base class for all relationship classes.
     """
+    interface.implements(IRelationship)
 
     _operation = -1 # if a Relationship's are only deleted
 

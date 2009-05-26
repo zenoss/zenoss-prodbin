@@ -42,7 +42,7 @@ Zope2.configure(CONF_FILE)
 from Products.CMFCore.utils import getToolByName
 from AccessControl.SecurityManagement import newSecurityManager
 from AccessControl.SecurityManagement import noSecurityManager
-from Products.ZenUtils.Utils import zenPath
+from Products.ZenUtils.Utils import zenPath, set_context
 
 _CUSTOMSTUFF = []
 
@@ -55,19 +55,6 @@ def set_db_config(host=None, port=None):
     if host: xhost = host
     if port: xport = port
     serverconfig.server[0].address = (xhost, xport)
-
-def set_context(ob):
-    from ZPublisher.HTTPRequest import HTTPRequest
-    from ZPublisher.HTTPResponse import HTTPResponse
-    from ZPublisher.BaseRequest import RequestContainer
-    resp = HTTPResponse(stdout=None)
-    env = {
-        'SERVER_NAME':'localhost',
-        'SERVER_PORT':'8080',
-        'REQUEST_METHOD':'GET'
-        }
-    req = HTTPRequest(None, env, resp)
-    return ob.__of__(RequestContainer(REQUEST = req))
 
 
 def _customStuff():

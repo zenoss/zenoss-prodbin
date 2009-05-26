@@ -23,7 +23,7 @@
         <style>legend {width: 100%} legend span
             {display:block;margin-left:-23px} </style>
         <![endif]-->
-        <script type="text/javascript" src="extjs/adapter/ext/ext-base.js"></script>
+        <script type="text/javascript" src="extjs/adapters/ext/ext-base.js"></script>
         <script type="text/javascript" src="extjs/ext-all.js"></script>
     </head>
     <body><div class="yui-skin-sam">

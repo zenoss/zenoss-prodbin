@@ -11,27 +11,9 @@
 #
 ###########################################################################
 
-from zope.interface import Interface
+def clearAlertState(ob, event):
+    """
+    Event handler for ActionRule/EventCommand + IObjectWillBeRemovedEvent. 
+    """
+    ob._clearAlertState()
 
-class IDeviceLoader(Interface):
-    """
-    Object with ability to add devices to the database.
-    """
-    def load_device():
-        """
-        Attempt to load a single device into the database.
-        """
-
-    def load_devices():
-        """
-        Attempt to load multiple devices into the database.
-        """
-
-class IIndexed(Interface):
-    """
-    Object with ability to keep itself indexed in one or more catalogs.
-    """
-    def index_object():
-        pass
-    def unindex_object():
-        pass

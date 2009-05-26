@@ -27,8 +27,10 @@ log = logging.getLogger("zen.MaintenanceWindows")
 import Globals
 
 from AccessControl import ClassSecurityInfo
+from zope.interface import implements
 from ZenossSecurity import *
 from ZenModelRM import ZenModelRM
+from Products.ZenModel.interfaces import IIndexed
 from Products.ZenRelations.RelSchema import *
 from Products.ZenUtils import Time
 from Products.ZenWidgets import messaging
@@ -67,6 +69,7 @@ RETURN_TO_ORIG_PROD_STATE = -99
 
 class MaintenanceWindow(ZenModelRM):
 
+    implements(IIndexed)
     meta_type = 'Maintenance Window'
 
     default_catalog = 'maintenanceWindowSearch'
@@ -124,14 +127,6 @@ class MaintenanceWindow(ZenModelRM):
         ZenModelRM.__init__(self, id)
         self.start = time.time()
         self.enabled = False
-
-    def manage_afterAdd(self, item, container):
-        super(MaintenanceWindow, self).manage_afterAdd(item, container)
-        self.index_object()
-
-    def manage_beforeDelete(self, item, container):
-        super(MaintenanceWindow, self).manage_beforeDelete(item, container)
-        self.unindex_object()
 
     def set(self, start, duration, repeat, enabled=True):
         self.start = start

@@ -527,15 +527,6 @@ class IpInterface(OSComponent, Layer2Linkable):
             speed /= 1000.0
         return "%.3f%s" % (speed, unit)
 
-
-    def manage_beforeDelete(self, item, container):
-        """
-        Unindex this interface after it is deleted.
-        """
-        if (item == self or item == self.device()
-            or getattr(item, "_operation", -1) < 1):
-            OSComponent.manage_beforeDelete(self, item, container)
-    
     def deviceId(self):
         """
         The device id, for indexing purposes.
@@ -558,3 +549,9 @@ class IpInterface(OSComponent, Layer2Linkable):
 
 
 InitializeClass(IpInterface)
+
+def beforeDeleteIpInterface(ob, event):
+    if (event.object==ob or event.object==ob.device() or
+        getattr(event.object, "_operation", -1) < 1):
+        ob.unindex_object()
+

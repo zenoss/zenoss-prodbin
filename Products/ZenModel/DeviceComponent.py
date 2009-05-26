@@ -22,6 +22,10 @@ __version__ = "$Revision: 1.1 $"[11:-2]
 from Globals import InitializeClass
 from AccessControl import ClassSecurityInfo
 from Acquisition import aq_base
+
+import zope.interface
+from Products.ZenModel.interfaces import IIndexed
+
 from Lockable import Lockable
 
 class DeviceComponent(Lockable):
@@ -29,6 +33,7 @@ class DeviceComponent(Lockable):
     DeviceComponent is a mix-in class for all components of a device.
     These include LogicalComponent, Software, and Hardware.
     """
+    zope.interface.implements(IIndexed)
     __pychecker__='no-override'
     event_key = "Component"
 
@@ -172,30 +177,6 @@ class DeviceComponent(Lockable):
             context['dev'] = self.device()
             context['devId'] = self.device().id
 
-
-    def manage_afterAdd(self, item, container):
-        """
-        Device only propagates afterAdd if it is the added object.
-        """
-        self.index_object()
-        super(DeviceComponent,self).manage_afterAdd(item, container)
-
-
-    def manage_afterClone(self, item):
-        """
-        Not really sure when this is called.
-        """
-        super(DeviceComponent,self).manage_afterClone(item)
-        self.index_object()
-
-
-    def manage_beforeDelete(self, item, container):
-        """
-        Device only propagates beforeDelete if we are being deleted or copied.
-        Moving and renaming don't propagate.
-        """
-        super(DeviceComponent,self).manage_beforeDelete(item, container)
-        self.unindex_object()
 
     def filterAutomaticCreation(self):
         """Test if automatic creation (and anchoring into a model) is

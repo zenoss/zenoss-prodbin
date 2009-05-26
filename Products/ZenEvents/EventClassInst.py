@@ -23,8 +23,10 @@ from Globals import InitializeClass
 from AccessControl import ClassSecurityInfo
 from AccessControl import Permissions
 from Acquisition import aq_chain
-from Products.ZenModel.ZenossSecurity import *
+from zope.interface import implements
 
+from Products.ZenModel.interfaces import IIndexed
+from Products.ZenModel.ZenossSecurity import *
 from Products.ZenRelations.RelSchema import *
 from Products.ZenModel.ZenModelRM import ZenModelRM
 from Products.ZenModel.EventView import EventView
@@ -142,7 +144,7 @@ class EventClassInst(EventClassPropertyMixin, ZenModelRM, EventView,
     """
     EventClassInst.
     """
-
+    implements(IIndexed)
     event_key = meta_type = "EventClassInst"
 
     default_catalog = "eventClassSearch"
@@ -336,29 +338,6 @@ class EventClassInst(EventClassPropertyMixin, ZenModelRM, EventView,
         """
         return [ i for i in self.eventClass().find(self.eventClassKey) \
             if i.eventClassKey == self.eventClassKey ]
-
-
-    def manage_afterAdd(self, item, container):
-        """
-        Device only propagates afterAdd if it is the added object.
-        """
-        self.index_object()
-        ZenModelRM.manage_afterAdd(self, item, container)
-
-
-    def manage_afterClone(self, item):
-        """Not really sure when this is called."""
-        ZenModelRM.manage_afterClone(self, item)
-        self.index_object()
-
-
-    def manage_beforeDelete(self, item, container):
-        """
-        Device only propagates beforeDelete if we are being deleted or copied.
-        Moving and renaming don't propagate.
-        """
-        ZenModelRM.manage_beforeDelete(self, item, container)
-        self.unindex_object()
 
 
     security.declareProtected('Manage DMD', 'manage_resequence')

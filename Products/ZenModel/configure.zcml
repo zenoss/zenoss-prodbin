@@ -4,14 +4,10 @@
     xmlns:browser="http://namespaces.zope.org/browser"
     i18n_domain="Products.ZenModel">
 
-    <five:traversable class="Products.ZenModel.ZenModelRM.ZenModelRM"/>
-    <five:traversable class="Products.ZenModel.ZentinelPortal.ZentinelPortal"/>
-    <five:traversable class="Products.ZenModel.DataRoot.DataRoot"/>
-
     <include file="permissions.zcml"/>
+    <include file="indexing.zcml"/>
 
     <include package=".browser"/>
-    <include package="zope.app.location"/>
 
     <browser:page
         for="*"

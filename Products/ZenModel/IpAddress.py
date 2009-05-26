@@ -27,13 +27,12 @@ from ManagedEntity import ManagedEntity
 from AccessControl import ClassSecurityInfo
 from Globals import DTMLFile
 from Globals import InitializeClass
+import zope.interface
 
+from Products.ZenModel.interfaces import IIndexed
 from Products.ZenModel.Linkable import Layer3Linkable
-
 from Products.ZenRelations.RelSchema import *
-
 from Products.ZenUtils.IpUtil import *
-
 from Products.ZenModel.Exceptions import *
 
 def manage_addIpAddress(context, id, netmask=24, REQUEST = None):
@@ -50,6 +49,8 @@ addIpAddress = DTMLFile('dtml/addIpAddress',globals())
 
 class IpAddress(ManagedEntity, Layer3Linkable):
     """IpAddress object"""
+    zope.interface.implements(IIndexed)
+
     event_key = portal_type = meta_type = 'IpAddress'
 
     default_catalog = 'ipSearch'
@@ -201,29 +202,6 @@ class IpAddress(ManagedEntity, Layer3Linkable):
         int = self.interface()
         if int: return int.device()
         return None
-
-
-    def manage_afterAdd(self, item, container):
-        """
-        Device only propagates afterAdd if it is the added object.
-        """
-        super(IpAddress,self).manage_afterAdd(item, container)
-        self.index_object()
-
-
-    def manage_afterClone(self, item):
-        """Not really sure when this is called."""
-        super(IpAddress,self).manage_afterClone(item)
-        self.index_object()
-
-
-    def manage_beforeDelete(self, item, container):
-        """
-        Device only propagates beforeDelete if we are being deleted or copied.
-        Moving and renaming don't propagate.
-        """
-        super(IpAddress,self).manage_beforeDelete(item, container)
-        self.unindex_object()
 
     def index_object(self):
         super(IpAddress, self).index_object()

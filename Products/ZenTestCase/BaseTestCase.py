@@ -11,10 +11,16 @@
 #
 ###########################################################################
 
+import zope.component
+from zope.traversing.adapters import DefaultTraversable
+
 from Testing import ZopeTestCase
 from Testing.ZopeTestCase.ZopeTestCase import standard_permissions
+from Testing.ZopeTestCase.layer import ZopeLite
 if 0:
     standard_permissions = None         # pyflakes
+
+from Products.Five import zcml
 
 from Products.ZenModel.DmdBuilder import DmdBuilder
 from Products.ZenModel.ZentinelPortal import PortalGenerator
@@ -22,6 +28,8 @@ from Products.ZenEvents.EventManagerBase import EventManagerBase
 from Products.ZenEvents.MySqlSendEvent import MySqlSendEventMixin
 from Products.ZenEvents.MySqlEventManager import log
 from Products.ZenUtils.Utils import unused
+from zope.app.component.hooks import setHooks
+from zope.testing.cleanup import cleanUp
 
 log.warn = lambda *args, **kwds: None
 
@@ -90,8 +98,27 @@ class Builder(DmdBuilder):
         #manage_addDummyManager(self.dmd, 'ZenEventHistory')
 
 
+
+class ZenossTestCaseLayer(ZopeLite):
+
+    @classmethod
+    def testSetUp(cls):
+        import Products
+        import Products.Five
+
+        zope.component.testing.setUp(cls)
+        zope.component.provideAdapter(DefaultTraversable, (None,))
+
+        zcml.load_config('testing.zcml', Products.ZenTestCase)
+
+    @classmethod
+    def testTearDown(cls):
+        cleanUp()
+
+
 class BaseTestCase(ZopeTestCase.ZopeTestCase):
 
+    layer = ZenossTestCaseLayer
 
     def afterSetUp(self):
         gen = PortalGenerator()
@@ -112,12 +139,10 @@ class BaseTestCase(ZopeTestCase.ZopeTestCase):
         from AccessControl.SecurityManagement import newSecurityManager
         newSecurityManager(None, user)
 
-
     def tearDown(self):
         self.app = None
         self.dmd = None
-        ZopeTestCase.ZopeTestCase.tearDown(self)
-
+        super(BaseTestCase, self).tearDown()
 
     def create(self, context, klass, id):
         """create an instance and attach it to the context passed"""

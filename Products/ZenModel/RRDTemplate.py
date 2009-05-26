@@ -16,8 +16,10 @@ from Globals import DTMLFile
 from Globals import InitializeClass
 from AccessControl import ClassSecurityInfo, Permissions
 from Products.ZenModel.ZenossSecurity import ZEN_MANAGE_DMD
+from zope.interface import implements
 
 from ZenModelRM import ZenModelRM
+from Products.ZenModel.interfaces import IIndexed
 
 from Products.ZenRelations.RelSchema import *
 from Products.ZenModel.RRDDataSource import SimpleRRDDataSource
@@ -107,6 +109,7 @@ def crumbspath(templ, crumbs, idx=-1):
 
 class RRDTemplate(ZenModelRM, ZenPackable):
 
+    implements(IIndexed)
     meta_type = 'RRDTemplate'
 
     default_catalog = RRDTEMPLATE_CATALOG
@@ -159,30 +162,6 @@ class RRDTemplate(ZenModelRM, ZenPackable):
         """
         crumbs = super(RRDTemplate, self).breadCrumbs(terminator)
         return crumbspath(self, crumbs)
-
-
-    # manage_afterAdd, manage_afterClose and manage_beforeDelete
-    # are the magic methods that make the indexing happen
-
-    def manage_afterAdd(self, item, container):
-        """
-        """
-        self.index_object()
-        super(RRDTemplate,self).manage_afterAdd(item, container)
-
-
-    def manage_afterClone(self, item):
-        """
-        """
-        super(RRDTemplate,self).manage_afterClone(item)
-        self.index_object()
-
-
-    def manage_beforeDelete(self, item, container):
-        """
-        """
-        super(RRDTemplate,self).manage_beforeDelete(item, container)
-        self.unindex_object()
 
 
     def isEditable(self, context):

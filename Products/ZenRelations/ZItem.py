@@ -48,15 +48,6 @@ class ZItem(Base, CopySource, App.Management.Tabs, Traversable,
     isPrincipiaFolderish=0
     isTopLevelPrincipiaApplicationObject=0
 
-    def manage_afterAdd(self, item, container):
-        pass
-
-    def manage_beforeDelete(self, item, container):
-        pass
-
-    def manage_afterClone(self, item):
-        pass
-
     # Direct use of the 'id' attribute is deprecated - use getId()
     id=''
 
@@ -343,4 +334,5 @@ def pretty_tb(t, v, tb, as_html=1):
     tb = '\n'.join(tb)
     return tb
 
-
+#from OFS.SimpleItem import SimpleItem
+#ZItem = SimpleItem

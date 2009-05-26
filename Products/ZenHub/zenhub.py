@@ -300,11 +300,21 @@ class ZenHub(ZCmdBase):
         @return: None
         """
         from ZEO.cache import ClientCache as ClientCacheBase
-        class ClientCache(ClientCacheBase):
-            "A sub-class to notice object invalidation notifications"
-            def invalidate(s, oid, version, tid):
+        class ClientCache(object):
+            """
+            A ClientCache wrapper that hooks into invalidation so that zenhub
+            can notice when they occur.
+            """
+            def __init__(s, *args, **kwargs):
+                s._cache = ClientCacheBase(*args, **kwargs)
+
+            def __getattr__(s, name):
+                return getattr(s._cache, name)
+
+            def invalidate(s, oid, version, tid, server_invalidation=True):
                 self.changes.insert(0, oid)
-                ClientCacheBase.invalidate(s, oid, version, tid)
+                return s._cache.invalidate(oid, version, tid,
+                                           server_invalidation)
 
         from ZEO.ClientStorage import ClientStorage as ClientStorageBase
         class ClientStorage(ClientStorageBase):

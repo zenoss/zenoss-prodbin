@@ -13,9 +13,9 @@
 
 import traceback
 from xmlrpclib import ServerProxy, ProtocolError
-from Products.ZenTestCase.BaseTestCase import BaseTestCase
+import unittest
 
-class TestXmlRpc(BaseTestCase):
+class TestXmlRpc(unittest.TestCase):
     """Test XML-RPC services used in the Dev Guide against our Zenoss server"""
 
     # Args for some of these functions are found at 

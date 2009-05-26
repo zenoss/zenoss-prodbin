@@ -210,15 +210,6 @@ class ActionRule(ZenModelRM, EventFilter):
         return self.zmanage_editProperties(REQUEST)
 
 
-    def manage_beforeDelete(self, item, container):
-        """
-        Clear state in alert_state before we are deleted.
-        Also need to unindex the actionrulewindows
-        """
-        self._clearAlertState()
-        super(ActionRule, self).manage_beforeDelete(item, container)
-
-
     def _clearAlertState(self):
         """Clear state in alert_state before we are deleted.
         """

@@ -26,6 +26,8 @@ from Acquisition import aq_base
 from AccessControl import ClassSecurityInfo
 from ZPublisher.Converters import type_converters
 #from Products.ZCatalog.CatalogAwareness import CatalogAware
+from zope.interface import implements
+from OFS.interfaces import IItem
 
 from ZenModelBase import ZenModelBase, iscustprop
 from ZenPacker import ZenPacker
@@ -40,7 +42,7 @@ class ZenModelRM(ZenModelBase, RelationshipManager, Historical, ZenPacker):
     Provides RelationshipManagement, Customized PropertyManagement,
     Catalog Indexing, and Historical change tracking.
     """
-
+    implements(IItem)
     meta_type = 'ZenModelRM'
 
     default_catalog = ''

@@ -23,6 +23,9 @@ __version__ = "$Revision: 1.10 $"[11:-2]
 from Globals import InitializeClass
 from AccessControl import ClassSecurityInfo
 from AccessControl import Permissions as permissions
+from zope.interface import implements
+
+from Products.ZenModel.interfaces import IIndexed
 from Products.ZenModel.ZenossSecurity import *
 from Products.ZenWidgets import messaging
 
@@ -32,8 +35,7 @@ from ZenPackable import ZenPackable
 from Products.ZenRelations.RelSchema import *
 
 class ProductClass(ZenModelRM, ZenPackable):
-
-
+    implements(IIndexed)
     meta_type = "ProductClass"
 
     #itclass = ""
@@ -139,29 +141,6 @@ class ProductClass(ZenModelRM, ZenPackable):
         if not self.manufacturer():
             return ''
         return self.manufacturer().getId()
-
-
-    def manage_afterAdd(self, item, container):
-        """
-        Device only propagates afterAdd if it is the added object.
-        """
-        super(ProductClass,self).manage_afterAdd(item, container)
-        self.index_object()
-
-
-    def manage_afterClone(self, item):
-        """Not really sure when this is called."""
-        super(ProductClass,self).manage_afterClone(item)
-        self.index_object()
-
-
-    def manage_beforeDelete(self, item, container):
-        """
-        Device only propagates beforeDelete if we are being deleted or copied.
-        Moving and renaming don't propagate.
-        """
-        super(ProductClass,self).manage_beforeDelete(item, container)
-        self.unindex_object()
 
 
     security.declareProtected('Manage DMD', 'manage_editProductClass')

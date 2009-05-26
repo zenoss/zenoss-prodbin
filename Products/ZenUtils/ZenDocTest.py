@@ -17,6 +17,8 @@ import transaction
 import socket
 import Globals
 
+import zope.component
+from zope.traversing.adapters import DefaultTraversable
 
 from AccessControl.SecurityManagement import newSecurityManager
 from AccessControl.SecurityManagement import noSecurityManager
@@ -55,6 +57,7 @@ class ZenDocTestRunner(object):
     conn = None
     
     def setUp(self):
+        zope.component.provideAdapter(DefaultTraversable, (None,))
         if not self.conn: self.conn = ZeoConn()
         self.app = self.conn.app
         self.login()

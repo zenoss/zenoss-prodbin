@@ -14,6 +14,7 @@
 import unittest
 import Globals
 
+from Products.ZenTestCase.BaseTestCase import ZenossTestCaseLayer
 from Products.ZenUtils.Driver import drive
 
 from twisted.internet import reactor
@@ -23,11 +24,15 @@ import sys
 
 count = 0
 
-def stop(ignored=None):
+def stop(ignored=None, connector=None):
     if isinstance(ignored, Exception):
         raise ignored
     if reactor.running:
+        reactor.threadpool.stop()
+        reactor.threadpool = None
         reactor.crash()
+    if connector:
+        connector.disconnect()
 
 from Products.ZenHub.zenhub import ZenHub
 
@@ -39,7 +44,7 @@ class TestClient(pb.Referenceable):
     def __init__(self, tester, port):
         self.tester = tester
         factory = pb.PBClientFactory()
-        reactor.connectTCP("localhost", port, factory)
+        self.connector = reactor.connectTCP("localhost", port, factory)
         d = factory.login(credentials.UsernamePassword("admin", "zenoss"),
                           client=self)
         d.addCallback(self.connected)
@@ -51,7 +56,7 @@ class TestClient(pb.Referenceable):
         d.addErrback(self.bad)
 
     def bad(self, reason):
-        stop()
+        stop(connector=self.connector)
         self.tester.fail('error: '+str(reason.value))
 
     def test(self, service):
@@ -60,7 +65,7 @@ class TestClient(pb.Referenceable):
             yield service.callRemote('echo', data)
             self.tester.assertEqual(driver.next(), data)
             self.success = True
-        drive(Test).addBoth(stop)
+        drive(Test).addBoth(stop, connector=self.connector)
 
 class SendEventClient(TestClient):
     svc = 'EventService'
@@ -75,7 +80,10 @@ class SendEventClient(TestClient):
             self.success = True
         drive(Test).addBoth(stop)
 
+
 class TestZenHub(unittest.TestCase):
+
+    layer = ZenossTestCaseLayer
 
     base = 7000
     xbase = 8000

@@ -79,7 +79,7 @@ class Report(ZenModelRM, ZenPackable):
 
     _relations = ZenPackable._relations
 
-    def __init__(self, id, title = None, text=None, content_type=None):
+    def __init__(self, id, title = None, text=None, content_type='text/html'):
         ZenModelRM.__init__(self, id);
         self._template = ZopePageTemplate(id, text, content_type)
         self.title = title

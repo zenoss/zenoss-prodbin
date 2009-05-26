@@ -11,6 +11,7 @@
 #
 ###########################################################################
 
+from Products.ZenUtils.Utils import set_context
 
 class ZeoConn(object):
 
@@ -29,8 +30,8 @@ class ZeoConn(object):
         if self.app: return 
         self.connection=self.db.open()
         root=self.connection.root()
-        self.app=root['Application']
-        self._getContext(self.app)
+        app = root['Application']
+        self.app = set_context(app)
         self.dmd = self.app.zport.dmd
 
 
@@ -44,18 +45,3 @@ class ZeoConn(object):
         self.app = None
         self.dmd = None
     
-    
-    def _getContext(self, app):
-        from ZPublisher.HTTPRequest import HTTPRequest
-        from ZPublisher.HTTPResponse import HTTPResponse
-        from ZPublisher.BaseRequest import RequestContainer
-        resp = HTTPResponse(stdout=None)
-        env = {
-            'SERVER_NAME':'localhost',
-            'SERVER_PORT':'8080',
-            'REQUEST_METHOD':'GET'
-            }
-        req = HTTPRequest(None, env, resp)
-        return app.__of__(RequestContainer(REQUEST = req))
-
-

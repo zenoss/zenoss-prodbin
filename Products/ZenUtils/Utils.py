@@ -1439,3 +1439,20 @@ def getExitMessage(exitCode):
         return 'Fatal error signal: %s' % (exitCode-128)
     return 'Unknown error code: %s' % exitCode
 
+
+def set_context(ob):
+    """
+    Wrap an object in a REQUEST context.
+    """
+    from ZPublisher.HTTPRequest import HTTPRequest
+    from ZPublisher.HTTPResponse import HTTPResponse
+    from ZPublisher.BaseRequest import RequestContainer
+    resp = HTTPResponse(stdout=None)
+    env = {
+        'SERVER_NAME':'localhost',
+        'SERVER_PORT':'8080',
+        'REQUEST_METHOD':'GET'
+        }
+    req = HTTPRequest(None, env, resp)
+    return ob.__of__(RequestContainer(REQUEST = req))
+

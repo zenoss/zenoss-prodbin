@@ -8,4 +8,16 @@
 
     <include package=".browser"/>
 
+    <subscriber
+        for=".EventCommand.EventCommand
+             OFS.interfaces.IObjectWillBeRemovedEvent"
+        handler=".subscribers.clearAlertState"
+        />
+
+    <subscriber
+        for=".ActionRule.ActionRule
+             OFS.interfaces.IObjectWillBeRemovedEvent"
+        handler=".subscribers.clearAlertState"
+        />
+
 </configure>

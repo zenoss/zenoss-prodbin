@@ -25,6 +25,15 @@ from Acquisition import aq_base
 from OFS.ObjectManager import checkValidId, BeforeDeleteException
 from ZODB.POSException import ConflictError
 
+import OFS.subscribers
+from OFS.event import ObjectWillBeAddedEvent
+from OFS.event import ObjectWillBeRemovedEvent
+from zope.event import notify
+from zope.app.container.contained import ObjectAddedEvent
+from zope.app.container.contained import ObjectRemovedEvent
+from zope.app.container.contained import ContainerModifiedEvent
+from zope.app.container.contained import dispatchToSublocations
+
 from BTrees.OOBTree import OOBTree
 
 from ToManyRelationshipBase import ToManyRelationshipBase
@@ -90,9 +99,11 @@ class ToManyContRelationship(ToManyRelationshipBase):
 
     def addRelation(self, obj):
         """Override base to run manage_afterAdd like ObjectManager"""
+        notify(ObjectWillBeAddedEvent(obj, self, obj.getId()))
         ToManyRelationshipBase.addRelation(self, obj)
         obj = obj.__of__(self)
-        obj.manage_afterAdd(obj, self)
+        notify(ObjectAddedEvent(obj, self, obj.getId()))
+        notify(ContainerModifiedEvent(self))
 
 
     def _setObject(self,id,object,roles=None,user=None,set_owner=1):
@@ -100,52 +111,23 @@ class ToManyContRelationship(ToManyRelationshipBase):
         unused(user, roles, set_owner)
         object.__primary_parent__ = aq_base(self)
         self.addRelation(object)
-        object.manage_afterAdd(object, self)
         return object.getId()
 
 
     def manage_afterAdd(self, item, container):
-        """
-        Copied code from ObjectManager
-        """
-        for object in self.objectValues():
-            try: s=object._p_changed
-            except: s=0
-            if hasattr(aq_base(object), 'manage_afterAdd'):
-                object.manage_afterAdd(item, container)
-            if s is None: object._p_deactivate()
-
+        # Don't do recursion anymore, a subscriber does that.
+        pass
+    manage_afterAdd.__five_method__ = True
 
     def manage_afterClone(self, item):
-        """
-        Copied code from ObjectManager
-        """
-        for object in self.objectValues():
-            try: s=object._p_changed
-            except: s=0
-            if hasattr(aq_base(object), 'manage_afterClone'):
-                object.manage_afterClone(item)
-            if s is None: object._p_deactivate()
-
+        # Don't do recursion anymore, a subscriber does that.
+        pass
+    manage_afterClone.__five_method__ = True
 
     def manage_beforeDelete(self, item, container):
-        """
-        Copied code from ObjectManager
-        """
-        for object in self.objectValues():
-            try: s=object._p_changed
-            except: s=0
-            try:
-                if hasattr(aq_base(object), 'manage_beforeDelete'):
-                    object.manage_beforeDelete(item, container)
-            except BeforeDeleteException:
-                raise
-            except ConflictError:
-                raise
-            except:
-                log.exception('manage_beforeDelete()')
-            if s is None: object._p_deactivate()
-       
+        # Don't do recursion anymore, a subscriber does that.
+        pass
+    manage_beforeDelete.__five_method__ = True
 
     def _add(self,obj):
         """add an object to one side of a ToManyContRelationship.
@@ -164,7 +146,7 @@ class ToManyContRelationship(ToManyRelationshipBase):
         if obj: objs = [obj]
         else: objs = self.objectValuesAll()
         for robj in objs:
-            robj.manage_beforeDelete(robj, self)
+            notify(ObjectWillBeRemovedEvent(robj, self, robj.getId()))
         if obj:
             id = obj.id
             if not self._objects.has_key(id):
@@ -175,6 +157,9 @@ class ToManyContRelationship(ToManyRelationshipBase):
         else:
             self._objects = OOBTree()
             self.__primary_parent__._p_changed = True
+        for robj in objs:
+            notify(ObjectRemovedEvent(robj, self, robj.getId()))
+        notify(ContainerModifiedEvent(self))
 
 
     def _remoteRemove(self, obj=None):
@@ -284,3 +269,14 @@ class ToManyContRelationship(ToManyRelationshipBase):
 
     
 InitializeClass(ToManyContRelationship)
+
+
+class ToManyContSublocations(object):
+    """
+    Adapter so the event dispatching can propagate to children.
+    """
+    def __init__(self, container):
+        self.container = container
+    def sublocations(self):
+        return (ob for ob in self.container.objectValuesAll())
+

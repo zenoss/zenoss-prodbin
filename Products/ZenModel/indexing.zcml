@@ -1,0 +1,21 @@
+<configure
+    xmlns="http://namespaces.zope.org/zope"
+    xmlns:five="http://namespaces.zope.org/five"
+    xmlns:browser="http://namespaces.zope.org/browser"
+    i18n_domain="Products.ZenModel">
+
+    <include package="Products.Five" file="meta.zcml"/>
+
+    <subscriber
+        for=".interfaces.IIndexed
+             zope.app.container.interfaces.IObjectMovedEvent"
+        handler=".subscribers.indexAfterAddOrMove"
+        />
+
+    <subscriber
+        for=".interfaces.IIndexed
+             OFS.interfaces.IObjectWillBeMovedEvent"
+        handler=".subscribers.unindexBeforeDelete"
+        />
+
+</configure>

@@ -18,52 +18,56 @@ A monkey patch that enables gzip compression on static files
 """
 
 from Products.CMFCore.utils import _setCacheHeaders, _ViewEmulator
+from Products.CMFCore.utils import _checkConditionalGET
 from DateTime import DateTime
 from webdav.common import rfc1123_date
 from Products.CMFCore.FSFile import FSFile
 from Products.CMFCore.FSImage import FSImage
 def index_html(self, REQUEST, RESPONSE):
-    """ Modified default view for files to enable
-        gzip compression on js and css files.
+    """
+    The default view of the contents of a File or Image.
+
+    Returns the contents of the file or image.  Also, sets the
+    Content-Type HTTP header to the objects content type.
     """
     self._updateFromFS()
-    if hasattr(self, '_data'):
-        data = self._data
-    else:
-        data = self._readFile(0)
-    data_len = len(data)
-    last_mod = self._file_mod_time
-    status = 200
-    # HTTP If-Modified-Since header handling.
-    header=REQUEST.get_header('If-Modified-Since', None)
-    if header is not None:
-        header = header.split(';')[0]
-        try:
-            mod_since=long(DateTime(header).timeTime())
-        except:
-            mod_since=None
-            
-        if mod_since is not None:
-            if last_mod > 0 and last_mod <= mod_since:
-                status = 304
-                data = ''
-    now = DateTime()
-    later = now + 30
-    RESPONSE.setStatus(status)
-    RESPONSE.setHeader('Last-Modified', rfc1123_date(last_mod))
+    view = _ViewEmulator().__of__(self)
+
+    # If we have a conditional get, set status 304 and return
+    # no content
+    if _checkConditionalGET(view, extra_context={}):
+        return ''
+
+    ###### ZENOSS PATCH #####
+    # Patch to ensure a static charset
+    if ";" not in self.content_type:
+        self.content_type += "; charset=utf-8"
+    #########################
     RESPONSE.setHeader('Content-Type', self.content_type)
-    RESPONSE.setHeader('Cache-Control', 'public,max-age=%d' % int(3600*24*30))
-    RESPONSE.setHeader('Expires', later.rfc822())
 
-    # The key line!
+
+    # old-style If-Modified-Since header handling.
+    if self._setOldCacheHeaders():
+        # Make sure the CachingPolicyManager gets a go as well
+        _setCacheHeaders(view, extra_context={})
+        return ''
+
+    data = self._readFile(0)
+    data_len = len(data)
+    RESPONSE.setHeader('Content-Length', data_len)
+
+    ###### ZENOSS PATCH #####
+    # Patch to use gzip compression
     RESPONSE.enableHTTPCompression(force=1)
+    #########################
 
-    if status != 304:
-        RESPONSE.setHeader('Content-Length', data_len)
+    #There are 2 Cache Managers which can be in play....
+    #need to decide which to use to determine where the cache headers
+    #are decided on.
     if self.ZCacheable_getManager() is not None:
         self.ZCacheable_set(None)
     else:
-        _setCacheHeaders(_ViewEmulator().__of__(self), extra_context={})
+        _setCacheHeaders(view, extra_context={})
     return data
 
 FSFile.index_html = index_html

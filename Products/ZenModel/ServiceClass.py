@@ -23,7 +23,9 @@ from Globals import DTMLFile
 from Globals import InitializeClass
 from AccessControl import ClassSecurityInfo
 from AccessControl import Permissions
+import zope.interface
 from Products.ZenModel.ZenossSecurity import *
+from Products.ZenModel.interfaces import IIndexed
 from Commandable import Commandable
 from ZenPackable import ZenPackable
 
@@ -48,6 +50,7 @@ def manage_addServiceClass(context, id=None, REQUEST = None):
 addServiceClass = DTMLFile('dtml/addServiceClass',globals())
 
 class ServiceClass(ZenModelRM, Commandable, ZenPackable):
+    zope.interface.implements(IIndexed)
     meta_type = "ServiceClass"
     dmdRootName = "Services"
     default_catalog = "serviceSearch"
@@ -142,28 +145,6 @@ class ServiceClass(ZenModelRM, Commandable, ZenPackable):
         """
         return self.getPrimaryDmdId("Services", "serviceclasses")
 
-
-    def manage_afterAdd(self, item, container):
-        """
-        Device only propagates afterAdd if it is the added object.
-        """
-        super(ServiceClass,self).manage_afterAdd(item, container)
-        self.index_object()
-
-
-    def manage_afterClone(self, item):
-        """Not really sure when this is called."""
-        super(ServiceClass,self).manage_afterClone(item)
-        self.index_object()
-
-
-    def manage_beforeDelete(self, item, container):
-        """
-        Device only propagates beforeDelete if we are being deleted or copied.
-        Moving and renaming don't propagate.
-        """
-        super(ServiceClass,self).manage_beforeDelete(item, container)
-        self.unindex_object()
 
     def saveZenProperties(self, pfilt=iszprop, REQUEST=None):
         """

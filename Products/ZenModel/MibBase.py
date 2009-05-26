@@ -11,11 +11,14 @@
 #
 ###########################################################################
 
+from zope.interface import implements
+
+from Products.ZenModel.interfaces import IIndexed
 from ZenModelRM import ZenModelRM
 from ZenPackable import ZenPackable
 
 class MibBase(ZenModelRM, ZenPackable):
-    
+    implements(IIndexed)    
     default_catalog = 'mibSearch'
 
     _relations = ZenPackable._relations[:]
@@ -54,25 +57,3 @@ class MibBase(ZenModelRM, ZenPackable):
         return [str(getattr(self, p)) for p in self.propertyIds() \
                 if str(getattr(self, p))]
     
-    
-    def manage_afterAdd(self, item, container):
-        """
-        Device only propagates afterAdd if it is the added object.
-        """
-        super(MibBase,self).manage_afterAdd(item, container)
-        self.index_object()
-
-
-    def manage_afterClone(self, item):
-        """Not really sure when this is called."""
-        super(MibBase,self).manage_afterClone(item)
-        self.index_object()
-
-
-    def manage_beforeDelete(self, item, container):
-        """
-        Device only propagates beforeDelete if we are being deleted or copied.
-        Moving and renaming don't propagate.
-        """
-        super(MibBase,self).manage_beforeDelete(item, container)
-        self.unindex_object()

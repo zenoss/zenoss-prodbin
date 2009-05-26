@@ -15,6 +15,9 @@ __doc__='''
 ZenPackPersistence
 '''
 
+from zope.interface import implements
+from Products.ZenModel.interfaces import IIndexed
+
 ZENPACK_PERSISTENCE_CATALOG = 'zenPackPersistence'
 
 
@@ -69,6 +72,7 @@ class ZenPackPersistence(object):
     list of parents.  Otherwise the manage_* methods of the other classes
     will likely be called and these skipped.
     '''
+    implements(IIndexed)
 
     # Subclasses should set this to the id of the ZenPack or they
     # should override getZenPackName()
@@ -127,26 +131,3 @@ class ZenPackPersistence(object):
             cat.uncatalog_object(self.getPrimaryId())
         super(ZenPackPersistence, self).unindex_object()
 
-
-    # manage_afterAdd, manage_afterClose and manage_beforeDelete
-    # are the magic methods that make the indexing happen
-
-    def manage_afterAdd(self, item, container):
-        """
-        """
-        self.index_object()
-        super(ZenPackPersistence,self).manage_afterAdd(item, container)
-
-
-    def manage_afterClone(self, item):
-        """
-        """
-        super(ZenPackPersistence,self).manage_afterClone(item)
-        self.index_object()
-
-
-    def manage_beforeDelete(self, item, container):
-        """
-        """
-        super(ZenPackPersistence,self).manage_beforeDelete(item, container)
-        self.unindex_object()

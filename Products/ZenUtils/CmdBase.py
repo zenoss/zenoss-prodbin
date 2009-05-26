@@ -22,6 +22,10 @@ import sys
 import datetime
 import logging
 
+import zope.component
+from zope.traversing.adapters import DefaultTraversable
+from Products.Five import zcml
+
 from logging import handlers
 from optparse import OptionParser, SUPPRESS_HELP, NO_DEFAULT
 from urllib import quote
@@ -47,6 +51,9 @@ class CmdBase:
         
         # We must import ZenossStartup at this point so that all Zenoss daemons
         # and tools will have any ZenPack monkey-patched methods available.
+        zope.component.provideAdapter(DefaultTraversable, (None,))
+        import Products.ZenModel
+        zcml.load_config('indexing.zcml', Products.ZenModel)
         import Products.ZenossStartup
         unused(Products.ZenossStartup)
         
