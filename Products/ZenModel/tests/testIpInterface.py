@@ -64,19 +64,18 @@ class TestIpInterface(ZenModelBaseTest):
 
 
     def testGetIpAddressObjs(self):
-        from Products.ZenModel.IpAddress import IpAddress
-        add = IpAddress('1.2.3.4')
-        self.iface.ipaddresses._setObject('1.2.3.4',add)
-        self.assert_(self.iface.getIpAddressObj().getIp() == add.getIp())
+        self.iface.addIpAddress("1.2.3.4")
+        add = self.dmd.Networks.findIp('1.2.3.4')
+        self.assert_(self.iface.getIpAddressObj() == add)
         self.assert_(add in self.iface.getIpAddressObjs())
-        add2 = IpAddress('2.3.4.5')
-        self.iface.ipaddresses._setObject('2.3.4.5',add2)
+        self.iface.addIpAddress("2.3.4.5")
+        add2 = self.dmd.Networks.findIp('2.3.4.5')
         self.assert_(add2 in self.iface.getIpAddressObjs())
-        self.assert_(self.iface.getIpAddressObj().getIp() == add.getIp())
+        self.assert_(self.iface.getIpAddressObj() == add)
         self.iface.removeIpAddress('1.2.3.4')
         self.assert_(add2 in self.iface.getIpAddressObjs())
         self.assert_(add not in self.iface.getIpAddressObjs())
-        self.assert_(self.iface.getIpAddressObj().getIp() == add2.getIp())
+        self.assert_(self.iface.getIpAddressObj() == add2)
 
 
     def testAddIpaddress(self):
