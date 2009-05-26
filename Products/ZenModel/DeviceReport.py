@@ -18,7 +18,9 @@ from Globals import InitializeClass
 from AccessControl import ClassSecurityInfo
 
 from Products.ZenUtils.ZenTales import talesEval
+from Products.ZenUtils.Utils import convToUnits, zdecode
 from Products.ZenWidgets import messaging
+
 
 #from Report import Report
 from ZenModelRM import ZenModelRM
@@ -149,11 +151,32 @@ class DeviceReport(ZenModelRM):
                 for field in self.columns:
                     body.append("<td>")
                     if field == "getId": field += "Link"
+
+                    # Allow the ability to parse Python
                     attr = getattr(dev, field, 'Unknown column')
-                    if callable(attr): value = attr()
+                    variables_and_funcs = {
+                       'device':dev, 'dev':dev, 'attr':attr,
+                       'convToUnits':convToUnits, 'zdecode':zdecode,
+                    }
+                    if field.startswith('python:'):
+                        expression = field.replace('python:', 'attr=')
+                        try:
+                            exec(expression, variables_and_funcs)
+                            attr = variables_and_funcs['attr']
+                        except Exception, ex:
+                            attr = str(ex)
+
+                    if callable(attr):
+                        try: value = attr()
+                        except Exception, ex:
+                             value = str(ex)
                     else: value = attr
+
                     if type(value) in (types.ListType, types.TupleType):
-                        value = ", ".join(value)
+                        # Some calls don't return strings
+                        try: value = ", ".join(value)
+                        except Exception, ex:
+                             value = str(ex)
                     if (not field.endswith("Link") 
                         and type(value) in types.StringTypes): 
                         value = cgi.escape(value)
