@@ -49,7 +49,7 @@ class Server(Device):
 
 class IpInterface(TestBaseClass):
     _relations = (
-        ("device", ToOne(ToMany,TS + "Device","ipinterfaces")),
+        ("device", ToOne(ToMany,TS + "Device","interfaces")),
         )
     beforeDelete = False
     afterAdd = False
