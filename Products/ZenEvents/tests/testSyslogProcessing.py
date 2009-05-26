@@ -63,6 +63,17 @@ class SyslogProcessingTest(TestCase):
         self.assertEquals( evt.get('start_state'), 'LOADING' )
         self.assertEquals( evt.get('end_state'), 'FULL' )
         self.assertEquals( evt.get('summary'), 'Loading Done')
+    
+    def testCiscoVpnConcentrator(self):
+        """
+        Test of Cisco VPN Concentrator syslog message parsing
+        """
+        msg = "54884 05/25/2009 13:41:14.060 SEV=3 HTTP/42 RPT=4623 Error on socket accept."
+        s = SyslogProcessor(self.sendEvent, 6, False, 'localhost', 3)
+        evt = s.parseTag( {}, msg )
+        
+        self.assertEquals( evt.get('eventClassKey'), 'HTTP/42' )
+        self.assertEquals( evt.get('summary'), 'Error on socket accept.' )
 
 def test_suite():
     suite = TestSuite()

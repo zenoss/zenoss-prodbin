@@ -60,6 +60,10 @@ r"^(?P<component>\S+)(\.|\s)[A-Z]{3} \d \S+ \d\d:\d\d:\d\d-\d\d:\d\d:\d\d \d{5} 
 
 # Cisco port state logging info
 r"^Process (?P<process_id>\d+), Nbr (?P<device>\d+\.\d+\.\d+\.\d+) on (?P<interface>\w+/\d+) from (?P<start_state>\w+) to (?P<end_state>\w+), (?P<summary>.+)",
+
+# Cisco VPN Concentrator
+# 54884 05/25/2009 13:41:14.060 SEV=3 HTTP/42 RPT=4623 Error on socket accept.
+r"^\d+ \d+\/\d+\/\d+ \d+:\d+:\d+\.\d+ SEV=\d+ (?P<eventClassKey>\S+) RPT=\d+ (?P<summary>.*)",
 ) 
 
 # compile regex parsers on load
