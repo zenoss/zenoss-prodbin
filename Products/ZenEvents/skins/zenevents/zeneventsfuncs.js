@@ -147,7 +147,7 @@ var startRefresh = function(button, form) {
 var eventWindow = function(manager, evid, width, height) {
     url = manager+"/viewEventFields?evid=" + evid
     windowprops = "width=500,height=650,resizable=yes,scrollbars=yes";
-    evwindow = window.open(url, evid, windowprops);
+    evwindow = window.open(url, '_blank', windowprops);
     evwindow.focus();
 }
 
