@@ -13,7 +13,7 @@
       <input type="hidden" name="tableName" tal:attributes="value tableName"/>
       
 
-        <tal:block tal:define=" tabletitle string:Loaded Zen Packs;
+        <tal:block tal:define=" tabletitle string:Loaded ZenPacks;
 		   		menu_id string:ZenPack_list;" >
         <tal:block metal:use-macro="here/zenuimacros/macros/zentable">
 
