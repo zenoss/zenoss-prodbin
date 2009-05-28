@@ -274,7 +274,7 @@ class MinMaxThresholdInstance(ThresholdInstance):
         else:
             count = self.getCount(dp)
             if count is None or count > 0:
-                summary = 'Threshold of %s restored: current value: %.2f' % (
+                summary = 'threshold of %s restored: current value %.2f' % (
                     self.name(), value)
                 self.resetCount(dp)
                 return [dict(device=self.context().deviceName,
