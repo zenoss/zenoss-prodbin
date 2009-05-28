@@ -31,7 +31,7 @@ from App.Dialogs import MessageDialog
 from Acquisition import aq_base
 
 from Products.ZenRelations.Exceptions import *
-from Products.ZenUtils.Utils import unused
+from Products.ZenUtils.Utils import unused, getObjByPath
 
 def manage_addToOneRelationship(context, id, REQUEST = None):
     """ToOneRelationship Factory"""
@@ -61,6 +61,7 @@ class ToOneRelationship(RelationshipBase):
     
     def __call__(self):
         """return the related object when a ToOne relation is called"""
+        self.checkRelation(True)
         return self.obj
 
 
@@ -84,15 +85,17 @@ class ToOneRelationship(RelationshipBase):
             self.obj = None 
             self.__primary_parent__._p_changed = True
         else:
-            raise ObjectNotFound( "on %s: %s is not %s" % (
-                            self.getPrimaryId(), obj.getPrimaryId(), 
-                            self.obj.getPrimaryId()) )
+            raise ObjectNotFound( "object %s was not found on %s" % (obj, self))
 
 
     def _remoteRemove(self, obj=None):
         """clear the remote side of this relationship"""
         if self.obj:
-            if obj != None and obj != self.obj: raise ObjectNotFound
+            if obj != None and obj != self.obj: 
+                raise ObjectNotFound(
+                        "object %s was not found on %s it has object %s" %
+                        (obj.getPrimaryId(), self.getPrimaryId(), 
+                        self.obj.getPrimaryId()))
             remoteRel = getattr(aq_base(self.obj), self.remoteName())
             remoteRel._remove(self.__primary_parent__)
 
@@ -199,25 +202,31 @@ class ToOneRelationship(RelationshipBase):
         """Check to make sure that relationship bidirectionality is ok.
         """
         if not self.obj: return
-        log.info("checking relation: %s", self.id)
+        log.debug("checking relation: %s", self.id)
+        
         try:
             ppath = self.obj.getPrimaryPath()
-            self.getObjByPath(ppath)
+            getObjByPath(self, ppath)
         except KeyError:
-            log.critical("obj:%s rel:%s robj:%s no longer exists",
-                    self.getPrimaryId(), self.id, self.obj.getPrimaryId())
+            log.error("object %s in relation %s has been deleted " \
+                         "from its primary path", 
+                         self.obj.getPrimaryId(), self.getPrimaryId())
             if repair: 
-                log.warn("removing rel to:%s", self.obj.getPrimaryId())
+                log.warn("removing object %s from relation %s", 
+                         self.obj.getPrimaryId(), self.getPrimaryId())
                 self.obj = None
+                
+        if not self.obj: return
+
         rname = self.remoteName()
         rrel = getattr(self.obj, rname)
         parobj = self.getPrimaryParent() 
         if not rrel.hasobject(parobj):
-            log.critical("obj:%s rel:%s robj:%s rrel:%s doesn't point back",
-                parobj.getPrimaryId(),self.id,self.obj.getPrimaryId(),rname)
+            log.error("remote relation %s doesn't point back to %s",
+                      rrel.getPrimaryId(), self.getPrimaryId())
             if repair:
-                log.warn("adding obj:%s to rrel:%s", 
-                        self.getPrimaryId(),rname)
+                log.warn("reconnecting relation %s to relation %s", 
+                        rrel.getPrimaryId(), self.getPrimaryId())
                 rrel._add(parobj)
 
 

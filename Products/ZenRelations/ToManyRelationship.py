@@ -23,6 +23,7 @@ from Globals import InitializeClass
 from AccessControl import ClassSecurityInfo
 from Acquisition import aq_base
 
+from zExceptions import NotFound
 from Products.ZenUtils.Utils import getObjByPath, unused
 
 from ToManyRelationshipBase import ToManyRelationshipBase
@@ -66,7 +67,7 @@ class ToManyRelationship(ToManyRelationshipBase):
 
     def __call__(self):
         """when we are called return our related object in our aq context"""
-        return [ob.__of__(self) for ob in self._objects]
+        return self.objectValuesAll()
 
 
     def hasobject(self, obj):
@@ -111,8 +112,8 @@ class ToManyRelationship(ToManyRelationshipBase):
                 self._objects.remove(obj)
             except ValueError:
                 raise ObjectNotFound(
-                    "Object with id %s not found on relation %s" %
-                    (obj.id, self.id))
+                    "object %s not found on relation %s" % (
+                        obj.getPrimaryId(), self.getPrimaryId()))
         else:
             self._objects = []
         self.__primary_parent__._p_changed = True
@@ -122,7 +123,9 @@ class ToManyRelationship(ToManyRelationshipBase):
         """remove an object from the far side of this relationship
         if no object is passed in remove all objects"""
         if obj:
-            if obj not in self._objects: raise ObjectNotFound
+            if obj not in self._objects: 
+                raise ObjectNotFound("object %s not found on relation %s" % (
+                            obj.getPrimaryId(), self.getPrimaryId()))
             objs = [obj]
         else: objs = self.objectValuesAll()
         remoteName = self.remoteName()
@@ -175,12 +178,16 @@ class ToManyRelationship(ToManyRelationshipBase):
     security.declareProtected('View', 'objectValuesAll')
     def objectValuesAll(self):
         """return all related object values"""
-        return [ob.__of__(self) for ob in self._objects]
+        return list(self.objectValuesGen())
 
 
     def objectValuesGen(self):
         """Generator that returns all related objects."""
+        rname = self.remoteName()
+        parobj = self.getPrimaryParent()
         for obj in self._objects:
+            if self.checkObjectRelation(obj, rname, parobj, True):
+                continue
             yield obj.__of__(self)
 
 
@@ -245,35 +252,47 @@ class ToManyRelationship(ToManyRelationshipBase):
         return []
 
 
+    def checkObjectRelation(self, obj, remoteName, parentObject, repair):
+        deleted = False
+        try:
+            ppath = obj.getPrimaryPath()
+            getObjByPath(self, ppath)
+        except (KeyError, NotFound):
+            log.error("object %s in relation %s has been deleted " \
+                         "from its primary path", 
+                         obj.getPrimaryId(), self.getPrimaryId())
+            if repair: 
+                log.warn("removing object %s from relation %s", 
+                         obj.getPrimaryId(), self.getPrimaryId())
+                self._objects.remove(obj)
+                self.__primary_parent__._p_changed = True
+                deleted = True
+        
+        if not deleted:
+            rrel = getattr(obj, remoteName)
+            if not rrel.hasobject(parentObject):
+                log.error("remote relation %s doesn't point back to %s",
+                                rrel.getPrimaryId(), self.getPrimaryId())
+                if repair:
+                    log.warn("reconnecting relation %s to relation %s", 
+                            rrel.getPrimaryId(),self.getPrimaryId())
+                    rrel._add(parentObject)
+        return deleted
+
+
     def checkRelation(self, repair=False):
         """Check to make sure that relationship bidirectionality is ok.
         """
-        if len(self._objects): log.info("checking relation: %s", self.id)
-        rname = self.remoteName()
-        parobj = self.getPrimaryParent()
+        if len(self._objects):
+            log.debug("checking relation: %s", self.id)
 
         # look for objects that don't point back to us
-        # or who no longer exist in the database
+        # or who should no longer exist in the database
+        rname = self.remoteName()
+        parobj = self.getPrimaryParent()
         for obj in self._objects:
-            rrel = getattr(obj, rname)
-            if not rrel.hasobject(parobj):
-                log.critical("obj:%s rel:%s robj:%s rrel:%s doesn't point back",
-                    parobj.getPrimaryId(), self.id, obj.getPrimaryId(),rname)
-                if repair:
-                    log.warn("adding obj:%s to rrel:%s", 
-                            self.getPrimaryId(),rname)
-                    rrel._add(parobj)
-            try:
-                ppath = obj.getPrimaryPath()
-                self.getObjByPath(ppath)
-            except KeyError:
-                log.critical("obj:%s rel:%s obj:%s no longer exists",
-                        self.getPrimaryId(), self.id, obj.getPrimaryId())
-                if repair: 
-                    log.warn("removing rel to:%s", obj.getPrimaryId())
-                    self._objects.remove(obj)
-                    self.__primary_parent__._p_changed = True
-
+            self.checkObjectRelation(obj, rname, parobj, repair)
+            
         # find duplicate objects
         keycount = {}
         for obj in self._objects:

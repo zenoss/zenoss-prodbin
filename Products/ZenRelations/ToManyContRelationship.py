@@ -151,8 +151,8 @@ class ToManyContRelationship(ToManyRelationshipBase):
             id = obj.id
             if not self._objects.has_key(id):
                 raise ObjectNotFound(
-                    "Object with id %s not found on relation %s" %
-                    (id, self.id))
+                    "object %s not found on %s" % (
+                    obj.getPrimaryId(), self.getPrimaryId()))
             del self._objects[id]
         else:
             self._objects = OOBTree()
@@ -166,7 +166,9 @@ class ToManyContRelationship(ToManyRelationshipBase):
         """remove an object from the far side of this relationship
         if no object is passed in remove all objects"""
         if obj:
-            if not self._objects.has_key(obj.id): raise ObjectNotFound
+            if not self._objects.has_key(obj.id):
+                raise ObjectNotFound("object %s not found on %s" % (
+                    obj.getPrimaryId(), self.getPrimaryId()))
             objs = [obj]
         else: objs = self.objectValuesAll()
         remoteName = self.remoteName()
