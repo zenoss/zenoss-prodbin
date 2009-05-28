@@ -446,7 +446,7 @@ class GraphDefinition(ZenModelRM, ZenPackable):
                                         self.hasSummary, index+idxOffset,
                                         multiid, prefix)
                     except (KeyError, NameError), e:
-                        cmds.append('COMMENT: UNKOWN VALUE IN '
+                        cmds.append('COMMENT: UNKNOWN VALUE IN '
                             'GRAPHPOINT %s\: %s' % (gp.id, str(e)))
         gpList = [gp for gp in self.getGraphPoints(includeThresholds=False)
                     if upToPoint is None or gp.sequence < upToPoint]

@@ -90,7 +90,6 @@ class ThresholdGraphPoint(GraphPoint):
                 gps = self.graphDef.getDataPointGraphPoints(dpName)
                 if gps:
                     gp = gps[0]
-                    gp.legend = gp.talesEval(gp.legend, context)
                 else:
                     gp = None
                 related[dpName] = gp

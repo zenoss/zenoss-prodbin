@@ -353,8 +353,9 @@ class MinMaxThresholdInstance(ThresholdInstance):
         return "%s > %s" % (self.getNames(relatedGps), self.setPower(maxval))
 
     def getNames(self, relatedGps):
-        legends = [ getattr(gp, 'legend', gp) for gp in relatedGps.values() ] 
-        return ', '.join(legends) 
+        names = list(set([x.split('_', 1)[1] for x in self.dataPointNames]))
+        names.sort()
+        return ', '.join(names)
 
     def setPower(self, number):
         powers = ("k", "M", "G")
