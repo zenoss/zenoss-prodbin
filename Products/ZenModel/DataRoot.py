@@ -679,7 +679,7 @@ class DataRoot(ZenModelRM, OrderedFolder, Commandable, ZenMenuable):
             REQUEST.RESPONSE.write(str(header))        
         write('')
         try:
-            cmd = binPath('zenbackup') + ' -v'
+            cmd = binPath('zenbackup') + ' -v10'
             if not includeEvents:
                 cmd += ' --no-eventsdb'
             if includeMysqlLogin:
