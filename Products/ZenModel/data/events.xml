@@ -5183,25 +5183,36 @@ By Default map all FileMaker events to Archive and set severity = 2
 </object>
 <object id='Filesystem' module='Products.ZenEvents.EventClass' class='EventClass'>
 <property type="text" id="transform" mode="w">
-if device:
+if device and evt.eventKey:
     for f in device.os.filesystems():
-        if f.name() != evt.component: continue
+        if f.name() != evt.component and f.id != evt.component: continue
 
         # Extract the used blocks from the event's message
         import re
         m = re.search("threshold of [^:]+: current value ([\d\.]+)", evt.message)
         if not m: continue
-    
+
         # Get the total blocks from the model. Adjust by specified offset.
         totalBlocks = f.totalBlocks * getattr(device, "zFileSystemSizeOffset", 1.0)
-        
+        totalBytes = totalBlocks * f.blockSize
+        usedBytes = None
+
+        currentValue = float(m.groups()[0])
+        if 'usedBlocks' in evt.eventKey:
+            usedBytes = currentValue * f.blockSize
+        elif 'FreeMegabytes' in evt.eventKey:
+            usedBytes = totalBytes - (currentValue * 1048576)
+        else:
+            continue
+
         # Calculate the used percent and amount free.
         usedBlocks = float(m.groups()[0])
-        p = (usedBlocks / totalBlocks) * 100
-        freeAmtGB = ((totalBlocks - usedBlocks) * f.blockSize) / 1073741824
+        p = (usedBytes / totalBytes) * 100
+        from Products.ZenUtils.Utils import convToUnits
+        free = convToUnits(totalBytes - usedBytes)
 
         # Make a nicer summary
-        evt.summary = "disk space threshold: %3.1f%% used (%3.2f GB free)" % (p, freeAmtGB)
+        evt.summary = "disk space threshold: %3.1f%% used (%s free)" % (p, free)
         evt.message = evt.summary
         break
 </property>

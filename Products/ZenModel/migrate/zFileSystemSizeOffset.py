@@ -19,30 +19,42 @@ import Migrate
 from Products.ZenModel.MinMaxThreshold import MinMaxThreshold
 
 
-perfFilesystemTransform = """if device:
+perfFilesystemTransform = """if device and evt.eventKey:
     for f in device.os.filesystems():
-        if f.name() != evt.component: continue
+        if f.name() != evt.component and f.id != evt.component: continue
 
         # Extract the used blocks from the event's message
         import re
         m = re.search("threshold of [^:]+: current value ([\d\.]+)", evt.message)
         if not m: continue
-
+    
         # Get the total blocks from the model. Adjust by specified offset.
         totalBlocks = f.totalBlocks * getattr(device, "zFileSystemSizeOffset", 1.0)
-    
+        totalBytes = totalBlocks * f.blockSize
+        usedBytes = None
+        
+        currentValue = float(m.groups()[0])
+        if 'usedBlocks' in evt.eventKey:
+            usedBytes = currentValue * f.blockSize
+        elif 'FreeMegabytes' in evt.eventKey:
+            usedBytes = totalBytes - (currentValue * 1048576)
+        else:
+            continue
+        
         # Calculate the used percent and amount free.
         usedBlocks = float(m.groups()[0])
-        p = (usedBlocks / totalBlocks) * 100
-        freeAmtGB = ((totalBlocks - usedBlocks) * f.blockSize) / 1073741824
+        p = (usedBytes / totalBytes) * 100
+        from Products.ZenUtils.Utils import convToUnits
+        free = convToUnits(totalBytes - usedBytes)
 
         # Make a nicer summary
-        evt.summary = "disk space threshold: %3.1f%% used (%3.2f GB free)" % (p, freeAmtGB)
+        evt.summary = "disk space threshold: %3.1f%% used (%s free)" % (p, free)
         evt.message = evt.summary
-        break"""
+        break
+"""
 
 class zFileSystemSizeOffset(Migrate.Step):
-    version = Migrate.Version(2, 4, 0)
+    version = Migrate.Version(2, 4, 2)
     
     def cutover(self, dmd):
         # Install the zFileSystemSizeOffset zProperty
@@ -51,8 +63,11 @@ class zFileSystemSizeOffset(Migrate.Step):
         
         # Install the /Perf/Filesystem transform
         try:
+            from md5 import md5
+            baddigest = '1d6002d0a89a35dda203301df42be502'
+
             ec = dmd.Events.Perf.Filesystem
-            if not ec.transform:
+            if not ec.transform or md5(ec.transform).hexdigest() == baddigest:
                 ec.transform = perfFilesystemTransform
         except AttributeError:
             pass
@@ -68,7 +83,7 @@ class zFileSystemSizeOffset(Migrate.Step):
                 continue
             
             for th in t.thresholds():
-                if not isinstance(th,  MinMaxThreshold):
+                if not isinstance(th, MinMaxThreshold):
                     continue
 
                 if "zFileSystemSizeOffset" not in th.maxval:
