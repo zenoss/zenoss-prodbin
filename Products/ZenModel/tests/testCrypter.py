@@ -34,14 +34,29 @@ class StoreTest(BaseTestCase):
     "make sure an instance of the crypter can be stored"
     
     def runTest(self):
-        id = 'testCrypter'
-        self.dmd._setObject(id, Crypter(id))
-        crypter = self.dmd.findChild(id)
+        objectId = 'testCrypter'
+        self.dmd._setObject(objectId, Crypter(objectId))
+        crypter = self.dmd.findChild(objectId)
         self.assertEqual('foo', crypter.encrypt('foo'))
         self.assertEqual('bar', crypter.decrypt('bar'))
         
+class SingletonTest(BaseTestCase):
+    "test that the Crypter singleton exists at dmd.crypter"
+    
+    def runTest(self):
+        objectId = 'Encryption'
+        self.assert_(objectId in self.dmd.objectIds(),
+                     '"%s" not in dmd object IDs' % objectId)
+        crypter = self.dmd.findChild(objectId)
+        
+        # make sure that it is not the enterprise crypter
+        if isinstance(crypter, Crypter):
+            self.assertEqual('foo', crypter.encrypt('foo'))
+            self.assertEqual('bar', crypter.decrypt('bar'))
+            
 def test_suite():
     suite = TestSuite()
     suite.addTest(makeSuite(CrypterTest))
     suite.addTest(makeSuite(StoreTest))
+    suite.addTest(makeSuite(SingletonTest))
     return suite

@@ -378,6 +378,6 @@ class ZenModelRM(ZenModelBase, RelationshipManager, Historical, ZenPacker):
         """
         child = self
         for id in path.split('/'):
-            child = dict(child.objectItems())[id]
+            child = child._getOb(id)
         return child
     

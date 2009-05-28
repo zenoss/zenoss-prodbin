@@ -15,13 +15,13 @@ __doc__="""DmdBuilder
 DmdBuilder builds out the core containment structure used in the dmd database.
 
 Devices
+Encryption
 Groups
 Locations
 Networks
 ServiceAreas
 Services
 Systems
-
 """
 
 from Products.ZenModel.DeviceClass import DeviceClass
@@ -33,6 +33,7 @@ from Products.ZenModel.MibOrganizer import MibOrganizer
 from Products.ZenModel.OSProcessOrganizer import OSProcessOrganizer
 from Products.ZenModel.ServiceOrganizer import ServiceOrganizer
 from Products.ZenModel.System import System
+from Products.ZenModel.Crypter import Crypter
 from Products.ZenModel.MonitorClass import MonitorClass
 from Products.ZenModel.ReportClass import ReportClass
 from Products.ZenModel.DeviceReportClass import DeviceReportClass
@@ -61,39 +62,8 @@ from Products.ZenModel.MaintenanceWindow import createMaintenanceWindowCatalog
 from Products.ZenModel.ZenossSecurity import \
      MANAGER_ROLE, ZEN_MANAGER_ROLE, ZEN_USER_ROLE, OWNER_ROLE
 
-classifications = {
-    'Devices':          DeviceClass,
-    'Groups':           DeviceGroup,
-    'Locations':        Location,
-    'Systems':          System,
-    'Services':         ServiceOrganizer,
-    'Manufacturers':    ManufacturerRoot,
-    'Mibs':             MibOrganizer,
-    'Processes':        OSProcessOrganizer,
-    'Monitors':         MonitorClass,
-    'Reports':          ReportClass,
-}
-
-class DmdBuilder:
-   
-    # Top level organizers for dmd
-    dmdroots = (
-        'Devices',
-        'Groups',
-        'Locations',
-        'Systems',
-        'Services',
-        'Processes',
-        'Manufacturers',
-        'Mibs',
-        'Monitors',
-        'Reports',
-        )
-   
-    # default monitor classes
-    monRoots = ('Performance',)
-
-
+class DmdBuilder(object):
+        
     def __init__(self, portal, evthost, evtuser, evtpass, evtdb, evtport,
                     smtphost, smtpport, pagecommand):
         self.portal = portal
@@ -116,21 +86,41 @@ class DmdBuilder:
                                     ZEN_USER_ROLE,
                                     OWNER_ROLE],
                                    0)
-
-
+                                   
     def buildRoots(self):
-        self.addroots(self.dmd, self.dmdroots, isInTree=True)
-        self.dmd.Devices.buildDeviceTreeProperties()
-
-
+        roots = [('Devices', DeviceClass, True),
+                 ('Encryption', Crypter, False),
+                 ('Groups', DeviceGroup, True),
+                 ('Locations', Location, True),
+                 ('Manufacturers', ManufacturerRoot, True),
+                 ('Monitors', MonitorClass, True),
+                 ('Mibs', MibOrganizer, True),
+                 ('Processes', OSProcessOrganizer, True),
+                 ('Reports', ReportClass, True),
+                 ('Services', ServiceOrganizer, True),
+                 ('Systems', System, True),
+                 ]
+        for objectId, construct, isInTree in roots:
+            if objectId not in self.dmd.objectIds():
+                object = construct(objectId)
+                object.isInTree = isInTree
+                self.dmd._setObject(objectId, object)
+        devices = self.dmd._getOb('Devices')
+        devices.createCatalog()
+        devices.buildDeviceTreeProperties()
+        
     def buildMonitors(self):
-        mons = self.dmd.Monitors
-        self.addroots(mons, self.monRoots, "Monitors")
-        mons.Performance.sub_class = 'PerformanceConf'
-        manage_addPerformanceConf(mons.Performance, "localhost")
-        crk = mons.Performance._getOb("localhost")
-        crk.renderurl = "/zport/RenderServer"
-
+        perfId = 'Performance'
+        monitors = self.dmd._getOb('Monitors')
+        if perfId not in monitors.objectIds():
+            monitors._setObject(perfId, MonitorClass(perfId))
+            perf = monitors._getOb(perfId)
+            perf.isInTree = False
+            perf.sub_class = 'PerformanceConf'
+            perfConfId = 'localhost'
+            manage_addPerformanceConf(perf, perfConfId)
+            perfConf = monitors.Performance._getOb(perfConfId)
+            perfConf.renderurl = '/zport/RenderServer'
 
     def buildUserCommands(self):
         for id, cmd, desc in (
@@ -147,19 +137,6 @@ class DmdBuilder:
                  "Display the OIDs available on a device"),
                 ):
             self.dmd.manage_addUserCommand(id, cmd=cmd, desc=desc)
-
-        
-    def addroots(self, base, rlist, classType=None, isInTree=False):
-        for rname in rlist:
-            ctype = classType or rname
-            if not hasattr(base, rname):
-                dr = classifications[ctype](rname)
-                base._setObject(dr.id, dr)
-                dr = base._getOb(dr.id)
-                dr.isInTree = isInTree
-                if dr.id in ('Devices'):
-                    dr.createCatalog()
-
 
     def buildReportClasses(self):
         if not hasattr(self.dmd.Reports, 'Device Reports'):
