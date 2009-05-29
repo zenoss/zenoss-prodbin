@@ -30,6 +30,7 @@ from AccessControl import ClassSecurityInfo
 from App.Dialogs import MessageDialog
 from Acquisition import aq_base
 
+from zExceptions import NotFound
 from Products.ZenRelations.Exceptions import *
 from Products.ZenUtils.Utils import unused, getObjByPath
 
@@ -207,7 +208,7 @@ class ToOneRelationship(RelationshipBase):
         try:
             ppath = self.obj.getPrimaryPath()
             getObjByPath(self, ppath)
-        except KeyError:
+        except (KeyError, NotFound):
             log.error("object %s in relation %s has been deleted " \
                          "from its primary path", 
                          self.obj.getPrimaryId(), self.getPrimaryId())

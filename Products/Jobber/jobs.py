@@ -31,10 +31,8 @@ from logfile import LogFile
 class Job(ZenModelRM):
 
     implements(IJob)
-
-    _relations = (
-        ("status", ToOne( ToOne, "Products.Jobber.status.JobStatus", "job")),
-    )
+    meta_type = 'Job'
+    __primary_parent__ = None
 
     def getUid(self):
         return self.id.split('_')[-1]
@@ -50,7 +48,8 @@ class Job(ZenModelRM):
         @return: The L{JobStatus} associated with this job.
         @rtype: L{JobStatus}
         """
-        return self.status()
+        if self.__primary_parent__ is not None:
+            return self.getPrimaryParent()
 
     def interrupt(self, why):
         """

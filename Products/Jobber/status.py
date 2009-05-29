@@ -27,11 +27,6 @@ class JobStatus(ZenModelRM):
            ToManyCont, "Products.Jobber.manager.JobManager", "jobs"
          )
        ),
-       ("job",
-         ToOne(
-           ToOne, "Products.Jobber.jobs.Job", "status"
-         )
-       ),
     )
 
     started = None    # Start time
@@ -52,7 +47,7 @@ class JobStatus(ZenModelRM):
         super(JobStatus, self).__init__(id)
 
         # Set up references to the job
-        self.addRelation('job', job)
+        self._setObject(job.id, job)
 
     def getUid(self):
         return self.id.split('_')[-1]
@@ -69,7 +64,10 @@ class JobStatus(ZenModelRM):
         return LogFile(self, self.getLogFileName())
 
     def getJob(self):
-        return self.job()
+        for ob in self._objects:
+            if ob['meta_type']=='Job':
+                return self._getOb(ob['id'])
+        return None
 
     def getTimes(self):
         return (self.started, self.finished)
@@ -122,6 +120,9 @@ class JobStatus(ZenModelRM):
         del self.finishDeferreds
 
     def delete(self):
+        """
+        Remove this status and its associated job from the system.
+        """
         # Clean up the log file
         fn = self.getLogFileName()
         if fn and os.path.exists(fn):

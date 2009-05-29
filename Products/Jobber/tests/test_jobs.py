@@ -118,38 +118,6 @@ class TestJobManager(unittest.TestCase):
         self.assertEqual(self.m.getJob(stat.id.split('_')[-1]), stat)
         self.assert_(self.m.getJob('NotAnId') is None)
 
-    def test_getUnfinishedJobs(self):
-        status = self.m.addJob(SucceedingJob)
-        self.assert_(status in self.m.getUnfinishedJobs())
-        d = status.getJob().start()
-        def _testFinishedness(r):
-            self.assert_(status not in self.m.getUnfinishedJobs())
-        d.addCallback(_testFinishedness)
-
-    def _test_getRunningJobs(self):
-        # FIXME: This test is broken because of reactor shiz.
-        status = self.m.addJob(OneSecondJob)
-        self.assert_(status not in self.m.getRunningJobs())
-        d = status.getJob().start()
-        # Yes, we're counting on a race condition for this test, but I don't
-        # see any way around it without using Trial
-        time.sleep(0.25)
-        self.assert_(status in self.m.getRunningJobs())
-        def _testFinishedness(r):
-            self.assert_(status not in self.m.getRunningJobs())
-        d.addCallback(_testFinishedness)
-
-    def test_getPendingJobs(self):
-        status = self.m.addJob(OneSecondJob)
-        self.assert_(status in self.m.getPendingJobs())
-        d = status.getJob().start()
-        # Yes, we're counting on a race condition for this test, but I don't
-        # see any way around it without using Trial
-        time.sleep(0.25)
-        self.assert_(status not in self.m.getPendingJobs())
-        def _testFinishedness(r):
-            self.assert_(status not in self.m.getPendingJobs())
-        d.addCallback(_testFinishedness)
 
 
 class TestLogFile(unittest.TestCase):

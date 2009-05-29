@@ -71,6 +71,9 @@ class JobListView(BrowserView):
         for k, jobset in jobs.items():
             for job in jobset:
                 j = job.getJob()
+                # Ignore broken jobs; they get cleaned up in a
+                # migrate script
+                if j is None: continue
                 started, finished = job.getTimes()
                 duration = job.getDuration()
                 d = dict(
