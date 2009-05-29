@@ -48,6 +48,8 @@ class ZenPropertyManager(PropertyManager):
     
     manage_propertiesForm=DTMLFile('dtml/properties', globals(),
                                    property_extensible_schema__=1)
+                                   
+    crypter = None
     
     def _setPropValue(self, id, value):
         """override from PerpertyManager to handle checks and ip creation"""
@@ -95,8 +97,12 @@ class ZenPropertyManager(PropertyManager):
             else:
                 self._setPropValue(id, [])
         else:
+            if self.crypter is not None and type == 'password':
+                valueToSet = self.crypter.encrypt(value)
+            else:
+                valueToSet = value
             setprops(id=id, type=type, visible=visible)
-            self._setPropValue(id, value)
+            self._setPropValue(id, valueToSet)
 
 
     def _updateProperty(self, id, value):
@@ -296,5 +302,15 @@ class ZenPropertyManager(PropertyManager):
         return [ org for org in self.getSubOrganizers() 
             if org.isLocal(propname) ]
 
-
+    def __getattribute__(self, name):
+        "decrypt properties of type password"
+        rawValue = PropertyManager.__getattribute__(self, name)
+        if (name not in ['crypter', '_properties']
+                and self.crypter is not None
+                and PropertyManager.getPropertyType(self, name) == 'password'):
+            value = self.crypter.decrypt(rawValue)
+        else:
+            value = rawValue
+        return value
+        
 InitializeClass(ZenPropertyManager)

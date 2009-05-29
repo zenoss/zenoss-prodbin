@@ -21,7 +21,8 @@ from Products.ZenRelations.tests.TestSchema import *
 from Products.ZenRelations.Exceptions import *
 
 from ZenRelationsBaseTest import ZenRelationsBaseTest
-
+from unittest import TestCase
+from Products.ZenRelations.ZenPropertyManager import ZenPropertyManager
 
 class ZenPropertyManagerTest(ZenRelationsBaseTest):
 
@@ -126,11 +127,43 @@ class ZenPropertyManagerTest(ZenRelationsBaseTest):
         subnode._updateProperty('ptest', 'b')
         self.assert_(subnode.ptest == 'b')
 
+class Crypter(object):
+    
+    def encrypt(self, input):
+        return 'foo_%s' % input
+        
+    def decrypt(self, input):
+        return 'bar_%s' % input
 
+class EncryptionTest(TestCase):
+    
+    def setUp(self):
+        self.manager = ZenPropertyManager()
+        self.manager.crypter = Crypter()
+        
+    def tearDown(self):
+        self.manager = None
+        
+    def testPassword(self):
+        "test that password property is encrypted and decrypted"
+        self.manager._setProperty('quux', 'blah', 'password')
+        self.assertEqual('bar_foo_blah', self.manager.quux)
+        
+    def testString(self):
+        "test that a string property isn't mucked with"
+        self.manager._setProperty('halloween', 'cat')
+        self.assertEqual('cat', self.manager.halloween)
+        
+    def testNormalAttribute(self):
+        "make sure that a normal attribute isn't mucked with"
+        self.manager.dog = 'Ripley'
+        self.assertEqual('Ripley', self.manager.dog)
+            
 def test_suite():
     from unittest import TestSuite, makeSuite
     suite = TestSuite()
     suite.addTest(makeSuite(ZenPropertyManagerTest))
+    suite.addTest(makeSuite(EncryptionTest))
     return suite
 
 if __name__=="__main__":
