@@ -117,9 +117,12 @@ class Location(DeviceOrganizer, ZenPackable):
             filter(lambda x:getattr(x, 'address', None), children)
         )
 
-    @json
     def getGeomapData(self):
-        """ Returns node info ready for Google Maps """
+        """
+        Gather data for Google Maps. This is not a JSON method; it must be put
+        into a data structure appropriate for JS consumption by another method
+        (specifically, getChildGeomapData, below).
+        """
         address = self.address
         psthresh = self.dmd.prodStateDashboardThresh
         summary = self.getEventSummary(prodState=psthresh)
@@ -138,7 +141,9 @@ class Location(DeviceOrganizer, ZenPackable):
 
     @json
     def getChildGeomapData(self):
-        """ Returns geomap info on child nodes """
+        """
+        Return info ready for Google Maps.
+        """
         allnodes = []
         data = []
         children = self.children()
