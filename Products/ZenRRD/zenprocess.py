@@ -530,14 +530,15 @@ class zenprocess(SnmpDaemon):
 
         if self.scanning:
             running, unstarted, finished = self.scanning.status()
-            msg = "performance scan job not finishing: " \
-                  "%d jobs running %d jobs waiting %d jobs finished" % \
-                  (running, unstarted, finished)
-            log.error(msg)
-            log.error("Problem devices: %r", [
-                d.name for d in self.devices().values() \
-                    if d.proxy is not None])
-            return
+            runningDevices = [ d.name for d in self.devices().values() \
+                    if d.proxy is not None]
+            
+            if runningDevices or unstarted > 0:
+                log.warning("Process scan not finishing: "
+                    "%d running, %d waiting, %d finished" % (
+                        running, unstarted, finished))
+                log.warning("Problem devices: %r", runningDevices)
+                return
 
         start = time.time()
 
