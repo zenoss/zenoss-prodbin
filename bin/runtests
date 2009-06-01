@@ -65,7 +65,7 @@ def findSeleniumTests(packages=[], regex=None):
     @return: directories containing Selenium tests
     @rtype: list of strings
     """
-    prods = findTestableProducts(packages, regex,
+    prods = findSeleniumTestableProducts(packages, regex,
                                  testdir='tests/selenium')
     results = []
     if not regex:
@@ -154,7 +154,29 @@ def findZenPackDirectories():
     return dirs
 
 
-def findTestableProducts(packages=[], regex=None, testdir='tests'):
+def findZenossProducts():
+    """
+    Get all Zenoss products + ZenPacks.
+    """
+    validProds = ['Products.'+x for x in (
+        'DataCollector',
+        'Jobber',
+        'ZenEvents',
+        'ZenHub',
+        'ZenModel',
+        'ZenRRD',
+        'ZenRelations',
+        'ZenReports',
+        'ZenStatus',
+        'ZenUtils',
+        'ZenWidgets',
+        'ZenWin'
+    )]
+    zenpacks = [x.rsplit('/', 2)[1] for x in findZenPackDirectories()]
+    return validProds + zenpacks
+
+
+def findSeleniumTestableProducts(packages=[], regex=None, testdir='tests'):
     """
     Get the list of Zope Products with tests
     
@@ -236,7 +258,7 @@ def runSeleniumTests(
         exitcodes.append(rc)
 
 
-def runUnitTests(packages=[], regex=None, coverage=False, show_tests=False):
+def runUnitTests(packages=[], modules=[], names=[], coverage=False, show_tests=False):
     """
     Run unit tests for any packages that match the regular expression.
     
@@ -249,27 +271,34 @@ def runUnitTests(packages=[], regex=None, coverage=False, show_tests=False):
     @param show_tests: run or just display the test name?
     @type show_tests: boolean
     """
-    for prod in findTestableProducts(packages, regex):
-        if 'ZenUITests' in prod:
-            continue
-        if show_tests:
-            print prod
-            continue
-        python = zenhome('bin', 'python')
-        zdctl = zenhome('lib', 'python', 'Zope2', 'Startup',
-                        'zopectl.py')
-        cfgfile = zenhome('etc', 'zope.conf')
-        swhome = zenhome('lib', 'python')
-        parts = [python, zdctl, '-C', cfgfile, 'test']
-        if coverage:
-            parts.append('--coverage')
-        parts.extend(['--dir', prod])
-        if regex:
-            parts.append(regex)
-        env = os.environ.copy()
-        env.update({'PYTHONPATH': swhome + ':' + env['PYTHONPATH'],
-                   'INSTANCE_HOME': zenhome(), 'SOFTWARE_HOME': swhome})
-        exitcodes.append(call(parts, env=env))
+    if not packages: packages = findZenossProducts()
+    print "="*30
+    print
+    print "Packages to be tested:"
+    for p in packages:
+        print "\t" + p
+    print
+    print "="*30
+    python = zenhome('bin', 'python')
+    zdctl = zenhome('lib', 'python', 'Zope2', 'Startup', 'zopectl.py')
+    cfgfile = zenhome('etc', 'zope.conf')
+    swhome = zenhome('lib', 'python')
+    parts = [python, zdctl, '-C', cfgfile, 'test']
+    # Add ZenPack homes to package directories
+    for d in findZenPackDirectories():
+        parts.extend(['--test-path', d.rsplit('/', 1)[0]])
+    if packages:
+        for p in packages: parts.extend(['-s', p])
+    if modules:
+        for m in modules: parts.extend(['-m', m])
+    if names: 
+        for t in names: parts.extend(['-t', t])
+    if coverage: parts.append('--coverage')
+    pythonpath = os.environ.get('PYTHONPATH', '')
+    env = os.environ.copy()
+    env.update({'PYTHONPATH': swhome + ':' + pythonpath, 
+                'INSTANCE_HOME': zenhome(), 'SOFTWARE_HOME': swhome})
+    exitcodes.append(call(parts, env=env))
 
 
 usage = \
@@ -294,11 +323,14 @@ the Device tests, use:
 
 def main():
     parser = optparse.OptionParser(prog='runtests', usage=usage)
-    parser.add_option('-t', '--type', help='The test types to run.',
-                      default='all')
+    parser.add_option('-t', '--type', help='The test types to run.', 
+                      default='unit')
     parser.add_option('-c', '--coverage', help='Compile coverage statistics'
                       , action='store_true', default=False)
-    parser.add_option('-n', '--name', help='The name of a test module.')
+    parser.add_option('-m', '--module', action="append", 
+                      help='The name of a test module.')
+    parser.add_option('-n', '--name', action="append", 
+                      help='The name of an individual test')
     parser.add_option('--selenium-server',
                       help='The server hosting the Selenium jar')
     parser.add_option('--zenoss-server',
@@ -314,7 +346,7 @@ def main():
         sys.exit(1)
 
     if options.type in ('unit', 'all'):
-        runUnitTests(args, options.name, options.coverage, options.list)
+        runUnitTests(args, options.module, options.name, options.coverage, options.list)
 
     if options.type in ('selenium', 'all'):
         runSeleniumTests(args, options.name, options.zenoss_server,
