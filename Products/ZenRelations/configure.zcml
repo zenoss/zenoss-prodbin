@@ -11,4 +11,17 @@
              zope.component.interfaces.IObjectEvent"
         handler="zope.app.container.contained.dispatchToSublocations"
         />
+
+    <subscriber
+        for=".ToManyRelationship.ToManyRelationship
+             OFS.interfaces.IObjectWillBeRemovedEvent"
+        handler=".subscribers.cleanUpRelationships"
+        />
+
+    <subscriber
+        for=".ToOneRelationship.ToOneRelationship
+             OFS.interfaces.IObjectWillBeRemovedEvent"
+        handler=".subscribers.cleanUpRelationships"
+        />
+
 </configure>

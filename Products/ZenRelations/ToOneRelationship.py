@@ -128,25 +128,10 @@ class ToOneRelationship(RelationshipBase):
         """Don't do anything here because we have on containment"""
         pass
 
+
     def manage_afterClone(self, item):
         """Don't do anything here because we have on containment"""
         pass
-
-    def manage_beforeDelete(self, item, container):
-        """
-        There are 4 possible states during when beforeDelete is called.
-        They are defined by the attribute _operation and can be: 
-            -1 = object being deleted remove relation
-            0 = copy, 1 = move, 2 = rename
-        Any state less than 1 will provoke deletion of the remote end of the
-        relationship.
-        ToOne doesn't call beforeDelete on its related object because its 
-        not a container.
-        """
-        unused(container)
-        if (getattr(item, "_operation", -1) < 1 
-            and self.remoteTypeName() != 'ToManyCont'): 
-            self._remoteRemove()
 
 
     def manage_workspace(self, REQUEST):

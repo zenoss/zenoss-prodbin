@@ -79,19 +79,6 @@ class ToManyRelationship(ToManyRelationshipBase):
             return None
             
 
-    def manage_beforeDelete(self, item, container):
-        """
-        there are 4 possible states for _operation during beforeDelete
-        -1 = object being deleted remove relation
-        0 = copy, 1 = move, 2 = rename
-        ToMany unlinks from its remote relations if its being deleted.
-        ToMany will not propagate beforeDelete because its not a container.
-        """
-        unused(container)
-        if getattr(item, "_operation", -1) < 1:
-            self._remoteRemove()
-        
-
     def manage_pasteObjects(self, cb_copy_data=None, REQUEST=None):
         """ToManyRelationships link instead of pasting"""
         return self.manage_linkObjects(cb_copy_data=cb_copy_data,
