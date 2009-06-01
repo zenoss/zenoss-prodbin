@@ -17,6 +17,7 @@ __doc__ = """WinCollector
 PB daemon-izable base class for creating WMI collectors
 """
 
+import logging
 import time
 
 import Globals
@@ -61,7 +62,7 @@ class WinCollector(PBDaemon):
         self.watchers = {}
         PBDaemon.__init__(self)
         self.reconfigureTimeout = None
-        if self.options.logseverity >= 10:
+        if self.options.logseverity <= logging.DEBUG:
             DEBUGLEVEL.value = 99
 
     def remote_notifyConfigChanged(self):

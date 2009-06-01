@@ -16,49 +16,72 @@ from pysamba.wbem.Query import Query
 from Products.ZenUtils.Driver import drive
 
 import logging
-log = logging.getLogger('zen.Watcher')
+log = logging.getLogger("zen.Watcher")
 
 class Watcher:
 
     def __init__(self, device, query):
-        log.debug('Starting watcher on %s', device.id)
         self.wmi = Query()
         self.device = device
         self.queryString = query
         self.enum = None
+        self.busy = False
+        self.closeRequested = False
+        log.debug("Starting watcher on %s", device.id)
 
     def connect(self):
-        name = self.device.id
+        self.busy = True
+
+        def finished(result):
+            self.busy = False
+            if self.closeRequested:
+                self.close()
+            return result
+
         def inner(driver):
-            try:
-                log.debug('connecting to %s', name)
-                d = self.device
-                yield self.wmi.connect(eventContext,
-                                       d.manageIp,
-                                       '%s%%%s' % (d.zWinUser, d.zWinPassword))
-                driver.next()
-                log.debug('connected to %s sending query', name)
-                yield self.wmi.notificationQuery(self.queryString)
-                self.enum = driver.next()
-                log.debug('got query response from %s', name)
-            except Exception, ex:
-                log.exception(ex)
-                raise
-        return drive(inner)
+            log.debug("connecting to %s", self.device.id)
+            d = self.device
+
+            yield self.wmi.connect(eventContext,
+                                    d.manageIp,
+                                    "%s%%%s" % (d.zWinUser, d.zWinPassword))
+            driver.next()
+
+            log.debug("connected to %s sending query", self.device.id)
+            yield self.wmi.notificationQuery(self.queryString)
+
+            self.enum = driver.next()
+            log.debug("got query response from %s", self.device.id)
+
+        return drive(inner).addBoth(finished)
 
     def getEvents(self, timeout=0, chunkSize=10):
         assert self.enum
-        name = self.device.id
-        log.debug("Fetching events for %s", name)
+        self.busy = True
+        log.debug("Fetching events for %s", self.device.id)
+
         def fetched(result):
-            log.debug("Events fetched for %s", name)
+            log.debug("Events fetched for %s", self.device.id)
             return result
-        try:
-            result = self.enum.fetchSome(timeoutMs=timeout, chunkSize=chunkSize)
-            result.addCallback(fetched)
+
+        def finished(result):
+            self.busy = False
+            if self.closeRequested:
+                self.close()
             return result
-        except Exception, ex:
-            raise ex
+
+        result = self.enum.fetchSome(timeoutMs=timeout, chunkSize=chunkSize)
+        result.addBoth(finished)
+        result.addCallback(fetched)
+        return result
 
     def close(self):
-        self.wmi.close()
+        if self.busy:
+            log.debug("close requested on busy WMI Query for %s; deferring",
+                           self.device.id)
+            self.closeRequesed = True
+        elif self.wmi:
+            log.debug("closing WMI Query for %s", self.device.id)
+            self.wmi.close()
+            self.wmi = None
+

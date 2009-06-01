@@ -18,11 +18,11 @@ __doc__ = """zeneventlog
     Zenoss events.
 """
 
+import time
 import Globals
 from Products.ZenWin.Watcher import Watcher
 from Products.ZenWin.WinCollector import WinCollector
 from Products.ZenUtils.Driver import drive
-from Products.ZenUtils.Timeout import timeout
 from Products.ZenEvents.ZenEventClasses import Error, Warning, Info, \
     Debug
 from pysamba.library import WError
@@ -91,8 +91,10 @@ class zeneventlog(WinCollector):
             @return: objects
             @rtype: objects
             """
+            processingStart = time.time()
+            cycleInterval = self.cycleInterval()
             try:
-                self.niceDoggie(self.cycleInterval())
+                self.niceDoggie(cycleInterval)
                 w = self.watchers.get(device.id, None)
                 if not w:
                     self.log.debug('Creating watcher of %s', device.id)
@@ -103,7 +105,7 @@ class zeneventlog(WinCollector):
                     self.log.info('Connected to %s', device.id)
                     self.watchers[device.id] = w
 
-                while 1:
+                while True:
                     batchSize = self.wmibatchSize
                     if hasattr(self.options, "batchSize") and \
                         self.options.batchSize is not None:
@@ -117,11 +119,24 @@ class zeneventlog(WinCollector):
                     yield w.getEvents(queryTimeout, batchSize)
                     events = driver.next()
                     self.log.debug('Got %d events', len(events))
+
+                    # break out of the loop if either a) we've got no events
+                    # right now, or b) we've exceeded the cycle time
                     if not events:
                         break
+
+                    delay = time.time() - processingStart
+                    if cycleInterval - delay < 0:
+                        self.log.info("processDevice: cycle time exceeded "\
+                                      + "for device %s; breaking out of loop",
+                                      device.id)
+                        break
+
+                    # process all of the fetched events
                     for lrec in events:
                         self.events += 1
                         self.sendEvent(self.makeEvent(device.id, lrec))
+
                 self.deviceUp(device)
 
             except WError, ex:
@@ -136,7 +151,10 @@ class zeneventlog(WinCollector):
                 self.log.exception('Exception getting windows events: %s', ex)
                 raise
 
-        d = timeout(drive(inner), timeoutSecs)
+        # Don't worry about an overall timeout for the inner function since the
+        # RPC layer has a built-in timeout of 60 seconds and each Watcher loop
+        # will break out if the cycle time has been exceeded.
+        d = drive(inner)
         d.addErrback(cleanup)
         return d
 
