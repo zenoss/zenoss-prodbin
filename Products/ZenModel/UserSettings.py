@@ -601,7 +601,11 @@ class UserSettings(ZenModelRM):
         """Get current roles for this user.
         """
         user = self.getUser(self.id)
-        if user: return filter(rolefilter, user.getRoles())
+        if user:
+            # This call will create GroupSettings objects for any externally-
+            # sourced groups.
+            self.getAllAdminRoles()
+            return filter(rolefilter, user.getRoles())
         return []
 
 
@@ -609,9 +613,8 @@ class UserSettings(ZenModelRM):
         """Return group settings objects for user
         """
         user = self.getUser(self.id)
-        gm =  self.zport.acl_users.groupManager
-        if user: 
-            return gm.getGroupsForPrincipal(user)
+        if user:
+            return self.acl_users._getGroupsForPrincipal(user)
         return ()
 
 
@@ -713,7 +716,11 @@ class UserSettings(ZenModelRM):
             # get groups to add and then add them
             addGroups = set(groups).difference(set(origGroups))
             for groupid in addGroups:
-                groupManager.addPrincipalToGroup(user.getId(), groupid)
+                try:
+                    groupManager.addPrincipalToGroup(user.getId(), groupid)
+                except KeyError:
+                    # This can occur if the group came from an external source.
+                    pass
 
         # we're not managing domains right now
         if domains:
