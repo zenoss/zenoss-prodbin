@@ -24,4 +24,10 @@
         handler=".subscribers.cleanUpRelationships"
         />
 
+    <subscriber
+        for=".RelationshipManager.RelationshipManager
+             zope.app.container.interfaces.IObjectMovedEvent"
+        handler=".subscribers.resetUnderscoreOperation"
+        />
+
 </configure>

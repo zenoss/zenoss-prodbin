@@ -147,17 +147,6 @@ class RelationshipManager(PrimaryPathObjectManager, ZenPropertyManager):
                                             user, set_owner)
 
 
-    def manage_beforeDelete(self, item, container):
-        """
-        handle cut/past vs. delete
-        If we are being moved (cut/past) don't clear relationshp
-        if we are being deleted set all relationship to None so
-        that our related object don't have dangling references
-        """
-        PrimaryPathObjectManager.manage_beforeDelete(self, item, container)
-        if self._operation > -1: self._operation = -1
-
-
     ##########################################################################
     #
     # Methods for copy management

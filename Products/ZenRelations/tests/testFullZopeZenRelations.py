@@ -247,6 +247,15 @@ class FullZopeTestCases(ZenRelationsBaseTest):
         self.failUnless(jim.server.hasobject(dev))
 
 
+    def testOperationResetAfterRename(self):
+        dev = build(self.dataroot, Server, "dev")
+        jim = build(self.dataroot, Admin, "jim")
+        dev.admin.addRelation(jim)
+        transaction.savepoint()
+        self.dataroot.manage_renameObject("dev", "newdev")
+        self.assertEqual(dev._operation, -1)
+
+
     def testCopyPasteRMOneToManyCont(self):
         """Copy/paste to check RM with OneToManyCont subobject"""
         dev = build(self.dataroot, Device, "dev")
