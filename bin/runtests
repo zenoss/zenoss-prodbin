@@ -258,7 +258,7 @@ def runSeleniumTests(
         exitcodes.append(rc)
 
 
-def runUnitTests(packages=[], modules=[], names=[], coverage=False, show_tests=False):
+def runUnitTests(packages=[], modules=[], names=[], coverage="", show_tests=False):
     """
     Run unit tests for any packages that match the regular expression.
     
@@ -293,7 +293,7 @@ def runUnitTests(packages=[], modules=[], names=[], coverage=False, show_tests=F
         for m in modules: parts.extend(['-m', m])
     if names: 
         for t in names: parts.extend(['-t', t])
-    if coverage: parts.append('--coverage')
+    if coverage: parts.extend(['--coverage', coverage])
     pythonpath = os.environ.get('PYTHONPATH', '')
     env = os.environ.copy()
     env.update({'PYTHONPATH': swhome + ':' + pythonpath, 
@@ -325,8 +325,7 @@ def main():
     parser = optparse.OptionParser(prog='runtests', usage=usage)
     parser.add_option('-t', '--type', help='The test types to run.', 
                       default='unit')
-    parser.add_option('-c', '--coverage', help='Compile coverage statistics'
-                      , action='store_true', default=False)
+    parser.add_option('-c', '--coverage', help='Dir to store coverage stats')
     parser.add_option('-m', '--module', action="append", 
                       help='The name of a test module.')
     parser.add_option('-n', '--name', action="append", 
