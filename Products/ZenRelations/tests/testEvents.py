@@ -12,12 +12,11 @@
 ###########################################################################
 
 import unittest
-import Zope2
-Zope2.startup()
 
 import transaction
 
-from Testing.makerequest import makerequest
+from Testing import ZopeTestCase
+from Testing.ZopeTestCase.layer import ZopeLite
 
 from AccessControl.SecurityManagement import newSecurityManager
 from AccessControl.SecurityManagement import noSecurityManager
@@ -27,6 +26,7 @@ from OFS.Folder import Folder
 
 from zope import interface
 from zope import component
+from zope.app.component.hooks import setHooks
 from zope.component.interfaces import IObjectEvent
 from zope.testing import cleanup
 
@@ -85,13 +85,16 @@ def setUpEventlog(iface=None):
     component.provideHandler(eventlog.trace, (iface, IObjectEvent))
     return eventlog
 
-class EventLayer(object):
+
+class EventLayer(ZopeLite):
 
     @classmethod
     def setUp(cls):
-        cleanup.cleanUp()
+        import Products
+
         zcml._initialized = 0
         zcml.load_site()
+        setHooks()
         component.provideHandler(eventlog.trace, (ITestItem, IObjectEvent))
         component.provideHandler(eventlog.trace, (IRelationship, IObjectEvent))
 
@@ -106,20 +109,12 @@ class EventTest(unittest.TestCase):
     layer = EventLayer
 
     def setUp(self):
-        self.app = makerequest(Zope2.app())
-        try:
-            uf = self.app.acl_users
-            uf._doAddUser('manager', 'secret', ['Manager'], [])
-            user = uf.getUserById('manager').__of__(uf)
-            newSecurityManager(None, user)
-        except:
-            self.tearDown()
-            raise
+        transaction.begin()
+        self.app = self.root = ZopeTestCase.app()
 
     def tearDown(self):
-        noSecurityManager()
         transaction.abort()
-        self.app._p_jar.close()
+        ZopeTestCase.close(self.app)
 
 
 class TestToManyContRelationship(EventTest):

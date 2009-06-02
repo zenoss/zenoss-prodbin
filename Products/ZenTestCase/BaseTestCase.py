@@ -28,7 +28,6 @@ from Products.ZenEvents.EventManagerBase import EventManagerBase
 from Products.ZenEvents.MySqlSendEvent import MySqlSendEventMixin
 from Products.ZenEvents.MySqlEventManager import log
 from Products.ZenUtils.Utils import unused
-from zope.app.component.hooks import setHooks
 from zope.testing.cleanup import cleanUp
 
 log.warn = lambda *args, **kwds: None
@@ -102,17 +101,15 @@ class Builder(DmdBuilder):
 class ZenossTestCaseLayer(ZopeLite):
 
     @classmethod
-    def testSetUp(cls):
+    def setUp(cls):
         import Products
-        import Products.Five
 
         zope.component.testing.setUp(cls)
         zope.component.provideAdapter(DefaultTraversable, (None,))
-
         zcml.load_config('testing.zcml', Products.ZenTestCase)
 
     @classmethod
-    def testTearDown(cls):
+    def tearDown(cls):
         cleanUp()
 
 
