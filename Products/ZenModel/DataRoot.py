@@ -89,6 +89,7 @@ class DataRoot(ZenModelRM, OrderedFolder, Commandable, ZenMenuable):
     geomapapikey = ''
     geocache = ''
     version = ""
+    propertyTransformers = {}
 
     _properties=(
         {'id':'title', 'type': 'string', 'mode':'w'},

@@ -15,7 +15,6 @@ __doc__="""DmdBuilder
 DmdBuilder builds out the core containment structure used in the dmd database.
 
 Devices
-Encryption
 Groups
 Locations
 Networks
@@ -33,7 +32,6 @@ from Products.ZenModel.MibOrganizer import MibOrganizer
 from Products.ZenModel.OSProcessOrganizer import OSProcessOrganizer
 from Products.ZenModel.ServiceOrganizer import ServiceOrganizer
 from Products.ZenModel.System import System
-from Products.ZenModel.Crypter import Crypter
 from Products.ZenModel.MonitorClass import MonitorClass
 from Products.ZenModel.ReportClass import ReportClass
 from Products.ZenModel.DeviceReportClass import DeviceReportClass
@@ -88,22 +86,21 @@ class DmdBuilder(object):
                                    0)
                                    
     def buildRoots(self):
-        roots = [('Devices', DeviceClass, True),
-                 ('Encryption', Crypter, False),
-                 ('Groups', DeviceGroup, True),
-                 ('Locations', Location, True),
-                 ('Manufacturers', ManufacturerRoot, True),
-                 ('Monitors', MonitorClass, True),
-                 ('Mibs', MibOrganizer, True),
-                 ('Processes', OSProcessOrganizer, True),
-                 ('Reports', ReportClass, True),
-                 ('Services', ServiceOrganizer, True),
-                 ('Systems', System, True),
+        roots = [('Devices', DeviceClass),
+                 ('Groups', DeviceGroup),
+                 ('Locations', Location),
+                 ('Manufacturers', ManufacturerRoot),
+                 ('Monitors', MonitorClass),
+                 ('Mibs', MibOrganizer),
+                 ('Processes', OSProcessOrganizer),
+                 ('Reports', ReportClass),
+                 ('Services', ServiceOrganizer),
+                 ('Systems', System),
                  ]
-        for objectId, construct, isInTree in roots:
+        for objectId, construct in roots:
             if objectId not in self.dmd.objectIds():
                 object = construct(objectId)
-                object.isInTree = isInTree
+                object.isInTree = True
                 self.dmd._setObject(objectId, object)
         devices = self.dmd._getOb('Devices')
         devices.createCatalog()

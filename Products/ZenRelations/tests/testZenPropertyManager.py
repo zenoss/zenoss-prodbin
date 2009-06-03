@@ -22,7 +22,9 @@ from Products.ZenRelations.Exceptions import *
 
 from ZenRelationsBaseTest import ZenRelationsBaseTest
 from unittest import TestCase
+from Products.ZenTestCase.BaseTestCase import BaseTestCase
 from Products.ZenRelations.ZenPropertyManager import ZenPropertyManager
+from Products.ZenRelations.RelationshipManager import RelationshipManager
 
 class ZenPropertyManagerTest(ZenRelationsBaseTest):
 
@@ -127,43 +129,65 @@ class ZenPropertyManagerTest(ZenRelationsBaseTest):
         subnode._updateProperty('ptest', 'b')
         self.assert_(subnode.ptest == 'b')
 
-class Crypter(object):
+class Transformer(object):
     
-    def encrypt(self, input):
+    def transformForSet(self, input):
         return 'foo_%s' % input
         
-    def decrypt(self, input):
+    def transformForGet(self, input):
         return 'bar_%s' % input
 
-class EncryptionTest(TestCase):
+class TransformerBase(object):
     
-    def setUp(self):
-        self.manager = ZenPropertyManager()
-        self.manager.crypter = Crypter()
-        
     def tearDown(self):
         self.manager = None
         
-    def testPassword(self):
-        "test that password property is encrypted and decrypted"
-        self.manager._setProperty('quux', 'blah', 'password')
-        self.assertEqual('bar_foo_blah', self.manager.quux)
+    def testMyTestType(self):
+        "test that property of type 'my test type' is transformed"
+        self.manager._setProperty('quux', 'blah', 'my test type')
+        self.assertEqual('bar_foo_blah', self.manager.getProperty('quux'))
         
     def testString(self):
         "test that a string property isn't mucked with"
         self.manager._setProperty('halloween', 'cat')
+        self.assertEqual('cat', self.manager.getProperty('halloween'))
         self.assertEqual('cat', self.manager.halloween)
         
     def testNormalAttribute(self):
         "make sure that a normal attribute isn't mucked with"
         self.manager.dog = 'Ripley'
         self.assertEqual('Ripley', self.manager.dog)
-            
+        
+transformers = {'my test type': Transformer()}
+
+class TransformerTest(TransformerBase, TestCase):
+    
+    def setUp(self):
+        """
+        Test ZenPropertyManager that does not acquire a dmd attribute.
+        """
+        self.manager = ZenPropertyManager()
+        self.manager._transformers = transformers
+        
+class TransformerDmdTest(TransformerBase, BaseTestCase):
+    
+    def setUp(self):
+        """
+        Test getting the transformers dictionary from the well-known dmd
+        location.
+        """
+        BaseTestCase.setUp(self)
+        self.dmd.propertyTransformers = transformers
+        managerId = 'manager'
+        self.dmd._setObject(managerId, RelationshipManager(managerId))
+        self.manager = self.dmd.manager
+        
 def test_suite():
     from unittest import TestSuite, makeSuite
     suite = TestSuite()
     suite.addTest(makeSuite(ZenPropertyManagerTest))
-    suite.addTest(makeSuite(EncryptionTest))
+    suite.addTest(makeSuite(TransformerTest))
+    suite.addTest(makeSuite(TransformerDmdTest))
     return suite
 
 if __name__=="__main__":

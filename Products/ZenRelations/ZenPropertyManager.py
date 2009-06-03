@@ -49,8 +49,6 @@ class ZenPropertyManager(PropertyManager):
     manage_propertiesForm=DTMLFile('dtml/properties', globals(),
                                    property_extensible_schema__=1)
                                    
-    crypter = None
-    
     def _setPropValue(self, id, value):
         """override from PerpertyManager to handle checks and ip creation"""
         self._wrapperCheck(value)
@@ -97,14 +95,10 @@ class ZenPropertyManager(PropertyManager):
             else:
                 self._setPropValue(id, [])
         else:
-            if self.crypter is not None and type == 'password':
-                valueToSet = self.crypter.encrypt(value)
-            else:
-                valueToSet = value
             setprops(id=id, type=type, visible=visible)
+            valueToSet = self._transform(value, type, 'transformForSet')
             self._setPropValue(id, valueToSet)
-
-
+            
     def _updateProperty(self, id, value):
         """ This method sets a property on a zope object. It overrides the
         method in PropertyManager. If Zope is upgraded you will need to check
@@ -301,16 +295,47 @@ class ZenPropertyManager(PropertyManager):
         
         return [ org for org in self.getSubOrganizers() 
             if org.isLocal(propname) ]
-
-    def __getattribute__(self, name):
-        "decrypt properties of type password"
-        rawValue = PropertyManager.__getattribute__(self, name)
-        if (name not in ['crypter', '_properties']
-                and self.crypter is not None
-                and PropertyManager.getPropertyType(self, name) == 'password'):
-            value = self.crypter.decrypt(rawValue)
+            
+    def _getTransformers(self):
+        """
+        _getTransformers returns a dictionary that maps properties' (id, type)
+        to an object that has transformForGet and transformForSet methods.
+        Typically transformers are held in a dictionary at
+        self.dmd.propertyTransformers where dmd is an acquired attribute.
+        
+        This method returns the appropriate transformers dictionary. If self
+        has acquired a dmd attribute, then the dictionary at the well known
+        location is returned. Otherwise, self._transformers is returned (it is
+        created as an empty dictionary if necessary).
+        """
+        if hasattr(self, 'dmd'):
+            transformers = self.dmd.propertyTransformers
         else:
-            value = rawValue
-        return value
+            if not hasattr(self, '_transformers'):
+                self._transformers = {}
+            transformers = self._transformers
+        return transformers
+        
+    def _transform(self, value, type, method):
+        """
+        Lookup the transformer for the type and transform the value. The
+        method parameter can be 'transformForGet' or 'transformForSet' and
+        determines the transformer method that is called.
+        """
+        transformers = self._getTransformers()
+        if type in transformers:
+            returnValue = getattr(transformers[type], method)(value)
+        else:
+            returnValue = value
+        return returnValue
+        
+    def getProperty(self, id, d=None):
+        """
+        Get property value and apply transformer.  Overrides method in Zope's
+        PropertyManager class.
+        """
+        return self._transform(PropertyManager.getProperty(self, id, d), 
+                               self.getPropertyType(id),
+                               'transformForGet')
         
 InitializeClass(ZenPropertyManager)
