@@ -48,7 +48,6 @@ objwithtomanycont = \
 </property>
 <tomanycont id='interfaces'>
 <object id='eth0' module='Products.ZenRelations.tests.TestSchema' class='IpInterface'>
-<toone id='device' objid='dev'/>
 </object>
 </tomanycont>
 </object>
