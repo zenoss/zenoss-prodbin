@@ -258,7 +258,7 @@ def runSeleniumTests(
         exitcodes.append(rc)
 
 
-def runUnitTests(packages=[], modules=[], names=[], coverage="", show_tests=False):
+def runUnitTests(packages=[], modules=[], names=[], coverage="", count=0):
     """
     Run unit tests for any packages that match the regular expression.
     
@@ -293,6 +293,8 @@ def runUnitTests(packages=[], modules=[], names=[], coverage="", show_tests=Fals
         for m in modules: parts.extend(['-m', m])
     if names: 
         for t in names: parts.extend(['-t', t])
+    if count:
+        parts.append('-'+('v'*count))
     if coverage: parts.extend(['--coverage', coverage])
     pythonpath = os.environ.get('PYTHONPATH', '')
     env = os.environ.copy()
@@ -326,6 +328,7 @@ def main():
     parser.add_option('-t', '--type', help='The test types to run.', 
                       default='unit')
     parser.add_option('-c', '--coverage', help='Dir to store coverage stats')
+    parser.add_option('-v', dest="count", action="count", help="Verbosity of test output")
     parser.add_option('-m', '--module', action="append", 
                       help='The name of a test module.')
     parser.add_option('-n', '--name', action="append", 
@@ -335,8 +338,6 @@ def main():
     parser.add_option('--zenoss-server',
                       help='The Zenoss server against which Selenium should test'
                       )
-    parser.add_option('--list', default=False, action='store_true',
-                      help='Show the tests to execute.')
 
     (options, args) = parser.parse_args()
 
@@ -345,11 +346,12 @@ def main():
         sys.exit(1)
 
     if options.type in ('unit', 'all'):
-        runUnitTests(args, options.module, options.name, options.coverage, options.list)
+        runUnitTests(args, options.module, options.name, options.coverage,
+                     options.count)
 
     if options.type in ('selenium', 'all'):
         runSeleniumTests(args, options.name, options.zenoss_server,
-                         options.selenium_server, options.list)
+                         options.selenium_server)
 
 
 if __name__ == '__main__':
