@@ -3,7 +3,7 @@
 
 
         <tal:block tal:define="
-        daemon request/form/daemon || string:;
+        daemon request/form/daemon | string:;
         tabletitle string:${daemon} Log File">
         <tal:block metal:use-macro="here/zenuimacros/macros/zentable">
 
