@@ -25,7 +25,6 @@ from twisted.cred import credentials
 from twisted.spread import pb
 from twisted.internet import reactor
 from ZODB.POSException import ConflictError
-from transaction import commit
 
 import pickle
 import time
@@ -110,7 +109,6 @@ class zenhubworker(ZCmdBase, pb.Referenceable):
         def runOnce():
             self.syncdb()
             res = m(*args, **kw)
-            commit()
             return res
         try:
             for i in range(4):
