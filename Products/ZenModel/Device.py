@@ -397,7 +397,8 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
             if isinstance(REQUEST, FakeRequest) and \
                 REQUEST.has_key('oneKeyValueSoInstanceIsntEmptyAndEvalToFalse'):
                 return REQUEST['message']
-            REQUEST['RESPONSE'].redirect(self.primaryAq().absolute_url())
+            device = self.getDmdRoot('Devices').findDevice(self.id)
+            REQUEST['RESPONSE'].redirect(device.absolute_url())
             return
 
 
