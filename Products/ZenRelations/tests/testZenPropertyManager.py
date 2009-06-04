@@ -167,7 +167,7 @@ class TransformerTest(TransformerBase, TestCase):
         Test ZenPropertyManager that does not acquire a dmd attribute.
         """
         self.manager = ZenPropertyManager()
-        self.manager._transformers = transformers
+        self.manager.propertyTransformers = transformers
         
 class TransformerDmdTest(TransformerBase, BaseTestCase):
     

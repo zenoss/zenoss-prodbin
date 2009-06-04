@@ -296,33 +296,21 @@ class ZenPropertyManager(PropertyManager):
         return [ org for org in self.getSubOrganizers() 
             if org.isLocal(propname) ]
             
-    def _getTransformers(self):
-        """
-        _getTransformers returns a dictionary that maps properties' (id, type)
-        to an object that has transformForGet and transformForSet methods.
-        Typically transformers are held in a dictionary at
-        self.dmd.propertyTransformers where dmd is an acquired attribute.
-        
-        This method returns the appropriate transformers dictionary. If self
-        has acquired a dmd attribute, then the dictionary at the well known
-        location is returned. Otherwise, self._transformers is returned (it is
-        created as an empty dictionary if necessary).
-        """
-        if hasattr(self, 'dmd'):
-            transformers = self.dmd.propertyTransformers
-        else:
-            if not hasattr(self, '_transformers'):
-                self._transformers = {}
-            transformers = self._transformers
-        return transformers
-        
     def _transform(self, value, type, method):
         """
         Lookup the transformer for the type and transform the value. The
         method parameter can be 'transformForGet' or 'transformForSet' and
         determines the transformer method that is called.
+        
+        The transformer lookup is performed against a dictionary that maps a
+        property type to an object that has transformForGet and
+        transformForSet methods. Typically the transformers dictionary is
+        acquired from dmd.propertyTransformers. If self has a 
+        propertyTransformers attribute (either through acquistion or dynamic
+        definition), then it is used, otherwise an empty dictionary is used
+        and the value is returned untouched.
         """
-        transformers = self._getTransformers()
+        transformers = getattr(self, 'propertyTransformers', {})
         if type in transformers:
             returnValue = getattr(transformers[type], method)(value)
         else:
