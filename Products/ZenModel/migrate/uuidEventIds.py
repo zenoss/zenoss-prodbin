@@ -50,6 +50,9 @@ class uuidEventIds(Migrate.Step):
         curs = dmd.ZenEventManager.connect().cursor()
         for table, indexName, column in affected_columns:
             log.info("Updating MySQL event table %s", table)
+            if table in [ 'history' ]:
+                log.info("This can take a VERY long time to execute" \
+                         "(eg hours).  Please do not interrupt.")
             dropIndex( curs, table, indexName )
             curs.execute('alter table %s modify %s char(36) not null' %
                     (table, column))
