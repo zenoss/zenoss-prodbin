@@ -146,6 +146,8 @@ class TransformerBase(object):
         "test that property of type 'my test type' is transformed"
         self.manager._setProperty('quux', 'blah', 'my test type')
         self.assertEqual('bar_foo_blah', self.manager.getProperty('quux'))
+        self.manager._updateProperty('quux', 'clash')
+        self.assertEqual('bar_foo_clash', self.manager.getProperty('quux'))
         
     def testString(self):
         "test that a string property isn't mucked with"

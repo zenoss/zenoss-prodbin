@@ -52,8 +52,10 @@ class ZenPropertyManager(PropertyManager):
     def _setPropValue(self, id, value):
         """override from PerpertyManager to handle checks and ip creation"""
         self._wrapperCheck(value)
-        if self.getPropertyType(id) == 'keyedselection':
+        propType = self.getPropertyType(id)
+        if  propType == 'keyedselection':
             value = int(value)
+        valueToSet = self._transform(value, propType, 'transformForSet')
         if not getattr(self,'_v_propdict',False):
             self._v_propdict = self.propdict()
         if self._v_propdict.has_key('setter'):
@@ -65,9 +67,9 @@ class ZenPropertyManager(PropertyManager):
             if not callable(setter):
                 raise TypeError("setter %s for property %s not callable"
                                     % (settername, id))
-            setter(value)
+            setter(valueToSet)
         else:
-            setattr(self,id,value)
+            setattr(self,id,valueToSet)
 
 
     def _setProperty(self, id, value, type='string', label=None, 
@@ -96,8 +98,7 @@ class ZenPropertyManager(PropertyManager):
                 self._setPropValue(id, [])
         else:
             setprops(id=id, type=type, visible=visible)
-            valueToSet = self._transform(value, type, 'transformForSet')
-            self._setPropValue(id, valueToSet)
+            self._setPropValue(id, value)
             
     def _updateProperty(self, id, value):
         """ This method sets a property on a zope object. It overrides the
