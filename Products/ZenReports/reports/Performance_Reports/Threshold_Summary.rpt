@@ -91,11 +91,11 @@
         <tr tal:define="odd repeat/r/odd"
             tal:attributes="class python:test(odd,'odd','even')">
 
-            <td tal:content="structure r/deviceLink"/>
-            <td tal:content="structure r/componentLink"/>
-            <td tal:content="structure r/eventClassLink"/>
-            <td tal:content="r/count"/>
-            <td tal:content="r/duration"/>
+            <td tal:content="structure python: r.deviceLink"/>
+            <td tal:content="structure python: r.componentLink"/>
+            <td tal:content="structure python: r.eventClassLink"/>
+            <td tal:content="python: r.count"/>
+            <td tal:content="python: r.duration"/>
             <td tal:content="python: r.percentString(r.percentTime, 1)"/>
         </tr>
     </tal:block>

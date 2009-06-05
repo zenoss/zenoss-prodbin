@@ -42,8 +42,8 @@
       <td class="tablevalues" 
 tal:content="structure python:obj.component.getDeviceLink('deviceOsDetail')"/>
       <td class="tablevalues">
-          <a class=tablevalues tal:content="obj/component/mount" 
-             tal:attributes="href obj/component/getPrimaryUrlPath"/>
+          <a class=tablevalues tal:content="python: obj.mount"
+             tal:attributes="href python: obj.component.getPrimaryUrlPath()"/>
       </td>
       <td class="tablevalues"
         tal:content="python:obj.humanBytes(obj.totalBytes)"/>

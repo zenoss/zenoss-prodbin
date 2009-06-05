@@ -14,22 +14,22 @@
 
 import Globals
 from Products.ZenReports import Utils, Utilization
-from Products.ZenReports.AliasPlugin import AliasPlugin, Column, RRDColumn, \
-                                            TalesColumnHandler
+from Products.ZenReports.AliasPlugin import AliasPlugin, Column, \
+                                            RRDColumnHandler, PythonColumnHandler
 
 class filesystems( AliasPlugin ):
     "The file systems report"
 
     def getColumns(self):
         ##      alias/dp id : column name
-        return [ Column( 'deviceName', TalesColumnHandler( 'device.id' ) ),
-                 Column( 'mount', TalesColumnHandler( 'component.mount' ) ),
-                 RRDColumn( 'usedBytes', 'usedFilesystemSpace__bytes' ),
-                 Column( 'totalBytes', TalesColumnHandler( 'component.totalBytes()' ) ) ]
+        return [ Column( 'deviceName', PythonColumnHandler( 'device.id' ) ),
+                 Column( 'mount', PythonColumnHandler( 'component.mount' ) ),
+                 Column( 'usedBytes', RRDColumnHandler( 'usedFilesystemSpace__bytes' ) ),
+                 Column( 'totalBytes', PythonColumnHandler( 'component.totalBytes()' ) ) ]
     
     def getCompositeColumns(self):
-        return [ Column( 'availableBytes', TalesColumnHandler('totalBytes - usedBytes') ),
-                 Column( 'percentFull', TalesColumnHandler( '100 - float(availableBytes) * 100 / float(totalBytes)' ) ) ]
+        return [ Column( 'availableBytes', PythonColumnHandler('totalBytes - usedBytes') ),
+                 Column( 'percentFull', PythonColumnHandler( '100 - float(availableBytes) * 100 / float(totalBytes)' ) ) ]
     
     def getComponentPath(self):
         return 'os/filesystems'

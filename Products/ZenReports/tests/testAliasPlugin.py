@@ -51,9 +51,9 @@ class TestAliasPlugin(BaseTestCase):
                             [
                              Column('testCol1'), #NO VALUES
                              Column('testCol2', 
-                                    TalesColumnHandler('device.id') ),
+                                    PythonColumnHandler('device.id') ),
                              Column('testCol3', 
-                                    TalesColumnHandler('device.rackSlot') )
+                                    PythonColumnHandler('device.rackSlot') )
                             ]
                             )
         
@@ -79,11 +79,13 @@ class TestAliasPlugin(BaseTestCase):
         test1 = _TestPlugin(
                             [
                              Column('testCol1', 
-                                    TalesColumnHandler('device.id') ),
+                                    PythonColumnHandler('device.id') ),
                              Column('testCol3', 
-                                    TalesColumnHandler('device.rackSlot') ),
-                             RRDColumn('testCol2', 'testAlias1'),
-                             RRDColumn('testCol4', 'testAlias2')
+                                    PythonColumnHandler('device.rackSlot') ),
+                             Column('testCol2',
+                                    RRDColumnHandler( 'testAlias1' ) ),
+                             Column('testCol4',
+                                    RRDColumnHandler( 'testAlias2' ) )
                             ]
                             )
         
@@ -132,11 +134,13 @@ class TestAliasPlugin(BaseTestCase):
         test3 = _TestPlugin(
                             [
                              Column('testCol1', 
-                                    TalesColumnHandler('component.id') ),
+                                    PythonColumnHandler('component.id') ),
                              Column('testCol3', 
-                                    TalesColumnHandler('device.rackSlot') ),
-                             RRDColumn('testCol2', 'testAlias1'),
-                             RRDColumn('testCol4', 'testAlias2')
+                                    PythonColumnHandler('device.rackSlot') ),
+                             Column('testCol2',
+                                    RRDColumnHandler( 'testAlias1' ) ),
+                             Column('testCol4',
+                                    RRDColumnHandler( 'testAlias2' ) )
                             ],
                             componentPath='os/interfaces'
                             )
@@ -179,14 +183,14 @@ class TestAliasPlugin(BaseTestCase):
         test3 = _TestPlugin(
                             [
                              Column('testCol1', 
-                                    TalesColumnHandler('device.id') ),
+                                    PythonColumnHandler('device.id') ),
                              Column('testCol3', 
-                                    TalesColumnHandler('device.rackSlot') ),
-                             RRDColumn('testCol2', 'testAlias5'),
-                             RRDColumn('testCol4', 'testAlias6')
+                                    PythonColumnHandler('device.rackSlot') ),
+                             Column('testCol2', RRDColumnHandler( 'testAlias5' ) ),
+                             Column('testCol4', RRDColumnHandler( 'testAlias6') )
                             ],
                             [
-                             Column('testCol5',TalesColumnHandler('testCol2 and testCol4 and ( testCol2 + testCol4 ) / 10'))
+                             Column('testCol5',PythonColumnHandler('testCol2 and testCol4 and ( testCol2 + testCol4 ) / 10'))
                             ]
                             )
         

@@ -14,7 +14,8 @@
 import Globals
 import re
 from Products.ZenReports import Utils, Utilization
-from Products.ZenReports.AliasPlugin import AliasPlugin, RRDColumn, Column, TalesColumnHandler
+from Products.ZenReports.AliasPlugin import AliasPlugin, Column, \
+                                            PythonColumnHandler, RRDColumnHandler
 
 class interface( AliasPlugin ):
     "The interface usage report"
@@ -35,13 +36,13 @@ class interface( AliasPlugin ):
     
     def getColumns(self):
         return [
-                Column('speed', TalesColumnHandler('component.speed')),
-                RRDColumn('input', 'inputOctets__bytes'),
-                RRDColumn('output', 'outputOctets__bytes'),
+                Column('speed', PythonColumnHandler('component.speed')),
+                Column('input', RRDColumnHandler( 'inputOctets__bytes' )),
+                Column('output', RRDColumnHandler( 'outputOctets__bytes') ),
                 ]
     
     def getCompositeColumns(self):
         return [
-                Column('total',TalesColumnHandler('input+output')),
-                Column('percentUsed',TalesColumnHandler('(long(total)*8)/speed'))
+                Column('total',PythonColumnHandler('input+output')),
+                Column('percentUsed',PythonColumnHandler('(long(total)*8)/speed'))
                 ]
