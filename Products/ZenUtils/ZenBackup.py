@@ -99,7 +99,7 @@ class ZenBackup(ZenBackupBase):
                             getattr(zem, zemAttr, None) or default)
 
 
-    def saveSettings(self, tempDir):
+    def saveSettings(self):
         '''
         Save the database credentials to a file for use during restore.
         '''
