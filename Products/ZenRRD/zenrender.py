@@ -23,6 +23,7 @@ from Products.ZenUtils.ObjectCache import ObjectCache
 from twisted.web import resource, server
 from twisted.internet import reactor
 
+import xmlrpclib
 import mimetypes
 
 class RenderServer(OrigRenderServer):
@@ -54,6 +55,18 @@ class HttpRender(resource.Resource):
         if not mimetype: mimetype = 'image/%s'%ftype
         request.setHeader('Content-type', mimetype)
         return getattr(zr, 'remote_' + command)(**args)
+    
+    def render_POST(self, request):
+        "Deal with XML-RPC requests"
+        content = request.content.read()
+        args, command = xmlrpclib.loads(content)
+        zr.log.debug("Processing %s request" % command)
+        request.setHeader('Content-type', 'text/xml')
+        result = getattr(zr, 'remote_' + command)(*args)
+        response = xmlrpclib.dumps((result,),
+            methodresponse=True, allow_none=True)
+        return response
+
 
 class zenrender(PBDaemon):
 
