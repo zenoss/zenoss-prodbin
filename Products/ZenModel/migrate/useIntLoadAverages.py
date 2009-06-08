@@ -11,6 +11,10 @@
 #
 ###########################################################################
 import Migrate
+from zExceptions import NotFound
+import logging
+
+log = logging.getLogger("zen.migrate")
 
 class UseIntLoadAverages(Migrate.Step):
     """
@@ -42,7 +46,13 @@ class UseIntLoadAverages(Migrate.Step):
                     ds.oid = ds.oid.replace(
                         '1.3.6.1.4.1.2021.10.1.3',
                         '1.3.6.1.4.1.2021.10.1.5')
+
             except AttributeError:
                 pass
+            except NotFound:
+                log.info( ( 'Could not retrieve datasource at %s. ' +
+                            'The template or datasource is not present.' ),
+                            dsPath )
+
 
 useIntLoadAverages = UseIntLoadAverages()
