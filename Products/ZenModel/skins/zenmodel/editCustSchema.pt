@@ -135,6 +135,7 @@ Optional titlebar stuff
       <option>int</option>
       <option>lines</option>
       <option>long</option>
+      <option>password</option>
       <option selected>string</option>
       <option>selection</option>
     </select>

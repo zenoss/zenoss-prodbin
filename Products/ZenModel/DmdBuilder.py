@@ -77,6 +77,7 @@ class DmdBuilder(object):
         self.dmd.smtpHost = smtphost
         self.dmd.smtpPort = smtpport
         self.dmd.pageCommand = pagecommand
+        self.dmd.propertyTransformers = {}
         self.dmd.manage_permission('Access contents information',
                                    ['Authenticated',
                                     MANAGER_ROLE,
