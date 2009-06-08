@@ -11,6 +11,7 @@
 #
 ###########################################################################
 import Globals
+import zope.interface
 
 from Products.ZenUtils.Utils import convToUnits
 
@@ -30,12 +31,12 @@ def percentString(n, decimals=0):
     return '%*.*f' % (2, decimals, n)
 
 
-class Record:
+class Record( object ):
+    zope.interface.implements( zope.interface.Interface )
     __allow_access_to_unprotected_subobjects__ = 1
 
     def __init__(self, **kw):
         self.values = kw.copy()
-
 
     def __str__(self):
         return str(self.values)
