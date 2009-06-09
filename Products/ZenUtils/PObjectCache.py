@@ -55,6 +55,7 @@ class PObjectCache(SimpleItem):
         """add an object to the cache"""
         cobj = CacheObj(obj, self.timeout)
         self.cache[key] = cobj
+        self._p_changed = 1
 
     def manage_clearCache(self, REQUEST=None):
         self.cleanCache(force=1)
@@ -72,6 +73,7 @@ class PObjectCache(SimpleItem):
                     if not value.checkTime():
                         cleared = 1
                         del self.cache[key]
+                        self._p_changed = 1
                 self.clearcount = self.clearthresh
         return cleared
 
