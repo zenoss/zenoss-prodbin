@@ -11,13 +11,28 @@
 #
 ###########################################################################
 import Migrate
+import logging
+
+log = logging.getLogger('Zope')
+ORIG_LEVEL = log.level
+HIGHER_THAN_CRITICAL = 100
 
 class FixBadJobs(Migrate.Step):
     version = Migrate.Version(2, 5, 0)
 
     def cutover(self, dmd):
-        for status in dmd.JobManager.jobs():
-            if hasattr(status, 'job'):
-                status.delete()
+        # Hide log messages, since the only ones that can appear here are both
+        # scary and irrelevant
+        log.setLevel(HIGHER_THAN_CRITICAL)
+        try:
+            for status in dmd.JobManager.jobs():
+                if hasattr(status, 'job'):
+                    status.delete()
+        except:
+            # If we run into trouble, turn logging back on
+            log.setLevel(ORIG_LEVEL)
+            raise
+        # Set the log level back to normal
+        log.setLevel(ORIG_LEVEL)
 
 FixBadJobs()
