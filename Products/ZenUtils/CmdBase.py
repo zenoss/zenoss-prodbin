@@ -52,8 +52,11 @@ class CmdBase:
         # We must import ZenossStartup at this point so that all Zenoss daemons
         # and tools will have any ZenPack monkey-patched methods available.
         zope.component.provideAdapter(DefaultTraversable, (None,))
-        import Products.ZenModel
+        import Products
+        zcml.load_config('meta.zcml', Products.Five)
+        zcml.load_config('event.zcml', Products.Five)
         zcml.load_config('indexing.zcml', Products.ZenModel)
+        zcml.load_config('configure.zcml', Products.ZenRelations)
         import Products.ZenossStartup
         unused(Products.ZenossStartup)
         

@@ -56,6 +56,16 @@ class TestPathIndexing(ZenModelBaseTest):
             self.assertEqual(brains[0].id, self.dev.id)
             self.assertEqual(brains[0].getObject(), self.dev)
 
+    def testDeviceUnindexOnDeviceClassDelete(self):
+        """
+        Test deviceSearch is updated when a device class is moved. 
+        """
+        sourceOrg = self.dmd.Devices.createOrganizer('/Two/Three')
+        dcmDevice = sourceOrg.createInstance('dcmDevice')
+        self.dmd.Devices.Two._delObject('Three')
+        brains = self.devcat()
+        self.assertEqual(len(brains), 2) # dummydev and testdev
+
     def testDeviceUnindexOnRemoval(self):
         self.dev.setLocation('')
         self.dev.setGroups([])
