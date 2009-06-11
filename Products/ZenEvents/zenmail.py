@@ -122,20 +122,22 @@ class ZenMail(EventServer):
         if (self.options.useFileDescriptor < 0 and \
             self.options.listenPort < 1024):
             self.openPrivilegedPort('--listen',
-                                    '--proto=tcp',
-                                    '--port=%d' % self.options.listenPort)
+                '--proto=tcp', '--port=%s:%d' % (
+                    self.options.listenip, self.options.listenPort))
 
         self.changeUser()
         self.processor = MailProcessor(self, self.options.eventseverity)
 
         self.factory = SMTPFactory(self.processor)
 
+        log.info("listening on %s:%d" % (
+            self.options.listenip, self.options.listenPort))
         if self.options.useFileDescriptor != -1:
             self.useTcpFileDescriptor(int(self.options.useFileDescriptor),
                                       self.factory)
         else:
-            log.info("listening on port: %d" % self.options.listenPort)
-            reactor.listenTCP(self.options.listenPort, self.factory)
+            reactor.listenTCP(self.options.listenPort, self.factory,
+                interface=self.options.listenip)
 
 
     def handleError(self, error):
@@ -152,20 +154,24 @@ class ZenMail(EventServer):
     def buildOptions(self):
         EventServer.buildOptions(self)
         self.parser.add_option('--useFileDescriptor',
-                               dest='useFileDescriptor', 
-                               default=-1,
-                               type="int",
-                               help="File descriptor to use for listening")
+            dest='useFileDescriptor', 
+            default=-1,
+            type="int",
+            help="File descriptor to use for listening")
         self.parser.add_option('--listenPort',
-                               dest='listenPort', 
-                               default="25",
-                               type="int",
-                               help="Alternative listen port to use")
+            dest='listenPort',
+            default="25",
+            type="int",
+            help="Alternative listen port to use")
         self.parser.add_option('--eventseverity',
-                               dest='eventseverity', 
-                               default="2",
-                               type="int",
-                               help="Severity for events created")
+            dest='eventseverity',
+            default="2",
+            type="int",
+            help="Severity for events created")
+        self.parser.add_option('--listenip',
+            dest='listenip',
+            default='0.0.0.0',
+            help='IP address to listen on. Default is 0.0.0.0')
 
 
 if __name__ == '__main__':
