@@ -23,9 +23,9 @@
 <tal:block metal:fill-slot="zentablecontents">
 <tr>
     <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
-                        tableName,'manuf','Manufacturer')"/>
+                        tableName,'manufId','Manufacturer')"/>
     <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
-                        tableName,'soft','Product')"/>
+                        tableName,'softId','Product')"/>
     <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
                         tableName,'count','Count')"/>
 </tr>

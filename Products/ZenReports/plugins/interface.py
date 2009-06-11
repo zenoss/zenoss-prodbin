@@ -36,9 +36,11 @@ class interface( AliasPlugin ):
     
     def getColumns(self):
         return [
+                Column('deviceName', PythonColumnHandler( 'device.id' )),
+                Column('columnName', PythonColumnHandler( 'component.name()' )),
                 Column('speed', PythonColumnHandler('component.speed')),
                 Column('input', RRDColumnHandler( 'inputOctets__bytes' )),
-                Column('output', RRDColumnHandler( 'outputOctets__bytes') ),
+                Column('output', RRDColumnHandler( 'outputOctets__bytes' )),
                 ]
     
     def getCompositeColumns(self):

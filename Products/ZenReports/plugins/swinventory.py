@@ -31,7 +31,9 @@ class swinventory:
                     report.append(
                         Utils.Record(
                             manuf = m,
+                            manufId = m.id,
                             soft = p,
+                            softId = p.id,
                             count = c
                         )
                     )

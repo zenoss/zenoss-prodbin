@@ -13,7 +13,8 @@
 
 import Globals
 from Products.ZenReports.AliasPlugin import AliasPlugin, Column, \
-                                            RRDColumnHandler
+                                            RRDColumnHandler, \
+                                            PythonColumnHandler
 
 class cpu( AliasPlugin ):
     """
@@ -22,7 +23,8 @@ class cpu( AliasPlugin ):
 
     def getColumns(self):
         ##      alias/dp id : column name
-        return [ Column( 'laLoadInt5', RRDColumnHandler( 'loadAverage5min') ),
+        return [ Column( 'deviceName', PythonColumnHandler( 'device.id' ) ),
+                 Column( 'laLoadInt5', RRDColumnHandler( 'loadAverage5min') ),
                  Column( 'cpuPercent', RRDColumnHandler( 'cpu__pct' ) ) ]
 
 
