@@ -44,13 +44,13 @@ import DateTime
 import os
 import os.path
 import sys
-import traceback  
+import traceback
+from random import randint
        
 defaultPortScanTimeout = 5
 defaultParallel = 1
 defaultProtocol = "ssh"
 defaultPort = 22
-defaultStartSleep = 10 * 60
 
 # needed for Twisted's PB (Perspective Broker) to work
 from Products.DataCollector import DeviceProxy
@@ -81,18 +81,6 @@ class ZenModeler(PBDaemon):
         PBDaemon.__init__(self)
         # FIXME: cleanup --force option #2660
         self.options.force = True
-        if self.options.daemon:
-            if self.options.now:
-                self.log.debug("Run as a daemon, starting immediately.")
-            else:
-                self.log.info("Run as a daemon, waiting %s sec to start." %
-                               defaultStartSleep)
-                time.sleep(defaultStartSleep)
-                self.log.debug("Run as a daemon, slept %s sec, starting now." %
-                               defaultStartSleep)
-        else:
-            self.log.debug("Run in foreground, starting immediately.")
-
         self.start = None
         self.rrdStats = DaemonStats()
         self.single = single
@@ -103,9 +91,22 @@ class ZenModeler(PBDaemon):
         self.pendingNewClients = False
         self.clients = []
         self.finished = []
-        self.devicegen = None  
+        self.devicegen = None
         
-        
+        # Delay start for between 10 and 60 minutes when run as a daemon.
+        self.started = False
+        self.startDelay = 0
+        if self.options.daemon:
+            if self.options.now:
+                self.log.debug("Run as a daemon, starting immediately.")
+            else:
+                # self.startDelay = randint(10, 60) * 60
+                self.startDelay = randint(10, 60) * 1
+                self.log.info("Run as a daemon, waiting %s seconds to start." %
+                              self.startDelay)
+        else:
+            self.log.debug("Run in foreground, starting immediately.")
+
 
     def reportError(self, error):
         """
@@ -120,11 +121,10 @@ class ZenModeler(PBDaemon):
     def connected(self):
         """
         Called after connected to the zenhub service
-        """             
+        """
         d = self.configure()
         d.addCallback(self.heartbeat)
         d.addErrback(self.reportError)
-        d.addCallback(self.main)
     
 
     def configure(self):
@@ -721,6 +721,11 @@ class ZenModeler(PBDaemon):
                        timeout=3*ARBITRARY_BEAT)
             self.sendEvent(evt)
             self.niceDoggie(self.cycleTime())
+        
+        # We start modeling from here to accomodate the startup delay.
+        if not self.started:
+            self.started = True
+            reactor.callLater(self.startDelay, self.main)
 
 
     def checkStop(self, unused = None):
