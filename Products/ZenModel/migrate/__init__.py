@@ -172,6 +172,7 @@ import addDefaultZFileSystemMapIgnoreTypes
 import addNmapOptionsZProp
 import osProcessMemoryBase1024
 import zFileSystemSizeOffset
+import updateManufacturerRegexes
 import devtypes
 import zSshConcurrentSessions
 import useIntLoadAverages

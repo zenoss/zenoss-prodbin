@@ -1,7 +1,7 @@
 ###########################################################################
 #
 # This program is part of Zenoss Core, an open source monitoring platform.
-# Copyright (C) 2007, Zenoss Inc.
+# Copyright (C) 2007, 2009 Zenoss Inc.
 #
 # This program is free software; you can redistribute it and/or modify it
 # under the terms of the GNU General Public License version 2 as published by
@@ -21,7 +21,9 @@ __version__ = '$Revision: 1.9 $'[11:-2]
 
 import re
 
-from CollectorPlugin import SnmpPlugin, GetMap
+from Products.DataCollector.plugins.CollectorPlugin import SnmpPlugin, GetMap
+from Products.DataCollector.plugins.DataMaps import MultiArgs
+from Products.DataCollector.EnterpriseOIDs import EnterpriseOIDs
 
 class NewDeviceMap(SnmpPlugin):
 
@@ -70,8 +72,17 @@ class NewDeviceMap(SnmpPlugin):
         log.info('processing %s for device %s', self.name(), device.id)
         getdata, tabledata = results
         om = self.objectMap(getdata)
-        om.setHWProductKey = om.snmpOid
+        
+        # Set the manufacturer according the IANA enterprise OID assignments.
+        match = re.match(r'(.\d+){7}', om.snmpOid)
+        if match:
+            manufacturer = EnterpriseOIDs.get(match.group(0), "Unknown")
+        else:
+            manufacturer = "Unknown"
+
+        om.setHWProductKey = MultiArgs(om.snmpOid, manufacturer)
         log.debug("HWProductKey=%s", om.setHWProductKey)
+        
         if om.snmpDescr:
             descr = re.sub("\s", " ", om.snmpDescr)
             for regex in self.osregex:

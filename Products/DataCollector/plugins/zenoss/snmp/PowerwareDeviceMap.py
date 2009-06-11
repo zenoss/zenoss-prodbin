@@ -1,7 +1,7 @@
 ###########################################################################
 #
 # This program is part of Zenoss Core, an open source monitoring platform.
-# Copyright (C) 2007, Zenoss Inc.
+# Copyright (C) 2007, 2009 Zenoss Inc.
 #
 # This program is free software; you can redistribute it and/or modify it
 # under the terms of the GNU General Public License version 2 as published by
@@ -11,7 +11,8 @@
 #
 ###########################################################################
 
-from CollectorPlugin import SnmpPlugin, GetMap
+from Products.DataCollector.plugins.CollectorPlugin import SnmpPlugin, GetMap
+from Products.DataCollector.plugins.DataMaps import MultiArgs
 
 class PowerwareDeviceMap(SnmpPlugin):
     """Map mib elements from Dell Open Manage mib to get hw and os products.
@@ -35,4 +36,5 @@ class PowerwareDeviceMap(SnmpPlugin):
         log.info('processing %s for device %s', self.name(), device.id)
         getdata, tabledata = results
         om = self.objectMap(getdata)
+        om.setHWProductKey = MultiArgs(om.setHWProductKey, "Dell")
         return om

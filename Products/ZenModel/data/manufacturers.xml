@@ -1027,6 +1027,9 @@ Cupertino
 <property type="string" id="state" mode="w" >
 CA
 </property>
+<property type="lines" id="regexes" mode="w" >
+('^Apple Computer',)
+</property>
 <tomanycont id='products'>
 <object id='Macos 10.4.1' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
 <property type="string" id="name" mode="w" >
@@ -1314,6 +1317,9 @@ False
 </tomanycont>
 </object>
 <object id='Broadcom' module='Products.ZenModel.Manufacturer' class='Manufacturer'>
+<property type="lines" id="regexes" mode="w" >
+('^Broadcom Corp$',)
+</property>
 <tomanycont id='products'>
 <object id='Broadcom Corp BCM V.90 56k Modem' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
 <property type="string" id="name" mode="w" >
@@ -1434,6 +1440,9 @@ False
 <object id='Cisco' module='Products.ZenModel.Manufacturer' class='Manufacturer'>
 <property type="string" id="url" mode="w" >
 http://www.cisco.com
+</property>
+<property type="lines" id="regexes" >
+('^ciscoSystems$',)
 </property>
 <tomanycont id='products'>
 <object id='.1.3.6.1.4.1.3076.1.2.1.1.2.1' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
@@ -9729,7 +9738,15 @@ True
 </object>
 </tomanycont>
 </object>
+<object id='F5 Networks' module='Products.ZenModel.Manufacturer' class='Manufacturer'>
+<property type="lines" id="regexes" mode="w" >
+('^F5 Networks Inc$',)
+</property>
+</object>
 <object id='Dell' module='Products.ZenModel.Manufacturer' class='Manufacturer'>
+<property type="lines" id="regexes" mode="w" >
+('^Dell Inc\.$',)
+</property>
 <tomanycont id='products'>
 <object id='Dell Inc. PERC 4e_Di RAID Controller' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
 <property type="string" id="name" mode="w" >
@@ -10981,6 +10998,9 @@ False
 <property type="string" id="url" mode="w" >
 http://www.hp.com
 </property>
+<property type="lines" id="regexes" mode="w" >
+('Hewlett\-Packard',)
+</property>
 <tomanycont id='products'>
 <object id='Compaq Management Agents' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
 <property type="string" id="name" mode="w" >
@@ -11462,6 +11482,9 @@ False
 </tomanycont>
 </object>
 <object id='Intel' module='Products.ZenModel.Manufacturer' class='Manufacturer'>
+<property type="lines" id="regexes" mode="w" >
+('^Intel Corporation$',)
+</property>
 <tomanycont id='products'>
 <object id='Intel  Intel_R_ Pentium_R_ D CPU 3.00GHz Stepping 4' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
 <property type="string" id="name" mode="w" >
@@ -12018,6 +12041,9 @@ False
 <object id='Microsoft' module='Products.ZenModel.Manufacturer' class='Manufacturer'>
 <property type="string" id="url" mode="w" >
 http://www.microsoft.com
+</property>
+<property type="lines" id="regexes" mode="w" >
+('^Microsoft Corporation$',)
 </property>
 <tomanycont id='products'>
 <object id='.1.3.6.1.4.1.311.1.1.3.1.1' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
@@ -16451,7 +16477,15 @@ False
 </object>
 </tomanycont>
 </object>
+<object id='Nortel' module='Products.ZenModel.Manufacturer' class='Manufacturer'>
+<property type="lines" id="regexes" mode="w" >
+('^Nortel Networks$',)
+</property>
+</object>
 <object id='Net-SNMP' module='Products.ZenModel.Manufacturer' class='Manufacturer'>
+<property type="lines" id="regexes" mode="w" >
+('^net snmp$',)
+</property>
 <tomanycont id='products'>
 <object id='Net-SNMP 5.3.0.1' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
 <property type="string" id="name" mode="w" >
@@ -18885,7 +18919,15 @@ False
 </object>
 </tomanycont>
 </object>
+<object id='XGI' module='Products.ZenModel.Manufacturer' class='Manufacturer'>
+<property type="lines" id="regexes" mode="w" >
+('^XGI Xabre Graphics Inc$',)
+</property>
+</object>
 <object id='Sun' module='Products.ZenModel.Manufacturer' class='Manufacturer'>
+<property type="lines" id="regexes" mode="w" >
+('^Sun Microsystems',)
+</property>
 <tomanycont id='products'>
 <object id='J2SE Development Kit 5.0 Update 1' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
 <property type="string" id="name" mode="w" >
@@ -33291,17 +33333,6 @@ Windows 2000 Hotfix - KB926247
 False
 </property>
 </object>
-<object id='XGI Xabre Graphics Inc XGI GX20 Video Controller' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
-<property type="string" id="name" mode="w" >
-XGI Xabre Graphics Inc XGI GX20 Video Controller
-</property>
-<property type="lines" id="productKeys" mode="w" >
-['XGI Xabre Graphics Inc XGI GX20 Video Controller']
-</property>
-<property type="boolean" id="isOS" mode="w" >
-False
-</property>
-</object>
 <object id='a2ps-4.13b-41' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
 <property type="string" id="name" mode="w" >
 a2ps-4.13b-41
@@ -37455,6 +37486,9 @@ False
 <property type="string" id="url" mode="w" >
 http://www.vmware.com
 </property>
+<property type="lines" id="regexes" mode="w" >
+('^VMware, Inc.$',)
+</property>
 <tomanycont id='products'>
 <object id='Server' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
 <property type="string" id="name" mode="w" >
@@ -37591,6 +37625,9 @@ False
 </tomanycont>
 </object>
 <object id='WinZip' module='Products.ZenModel.Manufacturer' class='Manufacturer'>
+<property type="lines" id="regexes" mode="w" >
+('^WinZip Computing',)
+</property>
 <tomanycont id='products'>
 <object id='WinZip' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
 <property type="string" id="name" mode="w" >

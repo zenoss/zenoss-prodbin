@@ -21,7 +21,33 @@ __version__ = '$Revision: 1.1 $'[11:-2]
 
 import re
 
-from CollectorPlugin import SnmpPlugin, GetTableMap
+from Products.DataCollector.plugins.CollectorPlugin \
+    import SnmpPlugin, GetTableMap
+from Products.DataCollector.plugins.DataMaps import MultiArgs
+
+
+def getManufacturerAndModel(key):
+    """
+    Attempts to parse accurate manufacturer and model information of a CPU from
+    the single product string passed in.
+    
+    @param key: A product key. Hopefully containing manufacturer and model name.
+    @type key: string
+    @return: A MultiArgs object containing the model and manufacturer.
+    @rtype: Products.DataDollector.plugins.DataMaps.MultiArgs
+    """
+    cpuDict = {
+        'Intel': '(Intel|Pentium|Xeon)',
+        'AMD': '(AMD|Opteron|Athlon|Sempron|Phenom|Turion)',
+        }
+
+    for manufacturer, regex in cpuDict.items():
+        if re.search(regex, key):
+            return MultiArgs(key, manufacturer)
+    
+    # Revert to default behavior if no specific match is found.
+    return MultiArgs(key, "Unknown")
+
 
 class CpuMap(SnmpPlugin):
 
@@ -32,7 +58,7 @@ class CpuMap(SnmpPlugin):
 
     columns = {
          '.2': '_type',
-         '.3': 'description',
+         '.3': '_description',
     }
 
     snmpGetTableMaps = (
@@ -59,7 +85,7 @@ class CpuMap(SnmpPlugin):
             if not rm and not self.checkColumns(row, self.columns, log): 
                 return rm
             if row['_type'] != self.hrDeviceProcessor: continue
-            desc = row['description']
+            desc = row['_description']
             # try and find the cpu speed from the description
             match = re.search('([.0-9]+) *([mg]hz)', desc.lower())
             if match:
@@ -71,7 +97,7 @@ class CpuMap(SnmpPlugin):
                 except ValueError:
                     pass
             om = self.objectMap(row)
-            om.setProductKey = desc
+            om.setProductKey = getManufacturerAndModel(desc)
             om.id = '%d' % slot
             slot += 1
             rm.append(om)

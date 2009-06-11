@@ -83,6 +83,15 @@
       </td>
     </tr>
     <tr>
+        <td class="tableheader">Regexes</td>
+        <td class="tablevalues" colspan="3">
+            <textarea class="tablevalues" rows="5" cols="60"
+                name="regexes:lines"
+                tal:content="python:'\n'.join(here.regexes)">
+            </textarea>
+        </td>
+    </tr>
+    <tr>
         <td class=tableheader align="left" >
         </td>
         <td align="left"  class="tableheader" colspan="5">

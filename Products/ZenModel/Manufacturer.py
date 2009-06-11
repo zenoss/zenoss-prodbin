@@ -1,7 +1,7 @@
 ###########################################################################
 #
 # This program is part of Zenoss Core, an open source monitoring platform.
-# Copyright (C) 2007, Zenoss Inc.
+# Copyright (C) 2007, 2009 Zenoss Inc.
 #
 # This program is free software; you can redistribute it and/or modify it
 # under the terms of the GNU General Public License version 2 as published by
@@ -20,6 +20,7 @@ $Id: Manufacturer.py,v 1.11 2004/03/26 23:58:44 edahl Exp $"""
 __version__ = "$Revision: 1.11 $"[11:-2]
 
 import types
+import re
 
 from Globals import DTMLFile, InitializeClass
 from AccessControl import ClassSecurityInfo
@@ -57,6 +58,7 @@ class Manufacturer(ZenModelRM, ZenPackable):
     state = ''
     zip = ''
     country = ''
+    regexes = ()
 
     _properties = (
         {'id':'url', 'type':'string', 'mode':'w'},
@@ -66,7 +68,8 @@ class Manufacturer(ZenModelRM, ZenPackable):
         {'id':'city', 'type':'string', 'mode':'w'},
         {'id':'state', 'type':'string', 'mode':'w'},
         {'id':'zip', 'type':'string', 'mode':'w'},
-        {'id':'country', 'type':'string', 'mode':'w'}, 
+        {'id':'country', 'type':'string', 'mode':'w'},
+        {'id':'regexes', 'type':'lines', 'mode':'w'},
         )
 
     _relations = ZenPackable._relations + (
@@ -179,11 +182,28 @@ class Manufacturer(ZenModelRM, ZenPackable):
         return prods
 
 
+    def matches(self, name):
+        """
+        Returns true if this manufacturer name or any of the regexes defined
+        match the provided string.
+        
+        @param name: Manufacturer name
+        @type name: string
+        @return: True if this manufacturer matches the given name
+        @rtype: bool
+        """
+        if self.id == name:
+            return True
+        for regex in self.regexes:
+            if re.search(regex, name):
+                return True
+        return False
+
+
     security.declareProtected('Manage DMD', 'manage_editManufacturer')
-    def manage_editManufacturer(self, id='',
-                url = '', supportNumber = '',
-                address1 = '', address2 = '',
-                city = '', state = '', zip = '', country = '', REQUEST=None):
+    def manage_editManufacturer(self, id='', url='', supportNumber='',
+                address1='', address2='', city='', state='', zip='',
+                country='', regexes=[], REQUEST=None):
         """
         Edit a Manufacturer from a web page.
         """
@@ -196,6 +216,7 @@ class Manufacturer(ZenModelRM, ZenPackable):
         self.state = state
         self.zip = zip
         self.country = country
+        self.regexes = regexes
         if REQUEST:
             from Products.ZenUtils.Time import SaveMessage
             messaging.IMessageSender(self).sendToBrowser(

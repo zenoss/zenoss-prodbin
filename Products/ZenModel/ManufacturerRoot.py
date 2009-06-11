@@ -1,7 +1,7 @@
 ###########################################################################
 #
 # This program is part of Zenoss Core, an open source monitoring platform.
-# Copyright (C) 2007, Zenoss Inc.
+# Copyright (C) 2007, 2009 Zenoss Inc.
 #
 # This program is free software; you can redistribute it and/or modify it
 # under the terms of the GNU General Public License version 2 as published by
@@ -130,12 +130,15 @@ class ManufacturerRoot(ZenModelItem, PrimaryPathBTreeFolder2, ZenPacker):
         """
         Return manufacturerName.  If it doesn't exist, create it.
         """
+        manufacturerName = self.prepId(manufacturerName)
         if self.has_key(manufacturerName):
-            man = self._getOb(manufacturerName)
+            return self._getOb(manufacturerName)
         else:
-            man = self.createManufacturer(manufacturerName)
-            
-        return man
+            for m in self.objectValues(spec="Manufacturer"):
+                if m.matches(manufacturerName):
+                    return m
+
+        return self.createManufacturer(manufacturerName)
         
         
     def getManufacturerNames(self):
