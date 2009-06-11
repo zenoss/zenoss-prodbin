@@ -22,7 +22,7 @@ class filesystems( AliasPlugin ):
 
     def getColumns(self):
         ##      alias/dp id : column name
-        return [ Column( 'deviceName', PythonColumnHandler( 'device.id' ) ),
+        return [ Column( 'deviceName', PythonColumnHandler( 'device.titleOrId()' ) ),
                  Column( 'mount', PythonColumnHandler( 'component.mount' ) ),
                  Column( 'usedBytes', RRDColumnHandler( 'usedFilesystemSpace__bytes' ) ),
                  Column( 'totalBytes', PythonColumnHandler( 'component.totalBytes()' ) ) ]

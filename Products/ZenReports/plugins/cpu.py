@@ -23,7 +23,8 @@ class cpu( AliasPlugin ):
 
     def getColumns(self):
         ##      alias/dp id : column name
-        return [ Column( 'deviceName', PythonColumnHandler( 'device.id' ) ),
+        return [ Column( 'deviceName',
+                         PythonColumnHandler( 'device.titleOrId()' ) ),
                  Column( 'laLoadInt5', RRDColumnHandler( 'loadAverage5min') ),
                  Column( 'cpuPercent', RRDColumnHandler( 'cpu__pct' ) ) ]
 

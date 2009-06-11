@@ -178,3 +178,4 @@ import useIntLoadAverages
 import addFilesystemAndInterfaceDataPointAliases
 import zopeup
 import fixjobs
+import addTitleOrIdToCatalogs

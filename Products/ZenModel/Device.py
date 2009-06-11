@@ -113,7 +113,7 @@ def manage_createDevice(context, deviceName, devicePath="/Discovered",
             locationPath="", groupPaths=[], systemPaths=[],
             performanceMonitor="localhost",
             discoverProto="snmp", priority=3, manageIp="",
-            zProperties=None):
+            zProperties=None, title=None):
     """
     Device factory creates a device and sets up its relations and collects its
     configuration. SNMP Community discovery also happens here. If an IP is
@@ -137,7 +137,8 @@ def manage_createDevice(context, deviceName, devicePath="/Discovered",
                 hwManufacturer, hwProductName,
                 osManufacturer, osProductName,
                 locationPath, groupPaths, systemPaths,
-                performanceMonitor, priority, zProperties)
+                performanceMonitor, priority, zProperties,
+                title)
     return device
 
 
@@ -1036,7 +1037,7 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
                 osManufacturer="", osProductName="",
                 locationPath="", groupPaths=[], systemPaths=[],
                 performanceMonitor="localhost", priority=3, 
-                zProperties=None, REQUEST=None):
+                zProperties=None, title=None, REQUEST=None):
         """
         Edit the device relation and attributes.
         
@@ -1050,6 +1051,8 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
         @type performanceMonitor: string
         @permission: ZEN_CHANGE_DEVICE
         """
+        if title is not None:
+            self.title = title
         self.hw.tag = tag
         self.hw.serialNumber = serialNumber
 
@@ -1105,6 +1108,12 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
             IMessageSender(self).sendToBrowser('Saved', SaveMessage())
             return self.callZenScreen(REQUEST)
 
+    def setTitle(self, newTitle):
+        """
+        Changes the title to newTitle and reindexes the object
+        """
+        self.title = newTitle
+        self.index_object()
 
     def monitorDevice(self):
         """
@@ -1890,7 +1899,7 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
         url, classurl = map(urlquote, 
                     (self.getDeviceUrl(), self.getDeviceClassPath()))
         id = '<a class="tablevalues" href="%s">%s</a>' % (
-                            url, self.getId())
+                            url, self.titleOrId())
         ip = self.getDeviceIp()
         if self.checkRemotePerm(ZEN_VIEW, self.deviceClass()):
             path = '<a href="/zport/dmd/Devices%s">%s</a>' % (classurl,classurl)
@@ -1899,7 +1908,7 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
         prod = self.getProdState()
         zem = self.dmd.ZenEventManager
         evsum = getEventPillME(zem, self, 1, minSeverity)[0]
-        return [id, ip, path, prod, evsum, self.getId()]
+        return [id, ip, path, prod, evsum, self.titleOrId()]
 
     def exportXmlHook(self, ofile, ignorerels):
         """
@@ -2035,7 +2044,7 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
                     "</div>%s")
         icon = self.getIconPath()
         href = self.getPrimaryUrlPath().replace('%','%%')
-        name = self.id
+        name = self.titleOrId()
         linktemplate = "<a href='"+href+"' class='prettylink'>%s</a>"
         rendered = template % (icon, name)
         if not self.checkRemotePerm(ZEN_VIEW, self):

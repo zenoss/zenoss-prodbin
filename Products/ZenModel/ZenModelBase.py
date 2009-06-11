@@ -71,27 +71,27 @@ class ZenModelBase(object):
     def view(self):
         '''
         Returns the default view even if index_html is overridden.
-        
+
         @permission: ZEN_VIEW
         '''
         return self()
 
-    
+
     def __hash__(self):
         return hash(self.id)
 
     def prepId(self, id, subchar='_'):
         """
         Clean out an id of illegal characters.
-        
+
         @type id: string
         @param subchar: Character to be substituted with illegal characters
         @type subchar: string
         @rtype: string
-        
+
         >>> dmd.Devices.prepId('ab^*cd')
         'ab__cd'
-        >>> dmd.Devices.prepId('ab^*cd', subchar='Z') 
+        >>> dmd.Devices.prepId('ab^*cd', subchar='Z')
         'abZZcd'
         >>> dmd.Devices.prepId('/boot')
         'boot'
@@ -106,11 +106,11 @@ class ZenModelBase(object):
         """
         Checks that an id is a valid Zope id.  Looks for invalid characters and
         checks that the id doesn't already exist in this context.
-        
+
         @type id: string
         @type prep_id: boolean
         @rtype: boolean
-        
+
         >>> dmd.Devices.checkValidId('^*')
         'The id "^*" contains characters illegal in URLs.'
         >>> dmd.Devices.checkValidId('Server')
@@ -120,7 +120,7 @@ class ZenModelBase(object):
         """
         new_id = unquote(id)
         if prep_id: new_id = self.prepId(id)
-        try: 
+        try:
             globalCheckValidId(self, new_id)
             return True
         except:
@@ -133,12 +133,12 @@ class ZenModelBase(object):
         baseKey is not already in use, return that.  Otherwise append values
         from extensionIter to baseKey until an used key is found.  The default
         extensionIter appends integers starting with 2 and counting up.
-        
+
         @type relName: string
         @type baseKey: string
         @type extensionIter: iterator
         @rtype: string
-        
+
         >>> id1 = dmd.Devices.getUnusedId('devices', 'dev')
         >>> id1
         'dev'
@@ -161,10 +161,10 @@ class ZenModelBase(object):
     def getIdLink(self):
         """
         DEPRECATED Return an a link to this object with its id as the name.
-        
+
         @return: An HTML link to this object
         @rtype: string
-        
+
         >>> dmd.Devices.getIdLink()
         '<a href="/zport/dmd/Devices">/</a>'
         """
@@ -197,7 +197,7 @@ class ZenModelBase(object):
         """
         Return the url for the current screen as defined by zenScreenName.
         If zenScreenName is not found in the request the request url is used.
-        
+
         @return: An url to this object
         @rtype: string
         """
@@ -205,7 +205,7 @@ class ZenModelBase(object):
         if not screenName: return self.REQUEST.URL
         return self.getPrimaryUrlPath() + "/" + screenName
 
-    
+
     def urlLink(self, text=None, url=None, attrs={}):
         """
         Return an anchor tag if the user has access to the remote object.
@@ -216,18 +216,18 @@ class ZenModelBase(object):
         @type attrs: dict
         @param attrs: any other attributes to be place in the in the tag.
         @return: An HTML link to this object
-        @rtype: string 
+        @rtype: string
         """
         if not text:
-            text = self.id
+            text = self.titleOrId()
         text = escape(text)
         if not self.checkRemotePerm("View", self):
             return text
         if not url:
             url = self.getPrimaryUrlPath()
         if len(attrs):
-            return '<a href="%s" %s>%s</a>' % (url, 
-                ' '.join(['%s="%s"' % (x,y) for x,y in attrs.items()]), 
+            return '<a href="%s" %s>%s</a>' % (url,
+                ' '.join(['%s="%s"' % (x,y) for x,y in attrs.items()]),
                 text)
         else:
             return '<a href="%s">%s</a>' % (url, text)
@@ -241,7 +241,7 @@ class ZenModelBase(object):
 
         @return: A url to this object
         @rtype: string
-        
+
         >>> dmd.Devices.getBreadCrumbUrlPath()
         '/zport/dmd/Devices'
         >>> rc = dmd.Reports._getOb('Graph Reports')
@@ -254,15 +254,15 @@ class ZenModelBase(object):
     def breadCrumbs(self, terminator='dmd'):
         """
         Return the data to create the breadcrumb links for this object.
-       
+
         This is a list of tuples where the first value is the URL of the bread
         crumb and the second is the lable.
-        
+
         @return: List of tuples to create a bread crumbs
         @rtype: list
-        
+
         >>> dmd.Devices.Server.breadCrumbs()
-        [('/zport/dmd/Devices', 'Devices'), 
+        [('/zport/dmd/Devices', 'Devices'),
             ('/zport/dmd/Devices/Server', 'Server')]
         """
         links = []
@@ -276,11 +276,11 @@ class ZenModelBase(object):
             url = ""
             if self.checkRemotePerm("View", curDir):
                 url = curDir.getBreadCrumbUrlPath()
-            links.append((url, curDir.id))
+            links.append((url, curDir.titleOrId()))
             curDir = curDir.aq_parent
         links.reverse()
         return links
-   
+
 
     security.declareProtected(ZEN_VIEW, 'getZ')
     def getZ(self, zpropname):
@@ -288,7 +288,7 @@ class ZenModelBase(object):
         Return the value of a zProperty on this object.  This method is used to
         lookup zProperties for a user with a role that doesn't have direct
         access to an attribute further up the acquisition path.
-        
+
         @param zpropname: Name of zProperty
         @type zpropname: string
         @return: Value of zProperty
@@ -323,21 +323,21 @@ class ZenModelBase(object):
     def zentinelTabs(self, templateName):
         """
         Return a list of hashes that define the screen tabs for this object.
-     
+
         Keys in the hash are:
             - action = the name of the page template for this tab
             - name = the label used on the tab
             - permissions = a tuple of permissions to view this template
-        
+
         @permission: ZEN_VIEW
-        
+
         >>> dmd.Devices.zentinelTabs('deviceOrganizerStatus')
-        [{'action': 'deviceOrganizerStatus', 'selected': True, 
-            'name': 'Classes', 'permissions': ('View',)}, 
-        {'action': 'viewEvents', 'name': 'Events', 'permissions': ('View',)}, 
-        {'action': 'zPropertyEdit', 'name': 'zProperties', 
-            'permissions': ('View',)}, 
-        {'action': 'perfConfig', 'name': 'Templates', 
+        [{'action': 'deviceOrganizerStatus', 'selected': True,
+            'name': 'Classes', 'permissions': ('View',)},
+        {'action': 'viewEvents', 'name': 'Events', 'permissions': ('View',)},
+        {'action': 'zPropertyEdit', 'name': 'zProperties',
+            'permissions': ('View',)},
+        {'action': 'perfConfig', 'name': 'Templates',
             'permissions': ('Manage DMD',)}]
         """
         tabs = []
@@ -357,7 +357,7 @@ class ZenModelBase(object):
     security.declareProtected(ZEN_MANAGE_DMD, 'zmanage_editProperties')
     def zmanage_editProperties(self, REQUEST=None, redirect=False):
         """
-        Edit a ZenModel object and return its proper page template. 
+        Edit a ZenModel object and return its proper page template.
         Object will be reindexed if nessesary.
 
         @permission: ZEN_MANAGE_DMD
@@ -402,7 +402,7 @@ class ZenModelBase(object):
         path = path[path.index(rootName)+1:]
         if subrel: path = filter(lambda x: x != subrel, path)
         return '/'+'/'.join(path)
-  
+
 
     def zenpathjoin(self, path):
         """
@@ -434,7 +434,7 @@ class ZenModelBase(object):
 
     def getHierarchyObj(self, root, name, relpath):
         """
-        DEPRECATED this doesn't seem to be used anywere don't use it!!! 
+        DEPRECATED this doesn't seem to be used anywere don't use it!!!
         """
         return getHierarchyObj(root, name, relpath)
 
@@ -453,10 +453,10 @@ class ZenModelBase(object):
     def getDmdRoot(self, name):
         """
         Return a dmd root organizer such as "Systems".  The acquisition path
-        will be cleaned so that it points directly to the root. 
+        will be cleaned so that it points directly to the root.
 
         >>> dmd.Devices.Server.getDmdRoot("Systems")
-        <System at /zport/dmd/Systems> 
+        <System at /zport/dmd/Systems>
         """
         dmd = self.getDmd()
         return dmd._getOb(name)
@@ -475,7 +475,7 @@ class ZenModelBase(object):
 
     def getZopeObj(self, path):
         """
-        DEPRECATED Return an object from path tat starts at zope root. 
+        DEPRECATED Return an object from path tat starts at zope root.
 
         >>> dmd.getZopeObj('/zport/dmd/Devices/Server')
         <DeviceClass at /zport/dmd/Devices/Server>
@@ -486,7 +486,7 @@ class ZenModelBase(object):
     def getNowString(self):
         """
         Return the current time as a string in the format '2007/09/27 14:09:53'.
-        
+
         @rtype: string
         """
         return time.strftime("%Y/%m/%d %H:%M:%S", time.localtime())
@@ -495,7 +495,7 @@ class ZenModelBase(object):
     def todayDate(self):
         """
         Return today's date as a string in the format 'mm/dd/yyyy'.
-        
+
         @rtype: string
         """
         return time.strftime("%m/%d/%Y", time.localtime())
@@ -504,7 +504,7 @@ class ZenModelBase(object):
     def yesterdayDate(self):
         """
         Return yesterday's date as a string in the format 'mm/dd/yyyy'.
-        
+
         @rtype: string
         """
         yesterday = time.time() - 24*3600
@@ -532,7 +532,7 @@ class ZenModelBase(object):
         Delete objects by id from this object and return to the current
         template as defined by callZenScreen.  Uses ObjectManager._delObject to
         remove the object.
-        
+
         @permission: ZEN_VIEW
         """
         for id in ids:  self._delObject(id)
@@ -546,8 +546,8 @@ class ZenModelBase(object):
         start with a lower "c" followed by a uppercase character.
         """
         return self.zenPropertyIds(pfilt=iscustprop)
-        
-   
+
+
     def custPropertyMap(self):
         """
         Return custom property definitions.
@@ -572,7 +572,7 @@ class ZenModelBase(object):
     def saveCustProperties(self, REQUEST):
         """
         Save custom properties from REQUEST.form.
-        
+
         @permission: ZEN_MANAGE_DMD
         """
         return self.saveZenProperties(iscustprop, REQUEST)
@@ -589,7 +589,7 @@ class ZenModelBase(object):
         <DeviceClass at /zport/dmd/Devices>
         >>> dmd.getObjByPath(('Devices','Server'))
         <DeviceClass at /zport/dmd/Devices/Server>
-        >>> dmd.getObjByPath('/zport/dmd/Devices/Server') 
+        >>> dmd.getObjByPath('/zport/dmd/Devices/Server')
         <DeviceClass at /zport/dmd/Devices/Server>
         >>> dmd.getObjByPath('Devices/Server')
         <DeviceClass at /zport/dmd/Devices/Server>
@@ -601,9 +601,9 @@ class ZenModelBase(object):
         """
         Check to see if a name is local to our current context or if it comes
         from our acquisition chain.
-        
+
         @rtype: boolean
-        
+
         >>> dmd.isLocalName('Devices')
         True
         >>> dmd.Devices.Server.isLocalName('Devices')
@@ -616,13 +616,13 @@ class ZenModelBase(object):
     def helpLink(self):
         """
         DEPRECATED Return a link to the objects help file.
-        
+
         @permission: ZEN_VIEW
         """
         path = self.__class__.__module__.split('.')
         className = path[-1].replace('Class','')
         product = path[-2]
-       
+
         path = ("", "Control_Panel", "Products", product, "Help",
                 "%s.stx"%className)
 
@@ -632,7 +632,7 @@ class ZenModelBase(object):
             app.restrictedTraverse(path)
         except (KeyError, Unauthorized):
             return ""
-            
+
         url = "/HelpSys?help_url="+ "/".join(path)
 
         return """<a class="tabletitle" href="%s" \
@@ -648,7 +648,7 @@ class ZenModelBase(object):
         """
         Return the icon associated with this object.  The icon path is defined
         in the zProperty zIcon.
-        
+
         @return: Path to icon
         @rtype: string
         @permission: ZEN_VIEW
@@ -658,7 +658,7 @@ class ZenModelBase(object):
         '/zport/dmd/img/icons/server.png'
         """
         try:
-            return self.primaryAq().zIcon 
+            return self.primaryAq().zIcon
         except AttributeError:
             return '/zport/dmd/img/icons/noicon.png'
 

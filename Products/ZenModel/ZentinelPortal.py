@@ -66,8 +66,11 @@ class ZentinelPortal ( PortalObjectBase ):
         """
         zcatalog = self.dmd.Devices.deviceSearch
         glob = queryString.rstrip('*') + '*'
+        titleGlob = glob
         glob = MatchGlob('id', glob)
-        query = Or(glob, Eq('getDeviceIp', queryString))
+        titleGlob = MatchGlob('titleOrId', titleGlob)
+        query = Or(glob,titleGlob)
+        query = Or(query, Eq('getDeviceIp', queryString))
         brains = zcatalog.evalAdvancedQuery(query)
         if REQUEST and len(brains) == 1:
             raise Redirect(urllib.quote(brains[0].getPrimaryId))

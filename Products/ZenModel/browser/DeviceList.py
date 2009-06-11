@@ -35,7 +35,7 @@ class AdvancedQueryDeviceList(object):
         return self._getAdvancedQueryDeviceList(*args, **kwargs)
 
     def _getAdvancedQueryDeviceList(self, offset=0, count=50, filter='',
-                                   orderby='id', orderdir='asc'):
+                                   orderby='titleOrId', orderdir='asc'):
         """
         Ask the catalog for devices matching the criteria specified.
         """
@@ -46,6 +46,7 @@ class AdvancedQueryDeviceList(object):
         filter = '(?is).*%s.*' % filter
         filterquery = Or(
             MatchRegexp('id', filter),
+            MatchRegexp('titleOrId', filter),
             MatchRegexp('getDeviceIp', filter),
             MatchRegexp('getProdState', filter),
             MatchRegexp('getDeviceClassPath', filter)
@@ -70,7 +71,7 @@ class DeviceList(BrowserView):
 
     @json
     def _getJSONDeviceInfo(self, offset=0, count=50, filter='',
-                           orderby='id', orderdir='asc'):
+                           orderby='titleOrId', orderdir='asc'):
         """
         Get devices under self according to criteria and return results as
         JSON.
@@ -110,7 +111,7 @@ class DeviceBatch(BrowserView):
     def _setDeviceBatchProps(self, method='', extraarg=None,
                              selectstatus='none', goodevids=[],
                              badevids=[], offset=0, count=50, filter='',
-                             orderby='id', orderdir='asc', **kwargs):
+                             orderby='titleOrId', orderdir='asc', **kwargs):
         d = {'lockDevicesFromUpdates':'sendEventWhenBlocked',
              'lockDevicesFromDeletion':'sendEventWhenBlocked',
              'unlockDevices':'',
@@ -170,7 +171,7 @@ class DeviceBatch(BrowserView):
 
     def _getDeviceBatch(self, selectstatus='none', goodevids=[],
                        badevids=[], offset=0, count=50, filter='',
-                       orderby='id', orderdir='asc'):
+                       orderby='titleOrId', orderdir='asc'):
         unused(count, offset, orderby, orderdir)
         if not isinstance(goodevids, (list, tuple)):
             goodevids = [goodevids]
@@ -183,6 +184,7 @@ class DeviceBatch(BrowserView):
         filter = '(?is).*%s.*' % filter
         filterquery = Or(
             MatchRegexp('id', filter),
+            MatchRegexp('titleOrId', filter),
             MatchRegexp('getDeviceIp', filter),
             MatchRegexp('getProdState', filter),
             MatchRegexp('getDeviceClassPath', filter)

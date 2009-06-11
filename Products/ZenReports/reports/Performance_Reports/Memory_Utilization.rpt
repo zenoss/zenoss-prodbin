@@ -6,7 +6,7 @@
 	                                           objects,
 	                                           sortedHeader='availableReal', 
 	                                           sortedSence='desc');
-    exportFields python:['device', 'totalReal', 'availableReal', 'cached',
+    exportFields python:['deviceName', 'totalReal', 'availableReal', 'cached',
  						'buffered', 'percentUsed'];
 ">
 <tal:block metal:use-macro="here/reportMacros/macros/exportableReport">

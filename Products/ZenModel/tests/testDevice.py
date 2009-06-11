@@ -1,7 +1,7 @@
 ###########################################################################
 #
 # This program is part of Zenoss Core, an open source monitoring platform.
-# Copyright (C) 2007, Zenoss Inc.
+# Copyright (C) 2009, Zenoss Inc.
 #
 # This program is free software; you can redistribute it and/or modify it
 # under the terms of the GNU General Public License version 2 as published by
@@ -46,7 +46,18 @@ class TestDevice(ZenModelBaseTest):
         self.assert_(isinstance(dev, Device))
         self.assertEqual(dev.deviceClass(), self.dmd.Devices)
         self.assertEqual(dev.getDeviceClassName(), "/")
+        self.assertEqual(dev.id, "mydevice")
+        self.assertEqual(dev.titleOrId(), "mydevice")
 
+    def testManage_createDeviceWithIdAndTitle(self):
+        dev = manage_createDevice(self.dmd, 'mydevice', '/',
+                                  title="mydevicetitle")
+        self.assert_(isinstance(dev, Device))
+        self.assertEqual(dev.deviceClass(), self.dmd.Devices)
+        self.assertEqual(dev.getDeviceClassName(), "/")
+        self.assertEqual(dev.id, "mydevice")
+        self.assertEqual(dev.title, "mydevicetitle")
+        self.assertEqual(dev.titleOrId(), "mydevicetitle")
 
     def testManage_createDeviceDup(self):
         dev = manage_createDevice(self.dmd, 'mydevice', '/')
@@ -248,6 +259,7 @@ class TestDevice(ZenModelBaseTest):
         self.assertEqual(self.dev.getDeviceGroupNames(), [])
         self.assertEqual(self.dev.getSystemNames(), [])
         self.assertEqual(self.dev.getPerformanceServerName(), "localhost")
+        self.assertEqual(self.dev.title, '')
 
         self.dev.manage_editDevice(tag='tag', serialNumber='SN123',
                         zSnmpCommunity='theHood', zSnmpPort=121, zSnmpVer='v2',
@@ -257,7 +269,8 @@ class TestDevice(ZenModelBaseTest):
                         osProductName="osProd", locationPath='/test/loc',
                         groupPaths=['/group/path1','/group/path2'],
                         systemPaths=['/sys/path1','/sys/path2'],
-                        performanceMonitor='perfMon')
+                        performanceMonitor='perfMon',
+                        title='testTitle')
                         
         self.assertEqual(self.dev.hw.tag, 'tag')
         self.assertEqual(self.dev.hw.serialNumber, 'SN123')
@@ -278,7 +291,8 @@ class TestDevice(ZenModelBaseTest):
         self.assert_('/sys/path1' in self.dev.getSystemNames())
         self.assert_('/sys/path2' in self.dev.getSystemNames())
         self.assertEqual(self.dev.getPerformanceServerName(), "perfMon")
-
+        self.assertEqual(self.dev.title, "testTitle")
+        
     def test_setZProperties(self):
         decoding = self.dmd.Devices.zCollectorDecoding
         zProperties = {'zCommandUsername':'testuser',
@@ -291,6 +305,14 @@ class TestDevice(ZenModelBaseTest):
         self.assertEqual(device.zCollectorDecoding, decoding)
         self.assertEqual(device.isLocal('zCommandUsername'), True)
         self.assertEqual(device.isLocal('zCollectorDecoding'), False)
+
+    def testPrettyLinkWithTitleOrId(self):
+        dev = manage_createDevice(self.dmd, 'testId', '/')
+        link = dev.getPrettyLink()
+        self.assert_( link.endswith( 'testId</a>' ) )
+        dev.title = 'testTitle'
+        link = dev.getPrettyLink()
+        self.assert_( link.endswith( 'testTitle</a>' ) )
 
 class GetSnmpConnInfoTest(ZenModelBaseTest):
     

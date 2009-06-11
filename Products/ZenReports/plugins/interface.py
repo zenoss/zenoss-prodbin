@@ -15,7 +15,8 @@ import Globals
 import re
 from Products.ZenReports import Utils, Utilization
 from Products.ZenReports.AliasPlugin import AliasPlugin, Column, \
-                                            PythonColumnHandler, RRDColumnHandler
+                                            PythonColumnHandler, \
+                                            RRDColumnHandler
 
 class interface( AliasPlugin ):
     "The interface usage report"
@@ -36,7 +37,7 @@ class interface( AliasPlugin ):
     
     def getColumns(self):
         return [
-                Column('deviceName', PythonColumnHandler( 'device.id' )),
+                Column('deviceName', PythonColumnHandler( 'device.titleOrId()' )),
                 Column('columnName', PythonColumnHandler( 'component.name()' )),
                 Column('speed', PythonColumnHandler('component.speed')),
                 Column('input', RRDColumnHandler( 'inputOctets__bytes' )),

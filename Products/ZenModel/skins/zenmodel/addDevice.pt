@@ -156,12 +156,20 @@
         </tr>
         <tr>
              <td class="tableheader" align="left">Rack Slot</td>
-            <td class="tablevalues" align="left" colspan="3">
+            <td class="tablevalues" align="left">
                 <input class="tablevalues" type="text" 
                     size="25" name="rackSlot"
                     tal:attributes="onkeypress submitViaEnter;
                         value device/rackSlot | 
                         request/rackSlot | python:0"/>
+            </td>
+            <td class="tableheader" align="left">Title</td>
+            <td class="tablevalues" align="left">
+                <input class="tablevalues" type="text"
+                    size="25" name="title"
+                    tal:attributes="onkeypress submitViaEnter;
+                        value request/title |
+                        device/title | string:"/>
             </td>
            </tr>
             <tr>

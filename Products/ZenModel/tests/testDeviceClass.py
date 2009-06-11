@@ -66,6 +66,12 @@ class TestDeviceClass(ZenModelBaseTest):
     def testSearchDevicesMultipleDevices(self):
         devices = self.dmd.Devices
         self.assertEqual(len(devices.searchDevices("testdev*")), 2)
+
+    def testSearchDevicesByTitle(self):
+        self.dev2.setTitle('testtitle2')
+        foundDevices = self.dmd.Devices.searchDevices('testtitle2')
+        self.assertEqual( len( foundDevices ), 1 )
+        self.assertEqual( foundDevices[0].id, self.dev2.id )
         
     def testFindExact(self):
         
@@ -75,11 +81,49 @@ class TestDeviceClass(ZenModelBaseTest):
         #inexact        
         self.assertEqual(len(devices._findDevice(id)), 2)
         #exact
-        dev = devices.findDeviceExact(id)
+        dev = devices.findDeviceByIdExact(id)
         self.assertEqual( dev.id, id )
         
-        self.assert_( not devices.findDeviceExact(None) )
-        self.assert_( not devices.findDeviceExact('badid') )
+        self.assert_( not devices.findDeviceByIdExact(None) )
+        self.assert_( not devices.findDeviceByIdExact('badid') )
+
+    def test_FindDevices(self):
+        devBrains = self.dmd.Devices._findDevice( 'testdev' )
+        self.assertEqual( len( devBrains ), 1 )
+        dev = devBrains[0].getObject()
+        self.assertEqual( dev.id, 'testdev' )
+        dev.setTitle('testdev2')
+        devBrains = self.dmd.Devices._findDevice( 'testdev2' )
+        self.assertEqual( len( devBrains ), 2 )
+        self.assertEqual( devBrains[0].getObject().id, 'testdev2' )
+        self.assertEqual( devBrains[1].getObject().id, 'testdev' )
+        devBrains = self.dmd.Devices._findDevice( 'testdev2', False )
+        self.assertEqual( len( dev ), 1 )
+        self.assertEqual( devBrains[0].getObject().id, 'testdev2' )
+        devBrains = self.dmd.Devices._findDevice( 'badid' )
+        self.assert_( not devBrains )
+
+    def testFindDevice(self):
+        dev = self.dmd.Devices.findDevice( 'testdev' )
+        self.assertEqual( dev.id, 'testdev' )
+        dev.setTitle('testdev2')
+        dev = self.dmd.Devices.findDevice( 'testdev2' )
+        self.assertEqual( dev.id, 'testdev2' )
+        dev.setTitle( 'testtitle' )
+        dev = self.dmd.Devices.findDevice( 'testtitle' )
+        self.assertEqual( dev.id, 'testdev2' )
+        dev = self.dmd.Devices.findDevice( 'badid' )
+        self.assert_( dev is None )
+
+
+    def testFindDeviceByIdOrIp(self):
+        dev = self.dmd.Devices.findDeviceByIdOrIp( 'testdev' )
+        self.assertEqual( dev.id, 'testdev' )
+        dev.setManageIp( '1.1.1.1' )
+        dev = self.dmd.Devices.findDeviceByIdOrIp( '1.1.1.1' )
+        self.assertEqual( dev.id, 'testdev' )
+        dev = self.dmd.Devices.findDeviceByIdOrIp( 'badid' )
+        self.assert_( dev is None )
 
     def testGetPeerDeviceClassNames(self):
         dcnames = self.dev3.getPeerDeviceClassNames()

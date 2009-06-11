@@ -911,7 +911,7 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
                     dev = devclass.findDevice(devname)
                     if dev and not simple:
                         alink = "<a href='%s'>%s</a>" % (
-                                dev.getPrimaryUrlPath(), dev.id)
+                                dev.getPrimaryUrlPath(), dev.titleOrId())
                     else: alink = devname
                     statusCache.append([alink, comp, dtime, devname])
                 if limit:

@@ -11,7 +11,7 @@
     <div style="padding:5px;border-bottom:1px solid #aaa;
                 background-color:#f8f8f8">
     <ul class="inline-ul">
-    <li> Device: <span tal:content="here/id" class="bigtext"/>
+    <li> Device: <span tal:content="here/titleOrId" class="bigtext"/>
     <li> IP: <span tal:content="here/manageIp" class="bigtext"/>
     <li tal:define="isup python:here.getPingStatus()<1;
                            color python:test(isup, 'green', 'red');

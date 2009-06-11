@@ -70,7 +70,7 @@ class DeviceComponent(Lockable):
         """
         Return the name of this component.  Default is id.
         """
-        return self.id
+        return self.titleOrId()
 
 
     def monitored(self):

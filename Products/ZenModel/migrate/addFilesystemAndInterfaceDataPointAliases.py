@@ -22,8 +22,8 @@ def attachAliases( dmd, aliasMap ):
                         dp.addAlias( *aliasMap[dp.id] )
 
 
-class addFilesystemAndInterfaceDataPointAliases(Migrate.Step):
-    version = Migrate.Version(2, 4, 70)
+class AddFilesystemAndInterfaceDataPointAliases(Migrate.Step):
+    version = Migrate.Version(2, 5, 0)
 
     def cutover(self, dmd):
         attachAliases( dmd, 
@@ -36,4 +36,4 @@ class addFilesystemAndInterfaceDataPointAliases(Migrate.Step):
            )
 
             
-addFilesystemAndInterfaceDataPointAliases()
+AddFilesystemAndInterfaceDataPointAliases()

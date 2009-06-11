@@ -256,12 +256,12 @@ class ZenModelRM(ZenModelBase, RelationshipManager, Historical, ZenPacker):
         >>> n.primarySortKey()
         16909056L
         """
-        return self.getId()
+        return self.titleOrId()
     
         
     security.declareProtected('View', 'viewName')
     def viewName(self):
-        return self.getId()
+        return self.titleOrId()
     
         
     #actions?

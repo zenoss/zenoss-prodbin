@@ -140,7 +140,7 @@ class WmiConfig(ModelerService, ThresholdMixin):
             # two different proxies for the same device being provided which
             # will cause great grief with the native code DCOM implementation
             # we use.
-            device = self.dmd.Devices.findDeviceExact(name)
+            device = self.dmd.Devices.findDeviceByIdExact(name)
             if not device:
                 continue
             elif deviceMap.has_key(device.id):

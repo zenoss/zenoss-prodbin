@@ -176,7 +176,7 @@ class DeviceIssuesPortletView(BrowserView):
             return cmp(a, b)
         for devname in devices:
             dev = devclass.findDevice(devname)
-            if dev and dev.id == devname:
+            if dev and ( dev.id == devname or dev.titleOrId() == devname ):
                 if (not zem.checkRemotePerm(ZEN_VIEW, dev)
                     or dev.productionState < zem.prodStateDashboardThresh
                     or dev.priority < zem.priorityDashboardThresh):

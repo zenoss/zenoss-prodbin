@@ -102,6 +102,11 @@ class ZItem(Base, CopySource, App.Management.Tabs, Traversable,
         if title: return title
         return self.getId()
 
+    def titleOrId(self):
+        """Return the title if it is not blank and the id otherwise
+        """
+        return self.title_or_id()
+
     def title_and_id(self):
         """Return the title if it is not blank and the id otherwise.
 

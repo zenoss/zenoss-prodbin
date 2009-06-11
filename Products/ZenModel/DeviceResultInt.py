@@ -33,7 +33,7 @@ class DeviceResultInt:
         '''Get the device name of this device or associated device'''
         d = self.device()
         if d:
-            return d.getId()
+            return d.titleOrId()
         return "No Device"
 
 
@@ -54,7 +54,7 @@ class DeviceResultInt:
         if d:
             if self.checkRemotePerm("View", d):
                 return "<a href='%s/%s'>%s</a>" % (
-                    d.getPrimaryUrlPath(), screen, d.getId())
+                    d.getPrimaryUrlPath(), screen, d.titleOrId())
             else:
                 return d.getId()
         return ""

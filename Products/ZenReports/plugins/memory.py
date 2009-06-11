@@ -45,7 +45,7 @@ class memory:
             if totalReal and free:
                 percentUsed = Utils.percent(totalReal - free, totalReal)
             r = Utils.Record(device=d,
-                             deviceName=d.id,
+                             deviceName=d.titleOrId(),
                              totalReal=totalReal,
                              percentUsed=percentUsed,
                              availableReal=availableReal,

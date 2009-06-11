@@ -111,7 +111,7 @@ class OSComponent(DeviceComponent, ManagedEntity):
                     "</div>%s</a>")
         icon = self.getIconPath()
         href = self.getPrimaryUrlPath()
-        name = self.id
+        name = self.titleOrId()
         return template % (href, icon, name)
 
 

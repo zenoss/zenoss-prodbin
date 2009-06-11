@@ -167,7 +167,7 @@ class DiscoverService(ModelerService):
 
     @translateError
     def remote_succeedDiscovery(self, id):
-        dev = self.dmd.Devices.findDevice(id)
+        dev = self.dmd.Devices.findDeviceByIdOrIp(id)
         if dev: 
             dev._temp_device = False
         transaction.commit()

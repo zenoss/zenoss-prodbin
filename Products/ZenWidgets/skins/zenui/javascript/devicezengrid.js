@@ -399,12 +399,12 @@ DeviceZenGrid.prototype = {
             'background':'#aaa url(img/arrow.u.gif) right no-repeat',
             'color':'black'
         });
-        this.lastparams['orderby']='id';
+        this.lastparams['orderby']='titleOrId';
         this.lastparams['orderdir']='asc';
     },
     toggleSortOrder: function(e) {
         var fieldmap = {
-            'Device Id':'id',
+            'Device':'titleOrId',
             'IP':'getDeviceIp',
             'Class':'getDeviceClassPath',
             'Prod State':'getProdState',
@@ -436,7 +436,7 @@ DeviceZenGrid.prototype = {
                         'background':'#aaa url(img/arrow.u.gif) right no-repeat',
                         'color':'black'
                     });
-                    this.refreshWithParams({'orderby':'id','orderdir':'asc'});
+                    this.refreshWithParams({'orderby':'titleOrId','orderdir':'asc'});
                     return;
             }
         } else {
@@ -472,7 +472,7 @@ DeviceZenGrid.prototype = {
             this.setTableNumRows(this.numRows);
             if (this.lock.locked) this.lock.release();
         }, this);
-        r = [['Device Id',25.0],['IP',16.0],['Class',25.0],
+        r = [['Device',25.0],['IP',16.0],['Class',25.0],
              ['Prod State',16.0],['Event Summary',14.0]]
         this.fields=r;
         if (isManager) this.fields = concat([['&nbsp;','']], this.fields);

@@ -29,7 +29,7 @@ from Acquisition import aq_base, aq_chain
 from AccessControl import ClassSecurityInfo
 from AccessControl import Permissions as permissions
 
-from Products.AdvancedQuery import MatchGlob, Or, Eq
+from Products.AdvancedQuery import MatchGlob, Or, Eq, RankByQueries_Max
 from Products.CMFCore.utils import getToolByName
 
 from Products.ZenModel.ZenossSecurity import *
@@ -201,7 +201,7 @@ class DeviceClass(DeviceOrganizer, ZenPackable, TemplateContainer):
         target = self.getDmdRoot(self.dmdRootName).getOrganizer(moveTarget)
         if type(deviceNames) == types.StringType: deviceNames = (deviceNames,)
         for devname in deviceNames:
-            dev = self.findDeviceExact(devname)
+            dev = self.findDeviceByIdExact(devname)
             if not dev: continue
             source = dev.deviceClass().primaryAq()
             if dev.__class__ != target.getPythonDeviceClass():
@@ -416,10 +416,24 @@ class DeviceClass(DeviceOrganizer, ZenPackable, TemplateContainer):
 
         return devices
 
-    def _findDevice(self, devicename):
-        query = Or(MatchGlob('id', devicename), 
-                   Eq('getDeviceIp', devicename))
-        return self._getCatalog().evalAdvancedQuery(query)
+    def _findDevice(self, devicename, useTitle=True):
+        """
+        Returns all devices whose ip/id/title match devicename.
+        ip/id matches are at the front of the list.
+
+        @rtype: list of brains
+        """
+        idIpQuery = Or( MatchGlob('id', devicename),
+                        Eq('getDeviceIp', devicename) )
+        if useTitle:
+            titleOrIdQuery = MatchGlob('titleOrId', devicename)
+            query = Or( idIpQuery, titleOrIdQuery )
+            rankSort = RankByQueries_Max( ( idIpQuery, 16 ),
+                                          ( titleOrIdQuery, 8 ) )
+            devices = self._getCatalog().evalAdvancedQuery(query, (rankSort,))
+        else:
+            devices = self._getCatalog().evalAdvancedQuery(idIpQuery)
+        return devices
 
     def findDevicePath(self, devicename):
         """
@@ -431,12 +445,21 @@ class DeviceClass(DeviceOrganizer, ZenPackable, TemplateContainer):
 
     def findDevice(self, devicename):
         """
-        Look up device in catalog and return it
+        Returns the first device whose ip/id matches devicename.  If
+        there is no ip/id match, return the first device whose title
+        matches devicename.
         """
         ret = self._findDevice(devicename)
         if ret: return ret[0].getObject()
 
-    def findDeviceExact(self, devicename):
+    def findDeviceByIdOrIp(self, devicename):
+        """
+        Returns the first device that has an ip/id that matches devicename
+        """
+        ret = self._findDevice( devicename, False )
+        if ret: return ret[0].getObject()
+    
+    def findDeviceByIdExact(self, devicename):
         """
         Look up device in catalog and return it.  devicename
         must match device id exactly
@@ -712,7 +735,7 @@ class DeviceClass(DeviceOrganizer, ZenPackable, TemplateContainer):
         zcat = self._getOb(self.default_catalog)
         cat = zcat._catalog
         for idxname in ['id',
-            'getDeviceIp','getDeviceClassPath','getProdState']:
+            'getDeviceIp','getDeviceClassPath','getProdState','titleOrId']:
             cat.addIndex(idxname, makeCaseInsensitiveFieldIndex(idxname))
         cat.addIndex('getPhysicalPath', makePathIndex('getPhysicalPath'))
         cat.addIndex('path', makeMultiPathIndex('path'))
