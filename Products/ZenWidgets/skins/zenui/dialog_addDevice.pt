@@ -21,6 +21,17 @@ tal:attributes="value here/absolute_url_path"/>
           </option>
         </select> 
 </td></tr>
+<tr><td>Collector:</td><td>
+    <select class="tablevalues" name="performanceMonitor" style="width:150px"
+        tal:define="
+            crks python:here.getDmdRoot('Monitors').getPerformanceMonitorNames();
+            curcrk here/getPerformanceServerName | request/performanceMonitor |
+            string:localhost">
+
+        <option tal:repeat="crk crks" tal:content="crk" tal:attributes="
+            value crk; selected python:curcrk and crk in curcrk"/>
+    </select>
+</td></tr>
 <tr><td>Discovery Protocol: </td><td>
         <select class="tablevalues" name="discoverProto" style="width:150px">
             <option value="snmp">snmp</option>
