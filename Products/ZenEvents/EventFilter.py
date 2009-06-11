@@ -88,6 +88,7 @@ class EventFilter(object):
             "debug","info","notice","warning","error","critical",
             "alert","emergency"]),
             component=Text("Component"),
+            eventKey=Text("Event Key"),
             message=Text("Message"),
             ntevid=Text("ntevid"),
             ipAddress=Text("IP Address"),
