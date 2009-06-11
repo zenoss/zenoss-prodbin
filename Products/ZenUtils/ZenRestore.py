@@ -174,6 +174,19 @@ class ZenRestore(ZenBackupBase):
                         os.path.join(tempDir, 'etc.tar'))
         if os.system(cmd): return -1
         
+        # Copy ZenPack files
+        tempPacks = os.path.join(tempDir, 'ZenPacks.tar')
+        if os.path.isfile(tempPacks):
+            self.msg('Restoring ZenPacks.')
+            cmd = 'rm -rf %s' % zenPath('ZenPacks')
+            if os.system(cmd): return -1
+            cmd = 'tar Cxf %s %s' % (
+                            zenPath(),
+                            os.path.join(tempDir, 'ZenPacks.tar'))
+            if os.system(cmd): return -1
+        else:
+            self.msg('Backup contains no ZenPacks.')
+        
         # Copy perf files
         cmd = 'rm -rf %s' % os.path.join(zenPath(), 'perf')
         if os.system(cmd): return -1

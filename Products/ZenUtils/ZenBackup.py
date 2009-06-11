@@ -398,6 +398,13 @@ class ZenBackup(ZenBackupBase):
         etcTar.add(zenPath('etc'), 'etc')
         etcTar.close()
         self.log.info("Backup of config files completed.")
+        
+        # Copy /ZenPacks to backup dir
+        self.log.info('Backing up ZenPacks.')
+        etcTar = tarfile.open(os.path.join(self.tempDir, 'ZenPacks.tar'), 'w')
+        etcTar.add(zenPath('ZenPacks'), 'ZenPacks')
+        etcTar.close()
+        self.log.info("Backup of ZenPacks completed.")
 
         if self.options.noPerfData:
             self.log.info('Skipping backup of performance data.')
