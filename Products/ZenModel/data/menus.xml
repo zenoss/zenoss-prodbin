@@ -2937,7 +2937,7 @@ Custom Schema
 editCustSchema
 </property>
 <property type="boolean" id="isglobal" mode="w" >
-False
+True
 </property>
 <property type="lines" id="permissions" mode="w" >
 ('Change Device',)
