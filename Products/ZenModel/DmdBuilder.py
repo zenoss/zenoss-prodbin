@@ -130,8 +130,8 @@ class DmdBuilder(object):
                  "Name to IP address lookup"),
                 ('DNS reverse', 'host ${device/manageIp}',
                  "IP address to name lookup"),
-                ('snmpwalk', 'snmpwalk -v1 -c${device/zSnmpCommunity}'
-                 ' ${here/manageIp} system',
+                ('snmpwalk', 'snmpwalk -${device/zSnmpVer} '
+                 '-c${device/zSnmpCommunity} ${here/manageIp} system',
                  "Display the OIDs available on a device"),
                 ):
             self.dmd.manage_addUserCommand(id, cmd=cmd, desc=desc)
