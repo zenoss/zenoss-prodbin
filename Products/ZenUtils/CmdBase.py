@@ -53,10 +53,14 @@ class CmdBase:
         # and tools will have any ZenPack monkey-patched methods available.
         zope.component.provideAdapter(DefaultTraversable, (None,))
         import Products
-        zcml.load_config('meta.zcml', Products.Five)
-        zcml.load_config('event.zcml', Products.Five)
-        zcml.load_config('indexing.zcml', Products.ZenModel)
-        zcml.load_config('configure.zcml', Products.ZenRelations)
+        try:
+            zcml.load_config('meta.zcml', Products.Five)
+            zcml.load_config('indexing.zcml', Products.ZenModel)
+            zcml.load_config('configure.zcml', Products.ZenRelations)
+        except AttributeError:
+            # Could be that we're in a pre-Product-installation Zope, e.g. in
+            # zenwipe. No problem, we won't need this stuff now anyway.
+            pass
         import Products.ZenossStartup
         unused(Products.ZenossStartup)
         

@@ -74,6 +74,8 @@ class ZenPackCmd(ZenScriptBase):
 
     def run(self):
         "Execute the user's request"
+        import Products
+        Products.Five.zcml.load_config('event.zcml', Products.Five)
         
         if self.args:
             print "Require one of --install, --remove or --list flags."
