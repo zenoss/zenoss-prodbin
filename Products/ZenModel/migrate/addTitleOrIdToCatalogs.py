@@ -13,6 +13,7 @@
 
 import Migrate
 import logging
+from Products.ZenUtils.Search import makeCaseInsensitiveFieldIndex
 
 log = logging.getLogger( 'zen.migrate' )
 
