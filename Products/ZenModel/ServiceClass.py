@@ -201,7 +201,7 @@ class ServiceClass(ZenModelRM, Commandable, ZenPackable):
             self.unindex_object()
             self.serviceKeys = serviceKeys
             self.index_object()
-        self._updateProperty('port', port)
+        self.port = port
         self.description = description
         if REQUEST:
             from Products.ZenUtils.Time import SaveMessage
