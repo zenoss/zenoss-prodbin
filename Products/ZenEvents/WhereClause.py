@@ -183,7 +183,7 @@ parser WhereClause:
     token VAR: "[a-zA-Z0-9_]+"
     token BIN: ">=|<=|==|=|<|>|!=|<>"
     token STR: r'"([^\\"]+|\\.)*"'
-    token STR2: r"'([^\\']+|\\.)*'"
+    token STR2: r"'([^\\']+'{2,}|[^\\']+|\\.)*'"
 
     rule goal:    andexp ? END       {{ return locals().get('andexp', None) }}
 
