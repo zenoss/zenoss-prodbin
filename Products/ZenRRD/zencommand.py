@@ -585,7 +585,7 @@ class zencommand(RRDDaemon):
             msg = "Command timed out on device %s: %r" % (dc.device, cmd.command)
             self.log.warning(msg)
             self.sendEvent(dict(device=dc.device,
-                                component="zencommand",
+                                component=cmd.component,
                                 eventClass=cmd.eventClass,
                                 eventKey=cmd.eventKey,
                                 severity=cmd.severity,
