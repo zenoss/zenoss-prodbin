@@ -1201,9 +1201,6 @@ evtsys
 </tomanycont>
 </object>
 <object id='App' module='Products.ZenEvents.EventClass' class='EventClass'>
-<property visible="True" type="int" id="zEventSeverity" >
-2
-</property>
 <object id='Start' module='Products.ZenEvents.EventClass' class='EventClass'>
 <property visible="True" type="lines" id="zEventClearClasses" >
 ['/App/Stop']
