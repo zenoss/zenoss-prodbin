@@ -20,6 +20,7 @@
 import time, os, sys
 import unittest
 from util.selTestUtils import *
+from util.Input import InputPage
 
 from util.selenium import selenium
 
@@ -32,6 +33,7 @@ SERVER      =   "nightlytest.zenoss.loc"         # Hosts the selenium jar file
 TARGET      =   "nightlytest.zenoss.loc"         # Added/deleted in HOST
 BROWSER     =   "*firefox"             # Can also be "*iexplore"
 WAITTIME    =   "60000"                 # Time to wait for page loads in milliseconds
+DEFAULT_DEVICE_CLASS = "/Server/Linux"  # Where to add classes by default
 ### END GLOBAL DEFS ###
 
 # Check for local defs
@@ -83,7 +85,7 @@ class SelTestBase(unittest.TestCase):
         self.waitForElement("__ac_password")
         self.selenium.type("__ac_name", user)
         self.selenium.type("__ac_password", passw)
-        self.selenium.click("//input[@name='submit']")
+        self.selenium.click("//input[@name='submitbutton']")
         self.selenium.wait_for_page_to_load(self.WAITTIME)
         
     def logout(self):
@@ -93,7 +95,7 @@ class SelTestBase(unittest.TestCase):
         
     # FAILS if device at deviceIp is already present in Zenoss test target.
     # Does it?  Looks to me like it attempts to delete it.  -jrs
-    def addDevice(self, deviceIp=TARGET, classPath="/Server/Linux"):
+    def addDevice(self, deviceIp=TARGET, classPath=DEFAULT_DEVICE_CLASS):
         """Adds a test target device to Zenoss"""
         # First, make sure the device isn't already in the system.
         self.waitForElement("query")
@@ -123,7 +125,8 @@ class SelTestBase(unittest.TestCase):
         if not deviceIp in self.devicenames:
             self.devicenames.append(deviceIp)
 
-    def addDeviceModel(self, deviceIp=TARGET, classPath="/Server/Linux"):
+    def addDeviceModel(self, deviceIp=TARGET,
+                       classPath=DEFAULT_DEVICE_CLASS):
         """Adds a test target device to Zenoss"""
         # First, make sure the device isn't already in the system.
         self.waitForElement("query")
@@ -152,6 +155,40 @@ class SelTestBase(unittest.TestCase):
             self.devicenames=[]
         if not deviceIp in self.devicenames:
             self.devicenames.append(deviceIp)
+
+    _editDeviceFields = {
+        'performanceMonitor' :   'select',
+        'zSnmpCommunity'     :   'text',
+        'tag'                :   'text',
+        'title'              :   'text',
+        'rackSlot'           :   'text',
+        'zSnmpPort'          :   'text',
+        'productionState:int':   'select',
+        'priority:int'       :   'select',
+        'serialNumber'       :   'text',
+        'hwManufacturer'     :   'select',
+        'hwProductName'      :   'select',
+        'osManufacturer'     :   'select',
+        'osProductName'      :   'select',
+        'locationPath'       :   'select',
+        'systemPaths'        :   'list',
+        'groupPaths'         :   'list',
+        'comments:text'      :   'text'
+        }
+
+    _editPage = InputPage( **_editDeviceFields )
+
+    def editDevice(self, deviceName, **kw):
+        """Edit the device on the edit tab"""
+        self.goToEditTab( deviceName )
+
+        for inputName, value in kw.iteritems():
+            self._editPage.setValue( self.selenium, inputName, value )
+
+        self.waitForElement("manage_editDevice:method")
+        self.selenium.click("manage_editDevice:method")
+        self.waitForElement("//div[contains(@id,'smoke-notification')]")
+        
 
     def addDeviceModelWindows(self, deviceIp=TARGET, classPath="/Server/Windows"):
         """Adds a test target device to Zenoss"""
@@ -184,12 +221,19 @@ class SelTestBase(unittest.TestCase):
             self.devicenames.append(deviceIp)
 
         
-    def deleteDevice(self, devname=None):
+    def deleteDevice(self, devname=None, expectedToBePresent=True):
         """Delete the test target device from Zenoss test instance"""
-        if not devname:
-            devname = getattr(self, "devname", TARGET)
-        self.goToDevice(devname)
-        self.waitForElement("link=Delete Device...")
+        deviceWait = expectedToBePresent and 15 or 3
+        try:
+            if not devname:
+                devname = getattr(self, "devname", TARGET)
+            self.goToDevice(devname)
+            self.waitForElement("link=Delete Device...", deviceWait)
+        except Exception, e:
+            if not expectedToBePresent:
+                return
+            else:
+                raise e
         self.selenium.click("link=Delete Device...")
         self.waitForElement("dialog_cancel")
         self.selenium.click("deleteDevice:method")
@@ -221,13 +265,17 @@ class SelTestBase(unittest.TestCase):
     # Values are a tuple:
     #   First element is the type of input field (either "text" or "select")
     #   Second element is the value that should be entered in the input field.
-    def addDialog(self, addType="OrganizerlistaddOrganizer", addMethod="dialog_submit", **textFields):
+    def addDialog(self, addType="OrganizerlistaddOrganizer", addMethod="dialog_submit",
+                  waitForSubmit=True, **textFields):
         """Fills in an AJAX dialog."""
         
         fieldkeys=textFields.keys()
         fieldkeys.reverse()
-        self.waitForElement(addType) # Bring up the dialog.
-        self.selenium.click(addType)
+        if addType.startswith('javascript:'):
+            self.selenium.run_script( addType[len('javascript:'):])
+        else:
+            self.waitForElement(addType) # Bring up the dialog.
+            self.selenium.click(addType)
         self.waitForElement(addMethod) # Wait till dialog is finished loading.
         for key in fieldkeys: # Enter all the values.
             value = textFields[key]
@@ -242,7 +290,9 @@ class SelTestBase(unittest.TestCase):
                 #self.selenium.click("css=li.yui-ac-highlight")
 
         self.selenium.click(addMethod) # Submit form.
-        self.selenium.wait_for_page_to_load(self.WAITTIME) # Wait for page refresh.
+        if waitForSubmit:
+            self.selenium.wait_for_page_to_load(self.WAITTIME) # Wait for page refresh.
+        
     def addDialogYui(self, addType="OrganizerlistaddOrganizer", addMethod="dialog_submit", **textFields):
         """Fills in an AJAX dialog."""
         
@@ -272,13 +322,20 @@ class SelTestBase(unittest.TestCase):
 
         self.selenium.click(addMethod) # Submit form.
         self.selenium.wait_for_page_to_load(self.WAITTIME) # Wait for page refresh.
+
     def goToDevice(self, deviceName=TARGET):
         self.waitForElement("query")
         self.selenium.type("query", deviceName)
         self.selenium.submit("searchform")
         self.selenium.wait_for_page_to_load(self.WAITTIME)
-        
-        
+
+    def goToEditTab(self, deviceName ):
+        self.goToDevice( deviceName )
+        self.waitForElement("link=Edit")
+        self.selenium.click("link=Edit")
+        self.selenium.wait_for_page_to_load(self.WAITTIME)
+        self.waitForElement("manage_editDevice:method")
+    
     def addOSProcessClass(self):
         """Adds an os process class"""
         self.selenium.click("link=Processes")
