@@ -115,6 +115,10 @@ class ZenossInfo(ZenModelItem, SimpleItem):
         )
 
 
+    def titleOrId(self):
+        return self.title or self.id
+
+
     security.declarePublic('getZenossVersion')
     def getZenossVersion(self):
         from Products.ZenModel.ZVersion import VERSION
