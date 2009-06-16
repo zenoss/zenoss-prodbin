@@ -656,11 +656,11 @@ class DeviceClass(DeviceOrganizer, ZenPackable, TemplateContainer):
                             expires='Wed, 31-Dec-97 23:59:59 GMT')
             REQUEST['__cp'] = None
             if target:
-                message = "Template(s) moved to %s" % moveTarget
+                message = "Template(s) copied to %s" % moveTarget
             else:
                 message = None
             messaging.IMessageSender(self).sendToBrowser(
-                'Templates Moved',
+                'Template(s) Copied',
                 message
             )
             if not isinstance(REQUEST, FakeRequest):
