@@ -1,0 +1,25 @@
+<configure
+    xmlns="http://namespaces.zope.org/zope"
+    xmlns:five="http://namespaces.zope.org/five"
+    xmlns:browser="http://namespaces.zope.org/browser"
+    i18n_domain="Products.ZenWidgets">
+
+    <adapter
+        provides=".interfaces.IUserMessages"
+        for="*"
+        factory=".messaging.UserMessageBox"
+        />
+
+    <adapter
+        provides=".interfaces.IBrowserMessages"
+        for="*"
+        factory=".messaging.BrowserMessageBox"
+        />
+
+    <adapter
+        provides=".interfaces.IMessageSender"
+        for="*"
+        factory=".messaging.ScriptMessageSender"
+        />
+
+</configure>

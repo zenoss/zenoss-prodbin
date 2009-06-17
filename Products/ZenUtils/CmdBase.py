@@ -57,6 +57,7 @@ class CmdBase:
             zcml.load_config('meta.zcml', Products.Five)
             zcml.load_config('indexing.zcml', Products.ZenModel)
             zcml.load_config('configure.zcml', Products.ZenRelations)
+            zcml.load_config('scriptmessaging.zcml', Products.ZenWidgets)
         except AttributeError:
             # Could be that we're in a pre-Product-installation Zope, e.g. in
             # zenwipe. No problem, we won't need this stuff now anyway.

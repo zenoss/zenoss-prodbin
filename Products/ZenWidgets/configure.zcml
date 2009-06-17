@@ -5,25 +5,9 @@
     i18n_domain="Products.ZenWidgets">
 
     <include package="zenoss.extjs"/>
+
     <include package=".browser"/>
-
-    <adapter
-        provides=".interfaces.IUserMessages"
-        for="*"
-        factory=".messaging.UserMessageBox"
-        />
-
-    <adapter
-        provides=".interfaces.IBrowserMessages"
-        for="*"
-        factory=".messaging.BrowserMessageBox"
-        />
-
-    <adapter
-        provides=".interfaces.IMessageSender"
-        for="*"
-        factory=".messaging.MessageSender"
-        />
+    <include file="messaging.zcml"/>
 
     <browser:page
         for="*"

@@ -109,7 +109,6 @@ class MessageBox(object):
         return msgs
 
 
-
 class BrowserMessageBox(MessageBox):
     """
     Adapter for all persistent objects. Provides a method, L{get_messages},
@@ -126,7 +125,6 @@ class BrowserMessageBox(MessageBox):
         """
         self.context = context
         self.messagebox = self.context.REQUEST.SESSION.get('messages', [])
-
 
 
 class UserMessageBox(MessageBox):
@@ -233,5 +231,19 @@ class MessageSender(object):
         users = getToolByName(self.context, 'ZenUsers')
         for name in users.getAllUserSettingsNames():
             self.sendToUser(title, body, priority, user=name, image=image)
+
+
+class ScriptMessageSender(MessageSender):
+    """
+    Special message sender for use in scripts. Short-circuits sendToBrowser and
+    sendToUser, since they don't really apply. sendToAll should still work fine
+    though.
+    """
+    def sendToBrowser(self, title, body, priority=INFO, image=None):
+        pass
+    def sendToUser(self, title, body, priority=INFO, image=None, user=None):
+        pass
+
+
 
 
