@@ -26,7 +26,7 @@ class PingConfig(PerformanceConfig):
         pm = dmd.Monitors.getPerformanceMonitor(self.instance)
         me = pm.findDevice(root)
         if not me:
-            me = self.lookupByIp(dmd, fallbackIp)
+            me = self.lookupByIp(dmd, pm, fallbackIp)
         if me: 
             self.log.info("building pingtree from %s", me.id)
             tree = pingtree.buildTree(me)
@@ -47,11 +47,12 @@ class PingConfig(PerformanceConfig):
         return device
 
 
-    def lookupByIp(self, dmd, fallbackIp):
+    def lookupByIp(self, dmd, pm, fallbackIp):
         """Try to find the root device by our IP
         """
         ip = dmd.Networks.findIp(fallbackIp)
-        if ip and ip.device():
+        if ip and ip.device() and \
+            ip.device().getPerformanceServerName() == pm.id:
             return ip.device()
         
 
