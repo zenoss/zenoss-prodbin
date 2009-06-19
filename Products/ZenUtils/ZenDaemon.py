@@ -134,6 +134,34 @@ class ZenDaemon(CmdBase):
             if self.options.weblog:
                 [ h.setFormatter(HtmlFormatter()) for h in rlog.handlers ]
 
+        # Allow the user to dynamically lower and raise the logging
+        # level without restarts.
+        import signal
+        signal.signal(signal.SIGUSR1, self.sighandler_USR1)
+
+    def sighandler_USR1(self, signum, frame):
+        """
+        Switch to debug level if signaled by the user, and to
+        default when signaled again.
+        """
+        levelNames = {
+          logging.DEBUG:"DEBUG",
+          logging.INFO:"INFO",
+          logging.WARN:"WARN",
+          logging.ERROR:"ERROR",
+          logging.CRITICAL:"CRITICAL",
+        }
+        currentLevel = self.log.getEffectiveLevel()
+        if currentLevel == logging.DEBUG:
+            self.log.setLevel(self.options.logseverity)
+            self.log.info("Restoring logging level back to %s (%d)",
+                           levelNames.get(self.options.logseverity,
+                                          "unknown"),
+                           self.options.logseverity)
+        else:
+            self.log.setLevel(logging.DEBUG)
+            self.log.info("Setting logging level to DEBUG")
+
 
     def changeUser(self):
         """

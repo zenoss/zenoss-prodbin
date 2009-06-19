@@ -156,6 +156,19 @@ genxmlconfigs() {
     exec $PYTHON $PRGHOME/$PRGNAME --genxmlconfigs
 }
 
+debug() {
+    PIDFILE=`pidFile $CFGFILE`
+    if [ -f $PIDFILE ]; then
+        PID=`cat $PIDFILE 2>/dev/null`
+        echo "Sending SIGUSR1 to $PID"
+        kill -s USR1 $PID 2>/dev/null || $PS | grep -q "^ *$PID$"
+        return $?
+    else
+        echo "Unable to find process to send SIGUSR1 signal"
+    fi
+
+}
+
 
 generic() {
     case "$CMD" in
@@ -183,9 +196,12 @@ generic() {
       genxmlconfigs)
 	    genxmlconfigs
 	    ;;
+      debug)
+	    debug "$@"
+	    ;;
       *)
 	    cat - <<HELP
-Usage: $0 {run|start|stop|restart|status|help|genconf|genxmlconfigs} [options]
+Usage: $0 {run|start|stop|restart|status|help|genconf|genxmlconfigs|debug} [options]
 
   where the commands are:
 
@@ -209,6 +225,8 @@ Usage: $0 {run|start|stop|restart|status|help|genconf|genxmlconfigs} [options]
     genconf - create an example configuration file with default settings 
 
     genxmlconfigs - create an XML file with default settings
+
+    debug   - toggle the logging of daemons between Debug level and the default
 
 HELP
 	    exit 1
