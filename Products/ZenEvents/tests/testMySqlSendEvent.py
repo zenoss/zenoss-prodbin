@@ -249,6 +249,38 @@ class MySqlSendEventTest(BaseTestCase):
         self.assertEquals(evt_p.severity, 3)
         self.assertEquals(evt_p._details[0][1], "one,two,three")
 
+    def testMappings(self):
+        """
+        Test to make sure that mappings are applied according to consistent
+        rules.
+        """
+        zem = self.dmd.ZenEventManager
+        
+        ec = self.dmd.Events.createOrganizer('/Test')
+        inst = ec.createInstance('noEventClassKeyMapping')
+        inst.regex = 'test of \w+ eventClassKey'
+        inst.eventClassKey = 'defaultmapping'
+        inst.index_object()
+        
+        # defaultmapping should be used for events with no eventClassKey.
+        evid = zem.sendEvent(dict(
+            device='damsel',
+            summary='test of no eventClassKey',
+            severity=5))
+        
+        evt = zem.getEventDetailFromStatusOrHistory(evid)
+        self.assertEquals(evt.eventClass, '/Test')
+        
+        # defaultmapping should be used for events with a blank eventClassKey.
+        evid = zem.sendEvent(dict(
+            device='damsel',
+            summary='test of blank eventClassKey',
+            severity=5,
+            eventClassKey=''))
+        
+        evt = zem.getEventDetailFromStatusOrHistory(evid)
+        self.assertEquals(evt.eventClass, '/Test')        
+
 
 def test_suite():
     from unittest import TestSuite, makeSuite

@@ -197,9 +197,12 @@ class EventClass(EventClassPropertyMixin, Organizer, ManagedEntity, ZenPackable)
             except KeyError:
                 log.debug("Unable to find '%s' organizer" % evt.eventClass)
 
-        if getattr(evt, "eventClassKey", False):
-            log.debug("lookup eventClassKey:%s", evt.eventClassKey)
-            evtcls = self.find(evt.eventClassKey)
+        # Use defaultmapping if no eventClassKey is set, or if it blank.
+        eventClassKey = getattr(evt, 'eventClassKey', 'defaultmapping') \
+            or 'defaultmapping'
+
+        log.debug("lookup eventClassKey:%s", eventClassKey)
+        evtcls = self.find(eventClassKey)
 
         for evtcl in evtcls:
             m = evtcl.match(evt, device)
