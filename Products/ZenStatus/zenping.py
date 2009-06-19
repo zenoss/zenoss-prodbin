@@ -326,6 +326,15 @@ class ZenPing(PBDaemon):
         def logResults(v):
             if isinstance(v, failure.Failure):
                 self.log.error("Unable to reload config for async update")
+                
+                # Reset loadingConfig so we don't get stuck in a mode where all
+                # asynchronous updates are blocked.
+                self.loadingConfig = None
+                
+                # Try loading the config again in 30 seconds to give zenhub
+                # time to restart.
+                driveLater(30, self.loadConfig)
+        
         d.addBoth(logResults)
 
 
