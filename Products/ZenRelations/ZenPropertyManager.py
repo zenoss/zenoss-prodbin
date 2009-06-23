@@ -41,6 +41,33 @@ class ZenPropertyManager(PropertyManager):
 
     ZenProperties all have the same prefix which is defined by iszprop
     this can be overridden in a subclass.
+    
+    ZenPropertyManager overrides getProperty and getPropertyType from 
+    PropertyManager to support acquisition. If you want to query an object
+    about a property, but do not want it to search the acquistion chain then
+    use the super classes method or aq_base.  Example:
+        
+        # acquires property from dmd.Devices
+        dmd.Devices.Server.getProperty('zCollectorPlugins')
+        
+        # does not acquire property from dmd.Devices
+        PropertyManager.getProperty(dmd.Devices.Server, 'zCollectorPlugins')
+        
+        # also does not acquire property from dmd.Devices
+        aq_base(dmd.Devices.Server).getProperty('zSnmpCommunity')
+        
+    The properties are stored as attributes which is convenient, but can be 
+    confusing.  Attribute access always uses acquistion.  Setting an
+    attribute, will not add it to the list of properties, so subsquent calls
+    to hasProperty or getProperty won't return it.
+    
+    Property Transformers are stored at dmd.propertyTransformers and transform
+    the property based on type during calls to the _setProperty, 
+    _updateProperty, and getProperty methods. Adding a property using 
+    _setProperty applies the appropriate transformer and adds its value as an
+    attribute, but when you access it as an attribute the property transformer
+    is not applied.  Instead of attribute access, you should always use the
+    getProperty method.
     """
     __pychecker__='no-override'
     
@@ -186,43 +213,41 @@ class ZenPropertyManager(PropertyManager):
     security.declareProtected(ZEN_ZPROPERTIES_VIEW, 'zenPropertyString')
     def zenPropertyString(self, id):
         """Return the value of a device tree property as a string"""
-        value = getattr(self, id, "")
-        rootnode = self.getZenRootNode()
-        type = rootnode.getPropertyType(id)
-        if type == "lines": 
-            value = "\n".join(map(str, value))
-        elif self.zenPropIsPassword(id):
-            value = "*"*len(value)
-        return value
-
+        def displayLines(lines):
+            return '\n'.join([str(line) for line in lines])
+        def displayPassword(password):
+            return '*' * len(password)
+        def displayOthers(other):
+            return other
+        displayFunctions = {'lines': displayLines,
+                            'password': displayPassword}
+        display = displayFunctions.get(self.getPropertyType(id), 
+                                       displayOthers)
+        return display(self.getProperty(id, ''))
+        
     security.declareProtected(ZEN_ZPROPERTIES_VIEW, 'zenPropIsPassword')
     def zenPropIsPassword(self, id):
         """Is this field a password field.
         """
-        return id.endswith("assword")
+        return self.getPropertyType(id) == 'password'
 
     security.declareProtected(ZEN_ZPROPERTIES_VIEW, 'zenPropertyPath')
     def zenPropertyPath(self, id):
         """Return the primaryId of where a device tree property is found."""
-        for obj in aq_chain(self):
-            if getattr(aq_base(obj), id, zenmarker) != zenmarker:
-                return obj.getPrimaryId(self.getZenRootNode().getId())
-
-    security.declareProtected(ZEN_ZPROPERTIES_VIEW, 'zenPropertyType')
-    def zenPropertyType(self, id):
-        """Return the type of this property."""
-        ptype = self.getZenRootNode().getPropertyType(id)
-        if not ptype: ptype = "string"
-        return ptype
-
+        ob = self._findParentWithProperty(id)
+        if ob is None:
+            path = None
+        else:
+            path = ob.getPrimaryId(self.getZenRootNode().getId())
+        return path
+                
     security.declareProtected(ZEN_ZPROPERTIES_EDIT, 'setZenProperty')
     def setZenProperty(self, propname, propvalue, REQUEST=None):
         """
         Add or set the propvalue of the property propname on this node of 
         the device Class tree.
         """
-        rootnode = self.getZenRootNode()
-        ptype = rootnode.getPropertyType(propname)
+        ptype = self.getPropertyType(propname)
         if ptype == 'lines': 
             dedupedList = [] 
             for x in propvalue: 
@@ -304,27 +329,94 @@ class ZenPropertyManager(PropertyManager):
         determines the transformer method that is called.
         
         The transformer lookup is performed against a dictionary that maps a
-        property type to an object that has transformForGet and
-        transformForSet methods. Typically the transformers dictionary is
-        acquired from dmd.propertyTransformers. If self has a 
-        propertyTransformers attribute (either through acquistion or dynamic
-        definition), then it is used, otherwise an empty dictionary is used
-        and the value is returned untouched.
+        property type to a callable factory that creates objects that have 
+        transformForGet and transformForSet methods. Typically the
+        transformers dictionary is acquired from dmd.propertyTransformers. If
+        self has a propertyTransformers attribute (either through acquistion
+        or dynamic definition), then it is used, otherwise an empty dictionary
+        is used and the value is returned untouched.
         """
-        transformers = getattr(self, 'propertyTransformers', {})
-        if type in transformers:
-            returnValue = getattr(transformers[type], method)(value)
+        factories = getattr(self, 'propertyTransformers', {})
+        if type in factories:
+            transformer = factories[type]()
+            returnValue = getattr(transformer, method)(value)
         else:
             returnValue = value
         return returnValue
+
+    def _findParentWithProperty(self, id):
+        """
+        Returns self or the first acquisition parent that has a property with
+        the id.  Returns None if no parent had the id.
+        """
+        for ob in aq_chain(self):
+            if isinstance(ob, ZenPropertyManager) and ob.hasProperty(id):
+                parentWithProperty = ob
+                break
+        else:
+            parentWithProperty = None
+        return parentWithProperty
+        
+    def hasProperty(self, id, useAcquisition=False):
+        """
+        Override method in PropertyManager to support acquisition.
+        """
+        if useAcquisition:
+            hasProp = self._findParentWithProperty(id) is not None
+        else:
+            hasProp = PropertyManager.hasProperty(self, id)
+        return hasProp
         
     def getProperty(self, id, d=None):
         """
         Get property value and apply transformer.  Overrides method in Zope's
-        PropertyManager class.
+        PropertyManager class.  Acquire values from aquisiton parents if
+        needed.
         """
-        return self._transform(PropertyManager.getProperty(self, id, d), 
-                               self.getPropertyType(id),
-                               'transformForGet')
+        ob = self._findParentWithProperty(id)
+        if ob is None:
+            value = d
+        else:
+            rawValue = PropertyManager.getProperty(ob, id, d)
+            type = PropertyManager.getPropertyType(ob, id)
+            value = self._transform(rawValue, type, 'transformForGet')
+        return value
+        
+    security.declareProtected(ZEN_ZPROPERTIES_VIEW, 'getPropertyType')
+    def getPropertyType(self, id):
+        """
+        Overrides methods from PropertyManager to support acquistion.
+        """
+        ob = self._findParentWithProperty(id)
+        if ob is None:
+            type = None
+        else:
+            type = PropertyManager.getPropertyType(ob, id)
+        return type
+        
+    security.declareProtected(ZEN_ZPROPERTIES_VIEW, 'getZ')
+    def getZ(self, id):
+        """
+        Return the value of a zProperty on this object.  This method is used to
+        lookup zProperties for a user with a role that doesn't have direct
+        access to an attribute further up the acquisition path.  If the
+        requested property is a password, then None is returned.
+
+        @param id: id of zProperty
+        @type id: string
+        @return: Value of zProperty
+        @permission: ZEN_ZPROPERTIES_VIEW
+
+        >>> dmd.Devices.getZ('zSnmpPort')
+        161
+        >>> dmd.Devices.getZ('zWinPassword')
+        >>>
+        """
+        if self.hasProperty(id, useAcquisition=True) \
+                and not self.zenPropIsPassword(id):
+            returnValue = self.getProperty(id)
+        else:
+            returnValue = None
+        return returnValue
         
 InitializeClass(ZenPropertyManager)

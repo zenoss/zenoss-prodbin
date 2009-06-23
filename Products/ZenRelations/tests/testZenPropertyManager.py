@@ -25,6 +25,7 @@ from unittest import TestCase
 from Products.ZenTestCase.BaseTestCase import BaseTestCase
 from Products.ZenRelations.ZenPropertyManager import ZenPropertyManager
 from Products.ZenRelations.RelationshipManager import RelationshipManager
+from Products.ZenUtils.ZenTales import talesEval
 
 class ZenPropertyManagerTest(ZenRelationsBaseTest):
 
@@ -160,7 +161,7 @@ class TransformerBase(object):
         self.manager.dog = 'Ripley'
         self.assertEqual('Ripley', self.manager.dog)
         
-transformers = {'my test type': Transformer()}
+transformers = {'my test type': Transformer}
 
 class TransformerTest(TransformerBase, TestCase):
     
@@ -184,12 +185,39 @@ class TransformerDmdTest(TransformerBase, BaseTestCase):
         self.dmd._setObject(managerId, RelationshipManager(managerId))
         self.manager = self.dmd.manager
         
+class AcquisitionTest(BaseTestCase):
+    
+    def runTest(self):
+        "test that getProperty acquires"
+        self.dmd._setProperty('foo', 'quux')
+        self.assertEqual('quux', self.dmd.Devices.getProperty('foo'))
+        
+class TalesTest(BaseTestCase):
+    
+    def runTest(self):
+        manager = self.dmd.Devices
+        talesEval('python: here.setZenProperty("foo", "bar")', manager)
+        result = talesEval('python: here.getProperty("foo")', manager)
+        self.assertEqual('bar', result)
+        
+class GetZTest(BaseTestCase):
+    
+    def runTest(self):
+        manager = self.dmd.Devices
+        manager._setProperty('foo', 'bar')
+        self.assertEqual('bar', manager.getZ('foo'))
+        manager._setProperty('quux', 'blah', 'password')
+        self.assertEqual(None, manager.getZ('quux'))
+        
 def test_suite():
     from unittest import TestSuite, makeSuite
     suite = TestSuite()
     suite.addTest(makeSuite(ZenPropertyManagerTest))
     suite.addTest(makeSuite(TransformerTest))
     suite.addTest(makeSuite(TransformerDmdTest))
+    suite.addTest(makeSuite(AcquisitionTest))
+    suite.addTest(makeSuite(TalesTest))
+    suite.addTest(makeSuite(GetZTest))
     return suite
 
 if __name__=="__main__":

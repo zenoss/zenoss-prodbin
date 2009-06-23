@@ -32,7 +32,7 @@
       <td class="tablevalues" tal:condition="python: not here.isManager(here)"
         tal:content="python: here.zenPropertyString(prop)"/>
       <td class="tablevalues" tal:condition="python: here.isManager(here)"
-        tal:define="ptype python:here.zenPropertyType(prop);
+        tal:define="ptype python:here.getPropertyType(prop);
                     pvalue python:here.zenPropertyString(prop);
                     popts python:here.zenPropertyOptions(prop);">
             <span tal:condition="python: ptype=='boolean'">
@@ -102,7 +102,7 @@
             </span>
       </td>
       <td class="tablevalues"
-        tal:content="python: here.zenPropertyType(prop)"> 
+        tal:content="python: here.getPropertyType(prop)"> 
         int
       </td>
       <td class="tablevalues" 

@@ -281,28 +281,6 @@ class ZenModelBase(object):
         links.reverse()
         return links
 
-
-    security.declareProtected(ZEN_VIEW, 'getZ')
-    def getZ(self, zpropname):
-        """
-        Return the value of a zProperty on this object.  This method is used to
-        lookup zProperties for a user with a role that doesn't have direct
-        access to an attribute further up the acquisition path.
-
-        @param zpropname: Name of zProperty
-        @type zpropname: string
-        @return: Value of zProperty
-        @permission: ZEN_VIEW
-
-        >>> dmd.Devices.getZ('zSnmpPort')
-        161
-        >>> dmd.Devices.getZ('zWinPassword')
-        >>>
-        """
-        if 'password' in zpropname.lower(): return
-        return getattr(self, zpropname)
-
-
     security.declareProtected(ZEN_COMMON, 'checkRemotePerm')
     def checkRemotePerm(self, permission, robject):
         """

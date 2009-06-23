@@ -120,9 +120,14 @@ class CollectorPlugin(object):
     def copyDataToProxy(self, device, proxy):
         """For anything monitored indirectly, copy it's status to the proxy device
         """
-        for prop in self.deviceProperties:
-            if hasattr(device, prop):
-                setattr(proxy, prop, getattr(device, prop))
+        for id in self.deviceProperties:
+            if device.hasProperty(id, useAcquisition=True):
+                value = device.getProperty(id)
+            elif hasattr(device, id):
+                value = getattr(device, id)
+            else:
+                continue
+            setattr(proxy, id, value)
         proxy._snmpStatus = device.getSnmpStatus()
 
 

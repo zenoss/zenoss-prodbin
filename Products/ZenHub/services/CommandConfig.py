@@ -73,14 +73,14 @@ def getDeviceCommands(dev):
         d.lastChange = dev.getLastChange()
         d.device = dev.id
         d.ipAddress = dev.getManageIp()
-        d.port = dev.zCommandPort
-        d.username = dev.zCommandUsername
-        d.password = dev.zCommandPassword
-        d.loginTimeout = dev.zCommandLoginTimeout
-        d.commandTimeout = dev.zCommandCommandTimeout
-        d.keyPath = dev.zKeyPath
-        d.maxOids = dev.zMaxOIDPerRequest
-        d.concurrentSessions = dev.zSshConcurrentSessions
+        d.port = dev.getProperty('zCommandPort')
+        d.username = dev.getProperty('zCommandUsername')
+        d.password = dev.getProperty('zCommandPassword')
+        d.loginTimeout = dev.getProperty('zCommandLoginTimeout')
+        d.commandTimeout = dev.getProperty('zCommandCommandTimeout')
+        d.keyPath = dev.getProperty('zKeyPath')
+        d.maxOids = dev.getProperty('zMaxOIDPerRequest')
+        d.concurrentSessions = dev.getProperty('zSshConcurrentSessions')
         d.commands = list(cmds)
         d.thresholds = threshs
         return d

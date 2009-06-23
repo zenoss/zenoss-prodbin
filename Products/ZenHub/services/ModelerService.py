@@ -78,7 +78,7 @@ class ModelerService(PerformanceConfig):
                 continue
             device = device.primaryAq()
             if (device.productionState <
-                getattr(device, 'zProdStateThreshold', 0)):
+                device.getProperty('zProdStateThreshold', 0)):
                 continue
             result.append(self.createDeviceProxy(device))
         return result

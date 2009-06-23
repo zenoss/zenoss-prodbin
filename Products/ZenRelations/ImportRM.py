@@ -32,6 +32,7 @@ from xml.sax.handler import ContentHandler
 
 from Acquisition import aq_base
 from zExceptions import NotFound
+from OFS.PropertyManager import PropertyManager
 
 from Products.ZenUtils.ZCmdBase import ZCmdBase
 from Products.ZenUtils.Utils import importClass

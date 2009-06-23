@@ -29,14 +29,14 @@ class zWmiMonitorProperty(Migrate.Step):
         if not dmd.Devices.hasProperty("zWmiMonitorIgnore"):
             dmd.Devices._setProperty("zWmiMonitorIgnore", True, type="boolean")
         else:
-            dmd.Devices.zWmiMonitorIgnore = True
+            dmd.Devices._updateProperty('zWmiMonitorIgnore', True)
 
         try:
             win = dmd.Devices.getOrganizer("/Server/Windows")
             if not win.hasProperty("zWmiMonitorIgnore"):
                 win._setProperty("zWmiMonitorIgnore", False, type="boolean")
             else:
-                win.zWmiMonitorIgnore = False
+                win._updateProperty('zWmiMonitorIgnore', False)
         except KeyError: pass
         
         # Delete misspelled zProp

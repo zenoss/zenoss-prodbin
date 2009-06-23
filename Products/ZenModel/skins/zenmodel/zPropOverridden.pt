@@ -49,13 +49,13 @@
          tal:content="structure link"/>
       </td> 
       <td class="tablevalues" 
-          tal:condition="python:here.zenPropertyType(prop) == 'lines'">
+          tal:condition="python:here.getPropertyType(prop) == 'lines'">
           <tal:block tal:repeat="item python:getattr(here, prop)">
                   <tal:block tal:content="item"/><br>
           </tal:block>
       </td>
       <td class="tablevalues" 
-          tal:condition="python:here.zenPropertyType(prop) != 'lines'"
+          tal:condition="python:here.getPropertyType(prop) != 'lines'"
           tal:content="python:here.zenPropertyString(prop)"/>
     </tr>
     <tr>
@@ -83,13 +83,13 @@
          tal:content="structure link"/>
       </td>
       <td class="tablevalues" 
-          tal:condition="python:orObject.zenPropertyType(prop) == 'lines'">
+          tal:condition="python:orObject.getPropertyType(prop) == 'lines'">
           <tal:block tal:repeat="item python:getattr(orObject, prop)">
                   <tal:block tal:content="item"/><br>
           </tal:block>
       </td>
       <td class="tablevalues" 
-          tal:condition="python:orObject.zenPropertyType(prop) != 'lines'"
+          tal:condition="python:orObject.getPropertyType(prop) != 'lines'"
           tal:content="python:orObject.zenPropertyString(prop)"/>
     </tr>
     </tal:block>

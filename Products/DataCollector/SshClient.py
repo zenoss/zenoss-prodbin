@@ -233,6 +233,7 @@ class SshUserAuth(userauth.SSHUserAuthClient):
         @param factory: factory info
         @type factory: Twisted factory object
         """
+        
         user = str(user)                # damn unicode
         if user == '':
             log.debug( "Unable to determine username/password from " + \
@@ -269,7 +270,6 @@ class SshUserAuth(userauth.SSHUserAuthClient):
         @return: Twisted deferred object (defer.succeed or defer.fail)
         @rtype: Twisted deferred object
         """
-
         if not self.factory.password:
             message= "SshUserAuth: no password found -- " + \
                      "has zCommandPassword been set?"

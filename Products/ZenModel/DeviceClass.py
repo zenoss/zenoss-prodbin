@@ -798,8 +798,8 @@ class DeviceClass(DeviceOrganizer, ZenPackable, TemplateContainer):
         devs._setProperty("zSnmpTries", 2, type="int")
         devs._setProperty("zSnmpTimeout", 2.5, type="float")
         devs._setProperty("zSnmpSecurityName", "")
-        devs._setProperty("zSnmpAuthPassword", "")
-        devs._setProperty("zSnmpPrivPassword", "")
+        devs._setProperty("zSnmpAuthPassword", "", 'password')
+        devs._setProperty("zSnmpPrivPassword", "", 'password')
         devs._setProperty("zSnmpAuthType", "")
         devs._setProperty("zSnmpPrivType", "")
         devs._setProperty("zRouteMapCollectOnlyLocal", False, type="boolean")
@@ -838,7 +838,7 @@ class DeviceClass(DeviceOrganizer, ZenPackable, TemplateContainer):
         devs._setProperty("zCollectorClientTimeout", 180, type="int")
         devs._setProperty("zCollectorDecoding", 'latin-1')
         devs._setProperty("zCommandUsername", "")
-        devs._setProperty("zCommandPassword", "")
+        devs._setProperty("zCommandPassword", "", 'password')
         devs._setProperty("zCommandProtocol", "ssh")
         devs._setProperty("zCommandPort", 22, type="int")
         devs._setProperty("zCommandLoginTries", 1, type="int")
@@ -867,7 +867,7 @@ class DeviceClass(DeviceOrganizer, ZenPackable, TemplateContainer):
 
         # Windows WMI collector properties
         devs._setProperty("zWinUser", "")
-        devs._setProperty("zWinPassword", "")
+        devs._setProperty("zWinPassword", "", 'password')
         devs._setProperty("zWinEventlogMinSeverity", 2, type="int")
         devs._setProperty("zWinEventlog", False, type="boolean")
 
