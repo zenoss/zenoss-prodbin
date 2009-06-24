@@ -13,11 +13,8 @@
 
 __doc__="""DeviceMap
 
-DeviceMap maps the interface and ip tables to interface objects
-
-$Id: DeviceMap.py,v 1.9 2003/11/19 03:14:53 edahl Exp $"""
-
-__version__ = '$Revision: 1.9 $'[11:-2]
+Record basic hardware/software information based on the snmpDscr OID.
+"""
 
 import re
 
@@ -26,7 +23,9 @@ from Products.DataCollector.plugins.DataMaps import MultiArgs
 from Products.DataCollector.EnterpriseOIDs import EnterpriseOIDs
 
 class NewDeviceMap(SnmpPlugin):
-
+    """
+    Record basic hardware/software information based on the snmpDscr OID.
+    """
     maptype = "NewDeviceMap" 
 
     snmpGetMap = GetMap({ 
@@ -55,22 +54,27 @@ class NewDeviceMap(SnmpPlugin):
         
         # Lantronix SLC
         re.compile(r'(SLC\d+), (Firmware Version .+)'),
+
+        # SunOS testHost 5.10 Generic_138889-05 i86pc
+        re.compile(r'^(SunOS) \S+ (\S+) (\S+) (\S+)'),                 # Solaris 10
    
         #GENERIC unix
         re.compile(r'(\S+) \S+ (\S+)'),                 # unix
     )
 
 
-    def condition(self, device, log):
-        """Only run if products have not been set.
-        """
-        return not device.os.getProductName() and not device.hw.getProductName()
-
-    
     def process(self, device, results, log):
-        """collect snmp information from this device"""
-        log.info('processing %s for device %s', self.name(), device.id)
+        """
+        Collect SNMP information from this device
+        """
+        log.info('Processing %s for device %s', self.name(), device.id)
         getdata, tabledata = results
+        if not getdata:
+            log.warn("Unable to retrieve getdata from %s", device.id)
+            log.warn("Does snmpwalk -v1 -c community %s 1.3.6.1.2.1.1 work?", 
+                     device.id)
+            return
+        log.debug("%s getdata = %s", device.id, getdata)
         om = self.objectMap(getdata)
         
         # Set the manufacturer according the IANA enterprise OID assignments.
@@ -88,7 +92,12 @@ class NewDeviceMap(SnmpPlugin):
             for regex in self.osregex:
                 m = regex.search(descr)
                 if m: 
-                    om.setOSProductKey = " ".join(m.groups())
+                    groups = m.groups()
+                    if groups[0] == 'SunOS':
+                        om.setOSProductKey = MultiArgs(" ".join(groups[0:3])
+                                                     , 'Sun')
+                    else:
+                        om.setOSProductKey = " ".join(groups)
                     log.debug("OSProductKey=%s", om.setOSProductKey)
                     break
         return om

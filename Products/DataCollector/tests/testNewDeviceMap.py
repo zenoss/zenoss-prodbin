@@ -94,6 +94,26 @@ class TestNewDeviceMap(BaseTestCase):
             '.1.3.6.1.4.1.8072.3.2.10')
 
 
+    def testSolaris(self):
+        results = loads("((dp1\nS'snmpDescr'\np2\nS'SunOS testHost 5.10 Generic_138889-05 i86pc'\np3\nsS'snmpOid'\np4\nS'.1.3.6.1.4.1.8072.3.2.3'\np5\ns(dtp6\n.")
+
+        # Verify that the modeler plugin processes the data properly.
+        om = self.ndmap.process(self.device, results, log)
+        print "descr = %s" % om.snmpDescr
+        print "hw key = %s" % om.setHWProductKey.args[0]
+        print "sw key = %s" % om.setOSProductKey
+
+        # Verify that the data made it into the model properly.
+        self.adm._applyDataMap(self.device, om)
+        self.assertEquals(self.device.getHWManufacturerName(),
+            'Sun')
+        self.assertEquals(self.device.getHWProductName(),
+            'i86pc')
+        self.assertEquals(self.device.getOSManufacturerName(),
+            'Sun')
+        self.assertEquals(self.device.getOSProductName(),
+            'SunOS 5.10 Generic_138889-05')
+
 def test_suite():
     from unittest import TestSuite, makeSuite
     suite = TestSuite()
