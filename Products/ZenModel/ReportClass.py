@@ -38,7 +38,7 @@ def manage_addReportClass(context, id, title = None, REQUEST = None):
     context._setObject(id, dc)
 
     if REQUEST is not None:
-        messaging.IMessageSender(self).sendToBrowser(
+        messaging.IMessageSender(context).sendToBrowser(
             'Report Organizer Created',
             'Report organizer %s was created.' % id
         )
