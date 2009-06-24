@@ -97,7 +97,7 @@ class ZCmdBase(ZenDaemon):
             connection=self.db.open()
             root=connection.root()
             app=root['Application']
-            self.getContext(app)
+            app = self.getContext(app)
             app._p_jar.sync()
             return app
         finally:
@@ -114,8 +114,8 @@ class ZCmdBase(ZenDaemon):
         if self.app: return 
         self.connection=self.db.open()
         root=self.connection.root()
-        self.app=root['Application']
-        self.getContext(self.app)
+        app=root['Application']
+        self.app = self.getContext(app)
 
 
     def syncdb(self):
