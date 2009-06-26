@@ -92,24 +92,17 @@ class WinService(Service):
             )
          },
         )
-
+    
     security = ClassSecurityInfo()
-
-
+   
+    
     def getInstDescription(self):
         """Return some text that describes this component.  Default is name.
         """
         return "'%s' StartMode:%s StartName:%s" % (self.caption(), 
                         self.startMode, self.startName)
 
-    def monitored(self):
-        """Should this Windows Service be monitored
-        """
-        startMode = getattr(self, "startMode", None)
-        #don't monitor Disabled services
-        if startMode and startMode == "Disabled": return False
-        return Service.monitored(self)
-
+        
     def getServiceClass(self):
         """Return a dict like one set by zenwinmodeler for services.
         """
