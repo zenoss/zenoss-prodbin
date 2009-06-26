@@ -105,7 +105,7 @@ class WinService(Service):
     def monitored(self):
         """Should this Windows Service be monitored
         """
-        startMode = getattr(self, startMode, None)
+        startMode = getattr(self, "startMode", None)
         #don't monitor Disabled services
         if startMode and startMode == "Disabled": return False
         return Service.monitored(self)
