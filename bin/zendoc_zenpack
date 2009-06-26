@@ -1,0 +1,61 @@
+#!/usr/bin/env python
+
+__doc__ = """zendoc_zenpack
+
+Create an XML file showing the items in the ZenPack.
+"""
+
+import datetime
+
+import Globals
+from Products.ZenUtils.ZenScriptBase import ZenScriptBase
+from transaction import commit
+
+def print_xml_tree(tree, indent=0):
+    if '__id' in tree:
+        print " " * indent + """<%(__meta_type)s id="%(__id)s" location="%(__location)s" >""" % tree
+        desc = tree['__description']
+        if desc:
+            print " " * indent + """<![CDATA[%s]]>""" % desc
+
+    for obj in sorted(tree.keys()):
+        if obj.startswith('__'): continue
+        print_xml_tree(tree[obj], indent + 1 )
+
+    if '__id' in tree:
+        print " " * indent + "</%(__meta_type)s>" % tree
+
+
+dmd = ZenScriptBase(connect=True).dmd
+
+export_date = datetime.datetime.now()
+print """<?xml version="1.0" encoding="UTF-8"?>
+
+<!-- ZenPack information generated on %s -->
+<zenpacks >
+""" % (export_date) 
+
+for zp in dmd.ZenPackManager.packs():
+    print "<zenpack id='%s'>" % zp.id
+
+    # Since the packables aren't arranged hierarchically,
+    # we need to build our own tree.
+    tree = {}
+    for obj in zp.packables():
+        root = tree
+        for loc in obj.getPrimaryPath():
+            if loc not in root:
+                root[loc] = {}
+            root = root[loc]
+        root['__id'] = obj.id
+        root['__description'] = obj.description
+        root['__location'] = '/'.join(obj.getPrimaryPath())
+        root['__meta_type'] = obj.meta_type
+
+    # Print out the tree
+    print_xml_tree(tree)
+
+    print "</zenpack>"
+print """
+</zenpacks>
+"""
