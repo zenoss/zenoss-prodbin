@@ -38,6 +38,13 @@ class ReportServer(ZenModelRM):
         "Run a plugin to generate the report object"
         dmd = self.dmd
         args = dict(zip(REQUEST.keys(), REQUEST.values()))
+
+        # We don't want the response object getting passed to the plugin
+        # because if it is stringified, it can modify the return code
+        # and cause problems upstream.
+        if 'RESPONSE' in args:
+            del args['RESPONSE']
+
         m = zenPath('Products/ZenReports/plugins')
         directories = [
             p.path('reports', 'plugins') for p in self.ZenPackManager.packs()
