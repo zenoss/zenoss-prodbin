@@ -14,6 +14,8 @@ import rrdtool
 import re
 import glob
 import Globals
+from os import path
+
 try:
     from Products.ZenRRD.plugins.plugin import *
 except ImportError:
@@ -45,7 +47,7 @@ lcolors = len(colors)
 devicePat = re.compile('.*' + env.get('devices', '') + '.*')
 for i, f in enumerate(dmd.Devices.getSubComponents(meta_type='FileSystem')):
     available = f.totalBlocks * f.blockSize
-    rrdFile = perf + f.getRRDFileName('usedBlocks')
+    rrdFile = os.path.join( perf, f.getRRDFileName('usedBlocks') )
     globbed = glob.glob(rrdFile)
     if len(globbed) == 0: continue
     rrdFile = globbed[0]
