@@ -32,7 +32,7 @@ class AddFilesystemAndInterfaceDataPointAliases(Migrate.Step):
            'ifHCInOctets' : ('inputOctets__bytes',),
            'ifHCOutOctets' : ('outputOctets__bytes',),
            'usedBlocks' : ('usedFilesystemSpace__bytes', 
-                           '${component.blockSize},*')}
+                           '${here/blockSize},*')}
            )
 
             

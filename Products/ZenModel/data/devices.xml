@@ -3593,7 +3593,7 @@ True
 <tomanycont id='aliases'>
 <object id='usedFilesystemSpace__bytes' module='Products.ZenModel.RRDDataPointAlias' class='RRDDataPointAlias'>
 <property type="string" id="formula" mode="w" >
-${component.blockSize},*
+${here/blockSize},*
 </property>
 </object>
 </tomanycont>
@@ -8191,7 +8191,7 @@ True
 <tomanycont id='aliases'>
 <object id='usedFilesystemSpace__bytes' module='Products.ZenModel.RRDDataPointAlias' class='RRDDataPointAlias'>
 <property type="string" id="formula" mode="w" >
-${component.blockSize},*
+${here/blockSize},*
 </property>
 </object>
 </tomanycont>
