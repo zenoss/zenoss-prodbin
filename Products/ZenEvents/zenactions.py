@@ -301,6 +301,12 @@ class ZenActions(ZCmdBase):
                 values = map(zem.convert, fields, values)
                 data.update(dict(zip(cfields, values)))
 
+            # If our event has a clearid, but we have no clear data it means
+            # that we're in a small delay before it is inserted. We'll wait
+            # until next time to deal with the clear.
+            if data.get('clearid', None) and not data.get('clearEvid', None):
+                continue
+
             data['clearOrEventSummary'] = (
                 data['clearSummary'] or data['summary'])
                 
