@@ -81,7 +81,8 @@ class EventClassPropertyMixin(object):
         variables_and_funcs = {
             'evt':evt, 'device':device, 'dev':device,
             'convToUnits':convToUnits, 'zdecode':zdecode,
-            'txnCommit':transaction.commit, 'dmd':self.dmd
+            'txnCommit':transaction.commit, 'dmd':self.dmd,
+            'log':log,
         }
         for eventclass in transpath:
             if not eventclass.transform: continue
