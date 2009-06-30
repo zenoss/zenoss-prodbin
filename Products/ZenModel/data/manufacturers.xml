@@ -1,128 +1,15 @@
-<?xml version="1.0"?>
-<objects>
+<?xml version="1.0" encoding="ISO-8859-1" ?>
+
+<!--
+    Zenoss RelationshipManager export completed on 2009-06-29 23:07:50.791264
+
+    Use ImportRM to import this file.
+
+    For more information about Zenoss, go to http://www.zenoss.com
+ -->
+
+<objects version="[Zenoss, version 2.4.70 r14045]" export_date="2009-06-29 23:07:50.791264" zenoss_server="f1.local" >
 <object id='/zport/dmd/Manufacturers' module='Products.ZenModel.ManufacturerRoot' class='ManufacturerRoot'>
-<object id='ADP' module='Products.ZenModel.Manufacturer' class='Manufacturer'>
-<tomanycont id='products'>
-<object id='ADP Data Collection Manager _Enterprise eTIME' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
-<property type="string" id="name" mode="w" >
-ADP Data Collection Manager _Enterprise eTIME
-</property>
-<property type="lines" id="productKeys" mode="w" >
-['ADP Data Collection Manager (Enterprise eTIME)']
-</property>
-<property type="boolean" id="isOS" mode="w" >
-False
-</property>
-</object>
-<object id='ADP Enterprise eTIME 5.0.0' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
-<property type="string" id="name" mode="w" >
-ADP Enterprise eTIME 5.0.0
-</property>
-<property type="lines" id="productKeys" mode="w" >
-['ADP Enterprise eTIME 5.0.0']
-</property>
-<property type="boolean" id="isOS" mode="w" >
-False
-</property>
-</object>
-<object id='ADP Enterprise eTIME 5.0.0 Service Pack 12' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
-<property type="string" id="name" mode="w" >
-ADP Enterprise eTIME 5.0.0 Service Pack 12
-</property>
-<property type="lines" id="productKeys" mode="w" >
-['ADP Enterprise eTIME 5.0.0 Service Pack 12']
-</property>
-<property type="boolean" id="isOS" mode="w" >
-False
-</property>
-</object>
-</tomanycont>
-</object>
-<object id='AOL' module='Products.ZenModel.Manufacturer' class='Manufacturer'>
-<tomanycont id='products'>
-<object id='AOL Instant Messenger' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
-<property type="string" id="name" mode="w" >
-AOL Instant Messenger
-</property>
-<property type="lines" id="productKeys" mode="w" >
-['AOL Instant Messenger']
-</property>
-<property type="boolean" id="isOS" mode="w" >
-False
-</property>
-</object>
-<object id='AOL Toolbar 2.0' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
-<property type="string" id="name" mode="w" >
-AOL Toolbar 2.0
-</property>
-<property type="lines" id="productKeys" mode="w" >
-['AOL Toolbar 2.0']
-</property>
-<property type="boolean" id="isOS" mode="w" >
-False
-</property>
-</object>
-</tomanycont>
-</object>
-<object id='APC' module='Products.ZenModel.Manufacturer' class='Manufacturer'>
-<tomanycont id='products'>
-<object id='.1.3.6.1.4.1.318.1.3.2.10' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
-<property type="string" id="name" mode="w" >
-.1.3.6.1.4.1.318.1.3.2.10
-</property>
-<property type="lines" id="productKeys" mode="w" >
-['.1.3.6.1.4.1.318.1.3.2.10']
-</property>
-<property type="boolean" id="isOS" mode="w" >
-False
-</property>
-</object>
-<object id='.1.3.6.1.4.1.318.1.3.2.12' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
-<property type="string" id="name" mode="w" >
-.1.3.6.1.4.1.318.1.3.2.12
-</property>
-<property type="lines" id="productKeys" mode="w" >
-['.1.3.6.1.4.1.318.1.3.2.12']
-</property>
-<property type="boolean" id="isOS" mode="w" >
-False
-</property>
-</object>
-<object id='.1.3.6.1.4.1.318.1.3.2.13' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
-<property type="string" id="name" mode="w" >
-.1.3.6.1.4.1.318.1.3.2.13
-</property>
-<property type="lines" id="productKeys" mode="w" >
-['.1.3.6.1.4.1.318.1.3.2.13']
-</property>
-<property type="boolean" id="isOS" mode="w" >
-False
-</property>
-</object>
-<object id='.1.3.6.1.4.1.318.1.3.2.7' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
-<property type="string" id="name" mode="w" >
-.1.3.6.1.4.1.318.1.3.2.7
-</property>
-<property type="lines" id="productKeys" mode="w" >
-['.1.3.6.1.4.1.318.1.3.2.7']
-</property>
-<property type="boolean" id="isOS" mode="w" >
-False
-</property>
-</object>
-<object id='APC PowerChute Business Edition Server' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
-<property type="string" id="name" mode="w" >
-APC PowerChute Business Edition Server
-</property>
-<property type="lines" id="productKeys" mode="w" >
-['APC PowerChute Business Edition Server']
-</property>
-<property type="boolean" id="isOS" mode="w" >
-False
-</property>
-</object>
-</tomanycont>
-</object>
 <object id='ATI' module='Products.ZenModel.Manufacturer' class='Manufacturer'>
 <tomanycont id='products'>
 <object id='ATI Display Driver' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
@@ -234,776 +121,6 @@ Adaptec PERC 3 RAID _SCSI chip
 </property>
 <property type="lines" id="productKeys" mode="w" >
 ['Adaptec PERC 3 RAID (SCSI chip)']
-</property>
-<property type="boolean" id="isOS" mode="w" >
-False
-</property>
-</object>
-</tomanycont>
-</object>
-<object id='Adobe' module='Products.ZenModel.Manufacturer' class='Manufacturer'>
-<property type="string" id="url" mode="w" >
-http://www.adobe.com
-</property>
-<tomanycont id='products'>
-<object id='Adobe Acrobat - Reader 6.0.2 Update' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
-<property type="string" id="name" mode="w" >
-Adobe Acrobat - Reader 6.0.2 Update
-</property>
-<property type="lines" id="productKeys" mode="w" >
-['Adobe Acrobat - Reader 6.0.2 Update']
-</property>
-<property type="boolean" id="isOS" mode="w" >
-False
-</property>
-</object>
-<object id='Adobe Acrobat 4.0' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
-<property type="string" id="name" mode="w" >
-Adobe Acrobat 4.0
-</property>
-<property type="lines" id="productKeys" mode="w" >
-['Adobe Acrobat 4.0']
-</property>
-<property type="boolean" id="isOS" mode="w" >
-False
-</property>
-</object>
-<object id='Adobe Acrobat 5.0' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
-<property type="string" id="name" mode="w" >
-Adobe Acrobat 5.0
-</property>
-<property type="lines" id="productKeys" mode="w" >
-['Adobe Acrobat 5.0']
-</property>
-<property type="boolean" id="isOS" mode="w" >
-False
-</property>
-</object>
-<object id='Adobe Acrobat and Reader 6.0.3 Update' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
-<property type="string" id="name" mode="w" >
-Adobe Acrobat and Reader 6.0.3 Update
-</property>
-<property type="lines" id="productKeys" mode="w" >
-['Adobe Acrobat and Reader 6.0.3 Update']
-</property>
-<property type="boolean" id="isOS" mode="w" >
-False
-</property>
-</object>
-<object id='Adobe Download Manager 1.2 _Remove Only' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
-<property type="string" id="name" mode="w" >
-Adobe Download Manager 1.2 _Remove Only
-</property>
-<property type="lines" id="productKeys" mode="w" >
-['Adobe Download Manager 1.2 (Remove Only)']
-</property>
-<property type="boolean" id="isOS" mode="w" >
-False
-</property>
-</object>
-<object id='Adobe Flash Player 9 ActiveX' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
-<property type="string" id="name" mode="w" >
-Adobe Flash Player 9 ActiveX
-</property>
-<property type="lines" id="productKeys" mode="w" >
-['Adobe Flash Player 9 ActiveX']
-</property>
-<property type="boolean" id="isOS" mode="w" >
-False
-</property>
-</object>
-<object id='Adobe Photoshop Album 2.0 Starter Edition' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
-<property type="string" id="name" mode="w" >
-Adobe Photoshop Album 2.0 Starter Edition
-</property>
-<property type="lines" id="productKeys" mode="w" >
-['Adobe Photoshop Album 2.0 Starter Edition']
-</property>
-<property type="boolean" id="isOS" mode="w" >
-False
-</property>
-</object>
-<object id='Adobe Reader 6.0' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
-<property type="string" id="name" mode="w" >
-Adobe Reader 6.0
-</property>
-<property type="lines" id="productKeys" mode="w" >
-['Adobe Reader 6.0']
-</property>
-<property type="boolean" id="isOS" mode="w" >
-False
-</property>
-</object>
-<object id='Adobe Reader 6.0.1' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
-<property type="string" id="name" mode="w" >
-Adobe Reader 6.0.1
-</property>
-<property type="lines" id="productKeys" mode="w" >
-['Adobe Reader 6.0.1']
-</property>
-<property type="boolean" id="isOS" mode="w" >
-False
-</property>
-</object>
-<object id='Adobe Reader 7.0' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
-<property type="string" id="name" mode="w" >
-Adobe Reader 7.0
-</property>
-<property type="lines" id="productKeys" mode="w" >
-['Adobe Reader 7.0']
-</property>
-<property type="boolean" id="isOS" mode="w" >
-False
-</property>
-</object>
-</tomanycont>
-</object>
-<object id='Altiris' module='Products.ZenModel.Manufacturer' class='Manufacturer'>
-<tomanycont id='products'>
-<object id='Altiris Application Management Solution' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
-<property type="string" id="name" mode="w" >
-Altiris Application Management Solution
-</property>
-<property type="lines" id="productKeys" mode="w" >
-['Altiris Application Management Solution']
-</property>
-<property type="boolean" id="isOS" mode="w" >
-False
-</property>
-</object>
-<object id='Altiris Application Metering Agent' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
-<property type="string" id="name" mode="w" >
-Altiris Application Metering Agent
-</property>
-<property type="lines" id="productKeys" mode="w" >
-['Altiris Application Metering Agent']
-</property>
-<property type="boolean" id="isOS" mode="w" >
-False
-</property>
-</object>
-<object id='Altiris Application Metering Solution 6.0' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
-<property type="string" id="name" mode="w" >
-Altiris Application Metering Solution 6.0
-</property>
-<property type="lines" id="productKeys" mode="w" >
-['Altiris Application Metering Solution 6.0']
-</property>
-<property type="boolean" id="isOS" mode="w" >
-False
-</property>
-</object>
-<object id='Altiris Asset Control Solution' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
-<property type="string" id="name" mode="w" >
-Altiris Asset Control Solution
-</property>
-<property type="lines" id="productKeys" mode="w" >
-['Altiris Asset Control Solution']
-</property>
-<property type="boolean" id="isOS" mode="w" >
-False
-</property>
-</object>
-<object id='Altiris Asset Control and Contract Management Solution Documenta' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
-<property type="string" id="name" mode="w" >
-Altiris Asset Control and Contract Management Solution Documenta
-</property>
-<property type="lines" id="productKeys" mode="w" >
-['Altiris Asset Control and Contract Management Solution Documenta']
-</property>
-<property type="boolean" id="isOS" mode="w" >
-False
-</property>
-</object>
-<object id='Altiris Asset Management Suite Quick Start' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
-<property type="string" id="name" mode="w" >
-Altiris Asset Management Suite Quick Start
-</property>
-<property type="lines" id="productKeys" mode="w" >
-['Altiris Asset Management Suite Quick Start']
-</property>
-<property type="boolean" id="isOS" mode="w" >
-False
-</property>
-</object>
-<object id='Altiris Carbon Copy Solution' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
-<property type="string" id="name" mode="w" >
-Altiris Carbon Copy Solution
-</property>
-<property type="lines" id="productKeys" mode="w" >
-['Altiris Carbon Copy Solution']
-</property>
-<property type="boolean" id="isOS" mode="w" >
-False
-</property>
-</object>
-<object id='Altiris Carbon Copy Solution 6.1' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
-<property type="string" id="name" mode="w" >
-Altiris Carbon Copy Solution 6.1
-</property>
-<property type="lines" id="productKeys" mode="w" >
-['Altiris Carbon Copy Solution 6.1']
-</property>
-<property type="boolean" id="isOS" mode="w" >
-False
-</property>
-</object>
-<object id='Altiris Client Management Suite Quick Start' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
-<property type="string" id="name" mode="w" >
-Altiris Client Management Suite Quick Start
-</property>
-<property type="lines" id="productKeys" mode="w" >
-['Altiris Client Management Suite Quick Start']
-</property>
-<property type="boolean" id="isOS" mode="w" >
-False
-</property>
-</object>
-<object id='Altiris Computer Management' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
-<property type="string" id="name" mode="w" >
-Altiris Computer Management
-</property>
-<property type="lines" id="productKeys" mode="w" >
-['Altiris Computer Management']
-</property>
-<property type="boolean" id="isOS" mode="w" >
-False
-</property>
-</object>
-<object id='Altiris Connector' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
-<property type="string" id="name" mode="w" >
-Altiris Connector
-</property>
-<property type="lines" id="productKeys" mode="w" >
-['Altiris Connector']
-</property>
-<property type="boolean" id="isOS" mode="w" >
-False
-</property>
-</object>
-<object id='Altiris Connector Solution Documentation' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
-<property type="string" id="name" mode="w" >
-Altiris Connector Solution Documentation
-</property>
-<property type="lines" id="productKeys" mode="w" >
-['Altiris Connector Solution Documentation']
-</property>
-<property type="boolean" id="isOS" mode="w" >
-False
-</property>
-</object>
-<object id='Altiris Connector for Wise' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
-<property type="string" id="name" mode="w" >
-Altiris Connector for Wise
-</property>
-<property type="lines" id="productKeys" mode="w" >
-['Altiris Connector for Wise']
-</property>
-<property type="boolean" id="isOS" mode="w" >
-False
-</property>
-</object>
-<object id='Altiris Context Factory' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
-<property type="string" id="name" mode="w" >
-Altiris Context Factory
-</property>
-<property type="lines" id="productKeys" mode="w" >
-['Altiris Context Factory']
-</property>
-<property type="boolean" id="isOS" mode="w" >
-False
-</property>
-</object>
-<object id='Altiris Contract Management Solution' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
-<property type="string" id="name" mode="w" >
-Altiris Contract Management Solution
-</property>
-<property type="lines" id="productKeys" mode="w" >
-['Altiris Contract Management Solution']
-</property>
-<property type="boolean" id="isOS" mode="w" >
-False
-</property>
-</object>
-<object id='Altiris Deployment Solution' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
-<property type="string" id="name" mode="w" >
-Altiris Deployment Solution
-</property>
-<property type="lines" id="productKeys" mode="w" >
-['Altiris Deployment Solution']
-</property>
-<property type="boolean" id="isOS" mode="w" >
-False
-</property>
-</object>
-<object id='Altiris Deployment Web Console' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
-<property type="string" id="name" mode="w" >
-Altiris Deployment Web Console
-</property>
-<property type="lines" id="productKeys" mode="w" >
-['Altiris Deployment Web Console']
-</property>
-<property type="boolean" id="isOS" mode="w" >
-False
-</property>
-</object>
-<object id='Altiris Energy Saver Toolkit' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
-<property type="string" id="name" mode="w" >
-Altiris Energy Saver Toolkit
-</property>
-<property type="lines" id="productKeys" mode="w" >
-['Altiris Energy Saver Toolkit']
-</property>
-<property type="boolean" id="isOS" mode="w" >
-False
-</property>
-</object>
-<object id='Altiris HP Client Manager' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
-<property type="string" id="name" mode="w" >
-Altiris HP Client Manager
-</property>
-<property type="lines" id="productKeys" mode="w" >
-['Altiris HP Client Manager']
-</property>
-<property type="boolean" id="isOS" mode="w" >
-False
-</property>
-</object>
-<object id='Altiris Helpdesk Solution 6.0' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
-<property type="string" id="name" mode="w" >
-Altiris Helpdesk Solution 6.0
-</property>
-<property type="lines" id="productKeys" mode="w" >
-['Altiris Helpdesk Solution 6.0']
-</property>
-<property type="boolean" id="isOS" mode="w" >
-False
-</property>
-</object>
-<object id='Altiris Helpdesk Solution Documentation' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
-<property type="string" id="name" mode="w" >
-Altiris Helpdesk Solution Documentation
-</property>
-<property type="lines" id="productKeys" mode="w" >
-['Altiris Helpdesk Solution Documentation']
-</property>
-<property type="boolean" id="isOS" mode="w" >
-False
-</property>
-</object>
-<object id='Altiris Inventory Rule Management' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
-<property type="string" id="name" mode="w" >
-Altiris Inventory Rule Management
-</property>
-<property type="lines" id="productKeys" mode="w" >
-['Altiris Inventory Rule Management']
-</property>
-<property type="boolean" id="isOS" mode="w" >
-False
-</property>
-</object>
-<object id='Altiris Inventory Solution for Network Devices Documentation' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
-<property type="string" id="name" mode="w" >
-Altiris Inventory Solution for Network Devices Documentation
-</property>
-<property type="lines" id="productKeys" mode="w" >
-['Altiris Inventory Solution for Network Devices Documentation']
-</property>
-<property type="boolean" id="isOS" mode="w" >
-False
-</property>
-</object>
-<object id='Altiris Inventory Solution for Windows' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
-<property type="string" id="name" mode="w" >
-Altiris Inventory Solution for Windows
-</property>
-<property type="lines" id="productKeys" mode="w" >
-['Altiris Inventory Solution for Windows']
-</property>
-<property type="boolean" id="isOS" mode="w" >
-False
-</property>
-</object>
-<object id='Altiris Monitor Agent Package ' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
-<property type="string" id="name" mode="w" >
-Altiris Monitor Agent Package
-</property>
-<property type="lines" id="productKeys" mode="w" >
-['Altiris Monitor Agent Package']
-</property>
-<property type="boolean" id="isOS" mode="w" >
-False
-</property>
-</object>
-<object id='Altiris Monitor Agent for Windows' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
-<property type="string" id="name" mode="w" >
-Altiris Monitor Agent for Windows
-</property>
-<property type="lines" id="productKeys" mode="w" >
-['Altiris Monitor Agent for Windows']
-</property>
-<property type="boolean" id="isOS" mode="w" >
-False
-</property>
-</object>
-<object id='Altiris Monitor Agent for Windows 6.0' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
-<property type="string" id="name" mode="w" >
-Altiris Monitor Agent for Windows 6.0
-</property>
-<property type="lines" id="productKeys" mode="w" >
-['Altiris Monitor Agent for Windows 6.0']
-</property>
-<property type="boolean" id="isOS" mode="w" >
-False
-</property>
-</object>
-<object id='Altiris Monitor Pack for Altiris Infrastructure' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
-<property type="string" id="name" mode="w" >
-Altiris Monitor Pack for Altiris Infrastructure
-</property>
-<property type="lines" id="productKeys" mode="w" >
-['Altiris Monitor Pack for Altiris Infrastructure']
-</property>
-<property type="boolean" id="isOS" mode="w" >
-False
-</property>
-</object>
-<object id='Altiris Monitor Pack for Altiris Infrastructure 6.0' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
-<property type="string" id="name" mode="w" >
-Altiris Monitor Pack for Altiris Infrastructure 6.0
-</property>
-<property type="lines" id="productKeys" mode="w" >
-['Altiris Monitor Pack for Altiris Infrastructure 6.0']
-</property>
-<property type="boolean" id="isOS" mode="w" >
-False
-</property>
-</object>
-<object id='Altiris Monitor Packs for Servers' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
-<property type="string" id="name" mode="w" >
-Altiris Monitor Packs for Servers
-</property>
-<property type="lines" id="productKeys" mode="w" >
-['Altiris Monitor Packs for Servers']
-</property>
-<property type="boolean" id="isOS" mode="w" >
-False
-</property>
-</object>
-<object id='Altiris Monitor Packs for Servers 6.0' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
-<property type="string" id="name" mode="w" >
-Altiris Monitor Packs for Servers 6.0
-</property>
-<property type="lines" id="productKeys" mode="w" >
-['Altiris Monitor Packs for Servers 6.0']
-</property>
-<property type="boolean" id="isOS" mode="w" >
-False
-</property>
-</object>
-<object id='Altiris Monitor Solution' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
-<property type="string" id="name" mode="w" >
-Altiris Monitor Solution
-</property>
-<property type="lines" id="productKeys" mode="w" >
-['Altiris Monitor Solution']
-</property>
-<property type="boolean" id="isOS" mode="w" >
-False
-</property>
-</object>
-<object id='Altiris Monitor Solution 6.0' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
-<property type="string" id="name" mode="w" >
-Altiris Monitor Solution 6.0
-</property>
-<property type="lines" id="productKeys" mode="w" >
-['Altiris Monitor Solution 6.0']
-</property>
-<property type="boolean" id="isOS" mode="w" >
-False
-</property>
-</object>
-<object id='Altiris Monitor Solution Documentation' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
-<property type="string" id="name" mode="w" >
-Altiris Monitor Solution Documentation
-</property>
-<property type="lines" id="productKeys" mode="w" >
-['Altiris Monitor Solution Documentation']
-</property>
-<property type="boolean" id="isOS" mode="w" >
-False
-</property>
-</object>
-<object id='Altiris Monitor for Notification Server Metric' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
-<property type="string" id="name" mode="w" >
-Altiris Monitor for Notification Server Metric
-</property>
-<property type="lines" id="productKeys" mode="w" >
-['Altiris Monitor for Notification Server Metric']
-</property>
-<property type="boolean" id="isOS" mode="w" >
-False
-</property>
-</object>
-<object id='Altiris NS SP2 Hot Fix _0019' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
-<property type="string" id="name" mode="w" >
-Altiris NS SP2 Hot Fix _0019
-</property>
-<property type="lines" id="productKeys" mode="w" >
-['Altiris NS SP2 Hot Fix #0019']
-</property>
-<property type="boolean" id="isOS" mode="w" >
-False
-</property>
-</object>
-<object id='Altiris Network Discovery Documentation' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
-<property type="string" id="name" mode="w" >
-Altiris Network Discovery Documentation
-</property>
-<property type="lines" id="productKeys" mode="w" >
-['Altiris Network Discovery Documentation']
-</property>
-<property type="boolean" id="isOS" mode="w" >
-False
-</property>
-</object>
-<object id='Altiris Notification Server 6.0' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
-<property type="string" id="name" mode="w" >
-Altiris Notification Server 6.0
-</property>
-<property type="lines" id="productKeys" mode="w" >
-['Altiris Notification Server 6.0']
-</property>
-<property type="boolean" id="isOS" mode="w" >
-False
-</property>
-</object>
-<object id='Altiris Notification Server Directory Connector 6.0' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
-<property type="string" id="name" mode="w" >
-Altiris Notification Server Directory Connector 6.0
-</property>
-<property type="lines" id="productKeys" mode="w" >
-['Altiris Notification Server Directory Connector 6.0']
-</property>
-<property type="boolean" id="isOS" mode="w" >
-False
-</property>
-</object>
-<object id='Altiris PC Transplant Solution' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
-<property type="string" id="name" mode="w" >
-Altiris PC Transplant Solution
-</property>
-<property type="lines" id="productKeys" mode="w" >
-['Altiris PC Transplant Solution']
-</property>
-<property type="boolean" id="isOS" mode="w" >
-False
-</property>
-</object>
-<object id='Altiris PC Transplant WebStore' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
-<property type="string" id="name" mode="w" >
-Altiris PC Transplant WebStore
-</property>
-<property type="lines" id="productKeys" mode="w" >
-['Altiris PC Transplant WebStore']
-</property>
-<property type="boolean" id="isOS" mode="w" >
-False
-</property>
-</object>
-<object id='Altiris Patch Management' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
-<property type="string" id="name" mode="w" >
-Altiris Patch Management
-</property>
-<property type="lines" id="productKeys" mode="w" >
-['Altiris Patch Management']
-</property>
-<property type="boolean" id="isOS" mode="w" >
-False
-</property>
-</object>
-<object id='Altiris Patch Management Agent' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
-<property type="string" id="name" mode="w" >
-Altiris Patch Management Agent
-</property>
-<property type="lines" id="productKeys" mode="w" >
-['Altiris Patch Management Agent']
-</property>
-<property type="boolean" id="isOS" mode="w" >
-False
-</property>
-</object>
-<object id='Altiris Patch Management for Windows' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
-<property type="string" id="name" mode="w" >
-Altiris Patch Management for Windows
-</property>
-<property type="lines" id="productKeys" mode="w" >
-['Altiris Patch Management for Windows']
-</property>
-<property type="boolean" id="isOS" mode="w" >
-False
-</property>
-</object>
-<object id='Altiris Philips SmartManage Administrator' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
-<property type="string" id="name" mode="w" >
-Altiris Philips SmartManage Administrator
-</property>
-<property type="lines" id="productKeys" mode="w" >
-['Altiris Philips SmartManage Administrator']
-</property>
-<property type="boolean" id="isOS" mode="w" >
-False
-</property>
-</object>
-<object id='Altiris Recovery Agent' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
-<property type="string" id="name" mode="w" >
-Altiris Recovery Agent
-</property>
-<property type="lines" id="productKeys" mode="w" >
-['Altiris Recovery Agent']
-</property>
-<property type="boolean" id="isOS" mode="w" >
-False
-</property>
-</object>
-<object id='Altiris Recovery Solution' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
-<property type="string" id="name" mode="w" >
-Altiris Recovery Solution
-</property>
-<property type="lines" id="productKeys" mode="w" >
-['Altiris Recovery Solution']
-</property>
-<property type="boolean" id="isOS" mode="w" >
-False
-</property>
-</object>
-<object id='Altiris Resource Management' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
-<property type="string" id="name" mode="w" >
-Altiris Resource Management
-</property>
-<property type="lines" id="productKeys" mode="w" >
-['Altiris Resource Management']
-</property>
-<property type="boolean" id="isOS" mode="w" >
-False
-</property>
-</object>
-<object id='Altiris SNMP Management' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
-<property type="string" id="name" mode="w" >
-Altiris SNMP Management
-</property>
-<property type="lines" id="productKeys" mode="w" >
-['Altiris SNMP Management']
-</property>
-<property type="boolean" id="isOS" mode="w" >
-False
-</property>
-</object>
-<object id='Altiris Server Management Suite Quick Start' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
-<property type="string" id="name" mode="w" >
-Altiris Server Management Suite Quick Start
-</property>
-<property type="lines" id="productKeys" mode="w" >
-['Altiris Server Management Suite Quick Start']
-</property>
-<property type="boolean" id="isOS" mode="w" >
-False
-</property>
-</object>
-<object id='Altiris Software Delivery Solution' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
-<property type="string" id="name" mode="w" >
-Altiris Software Delivery Solution
-</property>
-<property type="lines" id="productKeys" mode="w" >
-['Altiris Software Delivery Solution']
-</property>
-<property type="boolean" id="isOS" mode="w" >
-False
-</property>
-</object>
-<object id='Altiris Software Delivery Solution Agent' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
-<property type="string" id="name" mode="w" >
-Altiris Software Delivery Solution Agent
-</property>
-<property type="lines" id="productKeys" mode="w" >
-['Altiris Software Delivery Solution Agent']
-</property>
-<property type="boolean" id="isOS" mode="w" >
-False
-</property>
-</object>
-<object id='Altiris Software Management' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
-<property type="string" id="name" mode="w" >
-Altiris Software Management
-</property>
-<property type="lines" id="productKeys" mode="w" >
-['Altiris Software Management']
-</property>
-<property type="boolean" id="isOS" mode="w" >
-False
-</property>
-</object>
-<object id='Altiris Task Synchronization Agent' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
-<property type="string" id="name" mode="w" >
-Altiris Task Synchronization Agent
-</property>
-<property type="lines" id="productKeys" mode="w" >
-['Altiris Task Synchronization Agent']
-</property>
-<property type="boolean" id="isOS" mode="w" >
-False
-</property>
-</object>
-<object id='Altiris Total Cost of Ownership Solution' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
-<property type="string" id="name" mode="w" >
-Altiris Total Cost of Ownership Solution
-</property>
-<property type="lines" id="productKeys" mode="w" >
-['Altiris Total Cost of Ownership Solution']
-</property>
-<property type="boolean" id="isOS" mode="w" >
-False
-</property>
-</object>
-<object id='Altiris Web Administrator for Windows' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
-<property type="string" id="name" mode="w" >
-Altiris Web Administrator for Windows
-</property>
-<property type="lines" id="productKeys" mode="w" >
-['Altiris Web Administrator for Windows']
-</property>
-<property type="boolean" id="isOS" mode="w" >
-False
-</property>
-</object>
-<object id='Altiris Wise Toolkit' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
-<property type="string" id="name" mode="w" >
-Altiris Wise Toolkit
-</property>
-<property type="lines" id="productKeys" mode="w" >
-['Altiris Wise Toolkit']
-</property>
-<property type="boolean" id="isOS" mode="w" >
-False
-</property>
-</object>
-<object id='Altiris.HelpdeskProxy' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
-<property type="string" id="name" mode="w" >
-Altiris.HelpdeskProxy
-</property>
-<property type="lines" id="productKeys" mode="w" >
-['Altiris.HelpdeskProxy']
-</property>
-<property type="boolean" id="isOS" mode="w" >
-False
-</property>
-</object>
-<object id='Altiris.KBProxy' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
-<property type="string" id="name" mode="w" >
-Altiris.KBProxy
-</property>
-<property type="lines" id="productKeys" mode="w" >
-['Altiris.KBProxy']
 </property>
 <property type="boolean" id="isOS" mode="w" >
 False
@@ -1411,37 +528,11 @@ False
 </object>
 </tomanycont>
 </object>
-<object id='Brother' module='Products.ZenModel.Manufacturer' class='Manufacturer'>
-<tomanycont id='products'>
-<object id='.1.3.6.1.4.1.11.2.3.9.1' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
-<property type="string" id="name" mode="w" >
-.1.3.6.1.4.1.11.2.3.9.1
-</property>
-<property type="lines" id="productKeys" mode="w" >
-['.1.3.6.1.4.1.11.2.3.9.1']
-</property>
-<property type="boolean" id="isOS" mode="w" >
-False
-</property>
-</object>
-<object id='Brother Firmware' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
-<property type="string" id="name" mode="w" >
-Brother Firmware
-</property>
-<property type="lines" id="productKeys" mode="w" >
-['Brother Firmware']
-</property>
-<property type="boolean" id="isOS" mode="w" >
-False
-</property>
-</object>
-</tomanycont>
-</object>
 <object id='Cisco' module='Products.ZenModel.Manufacturer' class='Manufacturer'>
 <property type="string" id="url" mode="w" >
 http://www.cisco.com
 </property>
-<property type="lines" id="regexes" >
+<property type="lines" id="regexes" mode="w" >
 ('^ciscoSystems$',)
 </property>
 <tomanycont id='products'>
@@ -9738,14 +8829,9 @@ True
 </object>
 </tomanycont>
 </object>
-<object id='F5 Networks' module='Products.ZenModel.Manufacturer' class='Manufacturer'>
-<property type="lines" id="regexes" mode="w" >
-('^F5 Networks Inc$',)
-</property>
-</object>
 <object id='Dell' module='Products.ZenModel.Manufacturer' class='Manufacturer'>
 <property type="lines" id="regexes" mode="w" >
-('^Dell Inc\.$',)
+('^Dell Inc\\.$',)
 </property>
 <tomanycont id='products'>
 <object id='Dell Inc. PERC 4e_Di RAID Controller' module='Products.ZenModel.HardwareClass' class='HardwareClass'>
@@ -10028,6 +9114,11 @@ False
 </property>
 </object>
 </tomanycont>
+</object>
+<object id='F5 Networks' module='Products.ZenModel.Manufacturer' class='Manufacturer'>
+<property type="lines" id="regexes" mode="w" >
+('^F5 Networks Inc$',)
+</property>
 </object>
 <object id='Fedora' module='Products.ZenModel.Manufacturer' class='Manufacturer'>
 <tomanycont id='products'>
@@ -10999,7 +10090,7 @@ False
 http://www.hp.com
 </property>
 <property type="lines" id="regexes" mode="w" >
-('Hewlett\-Packard',)
+('Hewlett\\-Packard',)
 </property>
 <tomanycont id='products'>
 <object id='Compaq Management Agents' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
@@ -11960,80 +11051,6 @@ Linux 2.4.20
 </property>
 <property type="boolean" id="isOS" mode="w" >
 True
-</property>
-</object>
-</tomanycont>
-</object>
-<object id='MEDITECH' module='Products.ZenModel.Manufacturer' class='Manufacturer'>
-<tomanycont id='products'>
-<object id='MEDITECH Workstation4.x' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
-<property type="string" id="name" mode="w" >
-MEDITECH Workstation4.x
-</property>
-<property type="lines" id="productKeys" mode="w" >
-['MEDITECH Workstation4.x']
-</property>
-<property type="boolean" id="isOS" mode="w" >
-False
-</property>
-</object>
-</tomanycont>
-</object>
-<object id='Macromedia' module='Products.ZenModel.Manufacturer' class='Manufacturer'>
-<tomanycont id='products'>
-<object id='Macromedia Dreamweaver 3' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
-<property type="string" id="name" mode="w" >
-Macromedia Dreamweaver 3
-</property>
-<property type="lines" id="productKeys" mode="w" >
-['Macromedia Dreamweaver 3']
-</property>
-<property type="boolean" id="isOS" mode="w" >
-False
-</property>
-</object>
-<object id='Macromedia Dreamweaver MX 2004' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
-<property type="string" id="name" mode="w" >
-Macromedia Dreamweaver MX 2004
-</property>
-<property type="lines" id="productKeys" mode="w" >
-['Macromedia Dreamweaver MX 2004']
-</property>
-<property type="boolean" id="isOS" mode="w" >
-False
-</property>
-</object>
-<object id='Macromedia Extension Manager' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
-<property type="string" id="name" mode="w" >
-Macromedia Extension Manager
-</property>
-<property type="lines" id="productKeys" mode="w" >
-['Macromedia Extension Manager']
-</property>
-<property type="boolean" id="isOS" mode="w" >
-False
-</property>
-</object>
-<object id='Macromedia HomeSite' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
-<property type="string" id="name" mode="w" >
-Macromedia HomeSite
-</property>
-<property type="lines" id="productKeys" mode="w" >
-['Macromedia HomeSite+']
-</property>
-<property type="boolean" id="isOS" mode="w" >
-False
-</property>
-</object>
-<object id='Macromedia Shockwave Player' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
-<property type="string" id="name" mode="w" >
-Macromedia Shockwave Player
-</property>
-<property type="lines" id="productKeys" mode="w" >
-['Macromedia Shockwave Player']
-</property>
-<property type="boolean" id="isOS" mode="w" >
-False
 </property>
 </object>
 </tomanycont>
@@ -16283,32 +15300,6 @@ False
 </object>
 </tomanycont>
 </object>
-<object id='Misys' module='Products.ZenModel.Manufacturer' class='Manufacturer'>
-<tomanycont id='products'>
-<object id='Misys EMR 7.00.2.1' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
-<property type="string" id="name" mode="w" >
-Misys EMR 7.00.2.1
-</property>
-<property type="lines" id="productKeys" mode="w" >
-['Misys EMR 7.00.2.1']
-</property>
-<property type="boolean" id="isOS" mode="w" >
-False
-</property>
-</object>
-<object id='Misys EMRinit' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
-<property type="string" id="name" mode="w" >
-Misys EMRinit
-</property>
-<property type="lines" id="productKeys" mode="w" >
-['Misys EMRinit']
-</property>
-<property type="boolean" id="isOS" mode="w" >
-False
-</property>
-</object>
-</tomanycont>
-</object>
 <object id='Mozilla' module='Products.ZenModel.Manufacturer' class='Manufacturer'>
 <property type="string" id="url" mode="w" >
 http://www.mozilla.com
@@ -16477,11 +15468,6 @@ False
 </object>
 </tomanycont>
 </object>
-<object id='Nortel' module='Products.ZenModel.Manufacturer' class='Manufacturer'>
-<property type="lines" id="regexes" mode="w" >
-('^Nortel Networks$',)
-</property>
-</object>
 <object id='Net-SNMP' module='Products.ZenModel.Manufacturer' class='Manufacturer'>
 <property type="lines" id="regexes" mode="w" >
 ('^net snmp$',)
@@ -16499,6 +15485,11 @@ False
 </property>
 </object>
 </tomanycont>
+</object>
+<object id='Nortel' module='Products.ZenModel.Manufacturer' class='Manufacturer'>
+<property type="lines" id="regexes" mode="w" >
+('^Nortel Networks$',)
+</property>
 </object>
 <object id='Novell' module='Products.ZenModel.Manufacturer' class='Manufacturer'>
 <property type="string" id="url" mode="w" >
@@ -17673,24 +16664,6 @@ False
 </object>
 </tomanycont>
 </object>
-<object id='Palm' module='Products.ZenModel.Manufacturer' class='Manufacturer'>
-<property type="string" id="url" mode="w" >
-http://www.palm.com/us/
-</property>
-<tomanycont id='products'>
-<object id='Palm Desktop and Synchronization Software' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
-<property type="string" id="name" mode="w" >
-Palm Desktop and Synchronization Software
-</property>
-<property type="lines" id="productKeys" mode="w" >
-['Palm Desktop and Synchronization Software']
-</property>
-<property type="boolean" id="isOS" mode="w" >
-False
-</property>
-</object>
-</tomanycont>
-</object>
 <object id='Perl' module='Products.ZenModel.Manufacturer' class='Manufacturer'>
 <property type="string" id="url" mode="w" >
 http://www.perl.org
@@ -18087,24 +17060,6 @@ perl-libxml-perl-0.07-30
 </property>
 <property type="lines" id="productKeys" mode="w" >
 ['perl-libxml-perl-0.07-30']
-</property>
-<property type="boolean" id="isOS" mode="w" >
-False
-</property>
-</object>
-</tomanycont>
-</object>
-<object id='Port25' module='Products.ZenModel.Manufacturer' class='Manufacturer'>
-<property type="string" id="url" mode="w" >
-http://www.port25.com
-</property>
-<tomanycont id='products'>
-<object id='PowerMTA 3.1a5' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
-<property type="string" id="name" mode="w" >
-PowerMTA 3.1a5
-</property>
-<property type="lines" id="productKeys" mode="w" >
-['PowerMTA 3.1a5']
 </property>
 <property type="boolean" id="isOS" mode="w" >
 False
@@ -18918,11 +17873,6 @@ False
 </property>
 </object>
 </tomanycont>
-</object>
-<object id='XGI' module='Products.ZenModel.Manufacturer' class='Manufacturer'>
-<property type="lines" id="regexes" mode="w" >
-('^XGI Xabre Graphics Inc$',)
-</property>
 </object>
 <object id='Sun' module='Products.ZenModel.Manufacturer' class='Manufacturer'>
 <property type="lines" id="regexes" mode="w" >
@@ -37562,86 +36512,6 @@ False
 </object>
 </tomanycont>
 </object>
-<object id='Vim' module='Products.ZenModel.Manufacturer' class='Manufacturer'>
-<property type="string" id="url" mode="w" >
-http://www.vim.org
-</property>
-<tomanycont id='products'>
-<object id='Vim 6.3 _self-installing' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
-<property type="string" id="name" mode="w" >
-Vim 6.3 _self-installing
-</property>
-<property type="lines" id="productKeys" mode="w" >
-['Vim 6.3 (self-installing)']
-</property>
-<property type="boolean" id="isOS" mode="w" >
-False
-</property>
-</object>
-<object id='vim-X11-6.3.054-0.fc3.1' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
-<property type="string" id="name" mode="w" >
-vim-X11-6.3.054-0.fc3.1
-</property>
-<property type="lines" id="productKeys" mode="w" >
-['vim-X11-6.3.054-0.fc3.1']
-</property>
-<property type="boolean" id="isOS" mode="w" >
-False
-</property>
-</object>
-<object id='vim-common-6.3.054-0.fc3.1' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
-<property type="string" id="name" mode="w" >
-vim-common-6.3.054-0.fc3.1
-</property>
-<property type="lines" id="productKeys" mode="w" >
-['vim-common-6.3.054-0.fc3.1']
-</property>
-<property type="boolean" id="isOS" mode="w" >
-False
-</property>
-</object>
-<object id='vim-enhanced-6.3.054-0.fc3.1' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
-<property type="string" id="name" mode="w" >
-vim-enhanced-6.3.054-0.fc3.1
-</property>
-<property type="lines" id="productKeys" mode="w" >
-['vim-enhanced-6.3.054-0.fc3.1']
-</property>
-<property type="boolean" id="isOS" mode="w" >
-False
-</property>
-</object>
-<object id='vim-minimal-6.3.054-0.fc3.1' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
-<property type="string" id="name" mode="w" >
-vim-minimal-6.3.054-0.fc3.1
-</property>
-<property type="lines" id="productKeys" mode="w" >
-['vim-minimal-6.3.054-0.fc3.1']
-</property>
-<property type="boolean" id="isOS" mode="w" >
-False
-</property>
-</object>
-</tomanycont>
-</object>
-<object id='WinZip' module='Products.ZenModel.Manufacturer' class='Manufacturer'>
-<property type="lines" id="regexes" mode="w" >
-('^WinZip Computing',)
-</property>
-<tomanycont id='products'>
-<object id='WinZip' module='Products.ZenModel.SoftwareClass' class='SoftwareClass'>
-<property type="string" id="name" mode="w" >
-WinZip
-</property>
-<property type="lines" id="productKeys" mode="w" >
-['WinZip']
-</property>
-<property type="boolean" id="isOS" mode="w" >
-False
-</property>
-</object>
-</tomanycont>
-</object>
 <object id='X.org' module='Products.ZenModel.Manufacturer' class='Manufacturer'>
 <property type="string" id="url" mode="w" >
 http://www.x.org/
@@ -37835,6 +36705,11 @@ False
 </property>
 </object>
 </tomanycont>
+</object>
+<object id='XGI' module='Products.ZenModel.Manufacturer' class='Manufacturer'>
+<property type="lines" id="regexes" mode="w" >
+('^XGI Xabre Graphics Inc$',)
+</property>
 </object>
 <object id='Yahoo' module='Products.ZenModel.Manufacturer' class='Manufacturer'>
 <property type="string" id="url" mode="w" >
