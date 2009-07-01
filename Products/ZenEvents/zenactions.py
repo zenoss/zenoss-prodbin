@@ -202,28 +202,37 @@ class ZenActions(ZCmdBase):
         return result
 
 
-    def getUrl(self, evid):
-        return '%s/zport/dmd/Events/eventFields?evid=%s' % (
-            self.options.zopeurl, evid)
-
-            
-    def getEventsUrl(self, device):
-        return '%s%s/viewEvents' % (
-                    self.options.zopeurl, device.getPrimaryUrlPath())
+    def getBaseUrl(self, device=None):
+        url = self.options.zopeurl
+        if device:
+            return "%s%s" % (url, device.getPrimaryUrlPath())
+        else:
+            return "%s/zport/dmd/Events" % (url)
 
 
-    def getAckUrl(self, evid):
-        return '%s/zport/dmd/Events/manage_ackEvents?evids=%s&zenScreenName=viewEvents' % (self.options.zopeurl, evid)
+    def getEventUrl(self, evid, device=None):
+        return "%s/eventFields?evid=%s" % (self.getBaseUrl(device), evid)
 
 
-    def getDeleteUrl(self, evid):
-        return '%s/zport/dmd/Events/manage_deleteEvents' % self.options.zopeurl + \
-               '?evids=%s&zenScreenName=viewHistoryEvents' % evid
+    def getEventsUrl(self, device=None):
+        return "%s/viewEvents" % self.getBaseUrl(device)
 
 
-    def getUndeleteUrl(self, evid):
-        return '%s/zport/dmd/Events/manage_undeleteEvents' % self.options.zopeurl + \
-               '?evid=%s&zenScreenName=viewEvents' % evid
+    def getAckUrl(self, evid, device=None):
+        return "%s/manage_ackEvents?evids=%s&zenScreenName=viewEvents" % (
+            self.getBaseUrl(device), evid)
+
+
+    def getDeleteUrl(self, evid, device=None):
+        return "%s/manage_deleteEvents?evids=%s" % (
+            self.getBaseUrl(device), evid) + \
+            "&zenScreenName=viewHistoryEvents"
+
+
+    def getUndeleteUrl(self, evid, device=None):
+        return "%s/manage_undeleteEvents?evids=%s" % (
+            self.getBaseUrl(device), evid) + \
+            "&zenScreenName=viewEvents"
 
 
     def processRules(self, zem):
@@ -263,15 +272,15 @@ class ZenActions(ZCmdBase):
         for result in self.query(q):
             evid = result[-1]
             data = dict(zip(fields, map(zem.convert, fields, result[:-1])))
-            data['eventUrl'] = self.getUrl(evid)
             device = self.dmd.Devices.findDevice(data.get('device', None))
+            data['eventUrl'] = self.getEventUrl(evid, device)
             if device:
                 data['eventsUrl'] = self.getEventsUrl(device)
             else:
                 data['eventsUrl'] = 'n/a'
                 data['device'] = data.get('device', None) or ''
-            data['ackUrl'] = self.getAckUrl(evid)
-            data['deleteUrl'] = self.getDeleteUrl(evid)
+            data['ackUrl'] = self.getAckUrl(evid, device)
+            data['deleteUrl'] = self.getDeleteUrl(evid, device)
             severity = data.get('severity', -1)
             data['severityString'] = zem.getSeverityString(severity)
             if action(context, data, False):            
@@ -311,7 +320,9 @@ class ZenActions(ZCmdBase):
                 data['clearSummary'] or data['summary'])
                 
             # add in the link to the url
-            data['eventUrl'] = self.getUrl(evid)
+            device = self.dmd.Devices.findDevice(data.get('device', None))
+            data['eventUrl'] = self.getEventUrl(evid, device)
+            data['undeleteUrl'] = self.getUndeleteUrl(evid, device)
             severity = data.get('severity', -1)
             data['severityString'] = zem.getSeverityString(severity)
             delcmd = self.clearstate % (evid, userid, context.getId())

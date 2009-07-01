@@ -71,7 +71,8 @@ class ActionRule(ZenModelRM, EventFilter):
             "Device: %(device)s\n" \
             "Component: %(component)s\n" \
             "Severity: %(severityString)s\n" \
-            "Message:\n%(message)s\n"
+            "Message:\n%(message)s\n" \
+            "<a href=\"%(undeleteUrl)s\">Undelete</a>\n"
     enabled = False
     actionTypes = ("page", "email") 
     targetAddr = ""
@@ -151,7 +152,7 @@ class ActionRule(ZenModelRM, EventFilter):
             if not f.startswith('clear') ])
         result.update(map(_downcase, re.findall("%\(clear(\S+)\)s", self.clearFormat)))
         result.update(map(_downcase, re.findall("%\(clear(\S+)\)s", self.clearBody)))
-        notDb = Set('orEventSummary eventUrl eventsUrl ackUrl deleteUrl severityString'.split())
+        notDb = Set('orEventSummary eventUrl eventsUrl ackUrl deleteUrl undeleteUrl severityString'.split())
         notMsg = ['severity', 'summary']
         return list(result - notDb) + notMsg
 
