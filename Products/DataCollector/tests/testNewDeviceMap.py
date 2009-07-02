@@ -99,16 +99,9 @@ class TestNewDeviceMap(BaseTestCase):
 
         # Verify that the modeler plugin processes the data properly.
         om = self.ndmap.process(self.device, results, log)
-        print "descr = %s" % om.snmpDescr
-        print "hw key = %s" % om.setHWProductKey.args[0]
-        print "sw key = %s" % om.setOSProductKey
 
         # Verify that the data made it into the model properly.
         self.adm._applyDataMap(self.device, om)
-        self.assertEquals(self.device.getHWManufacturerName(),
-            'Sun')
-        self.assertEquals(self.device.getHWProductName(),
-            'i86pc')
         self.assertEquals(self.device.getOSManufacturerName(),
             'Sun')
         self.assertEquals(self.device.getOSProductName(),
