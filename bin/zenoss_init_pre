@@ -64,6 +64,10 @@ run_mkzopeinstance
 # create the zeodb instance
 run_mkzeoinstance
 
+# setup ZEO in a more secure default configuration
+/usr/bin/replace "address 8100" "address localhost:8100" -- \
+    $ZENHOME/etc/zeo.conf
+
 # create the zeo database
 start_zeodb
 chown -R ${OS_USERNAME} ${ZENHOME}/var
