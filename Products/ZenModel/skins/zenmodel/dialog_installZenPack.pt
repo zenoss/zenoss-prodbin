@@ -1,7 +1,7 @@
 <h2>Install ZenPack</h2>
 <span id="errmsg" style="color:red;"></span>
 <p style="text-align:left;">
-Select the ZenPack .zip file to upload and install.
+Select the ZenPack file to upload and install.
 </p>
 <p style="text-align:right;">
 <input type="file" name="zenpack:file" size="40"/>
