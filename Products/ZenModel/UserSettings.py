@@ -628,14 +628,27 @@ class UserSettings(ZenModelRM):
     def iseditable(self):
         """Can the current user edit this settings object.
         """
-        owner = self.getOwner()
-        user = getSecurityManager().getUser()
-        if owner.has_role("Manager") and not user.has_role("Manager"):
+        currentUser = getSecurityManager().getUser()
+
+        # Managers can edit any users' settings.
+        if currentUser.has_role("Manager"):
+            return True
+
+        # thisUser can be None if the plugin that created it is inactive.
+        thisUser = self.acl_users.getUser(self.id)
+        if thisUser is None:
             return False
-        
-        return user.has_role("Manager") or \
-               user.has_role("ZenManager") or \
-               owner.getUserName() == user.getUserName()
+
+        # ZenManagers can edit any users' settings except for Managers.
+        if currentUser.has_role("ZenManager") \
+            and not thisUser.has_role("Manager"):
+            return True
+
+        # Users can edit their own settings.
+        if thisUser.getUserName() == currentUser.getUserName():
+            return True
+
+        return False
 
 
     security.declareProtected(ZEN_CHANGE_SETTINGS, 'manage_editUserSettings')
