@@ -66,7 +66,7 @@ class AdministrativeRoleable:
             messaging.IMessageSender(self).sendToBrowser(
                 'Admin Roles Updated',
                 ('The following administrative roles have been updated: '
-                 '%s' % ", ".join(newId))
+                 '%s' % ", ".join(ids))
             )
             return self.callZenScreen(REQUEST)
 
