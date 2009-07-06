@@ -686,7 +686,7 @@ FileMaker Server 7_94
 0
 </property>
 <property type="string" id="example" mode="w" >
-Client "NURSI-T15-8821" opening database "Newborns 2005" as "etuttle".
+Client "CLIENTNAME" opening database "DATABASENAME" as "USERNAME".
 </property>
 </object>
 <object id='Kerberos_3' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
@@ -708,7 +708,7 @@ Kerberos_4
 0
 </property>
 <property type="string" id="example" mode="w" >
-The kerberos client received a KRB_AP_ERR_MODIFIED error from the server PR-1S-8CA7$.  The target name used was cifs/hostname.mydomain.com. This indicates that the password used to encrypt the kerberos service ticket is different than that on the target server. Commonly, this is due to identically named  machine accounts in the target realm (DOMAIN), and the client realm.   Please contact your system administrator.
+The kerberos client received a KRB_AP_ERR_MODIFIED error from the server SERVERNAME$.  The target name used was cifs/hostname.mydomain.com. This indicates that the password used to encrypt the kerberos service ticket is different than that on the target server. Commonly, this is due to identically named  machine accounts in the target realm (DOMAIN), and the client realm.   Please contact your system administrator.
 </property>
 </object>
 <object id='MSExchangeDSAccess_2110' module='Products.ZenEvents.EventClassInst' class='EventClassInst'>
@@ -1231,7 +1231,7 @@ FileMaker Server 7_418
 0
 </property>
 <property type="string" id="example" mode="w" >
-Opening database "Newborns 1997 Jul-Dec"...
+Opening database "DATABASENAME"...
 </property>
 <property visible="True" type="int" id="zEventSeverity" >
 0
@@ -1294,7 +1294,7 @@ FileMaker Server 7_140
 0
 </property>
 <property type="string" id="example" mode="w" >
-Closing database "Newborns 2001 Jul-Dec"...
+Closing database "DATABASENAME"...
 </property>
 <property visible="True" type="int" id="zEventSeverity" >
 4
@@ -1308,7 +1308,7 @@ FileMaker Server 7_168
 0
 </property>
 <property type="string" id="example" mode="w" >
-Database "Newborns 2001 Jan-Jun" closed.
+Database "DATABASENAME" closed.
 </property>
 <property visible="True" type="int" id="zEventSeverity" >
 4
@@ -1642,7 +1642,7 @@ W3SVC_101
 0
 </property>
 <property type="string" id="example" mode="w" >
-The server was unable to add the virtual root '/Altiris/Packages/{80364610-d332-43de-b552-e3c35156edd4}' for the directory '\\mhsaltiris01\wise share point\Available Packages\Cisco VPN Client\4.6' due to the following error: Logon failure: unknown user name or bad password.  The data is the error code.
+The server was unable to add the virtual root '/Packages/{80364610-d332-43de-b552-e3c35156edd4}' for the directory '\\SERVERNAME\Packages\Cisco VPN Client\4.6' due to the following error: Logon failure: unknown user name or bad password.  The data is the error code.
 
 For additional information specific to this message please visit the Microsoft Online Support site located at: http://www.microsoft.com/contentredirect.asp.
 </property>
@@ -1772,7 +1772,7 @@ EXCDO_8263
 0
 </property>
 <property type="string" id="example" mode="w" >
-The recurring appointment expansion in mailbox Stalder, Jim has taken too long. Some recurring appointment instances may not be visible at this time. To ensure that the calendar view is correct, please refresh the calendar view in Microsoft Outlook Web Access.
+The recurring appointment expansion in mailbox Lastname, Firstname has taken too long. Some recurring appointment instances may not be visible at this time. To ensure that the calendar view is correct, please refresh the calendar view in Microsoft Outlook Web Access.
 
 
 For more information, click http://www.microsoft.com/contentredirect.asp.
@@ -1893,7 +1893,7 @@ FileMaker Server 7_30
 0
 </property>
 <property type="string" id="example" mode="w" >
-Client "NURSI-T15-8821" no longer responding; connection closed. (10.120.30.17)
+Client "CLIENTNAME" no longer responding; connection closed. (10.1.23.45)
 </property>
 <property visible="True" type="int" id="zEventSeverity" >
 2
@@ -2009,8 +2009,8 @@ MetaFrameEvents_1103
 </property>
 <property type="string" id="example" mode="w" >
 An error occurred while retrieving client printer properties. Default printer properties will be used instead.
-Client name: (WI_IZGuDl8qx-Yj_SN0Q)
-Printer: (Microsoft Office Document Image Writer (from WI_IZGuDl8qx-Yj_SN0Q) in session 1)
+Client name: (CLIENTNAME)
+Printer: (Microsoft Office Document Image Writer (from CLIENTNAME) in session 1)
 Printer driver: (Microsoft Office Document Image Writer Driver)
 </property>
 <property visible="True" type="int" id="zEventSeverity" >
@@ -2029,8 +2029,8 @@ Client printer auto-creation failed.  The driver could not be installed. Possibl
 The driver is not in the list of drivers on the server.
 The driver cannot be located.
 The driver has not been mapped.
-Client name: (WI_PwRMIj4zImhbklYzp)
-Printer: (14WS on ed_server (from WI_PwRMIj4zImhbklYzp) in session 1)
+Client name: (CLIENTNAME)
+Printer: (14WS on ed_server (from CLIENTNAME) in session 1)
 Printer driver: (HP LaserJet 4000 PCL 5e)
 </property>
 <property visible="True" type="int" id="zEventSeverity" >
@@ -2149,7 +2149,7 @@ Print_6161
 0
 </property>
 <property type="string" id="example" mode="w" >
-The document Default Report Title owned by lmarcinke failed to print on printer Client\DOMAIN-client#\10.1.2.3 - LJ 4100n. Data type: NT EMF 1.008. Size of the spool file in bytes: 131776. Number of bytes printed: 0. Total number of pages in the document: 2. Number of pages printed: 0. Client machine: \\COMPUTER. Win32 error code returned by the print processor: 1450.
+The document Default Report Title owned by USERNAME failed to print on printer Client\DOMAIN-client#\10.1.2.3 - LJ 4100n. Data type: NT EMF 1.008. Size of the spool file in bytes: 131776. Number of bytes printed: 0. Total number of pages in the document: 2. Number of pages printed: 0. Client machine: \\COMPUTER. Win32 error code returned by the print processor: 1450.
 </property>
 <property visible="True" type="int" id="zEventSeverity" >
 2
@@ -2521,7 +2521,7 @@ W32Time_22
 0
 </property>
 <property type="string" id="example" mode="w" >
-The time provider NtpServer encountered an error while digitally signing the  NTP response for peer 10.120.61.24:123.  NtpServer cannot provide secure (signed) time to the client and will ignore the request. The error was: The specified user does not exist. (0x80070525)
+The time provider NtpServer encountered an error while digitally signing the  NTP response for peer 10.1.23.45:123.  NtpServer cannot provide secure (signed) time to the client and will ignore the request. The error was: The specified user does not exist. (0x80070525)
 </property>
 </object>
 </tomanycont>
@@ -4913,7 +4913,7 @@ FileMaker Server 7_22
 0
 </property>
 <property type="string" id="example" mode="w" >
-Client "NURSI-T15-8821" closing a connection.
+Client "CLIENTNAME" closing a connection.
 </property>
 <property visible="True" type="string" id="zEventAction" >
 history
@@ -4927,7 +4927,7 @@ FileMaker Server 7_601
 0
 </property>
 <property type="string" id="example" mode="w" >
-Client "PEDS-T17-2ACD" opening database "Newborns 2004 All" as "Guest".
+Client "CLIENTNAME" opening database "DATABASENAME" as "USERNAME".
 </property>
 <property visible="True" type="string" id="zEventAction" >
 history
@@ -4941,7 +4941,7 @@ FileMaker Server 7_98
 0
 </property>
 <property type="string" id="example" mode="w" >
-Client "NURSI-T15-8821" closing database "Newborns 2005" as "etuttle".
+Client "CLIENTNAME" closing database "DATABASENAME" as "USERNAME".
 </property>
 <property visible="True" type="string" id="zEventAction" >
 history
