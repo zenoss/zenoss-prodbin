@@ -21,6 +21,7 @@ slog = logging.getLogger("zen.Syslog")
 
 import Globals
 from Products.ZenEvents.syslog_h import *
+from Products.ZenUtils.IpUtil import isip
 
 import socket
 
@@ -212,6 +213,11 @@ class SyslogProcessor(object):
             slog.debug("parseHEADER hostname=%s", evt['device'])
             msg = " ".join(msglist[1:])
             evt['device'] = device
+            if isip(device):
+                evt['ipAddress'] = device
+            else:
+                if 'ipAddress' in evt:
+                    del(evt['ipAddress'])
         return evt, msg
 
 
