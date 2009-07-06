@@ -140,18 +140,21 @@ class ActionRule(ZenModelRM, EventFilter):
         crumbs.insert(-1,(url,'Alerting Rules'))
         return crumbs
 
+
     def getEventFields(self):
         """Return list of fields used in format.
         """
+        regex = re.compile(r'%\(([^\)]+)\)s')
+        clearRegex = re.compile(r'%\(clear([^\)]+)\)s')
         result = Set()
-        result.update(re.findall("%\((\S+)\)s", self.format))
-        result.update(re.findall("%\((\S+)\)s", self.body))
-        result.update([ f for f in re.findall("%\((\S+)\)s", self.clearFormat) \
+        result.update(regex.findall(self.format))
+        result.update(regex.findall(self.body))
+        result.update([ f for f in regex.findall(self.clearFormat) \
             if not f.startswith('clear') ])
-        result.update([ f for f in re.findall("%\((\S+)\)s", self.clearBody) \
+        result.update([ f for f in regex.findall(self.clearBody) \
             if not f.startswith('clear') ])
-        result.update(map(_downcase, re.findall("%\(clear(\S+)\)s", self.clearFormat)))
-        result.update(map(_downcase, re.findall("%\(clear(\S+)\)s", self.clearBody)))
+        result.update(map(_downcase, clearRegex.findall(self.clearFormat)))
+        result.update(map(_downcase, clearRegex.findall(self.clearBody)))
         notDb = Set('orEventSummary eventUrl eventsUrl ackUrl deleteUrl undeleteUrl severityString'.split())
         notMsg = ['severity', 'summary']
         return list(result - notDb) + notMsg
