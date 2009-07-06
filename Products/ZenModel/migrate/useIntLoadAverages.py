@@ -47,9 +47,7 @@ class UseIntLoadAverages(Migrate.Step):
                         '1.3.6.1.4.1.2021.10.1.3',
                         '1.3.6.1.4.1.2021.10.1.5')
 
-            except AttributeError, KeyError:
-                pass
-            except NotFound:
+            except (NotFound, AttributeError, KeyError):
                 log.info( ( 'Could not retrieve datasource at %s. ' +
                             'The template or datasource is not present.' ),
                             dsPath )
