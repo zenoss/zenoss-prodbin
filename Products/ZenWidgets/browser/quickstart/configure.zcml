@@ -4,6 +4,7 @@
     xmlns:browser="http://namespaces.zope.org/browser"
     i18n_domain="Products.ZenWidgets">
 
+    <include package="Products.ZenModel" file="permissions.zcml"/>
 
     <browser:page
         for="*"
@@ -16,14 +17,14 @@
         for="*"
         name="quickstart"
         class=".views.OutlineView"
-        permission="zope2.View"
+        permission="zenoss.ManageDMD"
         />
 
     <browser:page
         for="*"
         name="qs-step1"
         class=".userViews.CreateUserView"
-        permission="zope2.View"
+        permission="zope2.ManageUsers"
         />
 
     <!-- Form actions for step 1 -->
@@ -33,7 +34,7 @@
             name="qs-createuser"
             class=".userViews.CreateUserView"
             attribute="createUser"
-            permission="zope2.View"
+            permission="zope2.ManageUsers"
             />
 
     <!-- End form actions -->
@@ -43,7 +44,7 @@
         name="qs-step2"
         class=".views.DeviceAddView"
         template="templates/adddevice.pt"
-        permission="zope2.View"
+        permission="zenoss.ManageDMD"
         />
 
     <!-- Form actions for step 2 -->
@@ -53,7 +54,7 @@
             name="manual_add"
             class=".views.DeviceAddView"
             attribute="manual"
-            permission="zope2.View"
+            permission="zenoss.ManageDMD"
             />
 
         <browser:page
@@ -61,7 +62,7 @@
             name="auto_add"
             class=".views.DeviceAddView"
             attribute="autodiscovery"
-            permission="zope2.View"
+            permission="zenoss.ManageDMD"
             />
 
     <!-- End form actions -->

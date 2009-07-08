@@ -80,7 +80,7 @@ class EventCommandProtocol(ProcessProtocol):
         if self.timeout:
             self.timeout.cancel()
             self.timeout = None
-        
+
         if code == 0:
             cmdData = self.data or "<command produced no output>"
             self.server.log.debug("Command %s says: %s", self.cmd.id, cmdData)
