@@ -1,7 +1,7 @@
 ###########################################################################
 #
 # This program is part of Zenoss Core, an open source monitoring platform.
-# Copyright (C) 2007, Zenoss Inc.
+# Copyright (C) 2007, 2009 Zenoss Inc.
 #
 # This program is free software; you can redistribute it and/or modify it
 # under the terms of the GNU General Public License version 2 as published by
@@ -11,27 +11,27 @@
 #
 ###########################################################################
 
-__doc__="""IpService.py
+__doc__="""IpService
 
 IpService is a function provided by computer (like a server).  it
 is defined by a protocol type (udp/tcp) and a port number.
 
-$Id: IpService.py,v 1.10 2004/04/22 22:04:14 edahl Exp $"""
+"""
 
-__version__ = "$Revision: 1.10 $"[11:-2]
-
-from Globals import DTMLFile
-from Globals import InitializeClass
+from Globals import DTMLFile, InitializeClass
 from AccessControl import ClassSecurityInfo
 from Products.ZenModel.ZenossSecurity import *
 
 from Products.ZenRelations.RelSchema import *
 
-from Service import Service
+from Products.ZenModel.Service import Service
 from Products.ZenModel.IpServiceClass import IpServiceClass
+from Products.ZenUtils.IpUtil import isip
 
 def manage_addIpService(context, id, protocol, port, userCreated=None, REQUEST=None):
-    """make a device"""
+    """
+    Make an IP service entry
+    """
     s = IpService(id)
     context._setObject(id, s)
     s = context._getOb(id)
@@ -67,14 +67,21 @@ class IpService(Service):
     discoveryAgent = ""
     port = 0 
     protocol = ""
+    manageIp = ""
 
     collectors = ('zenstatus',)
 
     _properties = (
-        {'id':'port', 'type':'int', 'mode':'', 'setter': 'setPort'},
-        {'id':'protocol', 'type':'string', 'mode':'', 'setter': 'setProtocol'},
-        {'id':'ipaddresses', 'type':'lines', 'mode':''},
-        {'id':'discoveryAgent', 'type':'string', 'mode':''},
+        {'id':'port', 'type':'int', 'mode':'', 'setter': 'setPort',
+         'description':"TCP port to check for this service."},
+        {'id':'protocol', 'type':'string', 'mode':'', 'setter': 'setProtocol',
+         'description':"Protocol (TCP or UPD) used by this service."},
+        {'id':'ipaddresses', 'type':'lines', 'mode':'',
+         'description':"IP addresses that this service is listening on."},
+        {'id':'discoveryAgent', 'type':'string', 'mode':'',
+         'description':"What process was used to discover this service."},
+        {'id':'manageIp', 'type':'string', 'mode':'',
+         'description':"The IP address to check for this service."},
         ) 
     _relations = Service._relations + (
         ("os", ToOne(ToManyCont,"Products.ZenModel.OperatingSystem","ipservices")),
@@ -113,7 +120,8 @@ class IpService(Service):
 
 
     def monitored(self):
-        """Return monitored state of ipservice.  
+        """
+        Return monitored state of ipservice.  
         If service only listens on 127.0.0.1 return false.
         """
         if self.cantMonitor(): return False
@@ -132,14 +140,16 @@ class IpService(Service):
 
 
     def getInstDescription(self):
-        """Return some text that describes this component.  Default is name.
+        """
+        Return some text that describes this component.  Default is name.
         """
         return "%s-%d ips:%s" % (self.protocol, self.port, 
                                  ", ".join(self.ipaddresses))
 
         
     def setServiceClass(self, kwargs):
-        """Set the service class based on a dict describing the service.
+        """
+        Set the service class based on a dict describing the service.
         Dict keys are be protocol and port
         """
         protocol = kwargs['protocol']
@@ -161,7 +171,8 @@ class IpService(Service):
 
 
     def getServiceClass(self):
-        """Return a dict like one set by IpServiceMap for services.
+        """
+        Return a dict like one set by IpServiceMap for services.
         """
         svc = self.serviceclass()
         if svc:
@@ -173,11 +184,80 @@ class IpService(Service):
         return "%s-%05d" % (self.protocol, self.port)
     
     def getManageIp(self):
-        manage_ip = Service.getManageIp(self)
+        """
+        A service can listen on multiple interfaces on a device,
+        and the interface it listens on may not be the same one 
+        that is the manageIp for the device.
+
+        @return: IP address to contact the service on
+        @rtype: string
+        """
+        if self.manageIp:
+            # List of IP address + netmasks
+            ips = Service.getNonLoopbackIpAddresses(self)
+            if self.manageIp in ips: 
+                return self.manageIp
+            else:
+                # Oops! Our management IP is no longer here
+                self.manageIp = ''
+
+        return self._getManageIp()
+
+    def _getManageIp(self):
+        """
+        Pick an IP out of available choices.
+
+        @return: IP address to contact the service on
+        @rtype: string
+        """
         for ip in self.ipaddresses:
             if ip != '0.0.0.0' and ip != '127.0.0.1':
                 return ip
-        return manage_ip
+        return Service.getManageIp(self)
+
+    def setManageIp(self, manageIp):
+        """
+        Manually set the management IP address to check the
+        service status.
+
+        @parameter manageIp: IP address to check the service health
+        @type manageIp: string
+        """
+        if not manageIp:
+            return
+
+        justIp = manageIp.split('/',1)[0]
+        if not isip(justIp):
+            return
+
+        ips = self.getIpAddresses()
+        if '0.0.0.0' in self.ipaddresses and justIp in ips:
+            self.manageIp = manageIp
+
+        if justIp in self.ipaddresses:
+            self.manageIp = manageIp
+
+    def unsetManageIp(self):
+        """
+        Remove a prevously set management IP address to check the
+        service status.
+        """
+        self.manageIp = ''
+
+    def getIpAddresses(self):
+        """
+        List the IP addresses to which we can contact the service.
+
+        @return: list of IP addresses
+        @rtype: array of strings
+        """
+        ips = [ ip for ip in self.ipaddresses \
+            if ip != '0.0.0.0' and ip != '127.0.0.1' ]
+        if not ips:
+            ips = Service.getNonLoopbackIpAddresses(self)
+            ips = [ x.split('/',1)[0] for x in ips ]
+        return ips
+
 
     def getProtocol(self):
         return self.protocol
@@ -201,11 +281,13 @@ class IpService(Service):
     security.declareProtected('Manage DMD', 'manage_editService')
     def manage_editService(self, id=None, 
                         status=None, ipaddresses=None, 
+                        manageIp=None, 
                         protocol=None, port=None,
                         description=None, 
                         monitor=False, severity=5, sendString="",
                         expectRegex="", REQUEST=None):
-        """Edit a Service from a web page.
+        """
+        Edit a Service from a web page.
         """
         if id:
             self.rename(id)
@@ -214,6 +296,9 @@ class IpService(Service):
             self.description = description
             self.protocol = protocol
             self._updateProperty('port', port)
+
+            self.setManageIp(manageIp)
+
             if protocol != self.protocol or port != self.port:
                 self.setServiceClass({'protocol':protocol, 'port':int(port)})
         

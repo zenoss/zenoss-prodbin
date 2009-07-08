@@ -16,9 +16,8 @@ __doc__="""DeviceResult
 A mixin for objects that get listed like devices
 The primary object must implement device.
 
-$Id: DeviceResultInt.py,v 1.9 2004/04/23 01:24:48 edahl Exp $"""
+"""
 
-__version__ = "$Revision: 1.9 $"[11:-2]
 
 from AccessControl import ClassSecurityInfo
 from Globals import InitializeClass
@@ -171,6 +170,29 @@ class DeviceResultInt:
             if int:
                 return int.getInterfaceMacaddress()
         return ""
+
+    security.declareProtected('View', 'getNonLoopbackIpAddresses')
+    def getNonLoopbackIpAddresses(self):
+        """
+        List the IP addresses to which we can contact the service.
+        Discards the loopback (127.0.0.1) address.
+
+        @return: list of IP addresses
+        @rtype: array of strings
+        """
+        ip_list = []
+        dev = self.device()
+        if dev:
+            ip_list = ( obj.getIpAddress() 
+                         for obj in dev.os.interfaces.objectValuesAll() )
+            ip_list = [ ip for ip in ip_list if ip and \
+                         not ip.startswith('127.0.0.1')]
+        else:
+            manage_ip = self.getDeviceIp()
+            if manage_ip:
+                ip_list = [ manage_ip ]
+        return ip_list
+
    
     
 InitializeClass(DeviceResultInt)

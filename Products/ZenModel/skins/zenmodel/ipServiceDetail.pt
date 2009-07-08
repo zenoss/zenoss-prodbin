@@ -74,17 +74,29 @@
         </td>
     </tr>
     <tr>
-        <td class="tableheader">Ip Addresses</td>
-        <td class="tablevalues" tal:condition="not:editable"
-            tal:content="python: ', '.join(here.ipaddresses)"/>
-        <td class="tablevalues" tal:condition="editable">
-            <textarea name="ipaddresses:lines"
-                      tal:attributes="class string:tablevalues; 
-                              cols string:40;
-                              rows string:5;"
+        <td class="tableheader">IP Addresses</td>
+        <td class="tablevalues">
+            <textarea name="ipaddresses:lines" readonly="readonly"
+                      class="tablevalues" cols="16"
                       tal:content="python: '\n'.join(here.ipaddresses)"/>
         </td>
     </tr>
+    <tr>
+        <td class="tableheader">Check IP Address</td>
+        <td class="tablevalues" 
+                tal:condition="python:here.cantMonitor() or not manager"
+            tal:content="here/getManageIp"/>
+        <td class="tablevalues"
+                tal:condition="python:not here.cantMonitor() and manager"
+                tal:define="manage_ip here/getManageIp">
+            <select name="manageIp:string" >
+            <option tal:repeat="e here/getNonLoopbackIpAddresses" tal:content="e"
+                tal:attributes="value e; selected python:e==manage_ip"/>
+            </select>
+        </td>
+    </tr>
+
+
     <tr>
         <td class="tableheader">Monitor</td>
         <td class="tablevalues" 

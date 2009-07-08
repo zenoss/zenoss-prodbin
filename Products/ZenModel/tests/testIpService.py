@@ -16,6 +16,7 @@ if __name__ == '__main__':
 
 from Products.ZenModel.Exceptions import *
 from Products.ZenModel.IpService import IpService
+from Products.ZenModel.IpInterface import IpInterface
 
 from ZenModelBaseTest import ZenModelBaseTest
 
@@ -47,11 +48,46 @@ class TestIpService(ZenModelBaseTest):
 
 
     def testSetManageIp(self):
-        self.ipsvc.setManageIp('1.2.3.4/24')
-        self.assert_(self.ipsvc.getManageIp() == '1.2.3.4/24')
-        self.assert_(self.dev.getManageIp() == '1.2.3.4/24')
+        tmpo = IpInterface('test')
+        self.dev.os.interfaces._setObject('test',tmpo)
+        self.iface = self.dev.getDeviceComponents()[1]
+        self.iface.addIpAddress('1.2.3.4')
+
+        # Explicitly set the manageIp at the device level
+        self.dev.setManageIp('1.2.3.4/24')
+        self.assertEquals(self.dev.getManageIp(), '1.2.3.4/24')
+        self.assertEquals(self.ipsvc.getManageIp(), '1.2.3.4/24')
+
         self.dev.setManageIp('2.3.4.5/24')
-        self.assert_(self.ipsvc.getManageIp() == '2.3.4.5/24')
+        self.assertEquals(self.ipsvc.getManageIp(), '2.3.4.5/24')
+
+        # Explicitly set the manageIp at the service level
+        self.ipsvc.ipaddresses = [ '0.0.0.0' ]
+        self.ipsvc.setManageIp('1.2.3.4/24')
+        self.assertEquals(self.dev.getManageIp(), '2.3.4.5/24')
+        self.assertEquals(self.ipsvc.getManageIp(), '1.2.3.4/24')
+
+
+    def testGetIpAddresses(self):
+        # No interfaces defined
+        self.assertEquals(self.ipsvc.getNonLoopbackIpAddresses(), [])
+
+        # Have one IP address
+        tmpo = IpInterface('test')
+        self.dev.os.interfaces._setObject('test',tmpo)
+        self.iface = self.dev.getDeviceComponents()[1]
+        self.iface.addIpAddress('1.2.3.4')
+        self.dev.setManageIp('1.2.3.4/24')
+
+        self.assertEquals(self.ipsvc.getNonLoopbackIpAddresses(), ['1.2.3.4/24'])
+
+        # Have two IP addresses
+        tmpo = IpInterface('test1')
+        self.dev.os.interfaces._setObject('test1',tmpo)
+        self.iface1 = self.dev.getDeviceComponents()[2]
+        self.iface1.addIpAddress('2.3.4.5')
+        self.assertEquals(self.ipsvc.getNonLoopbackIpAddresses(),
+              ['1.2.3.4/24', '2.3.4.5/24'])
 
 
 def test_suite():
