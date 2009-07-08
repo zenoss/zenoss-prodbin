@@ -210,6 +210,11 @@ class IpService(Service):
         @return: IP address to contact the service on
         @rtype: string
         """
+        manage_ip = Service.getManageIp(self)
+        bare_ip = manage_ip.split('/',1)[0]
+        if bare_ip in self.ipaddresses:
+            return manage_ip
+
         for ip in self.ipaddresses:
             if ip != '0.0.0.0' and ip != '127.0.0.1':
                 return ip
@@ -297,11 +302,11 @@ class IpService(Service):
             self.protocol = protocol
             self._updateProperty('port', port)
 
-            self.setManageIp(manageIp)
-
             if protocol != self.protocol or port != self.port:
                 self.setServiceClass({'protocol':protocol, 'port':int(port)})
         
+        self.setManageIp(manageIp)
+
         msg = []
         msg.append(self.setAqProperty("sendString", sendString, "string"))
         msg.append(self.setAqProperty("expectRegex", expectRegex, "string"))
