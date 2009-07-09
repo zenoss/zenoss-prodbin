@@ -193,13 +193,13 @@ class IpService(Service):
         @rtype: string
         """
         if self.manageIp:
-            # List of IP address + netmasks
-            ips = Service.getNonLoopbackIpAddresses(self)
-            if self.manageIp in ips: 
-                return self.manageIp
-            else:
-                # Oops! Our management IP is no longer here
-                self.manageIp = ''
+            # List of IP address
+            interfaces = self.getNonLoopbackIpAddresses()
+            if self.manageIp in interfaces:
+               if self.manageIp in self.ipaddresses or \
+                  '0.0.0.0' in self.ipaddresses:
+                   return self.manageIp
+            # Oops! Our management IP is no longer here
 
         return self._getManageIp()
 
@@ -213,12 +213,12 @@ class IpService(Service):
         manage_ip = Service.getManageIp(self)
         bare_ip = manage_ip.split('/',1)[0]
         if bare_ip in self.ipaddresses:
-            return manage_ip
+            return bare_ip
 
         for ip in self.ipaddresses:
             if ip != '0.0.0.0' and ip != '127.0.0.1':
                 return ip
-        return Service.getManageIp(self)
+        return bare_ip
 
     def setManageIp(self, manageIp):
         """
@@ -231,16 +231,16 @@ class IpService(Service):
         if not manageIp:
             return
 
-        justIp = manageIp.split('/',1)[0]
-        if not isip(justIp):
+        bare_ip = manageIp.split('/',1)[0]
+        if not isip(bare_ip):
             return
 
         ips = self.getIpAddresses()
-        if '0.0.0.0' in self.ipaddresses and justIp in ips:
-            self.manageIp = manageIp
+        if '0.0.0.0' in self.ipaddresses and bare_ip in ips:
+            self.manageIp = bare_ip
 
-        if justIp in self.ipaddresses:
-            self.manageIp = manageIp
+        if bare_ip in self.ipaddresses:
+            self.manageIp = bare_ip
 
     def unsetManageIp(self):
         """
@@ -301,6 +301,7 @@ class IpService(Service):
             self.description = description
             self.protocol = protocol
             self._updateProperty('port', port)
+
 
             if protocol != self.protocol or port != self.port:
                 self.setServiceClass({'protocol':protocol, 'port':int(port)})

@@ -56,16 +56,24 @@ class TestIpService(ZenModelBaseTest):
         # Explicitly set the manageIp at the device level
         self.dev.setManageIp('1.2.3.4/24')
         self.assertEquals(self.dev.getManageIp(), '1.2.3.4/24')
-        self.assertEquals(self.ipsvc.getManageIp(), '1.2.3.4/24')
+        self.assertEquals(self.ipsvc.getManageIp(), '1.2.3.4')
 
         self.dev.setManageIp('2.3.4.5/24')
-        self.assertEquals(self.ipsvc.getManageIp(), '2.3.4.5/24')
+        self.assertEquals(self.ipsvc.getManageIp(), '2.3.4.5')
 
         # Explicitly set the manageIp at the service level
         self.ipsvc.ipaddresses = [ '0.0.0.0' ]
         self.ipsvc.setManageIp('1.2.3.4/24')
         self.assertEquals(self.dev.getManageIp(), '2.3.4.5/24')
-        self.assertEquals(self.ipsvc.getManageIp(), '1.2.3.4/24')
+        self.assertEquals(self.ipsvc.getManageIp(), '1.2.3.4')
+
+        # Unset the manageIp
+        self.ipsvc.unsetManageIp()
+        self.assertEquals(self.ipsvc.getManageIp(), '2.3.4.5')
+
+        # Set the manageIp with garbage
+        self.ipsvc.setManageIp('HelloWorld')
+        self.assertEquals(self.ipsvc.getManageIp(), '2.3.4.5')
 
 
     def testGetIpAddresses(self):
@@ -79,7 +87,7 @@ class TestIpService(ZenModelBaseTest):
         self.iface.addIpAddress('1.2.3.4')
         self.dev.setManageIp('1.2.3.4/24')
 
-        self.assertEquals(self.ipsvc.getNonLoopbackIpAddresses(), ['1.2.3.4/24'])
+        self.assertEquals(self.ipsvc.getNonLoopbackIpAddresses(), ['1.2.3.4'])
 
         # Have two IP addresses
         tmpo = IpInterface('test1')
@@ -87,8 +95,59 @@ class TestIpService(ZenModelBaseTest):
         self.iface1 = self.dev.getDeviceComponents()[2]
         self.iface1.addIpAddress('2.3.4.5')
         self.assertEquals(self.ipsvc.getNonLoopbackIpAddresses(),
+              ['1.2.3.4', '2.3.4.5'])
+        self.assertEquals(self.ipsvc.getNonLoopbackIpAddresses(showNetMask=True),
               ['1.2.3.4/24', '2.3.4.5/24'])
 
+    def testGetManageIpMultipleInterfaces(self):
+        """
+        What should happen if multiple interfaces are available for a
+        service?  What if you want to select an alternate one?
+        """
+        # No interfaces defined
+        self.assertEquals(self.dev.getManageIp(), '')
+        self.assertEquals(self.ipsvc.getManageIp(), '')
+
+        # Have one IP address
+        tmpo = IpInterface('test')
+        self.dev.os.interfaces._setObject('test',tmpo)
+        self.iface = self.dev.getDeviceComponents()[1]
+        self.iface.addIpAddress('1.2.3.4')
+        self.dev.setManageIp('1.2.3.4/24')
+        self.ipsvc.ipaddresses = [ '0.0.0.0' ]
+
+        self.assertEquals(self.dev.getManageIp(), '1.2.3.4/24')
+        self.assertEquals(self.ipsvc.getManageIp(), '1.2.3.4')
+
+        # Have two IP addresses
+        tmpo = IpInterface('test1')
+        self.dev.os.interfaces._setObject('test1',tmpo)
+        self.iface1 = self.dev.getDeviceComponents()[2]
+        self.iface1.addIpAddress('2.3.4.5')
+        self.dev.setManageIp('2.3.4.5/24')
+
+        self.assertEquals(self.dev.getManageIp(), '2.3.4.5/24')
+        self.assertEquals(self.ipsvc.getManageIp(), '2.3.4.5')
+
+        self.ipsvc.setManageIp('1.2.3.4/24')
+        self.assertEquals(self.ipsvc.getManageIp(), '1.2.3.4')
+
+        self.ipsvc.unsetManageIp()
+        self.assertEquals(self.ipsvc.getManageIp(), '2.3.4.5')
+
+        # Restrict the service to only one IP address
+        # Happens when a service restarts with new configuration
+        self.ipsvc.setManageIp('2.3.4.5/24')
+        self.assertEquals(self.ipsvc.getManageIp(), '2.3.4.5')
+        self.ipsvc.ipaddresses = [ '1.2.3.4' ]
+        self.assertEquals(self.ipsvc.getManageIp(), '1.2.3.4')
+
+        # Remove an IP address from an interface
+        self.ipsvc.ipaddresses = [ '0.0.0.0' ]
+        self.ipsvc.setManageIp('1.2.3.4/24')
+        self.assertEquals(self.ipsvc.getManageIp(), '1.2.3.4')
+        self.iface.setIpAddresses(['10.20.30.40/8'])
+        self.assertEquals(self.ipsvc.getManageIp(), '2.3.4.5')
 
 def test_suite():
     from unittest import TestSuite, makeSuite

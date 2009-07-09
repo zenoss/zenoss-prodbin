@@ -172,11 +172,14 @@ class DeviceResultInt:
         return ""
 
     security.declareProtected('View', 'getNonLoopbackIpAddresses')
-    def getNonLoopbackIpAddresses(self):
+    def getNonLoopbackIpAddresses(self, showNetMask=False):
         """
         List the IP addresses to which we can contact the service.
         Discards the loopback (127.0.0.1) address.
+        By default do not show the netmasks.
 
+        @parameter showNetMask: return IP addresses with netmasks?
+        @type showNetMask: Boolean
         @return: list of IP addresses
         @rtype: array of strings
         """
@@ -191,8 +194,11 @@ class DeviceResultInt:
             manage_ip = self.getDeviceIp()
             if manage_ip:
                 ip_list = [ manage_ip ]
+
+        if not showNetMask:
+            ip_list = [ ip.split('/',1)[0] for ip in ip_list ]
+
         return ip_list
 
-   
-    
+
 InitializeClass(DeviceResultInt)

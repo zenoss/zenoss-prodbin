@@ -52,6 +52,18 @@
         </td>
     </tr>
     <tr>
+        <td class="tableheader">Description</td>
+        <td class="tablevalues" tal:condition="not:editable" 
+                                tal:content="here/getDescription"/>
+        <td class="tablevalues" tal:condition="editable">
+            <input tal:condition="editable"
+                   tal:attributes="class string:tablevalues;
+                                size string:50;
+                                name string:description;
+                                value here/getDescription"/>
+        </td>
+    </tr>
+    <tr>
         <td class="tableheader">Protocol</td>
         <td class="tablevalues" tal:condition="not:editable" 
                                 tal:content="here/protocol"/>
@@ -143,18 +155,6 @@
         </td>
         <td class="tablevalues" tal:condition="python:not manager"
             tal:content="here/getFailSeverityString"/>
-    </tr>
-    <tr>
-        <td class="tableheader">Description</td>
-        <td class="tablevalues" tal:condition="not:editable" 
-                                tal:content="here/getDescription"/>
-        <td class="tablevalues" tal:condition="editable">
-            <input tal:condition="editable"
-                   tal:attributes="class string:tablevalues;
-                                size string:50;
-                                name string:description;
-                                value here/getDescription"/>
-        </td>
     </tr>
     <tr>
       <td class=tableheader align=left>Locks</td>
