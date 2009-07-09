@@ -437,6 +437,10 @@ class ZenModeler(PBDaemon):
                 self.log.info("SNMP monitoring off for %s" % hostname)
                 return
 
+            if not ip:
+                self.log.info("No manage IP for %s" % hostname)
+                return
+
             plugins = []
             plugins = self.selectPlugins(device,"snmp")
             if not plugins:
