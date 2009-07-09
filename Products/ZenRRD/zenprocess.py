@@ -1,8 +1,8 @@
-#! /usr/bin/env python 
+#! /usr/bin/env python
 ###########################################################################
 #
 # This program is part of Zenoss Core, an open source monitoring platform.
-# Copyright (C) 2007, Zenoss Inc.
+# Copyright (C) 2007, 2009 Zenoss Inc.
 #
 # This program is free software; you can redistribute it and/or modify it
 # under the terms of the GNU General Public License version 2 as published by
@@ -14,7 +14,8 @@
 
 __doc__= """zenprocess
 
-Gets SNMP process performance data and stores it in RRD files.
+Gets SNMP process data from a device's HOST-RESOURCES-MIB
+and store process performance in RRD files.
 """
 
 import sys
@@ -25,6 +26,7 @@ from sets import Set
 log = logging.getLogger("zen.zenprocess")
 
 from twisted.internet import reactor, defer, error
+from twisted.spread import pb
 
 import Globals
 from Products.ZenUtils.Driver import drive, driveLater
@@ -39,8 +41,9 @@ from SnmpDaemon import SnmpDaemon
 
 from Products.ZenHub.services.PerformanceConfig import SnmpConnInfo
 # needed for pb comms
-SnmpConnInfo = SnmpConnInfo
+SnmpConnInfo = SnmpConnInfo # Shut up, pyflakes!
 
+# HOST-RESOURCES-MIB OIDs used
 HOSTROOT  ='.1.3.6.1.2.1.25'
 RUNROOT   = HOSTROOT + '.4'
 NAMETABLE = RUNROOT + '.2.1.2'
@@ -52,17 +55,12 @@ MEM       = PERFROOT + '.1.1.2.'        # note trailing dot
 
 DEFAULT_PARALLEL_JOBS = 10
 
-WRAP=0xffffffffL
-
-try:
-    sorted = sorted                     # added in python 2.4
-except NameError:
-    def sorted(x, *args, **kw):
-        x.sort(*args, **kw)
-        return x
+# Max size for CPU numbers
+WRAP = 0xffffffffL
 
 def reverseDict(d):
-    """return a dictionary with keys and values swapped:
+    """
+    Return a dictionary with keys and values swapped:
     all values are lists to handle the different keys mapping to the same value
     """
     result = {}
@@ -71,16 +69,23 @@ def reverseDict(d):
     return result
 
 def chunk(lst, n):
-    'break lst into n-sized chunks'
+    """
+    Break lst into n-sized chunks
+    """
     return [lst[i:i+n] for i in range(0, len(lst), n)]
 
 class ScanFailure(Exception): pass
 
 class Pid:
+    """
+    Helper class to track process id information
+    """
     cpu = None
     memory = None
 
     def updateCpu(self, n):
+        """
+        """
         if n is not None:
             try:
                 n = int(n)
@@ -99,16 +104,22 @@ class Pid:
         return diff
 
     def updateMemory(self, n):
+        """
+        """
         self.memory = n
 
     def __str__(self):
+        """
+        Override the Python default to represent ourselves as a string
+        """
         return '<Pid> memory: %s cpu: %s' % (self.memory, self.cpu)
     __repr__ = __str__
 
 
-from twisted.spread import pb
 class Process(pb.Copyable, pb.RemoteCopy):
-    'track process-specific configuration data'
+    """
+    Track process-specific configuration data
+    """
     name = None
     originalName = None
     ignoreParameters = False
@@ -122,6 +133,16 @@ class Process(pb.Copyable, pb.RemoteCopy):
         self.pids = {}
 
     def match(self, name, args):
+        """
+        Perform exact comparisons on the process names.
+
+        @parameter name: name of a process to compare
+        @type name: string
+        @parameter args: argument list of the process
+        @type args: string
+        @return: does the name match this process's info?
+        @rtype: Boolean
+        """
         if self.name is None:
             return False
         if self.ignoreParameters or not args:
@@ -129,10 +150,15 @@ class Process(pb.Copyable, pb.RemoteCopy):
         return self.originalName == '%s %s' % (name, args)
 
     def __str__(self):
+        """
+        Override the Python default to represent ourselves as a string
+        """
         return str(self.name)
     __repr__ = __str__
 
     def updateCpu(self, pid, value):
+        """
+        """
         p = self.pids.setdefault(pid, Pid())
         cpu = p.updateCpu(value)
         if cpu is not None:
@@ -140,20 +166,30 @@ class Process(pb.Copyable, pb.RemoteCopy):
             self.cpu %= WRAP
 
     def getCpu(self):
+        """
+        """
         return self.cpu
 
     def updateMemory(self, pid, value):
+        """
+        """
         self.pids.setdefault(pid, Pid()).memory = value
 
     def getMemory(self):
+        """
+        """
         return sum([x.memory for x in self.pids.values()
                     if x.memory is not None])
 
     def discardPid(self, pid):
-        if self.pids.has_key(pid):
+        """
+        """
+        if pid in self.pids:
             del self.pids[pid]
 
     def updateConfig(self, update):
+        """
+        """
         if self is update:
             return
         self.name = update.name
@@ -164,8 +200,11 @@ class Process(pb.Copyable, pb.RemoteCopy):
 
 pb.setUnjellyableForClass(Process, Process)
 
+
 class Device(pb.Copyable, pb.RemoteCopy):
-    'track device data'
+    """
+    Track device data
+    """
     name = ''
     snmpConnInfo = None
     proxy = None
@@ -181,24 +220,31 @@ class Device(pb.Copyable, pb.RemoteCopy):
         self.pids = {}
 
     def open(self):
-        self._makeProxy()
+        """
+        Create a connection to the remote device
+        """
+        if (self.proxy is None or \
+            self.proxy.snmpConnInfo != self.snmpConnInfo):
+            self.proxy = self.snmpConnInfo.createSession()
+            self.proxy.open()
 
     def close(self, unused=None):
+        """
+        Close down the connection to the remote device
+        """
         if self.proxy:
             self.proxy.close()
         self.proxy = None
         return unused
 
-    def _makeProxy(self):
-        p = self.proxy
-        c = self.snmpConnInfo
-        if (p is None or p.snmpConnInfo != c):
-            self.proxy = self.snmpConnInfo.createSession()
-            self.proxy.open()
-    
     def updateConfig(self, cfg):
+        """
+        Called with configuration information from zenhub.
+        """
         if self is cfg:
             return
+        log.debug("Updating configuration for %s",
+            update.name)
         self.snmpConnInfo = cfg.snmpConnInfo
         unused = Set(self.processes.keys())
         for update in cfg.processes.values():
@@ -210,12 +256,28 @@ class Device(pb.Copyable, pb.RemoteCopy):
 
 
     def get(self, oids):
+        """
+        Perform SNMP get for specified OIDs
+
+        @parameter oids: OIDs to gather
+        @type oids: list of strings
+        @return: Twisted deferred
+        @rtype: Twisted deferred
+        """
         return self.proxy.get(oids,
                               self.snmpConnInfo.zSnmpTimeout,
                               self.snmpConnInfo.zSnmpTries)
 
 
     def getTables(self, oids):
+        """
+        Perform SNMP getTable for specified OIDs
+
+        @parameter oids: OIDs to gather
+        @type oids: list of strings
+        @return: Twisted deferred
+        @rtype: Twisted deferred
+        """
         repetitions = self.maxOidsPerRequest / len(oids)
         t = self.proxy.getTable(oids,
                                 timeout=self.snmpConnInfo.zSnmpTimeout,
@@ -227,6 +289,10 @@ pb.setUnjellyableForClass(Device, Device)
 
 
 class zenprocess(SnmpDaemon):
+    """
+    Daemon class to connect to an SNMP agent and determine the processes
+    that are running on that server.
+    """
     statusEvent = { 'eventClass' : Status_OSProcess,
                     'eventGroup' : 'Process' }
     initialServices = SnmpDaemon.initialServices + ['ProcessConfig']
@@ -244,15 +310,25 @@ class zenprocess(SnmpDaemon):
         self.downDevices = Set()
 
     def devices(self):
-        "Return a filtered list of devices"
+        """
+        Return the list of devices that are available
+
+        @return: device list
+        @rtype: dictionary of device name, device object
+        """
         return dict([(k, v) for k, v in self._devices.items()
                      if k not in self.downDevices])
 
     def fetchConfig(self):
-        'Get configuration values from the Zope server'
+        """
+        Get configuration values from zenhub
+
+        @return: Twisted deferred
+        @rtype: Twisted deferred
+        """
         def doFetchConfig(driver):
             now = time.time()
-            
+
             yield self.model().callRemote('getDefaultRRDCreateCommand')
             createCommand = driver.next()
 
@@ -287,25 +363,46 @@ class zenprocess(SnmpDaemon):
         return drive(doFetchConfig)
 
     def remote_deleteDevice(self, doomed):
-        self.log.debug("Async delete device %s" % doomed)
+        """
+        Called from zenhub to remove a device from our configuration
+
+        @parameter doomed: device to delete
+        @type doomed: string
+        """
+        self.log.debug("zenhub asks us to delete device %s" % doomed)
         if doomed in self._devices:
              del self._devices[doomed]
         self.clearSnmpError(doomed, "Device %s removed from SNMP collection")
 
     def remote_updateDeviceList(self, devices):
-        self.log.debug("Async update device list %s" % devices)
+        """
+        Called from zenhub to update the devices to monitor
+
+        @parameter devices: devices to monitor
+        @type devices: list of (device, changetime) tuples
+        """
+        self.log.debug("Received updated device list from zenhub %s" % devices)
         doomed = Set(self._devices.keys())
         updated = []
         for device, lastChange in devices:
+            # Ignore updates for devices if we've only asked for one device
+            if self.options.device and \
+               device != self.options.device:
+                self.log.debug("Ignoring update for %s as we only want %s",
+                               device, self.options.device)
+                continue
+
             cfg = self._devices.get(device, None)
             if not cfg or self._devices[device].lastChange < lastChange:
                 updated.append(device)
             doomed.discard(device)
+
         if updated:
             log.info("Fetching the config for %s", updated)
             d = self.model().callRemote('getOSProcessConf', devices)
             d.addCallback(self.updateDevices, updated)
             d.addErrback(self.error)
+
         if doomed:
             log.info("Removing %s", doomed)
             for device in doomed:
@@ -314,6 +411,14 @@ class zenprocess(SnmpDaemon):
 
 
     def clearSnmpError(self, name, message):
+        """
+        Send an event to clear other events.
+
+        @parameter name: device for which the event applies
+        @type name: string
+        @parameter message: clear text
+        @type message: string
+        """
         if name in self._devices:
             if self._devices[name].snmpStatus > 0:
                 self._devices[name].snmpStatus = 0
@@ -322,28 +427,48 @@ class zenprocess(SnmpDaemon):
                                component="process",
                                device=name,
                                summary=message,
+                               agent='zenprocess',
                                severity=Event.Clear)
-            
+
 
     def remote_updateDevice(self, cfg):
-        self.log.debug("Async config update for %s", cfg.name)
+        """
+        Twisted remote callback, to allow zenhub to remotely update
+        this daemon.
+
+        @parameter cfg: configuration information returned from zenhub
+        @type cfg: object
+        """
+        self.log.debug("Configuration update from zenhub for %s", cfg.name)
         self.updateDevices([cfg],[])
 
-    
+
     def updateDevices(self, cfgs, fetched):
+        """
+        Called when the zenhub service getSnmpStatus completes.
+
+        @parameter cfgs: configuration information returned from zenhub
+        @type cfgs: list of objects
+        @parameter fetched: names we want zenhub to return information about
+        @type fetched: list of strings
+        """
         received = Set()
         for cfg in cfgs:
             received.add(cfg.name)
             d = self._devices.setdefault(cfg.name, cfg)
             d.updateConfig(cfg)
             self.thresholds.updateForDevice(cfg.name, cfg.thresholds)
+
         for doomed in Set(fetched) - received:
             if doomed in self._devices:
                 del self._devices[doomed]
 
     def start(self, driver):
-        'Read the basic config needed to do anything'
-        log.debug("fetching config")
+        """
+        Read the basic config needed to do anything, and to reread
+        the configuration information on a periodic basis.
+        """
+        log.debug("Fetching configuration from zenhub")
         devices = self._devices.keys()
         yield self.fetchConfig()
         self.updateDevices(driver.next(), devices)
@@ -358,6 +483,12 @@ class zenprocess(SnmpDaemon):
 
 
     def updateSnmpStatus(self, updates):
+        """
+        Called when the zenhub service getSnmpStatus completes.
+
+        @parameter updates: List of names and error counts
+        @type updates: list of (string, int)
+        """
         for name, count in updates:
             d = self._devices.get(name)
             if d:
@@ -365,6 +496,12 @@ class zenprocess(SnmpDaemon):
 
 
     def updateProcessStatus(self, status):
+        """
+        Called when the zenhub service getProcessStatus completes.
+
+        @parameter status: List of names, component names and error counts
+        @type status: list of (string, string, int)
+        """
         down = {}
         for device, component, count in status:
             down[ (device, component) ] = count
@@ -374,20 +511,39 @@ class zenprocess(SnmpDaemon):
 
 
     def oneDevice(self, device):
+        """
+        Contact one device and return a deferred which gathers data from
+        the device.
+
+        @parameter device: proxy object to the remote computer
+        @type device: Device object
+        @return: job to scan a device
+        @rtype: Twisted deferred object
+        """
         def go(driver):
+            """
+            Generator object to gather information from a device.
+            """
             try:
                 device.open()
                 yield self.scanDevice(device)
                 driver.next()
-                
+
                 # Only fetch performance data if status data was found.
                 if device.snmpStatus == 0:
                     yield self.fetchPerf(device)
                     driver.next()
+                else:
+                    log.warn("Failed to find performance data for %s",
+                             device.name)
             except:
                 log.debug('Failed to scan device %s' % device.name)
 
         def close(res):
+            """
+            Twisted closeBack and errBack function which closes any
+            open connections.
+            """
             try:
                 device.close()
             except:
@@ -399,7 +555,14 @@ class zenprocess(SnmpDaemon):
 
 
     def scanDevice(self, device):
-        "Fetch all the process info"
+        """
+        Fetch all the process info for a device using SNMP table gets
+
+        @parameter device: proxy connection object
+        @type device: Device object
+        @return: Twisted deferred
+        @rtype: Twisted deferred
+        """
         device.lastScan = time.time()
         tables = [NAMETABLE, PATHTABLE, ARGSTABLE]
         d = device.getTables(tables)
@@ -409,7 +572,14 @@ class zenprocess(SnmpDaemon):
 
 
     def deviceFailure(self, reason, device):
-        "Log exception for a single device"
+        """
+        Twisted errBack to log the exception for a single device.
+
+        @parameter reason: explanation of the failure
+        @type reason: Twisted error instance
+        @parameter device: proxy connection object
+        @type device: Device object
+        """
         self.sendEvent(self.statusEvent,
                        eventClass=Status_Snmp,
                        component="process",
@@ -422,41 +592,94 @@ class zenprocess(SnmpDaemon):
         else:
             self.logError('Error on device %s' % device.name, reason.value)
 
+    def mapResultsToDicts(self, results):
+        """
+        Parse the process tables and reconstruct the list of processes
+        that are on the device.
+
+        @parameter results: results of SNMP table gets ie (OID + pid, value)
+        @type results: dictionary of dictionaries
+        @return: maps relating names and pids to each other
+        @rtype: dictionary, dictionary, dictionary, list of tuples
+        """
+        def extract(dictionary, oid, value):
+            """
+            Helper function to extract SNMP table data.
+            """
+            pid = int(oid.split('.')[-1])
+            dictionary[pid] = value
+
+        names, paths, args = {}, {}, {}
+        if self.options.showrawtables:
+            log.info("NAMETABLE = %r", results[NAMETABLE])
+        for row in results[NAMETABLE].items():
+            extract(names, *row)
+
+        if self.options.showrawtables:
+            log.info("PATHTABLE = %r", results[PATHTABLE])
+        for row in results[PATHTABLE].items():
+            extract(paths, *row)
+
+        if self.options.showrawtables:
+            log.info("ARGSTABLE = %r", results[ARGSTABLE])
+        for row in results[ARGSTABLE].items():
+            extract(args,  *row)
+
+        procs = []
+        for pid, path in paths.items():
+            if pid not in names: continue
+            name = names[pid]
+            if path and path.find('\\') == -1:
+                name = path
+            arg = args.get(pid, '')
+            procs.append( (pid, (name, arg) ) )
+
+        return names, paths, args, procs
+
+    def showProcessList(self, device_name, procs):
+        """
+        Display the processes in a sane manner.
+
+        @parameter device_name: name of the device
+        @type device_name: string
+        @parameter procs: list of (pid, (name, args))
+        @type procs: list of tuples
+        """
+        proc_list = [ '%s %s %s' % (pid, name, args) for pid, (name, args) \
+                         in sorted(procs)]
+        proc_list.append('')
+        log.info("#===== Processes on %s:\n%s", device_name, '\n'.join(proc_list))
 
     def storeProcessNames(self, results, device):
-        "Parse the process tables and figure what pids are on the device"
-        if not results:
+        """
+        Parse the process tables and reconstruct the list of processes
+        that are on the device.
+
+        @parameter results: results of SNMP table gets
+        @type results: dictionary of dictionaries
+        @parameter device: proxy connection object
+        @type device: Device object
+        """
+        if not results or not results[NAMETABLE]:
             summary = 'Device %s does not publish HOST-RESOURCES-MIB' % device.name
+            resolution="Verify with snmpwalk -v1 -c community %s %s" % (
+                device.name, NAMETABLE )
             self.sendEvent(self.statusEvent,
                            device=device.name,
                            summary=summary,
+                           resolution=resolution,
                            severity=Event.Error)
             log.info(summary)
             return
         if device.snmpStatus > 0:
             summary = 'Process table up for device %s' % device.name
             self.clearSnmpError(device.name, summary)
-            
-        procs = []
-        names, paths, args = {}, {}, {}
-        def extract(dictionary, oid, value):
-            pid = int(oid.split('.')[-1])
-            dictionary[pid] = value
-        for row in results[NAMETABLE].items():
-            extract(names, *row)
-        for row in results[PATHTABLE].items():
-            extract(paths, *row)
-        for row in results[ARGSTABLE].items():
-            extract(args,  *row)
-        for i, path in paths.items():
-            if i not in names: continue
-            name = names[i]
-            if path and path.find('\\') == -1:
-                name = path
-            arg = ''
-            if i in args: arg = args[i]
-            procs.append( (i, (name, arg) ) )
-        # look for changes in pids
+
+        names, paths, args, procs = self.mapResultsToDicts(results)
+        if self.options.showprocs:
+            self.showProcessList(device.name, procs)
+
+        # look for changes in processes
         before = Set(device.pids.keys())
         after = {}
         for p in device.processes.values():
@@ -474,7 +697,7 @@ class zenprocess(SnmpDaemon):
         for p in dead:
             config = device.pids[p]
             config.discardPid(p)
-            if afterByConfig.has_key(config):
+            if config in afterByConfig:
                 self.restarted += 1
                 if config.restart:
                     restarted[config] = True
@@ -485,7 +708,7 @@ class zenprocess(SnmpDaemon):
                                    component=config.originalName,
                                    severity=config.severity)
                     log.info(summary)
-            
+
         # report alive processes
         for config, pids in afterByConfig.items():
             if config in restarted: continue
@@ -503,9 +726,9 @@ class zenprocess(SnmpDaemon):
                 after[p].originalName, p, device.name))
         device.pids = after
 
-        # no pids for a config
+        # Look for missing processes
         for config in device.processes.values():
-            if not afterByConfig.has_key(config):
+            if config not in afterByConfig:
                 self.missing += 1
                 config.status += 1
                 summary = 'Process not running: %s' % config.originalName
@@ -515,8 +738,8 @@ class zenprocess(SnmpDaemon):
                                component=config.originalName,
                                severity=config.severity)
                 log.warning(summary)
-        
-        # store counts
+
+        # Store per-device, per-process statistics
         pidCounts = dict([(p, 0) for p in device.processes])
         for pids, pidConfig in device.pids.items():
             pidCounts[pidConfig.name] += 1
@@ -525,14 +748,16 @@ class zenprocess(SnmpDaemon):
 
 
     def periodic(self, unused=None):
-        "Basic SNMP scan loop"
+        """
+        Main loop that drives all other processing.
+        """
         reactor.callLater(self.processCycleInterval, self.periodic)
 
         if self.scanning:
             running, unstarted, finished = self.scanning.status()
             runningDevices = [ d.name for d in self.devices().values() \
                     if d.proxy is not None]
-            
+
             if runningDevices or unstarted > 0:
                 log.warning("Process scan not finishing: "
                     "%d running, %d waiting, %d finished" % (
@@ -543,7 +768,9 @@ class zenprocess(SnmpDaemon):
         start = time.time()
 
         def doPeriodic(driver):
-
+            """
+            Generator function to create deferred jobs.
+            """
             yield self.getDevicePingIssues()
             self.downDevices = Set([d[0] for d in driver.next()])
 
@@ -554,6 +781,9 @@ class zenprocess(SnmpDaemon):
             driver.next()
 
         def checkResults(results):
+            """
+            Process the results from all deferred objects.
+            """
             for result in results:
                 if isinstance(result , Exception):
                     log.error("Error scanning device: %s", result)
@@ -565,13 +795,18 @@ class zenprocess(SnmpDaemon):
 
 
     def fetchPerf(self, device):
-        "Get performance data for all the monitored Processes on a device"
+        """
+        Get performance data for all the monitored processes on a device
+
+        @parameter device: proxy object to the remote computer
+        @type device: Device object
+        """
         oids = []
         for pid, pidConf in device.pids.items():
             oids.extend([CPU + str(pid), MEM + str(pid)])
         if not oids:
             return defer.succeed(([], device))
-        
+
         d = Chain(device.get, iter(chunk(oids, device.maxOidsPerRequest))).run()
         d.addCallback(self.storePerfStats, device)
         d.addErrback(self.deviceFailure, device)
@@ -579,7 +814,14 @@ class zenprocess(SnmpDaemon):
 
 
     def storePerfStats(self, results, device):
-        "Save the performance data in RRD files"
+        """
+        Save the process performance data in RRD files
+
+        @parameter results: results of SNMP table gets
+        @type results: list of (success, result) tuples
+        @parameter device: proxy object to the remote computer
+        @type device: Device object
+        """
         for success, result in results:
             if not success:
                 self.deviceFailure(result, device)
@@ -663,9 +905,13 @@ class zenprocess(SnmpDaemon):
 
         for ev in self.thresholds.check(path, time.time(), value):
             self.sendThresholdEvent(**ev)
-            
+
 
     def heartbeat(self):
+        """
+        Twisted keep-alive mechanism to ensure that
+        we're still connected to zenhub.
+        """
         self.scanning = None
         devices = self.devices()
         pids = sum(map(lambda x: len(x.pids), devices.values()))
@@ -674,21 +920,45 @@ class zenprocess(SnmpDaemon):
         SnmpDaemon.heartbeat(self)
         cycle = self.processCycleInterval
         self.sendEvents(
-            self.rrdStats.counter('dataPoints', cycle, self.rrd.dataPoints) + 
-            self.rrdStats.gauge('cyclePoints', cycle, self.rrd.endCycle()) + 
+            self.rrdStats.counter('dataPoints', cycle, self.rrd.dataPoints) +
+            self.rrdStats.gauge('cyclePoints', cycle, self.rrd.endCycle()) +
             self.rrdStats.gauge('pids', cycle, pids) +
             self.rrdStats.gauge('devices', cycle, len(devices)) +
-            self.rrdStats.gauge('missing', cycle, self.missing) + 
+            self.rrdStats.gauge('missing', cycle, self.missing) +
             self.rrdStats.gauge('restarted', cycle, self.restarted) +
             self.rrdStats.gauge('cycleTime', cycle, self.cycleTime)
             )
 
 
     def connected(self):
+        """
+        Gather our configuration and start collecting status information.
+        Called after connected to the zenhub service.
+        """
         drive(self.start).addCallbacks(self.periodic, self.errorStop)
 
 
+    def buildOptions(self):
+        """
+        Build a list of command-line options
+        """
+        SnmpDaemon.buildOptions(self)
+        self.parser.add_option('--showprocs',
+                               dest='showprocs',
+                               action="store_true",
+                               default=False,
+                               help="Show the list of processes found." \
+                                    "For debugging purposes only.")
+        self.parser.add_option('--showrawtables',
+                               dest='showrawtables',
+                               action="store_true",
+                               default=False,
+                               help="Show the raw SNMP processes data returned " \
+                                    "from the device. For debugging purposes only.")
+
+
 if __name__ == '__main__':
+    # Needed for PB communications
     from Products.ZenRRD.zenprocess import zenprocess
     z = zenprocess()
     z.run()
