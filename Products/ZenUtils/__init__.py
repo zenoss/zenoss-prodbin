@@ -15,8 +15,9 @@ registerDirectory('js', globals())
 
 # import any monkey patches that may be necessary
 from patches import pasmonkey
+from patches import dirviewmonkey
 from Products.ZenUtils.Utils import unused
-unused(pasmonkey)
+unused(pasmonkey, dirviewmonkey)
 
 from Products.ZenUtils.MultiPathIndex import MultiPathIndex , \
                                              manage_addMultiPathIndex, \
