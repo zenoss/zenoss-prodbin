@@ -280,6 +280,7 @@ class DeviceClass(DeviceOrganizer, ZenPackable, TemplateContainer):
             dev.setLastChange()
             dev.setAdminLocalRoles()
             dev.index_object()
+            transaction.commit()
         if REQUEST:
             messaging.IMessageSender(self).sendToBrowser(title='Devices Moved',
                                    body="Devices were moved to %s." % moveTarget)
