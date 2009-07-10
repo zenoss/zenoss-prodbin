@@ -626,9 +626,8 @@ class zenprocess(SnmpDaemon):
             extract(args,  *row)
 
         procs = []
-        for pid, path in paths.items():
-            if pid not in names: continue
-            name = names[pid]
+        for pid, name in names.items():
+            path = paths.get(pid, '')
             if path and path.find('\\') == -1:
                 name = path
             arg = args.get(pid, '')
