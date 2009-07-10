@@ -97,10 +97,25 @@ ZenDragDropList.prototype = {
                              'padding:1em;color:darkgrey;cursor:pointer;'
                              },
                              "Add Fields");
+        _cfg = {'valign':'top'};
+        cell1 = TD(_cfg, null);
+        cell2 = TD(_cfg, null);
+        cell3 = TD(_cfg, null);
+        this.table = TABLE(null, [
+            TR(null, [
+                cell1,
+                cell2,
+                cell3
+            ])
+        ]);
         hideElement(this.fields.parentNode);
-        insertSiblingNodesBefore(this.fields.parentNode, this.toggle);
         connect(this.toggle, 'onclick', bind(toggleme, this));
         this.s = new ZenULSelect(this.hiddenselect); 
+        appendChildNodes(ta.parentNode, this.table);
+        appendChildNodes(cell3, this.fields.parentNode);
+        appendChildNodes(cell2, this.toggle);
+        appendChildNodes(cell1, [$('ultitle'), this.s.ul]);
+        setElementDimensions(this.fields, getElementDimensions(this.s.ul));
         this.addXspan(this.s.ul);
         this.sortable1 = MochiKit.Sortable.Sortable.create(this.s.ul,
         {onUpdate:bind(this.newField, this),
