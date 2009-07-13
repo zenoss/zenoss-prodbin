@@ -96,7 +96,7 @@ class ZenBackup(ZenBackupBase):
         for key, default, zemAttr in CONFIG_FIELDS:
             if not getattr(self.options, key, None):
                 setattr(self.options, key,
-                            getattr(zem, zemAttr, None) or default)
+                            str(getattr(zem, zemAttr, None)) or default)
 
 
     def saveSettings(self):
@@ -109,6 +109,9 @@ class ZenBackup(ZenBackupBase):
         config.set(CONFIG_SECTION, 'dbuser', self.options.dbuser)
         if self.options.dbpass != None:
             config.set(CONFIG_SECTION, 'dbpass', self.options.dbpass)
+        config.set(CONFIG_SECTION, 'dbhost', self.options.dbhost)
+        config.set(CONFIG_SECTION, 'dbport', self.options.dbport)
+
 
         creds_file = os.path.join(self.tempDir, CONFIG_FILE)
         self.log.debug("Writing MySQL credentials to %s", creds_file)
@@ -188,12 +191,24 @@ class ZenBackup(ZenBackupBase):
                                help='MySQL password.'
                                 ' By default this will be fetched from Zenoss'
                                 ' unless --dont-fetch-args is set.'),
+        self.parser.add_option('--dbhost',
+                               dest='dbhost',
+                               default='localhost',
+                               help='MySQL server host.'
+                                ' By default this will be fetched from Zenoss'
+                                ' unless --dont-fetch-args is set.'),
+        self.parser.add_option('--dbport',
+                               dest='dbport',
+                               default='3306',
+                               help='MySQL server port number.'
+                                ' By default this will be fetched from Zenoss'
+                                ' unless --dont-fetch-args is set.'),
         self.parser.add_option('--dont-fetch-args',
                                 dest='fetchArgs',
                                 default=True,
                                 action='store_false',
-                                help='By default dbname, dbuser and dbpass'
-                                    ' are retrieved from Zenoss if not'
+                                help='By default MySQL connection information'
+                                    ' is retrieved from Zenoss if not'
                                     ' specified and if Zenoss is available.'
                                     ' This disables fetching of these values'
                                     ' from Zenoss.')
@@ -274,8 +289,13 @@ class ZenBackup(ZenBackupBase):
         cmd_p1 = ['mysqldump', '-u%s' % self.options.dbuser]
         cmd_p2 = ["--single-transaction", '--routines', self.options.dbname,
                   '--result-file=' + os.path.join(self.tempDir, 'events.sql') ]
+        if self.options.dbhost and self.options.dbhost != 'localhost':
+            cmd_p2.append( '-h %s' % self.options.dbhost)
+        if self.options.dbport and self.options.dbport != '3306':
+            cmd_p2.append( '--port=%s' % self.options.dbport)
+
         cmd = cmd_p1 + [self.getPassArg()] + cmd_p2
-        obfuscated_cmd = cmd_p1 + ['*' * len(self.getPassArg())] + cmd_p2
+        obfuscated_cmd = cmd_p1 + ['*' * 8] + cmd_p2
 
         (output, warnings, returncode) = self.runCommand(cmd, obfuscated_cmd)
         if returncode:
@@ -398,7 +418,7 @@ class ZenBackup(ZenBackupBase):
         etcTar.add(zenPath('etc'), 'etc')
         etcTar.close()
         self.log.info("Backup of config files completed.")
-        
+
         # Copy /ZenPacks to backup dir
         self.log.info('Backing up ZenPacks.')
         etcTar = tarfile.open(os.path.join(self.tempDir, 'ZenPacks.tar'), 'w')
