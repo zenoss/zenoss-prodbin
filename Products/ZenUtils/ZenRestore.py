@@ -121,7 +121,7 @@ class ZenRestore(ZenBackupBase):
             return False
         return True
 
-    def restoreEventsDatabase(self):
+    def restoreEventsDatabase(self, tempDir):
         """
         Restore the MySQL events database
         """
@@ -249,7 +249,7 @@ class ZenRestore(ZenBackupBase):
         if self.options.noEventsDb:
             self.msg('Skipping the events database.')
         else:
-            self.restoreEventsDatabase()
+            self.restoreEventsDatabase(tempDir)
 
         # clean up
         if self.options.file:
