@@ -11,15 +11,13 @@
 #
 ###########################################################################
 
-__doc__="""SysedgeMap
+__doc__ = """SysedgeMap
 
-SysedgeMap maps the interface and ip tables to interface objects
+Gather Empire SysEDGE disk OS and licensing information.
 
-$Id: SysedgeMap.py,v 1.6 2003/01/15 21:51:54 edahl Exp $"""
+"""
 
-__version__ = '$Revision: 1.6 $'[11:-2]
-
-from CollectorPlugin import SnmpPlugin
+from Products.DataCollector.plugins.CollectorPlugin import SnmpPlugin
 
 class SysedgeMap(SnmpPlugin):
 

@@ -11,14 +11,15 @@
 #
 ###########################################################################
 
-from CollectorPlugin import CommandPlugin
+__doc__ = """netstat_an
+Collect running IP services using netstat -an on a Darwin box.
+"""
 
 import string
+from Products.DataCollector.plugins.CollectorPlugin import CommandPlugin
+
 
 class netstat_an(CommandPlugin):
-    """
-    Collect running ip services using netstat -an on a Darwin box.
-    """
     maptype = "IpServiceMap" 
     command = "netstat -an | grep LISTEN"
     compname = "os"

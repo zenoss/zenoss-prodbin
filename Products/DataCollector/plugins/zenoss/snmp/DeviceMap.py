@@ -11,17 +11,15 @@
 #
 ###########################################################################
 
-__doc__="""DeviceMap
+__doc__ = """DeviceMap
 
 DeviceMap maps the interface and ip tables to interface objects
 
-$Id: DeviceMap.py,v 1.9 2003/11/19 03:14:53 edahl Exp $"""
-
-__version__ = '$Revision: 1.9 $'[11:-2]
+"""
 
 import re
 
-from CollectorPlugin import SnmpPlugin, GetMap
+from Products.DataCollector.plugins.CollectorPlugin import SnmpPlugin, GetMap
 
 class DeviceMap(SnmpPlugin):
 

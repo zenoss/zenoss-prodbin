@@ -11,13 +11,14 @@
 #
 ###########################################################################
 
-from CollectorPlugin import CommandPlugin
+__doc__ = """process
+Maps ps output to process
+"""
+
+from Products.DataCollector.plugins.CollectorPlugin import CommandPlugin
 
 
 class process(CommandPlugin):
-    """
-    maps ps output to process
-    """
     maptype = "OSProcessMap" 
     command = '/bin/ps axho command'
     compname = "os"

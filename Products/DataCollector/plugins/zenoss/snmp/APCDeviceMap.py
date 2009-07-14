@@ -11,13 +11,15 @@
 #
 ###########################################################################
 
+__doc__ = """APCDeviceMap
+
+Gather information from APC UPS devices.
+"""
+
 from Products.DataCollector.plugins.CollectorPlugin import SnmpPlugin, GetMap
 from Products.DataCollector.plugins.DataMaps import MultiArgs
 
 class APCDeviceMap(SnmpPlugin):
-    """Map mib elements from Dell Open Manage mib to get hw and os products.
-    """
-
     maptype = "APCDeviceMap" 
 
     snmpGetMap = GetMap({ 

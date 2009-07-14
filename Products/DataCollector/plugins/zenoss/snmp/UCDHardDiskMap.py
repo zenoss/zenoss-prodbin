@@ -12,11 +12,14 @@
 ###########################################################################
 #   Copyright (c) 2006 Zentinel Systems, Inc. All rights reserved.
 
-from CollectorPlugin import SnmpPlugin, GetTableMap
+__doc__ = """
+Map UCD-DISKIO-MIB OIDs to the HardDisk relation.
+"""
+
 import re
+from Products.DataCollector.plugins.CollectorPlugin import SnmpPlugin, GetTableMap
 
 class UCDHardDiskMap(SnmpPlugin):
-    """Map UCD-DISKIO-MIB to HardDisk"""
 
     maptype = "HardDiskMap"
     modname = "Products.ZenModel.HardDisk"

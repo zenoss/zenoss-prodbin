@@ -11,15 +11,13 @@
 #
 ###########################################################################
 
-__doc__="""CiscoMap
+__doc__ = """CiscoMap
 
 CiscoMap maps cisco serialnumber information 
 
-$Id: CiscoMap.py,v 1.3 2003/01/15 21:51:54 edahl Exp $"""
+"""
 
-__version__ = '$Revision: 1.3 $'[11:-2]
-
-from CollectorPlugin import SnmpPlugin, GetMap
+from Products.DataCollector.plugins.CollectorPlugin import SnmpPlugin, GetMap
 
 class CiscoMap(SnmpPlugin):
 

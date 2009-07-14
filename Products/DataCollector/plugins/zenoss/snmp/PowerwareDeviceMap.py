@@ -11,12 +11,15 @@
 #
 ###########################################################################
 
+__doc__ = """PowerwareDeviceMap
+
+Map OIDs from Dell Open Manage MIB to get hw and os products.
+"""
+
 from Products.DataCollector.plugins.CollectorPlugin import SnmpPlugin, GetMap
 from Products.DataCollector.plugins.DataMaps import MultiArgs
 
 class PowerwareDeviceMap(SnmpPlugin):
-    """Map mib elements from Dell Open Manage mib to get hw and os products.
-    """
 
     maptype = "PowerwareDeviceMap" 
 

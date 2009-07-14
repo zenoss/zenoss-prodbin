@@ -11,17 +11,15 @@
 #
 ###########################################################################
 
-__doc__="""InterfaceMap
+__doc__ = """SysedgeDiskMap
 
-InterfaceMap maps the interface and ip tables to interface objects
+Empire SysEDGE disk information.
 
-$Id: SysedgeDiskMap.py,v 1.1 2003/04/16 20:57:22 edahl Exp $"""
-
-__version__ = '$Revision: 1.1 $'[11:-2]
+"""
 
 import re
 
-from CollectorPlugin import SnmpPlugin
+from Products.DataCollector.plugins.CollectorPlugin import SnmpPlugin
 
 class SysedgeDiskMap(SnmpPlugin):
 

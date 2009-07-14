@@ -11,17 +11,14 @@
 #
 ###########################################################################
 
-__doc__="""InterfaceMap
+__doc__ = """CiscoHSRP
 
-InterfaceMap maps the interface and ip tables to interface objects
-
-$Id: InterfaceMap.py,v 1.24 2003/10/30 18:42:19 edahl Exp $"""
-
-__version__ = '$Revision: 1.24 $'[11:-2]
+Model Cisco Hot Standby Routing Protocol (HSRP) capable devices.
+"""
 
 import transaction
 
-from CollectorPlugin import SnmpPlugin, GetTableMap
+from Products.DataCollector.plugins.CollectorPlugin import SnmpPlugin, GetTableMap
 
 class CiscoHSRP(SnmpPlugin):
 

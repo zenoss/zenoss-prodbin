@@ -16,7 +16,7 @@ Determine the Operating System's name from the result of the
 uname command.
 """
 
-from CollectorPlugin import CommandPlugin
+from Products.DataCollector.plugins.CollectorPlugin import CommandPlugin
 
 class uname(CommandPlugin):
     

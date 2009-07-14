@@ -11,7 +11,7 @@
 #
 ###########################################################################
 
-__doc__="""InterfaceMap
+__doc__ = """InterfaceMap
 
 Gather IP network interface information from SNMP, and 
 create DMD interface objects

@@ -11,14 +11,16 @@
 #
 ###########################################################################
 
-import re, string
+__doc__ = """ifconfig
+ifconfig maps a Darwin ifconfig command to the interfaces relation.
+"""
 
-from CollectorPlugin import CommandPlugin
+import re
+import string
+
+from Products.DataCollector.plugins.CollectorPlugin import CommandPlugin
 
 class ifconfig(CommandPlugin):
-    """
-    ifconfig maps a Darwin ifconfig command to the interfaces relation.
-    """
     maptype = "InterfaceMap" 
     command = '/sbin/ifconfig -a'
     compname = "os"

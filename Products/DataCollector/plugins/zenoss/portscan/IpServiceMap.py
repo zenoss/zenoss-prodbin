@@ -11,16 +11,13 @@
 #
 ###########################################################################
 
-__doc__="""IpServiceMap
+__doc__ = """IpServiceMap
 
 IpServiceMap maps the interface and ip tables to interface objects
 
-$Id: IpServiceMap.py,v 1.8 2006/06/14 04:03:24 oubiwann Exp $"""
+"""
 
-__version__ = '$Revision: 1.8 $'[11:-2]
-
-
-from CollectorPlugin import CollectorPlugin
+from Products.DataCollector.plugins.CollectorPlugin import CollectorPlugin
 
 class IpServiceMap(CollectorPlugin):
 

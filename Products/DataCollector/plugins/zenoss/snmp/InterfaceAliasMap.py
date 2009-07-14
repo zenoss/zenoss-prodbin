@@ -11,17 +11,19 @@
 #
 ###########################################################################
 
+__doc__ = """InterfaceAliasMap
+
+    Extends the standard InterfaceMap to use the ifAlias as the interface's
+    name instead of the ifDescr. This can be useful when many interfaces on
+    the same device have the same ifDescr.
+"""
+
 from copy import deepcopy
 from Products.DataCollector.plugins.zenoss.snmp.InterfaceMap \
     import InterfaceMap
 from Products.DataCollector.plugins.CollectorPlugin import GetTableMap
 
 class InterfaceAliasMap(InterfaceMap):
-    """
-    Extends the standard InterfaceMap to use the ifAlias as the interface's
-    name instead of the ifDescr. This can be useful when many interfaces on
-    the same device have the same ifDescr.
-    """
     
     snmpGetTableMaps = InterfaceMap.baseSnmpGetTableMaps + (
         # Extended interface information.

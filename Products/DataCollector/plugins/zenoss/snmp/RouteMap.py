@@ -11,15 +11,13 @@
 #
 ###########################################################################
 
-__doc__="""RouteMap
+__doc__ = """RouteMap
 
-RouteMap maps the interface and ip tables to interface objects
+RouteMap gathers and stores routing information.
 
-$Id: RouteMap.py,v 1.8 2004/04/03 04:03:24 edahl Exp $"""
+"""
 
-__version__ = '$Revision: 1.8 $'[11:-2]
-
-from CollectorPlugin import SnmpPlugin, GetTableMap
+from Products.DataCollector.plugins.CollectorPlugin import SnmpPlugin, GetTableMap
 
 class RouteMap(SnmpPlugin):
     

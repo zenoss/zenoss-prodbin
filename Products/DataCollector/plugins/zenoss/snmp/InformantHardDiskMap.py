@@ -11,7 +11,12 @@
 #
 ###########################################################################
 
-from CollectorPlugin import SnmpPlugin, GetTableMap
+__doc__ = """InformantHardDiskMap
+
+Map SNMP Informat sub-agent to HardDisk
+"""
+
+from Products.DataCollector.plugins.CollectorPlugin import SnmpPlugin, GetTableMap
 
 class InformantHardDiskMap(SnmpPlugin):
     """Map SNMP Informat sub-agent to HardDisk"""

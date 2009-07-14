@@ -11,13 +11,11 @@
 #
 ###########################################################################
 
-__doc__="""CpuMap
+__doc__ = """CpuMap
 
 CpuMap maps SNMP cpu information onto CPUs
 
-$Id: $"""
-
-__version__ = '$Revision: 1.1 $'[11:-2]
+"""
 
 import re
 

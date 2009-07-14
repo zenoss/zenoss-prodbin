@@ -11,15 +11,13 @@
 #
 ###########################################################################
 
-__doc__="""CpuMap
+__doc__ = """CpuMap
 
 Uses sysctl to map cpu information on CPU objects
 
-$Id: $"""
+"""
 
-__version__ = '$Revision: 1.1 $'[11:-2]
-
-from CollectorPlugin import CommandPlugin
+from Products.DataCollector.plugins.CollectorPlugin import CommandPlugin
 
 class cpu(CommandPlugin):
 

@@ -11,15 +11,13 @@
 #
 ###########################################################################
 
-__doc__="""FileSystemMap
+__doc__ = """HRSWInstalledMap
 
-FileSystemMap maps the interface and ip tables to interface objects
+HRSWInstalledMap finds various software packages installed on a device.
+Uses the HOST-RESOURCES-MIB OIDs. 
 
-$Id: HRSWInstalledMap.py,v 1.2 2004/04/07 16:26:53 edahl Exp $"""
-
-__version__ = '$Revision: 1.2 $'[11:-2]
-
-from CollectorPlugin import SnmpPlugin, GetTableMap
+"""
+from Products.DataCollector.plugins.CollectorPlugin import SnmpPlugin, GetTableMap
 
 class HRSWInstalledMap(SnmpPlugin):
 

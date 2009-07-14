@@ -11,12 +11,13 @@
 #
 ###########################################################################
 
-from CollectorPlugin import LinuxCommandPlugin
+__doc__ = """netstat_an
+Collect running ip services using netstat -an on a linux box.
+"""
+
+from Products.DataCollector.plugins.CollectorPlugin import LinuxCommandPlugin
 
 class netstat_an(LinuxCommandPlugin):
-    """
-    Collect running ip services using netstat -an on a linux box.
-    """
     maptype = "IpServiceMap" 
     command = "netstat -an | grep ':\\*'"
     compname = "os"

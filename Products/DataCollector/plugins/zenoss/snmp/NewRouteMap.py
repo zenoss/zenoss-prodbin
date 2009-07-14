@@ -11,18 +11,14 @@
 #
 ###########################################################################
 
-__doc__="""NewRouteMap
+__doc__ = """NewRouteMap
 
 NewRouteMap maps RFC2096 values to interface objects.
 
 Hats off to the community for submitting this one.
-
-$Id: RouteMap.py,v 1.8 2004/04/03 04:03:24 edahl Exp $"""
-
-__version__ = '$Revision: 1.8 $'[11:-2]
-
+"""
 from RouteMap import RouteMap
-from CollectorPlugin import GetTableMap
+from Products.DataCollector.plugins.CollectorPlugin import GetTableMap
 
 class NewRouteMap(RouteMap):
     

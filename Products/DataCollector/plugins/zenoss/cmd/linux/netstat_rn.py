@@ -11,13 +11,17 @@
 #
 ###########################################################################
 
+__doc__ = """netstat_rn
+Collect routing information using the netstat -rn command.
+"""
+
 TARGET=0
 GATEWAY=1
 NETMASK=2
 FLAGS=3
 INTERFACE=7
 
-from CollectorPlugin import LinuxCommandPlugin
+from Products.DataCollector.plugins.CollectorPlugin import LinuxCommandPlugin
 
 class netstat_rn(LinuxCommandPlugin):
     

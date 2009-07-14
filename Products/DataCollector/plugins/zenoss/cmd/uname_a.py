@@ -16,7 +16,7 @@ Determine snmpSysName and setOSProductKey from the result of the uname -a
 command.
 """
 
-from CollectorPlugin import CommandPlugin
+from Products.DataCollector.plugins.CollectorPlugin import CommandPlugin
 
 class uname_a(CommandPlugin):
     

@@ -11,6 +11,10 @@
 #
 ###########################################################################
 
+__doc__ = """memory
+Maps /proc/meminfo to the memory and swap fields
+"""
+
 from Products.DataCollector.plugins.CollectorPlugin import LinuxCommandPlugin
 from Products.DataCollector.plugins.DataMaps import ObjectMap
 
@@ -22,9 +26,6 @@ MULTIPLIER = {
 
 
 class memory(LinuxCommandPlugin):
-    """
-    maps /proc/meminfo to the memory and swap fields
-    """
     maptype = "FileSystemMap" 
     command = 'cat /proc/meminfo'
     compname = "os"

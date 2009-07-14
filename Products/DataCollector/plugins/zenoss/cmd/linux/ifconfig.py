@@ -11,6 +11,10 @@
 #
 ###########################################################################
 
+__doc__ = """ifconfig
+ifconfig maps a linux ifconfig command to the interfaces relation.
+"""
+
 import re
 
 from Products.DataCollector.plugins.CollectorPlugin import LinuxCommandPlugin
@@ -31,9 +35,6 @@ def parseDmesg(dmesg, relMap):
     return relMap
 
 class ifconfig(LinuxCommandPlugin):
-    """
-    ifconfig maps a linux ifconfig command to the interfaces relation.
-    """
     # echo __COMMAND__ is used to delimit the results
     command = '/sbin/ifconfig -a && echo __COMMAND__ && /bin/dmesg'
     compname = "os"

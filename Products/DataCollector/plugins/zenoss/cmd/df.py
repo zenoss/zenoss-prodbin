@@ -17,7 +17,7 @@ Determine the filesystems to monitor
 
 import re
 
-from CollectorPlugin import CommandPlugin
+from Products.DataCollector.plugins.CollectorPlugin import CommandPlugin
 
 class df(CommandPlugin):
     """

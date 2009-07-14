@@ -11,14 +11,15 @@
 #
 ###########################################################################
 
+__doc__ = """memory
+Maps sysclt hw.physmem output to the memory fields
+"""
+
 from Products.DataCollector.plugins.CollectorPlugin import CommandPlugin
 from Products.DataCollector.plugins.DataMaps import ObjectMap
 
 
 class memory(CommandPlugin):
-    """
-    maps vm_stat output to the memory fields
-    """
     maptype = "FileSystemMap" 
     command = '/usr/sbin/sysctl hw.physmem'
     compname = "os"

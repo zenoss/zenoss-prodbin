@@ -11,16 +11,16 @@
 #
 ###########################################################################
 
-__doc__="""IpServiceMap
+__doc__ = """IpServiceMap
 
-IpServiceMap maps the interface and ip tables to interface objects
+IpServiceMap maps the TCP/IP services running on a machine to
+IP Service objects.  Note that only TCP services can be monitored.
 
-$Id: IpServiceMap.py,v 1.8 2004/04/03 04:03:24 edahl Exp $"""
-
-__version__ = '$Revision: 1.8 $'[11:-2]
+"""
 
 
-from CollectorPlugin import SnmpPlugin, GetTableMap
+
+from Products.DataCollector.plugins.CollectorPlugin import SnmpPlugin, GetTableMap
 
 class IpServiceMap(SnmpPlugin):
 

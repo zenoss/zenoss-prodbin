@@ -11,9 +11,10 @@
 #
 ###########################################################################
 
-__doc__="""DeviceMap
+__doc__ = """NewDeviceMap
 
-Record basic hardware/software information based on the snmpDscr OID.
+Try to determine OS and hardware manufacturer information based on
+the snmpDscr OID.
 """
 
 import re

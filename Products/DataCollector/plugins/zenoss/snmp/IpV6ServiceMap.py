@@ -11,14 +11,14 @@
 #
 ###########################################################################
 
-__doc__="""IpV6ServiceMap
+__doc__ = """IpV6ServiceMap
 
 IpV6ServiceMap creates IpV4 Services from IPV6 descriptions that allow
 all incomming requests (address ::).
 
 """
 
-from CollectorPlugin import SnmpPlugin, GetTableMap
+from Products.DataCollector.plugins.CollectorPlugin import SnmpPlugin, GetTableMap
 
 import logging
 log = logging.getLogger('zen.IpV6ServiceMap')

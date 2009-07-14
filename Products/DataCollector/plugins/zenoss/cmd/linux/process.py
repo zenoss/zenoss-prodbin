@@ -11,16 +11,14 @@
 #
 ###########################################################################
 
+__doc__ = """process
+Linux command plugin for parsing ps command output and modeling processes.
+"""
+
 from Products.DataCollector.ProcessCommandPlugin import ProcessCommandPlugin
 
 class process(ProcessCommandPlugin):
-    """
-    Linux command plugin for parsing ps command output and modeling processes.
-    """
-    
-    
     command = 'ps axho args'
-    
     
     def condition(self, device, log):
         """

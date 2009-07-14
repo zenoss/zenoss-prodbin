@@ -11,6 +11,10 @@
 #
 ###########################################################################
 
+__doc__ = """swap
+Reads from sysctl vm.swapusage and puts the swap total into the swap field
+"""
+
 from Products.DataCollector.plugins.CollectorPlugin import CommandPlugin
 from Products.DataCollector.plugins.DataMaps import ObjectMap
 
@@ -21,9 +25,6 @@ MULTIPLIERS = {
     }
 
 class swap(CommandPlugin):
-    """
-    reads from sysctl and puts the swap total into the swap field
-    """
     maptype = "FileSystemMap" 
     command = '/usr/sbin/sysctl vm.swapusage'
     compname = "os"

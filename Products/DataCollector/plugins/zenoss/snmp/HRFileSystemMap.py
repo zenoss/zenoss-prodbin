@@ -11,9 +11,9 @@
 #
 ###########################################################################
 
-__doc__ = """FileSystemMap
+__doc__ = """HRFileSystemMap
 
-FileSystemMap maps the filesystems to filesystem objects
+HRFileSystemMap maps the filesystems to filesystem objects
 
 """
 
