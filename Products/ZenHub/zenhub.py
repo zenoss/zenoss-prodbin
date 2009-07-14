@@ -362,7 +362,7 @@ class ZenHub(ZCmdBase):
             try:
                 obj = obj.__of__(self.dmd).primaryAq()
                 self.log.debug("Noticing object %s changed" % obj.getPrimaryUrlPath())
-            except AttributeError, ex:
+            except (AttributeError, KeyError), ex:
                 self.log.debug("Noticing object %s " % obj)
                 for s in self.services.values():
                     s.deleted(obj)
