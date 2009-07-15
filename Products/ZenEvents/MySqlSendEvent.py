@@ -428,7 +428,7 @@ class MySqlSendEventMixin:
         w.append("%s='%s'" % (self.deviceField, self.escape(evt.device)))
         w.append("%s='%s'" % (self.componentField,
             self.escape(evt.component)[:255]))
-        w.append("eventKey='%s'" % self.escape(evt.eventKey))
+        w.append("eventKey='%s'" % self.escape(evt.eventKey)[:128])
         update += " and ".join(w)
 
         w = []
