@@ -328,6 +328,14 @@ class PBDaemon(ZenDaemon, pb.Referenceable):
         """Flush events to ZenHub.
         """
         try:
+            # Set a maximum size on the eventQueue to avoid consuming all RAM.
+            queueLen = len(self.eventQueue)
+            if queueLen > self.options.maxqueuelen:
+                self.log.warn('Queue exceeded maximum length: %d/%d. Trimming',
+                    queueLen, self.options.maxqueuelen)
+                diff = queueLen - self.options.maxqueuelen
+                self.eventQueue = self.eventQueue[diff:]
+
             # are we already shutting down?
             if not reactor.running:
                 return
@@ -445,6 +453,12 @@ class PBDaemon(ZenDaemon, pb.Referenceable):
                                type='int',
                                help='Number of events to send to ZenHub'
                                'at one time')
+
+        self.parser.add_option('--maxqueuelen',
+                               dest='maxqueuelen',
+                               default=5000,
+                               type='int',
+                               help='Maximum number of events to queue')
 
 
         ZenDaemon.buildOptions(self)
