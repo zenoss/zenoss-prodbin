@@ -54,7 +54,7 @@ perfFilesystemTransform = """if device and evt.eventKey:
 """
 
 class zFileSystemSizeOffset(Migrate.Step):
-    version = Migrate.Version(2, 4, 2)
+    version = Migrate.Version(2, 5, 0)
     
     def cutover(self, dmd):
         # Install the zFileSystemSizeOffset zProperty
@@ -85,21 +85,28 @@ class zFileSystemSizeOffset(Migrate.Step):
             for th in t.thresholds():
                 if not isinstance(th, MinMaxThreshold):
                     continue
-
-                if "zFileSystemSizeOffset" not in th.maxval:
-                    th.maxval = th.maxval.replace("here.totalBlocks",
-                        "(here.totalBlocks * here.zFileSystemSizeOffset)")
-                if "zFileSystemSizeOffset" not in th.minval:
-                    th.minval = th.minval.replace("here.totalBlocks",
-                        "(here.totalBlocks * here.zFileSystemSizeOffset)")
+                
+                # Handle 2.4.2 thresholds.
+                th.maxval = th.maxval.replace(
+                    "(here.totalBlocks * here.zFileSystemSizeOffset)",
+                    "here.getTotalBlocks()")
+                th.minval = th.minval.replace(
+                    "(here.totalBlocks * here.zFileSystemSizeOffset)",
+                    "here.getTotalBlocks()")
+                
+                # Handle pre-2.4.2 thresholds.
+                th.maxval = th.maxval.replace(
+                    "here.totalBlocks",
+                    "here.getTotalBlocks()")
+                th.minval = th.minval.replace(
+                    "here.totalBlocks",
+                    "here.getTotalBlocks()")
             
             for g in t.graphDefs():
                 for gp in g.graphPoints():
                     if not hasattr(gp, "rpn"): continue
-                    if "zFileSystemSizeOffset" in gp.rpn: continue
-                    gp.rpn = gp.rpn.replace("${here/totalBlocks}",
-                        "${here/totalBlocks},${here/zFileSystemSizeOffset},*")
+                    if gp.rpn.endswith(",/,100,*"):
+                        gp.rpn = "${here/getTotalBlocks},/,100,*"
 
 
 zFileSystemSizeOffset()
-
