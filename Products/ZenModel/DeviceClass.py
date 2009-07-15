@@ -34,6 +34,7 @@ from Products.CMFCore.utils import getToolByName
 
 from Products.ZenModel.ZenossSecurity import *
 from Products.ZenRelations.RelSchema import *
+from Products.ZenRelations.ZenPropertyManager import Z_PROPERTIES
 from Products.ZenUtils.Search import makeCaseInsensitiveFieldIndex
 from Products.ZenUtils.Search import makeCaseInsensitiveKeywordIndex
 from Products.ZenUtils.Search import makePathIndex, makeMultiPathIndex
@@ -351,10 +352,10 @@ class DeviceClass(DeviceOrganizer, ZenPackable, TemplateContainer):
         devinfo = []
         for dev in self.getSubDevices(devfilter=ffunc):
             if not dev.monitorDevice(): continue
-            if getattr(dev, 'zWmiMonitorIgnore', False): continue
-            user = getattr(dev,'zWinUser','')
-            passwd = getattr(dev, 'zWinPassword', '')
-            sev = getattr(dev, 'zWinEventlogMinSeverity', '')
+            if dev.getProperty('zWmiMonitorIgnore', False): continue
+            user = dev.getProperty('zWinUser','')
+            passwd = dev.getProperty( 'zWinPassword', '')
+            sev = dev.getProperty( 'zWinEventlogMinSeverity', '')
             devinfo.append((dev.id, str(user), str(passwd), sev, dev.absolute_url()))
         return starttime, devinfo
     
@@ -373,11 +374,11 @@ class DeviceClass(DeviceOrganizer, ZenPackable, TemplateContainer):
             svcs[name] = (s.getStatus(), s.getAqProperty('zFailSeverity'))
         for dev in self.getSubDevices():
             if not dev.monitorDevice(): continue
-            if getattr(dev, 'zWmiMonitorIgnore', False): continue
+            if dev.getProperty( 'zWmiMonitorIgnore', False): continue
             svcs = allsvcs.get(dev.getId(), {})
             if not svcs and not dev.zWinEventlog: continue
-            user = getattr(dev,'zWinUser','')
-            passwd = getattr(dev, 'zWinPassword', '')
+            user = dev.getProperty('zWinUser','')
+            passwd = dev.getProperty( 'zWinPassword', '')
             svcinfo.append((dev.id, str(user), str(passwd), svcs))
         return svcinfo
 
@@ -780,102 +781,10 @@ class DeviceClass(DeviceOrganizer, ZenPackable, TemplateContainer):
         Create a new device tree with a default configuration
         """
         devs = self.getDmdRoot("Devices")
-        if getattr(aq_base(devs), "zSnmpCommunities", False): return
-
-        # map deviec class to python classs (seperate from device class name)
-        devs._setProperty("zPythonClass", "")
-
-        # production state threshold at which to start monitoring boxes
-        devs._setProperty("zProdStateThreshold", 300, type="int")
-
-        # Display the ifdescripion field or not
-        devs._setProperty("zIfDescription", False, type="boolean")
-
-        # Snmp collection properties
-        devs._setProperty("zSnmpCommunities",["public", "private"],type="lines")
-        devs._setProperty("zSnmpCommunity", "public")
-        devs._setProperty("zSnmpPort", 161, type="int")
-        devs._setProperty("zSnmpVer", "v1")
-        devs._setProperty("zSnmpTries", 2, type="int")
-        devs._setProperty("zSnmpTimeout", 2.5, type="float")
-        devs._setProperty("zSnmpSecurityName", "")
-        devs._setProperty("zSnmpAuthPassword", "", 'password')
-        devs._setProperty("zSnmpPrivPassword", "", 'password')
-        devs._setProperty("zSnmpAuthType", "")
-        devs._setProperty("zSnmpPrivType", "")
-        devs._setProperty("zRouteMapCollectOnlyLocal", False, type="boolean")
-        devs._setProperty("zRouteMapCollectOnlyIndirect", False, type="boolean")
-        devs._setProperty("zRouteMapMaxRoutes", 500, type="int")
-        devs._setProperty("zInterfaceMapIgnoreTypes", "")
-        devs._setProperty("zInterfaceMapIgnoreNames", "")
-        devs._setProperty("zFileSystemMapIgnoreTypes", [], type="lines")
-        devs._setProperty("zFileSystemMapIgnoreNames", "")
-        devs._setProperty("zFileSystemSizeOffset", 1.0, type="float")
-        devs._setProperty("zHardDiskMapMatch", "")
-        devs._setProperty("zSysedgeDiskMapIgnoreNames", "")
-        devs._setProperty("zIpServiceMapMaxPort", 1024, type="int")
-        devs._setProperty("zDeviceTemplates", ["Device"], type="lines")
-        devs._setProperty("zLocalIpAddresses", "^127|^0\.0|^169\.254|^224")
-        devs._setProperty("zLocalInterfaceNames", "^lo|^vmnet")
-
-
-        # RRD properties
-        #FIXME - should this be added to allow for more flexability of
-        # RRDTemplate binding?
-        #devs._setProperty("zRRDTemplateName", "")
-
-        # Ping monitor properties
-        devs._setProperty("zPingInterfaceName", "")
-        devs._setProperty("zPingInterfaceDescription", "")
-
-        # Status monitor properites
-        devs._setProperty("zSnmpMonitorIgnore", False, type="boolean")
-        devs._setProperty("zPingMonitorIgnore", False, type="boolean")
-        devs._setProperty("zWmiMonitorIgnore", True, type="boolean")
-        devs._setProperty("zStatusConnectTimeout", 15.0, type="float")
-
-        # DataCollector properties
-        devs._setProperty("zCollectorPlugins", [], type='lines')
-        devs._setProperty("zCollectorClientTimeout", 180, type="int")
-        devs._setProperty("zCollectorDecoding", 'latin-1')
-        devs._setProperty("zCommandUsername", "")
-        devs._setProperty("zCommandPassword", "", 'password')
-        devs._setProperty("zCommandProtocol", "ssh")
-        devs._setProperty("zCommandPort", 22, type="int")
-        devs._setProperty("zCommandLoginTries", 1, type="int")
-        devs._setProperty("zCommandLoginTimeout", 10.0, type="float")
-        devs._setProperty("zCommandCommandTimeout", 10.0, type="float")
-        devs._setProperty("zCommandSearchPath", [], type="lines")
-        devs._setProperty("zCommandExistanceTest", "test -f %s")
-        devs._setProperty("zCommandPath", zenPath("libexec"))
-        devs._setProperty("zTelnetLoginRegex", "ogin:.$")
-        devs._setProperty("zTelnetPasswordRegex", "assword:")
-        devs._setProperty("zTelnetSuccessRegexList",
-                            ['\$.$', '\#.$'], type="lines")
-        devs._setProperty("zTelnetEnable", False, type="boolean")
-        devs._setProperty("zTelnetEnableRegex", "assword:")
-        devs._setProperty("zTelnetTermLength", True, type="boolean")
-        devs._setProperty("zTelnetPromptTimeout", 10.0, type="float")
-        devs._setProperty("zKeyPath", "~/.ssh/id_dsa")
-        devs._setProperty("zMaxOIDPerRequest", 40, type="int")
-
-        # Extra stuff for users
-        devs._setProperty("zLinks", "")
-
-        # Device context Event Mapping
-        #FIXME this is half baked needs to be specific to an event class
-        #devs._setProperty("zEventSeverity", -1, type="int")
-
-        # Windows WMI collector properties
-        devs._setProperty("zWinUser", "")
-        devs._setProperty("zWinPassword", "", 'password')
-        devs._setProperty("zWinEventlogMinSeverity", 2, type="int")
-        devs._setProperty("zWinEventlog", False, type="boolean")
-
-        # Icon path
-        devs._setProperty("zIcon", "/zport/dmd/img/icons/noicon.png")
-
-
+        for id, type, value in Z_PROPERTIES:
+            if not devs.hasProperty(id):
+                devs._setProperty(id, value, type)
+                
     def zenPropertyOptions(self, propname):
         """
         Provide a set of default options for a zProperty

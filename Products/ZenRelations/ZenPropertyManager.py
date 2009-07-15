@@ -26,7 +26,168 @@ iszprop = re.compile("^z[A-Z]").search
 
 from Products.ZenUtils.Utils import unused
 
-class ZenPropertyManager(PropertyManager):
+# Z_PROPERTIES is a list of (id, type, value) pairs that define all the 
+# zProperties.  The values are set on dmd.Devices in the 
+# buildDeviceTreeProperties of DeviceClass
+Z_PROPERTIES = [
+    
+    # zPythonClass maps device class to python classs (separate from device
+    # class name)
+    ('zPythonClass', 'string', ''),
+    
+    # zProdStateThreshold is the production state threshold at which to start
+    # monitoring boxes
+    ('zProdStateThreshold', 'int', 300),
+    
+    # zIfDescription determines whether or not the ifdescripion field is
+    # displayed
+    ('zIfDescription', 'boolean', False),
+    
+    # Snmp collection properties
+    ('zSnmpCommunities', 'lines', ['public', 'private']),
+    ('zSnmpCommunity', 'string', 'public'),
+    ('zSnmpPort', 'int', 161),
+    ('zSnmpVer', 'string', 'v1'),
+    ('zSnmpTries', 'int', 2),
+    ('zSnmpTimeout', 'float', 2.5),
+    ('zSnmpSecurityName', 'string', ''),
+    ('zSnmpAuthPassword', 'password', ''),
+    ('zSnmpPrivPassword', 'password', ''),
+    ('zSnmpAuthType', 'string', ''),
+    ('zSnmpPrivType', 'string', ''),
+    ('zRouteMapCollectOnlyLocal', 'boolean', False),
+    ('zRouteMapCollectOnlyIndirect', 'boolean', False),
+    ('zRouteMapMaxRoutes', 'int', 500),
+    ('zInterfaceMapIgnoreTypes', 'string', ''),
+    ('zInterfaceMapIgnoreNames', 'string', ''),
+    ('zFileSystemMapIgnoreTypes', 'lines', []),
+    ('zFileSystemMapIgnoreNames', 'string', ''),
+    ('zFileSystemSizeOffset', 'float', 1.0),
+    ('zHardDiskMapMatch', 'string', ''),
+    ('zSysedgeDiskMapIgnoreNames', 'string', ''),
+    ('zIpServiceMapMaxPort', 'int', 1024),
+    ('zDeviceTemplates', 'lines', ['Device']),
+    ('zLocalIpAddresses', 'string', '^127|^0\\.0|^169\\.254|^224'),
+    ('zLocalInterfaceNames', 'string', '^lo|^vmnet'),
+    
+    # Ping monitor properties
+    ('zPingInterfaceName', 'string', ''),
+    ('zPingInterfaceDescription', 'string', ''),
+    
+    # Status monitor properties
+    ('zSnmpMonitorIgnore', 'boolean', False),
+    ('zPingMonitorIgnore', 'boolean', False),
+    ('zWmiMonitorIgnore', 'boolean', True),
+    ('zStatusConnectTimeout', 'float', 15.0),
+    
+    # DataCollector properties
+    ('zCollectorPlugins', 'lines', []),
+    ('zCollectorClientTimeout', 'int', 180),
+    ('zCollectorDecoding', 'string', 'latin-1'),
+    ('zCommandUsername', 'string', ''),
+    ('zCommandPassword', 'password', ''),
+    ('zCommandProtocol', 'string', 'ssh'),
+    ('zCommandPort', 'int', 22),
+    ('zCommandLoginTries', 'int', 1),
+    ('zCommandLoginTimeout', 'float', 10.0),
+    ('zCommandCommandTimeout', 'float', 10.0),
+    ('zCommandSearchPath', 'lines', []),
+    ('zCommandExistanceTest', 'string', 'test -f %s'),
+    ('zCommandPath', 'string', '/usr/local/zenoss/libexec'),
+    ('zTelnetLoginRegex', 'string', 'ogin:.$'),
+    ('zTelnetPasswordRegex', 'string', 'assword:'),
+    ('zTelnetSuccessRegexList', 'lines', ['\\$.$', '\\#.$']),
+    ('zTelnetEnable', 'boolean', False),
+    ('zTelnetEnableRegex', 'string', 'assword:'),
+    ('zTelnetTermLength', 'boolean', True),
+    ('zTelnetPromptTimeout', 'float', 10.0),
+    ('zKeyPath', 'string', '~/.ssh/id_dsa'),
+    ('zMaxOIDPerRequest', 'int', 40),
+    
+    # Extra stuff for users
+    ('zLinks', 'string', ''),
+    
+    # Windows WMI collector properties
+    ('zWinUser', 'string', ''),
+    ('zWinPassword', 'password', ''),
+    ('zWinEventlogMinSeverity', 'int', 2),
+    ('zWinEventlog', 'boolean', False),
+    
+    # zIcon is the icon path
+    ('zIcon', 'string', '/zport/dmd/img/icons/noicon.png'),
+    ]
+    
+class PropertyDescriptor(object):
+    """
+    Transforms the property value based on its type.
+    
+    Follows the Descriptor protocol defined at
+    http://docs.python.org/reference/datamodel.html#descriptors
+    """
+    
+    def __init__(self, id, type):
+        self.id = id
+        self.type = type
+        
+    def __get__(self, instance, owner):
+        """
+        Returns self for class attribute access.  Returns the transformed
+        value for instance attribute access.  Raises an AttributeError is
+        things go poorly.
+        """
+        try:
+            return self._get(instance)
+        except AttributeError:
+            raise
+        except Exception, e:
+            raise AttributeError(e)
+            
+    def __set__(self, instance, value):
+        """
+        Transforms the value and sets it.
+        """
+        self._migrate(instance)
+        self._set(instance, value)
+        
+    def __delete__(self, instance):
+        """
+        Delete the property.
+        """
+        self._migrate(instance)
+        del instance._propertyValues[self.id]
+        
+    def _get(self, instance):
+        """
+        Returns self for class attribute access.  Returns the transformed
+        value for instance attribute access.
+        """
+        if instance is None:
+            retval = self
+        else:
+            self._migrate(instance)
+            value = instance._propertyValues[self.id]
+            retval = instance._transform(value, self.type, 'transformForGet')
+        return retval
+        
+    def _migrate(self, instance):
+        """
+        If the id is in __dict__ then move the value to the _propertyValues
+        dictionary.
+        """
+        if not hasattr(instance, '_propertyValues'):
+            instance._propertyValues = {}
+        if self.id in vars(instance):
+            self._set(instance, vars(instance)[self.id])
+            del instance.__dict__[self.id]
+            
+    def _set(self, instance, value):
+        """
+        Transform and set the value in the _propertyValues dictionary.
+        """
+        valueToSet = instance._transform(value, self.type, 'transformForSet')
+        instance._propertyValues[self.id] = valueToSet
+        
+class ZenPropertyManager(object, PropertyManager):
     """
     ZenPropertyManager adds keyedselection type to PropertyManager.
     A keyedselection displayes a different name in the popup then
@@ -79,10 +240,16 @@ class ZenPropertyManager(PropertyManager):
     def _setPropValue(self, id, value):
         """override from PerpertyManager to handle checks and ip creation"""
         self._wrapperCheck(value)
+        
+        # copy acquired propertyTransformers to this instance, because the
+        # PropertyDescriptor methods are called with instance parameters that
+        # no longer have their acquisition wrapper
+        if hasattr(self, 'dmd') and hasattr(self.dmd, 'propertyTransformers'):
+            self.propertyTransformers = self.dmd.propertyTransformers
+            
         propType = self.getPropertyType(id)
         if  propType == 'keyedselection':
             value = int(value)
-        valueToSet = self._transform(value, propType, 'transformForSet')
         if not getattr(self,'_v_propdict',False):
             self._v_propdict = self.propdict()
         if self._v_propdict.has_key('setter'):
@@ -94,9 +261,9 @@ class ZenPropertyManager(PropertyManager):
             if not callable(setter):
                 raise TypeError("setter %s for property %s not callable"
                                     % (settername, id))
-            setter(valueToSet)
+            setter(value)
         else:
-            setattr(self,id,valueToSet)
+            setattr(self, id, value)
 
 
     def _setProperty(self, id, value, type='string', label=None, 
@@ -108,7 +275,7 @@ class ZenPropertyManager(PropertyManager):
         self._wrapperCheck(value)
         if not self.valid_property_id(id):
             raise BadRequest, 'Id %s is invalid or duplicate' % id
-
+            
         def setprops(**pschema):
             self._properties=self._properties+(pschema,)
             if setter: pschema['setter'] = setter
@@ -377,9 +544,7 @@ class ZenPropertyManager(PropertyManager):
         if ob is None:
             value = d
         else:
-            rawValue = PropertyManager.getProperty(ob, id, d)
-            type = PropertyManager.getPropertyType(ob, id)
-            value = self._transform(rawValue, type, 'transformForGet')
+            value = PropertyManager.getProperty(ob, id, d)
         return value
         
     security.declareProtected(ZEN_ZPROPERTIES_VIEW, 'getPropertyType')
@@ -418,5 +583,8 @@ class ZenPropertyManager(PropertyManager):
         else:
             returnValue = None
         return returnValue
+        
+for id, type, value in Z_PROPERTIES:
+    setattr(ZenPropertyManager, id, PropertyDescriptor(id, type))
         
 InitializeClass(ZenPropertyManager)

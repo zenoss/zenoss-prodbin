@@ -180,3 +180,4 @@ import addFilesystemAndInterfaceDataPointAliases
 import zopeup
 import fixjobs
 import addTitleOrIdToCatalogs
+import descriptor

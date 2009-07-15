@@ -23,6 +23,7 @@ from Products.ZenRelations.Exceptions import *
 from ZenRelationsBaseTest import ZenRelationsBaseTest
 from unittest import TestCase
 from Products.ZenTestCase.BaseTestCase import BaseTestCase
+from Products.ZenRelations.ZenPropertyManager import PropertyDescriptor
 from Products.ZenRelations.ZenPropertyManager import ZenPropertyManager
 from Products.ZenRelations.RelationshipManager import RelationshipManager
 from Products.ZenUtils.ZenTales import talesEval
@@ -145,6 +146,7 @@ class TransformerBase(object):
         
     def testMyTestType(self):
         "test that property of type 'my test type' is transformed"
+        self.manager.__class__.quux = PropertyDescriptor('quux', 'my test type')
         self.manager._setProperty('quux', 'blah', 'my test type')
         self.assertEqual('bar_foo_blah', self.manager.getProperty('quux'))
         self.manager._updateProperty('quux', 'clash')
@@ -152,6 +154,8 @@ class TransformerBase(object):
         
     def testString(self):
         "test that a string property isn't mucked with"
+        self.manager.__class__.halloween = PropertyDescriptor(
+                'halloween', 'string')
         self.manager._setProperty('halloween', 'cat')
         self.assertEqual('cat', self.manager.getProperty('halloween'))
         self.assertEqual('cat', self.manager.halloween)
@@ -170,6 +174,16 @@ class TransformerTest(TransformerBase, TestCase):
         Test ZenPropertyManager that does not acquire a dmd attribute.
         """
         self.manager = ZenPropertyManager()
+        self.manager.propertyTransformers = transformers
+        
+class RelationshipManagerTest(TransformerBase, TestCase):
+    
+    def setUp(self):
+        """
+        Test ZenPropertyManager subclass that does not acquire a dmd 
+        attribute.
+        """
+        self.manager = RelationshipManager('manager')
         self.manager.propertyTransformers = transformers
         
 class TransformerDmdTest(TransformerBase, BaseTestCase):
@@ -209,17 +223,56 @@ class GetZTest(BaseTestCase):
         manager._setProperty('quux', 'blah', 'password')
         self.assertEqual(None, manager.getZ('quux'))
         
+class OldStyleClass:
+    """
+    Test that MyPropertyManager can inherit from an old-style class that does
+    not sublcass object.  In the production code Zope/OFS PropertyManager is
+    an old-style class and ZenPropertyManager inherits from it.
+    """
+    pass
+    
+class MyPropertyManager(object, OldStyleClass):
+    
+    myProp = PropertyDescriptor('myProp', 'my test type')
+    myProp2 = PropertyDescriptor('myProp2', 'string')
+    
+    def __init__(self, transformer):
+        self.transformer = transformer
+        
+    def _transform(self, value, type, method):
+        if type == 'my test type':
+            retval = getattr(self.transformer, method)(value)
+        else:
+            retval = value
+        return retval
+        
+class PropertyDescriptorTest(TestCase):
+    
+    def setUp(self):
+        self.manager = MyPropertyManager(Transformer())
+        
+    def tearDown(self):
+        del self.manager
+        
+    def testProperty(self):
+        self.manager.myProp = 'quux'
+        self.assertEqual('bar_foo_quux', self.manager.myProp)
+        self.manager.myProp2 = 'duck'
+        self.assertEqual('duck', self.manager.myProp2)
+        
 def test_suite():
     from unittest import TestSuite, makeSuite
     suite = TestSuite()
     suite.addTest(makeSuite(ZenPropertyManagerTest))
     suite.addTest(makeSuite(TransformerTest))
+    suite.addTest(makeSuite(RelationshipManagerTest))
     suite.addTest(makeSuite(TransformerDmdTest))
     suite.addTest(makeSuite(AcquisitionTest))
     suite.addTest(makeSuite(TalesTest))
     suite.addTest(makeSuite(GetZTest))
+    suite.addTest(makeSuite(PropertyDescriptorTest))
     return suite
-
+    
 if __name__=="__main__":
     framework()
-        
+    
