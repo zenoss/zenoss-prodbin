@@ -272,6 +272,8 @@ class ZenActions(ZCmdBase):
         for result in self.query(q):
             evid = result[-1]
             data = dict(zip(fields, map(zem.convert, fields, result[:-1])))
+            details = dict( zem.getEventDetail(evid).getEventDetails() )
+            data.update( details )
             device = self.dmd.Devices.findDevice(data.get('device', None))
             data['eventUrl'] = self.getEventUrl(evid, device)
             if device:
@@ -294,6 +296,8 @@ class ZenActions(ZCmdBase):
         for result in self.query(q):
             evid = result[-1]
             data = dict(zip(fields, map(zem.convert, fields, result[:-1])))
+            details = dict( zem.getEventDetail(evid).getEventDetails() )
+            data.update( details )
             
             # get clear columns
             cfields = [('clear.%s' % x) for x in fields]
