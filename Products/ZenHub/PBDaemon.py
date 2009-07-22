@@ -396,7 +396,7 @@ class PBDaemon(ZenDaemon, pb.Referenceable):
             try:
                 importClass(c)
             except ImportError:
-                self.log.exception("Unable to import class %s", c)
+                self.log.error("Unable to import class %s", c)
 
 
     def buildOptions(self):
