@@ -11,6 +11,8 @@
 #
 ###########################################################################
 
+import transaction
+
 import zope.component
 from zope.traversing.adapters import DefaultTraversable
 
@@ -136,7 +138,14 @@ class BaseTestCase(ZopeTestCase.ZopeTestCase):
         from AccessControl.SecurityManagement import newSecurityManager
         newSecurityManager(None, user)
 
+        # Let's hide transaction.commit() so that tests don't fubar
+        # each other
+        self._transaction_commit=transaction.commit
+        transaction.commit=lambda *x: None
+        
     def tearDown(self):
+        if hasattr( self, '_transaction_commit' ):
+            transaction.commit=self._transaction_commit
         self.app = None
         self.dmd = None
         super(BaseTestCase, self).tearDown()

@@ -29,10 +29,10 @@ class DeviceResultInt:
 
     security.declareProtected('View', 'getDeviceName')
     def getDeviceName(self):
-        '''Get the device name of this device or associated device'''
+        '''Get the id of this device or associated device'''
         d = self.device()
         if d:
-            return d.titleOrId()
+            return d.getId()
         return "No Device"
 
 
