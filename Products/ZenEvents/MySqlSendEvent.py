@@ -157,7 +157,7 @@ class MySqlSendEventMixin:
             evid = guid.generate()
             event.evid = evid
             rows = 0
-            if event.severity == 0:
+            if int(event.severity) == 0:
                 event._action = "history"
                 clearcls = event.clearClasses()
                 if clearcls:

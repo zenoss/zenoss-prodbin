@@ -12,6 +12,7 @@
 ###########################################################################
 
 from Products.ZenTestCase.BaseTestCase import BaseTestCase
+from Products.ZenEvents.Exceptions import *
 
 
 perfFilesystemTransform = """
@@ -119,6 +120,28 @@ class testTransforms(BaseTestCase):
         
         evt = zem.getEventDetailFromStatusOrHistory(evid)
         self.assertEquals(evt.summary, 'disk space threshold: 49.1% used (72.6GB free)')
+
+    def testIntSeverityTransform(self):
+        """
+        Transform the event severity to a string and see if it evaluates.
+        """
+        transform = 'evt.severity="0"; evt.summary="transformed"'
+        zem = self.dmd.ZenEventManager
+        zhm = self.dmd.ZenEventHistory
+        self.dmd.Events.createOrganizer('/Perf/Filesystem')
+        self.dmd.Events.Perf.Filesystem.transform = transform
+        evid = zem.sendEvent(dict(
+            device     = 'localhost',
+            severity   = 4,
+            eventClass = '/Perf/Filesystem',
+            summary    = 'bad thingy',
+            ))
+        self.assertRaises(ZenEventNotFound, zem.getEventDetail, evid)
+        evt = zhm.getEventDetail(evid)
+        self.assertEqual(evt.summary, 'transformed')
+        self.assert_(isinstance(evt.severity, int))
+        self.assertEqual(evt.severity, 0)
+
 
 
 def test_suite():
