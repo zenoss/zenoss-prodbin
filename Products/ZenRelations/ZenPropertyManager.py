@@ -179,6 +179,7 @@ class PropertyDescriptor(object):
         if self.id in vars(instance):
             self._set(instance, vars(instance)[self.id])
             del instance.__dict__[self.id]
+            instance._p_changed = True
             
     def _set(self, instance, value):
         """
