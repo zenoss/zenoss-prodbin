@@ -152,6 +152,22 @@ class CmdBase:
             configFile.writelines(outlines)
             configFile.close()
 
+    def checkLogpath(self):
+        """
+        Validate the logpath is valid
+        """
+        if not self.options.logpath:
+            return None
+        else:
+            logdir = os.path.dirname(self.options.logpath)
+            if not os.path.isdir(logdir):
+                # try creating the directory hierarchy if it doesn't exist...
+                try:
+                    os.makedirs(logdir)
+                except OSError, ex:
+                    raise SystemExit("logpath:%s doesn't exist and cannot be created" % logdir)
+            return logdir
+
     def setupLogging(self):
         """
         Set common logging options
@@ -162,10 +178,8 @@ class CmdBase:
         self.log = logging.getLogger("zen."+ mname)
         zlog = logging.getLogger("zen")
         zlog.setLevel(self.options.logseverity)
-        if self.options.logpath:
-            logdir = self.options.logpath
-            if not os.path.isdir(os.path.dirname(logdir)):
-                raise SystemExit("logpath:%s doesn't exist" % logdir)
+        logdir = self.checkLogpath()
+        if logdir:
             logfile = os.path.join(logdir, mname.lower()+".log")
             maxBytes = self.options.maxLogKiloBytes * 1024
             backupCount = self.options.maxBackupLogs

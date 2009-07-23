@@ -114,12 +114,8 @@ class ZenDaemon(CmdBase):
         zlog.setLevel(self.options.logseverity)
         if self.options.watchdogPath or \
            self.options.daemon:
-            if self.options.logpath:
-                if not os.path.isdir(os.path.dirname(self.options.logpath)):
-                    raise SystemExit("logpath:%s doesn't exist" %
-                                        self.options.logpath)
-                logdir = self.options.logpath
-            else:
+            logdir = self.checkLogpath()
+            if not logdir:
                 logdir = zenPath("log")
             logfile = os.path.join(logdir, mname.lower()+".log")
             maxBytes = self.options.maxLogKiloBytes * 1024

@@ -75,7 +75,11 @@ class ZenRestore(ZenBackupBase):
                                default=False,
                                action='store_true',
                                help='Do not restore the events database.')
-
+        self.parser.add_option('--zenpacks',
+                               dest='zenpacks',
+                               default=False,
+                               action='store_true',
+                               help='Restore any ZenPacks in the backup.')
 
     def getSettings(self, tempDir):
         ''' Retrieve some options from settings file
@@ -220,18 +224,19 @@ class ZenRestore(ZenBackupBase):
                         os.path.join(tempDir, 'etc.tar'))
         if os.system(cmd): return -1
 
-        # Copy ZenPack files
-        tempPacks = os.path.join(tempDir, 'ZenPacks.tar')
-        if os.path.isfile(tempPacks):
-            self.msg('Restoring ZenPacks.')
-            cmd = 'rm -rf %s' % zenPath('ZenPacks')
-            if os.system(cmd): return -1
-            cmd = 'tar Cxf %s %s' % (
-                            zenPath(),
-                            os.path.join(tempDir, 'ZenPacks.tar'))
-            if os.system(cmd): return -1
-        else:
-            self.msg('Backup contains no ZenPacks.')
+        # Copy ZenPack files if requested
+        if self.options.zenpacks:
+            tempPacks = os.path.join(tempDir, 'ZenPacks.tar')
+            if os.path.isfile(tempPacks):
+                self.msg('Restoring ZenPacks.')
+                cmd = 'rm -rf %s' % zenPath('ZenPacks')
+                if os.system(cmd): return -1
+                cmd = 'tar Cxf %s %s' % (
+                                zenPath(),
+                                os.path.join(tempDir, 'ZenPacks.tar'))
+                if os.system(cmd): return -1
+            else:
+                self.msg('Backup contains no ZenPacks.')
 
         # Copy perf files
         cmd = 'rm -rf %s' % os.path.join(zenPath(), 'perf')
