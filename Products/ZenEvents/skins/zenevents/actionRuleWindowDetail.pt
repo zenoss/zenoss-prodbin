@@ -2,6 +2,22 @@
 <tal:block metal:fill-slot="contentPane">
 <script type="text/javascript" src="/zport/portal_skins/zenmodel/datePicker.js">
 </script>
+<script>
+
+				/* used to determine which time repeate time periods are skipable 
+					 this is only used one schedules (maintenance and alerting rules)
+					 relies on repeatskip object being there
+				*/
+				var validSkipPeriods = new Array('Daily', 'Weekly', 'Monthly');
+				function validSkip(repeatPeriod)
+				{
+								skipable = false;
+								for(i = 0; i < validSkipPeriods.length && !skipable; i++)
+												if(validSkipPeriods[i] == repeatPeriod) skipable = true;
+								//only disable the repeatskip field if skipable true
+								document.getElementById('repeatskip').disabled = !skipable;
+				}
+</script>
 
 <form method=post 
     tal:attributes="action string:${here/absolute_url_path}">
@@ -83,13 +99,18 @@
     <tr>
         <td class="tableheader">Repeat</td>
         <td class="tablevalues">
-	  <select class="tablevalues" name="repeat">
-	    <option class="tablevalues" 
-		    tal:repeat="e here/repeatOptions" 
-		    tal:content="e"
-		    tal:attributes="value e; selected python:e==here.repeat"/>
-	  </select>
+						<select class="tablevalues" name="repeat" onchange="javascript:validSkip(this.value)">
+							<option class="tablevalues" 
+								tal:repeat="e here/repeatOptions" 
+								tal:content="e"
+								tal:attributes="value e; selected python:e==here.repeat"/>
+						</select>
+						apply repeat every
+            <input disabled="true" id='repeatskip' name='skip' 
+								tal:attributes="value here/skip" size="1"/> 
+								times
         </td>
+				<script tal:content="string:validSkip('${here/repeat}')"></script>
     </tr>
     <tr>
         <td align="left"  class="tableheader" colspan=2>
