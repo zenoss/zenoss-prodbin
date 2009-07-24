@@ -238,8 +238,6 @@ class MaintenanceWindow(ZenModelRM):
                                         minv=0, maxv=23)
             durationMinutes = makeInt(durationMinutes, 'Duration minutes',
                                         minv=0, maxv=59)
-            skip = makeInt(skip, "Repeat skip",
-                                minv=1, maxv=364)
         if not msgs:
             duration = (durationDays * (60*24) +
                         durationHours * 60 +
