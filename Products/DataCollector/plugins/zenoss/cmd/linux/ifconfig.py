@@ -48,9 +48,9 @@ class ifconfig(LinuxCommandPlugin):
     
     def process(self, device, results, log):
         log.info('Collecting interfaces for device %s' % device.id)
-        ifconfig, dmesg = results.split('__COMMAND__\n')
+        ifconfig, dmesg = results.split('__COMMAND__')
         relMap = self.parseIfconfig(ifconfig, self.relMap())
-        relMap = parseDmesg(dmesg, relMap)
+        relMap = parseDmesg(dmesg.lstrip(), relMap)
         return relMap
         
     def parseIfconfig(self, ifconfig, relMap):
