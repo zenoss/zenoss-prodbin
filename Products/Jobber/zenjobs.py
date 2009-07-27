@@ -35,6 +35,7 @@ class ZenJobs(CyclingDaemon):
         self.runningjobs = []
 
     def run_job(self, job):
+        self.syncdb()
         logger.info("Starting %s %s" % (
             job.getJobType(),
             job.getDescription()))
