@@ -1,5 +1,8 @@
 <html>
     <head>
+        <link rel="shortcut icon"
+              type="image/x-icon"
+              href="/zport/dmd/favicon.ico"/>
         <title>Zenoss Login</title>
         <style>
             .inputbox {
