@@ -11,9 +11,25 @@ import Globals
 from Products.ZenUtils.ZenScriptBase import ZenScriptBase
 from transaction import commit
 
+class thresh_obj:
+    id = 'threshold'
+    description = ''
+    path = ''
+    meta_type = 'ThresholdContainer'
+
+    def getPrimaryPath(self):
+        return self.path
+
+threshie = thresh_obj()
+
 def print_xml_tree(tree, indent=0):
     if '__id' in tree:
-        print " " * indent + """<%(__meta_type)s id="%(__id)s" location="%(__location)s" >""" % tree
+        header = " " * indent + """<%(__meta_type)s id="%(__id)s" location="%(__location)s" """ % tree
+        if '__class' in tree and tree['__class']:
+            header += 'class="%s"' % tree['__class']
+        if '__hasTransform' in tree:
+            header += ' hasTransform="%s"' % tree['__hasTransform']
+        print header + " >"
         desc = tree['__description']
         if desc:
             print " " * indent + """<![CDATA[%s]]>""" % desc
@@ -25,37 +41,69 @@ def print_xml_tree(tree, indent=0):
     if '__id' in tree:
         print " " * indent + "</%(__meta_type)s>" % tree
 
+def add_object(root, obj):
+    root['__id'] = obj.id
+    root['__description'] = obj.description
+    root['__location'] = '/'.join(obj.getPrimaryPath())
+    root['__meta_type'] = obj.meta_type
+    root['__class'] = obj.__class__.__name__
+    if obj.__class__.__name__ == 'EventClass':
+        if obj.transform:
+            root['__hasTransform'] = 'yes'
+        else:
+            root['__hasTransform'] = 'no'
 
-dmd = ZenScriptBase(connect=True).dmd
 
-export_date = datetime.datetime.now()
-print """<?xml version="1.0" encoding="UTF-8"?>
-
-<!-- ZenPack information generated on %s -->
-<zenpacks >
-""" % (export_date) 
-
-for zp in dmd.ZenPackManager.packs():
-    print "<zenpack id='%s'>" % zp.id
+def zenpack2XML(dmd, zp):
+    dependencies = ', '.join( [' '.join([x,y]) for x, y in sorted(zp.dependencies.items()) ] )
+    print "<zenpack id='%s' version='%s' author='%s' dependencies='%s' >" % (
+          zp.id, zp.version, zp.author, dependencies)
 
     # Since the packables aren't arranged hierarchically,
     # we need to build our own tree.
     tree = {}
     for obj in zp.packables():
         root = tree
-        for loc in obj.getPrimaryPath():
+        obj_path = obj.getPrimaryPath()
+        for i, loc in enumerate(obj_path):
             if loc not in root:
                 root[loc] = {}
+                # Graphs don't have their own node
+                if i > 0 and  obj_path[i-1] == 'graphDefs':
+                    graph_path = '/'.join(obj_path[:i+1])
+                    graph_obj = dmd.getObjByPath(graph_path)
+                    add_object(root[loc], graph_obj)
+
+                # Thresholds don't have a container
+                if loc == 'thresholds':
+                    add_object(root[loc], threshie)
+
             root = root[loc]
-        root['__id'] = obj.id
-        root['__description'] = obj.description
-        root['__location'] = '/'.join(obj.getPrimaryPath())
-        root['__meta_type'] = obj.meta_type
+        add_object(root, obj)
 
     # Print out the tree
     print_xml_tree(tree)
 
     print "</zenpack>"
-print """
+
+
+def xml_header():
+    export_date = datetime.datetime.now()
+    print """<?xml version="1.0" encoding="UTF-8"?>
+
+<!-- ZenPack information generated on %s -->
+<zenpacks >
+""" % (export_date) 
+
+def xml_trailer():
+    print """
 </zenpacks>
 """
+
+
+if __name__ == '__main__':
+    xml_header()
+    dmd = ZenScriptBase(connect=True).dmd
+    for zp in dmd.ZenPackManager.packs():
+        zenpack2XML(dmd, zp)
+    xml_trailer()
