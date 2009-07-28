@@ -58,6 +58,8 @@ class ZentinelPortal ( PortalObjectBase ):
     def server_time(self):
         return Time.isoDateTime()
 
+    def _additionalQuery(self):
+        return None
 
     security.declareProtected(ZEN_COMMON, 'searchDevices')
     def searchDevices(self, queryString='', REQUEST=None):
@@ -66,18 +68,22 @@ class ZentinelPortal ( PortalObjectBase ):
         """
         zcatalog = self.dmd.Devices.deviceSearch
         glob = queryString.rstrip('*') + '*'
-        titleGlob = glob
-        glob = MatchGlob('id', glob)
-        titleGlob = MatchGlob('titleOrId', titleGlob)
-        query = Or(glob,titleGlob)
-        query = Or(query, Eq('getDeviceIp', queryString))
+        idGlob = MatchGlob('id', glob)
+        titleGlob = MatchGlob('titleOrId', glob)
+        idOrTitleQuery = Or(idGlob,titleGlob)
+        query = Or(idOrTitleQuery, Eq('getDeviceIp', queryString))
+        additionalQuery = self._additionalQuery()
+        if additionalQuery:
+            query = And( query, additionalQuery )
         brains = zcatalog.evalAdvancedQuery(query)
         if REQUEST and len(brains) == 1:
             raise Redirect(urllib.quote(brains[0].getPrimaryId))
-        brains += self.dmd.Networks.ipSearch.evalAdvancedQuery(glob)
+        if additionalQuery:
+            idGlob = And( idGlob, additionalQuery )
+        brains += self.dmd.Networks.ipSearch.evalAdvancedQuery(idGlob)
         return [ b.getObject() for b in brains ]
-    
-    security.declareProtected(ZEN_COMMON, 'searchDevices')
+
+    security.declareProtected(ZEN_COMMON, 'searchComponents')
     def searchComponents(self, device='', component='', REQUEST=None):
         """
         Redirect to the component of a device. Hopefully.
