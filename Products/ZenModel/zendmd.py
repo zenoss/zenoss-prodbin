@@ -18,7 +18,7 @@ import atexit
 from optparse import OptionParser
 try:
     import readline
-    import rlcompleter
+    from rlcompleter import Completer
 except ImportError:
     readline = rlcompleter = None
 
@@ -124,6 +124,80 @@ def _customStuff():
     _CUSTOMSTUFF = locals()
     return _CUSTOMSTUFF
 
+class ZenCompleter(Completer):
+    """
+    Provides the abiility to specify *just* the zendmd-specific 
+    stuff when you first enter and hit tab-tab, and also the 
+    ability to remove junk that we don't need to see.
+    """
+    ignored_names = [
+        "COPY", "DELETE", "HEAD", "HistoricalRevisions",
+        "LOCK", "MKCOL", "MOVE", "OPTIONS",
+        "Open", "PROPFIND", "PROPPATCH",
+        "PUT", "REQUEST", "SQLConnectionIDs",
+        "SiteRootAdd", "TRACE", "UNLOCK",
+        "ac_inherited_permissions",
+        "access_debug_info",
+        "bobobase_modification_time",
+        "manage_historyCompare",
+        "manage_historyCopy",
+        "manage_addDTMLDocument",
+        "manage_addDTMLMethod",
+        "manage_clone",   
+        "manage_copyObjects",
+        "manage_copyright",
+        "manage_cutObjects",
+        "manage_historicalComparison",
+        "validClipData",
+        "manage_CopyContainerAllItems",
+        "manage_CopyContainerFirstItem",
+        "manage_DAVget",
+        "manage_FTPlist",
+        "manage_UndoForm",
+        "manage_access",   
+    ]
+    ignored_prefixes = [
+       '_', 'wl_', 'cb_', 'acl', 'http__', 'dav_',
+       'manage_before', 'manage_after',
+       'manage_acquired',
+    ]
+
+    def global_matches(self, text):
+        """
+        Compute matches when text is a simple name.
+        """
+        matches = []
+        for name in self.namespace:
+            if name.startswith(text):
+                matches.append(name)
+
+        return matches
+
+    def attr_matches(self, text):
+        """
+        Compute matches when text contains a dot.
+        """
+        matches = []
+        for name in Completer.attr_matches(self, text):
+            if name.endswith("__roles__"):
+                continue
+            component = name.split('.')[-1]
+            if component in self.ignored_names:
+                continue
+            ignore = False
+            for prefix in self.ignored_prefixes:
+                if component.startswith(prefix):
+                    ignore = True
+                    break
+
+            if not ignore:
+                matches.append(name)
+
+        return matches
+        #return filter(lambda x: not x.endswith("__roles__"),
+                      #Completer.attr_matches(self, text))
+
+
 
 class HistoryConsole(code.InteractiveConsole):
     """
@@ -132,7 +206,12 @@ class HistoryConsole(code.InteractiveConsole):
     def __init__(self, locals=None, filename="<console>",
                  histfile=zenPath('.pyhistory')):
         code.InteractiveConsole.__init__(self, locals, filename)
+        if readline is not None:
+            completer = ZenCompleter(locals)
+            readline.set_completer(completer.complete)
+            readline.parse_and_bind("tab: complete")
         self.init_history(histfile)
+
 
     def init_history(self, histfile):
         if hasattr(readline, "read_history_file"):
@@ -152,9 +231,14 @@ if __name__=="__main__":
     if opts.host or opts.port:
         set_db_config(opts.host, opts.port)
 
-    _banner=("Welcome to the Zenoss dmd command shell!\n"
+    _banner = ["Welcome to the Zenoss dmd command shell!\n"
              "'dmd' is bound to the DataRoot. 'zhelp()' to get a list of "
-             "commands.")
+             "commands." ] 
+    if readline is not None:
+        _banner = '\n'.join( [ _banner[0],
+                       "Use TAB-TAB to see a list of zendmd related commands.",
+                       "Tab completion also works for objects -- hit tab after"
+                       " an object name and '.'", " (eg dmd. + tab-key)."])
 
     # Start up the console
     myconsole = HistoryConsole(locals=_customStuff())
