@@ -92,6 +92,8 @@ class EventConsole(BrowserView):
             elif field == 'summary':
                 value = urllib.quote(
                     value.replace('<','&lt;').replace('>','&gt;'))
+            elif field == 'prodState':
+                value = self.context.dmd.convertProdState(value)
             else:
                 value = _shortvalue
             data.append(value)

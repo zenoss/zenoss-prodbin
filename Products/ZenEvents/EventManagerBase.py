@@ -1222,10 +1222,10 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
         #if field == self.severityField:
         #    idx = len(self.severityConversions) - value
         #    value = self.severityConversions[idx][0]
+        #elif field == 'prodState':
+        #    value = self.dmd.convertProdState(value)            
         if self.isDate(field):
             value = self.dateString(value)
-        elif field == 'prodState':
-            value = self.dmd.convertProdState(value)            
         return value
 
 
@@ -1274,7 +1274,6 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
         except IndexError:
             return "Unknown"
 
-            
     def convertEventField(self, field, value, default=""):
         """
         Convert numeric values commonly found in events to their textual
