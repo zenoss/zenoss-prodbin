@@ -36,8 +36,8 @@ manuRegexes = {
     }
 
 class updateManufacturerRegexes(Migrate.Step):
-    version = Migrate.Version(2, 4, 1)
-    
+    version = Migrate.Version(2, 5, 0)
+
     def cutover(self, dmd):
         for mname, regexes in manuRegexes.items():
             m = dmd.Manufacturers.getManufacturer(mname)

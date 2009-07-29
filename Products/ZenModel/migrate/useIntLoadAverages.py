@@ -29,7 +29,7 @@ class UseIntLoadAverages(Migrate.Step):
     http://dev.zenoss.org/trac/ticket/3979#comment:15
     """
 
-    version = Migrate.Version(2, 4, 2)
+    version = Migrate.Version(2, 5, 0)
 
     def cutover(self, dmd):
         dsPaths = (

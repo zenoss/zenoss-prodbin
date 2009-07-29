@@ -16,7 +16,7 @@
 import Migrate
 
 class addUnixMonitoring(Migrate.Step):
-    version = Migrate.Version(2, 4, 3)
+    version = Migrate.Version(2, 5, 0)
 
     def cutover(self, dmd):
         server = dmd.findChild('Devices/Server')
