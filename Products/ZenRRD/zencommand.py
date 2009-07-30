@@ -34,7 +34,7 @@ from Products.ZenUtils.Utils import unused
 from Products.ZenRRD.RRDDaemon import RRDDaemon
 from Products.ZenRRD.RRDUtil import RRDUtil
 from Products.DataCollector.SshClient import SshClient
-
+from Products.ZenEvents.ZenEventClasses import Clear
 from Products.ZenRRD.CommandParser import ParsedResults
 
 from Products.DataCollector import Plugins
@@ -567,32 +567,48 @@ class zencommand(RRDDaemon):
                                                  self.processSchedule)
         except Exception, ex:
             self.log.exception(ex)
-
             
-    def finished(self, cmd):
+    
+    def sendCmdEvent(self, cmd, summary):
+        """
+        Send an event using the info in the Cmd object.
+        """
+        self.sendEvent(dict(device=cmd.deviceConfig.device,
+                            component=cmd.component,
+                            eventClass=cmd.eventClass,
+                            eventKey=cmd.eventKey,
+                            severity=cmd.severity,
+                            summary=summary))
+                            
+    def finished(self, cmdOrErr):
+        """
+        The command has finished.  cmdOrErr is either a Cmd instance or a
+        twisted failure.
+        """
         self.executed += 1
-        if isinstance(cmd, failure.Failure):
-            self.error(cmd)
+        if isinstance(cmdOrErr, failure.Failure):
+            self.error(cmdOrErr)
         else:
+            cmd = cmdOrErr
+            cmd.severity = Clear
+            self.sendCmdEvent(cmd, "Clear")
             self.parseResults(cmd)
         self.processSchedule()
-
-
+        
     def error(self, err):
+        """
+        The finished method indicated that there was a failure.  This method
+        is also called by RRDDaemon.errorStop.
+        """
         if isinstance(err.value, TimeoutError):
             cmd, = err.value.args
-            dc = cmd.deviceConfig
-            msg = "Command timed out on device %s: %r" % (dc.device, cmd.command)
+            msg = "Command timed out on device %s: %r" % (
+                    cmd.deviceConfig.device, cmd.command)
             self.log.warning(msg)
-            self.sendEvent(dict(device=dc.device,
-                                component=cmd.component,
-                                eventClass=cmd.eventClass,
-                                eventKey=cmd.eventKey,
-                                severity=cmd.severity,
-                                summary=msg))
+            self.sendCmdEvent(cmd, msg)
         else:
             self.log.exception(err.value)
-
+            
     def parseResults(self, cmd):
         """
         Process the results of our command-line, send events
