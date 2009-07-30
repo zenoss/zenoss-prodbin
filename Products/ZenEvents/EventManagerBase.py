@@ -1589,8 +1589,8 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
         reason = None
         if eventState and evids:
             eventState = int(eventState)
-            if eventState > 0 and not userid: 
-                userid = getSecurityManager().getUser()
+            if eventState > 0 and not userid:
+                userid = getSecurityManager().getUser().getId()
             update = "update status set eventState=%s, ownerid='%s' " % (
                         eventState, userid)
             whereClause = "where evid in (" 
