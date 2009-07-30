@@ -11,9 +11,9 @@
 #
 ###########################################################################
 
+from pysamba.twisted.callback import WMIFailure
 from pysamba.twisted.reactor import eventContext
 from pysamba.wbem.Query import Query
-from pysamba.library import WError
 
 from Products.ZenUtils.Utils import zenPath
 from Products.ZenUtils.Driver import drive
@@ -93,13 +93,23 @@ class WMIClient(BaseClient):
                     result = driver.next()
                     queryResult[tableName] = []
                     while 1:
+                        more = None
                         yield result.fetchSome()
                         try:
                             more = driver.next()
-                        except WError, ex:
+                        except WMIFailure, ex:
                             msg = 'Received %s from query: %s'
-                            log.error(msg % (ex.why(), query))
-                            raise
+                            
+                            # Look for specific errors that should be equated
+                            # to an empty result set.
+                            if str(ex) in (
+                                "NT code 0x80041010",
+                                "WBEM_E_INVALID_CLASS",
+                                ):
+                                log.debug(msg % (ex, query))
+                            else:
+                                log.error(msg % (ex, query))
+                                raise
                         if not more:
                             break
                         queryResult[tableName].extend(more)
