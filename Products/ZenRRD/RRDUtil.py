@@ -107,6 +107,22 @@ class RRDUtil:
         return performancePath(path)
 
 
+    def getStep(self, cycleTime):
+        """
+        Return the step value for the provided cycleTime. This is a hook for
+        altering the default step calculation.
+        """
+        return int(cycleTime)
+
+
+    def getHeartbeat(self, cycleTime):
+        """
+        Return the heartbeat value for the provided cycleTime. This is a hook
+        for altering the default heartbeat calculation.
+        """
+        return int(cycleTime) * 3
+
+
     def save(self, path, value, rrdType, rrdCommand=None, cycleTime=None,
              min='U', max='U'):
         """
@@ -152,12 +168,11 @@ class RRDUtil:
                 os.makedirs(dirname, 0750)
 
             min, max = map(_checkUndefined, (min, max))
-            dataSource = 'DS:%s:%s:%d:%s:%s' % ('ds0', rrdType,
-                                                3*cycleTime, min, max)
-            rrdtool.create(filename,
-                           "--step",  str(cycleTime),
-                           str(dataSource), *rrdCommand.split())
-        
+            dataSource = 'DS:%s:%s:%d:%s:%s' % (
+                'ds0', rrdType, self.getHeartbeat(cycleTime), min, max)
+            rrdtool.create(filename, "--step", str(self.getStep(cycleTime)),
+                str(dataSource), *rrdCommand.split())
+
         if rrdType in ('COUNTER', 'DERIVE'):
             try:
                 value = long(value)
