@@ -69,7 +69,9 @@ class Availability:
 
     def getComponent(self, dmd):
         if self.device and self.component:
-            return _findComponent(self.getDevice(dmd), self.component)
+            device = self.getDevice(dmd)
+            if device:
+                return _findComponent(device, self.component)
         return None
 
     def getDeviceLink(self, dmd):
