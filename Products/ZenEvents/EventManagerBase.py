@@ -1456,7 +1456,10 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
         num = len(evids)
         if evids:
             evids = ",".join([ "'%s'" % evid for evid in evids])
+            userid = getSecurityManager().getUser()
+            update = "update status set ownerid='%s' " % userid
             whereClause = ' where evid in (%s)' % evids
+            self.updateEvents(update, whereClause, '', toLog=False)
             self.deleteEvents(whereClause, 'Deleted by user')
         if REQUEST:
             messaging.IMessageSender(self).sendToBrowser(

@@ -156,7 +156,7 @@ class ActionRule(ZenModelRM, EventFilter):
         result.update(map(_downcase, clearRegex.findall(self.clearFormat)))
         result.update(map(_downcase, clearRegex.findall(self.clearBody)))
         notDb = Set('orEventSummary eventUrl eventsUrl ackUrl deleteUrl undeleteUrl severityString'.split())
-        notMsg = ['severity', 'summary']
+        notMsg = ['severity', 'summary', 'ownerid', 'stateChange']
         return list(result - notDb) + notMsg
 
 

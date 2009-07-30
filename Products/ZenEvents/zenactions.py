@@ -32,6 +32,7 @@ from _mysql_exceptions import OperationalError, ProgrammingError
 
 from Products.ZenUtils.ZCmdBase import ZCmdBase
 from Products.ZenUtils.ZenTales import talesCompile, getEngine
+from Products.ZenEvents.Exceptions import ZenEventNotFound
 from ZenEventClasses import App_Start, App_Stop, Status_Heartbeat 
 from ZenEventClasses import Cmd_Fail
 import Event
@@ -296,9 +297,13 @@ class ZenActions(ZCmdBase):
         for result in self.query(q):
             evid = result[-1]
             data = dict(zip(fields, map(zem.convert, fields, result[:-1])))
-            details = dict( zem.getEventDetail(evid).getEventDetails() )
-            data.update( details )
-            
+
+            try:
+                details = dict( zem.getEventDetail(evid).getEventDetails() )
+                data.update( details )
+            except ZenEventNotFound:
+                pass
+
             # get clear columns
             cfields = [('clear.%s' % x) for x in fields]
             q = self.clearEventSelect % (",".join(cfields), evid)
@@ -322,7 +327,15 @@ class ZenActions(ZCmdBase):
 
             data['clearOrEventSummary'] = (
                 data['clearSummary'] or data['summary'])
-                
+
+            # We want to insert the ownerid and stateChange fields into the
+            # clearSummary and clearFirstTime fields in the case where an
+            # event was manually cleared by an operator.
+            if not data.get('clearSummary', False) \
+                and data.get('ownerid', False):
+                data['clearSummary'] = data['ownerid']
+                data['clearFirstTime'] = data.get('stateChange', '')
+
             # add in the link to the url
             device = self.dmd.Devices.findDevice(data.get('device', None))
             data['eventUrl'] = self.getEventUrl(evid, device)
