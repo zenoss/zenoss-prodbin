@@ -84,10 +84,10 @@ def get_edges(rootnode, depth=1, withIcons=False, filter='/'):
         return color
     for nodea, nodeb in g:
         if withIcons:
-            yield ((nodea.id, nodea.getIconPath(), getColor(nodea)),
-                   (nodeb.id, nodeb.getIconPath(), getColor(nodeb)))
+            yield ((nodea.titleOrId(), nodea.getIconPath(), getColor(nodea)),
+                   (nodeb.titleOrId(), nodeb.getIconPath(), getColor(nodeb)))
         else:
-            yield (nodea.id, nodeb.id)
+            yield (nodea.titleOrId(), nodeb.titleOrId())
 
 def getDeviceNetworkLinks(rootdevice):
     """ Returns network links to other devices """
