@@ -5,7 +5,7 @@
                                        sortedSence='desc');
     objects python:here.ReportServer.plugin('interface', tableState);
     objects python: (hasattr(request, 'doExport') and list(objects)) or objects;
-    exportFields python:['device', 'speed', 'input', 'output', 'total', 'percentUsed'];
+    exportFields python:[('deviceName', 'Device'), ('interface', 'Interface'), ('speed', 'Speed'), ('inputBits', 'Input'), ('outputBits', 'Output'), ('totalBits', 'Total'), ('percentUsed', '% Util')];
     batch python:here.ZenTableManager.getBatch(tableName,objects,sortedHeader='percentUsed', sortedSence='desc');
 ">
 <tal:block metal:use-macro="here/reportMacros/macros/exportableReport">
@@ -30,13 +30,13 @@
         <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
                             tableName,'deviceName','Device')"/>
         <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
-                            tableName,'componentName','Interface')"/>
+                            tableName,'interface','Interface')"/>
         <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
                             tableName,'speed','Speed')"/>
         <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
-                            tableName,'input','Input')"/>
+                            tableName,'inputBits','Input')"/>
         <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
-                            tableName,'output','Output')"/>
+                            tableName,'outputBits','Output')"/>
         <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
                             tableName,'total','Total')"/>
         <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
@@ -48,11 +48,11 @@
            <td><a tal:attributes="href python: r.device.getPrimaryUrlPath()"
                   tal:content="python: r.deviceName"/></td>
            <td><a tal:attributes="href python: r.component.getPrimaryUrlPath()"
-                  tal:content="python: r.componentName"/></td>
+                  tal:content="python: r.interface"/></td>
            <td tal:content="python: r.humanBits(r.speed)"/>
-           <td tal:content="python: r.humanBits(r.input, 8)"/>
-           <td tal:content="python: r.humanBits(r.output, 8)"/>
-           <td tal:content="python: r.humanBits(r.total, 8)"/>
+           <td tal:content="python: r.humanBits(r.inputBits)"/>
+           <td tal:content="python: r.humanBits(r.outputBits)"/>
+           <td tal:content="python: r.humanBits(r.totalBits)"/>
            <td tal:content="python: r.percentString(r.percentUsed, 1)"/>
         </tr>
     </tal:block>
