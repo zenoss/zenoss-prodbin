@@ -19,6 +19,7 @@ log = logging.getLogger("zen.RRDView")
 
 from Acquisition import aq_chain
 
+from Products.ZenRRD.RRDUtil import convertToRRDTime
 from Products.ZenUtils import Map
 from Products.ZenWidgets import messaging
 
@@ -84,11 +85,13 @@ class RRDView(object):
         return value
 
 
-    def getRRDValue(self, dsname, **kwargs):
+    def getRRDValue(self, dsname, start=None, end=None, function="LAST",
+                    format="%.2lf", extraRpn=""):
         """Return a single rrd value from its file using function.
         """
         dsnames = (dsname,)
-        results = self.getRRDValues(dsnames, **kwargs)
+        results = self.getRRDValues(
+            dsnames, start, end, function, format, extraRpn)
         if dsname in results:
             return results[dsname]
 
@@ -153,9 +156,9 @@ class RRDView(object):
                 gopts.append("CDEF:%s_c=%s_r%s" % (dsname,dsname,rpn))
                 gopts.append("VDEF:%s=%s_c,%s" % (dsname,dsname,function))
                 gopts.append("PRINT:%s:%s" % (dsname, format))
-                gopts.append("--start=%d" % start)
+                gopts.append("--start=%s" % convertToRRDTime(start))
                 if end:
-                    gopts.append("--end=%d" % end)
+                    gopts.append("--end=%s" % convertToRRDTime(end))
             if not names:
                 return {}
             perfServer = self.device().getPerformanceServer()

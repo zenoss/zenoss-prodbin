@@ -33,6 +33,29 @@ def _checkUndefined(x):
     return x
 
 
+def convertToRRDTime(val):
+    """
+    Convert any value that is passed in to a string that is acceptable to use
+    for RRDtool's start and end parameters. Raises ValueError if this is not
+    possible.
+    
+    See the AT-STYLE TIME SPECIFICATION and TIME REFERENCE SPECIFICATION
+    sections of the following document.
+    
+        http://oss.oetiker.ch/rrdtool/doc/rrdfetch.en.html
+    
+    Note: Currently this method is only fixing floats by turning them into
+          strings with no decimal places.
+    """
+    # Integers are ok. This will also strip decimal precision.
+    try:
+        result = int(val)
+        return str(result)
+    except ValueError:
+        pass
+
+    return str(val)
+
 
 class RRDUtil:
     """
