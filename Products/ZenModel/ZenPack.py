@@ -961,7 +961,16 @@ registerDirectory("skins", globals())
         # to catch the case where a broken object won't have an isBroken
         # method.
         # So here we just need to check for presence on the filesystem.
-        return not os.path.isdir(self.path())
+        if not os.path.isdir(self.path()):
+            return True
+
+        # If packables throws an exception the pack is broken.
+        try:
+            unused = self.packables()
+        except Exception:
+            return True
+
+        return False
 
 
 
