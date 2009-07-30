@@ -11,6 +11,12 @@
 #
 ###########################################################################
 
+# IMPORTANT! The import of the pysamba.twisted.reactor module should come before
+# any other libraries that might possibly use twisted. This will ensure that
+# the proper WmiReactor is installed before anyone else grabs a reference to
+# the wrong reactor.
+import pysamba.twisted.reactor
+
 import Globals
 from Products.ZenWin.WMIClient import WMIClient
 from Products.ZenWin.WinCollector import WinCollector
