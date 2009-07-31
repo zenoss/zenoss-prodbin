@@ -213,7 +213,7 @@ class DeviceAddView(BrowserView):
         # Make sure we have at least one device name
         devnames = filter(lambda x:bool(self.request.form.get(x)), devs)
         if not devnames:
-            response.error('device_1', 
+            response.error('device_0',
                            'You must enter at least one hostname/IP.')
             return response
         # Create jobs based on info passed

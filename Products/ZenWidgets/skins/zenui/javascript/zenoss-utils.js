@@ -521,22 +521,21 @@ function checkValidId(e){
 
 function connectTextareas() {
 
-    function resizeAll() {
-        map(resizeArea, $$('textarea'));
+    function resizeAll(area) {
+        if (!hasElementClass(area, 'dontexpand'))
+            resizeArea(area);
     }
-
     function resizeArea(area) {
         var td = getFirstParentByTagAndClassName(area, 'td', null);
         aDims = getElementDimensions(td);
         var w = aDims.w - 20;
         setElementDimensions(area, {w:w});
     }
-
     connect(currentWindow(), 'onresize', function(e) {
         map(resizeAll, $$('textarea'));
     });
-
     map(resizeAll, $$('textarea'));
+
 }
 addLoadEvent(connectTextareas);
 
