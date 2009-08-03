@@ -25,7 +25,9 @@ def findZenPackRoot(base):
     p = d = os.path.realpath(base)
     while d:
         if os.path.isdir(os.path.join(p, 'ZenPacks')):
-            p = p.split('-')[0] # Ditch version and extension if an egg
+            # Ditch version and extension if an egg
+            if p.endswith('.egg'):
+                p = p.split('-')[0]
             return p
         p, d = os.path.split(p)
     return None
