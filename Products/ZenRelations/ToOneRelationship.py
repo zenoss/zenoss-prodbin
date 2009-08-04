@@ -62,7 +62,9 @@ class ToOneRelationship(RelationshipBase):
     
     def __call__(self):
         """return the related object when a ToOne relation is called"""
-        self.checkRelation(True)
+        # Disabling relationship checking code.
+        # http://dev.zenoss.org/trac/ticket/5391
+        #self.checkRelation(True)
         return self.obj
 
 
