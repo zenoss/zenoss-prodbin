@@ -35,6 +35,7 @@ from Products.ZenWidgets import messaging
 from Products.ZenUtils.Utils import getSubObjects, zenPath
 from Products.ZenRelations.ImportRM import ImportRM
 from Products.ZenRelations.RelationshipManager import RelationshipManager
+from Products.ZenModel.ZenossSecurity import *
 
 class ZenModelRM(ZenModelBase, RelationshipManager, Historical, ZenPacker):
     """
@@ -322,8 +323,14 @@ class ZenModelRM(ZenModelBase, RelationshipManager, Historical, ZenPacker):
         """
         Return true if user has Manager role and self has a deviceList.
         """
-        return self.isManager() and \
-            getattr(aq_base(self), "deviceMoveTargets", False)
+        if not getattr(aq_base(self), "deviceMoveTargets", False):
+            return False
+
+        if self.isManager() or \
+            self.checkRemotePerm(ZEN_CHANGE_DEVICE_PRODSTATE, self):
+            return True
+
+        return False
 
 
     def creator(self):

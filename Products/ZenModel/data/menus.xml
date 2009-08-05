@@ -793,7 +793,7 @@ dialog_setProductionState_grid
 True
 </property>
 <property type="lines" id="permissions" mode="w" >
-('Change Device',)
+('Change Device Production State',)
 </property>
 <property type="boolean" id="isdialog" mode="w" >
 True
@@ -995,7 +995,7 @@ dialog_setProductionState
 True
 </property>
 <property type="lines" id="permissions" mode="w" >
-('Change Device',)
+('Change Device Production State',)
 </property>
 <property type="lines" id="banned_classes" mode="w" >
 ['Monitor']
@@ -1137,7 +1137,7 @@ dialog_setProductionState_global
 True
 </property>
 <property type="lines" id="permissions" mode="w" >
-('Change Device',)
+('Change Device Production State',)
 </property>
 <property type="lines" id="allowed_classes" mode="w" >
 ['DeviceClass', 'DeviceGroup', 'Location', 'System']

@@ -48,6 +48,8 @@ ZEN_EDIT_USERGROUP = 'Edit User Groups'
 
 # Device
 ZEN_CHANGE_DEVICE = 'Change Device'
+# Change device production state
+ZEN_CHANGE_DEVICE_PRODSTATE='Change Device Production State'
 # Change Class, Rename, Delete Device, Reset IP
 ZEN_ADMIN_DEVICE='Admin Device'
 # Model, Lock, Reset Community, Push Changes, Clear Heartbeats

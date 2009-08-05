@@ -182,3 +182,4 @@ import fixjobs
 import addTitleOrIdToCatalogs
 import descriptor
 import addPropertyTransformers
+import changeDeviceProdStatePermission

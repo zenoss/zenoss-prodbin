@@ -79,6 +79,11 @@
       />
 
   <permission
+      id="zenoss.ChangeDeviceProductionState"
+      title="Change Device Production State"
+      />
+
+  <permission
       id="zenoss.AdminDevice"
       title="Admin Device"
       />
