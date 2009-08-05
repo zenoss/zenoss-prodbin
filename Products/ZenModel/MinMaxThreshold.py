@@ -252,12 +252,28 @@ class MinMaxThresholdInstance(ThresholdInstance):
         if type(value) in types.StringTypes:
             value = float(value)
         thresh = None
-        if self.maximum is not None and value > self.maximum:
+
+        # Handle all cases where both minimum and maximum are set.
+        if self.maximum is not None and self.minimum is not None:
+            if self.maximum >= self.minimum and value > self.maximum:
+                thresh = self.maximum
+                how = 'exceeded'
+            if self.maximum >= self.minimum and value < self.minimum:
+                thresh = self.maximum
+                how = 'not met'
+            elif self.maximum < self.minimum \
+                and (value < self.minimum and value > self.maximum):
+                thresh = self.maximum
+                how = 'violated'
+
+        # Handle simple cases where only minimum or maximum is set.
+        elif self.maximum is not None and value > self.maximum:
             thresh = self.maximum
             how = 'exceeded'
-        if self.minimum is not None and value < self.minimum:
+        elif self.minimum is not None and value < self.minimum:
             thresh = self.minimum
             how = 'not met'
+
         if thresh is not None:
             severity = self.severity
             count = self.incrementCount(dp)
@@ -329,28 +345,38 @@ class MinMaxThresholdInstance(ThresholdInstance):
                 maxval= 0
                 self.raiseRPNExc()
 
-        result = []
-        if minval:
-            result += [
-                "HRULE:%s%s:%s\\j" % (minval, color, 
-                          legend or self.getMinLabel(minval, relatedGps)),
-                ]
-        if maxval:
-            result += [
-                "HRULE:%s%s:%s\\j" % (maxval, color, 
-                          legend or self.getMaxLabel(maxval, relatedGps)) 
-                ]
-        return gopts + result
+        minstr = self.setPower(minval)
+        maxstr = self.setPower(maxval)
 
+        if legend:
+            gopts.append(
+                "HRULE:%s%s:%s\\j" % (minval or maxval, color, legend))
+        elif minval is not None and maxval is not None:
+            if minval == maxval:
+                gopts.append(
+                    "HRULE:%s%s:%s not equal to %s\\j" % (minval, color,
+                        self.getNames(relatedGps), minstr))
+            elif minval < maxval:
+                gopts.append(
+                    "HRULE:%s%s:%s not within %s and %s\\j" % (minval, color,
+                        self.getNames(relatedGps), minstr, maxstr))
+                gopts.append("HRULE:%s%s" % (maxval, color))
+            elif minval > maxval:
+                gopts.append(
+                    "HRULE:%s%s:%s between %s and %s\\j" % (minval, color,
+                        self.getNames(relatedGps), maxstr, minstr))
+                gopts.append("HRULE:%s%s" % (maxval, color))
+        elif minval is not None :
+            gopts.append(
+                "HRULE:%s%s:%s less than %s\\j" % (minval, color,
+                    self.getNames(relatedGps), minstr))
+        elif maxval is not None:
+            gopts.append(
+                "HRULE:%s%s:%s greater than %s\\j" % (maxval, color,
+                    self.getNames(relatedGps), maxstr))
 
-    def getMinLabel(self, minval, relatedGps):
-        """build a label for a min threshold"""
-        return "%s < %s" % (self.getNames(relatedGps), self.setPower(minval)) 
+        return gopts
 
-
-    def getMaxLabel(self, maxval, relatedGps):
-        """build a label for a max threshold"""
-        return "%s > %s" % (self.getNames(relatedGps), self.setPower(maxval))
 
     def getNames(self, relatedGps):
         names = list(set([x.split('_', 1)[1] for x in self.dataPointNames]))
