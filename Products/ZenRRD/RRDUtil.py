@@ -170,7 +170,8 @@ class RRDUtil:
             min, max = map(_checkUndefined, (min, max))
             dataSource = 'DS:%s:%s:%d:%s:%s' % (
                 'ds0', rrdType, self.getHeartbeat(cycleTime), min, max)
-            rrdtool.create(filename, "--step", str(self.getStep(cycleTime)),
+            rrdtool.create(str(filename), "--step",
+                str(self.getStep(cycleTime)),
                 str(dataSource), *rrdCommand.split())
 
         if rrdType in ('COUNTER', 'DERIVE'):
@@ -181,8 +182,8 @@ class RRDUtil:
         else:
             value = float(value)
         try:
-            rrdtool.update(filename, 'N:%s' % value)
-            log.debug('%s: %r', filename, value)
+            rrdtool.update(str(filename), 'N:%s' % value)
+            log.debug('%s: %r', str(filename), value)
         except rrdtool.error, err:
             # may get update errors when updating too quickly
             log.error('rrdtool reported error %s %s', err, path)
