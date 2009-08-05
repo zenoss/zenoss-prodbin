@@ -32,12 +32,13 @@ def getComponentCommands(comp, commandCache, commandSet, dmd):
             if ploader is None:
                 log.error("Could not load %s plugin", parserName)
                 continue
+            component_name = ds.getComponent(comp)
             parser = ploader.create()
             points = []
             for dp in ds.getRRDDataPoints():
                 dpc = DataPointConfig()
                 dpc.id = dp.id
-                dpc.component = comp.id
+                dpc.component = component_name
                 dpc.rrdPath = "/".join((basepath, dp.name()))
                 dpc.rrdType = dp.rrdtype
                 dpc.rrdCreateCommand = dp.getRRDCreateCommand(perfServer)
@@ -48,7 +49,7 @@ def getComponentCommands(comp, commandCache, commandSet, dmd):
             cmd = Cmd()
             cmd.useSsh = getattr(ds, 'usessh', False)
             cmd.cycleTime = ds.cycletime
-            cmd.component = ds.getComponent(comp)
+            cmd.component = component_name
             cmd.eventClass = ds.eventClass
             cmd.eventKey = ds.eventKey or ds.id
             cmd.severity = ds.severity
