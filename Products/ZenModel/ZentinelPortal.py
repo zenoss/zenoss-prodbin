@@ -92,17 +92,19 @@ class ZentinelPortal ( PortalObjectBase ):
         brains = []
         if device and component:
             brains = catalog(getParentDeviceName=device)
-        if REQUEST:
-            if brains:
-                component = prepId(component)
-                for brain in brains:
-                    if brain.getPath().split('/')[-1]==component:
+        matchingBrains = []
+        if brains:
+            component = prepId(component)
+            for brain in brains:
+                if brain.getPath().split('/')[-1]==component:
+                    if REQUEST:
                         raise Redirect(urllib.quote(
                             brain.getPath()+'/viewEvents'))
+                    else:
+                        matchingBrains.append(brain)
+            if REQUEST and len(matchingBrains) == 0:
                 return self.searchDevices(device, REQUEST)
-            else:
-                return self.searchDevices(device, REQUEST)
-        return [b.getObject() for b in brains]
+        return [b.getObject() for b in matchingBrains]
 
     security.declareProtected(ZEN_COMMON, 'dotNetProxy')
     def dotNetProxy(self, path='', params={}, REQUEST=None):
@@ -235,7 +237,7 @@ class PortalGenerator:
         mp = p.manage_permission
         mp(ZEN_CHANGE_SETTINGS,[ZEN_MANAGER_ROLE, OWNER_ROLE, MANAGER_ROLE,], 1)
         mp(ZEN_CHANGE_DEVICE, [ZEN_MANAGER_ROLE, OWNER_ROLE, MANAGER_ROLE,], 1)
-        mp(ZEN_CHANGE_DEVICE_PRODSTATE, 
+        mp(ZEN_CHANGE_DEVICE_PRODSTATE,
             [ZEN_MANAGER_ROLE, OWNER_ROLE, MANAGER_ROLE,], 1)
         mp(ZEN_MANAGE_DMD, [ZEN_MANAGER_ROLE, OWNER_ROLE, MANAGER_ROLE,], 1)
         mp(ZEN_DELETE, [ZEN_MANAGER_ROLE, OWNER_ROLE, MANAGER_ROLE,], 1)

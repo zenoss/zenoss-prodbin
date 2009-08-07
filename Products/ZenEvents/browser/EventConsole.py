@@ -69,12 +69,20 @@ class EventConsole(BrowserView):
         def _sanitize(val):
             return val.replace('<', '&lt;').replace('>','&gt;')
 
+        from Products.ZenModel.Device import Device
+        contextIsDevice = isinstance( self.context, Device )
+        #import pdb;pdb.set_trace()
         data = []
         for field in fields:
             value = getattr(zevent, field)
             _shortvalue = str(value) or ''
             if field == "device":
-                value = urllib.quote('<a class="%s"' % ('') +
+                dev = self.context.dmd.searchDevices( value )
+                if len(dev) == 1:
+                    devUrl = '%s/viewEvents' % dev[0].getPrimaryUrlPath()
+                    value = dev[0].urlLink(url=devUrl)
+                else:
+                    value = urllib.quote('<a class="%s"' % ('') +
                             ' href="/zport/dmd/deviceSearchResults'
                             '?query=%s">%s</a>' % (value, _shortvalue))
             elif field == 'eventClass':
@@ -84,11 +92,24 @@ class EventConsole(BrowserView):
                 else:
                     value = urllib.quote('<a class="%s" ' % ('') +
                       'href="/zport/dmd/Events%s">%s</a>' % (value,_shortvalue))
-            elif field == 'component' and getattr(zevent, 'device', None):
-                value = urllib.quote('<a class="%s"' % ('') +
+            elif field == 'component' and ( getattr(zevent, 'device', None) or
+                                            contextIsDevice ):
+                #import pdb;pdb.set_trace()
+                component = getattr(zevent, 'component')
+                if contextIsDevice:
+                    device = self.context.id
+                else:
+                    device = getattr(zevent,'device')
+
+                comp = self.context.dmd.searchComponents( device, component )
+                if len(comp) == 1:
+                    compUrl = '%s/viewEvents' % comp[0].getPrimaryUrlPath()
+                    value = comp[0].urlLink(url=compUrl)
+                else:
+                    value = urllib.quote('<a class="%s"' % ('') +
                             ' href="/zport/dmd/searchComponents'
                             '?device=%s&component=%s">%s</a>' % (
-                                getattr(zevent, 'device'), value, _shortvalue))
+                                device, value, _shortvalue))
             elif field == 'summary':
                 value = urllib.quote(
                     value.replace('<','&lt;').replace('>','&gt;'))
