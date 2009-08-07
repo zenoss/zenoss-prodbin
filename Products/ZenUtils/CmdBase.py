@@ -159,13 +159,15 @@ class CmdBase:
         if not self.options.logpath:
             return None
         else:
-            logdir = os.path.dirname(self.options.logpath)
-            if not os.path.isdir(logdir):
+            logdir = self.options.logpath
+            if not os.path.exists(logdir):
                 # try creating the directory hierarchy if it doesn't exist...
                 try:
                     os.makedirs(logdir)
                 except OSError, ex:
                     raise SystemExit("logpath:%s doesn't exist and cannot be created" % logdir)
+            elif not os.path.isdir(logdir):
+                raise SystemExit("logpath:%s exists but is not a directory" % logdir)
             return logdir
 
     def setupLogging(self):
