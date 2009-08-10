@@ -19,7 +19,8 @@ DeviceMap maps the interface and ip tables to interface objects
 
 import re
 
-from Products.DataCollector.plugins.CollectorPlugin import SnmpPlugin, GetMap
+from Products.DataCollector.plugins.CollectorPlugin \
+    import SnmpPlugin, GetMap, GetTableMap
 
 class DeviceMap(SnmpPlugin):
 
@@ -35,7 +36,12 @@ class DeviceMap(SnmpPlugin):
              }
     snmpGetMap = GetMap(columns)
 
-    
+    snmpGetTableMaps = (
+        GetTableMap('entPhysicalTable', '.1.3.6.1.2.1.47.1.1.1.1', {
+            '.11': 'serialNum'
+            }),
+        )
+
     ciscoVersion = re.compile(r'Version (?P<ver>.+), ')
     def process(self, device, results, log):
         """collect snmp information from this device"""
@@ -49,4 +55,13 @@ class DeviceMap(SnmpPlugin):
         scDeviceMapParse = getattr(device, 'scDeviceMapParse', None)
         if scDeviceMapParse:
             om = scDeviceMapParse(device, om)
+
+        # Find device serial numbers at key indexes in ENTITY-MIB.
+        entPhysicalTable = tabledata.get('entPhysicalTable', {})
+        for index, entry in entPhysicalTable.items():
+            serialNum = entry.get('serialNum', None)
+            if serialNum and str(index) in ('1', '1001'):
+                om.setHWSerialNumber = serialNum
+                break
+
         return om
