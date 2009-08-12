@@ -14,11 +14,13 @@ from twisted.spread import pb
 
 import logging
 import time
+import socket
 
 class HubService(pb.Referenceable):
 
     def __init__(self, dmd, instance):
         self.log = logging.getLogger('zen.hub')
+        self.fqdn = socket.getfqdn()
         self.dmd = dmd
         self.zem = dmd.ZenEventManager
         self.instance = instance
@@ -64,3 +66,14 @@ class HubService(pb.Referenceable):
         if self.methodPriorityMap.has_key(methodName):
             return self.methodPriorityMap[methodName]
         return 0.4
+
+    def sendEvents(self, events):
+        map(self.sendEvent, events)
+
+    def sendEvent(self, event, **kw):
+        event = event.copy()
+        event['agent'] = 'zenhub'
+        event['monitor'] = self.instance
+        event['manager'] = self.fqdn
+        event.update(kw)
+        self.zem.sendEvent(event)

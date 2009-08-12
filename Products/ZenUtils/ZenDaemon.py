@@ -20,6 +20,7 @@ Base class for making deamon programs
 import sys
 import os
 import pwd
+import socket
 import logging
 from logging import handlers
 
@@ -58,6 +59,7 @@ class ZenDaemon(CmdBase):
         self.pidfile = None
         self.keeproot=keeproot
         self.reporter = None
+        self.fqdn = socket.getfqdn()
         from twisted.internet import reactor
         reactor.addSystemEventTrigger('before', 'shutdown', self.sigTerm)
         if not noopts:

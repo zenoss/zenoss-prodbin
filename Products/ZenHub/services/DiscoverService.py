@@ -121,11 +121,9 @@ class DiscoverService(ModelerService):
             comp = ipobj.interface().id
         else: 
             devname = comp = ip
-        evt = Event(device=devname, ipAddress=ip, eventKey=ip,
-                    component=comp, eventClass=Status_Ping,
-                    summary=msg, severity=sev,
-                    agent="Discover")
-        self.dmd.ZenEventManager.sendEvent(evt)
+        self.sendEvent(dict(device=devname, ipAddress=ip, eventKey=ip,
+            component=comp, eventClass=Status_Ping, summary=msg, severity=sev,
+            agent="Discover"))
 
 
     @translateError

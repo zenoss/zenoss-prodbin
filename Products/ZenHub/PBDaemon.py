@@ -303,7 +303,8 @@ class PBDaemon(ZenDaemon, pb.Referenceable):
         if not reactor.running: return
         event = event.copy()
         event['agent'] = self.name
-        event['manager'] = self.options.monitor
+        event['monitor'] = self.options.monitor
+        event['manager'] = self.fqdn
         event.update(kw)
         if not self.options.allowduplicateclears:
             statusKey = ( event['device'],
