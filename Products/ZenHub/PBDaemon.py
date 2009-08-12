@@ -18,6 +18,7 @@ Base for daemons that connect to zenhub
 """
 
 import sys
+import time
 import traceback
 
 import Globals
@@ -128,6 +129,7 @@ class PBDaemon(ZenDaemon, pb.Referenceable):
             sys.exit(1)
 
         self.rrdStats = DaemonStats()
+        self.lastStats = 0
         self.perspective = None
         self.services = {}
         self.eventQueue = []
@@ -323,6 +325,13 @@ class PBDaemon(ZenDaemon, pb.Referenceable):
         """
         reactor.callLater(self.options.eventflushseconds, self.pushEventsLoop)
         drive(self.pushEvents)
+        
+        # Record the number of events in the queue every 5 minutes.
+        now = time.time()
+        if self.rrdStats.name and now >= (self.lastStats + 300):
+            self.lastStats = now
+            self.sendEvents(self.rrdStats.gauge('eventQueueLength',
+                300, len(self.eventQueue)))
 
     def pushEvents(self, driver):
         """Flush events to ZenHub.
