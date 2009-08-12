@@ -149,16 +149,17 @@ class ZenDaemon(CmdBase):
           logging.ERROR:"ERROR",
           logging.CRITICAL:"CRITICAL",
         }
-        currentLevel = self.log.getEffectiveLevel()
+        log = logging.getLogger('zen')
+        currentLevel = log.getEffectiveLevel()
         if currentLevel == logging.DEBUG:
-            self.log.setLevel(self.options.logseverity)
-            self.log.info("Restoring logging level back to %s (%d)",
+            log.setLevel(self.options.logseverity)
+            log.info("Restoring logging level back to %s (%d)",
                            levelNames.get(self.options.logseverity,
                                           "unknown"),
                            self.options.logseverity)
         else:
-            self.log.setLevel(logging.DEBUG)
-            self.log.info("Setting logging level to DEBUG")
+            log.setLevel(logging.DEBUG)
+            log.info("Setting logging level to DEBUG")
 
 
     def changeUser(self):
