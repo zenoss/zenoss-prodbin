@@ -47,14 +47,14 @@
 			   tal:define="propName python:prop+':lines';
                                        ta python:'ta_' + prop;
 				       ul python:'ul_' + prop;">
-           <div>
+		  <div>
                <h5 style="margin-left:2em" id='ultitle'>
                    Plugins (drag to change order)</h5>
 		    <textarea tal:content="pvalue" 
 		              tal:attributes="name propName; id ta"
                       rows="20" style="height:350px;width:250px"/>
 		  </div>
-		  <div>
+		  <div style="float:left;">
               <h5 style="margin-left:2em;">
                   Available fields (drag to other list to add)</h5>
 		    <ul tal:attributes="name propName; id ul"
