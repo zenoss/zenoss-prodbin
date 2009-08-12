@@ -110,11 +110,13 @@ class ServiceOrganizer(Organizer, Commandable, ZenPackable):
         if not cat: return 
         brains = cat({'serviceKeys': query})
         if not brains: return None
-        try:
-            return self.getObjByPath(brains[0].getPrimaryId) 
-        except KeyError:
-            log.warn("bad path '%s' for index '%s'", brains[0].getPrimaryId,
-                        self.default_catalog)
+        for brain in brains:
+            if brain.getPrimaryId.startswith(self.getPrimaryId()):
+                try:
+                    return self.getObjByPath(brain.getPrimaryId)
+                except KeyError:
+                    log.warn("bad path '%s' for index '%s'",
+                        brain.getPrimaryId, self.default_catalog)
 
     
     def countClasses(self):
@@ -131,9 +133,9 @@ class ServiceOrganizer(Organizer, Commandable, ZenPackable):
         """Create a service class (or retrun existing) based on keywords.
         """
         svcs = self.getDmdRoot(self.dmdRootName)
-        svccl = svcs.find(name)
+        svcorg = svcs.createOrganizer(path)
+        svccl = svcorg.find(name)
         if not svccl: 
-            svcorg = svcs.createOrganizer(path)
             svccl = factory(name, (name,),description=description, **kwargs)
             svcorg.serviceclasses._setObject(svccl.id, svccl)
             svccl = svcorg.serviceclasses._getOb(svccl.id)
