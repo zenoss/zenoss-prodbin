@@ -1177,7 +1177,7 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
         """
         return self.convertStatus(self.getSnmpStatus())
 
-    security.declareProtected(ZEN_CHANGE_DEVICE, 'setProdState')
+    security.declareProtected(ZEN_CHANGE_DEVICE_PRODSTATE, 'setProdState')
     def setProdState(self, state, maintWindowChange=False, REQUEST=None):
         """
         Set the device's production state.

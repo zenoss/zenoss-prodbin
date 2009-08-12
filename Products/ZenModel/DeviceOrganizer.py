@@ -287,6 +287,7 @@ class DeviceOrganizer(Organizer, DeviceManagerBase, Commandable, ZenMenuable,
             return self.callZenScreen(self.REQUEST)
 
 
+    security.declareProtected(ZEN_CHANGE_DEVICE_PRODSTATE, 'setProdState')
     def setProdState(self, state, deviceNames=None, 
                         isOrganizer=False, REQUEST=None):
         """Set production state of all devices in this Organizer.
