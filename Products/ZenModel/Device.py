@@ -545,14 +545,23 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
                )
         orgs = filter(None, orgs)
         paths = []
+        myPrimaryId = self.getPrimaryId()
+        myId = self.getId()
         for org in orgs:
             rel = org.primaryAq().devices
             try:
-                orgself = rel._getOb(self.getPrimaryId())
+                orgself = rel._getOb(myPrimaryId)
             except AttributeError:
                 # Device class wants an id, not a path
-                orgself = rel._getOb(self.getId())
+                try:
+                    orgself = rel._getOb(myId)
+                except AttributeError:
+                    log.warn("Unable to find %s (%s) in organizer %s",
+                        myId, myPrimaryId,
+                        '/'.join(org.getPrimaryPath()[3:]))
+                    continue
             paths.append(orgself.getPhysicalPath())
+
         return paths
 
 
