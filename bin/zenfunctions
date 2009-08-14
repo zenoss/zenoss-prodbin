@@ -169,6 +169,18 @@ debug() {
 
 }
 
+stats() {
+    PIDFILE=`pidFile $CFGFILE`
+    if [ -f $PIDFILE ]; then
+        PID=`cat $PIDFILE 2>/dev/null`
+        echo "Sending SIGUSR2 to $PID"
+        kill -s USR2 $PID 2>/dev/null || $PS | grep -q "^ *$PID$"
+        return $?
+    else
+        echo "Unable to find process to send SIGUSR2 signal"
+    fi
+
+}
 
 generic() {
     case "$CMD" in
@@ -199,9 +211,12 @@ generic() {
       debug)
 	    debug "$@"
 	    ;;
+      stats)
+            stats "$@"
+            ;;
       *)
 	    cat - <<HELP
-Usage: $0 {run|start|stop|restart|status|help|genconf|genxmlconfigs|debug} [options]
+Usage: $0 {run|start|stop|restart|status|help|genconf|genxmlconfigs|debug|stats} [options]
 
   where the commands are:
 
@@ -227,6 +242,8 @@ Usage: $0 {run|start|stop|restart|status|help|genconf|genxmlconfigs|debug} [opti
     genxmlconfigs - create an XML file with default settings
 
     debug   - toggle the logging of daemons between Debug level and the default
+
+    stats   - display detailed statistics of the deamon
 
 HELP
 	    exit 1
