@@ -75,7 +75,7 @@ class WMIClient(BaseClient):
             raise BadCredentials("Username is empty")
         self._wmi = Query()
         creds = '%s%%%s' % (self.user, self.passwd)
-        return self._wmi.connect(eventContext, self.host, creds)
+        return self._wmi.connect(eventContext, self.device.id, self.host, creds)
 
 
     def close(self):

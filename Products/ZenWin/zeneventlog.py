@@ -13,12 +13,20 @@
 #
 # ##########################################################################
 
-__doc__ = """zeneventlog
-    Connect using WMI to gather the Windows Event Log and create
-    Zenoss events.
+"""
+This module provides a collector daemon that polls Windows devices for changes
+to the Windows Event Log. Retrieved events are then converted into Zenoss events
+and sent back to ZenHub for further processing.
 """
 
-import time
+import logging
+
+# IMPORTANT! The import of the pysamba.twisted.reactor module should come before
+# any other libraries that might possibly use twisted. This will ensure that
+# the proper WmiReactor is installed before anyone else grabs a reference to
+# the wrong reactor.
+import pysamba.twisted.reactor
+
 
 # IMPORTANT! The import of the pysamba.twisted.reactor module should come before
 # any other libraries that might possibly use twisted. This will ensure that
@@ -27,178 +35,177 @@ import time
 import pysamba.twisted.reactor
 
 import Globals
-from Products.ZenWin.Watcher import Watcher
-from Products.ZenWin.WinCollector import WinCollector
-from Products.ZenUtils.Driver import drive
+import zope.component
+import zope.interface
+
+from twisted.internet import defer, reactor
+from twisted.python.failure import Failure
+
+from Products.ZenCollector.daemon import CollectorDaemon
+from Products.ZenCollector.interfaces import ICollectorPreferences,\
+                                             IEventService,\
+                                             IOptionService,\
+                                             IScheduledTask
+from Products.ZenCollector.tasks import SimpleTaskFactory,\
+                                        SimpleTaskSplitter,\
+                                        TaskStates
 from Products.ZenEvents.ZenEventClasses import Error, Warning, Info, \
-    Debug
-from pysamba.library import WError
+    Debug, Status_Wmi
+from Products.ZenUtils.observable import ObservableMixin
+from Products.ZenWin.Watcher import Watcher
 
-from twisted.python import failure
+# We retrieve our configuration data remotely via a Twisted PerspectiveBroker
+# connection. To do so, we need to import the class that will be used by the
+# configuration service to send the data over, i.e. DeviceProxy.
+from Products.ZenUtils.Utils import unused
+from Products.ZenCollector.services.config import DeviceProxy
+unused(DeviceProxy)
+
+#
+# creating a logging context for this module to use
+#
+log = logging.getLogger("zen.zeneventlog")
 
 
-class zeneventlog(WinCollector):
+# Create an implementation of the ICollectorPreferences interface so that the
+# ZenCollector framework can configure itself from our preferences.
+class ZenEventLogPreferences(object):
+    zope.interface.implements(ICollectorPreferences)
+
+    def __init__(self):
+        """
+        Constructs a new ZenEventLogPreferences instance and provide default
+        values for needed attributes.
+        """
+        self.collectorName = "zeneventlog"
+        self.defaultRRDCreateCommand = None
+        self.cycleInterval = 5 * 60 # seconds
+        self.configCycleInterval = 20 # minutes
+        
+        # the configurationService attribute is the fully qualified class-name
+        # of our configuration service that runs within ZenHub
+        self.configurationService = 'Products.ZenWin.services.EventLogConfig'
+
+        self.wmibatchSize = 10
+        self.wmiqueryTimeout = 1000
+
+    def buildOptions(self, parser):
+        parser.add_option('--batchSize', dest='batchSize',
+                          default=None, type='int',
+                          help='Number of data objects to retrieve in a ' +
+                               'single WMI query.')
+
+        parser.add_option('--queryTimeout', dest='queryTimeout',
+                          default=None, type='int',
+                          help='The number of milliseconds to wait for ' + \
+                               'WMI query to respond. Overrides the ' + \
+                               'server settings.')
+
+    def postStartup(self):
+        pass
+
+
+#
+# Create an implementation of the IScheduledTask interface that will perform
+# the actual collection work needed by this collector. In this case, we will
+# scan Windows devices for changes to the Windows event log using a WMI
+# notification query. These queries are open-ended queries that wait until data
+# has been added to the WMI class specified in the query. This task will poll
+# for any changed events with a small timeout period before returning to an 
+# idle state and trying again at the next collection interface.
+#
+# TODO: this is a timing bug with this approach where we can lose events in the
+# following scenarios:
+#   1. Anytime the daemon is shutdown and restarted.
+#   2. Anytime we reset our WMI connection and create a new one.
+#
+class ZenEventLogTask(ObservableMixin):
     """
-    Connect using WMI to gather the Windows Event Log and create
-    Zenoss events.
+    A scheduled task that watches the event log on a single Windows device.
     """
-    name = agent = 'zeneventlog'
-    whatIDo = 'read the Windows event log'
-    eventlogCycleInterval = 5 * 60
-    attributes = WinCollector.attributes + ('eventlogCycleInterval', )
-    deviceAttributes = WinCollector.deviceAttributes + (
-        'zWinEventlog', 'zWinEventlogMinSeverity')
-    events = 0
+    zope.interface.implements(IScheduledTask)
 
-    def fetchDevices(self, driver):
+    EVENT_LOG_NOTIFICATION_QUERY = """
+        SELECT * FROM __InstanceCreationEvent
+        WHERE TargetInstance ISA 'Win32_NTLogEvent'
+          AND TargetInstance.EventType <= %d
         """
-        Generator function to return the list of devices to gather
-        Event log information.   
+
+    STATE_CONNECTING = 'CONNECTING'
+    STATE_POLLING = 'POLLING'
+    STATE_PROCESSING = 'PROCESSING'
+
+    def __init__(self,
+                 deviceId,
+                 taskName,
+                 scheduleIntervalSeconds,
+                 taskConfig):
+        """
+        Construct a new task instance to watch for Windows Event Log changes
+        for the specified device.
         
-        @param driver: driver
-        @type driver: driver object
-        @return: objects
-        @rtype: object
+        @param deviceId: the Zenoss deviceId to watch
+        @type deviceId: string
+        @param taskName: the unique identifier for this task
+        @type taskName: string
+        @param scheduleIntervalSeconds: the interval at which this task will be
+               collected
+        @type scheduleIntervalSeconds: int
+        @param taskConfig: the configuration for this task
         """
-        yield self.configService().callRemote('getDeviceListByMonitor', 
-                                              self.options.monitor)
-        yield self.configService().callRemote('getDeviceConfigForEventlog',
-                                              driver.next())
-        self.updateDevices(driver.next())
+        super(ZenEventLogTask, self).__init__()
 
-    def processDevice(self, device, timeoutSecs):
+        self.name = taskName
+        self.configId = deviceId
+        self.interval = scheduleIntervalSeconds
+        self.state = TaskStates.STATE_IDLE
+
+        self._taskConfig = taskConfig
+        self._devId = deviceId
+        self._manageIp = self._taskConfig.manageIp
+
+        # Create the actual query that will be used based upon the template and
+        # the devices's  zWinEventlogMinSeverity zProperty. If this zProperty
+        # changes then the task will be deleted and a new one created, so it
+        # is okay to do so here in the constructor.
+        self._wmiQuery = ZenEventLogTask.EVENT_LOG_NOTIFICATION_QUERY % \
+            int(self._taskConfig.zWinEventlogMinSeverity)
+
+        self._eventService = zope.component.queryUtility(IEventService)
+        self._preferences = zope.component.queryUtility(ICollectorPreferences,
+                                                        "zeneventlog")
+
+        optionService = zope.component.queryUtility(IOptionService)
+
+        self._monitor = optionService.getCollectorOption('monitor')
+
+        # if the user hasn't specified the batchSize or queryTimeout as command
+        # options then use whatever has been specified in the collector
+        # preferences
+        # TODO: convert these to zProperties
+        self._batchSize = optionService.getCollectorOption('batchSize')
+        if not self._batchSize:
+            self._batchSize = self._preferences.wmibatchSize
+        self._queryTimeout = optionService.getCollectorOption('queryTimeout')
+        if not self._queryTimeout:
+            self._queryTimeout = self._preferences.wmiqueryTimeout
+
+        self._watcher = None
+        self._reset()
+
+    def _reset(self):
         """
-        Scan a single device.
-        
-        @param device: device to interrogate
-        @type device: device object
-        @param timeoutSecs: timeoutSecs
-        @type timeoutSecs: int
-        @return: objects
-        @rtype: objects
+        Reset the WMI notification query watcher connection to the device, if
+        one is presently active.
         """
-        self.log.debug('Polling %s' % device.id)
-        wql = "SELECT * FROM __InstanceCreationEvent where TargetInstance ISA 'Win32_NTLogEvent' and TargetInstance.EventType <= %d"\
-             % device.zWinEventlogMinSeverity
+        if self._watcher:
+            self._watcher.close()
+        self._watcher = None
 
-# FIXME: this code looks very similar to the code in zenwin
-        def cleanup(result=None):
-            """
-            Set a device to be down on failure conditions
-            """
-            if isinstance(result, failure.Failure):
-                self.deviceDown(device, result.getErrorMessage())
-
-        def inner(driver):
-            """
-            inner
-            
-            @param driver: driver
-            @type driver: string
-            @return: objects
-            @rtype: objects
-            """
-            processingStart = time.time()
-            cycleInterval = self.cycleInterval()
-            try:
-                self.niceDoggie(cycleInterval)
-                w = self.watchers.get(device.id, None)
-                if not w:
-                    self.log.debug('Creating watcher of %s', device.id)
-                    w = Watcher(device, wql)
-                    self.log.info('Connecting to %s', device.id)
-                    yield w.connect()
-                    driver.next()
-                    self.log.info('Connected to %s', device.id)
-                    self.watchers[device.id] = w
-
-                while True:
-                    batchSize = self.wmibatchSize
-                    if hasattr(self.options, "batchSize") and \
-                        self.options.batchSize is not None:
-                        batchSize = int(self.options.batchSize)
-
-                    queryTimeout = self.wmiqueryTimeout
-                    if hasattr(self.options, "queryTimeout") and \
-                        self.options.queryTimeout is not None:
-                        queryTimeout = int(self.options.queryTimeout)
-
-                    yield w.getEvents(queryTimeout, batchSize)
-                    events = driver.next()
-                    self.log.debug('Got %d events', len(events))
-
-                    # break out of the loop if either a) we've got no events
-                    # right now, or b) we've exceeded the cycle time
-                    if not events:
-                        break
-
-                    delay = time.time() - processingStart
-                    if cycleInterval - delay < 0:
-                        self.log.info("processDevice: cycle time exceeded "\
-                                      + "for device %s; breaking out of loop",
-                                      device.id)
-                        break
-
-                    # process all of the fetched events
-                    for lrec in events:
-                        self.events += 1
-                        self.sendEvent(self.makeEvent(device.id, lrec))
-
-                self.deviceUp(device)
-
-            except WError, ex:
-                # TODO: verify this error code is still valid
-                if ex.werror != 0x000006be:
-                    # OPERATION_COULD_NOT_BE_COMPLETED
-                    raise
-                self.log.info('%s: Ignoring event %s and restarting connection',
-                              device.id, ex)
-                cleanup()
-            except Exception, ex:
-                self.log.exception('Exception getting windows events: %s', ex)
-                raise
-
-        # Don't worry about an overall timeout for the inner function since the
-        # RPC layer has a built-in timeout of 60 seconds and each Watcher loop
-        # will break out if the cycle time has been exceeded.
-        d = drive(inner)
-        d.addErrback(cleanup)
-        return d
-
-    def processLoop(self, devices, timeoutSecs):
-        """
-        Kick off the main loop of collecting data
-        
-        @param devices: devices
-        @type devices: string
-        @param timeoutSecs: timeoutSecs
-        @type timeoutSecs: string
-        @return: defered
-        @rtype: Twisted defered
-        """
-        def postStats(result):
-            """
-            Twisted callback to report evnets
-            
-            @param result: result of operation
-            @type result: string
-            @return: result
-            @rtype: string
-            """
-            self.sendEvents(self.rrdStats.counter('events',
-                            self.cycleInterval(), self.events))
-            return result
-
-        d = WinCollector.processLoop(self, devices, timeoutSecs)
-        d.addBoth(postStats)
-        return d
-
-    def makeEvent(self, name, lrec):
+    def _makeEvent(self, lrec):
         """
         Put event in the queue to be sent to the ZenEventManager.
         
-        @param name: name of the device
-        @type name: string
         @param lrec: log record
         @type lrec: log record object
         @return: dictionary with event keys and values
@@ -214,12 +221,12 @@ class zeneventlog(WinCollector):
         elif lrec.eventtype in (3, 4, 5):
             sev = Info  # information, security audit success & failure
 
-        self.log.debug( "---- log record info --------------" )
+        log.debug( "---- log record info --------------" )
         for item in dir(lrec):
             if item[0] == '_':
                 continue
-            self.log.info("%s = %s"  % (item, getattr(lrec, item, '')))
-        self.log.debug( "---- log record info --------------" )
+            log.debug("%s = %s"  % (item, getattr(lrec, item, '')))
+        log.debug( "---- log record info --------------" )
 
         ts= lrec.timegenerated
         try:
@@ -235,7 +242,7 @@ class zeneventlog(WinCollector):
                             "  See source system's event log." 
 
         evt = dict(
-            device=name,
+            device=self._devId,
             eventClassKey=evtkey,
             eventGroup=lrec.logfile,
             component=lrec.sourcename,
@@ -243,26 +250,156 @@ class zeneventlog(WinCollector):
             summary=event_message,
             agent='zeneventlog',
             severity=sev,
-            monitor=self.options.monitor,
+            monitor=self._monitor,
             user=lrec.user,
             categorystring=lrec.categorystring,
             originaltime=ts,
             computername=lrec.computername,
             eventidentifier=lrec.eventidentifier,
             )
-        self.log.debug("Device:%s msg:'%s'", name, lrec.message)
+        log.debug("Device:%s msg:'%s'", self._devId, lrec.message)
         return evt
 
-    def cycleInterval(self):
+    def _finished(self, result):
         """
-        Return the length of the cycleInterval
-        
-        @return: number of seconds to repeat a collection cycle
-        @rtype: int
+        Callback activated when the task is complete so that final statistics
+        on the collection can be displayed.
         """
-        return self.eventlogCycleInterval
+        if not isinstance(result, Failure):
+            log.debug("Device %s [%s] scanned successfully, %d events processed",
+                      self._devId, self._manageIp, self._eventsFetched)
+        else:
+            log.debug("Device %s [%s] scanned failed, %s",
+                      self._devId, self._manageIp, result.getErrorMessage())
 
+        # give the result to the rest of the callback/errchain so that the
+        # ZenCollector framework can keep track of the success/failure rate
+        return result
 
+    def _failure(self, result):
+        """
+        Errback for an unsuccessful asynchronous connection or collection 
+        request.
+        """
+        err = result.getErrorMessage()
+        log.error("Unable to scan device %s: %s", self._devId, err)
+
+        self._reset()
+
+        summary = """
+            Could not read the Windows event log (%s). Check your
+            username/password settings and verify network connectivity.
+            """ % err
+
+        self._eventService.sendEvent(dict(
+            summary=summary,
+            component='zeneventlog',
+            eventClass=Status_Wmi,
+            device=self._devId,
+            severity=Error,
+            agent='zeneventlog',
+            ))
+
+        # give the result to the rest of the errback chain
+        return result
+
+    def _collectSuccessful(self, result):
+        """
+        Callback for a successful fetch of events from the remote device.
+        """
+        self.state = ZenEventLogTask.STATE_PROCESSING
+
+        log.debug("Successful collection from %s [%s], result=%s",
+                  self._devId, self._manageIp, result)
+
+        events = result
+        if events:
+            # process all of the fetched events
+            for logRecord in events:
+                self._eventsFetched += 1
+                # TODO: figure out how to post this state on the cycle interval
+                self._eventService.sendEvent(self._makeEvent(logRecord))
+
+            # schedule another immediate collection so that we'll keep eating
+            # events as long as they are ready for us; using callLater ensures
+            # it goes to the end of the immediate work-queue so that other 
+            # events get processing time
+            log.debug("Queuing another fetch for %s [%s]",
+                      self._devId, self._manageIp)
+            d = defer.Deferred()
+            reactor.callLater(0, d.callback, None)
+            d.addCallback(self._collectCallback)
+            return d
+
+    def _collectCallback(self, result):
+        """
+        Callback called after a connect or previous collection so that another
+        collection can take place.
+        """
+        log.debug("Polling for events from %s [%s]", 
+                  self._devId, self._manageIp)
+
+        self.state = ZenEventLogTask.STATE_POLLING
+        d = self._watcher.getEvents(self._queryTimeout, self._batchSize)
+        d.addCallbacks(self._collectSuccessful, self._failure)
+        return d
+
+    def _connectCallback(self, result):
+        """
+        Callback called after a successful connect to the remote Windows device.
+        """
+        log.debug("Connected to %s [%s]", self._devId, self._manageIp)
+
+    def _connect(self):
+        """
+        Called when a connection needs to be created to the remote Windows
+        device.
+        """
+        log.debug("Connecting to %s [%s]", self._devId, self._manageIp)
+
+        self.state = ZenEventLogTask.STATE_CONNECTING
+        self._watcher = Watcher(self._taskConfig, self._wmiQuery)
+        return self._watcher.connect()
+
+    def doTask(self):
+        log.debug("Scanning device %s [%s]", self._devId, self._manageIp)
+
+        self._eventsFetched = 0
+
+        # see if we need to connect first before doing any collection
+        if not self._watcher:
+            d = self._connect()
+            d.addCallbacks(self._connectCallback, self._failure)
+        else:
+            # since we don't need to bother connecting, we'll just create an 
+            # empty deferred and have it run immediately so the collect callback
+            # will be fired off
+            d = defer.Deferred()
+            reactor.callLater(0, d.callback, None)
+
+        # try collecting events after a successful connect, or if we're already
+        # connected
+        d.addCallback(self._collectCallback)
+
+        # Add the _finished callback to be called in both success and error
+        # scenarios. While we don't need final error processing in this task,
+        # it is good practice to catch any final errors for diagnostic purposes.
+        d.addBoth(self._finished)
+
+        # returning a Deferred will keep the framework from assuming the task
+        # is done until the Deferred actually completes
+        return d
+
+#
+# Collector Daemon Main entry point
+#
 if __name__ == '__main__':
-    zw = zeneventlog()
-    zw.run()
+    myPreferences = ZenEventLogPreferences()
+    zope.component.provideUtility(myPreferences,
+                                  ICollectorPreferences, 
+                                  "zeneventlog")
+
+    myTaskFactory = SimpleTaskFactory(ZenEventLogTask)
+    myTaskSplitter = SimpleTaskSplitter(myTaskFactory)
+    daemon = CollectorDaemon(myPreferences, myTaskSplitter)
+    daemon.run()

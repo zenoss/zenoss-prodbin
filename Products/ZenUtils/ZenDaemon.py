@@ -55,7 +55,7 @@ class ZenDaemon(CmdBase):
         Initializer that takes care of basic daemon options.
         Creates a PID file.
         """
-        CmdBase.__init__(self, noopts)
+        super(ZenDaemon, self).__init__(noopts)
         self.pidfile = None
         self.keeproot=keeproot
         self.reporter = None
@@ -124,13 +124,15 @@ class ZenDaemon(CmdBase):
             backupCount = self.options.maxBackupLogs
             h = logging.handlers.RotatingFileHandler(filename=logfile, maxBytes=maxBytes, backupCount=backupCount)
             h.setFormatter(logging.Formatter(
-                "%(asctime)s %(levelname)s %(name)s: %(message)s",
-                "%Y-%m-%d %H:%M:%S"))
+                "%(asctime)s %(levelname)s %(name)s: %(message)s"))
             rlog.addHandler(h)
         else:
             logging.basicConfig()
             if self.options.weblog:
                 [ h.setFormatter(HtmlFormatter()) for h in rlog.handlers ]
+            else:
+                f = logging.Formatter("%(asctime)s %(levelname)s %(name)s: %(message)s")
+                [ h.setFormatter(f) for h in rlog.handlers ]
 
         # Allow the user to dynamically lower and raise the logging
         # level without restarts.

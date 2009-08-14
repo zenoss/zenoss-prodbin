@@ -40,7 +40,7 @@ unused(pkg_resources)
 
 class DMDError: pass
 
-class CmdBase:
+class CmdBase(object):
     """
     Class used for all Zenoss commands
     """

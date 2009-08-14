@@ -164,26 +164,6 @@ class WmiConfig(ModelerService, ThresholdMixin):
             yield device
 
 
-    def remote_getDeviceConfigForEventlog(self, names):
-        """Return a list of (devname, user, password)
-        """
-        deviceProxies = []
-
-        for device in self._monitoredDevices(names):
-            if not getattr(device, 'zWinEventlog', True):
-                log.debug("Device %s skipped because zWinEventlog is cleared", 
-                          device.id)
-                continue
-
-            proxy = self.createDeviceProxy(device)
-            proxy.id = device.getId()
-
-            deviceProxies.append(proxy)
-            log.debug("Device %s added to proxy list", proxy.id)
-
-        return deviceProxies
-
-
     def remote_getDeviceConfigAndWinServices(self, names):
         """Return a list of (devname, user, passwd, {'EvtSys':0,'Exchange':0}) 
         """

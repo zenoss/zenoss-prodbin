@@ -43,8 +43,9 @@ class Watcher:
             d = self.device
 
             yield self.wmi.connect(eventContext,
-                                    d.manageIp,
-                                    "%s%%%s" % (d.zWinUser, d.zWinPassword))
+                                   d.id,
+                                   d.manageIp,
+                                   "%s%%%s" % (d.zWinUser, d.zWinPassword))
             driver.next()
 
             log.debug("connected to %s sending query", self.device.id)

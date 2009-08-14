@@ -36,6 +36,7 @@ from twisted.internet import reactor, defer
 from twisted.internet.error import ConnectionLost
 from twisted.spread import pb
 from twisted.python.failure import Failure
+import twisted.python.log
 
 from ZODB.POSException import ConflictError
 
@@ -119,7 +120,13 @@ class PBDaemon(ZenDaemon, pb.Referenceable):
     _customexitcode = 0
     _sendingEvents = False
     
-    def __init__(self, noopts=0, keeproot=False):
+    def __init__(self, noopts=0, keeproot=False, name=None):
+        # if we were provided our collector name via the constructor instead of
+        # via code, be sure to store it correctly.
+        if name is not None:
+            self.name = name
+            self.mname = name
+
         try:
             ZenDaemon.__init__(self, noopts, keeproot)
 
@@ -257,8 +264,8 @@ class PBDaemon(ZenDaemon, pb.Referenceable):
             self.connected()
             return result
         d.addCallback(callback)
+        d.addErrback(twisted.python.log.err)
         reactor.run()
-        self.log.info('%s shutting down' % self.name)
         if self._customexitcode:
             sys.exit(self._customexitcode)
 

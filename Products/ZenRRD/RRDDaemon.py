@@ -61,8 +61,7 @@ class RRDDaemon(PBDaemon):
         @type noopts: boolean
         """
         self.events = []
-        self.name = name
-        PBDaemon.__init__(self, noopts)
+        PBDaemon.__init__(self, noopts, name=name)
         self.thresholds = Thresholds()
 
 
