@@ -127,7 +127,7 @@ class CollectorConfigService(HubService, ThresholdMixin):
         else:
             devices = []
             for name in deviceNames:
-                device = self.dmd.Devices.findDeviceExact(name)
+                device = self.dmd.Devices.findDeviceByIdExact(name)
                 if not device:
                     continue
                 else:
