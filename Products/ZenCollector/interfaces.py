@@ -43,6 +43,12 @@ class ICollectorPreferences(zope.interface.Interface):
         will be updated from the ZenHub service.
         """)
 
+    options = zope.interface.Attribute("""
+        An attribute that will receive all command-line options parsed by the
+        framework (incl. standard options and additional options defined by the
+        buildOptions method).
+        """)
+
     def buildOptions(self, parser):
         """
         Called by the framework during initial startup to allow the collector
@@ -202,6 +208,7 @@ class IScheduledTask(IObservable):
         Execution frequency of this task, in seconds
         """)
 
+    # TODO: document the basic states and how they are used
     state = zope.interface.Attribute("""
         The current state of the task, i.e. IDLE, RUNNING, etc.
         """)
@@ -312,15 +319,3 @@ class IEventService(zope.interface.Interface):
     """
     def sendEvent(self, event, **kw):
         pass
-
-
-class IOptionService(zope.interface.Interface):
-    """
-    A service that provides access to a collector's command-line options.
-    """
-    def getCollectorOption(self, optionName):
-        pass
-
-    def setCollectorOption(self, optionName, optionValue):
-        pass
-

@@ -44,7 +44,6 @@ from twisted.python.failure import Failure
 from Products.ZenCollector.daemon import CollectorDaemon
 from Products.ZenCollector.interfaces import ICollectorPreferences,\
                                              IEventService,\
-                                             IOptionService,\
                                              IScheduledTask
 from Products.ZenCollector.tasks import SimpleTaskFactory,\
                                         SimpleTaskSplitter,\
@@ -81,7 +80,8 @@ class ZenEventLogPreferences(object):
         self.defaultRRDCreateCommand = None
         self.cycleInterval = 5 * 60 # seconds
         self.configCycleInterval = 20 # minutes
-        
+        self.options = None
+
         # the configurationService attribute is the fully qualified class-name
         # of our configuration service that runs within ZenHub
         self.configurationService = 'Products.ZenWin.services.EventLogConfig'
@@ -175,18 +175,14 @@ class ZenEventLogTask(ObservableMixin):
         self._preferences = zope.component.queryUtility(ICollectorPreferences,
                                                         "zeneventlog")
 
-        optionService = zope.component.queryUtility(IOptionService)
-
-        self._monitor = optionService.getCollectorOption('monitor')
-
         # if the user hasn't specified the batchSize or queryTimeout as command
         # options then use whatever has been specified in the collector
         # preferences
         # TODO: convert these to zProperties
-        self._batchSize = optionService.getCollectorOption('batchSize')
+        self._batchSize = self._preferences.options.batchSize
         if not self._batchSize:
             self._batchSize = self._preferences.wmibatchSize
-        self._queryTimeout = optionService.getCollectorOption('queryTimeout')
+        self._queryTimeout = self._preferences.options.queryTimeout
         if not self._queryTimeout:
             self._queryTimeout = self._preferences.wmiqueryTimeout
 
@@ -250,7 +246,7 @@ class ZenEventLogTask(ObservableMixin):
             summary=event_message,
             agent='zeneventlog',
             severity=sev,
-            monitor=self._monitor,
+            monitor=self._preferences.options.monitor,
             user=lrec.user,
             categorystring=lrec.categorystring,
             originaltime=ts,
@@ -395,9 +391,6 @@ class ZenEventLogTask(ObservableMixin):
 #
 if __name__ == '__main__':
     myPreferences = ZenEventLogPreferences()
-    zope.component.provideUtility(myPreferences,
-                                  ICollectorPreferences, 
-                                  "zeneventlog")
 
     myTaskFactory = SimpleTaskFactory(ZenEventLogTask)
     myTaskSplitter = SimpleTaskSplitter(myTaskFactory)

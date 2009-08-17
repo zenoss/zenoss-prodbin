@@ -24,7 +24,6 @@ from Products.ZenCollector.interfaces import ICollector,\
                                              ICollectorPreferences,\
                                              IDataService,\
                                              IEventService,\
-                                             IOptionService,\
                                              ITaskSplitter
 from Products.ZenCollector.scheduler import Scheduler
 from Products.ZenHub.PBDaemon import PBDaemon, FakeRemote
@@ -50,8 +49,7 @@ class CollectorDaemon(RRDDaemon):
     """
     zope.interface.implements(ICollector,
                               IDataService,
-                              IEventService,
-                              IOptionService)
+                              IEventService)
 
     def __init__(self, preferences, taskSplitter):
         """
@@ -82,7 +80,12 @@ class CollectorDaemon(RRDDaemon):
         zope.component.provideUtility(self, ICollector)
         zope.component.provideUtility(self, IEventService)
         zope.component.provideUtility(self, IDataService)
-        zope.component.provideUtility(self, IOptionService)
+
+        # register the collector's own preferences object so it may be easily
+        # retrieved by factories, tasks, etc.
+        zope.component.provideUtility(self._prefs,
+                                      ICollectorPreferences,
+                                      self._prefs.collectorName)
 
         super(CollectorDaemon, self).__init__(name=self._prefs.collectorName)
 
@@ -131,6 +134,10 @@ class CollectorDaemon(RRDDaemon):
         # give the collector configuration a chance to add options, too
         self._prefs.buildOptions(self.parser)
 
+    def parseOptions(self):
+        super(CollectorDaemon, self).parseOptions()
+        self._prefs.options = self.options
+
     def connected(self):
         """
         Method called by PBDaemon after a connection to ZenHub is established.
@@ -152,12 +159,6 @@ class CollectorDaemon(RRDDaemon):
         """
         return self.services.get(self._prefs.configurationService,
                                  FakeRemote())
-
-    def getCollectorOption(self, optionName):
-        return getattr(self.options, optionName, None)
-
-    def setCollectorOption(self, optionName, optionValue):
-        setattr(self.options, optionName, optionValue)
 
     def configureRRD(self, rrdCreateCommand, thresholds):
         """
