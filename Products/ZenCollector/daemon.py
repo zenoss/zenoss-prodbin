@@ -24,6 +24,7 @@ from Products.ZenCollector.interfaces import ICollector,\
                                              ICollectorPreferences,\
                                              IDataService,\
                                              IEventService,\
+                                             IFrameworkFactory,\
                                              ITaskSplitter
 from Products.ZenCollector.scheduler import Scheduler
 from Products.ZenHub.PBDaemon import PBDaemon, FakeRemote
@@ -31,14 +32,6 @@ from Products.ZenRRD.RRDDaemon import RRDDaemon
 from Products.ZenRRD.RRDUtil import RRDUtil
 from Products.ZenRRD.Thresholds import Thresholds
 from Products.ZenUtils.Utils import importClass
-
-
-#
-# The default configuration service can be overridden using the --configService
-# command-line option. This allows ZenPacks to change the configuration service
-# being used without resorting to monkey patching.
-#
-DEFAULT_CONFIG_SERVICE = 'Products.ZenCollector.config.ConfigurationProxy'
 
 
 class CollectorDaemon(RRDDaemon):
@@ -90,7 +83,6 @@ class CollectorDaemon(RRDDaemon):
         super(CollectorDaemon, self).__init__(name=self._prefs.collectorName)
 
         self._devices = sets.Set()
-        self._scheduler = Scheduler()
         self._thresholds = Thresholds()
         self._unresponsiveDevices = sets.Set()
         self._rrd = None
@@ -101,11 +93,9 @@ class CollectorDaemon(RRDDaemon):
             self._completedTasks = 0
             self._pendingTasks = []
 
-        # dynamically create an instance of the object providing the 
-        # IConfigurationProxy interface; this easily allows the framework to
-        # be extended by a ZenPack without monkey patching.
-        configProxyClass = self._getConfigServiceClass()
-        self._configProxy = configProxyClass(self._prefs)
+        frameworkFactory = zope.component.queryUtility(IFrameworkFactory)
+        self._configProxy = frameworkFactory.getConfigurationProxy()
+        self._scheduler = frameworkFactory.getScheduler()
 
         # OLD - set the initialServices attribute so that the PBDaemon class
         # will load all of the remote services we need.
@@ -124,12 +114,6 @@ class CollectorDaemon(RRDDaemon):
         command-line options for this collector daemon.
         """
         super(CollectorDaemon, self).buildOptions()
-
-        self.parser.add_option('--configService',
-                               dest='configService',
-                               default=DEFAULT_CONFIG_SERVICE,
-                               help='Configuration Service class name. '
-                               ' Default is %s.' % DEFAULT_CONFIG_SERVICE)
 
         # give the collector configuration a chance to add options, too
         self._prefs.buildOptions(self.parser)
@@ -196,7 +180,7 @@ class CollectorDaemon(RRDDaemon):
         self.log.debug("Device %s deleted" % devId)
 
         self._devices.discard(devId)
-        self._configProxy.deleteConfig(devId)
+        self._configProxy.deleteConfig(self._prefs, devId)
         self._scheduler.removeTasksForConfig(devId)
 
     def remote_updateDeviceConfig(self, config):
@@ -207,7 +191,7 @@ class CollectorDaemon(RRDDaemon):
 
         if not self.options.device or self.options.device == config.id:
             self._updateConfig(config)
-            self._configProxy.updateConfig(config)
+            self._configProxy.updateConfig(self._prefs, config)
 
     def _taskCompleteCallback(self, taskName):
         # if we're not running a normal daemon cycle then we need to shutdown
@@ -283,7 +267,8 @@ class CollectorDaemon(RRDDaemon):
             if self.options.device:
                 devices = [self.options.device]
 
-            return defer.maybeDeferred(self._configProxy.configure, devices)
+            return defer.maybeDeferred(self._configProxy.configure,
+                                       self._prefs, devices)
 
         def _configureFinished(result):
             if isinstance(result, Failure):
@@ -385,15 +370,6 @@ class CollectorDaemon(RRDDaemon):
         d = _doMaintenance()
         d.addBoth(_reschedule)
         return d
-
-    def _getConfigServiceClass(self):
-        # split the entire class path into the module and class name portions
-        # so that the module can be imported and then the class loaded
-        classParts = self.options.configService.split(".")
-        modulePath = ".".join(classParts[:-1])
-        className = classParts[-1]
-        configServiceClass = importClass(modulePath, className)
-        return configServiceClass
 
     def _displayStatistics(self, verbose=False):
         self.log.info("%d devices processed (%d datapoints)",

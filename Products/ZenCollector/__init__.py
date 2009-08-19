@@ -72,3 +72,31 @@ steps:
         daemon = CollectorDaemon(myPreferences, myTaskSplitter)
         daemon.run()
 """
+
+import Globals
+import zope.component
+import zope.interface
+
+from Products.ZenCollector.interfaces import IFrameworkFactory
+from Products.ZenCollector.config import ConfigurationProxy
+from Products.ZenCollector.scheduler import Scheduler
+
+
+class CoreCollectorFrameworkFactory(object):
+    zope.interface.implements(IFrameworkFactory)
+
+    def __init__(self):
+        self._configProxy = ConfigurationProxy()
+        self._scheduler = Scheduler()
+
+    def getConfigurationProxy(self):
+        return self._configProxy
+
+    def getScheduler(self):
+        return self._scheduler
+
+# Install the core collector framework factory as a Zope utility so it is
+# available to all, and replaceable if necessary.
+__factory__ = CoreCollectorFrameworkFactory()
+zope.component.provideUtility(__factory__, IFrameworkFactory)
+zope.component.provideUtility(__factory__, IFrameworkFactory, "core")

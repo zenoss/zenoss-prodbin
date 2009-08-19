@@ -169,6 +169,7 @@ class Scheduler(object):
         self._tasks = {}
         self._taskCallback = {}
         self._taskStats = {}
+
     def addTask(self, newTask, callback=None):
         """
         Add a new IScheduledTask to the scheduler for execution.

@@ -40,27 +40,19 @@ class ConfigurationProxy(object):
     """
     zope.interface.implements(IConfigurationProxy)
 
-    def __init__(self, config):
-        """
-        Creates a new instance of the ConfigurationProxy class.
-        @param config: a reference to the configuration for this collector
-        @type config: ICollectorPreferences
-        """
-        if not ICollectorPreferences.providedBy(config):
+    def configure(self, prefs, configs=[]):
+        if not ICollectorPreferences.providedBy(prefs):
             raise TypeError("config must provide ICollectorPreferences")
-        else:
-            self._config = config
-        
-        self._collector = zope.component.queryUtility(ICollector)
 
-    def configure(self, configs=[]):
+        self._collector = zope.component.queryUtility(ICollector)
+        self._prefs = prefs
         return self._getRemoteConfig(configs)
 
-    def deleteConfig(self, configId):
+    def deleteConfig(self, prefs, configId):
         # not implemented in the basic ConfigurationProxy
         pass
 
-    def updateConfig(self, config):
+    def updateConfig(self, prefs, config):
         # not implemented in the basic ConfigurationProxy
         pass
 
@@ -77,12 +69,12 @@ class ConfigurationProxy(object):
         table = dict(result)
 
         for name, value in table.iteritems():
-            if not hasattr(self._config, name):
+            if not hasattr(self._prefs, name):
                 log.debug("ICollectorPreferences does not have attribute %s",
                           name)
-            elif getattr(self._config, name) != value:
+            elif getattr(self._prefs, name) != value:
                 log.debug("Updated %s config to %s", name, value)
-                setattr(self._config, name, value)
+                setattr(self._prefs, name, value)
 
         # retrieve the default RRD command and convert it from a list of strings
         # to a single string with newline separators

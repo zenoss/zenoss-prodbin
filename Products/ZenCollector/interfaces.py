@@ -106,11 +106,13 @@ class IConfigurationProxy(zope.interface.Interface):
     the configuration for a collector.
     """
 
-    def configure(self, configIds=[]):
+    def configure(self, prefs, configIds=[]):
         """
         Called by the framework whenever the configuration for this collector
         should be retrieved.
         
+        @param prefs: the collector preferences object
+        @type prefs: an object providing ICollectorPreferences
         @param configIds: specific config Ids to be configured
         @type configIds: an iterable
         @return: a twisted Deferred, optional in case the configure operation
@@ -119,18 +121,22 @@ class IConfigurationProxy(zope.interface.Interface):
         """
         pass
 
-    def deleteConfig(self, configId):
+    def deleteConfig(self, prefs, configId):
         """
         Called by the framework whenever a configuration should be removed.
+        @param prefs: the collector preferences object
+        @type prefs: an object providing ICollectorPreferences
         @param configId: the identifier to remove
         @type: string 
         """
         pass
 
-    def updateConfig(self, config):
+    def updateConfig(self, prefs, config):
         """
         Called by the framework whenever the configuration has been updated by
         an external event.
+        @param prefs: the collector preferences object
+        @type prefs: an object providing ICollectorPreferences
         @param config: the updated configuration
         """
         pass
@@ -319,3 +325,24 @@ class IEventService(zope.interface.Interface):
     """
     def sendEvent(self, event, **kw):
         pass
+
+
+class IFrameworkFactory(zope.interface.Interface):
+    """
+    An abstract factory object that allows the collector framework to be
+    dynamically extended at an interface level.
+    """
+
+    def getConfigurationProxy(self):
+        """
+        Retrieve the framework's implementation of the IConfigurationProxy
+        interface.
+        """
+        pass
+
+    def getScheduler(self):
+        """
+        Retrieve the framework's implementation of the IScheduler interface.
+        """
+        pass
+
