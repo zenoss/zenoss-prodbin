@@ -137,7 +137,7 @@ function ConfirmPagerTest() {
                   tal:content="group/getId"/>
         </td>
         <td class="tablevalues" tal:content="group/printUsers"
-            tal:on-error="Unable to list group members.  Delete this group and re-add" />
+            tal:on-error="string:Unable to list group members.  Delete this group and re-add" />
     </tr>
     </tal:block>
     <tr>
