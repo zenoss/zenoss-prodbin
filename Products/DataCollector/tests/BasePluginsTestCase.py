@@ -30,7 +30,13 @@ class BasePluginsTestCase(BaseTestCase):
         counter = 0
 
         for filename in filenames(datadir):
-            counter += self._testDataFile(filename, Plugins)
+            try:
+                counter += self._testDataFile(filename, Plugins)
+            except Exception, e:
+                format = '%s/%s caught %s: %s'
+                host, parser = filename.split(os.path.sep)[-2:]
+                args = (host, parser, e.__class__.__name__, str(e))
+                raise Exception(format % args)
 
         self.assert_(counter > 0, counter)
         print self.__class__.__name__, "made", counter, "assertions."
@@ -113,17 +119,21 @@ class BasePluginsTestCase(BaseTestCase):
         maps attribute.
         """
         counter = 0
-        objectMapDct = dict([(map.id, map) for map in relationshipMap.maps])
         
+        # all ObjectMaps have an id except for OSProcess which uses procName
+        objectMapDct = {}
+        for objectMap in relationshipMap.maps:
+            if objectMap.modname == 'Products.ZenModel.OSProcess':
+                keyName = 'procName'
+            else:
+                keyName = 'id'
+            objectMapDct[getattr(objectMap, keyName)] = objectMap
+            
         for id in expected:
-        
-            if objectMapDct.has_key(id):
-                
+            if id in objectMapDct:
                 counter += self._testObjectMap(expected[id], 
                         objectMapDct[id], filename)
-                
             else:
-                
                 plugin = os.path.sep.join(filename.split(os.path.sep)[-3:])
                 self.fail("No ObjectMap with id=%s in the RelationshipMap " \
                           "returned by the plugin (%s).\n%s" % (

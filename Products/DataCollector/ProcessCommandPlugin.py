@@ -28,12 +28,19 @@ class ProcessCommandPlugin(CommandPlugin):
     modname = "Products.ZenModel.OSProcess"
     classname = "createFromObjectMap"
     
+    def _filterLines(self, lines):
+        """
+        Filter out any unwanted lines.  The base implementation returns all
+        the lines.
+        """
+        return lines
+    
     def process(self, device, results, log):
         
         log.info('Collecting process information for device %s' % device.id)
         relMap = self.relMap()
         
-        for line in results.splitlines():
+        for line in self._filterLines(results.splitlines()):
             
             words = line.split()
             
