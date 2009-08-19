@@ -136,7 +136,8 @@ function ConfirmPagerTest() {
             <span tal:condition="not: group/iseditable" 
                   tal:content="group/getId"/>
         </td>
-        <td class="tablevalues" tal:content="group/printUsers"/>
+        <td class="tablevalues" tal:content="group/printUsers"
+            tal:on-error="Unable to list group members.  Delete this group and re-add" />
     </tr>
     </tal:block>
     <tr>
