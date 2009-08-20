@@ -137,7 +137,13 @@ class ZenDaemon(CmdBase):
         # Allow the user to dynamically lower and raise the logging
         # level without restarts.
         import signal
-        signal.signal(signal.SIGUSR1, self.sighandler_USR1)
+        try:
+            signal.signal(signal.SIGUSR1, self.sighandler_USR1)
+        except ValueError:
+            # If we get called multiple times, this will generate an exception:
+            # ValueError: signal only works in main thread
+            # Ignore it as we've already set up the signal handler.
+            pass
 
     def sighandler_USR1(self, signum, frame):
         """
