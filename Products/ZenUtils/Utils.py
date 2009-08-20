@@ -359,9 +359,7 @@ def importClass(modulePath, classname=""):
         except (ValueError, ImportError, KeyError), ex:
             raise ex
         
-        classInstance = getattr(mod, classname)
-        classInstance.desc = getattr(mod, '__doc__', '')
-        return classInstance
+        return getattr(mod, classname)
     except AttributeError:
         raise ImportError("Failed while importing class %s from module %s" % (
                             classname, modulePath))
