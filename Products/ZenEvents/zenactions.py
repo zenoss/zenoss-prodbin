@@ -16,10 +16,7 @@ __doc__='''zenactions
 
 Turn events into notifications (pages, emails).
 
-$Id$
 '''
-
-__version__ = "$Revision$"[11:-2]
 
 
 import socket
@@ -448,31 +445,49 @@ class ZenActions(ZCmdBase):
         return d
 
 
+    def fetchMonitorHostname(self, monitor='localhost'):
+        all_monitors = self.dmd.Monitors.getPerformanceMonitorNames()
+        if monitor in all_monitors:
+            hostname = self.dmd.Monitors.getPerformanceMonitor(monitor).hostname
+        else:
+            # Someone's put in something that we don't expect
+            hostname = monitor
+
+        if hostname == 'localhost':
+            hostname = self.daemonHostname
+        return hostname
+
     def heartbeatEvents(self):
         """Create events for failed heartbeats.
         """
         # build cache of existing heartbeat issues
-        q = ("SELECT device, component "
+        q = ("SELECT monitor, component "
              "FROM status WHERE eventClass = '%s'" % Status_Heartbeat)
         heartbeatState = Set(self.query(q))
            
-        # find current heartbeat failures
+        # Find current heartbeat failures
+        # Note: 'device' in the heartbeat table is actually filled with the
+        #        collector name
         sel = "SELECT device, component FROM heartbeat "
         sel += "WHERE DATE_ADD(lastTime, INTERVAL timeout SECOND) <= NOW();"
-        for device, comp in self.query(sel):
+        for monitor, comp in self.query(sel):
+            hostname = self.fetchMonitorHostname(monitor)
             self.sendEvent(
-                Event.Event(device=device, component=comp,
+                Event.Event(device=hostname, component=comp,
                             eventClass=Status_Heartbeat, 
-                            summary="%s %s heartbeat failure" % (device, comp),
+                            summary="%s %s heartbeat failure" % (monitor, comp),
+                            prodState=self.prodState,
+                            monitor=monitor,
                             severity=Event.Error))
-            heartbeatState.discard((device, comp))
+            heartbeatState.discard((monitor, comp))
 
         # clear heartbeats
-        for device, comp in heartbeatState:
+        for monitor, comp in heartbeatState:
+            hostname = self.fetchMonitorHostname(monitor)
             self.sendEvent(
-                Event.Event(device=device, component=comp, 
+                Event.Event(device=hostname, component=comp, 
                             eventClass=Status_Heartbeat, 
-                            summary="%s %s heartbeat clear" % (device, comp),
+                            summary="%s %s heartbeat clear" % (monitor, comp),
                             severity=Event.Clear))
 
     def runEventCommand(self, cmd, data, clear = None):
@@ -542,6 +557,16 @@ class ZenActions(ZCmdBase):
 
 
     def run(self):
+        self.prodState = filter(lambda x: x.split(':')[0] == 'Production',
+                                self.dmd.prodStateConversions)
+        import socket
+        self.daemonHostname = socket.getfqdn()
+        try:
+            # eg ['Production:1000']
+            self.prodState = int(self.prodState[0].split(':')[1])
+        except:
+            self.prodState = 1000
+
         if not self.options.cycle:
             self.sendHeartbeat()
             self.schedule.run()
