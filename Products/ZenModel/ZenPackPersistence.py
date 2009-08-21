@@ -20,6 +20,8 @@ from Products.ZenModel.interfaces import IIndexed
 
 ZENPACK_PERSISTENCE_CATALOG = 'zenPackPersistence'
 
+import logging
+log = logging.getLogger('ZenPackPersistence')
 
 def CreateZenPackPersistenceCatalog(dmd):
     '''
@@ -50,8 +52,14 @@ def GetCatalogedObjects(dmd, packName):
     if zcat is None:
         result = None
     else:
+        result = []
         brains = zcat(dict(getZenPackName=packName))
-        result = [c.getObject() for c in brains]
+        for brain in brains:
+            try:
+                obj = brain.getObject()
+                result.append(obj)
+            except KeyError, e:
+                log.warn('catalog object %s not found in system', e)
     return result
 
 
@@ -126,6 +134,7 @@ class ZenPackPersistence(object):
 
     def unindex_object(self):
         """A common method to allow Findables to unindex themselves."""
+        #FIXME THIS WON'T WORK IF WE DELETE FROM THE ZENPACK PAGE BECAUSE WE CAN'T FIND THE CATALOG -EAD
         cat = getattr(self, ZENPACK_PERSISTENCE_CATALOG, None)
         if cat is not None:
             cat.uncatalog_object(self.getPrimaryId())
