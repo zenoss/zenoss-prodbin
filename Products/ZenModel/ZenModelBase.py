@@ -425,7 +425,7 @@ class ZenModelBase(object):
         <DataRoot at /zport/dmd>
         """
         for obj in aq_chain(self):
-            if obj.id == 'dmd': return obj
+            if getattr(obj, 'id', None) == 'dmd': return obj
 
 
     def getDmdRoot(self, name):

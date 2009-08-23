@@ -9,11 +9,4 @@
     <include package=".browser"/>
     <include file="messaging.zcml"/>
 
-    <browser:page
-        for="*"
-        name="extjs"
-        class=".ExtJSShortcut"
-        permission="zope2.Public"
-        />
-
 </configure>

@@ -1,0 +1,72 @@
+<tal:block metal:define-macro="masterdetailnested">
+<tal:block metal:use-macro="context/page_macros/base">
+
+<tal:block metal:fill-slot="center_panel">
+<div id="master_panel">
+    <tal:block metal:define-slot="master_panel"/>
+</div>
+<div id="detail_panel">
+    <tal:block metal:define-slot="detail_panel"/>
+</div>
+<div id="subdetail_panel">
+    <tal:block metal:define-slot="subdetail_panel"/>
+</div>
+</tal:block>
+
+<tal:block metal:fill-slot="script_layout">
+<script>
+Ext.onReady(function(){
+    Ext.getCmp('center_panel').add(
+        new Ext.Panel({
+            layout: 'border',
+            defaults: {border:false},
+            items: [{
+                region: 'west',
+                width: 300,
+                contentEl: 'master_panel',
+                id: 'master_panel',
+                layout: 'fit',
+                split: true
+            },{
+                region: 'center',
+                layout: 'border',
+                defaults: {border:false},
+                items: [{
+                    region: 'center',
+                    contentEl: 'subdetail_panel',
+                    id: 'subdetail_panel',
+                    split: true,
+                    layout: 'fit'
+                },{
+                    region: 'north',
+                    contentEl: 'detail_panel',
+                    id: 'detail_panel',
+                    split: true,
+                    layout: 'fit',
+                    height: 400
+                }]
+            }]
+        }
+    ));
+});
+</script>
+<!-- Chain the macro -->
+<tal:block metal:define-slot="script_layout">
+<script>
+Ext.onReady(function(){
+    Ext.getCmp('master_panel').add(new Zenoss.PlaceholderPanel({
+        text: 'Ext.getCmp("master_panel"), metal:fill-slot="master_panel"'
+    }));
+    Ext.getCmp('detail_panel').add(new Zenoss.PlaceholderPanel({
+        text: 'Ext.getCmp("detail_panel"), metal:fill-slot="detail_panel"'
+    }));
+    Ext.getCmp('subdetail_panel').add(new Zenoss.PlaceholderPanel({
+        text: 'Ext.getCmp("subdetail_panel"), metal:fill-slot="subdetail_panel"'
+    }));
+});
+</script>
+</tal:block>
+</tal:block>
+
+</tal:block>
+</tal:block>

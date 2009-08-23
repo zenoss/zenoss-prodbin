@@ -1,0 +1,860 @@
+<tal:block metal:use-macro="context/page_macros/masterdetail">
+
+<tal:block metal:fill-slot="master_panel">
+</tal:block>
+
+<tal:block metal:fill-slot="detail_panel">
+</tal:block>
+
+<tal:block metal:fill-slot="script_beforeLayout">
+<link rel="stylesheet"
+    href="/zenui/js/livegrid/resources/css/ext-ux-livegrid.css"/>
+<script type="text/javascript"
+    src="/zenui/js/livegrid/livegrid-all-debug.js"></script>
+<tal:block tal:content="structure provider:jssnippets"/>
+</tal:block>
+
+<tal:block metal:fill-slot="script_layout">
+<!-- Template for rendering the detail pane -->
+<textarea style="display:none" id="detail_header_template">
+    <div class="evdetail_hd">
+        <div class="severity-icon"></div>
+        <img src="/zenui/img/xtheme-zenoss/toolbar/tb-evdetail-sep.png" 
+            style="float:left;margin-right:2px"/>
+        <div id="evdetail_tool_close" class="x-tool evdetail_close"></div>
+    </div>
+</textarea>
+<textarea style="display:none" id="detail_template">
+    <tpl for=".">
+        <div class="evdetail_hd">
+           <table width="100%"><tr><td style="width:27px">
+           <div class="severity-icon {severity}"></div>
+           </td><td style="width:22px">
+           <img src="/zenui/img/xtheme-zenoss/toolbar/tb-evdetail-sep.png" 
+               style="float:left;margin-right:2px"/>
+               </td>
+               <td>
+           {device}: {component}: {summary}
+           </td><td style="width:53px">
+           <div id="evdetail_tool_close" class="x-tool evdetail_close"></div>
+           </td></tr>
+           </table>
+        </div>
+        <div class="evdetail_props">
+            <table>
+                <tr><td class="dt">Device:</td> 
+                    <td><tpl if="device"><a href="{device_url}" 
+                            class="resource-link">{device}</a></tpl></td>
+                    </tr>
+                <tr><td class="dt">Component:</td> 
+                    <td><tpl if="component">
+                        <a href="{component_url}" 
+                            class="resource-link">{component}</a></tpl></td>
+                    </tr>
+                <tr><td class="dt">Event Class:</td> 
+                    <td><tpl if="eventClass"><a href="{eventClass_url}"
+                            class="resource-link">{eventClass}</a></tpl></td>
+                    </tr>
+                <tr><td class="dt">Status:</td> <td>{eventState}</td></tr>
+                <tr><td class="dt">Start Time:</td> <td>{firstTime}</td></tr>
+                <tr><td class="dt">Stop Time:</td> <td>{lastTime}</td></tr>
+                <tr><td class="dt">Count:</td> <td>{count}</td></tr>
+            </table>
+        </div>
+        <div style="clear:both;padding:1em;padding-top:0;padding-left:3em">
+            <a id="show_details" style="font-size:13px;color:#7199e6;text-decoration:none">Show more details...</a>
+        </div>
+        <div id="full_event_props"
+            style="margin-left:2em;padding:1em;display:none">
+            <table class="proptable">
+                <tpl for="properties">
+                <tr><td class="proptable_key">{key}</td>
+                    <td class="proptable_value">{value}</td></tr>
+                </tpl>
+            </table>
+        </div>
+        <div style="padding:2em; padding-top:0">
+            <hr style="color:#e1e1e1;background-color:#e1e1e1;
+                border:medium none;margin-bottom:1em"/>
+        <h2 style='margin-bottom:1em'>LOG</h2>
+
+        <div id="log-container">
+            <input style="display:none" id="log_author"
+                tal:attributes="value user"/>
+            <input style="display:none" id="log_evid" value="{evid}"/>
+        </div>
+        <div id="log-content" class="log-content">
+            <table>
+            <tpl for="log">
+            <tr><td class="time">{1} {0} said: </td>
+                <td class="message">{2}</td></tr>
+            </tpl>
+            </table>
+        </div>
+
+        </div>
+    </tpl>
+</textarea>
+<script>
+Ext.onReady(function(){
+
+    // Global dialogs, will be reused after first load
+    var win,
+        addevent,
+    // Date renderer object, used throughout
+        date_renderer = Ext.util.Format.dateRenderer(Zenoss.date.ISO8601Long),
+    // Get references to the panels
+        detail_panel = Ext.getCmp('detail_panel'),
+        master_panel = Ext.getCmp('master_panel');
+
+    // Make the detail panel collapsible
+    detail_panel.animCollapse = false;
+    detail_panel.collapsible = true;
+    detail_panel.collapsed = true;
+    detail_panel.autoScroll = true;
+    
+    /*
+     * Assemble the parameters that define the grid state.
+     */
+    function getQueryParameters() {
+        var grid = Ext.getCmp('events_grid'),
+            sortInfo = grid.view.ds.sortInfo;
+        grid.view.applyFilterParams({'params':sortInfo});
+        return sortInfo;
+    }
+
+    /*
+     * Assemble the parameters that define the records selected. This by
+     * necessity includes query parameters, since ranges need row indices.
+     */
+    function getSelectionParameters() {
+        var grid = Ext.getCmp('events_grid'),
+            sm = grid.getSelectionModel(),
+            ranges = sm.getPendingSelections(true),
+            evids = [],
+            sels = sm.getSelections();
+        Ext.each(sels, function(record){
+            evids[evids.length] = record.data.evid;
+        });
+        if (!ranges && !evids) return false;
+        var params = {
+            evids:evids,
+            ranges:ranges,
+            start:0,
+            limit:null
+        };
+        Ext.apply(params, getQueryParameters());
+        return params;
+    }
+
+    /*
+     * Show the dialog that allows one to add an event.
+     */
+    function showAddEventDialog() {
+        if(!addevent){
+        addevent = new Ext.Window({
+            title: 'Create Event',
+            layout: 'fit',
+            autoHeight: true,
+            width: 310,
+            closeAction: 'hide',
+            plain: true,
+            items: [{
+                id: 'addeventform',
+                xtype: 'form',
+                monitorValid: true,
+                defaults: {width: 180},
+                autoHeight: true,
+                border: false,
+                frame: false,
+                labelWidth: 100,
+                items: [{
+                    xtype: 'textarea',
+                    name: 'summary',
+                    fieldLabel: 'Summary',
+                    allowBlank: false
+                },{
+                    xtype: 'textfield',
+                    fieldLabel: 'Device',
+                    name: 'device',
+                    allowBlank: false
+                },{
+                    xtype: 'textfield',
+                    fieldLabel: 'Component',
+                    name: 'component'
+                },{
+                    fieldLabel: 'Severity',
+                    name: 'severity',
+                    xtype: 'combo',
+                    store: Zenoss.env.SEVERITIES,
+                    typeAhead: true,
+                    allowBlank: false,
+                    forceSelection: true,
+                    triggerAction: 'all',
+                    value: 5,
+                    selectOnFocus: true
+                },{
+                    xtype: 'textfield',
+                    fieldLabel: 'Event Class Key',
+                    name: 'evclasskey'
+                },{
+                    fieldLabel: 'Event Class',
+                    name: 'evclass',
+                    xtype: 'combo',
+                    store: Zenoss.env.EVENT_CLASSES,
+                    typeAhead: true,
+                    forceSelection: true,
+                    triggerAction: 'all',
+                    emptyText: 'Select an event class',
+                    selectOnFocus: true
+                }],
+                buttons: [{
+                    text: 'Cancel',
+                    handler: function(){
+                        addevent.hide();
+                    }
+                },{
+                    text: 'Submit',
+                    formBind: true,
+                    handler: function(){
+                        form = Ext.getCmp('addeventform');
+                        Zenoss.remote.EventConsole.add_event(
+                            form.getForm().getValues(),
+                            function(){
+                                addevent.hide();
+                                grid = Ext.getCmp('events_grid')
+                                view = grid.getView();
+                                view.updateLiveRows(
+                                    view.rowIndex, true, true);
+                            }
+                        )
+                    }
+                }]
+            }]
+
+        });
+        }
+        addevent.show(this);
+    }
+
+    /*
+     * Show the dialog that allows one to add an event.
+     */
+    function showClassifyDialog(e) {
+        if(!win){
+            win = new Ext.Window({
+                title: 'Classify Events',
+                width: 250,
+                autoHeight: true,
+                closeAction: 'hide',
+                plain: true,
+                items: [{
+                    border: false,
+                    frame: false,
+                    autoHeight: true,
+                    padding: 10,
+                    style: {'font-size':'10pt'},
+                    html: 'Select the event class with which'+
+                          ' you want to associate these events.'
+                },{
+                padding: 10,
+                frame: false,
+                border: false,
+                items: [{
+                    xtype: 'combo',
+                    store: Zenoss.env.EVENT_CLASSES,
+                    typeAhead: true,
+                    forceSelection: true,
+                    triggerAction: 'all',
+                    emptyText: 'Select an event class',
+                    selectOnFocus: true,
+                    id: 'evclass_combo'
+                }]}],
+                buttons: [{
+                    text: 'Cancel',
+                    handler: function(){
+                        win.hide();
+                    }
+                },{
+                    text: 'Submit',
+                    handler: function(){
+                        var cb = Ext.getCmp('evclass_combo'),
+                            sm = grid.getSelectionModel(),
+                            rs = sm.getSelections(),
+                            evids = [];
+                        Ext.each(rs, function(record){
+                            evids[evids.length] = record.data.evid;
+                        });
+                        if (!evids.length) {
+                            win.hide();
+                            Ext.Msg.show({
+                                title: 'Error',
+                                msg: 'No events were selected.',
+                                buttons: Ext.MessageBox.OK
+                            })
+                        } else {
+                        Zenoss.remote.EventConsole.classify({
+                            'evclass': cb.getValue(),
+                            'evids': evids
+                        }, function(result){
+                            win.hide();
+                            var title = result.success ?  
+                                        'Classified':
+                                        'Error';
+                            Ext.MessageBox.show({
+                                title: title,
+                                msg: result.msg,
+                                buttons: Ext.MessageBox.OK
+                            })
+                        });
+                        }
+                    }
+                }
+                ]
+            })
+        }
+        win.show(this);
+    }
+    
+    /*
+     * Select all events with a given state.
+     * This requires a call to the back end, since we don't know anything about
+     * records that are outside the current buffer. So we let the server
+     * perform a query to determine ranges, then we select the ranges.
+     */
+    function selectByState(state) {
+        var params = {'state':state},
+            grid = Ext.getCmp('events_grid');
+        Ext.apply(params, getQueryParameters());
+        Zenoss.remote.EventConsole.state_ranges(
+            params,
+            function(result) {
+                var sm = grid.getSelectionModel();
+                sm.clearSelections();
+                Ext.each(result, function(range){
+                    if (range.length==1) 
+                        range[1] = grid.getStore().totalLength + 1;
+                   sm.selectRange(range[0]-1, range[1]-1, true);
+                });
+            }
+        );
+    }
+
+    // Get the container surrounding master/detail, for adding the toolbar
+    var container = Ext.getCmp('center_panel_container');
+    
+    // Add a CSS class to scope some styles that affect other parts of the UI
+    container.on('render', function(){container.el.addClass('zenui3')});
+
+    // Add the toolbar to the container
+    container.add(
+        new Zenoss.LargeToolbar({
+            region:'north',
+            border: false,
+            items: [{
+                /* 
+                 * ACKNOWLEDGE BUTTON 
+                 */
+                text: 'Acknowledge', 
+                iconCls: 'acknowledge',
+                handler: function(){
+                    // Get params describing selected events
+                    var params = getSelectionParameters();
+                    if (params) {
+                        // Send to server, then refresh view to see new event
+                        // states
+                        Zenoss.remote.EventConsole.acknowledge(
+                            params,
+                            function(provider, response){
+                                view = grid.getView();
+                                view.updateLiveRows(view.rowIndex, true, true);
+                            }
+                        );
+                    }
+                }
+            },{
+                /* 
+                 * CLOSE BUTTON 
+                 */
+                text: 'Close',
+                iconCls: 'delete',
+                handler: function(){
+                    // Get params describing selected events
+                    var params = getSelectionParameters();
+                    if (params) {
+                        // Send to server, then refresh view to see fewer
+                        // events
+                        Zenoss.remote.EventConsole.close(params,
+                            function(provider, response){
+                                view = grid.getView();
+                                view.updateLiveRows(view.rowIndex, true, true);
+                            }
+                        );
+                    }
+                }
+            },{
+                /* 
+                 * ADD BUTTON 
+                 */
+                text: 'Add',
+                iconCls: 'add',
+                handler: showAddEventDialog
+            },{
+                /*
+                 * ClASSIFY BUTTON
+                 */
+                text: 'Classify',
+                // We don't have an icon for this
+                //iconCls: 'classify',
+                handler: showClassifyDialog
+            },{
+                xtype: 'tbseparator'
+            },{
+                /*
+                 * SELECT MENU
+                 */
+                text: 'Select',
+                menu:{
+                    xtype: 'menu',
+                    items: [{
+                        text: 'Acknowledged',
+                        iconCls: 'acknowledge',
+                        handler: function(){
+                            // Acknowledged == 1
+                            selectByState(1);
+                        }
+                    },{
+                        text: 'New',
+                        iconCls: 'unacknowledge',
+                        handler: function(){
+                            // New == 0
+                            selectByState(0);
+                        }
+                    },{
+                        text: 'All',
+                        handler: function(){
+                            var grid = Ext.getCmp('events_grid'),
+                                sm = grid.getSelectionModel();
+                            sm.clearSelections();
+                            sm.selectRange(0, grid.getStore().totalLength);
+                        }
+                    },{
+                        text: 'None',
+                        handler: function(){
+                            var grid = Ext.getCmp('events_grid'),
+                                sm = grid.getSelectionModel();
+                            sm.clearSelections();
+                        }
+                    }
+                    ]
+                }
+            },{
+                /*
+                 * FILTERS BUTTON
+                 */
+                id: 'showfilters',
+                text: 'Filters',
+                iconCls: 'filter',
+                enableToggle: true,
+                pressed: false,
+                listeners: {
+                    'toggle' : function(ob, on) {
+                        if(on) grid.showFilters()
+                        else grid.hideFilters()
+                    }
+                }
+            },{
+                xtype: 'tbfill'
+            },{
+                id: 'lastupdated',
+                xtype: 'tbtext',
+                cls: 'lastupdated',
+                text: ''
+            },{
+                xtype: 'refreshmenu',
+                text: 'Refresh',
+                handler: function(){
+                    view = Ext.getCmp('events_grid').getView();
+                    view.showLoadMask(true);
+                    view.updateLiveRows(view.rowIndex, true, true);
+                }
+            },{
+                text: 'Reset Grid',
+                handler: function(){
+                    Ext.Msg.show({
+                        title: 'Confirm Reset',
+                        msg: 'Are you sure you want to reset the grid? All'+
+                              ' filters, column sizing, and column order '+
+                              'will be lost.',
+                        buttons: Ext.Msg.OKCANCEL,
+                        fn: function(val){
+                            if (val=='ok')
+                                Ext.getCmp('events_grid').resetGrid();
+                        }
+                    });
+                }
+            }
+            ]
+        })
+    );
+
+    function doLastUpdated() {
+        var box = Ext.getCmp('lastupdated'),
+            dt = new Date(),
+            dtext = dt.format('g:i:sA');
+            box.setText('Last updated at ' + dtext);
+    };
+
+    // Add css class to collapsed splitbar element, for hidingz
+    detail_panel.on('afterLayout', function(ob) {
+        layout = ob.ownerCt.getLayout();
+        splitbar = layout[detail_panel.region].getCollapsedEl();
+        splitbar.addClass('toggle-managed-splitbar');
+    });
+
+    // View to render the grid
+    var myView = new Zenoss.FilterGridView({
+        nearLimit : 20,
+        filterbutton: 'showfilters',
+        loadMask  : { msg :  'Loading. Please wait...' }
+    });
+    
+    // Store to hold the events data
+    var console_store = new Ext.ux.grid.livegrid.Store({
+        autoLoad: true,
+        proxy: new Ext.data.DirectProxy({
+            directFn:Zenoss.remote.EventConsole.query
+        }),
+        bufferSize: 100,
+        sortInfo: {field:'severity', direction:'DESC'},
+        reader: new Ext.ux.grid.livegrid.JsonReader({
+            root: 'events',
+            totalProperty: 'totalCount'
+        }, [
+        // List all possible columns. 
+        // FIXME: This should come from the server.
+            'dedupid',
+            'evid',
+            'device',
+            'device_url',
+            'component',
+            'component_url',
+            'summary',
+            'eventState',
+            'eventClass',
+            'eventClass_url',
+            'eventKey',
+            'message',
+            'eventClassKey',
+            'eventGroup',
+            'prodState',
+            'suppid',
+            'manager',
+            'agent',
+            'DeviceClass',
+            'Location',
+            'Systems',
+            'DeviceGroups',
+            'ipAddress',
+            'facility',
+            'priority',
+            'ntevid',
+            'ownerid',
+            'clearid',
+            'DevicePriority',
+            'eventClassMapping',
+            'monitor',
+            {name:'count', type:'int'},
+            {name:'severity', type:'int'},
+            {name:'firstTime', type:'date', dateFormat:Zenoss.date.ISO8601Long},
+            {name:'lastTime', type:'date', dateFormat:Zenoss.date.ISO8601Long},
+            {name:'stateChange', type:'date',
+                dateFormat:Zenoss.date.ISO8601Long}
+        ])
+    });
+
+    // Selection model
+    var console_selection_model = new Zenoss.ExtraHooksSelectionModel();
+
+    // Pop open the event detail, depending on the number of rows selected
+    function toggleEventDetailContent(){
+        var count = console_selection_model.getCount();
+        if (count==1) {
+            showEventDetail(console_selection_model.getSelected());
+        } else {
+            wipeEventDetail();
+        }
+    }
+
+    /*
+     * THE GRID ITSELF!
+     */
+    var grid = new Zenoss.FilterGridPanel({
+        id: 'events_grid',
+        enableDragDrop: false,
+        stateful: true,
+        border: false,
+        autoExpandColumn: 'summary',
+        store: console_store, // defined above
+        view: myView, // defined above
+        // Zenoss.env.COLUMN_DEFINITIONS comes from the server, and depends on
+        // the resultFields associated with the context.
+        cm: new Ext.grid.ColumnModel(Zenoss.env.COLUMN_DEFINITIONS),
+        stripeRows: true,
+        // Map some other keys
+        keys: [{
+        // Enter to pop open the detail panel
+            key: Ext.EventObject.ENTER,
+            fn: toggleEventDetailContent
+        },{
+        // j for down
+            key: 'j',
+            fn: function(){
+                console_selection_model.rowNav.down.apply(
+                    console_selection_model, arguments);
+            }
+        },{
+        // k for up
+            key: 'k',
+            fn: function(){
+                console_selection_model.rowNav.up.apply(
+                    console_selection_model, arguments);
+            }
+        }],
+        sm: console_selection_model // defined above
+    });
+    // Add it to the layout
+    master_panel.add(grid);
+
+
+    // Set a custom class on rows that are new, so we can embolden them
+    grid.getView().getRowClass = function(record, index) {
+        if (record.get('eventState')=='New') 
+            return 'unacknowledged'
+        else return 'acknowledged'
+    }
+
+    /*
+     * DETAIL PANEL STUFF
+     */
+
+    // Store to handle communication with the server
+    var detail_store = new Ext.data.JsonStore({
+        proxy: new Ext.data.DirectProxy({
+            directFn: Zenoss.remote.EventConsole.detail
+        }),
+        root: 'event',
+        // All fields that will be used in event detail.
+        fields: [
+            'evid',
+            'eventState',
+            'component',
+            'component_url',
+            'summary',
+            'device',
+            'device_url',
+            'log',
+            'eventClass',
+            'eventClass_url',
+            'properties',
+            {name:'severity', type:'int'},
+            {name:'firstTime', type:'date', dateFormat:Zenoss.date.ISO8601Long},
+            {name:'lastTime', type:'date', dateFormat:Zenoss.date.ISO8601Long},
+            {name:'count', type:'int'}
+        ]
+    });
+
+    // This refers to the invisible textarea at the top of this file, which
+    // contains the html we'll use in the event detail
+    var tpl = new Ext.XTemplate.from('detail_template');
+
+    // Add a DataView, linked to the store. When the store loads a new record,
+    // the DataView will refresh itself.
+    var detail_dataview = detail_panel.add(
+        new Zenoss.PostRefreshHookableDataView({
+            id: 'detail_dataview',
+            store: detail_store,
+            itemSelector: 'div',
+            tpl: tpl,
+            autoHeight: true,
+            // Do some conversions before sending to the template
+            prepareData: function(data){
+                data.severity = Zenoss.util.convertSeverity(data.severity);
+                data.eventState = Zenoss.util.convertStatus(data.eventState);
+                data.firstTime = date_renderer(data.firstTime);
+                data.lastTime = date_renderer(data.lastTime);
+                return data;
+            }
+        })
+    );
+
+    // DataView is bound to the store, so loading a new record will
+    // automatically re-render the template.
+    function loadEventDetail(event_id) {
+        detail_store.load({
+            params: {evid: event_id}
+        })
+    }
+
+    // Pop open the event detail pane and populate it with the appropriate data
+    // and switch triggers (single select repopulates detail, esc to close)
+    function showEventDetail(r) {
+        loadEventDetail(r.data.evid);
+        grid.un('rowdblclick', toggleEventDetailContent);
+        console_selection_model.on('rowselect', toggleEventDetailContent);
+        detail_panel.expand();
+        esckeymap.enable();
+    }
+
+    // Replace event detail content with an empty template
+    function wipeEventDetail() {
+        html = Ext.get('detail_header_template').dom.value;
+        detail_dataview.el.update(html);
+        btn = Ext.get('evdetail_tool_close');
+        if (btn) btn.on('click', hideEventDetail);
+    }
+
+    // Collapse the event detail pane and switch triggers (double select
+    // repopulates detail, esc no longer closes)
+    function hideEventDetail() {
+        detail_panel.collapse();
+        detail_dataview.el.update("");
+        console_selection_model.un('rowselect', toggleEventDetailContent);
+        grid.on('rowdblclick', toggleEventDetailContent);
+        esckeymap.disable();
+    }
+
+    // Flag so that when we iterate over events while detail pane is open, the
+    // properties can stay open
+    Zenoss.env.SHOW_EVENT_PROPERTIES = false;
+
+    // Pop down the event properties table
+    function showEventProps() {
+        el = Ext.get('full_event_props');
+        tgl = Ext.get('show_details');
+        if (el.isDisplayed()){
+            el.setDisplayed(false);
+            Zenoss.env.SHOW_EVENT_PROPERTIES = false;
+            tgl.update('Show more details...');
+        } else {
+            el.setDisplayed(true);
+            Zenoss.env.SHOW_EVENT_PROPERTIES = true;
+            tgl.update('Hide details');
+        }
+    }
+
+    // This is poorly named, but it should hide the rightmost columns
+    // FIXME: Not sure this currently works.
+    function hideAllButFourColumns() {
+        var cm = grid.getColumnModel();
+        for(i=5;i<cm.config.length;i++) {
+            cm.setHidden(i, true);
+        }
+    }
+
+    // Unhide the columns hidden by the function above.
+    function showAllColumns() {
+        var cm = grid.getColumnModel();
+        for(i=5;i<cm.config.length;i++) {
+            cm.setHidden(i, false);
+        }
+    }
+
+    // Hook up the column hiding/unhiding
+    detail_panel.on('beforeexpand', hideAllButFourColumns);
+    detail_panel.on('beforecollapse', showAllColumns);
+    
+    // After raw HTML has loaded, need to register listeners and create the log
+    // form against DOM elements that now exist
+    detail_dataview.on('afterrefresh', function(){
+        // Hook up the close button
+        var btn = Ext.get('evdetail_tool_close');
+        if (btn) btn.on('click', hideEventDetail);
+
+        // Hook up the "Show Details" link
+        var showd = Ext.get('show_details');
+        if (showd) showd.on('click', showEventProps);
+
+        // Set the event properties table to its proper state, open or closed
+        Ext.get('full_event_props').setDisplayed(
+            Zenoss.env.SHOW_EVENT_PROPERTIES);
+        if (Zenoss.env.SHOW_EVENT_PROPERTIES) {
+            Ext.get('show_details').update('Hide details')
+        }
+
+        // Build the log form
+        var form = new Ext.form.FormPanel({
+            id: 'myform',
+            renderTo: 'log-container',
+            frame: true,
+            layout:'table',
+            labelWidth: 1,
+            items: [{
+                xtype:'hidden',
+                name:'evid',
+                value: Ext.get('log_evid').dom.value
+            },{
+                style:'margin:0.75em',
+                width: 300,
+                xtype:'textfield',
+                name:'message'
+            },{
+                xtype:'button',
+                type:'submit',
+                name:'add',
+                text:'Add',
+                // Submit the message, then refresh the detail pane to see the
+                // new log message
+                handler: function(btn, e){
+                    Zenoss.remote.EventConsole.write_log(
+                     form.getForm().getValues(),
+                     function(provider, response){
+                        detail_store.load({
+                            params: {
+                                evid: Ext.get('log_evid').dom.value
+                            }
+                        })
+                    });
+                }
+            }]
+        });
+
+    });
+
+    // Hook up the "Last Updated" text
+    var store = grid.getStore(),
+        view = grid.getView();
+    store.on('load', doLastUpdated);
+    view.on('buffer', doLastUpdated);
+
+    // Detail pane should pop open when double-click on event
+    grid.on("rowdblclick", toggleEventDetailContent);
+
+    // When multiple events are selected, detail pane should blank
+    console_selection_model.on('rangeselect', wipeEventDetail);
+
+    // Key mapping for ESC to close detail pane
+    var esckeymap = new Ext.KeyMap(document, {
+        key: Ext.EventObject.ESC,
+        fn: hideEventDetail
+    });
+    // Start disabled since pane is collapsed
+    esckeymap.disable();
+
+    // Size the content panel appropriate to the window size
+    function maximizeContentPanel(){
+        var pane = Ext.getCmp('viewport'),
+            top = pane.getEl().getTop(),
+            vh = Ext.getBody().getViewSize().height,
+            MARGIN = 20;
+        newY = vh - top - MARGIN;
+        pane.setHeight(newY)
+    }
+    maximizeContentPanel();
+    // Have this happen on window resize
+    connect(currentWindow(), 'onresize', maximizeContentPanel);
+});
+</script>
+</tal:block>
+
+</tal:block>

@@ -1,0 +1,18 @@
+<configure
+    xmlns="http://namespaces.zope.org/zope"
+    xmlns:browser="http://namespaces.zope.org/browser"
+    xmlns:five="http://namespaces.zope.org/five">
+
+<browser:page
+    for="*"
+    name="page_macros"
+    class=".macros.PageTemplateMacros"
+    permission="zope2.Public"/>
+
+<browser:page
+    for="*"
+    name="templates"
+    class=".macros.BBBMacros"
+    permission="zope2.Public"/>
+
+</configure>

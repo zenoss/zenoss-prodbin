@@ -1,0 +1,10 @@
+<configure xmlns="http://namespaces.zope.org/zope">
+
+    <include package="Products.Five" file="meta.zcml"/>
+    <include package="Products.Five" file="traversing.zcml"/>
+    <include package="Products.Five" file="permissions.zcml"/>
+
+    <include package="zope.viewlet" file="meta.zcml"/>
+
+
+</configure>

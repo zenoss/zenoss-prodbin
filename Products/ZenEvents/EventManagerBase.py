@@ -30,7 +30,7 @@ import DateTime
 from Products.ZenModel.ZenossSecurity import *
 
 from Products.ZenUtils.ObjectCache import ObjectCache
-
+from Products.ZenUtils.json import unjson
 
 from ZEvent import ZEvent
 from EventDetail import EventDetail
@@ -45,6 +45,7 @@ from Products.ZenUtils import Time
 from Products.ZenUtils.FakeRequest import FakeRequest
 from Products.ZenEvents.ZenEventClasses import Status_Ping, Status_Wmi_Conn
 from Products.ZenWidgets import messaging
+from Products.ZenUI3.browser.eventconsole.columns import COLUMN_CONFIG
 
 from ZenEventClasses import Unknown
 
@@ -141,12 +142,12 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
     SystemField = "Systems"
 
     DeviceWhere = "\"device = '%s'\" % me.getDmdKey()"
-    DeviceResultFields = ("component", "eventClass", "summary", "firstTime",
-                            "lastTime", "count" )
+    DeviceResultFields = ("eventState", "severity", "component", "eventClass",
+                          "summary", "firstTime", "lastTime", "count" )
     ComponentWhere = ("\"(device = '%s' and component = '%s')\""
                       " % (me.device().getDmdKey(), me.name())")
-    ComponentResultFields = ("eventClass", "summary", "firstTime",
-                            "lastTime", "count" )
+    ComponentResultFields = ("eventState", "severity", "eventClass", "summary",
+                             "firstTime", "lastTime", "count" )
     IpAddressWhere = "\"ipAddress='%s'\" % (me.getId())" 
     EventClassWhere = "\"eventClass like '%s%%'\" % me.getDmdKey()"
     EventClassInstWhere = """\"eventClass = '%s' and eventClassKey = '%s'\" % (\
@@ -156,8 +157,9 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
     SystemWhere = "\"Systems like '%%|%s%%'\" % me.getDmdKey()"
     DeviceGroupWhere = "\"DeviceGroups like '%%|%s%%'\" % me.getDmdKey()"
 
-    defaultResultFields = ("device", "component", "eventClass", "summary",
-                           "firstTime", "lastTime", "count" )
+    defaultResultFields = ("eventState", "severity", "device", "component",
+                           "eventClass", "summary", "firstTime", "lastTime",
+                           "count" )
 
     defaultFields = ('eventState', 'severity', 'evid')
 
@@ -355,10 +357,104 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
             where = self.lookupManagedEntityWhere(me)
         try:
             resultFields = kwargs['resultFields']; del kwargs['resultFields']
-        except KeyError: 
+        except KeyError:
             resultFields = self.lookupManagedEntityResultFields(me.event_key)
         return self.getEventList(resultFields=resultFields, where=where,
                                  **kwargs)
+
+
+    def filteredWhere(self, where, filters):
+        """
+        Create SQL representing conditions that match passed filters and append
+        it to a given where clause.
+
+        Expressions are built using various criteria, including the type of
+        filter widget representing the column and factors specific to the
+        column itself.
+
+        All C{textfield} columns except C{count} will be matched as regular
+        expressions.
+
+        C{count} may be passed as a comparison expression such as ">=2", "=8",
+        "<10", etc., or an integer, in which case it will be evaluated as
+        ">=n".
+
+        C{firstTime} and C{lastTime} are turned into seconds since the epoch,
+        then evaluated as '>=n' and '<=n', respectively.
+
+        C{multiselectmenu} columns (prodState, severity, eventState, priority)
+        arrive as a list of values to match, and become 'and (field=v1 or
+        field=v2...)' where field is the column and vn is the value.
+
+        @param where: The where clause to which to append further conditions
+        @type where: str
+        @param filters: Values for which to create filters (e.g.,
+                        {'device':'^loc.*$', 'severity':[4, 5]})
+        @type filters: dict or JSON str representing dict
+        """
+        if filters is None: filters = {}
+        elif isinstance(filters, basestring):
+            filters = unjson(filters)
+        for k,v in filters.items():
+            ftype = COLUMN_CONFIG[k].get('filter', 'textfield')
+            if isinstance(ftype, dict):
+                ftype = ftype['xtype']
+            if k=='count':
+                if v.isalnum():
+                    v = '>=%s' % v
+                where += ' and count%s ' % v
+            elif ftype=='textfield':
+                where += ' and (%s REGEXP "%s") ' % (k,v)
+            elif k=='firstTime':
+                v = self.dateDB(v.replace('T', ' '))
+                where += ' and %s >= %s ' % (k, v)
+            elif k=='lastTime':
+                v = self.dateDB(v.replace('T', ' '))
+                where += ' and %s <= %s ' % (k, v)
+            elif ftype=='multiselectmenu':
+                if isinstance(v, basestring): v = (v,)
+                sevstr = ' or '.join(['%s=%s' % (k, s) for s in v])
+                where += ' and (%s) ' % sevstr
+        return where
+
+
+    def getEventIDsFromRanges(self, context, sort, direction, start=None,
+                              limit=None, filters=None, evids=None,
+                              ranges=None):
+        """
+        Consolidate event ids and ranges of records into a list of event ids.
+
+        Accepts criteria representing a console state and criteria representing
+        selected records, in the form of a list of event ids and a list of
+        ranges of row numbers for which the client had not loaded event ids.
+        Can then perform the query described by the console state and use that
+        to select event ids from the given ranges. These are then added to the
+        evids passed in, if any. The resulting list is uniquified and returned.
+
+        @param context: The context for which events should be queried.
+        """
+        if evids is None: evids = []
+        start = max(start, 0)
+
+        where = self.lookupManagedEntityWhere(context)
+        where = self.filteredWhere(where, filters)
+
+        if not ranges:
+            if evids: return evids
+            events = self.getEventList(resultFields=('evid',), where=where,
+                                      orderby="%s %s" % (sort, direction),
+                                      severity=-1, state=2, offset=start,
+                                      rows=limit)
+        else:
+            events = []
+            for s,e in ranges:
+                events += self.getEventList(resultFields=('evid',), where=where,
+                                           orderby="%s %s" % (sort, direction),
+                                           severity=-1, state=2, offset=s,
+                                           rows=e)
+
+        evids = set(e.evid for e in events) | set(evids)
+        return list(evids)
 
 
     def getEventBatchME(self, me, selectstatus=None, resultFields=[], 
@@ -431,7 +527,7 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
             where += goodevidsstr + oper + " (eventstate=0 %s) " % badevidsstr
         try:
             resultFields = kwargs['resultFields']; del kwargs['resultFields']
-        except KeyError: 
+        except KeyError:
             resultFields = self.lookupManagedEntityResultFields(me.event_key)
         events = self.getEventList(
                                     filter=filter,
@@ -449,10 +545,10 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
         """This is a hook do not delete me!"""
         return where
 
-        
+
     def getEventList(self, resultFields=None, where="", orderby="",
             severity=None, state=2, startdate=None, enddate=None, offset=0,
-            rows=0, getTotalCount=False, filter="", **kwargs):
+            rows=0, getTotalCount=False, filter="", filters=None, **kwargs):
         """
         Fetch a list of events from the database matching certain criteria.
 
@@ -507,6 +603,8 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
                 where += " and %s >= '%s' and %s <= '%s'" % (
                          self.lastTimeField, startdate,
                          self.firstTimeField, enddate)
+            if filters is not None:
+                where = self.filteredWhere(where, filters)
             select.append(where)
             if not orderby:
                 orderby = self.defaultOrderby
@@ -610,6 +708,7 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
                                                                         better)
         return event
 
+
     def getEventDetail(self, evid=None, dedupid=None, better=False):
         """
         Return an EventDetail object for a particular event.
@@ -666,7 +765,7 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
                 logs.append((user, date, text))
             event._logs = logs
         finally: self.close(conn)
-        
+
         self.addToCache(cachekey, event)
         self.cleanCache()
         return event
@@ -894,7 +993,7 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
         sel = """select device, component, lastTime from heartbeat """
         if failures:
             sel += "where DATE_ADD(lastTime, INTERVAL timeout SECOND) <= NOW();"
-                    
+
         statusCache = self.checkCache(sel)
         cleanup = lambda : None
         if not statusCache:
@@ -1127,7 +1226,8 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
         @return: A tuple of strings representing columns in the database.
         """
         key = event_key + "ResultFields"
-        return getattr(aq_base(self), key, self.defaultResultFields)
+        fields = getattr(aq_base(self), key, self.defaultResultFields)
+        return fields
 
 
     def _wand(self, where, fmt, field, value):
@@ -1249,7 +1349,7 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
 
     security.declareProtected(ZEN_COMMON,'getSeverities')
     def getSeverities(self):
-        """Return a list of tuples of severities [('Warning', 3), ...] 
+        """Return a list of tuples of severities [('Warning', 3), ...]
         """
         return self.severityConversions
 
@@ -1262,12 +1362,12 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
             return "Unknown"
 
     def getPriorities(self):
-        """Return a list of tuples of priorities [('Warning', 3), ...] 
+        """Return a list of tuples of priorities [('Warning', 3), ...]
         """
         return self.priorityConversions
 
     def getPriorityString(self, priority):
-        """Return the priority name 
+        """Return the priority name
         """
         try:
             return self.priorities[priority]
@@ -1353,7 +1453,7 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
         """
         if isinstance(value, DateTime.DateTime):
             return "%.3f" % value.timeTime()
-        elif type(value) == types.StringTypes:
+        elif isinstance(value, basestring):
             return "%.3f" % DateTime.DateTime(value).timeTime()
         return value
 
@@ -1439,9 +1539,8 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
                 return self.callZenScreen(REQUEST)
             else:
                 return
-        self.sendEvent(eventDict)
-        if REQUEST:
-            REQUEST['RESPONSE'].redirect('/zport/dmd/Events/viewEvents')
+        evid = self.sendEvent(eventDict)
+        return evid
 
 
     def deleteEvents(self, whereClause, reason):
@@ -1605,11 +1704,6 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
                 reason += 'unknown (%d)' % eventState
             self.updateEvents(update, whereClause, reason)
         if REQUEST:
-            if not reason: reason = ''
-            messaging.IMessageSender(self).sendToBrowser(
-                'Event States Set',
-                reason
-            )
             return self.callZenScreen(REQUEST)
 
 
@@ -1660,33 +1754,41 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
                     priority=messaging.WARNING
                 )
 
+        msg = ''
+        if numNotUnknown:
+            msg += ((msg and ' ') + 
+                    '%s event%s %s not class /Unknown.' % (
+                        numNotUnknown, 
+                        (numNotUnknown != 1 and 's') or '',
+                        (numNotUnknown != 1 and 'are') or 'is'))
+        if numNoKey:
+            msg += ((msg and ' ') +
+                    '%s event%s %s not have an event class key.' % (
+                        numNoKey,
+                        (numNoKey != 1 and 's') or '',
+                        (numNoKey != 1 and 'do') or 'does'))
+        msg += (msg and ' ') + 'Created %s event mapping%s.' % (
+                        numCreated,
+                        (numCreated != 1 and 's') or '')
+
+        url = None
+        if len(evids) == 1 and evmap:
+            url = evmap.absolute_url()
+        elif evclass and evmap:
+            url = evclass.absolute_url()
+
         if REQUEST:
-            msg = REQUEST.get('message', '')
-            if numNotUnknown:
-                msg += ((msg and ' ') + 
-                        '%s event%s %s not class /Unknown.' % (
-                            numNotUnknown, 
-                            (numNotUnknown != 1 and 's') or '',
-                            (numNotUnknown != 1 and 'are') or 'is'))
-            if numNoKey:
-                msg += ((msg and ' ') +
-                        '%s event%s %s not have an event class key.' % (
-                            numNoKey,
-                            (numNoKey != 1 and 's') or '',
-                            (numNoKey != 1 and 'do') or 'does'))
-            msg += (msg and ' ') + 'Created %s event mapping%s.' % (
-                            numCreated,
-                            (numCreated != 1 and 's') or '')
+            msg = REQUEST.get('message', '') + msg
 
             messaging.IMessageSender(self).sendToBrowser('Event Map', msg)
             # EventView might pass a fake Request during an ajax call from
             # event console.  Don't bother rendering anything in this case.
             if getattr(REQUEST, 'dontRender', False):
                 return ''
-            if len(evids) == 1 and evmap:
-                REQUEST['RESPONSE'].redirect(evmap.absolute_url())
-            elif evclass and evmap:
-                REQUEST['RESPONSE'].redirect(evclass.absolute_url())
+            if url:
+                REQUEST['RESPONSE'].redirect(url)
+        else:
+            return msg, url
 
 
     security.declareProtected(ZEN_MANAGE_EVENTMANAGER,'manage_refreshConversions')

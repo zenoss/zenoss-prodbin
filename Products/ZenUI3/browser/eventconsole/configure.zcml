@@ -1,0 +1,32 @@
+<configure 
+    xmlns="http://namespaces.zope.org/zope"
+    xmlns:browser="http://namespaces.zope.org/browser"
+    xmlns:five="http://namespaces.zope.org/five"
+    >
+
+    <!-- Set up the navigation -->
+    <!-- Don't need navigation yet
+
+    <browser:viewlet
+        name="Event Console"
+        url="/evconsole"
+        weight="0"
+        parentItem="Events"
+        manager="...navigation.interfaces.ISecondaryNavigationMenu"
+        class="...navigation.menuitem.SecondaryNavigationMenuItem"
+        permission="zope2.Public"
+        />
+
+    -->
+
+    <!-- Register the main view -->
+    <browser:page
+        template="console.pt"
+        name="viewEvents"
+        for="Products.ZenModel.EventView.IEventView"
+        permission="zope2.Public"
+        />
+
+    <include file="grid.zcml"/>
+
+</configure>

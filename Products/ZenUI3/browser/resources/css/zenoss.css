@@ -1,0 +1,205 @@
+.zenui3 { font-family: Helvetica,sans-serif; }
+
+.zenui3 a.resource-link:link, 
+.zenui3 a.resource-link:visited, 
+.zenui3 a.resource-link:active {
+    color: #7199c6;
+    text-decoration: none;
+    padding-right: 15px;
+    background: transparent url(/zenui/img/xtheme-zenoss/icon/resource-link.png)
+        right 1px no-repeat;
+}
+
+/**
+ * PANEL
+ */
+.toggle-managed-splitbar {
+    display: none !important;
+}
+
+/* 
+ * GRID
+ */
+.console-selection .x-grid3-row-selected {
+	background:#fff !important;
+}
+.console-selection .x-grid3-row-alt {
+    background-color: #eaf0f7;
+}
+.console-selection .x-grid3-row-over.console-selection-clicked, 
+.console-selection .console-selection-clicked {
+    background: #7199c6 !important;
+}
+.console-selection .x-grid3-row-selected .x-grid3-cell-inner {
+    color: #000;
+}
+.console-selection .console-selection-clicked .x-grid3-cell-inner{
+    color: white;
+}
+
+/**
+ * EVENT DETAIL
+ */
+.evdetail_hd {
+    height: 50px;
+    line-height: 50px;
+    overflow: hidden;
+    color: #474747;
+    font-size: 15px;
+    font-family: helvetica,sans-serif;
+    background: transparent
+        url(/zenui/img/xtheme-zenoss/toolbar/tb-evdetail-bg.png) repeat-x;
+}
+
+.evdetail_hd td {
+    font-size: 15px;
+    font-family: helvetica,sans-serif;
+}
+
+.evdetail_close {
+   background-position: center center;
+   background-image: url(/zenui/img/xtheme-zenoss/window/close-button-dark.png);
+   height: 50px;
+   width: 17px;
+   margin: 0 18px;
+}
+
+.evdetail_props {
+    float: left;
+    padding: 1em;
+}
+.evdetail_props table {
+    font-size: 11pt;
+}
+.evdetail_props td {
+    line-height: 1.5em;
+}
+
+.evdetail_props td.dt {
+    text-align: right;
+    font-weight: bold;
+    padding-right: 1em;
+    width: 124px;
+}
+
+.evdetail_graph {
+    float:left;
+    margin: 1em;
+    margin-left: 2em;
+}
+
+.log-content {
+    padding-top: 1em;
+}
+.log-content td {
+    padding: 0 5px;
+    font-size: 12px;
+}
+
+.log-content table td.time {
+    font-weight: bold;
+    text-align: right;
+}
+
+.severity-icon {
+    float: left;
+    margin-left: 8px;
+    height: 50px;
+    width: 27px;
+    background: transparent 
+        url(/zenui/img/xtheme-zenoss/icon/severity-sprite-large.png) 
+        100px 100px no-repeat;
+}
+
+.severity-icon.critical { background-position: 0px 0px; }
+.severity-icon.error { background-position: -44px 0px; }
+.severity-icon.info { background-position: -88px 0px; }
+.severity-icon.debug { background-position: -132px 0px; }
+.severity-icon.clear { background-position: -176px 0px; }
+.severity-icon.warning { background-position: -220px 0px; }
+
+.severity-icon-small.critical,
+.severity-icon-small.error,
+.severity-icon-small.warning,
+.severity-icon-small.info,
+.severity-icon-small.debug,
+.severity-icon-small.clear {
+    width: 16px;
+    height: 14px;
+    background: transparent url(/zenui/img/xtheme-zenoss/icon/severity-sprite.png) no-repeat;
+    margin: 0 auto;
+}
+
+.severity-icon-small.critical { background-position: 0px  0px   }
+.severity-icon-small.error    { background-position: 0px -20px  }
+.severity-icon-small.warning  { background-position: 0px -40px  }
+.severity-icon-small.info     { background-position: 0px -60px  }
+.severity-icon-small.debug    { background-position: 0px -80px  }
+.severity-icon-small.clear    { background-position: 0px -100px }
+
+/**
+ * FILTER GRID
+ */
+.x-grid3-scroller {
+    overflow: hidden !important;
+}
+.x-grid3-filter {
+    height: 30px;
+    background-color: #bdbdbd;
+    border-bottom: 1px solid black;
+}
+
+.x-grid3-filter .x-panel-body{
+    background-color: #bdbdbd;
+}
+
+.x-grid3-filter td {
+    background-color: #bdbdbd;
+}
+
+.x-grid3-row.unacknowledged td .x-grid3-cell-inner {
+    font-weight: bold;
+}
+.status-icon-small {
+    width: 16px;
+    height: 14px;
+    background: transparent url() no-repeat;
+    margin: 0 auto;
+}
+
+.status-icon-small.acknowledged { background-image: url(/zenui/img/xtheme-zenoss/icon/acknowledge-small.png)}
+.status-icon-small.suppressed { background-image: url(/zenui/img/xtheme-zenoss/icon/suppress-small.png)}
+
+td.proptable_key {
+    font-weight: bold;
+    text-align: right;
+    padding-right: 1em;
+}
+
+table.proptable {
+    border: border-collapse;
+}
+
+
+#show_details {
+    cursor: hand;
+    cursor: pointer;
+}
+
+.x-toolbar div.xtb-text.lastupdated {
+    font-size: 10px;
+    color: #373737;
+    font-weight: bold;
+    padding-right: 1em;
+    padding-bottom: 3px;
+    text-transform: uppercase;
+}
+
+.refreshevery {
+    color: white;
+    font-weight: bold;
+    background-color: #474747;
+    padding: 3px;
+    display: block;
+}
+

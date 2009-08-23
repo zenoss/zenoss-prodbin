@@ -1,0 +1,9 @@
+<li tal:attributes="class string:nav-item-${view/css}">
+<div class="sd-left">
+    <div class="sd-right">
+        <a tal:attributes="href view/url"
+           tal:content="view/title"
+           i18n:translate="">Menu item</a>
+   </div>
+</div>
+</li>

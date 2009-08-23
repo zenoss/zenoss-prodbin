@@ -1,0 +1,45 @@
+<configure
+    xmlns="http://namespaces.zope.org/zope"
+    xmlns:browser="http://namespaces.zope.org/browser"
+    xmlns:five="http://namespaces.zope.org/five">
+
+    <!-- JS snippets providing initial data -->
+
+    <browser:viewletManager
+        name="jssnippets"
+        provides="...utils.interfaces.IJavaScriptSnippetManager"
+        class="...utils.javascript.JavaScriptSnippetManager"
+        permission="zope2.Public"
+        />
+
+
+    <!-- Event console JSON api -->
+    <browser:page
+        name="evconsole_router"
+        for="*"
+        class=".grid.EventConsole"
+        permission="zope2.Public"
+        />
+        
+    <browser:viewlet
+        name="evconsole_api"
+        manager="...utils.interfaces.IJavaScriptSnippetManager"
+        class=".grid.EventConsoleAPIDefinition"
+        permission="zope2.Public"
+        />
+
+    <browser:viewlet
+        name="evconsole_coldefs"
+        manager="...utils.interfaces.IJavaScriptSnippetManager"
+        class=".grid.GridColumnDefinitions"
+        permission="zope2.Public"
+        />
+
+    <browser:viewlet
+        name="evconsole_evclasses"
+        manager="...utils.interfaces.IJavaScriptSnippetManager"
+        class=".grid.EventClasses"
+        permission="zope2.Public"
+        />
+
+</configure>

@@ -1,0 +1,105 @@
+<configure
+    xmlns="http://namespaces.zope.org/zope"
+    xmlns:browser="http://namespaces.zope.org/browser"
+    xmlns:five="http://namespaces.zope.org/five">
+
+    <browser:viewletManager
+        name="secondarynav"
+        provides=
+          "..navigation.interfaces.ISecondaryNavigationMenu"
+        class="..navigation.manager.SecondaryNavigationManager"
+        permission="zope2.Public"
+        />
+
+    <browser:viewletManager
+        name="primarynav"
+        provides="..navigation.interfaces.IPrimaryNavigationMenu"
+        class="..navigation.manager.PrimaryNavigationManager"
+        permission="zope2.Public"
+        />
+
+    <browser:viewlet
+        name="Dashboard"
+        url="/dashboard"
+        weight="0"
+        manager="..navigation.interfaces.IPrimaryNavigationMenu"
+        class="..navigation.menuitem.PrimaryNavigationMenuItem"
+        permission="zope2.Public"
+        />
+
+    <browser:viewlet
+        name="NOC"
+        url="/nocview"
+        weight="1"
+        manager="..navigation.interfaces.IPrimaryNavigationMenu"
+        class="..navigation.menuitem.PrimaryNavigationMenuItem"
+        permission="zope2.Public"
+        />
+
+    <browser:viewlet
+        name="Events"
+        url="/evconsole"
+        weight="2"
+        manager="..navigation.interfaces.IPrimaryNavigationMenu"
+        class="..navigation.menuitem.PrimaryNavigationMenuItem"
+        permission="zope2.Public"
+        />
+
+        <browser:viewlet
+            name="History"
+            url="/evhistory"
+            weight="1"
+            parentItem="Events"
+            manager="..navigation.interfaces.ISecondaryNavigationMenu"
+            class="..navigation.menuitem.SecondaryNavigationMenuItem"
+            permission="zope2.Public"
+            />
+
+        <browser:viewlet
+            name="Notifications"
+            url="/notifications"
+            weight="2"
+            parentItem="Events"
+            manager="..navigation.interfaces.ISecondaryNavigationMenu"
+            class="..navigation.menuitem.SecondaryNavigationMenuItem"
+            permission="zope2.Public"
+            />
+
+    <browser:viewlet
+        name="IT Infrastructure"
+        url="/itinfrastructure"
+        weight="3"
+        manager="..navigation.interfaces.IPrimaryNavigationMenu"
+        class="..navigation.menuitem.PrimaryNavigationMenuItem"
+        permission="zope2.Public"
+        />
+
+    <browser:viewlet
+        name="Reports"
+        url="/reports"
+        weight="4"
+        manager="..navigation.interfaces.IPrimaryNavigationMenu"
+        class="..navigation.menuitem.PrimaryNavigationMenuItem"
+        permission="zope2.Public"
+        />
+
+    <browser:viewlet
+        name="Users"
+        url="/users"
+        weight="5"
+        manager="..navigation.interfaces.IPrimaryNavigationMenu"
+        class="..navigation.menuitem.PrimaryNavigationMenuItem"
+        permission="zope2.Public"
+        />
+
+    <browser:viewlet
+        name="Advanced"
+        url="/advanced"
+        weight="6"
+        manager="..navigation.interfaces.IPrimaryNavigationMenu"
+        class="..navigation.menuitem.PrimaryNavigationMenuItem"
+        permission="zope2.Public"
+        />
+
+</configure>
+

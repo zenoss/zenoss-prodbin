@@ -1,0 +1,72 @@
+<tal:block metal:define-macro="verticalbrowse">
+<tal:block metal:use-macro="context/page_macros/base">
+
+<tal:block metal:fill-slot="center_panel">
+<div id="browse_1_panel">
+    <tal:block metal:define-slot="browse_1_panel"/>
+</div>
+<div id="browse_2_panel">
+    <tal:block metal:define-slot="browse_2_panel"/>
+</div>
+<div id="detail_panel">
+    <tal:block metal:define-slot="detail_panel"/>
+</div>
+</tal:block>
+
+<tal:block metal:fill-slot="script_layout">
+<script>
+Ext.onReady(function(){
+    Ext.getCmp('center_panel').add(
+        new Ext.Panel({
+            layout: 'border',
+            defaults: {border:false},
+            items: [{
+                region: 'west',
+                width: 250,
+                contentEl: 'browse_1_panel',
+                id: 'browse_1_panel',
+                layout: 'fit',
+                split: true
+            },{
+                region: 'center',
+                layout: 'border',
+                defaults: {border:false},
+                items: [{
+                    region: 'center',
+                    contentEl: 'detail_panel',
+                    id: 'detail_panel',
+                    split: true,
+                    layout: 'fit'
+                },{
+                    region: 'west',
+                    contentEl: 'browse_2_panel',
+                    id: 'browse_2_panel',
+                    split: true,
+                    layout: 'fit',
+                    width: 250
+                }]
+            }]
+        }
+    ));
+});
+</script>
+<!-- Chain the macro -->
+<tal:block metal:define-slot="script_layout">
+<script>
+Ext.onReady(function(){
+    Ext.getCmp('browse_1_panel').add(new Zenoss.PlaceholderPanel({
+        text: 'Ext.getCmp("browse_1_panel"), metal:fill-slot="browse_1_panel"'
+    }));
+    Ext.getCmp('detail_panel').add(new Zenoss.PlaceholderPanel({
+        text: 'Ext.getCmp("detail_panel"), metal:fill-slot="detail_panel"'
+    }));
+    Ext.getCmp('browse_2_panel').add(new Zenoss.PlaceholderPanel({
+        text: 'Ext.getCmp("browse_2_panel"), metal:fill-slot="browse_2_panel"'
+    }));
+});
+</script>
+</tal:block>
+</tal:block>
+
+</tal:block>
+</tal:block>

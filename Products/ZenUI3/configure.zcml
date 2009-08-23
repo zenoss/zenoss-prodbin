@@ -1,0 +1,9 @@
+<configure
+    xmlns="http://namespaces.zope.org/zope"
+    xmlns:five="http://namespaces.zope.org/five">
+
+    <five:registerPackage package="." initialize=".zope2.initialize" />
+
+    <include package=".browser"/>
+
+</configure>

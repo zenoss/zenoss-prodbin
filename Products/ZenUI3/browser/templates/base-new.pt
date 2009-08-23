@@ -1,0 +1,106 @@
+<html metal:define-macro="base">
+    <head>
+        <link rel="stylesheet" type="text/css" 
+            href="/extjs/resources/css/ext-all.css" />
+        <link rel="stylesheet" type="text/css" 
+            href="/zenui/css/xtheme-zenoss.css" />
+        <link rel="stylesheet" type="text/css" 
+            href="/zenui/css/zenoss.css" />
+        <link rel="stylesheet"
+            href="/zenui/js/livegrid/resources/css/ext-ux-livegrid.css"/>
+        <script type="text/javascript" src="/extjs/adapters/ext/ext-base.js">
+        </script>
+        <script type="text/javascript" src="/extjs/ext-all.js"></script>
+        <script type="text/javascript"
+            src="/zenui/js/livegrid/livegrid-all-debug.js"></script>
+        <script type="text/javascript" src="/zenui/js/zenoss.js"></script>
+    </head>
+
+    <body>
+        <div id="header">
+            <div class="bg">
+                <div class="bg-leftcap">
+                    <div class="bg-tile">
+                        <div class="bg-logo"></div>
+                        <div id="primarynav">
+                            <ul tal:content="structure provider:primarynav"/>
+                        </div>
+                        <div id="secondarynav">
+                            <ul tal:content="structure provider:secondarynav"/>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div id="center">
+            <tal:block metal:define-slot="center_panel"/>
+        </div>
+        <div id="footer">
+        </div>
+
+<tal:block metal:define-slot="script_beforeLayout"/>
+
+<script type="text/javascript">
+Ext.onReady(function(){
+var viewport = new Ext.Viewport({
+    id: 'viewport',
+    layout: 'border',
+    defaults: { 
+        'border': false 
+    },
+    items: [
+        new Ext.BoxComponent({
+            region: 'north',
+            el: 'header',
+            height: 75,
+            id: 'header_panel'
+        }),{
+            id: 'footer_panel',
+            region: 'south',
+            height: 30,
+            el: 'footer',
+            layout: 'fit',
+            items: [
+                new Ext.Toolbar({
+                    border: false,
+                    id: 'footer_bar'
+                })
+            ],
+            border: false
+        },{
+            id: 'center_panel',
+            region: 'center',
+            el: 'center',
+            layout: 'fit',
+            border: false,
+            defaults: { 
+                'border': false 
+            }
+        }
+    ]
+});
+});
+</script>
+
+<tal:block metal:define-slot="script_layout">
+<!-- Use this slot to add elements to the basic layout. -->
+<script>
+Ext.onReady(function(){
+    // Add a placeholder panel to show what goes where
+    Ext.getCmp('center_panel').add(
+        new Zenoss.PlaceholderPanel({text: 'center_panel'})
+    );
+});
+</script>
+</tal:block>
+
+<!-- Make sure everything on the page gets laid out -->
+<script>Ext.onReady(function(){Ext.getCmp('viewport').doLayout()});</script>
+
+<tal:block metal:define-slot="script_afterLayout">
+<!-- Use this slot to perform any post-layout steps. -->
+</tal:block>
+
+
+</body>
+</html>

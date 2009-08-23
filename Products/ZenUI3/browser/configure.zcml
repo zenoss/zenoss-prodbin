@@ -1,0 +1,100 @@
+<configure
+    xmlns="http://namespaces.zope.org/zope"
+    xmlns:browser="http://namespaces.zope.org/browser"
+    xmlns:five="http://namespaces.zope.org/five">
+
+
+<include file="resources.zcml"/>
+<include file="macros.zcml"/>
+<!--
+<include file="navigation.zcml"/>
+<include file="screentypes.zcml"/>
+-->
+
+
+<!-- Redirect is handled by /index_html script in Zenoss
+
+<browser:defaultView
+    for="OFS.interfaces.IApplication"
+    name="redirect"
+    />
+
+<browser:page
+    for="*"
+    name="redirect"
+    permission="zope2.Public"
+    class=".MainPageRedirect"
+    />
+
+-->
+
+
+<browser:resourceDirectory
+    name="zenui"
+    directory="resources"
+    />
+
+
+<!-- Don't need any of these yet
+
+<browser:page
+    template="templates/base.pt"
+    name="dashboard"
+    for="*"
+    permission="zope2.Public"
+    />
+
+<browser:page
+    template="templates/base.pt"
+    name="nocview"
+    for="*"
+    permission="zope2.Public"
+    />
+
+<browser:page
+    template="templates/base.pt"
+    name="evhistory"
+    for="*"
+    permission="zope2.Public"
+    />
+
+<browser:page
+    template="templates/base.pt"
+    name="notifications"
+    for="*"
+    permission="zope2.Public"
+    />
+
+<browser:page
+    template="templates/base.pt"
+    name="itinfrastructure"
+    for="*"
+    permission="zope2.Public"
+    />
+
+<browser:page
+    template="templates/base.pt"
+    name="reports"
+    for="*"
+    permission="zope2.Public"
+    />
+
+<browser:page
+    template="templates/base.pt"
+    name="users"
+    for="*"
+    permission="zope2.Public"
+    />
+
+<browser:page
+    template="templates/base.pt"
+    name="advanced"
+    for="*"
+    permission="zope2.Public"
+    />
+
+-->
+
+<include package=".eventconsole"/>
+
+</configure>

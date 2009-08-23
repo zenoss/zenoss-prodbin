@@ -135,6 +135,7 @@ div.logo {
 
 #settings ul {
     list-style-type: none;
+    margin: 1em;
     margin-left: 0px;
     position: relative;
     top: 25px;

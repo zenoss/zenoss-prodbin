@@ -1,0 +1,65 @@
+<tal:block metal:define-macro="base">
+<tal:block metal:use-macro="here/page_macros/page2">
+
+<tal:block metal:fill-slot="head-local">
+<link rel="stylesheet" type="text/css" 
+    href="/extjs/resources/css/ext-all.css" />
+<link rel="stylesheet" type="text/css" 
+    href="/zenui/css/xtheme-zenoss.css" />
+<link rel="stylesheet" type="text/css" 
+    href="/zenui/css/zenoss.css" />
+<script type="text/javascript" src="/extjs/adapters/ext/ext-base.js">
+</script>
+<script type="text/javascript" src="/extjs/ext-all.js"></script>
+<script>
+Ext.state.Manager.setProvider(new Ext.state.CookieProvider({
+    expires: new Date(new Date().getTime()+(1000*60*60*24*30))
+}));
+</script>
+<script type="text/javascript" src="/zenui/js/zenoss.js"></script>
+<style>#contentPane{padding:0}</style>
+</tal:block>
+
+<tal:block metal:fill-slot="contentPane">
+
+ <tal:block metal:define-slot="center_panel"/>
+
+ <tal:block metal:define-slot="script_beforeLayout"/>
+
+<script type="text/javascript">
+Ext.onReady(function(){
+   var viewport = new Ext.Panel({
+       id: 'viewport',
+       layout: 'border',
+       border: false,
+       renderTo: 'contentPane',
+       items: [{
+           region: 'center',
+           id: 'center_panel',
+           layout: 'fit',
+           border: false
+       }/*,{
+           region: 'south',
+           id: 'footer_bar',
+           height: 30,
+           border: false
+       }*/]
+   });
+});
+</script>
+
+<tal:block metal:define-slot="script_layout">
+<!-- Use this slot to add elements to the basic layout. -->
+</tal:block>
+
+<!-- Make sure everything on the page gets laid out -->
+<script>Ext.onReady(function(){Ext.getCmp('viewport').doLayout()});</script>
+
+<tal:block metal:define-slot="script_afterLayout">
+<!-- Use this slot to perform any post-layout steps. -->
+</tal:block>
+
+</tal:block> 
+</tal:block>
+</tal:block>
+

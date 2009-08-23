@@ -1,0 +1,223 @@
+Index: browser/eventconsole/api.py
+===================================================================
+--- browser/eventconsole/api.py	(revision 14358)
++++ browser/eventconsole/api.py	(working copy)
+@@ -6,6 +6,15 @@
+ def columnSorter(colname):
+     return lambda x:x[colname]
+ 
++def rowFilter(params):
++    def inner(d):
++        for k,v in params.iteritems():
++            dv = d.get(k)
++            if not dv or not v.lower() in dv.lower():
++                return False
++        return True
++    return inner
++
+ class DummyEventsAPI(object):
+     """
+     Integration layer between model and views.
+@@ -35,24 +44,33 @@
+ 
+     write = logger.write
+ 
+-    def query(self, limit=30, start=0, sort='severity', dir='DESC', evid=None):
++    def query(self, limit=30, start=0, sort='severity', dir='DESC', evid=None,
++              filters=None):
+         from sampledata import events
+ 
++        # Filter by event id if passed in
++        if evid:
++            events = filter(lambda x:x['evid']==evid, events)
++
++        # Filter by any parameters
++        if filters:
++            events = filter(rowFilter(filters), events)
++
+         # Initial sort by last time, descending
+         events.sort(key=columnSorter('lastTime'), reverse=True)
+ 
+         # Sort by requested column
+         events.sort(key=columnSorter(sort), reverse=(dir=='DESC'))
+ 
++        # Total number of matching events
++        total = len(events)
++
++        # Take the necessary slice
+         events = events[start:start+limit]
+ 
+-        # Filter by event id if passed in
+-        if evid:
+-            events = filter(lambda x:x['evid']==evid, events)
+-
+         return {
+             'events': events,
+-            'totalCount': 1000
++            'totalCount': total
+         }
+ 
+ 
+Index: browser/eventconsole/console.pt
+===================================================================
+--- browser/eventconsole/console.pt	(revision 14358)
++++ browser/eventconsole/console.pt	(working copy)
+@@ -7,9 +7,6 @@
+ </tal:block>
+ 
+ <tal:block metal:fill-slot="script_beforeLayout">
+-<link rel="stylesheet"
+-    href="/zenui/js/livegrid/resources/css/ext-ux-livegrid.css"/>
+-<script type="text/javascript" src="/zenui/js/livegrid/livegrid-all-debug.js"></script>
+ <tal:block tal:content="structure provider:jssnippets"/>
+ </tal:block>
+ 
+@@ -146,7 +143,7 @@
+         splitbar.addClass('toggle-managed-splitbar');
+     });
+ 
+-    var myView = new Ext.ux.grid.livegrid.GridView({
++    var myView = new Zenoss.FilterGridView({
+         nearLimit : 30,
+         loadMask  : { msg :  'Loading. Please wait...' }
+     });
+@@ -178,8 +175,7 @@
+     });
+ 
+     // Add the event grid
+-    //var console_selection_model = new Zenoss.ExtraHooksSelectionModel();
+-    var console_selection_model = new Ext.ux.grid.livegrid.RowSelectionModel();
++    var console_selection_model = new Zenoss.ExtraHooksSelectionModel();
+ 
+     var render_severity = function(sev) {
+         return '<div class="severity-icon-small '+
+@@ -202,7 +198,7 @@
+         }
+     }
+ 
+-    var grid = new Ext.ux.grid.livegrid.GridPanel({
++    var grid = new Zenoss.FilterGridPanel({
+         enableDragDrop: false,
+         border: false,
+         store: console_store,
+Index: browser/eventconsole/grid.py
+===================================================================
+--- browser/eventconsole/grid.py	(revision 14358)
++++ browser/eventconsole/grid.py	(working copy)
+@@ -4,7 +4,7 @@
+ from Products.Five.browser import BrowserView
+ from Products.Five.browser.pagetemplatefile import ViewPageTemplateFile
+ 
+-from Products.ZenUI3.utils.json import json
++from Products.ZenUI3.utils.json import json, unjson
+ from Products.ZenUI3.utils.javascript import JavaScriptSnippet
+ from Products.ZenUI3.browser.eventconsole.interfaces import IEventsAPI
+ 
+@@ -42,7 +42,8 @@
+             start = int(self.request.form.get('start', 0)),
+             sort = self.request.form.get('sort', 'severity'),
+             dir = self.request.form.get('dir', 'DESC'),
+-            limit = int(self.request.form.get('limit', 30))
++            limit = int(self.request.form.get('limit', 30)),
++            filters = unjson(self.request.form.get('params', '{}'))
+         )
+         return self._api.query(**params)
+ 
+Index: browser/resources/js/zenoss.js
+===================================================================
+--- browser/resources/js/zenoss.js	(revision 14348)
++++ browser/resources/js/zenoss.js	(working copy)
+@@ -66,7 +66,8 @@
+      * @extends Ext.grid.RowSelectionModel
+      * A selection model that fires extra events.
+      */
+-    Zenoss.ExtraHooksSelectionModel = Ext.extend(Ext.grid.RowSelectionModel, {
++    Zenoss.ExtraHooksSelectionModel = Ext.extend(
++       Ext.ux.grid.livegrid.RowSelectionModel, {
+         initEvents: function() {
+             Zenoss.ExtraHooksSelectionModel.superclass.initEvents.call(this);
+             this.addEvents('rangeselect');
+@@ -183,7 +184,33 @@
+      * A GridView that includes a row below the header with a row filter.
+      * @constructor
+      */
+-    Zenoss.FilterGridView = Ext.extend(Ext.grid.GridView, {
++    Zenoss.FilterGridView = Ext.extend(Ext.ux.grid.livegrid.GridView, {
++
++        initData: function(ds, cm) {
++            this.un('beforebuffer', this.onBeforeBuffer, this);
++            this.on('beforebuffer', this.onBeforeBuffer, this);
++            Zenoss.FilterGridView.superclass.initData.call(this, ds, cm);
++        },
++        applyFilterParams: function(options) {
++            var params = {};
++            for(i=0;i<this.filters.length;i++){
++                var filter = this.filters[i],
++                    query = filter.getValue();
++                if (query) params[filter.id] = query;
++            }
++            Ext.apply(options.params, {
++                params: Ext.util.JSON.encode(params)
++            });
++        },
++        onBeforeLoad: function(store, options) {
++            this.applyFilterParams(options);
++            return Zenoss.FilterGridView.superclass.onBeforeLoad.apply(this,
++                arguments);
++        },
++        onBeforeBuffer: function(view, store, rowIndex, visibleRows,
++                                 totalCount, options) {
++            this.applyFilterParams(options);
++        },
+         getFilterCt: function() {
+             if (!this.filterCt) 
+                 this.filterCt = Ext.select('.x-grid3-filter');
+@@ -220,6 +247,9 @@
+             return rt.apply(rp);
+         },
+         filters: [],
++        filterParams: function() {
++            return params;
++        },
+         doFilter: function(record, id) {
+             for(i=0;i<this.filters.length;i++){
+                 var filter = this.filters[i],
+@@ -251,8 +281,8 @@
+                 });
+                 filter.setWidth('100%');
+                 this.filters[this.filters.length] = filter;
+-                filter.on('keyup', function(field, e) {
+-                    this.grid.store.filterBy(this.doFilter, this);
++                filter.on('valid', function(field, e) {
++                    this.updateLiveRows(0, true, true);
+                 }, this);
+             }
+         },
+@@ -278,7 +308,7 @@
+      * A GridPanel that uses a FilterGridView.
+      * @constructor
+      */
+-    Zenoss.FilterGridPanel = Ext.extend(Ext.grid.GridPanel, {
++    Zenoss.FilterGridPanel = Ext.extend(Ext.ux.grid.livegrid.GridPanel, {
+         getView : function(){
+             if(!this.view){
+                 this.view = new Zenoss.FilterGridView(this.viewConfig);
+Index: browser/templates/base.pt
+===================================================================
+--- browser/templates/base.pt	(revision 14149)
++++ browser/templates/base.pt	(working copy)
+@@ -6,8 +6,13 @@
+             href="/zenui/css/xtheme-zenoss.css" />
+         <link rel="stylesheet" type="text/css" 
+             href="/zenui/css/zenoss.css" />
+-        <script type="text/javascript" src="/extjs/adapters/ext/ext-base.js"></script>
++        <link rel="stylesheet"
++            href="/zenui/js/livegrid/resources/css/ext-ux-livegrid.css"/>
++        <script type="text/javascript" src="/extjs/adapters/ext/ext-base.js">
++        </script>
+         <script type="text/javascript" src="/extjs/ext-all.js"></script>
++        <script type="text/javascript"
++            src="/zenui/js/livegrid/livegrid-all-debug.js"></script>
+         <script type="text/javascript" src="/zenui/js/zenoss.js"></script>
+     </head>
+ 
