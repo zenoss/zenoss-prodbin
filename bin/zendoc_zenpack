@@ -5,22 +5,41 @@ __doc__ = """zendoc_zenpack
 Create an XML file showing the items in the ZenPack.
 """
 
+import os
+import os.path
 import datetime
 
 import Globals
 from Products.ZenUtils.ZenScriptBase import ZenScriptBase
+from Products.ZenUtils.Utils import importClass, zenPath
 from transaction import commit
 
-class thresh_obj:
-    id = 'threshold'
+class XMLContainer:
+    id = ''
     description = ''
     path = ''
-    meta_type = 'ThresholdContainer'
+    meta_type = ''
+
+    def __init__(self, id='', meta_type=''):
+        self.id = id
+        self.meta_type = meta_type
 
     def getPrimaryPath(self):
         return self.path
 
-threshie = thresh_obj()
+threshie = XMLContainer('threshold', 'ThresholdContainer')
+plugin_container = XMLContainer('modeler_plugin_container',
+                                'ModelerPluginContainer')
+
+class ModelerPlugin:
+    id = ''
+    description = ''
+    path = ''
+    meta_type = 'ModelerPlugin'
+
+    def getPrimaryPath(self):
+        return self.path.split('/')
+
 
 def print_xml_tree(tree, indent=0):
     if '__id' in tree:
@@ -53,6 +72,57 @@ def add_object(root, obj):
         else:
             root['__hasTransform'] = 'no'
 
+def get_modeler_description(path, file):
+    location = path.replace(zenPath(), '')
+    # Start from the ZenPack location
+    location = location.split('/')[3:]
+    name = file.replace('.py', '')
+    location.append(name)
+    location = '.'.join(location)
+    # Location will be something like 
+    # ZenPacks.zenoss.AixMonitor.modeler.plugins.zenoss.cmd.aix.netstat_na
+    try:
+        mod = __import__(location, globals(), locals(), name)
+        desc = mod.__doc__
+    except:
+        desc = 'Unable to load plugin %s' % location
+    return desc
+
+def add_plugin(root, file, path):
+    plugin = ModelerPlugin()
+    plugin.id = file.replace('.py', '')
+    plugin.path = path
+    plugin.description = get_modeler_description(path, file)
+    add_object(root, plugin)
+
+def modelerSearch(root, zp):
+    plugin_dir = os.path.join(zp.path(), 'modeler', 'plugins')
+    if not os.path.exists(plugin_dir):
+        return
+    
+    # Yes, you're right -- the following should be equivalent
+    # root = root['']['zport']['dmd']
+    #  But it's not.  Move along.
+    for loc in root:  # Dereference ''
+        root = root[loc]
+    for loc in root:  # Dereference 'zport'
+        root = root[loc]
+    for loc in root:  # Dereference 'dmd'
+        root = root[loc]
+    # Back to sanity. Yay!
+    madeOrganizer = False
+    for path, unused, files in os.walk(plugin_dir):
+        for file in files:
+            if not file.endswith('.py') or file == '__init__.py':
+                continue
+            if not madeOrganizer:
+                root['Modelers'] = {}
+                new_root = root['Modelers']
+                add_object(new_root, plugin_container)
+                madeOrganizer = True
+            new_root[file] = {}
+            add_plugin(new_root[file], file, path)
+
 
 def zenpack2XML(dmd, zp):
     dependencies = ', '.join( [' '.join([x,y]) for x, y in sorted(zp.dependencies.items()) ] )
@@ -80,6 +150,7 @@ def zenpack2XML(dmd, zp):
 
             root = root[loc]
         add_object(root, obj)
+    modelerSearch(tree, zp)
 
     # Print out the tree
     print_xml_tree(tree)
