@@ -446,6 +446,9 @@ class ZenActions(ZCmdBase):
 
 
     def fetchMonitorHostname(self, monitor='localhost'):
+        if monitor in self.monitorToHost:
+            return self.monitorToHost[monitor]
+
         all_monitors = self.dmd.Monitors.getPerformanceMonitorNames()
         if monitor in all_monitors:
             hostname = self.dmd.Monitors.getPerformanceMonitor(monitor).hostname
@@ -455,6 +458,8 @@ class ZenActions(ZCmdBase):
 
         if hostname == 'localhost':
             hostname = self.daemonHostname
+
+        self.monitorToHost[monitor] = hostname
         return hostname
 
     def heartbeatEvents(self):
@@ -561,6 +566,7 @@ class ZenActions(ZCmdBase):
                                 self.dmd.prodStateConversions)
         import socket
         self.daemonHostname = socket.getfqdn()
+        self.monitorToHost = {}
         try:
             # eg ['Production:1000']
             self.prodState = int(self.prodState[0].split(':')[1])
