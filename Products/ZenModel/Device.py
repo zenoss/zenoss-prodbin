@@ -93,7 +93,7 @@ def checkDeviceExists(context, deviceName, ip, performanceMonitor):
                 raise DeviceExistsError("Ip %s exists on %s" % (ip, dev.id),dev)
 
     if deviceName:
-        dev = context.getDmdRoot('Devices').findDevice(deviceName)
+        dev = context.getDmdRoot('Devices').findDeviceByIdExact(deviceName)
         if dev:
             raise DeviceExistsError("Device %s already exists" %
                                     deviceName, dev)
