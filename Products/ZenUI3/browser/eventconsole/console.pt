@@ -417,20 +417,6 @@ Ext.onReady(function(){
                 menu:{
                     xtype: 'menu',
                     items: [{
-                        text: 'Acknowledged',
-                        iconCls: 'acknowledge',
-                        handler: function(){
-                            // Acknowledged == 1
-                            selectByState(1);
-                        }
-                    },{
-                        text: 'New',
-                        iconCls: 'unacknowledge',
-                        handler: function(){
-                            // New == 0
-                            selectByState(0);
-                        }
-                    },{
                         text: 'All',
                         handler: function(){
                             var grid = Ext.getCmp('events_grid'),
@@ -444,6 +430,27 @@ Ext.onReady(function(){
                             var grid = Ext.getCmp('events_grid'),
                                 sm = grid.getSelectionModel();
                             sm.clearSelections();
+                        }
+                    },{
+                        text: 'New',
+                        iconCls: 'unacknowledge',
+                        handler: function(){
+                            // New == 0
+                            selectByState(0);
+                        }
+                    },{
+                        text: 'Acknowledged',
+                        iconCls: 'acknowledge',
+                        handler: function(){
+                            // Acknowledged == 1
+                            selectByState(1);
+                        }
+                    },{
+                        text: 'Suppressed',
+                        iconCls: 'suppress',
+                        handler: function(){
+                            // Suppressed == 2
+                            selectByState(2);
                         }
                     }
                     ]

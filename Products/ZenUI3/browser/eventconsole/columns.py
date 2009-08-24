@@ -96,6 +96,10 @@ COLUMN_CONFIG = {
             },{
                 'value':1,
                 'text':'Acknowledged'
+            },{
+                'value':2,
+                'text':'Suppressed',
+                'checked':False
             }
             ]
         },

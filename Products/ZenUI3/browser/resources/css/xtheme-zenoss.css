@@ -669,6 +669,12 @@ td.x-date-mp-sel a{
 .x-menu-group-item .x-menu-item-icon{
 	background:transparent none repeat scroll 0 0;
 }
+.x-menu-item-icon.acknowledge {
+    background-image: url(../img/xtheme-zenoss/icon/acknowledge.png);
+}
+.x-menu-item-icon.suppress {
+    background-image: url(../img/xtheme-zenoss/icon/suppress.png);
+}
 
 
 /* Combos */
