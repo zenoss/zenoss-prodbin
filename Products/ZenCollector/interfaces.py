@@ -20,8 +20,9 @@ class ICollectorPreferences(zope.interface.Interface):
     """
     A collector should implement this interface on an object whose primary
     responsibility will be to store configuration information for the collector.
-    The configuration information will be fetched and stored in this object and
-    then provided to the rest of the collector framework for monitoring use.
+    The configuration information from the Performance Collector Configuration
+    will be fetched and stored in this object and then provided to the rest of 
+    the collector framework for monitoring use.
     """
 
     collectorName = zope.interface.Attribute("""
@@ -78,18 +79,6 @@ class ICollector(zope.interface.Interface):
        and remote service proxies.
     """
 
-    def configureRRD(self, rrdCreateCommand, thresholds):
-        """
-        Called when the collector should configure its own RRD performance
-        statistics and thresholds.
-        
-        @param rrdCreateCommand: the default RRD create command for this
-               collector
-        @param thresholds: the thresholds for the collector's performance
-               statistics
-        """
-        pass
-
     def getRemoteConfigServiceProxy(self):
         """
         Retrieve the remote configuration service proxy class. A collector 
@@ -106,7 +95,40 @@ class IConfigurationProxy(zope.interface.Interface):
     the configuration for a collector.
     """
 
-    def configure(self, prefs, configIds=[]):
+    def getPropertyItems(self, prefs):
+        """
+        Retrieve the collector's property items.
+
+        @param prefs: the collector preferences object
+        @type prefs: an object providing ICollectorPreferences
+        @return: properties for this collector
+        @rtype: either a dict or a Deferred 
+        """
+        pass
+
+    def getThresholdClasses(self, prefs):
+        """
+        Retrieve the collector's required threshold classes.
+
+        @param prefs: the collector preferences object
+        @type prefs: an object providing ICollectorPreferences
+        @return: the names of all the collector threshold classes to loaded
+        @rtype: an iterable set of strings containing Python class names
+        """
+        pass
+
+    def getThresholds(self, prefs):
+        """
+        Retrieve the collector's threshold definitions.
+
+        @param prefs: the collector preferences object
+        @type prefs: an object providing ICollectorPreferences
+        @return: the threshold definitions
+        @rtype: an iterable set of threshold definitions
+        """
+        pass
+
+    def getConfigProxies(self, prefs, ids=[]):
         """
         Called by the framework whenever the configuration for this collector
         should be retrieved.
@@ -121,7 +143,7 @@ class IConfigurationProxy(zope.interface.Interface):
         """
         pass
 
-    def deleteConfig(self, prefs, configId):
+    def deleteConfigProxy(self, prefs, configId):
         """
         Called by the framework whenever a configuration should be removed.
         @param prefs: the collector preferences object
@@ -131,7 +153,7 @@ class IConfigurationProxy(zope.interface.Interface):
         """
         pass
 
-    def updateConfig(self, prefs, config):
+    def updateConfigProxy(self, prefs, config):
         """
         Called by the framework whenever the configuration has been updated by
         an external event.

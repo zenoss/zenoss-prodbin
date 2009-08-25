@@ -39,9 +39,9 @@ steps:
    of devices.
 
 2. Implement a new HubService that extends 
-   Products.ZenCollector.services.config.CollectorConfig to filter out which
-   devices are sent to the collector and what attributes are sent back via a
-   DeviceProxy object.
+   Products.ZenCollector.services.config.CollectorConfigService to filter out 
+   which devices are sent to the collector and what attributes are sent back 
+   via a DeviceProxy object.
 
 3. Implement an object that provides the ICollectorPreferences interface and 
    specifies the overall configuration preferences of the new collector.

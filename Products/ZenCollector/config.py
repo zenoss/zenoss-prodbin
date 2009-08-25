@@ -19,6 +19,7 @@ configuration retrieval services directly from a remote ZenHub service.
 
 import zope.component
 import zope.interface
+import twisted.internet.defer
 
 from Products.ZenCollector.interfaces import ICollector,\
                                              ICollectorPreferences,\
@@ -40,94 +41,62 @@ class ConfigurationProxy(object):
     """
     zope.interface.implements(IConfigurationProxy)
 
-    def configure(self, prefs, configs=[]):
+    def getPropertyItems(self, prefs):
         if not ICollectorPreferences.providedBy(prefs):
             raise TypeError("config must provide ICollectorPreferences")
 
         self._collector = zope.component.queryUtility(ICollector)
-        self._prefs = prefs
-        return self._getRemoteConfig(configs)
-
-    def deleteConfig(self, prefs, configId):
-        # not implemented in the basic ConfigurationProxy
-        pass
-
-    def updateConfig(self, prefs, config):
-        # not implemented in the basic ConfigurationProxy
-        pass
-
-    def _getRemoteConfig(self, configs):
         serviceProxy = self._collector.getRemoteConfigServiceProxy()
 
         # Load any configuration properties for this daemon
         log.debug("Fetching daemon configuration properties")
         d = serviceProxy.callRemote('getConfigProperties')
-        d.addCallback(self._handlePropertyItems, configs, serviceProxy)
+        d.addCallback(lambda result: dict(result))
         return d
 
-    def _handlePropertyItems(self, result, configs, serviceProxy):
-        table = dict(result)
+    def getThresholdClasses(self, prefs):
+        if not ICollectorPreferences.providedBy(prefs):
+            raise TypeError("config must provide ICollectorPreferences")
 
-        for name, value in table.iteritems():
-            if not hasattr(self._prefs, name):
-                log.debug("ICollectorPreferences does not have attribute %s",
-                          name)
-            elif getattr(self._prefs, name) != value:
-                log.debug("Updated %s config to %s", name, value)
-                setattr(self._prefs, name, value)
+        self._collector = zope.component.queryUtility(ICollector)
+        serviceProxy = self._collector.getRemoteConfigServiceProxy()
 
-        # retrieve the default RRD command and convert it from a list of strings
-        # to a single string with newline separators
-        defaultRRDCreateCommand = table.get('defaultRRDCreateCommand', None)
-        defaultRRDCreateCommand = '\n'.join(defaultRRDCreateCommand)
-
-        # Find out what Python Class objects are required for thresholds
         log.debug("Fetching threshold classes")
         d = serviceProxy.callRemote('getThresholdClasses')
-        d.addCallback(self._handleThresholdClasses,
-                      configs, 
-                      serviceProxy, 
-                      defaultRRDCreateCommand)
         return d
 
-    def _handleThresholdClasses(self,
-                                result,
-                                configs,
-                                serviceProxy,
-                                rrdCreateCommand):
-        classes = result
-        log.debug("Loading classes %s", classes)
-        for c in classes:
-            try:
-                importClass(c)
-            except ImportError:
-                log.exception("Unable to import class %s", c)
+    def getThresholds(self, prefs):
+        if not ICollectorPreferences.providedBy(prefs):
+            raise TypeError("config must provide ICollectorPreferences")
 
-        # Find all the actual collector thresholds needed
+        self._collector = zope.component.queryUtility(ICollector)
+        serviceProxy = self._collector.getRemoteConfigServiceProxy()
+
         log.debug("Fetching collector thresholds")
         d = serviceProxy.callRemote('getCollectorThresholds')
-        d.addCallback(self._handleCollectorThresholds,
-                      configs,
-                      serviceProxy,
-                      rrdCreateCommand)
         return d
 
-    def _handleCollectorThresholds(self, 
-                                   result, 
-                                   configs, 
-                                   serviceProxy, 
-                                   rrdCreateCommand):
-        log.debug("_handleCollectorThresholds: result=%s", result)
+    def getConfigProxies(self, prefs, ids=[]):
+        if not ICollectorPreferences.providedBy(prefs):
+            raise TypeError("config must provide ICollectorPreferences")
 
-        # inform the collector of i
-        self._collector.configureRRD(rrdCreateCommand, result)
+        self._collector = zope.component.queryUtility(ICollector)
+        serviceProxy = self._collector.getRemoteConfigServiceProxy()
 
-        # Fetch the configuration for this collector
         log.debug("Fetching configurations")
-        d = serviceProxy.callRemote('getDeviceConfigs', configs)
-        d.addCallback(self._handleConfigs, serviceProxy)
+        d = serviceProxy.callRemote('getDeviceConfigs', ids)
         return d
 
-    def _handleConfigs(self, result, serviceProxy):
-        log.debug("_handleConfigs: result=%s", result)
-        return result
+    def deleteConfigProxy(self, prefs, id):
+        if not ICollectorPreferences.providedBy(prefs):
+            raise TypeError("config must provide ICollectorPreferences")
+
+        # not implemented in the basic ConfigurationProxy
+        return twisted.internet.defer.succeed(None)
+
+    def updateConfigProxy(self, prefs, config):
+        if not ICollectorPreferences.providedBy(prefs):
+            raise TypeError("config must provide ICollectorPreferences")
+
+        # not implemented in the basic ConfigurationProxy
+        return twisted.internet.defer.succeed(None)

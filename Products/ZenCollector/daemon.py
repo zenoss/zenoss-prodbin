@@ -126,16 +126,11 @@ class CollectorDaemon(RRDDaemon):
         """
         Method called by PBDaemon after a connection to ZenHub is established.
         """
-        def _startMaintenanceCycle(result):
-            reactor.callLater(self._prefs.cycleInterval,
-                              self._maintenanceCycle)
-            return result
+        return self._startConfigCycle()
 
-        # kick off the initial configuration cycle; once we're configured then
-        # we'll begin normal collection activity and the maintenance cycle
-        d = self._configCycle()
-        d.addCallbacks(_startMaintenanceCycle, self.errorStop)
-        return d
+    def connectTimeout(self):
+        super(CollectorDaemon, self).connectTimeout()
+        return self._startConfigCycle()
 
     def getRemoteConfigServiceProxy(self):
         """
@@ -143,17 +138,6 @@ class CollectorDaemon(RRDDaemon):
         """
         return self.services.get(self._prefs.configurationService,
                                  FakeRemote())
-
-    def configureRRD(self, rrdCreateCommand, thresholds):
-        """
-        Called when this collector daemon should configure its own RRD
-        performance statistics.
-        """
-        self._rrd = RRDUtil(rrdCreateCommand, self._prefs.cycleInterval)
-        self.rrdStats.config(self.options.monitor, 
-                             self.name, 
-                             thresholds,
-                             rrdCreateCommand)
 
     def writeRRD(self, path, value, rrdType, rrdCommand=None, cycleTime=None,
                  min='U', max='U'):
@@ -169,7 +153,7 @@ class CollectorDaemon(RRDDaemon):
                                max)
 
         # check for threshold breaches and send events when needed
-        for ev in self._thresholds.check(value, now, value):
+        for ev in self._thresholds.check(path, now, value):
             ev['eventKey'] = path.rsplit('/')[-1]
             self.sendEvent(ev)
 
@@ -180,7 +164,7 @@ class CollectorDaemon(RRDDaemon):
         self.log.debug("Device %s deleted" % devId)
 
         self._devices.discard(devId)
-        self._configProxy.deleteConfig(self._prefs, devId)
+        self._configProxy.deleteConfigProxy(self._prefs, devId)
         self._scheduler.removeTasksForConfig(devId)
 
     def remote_updateDeviceConfig(self, config):
@@ -191,7 +175,7 @@ class CollectorDaemon(RRDDaemon):
 
         if not self.options.device or self.options.device == config.id:
             self._updateConfig(config)
-            self._configProxy.updateConfig(self._prefs, config)
+            self._configProxy.updateConfigProxy(self._prefs, config)
 
     def _taskCompleteCallback(self, taskName):
         # if we're not running a normal daemon cycle then we need to shutdown
@@ -251,7 +235,46 @@ class CollectorDaemon(RRDDaemon):
 
         # remove tasks for the deleted devices
         for configId in deleted:
+            self._configProxy.deleteConfigProxy(configId)
             self._scheduler.removeTasksForConfig(configId)
+
+    def _startConfigCycle(self):
+        def _startMaintenanceCycle(result):
+            # run initial maintenance cycle as soon as possible
+            # TODO: should we not run maintenance if running in non-cycle mode?
+            reactor.callLater(0, self._maintenanceCycle)
+            return result
+
+        # kick off the initial configuration cycle; once we're configured then
+        # we'll begin normal collection activity and the maintenance cycle
+        d = self._configCycle()
+        d.addCallbacks(_startMaintenanceCycle, self.errorStop)
+        return d
+
+    def _setCollectorPreferences(self, preferenceItems):
+        for name, value in preferenceItems.iteritems():
+            if not hasattr(self._prefs, name):
+                self.log.debug("Preferences object does not have attribute %s",
+                               name)
+                setattr(self._prefs, name, value)
+            elif getattr(self._prefs, name) != value:
+                self.log.debug("Updated %s preference to %s", name, value)
+                setattr(self._prefs, name, value)
+
+    def _loadThresholdClasses(self, thresholdClasses):
+        self.log.debug("Loading classes %s", thresholdClasses)
+        for c in thresholdClasses:
+            try:
+                importClass(c)
+            except ImportError:
+                log.exception("Unable to import class %s", c)
+
+    def _configureRRD(self, rrdCreateCommand, thresholds):
+        self._rrd = RRDUtil(rrdCreateCommand, self._prefs.cycleInterval)
+        self.rrdStats.config(self.options.monitor,
+                             self.name,
+                             thresholds,
+                             rrdCreateCommand)
 
     def _configCycle(self):
         """
@@ -260,6 +283,29 @@ class CollectorDaemon(RRDDaemon):
         """
         self.log.debug("_configCycle fetching configuration")
 
+        def _processThresholds(thresholds, devices):
+            rrdCreateCommand = '\n'.join(self._prefs.defaultRRDCreateCommand)
+            self._configureRRD(rrdCreateCommand, thresholds)
+
+            return defer.maybeDeferred(self._configProxy.getConfigProxies,
+                                       self._prefs, devices)
+
+        def _processThresholdClasses(thresholdClasses, devices):
+            self._loadThresholdClasses(thresholdClasses)
+            
+            d = defer.maybeDeferred(self._configProxy.getThresholds,
+                                    self._prefs)
+            d.addCallback(_processThresholds, devices)
+            return d
+
+        def _processPropertyItems(propertyItems, devices):
+            self._setCollectorPreferences(propertyItems)
+
+            d = defer.maybeDeferred(self._configProxy.getThresholdClasses,
+                                    self._prefs)
+            d.addCallback(_processThresholdClasses, devices)
+            return d
+
         def _configure():
             devices = []
             # if we were given a command-line option to collect against a single
@@ -267,8 +313,10 @@ class CollectorDaemon(RRDDaemon):
             if self.options.device:
                 devices = [self.options.device]
 
-            return defer.maybeDeferred(self._configProxy.configure,
-                                       self._prefs, devices)
+            d = defer.maybeDeferred(self._configProxy.getPropertyItems,
+                                    self._prefs)
+            d.addCallback(_processPropertyItems, devices)
+            return d
 
         def _configureFinished(result):
             if isinstance(result, Failure):
@@ -358,14 +406,15 @@ class CollectorDaemon(RRDDaemon):
 
         def _reschedule(result):
             if isinstance(result, Failure):
-                self.log.error("Maintenance failed: %s", result)
+                self.log.error("Maintenance failed: %s",
+                               result.getErrorMessage())
 
             interval = self._prefs.cycleInterval
             if interval > 0:
                 self.log.debug("Rescheduling maintenance in %ds", interval)
                 reactor.callLater(interval, self._maintenanceCycle)
 
-            return result
+#            return result
 
         d = _doMaintenance()
         d.addBoth(_reschedule)

@@ -14,41 +14,49 @@
 import Globals
 import zope.interface
 
-from Products.ZenCollector.interfaces import ICollector
-from Products.ZenCollector.tasks import CollectorTask, DeviceTaskSplitter
+from Products.ZenCollector.interfaces import ICollector, IScheduledTask
+from Products.ZenCollector.tasks import SimpleTaskSplitter, SimpleTaskFactory
 from Products.ZenTestCase.BaseTestCase import BaseTestCase
+from Products.ZenUtils.observable import ObservableMixin
 
 
 class DummyObject(object):
     pass
 
+class BasicTestTask(ObservableMixin):
+    zope.interface.implements(IScheduledTask)
 
-class DummyCollector(object):
-    zope.interface.implements(ICollector)
-    pass
+    def __init__(self, name, configId, interval, config):
+        self.name = name
+        self.configId = configId
+        self.interval = interval
+        self.config = config
 
-
-class BasicTestTask(CollectorTask):
     def doTask(self):
         pass
 
 
-class Test(BaseTestCase):
-
+class TestSplitter(BaseTestCase):
 
     def testName(self):
         configs = []
         c = DummyObject()
-        c.config = {'devId':'host1', 'manageIp': '127.0.0.1', 
-                    'cycleSeconds':'30'}
-        configs.append(c)
-        
-        c = DummyObject()
-        c.config = {'devId':'host2', 'manageIp':'127.0.0.2',
-                    'cycleSeconds':'180'}
+        c.id = 'host1'
+        c.configCycleInterval = 30
         configs.append(c)
 
-        taskSplitter = DeviceTaskSplitter(DummyCollector(), BasicTestTask)
+        c = DummyObject()
+        c.id = 'host2'
+        c.configCycleInterval = 100
+        configs.append(c)
+
+        taskFactory = SimpleTaskFactory(BasicTestTask)
+        taskSplitter = SimpleTaskSplitter(taskFactory)
         tasks = taskSplitter.splitConfiguration(configs)
         self.assertEquals(len(tasks), 2)
 
+def test_suite():
+    from unittest import TestSuite, makeSuite
+    suite = TestSuite()
+    suite.addTest(makeSuite(TestSplitter))
+    return suite

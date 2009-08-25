@@ -42,7 +42,7 @@ BASE_ATTRIBUTES = ('id',
 
 
 class CollectorConfigService(HubService, ThresholdMixin):
-    def __init__(self, dmd, instance, deviceProxyAttributes=None):
+    def __init__(self, dmd, instance, deviceProxyAttributes=()):
         """
         Constructs a new CollectorConfig instance.
         
@@ -51,8 +51,9 @@ class CollectorConfigService(HubService, ThresholdMixin):
 
         @param dmd: the Zenoss DMD reference
         @param instance: the collector instance name
-        @param deviceProxyAttributes: an iterable of names for device attributes
+        @param deviceProxyAttributes: a tuple of names for device attributes
                that should be copied to every device proxy created
+        @type deviceProxyAttributes: tuple
         """
         HubService.__init__(self, dmd, instance)
 
@@ -141,7 +142,11 @@ class CollectorConfigService(HubService, ThresholdMixin):
             if deviceConfig:
                 deviceConfigs.append(deviceConfig)
 
+        self._postCreateDeviceProxy(deviceConfigs)
         return deviceConfigs
+
+    def _postCreateDeviceProxy(self, deviceConfigs):
+        pass
 
     def _createDeviceProxy(self, device):
         """
@@ -216,6 +221,8 @@ class CollectorConfigService(HubService, ThresholdMixin):
 
         if self._filterDevice(device):
             proxy = self._createDeviceProxy(device)
+            if proxy:
+                self._postCreateDeviceProxy([proxy])
         else:
             proxy = None
 

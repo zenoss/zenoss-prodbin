@@ -109,7 +109,8 @@ class HubDown(Exception): pass
 
 class FakeRemote:
     def callRemote(self, *unused):
-        return defer.fail(HubDown("ZenHub is down"))
+        ex = HubDown("ZenHub is down")
+        return defer.fail(ex)
 
 class PBDaemon(ZenDaemon, pb.Referenceable):
     
@@ -178,10 +179,13 @@ class PBDaemon(ZenDaemon, pb.Referenceable):
         factory.startLogin(c)
         def timeout(d):
             if not d.called:
-                self.log.error('Timeout connecting to zenhub: is it running?')
+                self.connectTimeout()
         reactor.callLater(self.options.hubtimeout, timeout, self.initialConnect)
         return self.initialConnect
 
+    def connectTimeout(self):
+        self.log.error('Timeout connecting to zenhub: is it running?')
+        pass
 
     def eventService(self):
         return self.getServiceNow('EventService')
@@ -292,11 +296,11 @@ class PBDaemon(ZenDaemon, pb.Referenceable):
                     self.sendEvent(self.stopEvent)
                 # give the reactor some time to send the shutdown event
                 drive(self.pushEvents).addBoth(stopNow)
-                # but not too much time
-                reactor.callLater(1, stopNow, True) # requires bogus arg
                 self.log.debug( "Sent a 'stop' event" )
             else:
                 self.log.debug( "No event sent as no EventService available." )
+            # but not too much time
+            reactor.callLater(1, stopNow, True) # requires bogus arg
         else:
             self.log.debug( "stop() called when not running" )
 
