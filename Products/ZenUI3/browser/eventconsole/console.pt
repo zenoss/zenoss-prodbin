@@ -95,12 +95,18 @@
         </div>
     </tpl>
 </textarea>
+<script tal:content="string:
+    Ext.onReady(function(){
+        Zenoss.env.EVENTSGRID_STATEID = '${context/id}_evconsole';
+    });
+"></script>
 <script>
 Ext.onReady(function(){
 
     // Global dialogs, will be reused after first load
     var win,
         addevent,
+        configwin,
     // Date renderer object, used throughout
         date_renderer = Ext.util.Format.dateRenderer(Zenoss.date.ISO8601Long),
     // Get references to the panels
@@ -315,7 +321,7 @@ Ext.onReady(function(){
         }
         win.show(this);
     }
-    
+
     /*
      * Select all events with a given state.
      * This requires a call to the back end, since we don't know anything about
@@ -471,6 +477,21 @@ Ext.onReady(function(){
                     }
                 }
             },{
+                text: 'Configure',
+                iconCls: 'configure',
+                menu: {
+                    items: [{
+                        id: 'rowcolors_checkitem',
+                        xtype: 'menucheckitem',
+                        text: 'Show severity row colors',
+                        handler: function(checkitem) {
+                            var checked = !checkitem.checked;
+                            var view = Ext.getCmp('events_grid').getView();
+                            view.toggleRowColors(checked);
+                        }
+                    }]
+                }
+            },{
                 xtype: 'tbfill'
             },{
                 id: 'lastupdated',
@@ -524,6 +545,7 @@ Ext.onReady(function(){
         nearLimit : 20,
         forceFit: true,
         filterbutton: 'showfilters',
+        rowcoloritem: 'rowcolors_checkitem',
         loadMask  : { msg :  'Loading. Please wait...' }
     });
     
@@ -599,6 +621,7 @@ Ext.onReady(function(){
      */
     var grid = new Zenoss.FilterGridPanel({
         id: 'events_grid',
+        stateId: Zenoss.env.EVENTSGRID_STATEID,
         enableDragDrop: false,
         stateful: true,
         border: false,
@@ -621,13 +644,6 @@ Ext.onReady(function(){
     // Add it to the layout
     master_panel.add(grid);
 
-
-    // Set a custom class on rows that are new, so we can embolden them
-    grid.getView().getRowClass = function(record, index) {
-        if (record.get('eventState')=='New') 
-            return 'unacknowledged'
-        else return 'acknowledged'
-    }
 
     /*
      * DETAIL PANEL STUFF

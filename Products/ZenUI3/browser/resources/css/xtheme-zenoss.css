@@ -431,6 +431,7 @@ ul.x-tab-strip-bottom{
 	background:#7199c6 !important;
 	border:1px dotted #ccc;
 }
+.x-grid3-row-selected .x-grid3-cell-inner a,
 .x-grid3-row-selected .x-grid3-cell-inner {
     color: white;
 }

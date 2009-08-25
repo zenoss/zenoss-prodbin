@@ -202,6 +202,7 @@ Ext.onReady(function(){
      * @constructor
      */
     Zenoss.FilterGridView = Ext.extend(Ext.ux.grid.livegrid.GridView, {
+        rowColors: false,
         constructor: function(config) {
             if (typeof(config.displayFilters)=='undefined')
                 config.displayFilters = false;
@@ -213,6 +214,7 @@ Ext.onReady(function(){
             Zenoss.FilterGridView.superclass.initEvents.call(this);
             this.addEvents('filterchange');
             this.addEvents('filtertoggle');
+            this.addEvents('rowcolorchange');
         },
         maskIsDisplayed: function() {
             var dom  = this._loadMaskAnchor.dom;
@@ -389,6 +391,7 @@ Ext.onReady(function(){
         },
         getState: function(){
             return {
+                rowColors: this.rowColors,
                 displayFilters: this.displayFilters,
                 options: this.lastOptions
             };
@@ -396,13 +399,31 @@ Ext.onReady(function(){
         getFilterButton: function(){
             return Ext.getCmp(this.filterbutton);
         },
+        getRowClass: function(record, index) {
+            var stateclass = record.get('eventState')=='New' ? 
+                                'unacknowledged':'acknowledged';
+            var sev = Zenoss.util.convertSeverity(record.get('severity'));
+            var sevclass = this.rowColors ? sev + ' rowcolor' : '';
+            return stateclass + ' ' + sevclass;
+
+        },
+        toggleRowColors: function(bool){
+            this.rowColors = bool;
+            this.fireEvent('rowcolorchange');
+            this.updateLiveRows(this.rowIndex, true, false);
+        },
         applyState: function(state) {
+            this.rowColors = state.rowColors;
             this.displayFilters = state.displayFilters;
             this.lastOptions = state.options;
             var btn = Ext.getCmp(this.filterbutton);
+            var rowcoloritem = Ext.getCmp(this.rowcoloritem);
             btn.on('render', function(){
                 this.toggle(state.displayFilters);
             }, btn);
+            rowcoloritem.on('render', function(){
+                this.setChecked(state.rowColors);
+            }, rowcoloritem);
         },
         resetFilters: function(){
             this.lastOptions = {};
@@ -419,10 +440,9 @@ Ext.onReady(function(){
     Zenoss.FilterGridPanel = Ext.extend(Ext.ux.grid.livegrid.GridPanel, {
         initStateEvents: function(){
             Zenoss.FilterGridPanel.superclass.initStateEvents.call(this);
-            this.mon(this.view, 'filterchange', this.saveState, this,
-                {delay:100});
-            this.mon(this.view, 'filtertoggle', this.saveState, this,
-                {delay:100});
+            this.mon(this.view, 'filterchange', this.saveState, this);
+            this.mon(this.view, 'filtertoggle', this.saveState, this);
+            this.mon(this.view, 'rowcolorchange', this.saveState, this);
         },
         getView : function(){
             if(!this.view){
