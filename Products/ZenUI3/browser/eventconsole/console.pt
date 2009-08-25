@@ -522,6 +522,7 @@ Ext.onReady(function(){
     // View to render the grid
     var myView = new Zenoss.FilterGridView({
         nearLimit : 20,
+        forceFit: true,
         filterbutton: 'showfilters',
         loadMask  : { msg :  'Loading. Please wait...' }
     });
@@ -601,6 +602,7 @@ Ext.onReady(function(){
         enableDragDrop: false,
         stateful: true,
         border: false,
+        rowSelectorDepth: 5,
         autoExpandColumn: 'summary',
         store: console_store, // defined above
         view: myView, // defined above
@@ -705,11 +707,16 @@ Ext.onReady(function(){
 
     // Pop open the event detail pane and populate it with the appropriate data
     // and switch triggers (single select repopulates detail, esc to close)
+
     function showEventDetail(r) {
+        html = Ext.get('detail_header_template').dom.value;
+        detail_dataview.el.update(html);
         loadEventDetail(r.data.evid);
         grid.un('rowdblclick', toggleEventDetailContent);
         console_selection_model.on('rowselect', toggleEventDetailContent);
+        //hideAllButFourColumns();
         detail_panel.expand();
+        //grid.view.fitColumns();
         esckeymap.enable();
     }
 
@@ -754,21 +761,30 @@ Ext.onReady(function(){
     // FIXME: Not sure this currently works.
     function hideAllButFourColumns() {
         var cm = grid.getColumnModel();
+        cm.suspendEvents();
         for(i=5;i<cm.config.length;i++) {
             cm.setHidden(i, true);
         }
+        cm.resumeEvents();
     }
 
     // Unhide the columns hidden by the function above.
     function showAllColumns() {
+    /*
         var cm = grid.getColumnModel();
         for(i=5;i<cm.config.length;i++) {
             cm.setHidden(i, false);
         }
+    */
     }
 
     // Hook up the column hiding/unhiding
+    /*
     detail_panel.on('beforeexpand', hideAllButFourColumns);
+    detail_panel.on('expand', function(){
+        grid.view.fitColumns();
+    });
+    */
     detail_panel.on('beforecollapse', showAllColumns);
     
     // After raw HTML has loaded, need to register listeners and create the log
