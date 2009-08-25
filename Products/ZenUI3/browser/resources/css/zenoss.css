@@ -219,14 +219,14 @@ table.proptable {
 
 .x-grid3-row.critical.acknowledged { background-color: #f88880; }
 .x-grid3-row.error.acknowledged { background-color: #ffba75; }
-.x-grid3-row.warning.acknowledged { background-color: #ffda00; }
+.x-grid3-row.warning.acknowledged { background-color: #fff280; }
 .x-grid3-row.info.acknowledged { background-color: #b3b3ff; }
 .x-grid3-row.debug.acknowledged { background-color: #c8c8c8; }
 .x-grid3-row.clear.acknowledged { background-color: #00cd00; }
 
 .x-grid3-row.critical.unacknowledged { background-color: #e33; }
 .x-grid3-row.error.unacknowledged { background-color: #f82; }
-.x-grid3-row.warning.unacknowledged { background-color: #fff280; }
+.x-grid3-row.warning.unacknowledged { background-color: #ffda00; }
 .x-grid3-row.info.unacknowledged { background-color: #6677ff; }
 .x-grid3-row.debug.unacknowledged { background-color: #afafaf; }
 .x-grid3-row.clear.unacknowledged { background-color: #00ff00; }
