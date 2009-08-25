@@ -304,7 +304,6 @@ class ZenProcessTask(ObservableMixin):
         self._devId = self._device.name
         self._manageIp = self._device.manageIp
         self._maxOidsPerRequest = self._device.zMaxOIDPerRequest
-        self._snmpStatus = self._device.snmpStatus
         
         self._dataService = zope.component.queryUtility(IDataService)
         self._eventService = zope.component.queryUtility(IEventService)
@@ -334,7 +333,7 @@ class ZenProcessTask(ObservableMixin):
                                      device=self._devId,
                                      summary=msg,
                                      severity=Event.Error)
-        self._snmpStatus += 1
+
         if isinstance(reason.value, error.TimeoutError):
             log.debug('Timeout on device %s' % self._devId)
         else:
@@ -483,7 +482,6 @@ class ZenProcessTask(ObservableMixin):
                                          summary=summary,
                                          component=processStat._config.originalName,
                                          severity=Event.Clear)
-            processStat._config.status = 0
             log.debug(summary)
 
         for pid in newPids:
@@ -498,7 +496,6 @@ class ZenProcessTask(ObservableMixin):
             if procStat not in afterByConfig:
                 procConfig = procStat._config
                 ZenProcessTask.MISSING += 1
-                procConfig.status += 1
                 summary = 'Process not running: %s' % procConfig.originalName
                 self._eventService.sendEvent(self.statusEvent,
                                              device=self._devId,
@@ -641,7 +638,6 @@ class ZenProcessTask(ObservableMixin):
         @parameter message: clear text
         @type message: string
         """
-        self._snmpStatus = 0
         self._eventService.sendEvent(self.statusEvent,
                                      eventClass=Status_Snmp,
                                      component="process",
@@ -762,4 +758,3 @@ if __name__ == '__main__':
     myTaskSplitter = SimpleTaskSplitter(myTaskFactory)
     daemon = CollectorDaemon(myPreferences, myTaskSplitter)
     daemon.run()
-
