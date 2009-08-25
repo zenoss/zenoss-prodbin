@@ -615,20 +615,6 @@ Ext.onReady(function(){
         // Enter to pop open the detail panel
             key: Ext.EventObject.ENTER,
             fn: toggleEventDetailContent
-        },{
-        // j for down
-            key: 'j',
-            fn: function(){
-                console_selection_model.rowNav.down.apply(
-                    console_selection_model, arguments);
-            }
-        },{
-        // k for up
-            key: 'k',
-            fn: function(){
-                console_selection_model.rowNav.up.apply(
-                    console_selection_model, arguments);
-            }
         }],
         sm: console_selection_model // defined above
     });
