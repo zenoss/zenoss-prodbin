@@ -1456,3 +1456,20 @@ def set_context(ob):
     req = HTTPRequest(None, env, resp)
     return ob.__of__(RequestContainer(REQUEST = req))
 
+def dumpCallbacks(deferred):
+    """
+    Dump the callback chain of a Twisted Deferred object. The chain will be
+    displayed on standard output.
+
+    @param deferred: the twisted Deferred object to dump
+    @type deferred: a Deferred object
+    """
+    callbacks = deferred.callbacks
+    print "%-39s %-39s" % ("Callbacks", "Errbacks")
+    print "%-39s %-39s" % ("-" * 39, "-" * 39)
+    for cbs in callbacks:
+        callback = cbs[0][0]
+        callbackName = "%s.%s" % (callback.__module__, callback.func_name)
+        errback = cbs[1][0]
+        errbackName = "%s.%s" % (errback.__module__, errback.func_name)
+        print "%-39.39s %-39.39s" % (callbackName, errbackName)

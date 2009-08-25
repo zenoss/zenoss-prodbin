@@ -28,6 +28,7 @@ import zope.interface
 from twisted.python.failure import Failure
 from Products.ZenCollector.interfaces import IScheduler, IScheduledTask
 from Products.ZenCollector.tasks import TaskStates
+from Products.ZenUtils.Utils import dumpCallbacks
 
 #
 # creating a logging context for this module to use
@@ -86,6 +87,11 @@ class CallableTask(object):
                 d.addBoth(_finished)
                 # don't return the Deferred because we want LoopingCall to keep
                 # rescheduling so that we can keep track of late intervals
+
+                # dump the deferred chain if we're in ludicrous debug mode
+                if log.getEffectiveLevel() < logging.DEBUG:
+                    print "Callback Chain for Task %s" % self.task.name
+                    dumpCallbacks(d)
 
         else:
             log.debug("Task %s skipped because it was not idle", 
