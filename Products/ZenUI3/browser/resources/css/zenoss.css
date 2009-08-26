@@ -231,3 +231,11 @@ table.proptable {
 .x-grid3-row.debug.unacknowledged { background-color: #afafaf; }
 .x-grid3-row.clear.unacknowledged { background-color: #00ff00; }
 
+.xtb-text.livegridinfopanel {
+    font-size: 10px;
+    color: #373737;
+    font-weight: bold;
+    padding-right: 1em;
+    padding-bottom: 3px;
+    text-transform: uppercase;
+}

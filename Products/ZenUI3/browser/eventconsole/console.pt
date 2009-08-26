@@ -16,7 +16,7 @@
 
 <tal:block metal:fill-slot="script_layout">
 <!-- Template for rendering the detail pane -->
-<textarea style="display:none" id="detail_header_template">
+<textarea class="dontexpand" style="display:none" id="detail_header_template">
     <div class="evdetail_hd">
         <div class="severity-icon"></div>
         <img src="/zenui/img/xtheme-zenoss/toolbar/tb-evdetail-sep.png" 
@@ -24,7 +24,7 @@
         <div id="evdetail_tool_close" class="x-tool evdetail_close"></div>
     </div>
 </textarea>
-<textarea style="display:none" id="detail_template">
+<textarea class="dontexpand" style="display:none" id="detail_template">
     <tpl for=".">
         <div class="evdetail_hd">
            <table width="100%"><tr><td style="width:27px">
@@ -112,6 +112,8 @@ Ext.onReady(function(){
     // Get references to the panels
         detail_panel = Ext.getCmp('detail_panel'),
         master_panel = Ext.getCmp('master_panel');
+
+    master_panel.layout = 'border';
 
     // Make the detail panel collapsible
     detail_panel.animCollapse = false;
@@ -620,6 +622,7 @@ Ext.onReady(function(){
      * THE GRID ITSELF!
      */
     var grid = new Zenoss.FilterGridPanel({
+        region: 'center',
         id: 'events_grid',
         stateId: Zenoss.env.EVENTSGRID_STATEID,
         enableDragDrop: false,
@@ -845,6 +848,24 @@ Ext.onReady(function(){
         });
 
     });
+
+    // Add the row info panel and bottom toolbar
+    master_panel.add({
+        xtype: 'toolbar',
+        region: 'south',
+        border: false,
+        frame: false,
+        style: {'border-top':'1px solid #888'},
+        height: 25,
+        items: [{
+            xtype: 'tbfill'
+        },{
+            xtype: 'livegridinfo',
+            text: 'testing',
+            grid: 'events_grid'
+        }]
+    });
+
 
     // Hook up the "Last Updated" text
     var store = grid.getStore(),

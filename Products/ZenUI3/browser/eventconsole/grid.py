@@ -297,6 +297,7 @@ class GridColumnDefinitions(JavaScriptSnippet):
                 self.context)
         else:
             fields = f()
+        defs = []
         for field in fields:
             col = COLUMN_CONFIG[field].copy()
             col['id'] = field
@@ -312,7 +313,8 @@ class GridColumnDefinitions(JavaScriptSnippet):
             if renderer:
                 ss, se = s[:-1], s[-1]
                 s = ''.join([ss, ',renderer:', renderer, se])
-            result.append(s+',')
+            defs.append(s)
+        result.append(',\n'.join(defs))
         result.append(']});')
         result = '\n'.join(result)
         return result

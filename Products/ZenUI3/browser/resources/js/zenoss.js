@@ -135,18 +135,21 @@ Ext.onReady(function(){
      */
     Zenoss.LiveGridInfoPanel = Ext.extend(Ext.Toolbar.TextItem, {
 
-        displayMsg : 'Displaying {0} - {1} of {2}',
-        emptyMsg: 'No data to display',
+        displayMsg : 'Displaying {0} - {1} of {2} events',
+        emptyMsg: 'No events',
+        cls: 'livegridinfopanel',
 
         initComponent: function() {
-            Zenoss.LiveGridInfoPanel.superclass.initComponent.call(this);
+            this.setText(this.emptyMsg);
             if (this.grid) {
+                this.grid = Ext.getCmp(this.grid);
+                var me = this;
                 this.view = this.grid.getView();
+                this.view.init = this.view.init.createSequence(function(){
+                    me.bind(this);
+                }, this.view);
             }
-            var me = this;
-            this.view.init = this.view.init.createSequence(function(){
-                me.bind(this);
-            }, this.view);
+            Zenoss.LiveGridInfoPanel.superclass.initComponent.call(this);
         },
         updateInfo : function(rowIndex, visibleRows, totalCount) {
             var msg = totalCount == 0 ?
@@ -193,7 +196,8 @@ Ext.onReady(function(){
             //this.loading.enable();
             this.updateInfo(rowIndex, visibleRows, totalCount);
         }
-    })
+    });
+    Ext.reg('livegridinfo', Zenoss.LiveGridInfoPanel);
 
     /**
      * @class Zenoss.FilterGridView

@@ -1042,9 +1042,9 @@ body.x-body-masked .x-window-mc, body.x-body-masked .x-window-plain .x-window-mc
 }
 
 
-
-
-
+.x-grid3-filter td {
+    -moz-user-select: text !important;
+}
 
 .x-grid3-filter .x-btn {
     height: 26px;
