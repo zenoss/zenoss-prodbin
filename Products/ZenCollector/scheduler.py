@@ -18,12 +18,10 @@ single device or other monitored object.
 """
 
 import logging
-import math
 import signal
-import time
 
-import twisted.internet.task
 import zope.interface
+from twisted.internet import defer, reactor, task
 
 from twisted.python.failure import Failure
 from Products.ZenCollector.interfaces import IScheduler, IScheduledTask
@@ -43,21 +41,32 @@ class CallableTask(object):
     Twisted framework's LoopingCall construct for simple interval-based
     scheduling.
     """
-
-    def __init__(self, task, taskStats, scheduler):
+    def __init__(self, task, scheduler):
         if not IScheduledTask.providedBy(task):
             raise TypeError("task must provide IScheduledTask")
         else:
             self.task = task
 
         self._scheduler = scheduler
-
         self.paused = False
 
-        self.taskStats = taskStats
-        self.taskStats.failedRuns = 0
-        self.taskStats.missedRuns = 0
-        self.taskStats.totalRuns = 0
+    def running(self):
+        """
+        Called whenever this task is being run.
+        """
+        pass
+
+    def finished(self, result):
+        """
+        Called whenever this task has finished.
+        """
+        pass
+
+    def late(self):
+        """
+        Called whenever this task is late and missed its scheduled run time.
+        """
+        pass
 
     def __call__(self):
         if self.task.state is TaskStates.STATE_PAUSED and not self.paused:
@@ -67,24 +76,8 @@ class CallableTask(object):
             if self.paused:
                 self.task.state = TaskStates.STATE_PAUSED
             else:
-                # Make sure we always reset the state to IDLE once the task is
-                # finished, regardless of what the outcome was.
-                def _finished(result):
-                    log.debug("Task %s finished, result: %r", self.task.name, 
-                              result)
-                    if isinstance(result, Failure):
-                        self.taskStats.failedRuns += 1
-                    self.task.state = TaskStates.STATE_IDLE
-                    self._scheduler.taskDone(self.task.name)
-                # We handled any error; eat the result!
-
-                def _inner():
-                    self.taskStats.totalRuns += 1
-                    self.task.state = TaskStates.STATE_RUNNING
-                    return self.task.doTask()
-
-                d = twisted.internet.defer.maybeDeferred(_inner)
-                d.addBoth(_finished)
+                d = defer.maybeDeferred(self._run)
+                d.addBoth(self._finished)
                 # don't return the Deferred because we want LoopingCall to keep
                 # rescheduling so that we can keep track of late intervals
 
@@ -94,73 +87,39 @@ class CallableTask(object):
                     dumpCallbacks(d)
 
         else:
-            log.debug("Task %s skipped because it was not idle", 
-                      self.task.name)
-            # TODO: report an event
-            self.taskStats.missedRuns += 1
+            self._late()
 
-class StateStatistics(object):
-    def __init__(self, state):
-        self.state = state
-        self.reset()
+    def _run(self):
+        self.task.state = TaskStates.STATE_RUNNING
+        self.running()
+        return self.task.doTask()
 
-    def addCall(self, elapsedTime):
-        self.totalElapsedTime += elapsedTime
-        self.totalElapsedTimeSquared += elapsedTime ** 2
-        self.totalCalls += 1
+    def _finished(self, result):
+        log.debug("Task %s finished, result: %r", self.task.name, 
+                  result)
 
-        if self.totalCalls == 1:
-            self.minElapsedTime = elapsedTime
-            self.maxElapsedTime = elapsedTime
-        else:
-            self.minElapsedTime = min(self.minElapsedTime, elapsedTime)
-            self.maxElapsedTime = max(self.maxElapsedTime, elapsedTime)
+        # Make sure we always reset the state to IDLE once the task is
+        # finished, regardless of what the outcome was.
+        self.task.state = TaskStates.STATE_IDLE
 
-    def reset(self):
-        self.totalElapsedTime = 0.0
-        self.totalElapsedTimeSquared = 0.0
-        self.totalCalls = 0
-        self.minElapsedTime = 0.0
-        self.maxElapsedTime = -1
+        self._scheduler.taskDone(self.task.name)
 
-    @property
-    def mean(self):
-        return float(self.totalElapsedTime) / float(self.totalCalls)
+        self.finished(result)
+        # We handled any error; eat the result!
 
-    @property
-    def stddev(self):
-        if self.totalCalls == 1:
-            return 0
-        else:
-            # see http://www.dspguide.com/ch2/2.htm for stddev of running stats
-            return math.sqrt((self.totalElapsedTimeSquared - self.totalElapsedTime ** 2 / self.totalCalls) / (self.totalCalls - 1))
+    def _late(self):
+        log.debug("Task %s skipped because it was not idle", 
+                  self.task.name)
+        self.late()
 
-class TaskStatistics(object):
-    def __init__(self, task):
-        self.task = task
-        self.totalRuns = 0
-        self.failedRuns = 0
-        self.missedRuns = 0
-        self.states = {}
-        self.stateStartTime = None
+class CallableTaskFactory(object):
+    """
+    A factory that creates instances of CallableTask, allowing it to be
+    easily subclassed or replaced in different scheduler implementations.
+    """
+    def getCallableTask(self, newTask, scheduler):
+        return CallableTask(newTask, scheduler)
 
-    def trackStateChange(self, oldState, newState):
-        now = time.time()
-
-        # record how long we spent in the previous state, if there was one
-        if oldState is not None and self.stateStartTime:
-            # TODO: how do we properly handle clockdrift or when the clock
-            # changes, or is time.time() independent of that?
-            elapsedTime = now - self.stateStartTime
-            previousState = newState
-
-            if not self.states.has_key(oldState):
-                stats = StateStatistics(oldState)
-                self.states[oldState] = stats
-            stats = self.states[oldState]
-            stats.addCall(elapsedTime)
-
-        self.stateStartTime = now
 
 class Scheduler(object):
     """
@@ -170,11 +129,11 @@ class Scheduler(object):
 
     zope.interface.implements(IScheduler)
 
-    def __init__(self):
+    def __init__(self, callableTaskFactory=CallableTaskFactory()):
         self._loopingCalls = {}
         self._tasks = {}
         self._taskCallback = {}
-        self._taskStats = {}
+        self._callableTaskFactory = callableTaskFactory
 
     def addTask(self, newTask, callback=None):
         """
@@ -187,18 +146,23 @@ class Scheduler(object):
         if self._tasks.has_key(newTask.name):
             raise ValueError("Task %s already exists" % newTask.name)
 
-        newTask.attachAttributeObserver('state', self._taskStateChangeListener)
-
-        self._taskStats[newTask.name] = TaskStatistics(newTask)
-        callableTask = CallableTask(newTask, self._taskStats[newTask.name], self)
-        loopingCall = twisted.internet.task.LoopingCall(callableTask)
+        callableTask = self._callableTaskFactory.getCallableTask(newTask, self)
+        loopingCall = task.LoopingCall(callableTask)
         self._loopingCalls[newTask.name] = loopingCall
         self._tasks[newTask.name] = callableTask
         self._taskCallback[newTask.name] = callback
 
-        log.debug("Task %s starting on %d second intervals",
-                  newTask.name, newTask.interval)
-        loopingCall.start(newTask.interval)
+        # start the task using a callback so that its put at the bottom of
+        # the Twisted event queue, to allow other processing to continue and
+        # to support a task start-time jitter in the future
+        # TODO: add support for a start-time jitter
+        def _startTask(result):
+            log.debug("Task %s starting on %d second intervals",
+                      newTask.name, newTask.interval)
+            loopingCall.start(newTask.interval)
+        d = defer.Deferred()
+        d.addCallback(_startTask)
+        reactor.callLater(0, d.callback, None)
 
     def removeTasksForConfig(self, configId):
         """
@@ -241,81 +205,5 @@ class Scheduler(object):
         if callable(self._taskCallback[taskName]):
             self._taskCallback[taskName](taskName=taskName)
 
-    def _taskStateChangeListener(self, observable, attrName, oldValue, newValue):
-        task = observable
-
-        log.debug("Task %s changing state from %s to %s", task.name, oldValue,
-                  newValue)
-
-        taskStat = self._taskStats[task.name]
-        taskStat.trackStateChange(oldValue, newValue)
-
     def displayStatistics(self, verbose=False):
-        totalRuns = 0
-        totalFailedRuns = 0
-        totalMissedRuns = 0
-        totalTasks = 0
-        stateStats = {}
-
-        for taskWrapper in self._tasks.itervalues():
-            task = taskWrapper.task
-            taskStats = self._taskStats[task.name]
-
-            totalTasks += 1
-            totalRuns += taskStats.totalRuns
-            totalFailedRuns += taskStats.failedRuns
-            totalMissedRuns += taskStats.missedRuns
-
-            for state, stats in taskStats.states.iteritems():
-                if not stateStats.has_key(state):
-                    stateStats[state] = StateStatistics(state)
-                totalStateStats = stateStats[state]
-                totalStateStats.totalElapsedTime += stats.totalElapsedTime
-                totalStateStats.totalElapsedTimeSquared += stats.totalElapsedTimeSquared
-                totalStateStats.totalCalls += stats.totalCalls
-                totalStateStats.minElapsedTime = min(totalStateStats.minElapsedTime, stats.minElapsedTime)
-                totalStateStats.maxElapsedTime = max(totalStateStats.maxElapsedTime, stats.maxElapsedTime)
-
-        log.info("Tasks: %d Successful: %d Failed: %d Missed: %d",
-                 totalTasks, totalRuns, totalFailedRuns, totalMissedRuns)
-
-        if verbose:
-            buffer = "Task States Summary:\n"
-            buffer = self._displayStateStatistics(buffer, stateStats)
-
-            buffer += "\nTasks:\n"
-            for taskWrapper in self._tasks.itervalues():
-                task = taskWrapper.task
-                taskStats = self._taskStats[task.name]
-
-                buffer += "%s Current State: %s Successful: %d Failed: %d Missed: %d\n" \
-                    % (task.name, task.state, taskStats.totalRuns, 
-                       taskStats.failedRuns, taskStats.missedRuns)
-
-            buffer += "\nDetailed Task States:\n"
-            for taskWrapper in self._tasks.itervalues():
-                task = taskWrapper.task
-                taskStats = self._taskStats[task.name]
-
-                buffer = self._displayStateStatistics(buffer,
-                                             taskStats.states, 
-                                             "%s " % task.name)
-                buffer += "\n"
-
-            log.info("Detailed Scheduler Statistics:\n%s", buffer)
-
-        # TODO: the above logic doesn't print out any stats for the 'current'
-        # state... i.e. enter the PAUSED state and wait there an hour, and 
-        # you'll see no data
-
-        # TODO: should we reset the statistics here, or do it on a periodic
-        # interval, like once an hour or day or something?
-
-    def _displayStateStatistics(self, buffer, stateStats, prefix=''):
-        for state, stats in stateStats.iteritems():
-            buffer += "%sState: %s Total: %d Total Elapsed: %.4f Min: %.4f Max: %.4f Mean: %.4f StdDev: %.4f\n" \
-                % (prefix,
-                   state, stats.totalCalls, stats.totalElapsedTime,
-                   stats.minElapsedTime, stats.maxElapsedTime, stats.mean,
-                   stats.stddev)
-        return buffer
+        pass

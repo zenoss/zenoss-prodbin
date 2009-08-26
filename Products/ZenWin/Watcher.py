@@ -80,9 +80,14 @@ class Watcher:
         if self.busy:
             log.debug("close requested on busy WMI Query for %s; deferring",
                            self.device.id)
-            self.closeRequesed = True
+            self.closeRequested = True
         elif self.wmi:
             log.debug("closing WMI Query for %s", self.device.id)
             self.wmi.close()
             self.wmi = None
+
+    def __del__(self):
+        log.debug("Watcher.__del__ called for %s, busy=%r closeRequested=%r",
+                  self.device.id, self.busy, self.closeRequested)
+        self.close()
 
