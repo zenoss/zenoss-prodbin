@@ -27,13 +27,6 @@ import logging
 # the wrong reactor.
 import pysamba.twisted.reactor
 
-
-# IMPORTANT! The import of the pysamba.twisted.reactor module should come before
-# any other libraries that might possibly use twisted. This will ensure that
-# the proper WmiReactor is installed before anyone else grabs a reference to
-# the wrong reactor.
-import pysamba.twisted.reactor
-
 import Globals
 import zope.component
 import zope.interface
@@ -112,7 +105,7 @@ class ZenEventLogPreferences(object):
 # notification query. These queries are open-ended queries that wait until data
 # has been added to the WMI class specified in the query. This task will poll
 # for any changed events with a small timeout period before returning to an 
-# idle state and trying again at the next collection interface.
+# idle state and trying again at the next collection interval.
 #
 # TODO: this is a timing bug with this approach where we can lose events in the
 # following scenarios:

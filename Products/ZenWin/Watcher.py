@@ -49,6 +49,7 @@ class Watcher:
             driver.next()
 
             log.debug("connected to %s sending query", self.device.id)
+            log.debug("%s" % self.queryString)
             yield self.wmi.notificationQuery(self.queryString)
 
             self.enum = driver.next()
