@@ -220,31 +220,14 @@ Ext.onReady(function(){
             this.addEvents('filtertoggle');
             this.addEvents('rowcolorchange');
         },
-        maskIsDisplayed: function() {
-            var dom  = this._loadMaskAnchor.dom;
-            var data = Ext.Element.data;
-            var mask = data(dom, 'mask');
-            return mask.isDisplayed();
-        },
-        delayedLoadMask: function() {
-            if (!this._loadMaskTask) {
-                this._loadMaskTask = new Ext.util.DelayedTask(function(){
-                    this.showLoadMask(true);
-                }, this);
-            }
-            if (!this.maskIsDisplayed())
-                this._loadMaskTask.delay(250);
-        },
         initData: function(ds, cm) {
             var store = this.grid.store;
 
             this.un('beforebuffer', this.onBeforeBuffer,  this);
             cm.un('hiddenchange',   this.updateHeaders,   this);
-            store.un('beforeload',  this.delayedLoadMask, this);
 
             this.on('beforebuffer', this.onBeforeBuffer,  this);
             cm.on('hiddenchange',   this.updateHeaders,   this);
-            store.on('beforeload',  this.delayedLoadMask, this);
 
             Zenoss.FilterGridView.superclass.initData.call(this, ds, cm);
         },
@@ -330,6 +313,26 @@ Ext.onReady(function(){
             return rt.apply(rp);
         },
         filters: [],
+        /*
+         * this.reset() has an annoying habit of blurring existing filter
+         * fields and taking away row stripes. This is the resetting part of
+         * the code, but we use updateLiveRows() instead of refresh(), which
+         * fixes the problem.
+         */
+        nonDisruptiveReset: function() {
+            this.ds.modified = [];
+            //this.grid.selModel.clearSelections(true);
+            this.rowIndex      = 0;
+            this.lastScrollPos = 0;
+            this.lastRowIndex = 0;
+            this.lastIndex    = 0;
+            this.adjustVisibleRows();
+            this.adjustScrollerPos(-this.liveScroller.dom.scrollTop,
+                true);
+            this.showLoadMask(false);
+            //this.reset(false);
+            this.updateLiveRows(this.rowIndex, true, true);
+        },
         renderEditors: function() {
             Ext.each(this.filters, function(ob){ob.destroy()});
             var cs = this.getColumnData();
@@ -362,7 +365,7 @@ Ext.onReady(function(){
                 this.filters[this.filters.length] = filter;
                 filter.validationTask = new Ext.util.DelayedTask(function(){
                     this.fireEvent('filterchange', this);
-                    this.updateLiveRows(0, true, true);
+                    this.nonDisruptiveReset();
                 }, this);
                 if (filter.xtype=='textfield') {
                     filter.on('keyup', function(field, e) {
