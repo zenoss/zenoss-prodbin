@@ -368,3 +368,27 @@ class IFrameworkFactory(zope.interface.Interface):
         """
         pass
 
+
+class IConfigurationListener(zope.interface.Interface):
+    """
+    Notified of configuration life cycle events 
+    """
+
+    def deleted(self, configurationId):
+        """
+        Called when a configuration is deleted from the collector
+        """
+        pass
+
+    def added(self, configuration):
+        """
+        Called when a configuration is added to the collector
+        """
+        pass
+
+    def updated(self, newConfiguration):
+        """
+        Called when a configuration is updated in collector
+        """
+        pass
+

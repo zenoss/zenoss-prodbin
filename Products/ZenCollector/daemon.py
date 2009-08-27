@@ -14,6 +14,7 @@
 import sets
 import signal
 import time
+import logging
 
 import zope.interface
 
@@ -25,14 +26,39 @@ from Products.ZenCollector.interfaces import ICollector,\
                                              IDataService,\
                                              IEventService,\
                                              IFrameworkFactory,\
-                                             ITaskSplitter
-from Products.ZenCollector.scheduler import Scheduler
+                                             ITaskSplitter,\
+                                             IConfigurationListener
 from Products.ZenHub.PBDaemon import PBDaemon, FakeRemote
 from Products.ZenRRD.RRDDaemon import RRDDaemon
 from Products.ZenRRD.RRDUtil import RRDUtil
 from Products.ZenRRD.Thresholds import Thresholds
 from Products.ZenUtils.Utils import importClass
 
+log = logging.getLogger("zen.daemon")
+
+class DummyListener(object):
+    zope.interface.implements(IConfigurationListener)
+    
+    def deleted(self, configurationId):
+        """
+        Called when a configuration is deleted from the collector
+        """
+        log.debug('DummyListener: configuration %s deleted' % configurationId)
+
+    def added(self, configuration):
+        """
+        Called when a configuration is added to the collector
+        """
+        log.debug('DummyListener: configuration %s added' % configuration)
+
+
+    def updated(self, newConfiguration):
+        """
+        Called when a configuration is updated in collector
+        """
+        log.debug('DummyListener: configuration %s updated' % newConfiguration)
+
+DUMMY_LISTENER = DummyListener()
 
 class CollectorDaemon(RRDDaemon):
     """
@@ -44,7 +70,8 @@ class CollectorDaemon(RRDDaemon):
                               IDataService,
                               IEventService)
 
-    def __init__(self, preferences, taskSplitter):
+    def __init__(self, preferences, taskSplitter, 
+                 configurationLister=DUMMY_LISTENER):
         """
         Constructs a new instance of the CollectorDaemon framework. Normally
         only a singleton instance of a CollectorDaemon should exist within a
@@ -66,7 +93,12 @@ class CollectorDaemon(RRDDaemon):
             raise TypeError("taskSplitter must provide ITaskSplitter")
         else:
             self._taskSplitter = taskSplitter
-
+        
+        if not IConfigurationListener.providedBy(configurationLister):
+            raise TypeError(
+                    "configurationLister must provide IConfigurationListener")
+        self._configListener = configurationLister
+        
         # register the various interfaces we provide the rest of the system so
         # that collector implementors can easily retrieve a reference back here
         # if needed
@@ -161,11 +193,7 @@ class CollectorDaemon(RRDDaemon):
         """
         Called remotely by ZenHub when a device we're monitoring is deleted.
         """
-        self.log.debug("Device %s deleted" % devId)
-
-        self._devices.discard(devId)
-        self._configProxy.deleteConfigProxy(self._prefs, devId)
-        self._scheduler.removeTasksForConfig(devId)
+        self._deleteDevice(devId)
 
     def remote_updateDeviceConfig(self, config):
         """
@@ -199,8 +227,10 @@ class CollectorDaemon(RRDDaemon):
 
         if configId in self._devices:
             self._scheduler.removeTasksForConfig(configId)
+            self._configListener.updated(cfg)
         else:
             self._devices.add(configId)
+            self._configListener.added(cfg)
 
         newTasks = self._taskSplitter.splitConfiguration([cfg])
         self.log.debug("Tasks for config %s: %s", configId, newTasks)
@@ -235,8 +265,15 @@ class CollectorDaemon(RRDDaemon):
 
         # remove tasks for the deleted devices
         for configId in deleted:
-            self._configProxy.deleteConfigProxy(configId)
-            self._scheduler.removeTasksForConfig(configId)
+            self._deleteDevice(configId)
+            
+    def _deleteDevice(self, deviceId):
+        self.log.debug("Device %s deleted" % deviceId)
+
+        self._devices.discard(deviceId)
+        self._configListener.deleted(deviceId)
+        self._configProxy.deleteConfigProxy(self._prefs, deviceId)
+        self._scheduler.removeTasksForConfig(deviceId)
 
     def _startConfigCycle(self):
         def _startMaintenanceCycle(result):

@@ -26,7 +26,7 @@ import zope.interface
 
 from Products.ZenCollector.daemon import CollectorDaemon
 from Products.ZenCollector.interfaces import ICollectorPreferences,\
-    IScheduledTask, IEventService, IDataService
+    IScheduledTask, IEventService, IDataService, IConfigurationListener
 from Products.ZenCollector.tasks import SimpleTaskFactory, SimpleTaskSplitter,\
     TaskStates
 from Products.ZenEvents import Event
@@ -262,6 +262,29 @@ class Pid:
         return '<Pid> memory: %s cpu: %s' % (self.memory, self.cpu)
     __repr__ = __str__
 
+class ConfigListener(object):
+    zope.interface.implements(IConfigurationListener)
+    
+    def deleted(self, configurationId):
+        """
+        Called when a configuration is deleted from the collector
+        """
+        log.debug('ConfigListener: configuration %s deleted' % configurationId)
+        ZenProcessTask.DEVICE_STATS.pop(configurationId, None)
+
+    def added(self, configuration):
+        """
+        Called when a configuration is added to the collector
+        """
+        log.debug('ConfigListener: configuration %s added' % configuration)
+
+
+    def updated(self, newConfiguration):
+        """
+        Called when a configuration is updated in collector
+        """
+        log.debug('ConfigListener: configuration %s updated' % newConfiguration)
+
 # Create an implementation of the IScheduledTask interface that will perform
 # the actual collection work needed by this collector.
 class ZenProcessTask(ObservableMixin):
@@ -327,17 +350,20 @@ class ZenProcessTask(ObservableMixin):
         @type reason: Twisted error instance
         """
         msg = 'Unable to read processes on device %s' % self._devId
+        if isinstance(reason.value, error.TimeoutError):
+            log.debug('Timeout on device %s' % self._devId)
+            msg = '%s; Timeout on device' % msg
+        else:
+            log.error('Error on device %s' % self._devId, reason.value)
+            if isinstance(reason.value, (type(u''), type(''))):
+                msg = '%s; error: %s' % (msg, reason.value)
+            
         self._eventService.sendEvent(self.statusEvent,
                                      eventClass=Status_Snmp,
                                      component="process",
                                      device=self._devId,
                                      summary=msg,
                                      severity=Event.Error)
-
-        if isinstance(reason.value, error.TimeoutError):
-            log.debug('Timeout on device %s' % self._devId)
-        else:
-            log.error('Error on device %s' % self._devId, reason.value)
         return reason
         
         
@@ -756,5 +782,5 @@ if __name__ == '__main__':
 
     myTaskFactory = SimpleTaskFactory(ZenProcessTask)
     myTaskSplitter = SimpleTaskSplitter(myTaskFactory)
-    daemon = CollectorDaemon(myPreferences, myTaskSplitter)
+    daemon = CollectorDaemon(myPreferences, myTaskSplitter, ConfigListener())
     daemon.run()
