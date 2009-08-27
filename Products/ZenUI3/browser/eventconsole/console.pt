@@ -499,7 +499,7 @@ Ext.onReady(function(){
                 id: 'lastupdated',
                 xtype: 'tbtext',
                 cls: 'lastupdated',
-                text: ''
+                text: 'Updating...'
             },{
                 xtype: 'refreshmenu',
                 text: 'Refresh',
