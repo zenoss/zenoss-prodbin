@@ -118,6 +118,7 @@ class CollectorDaemon(RRDDaemon):
         self._thresholds = Thresholds()
         self._unresponsiveDevices = sets.Set()
         self._rrd = None
+        self.reconfigureTimeout = None
 
         # keep track of pending tasks if we're doing a single run, and not a
         # continuous cycle
@@ -204,6 +205,15 @@ class CollectorDaemon(RRDDaemon):
         if not self.options.device or self.options.device == config.id:
             self._updateConfig(config)
             self._configProxy.updateConfigProxy(self._prefs, config)
+            
+    def remote_notifyConfigChanged(self):
+        """
+        Called from zenhub to notify that the entire config should be updated  
+        """
+        self.log.debug('notify config change received')
+        if self.reconfigureTimeout and not self.reconfigureTimeout.called:
+            self.reconfigureTimeout.cancel()
+        self.reconfigureTimeout = reactor.callLater(30, self._configCycle, False)
 
     def _taskCompleteCallback(self, taskName):
         # if we're not running a normal daemon cycle then we need to shutdown
@@ -313,7 +323,7 @@ class CollectorDaemon(RRDDaemon):
                              thresholds,
                              rrdCreateCommand)
 
-    def _configCycle(self):
+    def _configCycle(self, reschedule=True):
         """
         Periodically retrieves collector configuration via the 
         IConfigurationProxy service.
@@ -324,15 +334,11 @@ class CollectorDaemon(RRDDaemon):
             rrdCreateCommand = '\n'.join(self._prefs.defaultRRDCreateCommand)
             self._configureRRD(rrdCreateCommand, thresholds)
 
-            return defer.maybeDeferred(self._configProxy.getConfigProxies,
-                                       self._prefs, devices)
-
         def _processThresholdClasses(thresholdClasses, devices):
             self._loadThresholdClasses(thresholdClasses)
             
             d = defer.maybeDeferred(self._configProxy.getThresholds,
                                     self._prefs)
-            d.addCallback(_processThresholds, devices)
             return d
 
         def _processPropertyItems(propertyItems, devices):
@@ -340,9 +346,38 @@ class CollectorDaemon(RRDDaemon):
 
             d = defer.maybeDeferred(self._configProxy.getThresholdClasses,
                                     self._prefs)
-            d.addCallback(_processThresholdClasses, devices)
             return d
 
+        def _fetchConfig(result, devices):
+            return defer.maybeDeferred(self._configProxy.getConfigProxies,
+                                       self._prefs, devices)
+
+        def _processConfig(result):
+            # stop if a single device was requested and its configuration
+            # was not found
+            if self.options.device and not self.options.cycle:
+                configIds = [cfg.id for cfg in result]
+                if not self.options.device in configIds:
+                    self.log.error("Configuration for %s unavailable",
+                                   self.options.device)
+                    self.stop()
+            
+            self.heartbeatTimeout = self._prefs.cycleInterval * 3
+            self.log.debug("Heartbeat timeout set to %ds",
+                           self.heartbeatTimeout)
+
+            self._updateDeviceConfigs(result)
+            return result
+
+        def _reschedule(result):
+            # TODO: why is configCycleInterval in minutes but every other
+            # interval appears to be in seconds? fix this!
+            interval = self._prefs.configCycleInterval * 60
+            self.log.debug("Rescheduling configuration check in %d seconds",
+                           interval)
+            reactor.callLater(interval, self._configCycle)
+            return result
+        
         def _configure():
             devices = []
             # if we were given a command-line option to collect against a single
@@ -353,9 +388,13 @@ class CollectorDaemon(RRDDaemon):
             d = defer.maybeDeferred(self._configProxy.getPropertyItems,
                                     self._prefs)
             d.addCallback(_processPropertyItems, devices)
+            d.addCallback(_processThresholdClasses, devices)
+            d.addCallback(_processThresholds, devices)
+            d.addCallback(_fetchConfig, devices)
+            d.addCallback(_processConfig)
             return d
-
-        def _configureFinished(result):
+        
+        def _handleError(result):
             if isinstance(result, Failure):
                 self.log.error("Configure failed: %s",
                                result.getErrorMessage())
@@ -363,31 +402,11 @@ class CollectorDaemon(RRDDaemon):
                 # stop if a single device was requested and nothing found
                 if self.options.device:
                     self.stop()
-            else:
-                # stop if a single device was requested and its configuration
-                # was not found
-                if self.options.device and not self.options.cycle:
-                    configIds = [cfg.id for cfg in result]
-                    if not self.options.device in configIds:
-                        self.log.error("Configuration for %s unavailable",
-                                       self.options.device)
-                        self.stop()
-
-                self.heartbeatTimeout = self._prefs.cycleInterval * 3
-                self.log.debug("Heartbeat timeout set to %ds",
-                               self.heartbeatTimeout)
-
-                self._updateDeviceConfigs(result)
-
-            # TODO: why is configCycleInterval in minutes but every other
-            # interval appears to be in seconds? fix this!
-            interval = self._prefs.configCycleInterval * 60
-            self.log.debug("Rescheduling configuration check in %d seconds",
-                           interval)
-            reactor.callLater(interval, self._configCycle)
-
+            return result
         d = _configure()
-        d.addBoth(_configureFinished)
+        d.addErrback(_handleError)
+        if reschedule:
+            d.addBoth(_reschedule)
         return d
 
     def _maintenanceCycle(self):

@@ -15,6 +15,8 @@ from Products.ZenCollector.services.config import CollectorConfigService
 from Products.ZenUtils.Utils import unused
 from Products.ZenCollector.services.config import DeviceProxy
 from Products.ZenEvents import Event
+from Products.ZenModel.OSProcessClass import OSProcessClass
+from Products.ZenModel.OSProcessOrganizer import OSProcessOrganizer
 unused(DeviceProxy)
 
 from twisted.spread import pb
@@ -80,3 +82,6 @@ class ProcessConfig(CollectorConfigService):
             proxy.processes[p.id] = proc
 
         return proxy
+    
+    def _getNotifiableClasses(self):
+        return (OSProcessClass, OSProcessOrganizer)

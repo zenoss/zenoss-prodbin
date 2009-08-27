@@ -65,6 +65,7 @@ class CollectorConfigService(HubService, ThresholdMixin):
 
         # TODO: what's this for?
         self._procrastinator = Procrastinate(self._pushConfig)
+        self._reconfigProcrastinator = Procrastinate(self._pushReconfigure)
 
     def update(self, object):
         """
@@ -95,18 +96,24 @@ class CollectorConfigService(HubService, ThresholdMixin):
 
         # somethinge else... mark the devices as out-of-date
 
-        while object:
-            # walk up until you hit an organizer or a device
-            if isinstance(object, DeviceClass):
-                for device in object.getSubDevices():
-                    self._notifyAll(device)
-                break
-
-            if isinstance(object, Device):
-                self._notifyAll(object)
-                break
-
-            object = aq_parent(object)
+        if isinstance(object, self._getNotifiableClasses()):
+            self.log.debug('object %s is instance of notifiable class' % object)
+            if self._notifyConfigChange(object):
+                self.log.debug('scheduling collector reconfigure')
+                self._reconfigProcrastinator.doLater(True)
+        else:
+            while object:
+                # walk up until you hit an organizer or a device
+                if isinstance(object, DeviceClass):
+                    for device in object.getSubDevices():
+                        self._notifyAll(device)
+                    break
+    
+                if isinstance(object, Device):
+                    self._notifyAll(object)
+                    break
+    
+                object = aq_parent(object)
 
     def deleted(self, object):
         """
@@ -239,3 +246,31 @@ class CollectorConfigService(HubService, ThresholdMixin):
         TODO
         """
         return listener.callRemote('updateDeviceConfig', proxy)
+    
+    def _getNotifiableClasses(self):
+        """
+        a tuple of classes. When any object of a type in the sequence is 
+        modified the collector connected to the service will be notified to 
+        update its configuration
+        
+        @rtype: tuple
+        """
+        return ()
+    
+    def _pushReconfigure(self, value):
+        """
+        notify the collector to reread the entire configuration
+        """
+        #value is unused but needed for the procrastinator framework
+        for listener in self.listeners:
+            listener.callRemote('notifyConfigChanged')
+        self._reconfigProcrastinator.clear()
+
+    def _notifyConfigChange(self, object):
+        """
+        Called when an object of a type from _getNotifiableClasses is 
+        encountered
+        @return: should a notify config changed be sent
+        @rtype: boolean
+        """
+        return True
