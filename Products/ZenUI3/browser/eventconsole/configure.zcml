@@ -19,11 +19,19 @@
 
     -->
 
-    <!-- Register the main view -->
+    <!-- Register the console and history console views -->
+
     <browser:page
-        template="console.pt"
         name="viewEvents"
         for="Products.ZenModel.EventView.IEventView"
+        class=".grid.EventConsoleView"
+        permission="zope2.Public"
+        />
+
+    <browser:page
+        name="viewHistoryEvents"
+        for="Products.ZenModel.EventView.IEventView"
+        class=".grid.HistoryConsoleView"
         permission="zope2.Public"
         />
 

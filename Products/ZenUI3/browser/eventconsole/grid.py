@@ -7,9 +7,22 @@ from Products.Five.browser.pagetemplatefile import ViewPageTemplateFile
 from Products.ZenUtils.Ext import DirectRouter, DirectProviderDefinition
 from Products.ZenUI3.utils.json import json, unjson
 from Products.ZenUI3.utils.javascript import JavaScriptSnippet
+from Products.ZenUI3.utils.javascript import JavaScriptSnippetManager
 from Products.ZenUI3.browser.eventconsole.interfaces import IEventsAPI
 
 from Products.ZenUI3.browser.eventconsole.columns import COLUMN_CONFIG
+
+
+class EventConsoleView(BrowserView):
+    __call__ = ViewPageTemplateFile('console.pt')
+    # Need an id so the tabs can tell what's going on
+    __call__.id = 'viewEvents'
+
+
+class HistoryConsoleView(BrowserView):
+    __call__ = ViewPageTemplateFile('historyconsole.pt')
+    # Need an id so the tabs can tell what's going on
+    __call__.id = 'viewHistoryEvents'
 
 
 class EventConsole(DirectRouter):
@@ -17,14 +30,14 @@ class EventConsole(DirectRouter):
 
     @property
     def _is_history(self):
-        return False
+        return 'viewHistoryEvents' in self.request['HTTP_REFERER']
 
     @property
     def _evmgr(self):
         evmgr = getattr(self, '_evmgr_evmgr', None)
         if not evmgr:
             if self._is_history:
-                evmgr = self.context.dmd.ZenHistoryManager
+                evmgr = self.context.dmd.ZenEventHistory
             else:
                 evmgr = self.context.dmd.ZenEventManager
             self._evmgr_evmgr = evmgr
@@ -187,7 +200,8 @@ class EventConsole(DirectRouter):
         zem = self._evmgr
         where = zem.lookupManagedEntityWhere(self.context)
         where = zem.filteredWhere(where, params)
-        q = 'select eventState from status where %s ' % where
+        table = self._is_history and 'history' or 'status'
+        q = 'select eventState from %s where %s ' % (table, where)
         q += 'order by %s %s' % (field, direction)
         query = query_tpl % q
         try:
@@ -265,15 +279,6 @@ class EventConsoleAPIDefinition(DirectProviderDefinition):
     _url = 'evconsole_router'
 
 
-class HistoryConsoleGridAPI(EventConsole):
-    """
-    Same as the event console, only it accesses the history table.
-    """
-    @property
-    def _is_history(self):
-        return True
-
-
 class EventClasses(JavaScriptSnippet):
     def snippet(self):
         orgs = self.context.dmd.Events.getSubOrganizers()
@@ -289,12 +294,26 @@ class EventClasses(JavaScriptSnippet):
 
 class GridColumnDefinitions(JavaScriptSnippet):
 
+    @property
+    def _is_history(self):
+        return self._parent.__call__.id == 'viewHistoryEvents'
+
+    @property
+    def _evmgr(self):
+        evmgr = getattr(self, '_evmgr_evmgr', None)
+        if not evmgr:
+            if self._is_history:
+                evmgr = self.context.dmd.ZenEventHistory
+            else:
+                evmgr = self.context.dmd.ZenEventManager
+            self._evmgr_evmgr = evmgr
+        return evmgr
+
     def snippet(self):
         result = ["Ext.onReady(function(){Zenoss.env.COLUMN_DEFINITIONS=["]
         f = getattr(self.context, 'getResultFields', None)
         if f is None:
-            fields = self.context.dmd.ZenEventManager.getEventResultFields(
-                self.context)
+            fields = self._evmgr.getEventResultFields(self.context)
         else:
             fields = f()
         defs = []

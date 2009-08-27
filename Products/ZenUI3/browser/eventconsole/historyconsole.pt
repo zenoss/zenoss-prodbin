@@ -97,16 +97,24 @@
 </textarea>
 <script tal:content="string:
     Ext.onReady(function(){
-        Zenoss.env.EVENTSGRID_STATEID = '${context/id}_evconsole';
+        Zenoss.env.EVENTSGRID_STATEID = '${context/id}_histconsole';
     });
 "></script>
 <script>
 Ext.onReady(function(){
-
+    
+    // Make severity filter show clear events by default
+    var cds = Zenoss.env.COLUMN_DEFINITIONS;
+    for (i=0;i<cds.length;i++) {
+        var def = cds[i];
+        if (def.id=='severity') {
+            delete def.filter.source[5].checked;
+            Zenoss.env.COLUMN_DEFINITIONS[i] = def;
+        }
+    }
+    
     // Global dialogs, will be reused after first load
     var win,
-        addevent,
-        configwin,
     // Date renderer object, used throughout
         date_renderer = Ext.util.Format.dateRenderer(Zenoss.date.ISO8601Long),
     // Get references to the panels
@@ -153,96 +161,6 @@ Ext.onReady(function(){
         };
         Ext.apply(params, getQueryParameters());
         return params;
-    }
-
-    /*
-     * Show the dialog that allows one to add an event.
-     */
-    function showAddEventDialog() {
-        if(!addevent){
-        addevent = new Ext.Window({
-            title: 'Create Event',
-            layout: 'fit',
-            autoHeight: true,
-            width: 310,
-            closeAction: 'hide',
-            plain: true,
-            items: [{
-                id: 'addeventform',
-                xtype: 'form',
-                monitorValid: true,
-                defaults: {width: 180},
-                autoHeight: true,
-                border: false,
-                frame: false,
-                labelWidth: 100,
-                items: [{
-                    xtype: 'textarea',
-                    name: 'summary',
-                    fieldLabel: 'Summary',
-                    allowBlank: false
-                },{
-                    xtype: 'textfield',
-                    fieldLabel: 'Device',
-                    name: 'device',
-                    allowBlank: false
-                },{
-                    xtype: 'textfield',
-                    fieldLabel: 'Component',
-                    name: 'component'
-                },{
-                    fieldLabel: 'Severity',
-                    name: 'severity',
-                    xtype: 'combo',
-                    store: Zenoss.env.SEVERITIES,
-                    typeAhead: true,
-                    allowBlank: false,
-                    forceSelection: true,
-                    triggerAction: 'all',
-                    value: 5,
-                    selectOnFocus: true
-                },{
-                    xtype: 'textfield',
-                    fieldLabel: 'Event Class Key',
-                    name: 'evclasskey'
-                },{
-                    fieldLabel: 'Event Class',
-                    name: 'evclass',
-                    xtype: 'combo',
-                    store: Zenoss.env.EVENT_CLASSES,
-                    typeAhead: true,
-                    forceSelection: true,
-                    triggerAction: 'all',
-                    emptyText: 'Select an event class',
-                    selectOnFocus: true
-                }],
-                buttons: [{
-                    text: 'Cancel',
-                    handler: function(){
-                        addevent.hide();
-                    }
-                },{
-                    text: 'Submit',
-                    formBind: true,
-                    handler: function(){
-                        form = Ext.getCmp('addeventform');
-                        Zenoss.remote.EventConsole.add_event(
-                            form.getForm().getValues(),
-                            function(){
-                                addevent.hide();
-                                grid = Ext.getCmp('events_grid')
-                                view = grid.getView();
-                                view.updateLiveRows(
-                                    view.rowIndex, true, true);
-                            }
-                        )
-                    }
-                }]
-            }]
-
-        });
-        }
-        addevent.show(this);
     }
 
     /*
@@ -360,54 +278,6 @@ Ext.onReady(function(){
             region:'north',
             border: false,
             items: [{
-                /* 
-                 * ACKNOWLEDGE BUTTON 
-                 */
-                text: 'Acknowledge', 
-                iconCls: 'acknowledge',
-                handler: function(){
-                    // Get params describing selected events
-                    var params = getSelectionParameters();
-                    if (params) {
-                        // Send to server, then refresh view to see new event
-                        // states
-                        Zenoss.remote.EventConsole.acknowledge(
-                            params,
-                            function(provider, response){
-                                view = grid.getView();
-                                view.updateLiveRows(view.rowIndex, true, true);
-                            }
-                        );
-                    }
-                }
-            },{
-                /* 
-                 * CLOSE BUTTON 
-                 */
-                text: 'Close',
-                iconCls: 'delete',
-                handler: function(){
-                    // Get params describing selected events
-                    var params = getSelectionParameters();
-                    if (params) {
-                        // Send to server, then refresh view to see fewer
-                        // events
-                        Zenoss.remote.EventConsole.close(params,
-                            function(provider, response){
-                                view = grid.getView();
-                                view.updateLiveRows(view.rowIndex, true, true);
-                            }
-                        );
-                    }
-                }
-            },{
-                /* 
-                 * ADD BUTTON 
-                 */
-                text: 'Add',
-                iconCls: 'add',
-                handler: showAddEventDialog
-            },{
                 /*
                  * ClASSIFY BUTTON
                  */
@@ -471,7 +341,7 @@ Ext.onReady(function(){
                 text: 'Filters',
                 iconCls: 'filter',
                 enableToggle: true,
-                pressed: false,
+                pressed: true,
                 listeners: {
                     'toggle' : function(ob, on) {
                         if(on) grid.showFilters()
@@ -549,6 +419,10 @@ Ext.onReady(function(){
         rowcoloritem: 'rowcolors_checkitem',
         loadMask  : { msg :  'Loading. Please wait...' }
     });
+
+    // Show filters by default on history console
+    // State restoration occurs after render, so this won't persist if unwanted
+    myView.on('render', function(){myView.showFilters()});
     
     // Store to hold the events data
     var console_store = new Ext.ux.grid.livegrid.Store({
@@ -557,7 +431,7 @@ Ext.onReady(function(){
             directFn:Zenoss.remote.EventConsole.query
         }),
         bufferSize: 100,
-        sortInfo: {field:'severity', direction:'DESC'},
+        sortInfo: {field:'lastTime', direction:'DESC'},
         reader: new Ext.ux.grid.livegrid.JsonReader({
             root: 'events',
             totalProperty: 'totalCount'
@@ -857,9 +731,6 @@ Ext.onReady(function(){
         style: {'border-top':'1px solid #888'},
         height: 25,
         items: [{
-            xtype: 'tbtext',
-            text: '<a href="viewHistoryEvents"'+'>Event History...<'+'/a'+'>'
-        },{
             xtype: 'tbfill'
         },{
             xtype: 'livegridinfo',

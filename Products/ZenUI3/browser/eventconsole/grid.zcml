@@ -12,11 +12,10 @@
         permission="zope2.Public"
         />
 
-
     <!-- Event console JSON api -->
     <browser:page
         name="evconsole_router"
-        for="*"
+        for="Products.ZenModel.EventView.IEventView"
         class=".grid.EventConsole"
         permission="zope2.Public"
         />
