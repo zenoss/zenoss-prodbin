@@ -151,7 +151,7 @@ class Scheduler(object):
         self._loopingCalls[newTask.name] = loopingCall
         self._tasks[newTask.name] = callableTask
         self._taskCallback[newTask.name] = callback
-        self.taskAdded(newTask)
+        self.taskAdded(callableTask)
 
         # start the task using a callback so that its put at the bottom of
         # the Twisted event queue, to allow other processing to continue and
@@ -165,25 +165,25 @@ class Scheduler(object):
         d.addCallback(_startTask)
         reactor.callLater(0, d.callback, None)
 
-    def taskAdded(self, task):
+    def taskAdded(self, taskWrapper):
         """
         Called whenever the scheduler adds a task.
         """
         pass
 
-    def taskRemoved(self, task):
+    def taskRemoved(self, taskWrapper):
         """
         Called whenever the scheduler removes a task.
         """
         pass
 
-    def taskPaused(self, task):
+    def taskPaused(self, taskWrapper):
         """
         Called whenever the scheduler pauses a task.
         """
         pass
 
-    def taskResumed(self, task):
+    def taskResumed(self, taskWrapper):
         """
         Called whenever the scheduler resumes a task.
         """
@@ -202,11 +202,11 @@ class Scheduler(object):
                 log.debug("Stopping task %s", taskName)
                 self._loopingCalls[taskName].stop()
                 doomedTasks.append(taskName)
+                self.taskRemoved(taskWrapper)
 
         for taskName in doomedTasks:
             del self._loopingCalls[taskName]
             del self._tasks[taskName]
-            self.taskRemoved(task)
             # TODO: ponder task statistics and keeping them around?
 
         # TODO: don't let any tasks for the same config start until
@@ -218,7 +218,7 @@ class Scheduler(object):
             if task.configId == configId:
                 log.debug("Pausing task %s", taskName)
                 taskWrapper.paused = True
-                self.taskPaused(task)
+                self.taskPaused(taskWrapper)
 
     def resumeTasksForConfig(self, configId):
         for (taskName, taskWrapper) in self._tasks.iteritems():
@@ -226,7 +226,7 @@ class Scheduler(object):
             if task.configId == configId:
                 log.debug("Resuming task %s", taskName)
                 taskWrapper.paused = False
-                self.taskResumed(task)
+                self.taskResumed(taskWrapper)
 
     def taskDone(self, taskName):
         if callable(self._taskCallback[taskName]):
