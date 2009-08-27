@@ -273,6 +273,14 @@ class EventConsole(DirectRouter):
         ))
         return {'success':True, 'evid':evid}
 
+    def column_config(self):
+        f = getattr(self.context, 'getResultFields', None)
+        if f is None:
+            fields = self._evmgr.getEventResultFields(self.context)
+        else:
+            fields = f()
+        return column_config(fields)
+
 
 class EventConsoleAPIDefinition(DirectProviderDefinition):
     _router = EventConsole
@@ -291,6 +299,25 @@ class EventClasses(JavaScriptSnippet):
         })
         """ % paths;
 
+def column_config(fields):
+    defs = []
+    for field in fields:
+        col = COLUMN_CONFIG[field].copy()
+        col['id'] = field
+        col['dataIndex'] = field
+        if isinstance(col['filter'], basestring):
+            col['filter'] = {'xtype':col['filter']}
+        col['sortable'] = True
+        renderer = None
+        if 'renderer' in col:
+            renderer = col['renderer']
+            del col['renderer']
+        s = json(col)
+        if renderer:
+            ss, se = s[:-1], s[-1]
+            s = ''.join([ss, ',renderer:', renderer, se])
+        defs.append(s)
+    return defs
 
 class GridColumnDefinitions(JavaScriptSnippet):
 
@@ -316,23 +343,7 @@ class GridColumnDefinitions(JavaScriptSnippet):
             fields = self._evmgr.getEventResultFields(self.context)
         else:
             fields = f()
-        defs = []
-        for field in fields:
-            col = COLUMN_CONFIG[field].copy()
-            col['id'] = field
-            col['dataIndex'] = field
-            if isinstance(col['filter'], basestring):
-                col['filter'] = {'xtype':col['filter']}
-            col['sortable'] = True
-            renderer = None
-            if 'renderer' in col:
-                renderer = col['renderer']
-                del col['renderer']
-            s = json(col)
-            if renderer:
-                ss, se = s[:-1], s[-1]
-                s = ''.join([ss, ',renderer:', renderer, se])
-            defs.append(s)
+        defs = column_config(fields)
         result.append(',\n'.join(defs))
         result.append(']});')
         result = '\n'.join(result)

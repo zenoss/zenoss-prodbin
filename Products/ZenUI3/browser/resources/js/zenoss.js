@@ -466,12 +466,20 @@ Ext.onReady(function(){
         },
         resetGrid: function() {
             Ext.state.Manager.clear(this.getItemId());
-            this.getView().resetFilters();
-            this.reconfigure(this.store,this.initialConfig.cm);
             var view = this.getView();
-            view.fitColumns();
-            view.showLoadMask(true);
-            view.updateLiveRows(view.rowIndex, true, true);
+            view.resetFilters();
+            Zenoss.remote.EventConsole.column_config({}, function(result){
+                var results = [];
+                Ext.each(result, function(r){
+                    results[results.length] = Ext.decode(r);
+                });
+                var cm = new Ext.grid.ColumnModel(results);
+                this.reconfigure(this.store, cm);
+                view.fitColumns();
+                view.showLoadMask(true);
+                view.updateLiveRows(this.rowIndex, true, true);
+                this.saveState();
+            }, this);
         },
         hideFilters: function() { this.getView().hideFilters(); },
         showFilters: function() { 
