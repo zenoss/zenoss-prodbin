@@ -270,8 +270,15 @@ class ZenActions(ZCmdBase):
         for result in self.query(q):
             evid = result[-1]
             data = dict(zip(fields, map(zem.convert, fields, result[:-1])))
-            details = dict( zem.getEventDetail(evid).getEventDetails() )
-            data.update( details )
+
+            # Make details available to event commands.  zem.getEventDetail
+            # uses the status table (which is where this event came from
+            try:
+                details = dict( zem.getEventDetail(evid).getEventDetails() )
+                data.update( details )
+            except ZenEventNotFound:
+                pass
+
             device = self.dmd.Devices.findDevice(data.get('device', None))
             data['eventUrl'] = self.getEventUrl(evid, device)
             if device:
@@ -295,8 +302,10 @@ class ZenActions(ZCmdBase):
             evid = result[-1]
             data = dict(zip(fields, map(zem.convert, fields, result[:-1])))
 
+            # For clear events we are using the history table, so get the event details
+            # using the history table.
             try:
-                details = dict( zem.getEventDetail(evid).getEventDetails() )
+                details = dict( zem.getEventDetailFromStatusOrHistory(evid).getEventDetails() )
                 data.update( details )
             except ZenEventNotFound:
                 pass
