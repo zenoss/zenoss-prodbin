@@ -95,7 +95,7 @@ class CallableTask(object):
         return self.task.doTask()
 
     def _finished(self, result):
-        log.debug("Task %s finished, result: %r", self.task.name, 
+        log.debug("Task %s finished, result: %r", self.task.name,
                   result)
 
         # Make sure we always reset the state to IDLE once the task is
@@ -151,6 +151,7 @@ class Scheduler(object):
         self._loopingCalls[newTask.name] = loopingCall
         self._tasks[newTask.name] = callableTask
         self._taskCallback[newTask.name] = callback
+        self.taskAdded(newTask)
 
         # start the task using a callback so that its put at the bottom of
         # the Twisted event queue, to allow other processing to continue and
@@ -164,6 +165,30 @@ class Scheduler(object):
         d.addCallback(_startTask)
         reactor.callLater(0, d.callback, None)
 
+    def taskAdded(self, task):
+        """
+        Called whenever the scheduler adds a task.
+        """
+        pass
+
+    def taskRemoved(self, task):
+        """
+        Called whenever the scheduler removes a task.
+        """
+        pass
+
+    def taskPaused(self, task):
+        """
+        Called whenever the scheduler pauses a task.
+        """
+        pass
+
+    def taskResumed(self, task):
+        """
+        Called whenever the scheduler resumes a task.
+        """
+        pass
+
     def removeTasksForConfig(self, configId):
         """
         Remove all tasks associated with the specified identifier.
@@ -175,13 +200,13 @@ class Scheduler(object):
             task = taskWrapper.task
             if task.configId == configId:
                 log.debug("Stopping task %s", taskName)
-                task.detachAttributeObserver('state', self._taskStateChangeListener)
                 self._loopingCalls[taskName].stop()
                 doomedTasks.append(taskName)
 
         for taskName in doomedTasks:
             del self._loopingCalls[taskName]
             del self._tasks[taskName]
+            self.taskRemoved(task)
             # TODO: ponder task statistics and keeping them around?
 
         # TODO: don't let any tasks for the same config start until
@@ -193,6 +218,7 @@ class Scheduler(object):
             if task.configId == configId:
                 log.debug("Pausing task %s", taskName)
                 taskWrapper.paused = True
+                self.taskPaused(task)
 
     def resumeTasksForConfig(self, configId):
         for (taskName, taskWrapper) in self._tasks.iteritems():
@@ -200,10 +226,12 @@ class Scheduler(object):
             if task.configId == configId:
                 log.debug("Resuming task %s", taskName)
                 taskWrapper.paused = False
+                self.taskResumed(task)
 
     def taskDone(self, taskName):
         if callable(self._taskCallback[taskName]):
             self._taskCallback[taskName](taskName=taskName)
 
     def displayStatistics(self, verbose=False):
+        # no statistics in this scheduler
         pass
