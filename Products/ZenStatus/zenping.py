@@ -66,15 +66,21 @@ class ZenPing(PBDaemon):
         if not self.options.useFileDescriptor:
             self.openPrivilegedPort('--ping')
         self.rrdStats = DaemonStats()
-        if self.options.test:
-            self.pinger = TestPing(self.pingTries, self.pingTimeOut)
-        else:
-            fd = None
-            if self.options.useFileDescriptor is not None:
-                fd = int(self.options.useFileDescriptor)
-            self.pinger = Ping(self.pingTries, self.pingTimeOut, fd)
         self.lastConfig = time.time() - self.options.minconfigwait
         self.log.info("started")
+
+
+    def getPinger(self):
+        if self.pinger:
+            self.pinger.reconfigure(self.pingTries, self.pingTimeOut)
+        else:
+            if self.options.test:
+                self.pinger = TestPing(self.pingTries, self.pingTimeOut)
+            else:
+                fd = None
+                if self.options.useFileDescriptor is not None:
+                    fd = int(self.options.useFileDescriptor)
+                self.pinger = Ping(self.pingTries, self.pingTimeOut, fd)
 
 
     def config(self):
@@ -352,6 +358,7 @@ class ZenPing(PBDaemon):
             setattr(self, att, after)
         self.configCycleInterval *= 60
         self.reconfigured = True
+        self.getPinger()
 
 
     def clearDevice(self, device):

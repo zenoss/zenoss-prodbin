@@ -73,12 +73,16 @@ class Ping(object):
     """
     
     def __init__(self, tries=2, timeout=2, sock=None):
-        self.tries = tries
-        self.timeout = timeout
+        self.reconfigure(tries, timeout)
         self.procId = os.getpid()
         self.jobqueue = {}
         self.pktdata = 'zenping %s %s' % (socket.getfqdn(), self.procId)
         self.createPingSocket(sock)
+
+
+    def reconfigure(self, tries=2, timeout=2):
+        self.tries = tries
+        self.timeout = timeout
 
 
     def createPingSocket(self, sock):
