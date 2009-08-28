@@ -239,3 +239,10 @@ table.proptable {
     padding-bottom: 3px;
     text-transform: uppercase;
 }
+
+div.dialog-link {
+    text-align: center;
+}
+div.dialog-link a {
+    color: lightblue;
+}

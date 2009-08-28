@@ -491,6 +491,23 @@ Ext.onReady(function(){
                             var view = Ext.getCmp('events_grid').getView();
                             view.toggleRowColors(checked);
                         }
+                    },{
+                        text: 'Save this configuration...',
+                        handler: function(){
+                            var grid = Ext.getCmp('events_grid'),
+                                link = grid.getPermalink();
+                           Ext.Msg.show({
+                            title: 'Permalink',
+                            msg: '<'+'div class="dialog-link">'+
+                            'Drag this link to your bookmark' +
+                            ' bar <'+'br/>to return to this grid '+
+                             'configuration later.'+
+                             '<'+'br/><'+'br/><'+'a href="'+
+                             link + '">'+
+                             'Event Console<'+'/a><'+'/div>',
+                            buttons: Ext.Msg.OK
+                            })
+                        }
                     }]
                 }
             },{
@@ -557,6 +574,7 @@ Ext.onReady(function(){
             directFn:Zenoss.remote.EventConsole.query
         }),
         bufferSize: 100,
+        defaultSort: {field:'severity', direction:'DESC'},
         sortInfo: {field:'severity', direction:'DESC'},
         reader: new Ext.ux.grid.livegrid.JsonReader({
             root: 'events',
