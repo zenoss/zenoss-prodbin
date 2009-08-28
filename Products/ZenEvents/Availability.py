@@ -55,7 +55,7 @@ class Availability:
         return '[%s %s %s]' % (self.device, self.component, self.floatStr())
 
     def __float__(self):
-        return self.availability
+        return float(self.availability)
     
     def __int__(self):
         return int(self.availability * 100)
