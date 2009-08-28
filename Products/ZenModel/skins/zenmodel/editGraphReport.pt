@@ -283,6 +283,11 @@
         <td valign="top" tal:content="element/graphId"/>
     </tr>
     </tal:block>
+    <tr>
+        <td colspan="5" class="tableheader">
+            <span metal:use-macro="here/zenTableNavigation/macros/navbody" />
+        </td>
+    </tr>
 
         <!-- END TABLE CONTENTS -->
 
