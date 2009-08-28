@@ -569,7 +569,7 @@ class zencommand(RRDDaemon):
             self.log.exception(ex)
             
     
-    def sendCmdEvent(self, cmd, summary):
+    def sendCmdEvent(self, cmd, severity, summary):
         """
         Send an event using the info in the Cmd object.
         """
@@ -577,7 +577,7 @@ class zencommand(RRDDaemon):
                             component=cmd.component,
                             eventClass=cmd.eventClass,
                             eventKey=cmd.eventKey,
-                            severity=cmd.severity,
+                            severity=severity,
                             summary=summary))
                             
     def finished(self, cmdOrErr):
@@ -590,8 +590,7 @@ class zencommand(RRDDaemon):
             self.error(cmdOrErr)
         else:
             cmd = cmdOrErr
-            cmd.severity = Clear
-            self.sendCmdEvent(cmd, "Clear")
+            self.sendCmdEvent(cmd, Clear, "Clear")
             self.parseResults(cmd)
         self.processSchedule()
         
@@ -605,7 +604,7 @@ class zencommand(RRDDaemon):
             msg = "Command timed out on device %s: %r" % (
                     cmd.deviceConfig.device, cmd.command)
             self.log.warning(msg)
-            self.sendCmdEvent(cmd, msg)
+            self.sendCmdEvent(cmd, cmd.severity, msg)
         else:
             self.log.exception(err.value)
             
