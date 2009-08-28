@@ -65,6 +65,10 @@ r"^Process (?P<process_id>\d+), Nbr (?P<device>\d+\.\d+\.\d+\.\d+) on (?P<interf
 # Cisco VPN Concentrator
 # 54884 05/25/2009 13:41:14.060 SEV=3 HTTP/42 RPT=4623 Error on socket accept.
 r"^\d+ \d+\/\d+\/\d+ \d+:\d+:\d+\.\d+ SEV=\d+ (?P<eventClassKey>\S+) RPT=\d+ (?P<summary>.*)",
+
+# Dell Storage Array
+# 2626:48:VolExec:27-Aug-2009 13:15:58.072049:VE_VolSetWorker.hh:75:WARNING:43.3.2:Volume volumeName has reached 96 percent of its reported size and is currently using 492690MB.
+r'^\d+:\d+:(?P<component>[^:]+):\d+-\w{3}-\d{4} \d{2}:\d{2}:\d{2}\.\d+:[^:]+:\d+:\w+:(?P<eventClassKey>[^:]+):(?P<summary>.*)',
 ) 
 
 # compile regex parsers on load
