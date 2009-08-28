@@ -18,38 +18,59 @@ class memory:
 
     def run(self, dmd, args):
         summary = Utilization.getSummaryArgs(dmd, args)
-        reversedSummary = Utilization.reversedSummary(summary)
+
+        dpNames = [
+            'memAvailReal',           # Net-SNMP & SSH
+            'memBuffer', 'memCached', # Net-SNMP & SSH on Linux
+            'memoryAvailableKBytes',  # SNMP Informant
+            'MemoryAvailableBytes',   # Perfmon
+            'mem5minFree',            # Cisco
+            ]
 
         report = []
-        freeNames = ['memAvailReal', 'memBuffer', 'memCached', 'mem5minFree']
-        fetchNames = ['memoryAvailableKBytes', 'memAvailSwap', ] + freeNames
         for d in Utilization.filteredDevices(dmd, args):
-            totalReal = d.hw.totalMemory
-            if not totalReal:
-                totalReal = None
-            result = d.getRRDValues(fetchNames, **summary) or {}
-            winMem = result.get('memoryAvailableKBytes', None)
-            ciscoMem = result.get('mem5minFree', winMem)
-            availableReal = result.get('memAvailReal', ciscoMem)
-            buffered = result.get('memBuffer', None)
-            cached = result.get('memCached', None)
-            availableSwap = result.get('memAvailSwap', None)
-            free = availableReal
-            try:
-                # max used space space is total - minimum free
-                free = d.getRRDSum(freeNames, **reversedSummary)
-            except Exception:
-                pass
-
+            totalReal = d.hw.totalMemory or None
+            availableReal = None
+            buffered = None
+            cached = None
             percentUsed = None
-            if totalReal and free:
-                percentUsed = Utils.percent(totalReal - free, totalReal)
+
+            if d.hw.totalMemory:
+                results = d.getRRDValues(dpNames, **summary) or {}
+
+                # UNIX
+                if 'memAvailReal' in results:
+                    availableReal = results['memAvailReal'] * 1024
+
+                # Linux
+                if 'memBuffer' in results and 'memCached' in results \
+                    and availableReal is not None:
+                    buffered = results['memBuffer'] * 1024
+                    cached = results['memCached'] * 1024
+                    availableReal += buffered
+                    availableReal += cached
+
+                # SNMP Informant
+                elif 'memoryAvailableKBytes' in results:
+                    availableReal = results['memoryAvailableKBytes'] * 1024
+
+                # Perfmon
+                elif 'MemoryAvailableBytes' in results:
+                    availableReal = results['MemoryAvailableBytes']
+
+                # Cisco
+                elif 'mem5minFree' in results:
+                    availableReal = results['mem5minFree']
+
+                if availableReal:
+                    percentUsed = Utils.percent(
+                        totalReal - availableReal, totalReal)
+
             r = Utils.Record(device=d,
                              deviceName=d.titleOrId(),
                              totalReal=totalReal,
                              percentUsed=percentUsed,
                              availableReal=availableReal,
-                             availableSwap=availableSwap,
                              buffered=buffered,
                              cached=cached)
             report.append(r)
