@@ -170,13 +170,16 @@ class IScheduler(zope.interface.Interface):
     IScheduledTask interface.
     """
 
-    def addTask(self, newTask, callback=None):
+    def addTask(self, newTask, callback=None, now=False):
         """
         Add a new IScheduledTask to the scheduler for execution.
         @param newTask: the new task to schedule
         @type newTask: IScheduledTask
         @param callback: a callback to be notified each time the task completes
         @type callback: a Python callable
+        @param now: if true schedule the task to run as soon as possible; by
+        default the start time of tasks will be staggered
+        @type now: boolean 
         """
         pass
 

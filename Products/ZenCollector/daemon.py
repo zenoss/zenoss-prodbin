@@ -246,7 +246,10 @@ class CollectorDaemon(RRDDaemon):
         self.log.debug("Tasks for config %s: %s", configId, newTasks)
 
         for (taskName, task) in newTasks.iteritems():
-            self._scheduler.addTask(task, self._taskCompleteCallback)
+            #if not cycling run the task immediately otherwise let the scheduler
+            #decide when to run the task
+            now = not self.options.cycle
+            self._scheduler.addTask(task, self._taskCompleteCallback, now)
 
             # TODO: another hack?
             if hasattr(cfg, 'thresholds'):

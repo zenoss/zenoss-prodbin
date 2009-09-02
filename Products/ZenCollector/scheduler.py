@@ -10,6 +10,7 @@
 # For complete information please visit: http://www.zenoss.com/oss/
 #
 ###########################################################################
+import random
 
 """
 Support for scheduling tasks and running them on a periodic interval. Tasks
@@ -18,12 +19,10 @@ single device or other monitored object.
 """
 
 import logging
-import signal
 
 import zope.interface
 from twisted.internet import defer, reactor, task
 
-from twisted.python.failure import Failure
 from Products.ZenCollector.interfaces import IScheduler, IScheduledTask
 from Products.ZenCollector.tasks import TaskStates
 from Products.ZenUtils.Utils import dumpCallbacks
@@ -95,7 +94,7 @@ class CallableTask(object):
         return self.task.doTask()
 
     def _finished(self, result):
-        log.debug("Task %s finished, result: %r", self.task.name,
+        log.debug("Task %s finished, result: %r", self.task.name, 
                   result)
 
         # Make sure we always reset the state to IDLE once the task is
@@ -135,7 +134,7 @@ class Scheduler(object):
         self._taskCallback = {}
         self._callableTaskFactory = callableTaskFactory
 
-    def addTask(self, newTask, callback=None):
+    def addTask(self, newTask, callback=None, now=False):
         """
         Add a new IScheduledTask to the scheduler for execution.
         @param newTask the new task to schedule
@@ -155,16 +154,28 @@ class Scheduler(object):
 
         # start the task using a callback so that its put at the bottom of
         # the Twisted event queue, to allow other processing to continue and
-        # to support a task start-time jitter in the future
-        # TODO: add support for a start-time jitter
+        # to support a task start-time jitter
         def _startTask(result):
             log.debug("Task %s starting on %d second intervals",
                       newTask.name, newTask.interval)
             loopingCall.start(newTask.interval)
         d = defer.Deferred()
         d.addCallback(_startTask)
-        reactor.callLater(0, d.callback, None)
+        startDelay = 0
+        if not now:
+            startDelay = self._getStartDelay(newTask)
+        reactor.callLater(startDelay, d.callback, None)
 
+    def _getStartDelay(self, task):
+        """
+        amount of time to delay the start of a task. Prevents bunching up of 
+        task execution when a large amount of tasks are scheduled at the same 
+        time.
+        """
+        #simple delay of random number between 0 and half the task interval
+        delay = random.randint(0, int(task.interval/2))
+        return delay
+    
     def taskAdded(self, taskWrapper):
         """
         Called whenever the scheduler adds a task.
