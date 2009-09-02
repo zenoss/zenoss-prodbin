@@ -10,6 +10,7 @@
 # For complete information please visit: http://www.zenoss.com/oss/
 #
 ###########################################################################
+from Products.ZenUtils.Utils import binPath
 
 __doc__="""RRDDataSource
 
@@ -231,13 +232,20 @@ class RRDDataSource(ZenModelRM, ZenPackable):
             raise res
         return res
 
-
     def checkCommandPrefix(self, context, cmd):
         if not cmd.startswith('/') and not cmd.startswith('$'):
-            if not cmd.startswith(context.zCommandPath):
+            if context.zCommandPath and not cmd.startswith(context.zCommandPath):
                 cmd = os.path.join(context.zCommandPath, cmd)
+            elif binPath(cmd.split(" ",1)[0]):
+                #if we get here it is because cmd is not absolute, doesn't
+                #start with $, zCommandPath is not set and we found cmd in
+                #one of the zenoss bin dirs
+                cmdList = cmd.split(" ",1) #split into command and args
+                cmd = binPath(cmdList[0])
+                if len(cmdList) > 1:
+                    cmd = "%s %s" % (cmd, cmdList[1])
+                
         return cmd
-
 
     def getSeverityString(self):
         return self.ZenEventManager.getSeverityString(self.severity)
