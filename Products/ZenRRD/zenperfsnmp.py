@@ -583,14 +583,20 @@ class zenperfsnmp(SnmpDaemon):
 
         # Kick off the device load
         log.info("Initiating incremental device load")
-        d = self.updateDeviceList(updatedDevices, devices)
-        def report(result):
-            """
-            Twisted deferred errBack to check for errors
-            """
-            if result:
-                log.error("Error loading devices: %s", result)
-        d.addBoth(report)
+        if self.options.cycle:
+            d = self.updateDeviceList(updatedDevices, devices)
+            def report(result):
+                """
+                Twisted deferred errBack to check for errors
+                """
+                if result:
+                    log.error("Error loading devices: %s", result)
+            d.addBoth(report)
+        else:
+            #if not in cycle mode wait for the devices to load before collecting 
+            yield self.updateDeviceList(updatedDevices, devices)
+            driver.next()
+        
         self.sendEvents(self.rrdStats.gauge('configTime',
                                             self.configCycleInterval * 60,
                                             time.time() - now))
