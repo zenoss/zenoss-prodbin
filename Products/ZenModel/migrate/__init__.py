@@ -184,3 +184,4 @@ import descriptor
 import addPropertyTransformers
 import changeDeviceProdStatePermission
 import defaultResultFields
+import zPingInterfacePropsDelete

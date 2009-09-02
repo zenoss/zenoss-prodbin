@@ -70,10 +70,6 @@ Z_PROPERTIES = [
     ('zLocalIpAddresses', 'string', '^127|^0\\.0|^169\\.254|^224'),
     ('zLocalInterfaceNames', 'string', '^lo|^vmnet'),
     
-    # Ping monitor properties
-    ('zPingInterfaceName', 'string', ''),
-    ('zPingInterfaceDescription', 'string', ''),
-    
     # Status monitor properties
     ('zSnmpMonitorIgnore', 'boolean', False),
     ('zPingMonitorIgnore', 'boolean', False),
