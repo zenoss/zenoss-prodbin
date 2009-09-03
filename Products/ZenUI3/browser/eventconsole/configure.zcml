@@ -35,6 +35,20 @@
         permission="zope2.Public"
         />
 
+    <browser:page
+        name="viewDetail"
+        for="Products.ZenModel.EventView.IEventView"
+        template="detail.pt"
+        permission="zope2.Public"
+        />
+
+    <browser:page
+        name="viewHistoryDetail"
+        for="Products.ZenModel.EventView.IEventView"
+        template="historydetail.pt"
+        permission="zope2.Public"
+        />
+
     <include file="grid.zcml"/>
 
 </configure>

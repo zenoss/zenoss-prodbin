@@ -32,11 +32,10 @@ class EventConsole(DirectRouter):
     def _is_history(self):
         return 'viewHistoryEvents' in self.request['HTTP_REFERER']
 
-    @property
-    def _evmgr(self):
+    def _evmgr(self, forceHistory=False):
         evmgr = getattr(self, '_evmgr_evmgr', None)
         if not evmgr:
-            if self._is_history:
+            if forceHistory or self._is_history:
                 evmgr = self.context.dmd.ZenEventHistory
             else:
                 evmgr = self.context.dmd.ZenEventManager
@@ -64,7 +63,7 @@ class EventConsole(DirectRouter):
             if field == 'prodState':
                 value = self.context.dmd.convertProdState(value)
             elif field == 'eventState':
-                value = self._evmgr.eventStateConversions[value][0]
+                value = self._evmgr().eventStateConversions[value][0]
             elif 'Time' in field:
                 value = value.rsplit('.')[0].replace('/', '-')
             elif field == 'eventClass':
@@ -92,7 +91,7 @@ class EventConsole(DirectRouter):
         """
         context = self.context
         if isinstance(params, basestring): params = unjson(params)
-        zem = self._evmgr
+        zem = self._evmgr()
         start = max(start, 0)
 
         if hasattr(context, 'getResultFields'):
@@ -129,7 +128,7 @@ class EventConsole(DirectRouter):
 
     def acknowledge(self, evids=None, ranges=None, start=None, limit=None,
                     field=None, direction=None, params=None):
-        zem = self._evmgr
+        zem = self._evmgr()
         range_evids = zem.getEventIDsFromRanges(self.context, field, direction,
                                                 start, limit, params, evids,
                                                 ranges)
@@ -138,7 +137,7 @@ class EventConsole(DirectRouter):
 
     def close(self, evids=None, ranges=None, start=None, limit=None,
               field=None, direction=None, params=None):
-        zem = self._evmgr
+        zem = self._evmgr()
         range_evids = zem.getEventIDsFromRanges(self.context, field, direction,
                                                 start, limit, params, evids,
                                                 ranges)
@@ -197,7 +196,7 @@ class EventConsole(DirectRouter):
             params = {}
         elif isinstance(params, basestring):
             params = unjson(params)
-        zem = self._evmgr
+        zem = self._evmgr()
         where = zem.lookupManagedEntityWhere(self.context)
         where = zem.filteredWhere(where, params)
         table = self._is_history and 'history' or 'status'
@@ -227,8 +226,8 @@ class EventConsole(DirectRouter):
             ranges.append(currange)
         return ranges
 
-    def detail(self, evid):
-        zem = self._evmgr
+    def detail(self, evid, history=False):
+        zem = self._evmgr(history)
         details = zem.getEventDetail(evid)
         fields = dict(details.getEventFields())
         event = fields.copy()
@@ -247,11 +246,12 @@ class EventConsole(DirectRouter):
                 event[f+'_url'] = url
         return { 'event': [event] }
 
-    def write_log(self, evid=None, message=None):
-        self._evmgr.manage_addLogMessage(evid, message)
+    def write_log(self, evid=None, message=None, history=False):
+        zem = self._evmgr(history)
+        zem.manage_addLogMessage(evid, message)
 
     def classify(self, evids, evclass):
-        zem = self._evmgr
+        zem = self._evmgr()
         msg, url = zem.manage_createEventMap(evclass, evids)
         if url:
             msg += "<br/><br/><a href='%s'>Go to the new mapping.</a>" % url
@@ -259,7 +259,7 @@ class EventConsole(DirectRouter):
 
     def add_event(self, summary, device, component, severity, evclasskey,
                   evclass):
-        zem = self._evmgr
+        zem = self._evmgr()
         if isinstance(severity, basestring):
             sevs = ['Clear', 'Debug', 'Info', 'Warning', 'Error', 'Critical']
             severity = sevs.index(severity)
@@ -276,7 +276,7 @@ class EventConsole(DirectRouter):
     def column_config(self):
         f = getattr(self.context, 'getResultFields', None)
         if f is None:
-            fields = self._evmgr.getEventResultFields(self.context)
+            fields = self._evmgr().getEventResultFields(self.context)
         else:
             fields = f()
         return column_config(fields)

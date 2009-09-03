@@ -675,6 +675,242 @@ Ext.onReady(function(){
     });
     Ext.reg('refreshmenu', Zenoss.RefreshMenuButton);
 
+   
+    // FIXME: Refactor this to be much, much smarter about its own components.
+    Zenoss.DetailPanel = Ext.extend(Ext.Panel, {
+        isHistory: false,
+        constructor: function(config){
+            config.onDetailHide = config.onDetailHide || function(){var _x;};
+            config.layout = 'border';
+            config.border = false;
+            config.defaults = {border:false};
+            config.items = [{
+                id: 'evdetail_hd',
+                region: 'north',
+                layout: 'border',
+                height: 50,
+                cls: 'evdetail_hd',
+                defaults: {border: false},
+                items: [{
+                    region: 'west',
+                    width: 77,
+                    layout: 'hbox',
+                    defaults: {border: false},
+                    items: [{
+                        id: 'severity-icon',
+                        cls: 'severity-icon'
+                    },{
+                        id: 'evdetail-sep',
+                        cls: 'evdetail-sep'
+                    }]
+                },{
+                    region: 'center',
+                    id: 'evdetail-summary',
+                    html: ''
+                },{
+                    region: 'east',
+                    id: 'evdetail-tools',
+                    layout: 'hbox',
+                    width: 57,
+                    defaults: {border: false},
+                    items: [{
+                        id: 'evdetail-popout',
+                        cls: 'evdetail-popout'
+                    },{
+                        id: 'evdetail_tool_close',
+                        cls: 'evdetail_close'
+                    }]
+                }]
+            },{
+                id: 'evdetail_bd',
+                region: 'center',
+                defaults: {
+                    frame: false,
+                    border: false
+                },
+                autoScroll: true,
+                layout: 'table',
+                layoutConfig: {
+                    columns: 1,
+                    tableAttrs: {
+                        style: {
+                            width: '90%'
+                        }
+                    }
+                },
+                cls: 'evdetail_bd',
+                items: [{
+                    id: 'evdetail_props',
+                    cls: 'evdetail_props',
+                    html: ''
+                },{
+                    id: 'show_details',
+                    cls: 'show_details',
+                    hidden: true,
+                    html: 'Show more details...'
+                },{
+                    id: 'full_event_props',
+                    cls: 'full_event_props',
+                    hidden: true,
+                    html: ''
+                },{
+                    id: 'evdetail-log-header',
+                    cls: 'evdetail-log-header',
+                    hidden: true,
+                    html: '<'+'hr/><'+'h2>LOG<'+'/h2>'
+                },{
+                    xtype: 'form',
+                    id: 'log-container',
+                    defaults: {border: false},
+                    frame: true,
+                    layout: 'table',
+                    style: {'margin-left':'3em'},
+                    hidden: true,
+                    labelWidth: 1,
+                    items: [{
+                        id: 'detail-logform-evid',
+                        xtype: 'hidden',
+                        name: 'evid'
+                    },{
+                        style: 'margin:0.75em',
+                        width: 300,
+                        xtype: 'textfield',
+                        name: 'message',
+                        id: 'detail-logform-message'
+                    },{
+                        xtype: 'button',
+                        type: 'submit',
+                        name: 'add',
+                        text: 'Add',
+                        handler: function(btn, e){
+                            var form = Ext.getCmp('log-container'),
+                                vals = form.getForm().getValues();
+                            params = {history:this.isHistory};
+                            Ext.apply(params, vals);
+                            Zenoss.remote.EventConsole.write_log(
+                             params,
+                             function(provider, response){
+                                 Ext.getCmp(
+                                     'detail-logform-message').setRawValue('');
+                                 Ext.getCmp(config.id).load(
+                                     Ext.getCmp(
+                                         'detail-logform-evid').getValue()
+                                 );
+                            });
+                        }
+                    }],
+                },{
+                    id: 'evdetail_log',
+                    cls: 'log-content',
+                    hidden: true
+                }]
+            }]
+            Zenoss.DetailPanel.superclass.constructor.apply(this, arguments);
+        },
+        setSummary: function(summary){
+            var panel = Ext.getCmp('evdetail-summary');
+            panel.el.update(summary);
+        },
+        setSeverityIcon: function(severity){
+            var panel = Ext.getCmp('severity-icon');
+            this.clearSeverityIcon();
+            panel.addClass(severity);
+        },
+        clearSeverityIcon: function() {
+            var panel = Ext.getCmp('severity-icon');
+            Ext.each(Zenoss.env.SEVERITIES,
+                function(sev){
+                    var sev = sev[1];
+                    panel.removeClass(sev.toLowerCase());
+                }
+            );
+        },
+        update: function(event) {
+            var top_prop_template = new
+                Ext.XTemplate.from('detail_table_template');
+            var full_prop_template = new
+                Ext.XTemplate.from('fullprop_table_template');
+            var log_template = new Ext.XTemplate.from('log_table_template');
+            var severity = Zenoss.util.convertSeverity(event.severity),
+                html = top_prop_template.applyTemplate(event),
+                prophtml = full_prop_template.applyTemplate(event),
+                loghtml = log_template.applyTemplate(event);
+
+            this.setSummary(event.summary);
+            this.setSeverityIcon(severity);
+            Ext.getCmp('evdetail_props').el.update(html);
+            Ext.getCmp('full_event_props').el.update(prophtml);
+            Ext.getCmp('evdetail_log').el.update(loghtml);
+            Ext.getCmp('detail-logform-evid').setValue(event.evid);
+        },
+        wipe: function(){
+            this.clearSeverityIcon();
+            this.setSummary('');
+            Ext.getCmp('show_details').hide();
+            Ext.getCmp('evdetail-log-header').hide();
+            Ext.getCmp('evdetail_log').hide();
+            Ext.getCmp('evdetail_props').hide();
+            Ext.getCmp('full_event_props').hide();
+            Ext.getCmp('log-container').hide();
+        },
+        show: function(){
+            Ext.getCmp('show_details').show();
+            Ext.getCmp('evdetail-log-header').show();
+            Ext.getCmp('evdetail_log').show();
+            Ext.getCmp('evdetail_props').show();
+            if (this.isPropsVisible)
+                Ext.getCmp('full_event_props').show();
+            Ext.getCmp('log-container').show();
+        },
+        isPropsVisible: false,
+        showProps: function(){
+            el = Ext.getCmp('full_event_props');
+            tgl = Ext.getCmp('show_details');
+            if (!el.hidden){
+                el.hide();
+                this.isPropsVisible = false;
+                tgl.body.update('Show more details...');
+            } else {
+                el.show();
+                this.isPropsVisible = true;
+                tgl.body.update('Hide details');
+            }
+        },
+        popout: function(){
+             var evid = Ext.getCmp('detail-logform-evid').getValue(),
+                 url = this.isHistory ? 'viewHistoryDetail' : 'viewDetail'
+             window.open(url + '?evid='+ evid, evid,
+                 "status=1,width=600,height=500");
+        },
+        bind: function(){
+            var showlink = Ext.getCmp('show_details').getEl(),
+                btn = Ext.getCmp('evdetail_tool_close').getEl(),
+                pop = Ext.getCmp('evdetail-popout').getEl();
+
+            showlink.un('click', this.showProps);
+            showlink.on('click', this.showProps);
+
+            btn.un('click', this.onDetailHide);
+            btn.on('click', this.onDetailHide);
+
+            pop.un('click', this.popout, this);
+            pop.on('click', this.popout, this);
+        },
+        load: function(event_id){
+            Zenoss.remote.EventConsole.detail({
+                    evid:event_id, 
+                    history:this.isHistory
+                }, 
+                function(result){
+                    var event = result.event[0];
+                    this.update(event);
+                    this.bind();
+                    this.show();
+                }, this
+            );
+        }
+    });
+    Ext.reg('detailpanel', Zenoss.DetailPanel);
 
     /**
      * General utilities

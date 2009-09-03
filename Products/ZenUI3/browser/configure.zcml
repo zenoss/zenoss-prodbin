@@ -11,6 +11,21 @@
 <include file="screentypes.zcml"/>
 -->
 
+<!-- Viewlet manager for Ext.Direct API -->
+<browser:viewletManager
+    name="directapi"
+    provides=".interfaces.IExtDirectAPI"
+    class=".javascript.ExtDirectAPI"
+    permission="zope2.Public"
+    />
+
+<!-- Viewlet manager for generic snippets -->
+<browser:viewletManager
+    name="jssnippets"
+    provides=".interfaces.IMainSnippetManager"
+    class=".javascript.MainSnippetManager"
+    permission="zope2.Public"
+    />
 
 <!-- Redirect is handled by /index_html script in Zenoss
 
@@ -94,6 +109,7 @@
     />
 
 -->
+
 
 <include package=".eventconsole"/>
 

@@ -40,11 +40,18 @@
 /**
  * EVENT DETAIL
  */
-.evdetail_hd {
+.evdetail-sep {
+    width: 22px;
     height: 50px;
-    line-height: 50px;
-    overflow: hidden;
+    margin-right: 2px;
+    background: transparent 
+                url(/zenui/img/xtheme-zenoss/toolbar/tb-evdetail-sep.png)
+                center center no-repeat;
+}
+
+.evdetail_hd .x-panel-body {
     color: #474747;
+    line-height: 50px;
     font-size: 15px;
     font-family: helvetica,sans-serif;
     background: transparent
@@ -56,12 +63,23 @@
     font-family: helvetica,sans-serif;
 }
 
-.evdetail_close {
-   background-position: center center;
-   background-image: url(/zenui/img/xtheme-zenoss/window/close-button-dark.png);
-   height: 50px;
-   width: 17px;
-   margin: 0 18px;
+.evdetail-popout {
+    width: 20px;
+    height: 50px;
+    cursor: hand;
+    cursor: pointer;
+    background: transparent
+                url(/zenui/img/xtheme-zenoss/icon/popout.png)
+                center center no-repeat;
+}
+.evdetail_close .x-panel-body {
+    background: transparent
+                url(/zenui/img/xtheme-zenoss/window/close-button-dark.png)
+                center center no-repeat;
+    height: 50px;
+    width: 25px;
+    cursor: hand;
+    cursor: pointer;
 }
 
 .evdetail_props {
@@ -88,8 +106,20 @@
     margin-left: 2em;
 }
 
+.evdetail-log-header {
+    padding: 0 0 1em 3em;
+}
+
+.evdetail-log-header hr {
+    color: #e1e1e1;
+    background-color: #e1e1e1;
+    border: medium none;
+    margin-bottom: 1em;
+}
+
 .log-content {
     padding-top: 1em;
+    padding-left: 3em;
 }
 .log-content td {
     padding: 0 5px;
@@ -102,10 +132,9 @@
 }
 
 .severity-icon {
-    float: left;
-    margin-left: 8px;
     height: 50px;
-    width: 27px;
+    margin: 0 8px;
+    width: 35px;
     background: transparent 
         url(/zenui/img/xtheme-zenoss/icon/severity-sprite-large.png) 
         100px 100px no-repeat;
@@ -170,6 +199,10 @@
 .status-icon-small.acknowledged { background-image: url(/zenui/img/xtheme-zenoss/icon/acknowledge-small.png)}
 .status-icon-small.suppressed { background-image: url(/zenui/img/xtheme-zenoss/icon/suppress-small.png)}
 
+.full_event_props {
+    padding-left: 3em;
+}
+
 td.proptable_key {
     font-weight: bold;
     text-align: right;
@@ -184,6 +217,11 @@ table.proptable {
 #show_details {
     cursor: hand;
     cursor: pointer;
+    font-size: 13px;
+    color: #7199e6;
+    text-decoration: none;
+    padding-left: 3em;
+    padding-bottom: 1em;
 }
 
 .x-toolbar div.xtb-text.lastupdated {

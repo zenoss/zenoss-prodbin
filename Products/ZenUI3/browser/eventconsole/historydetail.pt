@@ -1,0 +1,85 @@
+<html>
+    <head>
+        <link rel="stylesheet" type="text/css" 
+            href="/extjs/resources/css/ext-all.css" />
+        <link rel="stylesheet" type="text/css" 
+            href="/zenui/css/xtheme-zenoss.css" />
+        <link rel="stylesheet" type="text/css" 
+            href="/zenui/css/zenoss.css" />
+        <script type="text/javascript" src="/extjs/adapters/ext/ext-base.js">
+        </script>
+        <script type="text/javascript" src="/extjs/ext-all.js"></script>
+        <link rel="stylesheet"
+            href="/zenui/js/livegrid/resources/css/ext-ux-livegrid.css"/>
+        <script type="text/javascript"
+            src="/zenui/js/livegrid/livegrid-all-debug.js"></script>
+        <script type="text/javascript" src="/zenui/js/zenoss.js"></script>
+        <tal:block tal:content="structure provider:directapi"/>
+    </head>
+    <body class="zenui3">
+<!-- Template for rendering the detail pane -->
+<textarea class="dontexpand" style="display:none" id="detail_table_template">
+<table>
+    <tr><td class="dt">Device:</td> 
+        <td><tpl if="device"><a href="{device_url}" 
+                class="resource-link">{device}</a></tpl></td>
+        </tr>
+    <tr><td class="dt">Component:</td> 
+        <td><tpl if="component">
+            <a href="{component_url}" 
+                class="resource-link">{component}</a></tpl></td>
+        </tr>
+    <tr><td class="dt">Event Class:</td> 
+        <td><tpl if="eventClass"><a href="{eventClass_url}"
+                class="resource-link">{eventClass}</a></tpl></td>
+        </tr>
+    <tr><td class="dt">Status:</td> <td>{eventState}</td></tr>
+    <tr><td class="dt">Start Time:</td> <td>{firstTime}</td></tr>
+    <tr><td class="dt">Stop Time:</td> <td>{lastTime}</td></tr>
+    <tr><td class="dt">Count:</td> <td>{count}</td></tr>
+</table>
+</textarea>
+<textarea class="dontexpand" style="display:none" id="log_table_template">
+    <table>
+    <tpl for="log">
+    <tr><td class="time">{1} {0} said: </td>
+        <td class="message">{2}</td></tr>
+    </tpl>
+    </table>
+</textarea>
+<textarea class="dontexpand" style="display:none" id="fullprop_table_template">
+<table class="proptable">
+    <tpl for="properties">
+    <tr><td class="proptable_key">{key}</td>
+        <td class="proptable_value">{value}</td></tr>
+    </tpl>
+</table>
+</textarea>
+<script tal:content="string:
+    Ext.onReady(function(){
+        Zenoss.env.EVENTSGRID_STATEID = '${context/id}_evconsole';
+    });
+"></script>
+<script tal:content="string:
+    var EVENT_ID = '${request/form/evid}';
+"></script>
+<style>
+#evdetail-tools { display:none; } 
+</style>
+<script>
+Ext.onReady(function(){
+    var vp = new Ext.Viewport({
+        layout: 'fit',
+        renderTo: Ext.getBody().dom,
+        items: [{
+            xtype: 'detailpanel',
+            isHistory: true,
+            id: 'dpanelcontainer'
+        }]
+    });
+    vp.doLayout();
+    Ext.getCmp('dpanelcontainer').load(EVENT_ID);
+});
+</script>
+    </body>
+</html>

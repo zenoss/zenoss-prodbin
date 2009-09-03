@@ -3,15 +3,6 @@
     xmlns:browser="http://namespaces.zope.org/browser"
     xmlns:five="http://namespaces.zope.org/five">
 
-    <!-- JS snippets providing initial data -->
-
-    <browser:viewletManager
-        name="jssnippets"
-        provides="...utils.interfaces.IJavaScriptSnippetManager"
-        class="...utils.javascript.JavaScriptSnippetManager"
-        permission="zope2.Public"
-        />
-
     <!-- Event console JSON api -->
     <browser:page
         name="evconsole_router"
@@ -22,21 +13,21 @@
 
     <browser:viewlet
         name="evconsole_api"
-        manager="...utils.interfaces.IJavaScriptSnippetManager"
+        manager="..interfaces.IExtDirectAPI"
         class=".grid.EventConsoleAPIDefinition"
         permission="zope2.Public"
         />
 
     <browser:viewlet
         name="evconsole_coldefs"
-        manager="...utils.interfaces.IJavaScriptSnippetManager"
+        manager="..interfaces.IMainSnippetManager"
         class=".grid.GridColumnDefinitions"
         permission="zope2.Public"
         />
 
     <browser:viewlet
         name="evconsole_evclasses"
-        manager="...utils.interfaces.IJavaScriptSnippetManager"
+        manager="..interfaces.IMainSnippetManager"
         class=".grid.EventClasses"
         permission="zope2.Public"
         />
