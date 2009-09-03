@@ -30,18 +30,16 @@ class CommandParser:
 
     def dataForParser(self, context, datapoint):
         return {}
-    
+
     def processResults(self, cmd, results):
         """
         Process the results of a running a command.
-        
+
         @type cmd: Products.ZenRRD.zencommand.Cmd
-        
+
         @param cmd: the results of running a command, with the
         configuration from ZenHub
         @param results: the values and events from the command output
         @return: None.
         """
         raise NotImplementedError
-
-

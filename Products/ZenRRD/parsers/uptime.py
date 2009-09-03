@@ -22,8 +22,8 @@ log = logging.getLogger("zen.zencommand")
 
 
 UPTIME_PATTERN = re.compile(
-    r"up +(?:(?P<days>\d+) days?, +)?(?:(?P<hours>\d+):)?(?P<minutes>\d+)")
-
+    r"up +(?:(?P<days>\d+) day\(?s?\)?, +)?(?:(?P<hours>\d+):)?(?P<minutes>\d+)")
+    
 UPTIME_FORMAT = "uptime: days=%(days)s, hours=%(hours)s, minutes=%(minutes)s"
 
 
@@ -31,6 +31,9 @@ def parseUptime(output):
     """
     Parse the uptime command's output capturing the days, hours and minutes
     that the system has been up. Returns a dictionary of the captured values.
+    
+    >>> UPTIME_FORMAT % parseUptime("up 12 day(s), 1:42")
+    'uptime: days=12, hours=1, minutes=42'
     
     >>> UPTIME_FORMAT % parseUptime("up 1 day, 1:42")
     'uptime: days=1, hours=1, minutes=42'
@@ -96,7 +99,7 @@ class uptime(CommandParser):
                 result.values.append((dps['sysUpTime'], sysUpTime))
                 
         match = re.search(r' load averages?: '
-                          r'([0-9.]+),? ([0-9.]+),? ([0-9.]+)$',
+                          r'([0-9.]+),? ([0-9.]+),? ([0-9.]+).*$',
                           output)
         if match:
             for i, dp in enumerate(['laLoadInt1', 'laLoadInt5', 'laLoadInt15']):

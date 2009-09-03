@@ -44,19 +44,28 @@ class TestParsers(BaseTestCase):
                        ignoreParams=True,
                        alertOnRestart=False,
                        failSeverity=3)
-        cmd.points = [p1, p2, p3]
+        p4 = Object()
+        p4.id = 'cpu_cpu'
+        p4.data = dict(processName='anotherJob1',
+                       ignoreParams=True,
+                       alertOnRestart=False,
+                       failSeverity=3)
+        cmd.points = [p1, p2, p3, p4]
         cmd.result = Object()
         cmd.result.output = """  PID   RSS     TIME COMMAND
 123 1 00:00:00 someJob a b c
 234 1 00:00:00 anotherJob a b c
+345 1 10:23 anotherJob1 a b c
 """
         results = ParsedResults()
         from Products.ZenRRD.parsers.ps import ps
         parser = ps()
         parser.processResults(cmd, results)
         assert len(results.values)
-        assert len(results.events) == 3
-        assert len([ev for ev in results.events if ev['severity'] == 0]) == 2
+        assert len(results.events) == 4
+        # Check time of 10:23 equals 623 minutes
+        assert results.values[0][1] == 623
+        assert len([ev for ev in results.events if ev['severity'] == 0]) == 3
         assert len([ev for ev in results.events if ev['severity'] == 1]) == 1
         results = ParsedResults()
         cmd.result.output = """  PID   RSS     TIME COMMAND
@@ -68,7 +77,7 @@ class TestParsers(BaseTestCase):
         # anotherJob went down
         # someJob restarted
         # noSuchProcess started
-        assert len(results.events) == 3
+        assert len(results.events) == 4
         for ev in results.events:
             summary = ev['summary']
             if summary.find('someJob') >= 0:

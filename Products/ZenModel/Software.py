@@ -172,13 +172,17 @@ class Software(MEProduct):
     def getInstallDate(self):
         """Return the install date in the form 'YYYY/MM/DD HH:MM:SS'
         """
-        return self._installDate.getStringSecsResolution()
+        #1968/01/08 00:00:00.000
+        if self._installDate.getStringSecsResolution() != "1968/01/08 00:00:00":
+            return self._installDate.getStringSecsResolution()
+        else:
+            return "Unknown"
 
 
     def setInstallDate(self, value):
         """Set the install date should be string in form 'YYYY/MM/DD HH:MM:SS'
         """
-        self._installDate.setDate(value) 
+        self._installDate.setDate(value)
 
 
     def getDeviceLink(self, screen='deviceSoftwareDetail'):

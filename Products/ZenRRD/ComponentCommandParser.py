@@ -12,6 +12,7 @@
 ###########################################################################
 
 from Products.ZenRRD.CommandParser import CommandParser
+from Products.ZenUtils.Utils import prepId as globalPrepId
 import re
 from pprint import pformat
 import logging
@@ -25,12 +26,15 @@ class ComponentCommandParser(CommandParser):
     componentScanner = ''
 
     scanners = ()
-    
+
     componentScanValue = 'id'
+
+    def prepId(self, id, subchar='_'):
+        return globalPrepId(id, subchar)
 
     def dataForParser(self, context, dp):
         return dict(componentScanValue = getattr(context, self.componentScanValue))
-    
+
     def processResults(self, cmd, result):
 
         # Map datapoints by data you can find in the command output
@@ -47,6 +51,7 @@ class ComponentCommandParser(CommandParser):
             match = re.search(self.componentScanner, part)
             if not match: continue
             component = match.groupdict()['component'].strip()
+            if self.componentScanValue == 'id': component = self.prepId(component)
             points = ifs.get(component, None)
             if not points: continue
 

@@ -47,10 +47,15 @@ class ps(CommandParser):
                     days, cpu = cpu.split('-')
                     days = int(days)
                 cpu = map(int, cpu.split(':'))
-                cpu = (days * 24 * 60 * 60 +
+                if len(cpu) == 3:
+                    cpu = (days * 24 * 60 * 60 +
                        cpu[0] * 60 * 60 +
                        cpu[1] * 60 +
                        cpu[2])
+                elif len(cpu) == 2:
+                    cpu = (days * 24 * 60 * 60 +
+                       cpu[0] * 60 +
+                       cpu[1])
                 rss = int(rss)
                 pid = int(pid)
                 lst = running.setdefault(args, [])
