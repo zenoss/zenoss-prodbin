@@ -132,35 +132,6 @@ class TestParsers(BaseTestCase):
         self.assertTrue(77.0 in values)
         self.assertTrue(21.0 in values)
 
-    def testNagios(self):
-        deviceConfig = Object()
-        deviceConfig.device = 'localhost'
-        cmd = Object()
-        cmd.deviceConfig = deviceConfig
-        p1 = Object()
-        p1.id = 'np1'
-        p1.data = dict(processName='someJob a b c',
-                       ignoreParams=False,
-                       alertOnRestart=True,
-                       failSeverity=3)
-        cmd.points = [p1]
-        cmd.parser = "Nagios"
-        cmd.result = Object()
-        cmd.result.output = "OK plugin | np1=77;;;"
-        cmd.result.exitCode = 2
-        cmd.severity = 2
-        cmd.command = "testNagiosPlugin"
-        cmd.eventKey = "nagiosKey"
-        cmd.eventClass = "/Cmd"
-        cmd.component = "zencommand"
-        results = ParsedResults()
-        from Products.ZenRRD.parsers.Nagios import Nagios
-        parser = Nagios()
-        parser.processResults(cmd, results)
-        self.assertEquals( len(results.values), 1)
-        self.assertEquals(77.0,  results.values[0][1])
-
-
 def test_suite():
     from unittest import TestSuite, makeSuite
     suite = TestSuite()

@@ -29,8 +29,6 @@ class Auto(CommandParser):
         severity = cmd.severity
         if output.find('|') >= 0:
             msg, values = output.split('|', 1)
-        elif cmd.parser == 'Nagios':
-            msg, values = output, ''
         elif CacParser.search(output):
             msg, values = '', output
         else:
