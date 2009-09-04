@@ -34,25 +34,26 @@ isip = re.compile("^\d+\.\d+\.\d+\.\d+$").search
 
 def checkip(ip):
     """check that an ip is valid"""
-    if ip == '': return 1
-    try:
-        octs = ip.split('.')
-    except:
-        raise IpAddressError( '%s is not a dot delimited address' % ip )
-    retval = 1
-    #if len(octs) != 4 or int(octs[0]) == 0: 
-    if len(octs) != 4:
-        retval = 0
+    success = True
+    if ip == '': 
+        success = False
     else:
-        for o in octs:
-            try:
-                if not (0 <= int(o) <= 255):
-                    retval = 0
-            except:
-                retval = 0
-    if not retval:
+        try:
+            octs = ip.split('.')
+        except:
+            raise IpAddressError( '%s is not a dot delimited address' % ip )
+        if len(octs) != 4:
+            success = False
+        else:
+            for o in octs:
+                try:
+                    if not (0 <= int(o) <= 255):
+                        success = False
+                except:
+                    success = False
+    if not success:
         raise IpAddressError( "%s is an invalid address" % ip )
-    return retval
+    return True
 
 
 def numbip(ip):
