@@ -19,6 +19,12 @@
 
     -->
 
+    <adapter
+        for="*"
+        provides=".interfaces.IEventManagerProxy"
+        factory=".events.EventManagerProxy"
+        />
+
     <!-- Register the console and history console views -->
 
     <browser:page
@@ -46,6 +52,13 @@
         name="viewHistoryDetail"
         for="Products.ZenModel.EventView.IEventView"
         template="historydetail.pt"
+        permission="zope2.Public"
+        />
+
+    <browser:page
+        name="export"
+        for="Products.ZenModel.EventView.IEventView"
+        class=".export.EventsExporter"
         permission="zope2.Public"
         />
 

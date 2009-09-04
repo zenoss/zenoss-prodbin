@@ -8,9 +8,10 @@ from Products.ZenUtils.Ext import DirectRouter, DirectProviderDefinition
 from Products.ZenUI3.utils.json import json, unjson
 from Products.ZenUI3.utils.javascript import JavaScriptSnippet
 from Products.ZenUI3.utils.javascript import JavaScriptSnippetManager
-from Products.ZenUI3.browser.eventconsole.interfaces import IEventsAPI
 
 from Products.ZenUI3.browser.eventconsole.columns import COLUMN_CONFIG
+
+from interfaces import IEventManagerProxy
 
 
 class EventConsoleView(BrowserView):
@@ -26,62 +27,9 @@ class HistoryConsoleView(BrowserView):
 
 
 class EventConsole(DirectRouter):
-    implements(IEventsAPI)
-
-    @property
-    def _is_history(self):
-        return 'viewHistoryEvents' in self.request['HTTP_REFERER']
 
     def _evmgr(self, forceHistory=False):
-        evmgr = getattr(self, '_evmgr_evmgr', None)
-        if not evmgr:
-            if forceHistory or self._is_history:
-                evmgr = self.context.dmd.ZenEventHistory
-            else:
-                evmgr = self.context.dmd.ZenEventManager
-            self._evmgr_evmgr = evmgr
-        return evmgr
-
-    def _get_device_url(self, devname):
-        dev = self.context.dmd.Devices.findDevice(devname)
-        if dev:
-            return dev.absolute_url_path()
-
-    def _get_component_url(self, dev, comp):
-        comps = self.context.dmd.searchComponents(dev, comp)
-        if comps:
-            return comps[0].absolute_url_path()
-
-    def _get_eventClass_url(self, evclass):
-        return '/zport/dmd/Events' + evclass
-
-    def _extract_data_from_zevent(self, zevent, fields):
-        data = {}
-        for field in fields:
-            value = getattr(zevent, field)
-            _shortvalue = str(value) or ''
-            if field == 'prodState':
-                value = self.context.dmd.convertProdState(value)
-            elif field == 'eventState':
-                value = self._evmgr().eventStateConversions[value][0]
-            elif 'Time' in field:
-                value = value.rsplit('.')[0].replace('/', '-')
-            elif field == 'eventClass':
-                data['eventClass_url'] = self._get_eventClass_url(value)
-            elif field == 'device':
-                url = self._get_device_url(value)
-                if url: data['device_url'] = url
-            elif field == 'component':
-                dev = getattr(zevent, 'device', None)
-                if dev:
-                    url = self._get_component_url(dev, value)
-                    if url: data['component_url'] = url
-            else:
-                value = _shortvalue
-            data[field] = value
-        data['evid'] = zevent.evid
-        data['id'] = zevent.evid
-        return data
+        return IEventManagerProxy(self).event_manager(forceHistory)
 
     # BEGIN PUBLIC METHODS
 
@@ -119,7 +67,8 @@ class EventConsole(DirectRouter):
         if evid: args['evid'] = evid
 
         data, totalCount = zem.getEventListME(context, **args)
-        results = [self._extract_data_from_zevent(ev, fields) for ev in data]
+        data_extractor = IEventManagerProxy(self).extract_data_from_zevent
+        results = [data_extractor(ev, fields) for ev in data]
 
         return {
             'events': results,
@@ -199,7 +148,7 @@ class EventConsole(DirectRouter):
         zem = self._evmgr()
         where = zem.lookupManagedEntityWhere(self.context)
         where = zem.filteredWhere(where, params)
-        table = self._is_history and 'history' or 'status'
+        table = IEventManagerProxy(self).is_history and 'history' or 'status'
         q = 'select eventState from %s where %s ' % (table, where)
         q += 'order by %s %s' % (field, direction)
         query = query_tpl % q
@@ -236,7 +185,7 @@ class EventConsole(DirectRouter):
         event['properties'] = properties
         event['log'] = details._logs
         for f in ('device', 'component', 'eventClass'):
-            func = getattr(self, '_get_%s_url' % f)
+            func = getattr(IEventManagerProxy(self), '_get_%s_url' % f)
             if f=='component':
                 args = event['device'], event['component']
             else:
@@ -299,6 +248,7 @@ class EventClasses(JavaScriptSnippet):
         })
         """ % paths;
 
+
 def column_config(fields):
     defs = []
     for field in fields:
@@ -319,28 +269,15 @@ def column_config(fields):
         defs.append(s)
     return defs
 
+
 class GridColumnDefinitions(JavaScriptSnippet):
 
-    @property
-    def _is_history(self):
-        return self._parent.__call__.id == 'viewHistoryEvents'
-
-    @property
-    def _evmgr(self):
-        evmgr = getattr(self, '_evmgr_evmgr', None)
-        if not evmgr:
-            if self._is_history:
-                evmgr = self.context.dmd.ZenEventHistory
-            else:
-                evmgr = self.context.dmd.ZenEventManager
-            self._evmgr_evmgr = evmgr
-        return evmgr
-
     def snippet(self):
+        zem = IEventManagerProxy(self).event_manager()
         result = ["Ext.onReady(function(){Zenoss.env.COLUMN_DEFINITIONS=["]
         f = getattr(self.context, 'getResultFields', None)
         if f is None:
-            fields = self._evmgr.getEventResultFields(self.context)
+            fields = zem.getEventResultFields(self.context)
         else:
             fields = f()
         defs = column_config(fields)

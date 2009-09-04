@@ -17,6 +17,9 @@
 
 <tal:block metal:fill-slot="script_layout">
 <!-- Template for rendering the detail pane -->
+<form id="exportform" method="post" action="export">
+    <input type="hidden" id="export_body" name="body"/>
+</form>
 <textarea class="dontexpand" style="display:none" id="detail_table_template">
 <table>
     <tr><td class="dt">Device:</td> 
@@ -305,6 +308,14 @@ Ext.onReady(function(){
                         if(on) grid.showFilters()
                         else grid.hideFilters()
                     }
+                }
+            },{
+                text: 'Export',
+                iconCls: 'export',
+                menu: {
+                items: [{
+                    
+                }]
                 }
             },{
                 text: 'Configure',

@@ -16,7 +16,9 @@
 </tal:block>
 
 <tal:block metal:fill-slot="script_layout">
-
+<form id="exportform" method="post" action="export">
+    <input type="hidden" id="export_body" name="body"/>
+</form>
 <!-- Template for rendering the detail pane -->
 <textarea class="dontexpand" style="display:none" id="detail_table_template">
 <table>
@@ -436,6 +438,29 @@ Ext.onReady(function(){
                         if(on) grid.showFilters()
                         else grid.hideFilters()
                     }
+                }
+            },{
+                text: 'Export',
+                iconCls: 'export',
+                menu: {
+                    items: [{
+                        text: 'CSV',
+                        handler: function(){
+                            var state = Ext.getCmp('events_grid').getState(),
+                                params = {
+                                    type: 'csv',
+                                    params: {
+                                        fields: Ext.pluck(state.columns, 'id'),
+                                        sort: state.sort.field,
+                                        dir: state.sort.direction,
+                                        params: state.filters.options
+                                    }
+                                };
+                            Ext.get('export_body').dom.value =
+                                Ext.encode(params);
+                            Ext.get('exportform').dom.submit();
+                        }
+                    }]
                 }
             },{
                 text: 'Configure',

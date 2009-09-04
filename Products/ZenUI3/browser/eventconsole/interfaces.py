@@ -1,29 +1,20 @@
 import zope.interface
 
-class IEventsAPI(zope.interface.Interface):
+class IEventManagerProxy(zope.interface.Interface):
     """
-    Integration layer between model and views. 
+    Holds several methods useful for interacting with a Zenoss event manager.
     """
-    def severities():
+    def _is_history():
         """
-        Returns a dictionary representing event severities.
-
-        {int:str}
+        Should we be dealing with a history manager?
         """
-    def statuses():
+    def _evmgr():
         """
-        Returns a tuple representation of event statuses, sorted ascending by
-        state.
-
-        e.g. ('new', 'acknowledged', 'suppressed')
+        Get an event manager
         """
-    def query():
+    def _extract_data_from_zevent():
         """
-        Returns a dictionary of events.
-        """
-    def detail():
-        """
-        Returns details about an event.
+        Turn an event into a dictionary containing necessary fields.
         """
 
 
