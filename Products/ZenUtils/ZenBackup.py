@@ -344,7 +344,8 @@ class ZenBackup(ZenBackupBase):
 
         self.log.info('Backing up performance data (RRDs).')
         tarFile = os.path.join(self.tempDir, 'perf.tar')
-        cmd = ['tar', 'cf', tarFile, perfDir]
+        #will change dir to ZENHOME so that tar dir structure is relative
+        cmd = ['tar', 'cfC', tarFile, zenPath(), 'perf']
         (output, warnings, returncode) = self.runCommand(cmd)
         if returncode:
             self.log.critical("Backup terminated abnormally.")
