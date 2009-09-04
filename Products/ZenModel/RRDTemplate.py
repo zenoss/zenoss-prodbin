@@ -15,7 +15,7 @@ import sys
 from Globals import DTMLFile
 from Globals import InitializeClass
 from AccessControl import ClassSecurityInfo, Permissions
-from Products.ZenModel.ZenossSecurity import ZEN_MANAGE_DMD
+from Products.ZenModel.ZenossSecurity import *
 from zope.interface import implements
 
 from ZenModelRM import ZenModelRM
@@ -168,9 +168,9 @@ class RRDTemplate(ZenModelRM, ZenPackable):
         """Is this template editable in context.
         """
         return ((context == self or context.isLocalName(self.id))
-                and self.isManager(obj=self))
-        
-        
+                and self.checkRemotePerm(ZEN_CHANGE_DEVICE, self))
+
+
     def getGraphDefs(self):
         ''' Return an ordered list of the graph definitions
         '''
