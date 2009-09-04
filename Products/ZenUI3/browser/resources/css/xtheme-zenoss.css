@@ -1008,30 +1008,129 @@ body.x-body-masked .x-window-mc, body.x-body-masked .x-window-plain .x-window-mc
 .x-btn-icon, .x-btn-icon-text {
     background: transparent url() top center no-repeat;
 }
-.x-btn .acknowledge {
-    background-image: url(../img/xtheme-zenoss/icon/acknowledge.png);
+.x-btn-text-icon .x-btn-icon-small-left button {
+    background-image: url(../img/xtheme-zenoss/icon/icon-sprite.png);
 }
-.x-btn .add {
-    background-image: url(../img/xtheme-zenoss/icon/add.png);
-}
-.x-btn .configure {
-    background-image: url(../img/xtheme-zenoss/icon/configure.png);
-}
-.x-btn .delete {
-    background-image: url(../img/xtheme-zenoss/icon/delete.png);
-}
-.x-btn .export {
-    background-image: url(../img/xtheme-zenoss/icon/export.png);
-}
-.x-btn .suppress {
-    background-image: url(../img/xtheme-zenoss/icon/suppress.png);
-}
-.x-btn .info {
-    background-image: url(../img/xtheme-zenoss/icon/info.png);
-}
-.x-btn .filter {
+
+.x-toolbar .x-btn .add                  { background-position: 0 1px; }
+.x-toolbar .x-btn-click .add            { background-position: 0 -412px; }
+.x-toolbar .x-btn-over .add             { background-position: 0 -412px; }
+.x-toolbar .x-btn-disabled .add         { background-position: 0 -826px; }
+
+.x-toolbar .x-btn .delete               { background-position: 0 -17px; }
+.x-toolbar .x-btn-click .delete         { background-position: 0 -430px; }
+.x-toolbar .x-btn-over .delete          { background-position: 0 -430px; }
+.x-toolbar .x-btn-disabled .delete      { background-position: 0 -844px; }
+
+.x-toolbar .x-btn .set                  { background-position: 0 -35px; }
+.x-toolbar .x-btn-click .set            { background-position: 0 -448px; }
+.x-toolbar .x-btn-over .set             { background-position: 0 -448px; }
+.x-toolbar .x-btn-disabled .set         { background-position: 0 -862px; }
+
+.x-toolbar .x-btn .adddevice            { background-position: 0 -52px; }
+.x-toolbar .x-btn-click .adddevice      { background-position: 0 -465px; }
+.x-toolbar .x-btn-over .adddevice       { background-position: 0 -465px; }
+.x-toolbar .x-btn-disabled .adddevice   { background-position: 0 -878px; }
+
+.x-toolbar .x-btn .import               { background-position: 0 -71px; }
+.x-toolbar .x-btn-click .import         { background-position: 0 -484px; }
+.x-toolbar .x-btn-over .import          { background-position: 0 -484px; }
+.x-toolbar .x-btn-disabled .import      { background-position: 0 -895px; }
+
+.x-toolbar .x-btn .export               { background-position: 0 -89px; }
+.x-toolbar .x-btn-click .export         { background-position: 0 -502px; }
+.x-toolbar .x-btn-over .export          { background-position: 0 -502px; }
+.x-toolbar .x-btn-disabled .export      { background-position: 0 -913px; }
+
+.x-toolbar .x-btn .configure            { background-position: 0 -107px; }
+.x-toolbar .x-btn-click .configure      { background-position: 0 -520px; }
+.x-toolbar .x-btn-over .configure       { background-position: 0 -520px; }
+.x-toolbar .x-btn-disabled .configure   { background-position: 0 -931px; }
+
+.x-toolbar .x-btn .acknowledge          { background-position: 0 -125px; }
+.x-toolbar .x-btn-click .acknowledge    { background-position: 0 -538px; }
+.x-toolbar .x-btn-over .acknowledge     { background-position: 0 -538px; }
+.x-toolbar .x-btn-disabled .acknowledge { background-position: 0 -949px; }
+
+.x-toolbar .x-btn .suppress             { background-position: 0 -143px; }
+.x-toolbar .x-btn-click .suppress       { background-position: 0 -556px; }
+.x-toolbar .x-btn-over .suppress        { background-position: 0 -556px; }
+.x-toolbar .x-btn-disabled .suppress    { background-position: 0 -967px; }
+
+.x-toolbar .x-btn .close                { background-position: 0 -161px; }
+.x-toolbar .x-btn-click .close          { background-position: 0 -574px; }
+.x-toolbar .x-btn-over .close           { background-position: 0 -574px; }
+.x-toolbar .x-btn-disabled .close       { background-position: 0 -985px; }
+
+.x-toolbar .x-btn .save                 { background-position: 0 -178px; }
+.x-toolbar .x-btn-click .save           { background-position: 0 -591px; }
+.x-toolbar .x-btn-over .save            { background-position: 0 -591px; }
+.x-toolbar .x-btn-disabled .save        { background-position: 0 -1002px; }
+
+.x-toolbar .x-btn .events               { background-position: 0 -197px; }
+.x-toolbar .x-btn-click .events         { background-position: 0 -610px; }
+.x-toolbar .x-btn-over .events          { background-position: 0 -610px; }
+.x-toolbar .x-btn-disabled .events      { background-position: 0 -1021px; }
+
+.x-toolbar .x-btn .devprobs             { background-position: 0 -215px; }
+.x-toolbar .x-btn-click .devprobs       { background-position: 0 -628px; }
+.x-toolbar .x-btn-over .devprobs        { background-position: 0 -628px; }
+.x-toolbar .x-btn-disabled .devprobs    { background-position: 0 -1039px; }
+
+.x-toolbar .x-btn .customize            { background-position: 0 -233px; }
+.x-toolbar .x-btn-click .customize      { background-position: -1px -646px; }
+.x-toolbar .x-btn-over .customize       { background-position: -1px -646px; }
+.x-toolbar .x-btn-disabled .customize   { background-position: 0 -1057px; }
+
+.x-toolbar .x-btn .newwindow            { background-position: 0 -251px; }
+.x-toolbar .x-btn-click .newwindow      { background-position: 0 -664px; }
+.x-toolbar .x-btn-over .newwindow       { background-position: 0 -664px; }
+.x-toolbar .x-btn-disabled .newwindow   { background-position: 0 -1075px; }
+
+.x-toolbar .x-btn .export2              { background-position: 0 -269px; }
+.x-toolbar .x-btn-click .export2        { background-position: -1px -682px; }
+.x-toolbar .x-btn-over .export2         { background-position: -1px -682px; }
+.x-toolbar .x-btn-disabled .export2     { background-position: 0 -1093px; }
+
+.x-toolbar .x-btn .fullscreen           { background-position: 0 -287px; }
+.x-toolbar .x-btn-click .fullscreen     { background-position: 0 -700px; }
+.x-toolbar .x-btn-over .fullscreen      { background-position: 0 -700px; }
+.x-toolbar .x-btn-disabled .fullscreen  { background-position: 0 -1111px; }
+
+.x-toolbar .x-btn .dashboard            { background-position: 0 -305px; }
+.x-toolbar .x-btn-click .dashboard      { background-position: 0 -718px; }
+.x-toolbar .x-btn-over .dashboard       { background-position: 0 -718px; }
+.x-toolbar .x-btn-disabled .dashboard   { background-position: 0 -1128px; }
+
+.x-toolbar .x-btn .watchlist            { background-position: 2px -322px; }
+.x-toolbar .x-btn-click .watchlist      { background-position: 2px -735px; }
+.x-toolbar .x-btn-over .watchlist       { background-position: 2px -735px; }
+.x-toolbar .x-btn-disabled .watchlist   { background-position: 2px -1145px; }
+
+.x-toolbar .x-btn .slides               { background-position: 0 -340px; }
+.x-toolbar .x-btn-click .slides         { background-position: 0 -753px; }
+.x-toolbar .x-btn-over .slides          { background-position: 0 -753px; }
+.x-toolbar .x-btn-disabled .slides      { background-position: 0 -1163px; }
+
+.x-toolbar .x-btn .lighttable           { background-position: 0 -358px; }
+.x-toolbar .x-btn-click .lighttable     { background-position: 0 -771px; }
+.x-toolbar .x-btn-over .lighttable      { background-position: 0 -771px; }
+.x-toolbar .x-btn-disabled .lighttable  { background-position: 0 -1181px; }
+
+.x-toolbar .x-btn .outline              { background-position: 0 -376px; }
+.x-toolbar .x-btn-click .outline        { background-position: 0 -789px; }
+.x-toolbar .x-btn-over .outline         { background-position: 0 -789px; }
+.x-toolbar .x-btn-disabled .outline     { background-position: 0 -1199px; }
+
+.x-toolbar .x-btn .addslide             { background-position: 0 -394px; }
+.x-toolbar .x-btn-click .addslide       { background-position: 0 -807px; }
+.x-toolbar .x-btn-over .addslide        { background-position: 0 -807px; }
+.x-toolbar .x-btn-disabled .addslide    { background-position: 0 -1217px; }
+
+.x-toolbar .x-btn .filter {
     background-image: url(../img/xtheme-zenoss/icon/filter.png);
 }
+
 .x-toolbar .x-btn-pressed .info,
 .x-toolbar .x-btn-over .info{
     background-image: url(../img/xtheme-zenoss/icon/info-pressed.png);

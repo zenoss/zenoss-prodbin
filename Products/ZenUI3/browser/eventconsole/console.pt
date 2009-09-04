@@ -326,7 +326,7 @@ Ext.onReady(function(){
                  */
                 text: 'Acknowledge', 
                 iconCls: 'acknowledge',
-                handler: function(){
+                handler: function() {
                     // Get params describing selected events
                     var params = getSelectionParameters();
                     if (params) {
@@ -346,7 +346,7 @@ Ext.onReady(function(){
                  * CLOSE BUTTON 
                  */
                 text: 'Close',
-                iconCls: 'delete',
+                iconCls: 'close',
                 handler: function(){
                     // Get params describing selected events
                     var params = getSelectionParameters();
@@ -464,7 +464,7 @@ Ext.onReady(function(){
                 }
             },{
                 text: 'Configure',
-                iconCls: 'configure',
+                iconCls: 'customize',
                 menu: {
                     items: [{
                         id: 'rowcolors_checkitem',
