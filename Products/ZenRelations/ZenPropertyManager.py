@@ -450,7 +450,14 @@ class ZenPropertyManager(object, PropertyManager):
         Delete device tree properties from the this DeviceClass object.
         """
         if propname:
-            self._delProperty(propname)
+            try:
+                self._delProperty(propname)
+            except AttributeError:
+                #occasional object corruption where the propName is in 
+                #_properties but not set as an attribute. filter out the prop 
+                #and create a new _properties tuple
+                newProps = [x for x in self._properties if x['id'] != propname]
+                self._properties=tuple(newProps)
         if REQUEST: return self.callZenScreen(REQUEST)
 
     security.declareProtected(ZEN_ZPROPERTIES_VIEW, 'zenPropertyOptions')
