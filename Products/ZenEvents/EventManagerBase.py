@@ -433,26 +433,30 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
 
         @param context: The context for which events should be queried.
         """
+        # Return nothing if no criteria are specified
+        if not evids and not ranges:
+            return []
+
         if evids is None: evids = []
         start = max(start, 0)
 
+        # Get the relevant where clause, with filters applied
         where = self.lookupManagedEntityWhere(context)
         where = self.filteredWhere(where, filters)
 
+        # If no ranges are specified, just return the event IDs passed in
         if not ranges:
-            if evids: return evids
-            events = self.getEventList(resultFields=('evid',), where=where,
-                                      orderby="%s %s" % (sort, direction),
-                                      severity=-1, state=2, offset=start,
-                                      rows=limit)
+            return evids
         else:
+            # Iterate through the ranges, adding event IDs for each
             events = []
             for s,e in ranges:
-                events += self.getEventList(resultFields=('evid',), where=where,
-                                           orderby="%s %s" % (sort, direction),
-                                           severity=-1, state=2, offset=s,
-                                           rows=e)
+                events += self.getEventList(resultFields=('evid',),
+                                            where=where, orderby="%s %s" %
+                                            (sort, direction), severity=-1,
+                                            state=2, offset=s, rows=e)
 
+        # Uniqueify the list of event IDs and return as a list
         evids = set(e.evid for e in events) | set(evids)
         return list(evids)
 
