@@ -218,7 +218,6 @@ Ext.onReady(function(){
             Zenoss.FilterGridView.superclass.initEvents.call(this);
             this.addEvents('filterchange');
             this.addEvents('filtertoggle');
-            this.addEvents('rowcolorchange');
         },
         initData: function(ds, cm) {
             var store = this.grid.store;
@@ -398,7 +397,6 @@ Ext.onReady(function(){
         },
         getState: function(){
             return {
-                rowColors: this.rowColors,
                 displayFilters: this.displayFilters,
                 options: this.lastOptions
             };
@@ -416,21 +414,16 @@ Ext.onReady(function(){
         },
         toggleRowColors: function(bool){
             this.rowColors = bool;
-            this.fireEvent('rowcolorchange');
+            Ext.state.Manager.set('rowcolor', bool);
             this.updateLiveRows(this.rowIndex, true, false);
         },
         applyState: function(state) {
-            this.rowColors = state.rowColors;
             this.displayFilters = state.displayFilters;
             this.lastOptions = state.options;
             var btn = Ext.getCmp(this.filterbutton);
-            var rowcoloritem = Ext.getCmp(this.rowcoloritem);
             btn.on('render', function(){
                 this.toggle(state.displayFilters);
             }, btn);
-            rowcoloritem.on('render', function(){
-                this.setChecked(state.rowColors);
-            }, rowcoloritem);
         },
         resetFilters: function(){
             this.lastOptions = {};
@@ -449,7 +442,6 @@ Ext.onReady(function(){
             Zenoss.FilterGridPanel.superclass.initStateEvents.call(this);
             this.mon(this.view, 'filterchange', this.saveState, this);
             this.mon(this.view, 'filtertoggle', this.saveState, this);
-            this.mon(this.view, 'rowcolorchange', this.saveState, this);
         },
         getView : function(){
             if(!this.view){
@@ -489,6 +481,12 @@ Ext.onReady(function(){
         initState: function() {
             Zenoss.FilterGridPanel.superclass.initState.apply(this, arguments);
             this.restoreURLState();
+            var rowColors = Ext.state.Manager.get('rowcolor');
+            this.view.rowColors = rowColors;
+            var rowcoloritem = Ext.getCmp(this.view.rowcoloritem);
+            rowcoloritem.on('render', function(){
+                this.setChecked(rowColors);
+            }, rowcoloritem);
         },
         getState: function(){
             var val = Zenoss.FilterGridPanel.superclass.getState.call(this);
