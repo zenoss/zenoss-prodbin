@@ -1544,7 +1544,10 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
             else:
                 return
         evid = self.sendEvent(eventDict)
-        return evid
+        if REQUEST:
+            REQUEST.response.redirect('/zport/dmd/Events/viewEvents')
+        else:
+            return evid
 
 
     def deleteEvents(self, whereClause, reason):
