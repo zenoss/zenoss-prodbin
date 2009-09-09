@@ -18,6 +18,7 @@ DeviceMap maps the interface and ip tables to interface objects
 """
 
 import re
+import sys
 
 from Products.DataCollector.plugins.CollectorPlugin \
     import SnmpPlugin, GetMap, GetTableMap
@@ -56,12 +57,14 @@ class DeviceMap(SnmpPlugin):
         if scDeviceMapParse:
             om = scDeviceMapParse(device, om)
 
-        # Find device serial numbers at key indexes in ENTITY-MIB.
+        # Find device serial number using the first entry in ENTITY-MIB.
         entPhysicalTable = tabledata.get('entPhysicalTable', {})
+
+        lowestIndex = sys.maxint
         for index, entry in entPhysicalTable.items():
             serialNum = entry.get('serialNum', None)
-            if serialNum and str(index) in ('1', '1001'):
+            if serialNum and int(index) > lowestIndex:
                 om.setHWSerialNumber = serialNum
-                break
+                lowestIndex = int(index)
 
         return om
