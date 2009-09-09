@@ -59,7 +59,7 @@
 </textarea>
 <script tal:content="string:
     Ext.onReady(function(){
-        Zenoss.env.EVENTSGRID_STATEID = '${context/id}_evconsole';
+        Zenoss.env.EVENTSGRID_STATEID = 'evconsole';
     });
 "></script>
 <script>
