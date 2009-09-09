@@ -54,9 +54,9 @@ class ZenTcpTest(protocol.Protocol):
         self.cfg = self.factory.cfg
 
         if self.cfg.sendString:
-            for line in self.cfg.sendString.split('\n'):
-                log.debug("Sending: %s" % line)
-                self.transport.write(line + '\n')
+            sendString = self.cfg.sendString.decode("string_escape")
+            log.debug("Sending: %s" % sendString)
+            self.transport.write(sendString)
 
         if self.cfg.expectRegex:
             log.debug("Waiting for results to check against regex '%s'" % (
