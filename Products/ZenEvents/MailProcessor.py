@@ -172,13 +172,16 @@ class MessageProcessor(object):
         @return: modified event
         @rtype: simple class
         """
-        if hasattr(evt, 'eventClassKey') or hasattr(evt, 'eventClass'):
+        if getattr(evt, 'eventClassKey', '') or getattr(evt, 'eventClass', ''):
             return evt
-        elif hasattr(evt, 'ntevid'):
+        elif getattr(evt, 'ntevid', ''):
             evt.eventClassKey = "%s_%s" % (evt.component,evt.ntevid)
-        elif hasattr(evt, 'component'):
+        elif getattr(evt, 'component', ''):
             evt.eventClassKey = evt.component
-        if hasattr(evt, 'eventClassKey'): 
+        else:
+            evt.eventClassKey = 'email'
+
+        if getattr(evt, 'eventClassKey', ''):
             log.debug("eventClassKey=%s", evt.eventClassKey)
         else:
             log.debug("No eventClassKey assigned")
