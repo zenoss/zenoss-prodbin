@@ -236,7 +236,7 @@ class ToManyContRelationship(ToManyRelationshipBase):
 #                    if checkClass(mt['instance'], cl):
 #                        mts.append(mt)
 #        return mts
-   
+
 
     def _getCopy(self, container):
         """
@@ -269,7 +269,7 @@ class ToManyContRelationship(ToManyRelationshipBase):
             obj.exportXml(ofile, ignorerels)
         ofile.write("</tomanycont>\n")
 
-    
+
 InitializeClass(ToManyContRelationship)
 
 

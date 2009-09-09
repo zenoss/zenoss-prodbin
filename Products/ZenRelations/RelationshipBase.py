@@ -108,7 +108,7 @@ class RelationshipBase(PrimaryPathManager):
         """remove an object from a relationship"""
         self._remoteRemove(obj)
         self._remove(obj)
-   
+
 
     def remoteType(self):
         """Return the type of the remote end of our relationship."""
