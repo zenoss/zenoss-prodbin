@@ -39,27 +39,28 @@ class memory:
                 results = d.getRRDValues(dpNames, **summary) or {}
 
                 # UNIX
-                if 'memAvailReal' in results:
-                    availableReal = results['memAvailReal'] * 1024
+                if results.get('memAvailReal', None) is not None:
+                    availableReal = results['memAvailReal']
 
                 # Linux
-                if 'memBuffer' in results and 'memCached' in results \
+                if results.get('memBuffer', None) is not None \
+                    and results.get('memCached', None) is not None \
                     and availableReal is not None:
-                    buffered = results['memBuffer'] * 1024
-                    cached = results['memCached'] * 1024
+                    buffered = results['memBuffer']
+                    cached = results['memCached']
                     availableReal += buffered
                     availableReal += cached
 
                 # SNMP Informant
-                elif 'memoryAvailableKBytes' in results:
-                    availableReal = results['memoryAvailableKBytes'] * 1024
+                elif results.get('memoryAvailableKBytes', None) is not None:
+                    availableReal = results['memoryAvailableKBytes']
 
                 # Perfmon
-                elif 'MemoryAvailableBytes' in results:
+                elif results.get('MemoryAvailableBytes', None) is not None:
                     availableReal = results['MemoryAvailableBytes']
 
                 # Cisco
-                elif 'mem5minFree' in results:
+                elif results.get('mem5minFree', None) is not None:
                     availableReal = results['mem5minFree']
 
                 if availableReal:
