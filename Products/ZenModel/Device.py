@@ -1753,8 +1753,11 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
 
         # side effect: self.getId() will return newId after this call
         try:
+            # If there is a title, change the title to the newId
+            # (ticket #5443).  manage_renameObject will reindex.
+            if self.title:
+                self.title = newId
             parent.manage_renameObject(oldId, newId)
-    
             self.renameDeviceInEvents(oldId, newId)
             self.renameDeviceInPerformance(oldId, newId)
             self.setLastChange()
