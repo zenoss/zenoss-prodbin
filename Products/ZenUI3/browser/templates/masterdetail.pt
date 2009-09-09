@@ -1,6 +1,12 @@
 <tal:block metal:define-macro="masterdetail">
 <tal:block metal:use-macro="context/page_macros/base">
 
+<tal:block metal:fill-slot="breadcrumbs">
+    <tal:block metal:define-slot="breadcrumbs">
+        <span metal:use-macro="here/miscmacros/macros/breadCrumbs" />
+    </tal:block>
+</tal:block>
+
 <tal:block metal:fill-slot="center_panel">
 <div id="master_panel">
     <tal:block metal:define-slot="master_panel"/>

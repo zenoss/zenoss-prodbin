@@ -1,5 +1,9 @@
 <tal:block metal:use-macro="context/page_macros/masterdetail">
 
+<tal:block metal:fill-slot="breadcrumbs">
+<span metal:use-macro="here/miscmacros/macros/breadCrumbs" /> / Event History
+</tal:block>
+
 <tal:block metal:fill-slot="master_panel">
 </tal:block>
 
@@ -536,6 +540,9 @@ Ext.onReady(function(){
         style: {'border-top':'1px solid #888'},
         height: 25,
         items: [{
+            xtype: 'tbtext',
+            text: '<a href="viewEvents"'+'>Event Console...<'+'/a'+'>'
+        },{
             xtype: 'tbfill'
         },{
             xtype: 'livegridinfo',

@@ -1,6 +1,12 @@
 <tal:block metal:define-macro="base">
 <tal:block metal:use-macro="here/page_macros/page2">
 
+<tal:block metal:fill-slot="breadcrumbs">
+    <tal:block metal:define-slot="breadcrumbs">
+           <span metal:use-macro="here/miscmacros/macros/breadCrumbs" />
+    </tal:block>
+</tal:block>
+
 <tal:block metal:fill-slot="head-local">
 <link rel="stylesheet" type="text/css" 
     href="/extjs/resources/css/ext-all.css" />
