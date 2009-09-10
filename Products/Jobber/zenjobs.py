@@ -76,6 +76,7 @@ class ZenJobs(CyclingDaemon):
             self.main_loop()
         except:
             self.log.exception("unexpected exception")
+            reactor.callLater(self.options.cycletime, self.runCycle)
 
     def get_new_jobs(self):
         return [s.getJob() for s in self.jm.getPendingJobs()]
