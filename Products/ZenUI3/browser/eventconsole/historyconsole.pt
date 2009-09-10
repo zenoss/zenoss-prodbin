@@ -318,7 +318,22 @@ Ext.onReady(function(){
                 iconCls: 'export',
                 menu: {
                 items: [{
-                    
+                    text: 'CSV',
+                    handler: function(){
+                        var state = Ext.getCmp('events_grid').getState(),
+                            params = {
+                                type: 'csv',
+                                params: {
+                                    fields: Ext.pluck(state.columns, 'id'),
+                                    sort: state.sort.field,
+                                    dir: state.sort.direction,
+                                    params: state.filters.options
+                                }
+                            };
+                        Ext.get('export_body').dom.value =
+                            Ext.encode(params);
+                        Ext.get('exportform').dom.submit();
+                    }
                 }]
                 }
             },{
