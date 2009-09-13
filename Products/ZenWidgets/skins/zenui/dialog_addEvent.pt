@@ -61,7 +61,7 @@ tal:attributes="value here/absolute_url_path"/>
                 Event Class
             </td>
             <td  align="left">
-                <select  name="eclass" style="width:150px">
+                <select  name="eventClass" style="width:150px">
 					<option value=""></option>
                     <option 
                         tal:repeat="eclass here/dmd/Events/getOrganizerNames"

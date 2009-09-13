@@ -1530,8 +1530,8 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
             )
         # We don't want to put empty eventClass into the dict because that
         # can keep the event from being mapped to /Unknown correctly.
-        if REQUEST.get('eclass', None):
-            eventDict['eventClass'] = REQUEST['eclass']
+        if REQUEST.get('eventClass', None):
+            eventDict['eventClass'] = REQUEST['eventClass']
         # sendEvent insists on a device or a component. Can be bogus.
         if not eventDict['device'] and not eventDict['component']:
             if REQUEST:
@@ -1544,8 +1544,8 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
             else:
                 return
         evid = self.sendEvent(eventDict)
-        if REQUEST:
-            REQUEST.response.redirect('/zport/dmd/Events/viewEvents')
+        if REQUEST and 'RESPONSE' in REQUEST:
+            REQUEST['RESPONSE'].redirect('/zport/dmd/Events/viewEvents')
         else:
             return evid
 
