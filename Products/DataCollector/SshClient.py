@@ -276,7 +276,7 @@ class SshUserAuth(userauth.SSHUserAuthClient):
         """
         try:
             password = self._getPassword()
-            d = self.succeed(password)
+            d = defer.succeed(password)
         except NoPasswordException, e:
             d = self._handleFailure(str(e))
         return d
