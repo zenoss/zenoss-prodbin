@@ -217,7 +217,8 @@ class SshClientTransport(transport.SSHClientTransport):
 
 class NoPasswordException(Exception):
     pass
-    
+
+
 class SshUserAuth(userauth.SSHUserAuthClient):
     """
     Class to gather credentials for use with our SSH connection,
@@ -329,11 +330,11 @@ class SshUserAuth(userauth.SSHUserAuthClient):
         Handle a failure by logging a message, sending an event, calling
         clientFinished, and returning a failure defered.
         """
-        log.error(message)
-        sendEvent(self, message=message)
-        self.factory.clientFinished()
-        return defer.fail(SshClientError(message))
-        
+            log.error( message )
+            sendEvent( self, message=message )
+            self.factory.clientFinished()
+            return defer.fail( SshClientError( message ) )
+
     def _getKey(self):
         keyPath = os.path.expanduser(self.factory.keyPath)
         log.debug('Expanded SSH key path from zKeyPath %s to %s' % (
@@ -620,7 +621,7 @@ class CommandChannel(channel.SSHChannel):
         self.data = ''
         
         # request more columns in the psuedo-tty so lines don't wrap
-        term = os.environ['TERM']
+        term = os.environ.get('TERM', 'xterm')
         rows, cols, xpixel, ypixel = 25, 999, 0, 0
         winSize = (rows, cols, xpixel, ypixel)
         ptyReqData = session.packRequest_pty_req(term, winSize, '')
