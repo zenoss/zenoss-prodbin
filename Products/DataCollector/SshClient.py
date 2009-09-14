@@ -20,6 +20,7 @@ specifically documentation on 'conch' (Twisted's SSH protocol support).
 
 import os
 import sys
+from pprint import pformat
 import logging
 log = logging.getLogger("zen.SshClient")
 
@@ -214,8 +215,9 @@ class SshClientTransport(transport.SSHClientTransport):
         sshauth = SshUserAuth(self.factory.username, sshconn, self.factory)
         self.requestService(sshauth)
 
-
-
+class NoPasswordException(Exception):
+    pass
+    
 class SshUserAuth(userauth.SSHUserAuthClient):
     """
     Class to gather credentials for use with our SSH connection,
@@ -262,6 +264,8 @@ class SshUserAuth(userauth.SSHUserAuthClient):
 
     def getPassword(self, unused=None):
         """
+        Called from conch.
+        
         Return a deferred object of success if there's a password or
         return fail (ie no zCommandPassword specified)
 
@@ -270,17 +274,66 @@ class SshUserAuth(userauth.SSHUserAuthClient):
         @return: Twisted deferred object (defer.succeed or defer.fail)
         @rtype: Twisted deferred object
         """
+        try:
+            password = self._getPassword()
+            d = self.succeed(password)
+        except NoPasswordException, e:
+            d = self._handleFailure(str(e))
+        return d
+        
+    def getGenericAnswers(self, name, instruction, prompts):
+        """
+        Called from conch.
+        
+        Returns a L{Deferred} with the responses to the prompts.
+
+        @param name: The name of the authentication currently in progress.
+        @param instruction: Describes what the authentication wants. 
+        @param prompts: A list of (prompt, echo) pairs, where prompt is a
+        string to display and echo is a boolean indicating whether the
+        user's response should be echoed as they type it.
+        """
+        log.debug('getGenericAnswers name:"%s" instruction:"%s" prompts:%s',
+                name, instruction, pformat(prompts))
+        if prompts == []:
+            # RFC 4256 - In the case that the server sends a `0' num-prompts
+            # field in the request message, the client MUST send a response
+            # message with a `0' num-responses field to complete the exchange.
+            d = defer.succeed([])
+        else:
+            for prompt, echo in prompts:
+                if 'password' in prompt.lower():
+                    try:
+                        password = self._getPassword()
+                        d = defer.succeed([password])
+                    except NoPasswordException, e:
+                        d = self._handleFailure(str(e))
+                    break
+            else:
+                message = 'No known prompts: %s' % pformat(prompts)
+                d = self._handleFailure(message)
+        return d
+        
+    def _getPassword(self):
+        """
+        Get the password. Raise an exception if it is not set.
+        """
         if not self.factory.password:
             message= "SshUserAuth: no password found -- " + \
                      "has zCommandPassword been set?"
-            log.error( message )
-            sendEvent( self, message=message )
-            self.factory.clientFinished()
-            return defer.fail( SshClientError( message ) )
-
-        else:
-            return defer.succeed(self.factory.password)
-
+            raise NoPasswordException(message)
+        return self.factory.password
+        
+    def _handleFailure(self, message):
+        """
+        Handle a failure by logging a message, sending an event, calling
+        clientFinished, and returning a failure defered.
+        """
+        log.error(message)
+        sendEvent(self, message=message)
+        self.factory.clientFinished()
+        return defer.fail(SshClientError(message))
+        
     def _getKey(self):
         keyPath = os.path.expanduser(self.factory.keyPath)
         log.debug('Expanded SSH key path from zKeyPath %s to %s' % (
