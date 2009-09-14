@@ -30,7 +30,7 @@ from twisted.spread import pb
 
 import Globals
 from Products.ZenUtils.Driver import drive, driveLater
-from Products.ZenUtils.Utils import unused
+from Products.ZenUtils.Utils import unused, getExitMessage
 from Products.ZenRRD.RRDDaemon import RRDDaemon
 from Products.ZenRRD.RRDUtil import RRDUtil
 from Products.DataCollector.SshClient import SshClient
@@ -590,10 +590,21 @@ class zencommand(RRDDaemon):
             self.error(cmdOrErr)
         else:
             cmd = cmdOrErr
-            self.sendCmdEvent(cmd, Clear, "Clear")
+            self._handleExitCode(cmd)
             self.parseResults(cmd)
         self.processSchedule()
         
+    def _handleExitCode(self, cmd):
+        """
+        zencommand handles sending clears for exit code 0, all other exit codes
+        should be handled by the parser associated with the command
+        """
+        exitCode = cmd.result.exitCode
+        msg = 'Cmd: %s - Code: %s - Msg: %s' % (
+            cmd.command, exitCode, getExitMessage(exitCode))
+        if exitCode == 0:
+            self.sendCmdEvent(cmd, Clear, msg)
+
     def error(self, err):
         """
         The finished method indicated that there was a failure.  This method

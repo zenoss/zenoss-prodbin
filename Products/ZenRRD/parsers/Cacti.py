@@ -46,18 +46,17 @@ class Cacti(CommandParser):
 
         msg = msg.strip() or 'Cmd: %s - Code: %s - Msg: %s' % (
             cmd.command, exitCode, getExitMessage(exitCode))
-        if exitCode == 0:
-            severity = 0
-        elif exitCode == 2:
-            severity = min(severity + 1, 5)
-        result.events.append(dict(device=cmd.deviceConfig.device,
-                                  summary=msg,
-                                  severity=severity,
-                                  message=msg,
-                                  performanceData=values,
-                                  eventKey=cmd.eventKey,
-                                  eventClass=cmd.eventClass,
-                                  component=cmd.component))
+        if exitCode != 0:
+            if exitCode == 2:
+                severity = min(severity + 1, 5)
+            result.events.append(dict(device=cmd.deviceConfig.device,
+                                      summary=msg,
+                                      severity=severity,
+                                      message=msg,
+                                      performanceData=values,
+                                      eventKey=cmd.eventKey,
+                                      eventClass=cmd.eventClass,
+                                      component=cmd.component))
 
         for value in values.split():
             parts = CacParser.match(value)
