@@ -178,7 +178,6 @@ Ext.onReady(function(){
                     typeAhead: true,
                     forceSelection: true,
                     triggerAction: 'all',
-                    emptyText: 'Select an event class',
                     selectOnFocus: true
                 }],
                 buttons: [{
