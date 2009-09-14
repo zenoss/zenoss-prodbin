@@ -210,12 +210,20 @@ class Scheduler(object):
 
     zope.interface.implements(IScheduler)
 
+    CLEANUP_TASKS_INTERVAL = 10 # seconds
+
     def __init__(self, callableTaskFactory=CallableTaskFactory()):
         self._loopingCalls = {}
         self._tasks = {}
         self._taskCallback = {}
         self._taskStats = {}
         self._callableTaskFactory = callableTaskFactory
+
+        # create a cleanup task that will periodically sweep the 
+        # cleanup dictionary for tasks that need to be cleaned
+        self._tasksToCleanup = {}
+        self._cleanupTask = task.LoopingCall(self._cleanupTasks)
+        self._cleanupTask.start(Scheduler.CLEANUP_TASKS_INTERVAL)
 
     def addTask(self, newTask, callback=None, now=False):
         """
@@ -302,20 +310,26 @@ class Scheduler(object):
             task = taskWrapper.task
             if task.configId == configId:
                 log.debug("Stopping task %s", taskName)
-                self._loopingCalls[taskName].stop()
+
+                if self._loopingCalls[taskName].running:
+                    self._loopingCalls[taskName].stop()
+
                 doomedTasks.append(taskName)
                 self.taskRemoved(taskWrapper)
 
         for taskName in doomedTasks:
+            self._tasksToCleanup[taskName] = self._tasks[taskName].task
+
             del self._loopingCalls[taskName]
             del self._tasks[taskName]
+
             # TODO: ponder task statistics and keeping them around?
 
         # TODO: don't let any tasks for the same config start until
         # these old tasks are really gone
 
     def pauseTasksForConfig(self, configId):
-        for (taskName, taskWrapper) in self._tasks.iteritems():
+        for (taskName, taskWrapper) in self._tasks.items():
             task = taskWrapper.task
             if task.configId == configId:
                 log.debug("Pausing task %s", taskName)
@@ -412,3 +426,37 @@ class Scheduler(object):
                    stats.minElapsedTime, stats.maxElapsedTime, stats.mean,
                    stats.stddev)
         return buffer
+
+    def _cleanupTasks(self):
+        """
+        Periodically cleanup and tasks that have been queued up for such 
+        activity.
+        """
+        # Build a list of the tasks that need to be cleaned up so that there
+        # is no issue with concurrent modifications to the _tasksToCleanup
+        # dictionary when tasks are quickly cleaned up.
+        todoList = [task for task in self._tasksToCleanup.values()
+                             if self._isTaskCleanable(task)]
+
+        for task in todoList:
+            # changing the state of the task will keep the next cleanup run
+            # from processing it again
+            task.state = TaskStates.STATE_CLEANING
+
+            d = defer.maybeDeferred(task.cleanup)
+            d.addBoth(self._cleanupTaskComplete, task)
+
+    def _cleanupTaskComplete(self, result, task):
+        """
+        Twisted callback to remove a task from the cleanup queue once it has
+        completed its cleanup work.
+        """
+        del self._tasksToCleanup[task.name]
+        return result
+
+    def _isTaskCleanable(self, task):
+        """
+        Determines if a task is able to be cleaned up or not.
+        """
+        return task.state in (TaskStates.STATE_IDLE, TaskStates.STATE_PAUSED)
+

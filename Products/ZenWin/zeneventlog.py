@@ -350,6 +350,9 @@ class ZenEventLogTask(ObservableMixin):
         self._watcher = Watcher(self._taskConfig, self._wmiQuery)
         return self._watcher.connect()
 
+    def cleanup(self):
+        return self._reset()
+
     def doTask(self):
         log.debug("Scanning device %s [%s]", self._devId, self._manageIp)
 

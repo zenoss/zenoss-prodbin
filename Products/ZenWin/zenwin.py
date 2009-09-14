@@ -322,7 +322,10 @@ class ZenWinTask(ObservableMixin):
         d = self._wmic.connect()
         d.addCallback(self._initialQuery)
         return d
-        
+
+    def cleanup(self):
+        return self._reset()
+
     def doTask(self):
         log.debug("Scanning device %s [%s]", self._devId, self._manageIp)
         

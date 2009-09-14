@@ -31,9 +31,13 @@ class BasicTestTask(ObservableMixin):
         self.state = "IDLE"
         self.missedRuns = 0
         self.totalRuns = 0
+        self.cleaned = False
 
     def doTask(self):
         pass
+
+    def cleanup(self):
+        self.cleaned = True
 
 class TestScheduler(BaseTestCase):
     def testDeleteTasks(self):
@@ -75,6 +79,31 @@ class TestScheduler(BaseTestCase):
         scheduler = Scheduler()
         scheduler.addTask(myTask1, myCallback)
 
+    def testTaskCleanup(self):
+        myTask1 = BasicTestTask()
+        myTask1.name = "myTask1.1"
+        myTask1.configId = "myTask1"
+
+        myTask2 = BasicTestTask()
+        myTask2.name = "myTask1.2"
+        myTask2.configId = "myTask1"
+        myTask2.state = "DOING_SOMETHING" # keep this task from being cleaned
+
+        scheduler = Scheduler()
+        scheduler.addTask(myTask1)
+        scheduler.addTask(myTask2)
+
+        self.assertTrue(scheduler._isTaskCleanable(myTask1))
+        self.assertFalse(scheduler._isTaskCleanable(myTask2))
+
+        # call cleanupTasks directly so we don't have to wait for a
+        # looping call to start it
+        self.assertFalse(myTask1.cleaned)
+        self.assertFalse(myTask2.cleaned)
+        scheduler.removeTasksForConfig(myTask1.configId)
+        scheduler._cleanupTasks()
+        self.assertTrue(myTask1.cleaned)
+        self.assertFalse(myTask2.cleaned)
 
 def test_suite():
     from unittest import TestSuite, makeSuite

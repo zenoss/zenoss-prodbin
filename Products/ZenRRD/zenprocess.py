@@ -409,6 +409,8 @@ class ZenProcessTask(ObservableMixin):
         # ZenCollector framework can keep track of the success/failure rate
         return result
 
+    def cleanup(self):
+        return self._close()
 
     def doTask(self):
         """

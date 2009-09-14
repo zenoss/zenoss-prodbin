@@ -239,9 +239,14 @@ class IScheduledTask(IObservable):
         Execution frequency of this task, in seconds
         """)
 
-    # TODO: document the basic states and how they are used
     state = zope.interface.Attribute("""
-        The current state of the task, i.e. IDLE, RUNNING, etc.
+        The current state of the task, i.e. IDLE, RUNNING, etc. States can be
+        any string value a task requires, with a few limitations required by
+        the default scheduler implementation. These limitations are:
+        1) Tasks must enter the IDLE state immediately after being constructed.
+        2) Tasks should not change their own state to any of the states in
+           TaskStates on their own -the scheduler changes to these states as
+           needed.
         """)
 
     def doTask(self):
@@ -249,6 +254,21 @@ class IScheduledTask(IObservable):
         Called whenever the task is scheduled to be executed by a scheduler.
         If a Deferred object is returned the task will not be considered
         finished until the deferred has completed and fired all callbacks.
+        """
+        pass
+
+    def cleanup(self):
+        """
+        Called whenever the task is scheduled to be deleted by a scheduler.
+        If a Deferred object is returned the task will not be considered
+        finished with the cleanup until the deferred has completed and fired
+        all callbacks.
+
+        The framework will not call this method if the state is not IDLE.
+
+        Tasks should cleanup expensive resources in their implementation of
+        this method and not rely upon the __del__ method being called to do
+        so.
         """
         pass
 
