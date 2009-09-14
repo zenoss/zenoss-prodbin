@@ -622,33 +622,34 @@ Ext.onReady(function(){
                     text: 'Refresh every'
                 },{
                     xtype: 'menucheckitem',
+                    text: '1 second',
+                    value: 1,
+                    group: 'refreshgroup'
+                },{
+                    xtype: 'menucheckitem',
+                    text: '5 seconds',
+                    value: 5,
+                    group: 'refreshgroup'
+                },{
+                    xtype: 'menucheckitem',
+                    text: '10 seconds',
+                    value: 10,
+                    group: 'refreshgroup'
+                },{
+                    xtype: 'menucheckitem',
+                    text: '30 seconds',
+                    value: 30,
+                    group: 'refreshgroup'
+                },{
+                    xtype: 'menucheckitem',
                     text: '1 minute',
                     value: 60,
-                    group: 'refreshgroup'
-                },{
-                    xtype: 'menucheckitem',
-                    text: '5 minutes',
-                    value: 5*60,
-                    group: 'refreshgroup'
-                },{
-                    xtype: 'menucheckitem',
-                    text: '10 minutes',
-                    value: 10*60,
-                    group: 'refreshgroup'
-                },{
-                    xtype: 'menucheckitem',
-                    text: '30 minutes',
-                    value: 30*60,
-                    group: 'refreshgroup'
-                },{
-                    xtype: 'menucheckitem',
-                    text: '1 hour',
-                    value: 60*60,
+                    checked: true,
                     group: 'refreshgroup'
                 },{
                     xtype: 'menucheckitem',
                     text: 'Manually',
-                    value: 0,
+                    value: -1,
                     group: 'refreshgroup'
                 }]
             };
@@ -665,7 +666,7 @@ Ext.onReady(function(){
             this.refreshTask.delay(this.interval*1000);
         },
         poll: function(){
-            if (this.interval) {
+            if (this.interval>0) {
                 this.handler();
                 this.refreshTask.delay(this.interval*1000);
             }
