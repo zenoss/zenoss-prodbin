@@ -11,10 +11,12 @@
 #
 ###########################################################################
 
+from Products.CMFCore.utils import getToolByName
 from Products.Five.browser import BrowserView
+from Products.ZenModel.DeviceOrganizer import DeviceOrganizer
 from Products.ZenUtils.json import json
 from Products.ZenUtils.Utils import formreq
-from Products.AdvancedQuery import MatchGlob
+from Products.AdvancedQuery import Eq, MatchGlob
 
 
 class DeviceNames(BrowserView):
@@ -32,8 +34,12 @@ class DeviceNames(BrowserView):
         @return: A JSON representation of a list of ids
         @rtype: "['id1', 'id2', 'id3']"
         """
-        brains = self.context.dmd.Devices.deviceSearch.evalAdvancedQuery(
-                                MatchGlob('id', query.rstrip('*') + '*'))
+        catalog = getToolByName(self.context.dmd.Devices,
+            self.context.dmd.Devices.default_catalog)
+        query = MatchGlob('id', query.rstrip('*') + '*')
+        if isinstance(self.context, DeviceOrganizer):
+            query = query & Eq('path', "/".join(self.context.getPhysicalPath()))
+        brains = catalog.evalAdvancedQuery(query)
         deviceIds = [b.id for b in brains]
         deviceIds.sort(lambda x, y: cmp(x.lower(), y.lower()))
         return deviceIds
