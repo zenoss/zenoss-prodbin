@@ -79,14 +79,15 @@ class NewDeviceMap(SnmpPlugin):
         om = self.objectMap(getdata)
         
         # Set the manufacturer according the IANA enterprise OID assignments.
-        match = re.match(r'(.\d+){7}', om.snmpOid)
-        if match:
-            manufacturer = EnterpriseOIDs.get(match.group(0), "Unknown")
-        else:
-            manufacturer = "Unknown"
+        if om.snmpOid:
+            match = re.match(r'(.\d+){7}', om.snmpOid)
+            if match:
+                manufacturer = EnterpriseOIDs.get(match.group(0), "Unknown")
+            else:
+                manufacturer = "Unknown"
 
-        om.setHWProductKey = MultiArgs(om.snmpOid, manufacturer)
-        log.debug("HWProductKey=%s", om.setHWProductKey)
+            om.setHWProductKey = MultiArgs(om.snmpOid, manufacturer)
+            log.debug("HWProductKey=%s", om.setHWProductKey)
         
         if om.snmpDescr:
             descr = re.sub("\s", " ", om.snmpDescr)
