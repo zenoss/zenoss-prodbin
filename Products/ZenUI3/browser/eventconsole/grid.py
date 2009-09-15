@@ -61,7 +61,7 @@ class EventConsole(DirectRouter):
             resultFields=fields,
             getTotalCount=True,
             sort=sort,
-            orderby="%s %s" % (sort, dir),
+            orderby="%s %s, lastTime DESC" % (sort, dir),
             filters=params
         )
         if evid: args['evid'] = evid
