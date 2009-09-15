@@ -321,12 +321,12 @@ class ZenDisc(ZenModeler):
                     try:
                         yield proxy.get([oid])
                         devname = driver.next().values()[0]
+                        proxy.close()
                         goodcommunity = community
                         goodversion = version
                         break
                     except:
                         pass
-                    proxy.close()
                 if goodcommunity:
                     yield succeed((goodcommunity, port, goodversion, devname))
                     break
