@@ -1,7 +1,7 @@
 ###########################################################################
 #
 # This program is part of Zenoss Core, an open source monitoring platform.
-# Copyright (C) 2007, Zenoss Inc.
+# Copyright (C) 2007, 2009, Zenoss Inc.
 #
 # This program is free software; you can redistribute it and/or modify it
 # under the terms of the GNU General Public License version 2 as published by
@@ -17,23 +17,51 @@ CiscoMap maps cisco serialnumber information
 
 """
 
-from Products.DataCollector.plugins.CollectorPlugin import SnmpPlugin, GetMap
+import sys
+from Products.DataCollector.plugins.CollectorPlugin \
+    import SnmpPlugin, GetMap, GetTableMap
 
 class CiscoMap(SnmpPlugin):
 
-    maptype = "CiscoDeviceMap" 
+    maptype = "CiscoDeviceMap"
 
-    snmpGetMap = GetMap({ 
+    snmpGetMap = GetMap({
              '.1.3.6.1.4.1.9.3.6.3.0' : 'setHWSerialNumber',
              })
-   
-    def condition(self, device, log):
-        """does device meet the proper conditions for this collector to run"""
-        return device.snmpOid and device.snmpOid.startswith('.1.3.6.1.4.1.9')
+
+    snmpGetTableMaps = (
+        GetTableMap('entPhysicalTable', '.1.3.6.1.2.1.47.1.1.1.1', {
+            '.11': 'serialNum'
+            }),
+        )
 
 
     def process(self, device, results, log):
         """collect snmp information from this device"""
         log.info('processing %s for device %s', self.name(), device.id)
         getdata, tabledata = results
-        return self.objectMap(getdata)
+        om = self.objectMap(getdata)
+
+        # In most cases we want to prefer the serial number in the Cisco
+        # enterprise MIB if it is available.
+        if om.setHWSerialNumber \
+            and ' ' not in om.setHWSerialNumber \
+            and not om.setHWSerialNumber.startswith('0x'):
+            return om
+
+        # Some Cisco devices expose their serial number via the ENTITY-MIB.
+        entPhysicalTable = tabledata.get('entPhysicalTable', {})
+
+        lowestIndex = sys.maxint
+        for index, entry in entPhysicalTable.items():
+            serialNum = entry.get('serialNum', None)
+            if serialNum and int(index) < lowestIndex:
+                om.setHWSerialNumber = serialNum
+                lowestIndex = int(index)
+
+        # Return the serial number if we found one. Otherwise don't overwrite
+        # a value provided by another modeler plugin.
+        if om.setHWSerialNumber:
+            return om
+        else:
+            return None
