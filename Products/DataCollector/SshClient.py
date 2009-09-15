@@ -330,10 +330,10 @@ class SshUserAuth(userauth.SSHUserAuthClient):
         Handle a failure by logging a message, sending an event, calling
         clientFinished, and returning a failure defered.
         """
-            log.error( message )
-            sendEvent( self, message=message )
-            self.factory.clientFinished()
-            return defer.fail( SshClientError( message ) )
+        log.error( message )
+        sendEvent( self, message=message )
+        self.factory.clientFinished()
+        return defer.fail( SshClientError( message ) )
 
     def _getKey(self):
         keyPath = os.path.expanduser(self.factory.keyPath)
