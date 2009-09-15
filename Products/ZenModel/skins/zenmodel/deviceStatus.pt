@@ -10,15 +10,25 @@
 <tal:block metal:fill-slot="body">
     <div style="padding:5px;border-bottom:1px solid #aaa;
                 background-color:#f8f8f8">
-    <ul class="inline-ul">
+    <ul class="inline-ul" tal:define="monitored here/monitorDevice">
     <li> Device: <span tal:content="here/titleOrId" class="bigtext"/>
     <li> IP: <span tal:content="here/manageIp" class="bigtext"/>
-    <li tal:define="isup python:here.getPingStatus()<1;
-                           color python:test(isup, 'green', 'red');
-                           desc python:test(isup, 'Up', 'Down')">
-         Status: <img tal:attributes="src string:img/${color}_dot.png"
-                      style="margin-bottom:-3px"/> 
-                 <span tal:content="desc" class="bigtext"/></li>
+    <li> Status: 
+        <tal:block tal:condition="monitored" tal:define="
+            isup python:here.getPingStatus()<1;
+            color python:test(isup, 'green', 'red');
+            desc python:test(isup, 'Up', 'Down')">
+
+            <img tal:attributes="src string:img/${color}_dot.png"
+                style="margin-bottom:-3px"/>
+            <span tal:content="desc" class="bigtext"/>
+        </tal:block>
+        <tal:block tal:condition="not:monitored">
+            <img tal:attributes="src string:img/grey_dot.png"
+                style="margin-bottom:-3px"/>
+            <span class="bigtext">Not Monitored</span>
+        </tal:block>
+    </li>
     </ul>
     </div>
     <div class="yui-t1" style="width:100%;">
