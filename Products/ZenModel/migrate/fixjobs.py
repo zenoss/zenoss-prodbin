@@ -12,6 +12,7 @@
 ###########################################################################
 import Migrate
 import logging
+from Products.Jobber.status import JobStatus
 
 log = logging.getLogger('Zope')
 ORIG_LEVEL = log.level
@@ -24,14 +25,28 @@ class FixBadJobs(Migrate.Step):
         # Hide log messages, since the only ones that can appear here are both
         # scary and irrelevant
         log.setLevel(HIGHER_THAN_CRITICAL)
+
+        # Monkeypatch status.py to avoid syncing from the database
+        # and losing the current transaction state
+        def substituteMethod( self ):
+            return self.filename
+
+        originalMethod = JobStatus.getLogFileName
+        JobStatus.getLogFileName = substituteMethod
+
         try:
-            for status in dmd.JobManager.jobs():
-                if hasattr(status, 'job'):
-                    status.delete()
-        except:
-            # If we run into trouble, turn logging back on
-            log.setLevel(ORIG_LEVEL)
-            raise
+            try:
+                for status in dmd.JobManager.jobs():
+                    if hasattr(status, 'job'):
+                        status.delete()
+            except:
+                # If we run into trouble, turn logging back on
+                log.setLevel(ORIG_LEVEL)
+                raise
+        finally:
+            # Put the original method back
+            JobStatus.getLogFileName = originalMethod
+
         # Set the log level back to normal
         log.setLevel(ORIG_LEVEL)
 
