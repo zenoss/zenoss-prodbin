@@ -45,6 +45,7 @@ from Products.ZenEvents.ZenEventClasses import Error, Clear, Status_WinService
 from Products.ZenUtils.observable import ObservableMixin
 from Products.ZenWin.WMIClient import WMIClient
 from Products.ZenWin.Watcher import Watcher
+from Products.ZenWin.utils import addNTLMv2Option, setNTLMv2Auth
 
 # We retrieve our configuration data remotely via a Twisted PerspectiveBroker
 # connection. To do so, we need to import the class that will be used by the
@@ -98,11 +99,18 @@ class ZenWinPreferences(object):
                                default=None, type='int',
                                help='Number of data objects to retrieve in a ' +
                                     'single WMI query.')
-        
-        
+        addNTLMv2Option(parser)
+
     def postStartup(self):
-        pass
-        
+        # turn on low-level pysamba debug logging if requested
+        logseverity = self.options.logseverity
+        if logseverity <= 5:
+            pysamba.library.DEBUGLEVEL.value = 99
+
+        # force NTLMv2 authentication if requested
+        setNTLMv2Auth(self.options)
+
+
 class ZenWinTask(ObservableMixin):
     zope.interface.implements(IScheduledTask)
         

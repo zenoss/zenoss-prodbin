@@ -25,6 +25,7 @@ import pysamba.twisted.reactor
 
 import Globals
 from Products.ZenWin.WMIClient import WMIClient
+from Products.ZenWin.utils import addNTLMv2Option, setNTLMv2Auth
 from Products.ZenHub.PBDaemon import FakeRemote, PBDaemon
 from Products.ZenUtils.DaemonStats import DaemonStats
 from Products.ZenUtils.Driver import drive, driveLater
@@ -845,6 +846,7 @@ class ZenModeler(PBDaemon):
                 dest='now', action="store_true", default=False,
                 help="Start daemon now, do not sleep before starting")
         TCbuildOptions(self.parser, self.usage)
+        addNTLMv2Option(self.parser)
 
 
 
@@ -858,7 +860,7 @@ class ZenModeler(PBDaemon):
         if self.options.ignorePlugins and self.options.collectPlugins:
             raise SystemExit( "Only one of --ignore or --collect"
                              " can be used at a time")
-
+        setNTLMv2Auth(self.options)
 
     def _timeoutClients(self):
         """

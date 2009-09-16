@@ -77,7 +77,6 @@ class ZenDaemon(CmdBase):
         if self.options.watchdog and not self.options.watchdogPath:
             self.becomeWatchdog()
 
-
     def openPrivilegedPort(self, *address):
         """Execute under zensocket, providing the args to zensocket"""
         zensocket = binPath('zensocket')
@@ -302,5 +301,3 @@ class ZenDaemon(CmdBase):
                                dest='starttimeout',
                                type="int",
                                help="Wait seconds for initial heartbeat")
-
-

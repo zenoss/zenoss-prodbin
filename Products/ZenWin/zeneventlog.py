@@ -45,6 +45,7 @@ from Products.ZenEvents.ZenEventClasses import Error, Warning, Info, \
     Debug, Status_Wmi
 from Products.ZenUtils.observable import ObservableMixin
 from Products.ZenWin.Watcher import Watcher
+from Products.ZenWin.utils import addNTLMv2Option, setNTLMv2Auth
 
 # We retrieve our configuration data remotely via a Twisted PerspectiveBroker
 # connection. To do so, we need to import the class that will be used by the
@@ -93,9 +94,16 @@ class ZenEventLogPreferences(object):
                           help='The number of milliseconds to wait for ' + \
                                'WMI query to respond. Overrides the ' + \
                                'server settings.')
+        addNTLMv2Option(parser)
 
     def postStartup(self):
-        pass
+        # turn on low-level pysamba debug logging if requested
+        logseverity = self.options.logseverity
+        if logseverity <= 5:
+            pysamba.library.DEBUGLEVEL.value = 99
+
+        # force NTLMv2 authentication if requested
+        setNTLMv2Auth(self.options)
 
 
 #
