@@ -148,7 +148,6 @@ class zenmib(ZCmdBase):
     Wrapper around the smidump utilities to load MIB files into
     the DMD tree.
     """
-
     def map_file_to_dependents(self, mibfile):
         """
         Scan the MIB file to determine what MIB trees the file is dependent on.
@@ -162,7 +161,9 @@ class zenmib(ZCmdBase):
         fp = open(mibfile)
         mib = fp.read()
         fp.close()
+        return self.map_mib_to_dependents(mib)
 
+    def map_mib_to_dependents(self, mib):
         # ASN.1 syntax regular expressions for declaring MIBs
         # 
         # An example from http://www.faqs.org/rfcs/rfc1212.html
