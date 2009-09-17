@@ -436,6 +436,23 @@ Ext.onReady(function(){
                 //iconCls: 'export',
                 menu: {
                     items: [{
+                        text: 'XML',
+                        handler: function(){
+                            var state = Ext.getCmp('events_grid').getState(),
+                                params = {
+                                    type: 'xml',
+                                    params: {
+                                        fields: Ext.pluck(state.columns, 'id'),
+                                        sort: state.sort.field,
+                                        dir: state.sort.direction,
+                                        params: state.filters.options
+                                    }
+                                };
+                            Ext.get('export_body').dom.value =
+                                Ext.encode(params);
+                            Ext.get('exportform').dom.submit();
+                        }
+                    }, {
                         text: 'CSV',
                         handler: function(){
                             var state = Ext.getCmp('events_grid').getState(),
