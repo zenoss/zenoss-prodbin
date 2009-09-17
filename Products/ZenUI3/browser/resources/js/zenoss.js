@@ -13,6 +13,23 @@ Ext.onReady(function(){
 
     Ext.QuickTips.init();
 
+    /* 
+     * Hook up all Ext.Direct requests to the connection error message box.
+     */
+    Ext.Direct.on('event', function(e){
+        // Have to catch this because of race condition at first load, but
+        // connection errors won't happen there anyway.
+        try {
+            if (e.status) {
+                YAHOO.zenoss.Messenger.clearConnectionErrors();
+            } else {
+                YAHOO.zenoss.Messenger.connectionError();
+            }
+        } catch(e) {
+            noop();
+        }
+    });
+
     /**
      * @class Zenoss.PlaceholderPanel
      * @extends Ext.Panel

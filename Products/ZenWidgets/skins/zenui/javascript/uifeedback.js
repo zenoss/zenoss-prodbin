@@ -121,6 +121,7 @@ Z.Messenger = {
     callbacks: {
         success: function(r, o) {
             forEach(o.results, Z.Messenger.send);
+            Z.Messenger.clearConnectionErrors();
         },
 
         failure: function() {
@@ -143,11 +144,22 @@ Z.Messenger = {
         this.datasource.clearAllIntervals();
     },
 
+    _txerrormsgs: [],
+
     // Shorthand to signify a connection error. Can be used by whatever.
     connectionError: function(msg) {
         var msg = msg || "Server connection error.";
-        this.stopPolling();
-        this.critical(msg);
+        if (!this._txerrormsgs.length) {
+            var panel = this.critical(msg);
+            this._txerrormsgs.push(panel);
+        }
+    },
+
+    clearConnectionErrors: function() {
+        forEach(this._txerrormsgs, function(msg){
+            msg.destroy();
+        });
+        this._txerrormsgs = [];
     },
 
     // Put a message into the browser
@@ -157,12 +169,14 @@ Z.Messenger = {
             priority = priorities[msgConfig.priority],
             image    = (msgConfig.image || icons[msgConfig.priority]),
             sticky   = (msgConfig.sticky || false);
-        Yowl.notify('info', title, text, 'zenoss', image, sticky, priority);
+        var panel = Yowl.notify('info', title, text, 'zenoss', image, sticky,
+                                priority);
+        return panel;
     },
 
     // Shortcut to send severity INFO messages
     info: function(message) {
-        this.send({
+        return this.send({
             title: "Information",
             body: message,
             priority: INFO
@@ -171,7 +185,7 @@ Z.Messenger = {
 
     // Shortcut to send severity WARNING messages
     warning: function(message) {
-        this.send({
+        return this.send({
             title: "Warning",
             body: message,
             priority: WARNING
@@ -180,12 +194,12 @@ Z.Messenger = {
 
     // Shortcut to send severity CRITICAL messages
     critical: function(message) {
-        this.send({
+        return this.send({
             title: "Error",
             body: message,
             priority: CRITICAL,
             sticky: true
-        })
+        });
     }
 
 

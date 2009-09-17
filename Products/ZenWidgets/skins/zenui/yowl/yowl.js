@@ -213,6 +213,7 @@ if (!document.Growl)
                     }//onclick handler
                 );
             }//if ( the style handler was initialised successfully )
+            return panel;
         },//rawNotification()
 
         setGrowlDelegate: function(delegate)
@@ -287,6 +288,7 @@ if (!document.Growl)
              * First create a notification object that will hold the format of our message.
              */
 
+            var panel;
             var notification = new GrowlRawNotification();
 
             notification.title = title;
@@ -395,9 +397,9 @@ if (!document.Growl)
                  */
     
                 if (notification.enabled)
-                    this.rawNotification(app, d, notification);
+                    panel = this.rawNotification(app, d, notification);
             }//if ( the application is registered )
-            return;
+            return panel;
         },//notify()
 
         /*
@@ -467,7 +469,7 @@ if (!document.Yowl)
 
         notify: function(notificationName, title, description, applicationName, image, sticky, priority)
         {
-            document.Growl.notify(
+            var panel = document.Growl.notify(
                 notificationName,
                 title,
                 description,
@@ -476,7 +478,7 @@ if (!document.Yowl)
                 sticky,
                 priority
             );
-            return;
+            return panel;
         },//notify()
 
         register: function(applicationName, allNotifications, defaultNotifications, iconOfApplication)
