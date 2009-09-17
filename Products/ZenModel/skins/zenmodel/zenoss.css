@@ -893,6 +893,12 @@ div.evpill-green-acked  { background-position: 0px -96px; }
 div.evpill-grey-acked   { background-position: 0px -120px; }
 
 
+div.evpill-disabled {
+    background: transparent url('img/eventpill-tiles-60dpi-disabled.png') 
+        0px 0px no-repeat;
+}
+
+
 a.prettylink {
     text-decoration: none;
     font-size: 1.2em;

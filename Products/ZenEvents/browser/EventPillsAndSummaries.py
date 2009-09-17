@@ -142,10 +142,19 @@ def getEventPillME(zem, me, number=1, minSeverity=0, showGreen=True,
         results = zip(colors, [me.getPrimaryUrlPath()]*5, info, summary)
         template = ('<div class="evpill-%s" onclick="location.href='
                     '\'%s/viewEvents\'" title="%s">%s</div>')
+
+        # Always show grey for devices that are not monitored.
+        disabled = False
+        from Products.ZenModel.Device import Device
+        if isinstance(me, Device) and not me.monitorDevice():
+            disabled = True
+
         pills = []
         for i, result in enumerate(results):
             color, path, info, summary = result
-            if evsum[i][1]>=evsum[i][2]: 
+            if disabled:
+                color += ' evpill-disabled'
+            elif evsum[i][1]>=evsum[i][2]:
                 if color!='green': color += '-acked'
             result = color, path, info, summary
             if (result[3]): 
@@ -153,6 +162,7 @@ def getEventPillME(zem, me, number=1, minSeverity=0, showGreen=True,
             if len(pills)==number: return pills
         if (showGreen):
             color = 'green'
+            if disabled: color += ' evpill-disabled'
             summary = ' '
             info = 'No events'
             result = (color, path, info, summary)
