@@ -12,67 +12,41 @@
 ###########################################################################
 import Globals
 from Products.ZenReports import Utils, Utilization
+from Products.ZenReports.AliasPlugin import AliasPlugin, Column, \
+                                            PythonColumnHandler, \
+                                            RRDColumnHandler
 
-class memory:
+def _getAvailableReal( availableBytes, bufferedBytes, cachedBytes ):
+    if availableBytes is None:
+        return None
+    elif bufferedBytes is None or cachedBytes is None:
+        return availableBytes
+    else:
+        return availableBytes + bufferedBytes + cachedBytes
+
+def _getPercentUtilization( availableReal, totalReal ):
+    if totalReal and availableReal:
+        return Utils.percent( totalReal - availableReal, totalReal )
+    else:
+        return None
+
+class memory( AliasPlugin ):
     "The memory usage report"
 
-    def run(self, dmd, args):
-        summary = Utilization.getSummaryArgs(dmd, args)
+    def getColumns(self):
+        return [
+                Column('deviceName', PythonColumnHandler( 'device.titleOrId()' )),
+                Column('totalReal', PythonColumnHandler( 'device.hw.totalMemory')),
+                Column('availableReal_tmp', RRDColumnHandler( 'memoryAvailable__bytes')),
+                Column('buffered', RRDColumnHandler('memoryBuffered__bytes')),
+                Column('cached', RRDColumnHandler('memoryCached__bytes')) ]
 
-        dpNames = [
-            'memAvailReal',           # Net-SNMP & SSH
-            'memBuffer', 'memCached', # Net-SNMP & SSH on Linux
-            'memoryAvailableKBytes',  # SNMP Informant
-            'MemoryAvailableBytes',   # Perfmon
-            'mem5minFree',            # Cisco
-            ]
-
-        report = []
-        for d in Utilization.filteredDevices(dmd, args):
-            totalReal = d.hw.totalMemory or None
-            availableReal = None
-            buffered = None
-            cached = None
-            percentUsed = None
-
-            if d.hw.totalMemory:
-                results = d.getRRDValues(dpNames, **summary) or {}
-
-                # UNIX
-                if results.get('memAvailReal', None) is not None:
-                    availableReal = results['memAvailReal']
-
-                # Linux
-                if results.get('memBuffer', None) is not None \
-                    and results.get('memCached', None) is not None \
-                    and availableReal is not None:
-                    buffered = results['memBuffer']
-                    cached = results['memCached']
-                    availableReal += buffered
-                    availableReal += cached
-
-                # SNMP Informant
-                elif results.get('memoryAvailableKBytes', None) is not None:
-                    availableReal = results['memoryAvailableKBytes']
-
-                # Perfmon
-                elif results.get('MemoryAvailableBytes', None) is not None:
-                    availableReal = results['MemoryAvailableBytes']
-
-                # Cisco
-                elif results.get('mem5minFree', None) is not None:
-                    availableReal = results['mem5minFree']
-
-                if availableReal:
-                    percentUsed = Utils.percent(
-                        totalReal - availableReal, totalReal)
-
-            r = Utils.Record(device=d,
-                             deviceName=d.titleOrId(),
-                             totalReal=totalReal,
-                             percentUsed=percentUsed,
-                             availableReal=availableReal,
-                             buffered=buffered,
-                             cached=cached)
-            report.append(r)
-        return report
+    def getCompositeColumns(self):
+        return [Column('availableReal',
+                        PythonColumnHandler(
+                            'getAvailableReal( availableReal_tmp, buffered, cached )',
+                            dict( getAvailableReal=_getAvailableReal ) ) ),
+                Column('percentUsed',
+                        PythonColumnHandler(
+                            'getPercentUtilization(availableReal,totalReal)',
+                            dict( getPercentUtilization=_getPercentUtilization))) ]

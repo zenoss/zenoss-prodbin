@@ -101,6 +101,8 @@ class RRDColumnHandler( object ):
         # have the desired values along with the aliases
         # that may have formulas for transforming them
         aliasDatapointPairs=extra['aliasDatapointPairs']
+        if aliasDatapointPairs is None or len( aliasDatapointPairs ) == 0:
+            return None
 
         value = None
         # determine the row context-- device or device and component
@@ -131,14 +133,16 @@ class PythonColumnHandler( object ):
     the component object ('component').  It also includes report information
     such as the start date ('start') and end date ('end') of the report.
     """
-    def __init__(self, talesExpression):
+    def __init__(self, talesExpression, extraContext={}):
         """
         @param talesExpression: A python expression that can use the context
         """
         self._talesExpression = 'python:%s' % talesExpression
+        self._extraContext = extraContext
 
     def __call__(self, device, component=None, extra=None, value=None ):
         kw=dict( device=device, component=component, value=value )
+        kw.update( self._extraContext )
         if extra is not None:
             kw.update(extra)
         return talesEval( self._talesExpression, device, kw )
@@ -218,7 +222,6 @@ class AliasPlugin( object ):
             except NameError:
                 val=None
             return val
-
         columnValueMap = {}
         for column, aliasDatapointPairs in columnDatapointsMap.iteritems():
             columnName = column.getColumnName()
@@ -265,9 +268,11 @@ class AliasPlugin( object ):
 
         columnDatapointsMap = {}
 
-        # Third, map the non-perf columns to None
-        for column in nonAliasColumns:
-            columnDatapointsMap[column] = None
+        # Map the columns to empty list to ensure that
+        # there will be placeholders for all columns
+        # even if there are not aliased datapoints
+        for column in columns:
+            columnDatapointsMap[column] = []
 
         # Fourth, match up the columns with the corresponding alias/datapoint
         # pairs
@@ -282,9 +287,6 @@ class AliasPlugin( object ):
                 # was really the datapoint name
                 column = aliasColumnMap[ datapoint.id ]
 
-            if not columnDatapointsMap.has_key( column ) or \
-                    columnDatapointsMap[column] is None:
-                columnDatapointsMap[column]=[]
             columnDatapointsMap[column].append( (alias,datapoint) )
 
         return columnDatapointsMap
