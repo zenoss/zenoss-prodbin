@@ -282,7 +282,8 @@ class AliasPlugin( object ):
                 # was really the datapoint name
                 column = aliasColumnMap[ datapoint.id ]
 
-            if not columnDatapointsMap.has_key( column ):
+            if not columnDatapointsMap.has_key( column ) or \
+                    columnDatapointsMap[column] is None:
                 columnDatapointsMap[column]=[]
             columnDatapointsMap[column].append( (alias,datapoint) )
 
