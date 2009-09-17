@@ -446,7 +446,7 @@ Ext.onReady(function(){
         },
         resetFilters: function(){
             this.lastOptions = {};
-            this.getFilterButton().toggle(false);
+            this.getFilterButton().setChecked(false);
         }
     });
 

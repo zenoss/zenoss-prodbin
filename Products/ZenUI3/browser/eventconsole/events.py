@@ -14,7 +14,13 @@ class EventManagerProxy(object):
 
     @property
     def is_history(self):
-        return 'viewHistoryEvents' in self.request['HTTP_REFERER']
+        # If we're actually loading event console, False
+        if 'viewEvents' in self.request.getURL():
+            return False
+        # If we're loading history page or a request from the history page,
+        # True, else False
+        return ('viewHistoryEvents' in self.request.getURL() or
+                'viewHistoryEvents' in self.request['HTTP_REFERER'])
 
     def event_manager(self, forceHistory=False):
         evmgr = getattr(self, '_evmgr', None)
