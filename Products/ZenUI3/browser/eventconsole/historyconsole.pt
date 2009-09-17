@@ -246,9 +246,9 @@ Ext.onReady(function(){
                 /*
                  * ClASSIFY BUTTON
                  */
-                text: 'Classify',
-                // We don't have an icon for this
-                //iconCls: 'classify',
+                //text: 'Classify',
+                tooltip: 'Map selected events to an event class',
+                iconCls: 'customize',
                 handler: showClassifyDialog
             },{
                 xtype: 'tbseparator'
@@ -299,23 +299,8 @@ Ext.onReady(function(){
                     ]
                 }
             },{
-                /*
-                 * FILTERS BUTTON
-                 */
-                id: 'showfilters',
-                text: 'Filters',
-                iconCls: 'filter',
-                enableToggle: true,
-                pressed: true,
-                listeners: {
-                    'toggle' : function(ob, on) {
-                        if(on) grid.showFilters()
-                        else grid.hideFilters()
-                    }
-                }
-            },{
                 text: 'Export',
-                iconCls: 'export',
+                //iconCls: 'export',
                 menu: {
                 items: [{
                     text: 'CSV',
@@ -337,8 +322,11 @@ Ext.onReady(function(){
                 }]
                 }
             },{
+                /* 
+                 * CONFIGURE MENU
+                 */
                 text: 'Configure',
-                iconCls: 'configure',
+                //iconCls: 'customize',
                 menu: {
                     items: [{
                         id: 'rowcolors_checkitem',
@@ -348,6 +336,52 @@ Ext.onReady(function(){
                             var checked = !checkitem.checked;
                             var view = Ext.getCmp('events_grid').getView();
                             view.toggleRowColors(checked);
+                        }
+                    },{
+                        /*
+                         * FILTERS BUTTON
+                         */
+                        id: 'showfilters',
+                        text: 'Show filters',
+                        checked: false,
+                        listeners: {
+                            'checkchange' : function(ob, on) {
+                                if(on) grid.showFilters()
+                                else grid.hideFilters()
+                            }
+                        }
+                    },{
+                        text: 'Save this configuration...',
+                        handler: function(){
+                            var grid = Ext.getCmp('events_grid'),
+                                link = grid.getPermalink();
+                           Ext.Msg.show({
+                            title: 'Permalink',
+                            msg: '<'+'div class="dialog-link">'+
+                            'Drag this link to your bookmark' +
+                            ' bar <'+'br/>to return to this grid '+
+                             'configuration later.'+
+                             '<'+'br/><'+'br/><'+'a href="'+
+                             link + '">'+
+                             'Event Console<'+'/a><'+'/div>',
+                            buttons: Ext.Msg.OK
+                            })
+                        }
+                    },{
+                        text: "Restore defaults",
+                        handler: function(){
+                            Ext.Msg.show({
+                                title: 'Confirm Restore',
+                                msg: 'Are you sure you want to restore '+
+                                  'the default grid configuration? All' +
+                                  ' filters, column sizing, and column order '+
+                                  'will be lost.',
+                                buttons: Ext.Msg.OKCANCEL,
+                                fn: function(val){
+                                    if (val=='ok')
+                                        Ext.getCmp('events_grid').resetGrid();
+                                }
+                            });
                         }
                     }]
                 }
@@ -365,21 +399,6 @@ Ext.onReady(function(){
                     view = Ext.getCmp('events_grid').getView();
                     view.showLoadMask(true);
                     view.updateLiveRows(view.rowIndex, true, true);
-                }
-            },{
-                text: 'Reset Grid',
-                handler: function(){
-                    Ext.Msg.show({
-                        title: 'Confirm Reset',
-                        msg: 'Are you sure you want to reset the grid? All'+
-                              ' filters, column sizing, and column order '+
-                              'will be lost.',
-                        buttons: Ext.Msg.OKCANCEL,
-                        fn: function(val){
-                            if (val=='ok')
-                                Ext.getCmp('events_grid').resetGrid();
-                        }
-                    });
                 }
             }
             ]

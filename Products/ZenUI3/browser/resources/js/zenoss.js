@@ -11,6 +11,8 @@ Ext.onReady(function(){
      */
     Ext.namespace('Zenoss.env');
 
+    Ext.QuickTips.init();
+
     /**
      * @class Zenoss.PlaceholderPanel
      * @extends Ext.Panel
@@ -422,7 +424,7 @@ Ext.onReady(function(){
             this.lastOptions = state.options;
             var btn = Ext.getCmp(this.filterbutton);
             btn.on('render', function(){
-                this.toggle(state.displayFilters);
+                this.setChecked(state.displayFilters);
             }, btn);
         },
         resetFilters: function(){

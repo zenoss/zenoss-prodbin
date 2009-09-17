@@ -327,8 +327,9 @@ Ext.onReady(function(){
                 /* 
                  * ACKNOWLEDGE BUTTON 
                  */
-                text: 'Acknowledge', 
+                //text: 'Acknowledge', 
                 iconCls: 'acknowledge',
+                tooltip: 'Acknowledge selected events',
                 handler: function() {
                     // Get params describing selected events
                     var params = getSelectionParameters();
@@ -348,8 +349,9 @@ Ext.onReady(function(){
                 /* 
                  * CLOSE BUTTON 
                  */
-                text: 'Close',
+                //text: 'Close',
                 iconCls: 'close',
+                tooltip: 'Close selected events',
                 handler: function(){
                     // Get params describing selected events
                     var params = getSelectionParameters();
@@ -368,16 +370,17 @@ Ext.onReady(function(){
                 /* 
                  * ADD BUTTON 
                  */
-                text: 'Add',
+                //text: 'Add',
+                tooltip: 'Add a new event',
                 iconCls: 'add',
                 handler: showAddEventDialog
             },{
                 /*
                  * ClASSIFY BUTTON
                  */
-                text: 'Classify',
-                // We don't have an icon for this
-                //iconCls: 'classify',
+                //text: 'Classify',
+                tooltip: 'Map selected events to an event class',
+                iconCls: 'customize',
                 handler: showClassifyDialog
             },{
                 xtype: 'tbseparator'
@@ -428,23 +431,8 @@ Ext.onReady(function(){
                     ]
                 }
             },{
-                /*
-                 * FILTERS BUTTON
-                 */
-                id: 'showfilters',
-                text: 'Filters',
-                iconCls: 'filter',
-                enableToggle: true,
-                pressed: false,
-                listeners: {
-                    'toggle' : function(ob, on) {
-                        if(on) grid.showFilters()
-                        else grid.hideFilters()
-                    }
-                }
-            },{
                 text: 'Export',
-                iconCls: 'export',
+                //iconCls: 'export',
                 menu: {
                     items: [{
                         text: 'CSV',
@@ -466,8 +454,11 @@ Ext.onReady(function(){
                     }]
                 }
             },{
+                /* 
+                 * CONFIGURE MENU
+                 */
                 text: 'Configure',
-                iconCls: 'customize',
+                //iconCls: 'customize',
                 menu: {
                     items: [{
                         id: 'rowcolors_checkitem',
@@ -477,6 +468,19 @@ Ext.onReady(function(){
                             var checked = !checkitem.checked;
                             var view = Ext.getCmp('events_grid').getView();
                             view.toggleRowColors(checked);
+                        }
+                    },{
+                        /*
+                         * FILTERS BUTTON
+                         */
+                        id: 'showfilters',
+                        text: 'Show filters',
+                        checked: false,
+                        listeners: {
+                            'checkchange' : function(ob, on) {
+                                if(on) grid.showFilters()
+                                else grid.hideFilters()
+                            }
                         }
                     },{
                         text: 'Save this configuration...',
@@ -495,6 +499,22 @@ Ext.onReady(function(){
                             buttons: Ext.Msg.OK
                             })
                         }
+                    },{
+                        text: "Restore defaults",
+                        handler: function(){
+                            Ext.Msg.show({
+                                title: 'Confirm Restore',
+                                msg: 'Are you sure you want to restore '+
+                                  'the default grid configuration? All' +
+                                  ' filters, column sizing, and column order '+
+                                  'will be lost.',
+                                buttons: Ext.Msg.OKCANCEL,
+                                fn: function(val){
+                                    if (val=='ok')
+                                        Ext.getCmp('events_grid').resetGrid();
+                                }
+                            });
+                        }
                     }]
                 }
             },{
@@ -510,21 +530,6 @@ Ext.onReady(function(){
                 handler: function(){
                     view = Ext.getCmp('events_grid').getView();
                     view.updateLiveRows(view.rowIndex, true, true);
-                }
-            },{
-                text: 'Reset Grid',
-                handler: function(){
-                    Ext.Msg.show({
-                        title: 'Confirm Reset',
-                        msg: 'Are you sure you want to reset the grid? All'+
-                              ' filters, column sizing, and column order '+
-                              'will be lost.',
-                        buttons: Ext.Msg.OKCANCEL,
-                        fn: function(val){
-                            if (val=='ok')
-                                Ext.getCmp('events_grid').resetGrid();
-                        }
-                    });
                 }
             }
             ]

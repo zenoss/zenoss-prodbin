@@ -1008,6 +1008,7 @@ body.x-body-masked .x-window-mc, body.x-body-masked .x-window-plain .x-window-mc
 .x-btn-icon, .x-btn-icon-text {
     background: transparent url() top center no-repeat;
 }
+.x-btn-icon .x-btn-icon-small-left button,
 .x-btn-text-icon .x-btn-icon-small-left button {
     background-image: url(../img/xtheme-zenoss/icon/icon-sprite.png);
 }
