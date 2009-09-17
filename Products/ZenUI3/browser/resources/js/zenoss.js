@@ -26,7 +26,7 @@ Ext.onReady(function(){
                 YAHOO.zenoss.Messenger.connectionError();
             }
         } catch(e) {
-            noop();
+            Ext.emptyFn();
         }
     });
 

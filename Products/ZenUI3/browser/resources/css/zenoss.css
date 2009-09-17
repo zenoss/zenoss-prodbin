@@ -284,3 +284,15 @@ div.dialog-link {
 div.dialog-link a {
     color: lightblue;
 }
+
+.proptable tr {
+    background-color: transparent;
+}
+.proptable tr.even  {
+    background-color: #f0f9fd;
+}
+.proptable td {
+    font-size: 12px;
+    padding-top: 5px;
+    padding-bottom: 5px;
+}

@@ -50,7 +50,8 @@
 <textarea class="dontexpand" style="display:none" id="fullprop_table_template">
 <table class="proptable">
     <tpl for="properties">
-    <tr><td class="proptable_key">{key}</td>
+    <tr class='{[xindex % 2 === 0 ? "even" : "odd"]}'>
+        <td class="proptable_key">{key}</td>
         <td class="proptable_value">{value}</td></tr>
     </tpl>
 </table>
