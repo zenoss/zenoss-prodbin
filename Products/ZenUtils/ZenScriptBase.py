@@ -20,6 +20,7 @@ from threading import Lock
 from Utils import getObjByPath, zenPath, set_context
 from CmdBase import CmdBase
 
+from Products.ZenRelations.ZenPropertyManager import setDescriptors
 from Exceptions import ZentinelException
 
 defaultCacheDir = zenPath('var')
@@ -50,6 +51,7 @@ class ZenScriptBase(CmdBase):
             self.poollock = Lock()
         self.getDataRoot()
         self.login()
+        setDescriptors(self.dmd.propertyTransformers)
 
 
     def login(self, name='admin', userfolder=None):
