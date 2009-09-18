@@ -84,6 +84,24 @@ class EventConsole(DirectRouter):
         zem.manage_ackEvents(range_evids)
         return {'success':True}
 
+    def unacknowledge(self, evids=None, ranges=None, start=None, limit=None,
+                      field=None, direction=None, params=None):
+        zem = self._evmgr()
+        range_evids = zem.getEventIDsFromRanges(self.context, field, direction,
+                                                start, limit, params, evids,
+                                                ranges)
+        zem.manage_unackEvents(range_evids)
+        return {'success':True}
+
+    def reopen(self, evids=None, ranges=None, start=None, limit=None,
+               field=None, direction=None, params=None):
+        zem = self._evmgr()
+        range_evids = zem.getEventIDsFromRanges(self.context, field, direction,
+                                                start, limit, params, evids,
+                                                ranges)
+        zem.manage_undeleteEvents(range_evids)
+        return {'success':True}
+
     def close(self, evids=None, ranges=None, start=None, limit=None,
               field=None, direction=None, params=None):
         zem = self._evmgr()

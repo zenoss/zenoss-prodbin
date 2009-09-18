@@ -20,10 +20,10 @@
 </tal:block>
 
 <tal:block metal:fill-slot="script_layout">
-<!-- Template for rendering the detail pane -->
 <form id="exportform" method="post" action="export">
     <input type="hidden" id="export_body" name="body"/>
 </form>
+<!-- Template for rendering the detail pane -->
 <textarea class="dontexpand" style="display:none" id="detail_table_template">
 <table>
     <tr><td class="dt">Device:</td> 
@@ -249,8 +249,26 @@ Ext.onReady(function(){
                  */
                 //text: 'Classify',
                 tooltip: 'Map selected events to an event class',
-                iconCls: 'customize',
+                iconCls: 'classify',
                 handler: showClassifyDialog
+            },{
+                //text: 'Reopen',
+                tooltip: 'Move selected events back to active event console',
+                iconCls: 'reopen',
+                handler: function(){
+                    // Get params describing selected events
+                    var params = getSelectionParameters();
+                    if (params) {
+                        // Send to server, then refresh view to see fewer
+                        // events
+                        Zenoss.remote.EventConsole.reopen(params,
+                            function(provider, response){
+                                view = grid.getView();
+                                view.updateLiveRows(view.rowIndex, true, true);
+                            }
+                        );
+                    }
+                }
             },{
                 xtype: 'tbseparator'
             },{

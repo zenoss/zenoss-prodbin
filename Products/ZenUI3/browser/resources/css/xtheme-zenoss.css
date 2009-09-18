@@ -1128,6 +1128,26 @@ body.x-body-masked .x-window-mc, body.x-body-masked .x-window-plain .x-window-mc
 .x-toolbar .x-btn-over .addslide        { background-position: 0 -807px; }
 .x-toolbar .x-btn-disabled .addslide    { background-position: 0 -1217px; }
 
+.x-toolbar .x-btn .classify             { background-position: 0 -1242px; }
+.x-toolbar .x-btn-click .classify       { background-position: 0 -1260px; }
+.x-toolbar .x-btn-over .classify        { background-position: 0 -1260px; }
+.x-toolbar .x-btn-disabled .classify    { background-position: 0 -1278px; }
+
+.x-toolbar .x-btn .reopen               { background-position: 0 -1296px; }
+.x-toolbar .x-btn-click .reopen         { background-position: 0 -1314px; }
+.x-toolbar .x-btn-over .reopen          { background-position: 0 -1314px; }
+.x-toolbar .x-btn-disabled .reopen      { background-position: 0 -1332px; }
+
+.x-toolbar .x-btn .share                { background-position: 0 -1350px; }
+.x-toolbar .x-btn-click .share          { background-position: 0 -1368px; }
+.x-toolbar .x-btn-over .share           { background-position: 0 -1368px; }
+.x-toolbar .x-btn-disabled .share       { background-position: 0 -1386px; }
+
+.x-toolbar .x-btn .unacknowledge        { background-position: 0 -1404px; }
+.x-toolbar .x-btn-click .unacknowledge  { background-position: 0 -1422px; }
+.x-toolbar .x-btn-over .unacknowledge   { background-position: 0 -1422px; }
+.x-toolbar .x-btn-disabled .unacknowledge{background-position: 0 -1440px; }
+
 .x-toolbar .x-btn .filter {
     background-image: url(../img/xtheme-zenoss/icon/filter.png);
 }

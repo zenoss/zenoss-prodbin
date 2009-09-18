@@ -368,6 +368,30 @@ Ext.onReady(function(){
                     }
                 }
             },{
+                /*
+                 * ClASSIFY BUTTON
+                 */
+                //text: 'Classify',
+                tooltip: 'Map selected events to an event class',
+                iconCls: 'classify',
+                handler: showClassifyDialog
+            },{
+                //text: 'Unacknowledge',
+                iconCls: 'unacknowledge',
+                tooltip: 'Return selected events to New status',
+                handler: function() {
+                    var params = getSelectionParameters();
+                    if (params) {
+                        Zenoss.remote.EventConsole.unacknowledge(
+                            params,
+                            function(provider, response) {
+                                view = grid.getView();
+                                view.updateLiveRows(view.rowIndex, true, true);
+                            }
+                        )
+                    }
+                }
+            },{
                 /* 
                  * ADD BUTTON 
                  */
@@ -375,14 +399,6 @@ Ext.onReady(function(){
                 tooltip: 'Add a new event',
                 iconCls: 'add',
                 handler: showAddEventDialog
-            },{
-                /*
-                 * ClASSIFY BUTTON
-                 */
-                //text: 'Classify',
-                tooltip: 'Map selected events to an event class',
-                iconCls: 'customize',
-                handler: showClassifyDialog
             },{
                 xtype: 'tbseparator'
             },{

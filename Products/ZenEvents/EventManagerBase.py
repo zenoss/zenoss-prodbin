@@ -1515,7 +1515,7 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
         finally: self.close(conn)
         self.clearCache()
         self.manage_clearCache()
-        
+
     security.declareProtected(ZEN_MANAGE_EVENTS,'manage_addEvent')
     def manage_addEvent(self, REQUEST=None):
         ''' Create an event from user supplied data
@@ -1576,16 +1576,20 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
             return self.callZenScreen(REQUEST)
 
     def undeleteEvents(self, whereClause, reason):
-        fields = ','.join( self.getFieldList() )
-        # We want to blank clearid
+        fields = self.getFieldList()
+        if 'deletedTime' in fields:
+            fields.remove('deletedTime')
+        fields = ','.join(fields)
+        # Blank out clearid
         fields = fields.replace('clearid','NULL')
-        self.updateEvents(  'INSERT status ' + \
-                            'SELECT %s FROM history' % fields,
-                            whereClause + \
-                            ' ON DUPLICATE KEY UPDATE status.count=status.count+history.count', 
-                            reason, 'history', toLog=False)
-        self.updateEvents( 'DELETE FROM history', whereClause, \
-                            reason, 'history')
+        evmgr = self.dmd.ZenEventManager
+        evmgr.updateEvents('INSERT status ' + \
+                           'SELECT %s FROM history' % fields,
+                           whereClause + ' ON DUPLICATE KEY UPDATE '+
+                           'status.count=status.count+history.count',
+                           reason, 'history', toLog=False)
+        evmgr.updateEvents('DELETE FROM history', whereClause, \
+                           reason, 'history')
 
     security.declareProtected(ZEN_MANAGE_EVENTS,'manage_undeleteEvents')
     def manage_undeleteEvents(self, evids=(), REQUEST=None):
@@ -1692,11 +1696,26 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
                 REQUEST['RESPONSE'].redirect(dest)
 
 
+    security.declareProtected(ZEN_MANAGE_EVENTS,'manage_ackEvents')
+    def manage_unackEvents(self, evids=(), REQUEST=None):
+        "Unacknowledge the given event ids"
+        if type(evids) == type(''):
+            evids = [evids]
+        request = FakeRequest()
+        self.manage_setEventStates(0 , evids, REQUEST=request)
+        if REQUEST:
+            dest = '/zport/dmd/Events/viewEvents'
+            if request.get('message', ''):
+                dest += '?message=%s' % request['message']
+            if not getattr(REQUEST, 'dontRedirect', False):
+                REQUEST['RESPONSE'].redirect(dest)
+
+
     security.declareProtected(ZEN_MANAGE_EVENTS,'manage_setEventStates')
     def manage_setEventStates(self, eventState=None, evids=(), 
                               userid="", REQUEST=None):
         reason = None
-        if eventState and evids:
+        if eventState is not None and evids:
             eventState = int(eventState)
             if eventState > 0 and not userid:
                 userid = getSecurityManager().getUser().getId()
