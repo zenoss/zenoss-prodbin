@@ -17,8 +17,9 @@ __doc__='''ZenBackupBase
 
 Common code for zenbackup.py and zenrestore.py
 '''
-
 import tempfile
+from subprocess import Popen, PIPE
+
 from CmdBase import CmdBase
 
 
@@ -91,3 +92,26 @@ class ZenBackupBase(CmdBase):
         else:
             dir = tempfile.mkdtemp()
         return dir
+    
+
+    def runCommand(self, cmd=[], obfuscated_cmd=None):
+        """
+        Execute a command and return the results, displaying pre and
+        post messages.
+
+        @parameter cmd: command to run
+        @type cmd: list
+        @return: results of the command (output, warnings, returncode)
+        """
+        if obfuscated_cmd:
+            self.log.debug(' '.join(obfuscated_cmd))
+        else:
+            self.log.debug(' '.join(cmd))
+
+        proc = Popen(cmd, stdout=PIPE, stderr=PIPE)
+        output, warnings = proc.communicate()
+        if proc.returncode:
+            self.log.warn(warnings)
+        self.log.debug(output or 'No output from command')
+        return (output, warnings, proc.returncode)
+

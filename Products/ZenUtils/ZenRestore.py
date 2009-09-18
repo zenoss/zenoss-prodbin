@@ -11,6 +11,7 @@
 # For complete information please visit: http://www.zenoss.com/oss/
 #
 ###########################################################################
+import logging
 
 
 __doc__='''zenrestore
@@ -31,7 +32,15 @@ from ZenBackupBase import *
 
 class ZenRestore(ZenBackupBase):
 
-
+    def __init__(self):
+        ZenBackupBase.__init__(self)
+        self.log = logging.getLogger("zenrestore")
+        logging.basicConfig()
+        if self.options.verbose:
+            self.log.setLevel(20)
+        else:
+            self.log.setLevel(40)
+            
     def buildOptions(self):
         """basic options setup sub classes can add more options here"""
         ZenBackupBase.buildOptions(self)
@@ -79,7 +88,9 @@ class ZenRestore(ZenBackupBase):
                                dest='zenpacks',
                                default=False,
                                action='store_true',
-                               help='Restore any ZenPacks in the backup.')
+                               help=('Experimental: Restore any ZenPacks in ' 
+                                     'the backup. Some ZenPacks may not work '
+                                     'properly. Reinstall ZenPacks if possible'))
 
     def getSettings(self, tempDir):
         ''' Retrieve some options from settings file
@@ -159,6 +170,9 @@ class ZenRestore(ZenBackupBase):
         '''
         Restore from a previous backup
         '''
+        def hasZeoBackup(tempDir):
+            repozoDir = os.path.join(tempDir, 'repozo')
+            return os.path.isdir(repozoDir)
 
         if self.options.file and self.options.dir:
             sys.stderr.write('You cannot specify both --file and --dir.\n')
@@ -166,6 +180,7 @@ class ZenRestore(ZenBackupBase):
         elif not self.options.file and not self.options.dir:
             sys.stderr.write('You must specify either --file or --dir.\n')
             sys.exit(-1)
+        
 
         # Maybe check to see if zeo is up and tell user to quit zenoss first
 
@@ -189,6 +204,11 @@ class ZenRestore(ZenBackupBase):
                 sys.exit(-1)
             tempDir = self.options.dir
 
+        if self.options.zenpacks and not hasZeoBackup(tempDir):
+            sys.stderr.write('archive does not contain ZEO database backup, '
+                             'cannot restore ZenPacks.\n')
+            sys.exit(-1)
+
         # Maybe use values from backup file as defaults for self.options.
         self.getSettings(tempDir)
         if not self.options.dbname:
@@ -206,15 +226,18 @@ class ZenRestore(ZenBackupBase):
             os.system(binPath('zeoctl') + 'stop > /dev/null')
 
         # Restore zopedb
-        self.msg('Restoring the zeo database.')
-        repozoDir = os.path.join(tempDir, 'repozo')
-        cmd ='%s %s --recover --repository %s --output %s' % (
-                    binPath('python'),
-                    binPath('repozo.py'),
-                    repozoDir,
-                    zenPath('var', 'Data.fs'))
-        if os.system(cmd): return -1
-
+        if hasZeoBackup(tempDir):
+            repozoDir = os.path.join(tempDir, 'repozo')
+            self.msg('Restoring the ZEO database.')
+            cmd ='%s %s --recover --repository %s --output %s' % (
+                        binPath('python'),
+                        binPath('repozo.py'),
+                        repozoDir,
+                        zenPath('var', 'Data.fs'))
+            if os.system(cmd): return -1
+        else:
+            self.msg('archive does not contain ZEO database backup')
+        
         # Copy etc files
         self.msg('Restoring config files.')
         cmd = 'rm -rf %s' % zenPath('etc')
@@ -225,7 +248,8 @@ class ZenRestore(ZenBackupBase):
         if os.system(cmd): return -1
 
         # Copy ZenPack files if requested
-        if self.options.zenpacks:
+        # check for existence of ZEO backup
+        if self.options.zenpacks and hasZeoBackup(tempDir):
             tempPacks = os.path.join(tempDir, 'ZenPacks.tar')
             if os.path.isfile(tempPacks):
                 self.msg('Restoring ZenPacks.')
@@ -235,9 +259,18 @@ class ZenRestore(ZenBackupBase):
                                 zenPath(),
                                 os.path.join(tempDir, 'ZenPacks.tar'))
                 if os.system(cmd): return -1
+                # restore bin dir when restoring zenpacks
+                #make sure bin dir is in tar
+                tempBin = os.path.join(tempDir, 'bin.tar')
+                if os.path.isfile(tempBin):
+                    self.msg('Restoring bin dir.')
+                    #k option prevents overwriting existing bin files
+                    cmd = ['tar', 'Cxfk', zenPath(), 
+                           os.path.join(tempDir, 'bin.tar')]
+                    self.runCommand(cmd)
             else:
                 self.msg('Backup contains no ZenPacks.')
-
+        
         # Copy perf files
         cmd = 'rm -rf %s' % os.path.join(zenPath(), 'perf')
         if os.system(cmd): return -1

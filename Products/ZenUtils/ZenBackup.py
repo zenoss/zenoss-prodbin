@@ -22,7 +22,6 @@ import sys
 import os
 import os.path
 from datetime import date
-from subprocess import Popen, PIPE
 import time
 import logging
 import ConfigParser
@@ -44,28 +43,6 @@ class ZenBackup(ZenBackupBase):
         self.log = logging.getLogger("zenbackup")
         logging.basicConfig()
         self.log.setLevel(self.options.logseverity)
-
-    def runCommand(self, cmd=[], obfuscated_cmd=None):
-        """
-        Execute a command and return the results, displaying pre and
-        post messages.
-
-        @parameter cmd: command to run
-        @type cmd: list
-        @return: results of the command (output, warnings, returncode)
-        """
-        if obfuscated_cmd:
-            self.log.debug(' '.join(obfuscated_cmd))
-        else:
-           self.log.debug(' '.join(cmd))
-
-        proc = Popen(cmd, stdout=PIPE, stderr=PIPE)
-        output, warnings = proc.communicate()
-        if proc.returncode:
-            self.log.error(warnings)
-        self.log.debug(output or 'No output from command')
-        return (output, warnings, proc.returncode)
-
 
     def isZeoUp(self):
         '''
@@ -307,6 +284,25 @@ class ZenBackup(ZenBackupBase):
         self.log.info("Backup of events database completed in %s.",
                           subtotalTime)
 
+    def backupZenPacks(self):
+        """
+        Backup the zenpacks dir
+        """
+        #can only copy zenpacks backups if ZEO is backed up
+        if not self.options.noZopeDb:
+            # Copy /ZenPacks to backup dir
+            self.log.info('Backing up ZenPacks.')
+            etcTar = tarfile.open(os.path.join(self.tempDir, 'ZenPacks.tar'), 'w')
+            etcTar.add(zenPath('ZenPacks'), 'ZenPacks')
+            etcTar.close()
+            self.log.info("Backup of ZenPacks completed.")
+            # add /bin dir if backing up zenpacks
+            # Copy /bin to backup dir 
+            self.log.info('Backing up bin dir.')
+            etcTar = tarfile.open(os.path.join(self.tempDir, 'bin.tar'), 'w')
+            etcTar.add(zenPath('bin'), 'bin')
+            etcTar.close()
+            self.log.info("Backup of bin completed.")
 
     def backupZODB(self):
         """
@@ -420,13 +416,8 @@ class ZenBackup(ZenBackupBase):
         etcTar.close()
         self.log.info("Backup of config files completed.")
 
-        # Copy /ZenPacks to backup dir
-        self.log.info('Backing up ZenPacks.')
-        etcTar = tarfile.open(os.path.join(self.tempDir, 'ZenPacks.tar'), 'w')
-        etcTar.add(zenPath('ZenPacks'), 'ZenPacks')
-        etcTar.close()
-        self.log.info("Backup of ZenPacks completed.")
-
+        self.backupZenPacks()
+            
         if self.options.noPerfData:
             self.log.info('Skipping backup of performance data.')
         else:
