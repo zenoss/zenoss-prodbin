@@ -25,6 +25,7 @@ from unittest import TestCase
 from Products.ZenTestCase.BaseTestCase import BaseTestCase
 from Products.ZenRelations.ZenPropertyManager import PropertyDescriptor
 from Products.ZenRelations.ZenPropertyManager import ZenPropertyManager
+from Products.ZenRelations.ZenPropertyManager import IdentityTransformer
 from Products.ZenRelations.RelationshipManager import RelationshipManager
 from Products.ZenUtils.ZenTales import talesEval
 
@@ -146,7 +147,8 @@ class TransformerBase(object):
         
     def testMyTestType(self):
         "test that property of type 'my test type' is transformed"
-        self.manager.__class__.quux = PropertyDescriptor('quux', 'my test type')
+        self.manager.__class__.quux = PropertyDescriptor(
+                'quux', 'my test type', Transformer())
         self.manager._setProperty('quux', 'blah', 'my test type')
         self.assertEqual('bar_foo_blah', self.manager.getProperty('quux'))
         self.manager._updateProperty('quux', 'clash')
@@ -155,7 +157,7 @@ class TransformerBase(object):
     def testString(self):
         "test that a string property isn't mucked with"
         self.manager.__class__.halloween = PropertyDescriptor(
-                'halloween', 'string')
+                'halloween', 'string', IdentityTransformer())
         self.manager._setProperty('halloween', 'cat')
         self.assertEqual('cat', self.manager.getProperty('halloween'))
         self.assertEqual('cat', self.manager.halloween)
@@ -165,8 +167,6 @@ class TransformerBase(object):
         self.manager.dog = 'Ripley'
         self.assertEqual('Ripley', self.manager.dog)
         
-transformers = {'my test type': Transformer}
-
 class TransformerTest(TransformerBase, TestCase):
     
     def setUp(self):
@@ -174,7 +174,6 @@ class TransformerTest(TransformerBase, TestCase):
         Test ZenPropertyManager that does not acquire a dmd attribute.
         """
         self.manager = ZenPropertyManager()
-        self.manager.propertyTransformers = transformers
         
 class RelationshipManagerTest(TransformerBase, TestCase):
     
@@ -184,7 +183,6 @@ class RelationshipManagerTest(TransformerBase, TestCase):
         attribute.
         """
         self.manager = RelationshipManager('manager')
-        self.manager.propertyTransformers = transformers
         
 class TransformerDmdTest(TransformerBase, BaseTestCase):
     
@@ -194,7 +192,6 @@ class TransformerDmdTest(TransformerBase, BaseTestCase):
         location.
         """
         BaseTestCase.setUp(self)
-        self.dmd.propertyTransformers = transformers
         managerId = 'manager'
         self.dmd._setObject(managerId, RelationshipManager(managerId))
         self.manager = self.dmd.manager
@@ -215,13 +212,14 @@ class TalesTest(BaseTestCase):
         self.assertEqual('bar', result)
         
 class GetZTest(BaseTestCase):
+    "getZ should not return passwords"
     
     def runTest(self):
         manager = self.dmd.Devices
         manager._setProperty('foo', 'bar')
         self.assertEqual('bar', manager.getZ('foo'))
-        manager._setProperty('quux', 'blah', 'password')
-        self.assertEqual(None, manager.getZ('quux'))
+        manager._setProperty('something_new', 'blah', 'password')
+        self.assertEqual(None, manager.getZ('something_new'))
         
 class OldStyleClass:
     """
@@ -233,23 +231,15 @@ class OldStyleClass:
     
 class MyPropertyManager(object, OldStyleClass):
     
-    myProp = PropertyDescriptor('myProp', 'my test type')
-    myProp2 = PropertyDescriptor('myProp2', 'string')
+    myProp = PropertyDescriptor('myProp', 'my test type', Transformer())
+    myProp2 = PropertyDescriptor('myProp2', 'string', IdentityTransformer())
+    _properties = [dict(id='myProp', value='', type='my test type'),
+                   dict(id='myProp2', value='', type='string')]
     
-    def __init__(self, transformer):
-        self.transformer = transformer
-        
-    def _transform(self, value, type, method):
-        if type == 'my test type':
-            retval = getattr(self.transformer, method)(value)
-        else:
-            retval = value
-        return retval
-        
 class PropertyDescriptorTest(TestCase):
     
     def setUp(self):
-        self.manager = MyPropertyManager(Transformer())
+        self.manager = MyPropertyManager()
         
     def tearDown(self):
         del self.manager

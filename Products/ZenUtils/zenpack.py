@@ -391,9 +391,10 @@ class ZenPackCmd(ZenScriptBase):
 
 if __name__ == '__main__':
     try:
-        zp = ZenPackCmd()
-        zp.run()
-    except Exception, e:
-        sys.stderr.write('ERROR: zenpack command failed. Reason: %s\n' % str(e))
+        zp = ZenPackCmd() 
+        zp.run() 
+    except Exception, e: 
+        sys.stderr.write('ERROR: zenpack command failed. Reason: %s: %s\n' %
+                (e.__class__.__name__, e)) 
         sys.exit(-1)
 

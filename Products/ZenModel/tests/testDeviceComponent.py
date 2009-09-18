@@ -36,9 +36,8 @@ class TestDeviceComponent(ZenModelBaseTest):
         tmpo.protocol = 'tcp'
         self.ipsvc = self.dev.os.ipservices()[0]
 
-        self.sc = self.dmd.Services.manage_addIpServiceClass('tcp_00121')
-        self.sc.addServiceKey('tcp_00121')
         self.ipsvc.setServiceClass({'protocol':'tcp','port':121})
+        self.sc = self.dmd.Services.IpService.serviceclasses.tcp_00121
 
     def test_setAqProperty(self):
 

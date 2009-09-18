@@ -26,6 +26,8 @@ from Utils import getObjByPath, zenPath
 from Exceptions import ZentinelException
 from ZenDaemon import ZenDaemon
 
+from Products.ZenRelations.ZenPropertyManager import setDescriptors
+
 import os
 defaultCacheDir = zenPath('var')
 
@@ -65,6 +67,7 @@ class ZCmdBase(ZenDaemon):
         self.poollock = Lock()
         self.getDataRoot()
         self.login()
+        setDescriptors(self.dmd.propertyTransformers)
 
     def zeoConnect(self):
         from ZEO.ClientStorage import ClientStorage

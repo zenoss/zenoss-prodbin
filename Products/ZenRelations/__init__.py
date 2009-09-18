@@ -18,6 +18,8 @@ $Id: __init__.py,v 1.9 2002/12/06 14:25:57 edahl Exp $"""
 
 __version__ = "$Revision: 1.9 $"[11:-2]
 
+import logging
+
 from RelationshipManager import RelationshipManager, addRelationshipManager, \
                                 manage_addRelationshipManager
 from ToOneRelationship import ToOneRelationship, addToOneRelationship, \
@@ -27,6 +29,9 @@ from ToManyRelationship import ToManyRelationship, addToManyRelationship, \
 from ToManyContRelationship import ToManyContRelationship, \
                                 addToManyContRelationship, \
                                 manage_addToManyContRelationship
+from Products.ZenRelations.ZenPropertyManager import setDescriptors
+
+log = logging.getLogger("zen.ZenRelations")
 
 def initialize(registrar):
     registrar.registerClass(
@@ -46,3 +51,11 @@ def initialize(registrar):
         constructors = (addToManyContRelationship, 
                         manage_addToManyContRelationship),
         icon = 'www/ToManyContRelationship_icon.gif')
+    app = registrar._ProductContext__app
+    try:
+        zport = app.zport
+        dmd = zport.dmd
+        setDescriptors(dmd.propertyTransformers)
+    except Exception, e:
+        args = (e.__class__.__name__, e)
+        log.error("Unable to set property descriptors: %s: %s", *args)

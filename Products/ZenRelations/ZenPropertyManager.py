@@ -33,86 +33,86 @@ Z_PROPERTIES = [
     
     # zPythonClass maps device class to python classs (separate from device
     # class name)
-    ('zPythonClass', 'string', ''),
+    ('zPythonClass', '', 'string'),
     
     # zProdStateThreshold is the production state threshold at which to start
     # monitoring boxes
-    ('zProdStateThreshold', 'int', 300),
+    ('zProdStateThreshold', 300, 'int'),
     
     # zIfDescription determines whether or not the ifdescripion field is
     # displayed
-    ('zIfDescription', 'boolean', False),
+    ('zIfDescription', False, 'boolean'),
     
     # Snmp collection properties
-    ('zSnmpCommunities', 'lines', ['public', 'private']),
-    ('zSnmpCommunity', 'string', 'public'),
-    ('zSnmpPort', 'int', 161),
-    ('zSnmpVer', 'string', 'v1'),
-    ('zSnmpTries', 'int', 2),
-    ('zSnmpTimeout', 'float', 2.5),
-    ('zSnmpSecurityName', 'string', ''),
-    ('zSnmpAuthPassword', 'password', ''),
-    ('zSnmpPrivPassword', 'password', ''),
-    ('zSnmpAuthType', 'string', ''),
-    ('zSnmpPrivType', 'string', ''),
-    ('zRouteMapCollectOnlyLocal', 'boolean', False),
-    ('zRouteMapCollectOnlyIndirect', 'boolean', False),
-    ('zRouteMapMaxRoutes', 'int', 500),
-    ('zInterfaceMapIgnoreTypes', 'string', ''),
-    ('zInterfaceMapIgnoreNames', 'string', ''),
-    ('zFileSystemMapIgnoreTypes', 'lines', []),
-    ('zFileSystemMapIgnoreNames', 'string', ''),
-    ('zFileSystemSizeOffset', 'float', 1.0),
-    ('zHardDiskMapMatch', 'string', ''),
-    ('zSysedgeDiskMapIgnoreNames', 'string', ''),
-    ('zIpServiceMapMaxPort', 'int', 1024),
-    ('zDeviceTemplates', 'lines', ['Device']),
-    ('zLocalIpAddresses', 'string', '^127|^0\\.0|^169\\.254|^224'),
-    ('zLocalInterfaceNames', 'string', '^lo|^vmnet'),
+    ('zSnmpCommunities', ['public', 'private'], 'lines'),
+    ('zSnmpCommunity', 'public', 'string'),
+    ('zSnmpPort', 161, 'int'),
+    ('zSnmpVer', 'v1', 'string'),
+    ('zSnmpTries', 2, 'int'),
+    ('zSnmpTimeout', 2.5, 'float'),
+    ('zSnmpSecurityName', '', 'string'),
+    ('zSnmpAuthPassword', '', 'password'),
+    ('zSnmpPrivPassword', '', 'password'),
+    ('zSnmpAuthType', '', 'string'),
+    ('zSnmpPrivType', '', 'string'),
+    ('zRouteMapCollectOnlyLocal', False, 'boolean'),
+    ('zRouteMapCollectOnlyIndirect', False, 'boolean'),
+    ('zRouteMapMaxRoutes', 500, 'int'),
+    ('zInterfaceMapIgnoreTypes', '', 'string'),
+    ('zInterfaceMapIgnoreNames', '', 'string'),
+    ('zFileSystemMapIgnoreTypes', [], 'lines'),
+    ('zFileSystemMapIgnoreNames', '', 'string'),
+    ('zFileSystemSizeOffset', 1.0, 'float'),
+    ('zHardDiskMapMatch', '', 'string'),
+    ('zSysedgeDiskMapIgnoreNames', '', 'string'),
+    ('zIpServiceMapMaxPort', 1024, 'int'),
+    ('zDeviceTemplates', ['Device'], 'lines'),
+    ('zLocalIpAddresses', '^127|^0\\.0|^169\\.254|^224', 'string'),
+    ('zLocalInterfaceNames', '^lo|^vmnet', 'string'),
     
     # Status monitor properties
-    ('zSnmpMonitorIgnore', 'boolean', False),
-    ('zPingMonitorIgnore', 'boolean', False),
-    ('zWmiMonitorIgnore', 'boolean', True),
-    ('zStatusConnectTimeout', 'float', 15.0),
+    ('zSnmpMonitorIgnore', False, 'boolean'),
+    ('zPingMonitorIgnore', False, 'boolean'),
+    ('zWmiMonitorIgnore', True, 'boolean'),
+    ('zStatusConnectTimeout', 15.0, 'float'),
     
     # DataCollector properties
-    ('zCollectorPlugins', 'lines', []),
-    ('zCollectorClientTimeout', 'int', 180),
-    ('zCollectorDecoding', 'string', 'latin-1'),
-    ('zCommandUsername', 'string', ''),
-    ('zCommandPassword', 'password', ''),
-    ('zCommandProtocol', 'string', 'ssh'),
-    ('zCommandPort', 'int', 22),
-    ('zCommandLoginTries', 'int', 1),
-    ('zCommandLoginTimeout', 'float', 10.0),
-    ('zCommandCommandTimeout', 'float', 10.0),
-    ('zCommandSearchPath', 'lines', []),
-    ('zCommandExistanceTest', 'string', 'test -f %s'),
-    ('zCommandPath', 'string', '/usr/local/zenoss/libexec'),
-    ('zTelnetLoginRegex', 'string', 'ogin:.$'),
-    ('zTelnetPasswordRegex', 'string', 'assword:'),
-    ('zTelnetSuccessRegexList', 'lines', ['\\$.$', '\\#.$']),
-    ('zTelnetEnable', 'boolean', False),
-    ('zTelnetEnableRegex', 'string', 'assword:'),
-    ('zTelnetTermLength', 'boolean', True),
-    ('zTelnetPromptTimeout', 'float', 10.0),
-    ('zKeyPath', 'string', '~/.ssh/id_dsa'),
-    ('zMaxOIDPerRequest', 'int', 40),
+    ('zCollectorPlugins', [], 'lines'),
+    ('zCollectorClientTimeout', 180, 'int'),
+    ('zCollectorDecoding', 'latin-1', 'string'),
+    ('zCommandUsername', '', 'string'),
+    ('zCommandPassword', '', 'password'),
+    ('zCommandProtocol', 'ssh', 'string'),
+    ('zCommandPort', 22, 'int'),
+    ('zCommandLoginTries', 1, 'int'),
+    ('zCommandLoginTimeout', 10.0, 'float'),
+    ('zCommandCommandTimeout', 10.0, 'float'),
+    ('zCommandSearchPath', [], 'lines'),
+    ('zCommandExistanceTest', 'test -f %s', 'string'),
+    ('zCommandPath', '/usr/local/zenoss/libexec', 'string'),
+    ('zTelnetLoginRegex', 'ogin:.$', 'string'),
+    ('zTelnetPasswordRegex', 'assword:', 'string'),
+    ('zTelnetSuccessRegexList', ['\\$.$', '\\#.$'], 'lines'),
+    ('zTelnetEnable', False, 'boolean'),
+    ('zTelnetEnableRegex', 'assword:', 'string'),
+    ('zTelnetTermLength', True, 'boolean'),
+    ('zTelnetPromptTimeout', 10.0, 'float'),
+    ('zKeyPath', '~/.ssh/id_dsa', 'string'),
+    ('zMaxOIDPerRequest', 40, 'int'),
     
     # Extra stuff for users
-    ('zLinks', 'string', ''),
+    ('zLinks', '', 'string'),
     
     # Windows WMI collector properties
-    ('zWinUser', 'string', ''),
-    ('zWinPassword', 'password', ''),
-    ('zWinEventlogMinSeverity', 'int', 2),
-    ('zWinEventlog', 'boolean', False),
+    ('zWinUser', '', 'string'),
+    ('zWinPassword', '', 'password'),
+    ('zWinEventlogMinSeverity', 2, 'int'),
+    ('zWinEventlog', False, 'boolean'),
     
     # zIcon is the icon path
-    ('zIcon', 'string', '/zport/dmd/img/icons/noicon.png'),
+    ('zIcon', '/zport/dmd/img/icons/noicon.png', 'string'),
     ]
-    
+
 class PropertyDescriptor(object):
     """
     Transforms the property value based on its type.
@@ -121,22 +121,26 @@ class PropertyDescriptor(object):
     http://docs.python.org/reference/datamodel.html#descriptors
     """
     
-    def __init__(self, id, type):
+    def __init__(self, id, type, transformer):
         self.id = id
         self.type = type
+        self.transformer = transformer
         
     def __get__(self, instance, owner):
         """
         Returns self for class attribute access.  Returns the transformed
-        value for instance attribute access.  Raises an AttributeError is
-        things go poorly.
+        value for instance attribute access.
         """
         try:
-            return self._get(instance)
-        except AttributeError:
-            raise
-        except Exception, e:
-            raise AttributeError(e)
+            if instance is None:
+                retval = self
+            else:
+                self._migrate(instance)
+                value = instance._propertyValues[self.id]
+                retval = self._transform(instance, value, 'transformForGet')
+            return retval
+        except:
+            raise AttributeError
             
     def __set__(self, instance, value):
         """
@@ -152,23 +156,11 @@ class PropertyDescriptor(object):
         self._migrate(instance)
         del instance._propertyValues[self.id]
         
-    def _get(self, instance):
-        """
-        Returns self for class attribute access.  Returns the transformed
-        value for instance attribute access.
-        """
-        if instance is None:
-            retval = self
-        else:
-            self._migrate(instance)
-            value = instance._propertyValues[self.id]
-            retval = instance._transform(value, self.type, 'transformForGet')
-        return retval
-        
     def _migrate(self, instance):
         """
         If the id is in __dict__ then move the value to the _propertyValues
-        dictionary.
+        dictionary. Check to make sure that the type of this descriptor class
+        and the type in the Zope OFS PropertyManager metadata are the same.
         """
         if not hasattr(instance, '_propertyValues'):
             instance._propertyValues = {}
@@ -176,13 +168,27 @@ class PropertyDescriptor(object):
             self._set(instance, vars(instance)[self.id])
             del instance.__dict__[self.id]
             instance._p_changed = True
-            
+        for dct in instance._properties:
+            if dct['id'] == self.id:
+                if dct['type'] != self.type:
+                    dct['type'] = self.type
+                    instance._p_changed = True
+                break
+                
     def _set(self, instance, value):
         """
         Transform and set the value in the _propertyValues dictionary.
         """
-        valueToSet = instance._transform(value, self.type, 'transformForSet')
+        valueToSet = self._transform(instance, value, 'transformForSet')
         instance._propertyValues[self.id] = valueToSet
+        
+    def _transform(self, instance, value, method):
+        """
+        Lookup the transformer for the type and transform the value. The
+        method parameter can be 'transformForGet' or 'transformForSet' and
+        determines the transformer method that is called.
+        """
+        return getattr(self.transformer, method)(value)
         
 class ZenPropertyManager(object, PropertyManager):
     """
@@ -224,8 +230,7 @@ class ZenPropertyManager(object, PropertyManager):
     _updateProperty, and getProperty methods. Adding a property using 
     _setProperty applies the appropriate transformer and adds its value as an
     attribute, but when you access it as an attribute the property transformer
-    is not applied.  Instead of attribute access, you should always use the
-    getProperty method.
+    is again applied, but this time using its transformForGet method.
     """
     __pychecker__='no-override'
     
@@ -237,13 +242,6 @@ class ZenPropertyManager(object, PropertyManager):
     def _setPropValue(self, id, value):
         """override from PerpertyManager to handle checks and ip creation"""
         self._wrapperCheck(value)
-        
-        # copy acquired propertyTransformers to this instance, because the
-        # PropertyDescriptor methods are called with instance parameters that
-        # no longer have their acquisition wrapper
-        if hasattr(self, 'dmd') and hasattr(self.dmd, 'propertyTransformers'):
-            self.propertyTransformers = self.dmd.propertyTransformers
-            
         propType = self.getPropertyType(id)
         if  propType == 'keyedselection':
             value = int(value)
@@ -493,28 +491,6 @@ class ZenPropertyManager(object, PropertyManager):
         return [ org for org in self.getSubOrganizers() 
             if org.isLocal(propname) ]
             
-    def _transform(self, value, type, method):
-        """
-        Lookup the transformer for the type and transform the value. The
-        method parameter can be 'transformForGet' or 'transformForSet' and
-        determines the transformer method that is called.
-        
-        The transformer lookup is performed against a dictionary that maps a
-        property type to a callable factory that creates objects that have 
-        transformForGet and transformForSet methods. Typically the
-        transformers dictionary is acquired from dmd.propertyTransformers. If
-        self has a propertyTransformers attribute (either through acquistion
-        or dynamic definition), then it is used, otherwise an empty dictionary
-        is used and the value is returned untouched.
-        """
-        factories = getattr(self, 'propertyTransformers', {})
-        if type in factories:
-            transformer = factories[type]()
-            returnValue = getattr(transformer, method)(value)
-        else:
-            returnValue = value
-        return returnValue
-
     def _findParentWithProperty(self, id):
         """
         Returns self or the first acquisition parent that has a property with
@@ -588,7 +564,55 @@ class ZenPropertyManager(object, PropertyManager):
             returnValue = None
         return returnValue
         
-for id, type, value in Z_PROPERTIES:
-    setattr(ZenPropertyManager, id, PropertyDescriptor(id, type))
-        
 InitializeClass(ZenPropertyManager)
+
+class IdentityTransformer(object):
+    "A do-nothing transformer to use as the default"
+    
+    def transformForGet(self, value):
+        return value
+        
+    def transformForSet(self, value):
+        return value
+        
+def monkeypatchDescriptors(zprops, transformerFactories):
+    """
+    monkeypatch ZenPropertyManager adding an instance of the descriptor class
+    for each of the zProperties
+    """
+    for id, value, type in zprops:
+        factory = transformerFactories.get(type, IdentityTransformer)
+        descriptor = PropertyDescriptor(id, type, factory())
+        setattr(ZenPropertyManager, id, descriptor)
+        
+def setDescriptors(transformerFactories):
+    """
+    Set the property descriptors on the ZenPropertyManager class.  The
+    transformerFactories parameter is a dictionary that maps a property type
+    to a callable factory that produces instances with transformForGet and 
+    transformForSet methods.
+    """
+    # copy the core zProps
+    zprops = Z_PROPERTIES[:]
+        
+    # add zProps from zenpacks
+    from Products.ZenUtils.PkgResources import pkg_resources
+    for zpkg in pkg_resources.iter_entry_points('zenoss.zenpacks'):
+        # fromlist is typically ZenPacks.zenoss
+        fromlist = zpkg.module_name.split('.')[:-1]
+        module = __import__(zpkg.module_name, globals(), locals(), fromlist)
+        if hasattr(module, 'ZenPack'):
+            zprops.extend(module.ZenPack.packZProperties)
+            
+    monkeypatchDescriptors(zprops, transformerFactories)
+    
+def updateDescriptors(type, transformer):
+    """
+    Update all descriptors with the specified type to use the specified
+    transformer.
+    """
+    for var in vars(ZenPropertyManager):
+        attr = getattr(ZenPropertyManager, var)
+        if isinstance(attr, PropertyDescriptor) and attr.type == type:
+            attr.transformer = transformer
+            
