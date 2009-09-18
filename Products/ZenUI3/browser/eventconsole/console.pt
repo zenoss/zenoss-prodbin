@@ -396,7 +396,7 @@ Ext.onReady(function(){
                  * ADD BUTTON 
                  */
                 //text: 'Add',
-                tooltip: 'Add a new event',
+                tooltip: 'Add an event',
                 iconCls: 'add',
                 handler: showAddEventDialog
             },{

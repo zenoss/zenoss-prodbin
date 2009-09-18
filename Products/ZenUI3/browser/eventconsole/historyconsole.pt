@@ -253,7 +253,7 @@ Ext.onReady(function(){
                 handler: showClassifyDialog
             },{
                 //text: 'Reopen',
-                tooltip: 'Move selected events back to active event console',
+                tooltip: 'Return selected events to the active event console',
                 iconCls: 'reopen',
                 handler: function(){
                     // Get params describing selected events
