@@ -89,6 +89,10 @@ class DirectRouter(BrowserView):
             data = {}
         else:
             data = data[0]
+
+        # Cast all keys as strings in case of unicode problems
+        data = dict((str(k), v) for k,v in data.items())
+
         result = getattr(self, method)(**data)
         self.request.response.setHeader('Content-Type', 'application/json')
         return json({
