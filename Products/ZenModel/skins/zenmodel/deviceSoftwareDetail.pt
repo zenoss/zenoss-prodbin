@@ -1,9 +1,14 @@
 <tal:block metal:use-macro="here/templates/macros/page2">
 <tal:block metal:fill-slot="contentPane">
 
+<form method="post" 
+    tal:attributes="action python:here.absolute_url_path() + '/' + template.id" >
+
+
 <tal:block metal:define-macro="softwareList"
     tal:define="tableName string:softwareList;
     objects here/os/software/objectValuesAll;
+    showfilterbox python:True;
     tabletitle string:Installed Software;
     batch python:here.ZenTableManager.getBatch(tableName,objects)">
 <tal:block metal:use-macro="here/zenuimacros/macros/zentable">
@@ -37,5 +42,6 @@
 </tal:block>
 </tal:block>
 
+</form>
 </tal:block>
 </tal:block>
