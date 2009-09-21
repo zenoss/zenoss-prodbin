@@ -18,6 +18,7 @@ Run unit and Selenium (functional) tests for Zenoss
 """
 
 import os
+import re
 import os.path
 import glob
 import sys
@@ -39,7 +40,7 @@ def overrideCoreTests(results):
     """
     Check to see if a commercial skin is installed. If so, don't run the core
     tests.
-    
+
     @param results: list of directories
     @type results: list of strings
     @return: results without core tests
@@ -57,7 +58,7 @@ def overrideCoreTests(results):
 def findSeleniumTests(packages=[], regex=None):
     """
     Find Selenium tests
-    
+
     @param packages: packages
     @type packages: string
     @param regex: regular expression to determine to include or not
@@ -105,7 +106,7 @@ def demangleEggName(eggdir, name):
             # Ouch! Something bad happened
             print "Unable to find egg directory from %s and %s" % \
                   (path, component)
-            return eggdir
+            return fulldir
         path = os.path.join( path, found[0] )
     return path
 
@@ -115,7 +116,7 @@ def expandPackDir(fulldir):
     Expand Zenoss ZenPack directory names.
 
     This handles old-style ZenPacks as well as egg-style.
-    
+
     @param fulldir: path to the ZenPack
     @type fulldir: string
     @return: path to the ZenPack
@@ -128,10 +129,22 @@ def expandPackDir(fulldir):
     return demangleEggName(fulldir, name)
 
 
+_packname = re.compile('ZenPacks\.[^-/]+\.[^-/]+').search 
+def zenPackName(s):
+    match = _packname(s)
+    if match:
+        return match.group()
+    return None
+    
+def findZenPackNames(): 
+    dirs = findZenPackDirectories() 
+    return filter(None, map(zenPackName, dirs))
+
+
 def findZenPackDirectories():
     """
     Get the list of ZenPacks with tests
-    
+
     @return: list of ZenPack directories
     @rtype: list of strings
     """
@@ -148,7 +161,9 @@ def findZenPackDirectories():
                 f.close()
             else:
                 continue
-            dirs.append(os.path.join(dir, 'ZenPacks'))
+            if not dir.endswith('ZenPacks'):
+                dir = os.path.join(dir, 'ZenPacks')
+            dirs.append(dir)
     except OSError:
         pass
     return dirs
@@ -172,14 +187,14 @@ def findZenossProducts():
         'ZenWidgets',
         'ZenWin'
     )]
-    zenpacks = [x.rsplit('/', 2)[1] for x in findZenPackDirectories()]
+    zenpacks = findZenPackNames()
     return validProds + zenpacks
 
 
 def findSeleniumTestableProducts(packages=[], regex=None, testdir='tests'):
     """
     Get the list of Zope Products with tests
-    
+
     @param packages: packages to run tests
     @type packages: list of strings
     @param regex: regular expression to determine to include or not
@@ -192,14 +207,14 @@ def findSeleniumTestableProducts(packages=[], regex=None, testdir='tests'):
     results = []
     for target in findZenPackDirectories() + [zenhome('Products')]:
         for root, dirs, files in os.walk(target):
-            
+
             # don't look past a lib directory that is under the ZenPacks
             # directory
             rootParts = root.split(os.path.sep)
             if 'ZenPacks' in rootParts and \
                     'lib' in rootParts[rootParts.index('ZenPacks'):]:
                 continue
-                
+
             for dir in dirs:
                 if (packages and 
                     # ZenPacks have a problem unless you do this
@@ -238,7 +253,7 @@ def runSeleniumTests(
     ):
     """
     Run any Selenium tests that match the regular expression.
-    
+
     @param packages: packages
     @type packages: list of strings
     @param regex: Regular expression
@@ -261,7 +276,7 @@ def runSeleniumTests(
 def runUnitTests(packages=[], modules=[], names=[], coverage="", count=0):
     """
     Run unit tests for any packages that match the regular expression.
-    
+
     @param packages: packages
     @type packages: list of strings
     @param regex: regular expression
@@ -271,36 +286,59 @@ def runUnitTests(packages=[], modules=[], names=[], coverage="", count=0):
     @param show_tests: run or just display the test name?
     @type show_tests: boolean
     """
-    if not packages: packages = findZenossProducts()
+    valid_packages = findZenossProducts()
+    invalid_packages = []
+    if not modules:
+        modules = []
+    if not packages:
+        packages = valid_packages
+    for pkg in packages:
+        if pkg not in valid_packages:
+            packages.remove(pkg)
+            invalid_packages.append(pkg)
     print "="*30
     print
     print "Packages to be tested:"
     for p in packages:
         print "\t" + p
     print
+    if invalid_packages:
+        print "Invalid packages:"
+        for p in invalid_packages:
+            print '\t' + p
     print "="*30
     python = zenhome('bin', 'python')
     zdctl = zenhome('lib', 'python', 'Zope2', 'Startup', 'zopectl.py')
     cfgfile = zenhome('etc', 'zope.conf')
     swhome = zenhome('lib', 'python')
     parts = [python, zdctl, '-C', cfgfile, 'test']
+
     # Add ZenPack homes to package directories
     for d in findZenPackDirectories():
-        parts.extend(['--test-path', d.rsplit('/', 1)[0]])
+        path = d.rsplit('/', 1)[0]
+        name = zenPackName(d)
+        if name in packages or name in modules:
+            parts.extend(['--test-path', path])
+            packdir = os.path.join(path, *name.split('.'))
+            libdir = os.path.join(packdir, 'lib')
+            if os.path.exists(libdir):
+                parts.extend(['--ignore_dir', 'lib'])
+
     if packages:
         for p in packages: parts.extend(['-s', p])
     if modules:
         for m in modules: parts.extend(['-m', m])
-    if names: 
+    if names:
         for t in names: parts.extend(['-t', t])
     if count:
         parts.append('-'+('v'*count))
     if coverage: parts.extend(['--coverage', coverage])
     pythonpath = os.environ.get('PYTHONPATH', '')
     env = os.environ.copy()
-    env.update({'PYTHONPATH': swhome + ':' + pythonpath, 
+    env.update({'PYTHONPATH': swhome + ':' + pythonpath,
                 'INSTANCE_HOME': zenhome(), 'SOFTWARE_HOME': swhome})
-    exitcodes.append(call(parts, env=env))
+    if packages or modules or names:
+        exitcodes.append(call(parts, env=env))
 
 
 usage = \

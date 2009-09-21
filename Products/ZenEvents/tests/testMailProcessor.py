@@ -113,7 +113,7 @@ Subject: Test event message subject
 Simple body message
 """,
        'event': {
-           'severity': 2, 'facility': 'unknown', 'eventClassKey': '',
+           'severity': 2, 'facility': 'unknown', 'eventClassKey': 'email',
            '_action': 'status', 'component': '',
            'summary': 'Test event message subject',
            '_clearClasses': [], 'eventKey': '',
@@ -136,7 +136,7 @@ Subject: Test event message subject
 Simple body message
 """,
        'event': {
-           'severity': 2, 'facility': 'unknown', 'eventClassKey': '',
+           'severity': 2, 'facility': 'unknown', 'eventClassKey': 'email',
            '_action': 'status', 'component': '', 'summary': 'Test event message subject',
            '_clearClasses': [], 'eventKey': '', 'device': 'example.com',
            'message': 'Simple body message\n', '_fields': [],
@@ -191,7 +191,7 @@ Lots of
 sig
 """,
        'event': {
-           'severity': 2, 'facility': 'unknown', 'eventClassKey': '',
+           'severity': 2, 'facility': 'unknown', 'eventClassKey': 'email',
            '_action': 'status', 'component': '', 'summary': 'Test event message subject',
            '_clearClasses': [], 'eventKey': '', 'device': 'example.com',
            'message': "Body part of the message\nLots of\n  lovely\n    text\n\n# special case: '.' on at the beginning of a line all on its own \n#    may terminate message processing, depending on the agent\n\n.\n\n  Spread out all over the e-mail.\n\nsig\n",

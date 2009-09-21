@@ -65,7 +65,7 @@ class TestGraphDefinition(ZenModelBaseTest):
         gopts = re.search('gopts=([^&]+)', graphUrl).groups()[0]
         gopts = zlib.decompress(urlsafe_b64decode(gopts))
         self.assertTrue('defaultLegend' in gopts)
-        self.assertTrue('dpname > 10' in gopts)
+        self.assertTrue('dpname greater than 10' in gopts)
         self.assertTrue('testdevice' in gopts)
 
 
