@@ -237,6 +237,49 @@ class ZenDaemon(CmdBase):
         raise SystemExit
 
 
+    def watchdogCycleTime(self):
+        """
+        Return our cycle time (in minutes)
+
+        @return: cycle time
+        @rtype: integer
+        """
+        # time between child reports: default to 2x the default cycle time
+        default = 1200
+        cycleTime = getattr(self.options, 'cycleTime', default)
+        if not cycleTime:
+            cycleTime = default
+        return cycleTime
+
+    def watchdogStartTimeout(self):
+        """
+        Return our watchdog start timeout (in minutes)
+        
+        @return: start timeout
+        @rtype: integer
+        """
+        # Default start timeout should be cycle time plus a couple of minutes
+        default = self.watchdogCycleTime() + 120
+        startTimeout = getattr(self.options, 'starttimeout', default)
+        if not startTimeout:
+            startTimeout = default
+        return startTimeout
+
+
+    def watchdogMaxRestartTime(self):
+        """
+        Return our watchdog max restart time (in minutes)
+        
+        @return: maximum restart time
+        @rtype: integer
+        """
+        default = 600
+        maxTime = getattr(self.options, 'maxRestartTime', default)
+        if not maxTime:
+            maxTime = default
+        return default
+
+
     def becomeWatchdog(self):
         """
         Watch the specified daemon and restart it if necessary.
@@ -252,11 +295,12 @@ class ZenDaemon(CmdBase):
         socketPath = '%s/.%s-watchdog-%d' % (
             zenPath('var'), self.__class__.__name__, os.getpid())
 
-        # time between child reports: default to 2x the default cycle time
-        cycleTime = getattr(self.options, 'cycleTime', 1200)
-        # Default start timeout should be cycle time plus a couple of minutes
-        startTimeout = getattr(self.options, 'starttimeout', cycleTime + 120)
-        maxTime = getattr(self.options, 'maxRestartTime', 600)
+        cycleTime = self.watchdogCycleTime()
+        startTimeout = self.watchdogStartTimeout()
+        maxTime = self.watchdogMaxRestartTime()
+        self.log.debug("Watchdog cycleTime=%d startTimeout=%d maxTime=%d",
+                       cycleTime, startTimeout, maxTime)
+
         watchdog = Watcher(socketPath,
                            cmd,
                            startTimeout,

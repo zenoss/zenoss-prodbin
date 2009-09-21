@@ -165,6 +165,15 @@ class CollectorDaemon(RRDDaemon):
         super(CollectorDaemon, self).connectTimeout()
         return self._startConfigCycle()
 
+    def watchdogCycleTime(self):
+        """
+        Return our cycle time (in minutes)
+
+        @return: cycle time
+        @rtype: integer
+        """
+        return self._prefs.cycleInterval * 2
+
     def getRemoteConfigServiceProxy(self):
         """
         Called to retrieve the remote configuration service proxy object.
