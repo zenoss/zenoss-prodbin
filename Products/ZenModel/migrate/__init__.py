@@ -181,7 +181,6 @@ import zopeup
 import fixjobs
 import addTitleOrIdToCatalogs
 import descriptor
-import addPropertyTransformers
 import changeDeviceProdStatePermission
 import defaultResultFields
 import zPingInterfacePropsDelete

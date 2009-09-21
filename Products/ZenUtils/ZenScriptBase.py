@@ -17,6 +17,7 @@ __doc__="""ZenScriptBase
 from AccessControl.SecurityManagement import newSecurityManager
 from AccessControl.SecurityManagement import noSecurityManager
 from threading import Lock
+from transaction import commit
 from Utils import getObjByPath, zenPath, set_context
 from CmdBase import CmdBase
 
@@ -51,6 +52,9 @@ class ZenScriptBase(CmdBase):
             self.poollock = Lock()
         self.getDataRoot()
         self.login()
+        if not getattr(self.dmd, 'propertyTransformers', None):
+            self.dmd.propertyTransformers = {}
+            commit()
         setDescriptors(self.dmd.propertyTransformers)
 
 
