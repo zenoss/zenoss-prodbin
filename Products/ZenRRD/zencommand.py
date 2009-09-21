@@ -34,7 +34,7 @@ from Products.ZenUtils.Utils import unused, getExitMessage
 from Products.ZenRRD.RRDDaemon import RRDDaemon
 from Products.ZenRRD.RRDUtil import RRDUtil
 from Products.DataCollector.SshClient import SshClient
-from Products.ZenEvents.ZenEventClasses import Clear
+from Products.ZenEvents.ZenEventClasses import Clear, Error
 from Products.ZenRRD.CommandParser import ParsedResults
 
 from Products.DataCollector import Plugins
@@ -391,58 +391,70 @@ class Options:
         self.concurrentSessions = concurrentSessions
 
 
-def warnUsernameNotSet(device, sshCmd, sendEvent, suppressed):
-    """
-    Warn that the username is not set for device and the SSH command cannot be
-    executed.
-    """
-    if device not in suppressed:
-        summary = 'zCommandUsername is not set'
-        log.warning(summary + ' for %s' % device)
-        sendEvent(dict(device=device,
-                       eventClass='/Cmd/Fail',
-                       eventKey='zCommandUsername',
-                       severity=4,
-                       component='zencommand',
-                       summary=summary))
-    msg = 'username not configured for %s. skipping %s.'
-    log.debug(msg % (device, sshCmd.command))
-
-
-def updateCommands(config, currentDict, sendEvent):
-    """
-    Go through the Cmd objects in config.commands and update the config on the
-    command with config. If currentDict has the command on it then use that
-    one, otherwise use the command from config. If the device does not have a
-    username set, then don't yield commands that use SSH.
+class ConfigurationProcessor(object):
     
-    Parameters:
-        
+    def __init__(self, config, scheduledCmds, sendEvent):
+        """
         config - one of the configurations that was returned by calling
-        getDataSourceCommands on zenhub.
+                getDataSourceCommands on zenhub.
+        scheduledCmds - a dictionary that maps (device, command) to Cmd object
+                for the commands currently on zencommand's schedule.
+        sendEvent - a function that sends events to zenhub using twisted
+                perspective broker.
+        """
+        self._config = config
+        self._scheduledCmds = scheduledCmds
+        self._sendEvent = sendEvent
+        self._device = config.device
+        self._suppressed = [] # log warning and send event once per device
+        self._summary = 'zCommandUsername is not set'
         
-        currentDict - a dictionary that maps (device, command) to Cmd object
-        for the commands currently on zencommand's schedule.
-    """
-    
-    suppressed = [] # log warning and send event once per device 
-    
-    for cmd in config.commands:
+    def _sendUsernameEvent(self, severity):
+        "send an event (or clear it) for username not set"
+        self._sendEvent(dict(
+                device=self._device,
+                eventClass='/Cmd/Fail',
+                eventKey='zCommandUsername',
+                severity=severity,
+                component='zencommand',
+                summary=self._summary))
 
-        key = (config.device, cmd.command)
-        
-        if not config.username and cmd.useSsh:
-            warnUsernameNotSet(config.device, cmd, sendEvent, suppressed)
-            if config.device not in suppressed:
-                suppressed.append(config.device)
-            if key in currentDict:
-                del currentDict[key]
-            continue
-            
-        if key in currentDict: newCmd = currentDict.pop(key)
-        else                       : newCmd = cmd
-        
-        yield newCmd.updateConfig(cmd, config)
+    def _warnUsernameNotSet(self, command):
+        """
+        Warn that the username is not set for device and the SSH command cannot be
+        executed.
+        """
+        if self._device not in self._suppressed:
+            log.warning(self._summary + ' for %s' % self._device)
+            self._sendUsernameEvent(Error)
+        msg = 'username not configured for %s. skipping %s.'
+        log.debug(msg % (self._device, command))
+
+    def updateCommands(self):
+        """
+        Go through the Cmd objects in config.commands and update the config on
+        the command with config. If currentDict has the command on it then use
+        that one, otherwise use the command from config. If the device does not have a
+        username set, then don't yield commands that use SSH.
+        """
+        for cmd in self._config.commands:
+            key = (self._device, cmd.command)
+            if cmd.useSsh:
+                if self._config.username:
+                    self._sendUsernameEvent(Clear)
+                else:
+                    self._warnUsernameNotSet(cmd.command)
+                    if self._device not in self._suppressed:
+                        self._suppressed.append(self._device)
+                    if key in self._scheduledCmds:
+                        del self._scheduledCmds[key]
+                    continue
+            if key in self._scheduledCmds:
+                newCmd = self._scheduledCmds.pop(key)
+            else:
+                newCmd = cmd
+            yield newCmd.updateConfig(cmd, self._config)
+        self._suppressed = []
 
 
 class zencommand(RRDDaemon):
@@ -498,7 +510,8 @@ class zencommand(RRDDaemon):
             self.thresholds.updateForDevice(cfg.device, cfg.thresholds)
             if self.options.device and self.options.device != cfg.device:
                 continue
-            update.extend(updateCommands(cfg, current, self.sendEvent))
+            processor = ConfigurationProcessor(cfg, current, self.sendEvent)
+            update.extend(processor.updateCommands())
         for device, command in current.keys():
             self.log.info("Deleting command %s from %s", device, command)
         self.schedule = update
