@@ -77,17 +77,6 @@ class TestEventLogConfig(ZenModelBaseTest):
         proxies = self._configService.remote_getDeviceConfigs(None)
         self.assertTrue(len(proxies), 2)
 
-    def testMultipleDevicesWithDuplicate(self):
-        dev = manage_createDevice(self.dmd, "test-dev2",
-                                  "/Server/Windows",
-                                  manageIp="10.0.10.2")
-        dev.zWmiMonitorIgnore = False
-        dev.zWinEventlog = True
-        dev.setManageIp("10.0.10.1")
-
-        proxies = self._configService.remote_getDeviceConfigs()
-        self.assertEqual(len(proxies), 1)
-
 def test_suite():
     from unittest import TestSuite, makeSuite
     suite = TestSuite()
