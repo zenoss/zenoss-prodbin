@@ -23,20 +23,9 @@
 	</tal:block>
 </tal:block>
 
+
 <tal:block 
-    metal:define-macro="utilizationForm"
-    tal:define="
-        sts python:here.ZenTableManager.setReqTableState;
-        zem python:here.dmd.ZenEventManager;
-        startDate python:sts(tableName, 'startDate', 
-                             zem.defaultAvailabilityStart());
-        endDate python:sts(tableName, 'endDate', 
-                           zem.defaultAvailabilityEnd());
-        how python:sts(tableName, 'how', 'AVERAGE');
-        summaryOptions python:('AVERAGE', 'MAXIMUM');
-        deviceClass python:sts(tableName, 'deviceClass', '/');
-        deviceFilter python:sts(tableName, 'deviceFilter', '');
-">
+    metal:define-macro="utilizationForm">
     <script type="text/javascript" 
             src="/zport/portal_skins/zenmodel/datePicker.js">
     </script>

@@ -1,8 +1,23 @@
 <tal:block tal:define="
-    objects python:here.ReportServer.plugin('cpu', here.REQUEST);
+    tableName string:cpuutilreport;
+    tm here/ZenTableManager;
+    tableState python:tm.getTableState(tableName, sortedHeader='cpuPercent',
+                                           sortedSence='desc');
+
+    sts python:here.ZenTableManager.setReqTableState;
+    zem python:here.dmd.ZenEventManager;
+    startDate python:sts(tableName, 'startDate', 
+                         zem.defaultAvailabilityStart());
+    endDate python:sts(tableName, 'endDate', 
+                       zem.defaultAvailabilityEnd());
+    how python:sts(tableName, 'how', 'AVERAGE');
+    summaryOptions python:('AVERAGE', 'MAXIMUM');
+    deviceClass python:sts(tableName, 'deviceClass', '/');
+    deviceFilter python:sts(tableName, 'deviceFilter', '');
+
+    objects python:here.ReportServer.plugin('cpu', tableState);
     objects python: (hasattr(request, 'doExport') and list(objects)) or objects;
     exportFields python:['device', 'laLoadInt5', 'cpuPercent'];
-    tableName string: cpuutilreport;
     batch python:here.ZenTableManager.getBatch(tableName,objects,sortedHeader='cpuPercent', sortedSence='desc');
 	">
 <tal:block metal:use-macro="here/reportMacros/macros/exportableReport">
@@ -15,6 +30,7 @@
 <tal:block metal:fill-slot="contentPane">
 
 <tal:block metal:use-macro="here/reportMacros/macros/utilizationForm"/>
+
 
 <form method="POST" tal:attributes="action request/URL"
 			tal:define="tabletitle string:CPU Utilization;

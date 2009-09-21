@@ -1,8 +1,20 @@
 <tal:block tal:define="
-    tableName string: interfaceutilreport;
+    tableName string:interfaceutilreport;
     tm here/ZenTableManager;
     tableState python:tm.getTableState(tableName, sortedHeader='percentUsed',
                                        sortedSence='desc');
+    
+    sts python:here.ZenTableManager.setReqTableState;
+    zem python:here.dmd.ZenEventManager;
+    startDate python:sts(tableName, 'startDate', 
+                         zem.defaultAvailabilityStart());
+    endDate python:sts(tableName, 'endDate', 
+                       zem.defaultAvailabilityEnd());
+    how python:sts(tableName, 'how', 'AVERAGE');
+    summaryOptions python:('AVERAGE', 'MAXIMUM');
+    deviceClass python:sts(tableName, 'deviceClass', '/');
+    deviceFilter python:sts(tableName, 'deviceFilter', '');
+    
     objects python:here.ReportServer.plugin('interface', tableState);
     objects python: (hasattr(request, 'doExport') and list(objects)) or objects;
     exportFields python:[('deviceName', 'Device'), ('interface', 'Interface'), ('speed', 'Speed'), ('inputBits', 'Input'), ('outputBits', 'Output'), ('totalBits', 'Total'), ('percentUsed', '% Util')];

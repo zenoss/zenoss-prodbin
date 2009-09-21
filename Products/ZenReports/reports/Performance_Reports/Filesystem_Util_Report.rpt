@@ -1,6 +1,21 @@
 <tal:block tal:define="
-        objects python:here.ReportServer.plugin('filesystems', here.REQUEST);
-	tableName string: filesystemutilreport;
+    tableName string: filesystemutilreport;
+    tm here/ZenTableManager;
+    tableState python:tm.getTableState(tableName, sortedHeader='percentFull',
+                                           sortedSence='desc');
+
+    sts python:here.ZenTableManager.setReqTableState;
+    zem python:here.dmd.ZenEventManager;
+    startDate python:sts(tableName, 'startDate', 
+                         zem.defaultAvailabilityStart());
+    endDate python:sts(tableName, 'endDate', 
+                       zem.defaultAvailabilityEnd());
+    how python:sts(tableName, 'how', 'AVERAGE');
+    summaryOptions python:('AVERAGE', 'MAXIMUM');
+    deviceClass python:sts(tableName, 'deviceClass', '/');
+    deviceFilter python:sts(tableName, 'deviceFilter', '');
+
+    objects python:here.ReportServer.plugin('filesystems', tableState);
 	batch python:here.ZenTableManager.getBatch(tableName,objects,
 	sortedHeader='percentFull', sortedSence='desc');
 	exportFields python:['deviceName', 'mount', 'totalBytes',
