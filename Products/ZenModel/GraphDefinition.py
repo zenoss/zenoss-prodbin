@@ -313,31 +313,41 @@ class GraphDefinition(ZenModelRM, ZenPackable):
 
 
     security.declareProtected(ZEN_MANAGE_DMD, 'manage_addDataPointGraphPoints')
-    def manage_addDataPointGraphPoints(self, dpNames, includeThresholds=False,
-                                                REQUEST=None):
+    def manage_addDataPointGraphPoints(self, dpNames=None,
+                                       includeThresholds=False,
+                                       REQUEST=None):
         ''' Create new graph points
         The migrate script graphDefinitions and friends depends on the first
         element in newGps being the DataPointGraphPoint when only one
         name is passed in dpNames.
         '''
-        from DataPointGraphPoint import DataPointGraphPoint
-        newGps = []
-        for dpName in dpNames:
-            dpId = dpName.split('_', 1)[-1]
-            gp = self.createGraphPoint(DataPointGraphPoint, dpId)
-            gp.dpName = dpName
-            newGps.append(gp)
-        if includeThresholds:
+        if not dpNames:
+            if REQUEST:
+                messaging.IMessageSender(self).sendToBrowser(
+                    'Error',
+                    'No graph points were selected.',
+                    priority=messaging.WARNING
+                )
+                return self.callZenScreen(REQUEST)
+        else:
+            from DataPointGraphPoint import DataPointGraphPoint
+            newGps = []
             for dpName in dpNames:
-                newGps += self.addThresholdsForDataPoint(dpName)
-        if REQUEST:
-            messaging.IMessageSender(self).sendToBrowser(
-                'Graph Points Added',
-                '%s graph point%s were added.' % (len(newGps),
-                    len(newGps) > 1 and 's' or '')
-            )
-            return self.callZenScreen(REQUEST)
-        return newGps
+                dpId = dpName.split('_', 1)[-1]
+                gp = self.createGraphPoint(DataPointGraphPoint, dpId)
+                gp.dpName = dpName
+                newGps.append(gp)
+            if includeThresholds:
+                for dpName in dpNames:
+                    newGps += self.addThresholdsForDataPoint(dpName)
+            if REQUEST:
+                messaging.IMessageSender(self).sendToBrowser(
+                    'Graph Points Added',
+                    '%s graph point%s were added.' % (len(newGps),
+                        len(newGps) > 1 and 's' or '')
+                )
+                return self.callZenScreen(REQUEST)
+            return newGps
 
 
     def addThresholdsForDataPoint(self, dpName):
