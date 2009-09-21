@@ -187,14 +187,15 @@ Portlet.prototype = {
         this.saveSettings(settings);
         this.toggleSettings('hide');
     },
-    destroy: function() {
+    destroy: function(suppressSave) {
         this.stopRefresh();
         if ('datatable' in this) this.datatable.destroy();
         purge(this.container);
         removeElement(this.container);
         delete this.PortletContainer.portlets[this.id];
         this.PortletContainer.isDirty = true;
-        this.PortletContainer.save();
+        if (!suppressSave)
+            this.PortletContainer.save();
     },
     render: function() {
         if (this.isDirty) {
@@ -563,12 +564,30 @@ PortletContainer.prototype = {
                 var text = x[1];
                 registerButton(text, klass);
             }));
+            mybuttons.push ( {
+                text: 'Restore default portlets',
+                handler: this.restoreDefaults
+            });
             addPortletDialog.cfg.queueProperty("buttons", mybuttons);
             addElementClass(this.container, 'yui-skin-sam');
             addPortletDialog.render(this.container);
             this.addPortletDialog = addPortletDialog;
         }
         this.addPortletDialog.show();
+    },
+    restoreDefaults: function() {
+        forEach(values(this.portlets), function(p){
+            p.destroy(true);
+        });
+        p1 = new YAHOO.zenoss.portlet.ProdStatePortlet({id:'prodstates'});
+        p2 = new YAHOO.zenoss.portlet.DeviceIssuesPortlet({id:'devissues'});
+        p3 = new YAHOO.zenoss.portlet.WatchListPortlet({id:'watchlist'});
+        p4 = new YAHOO.zenoss.portlet.UserMsgsPortlet({id:'usermsgs'});
+        this.leftCol().addPortlet(p1);
+        this.leftCol().addPortlet(p2);
+        this.middleCol().addPortlet(p3);
+        this.rightCol().addPortlet(p4);
+        this.save();
     },
     disablePortlets: function() {
         forEach(values(this.portlets), method(this, function(x) {
