@@ -69,6 +69,8 @@ class ApplyDataMap(object):
                 'component': compname,
                 'summary': msg,
                 'severity': severity,
+                'agent': 'ApplyDataMap',
+                'explanation': "Event sent as zCollectorLogChanges is True",
                 }
             self.datacollector.dmd.ZenEventManager.sendEvent(eventDict)
 
