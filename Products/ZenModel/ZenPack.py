@@ -34,6 +34,7 @@ from AccessControl import ClassSecurityInfo
 from ZenossSecurity import ZEN_MANAGE_DMD
 from Acquisition import aq_parent
 from Products.ZenModel.ZVersion import VERSION as ZENOSS_VERSION
+from Products.ZenRelations.ZenPropertyManager import monkeypatchDescriptors
 
 
 
@@ -365,6 +366,8 @@ class ZenPack(ZenModelRM):
         @param app: ZenPack
         @type app: ZenPack object
         """
+        monkeypatchDescriptors(self.packZProperties, 
+                               app.dmd.propertyTransformers)
         for name, value, pType in self.packZProperties:
             if not app.zport.dmd.Devices.hasProperty(name):
                 app.zport.dmd.Devices._setProperty(name, value, pType)
