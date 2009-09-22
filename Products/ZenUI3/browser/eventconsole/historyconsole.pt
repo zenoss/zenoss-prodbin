@@ -416,7 +416,6 @@ Ext.onReady(function(){
                 text: 'Refresh',
                 handler: function(){
                     view = Ext.getCmp('events_grid').getView();
-                    view.showLoadMask(true);
                     view.updateLiveRows(view.rowIndex, true, true);
                 }
             }
