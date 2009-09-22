@@ -28,7 +28,7 @@ from Products.ZenEvents.ActionRule import ActionRule
 from Products.ZenEvents.CustomEventView import CustomEventView
 from Products.ZenRelations.RelSchema import *
 from Products.ZenUtils import Time
-from Products.ZenUtils.Utils import unused
+from Products.ZenUtils.Utils import unused, prepId
 from Products.ZenUtils import DotNetCommunication
 from Products.ZenWidgets import messaging
 
@@ -211,6 +211,7 @@ class UserSettingsManager(ZenModelRM):
 
 
     def getGroupSettings(self, groupid):
+        groupid = prepId(groupid)
         if not self._getOb(groupid, False):
             gfolder = GroupSettings(groupid)
             self._setObject(gfolder.getId(), gfolder)
