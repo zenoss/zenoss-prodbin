@@ -40,6 +40,7 @@ from Products.ZenUtils.Utils import getObjByPath
 
 from Products.ZenRelations.Exceptions import *
 
+_STRING_PROPERTY_TYPES = ( 'string', 'text', 'password' )
 
 class ImportRM(ZCmdBase, ContentHandler):
     """
@@ -327,9 +328,12 @@ for a ZenPack.
                 pass
             value = DateTime(value)
 
-        elif proptype != 'string' and proptype != 'text':
+        elif proptype not in _STRING_PROPERTY_TYPES:
             try:
                 value = eval(value)
+            except NameError:
+                self.log.exception( 'Error trying to evaluate %s', value )
+                raise
             except SyntaxError:
                 self.log.debug("Non-fatal SyntaxError at line %s while eval'ing '%s'" % (
                      linenum, value) )
