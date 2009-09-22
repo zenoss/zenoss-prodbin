@@ -13,8 +13,12 @@ from Products.CMFCore.utils import ProductsPath
 from Products.ZenUtils.PkgResources import pkg_resources
 
 # Helpfully load basic directives packs will probably use
-zcml.load_config('meta.zcml', Products.Five)
-zcml.load_config('permissions.zcml', Products.ZenModel)
+try:
+    zcml.load_config('meta.zcml', Products.Five)
+    zcml.load_config('permissions.zcml', Products.ZenModel)
+except AttributeError:
+    # We must be in a pre-Products Zope, so we don't need these anyway
+    pass
 
 # Iterate over all ZenPack eggs and load them
 for zpkg  in pkg_resources.iter_entry_points('zenoss.zenpacks'):
