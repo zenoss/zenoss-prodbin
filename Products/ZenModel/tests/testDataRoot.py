@@ -24,10 +24,10 @@ class TestDataRoot(ZenModelBaseTest):
         org.dmdRootName = 'org'
         foo = org.createOrganizer('/foo')
         bar = org.createOrganizer('/foo/bar')
-        quux = org.createOrganizer('/quux')
+        quux1 = org.createOrganizer('/quux1')
         self.assertRaises(AttributeError, self.dmd.findChild, '')
         self.assertEqual(bar, self.dmd.findChild('org/foo/bar'))
-        self.assertRaises(AttributeError, self.dmd.findChild, 'org/foo/quux')
+        self.assertRaises(AttributeError, self.dmd.findChild, 'org/foo/quux1')
         
 def test_suite():
     from unittest import TestSuite, makeSuite

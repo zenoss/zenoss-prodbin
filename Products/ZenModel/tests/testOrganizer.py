@@ -75,8 +75,8 @@ class TestOrganizer(ZenModelBaseTest):
         org = self.create(self.dmd, Organizer, "org")
         org.dmdRootName = "org"
         foo = org.createOrganizer("/foo")
-        quux = org.createOrganizer("/quux")
-        self.assertEqual(quux, org.getOrganizer("/foo/quux"))
+        quux = org.createOrganizer("/quux2")
+        self.assertEqual(quux, org.getOrganizer("/foo/quux2"))
         
 def test_suite():
     from unittest import TestSuite, makeSuite

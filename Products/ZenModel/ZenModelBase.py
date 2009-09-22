@@ -631,6 +631,7 @@ class ZenModelBase(object):
         @rtype: string
         @permission: ZEN_VIEW
 
+        >>> dmd.Devices.Server._setProperty('zIcon', '/zport/dmd/img/icons/server.png')
         >>> d = dmd.Devices.Server.createInstance('test')
         >>> d.getIconPath()
         '/zport/dmd/img/icons/server.png'

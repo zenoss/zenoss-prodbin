@@ -28,6 +28,7 @@ from Products.ZenModel.DmdBuilder import DmdBuilder
 from Products.ZenModel.ZentinelPortal import PortalGenerator
 from Products.ZenEvents.EventManagerBase import EventManagerBase
 from Products.ZenEvents.MySqlSendEvent import MySqlSendEventMixin
+from Products.ZenRelations.ZenPropertyManager import setDescriptors
 from Products.ZenEvents.MySqlEventManager import log
 from Products.ZenUtils.Utils import unused
 from zope.testing.cleanup import cleanUp
@@ -142,6 +143,8 @@ class BaseTestCase(ZopeTestCase.ZopeTestCase):
         # each other
         self._transaction_commit=transaction.commit
         transaction.commit=lambda *x: None
+        
+        setDescriptors(self.dmd.propertyTransformers)
         
     def tearDown(self):
         if hasattr( self, '_transaction_commit' ):
