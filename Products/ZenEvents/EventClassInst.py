@@ -64,11 +64,15 @@ class EventClassPropertyMixin(object):
         if sev >= 0:
             if evt.severity > 0:
                 evt.severity = sev
+        log.debug("Per transform/mapping, using severity %s, action '%s' and clear classes %s",
+                  evt.severity, evt._action, evt._clearClasses)
         updates = {}
         for name in 'resolution', 'explanation':
             value = getattr(self, name, None)
             if value is not None and value != '':
                 updates[name] = value
+        if updates:
+            log.debug("Adding fields from transform/mapping: %s", updates)
         evt.updateFromDict(updates)
         return evt
 
@@ -87,12 +91,14 @@ class EventClassPropertyMixin(object):
         for eventclass in transpath:
             if not eventclass.transform: continue
             try:
-                log.debug('Applying transform at %s',
+                log.debug('Applying transform/mapping at Event Class %s',
                     eventclass.getPrimaryDmdId())
                 exec(eventclass.transform, variables_and_funcs)
+                log.debug('Results after transform: %s',
+                          variables_and_funcs['evt'])
             except Exception, ex:
                 log.exception(
-                    "Error processing transform on Event Class %s",
+                    "Error processing transform/mapping on Event Class %s",
                     eventclass.getPrimaryId())
         return variables_and_funcs['evt']
                  

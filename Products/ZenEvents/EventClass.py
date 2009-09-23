@@ -193,6 +193,8 @@ class EventClass(EventClassPropertyMixin, Organizer, ManagedEntity, ZenPackable)
         evtcls = []
         if getattr(evt, "eventClass", False):
             try:
+                log.debug("Looking for event class named in event: %s",
+                          evt.eventClass)
                 return self.getDmdRoot("Events").getOrganizer(evt.eventClass)
             except KeyError:
                 log.debug("Unable to find '%s' organizer" % evt.eventClass)
@@ -201,16 +203,19 @@ class EventClass(EventClassPropertyMixin, Organizer, ManagedEntity, ZenPackable)
         eventClassKey = getattr(evt, 'eventClassKey', 'defaultmapping') \
             or 'defaultmapping'
 
-        log.debug("lookup eventClassKey:%s", eventClassKey)
+        log.debug("No event class specified, searching for eventClassKey %s",
+                  eventClassKey)
         evtcls = self.find(eventClassKey)
+        log.debug("Found the following event classes that matched key %s: %s",
+                  eventClassKey, evtcls)
 
         for evtcl in evtcls:
             m = evtcl.match(evt, device)
             if m: 
-                log.debug("EventClass:%s matched", evtcl.getOrganizerName())
+                log.debug("EventClass %s matched", evtcl.getOrganizerName())
                 break
         else:
-            log.debug("No EventClass matched")
+            log.debug("No EventClass matched -- using /Unknown")
             try:
                 return self.getDmdRoot("Events").getOrganizer(Unknown)
             except KeyError:

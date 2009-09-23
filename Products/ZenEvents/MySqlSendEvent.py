@@ -67,10 +67,15 @@ class MySqlSendEventMixin:
         @return: event id or None
         @rtype: string
         """
+        log.debug('%s%s%s' % ('=' * 15, '  incoming event  ', '=' * 15))
         if type(event) == types.DictType:
             event = buildEventFromDict(event)
 
         if getattr(event, 'eventClass', Unknown) == Heartbeat:
+            log.debug("Got a %s %s heartbeat event (timeout %s sec).",
+                      getattr(event, 'device', 'Unknown'),
+                      getattr(event, 'component', 'Unknown'),
+                      getattr(event, 'timeout', 'Unknown'))
             return self._sendHeartbeat(event)
         
         for field in self.requiredEventFields:
@@ -97,16 +102,24 @@ class MySqlSendEventMixin:
             event.message = getattr(event, 'summary', '')
         event.summary = (getattr(event, 'summary', '') or event.message)[:128]
         
+        statusdata, detaildata = self.eventDataMaps(event)
+        log.debug("Event info: %s", statusdata)
+        if detaildata:
+            log.debug("Detail data: %s", detaildata)
+
         if getattr(self, "getDmdRoot", False):
             try:
                 event = self.applyEventContext(event)
             except ClientDisconnected, e:
                 log.error(e)
                 raise ZenBackendFailure(str(e))
-        if not event: return
+        if not event:
+            log.debug("Unable to obtain event -- ignoring.(%s)", event)
+            return
         
         # check again for heartbeat after context processing
         if getattr(event, 'eventClass', Unknown) == Heartbeat:
+            log.debug("Transform created a heartbeat event.")
             return self._sendHeartbeat(event)
             
 
@@ -123,6 +136,7 @@ class MySqlSendEventMixin:
                 dedupid.append('%s' % value)
             dedupid = map(self.escape, dedupid)
             event.dedupid = "|".join(dedupid)
+            log.debug("Created deupid of %s", event.dedupid)
 
         # WTH is 'cleanup' supposed to do? Never gets used
         cleanup = lambda : None
@@ -137,6 +151,11 @@ class MySqlSendEventMixin:
                 raise ZenBackendFailure(str(e))
         finally:
             cleanup()
+
+        if evid:
+            log.debug("New event id = %s", evid)
+        else:
+            log.debug("Duplicate event, updated database.")
         return evid
 
 
@@ -151,6 +170,11 @@ class MySqlSendEventMixin:
         """
         insert = ""
         statusdata, detaildata = self.eventDataMaps(event)
+        log.debug("Performing action '%s' on event %s",
+                  event._action, statusdata)
+        if detaildata:
+            log.debug("Detail data: %s", detaildata)
+
         conn = self.connect()
         try:
             curs = conn.cursor()
@@ -256,12 +280,11 @@ class MySqlSendEventMixin:
         if device:
             evt.device = device.id
             log.debug("Found device %s and adding device-specific"
-                      " rules", evt.device)
+                      " data", evt.device)
             evt = self.applyDeviceContext(device, evt)
 
         evtclass = events.lookup(evt, device)
         if evtclass:
-            log.debug("EventClassInst=%s", evtclass.id)
             evt = evtclass.applyExtraction(evt)
             evt = evtclass.applyValues(evt)
             evt = evtclass.applyTransform(evt, device)
