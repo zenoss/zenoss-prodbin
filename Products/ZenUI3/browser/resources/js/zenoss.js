@@ -475,6 +475,7 @@ Ext.onReady(function(){
                 try {
                     state = Ext.decode(Zenoss.util.base64.decode(state));
                     this.applyState(state);
+
                 } catch(e) { noop(); }
             }
         },
@@ -514,6 +515,21 @@ Ext.onReady(function(){
             return val
         },
         applyState: function(state){
+            // We need to remove things from the state that don't apply to this
+            // context, so we'll ditch things referring to columns that aren't
+            // in the initial config.
+            var availcols = Ext.pluck(this.initialConfig.cm.config, 'id'),
+                cols = [],
+                filters = {};
+            Ext.each(state.columns, function(col){
+                if (availcols.indexOf(col.id)>-1) cols.push(col);
+            });
+            Ext.iterate(state.filters.options, function(op){
+                if (availcols.indexOf(op.id)>-1) filters[op.id] = op;
+            });
+            state.columns = cols;
+            state.filters.options = filters;
+            // Apply the filter information to the view, the rest to this
             this.getView().applyState(state.filters);
             Zenoss.FilterGridPanel.superclass.applyState.apply(this, arguments);
         },
