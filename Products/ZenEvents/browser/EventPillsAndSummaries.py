@@ -146,7 +146,7 @@ def getEventPillME(zem, me, number=1, minSeverity=0, showGreen=True,
         # Always show grey for devices that are not monitored.
         disabled = False
         from Products.ZenModel.Device import Device
-        if isinstance(me, Device) and not me.monitorDevice():
+        if isinstance(me, Device) and not me.primaryAq().monitorDevice():
             disabled = True
 
         pills = []
