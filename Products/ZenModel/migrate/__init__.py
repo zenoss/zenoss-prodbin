@@ -185,3 +185,5 @@ import changeDeviceProdStatePermission
 import defaultResultFields
 import zPingInterfacePropsDelete
 import addEventQueueLength
+import addConfigTimeDataPoints
+import removeWinCollectorGraphPoints

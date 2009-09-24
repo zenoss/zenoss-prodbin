@@ -37,7 +37,8 @@ from twisted.python.failure import Failure
 from Products.ZenCollector.daemon import CollectorDaemon
 from Products.ZenCollector.interfaces import ICollectorPreferences,\
                                              IEventService,\
-                                             IScheduledTask
+                                             IScheduledTask,\
+                                             IStatisticsService
 from Products.ZenCollector.tasks import SimpleTaskFactory,\
                                         SimpleTaskSplitter,\
                                         TaskStates
@@ -105,6 +106,9 @@ class ZenEventLogPreferences(object):
         # force NTLMv2 authentication if requested
         setNTLMv2Auth(self.options)
 
+        # add our collector's custom statistics
+        statService = zope.component.queryUtility(IStatisticsService)
+        statService.addStatistic("events", "COUNTER")
 
 #
 # Create an implementation of the IScheduledTask interface that will perform
@@ -173,6 +177,7 @@ class ZenEventLogTask(ObservableMixin):
             int(self._taskConfig.zWinEventlogMinSeverity)
 
         self._eventService = zope.component.queryUtility(IEventService)
+        self._statService = zope.component.queryUtility(IStatisticsService)
         self._preferences = zope.component.queryUtility(ICollectorPreferences,
                                                         "zeneventlog")
 
@@ -265,6 +270,8 @@ class ZenEventLogTask(ObservableMixin):
         if not isinstance(result, Failure):
             log.debug("Device %s [%s] scanned successfully, %d events processed",
                       self._devId, self._manageIp, self._eventsFetched)
+            stat = self._statService.getStatistic("events")
+            stat.value += self._eventsFetched
         else:
             log.debug("Device %s [%s] scanned failed, %s",
                       self._devId, self._manageIp, result.getErrorMessage())

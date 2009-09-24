@@ -27,7 +27,9 @@ from Products.ZenCollector.interfaces import ICollector,\
                                              IEventService,\
                                              IFrameworkFactory,\
                                              ITaskSplitter,\
-                                             IConfigurationListener
+                                             IConfigurationListener,\
+                                             IStatistic,\
+                                             IStatisticsService
 from Products.ZenHub.PBDaemon import PBDaemon, FakeRemote
 from Products.ZenRRD.RRDDaemon import RRDDaemon
 from Products.ZenRRD.RRDUtil import RRDUtil
@@ -105,6 +107,13 @@ class CollectorDaemon(RRDDaemon):
         zope.component.provideUtility(self, ICollector)
         zope.component.provideUtility(self, IEventService)
         zope.component.provideUtility(self, IDataService)
+
+        # setup daemon statistics
+        self._statService = StatisticsService()
+        self._statService.addStatistic("devices", "GAUGE")
+        self._statService.addStatistic("cyclePoints", "GAUGE")
+        self._statService.addStatistic("dataPoints", "COUNTER")
+        zope.component.provideUtility(self._statService, IStatisticsService)
 
         # register the collector's own preferences object so it may be easily
         # retrieved by factories, tasks, etc.
@@ -335,12 +344,21 @@ class CollectorDaemon(RRDDaemon):
                              thresholds,
                              rrdCreateCommand)
 
+    def _isRRDConfigured(self):
+        return (self.rrdStats and self._rrd)
+
     def _configCycle(self, reschedule=True):
         """
         Periodically retrieves collector configuration via the 
         IConfigurationProxy service.
         """
         self.log.debug("_configCycle fetching configuration")
+        startTime = time.time()
+
+        def _configCycleInterval():
+            # TODO: why is configCycleInterval in minutes but every other
+            # interval appears to be in seconds? fix this!
+            return self._prefs.configCycleInterval * 60
 
         def _processThresholds(thresholds, devices):
             rrdCreateCommand = '\n'.join(self._prefs.defaultRRDCreateCommand)
@@ -381,15 +399,23 @@ class CollectorDaemon(RRDDaemon):
             self._updateDeviceConfigs(result)
             return result
 
+        def _reportStatistics(result):
+            """
+            Report the duration of the configuration cycle to our RRD file.
+            """
+            if self._isRRDConfigured():
+                self.sendEvents(self.rrdStats.gauge("configTime",
+                                                    _configCycleInterval(),
+                                                    time.time() - startTime))
+            return result
+
         def _reschedule(result):
-            # TODO: why is configCycleInterval in minutes but every other
-            # interval appears to be in seconds? fix this!
-            interval = self._prefs.configCycleInterval * 60
+            interval = _configCycleInterval()
             self.log.debug("Rescheduling configuration check in %d seconds",
                            interval)
             reactor.callLater(interval, self._configCycle)
             return result
-        
+
         def _configure():
             devices = []
             # if we were given a command-line option to collect against a single
@@ -404,6 +430,7 @@ class CollectorDaemon(RRDDaemon):
             d.addCallback(_processThresholds, devices)
             d.addCallback(_fetchConfig, devices)
             d.addCallback(_processConfig)
+            d.addCallback(_reportStatistics)
             return d
         
         def _handleError(result):
@@ -428,9 +455,10 @@ class CollectorDaemon(RRDDaemon):
         each run.
         """
         self.log.debug("Performing periodic maintenance")
+        interval = self._prefs.cycleInterval
 
-        def _handlePingIssues(result):
-            self.log.debug("pingIssues=%r", result)
+        def _processDeviceIssues(result):
+            self.log.debug("deviceIssues=%r", result)
 
             # Device ping issues returns as a tuple of (deviceId, count, total)
             # and we just want the device id
@@ -448,43 +476,51 @@ class CollectorDaemon(RRDDaemon):
 
             return result
 
-        def _doMaintenance(): # TODO: rename method
+        def _getDeviceIssues(result):
+            # TODO: handle different types of device issues, such as WMI issues
+            d = self.getDevicePingIssues()
+            return d
+
+        def _postStatistics(result):
+            self._displayStatistics()
+
+            # update and post statistics if we've been configured to do so
+            if self._isRRDConfigured():
+                stat = self._statService.getStatistic("devices")
+                stat.value = len(self._devices)
+
+                stat = self._statService.getStatistic("cyclePoints")
+                stat.value = self._rrd.endCycle()
+
+                stat = self._statService.getStatistic("dataPoints")
+                stat.value += self._rrd.dataPoints
+
+                events = self._statService.postStatistics(self.rrdStats,
+                                                          interval)
+                self.sendEvents(events)
+
+            return result
+
+        def _maintenance():
             if self.options.cycle:
-                self.heartbeat()
-
-                # TODO: are daemon statistics generic or do they need to be 
-                # customized?
-                if self.rrdStats and self._rrd:
-                    self.sendEvents(
-                        self.rrdStats.gauge('devices',
-                                            self._prefs.cycleInterval,
-                                            len(self._devices)) +
-                        self.rrdStats.counter('dataPoints',
-                                              self._prefs.cycleInterval,
-                                              self._rrd.dataPoints)
-                        )
-
-                self._displayStatistics()
-
-                d = self.getDevicePingIssues()
-                d.addCallback(_handlePingIssues)
-                return d
+                d = defer.maybeDeferred(self.heartbeat)
+                d.addCallback(_postStatistics)
+                d.addCallback(_getDeviceIssues)
+                d.addCallback(_processDeviceIssues)
             else:
-                return defer.succeed(None)
+                d = defer.succeed(None)
+            return d
 
         def _reschedule(result):
             if isinstance(result, Failure):
                 self.log.error("Maintenance failed: %s",
                                result.getErrorMessage())
 
-            interval = self._prefs.cycleInterval
             if interval > 0:
                 self.log.debug("Rescheduling maintenance in %ds", interval)
                 reactor.callLater(interval, self._maintenanceCycle)
 
-#            return result
-
-        d = _doMaintenance()
+        d = _maintenance()
         d.addBoth(_reschedule)
         return d
 
@@ -496,3 +532,52 @@ class CollectorDaemon(RRDDaemon):
 
     def _signalHandler(self, signum, frame):
         self._displayStatistics(True)
+
+
+class Statistic(object):
+    zope.interface.implements(IStatistic)
+
+    def __init__(self, name, type):
+        self.value = 0
+        self.name = name
+        self.type = type
+
+
+class StatisticsService(object):
+    zope.interface.implements(IStatisticsService)
+
+    def __init__(self):
+        self._stats = {}
+
+    def addStatistic(self, name, type):
+        if self._stats.has_key(name):
+            raise NameError("Statistic %s already exists" % name)
+
+        if type not in ('COUNTER', 'GAUGE'):
+            raise TypeError("Statistic type %s not supported" % type)
+
+        stat = Statistic(name, type)
+        self._stats[name] = stat
+
+    def getStatistic(self, name):
+        return self._stats[name]
+
+    def postStatistics(self, rrdStats, interval):
+        events = []
+
+        for stat in self._stats.values():
+            # figure out which function to use to post this statistical data
+            if stat.type is 'COUNTER':
+                func = rrdStats.counter
+            elif stat.type is 'GAUGE':
+                func = rrdStats.gauge
+            else:
+                raise TypeError("Statistic type %s not supported" % stat.type)
+
+            events += func(stat.name, interval, stat.value)
+
+            # counter is an ever increasing value, but otherwise...
+            if stat.type is not 'COUNTER':
+                stat.value = 0
+
+        return events

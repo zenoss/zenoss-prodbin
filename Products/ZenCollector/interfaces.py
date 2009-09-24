@@ -415,3 +415,47 @@ class IConfigurationListener(zope.interface.Interface):
         """
         pass
 
+
+class IStatistic(zope.interface.Interface):
+    """
+    A named statistical value.
+    """
+    name = zope.interface.Attribute("""
+        Name of statistic.
+        """)
+
+    value = zope.interface.Attribute("""
+        Current value of the statistic.
+        """)
+
+    type = zope.interface.Attribute("""
+        The type of statistic; currently limited to COUNTER, GAUGE.
+        """)
+
+
+class IStatisticsService(zope.interface.Interface):
+    """
+    A statistical management service that keeps track of statistical objects
+    and posts them periodically to the data service.
+    """
+
+    def addStatistic(self, name, type):
+        """
+        Adds a new statistic to the service. Throws an exception if the
+        statistic already exists.
+        @param name: the unique name of the statistic
+        @type name: string
+        @param type: the type of the counter, limited to COUNTER, GAUGE
+        @type type: string
+        """
+        pass
+
+    def getStatistic(self, name):
+        """
+        Retrieves the statistic object for the given name.
+        @param name: the unique name of the statistic
+        @type name: string
+        @return: the statistic object for the given name
+        @rtype: an object implementing IStatistic
+        """
+        pass
