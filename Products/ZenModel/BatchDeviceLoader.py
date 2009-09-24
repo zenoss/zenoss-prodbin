@@ -180,13 +180,18 @@ windows_device2 zWinUser="administrator", zWinPassword='thomas'
 
             # Default is discoverProto == 'snmp'
             if device_specs.get('discoverProto', '') != 'none':
+                # What if zSnmpCommunity isn't set in the file?
+                devobj.manage_snmpCommunity()
+
+                # Make sure that ZODB has changes before modeling
+                commit()
                 try:
                     devobj.collectDevice(setlog=self.options.showModelOutput)
                 except (SystemExit, KeyboardInterrupt):
-                    self.log.info("User interrupted modelling")
+                    self.log.info("User interrupted modeling")
                     break
                 except Exception, ex:
-                    self.log.exception("Modelling error" )
+                    self.log.exception("Modeling error" )
 
             commit()
             processed += 1
@@ -309,7 +314,7 @@ windows_device2 zWinUser="administrator", zWinPassword='thomas'
         """
         options = None
         if line.find(' ') > 0:
-            name, options = line.split(' ', 1)
+            name, options = line.split(None, 1)
         else:
             name = line
 
