@@ -31,6 +31,23 @@ zenmarker = "__ZENMARKER__"
 
 _notAscii = dict.fromkeys(range(128,256), u'?')
 
+
+def isSameData(x, y):
+    """
+    A more comprehensive check to see if existing model data is the same as
+    newly modeled data. The primary focus is comparing unsorted lists of
+    dictionaries.
+    """
+    if isinstance(x, (tuple, list)) and isinstance(y, (tuple, list)):
+        if len(x) > 0 and len(y) > 0 \
+            and isinstance(x[0], dict) and isinstance(y[0], dict):
+
+            x = set([ tuple(sorted(d.items())) for d in x ])
+            y = set([ tuple(sorted(d.items())) for d in y ])
+
+    return x == y
+
+
 class ApplyDataMap(object):
 
     def __init__(self, datacollector=None):
@@ -185,8 +202,28 @@ class ApplyDataMap(object):
                     seenids[objmap.id] = 1
                 if objmap.id in relids:
                     obj = rel._getOb(objmap.id)
-                    objchange = self._updateObject(obj, objmap)
-                    if not changed: changed = objchange
+
+                    # Handle the possibility of objects changing class by
+                    # recreating them. Ticket #5598.
+                    existing_modname = ''
+                    existing_classname = ''
+                    try:
+                        import inspect
+                        existing_modname = inspect.getmodule(obj).__name__
+                        existing_classname = obj.__class__.__name__
+                    except:
+                        pass
+
+                    if objmap.modname == existing_modname and \
+                        objmap.classname in ('', existing_classname):
+
+                        objchange = self._updateObject(obj, objmap)
+                        if not changed: changed = objchange
+                    else:
+                        rel._delObject(objmap.id)
+                        objchange, obj = self._createRelObject(device, objmap, rname)
+                        if not changed: changed = objchange
+
                     if objmap.id in relids: relids.remove(objmap.id)
                 else:
                     objchange, obj = self._createRelObject(device, objmap, rname)
@@ -279,9 +316,8 @@ class ApplyDataMap(object):
                     else:
                         
                         args = (value,)
-                        
                         try:
-                            change = value != getter()
+                            change = not isSameData(value, getter())
                         except UnicodeDecodeError:
                             change = True
                             
