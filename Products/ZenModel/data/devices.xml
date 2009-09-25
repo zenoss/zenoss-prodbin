@@ -1,13 +1,14 @@
-<?xml version="1.0"?>
-<objects>
-<object id='/zport/dmd/Networks' module='Products.ZenModel.IpNetwork' class='IpNetwork'>
-<property visible="True" type="boolean" id="zSnmpStrictDiscovery" >
-False
-</property>
-<property visible="True" type="boolean" id="zPreferSnmpNaming" >
-False
-</property>
-</object>
+<?xml version="1.0" encoding="ISO-8859-1" ?>
+
+<!--
+    Zenoss RelationshipManager export completed on 2009-09-25 16:22:37.915058
+
+    Use ImportRM to import this file.
+
+    For more information about Zenoss, go to http://www.zenoss.com
+ -->
+
+<objects version="[Zenoss, version 2.4.70]" export_date="2009-09-25 16:22:37.915058" zenoss_server="iansmbp.mcb.loc" >
 <object id='/zport/dmd/Devices' module='Products.ZenModel.DeviceClass' class='DeviceClass'>
 <property visible="True" type="int" id="zProdStateThreshold" >
 300
@@ -100,6 +101,7 @@ ssh
 test -f %s
 </property>
 <property visible="True" type="string" id="zCommandPath" >
+/usr/local/zenoss/libexec
 </property>
 <property visible="True" type="string" id="zTelnetLoginRegex" >
 ogin:.$
@@ -2042,7 +2044,7 @@ AVERAGE
 <property visible="True" type="string" id="zCollectorCollectPlugins" >
 NewDeviceMap|DeviceMap|InterfaceMap|RouteMap|ifconfig|netstat_rn
 </property>
-<property visible="True" type="text" id="zLinks" >
+<property visible="True" type="string" id="zLinks" >
 http://www.zenoss.com
 </property>
 <property visible="True" type="boolean" id="zWmiMonitorIgnore" >
@@ -2066,7 +2068,7 @@ True
 <property visible="True" type="string" id="zCollectorCollectPlugins" >
 NewDeviceMap|DeviceMap|InterfaceMap|RouteMap|ifconfig|netstat_rn
 </property>
-<property visible="True" type="text" id="zLinks" >
+<property visible="True" type="string" id="zLinks" >
 &lt;a href='http://${here/manageIp}' target='_'&gt;Console: ${here/id}&lt;/a&gt;
 </property>
 <property visible="True" type="string" id="zIcon" >
@@ -2542,7 +2544,7 @@ True
 </property>
 <tomanycont id='aliases'>
 <object id='memoryAvailable__bytes' module='Products.ZenModel.RRDDataPointAlias' class='RRDDataPointAlias'>
-<property id='formula' type='string'>
+<property type="string" id="formula" mode="w" >
 1024,*
 </property>
 </object>
@@ -2621,7 +2623,7 @@ True
 </property>
 <tomanycont id='aliases'>
 <object id='memoryBuffered__bytes' module='Products.ZenModel.RRDDataPointAlias' class='RRDDataPointAlias'>
-<property id='formula' type='string'>
+<property type="string" id="formula" mode="w" >
 1024,*
 </property>
 </object>
@@ -2664,7 +2666,7 @@ True
 </property>
 <tomanycont id='aliases'>
 <object id='memoryCached__bytes' module='Products.ZenModel.RRDDataPointAlias' class='RRDDataPointAlias'>
-<property id='formula' type='string'>
+<property type="string" id="formula" mode="w" >
 1024,*
 </property>
 </object>
@@ -3948,7 +3950,7 @@ True
 </property>
 <tomanycont id='aliases'>
 <object id='memoryAvailable__bytes' module='Products.ZenModel.RRDDataPointAlias' class='RRDDataPointAlias'>
-<property id='formula' type='string'>
+<property type="string" id="formula" mode="w" >
 1024,*
 </property>
 </object>
@@ -4027,7 +4029,7 @@ True
 </property>
 <tomanycont id='aliases'>
 <object id='memoryBuffered__bytes' module='Products.ZenModel.RRDDataPointAlias' class='RRDDataPointAlias'>
-<property id='formula' type='string'>
+<property type="string" id="formula" mode="w" >
 1024,*
 </property>
 </object>
@@ -4070,7 +4072,7 @@ True
 </property>
 <tomanycont id='aliases'>
 <object id='memoryCached__bytes' module='Products.ZenModel.RRDDataPointAlias' class='RRDDataPointAlias'>
-<property id='formula' type='string'>
+<property type="string" id="formula" mode="w" >
 1024,*
 </property>
 </object>
@@ -5304,7 +5306,7 @@ True
 </property>
 <tomanycont id='aliases'>
 <object id='memoryAvailable__bytes' module='Products.ZenModel.RRDDataPointAlias' class='RRDDataPointAlias'>
-<property id='formula' type='string'>
+<property type="string" id="formula" mode="w" >
 1024,*
 </property>
 </object>
@@ -6098,7 +6100,7 @@ True
 </property>
 <tomanycont id='aliases'>
 <object id='memoryAvailable__bytes' module='Products.ZenModel.RRDDataPointAlias' class='RRDDataPointAlias'>
-<property id='formula' type='string'>
+<property type="string" id="formula" mode="w" >
 1024,*
 </property>
 </object>
@@ -8700,7 +8702,7 @@ True
 </property>
 <tomanycont id='aliases'>
 <object id='memoryAvailable__bytes' module='Products.ZenModel.RRDDataPointAlias' class='RRDDataPointAlias'>
-<property id='formula' type='string'>
+<property type="string" id="formula" mode="w" >
 1024,*
 </property>
 </object>
@@ -8721,11 +8723,6 @@ GAUGE
 <property type="boolean" id="isrow" mode="w" >
 True
 </property>
-<object id='memoryBuffered__bytes' module='Products.ZenModel.RRDDataPointAlias' class='RRDDataPointAlias'>
-<property id='formula' type='string'>
-1024,*
-</property>
-</object>
 </object>
 <object id='memCached' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
@@ -8734,11 +8731,6 @@ GAUGE
 <property type="boolean" id="isrow" mode="w" >
 True
 </property>
-<object id='memoryCached__bytes' module='Products.ZenModel.RRDDataPointAlias' class='RRDDataPointAlias'>
-<property id='formula' type='string'>
-1024,*
-</property>
-</object>
 </object>
 <object id='pageSize' module='Products.ZenModel.RRDDataPoint' class='RRDDataPoint'>
 <property select_variable="rrdtypes" type="selection" id="rrdtype" mode="w" >
@@ -10366,9 +10358,6 @@ AVERAGE
 <object id='SSH' module='Products.ZenModel.DeviceClass' class='DeviceClass'>
 <property visible="True" type="boolean" id="zSnmpMonitorIgnore" >
 True
-</property>
-<property visible="True" type="lines" id="zCollectorPlugins" >
-[]
 </property>
 <tomanycont id='rrdTemplates'>
 <object id='Device' module='Products.ZenModel.RRDTemplate' class='RRDTemplate'>

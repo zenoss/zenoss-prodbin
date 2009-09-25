@@ -1,14 +1,14 @@
 <?xml version="1.0" encoding="ISO-8859-1" ?>
 
 <!--
-    Zenoss RelationshipManager export completed on 2009-06-29 23:07:50.791264
+    Zenoss RelationshipManager export completed on 2009-09-25 16:23:00.245295
 
     Use ImportRM to import this file.
 
     For more information about Zenoss, go to http://www.zenoss.com
  -->
 
-<objects version="[Zenoss, version 2.4.70 r14045]" export_date="2009-06-29 23:07:50.791264" zenoss_server="f1.local" >
+<objects version="[Zenoss, version 2.4.70]" export_date="2009-09-25 16:23:00.245295" zenoss_server="iansmbp.mcb.loc" >
 <object id='/zport/dmd/Manufacturers' module='Products.ZenModel.ManufacturerRoot' class='ManufacturerRoot'>
 <object id='ATI' module='Products.ZenModel.Manufacturer' class='Manufacturer'>
 <property type="string" id="url" mode="w" >
@@ -36583,6 +36583,11 @@ False
 </property>
 </object>
 </tomanycont>
+</object>
+<object id='WinZip' module='Products.ZenModel.Manufacturer' class='Manufacturer'>
+<property type="lines" id="regexes" mode="w" >
+('^WinZip Computing',)
+</property>
 </object>
 <object id='X.org' module='Products.ZenModel.Manufacturer' class='Manufacturer'>
 <property type="string" id="url" mode="w" >
