@@ -39,19 +39,17 @@ class IpServiceClass(ServiceClass):
     """
     __pychecker__='no-override'
 
-    port = 0
     sendString = ""
     expectRegex = ""
 
     portal_type = meta_type = 'IpServiceClass'
 
     _properties = ServiceClass._properties + (
-        {'id':'port', 'type':'int', 'mode':'w'},
         {'id':'sendString', 'type':'string', 'mode':'w'},
         {'id':'expectRegex', 'type':'string', 'mode':'w'},
-        ) 
+        )
 
-    factory_type_information = ( 
+    factory_type_information = (
         { 
             'immediate_view' : 'ipServiceClassStatus',
             'actions'        :
