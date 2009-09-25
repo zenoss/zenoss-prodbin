@@ -22,13 +22,13 @@ class DeviceManagerBase:
     """
 
     def getDevices(self):
-        return [ dev for dev in self.devices() 
+        return [ dev for dev in self.devices()
                     if self.checkRemotePerm(ZEN_VIEW, dev)]
-                    
+
     def deviceMoveTargets(self):
         """see IManageDevice"""
         raise NotImplementedError
-    
+
     def removeDevices(self, deviceNames=None, deleteStatus=False, 
                       deleteHistory=False, deletePerf=False,REQUEST=None):
         """see IManageDevice"""

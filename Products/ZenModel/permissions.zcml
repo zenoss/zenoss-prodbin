@@ -89,6 +89,11 @@
       />
 
   <permission
+      id="zenoss.DeleteDevice"
+      title="Delete Device"
+      />
+
+  <permission
       id="zenoss.ManageDevice"
       title="Manage Device"
       />

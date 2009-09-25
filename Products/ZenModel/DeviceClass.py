@@ -295,6 +295,7 @@ class DeviceClass(DeviceOrganizer, ZenPackable, TemplateContainer):
                     return self.callZenScreen(REQUEST)
 
 
+    security.declareProtected(ZEN_DELETE_DEVICE, 'removeDevices')
     def removeDevices(self, deviceNames=None, deleteStatus=False, 
                     deleteHistory=False, deletePerf=False,REQUEST=None):
         """

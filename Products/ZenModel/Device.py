@@ -1676,7 +1676,7 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
         if xmlrpc: return 0
 
 
-    security.declareProtected(ZEN_ADMIN_DEVICE, 'deleteDevice')
+    security.declareProtected(ZEN_DELETE_DEVICE, 'deleteDevice')
     def deleteDevice(self, deleteStatus=False, deleteHistory=False,
                     deletePerf=False, REQUEST=None):
         """

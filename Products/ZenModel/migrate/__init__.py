@@ -187,3 +187,4 @@ import zPingInterfacePropsDelete
 import addEventQueueLength
 import addConfigTimeDataPoints
 import removeWinCollectorGraphPoints
+import deletedevicepermission

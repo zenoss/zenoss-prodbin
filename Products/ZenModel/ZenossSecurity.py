@@ -50,8 +50,10 @@ ZEN_EDIT_USERGROUP = 'Edit User Groups'
 ZEN_CHANGE_DEVICE = 'Change Device'
 # Change device production state
 ZEN_CHANGE_DEVICE_PRODSTATE='Change Device Production State'
-# Change Class, Rename, Delete Device, Reset IP
+# Change Class, Rename, Reset IP
 ZEN_ADMIN_DEVICE='Admin Device'
+# Delete device
+ZEN_DELETE_DEVICE='Delete Device'
 # Model, Lock, Reset Community, Push Changes, Clear Heartbeats
 ZEN_MANAGE_DEVICE='Manage Device'
 # Existing permission for setLastPollSnmpUpTime, getLastPollSnmpUpTime
