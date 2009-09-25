@@ -21,6 +21,7 @@ try:
     from rlcompleter import Completer
 except ImportError:
     readline = rlcompleter = None
+    Completer = object
 
 # Parse the command line for host and port; have to do it before Zope
 # configuration, because it hijacks option parsing.
