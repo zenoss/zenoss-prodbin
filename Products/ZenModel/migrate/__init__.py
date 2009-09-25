@@ -188,3 +188,5 @@ import addEventQueueLength
 import addConfigTimeDataPoints
 import removeWinCollectorGraphPoints
 import deletedevicepermission
+import reindexProducts
+

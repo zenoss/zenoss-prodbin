@@ -157,7 +157,7 @@ class Manufacturer(ZenModelRM, ZenPackable):
     def _getProduct(self, prodName, factory):
         """Add a product to this manufacturer based on its factory type.
         """
-        prod = self._getOb(prodName, None)
+        prod = self.products._getOb(prodName, None)
         if not prod:
             prod = factory(prodName)
             self.products._setObject(prod.id, prod)

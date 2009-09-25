@@ -147,7 +147,7 @@ class ManufacturerRoot(ZenModelItem, PrimaryPathBTreeFolder2, ZenPacker):
 
 
     def getProductNames(self, mname, type=None):
-        """return a list of all products this Manufacturer makes"""        
+        """return a list of all products this Manufacturer makes"""
         productFilter = dict(getManufacturerName=mname)
         if type == "OS": 
             productFilter['meta_type'] = "SoftwareClass"
@@ -197,7 +197,7 @@ class ManufacturerRoot(ZenModelItem, PrimaryPathBTreeFolder2, ZenPacker):
         # Product doesn't already exist. Create it.
         prodid = self.prepId(prodName)
         manufobj = self.getManufacturer(manufacturer)
-        prod = manufobj._getOb(prodid, None)
+        prod = manufobj.products._getOb(prodid, None)
         if prod is None:
             prod = factory(prodid, prodName=prodName, **kwargs)
             manufobj.products._setObject(prodid, prod)
