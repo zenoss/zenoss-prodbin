@@ -86,21 +86,81 @@ class EventsExporter(BrowserView):
 
 
     def xml(self, fields, events):
+        def getTZOffset():
+            from time import timezone, altzone, daylight
+            zone = timezone
+            if daylight != 0:
+                zone = altzone
+
+            eastOrWest = '-' # West of GMT
+            if zone < 0:
+                eastOrWest = '+'
+                zone = abs(zone)
+
+            hours, remainder = divmod(zone, 3600)
+            minutes, _ = divmod(hours, 60)
+            return '%s%02d%02d' % (eastOrWest, hours, minutes)
+
+        offset = getTZOffset()
+        def timeToUTC(timesstring):
+            # Note: canonicalized in MySQL
+            timesstring = timesstring[:-4].replace('/', '-').replace(' ', 'T')
+            return timesstring + offset
+
         xml_output = StringIO.StringIO()
 
-        xml_output.write('<?xml version="1.0" encoding="UTF-8"?>\n')
-        xml_output.write( "<events>\n" )
+        xml_output.write("""<?xml version="1.0" encoding="UTF-8"?>
+<!-- Common Event Format compliant event structure -->
+<ZenossEvents>
+""")
 
+        evutil = IEventManagerProxy(self)
+        zem = evutil.event_manager()
+        reporterComponent = """\t<ReporterComponent>
+\t\t<url>%s</url>
+\t</ReporterComponent>
+""" % zem.absolute_url()
+
+        default_field_names = set(zem.getFieldList())
+        remaining_field_names = default_field_names - set(['evid', 'dedupid', 'summary',
+                          'count', 'firstTime', 'device', 'ipAddress', 'DeviceClass',
+                          'lastTime', 'message',
+                          ])
         for evt in events:
-            xml_output.write('<event ')
-            for field, value in sorted(evt.items()):
-                name = str(field).replace('.', '__DOT__').replace(' ', '__SPACE__')
-                if name[0].isdigit():
-                    name = 'EVENT_PREFIX__' + name
-                xml_output.write('%s="%s" ' % (name, str(value)))
-            xml_output.write(' />\n')
+            xml_output.write('<ZenossEvent ReportTime="%s" >\n' % timeToUTC(evt['firstTime']))
+            xml_output.write("""\t<SourceComponent>
+\t\t<DeviceClass>%s</DeviceClass>
+\t\t<device>%s</device>
+\t\t<ipAddress>%s</ipAddress>
+\t</SourceComponent>
+""" % (evt['DeviceClass'], evt['device'], evt['ipAddress']))
+            xml_output.write(reporterComponent)
+            xml_output.write('\t<EventId>%s</EventId>\n' % evt['evid'])
+            xml_output.write('\t<firstTime>%s</firstTime>\n' % timeToUTC(evt['firstTime']))
+            xml_output.write('\t<lastTime>%s</lastTime>\n' % timeToUTC(evt['lastTime']))
+            xml_output.write('\t<count>%s</count>\n' % evt['count'])
+            xml_output.write('\t<dedupid><![CDATA[%s]]></dedupid>\n' % evt['dedupid'])
+            xml_output.write('\t<summary><![CDATA[%s]]></summary>\n' % evt['summary'])
+            xml_output.write('\t<message><![CDATA[%s]]></message>\n' % evt['message'])
 
-        xml_output.write( "</events>\n" )
+            for field in remaining_field_names:
+                if evt.get(field,'') != '':
+                    xml_output.write('\t<%s>%s</%s>\n' % (field, evt.get(field), field))
+
+            extraFields = [field for field in sorted(evt.keys())
+                           if field not in default_field_names]
+
+            if extraFields:
+                xml_output.write('\t<EventSpecific>\n')
+                for field in extraFields:
+                    value = evt[field]
+                    xml_output.write("\t\t<property name='%s'><![CDATA[%s]]></property>\n" % (
+                                 str(field), str(value)))
+                xml_output.write('\t</EventSpecific>\n')
+
+            xml_output.write('</ZenossEvent>\n')
+
+        xml_output.write( "</ZenossEvents>\n" )
 
         return 'text/xml', 'events.xml', xml_output.getvalue()
 
