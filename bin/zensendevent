@@ -1,8 +1,20 @@
 #!/usr/bin/env python
 
+__doc__ = """zensendevent
+
+  Send events on a command line via XML-RPC or from a XML file.
+This command can be put on any machine with Python installed, and
+does not need Zope or Zenoss.
+
+"""
+      
+
 import socket
 from xmlrpclib import ServerProxy
 from optparse import OptionParser 
+from xml.sax import make_parser, saxutils
+from xml.sax.handler import ContentHandler
+
 XML_RPC_PORT = 8081
 
 sevconvert = {
@@ -13,6 +25,79 @@ sevconvert = {
     "Debug" : 1,
     "Clear" : 0
 }
+
+
+class ImportEventXML(ContentHandler):
+    ignoredElements = set([
+        'ZenossEvents', 'url', 'SourceComponent',
+        'ReporterComponent', 'EventId',
+        'clearid', 'eventClassMapping',
+        'eventState', 'lastTime', 'firstTime', 'prodState',
+        'EventSpecific', 'stateChange',
+        ])
+    evt = {}
+    property = ''
+    value = ''
+
+    def __init__(self, serv):
+        ContentHandler.__init__(self)
+        self.sent = 0
+        self.total = 0
+        self.serv = serv
+
+    def startElement(self, name, attrs):
+        self.value = ''
+        if name == 'ZenossEvent':
+            self.evt = {}
+        elif name == 'property':
+            self.property = attrs['name']
+
+    def characters(self, content):
+        self.value += content
+
+    def endElement(self, name):
+        name = str(name)
+        value = str(self.value)
+        if name in self.ignoredElements:
+            return
+
+        elif name == 'property' and value and value != '|':
+                self.evt[self.property] = value
+
+        elif name in ['Systems', 'DeviceGroups']:
+                if value and value != '|':
+                    self.evt[name] = value
+
+        elif name in ['eventClassKey', 'eventKey']:
+                if value:
+                    self.evt[name] = value
+
+        elif name == 'severity':
+                self.evt[name] = int(value)
+
+        elif name == 'ZenossEvent':
+            self.total += 1
+            try:
+                self.serv.sendEvent(self.evt)
+                self.sent += 1
+            except Exception, ex:
+                print str(ex)
+                print evt
+
+        elif value:
+            self.evt[name] = value
+
+def sendXMLEvents(serv, xmlfile):
+    infile = open(xmlfile)
+    parser = make_parser()
+    CH = ImportEventXML(serv)
+    parser.setContentHandler(CH)
+    try:
+        parser.parse(infile)
+    finally:
+        infile.close()
+    print "Sent %s of %s events" % (CH.sent, CH.total)
+
 
 device = socket.getfqdn()
 if device.endswith('.'): device = device[:-1]
@@ -42,17 +127,30 @@ parser.add_option("--auth", dest="auth", default="admin:zenoss",
     help="xmlrpc server auth, default: %default")
 parser.add_option("-o", "--other", dest="other", default=[],
     action='append',
-    help="Specify other event_field=value arguments. Can be specified"
+    help="Specify other event_filed=value arguments. Can be specified"
          " more than once.")
+parser.add_option('-f', "--file", dest="input_file", default="",
+    help="Import events from XML file.")
+parser.add_option('-v', dest="show_event", default=False,
+    action='store_true',
+    help="Show the event data sent to Zenoss.")
 
 
 opts, args = parser.parse_args()
 
+url = "http://%s@%s:%s" % (opts.auth, opts.server, opts.port)
+serv = ServerProxy(url)
+
+if opts.input_file:
+    sendXMLEvents(serv, opts.input_file)
+    import sys
+    sys.exit(0)
+
 evt = {}
-if sevconvert.has_key(opts.severity):
+if opts.severity in sevconvert:
     evt['severity'] = sevconvert[opts.severity]
 else:
-    parser.error('unkown severity')
+    parser.error('Unkown severity')
 evt['summary'] = " ".join(args)
 if not evt['summary']:
     parser.error('no summary supplied') 
@@ -74,6 +172,8 @@ for line in opts.other:
     except:
         pass
 
-url = "http://%s@%s:%s" % (opts.auth, opts.server, opts.port)
-serv = ServerProxy(url)
+if opts.show_event:
+    from pprint import pprint
+    pprint(evt)
+
 serv.sendEvent(evt)
