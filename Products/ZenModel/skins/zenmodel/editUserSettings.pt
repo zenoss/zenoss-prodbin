@@ -15,6 +15,11 @@ function ConfirmPagerTest() {
         "  This will send a test message to this pager number." +
         "  Do you wish to continue?");
 }
+
+function resetPassword(){
+    if(confirm("Are you sure you want to reset this user's password?"))
+        location.href = location.pathname + "/manage_resetPassword"
+}
 </script>
 
 
@@ -39,13 +44,30 @@ function ConfirmPagerTest() {
         <!-- BEGIN TABLE CONTENTS -->
 
     <tr>
-      <td class="tableheader" align="left">Password</td>
+      <td class="tableheader" align="left">Current Password</td>
+      <td class="tablevalues">
+        <input class="tablevalues" type="password" name="oldpassword"
+            autocomplete="off"/>
+            <input type="button" value="Reset Password" 
+                   tabindex="-1"
+                   onclick="resetPassword()"
+                   class="tableheader"
+                   name="manage_resetPassword:method"/>
+       </td>
+    </tr>
+    <tr>
+      <td class="tableheader" align="left">New Password</td>
       <td class="tablevalues">
         <input class="tablevalues" type="password" name="password"
             autocomplete="off"/>
+       </td>
+    </tr>
+    <tr>
+      <td class="tableheader" align="left">Confirm New Password</td>
+      <td class="tablevalues">
         <input class="tablevalues" type="password" name="sndpassword"
             autocomplete="off"/>
-      </td>
+       </td>
     </tr>
     <tr tal:condition="here/isManager">
       <td class="tableheader" align="left">Roles</td>
@@ -121,17 +143,6 @@ function ConfirmPagerTest() {
       <td class="tablevalues">
         <input class="tablevalues" type="text" name="netMapStartObject" 
             tal:attributes="value here/netMapStartObject" />
-      </td>
-    </tr>
-    <tr>
-      <td class="tableheader" align="left">Event Console Refresh On</td>
-      <td class="tablevalues">
-        <select class="tablevalues" name="eventConsoleRefresh:boolean"
-            tal:define="options python:[True, False]">
-            <option tal:repeat="opt options" tal:content="opt"
-                tal:attributes="selected python:here.eventConsoleRefresh==opt"
-                />
-        </select>
       </td>
     </tr>
     <tr>

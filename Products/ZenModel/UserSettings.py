@@ -652,10 +652,66 @@ class UserSettings(ZenModelRM):
         return False
 
 
+    security.declareProtected(ZEN_CHANGE_SETTINGS, 'manage_resetPassword')
+    def manage_resetPassword(self):
+        """
+        Reset a password.
+        """
+        email = self.email.strip()
+        if not email:
+            messaging.IMessageSender(self).sendToBrowser(
+                'Password Reset Failed',
+                'Cannot send password reset email; user has no'+
+                ' email address.',
+                priority=messaging.WARNING
+            )
+            return self.callZenScreen(self.REQUEST)
+
+        newpw = self.generatePassword()
+        body = """
+        Your Zenoss password has been reset at %s's request.
+
+        Your new password is: %s
+        """ % (self.getUser().getId(), newpw)
+        msg = MIMEText(body)
+        msg['Subject'] = 'Zenoss Password Reset Request'
+        msg['From'] = self.dmd.getEmailFrom()
+        msg['To'] = email
+        msg['Date'] = DateTime().rfc822()
+        result, errorMsg = Utils.sendEmail(msg, self.dmd.smtpHost,
+                            self.dmd.smtpPort,
+                            self.dmd.smtpUseTLS, self.dmd.smtpUser,
+                            self.dmd.smtpPass)
+        if result:
+            userManager = self.acl_users.userManager
+            try:
+                userManager.updateUserPassword(self.id, newpw)
+            except KeyError:
+                self.getPhysicalRoot().acl_users.userManager.updateUserPassword(
+                                self.id, newpw)
+            messaging.IMessageSender(self).sendToBrowser(
+                'Password reset',
+                'An email with a new password has been sent.'
+            )
+            loggedInUser = self.REQUEST['AUTHENTICATED_USER']
+            # we only want to log out the user if it's *their* password
+            # they've changed, not, for example, if the admin user is
+            # changing another user's password
+            if loggedInUser.getUserName() == self.id:
+                self.acl_users.logout(self.REQUEST)
+        else:
+            messaging.IMessageSender(self).sendToBrowser(
+                'Password reset failed',
+                'Unable to send password reset email: %s' % errorMsg,
+                priority=messaging.WARNING
+            )
+        return self.callZenScreen(self.REQUEST)
+
+
     security.declareProtected(ZEN_CHANGE_SETTINGS, 'manage_editUserSettings')
-    def manage_editUserSettings(self, password=None, sndpassword=None,
-                                roles=None, groups=None, domains=None,
-                                REQUEST=None, **kw):
+    def manage_editUserSettings(self, oldpassword=None, password=None,
+                                sndpassword=None, roles=None, groups=None,
+                                domains=None, REQUEST=None, **kw):
         """Update user settings.
         """
         # get the user object; return if no user 
@@ -747,8 +803,22 @@ class UserSettings(ZenModelRM):
         self.manage_changeProperties(**kw)
 
         # update password info
-        userManager = self.acl_users.userManager
+        if self.id=='admin':
+            userManager = self.getPhysicalRoot().acl_users.userManager
+        else:
+            userManager = self.acl_users.userManager
         if password:
+            if not oldpassword or not userManager.authenticateCredentials(
+                {'login':self.id, 'password':oldpassword}):
+                if REQUEST:
+                    messaging.IMessageSender(self).sendToBrowser(
+                        'Error',
+                        'Current password is incorrect. Password not updated.',
+                        priority=messaging.WARNING
+                    )
+                    return self.callZenScreen(REQUEST)
+                else:
+                    raise ValueError("Current password is incorrect.")
             if password.find(':') >= 0:
                 if REQUEST:
                     messaging.IMessageSender(self).sendToBrowser(
