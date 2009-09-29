@@ -52,6 +52,10 @@ update_conf_files
 /usr/bin/replace "address 8100" "address localhost:8100" -- \
     $ZENHOME/etc/zeo.conf
 
+/usr/bin/replace "default-zpublisher-encoding latin-1" \
+                 "default-zpublisher-encoding utf-8" -- \
+    $ZENHOME/etc/zope.conf
+
 # set the python shebang to be the proper python
 shebang
 
