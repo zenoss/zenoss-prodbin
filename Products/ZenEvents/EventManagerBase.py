@@ -363,7 +363,7 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
                                  **kwargs)
 
 
-    def filteredWhere(self, where, filters):
+    def filteredWhere(self, where, filters, values = None):
         """
         Create SQL representing conditions that match passed filters and append
         it to a given where clause.
@@ -391,7 +391,12 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
         @param filters: Values for which to create filters (e.g.,
                         {'device':'^loc.*$', 'severity':[4, 5]})
         @type filters: dict or JSON str representing dict
+        @param values: if not none the returned where clause will be 
+                parameterized and the values will be populated with the values, 
+                if none the values will be in the where string
+        @type values: list
         """
+        queryValues = []
         if filters is None: filters = {}
         elif isinstance(filters, basestring):
             filters = unjson(filters)
@@ -401,20 +406,32 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
                 ftype = ftype['xtype']
             if k=='count':
                 if v.isalnum():
-                    v = '>=%s' % v
+                    queryValues.append(v)
+                    v = '>=%s'
+                else:
+                    #TODO validate the input
+                    pass
                 where += ' and count%s ' % v
             elif ftype=='textfield':
-                where += ' and (%s REGEXP "%s") ' % (k,v)
+                where += ' and (%s REGEXP "%%s") ' % (k,)
+                queryValues.append(v)
             elif k=='firstTime':
                 v = self.dateDB(v.replace('T', ' '))
-                where += ' and %s >= %s ' % (k, v)
+                where += ' and %s >= %%s ' % (k,)
+                queryValues.append(v)
             elif k=='lastTime':
                 v = self.dateDB(v.replace('T', ' '))
-                where += ' and %s <= %s ' % (k, v)
+                where += ' and %s <= %%s ' % (k, v)
+                queryValues.append(v)
             elif ftype=='multiselectmenu':
                 if isinstance(v, basestring): v = (v,)
-                sevstr = ' or '.join(['%s=%s' % (k, s) for s in v])
+                sevstr = ' or '.join(['%s=%%s' % (k,) for s in v])
+                queryValues.extend(v)
                 where += ' and (%s) ' % sevstr
+        if values is not None:
+            values.extend(queryValues)
+        else:
+            where = where % tuple(queryValues)
         return where
 
 
@@ -584,12 +601,20 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
         @todo: Remove unused parameters from the method definition
         """
         unused(kwargs)
+        paramValues = []
         try:
             where = self.restrictedUserFilter(where)
             if not resultFields:
                 resultFields = self.defaultResultFields
             resultFields = list(resultFields)
             resultFields.extend(self.defaultFields)
+ 
+            #validate all fields
+            fieldList = [x.lower() for x in self.getFieldList()]
+            for field in resultFields:
+                if field.lower() not in fieldList:
+                    raise ('requested column %s is not valid' % field)
+            
             calcfoundrows = ''
             if getTotalCount: 
                 calcfoundrows = 'SQL_CALC_FOUND_ROWS'
@@ -597,25 +622,52 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
                         "from %s where" % self.statusTable ]
             if not where:
                 where = self.defaultWhere
-            where = self._wand(where, "%s >= %s", self.severityField, severity)
-            where = self._wand(where, "%s <= %s", self.stateField, state)
+                
+            #escape any % in the where clause because of format eval later
+            where = where.replace('%', '%%')
+            def paramWhereAnd(where, fmt, field, value):
+                log.info("where is %s" % where)
+                if value != None and where.find(field) == -1:
+                    if where: where += " and "
+                    where += fmt % (field,)
+                    paramValues.append(value)
+                return where 
+            where = paramWhereAnd(where, "%s >= %%s", self.severityField, severity)
+            where = paramWhereAnd(where, "%s <= %%s", self.stateField, state)
+            log.info("filter is %s" % filter )
             if filter:
                 where += ' and (%s) ' % (' or '.join(['%s LIKE "%%%s%%"' % (
                             x, filter) for x in resultFields]))
             if startdate:
                 startdate, enddate = self._setupDateRange(startdate, enddate)
-                where += " and %s >= '%s' and %s <= '%s'" % (
-                         self.lastTimeField, startdate,
-                         self.firstTimeField, enddate)
+                where = paramWhereAnd(where,"%s >= %%s",self.lastTimeField, startdate )
+                where = paramWhereAnd(where,"%s <= %%s",self.firstTimeField, enddate )
+
             if filters is not None:
-                where = self.filteredWhere(where, filters)
+                where = self.filteredWhere(where, filters, paramValues)
             select.append(where)
             if not orderby:
                 orderby = self.defaultOrderby
             if orderby:
+                #validate orderby is a valid field 
+                values = []
+                for x in orderby.split(','): 
+                    values.extend(x.split(' '))
+                values = [x for x in values if x]
+                log.info("orderby is %s" % orderby)
+                log.info("values is %s" % values)
+                
+                for col in values:
+                    col = col.lower()
+                    if col not in ['desc','asc'] and col not in fieldList:
+                        raise ("order by  value %s not valid" % col)
+                             
                 select.append("order by")
                 select.append(orderby)
             if rows:
+                #validate offset and rows are ints
+                int(offset)
+                int(rows)
                 select.append("limit %s, %s" % (offset, rows))
             select.append(';')
             select = " ".join(select)
@@ -628,7 +680,7 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
                 conn = self.connect()
                 try:
                     curs = conn.cursor()
-                    curs.execute(select)
+                    curs.execute(select, paramValues)
                     retdata = []
                     # iterate through the data results and convert to python
                     # objects
