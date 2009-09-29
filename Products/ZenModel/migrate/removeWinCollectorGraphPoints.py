@@ -25,7 +25,8 @@ class RemoveWinCollectorGraphPoints(Migrate.Step):
         obj = dmd
         for part in parts[:-1]:
             obj = obj._getOb(part)
-        obj._delObject(parts[-1])
+        if obj._getOb(parts[-1], False):
+            obj._delObject(parts[-1])
 
     def cutover(self, dmd):
         base = 'Monitors/rrdTemplates/PerformanceConf/'
