@@ -354,9 +354,9 @@ class ZenProcessTask(ObservableMixin):
             log.debug('Timeout on device %s' % self._devId)
             msg = '%s; Timeout on device' % msg
         else:
-            log.error('Error on device %s' % self._devId, reason.value)
-            if isinstance(reason.value, (type(u''), type(''))):
-                msg = '%s; error: %s' % (msg, reason.value)
+            msg = '%s; error: %s' % (msg, reason.getErrorMessage())
+            log.error('Error on device %s; %s' % (self._devId, 
+                      reason.getErrorMessage()))
             
         self._eventService.sendEvent(self.statusEvent,
                                      eventClass=Status_Snmp,
@@ -583,7 +583,7 @@ class ZenProcessTask(ObservableMixin):
         for procStat, pids in byConf.items():
             if len(pids) != 1:
                 log.info("There are %d pids by the name %s",
-                         len(pids), procStat.name)
+                         len(pids), procStat._config.name)
             procName = procStat._config.name
             for pid in pids:
                 cpu = results.get(CPU + str(pid), None)
