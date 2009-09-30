@@ -27,7 +27,7 @@ log = logging.getLogger("zen.SshClient")
 import Globals
 
 from twisted.conch.ssh import transport, userauth, connection
-from twisted.conch.ssh import common, channel, session
+from twisted.conch.ssh import common, channel
 from twisted.conch.ssh.keys import Key
 from twisted.internet import defer, reactor
 from Products.ZenEvents import Event
@@ -619,13 +619,6 @@ class CommandChannel(channel.SSHChannel):
 
         log.debug('Opening command channel for %s' % self.command)
         self.data = ''
-        
-        # request more columns in the psuedo-tty so lines don't wrap
-        term = os.environ.get('TERM', 'xterm')
-        rows, cols, xpixel, ypixel = 25, 999, 0, 0
-        winSize = (rows, cols, xpixel, ypixel)
-        ptyReqData = session.packRequest_pty_req(term, winSize, '')
-        self.conn.sendRequest(self, 'pty-req', ptyReqData)
         
         #  Notes for sendRequest:
         # 'exec'      - execute the following command and exit
