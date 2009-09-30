@@ -46,7 +46,8 @@ class CreateUserView(BrowserView):
         try:
             admin = zenUsers.getUserSettings('admin')
             admin.manage_editUserSettings(password=adminPassword,
-                                          sndpassword=adminPassword)
+                                          sndpassword=adminPassword,
+                                          oldpassword='zenoss')
         except:
             response.error('admin-pass',
                        "There was a problem setting the admin password.")
