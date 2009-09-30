@@ -357,9 +357,14 @@ Ext.onReady(function(){
                             view.toggleRowColors(checked);
                         }
                     },{
-                        /*
-                         * FILTERS BUTTON
-                         */
+                        id: 'clearfilters',
+                        text: 'Clear filters',
+                        listeners: {
+                            click: function(){
+                                grid.clearFilters();
+                            }
+                        }
+                    },/*{
                         id: 'showfilters',
                         text: 'Show filters',
                         checked: false,
@@ -369,7 +374,7 @@ Ext.onReady(function(){
                                 else grid.hideFilters()
                             }
                         }
-                    },{
+                    },*/{
                         text: 'Save this configuration...',
                         handler: function(){
                             var grid = Ext.getCmp('events_grid'),

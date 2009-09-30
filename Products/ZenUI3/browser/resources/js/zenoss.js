@@ -228,7 +228,7 @@ Ext.onReady(function(){
         rowColors: false,
         constructor: function(config) {
             if (typeof(config.displayFilters)=='undefined')
-                config.displayFilters = false;
+                config.displayFilters = true;
             Zenoss.FilterGridView.superclass.constructor.apply(this,
                 arguments);
         },
@@ -293,7 +293,17 @@ Ext.onReady(function(){
         showFilters: function() {
             this.setFiltersDisplayed(true);
         },
+        clearFilters: function() {
+            Ext.each(this.filters, function(ob){
+                ob.reset();
+            }, this);
+            this.updateLiveRows(this.rowIndex, true, true);
+        },
         setFiltersDisplayed: function(bool) {
+            // For now, always show the filters The rest of the filter-hiding
+            // stuff is still in place, so just remove this and put back the
+            // menu item when we're ready to do so.
+            bool = true;
             this.displayFilters = bool;
             this.getFilterCt().setDisplayed(bool);
             this.fireEvent('filtertoggle');
@@ -327,7 +337,8 @@ Ext.onReady(function(){
             rp.tsyle = 'width:'+this.getTotalWidth()+';';
             rp.cols = buf.length;
             rp.cells = buf.join("");
-            rp.display = this.displayFilters?'':'style="display:none"'
+            //rp.display = this.displayFilters?'':'style="display:none"'
+            rp.display = '';
             return rt.apply(rp);
         },
         filters: [],
@@ -437,16 +448,22 @@ Ext.onReady(function(){
             this.updateLiveRows(this.rowIndex, true, false);
         },
         applyState: function(state) {
-            this.displayFilters = state.displayFilters;
+            // For now, always show the filters The rest of the filter-hiding
+            // stuff is still in place, so just remove this and put back the
+            // menu item when we're ready to do so.
+            this.displayFilters = true; //state.displayFilters;
+            // End always show filters
             this.lastOptions = state.options;
+            /*
             var btn = Ext.getCmp(this.filterbutton);
             btn.on('render', function(){
                 this.setChecked(state.displayFilters);
             }, btn);
+            */
         },
         resetFilters: function(){
             this.lastOptions = {};
-            this.getFilterButton().setChecked(false);
+            //this.getFilterButton().setChecked(false);
         }
     });
 
@@ -553,8 +570,8 @@ Ext.onReady(function(){
             }, this);
         },
         hideFilters: function() { this.getView().hideFilters(); },
-        showFilters: function() { 
-            this.getView().showFilters(); }
+        showFilters: function() { this.getView().showFilters(); },
+        clearFilters: function() { this.getView().clearFilters(); }
     });
 
     /**
@@ -583,6 +600,9 @@ Ext.onReady(function(){
                 items: items
             };
             Zenoss.MultiselectMenu.superclass.constructor.apply(this, arguments);
+        },
+        reset: function() {
+            this.setValue();
         },
         getValue: function() {
             var result = [];
