@@ -729,6 +729,26 @@ class UserSettings(ZenModelRM):
             else:
                 return
 
+        # Verify existing password
+        curuser = self.getUser().getId()
+        if curuser=='admin':
+            verify_usr_mgr = self.getPhysicalRoot().acl_users.userManager
+        else:
+            verify_usr_mgr = self.acl_users.userManager
+
+        if not oldpassword or not verify_usr_mgr.authenticateCredentials(
+            {'login':curuser, 'password':oldpassword}):
+            if REQUEST:
+                messaging.IMessageSender(self).sendToBrowser(
+                    'Error',
+                    'Confirmation password is empty or invalid. Please'+
+                    ' confirm your password for security reasons.',
+                    priority=messaging.WARNING
+                )
+                return self.callZenScreen(REQUEST)
+            else:
+                raise ValueError("Current password is incorrect.")
+
         # update role info
         roleManager = self.acl_users.roleManager
         origRoles = filter(rolefilter, user.getRoles())

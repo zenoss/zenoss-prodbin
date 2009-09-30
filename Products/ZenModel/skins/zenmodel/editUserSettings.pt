@@ -44,22 +44,15 @@ function resetPassword(){
         <!-- BEGIN TABLE CONTENTS -->
 
     <tr>
-      <td class="tableheader" align="left">Current Password</td>
+      <td class="tableheader" align="left">New Password</td>
       <td class="tablevalues">
-        <input class="tablevalues" type="password" name="oldpassword"
+        <input class="tablevalues" type="password" name="password"
             autocomplete="off"/>
             <input type="button" value="Reset Password" 
                    tabindex="-1"
                    onclick="resetPassword()"
                    class="tableheader"
                    name="manage_resetPassword:method"/>
-       </td>
-    </tr>
-    <tr>
-      <td class="tableheader" align="left">New Password</td>
-      <td class="tablevalues">
-        <input class="tablevalues" type="password" name="password"
-            autocomplete="off"/>
        </td>
     </tr>
     <tr>
@@ -144,6 +137,13 @@ function resetPassword(){
         <input class="tablevalues" type="text" name="netMapStartObject" 
             tal:attributes="value here/netMapStartObject" />
       </td>
+    </tr>
+    <tr>
+      <td class="tableheader" align="left">Confirm Your Password</td>
+      <td class="tablevalues" align="left">
+        <input class="tablevalues" type="password" name="oldpassword"
+            autocomplete="off"/>
+            </td>
     </tr>
     <tr>
         <td class=tableheader align="left" >

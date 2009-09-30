@@ -55,7 +55,7 @@
             tal:content="here/description"/>
     </tr>
     <tr class="odd">
-        <td class="tableheader">Confirm password</td>
+        <td class="tableheader">Confirm Your Password</td>
         <td class="tablevalues">
             <input style="border:1px solid #888" type="password" name="password"
                 autocomplete="off"/>
