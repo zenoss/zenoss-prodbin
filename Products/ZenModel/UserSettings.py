@@ -828,17 +828,6 @@ class UserSettings(ZenModelRM):
         else:
             userManager = self.acl_users.userManager
         if password:
-            if not oldpassword or not userManager.authenticateCredentials(
-                {'login':self.id, 'password':oldpassword}):
-                if REQUEST:
-                    messaging.IMessageSender(self).sendToBrowser(
-                        'Error',
-                        'Current password is incorrect. Password not updated.',
-                        priority=messaging.WARNING
-                    )
-                    return self.callZenScreen(REQUEST)
-                else:
-                    raise ValueError("Current password is incorrect.")
             if password.find(':') >= 0:
                 if REQUEST:
                     messaging.IMessageSender(self).sendToBrowser(
