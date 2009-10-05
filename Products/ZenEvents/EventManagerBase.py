@@ -397,6 +397,7 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
         @type values: list
         """
         queryValues = []
+        newwhere = ''
         if filters is None: filters = {}
         elif isinstance(filters, basestring):
             filters = unjson(filters)
@@ -411,28 +412,28 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
                 else:
                     #TODO validate the input
                     pass
-                where += ' and count%s ' % v
+                newwhere += ' and count%s ' % v
             elif ftype=='textfield':
-                where += ' and (%s REGEXP "%%s") ' % (k,)
+                newwhere += ' and (%s REGEXP %%s) ' % (k,)
                 queryValues.append(v)
             elif k=='firstTime':
                 v = self.dateDB(v.replace('T', ' '))
-                where += ' and %s >= %%s ' % (k,)
+                newwhere += ' and %s >= %%s ' % (k,)
                 queryValues.append(v)
             elif k=='lastTime':
                 v = self.dateDB(v.replace('T', ' '))
-                where += ' and %s <= %%s ' % (k, v)
+                newwhere += ' and %s <= %%s ' % (k, v)
                 queryValues.append(v)
             elif ftype=='multiselectmenu':
                 if isinstance(v, basestring): v = (v,)
                 sevstr = ' or '.join(['%s=%%s' % (k,) for s in v])
                 queryValues.extend(v)
-                where += ' and (%s) ' % sevstr
+                newwhere += ' and (%s) ' % sevstr
         if values is not None:
             values.extend(queryValues)
         else:
-            where = where % tuple(queryValues)
-        return where
+            newwhere = newwhere % tuple(queryValues)
+        return where + newwhere
 
 
     def getEventIDsFromRanges(self, context, sort, direction, start=None,
@@ -608,33 +609,33 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
                 resultFields = self.defaultResultFields
             resultFields = list(resultFields)
             resultFields.extend(self.defaultFields)
- 
+
             #validate all fields
             fieldList = [x.lower() for x in self.getFieldList()]
             for field in resultFields:
                 if field.lower() not in fieldList:
                     raise ('requested column %s is not valid' % field)
-            
+
             calcfoundrows = ''
-            if getTotalCount: 
+            if getTotalCount:
                 calcfoundrows = 'SQL_CALC_FOUND_ROWS'
             select = ["select ", calcfoundrows, ','.join(resultFields),
                         "from %s where" % self.statusTable ]
             if not where:
                 where = self.defaultWhere
-                
+
             #escape any % in the where clause because of format eval later
             where = where.replace('%', '%%')
             def paramWhereAnd(where, fmt, field, value):
-                log.info("where is %s" % where)
+                log.debug("where is %s" % where)
                 if value != None and where.find(field) == -1:
                     if where: where += " and "
                     where += fmt % (field,)
                     paramValues.append(value)
-                return where 
+                return where
             where = paramWhereAnd(where, "%s >= %%s", self.severityField, severity)
             where = paramWhereAnd(where, "%s <= %%s", self.stateField, state)
-            log.info("filter is %s" % filter )
+            log.debug("filter is %s" % filter )
             if filter:
                 where += ' and (%s) ' % (' or '.join(['%s LIKE "%%%s%%"' % (
                             x, filter) for x in resultFields]))
@@ -654,14 +655,14 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
                 for x in orderby.split(','): 
                     values.extend(x.split(' '))
                 values = [x for x in values if x]
-                log.info("orderby is %s" % orderby)
-                log.info("values is %s" % values)
-                
+                log.debug("orderby is %s" % orderby)
+                log.debug("values is %s" % values)
+
                 for col in values:
                     col = col.lower()
                     if col not in ['desc','asc'] and col not in fieldList:
                         raise ("order by  value %s not valid" % col)
-                             
+
                 select.append("order by")
                 select.append(orderby)
             if rows:
