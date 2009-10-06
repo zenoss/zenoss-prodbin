@@ -34,9 +34,6 @@ from AccessControl import ClassSecurityInfo
 from ZenossSecurity import ZEN_MANAGE_DMD
 from Acquisition import aq_parent
 from Products.ZenModel.ZVersion import VERSION as ZENOSS_VERSION
-from Products.ZenRelations.ZenPropertyManager import monkeypatchDescriptors
-from Products.ZenRelations.ZenPropertyManager import ZenPropertyManager
-from OFS.ObjectManager import ObjectManager
 
 
 class ZenPackException(exceptions.Exception):
@@ -359,22 +356,6 @@ class ZenPack(ZenModelRM):
                            [item for item in loader.list(self, app)]))
         return result
         
-    def getZpropInfos(self, id, dmd):
-        "walk the hierarchy to find all instances of the zproperty id"
-        
-        def _gen(manager):
-            if manager.hasProperty(id):
-                # a list of tuples is returned of the form
-                # (object, zprop id, zprop value)
-                yield manager, id, getattr(manager, id)
-            if isinstance(manager, ObjectManager):
-                for ob in manager.objectValues():
-                    if isinstance(ob, ZenPropertyManager):
-                        _gen(ob)
-                        
-        # return a flat list of (object, zprop id, zprop value) tuples
-        return list(_gen(dmd.Devices))
-        
     def createZProperties(self, app):
         """
         Create zProperties in the ZenPack's self.packZProperties
@@ -382,25 +363,6 @@ class ZenPack(ZenModelRM):
         @param app: ZenPack
         @type app: ZenPack object
         """
-        # this could be an upgrade and the previous version of the zenpack may
-        # have defined the same zproperty but as a different type
-    
-        # find all instances of zproperties that already had descriptors
-        # defined
-        zpropInfos = []
-        for id, value, type in self.packZProperties:
-            if getattr(ZenPropertyManager, id, None):
-                zpropInfos.extend(self.getZpropInfos(id, app.dmd))
-        
-        # pass the function into monkeypatchDescriptors.
-        monkeypatchDescriptors(self.packZProperties,
-                               app.dmd.propertyTransformers)
-                       
-        # migrate the value for the zproperties instances that had previously
-        # defined descriptors
-        for obj, id, value in zpropInfos:
-            obj._updateProperty(id, value)
-                       
         # for brand new installs, define an instance for each of the zenpacks
         # zprops on dmd.Devices
         for name, value, pType in self.packZProperties:
