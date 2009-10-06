@@ -232,7 +232,7 @@
 <br />
 
 <form tal:attributes="method string:post;
-                action python:here.absolute_url_path() + '/' + template.id;
+                action here/absolute_url_path;
                 name string:graphReportElementListform">
 <input type="hidden" name="zenScreenName" tal:attributes="value template/id"/>
 
@@ -242,7 +242,6 @@
         batch python:here.ZenTableManager.getBatch(tableName,objects,
                                                 sortedHeader='sequence'); 
         tabletitle string:Graphs;
-        showfilterbox python:True;
 		menu_id string:GraphReportElement_list">
     <input type='hidden' name='tableName' tal:attributes="value tableName" />
         <tal:block metal:use-macro="here/zenuimacros/macros/zentable">
@@ -284,11 +283,6 @@
         <td valign="top" tal:content="element/graphId"/>
     </tr>
     </tal:block>
-    <tr>
-        <td colspan="5" class="tableheader">
-            <span metal:use-macro="here/zenTableNavigation/macros/navbody" />
-        </td>
-    </tr>
 
         <!-- END TABLE CONTENTS -->
 
