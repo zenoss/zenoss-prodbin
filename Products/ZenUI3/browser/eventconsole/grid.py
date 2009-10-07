@@ -1,5 +1,5 @@
 from zope.interface import implements
-import copy
+import time
 
 from Products.Five.browser import BrowserView
 from Products.Five.browser.pagetemplatefile import ViewPageTemplateFile
@@ -70,9 +70,11 @@ class EventConsole(DirectRouter):
         data_extractor = IEventManagerProxy(self).extract_data_from_zevent
         results = [data_extractor(ev, fields) for ev in data]
 
+        self._set_asof(time.time())
+
         return {
             'events': results,
-            'totalCount': totalCount
+            'totalCount': totalCount,
         }
 
     def acknowledge(self, evids=None, ranges=None, start=None, limit=None,
@@ -80,7 +82,7 @@ class EventConsole(DirectRouter):
         zem = self._evmgr()
         range_evids = zem.getEventIDsFromRanges(self.context, field, direction,
                                                 start, limit, params, evids,
-                                                ranges)
+                                                ranges, asof=self._asof)
         zem.manage_ackEvents(range_evids)
         return {'success':True}
 
@@ -89,7 +91,7 @@ class EventConsole(DirectRouter):
         zem = self._evmgr()
         range_evids = zem.getEventIDsFromRanges(self.context, field, direction,
                                                 start, limit, params, evids,
-                                                ranges)
+                                                ranges, asof=self._asof)
         zem.manage_unackEvents(range_evids)
         return {'success':True}
 
@@ -98,7 +100,7 @@ class EventConsole(DirectRouter):
         zem = self._evmgr()
         range_evids = zem.getEventIDsFromRanges(self.context, field, direction,
                                                 start, limit, params, evids,
-                                                ranges)
+                                                ranges, asof=self._asof)
         zem.manage_undeleteEvents(range_evids)
         return {'success':True}
 
@@ -107,7 +109,7 @@ class EventConsole(DirectRouter):
         zem = self._evmgr()
         range_evids = zem.getEventIDsFromRanges(self.context, field, direction,
                                                 start, limit, params, evids,
-                                                ranges)
+                                                ranges, asof=self._asof)
         zem.manage_deleteEvents(range_evids)
         return {'success':True}
 
@@ -166,6 +168,9 @@ class EventConsole(DirectRouter):
         zem = self._evmgr()
         where = zem.lookupManagedEntityWhere(self.context)
         where = zem.filteredWhere(where, params)
+        if self._asof:
+            where += " and not (stateChange>%s and eventState=0)" % (
+                                                self.dateDB(self._asof))
         table = IEventManagerProxy(self).is_history and 'history' or 'status'
         q = 'select eventState from %s where %s ' % (table, where)
         q += 'order by %s %s' % (field, direction)

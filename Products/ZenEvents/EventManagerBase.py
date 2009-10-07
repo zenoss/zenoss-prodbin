@@ -438,7 +438,7 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
 
     def getEventIDsFromRanges(self, context, sort, direction, start=None,
                               limit=None, filters=None, evids=None,
-                              ranges=None):
+                              ranges=None, asof=None):
         """
         Consolidate event ids and ranges of records into a list of event ids.
 
@@ -461,6 +461,9 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
         # Get the relevant where clause, with filters applied
         where = self.lookupManagedEntityWhere(context)
         where = self.filteredWhere(where, filters)
+        if asof:
+            where += " and not (stateChange>%s and eventState=0)" % (
+                                                    self.dateDB(asof))
 
         # If no ranges are specified, just return the event IDs passed in
         if not ranges:

@@ -80,11 +80,18 @@ class DirectRouter(BrowserView):
 
     @rtype JSON
     """
+    _asof = None
+
+    def _set_asof(self, asof):
+        self._asof = asof
+
     def __call__(self):
         body = self.request.get('BODY')
         self.data = unjson(body)
         method = self.data['method']
         data = self.data['data']
+        if 'asof' in self.data:
+            self._set_asof(self.data['asof'])
         if not data:
             data = {}
         else:
@@ -93,14 +100,17 @@ class DirectRouter(BrowserView):
         # Cast all keys as strings in case of unicode problems
         data = dict((str(k), v) for k,v in data.items())
 
+        # Call the specified method
         result = getattr(self, method)(**data)
+
         self.request.response.setHeader('Content-Type', 'application/json')
         return json({
             'type':'rpc',
-            'tid':self.data['tid'],
+            'tid': self.data['tid'],
             'action':self.data['action'],
             'method':self.data['method'],
-            'result': result
+            'result': result,
+            'asof': self._asof
         })
 
 
@@ -127,7 +137,7 @@ class DirectProviderDefinition(JavaScriptSnippet):
         methodtpl = '{name:"%s", len:1}'
         methods = ",".join([methodtpl % a for a in attrs])
         return """
-        Ext.onReady(function(){ 
+        Ext.onReady(function(){
             Ext.Direct.addProvider(
                   {
                       type: 'remoting',

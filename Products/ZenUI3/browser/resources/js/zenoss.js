@@ -28,6 +28,20 @@ Ext.onReady(function(){
         } catch(e) {
             Ext.emptyFn();
         }
+        Zenoss.env.asof = e.asof || null;
+    });
+
+    /*
+     * Hack in a way to pass the 'asof' attribute along if received from the
+     * server.
+     */
+    _oldGetCallData = Ext.direct.RemotingProvider.prototype.getCallData;
+    Ext.override(Ext.direct.RemotingProvider, {
+        getCallData: function(t){
+            return Ext.apply(_oldGetCallData.apply(this, arguments), {
+                asof: Zenoss.env.asof
+            });
+        }
     });
 
     /**
