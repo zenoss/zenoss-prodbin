@@ -139,17 +139,16 @@ function resetPassword(){
       </td>
     </tr>
     <tr>
-      <td class="tableheader" align="left">Confirm Your Password</td>
-      <td class="tablevalues" align="left">
-        <input class="tablevalues" type="password" name="oldpassword"
-            autocomplete="off"/>
-            </td>
-    </tr>
-    <tr>
-        <td class=tableheader align="left" >
+        <td style="color:darkred;width:275px;height:50px" class=tableheader align="left">
+            Enter your password to confirm changes
         </td>
         <td align="left"  class="tableheader" colspan=3>
+        <input id="pwconfirm" class="tablevalues" type="password" name="oldpassword"
+            autocomplete="off"/>
             <input class="tableheader" type="submit" value=" Save "
+                disabled=true
+                id="formsave"
+                style="width:60px;text-align:center;color:#888"
                 name="manage_editUserSettings:method" />
         </td>
     </tr>
@@ -162,5 +161,16 @@ function resetPassword(){
         
 
 </form>
+<script>
+    connect('pwconfirm', 'onkeyup', function(){
+        if($('pwconfirm').value) {
+            $('formsave').disabled = false;
+            setStyle('formsave', {'color':'#000'});
+        } else {
+            $('formsave').disabled = true;
+            setStyle('formsave', {'color':'#888'});
+        }
+    });
+</script>
 </tal:block>
 </tal:block>
