@@ -101,7 +101,7 @@ def CreateZenPack(zpId, prevZenPackName=''):
     
     # Create the skins subdirs
     skinsDir = os.path.join(base, 'skins', zpId)
-    os.mkdir(skinsDir)
+    os.makedirs(skinsDir)
     
     # Stick a placeholder in the skins dir so that the egg will include
     # the dir even if empty.
