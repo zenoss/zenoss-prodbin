@@ -12,6 +12,7 @@
 #
 ###########################################################################
 
+import sys
 import os
 import code
 import atexit
@@ -44,6 +45,7 @@ from Products.CMFCore.utils import getToolByName
 from AccessControl.SecurityManagement import newSecurityManager
 from AccessControl.SecurityManagement import noSecurityManager
 from Products.ZenUtils.Utils import zenPath, set_context
+from Products.ZenModel.IpNetwork import IpNetworkPrinterFactory
 
 _CUSTOMSTUFF = []
 
@@ -112,6 +114,17 @@ def _customStuff():
             for key in dir(obj):
                 if pattern.search(key):
                     print key
+    
+    def printNets(net=dmd.Networks, format="text", out=sys.stdout):
+        """
+        Print out the IpNetwork and IpAddress hierarchy under net.  To print
+        out everything call printNets(dmd.Networks).  format can be text, 
+        python, or xml.
+        """
+        factory = IpNetworkPrinterFactory()
+        printer = factory.createIpNetworkPrinter(format, out)
+        printer.printIpNetwork(net)
+        
 
     def cleandir(obj):
         portaldir = set(dir(dmd))
@@ -224,7 +237,6 @@ class HistoryConsole(code.InteractiveConsole):
 
     def save_history(self, histfile):
         readline.write_history_file(histfile)
-
 
 if __name__=="__main__":
     # Do we want to connect to a database other than the one specified in

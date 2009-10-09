@@ -19,6 +19,7 @@ many IP addresses.
 
 import math
 import transaction
+from xml.dom import minidom
 import logging
 log = logging.getLogger('zen')
 
@@ -647,7 +648,110 @@ class AutoDiscoveryJob(ShellCommandJob):
         super(AutoDiscoveryJob, self).finished(r)
 
 
-
-
-
-
+class IpNetworkPrinter(object):
+    
+    def __init__(self, out):
+        """out is the output stream to print to"""
+        self._out = out
+        
+        
+class TextIpNetworkPrinter(IpNetworkPrinter):
+    """
+    Prints out IpNetwork hierarchy as text with indented lines.
+    """
+    
+    def printIpNetwork(self, net):
+        """
+        Print out the IpNetwork and IpAddress hierarchy under net.
+        """
+        self._printIpNetworkLine(net)
+        self._printTree(net)
+        
+    def _printTree(self, net, indent="  "):
+        for child in net.children():
+            self._printIpNetworkLine(child, indent)
+            self._printTree(child, indent + "  ")
+        for ipaddress in net.ipaddresses():
+            args = (indent, ipaddress, ipaddress.__class__.__name__)
+            self._out.write("%s%s (%s)\n" % args)
+            
+    def _printIpNetworkLine(self, net, indent=""):
+        args = (indent, net.id, net.netmask, net.__class__.__name__)
+        self._out.write("%s%s/%s (%s)\n" % args)
+        
+        
+class PythonIpNetworkPrinter(IpNetworkPrinter):
+    """
+    Prints out the IpNetwork hierarchy as a python dictionary.
+    """
+    
+    def printIpNetwork(self, net):
+        """
+        Print out the IpNetwork and IpAddress hierarchy under net.
+        """
+        tree = {}
+        self._createTree(net, tree)
+        from pprint import pformat
+        self._out.write("%s\n" % pformat(tree))
+        
+    def _walkTree(self, net, tree):
+        for child in net.children():
+            self._createTree(child, tree)
+        for ip in net.ipaddresses():
+            key = (ip.__class__.__name__, ip.id, ip.netmask)
+            tree[key] = True
+            
+    def _createTree(self, net, tree):
+        key = (net.__class__.__name__, net.id, net.netmask)
+        subtree = {}
+        tree[key] = subtree
+        self._walkTree(net, subtree)
+        
+        
+class XmlIpNetworkPrinter(IpNetworkPrinter):
+    """
+    Prints out the IpNetwork hierarchy as XML.
+    """
+    
+    def printIpNetwork(self, net):
+        """
+        Print out the IpNetwork and IpAddress hierarchy under net.
+        """
+        self._doc = minidom.parseString('<root/>')
+        root = self._doc.documentElement
+        self._createTree(net, root)
+        self._out.write(self._doc.toprettyxml())
+        
+    def _walkTree(self, net, tree):
+        for child in net.children():
+            self._createTree(child, tree)
+        for ip in net.ipaddresses():
+            self._appendChild(tree, ip)
+            
+    def _createTree(self, net, tree):
+        node = self._appendChild(tree, net)
+        self._walkTree(net, node)
+        
+    def _appendChild(self, tree, child):
+        node = self._doc.createElement(child.__class__.__name__)
+        node.setAttribute("id", child.id)
+        node.setAttribute("netmask", str(child.netmask))
+        tree.appendChild(node)
+        return node
+        
+        
+class IpNetworkPrinterFactory(object):
+    
+    def __init__(self):
+        self._printerFactories = {'text': TextIpNetworkPrinter,
+                                  'python': PythonIpNetworkPrinter,
+                                  'xml': XmlIpNetworkPrinter}
+    
+    def createIpNetworkPrinter(self, format, out):
+        if format in self._printerFactories:
+            factory = self._printerFactories[format]
+            return factory(out)
+        else:
+            args = (format, self._printerFactories.keys())
+            raise Exception("Invalid format '%s' must be one of %s" % args)
+            
