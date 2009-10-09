@@ -136,6 +136,8 @@ class WMIClient(BaseClient):
                         self.results.append((plugin, ex))
                 self.close()
             except Exception, ex:
+                log.warn("Unable to collect WMI data from %s: %s",
+                         self.device.id, ex)
                 self.close()
                 raise
         d = drive(inner)
