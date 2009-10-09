@@ -306,6 +306,20 @@ class CollectorDaemon(RRDDaemon):
         self._configProxy.deleteConfigProxy(self._prefs, deviceId)
         self._scheduler.removeTasksForConfig(deviceId)
 
+    def _errorStop(self, result):
+        """
+        Twisted callback to receive fatal messages.
+        
+        @param result: the Twisted failure
+        @type result: failure object
+        """
+        if isinstance(result, Failure):
+            msg = result.getErrorMessage()
+        else:
+            msg = str(result)
+        self.log.critical("Unrecoverable Error: %s", msg)
+        self.stop()
+
     def _startConfigCycle(self):
         def _startMaintenanceCycle(result):
             # run initial maintenance cycle as soon as possible
@@ -316,7 +330,7 @@ class CollectorDaemon(RRDDaemon):
         # kick off the initial configuration cycle; once we're configured then
         # we'll begin normal collection activity and the maintenance cycle
         d = self._configCycle()
-        d.addCallbacks(_startMaintenanceCycle, self.errorStop)
+        d.addCallbacks(_startMaintenanceCycle, self._errorStop)
         return d
 
     def _setCollectorPreferences(self, preferenceItems):
