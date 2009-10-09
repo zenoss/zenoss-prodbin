@@ -12,8 +12,12 @@
 ###########################################################################
 
 import types
-
+from DateTime import DateTime
 from random import choice
+from email.MIMEText import MIMEText
+import socket
+import logging
+log = logging.getLogger("zen.UserSettings")
 
 from Globals import DTMLFile
 from Globals import InitializeClass
@@ -22,7 +26,6 @@ from AccessControl import getSecurityManager
 from Acquisition import aq_base
 from Products.PluggableAuthService import interfaces
 from zExceptions import Unauthorized
-from DateTime import DateTime
 
 from Products.ZenEvents.ActionRule import ActionRule
 from Products.ZenEvents.CustomEventView import CustomEventView
@@ -36,8 +39,8 @@ from ZenossSecurity import *
 from ZenModelRM import ZenModelRM
 from Products.ZenUtils import Utils
 
-from email.MIMEText import MIMEText
-import socket
+
+class LocalAndLDAPUserEntries(Exception): pass
 
 UserSettingsId = "ZenUsers"
 
@@ -1199,20 +1202,42 @@ class GroupSettings(UserSettings):
          for u in self._getG().listAssignedPrincipals(self.id) ]
 
     def getMemberUserIds(self):
-        return [ u[0] for u in self._getG().listAssignedPrincipals(self.id) ]
+        try:
+            memberUserIds = [ u[0] for u in self._getG().listAssignedPrincipals(self.id) ]
+        except AssertionError, ex:
+            log.exception("Are there both LDAP and local userids? Check /zport/acl_users ")
+            raise LocalAndLDAPUserEntries(
+                          "Error obtaining user ids from LDAP: please see the KB " 
+                            "article 'AssertionError when managing Users'" )
+        return memberUserIds
 
     def printUsers(self):
-        return ", ".join(self.getMemberUserIds())
+        try:
+            userIds = self.getMemberUserIds()
+        except LocalAndLDAPUserEntries, ex:
+            return str(ex)
+
+        return ", ".join(userIds)
 
     def getEmailAddresses(self):
+        try:
+            userIds = self.getMemberUserIds()
+        except LocalAndLDAPUserEntries, ex:
+            return []
+
         result = []
-        for username in self.getMemberUserIds():
+        for username in userIds:
             result.extend(self.getUserSettings(username).getEmailAddresses())
         return result
 
     def getPagerAddresses(self):
+        try:
+            userIds = self.getMemberUserIds()
+        except LocalAndLDAPUserEntries, ex:
+            return []
+
         result = []
-        for username in self.getMemberUserIds():
+        for username in userIds:
             result.extend(self.getUserSettings(username).getPagerAddresses())
         return result
 
