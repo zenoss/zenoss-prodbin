@@ -3420,9 +3420,6 @@ PerformanceConf
 <property type="int" id="winCycleInterval" mode="w" >
 60
 </property>
-<property type="int" id="winmodelerCycleInterval" mode="w" >
-60
-</property>
 <property description="Number of data objects to retrieve in a single WMI query" type="int" id="wmibatchSize" mode="w" >
 10
 </property>

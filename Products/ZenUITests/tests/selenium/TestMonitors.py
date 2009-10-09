@@ -121,7 +121,6 @@ class _TestMonitors(SelTestBase):
         self.selenium.type("processCycleInterval:int", "181") 
         self.selenium.type("statusCycleInterval:int", "62") 
         self.selenium.type("winCycleInterval:int", "63") 
-        self.selenium.type("winmodelerCycleInterval:int", "64") 
         self.selenium.type("configCycleInterval:int", "361") 
         self.selenium.type("renderurl", "/zport/RenderServerTest") 
         self.selenium.type("renderuser", "admin") 

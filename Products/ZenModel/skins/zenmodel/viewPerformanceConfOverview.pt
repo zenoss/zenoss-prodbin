@@ -45,10 +45,6 @@
       <td class="tablevalues" tal:content="here/winCycleInterval" />
     </tr>
     <tr>
-      <td class="tableheader">Windows Modeler Cycle Interval (secs)</td>
-      <td class="tablevalues" tal:content="here/winmodelerCycleInterval" />
-    </tr>
-    <tr>
       <td class="tableheader">Windows WMI batch size (data objects)</td>
       <td class="tablevalues" tal:content="here/wmibatchSize" />
     </tr>

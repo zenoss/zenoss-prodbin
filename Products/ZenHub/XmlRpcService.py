@@ -137,7 +137,7 @@ class XmlRpcService(xmlrpc.XMLRPC):
         fields = ['configCycleInterval', 'statusCycleInterval', 
                   'processCycleInterval', 'perfsnmpCycleInterval', 
                   'eventlogCycleInterval', 'renderurl', 'renderpass', 
-                  'renderuser', 'winCycleInterval', 'winmodelerCycleInterval']
+                  'renderuser', 'winCycleInterval']
 
         # get the performance conf (if it exists)
         conf = getattr(self.dmd.Monitors.Performance, monitor, None)

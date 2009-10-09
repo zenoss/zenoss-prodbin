@@ -130,7 +130,6 @@ class PerformanceConf(Monitor, StatusColor):
     processCycleInterval = 180
     statusCycleInterval = 60
     winCycleInterval = 60
-    winmodelerCycleInterval = 60
     wmibatchSize = 10
     wmiqueryTimeout = 100
     configCycleInterval = 6 * 60
@@ -169,7 +168,6 @@ class PerformanceConf(Monitor, StatusColor):
         {'id': 'processCycleInterval', 'type': 'int', 'mode': 'w'},
         {'id': 'statusCycleInterval', 'type': 'int', 'mode': 'w'},
         {'id': 'winCycleInterval', 'type': 'int', 'mode': 'w'},
-        {'id': 'winmodelerCycleInterval', 'type': 'int', 'mode': 'w'},
         {'id': 'wmibatchSize', 'type': 'int', 'mode': 'w',
          'description':"Number of data objects to retrieve in a single WMI query",},
         {'id': 'wmiqueryTimeout', 'type': 'int', 'mode': 'w',
