@@ -73,7 +73,9 @@ class CollectorDaemon(RRDDaemon):
                               IEventService)
 
     def __init__(self, preferences, taskSplitter, 
-                 configurationLister=DUMMY_LISTENER):
+                 configurationLister=DUMMY_LISTENER,
+                 initializationCallback=None,
+                 stoppingCallback=None):
         """
         Constructs a new instance of the CollectorDaemon framework. Normally
         only a singleton instance of a CollectorDaemon should exist within a
@@ -83,6 +85,14 @@ class CollectorDaemon(RRDDaemon):
         @type preferences: ICollectorPreferences
         @param taskSplitter: the task splitter to use for this collector
         @type taskSplitter: ITaskSplitter
+        @param initializationCallback: a callable that will be executed after
+                                       connection to the hub but before
+                                       retrieving configuration information
+        @type initializationCallback: any callable
+        @param stoppingCallback: a callable that will be executed first during
+                                 the stopping process. Exceptions will be
+                                 logged but otherwise ignored.
+        @type stoppingCallback: any callable
         """
         # create the configuration first, so we have the collector name
         # available before activating the rest of the Daemon class hierarchy.
@@ -100,7 +110,9 @@ class CollectorDaemon(RRDDaemon):
             raise TypeError(
                     "configurationLister must provide IConfigurationListener")
         self._configListener = configurationLister
-        
+        self._initializationCallback = initializationCallback
+        self._stoppingCallback = stoppingCallback
+
         # register the various interfaces we provide the rest of the system so
         # that collector implementors can easily retrieve a reference back here
         # if needed
@@ -168,11 +180,26 @@ class CollectorDaemon(RRDDaemon):
         """
         Method called by PBDaemon after a connection to ZenHub is established.
         """
-        return self._startConfigCycle()
+        return self._startup()
+
+    def _getInitializationCallback(self):
+        def doNothing():
+            pass
+
+        if self._initializationCallback is not None:
+            return self._initializationCallback
+        else:
+            return doNothing
 
     def connectTimeout(self):
         super(CollectorDaemon, self).connectTimeout()
-        return self._startConfigCycle()
+        return self._startup()
+
+    def _startup(self):
+        d = defer.maybeDeferred( self._getInitializationCallback() )
+        d.addCallback( self._startConfigCycle )
+        d.addErrback( self._errorStop )
+        return d
 
     def watchdogCycleTime(self):
         """
@@ -207,6 +234,14 @@ class CollectorDaemon(RRDDaemon):
         for ev in self._thresholds.check(path, now, value):
             ev['eventKey'] = path.rsplit('/')[-1]
             self.sendEvent(ev)
+
+    def stop(self, ignored=""):
+        if self._stoppingCallback is not None:
+            try:
+                self._stoppingCallback()
+            except Exception, e:
+                self.log.exception('Exception while stopping daemon')
+        super(CollectorDaemon, self).stop( ignored )
 
     def remote_deleteDevice(self, devId):
         """
@@ -320,7 +355,7 @@ class CollectorDaemon(RRDDaemon):
         self.log.critical("Unrecoverable Error: %s", msg)
         self.stop()
 
-    def _startConfigCycle(self):
+    def _startConfigCycle(self, result=None):
         def _startMaintenanceCycle(result):
             # run initial maintenance cycle as soon as possible
             # TODO: should we not run maintenance if running in non-cycle mode?
@@ -330,7 +365,7 @@ class CollectorDaemon(RRDDaemon):
         # kick off the initial configuration cycle; once we're configured then
         # we'll begin normal collection activity and the maintenance cycle
         d = self._configCycle()
-        d.addCallbacks(_startMaintenanceCycle, self._errorStop)
+        d.addCallback(_startMaintenanceCycle)
         return d
 
     def _setCollectorPreferences(self, preferenceItems):
