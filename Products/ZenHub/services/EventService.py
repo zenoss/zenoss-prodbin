@@ -58,10 +58,6 @@ class EventService(HubService, ThresholdMixin):
 
 
     @translateError
-    def remote_getWmiConnIssues(self):
-        return self.zem.getWmiConnIssues()
-
-    @translateError
     def remote_getDefaultRRDCreateCommand(self):
         return self.config.getDefaultRRDCreateCommand()
 

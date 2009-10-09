@@ -951,14 +951,6 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
                                     limit=limit)
 
 
-    def getWmiConnIssues(self, state=2, limit=0):
-        """Return devices with WMI connection failures.
-        """
-        where="severity>=3 and (eventClass = '%s' or eventClass = '%s')" % (
-                                                                Status_Wmi_Conn, Status_Ping)
-        return self.getDeviceIssues(where=where,state=state,limit=limit)
-        
-
     def getDeviceStatusIssues(self, severity=4, state=1, limit=0):
         """Return only status issues.
         """

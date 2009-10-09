@@ -47,9 +47,6 @@ class XmlRpcService(xmlrpc.XMLRPC):
     def xmlrpc_getDevicePingIssues(self, *unused):
         return self.zem.getDevicePingIssues()
     
-    def xmlrpc_getWmiConnIssues(self, *args):
-        return self.zem.getWmiConnIssues(*args)
-
     def xmlrpc_getDeviceWinInfo(self, *args):
         return self.dmd.Devices.Server.Windows.getDeviceWinInfo(*args)
 
