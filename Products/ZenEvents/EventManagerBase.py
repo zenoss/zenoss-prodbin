@@ -422,7 +422,7 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
                 queryValues.append(v)
             elif k=='lastTime':
                 v = self.dateDB(v.replace('T', ' '))
-                newwhere += ' and %s <= %%s ' % (k, v)
+                newwhere += ' and %s <= %%s ' % (k, )
                 queryValues.append(v)
             elif ftype=='multiselectmenu':
                 if isinstance(v, basestring): v = (v,)
