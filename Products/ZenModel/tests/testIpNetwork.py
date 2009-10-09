@@ -119,7 +119,38 @@ class TestIpNetwork(ZenModelBaseTest):
         net = dmdNet.findNet('1.2.0.0')
         self.assert_(dmdNet.findNet('1.2.3.0') in net.children())
         self.assert_(dmdNet.findNet('1.2.4.0') in net.children())
-
+        
+    def testCreateIpWithLessSpecificMask(self):
+        """
+        See ticket #3646.
+        
+        Add network 42.67.128.0/17, then create IP address 42.67.129.14 with a
+        netmask of 3.  The important thing is that the netmask of the IP
+        address has a less specific mask length than the network.  The IP
+        address should be created directly under the network.
+        """
+        dmdNet = self.dmd.Networks
+        # set this explicitly to the default. it should not affect this test.
+        # but it is used by createIp, so just to be safe.
+        dmdNet._updateProperty('zDefaultNetworkTree', (24, 32))
+        
+        subnet = dmdNet.addSubNetwork("42.67.128.0", 17)
+        # make sure it is in the right place
+        self.assertEqual(subnet, dmdNet._getOb("42.67.128.0"))
+        # make sure it has the right netmask
+        self.assertEqual(17, subnet.netmask)
+        
+        ip = dmdNet.createIp("42.67.129.14", 3)
+        # make sure the IP address has the correct netmask
+        self.assertEqual(3, ip.netmask)
+        # make sure the subnet still has the right netmask
+        self.assertEqual(17, subnet.netmask)
+        # make sure the IP address is in the right place
+        msg = "42.67.129.14 should be in subnet.ipaddresses(), but it is " \
+              "not. subnet.ipaddresses() = %s" % subnet.ipaddresses()
+        self.assert_(ip in subnet.ipaddresses(), msg)
+        # make sure no new networks have been created under the subnet
+        self.assertEqual([], subnet.children())
 
 def test_suite():
     from unittest import TestSuite, makeSuite
