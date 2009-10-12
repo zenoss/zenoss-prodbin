@@ -122,5 +122,5 @@ class Nagios(CommandParser):
         perfData = self.processPerfData(rawPerfData)
         for dp in cmd.points:
             if dp.id in perfData:
-                result.values.append( (dp.id, perfData[dp.id]) )
+                result.values.append( (dp, perfData[dp.id]) )
 
