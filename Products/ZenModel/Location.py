@@ -148,7 +148,7 @@ class Location(DeviceOrganizer, ZenPackable):
         data = []
         children = self.children()
         allnodes.extend(children)
-        data = [x.getGeomapData() for x in allnodes]
+        data = [x.getGeomapData() for x in allnodes if x.address]
         if not data: data = [self.getGeomapData()]
         return data
 

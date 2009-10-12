@@ -8,8 +8,7 @@
             <dl class="faux-table">
 
                 <dt class="first">Subdevices</dt>
-                <dd class="first" 
-                    tal:content="python:len(here.getSubDevices())"></dd>
+                <dd class="first" tal:content="here/countDevices"/>
 
                 <dt>Subaddresses</dt>
                 <dd tal:content="here/numMappableChildren"></dd>
