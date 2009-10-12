@@ -163,6 +163,9 @@ class SnmpClient(BaseClient):
             reactor.stop()
 
 
+    def stop(self):
+        self.proxy.close()
+
 
 def buildOptions(parser=None, usage=None):
     "build options list that both telnet and ssh use"
