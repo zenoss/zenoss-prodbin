@@ -724,15 +724,6 @@ class zenperfsnmp(SnmpDaemon):
         """
 
         self.log.debug("Received config for %s", configs.device)
-        if self.options.showdeviceconfigs:
-            self.log.debug("Device %s configs:" % configs.device)
-            for attr in dir(configs):
-                obj = getattr( configs, attr )
-                if attr.startswith('_') or hasattr(obj, "__call__"):
-                    continue
-                self.log.debug("%s = %s" % (attr, obj))
-            self.log.debug("-----------------------")
-
         p = self.updateAgentProxy(configs.device, configs.connInfo)
 
         if self.options.cacheconfigs:
@@ -1149,13 +1140,6 @@ RRD create command: %s""" % \
                                action="store_true",
                                default=False,
                                help="Show the raw RRD values. For debugging purposes only.")
-
-        self.parser.add_option('--showdeviceconfigs',
-                               dest='showdeviceconfigs',
-                               action="store_true",
-                               default=False,
-                               help="Show all the configuration information for each device. For debugging purposes only.")
-
 
 
 if __name__ == '__main__':
