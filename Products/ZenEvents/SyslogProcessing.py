@@ -69,6 +69,9 @@ r"^\d+ \d+\/\d+\/\d+ \d+:\d+:\d+\.\d+ SEV=\d+ (?P<eventClassKey>\S+) RPT=\d+ (?P
 # Dell Storage Array
 # 2626:48:VolExec:27-Aug-2009 13:15:58.072049:VE_VolSetWorker.hh:75:WARNING:43.3.2:Volume volumeName has reached 96 percent of its reported size and is currently using 492690MB.
 r'^\d+:\d+:(?P<component>[^:]+):\d+-\w{3}-\d{4} \d{2}:\d{2}:\d{2}\.\d+:[^:]+:\d+:\w+:(?P<eventClassKey>[^:]+):(?P<summary>.*)',
+
+# 1-Oct-2009 23:00:00.383809:snapshotDelete.cc:290:INFO:8.2.5:Successfully deleted snapshot 'UNVSQLCLUSTERTEMPDB-2009-09-30-23:00:14.11563'.
+r'^\d+-\w{3}-\d{4} \d{2}:\d{2}:\d{2}\.\d+:[^:]+:\d+:\w+:(?P<eventClassKey>[^:]+):(?P<summary>.*)',
 ) 
 
 # compile regex parsers on load
