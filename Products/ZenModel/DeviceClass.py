@@ -139,7 +139,7 @@ class DeviceClass(DeviceOrganizer, ZenPackable, TemplateContainer):
         dclass = self.getDmdRoot("Devices")
         for orgname in dclass.getOrganizerNames():
             org = dclass.getOrganizer(orgname)
-            if pyclass == org.getPythonDeviceClass():
+            if issubclass(org.getPythonDeviceClass(), pyclass):
                 dcnames.append(orgname)
         dcnames.sort(lambda a, b: cmp(a.lower(), b.lower()))
         return dcnames
