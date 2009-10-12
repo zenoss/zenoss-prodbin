@@ -119,7 +119,7 @@ Simple body message
            '_clearClasses': [], 'eventKey': '',
            'device': 'example.com',
            'message': 'Simple body message\n',
-           '_fields': [], 'ipAddress': '208.77.188.166'
+           '_fields': [], 'ipAddress': '192.0.32.10'
   }
 },
 
@@ -140,7 +140,7 @@ Simple body message
            '_action': 'status', 'component': '', 'summary': 'Test event message subject',
            '_clearClasses': [], 'eventKey': '', 'device': 'example.com',
            'message': 'Simple body message\n', '_fields': [],
-           'ipAddress': '208.77.188.166'
+           'ipAddress': '192.0.32.10'
   }
 },
 
@@ -195,7 +195,7 @@ sig
            '_action': 'status', 'component': '', 'summary': 'Test event message subject',
            '_clearClasses': [], 'eventKey': '', 'device': 'example.com',
            'message': "Body part of the message\nLots of\n  lovely\n    text\n\n# special case: '.' on at the beginning of a line all on its own \n#    may terminate message processing, depending on the agent\n\n.\n\n  Spread out all over the e-mail.\n\nsig\n",
-           '_fields': [], 'ipAddress': '208.77.188.166'
+           '_fields': [], 'ipAddress': '192.0.32.10'
   }
 },
 
