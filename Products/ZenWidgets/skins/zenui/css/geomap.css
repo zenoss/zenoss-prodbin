@@ -1,10 +1,27 @@
 #geomapcontainer {
-    border:1px solid black;
+    border: medium none;
+    height: 100%;
+    margin: 0;
+    padding: 0;
+}
+#geomapcontainer.noapikey {
+    background: #fff url(img/mapbg.png) top left no-repeat;
+    padding: 20px 10px 10px;
+    overflow: hidden;
 }
 
 #geomaperrormsg {
+    font-family: helvetica,arial,sans-serif;
+    font-weight: bold;
+    color: #700;
+    border: 1px solid #222;
+    -moz-box-shadow: 1px 1px 20px #222;
+    -webkit-box-shadow: 1px 1px 20px #222;
+    -moz-border-radius: 10px;
+    -webkit-border-radius: 10px;
+    background-color: #fff;
+    opacity: 0.9;
+    padding: 10px;
     text-align:center;
-    font-size:2em;
-    height:400px;
-    background-color:white;
+    font-size:1.5em;
 }

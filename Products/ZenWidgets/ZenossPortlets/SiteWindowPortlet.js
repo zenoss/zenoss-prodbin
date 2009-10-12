@@ -1,54 +1,50 @@
-var GoogleMapsDatasource = Class.create();
+var SiteWindowDatasource = Class.create();
 
-GoogleMapsDatasource.prototype = {
-    __class__ : "YAHOO.zenoss.portlet.GoogleMapsDatasource",
+SiteWindowDatasource.prototype = {
+    __class__ : "YAHOO.zenoss.portlet.SiteWindowDatasource",
     __init__: function(settings) {
         this.baseLoc = settings.baseLoc;
     },
     get: function(callback) {
         this.callback = callback;
-        var url = '/zport/dmd' + escape(this.baseLoc) + 
-                  '/simpleLocationGeoMap';
+		var url = this.baseLoc;
         html = '<iframe src="' + url + '" ' +
-               'style="border:medium none;margin:-2px 0px;padding:0px;'+
-               'overflow:hidden;width:100%;height:100%;"/>';
+            'style="border:medium none;margin:0;padding:0;'+
+            'background-color:#fff;'+
+            'width:100%;height:100%;"/>';
         callback({responseText:html});
     }
 }
-YAHOO.zenoss.portlet.GoogleMapsDatasource = GoogleMapsDatasource;
+YAHOO.zenoss.portlet.SiteWindowDatasource = SiteWindowDatasource;
 
-var GoogleMapsPortlet = YAHOO.zenoss.Subclass.create(
+var SiteWindowPortlet = YAHOO.zenoss.Subclass.create(
     YAHOO.zenoss.portlet.Portlet);
-GoogleMapsPortlet.prototype = {
-    __class__: "YAHOO.zenoss.portlet.GoogleMapsPortlet",
+SiteWindowPortlet.prototype = {
+    __class__: "YAHOO.zenoss.portlet.SiteWindowPortlet",
     __init__: function(args) {
         args = args || {};
-        id = 'id' in args? args.id : getUID('googlemaps');
-        baseLoc = 'baseLoc' in args? args.baseLoc : '/Locations';
+        id = 'id' in args? args.id : getUID('sitewindow');
+        baseLoc = 'baseLoc' in args? args.baseLoc : YAHOO.zenoss.portlet.DEFAULT_SITEWINDOW_URL;
         bodyHeight = 'bodyHeight' in args? args.bodyHeight : 400;
-        title = 'title' in args? args.title: "Locations";
+        title = 'title' in args? args.title: "Site Window";
         refreshTime = 'refreshTime' in args? args.refreshTime : 60;
+        miscthing = 'miscthing' in args? args.miscthing: "miscthing";
         this.mapobject = null;
         var datasource = 'datasource' in args? 
             args.datasource:
-            new YAHOO.zenoss.portlet.GoogleMapsDatasource(
-                {'baseLoc':baseLoc?baseLoc:'/Locations'});
+            new YAHOO.zenoss.portlet.SiteWindowDatasource(
+                {'baseLoc':baseLoc?baseLoc:''});
         this.superclass.__init__(
-            {id:id, title:title, refreshTime:refreshTime,
+            {id:id, title:title, refreshTime:refreshTime, miscthing:miscthing,
             datasource:datasource, bodyHeight:bodyHeight}
         );
         this.buildSettingsPane();
-        this.hardRefreshTime = (60*60)-2; // Once every 59mins58secs
-        callLater(this.hardRefreshTime, this.force_reload);
-    },
-    force_reload: function() {
-        YAHOO.zenoss.setInnerHTML(this.body, this.body.innerHTML)
-        callLater(this.hardRefreshTime, this.force_reload);
+        setStyle(this.body, {'overflow-y':'hidden'});
     },
     buildSettingsPane: function() {
         s = this.settingsSlot;
         this.locsearch = YAHOO.zenoss.zenautocomplete.LocationSearch(
-            'Base Location', s);
+            'URL (http://www.zenoss.com)', s);
         addElementClass(this.locsearch.container, 
                         'portlet-settings-control');
     },
@@ -65,4 +61,4 @@ GoogleMapsPortlet.prototype = {
     }
 
 }
-YAHOO.zenoss.portlet.GoogleMapsPortlet = GoogleMapsPortlet;
+YAHOO.zenoss.portlet.SiteWindowPortlet = SiteWindowPortlet;

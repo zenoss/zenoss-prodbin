@@ -1,15 +1,21 @@
 // Set up the namespace
 YAHOO.namespace('zenoss.portlet');
 
+// Cache internally
+var YZP = YAHOO.zenoss.portlet;
+
 // A registry for portlets to make themselves known.
-YAHOO.zenoss.portlet.Registry = [];
+YZP.Registry = [];
 function register_portlet(klass, name) {
-    if (klass in YAHOO.zenoss.portlet) {
-        constructor = YAHOO.zenoss.portlet[klass];
-        YAHOO.zenoss.portlet.Registry.push([constructor, name]);
+    if (klass in YZP) {
+        constructor = YZP[klass];
+        YZP.Registry.push([constructor, name]);
     }
 }
-YAHOO.zenoss.portlet.register_portlet = register_portlet;
+YZP.register_portlet = register_portlet;
+
+YZP.DEFAULT_SITEWINDOW_URL = YZP.DEFAULT_SITEWINDOW_URL || 
+                             "http://www2.zenoss.com/in-app-welcome";
 
 var isIE//@cc_on=1;
 
@@ -62,7 +68,7 @@ PortletColumn.prototype = {
             appendChildNodes(this.domel, portlet.render());
         }
         if (!isIE) new YAHOO.zenoss.DDResize(portlet);
-        j = new YAHOO.zenoss.portlet.PortletProxy(portlet.id, this);
+        j = new YZP.PortletProxy(portlet.id, this);
         j.addInvalidHandleId(portlet.resizehandle.id);
         j.addInvalidHandleClass('nodrag');
         this.container.setContainerHeight();
@@ -194,7 +200,7 @@ Portlet.prototype = {
         removeElement(this.container);
         delete this.PortletContainer.portlets[this.id];
         this.PortletContainer.isDirty = true;
-        if (!suppressSave)
+        if (suppressSave!=true)
             this.PortletContainer.save();
     },
     render: function() {
@@ -559,7 +565,7 @@ PortletContainer.prototype = {
                 mybuttons.push( {text:text, handler:klassAddMethod} );
             }
             registerButton = method(this, registerButton);
-            forEach(YAHOO.zenoss.portlet.Registry, method(this, function(x) {
+            forEach(YZP.Registry, method(this, function(x) {
                 var klass = x[0];
                 var text = x[1];
                 registerButton(text, klass);
@@ -579,13 +585,26 @@ PortletContainer.prototype = {
         forEach(values(this.portlets), function(p){
             p.destroy(true);
         });
-        p1 = new YAHOO.zenoss.portlet.ProdStatePortlet({id:'prodstates'});
-        p2 = new YAHOO.zenoss.portlet.DeviceIssuesPortlet({id:'devissues'});
-        p3 = new YAHOO.zenoss.portlet.WatchListPortlet({id:'watchlist'});
-        p4 = new YAHOO.zenoss.portlet.UserMsgsPortlet({id:'usermsgs'});
+        p1 = new YZP.SiteWindowPortlet({
+                id:'welcome',
+                title:'Welcome', 
+                url: YZP.DEFAULT_SITEWINDOW_URL,
+                bodyHeight: 500
+             });
+        //p1 = new YZP.ProdStatePortlet({id:'prodstates'});
+        p2 = new YZP.DeviceIssuesPortlet({
+                id:'devissues',
+                bodyHeight: 150
+            });
+        //p3 = new YZP.WatchListPortlet({id:'watchlist'});
+        p4 = new YZP.GoogleMapsPortlet({
+                id:'googlemaps',
+                bodyHeight: 310
+            });
+        //p4 = new YZP.UserMsgsPortlet({id:'usermsgs'});
         this.leftCol().addPortlet(p1);
-        this.leftCol().addPortlet(p2);
-        this.middleCol().addPortlet(p3);
+        //this.leftCol().addPortlet(p2);
+        this.middleCol().addPortlet(p2);
         this.rightCol().addPortlet(p4);
         this.save();
     },
@@ -710,10 +729,10 @@ TableDatasource.prototype = {
 
 
 // Portlet drag stuffz
-YAHOO.zenoss.portlet.PortletProxy = function(id, portlet) {
+YZP.PortletProxy = function(id, portlet) {
     sGroup = 'PortletProxy';
     config = null;
-    YAHOO.zenoss.portlet.PortletProxy.superclass.constructor.call(
+    YZP.PortletProxy.superclass.constructor.call(
         this, id, sGroup, config);
     var el = this.getDragEl();
     YAHOO.util.Dom.setStyle(el, "opacity", 0.67);
@@ -726,7 +745,7 @@ YAHOO.zenoss.portlet.PortletProxy = function(id, portlet) {
     this.addInvalidHandleClass('nodrag');
 }
 
-YAHOO.extend(YAHOO.zenoss.portlet.PortletProxy, YAHOO.util.DDProxy, {
+YAHOO.extend(YZP.PortletProxy, YAHOO.util.DDProxy, {
 
     startDrag: function(x, y) {
         var dragEl = this.getDragEl();
@@ -858,12 +877,12 @@ YAHOO.extend(YAHOO.zenoss.DDResize, YAHOO.util.DragDrop, {
 
 });
 
-YAHOO.zenoss.portlet.PortletContainer = PortletContainer;
-YAHOO.zenoss.portlet.XHRDatasource = XHRDatasource;
-YAHOO.zenoss.portlet.StaticDatasource = StaticDatasource;
-YAHOO.zenoss.portlet.IFrameDatasource = IFrameDatasource;
-YAHOO.zenoss.portlet.TableDatasource = TableDatasource;
-YAHOO.zenoss.portlet.Portlet = Portlet;
+YZP.PortletContainer = PortletContainer;
+YZP.XHRDatasource = XHRDatasource;
+YZP.StaticDatasource = StaticDatasource;
+YZP.IFrameDatasource = IFrameDatasource;
+YZP.TableDatasource = TableDatasource;
+YZP.Portlet = Portlet;
 
 // Tell the loader we're all done!
-YAHOO.register("portlet", YAHOO.zenoss.portlet, {});
+YAHOO.register("portlet", YZP, {});

@@ -30,13 +30,15 @@ try:
     registerDirectory('skins', globals())
 except ImportError: pass
 
+from ZenossPortlets.ZenossPortlets import register_default_portlets
+
 def update_portlets(app):
     """
     Reread in portlet source on startup. If this is the initial load, and
     objects don't exist yet, don't do anything.
     """
     if hasattr(app, 'zport') and hasattr(app.zport, 'ZenPortletManager'):
-        app.zport.ZenPortletManager.update_source()
+        register_default_portlets(app.zport.ZenPortletManager)
 
 def initialize(registrar):
     registrar.registerClass(

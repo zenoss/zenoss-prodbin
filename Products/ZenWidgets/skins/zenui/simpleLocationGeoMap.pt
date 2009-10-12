@@ -8,7 +8,6 @@
 <link type="text/css" rel="stylesheet" href='css/geomap.css'/>
 <style>
 body {margin:0;padding:0;background-color:#bbb}
-div#geomapcontainer { margin:0;padding:0;border:medium none; }
 </style>
 <style type="text/css">
 v\:* {
@@ -65,16 +64,17 @@ if (eventsdb /* eventsdb is defined above */) {
 
 
 <div id="geomapcontainer" tal:define="dummy here/getChildGeomapData"
-    tal:on-error="structure python:here.dmd.error_handler(error)">
+    tal:on-error="structure python:here.dmd.error_handler(error)"
+    tal:attributes="class python:test(here.dmd.geomapapikey, '', 'noapikey')">
 
     <!-- Google Maps javascript adds map here -->
 
     <div tal:condition="python:not here.dmd.geomapapikey" id="geomaperrormsg">
-        You haven't yet specified a Google Maps API key. <br/>
-        Please go to the 
+        You haven't yet specified a <br/>Google Maps API key. <br/>
+        Please visit the 
         <a href="/zport/dmd/editSettings"
            onclick="currentWindow().parent.location.href=this.href">Settings</a> 
-        page to set one up.
+       page <br/>to set one up.
     </div>
 
 </div></body></html>

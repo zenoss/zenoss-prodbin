@@ -35,6 +35,12 @@ portlets = [
      'permission':  ZEN_VIEW
     },
     {
+     'sourcepath':  _portletpath('SiteWindowPortlet.js'),
+     'id':          'SiteWindowPortlet',
+     'title': 'Site Window',
+     'permission':  ZEN_VIEW
+    },
+    {
      'sourcepath':  _portletpath('DeviceIssuesPortlet.js'), 
      'id':          'DeviceIssuesPortlet', 
      'title': 'Device Issues',
