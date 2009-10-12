@@ -56,7 +56,7 @@ class CiscoMap(SnmpPlugin):
         r'^\d{4}$',
 
         # Other
-        r'^(CISCO|C|Cat|CAT)?\d{4}[A-Z](-\d{0,3})?$',
+        r'^(CISCO|C|Cat|CAT|AS)?\d{4}[A-Z]{0,2}(-(\w|\d{0,3}))?$',
         ]
 
 
@@ -96,4 +96,3 @@ class CiscoMap(SnmpPlugin):
             return om
         else:
             return None
-
