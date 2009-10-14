@@ -256,6 +256,7 @@ class ZenHub(ZCmdBase):
         self.changes = []
         self.workers = []
         self.workList = []
+        self.worker_processes=set()
 
         ZCmdBase.__init__(self)
         import Products
@@ -271,6 +272,7 @@ class ZenHub(ZCmdBase):
 
         xmlsvc = AuthXmlRpcService(self.dmd, checker)
         reactor.listenTCP(self.options.xmlrpcport, server.Site(xmlsvc))
+
 
         self.sendEvent(eventClass=App_Start, 
                        summary="%s started" % self.name,
@@ -541,13 +543,14 @@ class ZenHub(ZCmdBase):
                 
             def processEnded(s, reason):
                 os.unlink(tmp)
+                self.worker_processes.discard(s)
                 self.log.warning("Worker exited with status: %d (%s)",
                                  reason.value.exitCode,
                                  getExitMessage(reason.value.exitCode))
         args = (exe, 'run', '-C', tmp)
         self.log.debug("Starting %s", ' '.join(args))
-        reactor.spawnProcess(WorkerRunningProtocol(), exe, args, os.environ)
-
+        proc = reactor.spawnProcess(WorkerRunningProtocol(), exe, args, os.environ)
+        self.worker_processes.add(proc)
     def heartbeat(self):
         """
         Since we don't do anything on a regular basis, just
@@ -578,9 +581,8 @@ class ZenHub(ZCmdBase):
         if self.options.cycle:
             self.heartbeat()
         reactor.run()
-        for worker in self.workers:
-            worker.transport.signalProcess('KILL')
-
+        for proc in self.worker_processes:
+            proc.signalProcess('KILL')
 
     def buildOptions(self):
         """
