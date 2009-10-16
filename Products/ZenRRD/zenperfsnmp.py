@@ -553,14 +553,15 @@ class zenperfsnmp(SnmpDaemon):
         log.info("Getting threshold classes...")
         yield self.model().callRemote('getThresholdClasses')
         self.remote_updateThresholdClasses(driver.next())
-        
-        log.info("Checking for outdated configs...")
-        current = [(k, v.lastChange) for k, v in self.proxies.items()]
-        yield self.model().callRemote('getDeviceUpdates', current)
 
-        devices = driver.next()
+        devices = []
         if self.options.device:
             devices = [self.options.device]
+        else:
+            log.info("Checking for outdated configs...")
+            current = [(k, v.lastChange) for k, v in self.proxies.items()]
+            yield self.model().callRemote('getDeviceUpdates', current)
+            devices = driver.next()
 
         log.info("Fetching configs for %s", repr(devices)[0:800]+'...')
         yield self.model().callRemote('getDevices', devices)
@@ -702,6 +703,9 @@ class zenperfsnmp(SnmpDaemon):
         """
         Allows zenhub to delete a device from our configuration
         """
+        if self.options.device and doomed != self.options.device:
+            return
+
         self.log.debug("Async delete device %s" % doomed)
         if doomed in self.proxies:
              del self.proxies[doomed]
@@ -711,6 +715,9 @@ class zenperfsnmp(SnmpDaemon):
         """
         Allows zenhub to update our device configuration
         """
+        if self.options.device and snmpTargets.device != self.options.device:
+            return
+
         self.log.debug("Device updates from zenhub received")
         self.updateDeviceConfig(snmpTargets)
 
@@ -722,7 +729,6 @@ class zenperfsnmp(SnmpDaemon):
         as well as its pickle file.
         If no SNMP proxy created for the device, create one.
         """
-
         self.log.debug("Received config for %s", configs.device)
         p = self.updateAgentProxy(configs.device, configs.connInfo)
 
