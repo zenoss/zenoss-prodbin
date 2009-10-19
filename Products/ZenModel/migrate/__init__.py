@@ -190,3 +190,4 @@ import removeWinCollectorGraphPoints
 import deletedevicepermission
 import reindexProducts
 import removeWinModelerCycleInterval
+import stringifyExpansionCardSlot

@@ -39,7 +39,7 @@ class ExpansionCard(HWComponent):
     monitor = False
 
     _properties = HWComponent._properties + (
-        {'id':'slot', 'type':'int', 'mode':'w'},
+        {'id':'slot', 'type':'string', 'mode':'w'},
     )
 
     _relations = HWComponent._relations + (

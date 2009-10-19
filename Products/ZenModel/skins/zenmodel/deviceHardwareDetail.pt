@@ -266,17 +266,23 @@
         <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
                         tableName,'slot','Slot')"/>
         <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
+                        tableName,'id','Name')"/>
+        <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
                         tableName,'getManufacturerName','Manufacturer')"/>
         <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
                         tableName,'getProductName','Model')"/>
+        <th tal:replace="structure python:here.ZenTableManager.getTableHeader(
+                        tableName,'serialNumber','Serial #')"/>
     </tr>
     <tal:block tal:repeat="card batch">
     <tr tal:define="odd repeat/card/odd"
         tal:attributes="class python:test(odd, 'odd', 'even')">
         <td class="tablevalues" tal:content="card/slot"/>
+        <td class="tablevalues" tal:content="card/id"/>
         <td class="tablevalues" 
             tal:content="structure card/getManufacturerLink"/>
         <td class="tablevalues" tal:content="structure card/getProductLink"/>
+        <td class="tablevalues" tal:content="card/serialNumber"/>
     </tr>
     </tal:block>
     <tr>
