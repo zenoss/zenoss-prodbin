@@ -121,6 +121,10 @@ class ZenWinTask(ObservableMixin):
     STATE_WATCHER_QUERY = 'WATCHER_QUERY'
     STATE_WATCHER_PROCESS = 'WATCHER_PROCESS'
     
+    # windows service states from wmi queries (lowercased)
+    RUNNING = "running"
+    STOPPED = "stopped"
+    
     def __init__(self,
                  deviceId,
                  taskName,
@@ -224,6 +228,16 @@ class ZenWinTask(ObservableMixin):
         # give the result to the rest of the errback chain
         return result
         
+    def _sendWinServiceEvent(self, name, summary, severity):
+        event = {'summary': summary,
+                 'eventClass': Status_WinService,
+                 'device': self._devId,
+                 'severity': severity,
+                 'agent': 'zenwin',
+                 'component': name,
+                 'eventGroup': 'StatusTest'}
+        self._eventService.sendEvent(event)
+            
     def _handleResult(self, name, state):
         """
         Handle a result from the wmi query. Results from both the initial WMI
@@ -231,27 +245,21 @@ class ZenWinTask(ObservableMixin):
         this method. Log running and stopped transitions. Send an event if the
         service is monitored.
         """
-        services = self._taskConfig.services
-        stateDct = {'running': (Clear,              log.info),
-                    'stopped': (services.get(name), log.critical)}
-        if state in stateDct:
-            summary = "Windows service '%s' is %s" % (name, state)
-            if name in services:
-                # monitoring is enabled
-                severity, writeToLog = stateDct[state]
-                event = {'summary': summary,
-                         'eventClass': Status_WinService,
-                         'device': self._devId,
-                         'severity': severity,
-                         'agent': 'newzenwin',
-                         'component': name,
-                         'eventGroup': 'StatusTest'}
-                self._eventService.sendEvent(event)
-            else:
-                # monitoring is disabled
-                writeToLog = log.debug
-            writeToLog('%s on %s' % (summary, self._devId))
-                
+        state = state.lower()
+        summary = "Windows service '%s' is %s" % (name, state)
+        logLevel = logging.DEBUG
+        if name in self._taskConfig.services:
+            eventCount, stoppedSeverity = self._taskConfig.services[name]
+            if state == self.RUNNING:
+                self._sendWinServiceEvent(name, summary, Clear)
+                logLevel = logging.INFO
+                self._taskConfig.services[name] = (0, stoppedSeverity)
+            elif state == self.STOPPED:
+                self._sendWinServiceEvent(name, summary, stoppedSeverity)
+                logLevel = logging.CRITICAL
+                self._taskConfig.services[name] = (eventCount + 1, stoppedSeverity)
+        log.log(logLevel, '%s on %s', summary, self._devId)
+        
     def _collectSuccessful(self, results):
         """
         Callback for a successful fetch of services from the remote device.
@@ -261,11 +269,23 @@ class ZenWinTask(ObservableMixin):
         log.debug("Successful collection from %s [%s], results=%s",
                   self._devId, self._manageIp, results)
                   
+        # make a local copy of monitored services list
+        services = self._taskConfig.services.copy()
         if results:
             for result in [r.targetInstance for r in results]:
                 if result.state:
-                    self._handleResult(result.name, result.state.lower())
-                    
+                    if result.name in services:
+                        # remove service from local copy
+                        del services[result.name]
+                    self._handleResult(result.name, result.state)
+        # send events for the services that did not show up in results
+        for name, (eventCount, stoppedSeverity) in services.items():
+            if eventCount == 0:
+                state = self.RUNNING
+            else:
+                state = self.STOPPED
+            self._handleResult(name, state)
+        if results:
             # schedule another immediate collection so that we'll keep eating
             # events as long as they are ready for us; using callLater ensures
             # it goes to the end of the immediate work-queue so that other 
@@ -298,12 +318,8 @@ class ZenWinTask(ObservableMixin):
         
     def _connectWatcher(self, result):
         self.state = ZenWinTask.STATE_WMIC_PROCESS
-        running = [service.name for service in result['query']]
-        for name in running:
-            self._handleResult(name, 'running')
-        for name in self._taskConfig.services:
-            if name not in running:
-                self._handleResult(name, 'stopped')
+        for service in result['query']:
+            self._handleResult(service.name, service.state)
         self._wmic.close()
         self._wmic = None
         self.state = ZenWinTask.STATE_WATCHER_CONNECT
@@ -314,7 +330,7 @@ class ZenWinTask(ObservableMixin):
         
     def _initialQuery(self, result):
         self.state = ZenWinTask.STATE_WMIC_QUERY
-        wql = "SELECT Name FROM Win32_Service WHERE State='Running'"
+        wql = "SELECT Name, State FROM Win32_Service"
         d = self._wmic.query({'query': wql})
         d.addCallback(self._connectWatcher)
         return d
