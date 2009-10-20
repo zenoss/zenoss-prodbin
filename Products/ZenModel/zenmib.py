@@ -1,7 +1,7 @@
 ###########################################################################
 #
 # This program is part of Zenoss Core, an open source monitoring platform.
-# Copyright (C) 2007, Zenoss Inc.
+# Copyright (C) 2007, 2009 Zenoss Inc.
 #
 # This program is free software; you can redistribute it and/or modify it
 # under the terms of the GNU General Public License version 2 as published by
@@ -10,7 +10,7 @@
 # For complete information please visit: http://www.zenoss.com/oss/
 #
 ###########################################################################
-__doc__= """zenmib
+__doc__ = """zenmib
    The zenmib program converts MIBs into python data structures and then
 (by default) adds the data to the Zenoss DMD.  Essentially, zenmib is a
 wrapper program around the smidump program, whose output (python code) is
@@ -58,7 +58,15 @@ import os.path
 import sys
 import glob
 import re
+import logging
 from subprocess import Popen, PIPE
+import tempfile
+import urllib
+import tarfile
+import zipfile
+import signal
+from urllib2 import urlopen
+from urlparse import urljoin, urlsplit
 
 import Globals
 import transaction
@@ -67,450 +75,929 @@ from Products.ZenUtils.ZCmdBase import ZCmdBase
 from Products.ZenUtils.Utils import zenPath
 from zExceptions import BadRequest
 
-
-def walk(*dirs):
+class MibFile:
     """
-    Generator function to create a list of absolute paths
-    for all files in a directory tree starting from the list
-    of directories given as arguments to this function.
-
-    @param *dirs: list of directories to investigate
-    @type *dirs: list of strings
-    @return: directory to investigate
-    @rtype: string
+    A MIB file has the meta-data for a MIB inside of it.
     """
-    for dir in dirs:
-        for dirname, _, filenames in os.walk(dir):
-            for filename in filenames:
-                yield os.path.join(dirname, filename)
+    def __init__(self, fileName, fileContents=""):
+        self.fileName = fileName
+        self.mibs = [] # Order of MIBs defined in the file
+        self.mibToDeps = {} # Dependency defintions for each MIB
+        self.fileContents = self.removeMibComments(fileContents)
+        self.mibDefinitions = self.splitFileToMIBs(self.fileContents)
+        self.mapMibToDependents(self.mibDefinitions)
 
+        # Reclaim some memory
+        self.fileContents = ""
+        self.mibDefinitions = ""
 
-
-class DependencyMap:
-    """
-    A dependency is a reference to another part of the MIB tree.
-    All MIB definitions start from the base of the tree (ie .1).
-    Generally dependencies are from MIB definitions external to
-    the MIB under inspection.
-    """
-
-    def __init__(self):
-        self.fileMap = {}
-        self.depMap = {}
-
-
-    def add(self, filename, name, dependencies):
+    def removeMibComments(self, fileContents):
         """
-        Add a dependency to the dependency tree if it's not already there.
+        Parses the string provided as an argument and extracts
+        all of the ASN.1 comments from the string.
 
-        @param filename: name of MIB file to import
-        @type filename: string
-        @param name: name of MIB
-        @type name: string
-        @param dependencies: dependency
-        @type dependencies: dependency object
-        """
-        if name not in self.depMap:
-            self.fileMap[filename] = name
-            self.depMap[name] = (filename, dependencies)
+        Assumes that fileContents contains the contents of a well-formed
+        (no errors) MIB file.
 
-
-    def getName(self, filename):
-        """
-        Given a filename, return the name of the MIB tree defined in it.
-        Makes the assumption that there's only one MIB tree per file.
-
-        @param filename: MIB filename
-        @type filename: string
-        @return: MIB name
+        @param fileContents: entire contents of a MIB file
+        @type fileContents: string
+        @return: text without any comments
         @rtype: string
-        @todo: to allow for multiple MIBs in a file, should return a list
         """
-        return self.fileMap.get(filename, None)
+        def findSingleLineCommentEndPos(startPos):
+            """
+            Beginning at startPos + 2, searches fileContents for the end of
+            a single line comment. If comment ends with a newline
+            character, the newline is not included in the comment.
 
+            MIB single line comment rules:
+            1. Begins with '--'
+            2. Ends with '--' or newline
+            3. Any characters between the beginning and end of the comment
+                are ignored as part of the comment, including quotes and
+                start/end delimiters for block comments ( '/*' and '*/')
 
-    def getDependencies(self, name):
+            @param startPos: character position of the beginning of the single
+                    line comment within fileContents
+            @type fileContents: string
+            @return: startPos, endPos (character position of the last character
+                    in the comment + 1)
+            @rtype: tuple (integer, integer)
+            """
+            commentEndPosDash = fileContents.find('--', startPos + 2)
+            commentEndPosNewline = fileContents.find('\n', startPos + 2)
+            if commentEndPosDash != -1:
+                if commentEndPosNewline != -1:
+                    if commentEndPosDash < commentEndPosNewline:
+                        endPos = commentEndPosDash + 2
+                    else:
+                        endPos = commentEndPosNewline
+                else:
+                    endPos = commentEndPosDash + 2
+            else:
+                if commentEndPosNewline != -1:
+                    endPos = commentEndPosNewline
+                else:
+                    endPos = len(fileContents)
+
+            return startPos, endPos
+
+        def findBlockCommentEndPos(searchStartPos):
+            """
+            Beginning at startPos + 2, searches fileContents for the end of
+            a block comment. If block comments are nested, the
+            function interates into each block comment by calling itself.
+
+            MIB block comment rules:
+            1. Begins with '/*'
+            2. Ends with '*/'
+            3. Block comments can be nested
+            3. Any characters between the beginning and end of the comment
+                are ignored as part of the comment, including quotes and
+                start/end delimiters for single line comments ('--'). Newlines
+                are included as part of the block comment.
+
+            @param startPos: character position of the beginning of the block
+                    comment within fileContents
+            @type fileContents: string
+            @return: startPos, endPos (character position of the last character
+                    in the comment + 1)
+            @rtype: tuple (integer, integer)
+            """
+            # Locate the next start and end markers
+            nextBlockStartPos = fileContents.find('/*', searchStartPos + 2)
+            nextBlockEndPos = fileContents.find('*/', searchStartPos + 2)
+
+            # If a nested comment exists, find the end
+            if nextBlockStartPos != -1 and \
+                    nextBlockStartPos < nextBlockEndPos:
+                nestedComment = findBlockCommentEndPos(nextBlockStartPos)
+                nextBlockEndPos = fileContents.find('*/', nestedComment[1])
+
+            return searchStartPos, nextBlockEndPos + 2
+
+        # START removeMibComments
+        if not fileContents:
+            return fileContents
+
+        # Get rid of any lines that are completely made up of hyphens
+        fileContents = re.sub(r'[ \t]*-{2}[ \t]*$', '', fileContents)
+
+        # commentRanges holds a list of tuples in the form (startPos, endPos)
+        # that define the beginning and end of comments within fileContents
+        commentRanges = []
+        searchStartPos = 0   # character position within fileContents
+        functions = {'SINGLE': findSingleLineCommentEndPos,
+                          'BLOCK': findBlockCommentEndPos}
+
+        # Parse fileContents, looking for single line comments, block comments
+        # and string literals
+        while searchStartPos < len(fileContents):
+            # Find the beginning of the next occurrance of each item
+            singleLineStartPos = fileContents.find('--', searchStartPos)
+            blockStartPos = fileContents.find('/*', searchStartPos)
+            stringStartPos = fileContents.find('\"', searchStartPos)
+
+            nextItemPos = sys.maxint
+            nextItemType = ''
+
+            # Compare the next starting point for each item type.
+            if singleLineStartPos != -1 and \
+                    singleLineStartPos < nextItemPos:
+                nextItemPos = singleLineStartPos
+                nextItemType = 'SINGLE'
+
+            if blockStartPos != -1 and \
+                    blockStartPos < nextItemPos:
+                nextItemPos = blockStartPos
+                nextItemType = 'BLOCK'
+
+            # If the next item type is a string literal, just search for the
+            # next double quote and continue from there. This works because
+            # all double quotes (that are not part of a comment) appear in
+            # pairs. Even double-double quotes (escaped quotes) will work
+            # with this method since the first double quote will look like a
+            # string literal close quote and the second double quote will look
+            # like the beginning of a string literal.
+            if stringStartPos != -1 and \
+                    stringStartPos < nextItemPos:
+                newSearchStartPos = \
+                    fileContents.find('\"', stringStartPos + 1) + 1
+                if newSearchStartPos > searchStartPos:
+                    searchStartPos = newSearchStartPos
+                else: # Weird error case
+                    break
+
+            # If the next item is a comment, use the functions dictionary
+            # to call the appropriate function
+            elif nextItemPos != sys.maxint:
+                commentRange = functions[nextItemType](nextItemPos)
+                commentRanges.append(commentRange)
+                #searchStartPos = commentRange[1]
+                if commentRange[1] > 0:
+                    searchStartPos = commentRange[1]
+
+            else: # No other items are found!
+                break
+
+        startPos = 0
+        mibParts = []
+
+        # Iterate through each comment, adding the non-comment parts
+        # to mibParts. Finally, return the text without comments.
+        for commentRange in commentRanges:
+            mibParts.append(fileContents[startPos:(commentRange[0])])
+            startPos = commentRange[1]
+        if startPos != len(fileContents):
+            mibParts.append(fileContents[startPos:(len(fileContents))])
+        return ''.join(mibParts)
+
+    def splitFileToMIBs(self, fileContents):
         """
-        Given a name of the MIB tree, return the filename that it's from
-        and its dependencies.
+        Isolates each MIB definition in fileContents into a separate string
 
-        @param name: name of MIB
-        @type name: string
-        @return: dependency tree
-        @rtype: tuple of ( name, dependency object)
+        @param fileContents: the complete contents of a MIB file
+        @type fileContents: string
+        @return: MIB definition strings
+        @rtype: list of strings
         """
-        return self.depMap.get(name, None)
+        if fileContents is None:
+            return []
 
+        DEFINITIONS = re.compile(r'([A-Za-z-0-9]+\s+DEFINITIONS'
+            '(\s+EXPLICIT TAGS|\s+IMPLICIT TAGS|\s+AUTOMATIC TAGS|\s*)'
+            '(\s+EXTENSIBILITY IMPLIED|\s*)\s*::=\s*BEGIN)')
 
+        definitionSpans = []
+        for definitionMatch in DEFINITIONS.finditer(fileContents):
+            definitionSpans.append(list(definitionMatch.span()))
+            # If more than one definiton in the file, set the end of the
+            # last span to the beginning of the current span
+            if len(definitionSpans) > 1:
+                definitionSpans[-2][1] = definitionSpans[-1][0]
 
-class zenmib(ZCmdBase):
-    """
-    Wrapper around the smidump utilities to load MIB files into
-    the DMD tree.
-    """
-    def map_file_to_dependents(self, mibfile):
-        """
-        Scan the MIB file to determine what MIB trees the file is dependent on.
+        # Use the start and end positions to create a string for each
+        # MIB definition
+        mibDefinitions = []
+        if definitionSpans:
+            # Set the end of the last span to the end of the file
+            definitionSpans[-1][1] = len(fileContents)
+            for definitionSpan in definitionSpans:
+                mibDefinitions.append(
+                    fileContents[definitionSpan[0]:definitionSpan[1]])
 
-        @param mibfile: MIB filename
-        @type mibfile: string
-        @return: dependency tree
-        @rtype: tuple of ( name, dependency object)
-        """
-        # Slurp in the whole file
-        fp = open(mibfile)
-        mib = fp.read()
-        fp.close()
-        return self.map_mib_to_dependents(mib)
+        return mibDefinitions
 
-    def map_mib_to_dependents(self, mib):
+    def mapMibToDependents(self, mibDefinitions):
         # ASN.1 syntax regular expressions for declaring MIBs
-        # 
+        #
         # An example from http://www.faqs.org/rfcs/rfc1212.html
-        # 
-        # RFC1213-MIB DEFINITIONS ::= BEGIN 
-        # 
+        #
+        # RFC1213-MIB DEFINITIONS ::= BEGIN
+        #
         # IMPORTS
         #        experimental, OBJECT-TYPE, Counter
         #             FROM RFC1155-SMI;
-        # 
-        #     -- contact IANA for actual number
-        # 
+        #
+        #     -- a MIB may or may not have an IMPORTS section
+        #
         # root    OBJECT IDENTIFIER ::= { experimental xx }
-        # 
+        #
         # END
+        IMPORTS = re.compile(r'\sIMPORTS\s.+;', re.DOTALL)
+        DEPENDENCIES = re.compile(
+            r'\sFROM\s+(?P<dependency>[A-Za-z-0-9]+)')
 
-        DEFINITIONS = re.compile(r'(?P<mib_name>[A-Za-z-0-9]+) +DEFINITIONS *::= *BEGIN')
-        DEPENDS = re.compile(r'FROM *(?P<mib_dependency>[A-Za-z-0-9]+)')
+        mibDependencies = []
+        for definition in mibDefinitions:
+            mibName = re.split(r'([A-Za-z0-9-]+)', definition)[1]
+            dependencies = set()
+            importsMatch = IMPORTS.search(definition)
+            if importsMatch:
+                imports = importsMatch.group()
+                for dependencyMatch in DEPENDENCIES.finditer(imports):
+                    dependencies.add(dependencyMatch.group('dependency'))
+            self.mibs.append(mibName)
+            self.mibToDeps[mibName] = dependencies
 
-        # Split up the file and determine what OIDs need what other OIDs
-        #
-        # TODO: Fix the code so that it takes care of the case where there are multiple
-        #       OBJECT IDENTIFIER sections in the MIB.
-        parts = mib.split('OBJECT IDENTIFIER', 1)
-        mib_prologue = parts[0]
-        match = DEFINITIONS.search(mib_prologue)
-        if not match:
-             # Special case: bootstrap MIB for the root of the MIB tree
-             return None, []
-
-        # Search through the prologue to find all of the IMPORTS.
-        # An example from a real MIB
-        #
-        # IMPORTS
-        #        MODULE-IDENTITY, OBJECT-TYPE,  enterprises, Integer32,
-        #        TimeTicks,NOTIFICATION-TYPE             FROM SNMPv2-SMI
-        #        DisplayString                           FROM RFC1213-MIB
-        #        MODULE-COMPLIANCE, OBJECT-GROUP,
-        #        NOTIFICATION-GROUP                      FROM SNMPv2-CONF;
-        depends = []
-        name = match.group('mib_name')
-        start = match.end(0)  # Jump to past the first FROM token
-        while 1:
-            match = DEPENDS.search(mib_prologue, start)
-            if not match:
-                break
-
-            depends.append(match.group('mib_dependency'))
-
-            # Skip to just past the next FROM token
-            start = match.end(0)
-
-        return name, depends
-        
-
-
-    def dependencies(self, filenames):
+class PackageManager:
+    """
+    Given an URL, filename or archive (eg zip, tar), extract the files from
+    the package and return a list of filenames.
+    """
+    def __init__(self, log, downloaddir, extractdir):
         """
-        Create a dependency map for all MIB files.
+        Initialize the packagae manager.
+
+        @parameter log: logging object
+        @type log: logging class object
+        @parameter downloaddir: directory name to store downloads
+        @type downloaddir: string
+        @parameter extractdir: directory name to store downloads
+        @type extractdir: string
+        """
+        self.log = log
+        self.downloaddir = downloaddir
+        if self.downloaddir[-1] != '/':
+            self.downloaddir += '/'
+        self.extractdir = extractdir
+        if self.extractdir[-1] != '/':
+            self.extractdir += '/'
+
+    def downloadExtract(self, url):
+        """
+        Download and extract the list of filenames.
+        """
+        try:
+            localFile = self.download(url)
+        except (SystemExit, KeyboardInterrupt): raise
+        except:
+             self.log.error("Problems downloading the file from %s: %s" % (
+                url, sys.exc_info()[1] ) )
+             return []
+        self.log.debug("Will attempt to load %s", localFile)
+        return self.processPackage(localFile)
+
+    def download(self, url):
+        """
+        Download the package from the given URL, or if it's a filename,
+        return the filename.
+        """
+        urlParts = urlsplit(url)
+        schema = urlParts[0]
+        path = urlParts[2]
+        if not schema:
+            return os.path.abspath(url)
+        file = path.split(os.sep)[-1]
+        filename, _ = urllib.urlretrieve(url,
+            urljoin([self.downloaddir, file]))
+        return filename
+
+    def processPackage(self, pkgFileName):
+        """
+        Figure out what type of file we have and extract out any
+        files and then enumerate the file names.
+        """
+        self.log.debug("Determining file type of %s" % pkgFileName)
+        if zipfile.is_zipfile(pkgFileName):
+            return self.unbundlePackage(pkgFileName, self.unzip)
+
+        elif tarfile.is_tarfile(pkgFileName):
+            return self.unbundlePackage(pkgFileName, self.untar)
+
+        elif os.path.isdir(pkgFileName):
+            return self.processDir(pkgFileName)
+
+        else:
+            return [ os.path.abspath(pkgFileName) ]
+
+    def unzip(self, file):
+        """
+        Unzip the given file into the current directory and return
+        the directory in which files can be loaded.
+        """
+        pkgZip= zipfile.ZipFile(file, 'r')
+        if pkgZip.testzip() != None:
+            self.log.error("File %s is corrupted -- please download again", file)
+            return
+
+        for file in pkgZip.namelist():
+            self.log.debug("Unzipping file/dir %s..." % file)
+            try:
+                if re.search(r'/$', file) != None:
+                    os.makedirs(file)
+                else:
+                    contents = pkgZip.read(file)
+                    try:
+                        unzipped = open(file, "w")
+                    except IOError: # Directory missing?
+                        os.makedirs(os.path.dirname(file))
+                        unzipped = open(file, "w")
+                    unzipped.write(contents)
+                    unzipped.close()
+            except (SystemExit, KeyboardInterrupt): raise
+            except:
+                self.log.error("Error in extracting %s because %s" % (
+                    file, sys.exc_info()[1] ) )
+                return
+
+        return os.getcwd()
+
+    def untar(self, file):
+        """
+        Given a tar file, extract from the tar into the current directory.
+        """
+        try:
+            self.log.debug("Extracting files from tar...")
+            pkgTar = tarfile.open(file, 'r')
+            for tarInfo in pkgTar:
+                pkgTar.extract(tarInfo)
+            pkgTar.close()
+        except (SystemExit, KeyboardInterrupt): raise
+        except:
+            self.log.error("Error in un-tarring %s because %s" % ( file,
+                                                        sys.exc_info()[1] ) )
+            return
+        return os.getcwd()
+
+    def processDir(self, dir):
+        """
+        Note all of the files in a directory.
+        """
+        fileList = []
+        self.log.debug("Enumerating files in %s", dir)
+        if not os.path.isdir(dir):
+            self.log.debug("%s is not a directory", dir)
+            return []
+        for directoryName, _, fileNames in os.walk(dir):
+            for fileName in fileNames:
+                fileList.append(os.path.join(directoryName, fileName))
+        return fileList
+
+    def unbundlePackage(self, package, unpackageMethod):
+        """
+        Extract the files and then add to the list of files.
+        """
+        self.makeExtractionDir()
+        baseDir = unpackageMethod(package)
+        if baseDir is not None:
+            return self.processDir(baseDir)
+        return []
+
+    def makeExtractionDir(self):
+        """
+        Create an uniquely named extraction directory starting from a base
+        extraction directory.
+        """
+        try:
+            if not os.path.isdir(self.extractdir):
+                os.makedirs(self.extractdir)
+            extractDir = tempfile.mkdtemp(prefix=self.extractdir)
+        except (SystemExit, KeyboardInterrupt): raise
+        except:
+            self.log.error("Error in creating temp dir because %s",
+                                                    sys.exc_info()[1] )
+            sys.exit(1)
+        os.chdir(extractDir)
+
+    def cleanup(self):
+        """
+        Remove any clutter left over from the installation.
+        """
+        self.cleanupDir(self.downloaddir)
+        self.cleanupDir(self.extractdir)
+
+    def cleanupDir(self, dirName):
+        for root, dirs, files in os.walk(dirName, topdown=False):
+            if root == os.sep: # Should *never* get here
+                break
+            for name in files:
+                os.remove(os.path.join(root, name))
+            for name in dirs:
+                try:
+                    os.removedirs(os.path.join(root, name))
+                except OSError:
+                    pass
+        try:
+            os.removedirs(dirName)
+        except OSError:
+            pass
+
+
+class ZenMib(ZCmdBase):
+    """
+    Wrapper around the smidump utilities used to convert MIB definitions into
+    python code which is in turn loaded into the DMD tree.
+    """
+    def makeMibFileObj(self, fileName):
+        """
+        Scan the MIB file to determine what MIBs are defined in the file and
+        what their dependencies are.
+
+        @param fileName: MIB fileName
+        @type fileName: string
+        @return: dependencyDict, indexDict
+            dependencyDict - a dictionary that associates MIB definitions
+                found in fileName with their dependencies
+            indexDict - a dictionary that associates MIB definitions with their
+                ordinal position within fileName}
+        @rtype:
+            dependencyDict = {mibName: [string list of MIB definition names
+                that mibName is dependant on]}
+            indexDict = {mibname: number}
+        """
+        # Retrieve the entire contents of the MIB file
+        self.log.debug("Processing %s", fileName)
+        file = open(fileName)
+        fileContents = file.read()
+        file.close()
+        return MibFile(fileName, fileContents)
+
+    def populateDependencyMap(self, importFileNames, depFileNames):
+        """
+        Populates the self.mibToMibFile instance object with data.
         Exit the program if we're missing any files.
 
-        @param filenames: names of MIB files to import
-        @type filenames: list of strings
-        @return: dependency tree
-        @rtype: DependencyMap
+        @param importFileNames: fully qualified file names of MIB files to import
+        @type importFileNames: list of strings
+        @param depFileNames: fully qualified file names of all MIB files
+        @type depFileNames: list of strings
+        @return: mibFileObjects of files to import
+        @rtype: MibFile
         """
-        missing_files = 0
-        result = DependencyMap()
-        for filename in filenames:
+        self.log.debug("Collecting MIB meta-data and creating depedency map.")
+        toImportMibFileObjs = []
+        for fileName in depFileNames.union(importFileNames):
             try:
-                defines, depends = self.map_file_to_dependents(filename)
-
+                mibFileObj = self.makeMibFileObj(fileName)
             except IOError:
-                self.log.error( "Couldn't open file %s", filename)
-                missing_files += 1
+                self.log.error("Couldn't open file %s", fileName)
                 continue
 
-            if defines == None:
-                self.log.debug( "Unable to parse information from %s -- skipping", filename)
-            else:
-                result.add(filename, defines, depends)
+            mibDependencies = mibFileObj.mibToDeps
+            if not mibDependencies:
+                self.log.warn("Unable to parse information from "
+                    "%s -- skipping", fileName)
+                continue
 
-        if missing_files > 0:
-            self.log.error( "Missing %s files", missing_files )
-            sys.exit(1)
+            if fileName in importFileNames:
+                toImportMibFileObjs.append(mibFileObj)
 
-        return result
+            for mibName, dependencies in mibDependencies.items():
+                self.mibToMibFile[mibName] = mibFileObj
+        return toImportMibFileObjs
 
-
-
-    def getDependencies(self, filename, depMap):
+    def getDependencyFileNames(self, mibFileObj):
         """
         smidump needs to know the list of dependent files for a MIB file in
         order to properly resolve external references.
 
-        @param filename: name of MIB file to import
-        @type filename: string
-        @param depMap: dependency tree
-        @type depMap: DependencyMap
-        @return: list of dependencies
+        @param mibFileObj: MibFile object
+        @type mibFileObj: MibFile
+        @return: list of dependency fileNames
         @rtype: list of strings
         """
-        # Sanity check: if a file doesn't need anything else, it
-        # has no dependencies.  Avoid further work.
-        name = depMap.getName(filename)
-        if not name:
-            return []
+        dependencies = []
+        dependencyFileNames = set()
 
-        # Find the files required by the OID tree in the file.
-        deps = []
-        def dependency_search(name):
+        def dependencySearch(mibName):
             """
-            Create a list of files required by an OID.
+            Create a list of files required by a MIB definition.
 
-            @param name: name of OID
-            @type name: string
+            @param mibName: name of MIB definition
+            @type mibName: string
             """
-            fileAndDeps = depMap.getDependencies(name)
-            if not fileAndDeps:
-                self.log.warn( "Unable to find a file providing the OID %s", name)
+            dependencies.append(mibName)
+            mibFileObj = self.mibToMibFile.get(mibName)
+            if not mibFileObj:
+                self.log.warn("Unable to find a file that defines %s", mibName)
                 return
 
-            mib_file, dependent_oids = fileAndDeps
-            if mib_file and mib_file not in deps:
-                deps.append(mib_file)
+            dependencyFileNames.add(mibFileObj.fileName)
+            for dependency in mibFileObj.mibToDeps[mibName]:
+                if dependency not in dependencies:
+                    dependencySearch(dependency)
 
-            for unresolved_oid in dependent_oids:
-                dependency_search(unresolved_oid)
+        for mibName in mibFileObj.mibs:
+            dependencySearch(mibName)
 
-        # Search the dependency map
-        dependency_search(name)
-        if deps[1:]:
-            return deps[1:]
+        dependencyFileNames.discard(mibFileObj.fileName)
+        return dependencyFileNames
 
-        return []
-
-
-    
-    def generate_python_from_mib( self, mibname, dependencies ):
+    def generatePythonFromMib(self, fileName, dependencyFileNames,
+            mibNamesInFile):
         """
-        Use the smidump program to convert a MIB into Python code"
+        Use the smidump program to convert a MIB into Python code.
 
-        @param mibname: name of the MIB
-        @type mibname: string
-        @param dependencies: list of dependent files
-        @type dependencies: list of strings
-        @return: the newly created MIB
-        @rtype: MIB object
+        One major caveat: smidump by default only outputs the last MIB
+        definition in a file. For that matter, it always outputs the last MIB
+        definition in a file whether it is requested or not. Therefore, if
+        there are multiple MIB definitions in a file, all but the last must be
+        explicitly named on the command line. If you name the last, it will
+        come out twice. We don't want that.
+
+        OK, so we need to determine if there are multiple MIB definitions
+        in fileName and then add all but the last to the command line. That
+        works except the resulting python code will create a dictionary
+        for each MIB definition, all of them named MIB. Executing the code is
+        equivalent to running a=1; a=2; a=3. You only wind up with a=3.
+        Therefore, we separate each dictionary definition into its own string
+        and return a list of strings so each one can be executed individually.
+
+        @param fileName: name of the file containing MIB definitions
+        @type fileName: string
+        @param dependencyFileNames: list of fileNames that fileName is
+            dependent on
+        @type dependencyFileNames: list of strings
+        @param mibNamesInFile: names of MIB definitions in file
+        @type mibNamesInFile: list of strings
+        @return: list of dictionaries. Each dictionary containing the contents
+            of a MIB definition. [ {'mibName': MIB data} ]
+        @rtype: list
         """
-        dump_command =  [ 'smidump', '-k', '-fpython' ]
-        for dep in dependencies[1:]:
+        def savePythonCode(pythonCode):
+            """
+            Stores the smidump-generated Python code to a file.
+            """
+            if not os.path.exists(self.options.pythoncodedir):
+                self.options.keeppythoncode = False
+                self.log.warn('The directory %s to store converted MIB file code '
+                    'does not exist.' % self.options.pythoncodedir)
+                return
+            try:
+                pythonFileName = os.path.join(self.options.pythoncodedir,
+                os.path.basename(fileName) ) + '.py'
+                pythonFile = open(pythonFileName, 'w')
+                pythonFile.write(pythonCode)
+                pythonFile.close()
+            except (SystemExit, KeyboardInterrupt): raise
+            except:
+                self.log.warn('Could not output converted MIB to %s' %
+                    pythonFileName)
+
+        def executePythonCode(pythonCode):
+            """
+            Executes the python code generated smidump
+
+            @param pythonCode: Code generated by smidump
+            @type pythonCode: string
+            @return: a dictionary which contains one key: MIB
+            @rtype: dictionary
+            """
+            result = {}
+            try:
+                exec pythonCode in result
+            except (SystemExit, KeyboardInterrupt): raise
+            except:
+                self.log.exception("Unable to import Pythonized-MIB: %s",
+                    fileName)
+            return result.get('MIB', None)
+
+        def infiniteLoopHandler(signum, frame):
+            """
+            Kills any smidump commands that have probably locked themselves
+            into an infinite loop.
+            """
+            log.error("The command %s has probably gone into an infinite loop",
+                      ' '.join(dumpCommand))
+            log.error("Killing process id %s ...", proc.pid)
+            try:
+                os.kill(proc.pid, signal.SIGKILL)
+            except OSError:
+                pass
+            
+
+        dumpCommand =  ['smidump', '--keep-going', '--format', 'python']
+        for dependencyFileName in dependencyFileNames:
             #  Add command-line flag for our dependent files
-            dump_command.append( '-p')
-            dump_command.append( dep )
+            dumpCommand.append('--preload')
+            dumpCommand.append(dependencyFileName)
+        dumpCommand.append(fileName)
 
-        dump_command.append( mibname )
-        self.log.debug('Running %s', ' '.join( dump_command))
-        proc = Popen( dump_command, stdout=PIPE, stderr=PIPE )
+        # If more than one MIB definition exists in the file, name all but the
+        # last on the command line. (See method description for reasons.)
+        if len(mibNamesInFile) > 1:
+            dumpCommand += mibNamesInFile[:-1]
 
-        python_code, warnings = proc.communicate()
+        self.log.debug('Running %s', ' '.join(dumpCommand))
+        proc = Popen(dumpCommand, stdout=PIPE, stderr=PIPE)
+
+        log = self.log
+        signal.signal(signal.SIGALRM, infiniteLoopHandler)
+        signal.alarm(self.options.smidumptimeout)
+        pythonCode, warnings = proc.communicate()
         proc.wait()
+        signal.alarm(0) # Disable the alarm
         if proc.returncode:
-            self.log.error(warnings)
+            if warnings.strip():
+                self.log.error(warnings)
             return None
 
-        if len(warnings) > 0:
+        if warnings:
             self.log.debug("Found warnings while trying to import MIB:\n%s" \
                  % warnings)
 
-        # Now we'll be brave and try to execute the MIB-to-python code
-        # and store the resulting dictionary in 'result'
-        result = {}
-        try:
-            exec python_code in result
+        if self.options.keeppythoncode:
+            savePythonCode(pythonCode)
 
-        except (SystemExit, KeyboardInterrupt): raise
-        except:
-            self.log.exception("Unable to import Pythonized-MIB: %s", mibname)
-            return None
+        # If more than one MIB definition exists in fileName, pythonCode will
+        # contain a 'MIB = {...}' section for each MIB definition. We must
+        # split each section into its own string and return a string list.
+        mibDicts = []
+        if len(mibNamesInFile) > 1:
+            # The next line of code is vulnerable to changes in smidump
+            mibCodeParts = pythonCode.split('MIB = {')
+            for mibCodePart in mibCodeParts[1:]:
+                mibDict = executePythonCode('MIB = {' + mibCodePart)
+                if mibDict is not None:
+                    mibDicts.append(mibDict)
+        else:
+            mibDict = executePythonCode(pythonCode)
+            if mibDict is not None:
+                mibDicts = [mibDict]
 
-        # Now look for the start of the MIB
-        mib = result.get( 'MIB', None)
-        return mib
+        return mibDicts
 
-
-
-    # Standard MIB attributes that we expect in all MIBs
-    MIB_MOD_ATTS = ('language', 'contact', 'description')
-
-    def load_mib(self, mibs, mibname, depmap):
+    def getDmdMibDict(self, dmdMibDict, mibOrganizer):
         """
-        Attempt to load a MIB after generating its dependency tree
+        Populate a dictionary containing the MIB definitions that have been
+        loaded into the DMD Mibs directory
 
-        @param mibs: filenames of the MIBs to load
-        @type mibs: list of strings
-        @param mibname: name of the MIB
-        @type mibname: string
-        @param dependencies: list of dependent files
-        @type dependencies: string
+        @param dmdMibDict: maps a MIB definition to the path where
+                it is located with in the DMD.
+            Format:
+                {'mibName': 'DMD path where mibName is stored'}
+            Example: MIB-Dell-10892 is located in the DMD tree at
+                Mibs/SITE/Dell, Directory entry is
+                {'MIB-Dell-10892': '/SITE/Dell'] }
+        @param mibOrganizer: the DMD directory to be searched
+        @type mibOrganizer: MibOrganizer
+        """
+        organizerPath = mibOrganizer.getOrganizerName()
+
+        # Record each module from this organizer as a dictionary entry.
+        # mibOrganizer.mibs.objectItems() returns tuple:
+        # ('mibName', <MibModule at /zport/dmd/Mibs/...>)
+        for mibModule in mibOrganizer.mibs.objectItems():
+            mibName = mibModule[0]
+            if mibName not in dmdMibDict:
+                dmdMibDict[mibName] = organizerPath
+            else:
+                self.log.warn('\nFound two copies of %s:'
+                    '  %s and %s' %
+                    (mibName, dmdMibDict[mibName],
+                    mibOrganizer.getOrganizerName()))
+
+        # If there are suborganizers, recurse into them
+        for childOrganizer in mibOrganizer.children():
+            self.getDmdMibDict(dmdMibDict, childOrganizer)
+
+    def addMibEntries(self, leafType, pythonMib, mibModule):
+        """
+        Add the different MIB leaves (ie nodes, notifications) into the DMD.
+
+        @paramater leafType: 'nodes', 'notifications'
+        @type leafType: string
+        @paramater pythonMib: dictionary of nodes and notifications
+        @type pythonMib: dictionary
+        @paramater mibModule: class containing functions to load leaves
+        @type mibModule: class
+        @return: number of leaves added
+        @rtype: int
+        """
+        entriesAdded = 0
+        functor = { 'nodes':mibModule.createMibNode,
+                    'notifications':mibModule.createMibNotification,
+                   }.get(leafType, None)
+        if not functor or leafType not in pythonMib:
+            return entriesAdded
+
+        for name, values in pythonMib[leafType].items():
+            try:
+                functor(name, **values)
+                entriesAdded += 1
+            except BadRequest:
+                try:
+                    self.log.warn("Unable to add %s id '%s' as this"
+                                " name is reserved for use by Zope",
+                                leafType, name)
+                    newName = '_'.join([name, mibName])
+                    self.log.warn("Trying to add %s '%s' as '%s'",
+                                leafType, name, newName)
+                    functor(newName, **values)
+                    self.log.warn("Renamed '%s' to '%s' and added to"
+                                " MIB %s", name, newName, leafType)
+                except (SystemExit, KeyboardInterrupt): raise
+                except:
+                    self.log.warn("Unable to add %s id '%s' -- skipping",
+                                leafType, name)
+        return entriesAdded
+
+    def loadMibFile(self, mibFileObj, dmdMibDict):
+        """
+        Attempt to load the MIB definitions in fileName into DMD
+
+        @param fileName: name of the MIB file to be loaded
+        @type fileName: string
         @return: whether the MIB load was successful or not
         @rtype: boolean
         """
-        dependencies = self.getDependencies(mibname, depmap)
+        fileName = mibFileObj.fileName
+        self.log.debug('Attempting to load %s' % fileName)
 
-        mib = self.generate_python_from_mib( mibname, dependencies )
-        if not mib:
+        # Check to see if any MIB definitions in fileName have already
+        # been loaded into Zenoss. If so, warn but don't fail
+        mibNamesInFile = mibFileObj.mibs
+        for mibName in mibNamesInFile:
+            if mibName in dmdMibDict:
+                dmdMibPath = dmdMibDict[mibName]
+                self.log.warn('MIB definition %s found in %s is already '
+                    'loaded at %s.' % (mibName, fileName, dmdMibPath))
+
+        # Retrieve a list of all the files containing MIB definitions that are
+        # required by the MIB definitions in fileName
+        dependencyFileNames = self.getDependencyFileNames(mibFileObj)
+
+        # Convert the MIB file data into python dictionaries. pythonMibs
+        # contains a list of dictionaries, one for each MIB definition in
+        # fileName.
+        pythonMibs = self.generatePythonFromMib(fileName, dependencyFileNames,
+            mibNamesInFile)
+        if not pythonMibs:
             return False
 
-        # Check for duplicates -- or maybe not...
-        modname = mib['moduleName']
-        # TODO: Find out Why this is commented out
-        #mod = mibs.findMibModule(modname)
-        mod = None
-        if mod:
-            self.log.warn( "Skipping %s as it is already loaded", modname)
-            return False
+        # Standard MIB attributes that we expect in all MIBs
+        MIB_MOD_ATTS = ('language', 'contact', 'description')
 
-        # Create the container for the MIBs and define meta-data
-        # In the DMD this creates another container class which
-        # contains mibnodes.  These data types are found in
-        # Products.ZenModel.MibModule and Products.ZenModel.MibNode
-        mod = mibs.createMibModule(modname, self.options.path)
-        for key, val in mib[modname].items():
-            if key in self.MIB_MOD_ATTS:
-                setattr(mod, key, val)
+        # Add the MIB data for each MIB into Zenoss
+        for pythonMib in pythonMibs:
+            mibName = pythonMib['moduleName']
 
-        # Add regular OIDs to the mibmodule + mibnode relationship tree
-        nodes_added = 0
-        if 'nodes' in mib:
-            for name, values in mib['nodes'].items():
-                try:
-                    mod.createMibNode(name, **values)
-                    nodes_added += 1
-                except BadRequest:
-                    try:
-                        self.log.warn("Unable to add node id '%s' as this"
-                                      " name is reserved for use by Zope",
-                                      name)
-                        newName = '_'.join([name, modname])
-                        self.log.warn("Trying to add node '%s' as '%s'",
-                                  name, newName)
-                        mod.createMibNode(newName, **values)
-                        self.log.warn("Renamed '%s' to '%s' and added to MIB"
-                                  " nodes", name, newName)
-                    except:
-                        self.log.warn("Unable to add '%s' -- skipping",
-                                      name)
+            # Create the container for the MIBs and define meta-data.
+            # In the DMD this creates another container class which
+            # contains mibnodes.  These data types are found in
+            # Products.ZenModel.MibModule and Products.ZenModel.MibNode
+            mibModule = self.dmd.Mibs.createMibModule(
+                mibName, self.options.path)
+            for key, val in pythonMib[mibName].items():
+                if key in MIB_MOD_ATTS:
+                    setattr(mibModule, key, val)
 
-        # Put SNMP trap information into Products.ZenModel.MibNotification
-        traps_added = 0
-        if 'notifications' in mib:
-            for name, values in mib['notifications'].items():
-                try:
-                    mod.createMibNotification(name, **values)
-                    traps_added += 1
-                except BadRequest:
-                    try:
-                        self.log.warn("Unable to add trap id '%s' as this"
-                                      " name is reserved for use by Zope",
-                                      name)
-                        newName = '_'.join([name, modname])
-                        self.log.warn("Trying to add trap '%s' as '%s'",
-                                  name, newName)
-                        mod.createMibNotification(newName, **values)
-                        self.log.warn("Renamed '%s' to '%s' and added to MIB"
-                                  " traps", name, newName)
-                    except:
-                        self.log.warn("Unable to add '%s' -- skipping",
-                                      name)
+            nodesAdded = self.addMibEntries('nodes', pythonMib, mibModule)
+            trapsAdded = self.addMibEntries('notifications', pythonMib, mibModule)
+            self.log.info("Parsed %d nodes and %d notifications from %s",
+                          nodesAdded, trapsAdded, mibName)
 
-        self.log.info("Parsed %d nodes and %d notifications", nodes_added,
-                      traps_added)
-
-        # Add the MIB tree permanently to the DMD except if we get the
-        # --nocommit flag.
-        if not self.options.nocommit:
-            trans = transaction.get()
-            trans.setUser( "zenmib" ) 
-            trans.note("Loaded MIB %s into the DMD" % modname)
-            trans.commit() 
-            self.log.info("Loaded MIB %s into the DMD", modname)
+            # Add the MIB tree permanently to the DMD unless --nocommit flag.
+            if not self.options.nocommit:
+                trans = transaction.get()
+                trans.setUser("zenmib")
+                trans.note("Loaded MIB %s into the DMD" % mibName)
+                trans.commit()
+                self.log.info("Loaded MIB %s into the DMD", mibName)
 
         return True
 
+    def getAllMibDepFileNames(self):
+        """
+        Use command line parameters to create a list of files containing MIB
+        definitions that will be used as a reference list for the files being
+        loaded into the DMD
 
+        @return: set of file names
+        @rtype: set
+        """
+        defaultMibDepDirs = [ 'ietf', 'iana', 'irtf', 'tubs', 'site' ]
+        mibDepFileNames = set()
+        for subdir in defaultMibDepDirs:
+            depDir = os.path.join(self.options.mibdepsdir, subdir)
+            mibDepFileNames.update(self.pkgMgr.processDir(depDir))
+        return mibDepFileNames
+
+    def getMibsToImport(self):
+        """
+        Uses command-line parameters to create a list of files containing MIB
+        definitions that are to be loaded into the DMD
+
+        @return: list of file names that are to be loaded into the DMD
+        @rtype: list
+        """
+        loadFileNames = []
+        if self.args:
+            for fileName in self.args:
+                loadFileNames.extend(self.pkgMgr.downloadExtract(fileName))
+        else:
+            loadFileNames = self.pkgMgr.processDir(self.options.mibsdir)
+
+        if loadFileNames:
+            self.log.debug("Will attempt to load the following files: %s",
+                       loadFileNames)
+        else:
+            self.log.error("No MIB files to load!")
+            sys.exit(1)
+
+        return set(loadFileNames)
 
     def main(self):
         """
         Main loop of the program
         """
-        # Prepare to load the default MIBs
-        smimibdir = self.options.mibsdir
-        if not os.path.exists( smimibdir ):
-            self.log.error("The directory %s doesn't exist!" % smimibdir )
+        # Verify MIBs search directory is valid. Fail if not
+        if not os.path.exists(self.options.mibsdir):
+            self.log.error("The directory %s doesn't exist!" %
+                self.options.mibsdir )
             sys.exit(1)
 
-        ietf, iana, irtf, tubs, site = \
-              map(lambda x: os.path.join(smimibdir, x),
-                  'ietf iana irtf tubs site'.split())
+        self.pkgMgr = PackageManager(self.log, self.options.downloaddir,
+                                     self.options.extractdir)
+        self.mibToMibFile = {}
 
-        # Either load MIBs from the command-line or from the default
-        # location where MIBs are stored by Zenoss.
-        if len(self.args) > 0:
-            mibnames = self.args
-            depMap = self.dependencies(list(walk(ietf, iana, irtf, tubs))
-                                       + mibnames)
-        else:
-            mibnames = glob.glob(os.path.join(smimibdir, 'site', '*'))
-            depMap = self.dependencies(walk(ietf, iana, irtf, tubs, site))
+        requestedFiles = self.getMibsToImport()
+        mibDepFileNames = self.getAllMibDepFileNames()
+        mibFileObjs = self.populateDependencyMap(requestedFiles, mibDepFileNames)
 
-        # Make connection to the DMD at the start of the MIB tree
-        mibs = self.dmd.Mibs
+        # dmdMibDict = {'mibName': 'DMD path to MIB'}
+        dmdMibDict = {}
+        self.getDmdMibDict(dmdMibDict, self.dmd.Mibs)
 
-        # Process all of the MIBs that we've found
-        loaded_mib_files = 0
-        for mibname in mibnames:
+        # Load the MIB files
+        self.log.info("Found %d MIBs to import.", len(mibFileObjs))
+        loadedMibFiles = 0
+        for mibFileObj in mibFileObjs:
             try:
-                if self.load_mib( mibs, mibname, depMap):
-                    loaded_mib_files += 1
-
+                if self.loadMibFile(mibFileObj, dmdMibDict):
+                    loadedMibFiles += 1
             except (SystemExit, KeyboardInterrupt): raise
             except Exception, ex:
-                self.log.exception("Failed to load MIB: %s" % mibname)
+                self.log.exception("Failed to load MIB: %s", mibFileObj.fileName)
 
         action = "Loaded"
         if self.options.nocommit:
             action = "Processed"
-        self.log.info( "%s %d MIB file(s)" % ( action, loaded_mib_files))
+
+        self.log.info("%s %d MIB file(s)" % (action, loadedMibFiles))
+        self.pkgMgr.cleanup()
+
         sys.exit(0)
 
-        
     def buildOptions(self):
         """
         Command-line options
         """
         ZCmdBase.buildOptions(self)
-        self.parser.add_option('--mibsdir', 
-                               dest='mibsdir', default=zenPath('share/mibs'),
-                               help="Directory of input MIB files [ default: %default ]")
-        self.parser.add_option('--path', 
+        self.parser.add_option('--mibsdir',
+                               dest='mibsdir', default=zenPath('share/mibs/site'),
+                       help="Directory of input MIB files [ default: %default ]")
+        self.parser.add_option('--mibdepsdir',
+                        dest='mibdepsdir', default=zenPath('share/mibs'),
+                       help="Directory of input MIB files [ default: %default ]")
+        self.parser.add_option('--path',
                                dest='path', default="/",
                                help="Path to load MIB into the DMD")
         self.parser.add_option('--nocommit', action='store_true',
                                dest='nocommit', default=False,
-                               help="Don't commit the MIB to the DMD after loading")
+                           help="Don't commit the MIB to the DMD after loading")
+        self.parser.add_option('--keeppythoncode', action='store_true',
+                               dest='keeppythoncode', default=False,
+                           help="Don't commit the MIB to the DMD after loading")
+        self.parser.add_option('--pythoncodedir', dest='pythoncodedir',
+            default=tempfile.gettempdir() + "/mib_pythoncode/",
+            help="This is the directory where the converted MIB will be output. " \
+                "[ default: %default ]")
+        self.parser.add_option('--downloaddir', dest='downloaddir',
+            default=tempfile.gettempdir() + "/mib_downloads/",
+            help="This is the directory where the MIB will be downloaded. " \
+                "[ default: %default ]")
+        self.parser.add_option('--extractdir', dest='extractdir',
+            default=tempfile.gettempdir() + "/mib_extract/",
+            help="This is the directory where unzipped MIB files will be stored. " \
+                "[ default: %default ]")
+        self.parser.add_option('--smidumptimeout', dest='smidumptimeout',
+                           default=60,
+                           help="Kill smidump after this many seconds to " \
+                                "stop infinite loops.")
 
 
 if __name__ == '__main__':
-    zm = zenmib()
+    zm = ZenMib()
     zm.main()

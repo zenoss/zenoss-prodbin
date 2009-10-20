@@ -16,9 +16,7 @@ import os.path
 import logging
 
 from Products.ZenTestCase.BaseTestCase import BaseTestCase
-from Products.ZenModel.zenmib import zenmib
-from Products.ZenModel.Exceptions import *
-
+from Products.ZenModel.zenmib import ZenMib, MibFile, PackageManager
 
 class FakeConfigs: pass
 
@@ -46,38 +44,35 @@ class Testzenmib(BaseTestCase):
         #       a handler object to logging.getLogger().addHandler(handler),
         #       but that doesn't seem to work.
 
-        self.zmib = zenmib(noopts=1)
+        self.zmib = ZenMib(noopts=1)
         self.zmib.options = FakeOptions()
 
-
-    def testFindSingleDependency(self):
-        """
-        Given a MIB, find out what it relies on
-        """
-        mib = """
-RFC1213-MIB DEFINITIONS ::= BEGIN 
-
-IMPORTS
-       experimental, OBJECT-TYPE, Counter
-            FROM RFC1155-SMI;
-
--- contact IANA for actual number
-
-root    OBJECT IDENTIFIER ::= { experimental xx }
-
-END
-"""
-        name, depends = self.zmib.map_mib_to_dependents(mib)
-        self.assertEquals(name, 'RFC1213-MIB')
-        self.assert_(len(depends) == 1)
-        self.assertEquals(depends[0], 'RFC1155-SMI')
+        self.mfo = MibFile('filename', '')
+        self.log = logging.getLogger("zen.ZenMib")
 
 
     def testFindDependencies(self):
         """
         Given a MIB, find out what it relies on
         """
-        mib = """
+        mib1 = """
+RFC1213-MIB DEFINITIONS ::= BEGIN 
+
+IMPORTS
+       experimental, OBJECT-TYPE, Counter
+            FROM RFC1155-SMI;
+
+root    OBJECT IDENTIFIER ::= { experimental xx }
+
+END
+"""
+        mfo = MibFile('filename', mib1)
+        self.assert_('RFC1213-MIB' in mfo.mibs)
+        depends = mfo.mibToDeps['RFC1213-MIB']
+        self.assert_(len(depends) == 1)
+        self.assert_('RFC1155-SMI' in depends)
+
+        mib2 = """
 RFC1213-MIB DEFINITIONS ::= BEGIN 
 
 IMPORTS
@@ -91,12 +86,16 @@ root    OBJECT IDENTIFIER ::= { experimental xx }
 
 END
 """
-        name, depends = self.zmib.map_mib_to_dependents(mib)
-        self.assertEquals(name, 'RFC1213-MIB')
+        mfo = MibFile('filename', mib2)
+        self.assert_('RFC1213-MIB' in mfo.mibs)
+        depends = mfo.mibToDeps['RFC1213-MIB']
         self.assert_(len(depends) == 3)
+        self.assertEquals(depends,
+                  set(['SNMPv2-SMI', 'RFC1213-MIB', 'SNMPv2-CONF']))
 
 
-    def testFilterOutNonAscii(self):
+
+    def XtestFilterOutNonAscii(self):
         """
         Currently, we don't support multi-byte language exports
         when ZenPacks are exported.  Control characters cause
@@ -104,18 +103,20 @@ END
         """
         pass  # Not implemented yet
 
+
     def testComments(self):
         """
         Ignore comments
         """
         mib = """
 RFC1213-MIB DEFINITIONS ::= BEGIN 
+aaa
 --sss--
 bbb --ttt
 ccc --uuu-- ddd
 eee --vvv--
 "This is text" --www-- "This is ""quoted"" text"
-"This is more quoted ""text"" followed by file.
+"This is more quoted ""text"" " followed by file.
 ------------------------------------------
 -- Lines with all dashes are not valid ASN.1 comments
 -- We ignore them anyway
@@ -142,28 +143,74 @@ a */ string"
     /*they seem like they should cut out without*/
   */
 */
+Just some more text here.
+
 END
 """
-        name, depends = self.zmib.map_mib_to_dependents(mib)
-        self.assertEquals(name, 'RFC1213-MIB')
+        noComments = """
+RFC1213-MIB DEFINITIONS ::= BEGIN 
+aaa
+
+bbb 
+ccc  ddd
+eee 
+"This is text"  "This is ""quoted"" text"
+"This is more quoted ""text"" " followed by file.
+
+
+
+
+ 
+Text with an  empty comment in the middle
+ But wait, here's text
+And now more text 
+Finally, the last 
+
+ finish a 
+   single line comment inside of a double quote
+
+But what happens 
+comment within */ a single line comment. There
+is also the issue of a "block comment /* within
+a */ string"
+
+
+Just some more text here.
+
+END
+"""
+
+        justMib = self.mfo.removeMibComments(mib)
+        self.assertEquals(justMib, noComments)
         
-    def testMultipleMIBs(self):
+
+    def testMIBSplits(self):
         """
-        What happens if there's more than one MIB in a file?
+        Can we split properly?
         """
-        mib = """
+        mib1 = """
 IMPORT1 DEFINITIONS ::= BEGIN
 
     IMPORTS
         myroot      FROM NOIMPORT1;
 
-    level1  OBJECT IDENTIFIER ::= { myroot 1 }
+    level  OBJECT IDENTIFIER ::= { myroot 1 }
+END
+
+"""
+        mib2 = """
+IMPORT1 DEFINITIONS ::= BEGIN
+
+    IMPORTS
+        myroot      FROM NOIMPORT1;
+
+    level  OBJECT IDENTIFIER ::= { myroot 1 }
 END
 
 IMPORT2 DEFINITIONS ::= BEGIN
 
     IMPORTS
-        level1      FROM IMPORT1
+        level      FROM IMPORT1
         myroot      FROM NOIMPORT1;
 
     level2  OBJECT IDENTIFIER ::= { level1 1 }
@@ -171,8 +218,11 @@ IMPORT2 DEFINITIONS ::= BEGIN
 
 END
 """
-        name, depends = self.zmib.map_mib_to_dependents(mib)
-        self.assertEquals(name, 'IMPORT1')
+        mibs = self.mfo.splitFileToMIBs(mib1)
+        self.assertEquals(len(mibs), 1)
+
+        mibs = self.mfo.splitFileToMIBs(mib2)
+        self.assertEquals(len(mibs), 2)
 
 
 def test_suite():
