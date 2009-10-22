@@ -40,6 +40,8 @@ class ifconfig(LinuxCommandPlugin):
     compname = "os"
     relname = "interfaces"
     modname = "Products.ZenModel.IpInterface"
+    deviceProperties = LinuxCommandPlugin.deviceProperties + (
+           'zInterfaceMapIgnoreNames', 'zInterfaceMapIgnoreTypes') 
 
     ifstart = re.compile(r"^(\S+)\s+Link encap:(.+)HWaddr (\S+)"
                          "|^(\S+)\s+Link encap:(.+)")
@@ -47,13 +49,14 @@ class ifconfig(LinuxCommandPlugin):
     flags = re.compile(r"^(.*) MTU:(\d+)\s+Metric:.*")
     
     def process(self, device, results, log):
-        log.info('Collecting interfaces for device %s' % device.id)
+        log.info('Modeler %s processing data for device %s', self.name(), device.id)
+        self.log = log
         ifconfig, dmesg = results.split('__COMMAND__')
-        relMap = self.parseIfconfig(ifconfig, self.relMap())
+        relMap = self.parseIfconfig(ifconfig, device, self.relMap())
         relMap = parseDmesg(dmesg.lstrip(), relMap)
         return relMap
         
-    def parseIfconfig(self, ifconfig, relMap):
+    def parseIfconfig(self, ifconfig, device, relMap):
         """
         Parse the output of the ifconfig -a command.
         """
@@ -70,15 +73,28 @@ class ifconfig(LinuxCommandPlugin):
             if miface:
                 # start new interface and get name, type, and macaddress
                 iface = self.objectMap()
-                relMap.append(iface)
                 if miface.lastindex == 3:
                     name, itype, iface.macaddress=miface.groups()[:3]
                 else:
                     name, itype = miface.groups()[3:]
                 if itype.startswith("Ethernet"): itype = "ethernetCsmacd"
                 iface.type = itype.strip()
+
                 iface.interfaceName = name
                 iface.id = self.prepId(name)
+                dontCollectIntNames = getattr(device, 'zInterfaceMapIgnoreNames', None)
+                if dontCollectIntNames and re.search(dontCollectIntNames, iface.interfaceName):
+                    self.log.debug("Interface %s matched the zInterfaceMapIgnoreNames zprop '%s'",
+                              iface.interfaceName, dontCollectIntNames)
+                    continue
+
+                dontCollectIntTypes = getattr(device, 'zInterfaceMapIgnoreTypes', None)
+                if dontCollectIntTypes and re.search(dontCollectIntTypes, iface.type):
+                    self.log.debug("Interface %s type %s matched the zInterfaceMapIgnoreTypes zprop '%s'",
+                      iface.interfaceName, iface.type, dontCollectIntTypes)
+                    continue
+
+                relMap.append(iface)
                 continue
 
             # get the ip address of an interface
