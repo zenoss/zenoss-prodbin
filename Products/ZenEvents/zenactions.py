@@ -1,7 +1,7 @@
 ###########################################################################
 #
 # This program is part of Zenoss Core, an open source monitoring platform.
-# Copyright (C) 2007, Zenoss Inc.
+# Copyright (C) 2007, 2009 Zenoss Inc.
 #
 # This program is free software; you can redistribute it and/or modify it
 # under the terms of the GNU General Public License version 2 as published by
@@ -27,6 +27,7 @@ import Globals
 from ZODB.POSException import POSError
 from _mysql_exceptions import OperationalError, ProgrammingError 
 
+from Products.ZenUtils.ProcessQueue import ProcessQueue
 from Products.ZenUtils.ZCmdBase import ZCmdBase
 from Products.ZenUtils.ZenTales import talesCompile, getEngine
 from Products.ZenEvents.Exceptions import ZenEventNotFound
@@ -52,10 +53,8 @@ class EventCommandProtocol(ProcessProtocol):
         self.server = server
         self.data = ''
         self.error = ''
-        self.timeout = reactor.callLater(cmd.defaultTimeout, self.timedOut)
 
-    def timedOut(self):
-        self.timeout = None
+    def timedOut(self, value):
         self.server.log.error("Command %s timed out" % self.cmd.id)
         self.server.sendEvent(Event.Event(
             device=self.server.options.monitor,
@@ -65,6 +64,7 @@ class EventCommandProtocol(ProcessProtocol):
             eventKey=self.cmd.id,
             summary="Timeout running %s" % (self.cmd.id,),
             ))
+        return value
 
     def processEnded(self, reason):
         self.server.log.debug("Command finished: %s" % reason.getErrorMessage())
@@ -73,11 +73,6 @@ class EventCommandProtocol(ProcessProtocol):
             code = reason.value.exitCode
         except AttributeError:
             pass
-
-        # The process has ended. We can cancel the timeout now.
-        if self.timeout:
-            self.timeout.cancel()
-            self.timeout = None
 
         if code == 0:
             cmdData = self.data or "<command produced no output>"
@@ -509,6 +504,8 @@ class ZenActions(ZCmdBase):
             command = cmd.command
             if clear:
                 command = cmd.clearCommand
+            if not command:
+                return True;
             device = self.dmd.Devices.findDevice(data.get('device', ''))
             component = None
             if device:
@@ -523,10 +520,12 @@ class ZenActions(ZCmdBase):
             if isinstance(res, Exception):
                 raise res
             prot = EventCommandProtocol(cmd, self)
-            self.log.info('Running %s' % res)
-            reactor.spawnProcess(prot, '/bin/sh',
-                                 ('/bin/sh', '-c', res),
-                                 env=None)
+            if res:
+                self.log.info('Queueing %s' % res)
+                self._processQ.queueProcess('/bin/sh', ('/bin/sh', '-c', res),
+                                        env=None, processProtocol=prot, 
+                                        timeout=cmd.defaultTimeout,
+                                        timeout_callback=prot.timedOut)
         except Exception:
             self.log.exception('Error running command %s', cmd.id)
         return True
@@ -567,7 +566,15 @@ class ZenActions(ZCmdBase):
             self.sendHeartbeat()
         except:
             self.log.exception("unexpected exception")
-        reactor.callLater(self.options.cycletime, self.runCycle)
+        if self.options.cycle:
+            reactor.callLater(self.options.cycletime, self.runCycle)
+        else:
+            def shutdown(value):
+                reactor.stop()
+                return value
+            self.log.info("waiting for outstanding process to end")
+            d = self._processQ.stop()
+            d.addBoth(shutdown)
 
 
     def run(self):
@@ -582,14 +589,14 @@ class ZenActions(ZCmdBase):
         except:
             self.prodState = 1000
 
-        if not self.options.cycle:
-            self.sendHeartbeat()
-            self.schedule.run()
-            return self.mainbody()
-        self.schedule.start()
-        self.runCycle()
+        self._processQ = ProcessQueue(self.options.parallel)
+        def startup():
+            self._processQ.start()
+            self.schedule.start()
+            self.runCycle()
+        reactor.callWhenRunning(startup)
         reactor.run()
-
+            
 
     def sendEvent(self, evt):
         """Send event to the system.
@@ -730,6 +737,9 @@ class ZenActions(ZCmdBase):
             default=DEFAULT_MONITOR,
             help="Name of monitor instance to use for heartbeat "
                 " events. Default is %s." % DEFAULT_MONITOR)
+        self.parser.add_option("--parallel", dest="parallel",
+            default=10, type='int',
+            help="Number of event commands to run concurrently")
 
 
     def sigTerm(self, signum=None, frame=None):
