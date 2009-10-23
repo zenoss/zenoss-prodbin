@@ -459,7 +459,9 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
         start = max(start, 0)
 
         # Get the relevant where clause, with filters applied
-        where = self.lookupManagedEntityWhere(context)
+        getWhere = getattr(context, 'getWhere',
+                           lambda:self.lookupManagedEntityWhere(context))
+        where = getWhere()
         where = self.filteredWhere(where, filters)
         if asof:
             where += " and not (stateChange>%s and eventState=0)" % (
