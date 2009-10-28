@@ -455,7 +455,8 @@ class ZenActions(ZCmdBase):
 
         all_monitors = self.dmd.Monitors.getPerformanceMonitorNames()
         if monitor in all_monitors:
-            hostname = self.dmd.Monitors.getPerformanceMonitor(monitor).hostname
+            perfMonitor = self.dmd.Monitors.getPerformanceMonitor(monitor)
+            hostname = getattr(perfMonitor, 'hostname', monitor)
         else:
             # Someone's put in something that we don't expect
             hostname = monitor
