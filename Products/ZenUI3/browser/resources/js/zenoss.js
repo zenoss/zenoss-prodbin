@@ -866,7 +866,7 @@ Ext.onReady(function(){
                                  );
                             });
                         }
-                    }],
+                    }]
                 },{
                     id: 'evdetail_log',
                     cls: 'log-content',
