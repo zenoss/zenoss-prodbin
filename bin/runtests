@@ -106,7 +106,7 @@ def demangleEggName(eggdir, name):
             # Ouch! Something bad happened
             print "Unable to find egg directory from %s and %s" % \
                   (path, component)
-            return fulldir
+            return eggdir
         path = os.path.join( path, found[0] )
     return path
 
