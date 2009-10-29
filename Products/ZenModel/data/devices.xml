@@ -157,6 +157,8 @@ True
 <property visible="True" type="int" id="zSshConcurrentSessions" >
 10
 </property>
+<property visible="True" type="password" id="zEnablePassword" >
+</property>
 <tomanycont id='zenMenus'>
 <object id='More' module='Products.ZenModel.ZenMenu' class='ZenMenu'>
 <tomanycont id='zenMenuItems'>

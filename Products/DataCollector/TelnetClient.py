@@ -24,6 +24,8 @@ zTelnetPromptTimeout - pause used during prompt discovery default: 0.2
 zTelnetCommandTimeout - default timeout when executing a command default: 5
 zTelnetLoginRegex - regex to match the login prompt default: 'ogin:.$'
 zTelnetPasswordRegex - regext to match the password prompt default: 'assword:.$'
+zTelnetEnable - should enable mode should be entered: default False
+zTelnetEnableRegex - regext to match the enable prompt default: 'assword:.$'
 
 Other Parameters that are used by both TelnetClient and SshClient:
 zCommandPathList - list of path to check for a command
@@ -56,6 +58,8 @@ defaultPromptTimeout = 10
 defaultLoginRegex = 'ogin:.$'
 defaultPasswordRegex = 'assword:'
 defaultEnable = False
+defaultEnableRegex = 'assword:'
+defaultEnablePassword = ''
 defaultTermLength = False
 
 responseMap = ("WILL", "WONT", "DO", "DONT")
@@ -111,6 +115,10 @@ class TelnetClientProtocol(telnet.Telnet):
         log.info("connected to device %s" % self.hostname)
         self.startTimeout(self.factory.loginTimeout, self.loginTimeout)
         self.protocol = telnet.TelnetProtocol()
+
+        if not self.factory.username:
+            # It's possible to go straight to the password prompt.
+            self.mode = 'Password'
 
 
     def iac_DO(self, feature):
@@ -355,10 +363,10 @@ class TelnetClientProtocol(telnet.Telnet):
         """
         log.debug('Search for password regex (%s) in (%s) finds: %r' % \
                   (self.factory.passwordRegex, data, \
-                   re.search(self.factory.loginRegex, data)))
+                   re.search(self.factory.passwordRegex, data)))
         if not re.search(self.factory.passwordRegex, data): # look for pw prompt
             return 'Password'
-        log.debug("Sending password %s" % self.factory.password)
+        log.debug("Sending password")
         self.write(self.factory.password + '\n')
         self.startTimeout(self.factory.promptTimeout)
         return 'FindPrompt'
@@ -375,7 +383,31 @@ class TelnetClientProtocol(telnet.Telnet):
         """
         self.write('enable\n')
         self.startTimeout(self.factory.loginTimeout, self.loginTimeout)
-        return "Password"
+        return "EnablePassword"
+
+
+    def telnet_EnablePassword(self, data):
+        """
+        Called when the enable password prompt is expected
+
+        @param data: data sent back from the remote device
+        @type data: string
+        @return: next state (EnablePassword, FindPrompt)
+        @rtype: string
+        """
+        log.debug('Search for enable password regex (%s) in (%s) finds: %r' % \
+                  (self.factory.enableRegex, data, \
+                   re.search(self.factory.enableRegex, data)))
+        if not re.search(self.factory.enableRegex, data):
+            return 'EnablePassword'
+
+        # Use password if enable password is blank for backwards compatibility.
+        password = self.factory.enablePassword or self.factory.password
+
+        log.debug("Sending enable password")
+        self.write(password + '\n')
+        self.startTimeout(self.factory.promptTimeout)
+        return 'FindPrompt'
 
 
     def telnet_FindPrompt(self, data):
@@ -533,6 +565,8 @@ class TelnetClient(CollectorClient.CollectorClient):
             defaultLoginRegex = options.loginRegex
             defaultPasswordRegex = options.passwordRegex
             defaultEnable = options.enable
+            defaultEnableRegex = options.enableRegex
+            defaultEnablePassword = options.enablePassword
 
         if device: # if we are in Zope look for zProperties
             self.promptTimeout = getattr(device, 
@@ -543,6 +577,10 @@ class TelnetClient(CollectorClient.CollectorClient):
                         'zTelnetPasswordRegex', defaultPasswordRegex)
             self.enable = getattr(device, 
                         'zTelnetEnable', defaultEnable)
+            self.enableRegex = getattr(device,
+                        'zTelnetEnableRegex', defaultEnableRegex)
+            self.enablePassword = getattr(device,
+                        'zEnablePassword', defaultEnablePassword)
             self.termlen = getattr(device, 
                         'zTelnetTermLength', defaultTermLength)
 
@@ -551,6 +589,8 @@ class TelnetClient(CollectorClient.CollectorClient):
             self.loginRegex = defaultLoginRegex
             self.passwordRegex = defaultPasswordRegex
             self.enable = defaultEnable
+            self.enableRegex = defaultEnableRegex
+            self.enablePassword = defaultEnablePassword
             self.termlen = defaultTermLength
 
         self.modeRegex['Login'] = self.loginRegex
@@ -562,7 +602,12 @@ class TelnetClient(CollectorClient.CollectorClient):
         Start telnet collection.
         """
         if self.termlen:
+            # Cisco ASA
+            self._commands.insert(0, "terminal pager 0")
+
+            # Cisco IOS
             self._commands.insert(0, "terminal length 0")
+
         reactor.connectTCP(self.ip, self.port, self)
 
 
@@ -616,6 +661,14 @@ def buildOptions(parser=None, usage=None):
     parser.add_option('--enable',
                 dest='enable', action='store_true', default=False,
                 help="Enter 'enable' mode on a Cisco device")
+    parser.add_option('--enableRegex',
+                dest='enableRegex',
+                default=defaultEnableRegex,
+                help='Python regex that will find the enable prompt')
+    parser.add_option('--enablePassword',
+                dest='enablePassword',
+                default=defaultEnablePassword,
+                help='Enable password')
     parser.add_option('--termlen',
                 dest='termlen', action='store_true', default=False,
                 help="Enter 'send terminal length 0' on a Cisco device")

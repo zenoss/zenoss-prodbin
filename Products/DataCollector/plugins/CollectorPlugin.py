@@ -186,6 +186,9 @@ class CommandPlugin(CollectorPlugin):
         'zTelnetPasswordRegex',
         'zTelnetSuccessRegexList',
         'zTelnetTermLength',
+        'zTelnetEnable',
+        'zTelnetEnableRegex',
+        'zEnablePassword',
         )
         
         
