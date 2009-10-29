@@ -22,6 +22,7 @@ from Products.ZenUI3.utils.javascript import JavaScriptSnippet
 from Products.ZenUI3.utils.javascript import JavaScriptSnippetManager
 
 from Products.ZenUI3.browser.eventconsole.columns import COLUMN_CONFIG
+from Products.Zuul.interfaces import IEventService
 
 from interfaces import IEventManagerProxy
 
@@ -40,89 +41,37 @@ class HistoryConsoleView(BrowserView):
 
 class EventConsole(DirectRouter):
 
-    def _evmgr(self, forceHistory=False):
-        return IEventManagerProxy(self).event_manager(forceHistory)
+    def __init__(self, context, request):
+        super(EventConsole, self).__init__(context, request)
+        self.api = IEventService(context)
 
-    # BEGIN PUBLIC METHODS
-
-    def query(self, limit, start, sort, dir, evid=None, params=None):
-        """
-        Data that populates the event console.
-        """
-        context = self.context
-        if isinstance(params, basestring): params = unjson(params)
-        zem = self._evmgr()
-        start = max(start, 0)
-
-        if hasattr(context, 'getResultFields'):
-          fields = context.getResultFields()
-        else:
-          # Use default result fields
-          if hasattr(context, 'event_key'):
-              base = context
-          else:
-              base = zem.dmd.Events
-          fields = zem.lookupManagedEntityResultFields(base.event_key)
-
-        if not params:
-            params = {}
-
-        args = dict(
-            offset=start,
-            rows=limit,
-            resultFields=fields,
-            getTotalCount=True,
-            sort=sort,
-            orderby="%s %s, lastTime DESC" % (sort, dir),
-            filters=params
-        )
-        if evid: args['evid'] = evid
-
-        data, totalCount = zem.getEventListME(context, **args)
-        data_extractor = IEventManagerProxy(self).extract_data_from_zevent
-        results = [data_extractor(ev, fields) for ev in data]
-
+    def query(self, limit, start, sort, dir, params):
+        events = self.api.query(limit, start, sort, dir, params)
         self._set_asof(time.time())
-
-        return {
-            'events': results,
-            'totalCount': totalCount,
-        }
+        return {'events':events['data']}
 
     def acknowledge(self, evids=None, ranges=None, start=None, limit=None,
                     field=None, direction=None, params=None):
-        zem = self._evmgr()
-        range_evids = zem.getEventIDsFromRanges(self.context, field, direction,
-                                                start, limit, params, evids,
-                                                ranges, asof=self._asof)
-        zem.manage_ackEvents(range_evids)
+        self.api.acknowledge(evids, ranges, start, limit, field, direction,
+                             params, asof=self._asof)
         return {'success':True}
 
     def unacknowledge(self, evids=None, ranges=None, start=None, limit=None,
                       field=None, direction=None, params=None):
-        zem = self._evmgr()
-        range_evids = zem.getEventIDsFromRanges(self.context, field, direction,
-                                                start, limit, params, evids,
-                                                ranges, asof=self._asof)
-        zem.manage_unackEvents(range_evids)
+        self.api.unacknowledge(evids, ranges, start, limit, field, direction,
+                               params, asof=self._asof)
         return {'success':True}
 
     def reopen(self, evids=None, ranges=None, start=None, limit=None,
-               field=None, direction=None, params=None):
-        zem = self._evmgr()
-        range_evids = zem.getEventIDsFromRanges(self.context, field, direction,
-                                                start, limit, params, evids,
-                                                ranges, asof=self._asof)
-        zem.manage_undeleteEvents(range_evids)
+                      field=None, direction=None, params=None):
+        self.api.reopen(evids, ranges, start, limit, field, direction, params,
+                        asof=self._asof)
         return {'success':True}
 
     def close(self, evids=None, ranges=None, start=None, limit=None,
               field=None, direction=None, params=None):
-        zem = self._evmgr()
-        range_evids = zem.getEventIDsFromRanges(self.context, field, direction,
-                                                start, limit, params, evids,
-                                                ranges, asof=self._asof)
-        zem.manage_deleteEvents(range_evids)
+        self.api.close(evids, ranges, start, limit, field, direction, params,
+                        asof=self._asof)
         return {'success':True}
 
     def state_ranges(self, state=1, field='severity', direction='DESC',
@@ -163,6 +112,20 @@ class EventConsole(DirectRouter):
         might be costly, so we return a single-member range and let the browser
         fill in the total, which it already knows, as the subquery necessarily
         also describes the current state of the grid.
+
+        @param state: The state for which ranges should be calculated.
+        @type state: int
+        @param sort: The column by which the events should be sorted.
+        @type sort: str
+        @param dir: The direction in which events should be sorted, either
+                    "ASC" or "DESC"
+        @type dir: str
+        @param filters: Values for which to create filters (e.g.,
+                        {'device':'^loc.*$', 'severity':[4, 5]})
+        @type filters: dict or JSON str representing dict
+        @return: A list of lists comprising indices marking the boundaries of
+                 contiguous events with the given state.
+        @rtype: list
         """
         query_tpl = """
         select row, eventstate from (
@@ -183,7 +146,7 @@ class EventConsole(DirectRouter):
         if self._asof:
             where += " and not (stateChange>%s and eventState=0)" % (
                                                 self.dateDB(self._asof))
-        table = IEventManagerProxy(self).is_history and 'history' or 'status'
+        table = self.api._is_history() and 'history' or 'status'
         q = 'select eventState from %s where %s ' % (table, where)
         q += 'order by %s %s' % (field, direction)
         query = query_tpl % q
@@ -211,59 +174,27 @@ class EventConsole(DirectRouter):
         return ranges
 
     def detail(self, evid, history=False):
-        zem = self._evmgr(history)
-        details = zem.getEventDetail(evid)
-        fields = dict(details.getEventFields())
-        event = fields.copy()
-        properties = fields.items() + dict(details._details).items()
-        properties = [{'key':key,'value':value} for key, value in properties]
-        event['properties'] = properties
-        event['log'] = details._logs
-        for f in ('device', 'component', 'eventClass'):
-            func = getattr(IEventManagerProxy(self), '_get_%s_url' % f)
-            if f=='component':
-                args = event['device'], event['component']
-            else:
-                args = [event[f]]
-            url = func(*args)
-            if url:
-                event[f+'_url'] = url
-        return { 'event': [event] }
+        event = self.api.detail(evid, history)
+        if event:
+            return { 'event': [event] }
 
     def write_log(self, evid=None, message=None, history=False):
-        zem = self._evmgr(history)
-        zem.manage_addLogMessage(evid, message)
+        self.api.log(evid, message, history)
 
     def classify(self, evids, evclass):
-        zem = self._evmgr()
+        zem = self.api._event_manager()
         msg, url = zem.manage_createEventMap(evclass, evids)
         if url:
             msg += "<br/><br/><a href='%s'>Go to the new mapping.</a>" % url
         return {'success':bool(url), 'msg': msg}
 
-    def add_event(self, summary, device, component, severity, evclasskey,
-                  evclass):
-        zem = self._evmgr()
-        if isinstance(severity, basestring):
-            sevs = ['Clear', 'Debug', 'Info', 'Warning', 'Error', 'Critical']
-            severity = sevs.index(severity)
-        evid = zem.manage_addEvent(dict(
-            device=device,
-            summary=summary,
-            component=component,
-            severity=severity,
-            eventClassKey=evclasskey,
-            eventClass=evclass
-        ))
+    def add_event(self, summary, device, component, severity, evclasskey, evclass):
+        evid = self.api.create(summary, severity, device, component,
+                               eventClassKey=evclasskey, eventClass=evclass)
         return {'success':True, 'evid':evid}
 
     def column_config(self):
-        f = getattr(self.context, 'getResultFields', None)
-        if f is None:
-            fields = self._evmgr().getEventResultFields(self.context)
-        else:
-            fields = f()
-        return column_config(fields)
+        return column_config(self.api.fields())
 
 
 class EventConsoleAPIDefinition(DirectProviderDefinition):
@@ -308,14 +239,9 @@ def column_config(fields):
 class GridColumnDefinitions(JavaScriptSnippet):
 
     def snippet(self):
-        zem = IEventManagerProxy(self).event_manager()
+        api = IEventService(self.context)
         result = ["Ext.onReady(function(){Zenoss.env.COLUMN_DEFINITIONS=["]
-        f = getattr(self.context, 'getResultFields', None)
-        if f is None:
-            fields = zem.getEventResultFields(self.context)
-        else:
-            fields = f()
-        defs = column_config(fields)
+        defs = column_config(api.fields())
         result.append(',\n'.join(defs))
         result.append(']});')
         result = '\n'.join(result)

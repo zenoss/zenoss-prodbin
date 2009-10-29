@@ -36,7 +36,6 @@ from zope.testing.cleanup import cleanUp
 log.warn = lambda *args, **kwds: None
 
 # setup the Products needed for the Zenoss test instance
-ZopeTestCase.installProduct('ZenRelations', 1)
 ZopeTestCase.installProduct('ZenModel', 1)
 ZopeTestCase.installProduct('ZCatalog', 1)
 ZopeTestCase.installProduct('OFolder', 1)
@@ -47,6 +46,7 @@ ZopeTestCase.installProduct('CMFCore', 1)
 ZopeTestCase.installProduct('CMFDefault', 1)
 ZopeTestCase.installProduct('MailHost', 1)
 ZopeTestCase.installProduct('Transience', 1)
+ZopeTestCase.installProduct('ZenRelations', 1)
 
 
 def manage_addDummyManager(context, id):
@@ -143,9 +143,13 @@ class BaseTestCase(ZopeTestCase.ZopeTestCase):
         # each other
         self._transaction_commit=transaction.commit
         transaction.commit=lambda *x: None
-        
+
         setDescriptors(self.dmd.propertyTransformers)
-        
+        import zope.component
+        from Products.ZenModel.interfaces import IDataRoot
+        zope.component.provideUtility(self.dmd, provides=IDataRoot)
+
+
     def tearDown(self):
         if hasattr( self, '_transaction_commit' ):
             transaction.commit=self._transaction_commit

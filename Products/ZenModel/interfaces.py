@@ -35,3 +35,9 @@ class IIndexed(Interface):
         pass
     def unindex_object():
         pass
+
+
+class IDataRoot(Interface):
+    """
+    Marker interface for the DMD, so it can be looked up as a global utility.
+    """

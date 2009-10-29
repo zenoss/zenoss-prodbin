@@ -11,6 +11,7 @@
   <include package="Products.ZenRelations"/>
   <include package="Products.ZenEvents"/>
   <include package="Products.Jobber"/>
+  <include package="Products.Zuul"/>
 
 </configure>
 

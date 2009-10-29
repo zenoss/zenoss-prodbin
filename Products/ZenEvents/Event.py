@@ -138,9 +138,9 @@ pb.setUnjellyableForClass(Event, Event)
 
 
 class EventHeartbeat(Event):
-    
+
     eventClass = Heartbeat
-    
+
     def __init__(self, device, component, timeout=120):
         self._fields = ("device", "component", "timeout")
         Event.__init__(self, device=device, component=component,timeout=timeout)

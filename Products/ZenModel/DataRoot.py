@@ -19,6 +19,7 @@ name space.
 """
 
 import re
+from zope.interface import implements
 from AccessControl import ClassSecurityInfo
 from AccessControl import getSecurityManager
 from OFS.OrderedFolder import OrderedFolder
@@ -46,6 +47,7 @@ from Products.ZenEvents.Exceptions import *
 
 from ZenModelRM import ZenModelRM
 from ZenossSecurity import ZEN_COMMON, ZEN_MANAGE_DMD, ZEN_VIEW
+from interfaces import IDataRoot
 
 def manage_addDataRoot(context, id, title = None, REQUEST = None):
     """make a device"""
@@ -61,6 +63,7 @@ addDataRoot = DTMLFile('dtml/addDataRoot',globals())
 __pychecker__='no-override'
 
 class DataRoot(ZenModelRM, OrderedFolder, Commandable, ZenMenuable):
+    implements(IDataRoot)
 
     meta_type = portal_type = 'DataRoot'
 

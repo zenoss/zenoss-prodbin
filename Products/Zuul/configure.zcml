@@ -1,0 +1,13 @@
+<configure xmlns="http://namespaces.zope.org/zope"
+           xmlns:five="http://namespaces.zope.org/five">
+
+    <five:implements
+        interface=".interfaces.IServiceable"
+        class="Products.ZenModel.ZenModelBase.ZenModelBase"
+        />
+
+    <utility factory=".services.EventService"
+             provides=".interfaces.IEventService"
+             />
+
+</configure>

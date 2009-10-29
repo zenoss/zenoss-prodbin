@@ -90,12 +90,12 @@ class ToManyContRelationship(ToManyRelationshipBase):
         with fullid (ie: it is related not contained)
         use hasobject to get around this issue"""
         return self._objects.has_key(name)
-            
-            
+
+
     def hasobject(self, obj):
         "check to see if we have this object"
         return self._objects.get(obj.id) == obj
-    
+
 
     def addRelation(self, obj):
         """Override base to run manage_afterAdd like ObjectManager"""
