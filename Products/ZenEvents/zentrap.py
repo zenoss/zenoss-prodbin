@@ -33,6 +33,7 @@ from EventServer import EventServer
 from pynetsnmp import netsnmp, twistedsnmp
 
 from twisted.internet import defer, reactor
+from Products.ZenHub.PBDaemon import FakeRemote
 from Products.ZenUtils.Driver import drive
 from Products.ZenUtils.captureReplay import CaptureReplay
 
@@ -78,15 +79,16 @@ class FakePacket(object):
 class ZenTrap(EventServer, CaptureReplay):
     """
     Listen for SNMP traps and turn them into events
-    Connects to the EventService service in zenhub.
+    Connects to the TrapService service in zenhub.
     """
 
     name = 'zentrap'
+    initialServices = EventServer.initialServices + ['TrapService']
+    oidMap = {}
+    haveOids = False
 
     def __init__(self):
         EventServer.__init__(self)
-
-        self.oidCache = {}
 
         # Command-line argument sanity checking
         self.processCaptureReplayOptions()
@@ -106,6 +108,36 @@ class ZenTrap(EventServer, CaptureReplay):
         self.session.callback = self.receiveTrap
 
         twistedsnmp.updateReactor()
+
+
+    def configure(self):
+        def inner(driver):
+            self.log.info("fetching default RRDCreateCommand")
+            yield self.model().callRemote('getDefaultRRDCreateCommand')
+            createCommand = driver.next()
+
+            self.log.info("getting threshold classes")
+            yield self.model().callRemote('getThresholdClasses')
+            self.remote_updateThresholdClasses(driver.next())
+
+            self.log.info("getting collector thresholds")
+            yield self.model().callRemote('getCollectorThresholds')
+            self.rrdStats.config(self.options.monitor, self.name,
+                                 driver.next(), createCommand)
+
+            self.log.info("getting OID -> name mappings")
+            yield self.getServiceNow('TrapService').callRemote('getOidMap')
+            self.oidMap = driver.next()
+            self.haveOids = True
+
+            self.heartbeat()
+            self.reportCycle()
+
+        d = drive(inner)
+        def error(result):
+            self.log.error("Unexpected error in configure: %s" % result)
+        d.addErrback(error)
+        return d
 
 
     def getEnterpriseString(self, pdu):
@@ -201,7 +233,7 @@ class ZenTrap(EventServer, CaptureReplay):
 
     def oid2name(self, oid, exactMatch=True, strip=False):
         """
-        Get OID name from cache or ZenHub
+        Returns a MIB name based on an OID and special handling flags.
 
         @param oid: SNMP Object IDentifier
         @type oid: string
@@ -214,30 +246,27 @@ class ZenTrap(EventServer, CaptureReplay):
         """
         if type(oid) == type(()):
             oid = '.'.join(map(str, oid))
-        cacheKey = "%s:%r:%r" % (oid, exactMatch, strip)
-        if self.oidCache.has_key(cacheKey):
-            return defer.succeed(self.oidCache[cacheKey])
 
-        self.log.debug("OID cache miss on %s (exactMatch=%r, strip=%r)" % (
-            oid, exactMatch, strip))
-        d = self.model().callRemote('oid2name', oid, exactMatch, strip)
+        oid = oid.strip('.')
+        if exactMatch:
+            if oid in self.oidMap:
+                return self.oidMap[oid]
+            else:
+                return oid
 
-        def cache(name, key):
-            """
-            Twisted callback to cache and return the name
+        oidlist = oid.split('.')
+        for i in range(len(oidlist), 0, -1):
+            name = self.oidMap.get('.'.join(oidlist[:i]), None)
+            if name is None:
+                continue
 
-            @param name: human-readable-name form of OID
-            @type name: string
-            @param key: key of OID and params
-            @type key: string
-            @return: the name parameter
-            @rtype: string
-            """
-            self.oidCache[key] = name
-            return name
+            oid_trail = oidlist[i:]
+            if len(oid_trail) > 0 and not strip:
+                return "%s.%s" % (name, '.'.join(oid_trail))
+            else:
+                return name
 
-        d.addCallback(cache, cacheKey)
-        return d
+        return oid
 
 
     def receiveTrap(self, pdu):
@@ -248,6 +277,9 @@ class ZenTrap(EventServer, CaptureReplay):
         @param pdu: Net-SNMP object
         @type pdu: netsnmp_pdu object
         """
+        if not self.haveOids:
+            return
+
         ts = time.time()
 
         # Is it a trap?
@@ -341,22 +373,23 @@ class ZenTrap(EventServer, CaptureReplay):
                     oid = '.'.join(map(str, oid))
                     # SNMPv2-MIB/snmpTrapOID
                     if oid == '1.3.6.1.6.3.1.1.4.1.0':
-                        yield self.oid2name(value, exactMatch=False, strip=False)
-                        eventType = driver.next()
+                        eventType = self.oid2name(
+                            value, exactMatch=False, strip=False)
                     else:
                         # Add a detail for the variable binding.
-                        yield self.oid2name(oid, exactMatch=False, strip=False)
-                        result[driver.next()] = value
+                        r = self.oid2name(oid, exactMatch=False, strip=False)
+                        result[r] = value
                         # Add a detail for the index-stripped variable binding.
-                        yield self.oid2name(oid, exactMatch=False, strip=True)
-                        result[driver.next()] = value
+                        r = self.oid2name(oid, exactMatch=False, strip=True)
+                        result[r] = value
 
             elif pdu.version == 0:
                 # SNMP v1
                 variables = self.getResult(pdu)
                 addr[0] = '.'.join(map(str, [pdu.agent_addr[i] for i in range(4)]))
                 enterprise = self.getEnterpriseString(pdu)
-                eventType = driver.next()
+                eventType = self.oid2name(
+                    enterprise, exactMatch=False, strip=False)
                 generic = pdu.trap_type
                 specific = pdu.specific_type
 
@@ -364,15 +397,13 @@ class ZenTrap(EventServer, CaptureReplay):
                 # specific OID. It seems that MIBs frequently expect this .0.
                 # to exist, but the device's don't send it in the trap.
                 oid = "%s.0.%d" % (enterprise, specific)
-                yield self.oid2name(oid, exactMatch=True, strip=False)
-                name = driver.next()
+                name = self.oid2name(oid, exactMatch=True, strip=False)
 
                 # If we didn't get a match with the .0. inserted we will try
                 # resolving withing the .0. inserted and allow partial matches.
                 if name == oid:
                     oid = "%s.%d" % (enterprise, specific)
-                    yield self.oid2name(oid, exactMatch=False, strip=False)
-                    name = driver.next()
+                    name = self.oid2name(oid, exactMatch=False, strip=False)
 
                 # Look for the standard trap types and decode them without
                 # relying on any MIBs being loaded.
@@ -391,11 +422,11 @@ class ZenTrap(EventServer, CaptureReplay):
                 for oid, value in variables:
                     oid = '.'.join(map(str, oid))
                     # Add a detail for the variable binding.
-                    yield self.oid2name(oid, exactMatch=False, strip=False)
-                    result[driver.next()] = value
+                    r = self.oid2name(oid, exactMatch=False, strip=False)
+                    result[r] = value
                     # Add a detail for the index-stripped variable binding.
-                    yield self.oid2name(oid, exactMatch=False, strip=True)
-                    result[driver.next()] = value
+                    r = self.oid2name(oid, exactMatch=False, strip=True)
+                    result[r] = value
             else:
                 self.log.error("Unable to handle trap version %d", pdu.version)
                 return
@@ -438,6 +469,9 @@ class ZenTrap(EventServer, CaptureReplay):
                                                  self.session.sess)
                     netsnmp.lib.snmp_free_pdu(reply)
                 sess.close()
+
+            yield defer.succeed(True)
+            driver.next()
         return drive(inner)
 
 
