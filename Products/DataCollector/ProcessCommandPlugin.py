@@ -36,12 +36,14 @@ class ProcessCommandPlugin(CommandPlugin):
         return lines
     
     def process(self, device, results, log):
-        
-        log.info('Collecting process information for device %s' % device.id)
+        log.info('Processing %s for device %s', self.name(), device.id)
+        if not results:
+            log.error("Unable to get data for %s -- skipping model",
+                      device.id)
+            return None
+
         relMap = self.relMap()
-        
         for line in self._filterLines(results.splitlines()):
-            
             words = line.split()
             
             relMap.append(self.objectMap({
@@ -52,4 +54,4 @@ class ProcessCommandPlugin(CommandPlugin):
                 pformat(relMap.maps[:3]))
                 
         return relMap
-        
+
