@@ -18,6 +18,8 @@ Uses the HOST-RESOURCES-MIB OIDs.
 
 """
 
+import re
+from md5 import md5
 from Products.DataCollector.plugins.CollectorPlugin \
     import SnmpPlugin, GetTableMap
 
@@ -29,10 +31,9 @@ class HRSWRunMap(SnmpPlugin):
     compname = "os"
     relname = "processes"
     modname = "Products.ZenModel.OSProcess"
-    classname = 'createFromObjectMap'
+    deviceProperties = SnmpPlugin.deviceProperties + ('getOSProcessMatchers',)
 
     columns = {
-         '.1': 'snmpindex',
          '.2': 'procName',
          '.4': '_procPath',
          '.5': 'parameters',
@@ -56,11 +57,20 @@ class HRSWRunMap(SnmpPlugin):
             log.error("Unable to get data for %s from hrSWRunEntry %s"
                           " -- skipping model", HRSWRUNENTRY, device.id)
             return None
-        
+
         log.debug("=== Process information received ===")
         for p in sorted(pidtable.keys()):
             log.debug("snmpidx: %s\tprocess: %s" % (p, pidtable[p]))
-        
+
+        if not pidtable.values():
+            log.warning("No process information from hrSWRunEntry %s",
+                        HRSWRUNENTRY)
+            return None
+
+        for matcher in device.getOSProcessMatchers:
+            matcher['regex'] = re.compile(matcher['regex']).search
+
+        found = {}
         rm = self.relMap()
         for proc in pidtable.values():
             om = self.objectMap(proc)
@@ -71,12 +81,24 @@ class HRSWRunMap(SnmpPlugin):
                 log.warn("Skipping process with no name")
                 continue
             om.parameters = getattr(om, 'parameters', '')
-            rm.append(om)
 
-        if not rm:
-            log.warning("No process information from hrSWRunEntry %s",
-                        HRSWRUNENTRY)
-            return None
+            fullname = (om.procName + ' ' + om.parameters).rstrip()
+            for matcher in device.getOSProcessMatchers:
+                if not matcher['regex'](fullname):
+                    continue
+
+                om.id = self.prepId(om.procName)
+                om.setOSProcessClass = matcher['getPrimaryDmdId']
+                parameters = om.parameters.strip()
+                if parameters and not matcher['ignoreParameters']:
+                    parameters = md5(parameters).hexdigest()
+                    om.id += ' ' + parameters
+
+                if om.id not in found:
+                    found[om.id] = True
+                    rm.append(om)
+
+                # Stop once a match is found.
+                break
 
         return rm
-

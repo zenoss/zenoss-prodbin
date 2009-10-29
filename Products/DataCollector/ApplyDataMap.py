@@ -44,6 +44,8 @@ def isSameData(x, y):
 
             x = set([ tuple(sorted(d.items())) for d in x ])
             y = set([ tuple(sorted(d.items())) for d in y ])
+        else:
+            return sorted(x) == sorted(y)
 
     return x == y
 
@@ -330,7 +332,7 @@ class ApplyDataMap(object):
                         
             else:
                 try:
-                    change = att != value
+                    change = not isSameData(att, value)
                 except UnicodeDecodeError:
                     change = True
                 if change:

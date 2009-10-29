@@ -125,6 +125,8 @@ class CollectorPlugin(object):
                 value = device.getProperty(id)
             elif hasattr(device, id):
                 value = getattr(device, id)
+                if callable(value):
+                    value = value()
             else:
                 continue
             setattr(proxy, id, value)

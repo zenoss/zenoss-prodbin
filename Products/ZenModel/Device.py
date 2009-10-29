@@ -2065,6 +2065,23 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
             return linktemplate % rendered
 
 
+    def getOSProcessMatchers(self):
+        """
+        Get a list of dictionaries containing everything needed to match
+        processes against the global list of process classes. Used by process
+        modeler plugins.
+        """
+        matchers = []
+        for pc in self.getDmdRoot("Processes").getSubOSProcessClassesSorted():
+            matchers.append({
+                'regex': pc.regex,
+                'ignoreParameters': pc.ignoreParameters,
+                'getPrimaryDmdId': pc.getPrimaryDmdId(),
+                })
+
+        return matchers
+
+
     def updateProcesses(self, relmaps):
         "Uses ProcessClasses to create processes to monitor"
 
