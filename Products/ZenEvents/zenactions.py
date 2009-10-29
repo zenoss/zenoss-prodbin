@@ -654,6 +654,10 @@ class ZenActions(ZCmdBase):
         """Send and event to a pager.  Return True if we think page was sent,
         False otherwise.
         """
+        if self.options.cycle and not reactor.running:
+           # Give the reactor time to startup if necessary.
+           return False
+
         fmt, body = self.format(action, data, clear)
         recipients = action.getAddresses()
         if not recipients:
@@ -664,9 +668,10 @@ class ZenActions(ZCmdBase):
 
         result = False
         for recipient in recipients:
-            success, errorMsg = Utils.sendPage(recipient,
-                                               fmt,
-                                               self.dmd.pageCommand)
+            success, errorMsg = Utils.sendPage(
+                recipient, fmt, self.dmd.pageCommand,
+                deferred=self.options.cycle)
+
             if success:
                 self.log.info('sent page to %s: %s', recipient, fmt)
                 # return True if anyone got the page 
