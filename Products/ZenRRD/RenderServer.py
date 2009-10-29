@@ -181,7 +181,8 @@ class RenderServer(RRDToolItem):
                 #gopts.insert(0, "--lazy")
                 end = int(time.time())-300
                 start = end - drange
-                gopts.insert(0, 'COMMENT:%s\\c' % comment)
+                if comment is not None:
+                    gopts.insert(0, 'COMMENT:%s\\c' % comment)
                 gopts.insert(0, '--end=%d' % end)
                 gopts.insert(0, '--start=%d' % start)
                 gopts.insert(0, filename)

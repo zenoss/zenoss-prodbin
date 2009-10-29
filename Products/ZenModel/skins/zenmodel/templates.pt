@@ -169,16 +169,7 @@
         " target="_blank">Help</a>
         </li>
     </ul>
-    <div class="searchbox">
-    <form action="/zport/dmd/deviceSearchResults" method="POST"
-		name="searchform">
-        <span class="searchform-label" id="searchform-label">Device/IP Search</span>
-        <input type="text" name="query" 
-            onkeypress="submitViaEnter(event)"
-            onclick="select(this.value)"
-            tal:attributes="value request/query | string:"/>
-    </form> 
-    </div>
+    <tal:block metal:use-macro="here/searchMacro/macros/searchbox"/>
     </div>
     <div id="system_clock_container">Zenoss server time: 
     <span id="system_clock">Now o'clock</span>

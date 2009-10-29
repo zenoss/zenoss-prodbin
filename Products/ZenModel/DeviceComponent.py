@@ -169,6 +169,14 @@ class DeviceComponent(Lockable):
         return self.device()
 
 
+    def getIconPath(self):
+        """
+        Override the device's zProperty and return an icon based on the class 
+        name
+        """
+        return "/zport/dmd/img/icons/%s.png" % self.meta_type.lower()
+
+
     def getRRDContextData(self, context):
         context['comp'] = self
         context['compId'] = self.id

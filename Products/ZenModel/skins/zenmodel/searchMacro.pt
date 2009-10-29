@@ -1,0 +1,13 @@
+<tal:block metal:define-macro="searchbox">
+<div class="searchbox">
+<form action="/zport/dmd/deviceSearchResults" method="POST"
+    name="searchform">
+
+<span class="searchform-label" id="searchform-label">Device/IP Search</span>
+<input type="text" name="query"
+    onkeypress="submitViaEnter(event)"
+    onclick="select(this.value)"
+    tal:attributes="value request/query | string:"/>
+</form>
+</div>
+</tal:block>
