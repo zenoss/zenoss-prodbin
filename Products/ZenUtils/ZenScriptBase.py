@@ -14,7 +14,6 @@
 __doc__="""ZenScriptBase
 """
 
-import zope.component
 from AccessControl.SecurityManagement import newSecurityManager
 from AccessControl.SecurityManagement import noSecurityManager
 from threading import Lock
@@ -22,7 +21,6 @@ from transaction import commit
 from Utils import getObjByPath, zenPath, set_context
 from CmdBase import CmdBase
 
-from Products.ZenModel.interfaces import IDataRoot
 from Products.ZenRelations.ZenPropertyManager import setDescriptors
 from Exceptions import ZentinelException
 
@@ -58,7 +56,6 @@ class ZenScriptBase(CmdBase):
             self.dmd.propertyTransformers = {}
             commit()
         setDescriptors(self.dmd.propertyTransformers)
-        zope.component.provideUtility(self.dmd, provides=IDataRoot)
 
 
     def login(self, name='admin', userfolder=None):

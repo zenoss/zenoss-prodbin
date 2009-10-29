@@ -44,4 +44,4 @@ class ZeoConn(object):
         self.db.close()
         self.app = None
         self.dmd = None
-    
+

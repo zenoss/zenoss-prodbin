@@ -145,9 +145,6 @@ class BaseTestCase(ZopeTestCase.ZopeTestCase):
         transaction.commit=lambda *x: None
 
         setDescriptors(self.dmd.propertyTransformers)
-        import zope.component
-        from Products.ZenModel.interfaces import IDataRoot
-        zope.component.provideUtility(self.dmd, provides=IDataRoot)
 
 
     def tearDown(self):

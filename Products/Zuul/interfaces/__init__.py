@@ -5,9 +5,9 @@ class IService(Interface):
     An API service
     """
 
-class IServiceable(Interface):
+class IDataRootFactory(Interface):
     """
-    Marker interface for things that can be the context of an IService
+    Returns a DataRoot object from the current connection.
     """
 
 from events import *

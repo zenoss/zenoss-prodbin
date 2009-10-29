@@ -2,7 +2,8 @@ from zope.event import notify
 from zope.interface import implements
 from zope.component import adapts
 from Products.ZenUI3.utils.json import json, unjson
-from Products.Zuul.services import ZuulService, resolve_context
+from Products.Zuul.utils import resolve_context
+from Products.Zuul.services import ZuulService
 from Products.Zuul.interfaces import *
 
 class EventEvent(object):
@@ -53,8 +54,7 @@ class EventClosed(EventEvent):
 class EventService(ZuulService):
     implements(IEventService)
 
-    def _is_history(self):
-        request = getattr(self._dmd, 'REQUEST', None)
+    def _is_history(self, request=None):
         if request is None:
             # We have no idea, so let's go with ZenEventManager
             return False

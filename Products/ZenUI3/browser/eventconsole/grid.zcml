@@ -4,18 +4,13 @@
     xmlns:five="http://namespaces.zope.org/five">
 
     <!-- Event console JSON api -->
-    <browser:page
+    <include package="Products.ZenUtils.extdirect.zope" file="meta.zcml"/>
+
+    <browser:directRouter
         name="evconsole_router"
         for="Products.ZenModel.EventView.IEventView"
         class=".grid.EventConsole"
-        permission="zope2.Public"
-        />
-
-    <browser:viewlet
-        name="evconsole_api"
-        manager="..interfaces.IExtDirectAPI"
-        class=".grid.EventConsoleAPIDefinition"
-        permission="zope2.Public"
+        namespace="Zenoss.remote"
         />
 
     <browser:viewlet

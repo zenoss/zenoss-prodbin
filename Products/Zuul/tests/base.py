@@ -4,7 +4,6 @@ import zope.component
 
 from Testing import ZopeTestCase
 from Testing.ZopeTestCase.layer import ZopeLite
-from Products.ZenModel.interfaces import IDataRoot
 from Products.ZenTestCase.BaseTestCase import BaseTestCase
 from Products.ZenTestCase.BaseTestCase import ZenossTestCaseLayer
 
@@ -25,7 +24,6 @@ class EventTestLayer(ZenossTestCaseLayer):
         from Products.ZenUtils.ZCmdBase import ZCmdBase
         zodb = ZCmdBase(noopts=True)
         zem = zodb.dmd.ZenEventManager
-        zope.component.provideUtility(zodb.dmd, provides=IDataRoot)
         cls.zem = zem
         cls._evids = []
 

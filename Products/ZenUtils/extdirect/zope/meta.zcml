@@ -1,0 +1,13 @@
+<configure xmlns="http://namespaces.zope.org/meta">
+
+<directives namespace="http://namespaces.zope.org/browser">
+
+    <directive
+        name="directRouter"
+        schema=".metadirectives.IDirectRouter"
+        handler=".metaconfigure.directRouter"
+        />
+
+</directives>
+
+</configure>

@@ -10,13 +10,14 @@
 # For complete information please visit: http://www.zenoss.com/oss/
 #
 ###########################################################################
-from zope.interface import implements
 import time
+from zope.interface import implements
+from zope.component import queryUtility
 
 from Products.Five.browser import BrowserView
 from Products.Five.browser.pagetemplatefile import ViewPageTemplateFile
 
-from Products.ZenUtils.Ext import DirectRouter, DirectProviderDefinition
+from Products.ZenUtils.Ext import DirectRouter
 from Products.ZenUI3.utils.json import json, unjson
 from Products.ZenUI3.utils.javascript import JavaScriptSnippet
 from Products.ZenUI3.utils.javascript import JavaScriptSnippetManager
@@ -43,7 +44,7 @@ class EventConsole(DirectRouter):
 
     def __init__(self, context, request):
         super(EventConsole, self).__init__(context, request)
-        self.api = IEventService(context)
+        self.api = queryUtility(IEventService)
 
     def query(self, limit, start, sort, dir, params):
         events = self.api.query(limit, start, sort, dir, params)
@@ -194,12 +195,7 @@ class EventConsole(DirectRouter):
         return {'success':True, 'evid':evid}
 
     def column_config(self):
-        return column_config(self.api.fields())
-
-
-class EventConsoleAPIDefinition(DirectProviderDefinition):
-    _router = EventConsole
-    _url = 'evconsole_router'
+        return column_config(self.api.fields(self.context))
 
 
 class EventClasses(JavaScriptSnippet):
@@ -239,9 +235,9 @@ def column_config(fields):
 class GridColumnDefinitions(JavaScriptSnippet):
 
     def snippet(self):
-        api = IEventService(self.context)
+        api = queryUtility(IEventService)
         result = ["Ext.onReady(function(){Zenoss.env.COLUMN_DEFINITIONS=["]
-        defs = column_config(api.fields())
+        defs = column_config(api.fields(self.context))
         result.append(',\n'.join(defs))
         result.append(']});')
         result = '\n'.join(result)
