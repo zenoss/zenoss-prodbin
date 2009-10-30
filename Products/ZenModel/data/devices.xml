@@ -10373,9 +10373,6 @@ Products.ZenModel.Device
 </object>
 </object>
 <object id='Printer' module='Products.ZenModel.DeviceClass' class='DeviceClass'>
-<property visible="True" type="boolean" id="zPingMonitorIgnore" >
-True
-</property>
 <object id='Laser' module='Products.ZenModel.DeviceClass' class='DeviceClass'>
 </object>
 <object id='InkJet' module='Products.ZenModel.DeviceClass' class='DeviceClass'>
