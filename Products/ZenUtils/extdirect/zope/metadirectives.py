@@ -23,7 +23,8 @@ class IDirectRouter(Interface):
     namespace = TextLine(
         title=u"Namespace",
         description=unicode("The JavaScript namespace under which the"
-                            " remote methods should be available")
+                            " remote methods should be available"),
+        required=False
     )
 
     layer = TextLine(

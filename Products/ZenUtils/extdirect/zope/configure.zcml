@@ -12,4 +12,11 @@
         permission="zope.Public"
         />
 
+    <browser:page
+        name="extdirect.js"
+        template="extdirect.js.pt"
+        for="*"
+        permission="zope.Public"
+        />
+
 </configure>

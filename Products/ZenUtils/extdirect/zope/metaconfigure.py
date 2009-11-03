@@ -1,3 +1,4 @@
+import zope.component
 from zope.interface import Interface
 from zope.viewlet.metaconfigure import viewletDirective
 from zope.publisher.interfaces.browser import IBrowserView
@@ -25,7 +26,7 @@ def JavaScriptSourceViewlet(source):
                   'weight':2})
     return klass
 
-def directRouter(_context, name, class_, namespace, for_=Interface,
+def directRouter(_context, name, class_, namespace=None, for_=Interface,
                  layer=IDefaultBrowserLayer):
 
     # Register the view at which the class will be available

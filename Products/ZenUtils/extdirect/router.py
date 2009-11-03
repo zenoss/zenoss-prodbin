@@ -1,6 +1,9 @@
+import inspect
+import logging
+log = logging.getLogger('extdirect')
+
 class DirectException(Exception):
     pass
-
 
 try:
     import json
@@ -66,7 +69,15 @@ class DirectRouter(object):
         self._data = data
 
         # Finally, call the target method, passing in the data
-        result = _targetfn(**data)
+        try:
+            result = _targetfn(**data)
+        except Exception, e:
+            log.exception(e)
+            message = e.__class__.__name__ + ' ' + str(e)
+            return json.dumps({
+                'type':'exception',
+                'message':message
+            })
 
         return json.dumps({
             'type':'rpc',
@@ -74,7 +85,7 @@ class DirectRouter(object):
             'action': action,
             'method': method,
             'result': result
-        })
+        }, default=lambda o:o.__json__())
 
 
 class DirectProviderDefinition(object):
@@ -89,7 +100,7 @@ class DirectProviderDefinition(object):
     See http://extjs.com/products/extjs/direct.php for a full explanation of
     protocols and features of Ext.Direct.
     """
-    def __init__(self, routercls, url, ns):
+    def __init__(self, routercls, url, ns=None):
         """
         @param routercls: A L{DirectRouter} subclass
         @type routercls: class
@@ -105,27 +116,39 @@ class DirectProviderDefinition(object):
         self.url = url
         self.ns = ns
 
+    def _config(self):
+        actions = []
+        for name, value in inspect.getmembers(self.routercls):
+            if name.startswith("_"):
+                continue
+            if inspect.ismethod(value):
+
+                ## Update this when extdirect doesn't freak out when you specify
+                ## actual lens (we're passing them all in as a single dict, so
+                ## from the perspective of Ext.Direct they are all len 1)
+                #args = inspect.getargspec(value)[0]
+                #args.remove('self')
+                #arglen = len(args)
+                arglen = 1
+
+                actions.append({'name':name, 'len':arglen})
+        config = {
+            'type':'remoting',
+            'url':self.url,
+            'actions': {
+                self.routercls.__name__: actions
+            }
+        }
+        if self.ns:
+            config['namespace'] = self.ns
+        return config
+
     def render(self):
         """
         Generate and return an Ext.Direct provider definition, wrapped in a
         <script> tag and ready for inclusion in an HTML document.
         """
-        attrs = (a for a in self.routercls.__dict__ if not a.startswith('_'))
-        methodtpl = '{name:"%s", len:1}'
-        methods = ",".join(methodtpl % a for a in attrs)
-        source = """
-<script type="text/javascript">
-    Ext.Direct.addProvider({
-        type: 'remoting',
-        url: '%(url)s',
-        actions: {
-            "%(clsname)s":[
-              %(methods)s
-            ]
-        },
-        namespace: '%(ns)s'
-    });
-</script>""" % dict(url=self.url, ns=self.ns, clsname=self.routercls.__name__,
-                   methods=methods)
+        config = self._config()
+        source = "\nExt.Direct.addProvider(%s);\n" % json.dumps(config)
         return source.strip()
 

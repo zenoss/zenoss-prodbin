@@ -16,7 +16,7 @@
 <script type="text/javascript"
     src="/zenui/js/livegrid/livegrid-all-debug.js"></script>
 <tal:block tal:content="structure provider:jssnippets"/>
-<tal:block tal:content="structure provider:extdirect"/>
+<script src="extdirect.js"></script>
 </tal:block>
 
 <tal:block metal:fill-slot="script_layout">

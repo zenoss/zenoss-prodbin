@@ -8,7 +8,7 @@
 
     <browser:directRouter
         name="evconsole_router"
-        for="Products.ZenModel.EventView.IEventView"
+        for="*"
         class=".grid.EventConsole"
         namespace="Zenoss.remote"
         />
