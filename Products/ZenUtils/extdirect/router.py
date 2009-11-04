@@ -37,15 +37,33 @@ class DirectRouter(object):
         body = json.loads(body)
         self._body = body
 
+        if isinstance(body, list):
+            directRequests = body
+        elif isinstance(body, dict):
+            directRequests = [body]
+        else:
+            raise DirectException("Body is not a supported type: %s" % body)
+
+        directResponses = []
+        for directRequest in directRequests:
+            directResponses.append(self._processDirectRequest(directRequest))
+            
+        if len(directResponses) == 1:
+            directResponses = directResponses[0]
+            
+        return json.dumps(directResponses, default=lambda o:o.__json__())
+        
+    def _processDirectRequest(self, directRequest):
+
         # Double-check that this request is meant for this class
-        action = body.get('action')
+        action = directRequest.get('action')
         clsname = self.__class__.__name__
         if action != clsname:
             raise DirectException(("Action specified in request ('%s') is"
                                   " not named %s.") % (action, clsname))
 
         # Pull out the method name and make sure it exists on this class
-        method = body.get('method')
+        method = directRequest.get('method')
         if not method:
             raise DirectException("No method specified. Is this a valid"
                                   " Ext.Direct request?")
@@ -58,12 +76,15 @@ class DirectRouter(object):
 
         # Pull out any arguments. Sent as an array containing a hash map, so
         # get the first member.
-        data = body.get('data')
+        data = directRequest.get('data')
         if not data:
             data = {}
         else:
             data = data[0]
 
+        if isinstance(data, (int, basestring)):
+            data = {'id': data}
+        
         # Cast all keys as strings, in case of encoding or other wrinkles
         data = dict((str(k), v) for k,v in data.iteritems())
         self._data = data
@@ -79,13 +100,13 @@ class DirectRouter(object):
                 'message':message
             })
 
-        return json.dumps({
+        return {
             'type':'rpc',
-            'tid': body['tid'],
+            'tid': directRequest['tid'],
             'action': action,
             'method': method,
             'result': result
-        }, default=lambda o:o.__json__())
+        }
 
 
 class DirectProviderDefinition(object):
