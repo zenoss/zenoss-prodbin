@@ -1,7 +1,7 @@
 ###########################################################################
 #
 # This program is part of Zenoss Core, an open source monitoring platform.
-# Copyright (C) 2007, Zenoss Inc.
+# Copyright (C) 2007, 2009 Zenoss Inc.
 #
 # This program is free software; you can redistribute it and/or modify it
 # under the terms of the GNU General Public License version 2 as published by
@@ -11,15 +11,14 @@
 #
 ###########################################################################
 
-__doc__="""Util
+__doc__ = """IpUtil
 
-Utility functions for the Confmon Product
+IPv4 utility functions
 
 """
 
 import types
 import re
-import string
 
 from Products.ZenUtils.Exceptions import ZentinelException
 
@@ -27,13 +26,37 @@ from twisted.names.client import lookupPointer
 
 class IpAddressError(ZentinelException): pass
 
+class InvalidIPRangeError(Exception):
+    """
+    Attempted to parse an invalid IP range.
+    """
 
+
+# Match if this is an IPv4 address
 isip = re.compile("^\d+\.\d+\.\d+\.\d+$").search
-"""return match if this is an ip."""
-
-
 def checkip(ip):
-    """check that an ip is valid"""
+    """
+    Check that an IPv4 address is valid. Return true
+    or raise an exception(!)
+
+    >>> checkip('10.10.20.5')
+    True
+    >>> try: checkip(10)
+    ... except IpAddressError, ex: print ex
+    10 is not a dot delimited address
+    >>> try: checkip('10')
+    ... except IpAddressError, ex: print ex
+    10 is an invalid address
+    >>> try: checkip('10.10.20.500')
+    ... except IpAddressError, ex: print ex
+    10.10.20.500 is an invalid address
+    >>> checkip('10.10.20.00')
+    True
+    >>> checkip('10.10.20.0')
+    True
+    >>> checkip('10.10.20.255')
+    True
+    """
     success = True
     if ip == '': 
         success = False
@@ -57,7 +80,25 @@ def checkip(ip):
 
 
 def numbip(ip):
-    """convert a string ip to number"""
+    """
+    Convert a string IP to a decimal representation easier for
+    calculating netmasks etc.
+
+    Deprecated in favour of ipToDecimal()
+    """
+    return ipToDecimal(ip)
+
+def ipToDecimal(ip):
+    """
+    Convert a string IP to a decimal representation easier for
+    calculating netmasks etc.
+
+    >>> ipToDecimal('10.10.20.5')
+    168432645L
+    >>> try: ipToDecimal('10.10.20.500')
+    ... except IpAddressError, ex: print ex
+    10.10.20.500 is an invalid address
+    """
     checkip(ip)
     octs = ip.split('.')
     octs.reverse()
@@ -66,21 +107,41 @@ def numbip(ip):
         i += (256l ** j) * int(octs[j])
     return i    
 
-_masks = (
-    0x000000ffL,
-    0x0000ff00L,
-    0x00ff0000L,
-    0xff000000L,
-    )
-
 
 def ipFromIpMask(ipmask):
-    """get just the ip from an ip mask pair like 1.1.1.1/24"""
+    """
+    Get just the IP address from an CIDR string like 1.1.1.1/24
+
+    >>> ipFromIpMask('1.1.1.1')
+    '1.1.1.1'
+    >>> ipFromIpMask('1.1.1.1/24')
+    '1.1.1.1'
+    """
     return ipmask.split("/")[0]
 
 
 def strip(ip):
-    """convert a number ip to a string"""
+    """
+    Convert a numeric IP address to a string
+
+    Deprecated in favour of decimalIpToStr()
+    """
+    return decimalIpToStr(ip)
+
+def decimalIpToStr(ip):
+    """
+    Convert a decimal IP address (as returned by ipToDecimal)
+    to a regular IPv4 dotted quad address.
+
+    >>> decimalIpToStr(ipToDecimal('10.23.44.57'))
+    '10.23.44.57'
+    """
+    _masks = (
+        0x000000ffL,
+        0x0000ff00L,
+        0x00ff0000L,
+        0xff000000L,
+    )
     o = []
     for i in range(len(_masks)):
         t = ip & _masks[i]
@@ -91,14 +152,31 @@ def strip(ip):
 
 
 def hexToBits(hex):
-    """convert hex number (0xff000000 of netbits to numeric netmask (8)"""
+    """
+    Convert hex netbits (0xff000000) to decimal netmask (8)
+
+    >>> hexToBits("0xff000000")
+    8
+    >>> hexToBits("0xffffff00")
+    24
+    """
     return maskToBits(hexToMask(hex))
     
 
 def hexToMask(hex):
-    '''converts a netmask represented in hex to octets represented in
-    decimal.  e.g. "0xffffff00" -> "255.255.255.0"'''
-    
+    """
+    Converts a netmask represented in hex to octets represented in
+    decimal.
+
+    >>> hexToMask("0xffffff00")
+    '255.255.255.0'
+    >>> hexToMask("0xffffffff")
+    '255.255.255.255'
+    >>> hexToMask("0x00000000")
+    '0.0.0.0'
+    >>> hexToMask("trash")
+    '255.255.255.255'
+    """
     if hex.find('x') < 0:
         return "255.255.255.255"
     
@@ -107,19 +185,28 @@ def hexToMask(hex):
     while len(hex) > 0:
         snippit = list(hex.pop() + hex.pop())
         snippit.reverse()
-        decimal = int(string.join(snippit, ''), 16)
+        decimal = int(''.join(snippit), 16)
         octets.append(str(decimal))
 
     octets.reverse()
-    return string.join(octets, '.')
+    return '.'.join(octets)
 
 
 def maskToBits(netmask):
-    """convert string rep of netmask to number of bits"""
+    """
+    Convert string rep of netmask to number of bits
+
+    >>> maskToBits('255.255.255.255')
+    32
+    >>> maskToBits('255.255.224.0')
+    19
+    >>> maskToBits('0.0.0.0')
+    0
+    """
     if type(netmask) == types.StringType and netmask.find('.') > -1: 
         test = 0xffffffffL
         if netmask[0]=='0': return 0
-        masknumb = numbip(netmask)
+        masknumb = ipToDecimal(netmask)
         for i in range(32):
             if test == masknumb: return 32-i
             test = test - 2 ** i
@@ -129,7 +216,24 @@ def maskToBits(netmask):
        
 
 def bitsToMaskNumb(netbits):
-    """convert integer number of netbits to string netmask"""
+    """
+    Convert integer number of netbits to a decimal number
+
+    Deprecated in favour of bitsToDecimalMask()
+    """
+    return bitsToDecimalMask(netbits)
+
+def bitsToDecimalMask(netbits):
+    """
+    Convert integer number of netbits to a decimal number
+
+    >>> bitsToDecimalMask(32)
+    4294967295L
+    >>> bitsToDecimalMask(19)
+    4294959104L
+    >>> bitsToDecimalMask(0)
+    0L
+    """
     masknumb = 0L
     netbits=int(netbits)
     for i in range(32-netbits, 32):
@@ -138,26 +242,73 @@ def bitsToMaskNumb(netbits):
    
 
 def bitsToMask(netbits):
-    return strip(bitsToMaskNumb(netbits))
+    """
+    Convert netbits into a dotted-quad subnetmask
+
+    >>> bitsToMask(12)
+    '255.240.0.0'
+    >>> bitsToMask(0)
+    '0.0.0.0'
+    >>> bitsToMask(32)
+    '255.255.255.255'
+    """
+    return decimalIpToStr(bitsToDecimalMask(netbits))
 
 
 def getnet(ip, netmask):
-    """get network address of ip as string netmask is in form 255.255.255.0"""
+    """
+    Deprecated in favour of decimalNetFromIpAndNet()
+    """
+    return decimalNetFromIpAndNet(ip, netmask)
+
+def decimalNetFromIpAndNet(ip, netmask):
+    """
+    Get network address of IP as string netmask as in the form 255.255.255.0
+
+    >>> getnet('10.12.25.33', 24)
+    168564992L
+    >>> getnet('10.12.25.33', '255.255.255.0')
+    168564992L
+    """
     checkip(ip)
-    ip = numbip(ip)
-    if 0 < int(netmask) <= 32:
-        netmask = bitsToMaskNumb(netmask)
+    ip = ipToDecimal(ip)
+
+    try: netbits = int(netmask)
+    except ValueError: netbits = -1
+
+    if 0 < netbits <= 32:
+        netmask = bitsToDecimalMask(netbits)
     else:
         checkip(netmask)
-        netmask = numbip(netmask)
+        netmask = ipToDecimal(netmask)
     return ip & netmask
 
 
 def getnetstr(ip, netmask):
-    """return network number as string"""
-    return strip(getnet(ip, netmask))
+    """
+    Deprecated in favour of netFromIpAndNet()
+    """
+    return netFromIpAndNet(ip, netmask)
+
+def netFromIpAndNet(ip, netmask):
+    """
+    Return network number as string
+
+    >>> netFromIpAndNet('10.12.25.33', 24)
+    '10.12.25.0'
+    >>> netFromIpAndNet('250.12.25.33', 1)
+    '128.0.0.0'
+    >>> netFromIpAndNet('10.12.25.33', 16)
+    '10.12.0.0'
+    >>> netFromIpAndNet('10.12.25.33', 32)
+    '10.12.25.33'
+    """
+    return decimalIpToStr(getnet(ip, netmask))
 
 def asyncNameLookup(address, uselibcresolver = True):
+    """
+    Turn IP addreses into names using deferreds
+    """
     if uselibcresolver:
         # This is the most reliable way to do a lookup use it 
         from twisted.internet import threads
@@ -183,11 +334,6 @@ def asyncIpLookup(name):
     import socket
     return threads.deferToThread(lambda : socket.gethostbyname(name))
 
-
-class InvalidIPRangeError(Exception):
-    """
-    Attempted to parse an invalid IP range.
-    """
 
 def parse_iprange(iprange):
     """
