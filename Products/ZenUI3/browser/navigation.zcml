@@ -20,25 +20,27 @@
 
     <browser:viewlet
         name="Dashboard"
-        url="/dashboard"
+        url="/zport/dmd/dashboard"
         weight="0"
         manager="..navigation.interfaces.IPrimaryNavigationMenu"
         class="..navigation.menuitem.PrimaryNavigationMenuItem"
         permission="zope2.Public"
         />
 
+    <!-- Ignore the NOC view for now
     <browser:viewlet
         name="NOC"
-        url="/nocview"
+        url="/zport/dmd/nocview"
         weight="1"
         manager="..navigation.interfaces.IPrimaryNavigationMenu"
         class="..navigation.menuitem.PrimaryNavigationMenuItem"
         permission="zope2.Public"
         />
+    -->
 
     <browser:viewlet
         name="Events"
-        url="/evconsole"
+        url="/zport/dmd/Events/evconsole"
         weight="2"
         manager="..navigation.interfaces.IPrimaryNavigationMenu"
         class="..navigation.menuitem.PrimaryNavigationMenuItem"
@@ -47,7 +49,7 @@
 
         <browser:viewlet
             name="History"
-            url="/evhistory"
+            url="evhistory"
             weight="1"
             parentItem="Events"
             manager="..navigation.interfaces.ISecondaryNavigationMenu"
@@ -57,7 +59,7 @@
 
         <browser:viewlet
             name="Notifications"
-            url="/notifications"
+            url="notifications"
             weight="2"
             parentItem="Events"
             manager="..navigation.interfaces.ISecondaryNavigationMenu"

@@ -1,0 +1,70 @@
+<tal:block metal:define-macro="masterdetail">
+<tal:block metal:use-macro="context/page_macros/base-new">
+
+<tal:block metal:fill-slot="breadcrumbs">
+    <tal:block metal:define-slot="breadcrumbs">
+        <span metal:use-macro="here/miscmacros/macros/breadCrumbs" />
+    </tal:block>
+</tal:block>
+
+<tal:block metal:fill-slot="center_panel">
+<div id="master_panel">
+    <tal:block metal:define-slot="master_panel"/>
+</div>
+<div id="detail_panel">
+    <tal:block metal:define-slot="detail_panel"/>
+</div>
+</tal:block>
+
+<!-- Chain the slots -->
+<tal:block metal:fill-slot="script_beforeLayout">
+    <tal:block metal:define-slot="script_beforeLayout"/>
+</tal:block>
+
+<tal:block metal:fill-slot="script_layout">
+<script>
+Ext.onReady(function(){
+    Ext.getCmp('center_panel').add(new Ext.Panel({
+        id: 'center_panel_container',
+        layout: 'border',
+        defaults: {
+            'border': false
+        },
+        items: [{
+            id: 'master_panel',
+            contentEl: 'master_panel',
+            layout: 'fit',
+            region: 'center',
+            split: true
+        },{
+            split: true,
+            width: '50%',
+            id: 'detail_panel',
+            contentEl: 'detail_panel',
+            region: 'east',
+            layout: 'fit'
+        }]
+    }));
+});
+</script>
+<!-- Chain the macro -->
+<tal:block metal:define-slot="script_layout">
+<script>
+Ext.onReady(function(){
+    Ext.getCmp('master_panel').add(new Zenoss.PlaceholderPanel({
+        text: 'Ext.getCmp("master_panel"), metal:fill-slot="master_panel"'
+    }));
+    Ext.getCmp('detail_panel').add(new Zenoss.PlaceholderPanel({
+        text: 'Ext.getCmp("detail_panel"), metal:fill-slot="detail_panel"'
+    }));
+});
+</script>
+</tal:block>
+</tal:block>
+
+<tal:block metal:fill-slot="script_afterLayout">
+    <tal:block metal:define-slot="script_afterLayout"/>
+</tal:block>
+
+</tal:block>
+</tal:block>

@@ -5,19 +5,16 @@
     >
 
     <!-- Set up the navigation -->
-    <!-- Don't need navigation yet
 
     <browser:viewlet
         name="Event Console"
-        url="/evconsole"
+        url="/zport/dmd/Events/evconsole"
         weight="0"
         parentItem="Events"
         manager="...navigation.interfaces.ISecondaryNavigationMenu"
         class="...navigation.menuitem.SecondaryNavigationMenuItem"
         permission="zope2.Public"
         />
-
-    -->
 
     <adapter
         for="*"
@@ -35,7 +32,21 @@
         />
 
     <browser:page
+        name="evconsole"
+        for="Products.ZenModel.EventView.IEventView"
+        template="console-new.pt"
+        permission="zope2.Public"
+        />
+
+    <browser:page
         name="viewHistoryEvents"
+        for="Products.ZenModel.EventView.IEventView"
+        class=".grid.HistoryConsoleView"
+        permission="zope2.Public"
+        />
+
+    <browser:page
+        name="evhistory"
         for="Products.ZenModel.EventView.IEventView"
         class=".grid.HistoryConsoleView"
         permission="zope2.Public"

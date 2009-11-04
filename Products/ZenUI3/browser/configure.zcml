@@ -6,8 +6,8 @@
 
 <include file="resources.zcml"/>
 <include file="macros.zcml"/>
-<!--
 <include file="navigation.zcml"/>
+<!--
 <include file="screentypes.zcml"/>
 -->
 
@@ -27,8 +27,8 @@
     permission="zope2.Public"
     />
 
-<!-- Redirect is handled by /index_html script in Zenoss
 
+<!--
 <browser:defaultView
     for="OFS.interfaces.IApplication"
     name="redirect"
@@ -40,7 +40,6 @@
     permission="zope2.Public"
     class=".MainPageRedirect"
     />
-
 -->
 
 
@@ -50,65 +49,61 @@
     />
 
 
-<!-- Don't need any of these yet
-
 <browser:page
-    template="templates/base.pt"
+    template="templates/base-new.pt"
     name="dashboard"
     for="*"
     permission="zope2.Public"
     />
 
 <browser:page
-    template="templates/base.pt"
+    template="templates/base-new.pt"
     name="nocview"
     for="*"
     permission="zope2.Public"
     />
 
 <browser:page
-    template="templates/base.pt"
+    template="templates/base-new.pt"
     name="evhistory"
     for="*"
     permission="zope2.Public"
     />
 
 <browser:page
-    template="templates/base.pt"
+    template="templates/base-new.pt"
     name="notifications"
     for="*"
     permission="zope2.Public"
     />
 
 <browser:page
-    template="templates/base.pt"
+    template="templates/base-new.pt"
     name="itinfrastructure"
     for="*"
     permission="zope2.Public"
     />
 
 <browser:page
-    template="templates/base.pt"
+    template="templates/base-new.pt"
     name="reports"
     for="*"
     permission="zope2.Public"
     />
 
 <browser:page
-    template="templates/base.pt"
+    template="templates/base-new.pt"
     name="users"
     for="*"
     permission="zope2.Public"
     />
 
 <browser:page
-    template="templates/base.pt"
+    template="templates/base-new.pt"
     name="advanced"
     for="*"
     permission="zope2.Public"
     />
-
--->
 
 
 <include package=".eventconsole"/>

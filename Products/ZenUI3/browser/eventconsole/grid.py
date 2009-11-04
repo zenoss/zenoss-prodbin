@@ -141,7 +141,7 @@ class EventConsole(DirectRouter):
             params = {}
         elif isinstance(params, basestring):
             params = unjson(params)
-        zem = self._evmgr()
+        zem = self.api._event_manager()
         where = zem.lookupManagedEntityWhere(self.context)
         where = zem.filteredWhere(where, params)
         if self._asof:
