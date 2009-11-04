@@ -369,8 +369,10 @@ class PackageManager:
         if not schema:
             return os.path.abspath(url)
         file = path.split(os.sep)[-1]
-        filename, _ = urllib.urlretrieve(url,
-            urljoin([self.downloaddir, file]))
+        os.makedirs(self.downloaddir)
+        downloadFile = os.path.join(self.downloaddir, file)
+        self.log.debug("Downloading to file '%s'", downloadFile)
+        filename, _ = urllib.urlretrieve(url, downloadFile)
         return filename
 
     def processPackage(self, pkgFileName):
