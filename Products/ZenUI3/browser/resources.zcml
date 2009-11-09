@@ -17,4 +17,11 @@
     permission="zope2.Public"
     />
 
+<browser:page
+    name="zenoss-all.js"
+    for="*"
+    class=".resources.ZenossJavaScript"
+    permission="zope2.Public"
+    />
+
 </configure>
