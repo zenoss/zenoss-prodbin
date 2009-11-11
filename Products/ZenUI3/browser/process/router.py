@@ -11,23 +11,15 @@
 #
 ###########################################################################
 
-from zope.interface import implements
-from zope.component import queryUtility
+import zope.component
 
-from Products.Zuul.interfaces import IService, IDataRootFactory
+from Products.Zuul.interfaces import IProcessService
+from Products.ZenUtils.Ext import DirectRouter
 
-class ZuulService(object):
-    implements(IService)
-
-    @property
-    def _dmd(self):
-        """
-        A way for services to access the data layer
-        """
-        dmd_factory = queryUtility(IDataRootFactory)
-        if dmd_factory:
-            return dmd_factory()
-
-
-from eventservice import EventService
-from processservice import ProcessService
+class ProcessRouter(DirectRouter):
+    
+    def getProcessTree(self, id):
+        svc = zope.component.queryUtility(IProcessService)
+        tree = svc.getProcessTree(id)
+        return tree.serializableObject['children']
+        

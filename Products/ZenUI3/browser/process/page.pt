@@ -1,0 +1,47 @@
+<!--
+###########################################################################
+#
+# This program is part of Zenoss Core, an open source monitoring platform.
+# Copyright (C) 2009, Zenoss Inc.
+#
+# This program is free software; you can redistribute it and/or modify it
+# under the terms of the GNU General Public License version 2 as published by
+# the Free Software Foundation.
+#
+# For complete information please visit: http://www.zenoss.com/oss/
+#
+###########################################################################
+-->
+
+<tal:block metal:use-macro="context/page_macros/masterdetailsplit2">
+
+<tal:block metal:fill-slot="script_beforeLayout">
+<script src="extdirect.js"></script>
+</tal:block> <!-- metal:fill-slot="script_beforeLayout" -->
+
+<tal:block metal:fill-slot="script_layout">
+<script>
+Ext.onReady(function(){
+    var loader = new Ext.tree.TreeLoader({
+        directFn: Zenoss.remote.ProcessRouter.getProcessTree
+    });
+    var root = new Ext.tree.AsyncTreeNode({
+        id: 'Processes',
+        text: 'Processes'
+    });
+    Ext.getCmp('master_panel').add(new Zenoss.HierarchyTreePanel({
+        loader: loader,
+        root: root
+    }));
+    root.expand();
+    Ext.getCmp('top_detail_panel').add(new Zenoss.PlaceholderPanel({
+        text: 'Ext.getCmp("top_detail_panel"), metal:fill-slot="top_detail_panel"'
+    }));
+    Ext.getCmp('bottom_detail_panel').add(new Zenoss.PlaceholderPanel({
+        text: 'Ext.getCmp("bottom_detail_panel"), metal:fill-slot="bottom_detail_panel"'
+    }));
+});
+</script>
+</tal:block> <!-- metal:fill-slot="script_layout" -->
+
+</tal:block> <!-- metal:use-macro="context/page_macros/masterdetailsplit2" -->

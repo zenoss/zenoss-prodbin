@@ -9,8 +9,10 @@
         "fileIncludes": [{
             "text": "zenoss.js",
             "path": "resources/js/zenoss/"
+        }, {
+            "text": "HierarchyTreePanel.js",
+            "path": "resources/js/zenoss/"
         }]
     }],
     "resources": []
 }
-
