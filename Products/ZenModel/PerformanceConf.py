@@ -55,6 +55,7 @@ from Globals import DTMLFile
 from Globals import InitializeClass
 from Monitor import Monitor
 from Products.PythonScripts.standard import url_quote
+from Products.Jobber.jobs import ShellCommandJob
 from Products.ZenModel.ZenossSecurity import *
 from Products.ZenRelations.RelSchema import *
 from Products.ZenUtils.Utils import basicAuthUrl, zenPath, binPath
@@ -658,19 +659,16 @@ class PerformanceConf(Monitor, StatusColor):
         @type generateEvents: string
         """
         xmlrpc = isXmlRpc(REQUEST)
-        if setlog and REQUEST and not xmlrpc:
-            handler = setupLoggingHeader(device, REQUEST)
 
         zenmodelerOpts = ['run', '--now', '--monitor', self.id, '-F', '-d', device.id]
         if REQUEST:
             zenmodelerOpts.append('--weblog')
-        result = self._executeZenModelerCommand(zenmodelerOpts, REQUEST)
-        if result and xmlrpc:
-            return result
-        log.info('configuration collected')
+        jobstatus = self._executeZenModelerCommand(zenmodelerOpts, REQUEST)
 
-        if setlog and REQUEST and not xmlrpc:
-            clearWebLoggingStream(handler)
+        log.info('configuration added to job queue')
+        
+        if REQUEST and not xmlrpc:
+            REQUEST.RESPONSE.redirect('/zport/dmd/joblist')
 
         if xmlrpc:
             return 0
@@ -689,8 +687,8 @@ class PerformanceConf(Monitor, StatusColor):
         zm = binPath('zenmodeler')
         zenmodelerCmd = [zm]
         zenmodelerCmd.extend(zenmodelerOpts)
-        result = executeCommand(zenmodelerCmd, REQUEST)
-        return result
+        jobstatus = self.dmd.JobManager.addJob(ShellCommandJob, zenmodelerCmd)
+        return jobstatus
 
 
 InitializeClass(PerformanceConf)
