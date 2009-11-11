@@ -17,8 +17,8 @@ import zope.component
 from zope.interface.verify import verifyClass
 
 from Products.Zuul.tests.base import ZuulServiceTestCase
-from Products.Zuul.interfaces import IProcessTreeNode, IProcessService
-from Products.Zuul.services.processservice import ProcessTreeNode
+from Products.Zuul.interfaces import IProcessTree, IProcessService
+from Products.Zuul.services.processservice import ProcessTree
 from Products.Zuul.services.processservice import ProcessService
 from Products.ZenModel.OSProcessOrganizer import manage_addOSProcessOrganizer
 
@@ -29,13 +29,13 @@ class ProcessServiceTest(ZuulServiceTestCase):
         self.svc = zope.component.queryUtility(IProcessService)
 
     def test_interfaces(self):
-        verifyClass(IProcessTreeNode, ProcessTreeNode)
+        verifyClass(IProcessTree, ProcessTree)
         verifyClass(IProcessService, ProcessService)
 
     def test_getProcessTree(self):
         manage_addOSProcessOrganizer(self.dmd.Processes, 'foo')
         self.dmd.Processes.foo.manage_addOSProcessClass('bar')
-        root = self.svc.getProcessTree()
+        root = self.svc.getProcessTree('Processes')
         self.assertEqual('Processes', root.id)
         self.assertEqual('Processes', root.text)
         self.failIf(root.leaf)
