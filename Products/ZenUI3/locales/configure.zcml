@@ -1,0 +1,8 @@
+<configure xmlns="http://namespaces.zope.org/browser">
+<page
+    name="i18n.js"
+    for="*"
+    class=".javascript.I18N"
+    permission="zope2.Public"
+    />
+</configure>

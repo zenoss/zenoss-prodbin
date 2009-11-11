@@ -1,0 +1,56 @@
+# This file contains no message ids because Zenoss's default
+# language is English
+msgid ""
+msgstr ""
+"Project-Id-Version: zenoss\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgid "Dashboard"
+msgstr "Dashboard"
+
+msgid "Events"
+msgstr "Incidents"
+
+msgid "IT Infrastructure"
+msgstr "Dispositifs"
+
+msgid "Reports"
+msgstr "Rapports"
+
+msgid "Advanced"
+msgstr "Avancée"
+
+msgid "Select"
+msgstr "Sélectionnez"
+
+msgid "Export"
+msgstr "Export"
+
+msgid "Configure"
+msgstr "Configurez"
+
+msgid "Event Console"
+msgstr "Incident Console"
+
+msgid "History"
+msgstr "Histoire"
+
+msgid "Notifications"
+msgstr "Alertes"
+
+msgid "Refresh"
+msgstr "Rafraîchir"
+
+msgid "Updating..."
+msgstr "Mise à jour..."
+
+msgid "Last updated at "
+msgstr "Dernière mise à jour à "
+
+msgid "Device"
+msgstr "Dispositif"
+
+msgid "Severity"
+msgstr "Sévérité"

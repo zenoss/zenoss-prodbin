@@ -14,6 +14,10 @@ import time
 from zope.interface import implements
 from zope.component import queryUtility
 
+import zope.i18n
+from zope.i18nmessageid import MessageFactory
+_ = MessageFactory('zenoss')
+
 from Products.Five.browser import BrowserView
 from Products.Five.browser.pagetemplatefile import ViewPageTemplateFile
 
@@ -195,7 +199,7 @@ class EventConsole(DirectRouter):
         return {'success':True, 'evid':evid}
 
     def column_config(self):
-        return column_config(self.api.fields(self.context))
+        return column_config(self.api.fields(self.context), self.request)
 
 
 class EventClasses(JavaScriptSnippet):
@@ -211,10 +215,13 @@ class EventClasses(JavaScriptSnippet):
         """ % paths;
 
 
-def column_config(fields):
+def column_config(fields, request=None):
     defs = []
     for field in fields:
         col = COLUMN_CONFIG[field].copy()
+        if request:
+            msg = _(col['header'])
+            col['header'] = zope.i18n.translate(msg, context=request)
         col['id'] = field
         col['dataIndex'] = field
         if isinstance(col['filter'], basestring):
@@ -237,7 +244,7 @@ class GridColumnDefinitions(JavaScriptSnippet):
     def snippet(self):
         api = queryUtility(IEventService)
         result = ["Ext.onReady(function(){Zenoss.env.COLUMN_DEFINITIONS=["]
-        defs = column_config(api.fields(self.context))
+        defs = column_config(api.fields(self.context), self.request)
         result.append(',\n'.join(defs))
         result.append(']});')
         result = '\n'.join(result)

@@ -1,4 +1,4 @@
-<li tal:attributes="class string:nav-item-${view/css}">
+<li i18n:domain="zenoss" tal:attributes="class string:nav-item-${view/css}">
 <div class="sd-left">
     <div class="sd-right">
         <a tal:attributes="href view/url"

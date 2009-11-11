@@ -405,7 +405,7 @@ Ext.onReady(function(){
                 /*
                  * SELECT MENU
                  */
-                text: 'Select',
+                text: _t('Select'),
                 menu:{
                     xtype: 'menu',
                     items: [{
@@ -448,7 +448,7 @@ Ext.onReady(function(){
                     ]
                 }
             },{
-                text: 'Export',
+                text: _t('Export'),
                 //iconCls: 'export',
                 menu: {
                     items: [{
@@ -491,7 +491,7 @@ Ext.onReady(function(){
                 /* 
                  * CONFIGURE MENU
                  */
-                text: 'Configure',
+                text: _t('Configure'),
                 //iconCls: 'customize',
                 menu: {
                     items: [{
@@ -565,7 +565,7 @@ Ext.onReady(function(){
                 text: 'Updating...'
             },{
                 xtype: 'refreshmenu',
-                text: 'Refresh',
+                text: _t('Refresh'),
                 handler: function(){
                     view = Ext.getCmp('events_grid').getView();
                     view.updateLiveRows(view.rowIndex, true, true);
@@ -579,7 +579,7 @@ Ext.onReady(function(){
         var box = Ext.getCmp('lastupdated'),
             dt = new Date(),
             dtext = dt.format('g:i:sA');
-            box.setText('Last updated at ' + dtext);
+            box.setText(_t('Last updated at ') + dtext);
     };
 
     // Add css class to collapsed splitbar element, for hidingz

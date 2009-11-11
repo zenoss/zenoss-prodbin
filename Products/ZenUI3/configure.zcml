@@ -1,9 +1,13 @@
 <configure
     xmlns="http://namespaces.zope.org/zope"
+    xmlns:i18n="http://namespaces.zope.org/i18n"
     xmlns:five="http://namespaces.zope.org/five">
 
     <five:registerPackage package="." initialize=".zope2.initialize" />
 
+    <i18n:registerTranslations directory="locales" />
+
     <include package=".browser"/>
+    <include package=".locales"/>
 
 </configure>
