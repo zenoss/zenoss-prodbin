@@ -23,19 +23,91 @@
 <script>
 Ext.onReady(function(){
     var loader = new Ext.tree.TreeLoader({
-        directFn: Zenoss.remote.ProcessRouter.getProcessTree
+        directFn: Zenoss.remote.ProcessRouter.loadProcessTree
     });
     var root = new Ext.tree.AsyncTreeNode({
         id: 'Processes',
-        text: 'Processes'
+        text: _t('Processes')
     });
     Ext.getCmp('master_panel').add(new Zenoss.HierarchyTreePanel({
         loader: loader,
-        root: root
+        root: root,
+        listeners: {
+            click: function(node, event) {
+                Ext.getCmp('processForm').getForm().load({
+                    params: {processTreeId: node.attributes.id},
+                    success: function(form, action) {
+                        console.log(action.result)
+                    }
+                });
+            }
+        }
     }));
     root.expand();
-    Ext.getCmp('top_detail_panel').add(new Zenoss.PlaceholderPanel({
-        text: 'Ext.getCmp("top_detail_panel"), metal:fill-slot="top_detail_panel"'
+    Ext.getCmp('top_detail_panel').add(new Ext.form.FormPanel({
+        id: 'processForm',
+        paramsAsHash: true,
+        api: {
+            load: Zenoss.remote.ProcessRouter.loadProcessInfo,
+            submit: Zenoss.remote.ProcessRouter.submitProcessInfo
+        },
+        items: [
+            new Ext.form.TextField({
+                fieldLabel: _t('Name'),
+                name: 'name',
+                allowBlank:false
+            }),
+            new Ext.form.TextField({
+                fieldLabel: _t('Decription'),
+                name: 'description'
+            }),
+            new Ext.form.Radio({
+                fieldLabel: _t('Monitor'),
+                name: 'monitor',
+                boxLabel: 'Yes',
+                inputValue: 'yes',
+                checked: true
+            }), 
+            new Ext.form.Radio({
+                fieldLabel: _t(''),
+                name: 'monitor',
+                boxLabel: 'No',
+                inputValue: 'no'
+            }),
+            new Ext.form.ComboBox({
+                fieldLabel: _t('Fail Severity'),
+                name: 'failSeverity',
+                mode: 'local',
+                valueField: 'severityId',
+                displayField: 'severityText',
+                store: new Ext.data.ArrayStore({
+                    fields: ['severityId', 'severityText'],
+                    data: Zenoss.env.SEVERITIES
+                }),
+            }),
+            new Ext.form.TextField({
+                fieldLabel: _t('Regular Expression'),
+                name: 'regex'
+            }),
+            new Ext.form.Radio({
+                fieldLabel: _t('Ignore Parameters (only match command)'),
+                name: 'ignoreParameters',
+                boxLabel: 'Yes',
+                inputValue: 'yes',
+                checked: true
+            }),
+            new Ext.form.Radio({
+                fieldLabel: _t(''),
+                name: 'ignoreParameters',
+                boxLabel: 'No',
+                inputValue: 'no'
+            })
+        ], // items
+        buttons: [{
+                text: _t('Save')
+            }, {
+                text: _t('Cancel')
+        }] // buttons
     }));
     Ext.getCmp('bottom_detail_panel').add(new Zenoss.PlaceholderPanel({
         text: 'Ext.getCmp("bottom_detail_panel"), metal:fill-slot="bottom_detail_panel"'
