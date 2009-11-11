@@ -14,20 +14,40 @@
 from zope.interface import Interface, Attribute
 
 
-class IProcessTreeNode(Interface):
+class IProcessTree(Interface):
     
-    id = Attribute('The ID of the node')
+    id = Attribute('The ID of the node, e.g. Processes/Apache/httpd')
     text = Attribute('The text label that represents the node')
     children = Attribute("The node's children")
     leaf = Attribute('Is this node a leaf (incapable of having children)')
     serializableObject = Attribute('A python data structure that is ready to '
                                    'be passed to json.dumps')
-
-
+                                   
+                                   
+class IProcessInfo(Interface):
+    
+    name = Attribute('The name of the process')
+    description = Attribute('A description of the process')
+    monitor = Attribute('Whether or not the process is monitored')
+    failSeverity = Attribute('The severity of the event fired when this '
+                             'process goes down')
+    regex = Attribute('Regular expression used to match process to a running '
+                      'command on the managed host')
+    ignoreParameters = Attribute('Only match the regex to the command not its'
+                                 ' parameters')
+                                 
+                                 
 class IProcessService(Interface):
 
-    def getProcessTree():
+    def getProcessTree(processTreeNodeId):
         """
-        Get the Processes tree.
+        Get the tree of OSProcessOrganizer and OSProcessClass instances with
+        processTreeNodeId at the root.
+        """        
+        
+    def getProcessInfo(processTreeNodeId):
+        """
+        Get information about the OSProcessOrganizer and OSProcessClass 
+        identified by processTreeNodeId.
         """
         

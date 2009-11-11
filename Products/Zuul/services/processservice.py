@@ -16,8 +16,9 @@ from Products.Zuul.services import ZuulService
 from Products.Zuul.interfaces import *
 from Products.ZenModel.OSProcessClass import OSProcessClass
 
-class ProcessTreeNode(object):
-    implements(IProcessTreeNode)
+
+class ProcessTree(object):
+    implements(IProcessTree)
     
     def __init__(self, object):
         """
@@ -45,7 +46,7 @@ class ProcessTreeNode(object):
                 children.append(osProcessOrganizer)
             for osProcessClass in self._object.osProcessClasses():
                 children.append(osProcessClass)
-        return [ProcessTreeNode(child) for child in children]
+        return [ProcessTree(child) for child in children]
         
     @property
     def leaf(self):
@@ -61,9 +62,73 @@ class ProcessTreeNode(object):
         return obj
 
 
+class ProcessInfo(object):
+    implements(IProcessInfo)
+    
+    def __init__(self, object):
+        """
+        The object parameter is the wrapped persistent object. It is either an 
+        OSProcessOrganizer or an OSProcessClass.
+        """
+        self._object = object
+        
+    @property
+    def name(self):
+        return self._object.titleOrId()
+        
+    @property
+    def description(self):
+        return self._object.description
+        
+    @property
+    def monitor(self):
+        return self._object.zMonitor
+        
+    @property
+    def failSeverity(self):
+        return self._object.zFailSeverity
+        
+    @property
+    def regex(self):
+        return getattr(self._object, 'regex', None)
+        
+    @property
+    def ignoreParameters(self):
+        return getattr(self._object, 'ignoreParameters', None)
+        
+    @property
+    def serializableObject(self):
+        return {'name': self.name,
+                'description': self.description,
+                'monitor': self.monitor,
+                'failSeverity': self.failSeverity,
+                'regex': self.regex,
+                'ignoreParameters': self.ignoreParameters
+                }
+        
+        
 class ProcessService(ZuulService):
     implements(IProcessService)
     
-    def getProcessTree(self, path='Processes'):
-        return ProcessTreeNode(self._dmd.findChild(path))
+    def getProcessTree(self, processTreeId):
+        obj = self._findObject(processTreeId)
+        return ProcessTree(obj)
+        
+    def getProcessInfo(self, processTreeId):
+        obj = self._findObject(processTreeId)
+        return ProcessInfo(obj)
+        
+    def _findObject(self, processTreeId):
+        parts = processTreeId.split('/')
+        objectId = parts[-1]
+        if len(parts) == 1:
+            manager = self._dmd
+        else:
+            parentPath = '/'.join(parts[:-1])
+            parent = self._dmd.findChild(parentPath)
+            if objectId in parent.objectIds():
+                manager = parent
+            else:
+                manager = parent._getOb('osProcessClasses')
+        return manager._getOb(objectId)
         
