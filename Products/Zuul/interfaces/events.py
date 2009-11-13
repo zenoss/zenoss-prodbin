@@ -53,7 +53,7 @@ class IEventClosed(IEventMoved):
     """
 
 
-class IEventService(Interface):
+class IEventFacade(Interface):
 
     def fields(context=None):
         """

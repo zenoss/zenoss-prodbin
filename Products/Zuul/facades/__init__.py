@@ -14,20 +14,20 @@
 from zope.interface import implements
 from zope.component import queryUtility
 
-from Products.Zuul.interfaces import IService, IDataRootFactory
+from Products.Zuul.interfaces import IFacade, IDataRootFactory
 
-class ZuulService(object):
-    implements(IService)
+class ZuulFacade(object):
+    implements(IFacade)
 
     @property
     def _dmd(self):
         """
-        A way for services to access the data layer
+        A way for facades to access the data layer
         """
         dmd_factory = queryUtility(IDataRootFactory)
         if dmd_factory:
             return dmd_factory()
 
 
-from eventservice import EventService
-from processservice import ProcessService
+from eventfacade import EventFacade
+from processfacade import ProcessFacade

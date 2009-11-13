@@ -11,9 +11,13 @@
 #
 ###########################################################################
 
+from zope.component import adapts
 from zope.interface import implements
-from Products.Zuul.services import ZuulService
-from Products.Zuul.interfaces import *
+from Products.Zuul.facades import ZuulFacade
+from Products.Zuul.interfaces import IProcessFacade
+from Products.Zuul.interfaces import IProcessTree
+from Products.Zuul.interfaces import IProcessInfo
+from Products.Zuul.interfaces import ISerializableFactory
 from Products.ZenModel.OSProcessClass import OSProcessClass
 
 
@@ -40,25 +44,38 @@ class ProcessTree(object):
         
     @property
     def children(self):
-        children = []
+        managers = []
         if not self.leaf:
-            for osProcessOrganizer in self._object.children():
-                children.append(osProcessOrganizer)
-            for osProcessClass in self._object.osProcessClasses():
-                children.append(osProcessClass)
-        return [ProcessTree(child) for child in children]
+            obj = self._object
+            managers.extend(obj.objectValues(spec='OSProcessOrganizer'))
+            rel = obj._getOb('osProcessClasses')
+            managers.extend(rel.objectValues(spec='OSProcessClass'))
+        return [ProcessTree(manager) for manager in managers]
         
     @property
     def leaf(self):
         return isinstance(self._object, OSProcessClass)
         
-    @property
-    def serializableObject(self):
-        obj = {'id': self.id, 'text': self.text}
-        if self.leaf:
+    def __repr__(self):
+        return "<ProcessTree(id=%s)>" % (self.id)
+        
+        
+class SerializableProcessTreeFactory(object):
+    implements(ISerializableFactory)
+    adapts(ProcessTree)
+    
+    def __init__(self, processTree):
+        self._processTree = processTree
+    
+    def __call__(self):
+        obj = {'id': self._processTree.id, 'text': self._processTree.text}
+        if self._processTree.leaf:
             obj['leaf'] = True
         else:
-            obj['children'] = [c.serializableObject for c in self.children]
+            obj['children'] = []
+            for childProcessTree in self._processTree.children:
+                serializableFactory = ISerializableFactory(childProcessTree)
+                obj['children'].append(serializableFactory())
         return obj
 
 
@@ -96,19 +113,29 @@ class ProcessInfo(object):
     def ignoreParameters(self):
         return getattr(self._object, 'ignoreParameters', None)
         
-    @property
-    def serializableObject(self):
-        return {'name': self.name,
-                'description': self.description,
-                'monitor': self.monitor,
-                'failSeverity': self.failSeverity,
-                'regex': self.regex,
-                'ignoreParameters': self.ignoreParameters
+    def __repr__(self):
+        return "<ProcessInfo(name=%s)>" % (self.name)
+        
+        
+class SerializableProcessInfoFactory(object):
+    implements(ISerializableFactory)
+    adapts(ProcessInfo)
+    
+    def __init__(self, processInfo):
+        self._processInfo = processInfo
+    
+    def __call__(self):
+        return {'name': self._processInfo.name,
+                'description': self._processInfo.description,
+                'monitor': self._processInfo.monitor,
+                'failSeverity': self._processInfo.failSeverity,
+                'regex': self._processInfo.regex,
+                'ignoreParameters': self._processInfo.ignoreParameters
                 }
-        
-        
-class ProcessService(ZuulService):
-    implements(IProcessService)
+                
+                
+class ProcessFacade(ZuulFacade):
+    implements(IProcessFacade)
     
     def getProcessTree(self, processTreeId):
         obj = self._findObject(processTreeId)

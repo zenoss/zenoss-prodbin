@@ -13,20 +13,24 @@
 
 import zope.component
 
-from Products.Zuul.interfaces import IProcessService
+from Products.Zuul.interfaces import ISerializableFactory, IProcessFacade
 from Products.ZenUtils.Ext import DirectRouter
 
 class ProcessRouter(DirectRouter):
     
     def loadProcessTree(self, id):
-        svc = zope.component.queryUtility(IProcessService)
-        tree = svc.getProcessTree(id)
-        return tree.serializableObject['children']
+        facade = zope.component.queryUtility(IProcessFacade)
+        tree = facade.getProcessTree(id)
+        factory = ISerializableFactory(tree)
+        serializableTree = factory()
+        return serializableTree['children']
         
     def loadProcessInfo(self, processTreeId):
-        svc = zope.component.queryUtility(IProcessService)
-        info = svc.getProcessInfo(processTreeId)
-        return {'data': info.serializableObject,
+        facade = zope.component.queryUtility(IProcessFacade)
+        info = facade.getProcessInfo(processTreeId)
+        factory = ISerializableFactory(info)
+        serializableInfo = factory()
+        return {'data': serializableInfo,
                 'success': True
                 }
                 

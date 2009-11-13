@@ -27,7 +27,7 @@ from Products.ZenUI3.utils.javascript import JavaScriptSnippet
 from Products.ZenUI3.utils.javascript import JavaScriptSnippetManager
 
 from Products.ZenUI3.browser.eventconsole.columns import COLUMN_CONFIG
-from Products.Zuul.interfaces import IEventService
+from Products.Zuul.interfaces import IEventFacade
 
 from interfaces import IEventManagerProxy
 
@@ -48,7 +48,7 @@ class EventConsole(DirectRouter):
 
     def __init__(self, context, request):
         super(EventConsole, self).__init__(context, request)
-        self.api = queryUtility(IEventService)
+        self.api = queryUtility(IEventFacade)
 
     def query(self, limit, start, sort, dir, params):
         events = self.api.query(limit, start, sort, dir, params)
@@ -242,7 +242,7 @@ def column_config(fields, request=None):
 class GridColumnDefinitions(JavaScriptSnippet):
 
     def snippet(self):
-        api = queryUtility(IEventService)
+        api = queryUtility(IEventFacade)
         result = ["Ext.onReady(function(){Zenoss.env.COLUMN_DEFINITIONS=["]
         defs = column_config(api.fields(self.context), self.request)
         result.append(',\n'.join(defs))

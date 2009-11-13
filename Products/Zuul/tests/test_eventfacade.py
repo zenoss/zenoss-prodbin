@@ -5,16 +5,16 @@ import zope.component.event
 
 from Products.ZenModel.EventView import IEventView
 
-from Products.Zuul.tests.base import EventTestCase, ZuulServiceTestCase
+from Products.Zuul.tests.base import EventTestCase, ZuulFacadeTestCase
 from Products.Zuul.interfaces import *
-from Products.Zuul.services.eventservice import EventService
+from Products.Zuul.facades.eventfacade import EventFacade
 
 
-class TestEvents(EventTestCase, ZuulServiceTestCase):
+class TestEvents(EventTestCase, ZuulFacadeTestCase):
 
     def setUp(self):
         super(TestEvents, self).setUp()
-        self.svc = zope.component.queryUtility(IEventService)
+        self.svc = zope.component.queryUtility(IEventFacade)
 
     def getEvent(self, evid):
         try:
@@ -30,9 +30,9 @@ class TestEvents(EventTestCase, ZuulServiceTestCase):
 
     def test_interfaces(self):
         from zope.interface.verify import verifyClass
-        from Products.Zuul.services import eventservice as evs
+        from Products.Zuul.facades import eventfacade as evs
         verifyClass(IEventEvent, evs.EventEvent)
-        verifyClass(IEventService, evs.EventService)
+        verifyClass(IEventFacade, evs.EventFacade)
         verifyClass(IEventAcknowledged, evs.EventAcknowledged)
         verifyClass(IEventUnacknowledged, evs.EventUnacknowledged)
         verifyClass(IEventAdded, evs.EventAdded)
@@ -40,8 +40,8 @@ class TestEvents(EventTestCase, ZuulServiceTestCase):
         verifyClass(IEventReopened, evs.EventReopened)
 
     def test_registration(self):
-        svc = zope.component.queryUtility(IEventService)
-        self.assertEqual(svc.__class__, EventService)
+        svc = zope.component.queryUtility(IEventFacade)
+        self.assertEqual(svc.__class__, EventFacade)
         self.assertEqual(svc._dmd, self.dmd)
 
     def test_fields(self):

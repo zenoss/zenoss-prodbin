@@ -3,7 +3,7 @@ from zope.interface import implements
 from zope.component import adapts
 from Products.ZenUI3.utils.json import json, unjson
 from Products.Zuul.utils import resolve_context
-from Products.Zuul.services import ZuulService
+from Products.Zuul.facades import ZuulFacade
 from Products.Zuul.interfaces import *
 
 class EventEvent(object):
@@ -51,8 +51,8 @@ class EventClosed(EventEvent):
     implements(IEventClosed)
 
 
-class EventService(ZuulService):
-    implements(IEventService)
+class EventFacade(ZuulFacade):
+    implements(IEventFacade)
 
     def _is_history(self, request=None):
         if request is None:

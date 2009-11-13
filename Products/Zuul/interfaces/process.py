@@ -20,10 +20,8 @@ class IProcessTree(Interface):
     text = Attribute('The text label that represents the node')
     children = Attribute("The node's children")
     leaf = Attribute('Is this node a leaf (incapable of having children)')
-    serializableObject = Attribute('A python data structure that is ready to '
-                                   'be passed to json.dumps')
-                                   
-                                   
+    
+    
 class IProcessInfo(Interface):
     
     name = Attribute('The name of the process')
@@ -37,7 +35,7 @@ class IProcessInfo(Interface):
                                  ' parameters')
                                  
                                  
-class IProcessService(Interface):
+class IProcessFacade(Interface):
 
     def getProcessTree(processTreeNodeId):
         """

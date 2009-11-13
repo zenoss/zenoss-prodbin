@@ -7,7 +7,7 @@ from Testing.ZopeTestCase.layer import ZopeLite
 from Products.ZenTestCase.BaseTestCase import BaseTestCase
 from Products.ZenTestCase.BaseTestCase import ZenossTestCaseLayer
 
-class ZuulServiceTestCase(BaseTestCase):
+class ZuulFacadeTestCase(BaseTestCase):
     def test_interfaces(self):
         raise NotImplementedError("You're not verifying that the"
                                   " class correctly implements its"

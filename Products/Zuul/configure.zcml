@@ -16,16 +16,26 @@
 <configure xmlns="http://namespaces.zope.org/zope"
            xmlns:five="http://namespaces.zope.org/five">
 
-    <utility factory=".services.EventService"
-             provides=".interfaces.IEventService"
+    <utility factory=".facades.EventFacade"
+             provides=".interfaces.IEventFacade"
              />
 
-    <utility factory=".services.ProcessService"
-          provides=".interfaces.IProcessService"
-          />
+    <utility factory=".facades.ProcessFacade"
+             provides=".interfaces.IProcessFacade"
+             />
 
     <utility component=".utils.get_dmd"
              provides=".interfaces.IDataRootFactory"
              />
+             
+    <adapter provides=".interfaces.ISerializableFactory"
+             for=".interfaces.IProcessTree"
+             factory=".facades.processfacade.SerializableProcessTreeFactory"
+             />
+
+     <adapter provides=".interfaces.ISerializableFactory"
+              for=".interfaces.IProcessInfo"
+              factory=".facades.processfacade.SerializableProcessInfoFactory"
+              />
 
 </configure>

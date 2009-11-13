@@ -16,26 +16,28 @@ import unittest
 import zope.component
 from zope.interface.verify import verifyClass
 
-from Products.Zuul.tests.base import ZuulServiceTestCase
-from Products.Zuul.interfaces import IProcessTree, IProcessService
-from Products.Zuul.services.processservice import ProcessTree
-from Products.Zuul.services.processservice import ProcessService
+from Products.Zuul.tests.base import ZuulFacadeTestCase
+from Products.Zuul.interfaces import ISerializableFactory
+from Products.Zuul.interfaces import IProcessTree
+from Products.Zuul.interfaces import IProcessFacade
+from Products.Zuul.facades.processfacade import ProcessTree
+from Products.Zuul.facades.processfacade import ProcessFacade
 from Products.ZenModel.OSProcessOrganizer import manage_addOSProcessOrganizer
 
-class ProcessServiceTest(ZuulServiceTestCase):
+class ProcessFacadeTest(ZuulFacadeTestCase):
 
     def setUp(self):
-        super(ProcessServiceTest, self).setUp()
-        self.svc = zope.component.queryUtility(IProcessService)
+        super(ProcessFacadeTest, self).setUp()
+        self.facade = zope.component.queryUtility(IProcessFacade)
+        manage_addOSProcessOrganizer(self.dmd.Processes, 'foo')
+        self.dmd.Processes.foo.manage_addOSProcessClass('bar')
 
     def test_interfaces(self):
         verifyClass(IProcessTree, ProcessTree)
-        verifyClass(IProcessService, ProcessService)
+        verifyClass(IProcessFacade, ProcessFacade)
 
     def test_getProcessTree(self):
-        manage_addOSProcessOrganizer(self.dmd.Processes, 'foo')
-        self.dmd.Processes.foo.manage_addOSProcessClass('bar')
-        root = self.svc.getProcessTree('Processes')
+        root = self.facade.getProcessTree('Processes')
         self.assertEqual('Processes', root.id)
         self.assertEqual('Processes', root.text)
         self.failIf(root.leaf)
@@ -50,7 +52,7 @@ class ProcessServiceTest(ZuulServiceTestCase):
         self.assertEqual('bar', bar.text)
         self.assert_(bar.leaf)
         self.assertEqual([], bar.children)
-        obj = root.serializableObject
+        obj = ISerializableFactory(root)()
         self.assertEqual('Processes', obj['id'])
         self.assertEqual('Processes', obj['text'])
         self.failIf('leaf' in obj)
@@ -66,9 +68,15 @@ class ProcessServiceTest(ZuulServiceTestCase):
         self.assert_(barObj['leaf'])
         self.failIf('children' in barObj)
 
+    def test_getProcessInfo(self):
+        info = self.facade.getProcessInfo('Processes/foo/bar')
+        self.assertEqual('bar', info.name)
+        serializable = ISerializableFactory(info)()
+        self.assertEqual('bar', serializable['name'])
+
 
 def test_suite():
-    return unittest.TestSuite((unittest.makeSuite(ProcessServiceTest),))
+    return unittest.TestSuite((unittest.makeSuite(ProcessFacadeTest),))
 
 
 if __name__=="__main__":
