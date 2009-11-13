@@ -592,32 +592,39 @@ td.x-date-mp-sel a{
 
 /* Tips */
 
-.x-tip .x-tip-close{
-	background-image:url(../img/xtheme-zenoss/qtip/close.gif);
+.x-tip-anchor {
+    background-image:url(../img/xtheme-zenoss/qtip/tip-anchor-sprite.png);
 }
+.x-tip .x-tool-close {
+	background-image:url(../img/xtheme-zenoss/qtip/close.png);
+}
+.x-tip .x-tool-close-over {
+    background-position:0 0;
+}
+
 .x-tip .x-tip-tc{
-	background:transparent url(../img/xtheme-zenoss/qtip/tip-sprite.gif) no-repeat 0 -62px;
+	background:transparent url(../img/xtheme-zenoss/qtip/tip-sprite.png) no-repeat 0 -62px;
 }
 .x-tip .x-tip-tl{
-	background:transparent url(../img/xtheme-zenoss/qtip/tip-sprite.gif) no-repeat 0 0;
+	background:transparent url(../img/xtheme-zenoss/qtip/tip-sprite.png) no-repeat 0 0;
 }
 .x-tip .x-tip-tr{
-	background:transparent url(../img/xtheme-zenoss/qtip/tip-sprite.gif) no-repeat right 0;
+	background:transparent url(../img/xtheme-zenoss/qtip/tip-sprite.png) no-repeat right 0;
 }
 .x-tip .x-tip-bc{
-	background:transparent url(../img/xtheme-zenoss/qtip/tip-sprite.gif) no-repeat 0 -121px;
+	background:transparent url(../img/xtheme-zenoss/qtip/tip-sprite.png) no-repeat 0 -121px;
 }
 .x-tip .x-tip-bl{
-	background:transparent url(../img/xtheme-zenoss/qtip/tip-sprite.gif) no-repeat 0 -59px;
+	background:transparent url(../img/xtheme-zenoss/qtip/tip-sprite.png) no-repeat 0 -59px;
 }
 .x-tip .x-tip-br{
-	background:transparent url(../img/xtheme-zenoss/qtip/tip-sprite.gif) no-repeat right -59px;
+	background:transparent url(../img/xtheme-zenoss/qtip/tip-sprite.png) no-repeat right -59px;
 }
 .x-tip .x-tip-ml{
-	background:#fff url(../img/xtheme-zenoss/qtip/tip-sprite.gif) no-repeat 0 -124px;
+	background:#fff url(../img/xtheme-zenoss/qtip/tip-sprite.png) no-repeat 0 -124px;
 }
 .x-tip .x-tip-mr{
-	background:transparent url(../img/xtheme-zenoss/qtip/tip-sprite.gif) no-repeat right -124px;
+	background:transparent url(../img/xtheme-zenoss/qtip/tip-sprite.png) no-repeat right -124px;
 }
 .x-form-invalid-tip .x-tip-tc{
 	background:url(../images/default/form/error-tip-corners.gif) repeat-x 0 -12px;padding-top:6px;

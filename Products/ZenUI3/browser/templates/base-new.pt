@@ -120,6 +120,6 @@ Ext.onReady(function(){
 <!-- Use this slot to perform any post-layout steps. -->
 </tal:block>
 
-
+<script type="text/javascript" src="tooltips.js"></script>
 </body>
 </html>

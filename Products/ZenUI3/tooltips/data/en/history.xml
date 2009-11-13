@@ -1,0 +1,10 @@
+<tips>
+    <tooltip>
+        <target>add-button</target>
+        <title>Add Button</title>
+        <text>
+            History add button.
+            <span class="monkey">Hooray</span>
+        </text>
+    </tooltip>
+</tips>

@@ -377,8 +377,8 @@ Ext.onReady(function(){
                 handler: showClassifyDialog
             },{
                 //text: 'Unacknowledge',
+                id: 'unack-button',
                 iconCls: 'unacknowledge',
-                tooltip: 'Return selected events to New status',
                 handler: function() {
                     var params = getSelectionParameters();
                     if (params) {
@@ -395,8 +395,8 @@ Ext.onReady(function(){
                 /* 
                  * ADD BUTTON 
                  */
-                //text: 'Add',
-                tooltip: 'Add an event',
+                // text: _t('Add'),
+                id: 'add-button',
                 iconCls: 'add',
                 handler: showAddEventDialog
             },{

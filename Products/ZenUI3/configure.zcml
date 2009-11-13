@@ -9,5 +9,6 @@
 
     <include package=".browser"/>
     <include package=".locales"/>
+    <include package=".tooltips"/>
 
 </configure>

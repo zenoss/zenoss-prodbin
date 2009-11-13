@@ -1,0 +1,20 @@
+<configure xmlns="http://namespaces.zope.org/browser">
+
+<include package="Products.ZenUtils.extdirect.zope" file="meta.zcml"/>
+
+<page
+    name="tooltips.js"
+    class=".tooltips.Tooltips"
+    for="*"
+    permission="zope2.Public"
+    />
+
+<!--
+<directRouter
+      name="tooltip_router"
+      class=".tooltips.Tooltips"
+      namespace="Zenoss.remote"
+      />
+  -->
+
+</configure>

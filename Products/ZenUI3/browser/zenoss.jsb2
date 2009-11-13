@@ -13,6 +13,9 @@
             "text": "i18n.js",
             "path": "resources/js/zenoss/"
         }, {
+            "text": "Tooltips.js",
+            "path": "resources/js/zenoss/"
+        }, {
             "text": "HierarchyTreePanel.js",
             "path": "resources/js/zenoss/"
         }]
