@@ -330,7 +330,7 @@ Ext.onReady(function(){
                  */
                 //text: 'Acknowledge', 
                 iconCls: 'acknowledge',
-                tooltip: 'Acknowledge selected events',
+                id: 'ack-button',
                 handler: function() {
                     // Get params describing selected events
                     var params = getSelectionParameters();
@@ -352,7 +352,7 @@ Ext.onReady(function(){
                  */
                 //text: 'Close',
                 iconCls: 'close',
-                tooltip: 'Close selected events',
+                id: 'close-button',
                 handler: function(){
                     // Get params describing selected events
                     var params = getSelectionParameters();
@@ -372,7 +372,7 @@ Ext.onReady(function(){
                  * ClASSIFY BUTTON
                  */
                 //text: 'Classify',
-                tooltip: 'Map selected events to an event class',
+                id: 'classify-button',
                 iconCls: 'classify',
                 handler: showClassifyDialog
             },{

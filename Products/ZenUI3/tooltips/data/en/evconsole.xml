@@ -1,34 +1,22 @@
-<view name="evconsole">
+<view>
     <tooltip>
         <target>add-button</target>
-        <title>Add an Event</title>
-        <width>450</width>
-        <html>
-            <a href="google.com">Add an event to Zenoss.</a>
-            <br/>
-            I like adding events. They are awesome.
-            <br/>
-            <object width="425" height="344">
-                <param name="movie"
-                  value="http://www.youtube.com/v/1R0a9xq6uek%26hl=en_US%26fs=1%26">
-                </param>
-                <param name="allowFullScreen" value="true"></param>
-                <param name="allowscriptaccess" value="always"></param>
-                <embed
-                    src="http://www.youtube.com/v/1R0a9xq6uek%26hl=en_US%26fs=1%26"
-                    type="application/x-shockwave-flash"
-                    allowscriptaccess="always" allowfullscreen="true"
-                    width="425" height="344"></embed>
-            </object>
-        </html>
-        <autoHide>False</autoHide>
-        <anchor>bottom</anchor>
+        <html>Add an event</html>
     </tooltip>
     <tooltip>
         <target>unack-button</target>
-        <html>
-            <img src="http://t0.gstatic.com/images?q=tbn:0gJ8heloXzEZ3M:http://www.iacuc.arizona.edu/training/cats/images/Tabby1-DomesticCat-Closeup.jpg"/>
-        </html>
+        <html>Return selected events to New status</html>
     </tooltip>
-
+    <tooltip>
+        <target>ack-button</target>
+        <html>Acknowledge selected events</html>
+    </tooltip>
+    <tooltip>
+        <target>close-button</target>
+        <html>Close selected events</html>
+    </tooltip>
+    <tooltip>
+        <target>classify-button</target>
+        <html>Map selected events to an event class</html>
+    </tooltip>
 </view>
