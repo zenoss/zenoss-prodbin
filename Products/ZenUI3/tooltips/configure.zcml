@@ -9,12 +9,4 @@
     permission="zope2.Public"
     />
 
-<!--
-<directRouter
-      name="tooltip_router"
-      class=".tooltips.Tooltips"
-      namespace="Zenoss.remote"
-      />
-  -->
-
 </configure>

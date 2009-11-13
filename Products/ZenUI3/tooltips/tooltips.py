@@ -34,7 +34,7 @@ class _TooltipCatalog(object):
                 if not f.endswith('.xml'):
                     continue
                 view = f[:-4]
-                doc = minidom.parse(f)
+                doc = minidom.parse(os.path.join(path, f))
                 for tip in doc.getElementsByTagName('tooltip'):
                     d = {}
                     for node in tip.childNodes:
