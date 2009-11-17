@@ -96,10 +96,8 @@ class Commandable:
         if command:
             password = REQUEST.form.get('password', '')
             userManager = self.acl_users.userManager
-            if not userManager.authenticateCredentials({
-                'login':self.dmd.ZenUsers.getUser().getId(),
-                'password':password
-            }):
+            if not self.dmd.ZenUsers.authenticateCredentials(
+                self.dmd.ZenUsers.getUser().getId(), password):
                 messaging.IMessageSender(self).sendToBrowser(
                     'Password Error',
                     'Invalid or empty password.',

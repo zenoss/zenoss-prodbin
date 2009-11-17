@@ -25,6 +25,8 @@ from AccessControl import ClassSecurityInfo
 from AccessControl import getSecurityManager
 from Acquisition import aq_base
 from Products.PluggableAuthService import interfaces
+from Products.PluggableAuthService.PluggableAuthService \
+    import _SWALLOWABLE_PLUGIN_EXCEPTIONS
 from zExceptions import Unauthorized
 
 from Products.ZenEvents.ActionRule import ActionRule
@@ -53,6 +55,7 @@ def manage_addUserSettingsManager(context, REQUEST=None):
 
 
 def rolefilter(r): return r not in ("Anonymous", "Authenticated", "Owner")
+
 
 class UserSettingsManager(ZenModelRM):
     """Manage zenoss user folders.
@@ -294,6 +297,38 @@ class UserSettingsManager(ZenModelRM):
         # we don't use these to avoid typos: OQ0Il1
         chars = 'ABCDEFGHJKLMNPRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789'
         return ''.join( [ choice(chars) for i in range(6) ] )
+
+
+    def authenticateCredentials(self, login, password):
+        """
+        Authenticates a given set of credentials against all configured
+        authentication plugins. Returns True for successful authentication and
+        False otherwise.
+        """
+        if login == 'admin':
+            acl_users = self.getPhysicalRoot().acl_users
+        else:
+            acl_users = self.acl_users
+
+        try:
+            authenticators = acl_users.plugins.listPlugins(
+                interfaces.plugins.IAuthenticationPlugin)
+        except _SWALLOWABLE_PLUGIN_EXCEPTIONS:
+            authenticators = ()
+
+        for authenticator_id, auth in authenticators:
+            try:
+                uid_and_info = auth.authenticateCredentials(
+                    {'login':login, 'password':password})
+
+                if uid_and_info is None:
+                    continue
+
+                user_id, info = uid_and_info
+            except _SWALLOWABLE_PLUGIN_EXCEPTIONS:
+                continue
+
+            return user_id is not None
 
 
     security.declareProtected(ZEN_MANAGE_DMD, 'manage_changeUser')
@@ -734,13 +769,8 @@ class UserSettings(ZenModelRM):
 
         # Verify existing password
         curuser = self.getUser().getId()
-        if curuser=='admin':
-            verify_usr_mgr = self.getPhysicalRoot().acl_users.userManager
-        else:
-            verify_usr_mgr = self.acl_users.userManager
-
-        if not oldpassword or not verify_usr_mgr.authenticateCredentials(
-            {'login':curuser, 'password':oldpassword}):
+        if not oldpassword or not self.ZenUsers.authenticateCredentials(
+            curuser, oldpassword):
             if REQUEST:
                 messaging.IMessageSender(self).sendToBrowser(
                     'Error',
