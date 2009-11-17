@@ -44,7 +44,7 @@ class Card(object):
 
         # Optional values
         self.parent    = slot >= 0 and parent or None
-        self.serial    = serial
+        self.serial    = str(serial).strip() # get rid of padding
         self.manuf     = manuf
         self.model     = model
         self._slot     = slot >= 0 and slot or 0
@@ -107,5 +107,10 @@ class PhysicalEntityMap(SnmpPlugin):
         # Create the maps        
         rm = self.relMap()
         for card in sorted(Card.getAllCards()):
-            rm.append(card.toOM(self))
+            om = card.toOM(self)
+
+            # NOTE: we only save entities that have serial numbers.
+            # Failure to do this can result in *very* large databases.
+            if om.serialNumber:
+                rm.append(om)
         return rm
