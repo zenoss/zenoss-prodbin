@@ -1232,14 +1232,14 @@ class GroupSettings(UserSettings):
          for u in self._getG().listAssignedPrincipals(self.id) ]
 
     def getMemberUserIds(self):
-        try:
-            memberUserIds = [ u[0] for u in self._getG().listAssignedPrincipals(self.id) ]
-        except AssertionError, ex:
-            log.exception("Are there both LDAP and local userids? Check /zport/acl_users ")
-            raise LocalAndLDAPUserEntries(
-                          "Error obtaining user ids from LDAP: please see the KB " 
-                            "article 'AssertionError when managing Users'" )
-        return memberUserIds
+        """
+        Returns a list of user ids that are members of this group.
+        """
+        # We must using reverse mapping of all users to their groups rather
+        # than going directly to the group's assigned principals because
+        # some group backends don't support listAssignedPrincipals.
+        return [ u.id for u in self.ZenUsers.getAllUserSettings()
+            if self.id in u.getUserGroupSettingsNames() ]
 
     def printUsers(self):
         try:
