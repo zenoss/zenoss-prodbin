@@ -31,7 +31,25 @@
     href="/zenui/css/zenoss.css" />
 <script type="text/javascript" src="/extjs/adapters/ext/ext-base.js">
 </script>
+<script>
+/*
+* Temporary bugfix for Firefox 3.6. See
+* http://www.extjs.com/forum/showthread.php?p=406579
+*/
+(function() {
+    var ua = navigator.userAgent.toLowerCase();
+    if (ua.indexOf("firefox/3.6") > -1) {
+        Ext.toArray = function(a, i, j, res) {
+            res = [];
+            Ext.each(a, function(v) { res.push(v); });
+            return res.slice(i || 0, j || res.length);
+        }
+    }
+})();
+</script>
 <script type="text/javascript" src="/extjs/ext-all.js"></script>
+<script type="text/javascript"
+    src="/zenui/js/livegrid/livegrid-all-debug.js"></script>
 <script>
 Ext.state.Manager.setProvider(new Ext.state.CookieProvider({
     expires: new Date(new Date().getTime()+(1000*60*60*24*30))
