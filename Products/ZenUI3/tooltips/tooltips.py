@@ -6,9 +6,17 @@ from zope.i18n.negotiator import negotiator
 from Products.Five.browser import BrowserView
 from Products.ZenUtils.json import json
 
-_valpat = re.compile(r'<[^<>]+>(.*)</[^<>]+>', re.M|re.S)
 
-DATAPATH = os.path.join(os.path.dirname(__file__), 'data')
+_datapath = os.path.join(os.path.dirname(__file__), 'data')
+_valpat = re.compile(r'<[^<>]+>(.*)</[^<>]+>', re.M|re.S)
+_tipattrs = {
+    'showDelay':float, 'hideDelay':float, 'dismissDelay':float,
+    'trackMouse':bool, 'anchorToTarget':bool, 'anchorOffset':int,
+    'minWidth':int, 'maxWidth':int, 'shadow':str, 'defaultAlign':str,
+    'autoRender':bool, 'quickShowInterval':int, 'frame':bool, 'hidden':bool,
+    'baseCls':str, 'autoHeight':bool, 'closeAction':str, 'title':str,
+    'html':str, 'target':str, 'closable':bool
+}
 
 class _TooltipCatalog(object):
     """
@@ -34,7 +42,10 @@ class _TooltipCatalog(object):
                 if not f.endswith('.xml'):
                     continue
                 view = f[:-4]
-                doc = minidom.parse(os.path.join(path, f))
+                fd = open(os.path.join(path, f))
+                data = fd.read()
+                fd.close()
+                doc = minidom.parseString(data.replace('&', '%26'))
                 for tip in doc.getElementsByTagName('tooltip'):
                     d = {}
                     for node in tip.childNodes:
@@ -42,19 +53,15 @@ class _TooltipCatalog(object):
                         result = _valpat.search(node.toxml())
                         value = result.groups()[0].strip()
                         name = node.tagName
-                        if name in ('autoHide', 'closable', 'draggable'):
+                        if name in _tipattrs and _tipattrs[name]!=str:
                             value = eval(value)
-                        elif name=='width':
-                            value = int(value)
+                        value = value.replace('%26', '&')
                         d[name] = value
                     if 'autoHide' in d:
-                        if d['autoHide']:
-                            d['closable'] = False
-                        else:
-                            d['closable'] = True
+                        d['closable'] = not d['autoHide']
                     self.add(lang, view, d)
                 doc.unlink()
-        os.path.walk(DATAPATH, _load, None)
+        os.path.walk(_datapath, _load, None)
 
     def tips(self, view, lang="en"):
         """
