@@ -16,6 +16,21 @@
 <configure xmlns="http://namespaces.zope.org/zope"
            xmlns:five="http://namespaces.zope.org/five">
 
+    <five:implements 
+        interface=".interfaces.IProcessEntity"
+        class="Products.ZenModel.OSProcessClass.OSProcessClass"
+        />
+
+    <five:implements 
+        interface=".interfaces.IProcessEntity"
+        class="Products.ZenModel.OSProcessOrganizer.OSProcessOrganizer"
+        />
+
+    <five:implements 
+        interface=".interfaces.IDeviceClass"
+        class="Products.ZenModel.DeviceClass.DeviceClass"
+        />
+
     <utility factory=".facades.EventFacade"
              provides=".interfaces.IEventFacade"
              />
@@ -28,10 +43,30 @@
              provides=".interfaces.IDataRootFactory"
              />
              
+
     <adapter provides=".interfaces.ISerializableFactory"
-             for=".interfaces.IProcessTree"
-             factory=".facades.processfacade.SerializableProcessTreeFactory"
+             for=".interfaces.ITreeNode"
+             factory=".tree.SerializableTreeFactory"
              />
+
+    <!-- Tree node adapters -->
+    <adapter factory=".facades.processfacade.ProcessNode" 
+             for=".interfaces.IProcessEntity"
+             provides=".interfaces.IProcessNode"/>
+
+    <adapter factory=".facades.devicefacade.DeviceClassNode"
+             for=".interfaces.IDeviceClass"
+             provides=".interfaces.IDeviceClassNode"/>
+
+     <adapter provides=".interfaces.IInfo"
+              for=".interfaces.IProcessEntity"
+              factory=".facades.processfacade.ProcessInfo"
+              />
+
+     <adapter provides=".interfaces.IInfo"
+              for=".interfaces.IDeviceClass"
+              factory=".facades.devicefacade.DeviceClassInfo"
+              />
 
      <adapter provides=".interfaces.ISerializableFactory"
               for=".interfaces.IProcessInfo"

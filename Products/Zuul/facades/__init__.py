@@ -14,7 +14,8 @@
 from zope.interface import implements
 from zope.component import queryUtility
 
-from Products.Zuul.interfaces import IFacade, IDataRootFactory
+from Products.Zuul.interfaces import IFacade, IDataRootFactory, ITreeNode
+from Products.Zuul.interfaces import ITreeFacade
 
 class ZuulFacade(object):
     implements(IFacade)
@@ -27,6 +28,24 @@ class ZuulFacade(object):
         dmd_factory = queryUtility(IDataRootFactory)
         if dmd_factory:
             return dmd_factory()
+
+
+class TreeFacade(ZuulFacade):
+    implements(ITreeFacade)
+
+    def getTree(self, root):
+        context = self._traverse(root)
+        if context:
+            return ITreeNode(obj)
+
+    def getInfo(self, path):
+        context = self._traverse(path)
+        if context:
+            return IInfo(obj)
+
+    def _traverse(self, path):
+        return self._dmd.unrestrictedTraverse(path)
+
 
 
 from eventfacade import EventFacade

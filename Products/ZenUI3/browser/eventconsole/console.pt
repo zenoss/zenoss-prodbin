@@ -785,6 +785,8 @@ Ext.onReady(function(){
     maximizeContentPanel();
     // Have this happen on window resize
     connect(currentWindow(), 'onresize', maximizeContentPanel);
+    
+
 });
 </script>
 </tal:block>
