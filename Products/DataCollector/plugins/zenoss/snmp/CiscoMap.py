@@ -28,6 +28,7 @@ class CiscoMap(SnmpPlugin):
 
     snmpGetMap = GetMap({
              '.1.3.6.1.4.1.9.3.6.3.0' : 'setHWSerialNumber',
+             '.1.3.6.1.2.1.1.2.0': '_snmpOid',
              })
 
     snmpGetTableMaps = (
@@ -59,6 +60,10 @@ class CiscoMap(SnmpPlugin):
         r'^(CISCO|C|Cat|CAT|AS)?\d{4}[A-Z]{0,2}(-(\w|\d{0,3}))?$',
         ]
 
+    snmpOidPreferEntity = [
+        '.1.3.6.1.4.1.9.1.525', # ciscoAIRAP1210
+        ]
+
 
     def process(self, device, results, log):
         """collect snmp information from this device"""
@@ -68,7 +73,11 @@ class CiscoMap(SnmpPlugin):
 
         # In most cases we want to prefer the serial number in the Cisco
         # enterprise MIB if it is available.
-        if getattr(om, 'setHWSerialNumber', False):
+        preferEntityMib = False
+        if getattr(om, '_snmpOid', None) in self.snmpOidPreferEntity:
+            preferEntityMib = True
+
+        if getattr(om, 'setHWSerialNumber', False) and not preferEntityMib:
 
             # If there's a space in the serial we only want the first part.
             om.setHWSerialNumber = om.setHWSerialNumber.split(' ', 1)[0]
