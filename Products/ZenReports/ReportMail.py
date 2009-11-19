@@ -20,6 +20,7 @@ import mimetypes
 from email.MIMEText import MIMEText
 from email.MIMEMultipart import MIMEMultipart
 from email.MIMEImage import MIMEImage
+from email.MIMEBase import MIMEBase
 
 import Globals
 from Products.ZenUtils.ZenScriptBase import ZenScriptBase
@@ -37,7 +38,7 @@ class Page(HTMLParser):
     content pane.  Url references are turned into absolute references,
     and images are sent with the page."""
 
-    def __init__(self, user, passwd, div):
+    def __init__(self, user, passwd, div, comment):
         HTMLParser.__init__(self)
         self.user = user
         self.passwd = passwd
@@ -47,6 +48,8 @@ class Page(HTMLParser):
         self.inTitle = False
         self.title = ''
         self.div = div
+        self.comment = comment
+        self.csv = None
 
     def fetchImage(self, url):
         return self.slurp(url).read()
@@ -116,6 +119,9 @@ class Page(HTMLParser):
         if self.inTitle:
             self.title += data
 
+    def handleCSV(self, data):
+        self.csv = data
+
     def slurp(self, url):
         req = urllib2.Request(url)
         encoded = base64.encodestring('%s:%s' % (self.user, self.passwd))[:-1]
@@ -129,13 +135,31 @@ class Page(HTMLParser):
 
     def fetch(self, url):
         self.base = url.strip()
-        self.feed(self.slurp(url).read())
+        response = self.slurp(url)
+
+        # Handle CSV.
+        if hasattr(response, 'headers') and \
+            response.headers.get('Content-Type') == 'application/vnd.ms-excel':
+            self.handleCSV(response.read())
+        else:
+            # Handle everything else as HTML.
+            self.feed(response.read())
 
     def mail(self):
         msg = MIMEMultipart('related')
         msg.preamble = 'This is a multi-part message in MIME format'
-        txt = MIMEText(''.join(self.html), 'html')
-        msg.attach(txt)
+        if self.csv is not None:
+            txt = MIMEText(self.comment, 'plain')
+            msg.attach(txt)
+            csv = MIMEBase('application', 'vnd.ms-excel')
+            csv.add_header('Content-ID', '<Zenoss Report>')
+            csv.add_header('Content-Disposition', 'attachment',
+                filename='zenoss_report.csv')
+            csv.set_payload(self.csv)
+            msg.attach(csv)
+        else:
+            txt = MIMEText(''.join(self.html), 'html')
+            msg.attach(txt)
         for url, (name, img) in self.images.items():
             ctype, encoding = mimetypes.guess_type(url)
             if ctype == None:
@@ -144,7 +168,6 @@ class Page(HTMLParser):
             img = MIMEImage(img, subtype)
             img.add_header('Content-ID', '<%s>' % name)
             msg.attach(img)
-        msg['Subject'] = self.title
         return msg
 
 class NoDestinationAddressForUser(Exception): pass
@@ -170,11 +193,15 @@ class ReportMail(ZenScriptBase):
         if not o.addresses:
             self.log.error("No address for user %s" % o.user)
             sys.exit(1)
-        page = Page(o.user, o.passwd, o.div)
+        page = Page(o.user, o.passwd, o.div, o.comment)
         page.fetch(o.url)
         msg = page.mail()
         if o.subject:
             msg['Subject'] = o.subject
+        elif page.title:
+            msg['Subject'] = page.title
+        else:
+            msg['Subject'] = 'Zenoss Report'
         msg['From'] = o.fromAddress
         msg['To'] = ', '.join(o.addresses)
         result, errorMsg = Utils.sendEmail(msg,
@@ -224,6 +251,10 @@ class ReportMail(ZenScriptBase):
                                dest='div',
                                default='contentPane',
                                help='DIV to extract from URL')
+        self.parser.add_option('--comment', '-c',
+                               dest='comment',
+                               default='Report CSV attached.',
+                               help='Comment to include in body of CSV reports')
 
 
 if __name__ == '__main__':
