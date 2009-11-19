@@ -98,6 +98,18 @@ class SyslogProcessingTest(TestCase):
         self.assertEquals( evt.get('eventClassKey'), '43.3.2' )
         self.assertEquals( evt.get('summary'), 
                            "Volume volumeName has reached 96 percent of its reported size and is currently using 492690MB.")
+
+    def testNetAppSyslogParser(self):
+        """
+        Test NetApp syslog parser.
+        """
+        msg = '[deviceName: 10/100/1000/e1a:warning]: Client 10.0.0.101 (xid 4251521131) is trying to access an unexported mount (fileid 64, snapid 0, generation 6111516 and flags 0x0 on volume 0xc97d89a [No volume name available])'
+        s = SyslogProcessor(self.sendEvent, 6, False, 'localhost', 3)
+        evt = s.parseTag({}, msg)
+        self.assertEquals(evt.get('component'), '10/100/1000/e1a')
+        self.assertEquals(evt.get('summary'), 'Client 10.0.0.101 (xid 4251521131) is trying to access an unexported mount (fileid 64, snapid 0, generation 6111516 and flags 0x0 on volume 0xc97d89a [No volume name available])')
+
+
 def test_suite():
     suite = TestSuite()
     suite.addTest(makeSuite(SyslogProcessingTest))

@@ -45,6 +45,10 @@ r"^(?P<ipAddress>\S+)\s+(?P<summary>(?P<eventClassKey>CisACS_\d\d_\S+)\s+(?P<eve
 # netscreen device msg
 r"device_id=\S+\s+\[\S+\](?P<eventClassKey>\S+\d+):\s+(?P<summary>.*)\s+\((?P<originalTime>\d\d\d\d-\d\d-\d\d \d\d:\d\d:\d\d)\)",
 
+# NetApp
+# [deviceName: 10/100/1000/e1a:warning]: Client 10.0.0.101 (xid 4251521131) is trying to access an unexported mount (fileid 64, snapid 0, generation 6111516 and flags 0x0 on volume 0xc97d89a [No volume name available])
+r"^\[[^:]+: (?P<component>[^:]+)[^\]]+\]: (?P<summary>.*)",
+
 # unix syslog with pid
 r"(?P<component>\S+)\[(?P<pid>\d+)\]:\s*(?P<summary>.*)",
 
