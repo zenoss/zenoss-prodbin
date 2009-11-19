@@ -63,8 +63,9 @@ class ZenDeleteHistory(ZenScriptBase):
             statement = ('delete h,j,d from history h '
                 'LEFT JOIN log j ON h.evid = j.evid '
                 'LEFT JOIN detail d ON h.evid = d.evid ')
-            whereClause = ('WHERE StateChange < DATE_SUB(NOW(), '
-                            'INTERVAL %s day)' % self.options.numDays)
+            whereClause = (
+                'WHERE FROM_UNIXTIME(lastTime) < DATE_SUB(NOW(), '
+                'INTERVAL %s day)' % self.options.numDays)
             reason = ''
             toLog = False
         else:
