@@ -26,6 +26,9 @@
 <include file="screentypes.zcml"/>
 -->
 
+<browser:skin name="zenossSkin" layers="zenossNav default"/>
+<browser:defaultSkin name="zenossSkin"/>
+
 <!-- Viewlet manager for Ext.Direct API -->
 <browser:viewletManager
     name="directapi"

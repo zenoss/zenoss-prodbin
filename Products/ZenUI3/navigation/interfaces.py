@@ -10,8 +10,8 @@
 # For complete information please visit: http://www.zenoss.com/oss/
 #
 ###########################################################################
-import zope.interface
 from zope.viewlet.interfaces import IViewletManager, IViewlet
+from zope.publisher.interfaces.browser import IBrowserRequest
 
 class IPrimaryNavigationMenu(IViewletManager):
     """
@@ -26,4 +26,9 @@ class ISecondaryNavigationMenu(IViewletManager):
 class INavigationItem(IViewlet):
     """
     A navigable item.
+    """
+
+class IZenossNav(IBrowserRequest):
+    """
+    Marker interface for our nav layer
     """

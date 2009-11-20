@@ -18,6 +18,9 @@
     xmlns:browser="http://namespaces.zope.org/browser"
     xmlns:five="http://namespaces.zope.org/five">
 
+    <browser:layer name="zenossNav" 
+    interface="..navigation.interfaces.IZenossNav"/>
+
     <browser:viewletManager
         name="secondarynav"
         provides=
@@ -40,6 +43,7 @@
         manager="..navigation.interfaces.IPrimaryNavigationMenu"
         class="..navigation.menuitem.PrimaryNavigationMenuItem"
         permission="zope2.Public"
+        layer="zenossNav"
         />
 
     <!-- Ignore the NOC view for now
@@ -50,6 +54,7 @@
         manager="..navigation.interfaces.IPrimaryNavigationMenu"
         class="..navigation.menuitem.PrimaryNavigationMenuItem"
         permission="zope2.Public"
+        layer="zenossNav"
         />
     -->
 
@@ -60,6 +65,7 @@
         manager="..navigation.interfaces.IPrimaryNavigationMenu"
         class="..navigation.menuitem.PrimaryNavigationMenuItem"
         permission="zope2.Public"
+        layer="zenossNav"
         />
 
         <browser:viewlet
@@ -70,6 +76,7 @@
             manager="..navigation.interfaces.ISecondaryNavigationMenu"
             class="..navigation.menuitem.SecondaryNavigationMenuItem"
             permission="zope2.Public"
+            layer="zenossNav"
             />
 
         <browser:viewlet
@@ -80,6 +87,7 @@
             manager="..navigation.interfaces.ISecondaryNavigationMenu"
             class="..navigation.menuitem.SecondaryNavigationMenuItem"
             permission="zope2.Public"
+            layer="zenossNav"
             />
 
     <browser:viewlet
@@ -89,6 +97,7 @@
         manager="..navigation.interfaces.IPrimaryNavigationMenu"
         class="..navigation.menuitem.PrimaryNavigationMenuItem"
         permission="zope2.Public"
+        layer="zenossNav"
         />
 
         <browser:viewlet
@@ -99,6 +108,7 @@
             manager="..navigation.interfaces.ISecondaryNavigationMenu"
             class="..navigation.menuitem.SecondaryNavigationMenuItem"
             permission="zope2.Public"
+            layer="zenossNav"
             />
 
     <browser:viewlet
@@ -108,6 +118,7 @@
         manager="..navigation.interfaces.IPrimaryNavigationMenu"
         class="..navigation.menuitem.PrimaryNavigationMenuItem"
         permission="zope2.Public"
+        layer="zenossNav"
         />
 
     <browser:viewlet
@@ -117,6 +128,7 @@
         manager="..navigation.interfaces.IPrimaryNavigationMenu"
         class="..navigation.menuitem.PrimaryNavigationMenuItem"
         permission="zope2.Public"
+        layer="zenossNav"
         />
 
     <browser:viewlet
@@ -126,6 +138,7 @@
         manager="..navigation.interfaces.IPrimaryNavigationMenu"
         class="..navigation.menuitem.PrimaryNavigationMenuItem"
         permission="zope2.Public"
+        layer="zenossNav"
         />
 
 </configure>
