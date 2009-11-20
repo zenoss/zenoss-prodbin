@@ -34,6 +34,7 @@ class WeightOrderedViewletManager(ViewletManagerBase):
         return sorted(viewlets, key=getWeight)
 
 
+
 class PrimaryNavigationManager(WeightOrderedViewletManager):
     zope.interface.implements(IPrimaryNavigationMenu)
 
