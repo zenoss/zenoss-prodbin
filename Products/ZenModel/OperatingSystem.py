@@ -92,16 +92,33 @@ class OperatingSystem(Software):
         return self.totalSwap and convToUnits(self.totalSwap) or 'unknown'
 
     def traceRoute(self, target, ippath):
-        """Trace the route to target using our routing table.
         """
-        log.debug("device %s target %s", self.getDeviceName(), target)
+        Trace the route to the target from this device using our routing 
+        table and return an array of IP address strings showing the route.
+
+        If the route is not traversable (ie a gap in the routing table),
+        then return the incomplete path with a final value of None.
+
+        @parameter target: destination IP to find
+        @type target: DMD device object
+        @parameter ippath: used to store intermediate results in calls. Call with []
+        @type ippath: array-like object used for 
+        @return: IP addresses to target device
+        @rtype: array of strings
+        """
+        log.debug("traceRoute from device %s to target %s",
+                  self.getDeviceName(), target)
+        # Try to find a specific route to the target device
         nextdev = None
         for route in self.getRouteObjs():
             ip = route.getNextHopIp()
-            log.debug("target %s next hop %s", route.getTarget(), ip)
+            log.debug("Route %s next hop %s", route.getTarget(), ip)
+            # Have a host-route
             if ip == target.getManageIp():
                 ippath.append(ip)
                 return ippath
+
+            # Have a net-route
             if route.matchTarget(target.getManageIp()):
                 if route.routetype == 'direct':
                     nextdev = target
@@ -109,20 +126,27 @@ class OperatingSystem(Software):
                 nextdev = route.getNextHopDevice()
                 break
         else:
-            log.debug("device %s default route", self.getDeviceName())
+            # No routes matched -- try the default route (if any)
+            log.debug("Device %s default route", self.getDeviceName())
             ip = ""
             default = self.routes._getOb("0.0.0.0_0", None)
             if default:
                 ip = default.getNextHopIp()
                 nextdev = default.getNextHopDevice()
-        if target == nextdev or ip=="0.0.0.0":
+
+        if target == nextdev or ip == "0.0.0.0":
             ippath.append(target.id)
             return ippath
+
         if nextdev:
             ippath.append(ip)
             return nextdev.traceRoute(target, ippath)
-        raise TraceRouteGap("unable to trace to %s, gap at %s" % (target.id,
-                            self.getDeviceName()))
+
+        # Oops!  No route!
+        log.debug("Unable to trace to %s, gap at %s", target.id,
+                            self.getDeviceName())
+        ippath.append(None)
+        return ippath
 
 
     def getRouteObjs(self):
