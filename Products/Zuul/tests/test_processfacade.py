@@ -18,9 +18,9 @@ from zope.interface.verify import verifyClass
 
 from Products.Zuul.tests.base import ZuulFacadeTestCase
 from Products.Zuul.interfaces import ISerializableFactory
-from Products.Zuul.interfaces import IProcessTree
+from Products.Zuul.interfaces import IProcessNode
 from Products.Zuul.interfaces import IProcessFacade
-from Products.Zuul.facades.processfacade import ProcessTree
+from Products.Zuul.facades.processfacade import ProcessNode
 from Products.Zuul.facades.processfacade import ProcessFacade
 from Products.ZenModel.OSProcessOrganizer import manage_addOSProcessOrganizer
 
@@ -33,43 +33,47 @@ class ProcessFacadeTest(ZuulFacadeTestCase):
         self.dmd.Processes.foo.manage_addOSProcessClass('bar')
 
     def test_interfaces(self):
-        verifyClass(IProcessTree, ProcessTree)
+        verifyClass(IProcessNode, ProcessNode)
         verifyClass(IProcessFacade, ProcessFacade)
 
     def test_getProcessTree(self):
-        root = self.facade.getProcessTree('Processes')
+        root = self.facade.getTree('Processes')
         self.assertEqual('Processes', root.id)
-        self.assertEqual('Processes', root.text)
+        self.assert_(isinstance(root.text, dict))
+        self.assertEqual('Processes', root.text['text'])
         self.failIf(root.leaf)
-        self.assertEqual(1, len(root.children))
-        foo = root.children[0]
+        children = list(root.children)
+        self.assertEqual(1, len(children))
+        foo = children[0]
         self.assertEqual('Processes/foo', foo.id)
-        self.assertEqual('foo', foo.text)
+        self.assertEqual('foo', foo.text['text'])
         self.failIf(foo.leaf)
-        self.assertEqual(1, len(foo.children))
-        bar = foo.children[0]
+        children = list(foo.children)
+        self.assertEqual(1, len(children))
+        bar = children[0]
         self.assertEqual('Processes/foo/bar', bar.id)
-        self.assertEqual('bar', bar.text)
+        self.assertEqual('bar', bar.text['text'])
         self.assert_(bar.leaf)
-        self.assertEqual([], bar.children)
+        children = list(bar.children)
+        self.assertEqual([], children)
         obj = ISerializableFactory(root)()
         self.assertEqual('Processes', obj['id'])
-        self.assertEqual('Processes', obj['text'])
-        self.failIf('leaf' in obj)
+        self.assertEqual('Processes', obj['text']['text'])
+        self.failIf(obj['leaf'])
         self.assertEqual(1, len(obj['children']))
         fooObj = obj['children'][0]
         self.assertEqual('Processes/foo', fooObj['id'])
-        self.assertEqual('foo', fooObj['text'])
-        self.failIf('leaf' in fooObj)
+        self.assertEqual('foo', fooObj['text']['text'])
+        self.failIf(fooObj['leaf'])
         self.assertEqual(1, len(fooObj['children']))
         barObj = fooObj['children'][0]
         self.assertEqual('Processes/foo/bar', barObj['id'])
-        self.assertEqual('bar', barObj['text'])
+        self.assertEqual('bar', barObj['text']['text'])
         self.assert_(barObj['leaf'])
         self.failIf('children' in barObj)
 
     def test_getProcessInfo(self):
-        info = self.facade.getProcessInfo('Processes/foo/bar')
+        info = self.facade.getInfo('Processes/foo/bar')
         self.assertEqual('bar', info.name)
         serializable = ISerializableFactory(info)()
         self.assertEqual('bar', serializable['name'])

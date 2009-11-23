@@ -43,7 +43,7 @@ class IProcessInfo(IInfo):
 
 class IProcessFacade(Interface):
 
-    def getProcessInfo(nodeid):
+    def getInfo(nodeid):
         """
         Get information about the OSProcessOrganizer and OSProcessClass
         identified by processTreeNodeId.
