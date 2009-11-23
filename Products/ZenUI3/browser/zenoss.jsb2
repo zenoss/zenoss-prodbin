@@ -16,7 +16,13 @@
             "text": "Tooltips.js",
             "path": "resources/js/zenoss/"
         }, {
+            "text": "HistoryManager.js",
+            "path": "resources/js/zenoss/"
+        }, {
             "text": "HierarchyTreePanel.js",
+            "path": "resources/js/zenoss/"
+        }, {
+            "text": "SearchField.js",
             "path": "resources/js/zenoss/"
         }]
     }],

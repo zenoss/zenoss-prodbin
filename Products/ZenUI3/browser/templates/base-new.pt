@@ -132,6 +132,18 @@ Ext.onReady(function(){
 <!-- Use this slot to perform any post-layout steps. -->
 </tal:block>
 
+<!-- Load tooltips for this screen -->
 <script type="text/javascript" src="tooltips.js"></script>
+
+<!-- Fields required for history management -->
+<form id="history-form" class="x-hidden">
+    <input type="hidden" id="x-history-field" />
+    <iframe id="x-history-frame"></iframe>
+</form>
+<script>
+Ext.History.init(function(mgr){
+    Ext.History.selectByToken(mgr.getToken());
+});
+</script>
 </body>
 </html>

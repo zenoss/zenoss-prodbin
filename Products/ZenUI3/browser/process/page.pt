@@ -29,7 +29,9 @@ Ext.onReady(function(){
         id: 'Processes',
         text: _t('Processes')
     });
-    Ext.getCmp('master_panel').add(new Zenoss.HierarchyTreePanel({
+    Ext.getCmp('master_panel').add({
+        xtype: 'HierarchyTreePanel',
+        searchField: true,
         loader: loader,
         root: root,
         listeners: {
@@ -42,9 +44,10 @@ Ext.onReady(function(){
                 });
             }
         }
-    }));
+    });
     root.expand();
     Ext.getCmp('top_detail_panel').add(new Ext.form.FormPanel({
+        border: false,
         id: 'processForm',
         paramsAsHash: true,
         api: {

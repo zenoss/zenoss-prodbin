@@ -296,3 +296,54 @@ div.dialog-link a {
     padding-top: 5px;
     padding-bottom: 5px;
 }
+
+.searchfield-ml,
+.searchfield-mr,
+.searchfield-mc,
+.searchfield-black-ml,
+.searchfield-black-mr,
+.searchfield-black-mc {
+    height: 21px;
+    border: medium none;
+    background: transparent
+                url(/zenui/img/xtheme-zenoss/form/searchfield-sprite.png)
+                no-repeat;
+}
+
+.searchfield-ml,
+.searchfield-black-ml { padding-left: 18px; }
+
+.searchfield-mr,
+.searchfield-black-mr { padding-right: 10px; }
+
+.searchfield-ml {
+    background-position: 0 0;
+}
+
+.searchfield-mc {
+    background-position: 0 -21px;
+    background-repeat: repeat-x;
+}
+
+.searchfield-mr {
+    background-position: right -42px;
+}
+
+.searchfield-black-ml {
+    background-position: 0 -63px;
+}
+.searchfield-black-mc {
+    background-position: 0 -84px;
+    background-repeat: repeat-x;
+    color: white;
+}
+.searchfield-black-mr {
+    background-position: right -105px;
+}
+
+.searchfield-black-mc .x-form-text,
+.searchfield-mc .x-form-text {
+    border: medium none;
+    background: transparent url();
+}
+

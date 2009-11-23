@@ -19,6 +19,20 @@
 	color:#333 !important;
 }
 
+.x-layout-split {
+    height: 1px;
+    width: 1px;
+}
+
+.x-tree-node span.node-extra {
+    color: #8a8b8c;
+}
+
+.x-tree-node strong {
+    font-weight: bold;
+}
+
+
 
 /* Tab Panels */
 
@@ -521,12 +535,46 @@ td.x-grid3-hd-over .x-grid3-hd-inner,td.sort-desc .x-grid3-hd-inner,td.sort-asc 
 
 /* Trees */
 
+.severity-icon-small.x-tree-node-icon {
+    margin-top: 2px !important;
+}
+
+.x-tree-node-el {
+    padding-top: 1px;
+    padding-bottom: 1px;
+}
+
+.x-tree-node a span {
+    font-size: 12px;
+    font-family: helvetica,arial,tahoma,sans-serif;
+    color: #454545;
+}
+
+#master_panel {
+    border-right: 1px solid #949494;
+}
+
+#master_panel .x-panel-body {
+    background-color:#d4e0ee;
+}
+
+.hierarchy-panel .x-panel-body {
+    background-color:#d4e0ee;
+}
+
+.x-tree-node .hierarchy-root a span {
+    color: #6386ae;
+    font-size: 10px;
+    font-weight: bold;
+    text-transform: uppercase;
+}
+
 .x-tree-node .x-tree-selected{
-	background-color:#f7ecc1;
+	background-color:#7199c6;
 }
 .x-tree-node .x-tree-selected a span{
-	background-color:#f7ecc1;
-	color:black;
+	background-color:#7199c6;
+	color:white;
 }
 .x-tree-arrows .x-tree-elbow-plus{
 	background:transparent url(../img/xtheme-zenoss/tree/arrows.gif) no-repeat 0 0;

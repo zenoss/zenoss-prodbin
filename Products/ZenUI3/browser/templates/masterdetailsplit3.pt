@@ -45,7 +45,7 @@ Ext.onReady(function(){
             defaults: {'border':false},
             items: [{
                 region: 'west',
-                width: 300,
+                width: 250,
                 contentEl: 'master_panel',
                 id: 'master_panel',
                 layout: 'fit',

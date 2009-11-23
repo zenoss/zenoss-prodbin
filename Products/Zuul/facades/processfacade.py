@@ -37,6 +37,24 @@ class ProcessNode(TreeNode):
         self._object = object
 
     @property
+    def iconCls(self):
+        sev = 'clear' # FIXME: Get this somehow
+        return 'severity-icon-small %s' % sev
+
+    @property
+    def isOrganizer(self):
+        return isinstance(self._object, OSProcessOrganizer)
+
+    @property
+    def text(self):
+        text = super(ProcessNode, self).text
+        if self.isOrganizer:
+            text = '<strong>%s</strong>' % text
+        numInstances = 3 # FIXME: Get this somehow
+        extra = '<span class="node-extra">(%s instances)</span>' % numInstances
+        return text + ' ' + extra
+
+    @property
     def id(self):
         path = list(self._object.getPrimaryPath()[3:])
         if 'osProcessClasses' in path:

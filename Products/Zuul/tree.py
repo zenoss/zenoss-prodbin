@@ -1,6 +1,7 @@
 from zope.interface import implements
 from zope.component import adapts
 
+from Products.ZenUtils.json import json
 from Products.Zuul.interfaces import ITreeNode, ISerializableFactory
 
 
@@ -34,7 +35,17 @@ class SerializableTreeFactory(object):
         self.root = root
 
     def __call__(self):
-        obj = {'id': self.root.id, 'text': self.root.text}
+        obj = {}
+        for attr in dir(self.root):
+            if attr.startswith('_'):
+                continue
+            val = getattr(self.root, attr)
+            try:
+                json(val)
+            except TypeError, e:
+                # We can't deal with it, just move on
+                continue
+            obj[attr] = val
         if self.root.leaf:
             obj['leaf'] = True
         else:
