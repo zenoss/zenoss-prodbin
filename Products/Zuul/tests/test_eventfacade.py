@@ -4,6 +4,7 @@ import zope.component
 import zope.component.event
 
 from Products.ZenModel.EventView import IEventView
+from Products.ZenModel.DataRoot import DataRoot
 
 from Products.Zuul.tests.base import EventTestCase, ZuulFacadeTestCase
 from Products.Zuul.interfaces import *
@@ -42,7 +43,7 @@ class TestEvents(EventTestCase, ZuulFacadeTestCase):
     def test_registration(self):
         svc = zope.component.queryUtility(IEventFacade)
         self.assertEqual(svc.__class__, EventFacade)
-        self.assertEqual(svc._dmd, self.dmd)
+        self.assert_(isinstance(svc._dmd, DataRoot))
 
     def test_fields(self):
         fields = self.dmd.ZenEventManager.defaultResultFields
