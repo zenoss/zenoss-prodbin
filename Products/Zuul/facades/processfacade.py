@@ -29,6 +29,8 @@ class ProcessNode(TreeNode):
     implements(IProcessNode)
     adapts(IProcessEntity)
 
+    uiProvider = 'hierarchy'
+
     def __init__(self, object):
         """
         The object parameter is the wrapped persistent object. It is either an
@@ -42,17 +44,14 @@ class ProcessNode(TreeNode):
         return 'severity-icon-small %s' % sev
 
     @property
-    def isOrganizer(self):
-        return isinstance(self._object, OSProcessOrganizer)
-
-    @property
     def text(self):
         text = super(ProcessNode, self).text
-        if self.isOrganizer:
-            text = '<strong>%s</strong>' % text
         numInstances = 3 # FIXME: Get this somehow
-        extra = '<span class="node-extra">(%s instances)</span>' % numInstances
-        return text + ' ' + extra
+        return {
+            'text': text,
+            'count': numInstances,
+            'description': 'instances'
+        }
 
     @property
     def id(self):

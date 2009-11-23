@@ -22,20 +22,13 @@
 <tal:block metal:fill-slot="script_layout">
 <script>
 Ext.onReady(function(){
-    var loader = new Ext.tree.TreeLoader({
-        directFn: Zenoss.remote.ProcessRouter.loadProcessTree
-    });
-    var root = new Ext.tree.AsyncTreeNode({
-        id: 'Processes',
-        text: _t('Processes')
-    });
     Ext.getCmp('master_panel').add({
         xtype: 'HierarchyTreePanel',
         searchField: true,
-        loader: loader,
-        root: root,
+        directFn: Zenoss.remote.ProcessRouter.loadProcessTree,
+        root: 'Processes',
         listeners: {
-            click: function(node, event) {
+            click: function(node) {
                 Ext.getCmp('processForm').getForm().load({
                     params: {processTreeId: node.attributes.id},
                     success: function(form, action) {
@@ -45,7 +38,6 @@ Ext.onReady(function(){
             }
         }
     });
-    root.expand();
     Ext.getCmp('top_detail_panel').add(new Ext.form.FormPanel({
         border: false,
         id: 'processForm',
