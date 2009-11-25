@@ -78,7 +78,8 @@ Zenoss.HierarchyTreePanel = Ext.extend(Ext.tree.TreePanel, {
             );
         }, this);
     },
-    selectByPath: function(id) {
+    selectByPath: function(escapedId) {
+        var id = unescape(escapedId);
         this.expandPath(id, 'id', function(t, n){
             if (n && !n.isSelected()) {
                 n.fireEvent('click', n);
