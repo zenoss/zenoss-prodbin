@@ -11,13 +11,11 @@
 #
 ###########################################################################
 
-__doc__="""ImportRM
+__doc__ = """ImportRM
 
-Export RelationshipManager objects from a zope database
+Import RelationshipManager objects into a Zope database
 
-$Id: ImportRM.py,v 1.3 2003/10/03 16:16:01 edahl Exp $"""
-
-__version__ = "$Revision: 1.3 $"[11:-2]
+"""
 
 import sys
 import urllib2
@@ -101,14 +99,14 @@ class ImportDevices(ZCmdBase):
 
         self.parser.add_option('-i', '--infile',
                     dest="infile",
-                    help="input file for import default is stdin")
+                    help="Input file for import. The default is stdin")
         print "Build option infile"
         
         self.parser.add_option('-x', '--commitCount',
                     dest='commitCount',
                     default=20,
                     type="int",
-                    help='how many lines should be loaded before commit')
+                    help='How many lines should be loaded before a database commit')
 
         self.parser.add_option('--noindex',
                     dest='noindex',action="store_true",default=False,
