@@ -137,7 +137,15 @@ class IpNetwork(DeviceOrganizer):
         self.netmask = maskToBits(netmask)
         self.description = description
 
-    
+    security.declareProtected('Change Network', 'manage_addIpNetwork')
+    def manage_addIpNetwork(self, newPath, REQUEST=None):
+        """
+        From the GUI, create a new subnet (if necessary)
+        """
+        net = self.createNet(newPath)
+        if REQUEST is not None:
+            REQUEST['RESPONSE'].redirect(net.absolute_url())
+
     def checkValidId(self, id, prep_id = False):
         """Checks a valid id
         """
@@ -179,6 +187,7 @@ class IpNetwork(DeviceOrganizer):
             raise ValueError("netip '%s' without netmask" % netip)
         if netobj and netobj.netmask >= netmask: # Network already exists.
             return netobj
+
         netip = getnetstr(netip,netmask)
         netTree = getattr(self, 'zDefaultNetworkTree', defaultNetworkTree)
         netTree = map(int, netTree)
@@ -191,13 +200,33 @@ class IpNetwork(DeviceOrganizer):
 
         for treemask in netTree:
             if treemask >= netmask:
+                netobjParent = netobj
                 netobj = netobj.addSubNetwork(netip, netmask)
+                self.rebalance(netobjParent, netobj)
                 break
             else:
                 supnetip = getnetstr(netip, treemask)
+                netobjParent = netobj
                 netobj = netobj.addSubNetwork(supnetip, treemask)
+                self.rebalance(netobjParent, netobj)
+
         return netobj
 
+
+    def rebalance(self, netobjParent, netobj):
+        """
+        Look for children of the netobj at this level and move them to the
+        right spot.
+        """
+        moveList = []
+        for subnetOrIp in netobjParent.children():
+            if subnetOrIp == netobj:
+                continue
+            if netobj.hasIp(subnetOrIp.id):
+                moveList.append(subnetOrIp.id)
+        if moveList:
+            netobjPath = netobj.getOrganizerName()[1:]
+            netobjParent.moveOrganizer(netobjPath, moveList)
 
     def findNet(self, netip, netmask=0):
         """

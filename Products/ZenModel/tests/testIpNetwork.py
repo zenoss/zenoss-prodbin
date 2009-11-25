@@ -152,6 +152,47 @@ class TestIpNetwork(ZenModelBaseTest):
         # make sure no new networks have been created under the subnet
         self.assertEqual([], subnet.children())
 
+    def testAutoRebalanceBackwards(self):
+        """
+        When creating networks, if (say) a /24 is created before a /16,
+        then we need to move the /24 network tree under the new /16 network.
+        Any IP addresses that are created at one level should be moved to
+        the correct location.
+        """
+        dmdNet = self.dmd.Networks
+        # Add in the 'wrong' order
+        ip = dmdNet.createIp("10.10.10.1", 27)
+        subnet24 = dmdNet.createNet("10.10.10.0", 24)
+        ip = dmdNet.createIp("10.10.10.2", 27)
+        subnet16 = dmdNet.createNet("10.10.0.0", 16)
+        ip = dmdNet.createIp("10.10.10.3", 27)
+        subnet8 = dmdNet.createNet("10.0.0.0", 8)
+
+        # getPrimaryPath() ==> ('', 'zport', 'dmd', 'Networks', '10.175.211.0')
+        self.assertEqual(1, len(dmdNet.children()))
+        self.assertEqual(subnet8.id, dmdNet.children()[0].id)
+        self.assertEqual(1, len(subnet8.children()))
+        self.assertEqual(subnet16.id, subnet8.children()[0].id)
+        self.assertEqual(1, len(subnet16.children()))
+        self.assertEqual(subnet24.id, subnet16.children()[0].id)
+
+    def testAutoRebalanceRandom(self):
+        """
+        What if the networks are created in random order?
+        """
+        dmdNet = self.dmd.Networks
+        # Add in the 'wrong' order
+        subnet24 = dmdNet.createNet("10.10.10.0", 24)
+        subnet8 = dmdNet.createNet("10.0.0.0", 8)
+        subnet16 = dmdNet.createNet("10.10.0.0", 16)
+
+        self.assertEqual(1, len(dmdNet.children()))
+        self.assertEqual(subnet8.id, dmdNet.children()[0].id)
+        self.assertEqual(1, len(subnet8.children()))
+        self.assertEqual(subnet16.id, subnet8.children()[0].id)
+        self.assertEqual(1, len(subnet16.children()))
+        self.assertEqual(subnet24.id, subnet16.children()[0].id)
+
 def test_suite():
     from unittest import TestSuite, makeSuite
     suite = TestSuite()
