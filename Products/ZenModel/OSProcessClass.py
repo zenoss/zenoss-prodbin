@@ -101,11 +101,11 @@ class OSProcessClass(ZenModelRM, Commandable, ZenPackable):
    
 
     def __init__(self, id):
+        self.title = id
         id = self.prepId(id)
         super(OSProcessClass, self).__init__(id)
         self.name = self.regex = id
 
-  
     def getOSProcessClassName(self):
         """Return the full name of this process class.
         """

@@ -68,9 +68,19 @@
               factory=".facades.devicefacade.DeviceClassInfo"
               />
 
+     <adapter provides=".interfaces.IMonitoringInfo"
+              for=".interfaces.IProcessEntity"
+              factory=".facades.processfacade.MonitoringInfo"
+              />
+
      <adapter provides=".interfaces.ISerializableFactory"
               for=".interfaces.IProcessInfo"
               factory=".facades.processfacade.SerializableProcessInfoFactory"
+              />
+              
+     <adapter provides=".interfaces.ISerializableFactory"
+              for=".interfaces.IMonitoringInfo"
+              factory=".facades.processfacade.SerializableMonitoringInfoFactory"
               />
 
 </configure>

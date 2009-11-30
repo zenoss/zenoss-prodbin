@@ -18,7 +18,8 @@ from info import IInfo
 
 class IProcessEntity(Interface):
     """
-    Marker interface for OSProcessClass and OSProcessOrganizer
+    Marker interface for OSProcessClass and OSProcessOrganizer and 
+    ToManyContRelationship
     """
 
 class IProcessNode(ITreeNode):
@@ -32,20 +33,34 @@ class IProcessInfo(IInfo):
     """
     name = Attribute('The name of the process')
     description = Attribute('A description of the process')
+    isMonitoringAcquired = Attribute('Does this process acquire its monitor '
+                                     'eventSeverity properties from container')
     monitor = Attribute('Whether or not the process is monitored')
-    failSeverity = Attribute('The severity of the event fired when this '
+    eventSeverity = Attribute('The severity of the event fired when this '
                              'process goes down')
+    hasRegex = Attribute('OSProcessClasses have regexes, OSProcessOrganizers'
+                         ' do not')
     regex = Attribute('Regular expression used to match process to a running '
                       'command on the managed host')
     ignoreParameters = Attribute('Only match the regex to the command not its'
                                  ' parameters')
 
+class IMonitoringInfo(Interface):
+    
+    enabled = Attribute('Is monitoring enabled')
+    eventSeverity = Attribute('The severity of the event fired when this '
+                             'process goes down')
 
 class IProcessFacade(Interface):
 
-    def getInfo(nodeid):
+    def getInfo(id):
         """
         Get information about the OSProcessOrganizer and OSProcessClass
-        identified by processTreeNodeId.
+        identified by id.
         """
 
+    def getMonitoringInfo(id):
+        """
+        Get the monitoring info for the process node identified on the
+        processes tree by the given id.
+        """

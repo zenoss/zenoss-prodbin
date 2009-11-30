@@ -980,6 +980,39 @@ Zenoss.DetailPanel = Ext.extend(Ext.Panel, {
 });
 Ext.reg('detailpanel', Zenoss.DetailPanel);
 
+
+/**
+ * @class Zenoss.ColumnFieldSet
+ * @extends Ext.form.FieldSet
+ * A FieldSet with a column layout
+ * @constructor
+ */
+Zenoss.ColumnFieldSet = Ext.extend(Ext.form.FieldSet, {
+    constructor: function(userConfig) {
+        
+        var baseConfig = {
+            items: {
+                layout: 'column',
+                border: false,
+                items: userConfig.__innner_items__,
+                defaults: {
+                    layout: 'form',
+                    border: false,
+                    labelSeparator: ' '
+                }
+            }
+        };
+        
+        delete userConfig.__innner_items__;
+        var config = Ext.apply(baseConfig, userConfig);
+        Zenoss.ColumnFieldSet.superclass.constructor.call(this, config);
+        
+    } // constructor
+}); // Zenoss.ColumnFieldSet
+
+Ext.reg('ColumnFieldSet', Zenoss.ColumnFieldSet);
+
+
 /**
  * General utilities
  */

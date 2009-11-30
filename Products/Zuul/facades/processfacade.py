@@ -18,7 +18,7 @@ from Products.Zuul.tree import TreeNode
 from Products.Zuul.facades import ZuulFacade
 from Products.Zuul.interfaces import IProcessFacade, IProcessEntity
 from Products.Zuul.interfaces import ITreeFacade
-from Products.Zuul.interfaces import IProcessInfo, IInfo
+from Products.Zuul.interfaces import IProcessInfo, IInfo, IMonitoringInfo
 from Products.Zuul.interfaces import ISerializableFactory
 from Products.Zuul.interfaces import IProcessNode, ITreeNode
 from Products.ZenModel.OSProcessClass import OSProcessClass
@@ -80,7 +80,7 @@ class ProcessNode(TreeNode):
 
 class ProcessInfo(object):
     implements(IProcessInfo)
-    adapts(OSProcessClass)
+    adapts(IProcessEntity)
 
     def __init__(self, object):
         """
@@ -98,12 +98,21 @@ class ProcessInfo(object):
         return self._object.description
 
     @property
+    def isMonitoringAcquired(self):
+        return not self._object.hasProperty('zMonitor') \
+                and not self._object.hasProperty('zFailSeverity')
+
+    @property
     def monitor(self):
         return self._object.zMonitor
 
     @property
-    def failSeverity(self):
+    def eventSeverity(self):
         return self._object.zFailSeverity
+
+    @property
+    def hasRegex(self):
+        return isinstance(self._object, OSProcessClass)
 
     @property
     def regex(self):
@@ -127,26 +136,61 @@ class SerializableProcessInfoFactory(object):
     def __call__(self):
         return {'name': self._processInfo.name,
                 'description': self._processInfo.description,
+                'isMonitoringAcquired': self._processInfo.isMonitoringAcquired,
                 'monitor': self._processInfo.monitor,
-                'failSeverity': self._processInfo.failSeverity,
+                'eventSeverity': self._processInfo.eventSeverity,
+                'hasRegex': self._processInfo.hasRegex,
                 'regex': self._processInfo.regex,
                 'ignoreParameters': self._processInfo.ignoreParameters
+                }
+
+
+class MonitoringInfo(object):
+    implements(IMonitoringInfo)
+    adapts(IProcessEntity)
+
+    def __init__(self, object):
+        self._object = object
+
+    @property
+    def enabled(self):
+        return self._object.zMonitor
+
+    @property
+    def eventSeverity(self):
+        return self._object.zFailSeverity
+
+
+class SerializableMonitoringInfoFactory(object):
+    implements(ISerializableFactory)
+    adapts(IMonitoringInfo)
+
+    def __init__(self, monitoringInfo):
+        self._monitoringInfo = monitoringInfo
+
+    def __call__(self):
+        return {'enabled': self._monitoringInfo.enabled,
+                'eventSeverity': self._monitoringInfo.eventSeverity
                 }
 
 
 class ProcessFacade(ZuulFacade):
     implements(IProcessFacade, ITreeFacade)
 
-    def getTree(self, root):
-        obj = self._findObject(root)
+    def getTree(self, id):
+        obj = self._findObject(id)
         return ITreeNode(obj)
 
-    def getInfo(self, nodeid):
-        obj = self._findObject(nodeid)
+    def getInfo(self, id):
+        obj = self._findObject(id)
         return IInfo(obj)
 
-    def _findObject(self, processTreeId):
-        parts = processTreeId.split('/')
+    def getMonitoringInfo(self, id):
+        obj = self._findObject(id)
+        return IMonitoringInfo(obj)
+
+    def _findObject(self, id):
+        parts = id.split('/')
         objectId = parts[-1]
         if len(parts) == 1:
             manager = self._dmd
