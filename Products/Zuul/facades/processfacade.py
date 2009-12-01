@@ -21,6 +21,7 @@ from Products.Zuul.interfaces import ITreeFacade
 from Products.Zuul.interfaces import IProcessInfo, IInfo, IMonitoringInfo
 from Products.Zuul.interfaces import ISerializableFactory
 from Products.Zuul.interfaces import IProcessNode, ITreeNode
+from Products.Zuul.interfaces import IDeviceInfo
 from Products.ZenModel.OSProcessClass import OSProcessClass
 from Products.ZenModel.OSProcessOrganizer import OSProcessOrganizer
 
@@ -188,6 +189,28 @@ class ProcessFacade(ZuulFacade):
     def getMonitoringInfo(self, id):
         obj = self._findObject(id)
         return IMonitoringInfo(obj)
+
+    def getDevices(self, id):
+        processObj = self._findObject(id)
+        if isinstance(processObj, OSProcessOrganizer):
+            processClasses = processObj.getSubOSProcessClassesSorted()
+        else:
+            processClasses = [processObj]
+        deviceInfos = []
+        infoClass = None
+        for processClass in processClasses:
+            for instance in processClass.instances():
+                newDeviceInfo = IDeviceInfo(instance.device())
+                if infoClass is None:
+                    infoClass = newDeviceInfo.__class__
+                for existingDeviceInfo in deviceInfos:
+                    if existingDeviceInfo.device == newDeviceInfo.device:
+                        break
+                else:
+                    deviceInfos.append(newDeviceInfo)
+        if infoClass is not None:
+            deviceInfos.sort(key=infoClass.getDevice)
+        return deviceInfos
 
     def _findObject(self, id):
         parts = id.split('/')

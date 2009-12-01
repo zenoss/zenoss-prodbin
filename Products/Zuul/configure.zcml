@@ -31,6 +31,11 @@
         class="Products.ZenModel.DeviceClass.DeviceClass"
         />
 
+    <five:implements 
+        interface=".interfaces.IDevice"
+        class="Products.ZenModel.Device.Device"
+        />
+
     <utility factory=".facades.EventFacade"
              provides=".interfaces.IEventFacade"
              />
@@ -81,6 +86,16 @@
      <adapter provides=".interfaces.ISerializableFactory"
               for=".interfaces.IMonitoringInfo"
               factory=".facades.processfacade.SerializableMonitoringInfoFactory"
+              />
+
+     <adapter provides=".interfaces.IDeviceInfo"
+              for=".interfaces.IDevice"
+              factory=".facades.devicefacade.DeviceInfo"
+              />
+
+     <adapter provides=".interfaces.ISerializableFactory"
+              for=".interfaces.IDeviceInfo"
+              factory=".facades.devicefacade.SerializableDeviceInfoFactory"
               />
 
 </configure>

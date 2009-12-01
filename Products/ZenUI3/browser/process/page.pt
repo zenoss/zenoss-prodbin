@@ -15,10 +15,6 @@
 
 <tal:block metal:use-macro="context/page_macros/masterdetailsplit2">
 
-<tal:block metal:fill-slot="script_beforeLayout">
-<script src="extdirect.js"></script>
-</tal:block> <!-- metal:fill-slot="script_beforeLayout" -->
-
 <tal:block metal:fill-slot="script_layout">
 <script src="/zenui/js/zenoss/process.js"></script>
 </tal:block> <!-- metal:fill-slot="script_layout" -->

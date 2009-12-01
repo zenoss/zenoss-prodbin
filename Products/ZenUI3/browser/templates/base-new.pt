@@ -42,6 +42,7 @@
         <script type="text/javascript" src="/extjs/ext-all-debug.js"></script>
         <script type="text/javascript"
             src="/zenui/js/livegrid/livegrid-all-debug.js"></script>
+        <script type="text/javascript" src="extdirect.js"></script>
         <script type="text/javascript" src="zenoss-all.js"></script>
         <script type="text/javascript" src="i18n.js"></script>
     </head>

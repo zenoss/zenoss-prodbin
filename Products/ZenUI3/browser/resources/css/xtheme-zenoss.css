@@ -281,6 +281,9 @@ ul.x-tab-strip-bottom{
 	color:#f4f4f4;
 }
 .x-toolbar .x-btn {
+    text-transform: none;
+}
+.x-toolbar.largetoolbar .x-btn {
     height: 26px;
     padding-top: 7px;
     text-transform: none;
@@ -640,7 +643,8 @@ td.x-date-mp-sel a{
 
 /* Tips */
 
-.x-tip-anchor {
+.x-tip-anchor {
+
     background-image:url(../img/xtheme-zenoss/qtip/tip-anchor-sprite.png);
 }
 .x-tip .x-tool-close {
@@ -1218,7 +1222,8 @@ body.x-body-masked .x-window-mc, body.x-body-masked .x-window-plain .x-window-mc
 
 
 .x-grid3-filter td {
-    -moz-user-select: text !important;
+    -moz-user-select: text !important;
+
 }
 
 .x-grid3-filter .x-btn {

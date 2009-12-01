@@ -43,3 +43,13 @@ class ProcessRouter(DirectRouter):
                 'success': True
                 }
 
+    def getDevices(self, id):
+        facade = zope.component.queryUtility(IProcessFacade)
+        infos = facade.getDevices(id)
+        serializableInfos = []
+        for info in infos:
+            factory = ISerializableFactory(info)
+            serializableInfos.append(factory())
+        return {'data': serializableInfos,
+                'success': True
+                }

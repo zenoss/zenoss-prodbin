@@ -64,3 +64,9 @@ class IProcessFacade(Interface):
         Get the monitoring info for the process node identified on the
         processes tree by the given id.
         """
+
+    def getDevices(id):
+        """
+        Get the devices with OSProcess instances that fall under the
+        IProcessEntity identified by the id parameter.
+        """

@@ -19,7 +19,8 @@ from Products.Zuul.facades import TreeFacade
 from Products.Zuul.interfaces import IDeviceClassFacade, IDeviceClassNode
 from Products.Zuul.interfaces import IDeviceClassInfo, IDeviceClass, ITreeFacade
 from Products.Zuul.interfaces import ISerializableFactory, IDeviceClass
-
+from Products.Zuul.interfaces import IDeviceInfo, IDevice
+from Products.ZenUtils import IpUtil
 
 class DeviceClassNode(TreeNode):
     implements(IDeviceClassNode)
@@ -66,6 +67,58 @@ class SerializableDeviceClassInfoFactory(object):
                  'name': self.context.name
                }
 
+
+class DeviceInfo(object):
+    implements(IDeviceInfo)
+    adapts(IDevice)
+
+    def __init__(self, object):
+        self._object = object
+
+    @property
+    def device(self):
+        return self._object.id
+
+    def getDevice(self):
+        return self.device
+
+    @property
+    def ipAddress(self):
+        return IpUtil.ipToDecimal(self._object.manageIp)
+
+    @property
+    def productionState(self):
+        return self._object.convertProdState(self._object.productionState)
+
+    @property
+    def events(self):
+        manager = self._object.getEventManager()
+        severities = [c[0].lower() for c in manager.severityConversions]
+        counts = [s[2] for s in self._object.getEventSummary()]
+        return dict(zip(severities, counts))
+
+    @property
+    def availability(self):
+        return self._object.availability().availability
+
+    def __repr__(self):
+        return "<DeviceInfo(device=%s)>" % (self.device)
+
+
+class SerializableDeviceInfoFactory(object):
+    implements(ISerializableFactory)
+    adapts(IDeviceInfo)
+
+    def __init__(self, deviceInfo):
+        self._deviceInfo = deviceInfo
+
+    def __call__(self):
+        return {'device': self._deviceInfo.device,
+                'ipAddress': self._deviceInfo.ipAddress,
+                'productionState': self._deviceInfo.productionState,
+                'events': self._deviceInfo.events,
+                'availability': self._deviceInfo.availability
+                }
 
 class DeviceFacade(TreeFacade):
     """

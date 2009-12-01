@@ -95,6 +95,15 @@ class ProcessFacadeTest(ZuulFacadeTestCase):
         self.assertEqual(True, serializable['enabled'])
         self.assertEqual(4, serializable['eventSeverity'])
 
+    def test_getDevices(self):
+        device = self.dmd.Devices.createInstance('quux')
+        device.os.addOSProcess('/zport/dmd/Processes/foo/osProcessClasses/bar', True)
+        deviceInfos = self.facade.getDevices('Processes/foo/bar')
+        self.assertEqual(1, len(deviceInfos))
+        deviceInfo = deviceInfos[0]
+        self.assertEqual('quux', deviceInfo.device)
+
+
 def test_suite():
     return unittest.TestSuite((unittest.makeSuite(ProcessFacadeTest),))
 

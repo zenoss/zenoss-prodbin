@@ -24,6 +24,9 @@
         }, {
             "text": "SearchField.js",
             "path": "resources/js/zenoss/"
+        }, {
+            "text": "DeviceGridPanel.js",
+            "path": "resources/js/zenoss/"
         }]
     }],
     "resources": []

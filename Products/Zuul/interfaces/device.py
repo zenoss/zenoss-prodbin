@@ -24,6 +24,11 @@ class IDeviceClass(Interface):
     """
     Marker interface for DeviceClasses.
     """
+    
+class IDevice(Interface):
+    """
+    Marker interface for Device.
+    """
 
 class IDeviceClassInfo(Interface):
     """
@@ -32,6 +37,22 @@ class IDeviceClassInfo(Interface):
     id = Attribute('Path of the device class')
     name = Attribute("Pretty name of the device class")
 
+class IDeviceInfo(Interface):
+    """
+    Device info
+    """
+    device = Attribute('The ID of the device')
+    ipAddress = Attribute('The management IP address')
+    productionState = Attribute('The production state of the device')
+    events = Attribute('A list of (severity, count) tuples for the three most'
+                       ' severe event severities')
+    availability = Attribute('The availability percentage')
+    
+    def getDevice():
+        """
+        Returns the device attribute. Handy as a key when sorting a list of
+        IDeviceInfos.
+        """
 
 class IDeviceClassFacade(Interface):
 
