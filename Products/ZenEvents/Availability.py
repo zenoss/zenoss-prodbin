@@ -91,18 +91,39 @@ class Report:
                  eventClass=Status_Ping,
                  severity=5,
                  device=None,
-                 component=''):
+                 component='',
+                 prodState=1000,
+                 manager=None,
+                 agent=None,
+                 DeviceClass=None,
+                 Location=None,
+                 System=None,
+                 DeviceGroup=None,
+                 DevicePriority=None,
+                 monitor=None):
         self.startDate = _round(startDate)
         self.endDate = _round(endDate)
         self.eventClass = eventClass
         self.severity = severity
         self.device = device
         self.component = component
+        self.prodState = prodState
+        self.manager = manager
+        self.agent = agent
+        self.DeviceClass = DeviceClass
+        self.Location = Location
+        self.System = System
+        self.DeviceGroup = DeviceGroup
+        self.DevicePriority = DevicePriority
+        self.monitor = monitor
 
 
     def tuple(self):
-        return (self.startDate, self.endDate, self.eventClass,
-                self.severity, self.device, self.component)
+        return (
+            self.startDate, self.endDate, self.eventClass, self.severity,
+            self.device, self.component, self.prodState, self.manager,
+            self.agent, self.DeviceClass, self.Location, self.System,
+            self.DeviceGroup, self.DevicePriority, self.monitor)
 
     def __hash__(self):
         return hash(self.tuple())
@@ -130,11 +151,27 @@ class Report:
         w += ' AND firstTime <= %(endDate)s '
         w += ' AND firstTime != lastTime '
         w += " AND eventClass = '%(eventClass)s' "
-        w += " AND prodState >= 1000 "
+        w += " AND prodState >= %(prodState)s "
         if self.device:
             w += " AND device = '%(device)s' "
         if self.component:
             w += " AND component like '%%%(component)s%%' "
+        if self.manager is not None:
+            w += " AND manager = '%(manager)s' "
+        if self.agent is not None:
+            w += " AND agent = '%(agent)s' "
+        if self.DeviceClass is not None:
+            w += " AND DeviceClass = '%(DeviceClass)s' "
+        if self.Location is not None:
+            w += " AND Location = '%(Location)s' "
+        if self.System is not None:
+            w += " AND Systems LIKE '%%%(System)s%%' "
+        if self.DeviceGroup is not None:
+            w += " AND DeviceGroups LIKE '%%%(DeviceGroup)s%%' "
+        if self.DevicePriority is not None:
+            w += " AND DevicePriority = %(DevicePriority)s "
+        if self.monitor is not None:
+            w += " AND monitor = '%(monitor)s' "
         env['w'] = w % env
         s = ('SELECT %(cols)s FROM ( '
              ' SELECT %(cols)s FROM history %(w)s '
@@ -168,7 +205,64 @@ class Report:
                 deviceList = [device]
                 devices.setdefault( (self.device, self.component), 0)
         else:
-            deviceList = [d for d in dmd.Devices.getSubDevices()]
+            deviceList = []
+            if not self.DeviceClass and not self.Location \
+                and not self.System and not self.DeviceGroup:
+                deviceList = dmd.Devices.getSubDevices()
+            else:
+                allDevices = {}
+                for d in dmd.Devices.getSubDevices():
+                    allDevices[d.id] = d
+
+                deviceClassDevices = set()
+                if self.DeviceClass:
+                    try:
+                        org = dmd.Devices.getOrganizer(self.DeviceClass)
+                        for d in org.getSubDevices():
+                            deviceClassDevices.add(d.id)
+                    except KeyError:
+                        pass
+                else:
+                    deviceClassDevices = set(allDevices.keys())
+
+                locationDevices = set()
+                if self.Location:
+                    try:
+                        org = dmd.Locations.getOrganizer(self.Location)
+                        for d in org.getSubDevices():
+                            locationDevices.add(d.id)
+                    except KeyError:
+                        pass
+                else:
+                    locationDevices = set(allDevices.keys())
+
+                systemDevices = set()
+                if self.System:
+                    try:
+                        org = dmd.Systems.getOrganizer(self.System)
+                        for d in org.getSubDevices():
+                            systemDevices.add(d.id)
+                    except KeyError:
+                        pass
+                else:
+                    systemDevices = set(allDevices.keys())
+
+                deviceGroupDevices = set()
+                if self.DeviceGroup:
+                    try:
+                        org = dmd.Groups.getOrganizer(self.DeviceGroup)
+                        for d in org.getSubDevices():
+                            deviceGroupDevices.add(d.id)
+                    except KeyError:
+                        pass
+                else:
+                    deviceGroupDevices = set(allDevices.keys())
+
+                # Intersect all of the organizers.
+                for deviceId in (deviceClassDevices & locationDevices & \
+                    systemDevices & deviceGroupDevices):
+                    deviceList.append(allDevices[deviceId])
+
             if not self.component:
                 for d in dmd.Devices.getSubDevices():
                     devices.setdefault( (d.id, self.component), 0)
@@ -176,15 +270,17 @@ class Report:
         result = []
         for (d, c), v in devices.items():
             dev = deviceLookup.get(d, None)
-            sys = (dev and dev.getSystemNamesString()) or ''
+            if dev is None:
+                continue
+            sys = dev.getSystemNamesString()
             result.append( Availability(d, c, v, total, sys) )
         # add in the devices that have the component, but no events
         if self.component:
             for d in deviceList:
                 for c in d.getMonitoredComponents():
                     if c.name().find(self.component) >= 0:
-                        a = Availability(d.id, c.name(), 0, total, 
-                                                        d.getSystemNamesString())
+                        a = Availability(d.id, c.name(), 0, total,
+                            d.getSystemNamesString())
                         result.append(a)
         return result
 
