@@ -156,6 +156,54 @@ class TestInterfaceMap(BaseTestCase):
             for attr in parsed_data[index].keys():
                 self.assertEquals( getattr(om, attr), parsed_data[index][attr] )
 
+    def testNoIpInterfaces(self):
+        tabledata = {
+            'ifalias': {
+               '1': {'highSpeed': 2000L, 'description': '', 'ifHCInUcastPkts': 483106528092L, 'ifHCInOctets': 123411643670667L},
+               '2': {'highSpeed': 0L, 'description': '', 'ifHCInUcastPkts': 9531554L, 'ifHCInOctets': 1211994446L},
+               '3': {'highSpeed': 2000L, 'description': '', 'ifHCInUcastPkts': 506823808298L, 'ifHCInOctets': 561671987287258L},
+               '4': {'highSpeed': 1000L, 'description': '', 'ifHCInUcastPkts': 253321260579L, 'ifHCInOctets': 280765628338066L},
+            },
+            'iftable': {
+               '1': {'adminStatus': 1, 'macaddress': '\x02\xd0h\x18U\xe1', 'operStatus': 1, 'speed': 2000000000L, 'mtu': 1500, 'ifindex': 1, 'type': 6, 'id': 'LA/1'},
+               '2': {'adminStatus': 1, 'macaddress': '\x00\xd0h\x18U\xdf', 'operStatus': 1, 'speed': 0L, 'mtu': 1500, 'ifindex': 2, 'type': 6, 'id': 'LO/1'},
+               '3': {'adminStatus': 1, 'macaddress': '\x02\xd0h\x18U\xe2', 'operStatus': 1, 'speed': 2000000000L, 'mtu': 1500, 'ifindex': 3, 'type': 6, 'id': 'LA/2'},
+               '4': {'adminStatus': 1, 'macaddress': '\x00\xd0h\x18U\xe1', 'operStatus': 1, 'speed': 1000000000L, 'mtu': 1500, 'ifindex': 4, 'type': 6, 'id': '1/3'},
+            },
+            'ipAddrTable': {},
+            'ipNetToMediaTable': {}
+        }
+        results = ('ignored', tabledata)
+        logging.disable(logging.WARN)
+        relmap = InterfaceMap().process(self.device, results, log)
+
+        parsed_data = {
+            1: {
+                 'id': 'LA_1', 'interfaceName': 'LA/1', 'title': 'LA/1',
+                 'type': 'ethernetCsmacd_64', 'macaddress': '02:D0:68:18:55:E1',
+                 'setIpAddresses': [], 'speed': 2000000000L, 'mtu': 1500,
+                },
+            2: {
+                 'id': 'LO_1', 'interfaceName': 'LO/1', 'title': 'LO/1',
+                 'type': 'ethernetCsmacd_64', 'macaddress': '00:D0:68:18:55:DF',
+                 'setIpAddresses': [], 'speed': 0L, 'mtu': 1500,
+                },
+            3: {
+                 'id': 'LA_2', 'interfaceName': 'LA/2', 'title': 'LA/2',
+                 'type': 'ethernetCsmacd_64', 'macaddress': '02:D0:68:18:55:E2',
+                 'setIpAddresses': [], 'speed': 2000000000L, 'mtu': 1500,
+                },
+            4: {
+                 'id': '1_3', 'interfaceName': '1/3', 'title': '1/3',
+                 'type': 'ethernetCsmacd_64', 'macaddress': '00:D0:68:18:55:E1',
+                 'setIpAddresses': [], 'speed': 1000000000L, 'mtu': 1500,
+                },
+        }
+
+        for om in relmap:
+            index = om.ifindex
+            for attr in parsed_data[index].keys():
+                self.assertEquals( getattr(om, attr), parsed_data[index][attr] )
 
 def test_suite():
     from unittest import TestSuite, makeSuite

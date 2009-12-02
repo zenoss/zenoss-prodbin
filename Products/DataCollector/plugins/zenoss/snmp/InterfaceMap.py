@@ -89,9 +89,8 @@ class InterfaceMap(SnmpPlugin):
             if iptable:
                 log.info("Unable to use ipAddrTable -- using ipNetToMediaTable instead")
             else:
-                log.error("Unable to get data for %s from either ipAddrTable or"
-                          " ipNetToMediaTable -- skipping model" % device.id)
-                return None
+                log.warn("Unable to get data for %s from either ipAddrTable or"
+                          " ipNetToMediaTable" % device.id)
 
         iftable = tabledata.get("iftable")
         if iftable is None:
@@ -105,7 +104,7 @@ class InterfaceMap(SnmpPlugin):
         omtable = {}
         for ip, row in iptable.items():
             #FIXME - not getting ifindex back from HP printer
-            if not row.has_key("ifindex"):
+            if 'ifindex' not in row:
                 log.debug( "IP entry for %s is missing ifindex" % ip)
                 continue
 
@@ -120,19 +119,19 @@ class InterfaceMap(SnmpPlugin):
                 row['netmask'] = '255.255.255.0'
 
             strindex = str(row['ifindex'])
-            if not omtable.has_key(strindex) and not iftable.has_key(strindex):
+            if strindex not in omtable and strindex not in iftable:
                 log.warn("Skipping %s as it points to missing ifindex %s",
                             row.get('ipAddress',""), row.get('ifindex',""))
                 continue
 
-            if not omtable.has_key(strindex):
+            if strindex not in omtable:
                 om = self.processInt(log, device, iftable[strindex])
                 if not om:
                     continue
                 rm.append(om)
                 omtable[strindex] = om
                 del iftable[strindex]
-            elif omtable.has_key(strindex): 
+            elif strindex in omtable:
                 om = omtable[strindex]
             else:
                 log.warn("The IP %s points to missing ifindex %s -- skipping" % (
@@ -141,9 +140,9 @@ class InterfaceMap(SnmpPlugin):
 
             if not hasattr(om, 'setIpAddresses'):
                 om.setIpAddresses = []
-            if row.has_key('ipAddress'):
+            if 'ipAddress' in row:
                 ip = row['ipAddress']
-            if row.has_key('netmask'):
+            if 'netmask' in row:
                 ip = ip + "/" + str(self.maskToBits(row['netmask'].strip()))
 
             # Ignore IP addresses with a 0.0.0.0 netmask.
@@ -166,7 +165,7 @@ class InterfaceMap(SnmpPlugin):
         """
         for ifidx, data in ifalias.items():
             log.debug( "ifalias %s raw data = %s" % (ifidx,data) )
-            if not iftable.has_key(ifidx):
+            if ifidx not in iftable:
                 log.debug( "ifidx %s is not in iftable -- skipping" % (
                            ifidx))
                 continue
