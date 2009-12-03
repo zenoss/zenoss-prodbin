@@ -1420,6 +1420,8 @@ Ext.reg('searchfield', Zenoss.SearchField);
 
 (function(){
 
+Ext.ns('Zenoss');
+
 // the store that holds the records for the device grid
 var deviceStore = {
     xtype: 'directstore',
@@ -1502,15 +1504,13 @@ var deviceColumnModel = new Ext.grid.ColumnModel({
                }] // columns
 });
 
-var baseConfig = {
+var deviceConfig = {
     id: 'deviceGrid',
     store: deviceStore,
     colModel: deviceColumnModel,
     autoExpandColumn: 'availability',
     stripeRows: true
-}
-
-Ext.ns('Zenoss');
+};
 
 /**
  * @class Zenoss.DeviceGridPanel
@@ -1526,14 +1526,169 @@ Ext.ns('Zenoss');
  * @constructor
  */
 Zenoss.DeviceGridPanel = Ext.extend(Ext.grid.GridPanel, {
-    
+
     constructor: function(userConfig) {
-        var config = Ext.apply(baseConfig, userConfig);
+        var config = Ext.apply(deviceConfig, userConfig);
         Zenoss.DeviceGridPanel.superclass.constructor.call(this, config);
-    } // constructor
-    
+    }
+
 }); // DeviceGridPanel
 
 Ext.reg('DeviceGridPanel', Zenoss.DeviceGridPanel);
+
+// the store that holds the records for the device grid
+var eventStore = {
+    xtype: 'directstore',
+    autoLoad: {params:{id: 'Processes'}},
+    
+    // Ext.data.DirectProxy config
+    api: {read: Zenoss.remote.ProcessRouter.getEvents},
+    
+    // Ext.data.JsonReader config
+    root: 'data',
+    fields: [
+        {name: 'severity', type: 'auto'},
+        {name: 'device', type: 'string'},
+        {name: 'component', type: 'string'},
+        {name: 'eventClass', type: 'string'},
+        {name: 'summary', type: 'string'}
+    ],
+    
+}; // eventStore
+
+function severityRenderer(value) {
+    return Zenoss.util.convertSeverity(value);
+}
+
+var eventColumnModel = new Ext.grid.ColumnModel({
+    defaults: {
+        sortable: false,
+        menuDisabled: true,
+        width: 200
+    },
+    columns: [{dataIndex: 'severity',
+               header: _t('Severity'),
+               id: 'severity',
+               renderer: severityRenderer
+               },
+              {dataIndex: 'device',
+               header: _t('Device')
+               },
+              {dataIndex: 'component',
+               header: _t('Component')
+               },
+              {dataIndex: 'eventClass',
+                header: _t('Event Class')
+                },
+              {dataIndex: 'summary',
+               header: _t('Summary'), 
+               id: 'summary'
+               }] // columns
+}); // eventColumnModel
+
+var eventConfig = {
+    id: 'eventGrid',
+    store: eventStore,
+    colModel: eventColumnModel,
+    autoExpandColumn: 'summary',
+    stripeRows: true
+};
+
+/**
+ * @class Zenoss.EventGridPanel
+ * @extends Ext.grid.GridPanel
+ * Shows events in a filtered grid panel similar to that on the event console
+ * Fixed columns. A drag source.
+ * @constructor
+ */
+Zenoss.EventGridPanel = Ext.extend(Ext.grid.GridPanel, {
+    
+    constructor: function(userConfig) {
+        var config = Ext.apply(eventConfig, userConfig);
+        Zenoss.EventGridPanel.superclass.constructor.call(this, config);
+    }
+    
+}); // EventGridPanel
+
+Ext.reg('EventGridPanel', Zenoss.EventGridPanel);
+
+function createToggleHandler(itemIndex) {
+    return function(button, pressed) {
+        if (pressed) {
+            Ext.getCmp('cardPanel').getLayout().setActiveItem(itemIndex);
+        }
+    }
+}
+
+/**
+ * @class Zenoss.ViewButton
+ * @extends Ext.Button
+ * A button that toggles between cards in a panel with a card layout.
+ * @constructor
+ */
+Zenoss.ViewButton = Ext.extend(Ext.Button, {
+
+    constructor: function(userConfig) {
+
+        var baseConfig = {
+            toggleHandler: createToggleHandler(userConfig.__item_index__),
+            enableToggle: true,
+            toggleGroup: 'view',
+            allowDepress: false
+        };
+
+        delete userConfig.__item_index__;
+        var config = Ext.apply(baseConfig, userConfig);
+        Zenoss.ViewButton.superclass.constructor.call(this, config);
+    }
+
+});
+
+Ext.reg('ViewButton', Zenoss.ViewButton);
+
+/**
+ * @class Zenoss.DeviceEventPanel
+ * @extends Ext.Button
+ * A Panel with a card layout and toolbar buttons for switching between the
+ * cards.
+ * @constructor
+ */
+Zenoss.DeviceEventPanel = Ext.extend(Ext.Panel, {
+    
+    constructor: function(userConfig) {
+        var config = Ext.apply(this.baseConfig, userConfig);
+        Zenoss.DeviceEventPanel.superclass.constructor.call(this, config);
+    },
+    
+    baseConfig: {
+        id: 'cardPanel',
+        layout: 'card',
+        activeItem: 0,
+        tbar: [
+            {
+                xtype: 'tbtext',
+                text: _t('View: ')
+            }, {
+                xtype: 'ViewButton',
+                id: 'devicesButton',
+                text: _t('Devices'),
+                __item_index__: 0,
+                pressed: true
+            }, {
+                xtype: 'ViewButton',
+                id: 'eventsButton',
+                text: _t('Events'),
+                __item_index__: 1
+            }
+        ],
+        items: [
+            {xtype: 'DeviceGridPanel'},
+            {xtype: 'EventGridPanel'}
+        ]
+    }
+    
+});
+
+Ext.reg('DeviceEventPanel', Zenoss.DeviceEventPanel);
 
 })(); // end of function namespace scoping
