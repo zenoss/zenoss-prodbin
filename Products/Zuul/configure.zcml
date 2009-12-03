@@ -27,6 +27,11 @@
         />
 
     <five:implements 
+        interface=".interfaces.IEventEntity"
+        class="Products.ZenEvents.ZEvent.ZEvent"
+        />
+
+    <five:implements 
         interface=".interfaces.IDeviceClass"
         class="Products.ZenModel.DeviceClass.DeviceClass"
         />
@@ -96,6 +101,16 @@
      <adapter provides=".interfaces.ISerializableFactory"
               for=".interfaces.IDeviceInfo"
               factory=".facades.devicefacade.SerializableDeviceInfoFactory"
+              />
+
+     <adapter provides=".interfaces.IEventInfo"
+              for=".interfaces.IEventEntity"
+              factory=".facades.eventfacade.EventInfo"
+              />
+
+     <adapter provides=".interfaces.ISerializableFactory"
+              for=".interfaces.IEventInfo"
+              factory=".facades.eventfacade.SerializableEventInfoFactory"
               />
 
 </configure>

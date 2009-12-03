@@ -19,8 +19,6 @@ from zope.interface.verify import verifyClass
 from Products.Zuul.tests.base import ZuulFacadeTestCase
 from Products.Zuul.interfaces import ISerializableFactory
 
-from Products.Zuul.interfaces import IDeviceFacade
-
 from Products.Zuul.interfaces import IDeviceInfo
 from Products.Zuul.facades.devicefacade import DeviceInfo
 
@@ -28,8 +26,7 @@ from Products.Zuul.facades.devicefacade import DeviceInfo
 class DeviceFacadeTest(ZuulFacadeTestCase):
 
     def setUp(self):
-        super(ProcessFacadeTest, self).setUp()
-        self.facade = zope.component.queryUtility(IDeviceFacade)
+        super(DeviceFacadeTest, self).setUp()
 
     def test_interfaces(self):
         verifyClass(IDeviceInfo, DeviceInfo)

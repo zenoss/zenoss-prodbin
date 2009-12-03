@@ -22,6 +22,7 @@ from Products.Zuul.interfaces import IProcessInfo, IInfo, IMonitoringInfo
 from Products.Zuul.interfaces import ISerializableFactory
 from Products.Zuul.interfaces import IProcessNode, ITreeNode
 from Products.Zuul.interfaces import IDeviceInfo
+from Products.Zuul.interfaces import IEventInfo
 from Products.ZenModel.OSProcessClass import OSProcessClass
 from Products.ZenModel.OSProcessOrganizer import OSProcessOrganizer
 
@@ -191,11 +192,7 @@ class ProcessFacade(ZuulFacade):
         return IMonitoringInfo(obj)
 
     def getDevices(self, id):
-        processObj = self._findObject(id)
-        if isinstance(processObj, OSProcessOrganizer):
-            processClasses = processObj.getSubOSProcessClassesSorted()
-        else:
-            processClasses = [processObj]
+        processClasses = self._getProcessClasses(id)
         deviceInfos = []
         infoClass = None
         for processClass in processClasses:
@@ -212,6 +209,20 @@ class ProcessFacade(ZuulFacade):
             deviceInfos.sort(key=infoClass.getDevice)
         return deviceInfos
 
+    def getEvents(self, id):
+        processClasses = self._getProcessClasses(id)
+        zem = self._dmd.ZenEventManager
+        eventInfos = []
+        for processClass in processClasses:
+            for instance in processClass.instances():
+                for event in zem.getEventListME(instance):
+                    if not getattr(event, 'device', None):
+                        event.device = instance.device().id
+                    if not getattr(event, 'component', None):
+                        event.component = instance.name()
+                    eventInfos.append(IEventInfo(event))
+        return eventInfos
+
     def _findObject(self, id):
         parts = id.split('/')
         objectId = parts[-1]
@@ -226,3 +237,10 @@ class ProcessFacade(ZuulFacade):
                 manager = parent._getOb('osProcessClasses')
         return manager._getOb(objectId)
 
+    def _getProcessClasses(self, id):
+        processObj = self._findObject(id)
+        if isinstance(processObj, OSProcessOrganizer):
+            processClasses = processObj.getSubOSProcessClassesSorted()
+        else:
+            processClasses = [processObj]
+        return processClasses

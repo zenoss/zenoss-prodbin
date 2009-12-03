@@ -1,5 +1,18 @@
-from zope.interface import Interface, Attribute
+###########################################################################
+#
+# This program is part of Zenoss Core, an open source monitoring platform.
+# Copyright (C) 2009, Zenoss Inc.
+#
+# This program is free software; you can redistribute it and/or modify it
+# under the terms of the GNU General Public License version 2 as published by
+# the Free Software Foundation.
+#
+# For complete information please visit: http://www.zenoss.com/oss/
+#
+###########################################################################
 
+from zope.interface import Interface, Attribute
+from info import IInfo
 
 class IEventEvent(Interface):
     """
@@ -52,6 +65,21 @@ class IEventClosed(IEventMoved):
     An event has been moved from status to history.
     """
 
+
+class IEventEntity(Interface):
+    """
+    Marker interface for ZEvent
+    """
+
+class IEventInfo(IInfo):
+    """
+    Info object for events.
+    """
+    severity = Attribute('the event severity')
+    device = Attribute('the device asscoiated with the event')
+    component = Attribute('the component of device asscoiated with the event')
+    eventClass = Attribute('the event class')
+    summary = Attribute('a summary of the event')
 
 class IEventFacade(Interface):
 

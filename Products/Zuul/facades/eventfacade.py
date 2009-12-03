@@ -51,6 +51,48 @@ class EventClosed(EventEvent):
     implements(IEventClosed)
 
 
+class EventInfo(object):
+    implements(IEventInfo)
+    adapts(IEventEntity)
+    
+    def __init__(self, event):
+        self._event = event
+
+    @property
+    def severity(self):
+        return self._event.severity
+        
+    @property
+    def device(self):
+        return self._event.device
+
+    @property
+    def component(self):
+        return self._event.component
+
+    @property
+    def eventClass(self):
+        return self._event.eventClass
+
+    @property
+    def summary(self):
+        return self._event.summary
+
+class SerializableEventInfoFactory(object):
+    implements(ISerializableFactory)
+    adapts(IEventInfo)
+
+    def __init__(self, eventInfo):
+        self._eventInfo = eventInfo
+
+    def __call__(self):
+        return {'severity': self._eventInfo.severity,
+                'device': self._eventInfo.device,
+                'component': self._eventInfo.component,
+                'eventClass': self._eventInfo.eventClass,
+                'summary': self._eventInfo.summary
+                }
+
 class EventFacade(ZuulFacade):
     implements(IEventFacade)
 

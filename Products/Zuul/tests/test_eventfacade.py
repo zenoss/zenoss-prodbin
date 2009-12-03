@@ -39,6 +39,7 @@ class TestEvents(EventTestCase, ZuulFacadeTestCase):
         verifyClass(IEventAdded, evs.EventAdded)
         verifyClass(IEventClosed, evs.EventClosed)
         verifyClass(IEventReopened, evs.EventReopened)
+        verifyClass(IEventInfo, evs.EventInfo)
 
     def test_registration(self):
         svc = zope.component.queryUtility(IEventFacade)

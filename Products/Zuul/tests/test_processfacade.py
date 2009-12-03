@@ -16,7 +16,7 @@ import unittest
 import zope.component
 from zope.interface.verify import verifyClass
 
-from Products.Zuul.tests.base import ZuulFacadeTestCase
+from Products.Zuul.tests.base import ZuulFacadeTestCase, EventTestCase
 from Products.Zuul.interfaces import ISerializableFactory
 from Products.Zuul.interfaces import IProcessNode
 from Products.Zuul.facades.processfacade import ProcessNode
@@ -26,7 +26,7 @@ from Products.Zuul.interfaces import IProcessFacade
 from Products.Zuul.facades.processfacade import ProcessFacade
 from Products.ZenModel.OSProcessOrganizer import manage_addOSProcessOrganizer
 
-class ProcessFacadeTest(ZuulFacadeTestCase):
+class ProcessFacadeTest(EventTestCase, ZuulFacadeTestCase):
 
     def setUp(self):
         super(ProcessFacadeTest, self).setUp()
@@ -102,7 +102,13 @@ class ProcessFacadeTest(ZuulFacadeTestCase):
         self.assertEqual(1, len(deviceInfos))
         deviceInfo = deviceInfos[0]
         self.assertEqual('quux', deviceInfo.device)
-
+        
+    def test_getEvents(self):
+        device = self.dmd.Devices.createInstance('quux')
+        device.os.addOSProcess('/zport/dmd/Processes/foo/osProcessClasses/bar', True)
+        self.sendEvent(device='quux', component='bar', severity=4)
+        events = self.facade.getEvents('Processes/foo/bar')
+        self.assertEqual(4, events[0].severity)
 
 def test_suite():
     return unittest.TestSuite((unittest.makeSuite(ProcessFacadeTest),))

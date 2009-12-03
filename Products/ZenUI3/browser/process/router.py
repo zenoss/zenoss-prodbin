@@ -53,3 +53,13 @@ class ProcessRouter(DirectRouter):
         return {'data': serializableInfos,
                 'success': True
                 }
+
+    def getEvents(self, id):
+        facade = zope.component.queryUtility(IProcessFacade)
+        events = facade.getEvents(id)
+        serializableEvents = []
+        for event in events:
+            factory = ISerializableFactory(event)
+            serializableEvents.append(factory())
+        return {'data': serializableEvents,
+                'success': True}

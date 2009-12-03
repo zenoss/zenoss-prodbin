@@ -37,6 +37,11 @@ function clickHandler(node) {
         params: {id: node.attributes.id}
     });
     
+    // load up appropriate data in the event grid
+    Ext.getCmp('eventGrid').getStore().load({
+        params: {id: node.attributes.id}
+    });
+    
 } // clickHandler
 
 Ext.getCmp('master_panel').add({
@@ -255,73 +260,7 @@ processForm.getForm().load({params:{id: 'Processes'}});
  *
  */
 
-function createToggleHandler(itemIndex) {
-    return function(button, pressed) {
-        if (pressed) {
-            Ext.getCmp('cardPanel').getLayout().setActiveItem(itemIndex);
-        }
-    }
-}
-
-Zenoss.ViewButton = Ext.extend(Ext.Button, {
-
-    constructor: function(userConfig) {
-
-        var baseConfig = {
-            toggleHandler: createToggleHandler(userConfig.__item_index__),
-            enableToggle: true,
-            toggleGroup: 'view',
-            allowDepress: false
-        };
-
-        delete userConfig.__item_index__;
-        var config = Ext.apply(baseConfig, userConfig);
-        Zenoss.ViewButton.superclass.constructor.call(this, config);
-    }
-
-});
-
-Ext.reg('ViewButton', Zenoss.ViewButton);
-
-var cardPanelConfig = {
-    id: 'cardPanel',
-    layout: 'card',
-    activeItem: 0,
-    tbar: [
-        {
-            xtype: 'tbtext',
-            text: 'View: '
-        }, {
-            xtype: 'ViewButton',
-            id: 'devicesButton',
-            text: _t('Devices'),
-            __item_index__: 0,
-            pressed: true
-        }, {
-            xtype: 'ViewButton',
-            id: 'eventsButton',
-            text: _t('Events'),
-            __item_index__: 1
-        }
-    ],
-    items: [
-        {xtype: 'DeviceGridPanel'},
-        {html: '<p>Event Grid</p>'}
-    ]
-}
-
-Zenoss.CardPanel = Ext.extend(Ext.Panel, {
-    
-    constructor: function(userConfig) {
-        var config = Ext.apply(cardPanelConfig, userConfig);
-        Zenoss.CardPanel.superclass.constructor.call(this, config);
-    }
-    
-});
-
-Ext.reg('CardPanel', Zenoss.CardPanel);
-
-Ext.getCmp('bottom_detail_panel').add({xtype:'CardPanel'});
+Ext.getCmp('bottom_detail_panel').add({xtype:'DeviceEventPanel'});
 
 
 }); // Ext.onReady

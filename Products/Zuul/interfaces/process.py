@@ -18,8 +18,7 @@ from info import IInfo
 
 class IProcessEntity(Interface):
     """
-    Marker interface for OSProcessClass and OSProcessOrganizer and 
-    ToManyContRelationship
+    Marker interface for OSProcessClass and OSProcessOrganizer
     """
 
 class IProcessNode(ITreeNode):
@@ -45,7 +44,7 @@ class IProcessInfo(IInfo):
     ignoreParameters = Attribute('Only match the regex to the command not its'
                                  ' parameters')
 
-class IMonitoringInfo(Interface):
+class IMonitoringInfo(IInfo):
     
     enabled = Attribute('Is monitoring enabled')
     eventSeverity = Attribute('The severity of the event fired when this '
@@ -68,5 +67,11 @@ class IProcessFacade(Interface):
     def getDevices(id):
         """
         Get the devices with OSProcess instances that fall under the
+        IProcessEntity identified by the id parameter.
+        """
+
+    def getEvents(id):
+        """
+        Get the events associated with OSProcess instances that fall under the
         IProcessEntity identified by the id parameter.
         """
