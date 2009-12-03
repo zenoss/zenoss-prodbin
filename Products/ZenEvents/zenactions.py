@@ -106,7 +106,7 @@ class EventCommandProtocol(ProcessProtocol):
         self.error += text
         
 
-class ZenActions(ZCmdBase):
+class BaseZenActions(object):
     """
     Take actions based on events in the event manager.
     Start off by sending emails and pages.
@@ -143,20 +143,6 @@ class ZenActions(ZCmdBase):
                         "   AND event.evid = '%s'")
 
 
-    def __init__(self):
-        ZCmdBase.__init__(self)
-        self.schedule = Schedule(self.options, self.dmd)
-        self.schedule.sendEvent = self.dmd.ZenEventManager.sendEvent
-        self.schedule.monitor = self.options.monitor
-
-        self.actions = []
-        self.loadActionRules()
-        self.updateCheck = UpdateCheck()
-        self.sendEvent(Event.Event(device=self.options.monitor, 
-                        eventClass=App_Start, 
-                        summary="zenactions started",
-                        severity=0, component="zenactions"))
-
     def loadActionRules(self):
         """Load the ActionRules into the system.
         """
@@ -168,7 +154,11 @@ class ZenActions(ZCmdBase):
             self.log.debug("action:%s for:%s loaded", ar.getId(), userid)
 
 
-    def execute(self, stmt):
+    def _getCursor(self, stmt, callback):
+        """
+        Get a cursor for the ZenEventManager connection.  Execute statement
+        and call the callback with the cursor and number of row affected.
+        """
         result = None
         self.lastCommand = stmt
         self.log.debug(stmt)
@@ -176,23 +166,49 @@ class ZenActions(ZCmdBase):
         conn = zem.connect()
         try:
             curs = conn.cursor()
-            result = curs.execute(stmt)
-        finally: zem.close(conn)
+            rowsAffected = curs.execute(stmt)
+            result = callback(cursor=curs, rowsAffected=rowsAffected)
+        finally: 
+            zem.close(conn)
         return result
+
+
+    def execute(self, stmt):
+        """
+        Execute stmt against ZenEventManager connection and return the number
+        of rows that were affected.
+        """
+        def callback(rowsAffected, **unused):
+            return rowsAffected
+        return self._getCursor(stmt, callback)
 
 
     def query(self, stmt):
-        result = None
-        self.lastCommand = stmt
-        self.log.debug(stmt)
-        zem = self.dmd.ZenEventManager
-        conn = zem.connect()
-        try:
-            curs = conn.cursor()
-            curs.execute(stmt)
-            result = curs.fetchall()
-        finally: zem.close(conn)
-        return result
+        """
+        Execute stmt against ZenEventManager connection and fetch all results.
+        """
+        def callback(cursor, **unused):
+            return cursor.fetchall()
+        return self._getCursor(stmt, callback)
+
+
+    def _describe(self, stmt):
+        """
+        Execute stmt against ZenEventManager connection and return the cursor
+        description.
+        """
+        def callback(cursor, **unused):
+            return cursor.description
+        return self._getCursor(stmt, callback)
+
+
+    def _columnNames(self, table):
+        """
+        Returns the column names for the table using a ZenEventManager 
+        connection.
+        """
+        description = self._describe("SELECT * FROM %s LIMIT 0" % table)
+        return [d[0] for d in description]
 
 
     def getBaseUrl(self, device=None):
@@ -250,7 +266,9 @@ class ZenActions(ZCmdBase):
         transaction.commit()
 
     def processEvent(self, zem, context, action):
-        fields = context.getEventFields()
+        userFields = context.getEventFields()
+        columnNames = self._columnNames('status')
+        fields = [f for f in userFields if f in columnNames]
         userid = context.getUserid()
         # get new events
         nwhere = context.where.strip() or '1 = 1'
@@ -754,6 +772,24 @@ class ZenActions(ZCmdBase):
             ZCmdBase.sigTerm(self, signum, frame)
         except SystemExit:
             reactor.stop()
+
+
+class ZenActions(BaseZenActions, ZCmdBase):
+    
+    def __init__(self):
+        ZCmdBase.__init__(self)
+        self.schedule = Schedule(self.options, self.dmd)
+        self.schedule.sendEvent = self.dmd.ZenEventManager.sendEvent
+        self.schedule.monitor = self.options.monitor
+
+        self.actions = []
+        self.loadActionRules()
+        self.updateCheck = UpdateCheck()
+        self.sendEvent(Event.Event(device=self.options.monitor, 
+                        eventClass=App_Start, 
+                        summary="zenactions started",
+                        severity=0, component="zenactions"))
+
 
 if __name__ == "__main__":
     za = ZenActions()
