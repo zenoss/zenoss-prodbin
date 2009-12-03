@@ -476,15 +476,24 @@ var fakexhr = {
     }
 };
 
+function showErrorGraph(graphid) {
+       var mydiv = DIV({'style':'height:100px;width:500px;'},
+        "There was a problem rendering this graph. Either the file does not exist or an error has occurred.  Initial graph creation can take up to 5 minutes.  If the graph still does not appear, look in the Zope log file $ZENHOME/log/event.log for errors.");
+       swapDOM($(ZenGraphs[graphid]), mydiv);
+}
+
 function zenRRDInit() {
     for (var graphid=0; graphid<ZenGraphs.length; graphid++) {
         try {
-            graph = new ZenRRDGraph($(ZenGraphs[graphid]));
-            ZenQueue.add(graph);
+            var img = $(ZenGraphs[graphid]);
+            if (!img.height || !img.width) {
+                showErrorGraph(graphid);
+            } else {
+                var graph = new ZenRRDGraph(img);
+                ZenQueue.add(graph);
+            }
         } catch(e) { 
-           mydiv = DIV({'style':'height:100px;width:500px;'},
-            "There was a problem rendering this graph. Either the file does not exist or an error has occurred.  Initial graph creation can take up to 5 minutes.  If the graph still does not appear, look in the Zope log file $ZENHOME/log/event.log for errors.");
-           swapDOM($(ZenGraphs[graphid]), mydiv);
+            showErrorGraph(graphid);
         }
     }
 }
