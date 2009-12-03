@@ -19,16 +19,22 @@ __version__ = "$Revision: 1.17 $"[11:-2]
 
 import re
 import time
-
+import types
 import sys
+
+from xml.sax import saxutils
 from urllib import unquote
 from cgi import escape
+import zope.component
+import zope.interface
+
 from OFS.ObjectManager import checkValidId as globalCheckValidId
 
 from AccessControl import ClassSecurityInfo, getSecurityManager, Unauthorized
 from Globals import InitializeClass
 from Acquisition import aq_base, aq_chain
 
+from Products.ZenModel.interfaces import IZenDocProvider
 from Products.ZenUtils.Utils import zenpathsplit, zenpathjoin
 from Products.ZenUtils.Utils import createHierarchyObj, getHierarchyObj
 from Products.ZenUtils.Utils import getObjByPath
@@ -47,6 +53,8 @@ class ZenModelBase(object):
     All ZenModel Persistent classes inherit from this class.  It provides some
     screen management functionality, and general utility methods.
     """
+    _zendoc = ''
+
     sub_meta_types = ()
     #prodStateThreshold = 500
 
@@ -657,6 +665,35 @@ class ZenModelBase(object):
         """
         base = aq_base(self)
         return getattr(base, attr, True) == getattr(base, attr, False)
+
+class ZenModelZenDocProvider(object):
+    zope.interface.implements(IZenDocProvider)
+    zope.component.adapts(ZenModelBase)
+
+    def __init__(self, zenModelBase):
+        self._underlyingObject = zenModelBase
+
+    def getZendoc(self):
+        return self._underlyingObject._zendoc
+
+    def setZendoc(self, zendocText):
+        self._underlyingObject._zendoc = zendocText
+
+    def exportZendoc(self,ofile):
+        """Return an xml representation of a RelationshipManagers zendoc
+        <property id='_zendoc' type='string' mode='w'>
+            value
+        </property>
+        """
+        value = self.getZendoc()
+        if not value: return
+        ofile.write("<property id='zendoc' type='string'>\n")
+        if type(value) not in types.StringTypes:
+            value = unicode(value)
+        elif type(value) == types.StringType:
+            value = value.decode('latin-1')
+        ofile.write(saxutils.escape(value).encode('utf-8')+"\n")
+        ofile.write("</property>\n")
 
 
 InitializeClass(ZenModelBase)

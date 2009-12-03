@@ -1,0 +1,17 @@
+<configure
+    xmlns="http://namespaces.zope.org/zope"
+    xmlns:five="http://namespaces.zope.org/five"
+    xmlns:browser="http://namespaces.zope.org/browser"
+    i18n_domain="Products.ZenModel">
+
+    <include package="Products.Five" file="meta.zcml"/>
+
+    <adapter
+        factory=".ZenModelBase.ZenModelZenDocProvider"
+        />
+
+    <adapter
+        factory=".RRDDataSource.SimpleRRDDataSourceZenDocProvider"
+        />
+
+</configure>

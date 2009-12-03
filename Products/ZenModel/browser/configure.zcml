@@ -7,5 +7,6 @@
     <include package='.' file='devicelist.zcml'/>
     <include package='.' file='autocompleters.zcml'/>
     <include package='.' file='devicestatus.zcml'/>
+    <include package='.' file='zendoc.zcml'/>
 
 </configure>

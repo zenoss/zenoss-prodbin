@@ -18,6 +18,7 @@ Base class for DataSources
 """
 
 import os
+import zope.component
 
 from DateTime import DateTime
 from AccessControl import ClassSecurityInfo, Permissions
@@ -338,7 +339,7 @@ class SimpleRRDDataSource(RRDDataSource):
         dps = self.datapoints()
         if dps:
             return dps[0]
-    
+
     def aliases(self):
         """
         Return the datapoint aliases that belong to the datasource's only
@@ -375,3 +376,33 @@ class SimpleRRDDataSource(RRDDataSource):
         self.soleDataPoint().manage_removeDataPointAliases( ids )
         if REQUEST:
             return self.callZenScreen(REQUEST)
+
+from Products.ZenModel.interfaces import IZenDocProvider
+from Products.ZenModel.ZenModelBase import ZenModelZenDocProvider
+
+class SimpleRRDDataSourceZenDocProvider(ZenModelZenDocProvider):
+    zope.component.adapts(SimpleRRDDataSource)
+
+    def datapoints(self):
+        return self._underlyingObject.datapoints()
+
+    def soleDataPoint(self):
+        return self._underlyingObject.soleDataPoint()
+    
+    def getZendoc(self):
+        if len( self.datapoints() ) == 1:
+            dataPointAdapter = zope.component.queryAdapter( self.soleDataPoint(),
+                                                            IZenDocProvider )
+            return dataPointAdapter.getZendoc()
+        else:
+            return super( SimpleRRDDataSourceZenDocProvider, self ).getZendoc()
+
+    def setZendoc(self, zendocText):
+        """Set zendoc text"""
+        if len( self.datapoints() ) == 1:
+            dataPointAdapter = zope.component.queryAdapter( self.soleDataPoint(),
+                                                            IZenDocProvider )
+            dataPointAdapter.setZendoc( zendocText )
+        else:
+            return super( SimpleRRDDataSourceZenDocProvider, self ).setZendoc( zendocText )
+

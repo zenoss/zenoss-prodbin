@@ -1,0 +1,23 @@
+<configure
+    xmlns="http://namespaces.zope.org/zope"
+    xmlns:five="http://namespaces.zope.org/five"
+    xmlns:browser="http://namespaces.zope.org/browser"
+    i18n_domain="Products.ZenModel">
+
+    <browser:page
+        for="*"
+        name="editZendoc"
+        class=".Zendoc.EditZendoc"
+        template="../skins/zenmodel/editZendoc.pt"
+        permission="zenoss.Common"
+        />
+
+    <browser:page
+        for="*"
+        name="saveZendoc"
+        class=".Zendoc.EditZendoc"
+        attribute="saveZendoc"
+        permission="zenoss.Common"
+        />
+
+</configure>

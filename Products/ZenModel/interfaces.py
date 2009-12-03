@@ -41,3 +41,23 @@ class IDataRoot(Interface):
     """
     Marker interface for the DMD, so it can be looked up as a global utility.
     """
+
+class IZenDocProvider(Interface):
+    """
+    Adapter that does zendoc manipulation for an underlying object
+    """
+    def getZendoc():
+        """
+        retrieves zendoc text
+        """
+        pass
+
+    def setZendoc(zendocText):
+        """
+        set zendoc text
+        """
+        pass
+
+    def exportZendocXml(self):
+        pass
+        

@@ -6,6 +6,7 @@
 
     <include file="permissions.zcml"/>
     <include file="indexing.zcml"/>
+    <include file="zendoc.zcml"/>
 
     <include package=".browser"/>
 

@@ -26,6 +26,7 @@ import sys
 import os
 import types
 import transaction
+import zope.component
 from DateTime import DateTime
 from xml.sax import make_parser, saxutils
 from xml.sax.handler import ContentHandler
@@ -38,6 +39,7 @@ from Products.ZenUtils.ZCmdBase import ZCmdBase
 from Products.ZenUtils.Utils import importClass
 from Products.ZenUtils.Utils import getObjByPath
 
+from Products.ZenModel.interfaces import IZenDocProvider
 from Products.ZenRelations.Exceptions import *
 
 _STRING_PROPERTY_TYPES = ( 'string', 'text', 'password' )
@@ -280,6 +282,14 @@ for a ZenPack.
             self.log.debug('Object %s already exists -- skipping' % id)
         return obj
 
+    def setZendoc(self, obj, value):
+        zendocObj = zope.component.queryAdapter(obj, IZenDocProvider)
+        if zendocObj is not None:
+            zendocObj.setZendoc( value )
+        elif value:
+            self.log.warn('zendoc property could not be set to' +
+                          ' %s on object %s' % ( value, obj.id ) )
+
     def setProperty(self, obj, attrs, value):
         """
         Set the value of a property on an object.
@@ -308,6 +318,9 @@ for a ZenPack.
             self.log.warn('UnicodeEncodeError at line %s while attempting' % linenum + \
              ' str(%s) for object %s attribute %s -- ignoring' % (
                            obj.id, name, proptype, value))
+
+        if name == 'zendoc':
+            return self.setZendoc( obj, value )
 
         # Guess at how to interpret the value given the property type
         if proptype == 'selection':

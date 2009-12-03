@@ -56,6 +56,7 @@ class CmdBase(object):
         try:
             zcml.load_config('meta.zcml', Products.Five)
             zcml.load_config('indexing.zcml', Products.ZenModel)
+            zcml.load_config('zendoc.zcml', Products.ZenModel)
             zcml.load_config('configure.zcml', Products.ZenRelations)
             zcml.load_config('configure.zcml', Products.Zuul)
             zcml.load_config('scriptmessaging.zcml', Products.ZenWidgets)

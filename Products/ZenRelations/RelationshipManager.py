@@ -36,12 +36,15 @@ from Acquisition import aq_base
 from App.Management import Tabs
 import OFS.subscribers
 import zope.interface
+import zope.component
+
 from OFS.interfaces import IItem
 
 from RelSchema import *
 from Exceptions import *
 
 from Products.ZenUtils.Utils import unused
+from Products.ZenModel.interfaces import IZenDocProvider
 
 zenmarker = "__ZENMARKER__"
 
@@ -281,6 +284,9 @@ class RelationshipManager(PrimaryPathObjectManager, ZenPropertyManager):
         stag = "<object id='%s' module='%s' class='%s'>\n" % (
                     id , modname, classname)
         ofile.write(stag)
+        zendocAdapter = zope.component.queryAdapter( self, IZenDocProvider )
+        if zendocAdapter is not None:
+            zendocAdapter.exportZendoc( ofile )
         self.exportXmlProperties(ofile)
         self.exportXmlRelationships(ofile, ignorerels)
         exportHook = getattr(aq_base(self), 'exportXmlHook', None)

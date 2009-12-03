@@ -1,0 +1,36 @@
+<tal:block metal:use-macro="here/templates/macros/page2">
+<tal:block metal:fill-slot="contentPane">
+
+<form method=post
+    tal:attributes="action string:${here/absolute_url_path}"
+    action="saveZendoc">
+
+    <tal:block tal:define="zendoc python:view.getZendoc()" >
+        <table cols="1" rows="3">
+
+    <!-- BEGIN TABLE CONTENTS -->
+        <tr>
+            <td align="left" class="tableheader">Zendoc</td>
+        </tr>
+        <tr>
+            <td class="tablevalues" align="left" colspan=3>
+                <textarea class="tablevalues" rows=3 cols=60
+                  name="zendocText"
+                  tal:content="zendoc">
+                </textarea>
+            </td>
+        </tr>
+        <tr>
+            <td align="left"  class="tableheader" colspan=3>
+                <input class="tableheader" type="submit" value=" Save "
+                    name="saveZendoc:method" />
+            </td>
+        </tr>
+<!-- END TABLE CONTENTS -->
+        </table>
+
+    </tal:block>
+</form>
+
+</tal:block>
+</tal:block>
