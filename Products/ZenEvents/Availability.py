@@ -43,7 +43,12 @@ class Availability:
         self.device = device
         self.systems = systems
         self.component = component
-        self.availability = max(0, 1 - (downtime / total))
+
+        # Guard against endDate being equal to or less than startDate.
+        if total <= 0:
+            self.availability = downtime and 0 or 1
+        else:
+            self.availability = max(0, 1 - (downtime / total))
 
     def floatStr(self):
         return '%2.3f%%' % (self.availability * 100)

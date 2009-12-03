@@ -1038,9 +1038,12 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
         for name in allowedFilters:
             if hasattr(state, name):
                 kw.setdefault(name, getattr(state, name))
-        for name in "startDate", "endDate":
-            if hasattr(state, name):
-                kw.setdefault(name, Time.ParseUSDate(getattr(state, name)))
+        if getattr(state, 'startDate', None) is not None:
+            kw.setdefault('startDate', Time.ParseUSDate(state.startDate))
+        if getattr(state, 'endDate', None) is not None:
+            # End date needs to be inclusive of events that occurred on that
+            # date. So we advance to the last second of the day.
+            kw.setdefault('endDate', Time.ParseUSDate(state.endDate) + 86399)
         kw.setdefault('startDate',
                       time.time() - 60*60*24*self.defaultAvailabilityDays)
         return Availability.query(self.dmd, **kw)
