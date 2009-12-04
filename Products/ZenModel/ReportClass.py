@@ -27,7 +27,7 @@ from Globals import DTMLFile
 
 from Organizer import Organizer
 from ZenPackable import ZenPackable
-from ZenossSecurity import ZEN_COMMON
+from ZenossSecurity import ZEN_COMMON, ZEN_MANAGE_DMD
 from Products.ZenRelations.RelSchema import *
 from Products.ZenUtils.Utils import unused
 from Products.ZenWidgets import messaging
@@ -108,6 +108,7 @@ class ReportClass(Organizer, ZenPackable):
         return ReportClass
 
 
+    security.declareProtected(ZEN_MANAGE_DMD, 'manage_addReportClass')
     def manage_addReportClass(self, id, title = None, REQUEST = None):
         """make a device class"""
         rClass = self.getReportClass()
