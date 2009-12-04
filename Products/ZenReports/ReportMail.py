@@ -56,7 +56,7 @@ class Page(HTMLParser):
 
     def absolute(self, url):
         url = url.strip()
-        if url.startswith('http:'):
+        if url.startswith('http'):
             return url
         if url.startswith('/'):
             base = list(urlparse(self.base))
@@ -134,6 +134,7 @@ class Page(HTMLParser):
         return result
 
     def fetch(self, url):
+        url = url.replace(' ', '%20')
         self.base = url.strip()
         response = self.slurp(url)
 
