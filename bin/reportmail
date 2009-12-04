@@ -13,4 +13,4 @@
 # For some reason the zenfunctions line eats part of $*.  Store
 # value now to use in call to zendmd.py
 . $ZENHOME/bin/zenfunctions
-$PYTHON $ZENHOME/Products/ZenReports/ReportMail.py "$CMD" $*
+$PYTHON $ZENHOME/Products/ZenReports/ReportMail.py "$CMD" "$@"
