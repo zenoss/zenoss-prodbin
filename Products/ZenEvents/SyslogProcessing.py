@@ -18,14 +18,17 @@ Class for turning syslog events into Zenoss Events
 import re
 import logging
 slog = logging.getLogger("zen.Syslog")
+import socket
 
 import Globals
 from Products.ZenEvents.syslog_h import *
 from Products.ZenUtils.IpUtil import isip
 
-import socket
 
 # Regular expressions that parse syslog tags from different sources
+# A tuple can also be specified, in which case the second item in the
+# tuple is a boolean which tells whether or not to keep the entry (default)
+# or to discard the entry and not create an event.
 parsers = (
 # generic mark
 r"^(?P<summary>-- (?P<eventClassKey>MARK) --)",
@@ -81,9 +84,12 @@ r'^\d+-\w{3}-\d{4} \d{2}:\d{2}:\d{2}\.\d+:[^:]+:\d+:\w+:(?P<eventClassKey>[^:]+)
 # compile regex parsers on load
 compiledParsers = []
 for regex in parsers:
+    keepEntry = True
+    if isinstance(regex, tuple):
+        regex, keepEntry = regex
     try:
         compiled = re.compile(regex)
-        compiledParsers.append(compiled) 
+        compiledParsers.append((compiled, keepEntry)) 
     except:
         pass
 
@@ -142,10 +148,11 @@ class SyslogProcessor(object):
 
         evt, msg = self.parseHEADER(evt, msg)
         evt = self.parseTag(evt, msg) 
-        #rest of msg now in summary of event
-        evt = self.buildEventClassKey(evt)
-        evt['monitor'] = self.monitor
-        self.sendEvent(evt)
+        if evt:
+            #rest of msg now in summary of event
+            evt = self.buildEventClassKey(evt)
+            evt['monitor'] = self.monitor
+            self.sendEvent(evt)
 
         
     def parsePRI(self, evt, msg):
@@ -245,10 +252,14 @@ class SyslogProcessor(object):
         @type: dictionary
         """
         slog.debug(msg)
-        for parser in compiledParsers:        
+        for parser, keepEntry in compiledParsers:        
             slog.debug("tag regex: %s", parser.pattern)
             m = parser.search(msg)
-            if not m: continue
+            if not m:
+                continue
+            elif not keepEntry:
+                slog.debug("Dropping syslog message due to parser rule.")
+                return None
             slog.debug("tag match: %s", m.groupdict())
             evt.update(m.groupdict())
             break
