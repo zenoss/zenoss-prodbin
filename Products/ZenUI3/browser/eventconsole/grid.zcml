@@ -3,16 +3,6 @@
     xmlns:browser="http://namespaces.zope.org/browser"
     xmlns:five="http://namespaces.zope.org/five">
 
-    <!-- Event console JSON api -->
-    <include package="Products.ZenUtils.extdirect.zope" file="meta.zcml"/>
-
-    <browser:directRouter
-        name="evconsole_router"
-        for="*"
-        class=".grid.EventConsole"
-        namespace="Zenoss.remote"
-        />
-
     <browser:viewlet
         name="evconsole_coldefs"
         manager="..interfaces.IMainSnippetManager"

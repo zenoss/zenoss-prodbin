@@ -185,7 +185,7 @@ Ext.onReady(function(){
                                 buttons: Ext.MessageBox.OK
                             })
                         } else {
-                        Zenoss.remote.EventConsole.classify({
+                        Zenoss.remote.EventsRouter.classify({
                             'evclass': cb.getValue(),
                             'evids': evids
                         }, function(result){
@@ -218,7 +218,7 @@ Ext.onReady(function(){
         var params = {'state':state},
             grid = Ext.getCmp('events_grid');
         Ext.apply(params, getQueryParameters());
-        Zenoss.remote.EventConsole.state_ranges(
+        Zenoss.remote.EventsRouter.state_ranges(
             params,
             function(result) {
                 var sm = grid.getSelectionModel();
@@ -261,7 +261,7 @@ Ext.onReady(function(){
                     if (params) {
                         // Send to server, then refresh view to see fewer
                         // events
-                        Zenoss.remote.EventConsole.reopen(params,
+                        Zenoss.remote.EventsRouter.reopen(params,
                             function(provider, response){
                                 view = grid.getView();
                                 view.updateLiveRows(view.rowIndex, true, true);
@@ -458,7 +458,7 @@ Ext.onReady(function(){
     var console_store = new Ext.ux.grid.livegrid.Store({
         autoLoad: true,
         proxy: new Ext.data.DirectProxy({
-            directFn:Zenoss.remote.EventConsole.query
+            directFn:Zenoss.remote.EventsRouter.query
         }),
         bufferSize: 100,
         sortInfo: {field:'lastTime', direction:'DESC'},

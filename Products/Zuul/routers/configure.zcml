@@ -1,0 +1,15 @@
+<configure
+    xmlns:zope="http://namespaces.zope.org/zope"
+    xmlns:browser="http://namespaces.zope.org/browser">
+
+<!-- Event console JSON api -->
+<include package="Products.ZenUtils.extdirect.zope" file="meta.zcml"/>
+
+<browser:directRouter
+    name="evconsole_router"
+    for="*"
+    class=".events.EventsRouter"
+    namespace="Zenoss.remote"
+    />
+
+</configure>
