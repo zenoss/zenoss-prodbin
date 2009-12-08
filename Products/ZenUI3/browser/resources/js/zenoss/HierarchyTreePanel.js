@@ -112,6 +112,7 @@ Zenoss.HierarchyTreePanel = Ext.extend(Ext.tree.TreePanel, {
             });
         }
         this.getRootNode().expand();
+        this.getRootNode().select();
     },
     filterTree: function(e) {
         var text = e.getValue();

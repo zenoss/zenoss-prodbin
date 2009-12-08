@@ -46,13 +46,26 @@
              />
 
     <utility factory=".facades.ProcessFacade"
+             provides=".interfaces.IFacade"
+             name="process"
+             />
+
+    <utility factory=".facades.ProcessFacade"
              provides=".interfaces.IProcessFacade"
              />
 
     <utility component=".utils.get_dmd"
              provides=".interfaces.IDataRootFactory"
              />
-             
+
+    <utility factory=".marshalling.DefaultUnmarshaller"
+             provides=".interfaces.IUnmarshaller"
+             />
+
+    <adapter provides=".interfaces.IMarshaller"
+             for=".interfaces.IInfo"
+             factory=".marshalling.DefaultMarshaller"
+             />
 
     <adapter provides=".interfaces.ISerializableFactory"
              for=".interfaces.ITreeNode"
@@ -76,21 +89,6 @@
      <adapter provides=".interfaces.IInfo"
               for=".interfaces.IDeviceClass"
               factory=".facades.devicefacade.DeviceClassInfo"
-              />
-
-     <adapter provides=".interfaces.IMonitoringInfo"
-              for=".interfaces.IProcessEntity"
-              factory=".facades.processfacade.MonitoringInfo"
-              />
-
-     <adapter provides=".interfaces.ISerializableFactory"
-              for=".interfaces.IProcessInfo"
-              factory=".facades.processfacade.SerializableProcessInfoFactory"
-              />
-              
-     <adapter provides=".interfaces.ISerializableFactory"
-              for=".interfaces.IMonitoringInfo"
-              factory=".facades.processfacade.SerializableMonitoringInfoFactory"
               />
 
      <adapter provides=".interfaces.IDeviceInfo"

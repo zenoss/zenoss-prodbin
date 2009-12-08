@@ -229,7 +229,8 @@ Zenoss.ViewButton = Ext.extend(Ext.Button, {
             toggleHandler: createToggleHandler(userConfig.__item_index__),
             enableToggle: true,
             toggleGroup: 'view',
-            allowDepress: false
+            allowDepress: false,
+            width: 80
         };
 
         delete userConfig.__item_index__;

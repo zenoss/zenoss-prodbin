@@ -11,37 +11,37 @@
 #
 ###########################################################################
 
-import zope.component
-
-from Products.Zuul.interfaces import ISerializableFactory, IProcessFacade
 from Products.ZenUtils.Ext import DirectRouter
+from Products import Zuul
+
+# these imports will go away once every method is converted to the new way
+# like getInfo/setInfo
+import zope.component
+from Products.Zuul.interfaces import ISerializableFactory, IProcessFacade
 
 class ProcessRouter(DirectRouter):
 
-    def getProcessTree(self, id):
+    def _getFacade(self):
+        return Zuul.getFacade('process')
+
+    def getTree(self, id):
         facade = zope.component.queryUtility(IProcessFacade)
         tree = facade.getTree(id)
         factory = ISerializableFactory(tree)
         serializableTree = factory()
         return serializableTree['children']
 
-    def getProcessInfo(self, id):
-        facade = zope.component.queryUtility(IProcessFacade)
-        info = facade.getInfo(id)
-        factory = ISerializableFactory(info)
-        serializableInfo = factory()
-        return {'data': serializableInfo,
-                'success': True
-                }
+    def getInfo(self, id, keys=None):
+        facade = self._getFacade()
+        process = facade.getInfo(id)
+        data = Zuul.marshal(process, keys)
+        return {'data': data, 'success': True}
 
-    def getMonitoringInfo(self, id):
-        facade = zope.component.queryUtility(IProcessFacade)
-        info = facade.getMonitoringInfo(id)
-        factory = ISerializableFactory(info)
-        serializableInfo = factory()
-        return {'data': serializableInfo,
-                'success': True
-                }
+    def setInfo(self, **data):
+        facade = self._getFacade()
+        process = facade.getInfo(data['id'])
+        Zuul.unmarshal(data, process)
+        return {'success': True}
 
     def getDevices(self, id):
         facade = zope.component.queryUtility(IProcessFacade)

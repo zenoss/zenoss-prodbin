@@ -16,6 +16,7 @@ import unittest
 import zope.component
 from zope.interface.verify import verifyClass
 
+from Products import Zuul
 from Products.Zuul.tests.base import ZuulFacadeTestCase, EventTestCase
 from Products.Zuul.interfaces import ISerializableFactory
 from Products.Zuul.interfaces import IProcessNode
@@ -82,18 +83,13 @@ class ProcessFacadeTest(EventTestCase, ZuulFacadeTestCase):
         self.failIf('children' in barObj)
 
     def test_getInfo(self):
-        info = self.facade.getInfo('Processes/foo/bar')
-        self.assertEqual('bar', info.name)
-        serializable = ISerializableFactory(info)()
-        self.assertEqual('bar', serializable['name'])
-
-    def test_getMonitoringInfo(self):
-        info = self.facade.getMonitoringInfo('Processes/foo/bar')
-        self.assertEqual(True, info.enabled)
-        self.assertEqual(4, info.eventSeverity)
-        serializable = ISerializableFactory(info)()
-        self.assertEqual(True, serializable['enabled'])
-        self.assertEqual(4, serializable['eventSeverity'])
+        obj = self.facade.getInfo('Processes/foo/bar')
+        self.assertEqual('bar', obj.name)
+        data = Zuul.marshal(obj)
+        self.assertEqual('bar', data['name'])
+        data = {'name': 'barbar'}
+        Zuul.unmarshal(data, obj)
+        self.assertEqual('barbar', obj.name)
 
     def test_getDevices(self):
         device = self.dmd.Devices.createInstance('quux')

@@ -19,6 +19,25 @@ class IFacade(Interface):
     An API facade
     """
 
+class IMarshaller(Interface):
+    """
+    An adapter that converts an object to a dictionary
+    """
+
+    def marshal(keys=None):
+        """
+        Convert an object to a dictionary.
+        """
+
+class IUnmarshaller(Interface):
+    """
+    A utility that converts a dictionary to an object.
+    """
+
+    def unmarshal(data, obj):
+        """
+        Convert a dictionary to an object.
+        """
 
 class IDataRootFactory(Interface):
     """

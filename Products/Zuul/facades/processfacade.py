@@ -18,7 +18,7 @@ from Products.Zuul.tree import TreeNode
 from Products.Zuul.facades import ZuulFacade
 from Products.Zuul.interfaces import IProcessFacade, IProcessEntity
 from Products.Zuul.interfaces import ITreeFacade
-from Products.Zuul.interfaces import IProcessInfo, IInfo, IMonitoringInfo
+from Products.Zuul.interfaces import IProcessInfo, IInfo
 from Products.Zuul.interfaces import ISerializableFactory
 from Products.Zuul.interfaces import IProcessNode, ITreeNode
 from Products.Zuul.interfaces import IDeviceInfo
@@ -91,89 +91,85 @@ class ProcessInfo(object):
         """
         self._object = object
 
-    @property
-    def name(self):
+    def getName(self):
         return self._object.titleOrId()
 
-    @property
-    def description(self):
+    def setName(self, name):
+        self._object.title = name
+
+    name = property(getName, setName)
+
+    def getDescription(self):
         return self._object.description
 
-    @property
-    def isMonitoringAcquired(self):
+    def setDescription(self, description):
+        self._object.description = description
+
+    description = property(getDescription, setDescription)
+
+    def getIsMonitoringAcquired(self):
         return not self._object.hasProperty('zMonitor') \
                 and not self._object.hasProperty('zFailSeverity')
 
-    @property
-    def monitor(self):
+    def setIsMonitoringAcquired(self, isMonitoringAcquired):
+        if isMonitoringAcquired:
+            for name in 'zMonitor', 'zFailSeverity':
+                if self._object.hasProperty(name):
+                    self._object.deleteZenProperty(name)
+
+    isMonitoringAcquired = property(getIsMonitoringAcquired,
+                                    setIsMonitoringAcquired)
+
+    def getMonitor(self):
         return self._object.zMonitor
 
-    @property
-    def eventSeverity(self):
+    def setMonitor(self, monitor):
+        self._object.setZenProperty('zMonitor', monitor)
+
+    monitor = property(getMonitor, setMonitor)
+
+    def getEventSeverity(self):
         return self._object.zFailSeverity
 
-    @property
-    def hasRegex(self):
+    def setEventSeverity(self, eventSeverity):
+        if isinstance(eventSeverity, basestring):
+            eventSeverity = {'Critical': 5,
+                             'Error': 4,
+                             'Warning': 3,
+                             'Info': 2,
+                             'Debug': 1}[eventSeverity]
+        self._object.setZenProperty('zFailSeverity', eventSeverity)
+        
+    eventSeverity = property(getEventSeverity, setEventSeverity)
+
+    def getHasRegex(self):
         return isinstance(self._object, OSProcessClass)
 
-    @property
-    def regex(self):
+    def setHasRegex(self, hasRegex):
+        pass
+
+    hasRegex = property(getHasRegex, setHasRegex)
+
+    def getRegex(self):
         return getattr(self._object, 'regex', None)
 
-    @property
-    def ignoreParameters(self):
+    def setRegex(self, regex):
+        if self.hasRegex:
+            self._object.regex = regex
+
+    regex = property(getRegex, setRegex)
+
+    def getIgnoreParameters(self):
         return getattr(self._object, 'ignoreParameters', None)
+
+    def setIgnoreParameters(self, ignoreParameters):
+        if self.hasRegex:
+            self._object.ignoreParameters = ignoreParameters
+
+    ignoreParameters = property(getIgnoreParameters, setIgnoreParameters)
 
     def __repr__(self):
         return "<ProcessInfo(name=%s)>" % (self.name)
-
-
-class SerializableProcessInfoFactory(object):
-    implements(ISerializableFactory)
-    adapts(ProcessInfo)
-
-    def __init__(self, processInfo):
-        self._processInfo = processInfo
-
-    def __call__(self):
-        return {'name': self._processInfo.name,
-                'description': self._processInfo.description,
-                'isMonitoringAcquired': self._processInfo.isMonitoringAcquired,
-                'monitor': self._processInfo.monitor,
-                'eventSeverity': self._processInfo.eventSeverity,
-                'hasRegex': self._processInfo.hasRegex,
-                'regex': self._processInfo.regex,
-                'ignoreParameters': self._processInfo.ignoreParameters
-                }
-
-
-class MonitoringInfo(object):
-    implements(IMonitoringInfo)
-    adapts(IProcessEntity)
-
-    def __init__(self, object):
-        self._object = object
-
-    @property
-    def enabled(self):
-        return self._object.zMonitor
-
-    @property
-    def eventSeverity(self):
-        return self._object.zFailSeverity
-
-
-class SerializableMonitoringInfoFactory(object):
-    implements(ISerializableFactory)
-    adapts(IMonitoringInfo)
-
-    def __init__(self, monitoringInfo):
-        self._monitoringInfo = monitoringInfo
-
-    def __call__(self):
-        return {'enabled': self._monitoringInfo.enabled,
-                'eventSeverity': self._monitoringInfo.eventSeverity
-                }
 
 
 class ProcessFacade(ZuulFacade):
@@ -186,10 +182,6 @@ class ProcessFacade(ZuulFacade):
     def getInfo(self, id):
         obj = self._findObject(id)
         return IInfo(obj)
-
-    def getMonitoringInfo(self, id):
-        obj = self._findObject(id)
-        return IMonitoringInfo(obj)
 
     def getDevices(self, id):
         processClasses = self._getProcessClasses(id)

@@ -48,7 +48,7 @@ Ext.getCmp('master_panel').add({
     xtype: 'HierarchyTreePanel',
     id: 'processTree',
     searchField: true,
-    directFn: Zenoss.remote.ProcessRouter.getProcessTree,
+    directFn: Zenoss.remote.ProcessRouter.getTree,
     root: 'Processes',
     listeners: {click: clickHandler}
 }); // master_panel.add
@@ -85,12 +85,12 @@ function acquiredCheckboxHandler(checkbox, checked) {
     var callback = function(provider, response) {
         var info = response.result.data;
         var monitorCheckbox = Ext.getCmp('monitorCheckbox');
-        monitorCheckbox.setValue(info.enabled);
+        monitorCheckbox.setValue(info.monitor);
         var eventSeverityCombo = Ext.getCmp('eventSeverityCombo')
         eventSeverityCombo.setValue(info.eventSeverity);
     }
     
-    router.getMonitoringInfo({id: id}, callback);
+    router.getInfo({id: id, keys: ['monitor', 'eventSeverity']}, callback);
 }
 
 // when the form loads, show/hide the regex fieldset
@@ -221,9 +221,26 @@ var processFormConfig = {
     border: false,
     labelAlign: 'top',
     api: {
-        load: Zenoss.remote.ProcessRouter.getProcessInfo,
-        submit: Zenoss.remote.ProcessRouter.submitProcessInfo
-    }
+        load: Zenoss.remote.ProcessRouter.getInfo,
+        submit: Zenoss.remote.ProcessRouter.setInfo
+    },
+    tbar: [
+        {
+            xtype: 'tbfill'
+        }, {
+            xtype: 'button',
+            text: _t('Save'),
+            width: 80,
+            handler: function(button, event) {
+                var processTree = Ext.getCmp('processTree');
+                var selectionModel = processTree.getSelectionModel();
+                var selectedNode = selectionModel.getSelectedNode();
+                var form = Ext.getCmp('processForm').getForm();
+                var params = Ext.apply({id: selectedNode.id}, form.getValues());
+                form.api.submit(params);
+            }
+        }
+    ], //tbar
 };
 
 Ext.ns('Zenoss');

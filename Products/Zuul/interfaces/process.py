@@ -44,24 +44,12 @@ class IProcessInfo(IInfo):
     ignoreParameters = Attribute('Only match the regex to the command not its'
                                  ' parameters')
 
-class IMonitoringInfo(IInfo):
-    
-    enabled = Attribute('Is monitoring enabled')
-    eventSeverity = Attribute('The severity of the event fired when this '
-                             'process goes down')
-
 class IProcessFacade(Interface):
 
     def getInfo(id):
         """
         Get information about the OSProcessOrganizer and OSProcessClass
         identified by id.
-        """
-
-    def getMonitoringInfo(id):
-        """
-        Get the monitoring info for the process node identified on the
-        processes tree by the given id.
         """
 
     def getDevices(id):
