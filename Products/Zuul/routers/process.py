@@ -14,22 +14,16 @@
 from Products.ZenUtils.Ext import DirectRouter
 from Products import Zuul
 
-# these imports will go away once every method is converted to the new way
-# like getInfo/setInfo
-import zope.component
-from Products.Zuul.interfaces import ISerializableFactory, IProcessFacade
-
 class ProcessRouter(DirectRouter):
 
     def _getFacade(self):
         return Zuul.getFacade('process')
 
     def getTree(self, id):
-        facade = zope.component.queryUtility(IProcessFacade)
+        facade = self._getFacade()
         tree = facade.getTree(id)
-        factory = ISerializableFactory(tree)
-        serializableTree = factory()
-        return serializableTree['children']
+        data = Zuul.marshal(tree)
+        return data['children']
 
     def getInfo(self, id, keys=None):
         facade = self._getFacade()
@@ -44,22 +38,17 @@ class ProcessRouter(DirectRouter):
         return {'success': True}
 
     def getDevices(self, id):
-        facade = zope.component.queryUtility(IProcessFacade)
-        infos = facade.getDevices(id)
-        serializableInfos = []
-        for info in infos:
-            factory = ISerializableFactory(info)
-            serializableInfos.append(factory())
-        return {'data': serializableInfos,
-                'success': True
-                }
+        facade = self._getFacade()
+        devices = facade.getDevices(id)
+        data = []
+        for device in devices:
+            data.append(Zuul.marshal(device))
+        return {'data': data, 'success': True}
 
     def getEvents(self, id):
-        facade = zope.component.queryUtility(IProcessFacade)
+        facade = self._getFacade()
         events = facade.getEvents(id)
-        serializableEvents = []
+        data = []
         for event in events:
-            factory = ISerializableFactory(event)
-            serializableEvents.append(factory())
-        return {'data': serializableEvents,
-                'success': True}
+            data.append(Zuul.marshal(event))
+        return {'data': data, 'success': True}

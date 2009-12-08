@@ -12,4 +12,11 @@
     namespace="Zenoss.remote"
     />
 
+<browser:directRouter
+    name="process_router"
+    for="*"
+    class=".process.ProcessRouter"
+    namespace="Zenoss.remote"
+    />
+
 </configure>

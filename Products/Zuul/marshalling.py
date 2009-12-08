@@ -13,9 +13,13 @@
 
 from zope.interface import implements
 from zope.component import adapts
+from Products.ZenUtils.json import json
+from Products import Zuul
 from Products.Zuul.interfaces import IMarshaller
 from Products.Zuul.interfaces import IUnmarshaller
 from Products.Zuul.interfaces import IInfo
+from Products.Zuul.interfaces import IProcessInfo
+from Products.Zuul.interfaces import ITreeNode
 
 def _marshalImplicitly(obj):
     """
@@ -48,7 +52,7 @@ def _marshalExplicitly(obj, keys):
             data[key] = value
     return data
 
-class DefaultMarshaller(object):
+class InfoMarshaller(object):
     """
     Uses a implicit mashalling if keys is None otherwise uses explicit
     marshalling.
@@ -66,6 +70,37 @@ class DefaultMarshaller(object):
             data = _marshalExplicitly(self._obj, keys)
         return data
 
+class TreeNodeMarshaller(object):
+    """
+    Converts a root tree node to a dictionary, recursively marshalling its
+    children.
+    """
+    implements(IMarshaller)
+    adapts(ITreeNode)
+
+    def __init__(self, root):
+        self.root = root
+
+    def marshal(self, keys=None):
+        obj = {}
+        for attr in dir(self.root):
+            if attr.startswith('_'):
+                continue
+            val = getattr(self.root, attr)
+            try:
+                json(val)
+            except TypeError, e:
+                # We can't deal with it, just move on
+                continue
+            obj[attr] = val
+        if self.root.leaf:
+            obj['leaf'] = True
+        else:
+            obj['children'] = []
+            for childNode in self.root.children:
+                obj['children'].append(Zuul.marshal(childNode))
+        return obj
+
 class DefaultUnmarshaller(object):
     """
     Sets all the values found in the data dictionary onto the obj object using
@@ -73,7 +108,33 @@ class DefaultUnmarshaller(object):
     any of the keys are not found on the object.
     """
     implements(IUnmarshaller)
+    adapts(IInfo)
 
-    def unmarshal(self, data, obj):
+    def __init__(self, obj):
+        self.obj = obj
+
+    def unmarshal(self, data):
         for key, value in data.iteritems():
-            setattr(obj, key, value)
+            setattr(self.obj, key, value)
+
+class ProcessUnmarshaller(object):
+    """
+    Unmarshalls dictionary into a ProcessInfo object.  Coverts monitor and
+    ignoreParameters into boolean values.
+    """
+    implements(IUnmarshaller)
+    adapts(IProcessInfo)
+
+    def __init__(self, obj):
+        self.obj = obj
+
+    def unmarshal(self, data):
+        for key, value in data.iteritems():
+            if key in ['monitor', 'ignoreParameters']:
+                value = True
+            setattr(self.obj, key, value)
+        if 'isMonitoringAcquired' not in data:
+            if 'monitor' not in data:
+                setattr(self.obj, 'monitor', False)
+        if 'ignoreParameters' not in data:
+            setattr(self.obj, 'ignoreParameters', False)

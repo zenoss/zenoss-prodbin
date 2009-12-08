@@ -16,8 +16,10 @@ from zope.interface.verify import verifyClass
 from zope.interface import implements
 from Products.ZenTestCase.BaseTestCase import BaseTestCase
 from Products import Zuul
-from Products.Zuul.marshalling import DefaultMarshaller
+from Products.Zuul.marshalling import InfoMarshaller
+from Products.Zuul.marshalling import TreeNodeMarshaller
 from Products.Zuul.marshalling import DefaultUnmarshaller
+from Products.Zuul.marshalling import ProcessUnmarshaller
 from Products.Zuul.interfaces import IMarshaller
 from Products.Zuul.interfaces import IUnmarshaller
 from Products.Zuul.interfaces import IInfo
@@ -46,8 +48,10 @@ class MarshalTest(BaseTestCase):
         super(MarshalTest, self).setUp()
 
     def test_interfaces(self):
-        verifyClass(IMarshaller, DefaultMarshaller)
+        verifyClass(IMarshaller, InfoMarshaller)
+        verifyClass(IMarshaller, TreeNodeMarshaller)
         verifyClass(IUnmarshaller, DefaultUnmarshaller)
+        verifyClass(IUnmarshaller, ProcessUnmarshaller)
         
     def test_marshal(self):
         dct = Zuul.marshal(TestClass())

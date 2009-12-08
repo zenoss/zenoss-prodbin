@@ -58,18 +58,24 @@
              provides=".interfaces.IDataRootFactory"
              />
 
-    <utility factory=".marshalling.DefaultUnmarshaller"
-             provides=".interfaces.IUnmarshaller"
+    <adapter provides=".interfaces.IUnmarshaller"
+             for=".interfaces.IInfo"
+             factory=".marshalling.DefaultUnmarshaller"
+             />
+
+    <adapter provides=".interfaces.IUnmarshaller"
+             for=".interfaces.IProcessInfo"
+             factory=".marshalling.ProcessUnmarshaller"
              />
 
     <adapter provides=".interfaces.IMarshaller"
              for=".interfaces.IInfo"
-             factory=".marshalling.DefaultMarshaller"
+             factory=".marshalling.InfoMarshaller"
              />
 
-    <adapter provides=".interfaces.ISerializableFactory"
+    <adapter provides=".interfaces.IMarshaller"
              for=".interfaces.ITreeNode"
-             factory=".tree.SerializableTreeFactory"
+             factory=".marshalling.TreeNodeMarshaller"
              />
 
     <!-- Tree node adapters -->
@@ -96,22 +102,11 @@
               factory=".facades.devicefacade.DeviceInfo"
               />
 
-     <adapter provides=".interfaces.ISerializableFactory"
-              for=".interfaces.IDeviceInfo"
-              factory=".facades.devicefacade.SerializableDeviceInfoFactory"
-              />
-
      <adapter provides=".interfaces.IEventInfo"
               for=".interfaces.IEventEntity"
               factory=".facades.eventfacade.EventInfo"
               />
 
-     <adapter provides=".interfaces.ISerializableFactory"
-              for=".interfaces.IEventInfo"
-              factory=".facades.eventfacade.SerializableEventInfoFactory"
-              />
-
      <include package=".routers"/>
-     
 
 </configure>

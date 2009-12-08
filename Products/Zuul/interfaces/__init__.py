@@ -31,10 +31,10 @@ class IMarshaller(Interface):
 
 class IUnmarshaller(Interface):
     """
-    A utility that converts a dictionary to an object.
+    An adapter that converts a dictionary to an object.
     """
 
-    def unmarshal(data, obj):
+    def unmarshal(data):
         """
         Convert a dictionary to an object.
         """
@@ -52,18 +52,6 @@ class IInfo(Interface):
     """
     id = Attribute("Identifier of the represented object (usually path)")
     name = Attribute("Name of the represented object")
-
-
-class ISerializableFactory(Interface):
-    """
-    Calling implementations of this interface returns a python data structure
-    suitable for serialization. The objects that these factories create can be
-    passed to json.dumps().
-    """
-    def __call__():
-        """
-        Return the serialized object.
-        """
 
 from events import *
 from process import *

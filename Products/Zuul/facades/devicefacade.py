@@ -18,7 +18,7 @@ from Products.Zuul.tree import TreeNode
 from Products.Zuul.facades import TreeFacade
 from Products.Zuul.interfaces import IDeviceClassFacade, IDeviceClassNode
 from Products.Zuul.interfaces import IDeviceClassInfo, IDeviceClass, ITreeFacade
-from Products.Zuul.interfaces import ISerializableFactory, IDeviceClass
+from Products.Zuul.interfaces import IDeviceClass
 from Products.Zuul.interfaces import IDeviceInfo, IDevice
 from Products.ZenUtils import IpUtil
 
@@ -53,20 +53,6 @@ class DeviceClassInfo(object):
     @property
     def name(self):
         return self._object.titleOrId()
-
-
-class SerializableDeviceClassInfoFactory(object):
-    implements(ISerializableFactory)
-    adapts(IDeviceClassInfo)
-
-    def __init__(self, context):
-        self.context = context
-
-    def __call__(self):
-        return { 'id' : self.context.id,
-                 'name': self.context.name
-               }
-
 
 class DeviceInfo(object):
     implements(IDeviceInfo)
@@ -103,22 +89,6 @@ class DeviceInfo(object):
 
     def __repr__(self):
         return "<DeviceInfo(device=%s)>" % (self.device)
-
-
-class SerializableDeviceInfoFactory(object):
-    implements(ISerializableFactory)
-    adapts(IDeviceInfo)
-
-    def __init__(self, deviceInfo):
-        self._deviceInfo = deviceInfo
-
-    def __call__(self):
-        return {'device': self._deviceInfo.device,
-                'ipAddress': self._deviceInfo.ipAddress,
-                'productionState': self._deviceInfo.productionState,
-                'events': self._deviceInfo.events,
-                'availability': self._deviceInfo.availability
-                }
 
 class DeviceFacade(TreeFacade):
     """

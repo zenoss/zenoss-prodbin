@@ -36,12 +36,12 @@ class TreeFacade(ZuulFacade):
     def getTree(self, root):
         context = self._traverse(root)
         if context:
-            return ITreeNode(obj)
+            return ITreeNode(context)
 
     def getInfo(self, path):
         context = self._traverse(path)
         if context:
-            return IInfo(obj)
+            return IInfo(context)
 
     def _traverse(self, path):
         return self._dmd.unrestrictedTraverse(path)

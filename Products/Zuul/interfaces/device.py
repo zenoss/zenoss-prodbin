@@ -37,7 +37,7 @@ class IDeviceClassInfo(Interface):
     id = Attribute('Path of the device class')
     name = Attribute("Pretty name of the device class")
 
-class IDeviceInfo(Interface):
+class IDeviceInfo(IInfo):
     """
     Device info
     """

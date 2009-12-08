@@ -78,21 +78,6 @@ class EventInfo(object):
     def summary(self):
         return self._event.summary
 
-class SerializableEventInfoFactory(object):
-    implements(ISerializableFactory)
-    adapts(IEventInfo)
-
-    def __init__(self, eventInfo):
-        self._eventInfo = eventInfo
-
-    def __call__(self):
-        return {'severity': self._eventInfo.severity,
-                'device': self._eventInfo.device,
-                'component': self._eventInfo.component,
-                'eventClass': self._eventInfo.eventClass,
-                'summary': self._eventInfo.summary
-                }
-
 class EventFacade(ZuulFacade):
     implements(IEventFacade)
 

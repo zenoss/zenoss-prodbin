@@ -17,7 +17,6 @@ import zope.component
 from zope.interface.verify import verifyClass
 
 from Products.Zuul.tests.base import ZuulFacadeTestCase
-from Products.Zuul.interfaces import ISerializableFactory
 
 from Products.Zuul.interfaces import IDeviceInfo
 from Products.Zuul.facades.devicefacade import DeviceInfo

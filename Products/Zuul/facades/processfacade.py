@@ -16,10 +16,11 @@ from zope.component import adapts
 from zope.interface import implements
 from Products.Zuul.tree import TreeNode
 from Products.Zuul.facades import ZuulFacade
-from Products.Zuul.interfaces import IProcessFacade, IProcessEntity
+from Products.Zuul.interfaces import IProcessFacade
+from Products.Zuul.interfaces import IProcessEntity
 from Products.Zuul.interfaces import ITreeFacade
-from Products.Zuul.interfaces import IProcessInfo, IInfo
-from Products.Zuul.interfaces import ISerializableFactory
+from Products.Zuul.interfaces import IProcessInfo
+from Products.Zuul.interfaces import IInfo
 from Products.Zuul.interfaces import IProcessNode, ITreeNode
 from Products.Zuul.interfaces import IDeviceInfo
 from Products.Zuul.interfaces import IEventInfo
@@ -77,7 +78,7 @@ class ProcessNode(TreeNode):
         return isinstance(self._object, OSProcessClass)
 
     def __repr__(self):
-        return "<ProcessTree(id=%s)>" % (self.id)
+        return "<ProcessNode(id=%s)>" % (self.id)
 
 
 class ProcessInfo(object):
@@ -124,7 +125,10 @@ class ProcessInfo(object):
         return self._object.zMonitor
 
     def setMonitor(self, monitor):
-        self._object.setZenProperty('zMonitor', monitor)
+        if self._object.hasProperty('zMonitor'):
+            self._object._updateProperty('zMonitor', monitor)
+        else:
+            self._object._setProperty('zMonitor', monitor)
 
     monitor = property(getMonitor, setMonitor)
 
@@ -138,8 +142,11 @@ class ProcessInfo(object):
                              'Warning': 3,
                              'Info': 2,
                              'Debug': 1}[eventSeverity]
-        self._object.setZenProperty('zFailSeverity', eventSeverity)
-        
+        if self._object.hasProperty('zFailSeverity'):
+            self._object._updateProperty('zFailSeverity', eventSeverity)
+        else:
+            self._object._setProperty('zFailSeverity', eventSeverity)
+
     eventSeverity = property(getEventSeverity, setEventSeverity)
 
     def getHasRegex(self):

@@ -40,6 +40,6 @@ def unmarshal(data, obj, unmarshallerName=''):
     Set the values found the the data dictionary on the properties of the same
     name in obj.
     """
-    unmarshaller = component.getUtility(IUnmarshaller, unmarshallerName)
+    unmarshaller = component.getAdapter(obj, IUnmarshaller, unmarshallerName)
     verify.verifyObject(IUnmarshaller, unmarshaller)
-    return unmarshaller.unmarshal(data, obj)
+    return unmarshaller.unmarshal(data)

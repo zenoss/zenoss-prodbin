@@ -103,7 +103,7 @@
     />
 
 <browser:page
-    template="process/page.pt"
+    template="templates/process.pt"
     name="process"
     for="*"
     permission="zope2.Public"
@@ -132,6 +132,5 @@
 
 
 <include package=".eventconsole"/>
-<include package=".process"/>
 
 </configure>

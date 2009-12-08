@@ -17,8 +17,8 @@ import zope.component
 from zope.interface.verify import verifyClass
 
 from Products import Zuul
-from Products.Zuul.tests.base import ZuulFacadeTestCase, EventTestCase
-from Products.Zuul.interfaces import ISerializableFactory
+from Products.Zuul.tests.base import ZuulFacadeTestCase
+from Products.Zuul.tests.base import EventTestCase
 from Products.Zuul.interfaces import IProcessNode
 from Products.Zuul.facades.processfacade import ProcessNode
 from Products.Zuul.interfaces import IProcessInfo
@@ -64,7 +64,7 @@ class ProcessFacadeTest(EventTestCase, ZuulFacadeTestCase):
         self.assertEqual('instances', bar.text['description'])
         self.assert_(bar.leaf)
         self.assertEqual([], list(bar.children))
-        obj = ISerializableFactory(root)()
+        obj = Zuul.marshal(root)
         self.assertEqual('Processes', obj['id'])
         self.assertEqual('Processes', obj['text']['text'])
         self.assertEqual(3, obj['text']['count'])
