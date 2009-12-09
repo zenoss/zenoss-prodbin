@@ -76,19 +76,20 @@ function acquiredCheckboxHandler(checkbox, checked) {
     var selectionModel = processTree.getSelectionModel();
     var selectedNode = selectionModel.getSelectedNode();
 
-    if (checked) {
-        var id = selectedNode.parentNode.id;
+    var id;
+    if (checked && selectedNode.parentNode !== null) {
+        id = selectedNode.parentNode.id;
     } else {
-        var id = selectedNode.id;
+        id = selectedNode.id;
     }
 
     var callback = function(provider, response) {
         var info = response.result.data;
         var monitorCheckbox = Ext.getCmp('monitorCheckbox');
         monitorCheckbox.setValue(info.monitor);
-        var eventSeverityCombo = Ext.getCmp('eventSeverityCombo')
+        var eventSeverityCombo = Ext.getCmp('eventSeverityCombo');
         eventSeverityCombo.setValue(info.eventSeverity);
-    }
+    };
     
     router.getInfo({id: id, keys: ['monitor', 'eventSeverity']}, callback);
 }
@@ -98,9 +99,11 @@ function actioncompleteHandler(form, action) {
     if (action.type == 'directload') {
         var processInfo = action.result.data;
         var regexFieldSet = Ext.getCmp('regexFieldSet');
+        var nameTextField = Ext.getCmp('nameTextField');
         var acquiredCheckbox = Ext.getCmp('acquiredCheckbox');
         regexFieldSet.setVisible(processInfo.hasRegex);
         regexFieldSet.doLayout();
+        nameTextField.setDisabled(processInfo.name == 'Processes');
         acquiredCheckbox.setDisabled(processInfo.name == 'Processes');
         setMonitoringDisabled(processInfo.isMonitoringAcquired);
     }
@@ -108,6 +111,7 @@ function actioncompleteHandler(form, action) {
 
 var nameTextField = {
     xtype: 'textfield',
+    id: 'nameTextField',
     fieldLabel: _t('Name'),
     name: 'name',
     allowBlank: false,
@@ -188,7 +192,7 @@ var regexFieldSet = {
     __innner_items__: [
         {
             items: regexTextField,
-            columnWidth: .6
+            columnWidth: 0.6
         }, {
             items: ignoreParametersCheckbox,
             bodyStyle: 'padding-left: 15px'
@@ -205,7 +209,7 @@ var processFormItems = {
         border: false,
         bodyStyle: 'padding: 15px',
         labelSeparator: ' ',
-        columnWidth: .5
+        columnWidth: 0.5
     },
     items: [
         {items: [nameTextField, monitoringFieldSet]},
@@ -235,12 +239,14 @@ var processFormConfig = {
                 var processTree = Ext.getCmp('processTree');
                 var selectionModel = processTree.getSelectionModel();
                 var selectedNode = selectionModel.getSelectedNode();
+                var nameTextField = Ext.getCmp('nameTextField');
+                selectedNode.setText(nameTextField.getValue());
                 var form = Ext.getCmp('processForm').getForm();
                 var params = Ext.apply({id: selectedNode.id}, form.getValues());
                 form.api.submit(params);
             }
         }
-    ], //tbar
+    ] //tbar
 };
 
 Ext.ns('Zenoss');
@@ -277,7 +283,32 @@ processForm.getForm().load({params:{id: 'Processes'}});
  *
  */
 
-Ext.getCmp('bottom_detail_panel').add({xtype:'DeviceEventPanel'});
+ // the store that holds the records for the device grid
+ var deviceStore = {
+     xtype: 'DeviceStore',
+     autoLoad: {params:{id: 'Processes'}},
+     // Ext.data.DirectProxy config
+     api: {read: Zenoss.remote.ProcessRouter.getDevices}
+ };
+
+ // the store that holds the records for the event grid
+ var eventStore = {
+     xtype: 'EventStore',
+     autoLoad: {params:{id: 'Processes'}},
+     // Ext.data.DirectProxy config
+     api: {read: Zenoss.remote.ProcessRouter.getEvents}
+ };
+
+Ext.getCmp('bottom_detail_panel').add({
+    xtype: 'DeviceEventPanel',
+    __device_store__: deviceStore,
+    __event_store__: eventStore,
+    getSelectedNode: function() {
+        var processTree = Ext.getCmp('processTree');
+        var selectionModel = processTree.getSelectionModel();
+        return selectionModel.getSelectedNode();
+    }
+});
 
 
 }); // Ext.onReady

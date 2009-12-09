@@ -17,25 +17,27 @@
 
 Ext.ns('Zenoss');
 
-// the store that holds the records for the device grid
-var deviceStore = {
-    xtype: 'directstore',
-    autoLoad: {params:{id: 'Processes'}},
-    
-    // Ext.data.DirectProxy config
-    api: {read: Zenoss.remote.ProcessRouter.getDevices},
-    
-    // Ext.data.JsonReader config
-    root: 'data',
-    fields: [
-        {name: 'device', type: 'string'},
-        {name: 'ipAddress', type: 'int'},
-        {name: 'productionState', type: 'string'},
-        {name: 'events', type: 'auto'},
-        {name: 'availability', type: 'float'}
-    ],
-    
-}; // deviceStore
+Zenoss.DeviceStore = Ext.extend(Ext.data.DirectStore, {
+
+    constructor: function(userConfig) {
+        var baseConfig = {
+            // Ext.data.JsonReader config
+            root: 'data',
+            fields: [
+                {name: 'device', type: 'string'},
+                {name: 'ipAddress', type: 'int'},
+                {name: 'productionState', type: 'string'},
+                {name: 'events', type: 'auto'},
+                {name: 'availability', type: 'float'}
+            ]
+        };
+        var config = Ext.apply(baseConfig, userConfig);
+        Zenoss.DeviceStore.superclass.constructor.call(this, config);
+    }
+
+});
+
+Ext.reg('DeviceStore', Zenoss.DeviceStore);
 
 // renders IP address in dotted-decimal format
 function ipAddressRenderer(value) {
@@ -99,14 +101,6 @@ var deviceColumnModel = new Ext.grid.ColumnModel({
                }] // columns
 });
 
-var deviceConfig = {
-    id: 'deviceGrid',
-    store: deviceStore,
-    colModel: deviceColumnModel,
-    autoExpandColumn: 'availability',
-    stripeRows: true
-};
-
 /**
  * @class Zenoss.DeviceGridPanel
  * @extends Ext.grid.GridPanel
@@ -123,33 +117,46 @@ var deviceConfig = {
 Zenoss.DeviceGridPanel = Ext.extend(Ext.grid.GridPanel, {
 
     constructor: function(userConfig) {
-        var config = Ext.apply(deviceConfig, userConfig);
+
+        var baseConfig = {
+            id: 'deviceGrid',
+            store: userConfig.__device_store__,
+            colModel: deviceColumnModel,
+            autoExpandColumn: 'availability',
+            stripeRows: true
+        };
+
+        delete userConfig.__device_store__;
+        var config = Ext.apply(baseConfig, userConfig);
         Zenoss.DeviceGridPanel.superclass.constructor.call(this, config);
+
     }
 
 }); // DeviceGridPanel
 
 Ext.reg('DeviceGridPanel', Zenoss.DeviceGridPanel);
 
-// the store that holds the records for the device grid
-var eventStore = {
-    xtype: 'directstore',
-    autoLoad: {params:{id: 'Processes'}},
-    
-    // Ext.data.DirectProxy config
-    api: {read: Zenoss.remote.ProcessRouter.getEvents},
-    
-    // Ext.data.JsonReader config
-    root: 'data',
-    fields: [
-        {name: 'severity', type: 'auto'},
-        {name: 'device', type: 'string'},
-        {name: 'component', type: 'string'},
-        {name: 'eventClass', type: 'string'},
-        {name: 'summary', type: 'string'}
-    ],
-    
-}; // eventStore
+Zenoss.EventStore = Ext.extend(Ext.data.DirectStore, {
+
+    constructor: function(userConfig) {
+        var baseConfig = {
+            // Ext.data.JsonReader config
+            root: 'data',
+            fields: [
+                {name: 'severity', type: 'auto'},
+                {name: 'device', type: 'string'},
+                {name: 'component', type: 'string'},
+                {name: 'eventClass', type: 'string'},
+                {name: 'summary', type: 'string'}
+            ]
+        };
+        var config = Ext.apply(baseConfig, userConfig);
+        Zenoss.EventStore.superclass.constructor.call(this, config);
+    }
+
+});
+
+Ext.reg('EventStore', Zenoss.EventStore);
 
 function severityRenderer(value) {
     return Zenoss.util.convertSeverity(value);
@@ -181,14 +188,6 @@ var eventColumnModel = new Ext.grid.ColumnModel({
                }] // columns
 }); // eventColumnModel
 
-var eventConfig = {
-    id: 'eventGrid',
-    store: eventStore,
-    colModel: eventColumnModel,
-    autoExpandColumn: 'summary',
-    stripeRows: true
-};
-
 /**
  * @class Zenoss.EventGridPanel
  * @extends Ext.grid.GridPanel
@@ -197,12 +196,23 @@ var eventConfig = {
  * @constructor
  */
 Zenoss.EventGridPanel = Ext.extend(Ext.grid.GridPanel, {
-    
+
     constructor: function(userConfig) {
-        var config = Ext.apply(eventConfig, userConfig);
+
+        var baseConfig = {
+            id: 'eventGrid',
+            store: userConfig.__event_store__,
+            colModel: eventColumnModel,
+            autoExpandColumn: 'summary',
+            stripeRows: true
+        };
+
+        delete userConfig.__event_store__;
+        var config = Ext.apply(baseConfig, userConfig);
         Zenoss.EventGridPanel.superclass.constructor.call(this, config);
+        
     }
-    
+
 }); // EventGridPanel
 
 Ext.reg('EventGridPanel', Zenoss.EventGridPanel);
@@ -210,9 +220,22 @@ Ext.reg('EventGridPanel', Zenoss.EventGridPanel);
 function createToggleHandler(itemIndex) {
     return function(button, pressed) {
         if (pressed) {
-            Ext.getCmp('cardPanel').getLayout().setActiveItem(itemIndex);
+            var cardPanel = Ext.getCmp('cardPanel');
+            cardPanel.getLayout().setActiveItem(itemIndex);
+            var node = cardPanel.getSelectedNode();
+            if (itemIndex === 0) {
+                // load up appropriate data in the devices grid
+                Ext.getCmp('deviceGrid').getStore().load({
+                    params: {id: node.attributes.id}
+                });
+            } else {
+                // load up appropriate data in the event grid
+                Ext.getCmp('eventGrid').getStore().load({
+                    params: {id: node.attributes.id}
+                });
+            }
         }
-    }
+    };
 }
 
 /**
@@ -250,39 +273,49 @@ Ext.reg('ViewButton', Zenoss.ViewButton);
  * @constructor
  */
 Zenoss.DeviceEventPanel = Ext.extend(Ext.Panel, {
-    
+
     constructor: function(userConfig) {
-        var config = Ext.apply(this.baseConfig, userConfig);
+
+        var baseConfig = {
+            id: 'cardPanel',
+            layout: 'card',
+            activeItem: 0,
+            tbar: [
+                {
+                    xtype: 'tbtext',
+                    text: _t('View: ')
+                }, {
+                    xtype: 'ViewButton',
+                    id: 'devicesButton',
+                    text: _t('Devices'),
+                    __item_index__: 0,
+                    pressed: true
+                }, {
+                    xtype: 'ViewButton',
+                    id: 'eventsButton',
+                    text: _t('Events'),
+                    __item_index__: 1
+                }
+            ],
+            items: [
+                {
+                    xtype: 'DeviceGridPanel',
+                    __device_store__: userConfig.__device_store__
+                }, {
+                    xtype: 'EventGridPanel',
+                    __event_store__: userConfig.__event_store__
+                }
+            ]
+        };
+
+        delete userConfig.__device_store__;
+        delete userConfig.__event_store__;
+
+        var config = Ext.apply(baseConfig, userConfig);
         Zenoss.DeviceEventPanel.superclass.constructor.call(this, config);
-    },
-    
-    baseConfig: {
-        id: 'cardPanel',
-        layout: 'card',
-        activeItem: 0,
-        tbar: [
-            {
-                xtype: 'tbtext',
-                text: _t('View: ')
-            }, {
-                xtype: 'ViewButton',
-                id: 'devicesButton',
-                text: _t('Devices'),
-                __item_index__: 0,
-                pressed: true
-            }, {
-                xtype: 'ViewButton',
-                id: 'eventsButton',
-                text: _t('Events'),
-                __item_index__: 1
-            }
-        ],
-        items: [
-            {xtype: 'DeviceGridPanel'},
-            {xtype: 'EventGridPanel'}
-        ]
     }
-    
+
+
 });
 
 Ext.reg('DeviceEventPanel', Zenoss.DeviceEventPanel);
