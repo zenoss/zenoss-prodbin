@@ -1,7 +1,9 @@
 from zope.interface import Interface, Attribute
 
+from Products.Zuul.interfaces import IMarshallable
 
-class ITreeNode(Interface):
+
+class ITreeNode(IMarshallable):
     """
     Represents a single branch or leaf in a tree.
     """

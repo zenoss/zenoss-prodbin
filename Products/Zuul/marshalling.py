@@ -35,8 +35,9 @@ def _marshalImplicitly(obj):
             # variables, so properties/descriptors work correctly
             value = getattr(obj, key)
             if not callable(value):
-                data[key] = value
+                data[key] = Zuul.marshal(value)
     return data
+
 
 def _marshalExplicitly(obj, keys):
     """
@@ -45,12 +46,16 @@ def _marshalExplicitly(obj, keys):
     """
     data = {}
     for key in keys:
-        value = getattr(obj, key)
-        if callable(value):
-            data[key] = value()
+        try:
+            value = getattr(obj, key)
+        except AttributeError:
+            pass
         else:
-            data[key] = value
+            if callable(value):
+                value = value()
+            data[key] = Zuul.marshal(value, keys)
     return data
+
 
 class InfoMarshaller(object):
     """
@@ -89,7 +94,7 @@ class TreeNodeMarshaller(object):
             val = getattr(self.root, attr)
             try:
                 json(val)
-            except TypeError, e:
+            except TypeError:
                 # We can't deal with it, just move on
                 continue
             obj[attr] = val

@@ -14,6 +14,7 @@
 from zope import component
 from zope.interface import verify
 from interfaces import IFacade
+from interfaces import IMarshallable
 from interfaces import IMarshaller
 from interfaces import IUnmarshaller
 
@@ -22,6 +23,7 @@ def getFacade(name):
     Get facade by name.
     """    
     return component.getUtility(IFacade, name)
+    
 
 def marshal(obj, keys=None, marshallerName=''):
     """
@@ -31,9 +33,28 @@ def marshal(obj, keys=None, marshallerName=''):
     adapter name. if it is an empty string then the default marshaller will be
     used.
     """
-    marshaller = component.getAdapter(obj, IMarshaller, marshallerName)
-    verify.verifyObject(IMarshaller, marshaller)
-    return marshaller.marshal(keys)
+    _marker = object()
+
+    # obj is a dict, so marshal its values recursively
+    # Zuul.marshal({'foo':1, 'bar':2})
+    if isinstance(obj, dict):
+        return dict((k, marshal(obj[k], keys, marshallerName)) for k in obj)
+
+    # obj is a non-string iterable, so marshal its members recursively
+    # Zuul.marshal(set([o1, o2]))
+    elif getattr(obj, '__iter__', _marker) is not _marker:
+        return [marshal(o, keys, marshallerName) for o in obj]
+
+    # obj is itself marshallable, so make a marshaller and marshal away
+    elif IMarshallable.providedBy(obj):
+        marshaller = component.getAdapter(obj, IMarshaller, marshallerName)
+        verify.verifyObject(IMarshaller, marshaller)
+        return marshaller.marshal(keys)
+
+    # Nothing matched, so it's a string or number or other unmarshallable. 
+    else:
+        return obj
+
 
 def unmarshal(data, obj, unmarshallerName=''):
     """

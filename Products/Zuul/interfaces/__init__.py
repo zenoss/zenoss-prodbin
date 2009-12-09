@@ -19,6 +19,7 @@ class IFacade(Interface):
     An API facade
     """
 
+
 class IMarshaller(Interface):
     """
     An adapter that converts an object to a dictionary
@@ -29,6 +30,7 @@ class IMarshaller(Interface):
         Convert an object to a dictionary.
         """
 
+
 class IUnmarshaller(Interface):
     """
     An adapter that converts a dictionary to an object.
@@ -38,6 +40,13 @@ class IUnmarshaller(Interface):
         """
         Convert a dictionary to an object.
         """
+
+
+class IMarshallable(Interface):
+    """
+    Marker interface for an object able to be marshalled by an IMarshaller.
+    """
+
 
 class IDataRootFactory(Interface):
     """
@@ -52,6 +61,7 @@ class IInfo(Interface):
     """
     id = Attribute("Identifier of the represented object (usually path)")
     name = Attribute("Name of the represented object")
+
 
 from events import *
 from process import *
