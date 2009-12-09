@@ -407,6 +407,7 @@ class ZenStatus(PBDaemon):
         @parameter job: device and TCP service to test
         @type job: ZenTcpClient object
         """
+        self.runSomeJobs()
         key = job.cfg.device, job.cfg.component
         evt = job.getEvent()
         if evt:
