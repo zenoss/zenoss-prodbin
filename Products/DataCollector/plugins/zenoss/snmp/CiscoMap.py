@@ -82,6 +82,13 @@ class CiscoMap(SnmpPlugin):
             # If there's a space in the serial we only want the first part.
             om.setHWSerialNumber = om.setHWSerialNumber.split(' ', 1)[0]
 
+            # There are Cisco devices out there that return invalid serial
+            # numbers with non-ASCII characters. Note them.
+            try:
+                unused = om.setHWSerialNumber.encode('ascii')
+            except UnicodeEncodeError:
+                om.setHWSerialNumber = 'Invalid'
+
             # Some Cisco devices return a bogus serial. Ignore them.
             for pattern in self.badSerialPatterns:
                 if re.match(pattern, om.setHWSerialNumber):
