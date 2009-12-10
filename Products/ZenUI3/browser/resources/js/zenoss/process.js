@@ -240,7 +240,8 @@ var processFormConfig = {
                 var selectionModel = processTree.getSelectionModel();
                 var selectedNode = selectionModel.getSelectedNode();
                 var nameTextField = Ext.getCmp('nameTextField');
-                selectedNode.setText(nameTextField.getValue());
+                selectedNode.attributes.text.text = nameTextField.getValue();
+                selectedNode.setText(selectedNode.attributes.text);
                 var form = Ext.getCmp('processForm').getForm();
                 var params = Ext.apply({id: selectedNode.id}, form.getValues());
                 form.api.submit(params);

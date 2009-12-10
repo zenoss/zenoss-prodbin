@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<view>
+
+<tooltip>
+  <target>Inherited-option</target>
+
+  <html>By default, this option is selected. When selected,  </html>
+</tooltip>
+
+<tooltip>
+  <target>Enabled-option</target>
+
+  <html>To select this option, you must first deselect the Inherited option. When selected, .</html>
+</tooltip>
+
+<tooltip>
+  <target>Event_Severity-selection</target>
+
+  <html>Select an event severity (Critical, Error, Warning, Info, or Debug). </html>
+</tooltip>
+
+<tooltip>
+  <target>Pattern-entry</target>
+
+  <html>Enter </html>
+</tooltip>
+
+<tooltip>
+  <target>Ignore_Parameters-option</target>
+
+  <html> Select this option to </html>
+</tooltip>
+
+<tooltip>
+  <target>Devices-button</target>
+
+  <html>Click to display devices </html>
+</tooltip>
+
+<tooltip>
+  <target>Events-button</target>
+
+  <html>Click to display</html>
+</tooltip>
+
+</view>

@@ -1,5 +1,20 @@
 Ext.ns('Zenoss');
 
+function buildNodeText(node) {
+    var b = [];
+    var t = node.attributes.text;
+    if (node.isLeaf()) {
+        b.push(t.text);
+    } else {
+        b.push('<strong>' + t.text + '</strong>');
+    }
+    if (t.count!=undefined) {
+        b.push('<span class="node-extra">(' + t.count);
+        b.push((t.description || 'instances') + ')</span>');
+    }
+    return b.join(' ');
+}
+
 /**
  * @class Zenoss.HierarchyTreePanel
  * @extends Ext.tree.TreePanel
@@ -24,20 +39,14 @@ Zenoss.HierarchyTreeNodeUI = Ext.extend(Ext.tree.TreeNodeUI, {
         var n = this.node,
             a = n.attributes;
         if (a.text && Ext.isObject(a.text)) {
-            var b = [];
-            var t = a.text;
-            if (!this.node.isLeaf()) {
-                b.push('<strong>' + t.text + '</strong>')
-            } else {
-                b.push(t.text)
-            }
-            if (t.count!=undefined) {
-                b.push('<span class="node-extra">(' + t.count)
-                b.push((t.description || 'instances') + ')</span>')
-            }
-            n.text = b.join(' ');
+            n.text = buildNodeText(this.node);
         }
         Zenoss.HierarchyTreeNodeUI.superclass.render.call(this, bulkRender);
+    },
+    onTextChange : function(node, text, oldText){
+        if(this.rendered){
+            this.textNode.innerHTML = buildNodeText(node);
+        }
     }
 });
 
@@ -135,9 +144,9 @@ Zenoss.HierarchyTreePanel = Ext.extend(Ext.tree.TreePanel, {
         });
         this.root.cascade(function(n){
             if(!n.isLeaf() && n.ui.ctNode.offsetHeight<3){
-				n.ui.hide();
+                n.ui.hide();
                 this.hiddenPkgs.push(n);
-			}
+            }
         }, this);
     }
 }); // HierarchyTreePanel
