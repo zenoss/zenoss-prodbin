@@ -34,9 +34,10 @@
     command:&lt;br /&gt;&lt;br /&gt;(NEED VALID COMMAND)&lt;br /&gt;&lt;br
     /&gt;enter this pattern:&lt;br /&gt;&lt;br
     /&gt;&lt;tt&gt;^.*\/*httpd&lt;/tt&gt;&lt;br /&gt;&lt;br /&gt;interpreted
-    as:&lt;br /&gt;&lt;br /&gt;(DEFINE)&lt;br /&gt;&lt;br /&gt;For more
-    information about building regular expressions, browse to:&lt;br
-    /&gt;&lt;br /&gt;(INSERT WEB RESOURCE)</html>
+    as:&lt;br /&gt;&lt;br /&gt;(DEFINE)&lt;br /&gt;&lt;br /&gt;More
+    information about: &lt;a
+    href="http://en.wikipedia.org/wiki/Regular_expression"&gt;regular
+    expressions&lt;/a&gt;</html>
   </tooltip>
 
   <tooltip>
