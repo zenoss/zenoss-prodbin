@@ -187,7 +187,8 @@ Ext.onReady(function(){
                         } else {
                         Zenoss.remote.EventsRouter.classify({
                             'evclass': cb.getValue(),
-                            'evids': evids
+                            'evids': evids,
+                            'history':true
                         }, function(result){
                             win.hide();
                             var title = result.success ?  
@@ -215,7 +216,7 @@ Ext.onReady(function(){
      * perform a query to determine ranges, then we select the ranges.
      */
     function selectByState(state) {
-        var params = {'state':state},
+        var params = {'state':state, 'history':true},
             grid = Ext.getCmp('events_grid');
         Ext.apply(params, getQueryParameters());
         Zenoss.remote.EventsRouter.state_ranges(
@@ -261,6 +262,7 @@ Ext.onReady(function(){
                     if (params) {
                         // Send to server, then refresh view to see fewer
                         // events
+                        params.history = true;
                         Zenoss.remote.EventsRouter.reopen(params,
                             function(provider, response){
                                 view = grid.getView();
@@ -458,7 +460,7 @@ Ext.onReady(function(){
     var console_store = new Ext.ux.grid.livegrid.Store({
         autoLoad: true,
         proxy: new Ext.data.DirectProxy({
-            directFn:Zenoss.remote.EventsRouter.query
+            directFn:Zenoss.remote.EventsRouter.queryHistory
         }),
         bufferSize: 100,
         sortInfo: {field:'lastTime', direction:'DESC'},

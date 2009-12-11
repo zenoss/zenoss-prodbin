@@ -1,7 +1,7 @@
 from zope.event import notify
 from zope.interface import implements
 from zope.component import adapts
-from Products.ZenUI3.utils.json import json, unjson
+from Products.ZenUI3.utils.json import unjson
 from Products.Zuul.utils import resolve_context
 from Products.Zuul.facades import ZuulFacade
 from Products.Zuul.interfaces import *
@@ -81,20 +81,8 @@ class EventInfo(object):
 class EventFacade(ZuulFacade):
     implements(IEventFacade)
 
-    def _is_history(self, request=None):
-        if request is None:
-            # We have no idea, so let's go with ZenEventManager
-            return False
-        # If we're actually loading event console, False
-        if 'viewEvents' in request.getURL():
-            return False
-        # If we're loading history page or a request from the history page,
-        # True, else False
-        return ('viewHistoryEvents' in request.getURL() or
-                'viewHistoryEvents' in request['HTTP_REFERER'])
-
     def _event_manager(self, history=False):
-        if history or self._is_history():
+        if history:
             return self._dmd.ZenEventHistory
         else:
             return self._dmd.ZenEventManager
@@ -164,11 +152,9 @@ class EventFacade(ZuulFacade):
                 event[f+'_url'] = url
         return event
 
-    def fields(self, context=None):
-        if context is None:
-            context = self._dmd.Events
-        context = resolve_context(context)
-        zem = self._event_manager()
+    def fields(self, context=None, history=False):
+        context = resolve_context(context, self._dmd.Events)
+        zem = self._event_manager(history)
         if hasattr(context, 'getResultFields'):
           fs = context.getResultFields()
         else:
@@ -180,11 +166,11 @@ class EventFacade(ZuulFacade):
           fs = zem.lookupManagedEntityResultFields(base.event_key)
         return fs
 
-    def query(self, limit=0, start=0, sort='lastTime', dir='DESC',
-              filters=None):
-        context = self._dmd.Events
+    def query(self, limit=0, start=0, sort='lastTime', 
+              dir='DESC', filters=None, context=None, history=False):
+        context = resolve_context(context, self._dmd.Events)
         if isinstance(filters, basestring): filters = unjson(filters)
-        zem = self._event_manager()
+        zem = self._event_manager(history)
 
         fields = self.fields()
 
@@ -226,37 +212,45 @@ class EventFacade(ZuulFacade):
             return evid
 
     def acknowledge(self, evids=None, ranges=None, start=None, limit=None,
-                    sort=None, dir=None, filters=None, asof=None):
-        zem = self._event_manager()
-        r_evids = zem.getEventIDsFromRanges(self._dmd.Events, sort, dir, start,
+                    sort=None, dir=None, filters=None, asof=None,
+                    context=None, history=False):
+        context = resolve_context(context, self._dmd.Events)
+        zem = self._event_manager(history)
+        r_evids = zem.getEventIDsFromRanges(context, sort, dir, start,
                                         limit, filters, evids, ranges, asof)
         zem.manage_ackEvents(r_evids)
         for evid in r_evids:
             notify(EventAcknowledged(evid, zem))
 
     def unacknowledge(self, evids=None, ranges=None, start=None, limit=None,
-                    sort=None, dir=None, filters=None, asof=None):
-        zem = self._event_manager()
-        r_evids = zem.getEventIDsFromRanges(self._dmd.Events, sort, dir, start,
-                                        limit, filters, evids, ranges, asof)
+                    sort=None, dir=None, filters=None, asof=None,
+                    context=None, history=False):
+        context = resolve_context(context, self._dmd.Events)
+        zem = self._event_manager(history)
+        r_evids = zem.getEventIDsFromRanges(context, sort, dir, start, limit,
+                                            filters, evids, ranges, asof)
         zem.manage_unackEvents(r_evids)
         for evid in r_evids:
             notify(EventUnacknowledged(evid, zem))
 
     def reopen(self, evids=None, ranges=None, start=None, limit=None,
-                    sort=None, dir=None, filters=None, asof=None):
-        zem = self._event_manager()
-        r_evids = zem.getEventIDsFromRanges(self._dmd.Events, sort, dir, start,
-                                        limit, filters, evids, ranges, asof)
+                    sort=None, dir=None, filters=None, asof=None,
+                    context=None, history=False):
+        context = resolve_context(context, self._dmd.Events)
+        zem = self._event_manager(history)
+        r_evids = zem.getEventIDsFromRanges(context, sort, dir, start, limit,
+                                            filters, evids, ranges, asof)
         zem.manage_undeleteEvents(r_evids)
         for evid in r_evids:
             notify(EventReopened(evid, zem))
 
     def close(self, evids=None, ranges=None, start=None, limit=None,
-                    sort=None, dir=None, filters=None, asof=None):
-        zem = self._event_manager()
-        r_evids = zem.getEventIDsFromRanges(self._dmd.Events, sort, dir, start,
-                                        limit, filters, evids, ranges, asof)
+                    sort=None, dir=None, filters=None, asof=None,
+                    context=None, history=False):
+        context = resolve_context(context, self._dmd.Events)
+        zem = self._event_manager(history)
+        r_evids = zem.getEventIDsFromRanges(context, sort, dir, start, limit,
+                                            filters, evids, ranges, asof)
         zem.manage_deleteEvents(r_evids)
         for evid in r_evids:
             notify(EventClosed(evid, zem))

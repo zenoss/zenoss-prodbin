@@ -568,7 +568,7 @@ Zenoss.FilterGridPanel = Ext.extend(Ext.ux.grid.livegrid.GridPanel, {
         Ext.state.Manager.clear(this.getItemId());
         var view = this.getView();
         view.resetFilters();
-        Zenoss.remote.EventConsole.column_config({}, function(result){
+        Zenoss.remote.EventsRouter.column_config({}, function(result){
             var results = [];
             Ext.each(result, function(r){
                 results[results.length] = Ext.decode(r);
@@ -855,7 +855,7 @@ Zenoss.DetailPanel = Ext.extend(Ext.Panel, {
                             vals = form.getForm().getValues();
                         params = {history:this.isHistory};
                         Ext.apply(params, vals);
-                        Zenoss.remote.EventConsole.write_log(
+                        Zenoss.remote.EventsRouter.write_log(
                          params,
                          function(provider, response){
                              Ext.getCmp(
@@ -965,7 +965,7 @@ Zenoss.DetailPanel = Ext.extend(Ext.Panel, {
         pop.on('click', this.popout, this);
     },
     load: function(event_id){
-        Zenoss.remote.EventConsole.detail({
+        Zenoss.remote.EventsRouter.detail({
                 evid:event_id, 
                 history:this.isHistory
             }, 

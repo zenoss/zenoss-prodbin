@@ -14,37 +14,43 @@ class EventsRouter(DirectRouter):
         super(EventsRouter, self).__init__(context, request)
         self.api = queryUtility(IEventFacade)
 
-    def query(self, limit, start, sort, dir, params):
-        events = self.api.query(limit, start, sort, dir, params)
+    def query(self, limit, start, sort, dir, params, history=False):
+        events = self.api.query(limit, start, sort, dir, params, self.context,
+                                history)
         self._set_asof(time.time())
         return {'events':events['data']}
-
+    
+    def queryHistory(self, limit, start, sort, dir, params):
+        return self.query(limit, start, sort, dir, params, history=True)
+    
     def acknowledge(self, evids=None, ranges=None, start=None, limit=None,
-                    field=None, direction=None, params=None):
+                    field=None, direction=None, params=None, history=False):
         self.api.acknowledge(evids, ranges, start, limit, field, direction,
-                             params, asof=self._asof)
+                             params, asof=self._asof, context=self.context, 
+                             history=history)
         return {'success':True}
 
     def unacknowledge(self, evids=None, ranges=None, start=None, limit=None,
-                      field=None, direction=None, params=None):
+                      field=None, direction=None, params=None, history=False):
         self.api.unacknowledge(evids, ranges, start, limit, field, direction,
-                               params, asof=self._asof)
+                               params, asof=self._asof, context=self.context,
+                               history=history)
         return {'success':True}
 
     def reopen(self, evids=None, ranges=None, start=None, limit=None,
-                      field=None, direction=None, params=None):
+                      field=None, direction=None, params=None, history=True):
         self.api.reopen(evids, ranges, start, limit, field, direction, params,
-                        asof=self._asof)
+                        asof=self._asof, context=self.context, history=history)
         return {'success':True}
 
     def close(self, evids=None, ranges=None, start=None, limit=None,
-              field=None, direction=None, params=None):
+              field=None, direction=None, params=None, history=False):
         self.api.close(evids, ranges, start, limit, field, direction, params,
-                        asof=self._asof)
+                        asof=self._asof, context=self.context, history=history)
         return {'success':True}
 
     def state_ranges(self, state=1, field='severity', direction='DESC',
-                     params=None):
+                     params=None, history=False):
         """
         Get a list of ranges describing contiguous blocks of events with a
         certain state.
@@ -109,13 +115,13 @@ class EventsRouter(DirectRouter):
             params = {}
         elif isinstance(params, basestring):
             params = unjson(params)
-        zem = self.api._event_manager()
+        zem = self.api._event_manager(history)
         where = zem.lookupManagedEntityWhere(self.context)
         where = zem.filteredWhere(where, params)
         if self._asof:
             where += " and not (stateChange>%s and eventState=0)" % (
                                                 self.dateDB(self._asof))
-        table = self.api._is_history() and 'history' or 'status'
+        table = history and 'history' or 'status'
         q = 'select eventState from %s where %s ' % (table, where)
         q += 'order by %s %s' % (field, direction)
         query = query_tpl % q
@@ -150,8 +156,8 @@ class EventsRouter(DirectRouter):
     def write_log(self, evid=None, message=None, history=False):
         self.api.log(evid, message, history)
 
-    def classify(self, evids, evclass):
-        zem = self.api._event_manager()
+    def classify(self, evids, evclass, history=False):
+        zem = self.api._event_manager(history)
         msg, url = zem.manage_createEventMap(evclass, evids)
         if url:
             msg += "<br/><br/><a href='%s'>Go to the new mapping.</a>" % url
