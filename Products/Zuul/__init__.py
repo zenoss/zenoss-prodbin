@@ -13,10 +13,11 @@
 
 from zope import component
 from zope.interface import verify
-from interfaces import IFacade
+from interfaces import IFacade, IInfo
 from interfaces import IMarshallable
 from interfaces import IMarshaller
 from interfaces import IUnmarshaller
+from utils import safe_hasattr as hasattr
 
 def getFacade(name):
     """
@@ -33,7 +34,11 @@ def marshal(obj, keys=None, marshallerName=''):
     adapter name. if it is an empty string then the default marshaller will be
     used.
     """
-    _marker = object()
+    # obj is itself marshallable, so make a marshaller and marshal away
+    if IMarshallable.providedBy(obj):
+        marshaller = component.getAdapter(obj, IMarshaller, marshallerName)
+        verify.verifyObject(IMarshaller, marshaller)
+        return marshal(marshaller.marshal(keys), keys, marshallerName)
 
     # obj is a dict, so marshal its values recursively
     # Zuul.marshal({'foo':1, 'bar':2})
@@ -42,14 +47,8 @@ def marshal(obj, keys=None, marshallerName=''):
 
     # obj is a non-string iterable, so marshal its members recursively
     # Zuul.marshal(set([o1, o2]))
-    elif getattr(obj, '__iter__', _marker) is not _marker:
+    elif hasattr(obj, '__iter__'):
         return [marshal(o, keys, marshallerName) for o in obj]
-
-    # obj is itself marshallable, so make a marshaller and marshal away
-    elif IMarshallable.providedBy(obj):
-        marshaller = component.getAdapter(obj, IMarshaller, marshallerName)
-        verify.verifyObject(IMarshaller, marshaller)
-        return marshaller.marshal(keys)
 
     # Nothing matched, so it's a string or number or other unmarshallable. 
     else:
@@ -64,3 +63,23 @@ def unmarshal(data, obj, unmarshallerName=''):
     unmarshaller = component.getAdapter(obj, IUnmarshaller, unmarshallerName)
     verify.verifyObject(IUnmarshaller, unmarshaller)
     return unmarshaller.unmarshal(data)
+
+
+def info(obj, adapterName=''):
+    """
+    Recursively adapt obj or members of obj to IInfo.
+    """
+    if IInfo.providedBy(obj):
+        return obj
+        
+    # obj is a dict, so apply to its values recursively
+    elif isinstance(obj, dict):
+        return dict((k, info(obj[k], adapterName)) for k in obj)
+
+    # obj is a non-string iterable, so apply to its members recursively
+    elif hasattr(obj, '__iter__'):
+        return [info(o, adapterName) for o in obj]
+
+    # attempt to adapt; if no adapter, return obj itself
+    else:
+        return component.queryAdapter(obj, IInfo, adapterName, obj)

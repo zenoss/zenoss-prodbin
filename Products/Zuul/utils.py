@@ -1,5 +1,4 @@
 import transaction
-from zope.component import queryUtility
 
 def resolve_context(context):
     """
@@ -28,3 +27,7 @@ def get_dmd():
         if cxn._db.database_name != 'temporary':
             app = cxn.root()['Application']
             return app.zport.dmd
+
+_MARKER = object()
+def safe_hasattr(object, name):
+    return getattr(object, name, _MARKER) is not _MARKER

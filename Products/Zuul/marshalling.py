@@ -35,7 +35,7 @@ def _marshalImplicitly(obj):
             # variables, so properties/descriptors work correctly
             value = getattr(obj, key)
             if not callable(value):
-                data[key] = Zuul.marshal(value)
+                data[key] = value
     return data
 
 
@@ -53,7 +53,7 @@ def _marshalExplicitly(obj, keys):
         else:
             if callable(value):
                 value = value()
-            data[key] = Zuul.marshal(value, keys)
+            data[key] = value
     return data
 
 

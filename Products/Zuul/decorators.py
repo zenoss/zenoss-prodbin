@@ -35,3 +35,21 @@ def marshalto(keys=None, marshallerName=''):
         result = f(*args, **kwargs)
         return Zuul.marshal(result, keys=keys, marshallerName=marshallerName)
     return marshal
+
+
+@decorator
+def info(f, *args, **kwargs):
+    """
+    Apply Zuul.info to results.
+    """
+    result = f(*args, **kwargs)
+    return Zuul.info(result)
+
+
+def infoto(adapterName=''):
+    @decorator
+    def info(f, *args, **kwargs):
+        result = f(*args, **kwargs)
+        return Zuul.info(result, adapterName=adapterName)
+    return info
+

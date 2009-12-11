@@ -196,7 +196,7 @@ class ProcessFacade(ZuulFacade):
         infoClass = None
         for processClass in processClasses:
             for instance in processClass.instances():
-                newDeviceInfo = IDeviceInfo(instance.device())
+                newDeviceInfo = IInfo(instance.device())
                 if infoClass is None:
                     infoClass = newDeviceInfo.__class__
                 for existingDeviceInfo in deviceInfos:
@@ -219,7 +219,7 @@ class ProcessFacade(ZuulFacade):
                         event.device = instance.device().id
                     if not getattr(event, 'component', None):
                         event.component = instance.name()
-                    eventInfos.append(IEventInfo(event))
+                    eventInfos.append(IInfo(event))
         return eventInfos
 
     def _findObject(self, id):
