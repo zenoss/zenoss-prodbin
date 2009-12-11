@@ -95,10 +95,10 @@ class DirectRouter(object):
         except Exception, e:
             log.exception(e)
             message = e.__class__.__name__ + ' ' + str(e)
-            return json.dumps({
+            return {
                 'type':'exception',
                 'message':message
-            })
+            }
 
         return {
             'type':'rpc',
