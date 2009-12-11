@@ -11,6 +11,7 @@
 #
 ###########################################################################
 
+import logging
 from itertools import imap
 from zope.component import adapts
 from zope.interface import implements
@@ -27,6 +28,7 @@ from Products.Zuul.interfaces import IEventInfo
 from Products.ZenModel.OSProcessClass import OSProcessClass
 from Products.ZenModel.OSProcessOrganizer import OSProcessOrganizer
 
+log = logging.getLogger('zen.ProcessFacade')
 
 class ProcessNode(TreeNode):
     implements(IProcessNode)
@@ -214,12 +216,18 @@ class ProcessFacade(ZuulFacade):
         eventInfos = []
         for processClass in processClasses:
             for instance in processClass.instances():
-                for event in zem.getEventListME(instance):
-                    if not getattr(event, 'device', None):
-                        event.device = instance.device().id
-                    if not getattr(event, 'component', None):
-                        event.component = instance.name()
-                    eventInfos.append(IInfo(event))
+                try:
+                    for event in zem.getEventListME(instance):
+                        if not getattr(event, 'device', None):
+                            event.device = instance.device().id
+                        if not getattr(event, 'component', None):
+                            event.component = instance.name()
+                        eventInfos.append(IEventInfo(event))
+                except Exception, e:
+                    msg = "Failed to get event list for process '%s'"
+                    args = (instance.titleOrId(),)
+                    log.error(msg, *args)
+                    continue
         return eventInfos
 
     def _findObject(self, id):

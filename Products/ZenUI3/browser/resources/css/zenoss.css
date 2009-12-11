@@ -169,9 +169,6 @@
 /**
  * FILTER GRID
  */
-.x-grid3-scroller {
-    overflow: hidden !important;
-}
 .x-grid3-filter {
     height: 30px;
     background-color: #bdbdbd;
