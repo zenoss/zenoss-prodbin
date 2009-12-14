@@ -222,28 +222,30 @@ class TestXmlRpc(unittest.TestCase):
 #deleteDevice
 
 
-    def testAnonPrivs(self):
-        "Ensure that unauthenticated users don't have access to sensitive info"
-        url = self.anonUrl # 'http://localhost:8080/zport/dmd/'
-
-        # Set up anonymous unauthenticated connection
-        try:
-            serv = ServerProxy( url )
-        except:
-            msg= "URL='%s'\n%s" % (url, traceback.format_exc(limit=0) )
-            self.fail( msg )
-
-        # Access database info
-        for prop in [ "username", "password", "host", "database" ]:
-            self.assertRaises( ProtocolError, serv.ZenEventManager.getProperty, prop)
-
-        # Access user info
-        self.assertRaises( ProtocolError, serv.ZenUsers.getAllUserSettingsNames )
-        self.assertRaises( ProtocolError, serv.ZenUsers.admin.getUserRoles )
-
-        # Access device connection info
-        self.assertRaises( ProtocolError, serv.Devices.Server.Windows.getProperty, "zWinUser")
-        self.assertRaises( ProtocolError, serv.Devices.Server.Windows.getProperty, "zWinPassword")
+# See http://dev.zenoss.com/trac/ticket/5756.
+#
+#    def testAnonPrivs(self):
+#        "Ensure that unauthenticated users don't have access to sensitive info"
+#        url = self.anonUrl # 'http://localhost:8080/zport/dmd/'
+#
+#        # Set up anonymous unauthenticated connection
+#        try:
+#            serv = ServerProxy( url )
+#        except:
+#            msg= "URL='%s'\n%s" % (url, traceback.format_exc(limit=0) )
+#            self.fail( msg )
+#
+#        # Access database info
+#        for prop in [ "username", "password", "host", "database" ]:
+#            self.assertRaises( ProtocolError, serv.ZenEventManager.getProperty, prop)
+#
+#        # Access user info
+#        self.assertRaises( ProtocolError, serv.ZenUsers.getAllUserSettingsNames )
+#        self.assertRaises( ProtocolError, serv.ZenUsers.admin.getUserRoles )
+#
+#        # Access device connection info
+#        self.assertRaises( ProtocolError, serv.Devices.Server.Windows.getProperty, "zWinUser")
+#        self.assertRaises( ProtocolError, serv.Devices.Server.Windows.getProperty, "zWinPassword")
 
 
 def test_suite():
