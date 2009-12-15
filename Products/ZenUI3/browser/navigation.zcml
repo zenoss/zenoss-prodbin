@@ -92,7 +92,7 @@
 
     <browser:viewlet
         name="IT Infrastructure"
-        url="/itinfrastructure"
+        url="/zport/dmd/itinfrastructure"
         weight="3"
         manager="..navigation.interfaces.IPrimaryNavigationMenu"
         class="..navigation.menuitem.PrimaryNavigationMenuItem"
@@ -102,7 +102,7 @@
 
         <browser:viewlet
             name="Processes"
-            url="/process"
+            url="/zport/dmd/process"
             weight="3"
             parentItem="IT Infrastructure"
             manager="..navigation.interfaces.ISecondaryNavigationMenu"
@@ -113,7 +113,7 @@
 
     <browser:viewlet
         name="Reports"
-        url="/reports"
+        url="/zport/dmd/reports"
         weight="4"
         manager="..navigation.interfaces.IPrimaryNavigationMenu"
         class="..navigation.menuitem.PrimaryNavigationMenuItem"
@@ -123,7 +123,7 @@
 
     <browser:viewlet
         name="Users"
-        url="/users"
+        url="/zport/dmd/users"
         weight="5"
         manager="..navigation.interfaces.IPrimaryNavigationMenu"
         class="..navigation.menuitem.PrimaryNavigationMenuItem"
@@ -133,7 +133,7 @@
 
     <browser:viewlet
         name="Advanced"
-        url="/advanced"
+        url="/zport/dmd/advanced"
         weight="6"
         manager="..navigation.interfaces.IPrimaryNavigationMenu"
         class="..navigation.menuitem.PrimaryNavigationMenuItem"

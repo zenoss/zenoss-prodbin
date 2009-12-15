@@ -55,6 +55,14 @@
                         <div class="bg-logo"></div>
                         <div id="primarynav">
                             <ul tal:content="structure provider:primarynav"/>
+                            <div style="position: absolute;
+                                        right: 0;
+                                        margin-right: 1em;
+                                        color: #FFFFFF;
+                                        font-size: 9.5pt;
+                                        font-family: Helvetica,sans-serif;">
+                                <tal:block tal:content="request/AUTHENTICATED_USER"/>
+                            </div>
                         </div>
                         <div id="secondarynav">
                             <ul tal:content="structure provider:secondarynav"/>
