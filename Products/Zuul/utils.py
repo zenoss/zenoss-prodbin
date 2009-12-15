@@ -1,4 +1,8 @@
 import transaction
+from operator import attrgetter
+from itertools import islice
+from Products.ZCatalog.CatalogBrains import AbstractCatalogBrain
+from Acquisition import aq_base
 
 def resolve_context(context, default=None):
     """
@@ -36,3 +40,57 @@ def get_dmd():
 _MARKER = object()
 def safe_hasattr(object, name):
     return getattr(object, name, _MARKER) is not _MARKER
+
+def unbrain(item):
+    if isinstance(item, AbstractCatalogBrain):
+        return item.getObject()
+    return item
+    
+
+class LazySortableList(object):
+
+    def __init__(self, iterable, cmp=None, key=None, orderby=None, 
+                 reverse=False):
+        self.iterator = iter(iterable)
+        if cmp is not None or key is not None or orderby is not None:
+            # Might as well exhaust it now
+            if orderby is not None:
+                key = attrgetter(orderby)
+            self.seen = sorted(self.iterator, cmp=cmp, key=key, 
+                               reverse=reverse)
+        else:
+            self.seen = []
+
+    def __getitem__(self, index):
+        self.exhaust(index)
+        return self.seen[index]
+
+    def __getslice__(self, start, stop):
+        self.exhaust(stop-1)
+        return self.seen[start:stop]
+
+    def __len__(self):
+        return len(self.seen)
+
+    def __repr__(self):
+        return repr(self.seen)
+
+    def exhaust(self, i):
+        if i<0:
+            raise ValueError("Negative indices not supported")
+        delta = i-len(self)
+        if delta > 0:
+            self.seen.extend(islice(self.iterator, delta+1))
+
+
+class BrainWhilePossible(object):
+    def __init__(self, ob):
+        self._ob = ob
+    def __getattr__(self, attr):
+        if isinstance(self._ob, AbstractCatalogBrain):
+            try:
+                return getattr(aq_base(self._ob), attr)
+            except AttributeError:
+                # Not metadata; time to go get the ob
+                self._ob = unbrain(self._ob)
+        return getattr(self._ob, attr)

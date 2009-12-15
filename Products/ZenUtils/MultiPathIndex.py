@@ -10,13 +10,13 @@
 # For complete information please visit: http://www.zenoss.com/oss/
 #
 ###########################################################################
-from types import StringType, ListType, TupleType
+from types import ListType, TupleType
 import logging
 LOG = logging.getLogger('ZenUtils.MultiPathIndex')
 
 from Globals import DTMLFile
 
-from Products.PluginIndexes.PathIndex.PathIndex import PathIndex
+from ExtendedPathIndex import ExtendedPathIndex
 from Products.PluginIndexes.common import safe_callable
 
 def _isSequenceOfSequences(seq):
@@ -37,7 +37,7 @@ def _recursivePathSplit(seq):
     else: 
         return seq
 
-class MultiPathIndex(PathIndex):
+class MultiPathIndex(ExtendedPathIndex):
     """
     A path index that is capable of indexing multiple paths per object.
     """
@@ -79,14 +79,17 @@ class MultiPathIndex(PathIndex):
         self._length.change(1)
 
         for path in paths:
-            if not isinstance(path, (StringType, TupleType, ListType)):
-                raise TypeError(
-                    'path value must be a tuple of strings')
-            if isinstance(path, (ListType, TupleType)):
+            if isinstance(path, (list, tuple)):
                 path = '/'+ '/'.join(path[1:])
             comps = filter(None, path.split('/'))
+            parent_path = '/' + '/'.join(comps[:-1])
+
             for i in range(len(comps)):
                 self.insertEntry(comps[i], docid, i)
+
+            # Add terminator
+            self.insertEntry(None, docid, len(comps)-1, parent_path, path)
+
             self._unindex[docid].add(path)
 
         return 1
@@ -95,11 +98,35 @@ class MultiPathIndex(PathIndex):
         """ hook for (Z)Catalog """
 
         if not self._unindex.has_key(docid):
-            # That docid isn't indexed.
             return
 
-        for item in self._unindex[docid]:
-            comps =  item.split('/')
+        def unindex(comp, level, docid=docid, parent_path=None,
+                    object_path=None):
+            try:
+                self._index[comp][level].remove(docid)
+
+                if not self._index[comp][level]:
+                    del self._index[comp][level]
+
+                if not self._index[comp]:
+                    del self._index[comp]
+                # Remove parent_path and object path elements
+                if parent_path is not None:
+                    self._index_parents[parent_path].remove(docid)
+                    if not self._index_parents[parent_path]:
+                        del self._index_parents[parent_path]
+                if object_path is not None:
+                    del self._index_items[object_path]
+            except KeyError:
+                # Failure
+                pass
+
+        for path in self._unindex[docid]:
+            if not path.startswith('/'):
+                path = '/'+path
+            comps =  path.split('/')
+            parent_path = '/'.join(comps[:-1])
+
 
             for level in range(len(comps[1:])):
                 comp = comps[level+1]
@@ -115,6 +142,11 @@ class MultiPathIndex(PathIndex):
                 except KeyError:
                     # We've already unindexed this one.
                     pass
+
+            # Remove the terminator
+            level = len(comps[1:])
+            comp = None
+            unindex(comp, level-1, parent_path=parent_path, object_path=path)
 
         self._length.change(-1)
         del self._unindex[docid]

@@ -463,7 +463,7 @@ Zenoss.FilterGridView = Ext.extend(Ext.ux.grid.livegrid.GridView, {
     },
     applyState: function(state) {
         // For now, always show the filters The rest of the filter-hiding
-        // stuff is still in place, so just remove this and put back the
+        // stuff is still i'll gn place, so just remove this and put back the
         // menu item when we're ready to do so.
         this.displayFilters = true; //state.displayFilters;
         // End always show filters

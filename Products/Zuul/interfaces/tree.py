@@ -24,3 +24,35 @@ class ITreeFacade(Interface):
         Returns the node identified by C{root}, which can be walked using the
         C{children} attribute.
         """
+
+class ITreeWalker(Interface):
+    """
+    Adapts a member of the ZenRelations hierarchy. Provides uniform
+    API for requesting contained children.
+    """
+    def rawChildren(self):
+        """
+        Returns representations of children that are able to get the 
+        represented object when asked (brains, or BrainWhilePossibles, or
+        the object itself). 
+
+        This method is meant to be called by other TreeWalkers or by 
+        subclasses, so that filtering and sorting can be done later.
+        """
+    def children(self):
+        """
+        Returns consumable children, i.e. the actual children themselves.
+
+        This method is meant to be called directly. It is the entry point for
+        non-walkers.
+        """
+        
+class IEntityManager(Interface):
+    """
+    Adapts an organizer. Provides a way to query for lazy batches of children by 
+    type and sort the results.
+    """
+    def children(self):
+        """
+        Get some children
+        """
