@@ -24,6 +24,10 @@ class Card(object):
     _CARDS = set()
 
     @classmethod
+    def startCollection(cls):
+        cls._CARDS = set()
+
+    @classmethod
     def getAllCards(cls):
         return tuple(cls._CARDS)
 
@@ -101,6 +105,7 @@ class PhysicalEntityMap(SnmpPlugin):
         if not petable: return
 
         # Process all of the cards
+        Card.startCollection()
         for i,c in petable.iteritems():
             Card(int(i), **c)
 
