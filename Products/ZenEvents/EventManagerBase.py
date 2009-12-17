@@ -396,6 +396,12 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
                 if none the values will be in the where string
         @type values: list
         """
+        
+        def toTimestamp(value):
+            timeStr = value.replace('T', ' ')
+            timeTuple = time.strptime(timeStr, '%Y-%m-%d %H:%M:%S')
+            timestamp = time.mktime(timeTuple)
+            return timestamp
         queryValues = []
         newwhere = ''
         if filters is None: filters = {}
@@ -417,13 +423,13 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
                 newwhere += ' and (%s REGEXP %%s) ' % (k,)
                 queryValues.append(v)
             elif k=='firstTime':
-                v = self.dateDB(v.replace('T', ' '))
+                v2 = toTimestamp(v)
                 newwhere += ' and %s >= %%s ' % (k,)
-                queryValues.append(v)
+                queryValues.append(v2)
             elif k=='lastTime':
-                v = self.dateDB(v.replace('T', ' '))
-                newwhere += ' and %s <= %%s ' % (k, )
-                queryValues.append(v)
+                v2 = toTimestamp(v)
+                newwhere += ' and %s >= %%s ' % (k, )
+                queryValues.append(v2)
             elif ftype=='multiselectmenu':
                 if isinstance(v, basestring): v = (v,)
                 sevstr = ' or '.join(['%s=%%s' % (k,) for s in v])

@@ -245,6 +245,7 @@ Zenoss.FilterGridView = Ext.extend(Ext.ux.grid.livegrid.GridView, {
             config.displayFilters = true;
         Zenoss.FilterGridView.superclass.constructor.apply(this,
             arguments);
+        Ext.applyIf(this.lastOptions, this.defaultFilters || {}); 
     },
     lastOptions: {},
     initEvents: function(){
@@ -440,9 +441,30 @@ Zenoss.FilterGridView = Ext.extend(Ext.ux.grid.livegrid.GridView, {
         return html;
     },
     getState: function(){
+            var options = {};
+            Ext.iterate(this.lastOptions, function(k){
+                var dflt = this.defaultFilters[k],
+                    opt = this.lastOptions[k];
+                if (dflt) {
+                    var match;
+                    if (Ext.isDate(dflt) && Ext.isDate(opt)) {
+                        var delta = Math.abs(dflt.getTime() - opt.getTime());
+                        // If they're within a second, they match. We don't
+                        // have finer resolution in the UI.
+                        match = delta <= 1000;
+                    } else {
+                        match = dflt==opt;
+                    }
+                    if (!match) {
+                        options[k] = opt;
+                    }
+                } else {
+                    options[k] = opt;
+                }
+            }, this);
         return {
             displayFilters: this.displayFilters,
-            options: this.lastOptions
+            options: options
         };
     },
     getFilterButton: function(){
@@ -468,6 +490,8 @@ Zenoss.FilterGridView = Ext.extend(Ext.ux.grid.livegrid.GridView, {
         this.displayFilters = true; //state.displayFilters;
         // End always show filters
         this.lastOptions = state.options;
+        // Apply any default filters specified in the constructor 
+        Ext.applyIf(this.lastOptions, this.defaultFilters || {}); 
         /*
         var btn = Ext.getCmp(this.filterbutton);
         btn.on('render', function(){
@@ -477,6 +501,7 @@ Zenoss.FilterGridView = Ext.extend(Ext.ux.grid.livegrid.GridView, {
     },
     resetFilters: function(){
         this.lastOptions = {};
+        Ext.applyIf(this.lastOptions, this.defaultFilters || {}); 
         //this.getFilterButton().setChecked(false);
     }
 });
@@ -556,7 +581,9 @@ Zenoss.FilterGridPanel = Ext.extend(Ext.ux.grid.livegrid.GridPanel, {
             if (availcols.indexOf(col.id)>-1) cols.push(col);
         });
         Ext.iterate(state.filters.options, function(op){
-            if (availcols.indexOf(op.id)>-1) filters[op.id] = op;
+            if (availcols.indexOf(op)>-1) { 
+                filters[op] = state.filters.options[op]; 
+            }
         });
         state.columns = cols;
         state.filters.options = filters;

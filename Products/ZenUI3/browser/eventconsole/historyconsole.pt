@@ -445,9 +445,14 @@ Ext.onReady(function(){
     });
 
     // View to render the grid
+    var yesterday = new Date();
+    yesterday.setDate(yesterday.getDate() - 1);
     var myView = new Zenoss.FilterGridView({
         nearLimit : 20,
         filterbutton: 'showfilters',
+        defaultFilters: {
+            lastTime: yesterday
+        },
         rowcoloritem: 'rowcolors_checkitem',
         loadMask  : { msg :  'Loading. Please wait...' }
     });
@@ -464,6 +469,7 @@ Ext.onReady(function(){
         }),
         bufferSize: 100,
         sortInfo: {field:'lastTime', direction:'DESC'},
+        defaultSort: {field:'lastTime', direction:'DESC'},
         reader: new Ext.ux.grid.livegrid.JsonReader({
             root: 'events',
             totalProperty: 'totalCount'
