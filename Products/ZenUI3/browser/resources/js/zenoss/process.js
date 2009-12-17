@@ -106,6 +106,7 @@ function actioncompleteHandler(form, action) {
         nameTextField.setDisabled(processInfo.name == 'Processes');
         acquiredCheckbox.setDisabled(processInfo.name == 'Processes');
         setMonitoringDisabled(processInfo.isMonitoringAcquired);
+        Ext.getCmp('processForm').setDisabled(action.result.disabled);
     }
 }
 

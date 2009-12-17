@@ -11,12 +11,14 @@
 #
 ###########################################################################
 
+import AccessControl
 from zope import component
 from zope.interface import verify
 from interfaces import IFacade, IInfo
 from interfaces import IMarshallable
 from interfaces import IMarshaller
 from interfaces import IUnmarshaller
+from interfaces import IDataRootFactory
 from utils import safe_hasattr as hasattr
 
 def getFacade(name):
@@ -83,3 +85,13 @@ def info(obj, adapterName=''):
     # attempt to adapt; if no adapter, return obj itself
     else:
         return component.queryAdapter(obj, IInfo, adapterName, obj)
+
+def checkPermission(permission):
+    """
+    Return true if the current user has the specified permission on dmd,
+    otherwise return false.
+    """
+    manager = AccessControl.getSecurityManager()
+    dmdFactory = component.getUtility(IDataRootFactory)
+    dmd = dmdFactory()
+    return manager.checkPermission(permission, dmd)

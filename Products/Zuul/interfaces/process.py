@@ -12,6 +12,7 @@
 ###########################################################################
 
 from zope.interface import Interface, Attribute
+from Products.Zuul.interfaces import IFacade
 from tree import ITreeNode
 from info import IInfo
 
@@ -44,7 +45,7 @@ class IProcessInfo(IInfo):
     ignoreParameters = Attribute('Only match the regex to the command not its'
                                  ' parameters')
 
-class IProcessFacade(Interface):
+class IProcessFacade(IFacade):
 
     def getInfo(id):
         """

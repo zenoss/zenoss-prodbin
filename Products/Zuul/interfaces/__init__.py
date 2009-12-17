@@ -19,7 +19,6 @@ class IFacade(Interface):
     An API facade
     """
 
-
 class IMarshaller(Interface):
     """
     An adapter that converts an object to a dictionary

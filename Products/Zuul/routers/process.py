@@ -29,10 +29,13 @@ class ProcessRouter(DirectRouter):
         facade = self._getFacade()
         process = facade.getInfo(id)
         data = Zuul.marshal(process, keys)
-        return {'data': data, 'success': True}
+        disabled = not Zuul.checkPermission('Manage DMD')
+        return {'data': data, 'disabled': disabled, 'success': True}
 
     def setInfo(self, **data):
         facade = self._getFacade()
+        if not Zuul.checkPermission('Manage DMD'):
+            raise Exception('You do not have permission to save changes.')
         process = facade.getInfo(data['id'])
         Zuul.unmarshal(data, process)
         return {'success': True}

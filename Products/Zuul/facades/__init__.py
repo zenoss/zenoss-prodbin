@@ -29,7 +29,6 @@ class ZuulFacade(object):
         if dmd_factory:
             return dmd_factory()
 
-
 class TreeFacade(ZuulFacade):
     implements(ITreeFacade)
 
