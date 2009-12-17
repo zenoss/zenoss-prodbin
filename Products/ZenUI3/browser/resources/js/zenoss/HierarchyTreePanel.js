@@ -56,7 +56,9 @@ Zenoss.HierarchyTreePanel = Ext.extend(Ext.tree.TreePanel, {
             cls: 'hierarchy-panel',
             useArrows: true,
             border: false,
-            pathSeparator: '|'
+            pathSeparator: '|',
+            autoScroll: true,
+            containerScroll: true
         });
         if (config.directFn && !config.loader) {
             config.loader = {

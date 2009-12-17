@@ -224,6 +224,7 @@ var processFormConfig = {
     items: processFormItems,
     border: false,
     labelAlign: 'top',
+    autoScroll: true,
     api: {
         load: Zenoss.remote.ProcessRouter.getInfo,
         submit: Zenoss.remote.ProcessRouter.setInfo
