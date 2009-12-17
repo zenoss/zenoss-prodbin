@@ -291,11 +291,16 @@ def InstallEgg(dmd, eggPath, link=False):
         out, err = p.communicate()
         p.wait()
         if p.returncode:
+            DoEasyUninstall(eggPath)
             raise ZenPackException('Error installing the egg (%s): %s' %
                                 (p.returncode, err))
         zpDists = AddDistToWorkingSet(eggPath)
     else:
-        zpDists = DoEasyInstall(eggPath)
+        try:
+            zpDists = DoEasyInstall(eggPath)
+        except:
+            DoEasyUninstall(eggPath)
+            raise
         # cmd = 'easy_install --always-unzip --site-dirs=%s -d %s %s' % (
         #             zenPackDir,
         #             zenPackDir,
@@ -307,7 +312,6 @@ def InstallEgg(dmd, eggPath, link=False):
         # p.wait()
         # eggName = os.path.split(eggPath)[1]
         # eggPath = os.path.join(zenPackDir, eggName)
-
     return zpDists
 
 
