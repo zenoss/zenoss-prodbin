@@ -43,19 +43,28 @@ SiteWindowPortlet.prototype = {
     },
     buildSettingsPane: function() {
         s = this.settingsSlot;
+        /*
         this.locsearch = YAHOO.zenoss.zenautocomplete.LocationSearch(
             'URL (http://www.zenoss.com)', s);
-        addElementClass(this.locsearch.container, 
-                        'portlet-settings-control');
+        */
+        this.locsearch = INPUT({'value':this.datasource.baseLoc}, []);
+        var container = DIV({
+            'class':'autocompleter-container portlet-settings-control'
+        }, [
+            DIV({'class':'control-label'}, 'URL (http://www.zenoss.com)'),
+            this.locsearch
+           ]
+        );
+        s.appendChild(container);
     },
     submitSettings: function(e, settings) {
-        baseLoc = this.locsearch.input.value;
+        baseLoc = this.locsearch.value;
         if (baseLoc.length<1) baseLoc = this.datasource.baseLoc;
-        this.locsearch.input.value = '';
+        //this.locsearch.value = '';
         this.superclass.submitSettings(e, {'baseLoc':baseLoc});
     },
     startRefresh: function(firsttime) {
-        if (!firsttime) this.mapobject.refresh();
+        if (!firsttime) this.datasource.get(this.fill);
         if (this.refreshTime>0)
             this.calllater = callLater(this.refreshTime, this.startRefresh);
     }
