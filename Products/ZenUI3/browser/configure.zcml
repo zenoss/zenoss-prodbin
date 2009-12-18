@@ -110,6 +110,13 @@
     />
 
 <browser:page
+    template="templates/service.pt"
+    name="service"
+    for="*"
+    permission="zope2.Public"
+    />
+
+<browser:page
     template="templates/base-new.pt"
     name="reports"
     for="*"

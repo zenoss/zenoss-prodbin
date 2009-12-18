@@ -64,6 +64,7 @@ class IInfo(Interface):
 
 from events import *
 from process import *
+from service import *
 from device import *
 from info import *
 from tree import *

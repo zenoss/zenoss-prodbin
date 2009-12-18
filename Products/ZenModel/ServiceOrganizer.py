@@ -118,6 +118,28 @@ class ServiceOrganizer(Organizer, Commandable, ZenPackable):
                     log.warn("bad path '%s' for index '%s'",
                         brain.getPrimaryId, self.default_catalog)
 
+
+    def getSubClassesGen(self):
+        """Return generator that goes through all process classes.
+        """
+        for proc in self.serviceclasses.objectValuesGen():
+            yield proc
+        for subgroup in self.children():
+            for proc in subgroup.getSubClassesGen():
+                yield proc
+                
+                
+    def getSubClassesSorted(self):
+        '''Return list of the process classes sorted by sequence.
+        '''
+        def cmpProc(a, b):
+            return cmp(a.sequence, b.sequence)
+        procs = list(self.getSubClassesGen())
+        for i, p in enumerate(procs):
+            p.sequence = i
+        procs.sort(cmpProc)
+        return procs
+
     
     def countClasses(self):
         """Count all serviceclasses with in a ServiceOrganizer.

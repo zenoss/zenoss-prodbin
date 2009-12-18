@@ -49,3 +49,4 @@ class TreeFacade(ZuulFacade):
 
 from eventfacade import EventFacade
 from processfacade import ProcessFacade
+from servicefacade import ServiceFacade
