@@ -270,15 +270,14 @@ ul.x-tab-strip-bottom{
     margin: 0 2px;
     margin-top: -5px;
 }
-.x-toolbar.largetoolbar button {
+.x-toolbar.largetoolbar button,
+.x-toolbar button,
+.x-toolbar .xtb-text {
     font-family: helvetica,sans-serif;
     color:#383838;
     font-size: 8pt;
     height: 18px;
     font-weight: bold;
-}
-.x-toolbar .xtb-text{
-	color:#f4f4f4;
 }
 .x-toolbar .x-btn {
     text-transform: none;
@@ -1346,5 +1345,5 @@ body.x-body-masked .x-window-mc, body.x-body-masked .x-window-plain .x-window-mc
     font-weight: bold;
 }
 .x-grid3-filter .xtb-text{
-	color:#f4f4f4;
+    color:#f4f4f4;
 }

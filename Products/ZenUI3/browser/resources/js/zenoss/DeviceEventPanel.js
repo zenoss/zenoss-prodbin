@@ -252,8 +252,7 @@ Zenoss.ViewButton = Ext.extend(Ext.Button, {
             toggleHandler: createToggleHandler(userConfig.__item_index__),
             enableToggle: true,
             toggleGroup: 'view',
-            allowDepress: false,
-            width: 80
+            allowDepress: false
         };
 
         delete userConfig.__item_index__;
@@ -286,14 +285,16 @@ Zenoss.DeviceEventPanel = Ext.extend(Ext.Panel, {
                     text: _t('View: ')
                 }, {
                     xtype: 'ViewButton',
-                    id: 'devicesButton',
+                    id: 'Devices-button',
                     text: _t('Devices'),
+                    iconCls: 'devprobs',
                     __item_index__: 0,
                     pressed: true
                 }, {
                     xtype: 'ViewButton',
-                    id: 'eventsButton',
+                    id: 'Events-button',
                     text: _t('Events'),
+                    iconCls: 'events',
                     __item_index__: 1
                 }
             ],

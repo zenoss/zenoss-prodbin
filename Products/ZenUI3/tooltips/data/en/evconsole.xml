@@ -42,21 +42,21 @@
 
     <html>Export event console data to an XML or CSV file. By default, the
     file is named
-    &lt;tt&gt;events.&lt;/tt&gt;&lt;i&gt;Extension&lt;/i&gt;.</html>
+    <tt>events.</tt><i>Extension</i>.</html>
   </tooltip>
 
   <tooltip>
     <target>configure-button</target>
 
-    <html>Configure the event console view:&lt;br
-    /&gt;&lt;ul&gt;&lt;li&gt;&lt;strong&gt;Show severity row
-    colors&lt;/strong&gt;&lt;br /&gt;Select to shade each event with a color
-    associated with its severity.&lt;/li&gt;&lt;li&gt;&lt;strong&gt;Clear
-    filters&lt;/strong&gt;&lt;br /&gt;Clear filter selections, returning to
-    the default list.&lt;/li&gt;&lt;li&gt;&lt;strong&gt;Save this
-    configuration&lt;/strong&gt;&lt;br /&gt;Save your custom event console by
-    bookmarking it for quick access later.&lt;br /&gt;&lt;br /&gt;Watch:
-    Saving a custom view&lt;/li&gt;&lt;/ul&gt;</html>
+    <html>Configure the event console view:<br
+    /><ul><li><span style="font-weight: bold;">Show severity row
+    colors</span><br />Select to shade each event with a color
+    associated with its severity.</li><li><span style="font-weight: bold;">Clear
+    filters</span><br />Clear filter selections, returning to
+    the default list.</li><li><span style="font-weight: bold;">Save this
+    configuration</span><br />Save your custom event console by
+    bookmarking it for quick access later.<br /><br />Watch:
+    Saving a custom view</li></ul></html>
   </tooltip>
 
   <tooltip>
@@ -77,9 +77,9 @@
     <target>severity-selection</target>
 
     <html>Select one or more severity levels (Critical, Error, Warning, Info,
-    Debug, or Clear) to filter the list of events.&lt;br /&gt;&lt;br
-    /&gt;&lt;a href="http://community.zenoss.org/docs/DOC-3923"
-    target="_blank"&gt;Learn more about event severity
-    levels&lt;/a&gt;.</html>
+    Debug, or Clear) to filter the list of events.<br /><br
+    /><a href="http://community.zenoss.org/docs/DOC-3923"
+    target="_blank">Learn more about event severity
+    levels</a>.</html>
   </tooltip>
 </view>

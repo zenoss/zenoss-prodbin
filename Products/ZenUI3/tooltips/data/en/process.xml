@@ -3,7 +3,7 @@
   <tooltip>
     <target>Inherited-option</target>
 
-    <html>&lt;strong&gt;Inherited&lt;/strong&gt;&lt;br /&gt;By default, this
+    <html><span style="font-weight: bold;">Inherited</span><br />By default, this
     option is selected for all nodes below the Processes node. When selected,
     the node will inherit monitoring choices from its parent. </html>
   </tooltip>
@@ -11,7 +11,7 @@
   <tooltip>
     <target>Enabled-option</target>
 
-    <html>&lt;strong&gt;Enabled&lt;/strong&lt;br /&gt;When selected,
+    <html><span style="font-weight: bold;">Enabled</span><br />When selected,
     monitoring choices are individually enabled for this node. (The node does
     not inherit monitoring choices from its parent.) To select this option,
     you must first deselect the Inherited option.</html>
@@ -20,7 +20,7 @@
   <tooltip>
     <target>Event_Severity-selection</target>
 
-    <html>&lt;strong&gt;Event Severity&lt;/strong&gt;&lt;br /&gt;Select an
+    <html><span style="font-weight: bold;">Event Severity</span><br />Select an
     event severity (Critical, Error, Warning, Info, or Debug). This severity
     level is applied to the event created when the process fails.</html>
   </tooltip>
@@ -28,16 +28,16 @@
   <tooltip>
     <target>Pattern-entry</target>
 
-    <html>&lt;strong&gt;Pattern&lt;/strong&gt;&lt;br /&gt;Enter text (as a
+    <html><span style="font-weight: bold;">Pattern</span><br />Enter text (as a
     regular expression) that the system will match to define this
-    process.&lt;br /&gt;&lt;br /&gt;For example, to search for the
-    command:&lt;br /&gt;&lt;br /&gt;(NEED VALID COMMAND)&lt;br /&gt;&lt;br
-    /&gt;enter this pattern:&lt;br /&gt;&lt;br
-    /&gt;&lt;tt&gt;^.*\/*httpd&lt;/tt&gt;&lt;br /&gt;&lt;br /&gt;interpreted
-    as:&lt;br /&gt;&lt;br /&gt;(DEFINE)&lt;br /&gt;&lt;br /&gt;More
-    information about: &lt;a
-    href="http://en.wikipedia.org/wiki/Regular_expression"&gt;regular
-    expressions&lt;/a&gt;</html>
+    process.<br /><br />For example, to search for the
+    command:<br /><br />(NEED VALID COMMAND)<br /><br
+    />enter this pattern:<br /><br
+    /><tt>^.*\/*httpd</tt><br /><br />interpreted
+    as:<br /><br />(DEFINE)<br /><br />More
+    information about: <a
+    href="http://en.wikipedia.org/wiki/Regular_expression">regular
+    expressions</a></html>
   </tooltip>
 
   <tooltip>
@@ -58,6 +58,13 @@
     <target>Events-button</target>
 
     <html>Click to display events associated with the selected process or
-    processes. </html>
+    processes.</html>
   </tooltip>
+  
+  <tooltip>
+    <target>Save-button</target>
+
+    <html>Click to save the details of this process.</html>
+  </tooltip>
+  
 </view>

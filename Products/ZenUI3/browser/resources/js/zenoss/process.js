@@ -61,15 +61,15 @@ Ext.getCmp('master_panel').add({
  */
 
 
-// disable the monitoring fields if monitoring settings are acquired
+// disable the monitoring fields if monitoring settings are inherited
 function  setMonitoringDisabled(disabled) {
-    var monitorCheckbox = Ext.getCmp('monitorCheckbox');
-    var eventSeverityCombo = Ext.getCmp('eventSeverityCombo');
+    var monitorCheckbox = Ext.getCmp('Enabled-option');
+    var eventSeverityCombo = Ext.getCmp('Event_Severity-selection');
     monitorCheckbox.setDisabled(disabled);
     eventSeverityCombo.setDisabled(disabled);
 }
 
-function acquiredCheckboxHandler(checkbox, checked) {
+function inheritedCheckboxHandler(checkbox, checked) {
     setMonitoringDisabled(checked);
     var router = Zenoss.remote.ProcessRouter;
     var processTree = Ext.getCmp('processTree');
@@ -85,9 +85,9 @@ function acquiredCheckboxHandler(checkbox, checked) {
 
     var callback = function(provider, response) {
         var info = response.result.data;
-        var monitorCheckbox = Ext.getCmp('monitorCheckbox');
+        var monitorCheckbox = Ext.getCmp('Enabled-option');
         monitorCheckbox.setValue(info.monitor);
-        var eventSeverityCombo = Ext.getCmp('eventSeverityCombo');
+        var eventSeverityCombo = Ext.getCmp('Event_Severity-selection');
         eventSeverityCombo.setValue(info.eventSeverity);
     };
     
@@ -100,11 +100,11 @@ function actioncompleteHandler(form, action) {
         var processInfo = action.result.data;
         var regexFieldSet = Ext.getCmp('regexFieldSet');
         var nameTextField = Ext.getCmp('nameTextField');
-        var acquiredCheckbox = Ext.getCmp('acquiredCheckbox');
+        var inheritedCheckbox = Ext.getCmp('inheritedCheckbox');
         regexFieldSet.setVisible(processInfo.hasRegex);
         regexFieldSet.doLayout();
         nameTextField.setDisabled(processInfo.name == 'Processes');
-        acquiredCheckbox.setDisabled(processInfo.name == 'Processes');
+        inheritedCheckbox.setDisabled(processInfo.name == 'Processes');
         setMonitoringDisabled(processInfo.isMonitoringAcquired);
         Ext.getCmp('processForm').setDisabled(action.result.disabled);
     }
@@ -126,24 +126,24 @@ var descriptionTextField = {
     width: "100%"
 };
 
-var acquiredCheckbox = {
+var inheritedCheckbox = {
     xtype: 'checkbox',
-    id: 'acquiredCheckbox',
+    id: 'Inherited-option',
     fieldLabel: _t('Inherited'),
     name: 'isMonitoringAcquired',
-    handler: acquiredCheckboxHandler
+    handler: inheritedCheckboxHandler
 };
 
 var monitorCheckbox = {
     xtype: 'checkbox',
-    id: 'monitorCheckbox',
+    id: 'Enabled-option',
     fieldLabel: _t('Enabled'),
     name: 'monitor'
 };
 
 var eventSeverityCombo = {
     xtype: 'combo',
-    id: 'eventSeverityCombo',
+    id: 'Event_Severity-selection',
     fieldLabel: _t('Event Severity'),
     name: 'eventSeverity',
     triggerAction: 'all',
@@ -158,6 +158,7 @@ var eventSeverityCombo = {
 
 var regexTextField = {
     xtype: 'textfield',
+    id: 'Pattern-entry',
     fieldLabel: _t('Pattern'),
     name: 'regex',
     width: "100%"
@@ -165,6 +166,7 @@ var regexTextField = {
 
 var ignoreParametersCheckbox = {
     xtype: 'checkbox',
+    id: 'Ignore_Parameters-option',
     fieldLabel: _t('Ignore Parameters'),
     name: 'ignoreParameters'
 };
@@ -174,7 +176,7 @@ var monitoringFieldSet = {
     title: _t('Monitoring'),
     __innner_items__: [
         {
-            items: acquiredCheckbox
+            items: inheritedCheckbox
         }, {
             items: monitorCheckbox,
             bodyStyle: 'padding-left: 15px'
@@ -232,11 +234,10 @@ var processFormConfig = {
     },
     tbar: [
         {
-            xtype: 'tbfill'
-        }, {
             xtype: 'button',
+            id: 'Save-button',
             text: _t('Save'),
-            width: 80,
+            iconCls: 'save',
             handler: function(button, event) {
                 var processTree = Ext.getCmp('processTree');
                 var selectionModel = processTree.getSelectionModel();
