@@ -30,10 +30,13 @@ def manage_addOSProcess(context, className, userCreated, REQUEST=None):
     Make an os process from the ZMI
     """
     id = className.split('/')[-1]
-    context._setObject(id, OSProcess(id))
+    osp = OSProcess(id)
+    # Indexing is subscribed to ObjectAddedEvent, which fires
+    # on _setObject, so we want to set process class first.
+    osp.__of__(context).setOSProcessClass(className)
+    context._setObject(id, osp)
     osp = context._getOb(id)
     osp.procName = id
-    osp.setOSProcessClass(className)
     if userCreated: osp.setUserCreateFlag()
     if REQUEST is not None:
         REQUEST['RESPONSE'].redirect(context.absolute_url()+'/manage_main')

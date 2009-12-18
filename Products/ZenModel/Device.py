@@ -27,6 +27,8 @@ from _mysql_exceptions import OperationalError
 
 from urllib import quote as urlquote
 
+from zope.event import notify
+from Products.Zuul.catalog.events import IndexingEvent
 from Products.ZenUtils.Utils import isXmlRpc
 from Products.ZenUtils.Utils import unused
 from Products.ZenUtils import Time
@@ -1112,6 +1114,7 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
 
         self.setLastChange()
         self.index_object()
+        notify(IndexingEvent(self))
         if REQUEST:
             from Products.ZenUtils.Time import SaveMessage
             IMessageSender(self).sendToBrowser('Saved', SaveMessage())
@@ -1396,6 +1399,7 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
             self.addRelation("location", locobj)
         self.setAdminLocalRoles()
         self.index_object()
+        notify(IndexingEvent(self, 'path', False))
 
 
     def addLocation(self, newLocationPath, REQUEST=None):
@@ -1453,6 +1457,7 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
         objGetter = self.getDmdRoot("Groups").createOrganizer
         self._setRelations("groups", objGetter, groupPaths)
         self.index_object()
+        notify(IndexingEvent(self, 'path', False))
 
 
     security.declareProtected(ZEN_CHANGE_DEVICE, 'addDeviceGroup')
@@ -1484,6 +1489,7 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
         objGetter = self.getDmdRoot("Systems").createOrganizer
         self._setRelations("systems", objGetter, systemPaths)
         self.index_object()
+        notify(IndexingEvent(self, 'path', False))
       
 
     security.declareProtected(ZEN_CHANGE_DEVICE, 'addSystem')

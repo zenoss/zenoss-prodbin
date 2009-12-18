@@ -23,6 +23,8 @@ import logging
 log = logging.getLogger('zen.DeviceClass')
 
 import DateTime
+from zope.event import notify
+from zope.app.container.contained import ObjectMovedEvent
 from Globals import DTMLFile
 from Globals import InitializeClass
 from Acquisition import aq_base, aq_chain
@@ -40,8 +42,8 @@ from Products.ZenUtils.Search import makeCaseInsensitiveKeywordIndex
 from Products.ZenUtils.Search import makePathIndex, makeMultiPathIndex
 from Products.ZenUtils.Utils import importClass, zenPath
 from Products.ZenWidgets import messaging
-
 from Products.ZenUtils.FakeRequest import FakeRequest
+from Products.Zuul.catalog.events import IndexingEvent
 
 import RRDTemplate
 from DeviceOrganizer import DeviceOrganizer
@@ -281,6 +283,7 @@ class DeviceClass(DeviceOrganizer, ZenPackable, TemplateContainer):
             dev.setLastChange()
             dev.setAdminLocalRoles()
             dev.index_object()
+            notify(ObjectMovedEvent(dev, source, dev.id, target, dev.id))
             transaction.commit()
         if REQUEST:
             messaging.IMessageSender(self).sendToBrowser(title='Devices Moved',
@@ -772,8 +775,10 @@ class DeviceClass(DeviceOrganizer, ZenPackable, TemplateContainer):
         transaction.savepoint()
         for dev in self.getSubDevicesGen_recursive():
             dev.index_object()
+            notify(IndexingEvent(dev))
             for comp in dev.getDeviceComponentsNoIndexGen():
                 comp.index_object()
+                notify(IndexingEvent(comp))
             transaction.savepoint()
 
 

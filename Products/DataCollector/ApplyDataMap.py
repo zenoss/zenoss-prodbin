@@ -17,10 +17,14 @@ import Queue
 
 import transaction
 
+from zope.event import notify
+from zope.app.container.contained import ObjectRemovedEvent, ObjectMovedEvent
+from zope.app.container.contained import ObjectAddedEvent
 from Acquisition import aq_base
 
 from Products.ZenUtils.Utils import importClass, getObjByPath
-from Exceptions import *
+from Products.Zuul.catalog.events import IndexingEvent
+from Exceptions import ObjectCreationError
 from Products.ZenEvents.ZenEventClasses import Change_Add,Change_Remove,Change_Set,Change_Add_Blocked,Change_Remove_Blocked,Change_Set_Blocked
 from Products.ZenModel.Lockable import Lockable
 import Products.ZenEvents.Event as Event
@@ -345,10 +349,13 @@ class ApplyDataMap(object):
         if not changed:
             try: changed = obj._p_changed
             except: pass
-        if getattr(aq_base(obj), "index_object", False) and changed:
-            log.debug("indexing object %s", obj.id)
-            obj.index_object() 
-        if not changed: obj._p_deactivate()
+        if changed:
+            if getattr(aq_base(obj), "index_object", False):
+                log.debug("indexing object %s", obj.id)
+                obj.index_object() 
+            notify(IndexingEvent(obj))
+        else:
+            obj._p_deactivate()
         return changed
  
 
@@ -394,6 +401,7 @@ class ApplyDataMap(object):
             rel._setObject(remoteObj.id, remoteObj)
             remoteObj = rel._getOb(remoteObj.id)
             changed = True
+            notify(ObjectMovedEvent(remoteObj, rel, remoteObj.id, rel, remoteObj.id))
         return self._updateObject(remoteObj, objmap) or changed, remoteObj
 
 

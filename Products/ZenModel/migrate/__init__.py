@@ -194,3 +194,4 @@ import stringifyExpansionCardSlot
 import zEnablePassword
 import addenc
 import reindexdevices
+import globalcatalog

@@ -190,6 +190,48 @@ class MultiPathIndexTests(unittest.TestCase):
         res = index._apply_index({'path': {'query': '/ff/gg'}})
         lst = list(res[0].keys())
         self.assertEqual(lst, [2, 3, 4])
+    
+    def testAddingPathsIndividually(self):
+        index = self._index
+        index.index_object(1, Dummy("/ff"))
+        index.index_object(2, Dummy("/ff/gg"))
+        index.index_object(3, Dummy("/ff/gg/3.html"))
+        index.index_object(4, Dummy("/ff/gg/4.html"))
+        index.index_paths(4, ('/aa/bb/4.html','/ff'))
+        res1 = index._apply_index({'path': {'query': '/aa/bb'}})
+        res2 = index._apply_index({'path': {'query': '/ff/gg'}})
+        res3 = index._apply_index({'path': {'query': '/ff'}})
+        self.assertEqual(list(res1[0].keys()), [4]);
+        self.assertEqual(list(res2[0].keys()), [2, 3, 4]);
+        self.assertEqual(list(res3[0].keys()), [1, 2, 3, 4]);
+
+        res = index._apply_index({'path': {'query': '/', 'depth':1}})
+        self.assertEqual(list(res[0].keys()), [1, 4]);
+        res = index._apply_index({'path': {'query': '/ff', 'depth':0}})
+        self.assertEqual(list(res[0].keys()), [4]);
+        res = index._apply_index({'path': {'query': '/ff', 'depth':1}})
+        self.assertEqual(list(res[0].keys()), [2]);
+        res = index._apply_index({'path': {'query': '/ff', 'depth':2}})
+        self.assertEqual(list(res[0].keys()), [2, 3, 4]);
+
+    def testUnindexIndividualPaths(self):
+        index = self._index
+        index.index_object(1, Dummy("/ff"))
+        index.index_paths(1, ('/a/b/c', '/a/b/b'))
+        index.unindex_paths(1, ('/a/b/c',))
+        res = index._apply_index({'path':{'query':'/a/b/c'}})[0].keys()
+        self.assertEqual(list(res), [])
+        res = index._apply_index({'path':{'query':'/a/b/b'}})[0].keys()
+        self.assertEqual(list(res), [1])
+        res = index._apply_index({'path':{'query':'/ff'}})[0].keys()
+        self.assertEqual(list(res), [1])
+
+    def testUnindexIndividualPathError(self):
+        index = self._index
+        index.index_object(1, Dummy("/ff"))
+        # This should not throw an error
+        index.unindex_paths(1, ('/a/b/c',))
+        
 
 
 def test_suite():

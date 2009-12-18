@@ -152,5 +152,6 @@
              factory=".tree.EntityManager"/>
 
     <include package=".routers"/>
+    <include package=".catalog"/>
 
 </configure>

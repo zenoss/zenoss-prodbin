@@ -47,7 +47,7 @@ class MultiPathIndex(ExtendedPathIndex):
         """ return names of indexed attributes """
         return (self.id, )
 
-    def index_object(self, docid, obj ,threshold=100):
+    def index_object(self, docid, obj, threshold=100):
         """ hook for (Z)Catalog """
 
         f = getattr(obj, self.id, None)
@@ -66,9 +66,7 @@ class MultiPathIndex(ExtendedPathIndex):
                 return 0
 
         if not paths: return 0
-
         paths = _recursivePathSplit(paths)
-
         if not _isSequenceOfSequences(paths):
             paths = [paths]
 
@@ -77,7 +75,13 @@ class MultiPathIndex(ExtendedPathIndex):
             self.unindex_object(docid)
         self._unindex[docid] = set()
         self._length.change(1)
+        
+        self.index_paths(docid, paths)
+        
+        return 1
 
+
+    def index_paths(self, docid, paths):
         for path in paths:
             if isinstance(path, (list, tuple)):
                 path = '/'+ '/'.join(path[1:])
@@ -91,11 +95,9 @@ class MultiPathIndex(ExtendedPathIndex):
             self.insertEntry(None, docid, len(comps)-1, parent_path, path)
 
             self._unindex[docid].add(path)
-
-        return 1
-
-    def unindex_object(self, docid):
-        """ hook for (Z)Catalog """
+        
+        
+    def unindex_paths(self, docid, paths):
 
         if not self._unindex.has_key(docid):
             return
@@ -121,12 +123,23 @@ class MultiPathIndex(ExtendedPathIndex):
                 # Failure
                 pass
 
-        for path in self._unindex[docid]:
+        old = self._unindex[docid]
+        toremove = set()
+        for path in paths:
+            if isinstance(path, tuple):
+                path = '/'.join(path)
+            toremove.add(path)
+        try:
+            new = old - toremove
+        except TypeError:
+            # Bad unindex data; clear it out
+            new = ()
+
+        for path in old:
             if not path.startswith('/'):
                 path = '/'+path
             comps =  path.split('/')
             parent_path = '/'.join(comps[:-1])
-
 
             for level in range(len(comps[1:])):
                 comp = comps[level+1]
@@ -147,9 +160,20 @@ class MultiPathIndex(ExtendedPathIndex):
             level = len(comps[1:])
             comp = None
             unindex(comp, level-1, parent_path=parent_path, object_path=path)
-
-        self._length.change(-1)
-        del self._unindex[docid]
+        
+        if new:
+            self._unindex[docid] = set()
+            self.index_paths(docid, new)
+        else:
+            # Cleared out all paths for the object
+            self._length.change(-1)
+            del self._unindex[docid]
+        
+    def unindex_object(self, docid):
+        """ hook for (Z)Catalog """
+        if not self._unindex.has_key(docid):
+            return
+        self.unindex_paths(docid, self._unindex[docid])
 
     manage = manage_main = DTMLFile('dtml/manageMultiPathIndex', globals())
     manage_main._setName('manage_main')

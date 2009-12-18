@@ -5,15 +5,7 @@ log = logging.getLogger('extdirect')
 class DirectException(Exception):
     pass
 
-try:
-    import json
-except ImportError:
-    try:
-        import simplejson as json
-    except ImportError:
-        raise DirectException("No JSON library available. Please install"
-                              " simplejson or upgrade to Python 2.6.")
-
+import simplejson as json
 
 class DirectRouter(object):
     """
@@ -100,7 +92,6 @@ class DirectRouter(object):
                 'type':'exception',
                 'message':message
             }
-
         return {
             'type':'rpc',
             'tid': directRequest['tid'],

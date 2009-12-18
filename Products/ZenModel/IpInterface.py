@@ -27,6 +27,8 @@ from Globals import InitializeClass
 from Acquisition import aq_base
 from App.Dialogs import MessageDialog
 from AccessControl import ClassSecurityInfo
+from zope.event import notify
+from zope.app.container.contained import ObjectMovedEvent
 
 from Products.ZenRelations.RelSchema import *
 
@@ -246,7 +248,10 @@ class IpInterface(OSComponent, Layer2Linkable):
             ipobj = networks.createIp(ip, netmask)
             self.ipaddresses.addRelation(ipobj)
         ipobj.index_links()
-  
+        os = self.os()
+        notify(ObjectMovedEvent(self, os, self.id, os, self.id))
+
+
 
     def addLocalIpAddress(self, ip, netmask=24):
         """

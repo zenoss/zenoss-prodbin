@@ -27,6 +27,7 @@ import os
 import types
 import transaction
 import zope.component
+from zope.event import notify
 from DateTime import DateTime
 from xml.sax import make_parser, saxutils
 from xml.sax.handler import ContentHandler
@@ -41,6 +42,7 @@ from Products.ZenUtils.Utils import getObjByPath
 
 from Products.ZenModel.interfaces import IZenDocProvider
 from Products.ZenRelations.Exceptions import *
+from zope.app.container.contained import ObjectMovedEvent
 
 _STRING_PROPERTY_TYPES = ( 'string', 'text', 'password' )
 
@@ -193,8 +195,9 @@ for a ZenPack.
 
         if name in ('object', 'tomany', 'tomanycont'):
             obj = self.objstack.pop()
+            notify(ObjectMovedEvent(obj, obj, obj.id, obj, obj.id))
             if hasattr(aq_base(obj), 'index_object'):
-                obj.index_object()
+               obj.index_object()
             if self.rootpath == obj.getPrimaryId():
                 self.log.info('Calling reIndex %s', obj.getPrimaryId())
                 obj.reIndex()

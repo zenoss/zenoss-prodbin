@@ -17,16 +17,18 @@ import Globals
 import logging
 log = logging.getLogger("zen.migrate")
 
-from Products.ZenUtils.Search import makePathIndex
+from Products.ZenUtils.Search import makePathIndex, makeMultiPathIndex
 
-class ReindexDevicesAndTemplates(Migrate.Step):
+class UpgradeMultiPathIndices(Migrate.Step):
     version = Migrate.Version(2, 6, 0)
 
-    def cutover(self, dmd):  
+    def cutover(self, dmd):
         idx = dmd.Devices.deviceSearch._catalog.indexes['path']
-        if not getattr(idx, '_index_parents') or not len(idx._index_parents):
-            for dev in dmd.Devices.getSubDevices():
-                dev.index_object()
+        idx_parents = getattr(idx, '_index_parents', None)
+        if idx_parents is None:
+            dmd.Devices.deviceSearch.delIndex('path')
+            dmd.Devices.deviceSearch._catalog.addIndex('path', 
+                    makeMultiPathIndex('path'))
 
         idx = dmd.searchRRDTemplates._catalog.indexes['getPhysicalPath']
         if not idx.__class__.__name__=='ExtendedPathIndex':
@@ -34,12 +36,5 @@ class ReindexDevicesAndTemplates(Migrate.Step):
             dmd.searchRRDTemplates.delIndex('getPhysicalPath')
             dmd.searchRRDTemplates._catalog.addIndex('getPhysicalPath', 
                     makePathIndex('getPhysicalPath'))
-            for brain in templates:
-                try:
-                    brain.getObject().index_object()
-                except KeyError:
-                    # This shouldn't happen, but in case they have a
-                    # bad catalog let's try not to die
-                    pass
 
-ReindexDevicesAndTemplates()
+upgradeindices = UpgradeMultiPathIndices()

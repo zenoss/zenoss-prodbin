@@ -33,12 +33,14 @@ def manage_addIpService(context, id, protocol, port, userCreated=None, REQUEST=N
     Make an IP service entry
     """
     s = IpService(id)
-    context._setObject(id, s)
-    s = context._getOb(id)
     s.protocol = protocol
     s.port = int(port)
     args = {'protocol':protocol, 'port':int(port)}
-    s.setServiceClass(args)
+    # Indexing is subscribed to ObjectAddedEvent, which fires
+    # on _setObject, so we want to set service class first.
+    s.__of__(context).setServiceClass(args)
+    context._setObject(id, s)
+    s = context._getOb(id)
     if userCreated: s.setUserCreateFlag()
     if REQUEST is not None:
         REQUEST['RESPONSE'].redirect(context.absolute_url()

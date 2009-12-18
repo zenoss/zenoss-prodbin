@@ -1,0 +1,69 @@
+<configure
+    xmlns="http://namespaces.zope.org/zope"
+    xmlns:five="http://namespaces.zope.org/five"
+    xmlns:browser="http://namespaces.zope.org/browser">
+
+    <adapter factory = ".global_catalog.IndexableWrapper"/>
+    <adapter factory = ".global_catalog.ComponentWrapper"/>
+    <adapter factory = ".global_catalog.DeviceWrapper"/>
+
+    <adapter
+        factory = ".paths.DefaultPathReporter"
+        for = ".interfaces.IGloballyIndexed"
+        provides = ".interfaces.IPathReporter"
+        />
+
+    <adapter
+        factory = ".paths.DevicePathReporter"
+        for = "Products.ZenModel.Device.Device"
+        provides = ".interfaces.IPathReporter"
+        />
+
+    <adapter
+        factory = ".paths.ServicePathReporter"
+        for = "Products.ZenModel.Service.Service"
+        provides = ".interfaces.IPathReporter"
+        />
+
+    <adapter
+        factory = ".paths.InterfacePathReporter"
+        for = "Products.ZenModel.IpInterface.IpInterface"
+        provides = ".interfaces.IPathReporter"
+        />
+
+    <adapter
+        factory = ".paths.ProcessPathReporter"
+        for = "Products.ZenModel.OSProcess.OSProcess"
+        provides = ".interfaces.IPathReporter"
+        />
+
+    <adapter
+        factory = ".paths.ProductPathReporter"
+        for = "Products.ZenModel.Software.Software"
+        provides = ".interfaces.IPathReporter"
+        />
+
+    <five:implements 
+        interface=".interfaces.IGloballyIndexed"
+        class="Products.ZenModel.ZenModelRM.ZenModelRM"/>
+
+    <five:implements 
+        interface=".interfaces.ITreeSpanningComponent"
+        class="Products.ZenModel.Service.Service"/>
+
+    <five:implements 
+        interface=".interfaces.ITreeSpanningComponent"
+        class="Products.ZenModel.IpInterface.IpInterface"/>
+
+    <five:implements 
+        interface=".interfaces.ITreeSpanningComponent"
+        class="Products.ZenModel.OSProcess.OSProcess"/>
+
+    <subscriber handler=".events.onIndexingEvent"/>
+    <subscriber handler=".events.onObjectRemoved"/>
+    <subscriber handler=".events.onObjectAdded"/>
+    <subscriber handler=".events.onObjectMoved"/>
+    <subscriber handler=".events.onTreeSpanningComponentBeforeDelete"/>
+    <subscriber handler=".events.onTreeSpanningComponentAfterAddOrMove"/>
+
+</configure>

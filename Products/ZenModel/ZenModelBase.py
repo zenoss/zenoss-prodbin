@@ -44,6 +44,7 @@ from Products.ZenWidgets import messaging
 
 from ZenossSecurity import *
 
+_MARKER = object()
 
 # Custom device properties start with c
 iscustprop = re.compile("^c[A-Z]").search
@@ -663,8 +664,8 @@ class ZenModelBase(object):
         So while this looks pretty attrocious, it might be the most sane
         solution.
         """
-        base = aq_base(self)
-        return getattr(base, attr, True) == getattr(base, attr, False)
+        return getattr(aq_base(self), attr, _MARKER) is not _MARKER
+
 
 class ZenModelZenDocProvider(object):
     zope.interface.implements(IZenDocProvider)

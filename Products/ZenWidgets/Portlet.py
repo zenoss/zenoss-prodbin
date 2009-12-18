@@ -18,7 +18,6 @@ from Products.ZenModel.ZenModelRM import ZenModelRM
 from Globals import InitializeClass
 from Products.ZenUtils.Utils import zenPath
 
-
 def manage_addPortlet(self, context, REQUEST=None):
     """
     Add a portlet.
@@ -50,6 +49,7 @@ class Portlet(ZenModelRM):
         {'id':'preview', 'type':'string', 'mode':'w'},
     )
 
+
     def __init__(self, sourcepath, id='', title='', description='', 
                  preview='', permission=ZEN_COMMON):
         if not id: id = basename(sourcepath).split('.')[0]
@@ -76,6 +76,12 @@ class Portlet(ZenModelRM):
         else:
             self.source = f.read()
             f.close()
+
+    def getPrimaryPath(self):
+        """
+        Override the default, which doesn't account for things on zport
+        """
+        return ('', 'zport') + super(Portlet, self).getPrimaryPath()
 
     def get_source(self, debug_mode=False):
         if debug_mode: self._read_source()

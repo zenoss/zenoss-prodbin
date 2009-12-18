@@ -25,11 +25,13 @@ def manage_addWinService(context, id, description, userCreated=None,
                          REQUEST=None):
     """make a device"""
     s = WinService(id)
+    # Indexing is subscribed to ObjectAddedEvent, which fires
+    # on _setObject, so we want to set service class first.
+    args = {'name':id, 'description':description}
+    s.__of__(context).setServiceClass(args)
     context._setObject(id, s)
     s = context._getOb(id)
     s.description = description
-    args = {'name':id, 'description':description}
-    s.setServiceClass(args)
     if userCreated: s.setUserCreateFlag()
     if REQUEST is not None:
         REQUEST['RESPONSE'].redirect(context.absolute_url()
