@@ -42,7 +42,7 @@ from Products.ZenCollector.interfaces import ICollectorPreferences,\
 from Products.ZenCollector.tasks import SimpleTaskFactory,\
                                         SimpleTaskSplitter,\
                                         TaskStates
-from Products.ZenEvents.ZenEventClasses import Error, Warning, Info, \
+from Products.ZenEvents.ZenEventClasses import Clear, Error, Warning, Info, \
     Debug, Status_Wmi
 from Products.ZenUtils.observable import ObservableMixin
 from Products.ZenWin.Watcher import Watcher
@@ -335,6 +335,16 @@ class ZenEventLogTask(ObservableMixin):
             d.addCallback(self._collectCallback)
             return d
 
+    def _deviceUp(self, result):
+        msg = 'WMI connection to %s up.' % self._devId
+        self._eventService.sendEvent(dict(
+            summary=msg,
+            eventClass=Status_Wmi,
+            device=self._devId,
+            severity=Clear,
+            component='zeneventlog'))
+        return result
+
     def _collectCallback(self, result):
         """
         Callback called after a connect or previous collection so that another
@@ -346,6 +356,7 @@ class ZenEventLogTask(ObservableMixin):
         self.state = ZenEventLogTask.STATE_POLLING
         d = self._watcher.getEvents(self._queryTimeout, self._batchSize)
         d.addCallbacks(self._collectSuccessful, self._failure)
+        d.addCallbacks(self._deviceUp)
         return d
 
     def _connectCallback(self, result):

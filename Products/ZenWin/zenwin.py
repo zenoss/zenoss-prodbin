@@ -41,7 +41,7 @@ from Products.ZenCollector.interfaces import ICollectorPreferences,\
 from Products.ZenCollector.tasks import SimpleTaskFactory,\
                                         SimpleTaskSplitter,\
                                         TaskStates
-from Products.ZenEvents.ZenEventClasses import Error, Clear, Status_WinService
+from Products.ZenEvents.ZenEventClasses import Error, Clear, Status_WinService, Status_Wmi
 from Products.ZenUtils.observable import ObservableMixin
 from Products.ZenWin.WMIClient import WMIClient
 from Products.ZenWin.Watcher import Watcher
@@ -219,10 +219,9 @@ class ZenWinTask(ObservableMixin):
         self._eventService.sendEvent(dict(
             summary=summary,
             component='zenwin',
-            eventClass=Status_WinService,
+            eventClass=Status_Wmi,
             device=self._devId,
             severity=Error,
-            agent='zenwin',
             ))
 
         # give the result to the rest of the errback chain
@@ -297,6 +296,16 @@ class ZenWinTask(ObservableMixin):
             d.addCallback(self._collectCallback)
             return d
 
+    def _deviceUp(self, result):
+        msg = 'WMI connection to %s up.' % self._devId
+        self._eventService.sendEvent(dict(
+            summary=msg,
+            eventClass=Status_Wmi,
+            device=self._devId,
+            severity=Clear,
+            component='zenwin'))
+        return result
+
     def _collectCallback(self, result):
         """
         Callback called after a connect or previous collection so that another
@@ -308,6 +317,7 @@ class ZenWinTask(ObservableMixin):
         self.state = ZenWinTask.STATE_WATCHER_QUERY
         d = self._watcher.getEvents(self._queryTimeout, self._batchSize)
         d.addCallbacks(self._collectSuccessful, self._failure)
+        d.addCallbacks(self._deviceUp)
         return d
 
     def _connectCallback(self, result):
