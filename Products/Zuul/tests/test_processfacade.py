@@ -39,7 +39,7 @@ class ProcessFacadeTest(EventTestCase, ZuulFacadeTestCase):
         verifyClass(IProcessNode, ProcessNode)
         verifyClass(IProcessInfo, ProcessInfo)
         verifyClass(IProcessFacade, ProcessFacade)
-        
+
     def test_getTree(self):
         root = self.facade.getTree('Processes')
         self.assertEqual('Processes', root.id)
@@ -98,7 +98,7 @@ class ProcessFacadeTest(EventTestCase, ZuulFacadeTestCase):
         self.assertEqual(1, len(deviceInfos))
         deviceInfo = deviceInfos[0]
         self.assertEqual('quux', deviceInfo.device)
-        
+
     def test_getEvents(self):
         device = self.dmd.Devices.createInstance('quux')
         device.os.addOSProcess('/zport/dmd/Processes/foo/osProcessClasses/bar', True)
@@ -112,4 +112,4 @@ def test_suite():
 
 if __name__=="__main__":
     unittest.main(defaultTest='test_suite')
-    
+

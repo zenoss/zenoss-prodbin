@@ -56,6 +56,11 @@ class ZenModelRM(ZenModelBase, RelationshipManager, Historical, ZenPacker):
         self.createdTime = DateTime(time.time())
         RelationshipManager.__init__(self, id, title, buildRelations)
 
+    def setTitle(self, title):
+        self.title = title
+        from Products.Zuul.interfaces import ICatalogTool
+        ICatalogTool(self).update(self)
+
     security.declareProtected('Manage DMD', 'rename')
     def rename(self, newId, REQUEST=None):
         """Delete device from the DMD"""
@@ -352,8 +357,8 @@ class ZenModelRM(ZenModelBase, RelationshipManager, Historical, ZenPacker):
         cat = getattr(self, self.default_catalog, None)
         if cat != None: 
             cat.catalog_object(self, self.getPrimaryId())
-            
-                                                
+
+
     def unindex_object(self):
         """A common method to allow Findables to unindex themselves."""
         cat = getattr(self, self.default_catalog, None)
@@ -387,4 +392,4 @@ class ZenModelRM(ZenModelBase, RelationshipManager, Historical, ZenPacker):
         for id in path.split('/'):
             child = child._getOb(id)
         return child
-    
+

@@ -56,7 +56,6 @@ Zenoss.HierarchyTreePanel = Ext.extend(Ext.tree.TreePanel, {
             cls: 'hierarchy-panel',
             useArrows: true,
             border: false,
-            pathSeparator: '|',
             autoScroll: true,
             containerScroll: true
         });
@@ -74,6 +73,7 @@ Zenoss.HierarchyTreePanel = Ext.extend(Ext.tree.TreePanel, {
             config.root = {
                 nodeType: 'async',
                 id: config.root,
+                uid: config.rootuid,
                 text: _t(config.root)
             };
         }

@@ -12,8 +12,7 @@
 ###########################################################################
 
 import time
-from zope.interface import providedBy, ro, implements, classImplementsOnly
-from zope.interface import implementedBy
+from zope.interface import providedBy, ro, implements
 from zope.component import adapts
 from AccessControl import getSecurityManager
 from AccessControl.PermissionRole import rolesForPermissionOn
@@ -23,7 +22,6 @@ from Products.ZenUtils.Search import makeMultiPathIndex
 from Products.ZenUtils.Search import makeCaseSensitiveFieldIndex
 from Products.ZenUtils.Search import makeCaseInsensitiveFieldIndex
 from Products.ZenUtils.Search import makeCaseSensitiveKeywordIndex
-from Products.ZenWidgets.Portlet import Portlet
 from Products.ZenModel.DeviceComponent import DeviceComponent
 from Products.ZenModel.Device import Device
 
@@ -131,8 +129,8 @@ class ComponentWrapper(IndexableWrapper):
 
     def monitored(self):
         if self._context.monitored():
-            return 1
-        return 0
+            return '1'
+        return ''
 
     def collectors(self):
         return self._context.getCollectors()
@@ -177,7 +175,6 @@ class GlobalCatalog(ZCatalog):
         if uid:
             idx = self._catalog.getIndex('path')
             idx.unindex_paths(uid, paths)
-
 
 
 def createGlobalCatalog(portal):

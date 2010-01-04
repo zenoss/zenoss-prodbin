@@ -40,7 +40,7 @@ def decorator(decorator_func):
 def marshal(f, *args, **kwargs):
     result = f(*args, **kwargs)
     return Zuul.marshal(result)
-    
+
 
 def marshalto(keys=None, marshallerName=''):
     @decorator

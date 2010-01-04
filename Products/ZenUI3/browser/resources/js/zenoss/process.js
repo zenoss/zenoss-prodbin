@@ -29,17 +29,17 @@ function clickHandler(node) {
     
     // load up appropriate data in the form
     Ext.getCmp('processForm').getForm().load({
-        params: {id: node.attributes.id}
+        params: {uid: node.attributes.uid}
     });
     
     // load up appropriate data in the devices grid
     Ext.getCmp('deviceGrid').getStore().load({
-        params: {id: node.attributes.id}
+        params: {uid: node.attributes.uid}
     });
     
     // load up appropriate data in the event grid
     Ext.getCmp('eventGrid').getStore().load({
-        params: {id: node.attributes.id}
+        params: {uid: node.attributes.uid}
     });
     
 } // clickHandler
@@ -50,6 +50,7 @@ Ext.getCmp('master_panel').add({
     searchField: true,
     directFn: Zenoss.remote.ProcessRouter.getTree,
     root: 'Processes',
+    rootuid: '/zport/dmd/Processes',
     listeners: {click: clickHandler}
 }); // master_panel.add
 
@@ -76,11 +77,11 @@ function inheritedCheckboxHandler(checkbox, checked) {
     var selectionModel = processTree.getSelectionModel();
     var selectedNode = selectionModel.getSelectedNode();
 
-    var id;
+    var uid;
     if (checked && selectedNode.parentNode !== null) {
-        id = selectedNode.parentNode.id;
+        uid = selectedNode.parentNode.attributes.uid;
     } else {
-        id = selectedNode.id;
+        uid = selectedNode.attributes.uid;
     }
 
     var callback = function(provider, response) {
@@ -91,7 +92,7 @@ function inheritedCheckboxHandler(checkbox, checked) {
         eventSeverityCombo.setValue(info.eventSeverity);
     };
     
-    router.getInfo({id: id, keys: ['monitor', 'eventSeverity']}, callback);
+    router.getInfo({uid: uid, keys: ['monitor', 'eventSeverity']}, callback);
 }
 
 // when the form loads, show/hide the regex fieldset
@@ -246,7 +247,8 @@ var processFormConfig = {
                 selectedNode.attributes.text.text = nameTextField.getValue();
                 selectedNode.setText(selectedNode.attributes.text);
                 var form = Ext.getCmp('processForm').getForm();
-                var params = Ext.apply({id: selectedNode.id}, form.getValues());
+                var params = Ext.apply({uid: selectedNode.attributes.uid},
+                                       form.getValues());
                 form.api.submit(params);
             }
         }
@@ -278,7 +280,7 @@ var processForm = new Zenoss.ProcessFormPanel({});
 // place the form in the top right
 Ext.getCmp('top_detail_panel').add(processForm);
 
-processForm.getForm().load({params:{id: 'Processes'}});
+processForm.getForm().load({params:{uid: 'Processes'}});
 
 
 /* ***********************************************************************
@@ -290,7 +292,7 @@ processForm.getForm().load({params:{id: 'Processes'}});
  // the store that holds the records for the device grid
  var deviceStore = {
      xtype: 'DeviceStore',
-     autoLoad: {params:{id: 'Processes'}},
+     autoLoad: {params:{uid: '/zport/dmd/Processes'}},
      // Ext.data.DirectProxy config
      api: {read: Zenoss.remote.ProcessRouter.getDevices}
  };
@@ -298,7 +300,7 @@ processForm.getForm().load({params:{id: 'Processes'}});
  // the store that holds the records for the event grid
  var eventStore = {
      xtype: 'EventStore',
-     autoLoad: {params:{id: 'Processes'}},
+     autoLoad: {params:{uid: '/zport/dmd/Processes'}},
      // Ext.data.DirectProxy config
      api: {read: Zenoss.remote.ProcessRouter.getEvents}
  };

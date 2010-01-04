@@ -12,19 +12,15 @@
 ###########################################################################
 
 import logging
-from itertools import imap
+from itertools import imap, chain
 from zope.component import adapts
 from zope.interface import implements
 from Products.Zuul.tree import TreeNode
-from Products.Zuul.facades import ZuulFacade
-from Products.Zuul.interfaces import IProcessFacade
-from Products.Zuul.interfaces import IProcessEntity
-from Products.Zuul.interfaces import ITreeFacade
-from Products.Zuul.interfaces import IProcessInfo
-from Products.Zuul.interfaces import IInfo
-from Products.Zuul.interfaces import IProcessNode, ITreeNode
-from Products.Zuul.interfaces import IDeviceInfo
-from Products.Zuul.interfaces import IEventInfo
+from Products.Zuul.facades import TreeFacade
+from Products.Zuul.interfaces import IProcessFacade, IProcessEntity
+from Products.Zuul.interfaces import ITreeFacade, IProcessInfo
+from Products.Zuul.interfaces import IProcessNode, ICatalogTool
+from Products.ZenModel.OSProcess import OSProcess
 from Products.ZenModel.OSProcessClass import OSProcessClass
 from Products.ZenModel.OSProcessOrganizer import OSProcessOrganizer
 
@@ -36,13 +32,6 @@ class ProcessNode(TreeNode):
 
     uiProvider = 'hierarchy'
 
-    def __init__(self, object):
-        """
-        The object parameter is the wrapped persistent object. It is either an
-        OSProcessOrganizer or an OSProcessClass.
-        """
-        self._object = object
-
     @property
     def iconCls(self):
         sev = 'clear' # FIXME: Get this somehow
@@ -51,7 +40,7 @@ class ProcessNode(TreeNode):
     @property
     def text(self):
         text = super(ProcessNode, self).text
-        numInstances = 3 # FIXME: Get this somehow
+        numInstances = ICatalogTool(self._object).count(OSProcess, self.uid)
         return {
             'text': text,
             'count': numInstances,
@@ -59,28 +48,16 @@ class ProcessNode(TreeNode):
         }
 
     @property
-    def id(self):
-        path = list(self._object.getPrimaryPath()[3:])
-        if 'osProcessClasses' in path:
-            path.remove('osProcessClasses')
-        return '/'.join(path)
-
-    @property
     def children(self):
-        managers = []
-        if not self.leaf:
-            obj = self._object
-            managers.extend(obj.objectValues(spec='OSProcessOrganizer'))
-            rel = obj._getOb('osProcessClasses')
-            managers.extend(rel.objectValues(spec='OSProcessClass'))
-        return imap(ITreeNode, managers)
+        cat = ICatalogTool(self._object)
+        orgs = cat.search(OSProcessOrganizer, paths=(self.uid,), depth=1)
+        # Must search at depth+1 to account for relationship
+        cls = cat.search(OSProcessClass, paths=(self.uid,), depth=2)
+        return imap(ProcessNode, chain(orgs, cls))
 
     @property
     def leaf(self):
-        return isinstance(self._object, OSProcessClass)
-
-    def __repr__(self):
-        return "<ProcessNode(id=%s)>" % (self.id)
+        return 'osProcessClasses' in self.uid
 
 
 class ProcessInfo(object):
@@ -94,11 +71,15 @@ class ProcessInfo(object):
         """
         self._object = object
 
+    @property
+    def uid(self):
+        return '/'.join(self._object.getPrimaryPath())
+
     def getName(self):
         return self._object.titleOrId()
 
     def setName(self, name):
-        self._object.title = name
+        self._object.setTitle(name)
 
     name = property(getName, setName)
 
@@ -181,73 +162,12 @@ class ProcessInfo(object):
         return "<ProcessInfo(name=%s)>" % (self.name)
 
 
-class ProcessFacade(ZuulFacade):
+class ProcessFacade(TreeFacade):
     implements(IProcessFacade, ITreeFacade)
 
-    def getTree(self, id):
-        obj = self._findObject(id)
-        return ITreeNode(obj)
+    def _root(self):
+        return self._dmd.Processes
 
-    def getInfo(self, id):
-        obj = self._findObject(id)
-        return IInfo(obj)
+    def _instanceClass(self):
+        return "Products.ZenModel.OSProcess.OSProcess"
 
-    def getDevices(self, id):
-        processClasses = self._getProcessClasses(id)
-        deviceInfos = []
-        infoClass = None
-        for processClass in processClasses:
-            for instance in processClass.instances():
-                newDeviceInfo = IInfo(instance.device())
-                if infoClass is None:
-                    infoClass = newDeviceInfo.__class__
-                for existingDeviceInfo in deviceInfos:
-                    if existingDeviceInfo.device == newDeviceInfo.device:
-                        break
-                else:
-                    deviceInfos.append(newDeviceInfo)
-        if infoClass is not None:
-            deviceInfos.sort(key=infoClass.getDevice)
-        return deviceInfos
-
-    def getEvents(self, id):
-        processClasses = self._getProcessClasses(id)
-        zem = self._dmd.ZenEventManager
-        eventInfos = []
-        for processClass in processClasses:
-            for instance in processClass.instances():
-                try:
-                    for event in zem.getEventListME(instance):
-                        if not getattr(event, 'device', None):
-                            event.device = instance.device().id
-                        if not getattr(event, 'component', None):
-                            event.component = instance.name()
-                        eventInfos.append(IEventInfo(event))
-                except Exception, e:
-                    msg = "Failed to get event list for process '%s'"
-                    args = (instance.titleOrId(),)
-                    log.error(msg, *args)
-                    continue
-        return eventInfos
-
-    def _findObject(self, id):
-        parts = id.split('/')
-        objectId = parts[-1]
-        if len(parts) == 1:
-            manager = self._dmd
-        else:
-            parentPath = '/'.join(parts[:-1])
-            parent = self._dmd.findChild(parentPath)
-            if objectId in parent.objectIds():
-                manager = parent
-            else:
-                manager = parent._getOb('osProcessClasses')
-        return manager._getOb(objectId)
-
-    def _getProcessClasses(self, id):
-        processObj = self._findObject(id)
-        if isinstance(processObj, OSProcessOrganizer):
-            processClasses = processObj.getSubOSProcessClassesSorted()
-        else:
-            processClasses = [processObj]
-        return processClasses

@@ -72,8 +72,12 @@ class InfoMarshaller(object):
         if keys is None:
             data = _marshalImplicitly(self._obj)
         else:
+            # Ensure that uid makes it through
+            if 'uid' not in keys:
+                keys.append('uid')
             data = _marshalExplicitly(self._obj, keys)
         return data
+
 
 class TreeNodeMarshaller(object):
     """
@@ -106,6 +110,7 @@ class TreeNodeMarshaller(object):
                 obj['children'].append(Zuul.marshal(childNode))
         return obj
 
+
 class DefaultUnmarshaller(object):
     """
     Sets all the values found in the data dictionary onto the obj object using
@@ -121,6 +126,7 @@ class DefaultUnmarshaller(object):
     def unmarshal(self, data):
         for key, value in data.iteritems():
             setattr(self.obj, key, value)
+
 
 class ProcessUnmarshaller(object):
     """

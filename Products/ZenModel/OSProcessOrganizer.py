@@ -118,8 +118,8 @@ class OSProcessOrganizer(Organizer, Commandable, ZenPackable):
         for subgroup in self.children():
             for proc in subgroup.getSubOSProcessClassesGen():
                 yield proc
-                
-                
+
+
     def getSubOSProcessClassesSorted(self):
         '''Return list of the process classes sorted by sequence.
         '''
@@ -131,7 +131,6 @@ class OSProcessOrganizer(Organizer, Commandable, ZenPackable):
             p.sequence = i
         return procs
 
-        
     def countClasses(self):
         """Count all osprocessclasses with in a ServiceOrganizer.
         """
@@ -160,11 +159,11 @@ class OSProcessOrganizer(Organizer, Commandable, ZenPackable):
         from Products.ZenUtils.Utils import resequence
         return resequence(self, self.getSubOSProcessClassesGen(), 
                             seqmap, origseq, REQUEST)
-    
+
     def unmonitorOSProcessClasses(self, ids=None, REQUEST=None):
         return self.monitorOSProcessClasses(ids, False, REQUEST)
 
-   
+
     def monitorOSProcessClasses(self, ids=None, monitor=True, REQUEST=None):
         """Remove OSProcessClasses from an EventClass.
         """

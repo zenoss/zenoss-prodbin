@@ -138,19 +138,12 @@
              for=".interfaces.IEventEntity"
              factory=".facades.eventfacade.EventInfo"
              />
+
+    <adapter provides=".interfaces.ICatalogTool"
+             for="*"
+             factory=".tree.CatalogTool"
+             />
          
-    <adapter factory=".tree.RecursiveWalker" />
-    <adapter factory=".tree.DeviceOrganizerWalker" />
-
-    <adapter factory=".tree.ProcessTreeWalker"
-             for="Products.ZenModel.OSProcessOrganizer.OSProcessOrganizer"/>
-
-    <adapter factory=".tree.ServiceTreeWalker"
-             for="Products.ZenModel.ServiceOrganizer.ServiceOrganizer"/>
-
-    <adapter for="Products.ZenModel.Organizer.Organizer"
-             factory=".tree.EntityManager"/>
-
     <include package=".routers"/>
     <include package=".catalog"/>
 

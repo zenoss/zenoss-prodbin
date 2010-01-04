@@ -25,9 +25,9 @@ class ProcessRouter(DirectRouter):
         data = Zuul.marshal(tree)
         return data['children']
 
-    def getInfo(self, id, keys=None):
+    def getInfo(self, uid, keys=None):
         facade = self._getFacade()
-        process = facade.getInfo(id)
+        process = facade.getInfo(uid)
         data = Zuul.marshal(process, keys)
         disabled = not Zuul.checkPermission('Manage DMD')
         return {'data': data, 'disabled': disabled, 'success': True}
@@ -36,22 +36,19 @@ class ProcessRouter(DirectRouter):
         facade = self._getFacade()
         if not Zuul.checkPermission('Manage DMD'):
             raise Exception('You do not have permission to save changes.')
-        process = facade.getInfo(data['id'])
+        process = facade.getInfo(data['uid'])
         Zuul.unmarshal(data, process)
         return {'success': True}
 
-    def getDevices(self, id):
+    def getDevices(self, uid):
         facade = self._getFacade()
-        devices = facade.getDevices(id)
-        data = []
-        for device in devices:
-            data.append(Zuul.marshal(device))
+        devices = facade.getDevices(uid)
+        data = Zuul.marshal(devices)
         return {'data': data, 'success': True}
 
-    def getEvents(self, id):
+    def getEvents(self, uid):
         facade = self._getFacade()
-        events = facade.getEvents(id)
-        data = []
-        for event in events:
-            data.append(Zuul.marshal(event))
+        events = facade.getEvents(uid)
+        data = Zuul.marshal(events)
         return {'data': data, 'success': True}
+

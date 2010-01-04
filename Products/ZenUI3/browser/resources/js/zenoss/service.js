@@ -29,7 +29,7 @@ function clickHandler(node) {
     
     // load up appropriate data in the form
     Ext.getCmp('serviceForm').getForm().load({
-        params: {id: node.attributes.id}
+        params: {id: node.attributes.uid}
     });
     
     // load up appropriate data in the devices grid
@@ -46,11 +46,11 @@ function acquiredCheckboxHandler(checkbox, checked) {
     var selectionModel = processTree.getSelectionModel();
     var selectedNode = selectionModel.getSelectedNode();
 
-    var id;
+    var uid;
     if (checked && selectedNode.parentNode !== null) {
-        id = selectedNode.parentNode.id;
+        uid = selectedNode.parentNode.attributes.uid;
     } else {
-        id = selectedNode.id;
+        uid = selectedNode.attributes.uid;
     }
 
     var callback = function(provider, response) {
@@ -61,7 +61,7 @@ function acquiredCheckboxHandler(checkbox, checked) {
         eventSeverityCombo.setValue(info.eventSeverity);
     };
     
-    router.getInfo({id: id, keys: ['monitor', 'eventSeverity']}, callback);
+    router.getInfo({uid: uid, keys: ['monitor', 'eventSeverity']}, callback);
 }
 
 

@@ -12,8 +12,10 @@
 ###########################################################################
 
 import transaction
+from types import ClassType
 from operator import attrgetter
 from itertools import islice
+from zope.interface import Interface
 from Products.ZCatalog.CatalogBrains import AbstractCatalogBrain
 from Acquisition import aq_base
 
@@ -54,11 +56,12 @@ _MARKER = object()
 def safe_hasattr(object, name):
     return getattr(object, name, _MARKER) is not _MARKER
 
+
 def unbrain(item):
     if isinstance(item, AbstractCatalogBrain):
         return item.getObject()
     return item
-    
+
 
 class LazySortableList(object):
 
@@ -99,11 +102,30 @@ class LazySortableList(object):
 class BrainWhilePossible(object):
     def __init__(self, ob):
         self._ob = ob
+
+    @property
+    def _is_brain(self):
+        return isinstance(self._ob, AbstractCatalogBrain)
+
     def __getattr__(self, attr):
-        if isinstance(self._ob, AbstractCatalogBrain):
+        if self._is_brain:
             try:
                 return getattr(aq_base(self._ob), attr)
             except AttributeError:
                 # Not metadata; time to go get the ob
                 self._ob = unbrain(self._ob)
         return getattr(self._ob, attr)
+
+
+def dottedname(ob):
+    # If already a dotted name, just return it
+    if isinstance(ob, basestring):
+        return ob
+    # If an interface, use cached value
+    elif isinstance(ob, Interface):
+        return ob.__identifier__
+    # Don't know, so create name ourselves from the class
+    if not isinstance(ob, (type, ClassType)):
+        ob = ob.__class__
+    return '%s.%s' % (ob.__module__, ob.__name__)
+

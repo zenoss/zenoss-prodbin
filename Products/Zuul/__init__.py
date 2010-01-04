@@ -24,9 +24,9 @@ from utils import safe_hasattr as hasattr
 def getFacade(name):
     """
     Get facade by name.
-    """    
+    """
     return component.getUtility(IFacade, name)
-    
+
 
 def marshal(obj, keys=None, marshallerName=''):
     """
@@ -64,6 +64,9 @@ def unmarshal(data, obj, unmarshallerName=''):
     """
     unmarshaller = component.getAdapter(obj, IUnmarshaller, unmarshallerName)
     verify.verifyObject(IUnmarshaller, unmarshaller)
+    # Get rid of immutable uid attribute
+    if 'uid' in data:
+        del data['uid']
     return unmarshaller.unmarshal(data)
 
 
@@ -73,7 +76,7 @@ def info(obj, adapterName=''):
     """
     if IInfo.providedBy(obj):
         return obj
-        
+
     # obj is a dict, so apply to its values recursively
     elif isinstance(obj, dict):
         return dict((k, info(obj[k], adapterName)) for k in obj)
@@ -85,6 +88,7 @@ def info(obj, adapterName=''):
     # attempt to adapt; if no adapter, return obj itself
     else:
         return component.queryAdapter(obj, IInfo, adapterName, obj)
+
 
 def checkPermission(permission):
     """

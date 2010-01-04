@@ -7,7 +7,8 @@ class ITreeNode(IMarshallable):
     """
     Represents a single branch or leaf in a tree.
     """
-    id = Attribute('The ID of the node, e.g. Processes/Apache/httpd')
+    path = Attribute("The path of the node, e.g. Processes/Apache/httpd")
+    id = Attribute('The unique ID of the node, e.g. /zport/dmd/Processes')
     text = Attribute('The text label that represents the node')
     children = Attribute("The node's children")
     leaf = Attribute('Is this node a leaf (incapable of having children)')
@@ -25,34 +26,41 @@ class ITreeFacade(Interface):
         C{children} attribute.
         """
 
-class ITreeWalker(Interface):
-    """
-    Adapts a member of the ZenRelations hierarchy. Provides uniform
-    API for requesting contained children.
-    """
-    def rawChildren(self):
-        """
-        Returns representations of children that are able to get the 
-        represented object when asked (brains, or BrainWhilePossibles, or
-        the object itself). 
 
-        This method is meant to be called by other TreeWalkers or by 
-        subclasses, so that filtering and sorting can be done later.
+class ICatalogTool(Interface):
+    """
+    Accesses the global catalog to pull objects of a certain type.
+    """
+    def search(types, start, limit, orderby, reverse, paths, depth, query):
         """
-    def children(self):
+        Build and execute a query against the global catalog.
         """
-        Returns consumable children, i.e. the actual children themselves.
+    def getBrain(path):
+        """
+        Gets the brain representing the object defined at C{path}.
+        """
+    def parents(path):
+        """
+        Get brains representing parents of C{path} + C{path}. Good for making
+        breadcrumbs without waking up all the actual parent objects.
+        """
+    def count(types, path):
+        """
+        Get the count of children matching C{types} under C{path}.
 
-        This method is meant to be called directly. It is the entry point for
-        non-walkers.
+        This is cheap; the lazy list returned from a catalog search knows its
+        own length without exhausting its contents.
+
+        @param types: Classes or interfaces that should be matched
+        @type types: tuple
+        @param path: The path under which children should be counted. Defaults
+        to the path of C{self.context}.
+        @type path: str
+        @return: The number of children matching.
+        @rtype: int
         """
-        
-class IEntityManager(Interface):
-    """
-    Adapts an organizer. Provides a way to query for lazy batches of children by 
-    type and sort the results.
-    """
-    def children(self):
+    def update(obj):
         """
-        Get some children
+        Update the metadata for an object. Note: does NOT reindex.
         """
+

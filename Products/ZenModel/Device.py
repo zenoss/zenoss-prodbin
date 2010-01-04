@@ -71,8 +71,6 @@ from zope.interface import implements
 from EventView import IEventView
 from Products.ZenWidgets.interfaces import IMessageSender
 from Products.ZenWidgets import messaging
-from Products.Jobber.status import SUCCESS, FAILURE
-from Products.ZenUtils.Utils import binPath
 from Products.ZenEvents.browser.EventPillsAndSummaries import getEventPillME
 from OFS.CopySupport import CopyError # Yuck, a string exception
 
@@ -1124,7 +1122,7 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
         """
         Changes the title to newTitle and reindexes the object
         """
-        self.title = newTitle
+        super(Device, self).setTitle(newTitle)
         self.index_object()
 
     def monitorDevice(self):

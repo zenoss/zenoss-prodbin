@@ -11,70 +11,58 @@
 #
 ###########################################################################
 
-from itertools import imap
+import logging
+from itertools import imap, chain
 from zope.component import adapts
 from zope.interface import implements
 from Products.Zuul.tree import TreeNode
-from Products.Zuul.facades import ZuulFacade
+from Products.Zuul.facades import TreeFacade
 from Products.Zuul.interfaces import ITreeFacade
 from Products.Zuul.interfaces import IServiceFacade
 from Products.Zuul.interfaces import IServiceEntity
-from Products.Zuul.interfaces import IServiceInfo, IServiceOrganizerInfo, IInfo
-from Products.Zuul.interfaces import IServiceNode, ITreeNode
-from Products.Zuul.interfaces import IDeviceInfo, IEventInfo
+from Products.Zuul.interfaces import IServiceInfo, IServiceOrganizerInfo
+from Products.Zuul.interfaces import IServiceNode,ICatalogTool
 from Products.ZenModel.ServiceClass import ServiceClass
 from Products.ZenModel.ServiceOrganizer import ServiceOrganizer
+from Products.ZenModel.IpService import IpService
+from Products.ZenModel.WinService import WinService
+
+log = logging.getLogger('zen.ServiceFacade')
 
 class ServiceNode(TreeNode):
     implements(IServiceNode)
     adapts(IServiceEntity)
 
     uiProvider = 'hierarchy'
-        
-    def __init__(self, object):
-        """
-        The object parameter is the wrapped persistent object. It is either a 
-        ServiceOrganizer or a ServiceClass.
-        """
-        self._object = object
 
     @property
     def iconCls(self):
         sev = 'clear' # FIXME: Get this somehow
         return 'severity-icon-small %s' % sev
-    
-    @property
-    def id(self):
-        path = list(self._object.getPrimaryPath()[3:])
-        if 'ServiceClasses' in path:
-            path.remove('ServiceClasses')
-        return '/'.join(path)
-        
+
     @property
     def text(self):
         text = super(ServiceNode, self).text
-        numInstances = 3 # FIXME: Get this somehow
+        numInstances = ICatalogTool(self._object).count(
+            (IpService, WinService), self.uid)
         return {
             'text': text,
             'count': numInstances,
             'description': 'instances'
         }
-        
+
     @property
     def children(self):
-        managers = []
-        if not self.leaf:
-            managers.extend(self._object.objectValues(spec='ServiceOrganizer'))
-            rel = self._object._getOb('serviceclasses')
-            managers.extend(rel.objectValues(spec='ServiceClass'))
-        return imap(ITreeNode, managers)
+        cat = ICatalogTool(self._object)
+        orgs = cat.search(ServiceOrganizer, paths=(self.uid,), depth=1)
+        # Must search at depth+1 to account for relationship
+        cls = cat.search(ServiceClass, paths=(self.uid,), depth=2)
+        return imap(ServiceNode, chain(orgs, cls))
 
     @property
     def leaf(self):
-        return isinstance(self._object, ServiceClass)
+        return 'serviceclasses' in self.uid
 
-    def __repr__(self):
-        return "<ServiceNode(id=%s)>" % (self.id)  
 
 # TODO: Abstract ServiceOrganizerInfo into a generic OrganizerInfo
 class ServiceOrganizerInfo(object):
@@ -87,24 +75,26 @@ class ServiceOrganizerInfo(object):
         """
         self._object = service
 
+    @property
+    def uid(self):
+        return '/'.join(self._object.getPrimaryPath())
+
     def getName(self):
         return self._object.titleOrId()
 
-    def setName(self, value):
-        self._object.name = value
+    def setName(self, name):
+        self._object.setTitle(name)
 
     name = property(getName, setName)
 
     def getDescription(self):
         return self._object.description
-    
+
     def setDescription(self, value):
         self._object.description = value
-    
+
     description = property(getDescription, setDescription) 
-    
-    def __repr__(self):
-        return "<ServiceOrganizerInfo(name=%s)>" % (self.name)  
+
 
 class ServiceInfo(object):
     implements(IServiceInfo)
@@ -116,6 +106,10 @@ class ServiceInfo(object):
         """
         self._object = service
 
+    @property
+    def uid(self):
+        return '/'.join(self._object.getPrimaryPath())
+
     def getName(self):
         return self._object.titleOrId()
 
@@ -126,23 +120,23 @@ class ServiceInfo(object):
 
     def getDescription(self):
         return self._object.description
-    
+
     def setDescription(self, value):
         self._object.description = value
-    
+
     description = property(getDescription, setDescription) 
-    
+
     def getServiceKeys(self):
         return self._object.serviceKeys
-    
+
     def setServiceKeys(self, value):
         self._object.serviceKeys = value
-    
+
     serviceKeys = property(getServiceKeys, setServiceKeys)
-    
+
     def getPort(self):
         return self._object.port
-    
+
     def setPort(self, value):
         self._object.port = value
 
@@ -152,69 +146,12 @@ class ServiceInfo(object):
         return "<ServiceInfo(name=%s)>" % (self.name)  
 
 
-              
-class ServiceFacade(ZuulFacade):
+
+class ServiceFacade(TreeFacade):
     implements(IServiceFacade, ITreeFacade)
-    
-    def getTree(self, id):
-        obj = self._findObject(id)
-        return ITreeNode(obj)
 
-    def getInfo(self, id):
-        obj = self._findObject(id)
-        return IInfo(obj)
+    def _root(self):
+        return self._dmd.Services
 
-    def getDevices(self, id):
-        serviceClasses = self._getClasses(id)
-        deviceInfos = []
-        infoClass = None
-        for serviceClass in serviceClasses:
-            for instance in serviceClass.instances():
-                newDeviceInfo = IDeviceInfo(instance.device())
-                if infoClass is None:
-                    infoClass = newDeviceInfo.__class__
-                for existingDeviceInfo in deviceInfos:
-                    if existingDeviceInfo.device == newDeviceInfo.device:
-                        break
-                else:
-                    deviceInfos.append(newDeviceInfo)
-        if infoClass is not None:
-            deviceInfos.sort(key=infoClass.getDevice)
-        return deviceInfos
-
-    def getEvents(self, id):
-        serviceClasses = self._getClasses(id)
-        zem = self._dmd.ZenEventManager
-        eventInfos = []
-        for serviceClass in serviceClasses:
-            for instance in serviceClass.instances():
-                for event in zem.getEventListME(instance):
-                    if not getattr(event, 'device', None):
-                        event.device = instance.device().id
-                    if not getattr(event, 'component', None):
-                        event.component = instance.name()
-                    eventInfos.append(IEventInfo(event))
-        return eventInfos
-
-    def _findObject(self, treeId):
-        parts = treeId.split('/')
-        objectId = parts[-1]
-        if len(parts) == 1:
-            manager = self._dmd
-        else:
-            parentPath = '/'.join(parts[:-1])
-            parent = self._dmd.findChild(parentPath)
-            if objectId in parent.objectIds():
-                manager = parent
-            else:
-                manager = parent._getOb('ServiceClasses')
-        return manager._getOb(objectId)
-
-    def _getClasses(self, id):
-        obj = self._findObject(id)
-        if isinstance(obj, ServiceOrganizer):
-            classes = obj.getSubClassesSorted()
-        else:
-            classes = [obj]
-        return classes
-    
+    def _instanceClass(self):
+        return "Products.ZenModel.Service.Service"
