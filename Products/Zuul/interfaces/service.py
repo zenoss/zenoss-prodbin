@@ -12,10 +12,11 @@
 ###########################################################################
 
 from zope.interface import Interface, Attribute
+from Products.Zuul.interfaces import IFacade
 from tree import ITreeNode
 from info import IInfo
 
-class IServiceFacade(Interface):
+class IServiceFacade(IFacade):
 
     def getInfo(nodeId):
         """

@@ -12,6 +12,7 @@
 ###########################################################################
 
 from zope.interface import Interface, Attribute
+from Products.Zuul.interfaces import IFacade
 from info import IInfo
 
 class IEventEvent(Interface):
@@ -81,7 +82,7 @@ class IEventInfo(IInfo):
     eventClass = Attribute('the event class')
     summary = Attribute('a summary of the event')
 
-class IEventFacade(Interface):
+class IEventFacade(IFacade):
 
     def fields(context=None):
         """

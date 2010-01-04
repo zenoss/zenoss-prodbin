@@ -53,26 +53,19 @@
 
     <utility factory=".facades.EventFacade"
              provides=".interfaces.IEventFacade"
-             />
-
-    <utility factory=".facades.ProcessFacade"
-             provides=".interfaces.IFacade"
-             name="process"
+             name="event"
              />
 
     <utility factory=".facades.ProcessFacade"
              provides=".interfaces.IProcessFacade"
+             name="process"
              />
 
     <utility factory=".facades.ServiceFacade"
              provides=".interfaces.IServiceFacade"
-             />
-
-    <utility factory=".facades.ServiceFacade"
-             provides=".interfaces.IFacade"
              name="service"
              />
-    
+
     <utility component=".utils.get_dmd"
              provides=".interfaces.IDataRootFactory"
              />
