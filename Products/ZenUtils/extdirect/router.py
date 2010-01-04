@@ -43,8 +43,7 @@ class DirectRouter(object):
         if len(directResponses) == 1:
             directResponses = directResponses[0]
             
-        return json.dumps(directResponses, default=lambda o:o.__json__(),
-            encoding='iso-8859-1')
+        return json.dumps(directResponses, encoding='iso-8859-1')
         
     def _processDirectRequest(self, directRequest):
 
