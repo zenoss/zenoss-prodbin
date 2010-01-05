@@ -23,7 +23,7 @@ from utils import safe_hasattr as hasattr
 
 def getFacade(name):
     """
-    Get facade by name. 
+    Get facade by name.
     """
     return component.getUtility(IFacade, name)
 
