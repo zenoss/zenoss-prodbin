@@ -117,7 +117,11 @@ class EventsRouter(DirectRouter):
             params = unjson(params)
         zem = self.api._event_manager(history)
         where = zem.lookupManagedEntityWhere(self.context)
-        where = zem.filteredWhere(where, params)
+        #escape any % in the where clause because of format eval later
+        where = where.replace('%', '%%')
+
+        values = []
+        where = zem.filteredWhere(where, params, values)
         if self._asof:
             where += " and not (stateChange>%s and eventState=0)" % (
                                                 self.dateDB(self._asof))
@@ -130,7 +134,7 @@ class EventsRouter(DirectRouter):
             curs = conn.cursor()
             curs.execute("set @row:=0;")
             curs.execute("set @marker:=999;")
-            curs.execute(query)
+            curs.execute(query, values)
             result = curs.fetchall()
         finally:
             curs.close()

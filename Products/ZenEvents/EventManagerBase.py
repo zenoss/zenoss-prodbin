@@ -363,7 +363,7 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
                                  **kwargs)
 
 
-    def filteredWhere(self, where, filters, values = None):
+    def filteredWhere(self, where, filters, values):
         """
         Create SQL representing conditions that match passed filters and append
         it to a given where clause.
@@ -391,9 +391,8 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
         @param filters: Values for which to create filters (e.g.,
                         {'device':'^loc.*$', 'severity':[4, 5]})
         @type filters: dict or JSON str representing dict
-        @param values: if not none the returned where clause will be 
-                parameterized and the values will be populated with the values, 
-                if none the values will be in the where string
+        @param values: Clause will be parameterized and the values list will be 
+                populated with the values for the query
         @type values: list
         """
         
@@ -435,10 +434,7 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
                 sevstr = ' or '.join(['%s=%%s' % (k,) for s in v])
                 queryValues.extend(v)
                 newwhere += ' and (%s) ' % sevstr
-        if values is not None:
-            values.extend(queryValues)
-        else:
-            newwhere = newwhere % tuple(queryValues)
+        values.extend(queryValues)
         return where + newwhere
 
 
@@ -468,7 +464,6 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
         getWhere = getattr(context, 'getWhere',
                            lambda:self.lookupManagedEntityWhere(context))
         where = getWhere()
-        where = self.filteredWhere(where, filters)
         if asof:
             where += " and not (stateChange>%s and eventState=0)" % (
                                                     self.dateDB(asof))
@@ -483,7 +478,8 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
                 events += self.getEventList(resultFields=('evid',),
                                             where=where, orderby="%s %s" %
                                             (sort, direction), severity=-1,
-                                            state=2, offset=s, rows=e)
+                                            state=2, offset=s, rows=e,
+                                            filters=filters)
 
         # Uniqueify the list of event IDs and return as a list
         evids = set(e.evid for e in events) | set(evids)
