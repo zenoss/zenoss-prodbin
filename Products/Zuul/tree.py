@@ -77,7 +77,7 @@ class CatalogTool(object):
             path = path.getPhysicalPath()
         if isinstance(path, tuple):
             path = '/'.join(path)
-        brains = self.catalog(path={'query':path, 'level':0})
+        brains = self.catalog(path={'query':path, 'depth':0})
         if brains:
             return brains[0]
 
