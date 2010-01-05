@@ -137,9 +137,11 @@ class DiscoverService(ModelerService):
         try:
             netroot = getNetworkRoot(self.dmd, 
                 kw.get('performanceMonitor', 'localhost'))
-            ipobj = netroot.createIp(ip)
-            # If we're not supposed to discover this ip, return None
-            if not force and not getattr(ipobj, 'zAutoDiscover', True):
+            # If we're not supposed to discover this IP, return None
+            netobj = netroot.getNet(ip)
+            netroot.createIp(ip, netobj.netmask)
+            autoDiscover = getattr(netobj, 'zAutoDiscover', True)
+            if not force and not autoDiscover:
                 return None, False
             kw['manageIp'] = ip
             dev = manage_createDevice(self.dmd, **kw)
@@ -154,6 +156,7 @@ class DiscoverService(ModelerService):
             # Make and return a device proxy
             return self.createDeviceProxy(e.dev), False
         except Exception, ex:
+            log.exception("IP address %s (kw = %s) encountered error", ip, kw)
             raise pb.CopyableFailure(ex)
         transaction.commit()
         return self.createDeviceProxy(dev), True
