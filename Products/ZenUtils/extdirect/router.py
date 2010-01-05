@@ -112,7 +112,7 @@ class DirectProviderDefinition(object):
     See http://extjs.com/products/extjs/direct.php for a full explanation of
     protocols and features of Ext.Direct.
     """
-    def __init__(self, routercls, url, ns=None):
+    def __init__(self, routercls, url, timeout, ns=None):
         """
         @param routercls: A L{DirectRouter} subclass
         @type routercls: class
@@ -127,6 +127,7 @@ class DirectProviderDefinition(object):
         self.routercls = routercls
         self.url = url
         self.ns = ns
+        self.timeout = timeout
 
     def _config(self):
         actions = []
@@ -145,8 +146,10 @@ class DirectProviderDefinition(object):
 
                 actions.append({'name':name, 'len':arglen})
         config = {
+            'id':self.routercls.__name__,
             'type':'remoting',
             'url':self.url,
+            'timeout':self.timeout,
             'actions': {
                 self.routercls.__name__: actions
             }

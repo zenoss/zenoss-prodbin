@@ -32,3 +32,11 @@ class IDirectRouter(Interface):
         description=u"The layer",
         required=False
     )
+
+    timeout = TextLine(
+        title=u"Timeout",
+        description=unicode("Override the default timeout (in milliseconds)"
+                            " for the calls"),
+        required=False,
+        default=u"30000"
+    )
