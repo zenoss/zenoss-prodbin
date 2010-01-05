@@ -13,14 +13,54 @@
 
 import logging
 from zope.interface import implements
-from zope.component import queryUtility
+from zope.component import queryUtility, adapts
 
+from Products.ZenModel.ZenModelRM import ZenModelRM
 from Products.Zuul.interfaces import IFacade, IDataRootFactory, ITreeNode
 from Products.Zuul.interfaces import ITreeFacade, IInfo, ICatalogTool
 from Products.Zuul.interfaces import IEventInfo
 from Products.Zuul.utils import unbrain
+from Products.Zuul.decorators import memoize
 
 log = logging.getLogger('zen.Zuul')
+
+
+class InfoBase(object):
+    implements(IInfo)
+    adapts(ZenModelRM)
+
+    def __init__(self, object):
+        self._object = object
+
+    @property
+    @memoize
+    def uid(self):
+        return '/'.join(self._object.getPrimaryPath())
+
+    @property
+    def id(self):
+        return self._object.id
+
+    def getName(self):
+        return self._object.titleOrId()
+
+    def setName(self, name):
+        self._object.setTitle(name)
+
+    name = property(getName, setName)
+
+    def getDescription(self):
+        return self._object.description
+
+    def setDescription(self, value):
+        self._object.description = value
+
+    description = property(getDescription, setDescription) 
+
+    def __repr__(self):
+        return '<%s Info "%s">' % (self._object.__class__.__name__, self.id)
+
+
 
 class ZuulFacade(object):
     implements(IFacade)
@@ -88,3 +128,4 @@ class TreeFacade(ZuulFacade):
 from eventfacade import EventFacade
 from processfacade import ProcessFacade
 from servicefacade import ServiceFacade
+from devicefacade import DeviceFacade

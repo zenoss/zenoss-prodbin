@@ -16,10 +16,10 @@ from zope.component import adapts
 from zope.interface import implements
 from Products.Zuul.tree import TreeNode
 from Products.Zuul.facades import TreeFacade
-from Products.Zuul.interfaces import IDeviceClassFacade, IDeviceClassNode
-from Products.Zuul.interfaces import IDeviceClassInfo, IDeviceClass, ITreeFacade
-from Products.Zuul.interfaces import IDeviceClass
-from Products.Zuul.interfaces import IDeviceInfo, IDevice
+from Products.Zuul.interfaces import IDeviceFacade, IDeviceClassNode
+from Products.Zuul.interfaces import IDeviceClass, IDeviceInfo, IDevice
+from Products.Zuul.interfaces import ICatalogTool
+from Products.Zuul.facades import InfoBase
 from Products.ZenUtils import IpUtil
 
 class DeviceClassNode(TreeNode):
@@ -27,39 +27,29 @@ class DeviceClassNode(TreeNode):
     adapts(IDeviceClass)
 
     @property
-    def id(self):
-        path = self._object.getPrimaryUrlPath()[:3]
-        return '/'.join(path)
+    def children(self):
+        cat = ICatalogTool(self._object)
+        orgs = cat.search(IDeviceClass, paths=(self.uid,), depth=1)
+        return imap(DeviceClassNode, orgs)
 
     @property
-    def children(self):
-        return imap(ITreeNode, self._object.objectValues(spec='DeviceClass'))
+    def text(self):
+        text = super(DeviceClassNode, self).text
+        cat = ICatalogTool(self._object)
+        numInstances = cat.count('Products.ZenModel.Device.Device', self.uid)
+        return {
+            'text': text,
+            'count': numInstances,
+            'description': 'devices'
+        }
 
     # Everything is potentially a branch, just some have no children.
     leaf = False
 
 
-class DeviceClassInfo(object):
-    implements(IDeviceClassInfo)
-    adapts(IDeviceClass)
-
-    def __init__(self, object):
-        """
-        The object parameter is the wrapped persistent object. It is either an
-        OSProcessOrganizer or an OSProcessClass.
-        """
-        self._object = object
-
-    @property
-    def name(self):
-        return self._object.titleOrId()
-
-class DeviceInfo(object):
+class DeviceInfo(InfoBase):
     implements(IDeviceInfo)
     adapts(IDevice)
-
-    def __init__(self, object):
-        self._object = object
 
     @property
     def device(self):
@@ -87,13 +77,18 @@ class DeviceInfo(object):
     def availability(self):
         return self._object.availability().availability
 
-    def __repr__(self):
-        return "<DeviceInfo(device=%s)>" % (self.device)
 
 class DeviceFacade(TreeFacade):
     """
     Facade for device stuff.
     """
-    implements(IDeviceClassFacade)
+    implements(IDeviceFacade)
 
+    @property
+    def _root(self):
+        return self._dmd.Devices
+
+    @property
+    def _instanceClass(self):
+        return 'Products.ZenModel.Device.Device'
 

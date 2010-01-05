@@ -66,3 +66,11 @@ def infoto(adapterName=''):
         return Zuul.info(result, adapterName=adapterName)
     return info
 
+@decorator
+def memoize(f, *args, **kwargs):
+    sig = repr((args, kwargs))
+    cache = f._m_cache = getattr(f, '_m_cache', {})
+    if sig not in cache:
+        cache[sig] = f(*args, **kwargs)
+    return cache[sig]
+

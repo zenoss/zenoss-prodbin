@@ -16,7 +16,7 @@ from itertools import imap, chain
 from zope.component import adapts
 from zope.interface import implements
 from Products.Zuul.tree import TreeNode
-from Products.Zuul.facades import TreeFacade
+from Products.Zuul.facades import TreeFacade, InfoBase
 from Products.Zuul.interfaces import ITreeFacade
 from Products.Zuul.interfaces import IServiceFacade
 from Products.Zuul.interfaces import IServiceEntity
@@ -64,67 +64,9 @@ class ServiceNode(TreeNode):
         return 'serviceclasses' in self.uid
 
 
-# TODO: Abstract ServiceOrganizerInfo into a generic OrganizerInfo
-class ServiceOrganizerInfo(object):
-    implements(IServiceOrganizerInfo)
-    adapts(ServiceOrganizer)
-
-    def __init__(self, service):
-        """
-        The object parameter is the wrapped persistent object. 
-        """
-        self._object = service
-
-    @property
-    def uid(self):
-        return '/'.join(self._object.getPrimaryPath())
-
-    def getName(self):
-        return self._object.titleOrId()
-
-    def setName(self, name):
-        self._object.setTitle(name)
-
-    name = property(getName, setName)
-
-    def getDescription(self):
-        return self._object.description
-
-    def setDescription(self, value):
-        self._object.description = value
-
-    description = property(getDescription, setDescription) 
-
-
-class ServiceInfo(object):
+class ServiceInfo(InfoBase):
     implements(IServiceInfo)
     adapts(ServiceClass)
-
-    def __init__(self, service):
-        """
-        The object parameter is the wrapped persistent object.
-        """
-        self._object = service
-
-    @property
-    def uid(self):
-        return '/'.join(self._object.getPrimaryPath())
-
-    def getName(self):
-        return self._object.titleOrId()
-
-    def setName(self, value):
-        self._object.name = value
-
-    name = property(getName, setName)
-
-    def getDescription(self):
-        return self._object.description
-
-    def setDescription(self, value):
-        self._object.description = value
-
-    description = property(getDescription, setDescription) 
 
     def getServiceKeys(self):
         return self._object.serviceKeys
@@ -141,9 +83,6 @@ class ServiceInfo(object):
         self._object.port = value
 
     port = property(getPort, setPort)
-
-    def __repr__(self):
-        return "<ServiceInfo(name=%s)>" % (self.name)  
 
 
 

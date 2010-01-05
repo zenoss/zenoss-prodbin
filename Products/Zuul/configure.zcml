@@ -51,6 +51,11 @@
         class="Products.ZenModel.Device.Device"
         />
 
+    <utility factory=".facades.DeviceFacade"
+             provides=".interfaces.IDeviceFacade"
+             name="device"
+             />
+
     <utility factory=".facades.EventFacade"
              provides=".interfaces.IEventFacade"
              name="event"
@@ -112,19 +117,14 @@
              factory=".facades.servicefacade.ServiceInfo"
              />
 
-    <adapter provides=".interfaces.IInfo"
-             for="Products.ZenModel.ServiceOrganizer.ServiceOrganizer"
-             factory=".facades.servicefacade.ServiceOrganizerInfo"
-             />
-
-    <adapter provides=".interfaces.IInfo"
-             for=".interfaces.IDeviceClass"
-             factory=".facades.devicefacade.DeviceClassInfo"
-             />
-
     <adapter provides=".interfaces.IDeviceInfo"
              for=".interfaces.IDevice"
              factory=".facades.devicefacade.DeviceInfo"
+             />
+
+    <adapter provides=".interfaces.IInfo"
+             for="Products.ZenModel.ZenModelRM.ZenModelRM"
+             factory=".facades.InfoBase"
              />
 
     <adapter provides=".interfaces.IEventInfo"

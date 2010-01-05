@@ -12,7 +12,7 @@
 ###########################################################################
 
 from zope.interface import Interface, Attribute
-from Products.Zuul.interfaces import IInfo
+from Products.Zuul.interfaces import IInfo, IFacade
 
 
 class IDeviceClassNode(Interface):
@@ -54,15 +54,8 @@ class IDeviceInfo(IInfo):
         IDeviceInfos.
         """
 
-class IDeviceClassFacade(Interface):
-
-    def getInfo(root):
-        """
-        Get information about the DeviceClass identified by root.
-        """
-
-    def getDevices(root):
-        """
-        Get devices under root.
-        """
+class IDeviceFacade(IFacade):
+    """
+    pass
+    """
 

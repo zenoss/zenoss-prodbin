@@ -16,7 +16,7 @@ from itertools import imap, chain
 from zope.component import adapts
 from zope.interface import implements
 from Products.Zuul.tree import TreeNode
-from Products.Zuul.facades import TreeFacade
+from Products.Zuul.facades import TreeFacade, InfoBase
 from Products.Zuul.interfaces import IProcessFacade, IProcessEntity
 from Products.Zuul.interfaces import ITreeFacade, IProcessInfo
 from Products.Zuul.interfaces import IProcessNode, ICatalogTool
@@ -60,28 +60,9 @@ class ProcessNode(TreeNode):
         return 'osProcessClasses' in self.uid
 
 
-class ProcessInfo(object):
+class ProcessInfo(InfoBase):
     implements(IProcessInfo)
     adapts(IProcessEntity)
-
-    def __init__(self, object):
-        """
-        The object parameter is the wrapped persistent object. It is either an
-        OSProcessOrganizer or an OSProcessClass.
-        """
-        self._object = object
-
-    @property
-    def uid(self):
-        return '/'.join(self._object.getPrimaryPath())
-
-    def getName(self):
-        return self._object.titleOrId()
-
-    def setName(self, name):
-        self._object.setTitle(name)
-
-    name = property(getName, setName)
 
     def getDescription(self):
         return self._object.description
@@ -157,9 +138,6 @@ class ProcessInfo(object):
             self._object.ignoreParameters = ignoreParameters
 
     ignoreParameters = property(getIgnoreParameters, setIgnoreParameters)
-
-    def __repr__(self):
-        return "<ProcessInfo(name=%s)>" % (self.name)
 
 
 class ProcessFacade(TreeFacade):
