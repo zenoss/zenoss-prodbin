@@ -626,8 +626,11 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
             calcfoundrows = ''
             if getTotalCount:
                 calcfoundrows = 'SQL_CALC_FOUND_ROWS'
+            index_hint = ''
+            if self.statusTable == 'history':
+                index_hint = 'use index (lastTime, firstTime)'
             select = ["select ", calcfoundrows, ','.join(resultFields),
-                        "from %s where" % self.statusTable ]
+                        "from %s %s where" % (self.statusTable, index_hint) ]
             if not where:
                 where = self.defaultWhere
 
@@ -669,6 +672,12 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
                     col = col.lower()
                     if col not in ['desc','asc'] and col not in fieldList:
                         raise ("order by  value %s not valid" % col)
+
+                # Deduplicate order by stanzas. MySQL's query optimizer will
+                # go from an efficient index lookup to a nasty filesort if you
+                # order by the same field twice.
+                # http://dev.zenoss.org/trac/ticket/5955
+                orderby = ', '.join(set(i.strip() for i in orderby.split(',')))
 
                 select.append("order by")
                 select.append(orderby)
