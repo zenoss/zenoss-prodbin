@@ -445,7 +445,8 @@ Zenoss.FilterGridView = Ext.extend(Ext.ux.grid.livegrid.GridView, {
     getState: function(){
             var options = {};
             Ext.iterate(this.lastOptions, function(k){
-                var dflt = this.defaultFilters[k],
+                var defaults = this.defaultFilters || {},
+                    dflt = defaults[k],
                     opt = this.lastOptions[k];
                 if (dflt) {
                     var match;

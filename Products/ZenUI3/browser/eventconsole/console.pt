@@ -593,6 +593,10 @@ Ext.onReady(function(){
     var myView = new Zenoss.FilterGridView({
         nearLimit : 20,
         filterbutton: 'showfilters',
+        defaultFilters: {
+            severity: [5, 4, 3, 2],
+            eventState: [0, 1]
+        },
         rowcoloritem: 'rowcolors_checkitem',
         loadMask  : { msg :  'Loading. Please wait...' }
     });

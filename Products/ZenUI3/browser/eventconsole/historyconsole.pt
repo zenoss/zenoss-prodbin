@@ -451,6 +451,8 @@ Ext.onReady(function(){
         nearLimit : 20,
         filterbutton: 'showfilters',
         defaultFilters: {
+            severity: [5, 4, 3, 2],
+            eventState: [0, 1],
             lastTime: yesterday
         },
         rowcoloritem: 'rowcolors_checkitem',
