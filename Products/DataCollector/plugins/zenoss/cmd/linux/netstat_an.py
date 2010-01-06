@@ -12,7 +12,7 @@
 ###########################################################################
 
 __doc__ = """netstat_an
-Collect running ip services using netstat -an on a linux box.
+Collect running IP services using netstat -a
 """
 
 from Products.DataCollector.plugins.CollectorPlugin import LinuxCommandPlugin
@@ -23,19 +23,32 @@ class netstat_an(LinuxCommandPlugin):
     compname = "os"
     relname = "ipservices"
     modname = "Products.ZenModel.IpService"
-    
-    
+    deviceProperties = LinuxCommandPlugin.deviceProperties + (
+           'zIpServiceMapMaxPort', )
+
+
     def process(self, device, results, log):
-        log.info('Collecting Ip Services for device %s' % device.id)
+        log.info('Modeler %s processing data for device %s', self.name(), device.id)
+
+        if not results.strip(): # No output
+            log.error("No output from the command: %s", self.command)
+            return
+
+        try:
+            maxport = getattr(device, 'zIpServiceMapMaxPort', 1024)
+            maxport = int(maxport)
+        except ValueError:
+            maxport = 1024
+
         rm = self.relMap()
-        rlines = results.split("\n")
-        services = {}
-        # normalize on address 0.0.0.0 means all addresses
-        for line in rlines:
+        ports = {}
+        for line in results.split("\n"):
             aline = line.split()
             if len(aline) < 5: continue
             try:
                 proto = aline[0]
+                if proto == "raw":
+                    continue
                 listar = aline[3].split(":")
                 addr = port = ""
                 if len(listar) == 2:
@@ -43,26 +56,42 @@ class netstat_an(LinuxCommandPlugin):
                 elif len(listar) == 4:
                     addr = "0.0.0.0"
                     port = listar[-1]
-                if not port: continue
-                if addr == "0.0.0.0" or not services.has_key(port):
-                    services[port] = (addr, proto)
+                else:
+                    continue
+
+                log.debug("Got %s %s port %s", addr, proto, port)
+                if addr == "127.0.0.1" or not port: # Can't monitor things we can't reach
+                    continue
+
+                port = int(port)
+                if port > maxport:
+                    log.debug("Ignoring entry greater than zIpServiceMapMaxPort (%s): %s %s %s",
+                              maxport, addr, proto, port)
+                    continue
             except ValueError:
-                log.exception("failed to parse ipservice information")
-        ports = {}
-        for port, value in services.items():
-            addr, proto = value
-            if proto == "raw": continue
+                log.exception("Failed to parse IPService information '%s'",
+                              line)
+                continue
+
             om = ports.get((proto, port), None)
             if om:
+                if addr in om.ipaddresses:
+                    continue
+                log.debug("Adding %s to the list of addresses listening to %s port %s",
+                          addr, proto, port)
                 om.ipaddresses.append(addr)
             else:
                 om = self.objectMap()
                 om.protocol = proto
                 om.port = int(port)
                 om.id = '%s_%05d' % (om.protocol,om.port)
+                log.debug("Found %s listening to %s port %s (%s)",
+                          addr, proto, port, om.id)
                 om.setServiceClass = {'protocol': proto, 'port':om.port}
                 om.ipaddresses = [addr,]
                 om.discoveryAgent = self.name()
                 ports[(proto, port)] = om
                 rm.append(om)
+
+        log.debug("Found %d IPServices", len(ports.keys()))
         return rm
