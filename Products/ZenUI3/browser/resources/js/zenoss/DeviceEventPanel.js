@@ -101,6 +101,7 @@ var deviceColumnModel = new Ext.grid.ColumnModel({
                }] // columns
 });
 
+
 /**
  * @class Zenoss.DeviceGridPanel
  * @extends Ext.grid.GridPanel

@@ -101,6 +101,17 @@
         />
 
         <browser:viewlet
+            name="Devices"
+            url="/zport/dmd/itinfrastructure"
+            weight="1"
+            parentItem="IT Infrastructure"
+            manager="..navigation.interfaces.ISecondaryNavigationMenu"
+            class="..navigation.menuitem.SecondaryNavigationMenuItem"
+            permission="zope2.Public"
+            layer="zenossNav"
+            />
+
+        <browser:viewlet
             name="Processes"
             url="/zport/dmd/process"
             weight="3"

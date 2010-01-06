@@ -42,11 +42,6 @@
         />
 
     <five:implements 
-        interface=".interfaces.IDeviceClass"
-        class="Products.ZenModel.DeviceClass.DeviceClass"
-        />
-
-    <five:implements 
         interface=".interfaces.IDevice"
         class="Products.ZenModel.Device.Device"
         />
@@ -104,9 +99,9 @@
              for=".interfaces.IServiceEntity"
              provides=".interfaces.IServiceNode"/>
 
-    <adapter factory=".facades.devicefacade.DeviceClassNode"
-             for=".interfaces.IDeviceClass"
-             provides=".interfaces.IDeviceClassNode"/>
+    <adapter factory=".facades.devicefacade.DeviceOrganizerNode"
+             for="Products.ZenModel.DeviceOrganizer.DeviceOrganizer"
+             provides=".interfaces.IDeviceOrganizerNode"/>
 
     <adapter provides=".interfaces.IInfo"
              for=".interfaces.IProcessEntity"

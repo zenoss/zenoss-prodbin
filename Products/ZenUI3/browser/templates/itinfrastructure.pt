@@ -1,0 +1,201 @@
+<!--
+###########################################################################
+#
+# This program is part of Zenoss Core, an open source monitoring platform.
+# Copyright (C) 2009, Zenoss Inc.
+#
+# This program is free software; you can redistribute it and/or modify it
+# under the terms of the GNU General Public License version 2 as published by
+# the Free Software Foundation.
+#
+# For complete information please visit: http://www.zenoss.com/oss/
+#
+###########################################################################
+-->
+
+<tal:block metal:use-macro="context/page_macros/base-new">
+
+<tal:block metal:fill-slot="center_panel">
+<div id="master_panel"> </div>
+<div id="detail_panel"> </div>
+</tal:block>
+
+<tal:block metal:fill-slot="script_layout">
+<script>
+Ext.onReady(function(){
+
+var treesm = new Ext.tree.DefaultSelectionModel({
+    listeners: {
+        'selectionchange': function(sm, newnode, oldnode){
+            Ext.getCmp('device_grid').getStore().load({
+                params: {uid: newnode.attributes.uid}
+            });
+        }
+    }
+});
+
+var devtree = {
+    xtype: 'HierarchyTreePanel',
+    id: 'devices',
+    searchField: true,
+    directFn: Zenoss.remote.DeviceRouter.getTree,
+    root: 'Devices',
+    rootuid: '/zport/dmd/Devices',
+    selModel: treesm
+};
+
+var grouptree = {
+    xtype: 'HierarchyTreePanel',
+    id: 'groups',
+    searchField: false,
+    directFn: Zenoss.remote.DeviceRouter.getTree,
+    root: 'Groups',
+    rootuid: '/zport/dmd/Groups',
+    selModel: treesm
+};
+
+var loctree = {
+    xtype: 'HierarchyTreePanel',
+    id: 'locs',
+    searchField: false,
+    directFn: Zenoss.remote.DeviceRouter.getTree,
+    root: 'Locations',
+    rootuid: '/zport/dmd/Locations',
+    selModel: treesm
+};
+
+var treecontainer = {
+    items: [devtree, grouptree, loctree],
+    autoScroll: true
+};
+
+var device_store = new Ext.ux.grid.livegrid.Store({
+    bufferSize: 50,
+    defaultSort: {field: 'device', direction:'ASC'},
+    sortInfo: {field: 'device', direction:'ASC'},
+    proxy: new Ext.data.DirectProxy({
+        directFn: Zenoss.remote.DeviceRouter.getDevices
+    }),
+    reader: new Ext.ux.grid.livegrid.JsonReader({
+        root: 'devices',
+        totalProperty: 'totalCount'
+    },[
+          {name: 'device', type: 'string'},
+          {name: 'ipAddress', type: 'int'},
+          {name: 'productionState', type: 'string'},
+          {name: 'events', type: 'auto'},
+          {name: 'availability', type: 'float'}
+      ]
+    )
+});
+
+// renders IP address in dotted-decimal format
+function ipAddressRenderer(value) {
+    return Zenoss.util.num2dot(value);
+}
+
+// templates for the events renderer
+var iconTemplate = new Ext.Template('<'+'div style="float: left;" ' + 
+                     'class="severity-icon-small {severity}"><'+'/div>');
+iconTemplate.compile();
+                     
+var countTemplate = new Ext.Template('<'+'div style="' +
+        'float: left; ' +
+        'vertical-align: 27%;' +
+        'margin-left: .5em;' +
+        'margin-right: 1.5em;">' +
+        '{count}<'+'/div>');
+countTemplate.compile();
+
+// renders events using icons for critical, error and warning
+function eventsRenderer(value) {
+    var result = '';
+    Ext.each(['critical', 'error', 'warning'], function(severity) {
+        result += iconTemplate.apply({severity: severity});
+        result += countTemplate.apply({count: value[severity]});
+    });
+    return result;
+}
+
+// renders availability as a percentage with 3 digits after decimal point
+function availabilityRenderer(value) {
+    return Ext.util.Format.number(value*100, '0.000%');
+}
+
+// the column model for the device grid
+var deviceColumnModel = new Ext.grid.ColumnModel({
+    defaults: {
+        sortable: false,
+        menuDisabled: true,
+        width: 200
+    },
+    columns: [{dataIndex: 'device',
+               header: _t('Device'),
+               id: 'device'
+               },
+              {dataIndex: 'ipAddress',
+               header: _t('IP Address'),
+               renderer: ipAddressRenderer
+               },
+              {dataIndex: 'productionState',
+               header: _t('Production State')
+               },
+              {dataIndex: 'events',
+                header: _t('Events'),
+                renderer: eventsRenderer
+                },
+              {dataIndex: 'availability',
+               header: _t('Availability'), 
+               id: 'availability',
+               renderer: availabilityRenderer
+               }] // columns
+});
+
+var gridview = new Zenoss.FilterGridView({
+    nearLimit: 20,
+    loadMask: {msg: 'Loading. Please wait...'}
+});
+
+var devicegrid = new Zenoss.FilterGridPanel({
+    id: 'device_grid',
+    store: device_store,
+    enableDragDrop: true,
+    border: false,
+    rowSelectorDepth: 5,
+    view: gridview,
+    autoExpandColumn: 'device',
+    cm: deviceColumnModel,
+    sm: new Zenoss.ExtraHooksSelectionModel(),
+    stripeRows: true
+});
+
+Ext.getCmp('center_panel').add({
+    id: 'center_panel_container',
+    layout: 'border',
+    defaults: {
+        'border': false
+    },
+    items: [{
+        id: 'master_panel',
+        contentEl: 'master_panel',
+        layout: 'fit',
+        region: 'west',
+        split: true,
+        width: 275,
+        items: [treecontainer]
+    },{
+        id: 'detail_panel',
+        contentEl: 'detail_panel',
+        region: 'center',
+        layout: 'card',
+        activeItem: 0,
+        split: true,
+        items: [devicegrid]
+    }]
+});
+
+
+});
+</script>
+</tal:block>
+</tal:block> <!-- metal:use-macro="context/page_macros/masterdetailsplit2" -->

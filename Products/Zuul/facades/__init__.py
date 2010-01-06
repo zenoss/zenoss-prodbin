@@ -78,8 +78,8 @@ class ZuulFacade(object):
 class TreeFacade(ZuulFacade):
     implements(ITreeFacade)
 
-    def getTree(self, uid):
-        obj = self._findObject(uid)
+    def getTree(self, uid=None):
+        obj = self._getObject(uid)
         return ITreeNode(obj)
 
     def getInfo(self, uid=None):
@@ -98,9 +98,20 @@ class TreeFacade(ZuulFacade):
     def _findObject(self, uid):
         return self._dmd.unrestrictedTraverse(uid)
 
-    def getDevices(self, uid=None):
+    def deviceCount(self, uid=None):
         cat = ICatalogTool(self._getObject(uid))
-        brains = cat.search('Products.ZenModel.Device.Device')
+        return cat.count('Products.ZenModel.Device.Device')
+
+    def getDevices(self, uid=None, start=0, limit=50, sort='device', dir='ASC',
+                   params=None):
+        cat = ICatalogTool(self._getObject(uid))
+        if sort=='device': sort = 'name'
+        if dir=='ASC':
+            reverse = True
+        else:
+            reverse = False
+        brains = cat.search('Products.ZenModel.Device.Device', start=start,
+                           limit=limit, orderby=sort, reverse=reverse)
         return map(IInfo, map(unbrain, brains))
 
     def getEvents(self, uid=None):

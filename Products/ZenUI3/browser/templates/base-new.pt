@@ -17,14 +17,14 @@
     <head>
         <link rel="stylesheet" type="text/css" 
             href="/extjs/resources/css/ext-all.css" />
+        <link rel="stylesheet"
+            href="/zenui/js/livegrid/resources/css/ext-ux-livegrid.css"/>
         <link rel="stylesheet" type="text/css" 
             href="/zenui/css/xtheme-zenoss.css" />
         <link rel="stylesheet" type="text/css" 
             href="/zenui/css/zenoss.css" />
         <link rel="stylesheet" type="text/css" 
             href="/zenui/css/zenui3.css" />
-        <link rel="stylesheet"
-            href="/zenui/js/livegrid/resources/css/ext-ux-livegrid.css"/>
         <script type="text/javascript" src="/extjs/adapters/ext/ext-base.js">
         </script>
         <script>

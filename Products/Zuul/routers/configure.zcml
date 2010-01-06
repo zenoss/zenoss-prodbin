@@ -27,4 +27,11 @@
     timeout="60000"
     />
 
+<browser:directRouter
+    name="device_router"
+    for="*"
+    class=".device.DeviceRouter"
+    namespace="Zenoss.remote"
+    />
+
 </configure>

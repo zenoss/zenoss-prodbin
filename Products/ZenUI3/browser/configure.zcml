@@ -96,7 +96,7 @@
     />
 
 <browser:page
-    template="templates/base-new.pt"
+    template="templates/itinfrastructure.pt"
     name="itinfrastructure"
     for="*"
     permission="zope2.Public"

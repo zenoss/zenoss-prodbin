@@ -12,19 +12,14 @@
 ###########################################################################
 
 from zope.interface import Interface, Attribute
-from Products.Zuul.interfaces import IInfo, IFacade
+from Products.Zuul.interfaces import IInfo, IFacade, ITreeNode
 
 
-class IDeviceClassNode(Interface):
+class IDeviceOrganizerNode(ITreeNode):
     """
-    Marker interface for device class nodes in a tree.
+    Marker interface for device organizer nodes in a tree.
     """
 
-class IDeviceClass(Interface):
-    """
-    Marker interface for DeviceClasses.
-    """
-    
 class IDevice(Interface):
     """
     Marker interface for Device.

@@ -94,6 +94,8 @@ Zenoss.LargeToolbar = Ext.extend(Ext.Toolbar, {
     }
 });
 
+Ext.reg('largetoolbar', Zenoss.LargeToolbar);
+
 /**
  * @class Zenoss.ExtraHooksSelectionModel
  * @extends Ext.grid.RowSelectionModel
@@ -559,10 +561,12 @@ Zenoss.FilterGridPanel = Ext.extend(Ext.ux.grid.livegrid.GridPanel, {
         this.restoreURLState();
         var rowColors = Ext.state.Manager.get('rowcolor');
         this.view.rowColors = rowColors;
-        var rowcoloritem = Ext.getCmp(this.view.rowcoloritem);
-        rowcoloritem.on('render', function(){
-            this.setChecked(rowColors);
-        }, rowcoloritem);
+        if (this.view.rowcoloritem) {
+            var rowcoloritem = Ext.getCmp(this.view.rowcoloritem);
+            rowcoloritem.on('render', function(){
+                this.setChecked(rowColors);
+            }, rowcoloritem);
+        }
     },
     getState: function(){
         var val = Zenoss.FilterGridPanel.superclass.getState.call(this);

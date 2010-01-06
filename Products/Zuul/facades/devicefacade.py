@@ -16,34 +16,36 @@ from zope.component import adapts
 from zope.interface import implements
 from Products.Zuul.tree import TreeNode
 from Products.Zuul.facades import TreeFacade
-from Products.Zuul.interfaces import IDeviceFacade, IDeviceClassNode
-from Products.Zuul.interfaces import IDeviceClass, IDeviceInfo, IDevice
-from Products.Zuul.interfaces import ICatalogTool
+from Products.Zuul.interfaces import IDeviceFacade, IDeviceOrganizerNode
+from Products.Zuul.interfaces import IDeviceInfo, IDevice, ICatalogTool
 from Products.Zuul.facades import InfoBase
+from Products.ZenModel.DeviceOrganizer import DeviceOrganizer
 from Products.ZenUtils import IpUtil
 
-class DeviceClassNode(TreeNode):
-    implements(IDeviceClassNode)
-    adapts(IDeviceClass)
+class DeviceOrganizerNode(TreeNode):
+    implements(IDeviceOrganizerNode)
+    adapts(DeviceOrganizer)
+
+    uiProvider = 'hierarchy'
 
     @property
     def children(self):
         cat = ICatalogTool(self._object)
-        orgs = cat.search(IDeviceClass, paths=(self.uid,), depth=1)
-        return imap(DeviceClassNode, orgs)
+        orgs = cat.search(DeviceOrganizer, paths=(self.uid,), depth=1)
+        return imap(DeviceOrganizerNode, orgs)
 
     @property
     def text(self):
-        text = super(DeviceClassNode, self).text
         cat = ICatalogTool(self._object)
         numInstances = cat.count('Products.ZenModel.Device.Device', self.uid)
+        text = super(DeviceOrganizerNode, self).text
         return {
             'text': text,
             'count': numInstances,
             'description': 'devices'
         }
 
-    # Everything is potentially a branch, just some have no children.
+    # All nodes are potentially branches, just some have no children
     leaf = False
 
 
@@ -60,7 +62,8 @@ class DeviceInfo(InfoBase):
 
     @property
     def ipAddress(self):
-        return IpUtil.ipToDecimal(self._object.manageIp)
+        if self._object.manageIp:
+            return IpUtil.ipToDecimal(self._object.manageIp)
 
     @property
     def productionState(self):
@@ -91,4 +94,5 @@ class DeviceFacade(TreeFacade):
     @property
     def _instanceClass(self):
         return 'Products.ZenModel.Device.Device'
+
 
