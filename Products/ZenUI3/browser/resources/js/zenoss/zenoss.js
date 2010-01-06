@@ -269,7 +269,8 @@ Zenoss.FilterGridView = Ext.extend(Ext.ux.grid.livegrid.GridView, {
     // Gather the current values of the filter and apply them to a given
     // object.
     applyFilterParams: function(options) {
-        var params = this.lastOptions || {};
+        var options = options || {},
+            params = this.lastOptions || {};
         for(i=0;i<this.filters.length;i++){
             var filter = this.filters[i];
             var oldformat;
@@ -443,28 +444,31 @@ Zenoss.FilterGridView = Ext.extend(Ext.ux.grid.livegrid.GridView, {
         return html;
     },
     getState: function(){
-            var options = {};
-            Ext.iterate(this.lastOptions, function(k){
-                var defaults = this.defaultFilters || {},
-                    dflt = defaults[k],
-                    opt = this.lastOptions[k];
-                if (dflt) {
-                    var match;
-                    if (Ext.isDate(dflt) && Ext.isDate(opt)) {
-                        var delta = Math.abs(dflt.getTime() - opt.getTime());
-                        // If they're within a second, they match. We don't
-                        // have finer resolution in the UI.
-                        match = delta <= 1000;
-                    } else {
-                        match = dflt==opt;
-                    }
-                    if (!match) {
-                        options[k] = opt;
-                    }
+        // Update last options from the filter widgets
+        this.applyFilterParams();
+        // Iterate over last options, setting defaults where appropriate
+        var options = {};
+        Ext.iterate(this.lastOptions, function(k){
+            var defaults = this.defaultFilters || {},
+                dflt = defaults[k],
+                opt = this.lastOptions[k];
+            if (dflt) {
+                var match;
+                if (Ext.isDate(dflt) && Ext.isDate(opt)) {
+                    var delta = Math.abs(dflt.getTime() - opt.getTime());
+                    // If they're within a second, they match. We don't
+                    // have finer resolution in the UI.
+                    match = delta <= 1000;
                 } else {
+                    match = dflt==opt;
+                }
+                if (!match) {
                     options[k] = opt;
                 }
-            }, this);
+            } else {
+                options[k] = opt;
+            }
+        }, this);
         return {
             displayFilters: this.displayFilters,
             options: options
