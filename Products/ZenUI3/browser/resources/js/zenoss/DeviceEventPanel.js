@@ -286,14 +286,14 @@ Zenoss.DeviceEventPanel = Ext.extend(Ext.Panel, {
                     text: _t('View: ')
                 }, {
                     xtype: 'ViewButton',
-                    id: 'Devices-button',
+                    id: 'devicesButton',
                     text: _t('Devices'),
                     iconCls: 'devprobs',
                     __item_index__: 0,
                     pressed: true
                 }, {
                     xtype: 'ViewButton',
-                    id: 'Events-button',
+                    id: 'eventsButton',
                     text: _t('Events'),
                     iconCls: 'events',
                     __item_index__: 1

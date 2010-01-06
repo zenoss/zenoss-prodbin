@@ -601,7 +601,21 @@ Ext.onReady(function(){
     var console_store = new Ext.ux.grid.livegrid.Store({
         autoLoad: true,
         proxy: new Ext.data.DirectProxy({
-            directFn:Zenoss.remote.EventsRouter.query
+            directFn:Zenoss.remote.EventsRouter.query,
+            listeners: {'load': function(proxy, transaction, options) {
+                var disabled = transaction.result.disabled;
+                var buttonIds = [
+                    'ack-button', 
+                    'close-button',
+                    'classify-button',
+                    'unack-button',
+                    'add-button'
+                ];
+                Ext.each(buttonIds, function(buttonId) {
+                    var button = Ext.getCmp(buttonId);
+                    button.setDisabled(disabled);
+                });
+            }}
         }),
         bufferSize: 100,
         defaultSort: {field:'severity', direction:'DESC'},

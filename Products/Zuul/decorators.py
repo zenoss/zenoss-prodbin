@@ -11,6 +11,7 @@
 #
 ###########################################################################
 
+from AccessControl import Unauthorized
 from Products import Zuul
 
 def decorator(decorator_func):
@@ -66,6 +67,7 @@ def infoto(adapterName=''):
         return Zuul.info(result, adapterName=adapterName)
     return info
 
+
 @decorator
 def memoize(f, *args, **kwargs):
     sig = repr((args, kwargs))
@@ -74,3 +76,15 @@ def memoize(f, *args, **kwargs):
         cache[sig] = f(*args, **kwargs)
     return cache[sig]
 
+
+def require(permission):
+    """
+    Decorator that checks if the current user has the permission.
+    """
+    @decorator
+    def wrapped_fn(f, *args, **kwargs):
+        if not Zuul.checkPermission(permission):
+            args = (f.__name__, permission)
+            raise Unauthorized('Calling %s requires "%s" permission.' % args)
+        return f(*args, **kwargs)
+    return wrapped_fn

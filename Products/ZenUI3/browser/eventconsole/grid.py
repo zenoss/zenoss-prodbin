@@ -22,7 +22,7 @@ from Products.Five.browser.pagetemplatefile import ViewPageTemplateFile
 from Products.ZenUtils.json import json
 from Products.ZenUI3.utils.javascript import JavaScriptSnippet
 from Products.ZenUI3.browser.eventconsole.columns import COLUMN_CONFIG
-from Products.Zuul.interfaces import IEventFacade
+from Products.Zuul import getFacade
 
 
 class EventConsoleView(BrowserView):
@@ -77,7 +77,7 @@ class EventClasses(JavaScriptSnippet):
 class GridColumnDefinitions(JavaScriptSnippet):
 
     def snippet(self):
-        api = queryUtility(IEventFacade)
+        api = getFacade('event')
         result = ["Ext.onReady(function(){Zenoss.env.COLUMN_DEFINITIONS=["]
         defs = column_config(api.fields(self.context), self.request)
         result.append(',\n'.join(defs))

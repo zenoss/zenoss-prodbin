@@ -5,24 +5,27 @@ from zope.component import queryUtility
 from Products.ZenUI3.browser.eventconsole.grid import column_config
 from Products.ZenUtils.Ext import DirectRouter
 from Products.ZenUtils.json import unjson
-from Products.Zuul.interfaces import IEventFacade
-
+from Products.Zuul import getFacade
+from Products.Zuul.decorators import require
+from Products import Zuul
 
 class EventsRouter(DirectRouter):
 
     def __init__(self, context, request):
         super(EventsRouter, self).__init__(context, request)
-        self.api = queryUtility(IEventFacade)
+        self.api = getFacade('event')
 
     def query(self, limit, start, sort, dir, params, history=False):
         events = self.api.query(limit, start, sort, dir, params, self.context,
                                 history)
         self._set_asof(time.time())
-        return {'events':events['data']}
+        disabled = not Zuul.checkPermission('Manage Events')
+        return {'events':events['data'], 'disabled': disabled}
     
     def queryHistory(self, limit, start, sort, dir, params):
         return self.query(limit, start, sort, dir, params, history=True)
     
+    @require('Manage Events')
     def acknowledge(self, evids=None, ranges=None, start=None, limit=None,
                     field=None, direction=None, params=None, history=False):
         self.api.acknowledge(evids, ranges, start, limit, field, direction,
@@ -30,6 +33,7 @@ class EventsRouter(DirectRouter):
                              history=history)
         return {'success':True}
 
+    @require('Manage Events')
     def unacknowledge(self, evids=None, ranges=None, start=None, limit=None,
                       field=None, direction=None, params=None, history=False):
         self.api.unacknowledge(evids, ranges, start, limit, field, direction,
@@ -37,12 +41,14 @@ class EventsRouter(DirectRouter):
                                history=history)
         return {'success':True}
 
+    @require('Manage Events')
     def reopen(self, evids=None, ranges=None, start=None, limit=None,
                       field=None, direction=None, params=None, history=True):
         self.api.reopen(evids, ranges, start, limit, field, direction, params,
                         asof=self._asof, context=self.context, history=history)
         return {'success':True}
 
+    @require('Manage Events')
     def close(self, evids=None, ranges=None, start=None, limit=None,
               field=None, direction=None, params=None, history=False):
         self.api.close(evids, ranges, start, limit, field, direction, params,
@@ -157,9 +163,11 @@ class EventsRouter(DirectRouter):
         if event:
             return { 'event': [event] }
 
+    @require('Manage Events')
     def write_log(self, evid=None, message=None, history=False):
         self.api.log(evid, message, history)
 
+    @require('Manage Events')
     def classify(self, evids, evclass, history=False):
         zem = self.api._event_manager(history)
         msg, url = zem.manage_createEventMap(evclass, evids)
@@ -167,6 +175,7 @@ class EventsRouter(DirectRouter):
             msg += "<br/><br/><a href='%s'>Go to the new mapping.</a>" % url
         return {'success':bool(url), 'msg': msg}
 
+    @require('Manage Events')
     def add_event(self, summary, device, component, severity, evclasskey, evclass):
         evid = self.api.create(summary, severity, device, component,
                                eventClassKey=evclasskey, eventClass=evclass)

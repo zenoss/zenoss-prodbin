@@ -64,8 +64,8 @@ Ext.getCmp('master_panel').add({
 
 // disable the monitoring fields if monitoring settings are inherited
 function  setMonitoringDisabled(disabled) {
-    var monitorCheckbox = Ext.getCmp('Enabled-option');
-    var eventSeverityCombo = Ext.getCmp('Event_Severity-selection');
+    var monitorCheckbox = Ext.getCmp('monitorCheckbox');
+    var eventSeverityCombo = Ext.getCmp('eventSeverityCombo');
     monitorCheckbox.setDisabled(disabled);
     eventSeverityCombo.setDisabled(disabled);
 }
@@ -86,9 +86,9 @@ function inheritedCheckboxHandler(checkbox, checked) {
 
     var callback = function(provider, response) {
         var info = response.result.data;
-        var monitorCheckbox = Ext.getCmp('Enabled-option');
+        var monitorCheckbox = Ext.getCmp('monitorCheckbox');
         monitorCheckbox.setValue(info.monitor);
-        var eventSeverityCombo = Ext.getCmp('Event_Severity-selection');
+        var eventSeverityCombo = Ext.getCmp('eventSeverityCombo');
         eventSeverityCombo.setValue(info.eventSeverity);
     };
     
@@ -129,7 +129,7 @@ var descriptionTextField = {
 
 var inheritedCheckbox = {
     xtype: 'checkbox',
-    id: 'Inherited-option',
+    id: 'inheritedCheckbox',
     fieldLabel: _t('Inherited'),
     name: 'isMonitoringAcquired',
     handler: inheritedCheckboxHandler
@@ -137,14 +137,14 @@ var inheritedCheckbox = {
 
 var monitorCheckbox = {
     xtype: 'checkbox',
-    id: 'Enabled-option',
+    id: 'monitorCheckbox',
     fieldLabel: _t('Enabled'),
     name: 'monitor'
 };
 
 var eventSeverityCombo = {
     xtype: 'combo',
-    id: 'Event_Severity-selection',
+    id: 'eventSeverityCombo',
     fieldLabel: _t('Event Severity'),
     name: 'eventSeverity',
     triggerAction: 'all',
@@ -159,7 +159,7 @@ var eventSeverityCombo = {
 
 var regexTextField = {
     xtype: 'textfield',
-    id: 'Pattern-entry',
+    id: 'regexTextField',
     fieldLabel: _t('Pattern'),
     name: 'regex',
     width: "100%"
@@ -167,7 +167,7 @@ var regexTextField = {
 
 var ignoreParametersCheckbox = {
     xtype: 'checkbox',
-    id: 'Ignore_Parameters-option',
+    id: 'ignoreParametersCheckbox',
     fieldLabel: _t('Ignore Parameters'),
     name: 'ignoreParameters'
 };
@@ -236,7 +236,7 @@ var processFormConfig = {
     tbar: [
         {
             xtype: 'button',
-            id: 'Save-button',
+            id: 'saveButton',
             text: _t('Save'),
             iconCls: 'save',
             handler: function(button, event) {

@@ -13,6 +13,7 @@
 
 from Products.ZenUtils.Ext import DirectRouter
 from Products import Zuul
+from Products.Zuul.decorators import require
 
 class ProcessRouter(DirectRouter):
 
@@ -32,10 +33,9 @@ class ProcessRouter(DirectRouter):
         disabled = not Zuul.checkPermission('Manage DMD')
         return {'data': data, 'disabled': disabled, 'success': True}
 
+    @require('Manage DMD')
     def setInfo(self, **data):
         facade = self._getFacade()
-        if not Zuul.checkPermission('Manage DMD'):
-            raise Exception('You do not have permission to save changes.')
         process = facade.getInfo(data['uid'])
         Zuul.unmarshal(data, process)
         return {'success': True}

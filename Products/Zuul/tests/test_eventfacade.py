@@ -9,13 +9,13 @@ from Products.ZenModel.DataRoot import DataRoot
 from Products.Zuul.tests.base import EventTestCase, ZuulFacadeTestCase
 from Products.Zuul.interfaces import *
 from Products.Zuul.facades.eventfacade import EventFacade
-
+from Products.Zuul import getFacade
 
 class TestEvents(EventTestCase, ZuulFacadeTestCase):
 
     def setUp(self):
         super(TestEvents, self).setUp()
-        self.svc = zope.component.queryUtility(IEventFacade)
+        self.svc = getFacade('event')
 
     def getEvent(self, evid):
         try:
@@ -42,7 +42,7 @@ class TestEvents(EventTestCase, ZuulFacadeTestCase):
         verifyClass(IEventInfo, evs.EventInfo)
 
     def test_registration(self):
-        svc = zope.component.queryUtility(IEventFacade)
+        svc = getFacade('event')
         self.assertEqual(svc.__class__, EventFacade)
         self.assert_(isinstance(svc._dmd, DataRoot))
 

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <view>
   <tooltip>
-    <target>Inherited-option</target>
+    <target>inheritedCheckbox</target>
 
     <html><span style="font-weight: bold;">Inherited</span><br />By default, this
     option is selected for all nodes below the Processes node. When selected,
@@ -9,7 +9,7 @@
   </tooltip>
 
   <tooltip>
-    <target>Enabled-option</target>
+    <target>monitorCheckbox</target>
 
     <html><span style="font-weight: bold;">Enabled</span><br />When selected,
     monitoring choices are individually enabled for this node. (The node does
@@ -18,7 +18,7 @@
   </tooltip>
 
   <tooltip>
-    <target>Event_Severity-selection</target>
+    <target>eventSeverityCombo</target>
 
     <html><span style="font-weight: bold;">Event Severity</span><br />Select an
     event severity (Critical, Error, Warning, Info, or Debug). This severity
@@ -26,7 +26,7 @@
   </tooltip>
 
   <tooltip>
-    <target>Pattern-entry</target>
+    <target>regexTextField</target>
 
     <html><span style="font-weight: bold;">Pattern</span><br />Enter text (as a
     regular expression) that the system will match to define this
@@ -41,28 +41,28 @@
   </tooltip>
 
   <tooltip>
-    <target>Ignore_Parameters-option</target>
+    <target>ignoreParametersCheckbox</target>
 
     <html> Select this option to ignore command parameters when matching
     processes. By default, this option is disabled.</html>
   </tooltip>
 
   <tooltip>
-    <target>Devices-button</target>
+    <target>devicesbutton</target>
 
     <html>Click to display devices on which the selected process or processes
     are running.</html>
   </tooltip>
 
   <tooltip>
-    <target>Events-button</target>
+    <target>eventsbutton</target>
 
     <html>Click to display events associated with the selected process or
     processes.</html>
   </tooltip>
   
   <tooltip>
-    <target>Save-button</target>
+    <target>saveButton</target>
 
     <html>Click to save the details of this process.</html>
   </tooltip>
