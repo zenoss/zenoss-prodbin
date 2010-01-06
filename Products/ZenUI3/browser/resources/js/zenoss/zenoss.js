@@ -765,6 +765,8 @@ Zenoss.RefreshMenuButton = Ext.extend(Ext.SplitButton, {
         this.menu.on('itemclick', function(item){
             this.setInterval(item.value);
         }, this);
+        //60 is the default interval; it matches the checked item above
+        this.setInterval(60);
     },
     setInterval: function(interval) {
         this.interval = interval;
