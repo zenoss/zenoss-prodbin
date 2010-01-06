@@ -226,12 +226,12 @@ function createToggleHandler(itemIndex) {
             if (itemIndex === 0) {
                 // load up appropriate data in the devices grid
                 Ext.getCmp('deviceGrid').getStore().load({
-                    params: {id: node.attributes.id}
+                    params: {uid: node.attributes.id}
                 });
             } else {
                 // load up appropriate data in the event grid
                 Ext.getCmp('eventGrid').getStore().load({
-                    params: {id: node.attributes.id}
+                    params: {uid: node.attributes.id}
                 });
             }
         }

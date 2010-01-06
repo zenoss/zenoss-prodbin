@@ -29,21 +29,27 @@ function clickHandler(node) {
     
     // load up appropriate data in the form
     Ext.getCmp('serviceForm').getForm().load({
-        params: {id: node.attributes.uid}
+        params: {uid: node.attributes.uid}
     });
     
     // load up appropriate data in the devices grid
-//    Ext.getCmp('deviceGrid').getStore().load({
-//        params: {id: node.attributes.id}
-//    });
+    Ext.getCmp('deviceGrid').getStore().load({
+        params: {uid: node.attributes.uid}
+    });
+
+    // load up appropriate data in the event grid
+    Ext.getCmp('eventGrid').getStore().load({
+        params: {uid: node.attributes.uid}
+    });
+    
     
 } // clickHandler
 
 function acquiredCheckboxHandler(checkbox, checked) {
     setMonitoringDisabled(checked);
-    var router = Zenoss.remote.ProcessRouter;
-    var processTree = Ext.getCmp('processTree');
-    var selectionModel = processTree.getSelectionModel();
+    var router = Zenoss.remote.ServiceRouter;
+    var serviceTree = Ext.getCmp('serviceTree');
+    var selectionModel = serviceTree.getSelectionModel();
     var selectedNode = selectionModel.getSelectedNode();
 
     var uid;
@@ -73,6 +79,7 @@ Ext.getCmp('master_panel').add({
     autoScroll: true,
     directFn: Zenoss.remote.ServiceRouter.getTree,
     root: 'Services',
+    rootuid: '/zport/dmd/Services',
     listeners: {click: clickHandler}
 }); // master_panel.add
 
@@ -238,7 +245,7 @@ var serviceForm = new Zenoss.ServiceFormPanel({});
 // place the form in the top right
 Ext.getCmp('top_detail_panel').add(serviceForm);
 
-serviceForm.getForm().load({params:{id: 'Services'}});
+serviceForm.getForm().load({params:{uid: 'Services'}});
 
 
 /* ***********************************************************************
@@ -250,7 +257,7 @@ serviceForm.getForm().load({params:{id: 'Services'}});
 //the store that holds the records for the device grid
 var deviceStore = {
     xtype: 'DeviceStore',
-    autoLoad: {params:{id: 'Services'}},
+    autoLoad: {params:{uid: '/zport/dmd/Services'}},
     // Ext.data.DirectProxy config
     api: {read: Zenoss.remote.ServiceRouter.getDevices}
 };
@@ -258,7 +265,7 @@ var deviceStore = {
 // the store that holds the records for the event grid
 var eventStore = {
     xtype: 'EventStore',
-    autoLoad: {params:{id: 'Services'}},
+    autoLoad: {params:{uid: '/zport/dmd/Services'}},
     // Ext.data.DirectProxy config
     api: {read: Zenoss.remote.ServiceRouter.getEvents}
 };

@@ -24,6 +24,7 @@
     for="*"
     class=".service.ServiceRouter"
     namespace="Zenoss.remote"
+    timeout="60000"
     />
 
 </configure>

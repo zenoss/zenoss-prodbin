@@ -113,7 +113,7 @@
 
         <browser:viewlet
             name="Services"
-            url="/service"
+            url="/zport/dmd/service"
             weight="4"
             parentItem="IT Infrastructure"
             manager="..navigation.interfaces.ISecondaryNavigationMenu"
@@ -121,7 +121,7 @@
             permission="zope2.Public"
             layer="zenossNav"
             />
-    
+
     <browser:viewlet
         name="Reports"
         url="/zport/dmd/reports"

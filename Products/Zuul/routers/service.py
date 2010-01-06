@@ -29,22 +29,25 @@ class ServiceRouter(DirectRouter):
         facade = self._getFacade()
         service = facade.getInfo(uid)
         data = Zuul.marshal(service, keys)
-        return {'data': data, 'success': True}
+        disabled = not Zuul.checkPermission('Manage DMD')
+        return {'data': data, 'disabled': disabled, 'success': True}
 
     def setInfo(self, **data):
+        if not Zuul.checkPermission('Manage DMD'):
+            raise Exception('You do not have permission to save changes.')
         facade = self._getFacade()
         service = facade.getInfo(data['uid'])
         Zuul.unmarshal(data, service)
         return {'success': True}
 
-    def getDevices(self, id):
+    def getDevices(self, uid):
         facade = self._getFacade()
-        devices = facade.getDevices(id)
+        devices = facade.getDevices(uid)
         data = Zuul.marshal(devices)
         return {'data': data, 'success': True}
 
-    def getEvents(self, id):
+    def getEvents(self, uid):
         facade = self._getFacade()
-        events = facade.getEvents(id)
+        events = facade.getEvents(uid)
         data = Zuul.marshal(events)
         return {'data': data, 'success': True}
