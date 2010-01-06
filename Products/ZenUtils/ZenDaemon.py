@@ -49,7 +49,7 @@ class ZenDaemon(CmdBase):
     """
 
     pidfile = None
-    
+
     def __init__(self, noopts=0, keeproot=False):
         """
         Initializer that takes care of basic daemon options.

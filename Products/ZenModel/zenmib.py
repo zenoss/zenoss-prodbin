@@ -75,6 +75,7 @@ from Products.ZenUtils.ZCmdBase import ZCmdBase
 from Products.ZenUtils.Utils import zenPath
 from zExceptions import BadRequest
 
+
 class MibFile:
     """
     A MIB file has the meta-data for a MIB inside of it.

@@ -18,7 +18,7 @@ from ZenModelRM import ZenModelRM
 from ZenPackable import ZenPackable
 
 class MibBase(ZenModelRM, ZenPackable):
-    implements(IIndexed)    
+    implements(IIndexed)
     default_catalog = 'mibSearch'
 
     _relations = ZenPackable._relations[:]
