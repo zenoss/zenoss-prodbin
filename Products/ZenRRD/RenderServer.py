@@ -96,6 +96,7 @@ class RenderServer(RRDToolItem):
         """
         newCmds = []
         badNames = Set()
+        dedupMissing = dict()
         for cmd in cmds:
             if cmd.startswith('DEF:'):
                 # Check for existence of the RRD file
@@ -112,7 +113,10 @@ class RenderServer(RRDToolItem):
                     compName = compIndex > devIndex and parts[compIndex] or ''
                     dpName = parts[-1].rsplit('.', 1)[0]
                     desc = ' '.join([p for p in (devName,compName,dpName) if p])
-                    newCmds.append('COMMENT:MISSING RRD FILE\: %s' % desc)
+                    if dpName not in dedupMissing:
+                        newCmds.append('COMMENT:Missing DataPoint\: %s\j' 
+                                        % dpName)
+                        dedupMissing[dpName] = True
                     continue
 
             elif cmd.startswith('VDEF:') or cmd.startswith('CDEF:'):
@@ -156,6 +160,7 @@ class RenderServer(RRDToolItem):
         gopts = zlib.decompress(urlsafe_b64decode(gopts))
         gopts = gopts.split('|')
         gopts = self.removeInvalidRRDReferences(gopts)
+        gopts.append('HRULE:INF#00000000')
         gopts.append('--width=%s' % width)
         if start:
             gopts.append('--start=%s' % start)
