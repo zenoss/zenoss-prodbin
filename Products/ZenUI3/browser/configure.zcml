@@ -110,6 +110,13 @@
     />
 
 <browser:page
+    template="templates/datasource.pt"
+    name="datasource"
+    for="*"
+    permission="zope2.Public"
+    />
+
+<browser:page
     template="templates/service.pt"
     name="service"
     for="*"

@@ -27,6 +27,9 @@
         }, {
             "text": "DeviceEventPanel.js",
             "path": "resources/js/zenoss/"
+        }, {
+            "text": "DatasourceGridPanel.js",
+            "path": "resources/js/zenoss/"
         }]
     }],
     "resources": []
