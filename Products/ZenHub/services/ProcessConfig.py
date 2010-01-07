@@ -31,6 +31,7 @@ class ProcessProxy(pb.Copyable, pb.RemoteCopy):
     restart = None
     severity = Event.Warning
     cycleTime = None
+    processClass = None
 
     def __init__(self):
         pass
@@ -79,6 +80,7 @@ class ProcessConfig(CollectorConfigService):
                 getattr(p.osProcessClass(), 'ignoreParameters', False))
             proc.restart = p.alertOnRestart()
             proc.severity = p.getFailSeverity()
+            proc.processClass = p.getOSProcessClass()
             proxy.processes[p.id] = proc
 
         return proxy
