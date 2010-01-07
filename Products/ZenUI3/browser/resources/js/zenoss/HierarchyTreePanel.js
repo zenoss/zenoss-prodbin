@@ -1,19 +1,21 @@
-Ext.ns('Zenoss');
+/*
+###########################################################################
+#
+# This program is part of Zenoss Core, an open source monitoring platform.
+# Copyright (C) 2009, Zenoss Inc.
+#
+# This program is free software; you can redistribute it and/or modify it
+# under the terms of the GNU General Public License version 2 as published by
+# the Free Software Foundation.
+#
+# For complete information please visit: http://www.zenoss.com/oss/
+#
+###########################################################################
+*/
 
-function buildNodeText(node) {
-    var b = [];
-    var t = node.attributes.text;
-    if (node.isLeaf()) {
-        b.push(t.text);
-    } else {
-        b.push('<strong>' + t.text + '</strong>');
-    }
-    if (t.count!=undefined) {
-        b.push('<span class="node-extra">(' + t.count);
-        b.push((t.description || 'instances') + ')</span>');
-    }
-    return b.join(' ');
-}
+(function(){
+
+Ext.ns('Zenoss');
 
 /**
  * @class Zenoss.HierarchyTreePanel
@@ -35,17 +37,34 @@ function buildNodeText(node) {
  */
 
 Zenoss.HierarchyTreeNodeUI = Ext.extend(Ext.tree.TreeNodeUI, {
+
+    buildNodeText: function(node) {
+        var b = [];
+        var t = node.attributes.text;
+        if (node.isLeaf()) {
+            b.push(t.text);
+        } else {
+            b.push('<strong>' + t.text + '</strong>');
+        }
+        if (t.count!=undefined) {
+            b.push('<span class="node-extra">(' + t.count);
+            b.push((t.description || 'instances') + ')</span>');
+        }
+        return b.join(' ');
+    },
+
     render: function(bulkRender) {
         var n = this.node,
             a = n.attributes;
         if (a.text && Ext.isObject(a.text)) {
-            n.text = buildNodeText(this.node);
+            n.text = this.buildNodeText(this.node);
         }
         Zenoss.HierarchyTreeNodeUI.superclass.render.call(this, bulkRender);
     },
+
     onTextChange : function(node, text, oldText){
         if(this.rendered){
-            this.textNode.innerHTML = buildNodeText(node);
+            this.textNode.innerHTML = this.buildNodeText(node);
         }
     }
 });
@@ -153,3 +172,6 @@ Zenoss.HierarchyTreePanel = Ext.extend(Ext.tree.TreePanel, {
 }); // HierarchyTreePanel
 
 Ext.reg('HierarchyTreePanel', Zenoss.HierarchyTreePanel);
+
+})();
+

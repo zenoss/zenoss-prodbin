@@ -26,22 +26,22 @@ Ext.onReady(function(){
 
 // function that gets run when the user clicks on a node in the tree
 function clickHandler(node) {
-    
+
     // load up appropriate data in the form
     Ext.getCmp('processForm').getForm().load({
         params: {uid: node.attributes.uid}
     });
-    
+
     // load up appropriate data in the devices grid
     Ext.getCmp('deviceGrid').getStore().load({
         params: {uid: node.attributes.uid}
     });
-    
+
     // load up appropriate data in the event grid
     Ext.getCmp('eventGrid').getStore().load({
         params: {uid: node.attributes.uid}
     });
-    
+
 } // clickHandler
 
 Ext.getCmp('master_panel').add({
@@ -91,7 +91,7 @@ function inheritedCheckboxHandler(checkbox, checked) {
         var eventSeverityCombo = Ext.getCmp('eventSeverityCombo');
         eventSeverityCombo.setValue(info.eventSeverity);
     };
-    
+
     router.getInfo({uid: uid, keys: ['monitor', 'eventSeverity']}, callback);
 }
 
@@ -119,7 +119,7 @@ var nameTextField = {
     allowBlank: false,
     width: "100%"
 };
- 
+
 var descriptionTextField = {
     xtype: 'textfield',
     fieldLabel: _t('Description'),
@@ -175,7 +175,7 @@ var ignoreParametersCheckbox = {
 var monitoringFieldSet = {
     xtype: 'ColumnFieldSet',
     title: _t('Monitoring'),
-    __innner_items__: [
+    __inner_items__: [
         {
             items: inheritedCheckbox
         }, {
@@ -193,7 +193,7 @@ var regexFieldSet = {
     id: 'regexFieldSet',
     title: _t('Regular Expression'),
     hidden: true,
-    __innner_items__: [
+    __inner_items__: [
         {
             items: regexTextField,
             columnWidth: 0.6

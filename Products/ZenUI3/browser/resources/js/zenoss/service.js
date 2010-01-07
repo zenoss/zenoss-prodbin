@@ -12,147 +12,213 @@
 #
 ###########################################################################
 */
+Ext.ns('Zenoss.ui.Service');
 
-// Script for the services page.
+Ext.onReady( function() {
 
-Ext.onReady(function(){
+    /**********************************************************************
+     *
+     * Tree Functionality
+     *
+     */
 
+    /**
+     * Callback handler for click events coming from the tree
+     * @param {Ext.tree.TreeNode} node Node clicked upon
+     */
+    function treeClickHandler(node) {
+        // load up appropriate data in the form
+        Ext.getCmp('serviceForm').getForm().load({
+            params: {uid: node.attributes.uid}
+        });
 
-/* ***************************************************************************
- *
- *   master_panel - the services tree on the left
- *
- */
+        // load up appropriate data in the devices grid
+        Ext.getCmp('deviceGrid').getStore().load({
+            params: {uid: node.attributes.uid}
+        });
 
-// function that gets run when the user clicks on a node in the tree
-function clickHandler(node) {
-    
-    // load up appropriate data in the form
-    Ext.getCmp('serviceForm').getForm().load({
-        params: {uid: node.attributes.uid}
-    });
-    
-    // load up appropriate data in the devices grid
-    Ext.getCmp('deviceGrid').getStore().load({
-        params: {uid: node.attributes.uid}
-    });
-
-    // load up appropriate data in the event grid
-    Ext.getCmp('eventGrid').getStore().load({
-        params: {uid: node.attributes.uid}
-    });
-    
-    
-} // clickHandler
-
-function acquiredCheckboxHandler(checkbox, checked) {
-    setMonitoringDisabled(checked);
-    var router = Zenoss.remote.ServiceRouter;
-    var serviceTree = Ext.getCmp('serviceTree');
-    var selectionModel = serviceTree.getSelectionModel();
-    var selectedNode = selectionModel.getSelectedNode();
-
-    var uid;
-    if (checked && selectedNode.parentNode !== null) {
-        uid = selectedNode.parentNode.attributes.uid;
-    } else {
-        uid = selectedNode.attributes.uid;
+        // load up appropriate data in the event grid
+        Ext.getCmp('eventGrid').getStore().load({
+            params: {uid: node.attributes.uid}
+        });
+        setPanelsDisabled(false);
     }
 
-    var callback = function(provider, response) {
-        var info = response.result.data;
-        var monitorCheckbox = Ext.getCmp('monitorCheckbox');
-        monitorCheckbox.setValue(info.monitor);
-        var eventSeverityCombo = Ext.getCmp('eventSeverityCombo');
-        eventSeverityCombo.setValue(info.eventSeverity);
+    /**
+     * Initialize the tree.
+     */
+    function treeInitialize() {
+        Ext.getCmp('master_panel').add({
+            xtype: 'HierarchyTreePanel',
+            id: 'serviceTree',
+            searchField: true,
+            autoScroll: true,
+            directFn: Zenoss.remote.ServiceRouter.getTree,
+            root: 'Services',
+            rootuid: '/zport/dmd/Services',
+            listeners: {click: treeClickHandler}
+        });
+    }
+
+    /**********************************************************************
+     *
+     * CardPanel Functionality
+     *
+     */
+
+    //the store that holds the records for the device grid
+    var deviceStore = {
+        xtype: 'DeviceStore',
+        autoLoad: {params:{uid: '/zport/dmd/Services'}},
+        // Ext.data.DirectProxy config
+        api: {read: Zenoss.remote.ServiceRouter.getDevices}
     };
-    
-    router.getInfo({uid: uid, keys: ['monitor', 'eventSeverity']}, callback);
-}
+
+    // the store that holds the records for the event grid
+    var eventStore = {
+        xtype: 'EventStore',
+        autoLoad: {params:{uid: '/zport/dmd/Services'}},
+        // Ext.data.DirectProxy config
+        api: {read: Zenoss.remote.ServiceRouter.getEvents}
+    };
 
 
+    /**
+     * Initialize the Card Panel
+     */
+    function cardPanelInitialize() {
+        Ext.getCmp('bottom_detail_panel').add({
+            xtype: 'DeviceEventPanel',
+            id: 'deviceEventsPanel',
+            __device_store__: deviceStore,
+            __event_store__: eventStore,
+            disabled: true,
+            getSelectedNode: function() {
+            var serviceTree = Ext.getCmp('serviceTree');
+            var selectionModel = serviceTree.getSelectionModel();
+            return selectionModel.getSelectedNode();
+        }
 
-Ext.getCmp('master_panel').add({
-    xtype: 'HierarchyTreePanel',
-    id: 'serviceTree',
-    searchField: true,
-    autoScroll: true,
-    directFn: Zenoss.remote.ServiceRouter.getTree,
-    root: 'Services',
-    rootuid: '/zport/dmd/Services',
-    listeners: {click: clickHandler}
-}); // master_panel.add
+    /**********************************************************************
+     *
+     * Service Panel Functionality
+     *
+     */
 
+    /**
+     * Enables or disables all data entry panels on the screen.
+     * @param {boolean} disabled Whether to disable or not
+     */
+    function setPanelsDisabled(disabled) {
+        Ext.getCmp('serviceForm').setDisabled(disabled);
+        Ext.getCmp('deviceEventsPanel').setDisabled(disabled);
+    }
 
-/* **************************************************************************
- *
- *   top_detail_panel - the service form on the top right
- *
- */
+    /**
+     * Enables or disables monitoring options based on inheritance
+     * @param {boolean} disabled Whether to disable or not
+     */
+    function setMonitoringDisabled(disabled) {
+        Ext.getCmp('monitorCheckbox').setDisabled(disabled);
+        Ext.getCmp('eventSeverityCombo').setDisabled(disabled);
+    }
 
-var nameTextField = {
-    xtype: 'textfield',
-    fieldLabel: _t('Name'),
-    name: 'name',
-    allowBlank: false,
-    width: "100%"
-};
- 
-var descriptionTextField = {
-    xtype: 'textfield',
-    fieldLabel: _t('Description'),
-    name: 'description',
-    width: "100%"
-};
+    /**
+     * Handles the acquiredCheckbox check events.  If unchecked, it will
+     * load its own values, but if checked, it will load its parent's
+     * values instead.
+     * @param {Ext.form.Checkbox} checkbox The checkbox itself
+     * @param {boolean} checked The value of the checkbox as a boolean
+     */
+    function acquiredCheckboxHandler(checkbox, checked) {
+        setMonitoringDisabled(checked);
+        var router = Zenoss.remote.ServiceRouter;
+        var serviceTree = Ext.getCmp('serviceTree');
+        var selectionModel = serviceTree.getSelectionModel();
+        var selectedNode = selectionModel.getSelectedNode();
 
-var serviceKeysTextField = {
-    xtype: 'textfield',
-    fieldLabel: _t('Service Keys'),
-    name: 'serviceKeys',
-    width: "100%"
-};
-     
-var portTextField = {
-    xtype: 'textfield',
-    fieldLabel: _t('Port'),
-    name: 'port',
-    width: "100%"
-};
+        var uid;
+        if (checked && selectedNode.parentNode !== null) {
+            uid = selectedNode.parentNode.attributes.uid;
+        } else {
+            uid = selectedNode.attributes.uid;
+        }
 
-var acquiredCheckbox = {
-    xtype: 'checkbox',
-    id: 'acquiredCheckbox',
-    fieldLabel: _t('Inherited'),
-    name: 'isMonitoringAcquired',
-    handler: acquiredCheckboxHandler
-};
+        var callback = function(provider, response) {
+            var info = response.result.data;
+            Ext.getCmp('monitorCheckbox').setValue(info.monitor);
+            Ext.getCmp('eventSeverityCombo').setValue(info.eventSeverity);
+        };
 
-var monitorCheckbox = {
-    xtype: 'checkbox',
-    id: 'monitorCheckbox',
-    fieldLabel: _t('Enabled'),
-    name: 'monitor'
-};
+        router.getInfo({uid: uid, keys: ['monitor', 'eventSeverity']}, callback);
+    }
 
-var eventSeverityCombo = {
-    xtype: 'combo',
-    id: 'eventSeverityCombo',
-    fieldLabel: _t('Event Severity'),
-    name: 'eventSeverity',
-    triggerAction: 'all',
-    mode: 'local',
-    valueField: 'severityId',
-    displayField: 'severityText',
-    store: new Ext.data.ArrayStore({
-        fields: ['severityId', 'severityText'],
-        data: Zenoss.env.SEVERITIES.slice(0, 5)
-    })
-};
+    /**
+     * Form definition variables
+     */
+    var nameTextField = {
+        xtype: 'textfield',
+        fieldLabel: _t('Name'),
+        name: 'name',
+        allowBlank: false,
+        width: "100%"
+    }
 
-var monitoringFieldSet = {
+    var descriptionTextField = {
+        xtype: 'textfield',
+        fieldLabel: _t('Description'),
+        name: 'description',
+        width: "100%"
+    }
+
+    var serviceKeysTextField = {
+        xtype: 'textfield',
+        fieldLabel: _t('Service Keys'),
+        name: 'serviceKeys',
+        width: "100%"
+    }
+
+    var portTextField = {
+        xtype: 'textfield',
+        fieldLabel: _t('Port'),
+        name: 'port',
+        width: "100%"
+    }
+
+    var acquiredCheckbox = {
+        xtype: 'checkbox',
+        id: 'acquiredCheckbox',
+        fieldLabel: _t('Inherited'),
+        name: 'isMonitoringAcquired',
+        handler: acquiredCheckboxHandler
+    }
+
+    var monitorCheckbox = {
+        xtype: 'checkbox',
+        id: 'monitorCheckbox',
+        fieldLabel: _t('Enabled'),
+        name: 'monitor'
+    }
+
+    var eventSeverityCombo = {
+        xtype: 'combo',
+        id: 'eventSeverityCombo',
+        fieldLabel: _t('Event Severity'),
+        name: 'eventSeverity',
+        triggerAction: 'all',
+        mode: 'local',
+        valueField: 'severityId',
+        displayField: 'severityText',
+        store: new Ext.data.ArrayStore({
+            fields: ['severityId', 'severityText'],
+            data: Zenoss.env.SEVERITIES.slice(0, 5)
+        })
+    }
+
+    var monitoringFieldSet = {
         xtype: 'ColumnFieldSet',
         title: _t('Monitoring'),
-        __innner_items__: [
+        __inner_items__: [
             {
                 items: acquiredCheckbox
             }, {
@@ -163,125 +229,88 @@ var monitoringFieldSet = {
                 bodyStyle: 'padding-left: 15px'
             }
         ]
-    }; // monitoringFieldSet
+    }
 
-
-// the items that make up the form
-var serviceFormItems = {
-    layout: 'column',
-    border: false,
-    defaults: {
-        layout: 'form',
+    var formItems = {
+        layout: 'column',
         border: false,
-        bodyStyle: 'padding: 15px',
-        labelSeparator: ' ',
-        columnWidth: .5
-    },
-    items: [
-        {items: [nameTextField, descriptionTextField ]},
-        {items: [serviceKeysTextField, portTextField ]},
-        {items: [monitoringFieldSet]}
-    ]
-}; // serviceFormItems
-
-var serviceFormConfig = {
-    xtype: 'form',
-    id: 'serviceForm',
-    paramsAsHash: true,
-    items: serviceFormItems,
-    border: false,
-    labelAlign: 'top',
-    autoScroll: true,
-    api: {
-        load: Zenoss.remote.ServiceRouter.getInfo,
-        submit: Zenoss.remote.ServiceRouter.submitInfo
-    },
-    tbar: [
-       {
-           xtype: 'tbfill'
-       }, {
-           xtype: 'button',
-           text: _t('Save'),
-           width: 80,
-           handler: function(button, event) {} 
-               /*function(button, event) {
-               var processTree = Ext.getCmp('processTree');
-               var selectionModel = processTree.getSelectionModel();
-               var selectedNode = selectionModel.getSelectedNode();
-               var nameTextField = Ext.getCmp('nameTextField');
-               selectedNode.attributes.text.text = nameTextField.getValue();
-               selectedNode.setText(selectedNode.attributes.text);
-               var form = Ext.getCmp('processForm').getForm();
-               var params = Ext.apply({id: selectedNode.id}, form.getValues());
-               form.api.submit(params);
-           }*/
-       }
-       ] //tbar
-
-};
-
-Ext.ns('Zenoss');
-
-/**
- * @class Zenoss.ServiceFormPanel
- * @extends Ext.form.FormPanel
- * The form panel that displays information about a service organizer or class
- * @constructor
- */
-Zenoss.ServiceFormPanel = Ext.extend(Ext.form.FormPanel, {
-
-    constructor: function(userConfig) {
-        var config = Ext.apply(serviceFormConfig, userConfig);
-        Zenoss.ServiceFormPanel.superclass.constructor.call(this, config);
-        //this.on('actioncomplete', actioncompleteHandler);
+        defaults: {
+            layout: 'form',
+            border: false,
+            bodyStyle: 'padding: 15px',
+            labelSeparator: ' ',
+            columnWidth: 0.5
+        },
+        items: [
+            {items: [nameTextField,
+                     descriptionTextField ]},
+            {items: [serviceKeysTextField,
+                     portTextField ]},
+            {items: [monitoringFieldSet]}
+        ]
     }
 
-});
-
-Ext.reg('ServiceFormPanel', Zenoss.ServiceFormPanel);
-
-var serviceForm = new Zenoss.ServiceFormPanel({});
-
-// place the form in the top right
-Ext.getCmp('top_detail_panel').add(serviceForm);
-
-serviceForm.getForm().load({params:{uid: 'Services'}});
-
-
-/* ***********************************************************************
- *
- *   bottom_detail_panel - the device and event grid on the bottom right
- *
- */
-
-//the store that holds the records for the device grid
-var deviceStore = {
-    xtype: 'DeviceStore',
-    autoLoad: {params:{uid: '/zport/dmd/Services'}},
-    // Ext.data.DirectProxy config
-    api: {read: Zenoss.remote.ServiceRouter.getDevices}
-};
-
-// the store that holds the records for the event grid
-var eventStore = {
-    xtype: 'EventStore',
-    autoLoad: {params:{uid: '/zport/dmd/Services'}},
-    // Ext.data.DirectProxy config
-    api: {read: Zenoss.remote.ServiceRouter.getEvents}
-};
-
-
-
-Ext.getCmp('bottom_detail_panel').add({
-    xtype: 'DeviceEventPanel',
-    __device_store__: deviceStore,
-    __event_store__: eventStore,
-    getSelectedNode: function() {
-        var serviceTree = Ext.getCmp('serviceTree');
-        var selectionModel = serviceTree.getSelectionModel();
-        return selectionModel.getSelectedNode();
+    var formConfig = {
+        xtype: 'form',
+        id: 'serviceForm',
+        paramsAsHash: true,
+        items: formItems,
+        border: false,
+        labelAlign: 'top',
+        autoScroll: true,
+        disabled: true,
+        api: {
+            load: Zenoss.remote.ServiceRouter.getInfo,
+            submit: Zenoss.remote.ServiceRouter.submitInfo
+        },
+        tbar: [
+               {
+                   xtype: 'button',
+                   id: 'Save-button',
+                   text: _t('Save'),
+                   iconCls: 'save',
+                   handler: function(button, event) {}
+                       function(button, event) {
+                           var serviceTree = Ext.getCmp('serviceTree');
+                           var selectionModel = serviceTree.getSelectionModel();
+                           var selectedNode = selectionModel.getSelectedNode();
+                           var nameTextField = Ext.getCmp('nameTextField');
+                           selectedNode.attributes.text.text = nameTextField.getValue();
+                           selectedNode.setText(selectedNode.attributes.text);
+                           var form = Ext.getCmp('serviceForm').getForm();
+                           var params = Ext.apply({id: selectedNode.id}, form.getValues());
+                           form.api.submit(params);
+                       }
+               }
+        ]
     }
-});
+
+    /**
+     * @class Zenoss.ui.Service.ServiceFormPanel
+     * @extends Ext.form.FormPanel
+     * The form panel that displays information about a service organizer or class
+     * @constructor
+     */
+    Zenoss.ui.Service.ServiceFormPanel = Ext.extend(Ext.form.FormPanel, {
+
+        constructor: function(config) {
+            Ext.apply(config, formConfig);
+            Zenoss.ui.Service.ServiceFormPanel.superclass.constructor.call(this, config);
+            //this.on('actioncomplete', actioncompleteHandler);
+        }
+
+    });
+
+    Ext.reg('ServiceFormPanel', Zenoss.ui.Service.ServiceFormPanel);
+
+    var serviceForm = new Zenoss.ui.Service.ServiceFormPanel({});
+
+
+    // place the form in the top right
+    Ext.getCmp('top_detail_panel').add(serviceForm);
+
+    serviceForm.getForm().load({params:{uid: 'Services'}});
+
 
 
 }); // Ext.onReady

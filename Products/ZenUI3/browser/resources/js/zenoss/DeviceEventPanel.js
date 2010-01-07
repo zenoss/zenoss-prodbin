@@ -45,10 +45,10 @@ function ipAddressRenderer(value) {
 }
 
 // templates for the events renderer
-var iconTemplate = new Ext.Template('<div style="float: left;" ' + 
+var iconTemplate = new Ext.Template('<div style="float: left;" ' +
                      'class="severity-icon-small {severity}"></div>');
 iconTemplate.compile();
-                     
+
 var countTemplate = new Ext.Template('<div style="' +
         'float: left; ' +
         'vertical-align: 27%;' +
@@ -95,7 +95,7 @@ var deviceColumnModel = new Ext.grid.ColumnModel({
                 renderer: eventsRenderer
                 },
               {dataIndex: 'availability',
-               header: _t('Availability'), 
+               header: _t('Availability'),
                id: 'availability',
                renderer: availabilityRenderer
                }] // columns
@@ -184,7 +184,7 @@ var eventColumnModel = new Ext.grid.ColumnModel({
                 header: _t('Event Class')
                 },
               {dataIndex: 'summary',
-               header: _t('Summary'), 
+               header: _t('Summary'),
                id: 'summary'
                }] // columns
 }); // eventColumnModel
@@ -211,7 +211,7 @@ Zenoss.EventGridPanel = Ext.extend(Ext.grid.GridPanel, {
         delete userConfig.__event_store__;
         var config = Ext.apply(baseConfig, userConfig);
         Zenoss.EventGridPanel.superclass.constructor.call(this, config);
-        
+
     }
 
 }); // EventGridPanel

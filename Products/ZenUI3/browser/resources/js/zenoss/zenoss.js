@@ -13,7 +13,7 @@ Ext.namespace('Zenoss.env');
 
 Ext.QuickTips.init();
 
-/* 
+/*
  * Hook up all Ext.Direct requests to the connection error message box.
  */
 Ext.Direct.on('event', function(e){
@@ -82,7 +82,7 @@ Zenoss.PlaceholderPanel = Ext.extend(Ext.Panel, {
  * several screens, including the event console.
  * @constructor
  */
-Zenoss.LargeToolbar = Ext.extend(Ext.Toolbar, { 
+Zenoss.LargeToolbar = Ext.extend(Ext.Toolbar, {
     constructor: function(config) {
         Ext.apply(config, {
             cls: 'largetoolbar',
@@ -247,7 +247,7 @@ Zenoss.FilterGridView = Ext.extend(Ext.ux.grid.livegrid.GridView, {
             config.displayFilters = true;
         Zenoss.FilterGridView.superclass.constructor.apply(this,
             arguments);
-        Ext.applyIf(this.lastOptions, this.defaultFilters || {}); 
+        Ext.applyIf(this.lastOptions, this.defaultFilters || {});
     },
     lastOptions: {},
     initEvents: function(){
@@ -329,9 +329,9 @@ Zenoss.FilterGridView = Ext.extend(Ext.ux.grid.livegrid.GridView, {
         this.layout();
     },
     renderFilterRow: function() {
-        var cs = this.getColumnData(), 
+        var cs = this.getColumnData(),
             ct = this.templates.cell,
-            ct = new Ext.Template( 
+            ct = new Ext.Template(
                 '<td class="x-grid3-col x-grid3-cell',
                 ' x-grid3-td-{id} {css}" style="{style}" tabIndex="-1"',
                 ' {cellAttr}> <div class="x-grid3-cell-inner',
@@ -391,7 +391,7 @@ Zenoss.FilterGridView = Ext.extend(Ext.ux.grid.livegrid.GridView, {
             var config = this.cm.config[i].filter;
             if (!config) config = {xtype:'textfield'};
             Ext.apply(config, {
-                id:fieldid, 
+                id:fieldid,
                 enableKeyEvents: true,
                 selectOnFocus: true
             });
@@ -426,7 +426,7 @@ Zenoss.FilterGridView = Ext.extend(Ext.ux.grid.livegrid.GridView, {
                     this.validationTask.delay(250);
                 }, filter);
             }
-            
+
         }
     },
     updateHeaders: function() {
@@ -478,7 +478,7 @@ Zenoss.FilterGridView = Ext.extend(Ext.ux.grid.livegrid.GridView, {
         return Ext.getCmp(this.filterbutton);
     },
     getRowClass: function(record, index) {
-        var stateclass = record.get('eventState')=='New' ? 
+        var stateclass = record.get('eventState')=='New' ?
                             'unacknowledged':'acknowledged';
         var sev = Zenoss.util.convertSeverity(record.get('severity'));
         var sevclass = this.rowColors ? sev + ' rowcolor' : '';
@@ -497,8 +497,8 @@ Zenoss.FilterGridView = Ext.extend(Ext.ux.grid.livegrid.GridView, {
         this.displayFilters = true; //state.displayFilters;
         // End always show filters
         this.lastOptions = state.options;
-        // Apply any default filters specified in the constructor 
-        Ext.applyIf(this.lastOptions, this.defaultFilters || {}); 
+        // Apply any default filters specified in the constructor
+        Ext.applyIf(this.lastOptions, this.defaultFilters || {});
         /*
         var btn = Ext.getCmp(this.filterbutton);
         btn.on('render', function(){
@@ -508,7 +508,7 @@ Zenoss.FilterGridView = Ext.extend(Ext.ux.grid.livegrid.GridView, {
     },
     resetFilters: function(){
         this.lastOptions = {};
-        Ext.applyIf(this.lastOptions, this.defaultFilters || {}); 
+        Ext.applyIf(this.lastOptions, this.defaultFilters || {});
         //this.getFilterButton().setChecked(false);
     }
 });
@@ -590,8 +590,8 @@ Zenoss.FilterGridPanel = Ext.extend(Ext.ux.grid.livegrid.GridPanel, {
             if (availcols.indexOf(col.id)>-1) cols.push(col);
         });
         Ext.iterate(state.filters.options, function(op){
-            if (availcols.indexOf(op)>-1) { 
-                filters[op] = state.filters.options[op]; 
+            if (availcols.indexOf(op)>-1) {
+                filters[op] = state.filters.options[op];
             }
         });
         state.columns = cols;
@@ -1004,9 +1004,9 @@ Zenoss.DetailPanel = Ext.extend(Ext.Panel, {
     },
     load: function(event_id){
         Zenoss.remote.EventsRouter.detail({
-                evid:event_id, 
+                evid:event_id,
                 history:this.isHistory
-            }, 
+            },
             function(result){
                 var event = result.event[0];
                 this.update(event);
@@ -1027,12 +1027,12 @@ Ext.reg('detailpanel', Zenoss.DetailPanel);
  */
 Zenoss.ColumnFieldSet = Ext.extend(Ext.form.FieldSet, {
     constructor: function(userConfig) {
-        
+
         var baseConfig = {
             items: {
                 layout: 'column',
                 border: false,
-                items: userConfig.__innner_items__,
+                items: userConfig.__inner_items__,
                 defaults: {
                     layout: 'form',
                     border: false,
@@ -1040,11 +1040,11 @@ Zenoss.ColumnFieldSet = Ext.extend(Ext.form.FieldSet, {
                 }
             }
         };
-        
-        delete userConfig.__innner_items__;
+
+        delete userConfig.__inner_items__;
         var config = Ext.apply(baseConfig, userConfig);
         Zenoss.ColumnFieldSet.superclass.constructor.call(this, config);
-        
+
     } // constructor
 }); // Zenoss.ColumnFieldSet
 
@@ -1098,7 +1098,7 @@ Zenoss.util.base64 = {
     base64s : "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_",
     encode: function(decStr){
         if (typeof btoa === 'function') {
-             return btoa(decStr);            
+             return btoa(decStr);
         }
         var base64s = this.base64s;
         var bits;
@@ -1106,37 +1106,37 @@ Zenoss.util.base64 = {
         var i = 0;
         var encOut = "";
         while(decStr.length >= i + 3){
-            bits = (decStr.charCodeAt(i++) & 0xff) <<16 | 
-                   (decStr.charCodeAt(i++) & 0xff) <<8 | 
+            bits = (decStr.charCodeAt(i++) & 0xff) <<16 |
+                   (decStr.charCodeAt(i++) & 0xff) <<8 |
                    decStr.charCodeAt(i++) & 0xff;
-            encOut += base64s.charAt((bits & 0x00fc0000) >>18) + 
-                      base64s.charAt((bits & 0x0003f000) >>12) + 
-                      base64s.charAt((bits & 0x00000fc0) >> 6) + 
+            encOut += base64s.charAt((bits & 0x00fc0000) >>18) +
+                      base64s.charAt((bits & 0x0003f000) >>12) +
+                      base64s.charAt((bits & 0x00000fc0) >> 6) +
                       base64s.charAt((bits & 0x0000003f));
         }
         if(decStr.length -i > 0 && decStr.length -i < 3){
             dual = Boolean(decStr.length -i -1);
             bits = ((decStr.charCodeAt(i++) & 0xff) <<16) | (dual ? (decStr.charCodeAt(i) & 0xff) <<8 : 0);
-            encOut += base64s.charAt((bits & 0x00fc0000) >>18) + 
-                      base64s.charAt((bits & 0x0003f000) >>12) + 
+            encOut += base64s.charAt((bits & 0x00fc0000) >>18) +
+                      base64s.charAt((bits & 0x0003f000) >>12) +
                       (dual ? base64s.charAt((bits & 0x00000fc0) >>6) : '=') + '=';
         }
         return(encOut);
     },
     decode: function(encStr){
         if (typeof atob === 'function') {
-            return atob(encStr); 
+            return atob(encStr);
         }
-        var base64s = this.base64s;        
+        var base64s = this.base64s;
         var bits;
         var decOut = "";
         var i = 0;
         for(; i<encStr.length; i += 4){
-            bits = (base64s.indexOf(encStr.charAt(i)) & 0xff) <<18 | 
-                   (base64s.indexOf(encStr.charAt(i +1)) & 0xff) <<12 | 
-                   (base64s.indexOf(encStr.charAt(i +2)) & 0xff) << 6 | 
+            bits = (base64s.indexOf(encStr.charAt(i)) & 0xff) <<18 |
+                   (base64s.indexOf(encStr.charAt(i +1)) & 0xff) <<12 |
+                   (base64s.indexOf(encStr.charAt(i +2)) & 0xff) << 6 |
                    base64s.indexOf(encStr.charAt(i +3)) & 0xff;
-            decOut += String.fromCharCode((bits & 0xff0000) >>16, 
+            decOut += String.fromCharCode((bits & 0xff0000) >>16,
                                           (bits & 0xff00) >>8, bits & 0xff);
         }
         if(encStr.charCodeAt(i -2) == 61){
@@ -1149,7 +1149,7 @@ Zenoss.util.base64 = {
             return(decOut);
         }
     }
-}; 
+};
 
 // two functions for converting IP addresses
 Zenoss.util.dot2num = function(dot) {
@@ -1159,7 +1159,7 @@ Zenoss.util.dot2num = function(dot) {
 
 Zenoss.util.num2dot = function(num) {
     var d = num % 256;
-    for (var i = 3; i > 0; i--) { 
+    for (var i = 3; i > 0; i--) {
         num = Math.floor(num/256);
         d = num%256 + '.' + d;
     }
