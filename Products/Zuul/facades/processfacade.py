@@ -146,6 +146,7 @@ class ProcessFacade(TreeFacade):
     def _root(self):
         return self._dmd.Processes
 
+    @property
     def _instanceClass(self):
         return "Products.ZenModel.OSProcess.OSProcess"
 

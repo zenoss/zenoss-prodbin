@@ -26,13 +26,9 @@ def _marshalImplicitly(obj):
     Return a dictionary with all the attributes of obj except methods, and
     those that begin with '_'
     """
-    variables = vars(obj.__class__).copy()
-    variables.update(vars(obj))
     data = {}
-    for key in variables:
+    for key in dir(obj):
         if not key.startswith('_'):
-            # it is important to use getattr instead of the value in
-            # variables, so properties/descriptors work correctly
             value = getattr(obj, key)
             if not callable(value):
                 data[key] = value
@@ -73,9 +69,10 @@ class InfoMarshaller(object):
             data = _marshalImplicitly(self._obj)
         else:
             # Ensure that uid makes it through
-            if 'uid' not in keys:
-                keys.append('uid')
-            data = _marshalExplicitly(self._obj, keys)
+            _keys = list(keys[:])
+            if 'uid' not in _keys:
+                _keys.append('uid')
+            data = _marshalExplicitly(self._obj, _keys)
         return data
 
 

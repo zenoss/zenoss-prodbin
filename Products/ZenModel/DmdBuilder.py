@@ -157,6 +157,7 @@ class DmdBuilder(object):
         ZenossPortlets.register_default_portlets(zpmgr)
 
     def build(self):
+        createGlobalCatalog(self.portal)
         self.buildRoots()
         self.buildMonitors()
         self.buildUserCommands()
@@ -184,4 +185,3 @@ class DmdBuilder(object):
         CreateZenPackPersistenceCatalog(self.dmd)
         CreateRRDTemplatesCatalog(self.dmd)
         createMaintenanceWindowCatalog(self.dmd)
-        createGlobalCatalog(self.portal)

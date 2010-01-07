@@ -92,5 +92,6 @@ class ServiceFacade(TreeFacade):
     def _root(self):
         return self._dmd.Services
 
+    @property
     def _instanceClass(self):
         return "Products.ZenModel.Service.Service"

@@ -28,6 +28,8 @@ class TreeNode(object):
     def __init__(self, brain):
         if not isinstance(brain, AbstractCatalogBrain):
             brain = ICatalogTool(brain).getBrain(brain)
+            if brain is None:
+                raise Exception('brain is None')
         self._object = brain
 
     @property
