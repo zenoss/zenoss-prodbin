@@ -12,7 +12,7 @@
 # ##########################################################################
 
 import logging
-log = logging.getLogger()
+log = logging.getLogger("zen.ZenossStartup")
 
 from zope.dottedname.resolve import resolve
 from Products.CMFCore.utils import ProductsPath
@@ -32,5 +32,9 @@ for zpkg  in pkg_resources.iter_entry_points('zenoss.zenpacks'):
         setattr(Products, zpkg.module_name, module)
 
     except Exception, e:
-        log.exception(e)
+        # This messes up logging a bit, but if we need to report
+        # an error, this saves hours of trying to find out what's going on
+        logging.basicConfig()
+        log.exception("Error encountered while processing %s",
+                      zpkg.module_name)
 
