@@ -512,6 +512,11 @@ class ZenMib(ZCmdBase):
     Wrapper around the smidump utilities used to convert MIB definitions into
     python code which is in turn loaded into the DMD tree.
     """
+    def __init__(self, *args, **kwargs):
+        super(ZenMib, self).__init__(self, *args, **kwargs)
+        import Products.Five
+        Products.Five.zcml.load_config('event.zcml', Products.Five)
+
     def makeMibFileObj(self, fileName):
         """
         Scan the MIB file to determine what MIBs are defined in the file and

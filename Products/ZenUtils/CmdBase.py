@@ -56,7 +56,6 @@ class CmdBase(object):
         import Products.ZenWidgets, Products.Zuul
         try:
             zcml.load_config('meta.zcml', Products.Five)
-            zcml.load_config('event.zcml', Products.Five)
             zcml.load_config('indexing.zcml', Products.ZenModel)
             zcml.load_config('zendoc.zcml', Products.ZenModel)
             zcml.load_config('configure.zcml', Products.ZenRelations)
