@@ -377,6 +377,14 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
         return flag
 
 
+    security.declareProtected(ZEN_VIEW, 'name')
+    def name(self):
+        """
+        Return the name of this device.  Default is titleOrId.
+        """
+        return self.titleOrId()
+
+
     security.declareProtected(ZEN_MANAGE_DMD, 'changeDeviceClass')
     def changeDeviceClass(self, deviceClassPath, REQUEST=None):
         """
