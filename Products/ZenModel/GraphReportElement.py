@@ -15,6 +15,7 @@ from Globals import InitializeClass
 from AccessControl import ClassSecurityInfo
 from ZenModelRM import ZenModelRM
 from Products.ZenRelations.RelSchema import *
+from Products.ZenUtils.Utils import getObjByPath
 from Products.ZenUtils.ZenTales import talesCompile, getEngine
 
 
@@ -35,13 +36,13 @@ class GraphReportElement(ZenModelRM):
     componentPath = ''
     graphId = ''
     sequence = 0
-    summary = ('Device: ${dev/id}\n'
+    summary = ('Device: ${dev/titleOrId}\n'
                 '&nbsp;&nbsp;\n'
-                'Component: ${comp/id}\n'
+                'Component: ${comp/name}\n'
                 '&nbsp;&nbsp;\n'
                 'Graph: ${graph/id}\n')
-    comments = ('Device: ${dev/id}<br />\n'
-                'Component: ${comp/id}<br />\n'
+    comments = ('Device: ${dev/titleOrId}<br />\n'
+                'Component: ${comp/name}<br />\n'
                 '${graph/id}')
         
     _properties = ZenModelRM._properties + (
@@ -121,6 +122,17 @@ class GraphReportElement(ZenModelRM):
                 if not component:
                     break
         return component
+
+
+    def getComponentName(self):
+        if self.componentPath:
+            try:
+                name = getObjByPath(self.getDevice(), self.componentPath).name
+                return callable(name) and name() or name
+            except KeyError:
+                return 'Not Found'
+        else:
+            return ''
 
 
     def getGraphDef(self):

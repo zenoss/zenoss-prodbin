@@ -279,7 +279,7 @@
                 tal:content="element/getId">name</a>
         </td>
         <td valign="top" tal:content="element/deviceId"/>
-        <td valign="top" tal:content="element/componentPath"/>
+        <td valign="top" tal:content="element/getComponentName"/>
         <td valign="top" tal:content="element/graphId"/>
     </tr>
     </tal:block>

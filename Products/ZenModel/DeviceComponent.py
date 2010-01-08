@@ -25,6 +25,7 @@ from Acquisition import aq_base
 
 import zope.interface
 from Products.ZenModel.interfaces import IIndexed
+from Products.ZenModel.ZenossSecurity import ZEN_VIEW
 
 from Lockable import Lockable
 
@@ -65,7 +66,7 @@ class DeviceComponent(Lockable):
         if dev: url = dev.absolute_url()
         return url
     
-   
+    security.declareProtected(ZEN_VIEW, 'name')
     def name(self):
         """
         Return the name of this component.  Default is id.

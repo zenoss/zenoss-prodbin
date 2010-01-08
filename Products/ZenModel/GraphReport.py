@@ -16,6 +16,7 @@ from AccessControl import ClassSecurityInfo
 from ZenModelRM import ZenModelRM
 from Products.ZenRelations.RelSchema import *
 from GraphReportElement import GraphReportElement
+from Products.ZenUtils.Utils import getObjByPath
 from Products.ZenUtils.ZenTales import talesCompile, getEngine
 from Products.ZenWidgets import messaging
 from DateTime import DateTime
@@ -86,13 +87,10 @@ class GraphReport(ZenModelRM):
         '''
         thing = self.dmd.Devices.findDevice(deviceId)
         if thing and componentPath:
-            parts = componentPath.split('/')
-            for part in parts:
-                if hasattr(thing, part):
-                    thing = getattr(thing, part)
-                else:
-                    thing = None
-                    break
+            try:
+                return getObjByPath(thing, componentPath)
+            except KeyError:
+                return None
         return thing
 
 
@@ -118,15 +116,22 @@ class GraphReport(ZenModelRM):
             componentPaths = [componentPaths]
         componentPaths = componentPaths or ('')
         for devId in deviceIds:
+            dev = self.dmd.Devices.findDevice(devId)
             for cPath in componentPaths:
-                thing = self.getThing(devId, cPath)
-                if thing:
+                try:
+                    thing = getObjByPath(dev, cPath)
+                except KeyError:
+                    continue
+                else:
                     for graphId in graphIds:
                         graph = thing.getGraphDef(graphId)
-                        if graph:            
-                            newId = GetId(devId, cPath, graphId)
+                        if graph:
+                            newId = thing.name
+                            if callable(newId):
+                                newId = newId()
+
                             ge = GraphReportElement(newId)
-                            ge.deviceId = devId
+                            ge.deviceId = dev.titleOrId()
                             ge.componentPath = cPath
                             ge.graphId = graphId
                             ge.sequence = len(self.elements())

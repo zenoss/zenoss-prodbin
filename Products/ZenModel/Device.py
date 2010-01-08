@@ -592,6 +592,21 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
         return self.getDeviceComponents(monitored=True, 
                                         collector=collector, type=type)
 
+
+    security.declareProtected(ZEN_VIEW, 'getReportableComponents')
+    def getReportableComponents(self, collector=None, type=None):
+        """
+        Return a list of DeviceComponents on this device that should be
+        considered for reporting.
+        
+        @type collector: string
+        @type type: string
+        @permission: ZEN_VIEW
+        @rtype: list
+        """
+        return self.getMonitoredComponents(collector=collector, type=type);
+
+
     security.declareProtected(ZEN_VIEW, 'getDeviceComponents')
     def getDeviceComponents(self, monitored=None, collector=None, type=None):
         """

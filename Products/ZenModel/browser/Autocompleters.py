@@ -15,7 +15,7 @@ from Products.CMFCore.utils import getToolByName
 from Products.Five.browser import BrowserView
 from Products.ZenModel.DeviceOrganizer import DeviceOrganizer
 from Products.ZenUtils.json import json
-from Products.ZenUtils.Utils import formreq
+from Products.ZenUtils.Utils import formreq, getObjByPath
 from Products.AdvancedQuery import Eq, MatchGlob
 
 
@@ -36,11 +36,13 @@ class DeviceNames(BrowserView):
         """
         catalog = getToolByName(self.context.dmd.Devices,
             self.context.dmd.Devices.default_catalog)
-        query = MatchGlob('id', query.rstrip('*') + '*')
+        query = MatchGlob('titleOrId', query.rstrip('*') + '*')
         if isinstance(self.context, DeviceOrganizer):
             query = query & Eq('path', "/".join(self.context.getPhysicalPath()))
         brains = catalog.evalAdvancedQuery(query)
-        deviceIds = [b.id for b in brains]
+
+        # TODO: Add titleOrId to the catalog's metadata.
+        deviceIds = [b.getObject().titleOrId() for b in brains]
         deviceIds.sort(lambda x, y: cmp(x.lower(), y.lower()))
         return deviceIds
 
@@ -69,11 +71,13 @@ class ComponentPaths(BrowserView):
         for devId in deviceIds:
             d = self.context.findDevice(devId)
             if d:
-                dPathLen = len(d.getPrimaryId()) + 1
-                for comp in d.getMonitoredComponents():
-                    paths.add((comp.getPrimaryId()[dPathLen:], comp.name()))
+                for comp in d.getReportableComponents():
+                    name = comp.name
+                    if callable(name):
+                        name = name()
+                    paths.add((comp.getPrimaryId(), name))
         paths = list(paths)
-        paths.sort(lambda x,y: cmp(x[0], y[0]))
+        paths.sort(lambda x,y: cmp(x[1], y[1]))
         return paths
 
 
@@ -108,18 +112,11 @@ class GraphIds(BrowserView):
             thing = self.context.findDevice(devId)
             if thing:
                 for compPath in componentPaths:
-                    compPath = compPath or ''
-                    parts = compPath.split('/')
-                    for part in parts:
-                        if part:
-                            if hasattr(thing, part):
-                                thing = getattr(thing, part)
-                            else:
-                                break
-                    else:
-                        for t in thing.getRRDTemplates():
-                            for g in t.getGraphDefs():
-                                graphIds.add(g.id)
+                    if compPath:
+                        thing = getObjByPath(thing, compPath)
+                    for t in thing.getRRDTemplates():
+                        for g in t.getGraphDefs():
+                            graphIds.add(g.id)
         graphIds = list(graphIds)
         graphIds.sort()
         return graphIds

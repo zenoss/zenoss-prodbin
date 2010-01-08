@@ -98,7 +98,8 @@ class CollectionItem(ZenModelRM):
             desc = 'missing'
         elif self.deviceId:
             if self.compPath:
-                desc = '%s %s' % (self.deviceId, thing.name())
+                name = callable(thing.name) and thing.name() or thing.name
+                desc = '%s %s' % (self.deviceId, name)
             else:
                 desc = self.deviceId
             if withLink and thing:
