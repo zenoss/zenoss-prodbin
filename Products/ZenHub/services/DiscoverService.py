@@ -137,10 +137,17 @@ class DiscoverService(ModelerService):
         try:
             netroot = getNetworkRoot(self.dmd, 
                 kw.get('performanceMonitor', 'localhost'))
-            # If we're not supposed to discover this IP, return None
             netobj = netroot.getNet(ip)
-            netroot.createIp(ip, netobj.netmask)
+            netmask = 24
+            if netobj is not None:
+                netmask = netobj.netmask
+            else:
+                defaultNetmasks = getattr(netroot, 'zDefaultNetworkTree', [])
+                if defaultNetmasks:
+                    netmask = defaultNetmasks[0]
+            netroot.createIp(ip, netmask)
             autoDiscover = getattr(netobj, 'zAutoDiscover', True)
+            # If we're not supposed to discover this IP, return None
             if not force and not autoDiscover:
                 return None, False
             kw['manageIp'] = ip
