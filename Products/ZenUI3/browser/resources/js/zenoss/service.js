@@ -27,20 +27,7 @@ Ext.onReady( function() {
      * @param {Ext.tree.TreeNode} node Node clicked upon
      */
     function treeClickHandler(node) {
-        // load up appropriate data in the form
-        Ext.getCmp('serviceForm').getForm().load({
-            params: {uid: node.attributes.uid}
-        });
-
-        // load up appropriate data in the devices grid
-        Ext.getCmp('deviceGrid').getStore().load({
-            params: {uid: node.attributes.uid}
-        });
-
-        // load up appropriate data in the event grid
-        Ext.getCmp('eventGrid').getStore().load({
-            params: {uid: node.attributes.uid}
-        });
+        // Change context
         setPanelsDisabled(false);
     }
 
@@ -66,38 +53,25 @@ Ext.onReady( function() {
      *
      */
 
-    //the store that holds the records for the device grid
-    var deviceStore = {
-        xtype: 'DeviceStore',
-        autoLoad: {params:{uid: '/zport/dmd/Services'}},
-        // Ext.data.DirectProxy config
-        api: {read: Zenoss.remote.ServiceRouter.getDevices}
-    };
-
-    // the store that holds the records for the event grid
-    var eventStore = {
-        xtype: 'EventStore',
-        autoLoad: {params:{uid: '/zport/dmd/Services'}},
-        // Ext.data.DirectProxy config
-        api: {read: Zenoss.remote.ServiceRouter.getEvents}
-    };
-
-
     /**
      * Initialize the Card Panel
      */
     function cardPanelInitialize() {
         Ext.getCmp('bottom_detail_panel').add({
-            xtype: 'DeviceEventPanel',
-            id: 'deviceEventsPanel',
-            __device_store__: deviceStore,
-            __event_store__: eventStore,
+            xtype: 'ContextCardButtonPanel',
+            id: 'itCardButtonPanel',
             disabled: true,
-            getSelectedNode: function() {
-            var serviceTree = Ext.getCmp('serviceTree');
-            var selectionModel = serviceTree.getSelectionModel();
-            return selectionModel.getSelectedNode();
-        }
+            items: [ { xtype: 'SimpleDeviceGridPanel',
+                       buttonTitle: _t('Devices'),
+                       iconCls: 'devprobs'
+                     },
+                     { xtype: 'SimpleEventGridPanel',
+                       buttonTitle: _t('Events'),
+                       iconCls: 'events'
+                     }
+            ]
+        });
+    }
 
     /**********************************************************************
      *
@@ -111,7 +85,7 @@ Ext.onReady( function() {
      */
     function setPanelsDisabled(disabled) {
         Ext.getCmp('serviceForm').setDisabled(disabled);
-        Ext.getCmp('deviceEventsPanel').setDisabled(disabled);
+        Ext.getCmp('itCardButtonPanel').setDisabled(disabled);
     }
 
     /**
@@ -269,8 +243,7 @@ Ext.onReady( function() {
                    id: 'Save-button',
                    text: _t('Save'),
                    iconCls: 'save',
-                   handler: function(button, event) {}
-                       function(button, event) {
+                   handler: function(button, event) {
                            var serviceTree = Ext.getCmp('serviceTree');
                            var selectionModel = serviceTree.getSelectionModel();
                            var selectedNode = selectionModel.getSelectedNode();
@@ -302,6 +275,9 @@ Ext.onReady( function() {
     });
 
     Ext.reg('ServiceFormPanel', Zenoss.ui.Service.ServiceFormPanel);
+
+    cardPanelInitialize();
+    treeInitialize();
 
     var serviceForm = new Zenoss.ui.Service.ServiceFormPanel({});
 

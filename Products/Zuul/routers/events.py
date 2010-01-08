@@ -1,7 +1,5 @@
 import time
 
-from zope.component import queryUtility
-
 from Products.ZenUI3.browser.eventconsole.grid import column_config
 from Products.ZenUtils.Ext import DirectRouter
 from Products.ZenUtils.json import unjson
@@ -15,48 +13,61 @@ class EventsRouter(DirectRouter):
         super(EventsRouter, self).__init__(context, request)
         self.api = getFacade('event')
 
-    def query(self, limit, start, sort, dir, params, history=False):
-        events = self.api.query(limit, start, sort, dir, params, self.context,
-                                history)
+    def query(self, limit=None, start=None, sort=None, dir=None, params=None,
+              history=False, uid=None):
+        if uid is None:
+            uid = self.context
+        events = self.api.query(limit, start, sort, dir, params, uid, history)
         self._set_asof(time.time())
         disabled = not Zuul.checkPermission('Manage Events')
         return {'events':events['data'], 'disabled': disabled}
-    
+
     def queryHistory(self, limit, start, sort, dir, params):
         return self.query(limit, start, sort, dir, params, history=True)
-    
+
     @require('Manage Events')
     def acknowledge(self, evids=None, ranges=None, start=None, limit=None,
-                    field=None, direction=None, params=None, history=False):
+                    field=None, direction=None, params=None, history=False,
+                    uid=None):
+        if uid is None:
+            uid = self.context
         self.api.acknowledge(evids, ranges, start, limit, field, direction,
-                             params, asof=self._asof, context=self.context, 
+                             params, asof=self._asof, context=uid,
                              history=history)
         return {'success':True}
 
     @require('Manage Events')
     def unacknowledge(self, evids=None, ranges=None, start=None, limit=None,
-                      field=None, direction=None, params=None, history=False):
+                      field=None, direction=None, params=None, history=False,
+                      uid=None):
+        if uid is None:
+            uid = self.context
         self.api.unacknowledge(evids, ranges, start, limit, field, direction,
-                               params, asof=self._asof, context=self.context,
+                               params, asof=self._asof, context=uid,
                                history=history)
         return {'success':True}
 
     @require('Manage Events')
     def reopen(self, evids=None, ranges=None, start=None, limit=None,
-                      field=None, direction=None, params=None, history=True):
+               field=None, direction=None, params=None, history=True,
+               uid=None):
+        if uid is None:
+            uid = self.context
         self.api.reopen(evids, ranges, start, limit, field, direction, params,
-                        asof=self._asof, context=self.context, history=history)
+                        asof=self._asof, context=uid, history=history)
         return {'success':True}
 
     @require('Manage Events')
     def close(self, evids=None, ranges=None, start=None, limit=None,
-              field=None, direction=None, params=None, history=False):
+              field=None, direction=None, params=None, history=False, uid=None):
+        if uid is None:
+            uid = self.context
         self.api.close(evids, ranges, start, limit, field, direction, params,
-                        asof=self._asof, context=self.context, history=history)
+                        asof=self._asof, context=uid, history=history)
         return {'success':True}
 
     def state_ranges(self, state=1, field='severity', direction='DESC',
-                     params=None, history=False):
+                     params=None, history=False, uid=None):
         """
         Get a list of ranges describing contiguous blocks of events with a
         certain state.
@@ -122,7 +133,11 @@ class EventsRouter(DirectRouter):
         elif isinstance(params, basestring):
             params = unjson(params)
         zem = self.api._event_manager(history)
-        where = zem.lookupManagedEntityWhere(self.context)
+        if uid is None:
+            context = self.context
+        else:
+            context = self.api._dmd.unrestrictedTraverse(uid)
+        where = zem.lookupManagedEntityWhere(context)
         #escape any % in the where clause because of format eval later
         where = where.replace('%', '%%')
 
@@ -181,6 +196,8 @@ class EventsRouter(DirectRouter):
                                eventClassKey=evclasskey, eventClass=evclass)
         return {'success':True, 'evid':evid}
 
-    def column_config(self):
-        return column_config(self.api.fields(self.context), self.request)
+    def column_config(self, uid=None):
+        if uid==None:
+            uid = self.context
+        return column_config(self.api.fields(uid), self.request)
 

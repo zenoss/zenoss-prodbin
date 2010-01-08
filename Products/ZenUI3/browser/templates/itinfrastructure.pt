@@ -27,9 +27,7 @@ Ext.onReady(function(){
 var treesm = new Ext.tree.DefaultSelectionModel({
     listeners: {
         'selectionchange': function(sm, newnode, oldnode){
-            Ext.getCmp('device_grid').getStore().load({
-                params: {uid: newnode.attributes.uid}
-            });
+            Ext.getCmp('device_grid').setContext(newnode.attributes.uid);
         }
     }
 });
@@ -69,106 +67,6 @@ var treecontainer = {
     autoScroll: true
 };
 
-var device_store = new Ext.ux.grid.livegrid.Store({
-    bufferSize: 50,
-    defaultSort: {field: 'device', direction:'ASC'},
-    sortInfo: {field: 'device', direction:'ASC'},
-    proxy: new Ext.data.DirectProxy({
-        directFn: Zenoss.remote.DeviceRouter.getDevices
-    }),
-    reader: new Ext.ux.grid.livegrid.JsonReader({
-        root: 'devices',
-        totalProperty: 'totalCount'
-    },[
-          {name: 'device', type: 'string'},
-          {name: 'ipAddress', type: 'int'},
-          {name: 'productionState', type: 'string'},
-          {name: 'events', type: 'auto'},
-          {name: 'availability', type: 'float'}
-      ]
-    )
-});
-
-// renders IP address in dotted-decimal format
-function ipAddressRenderer(value) {
-    return Zenoss.util.num2dot(value);
-}
-
-// templates for the events renderer
-var iconTemplate = new Ext.Template('<'+'div style="float: left;" ' + 
-                     'class="severity-icon-small {severity}"><'+'/div>');
-iconTemplate.compile();
-                     
-var countTemplate = new Ext.Template('<'+'div style="' +
-        'float: left; ' +
-        'vertical-align: 27%;' +
-        'margin-left: .5em;' +
-        'margin-right: 1.5em;">' +
-        '{count}<'+'/div>');
-countTemplate.compile();
-
-// renders events using icons for critical, error and warning
-function eventsRenderer(value) {
-    var result = '';
-    Ext.each(['critical', 'error', 'warning'], function(severity) {
-        result += iconTemplate.apply({severity: severity});
-        result += countTemplate.apply({count: value[severity]});
-    });
-    return result;
-}
-
-// renders availability as a percentage with 3 digits after decimal point
-function availabilityRenderer(value) {
-    return Ext.util.Format.number(value*100, '0.000%');
-}
-
-// the column model for the device grid
-var deviceColumnModel = new Ext.grid.ColumnModel({
-    defaults: {
-        sortable: false,
-        menuDisabled: true,
-        width: 200
-    },
-    columns: [{dataIndex: 'device',
-               header: _t('Device'),
-               id: 'device'
-               },
-              {dataIndex: 'ipAddress',
-               header: _t('IP Address'),
-               renderer: ipAddressRenderer
-               },
-              {dataIndex: 'productionState',
-               header: _t('Production State')
-               },
-              {dataIndex: 'events',
-                header: _t('Events'),
-                renderer: eventsRenderer
-                },
-              {dataIndex: 'availability',
-               header: _t('Availability'), 
-               id: 'availability',
-               renderer: availabilityRenderer
-               }] // columns
-});
-
-var gridview = new Zenoss.FilterGridView({
-    nearLimit: 20,
-    loadMask: {msg: 'Loading. Please wait...'}
-});
-
-var devicegrid = new Zenoss.FilterGridPanel({
-    id: 'device_grid',
-    store: device_store,
-    enableDragDrop: true,
-    border: false,
-    rowSelectorDepth: 5,
-    view: gridview,
-    autoExpandColumn: 'device',
-    cm: deviceColumnModel,
-    sm: new Zenoss.ExtraHooksSelectionModel(),
-    stripeRows: true
-});
-
 Ext.getCmp('center_panel').add({
     id: 'center_panel_container',
     layout: 'border',
@@ -190,7 +88,10 @@ Ext.getCmp('center_panel').add({
         layout: 'card',
         activeItem: 0,
         split: true,
-        items: [devicegrid]
+        items: [{
+            xtype: 'DeviceGridPanel',
+            id: 'device_grid'
+        }]
     }]
 });
 

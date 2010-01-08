@@ -43,9 +43,10 @@ class DeviceRouter(DirectRouter):
     def getDevices(self, uid, start=0, params=None, limit=50, sort='device',
                    dir='ASC'):
         facade = self._getFacade()
-        devices = facade.getDevices(uid)
+        devices = facade.getDevices(uid, start, limit, sort, dir)
         count = facade.deviceCount(uid)
-        data = Zuul.marshal(devices)
+        keys = ['name', 'ipAddress', 'productionState', 'events', 'availability']
+        data = Zuul.marshal(devices, keys)
         return {'devices': data, 'totalCount': count }
 
     def getEvents(self, uid):

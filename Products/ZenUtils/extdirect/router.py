@@ -146,10 +146,11 @@ class DirectProviderDefinition(object):
 
                 actions.append({'name':name, 'len':arglen})
         config = {
-            'id':self.routercls.__name__,
-            'type':'remoting',
-            'url':self.url,
-            'timeout':self.timeout,
+            'id': self.routercls.__name__,
+            'type': 'remoting',
+            'url': self.url,
+            'timeout': self.timeout,
+            'enableBuffer': 100,
             'actions': {
                 self.routercls.__name__: actions
             }

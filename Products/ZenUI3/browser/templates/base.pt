@@ -47,7 +47,7 @@
     }
 })();
 </script>
-<script type="text/javascript" src="/extjs/ext-all.js"></script>
+<script type="text/javascript" src="/extjs/ext-all-debug.js"></script>
 <script type="text/javascript"
     src="/zenui/js/livegrid/livegrid-all-debug.js"></script>
 <script>

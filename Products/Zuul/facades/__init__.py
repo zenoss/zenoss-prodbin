@@ -102,14 +102,10 @@ class TreeFacade(ZuulFacade):
         cat = ICatalogTool(self._getObject(uid))
         return cat.count('Products.ZenModel.Device.Device')
 
-    def getDevices(self, uid=None, start=0, limit=50, sort='device', dir='ASC',
+    def getDevices(self, uid=None, start=0, limit=50, sort='name', dir='ASC',
                    params=None):
         cat = ICatalogTool(self._getObject(uid))
-        if sort=='device': sort = 'name'
-        if dir=='ASC':
-            reverse = True
-        else:
-            reverse = False
+        reverse = dir=='DESC'
         brains = cat.search('Products.ZenModel.Device.Device', start=start,
                            limit=limit, orderby=sort, reverse=reverse)
         return map(IInfo, map(unbrain, brains))

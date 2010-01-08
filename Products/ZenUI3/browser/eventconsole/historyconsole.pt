@@ -463,60 +463,17 @@ Ext.onReady(function(){
     // State restoration occurs after render, so this won't persist if unwanted
     myView.on('render', function(){myView.showFilters()});
     
+
     // Store to hold the events data
-    var console_store = new Ext.ux.grid.livegrid.Store({
-        autoLoad: true,
+    var console_store = new Zenoss.EventStore({
         proxy: new Ext.data.DirectProxy({
             directFn:Zenoss.remote.EventsRouter.queryHistory
         }),
-        bufferSize: 100,
         sortInfo: {field:'lastTime', direction:'DESC'},
         defaultSort: {field:'lastTime', direction:'DESC'},
-        reader: new Ext.ux.grid.livegrid.JsonReader({
-            root: 'events',
-            totalProperty: 'totalCount'
-        }, [
-        // List all possible columns. 
-        // FIXME: This should come from the server.
-            'dedupid',
-            'evid',
-            'device',
-            'device_url',
-            'component',
-            'component_url',
-            'summary',
-            'eventState',
-            'eventClass',
-            'eventClass_url',
-            'eventKey',
-            'message',
-            'eventClassKey',
-            'eventGroup',
-            'prodState',
-            'suppid',
-            'manager',
-            'agent',
-            'DeviceClass',
-            'Location',
-            'Systems',
-            'DeviceGroups',
-            'ipAddress',
-            'facility',
-            'priority',
-            'ntevid',
-            'ownerid',
-            'clearid',
-            'DevicePriority',
-            'eventClassMapping',
-            'monitor',
-            {name:'count', type:'int'},
-            {name:'severity', type:'int'},
-            {name:'firstTime', type:'date', dateFormat:Zenoss.date.ISO8601Long},
-            {name:'lastTime', type:'date', dateFormat:Zenoss.date.ISO8601Long},
-            {name:'stateChange', type:'date',
-                dateFormat:Zenoss.date.ISO8601Long}
-        ])
+        autoLoad: true
     });
+
 
     // Selection model
     var console_selection_model = new Zenoss.ExtraHooksSelectionModel();
@@ -547,7 +504,7 @@ Ext.onReady(function(){
         view: myView, // defined above
         // Zenoss.env.COLUMN_DEFINITIONS comes from the server, and depends on
         // the resultFields associated with the context.
-        cm: new Ext.grid.ColumnModel(Zenoss.env.COLUMN_DEFINITIONS),
+        cm: new Zenoss.FullEventColumnModel(),
         stripeRows: true,
         // Map some other keys
         keys: [{

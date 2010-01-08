@@ -1,7 +1,7 @@
-{ 
+{
     "projectName": "Zenoss",
     "deployDir": "resources/js/deploy",
-    "licenseText": "Copyright (c) 2009 Zenoss, Inc.\n\nThis program is free software; you can redistribute it and/or\nmodify it under the terms of the GNU General Public License\nversion 2 as published by the Free Software Foundation.\n\nFor complete information please visit http://www.zenoss.com/oss/", 
+    "licenseText": "Copyright (c) 2009 Zenoss, Inc.\n\nThis program is free software; you can redistribute it and/or\nmodify it under the terms of the GNU General Public License\nversion 2 as published by the Free Software Foundation.\n\nFor complete information please visit http://www.zenoss.com/oss/",
         "pkgs": [{
         "name": "Zenoss Application",
         "file": "zenoss-compiled.js",
@@ -25,7 +25,16 @@
             "text": "SearchField.js",
             "path": "resources/js/zenoss/"
         }, {
-            "text": "DeviceEventPanel.js",
+            "text": "EventPanels.js",
+            "path": "resources/js/zenoss/"
+        }, {
+            "text": "DevicePanels.js",
+            "path": "resources/js/zenoss/"
+        }, {
+            "text": "CardButtonPanel.js",
+            "path": "resources/js/zenoss/"
+        }, {
+            "text": "ContextCardButtonPanel.js",
             "path": "resources/js/zenoss/"
         }, {
             "text": "DatasourceGridPanel.js",

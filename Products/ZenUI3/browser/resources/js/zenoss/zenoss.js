@@ -287,10 +287,15 @@ Zenoss.FilterGridView = Ext.extend(Ext.ux.grid.livegrid.GridView, {
             }
         }
         Ext.apply(options.params, {
-            params: Ext.util.JSON.encode(params)
+            params: Ext.util.JSON.encode(params),
+            uid: this._context
         });
         // Store them for later, just in case
         this.lastOptions = params;
+    },
+    setContext: function(uid) {
+        this._context = uid;
+        this.updateLiveRows(this.rowIndex, true, true);
     },
     onBeforeLoad: function(store, options) {
         this.applyFilterParams(options);
@@ -618,6 +623,9 @@ Zenoss.FilterGridPanel = Ext.extend(Ext.ux.grid.livegrid.GridPanel, {
             this.saveState();
             this.clearURLState();
         }, this);
+    },
+    setContext: function(uid) {
+        this.view.setContext(uid);
     },
     hideFilters: function() { this.getView().hideFilters(); },
     showFilters: function() { this.getView().showFilters(); },

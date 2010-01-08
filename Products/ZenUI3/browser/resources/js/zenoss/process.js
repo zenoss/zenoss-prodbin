@@ -32,15 +32,7 @@ function clickHandler(node) {
         params: {uid: node.attributes.uid}
     });
 
-    // load up appropriate data in the devices grid
-    Ext.getCmp('deviceGrid').getStore().load({
-        params: {uid: node.attributes.uid}
-    });
-
-    // load up appropriate data in the event grid
-    Ext.getCmp('eventGrid').getStore().load({
-        params: {uid: node.attributes.uid}
-    });
+    Ext.getCmp('card_panel').setContext(node.attributes.uid);
 
 } // clickHandler
 
@@ -51,7 +43,14 @@ Ext.getCmp('master_panel').add({
     directFn: Zenoss.remote.ProcessRouter.getTree,
     root: 'Processes',
     rootuid: '/zport/dmd/Processes',
-    listeners: {click: clickHandler}
+    listeners: {
+        click: clickHandler,
+        render: function(tree){
+            tree.getRootNode().on('load', function(node){
+                node.select();
+            });
+        }
+    }
 }); // master_panel.add
 
 
@@ -289,32 +288,18 @@ processForm.getForm().load({params:{uid: 'Processes'}});
  *
  */
 
- // the store that holds the records for the device grid
- var deviceStore = {
-     xtype: 'DeviceStore',
-     autoLoad: {params:{uid: '/zport/dmd/Processes'}},
-     // Ext.data.DirectProxy config
-     api: {read: Zenoss.remote.ProcessRouter.getDevices}
- };
-
- // the store that holds the records for the event grid
- var eventStore = {
-     xtype: 'EventStore',
-     autoLoad: {params:{uid: '/zport/dmd/Processes'}},
-     // Ext.data.DirectProxy config
-     api: {read: Zenoss.remote.ProcessRouter.getEvents}
- };
-
 Ext.getCmp('bottom_detail_panel').add({
-    xtype: 'DeviceEventPanel',
-    __device_store__: deviceStore,
-    __event_store__: eventStore,
-    getSelectedNode: function() {
-        var processTree = Ext.getCmp('processTree');
-        var selectionModel = processTree.getSelectionModel();
-        return selectionModel.getSelectedNode();
-    }
+    xtype: 'ContextCardButtonPanel',
+    id: 'card_panel',
+    items: [{
+        xtype: 'SimpleDeviceGridPanel',
+        id: 'device_grid',
+        directFn: Zenoss.remote.ProcessRouter.getDevices
+    },{
+        xtype: 'SimpleEventGridPanel',
+        id: 'event_grid',
+        directFn: Zenoss.remote.ProcessRouter.getEvents
+    }]
 });
-
 
 }); // Ext.onReady
