@@ -10,7 +10,7 @@
 # For complete information please visit: http://www.zenoss.com/oss/
 #
 ###########################################################################
-__doc__ = """BatchDeviceLoader.py
+__doc__ = """zenbatchload
 
 zenbatchload loads a list of devices read from a file.
 """
@@ -67,10 +67,10 @@ device1 comments="A simple device", zSnmpCommunity='blue', zSnmpVer='v1'
 /Devices/Server/Linux zSnmpPort=1543
 # Python strings can use either ' or " -- there's no difference.
 # As a special case, it is also possible to specify the IP address
-linux_device1 manageIp='10.10.10.77', zSnmpCommunity='blue', zSnmpVer="v2c"
+linux_device1 setManageIp='10.10.10.77', zSnmpCommunity='blue', zSnmpVer="v2c"
 # A '\' at the end of the line allows you to place more
 # expressions on a new line. Don't forget the comma...
-linux_device2 discoverProto='none', zLinks="<a href='http://example.org'>Support site</a>",  \
+linux_device2 zLinks="<a href='http://example.org'>Support site</a>",  \
 zTelnetEnable=True, \
 zTelnetPromptTimeout=15.3
 
@@ -82,6 +82,11 @@ windows_device1 zDeviceTemplates=[ 'Device', 'myTemplate' ]
 # Override the default from the organizer setting.
 windows_device2 zWinUser="administrator", zWinPassword='thomas'
 
+# Apply other settings to the device
+settingsDevice setManageIp='10.10.10.77', setLocation="123 Elm Street", \
+  setSystems='/mySystems', setPerformanceMonitor='remoteCollector1', \
+  setHWSerialNumber="abc123456789", setGroups='/myGroup', \
+  setHWProduct=('myproductName','manufacturer'), setOSProduct=('OS Name','manufacturer')
 """
 
     def __init__(self):
@@ -135,7 +140,7 @@ windows_device2 zWinUser="administrator", zWinPassword='thomas'
         @parameter device_specs: device creation dictionary
         @type device_specs: dictionary
         """
-        self.log.debug( "Applying zProperties.." )
+        self.log.debug( "Applying zProperties..." )
         # Returns a list of (key, value) pairs.
         # Convert it to a dictionary.
         dev_zprops = dict( device.zenPropertyItems() )
@@ -151,8 +156,41 @@ windows_device2 zWinUser="administrator", zWinPassword='thomas'
                     self.log.warn( "Device %s zproperty %s is invalid or duplicate" % (
                        device_specs['deviceName'], zprop) )
             else:
-                self.log.debug( "The zproperty %s doesn't exist in %s" % (
+                self.log.warn( "The zproperty %s doesn't exist in %s" % (
                        zprop, device_specs['deviceName']))
+
+    def applyOtherProps(self, device, device_specs):
+        """
+        Apply non-zProperty settings (if any) to the device.
+
+        @parameter device: device to modify
+        @type device: DMD device object
+        @parameter device_specs: device creation dictionary
+        @type device_specs: dictionary
+        """
+        self.log.debug( "Applying other properties..." )
+        internalVars = [
+           'deviceName', 'devicePath', 'comments',
+        ]
+        for functor, value in device_specs.items():
+            if iszprop(functor) or functor in internalVars:
+               continue
+
+            try:
+                self.log.debug("For %s, calling device.%s(%s)",
+                              device.id, functor, value)
+                func = getattr(device, functor, None)
+                if func is None:
+                    self.log.warn("The function '%s' for device %s is not found.",
+                                  functor, device.id)
+                elif isinstance(value, type([])) or isinstance(value, type(())):
+                    func(*value)
+                else:
+                    func(value)
+            except (SystemExit, KeyboardInterrupt): raise
+            except:
+                self.log.exception("Device %s device.%s(%s) failed" % (
+                                   device.id, functor, value))
 
     def processDevices(self, device_list):
         """
@@ -170,17 +208,12 @@ windows_device2 zWinUser="administrator", zWinPassword='thomas'
             if devobj is None:
                 continue
 
-            if device_specs.get('manageIp', ''):
-                manageIp = device_specs['manageIp']
-                devobj.setManageIp(manageIp)
-                self.log.info("Setting %s IP address to '%s'",
-                              devobj.id, manageIp)
-
             self.applyZProps(devobj, device_specs)
+            self.applyOtherProps(devobj, device_specs)
 
-            # Default is discoverProto == 'snmp'
-            if not self.options.nocommit and \
-               device_specs.get('discoverProto', '') != 'none':
+            # We need to commit in order to model, so don't bother
+            # trying to model unless we can do both
+            if not self.options.nocommit and not self.options.nomodel:
                 # What if zSnmpCommunity isn't set in the file?
                 devobj.manage_snmpCommunity()
 
@@ -192,7 +225,7 @@ windows_device2 zWinUser="administrator", zWinPassword='thomas'
                     self.log.info("User interrupted modeling")
                     break
                 except Exception, ex:
-                    self.log.exception("Modeling error" )
+                    self.log.exception("Modeling error for %s", devobj.id)
 
             if not self.options.nocommit:
                 commit()
@@ -263,6 +296,11 @@ windows_device2 zWinUser="administrator", zWinPassword='thomas'
             dest="nocommit", default=False,
             action="store_true",
             help="Don't commit changes to the ZODB. Use for verifying config file.")
+
+        self.parser.add_option('--nomodel',
+            dest="nomodel", default=False,
+            action="store_true",
+            help="Don't model the remote devices. Must be able to commit changes.")
 
     def parseDevices(self, data):
         """
