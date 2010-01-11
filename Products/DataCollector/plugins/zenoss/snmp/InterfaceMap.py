@@ -84,10 +84,12 @@ class InterfaceMap(SnmpPlugin):
         log.debug( "%s tabledata = %s" % (device.id,tabledata) )
         rm = self.relMap()
         iptable = tabledata.get("ipAddrTable")
+        sourceTable = 'ipAddrTable'
         if not iptable:
             iptable = tabledata.get("ipNetToMediaTable")
             if iptable:
                 log.info("Unable to use ipAddrTable -- using ipNetToMediaTable instead")
+                sourceTable = 'ipNetToMediaTable'
             else:
                 log.warn("Unable to get data for %s from either ipAddrTable or"
                           " ipNetToMediaTable" % device.id)
@@ -108,13 +110,22 @@ class InterfaceMap(SnmpPlugin):
                 log.debug( "IP entry for %s is missing ifindex" % ip)
                 continue
 
-            # Fix data up if it is from the ipNetToMediaTable.
-            if len(ip.split('.')) == 5:
+            ip_parts = ip.split('.')
+            # If the ipAddrTable key has five octets, that probably
+            # means this is a classless subnet (that is, <256).  Usually,
+            # the first 4 octets will be the ipAddress we care about.
+            # Regardless, we will be using the ip address in the row
+            # later anyway.
+            if len(ip_parts) == 5 and sourceTable == 'ipAddrTable':
+                ip = '.'.join(ip_parts[:-1])
+            # If we are using the ipNetToMediaTable, we use the
+            # last 4 octets.
+            elif len(ip_parts) == 5 and sourceTable == 'ipNetToMediaTable':
                 if row['iptype'] != 1:
                     log.debug("iptype (%s) is not 1 -- skipping" % (
                              row['iptype'] ))
                     continue
-                ip = '.'.join(ip.split('.')[1:])
+                ip = '.'.join(ip_parts[1:])
                 log.warn("Can't find netmask -- using /24")
                 row['netmask'] = '255.255.255.0'
 

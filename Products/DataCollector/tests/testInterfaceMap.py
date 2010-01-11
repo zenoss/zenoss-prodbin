@@ -112,8 +112,13 @@ class TestInterfaceMap(BaseTestCase):
            'ifalias': {'1': {'highSpeed': 0, 'description': ''}, '3': {'highSpeed': 0, 'description': ''}, '2': {'highSpeed': 0, 'description': ''}},
            'iftable': {'1': {'adminStatus': 1, 'macaddress': '', 'operStatus': 1, 'speed': 10000000, 'mtu': 16436, 'ifindex': 1, 'type': 24, 'id': 'lo'},
                        '3': {'adminStatus': 2, 'macaddress': '', 'operStatus': 2, 'speed': 0, 'mtu': 1480, 'ifindex': 3, 'type': 131, 'id': 'sit0'},
-                       '2': {'adminStatus': 1, 'macaddress': '\x00\x0c\x8d\xfd\x22\xd3', 'operStatus': 1, 'speed': 10000000, 'mtu': 1500, 'ifindex': 2, 'type': 6, 'id': 'eth0'}},
-           'ipAddrTable': {'10.1.254.8': {'ifindex': 2, 'netmask': '255.255.128.0', 'ipAddress': '10.1.254.8'}, '127.0.0.1': {'ifindex': 1, 'netmask': '255.0.0.0', 'ipAddress': '127.0.0.1'}},
+                       '2': {'adminStatus': 1, 'macaddress': '\x00\x0c\x8d\xfd\x22\xd3', 'operStatus': 1, 'speed': 10000000, 'mtu': 1500, 'ifindex': 2, 'type': 6, 'id': 'eth0'},
+                       '4': {'adminStatus': 1, 'macaddress': '', 'operStatus': 1, 'speed': 10000000, 'mtu': 16436, 'ifindex': 4, 'type': 6, 'id': 'vlan1'},
+                       '5': {'adminStatus': 1, 'macaddress': '', 'operStatus': 1, 'speed': 10000000, 'mtu': 16436, 'ifindex': 5, 'type': 6, 'id': 'vlan2'}},
+           'ipAddrTable': {'10.1.254.8': {'ifindex': 2, 'netmask': '255.255.128.0', 'ipAddress': '10.1.254.8'},
+                           '127.0.0.1': {'ifindex': 1, 'netmask': '255.0.0.0', 'ipAddress': '127.0.0.1'},
+                           '119.120.121.170.1':{'ifindex': 4, 'netmask': '255.255.255.248', 'ipAddress': '119.120.121.170'},
+                           '122.123.124.170.1':{'ifindex': 5, 'netmask': '255.255.255.248'}},
            'ipNetToMediaTable': {
                '2.10.1.254.107': {'ifindex': 2, 'ipaddress': '10.1.254.107', 'iptype': 3},
                '2.10.1.254.254': {'ifindex': 2, 'ipaddress': '10.1.254.254', 'iptype': 3},
@@ -149,6 +154,20 @@ class TestInterfaceMap(BaseTestCase):
                    'mtu':1480,
                    'interfaceName':'sit0',
                    'type':'Encapsulation Interface',              },
+              4: {
+                   'id':'vlan1',
+                   'speed':10000000,
+                   'mtu':16436,
+                   'interfaceName':'vlan1',
+                   'setIpAddresses':['119.120.121.170/29'],
+                   'type':'ethernetCsmacd',              },
+              5: {
+                   'id':'vlan2',
+                   'speed':10000000,
+                   'mtu':16436,
+                   'interfaceName':'vlan2',
+                   'setIpAddresses':['122.123.124.170/29'],
+                   'type':'ethernetCsmacd',              },
         }
 
         for om in relmap:
