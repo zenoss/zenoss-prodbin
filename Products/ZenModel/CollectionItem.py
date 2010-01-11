@@ -145,9 +145,10 @@ class CollectionItem(ZenModelRM):
         elif self.deviceId:
             stuff = [thing]
         elif self.recurse:
-            stuff = thing.getSubDevices()
+            stuff = thing.getSubDevices(lambda d: d.monitorDevice())
         else:
-            stuff = thing.devices()
+            stuff = [ dev for dev in thing.devices() if dev.monitorDevice() ]
+        stuff.sort(lambda x, y: cmp(x.primarySortKey(), y.primarySortKey()))
         return stuff
 
 
