@@ -16,7 +16,6 @@ from Globals import InitializeClass
 from AccessControl import ClassSecurityInfo
 from ZenModelRM import ZenModelRM
 from Products.ZenRelations.RelSchema import *
-from RRDView import GetRRDPath
 from PerformanceConf import performancePath
 from ZenossSecurity import ZEN_MANAGE_DMD
 from Products.ZenWidgets import messaging
@@ -270,7 +269,7 @@ class MultiGraphReport(ZenModelRM):
                 for thing in things:
                     cmds = graphDef.getGraphCmds(
                                     thing.primaryAq(), 
-                                    performancePath(GetRRDPath(thing)), 
+                                    thing.fullRRDPath(),
                                     includeSetup = not cmds,
                                     includeThresholds = not cmds,
                                     cmds = cmds,
@@ -283,7 +282,7 @@ class MultiGraphReport(ZenModelRM):
                     cmds = []
                     cmds = graphDef.getGraphCmds(
                                     thing.primaryAq(),
-                                    performancePath(GetRRDPath(thing)))
+                                    thing.fullRRDPath())
                     AppendToGraphs(thing, cmds, GetThingTitle(thing))
         return graphs
 
