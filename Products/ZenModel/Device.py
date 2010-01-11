@@ -376,7 +376,6 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
             flag = self._temp_device = False
         return flag
 
-
     security.declareProtected(ZEN_VIEW, 'name')
     def name(self):
         """
@@ -643,7 +642,16 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
         if type is not None:
             query['meta_type'] = type
         brains = self.componentSearch(query)
-        return [c.getObject() for c in brains]
+        objlist = []
+        for brain in brains:
+            try:
+                obj = brain.getObject()
+                objlist.append(obj)
+            except NotFound:
+                log.error(
+                    'Index %s has bad data and needs to be rebuilt',
+                    self.componentSearch.id)
+        return objlist
 
 
     def getDeviceComponentsNoIndexGen(self):
