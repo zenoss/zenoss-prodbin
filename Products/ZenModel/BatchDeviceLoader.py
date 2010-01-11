@@ -58,7 +58,7 @@ class BatchDeviceLoader(ZCmdBase):
 # defaults to the /Devices/Discovered device class.
 device0 comments="A simple device"
 # All settings must be seperated by a comma.
-device1 comments="A simple device" zSnmpCommunity='blue', zSnmpVer='v1'
+device1 comments="A simple device", zSnmpCommunity='blue', zSnmpVer='v1'
 
 # Notes for this file:
 #  * Organizer names cannot contain spaces
@@ -67,11 +67,11 @@ device1 comments="A simple device" zSnmpCommunity='blue', zSnmpVer='v1'
 /Devices/Server/Linux zSnmpPort=1543
 # Python strings can use either ' or " -- there's no difference.
 # As a special case, it is also possible to specify the IP address
-linux_device1 manageIp=10.10.10.77, zSnmpCommunity='blue', zSnmpVer="v2c"
+linux_device1 manageIp='10.10.10.77', zSnmpCommunity='blue', zSnmpVer="v2c"
 # A '\' at the end of the line allows you to place more
 # expressions on a new line. Don't forget the comma...
 linux_device2 discoverProto='none', zLinks="<a href='http://example.org'>Support site</a>",  \
-zTelnetEnable=True \
+zTelnetEnable=True, \
 zTelnetPromptTimeout=15.3
 
 # A new organizer drops all previous settings, and allows
@@ -179,7 +179,8 @@ windows_device2 zWinUser="administrator", zWinPassword='thomas'
             self.applyZProps(devobj, device_specs)
 
             # Default is discoverProto == 'snmp'
-            if device_specs.get('discoverProto', '') != 'none':
+            if not self.options.nocommit and \
+               device_specs.get('discoverProto', '') != 'none':
                 # What if zSnmpCommunity isn't set in the file?
                 devobj.manage_snmpCommunity()
 
@@ -193,7 +194,8 @@ windows_device2 zWinUser="administrator", zWinPassword='thomas'
                 except Exception, ex:
                     self.log.exception("Modeling error" )
 
-            commit()
+            if not self.options.nocommit:
+                commit()
             processed += 1
 
         self.log.info( "Processed %d of %d devices" % (processed, len(device_list)))
@@ -257,6 +259,11 @@ windows_device2 zWinUser="administrator", zWinPassword='thomas'
             action="store_false",
             help="Show modelling activity")
 
+        self.parser.add_option('--nocommit',
+            dest="nocommit", default=False,
+            action="store_true",
+            help="Don't commit changes to the ZODB. Use for verifying config file.")
+
     def parseDevices(self, data):
         """
         From the list of strings in rawDevices, construct a list
@@ -270,7 +277,7 @@ windows_device2 zWinUser="administrator", zWinPassword='thomas'
         if not data:
             return []
 
-        comment = re.compile(r'#.*')
+        comment = re.compile(r'^\s*#.*')
 
         defaults = {'devicePath':"/Discovered" }
         finalList = []
@@ -323,7 +330,8 @@ windows_device2 zWinUser="administrator", zWinPassword='thomas'
 
         if options:
             try:
-                configs.update( eval( 'dict(' + options + ')' ) )
+                # Add a newline to allow for trailing comments
+                configs.update( eval( 'dict(' + options + '\n)' ) )
             except:
                 self.log.error( "Unable to parse the entry for %s -- skipping" % name )
                 self.log.error( "Raw string: %s" % options )
