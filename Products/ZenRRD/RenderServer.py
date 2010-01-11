@@ -101,6 +101,11 @@ class RenderServer(RRDToolItem):
             if cmd.startswith('DEF:'):
                 # Check for existence of the RRD file
                 vName, rrdFile = cmd.split(':')[1].split('=', 1)
+                zenhomeCount = len(zenPath().split('/'))
+                rrdFileTuple = rrdFile.split('/')
+                rrdFileEnd = ""
+                if zenhomeCount < len(rrdFileTuple):
+                    rrdFileEnd = '/'.join(rrdFileTuple[zenhomeCount:])
                 if not os.path.isfile(rrdFile):
                     badNames.add(vName)
                     parts = rrdFile.split('/')
@@ -113,10 +118,10 @@ class RenderServer(RRDToolItem):
                     compName = compIndex > devIndex and parts[compIndex] or ''
                     dpName = parts[-1].rsplit('.', 1)[0]
                     desc = ' '.join([p for p in (devName,compName,dpName) if p])
-                    if dpName not in dedupMissing:
-                        newCmds.append('COMMENT:Missing DataPoint\: %s\j' 
-                                        % dpName)
-                        dedupMissing[dpName] = True
+                    if rrdFileEnd not in dedupMissing:
+                        newCmds.append('COMMENT:Missing File\: %s\j' 
+                                        % rrdFileEnd)
+                        dedupMissing[rrdFileEnd] = True
                     continue
 
             elif cmd.startswith('VDEF:') or cmd.startswith('CDEF:'):
