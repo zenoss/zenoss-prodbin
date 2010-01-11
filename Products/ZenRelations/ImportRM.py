@@ -273,6 +273,7 @@ for a ZenPack.
                         self.options.noCommit = True
                     return None
                 self.objstack.append(pathobj)
+            self.log.debug('Building instance %s of class %s',id,klass.__name__)
             obj = klass(id)
             self.context()._setObject(obj.id, obj)
             obj = self.context()._getOb(obj.id)

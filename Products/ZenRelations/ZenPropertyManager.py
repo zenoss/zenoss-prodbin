@@ -296,17 +296,14 @@ class ZenPropertyManager(object, PropertyManager):
         the ValueError returned from the field2* converters in the class
         Converters.py
         """
-        from Products.ZenWidgets import messaging
         try:
             super(ZenPropertyManager, self)._updateProperty(id, value)
         except ValueError:
             proptype = self.getPropertyType(id)
-            messaging.IMessageSender(self).sendToBrowser(
-                'Error Saving Property %s' % id,
-                ("New value '%s' is of invalid type. "
-                "It should be type '%s'") % (value, proptype),
-                priority=messaging.CRITICAL
-                )
+            self.log.error('Error Saving Property %s' % id,
+                              ("New value '%s' is of invalid type. "
+                               "It should be type '%s'") % (value, proptype)
+            )
 
 
     _onlystars = re.compile("^\*+$").search
