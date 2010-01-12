@@ -12,6 +12,7 @@
 ###########################################################################
 
 import logging
+from itertools import imap
 from zope.interface import implements
 from zope.component import queryUtility, adapts
 
@@ -113,22 +114,34 @@ class TreeFacade(ZuulFacade):
     def getEvents(self, uid=None):
         zem = self._dmd.ZenEventManager
         cat = ICatalogTool(self._getObject(uid))
-        eventInfos = []
         brains = cat.search(self._instanceClass)
-        for instance in map(unbrain, brains):
-            try:
-                for event in zem.getEventListME(instance):
-                    if not getattr(event, 'device', None):
-                        event.device = instance.device().id
-                    if not getattr(event, 'component', None):
-                        event.component = instance.name()
-                    eventInfos.append(IEventInfo(event))
-            except Exception:
-                msg = "Failed to get event list for process '%s'"
-                args = (instance.titleOrId(),)
-                log.error(msg, *args)
-                continue
-        return eventInfos
+        criteria = []
+        for instance in brains:
+            component = instance.id
+            path = instance.getPath().split('/')
+            device = path[path.index('devices') + 1]
+            criteria.append(dict(device=device, component=component))
+
+        # Build parameterizedWhere
+        where = []
+        vals = []
+        for criterion in criteria:
+            s = []
+            # criterion is a dict
+            for k, v in criterion.iteritems():
+                s.append('%s=%%s' % k)
+                vals.append(v)
+            crit = ' and '.join(s)
+            where.append('(%s)' % crit)
+        if where:
+            crit = ' or '.join(where)
+            parameterizedWhere = ('(%s)' % crit, vals)
+        else:
+            parameterizedWhere = None
+        events = zem.getEventList(parameterizedWhere=parameterizedWhere)
+        # return IInfos
+        for e in imap(IEventInfo, events):
+            yield e
 
 
 

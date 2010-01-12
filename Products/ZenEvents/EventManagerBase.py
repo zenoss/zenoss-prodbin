@@ -577,7 +577,8 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
 
     def getEventList(self, resultFields=None, where="", orderby="",
             severity=None, state=2, startdate=None, enddate=None, offset=0,
-            rows=0, getTotalCount=False, filter="", filters=None, **kwargs):
+            rows=0, getTotalCount=False, filter="", filters=None,
+            parameterizedWhere=None, **kwargs):
         """
         Fetch a list of events from the database matching certain criteria.
 
@@ -636,6 +637,13 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
 
             #escape any % in the where clause because of format eval later
             where = where.replace('%', '%%')
+
+            if parameterizedWhere is not None:
+                pwhere, pvals = parameterizedWhere
+                if where: where += " and "
+                where += pwhere
+                paramValues.extend(pvals)
+
             def paramWhereAnd(where, fmt, field, value):
                 log.debug("where is %s" % where)
                 if value != None and where.find(field) == -1:
@@ -643,8 +651,10 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
                     where += fmt % (field,)
                     paramValues.append(value)
                 return where
+
             where = paramWhereAnd(where, "%s >= %%s", self.severityField, severity)
             where = paramWhereAnd(where, "%s <= %%s", self.stateField, state)
+
             log.debug("filter is %s" % filter )
             if filter:
                 where += ' and (%s) ' % (' or '.join(['%s LIKE "%%%s%%"' % (

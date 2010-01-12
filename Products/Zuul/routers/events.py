@@ -14,10 +14,11 @@ class EventsRouter(DirectRouter):
         self.api = getFacade('event')
 
     def query(self, limit=None, start=None, sort=None, dir=None, params=None,
-              history=False, uid=None):
+              history=False, uid=None, criteria=()):
         if uid is None:
             uid = self.context
-        events = self.api.query(limit, start, sort, dir, params, uid, history)
+        events = self.api.query(limit, start, sort, dir, params, uid, criteria,
+                               history)
         self._set_asof(time.time())
         disabled = not Zuul.checkPermission('Manage Events')
         return {'events':events['data'], 'disabled': disabled}

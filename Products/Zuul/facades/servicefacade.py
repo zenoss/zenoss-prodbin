@@ -89,6 +89,7 @@ class ServiceInfo(InfoBase):
 class ServiceFacade(TreeFacade):
     implements(IServiceFacade, ITreeFacade)
 
+    @property
     def _root(self):
         return self._dmd.Services
 

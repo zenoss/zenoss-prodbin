@@ -143,6 +143,7 @@ class ProcessInfo(InfoBase):
 class ProcessFacade(TreeFacade):
     implements(IProcessFacade, ITreeFacade)
 
+    @property
     def _root(self):
         return self._dmd.Processes
 

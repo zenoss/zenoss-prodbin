@@ -183,8 +183,8 @@ class EventFacade(ZuulFacade):
           fs = zem.lookupManagedEntityResultFields(base.event_key)
         return fs
 
-    def query(self, limit=0, start=0, sort='lastTime', 
-              dir='DESC', filters=None, context=None, history=False):
+    def query(self, limit=0, start=0, sort='lastTime', dir='DESC', 
+              filters=None, context=None, criteria=(), history=False):
         context = resolve_context(context, self._dmd.Events)
         if isinstance(filters, basestring): filters = unjson(filters)
         zem = self._event_manager(history)
@@ -197,6 +197,24 @@ class EventFacade(ZuulFacade):
         if not filters:
             filters = {}
 
+        # Build parameterizedWhere
+        # Currently supports only device and component specification
+        if criteria:
+            where = []
+            vals = []
+            for criterion in criteria:
+                s = []
+                # criterion is a dict
+                for k, v in criterion.iteritems():
+                    s.append('%s=%%s' % k)
+                    vals.append(v)
+                crit = ' and '.join(s)
+                where.append('(%s)' % crit)
+            crit = ' or '.join(where)
+            parameterizedWhere = ('(%s)' % crit, vals)
+        else:
+            parameterizedWhere = None
+
         args = dict(
             offset=start,
             rows=limit,
@@ -204,7 +222,8 @@ class EventFacade(ZuulFacade):
             getTotalCount=True,
             sort=sort,
             orderby="%s %s, lastTime DESC" % (sort, dir),
-            filters=filters
+            filters=filters,
+            parameterizedWhere=parameterizedWhere
         )
         events, total = zem.getEventListME(context, **args)
         data = [self._extract_data_from_zevent(ev, fields) for ev in events]
