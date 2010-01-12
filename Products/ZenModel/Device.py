@@ -642,17 +642,17 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
             query['monitored'] = monitored
         if type is not None:
             query['meta_type'] = type
-        brains = self.componentSearch(query)
-        objlist = []
-        for brain in brains:
+
+        # Guard against stale componentSearch records.
+        components = []
+        for brain in self.componentSearch(query):
             try:
-                obj = brain.getObject()
-                objlist.append(obj)
+                components.append(brain.getObject())
             except NotFound:
-                log.error(
-                    'Index %s has bad data and needs to be rebuilt',
-                    self.componentSearch.id)
-        return objlist
+                log.warn("Stale %s record: %s",
+                    self.componentSearch.id, brain.getPrimaryId)
+
+        return components
 
 
     def getDeviceComponentsNoIndexGen(self):
