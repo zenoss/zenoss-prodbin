@@ -31,10 +31,15 @@ Zenoss.ContextCardButtonPanel = Ext.extend(Zenoss.CardButtonPanel, {
     },
     setContext: function(uid) {
         this.contextUid = uid;
-        this.layout.activeItem.setContext(uid);
+        panel = this.layout.activeItem;
+        if (panel.setContext) {
+            panel.setContext(uid);
+        }
     },
     cardChangeHandler: function(panel) {
-        panel.setContext(this.contextUid);
+        if (panel.setContext) {
+            panel.setContext(this.contextUid);
+        }
     }
 });
 

@@ -41,8 +41,7 @@ Ext.getCmp('master_panel').add({
     id: 'processTree',
     searchField: true,
     directFn: Zenoss.remote.ProcessRouter.getTree,
-    root: 'Processes',
-    rootuid: '/zport/dmd/Processes',
+    root: '/zport/dmd/Processes',
     listeners: {
         click: clickHandler,
         render: function(tree){
@@ -287,19 +286,23 @@ processForm.getForm().load({params:{uid: 'Processes'}});
  *   bottom_detail_panel - the device and event grid on the bottom right
  *
  */
-
 Ext.getCmp('bottom_detail_panel').add({
     xtype: 'ContextCardButtonPanel',
     id: 'card_panel',
-    items: [{
-        xtype: 'SimpleDeviceGridPanel',
-        id: 'device_grid',
-        directFn: Zenoss.remote.ProcessRouter.getDevices
-    },{
-        xtype: 'SimpleEventGridPanel',
-        id: 'event_grid',
-        directFn: Zenoss.remote.ProcessRouter.getEvents
-    }]
+    items: [ { xtype: 'panel',
+               buttonTitle: _t('Processes'),
+               iconCls: 'processes'
+             },
+             { xtype: 'SimpleDeviceGridPanel',
+               buttonTitle: _t('Devices'),
+               iconCls: 'devprobs'
+             },
+             { xtype: 'SimpleEventGridPanel',
+               buttonTitle: _t('Events'),
+               iconCls: 'events',
+               directFn: Zenoss.remote.ProcessRouter.getEvents
+             }
+    ]
 });
 
 }); // Ext.onReady

@@ -55,37 +55,32 @@ Zenoss.CardButtonPanel = Ext.extend(Ext.Panel, {
         function createToggleHandler(cardPanel, panel) {
             return function(button, pressed) {
                 if (pressed) {
-                    cardPanel.getLayout().setActiveItem(panel.id);
                     cardPanel.fireEvent('cardchange', panel);
+                    cardPanel.getLayout().setActiveItem(panel.id);
                 }
             };
         }
 
         function syncButtons(me) {
-//            alert(me.items.getCount());
-            for (var idx=0; idx <= me.items.getCount(); ++idx) {
-//                alert(idx + " of " + me.items.getCount());
-//                alert(me.items.get(idx));
-                addButtons(me, me.items.get(idx), idx);
+            var tb = me.getTopToolbar();
+            for (var idx=0; idx < me.items.getCount(); ++idx) {
+                var newComponent = me.items.get(idx);
+
+                if (newComponent instanceof Ext.Panel) {
+                    tb.add({
+                        xtype: 'ViewButton',
+                        id: 'button_' + newComponent.id,
+                        text: Ext.clean(newComponent.buttonTitle,
+                                        newComponent.title, 'Undefined'),
+                        pressed: (newComponent == me.layout.activeItem),
+                        iconCls: newComponent.iconCls,
+                        toggleHandler: createToggleHandler(me, newComponent)
+                    });
+                }
             }
         }
 
         function addButtons(me, newComponent, index) {
-//            alert(me["xtype"]);
-//            alert(newComponent["xtype"]);
-            if (newComponent instanceof Ext.Panel) {
-                var tb = me.getTopToolbar();
-//                alert(tb);
-                tb.addButton({
-                    xtype: 'ViewButton',
-                    id: 'button_' + newComponent.id,
-                    text: Ext.clean(newComponent.buttonTitle,
-                                    newComponent.title, 'Undefined'),
-                    pressed: (index == me.activeItem),
-                    iconCls: newComponent.iconCls,
-                    toggleHandler: createToggleHandler(me, newComponent)
-                });
-            }
         }
 
         Ext.applyIf(config, {
@@ -102,17 +97,10 @@ Zenoss.CardButtonPanel = Ext.extend(Ext.Panel, {
             }]
         });
 
-
-        Zenoss.CardButtonPanel.superclass.constructor.call(this, config);
-        //syncButtons(this);
         this.addEvents('cardchange');
-        var me = this;
-        //this.on('added', addButtons, this);
-        //this.on('beforeshow', syncButtons, this);
+        this.on('afterrender', syncButtons, this);
         this.listeners = config.listeners;
-    },
-    initEvents: function() {
-        Zenoss.CardButtonPanel.superclass.initEvents.call(this);
+        Zenoss.CardButtonPanel.superclass.constructor.call(this, config);
     }
 });
 

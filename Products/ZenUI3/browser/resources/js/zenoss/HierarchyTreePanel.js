@@ -69,6 +69,22 @@ Zenoss.HierarchyTreeNodeUI = Ext.extend(Ext.tree.TreeNodeUI, {
     }
 });
 
+Zenoss.HierarchyRootTreeNodeUI = Ext.extend(Zenoss.HierarchyTreeNodeUI, {
+
+    buildNodeText: function(node) {
+        var b = [];
+        var t = node.attributes.text;
+
+        b.push(t.substring(t.lastIndexOf('/')));
+
+        if (t.count!=undefined) {
+            b.push('<span class="node-extra">(' + t.count);
+            b.push((t.description || 'instances') + ')</span>');
+        }
+        return b.join(' ');
+    }
+});
+
 Zenoss.HierarchyTreePanel = Ext.extend(Ext.tree.TreePanel, {
     constructor: function(config) {
         Ext.apply(config, {
@@ -91,9 +107,9 @@ Zenoss.HierarchyTreePanel = Ext.extend(Ext.tree.TreePanel, {
         if (config.root && Ext.isString(config.root)) {
             config.root = {
                 nodeType: 'async',
-                id: config.root,
-                uid: config.rootuid,
-                text: _t(config.root)
+                id: (config.rootuid || config.root),
+                uid: (config.rootuid || config.root),
+                text: _t(config.root.substring(config.root.lastIndexOf('/')+1)),
             };
         }
         config.loader.baseAttrs = {iconCls:'severity-icon-small clear'};

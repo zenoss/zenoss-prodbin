@@ -26,25 +26,34 @@ Ext.onReady( function() {
      * Callback handler for click events coming from the tree
      * @param {Ext.tree.TreeNode} node Node clicked upon
      */
-    function treeClickHandler(node) {
+    function treeSelectHandler(tree, node) {
         // Change context
         setPanelsDisabled(false);
+        Ext.getCmp('serviceFormPanel').setContext(node.attributes.uid);
+        Ext.getCmp('serviceCardButtonPanel').setContext(node.attributes.uid);
     }
 
     /**
      * Initialize the tree.
      */
     function treeInitialize() {
-        Ext.getCmp('master_panel').add({
+        treePanel = Ext.create({
             xtype: 'HierarchyTreePanel',
             id: 'serviceTree',
             searchField: true,
             autoScroll: true,
             directFn: Zenoss.remote.ServiceRouter.getTree,
-            root: 'Services',
-            rootuid: '/zport/dmd/Services',
-            listeners: {click: treeClickHandler}
+            root: '/zport/dmd/Services/IpService',
+            listeners: {
+                render: function(tree){
+                    tree.getRootNode().on('load', function(node){
+                        node.select();
+                    });
+                }
+            }
         });
+        Ext.getCmp('master_panel').add(treePanel);
+        treePanel.getSelectionModel().on('selectionchange', treeSelectHandler);
     }
 
     /**********************************************************************
@@ -59,15 +68,20 @@ Ext.onReady( function() {
     function cardPanelInitialize() {
         Ext.getCmp('bottom_detail_panel').add({
             xtype: 'ContextCardButtonPanel',
-            id: 'itCardButtonPanel',
+            id: 'serviceCardButtonPanel',
             disabled: true,
-            items: [ { xtype: 'SimpleDeviceGridPanel',
+            items: [ { xtype: 'panel',
+                       buttonTitle: _t('Services'),
+                       iconCls: 'services'
+                     },
+                     { xtype: 'SimpleDeviceGridPanel',
                        buttonTitle: _t('Devices'),
                        iconCls: 'devprobs'
                      },
                      { xtype: 'SimpleEventGridPanel',
                        buttonTitle: _t('Events'),
-                       iconCls: 'events'
+                       iconCls: 'events',
+                       directFn: Zenoss.remote.ServiceRouter.getEvents
                      }
             ]
         });
@@ -84,8 +98,8 @@ Ext.onReady( function() {
      * @param {boolean} disabled Whether to disable or not
      */
     function setPanelsDisabled(disabled) {
-        Ext.getCmp('serviceForm').setDisabled(disabled);
-        Ext.getCmp('itCardButtonPanel').setDisabled(disabled);
+        Ext.getCmp('serviceFormPanel').setDisabled(disabled);
+        Ext.getCmp('serviceCardButtonPanel').setDisabled(disabled);
     }
 
     /**
@@ -125,6 +139,18 @@ Ext.onReady( function() {
         };
 
         router.getInfo({uid: uid, keys: ['monitor', 'eventSeverity']}, callback);
+    }
+
+    function saveForm(button, event) {
+        var serviceTree = Ext.getCmp('serviceTree');
+        var selectionModel = serviceTree.getSelectionModel();
+        var selectedNode = selectionModel.getSelectedNode();
+        var nameTextField = Ext.getCmp('nameTextField');
+        selectedNode.attributes.text.text = nameTextField.getValue();
+        selectedNode.setText(selectedNode.attributes.text);
+        var form = Ext.getCmp('serviceForm').getForm();
+        var params = Ext.apply({id: selectedNode.id}, form.getValues());
+        form.api.submit(params);
     }
 
     /**
@@ -240,20 +266,10 @@ Ext.onReady( function() {
         tbar: [
                {
                    xtype: 'button',
-                   id: 'Save-button',
+                   id: 'saveButton',
                    text: _t('Save'),
                    iconCls: 'save',
-                   handler: function(button, event) {
-                           var serviceTree = Ext.getCmp('serviceTree');
-                           var selectionModel = serviceTree.getSelectionModel();
-                           var selectedNode = selectionModel.getSelectedNode();
-                           var nameTextField = Ext.getCmp('nameTextField');
-                           selectedNode.attributes.text.text = nameTextField.getValue();
-                           selectedNode.setText(selectedNode.attributes.text);
-                           var form = Ext.getCmp('serviceForm').getForm();
-                           var params = Ext.apply({id: selectedNode.id}, form.getValues());
-                           form.api.submit(params);
-                       }
+                   handler: saveForm
                }
         ]
     }
@@ -261,32 +277,36 @@ Ext.onReady( function() {
     /**
      * @class Zenoss.ui.Service.ServiceFormPanel
      * @extends Ext.form.FormPanel
-     * The form panel that displays information about a service organizer or class
+     * The form panel that displays information about a service organizer
+     *  or class
      * @constructor
      */
     Zenoss.ui.Service.ServiceFormPanel = Ext.extend(Ext.form.FormPanel, {
 
         constructor: function(config) {
-            Ext.apply(config, formConfig);
-            Zenoss.ui.Service.ServiceFormPanel.superclass.constructor.call(this, config);
+            var config = config || {};
+            Ext.applyIf(config, formConfig);
+            Zenoss.ui.Service.ServiceFormPanel.superclass
+                             .constructor.call(this, config);
             //this.on('actioncomplete', actioncompleteHandler);
+        },
+
+        setContext: function(uid) {
+            this.load({ params: {uid: uid} });
         }
-
     });
-
     Ext.reg('ServiceFormPanel', Zenoss.ui.Service.ServiceFormPanel);
 
+    function formInitialize() {
+        var serviceForm = new Zenoss.ui.Service.ServiceFormPanel(
+                {id:'serviceFormPanel'}
+                );
+        Ext.getCmp('top_detail_panel').add(serviceForm);
+        //serviceForm.getForm().load({params:{uid: 'Services'}});
+    }
+
     cardPanelInitialize();
+    formInitialize();
     treeInitialize();
-
-    var serviceForm = new Zenoss.ui.Service.ServiceFormPanel({});
-
-
-    // place the form in the top right
-    Ext.getCmp('top_detail_panel').add(serviceForm);
-
-    serviceForm.getForm().load({params:{uid: 'Services'}});
-
-
 
 }); // Ext.onReady

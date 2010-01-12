@@ -40,13 +40,15 @@ class ServiceRouter(DirectRouter):
         Zuul.unmarshal(data, service)
         return {'success': True}
 
-    def getDevices(self, uid):
+    def getDevices(self, uid, start=0, params=None, limit=50, sort='device',
+                   dir='ASC'):
         facade = self._getFacade()
         devices = facade.getDevices(uid)
         data = Zuul.marshal(devices)
         return {'data': data, 'success': True}
 
-    def getEvents(self, uid):
+    def getEvents(self, uid, start=0, params=None, limit=50, sort='device',
+                   dir='ASC'):
         facade = self._getFacade()
         events = facade.getEvents(uid)
         data = Zuul.marshal(events)
