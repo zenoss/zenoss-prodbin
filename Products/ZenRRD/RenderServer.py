@@ -101,12 +101,13 @@ class RenderServer(RRDToolItem):
             if cmd.startswith('DEF:'):
                 # Check for existence of the RRD file
                 vName, rrdFile = cmd.split(':')[1].split('=', 1)
-                zenhomeCount = len(zenPath().split('/'))
-                rrdFileTuple = rrdFile.split('/')
-                rrdFileEnd = ""
-                if zenhomeCount < len(rrdFileTuple):
-                    rrdFileEnd = '/'.join(rrdFileTuple[zenhomeCount:])
                 if not os.path.isfile(rrdFile):
+                    zenhomeCount = len(zenPath().split('/')) + 2
+                    rrdFileTuple = rrdFile.split('/')
+                    rrdFileEnd = rrdFile
+                    if zenhomeCount < len(rrdFileTuple):
+                        rrdFileEnd = '/'.join(rrdFileTuple[zenhomeCount:])
+
                     badNames.add(vName)
                     parts = rrdFile.split('/')
                     try:
