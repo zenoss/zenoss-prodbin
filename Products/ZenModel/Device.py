@@ -43,6 +43,7 @@ from AccessControl import ClassSecurityInfo
 from Globals import DTMLFile
 from Globals import InitializeClass
 from DateTime import DateTime
+from zExceptions import NotFound
 
 from ZODB.POSException import POSError
 
