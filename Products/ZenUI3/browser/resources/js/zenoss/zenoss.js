@@ -256,7 +256,6 @@ Zenoss.FilterGridView = Ext.extend(Ext.ux.grid.livegrid.GridView, {
         this.addEvents('filtertoggle');
     },
     initData: function(ds, cm) {
-        var store = this.grid.store;
 
         this.un('beforebuffer', this.onBeforeBuffer,  this);
         cm.un('hiddenchange',   this.updateHeaders,   this);
@@ -265,6 +264,7 @@ Zenoss.FilterGridView = Ext.extend(Ext.ux.grid.livegrid.GridView, {
         cm.on('hiddenchange',   this.updateHeaders,   this);
 
         Zenoss.FilterGridView.superclass.initData.call(this, ds, cm);
+
     },
     // Gather the current values of the filter and apply them to a given
     // object.
@@ -273,7 +273,7 @@ Zenoss.FilterGridView = Ext.extend(Ext.ux.grid.livegrid.GridView, {
             params = this.lastOptions || {};
         for(i=0;i<this.filters.length;i++){
             var filter = this.filters[i];
-            var oldformat;
+            var oldformat, query;
             query = filter.getValue();
             if (query) {
                 params[filter.id] = query;
@@ -440,7 +440,6 @@ Zenoss.FilterGridView = Ext.extend(Ext.ux.grid.livegrid.GridView, {
     },
     renderUI: function() {
         Zenoss.FilterGridView.superclass.renderUI.call(this);
-        //this.renderEditors();
     },
     renderHeaders : function(){
         html = Zenoss.FilterGridView.superclass.renderHeaders.call(this);

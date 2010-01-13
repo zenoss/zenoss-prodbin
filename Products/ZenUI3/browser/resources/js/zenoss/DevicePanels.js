@@ -47,13 +47,7 @@ function availabilityRenderer(value) {
 
 Zenoss.DeviceColumnModel = Ext.extend(Ext.grid.ColumnModel, {
     constructor: function(config) {
-        var config = config || {};
-        Ext.applyIf(config, {
-            defaults: {
-                sortable: false,
-                menuDisabled: true,
-                width: 200
-            },
+        config = Ext.applyIf(config || {}, {
             columns: [{
                 dataIndex: 'name',
                 header: _t('Device'),
@@ -79,6 +73,11 @@ Zenoss.DeviceColumnModel = Ext.extend(Ext.grid.ColumnModel, {
                 renderer: availabilityRenderer
             }] // columns
         }); // Ext.applyIf
+        config.defaults = Ext.applyIf(config.defaults || {}, {
+            sortable: false,
+            menuDisabled: true,
+            width: 200
+        });
         Zenoss.DeviceColumnModel.superclass.constructor.call(this, config);
     } // constructor
 });
@@ -94,6 +93,7 @@ Zenoss.DeviceStore = Ext.extend(Ext.ux.grid.livegrid.Store, {
     constructor: function(config) {
         var config = config || {};
         Ext.applyIf(config, {
+            autoLoad: true,
             bufferSize: 50,
             defaultSort: {field: 'name', direction:'ASC'},
             sortInfo: {field: 'name', direction:'ASC'},
@@ -110,7 +110,7 @@ Zenoss.DeviceStore = Ext.extend(Ext.ux.grid.livegrid.Store, {
                   {name: 'events', type: 'auto'},
                   {name: 'availability', type: 'float'}
               ]
-            )
+          )
         });
         Zenoss.DeviceStore.superclass.constructor.call(this, config);
     }
@@ -133,7 +133,7 @@ Zenoss.SimpleDeviceGridPanel = Ext.extend(Ext.ux.grid.livegrid.GridPanel, {
             cm: new Zenoss.DeviceColumnModel({
                 menuDisabled: true
             }),
-            sm: new Zenoss.ExtraHooksSelectionModel,
+            sm: new Zenoss.ExtraHooksSelectionModel(),
             store: store,
             enableDragDrop: false,
             border:false,
@@ -170,7 +170,7 @@ Zenoss.DeviceGridPanel = Ext.extend(Zenoss.FilterGridPanel,{
                 loadMask: {msg: 'Loading. Please wait...'}
             }),
             autoExpandColumn: 'name',
-            cm: new Zenoss.DeviceColumnModel(),
+            cm: new Zenoss.DeviceColumnModel({defaults:{sortable:true}}),
             sm: new Zenoss.ExtraHooksSelectionModel(),
             stripeRows: true
         });
