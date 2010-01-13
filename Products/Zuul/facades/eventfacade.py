@@ -215,13 +215,16 @@ class EventFacade(ZuulFacade):
         else:
             parameterizedWhere = None
 
+        secondarySort = zem.defaultOrderby 
+        if not secondarySort: 
+            secondarySort = 'lastTime DESC'
         args = dict(
             offset=start,
             rows=limit,
             resultFields=fields,
             getTotalCount=True,
             sort=sort,
-            orderby="%s %s, lastTime DESC" % (sort, dir),
+            orderby="%s %s, %s" % (sort, dir, secondarySort),
             filters=filters,
             parameterizedWhere=parameterizedWhere
         )
