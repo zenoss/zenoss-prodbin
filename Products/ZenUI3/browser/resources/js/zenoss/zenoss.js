@@ -242,6 +242,7 @@ Ext.reg('livegridinfo', Zenoss.LiveGridInfoPanel);
  */
 Zenoss.FilterGridView = Ext.extend(Ext.ux.grid.livegrid.GridView, {
     rowColors: false,
+    liveSearch: true,
     constructor: function(config) {
         if (typeof(config.displayFilters)=='undefined')
             config.displayFilters = true;
@@ -411,18 +412,20 @@ Zenoss.FilterGridView = Ext.extend(Ext.ux.grid.livegrid.GridView, {
             this.filters[this.filters.length] = filter;
             filter.validationTask = new Ext.util.DelayedTask(function(){
                 this.fireEvent('filterchange', this);
-                this.nonDisruptiveReset();
+                if (this.liveSearch){
+                    this.nonDisruptiveReset();
+                }
             }, this);
             if (filter.xtype=='textfield') {
                 filter.on('keyup', function(field, e) {
-                    if(!e.isNavKeyPress()) this.validationTask.delay(250);
+                    if(!e.isNavKeyPress()) this.validationTask.delay(1000);
                 }, filter);
             } else {
                 filter.on('select', function(field, e) {
-                    this.validationTask.delay(250);
+                    this.validationTask.delay(1000);
                 }, filter);
                 filter.on('change', function(field, e) {
-                    this.validationTask.delay(250);
+                    this.validationTask.delay(1000);
                 }, filter);
             }
             new Ext.Panel({
@@ -487,12 +490,15 @@ Zenoss.FilterGridView = Ext.extend(Ext.ux.grid.livegrid.GridView, {
         var sev = Zenoss.util.convertSeverity(record.get('severity'));
         var sevclass = this.rowColors ? sev + ' rowcolor' : '';
         return stateclass + ' ' + sevclass;
-
     },
     toggleRowColors: function(bool){
         this.rowColors = bool;
         Ext.state.Manager.set('rowcolor', bool);
         this.updateLiveRows(this.rowIndex, true, false);
+    },
+    toggleLiveSearch: function(bool){
+        this.liveSearch = bool;
+        Ext.state.Manager.set('livesearch', bool);
     },
     applyState: function(state) {
         // For now, always show the filters The rest of the filter-hiding
@@ -568,6 +574,16 @@ Zenoss.FilterGridPanel = Ext.extend(Ext.ux.grid.livegrid.GridPanel, {
     initState: function() {
         Zenoss.FilterGridPanel.superclass.initState.apply(this, arguments);
         this.restoreURLState();
+        var livesearchitem = Ext.getCmp(this.view.livesearchitem);
+        var liveSearch = Ext.state.Manager.get('livesearch');
+        if (!Ext.isDefined(liveSearch)){
+            liveSearch = livesearchitem.checked;
+        }else{
+            livesearchitem.on('render', function(){
+                this.setChecked(liveSearch)
+            },livesearchitem)
+        }
+        this.view.liveSearch = liveSearch;
         var rowColors = Ext.state.Manager.get('rowcolor');
         this.view.rowColors = rowColors;
         if (this.view.rowcoloritem) {
