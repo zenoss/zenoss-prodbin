@@ -387,6 +387,7 @@ Zenoss.FilterGridView = Ext.extend(Ext.ux.grid.livegrid.GridView, {
     },
     renderEditors: function() {
         Ext.each(this.filters, function(ob){ob.destroy()});
+        this.filters = [];
         var cs = this.getColumnData();
         for (i=0,len=cs.length; i<len; i++) {
             if (this.cm.isHidden(i)) continue;
@@ -406,13 +407,6 @@ Zenoss.FilterGridView = Ext.extend(Ext.ux.grid.livegrid.GridView, {
                 var newValue = this.lastOptions[fieldid];
                 filter.setValue(newValue);
             }
-            var panel = new Ext.Panel({
-                frame: false,
-                border: false,
-                layout: 'fit',
-                renderTo: id,
-                items: filter
-            });
             filter.setWidth('100%');
             this.filters[this.filters.length] = filter;
             filter.validationTask = new Ext.util.DelayedTask(function(){
@@ -431,7 +425,13 @@ Zenoss.FilterGridView = Ext.extend(Ext.ux.grid.livegrid.GridView, {
                     this.validationTask.delay(250);
                 }, filter);
             }
-
+            new Ext.Panel({
+                frame: false,
+                border: false,
+                layout: 'fit',
+                renderTo: id,
+                items: filter
+            });
         }
     },
     updateHeaders: function() {
