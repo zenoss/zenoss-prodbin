@@ -603,7 +603,7 @@ Ext.onReady(function(){
     
     var console_store = new Zenoss.EventStore({
         autoLoad: true,
-        proxy: new Ext.data.DirectProxy({
+        proxy: new Zenoss.ThrottlingProxy({
             directFn:Zenoss.remote.EventsRouter.query,
             listeners: {'load': function(proxy, transaction, options) {
                 var disabled = transaction.result.disabled;

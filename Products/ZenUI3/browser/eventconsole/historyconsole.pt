@@ -466,7 +466,7 @@ Ext.onReady(function(){
 
     // Store to hold the events data
     var console_store = new Zenoss.EventStore({
-        proxy: new Ext.data.DirectProxy({
+        proxy: new Zenoss.ThrottlingProxy({
             directFn:Zenoss.remote.EventsRouter.queryHistory
         }),
         sortInfo: {field:'lastTime', direction:'DESC'},

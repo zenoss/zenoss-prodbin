@@ -1174,6 +1174,32 @@ Zenoss.util.num2dot = function(num) {
 }
 
 /**
+ * Proxy that will only allow one request to be loaded at a time.  Requests 
+ * made while the proxy is already loading a previous requests will be discarded
+ */
+Zenoss.ThrottlingProxy = Ext.extend(Ext.data.DirectProxy, {
+    constructor: function(config){
+        Zenoss.ThrottlingProxy.superclass.constructor.apply(this, arguments);
+        this.loading = false;
+        //add event listeners for throttling
+        this.addListener('beforeload', function(proxy, options){
+            if (!proxy.loading){
+                proxy.loading = true;
+                return true;
+            }
+            return false;
+        });
+        this.addListener('load', function(proxy, options){
+            proxy.loading = false;
+        });
+        this.addListener('exception', function(proxy, options){
+            proxy.loading = false;
+        });
+
+    }
+});
+
+/**
  * Zenoss date patterns and manipulations
  */
 Ext.namespace('Zenoss.date');
