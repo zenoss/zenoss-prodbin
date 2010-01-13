@@ -150,4 +150,3 @@ class ProcessFacade(TreeFacade):
     @property
     def _instanceClass(self):
         return "Products.ZenModel.OSProcess.OSProcess"
-

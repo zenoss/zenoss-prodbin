@@ -13,6 +13,7 @@
 
 import logging
 from itertools import imap
+from Acquisition import aq_base
 from zope.interface import implements
 from zope.component import queryUtility, adapts
 
@@ -110,6 +111,25 @@ class TreeFacade(ZuulFacade):
         brains = cat.search('Products.ZenModel.Device.Device', start=start,
                            limit=limit, orderby=sort, reverse=reverse)
         return map(IInfo, map(unbrain, brains))
+
+    def getInstances(self, uid=None, start=0, limit=50, sort='name',
+                     dir='ASC', params=None):
+        # do the catalog search
+        cat = ICatalogTool(self._getObject(uid))
+        reverse = dir=='DESC'
+        brains = cat.search(self._instanceClass, start=start, limit=limit,
+                            orderby=sort, reverse=reverse)
+        objs = imap(unbrain, brains)
+        # the objects returned by the catalog search are wrapped in the
+        # acquisition context of their primary path. Switch these objects
+        # to the context of the parent indentified by the uid parameter.
+        secondaryParent = self._dmd.unrestrictedTraverse(uid)
+        context = secondaryParent.instances
+        def switchContext(obj):
+            return aq_base(obj).__of__(context)
+        instances = imap(switchContext, objs)
+        # convert to info objects
+        return imap(IInfo, instances)
 
     def getEvents(self, uid=None):
         zem = self._dmd.ZenEventManager

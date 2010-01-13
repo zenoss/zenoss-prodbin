@@ -62,6 +62,26 @@ class IInfo(Interface):
     name = Attribute("Name of the represented object")
 
 
+class IInstanceInfo(IInfo):
+    """
+    An info adapter that wraps a instance object, where an instance object is
+    one that is typically found in an instances relationship of a 'Class'
+    object.  Examples of instance objects are OSProcess, IPService and
+    WinService.
+    """
+    device = Attribute("The device associated with this instance")
+    monitor = Attribute("Is the instance monitored")
+    status = Attribute("What is the status of the instance")
+
+
+class IInstance(Interface):
+    """
+    An IInstance object is one that is typically found in an instances
+    relationship of a 'Class' object.  Examples of instance objects are
+    OSProcess, IPService and WinService.
+    """
+
+
 from events import *
 from process import *
 from service import *

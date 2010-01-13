@@ -85,7 +85,6 @@ class ServiceInfo(InfoBase):
     port = property(getPort, setPort)
 
 
-
 class ServiceFacade(TreeFacade):
     implements(IServiceFacade, ITreeFacade)
 
