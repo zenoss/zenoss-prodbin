@@ -377,7 +377,6 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
             flag = self._temp_device = False
         return flag
 
-    security.declareProtected(ZEN_VIEW, 'name')
     def name(self):
         """
         Return the name of this device.  Default is titleOrId.
