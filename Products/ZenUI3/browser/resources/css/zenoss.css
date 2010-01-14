@@ -159,12 +159,23 @@
     margin: 0 auto;
 }
 
+.eventrainbow .severity-icon-small {
+    background-image: url(/zenui/img/xtheme-zenoss/icon/severity-sprite-reverse.png)
+}
+
 .severity-icon-small.critical { background-position: 0px  0px   }
 .severity-icon-small.error    { background-position: 0px -20px  }
 .severity-icon-small.warning  { background-position: 0px -40px  }
 .severity-icon-small.info     { background-position: 0px -60px  }
 .severity-icon-small.debug    { background-position: 0px -80px  }
 .severity-icon-small.clear    { background-position: 0px -100px }
+
+.largetoolbar .severity-icon-small.critical { background-position: 2px  2px   }
+.largetoolbar .severity-icon-small.error    { background-position: 2px -18px  }
+.largetoolbar .severity-icon-small.warning  { background-position: 2px -38px  }
+.largetoolbar .severity-icon-small.info     { background-position: 2px -58px  }
+.largetoolbar .severity-icon-small.debug    { background-position: 2px -78px  }
+.largetoolbar .severity-icon-small.clear    { background-position: 2px -98px }
 
 /**
  * FILTER GRID
@@ -356,14 +367,16 @@ table.eventrainbow {
     color: white;
     vertical-align: middle;
 }
+.largetoolbar .eventrainbow td {
+    padding-left: 25px;
+}
 
 .largetoolbar table.eventrainbow {
-    margin-top: 10px;
-    height: 18px;
-    border-top: 1px solid #707070;
-    border-left: 1px solid #707070;
-    border-right: 1px solid #bbb;
-    border-bottom: 1px solid #bbb;
+    margin-top: 8px;
+    height: 23px;
+    border: 1px solid #707070;
+    border-right-color: #bbb;
+    border-bottom-color: #bbb;
 }
 
 table.eventrainbow td.critical { background-color: #d60000; }
