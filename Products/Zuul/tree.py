@@ -59,6 +59,19 @@ class TreeNode(object):
         return self._object.name
 
     @property
+    def _evsummary(self):
+        raise NotImplementedError
+
+    @property
+    def iconCls(self):
+        for sev, count in self._evsummary:
+            if count:
+                break
+        else:
+            sev = 'clear'
+        return 'severity-icon-small %s' % sev
+
+    @property
     def children(self):
         raise NotImplementedError
 

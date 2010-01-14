@@ -132,10 +132,10 @@ class TreeFacade(ZuulFacade):
         # convert to info objects
         return imap(IInfo, instances)
 
-    def getEvents(self, uid=None):
+    def _parameterizedWhere(self, uid=None):
         zem = self._dmd.ZenEventManager
-        cat = ICatalogTool(self._getObject(uid))
-        brains = cat.search(self._instanceClass)
+        cat = ICatalogTool(self._dmd)
+        brains = cat.search(self._instanceClass, paths=(uid,))
         criteria = []
         for instance in brains:
             component = instance.id
@@ -159,10 +159,23 @@ class TreeFacade(ZuulFacade):
             parameterizedWhere = ('(%s)' % crit, vals)
         else:
             parameterizedWhere = None
-        events = zem.getEventList(parameterizedWhere=parameterizedWhere)
+        return parameterizedWhere
+
+    def getEvents(self, uid=None):
+        zem = self._dmd.ZenEventManager
+        events = zem.getEventList(
+            parameterizedWhere=self._parameterizedWhere(uid))
         # return IInfos
         for e in imap(IEventInfo, events):
             yield e
+
+    def getEventSummary(self, uid=None):
+        zem = self._dmd.ZenEventManager
+        where = self._parameterizedWhere(uid)
+        summary = zem.getEventSummary(parameterizedWhere=where)
+        severities = (c[0].lower() for c in zem.severityConversions)
+        counts = (s[1]+s[2] for s in summary)
+        return zip(severities, counts)
 
 
 

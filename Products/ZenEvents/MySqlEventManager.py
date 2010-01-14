@@ -61,7 +61,8 @@ class MySqlEventManager(MySqlSendEventMixin, EventManagerBase):
 
     security = ClassSecurityInfo()
     
-    def getEventSummary(self, where="", severity=1, state=1, prodState=None):
+    def getEventSummary(self, where="", severity=1, state=1, prodState=None,
+                        parameterizedWhere=None):
         """
         Return a list of tuples with the CSS class, acknowledged count, count
 
@@ -73,11 +74,27 @@ class MySqlEventManager(MySqlSendEventMixin, EventManagerBase):
         """ 
         select = "select severity, count(*), group_concat(eventState) "
         select += "from %s where " % self.statusTable
-        where = self._wand(where, "%s >= %s", self.severityField, severity)
-        where = self._wand(where, "%s <= %s", self.stateField, state)
-        if prodState is not None:
-            where = self._wand(where, "%s >= %s", 'prodState', prodState)
+
+        paramValues = []
+        def paramWhereAnd(where, fmt, field, value):
+            log.debug("where is %s" % where)
+            if value != None and where.find(field) == -1:
+                if where: where += " and "
+                where += fmt % (field,)
+                paramValues.append(value)
+            return where
         where = self.restrictedUserFilter(where)
+        #escape any % in the where clause because of format eval later
+        where = where.replace('%', '%%')
+        if parameterizedWhere is not None:
+            pwhere, pvals = parameterizedWhere
+            if where: where += " and "
+            where += pwhere
+            paramValues.extend(pvals)
+        where = paramWhereAnd(where, "%s >= %%s", self.severityField, severity)
+        where = paramWhereAnd(where, "%s <= %%s", self.stateField, state)
+        if prodState is not None:
+            where = paramWhereAnd(where, "%s >= %%s", 'prodState', prodState)
         select += where
         select += " group by severity desc"
         #print select
@@ -87,7 +104,7 @@ class MySqlEventManager(MySqlSendEventMixin, EventManagerBase):
         conn = zem.connect()
         try:
             curs = conn.cursor()
-            curs.execute(select)
+            curs.execute(select, paramValues)
             sumdata = {}
             for row in curs.fetchall():
                 sev, count, acks = row[:3]

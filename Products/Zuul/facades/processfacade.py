@@ -15,6 +15,7 @@ import logging
 from itertools import imap, chain
 from zope.component import adapts
 from zope.interface import implements
+from Products.Zuul import getFacade
 from Products.Zuul.tree import TreeNode
 from Products.Zuul.facades import TreeFacade, InfoBase
 from Products.Zuul.interfaces import IProcessFacade, IProcessEntity
@@ -33,9 +34,8 @@ class ProcessNode(TreeNode):
     uiProvider = 'hierarchy'
 
     @property
-    def iconCls(self):
-        sev = 'clear' # FIXME: Get this somehow
-        return 'severity-icon-small %s' % sev
+    def _evsummary(self):
+        return getFacade('process').getEventSummary(self.uid)
 
     @property
     def text(self):

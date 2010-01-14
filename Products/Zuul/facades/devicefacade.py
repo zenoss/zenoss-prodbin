@@ -26,12 +26,35 @@ from Products.ZenModel.System import System
 from Products.ZenModel.Location import Location
 from Products.ZenModel.DeviceClass import DeviceClass
 from Products.ZenUtils import IpUtil
+from Products.Zuul import getFacade
+
+def _organizerWhere(uid):
+    """
+    Duplicating a little code in EventManagerBase so as to avoid pulling
+    all the objects. When we fix the event system we can probably do away
+    with this.
+    """
+    orgname = uid.lstrip('/zport/dmd')
+    if orgname.startswith('Devices'):
+        return "DeviceClass like '%s%%'" % orgname.lstrip('Devices')
+    elif orgname.startswith('Groups'):
+        return "DeviceGroups like '%%|%s%%'" % orgname.lstrip('Groups')
+    elif orgname.startswith('Systems'):
+        return "Systems like '%%|%s%%'" % orgname.lstrip('Systems')
+    elif orgname.startswith('Locations'):
+        return "Location like '%s%%'" % orgname.lstrip('Locations')
+
 
 class DeviceOrganizerNode(TreeNode):
     implements(IDeviceOrganizerNode)
     adapts(DeviceOrganizer)
 
     uiProvider = 'hierarchy'
+
+    @property
+    def _evsummary(self):
+        where = _organizerWhere(self.uid)
+        return getFacade('device').getEventSummary(where=where)
 
     @property
     def children(self):
@@ -77,8 +100,8 @@ class DeviceInfo(InfoBase):
     @property
     def events(self):
         manager = self._object.getEventManager()
-        severities = [c[0].lower() for c in manager.severityConversions]
-        counts = [s[2] for s in self._object.getEventSummary()]
+        severities = (c[0].lower() for c in manager.severityConversions)
+        counts = (s[1]+s[2] for s in self._object.getEventSummary())
         return dict(zip(severities, counts))
 
     @property
@@ -116,6 +139,27 @@ class DeviceFacade(TreeFacade):
     @property
     def _instanceClass(self):
         return 'Products.ZenModel.Device.Device'
+
+    def _parameterizedWhere(self, uid=None, where=None):
+        # Override the default to avoid searching instances and just
+        # look up the where clause for the thing itself
+        zem = self._dmd.ZenEventManager
+        if not where:
+            ob = self._findObject(uid)
+            where = zem.lookupManagedEntityWhere(ob)
+        where = where.replace('%', '%%')
+        return where, []
+
+    def getEventSummary(self, uid=None, where=None):
+        zem = self._dmd.ZenEventManager
+        if where:
+            pw = self._parameterizedWhere(where=where)
+        else:
+            pw = self._parameterizedWhere(uid)
+        summary = zem.getEventSummary(parameterizedWhere=pw)
+        severities = (c[0].lower() for c in zem.severityConversions)
+        counts = (s[1]+s[2] for s in summary)
+        return zip(severities, counts)
 
     def moveDevices(self, uids, target):
         # Resolve target if a path

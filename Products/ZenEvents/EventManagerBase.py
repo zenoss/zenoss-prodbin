@@ -750,7 +750,7 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
         @type prodState: int
         @return: List of lists of the form [class, acked count, unacked count].
         @rtype: list
-        """ 
+        """
         try:
             where = self.lookupManagedEntityWhere(me)
             return self.getEventSummary(where, severity, state, prodState)
