@@ -23,9 +23,10 @@ much better."""
 from Products.DataCollector.plugins.CollectorPlugin import PythonPlugin
 from Products.ZenUtils.Utils import zenPath
 from twisted.internet.utils import getProcessOutput
+from Products.ZenUtils.ZenTales import talesCompile, getEngine
 import re
 
-NMAPDEFAULTS = "-p 1-1024;-sT;--open;-oG -"
+NMAPDEFAULTS = "-p 1-1024 -sT -oG -"
 class IpServiceMap(PythonPlugin):
     
     transport = "python"
@@ -38,16 +39,34 @@ class IpServiceMap(PythonPlugin):
 
     def collect(self, device, log):
         nmapoptions = getattr(device, 'zNmapPortscanOptions', NMAPDEFAULTS) 
-        nmapoptions = nmapoptions.split(";") 
-        nmapoptions.append(device.manageIp)
-        log.info("running nmap plugin with options: %s " % (nmapoptions))
+        #compile Tales expressions
+        tales = readyopts = None
+        try:
+            tales = talesCompile('string:' + nmapoptions)
+            readyopts = tales(getEngine().getContext({'here':device, 'device':device, 'dev':device}))
+        #if there was an error make a best effort
+        except Exception, e:
+            log.error("zNmapPortscanOptions contain illegal Tales expression, please review: %s" % e)
+            readyopts = NMAPDEFAULTS + " " + device.manageIp
+        nmapoptions = readyopts.split(" ") 
+        log.info("running the following nmap command: %s %s" % \
+                  (zenPath('libexec', 'nmap'), " ".join(nmapoptions)))
         return getProcessOutput(zenPath('libexec', 'nmap'), nmapoptions)
+
 
     def process(self, device, results, log):
         rm = self.relMap()
-        line = results.split('\n')[1]
-        portMatch = re.compile('^(\d+)\/open\/tcp')
-        for section in line.split(' '):
+        lines = portMatch = None
+        #determine grep-friendly vs. std. output
+        if results.find("# Nmap") > -1:
+            line = results.split('\n')[1]
+            if line: lines = line.split(" ")
+            portMatch = re.compile('^(\d+)\/open\/tcp')
+        else:
+            portMatch = re.compile('^(\d+)\/tcp\s+open\s+')
+            lines = results.split('\n')
+
+        for section in lines:
             match = portMatch.search(section)
             if not match: continue
             port = int(match.groups()[0])
@@ -59,5 +78,7 @@ class IpServiceMap(PythonPlugin):
             om.setServiceClass = {'protocol': 'tcp', 'port':port}
             om.discoveryAgent = self.name()
             rm.append(om)
-        
+        #print a message if we don't have any data at this point
+        if len(rm.maps) == 0: log.info("No services found, or Nmap output wasn't processed properly")
         return rm
+
