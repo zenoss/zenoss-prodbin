@@ -671,23 +671,23 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
                 orderby = self.defaultOrderby
             if orderby:
                 #validate orderby is a valid field 
-                values = []
-                for x in orderby.split(','): 
-                    values.extend(x.split(' '))
-                values = [x for x in values if x]
-                log.debug("orderby is %s" % orderby)
-                log.debug("values is %s" % values)
-
-                for col in values:
+                sortValues = []
+                prevSortCol = None
+                for x in orderby.split(','):
+                    col, dir = x.split()
                     col = col.lower()
-                    if col not in ['desc','asc'] and col not in fieldList:
-                        raise ("order by  value %s not valid" % col)
+                    dir = dir.upper()
+                    if dir not in ['DESC','ASC'] or col not in fieldList:
+                        raise ("order by  value %s %s not valid" % (col, dir))
+                    #remove adjacent sorts of same column; 
+                    if not prevSortCol or prevSortCol != col:
+                        sortValues.append((col, dir))
+                    prevSortCol = col
+                log.debug("orderby is %s" % orderby)
 
-                # Deduplicate order by stanzas. MySQL's query optimizer will
-                # go from an efficient index lookup to a nasty filesort if you
-                # order by the same field twice.
-                # http://dev.zenoss.org/trac/ticket/5955
-                orderby = ', '.join(set(i.strip() for i in orderby.split(',')))
+                orderby = ', '.join([' '.join(x) for x in sortValues])
+                    
+                log.debug("final orderby is %s" % orderby)
 
                 select.append("order by")
                 select.append(orderby)
@@ -707,6 +707,7 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
                 conn = self.connect()
                 try:
                     curs = conn.cursor()
+                    log.debug(select % tuple(paramValues))
                     curs.execute(select, paramValues)
                     retdata = []
                     # iterate through the data results and convert to python
