@@ -459,11 +459,15 @@ class CollectorDaemon(RRDDaemon):
             return result
 
         def _reschedule(result):
+            if isinstance( result, Failure ):
+                self.log.debug( "Rescheduling next configuration check " +
+                                "despite failure: %s" %
+                                result.getErrorMessage() )
             interval = _configCycleInterval()
             self.log.debug("Rescheduling configuration check in %d seconds",
                            interval)
             reactor.callLater(interval, self._configCycle)
-            return result
+            return defer.succeed(None)
 
         def _configure():
             devices = []
