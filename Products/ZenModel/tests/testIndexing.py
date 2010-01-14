@@ -123,6 +123,22 @@ class TestPathIndexing(ZenModelBaseTest):
         self.assertEqual(brains[0].getObject(), dcmDevice)
 
 
+    def testNonExistentDeviceInCatalog(self):
+        """
+        Verify that stale catalog entries won't result in tracebacks.
+        """
+        from zExceptions import NotFound
+        d = self.dmd.Devices.createInstance('catTestDevice')
+        d.index_object()
+        device_count = len(self.dmd.Devices.getSubDevices())
+        self.dmd.Devices.devices._objects.pop('catTestDevice')
+        try:
+            self.assertEqual(len(self.dmd.Devices.getSubDevices()),
+                device_count - 1)
+        except (NotFound, KeyError, AttributeError), ex:
+            self.assertEqual(ex, None)
+
+
 class TestComponentIndexing(ZenModelBaseTest):
 
     def setUp(self):
@@ -299,6 +315,24 @@ class TestComponentIndexing(ZenModelBaseTest):
         self.dmd.Devices.moveOrganizer('/Devices/One', ['Two'])
         components = dcmDevice.getMonitoredComponents(type='FileSystem')
         self.assertEqual(components[0].device().id, 'dcmDevice')
+
+
+    def testNonExistentComponentInCatalog(self):
+        """
+        Verify that stale catalog entries won't result in tracebacks.
+        """
+        from zExceptions import NotFound
+        d = self.dmd.Devices.createInstance('catTestDevice')
+        d.index_object()
+        d.os.addIpInterface('catTestComponent', True)
+        c = d.os.interfaces._getOb('catTestComponent')
+        c.index_object()
+        component_count = len(d.getDeviceComponents())
+        d.os.interfaces._objects.pop('catTestComponent')
+        try:
+            self.assertEqual(len(d.getDeviceComponents()), component_count - 1)
+        except (NotFound, KeyError, AttributeError), ex:
+            self.assertEqual(ex, None)
 
 
 def test_suite():

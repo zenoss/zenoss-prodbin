@@ -35,7 +35,7 @@ from Products.ZenWidgets.interfaces import IMessageSender
 
 from ZenossSecurity import *
 
-from Products.ZenUtils.Utils import unused
+from Products.ZenUtils.Utils import unused, getObjectsFromCatalog
 from Products.ZenWidgets import messaging
 
 import logging
@@ -108,8 +108,8 @@ class DeviceOrganizer(Organizer, DeviceManagerBase, Commandable, ZenMenuable,
             LOG.warn('Please run zenmigrate to create device path indexes.')
             return self.getSubDevices_recursive(devfilter)
 
-        brains = catalog(path="/".join(self.getPhysicalPath()))
-        devices = (b.getObject() for b in brains)
+        devices = getObjectsFromCatalog(catalog, {
+            'path': "/".join(self.getPhysicalPath())}, LOG)
         devices = ifilter(lambda dev:self.checkRemotePerm(ZEN_VIEW, dev),
                           devices)
         devices = ifilter(devfilter, devices)
@@ -124,8 +124,8 @@ class DeviceOrganizer(Organizer, DeviceManagerBase, Commandable, ZenMenuable,
             LOG.warn('Please run zenmigrate to create device path indexes.')
             yield self.getSubDevicesGen_recursive(devfilter)
 
-        brains = catalog(path="/".join(self.getPhysicalPath()))
-        devices = (b.getObject() for b in brains)
+        devices = getObjectsFromCatalog(catalog, {
+            'path': "/".join(self.getPhysicalPath())}, LOG)
         devices = ifilter(lambda dev:self.checkRemotePerm(ZEN_VIEW, dev),
                           devices)
         for device in devices:

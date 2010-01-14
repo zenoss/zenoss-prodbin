@@ -29,8 +29,7 @@ from urllib import quote as urlquote
 
 from zope.event import notify
 from Products.Zuul.catalog.events import IndexingEvent
-from Products.ZenUtils.Utils import isXmlRpc
-from Products.ZenUtils.Utils import unused
+from Products.ZenUtils.Utils import isXmlRpc, unused, getObjectsFromCatalog
 from Products.ZenUtils import Time
 import RRDView
 from Products.ZenUtils.IpUtil import checkip, IpAddressError, maskToBits
@@ -642,16 +641,7 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
         if type is not None:
             query['meta_type'] = type
 
-        # Guard against stale componentSearch records.
-        components = []
-        for brain in self.componentSearch(query):
-            try:
-                components.append(brain.getObject())
-            except NotFound:
-                log.warn("Stale %s record: %s",
-                    self.componentSearch.id, brain.getPrimaryId)
-
-        return components
+        return list(getObjectsFromCatalog(self.componentSearch, query, log))
 
 
     def getDeviceComponentsNoIndexGen(self):

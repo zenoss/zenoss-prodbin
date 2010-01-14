@@ -1513,3 +1513,16 @@ def dumpCallbacks(deferred):
         print "%-39.39s %-39.39s" % (callbackName, errbackName)
 
 
+def getObjectsFromCatalog(catalog, query=None, log=None):
+    """
+    Generator that can be used to load all objects of out a catalog and skip
+    any objects that are no longer able to be loaded.
+    """
+    
+    for brain in catalog(query):
+        try:
+            ob = brain.getObject()
+            yield ob
+        except (NotFound, KeyError, AttributeError):
+            if log:
+                log.warn("Stale %s record: %s", catalog.id, brain.getPath())
