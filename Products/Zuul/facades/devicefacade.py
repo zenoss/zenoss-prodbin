@@ -20,6 +20,10 @@ from Products.Zuul.interfaces import IDeviceFacade, IDeviceOrganizerNode
 from Products.Zuul.interfaces import IDeviceInfo, IDevice, ICatalogTool
 from Products.Zuul.facades import InfoBase
 from Products.ZenModel.DeviceOrganizer import DeviceOrganizer
+from Products.ZenModel.DeviceGroup import DeviceGroup
+from Products.ZenModel.System import System
+from Products.ZenModel.Location import Location
+from Products.ZenModel.DeviceClass import DeviceClass
 from Products.ZenUtils import IpUtil
 
 class DeviceOrganizerNode(TreeNode):
@@ -81,6 +85,13 @@ class DeviceInfo(InfoBase):
         return self._object.availability().availability
 
 
+def _removeZportDmd(path):
+    if path.startswith('/zport/dmd'):
+        path = path[10:]
+    return path
+
+
+
 class DeviceFacade(TreeFacade):
     """
     Facade for device stuff.
@@ -95,4 +106,26 @@ class DeviceFacade(TreeFacade):
     def _instanceClass(self):
         return 'Products.ZenModel.Device.Device'
 
+    def moveDevices(self, uids, target):
+        # Resolve target if a path
+        if isinstance(target, basestring):
+            target = self._findObject(target)
+        assert isinstance(target, DeviceOrganizer)
+        devs = (self._findObject(uid) for uid in uids)
+        if isinstance(target, DeviceGroup):
+            for dev in devs:
+                paths = set(g.getPrimaryId() for g in dev.groups())
+                paths.add(target.getPrimaryId())
+                dev.setGroups(map(_removeZportDmd, paths))
+        elif isinstance(target, System):
+            for dev in devs:
+                paths = set(g.getPrimaryId() for g in dev.systems())
+                paths.add(target.getPrimaryId())
+                dev.setSystems(map(_removeZportDmd, paths))
+        elif isinstance(target, Location):
+            for dev in devs:
+                dev.setLocation(_removeZportDmd(target.getPrimaryId()))
+        elif isinstance(target, DeviceClass):
+            self._dmd.Devices.moveDevices(_removeZportDmd(target.getPrimaryId()),
+                                          [dev.id for dev in devs])
 

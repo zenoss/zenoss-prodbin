@@ -267,7 +267,7 @@ class DeviceClass(DeviceOrganizer, ZenPackable, TemplateContainer):
                     im.loadObjectFromXML(xmlfile)
 
                 module = target.zPythonClass
-                if module: 
+                if module:
                     klass = target.zPythonClass.split('.')[-1]
                 else:
                     module = 'Products.ZenModel.Device'

@@ -22,7 +22,6 @@ from Products.Zuul.interfaces import IFacade, IDataRootFactory, ITreeNode
 from Products.Zuul.interfaces import ITreeFacade, IInfo, ICatalogTool
 from Products.Zuul.interfaces import IEventInfo
 from Products.Zuul.utils import unbrain
-from Products.Zuul.decorators import memoize
 
 log = logging.getLogger('zen.Zuul')
 
@@ -35,9 +34,11 @@ class InfoBase(object):
         self._object = object
 
     @property
-    @memoize
     def uid(self):
-        return '/'.join(self._object.getPrimaryPath())
+        _uid = getattr(self, '_v_uid', None)
+        if _uid is None:
+            _uid = self._v_uid = '/'.join(self._object.getPrimaryPath())
+        return _uid
 
     @property
     def id(self):

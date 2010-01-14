@@ -1481,7 +1481,7 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
     def setGroups(self, groupPaths):
         """
         Set the list of groups for this device based on a list of paths
-        
+
         @permission: ZEN_CHANGE_DEVICE
         """
         objGetter = self.getDmdRoot("Groups").createOrganizer

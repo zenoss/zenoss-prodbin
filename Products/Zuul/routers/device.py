@@ -49,6 +49,18 @@ class DeviceRouter(DirectRouter):
         data = Zuul.marshal(devices, keys)
         return {'devices': data, 'totalCount': count }
 
+    def moveDevices(self, uids, target):
+        facade = self._getFacade()
+        try:
+            facade.moveDevices(uids, target)
+        except:
+            return {'success': False}
+        else:
+            success = True
+            target = '/'.join(target.split('/')[:4])
+            tree = self.getTree(target)
+            return {'success':success, 'tree':tree}
+
     def getEvents(self, uid):
         facade = self._getFacade()
         events = facade.getEvents(uid)

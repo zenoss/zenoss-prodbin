@@ -32,6 +32,50 @@ var treesm = new Ext.tree.DefaultSelectionModel({
     }
 });
 
+function initializeTreeDrop(g) {
+    var dz = new Ext.tree.TreeDropZone(g, {
+        ddGroup: 'devicegriddd',
+        getTargetFromEvent: function(e) {
+            return e.getTarget('.x-tree-node-el');
+        },
+        onNodeOver : function(target, dd, e, data){ 
+            // Return the class that makes the check mark
+            return Ext.dd.DropZone.prototype.dropAllowed;
+        },
+        onNodeDrop: function(target, dd, e, data) {
+            var nodeid = target.getAttribute('ext:tree-node-id'),
+                tree = this.tree,
+                targetnode = tree.getNodeById(nodeid),
+                targetuid = targetnode.attributes.uid,
+                devids = [];
+            Ext.each(data.selections, function(r){
+                devids.push(r.data.uid);
+            });
+            function updateTreeText(root, info){
+                Ext.each(info, function(datum){
+                    var node = root.findChild('id', datum.id);
+                    if(node) {
+                        node.attributes = datum;
+                        node.setText(node.attributes.text);
+                        updateTreeText(node, datum.children);
+                    }
+                });
+            }
+            Zenoss.remote.DeviceRouter.moveDevices({
+                uids: devids,
+                target: targetuid
+            }, function(data){
+                if(data.success) {
+                    Ext.getCmp('device_grid').view.nonDisruptiveReset();
+                    updateTreeText(tree.getRootNode(), data.tree);
+                } else {
+                    console.log('Operation Failed')
+                }
+            }, this);
+        }
+    });
+}
+
 var devtree = {
     xtype: 'HierarchyTreePanel',
     id: 'devices',
@@ -39,7 +83,8 @@ var devtree = {
     directFn: Zenoss.remote.DeviceRouter.getTree,
     root: 'Devices',
     rootuid: '/zport/dmd/Devices',
-    selModel: treesm
+    selModel: treesm,
+    listeners: { render: initializeTreeDrop }
 };
 
 var grouptree = {
@@ -49,7 +94,8 @@ var grouptree = {
     directFn: Zenoss.remote.DeviceRouter.getTree,
     root: 'Groups',
     rootuid: '/zport/dmd/Groups',
-    selModel: treesm
+    selModel: treesm,
+    listeners: { render: initializeTreeDrop }
 };
 
 var loctree = {
@@ -59,7 +105,8 @@ var loctree = {
     directFn: Zenoss.remote.DeviceRouter.getTree,
     root: 'Locations',
     rootuid: '/zport/dmd/Locations',
-    selModel: treesm
+    selModel: treesm,
+    listeners: { render: initializeTreeDrop }
 };
 
 var treecontainer = {
@@ -90,7 +137,9 @@ Ext.getCmp('center_panel').add({
         split: true,
         items: [{
             xtype: 'DeviceGridPanel',
-            id: 'device_grid'
+            ddGroup: 'devicegriddd',
+            id: 'device_grid',
+            enableDrag: true
         }]
     }]
 });

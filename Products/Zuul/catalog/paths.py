@@ -28,12 +28,12 @@ def relPath(obj, relname):
         else:
             obs = rel.objectValuesGen()
         for ob in obs:
-            if ob is None: 
+            if ob is None:
                 continue
             path = ob.getPrimaryPath()
             paths.add(path + (remoteName, obid))
     return list(paths)
-        
+
 
 def devicePathsFromComponent(comp):
     c_paths = IPathReporter(comp).getPaths()
@@ -67,6 +67,7 @@ class DevicePathReporter(DefaultPathReporter):
             ):
             paths.extend(devicePathsFromComponent(comp))
         return paths
+
 
 
 class ServicePathReporter(DefaultPathReporter):
