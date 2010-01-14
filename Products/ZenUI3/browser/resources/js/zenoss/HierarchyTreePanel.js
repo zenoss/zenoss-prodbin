@@ -134,6 +134,19 @@ Zenoss.HierarchyTreePanel = Ext.extend(Ext.tree.TreePanel, {
             );
         }, this);
     },
+    update: function(data) {
+        function doUpdate(root, data) {
+            Ext.each(data, function(datum){
+                var node = root.findChild('id', datum.id);
+                if(node) {
+                    node.attributes = datum;
+                    node.setText(node.attributes.text);
+                    doUpdate(node, datum.children);
+                }
+            });
+        }
+        doUpdate(this.getRootNode(), data);
+    },
     selectByPath: function(escapedId) {
         var id = unescape(escapedId);
         this.expandPath(id, 'id', function(t, n){

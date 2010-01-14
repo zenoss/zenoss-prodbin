@@ -52,23 +52,13 @@ function initializeTreeDrop(g) {
             Ext.each(data.selections, function(r){
                 devids.push(r.data.uid);
             });
-            function updateTreeText(root, info){
-                Ext.each(info, function(datum){
-                    var node = root.findChild('id', datum.id);
-                    if(node) {
-                        node.attributes = datum;
-                        node.setText(node.attributes.text);
-                        updateTreeText(node, datum.children);
-                    }
-                });
-            }
             Zenoss.remote.DeviceRouter.moveDevices({
                 uids: devids,
                 target: targetuid
             }, function(data){
                 if(data.success) {
                     Ext.getCmp('device_grid').view.nonDisruptiveReset();
-                    updateTreeText(tree.getRootNode(), data.tree);
+                    tree.update(data.tree);
                 } else {
                     console.log('Operation Failed')
                 }
