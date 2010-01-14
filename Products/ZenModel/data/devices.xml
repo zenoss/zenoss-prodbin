@@ -101,7 +101,7 @@ ssh
 test -f %s
 </property>
 <property visible="True" type="string" id="zCommandPath" >
-/usr/local/zenoss/libexec
+$ZENHOME/libexec
 </property>
 <property visible="True" type="string" id="zTelnetLoginRegex" >
 ogin:.$
