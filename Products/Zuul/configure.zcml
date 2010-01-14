@@ -133,6 +133,11 @@
              factory=".facades.devicefacade.DeviceInfo"
              />
 
+    <adapter provides=".interfaces.IDeviceOrganizerInfo"
+             for="Products.ZenModel.DeviceOrganizer.DeviceOrganizer"
+             factory=".facades.devicefacade.DeviceOrganizerInfo"
+             />
+
     <adapter provides=".interfaces.IInfo"
              for="Products.ZenModel.ZenModelRM.ZenModelRM"
              factory=".facades.InfoBase"

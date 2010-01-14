@@ -268,7 +268,7 @@ ul.x-tab-strip-bottom{
 }
 .x-toolbar.largetoolbar  table.x-btn {
     margin: 0 2px;
-    margin-top: -5px;
+    margin-top: -3px;
 }
 .x-toolbar.largetoolbar button,
 .x-toolbar button,
@@ -284,7 +284,6 @@ ul.x-tab-strip-bottom{
 }
 .x-toolbar.largetoolbar .x-btn {
     height: 26px;
-    padding-top: 7px;
     text-transform: none;
 }
 .x-toolbar .x-btn-tl, .x-toolbar .x-btn-tr, .x-toolbar .x-btn-tc,

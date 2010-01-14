@@ -17,6 +17,7 @@ from zope.interface import implements
 from Products.Zuul.tree import TreeNode
 from Products.Zuul.facades import TreeFacade
 from Products.Zuul.interfaces import IDeviceFacade, IDeviceOrganizerNode
+from Products.Zuul.interfaces import IDeviceOrganizerInfo
 from Products.Zuul.interfaces import IDeviceInfo, IDevice, ICatalogTool
 from Products.Zuul.facades import InfoBase
 from Products.ZenModel.DeviceOrganizer import DeviceOrganizer
@@ -85,11 +86,21 @@ class DeviceInfo(InfoBase):
         return self._object.availability().availability
 
 
+class DeviceOrganizerInfo(InfoBase):
+    implements(IDeviceOrganizerInfo)
+    adapts(DeviceOrganizer)
+    @property
+    def events(self):
+        mgr = self._object.getEventManager()
+        sevs = (c[0].lower() for c in mgr.severityConversions)
+        counts = (s[2] for s in self._object.getEventSummary())
+        return dict(zip(sevs, counts))
+
+
 def _removeZportDmd(path):
     if path.startswith('/zport/dmd'):
         path = path[10:]
     return path
-
 
 
 class DeviceFacade(TreeFacade):

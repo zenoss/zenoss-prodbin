@@ -27,7 +27,8 @@ Ext.onReady(function(){
 var treesm = new Ext.tree.DefaultSelectionModel({
     listeners: {
         'selectionchange': function(sm, newnode, oldnode){
-            Ext.getCmp('device_grid').setContext(newnode.attributes.uid);
+            var uid = newnode.attributes.uid;
+            Zenoss.util.setContext(uid, 'device_grid', 'organizer_events');
         }
     }
 });
@@ -81,8 +82,11 @@ var devtree = {
     id: 'devices',
     searchField: true,
     directFn: Zenoss.remote.DeviceRouter.getTree,
-    root: 'Devices',
-    rootuid: '/zport/dmd/Devices',
+    root: {
+        id: 'Devices',
+        uid: '/zport/dmd/Devices',
+        text: 'Device Classes'
+    },
     selModel: treesm,
     listeners: { render: initializeTreeDrop }
 };
@@ -92,8 +96,11 @@ var grouptree = {
     id: 'groups',
     searchField: false,
     directFn: Zenoss.remote.DeviceRouter.getTree,
-    root: 'Groups',
-    rootuid: '/zport/dmd/Groups',
+    root: {
+        id: 'Groups',
+        uid: '/zport/dmd/Groups',
+    },
+    selectRootOnLoad: false,
     selModel: treesm,
     listeners: { render: initializeTreeDrop }
 };
@@ -103,8 +110,11 @@ var loctree = {
     id: 'locs',
     searchField: false,
     directFn: Zenoss.remote.DeviceRouter.getTree,
-    root: 'Locations',
-    rootuid: '/zport/dmd/Locations',
+    root: {
+        id: 'Locations',
+        uid: '/zport/dmd/Locations',
+    },
+    selectRootOnLoad: false,
     selModel: treesm,
     listeners: { render: initializeTreeDrop }
 };
@@ -138,8 +148,36 @@ Ext.getCmp('center_panel').add({
         items: [{
             xtype: 'DeviceGridPanel',
             ddGroup: 'devicegriddd',
-            id: 'device_grid',
-            enableDrag: true
+            id: 'device_grid', 
+            enableDrag: true,
+            tbar: {
+                xtype: 'largetoolbar',
+                items: [{
+                    xtype: 'eventrainbow',
+                    id: 'organizer_events'
+                }, '-', {
+                    id: 'add-button',
+                    iconCls: 'add'
+                },{
+                    id: 'delete-button', 
+                    iconCls: 'delete'
+                },{
+                    id: 'set-button',
+                    iconCls: 'set'
+                }, {
+                    id: 'adddevice-button',
+                    iconCls: 'adddevice'
+                }, '-', {
+                    id: 'import-button',
+                    iconCls: 'import'
+                },{
+                    id: 'export-button',
+                    iconCls: 'export'
+                },{
+                    id: 'configure-button',
+                    iconCls: 'configure'
+                }]
+            }
         }]
     }]
 });

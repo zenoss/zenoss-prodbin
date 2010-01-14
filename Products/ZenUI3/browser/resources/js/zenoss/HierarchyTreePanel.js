@@ -87,12 +87,13 @@ Zenoss.HierarchyRootTreeNodeUI = Ext.extend(Zenoss.HierarchyTreeNodeUI, {
 
 Zenoss.HierarchyTreePanel = Ext.extend(Ext.tree.TreePanel, {
     constructor: function(config) {
-        Ext.apply(config, {
+        Ext.applyIf(config, {
             cls: 'hierarchy-panel',
             useArrows: true,
             border: false,
             autoScroll: true,
-            containerScroll: true
+            containerScroll: true,
+            selectRootOnLoad: true
         });
         if (config.directFn && !config.loader) {
             config.loader = {
@@ -100,17 +101,26 @@ Zenoss.HierarchyTreePanel = Ext.extend(Ext.tree.TreePanel, {
                 directFn: config.directFn,
                 uiProviders: {
                     'hierarchy': Zenoss.HierarchyTreeNodeUI
+                },
+                getParams: function(node) {
+                    return [node.attributes.uid];
                 }
             };
             Ext.destroyMembers(config, 'directFn');
         }
-        if (config.root && Ext.isString(config.root)) {
-            config.root = {
-                nodeType: 'async',
-                id: (config.rootuid || config.root),
-                uid: (config.rootuid || config.root),
-                text: _t(config.root.substring(config.root.lastIndexOf('/')+1)),
-            };
+        var root = config.root || {};
+        Ext.applyIf(root, {
+            nodeType: 'async',
+            id: root.id,
+            uid: root.uid,
+            text: _t(root.text || root.id)
+        });
+        if(config.selectRootOnLoad) {
+            config.listeners = Ext.applyIf(config.listeners || {}, {
+                render: function(tree) {
+                   tree.getRootNode().on('load', function(node){node.select()});
+                }
+            });
         }
         config.loader.baseAttrs = {iconCls:'severity-icon-small clear'};
         Zenoss.HierarchyTreePanel.superclass.constructor.apply(this,

@@ -43,13 +43,10 @@ Ext.onReady( function() {
             searchField: true,
             autoScroll: true,
             directFn: Zenoss.remote.ServiceRouter.getTree,
-            root: '/zport/dmd/Services/IpService',
-            listeners: {
-                render: function(tree){
-                    tree.getRootNode().on('load', function(node){
-                        node.select();
-                    });
-                }
+            root: {
+                uid: '/zport/dmd/Services/IpService',
+                id: 'IpService',
+                text: 'IP Services'
             }
         });
         Ext.getCmp('master_panel').add(treePanel);

@@ -41,14 +41,12 @@ Ext.getCmp('master_panel').add({
     id: 'processTree',
     searchField: true,
     directFn: Zenoss.remote.ProcessRouter.getTree,
-    root: '/zport/dmd/Processes',
+    root: {
+        id: 'Processes',
+        uid: '/zport/dmd/Processes',
+    },
     listeners: {
-        click: clickHandler,
-        render: function(tree){
-            tree.getRootNode().on('load', function(node){
-                node.select();
-            });
-        }
+        click: clickHandler
     }
 }); // master_panel.add
 

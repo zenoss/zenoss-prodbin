@@ -344,3 +344,28 @@ div.dialog-link a {
     background: transparent url();
 }
 
+table.eventrainbow {
+    border-collapse: collapse;
+    height: 16px;
+    width: 147px;
+}
+
+.eventrainbow td {
+    width: 49px;
+    padding-left: 22px;
+    color: white;
+    vertical-align: middle;
+}
+
+.largetoolbar table.eventrainbow {
+    margin-top: 10px;
+    height: 18px;
+    border-top: 1px solid #707070;
+    border-left: 1px solid #707070;
+    border-right: 1px solid #bbb;
+    border-bottom: 1px solid #bbb;
+}
+
+table.eventrainbow td.critical { background-color: #d60000; }
+table.eventrainbow td.error { background-color: #ff9711; }
+table.eventrainbow td.warning { background-color: #fbd13d; }

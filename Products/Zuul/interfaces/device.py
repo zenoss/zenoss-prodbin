@@ -25,12 +25,13 @@ class IDevice(Interface):
     Marker interface for Device.
     """
 
-class IDeviceClassInfo(Interface):
+class IDeviceOrganizerInfo(IInfo):
     """
     DeviceClass info
     """
-    id = Attribute('Path of the device class')
-    name = Attribute("Pretty name of the device class")
+    events = Attribute('A list of (severity, count) tuples for the three most'
+                       ' severe event severities')
+
 
 class IDeviceInfo(IInfo):
     """

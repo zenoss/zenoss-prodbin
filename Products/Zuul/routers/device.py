@@ -47,7 +47,7 @@ class DeviceRouter(DirectRouter):
         count = facade.deviceCount(uid)
         keys = ['name', 'ipAddress', 'productionState', 'events', 'availability']
         data = Zuul.marshal(devices, keys)
-        return {'devices': data, 'totalCount': count }
+        return {'devices': data, 'totalCount': count}
 
     def moveDevices(self, uids, target):
         facade = self._getFacade()

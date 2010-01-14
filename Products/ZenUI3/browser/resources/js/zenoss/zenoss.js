@@ -575,13 +575,15 @@ Zenoss.FilterGridPanel = Ext.extend(Ext.ux.grid.livegrid.GridPanel, {
         Zenoss.FilterGridPanel.superclass.initState.apply(this, arguments);
         this.restoreURLState();
         var livesearchitem = Ext.getCmp(this.view.livesearchitem);
-        var liveSearch = Ext.state.Manager.get('livesearch');
-        if (!Ext.isDefined(liveSearch)){
-            liveSearch = livesearchitem.checked;
-        }else{
-            livesearchitem.on('render', function(){
-                this.setChecked(liveSearch)
-            },livesearchitem)
+        if(livesearchitem) {
+            var liveSearch = Ext.state.Manager.get('livesearch');
+            if (!Ext.isDefined(liveSearch)){
+                liveSearch = livesearchitem.checked;
+            }else{
+                livesearchitem.on('render', function(){
+                    this.setChecked(liveSearch)
+                },livesearchitem)
+            }
         }
         this.view.liveSearch = liveSearch;
         var rowColors = Ext.state.Manager.get('rowcolor');
@@ -1187,6 +1189,41 @@ Zenoss.util.num2dot = function(num) {
         d = num%256 + '.' + d;
     }
     return d;
+}
+
+Zenoss.util.setContext = function(uid) {
+    var ids = Array.prototype.slice.call(arguments, 1);
+    Ext.each(ids, function(id) {
+        Ext.getCmp(id).setContext(uid);
+    });
+}
+
+
+Ext.ns('Zenoss.render');
+
+// templates for the events renderer
+var iconTemplate = new Ext.Template(
+    '<td class="severity-icon-small {severity}">{count}</td>'
+);
+iconTemplate.compile();
+
+var rainbowTemplate = new Ext.Template(
+    '<table class="eventrainbow"><tr>{cells}</tr></table>'
+);
+rainbowTemplate.compile();
+                     
+// renders events using icons for critical, error and warning
+Zenoss.render.events = function (value) {
+    var result = '';
+    Ext.each(['critical', 'error', 'warning'], function(severity) {
+        result += iconTemplate.apply({severity: severity, count:value[severity]});
+    });
+    return rainbowTemplate.apply({cells: result});
+}
+
+// renders availability as a percentage with 3 digits after decimal point
+Zenoss.render.availability = function(value) {
+    return Ext.util.Format.number(value*100, '0.000%');
 }
 
 /**

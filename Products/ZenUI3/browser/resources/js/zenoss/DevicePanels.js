@@ -17,33 +17,6 @@
 
 Ext.ns('Zenoss');
 
-// templates for the events renderer
-var iconTemplate = new Ext.Template('<'+'div style="float: left;" ' + 
-                     'class="severity-icon-small {severity}"><'+'/div>');
-iconTemplate.compile();
-                     
-var countTemplate = new Ext.Template('<'+'div style="' +
-        'float: left; ' +
-        'vertical-align: 27%;' +
-        'margin-left: .5em;' +
-        'margin-right: 1.5em;">' +
-        '{count}<'+'/div>');
-countTemplate.compile();
-
-// renders events using icons for critical, error and warning
-function eventsRenderer(value) {
-    var result = '';
-    Ext.each(['critical', 'error', 'warning'], function(severity) {
-        result += iconTemplate.apply({severity: severity});
-        result += countTemplate.apply({count: value[severity]});
-    });
-    return result;
-}
-
-// renders availability as a percentage with 3 digits after decimal point
-function availabilityRenderer(value) {
-    return Ext.util.Format.number(value*100, '0.000%');
-}
 
 Zenoss.DeviceColumnModel = Ext.extend(Ext.grid.ColumnModel, {
     constructor: function(config) {
@@ -65,12 +38,12 @@ Zenoss.DeviceColumnModel = Ext.extend(Ext.grid.ColumnModel, {
                 id: 'events',
                 dataIndex: 'events',
                 header: _t('Events'),
-                renderer: eventsRenderer
+                renderer: Zenoss.render.events
             },{
                 dataIndex: 'availability',
                 header: _t('Availability'), 
                 id: 'availability',
-                renderer: availabilityRenderer
+                renderer: Zenoss.render.availability
             }] // columns
         }); // Ext.applyIf
         config.defaults = Ext.applyIf(config.defaults || {}, {

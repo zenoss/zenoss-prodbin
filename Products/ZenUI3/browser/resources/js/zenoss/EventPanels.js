@@ -183,4 +183,23 @@ Zenoss.SimpleEventGridPanel = Ext.extend(Ext.ux.grid.livegrid.GridPanel, {
 Ext.reg('SimpleEventGridPanel', Zenoss.SimpleEventGridPanel);
 
 
+Zenoss.EventRainbow = Ext.extend(Ext.Toolbar.TextItem, {
+    constructor: function(config) {
+        var config = Ext.applyIf(config || {}, {
+            height: 45,
+            directFn: Zenoss.remote.DeviceRouter.getInfo,
+            text: Zenoss.render.events({'critical':0, 'error':0, 'warning':0})
+        });
+        Zenoss.EventRainbow.superclass.constructor.call(this, config);
+    },
+    setContext: function(uid) {
+        this.directFn({uid:uid}, function(result){
+            this.setText(Zenoss.render.events(result.data.events));
+        }, this);
+    }
+});
+
+Ext.reg('eventrainbow', Zenoss.EventRainbow);
+
+
 })(); // end of function namespace scoping
