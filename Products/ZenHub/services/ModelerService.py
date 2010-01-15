@@ -103,6 +103,7 @@ class ModelerService(PerformanceConfig):
         from Products.DataCollector.ApplyDataMap import ApplyDataMap
         device = self.getPerformanceMonitor().findDevice(device)
         adm = ApplyDataMap(self)
+        adm.setDeviceClass(device, devclass)
         changed = False
         for map in maps:
             if adm._applyDataMap(device, map):

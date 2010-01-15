@@ -33,6 +33,8 @@ log = logging.getLogger("zen.ApplyDataMap")
 
 zenmarker = "__ZENMARKER__"
 
+CLASSIFIER_CLASS = '/Classifier'
+
 _notAscii = dict.fromkeys(range(128,256), u'?')
 
 
@@ -152,6 +154,14 @@ class ApplyDataMap(object):
         self._applyDataMap(device, datamap)
 
 
+    def setDeviceClass(self, device, deviceClass=None):
+        """
+        If a device class has been passed and the current class is not /Classifier
+        then move the device to the newly clssified device class.
+        """
+        if deviceClass and device.getDeviceClassPath().startswith(CLASSIFIER_CLASS):
+            device.changeDeviceClass(deviceClass)
+            
 
     def _applyDataMap(self, device, datamap):
         """Apply a datamap to a device.

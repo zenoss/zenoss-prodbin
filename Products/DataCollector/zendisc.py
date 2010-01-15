@@ -686,6 +686,13 @@ class ZenDisc(ZenModeler):
         """
         Called by Twisted once a connection has been established.
         """ 
+        d = self.configure()
+        d.addCallback(self.startDiscovery)
+        d.addErrback(self.reportError)
+        
+
+
+    def startDiscovery(self, data):
         if self.options.walk:
             d = drive(self.walkDiscovery)
         
