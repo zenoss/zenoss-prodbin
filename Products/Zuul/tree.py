@@ -153,7 +153,6 @@ class CatalogTool(object):
                reverse=False, paths=(), depth=None, query=None):
         result = self._queryCatalog(types, orderby, reverse, paths, depth,
                                     query)
-
         # Return a slice
         if limit is None:
             stop = None

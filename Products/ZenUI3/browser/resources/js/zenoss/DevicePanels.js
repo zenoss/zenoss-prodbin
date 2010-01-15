@@ -31,19 +31,20 @@ Zenoss.DeviceColumnModel = Ext.extend(Ext.grid.ColumnModel, {
                 header: _t('IP Address'),
                 renderer: Zenoss.util.num2dot
             },{
+                dataIndex: 'uid',
+                header: _t('Device Class'), 
+                id: 'deviceClass',
+                renderer: Zenoss.render.deviceClass
+            },{
                 id: 'productionState',
                 dataIndex: 'productionState',
                 header: _t('Production State')
             },{
                 id: 'events',
+                sortable: false,
                 dataIndex: 'events',
                 header: _t('Events'),
                 renderer: Zenoss.render.events
-            },{
-                dataIndex: 'availability',
-                header: _t('Availability'), 
-                id: 'availability',
-                renderer: Zenoss.render.availability
             }] // columns
         }); // Ext.applyIf
         config.defaults = Ext.applyIf(config.defaults || {}, {

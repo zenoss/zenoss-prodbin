@@ -1227,6 +1227,13 @@ Zenoss.render.availability = function(value) {
     return Ext.util.Format.number(value*100, '0.000%');
 }
 
+Zenoss.render.deviceClass = function(value) {
+    value = value.replace(/^\/zport\/dmd\/Devices/, '');
+    value = value.replace(/\/devices\/.*$/, '');
+    var url = '/zport/dmd/itinfrastructure#devices:/Devices' + value;
+    return '<a href="'+url+'">'+value+'</a>';
+}
+
 /**
  * Proxy that will only allow one request to be loaded at a time.  Requests 
  * made while the proxy is already loading a previous requests will be discarded

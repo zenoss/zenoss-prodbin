@@ -330,8 +330,8 @@ class IpInterface(OSComponent, Layer2Linkable):
             return self.ipaddresses()[0].getIp()
         elif len(self._ipAddresses):
             return self._ipAddresses[0].split('/')[0]
-        
-   
+
+
     def getIpSortKey(self):
         """
         Return the ipaddress as a 32bit integter for sorting purposes.

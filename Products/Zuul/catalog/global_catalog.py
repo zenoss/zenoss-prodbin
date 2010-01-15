@@ -14,10 +14,12 @@
 import time
 from zope.interface import providedBy, ro, implements
 from zope.component import adapts
+from Acquisition import aq_base
 from AccessControl import getSecurityManager
 from AccessControl.PermissionRole import rolesForPermissionOn
 from Products.CMFCore.utils import _mergedLocalRoles
 from Products.ZCatalog.ZCatalog import ZCatalog
+from Products.ZenUtils.IpUtil import numbip
 from Products.ZenUtils.Search import makeMultiPathIndex
 from Products.ZenUtils.Search import makeCaseSensitiveFieldIndex
 from Products.ZenUtils.Search import makeCaseInsensitiveFieldIndex
@@ -81,6 +83,28 @@ class IndexableWrapper(object):
         for kls in ro.ro(self._context.__class__)[:5]:
             dottednames.add('%s.%s' % (kls.__module__, kls.__name__))
         return list(dottednames)
+
+    def ipAddress(self):
+        """
+        IP address associated with this object as 32-bit integer. For devices,
+        the manageIp; for interfaces, the first ip address.
+
+        This is a FieldIndex on the catalog.
+        """
+        getter = getattr(self._context, 'getIpAddress', None)
+        if getter is None:
+            getter = getattr(self._context, 'getManageIp', None)
+        return str(numbip(getter()))
+
+    def uid(self):
+        """
+        Primary path for this object. This is included for sorting purposes;
+        obviously it would normally be totally unnecessary, due to
+        brain.getPath() being available.
+
+        This is a FieldIndex on the catalog.
+        """
+        return aq_base(self._context).getPrimaryId().lstrip('/zport/dmd')
 
     def path(self):
         """
@@ -182,8 +206,10 @@ def createGlobalCatalog(portal):
 
     cat = catalog._catalog
     cat.addIndex('id', makeCaseSensitiveFieldIndex('id'))
+    cat.addIndex('uid', makeCaseSensitiveFieldIndex('uid'))
     cat.addIndex('name', makeCaseInsensitiveFieldIndex('name'))
     cat.addIndex('modified', makeCaseSensitiveFieldIndex('modified'))
+    cat.addIndex('ipAddress', makeCaseSensitiveFieldIndex('ipAddress'))
     cat.addIndex('objectImplements', makeCaseSensitiveKeywordIndex('objectImplements'))
     cat.addIndex('allowedRolesAndUsers', makeCaseSensitiveKeywordIndex('allowedRolesAndUsers'))
     cat.addIndex('productionState', makeCaseSensitiveFieldIndex('productionState'))

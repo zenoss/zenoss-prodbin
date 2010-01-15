@@ -19,6 +19,7 @@ from Products.ZenRelations.ToManyContRelationship import ToManyContRelationship
 from OFS.ObjectManager import ObjectManager
 from Products.ZenModel.Device import Device
 from Products.ZenModel.RRDTemplate import RRDTemplate
+from Products.ZenUtils.Search import makeCaseSensitiveFieldIndex
 
 def recurse(obj):
     if isinstance(obj, ObjectManager):
@@ -46,18 +47,18 @@ class GlobalCatalog(Migrate.Step):
 
     def cutover(self, dmd):
         zport = dmd.getPhysicalRoot().zport
+
         if getattr(zport, 'global_catalog', None) is None:
 
             # Create the catalog
             createGlobalCatalog(zport)
 
+
             # And now, the fun part: index every ZenModelRM
 
-            # Use closure so we don't have to traverse to catalog
+            # Get reference to method so we don't have to traverse to catalog
             # every time
-            catalog = zport.global_catalog
-            def _catobj(obj):
-                catalog.catalog_object(obj)
+            _catobj = zport.global_catalog.catalog_object
 
             print "Reindexing your system. This may take some time."
             i=0
@@ -72,5 +73,37 @@ class GlobalCatalog(Migrate.Step):
                     sys.stdout.flush()
                 i+=1
             print
+
+        # Add the ipAddress and/or uid indices if you already have a catalog
+        else:
+            indices = zport.global_catalog.indexes()
+            toreindex = []
+            cat = zport.global_catalog._catalog
+
+            if 'uid' not in indices:
+                cat.addIndex('uid', makeCaseSensitiveFieldIndex('uid'))
+                toreindex.append('uid')
+
+            if 'ipAddress' not in indices:
+                cat.addIndex('ipAddress',
+                             makeCaseSensitiveFieldIndex('ipAddress'))
+                toreindex.append('ipAddress')
+
+            if toreindex:
+                print ("Reindexing uid and ipAddress indices. "
+                       "Patience is a virtue.")
+                i=0
+                _catobj = zport.global_catalog.catalog_object
+                for b in zport.global_catalog():
+                    _catobj(b.getObject(), idxs=toreindex)
+                    if not i%100:
+                        sys.stdout.write('.')
+                        sys.stdout.flush()
+                    i+=1
+                print
+
+
+
+
 
 GlobalCatalog()
