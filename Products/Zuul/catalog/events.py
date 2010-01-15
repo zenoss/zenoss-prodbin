@@ -38,7 +38,11 @@ def onIndexingEvent(ob, event):
     idxs = event.idxs
     if isinstance(idxs, basestring):
         idxs = [idxs]
-    catalog.catalog_object(event.object.primaryAq(), idxs=idxs, 
+    try:
+        evob = event.object.primaryAq()
+    except (AttributeError, KeyError), e:
+        evob = event.object
+    catalog.catalog_object(evob, idxs=idxs,
                            update_metadata=event.update_metadata)
 
 
