@@ -62,7 +62,7 @@ class testEventMaintenance(BaseTestCase):
 
         # This call doesn't block. So we need to give it some time.
         zem.manage_deleteHistoricalEvents(agedDays=1)
-        time.sleep(3)
+        time.sleep(5)
 
         # Verify that the event, detail and log were all deleted.
         self.assertEquals(history_count, self._getEventCount('history'))
