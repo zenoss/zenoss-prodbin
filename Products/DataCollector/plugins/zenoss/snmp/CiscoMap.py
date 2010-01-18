@@ -86,7 +86,7 @@ class CiscoMap(SnmpPlugin):
             # numbers with non-ASCII characters. Note them.
             try:
                 unused = om.setHWSerialNumber.encode('ascii')
-            except UnicodeEncodeError:
+            except (UnicodeEncodeError, UnicodeDecodeError):
                 om.setHWSerialNumber = 'Invalid'
 
             # Some Cisco devices return a bogus serial. Ignore them.
