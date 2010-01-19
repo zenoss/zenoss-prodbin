@@ -72,4 +72,12 @@ def Duration(seconds):
         result = '%d days %s' % (seconds, result)
     return result
 
-        
+
+def getBeginningOfDay(gmtSecondsSince1970=None):
+    value = _maybenow(gmtSecondsSince1970)
+    return time.mktime(time.localtime(value)[:3] + (0,0,0,0,0,0))
+
+
+def getEndOfDay(gmtSecondsSince1970=None):
+    value = _maybenow(gmtSecondsSince1970)
+    return time.mktime(time.localtime(value)[:3] + (23,59,59,0,0,0))

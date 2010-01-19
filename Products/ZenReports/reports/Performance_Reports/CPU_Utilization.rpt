@@ -11,7 +11,7 @@
     endDate python:sts(tableName, 'endDate', 
                        zem.defaultAvailabilityEnd());
     how python:sts(tableName, 'how', 'AVERAGE');
-    summaryOptions python:('AVERAGE', 'MAXIMUM');
+    summaryOptions python:('AVERAGE', 'MAXIMUM', 'MINIMUM', 'LAST');
     deviceClass python:sts(tableName, 'deviceClass', '/');
     deviceFilter python:sts(tableName, 'deviceFilter', '');
 

@@ -1065,7 +1065,8 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
         if getattr(state, 'endDate', None) is not None:
             # End date needs to be inclusive of events that occurred on that
             # date. So we advance to the last second of the day.
-            kw.setdefault('endDate', Time.ParseUSDate(state.endDate) + 86399)
+            kw.setdefault('endDate', Time.getEndOfDay(Time.ParseUSDate(
+                state.endDate)))
         kw.setdefault('startDate',
                       time.time() - 60*60*24*self.defaultAvailabilityDays)
         return Availability.query(self.dmd, **kw)
