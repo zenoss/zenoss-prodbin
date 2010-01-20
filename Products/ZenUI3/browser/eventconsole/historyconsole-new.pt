@@ -621,18 +621,6 @@ Ext.onReady(function(){
     // Start disabled since pane is collapsed
     esckeymap.disable();
 
-    // Size the content panel appropriate to the window size
-    function maximizeContentPanel(){
-        var pane = Ext.getCmp('viewport'),
-            top = pane.getEl().getTop(),
-            vh = Ext.getBody().getViewSize().height,
-            MARGIN = 20;
-        newY = vh - top - MARGIN;
-        pane.setHeight(newY)
-    }
-    maximizeContentPanel();
-    // Have this happen on window resize
-    connect(currentWindow(), 'onresize', maximizeContentPanel);
 });
 </script>
 </tal:block>
