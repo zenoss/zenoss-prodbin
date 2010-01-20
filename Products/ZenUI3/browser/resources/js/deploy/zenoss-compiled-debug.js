@@ -1378,6 +1378,121 @@ H.on('change', H.selectByToken);
 
 Ext.ns('Zenoss');
 
+var TreeDialog = Ext.extend(Ext.Window, {
+    constructor: function(config) {
+        Ext.applyIf(config, {
+            layout: 'form',
+            autoHeight: true,
+            width: 310,
+            closeAction: 'hide',
+            plain: true,
+            labelAlign: 'top',
+            buttonAlign: 'left',
+            labelSeparator: ' ',
+            padding: 10,
+        });
+        TreeDialog.superclass.constructor.call(this, config);
+        this.treeId = config.treeId;
+    }
+});
+
+function initTreeDialogs(tree) {
+    
+    new TreeDialog({
+        id: 'addNodeDialog',
+        title: 'Add Tree Node',
+        items: [
+            {
+                xtype: 'combo',
+                id: 'typeCombo',
+                fieldLabel: _t('Type'),
+                displayField: 'type',
+                mode: 'local',
+                forceSelection: true,
+                triggerAction: 'all',
+                emptyText: 'Select a type...',
+                selectOnFocus: true,
+                store: new Ext.data.ArrayStore({
+                    fields: ['type'],
+                    data: [['Organizer'], ['Class']]
+                })
+            }, {
+                xtype: 'textfield',
+                id: 'idTextfield',
+                fieldLabel: _t('ID'),
+                allowBlank: false
+            }
+        ],
+        buttons: [
+            {
+                text: 'Submit',
+                handler: function(button, event) {
+                    var type = Ext.getCmp('typeCombo').getValue();
+                    var id = Ext.getCmp('idTextfield').getValue();
+                    tree.addNode(type, id);
+                    var addNodeDialog = button.findParentBy(function(parent){
+                        return parent.id == 'addNodeDialog';
+                    });
+                    addNodeDialog.hide();
+                    Ext.getCmp('typeCombo').setValue('');
+                    Ext.getCmp('idTextfield').setValue('');
+                }
+            }, {
+                text: 'Cancel',
+                handler: function(button, event) {
+                    var addNodeDialog = button.findParentBy(function(parent){
+                        return parent.id == 'addNodeDialog';
+                    });
+                    addNodeDialog.hide();
+                    Ext.getCmp('typeCombo').setValue('');
+                    Ext.getCmp('idTextfield').setValue('');
+                }
+            }
+        ]
+    });
+    
+    new TreeDialog({
+        title: 'Delete Tree Node',
+        id: 'deleteNodeDialog',
+        items: {
+            border: false,
+            html: 'Are you sure that you want to delete the selected node?'
+        },
+        buttons: [
+            {
+                text: 'Yes',
+                handler: function(button, event) {
+                    var deleteNodeDialog = button.findParentBy(function(parent){
+                        return parent.id == 'deleteNodeDialog';
+                    });
+                    deleteNodeDialog.hide();
+                    tree.deleteSelectedNode();
+                }
+            }, {
+                text: 'No',
+                handler: function(button, event) {
+                    var deleteNodeDialog = button.findParentBy(function(parent){
+                        return parent.id == 'deleteNodeDialog';
+                    });
+                    deleteNodeDialog.hide();
+                }
+            }
+        ]    
+    });
+    
+}
+
+function buttonClickHandler(buttonId) {
+    switch(buttonId) {
+        case 'addButton':
+            Ext.getCmp('addNodeDialog').show();
+            break;
+        case 'deleteButton':
+            Ext.getCmp('deleteNodeDialog').show();
+            break;
+    }
+}
+
 /**
  * @class Zenoss.HierarchyTreePanel
  * @extends Ext.tree.TreePanel
@@ -1483,9 +1598,14 @@ Zenoss.HierarchyTreePanel = Ext.extend(Ext.tree.TreePanel, {
                 }
             });
         }
+        config.listeners = Ext.applyIf(config.listeners || {}, {
+            buttonClick: buttonClickHandler
+        });
+        this.router = config.router;
         config.loader.baseAttrs = {iconCls:'severity-icon-small clear'};
         Zenoss.HierarchyTreePanel.superclass.constructor.apply(this,
             arguments);
+        initTreeDialogs(this);
     },
     initEvents: function() {
         Zenoss.HierarchyTreePanel.superclass.initEvents.call(this);
@@ -1568,6 +1688,38 @@ Zenoss.HierarchyTreePanel = Ext.extend(Ext.tree.TreePanel, {
                 this.hiddenPkgs.push(n);
             }
         }, this);
+    },
+    addNode: function(type, id) {
+        var selectedNode = this.getSelectionModel().getSelectedNode();
+        var parentNode;
+        if (selectedNode.leaf) {
+            parentNode = selectedNode.parentNode;
+        } else {
+            parentNode = selectedNode;
+        }
+        var contextUid = parentNode.attributes.uid;
+        var params = {type: type, contextUid: contextUid, id: id};
+        var tree = this;
+        function callback(provider, response) {
+            var nodeConfig = response.result.nodeConfig;
+            var node = tree.getLoader().createNode(nodeConfig);
+            parentNode.appendChild(node);
+            node.select();
+            node.fireEvent('click', node);
+        }
+        this.router.addNode(params, callback);
+    },
+    deleteSelectedNode: function() {
+        var node = this.getSelectionModel().getSelectedNode();
+        var parentNode = node.parentNode;
+        var uid = node.attributes.uid;
+        var params = {uid: uid};
+        function callback(provider, response) {
+            node.remove(true);
+            parentNode.select();
+            parentNode.fireEvent('click', parentNode);
+        }
+        this.router.deleteNode(params, callback);
     }
 }); // HierarchyTreePanel
 
@@ -2251,5 +2403,57 @@ Zenoss.DatasourceGridPanel = Ext.extend(Ext.grid.EditorGridPanel, {
 });
 
 Ext.reg('DatasourceGridPanel', Zenoss.DatasourceGridPanel);
+
+})();
+/*
+###########################################################################
+#
+# This program is part of Zenoss Core, an open source monitoring platform.
+# Copyright (C) 2009, Zenoss Inc.
+#
+# This program is free software; you can redistribute it and/or modify it
+# under the terms of the GNU General Public License version 2 as published by
+# the Free Software Foundation.
+#
+# For complete information please visit: http://www.zenoss.com/oss/
+#
+###########################################################################
+*/
+
+(function(){
+
+Ext.ns('Zenoss');
+
+function createClickHandler(bubbleTargetId) {
+    return function(button, event) {
+        Ext.getCmp(bubbleTargetId).fireEvent('buttonClick', button.id);
+    };
+}
+
+Zenoss.TreeFooterBar = Ext.extend(Ext.Toolbar, {
+
+    constructor: function(config) {
+        Ext.applyIf(config, {
+            border: false,
+            items: [
+                {
+                    id: 'addButton',
+                    iconCls: 'add',
+                    tooltip: 'Add a child to the selected organizer',
+                    handler: createClickHandler(config.bubbleTargetId)
+                }, {
+                    id: 'deleteButton',
+                    iconCls: 'delete',
+                    tooltip: 'Delete the selected node',
+                    handler: createClickHandler(config.bubbleTargetId)
+                }
+            ]
+        });
+        Zenoss.TreeFooterBar.superclass.constructor.call(this, config);
+    }
+    
+});
+
+Ext.reg('TreeFooterBar', Zenoss.TreeFooterBar);
 
 })();
