@@ -250,7 +250,9 @@ Ext.reg('livegridinfo', Zenoss.LiveGridInfoPanel);
  * @constructor
  */
 Zenoss.FilterGridView = Ext.extend(Ext.ux.grid.livegrid.GridView, {
+    rowHeight: 22,
     rowColors: false,
+    liveSearch: true,
     constructor: function(config) {
         if (typeof(config.displayFilters)=='undefined')
             config.displayFilters = true;
@@ -265,7 +267,6 @@ Zenoss.FilterGridView = Ext.extend(Ext.ux.grid.livegrid.GridView, {
         this.addEvents('filtertoggle');
     },
     initData: function(ds, cm) {
-        var store = this.grid.store;
 
         this.un('beforebuffer', this.onBeforeBuffer,  this);
         cm.un('hiddenchange',   this.updateHeaders,   this);
@@ -274,6 +275,7 @@ Zenoss.FilterGridView = Ext.extend(Ext.ux.grid.livegrid.GridView, {
         cm.on('hiddenchange',   this.updateHeaders,   this);
 
         Zenoss.FilterGridView.superclass.initData.call(this, ds, cm);
+
     },
     // Gather the current values of the filter and apply them to a given
     // object.
@@ -282,7 +284,7 @@ Zenoss.FilterGridView = Ext.extend(Ext.ux.grid.livegrid.GridView, {
             params = this.lastOptions || {};
         for(i=0;i<this.filters.length;i++){
             var filter = this.filters[i];
-            var oldformat;
+            var oldformat, query;
             query = filter.getValue();
             if (query) {
                 params[filter.id] = query;
@@ -296,10 +298,15 @@ Zenoss.FilterGridView = Ext.extend(Ext.ux.grid.livegrid.GridView, {
             }
         }
         Ext.apply(options.params, {
-            params: Ext.util.JSON.encode(params)
+            params: Ext.util.JSON.encode(params),
+            uid: this._context
         });
         // Store them for later, just in case
         this.lastOptions = params;
+    },
+    setContext: function(uid) {
+        this._context = uid;
+        this.updateLiveRows(this.rowIndex, true, true);
     },
     onBeforeLoad: function(store, options) {
         this.applyFilterParams(options);
@@ -391,6 +398,7 @@ Zenoss.FilterGridView = Ext.extend(Ext.ux.grid.livegrid.GridView, {
     },
     renderEditors: function() {
         Ext.each(this.filters, function(ob){ob.destroy()});
+        this.filters = [];
         var cs = this.getColumnData();
         for (i=0,len=cs.length; i<len; i++) {
             if (this.cm.isHidden(i)) continue;
@@ -410,32 +418,33 @@ Zenoss.FilterGridView = Ext.extend(Ext.ux.grid.livegrid.GridView, {
                 var newValue = this.lastOptions[fieldid];
                 filter.setValue(newValue);
             }
-            var panel = new Ext.Panel({
+            filter.setWidth('100%');
+            this.filters[this.filters.length] = filter;
+            filter.validationTask = new Ext.util.DelayedTask(function(){
+                this.fireEvent('filterchange', this);
+                if (this.liveSearch){
+                    this.nonDisruptiveReset();
+                }
+            }, this);
+            if (filter.xtype=='textfield') {
+                filter.on('keyup', function(field, e) {
+                    if(!e.isNavKeyPress()) this.validationTask.delay(1000);
+                }, filter);
+            } else {
+                filter.on('select', function(field, e) {
+                    this.validationTask.delay(1000);
+                }, filter);
+                filter.on('change', function(field, e) {
+                    this.validationTask.delay(1000);
+                }, filter);
+            }
+            new Ext.Panel({
                 frame: false,
                 border: false,
                 layout: 'fit',
                 renderTo: id,
                 items: filter
             });
-            filter.setWidth('100%');
-            this.filters[this.filters.length] = filter;
-            filter.validationTask = new Ext.util.DelayedTask(function(){
-                this.fireEvent('filterchange', this);
-                this.nonDisruptiveReset();
-            }, this);
-            if (filter.xtype=='textfield') {
-                filter.on('keyup', function(field, e) {
-                    if(!e.isNavKeyPress()) this.validationTask.delay(250);
-                }, filter);
-            } else {
-                filter.on('select', function(field, e) {
-                    this.validationTask.delay(250);
-                }, filter);
-                filter.on('change', function(field, e) {
-                    this.validationTask.delay(250);
-                }, filter);
-            }
-
         }
     },
     updateHeaders: function() {
@@ -444,7 +453,6 @@ Zenoss.FilterGridView = Ext.extend(Ext.ux.grid.livegrid.GridView, {
     },
     renderUI: function() {
         Zenoss.FilterGridView.superclass.renderUI.call(this);
-        //this.renderEditors();
     },
     renderHeaders : function(){
         html = Zenoss.FilterGridView.superclass.renderHeaders.call(this);
@@ -492,12 +500,15 @@ Zenoss.FilterGridView = Ext.extend(Ext.ux.grid.livegrid.GridView, {
         var sev = Zenoss.util.convertSeverity(record.get('severity'));
         var sevclass = this.rowColors ? sev + ' rowcolor' : '';
         return stateclass + ' ' + sevclass;
-
     },
     toggleRowColors: function(bool){
         this.rowColors = bool;
         Ext.state.Manager.set('rowcolor', bool);
         this.updateLiveRows(this.rowIndex, true, false);
+    },
+    toggleLiveSearch: function(bool){
+        this.liveSearch = bool;
+        Ext.state.Manager.set('livesearch', bool);
     },
     applyState: function(state) {
         // For now, always show the filters The rest of the filter-hiding
@@ -573,6 +584,18 @@ Zenoss.FilterGridPanel = Ext.extend(Ext.ux.grid.livegrid.GridPanel, {
     initState: function() {
         Zenoss.FilterGridPanel.superclass.initState.apply(this, arguments);
         this.restoreURLState();
+        var livesearchitem = Ext.getCmp(this.view.livesearchitem);
+        if(livesearchitem) {
+            var liveSearch = Ext.state.Manager.get('livesearch');
+            if (!Ext.isDefined(liveSearch)){
+                liveSearch = livesearchitem.checked;
+            }else{
+                livesearchitem.on('render', function(){
+                    this.setChecked(liveSearch)
+                },livesearchitem)
+            }
+        }
+        this.view.liveSearch = liveSearch;
         var rowColors = Ext.state.Manager.get('rowcolor');
         this.view.rowColors = rowColors;
         if (this.view.rowcoloritem) {
@@ -627,6 +650,9 @@ Zenoss.FilterGridPanel = Ext.extend(Ext.ux.grid.livegrid.GridPanel, {
             this.saveState();
             this.clearURLState();
         }, this);
+    },
+    setContext: function(uid) {
+        this.view.setContext(uid);
     },
     hideFilters: function() { this.getView().hideFilters(); },
     showFilters: function() { this.getView().showFilters(); },
@@ -1175,6 +1201,74 @@ Zenoss.util.num2dot = function(num) {
     return d;
 }
 
+Zenoss.util.setContext = function(uid) {
+    var ids = Array.prototype.slice.call(arguments, 1);
+    Ext.each(ids, function(id) {
+        Ext.getCmp(id).setContext(uid);
+    });
+}
+
+
+Ext.ns('Zenoss.render');
+
+// templates for the events renderer
+var iconTemplate = new Ext.Template(
+    '<td class="severity-icon-small {severity}">{count}</td>'
+);
+iconTemplate.compile();
+
+var rainbowTemplate = new Ext.Template(
+    '<table class="eventrainbow"><tr>{cells}</tr></table>'
+);
+rainbowTemplate.compile();
+                     
+// renders events using icons for critical, error and warning
+Zenoss.render.events = function (value) {
+    var result = '';
+    Ext.each(['critical', 'error', 'warning'], function(severity) {
+        result += iconTemplate.apply({severity: severity, count:value[severity]});
+    });
+    return rainbowTemplate.apply({cells: result});
+}
+
+// renders availability as a percentage with 3 digits after decimal point
+Zenoss.render.availability = function(value) {
+    return Ext.util.Format.number(value*100, '0.000%');
+}
+
+Zenoss.render.deviceClass = function(value) {
+    value = value.replace(/^\/zport\/dmd\/Devices/, '');
+    value = value.replace(/\/devices\/.*$/, '');
+    var url = '/zport/dmd/itinfrastructure#devices:/Devices' + value;
+    return '<a href="'+url+'">'+value+'</a>';
+}
+
+/**
+ * Proxy that will only allow one request to be loaded at a time.  Requests 
+ * made while the proxy is already loading a previous requests will be discarded
+ */
+Zenoss.ThrottlingProxy = Ext.extend(Ext.data.DirectProxy, {
+    constructor: function(config){
+        Zenoss.ThrottlingProxy.superclass.constructor.apply(this, arguments);
+        this.loading = false;
+        //add event listeners for throttling
+        this.addListener('beforeload', function(proxy, options){
+            if (!proxy.loading){
+                proxy.loading = true;
+                return true;
+            }
+            return false;
+        });
+        this.addListener('load', function(proxy, options){
+            proxy.loading = false;
+        });
+        this.addListener('exception', function(proxy, options){
+            proxy.loading = false;
+        });
+
+    }
+});
+
 /**
  * Zenoss date patterns and manipulations
  */
@@ -1336,14 +1430,31 @@ Zenoss.HierarchyTreeNodeUI = Ext.extend(Ext.tree.TreeNodeUI, {
     }
 });
 
+Zenoss.HierarchyRootTreeNodeUI = Ext.extend(Zenoss.HierarchyTreeNodeUI, {
+
+    buildNodeText: function(node) {
+        var b = [];
+        var t = node.attributes.text;
+
+        b.push(t.substring(t.lastIndexOf('/')));
+
+        if (t.count!=undefined) {
+            b.push('<span class="node-extra">(' + t.count);
+            b.push((t.description || 'instances') + ')</span>');
+        }
+        return b.join(' ');
+    }
+});
+
 Zenoss.HierarchyTreePanel = Ext.extend(Ext.tree.TreePanel, {
     constructor: function(config) {
-        Ext.apply(config, {
+        Ext.applyIf(config, {
             cls: 'hierarchy-panel',
             useArrows: true,
             border: false,
             autoScroll: true,
-            containerScroll: true
+            containerScroll: true,
+            selectRootOnLoad: true
         });
         if (config.directFn && !config.loader) {
             config.loader = {
@@ -1351,17 +1462,26 @@ Zenoss.HierarchyTreePanel = Ext.extend(Ext.tree.TreePanel, {
                 directFn: config.directFn,
                 uiProviders: {
                     'hierarchy': Zenoss.HierarchyTreeNodeUI
+                },
+                getParams: function(node) {
+                    return [node.attributes.uid];
                 }
             };
             Ext.destroyMembers(config, 'directFn');
         }
-        if (config.root && Ext.isString(config.root)) {
-            config.root = {
-                nodeType: 'async',
-                id: config.root,
-                uid: config.rootuid,
-                text: _t(config.root)
-            };
+        var root = config.root || {};
+        Ext.applyIf(root, {
+            nodeType: 'async',
+            id: root.id,
+            uid: root.uid,
+            text: _t(root.text || root.id)
+        });
+        if(config.selectRootOnLoad) {
+            config.listeners = Ext.applyIf(config.listeners || {}, {
+                render: function(tree) {
+                   tree.getRootNode().on('load', function(node){node.select()});
+                }
+            });
         }
         config.loader.baseAttrs = {iconCls:'severity-icon-small clear'};
         Zenoss.HierarchyTreePanel.superclass.constructor.apply(this,
@@ -1374,6 +1494,19 @@ Zenoss.HierarchyTreePanel = Ext.extend(Ext.tree.TreePanel, {
                 this.id + Ext.History.DELIMITER + node.getPath()
             );
         }, this);
+    },
+    update: function(data) {
+        function doUpdate(root, data) {
+            Ext.each(data, function(datum){
+                var node = root.findChild('id', datum.id);
+                if(node) {
+                    node.attributes = datum;
+                    node.setText(node.attributes.text);
+                    doUpdate(node, datum.children);
+                }
+            });
+        }
+        doUpdate(this.getRootNode(), data);
     },
     selectByPath: function(escapedId) {
         var id = unescape(escapedId);
@@ -1493,227 +1626,368 @@ Ext.reg('searchfield', Zenoss.SearchField);
 
 Ext.ns('Zenoss');
 
-Zenoss.DeviceStore = Ext.extend(Ext.data.DirectStore, {
+// the column model for the device grid
+Zenoss.EventStore = Ext.extend(Ext.ux.grid.livegrid.Store, {
+    constructor: function(config) {
+        Ext.applyIf(config, {
+            proxy: new Ext.data.DirectProxy({
+                directFn:Zenoss.remote.EventsRouter.query
+            }),
+            bufferSize: 100,
+            defaultSort: {field:'severity', direction:'DESC'},
+            sortInfo: {field:'severity', direction:'DESC'},
+            reader: new Ext.ux.grid.livegrid.JsonReader({
+                root: 'events',
+                totalProperty: 'totalCount'
+                }, [
+                // List all possible columns. 
+                // FIXME: This should come from the server.
+                    'dedupid',
+                    'evid',
+                    'device',
+                    'device_url',
+                    'component',
+                    'component_url',
+                    'summary',
+                    'eventState',
+                    'eventClass',
+                    'eventClass_url',
+                    'eventKey',
+                    'message',
+                    'eventClassKey',
+                    'eventGroup',
+                    'prodState',
+                    'suppid',
+                    'manager',
+                    'agent',
+                    'DeviceClass',
+                    'Location',
+                    'Systems',
+                    'DeviceGroups',
+                    'ipAddress',
+                    'facility',
+                    'priority',
+                    'ntevid',
+                    'ownerid',
+                    'clearid',
+                    'DevicePriority',
+                    'eventClassMapping',
+                    'monitor',
+                    {name:'count', type:'int'},
+                    {name:'severity', type:'int'},
+                    {name:'firstTime', type:'date', 
+                        dateFormat:Zenoss.date.ISO8601Long},
+                    {name:'lastTime', type:'date', 
+                        dateFormat:Zenoss.date.ISO8601Long},
+                    {name:'stateChange', type:'date',
+                        dateFormat:Zenoss.date.ISO8601Long}
+                ] // reader columns
+            ) // reader
+        }); // Ext.applyIf
+        Zenoss.EventStore.superclass.constructor.call(this, config);
+    } // constructor
+}); // Ext.extend
 
-    constructor: function(userConfig) {
-        var baseConfig = {
-            // Ext.data.JsonReader config
-            root: 'data',
-            fields: [
-                {name: 'device', type: 'string'},
-                {name: 'ipAddress', type: 'int'},
-                {name: 'productionState', type: 'string'},
-                {name: 'events', type: 'auto'},
-                {name: 'availability', type: 'float'}
-            ]
-        };
-        var config = Ext.apply(baseConfig, userConfig);
+Ext.reg('EventStore', Zenoss.EventStore);
+
+
+Zenoss.SimpleEventColumnModel = Ext.extend(Ext.grid.ColumnModel, {
+    constructor: function(config) {
+        var config = Ext.applyIf(config || {}, {
+            defaults: {
+                sortable: false,
+                menuDisabled: true,
+                width: 200
+            },
+            columns: [{
+                dataIndex: 'severity',
+                header: _t('Severity'),
+                id: 'severity',
+                renderer: Zenoss.util.convertSeverity
+            },{
+                dataIndex: 'device',
+                header: _t('Device')
+            },{
+                dataIndex: 'component',
+                header: _t('Component')
+            },{
+                dataIndex: 'eventClass',
+                header: _t('Event Class')
+            },{
+                dataIndex: 'summary',
+                header: _t('Summary'),
+                id: 'summary'
+            }] // columns
+        }); // Ext.applyIf
+        Zenoss.SimpleEventColumnModel.superclass.constructor.call(
+            this, config);
+    } // constructor
+}); // Ext.extend
+
+Ext.reg('SimpleEventColumnModel', Zenoss.SimpleEventColumnModel);
+
+
+Zenoss.FullEventColumnModel = Ext.extend(Ext.grid.ColumnModel, {
+    constructor: function(config) {
+        // Zenoss.env.COLUMN_DEFINITIONS comes from the server, and depends on
+        // the resultFields associated with the context.
+        // FIXME: This shouldn't come from the server.
+        var config = Ext.applyIf(config || {}, {
+            columns:Zenoss.env.COLUMN_DEFINITIONS
+        });
+        Zenoss.FullEventColumnModel.superclass.constructor.call(this, config);
+    }
+});
+Ext.reg('FullEventColumnModel', Zenoss.FullEventColumnModel);
+
+
+/**
+ * @class Zenoss.SimpleEventGridPanel
+ * @extends Ext.ux.grid.livegrid.GridPanel
+ * Shows events in a grid panel similar to that on the event console.
+ * Fixed columns. 
+ * @constructor
+ */
+Zenoss.SimpleEventGridPanel = Ext.extend(Ext.ux.grid.livegrid.GridPanel, {
+    constructor: function(config) {
+        var store = {xtype:'EventStore'};
+        if (!Ext.isEmpty(config.directFn)) {
+            Ext.apply(store, {
+                proxy: new Ext.data.DirectProxy({
+                    directFn: config.directFn
+                })
+            });
+        }
+        Ext.applyIf(config, {
+            id: 'eventGrid',
+            stripeRows: true,
+            stateId: Zenoss.env.EVENTSGRID_STATEID || 'default_eventsgrid',
+            enableDragDrop: false,
+            stateful: true,
+            border: false,
+            rowSelectorDepth: 5,
+            autoExpandColumn: 'summary',
+            store: store,
+            cm: Ext.create({xtype: 'SimpleEventColumnModel'}),
+            sm: new Zenoss.ExtraHooksSelectionModel(),
+            autoExpandColumn: 'summary',
+            view: new Ext.ux.grid.livegrid.GridView({
+                nearLimit: 20,
+                loadMask: {msg: 'Loading. Please wait...'},
+                listeners: {
+                    beforeBuffer: function(view, ds, idx, len, total, opts) {
+                        opts.params.uid = view._context;
+                    }
+                }
+            })
+        }); // Ext.applyIf
+        Zenoss.SimpleEventGridPanel.superclass.constructor.call(this, config);
+    }, // constructor
+    setContext: function(uid) {
+        this.view._context = uid;
+        this.view.updateLiveRows(this.view.rowIndex, true, true);
+    }
+}); // SimpleEventGridPanel
+
+Ext.reg('SimpleEventGridPanel', Zenoss.SimpleEventGridPanel);
+
+
+Zenoss.EventRainbow = Ext.extend(Ext.Toolbar.TextItem, {
+    constructor: function(config) {
+        var config = Ext.applyIf(config || {}, {
+            height: 45,
+            directFn: Zenoss.remote.DeviceRouter.getInfo,
+            text: Zenoss.render.events({'critical':0, 'error':0, 'warning':0})
+        });
+        Zenoss.EventRainbow.superclass.constructor.call(this, config);
+    },
+    setContext: function(uid) {
+        this.directFn({uid:uid}, function(result){
+            this.setText(Zenoss.render.events(result.data.events));
+        }, this);
+    }
+});
+
+Ext.reg('eventrainbow', Zenoss.EventRainbow);
+
+
+})(); // end of function namespace scoping
+/*
+###########################################################################
+#
+# This program is part of Zenoss Core, an open source monitoring platform.
+# Copyright (C) 2009, Zenoss Inc.
+#
+# This program is free software; you can redistribute it and/or modify it
+# under the terms of the GNU General Public License version 2 as published by
+# the Free Software Foundation.
+#
+# For complete information please visit: http://www.zenoss.com/oss/
+#
+###########################################################################
+*/
+
+(function(){
+
+Ext.ns('Zenoss');
+
+
+Zenoss.DeviceColumnModel = Ext.extend(Ext.grid.ColumnModel, {
+    constructor: function(config) {
+        config = Ext.applyIf(config || {}, {
+            columns: [{
+                dataIndex: 'name',
+                header: _t('Device'),
+                id: 'name'
+            },{
+                id: 'ipAddress',
+                dataIndex: 'ipAddress',
+                header: _t('IP Address'),
+                renderer: Zenoss.util.num2dot
+            },{
+                dataIndex: 'uid',
+                header: _t('Device Class'), 
+                id: 'deviceClass',
+                renderer: Zenoss.render.deviceClass
+            },{
+                id: 'productionState',
+                dataIndex: 'productionState',
+                header: _t('Production State')
+            },{
+                id: 'events',
+                sortable: false,
+                dataIndex: 'events',
+                header: _t('Events'),
+                renderer: Zenoss.render.events
+            }] // columns
+        }); // Ext.applyIf
+        config.defaults = Ext.applyIf(config.defaults || {}, {
+            sortable: false,
+            menuDisabled: true,
+            width: 200
+        });
+        Zenoss.DeviceColumnModel.superclass.constructor.call(this, config);
+    } // constructor
+});
+Ext.reg('DeviceColumnModel', Zenoss.DeviceColumnModel);
+
+
+/**
+ * Device data store definition
+ * @constructor
+ */
+Zenoss.DeviceStore = Ext.extend(Ext.ux.grid.livegrid.Store, {
+
+    constructor: function(config) {
+        var config = config || {};
+        Ext.applyIf(config, {
+            autoLoad: true,
+            bufferSize: 50,
+            defaultSort: {field: 'name', direction:'ASC'},
+            sortInfo: {field: 'name', direction:'ASC'},
+            proxy: new Ext.data.DirectProxy({
+                directFn: Zenoss.remote.DeviceRouter.getDevices
+            }),
+            reader: new Ext.ux.grid.livegrid.JsonReader({
+                root: 'devices',
+                totalProperty: 'totalCount'
+            },[
+                  {name: 'uid', type: 'string'},
+                  {name: 'name', type: 'string'},
+                  {name: 'ipAddress', type: 'int'},
+                  {name: 'productionState', type: 'string'},
+                  {name: 'events', type: 'auto'},
+                  {name: 'availability', type: 'float'}
+              ]
+          )
+        });
         Zenoss.DeviceStore.superclass.constructor.call(this, config);
     }
-
 });
 
 Ext.reg('DeviceStore', Zenoss.DeviceStore);
 
-// renders IP address in dotted-decimal format
-function ipAddressRenderer(value) {
-    return Zenoss.util.num2dot(value);
-}
 
-// templates for the events renderer
-var iconTemplate = new Ext.Template('<div style="float: left;" ' +
-                     'class="severity-icon-small {severity}"></div>');
-iconTemplate.compile();
-
-var countTemplate = new Ext.Template('<div style="' +
-        'float: left; ' +
-        'vertical-align: 27%;' +
-        'margin-left: .5em;' +
-        'margin-right: 1.5em;">' +
-        '{count}</div>');
-countTemplate.compile();
-
-// renders events using icons for critical, error and warning
-function eventsRenderer(value) {
-    var result = '';
-    Ext.each(['critical', 'error', 'warning'], function(severity) {
-        result += iconTemplate.apply({severity: severity});
-        result += countTemplate.apply({count: value[severity]});
-    });
-    return result;
-}
-
-// renders availability as a percentage with 3 digits after decimal point
-function availabilityRenderer(value) {
-    return Ext.util.Format.number(value*100, '0.000%');
-}
-
-// the column model for the device grid
-var deviceColumnModel = new Ext.grid.ColumnModel({
-    defaults: {
-        sortable: false,
-        menuDisabled: true,
-        width: 200
-    },
-    columns: [{dataIndex: 'device',
-               header: _t('Device'),
-               id: 'device'
-               },
-              {dataIndex: 'ipAddress',
-               header: _t('IP Address'),
-               renderer: ipAddressRenderer
-               },
-              {dataIndex: 'productionState',
-               header: _t('Production State')
-               },
-              {dataIndex: 'events',
-                header: _t('Events'),
-                renderer: eventsRenderer
-                },
-              {dataIndex: 'availability',
-               header: _t('Availability'),
-               id: 'availability',
-               renderer: availabilityRenderer
-               }] // columns
-});
-
-
-/**
- * @class Zenoss.DeviceGridPanel
- * @extends Ext.grid.GridPanel
- * Shows devices in a filtered grid panel similar to that on the event console
- * Fixed columns. A drag source.
- * Used on:
- *   Processes
- *   Services
- *   Manufacturers
- *   Dashboard
- *   Devices
- * @constructor
- */
-Zenoss.DeviceGridPanel = Ext.extend(Ext.grid.GridPanel, {
-
-    constructor: function(userConfig) {
-
-        var baseConfig = {
-            id: 'deviceGrid',
-            store: userConfig.__device_store__,
-            colModel: deviceColumnModel,
-            autoExpandColumn: 'availability',
+Zenoss.SimpleDeviceGridPanel = Ext.extend(Ext.ux.grid.livegrid.GridPanel, {
+    constructor: function(config) {
+        var store = {xtype:'DeviceStore'};
+        if (!Ext.isEmpty(config.directFn)) {
+            Ext.apply(store, {
+                proxy: new Ext.data.DirectProxy({
+                    directFn: config.directFn
+                })
+            });
+        }
+        var config = Ext.applyIf(config || {}, {
+            cm: new Zenoss.DeviceColumnModel({
+                menuDisabled: true
+            }),
+            sm: new Zenoss.ExtraHooksSelectionModel(),
+            store: store,
+            enableDragDrop: false,
+            border:false,
+            rowSelectorDepth: 5,
+            autoExpandColumn: 'name',
             stripeRows: true
-        };
-
-        delete userConfig.__device_store__;
-        var config = Ext.apply(baseConfig, userConfig);
-        Zenoss.DeviceGridPanel.superclass.constructor.call(this, config);
-
+        });
+        Zenoss.SimpleDeviceGridPanel.superclass.constructor.call(this, config);
+    },
+    setContext: function(uid) {
+        this.getStore().load({params:{uid:uid}});
     }
+});
+Ext.reg('SimpleDeviceGridPanel', Zenoss.SimpleDeviceGridPanel);
 
-}); // DeviceGridPanel
 
+Zenoss.DeviceGridPanel = Ext.extend(Zenoss.FilterGridPanel,{
+    constructor: function(config) {
+        var store = {xtype:'DeviceStore'};
+        if (!Ext.isEmpty(config.directFn)) {
+            Ext.apply(store, {
+                proxy: new Ext.data.DirectProxy({
+                    directFn: config.directFn
+                })
+            });
+        }
+        Ext.applyIf(config, {
+            store: store,
+            enableDragDrop: false,
+            border: false,
+            rowSelectorDepth: 5,
+            view: new Zenoss.FilterGridView({
+                nearLimit: 20,
+                loadMask: {msg: 'Loading. Please wait...'}
+            }),
+            autoExpandColumn: 'name',
+            cm: new Zenoss.DeviceColumnModel({defaults:{sortable:true}}),
+            sm: new Zenoss.ExtraHooksSelectionModel(),
+            stripeRows: true
+        });
+        Zenoss.DeviceGridPanel.superclass.constructor.call(this, config);
+    }
+});
 Ext.reg('DeviceGridPanel', Zenoss.DeviceGridPanel);
 
-Zenoss.EventStore = Ext.extend(Ext.data.DirectStore, {
 
-    constructor: function(userConfig) {
-        var baseConfig = {
-            // Ext.data.JsonReader config
-            root: 'data',
-            fields: [
-                {name: 'severity', type: 'auto'},
-                {name: 'device', type: 'string'},
-                {name: 'component', type: 'string'},
-                {name: 'eventClass', type: 'string'},
-                {name: 'summary', type: 'string'}
-            ]
-        };
-        var config = Ext.apply(baseConfig, userConfig);
-        Zenoss.EventStore.superclass.constructor.call(this, config);
-    }
+})(); // end of function namespace scoping
+/*
+###########################################################################
+#
+# This program is part of Zenoss Core, an open source monitoring platform.
+# Copyright (C) 2010, Zenoss Inc.
+#
+# This program is free software; you can redistribute it and/or modify it
+# under the terms of the GNU General Public License version 2 as published by
+# the Free Software Foundation.
+#
+# For complete information please visit: http://www.zenoss.com/oss/
+#
+###########################################################################
+*/
 
-});
+(function(){
 
-Ext.reg('EventStore', Zenoss.EventStore);
-
-function severityRenderer(value) {
-    return Zenoss.util.convertSeverity(value);
-}
-
-var eventColumnModel = new Ext.grid.ColumnModel({
-    defaults: {
-        sortable: false,
-        menuDisabled: true,
-        width: 200
-    },
-    columns: [{dataIndex: 'severity',
-               header: _t('Severity'),
-               id: 'severity',
-               renderer: severityRenderer
-               },
-              {dataIndex: 'device',
-               header: _t('Device')
-               },
-              {dataIndex: 'component',
-               header: _t('Component')
-               },
-              {dataIndex: 'eventClass',
-                header: _t('Event Class')
-                },
-              {dataIndex: 'summary',
-               header: _t('Summary'),
-               id: 'summary'
-               }] // columns
-}); // eventColumnModel
-
-/**
- * @class Zenoss.EventGridPanel
- * @extends Ext.grid.GridPanel
- * Shows events in a filtered grid panel similar to that on the event console
- * Fixed columns. A drag source.
- * @constructor
- */
-Zenoss.EventGridPanel = Ext.extend(Ext.grid.GridPanel, {
-
-    constructor: function(userConfig) {
-
-        var baseConfig = {
-            id: 'eventGrid',
-            store: userConfig.__event_store__,
-            colModel: eventColumnModel,
-            autoExpandColumn: 'summary',
-            stripeRows: true
-        };
-
-        delete userConfig.__event_store__;
-        var config = Ext.apply(baseConfig, userConfig);
-        Zenoss.EventGridPanel.superclass.constructor.call(this, config);
-
-    }
-
-}); // EventGridPanel
-
-Ext.reg('EventGridPanel', Zenoss.EventGridPanel);
-
-function createToggleHandler(itemIndex) {
-    return function(button, pressed) {
-        if (pressed) {
-            var cardPanel = Ext.getCmp('cardPanel');
-            cardPanel.getLayout().setActiveItem(itemIndex);
-            var node = cardPanel.getSelectedNode();
-            if (itemIndex === 0) {
-                // load up appropriate data in the devices grid
-                Ext.getCmp('deviceGrid').getStore().load({
-                    params: {uid: node.attributes.id}
-                });
-            } else {
-                // load up appropriate data in the event grid
-                Ext.getCmp('eventGrid').getStore().load({
-                    params: {uid: node.attributes.id}
-                });
-            }
-        }
-    };
-}
+Ext.ns('Zenoss');
 
 /**
  * @class Zenoss.ViewButton
@@ -1726,13 +2000,11 @@ Zenoss.ViewButton = Ext.extend(Ext.Button, {
     constructor: function(userConfig) {
 
         var baseConfig = {
-            toggleHandler: createToggleHandler(userConfig.__item_index__),
             enableToggle: true,
-            toggleGroup: 'view',
+            toggleGroup: 'CardButtonPanel',
             allowDepress: false
         };
 
-        delete userConfig.__item_index__;
         var config = Ext.apply(baseConfig, userConfig);
         Zenoss.ViewButton.superclass.constructor.call(this, config);
     }
@@ -1742,63 +2014,119 @@ Zenoss.ViewButton = Ext.extend(Ext.Button, {
 Ext.reg('ViewButton', Zenoss.ViewButton);
 
 /**
- * @class Zenoss.DeviceEventPanel
+ * @class Zenoss.CardButtonPanel
  * @extends Ext.Button
  * A Panel with a card layout and toolbar buttons for switching between the
  * cards.
  * @constructor
  */
-Zenoss.DeviceEventPanel = Ext.extend(Ext.Panel, {
+Zenoss.CardButtonPanel = Ext.extend(Ext.Panel, {
 
-    constructor: function(userConfig) {
+    constructor: function(config) {
+        // Inner secret closure function to create the handler
+        function createToggleHandler(cardPanel, panel) {
+            return function(button, pressed) {
+                if (pressed) {
+                    cardPanel.fireEvent('cardchange', panel);
+                    cardPanel.getLayout().setActiveItem(panel.id);
+                }
+            };
+        }
 
-        var baseConfig = {
+        function syncButtons(me) {
+            var tb = me.getTopToolbar();
+            for (var idx=0; idx < me.items.getCount(); ++idx) {
+                var newComponent = me.items.get(idx);
+
+                if (newComponent instanceof Ext.Panel) {
+                    tb.add({
+                        xtype: 'ViewButton',
+                        id: 'button_' + newComponent.id,
+                        text: Ext.clean(newComponent.buttonTitle,
+                                        newComponent.title, 'Undefined'),
+                        pressed: (newComponent == me.layout.activeItem),
+                        iconCls: newComponent.iconCls,
+                        toggleHandler: createToggleHandler(me, newComponent)
+                    });
+                }
+            }
+        }
+
+        function addButtons(me, newComponent, index) {
+        }
+
+        Ext.applyIf(config, {
             id: 'cardPanel',
             layout: 'card',
-            activeItem: 0,
-            tbar: [
-                {
-                    xtype: 'tbtext',
-                    text: _t('View: ')
-                }, {
-                    xtype: 'ViewButton',
-                    id: 'devicesButton',
-                    text: _t('Devices'),
-                    iconCls: 'devprobs',
-                    __item_index__: 0,
-                    pressed: true
-                }, {
-                    xtype: 'ViewButton',
-                    id: 'eventsButton',
-                    text: _t('Events'),
-                    iconCls: 'events',
-                    __item_index__: 1
-                }
-            ],
-            items: [
-                {
-                    xtype: 'DeviceGridPanel',
-                    __device_store__: userConfig.__device_store__
-                }, {
-                    xtype: 'EventGridPanel',
-                    __event_store__: userConfig.__event_store__
-                }
-            ]
-        };
+            activeItem: 0
+        });
 
-        delete userConfig.__device_store__;
-        delete userConfig.__event_store__;
+        Ext.apply(config, {
+            header: false,
+            tbar: [{
+                xtype: 'tbtext',
+                text: _t('View: ')
+            }]
+        });
 
-        var config = Ext.apply(baseConfig, userConfig);
-        Zenoss.DeviceEventPanel.superclass.constructor.call(this, config);
+        this.addEvents('cardchange');
+        this.on('afterrender', syncButtons, this);
+        this.listeners = config.listeners;
+        Zenoss.CardButtonPanel.superclass.constructor.call(this, config);
     }
-
-
 });
 
-Ext.reg('DeviceEventPanel', Zenoss.DeviceEventPanel);
+Ext.reg('CardButtonPanel', Zenoss.CardButtonPanel);
 
-})(); // end of function namespace scoping
+})();
+/*
+###########################################################################
+#
+# This program is part of Zenoss Core, an open source monitoring platform.
+# Copyright (C) 2010, Zenoss Inc.
+#
+# This program is free software; you can redistribute it and/or modify it
+# under the terms of the GNU General Public License version 2 as published by
+# the Free Software Foundation.
+#
+# For complete information please visit: http://www.zenoss.com/oss/
+#
+###########################################################################
+*/
+
+(function(){
+
+Ext.ns('Zenoss');
+
+/**
+ * @class Zenoss.ContextCardButtonPanel
+ * @extends Zenoss.CardButtonPanel
+ * Support context-driven loading
+ * @constructor
+ */
+Zenoss.ContextCardButtonPanel = Ext.extend(Zenoss.CardButtonPanel, {
+    contextUid: null,
+    initEvents: function() {
+        this.on('cardchange', this.cardChangeHandler, this);
+        Zenoss.CardButtonPanel.superclass.initEvents.call(this);
+    },
+    setContext: function(uid) {
+        this.contextUid = uid;
+        panel = this.layout.activeItem;
+        if (panel.setContext) {
+            panel.setContext(uid);
+        }
+    },
+    cardChangeHandler: function(panel) {
+        if (panel.setContext) {
+            panel.setContext(this.contextUid);
+        }
+    }
+});
+
+Ext.reg('ContextCardButtonPanel', Zenoss.ContextCardButtonPanel);
+
+})();
 /*
 ###########################################################################
 #
