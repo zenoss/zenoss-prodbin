@@ -17,6 +17,9 @@
 
 Ext.onReady(function(){
 
+Ext.ns('Zenoss', 'Zenoss.page');
+var treeId = 'processTree';
+var router = Zenoss.remote.ProcessRouter;
 
 /* ***************************************************************************
  *
@@ -34,13 +37,14 @@ function clickHandler(node) {
 
     Ext.getCmp('card_panel').setContext(node.attributes.uid);
 
-} // clickHandler
+}
 
 Ext.getCmp('master_panel').add({
     xtype: 'HierarchyTreePanel',
-    id: 'processTree',
+    id: treeId,
     searchField: true,
-    directFn: Zenoss.remote.ProcessRouter.getTree,
+    directFn: router.getTree,
+    router: router,
     root: {
         id: 'Processes',
         uid: '/zport/dmd/Processes',
@@ -68,8 +72,7 @@ function  setMonitoringDisabled(disabled) {
 
 function inheritedCheckboxHandler(checkbox, checked) {
     setMonitoringDisabled(checked);
-    var router = Zenoss.remote.ProcessRouter;
-    var processTree = Ext.getCmp('processTree');
+    var processTree = Ext.getCmp(treeId);
     var selectionModel = processTree.getSelectionModel();
     var selectedNode = selectionModel.getSelectedNode();
 
@@ -226,8 +229,8 @@ var processFormConfig = {
     labelAlign: 'top',
     autoScroll: true,
     api: {
-        load: Zenoss.remote.ProcessRouter.getInfo,
-        submit: Zenoss.remote.ProcessRouter.setInfo
+        load: router.getInfo,
+        submit: router.setInfo
     },
     tbar: [
         {
@@ -236,7 +239,7 @@ var processFormConfig = {
             text: _t('Save'),
             iconCls: 'save',
             handler: function(button, event) {
-                var processTree = Ext.getCmp('processTree');
+                var processTree = Ext.getCmp(treeId);
                 var selectionModel = processTree.getSelectionModel();
                 var selectedNode = selectionModel.getSelectedNode();
                 var nameTextField = Ext.getCmp('nameTextField');
@@ -298,9 +301,24 @@ Ext.getCmp('bottom_detail_panel').add({
              { xtype: 'SimpleEventGridPanel',
                buttonTitle: _t('Events'),
                iconCls: 'events',
-               directFn: Zenoss.remote.ProcessRouter.getEvents
+               directFn: router.getEvents
              }
     ]
+});
+
+var footerPanel = Ext.getCmp('footer_panel');
+footerPanel.removeAll();
+
+footerPanel.add({
+    xtype: 'TreeFooterBar',
+    id: 'footer_bar',
+    bubbleTargetId: treeId
+});
+
+Ext.getCmp('deleteButton').setDisabled(true);
+
+Ext.getCmp(treeId).on('click', function(node, e){
+    Ext.getCmp('deleteButton').setDisabled(node == Ext.getCmp(treeId).root);
 });
 
 }); // Ext.onReady

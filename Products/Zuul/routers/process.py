@@ -40,6 +40,28 @@ class ProcessRouter(DirectRouter):
         Zuul.unmarshal(data, process)
         return {'success': True}
 
+    @require('Manage DMD')
+    def addNode(self, type, contextUid, id):
+        facade = self._getFacade()
+        if type.lower() == 'organizer':
+            uid = facade.addOrganizer(contextUid, id)
+            msg = "Added organizer '%s'" % id
+        else:
+            uid = facade.addClass(contextUid, id)
+            msg = "Added class '%s'" % id
+        treeNode = facade.getTree(uid)
+        nodeConfig = Zuul.marshal(treeNode)
+        return {'success': True, 'msg': msg, 'nodeConfig': nodeConfig}
+
+    @require('Manage DMD')
+    def deleteNode(self, uid):
+        if uid == '/zport/dmd/Processes':
+            raise Exception('You cannot delete the root node')
+        facade = self._getFacade()
+        facade.deleteNode(uid)
+        msg = "Deleted node '%s'" % uid
+        return {'success': True, 'msg': msg}
+
     def getDevices(self, uid, start=0, params=None, limit=50, sort='device',
                    dir='ASC'):
         facade = self._getFacade()

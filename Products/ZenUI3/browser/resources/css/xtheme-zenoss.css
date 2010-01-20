@@ -859,7 +859,7 @@ td.x-date-mp-sel a{
 .x-window-mc{
     font-family: helvetica,tahoma,sans-serif;
     color: #fafafa;
-    font-size: 12pt;
+    font-size: 12px;
 }
 
 .x-window-ml{
@@ -894,7 +894,7 @@ td.x-date-mp-sel a{
 .x-window-tl .x-window-header {
     color: #fafafa;
     font-family: helvetica,tahoma,sans-serif;
-    text-align: center;
+    text-align: left;
     font-size: 13pt;
     height: 21px;
     line-height: 21px;

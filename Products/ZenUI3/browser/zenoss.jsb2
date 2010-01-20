@@ -39,6 +39,9 @@
         }, {
             "text": "DatasourceGridPanel.js",
             "path": "resources/js/zenoss/"
+        }, {
+            "text": "TreeFooterBar.js",
+            "path": "resources/js/zenoss/"
         }]
     }],
     "resources": []

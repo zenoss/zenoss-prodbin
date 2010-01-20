@@ -13,7 +13,7 @@
 
 import logging
 from itertools import imap
-from Acquisition import aq_base
+from Acquisition import aq_base, aq_parent
 from zope.interface import implements
 from zope.component import queryUtility, adapts
 
@@ -99,7 +99,11 @@ class TreeFacade(ZuulFacade):
         raise NotImplementedError
 
     def _findObject(self, uid):
-        return self._dmd.unrestrictedTraverse(uid)
+        try:
+            return self._dmd.unrestrictedTraverse(uid)
+        except Exception:
+            logging.error('Could not find object "%s"' % uid)
+            raise
 
     def deviceCount(self, uid=None):
         cat = ICatalogTool(self._getObject(uid))
@@ -177,7 +181,23 @@ class TreeFacade(ZuulFacade):
         counts = (s[1]+s[2] for s in summary)
         return zip(severities, counts)
 
+    def addOrganizer(self, contextUid, id):
+        context = self._findObject(contextUid)
+        organizer = aq_base(context).__class__(id)
+        context._setObject(id, organizer)
+        return '%s/%s' % (contextUid, id)
 
+    def addClass(self, contextUid, id):
+        context = self._findObject(contextUid)
+        _class = self._classFactory(id)
+        relationship = getattr(context, self._classRelationship)
+        relationship._setObject(id, _class)
+        return '%s/%s/%s' % (contextUid, self._classRelationship, id)
+
+    def deleteNode(self, uid):
+        obj = self._findObject(uid)
+        context = aq_parent(obj)
+        context._delObject(obj.id)
 
 from eventfacade import EventFacade
 from processfacade import ProcessFacade
