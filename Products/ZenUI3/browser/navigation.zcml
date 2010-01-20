@@ -70,7 +70,7 @@
 
         <browser:viewlet
             name="History"
-            url="evhistory"
+            url="/zport/dmd/Events/evhistory"
             weight="1"
             parentItem="Events"
             manager="..navigation.interfaces.ISecondaryNavigationMenu"

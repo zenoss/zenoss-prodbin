@@ -49,7 +49,7 @@
     <browser:page
         name="evhistory"
         for="Products.ZenModel.EventView.IEventView"
-        class=".grid.HistoryConsoleView"
+        template="historyconsole-new.pt"
         permission="zope2.Public"
         />
 
