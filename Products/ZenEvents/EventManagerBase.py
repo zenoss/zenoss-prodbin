@@ -1733,13 +1733,15 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
         # We are abandoning this proc to do it's thing. or not.  We don't
         # want to block because we would delay user feedback on a device
         # delete when this might take a while to perform.
-        unused(proc)
         if REQUEST:
             messaging.IMessageSender(self).sendToBrowser(
                 'Events Deleted',
                 'Historical events have been deleted.'
             )
             return self.callZenScreen(REQUEST)
+        else:
+            # Maybe, just maybe, we might want to wait on the subprocess...
+            return proc
 
 
     security.declareProtected(ZEN_MANAGE_EVENTS,'manage_deleteHeartbeat')
