@@ -17,9 +17,19 @@
 
 Ext.onReady(function(){
 
-Ext.ns('Zenoss', 'Zenoss.page');
+Ext.ns('Zenoss', 'Zenoss.env');
 var treeId = 'processTree';
 var router = Zenoss.remote.ProcessRouter;
+
+new Zenoss.MessageDialog({
+    id: 'dirtyDialog',
+    title: _t('Unsaved Data'),
+    message: _t('The changes made in the form will be lost.'),
+    okHandler: function() {
+        Ext.getCmp('processForm').getForm().reset();
+        Zenoss.env.node.select();
+    }
+});
 
 /* ***************************************************************************
  *
@@ -27,17 +37,37 @@ var router = Zenoss.remote.ProcessRouter;
  *
  */
 
-// function that gets run when the user clicks on a node in the tree
-function clickHandler(node) {
+function beforeselectHandler(sm, node, oldNode) {
+    if (node == oldNode) {
+        return false;
+    }
+    if ( Ext.getCmp('processForm').getForm().isDirty() ) {
+        // the user made changes to the form make sure that they don't care
+        // about losing those changes
+        Zenoss.env.node = node;
+        Ext.getCmp('dirtyDialog').show();
+        return false;
+    }
+    return true;
+}
 
+// function that gets run when the user clicks on a node in the tree
+function selectionchangeHandler(sm, node) {
     // load up appropriate data in the form
     Ext.getCmp('processForm').getForm().load({
         params: {uid: node.attributes.uid}
     });
-
-    Ext.getCmp('card_panel').setContext(node.attributes.uid);
-
+    Ext.getCmp('instancesGrid').setContext(node.attributes.uid);
+    // don't allow the user to delete the root node
+    Ext.getCmp('deleteButton').setDisabled(node == Ext.getCmp(treeId).root);
 }
+
+var selModel = new Ext.tree.DefaultSelectionModel({
+    listeners: {
+        beforeselect: beforeselectHandler,
+        selectionchange: selectionchangeHandler
+    }
+});
 
 Ext.getCmp('master_panel').add({
     xtype: 'HierarchyTreePanel',
@@ -45,12 +75,10 @@ Ext.getCmp('master_panel').add({
     searchField: true,
     directFn: router.getTree,
     router: router,
+    selModel: selModel,
     root: {
         id: 'Processes',
-        uid: '/zport/dmd/Processes',
-    },
-    listeners: {
-        click: clickHandler
+        uid: '/zport/dmd/Processes'
     }
 }); // master_panel.add
 
@@ -249,6 +277,16 @@ var processFormConfig = {
                 var params = Ext.apply({uid: selectedNode.attributes.uid},
                                        form.getValues());
                 form.api.submit(params);
+                // setValues makes isDirty return false
+                form.setValues(form.getValues());
+            }
+        }, {
+            xtype: 'button',
+            id: 'cancelButton',
+            text: _t('Cancel'),
+            iconCls: 'close',
+            handler: function(button, event) {
+                Ext.getCmp('processForm').getForm().reset();
             }
         }
     ] //tbar
@@ -274,7 +312,9 @@ Zenoss.ProcessFormPanel = Ext.extend(Ext.form.FormPanel, {
 
 Ext.reg('ProcessFormPanel', Zenoss.ProcessFormPanel);
 
-var processForm = new Zenoss.ProcessFormPanel({});
+var processForm = new Zenoss.ProcessFormPanel({
+    trackResetOnLoad: true
+});
 
 // place the form in the top right
 Ext.getCmp('top_detail_panel').add(processForm);
@@ -288,24 +328,17 @@ processForm.getForm().load({params:{uid: 'Processes'}});
  *
  */
 Ext.getCmp('bottom_detail_panel').add({
-    xtype: 'ContextCardButtonPanel',
-    id: 'card_panel',
-    items: [ { xtype: 'panel',
-               buttonTitle: _t('Processes'),
-               iconCls: 'processes'
-             },
-             { xtype: 'SimpleDeviceGridPanel',
-               buttonTitle: _t('Devices'),
-               iconCls: 'devprobs'
-             },
-             { xtype: 'SimpleEventGridPanel',
-               buttonTitle: _t('Events'),
-               iconCls: 'events',
-               directFn: router.getEvents
-             }
-    ]
+    xtype: 'SimpleDeviceGridPanel',
+    id: 'instancesGrid',
+    directFn: router.getDevices
 });
 
+
+/* ***********************************************************************
+ *
+ *   footer_panel - the add/remove tree node buttons at the bottom
+ *
+ */
 var footerPanel = Ext.getCmp('footer_panel');
 footerPanel.removeAll();
 
@@ -316,9 +349,5 @@ footerPanel.add({
 });
 
 Ext.getCmp('deleteButton').setDisabled(true);
-
-Ext.getCmp(treeId).on('click', function(node, e){
-    Ext.getCmp('deleteButton').setDisabled(node == Ext.getCmp(treeId).root);
-});
 
 }); // Ext.onReady

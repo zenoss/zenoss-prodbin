@@ -62,7 +62,6 @@ function initializeTreeDrop(g) {
                     tree.update(data.tree);
                 } else {
                     Ext.getCmp('device_grid').view.showLoadMask(false);
-                    console.log('Operation Failed');
                 }
             }, this);
         }

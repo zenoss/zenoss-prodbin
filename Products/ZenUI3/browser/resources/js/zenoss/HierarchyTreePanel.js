@@ -17,29 +17,11 @@
 
 Ext.ns('Zenoss');
 
-var TreeDialog = Ext.extend(Ext.Window, {
-    constructor: function(config) {
-        Ext.applyIf(config, {
-            layout: 'form',
-            autoHeight: true,
-            width: 310,
-            closeAction: 'hide',
-            plain: true,
-            labelAlign: 'top',
-            buttonAlign: 'left',
-            labelSeparator: ' ',
-            padding: 10,
-        });
-        TreeDialog.superclass.constructor.call(this, config);
-        this.treeId = config.treeId;
-    }
-});
-
 function initTreeDialogs(tree) {
     
-    new TreeDialog({
+    new Zenoss.FormDialog({
         id: 'addNodeDialog',
-        title: 'Add Tree Node',
+        title: _t('Add Tree Node'),
         items: [
             {
                 xtype: 'combo',
@@ -62,61 +44,35 @@ function initTreeDialogs(tree) {
                 allowBlank: false
             }
         ],
+        listeners: {
+            'hide': function(treeDialog) {
+                Ext.getCmp('typeCombo').setValue('');
+                Ext.getCmp('idTextfield').setValue('');
+            }
+        },
         buttons: [
             {
-                text: 'Submit',
+                xtype: 'DialogButton',
+                text: _t('Submit'),
+                dialogId: 'addNodeDialog',
                 handler: function(button, event) {
                     var type = Ext.getCmp('typeCombo').getValue();
                     var id = Ext.getCmp('idTextfield').getValue();
                     tree.addNode(type, id);
-                    var addNodeDialog = button.findParentBy(function(parent){
-                        return parent.id == 'addNodeDialog';
-                    });
-                    addNodeDialog.hide();
-                    Ext.getCmp('typeCombo').setValue('');
-                    Ext.getCmp('idTextfield').setValue('');
                 }
             }, {
-                text: 'Cancel',
-                handler: function(button, event) {
-                    var addNodeDialog = button.findParentBy(function(parent){
-                        return parent.id == 'addNodeDialog';
-                    });
-                    addNodeDialog.hide();
-                    Ext.getCmp('typeCombo').setValue('');
-                    Ext.getCmp('idTextfield').setValue('');
-                }
+                xtype: 'DialogButton',
+                text: _t('Cancel'),
+                dialogId: 'addNodeDialog'
             }
         ]
     });
     
-    new TreeDialog({
-        title: 'Delete Tree Node',
+    new Zenoss.MessageDialog({
         id: 'deleteNodeDialog',
-        items: {
-            border: false,
-            html: 'Are you sure that you want to delete the selected node?'
-        },
-        buttons: [
-            {
-                text: 'Yes',
-                handler: function(button, event) {
-                    var deleteNodeDialog = button.findParentBy(function(parent){
-                        return parent.id == 'deleteNodeDialog';
-                    });
-                    deleteNodeDialog.hide();
-                    tree.deleteSelectedNode();
-                }
-            }, {
-                text: 'No',
-                handler: function(button, event) {
-                    var deleteNodeDialog = button.findParentBy(function(parent){
-                        return parent.id == 'deleteNodeDialog';
-                    });
-                    deleteNodeDialog.hide();
-                }
-            }
-        ]    
+        title: _t('Delete Tree Node'),
+        message: _t('The selected node will be deleted.'),
+        okHandler: tree.deleteSelectedNode
     });
     
 }
@@ -344,7 +300,6 @@ Zenoss.HierarchyTreePanel = Ext.extend(Ext.tree.TreePanel, {
             var node = tree.getLoader().createNode(nodeConfig);
             parentNode.appendChild(node);
             node.select();
-            node.fireEvent('click', node);
         }
         this.router.addNode(params, callback);
     },
@@ -356,7 +311,6 @@ Zenoss.HierarchyTreePanel = Ext.extend(Ext.tree.TreePanel, {
         function callback(provider, response) {
             node.remove(true);
             parentNode.select();
-            parentNode.fireEvent('click', parentNode);
         }
         this.router.deleteNode(params, callback);
     }

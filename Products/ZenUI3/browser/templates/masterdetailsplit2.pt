@@ -63,7 +63,8 @@ Ext.onReady(function(){
                     id: 'bottom_detail_panel',
                     split: true,
                     layout: 'fit',
-                    height: 200
+                    height: 250,
+                    collapseMode: 'mini'
                 }]
             }]
         }
