@@ -1369,6 +1369,95 @@ H.on('change', H.selectByToken);
 ###########################################################################
 #
 # This program is part of Zenoss Core, an open source monitoring platform.
+# Copyright (C) 2010, Zenoss Inc.
+#
+# This program is free software; you can redistribute it and/or modify it
+# under the terms of the GNU General Public License version 2 as published by
+# the Free Software Foundation.
+#
+# For complete information please visit: http://www.zenoss.com/oss/
+#
+###########################################################################
+*/
+
+(function(){
+
+Ext.ns('Zenoss');
+
+var BaseDialog = Ext.extend(Ext.Window, {
+    constructor: function(config) {
+        Ext.applyIf(config, {
+            autoHeight: true,
+            width: 310,
+            closeAction: 'hide',
+            plain: true,
+            buttonAlign: 'left',
+            padding: 10,
+            modal: true
+        });
+        BaseDialog.superclass.constructor.call(this, config);
+    }
+});
+
+Zenoss.DialogButton = Ext.extend(Ext.Button, {
+    constructor: function(config) {
+        if ( ! Ext.isDefined(config.handler) ) {
+            config.handler = function(){};
+        }
+        config.handler = config.handler.createSequence(function(button) {
+            var dialog = button.findParentBy(function(parent){
+                return parent.id == config.dialogId;
+            });
+            dialog.hide();
+        });
+        Zenoss.DialogButton.superclass.constructor.call(this, config);
+    }
+});
+
+Ext.reg('DialogButton', Zenoss.DialogButton);
+
+Zenoss.MessageDialog = Ext.extend(BaseDialog, {
+    constructor: function(config) {
+        Ext.applyIf(config, {
+            layout: 'fit',
+            items: {
+                border: false,
+                html: config.message
+            },
+            buttons: [
+                {
+                    xtype: 'DialogButton',
+                    text: _t('OK'),
+                    handler: config.okHandler,
+                    dialogId: config.id
+                }, {
+                    xtype: 'DialogButton',
+                    text: _t('Cancel'),
+                    handler: config.cancelHandler,
+                    dialogId: config.id
+                }
+            ]
+        });
+        Zenoss.MessageDialog.superclass.constructor.call(this, config);
+    }
+});
+
+Zenoss.FormDialog = Ext.extend(BaseDialog, {
+    constructor: function(config) {
+        Ext.applyIf(config, {
+            layout: 'form',
+            labelAlign: 'top',
+            labelSeparator: ' '
+        });
+        Zenoss.FormDialog.superclass.constructor.call(this, config);
+    }
+});
+
+})();
+/*
+###########################################################################
+#
+# This program is part of Zenoss Core, an open source monitoring platform.
 # Copyright (C) 2009, Zenoss Inc.
 #
 # This program is free software; you can redistribute it and/or modify it
@@ -1384,29 +1473,11 @@ H.on('change', H.selectByToken);
 
 Ext.ns('Zenoss');
 
-var TreeDialog = Ext.extend(Ext.Window, {
-    constructor: function(config) {
-        Ext.applyIf(config, {
-            layout: 'form',
-            autoHeight: true,
-            width: 310,
-            closeAction: 'hide',
-            plain: true,
-            labelAlign: 'top',
-            buttonAlign: 'left',
-            labelSeparator: ' ',
-            padding: 10,
-        });
-        TreeDialog.superclass.constructor.call(this, config);
-        this.treeId = config.treeId;
-    }
-});
-
 function initTreeDialogs(tree) {
     
-    new TreeDialog({
+    new Zenoss.FormDialog({
         id: 'addNodeDialog',
-        title: 'Add Tree Node',
+        title: _t('Add Tree Node'),
         items: [
             {
                 xtype: 'combo',
@@ -1429,61 +1500,35 @@ function initTreeDialogs(tree) {
                 allowBlank: false
             }
         ],
+        listeners: {
+            'hide': function(treeDialog) {
+                Ext.getCmp('typeCombo').setValue('');
+                Ext.getCmp('idTextfield').setValue('');
+            }
+        },
         buttons: [
             {
-                text: 'Submit',
+                xtype: 'DialogButton',
+                text: _t('Submit'),
+                dialogId: 'addNodeDialog',
                 handler: function(button, event) {
                     var type = Ext.getCmp('typeCombo').getValue();
                     var id = Ext.getCmp('idTextfield').getValue();
                     tree.addNode(type, id);
-                    var addNodeDialog = button.findParentBy(function(parent){
-                        return parent.id == 'addNodeDialog';
-                    });
-                    addNodeDialog.hide();
-                    Ext.getCmp('typeCombo').setValue('');
-                    Ext.getCmp('idTextfield').setValue('');
                 }
             }, {
-                text: 'Cancel',
-                handler: function(button, event) {
-                    var addNodeDialog = button.findParentBy(function(parent){
-                        return parent.id == 'addNodeDialog';
-                    });
-                    addNodeDialog.hide();
-                    Ext.getCmp('typeCombo').setValue('');
-                    Ext.getCmp('idTextfield').setValue('');
-                }
+                xtype: 'DialogButton',
+                text: _t('Cancel'),
+                dialogId: 'addNodeDialog'
             }
         ]
     });
     
-    new TreeDialog({
-        title: 'Delete Tree Node',
+    new Zenoss.MessageDialog({
         id: 'deleteNodeDialog',
-        items: {
-            border: false,
-            html: 'Are you sure that you want to delete the selected node?'
-        },
-        buttons: [
-            {
-                text: 'Yes',
-                handler: function(button, event) {
-                    var deleteNodeDialog = button.findParentBy(function(parent){
-                        return parent.id == 'deleteNodeDialog';
-                    });
-                    deleteNodeDialog.hide();
-                    tree.deleteSelectedNode();
-                }
-            }, {
-                text: 'No',
-                handler: function(button, event) {
-                    var deleteNodeDialog = button.findParentBy(function(parent){
-                        return parent.id == 'deleteNodeDialog';
-                    });
-                    deleteNodeDialog.hide();
-                }
-            }
-        ]    
+        title: _t('Delete Tree Node'),
+        message: _t('The selected node will be deleted.'),
+        okHandler: tree.deleteSelectedNode
     });
     
 }
@@ -1711,7 +1756,6 @@ Zenoss.HierarchyTreePanel = Ext.extend(Ext.tree.TreePanel, {
             var node = tree.getLoader().createNode(nodeConfig);
             parentNode.appendChild(node);
             node.select();
-            node.fireEvent('click', node);
         }
         this.router.addNode(params, callback);
     },
@@ -1723,7 +1767,6 @@ Zenoss.HierarchyTreePanel = Ext.extend(Ext.tree.TreePanel, {
         function callback(provider, response) {
             node.remove(true);
             parentNode.select();
-            parentNode.fireEvent('click', parentNode);
         }
         this.router.deleteNode(params, callback);
     }
