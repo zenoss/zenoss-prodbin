@@ -460,23 +460,35 @@ class IpInterface(OSComponent, Layer2Linkable):
     def getRRDTemplates(self):
         """
         Return a list containing the appropriate RRDTemplate for this
-        IpInterface.  If none is found then the list will contain None.
+        IpInterface. If none is found then the list will be empty.
+
+        Order of preference if the interface supports 64bit counters.
+            1. <type>_64
+            2. ethernetCsmacd_64
+            3. <type>
+            4. ethernetCsmacd
+
+        Order of preference if the interface doesn't support 64bit counters.
+            1. <type>
+            2. ethernetCsmacd
         """
         templateName = self.getRRDTemplateName()
-        default = self.getRRDTemplateByName(templateName)
-        
-        # If this interface supports 64bit interfaces, but no 64bit specific
-        # template exists for it, fall back to the 32bit version.
-        if not default and templateName.endswith("_64"):
-            default = self.getRRDTemplateByName(templateName[:-3])
-        
-        # If no specific template exists for this type of interface default to
-        # the ethernetCsmacd template.
-        if not default:
-            default = self.getRRDTemplateByName("ethernetCsmacd")
-        
-        if default:
-            return [default]
+
+        order = ['ethernetCsmacd']
+        if templateName.endswith('_64'):
+            order.insert(0, 'ethernetCsmacd_64')
+            if templateName not in order:
+                order.insert(0, templateName)
+                order.insert(2, templateName[:-3])
+        else:
+            if templateName not in order:
+                order.insert(0, templateName)
+
+        for name in order:
+            template = self.getRRDTemplateByName(name)
+            if template:
+                return [template]
+
         return []
 
 

@@ -138,6 +138,39 @@ class TestIpInterface(ZenModelBaseTest):
         self.assert_(not self.iface.getIpAddresses())
 
 
+    def testGetRRDTemplates(self):
+        matrix = [
+            [   'ethernetCsmacd', [
+                ['ethernetCsmacd',      'ethernetCsmacd'],
+                ['ethernetCsmacd_64',   'ethernetCsmacd'],
+                ['propVirtual',         'ethernetCsmacd'],
+                ['propVirtual_64',      'ethernetCsmacd']]
+            ],[ 'ethernetCsmacd_64', [
+                ['ethernetCsmacd',      'ethernetCsmacd'],
+                ['ethernetCsmacd_64',   'ethernetCsmacd_64'],
+                ['propVirtual',         'ethernetCsmacd'],
+                ['propVirtual_64',      'ethernetCsmacd_64']]
+            ],[ 'propVirtual', [
+                ['ethernetCsmacd',      'ethernetCsmacd'],
+                ['ethernetCsmacd_64',   'ethernetCsmacd_64'],
+                ['propVirtual',         'propVirtual'],
+                ['propVirtual_64',      'ethernetCsmacd_64']]
+            ],[ 'propVirtual_64', [
+                ['ethernetCsmacd',      'ethernetCsmacd'],
+                ['ethernetCsmacd_64',   'ethernetCsmacd_64'],
+                ['propVirtual',         'propVirtual'],
+                ['propVirtual_64',      'propVirtual_64']]
+            ]
+        ]
+
+        for name, tests in matrix:
+            self.dmd.Devices.manage_addRRDTemplate(name)
+            for iftype, template_id in tests:
+                self.iface.type = iftype
+                self.assertEquals(
+                    template_id, self.iface.getRRDTemplates()[0].id)
+
+
 def test_suite():
     from unittest import TestSuite, makeSuite
     suite = TestSuite()
