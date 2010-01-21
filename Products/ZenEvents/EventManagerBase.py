@@ -627,11 +627,8 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
             calcfoundrows = ''
             if getTotalCount:
                 calcfoundrows = 'SQL_CALC_FOUND_ROWS'
-            index_hint = ''
-            if self.statusTable == 'history':
-                index_hint = 'use index (lastTime, firstTime)'
             select = ["select ", calcfoundrows, ','.join(resultFields),
-                        "from %s %s where" % (self.statusTable, index_hint) ]
+                        "from %s where" % self.statusTable ]
             if not where:
                 where = self.defaultWhere
 
