@@ -17,11 +17,14 @@ from Acquisition import aq_base, aq_parent
 from zope.interface import implements
 from zope.component import queryUtility, adapts
 
+from Products.AdvancedQuery import MatchRegexp, And, Generic, Or, Eq, Between
 from Products.ZenModel.ZenModelRM import ZenModelRM
 from Products.Zuul.interfaces import IFacade, IDataRootFactory, ITreeNode
 from Products.Zuul.interfaces import ITreeFacade, IInfo, ICatalogTool
 from Products.Zuul.interfaces import IEventInfo
 from Products.Zuul.utils import unbrain
+from Products.ZenUtils.IpUtil import numbip, checkip, IpAddressError
+from Products.ZenUtils.IpUtil import getSubnetBounds
 
 log = logging.getLogger('zen.Zuul')
 
@@ -113,8 +116,32 @@ class TreeFacade(ZuulFacade):
                    params=None):
         cat = ICatalogTool(self._getObject(uid))
         reverse = dir=='DESC'
+        qs = []
+        query = None
+        if params:
+            if 'name' in params:
+                qs.append(MatchRegexp('name', '(?i).*%s.*' % params['name']))
+            if 'ipAddress' in params:
+                ip = params['ipAddress']
+                try:
+                    checkip(ip)
+                except IpAddressError:
+                    pass
+                else:
+                    if numbip(ip):
+                        minip, maxip = getSubnetBounds(ip)
+                        qs.append(Between('ipAddress', str(minip), str(maxip)))
+            if 'deviceClass' in params:
+                qs.append(MatchRegexp('uid', '(?i).*%s.*' %
+                                      params['deviceClass']))
+            if 'productionState' in params:
+                qs.append(Or(*[Eq('productionState', str(state))
+                             for state in params['productionState']]))
+        if qs:
+            query = And(*qs)
         brains = cat.search('Products.ZenModel.Device.Device', start=start,
-                           limit=limit, orderby=sort, reverse=reverse)
+                           limit=limit, orderby=sort, reverse=reverse,
+                            query=query)
         return map(IInfo, map(unbrain, brains))
 
     def getInstances(self, uid=None, start=0, limit=50, sort='name',
@@ -137,7 +164,6 @@ class TreeFacade(ZuulFacade):
         return imap(IInfo, instances)
 
     def _parameterizedWhere(self, uid=None):
-        zem = self._dmd.ZenEventManager
         cat = ICatalogTool(self._dmd)
         brains = cat.search(self._instanceClass, paths=(uid,))
         criteria = []

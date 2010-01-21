@@ -174,7 +174,7 @@ class ZenModeler(PBDaemon):
             self.log.debug("Getting collector plugins for each DeviceClass")
             yield self.config().callRemote('getClassCollectorPlugins')
             self.classCollectorPlugins = driver.next()
-                                             
+
         return drive(inner)
 
 

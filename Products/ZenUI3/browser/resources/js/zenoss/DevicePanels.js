@@ -29,6 +29,7 @@ Zenoss.DeviceColumnModel = Ext.extend(Ext.grid.ColumnModel, {
                 id: 'ipAddress',
                 dataIndex: 'ipAddress',
                 header: _t('IP Address'),
+                filter: {xtype: 'ipaddressfield'},
                 renderer: Zenoss.util.num2dot
             },{
                 dataIndex: 'uid',
@@ -38,10 +39,36 @@ Zenoss.DeviceColumnModel = Ext.extend(Ext.grid.ColumnModel, {
             },{
                 id: 'productionState',
                 dataIndex: 'productionState',
+                width: 100,
+                filter: {
+                    xtype: 'multiselectmenu',
+                    'text':'...',
+                    'source':[{
+                        'value':1000,
+                        'text':'Production'
+                    },{
+                        'value':500,
+                        'text':'Pre-Production',
+                        'checked':false
+                    },{
+                        'value':400,
+                        'text':'Test',
+                        'checked':false
+                    },{
+                        'value':300,
+                        'text':'Maintenance',
+                        'checked':false,
+                    },{
+                        'value':-1,
+                        'text':'Decommissioned',
+                        'checked':false
+                    }]
+                },
                 header: _t('Production State')
             },{
                 id: 'events',
                 sortable: false,
+                filter: false,
                 dataIndex: 'events',
                 header: _t('Events'),
                 renderer: Zenoss.render.events

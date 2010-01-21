@@ -952,6 +952,7 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
             except socket.error: ip = ""
         self.manageIp = ip
         self.index_object()
+        notify(IndexingEvent(self, ('ipAddress',), True))
         if REQUEST:
             msgr = IMessageSender(self)
             if ip:
@@ -1145,6 +1146,7 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
         """
         super(Device, self).setTitle(newTitle)
         self.index_object()
+        notify(IndexingEvent(self, ('name',), True))
 
     def monitorDevice(self):
         """

@@ -1226,8 +1226,11 @@ body.x-body-masked .x-window-mc, body.x-body-masked .x-window-plain .x-window-mc
 
 .x-grid3-filter .x-btn {
     height: 26px;
-    padding-top: 7px;
     text-transform: none;
+}
+
+.x-grid3-filter table {
+    table-layout: auto;
 }
 .x-grid3-filter .x-btn-tl, .x-grid3-filter .x-btn-tr, .x-grid3-filter .x-btn-tc,
 .x-grid3-filter .x-btn-ml, .x-grid3-filter .x-btn-mr, .x-grid3-filter .x-btn-mc,

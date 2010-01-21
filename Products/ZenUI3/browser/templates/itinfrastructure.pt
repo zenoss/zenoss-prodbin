@@ -52,6 +52,7 @@ function initializeTreeDrop(g) {
             Ext.each(data.selections, function(r){
                 devids.push(r.data.uid);
             });
+            Ext.getCmp('device_grid').view.showLoadMask(true);
             Zenoss.remote.DeviceRouter.moveDevices({
                 uids: devids,
                 target: targetuid
@@ -60,7 +61,8 @@ function initializeTreeDrop(g) {
                     Ext.getCmp('device_grid').view.nonDisruptiveReset();
                     tree.update(data.tree);
                 } else {
-                    console.log('Operation Failed')
+                    Ext.getCmp('device_grid').view.showLoadMask(false);
+                    console.log('Operation Failed');
                 }
             }, this);
         }

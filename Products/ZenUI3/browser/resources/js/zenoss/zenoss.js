@@ -397,7 +397,13 @@ Zenoss.FilterGridView = Ext.extend(Ext.ux.grid.livegrid.GridView, {
                 fieldid = c.id,
                 id = 'filtergrid-' + fieldid;
             var config = this.cm.config[i].filter;
-            if (!config) config = {xtype:'textfield'};
+            if (config===false) {
+                config = {xtype: 'panel', getValue: function(){}};
+                this.filters[this.filters.length] = Ext.create(config);
+                continue;
+            } else if (!config) {
+                config = {xtype:'textfield'};
+            }
             Ext.apply(config, {
                 id:fieldid,
                 enableKeyEvents: true,
@@ -411,22 +417,22 @@ Zenoss.FilterGridView = Ext.extend(Ext.ux.grid.livegrid.GridView, {
             }
             filter.setWidth('100%');
             this.filters[this.filters.length] = filter;
-            filter.validationTask = new Ext.util.DelayedTask(function(){
+            filter.liveSearchTask = new Ext.util.DelayedTask(function(){
                 this.fireEvent('filterchange', this);
                 if (this.liveSearch){
                     this.nonDisruptiveReset();
                 }
             }, this);
-            if (filter.xtype=='textfield') {
+            if (filter instanceof Ext.form.TextField) {
                 filter.on('keyup', function(field, e) {
-                    if(!e.isNavKeyPress()) this.validationTask.delay(1000);
+                    if(!e.isNavKeyPress()) this.liveSearchTask.delay(1000);
                 }, filter);
             } else {
                 filter.on('select', function(field, e) {
-                    this.validationTask.delay(1000);
+                    this.liveSearchTask.delay(1000);
                 }, filter);
                 filter.on('change', function(field, e) {
-                    this.validationTask.delay(1000);
+                    this.liveSearchTask.delay(1000);
                 }, filter);
             }
             new Ext.Panel({
@@ -585,8 +591,8 @@ Zenoss.FilterGridPanel = Ext.extend(Ext.ux.grid.livegrid.GridPanel, {
                     this.setChecked(liveSearch)
                 },livesearchitem)
             }
+            this.view.liveSearch = liveSearch;
         }
-        this.view.liveSearch = liveSearch;
         var rowColors = Ext.state.Manager.get('rowcolor');
         this.view.rowColors = rowColors;
         if (this.view.rowcoloritem) {

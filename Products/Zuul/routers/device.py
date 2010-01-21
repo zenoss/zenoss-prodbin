@@ -12,6 +12,7 @@
 ###########################################################################
 
 from Products.ZenUtils.Ext import DirectRouter
+from Products.ZenUtils.json import unjson
 from Products import Zuul
 
 class DeviceRouter(DirectRouter):
@@ -43,9 +44,11 @@ class DeviceRouter(DirectRouter):
     def getDevices(self, uid=None, start=0, params=None, limit=50, sort='device',
                    dir='ASC'):
         facade = self._getFacade()
-        devices = facade.getDevices(uid, start, limit, sort, dir)
+        if isinstance(params, basestring):
+            params = unjson(params)
+        devices = facade.getDevices(uid, start, limit, sort, dir, params)
         count = facade.deviceCount(uid)
-        keys = ['name', 'ipAddress', 'productionState', 'events', 'availability']
+        keys = ['name', 'ipAddress', 'productionState', 'events']
         data = Zuul.marshal(devices, keys)
         return {'devices': data, 'totalCount': count}
 

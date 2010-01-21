@@ -361,3 +361,42 @@ def parse_iprange(iprange):
     else:
         start, end = map(int, split)
         return ['%s.%s' % (net, x) for x in xrange(start, end+1)]
+
+
+def getSubnetBounds(ip):
+    """
+    Given a string representing the lower limit of a subnet, return decimal
+    representations of the first and last IP of that subnet.
+
+    0 is considered to define the beginning of a subnet, so x.x.x.0 represents
+    a /24, x.x.0.0 represents a /16, etc. An octet of 0 followed by a non-zero
+    octet, of course, is not considered to define a lower limit.
+
+        >>> map(decimalIpToStr, getSubnetBounds('10.1.1.0'))
+        ['10.1.1.0', '10.1.1.255']
+        >>> map(decimalIpToStr, getSubnetBounds('10.1.1.1'))
+        ['10.1.1.1', '10.1.1.1']
+        >>> map(decimalIpToStr, getSubnetBounds('10.0.1.0'))
+        ['10.0.1.0', '10.0.1.255']
+        >>> map(decimalIpToStr, getSubnetBounds('0.0.0.0'))
+        ['0.0.0.0', '255.255.255.255']
+        >>> map(decimalIpToStr, getSubnetBounds('10.0.0.0'))
+        ['10.0.0.0', '10.255.255.255']
+        >>> map(decimalIpToStr, getSubnetBounds('100.0.0.0'))
+        ['100.0.0.0', '100.255.255.255']
+
+    """
+    octets = ip.split('.')
+    otherend = []
+    while octets:
+        o = octets.pop()
+        if o=='0':
+            otherend.append('255')
+        else:
+            otherend.append(o)
+            break
+    otherend.reverse()
+    octets.extend(otherend)
+    upper = '.'.join(octets)
+    return numbip(ip), numbip(upper)
+

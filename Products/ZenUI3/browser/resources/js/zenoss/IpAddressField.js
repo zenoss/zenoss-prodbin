@@ -1,0 +1,71 @@
+(function(){
+
+Ext.ns('Zenoss');
+
+function makeIpAddress(val) {
+    var octets = val.split('.');
+    if(octets.length>4) 
+        return false;
+    while(octets.length < 4) {
+        octets.push('0')
+    }
+    for(var i=0;i<octets.length;i++) {
+        var octet=parseInt(octets[i]);
+        if (!octet && octet!=0) return false;
+        try {
+            if (octet>255) return false;        
+        } catch(e) {
+            return false;
+        }
+        octets[i] = octet.toString();
+    }
+    return octets.join('.');
+}
+
+function count(of, s) {
+    return of.split(s).length-1;
+}
+
+/**
+ * @class Zenoss.IpAddressField
+ * @extends Ext.form.TextField
+ * @constructor
+ */
+Zenoss.IpAddressField = Ext.extend(Ext.form.TextField, {
+    constructor: function(config){
+        config.maskRe = true;
+        Zenoss.IpAddressField.superclass.constructor.call(this, config);
+    },
+    filterKeys: function(e, dom) {
+        if(e.ctrlKey || e.isSpecialKey()){
+            return;
+        } 
+        e.stopEvent();
+        var full, result, cursor = dom.selectionStart,
+            selend = dom.selectionEnd,
+            beg = dom.value.substring(0, cursor),
+            end = dom.value.substring(selend),
+            s = String.fromCharCode(e.getCharCode());
+        if (s=='.') {
+            var result = beg + end;
+            cursor += end.indexOf('.');
+            var newoctet = end.split('.')[1]
+            if (selend==cursor+1) 
+                cursor++; 
+            if(newoctet) 
+                dom.setSelectionRange(cursor+1, cursor+newoctet.length+1);
+        } else {
+            var result = makeIpAddress(beg + s + end);
+            if (result) {
+                cursor++;
+                dom.value = result;
+                dom.setSelectionRange(cursor, cursor);
+            }
+        }
+    }
+
+}); // Ext.extend
+
+Ext.reg('ipaddressfield', Zenoss.IpAddressField);
+
+})();

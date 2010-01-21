@@ -164,7 +164,7 @@ class DeviceWrapper(IndexableWrapper):
     adapts(Device)
 
     def productionState(self):
-        return str(self._context.getProdState())
+        return str(self._context.productionState)
 
 
 class GlobalCatalog(ZCatalog):
