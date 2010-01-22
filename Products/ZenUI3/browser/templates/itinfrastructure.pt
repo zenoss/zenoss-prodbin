@@ -16,8 +16,6 @@
 <tal:block metal:use-macro="context/page_macros/base-new">
 
 <tal:block metal:fill-slot="center_panel">
-<div id="master_panel"> </div>
-<div id="detail_panel"> </div>
 </tal:block>
 
 <tal:block metal:fill-slot="script_layout">
@@ -123,7 +121,6 @@ Ext.getCmp('center_panel').add({
     },
     items: [{
         id: 'master_panel',
-        contentEl: 'master_panel',
         layout: 'fit',
         region: 'west',
         split: true,
@@ -131,7 +128,6 @@ Ext.getCmp('center_panel').add({
         items: [treecontainer]
     },{
         id: 'detail_panel',
-        contentEl: 'detail_panel',
         region: 'center',
         layout: 'card',
         activeItem: 0,

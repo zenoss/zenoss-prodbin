@@ -17,15 +17,6 @@
 <tal:block metal:use-macro="context/page_macros/base-new">
 
 <tal:block metal:fill-slot="center_panel">
-<div id="master_panel">
-    <tal:block metal:define-slot="master_panel"/>
-</div>
-<div id="top_detail_panel">
-    <tal:block metal:define-slot="top_detail_panel"/>
-</div>
-<div id="bottom_detail_panel">
-    <tal:block metal:define-slot="bottom_detail_panel"/>
-</div>
 </tal:block>
 
 <tal:block metal:fill-slot="script_beforeLayout">
@@ -43,7 +34,6 @@ Ext.onReady(function(){
             items: [{
                 region: 'west',
                 width: 250,
-                contentEl: 'master_panel',
                 id: 'master_panel',
                 layout: 'fit',
                 split: true
@@ -53,13 +43,11 @@ Ext.onReady(function(){
                 defaults: {'border':false},
                 items: [{
                     region: 'center',
-                    contentEl: 'top_detail_panel',
                     id: 'top_detail_panel',
                     split: true,
                     layout: 'fit'
                 },{
                     region: 'south',
-                    contentEl: 'bottom_detail_panel',
                     id: 'bottom_detail_panel',
                     split: true,
                     layout: 'fit',
