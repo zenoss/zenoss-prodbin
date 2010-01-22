@@ -13,6 +13,10 @@ Ext.namespace('Zenoss.env');
 
 Ext.QuickTips.init();
 
+Ext.state.Manager.setProvider(new Ext.state.CookieProvider({
+    expires: new Date(new Date().getTime()+(1000*60*60*24*30))
+}));
+
 /*
  * Hook up all Ext.Direct requests to the connection error message box.
  */
