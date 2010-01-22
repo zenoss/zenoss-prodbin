@@ -22,6 +22,10 @@ Ext.namespace('Zenoss.env');
 
 Ext.QuickTips.init();
 
+Ext.state.Manager.setProvider(new Ext.state.CookieProvider({
+    expires: new Date(new Date().getTime()+(1000*60*60*24*30))
+}));
+
 /*
  * Hook up all Ext.Direct requests to the connection error message box.
  */
@@ -1528,7 +1532,9 @@ function initTreeDialogs(tree) {
         id: 'deleteNodeDialog',
         title: _t('Delete Tree Node'),
         message: _t('The selected node will be deleted.'),
-        okHandler: tree.deleteSelectedNode
+        okHandler: function(){
+            tree.deleteSelectedNode();
+        }
     });
     
 }
@@ -1752,10 +1758,15 @@ Zenoss.HierarchyTreePanel = Ext.extend(Ext.tree.TreePanel, {
         var params = {type: type, contextUid: contextUid, id: id};
         var tree = this;
         function callback(provider, response) {
-            var nodeConfig = response.result.nodeConfig;
-            var node = tree.getLoader().createNode(nodeConfig);
-            parentNode.appendChild(node);
-            node.select();
+            var result = response.result;
+            if (result.success) {
+                var nodeConfig = response.result.nodeConfig;
+                var node = tree.getLoader().createNode(nodeConfig);
+                parentNode.appendChild(node);
+                node.select();
+            } else {
+                Ext.Msg.alert('Error', result.msg);
+            }
         }
         this.router.addNode(params, callback);
     },
@@ -1765,8 +1776,9 @@ Zenoss.HierarchyTreePanel = Ext.extend(Ext.tree.TreePanel, {
         var uid = node.attributes.uid;
         var params = {uid: uid};
         function callback(provider, response) {
-            node.remove(true);
             parentNode.select();
+            parentNode.removeChild(node);
+            node.destroy();
         }
         this.router.deleteNode(params, callback);
     }
