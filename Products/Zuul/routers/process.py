@@ -42,16 +42,20 @@ class ProcessRouter(DirectRouter):
 
     @require('Manage DMD')
     def addNode(self, type, contextUid, id):
-        facade = self._getFacade()
-        if type.lower() == 'organizer':
-            uid = facade.addOrganizer(contextUid, id)
-            msg = "Added organizer '%s'" % id
-        else:
-            uid = facade.addClass(contextUid, id)
-            msg = "Added class '%s'" % id
-        treeNode = facade.getTree(uid)
-        nodeConfig = Zuul.marshal(treeNode)
-        return {'success': True, 'msg': msg, 'nodeConfig': nodeConfig}
+        result = {}
+        try:
+            facade = self._getFacade()
+            if type.lower() == 'organizer':
+                uid = facade.addOrganizer(contextUid, id)
+            else:
+                uid = facade.addClass(contextUid, id)
+            treeNode = facade.getTree(uid)
+            result['nodeConfig'] = Zuul.marshal(treeNode)
+            result['success'] = True
+        except Exception, e:
+            result['msg'] = str(e)
+            result['success'] = False
+        return result
 
     @require('Manage DMD')
     def deleteNode(self, uid):

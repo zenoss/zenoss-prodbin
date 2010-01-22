@@ -53,13 +53,15 @@ function beforeselectHandler(sm, node, oldNode) {
 
 // function that gets run when the user clicks on a node in the tree
 function selectionchangeHandler(sm, node) {
-    // load up appropriate data in the form
-    Ext.getCmp('processForm').getForm().load({
-        params: {uid: node.attributes.uid}
-    });
-    Ext.getCmp('instancesGrid').setContext(node.attributes.uid);
-    // don't allow the user to delete the root node
-    Ext.getCmp('deleteButton').setDisabled(node == Ext.getCmp(treeId).root);
+    if (node) {
+        // load up appropriate data in the form
+        Ext.getCmp('processForm').getForm().load({
+            params: {uid: node.attributes.uid}
+        });
+        Ext.getCmp('instancesGrid').setContext(node.attributes.uid);
+        // don't allow the user to delete the root node
+        Ext.getCmp('deleteButton').setDisabled(node == Ext.getCmp(treeId).root);
+    }
 }
 
 var selModel = new Ext.tree.DefaultSelectionModel({

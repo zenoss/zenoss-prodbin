@@ -14,6 +14,7 @@
 import logging
 from itertools import imap
 from Acquisition import aq_base, aq_parent
+from OFS.ObjectManager import checkValidId
 from zope.interface import implements
 from zope.component import queryUtility, adapts
 
@@ -217,6 +218,7 @@ class TreeFacade(ZuulFacade):
         context = self._findObject(contextUid)
         _class = self._classFactory(id)
         relationship = getattr(context, self._classRelationship)
+        checkValidId(relationship, id)
         relationship._setObject(id, _class)
         return '%s/%s/%s' % (contextUid, self._classRelationship, id)
 
