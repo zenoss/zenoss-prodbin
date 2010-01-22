@@ -55,6 +55,7 @@ from Globals import DTMLFile
 from Globals import InitializeClass
 from Monitor import Monitor
 from Products.PythonScripts.standard import url_quote
+from Products.Jobber.jobs import ShellCommandJob 
 from Products.ZenModel.ZenossSecurity import *
 from Products.ZenRelations.RelSchema import *
 from Products.ZenUtils.Utils import basicAuthUrl, zenPath, binPath
@@ -590,7 +591,8 @@ class PerformanceConf(Monitor, StatusColor):
 
     def _executeZenDiscCommand(self, deviceName, devicePath= "/Discovered", 
                       performanceMonitor="localhost", discoverProto="snmp",
-                      zSnmpPort=161,zSnmpCommunity="", REQUEST=None):
+                      zSnmpPort=161, zSnmpCommunity="", background=False,
+                      REQUEST=None):
         """
         Execute zendisc on the new device and return result
         
@@ -619,7 +621,12 @@ class PerformanceConf(Monitor, StatusColor):
         if REQUEST: 
             zendiscOptions.append("--weblog")
         zendiscCmd.extend(zendiscOptions)
-        result = executeCommand(zendiscCmd, REQUEST)
+        if background:
+            log.info('queued job: %s', " ".join(zendiscCmd))
+            result = self.dmd.JobManager.addJob(ShellCommandJob,
+                                                    zendiscCmd) 
+        else:
+            result = executeCommand(zendiscCmd, REQUEST)
         return result
 
     def executeCollectorCommand(self, command, args, REQUEST=None):
@@ -643,7 +650,7 @@ class PerformanceConf(Monitor, StatusColor):
 
 
     def collectDevice(self, device=None, setlog=True, REQUEST=None,
-        generateEvents=False):
+        generateEvents=False, background=False):
         """
         Collect the configuration of this device AKA Model Device
 
@@ -661,10 +668,12 @@ class PerformanceConf(Monitor, StatusColor):
         if setlog and REQUEST and not xmlrpc:
             handler = setupLoggingHeader(device, REQUEST)
 
-        zenmodelerOpts = ['run', '--now', '--monitor', self.id, '-F', '-d', device.id]
+        zenmodelerOpts = ['run', '--now', '--monitor', self.id, 
+                            '-F', '-d', device.id]
         if REQUEST:
             zenmodelerOpts.append('--weblog')
-        result = self._executeZenModelerCommand(zenmodelerOpts, REQUEST)
+        result = self._executeZenModelerCommand(zenmodelerOpts, 
+                                                background, REQUEST)
         if result and xmlrpc:
             return result
         log.info('configuration collected')
@@ -675,7 +684,9 @@ class PerformanceConf(Monitor, StatusColor):
         if xmlrpc:
             return 0
 
-    def _executeZenModelerCommand(self, zenmodelerOpts, REQUEST=None):
+
+    def _executeZenModelerCommand(self, zenmodelerOpts, 
+                                    background=False, REQUEST=None):
         """
         Execute zenmodeler and return result
         
@@ -689,7 +700,11 @@ class PerformanceConf(Monitor, StatusColor):
         zm = binPath('zenmodeler')
         zenmodelerCmd = [zm]
         zenmodelerCmd.extend(zenmodelerOpts)
-        result = executeCommand(zenmodelerCmd, REQUEST)
+        if background:
+            log.info('queued job: %s', " ".join(zenmodelerCmd))
+            result = self.dmd.JobManager.addJob(ShellCommandJob,zenmodelerCmd) 
+        else:
+            result = executeCommand(zenmodelerCmd, REQUEST)
         return result
 
 
