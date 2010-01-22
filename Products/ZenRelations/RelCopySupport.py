@@ -44,40 +44,6 @@ from Products.ZenRelations.Exceptions import *
 
 class RelCopyContainer(CopyContainer):
 
-    def manage_renameObject(self, id, new_id, REQUEST=None):
-        """Rename a particular sub-object"""
-        try: 
-            checkValidId(self, new_id)
-        except: 
-            raise CopyError, sys.exc_info()[1]
-        
-        ob=self._getOb(id)
-        if ob.wl_isLocked():
-            raise ResourceLockedError(
-                    'Object "%s" is locked via WebDAV' % ob.getId())
-        if not ob.cb_isMoveable():
-            raise CopyError, eNotSupported % escape(id)
-        self._verifyObjectPaste(ob)
-
-        try:
-            ob._notifyOfCopyTo(self, op=2) # -EAD add rename to semantics
-        except:
-            raise CopyError, sys.exc_info()[1]
-        self._delObject(id)
-        ob = aq_base(ob)
-        ob._setId(new_id)
-
-        # Note - because a rename always keeps the same context, we
-        # can just leave the ownership info unchanged.
-        self._setObject(new_id, ob, set_owner=0)
-        ob = self._getOb(new_id)
-        ob._postCopy(self, op=1)
-
-        if REQUEST is not None:
-            return self.manage_main(self, REQUEST, update_menu=1)
-        return None
-    
-    
     def manage_linkObjects(self, ids = None, cb_copy_data=None, REQUEST=None):
         """link objects to relationship"""
         try:
