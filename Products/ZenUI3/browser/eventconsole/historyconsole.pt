@@ -240,8 +240,7 @@ Ext.onReady(function(){
     container.on('render', function(){container.el.addClass('zenui3')});
 
     // Add the toolbar to the container
-    container.add(
-        new Zenoss.LargeToolbar({
+    var tbar = new Zenoss.LargeToolbar({
             region:'north',
             border: false,
             items: [{
@@ -437,8 +436,7 @@ Ext.onReady(function(){
                 }
             }
             ]
-        })
-    );
+        });
 
     function doLastUpdated() {
         var box = Ext.getCmp('lastupdated'),
@@ -505,6 +503,7 @@ Ext.onReady(function(){
     var grid = new Zenoss.FilterGridPanel({
         region: 'center',
         id: 'events_grid',
+        tbar: tbar,
         stateId: Zenoss.env.EVENTSGRID_STATEID,
         enableDragDrop: false,
         stateful: true,
