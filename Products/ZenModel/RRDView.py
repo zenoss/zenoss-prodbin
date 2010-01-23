@@ -334,16 +334,7 @@ class RRDView(object):
                             thresh = threshold.createThresholdInstance(self)
                             result.append(thresh)
                         except pythonThresholdException, ex:
-                            import transaction
-                            trans = transaction.get()
-                            threshold.manage_changeProperties(enabled=False)
-                            trans.setUser('zenhub')
-                            trans.note("Disabled threshold as it has errors.")
-                            trans.commit()
-
                             log.warn(ex)
-                            log.info("Disabled threshold %s", threshold.id)
-
                             zem = self.primaryAq().getEventManager()
                             import socket
                             device = socket.gethostname()
