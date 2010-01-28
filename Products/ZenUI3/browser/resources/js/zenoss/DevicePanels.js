@@ -24,7 +24,10 @@ Zenoss.DeviceColumnModel = Ext.extend(Ext.grid.ColumnModel, {
             columns: [{
                 dataIndex: 'name',
                 header: _t('Device'),
-                id: 'name'
+                id: 'name',
+                renderer: function(name, row, record) {
+                    return Zenoss.render.Device(record.data.uid, name);
+                }
             },{
                 id: 'ipAddress',
                 dataIndex: 'ipAddress',
@@ -35,7 +38,7 @@ Zenoss.DeviceColumnModel = Ext.extend(Ext.grid.ColumnModel, {
                 dataIndex: 'uid',
                 header: _t('Device Class'), 
                 id: 'deviceClass',
-                renderer: Zenoss.render.deviceClass
+                renderer: Zenoss.render.DeviceClass
             },{
                 id: 'productionState',
                 dataIndex: 'productionState',

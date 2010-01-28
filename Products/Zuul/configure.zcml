@@ -76,6 +76,11 @@
              name="service"
              />
 
+<utility factory=".facades.TemplateFacade"
+         provides=".interfaces.IFacade"
+         name="template"
+         />
+
     <utility component=".utils.get_dmd"
              provides=".interfaces.IDataRootFactory"
              />
@@ -112,6 +117,14 @@
     <adapter factory=".facades.devicefacade.DeviceOrganizerNode"
              for="Products.ZenModel.DeviceOrganizer.DeviceOrganizer"
              provides=".interfaces.IDeviceOrganizerNode"/>
+
+    <adapter factory=".infos.template.TemplateNode"
+             for="Products.ZenModel.RRDTemplate.RRDTemplate"
+             provides=".interfaces.ITemplateNode"/>
+
+    <adapter factory=".infos.template.TemplateLeaf"
+             for="Products.ZenModel.RRDTemplate.RRDTemplate"
+             provides=".interfaces.ITemplateLeaf"/>
 
     <adapter provides=".interfaces.IInfo"
              for=".interfaces.IProcessEntity"

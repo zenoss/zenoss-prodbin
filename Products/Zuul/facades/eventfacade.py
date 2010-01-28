@@ -117,6 +117,13 @@ class EventFacade(ZuulFacade):
     def _get_eventClass_url(self, evclass):
         return '/zport/dmd/Events' + evclass
 
+    def _get_orderby_clause(self, sort, dir, history):
+        secondarySort = self._event_manager(history).defaultOrderby
+        if not secondarySort:
+            secondarySort = 'lastTime DESC'
+        orderBy = "%s %s, %s" % (sort, dir, secondarySort)
+        return orderBy
+
     def _extract_data_from_zevent(self, zevent, fields):
         data = {}
         for field in fields:
@@ -173,14 +180,14 @@ class EventFacade(ZuulFacade):
         context = resolve_context(context, self._dmd.Events)
         zem = self._event_manager(history)
         if hasattr(context, 'getResultFields'):
-          fs = context.getResultFields()
+            fs = context.getResultFields()
         else:
-          # Use default result fields
-          if hasattr(context, 'event_key'):
-              base = context
-          else:
-              base = self._dmd.Events.primaryAq()
-          fs = zem.lookupManagedEntityResultFields(base.event_key)
+            # Use default result fields
+            if hasattr(context, 'event_key'):
+                base = context
+            else:
+                base = self._dmd.Events.primaryAq()
+            fs = zem.lookupManagedEntityResultFields(base.event_key)
         return fs
 
     def query(self, limit=0, start=0, sort='lastTime', dir='DESC', 
@@ -189,7 +196,7 @@ class EventFacade(ZuulFacade):
         if isinstance(filters, basestring): filters = unjson(filters)
         zem = self._event_manager(history)
 
-        fields = self.fields()
+        fields = self.fields(context, history)
 
         start = max(start, 0)
         limit = max(limit, 0)
@@ -215,16 +222,14 @@ class EventFacade(ZuulFacade):
         else:
             parameterizedWhere = None
 
-        secondarySort = zem.defaultOrderby 
-        if not secondarySort: 
-            secondarySort = 'lastTime DESC'
+        orderby = self._get_orderby_clause(sort, dir, history)
         args = dict(
             offset=start,
             rows=limit,
             resultFields=fields,
             getTotalCount=True,
             sort=sort,
-            orderby="%s %s, %s" % (sort, dir, secondarySort),
+            orderby=orderby,
             filters=filters,
             parameterizedWhere=parameterizedWhere
         )
@@ -255,8 +260,9 @@ class EventFacade(ZuulFacade):
                     context=None, history=False):
         context = resolve_context(context, self._dmd.Events)
         zem = self._event_manager(history)
-        r_evids = zem.getEventIDsFromRanges(context, sort, dir, start,
-                                        limit, filters, evids, ranges, asof)
+        orderby = self._get_orderby_clause(sort, dir, history);
+        r_evids = zem.getEventIDsFromRanges(context, orderby, start, limit,
+                                            filters, evids, ranges, asof)
         zem.manage_ackEvents(r_evids)
         for evid in r_evids:
             notify(EventAcknowledged(evid, zem))
@@ -266,7 +272,8 @@ class EventFacade(ZuulFacade):
                     context=None, history=False):
         context = resolve_context(context, self._dmd.Events)
         zem = self._event_manager(history)
-        r_evids = zem.getEventIDsFromRanges(context, sort, dir, start, limit,
+        orderby = self._get_orderby_clause(sort, dir, history);
+        r_evids = zem.getEventIDsFromRanges(context, orderby, start, limit,
                                             filters, evids, ranges, asof)
         zem.manage_unackEvents(r_evids)
         for evid in r_evids:
@@ -277,7 +284,8 @@ class EventFacade(ZuulFacade):
                     context=None, history=False):
         context = resolve_context(context, self._dmd.Events)
         zem = self._event_manager(history)
-        r_evids = zem.getEventIDsFromRanges(context, sort, dir, start, limit,
+        orderby = self._get_orderby_clause(sort, dir, history);
+        r_evids = zem.getEventIDsFromRanges(context, orderby, start, limit,
                                             filters, evids, ranges, asof)
         zem.manage_undeleteEvents(r_evids)
         for evid in r_evids:
@@ -288,9 +296,66 @@ class EventFacade(ZuulFacade):
                     context=None, history=False):
         context = resolve_context(context, self._dmd.Events)
         zem = self._event_manager(history)
-        r_evids = zem.getEventIDsFromRanges(context, sort, dir, start, limit,
+        orderby = self._get_orderby_clause(sort, dir, history);
+        r_evids = zem.getEventIDsFromRanges(context, orderby, start, limit,
                                             filters, evids, ranges, asof)
         zem.manage_deleteEvents(r_evids)
         for evid in r_evids:
             notify(EventClosed(evid, zem))
+
+    
+
+    def getStateRanges(self, state=1, field='severity', direction='DESC',
+                     filters=None, history=False, context=None, asof=None):
+        query_tpl = """
+        select row, eventstate from (
+            select @row:=if(@row is null, 1, @row+1) as row,
+                   @idx:=if(@marker!=eventstate, 1, 0) as idx,
+                   @marker:=eventstate as eventstate
+            from (%s) as x
+        ) as y
+        where idx=1;
+        """
+        if filters is None:
+            filters = {}
+        elif isinstance(filters, basestring):
+            filters = unjson(filsters)
+        zem = self._event_manager(history)
+        context = resolve_context(context, self._dmd.Events)
+        where = zem.lookupManagedEntityWhere(context)
+        #escape any % in the where clause because of format eval later
+        where = where.replace('%', '%%')
+
+        values = []
+        where = zem.filteredWhere(where, filters, values)
+        if asof:
+            where += " and not (stateChange>%s and eventState=0)" % (
+                                                zem.dateDB(asof))
+        table = history and 'history' or 'status'
+        q = 'select eventState from %s where %s ' % (table, where)
+        orderby = self._get_orderby_clause(field, direction, history)
+        q += 'order by %s' % zem._scrubOrderby(orderby)
+        query = query_tpl % q
+        try:
+            conn = zem.connect()
+            curs = conn.cursor()
+            curs.execute("set @row:=0;")
+            curs.execute("set @marker:=999;")
+            curs.execute(query, values)
+            result = curs.fetchall()
+        finally:
+            curs.close()
+        ranges = []
+        currange = []
+        for idx, st in result:
+            if st==state:
+                currange.append(idx)
+            else:
+                if len(currange)==1:
+                    currange.append(idx-1)
+                    ranges.append(currange)
+                    currange = []
+        if currange:
+            ranges.append(currange)
+        return ranges
 

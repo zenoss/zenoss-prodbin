@@ -72,7 +72,7 @@ class RelationshipBase(PrimaryPathManager):
         raise NotImplementedError 
 
 
-    def _remove(self,obj=None):
+    def _remove(self,obj=None, suppress_events=False):
         """
         Remove object from local side of relationship. 
         If obj=None remove all object in the relationship
@@ -104,10 +104,10 @@ class RelationshipBase(PrimaryPathManager):
                         self.getPrimaryId())
 
 
-    def removeRelation(self, obj=None):
+    def removeRelation(self, obj=None, suppress_events=False):
         """remove an object from a relationship"""
         self._remoteRemove(obj)
-        self._remove(obj)
+        self._remove(obj, suppress_events=suppress_events)
 
 
     def remoteType(self):

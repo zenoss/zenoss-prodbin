@@ -284,4 +284,61 @@ class IEventFacade(IFacade):
         @param history: Whether we should look on the history table
         @type history: bool
         """
+        
+    def getStateRanges(self, state=1, sort='severity', dir='DESC',
+                     filters=None, history=False, context=None, asof=None):
+        """
+        Get a list of ranges describing contiguous blocks of events with a
+        certain state.
+
+        For example, in this one-column table:
+
+            A
+            A
+            A
+            B
+            B
+            A
+            B
+            B
+            B
+
+        The 'A' ranges are [[1,3], [6,6]], and the 'B' ranges are
+        [[4,5],[7,9]].
+
+        This is achieved by keeping a running total number of rows (@row in
+        query_tpl below), and marking those rows where the eventState switches
+        from one to another (@idx in query_tpl below). Selecting that from a
+        subquery that selects the actual events (given filters and sort) yields
+        the row number and event state of the first row of each contiguous
+        block of events:
+
+            ((1L, 0), (345L, 1), (347L, 0))
+
+        One can then determine the ranges (in the above example, the new (0)
+        events are at indices [[1,344],[347,END]] where END is the total number
+        of rows).
+
+        Calculating the total number of rows returned by the innermost subquery
+        might be costly, so we return a single-member range and let the browser
+        fill in the total, which it already knows, as the subquery necessarily
+        also describes the current state of the grid.
+
+        @param state: The state for which ranges should be calculated.
+        @type state: int
+        @param sort: The column by which the events should be sorted.
+        @type sort: str
+        @param dir: The direction in which events should be sorted, either
+                    "ASC" or "DESC"
+        @type dir: str
+        @param filters: Values for which to create filters (e.g.,
+                        {'device':'^loc.*$', 'severity':[4, 5]})
+        @type filters: dict or JSON str representing dict
+        @param context:
+        @param asof: Last time as of which ranges were accurate
+        @type asof: float
+        @return: A list of lists comprising indices marking the boundaries of
+                 contiguous events with the given state.
+        @rtype: list
+        """        
 

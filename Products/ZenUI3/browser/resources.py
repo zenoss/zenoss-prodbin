@@ -13,11 +13,28 @@
 import os
 import re
 import simplejson
+import logging
 import Globals
 from Products.Five.browser import BrowserView
 
-JSBFILE = os.path.join(os.path.dirname(__file__), 'zenoss.jsb2')
+_MISSING_JS_FILE_MESSAGE="""
+************************************************************
+The compressed javascript file %s
+does not exist.  Zenoss will still run but UI performance is 
+HEAVILY DEGRADED.  Please fix by running inst/buildjs.sh. 
+************************************************************"""
 
+def _checkForCompiledJSFile():
+    COMPILED_JS_FILE = os.path.join(os.path.dirname(__file__), 
+                                'resources/js/deploy/zenoss-compiled.js')
+    jsFileExists =  os.path.exists(COMPILED_JS_FILE)
+    if not Globals.DevelopmentMode and not jsFileExists:
+        logging.getLogger().warning(_MISSING_JS_FILE_MESSAGE 
+                                    % COMPILED_JS_FILE)
+    return jsFileExists
+
+JSBFILE = os.path.join(os.path.dirname(__file__), 'zenoss.jsb2')
+COMPILED_JS_EXISTS = _checkForCompiledJSFile()
 
 class ExtJSShortcut(BrowserView):
     def __getitem__(self, name):
@@ -52,10 +69,12 @@ class ZenossJavaScript(BrowserView):
     """
     When Zope is in debug mode, we want to use the development JavaScript
     source files, so we don't have to make changes to a single huge file. When
-    Zope is in production mode, we want a single minified file.
+    Zope is in production mode, we want a single minified file.  If Zope is
+    in production mode and the compressed file is not available, we will use
+    the source files instead of just giving up.
     """
     def __call__(self):
-        if Globals.DevelopmentMode:
+        if Globals.DevelopmentMode or not COMPILED_JS_EXISTS:
             return self.dev()
         else:
             return self.production()

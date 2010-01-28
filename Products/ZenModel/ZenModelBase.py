@@ -675,7 +675,10 @@ class ZenModelZenDocProvider(object):
         self._underlyingObject = zenModelBase
 
     def getZendoc(self):
-        return self._underlyingObject._zendoc
+        zendoc = self._underlyingObject._zendoc
+        if not zendoc and self._underlyingObject.aqBaseHasAttr( 'description' ):
+            zendoc = self._underlyingObject.description
+        return zendoc
 
     def setZendoc(self, zendocText):
         self._underlyingObject._zendoc = zendocText

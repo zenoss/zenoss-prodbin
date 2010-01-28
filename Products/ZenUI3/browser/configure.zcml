@@ -110,13 +110,6 @@
     />
 
 <browser:page
-    template="templates/datasource.pt"
-    name="datasource"
-    for="*"
-    permission="zope2.Public"
-    />
-
-<browser:page
     template="templates/service.pt"
     name="service"
     for="*"
@@ -138,12 +131,11 @@
     />
 
 <browser:page
-    template="templates/base-new.pt"
-    name="advanced"
+    template="templates/template.pt"
+    name="template"
     for="*"
     permission="zope2.Public"
     />
-
 
 <include package=".eventconsole"/>
 

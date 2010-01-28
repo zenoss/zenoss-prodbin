@@ -155,10 +155,21 @@
 
     <browser:viewlet
         name="Advanced"
-        url="/zport/dmd/advanced"
+        url="/zport/dmd/template"
         weight="6"
         manager="..navigation.interfaces.IPrimaryNavigationMenu"
         class="..navigation.menuitem.PrimaryNavigationMenuItem"
+        permission="zope2.Public"
+        layer="zenossNav"
+        />
+        
+    <browser:viewlet
+        name="Monitoring Templates"
+        url="/zport/dmd/template"
+        weight="1"
+        parentItem="Advanced"
+        manager="..navigation.interfaces.ISecondaryNavigationMenu"
+        class="..navigation.menuitem.SecondaryNavigationMenuItem"
         permission="zope2.Public"
         layer="zenossNav"
         />

@@ -67,7 +67,7 @@ class ToManyRelationshipBase(
         return objects 
 
     
-    def _delObject(self, id, dp=1):
+    def _delObject(self, id, dp=1, suppress_events=False):
         """Emulate ObjectManager deletetion."""
         unused(dp)
         obj = self._getOb(id, False)
@@ -76,7 +76,7 @@ class ToManyRelationshipBase(
             "Tried to delete object id '%s' but didn't find it on %s", 
             id, self.getPrimaryId())
             return
-        self.removeRelation(obj)
+        self.removeRelation(obj, suppress_events)
         obj.__primary_parent__ = None
 
     

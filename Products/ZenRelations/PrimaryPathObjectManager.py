@@ -104,7 +104,7 @@ class PrimaryPathObjectManager(
         return ObjectManager._setObject(self, id, obj, roles, user, set_owner)
 
 
-    def _delObject(self, id, dp=1):
+    def _delObject(self, id, dp=1, suppress_events=False):
         """When deleted clear __primary_parent__."""
         obj = self._getOb(id, None)
         if obj is None:
@@ -119,7 +119,7 @@ class PrimaryPathObjectManager(
             "Tried to delete object id '%s' but didn't find it on %s", 
             id, self.getPrimaryId())
             return
-        ObjectManager._delObject(self, id, dp)
+        ObjectManager._delObject(self, id, dp, suppress_events)
         obj.__primary_parent__ = None
 
 
@@ -133,8 +133,8 @@ class PrimaryPathBTreeFolder2(BTreeFolder2):
         return ObjectManager._setObject(self, id, obj, roles, user, set_owner)
 
 
-    def _delObject(self, id, dp=1):
+    def _delObject(self, id, dp=1, suppress_events=False):
         """When deleted clear __primary_parent__."""
         obj = self._getOb(id)
-        ObjectManager._delObject(self, id, dp)
+        ObjectManager._delObject(self, id, dp, suppress_events)
         obj.__primary_parent__ = None

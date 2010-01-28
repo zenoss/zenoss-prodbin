@@ -2,7 +2,6 @@ import time
 
 from Products.ZenUI3.browser.eventconsole.grid import column_config
 from Products.ZenUtils.Ext import DirectRouter
-from Products.ZenUtils.json import unjson
 from Products.Zuul import getFacade
 from Products.Zuul.decorators import require
 from Products import Zuul
@@ -21,7 +20,9 @@ class EventsRouter(DirectRouter):
                                history)
         self._set_asof(time.time())
         disabled = not Zuul.checkPermission('Manage Events')
-        return {'events':events['data'], 'disabled': disabled}
+        return {'events':events['data'], 
+                'disabled': disabled, 
+                'totalCount': events['total'] }
 
     def queryHistory(self, limit, start, sort, dir, params):
         return self.query(limit, start, sort, dir, params, history=True)
@@ -67,112 +68,14 @@ class EventsRouter(DirectRouter):
                         asof=self._asof, context=uid, history=history)
         return {'success':True}
 
+
     def state_ranges(self, state=1, field='severity', direction='DESC',
                      params=None, history=False, uid=None):
-        """
-        Get a list of ranges describing contiguous blocks of events with a
-        certain state.
-
-        For example, in this one-column table:
-
-            A
-            A
-            A
-            B
-            B
-            A
-            B
-            B
-            B
-
-        The 'A' ranges are [[1,3], [6,6]], and the 'B' ranges are
-        [[4,5],[7,9]].
-
-        This is achieved by keeping a running total number of rows (@row in
-        query_tpl below), and marking those rows where the eventState switches
-        from one to another (@idx in query_tpl below). Selecting that from a
-        subquery that selects the actual events (given filters and sort) yields
-        the row number and event state of the first row of each contiguous
-        block of events:
-
-            ((1L, 0), (345L, 1), (347L, 0))
-
-        One can then determine the ranges (in the above example, the new (0)
-        events are at indices [[1,344],[347,END]] where END is the total number
-        of rows).
-
-        Calculating the total number of rows returned by the innermost subquery
-        might be costly, so we return a single-member range and let the browser
-        fill in the total, which it already knows, as the subquery necessarily
-        also describes the current state of the grid.
-
-        @param state: The state for which ranges should be calculated.
-        @type state: int
-        @param sort: The column by which the events should be sorted.
-        @type sort: str
-        @param dir: The direction in which events should be sorted, either
-                    "ASC" or "DESC"
-        @type dir: str
-        @param filters: Values for which to create filters (e.g.,
-                        {'device':'^loc.*$', 'severity':[4, 5]})
-        @type filters: dict or JSON str representing dict
-        @return: A list of lists comprising indices marking the boundaries of
-                 contiguous events with the given state.
-        @rtype: list
-        """
-        query_tpl = """
-        select row, eventstate from (
-            select @row:=if(@row is null, 1, @row+1) as row,
-                   @idx:=if(@marker!=eventstate, 1, 0) as idx,
-                   @marker:=eventstate as eventstate
-            from (%s) as x
-        ) as y
-        where idx=1;
-        """
-        if params is None:
-            params = {}
-        elif isinstance(params, basestring):
-            params = unjson(params)
-        zem = self.api._event_manager(history)
         if uid is None:
-            context = self.context
-        else:
-            context = self.api._dmd.unrestrictedTraverse(uid)
-        where = zem.lookupManagedEntityWhere(context)
-        #escape any % in the where clause because of format eval later
-        where = where.replace('%', '%%')
+            uid = self.context
+        return self.api.getStateRanges(state, field, direction, params, history,
+                                       uid, self._asof);
 
-        values = []
-        where = zem.filteredWhere(where, params, values)
-        if self._asof:
-            where += " and not (stateChange>%s and eventState=0)" % (
-                                                self.dateDB(self._asof))
-        table = history and 'history' or 'status'
-        q = 'select eventState from %s where %s ' % (table, where)
-        q += 'order by %s %s' % (field, direction)
-        query = query_tpl % q
-        try:
-            conn = zem.connect()
-            curs = conn.cursor()
-            curs.execute("set @row:=0;")
-            curs.execute("set @marker:=999;")
-            curs.execute(query, values)
-            result = curs.fetchall()
-        finally:
-            curs.close()
-        ranges = []
-        currange = []
-        for idx, st in result:
-            if st==state:
-                currange.append(idx)
-            else:
-                if len(currange)==1:
-                    currange.append(idx-1)
-                    ranges.append(currange)
-                    currange = []
-        if currange:
-            ranges.append(currange)
-        return ranges
 
     def detail(self, evid, history=False):
         event = self.api.detail(evid, history)

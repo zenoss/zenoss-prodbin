@@ -17,6 +17,11 @@
     src="/zenui/js/livegrid/livegrid-all-debug.js"></script>
 <tal:block tal:content="structure provider:jssnippets"/>
 <script src="extdirect.js"></script>
+<script>
+Ext.state.Manager.setProvider(new Ext.state.CookieProvider({
+    expires: new Date(new Date().getTime()+(1000*60*60*24*30))
+}));
+</script>
 </tal:block>
 
 <tal:block metal:fill-slot="script_layout">

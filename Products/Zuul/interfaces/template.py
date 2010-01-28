@@ -1,8 +1,7 @@
-<!--
 ###########################################################################
 #
 # This program is part of Zenoss Core, an open source monitoring platform.
-# Copyright (C) 2009, Zenoss Inc.
+# Copyright (C) 2010, Zenoss Inc.
 #
 # This program is free software; you can redistribute it and/or modify it
 # under the terms of the GNU General Public License version 2 as published by
@@ -11,12 +10,18 @@
 # For complete information please visit: http://www.zenoss.com/oss/
 #
 ###########################################################################
--->
 
-<tal:block metal:use-macro="context/page_macros/masterdetailsplit3">
+from zope.interface import Interface, Attribute
+from info import IInfo
 
-<tal:block metal:fill-slot="script_layout">
-<script src="/zenui/js/zenoss/datasource.js"></script>
-</tal:block> <!-- metal:fill-slot="script_layout" -->
+class ITemplateNode(IInfo):
+    """
+    A template node contains template leaves. It contains all of the templates
+    throughout device class hierarchy that share the same id.
+    """
 
-</tal:block> <!-- metal:use-macro="context/page_macros/masterdetailsplit2" -->
+class ITemplateLeaf(IInfo):
+    """
+    A template leaf is a single instance of an RRD template at a specific
+    spot in the device class hierarchy.
+    """

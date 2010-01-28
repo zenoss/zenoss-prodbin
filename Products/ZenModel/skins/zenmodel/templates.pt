@@ -20,6 +20,21 @@
         <tal:block metal:use-macro="here/templates/macros/head1"/>
         <tal:block metal:define-slot="head-local"/>
         <tal:block metal:use-macro="here/zenuimacros/macros/jsutils"/>
+        <script type="text/javascript" src="/extjs/adapters/ext/ext-base.js">
+        </script>
+        <script>
+        (function() {
+            var ua = navigator.userAgent.toLowerCase();
+            if (ua.indexOf("firefox/3.6") > -1) {
+                Ext.toArray = function(a, i, j, res) {
+                    res = [];
+                    Ext.each(a, function(v) { res.push(v); });
+                    return res.slice(i || 0, j || res.length);
+                }
+            }
+        })();
+        </script>
+        <script type="text/javascript" id="extall" src="/extjs/ext-all.js"></script>
     </head>
 	<body class="yui-skin-sam">
     <tal:block metal:use-macro="here/dialogmacros/macros/proxyForm"/>

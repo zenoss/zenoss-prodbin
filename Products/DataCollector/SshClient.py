@@ -239,8 +239,8 @@ class SshUserAuth(userauth.SSHUserAuthClient):
         
         user = str(user)                # damn unicode
         if user == '':
-            log.debug( "Unable to determine username/password from " + \
-                       "zCommandUser/zCommandPassword" )
+            log.debug("Unable to determine username/password from " + \
+                       "zCommandUser/zCommandPassword")
 
             # From the Python docs about the preferred method of 
             # obtaining user name in preference to os.getlogin()
@@ -454,7 +454,7 @@ class SshConnection(connection.SSHConnection):
         @param factory: factory containing the connection info
         @type factory: Twisted factory object
         """
-        log.debug( "Creating new SSH connection..." )
+        log.debug("Creating new SSH connection...")
         connection.SSHConnection.__init__(self)
         self.factory = factory
 
@@ -469,7 +469,7 @@ class SshConnection(connection.SSHConnection):
         message= "CHANNEL_FAILURE: Authentication failure"
         log.error( message )
         sendEvent( self, message=message )
-        connection.SSHConnection.ssh_CHANNEL_FAILURE( self, packet )
+        connection.SSHConnection.ssh_CHANNEL_FAILURE(self, packet)
 
 
     def ssh_CHANNEL_OPEN_FAILURE( self, packet):
@@ -510,7 +510,6 @@ class SshConnection(connection.SSHConnection):
         @param reason: reason object
         @type reason: reason object
         """
-
         message= 'SSH connection to %s failed (error code %d): %s' % \
                  (self.command, reason.code, str(reason.desc) )
         log.error( message )
@@ -534,6 +533,9 @@ class SshConnection(connection.SSHConnection):
         """
         ch = CommandChannel(cmd, conn=self)
         self.openChannel(ch)
+        targetIp = self.transport.transport.addr[0]
+        log.debug("%s channel %s SshConnection added command %s",
+                  targetIp, ch.id, cmd)
 
 
     def channelClosed(self, channel):
@@ -544,6 +546,9 @@ class SshConnection(connection.SSHConnection):
         @param channel: channel that closed
         @type channel: Twisted channel object
         """
+        targetIp = self.transport.transport.addr[0]
+        log.debug("%s channel %s SshConnection closing",
+                  targetIp, channel.id)
         # grr.. patch SSH inherited method to deal with partially
         # configured channels
         self.localToRemoteChannel[channel.id] = None
@@ -556,7 +561,6 @@ class CommandChannel(channel.SSHChannel):
     """
     The class that actually interfaces between Zenoss and the device.
     """
-
     name = 'session'
     conn = None
 
@@ -572,7 +576,7 @@ class CommandChannel(channel.SSHChannel):
         channel.SSHChannel.__init__(self, conn=conn)
         self.command = command
         self.exitCode = None
-        log.debug( "Started the channel for command: %s" % command )
+        self.targetIp = conn.transport.transport.addr[0]
 
 
     def openFailed(self, reason):
@@ -584,14 +588,13 @@ class CommandChannel(channel.SSHChannel):
             args = (reason.data, reason.value)
         else:
             args = (reason.code, reason.desc)
-        message = 'Open of %s failed (error code %d): %s' % (
+        message = 'CommandChannel Open of %s failed (error code %d): %s' % (
                 (self.command,) + args)
-        log.warn(message)
+        log.warn("%s %s", self.targetIp, message)
         sendEvent(self, message=message)
         channel.SSHChannel.openFailed(self, reason)
         if self.conn is not None:
             self.conn.factory.clientFinished()
-
 
 
     def extReceived(self, dataType, data ):
@@ -603,8 +606,9 @@ class CommandChannel(channel.SSHChannel):
         """
         message= 'The command %s returned stderr data (%d) from the device: %s' \
                  % (self.command, dataType, data)
-        log.warn( message )
-        sendEvent( self, message=message )
+        log.warn("%s channel %s %s", self.targetIp, self.conn.localChannelID,
+                 message)
+        sendEvent(self, message=message)
 
 
     def channelOpen(self, unused):
@@ -617,7 +621,8 @@ class CommandChannel(channel.SSHChannel):
         @rtype: Twisted channel
         """
 
-        log.debug('Opening command channel for %s' % self.command)
+        log.debug('%s channel %s Opening command channel for %s',
+                  self.targetIp, self.conn.localChannelID, self.command)
         self.data = ''
         
         #  Notes for sendRequest:
@@ -638,10 +643,9 @@ class CommandChannel(channel.SSHChannel):
         """
         import struct
         self.exitCode = struct.unpack('>L', data)[0]
-        log.debug("Exit code for %s is %d: %s",
-                  self.command,
-                  self.exitCode,
-                  getExitMessage(self.exitCode))
+        log.debug("%s channel %s CommandChannel exit code for %s is %d: %s",
+                  self.targetIp, getattr(self.conn, 'localChannelID', None),
+                  self.command, self.exitCode, getExitMessage(self.exitCode))
 
 
     def dataReceived(self, data):
@@ -658,8 +662,9 @@ class CommandChannel(channel.SSHChannel):
         """
         Cleanup for the channel, as both ends have closed the channel.
         """
-        log.debug('Closed command channel for command %s with data: %s' % \
-                   (self.command, repr(self.data)))
+        log.debug('%s channel %s CommandChannel closing command channel for command %s with data: %s',
+                  self.targetIp, getattr(self.conn, 'localChannelID', None),
+                  self.command, repr(self.data))
         self.conn.factory.addResult(self.command, self.data, self.exitCode)
         self.loseConnection()
 
@@ -707,10 +712,14 @@ class SshClient(CollectorClient.CollectorClient):
         """
         Start SSH collection.
         """
+        log.debug("%s SshClient connecting to %s:%s with timeout %s seconds",
+                       self.ip, self.hostname, self.port, self.loginTimeout)
         reactor.connectTCP(self.ip, self.port, self, self.loginTimeout)
 
 
     def runCommands(self):
+        log.debug("%s SshClient assigning %d commands to channels (max = %s, current = %s)",
+                  self.ip, len(self.workList), self.concurrentSessions, self.openSessions)
         availSessions = (self.concurrentSessions - 1) - self.openSessions
         for i in range(min(len(self.workList), availSessions)):
             cmd = self.workList.pop(0)
@@ -720,6 +729,8 @@ class SshClient(CollectorClient.CollectorClient):
 
     def channelClosed(self):
         self.openSessions -= 1
+        log.debug("%s SshClient closing channel (openSessions = %s)",
+                  self.ip, self.openSessions)
         if self.commandsFinished():
             if self.isLoseConnection:
                 self.transport.loseConnection()
@@ -740,7 +751,7 @@ class SshClient(CollectorClient.CollectorClient):
         @type sshconn: Twisted SSH connection
         """
 
-        log.info("Connected to device %s" % self.hostname)
+        log.info("SshClient connected to device %s (%s)", self.hostname, self.ip)
         self.connection = sshconn
         self.runCommands()
 
@@ -753,7 +764,6 @@ class SshClient(CollectorClient.CollectorClient):
         @param commands: commands to run
         @type commands: list
         """
-
         CollectorClient.CollectorClient.addCommand(self, commands)
         if type(commands) == type(''):
             commands = (commands,)
@@ -776,8 +786,8 @@ class SshClient(CollectorClient.CollectorClient):
         from Products.ZenUtils.Utils import unused
         unused(connector)
         message= reason.getErrorMessage()
-        log.error( message )
-        sendEvent( self, device=self.hostname, message=message )
+        log.error("%s %s", self.ip, message)
+        sendEvent(self, device=self.hostname, message=message)
         self.clientFinished()
 
 
@@ -785,7 +795,7 @@ class SshClient(CollectorClient.CollectorClient):
         """
         Called when the connection gets closed.
         """
-        log.debug( "Connection closed" )
+        log.debug("%s SshClient connection closed", self.ip)
         #self.connection.loseConnection()
 
 
@@ -818,7 +828,7 @@ def main():
 
     # Rather than getting info from zenhub, just pass our
     # commands in
-    client.getCommands= lambda: chain( options.commands )
+    client.workList= options.commands
 
     client.run()
 

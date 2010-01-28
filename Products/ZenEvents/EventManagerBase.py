@@ -437,8 +437,7 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
         values.extend(queryValues)
         return where + newwhere
 
-
-    def getEventIDsFromRanges(self, context, sort, direction, start=None,
+    def getEventIDsFromRanges(self, context, orderby, start=None,
                               limit=None, filters=None, evids=None,
                               ranges=None, asof=None):
         """
@@ -475,11 +474,15 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
             # Iterate through the ranges, adding event IDs for each
             events = []
             for s,e in ranges:
+                #number of rows to get. ranges passed in seem to be inclusive 
+                #and 0 based, so [100,100] really means one row, the 101st.
+                #mysql is not inclusive and is 1 based so needs to be translated
+                #to "limit 100, 1"
+                rows = e-s+1
                 events += self.getEventList(resultFields=('evid',),
-                                            where=where, orderby="%s %s" %
-                                            (sort, direction), severity=-1,
-                                            state=2, offset=s, rows=e,
-                                            filters=filters)
+                                            where=where, orderby=orderby,
+                                            severity=-1, state=2, offset=s,
+                                            rows=rows, filters=filters)
 
         # Uniqueify the list of event IDs and return as a list
         evids = set(e.evid for e in events) | set(evids)
@@ -668,26 +671,10 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
                 orderby = self.defaultOrderby
             if orderby:
                 #validate orderby is a valid field 
-                sortValues = []
-                prevSortCol = None
-                for x in orderby.split(','):
-                    col, dir = x.split()
-                    col = col.lower()
-                    dir = dir.upper()
-                    if dir not in ['DESC','ASC'] or col not in fieldList:
-                        raise ("order by  value %s %s not valid" % (col, dir))
-                    #remove adjacent sorts of same column; 
-                    if not prevSortCol or prevSortCol != col:
-                        sortValues.append((col, dir))
-                    prevSortCol = col
-                log.debug("orderby is %s" % orderby)
-
-                orderby = ', '.join([' '.join(x) for x in sortValues])
-                    
-                log.debug("final orderby is %s" % orderby)
-
+                orderby = self._scrubOrderby(orderby)
                 select.append("order by")
                 select.append(orderby)
+
             if rows:
                 #validate offset and rows are ints
                 int(offset)
@@ -1345,6 +1332,34 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
         startdate = self.dateDB(startdate)
         enddate = self.dateDB(enddate)
         return startdate, enddate
+    
+    def _scrubOrderby(self, orderby):
+        """
+        validates the syntax and columns for an orderby used on the status and
+        history tables. Also removes adjacent sorts of the same columns as an
+        optimization
+        @return: orderby by clause
+        @raise exception: if order by clause is invalid 
+        """
+        sortValues = []
+        prevSortCol = None
+        fieldList = [x.lower() for x in self.getFieldList()]
+        log.debug("orderby is %s" % orderby)
+        for x in orderby.split(','):
+            col, dir = x.split()
+            col = col.lower()
+            dir = dir.upper()
+            if dir not in ['DESC','ASC'] or col not in fieldList:
+                raise ("order by  value %s %s not valid" % (col, dir))
+            #remove adjacent sorts of same column; 
+            if not prevSortCol or prevSortCol != col:
+                sortValues.append((col, dir))
+            prevSortCol = col
+
+        orderby = ', '.join([' '.join(x) for x in sortValues])
+            
+        log.debug("final orderby is %s" % orderby)
+        return orderby
 
     def getAvgFieldLength(self, fieldname):
         conn = self.connect()

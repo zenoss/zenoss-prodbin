@@ -52,6 +52,10 @@ class ModelerPlugin:
         return self.path.split('/')
 
 
+def print_cdata( content, indent=0 ):
+    print " " * indent + """<![CDATA[%s]]>""" % content
+    
+
 def print_xml_tree(tree, indent=0):
     if '__id' in tree:
         header = " " * indent + """<%(__meta_type)s id="%(__id)s" location="%(__location)s" """ % tree
@@ -62,7 +66,7 @@ def print_xml_tree(tree, indent=0):
         print header + " >"
         desc = tree['__description']
         if desc:
-            print " " * indent + """<![CDATA[%s]]>""" % desc
+            print_cdata( desc, indent )
 
     for obj in sorted(tree.keys()):
         if obj.startswith('__'): continue
@@ -198,6 +202,11 @@ def zenpack_trailer():
 def zenpack2XML(dmd, zp):
     dependencies = ', '.join( [' '.join([x,y]) for x, y in sorted(zp.dependencies.items()) ] )
     zenpack_header( zp.id, zp.version, zp.author, dependencies )
+    zendocObj = zope.component.queryAdapter(zp, IZenDocProvider)
+    if zendocObj:
+        zenpackZendoc = zendocObj.getZendoc()
+        if zenpackZendoc:
+            print_cdata( zenpackZendoc )   
 
     # Since the packables aren't arranged hierarchically,
     # we need to build our own tree.

@@ -92,7 +92,7 @@ class ToManyRelationship(ToManyRelationshipBase):
         self.__primary_parent__._p_changed = True
 
 
-    def _remove(self, obj=None):
+    def _remove(self, obj=None, suppress_events=False):
         """remove object from our side of a relationship"""
         if obj:
             try:
@@ -127,13 +127,13 @@ class ToManyRelationship(ToManyRelationshipBase):
         self.addRelation(object)
 
     
-    def _delObject(self, id):
+    def _delObject(self, id, dp=1, suppress_events=False):
         """
         Delete object by its absolute id (ie /zport/dmd/bla/bla)
         (this is sent out in the object*All API)
         """
         obj = getObjByPath(self, id)
-        self.removeRelation(obj)
+        self.removeRelation(obj, suppress_events=suppress_events)
 
     
     def _getOb(self, id, default=zenmarker):

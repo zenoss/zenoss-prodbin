@@ -34,4 +34,11 @@
     namespace="Zenoss.remote"
     />
 
+<browser:directRouter
+    name="template_router"
+    for="*"
+    class=".template.TemplateRouter"
+    namespace="Zenoss.remote"
+    />
+
 </configure>

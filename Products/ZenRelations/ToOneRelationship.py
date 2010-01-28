@@ -82,7 +82,7 @@ class ToOneRelationship(RelationshipBase):
         self.__primary_parent__._p_changed = True
 
 
-    def _remove(self,obj=None):
+    def _remove(self,obj=None, suppress_events=False):
         """remove the to one side of a relationship"""
         if obj == None or obj == self.obj:
             self.obj = None

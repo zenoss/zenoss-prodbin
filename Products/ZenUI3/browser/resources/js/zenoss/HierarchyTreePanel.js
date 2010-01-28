@@ -188,13 +188,6 @@ Zenoss.HierarchyTreePanel = Ext.extend(Ext.tree.TreePanel, {
             uid: root.uid,
             text: _t(root.text || root.id)
         });
-        if(config.selectRootOnLoad) {
-            config.listeners = Ext.applyIf(config.listeners || {}, {
-                render: function(tree) {
-                   tree.getRootNode().on('load', function(node){node.select()});
-                }
-            });
-        }
         config.listeners = Ext.applyIf(config.listeners || {}, {
             buttonClick: buttonClickHandler
         });
@@ -206,6 +199,11 @@ Zenoss.HierarchyTreePanel = Ext.extend(Ext.tree.TreePanel, {
     },
     initEvents: function() {
         Zenoss.HierarchyTreePanel.superclass.initEvents.call(this);
+        if (this.selectRootOnLoad) {
+            this.getRootNode().on('load', function(node){
+                node.select()
+            });
+        }
         this.on('click', function(node, event) {
             Ext.History.add(
                 this.id + Ext.History.DELIMITER + node.getPath()

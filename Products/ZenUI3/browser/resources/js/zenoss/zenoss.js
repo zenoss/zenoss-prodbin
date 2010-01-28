@@ -13,9 +13,11 @@ Ext.namespace('Zenoss.env');
 
 Ext.QuickTips.init();
 
+/*
 Ext.state.Manager.setProvider(new Ext.state.CookieProvider({
     expires: new Date(new Date().getTime()+(1000*60*60*24*30))
 }));
+*/
 
 /*
  * Hook up all Ext.Direct requests to the connection error message box.
@@ -245,6 +247,7 @@ Ext.reg('livegridinfo', Zenoss.LiveGridInfoPanel);
  * @constructor
  */
 Zenoss.FilterGridView = Ext.extend(Ext.ux.grid.livegrid.GridView, {
+    forceFit: true,
     rowHeight: 22,
     rowColors: false,
     liveSearch: true,
@@ -1112,13 +1115,11 @@ Zenoss.util.convertStatus = function(stat){
 }
 
 Zenoss.util.render_severity = function(sev) {
-    return '<div class="severity-icon-small '+
-        Zenoss.util.convertSeverity(sev) +
-        '"'+'><'+'/div>'
+    return Zenoss.render.severity(sev);
 }
 
 Zenoss.util.render_status = function(stat) {
-    return '<div class="status-icon-small '+stat.toLowerCase()+'"><'+'/div>';
+    return Zenoss.render.evstatus(stat);
 }
 
 Zenoss.util.render_linkable = function(name, col, record) {
@@ -1209,40 +1210,6 @@ Zenoss.util.setContext = function(uid) {
     });
 }
 
-
-Ext.ns('Zenoss.render');
-
-// templates for the events renderer
-var iconTemplate = new Ext.Template(
-    '<td class="severity-icon-small {severity}">{count}</td>'
-);
-iconTemplate.compile();
-
-var rainbowTemplate = new Ext.Template(
-    '<table class="eventrainbow"><tr>{cells}</tr></table>'
-);
-rainbowTemplate.compile();
-                     
-// renders events using icons for critical, error and warning
-Zenoss.render.events = function (value) {
-    var result = '';
-    Ext.each(['critical', 'error', 'warning'], function(severity) {
-        result += iconTemplate.apply({severity: severity, count:value[severity]});
-    });
-    return rainbowTemplate.apply({cells: result});
-}
-
-// renders availability as a percentage with 3 digits after decimal point
-Zenoss.render.availability = function(value) {
-    return Ext.util.Format.number(value*100, '0.000%');
-}
-
-Zenoss.render.deviceClass = function(value) {
-    value = value.replace(/^\/zport\/dmd\/Devices/, '');
-    value = value.replace(/\/devices\/.*$/, '');
-    var url = '/zport/dmd/itinfrastructure#devices:/Devices' + value;
-    return '<a href="'+url+'">'+value+'</a>';
-}
 
 /**
  * Proxy that will only allow one request to be loaded at a time.  Requests 

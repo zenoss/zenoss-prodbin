@@ -141,12 +141,13 @@ class ToManyContRelationship(ToManyRelationshipBase):
         obj = aq_base(obj).__of__(self)
 
 
-    def _remove(self, obj=None):
+    def _remove(self, obj=None, suppress_events=False):
         """remove object from our side of a relationship"""
         if obj: objs = [obj]
         else: objs = self.objectValuesAll()
-        for robj in objs:
-            notify(ObjectWillBeRemovedEvent(robj, self, robj.getId()))
+        if not suppress_events:
+            for robj in objs:
+                notify(ObjectWillBeRemovedEvent(robj, self, robj.getId()))
         if obj:
             id = obj.id
             if not self._objects.has_key(id):
@@ -157,9 +158,10 @@ class ToManyContRelationship(ToManyRelationshipBase):
         else:
             self._objects = OOBTree()
             self.__primary_parent__._p_changed = True
-        for robj in objs:
-            notify(ObjectRemovedEvent(robj, self, robj.getId()))
-        notify(ContainerModifiedEvent(self))
+        if not suppress_events:
+            for robj in objs:
+                notify(ObjectRemovedEvent(robj, self, robj.getId()))
+            notify(ContainerModifiedEvent(self))
 
 
     def _remoteRemove(self, obj=None):

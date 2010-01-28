@@ -88,3 +88,4 @@ from service import *
 from device import *
 from info import *
 from tree import *
+from template import *

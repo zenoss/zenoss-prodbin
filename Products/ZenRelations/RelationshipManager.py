@@ -129,7 +129,7 @@ class RelationshipManager(PrimaryPathObjectManager, ZenPropertyManager):
         rel.addRelation(obj)
 
 
-    def removeRelation(self, name, obj = None):
+    def removeRelation(self, name, obj = None, suppress_events=False):
         """
         Remove an object from a relationship. 
         If no object is passed all objects are removed.
@@ -137,7 +137,7 @@ class RelationshipManager(PrimaryPathObjectManager, ZenPropertyManager):
         rel = getattr(self, name, None)
         if rel == None:
             raise AttributeError("Relationship %s, not found" % name)
-        rel.removeRelation(obj)
+        rel.removeRelation(obj, suppress_events=suppress_events)
 
 
     def _setObject(self,id,object,roles=None,user=None,set_owner=1):

@@ -22,14 +22,74 @@
 <script>
 Ext.onReady(function(){
 
+function updateNavTextWithCount(node) {
+    var sel = treesm.getSelectedNode();
+    if (sel) {
+        var count = sel.attributes.text.count;
+        node.setText('<b'+'>Devices ('+count+')<'+'/b>')
+    }
+}
+
+Zenoss.nav.register({
+    DeviceLocation: [{
+        id: 'Devices',
+        text: 'Devices',
+        action: function(node, target) {
+            target.layout.setActiveItem('device_grid');
+        },
+        listeners: {
+            render: updateNavTextWithCount
+        }
+    }, {
+        id: 'Map',
+        text: 'Map',
+        action: function(node, target) {
+            target.layout.setActiveItem('map');
+        }
+    }],
+    DeviceClass: [{
+        id: 'Devices',
+        text: 'Devices',
+        action: function(node, target) {
+            target.layout.setActiveItem('device_grid');
+        },
+        listeners: {
+            render: updateNavTextWithCount
+        }
+    },{
+        id: 'zprops',
+        text: 'Configuration Properties',
+        action: function(node, target){
+            target.layout.setActiveItem('zprops');
+        }
+    },{
+        id: 'templates',
+        text: 'Monitoring Templates',
+        action: function(node, target){
+            target.layout.setActiveItem('templates');
+        }
+
+    }]
+
+});
+
 var treesm = new Ext.tree.DefaultSelectionModel({
     listeners: {
         'selectionchange': function(sm, newnode, oldnode){
             var uid = newnode.attributes.uid;
-            Zenoss.util.setContext(uid, 'device_grid', 'organizer_events');
+            Zenoss.util.setContext(uid, 'detail_panel', 'organizer_events');
+            var card = Ext.getCmp('master_panel').getComponent(0),
+                type = Zenoss.types.type(uid);
+            if (type && !Ext.isEmpty(Zenoss.nav[type])) {
+                card.navButton.show();
+                Ext.getCmp('master_panel').getComponent(1).navButton.show();
+            } else {
+                card.navButton.hide();
+            }
         }
     }
 });
+
 
 function initializeTreeDrop(g) {
     var dz = new Ext.tree.TreeDropZone(g, {
@@ -108,11 +168,6 @@ var loctree = {
     listeners: { render: initializeTreeDrop }
 };
 
-var treecontainer = {
-    items: [devtree, grouptree, loctree],
-    autoScroll: true
-};
-
 Ext.getCmp('center_panel').add({
     id: 'center_panel_container',
     layout: 'border',
@@ -120,16 +175,57 @@ Ext.getCmp('center_panel').add({
         'border': false
     },
     items: [{
+        xtype: 'horizontalslide',
         id: 'master_panel',
-        layout: 'fit',
+        text: _t('IT Infrastructure'),
         region: 'west',
         split: true,
         width: 275,
-        items: [treecontainer]
+        items: [{
+            text: _t('IT Infrastructure'),
+            buttonText: _t('Details'),
+            items: [devtree, grouptree, loctree],
+            autoScroll: true
+        },{
+            xtype: 'subselection',
+            text: _t('Details'),
+            target: 'detail_panel',
+            buttonText: _t('See All'),
+            html: 'some other stuff'
+        }],
+        listeners: {
+            beforecardchange: function(me, card, index, from, fromidx) {
+                if (index==1) {
+                    var node = treesm.getSelectedNode().attributes;
+                    card.setHeaderText(node.text.text);
+                } else if (index==0) {
+                    Ext.getCmp('subselecttreepanel').getSelectionModel().getSelectedNode().unselect();
+                    Ext.getCmp('detail_panel').layout.setActiveItem(0);
+                }
+            },
+            cardchange: function(me, card, index, from , fromidx) {
+                if (index==1) {
+                    var node = treesm.getSelectedNode().attributes;
+                    card.card.setContext(node.uid);
+                    // Now, we'll manually preload the iframes on the other
+                    // cards. This is extremely temporary.
+                    var others = Ext.getCmp('detail_panel').items.items.slice(1);
+                    switch (Zenoss.types.type(node.uid)) {
+                        case 'DeviceLocation':
+                            others[2].setContext(node.uid);
+                            break;
+                        case 'DeviceClass':
+                            var cards = others.slice(0,2);
+                            Ext.each(cards, function(c){c.setContext(node.uid)});
+                            break;
+                    }
+                }
+            }
+        }
     },{
+        xtype: 'contextcardpanel',
         id: 'detail_panel',
         region: 'center',
-        layout: 'card',
         activeItem: 0,
         split: true,
         items: [{
@@ -165,6 +261,18 @@ Ext.getCmp('center_panel').add({
                     iconCls: 'configure'
                 }]
             }
+        }, {
+            xtype: 'backcompat',
+            viewName: 'zPropertyEdit',
+            id: 'zprops'
+        }, {
+            xtype: 'backcompat',
+            viewName: 'perfConfig',
+            id: 'templates'
+        },{
+            xtype: 'contextiframe',
+            viewName: 'simpleLocationGeoMap',
+            id: 'map'
         }]
     }]
 });

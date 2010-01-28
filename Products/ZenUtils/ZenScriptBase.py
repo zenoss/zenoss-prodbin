@@ -52,7 +52,7 @@ class ZenScriptBase(CmdBase):
             self.poollock = Lock()
         self.getDataRoot()
         self.login()
-        if not getattr(self.dmd, 'propertyTransformers', None):
+        if getattr(self.dmd, 'propertyTransformers', None) is None:
             self.dmd.propertyTransformers = {}
             commit()
         setDescriptors(self.dmd.propertyTransformers)

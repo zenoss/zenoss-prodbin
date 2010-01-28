@@ -44,6 +44,14 @@ from Products.ZenRelations.Exceptions import *
 
 class RelCopyContainer(CopyContainer):
 
+    def _checkId(self, new_id):
+        """This method gets called from the new manage_renameObject which
+        seems to be a bug in the Zope code. We add it until the problem is
+        fixed.
+        """
+        checkValidId(self, new_id) 
+
+
     def manage_linkObjects(self, ids = None, cb_copy_data=None, REQUEST=None):
         """link objects to relationship"""
         try:
@@ -85,7 +93,9 @@ class RelCopyContainer(CopyContainer):
                           ' the path <EM>%s</EM>' % 
                            (object.id, '/'.join(self.getPhysicalPath())),
                   action='manage_main')
-        CopyContainer._verifyObjectPaste(self,object,validate_src)
+        # We don't need this it checks for meta_type permissions
+        # the check messes up zenhubs ability to rename devices
+        # CopyContainer._verifyObjectPaste(self,object,validate_src)
 
 
     def _getRelName(self, ids):

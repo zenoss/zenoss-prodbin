@@ -1,4 +1,4 @@
-/*
+<!--
 ###########################################################################
 #
 # This program is part of Zenoss Core, an open source monitoring platform.
@@ -11,12 +11,12 @@
 # For complete information please visit: http://www.zenoss.com/oss/
 #
 ###########################################################################
-*/
+-->
 
-Ext.onReady(function(){
+<tal:block metal:use-macro="context/page_macros/masterdetailsplit3">
 
-Ext.getCmp('center_detail_panel').add({
-    xtype: 'DatasourceGridPanel'
-});
+<tal:block metal:fill-slot="script_layout">
+<script src="/zenui/js/zenoss/template.js"></script>
+</tal:block> <!-- metal:fill-slot="script_layout" -->
 
-}); // Ext.onReady
+</tal:block> <!-- metal:use-macro="context/page_macros/masterdetailsplit2" -->
