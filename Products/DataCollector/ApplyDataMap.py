@@ -11,6 +11,7 @@
 #
 ###########################################################################
 
+import sys
 import types
 import threading
 import Queue
@@ -299,10 +300,20 @@ class ApplyDataMap(object):
         for attname, value in objmap.items():
             if type(value) == type(''):
                 try:
-                    value.encode('ascii')
-                except UnicodeEncodeError:
-                    decoding = obj.zCollectorDecoding
-                    value = value.decode(decoding)
+                    # This looks confusing, and it is. The scenario is:
+                    #   A collector gathers some data as a raw byte stream, 
+                    #   but really it has a specific encoding specified by
+                    #   by the zCollectorDecoding zProperty. Say, latin-1 or
+                    #   utf-16, etc. We need to decode that byte stream to get
+                    #   back a UnicodeString object. But, this version of Zope
+                    #   doesn't like UnicodeString objects for a variety of
+                    #   fields, such as object ids, so we then need to convert
+                    #   that UnicodeString back into a regular string of bytes,
+                    #   and for that we use the system default encoding, which
+                    #   is now utf-8.
+                    codec = obj.zCollectorDecoding or sys.getdefaultencoding()
+                    value = value.decode(codec)
+                    value = value.encode(sys.getdefaultencoding())
                 except UnicodeDecodeError:
                     continue
             if attname[0] == '_': continue

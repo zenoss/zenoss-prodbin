@@ -36,10 +36,17 @@ class _obj(object):
     _p_changed = False
 
 ascii_objmap =  { 'a': 'abcdefg', 'b': 'hijklmn', 'c': 'opqrstu' }
-utf8_objmap =   { 'a': u'\xe0', 'b': u'\xe0', 'c': u'\xe0' } 
+utf8_objmap =   { 'a': u'\xe0'.encode('utf-8'), 
+                  'b': u'\xe0'.encode('utf-8'), 
+                  'c': u'\xe0'.encode('utf-8') } 
 latin1_objmap = { 'a': u'\xe0'.encode('latin-1'), 
                   'b': u'\xe0'.encode('latin-1'), 
                   'c': u'\xe0'.encode('latin-1') }
+utf16_objmap =  { 'a': u'\xff\xfeabcdef'.encode('utf-16'),
+                  'b': u'\xff\xfexyzwow'.encode('utf-16'),
+                  # "水z𝄞" (water, z, G clef), UTF-16 encoded, 
+                  # little-endian with BOM
+                  'c': '\xff\xfe\x34\x6c\x7a\x00\x34\xd8\x13\xdd' }
 
 class ApplyDataMapTest(unittest.TestCase):
 
@@ -47,13 +54,13 @@ class ApplyDataMapTest(unittest.TestCase):
         self.adm = ApplyDataMap()
 
     def test_updateObject_encoding(self):
-        for enc in ('ascii', 'latin-1', 'utf-8'):
+        for enc in ('ascii', 'latin-1', 'utf-8', 'utf-16'):
             obj = _obj()
             obj.zCollectorDecoding = enc
             objmap = eval(enc.replace('-','')+'_objmap')
             self.adm._updateObject(obj, objmap)
             for key in objmap:
-                self.assertEqual(getattr(obj, key), objmap[key])
+                self.assertEqual(getattr(obj, key), objmap[key].decode(enc))
 
 
 def test_suite():
