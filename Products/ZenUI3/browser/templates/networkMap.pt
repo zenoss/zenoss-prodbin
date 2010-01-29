@@ -1,0 +1,61 @@
+<!--
+###########################################################################
+#
+# This program is part of Zenoss Core, an open source monitoring platform.
+# Copyright (C) 2009, Zenoss Inc.
+#
+# This program is free software; you can redistribute it and/or modify it
+# under the terms of the GNU General Public License version 2 as published by
+# the Free Software Foundation.
+#
+# For complete information please visit: http://www.zenoss.com/oss/
+#
+###########################################################################
+-->
+
+<tal:block metal:use-macro="context/page_macros/base-new">
+
+<tal:block metal:fill-slot="script_afterLayout">
+    <script tal:define="classlist python:[dict(label=x,data=x) for x in 
+                        here.dmd.Devices.deviceMoveTargets()];
+                        initobj python:here.dmd.ZenUsers.getUserSettings(
+                                       )['netMapStartObject']"
+        tal:content="string:
+       var _deviceClasses = ${classlist};
+       var _initialObjId = '${initobj}';
+    "></script>
+    <script language="javascript" type="text/javascript">
+        function getDevClassList() {
+            return _deviceClasses;
+        }
+        function getInitialObjId() {
+            return _initialObjId;
+        }
+        function goToDeviceSearch(objid) {
+            url = '/zport/dmd/goToStatusPage?objid=' + escape(objid);
+            currentWindow().location.href = url;
+        }
+    </script>
+</tal:block>
+
+<tal:block metal:fill-slot="center_panel">
+<div id="zennetmap"> </div>
+</tal:block>
+
+<tal:block metal:fill-slot="script_layout">
+<script>
+Ext.onReady(function(){
+
+    Ext.getCmp('center_panel').add({
+        applyTo: 'zennetmap',
+        xtype: 'flash',
+        id: 'zennetmap',
+        url: '/zport/dmd/flex/ZenNetMap.swf',
+        autoShow: true,
+        backgroundColor: '#FFFFFF',
+    });
+
+});
+</script>
+</tal:block>
+</tal:block> <!-- metal:use-macro="context/page_macros/masterdetailsplit2" -->

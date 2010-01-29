@@ -117,6 +117,13 @@
     />
 
 <browser:page
+    template="templates/networkMap.pt"
+    name="networkMap"
+    for="*"
+    permission="zope2.Public"
+    />
+
+<browser:page
     template="templates/base-new.pt"
     name="reports"
     for="*"

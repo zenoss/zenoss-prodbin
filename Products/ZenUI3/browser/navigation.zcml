@@ -114,7 +114,7 @@
         <browser:viewlet
             name="Processes"
             url="/zport/dmd/process"
-            weight="3"
+            weight="2"
             parentItem="IT Infrastructure"
             manager="..navigation.interfaces.ISecondaryNavigationMenu"
             class="..navigation.menuitem.SecondaryNavigationMenuItem"
@@ -125,6 +125,17 @@
         <browser:viewlet
             name="Services"
             url="/zport/dmd/service"
+            weight="3"
+            parentItem="IT Infrastructure"
+            manager="..navigation.interfaces.ISecondaryNavigationMenu"
+            class="..navigation.menuitem.SecondaryNavigationMenuItem"
+            permission="zope2.Public"
+            layer="zenossNav"
+            />
+
+        <browser:viewlet
+            name="Network Map"
+            url="/zport/dmd/networkMap"
             weight="4"
             parentItem="IT Infrastructure"
             manager="..navigation.interfaces.ISecondaryNavigationMenu"
