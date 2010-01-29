@@ -123,7 +123,10 @@ class Location(DeviceOrganizer, ZenPackable):
         into a data structure appropriate for JS consumption by another method
         (specifically, getChildGeomapData, below).
         """
-        address = self.address
+        try:
+            address = self.address.decode().encode('iso-8859-1')
+        except (UnicodeDecodeError, UnicodeEncodeError):
+            address = self.address
         psthresh = self.dmd.prodStateDashboardThresh
         summary = self.getEventSummary(prodState=psthresh)
         colors = 'red orange yellow green green'.split()
