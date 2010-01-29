@@ -110,15 +110,15 @@
     />
 
 <browser:page
-    template="templates/service.pt"
-    name="service"
+    template="templates/ipservice.pt"
+    name="ipservice"
     for="*"
     permission="zope2.Public"
     />
 
 <browser:page
-    template="templates/networkMap.pt"
-    name="networkMap"
+    template="templates/winservice.pt"
+    name="winservice"
     for="*"
     permission="zope2.Public"
     />

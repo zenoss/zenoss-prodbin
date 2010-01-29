@@ -44,9 +44,16 @@ Ext.onReady( function() {
             autoScroll: true,
             directFn: Zenoss.remote.ServiceRouter.getTree,
             root: {
-                uid: '/zport/dmd/Services/IpService',
                 id: 'IpService',
+                uid: '/zport/dmd/Services/IpService',
                 text: 'IP Services'
+            },
+            listeners: {
+                render: function(tree){
+                    tree.getRootNode().on('load', function(node){
+                        node.select();
+                    });
+                }
             }
         });
         Ext.getCmp('master_panel').add(treePanel);
@@ -67,9 +74,10 @@ Ext.onReady( function() {
             xtype: 'ContextCardButtonPanel',
             id: 'serviceCardButtonPanel',
             disabled: true,
-            items: [ { xtype: 'panel',
+            items: [ { xtype: 'SimpleInstanceGridPanel',
                        buttonTitle: _t('Services'),
-                       iconCls: 'services'
+                       iconCls: 'services',
+                       directFn: Zenoss.remote.ServiceRouter.getInstances
                      },
                      { xtype: 'SimpleDeviceGridPanel',
                        buttonTitle: _t('Devices'),
@@ -169,9 +177,10 @@ Ext.onReady( function() {
     }
 
     var serviceKeysTextField = {
-        xtype: 'textfield',
+        xtype: 'textarea',
         fieldLabel: _t('Service Keys'),
         name: 'serviceKeys',
+
         width: "100%"
     }
 
@@ -239,11 +248,8 @@ Ext.onReady( function() {
             columnWidth: 0.5
         },
         items: [
-            {items: [nameTextField,
-                     descriptionTextField ]},
-            {items: [serviceKeysTextField,
-                     portTextField ]},
-            {items: [monitoringFieldSet]}
+            {items: [nameTextField, descriptionTextField, monitoringFieldSet ]},
+            {items: [serviceKeysTextField]}
         ]
     }
 

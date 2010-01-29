@@ -14,8 +14,9 @@
 from zope.interface import implements
 from zope.component import adapts
 from Products.Zuul.interfaces import IInstanceInfo, IInstance
+from Products.Zuul.facades import InfoBase
 
-class InstanceInfo(object):
+class InstanceInfo(InfoBase):
     implements(IInstanceInfo)
     adapts(IInstance)
 

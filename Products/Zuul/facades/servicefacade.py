@@ -95,3 +95,7 @@ class ServiceFacade(TreeFacade):
     @property
     def _instanceClass(self):
         return "Products.ZenModel.Service.Service"
+
+    def _getSecondaryParent(self, obj):
+        return obj.serviceclass()
+

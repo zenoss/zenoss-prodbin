@@ -18,7 +18,7 @@
     xmlns:browser="http://namespaces.zope.org/browser"
     xmlns:five="http://namespaces.zope.org/five">
 
-    <browser:layer name="zenossNav" 
+    <browser:layer name="zenossNav"
     interface="..navigation.interfaces.IZenossNav"/>
 
     <browser:viewletManager
@@ -123,8 +123,8 @@
             />
 
         <browser:viewlet
-            name="Services"
-            url="/zport/dmd/service"
+            name="IP Services"
+            url="/zport/dmd/ipservice"
             weight="3"
             parentItem="IT Infrastructure"
             manager="..navigation.interfaces.ISecondaryNavigationMenu"
@@ -143,6 +143,18 @@
             permission="zope2.Public"
             layer="zenossNav"
             />
+
+        <browser:viewlet
+            name="Windows Services"
+            url="/zport/dmd/winservice"
+            weight="5"
+            parentItem="IT Infrastructure"
+            manager="..navigation.interfaces.ISecondaryNavigationMenu"
+            class="..navigation.menuitem.SecondaryNavigationMenuItem"
+            permission="zope2.Public"
+            layer="zenossNav"
+            />
+
 
     <browser:viewlet
         name="Reports"
@@ -173,7 +185,7 @@
         permission="zope2.Public"
         layer="zenossNav"
         />
-        
+
     <browser:viewlet
         name="Monitoring Templates"
         url="/zport/dmd/template"

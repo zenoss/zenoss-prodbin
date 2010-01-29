@@ -40,6 +40,9 @@
             "text": "DevicePanels.js",
             "path": "resources/js/zenoss/"
         }, {
+            "text": "InstancePanels.js",
+            "path": "resources/js/zenoss/"
+        }, {
             "text": "CardButtonPanel.js",
             "path": "resources/js/zenoss/"
         }, {

@@ -62,7 +62,7 @@ class InfoBase(object):
     def setDescription(self, value):
         self._object.description = value
 
-    description = property(getDescription, setDescription) 
+    description = property(getDescription, setDescription)
 
     def __repr__(self):
         return '<%s Info "%s">' % (self._object.__class__.__name__, self.id)
@@ -156,10 +156,11 @@ class TreeFacade(ZuulFacade):
         # the objects returned by the catalog search are wrapped in the
         # acquisition context of their primary path. Switch these objects
         # to the context of the parent indentified by the uid parameter.
-        secondaryParent = self._dmd.unrestrictedTraverse(uid)
-        context = secondaryParent.instances
         def switchContext(obj):
-            return aq_base(obj).__of__(context)
+            parent = self._getSecondaryParent(obj)
+            parent = aq_base(parent).__of__(parent.getPrimaryParent())
+
+            return aq_base(obj).__of__(parent.instances)
         instances = imap(switchContext, objs)
         # convert to info objects
         return imap(IInfo, instances)
