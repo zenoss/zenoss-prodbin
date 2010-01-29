@@ -52,7 +52,7 @@ class TreeNode(object):
 
     @property
     def id(self):
-        return self._object.id
+        return self._object.getPath().replace('/', '.')
 
     @property
     def text(self):

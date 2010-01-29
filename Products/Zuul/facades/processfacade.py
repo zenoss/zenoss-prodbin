@@ -158,3 +158,6 @@ class ProcessFacade(TreeFacade):
     @property
     def _instanceClass(self):
         return "Products.ZenModel.OSProcess.OSProcess"
+
+    def _getSecondaryParent(self, obj):
+        return obj.osProcessClass()

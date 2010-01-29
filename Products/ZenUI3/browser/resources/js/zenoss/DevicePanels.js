@@ -60,7 +60,7 @@ Zenoss.DeviceColumnModel = Ext.extend(Ext.grid.ColumnModel, {
                     },{
                         'value':300,
                         'text':'Maintenance',
-                        'checked':false,
+                        'checked':false
                     },{
                         'value':-1,
                         'text':'Decommissioned',

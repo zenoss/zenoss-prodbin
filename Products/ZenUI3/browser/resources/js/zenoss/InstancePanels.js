@@ -58,20 +58,27 @@ Zenoss.InstanceColumnModel = Ext.extend(Ext.grid.ColumnModel, {
             columns: [{
                 id: 'device',
                 dataIndex: 'device',
-                header: _t('Device')
+                header: _t('Device'),
+                sortable: true,
+                width: 200
             },{
                 id: 'name',
                 dataIndex: 'name',
-                header: _t('Name')
+                header: _t('Name'),
+                sortable: true
             },{
                 id: 'monitor',
                 dataIndex: 'monitor',
                 header: _t('Monitor'),
+                sortable: true,
+                width: 70
             },{
                 id: 'status',
                 dataIndex: 'status',
                 header: _t('Status'),
-                renderer: statusRenderer
+                renderer: statusRenderer,
+                sortable: true,
+                width: 50
             }] // columns
         }); // Ext.applyIf
         Zenoss.InstanceColumnModel.superclass.constructor.call(this, config);
@@ -127,12 +134,11 @@ Zenoss.SimpleInstanceGridPanel = Ext.extend(Ext.ux.grid.livegrid.GridPanel, {
             cm: new Zenoss.InstanceColumnModel({
                 menuDisabled: true
             }),
-            sm: new Zenoss.ExtraHooksSelectionModel,
             store: store,
             enableDragDrop: false,
             border:false,
             rowSelectorDepth: 5,
-            autoExpandColumn: 'device',
+            autoExpandColumn: 'name',
             stripeRows: true
         });
         Zenoss.SimpleInstanceGridPanel.superclass.constructor.call(this, config);

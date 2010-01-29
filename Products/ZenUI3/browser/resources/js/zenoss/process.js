@@ -150,10 +150,11 @@ var nameTextField = {
 };
 
 var descriptionTextField = {
-    xtype: 'textfield',
+    xtype: 'textarea',
     fieldLabel: _t('Description'),
     name: 'description',
-    width: "100%"
+    width: "100%",
+    grow: true
 };
 
 var inheritedCheckbox = {
@@ -245,8 +246,8 @@ var processFormItems = {
         columnWidth: 0.5
     },
     items: [
-        {items: [nameTextField, monitoringFieldSet]},
-        {items: [descriptionTextField, regexFieldSet]}
+        {items: [nameTextField, descriptionTextField]},
+        {items: [monitoringFieldSet, regexFieldSet]}
     ]
 }; // processFormItems
 
@@ -330,9 +331,9 @@ processForm.getForm().load({params:{uid: 'Processes'}});
  *
  */
 Ext.getCmp('bottom_detail_panel').add({
-    xtype: 'SimpleDeviceGridPanel',
+    xtype: 'SimpleInstanceGridPanel',
     id: 'instancesGrid',
-    directFn: router.getDevices
+    directFn: router.getInstances
 });
 
 

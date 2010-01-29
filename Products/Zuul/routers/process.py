@@ -79,3 +79,9 @@ class ProcessRouter(DirectRouter):
         data = Zuul.marshal(events)
         return {'data': data, 'success': True}
 
+    def getInstances(self, uid, start=0, params=None, limit=50, sort='name',
+                     dir='ASC'):
+        facade = self._getFacade()
+        instances = facade.getInstances(uid)
+        data = Zuul.marshal(instances)
+        return {'data': data, 'success': True}

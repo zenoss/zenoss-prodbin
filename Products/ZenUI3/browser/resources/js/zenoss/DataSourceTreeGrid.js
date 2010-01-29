@@ -32,7 +32,7 @@ Zenoss.DataSourceTreeGrid = Ext.extend(Ext.ux.tree.TreeGrid, {
                     text: 'All Applied'
                 }, {
                     xtype: 'button',
-                    iconCls: 'configure',
+                    iconCls: 'configure'
                 }, {
                     xtype: 'tbseparator'
                 }, {

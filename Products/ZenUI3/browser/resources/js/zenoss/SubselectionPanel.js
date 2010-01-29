@@ -65,7 +65,7 @@ Zenoss.SlidingCardLayout = Ext.extend(Ext.layout.CardLayout, {
             this.layout();
         }
 
-    },
+    }
 
 });
 
@@ -110,7 +110,7 @@ Zenoss.HorizontalSlidePanel = Ext.extend(Ext.Panel, {
                     border: false,
                     cls: 'subselect-head',
                     height: 37,
-                    items: [headerText, '->', navButton],
+                    items: [headerText, '->', navButton]
                 },
                 items:[item],
                 listeners: {
