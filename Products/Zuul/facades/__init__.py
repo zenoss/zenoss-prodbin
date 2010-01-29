@@ -24,6 +24,7 @@ from Products.Zuul.interfaces import IFacade, IDataRootFactory, ITreeNode
 from Products.Zuul.interfaces import ITreeFacade, IInfo, ICatalogTool
 from Products.Zuul.interfaces import IEventInfo
 from Products.Zuul.utils import unbrain
+from Products.Zuul.tree import SearchResults
 from Products.ZenUtils.IpUtil import numbip, checkip, IpAddressError
 from Products.ZenUtils.IpUtil import getSubnetBounds
 
@@ -143,7 +144,9 @@ class TreeFacade(ZuulFacade):
         brains = cat.search('Products.ZenModel.Device.Device', start=start,
                            limit=limit, orderby=sort, reverse=reverse,
                             query=query)
-        return map(IInfo, map(unbrain, brains))
+
+        wrapped = imap(IInfo, imap(unbrain, brains))
+        return SearchResults(wrapped, brains.total, brains.hash_)
 
     def getInstances(self, uid=None, start=0, limit=50, sort='name',
                      dir='ASC', params=None):
@@ -163,7 +166,8 @@ class TreeFacade(ZuulFacade):
             return aq_base(obj).__of__(parent.instances)
         instances = imap(switchContext, objs)
         # convert to info objects
-        return imap(IInfo, instances)
+        return SearchResults(imap(IInfo, instances), brains.total,
+                             brains.hash_)
 
     def _parameterizedWhere(self, uid=None):
         cat = ICatalogTool(self._dmd)

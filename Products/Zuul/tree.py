@@ -79,6 +79,19 @@ class TreeNode(object):
         return "<TreeNode %s>" % self.uid
 
 
+class SearchResults(object):
+    def __hash__(self):
+        return self.hash_
+
+    def __init__(self, results, total, hash_):
+        self.hash_ = hash_
+        self.results = results
+        self.total = total
+
+    def __iter__(self):
+        return self.results
+
+
 class CatalogTool(object):
     implements(ICatalogTool)
 
@@ -151,14 +164,19 @@ class CatalogTool(object):
 
     def search(self, types=(), start=0, limit=None, orderby='name',
                reverse=False, paths=(), depth=None, query=None):
-        result = self._queryCatalog(types, orderby, reverse, paths, depth,
+        brains = self._queryCatalog(types, orderby, reverse, paths, depth,
                                     query)
+        totalCount = len(brains)
+        hash_ = hash(tuple(b.getRID() for b in brains))
+
         # Return a slice
         if limit is None:
             stop = None
         else:
             stop = start + limit
-        return (b for b in islice(result, start, stop))
+        results = islice(brains, start, stop)
+
+        return SearchResults(results, totalCount, hash_)
 
     def update(self, obj):
         self.catalog.catalog_object(obj, idxs=())

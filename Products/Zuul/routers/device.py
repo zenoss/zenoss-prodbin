@@ -47,7 +47,7 @@ class DeviceRouter(DirectRouter):
         if isinstance(params, basestring):
             params = unjson(params)
         devices = facade.getDevices(uid, start, limit, sort, dir, params)
-        count = facade.deviceCount(uid)
+        count = devices.total
         keys = ['name', 'ipAddress', 'productionState', 'events']
         data = Zuul.marshal(devices, keys)
         return {'devices': data, 'totalCount': count}
