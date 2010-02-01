@@ -15,6 +15,7 @@ from Exceptions import MySQLConnectionError
 import time
 import DateTime
 
+from Products.ZenUtils import Time as timeutils
 from Queue import Queue, Empty, Full
 
 import logging
@@ -22,6 +23,15 @@ log = logging.getLogger("zen.DbConnectionPool")
 
 POOL_SIZE = 5
 KEEP_ALIVE = 28800
+
+
+def timestamp_conv(s):
+    #timestamps from mysql are passed in as iso dates in the server's timezone
+    #but do not contain timezone information.  Convert iso time to a timestamp
+    #using the system timezone. We need to do this because the Zope DateTime
+    #will use GMT+0 when converting iso times that do not contain tz info.
+    timestamp = timeutils.isoToTimestamp(s)
+    return DateTime.DateTime(timestamp)
 
 class DbConnectionPool:
 
@@ -90,7 +100,7 @@ class DbConnectionPool:
         conn = None
         mysqlconv = MySQLdb.converters.conversions.copy()
         mysqlconv[FIELD_TYPE.DATETIME] = DateTime.DateTime
-        mysqlconv[FIELD_TYPE.TIMESTAMP] = DateTime.DateTime
+        mysqlconv[FIELD_TYPE.TIMESTAMP] = timestamp_conv
         # FIXME for some reason it thinks my int is a long -EAD
         mysqlconv[FIELD_TYPE.LONG] = int
         if not host:

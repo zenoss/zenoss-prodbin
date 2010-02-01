@@ -81,3 +81,14 @@ def getBeginningOfDay(gmtSecondsSince1970=None):
 def getEndOfDay(gmtSecondsSince1970=None):
     value = _maybenow(gmtSecondsSince1970)
     return time.mktime(time.localtime(value)[:3] + (23,59,59,0,0,0))
+
+def isoToTimestamp(value):
+    """
+    converts a iso time string that does not contain a timezone, ie. 
+    YYYY-MM-DD HH:MM:SS, to a timestamp in seconds since 1970; uses the system 
+    timezone
+    """
+    timeStr = value.replace('T', ' ')
+    timeTuple = time.strptime(timeStr, '%Y-%m-%d %H:%M:%S')
+    timestamp = time.mktime(timeTuple)
+    return timestamp
