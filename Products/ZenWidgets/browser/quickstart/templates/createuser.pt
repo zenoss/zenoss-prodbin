@@ -45,6 +45,10 @@
             passwordText: "The passwords you've typed don't match."
         });
 
+        var doSubmit = function() {
+            userform.getForm().submit({url:'qs-createuser'})
+        }
+
         var userform = new Ext.FormPanel({
             labelWidth: 100,
             frame: false,
@@ -52,6 +56,11 @@
             bodyStyle: 'padding:5px 5px 0',
             width:'100%',
             layout: 'column',
+            keys: [{
+                key: Ext.EventObject.ENTER,
+                fn: doSubmit,
+                scope: this
+                }],
             defaults: {autoHeight:true, columnWidth:0.5, 
                 layout:'form', frame:false, border:false},
             items: [{ // 50% column
@@ -143,12 +152,10 @@
                 ]
             }]
         });
-
+        
         var submit = userform.addButton({
             text: 'Submit',
-            handler: function() {
-                userform.getForm().submit({url:'qs-createuser'})
-            }
+            handler: doSubmit
         })
 
         function logInAsNewUserAndRedirectTo(url) {
