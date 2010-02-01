@@ -199,7 +199,7 @@ Zenoss.HierarchyTreePanel = Ext.extend(Ext.tree.TreePanel, {
     },
     initEvents: function() {
         Zenoss.HierarchyTreePanel.superclass.initEvents.call(this);
-        if (this.selectRootOnLoad) {
+        if (this.selectRootOnLoad && !Ext.History.getToken()) {
             this.getRootNode().on('load', function(node){
                 node.select()
             });
@@ -222,6 +222,7 @@ Zenoss.HierarchyTreePanel = Ext.extend(Ext.tree.TreePanel, {
             });
         }
         doUpdate(this.getRootNode(), data);
+
     },
     selectByPath: function(escapedId) {
         var id = unescape(escapedId);

@@ -75,7 +75,7 @@ Zenoss.ContextCardPanel = Ext.extend(Ext.Panel, {
         this.cardChangeHandler(this.layout.activeItem);
     },
     cardChangeHandler: function(panel) {
-        if (panel.setContext) {
+        if (panel!=this && panel.setContext) {
             panel.setContext(this.contextUid);
         }
     }

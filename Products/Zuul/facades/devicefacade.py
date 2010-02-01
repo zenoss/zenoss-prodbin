@@ -161,26 +161,60 @@ class DeviceFacade(TreeFacade):
         counts = (s[1]+s[2] for s in summary)
         return zip(severities, counts)
 
+    def deleteDevices(self, uids):
+        devs = imap(self._findObject, uids)
+        for dev in devs:
+            dev.deleteDevice()
+
+    def removeDevices(self, uids, organizer):
+        # Resolve target if a path
+        if isinstance(organizer, basestring):
+            organizer = self._findObject(organizer)
+        assert isinstance(organizer, DeviceOrganizer)
+        organizername = organizer.getOrganizerName()
+        devs = imap(self._findObject, uids)
+        if isinstance(organizer, DeviceGroup):
+            for dev in devs:
+                names = dev.getDeviceGroupNames()
+                try:
+                    names.remove(organizername)
+                except ValueError:
+                    pass
+                else:
+                    dev.setGroups(names)
+        if isinstance(organizer, System):
+            for dev in devs:
+                names = dev.getSystemNames()
+                try:
+                    names.remove(organizername)
+                except ValueError:
+                    pass
+                else:
+                    dev.setSystems(names)
+        elif isinstance(organizer, Location):
+            for dev in devs:
+                dev.setLocation(None)
+
     def moveDevices(self, uids, target):
         # Resolve target if a path
         if isinstance(target, basestring):
             target = self._findObject(target)
         assert isinstance(target, DeviceOrganizer)
         devs = (self._findObject(uid) for uid in uids)
+        targetname = target.getOrganizerName()
         if isinstance(target, DeviceGroup):
             for dev in devs:
-                paths = set(g.getPrimaryId() for g in dev.groups())
-                paths.add(target.getPrimaryId())
-                dev.setGroups(map(_removeZportDmd, paths))
+                paths = set(dev.getDeviceGroupNames())
+                paths.add(targetname)
+                dev.setGroups(list(paths))
         elif isinstance(target, System):
             for dev in devs:
-                paths = set(g.getPrimaryId() for g in dev.systems())
-                paths.add(target.getPrimaryId())
-                dev.setSystems(map(_removeZportDmd, paths))
+                paths = set(dev.getSystemNames())
+                paths.add(targetname)
+                dev.setSystems(list(paths))
         elif isinstance(target, Location):
             for dev in devs:
-                dev.setLocation(_removeZportDmd(target.getPrimaryId()))
+                dev.setLocation(targetname)
         elif isinstance(target, DeviceClass):
-            self._dmd.Devices.moveDevices(_removeZportDmd(target.getPrimaryId()),
-                                          [dev.id for dev in devs])
+            self._dmd.Devices.moveDevices(targetname,[dev.id for dev in devs])
 

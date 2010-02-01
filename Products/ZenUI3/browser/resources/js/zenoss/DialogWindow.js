@@ -15,7 +15,7 @@
 
 (function(){
 
-Ext.ns('Zenoss');
+Ext.ns('Zenoss.dialog');
 
 var BaseDialog = Ext.extend(Ext.Window, {
     constructor: function(config) {
@@ -32,22 +32,26 @@ var BaseDialog = Ext.extend(Ext.Window, {
     }
 });
 
-Zenoss.DialogButton = Ext.extend(Ext.Button, {
+function hideWindow(button){
+    button.ownerCt.ownerCt.destroy();
+}
+
+Zenoss.dialog.DialogButton = Ext.extend(Ext.Button, {
     constructor: function(config) {
-        if ( ! Ext.isDefined(config.handler) ) {
-            config.handler = function(){};
-        }
-        config.handler = config.handler.createSequence(function(button) {
-            var dialog = button.findParentBy(function(parent){
-                return parent.id == config.dialogId;
-            });
-            dialog.hide();
-        });
-        Zenoss.DialogButton.superclass.constructor.call(this, config);
+        var h = config.handler;
+        config.handler = h ? h.createSequence(hideWindow) : hideWindow;
+        Zenoss.dialog.DialogButton.superclass.constructor.call(this, config);
     }
 });
 
-Ext.reg('DialogButton', Zenoss.DialogButton);
+Ext.reg('DialogButton', Zenoss.dialog.DialogButton);
+
+
+Zenoss.dialog.CANCEL = {
+    xtype: 'DialogButton',
+    text: _t('Cancel')
+};
+
 
 Zenoss.MessageDialog = Ext.extend(BaseDialog, {
     constructor: function(config) {
@@ -75,12 +79,30 @@ Zenoss.MessageDialog = Ext.extend(BaseDialog, {
     }
 });
 
-Zenoss.FormDialog = Ext.extend(BaseDialog, {
+Zenoss.FormDialog = Ext.extend(Ext.Window, {
     constructor: function(config) {
-        Ext.applyIf(config, {
-            layout: 'form',
+        var form = new Ext.form.FormPanel({
+            border: false,
+            minWidth: 300,
             labelAlign: 'top',
-            labelSeparator: ' '
+            labelSeparator: ' ',
+            bodyStyle: {
+                'padding-left': '5%'
+            },
+            defaults: {
+                xtype: 'textfield',
+                anchor: '85%',
+                border: false
+            },
+            items: config.items,
+            html: config.html
+        });
+        config.items = form;
+        Ext.applyIf(config, {
+            layout: 'fit',
+            plain: true,
+            border: false,
+            buttonAlign: 'left'
         });
         Zenoss.FormDialog.superclass.constructor.call(this, config);
     }

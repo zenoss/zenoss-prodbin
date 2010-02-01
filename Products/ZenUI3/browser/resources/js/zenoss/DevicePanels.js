@@ -118,6 +118,11 @@ Zenoss.DeviceStore = Ext.extend(Ext.ux.grid.livegrid.Store, {
           )
         });
         Zenoss.DeviceStore.superclass.constructor.call(this, config);
+    },
+    loadRanges: function(ranges) {
+        // We actually just want to send the ranges themselves, so we'll
+        // short-circuit this so it doesn't try to turn them into uids in yet
+        // another server request
     }
 });
 
@@ -156,8 +161,9 @@ Ext.reg('SimpleDeviceGridPanel', Zenoss.SimpleDeviceGridPanel);
 
 
 Zenoss.DeviceGridPanel = Ext.extend(Zenoss.FilterGridPanel,{
+    lastHash: null,
     constructor: function(config) {
-        var store = {xtype:'DeviceStore'};
+        var store = { xtype:'DeviceStore' };
         if (!Ext.isEmpty(config.directFn)) {
             Ext.apply(store, {
                 proxy: new Ext.data.DirectProxy({
@@ -171,7 +177,7 @@ Zenoss.DeviceGridPanel = Ext.extend(Zenoss.FilterGridPanel,{
             border: false,
             rowSelectorDepth: 5,
             view: new Zenoss.FilterGridView({
-                nearLimit: 20,
+                nearLimit: 10,
                 loadMask: {msg: 'Loading. Please wait...'}
             }),
             autoExpandColumn: 'name',
@@ -180,6 +186,12 @@ Zenoss.DeviceGridPanel = Ext.extend(Zenoss.FilterGridPanel,{
             stripeRows: true
         });
         Zenoss.DeviceGridPanel.superclass.constructor.call(this, config);
+        this.store.proxy.on('load', 
+            function(proxy, o, options) {
+                this.lastHash = o.result.hash || this.lastHash;
+            },
+            this
+        );
     }
 });
 Ext.reg('DeviceGridPanel', Zenoss.DeviceGridPanel);

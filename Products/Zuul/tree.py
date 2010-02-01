@@ -79,6 +79,12 @@ class TreeNode(object):
         return "<TreeNode %s>" % self.uid
 
 
+class StaleResultsException(Exception):
+    """
+    The hash check failed. Selections need to be refreshed.
+    """
+
+
 class SearchResults(object):
     def __hash__(self):
         return self.hash_
@@ -163,11 +169,16 @@ class CatalogTool(object):
         return result
 
     def search(self, types=(), start=0, limit=None, orderby='name',
-               reverse=False, paths=(), depth=None, query=None):
+               reverse=False, paths=(), depth=None, query=None,
+               hashcheck=None):
         brains = self._queryCatalog(types, orderby, reverse, paths, depth,
                                     query)
         totalCount = len(brains)
         hash_ = hash(tuple(b.getRID() for b in brains))
+
+        if hashcheck is not None:
+            if hash_ != hashcheck:
+                raise StaleResultsException("Search results do not match")
 
         # Return a slice
         if limit is None:

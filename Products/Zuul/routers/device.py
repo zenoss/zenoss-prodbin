@@ -11,6 +11,8 @@
 #
 ###########################################################################
 
+from itertools import islice
+
 from Products.ZenUtils.Ext import DirectRouter
 from Products.ZenUtils.json import unjson
 from Products import Zuul
@@ -41,18 +43,23 @@ class DeviceRouter(DirectRouter):
         Zuul.unmarshal(data, process)
         return {'success': True}
 
-    def getDevices(self, uid=None, start=0, params=None, limit=50, sort='device',
+    def getDevices(self, uid=None, start=0, params=None, limit=50, sort='name',
                    dir='ASC'):
         facade = self._getFacade()
         if isinstance(params, basestring):
             params = unjson(params)
         devices = facade.getDevices(uid, start, limit, sort, dir, params)
-        count = devices.total
         keys = ['name', 'ipAddress', 'productionState', 'events']
         data = Zuul.marshal(devices, keys)
-        return {'devices': data, 'totalCount': count}
+        return {'devices': data,
+                'totalCount': devices.total,
+                'hash': devices.hash_}
 
-    def moveDevices(self, uids, target):
+    def moveDevices(self, uids, target, hashcheck, ranges=(), uid=None,
+                    params=None, sort='name', dir='ASC'):
+        if ranges:
+            uids += self._rangesToUIDs(ranges, hashcheck, uid, params, sort, dir)
+
         facade = self._getFacade()
         try:
             facade.moveDevices(uids, target)
@@ -64,9 +71,48 @@ class DeviceRouter(DirectRouter):
             tree = self.getTree(target)
             return {'success':success, 'tree':tree}
 
+    def removeDevices(self, uids, hashcheck, action="remove", uid=None,
+                      ranges=(), params=None, sort='name', dir='ASC'):
+        if ranges:
+            uids += self._rangesToUIDs(ranges, hashcheck, uid, params, sort, dir)
+        facade = self._getFacade()
+        success = False
+        try:
+            if action=="remove":
+                facade.removeDevices(uids, organizer=uid)
+            elif action=="delete":
+                facade.deleteDevices(uids)
+        except:
+            success = False
+        else:
+            success = True
+        return {
+            'success': success,
+            'devtree': self.getTree('/zport/dmd/Devices'),
+            'grptree': self.getTree('/zport/dmd/Groups'),
+            'loctree': self.getTree('/zport/dmd/Locations')
+        }
+
     def getEvents(self, uid):
         facade = self._getFacade()
         events = facade.getEvents(uid)
         data = Zuul.marshal(events)
         return {'data': data, 'success': True}
+
+    def _rangesToUIDs(self, ranges, hashcheck, uid=None, params=None,
+                      sort='name', dir='ASC'):
+        facade = self._getFacade()
+        if isinstance(params, basestring):
+            params = unjson(params)
+        devs = facade.getDevices(uid, sort=sort, dir=dir, params=params,
+                                 hashcheck=hashcheck)
+        uids = []
+        for start, stop in sorted(ranges):
+            uids.extend(b.uid for b in islice(devs, start, stop))
+        return uids
+
+
+
+
+
 

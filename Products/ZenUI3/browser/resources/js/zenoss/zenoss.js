@@ -37,6 +37,15 @@ Ext.Direct.on('event', function(e){
     Zenoss.env.asof = e.asof || null;
 });
 
+Ext.Direct.on('exception', function(e) {
+    Ext.Msg.show({
+        title: 'Server Exception', 
+        msg:e.message,
+        buttons:Ext.Msg.OK,
+        minWidth: 300
+    });
+});
+
 /*
  * Hack in a way to pass the 'asof' attribute along if received from the
  * server.
@@ -275,6 +284,19 @@ Zenoss.FilterGridView = Ext.extend(Ext.ux.grid.livegrid.GridView, {
         Zenoss.FilterGridView.superclass.initData.call(this, ds, cm);
 
     },
+    // Return an object representing the state of the grid
+    getFilterParams: function(hash) {
+        var sinfo = this.grid.store.sortInfo,
+            o = {
+                sort: sinfo.field,
+                dir: sinfo.direction
+            };
+        this.applyFilterParams({params:o});
+        if (hash) {
+            o.hashcheck = this.grid.lastHash
+        }
+        return o;
+    },
     // Gather the current values of the filter and apply them to a given
     // object.
     applyFilterParams: function(options) {
@@ -297,13 +319,14 @@ Zenoss.FilterGridView = Ext.extend(Ext.ux.grid.livegrid.GridView, {
         }
         Ext.apply(options.params, {
             params: Ext.util.JSON.encode(params),
-            uid: this._context
+            uid: this.contextUid
         });
         // Store them for later, just in case
         this.lastOptions = params;
+
     },
     setContext: function(uid) {
-        this._context = uid;
+        this.contextUid = uid;
         this.updateLiveRows(this.rowIndex, true, true);
     },
     onBeforeLoad: function(store, options) {

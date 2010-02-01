@@ -19,6 +19,10 @@
 	color:#333 !important;
 }
 
+.x-window .x-item-disabled .x-form-cb-label {
+    color: #888 !important;
+}
+
 .x-layout-split {
     height: 1px;
     width: 1px;

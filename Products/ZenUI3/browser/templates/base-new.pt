@@ -27,7 +27,7 @@
             href="/zenui/css/zenoss.css" />
         <link rel="stylesheet" type="text/css"
             href="/zenui/css/zenui3.css" />
-        <script type="text/javascript" src="/extjs/adapters/ext/ext-base.js">
+        <script type="text/javascript" src="/extjs/adapters/ext/ext-base-debug.js">
         </script>
         <script>
         (function() {
@@ -41,7 +41,7 @@
             }
         })();
         </script>
-        <script type="text/javascript" src="/extjs/ext-all.js"></script>
+        <script type="text/javascript" src="/extjs/ext-all-debug.js"></script>
         <script type="text/javascript"
             src="/extjs/treegrid/TreeGridSorter.js"></script> 
         <script type="text/javascript"
@@ -55,7 +55,7 @@
         <script type="text/javascript"
             src="/extjs/treegrid/TreeGrid.js"></script>
         <script type="text/javascript"
-            src="/zenui/js/livegrid/livegrid-all.js"></script>
+            src="/zenui/js/livegrid/livegrid-all-debug.js"></script>
         <script type="text/javascript" src="extdirect.js"></script>
         <script type="text/javascript" src="zenoss-all.js"></script>
         <script type="text/javascript" src="i18n.js"></script>

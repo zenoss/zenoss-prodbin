@@ -78,6 +78,7 @@ var treesm = new Ext.tree.DefaultSelectionModel({
         'selectionchange': function(sm, newnode, oldnode){
             var uid = newnode.attributes.uid;
             Zenoss.util.setContext(uid, 'detail_panel', 'organizer_events');
+            Ext.getCmp('delete-button').disable();
             var card = Ext.getCmp('master_panel').getComponent(0),
                 type = Zenoss.types.type(uid);
             if (type && !Ext.isEmpty(Zenoss.nav[type])) {
@@ -103,23 +104,29 @@ function initializeTreeDrop(g) {
         },
         onNodeDrop: function(target, dd, e, data) {
             var nodeid = target.getAttribute('ext:tree-node-id'),
+                grid = Ext.getCmp('device_grid'),
                 tree = this.tree,
                 targetnode = tree.getNodeById(nodeid),
                 targetuid = targetnode.attributes.uid,
-                devids = [];
-            Ext.each(data.selections, function(r){
-                devids.push(r.data.uid);
-            });
-            Ext.getCmp('device_grid').view.showLoadMask(true);
-            Zenoss.remote.DeviceRouter.moveDevices({
+                ranges = grid.getSelectionModel().getPendingSelections(true),
+                devids;
+
+            devids = Ext.pluck(Ext.pluck(data.selections, 'data'), 'uid')
+
+            grid.view.showLoadMask(true);
+
+            var opts = Ext.apply(grid.view.getFilterParams(true), {
                 uids: devids,
+                ranges: ranges,
                 target: targetuid
-            }, function(data){
+            });
+
+            Zenoss.remote.DeviceRouter.moveDevices(opts, function(data){
                 if(data.success) {
-                    Ext.getCmp('device_grid').view.nonDisruptiveReset();
+                    grid.view.nonDisruptiveReset();
                     tree.update(data.tree);
                 } else {
-                    Ext.getCmp('device_grid').view.showLoadMask(false);
+                    grid.view.showLoadMask(false);
                 }
             }, this);
         }
@@ -167,6 +174,81 @@ var loctree = {
     selModel: treesm,
     listeners: { render: initializeTreeDrop }
 };
+
+var buttonHandler = {
+    handle: function(btn, e) {
+        return buttonHandler[btn.id].apply(this, arguments);
+    },
+    'delete-button': function(btn, e) {
+        var grid = Ext.getCmp('device_grid'),
+            sm = grid.getSelectionModel(),
+            rows = sm.getSelections(),
+            ranges = sm.getPendingSelections(true),
+            pluck = Ext.pluck,
+            uids = pluck(pluck(rows, 'data'), 'uid'),
+            selnode = treesm.getSelectedNode(),
+            isclass = Zenoss.types.type(selnode.attributes.uid)=='DeviceClass',
+            grpText = selnode.attributes.text.text;
+        var win = new Zenoss.FormDialog({
+            title: _t('Remove Devices'),
+            modal: true,
+            width: 300,
+            height: 220,
+            items: [{
+                xtype: 'panel',
+                bodyStyle: 'font-weight: bold; text-align:center',
+                html: _t('Are you sure you want to remove these devices? '+
+                         'There is no undo.')
+            },{
+                xtype: 'radiogroup',
+                id: 'removetype',
+                style: 'margin: 0 auto',
+                columns: 1,
+                items: [{
+                    value: 'remove',
+                    name: 'removetype',
+                    boxLabel: _t('Just remove from ') + grpText,
+                    disabled: isclass,
+                    checked: !isclass,
+                },{
+                    value: 'delete',
+                    name: 'removetype',
+                    boxLabel: _t('Delete completely'),
+                    checked: isclass
+                }]
+            }],
+            buttons: [{
+                xtype: 'DialogButton',
+                text: _t('Remove'),
+                handler: function(b) {
+                    grid.view.showLoadMask(true);
+                    var opts = Ext.apply(grid.view.getFilterParams(true), {
+                        uids: uids,
+                        ranges: ranges,
+                        action: Ext.getCmp('removetype').getValue().value
+                    });
+                    Zenoss.remote.DeviceRouter.removeDevices(opts, 
+                        function(response) {
+                            var devtree = Ext.getCmp('devices'),
+                                loctree = Ext.getCmp('locs'),
+                                grptree = Ext.getCmp('groups');
+                            grid.view.nonDisruptiveReset();
+                            devtree.update(response.devtree);
+                            loctree.update(response.loctree);
+                            grptree.update(response.grptree);
+                            grid.view.showLoadMask(false);
+                        }
+                    );
+                }
+            },
+            Zenoss.dialog.CANCEL
+            ],
+            buttonAlign: 'center'
+        });
+        win.show();
+    }
+}
+
 
 Ext.getCmp('center_panel').add({
     id: 'center_panel_container',
@@ -233,23 +315,37 @@ Ext.getCmp('center_panel').add({
             ddGroup: 'devicegriddd',
             id: 'device_grid', 
             enableDrag: true,
+            sm: new Zenoss.ExtraHooksSelectionModel({
+                listeners: {
+                    selectionchange: function(sm) {
+                        var btn = Ext.getCmp('delete-button');
+                        btn.setDisabled(!sm.getSelected());
+                    }
+                }
+            }),
             tbar: {
                 xtype: 'largetoolbar',
                 items: [{
                     xtype: 'eventrainbow',
                     id: 'organizer_events'
                 }, '-', {
+                    id: 'adddevice-button',
+                    iconCls: 'adddevice',
+                    handler: buttonHandler.handle
+                }, {
+                    /*
                     id: 'add-button',
                     iconCls: 'add'
                 },{
+                    */
                     id: 'delete-button', 
-                    iconCls: 'delete'
+                    iconCls: 'delete',
+                    disabled: true,
+                    handler: buttonHandler.handle
+                    /*
                 },{
                     id: 'set-button',
                     iconCls: 'set'
-                }, {
-                    id: 'adddevice-button',
-                    iconCls: 'adddevice'
                 }, '-', {
                     id: 'import-button',
                     iconCls: 'import'
@@ -259,6 +355,7 @@ Ext.getCmp('center_panel').add({
                 },{
                     id: 'configure-button',
                     iconCls: 'configure'
+                    */
                 }]
             }
         }, {
