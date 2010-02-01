@@ -128,15 +128,14 @@ function inheritedCheckboxHandler(checkbox, checked) {
 function actioncompleteHandler(form, action) {
     if (action.type == 'directload') {
         var processInfo = action.result.data;
+        Ext.getCmp('processForm').setDisabled(action.result.disabled);
+        var isRoot = processInfo.name == 'Processes';
+        Ext.getCmp('nameTextField').setDisabled(isRoot);
+        Ext.getCmp('inheritedCheckbox').setDisabled(isRoot);
+        setMonitoringDisabled(processInfo.isMonitoringAcquired);
         var regexFieldSet = Ext.getCmp('regexFieldSet');
-        var nameTextField = Ext.getCmp('nameTextField');
-        var inheritedCheckbox = Ext.getCmp('inheritedCheckbox');
         regexFieldSet.setVisible(processInfo.hasRegex);
         regexFieldSet.doLayout();
-        nameTextField.setDisabled(processInfo.name == 'Processes');
-        inheritedCheckbox.setDisabled(processInfo.name == 'Processes');
-        setMonitoringDisabled(processInfo.isMonitoringAcquired);
-        Ext.getCmp('processForm').setDisabled(action.result.disabled);
     }
 }
 
@@ -209,11 +208,9 @@ var monitoringFieldSet = {
         {
             items: inheritedCheckbox
         }, {
-            items: monitorCheckbox,
-            bodyStyle: 'padding-left: 15px'
+            items: monitorCheckbox
         }, {
-            items: eventSeverityCombo,
-            bodyStyle: 'padding-left: 15px'
+            items: eventSeverityCombo
         }
     ]
 }; // monitoringFieldSet
@@ -225,11 +222,9 @@ var regexFieldSet = {
     hidden: true,
     __inner_items__: [
         {
-            items: regexTextField,
-            columnWidth: 0.6
+            items: regexTextField
         }, {
-            items: ignoreParametersCheckbox,
-            bodyStyle: 'padding-left: 15px'
+            items: ignoreParametersCheckbox
         }
     ]
 }; // regexFieldSet
@@ -280,8 +275,13 @@ var processFormConfig = {
                 var params = Ext.apply({uid: selectedNode.attributes.uid},
                                        form.getValues());
                 form.api.submit(params);
+                var values = Ext.applyIf(form.getValues(), {
+                    isMonitoringAcquired: 'off',
+                    monitor: 'off',
+                    ignoreParameters: 'off'
+                });
                 // setValues makes isDirty return false
-                form.setValues(form.getValues());
+                form.setValues(values);
             }
         }, {
             xtype: 'button',

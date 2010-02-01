@@ -1098,7 +1098,8 @@ Zenoss.ColumnFieldSet = Ext.extend(Ext.form.FieldSet, {
                 defaults: {
                     layout: 'form',
                     border: false,
-                    labelSeparator: ' '
+                    labelSeparator: ' ',
+                    bodyStyle: 'padding-left: 15px'
                 }
             }
         };

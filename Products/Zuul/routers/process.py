@@ -82,6 +82,6 @@ class ProcessRouter(DirectRouter):
     def getInstances(self, uid, start=0, params=None, limit=50, sort='name',
                      dir='ASC'):
         facade = self._getFacade()
-        instances = facade.getInstances(uid)
+        instances = facade.getInstances(uid, start, limit, sort, dir, params)
         data = Zuul.marshal(instances)
-        return {'data': data, 'success': True}
+        return {'data': data, 'success': True, 'total': instances.total}

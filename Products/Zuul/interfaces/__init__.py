@@ -70,7 +70,7 @@ class IInstanceInfo(IInfo):
     WinService.
     """
     device = Attribute("The device associated with this instance")
-    monitor = Attribute("Is the instance monitored")
+    monitored = Attribute("Is the instance monitored")
     status = Attribute("What is the status of the instance")
 
 

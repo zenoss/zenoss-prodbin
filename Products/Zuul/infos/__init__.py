@@ -25,7 +25,7 @@ class InstanceInfo(InfoBase):
 
     @property
     def id(self):
-        return self._object.id
+        '.'.join(self._object.getPrimaryPath())
 
     @property
     def device(self):
@@ -36,7 +36,7 @@ class InstanceInfo(InfoBase):
         return self._object.name()
 
     @property
-    def monitor(self):
+    def monitored(self):
         return self._object.zMonitor
 
     @property
