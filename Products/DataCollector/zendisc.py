@@ -34,6 +34,8 @@ from Products.ZenUtils.IpUtil import asyncNameLookup
 from Products.ZenUtils.IpUtil import isip
 from Products.ZenUtils.IpUtil import parse_iprange
 from Products.ZenUtils.NJobs import NJobs
+from Products.ZenUtils.snmp import SnmpV1Config, SnmpV2cConfig
+from Products.ZenUtils.snmp import SnmpAgentDiscoverer
 from Products.ZenModel.Exceptions import NoIPAddress
 from Products.ZenEvents.ZenEventClasses import Status_Snmp
 from Products.ZenEvents.Event import Info
@@ -305,33 +307,20 @@ class ZenDisc(ZenModeler):
             if deviceSnmpCommunities is not None:
                 communities = deviceSnmpCommunities
 
-            oid = ".1.3.6.1.2.1.1.5.0"
-            goodcommunity = ""
-            goodversion = ""
-            devname = ""
-            for version in ("v2c", "v1"):
-                for community in communities:
-                    proxy = AgentProxy(ip,
-                                       port,
-                                       timeout=timeout,
-                                       community=community,
-                                       snmpVersion=version,
-                                       tries=retries - 1)
-                    proxy.open()
-                    try:
-                        yield proxy.get([oid])
-                        devname = driver.next().values()[0]
-                        proxy.close()
-                        goodcommunity = community
-                        goodversion = version
-                        break
-                    except:
-                        pass
-                if goodcommunity:
-                    yield succeed((goodcommunity, port, goodversion, devname))
-                    break
-            else:
-                yield succeed(None)
+            # Reverse the communities so that ones earlier in the list have a
+            # higher weight.
+            communities.reverse()
+
+            configs = []
+            for i, community in enumerate(communities):
+                configs.append(SnmpV1Config(
+                    ip, weight=i, port=port, timeout=timeout,
+                    retries=retries, community=community))
+                configs.append(SnmpV2cConfig(
+                    ip, weight=i+100, port=port, timeout=timeout,
+                    retries=retries, community=community))
+
+            yield SnmpAgentDiscoverer().findBestConfig(configs)
             driver.next()
             self.log.debug("Finished SNMP lookup on device %s", ip)
 
@@ -391,14 +380,20 @@ class ZenDisc(ZenModeler):
                         'zSnmpCommunities', None)
                     yield self.findRemoteDeviceInfo(ip, devicepath,
                                                     snmpCommunities)
-                    snmpDeviceInfo = driver.next()
-                    if snmpDeviceInfo:
-                        keys = ('zSnmpCommunity', 'zSnmpPort', 'zSnmpVer', 
-                                'deviceName')
-                        snmpDeviceInfo = dict(zip(keys, snmpDeviceInfo))
-                        for k, v in snmpDeviceInfo.iteritems():
-                            # Only override if not empty
-                            if v: kw[k] = v
+                    snmp_config = driver.next()
+                    if snmp_config:
+                        if snmp_config.sysName:
+                            kw['deviceName'] = snmp_config.sysName
+
+                        if snmp_config.version:
+                            kw['zSnmpVer'] = snmp_config.version
+
+                        if snmp_config.port:
+                            kw['zSnmpPort'] = snmp_config.port
+
+                        if snmp_config.community:
+                            kw['zSnmpCommunity'] = snmp_config.community
+
                     # if we are using SNMP, did not find any snmp info,
                     # and we are in strict discovery mode, do not
                     # create a device
