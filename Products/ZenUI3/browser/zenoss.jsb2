@@ -66,6 +66,9 @@
         }, {
             "text": "BackCompatPanel.js",
             "path": "resources/js/zenoss/"
+        }, {
+            "text": "CommandWindow.js",
+            "path": "resources/js/zenoss/"
         }]
     }],
     "resources": []

@@ -131,6 +131,10 @@
              factory=".facades.processfacade.ProcessInfo"
              />
 
+    <adapter factory=".infos.command.UserCommandInfo"
+             for="Products.ZenModel.UserCommand.UserCommand"
+             provides=".interfaces.IUserCommandInfo"/>
+
     <adapter provides=".interfaces.IInfo"
              for=".interfaces.IInstance"
              factory=".infos.InstanceInfo"

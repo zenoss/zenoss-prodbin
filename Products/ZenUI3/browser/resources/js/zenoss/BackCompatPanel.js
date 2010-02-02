@@ -16,17 +16,22 @@
 (function(){
 
 Zenoss.IFramePanel = Ext.extend(Ext.BoxComponent, {
+    constructor: function(config) {
+        var config = Ext.applyIf(config || {}, {
+            autoEl: {
+                tag: 'iframe',
+                id: Ext.id(),
+                src: config.url || '',
+                frameborder: 0
+            }
+        });
+        Zenoss.IFramePanel.superclass.constructor.call(this, config);
+    },
     initEvents: function() {
         Zenoss.IFramePanel.superclass.initEvents.call(this);
         this.addEvents('frameload');
     },
     onRender: function(ct, position) {
-        this.autoEl = {
-            tag: 'iframe',
-            id: Ext.id(),
-            src: this.url || '',
-            frameborder: 0
-        };
         Zenoss.IFramePanel.superclass.onRender.apply(this, arguments);
         // Hook up load events
         this.frame = this.getEl();

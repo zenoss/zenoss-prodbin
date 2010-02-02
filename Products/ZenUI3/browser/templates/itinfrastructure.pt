@@ -22,6 +22,34 @@
 <script>
 Ext.onReady(function(){
 
+var REMOTE = Zenoss.remote.DeviceRouter;
+
+function commandMenuItemHandler(item) {
+    var command = item.text,
+        grid = Ext.getCmp('device_grid'),
+        sm = grid.getSelectionModel(),
+        ranges = sm.getPendingSelections(true),
+        selections = sm.getSelections(),
+        devids = Ext.pluck(Ext.pluck(selections, 'data'), 'uid');
+    function showWindow() {
+        var win = new Zenoss.CommandWindow({
+            uids: devids,
+            target: treesm.getSelectedNode().attributes.uid,
+            command: command
+        });
+        win.show();
+    }
+    if (!Ext.isEmpty(ranges)) {
+        var opts = Ext.apply(grid.view.getFilterParams(true),{ranges:ranges});
+        REMOTE.loadRanges(opts, function(data){
+            devids.concat(data);
+            showWindow();
+        });
+    } else {
+        showWindow();
+    }
+}
+
 function updateNavTextWithCount(node) {
     var sel = treesm.getSelectedNode();
     if (sel) {
@@ -77,8 +105,10 @@ var treesm = new Ext.tree.DefaultSelectionModel({
     listeners: {
         'selectionchange': function(sm, newnode, oldnode){
             var uid = newnode.attributes.uid;
-            Zenoss.util.setContext(uid, 'detail_panel', 'organizer_events');
+            Zenoss.util.setContext(uid, 'detail_panel', 'organizer_events', 
+                                   'commands-menu');
             Ext.getCmp('delete-button').disable();
+            Ext.getCmp('commands-menu').disable();
             var card = Ext.getCmp('master_panel').getComponent(0),
                 type = Zenoss.types.type(uid);
             if (type && !Ext.isEmpty(Zenoss.nav[type])) {
@@ -121,7 +151,7 @@ function initializeTreeDrop(g) {
                 target: targetuid
             });
 
-            Zenoss.remote.DeviceRouter.moveDevices(opts, function(data){
+            REMOTE.moveDevices(opts, function(data){
                 if(data.success) {
                     grid.view.nonDisruptiveReset();
                     tree.update(data.tree);
@@ -137,7 +167,7 @@ var devtree = {
     xtype: 'HierarchyTreePanel',
     id: 'devices',
     searchField: true,
-    directFn: Zenoss.remote.DeviceRouter.getTree,
+    directFn: REMOTE.getTree,
     root: {
         id: 'Devices',
         uid: '/zport/dmd/Devices',
@@ -151,7 +181,7 @@ var grouptree = {
     xtype: 'HierarchyTreePanel',
     id: 'groups',
     searchField: false,
-    directFn: Zenoss.remote.DeviceRouter.getTree,
+    directFn: REMOTE.getTree,
     root: {
         id: 'Groups',
         uid: '/zport/dmd/Groups',
@@ -165,7 +195,7 @@ var loctree = {
     xtype: 'HierarchyTreePanel',
     id: 'locs',
     searchField: false,
-    directFn: Zenoss.remote.DeviceRouter.getTree,
+    directFn: REMOTE.getTree,
     root: {
         id: 'Locations',
         uid: '/zport/dmd/Locations',
@@ -320,6 +350,8 @@ Ext.getCmp('center_panel').add({
                     selectionchange: function(sm) {
                         var btn = Ext.getCmp('delete-button');
                         btn.setDisabled(!sm.getSelected());
+                        var mnu = Ext.getCmp('commands-menu');
+                        mnu.setDisabled(!sm.getSelected());
                     }
                 }
             }),
@@ -356,6 +388,38 @@ Ext.getCmp('center_panel').add({
                     id: 'configure-button',
                     iconCls: 'configure'
                     */
+                },'->', {
+                    id: 'actions-menu',
+                    text: _t('Actions'),
+                    menu: {
+                        items: [{
+                            text: 'Reset IP'
+                        },{
+                            text: 'Reset Community'
+                        },{
+                            text: 'Push Changes'
+                        },{
+                            text: 'Add to ZenPack...'
+                        }]
+                    }
+                },{
+                    id: 'commands-menu',
+                    text: _t('Commands'),
+                    setContext: function(uid) {
+                        var me = Ext.getCmp('commands-menu'),
+                            menu = me.menu;
+                        REMOTE.getUserCommands({uid:uid}, function(data){
+                            menu.removeAll();
+                            Ext.each(data, function(d){
+                                menu.add({
+                                    text:d.id, 
+                                    tooltip:d.description,
+                                    handler: commandMenuItemHandler
+                                });
+                            });
+                        });
+                    },
+                    menu: {}
                 }]
             }
         }, {

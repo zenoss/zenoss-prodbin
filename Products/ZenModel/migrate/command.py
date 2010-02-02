@@ -27,7 +27,7 @@ class Commands(Migrate.Step):
             dmd.Devices._delProperty(oldname)
         elif not dmd.Devices.hasProperty(name):
             dmd.Devices._setProperty(name, default, **kw)
-        
+
     def cutover(self, dmd):
         from Products.ZenUtils.Utils import zenPath
         self.update(dmd, "zNagiosPath", "zCommandPath", zenPath('libexec'))

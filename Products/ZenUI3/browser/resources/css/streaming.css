@@ -1,0 +1,9 @@
+div.streaming-container {
+    font-family: Monaco,monospace;
+    font-size: 12px;
+    color: #eee;
+}
+div.streaming-line.odd {
+    color: #acc;
+    padding: 3px 0;
+}

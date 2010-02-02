@@ -382,3 +382,7 @@ table.eventrainbow {
 table.eventrainbow td.critical { background-color: #d60000; }
 table.eventrainbow td.error { background-color: #ff9711; }
 table.eventrainbow td.warning { background-color: #fbd13d; }
+
+.streaming-window .x-window-body {
+    background: transparent url(../img/xtheme-zenoss/window/left-right.png);
+}

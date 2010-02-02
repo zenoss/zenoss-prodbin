@@ -14,6 +14,7 @@
 from itertools import imap
 from zope.component import adapts
 from zope.interface import implements
+from Products.Zuul.decorators import info
 from Products.Zuul.tree import TreeNode
 from Products.Zuul.facades import TreeFacade
 from Products.Zuul.interfaces import IDeviceFacade, IDeviceOrganizerNode
@@ -194,6 +195,11 @@ class DeviceFacade(TreeFacade):
         elif isinstance(organizer, Location):
             for dev in devs:
                 dev.setLocation(None)
+
+    @info
+    def getUserCommands(self, uid=None):
+        org = self._getObject(uid)
+        return org.getUserCommands()
 
     def moveDevices(self, uids, target):
         # Resolve target if a path

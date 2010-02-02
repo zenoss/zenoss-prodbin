@@ -144,6 +144,13 @@
     permission="zope2.Public"
     />
 
+<browser:page
+    class=".command.CommandView"
+    name="run_command"
+    for="*"
+    permission="zope2.Public"
+    />
+
 <include package=".eventconsole"/>
 
 </configure>

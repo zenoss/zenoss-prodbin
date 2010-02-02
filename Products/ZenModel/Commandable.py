@@ -204,7 +204,7 @@ class Commandable:
                 for c in obj.userCommands():
                     commandIds.append(c.id)
         return commandIds
-        
+
     security.declareProtected(ZEN_DEFINE_COMMANDS_VIEW, 'getUserCommands')
     def getUserCommands(self, asDict=False):
         ''' Get the user commands available in this context

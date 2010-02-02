@@ -58,7 +58,7 @@ class DeviceRouter(DirectRouter):
     def moveDevices(self, uids, target, hashcheck, ranges=(), uid=None,
                     params=None, sort='name', dir='ASC'):
         if ranges:
-            uids += self._rangesToUIDs(ranges, hashcheck, uid, params, sort, dir)
+            uids += self.loadRanges(ranges, hashcheck, uid, params, sort, dir)
 
         facade = self._getFacade()
         try:
@@ -74,7 +74,7 @@ class DeviceRouter(DirectRouter):
     def removeDevices(self, uids, hashcheck, action="remove", uid=None,
                       ranges=(), params=None, sort='name', dir='ASC'):
         if ranges:
-            uids += self._rangesToUIDs(ranges, hashcheck, uid, params, sort, dir)
+            uids += self.loadRanges(ranges, hashcheck, uid, params, sort, dir)
         facade = self._getFacade()
         success = False
         try:
@@ -99,7 +99,7 @@ class DeviceRouter(DirectRouter):
         data = Zuul.marshal(events)
         return {'data': data, 'success': True}
 
-    def _rangesToUIDs(self, ranges, hashcheck, uid=None, params=None,
+    def loadRanges(self, ranges, hashcheck, uid=None, params=None,
                       sort='name', dir='ASC'):
         facade = self._getFacade()
         if isinstance(params, basestring):
@@ -111,8 +111,7 @@ class DeviceRouter(DirectRouter):
             uids.extend(b.uid for b in islice(devs, start, stop))
         return uids
 
-
-
-
-
-
+    def getUserCommands(self, uid):
+        facade = self._getFacade()
+        cmds = facade.getUserCommands(uid)
+        return Zuul.marshal(cmds, ['id', 'description'])
