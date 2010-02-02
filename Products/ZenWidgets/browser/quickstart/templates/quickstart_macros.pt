@@ -357,9 +357,15 @@
                              var type = ob.value.split('_')[1];
                              var types = ['ssh', 'snmp', 'win'];
                              var container = Ext.getCmp('creds_' + index);
-                             container.layout.setActiveItem(
-                                 types.indexOf(type)
-                             );
+                             function selectCard(){
+                                 var idx = types.indexOf(type);
+                                 container.layout.setActiveItem(idx);
+                             }
+                             if (Ext.isString(container.layout)) {
+                                 container.on('afterlayout', selectCard);
+                             } else {
+                                 selectCard();
+                             }
                          }
                      }
                     }),
