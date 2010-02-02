@@ -1,8 +1,7 @@
-#!/usr/bin/env python
 ###########################################################################
 #
 # This program is part of Zenoss Core, an open source monitoring platform.
-# Copyright (C) 2009, Zenoss Inc.
+# Copyright (C) 2010, Zenoss Inc.
 #
 # This program is free software; you can redistribute it and/or modify it
 # under the terms of the GNU General Public License version 2 as published by
@@ -11,6 +10,7 @@
 # For complete information please visit: http://www.zenoss.com/oss/
 #
 ###########################################################################
+
 from twisted.internet import reactor
 from twisted.internet.defer import Deferred
 from pynetsnmp.twistedsnmp import AgentProxy
@@ -190,7 +190,7 @@ class SnmpAgentDiscoverer(object):
 
         # We got responses to all of our queries without being able to short-
         # circuit the test. Return the best match or none.
-        if len(self._pending) < 1:
+        if len(self._pending) < 1 and not self._d.called:
             self._d.callback(self._bestsofar)
 
 
