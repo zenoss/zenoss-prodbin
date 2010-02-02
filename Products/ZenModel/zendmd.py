@@ -135,6 +135,39 @@ def _customStuff():
         result.sort()
         pprint(result)
 
+    def history(start=None, end=None, lines=30,
+                   number=False):
+        """
+        Display the history starting from entry 'start' to
+        entry 'end'. Only available on platforms where the
+        readline module can be imported.
+
+        History starts from 0 and goes to a large number.
+        The history file is $ZENHOME/.pyhistory by default.
+
+        @parameter start: Line number to start printing
+        @type start: integer
+        @parameter end: Line number to finish printing
+        @type end: integer
+        @parameter lines: number of lines to show if no end
+        @type lines: integer
+        @parameter number: show the line numbers?
+        @type number: boolean
+        """
+        if readline is not None:
+            maxHistLength = readline.get_current_history_length()
+            if start is None:
+                start = maxHistLength
+            if end is None:
+                end = maxHistLength - lines
+            if start < end:
+                end, start = start, end
+            for i in range(end, start):
+                if number:
+                    print i, readline.get_history_item(i)
+                else:
+                    print readline.get_history_item(i)
+
 
     _CUSTOMSTUFF = locals()
     return _CUSTOMSTUFF
