@@ -319,7 +319,7 @@ class EventFacade(ZuulFacade):
         if filters is None:
             filters = {}
         elif isinstance(filters, basestring):
-            filters = unjson(filsters)
+            filters = unjson(filters)
         zem = self._event_manager(history)
         context = resolve_context(context, self._dmd.Events)
         where = zem.lookupManagedEntityWhere(context)
@@ -329,8 +329,8 @@ class EventFacade(ZuulFacade):
         values = []
         where = zem.filteredWhere(where, filters, values)
         if asof:
-            where += " and not (stateChange>%s and eventState=0)" % (
-                                                zem.dateDB(asof))
+            where += (" and not (stateChange>FROM_UNIXTIME(%s) and "
+                      "eventState=0)" % zem.dateDB(asof))
         table = history and 'history' or 'status'
         q = 'select eventState from %s where %s ' % (table, where)
         orderby = self._get_orderby_clause(field, direction, history)

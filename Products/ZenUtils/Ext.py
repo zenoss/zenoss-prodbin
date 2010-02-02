@@ -73,10 +73,5 @@ class DirectRouter(ZopeDirectRouter):
 
     def __call__(self):
         result = unjson(super(DirectRouter, self).__call__())
-        if isinstance(result, dict):
-            result['asof'] = self._asof
-        elif isinstance(result, list):
-            for dct in result:
-                dct['asof'] = self._asof
         return json(result)
 

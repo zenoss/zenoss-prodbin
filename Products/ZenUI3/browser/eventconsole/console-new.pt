@@ -301,7 +301,7 @@ Ext.onReady(function(){
      * perform a query to determine ranges, then we select the ranges.
      */
     function selectByState(state) {
-        var params = {'state':state},
+        var params = {'state':state, 'asof':Zenoss.env.asof},
             grid = Ext.getCmp('events_grid');
         Ext.apply(params, getQueryParameters());
         Zenoss.remote.EventsRouter.state_ranges(
@@ -341,6 +341,7 @@ Ext.onReady(function(){
                     if (params) {
                         // Send to server, then refresh view to see new event
                         // states
+                        params.asof = Zenoss.env.asof;
                         Zenoss.remote.EventsRouter.acknowledge(
                             params,
                             function(provider, response){
@@ -363,6 +364,7 @@ Ext.onReady(function(){
                     if (params) {
                         // Send to server, then refresh view to see fewer
                         // events
+                        params.asof = Zenoss.env.asof;
                         Zenoss.remote.EventsRouter.close(params,
                             function(provider, response){
                                 view = grid.getView();
@@ -386,6 +388,7 @@ Ext.onReady(function(){
                 handler: function() {
                     var params = getSelectionParameters();
                     if (params) {
+                        params.asof = Zenoss.env.asof;
                         Zenoss.remote.EventsRouter.unacknowledge(
                             params,
                             function(provider, response) {

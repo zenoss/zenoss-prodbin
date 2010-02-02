@@ -34,7 +34,7 @@ Ext.Direct.on('event', function(e){
     } catch(e) {
         Ext.emptyFn();
     }
-    Zenoss.env.asof = e.asof || null;
+    Zenoss.env.asof = e.result.asof || null;
 });
 
 Ext.Direct.on('exception', function(e) {
@@ -44,19 +44,6 @@ Ext.Direct.on('exception', function(e) {
         buttons:Ext.Msg.OK,
         minWidth: 300
     });
-});
-
-/*
- * Hack in a way to pass the 'asof' attribute along if received from the
- * server.
- */
-_oldGetCallData = Ext.direct.RemotingProvider.prototype.getCallData;
-Ext.override(Ext.direct.RemotingProvider, {
-    getCallData: function(t){
-        return Ext.apply(_oldGetCallData.apply(this, arguments), {
-            asof: Zenoss.env.asof
-        });
-    }
 });
 
 /**
@@ -256,7 +243,6 @@ Ext.reg('livegridinfo', Zenoss.LiveGridInfoPanel);
  * @constructor
  */
 Zenoss.FilterGridView = Ext.extend(Ext.ux.grid.livegrid.GridView, {
-    forceFit: true,
     rowHeight: 22,
     rowColors: false,
     liveSearch: true,
@@ -323,7 +309,6 @@ Zenoss.FilterGridView = Ext.extend(Ext.ux.grid.livegrid.GridView, {
         });
         // Store them for later, just in case
         this.lastOptions = params;
-
     },
     setContext: function(uid) {
         this.contextUid = uid;

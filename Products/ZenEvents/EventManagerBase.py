@@ -395,12 +395,6 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
                 populated with the values for the query
         @type values: list
         """
-        
-        def toTimestamp(value):
-            timeStr = value.replace('T', ' ')
-            timeTuple = time.strptime(timeStr, '%Y-%m-%d %H:%M:%S')
-            timestamp = time.mktime(timeTuple)
-            return timestamp
         queryValues = []
         newwhere = ''
         if filters is None: filters = {}
@@ -422,11 +416,11 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
                 newwhere += ' and (%s REGEXP %%s) ' % (k,)
                 queryValues.append(v)
             elif k=='firstTime':
-                v2 = toTimestamp(v)
+                v2 = Time.isoToTimestamp(v)
                 newwhere += ' and %s >= %%s ' % (k,)
                 queryValues.append(v2)
             elif k=='lastTime':
-                v2 = toTimestamp(v)
+                v2 = Time.isoToTimestamp(v)
                 newwhere += ' and %s >= %%s ' % (k, )
                 queryValues.append(v2)
             elif ftype=='multiselectmenu':
@@ -464,8 +458,8 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
                            lambda:self.lookupManagedEntityWhere(context))
         where = getWhere()
         if asof:
-            where += " and not (stateChange>%s and eventState=0)" % (
-                                                    self.dateDB(asof))
+            where += (" and not (stateChange>FROM_UNIXTIME(%s) "
+                      "and eventState=0)" % self.dateDB(asof))
 
         # If no ranges are specified, just return the event IDs passed in
         if not ranges:
@@ -645,7 +639,6 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
                 paramValues.extend(pvals)
 
             def paramWhereAnd(where, fmt, field, value):
-                log.debug("where is %s" % where)
                 if value != None and where.find(field) == -1:
                     if where: where += " and "
                     where += fmt % (field,)
@@ -691,7 +684,7 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
                 conn = self.connect()
                 try:
                     curs = conn.cursor()
-                    log.debug(select % tuple(paramValues))
+                    log.info(select % tuple(paramValues))
                     curs.execute(select, paramValues)
                     retdata = []
                     # iterate through the data results and convert to python

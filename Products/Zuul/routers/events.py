@@ -30,11 +30,11 @@ class EventsRouter(DirectRouter):
             uid = self.context
         events = self.api.query(limit, start, sort, dir, params, uid, criteria,
                                history)
-        self._set_asof(time.time())
         disabled = not Zuul.checkPermission('Manage Events')
         return {'events':events['data'], 
                 'disabled': disabled, 
-                'totalCount': events['total'] }
+                'totalCount': events['total'],
+                'asof': time.time() }
 
     def queryHistory(self, limit, start, sort, dir, params):
         return self.query(limit, start, sort, dir, params, history=True)
@@ -42,51 +42,52 @@ class EventsRouter(DirectRouter):
     @require('Manage Events')
     def acknowledge(self, evids=None, ranges=None, start=None, limit=None,
                     field=None, direction=None, params=None, history=False,
-                    uid=None):
+                    uid=None, asof=None):
         if uid is None:
             uid = self.context
         self.api.acknowledge(evids, ranges, start, limit, field, direction,
-                             params, asof=self._asof, context=uid,
+                             params, asof=asof, context=uid,
                              history=history)
         return {'success':True}
 
     @require('Manage Events')
     def unacknowledge(self, evids=None, ranges=None, start=None, limit=None,
                       field=None, direction=None, params=None, history=False,
-                      uid=None):
+                      uid=None, asof=None):
         if uid is None:
             uid = self.context
         self.api.unacknowledge(evids, ranges, start, limit, field, direction,
-                               params, asof=self._asof, context=uid,
+                               params, asof=asof, context=uid,
                                history=history)
         return {'success':True}
 
     @require('Manage Events')
     def reopen(self, evids=None, ranges=None, start=None, limit=None,
                field=None, direction=None, params=None, history=True,
-               uid=None):
+               uid=None, asof=None):
         if uid is None:
             uid = self.context
         self.api.reopen(evids, ranges, start, limit, field, direction, params,
-                        asof=self._asof, context=uid, history=history)
+                        asof=asof, context=uid, history=history)
         return {'success':True}
 
     @require('Manage Events')
     def close(self, evids=None, ranges=None, start=None, limit=None,
-              field=None, direction=None, params=None, history=False, uid=None):
+              field=None, direction=None, params=None, history=False, uid=None,
+              asof=None):
         if uid is None:
             uid = self.context
         self.api.close(evids, ranges, start, limit, field, direction, params,
-                        asof=self._asof, context=uid, history=history)
+                        asof=asof, context=uid, history=history)
         return {'success':True}
 
 
     def state_ranges(self, state=1, field='severity', direction='DESC',
-                     params=None, history=False, uid=None):
+                     params=None, history=False, uid=None, asof=None):
         if uid is None:
             uid = self.context
         return self.api.getStateRanges(state, field, direction, params, history,
-                                       uid, self._asof);
+                                       uid, asof);
 
 
     def detail(self, evid, history=False):
