@@ -340,7 +340,7 @@ class RRDView(object):
                             device = socket.gethostname()
                             path = template.absolute_url_path()
                             msg = \
-"The threshold %s in template %s has been disabled." % (threshold.id, path)
+"The threshold %s in template %s has caused an exception." % (threshold.id, path)
                             evt = dict(summary=str(ex), severity=3,
                                     component='zenhub', message=msg,
                                     dedupid='zenhub|' + str(ex),
