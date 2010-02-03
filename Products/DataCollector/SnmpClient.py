@@ -116,8 +116,11 @@ class SnmpClient(BaseClient):
                 self._tabledata[pname] = {}
                 log.debug("sending queries for plugin %s", pname)
                 if plugin.snmpGetMap:
-                    yield self.proxy.get(plugin.snmpGetMap.getoids())
-                    self._getdata[pname] = driver.next()
+                    results = {}
+                    for oid in plugin.snmpGetMap.getoids():
+                        yield self.proxy.get([oid])
+                        results.update(driver.next())
+                    self._getdata[pname] = results
                 for tmap in plugin.snmpGetTableMaps:
                     rowSize = len(tmap.getoids())
                     maxRepetitions = max(DEFAULT_MAX_OIDS_BACK / rowSize, 1)
