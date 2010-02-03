@@ -32,11 +32,25 @@ var BaseDialog = Ext.extend(Ext.Window, {
     }
 });
 
-function hideWindow(button){
+function destroyWindow(button){
     button.ownerCt.ownerCt.destroy();
 }
 
 Zenoss.dialog.DialogButton = Ext.extend(Ext.Button, {
+    constructor: function(config) {
+        var h = config.handler;
+        config.handler = h ? h.createSequence(destroyWindow) : destroyWindow;
+        Zenoss.dialog.DialogButton.superclass.constructor.call(this, config);
+    }
+});
+
+Ext.reg('DialogButton', Zenoss.dialog.DialogButton);
+
+function hideWindow(button){
+    button.ownerCt.ownerCt.hide();
+}
+
+Zenoss.dialog.HideDialogButton = Ext.extend(Ext.Button, {
     constructor: function(config) {
         var h = config.handler;
         config.handler = h ? h.createSequence(hideWindow) : hideWindow;
@@ -44,8 +58,7 @@ Zenoss.dialog.DialogButton = Ext.extend(Ext.Button, {
     }
 });
 
-Ext.reg('DialogButton', Zenoss.dialog.DialogButton);
-
+Ext.reg('HideDialogButton', Zenoss.dialog.HideDialogButton);
 
 Zenoss.dialog.CANCEL = {
     xtype: 'DialogButton',
@@ -63,12 +76,12 @@ Zenoss.MessageDialog = Ext.extend(BaseDialog, {
             },
             buttons: [
                 {
-                    xtype: 'DialogButton',
+                    xtype: 'HideDialogButton',
                     text: _t('OK'),
                     handler: config.okHandler,
                     dialogId: config.id
                 }, {
-                    xtype: 'DialogButton',
+                    xtype: 'HideDialogButton',
                     text: _t('Cancel'),
                     handler: config.cancelHandler,
                     dialogId: config.id

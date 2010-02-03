@@ -22,6 +22,7 @@ function initTreeDialogs(tree) {
     new Zenoss.FormDialog({
         id: 'addNodeDialog',
         title: _t('Add Tree Node'),
+        closeAction: 'hide',
         items: [
             {
                 xtype: 'combo',
@@ -52,7 +53,7 @@ function initTreeDialogs(tree) {
         },
         buttons: [
             {
-                xtype: 'DialogButton',
+                xtype: 'HideDialogButton',
                 text: _t('Submit'),
                 dialogId: 'addNodeDialog',
                 handler: function(button, event) {
@@ -61,7 +62,7 @@ function initTreeDialogs(tree) {
                     tree.addNode(type, id);
                 }
             }, {
-                xtype: 'DialogButton',
+                xtype: 'HideDialogButton',
                 text: _t('Cancel'),
                 dialogId: 'addNodeDialog'
             }
