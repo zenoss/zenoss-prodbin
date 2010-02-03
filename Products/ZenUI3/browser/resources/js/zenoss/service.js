@@ -37,7 +37,7 @@ Ext.onReady( function() {
      * Initialize the tree.
      */
     function treeInitialize() {
-        treePanel = Ext.create({
+        var treePanel = Ext.create({
             xtype: 'HierarchyTreePanel',
             id: 'serviceTree',
             searchField: true,
@@ -167,14 +167,14 @@ Ext.onReady( function() {
         name: 'name',
         allowBlank: false,
         width: "100%"
-    }
+    };
 
     var descriptionTextField = {
         xtype: 'textfield',
         fieldLabel: _t('Description'),
         name: 'description',
         width: "100%"
-    }
+    };
 
     var serviceKeysTextField = {
         xtype: 'textarea',
@@ -182,14 +182,14 @@ Ext.onReady( function() {
         name: 'serviceKeys',
 
         width: "100%"
-    }
+    };
 
     var portTextField = {
         xtype: 'textfield',
         fieldLabel: _t('Port'),
         name: 'port',
         width: "100%"
-    }
+    };
 
     var acquiredCheckbox = {
         xtype: 'checkbox',
@@ -197,14 +197,14 @@ Ext.onReady( function() {
         fieldLabel: _t('Inherited'),
         name: 'isMonitoringAcquired',
         handler: acquiredCheckboxHandler
-    }
+    };
 
     var monitorCheckbox = {
         xtype: 'checkbox',
         id: 'monitorCheckbox',
         fieldLabel: _t('Enabled'),
         name: 'monitor'
-    }
+    };
 
     var eventSeverityCombo = {
         xtype: 'combo',
@@ -219,7 +219,7 @@ Ext.onReady( function() {
             fields: ['severityId', 'severityText'],
             data: Zenoss.env.SEVERITIES.slice(0, 5)
         })
-    }
+    };
 
     var monitoringFieldSet = {
         xtype: 'ColumnFieldSet',
@@ -235,7 +235,7 @@ Ext.onReady( function() {
                 bodyStyle: 'padding-left: 15px'
             }
         ]
-    }
+    };
 
     var formItems = {
         layout: 'column',
@@ -251,7 +251,7 @@ Ext.onReady( function() {
             {items: [nameTextField, descriptionTextField, monitoringFieldSet ]},
             {items: [serviceKeysTextField]}
         ]
-    }
+    };
 
     var formConfig = {
         xtype: 'form',
@@ -275,7 +275,7 @@ Ext.onReady( function() {
                    handler: saveForm
                }
         ]
-    }
+    };
 
     /**
      * @class Zenoss.ui.Service.ServiceFormPanel
@@ -287,7 +287,7 @@ Ext.onReady( function() {
     Zenoss.ui.Service.ServiceFormPanel = Ext.extend(Ext.form.FormPanel, {
 
         constructor: function(config) {
-            var config = config || {};
+            config = config || {};
             Ext.applyIf(config, formConfig);
             Zenoss.ui.Service.ServiceFormPanel.superclass
                              .constructor.call(this, config);
