@@ -34,7 +34,9 @@ Ext.Direct.on('event', function(e){
     } catch(e) {
         Ext.emptyFn();
     }
-    Zenoss.env.asof = e.result.asof || null;
+    if ( Ext.isDefined(e.result) && Ext.isDefined(e.result.asof) ) {
+        Zenoss.env.asof = e.result.asof || null;
+    }
 });
 
 Ext.Direct.on('exception', function(e) {
