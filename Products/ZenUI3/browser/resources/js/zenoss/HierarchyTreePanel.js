@@ -19,7 +19,7 @@ Ext.ns('Zenoss');
 
 function initTreeDialogs(tree) {
     
-    new Zenoss.HideFormDialog({
+    var hidedialog = new Zenoss.HideFormDialog({
         id: 'addNodeDialog',
         title: _t('Add Tree Node'),
         items: [
@@ -68,7 +68,7 @@ function initTreeDialogs(tree) {
         ]
     });
     
-    new Zenoss.MessageDialog({
+    var msgdialog = new Zenoss.MessageDialog({
         id: 'deleteNodeDialog',
         title: _t('Delete Tree Node'),
         message: _t('The selected node will be deleted.'),
@@ -121,7 +121,7 @@ Zenoss.HierarchyTreeNodeUI = Ext.extend(Ext.tree.TreeNodeUI, {
         } else {
             b.push('<strong>' + t.text + '</strong>');
         }
-        if (t.count!=undefined) {
+        if (t.count!==undefined) {
             b.push('<span class="node-extra">(' + t.count);
             b.push((t.description || 'instances') + ')</span>');
         }
@@ -131,6 +131,12 @@ Zenoss.HierarchyTreeNodeUI = Ext.extend(Ext.tree.TreeNodeUI, {
     render: function(bulkRender) {
         var n = this.node,
             a = n.attributes;
+
+        // Hack this in here because baseAttrs doesn't work on loader
+        n.hasChildNodes = function() {
+            return (a.children && a.children.length>0);
+        }.createDelegate(n);
+
         if (a.text && Ext.isObject(a.text)) {
             n.text = this.buildNodeText(this.node);
         }
@@ -152,7 +158,7 @@ Zenoss.HierarchyRootTreeNodeUI = Ext.extend(Zenoss.HierarchyTreeNodeUI, {
 
         b.push(t.substring(t.lastIndexOf('/')));
 
-        if (t.count!=undefined) {
+        if (t.count!==undefined) {
             b.push('<span class="node-extra">(' + t.count);
             b.push((t.description || 'instances') + ')</span>');
         }
@@ -206,9 +212,9 @@ Zenoss.HierarchyTreePanel = Ext.extend(Ext.tree.TreePanel, {
                 node.select();
             });
         }
+        this.addEvents('filter');
         this.on('click', function(node, event) {
-            Ext.History.add(
-                this.id + Ext.History.DELIMITER + node.getPath());
+            Ext.History.add(this.id + Ext.History.DELIMITER + node.id);
         }, this);
     },
     update: function(data) {
@@ -225,30 +231,37 @@ Zenoss.HierarchyTreePanel = Ext.extend(Ext.tree.TreePanel, {
         doUpdate(this.getRootNode(), data);
 
     },
-    selectByPath: function(escapedId) {
-        var id = unescape(escapedId);
-        this.expandPath(id, 'id', function(t, n){
-            if (n && !n.isSelected()) {
-                n.fireEvent('click', n);
-            }
-        });
-    },
     selectByToken: function(token) {
+        var selNode = function () {
+                var parts = unescape(token).split('.'),
+                    curpath = parts.slice(0,4).join('.'),
+                    curnode = this.root;
+                parts = parts.slice(4);
+                parts.reverse();
+                while (!Ext.isEmpty(parts)) {
+                    curnode.expand();
+                    curpath += '.'+parts.pop(0);
+                    curnode = curnode.findChild('id', curpath);
+                }
+                if (curnode) {
+                    curnode.select();
+                }
+            }.createDelegate(this);
         if (!this.root.loaded) {
-            this.loader.on('load',function(){this.selectByPath(token);}, this);
+            this.loader.on('load', selNode, this);
         } else {
-            this.selectByPath(token);
+            selNode();
         }
     },
     afterRender: function() {
         Zenoss.HierarchyTreePanel.superclass.afterRender.call(this);
         this.root.ui.addClass('hierarchy-root');
         Ext.removeNode(this.root.ui.getIconEl());
+        this.filter = new Ext.tree.TreeFilter(this, {
+            clearBlank: true,
+            autoClear: true
+        });
         if (this.searchField) {
-            this.filter = new Ext.tree.TreeFilter(this, {
-                clearBlank: true,
-                autoClear: true
-            });
             this.searchField = this.add({
                 xtype: 'searchfield',
                 bodyStyle: {padding: 10},
@@ -262,6 +275,7 @@ Zenoss.HierarchyTreePanel = Ext.extend(Ext.tree.TreePanel, {
     },
     filterTree: function(e) {
         var text = e.getValue();
+        this.fireEvent('filter', e);
         if (this.hiddenPkgs) {
             Ext.each(this.hiddenPkgs, function(n){n.ui.show();});
         }
@@ -272,15 +286,22 @@ Zenoss.HierarchyTreePanel = Ext.extend(Ext.tree.TreePanel, {
         }
         this.expandAll();
         var re = new RegExp(Ext.escapeRe(text), 'i');
-        this.filter.filterBy(function(n){
-            var match = false;
-            Ext.each(n.id.split('/'), function(s){
-                match = match || re.test(s);
-            });
-            return !n.isLeaf() || match;
-        });
         this.root.cascade(function(n){
-            if(!n.isLeaf() && n.ui.ctNode.offsetHeight<3){
+            var attr = n.id.slice('.zport.dmd'.length);
+            if (n.isRoot) {
+                return true;
+            }
+            if (re.test(attr)) {
+                var parentNode = n.parentNode;
+                while (parentNode) {
+                    if (!parentNode.hidden) {
+                        break;
+                    }
+                    parentNode.ui.show();
+                    parentNode = parentNode.parentNode;
+                }
+                return false;
+            } else {
                 n.ui.hide();
                 this.hiddenPkgs.push(n);
             }

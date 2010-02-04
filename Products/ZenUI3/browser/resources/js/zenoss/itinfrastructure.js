@@ -506,8 +506,15 @@ var devtree = {
         text: 'Device Classes'
     },
     selModel: treesm,
-    listeners: { render: initializeTreeDrop }
+    listeners: { 
+        render: initializeTreeDrop, 
+        filter: function(e) {
+            Ext.getCmp('locs').filterTree(e);
+            Ext.getCmp('groups').filterTree(e);
+        }
+    }
 };
+
 
 var grouptree = {
     xtype: 'HierarchyTreePanel',
