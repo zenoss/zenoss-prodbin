@@ -177,12 +177,12 @@ class CaptureReplay(object):
         for when we are replaying packets.  This version waits to make
         sure that all of our deferreds have exited before pulling the plug.
         """
-        self.log.debug( "Replayed %d of %d packets" % (self.replayed, self.loaded ) )
-        if self.replayed == self.loaded:
-            self.log.info( "Loaded and replayed %d packets" % self.replayed )
+        self.log.debug("Event queue size = %d", len(self.eventQueue))
+        if self.replayed == self.loaded and not self.eventQueue:
+            self.log.info("Loaded and replayed %d packets" % self.replayed)
             self.stop()
         else:
-            reactor.callLater( 1, self.replayStop )
+            reactor.callLater(1, self.replayStop)
 
 
     def buildCaptureReplayOptions(self):
