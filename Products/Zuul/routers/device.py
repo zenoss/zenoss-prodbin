@@ -13,9 +13,12 @@
 
 from itertools import islice
 
-from Products.ZenUtils.Ext import DirectRouter
+from Products.ZenUtils.Ext import DirectRouter, DirectResponse
 from Products.ZenUtils.json import unjson
 from Products import Zuul
+
+import logging
+log = logging.getLogger('zen.Zuul')
 
 class DeviceRouter(DirectRouter):
 
@@ -33,7 +36,7 @@ class DeviceRouter(DirectRouter):
         process = facade.getInfo(uid)
         data = Zuul.marshal(process, keys)
         disabled = not Zuul.checkPermission('Manage DMD')
-        return {'data': data, 'disabled': disabled, 'success': True}
+        return DirectResponse(data=data, disabled=disabled)
 
     def setInfo(self, **data):
         facade = self._getFacade()
@@ -41,7 +44,7 @@ class DeviceRouter(DirectRouter):
             raise Exception('You do not have permission to save changes.')
         process = facade.getInfo(data['uid'])
         Zuul.unmarshal(data, process)
-        return {'success': True}
+        return DirectResponse()
 
     def getDevices(self, uid=None, start=0, params=None, limit=50, sort='name',
                    dir='ASC'):
@@ -51,9 +54,8 @@ class DeviceRouter(DirectRouter):
         devices = facade.getDevices(uid, start, limit, sort, dir, params)
         keys = ['name', 'ipAddress', 'productionState', 'events']
         data = Zuul.marshal(devices, keys)
-        return {'devices': data,
-                'totalCount': devices.total,
-                'hash': devices.hash_}
+        return DirectResponse(devices=data, totalCount=devices.total,
+                              hash=devices.hash_)
 
     def moveDevices(self, uids, target, hashcheck, ranges=(), uid=None,
                     params=None, sort='name', dir='ASC'):
@@ -63,13 +65,13 @@ class DeviceRouter(DirectRouter):
         facade = self._getFacade()
         try:
             facade.moveDevices(uids, target)
-        except:
-            return {'success': False}
+        except Exception, e:
+            log.exception(e)
+            return DirectResponse.fail('Failed to move devices.')
         else:
-            success = True
             target = '/'.join(target.split('/')[:4])
             tree = self.getTree(target)
-            return {'success':success, 'tree':tree}
+            return DirectResponse.succeed(tree=tree)
 
     def lockDevices(self, uids, hashcheck, ranges=(), updates=False,
                     deletion=False, sendEvent=False, uid=None, params=None,
@@ -88,40 +90,108 @@ class DeviceRouter(DirectRouter):
                 if deletion: actions.append('deletion')
                 if updates: actions.append('updates')
                 message = "Locked %%s devices from %s." % ' and '.join(actions)
+            return DirectResponse.succeed(message)
             message = message % len(uids)
-        except:
-            success = False
-            message = 'Failed to lock devices.'
-        return {
-            'success':success,
-            'msg':message
-        }
+        except Exception, e:
+            log.exception(e)
+            return DirectResponse.fail('Failed to lock devices.')
+
+    def resetIp(self, uids, hashcheck, uid=None, ranges=(), params=None,
+                sort='name', dir='ASC'):
+        if ranges:
+            uids += self.loadRanges(ranges, hashcheck, uid, params, sort, dir)
+        facade = self._getFacade()
+        try:
+            for uid in uids:
+                info = facade.getInfo(uid)
+                info.ipAddress = '' # Set to empty causes DNS lookup
+            return DirectResponse('Reset %s IP addresses.' % len(uids))
+        except Exception, e:
+            log.exception(e)
+            return DirectResponse.fail('Failed to reset IP addresses.')
+
+    def resetCommunity(self, uids, hashcheck, uid=None, ranges=(), params=None,
+                      sort='name', dir='ASC'):
+        if ranges:
+            uids += self.loadRanges(ranges, hashcheck, uid, params, sort, dir)
+        facade = self._getFacade()
+        try:
+            for uid in uids:
+                facade.resetCommunityString(uid)
+            return DirectResponse('Reset %s community strings.' % len(uids))
+        except Exception, e:
+            log.exception(e)
+            return DirectResponse.fail('Failed to reset community strings.')
+
+    def setProductionState(self, uids, prodState, hashcheck, uid=None,
+                           ranges=(), params=None, sort='name', dir='ASC'):
+        if ranges:
+            uids += self.loadRanges(ranges, hashcheck, uid, params, sort, dir)
+        facade = self._getFacade()
+        try:
+            for uid in uids:
+                info = facade.getInfo(uid)
+                info.productionState = prodState
+            return DirectResponse()
+        except Exception, e:
+            log.exception(e)
+            return DirectResponse.fail('Failed to change production state.')
+
+    def setPriority(self, uids, priority, hashcheck, uid=None, ranges=(),
+                    params=None, sort='name', dir='ASC'):
+        if ranges:
+            uids += self.loadRanges(ranges, hashcheck, uid, params, sort, dir)
+        facade = self._getFacade()
+        try:
+            for uid in uids:
+                info = facade.getInfo(uid)
+                info.priority = priority
+            return DirectResponse('Set %s devices to %s priority.' % (
+                len(uids), info.priority
+            ))
+        except Exception, e:
+            log.exception(e)
+            return DirectResponse.fail('Failed to change priority.')
+
+    def setCollector(self, uids, collector, hashcheck, uid=None, ranges=(),
+                     params=None, sort='name', dir='ASC'):
+        if ranges:
+            uids += self.loadRanges(ranges, hashcheck, uid, params, sort, dir)
+        facade = self._getFacade()
+        try:
+            for uid in uids:
+                info = facade.getInfo(uid)
+                info.collector = collector
+            return DirectResponse('Changed collector to %s for %s devices.' %
+                                  (collector, len(uids)))
+        except Exception, e:
+            log.exception(e)
+            return DirectResponse.fail('Failed to change the collector.')
 
     def removeDevices(self, uids, hashcheck, action="remove", uid=None,
                       ranges=(), params=None, sort='name', dir='ASC'):
         if ranges:
             uids += self.loadRanges(ranges, hashcheck, uid, params, sort, dir)
         facade = self._getFacade()
-        success = True
         try:
             if action=="remove":
                 facade.removeDevices(uids, organizer=uid)
             elif action=="delete":
                 facade.deleteDevices(uids)
-        except:
-            success = False
-        return {
-            'success': success,
-            'devtree': self.getTree('/zport/dmd/Devices'),
-            'grptree': self.getTree('/zport/dmd/Groups'),
-            'loctree': self.getTree('/zport/dmd/Locations')
-        }
+            return DirectResponse.succeed(
+                devtree = self.getTree('/zport/dmd/Devices'),
+                grptree = self.getTree('/zport/dmd/Groups'),
+                loctree = self.getTree('/zport/dmd/Locations')
+            )
+        except Exception, e:
+            log.exception(e)
+            return DirectResponse.fail('Failed to remove devices.')
 
     def getEvents(self, uid):
         facade = self._getFacade()
         events = facade.getEvents(uid)
         data = Zuul.marshal(events)
-        return {'data': data, 'success': True}
+        return DirectResponse(data=data)
 
     def loadRanges(self, ranges, hashcheck, uid=None, params=None,
                       sort='name', dir='ASC'):
@@ -139,3 +209,13 @@ class DeviceRouter(DirectRouter):
         facade = self._getFacade()
         cmds = facade.getUserCommands(uid)
         return Zuul.marshal(cmds, ['id', 'description'])
+
+    def getProductionStates(self):
+        return [s.split(':') for s in self.context.dmd.prodStateConversions]
+
+    def getPriorities(self):
+        return [s.split(':') for s in self.context.dmd.priorityConversions]
+
+    def getCollectors(self):
+        return self.context.dmd.Monitors.getPerformanceMonitorNames()
+

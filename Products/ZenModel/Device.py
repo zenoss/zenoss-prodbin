@@ -1223,6 +1223,7 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
         """
         self.productionState = int(state)
         self.primaryAq().index_object()
+        notify(IndexingEvent(self.primaryAq(), ('productionState',), True))
         if not maintWindowChange:
             # Saves our production state for use at the end of the
             # maintenance window.
@@ -1447,19 +1448,19 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
         """
         Set the performance monitor for this device.
         If newPerformanceMonitor is passed in create it
-        
+
         @permission: ZEN_CHANGE_DEVICE
         """
         if newPerformanceMonitor:
             #self.dmd.RenderServer.moveRRDFiles(self.id,
             #    newPerformanceMonitor, performanceMonitor, REQUEST)
             performanceMonitor = newPerformanceMonitor
-        
+
         obj = self.getDmdRoot("Monitors").getPerformanceMonitor(
                                                     performanceMonitor)
         self.addRelation("perfServer", obj)
         self.setLastChange()
-                
+
         if REQUEST:
             messaging.IMessageSender(self).sendToBrowser(
                 'Monitor Changed',

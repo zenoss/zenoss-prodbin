@@ -19,6 +19,36 @@ class DirectException(Exception):
 
 import simplejson as json
 
+
+class DirectResponse(object):
+    """
+    Encapsulation of the simple protocol used to send results and messages to
+    the front end.
+    """
+    _data = None
+    def __init__(self, msg=None, success=True, **kwargs):
+        self._data = {}
+        self._data.update(kwargs)
+        self._data['success'] = success
+        if msg:
+            self._data['msg'] = msg
+
+    @property
+    def data(self):
+        return self._data
+
+    def __setitem__(self, key, value):
+        self._data[key] = value
+
+    @staticmethod
+    def fail(msg=None, **kwargs):
+        return DirectResponse(msg, success=False, **kwargs)
+
+    @staticmethod
+    def succeed(msg=None, **kwargs):
+        return DirectResponse(msg, success=True, **kwargs)
+
+
 class DirectRouter(object):
     """
     Basic Ext.Direct router class.
@@ -103,6 +133,10 @@ class DirectRouter(object):
                 'type':'exception',
                 'message':message
             }
+
+        if isinstance(result, DirectResponse):
+            result = result.data
+
         return {
             'type':'rpc',
             'tid': directRequest['tid'],

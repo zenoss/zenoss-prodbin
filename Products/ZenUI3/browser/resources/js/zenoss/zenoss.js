@@ -40,8 +40,9 @@ Ext.Direct.on('event', function(e){
 });
 
 Ext.Direct.on('event', function(e){
-    if (Ext.isDefined(e.result.msg)) {
-        Zenoss.message(e.result.msg);
+    if (Ext.isDefined(e.result) && Ext.isDefined(e.result.msg)) {
+        var success = e.result.success || false;
+        Zenoss.message(e.result.msg, success);
     }
 });
 
@@ -54,7 +55,7 @@ Ext.Direct.on('exception', function(e) {
     });
 });
 
-Zenoss.message = function(msg) {
+Zenoss.message = function(msg, success) {
     // Will be hooked into the regular message display once written
     try {
         console.log(msg);
@@ -1235,7 +1236,6 @@ Zenoss.util.setContext = function(uid) {
         Ext.getCmp(id).setContext(uid);
     });
 }
-
 
 /**
  * Proxy that will only allow one request to be loaded at a time.  Requests 

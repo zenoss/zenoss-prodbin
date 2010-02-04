@@ -17,8 +17,7 @@ import transaction
 
 from Products.ZenUtils.json import json, unjson
 from Products.ZenUtils.extdirect.zope.router import ZopeDirectRouter
-from Products.ZenUI3.utils.javascript import JavaScriptSnippet
-
+from Products.ZenUtils.extdirect.router import DirectResponse
 
 class FormResponse(object):
     """

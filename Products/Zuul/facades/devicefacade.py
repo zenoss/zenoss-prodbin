@@ -89,14 +89,38 @@ class DeviceInfo(InfoBase):
     def getDevice(self):
         return self.device
 
-    @property
-    def ipAddress(self):
+    def getIpAddress(self):
         if self._object.manageIp:
             return IpUtil.ipToDecimal(self._object.manageIp)
 
-    @property
-    def productionState(self):
+    def setIpAddress(self, ip=None):
+        self._object.setManageIp(ip)
+
+    ipAddress = property(getIpAddress, setIpAddress)
+
+    def getProductionState(self):
         return self._object.convertProdState(self._object.productionState)
+
+    def setProductionState(self, prodState):
+        self._object.setProdState(int(prodState))
+
+    productionState = property(getProductionState, setProductionState)
+
+    def getPriority(self):
+        return self._object.convertPriority(self._object.priority)
+
+    def setPriority(self, priority):
+        self._object.setPriority(priority)
+
+    priority = property(getPriority, setPriority)
+
+    def getCollectorName(self):
+        return self.object.getPerformanceServerName()
+
+    def setCollector(self, collector):
+        self._object.setPerformanceMonitor(collector)
+
+    collector = property(getCollectorName, setCollector)
 
     @property
     def events(self):
@@ -212,6 +236,10 @@ class DeviceFacade(TreeFacade):
                     dev.lockFromUpdates(sendEvent)
             else:
                 dev.unlock()
+
+    def resetCommunityString(self, uid):
+        dev = self._findObject(uid)
+        dev.manage_snmpCommunity()
 
     def moveDevices(self, uids, target):
         # Resolve target if a path

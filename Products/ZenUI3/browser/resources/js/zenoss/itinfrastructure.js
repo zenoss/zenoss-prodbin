@@ -19,15 +19,36 @@ Ext.ns('Zenoss.devices');
 
 var REMOTE = Zenoss.remote.DeviceRouter;
 
+REMOTE.getProductionStates({}, function(d){
+    Zenoss.env.PRODUCTION_STATES = d;
+});
+REMOTE.getPriorities({}, function(d){
+    Zenoss.env.PRIORITIES = d;
+});
+REMOTE.getCollectors({}, function(d){
+    var collectors = [];
+    Ext.each(d, function(r){collectors.push([r]);});
+    Zenoss.env.COLLECTORS = collectors;
+});
+
+function setDeviceButtonsDisabled(bool){
+    Zenoss.devices.deleteDevices.setDisabled(bool);
+    Ext.getCmp('commands-menu').setDisabled(bool);
+    Ext.getCmp('actions-menu').setDisabled(bool);
+}
+
+function resetGrid() {
+    Ext.getCmp('device_grid').view.nonDisruptiveReset();
+    setDeviceButtonsDisabled(true);
+}
+
 var treesm = new Ext.tree.DefaultSelectionModel({
     listeners: {
         'selectionchange': function(sm, newnode, oldnode){
             var uid = newnode.attributes.uid;
             Zenoss.util.setContext(uid, 'detail_panel', 'organizer_events', 
                                    'commands-menu');
-            Zenoss.devices.deleteDevices.disable();
-            Ext.getCmp('commands-menu').disable();
-            Ext.getCmp('actions-menu').disable();
+            setDeviceButtonsDisabled(true);
             var card = Ext.getCmp('master_panel').getComponent(0),
                 type = Zenoss.types.type(uid);
             if (type && !Ext.isEmpty(Zenoss.nav[type])) {
@@ -100,36 +121,188 @@ Ext.apply(Zenoss.devices, {
                         Ext.each(cbs, function(cb) {
                             opts[cb.name] = true;
                         });
-                        REMOTE.lockDevices(opts, function(){
-                            Ext.getCmp('device_grid').view.nonDisruptiveReset();
-                        });
+                        REMOTE.lockDevices(opts, resetGrid);
                     }
                 }, Zenoss.dialog.CANCEL
-                ],
-                buttonAlign: 'center'
+                ]
             });
             win.show();
         }
     }),
     resetIP: new Ext.Action({
         text: _t('Reset IP'),
-        iconCls: 'set'
+        iconCls: 'set',
+        handler: function(){
+            Ext.Msg.show({
+                title: _t('Reset IP'),
+                msg: _t('Are you sure you want to reset the IP addresses of ' +
+                         'these devices to the results of a DNS lookup?'),
+                buttons: Ext.Msg.YESNO,
+                fn: function(r){
+                    switch(r) {
+                        case 'no':
+                            break;
+                        case 'yes':
+                            REMOTE.resetIp(gridOptions(), resetGrid);
+                    }
+                }
+            });
+        }
     }),
     resetCommunity: new Ext.Action({
         text: _t('Reset Community'),
-        iconCls: 'set'
+        iconCls: 'set',
+        handler: function(){
+            Ext.Msg.show({
+                title: _t('Reset Community'),
+                msg: _t('Are you sure you want to reset the SNMP '+
+                        'community strings of these devices?'),
+                buttons: Ext.Msg.YESNO,
+                fn: function(r) {
+                    switch(r) {
+                        case 'no':
+                            break;
+                        case 'yes':
+                            REMOTE.resetCommunity(gridOptions(), resetGrid);
+                    }
+                }
+            });
+        }
     }),
     setProdState: new Ext.Action({
         text: _t('Set Production State')+'...',
-        iconCls: 'set'
+        iconCls: 'set',
+        handler: function(){
+            var win = new Zenoss.FormDialog({
+                title: _t('Set Production State'),
+                modal: true,
+                width: 310,
+                height: 150,
+                items: [{
+                    xtype: 'combo',
+                    fieldLabel: _t('Select a production state'),
+                    id: 'prodstate',
+                    mode: 'local',
+                    store: new Ext.data.ArrayStore({
+                        data: Zenoss.env.PRODUCTION_STATES,
+                        fields: ['name', 'value']
+                    }),
+                    valueField: 'value',
+                    displayField: 'name',
+                    forceSelection: true,
+                    editable: false,
+                    listeners: {
+                        'select': function(){
+                            Ext.getCmp('prodstateok').enable();
+                        }
+                    }
+                }],
+                buttons: [{
+                    xtype: 'DialogButton',
+                    id: 'prodstateok',
+                    disabled: true,
+                    text: _t('OK'),
+                    handler: function(){
+                        var opts = Ext.apply(gridOptions(), {
+                            prodState:Ext.getCmp('prodstate').getValue()
+                        });
+                        REMOTE.setProductionState(opts, resetGrid);
+                    }
+                }, Zenoss.dialog.CANCEL
+                ]
+            });
+            win.show();
+        }
     }),
     setPriority: new Ext.Action({
         text: _t('Set Priority')+'...',
-        iconCls: 'set'
+        iconCls: 'set',
+        handler: function(){
+            var win = new Zenoss.FormDialog({
+                title: _t('Set Priority'),
+                modal: true,
+                width: 310,
+                height: 150,
+                items: [{
+                    xtype: 'combo',
+                    id: 'priority',
+                    fieldLabel: _t('Select a priority'),
+                    mode: 'local',
+                    store: new Ext.data.ArrayStore({
+                        data: Zenoss.env.PRIORITIES,
+                        fields: ['name', 'value']
+                    }),
+                    valueField: 'value',
+                    displayField: 'name',
+                    forceSelection: true,
+                    editable: false,
+                    listeners: {
+                        'select': function(){
+                            Ext.getCmp('priorityok').enable();
+                        }
+                    }
+                }],
+                buttons: [{
+                    xtype: 'DialogButton',
+                    id: 'priorityok',
+                    disabled: true,
+                    text: _t('OK'),
+                    handler: function(){
+                        var opts = Ext.apply(gridOptions(), {
+                            priority: Ext.getCmp('priority').getValue()
+                        });
+                        REMOTE.setPriority(opts, resetGrid);
+                    }
+                }, Zenoss.dialog.CANCEL
+                ]
+            });
+            win.show();
+        }
     }),
     setCollector: new Ext.Action({
         text: _t('Set Collector') + '...',
-        iconCls: 'set'
+        iconCls: 'set',
+        handler: function(){
+            var win = new Zenoss.FormDialog({
+                title: _t('Set Collector'),
+                modal: true,
+                width: 310,
+                height: 150,
+                items: [{
+                    xtype: 'combo',
+                    fieldLabel: _t('Select a collector'),
+                    id: 'collector',
+                    mode: 'local',
+                    store: new Ext.data.ArrayStore({
+                        data: Zenoss.env.COLLECTORS,
+                        fields: ['name']
+                    }),
+                    valueField: 'name',
+                    displayField: 'name',
+                    forceSelection: true,
+                    editable: false,
+                    listeners: {
+                        'select': function(){
+                            Ext.getCmp('collectorok').enable();
+                        }
+                    }
+                }],
+                buttons: [{
+                    xtype: 'DialogButton',
+                    id: 'collectorok',
+                    disabled: true,
+                    text: _t('OK'),
+                    handler: function(){
+                        var opts = Ext.apply(gridOptions(), {
+                            collector: Ext.getCmp('collector').getValue()
+                        });
+                        REMOTE.setCollector(opts, resetGrid);
+                    }
+                }, Zenoss.dialog.CANCEL
+                ]
+            });
+            win.show();
+        }
     }),
     deleteDevices: new Ext.Action({
         //text: _t('Delete Devices'),
@@ -180,7 +353,7 @@ Ext.apply(Zenoss.devices, {
                                  var devtree = Ext.getCmp('devices'),
                                  loctree = Ext.getCmp('locs'),
                                  grptree = Ext.getCmp('groups');
-                                 grid.view.nonDisruptiveReset();
+                                 resetGrid();
                                  devtree.update(response.devtree);
                                  loctree.update(response.loctree);
                                  grptree.update(response.grptree);
@@ -190,8 +363,7 @@ Ext.apply(Zenoss.devices, {
                     }
                 },
                 Zenoss.dialog.CANCEL
-                ],
-                buttonAlign: 'center'
+                ]
             });
             win.show();
         }
@@ -307,7 +479,7 @@ function initializeTreeDrop(g) {
 
             REMOTE.moveDevices(opts, function(data){
                 if(data.success) {
-                    grid.view.nonDisruptiveReset();
+                    resetGrid();
                     tree.update(data.tree);
                 } else {
                     grid.view.showLoadMask(false);
@@ -428,13 +600,7 @@ Ext.getCmp('center_panel').add({
             sm: new Zenoss.ExtraHooksSelectionModel({
                 listeners: {
                     selectionchange: function(sm) {
-                        Zenoss.devices.deleteDevices.setDisabled(
-                            !sm.getSelected()
-                        );
-                        var mnu = Ext.getCmp('commands-menu');
-                        mnu.setDisabled(!sm.getSelected());
-                        var amnu = Ext.getCmp('actions-menu');
-                        amnu.setDisabled(!sm.getSelected());
+                        setDeviceButtonsDisabled(!sm.getSelected());
                     }
                 }
             }),
