@@ -54,6 +54,13 @@ function gridOptions() {
     return opts;
 }
 
+function disableSendEvent() {
+    var cbs = Ext.getCmp('lockingchecks').getValue(),
+        sendEvent = Ext.getCmp('send-event-checkbox');
+    cbs.remove(sendEvent);
+    sendEvent.setDisabled(Ext.isEmpty(cbs));
+}
+
 Ext.apply(Zenoss.devices, {
     lockDevices: new Ext.Action({
         text: _t('Lock Devices') + '...',
@@ -62,8 +69,8 @@ Ext.apply(Zenoss.devices, {
             var win = new Zenoss.FormDialog({
                 title: _t('Lock Devices'),
                 modal: true,
-                width: 220,
-                height: 200,
+                width: 310,
+                height: 220,
                 items: [{
                     xtype: 'checkboxgroup',
                     id: 'lockingchecks',
@@ -72,19 +79,34 @@ Ext.apply(Zenoss.devices, {
                     items: [{
                         name: 'updates',
                         boxLabel: _t('Lock from updates'),
-                        checked: true
+                        handler: disableSendEvent
                     },{
                         name: 'deletion',
-                        boxLabel: _t('Lock from deletion')
+                        boxLabel: _t('Lock from deletion'),
+                        handler: disableSendEvent
+                    },{
+                        name: 'sendEvent',
+                        id: 'send-event-checkbox',
+                        boxLabel: _t('Send an event when an action is blocked'),
+                        disabled: true
                     }]
                 }],
                 buttons: [{
+                    xtype: 'DialogButton',
                     text: _t('Lock'),
                     handler: function() {
-
+                        var cbs = Ext.getCmp('lockingchecks').getValue(),
+                            opts = gridOptions();
+                        Ext.each(cbs, function(cb) {
+                            opts[cb.name] = true;
+                        });
+                        REMOTE.lockDevices(opts, function(){
+                            Ext.getCmp('device_grid').view.nonDisruptiveReset();
+                        });
                     }
                 }, Zenoss.dialog.CANCEL
-                ]
+                ],
+                buttonAlign: 'center'
             });
             win.show();
         }

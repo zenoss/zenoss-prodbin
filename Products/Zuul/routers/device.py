@@ -71,12 +71,38 @@ class DeviceRouter(DirectRouter):
             tree = self.getTree(target)
             return {'success':success, 'tree':tree}
 
+    def lockDevices(self, uids, hashcheck, ranges=(), updates=False,
+                    deletion=False, sendEvent=False, uid=None, params=None,
+                    sort='name', dir='ASC'):
+        if ranges:
+            uids += self.loadRanges(ranges, hashcheck, uid, params, sort, dir)
+        facade = self._getFacade()
+        success = True
+        try:
+            facade.setLockState(uids, deletion=deletion, updates=updates,
+                                sendEvent=sendEvent)
+            if not deletion and not updates:
+                message = "Unlocked %s devices."
+            else:
+                actions = []
+                if deletion: actions.append('deletion')
+                if updates: actions.append('updates')
+                message = "Locked %%s devices from %s." % ' and '.join(actions)
+            message = message % len(uids)
+        except:
+            success = False
+            message = 'Failed to lock devices.'
+        return {
+            'success':success,
+            'msg':message
+        }
+
     def removeDevices(self, uids, hashcheck, action="remove", uid=None,
                       ranges=(), params=None, sort='name', dir='ASC'):
         if ranges:
             uids += self.loadRanges(ranges, hashcheck, uid, params, sort, dir)
         facade = self._getFacade()
-        success = False
+        success = True
         try:
             if action=="remove":
                 facade.removeDevices(uids, organizer=uid)
@@ -84,8 +110,6 @@ class DeviceRouter(DirectRouter):
                 facade.deleteDevices(uids)
         except:
             success = False
-        else:
-            success = True
         return {
             'success': success,
             'devtree': self.getTree('/zport/dmd/Devices'),

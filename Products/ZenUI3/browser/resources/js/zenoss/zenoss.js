@@ -39,6 +39,12 @@ Ext.Direct.on('event', function(e){
     }
 });
 
+Ext.Direct.on('event', function(e){
+    if (Ext.isDefined(e.result.msg)) {
+        Zenoss.message(e.result.msg);
+    }
+});
+
 Ext.Direct.on('exception', function(e) {
     Ext.Msg.show({
         title: 'Server Exception', 
@@ -47,6 +53,15 @@ Ext.Direct.on('exception', function(e) {
         minWidth: 300
     });
 });
+
+Zenoss.message = function(msg) {
+    // Will be hooked into the regular message display once written
+    try {
+        console.log(msg);
+    } catch(e) {
+        Ext.emptyFn();
+    }
+}
 
 /**
  * @class Zenoss.PlaceholderPanel

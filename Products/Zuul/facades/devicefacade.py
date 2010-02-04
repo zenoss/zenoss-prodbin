@@ -201,6 +201,18 @@ class DeviceFacade(TreeFacade):
         org = self._getObject(uid)
         return org.getUserCommands()
 
+    def setLockState(self, uids, deletion=False, updates=False,
+                     sendEvent=False):
+        devs = imap(self._findObject, uids)
+        for dev in devs:
+            if deletion or updates:
+                if deletion:
+                    dev.lockFromDeletion(sendEvent)
+                if updates:
+                    dev.lockFromUpdates(sendEvent)
+            else:
+                dev.unlock()
+
     def moveDevices(self, uids, target):
         # Resolve target if a path
         if isinstance(target, basestring):
