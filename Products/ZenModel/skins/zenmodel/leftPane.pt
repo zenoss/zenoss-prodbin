@@ -7,7 +7,7 @@
     <p id="mainviews">Main Views</p>
     <ul>
         <li><a href="/zport/dmd/Dashboard">Dashboard</a></li>
-        <li><a href="/zport/dmd/Events/viewEvents?notabs=1">Event Console</a></li>
+        <li><a href="/zport/dmd/Events/evconsole">Event Console</a></li>
         <li><a href="/zport/dmd/Devices/deviceList?notabs=1">Device List</a></li>
         <li><a href="/zport/dmd/viewNetworkMap">Network Map</a></li>
     </ul>
