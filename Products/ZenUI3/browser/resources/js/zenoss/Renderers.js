@@ -4,25 +4,23 @@ Ext.ns('Zenoss.render');
 
 // templates for the events renderer
 var iconTemplate = new Ext.Template(
-    '<td class="severity-icon-small {severity}">{count}</td>'
-);
+    '<td class="severity-icon-small {severity}">{count}</td>');
 iconTemplate.compile();
 
 var rainbowTemplate = new Ext.Template(
-    '<table class="eventrainbow"><tr>{cells}</tr></table>'
-);
+    '<table class="eventrainbow"><tr>{cells}</tr></table>');
 rainbowTemplate.compile();
                      
 // renders events using icons for critical, error and warning
 Zenoss.render.events = function (value) {
-}
+};
 
 Ext.apply(Zenoss.render, {
 
     severity: function(sev) {
         return '<div class="severity-icon-small '+
             Zenoss.util.convertSeverity(sev) +
-            '"'+'><'+'/div>'
+            '"'+'><'+'/div>';
     },
 
     // renders availability as a percentage with 3 digits after decimal point
@@ -53,8 +51,8 @@ Ext.apply(Zenoss.render, {
      */
     link: function(uid, url, name) {
         if (!url) {
-            var type = Zenoss.types.type(uid)
-            var renderer = Zenoss.render[type];
+            var type = Zenoss.types.type(uid),
+                renderer = Zenoss.render[type];
             if (renderer) {
                 return renderer(uid, name);
             }

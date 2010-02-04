@@ -70,7 +70,7 @@ Zenoss.InstanceStore = Ext.extend(Ext.ux.grid.livegrid.Store, {
                     {name: 'device'},
                     {name: 'name'},
                     {name: 'monitored'},
-                    {name: 'status'},
+                    {name: 'status'}
                 ]
             })
         });

@@ -10,18 +10,18 @@
 # For complete information please visit: http://www.zenoss.com/oss/
 #
 ###########################################################################
-import unittest
 
+import unittest
 import zope.component
 import zope.component.event
-
-from Products.ZenModel.EventView import IEventView
+from zope.interface.verify import verifyClass
 from Products.ZenModel.DataRoot import DataRoot
-
 from Products.Zuul.tests.base import EventTestCase, ZuulFacadeTestCase
 from Products.Zuul.interfaces import *
 from Products.Zuul.facades.eventfacade import EventFacade
 from Products.Zuul import getFacade
+from Products.Zuul.facades import eventfacade as evs
+from Products.Zuul.infos.event import EventInfo
 
 class TestEvents(EventTestCase, ZuulFacadeTestCase):
 
@@ -42,8 +42,6 @@ class TestEvents(EventTestCase, ZuulFacadeTestCase):
         self.assertEqual(zhm.id, 'ZenEventHistory')
 
     def test_interfaces(self):
-        from zope.interface.verify import verifyClass
-        from Products.Zuul.facades import eventfacade as evs
         verifyClass(IEventEvent, evs.EventEvent)
         verifyClass(IEventFacade, evs.EventFacade)
         verifyClass(IEventAcknowledged, evs.EventAcknowledged)
@@ -51,7 +49,7 @@ class TestEvents(EventTestCase, ZuulFacadeTestCase):
         verifyClass(IEventAdded, evs.EventAdded)
         verifyClass(IEventClosed, evs.EventClosed)
         verifyClass(IEventReopened, evs.EventReopened)
-        verifyClass(IEventInfo, evs.EventInfo)
+        verifyClass(IEventInfo, EventInfo)
 
     def test_registration(self):
         svc = getFacade('event')

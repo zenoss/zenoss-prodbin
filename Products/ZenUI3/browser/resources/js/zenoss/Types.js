@@ -5,7 +5,7 @@ var _tm = {
     'DeviceGroup':      ["^/zport/dmd/Groups(/[A-Z][^/]*)*/?$"],
     'DeviceClass':      ["^/zport/dmd/Devices(/[A-Z][^/]*)*/?$"],
     'Device':           ["^/zport/dmd/.*/devices/[^/]*/?$"]
-}
+};
 
 Ext.ns('Zenoss.types');
 
@@ -16,7 +16,7 @@ Ext.apply(T, {
     TYPES: {},
 
     getAllTypes: function() {
-        result = [];
+        var result = [];
         for (var k in T.TYPES) {
             result.push(k);
         }
@@ -24,6 +24,7 @@ Ext.apply(T, {
     }, // getAllTypes
 
     type: function(uid) {
+        var _f;
         for (var type in T.TYPES) {
             if (T.TYPES[type]) {
                 _f = true;
@@ -34,6 +35,7 @@ Ext.apply(T, {
                 if (_f) return type;
             }
         }
+        return null;
     }, // getType
 
     register: function(config) {

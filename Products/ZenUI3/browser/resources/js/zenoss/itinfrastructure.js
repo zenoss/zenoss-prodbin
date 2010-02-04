@@ -144,6 +144,9 @@ Ext.apply(Zenoss.devices, {
                             break;
                         case 'yes':
                             REMOTE.resetIp(gridOptions(), resetGrid);
+                            break;
+                        default:
+                            break;
                     }
                 }
             });
@@ -164,6 +167,9 @@ Ext.apply(Zenoss.devices, {
                             break;
                         case 'yes':
                             REMOTE.resetCommunity(gridOptions(), resetGrid);
+                            break;
+                        default:
+                            break;
                     }
                 }
             });
@@ -581,6 +587,8 @@ Ext.getCmp('center_panel').add({
                         case 'DeviceClass':
                             var cards = others.slice(0,2);
                             Ext.each(cards, function(c){c.setContext(node.uid);});
+                            break;
+                        default:
                             break;
                     }
                 }

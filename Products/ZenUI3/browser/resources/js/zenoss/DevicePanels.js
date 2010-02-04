@@ -95,7 +95,7 @@ Ext.reg('DeviceColumnModel', Zenoss.DeviceColumnModel);
 Zenoss.DeviceStore = Ext.extend(Ext.ux.grid.livegrid.Store, {
 
     constructor: function(config) {
-        var config = config || {};
+        config = config || {};
         Ext.applyIf(config, {
             autoLoad: true,
             bufferSize: 50,
@@ -114,8 +114,7 @@ Zenoss.DeviceStore = Ext.extend(Ext.ux.grid.livegrid.Store, {
                   {name: 'productionState', type: 'string'},
                   {name: 'events', type: 'auto'},
                   {name: 'availability', type: 'float'}
-              ]
-          )
+              ])
         });
         Zenoss.DeviceStore.superclass.constructor.call(this, config);
     },
@@ -139,7 +138,7 @@ Zenoss.SimpleDeviceGridPanel = Ext.extend(Ext.ux.grid.livegrid.GridPanel, {
                 })
             });
         }
-        var config = Ext.applyIf(config || {}, {
+        config = Ext.applyIf(config || {}, {
             cm: new Zenoss.DeviceColumnModel({
                 menuDisabled: true
             }),
@@ -190,8 +189,7 @@ Zenoss.DeviceGridPanel = Ext.extend(Zenoss.FilterGridPanel,{
             function(proxy, o, options) {
                 this.lastHash = o.result.hash || this.lastHash;
             },
-            this
-        );
+            this);
     }
 });
 Ext.reg('DeviceGridPanel', Zenoss.DeviceGridPanel);

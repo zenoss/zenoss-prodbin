@@ -10,14 +10,12 @@
 # For complete information please visit: http://www.zenoss.com/oss/
 #
 ###########################################################################
-import unittest
-import transaction
-import zope.component
 
-from Testing import ZopeTestCase
-from Testing.ZopeTestCase.layer import ZopeLite
+import unittest
 from Products.ZenTestCase.BaseTestCase import BaseTestCase
 from Products.ZenTestCase.BaseTestCase import ZenossTestCaseLayer
+from Products.ZenEvents.Event import Event
+from Products.ZenUtils.ZCmdBase import ZCmdBase
 
 class ZuulFacadeTestCase(BaseTestCase):
     def test_interfaces(self):
@@ -32,8 +30,6 @@ class EventTestLayer(ZenossTestCaseLayer):
     @classmethod
     def setUp(cls):
         ZenossTestCaseLayer.setUp()
-        import Products
-        from Products.ZenUtils.ZCmdBase import ZCmdBase
         zodb = ZCmdBase(noopts=True)
         zem = zodb.dmd.ZenEventManager
         cls.zem = zem
@@ -51,9 +47,6 @@ class EventTestLayer(ZenossTestCaseLayer):
             curs.execute('DELETE FROM status WHERE evid in (%s)' % evids)
         finally:
             cls.zem.close(conn)
-
-
-from Products.ZenEvents.Event import Event
 
 class EventTestCase(unittest.TestCase):
 

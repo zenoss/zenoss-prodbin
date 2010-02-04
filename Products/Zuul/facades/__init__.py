@@ -28,10 +28,9 @@ from itertools import imap
 from Acquisition import aq_base, aq_parent
 from OFS.ObjectManager import checkValidId
 from zope.interface import implements
-from zope.component import queryUtility, adapts
+from zope.component import queryUtility
 
-from Products.AdvancedQuery import MatchRegexp, And, Generic, Or, Eq, Between
-from Products.ZenModel.ZenModelRM import ZenModelRM
+from Products.AdvancedQuery import MatchRegexp, And, Or, Eq, Between
 from Products.Zuul.interfaces import IFacade, IDataRootFactory, ITreeNode
 from Products.Zuul.interfaces import ITreeFacade, IInfo, ICatalogTool
 from Products.Zuul.interfaces import IEventInfo
@@ -41,46 +40,6 @@ from Products.ZenUtils.IpUtil import numbip, checkip, IpAddressError
 from Products.ZenUtils.IpUtil import getSubnetBounds
 
 log = logging.getLogger('zen.Zuul')
-
-
-class InfoBase(object):
-    implements(IInfo)
-    adapts(ZenModelRM)
-
-    def __init__(self, object):
-        self._object = object
-
-    @property
-    def uid(self):
-        _uid = getattr(self, '_v_uid', None)
-        if _uid is None:
-            _uid = self._v_uid = '/'.join(self._object.getPrimaryPath())
-        return _uid
-
-    @property
-    def id(self):
-        return self._object.id
-
-    def getName(self):
-        return self._object.titleOrId()
-
-    def setName(self, name):
-        self._object.setTitle(name)
-
-    name = property(getName, setName)
-
-    def getDescription(self):
-        return self._object.description
-
-    def setDescription(self, value):
-        self._object.description = value
-
-    description = property(getDescription, setDescription)
-
-    def __repr__(self):
-        return '<%s Info "%s">' % (self._object.__class__.__name__, self.id)
-
-
 
 class ZuulFacade(object):
     implements(IFacade)

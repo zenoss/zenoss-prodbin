@@ -21,6 +21,6 @@ Zenoss.registerTooltip = function(config) {
     }
     new Ext.ToolTip(config);
 
-} // Zenoss.registerTooltip
+}; // Zenoss.registerTooltip
 
 })(); // End local scope

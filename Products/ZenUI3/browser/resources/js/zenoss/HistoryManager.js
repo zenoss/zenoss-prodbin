@@ -16,7 +16,7 @@ H.selectByToken = function(token) {
             mgr.selectByToken(remainder);
         }
     }
-}
+};
 
 H.on('change', H.selectByToken);
 

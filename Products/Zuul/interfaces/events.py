@@ -285,8 +285,8 @@ class IEventFacade(IFacade):
         @type history: bool
         """
         
-    def getStateRanges(self, state=1, sort='severity', dir='DESC',
-                     filters=None, history=False, context=None, asof=None):
+    def getStateRanges(state=1, field='severity', direction='DESC',
+                       filters=None, history=False, context=None, asof=None):
         """
         Get a list of ranges describing contiguous blocks of events with a
         certain state.
@@ -324,16 +324,20 @@ class IEventFacade(IFacade):
         fill in the total, which it already knows, as the subquery necessarily
         also describes the current state of the grid.
 
+        state=1, field='severity', direction='DESC',
+                           filters=None, history=False, context=None, asof=None
+
         @param state: The state for which ranges should be calculated.
         @type state: int
-        @param sort: The column by which the events should be sorted.
-        @type sort: str
-        @param dir: The direction in which events should be sorted, either
-                    "ASC" or "DESC"
-        @type dir: str
+        @param field: The column by which the events should be sorted.
+        @type field: str
+        @param direction: The direction in which events should be sorted, 
+                          either "ASC" or "DESC"
+        @type direction: str
         @param filters: Values for which to create filters (e.g.,
                         {'device':'^loc.*$', 'severity':[4, 5]})
         @type filters: dict or JSON str representing dict
+        @param history:
         @param context:
         @param asof: Last time as of which ranges were accurate
         @type asof: float

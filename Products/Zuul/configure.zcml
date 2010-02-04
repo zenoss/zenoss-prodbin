@@ -106,15 +106,15 @@
              />
 
     <!-- Tree node adapters -->
-    <adapter factory=".facades.processfacade.ProcessNode" 
+    <adapter factory=".infos.process.ProcessNode" 
              for=".interfaces.IProcessEntity"
              provides=".interfaces.IProcessNode"/>
 
-    <adapter factory=".facades.servicefacade.ServiceNode" 
+    <adapter factory=".infos.service.ServiceNode" 
              for=".interfaces.IServiceEntity"
              provides=".interfaces.IServiceNode"/>
 
-    <adapter factory=".facades.devicefacade.DeviceOrganizerNode"
+    <adapter factory=".infos.device.DeviceOrganizerNode"
              for="Products.ZenModel.DeviceOrganizer.DeviceOrganizer"
              provides=".interfaces.IDeviceOrganizerNode"/>
 
@@ -128,7 +128,7 @@
 
     <adapter provides=".interfaces.IInfo"
              for=".interfaces.IProcessEntity"
-             factory=".facades.processfacade.ProcessInfo"
+             factory=".infos.process.ProcessInfo"
              />
 
     <adapter factory=".infos.command.UserCommandInfo"
@@ -137,32 +137,32 @@
 
     <adapter provides=".interfaces.IInfo"
              for=".interfaces.IInstance"
-             factory=".infos.InstanceInfo"
+             factory=".infos.instance.InstanceInfo"
              />
 
     <adapter provides=".interfaces.IInfo"
              for="Products.ZenModel.ServiceClass.ServiceClass"
-             factory=".facades.servicefacade.ServiceInfo"
+             factory=".infos.service.ServiceInfo"
              />
 
     <adapter provides=".interfaces.IDeviceInfo"
              for=".interfaces.IDevice"
-             factory=".facades.devicefacade.DeviceInfo"
+             factory=".infos.device.DeviceInfo"
              />
 
     <adapter provides=".interfaces.IDeviceOrganizerInfo"
              for="Products.ZenModel.DeviceOrganizer.DeviceOrganizer"
-             factory=".facades.devicefacade.DeviceOrganizerInfo"
+             factory=".infos.device.DeviceOrganizerInfo"
              />
 
     <adapter provides=".interfaces.IInfo"
              for="Products.ZenModel.ZenModelRM.ZenModelRM"
-             factory=".facades.InfoBase"
+             factory=".infos.InfoBase"
              />
 
     <adapter provides=".interfaces.IEventInfo"
              for=".interfaces.IEventEntity"
-             factory=".facades.eventfacade.EventInfo"
+             factory=".infos.event.EventInfo"
              />
 
     <adapter provides=".interfaces.ICatalogTool"

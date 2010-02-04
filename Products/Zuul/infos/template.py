@@ -11,7 +11,7 @@
 #
 ###########################################################################
 
-from Products.Zuul.facades import InfoBase
+from Products.Zuul.infos import InfoBase
 
 class TemplateNode(InfoBase):
     

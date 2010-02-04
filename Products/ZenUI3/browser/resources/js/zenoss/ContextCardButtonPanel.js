@@ -30,6 +30,7 @@ Zenoss.ContextCardButtonPanel = Ext.extend(Zenoss.CardButtonPanel, {
         Zenoss.CardButtonPanel.superclass.initEvents.call(this);
     },
     setContext: function(uid) {
+        var panel;
         if (this.contextUid!=uid) {
             this.contextUid = uid;
             panel = this.layout.activeItem;
@@ -59,7 +60,7 @@ Ext.override(Ext.layout.CardLayout, {
         oldActiveItem.apply(this, arguments);
         this.container.fireEvent('cardchange', this.container, item);
     }
-})
+});
 
 Zenoss.ContextCardPanel = Ext.extend(Ext.Panel, {
     contextUid: null,

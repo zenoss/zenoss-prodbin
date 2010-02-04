@@ -289,8 +289,7 @@ Ext.onReady( function() {
         constructor: function(config) {
             config = config || {};
             Ext.applyIf(config, formConfig);
-            Zenoss.ui.Service.ServiceFormPanel.superclass
-                             .constructor.call(this, config);
+            Zenoss.ui.Service.ServiceFormPanel.superclass.constructor.call(this, config);
             //this.on('actioncomplete', actioncompleteHandler);
         },
 

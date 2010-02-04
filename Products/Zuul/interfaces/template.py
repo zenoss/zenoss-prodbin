@@ -11,8 +11,7 @@
 #
 ###########################################################################
 
-from zope.interface import Interface, Attribute
-from info import IInfo
+from Products.Zuul.interfaces.info import IInfo
 
 class ITemplateNode(IInfo):
     """

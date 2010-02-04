@@ -13,11 +13,17 @@
 
 from zope.event import notify
 from zope.interface import implements
-from zope.component import adapts
 from Products.ZenUI3.utils.json import unjson
 from Products.Zuul.utils import resolve_context
 from Products.Zuul.facades import ZuulFacade
-from Products.Zuul.interfaces import *
+from Products.Zuul.interfaces import IEventEvent
+from Products.Zuul.interfaces import IEventStateChanged
+from Products.Zuul.interfaces import IEventAcknowledged
+from Products.Zuul.interfaces import IEventUnacknowledged
+from Products.Zuul.interfaces import IEventAdded
+from Products.Zuul.interfaces import IEventReopened
+from Products.Zuul.interfaces import IEventClosed
+from Products.Zuul.interfaces import IEventFacade
 
 class EventEvent(object):
     implements(IEventEvent)
@@ -62,38 +68,6 @@ class EventReopened(EventAdded):
 
 class EventClosed(EventEvent):
     implements(IEventClosed)
-
-
-class EventInfo(object):
-    implements(IEventInfo)
-    adapts(IEventEntity)
-
-    def __init__(self, event):
-        self._event = event
-
-    @property
-    def uid(self):
-        return self._event.evid
-
-    @property
-    def severity(self):
-        return self._event.severity
-
-    @property
-    def device(self):
-        return self._event.device
-
-    @property
-    def component(self):
-        return self._event.component
-
-    @property
-    def eventClass(self):
-        return self._event.eventClass
-
-    @property
-    def summary(self):
-        return self._event.summary
 
 class EventFacade(ZuulFacade):
     implements(IEventFacade)

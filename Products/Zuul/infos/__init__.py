@@ -13,33 +13,43 @@
 
 from zope.interface import implements
 from zope.component import adapts
-from Products.Zuul.interfaces import IInstanceInfo, IInstance
-from Products.Zuul.facades import InfoBase
+from Products.ZenModel.ZenModelRM import ZenModelRM
+from Products.Zuul.interfaces import IInfo
 
-class InstanceInfo(InfoBase):
-    implements(IInstanceInfo)
-    adapts(IInstance)
+class InfoBase(object):
+    implements(IInfo)
+    adapts(ZenModelRM)
 
-    def __init__(self, obj):
-        self._object = obj
+    def __init__(self, object):
+        self._object = object
+
+    @property
+    def uid(self):
+        _uid = getattr(self, '_v_uid', None)
+        if _uid is None:
+            _uid = self._v_uid = '/'.join(self._object.getPrimaryPath())
+        return _uid
 
     @property
     def id(self):
-        '.'.join(self._object.getPrimaryPath())
+        return self._object.id
 
-    @property
-    def device(self):
-        return self._object.device().titleOrId()
+    def getName(self):
+        return self._object.titleOrId()
 
-    @property
-    def name(self):
-        return self._object.name()
+    def setName(self, name):
+        self._object.setTitle(name)
 
-    @property
-    def monitored(self):
-        return self._object.zMonitor
+    name = property(getName, setName)
 
-    @property
-    def status(self):
-        statusCode = self._object.getStatus()
-        return self._object.convertStatus(statusCode)
+    def getDescription(self):
+        return self._object.description
+
+    def setDescription(self, value):
+        self._object.description = value
+
+    description = property(getDescription, setDescription)
+
+    def __repr__(self):
+        return '<%s Info "%s">' % (self._object.__class__.__name__, self.id)
+

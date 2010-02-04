@@ -17,7 +17,7 @@
 
 Zenoss.IFramePanel = Ext.extend(Ext.BoxComponent, {
     constructor: function(config) {
-        var config = Ext.applyIf(config || {}, {
+        config = Ext.applyIf(config || {}, {
             autoEl: {
                 tag: 'iframe',
                 id: Ext.id(),
@@ -78,7 +78,7 @@ Ext.reg('contextiframe', Zenoss.ContextualIFrame);
 Zenoss.BackCompatPanel = Ext.extend(Zenoss.ContextualIFrame, {
     setContext: function(uid) {
         if (this.contextUid!=uid){
-            this.on('frameload', this.injectViewport, {scope:this, single:true})
+            this.on('frameload', this.injectViewport, {scope:this, single:true});
         }
         Zenoss.BackCompatPanel.superclass.setContext.apply(this, arguments);
     },

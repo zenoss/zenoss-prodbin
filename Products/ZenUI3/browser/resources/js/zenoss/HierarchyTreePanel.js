@@ -87,6 +87,8 @@ function buttonClickHandler(buttonId) {
         case 'deleteButton':
             Ext.getCmp('deleteNodeDialog').show();
             break;
+        default:
+            break;
     }
 }
 
@@ -201,13 +203,12 @@ Zenoss.HierarchyTreePanel = Ext.extend(Ext.tree.TreePanel, {
         Zenoss.HierarchyTreePanel.superclass.initEvents.call(this);
         if (this.selectRootOnLoad && !Ext.History.getToken()) {
             this.getRootNode().on('load', function(node){
-                node.select()
+                node.select();
             });
         }
         this.on('click', function(node, event) {
             Ext.History.add(
-                this.id + Ext.History.DELIMITER + node.getPath()
-            );
+                this.id + Ext.History.DELIMITER + node.getPath());
         }, this);
     },
     update: function(data) {
@@ -234,7 +235,7 @@ Zenoss.HierarchyTreePanel = Ext.extend(Ext.tree.TreePanel, {
     },
     selectByToken: function(token) {
         if (!this.root.loaded) {
-            this.loader.on('load',function(){this.selectByPath(token)}, this);
+            this.loader.on('load',function(){this.selectByPath(token);}, this);
         } else {
             this.selectByPath(token);
         }
@@ -262,7 +263,7 @@ Zenoss.HierarchyTreePanel = Ext.extend(Ext.tree.TreePanel, {
     filterTree: function(e) {
         var text = e.getValue();
         if (this.hiddenPkgs) {
-            Ext.each(this.hiddenPkgs, function(n){n.ui.show()});
+            Ext.each(this.hiddenPkgs, function(n){n.ui.show();});
         }
         this.hiddenPkgs = [];
         if (!text) {

@@ -19,10 +19,10 @@ from Products import Zuul
 from Products.Zuul.tests.base import ZuulFacadeTestCase
 from Products.Zuul.tests.base import EventTestCase
 from Products.Zuul.interfaces import IProcessNode
-from Products.Zuul.facades.processfacade import ProcessNode
 from Products.Zuul.interfaces import IProcessInfo
-from Products.Zuul.facades.processfacade import ProcessInfo
 from Products.Zuul.interfaces import IProcessFacade
+from Products.Zuul.infos.process import ProcessNode
+from Products.Zuul.infos.process import ProcessInfo
 from Products.Zuul.facades.processfacade import ProcessFacade
 from Products.ZenModel.OSProcessOrganizer import manage_addOSProcessOrganizer
 
@@ -41,7 +41,7 @@ class ProcessFacadeTest(EventTestCase, ZuulFacadeTestCase):
 
     def test_getTree(self):
         root = self.facade.getTree('/zport/dmd/Processes')
-        self.assertEqual('Processes', root.id)
+        self.assertEqual('.zport.dmd.Processes', root.id)
         self.assertEqual('Processes', root.text['text'])
         self.assertEqual(0, root.text['count'])
         self.assertEqual('instances', root.text['description'])
@@ -50,7 +50,7 @@ class ProcessFacadeTest(EventTestCase, ZuulFacadeTestCase):
         self.assertEqual(1, len(children))
         foo = children[0]
         self.assertEqual('/zport/dmd/Processes/foo', foo.uid)
-        self.assertEqual('foo', foo.id)
+        self.assertEqual('.zport.dmd.Processes.foo', foo.id)
         self.assertEqual('Processes/foo', foo.path)
         self.assertEqual('foo', foo.text['text'])
         self.assertEqual(0, foo.text['count'])
@@ -60,7 +60,7 @@ class ProcessFacadeTest(EventTestCase, ZuulFacadeTestCase):
         self.assertEqual(1, len(fooChildren))
         bar = fooChildren[0]
         self.assertEqual('/zport/dmd/Processes/foo/osProcessClasses/bar', bar.uid)
-        self.assertEqual('bar', bar.id)
+        self.assertEqual('.zport.dmd.Processes.foo.osProcessClasses.bar', bar.id)
         self.assertEqual('Processes/foo/bar', bar.path)
         self.assertEqual('bar', bar.text['text'])
         self.assertEqual(0, bar.text['count'])
@@ -68,7 +68,7 @@ class ProcessFacadeTest(EventTestCase, ZuulFacadeTestCase):
         self.assert_(bar.leaf)
         self.assertEqual([], list(bar.children))
         obj = Zuul.marshal(root)
-        self.assertEqual('Processes', obj['id'])
+        self.assertEqual('.zport.dmd.Processes', obj['id'])
         self.assertEqual('Processes', obj['text']['text'])
         self.assertEqual(0, obj['text']['count'])
         self.assertEqual('instances', obj['text']['description'])
@@ -76,14 +76,14 @@ class ProcessFacadeTest(EventTestCase, ZuulFacadeTestCase):
         self.assertEqual(1, len(obj['children']))
         fooObj = obj['children'][0]
         self.assertEqual('/zport/dmd/Processes/foo', fooObj['uid'])
-        self.assertEqual('foo', fooObj['id'])
+        self.assertEqual('.zport.dmd.Processes.foo', fooObj['id'])
         self.assertEqual('Processes/foo', fooObj['path'])
         self.assertEqual('foo', fooObj['text']['text'])
         self.assertEqual(False, fooObj['leaf'])
         self.assertEqual(1, len(fooObj['children']))
         barObj = fooObj['children'][0]
         self.assertEqual('/zport/dmd/Processes/foo/osProcessClasses/bar', barObj['uid'])
-        self.assertEqual('bar', barObj['id'])
+        self.assertEqual('.zport.dmd.Processes.foo.osProcessClasses.bar', barObj['id'])
         self.assertEqual('Processes/foo/bar', barObj['path'])
         self.assertEqual('bar', barObj['text']['text'])
         self.assert_(barObj['leaf'])
@@ -100,8 +100,9 @@ class ProcessFacadeTest(EventTestCase, ZuulFacadeTestCase):
 
     def test_getDevices(self):
         device = self.dmd.Devices.createInstance('quux')
-        device.os.addOSProcess('/zport/dmd/Processes/foo/osProcessClasses/bar', True)
-        deviceInfos = self.facade.getDevices('/zport/dmd/Processes/foo/osProcessClasses/bar')
+        uid = '/zport/dmd/Processes/foo/osProcessClasses/bar'
+        device.os.addOSProcess(uid, True)
+        deviceInfos = list(self.facade.getDevices(uid))
         self.assertEqual(1, len(deviceInfos))
         deviceInfo = deviceInfos[0]
         self.assertEqual('quux', deviceInfo.device)
@@ -115,7 +116,7 @@ class ProcessFacadeTest(EventTestCase, ZuulFacadeTestCase):
         instanceInfo = instanceInfos[0]
         self.assertEqual('quux', instanceInfo.device)
         self.assertEqual('bar', instanceInfo.name)
-        self.assertEqual(True, instanceInfo.monitor)
+        self.assertEqual(True, instanceInfo.monitored)
         self.assertEqual('Up', instanceInfo.status)
 
     def test_getEvents(self):

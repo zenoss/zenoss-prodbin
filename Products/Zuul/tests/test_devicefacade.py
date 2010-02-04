@@ -12,15 +12,10 @@
 ###########################################################################
 
 import unittest
-
-import zope.component
 from zope.interface.verify import verifyClass
-
 from Products.Zuul.tests.base import ZuulFacadeTestCase
-
 from Products.Zuul.interfaces import IDeviceInfo
-from Products.Zuul.facades.devicefacade import DeviceInfo
-
+from Products.Zuul.infos.device import DeviceInfo
 
 class DeviceFacadeTest(ZuulFacadeTestCase):
 

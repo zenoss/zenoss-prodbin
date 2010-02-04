@@ -13,8 +13,6 @@
 
 import logging
 from itertools import imap
-from zope.component import adapts
-from zope.interface import implements
 from Products.Zuul.interfaces import ICatalogTool
 from Products.Zuul.interfaces import ITemplateNode
 from Products.Zuul.interfaces import ITemplateLeaf

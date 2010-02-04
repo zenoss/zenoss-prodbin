@@ -72,8 +72,7 @@ Zenoss.EventStore = Ext.extend(Ext.ux.grid.livegrid.Store, {
                         dateFormat:Zenoss.date.ISO8601Long},
                     {name:'stateChange', type:'date',
                         dateFormat:Zenoss.date.ISO8601Long}
-                ] // reader columns
-            ) // reader
+                ]) // reader
         }); // Ext.applyIf
         Zenoss.EventStore.superclass.constructor.call(this, config);
     } // constructor
@@ -84,7 +83,7 @@ Ext.reg('EventStore', Zenoss.EventStore);
 
 Zenoss.SimpleEventColumnModel = Ext.extend(Ext.grid.ColumnModel, {
     constructor: function(config) {
-        var config = Ext.applyIf(config || {}, {
+        config = Ext.applyIf(config || {}, {
             defaults: {
                 sortable: false,
                 menuDisabled: true,
@@ -123,7 +122,7 @@ Zenoss.FullEventColumnModel = Ext.extend(Ext.grid.ColumnModel, {
         // Zenoss.env.COLUMN_DEFINITIONS comes from the server, and depends on
         // the resultFields associated with the context.
         // FIXME: This shouldn't come from the server.
-        var config = Ext.applyIf(config || {}, {
+        config = Ext.applyIf(config || {}, {
             columns:Zenoss.env.COLUMN_DEFINITIONS
         });
         Zenoss.FullEventColumnModel.superclass.constructor.call(this, config);
@@ -185,7 +184,7 @@ Ext.reg('SimpleEventGridPanel', Zenoss.SimpleEventGridPanel);
 
 Zenoss.EventRainbow = Ext.extend(Ext.Toolbar.TextItem, {
     constructor: function(config) {
-        var config = Ext.applyIf(config || {}, {
+        config = Ext.applyIf(config || {}, {
             height: 45,
             directFn: Zenoss.remote.DeviceRouter.getInfo,
             text: Zenoss.render.events({'critical':0, 'error':0, 'warning':0})

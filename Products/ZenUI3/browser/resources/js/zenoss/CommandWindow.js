@@ -1,3 +1,18 @@
+/*
+###########################################################################
+#
+# This program is part of Zenoss Core, an open source monitoring platform.
+# Copyright (C) 2010, Zenoss Inc.
+#
+# This program is free software; you can redistribute it and/or modify it
+# under the terms of the GNU General Public License version 2 as published by
+# the Free Software Foundation.
+#
+# For complete information please visit: http://www.zenoss.com/oss/
+#
+###########################################################################
+*/
+
 (function(){
 
 var formTpl = new Ext.Template(
@@ -5,8 +20,7 @@ var formTpl = new Ext.Template(
     '<textarea style="visibility:hidden" name="data">',
     '{data}',
     '</textarea>',
-    '</form>'
-);
+    '</form>');
 formTpl.compile();
 
 Zenoss.CommandPanel = Ext.extend(Zenoss.IFramePanel, {
@@ -29,7 +43,7 @@ Ext.reg('commandpanel', Zenoss.CommandPanel);
 Zenoss.CommandWindow = Ext.extend(Ext.Window, {
     constructor: function(config) {
         this.cpanel = Ext.id();
-        var config = Ext.applyIf(config || {}, {
+        config = Ext.applyIf(config || {}, {
             layout: 'fit',
             title: config.command,
             cls: 'streaming-window',
@@ -62,12 +76,12 @@ Zenoss.CommandWindow = Ext.extend(Ext.Window, {
         Zenoss.CommandWindow.superclass.constructor.call(this, config);
         this.task = new Ext.util.DelayedTask(this.scrollToBottom, this);
         this.on('render', this.startScrolling, this);
-        this.on('afterlayout', function(){this.center()}, this, {single:true});
+        this.on('afterlayout', function(){this.center();}, this, {single:true});
     },
     onRender: function() {
         Zenoss.CommandWindow.superclass.onRender.apply(this, arguments);
         var vsize = Ext.getBody().getViewSize();
-        this.setSize({width:vsize.width*.95, height:vsize.height*.95});
+        this.setSize({width:vsize.width*0.95, height:vsize.height*0.95});
     },
     getCommandPanel: function() {
         if(Ext.isString(this.cpanel)) {
@@ -87,7 +101,7 @@ Zenoss.CommandWindow = Ext.extend(Ext.Window, {
                 body = win.document.body;
             Zenoss.env.BODY = body;
             win.scrollBy(0, body.scrollHeight);
-        } catch(e) { Ext.emptyFn() }
+        } catch(e) { Ext.emptyFn(); }
         this.task.delay(250);
     }
 });

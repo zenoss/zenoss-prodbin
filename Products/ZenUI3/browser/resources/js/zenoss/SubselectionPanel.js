@@ -77,7 +77,7 @@ Zenoss.HorizontalSlidePanel = Ext.extend(Ext.Panel, {
         this.headerText = new Ext.Toolbar.TextItem({
             html: (config && config.text) ? config.text : ''
         });
-        var config = Ext.applyIf(config || {}, {
+        config = Ext.applyIf(config || {}, {
             cls: 'subselect',
             border: false,
             defaults: {
@@ -121,10 +121,10 @@ Zenoss.HorizontalSlidePanel = Ext.extend(Ext.Panel, {
                         card.navButton = navButton;
                         var setHeaderText = function(text) {
                             this.headerText.setText(text);
-                        }
+                        };
                         var setButtonText = function(text) {
                             this.navButton.setText(text);
-                        }
+                        };
                         card.setHeaderText = setHeaderText.createDelegate(card);
                         card.setButtonText = setButtonText.createDelegate(card);
                     }
@@ -156,9 +156,9 @@ ZN.register = function (obj) {
             if (!(item in items)) {
                 items.push(item);
             }
-        })
+        });
     }
-}
+};
 
 Zenoss.SubselectionNodeUI = Ext.extend(Ext.tree.TreeNodeUI, {
     render: function() {
@@ -240,7 +240,7 @@ Zenoss.SubselectionPanel = Ext.extend(Ext.Panel, {
                                 toselect.select();
                             } else {
                                 toselect.on('render', function(node){
-                                    node.select()
+                                    node.select();
                                 });
                             }
                         }

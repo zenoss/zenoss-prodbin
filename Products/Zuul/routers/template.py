@@ -13,7 +13,6 @@
 
 from Products.ZenUtils.Ext import DirectRouter
 from Products import Zuul
-from Products.Zuul.decorators import require
 
 class TemplateRouter(DirectRouter):
 

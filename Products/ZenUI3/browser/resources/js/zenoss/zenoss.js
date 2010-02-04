@@ -62,7 +62,7 @@ Zenoss.message = function(msg, success) {
     } catch(e) {
         Ext.emptyFn();
     }
-}
+};
 
 /**
  * @class Zenoss.PlaceholderPanel
@@ -153,8 +153,7 @@ Zenoss.PostRefreshHookableDataView = Ext.extend(Ext.DataView, {
              * Fires after the view has been rendered.
              * @param {DataView} this
              */
-            'afterrefresh'
-        );
+            'afterrefresh');
     }
 });
 Ext.extend(Zenoss.PostRefreshHookableDataView, Ext.DataView, {
@@ -174,7 +173,7 @@ Ext.extend(Zenoss.PostRefreshHookableDataView, Ext.DataView, {
             return;
         }
         this.tpl.overwrite(this.el, this.collectData(records, 0));
-        this.fireEvent('afterrefresh', this)
+        this.fireEvent('afterrefresh', this);
         this.all.fill(Ext.query(this.itemSelector, this.el.dom));
         this.updateIndexes(0);
     }
@@ -207,7 +206,7 @@ Zenoss.LiveGridInfoPanel = Ext.extend(Ext.Toolbar.TextItem, {
         Zenoss.LiveGridInfoPanel.superclass.initComponent.call(this);
     },
     updateInfo : function(rowIndex, visibleRows, totalCount) {
-        var msg = totalCount == 0 ?
+        var msg = totalCount === 0 ?
             this.emptyMsg :
             String.format(this.displayMsg, rowIndex+1,
                           rowIndex+visibleRows, totalCount);
@@ -297,25 +296,25 @@ Zenoss.FilterGridView = Ext.extend(Ext.ux.grid.livegrid.GridView, {
             };
         this.applyFilterParams({params:o});
         if (hash) {
-            o.hashcheck = this.grid.lastHash
+            o.hashcheck = this.grid.lastHash;
         }
         return o;
     },
     // Gather the current values of the filter and apply them to a given
     // object.
     applyFilterParams: function(options) {
-        var options = options || {},
-            params = this.lastOptions || {};
+        var params = this.lastOptions || {},
+            i, filter, oldformat, query, dt;
+        options = options || {};
         for(i=0;i<this.filters.length;i++){
-            var filter = this.filters[i];
-            var oldformat, query;
+            filter = this.filters[i];
             query = filter.getValue();
             if (query) {
                 params[filter.id] = query;
                 if (filter.xtype=='datefield'){
                     dt = new Date(query);
                     query = dt.format(
-                        Zenoss.date.UniversalSortableDateTime)
+                        Zenoss.date.UniversalSortableDateTime);
                 }
             } else {
                 delete params[filter.id];
@@ -370,7 +369,6 @@ Zenoss.FilterGridView = Ext.extend(Ext.ux.grid.livegrid.GridView, {
     },
     renderFilterRow: function() {
         var cs = this.getColumnData(),
-            ct = this.templates.cell,
             ct = new Ext.Template(
                 '<td class="x-grid3-col x-grid3-cell',
                 ' x-grid3-td-{id} {css}" style="{style}" tabIndex="-1"',
@@ -381,7 +379,8 @@ Zenoss.FilterGridView = Ext.extend(Ext.ux.grid.livegrid.GridView, {
             p = {},
             rp = {},
             rt = new Ext.Template('<tr {display} class="x-grid3-filter"',
-                '>{cells}</tr>');
+                '>{cells}</tr>'),
+            i, len, c;
         for (i=0,len=cs.length; i<len; i++) {
             if (this.cm.isHidden(i)) continue;
             c = cs[i];
@@ -421,15 +420,16 @@ Zenoss.FilterGridView = Ext.extend(Ext.ux.grid.livegrid.GridView, {
         this.updateLiveRows(this.rowIndex, true, true);
     },
     renderEditors: function() {
-        Ext.each(this.filters, function(ob){ob.destroy()});
+        Ext.each(this.filters, function(ob){ob.destroy();});
         this.filters = [];
-        var cs = this.getColumnData();
+        var cs = this.getColumnData(),
+            i, len, c, config, fieldid, id;
         for (i=0,len=cs.length; i<len; i++) {
             if (this.cm.isHidden(i)) continue;
-            var c = cs[i],
-                fieldid = c.id,
-                id = 'filtergrid-' + fieldid;
-            var config = this.cm.config[i].filter;
+            c = cs[i];
+            fieldid = c.id;
+            id = 'filtergrid-' + fieldid;
+            config = this.cm.config[i].filter;
             if (config===false) {
                 config = {xtype: 'panel', getValue: function(){}};
                 this.filters[this.filters.length] = Ext.create(config);
@@ -485,7 +485,7 @@ Zenoss.FilterGridView = Ext.extend(Ext.ux.grid.livegrid.GridView, {
         Zenoss.FilterGridView.superclass.renderUI.call(this);
     },
     renderHeaders : function(){
-        html = Zenoss.FilterGridView.superclass.renderHeaders.call(this);
+        var html = Zenoss.FilterGridView.superclass.renderHeaders.call(this);
         html = html.slice(0, html.length-8);
         html = html + this.renderFilterRow() + '</table>';
         return html;
@@ -583,7 +583,8 @@ Zenoss.FilterGridPanel = Ext.extend(Ext.ux.grid.livegrid.GridPanel, {
     },
     restoreURLState: function() {
         var qs = window.location.search.replace(/^\?/, ''),
-            state = Ext.urlDecode(qs).state;
+            state = Ext.urlDecode(qs).state,
+            noop;
         if (state) {
             try {
                 state = Ext.decode(Zenoss.util.base64.decode(state));
@@ -593,21 +594,20 @@ Zenoss.FilterGridPanel = Ext.extend(Ext.ux.grid.livegrid.GridPanel, {
         }
     },
     clearURLState: function() {
-        var qs = window.location.search.replace(/^\?/, ''),
-            qs = Ext.urlDecode(qs);
+        var qs = Ext.urlDecode(window.location.search.replace(/^\?/, ''));
         if (qs.state) {
             delete qs.state;
             qs = Ext.urlEncode(qs);
             if (qs) {
                 window.location.search = '?' + Ext.urlEncode(qs);
             } else {
-                window.location.search = ''
+                window.location.search = '';
             }
         }
     },
     getPermalink: function() {
         var l = window.location,
-            path = l.protocol + '//' + l.host + l.pathname;
+            path = l.protocol + '//' + l.host + l.pathname,
             st = Zenoss.util.base64.encode(Ext.encode(this.getState()));
         return path + '?state=' + st;
     },
@@ -621,8 +621,8 @@ Zenoss.FilterGridPanel = Ext.extend(Ext.ux.grid.livegrid.GridPanel, {
                 liveSearch = livesearchitem.checked;
             }else{
                 livesearchitem.on('render', function(){
-                    this.setChecked(liveSearch)
-                },livesearchitem)
+                    this.setChecked(liveSearch);
+                },livesearchitem);
             }
             this.view.liveSearch = liveSearch;
         }
@@ -639,7 +639,7 @@ Zenoss.FilterGridPanel = Ext.extend(Ext.ux.grid.livegrid.GridPanel, {
         var val = Zenoss.FilterGridPanel.superclass.getState.call(this);
         var filterstate = this.getView().getState();
         val.filters = filterstate;
-        return val
+        return val;
     },
     applyState: function(state){
         // We need to remove things from the state that don't apply to this
@@ -698,8 +698,8 @@ Zenoss.FilterGridPanel = Ext.extend(Ext.ux.grid.livegrid.GridPanel, {
  */
 Zenoss.MultiselectMenu = Ext.extend(Ext.Toolbar.Button, {
     constructor: function(config) {
-        items = [];
-        var me = this;
+        var items = [],
+            me = this;
         Ext.each(config.source, function(o){
             items[items.length] = {
                 checked: typeof(o.checked)=='undefined',
@@ -709,7 +709,7 @@ Zenoss.MultiselectMenu = Ext.extend(Ext.Toolbar.Button, {
                 },
                 value: o.value,
                 text: o.text
-            }
+            };
         });
         config.menu = {
             items: items
@@ -722,7 +722,7 @@ Zenoss.MultiselectMenu = Ext.extend(Ext.Toolbar.Button, {
     getValue: function() {
         var result = [];
         Ext.each(this.menu.items.items, function(item){
-            if (item.checked) result[result.length] = item.value
+            if (item.checked) result[result.length] = item.value;
         });
         return result;
     },
@@ -955,8 +955,8 @@ Zenoss.DetailPanel = Ext.extend(Ext.Panel, {
                     text: 'Add',
                     handler: function(btn, e){
                         var form = Ext.getCmp('log-container'),
-                            vals = form.getForm().getValues();
-                        params = {history:this.isHistory};
+                            vals = form.getForm().getValues(),
+                            params = {history:this.isHistory};
                         Ext.apply(params, vals);
                         Zenoss.remote.EventsRouter.write_log(
                          params,
@@ -965,8 +965,7 @@ Zenoss.DetailPanel = Ext.extend(Ext.Panel, {
                                  'detail-logform-message').setRawValue('');
                              Ext.getCmp(config.id).load(
                                  Ext.getCmp(
-                                     'detail-logform-evid').getValue()
-                             );
+                                     'detail-logform-evid').getValue());
                         });
                     }
                 }]
@@ -975,7 +974,7 @@ Zenoss.DetailPanel = Ext.extend(Ext.Panel, {
                 cls: 'log-content',
                 hidden: true
             }]
-        }]
+        }];
         Zenoss.DetailPanel.superclass.constructor.apply(this, arguments);
     },
     setSummary: function(summary){
@@ -991,7 +990,7 @@ Zenoss.DetailPanel = Ext.extend(Ext.Panel, {
         var panel = Ext.getCmp('severity-icon');
         Ext.each(Zenoss.env.SEVERITIES,
             function(sev){
-                var sev = sev[1];
+                sev = sev[1];
                 panel.removeClass(sev.toLowerCase());
             }
         );
@@ -1035,8 +1034,8 @@ Zenoss.DetailPanel = Ext.extend(Ext.Panel, {
     },
     isPropsVisible: false,
     showProps: function(){
-        el = Ext.getCmp('full_event_props');
-        tgl = Ext.getCmp('show_details');
+        var el = Ext.getCmp('full_event_props'),
+            tgl = Ext.getCmp('show_details');
         if (!el.hidden){
             el.hide();
             this.isPropsVisible = false;
@@ -1049,7 +1048,7 @@ Zenoss.DetailPanel = Ext.extend(Ext.Panel, {
     },
     popout: function(){
          var evid = Ext.getCmp('detail-logform-evid').getValue(),
-             url = this.isHistory ? 'viewHistoryDetail' : 'viewDetail'
+             url = this.isHistory ? 'viewHistoryDetail' : 'viewDetail';
          window.open(url + '?evid='+ evid, evid,
              "status=1,width=600,height=500");
     },
@@ -1077,8 +1076,7 @@ Zenoss.DetailPanel = Ext.extend(Ext.Panel, {
                 this.update(event);
                 this.bind();
                 this.show();
-            }, this
-        );
+            }, this);
     }
 });
 Ext.reg('detailpanel', Zenoss.DetailPanel);
@@ -1132,31 +1130,31 @@ Zenoss.env.SEVERITIES = [
 ];
 
 Zenoss.util.convertSeverity = function(severity){
-    sevs = ['clear', 'debug', 'info', 'warning', 'error', 'critical'];
+    var sevs = ['clear', 'debug', 'info', 'warning', 'error', 'critical'];
     return sevs[severity];
-}
+};
 
 Zenoss.util.convertStatus = function(stat){
     var stati = ['New', 'Acknowledged', 'Suppressed'];
     return stati[stat];
-}
+};
 
 Zenoss.util.render_severity = function(sev) {
     return Zenoss.render.severity(sev);
-}
+};
 
 Zenoss.util.render_status = function(stat) {
     return Zenoss.render.evstatus(stat);
-}
+};
 
 Zenoss.util.render_linkable = function(name, col, record) {
     var url = record.data[col.id + '_url'];
     if (url) {
-        return '<a href="'+url+'">'+name+'</a>'
+        return '<a href="'+url+'">'+name+'</a>';
     } else {
         return name;
     }
-}
+};
 
 Zenoss.util.base64 = {
     base64s : "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_",
@@ -1164,15 +1162,18 @@ Zenoss.util.base64 = {
         if (typeof btoa === 'function') {
              return btoa(decStr);
         }
-        var base64s = this.base64s;
-        var bits;
-        var dual;
-        var i = 0;
-        var encOut = "";
+        var base64s = this.base64s,
+            i = 0,
+            encOut = "",
+            bits, dual, x, y, z;
         while(decStr.length >= i + 3){
-            bits = (decStr.charCodeAt(i++) & 0xff) <<16 |
-                   (decStr.charCodeAt(i++) & 0xff) <<8 |
-                   decStr.charCodeAt(i++) & 0xff;
+            x = (decStr.charCodeAt(i) & 0xff) <<16;
+            i++;
+            y = (decStr.charCodeAt(i) & 0xff) <<8;
+            i++;
+            z = decStr.charCodeAt(i) & 0xff;
+            i++;
+            bits = x | y | z;
             encOut += base64s.charAt((bits & 0x00fc0000) >>18) +
                       base64s.charAt((bits & 0x0003f000) >>12) +
                       base64s.charAt((bits & 0x00000fc0) >> 6) +
@@ -1180,7 +1181,10 @@ Zenoss.util.base64 = {
         }
         if(decStr.length -i > 0 && decStr.length -i < 3){
             dual = Boolean(decStr.length -i -1);
-            bits = ((decStr.charCodeAt(i++) & 0xff) <<16) | (dual ? (decStr.charCodeAt(i) & 0xff) <<8 : 0);
+            x = ((decStr.charCodeAt(i) & 0xff) <<16);
+            i++;
+            y = (dual ? (decStr.charCodeAt(i) & 0xff) <<8 : 0);
+            bits = x | y;
             encOut += base64s.charAt((bits & 0x00fc0000) >>18) +
                       base64s.charAt((bits & 0x0003f000) >>12) +
                       (dual ? base64s.charAt((bits & 0x00000fc0) >>6) : '=') + '=';
@@ -1228,14 +1232,14 @@ Zenoss.util.num2dot = function(num) {
         d = num%256 + '.' + d;
     }
     return d;
-}
+};
 
 Zenoss.util.setContext = function(uid) {
     var ids = Array.prototype.slice.call(arguments, 1);
     Ext.each(ids, function(id) {
         Ext.getCmp(id).setContext(uid);
     });
-}
+};
 
 /**
  * Proxy that will only allow one request to be loaded at a time.  Requests 
