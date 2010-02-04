@@ -121,4 +121,15 @@ Zenoss.FormDialog = Ext.extend(Ext.Window, {
     }
 });
 
+Zenoss.HideFormDialog = Ext.extend(BaseDialog, {
+    constructor: function(config) {
+        Ext.applyIf(config, {
+            layout: 'form',
+            labelAlign: 'top',
+            labelSeparator: ' '
+        });
+        Zenoss.HideFormDialog.superclass.constructor.call(this, config);
+    }
+});
+
 })();

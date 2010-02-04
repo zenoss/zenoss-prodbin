@@ -19,10 +19,9 @@ Ext.ns('Zenoss');
 
 function initTreeDialogs(tree) {
     
-    new Zenoss.FormDialog({
+    new Zenoss.HideFormDialog({
         id: 'addNodeDialog',
         title: _t('Add Tree Node'),
-        closeAction: 'hide',
         items: [
             {
                 xtype: 'combo',
