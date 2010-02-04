@@ -11,6 +11,18 @@
 #
 ###########################################################################
 
+"""
+Zuul facades are part of the Python API.  The main functions of facades are
+(1) given a unique identified (UID) retrieve a ZenModel object and return info
+objects representing objects related to the retrieved object, and (2) given an
+info object bind its properties to a ZenModel object and save it. The UID is
+typically an acquisition path, e.g. '/zport/dmd/Devices'. Facades use an
+ICatalogTool to search for the ZenModel object using the UID.
+
+Documentation for the classes and methods in this module can be found in the
+definition of the interface that they implement.
+"""
+
 import logging
 from itertools import imap
 from Acquisition import aq_base, aq_parent
