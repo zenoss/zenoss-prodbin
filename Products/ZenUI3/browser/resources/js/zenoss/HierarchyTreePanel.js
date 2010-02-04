@@ -239,9 +239,13 @@ Zenoss.HierarchyTreePanel = Ext.extend(Ext.tree.TreePanel, {
                 parts = parts.slice(4);
                 parts.reverse();
                 while (!Ext.isEmpty(parts)) {
-                    curnode.expand();
-                    curpath += '.'+parts.pop(0);
-                    curnode = curnode.findChild('id', curpath);
+                    if (curnode) {
+                        curnode.expand();
+                        curpath += '.'+parts.pop(0);
+                        curnode = curnode.findChild('id', curpath);
+                    } else {
+                        break;
+                    }
                 }
                 if (curnode) {
                     curnode.select();
