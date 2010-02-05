@@ -224,11 +224,6 @@ Ext.onReady( function() {
         })
     };
 
-    var monitoringLabel = {
-        xtype: 'label',
-        text: _t('Monitoring')
-    };
-
     var monitoringFieldSet = {
         xtype: 'ColumnFieldSet',
         title: _t('Monitoring'),

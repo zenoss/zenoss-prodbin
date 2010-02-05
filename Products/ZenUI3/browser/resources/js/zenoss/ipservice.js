@@ -79,10 +79,6 @@ Ext.onReady( function() {
                        iconCls: 'services',
                        directFn: Zenoss.remote.ServiceRouter.getInstances
                      },
-                     { xtype: 'SimpleDeviceGridPanel',
-                       buttonTitle: _t('Devices'),
-                       iconCls: 'devprobs'
-                     },
                      { xtype: 'SimpleEventGridPanel',
                        buttonTitle: _t('Events'),
                        iconCls: 'events',
