@@ -14,6 +14,7 @@ import time
 
 from Products.ZenUI3.browser.eventconsole.grid import column_config
 from Products.ZenUtils.Ext import DirectRouter
+from Products.ZenUtils.extdirect.router import DirectResponse
 from Products.Zuul import getFacade
 from Products.Zuul.decorators import require
 from Products import Zuul
@@ -40,12 +41,10 @@ class EventsRouter(DirectRouter):
                     'asof': time.time() }
         except OperationalError, oe:
             message = str(oe)
-            return {'success': False,
-                    'message': message}
+            return DirectResponse.fail(message)
         except Exception, e:
             message = e.__class__.__name__ + ' ' + str(e)
-            return {'success': False,
-                    'message': message}
+            return DirectResponse.fail(message)
     @require('View History')
     def queryHistory(self, limit, start, sort, dir, params):
         return self.query(limit, start, sort, dir, params, history=True)
@@ -59,7 +58,7 @@ class EventsRouter(DirectRouter):
         self.api.acknowledge(evids, excludeIds, selectState, field, direction,
                              params, asof=asof, context=uid,
                              history=history)
-        return {'success':True}
+        return DirectResponse.succeed()
 
     @require('Manage Events')
     def unacknowledge(self, evids=None, excludeIds=None, selectState=None,
@@ -69,7 +68,7 @@ class EventsRouter(DirectRouter):
             uid = self.context
         self.api.unacknowledge(evids, excludeIds, selectState, field, direction,
                                params, asof=asof, context=uid, history=history)
-        return {'success':True}
+        return DirectResponse.succeed()
 
     @require('Manage Events')
     def reopen(self, evids=None, excludeIds=None, selectState=None, field=None, 
@@ -78,7 +77,7 @@ class EventsRouter(DirectRouter):
             uid = self.context
         self.api.reopen(evids, excludeIds, selectState, field, direction, 
                         params, asof=asof, context=uid, history=history)
-        return {'success':True}
+        return DirectResponse.succeed()
 
     @require('Manage Events')
     def close(self, evids=None, excludeIds=None, selectState=None, field=None, 
@@ -87,13 +86,13 @@ class EventsRouter(DirectRouter):
             uid = self.context
         self.api.close(evids, excludeIds, selectState, field, direction, params,
                         asof=asof, context=uid, history=history)
-        return {'success':True}
+        return DirectResponse.succeed()
 
     @require('View')
     def detail(self, evid, history=False):
         event = self.api.detail(evid, history)
         if event:
-            return { 'event': [event] }
+            return DirectResponse.succeed( event=[event])
 
     @require('Manage Events')
     def write_log(self, evid=None, message=None, history=False):
@@ -105,13 +104,13 @@ class EventsRouter(DirectRouter):
         msg, url = zem.manage_createEventMap(evclass, evids)
         if url:
             msg += "<br/><br/><a href='%s'>Go to the new mapping.</a>" % url
-        return {'success':bool(url), 'msg': msg}
+        return DirectResponse(msg, success=bool(url))
 
     @require('Manage Events')
     def add_event(self, summary, device, component, severity, evclasskey, evclass):
         evid = self.api.create(summary, severity, device, component,
                                eventClassKey=evclasskey, eventClass=evclass)
-        return {'success':True, 'evid':evid}
+        return DirectResponse.succeed(evid=evid)
 
     def column_config(self, uid=None):
         if uid==None:
