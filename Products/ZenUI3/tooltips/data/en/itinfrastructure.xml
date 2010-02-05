@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<view>
+  <tooltip>
+    <target>lock-updates-checkbox</target>
+
+    <html></html>
+  </tooltip>
+
+  <tooltip>
+    <target>lock-deletion-checkbox</target>
+
+    <html></html>
+  </tooltip>
+
+  <tooltip>
+    <target>send-event-checkbox</target>
+
+    <html></html>
+  </tooltip>
+
+  <tooltip>
+    <target>delete-button</target>
+
+    <html></html>
+  </tooltip>
+
+  <tooltip>
+    <target>remove-radio</target>
+
+    <html></html>
+  </tooltip>
+
+  <tooltip>
+    <target>delete-radio</target>
+
+    <html></html>
+  </tooltip>
+
+  <tooltip>
+    <target>Devices</target>
+
+    <html></html>
+  </tooltip>
+
+  <tooltip>
+    <target>Map</target>
+
+    <html></html>
+  </tooltip>
+
+  <tooltip>
+    <target>zprops</target>
+
+    <html></html>
+  </tooltip>
+
+  <tooltip>
+    <target>templates</target>
+
+    <html></html>
+  </tooltip>
+
+  <tooltip>
+    <target>organizer-events</target>
+
+    <html></html>
+  </tooltip>
+  <tooltip>
+    <target>adddevice-button</target>
+
+    <html></html>
+  </tooltip>
+  <tooltip>
+    <target>actions-menu</target>
+
+    <html></html>
+  </tooltip>
+  <tooltip>
+    <target>commands-menu</target>
+
+    <html></html>
+  </tooltip>
+  <tooltip>
+    <target>productionState</target>
+
+    <html></html>
+  </tooltip>
+</view>

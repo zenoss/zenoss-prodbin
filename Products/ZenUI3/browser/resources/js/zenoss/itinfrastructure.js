@@ -99,10 +99,12 @@ Ext.apply(Zenoss.devices, {
                     style: 'margin: 0 auto',
                     items: [{
                         name: 'updates',
+                        id: 'lock-updates-checkbox',
                         boxLabel: _t('Lock from updates'),
                         handler: disableSendEvent
                     },{
                         name: 'deletion',
+                        id: 'lock-deletion-checkbox',
                         boxLabel: _t('Lock from deletion'),
                         handler: disableSendEvent
                     },{
@@ -313,6 +315,7 @@ Ext.apply(Zenoss.devices, {
     deleteDevices: new Ext.Action({
         //text: _t('Delete Devices'),
         iconCls: 'delete',
+        id: 'delete-button',
         handler: function(btn, e) {
             var grid = Ext.getCmp('device_grid'),
                 selnode = treesm.getSelectedNode(),
@@ -335,12 +338,14 @@ Ext.apply(Zenoss.devices, {
                     columns: 1,
                     items: [{
                         value: 'remove',
+                        id: 'remove-radio',
                         name: 'removetype',
                         boxLabel: _t('Just remove from ') + grpText,
                         disabled: isclass,
                         checked: !isclass
                     },{
                         value: 'delete',
+                        id: 'delete-radio',
                         name: 'removetype',
                         boxLabel: _t('Delete completely'),
                         checked: isclass

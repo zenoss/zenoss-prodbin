@@ -67,14 +67,14 @@
   </tooltip>
 
   <tooltip>
-    <target>status-selection</target>
+    <target>eventState</target>
 
     <html>Select one or more status values (New, Acknowledged, or Suppressed)
     to filter the list of events.</html>
   </tooltip>
 
   <tooltip>
-    <target>severity-selection</target>
+    <target>severity</target>
 
     <html>Select one or more severity levels (Critical, Error, Warning, Info,
     Debug, or Clear) to filter the list of events.<br /><br

@@ -63,12 +63,13 @@ class _TooltipCatalog(object):
                     for node in tip.childNodes:
                         if isinstance(node, minidom.Text): continue
                         result = _valpat.search(node.toxml())
-                        value = result.groups()[0].strip()
-                        name = node.tagName
-                        if name in _tipattrs and _tipattrs[name]!=str:
-                            value = eval(value)
-                        value = value.replace('%26', '&')
-                        d[name] = value
+                        if result:
+                            value = result.groups()[0].strip()
+                            name = node.tagName
+                            if name in _tipattrs and _tipattrs[name]!=str:
+                                value = eval(value)
+                            value = value.replace('%26', '&')
+                            d[name] = value
                     if 'autoHide' in d:
                         d['closable'] = not d['autoHide']
                     self.add(lang, view, d)

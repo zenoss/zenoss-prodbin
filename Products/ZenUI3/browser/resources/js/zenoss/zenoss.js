@@ -440,7 +440,12 @@ Zenoss.FilterGridView = Ext.extend(Ext.ux.grid.livegrid.GridView, {
             Ext.apply(config, {
                 id:fieldid,
                 enableKeyEvents: true,
-                selectOnFocus: true
+                selectOnFocus: true,
+                listeners: {
+                    render: function(){
+                        Zenoss.registerTooltipFor(fieldid);
+                    }
+                }
             });
             var filter = new Ext.ComponentMgr.create(
                 config?config:{xtype:'textfield', validationDelay:500});
