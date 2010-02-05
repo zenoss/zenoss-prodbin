@@ -36,9 +36,11 @@ Zenoss.EventStore = Ext.extend(Ext.ux.grid.livegrid.Store, {
                     'dedupid',
                     'evid',
                     'device',
+                    'device_title',
                     'device_url',
                     'component',
                     'component_url',
+                    'component_title',
                     'summary',
                     'eventState',
                     'eventClass',
@@ -95,7 +97,7 @@ Zenoss.SimpleEventColumnModel = Ext.extend(Ext.grid.ColumnModel, {
                 id: 'severity',
                 renderer: Zenoss.util.convertSeverity
             },{
-                dataIndex: 'device',
+                dataIndex: 'device_title',
                 header: _t('Device')
             },{
                 dataIndex: 'component',

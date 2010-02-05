@@ -33,12 +33,12 @@ Ext.state.Manager.setProvider(new Ext.state.CookieProvider({
 <table>
     <tr><td class="dt">Device:</td> 
         <td><tpl if="device"><a href="{device_url}" 
-                class="resource-link">{device}</a></tpl></td>
+                class="resource-link">{device_title}</a></tpl></td>
         </tr>
     <tr><td class="dt">Component:</td> 
         <td><tpl if="component">
             <a href="{component_url}" 
-                class="resource-link">{component}</a></tpl></td>
+                class="resource-link">{component_title}</a></tpl></td>
         </tr>
     <tr><td class="dt">Event Class:</td> 
         <td><tpl if="eventClass"><a href="{eventClass_url}"

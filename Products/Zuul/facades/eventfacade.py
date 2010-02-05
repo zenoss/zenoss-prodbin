@@ -81,12 +81,16 @@ class EventFacade(ZuulFacade):
     def _get_device_url(self, devname):
         dev = self._dmd.Devices.findDevice(devname)
         if dev:
-            return dev.absolute_url_path()
+            return dev.absolute_url_path(), dev.titleOrId()
+        else:
+            return None, None
 
     def _get_component_url(self, dev, comp):
         comps = self._dmd.searchComponents(dev, comp)
         if comps:
-            return comps[0].absolute_url_path()
+            return comps[0].absolute_url_path(), comps[0].titleOrId()
+        else:
+            return None, None
 
     def _get_eventClass_url(self, evclass):
         return '/zport/dmd/Events' + evclass
@@ -112,16 +116,25 @@ class EventFacade(ZuulFacade):
             elif field == 'eventClass':
                 data['eventClass_url'] = self._get_eventClass_url(value)
             elif field == 'device':
-                url = self._get_device_url(value)
+                url, titleOrId = self._get_device_url(value)
                 if url: data['device_url'] = url
+                if titleOrId:
+                    data['device_title'] = titleOrId
+                else:
+                    data['device_title'] = value
             elif field == 'component':
                 dev = getattr(zevent, 'device', None)
                 if dev:
-                    url = self._get_component_url(dev, value)
+                    url, titleOrId = self._get_component_url(dev, value)
                     if url: data['component_url'] = url
+                    if titleOrId:
+                        data['component_title'] = titleOrId
+                    else:
+                        data['component_title'] = value
             else:
                 value = _shortvalue
-            data[field] = value
+            if field not in data:
+                data[field] = value
         data['evid'] = zevent.evid
         data['id'] = zevent.evid
         return data

@@ -47,12 +47,12 @@ class EventManagerProxy(object):
     def _get_device_url(self, devname):
         dev = self.context.dmd.Devices.findDevice(devname)
         if dev:
-            return dev.absolute_url_path()
+            return dev.absolute_url_path(), dev.titleOrId()
 
     def _get_component_url(self, dev, comp):
         comps = self.context.dmd.searchComponents(dev, comp)
         if comps:
-            return comps[0].absolute_url_path()
+            return comps[0].absolute_url_path(), comps[0].titleOrId()
 
     def _get_eventClass_url(self, evclass):
         return '/zport/dmd/Events' + evclass
@@ -71,13 +71,21 @@ class EventManagerProxy(object):
             elif field == 'eventClass':
                 data['eventClass_url'] = self._get_eventClass_url(value)
             elif field == 'device':
-                url = self._get_device_url(value)
+                url, titleOrId = self._get_device_url(value)
                 if url: data['device_url'] = url
+                if titleOrId:
+                    data['device_title'] = titleOrId
+                else:
+                    data['device_title'] = value
             elif field == 'component':
                 dev = getattr(zevent, 'device', None)
                 if dev:
-                    url = self._get_component_url(dev, value)
+                    url, titleOrId = self._get_component_url(dev, value)
                     if url: data['component_url'] = url
+                    if titleOrId:
+                        data['component_title'] = titleOrId
+                    else:
+                        data['component_title'] = value
             else:
                 value = _shortvalue
             data[field] = value

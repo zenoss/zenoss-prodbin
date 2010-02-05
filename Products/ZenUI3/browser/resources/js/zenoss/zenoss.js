@@ -1154,10 +1154,11 @@ Zenoss.util.render_status = function(stat) {
 
 Zenoss.util.render_linkable = function(name, col, record) {
     var url = record.data[col.id + '_url'];
+    var title = record.data[col.id + '_title'] || name;
     if (url) {
-        return '<a href="'+url+'">'+name+'</a>';
+        return '<a href="'+url+'">'+title+'</a>';
     } else {
-        return name;
+        return title;
     }
 };
 
