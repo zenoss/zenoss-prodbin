@@ -118,9 +118,8 @@ Ext.onReady(function(){
         if (!ranges && !evids) return false;
         var params = {
             evids:evids,
-            ranges:ranges,
-            start:0,
-            limit:null
+            excludeIds: sm.badIds,
+            selectState: sm.selectState
         };
         Ext.apply(params, getQueryParameters());
         return params;
@@ -421,36 +420,41 @@ Ext.onReady(function(){
                         handler: function(){
                             var grid = Ext.getCmp('events_grid'),
                                 sm = grid.getSelectionModel();
-                            sm.clearSelections();
-                            sm.selectRange(0, grid.getStore().totalLength);
+                            sm.selectAll();
                         }
                     },{
                         text: 'None',
                         handler: function(){
                             var grid = Ext.getCmp('events_grid'),
                                 sm = grid.getSelectionModel();
-                            sm.clearSelections();
+                            sm.selectNone();
                         }
                     },{
                         text: 'New',
                         iconCls: 'unacknowledge',
                         handler: function(){
                             // New == 0
-                            selectByState(0);
+                            var grid = Ext.getCmp('events_grid'),
+                                sm = grid.getSelectionModel();
+                            sm.selectNew()
                         }
                     },{
                         text: 'Acknowledged',
                         iconCls: 'acknowledge',
                         handler: function(){
                             // Acknowledged == 1
-                            selectByState(1);
+                            var grid = Ext.getCmp('events_grid'),
+                                sm = grid.getSelectionModel();
+                            sm.selectAck();
                         }
                     },{
                         text: 'Suppressed',
                         iconCls: 'suppress',
                         handler: function(){
                             // Suppressed == 2
-                            selectByState(2);
+                            var grid = Ext.getCmp('events_grid'),
+                                sm = grid.getSelectionModel();
+                            sm.selectSuppressed();
                         }
                     }
                     ]
@@ -644,7 +648,7 @@ Ext.onReady(function(){
     });
 
     // Selection model
-    var console_selection_model = new Zenoss.ExtraHooksSelectionModel();
+    var console_selection_model = new Zenoss.EventPanelSelectionModel();
 
     // Pop open the event detail, depending on the number of rows selected
     function toggleEventDetailContent(){

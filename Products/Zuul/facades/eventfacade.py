@@ -242,107 +242,50 @@ class EventFacade(ZuulFacade):
             notify(EventAdded(evid, zem))
             return evid
 
-    def acknowledge(self, evids=None, ranges=None, start=None, limit=None,
+    def acknowledge(self, evids=None, excludeIds=None, selectState=None,
                     sort=None, dir=None, filters=None, asof=None,
                     context=None, history=False):
         context = resolve_context(context, self._dmd.Events)
         zem = self._event_manager(history)
         orderby = self._get_orderby_clause(sort, dir, history);
-        r_evids = zem.getEventIDsFromRanges(context, orderby, start, limit,
-                                            filters, evids, ranges, asof)
+        r_evids = zem.getEventIds(context, selectState, orderby, filters, evids,
+                                  excludeIds, asof)
         zem.manage_ackEvents(r_evids)
         for evid in r_evids:
             notify(EventAcknowledged(evid, zem))
 
-    def unacknowledge(self, evids=None, ranges=None, start=None, limit=None,
+    def unacknowledge(self, evids=None, excludeIds=None, selectState=None,
                     sort=None, dir=None, filters=None, asof=None,
                     context=None, history=False):
         context = resolve_context(context, self._dmd.Events)
         zem = self._event_manager(history)
         orderby = self._get_orderby_clause(sort, dir, history);
-        r_evids = zem.getEventIDsFromRanges(context, orderby, start, limit,
-                                            filters, evids, ranges, asof)
+        r_evids = zem.getEventIds(context, selectState, orderby, filters, evids,
+                                  excludeIds, asof)
         zem.manage_unackEvents(r_evids)
         for evid in r_evids:
             notify(EventUnacknowledged(evid, zem))
 
-    def reopen(self, evids=None, ranges=None, start=None, limit=None,
+    def reopen(self, evids=None, excludeIds=None, selectState=None,
                     sort=None, dir=None, filters=None, asof=None,
                     context=None, history=False):
         context = resolve_context(context, self._dmd.Events)
         zem = self._event_manager(history)
         orderby = self._get_orderby_clause(sort, dir, history);
-        r_evids = zem.getEventIDsFromRanges(context, orderby, start, limit,
-                                            filters, evids, ranges, asof)
+        r_evids = zem.getEventIds(context, selectState, orderby, filters, evids,
+                                  excludeIds, asof)
         zem.manage_undeleteEvents(r_evids)
         for evid in r_evids:
             notify(EventReopened(evid, zem))
 
-    def close(self, evids=None, ranges=None, start=None, limit=None,
+    def close(self, evids=None, excludeIds=None, selectState=None,
                     sort=None, dir=None, filters=None, asof=None,
                     context=None, history=False):
         context = resolve_context(context, self._dmd.Events)
         zem = self._event_manager(history)
         orderby = self._get_orderby_clause(sort, dir, history);
-        r_evids = zem.getEventIDsFromRanges(context, orderby, start, limit,
-                                            filters, evids, ranges, asof)
+        r_evids = zem.getEventIds(context, selectState, orderby, filters, evids,
+                                  excludeIds, asof)
         zem.manage_deleteEvents(r_evids)
         for evid in r_evids:
             notify(EventClosed(evid, zem))
-
-    
-
-    def getStateRanges(self, state=1, field='severity', direction='DESC',
-                     filters=None, history=False, context=None, asof=None):
-        query_tpl = """
-        select row, eventstate from (
-            select @row:=if(@row is null, 1, @row+1) as row,
-                   @idx:=if(@marker!=eventstate, 1, 0) as idx,
-                   @marker:=eventstate as eventstate
-            from (%s) as x
-        ) as y
-        where idx=1;
-        """
-        if filters is None:
-            filters = {}
-        elif isinstance(filters, basestring):
-            filters = unjson(filters)
-        zem = self._event_manager(history)
-        context = resolve_context(context, self._dmd.Events)
-        where = zem.lookupManagedEntityWhere(context)
-        #escape any % in the where clause because of format eval later
-        where = where.replace('%', '%%')
-
-        values = []
-        where = zem.filteredWhere(where, filters, values)
-        if asof:
-            where += (" and not (stateChange>FROM_UNIXTIME(%s) and "
-                      "eventState=0)" % zem.dateDB(asof))
-        table = history and 'history' or 'status'
-        q = 'select eventState from %s where %s ' % (table, where)
-        orderby = self._get_orderby_clause(field, direction, history)
-        q += 'order by %s' % zem._scrubOrderby(orderby)
-        query = query_tpl % q
-        try:
-            conn = zem.connect()
-            curs = conn.cursor()
-            curs.execute("set @row:=0;")
-            curs.execute("set @marker:=999;")
-            curs.execute(query, values)
-            result = curs.fetchall()
-        finally:
-            curs.close()
-        ranges = []
-        currange = []
-        for idx, st in result:
-            if st==state:
-                currange.append(idx)
-            else:
-                if len(currange)==1:
-                    currange.append(idx-1)
-                    ranges.append(currange)
-                    currange = []
-        if currange:
-            ranges.append(currange)
-        return ranges
-

@@ -17,6 +17,7 @@ from Products.ZenUtils.Ext import DirectRouter
 from Products.Zuul import getFacade
 from Products.Zuul.decorators import require
 from Products import Zuul
+from _mysql_exceptions import OperationalError
 
 class EventsRouter(DirectRouter):
 
@@ -24,72 +25,71 @@ class EventsRouter(DirectRouter):
         super(EventsRouter, self).__init__(context, request)
         self.api = getFacade('event')
 
+    @require('View')
     def query(self, limit=None, start=None, sort=None, dir=None, params=None,
               history=False, uid=None, criteria=()):
-        if uid is None:
-            uid = self.context
-        events = self.api.query(limit, start, sort, dir, params, uid, criteria,
-                               history)
-        disabled = not Zuul.checkPermission('Manage Events')
-        return {'events':events['data'], 
-                'disabled': disabled, 
-                'totalCount': events['total'],
-                'asof': time.time() }
-
+        try:
+            if uid is None:
+                uid = self.context
+            events = self.api.query(limit, start, sort, dir, params, uid, criteria,
+                                   history)
+            disabled = not Zuul.checkPermission('Manage Events')
+            return {'events':events['data'], 
+                    'disabled': disabled, 
+                    'totalCount': events['total'],
+                    'asof': time.time() }
+        except OperationalError, oe:
+            message = str(oe)
+            return {'success': False,
+                    'message': message}
+        except Exception, e:
+            message = e.__class__.__name__ + ' ' + str(e)
+            return {'success': False,
+                    'message': message}
+    @require('View History')
     def queryHistory(self, limit, start, sort, dir, params):
         return self.query(limit, start, sort, dir, params, history=True)
 
     @require('Manage Events')
-    def acknowledge(self, evids=None, ranges=None, start=None, limit=None,
+    def acknowledge(self, evids=None, excludeIds=None, selectState=None,
                     field=None, direction=None, params=None, history=False,
                     uid=None, asof=None):
         if uid is None:
             uid = self.context
-        self.api.acknowledge(evids, ranges, start, limit, field, direction,
+        self.api.acknowledge(evids, excludeIds, selectState, field, direction,
                              params, asof=asof, context=uid,
                              history=history)
         return {'success':True}
 
     @require('Manage Events')
-    def unacknowledge(self, evids=None, ranges=None, start=None, limit=None,
+    def unacknowledge(self, evids=None, excludeIds=None, selectState=None,
                       field=None, direction=None, params=None, history=False,
                       uid=None, asof=None):
         if uid is None:
             uid = self.context
-        self.api.unacknowledge(evids, ranges, start, limit, field, direction,
-                               params, asof=asof, context=uid,
-                               history=history)
+        self.api.unacknowledge(evids, excludeIds, selectState, field, direction,
+                               params, asof=asof, context=uid, history=history)
         return {'success':True}
 
     @require('Manage Events')
-    def reopen(self, evids=None, ranges=None, start=None, limit=None,
-               field=None, direction=None, params=None, history=True,
-               uid=None, asof=None):
+    def reopen(self, evids=None, excludeIds=None, selectState=None, field=None, 
+               direction=None, params=None, history=False, uid=None, asof=None):
         if uid is None:
             uid = self.context
-        self.api.reopen(evids, ranges, start, limit, field, direction, params,
-                        asof=asof, context=uid, history=history)
+        self.api.reopen(evids, excludeIds, selectState, field, direction, 
+                        params, asof=asof, context=uid, history=history)
         return {'success':True}
 
     @require('Manage Events')
-    def close(self, evids=None, ranges=None, start=None, limit=None,
-              field=None, direction=None, params=None, history=False, uid=None,
-              asof=None):
+    def close(self, evids=None, excludeIds=None, selectState=None, field=None, 
+              direction=None, params=None, history=False, uid=None, asof=None):
         if uid is None:
             uid = self.context
-        self.api.close(evids, ranges, start, limit, field, direction, params,
+        self.api.close(evids, excludeIds, selectState, field, direction, params,
                         asof=asof, context=uid, history=history)
         return {'success':True}
 
-
-    def state_ranges(self, state=1, field='severity', direction='DESC',
-                     params=None, history=False, uid=None, asof=None):
-        if uid is None:
-            uid = self.context
-        return self.api.getStateRanges(state, field, direction, params, history,
-                                       uid, asof);
-
-
+    @require('View')
     def detail(self, evid, history=False):
         event = self.api.detail(evid, history)
         if event:

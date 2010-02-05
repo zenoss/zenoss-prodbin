@@ -431,58 +431,6 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
         values.extend(queryValues)
         return where + newwhere
 
-    def getEventIDsFromRanges(self, context, orderby, start=None,
-                              limit=None, filters=None, evids=None,
-                              ranges=None, asof=None):
-        """
-        Consolidate event ids and ranges of records into a list of event ids.
-
-        Accepts criteria representing a console state and criteria representing
-        selected records, in the form of a list of event ids and a list of
-        ranges of row numbers for which the client had not loaded event ids.
-        Can then perform the query described by the console state and use that
-        to select event ids from the given ranges. These are then added to the
-        evids passed in, if any. The resulting list is uniquified and returned.
-
-        @param context: The context for which events should be queried.
-        """
-        # Return nothing if no criteria are specified
-        if not evids and not ranges:
-            return []
-
-        if evids is None: evids = []
-        start = max(start, 0)
-
-        # Get the relevant where clause, with filters applied
-        getWhere = getattr(context, 'getWhere',
-                           lambda:self.lookupManagedEntityWhere(context))
-        where = getWhere()
-        if asof:
-            where += (" and not (stateChange>FROM_UNIXTIME(%s) "
-                      "and eventState=0)" % self.dateDB(asof))
-
-        # If no ranges are specified, just return the event IDs passed in
-        if not ranges:
-            return evids
-        else:
-            # Iterate through the ranges, adding event IDs for each
-            events = []
-            for s,e in ranges:
-                #number of rows to get. ranges passed in seem to be inclusive 
-                #and 0 based, so [100,100] really means one row, the 101st.
-                #mysql is not inclusive and is 1 based so needs to be translated
-                #to "limit 100, 1"
-                rows = e-s+1
-                events += self.getEventList(resultFields=('evid',),
-                                            where=where, orderby=orderby,
-                                            severity=-1, state=2, offset=s,
-                                            rows=rows, filters=filters)
-
-        # Uniqueify the list of event IDs and return as a list
-        evids = set(e.evid for e in events) | set(evids)
-        return list(evids)
-
-
     def getEventBatchME(self, me, selectstatus=None, resultFields=[], 
                         where="", orderby="", severity=None, state=2,
                         startdate=None, enddate=None, offset=0, rows=0,
@@ -565,12 +513,62 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
                                     resultFields=resultFields,
                                     where=where,**kwargs)
         return [ev.evid for ev in events]
+    
+    def getEventIds(self, me, selectstatus=None, 
+                        orderby="", filters=None, evids=[],
+                        excludeIds=[], asof=None):
+        """
+        Returns a batch of events based on criteria from checked rows on the
+        event console.
 
+        The event console can show thousands of events, and we want to support a
+        "Select All" feature; enter this method. It builds a query based on the
+        select status from the console ("All", "New", "Acknowledged",
+        "Suppressed") and any checkboxes that have been modified manually.
+
+        @param me: The managed entity for which to query events.
+        @type me: L{ManagedEntity}
+        @param orderby: The "ORDER BY" string governing sort order.
+        @type orderby: string
+        @param filters: Values for which to create filters (e.g.,
+                        {'device':'^loc.*$', 'severity':[4, 5]})
+        @type filters: dict or JSON str representing dict
+        @param evids: Ids of events that specifically should be included
+        @type evids: list
+        @param excludeIds: Ids of events that specifically should not be included
+        @type excludeIds: list
+        @return: Ids of matching events
+        @rtype: set
+        """
+        where = self.lookupManagedEntityWhere(me)
+        eventids = set()
+        if evids:
+            eventids.update(evids)
+        if selectstatus:
+            if selectstatus != 'All':
+                eventStates= dict(self.eventStateConversions)
+                assert selectstatus in (eventStates.keys())
+                where = self._wand(where, '%s = %s', self.stateField, 
+                           eventStates[selectstatus])
+            if asof:
+                if where: where += ' and '
+                where += (" not (stateChange>FROM_UNIXTIME(%s) "
+                          "and eventState=0)" % self.dateDB(asof))
+            events = self.getEventList( resultFields=['evid'],
+                                        filters=filters,
+                                        getTotalCount=False,
+                                        orderby=orderby,
+                                        where=where)
+            for ev in events:
+                eventids.add(ev.evid)
+
+        if eventids and excludeIds:
+            eventids.difference_update(excludeIds)
+        return eventids
 
     def restrictedUserFilter(self, where):
         """This is a hook do not delete me!"""
         return where
-
 
     def getEventList(self, resultFields=None, where="", orderby="",
             severity=None, state=2, startdate=None, enddate=None, offset=0,
