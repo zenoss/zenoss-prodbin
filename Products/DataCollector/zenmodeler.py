@@ -605,6 +605,7 @@ class ZenModeler(PBDaemon):
                                       plugin.name())
                         continue
 
+                    self.log.debug("Plugin %s results = %s", plugin.name(), results)
                     datamaps = []
                     try:
                         results = plugin.preprocess(results, self.log)

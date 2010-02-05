@@ -15,6 +15,8 @@ import sys
 import types
 import threading
 import Queue
+import logging
+log = logging.getLogger("zen.ApplyDataMap")
 
 import transaction
 
@@ -29,8 +31,6 @@ from Exceptions import ObjectCreationError
 from Products.ZenEvents.ZenEventClasses import Change_Add,Change_Remove,Change_Set,Change_Add_Blocked,Change_Remove_Blocked,Change_Set_Blocked
 from Products.ZenModel.Lockable import Lockable
 import Products.ZenEvents.Event as Event
-import logging
-log = logging.getLogger("zen.ApplyDataMap")
 
 zenmarker = "__ZENMARKER__"
 
@@ -102,21 +102,31 @@ class ApplyDataMap(object):
 
         
     def processClient(self, device, collectorClient):
-        """Apply datamps to device.
         """
-        log.debug("processing data for device %s", device.id)
+        A modeler plugin specifies the protocol (eg SNMP, WMI) and
+        the specific data to retrieve from the device (eg an OID).
+        This data is then processed by the modeler plugin and then
+        passed to this method to apply the results to the ZODB.
+
+        @parameter device: DMD device object
+        @type device: DMD device object
+        @parameter collectorClient: results of modeling
+        @type collectorClient: DMD object
+        """
+        log.debug("Processing data for device %s", device.id)
         devchanged = False
         try:
-            #clientresults = collectorClient.getResults()
-            #clientresults.sort()
-            #for pname, results in clientresults:
             for pname, results in collectorClient.getResults():
-                log.debug("processing plugin %s on device %s", pname, device.id)
+                log.debug("Processing plugin %s on device %s", pname, device.id)
                 if not results: 
-                    log.warn("plugin %s no results returned", pname)
+                    log.warn("Plugin %s did not return any results", pname)
                     continue
                 plugin = self.datacollector.collectorPlugins.get(pname, None) 
-                if not plugin: continue
+                if not plugin:
+                    log.warn("Unable to get plugin %s from %s", pname,
+                             self.datacollector.collectorPlugins)
+                    continue
+
                 results = plugin.preprocess(results, log)
                 datamaps = plugin.process(device, results, log)
                 #allow multiple maps to be returned from one plugin
@@ -128,9 +138,9 @@ class ApplyDataMap(object):
                     if changed: devchanged=True
             if devchanged:
                 device.setLastChange()
-                log.info("changes applied")
+                log.info("Changes applied")
             else:
-                log.info("no change detected")
+                log.info("No change detected")
             device.setSnmpLastCollection()
             trans = transaction.get()
             trans.setUser("datacoll")
@@ -140,7 +150,7 @@ class ApplyDataMap(object):
             raise
         except:
             transaction.abort()
-            log.exception("plugin %s device %s", pname, device.getId())
+            log.exception("Plugin %s device %s", pname, device.getId())
 
 
     def applyDataMap(self, device, datamap, relname="", compname="",modname=""):
