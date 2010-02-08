@@ -25,7 +25,8 @@
     </tr>
     <tal:block tal:repeat="prop props"> 
     <tr tal:define="odd repeat/prop/odd"
-        tal:attributes="class python:test(odd, 'odd', 'even')">
+        tal:attributes="class python:test(odd, 'odd', 'even')" 
+        tal:on-error="string:Invalid property ${prop}" >
       <td class="tablevalues" tal:content="prop">
         zPingInterfaceRegex
       </td>
