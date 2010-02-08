@@ -1604,31 +1604,38 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
     def manage_addEvent(self, REQUEST=None):
         ''' Create an event from user supplied data
         '''
-        eventDict = dict(
-            summary = REQUEST.get('summary', ''),
-            message = REQUEST.get('message', ''),
-            device = REQUEST.get('device', ''),
-            component = REQUEST.get('component', ''),
-            severity = REQUEST.get('severity', ''),
-            eventClassKey = REQUEST.get('eventClassKey', ''),
-            )
+        if REQUEST is None:
+            return
+
+        defaultFields = set(self.dmd.ZenEventManager.getFieldList())
+        ignoreFields = set(['eventClass', 'count', 'clearid',
+             'clearid', 'eventClassMapping', 'stateChange', 'evid',
+             'eventState', 'lastTime', 'firstTime', 'prodState', ])
+        eventDict = dict([(field, REQUEST.get(field, '')) \
+                           for field in defaultFields - ignoreFields ])
+
         # We don't want to put empty eventClass into the dict because that
         # can keep the event from being mapped to /Unknown correctly.
         if REQUEST.get('eventClass', None):
             eventDict['eventClass'] = REQUEST['eventClass']
-        # sendEvent insists on a device or a component. Can be bogus.
-        if not eventDict['device'] and not eventDict['component']:
-            if REQUEST:
-                messaging.IMessageSender(self).sendToBrowser(
-                    'Invalid Event',
-                    'You must specify a device and/or a component.',
-                    priority=messaging.WARNING
-                )
-                return self.callZenScreen(REQUEST)
-            else:
-                return
-        evid = self.sendEvent(eventDict)
-        if REQUEST and 'RESPONSE' in REQUEST:
+
+        try:
+            evid = self.sendEvent(eventDict)
+        except ZenEventError, ex:
+            log.exception("Invalid event not processed = %s" % eventDict)
+            messaging.IMessageSender(self).sendToBrowser(
+               'Invalid Event', str(ex),
+               priority=messaging.WARNING
+            )            return self.callZenScreen(REQUEST)
+        except ZenBackendFailure, ex:
+            log.exception("Event not processed = %s" % eventDict)
+            messaging.IMessageSender(self).sendToBrowser(
+               'Unable to process Event', str(ex),
+               priority=messaging.WARNING
+            )
+            return self.callZenScreen(REQUEST)
+
+        if 'RESPONSE' in REQUEST:
             REQUEST['RESPONSE'].redirect('/zport/dmd/Events/viewEvents')
         else:
             return evid
