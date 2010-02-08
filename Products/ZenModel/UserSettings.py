@@ -425,6 +425,7 @@ class UserSettingsManager(ZenModelRM):
         """Add a zenoss group to the system and set its default properties.
         """
         if not groupid: return
+        groupid = prepId(groupid)
         try:
             self.acl_users.groupManager.addGroup(groupid)
             self.acl_users.ZCacheable_invalidate()
