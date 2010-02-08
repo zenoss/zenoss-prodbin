@@ -39,10 +39,11 @@ def JavaScriptSourceViewlet(source):
     return klass
 
 def directRouter(_context, name, class_, namespace=None, for_=Interface,
-                 layer=IDefaultBrowserLayer, timeout="30000"):
+                 layer=IDefaultBrowserLayer, timeout="30000", 
+                 permission='zope.Public'):
 
     # Register the view at which the class will be available
-    page(_context, name, 'zope.Public', for_, layer, class_=class_)
+    page(_context, name, permission, for_, layer, class_=class_)
 
     # Make a viewlet class with the appropriate javascript source
     source = DirectProviderDefinition(class_, name, timeout, namespace).render()

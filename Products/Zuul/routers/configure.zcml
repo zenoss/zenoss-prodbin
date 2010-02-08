@@ -10,6 +10,7 @@
     for="*"
     class=".events.EventsRouter"
     namespace="Zenoss.remote"
+    permission="zenoss.View"
     />
 
 <browser:directRouter
@@ -17,6 +18,7 @@
     for="*"
     class=".process.ProcessRouter"
     namespace="Zenoss.remote"
+    permission="zenoss.View"
     />
 
 <browser:directRouter
@@ -25,6 +27,7 @@
     class=".service.ServiceRouter"
     namespace="Zenoss.remote"
     timeout="60000"
+    permission="zenoss.View"
     />
 
 <browser:directRouter
@@ -32,6 +35,7 @@
     for="*"
     class=".device.DeviceRouter"
     namespace="Zenoss.remote"
+    permission="zenoss.View"
     />
 
 <browser:directRouter
@@ -39,6 +43,7 @@
     for="*"
     class=".template.TemplateRouter"
     namespace="Zenoss.remote"
+    permission="zenoss.View"
     />
 
 </configure>

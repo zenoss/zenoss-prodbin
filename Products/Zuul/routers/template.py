@@ -20,7 +20,6 @@ class TemplateRouter(DirectRouter):
     def _getFacade(self):
         return Zuul.getFacade('template')
 
-    @require('View')
     def getTemplates(self, id):
         """
         Get the templates throughout the device class hierarchy defined by
@@ -30,7 +29,6 @@ class TemplateRouter(DirectRouter):
         templates = facade.getTemplates()
         return Zuul.marshal(templates)
 
-    @require('View')
     def getDataSources(self, id):
         """
         Get the data sources for the RRD template identified by uid.
@@ -39,7 +37,6 @@ class TemplateRouter(DirectRouter):
         dataSources = facade.getDataSources(id)
         return Zuul.marshal(dataSources)
 
-    @require('View')
     def getThresholds(self, uid):
         """
         Get the thresholds for the RRD template identified by uid.
@@ -48,7 +45,6 @@ class TemplateRouter(DirectRouter):
         thresholds = facade.getThresholds(uid)
         return Zuul.marshal(thresholds)
 
-    @require('View')
     def getGraphs(self, uid):
         """
         Get the graphs for the RRD template identified by uid.

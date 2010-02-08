@@ -52,3 +52,12 @@ class IDirectRouter(Interface):
         required=False,
         default=u"30000"
     )
+
+    permission = TextLine(
+        title=u"Permission",
+        description=unicode("The base permission required to access methods"
+                            " on this router. Individual methods can override"
+                            " this setting using the require decorator"),
+        required=False,
+        default=u"zope.Public"
+    )
