@@ -4,6 +4,7 @@
 
 <!-- Event console JSON api -->
 <include package="Products.ZenUtils.extdirect.zope" file="meta.zcml"/>
+<include package="Products.ZenModel" file="permissions.zcml"/>
 
 <browser:directRouter
     name="evconsole_router"
