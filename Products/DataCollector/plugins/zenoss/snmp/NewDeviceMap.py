@@ -12,9 +12,8 @@
 ###########################################################################
 
 __doc__ = """NewDeviceMap
-
 Try to determine OS and hardware manufacturer information based on
-the snmpDscr OID.
+the SNMP description (sysDescr).
 """
 
 import re

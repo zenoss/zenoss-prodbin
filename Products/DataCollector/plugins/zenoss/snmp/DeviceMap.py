@@ -12,9 +12,10 @@
 ###########################################################################
 
 __doc__ = """DeviceMap
-
-DeviceMap maps the interface and ip tables to interface objects
-
+DeviceMap gathers information (sysDescr, sysContact, sysName,
+and sysLocation) and adds it to the device.
+To obtain a better OS and hardware manufacturer mapping, use the
+NewDeviceMap modeler plugin.
 """
 
 import re
