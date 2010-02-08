@@ -1626,7 +1626,8 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
             messaging.IMessageSender(self).sendToBrowser(
                'Invalid Event', str(ex),
                priority=messaging.WARNING
-            )            return self.callZenScreen(REQUEST)
+            )
+            return self.callZenScreen(REQUEST)
         except ZenBackendFailure, ex:
             log.exception("Event not processed = %s" % eventDict)
             messaging.IMessageSender(self).sendToBrowser(
