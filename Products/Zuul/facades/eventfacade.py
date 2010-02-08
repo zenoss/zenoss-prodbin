@@ -152,15 +152,21 @@ class EventFacade(ZuulFacade):
         properties = [{'key':key,'value':value} for key, value in properties]
         event['properties'] = properties
         event['log'] = details._logs
-        for f in ('device', 'component', 'eventClass'):
-            func = getattr(self, '_get_%s_url' % f)
-            if f=='component':
-                args = event['device'], event['component']
-            else:
-                args = [event[f]]
-            url = func(*args)
-            if url:
-                event[f+'_url'] = url
+        # device url and title
+        deviceUrl, deviceTitle = self._get_device_url( event['device'] )
+        if deviceUrl:
+            event['device_url'] = deviceUrl
+        event['device_title'] = deviceTitle or event['device']
+        # component url and title
+        componentUrl, componentTitle = \
+            self._get_component_url( event['device'], event['component'] )
+        if componentUrl:
+            event['component_url'] = componentUrl
+        event['component_title'] = componentTitle or event['component_title']
+        # eventClass url and title
+        eventClassUrl = self._get_eventClass_url( event['eventClass'] )
+        if eventClassUrl:
+            event['eventClass_url'] = eventClassUrl
         return event
 
     def fields(self, context=None, history=False):
