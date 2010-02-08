@@ -162,7 +162,7 @@ class EventFacade(ZuulFacade):
             self._get_component_url( event['device'], event['component'] )
         if componentUrl:
             event['component_url'] = componentUrl
-        event['component_title'] = componentTitle or event['component_title']
+        event['component_title'] = componentTitle or event['component']
         # eventClass url and title
         eventClassUrl = self._get_eventClass_url( event['eventClass'] )
         if eventClassUrl:
