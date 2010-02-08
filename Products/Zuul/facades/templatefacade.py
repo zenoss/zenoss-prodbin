@@ -16,79 +16,24 @@ from itertools import imap
 from Products.Zuul.interfaces import ICatalogTool
 from Products.Zuul.interfaces import ITemplateNode
 from Products.Zuul.interfaces import ITemplateLeaf
+from Products.Zuul.interfaces import IDataSourceInfo
+from Products.Zuul.interfaces import IDataPointInfo
+from Products.Zuul.interfaces import IThresholdInfo
+from Products.Zuul.interfaces import IGraphInfo
 from Products.Zuul.utils import unbrain
 from Products.Zuul.facades import ZuulFacade
 from Products.ZenModel.RRDTemplate import RRDTemplate
+from Products.ZenModel.RRDDataSource import RRDDataSource
+from Products.ZenModel.RRDDataPoint import RRDDataPoint
+from Products.ZenModel.ThresholdClass import ThresholdClass
+from Products.ZenModel.GraphDefinition import GraphDefinition
 
 log = logging.getLogger('zen.TemplateFacade')
 
-DATA_SOURCES_EXAMPLE_DATA = [
-    {
-        'name': 'iaLoadInt5',
-        'source': '1.3.6.1.4.1.2021.10.1.5.2',
-        'enabled': True,
-        'type': 'SNMP'
-    }, {
-        'name': 'memAvailReal',
-        'source': '1.3.6.1.4.1.2021.4.6.0',
-        'enabled': True,
-        'type': 'Guage'
-    }, {
-        'name': 'memAvailSwap',
-        'source': '1.3.6.1.4.1.2021.4.4.0',
-        'enabled': True,
-        'type': 'SNMP'
-    }, {
-        'name': 'memBuffer',
-        'source': '1.3.6.1.4.1.2021.4.14.0',
-        'enabled': True,
-        'type': 'Guage',
-        'expanded': True,
-        'children':[{
-            'name': 'poll_check',
-            'source': '/usr/bin/snmpget -Ov -Oq',
-            'enabled': True,
-            'type': 'COMMAND',
-            'leaf': True
-        }]
-    }, {
-        'name': 'memCached',
-        'source': '1.3.6.1.4.1.2021.4.15.0',
-        'enabled': True,
-        'type': 'SNMP'
-    }, {
-        'name': 'SSCpuRawIdle',
-        'source': '1.3.6.1.5.1.2021.11.53.0',
-        'enabled': True,
-        'type': 'SNMP'
-    }, {
-        'name': 'SSCpuRawSystem',
-        'source': '1.3.6.1.5.1.2021.10.11.52.0',
-        'enabled': True,
-        'type': 'Guage'
-    }, {
-        'name': 'SSCpuRawUser',
-        'source': '1.3.6.1.5.1.2021.10.11.50.0',
-        'enabled': False,
-        'type': 'SNMP'
-    }, {
-        'name': 'SSCpuRawWait',
-        'source': '1.3.6.1.5.1.2021.10.11.55.0',
-        'enabled': True,
-        'type': 'Guage'
-    }, {
-        'name': 'sysUpTime',
-        'source': '1.3.6.1.5.1.2021.1.0.0',
-        'enabled': True,
-        'type': 'SNMP'
-    }
-]
-
 class TemplateFacade(ZuulFacade):
 
-    def getTemplates(self, uid):
-        deviceClass = self._dmd.unrestrictedTraverse(uid)
-        catalog = ICatalogTool(deviceClass)
+    def getTemplates(self):
+        catalog = self._getCatalog('/zport/dmd/Devices')
         brains = catalog.search(types=RRDTemplate)
         nodes = {}
         for template in imap(unbrain, brains):
@@ -96,10 +41,37 @@ class TemplateFacade(ZuulFacade):
                 nodes[template.id] = ITemplateNode(template)
             leaf = ITemplateLeaf(template)
             nodes[template.id]._addChild(leaf)
-        templates = []
         for key in sorted(nodes.keys(), key=str.lower):
-            templates.append(nodes[key])
-        return templates
+            yield nodes[key]
 
     def getDataSources(self, uid):
-        return DATA_SOURCES_EXAMPLE_DATA
+        catalog = self._getCatalog(uid)
+        if isinstance(catalog.context, RRDTemplate):
+            brains = catalog.search(types=RRDDataSource)
+            dataSources = imap(unbrain, brains)
+            infos = imap(IDataSourceInfo, dataSources)
+        else:
+            brains = catalog.search(types=RRDDataPoint)
+            dataPoints = imap(unbrain, brains)
+            infos = imap(IDataPointInfo, dataPoints)
+        return infos
+
+    def getThresholds(self, uid):
+        catalog = self._getCatalog(uid)
+        brains = catalog.search(types=ThresholdClass)
+        thresholds = imap(unbrain, brains)
+        return imap(IThresholdInfo, thresholds)
+
+    def getGraphs(self, uid):
+        catalog = self._getCatalog(uid)
+        brains = catalog.search(types=GraphDefinition)
+        graphs = imap(unbrain, brains)
+        return imap(IGraphInfo, graphs)
+
+    def _getCatalog(self, uid):
+        try:
+            obj = self._dmd.unrestrictedTraverse(uid)
+        except Exception, e:
+            args = (uid, e.__class__.__name__, e)
+            raise Exception('Cannot find "%s". %s: %s' % args)
+        return ICatalogTool(obj)

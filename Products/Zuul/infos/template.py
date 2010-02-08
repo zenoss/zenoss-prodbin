@@ -44,7 +44,9 @@ class TemplateLeaf(InfoBase):
 
     @property
     def id(self):
-        return self._getDeviceClassPath('.')
+        template = self._object.id
+        deviceClass = self._getDeviceClassPath('.')
+        return '%s.%s' % (template, deviceClass)
         
     @property
     def text(self):
@@ -58,3 +60,103 @@ class TemplateLeaf(InfoBase):
         deviceClass = self._object.deviceClass()
         path = deviceClass.getPrimaryPath()
         return separator.join(path[3:])
+
+class DataSourceInfo(InfoBase):
+
+    def __init__(self, dataSource):
+        self._object = dataSource
+
+    @property
+    def id(self):
+        return '/'.join( self._object.getPrimaryPath() )
+
+    @property
+    def name(self):
+        return self._object.getId()
+        
+    @property
+    def source(self):
+        return self._object.getDescription()
+
+    @property
+    def enabled(self):
+        return self._object.enabled
+
+    @property
+    def type(self):
+        return self._object.sourcetype
+
+class DataPointInfo(InfoBase):
+
+    def __init__(self, dataPoint):
+        self._object = dataPoint
+
+    @property
+    def id(self):
+        return '/'.join( self._object.getPrimaryPath() )
+
+    @property
+    def name(self):
+        return self._object.getId()
+
+    @property
+    def type(self):
+        return self._object.rrdtype
+
+    @property
+    def leaf(self):
+        return True
+
+class ThresholdInfo(InfoBase):
+
+    def __init__(self, threshold):
+        self._object = threshold
+
+    @property
+    def id(self):
+        return '/'.join( self._object.getPrimaryPath() )
+
+    @property
+    def name(self):
+        return self._object.getId()
+
+    @property
+    def type(self):
+        return self._object.getTypeName()
+
+    @property
+    def dataPoints(self):
+        return self._object.getDataPointNamesString()
+
+    @property
+    def severity(self):
+        return self._object.getSeverityString()
+
+    @property
+    def enabled(self):
+        return self._object.enabled
+
+class GraphInfo(InfoBase):
+
+    def __init__(self, graph):
+        self._object = graph
+
+    @property
+    def id(self):
+        return self._object.getId()
+
+    @property
+    def graphPoints(self):
+        return self._object.getGraphPointNamesString()
+
+    @property
+    def units(self):
+        return self._object.units
+
+    @property
+    def height(self):
+        return self._object.height
+
+    @property
+    def width(self):
+        return self._object.width

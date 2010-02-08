@@ -126,6 +126,22 @@
              for="Products.ZenModel.RRDTemplate.RRDTemplate"
              provides=".interfaces.ITemplateLeaf"/>
 
+    <adapter factory=".infos.template.DataSourceInfo"
+             for="Products.ZenModel.RRDDataSource.RRDDataSource"
+             provides=".interfaces.IDataSourceInfo"/>
+
+    <adapter factory=".infos.template.DataPointInfo"
+             for="Products.ZenModel.RRDDataPoint.RRDDataPoint"
+             provides=".interfaces.IDataPointInfo"/>
+
+    <adapter factory=".infos.template.ThresholdInfo"
+             for="Products.ZenModel.ThresholdClass.ThresholdClass"
+             provides=".interfaces.IThresholdInfo"/>
+
+    <adapter factory=".infos.template.GraphInfo"
+             for="Products.ZenModel.GraphDefinition.GraphDefinition"
+             provides=".interfaces.IGraphInfo"/>
+
     <adapter provides=".interfaces.IInfo"
              for=".interfaces.IProcessEntity"
              factory=".infos.process.ProcessInfo"

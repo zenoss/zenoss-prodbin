@@ -283,10 +283,11 @@ Ext.onReady( function() {
     Zenoss.ui.Service.ServiceFormPanel = Ext.extend(Ext.form.FormPanel, {
 
         constructor: function(config) {
+            var cls;
             config = config || {};
             Ext.applyIf(config, formConfig);
-            Zenoss.ui.Service.ServiceFormPanel.superclass
-                             .constructor.call(this, config);
+            cls = Zenoss.ui.Service.ServiceFormPanel;
+            cls.superclass.constructor.call(this, config);
             //this.on('actioncomplete', actioncompleteHandler);
         },
 

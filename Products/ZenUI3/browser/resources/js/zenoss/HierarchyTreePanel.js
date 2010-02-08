@@ -292,23 +292,25 @@ Zenoss.HierarchyTreePanel = Ext.extend(Ext.tree.TreePanel, {
         var re = new RegExp(Ext.escapeRe(text), 'i');
         this.root.cascade(function(n){
             var attr = n.id.slice('.zport.dmd'.length);
-            if (n.isRoot) {
-                return true;
-            }
-            if (re.test(attr)) {
-                var parentNode = n.parentNode;
-                while (parentNode) {
-                    if (!parentNode.hidden) {
-                        break;
+            if (!n.isRoot) {
+                if (re.test(attr)) {
+                    var parentNode = n.parentNode;
+                    while (parentNode) {
+                        if (!parentNode.hidden) {
+                            break;
+                        }
+                        parentNode.ui.show();
+                        parentNode = parentNode.parentNode;
                     }
-                    parentNode.ui.show();
-                    parentNode = parentNode.parentNode;
+                    // the cascade is stopped on this branch
+                    return false;
+                } else {
+                    n.ui.hide();
+                    this.hiddenPkgs.push(n);
                 }
-                return false;
-            } else {
-                n.ui.hide();
-                this.hiddenPkgs.push(n);
             }
+            // continue cascading down the tree from this node
+            return true;
         }, this);
     },
     addNode: function(type, id) {

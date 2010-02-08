@@ -24,3 +24,23 @@ class ITemplateLeaf(IInfo):
     A template leaf is a single instance of an RRD template at a specific
     spot in the device class hierarchy.
     """
+
+class IDataSourceInfo(IInfo):
+    """
+    Adapts RRDDataSource.
+    """
+
+class IDataPointInfo(IInfo):
+    """
+    Adapts RRDDataPoint.
+    """
+
+class IThresholdInfo(IInfo):
+    """
+    Adapts ThresholdClass.
+    """
+
+class IGraphInfo(IInfo):
+    """
+    Adapts GraphDefinition.
+    """
