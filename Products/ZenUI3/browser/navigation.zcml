@@ -167,16 +167,6 @@
         />
 
     <browser:viewlet
-        name="Users"
-        url="/zport/dmd/users"
-        weight="5"
-        manager="..navigation.interfaces.IPrimaryNavigationMenu"
-        class="..navigation.menuitem.PrimaryNavigationMenuItem"
-        permission="zope2.Public"
-        layer="zenossNav"
-        />
-
-    <browser:viewlet
         name="Advanced"
         url="/zport/dmd/template"
         weight="6"
