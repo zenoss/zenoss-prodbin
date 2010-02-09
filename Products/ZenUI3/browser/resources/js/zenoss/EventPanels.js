@@ -87,19 +87,17 @@ Zenoss.EventPanelSelectionModel = Ext.extend(Zenoss.ExtraHooksSelectionModel, {
         }
         
         var view = this.grid.getView();
-        
         var isSelected = this.isSelected(rowIndex);
         if (e.ctrlKey && isSelected) {
             this.deselectRow(rowIndex);
         }
         else 
-            if (!isSelected || this.getCount() > 1) {
+            if (!isSelected || this.getCount() > 1 || this.selectState) {
                 this.selectRow(rowIndex, e.ctrlKey);
                 view.focusRow(rowIndex);
             }
     },
     clearSelections: function(fast){
-        
         if (this.isLocked()) {
             return;
         }
