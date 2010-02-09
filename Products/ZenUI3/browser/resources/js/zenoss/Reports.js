@@ -296,7 +296,7 @@ Zenoss.ReportCompatPanel = Ext.extend(Zenoss.BackCompatPanel,{
     }
 });
 
-var report_panel = new Zenoss.ReportCompatPanel();
+var report_panel = new Zenoss.ReportCompatPanel({});
 
 var treesm = new Ext.tree.DefaultSelectionModel({
     listeners: {
