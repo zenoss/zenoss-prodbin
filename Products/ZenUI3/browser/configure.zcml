@@ -124,7 +124,7 @@
     />
 
 <browser:page
-    template="templates/base-new.pt"
+    template="templates/reports.pt"
     name="reports"
     for="*"
     permission="zope2.Public"

@@ -50,6 +50,11 @@
 .x-tab-panel-footer{
 	border-color:#abc;
 }
+.x-toolbar .xtb-sep{
+    height: 20px;
+    padding: 0 4px;
+	background-image:url(../img/xtheme-zenoss/toolbar/tb-sep.png);
+}
 ul.x-tab-strip-top{
 	background:#dbdbdb url(../img/xtheme-zenoss/tabs/tab-strip-bg.gif) repeat-x left top;
 	border-color:#4c647e;

@@ -47,4 +47,11 @@
     permission="zenoss.View"
     />
 
+<browser:directRouter
+    name="report_router"
+    for="*"
+    class=".report.ReportRouter"
+    namespace="Zenoss.remote"
+    />
+
 </configure>
