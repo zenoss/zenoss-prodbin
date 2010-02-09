@@ -455,7 +455,19 @@ Zenoss.nav.register({
             target.layout.setActiveItem('templates');
         }
 
-    }]
+    },{
+        id: 'administration',
+        text: 'Administration',
+        action: function(node, target){
+            target.layout.setActiveItem('administration');
+        }
+    },{
+        id: 'modifications',
+        text: 'Modifications',
+        action: function(node, target){
+            target.layout.setActiveItem('modifications');
+        }
+	}]
 
 });
 
@@ -597,7 +609,7 @@ Ext.getCmp('center_panel').add({
                             others[2].setContext(node.uid);
                             break;
                         case 'DeviceClass':
-                            var cards = others.slice(0,2);
+                            var cards = others.slice(0, 5);
                             Ext.each(cards, function(c){c.setContext(node.uid);});
                             break;
                         default:
@@ -684,11 +696,11 @@ Ext.getCmp('center_panel').add({
                     menu: {}
                 }]
             }
-        }, {
+        },{
             xtype: 'backcompat',
             viewName: 'zPropertyEdit',
             id: 'zprops'
-        }, {
+        },{
             xtype: 'backcompat',
             viewName: 'perfConfig',
             id: 'templates'
@@ -696,6 +708,14 @@ Ext.getCmp('center_panel').add({
             xtype: 'contextiframe',
             viewName: 'simpleLocationGeoMap',
             id: 'map'
+        },{
+            xtype: 'backcompat',
+            viewName: 'viewHistory',
+            id: 'modifications'
+        },{
+            xtype: 'backcompat',
+            viewName: 'deviceManagement',
+            id: 'administration'
         }]
     }]
 });
