@@ -14,7 +14,7 @@
 */
 Ext.ns('Zenoss.ui.Reports');
 
-Ext.onReady(function(){
+Ext.onReady(function () {
 
 var addrorg,
     addrorgtozenpack;
@@ -48,13 +48,13 @@ function addReportOrganizer(e) {
                 }],
                 buttons: [{
                     text: _t('Cancel'),
-                    handler: function(){
+                    handler: function () {
                         addrorg.hide();
                     }
-                },{
+                }, {
                     text: _t('Submit'),
                     formBind: true,
-                    handler: function(){
+                    handler: function () {
                         form = Ext.getCmp('addrorgform').getForm();
                         newrorgname = form.findField('rorgname').getValue();
                         report_tree.addNode('organizer', newrorgname);
@@ -115,17 +115,17 @@ function addToZenPack(e) {
                     forceSelection: true,
                     triggerAction: 'all',
                     selectOnFocus: true,
-                    id: 'zpcombobox',
+                    id: 'zpcombobox'
                 }],
                 buttons: [{
                     text: _t('Cancel'),
-                    handler: function(){
+                    handler: function () {
                         addrorgtozenpack.hide();
                     }
-                },{
+                }, {
                     text: _t('Submit'),
                     formBind: true,
-                    handler: function(){
+                    handler: function () {
                         form = Ext.getCmp('addzenpackform');
                         var chosenzenpack = 
                             form.getForm().findField('zpname').getValue();
@@ -142,7 +142,7 @@ function initializeTreeDrop(g) {
     var dz = new Ext.tree.TreeDropZone(g, {
         ddGroup: 'reporttreedd',
         appendOnly: true,
-        onNodeDrop: function(target, dd, e, data) {
+        onNodeDrop: function (target, dd, e, data) {
             if ((target.node.attributes.leaf) || 
                     (target.node == data.node.parentNode)) {
                 try {
@@ -157,19 +157,14 @@ function initializeTreeDrop(g) {
             Zenoss.remote.ReportRouter.moveReports({
                 uids: [data.node.attributes.uid],
                 target: target.node.attributes.uid
-            }, function(cb_data) {
-                if(cb_data.success) {
+            }, function (cb_data) {
+                if (cb_data.success) {
                     try {
                         tree.selModel.suspendEvents(true);
-                        nodeConfig = {};
-                        Ext.applyIf(nodeConfig, data.node.attributes);
-                        desiredUid = target.node.attributes.uid + '/' +
-                                nodeConfig['id'];
-                        nodeConfig['uid'] = desiredUid;
                         parentNode = data.node.parentNode;
                         parentNode.removeChild(data.node);
                         data.node.destroy();
-                        newNode = tree.getLoader().createNode(nodeConfig);
+                        newNode = tree.getLoader().createNode(cb_data.newNode);
                         target.node.expand();
                         target.node.appendChild(newNode);
                         newNode.select();
@@ -185,7 +180,7 @@ function initializeTreeDrop(g) {
 }
 
 Zenoss.ReportTreeNodeUI = Ext.extend(Zenoss.HierarchyTreeNodeUI, {
-    render: function(bulkRender) {
+    render: function (bulkRender) {
         var n = this.node,
             a = n.attributes;
         if (n.isLeaf()) {
@@ -202,44 +197,44 @@ Zenoss.ReportTreeNodeUI = Ext.extend(Zenoss.HierarchyTreeNodeUI, {
         Zenoss.ReportTreeNodeUI.superclass.render.call(this, 
                 bulkRender);
     },
-    onTextChange : function(node, text, oldText){
+    onTextChange : function (node, text, oldText) {
         if ((this.rendered) && (!node.isLeaf())) {
             this.textNode.innerHTML = this.buildNodeText(node);
         }
     }
 });
 
-Zenoss.ReportTreePanel = Ext.extend(Zenoss.HierarchyTreePanel,{
-    constructor: function(config) {
+Zenoss.ReportTreePanel = Ext.extend(Zenoss.HierarchyTreePanel, {
+    constructor: function (config) {
         config.loader = {
             xtype: 'treeloader',
             directFn: Zenoss.remote.ReportRouter.getTree,
             uiProviders: {
                 'report': Zenoss.ReportTreeNodeUI
             },
-            getParams: function(node) {
+            getParams: function (node) {
                 return [node.attributes.uid];
             }
         };
         Zenoss.ReportTreePanel.superclass.constructor.call(this, 
                 config);
     },
-    addNode: function(type, id) {
-        var selectedNode = this.getSelectionModel().getSelectedNode();
-        var parentNode;
+    addNode: function (type, id) {
+        var selectedNode = this.getSelectionModel().getSelectedNode(),
+                parentNode;
         if (selectedNode.leaf) {
             parentNode = selectedNode.parentNode;
         } else {
             parentNode = selectedNode;
         }
-        var contextUid = parentNode.attributes.uid;
-        var params = {type: type, contextUid: contextUid, id: id};
-        var tree = this;
-        function callback(provider, response) {
-            var result = response.result;
-            if (result.success) {
-                var nodeConfig = response.result.nodeConfig;
-                var node = tree.getLoader().createNode(nodeConfig);
+        parentNode.expand();
+        var contextUid = parentNode.attributes.uid,
+                params = {type: type, contextUid: contextUid, id: id},
+                tree = this;
+        function callback(data) {
+            if (data.success) {
+                var nodeConfig = data.newNode,
+                        node = tree.getLoader().createNode(nodeConfig);
                 lastIndex = parentNode.childNodes.length - 1;
                 if ((node.leaf) || 
                         (lastIndex < 0) ||
@@ -260,36 +255,34 @@ Zenoss.ReportTreePanel = Ext.extend(Zenoss.HierarchyTreePanel,{
                     }
                 }
                 node.select();
-                tree.update(result.tree);
-            } else {
-                Ext.Msg.alert('Error', result.msg);
+                node.expand();
+                tree.update(data.tree);
             }
         }
         this.router.addNode(params, callback);
     },
-    deleteSelectedNode: function() {
-        var node = this.getSelectionModel().getSelectedNode();
-        var parentNode = node.parentNode;
-        var uid = node.attributes.uid;
-        var params = {uid: uid};
-        var tree = this;
-        function callback(provider, response) {
-            var result = response.result;
-            if (result.success) {
+    deleteSelectedNode: function () {
+        var node = this.getSelectionModel().getSelectedNode(),
+                parentNode = node.parentNode,
+                uid = node.attributes.uid,
+                params = {uid: uid},
+                tree = this;
+        function callback(data) {
+            if (data.success) {
                 parentNode.select();
                 parentNode.removeChild(node);
                 node.destroy();
-                tree.update(result.tree);
+                tree.update(data.tree);
             }
         }
         this.router.deleteNode(params, callback);
-    },
+    }
 });
 
-Zenoss.ReportCompatPanel = Ext.extend(Zenoss.BackCompatPanel,{
-    setContext: function(uid) {
-        if (this.contextUid!=uid){
-            this.on('frameload', this.injectViewport, {scope:this, single:true})
+Zenoss.ReportCompatPanel = Ext.extend(Zenoss.BackCompatPanel, {
+    setContext: function (uid) {
+        if (this.contextUid != uid){
+            this.on('frameload', this.injectViewport, {scope: this, single: true});
             this.contextUid = uid;
             this.setSrc(uid);
         }
@@ -300,7 +293,7 @@ var report_panel = new Zenoss.ReportCompatPanel({});
 
 var treesm = new Ext.tree.DefaultSelectionModel({
     listeners: {
-        'selectionchange': function(sm, newnode) {
+        'selectionchange': function (sm, newnode) {
             if (newnode.attributes.leaf) {
                 report_panel.setContext(newnode.attributes.uid);
                 Ext.getCmp('add-button').disable();
@@ -342,11 +335,11 @@ Ext.getCmp('center_panel').add({
         region: 'west',
         width: 275,
         split: true,
-        items: [report_tree],
-    },{
+        items: [report_tree]
+    }, {
         layout: 'fit',
         region: 'center',
-        items: [report_panel],
+        items: [report_panel]
     }]
 });
 

@@ -12,7 +12,7 @@
 ###########################################################################
 
 import logging
-from Products.ZenUtils.Ext import DirectRouter
+from Products.ZenUtils.Ext import DirectRouter, DirectResponse
 from Products.Zuul.decorators import require
 
 log = logging.getLogger('zen.ReportRouter')
@@ -39,36 +39,24 @@ class ReportRouter(DirectRouter):
         if type.lower() != 'organizer':
             return {'success': False, 'msg': 'Not creating report'}
 
-        result = {}
         try:
             uid = contextUid + '/' + id
             maoUid = uid.replace('/zport/dmd', '')
             self.context.dmd.Reports.manage_addOrganizer(maoUid)
             represented = self.context.dmd.restrictedTraverse(uid)
             node = self._createTreeNode(represented, False)
-            result['nodeConfig'] = node
-            result['success'] = True
-            result['tree'] = self.getTree()
+            return DirectResponse.succeed(tree=self.getTree(), newNode=node)
         except Exception, e:
-            result['msg'] = str(e)
-            result['success'] = False
-        return result
-
-    @require('Manage DMD')
-    def addOrganizer(self, contextUid, id):
-        uid = contextUid + '/' + id
-        self.context.dmd.Reports.manage_addOrganizer(uid.replace('/zport/dmd', 
-                ''))
-        return uid
+            return DirectResponse.fail(str(e))
 
     @require('Manage DMD')
     def deleteNode(self, uid):
         represented = self.context.dmd.restrictedTraverse(uid)
         if not isinstance(represented, represented.getReportClass()):
-            return {'success': False, 'msg': 'Not deleting report'}
+            return DirectResponse.fail('Not deleting report')
 
         self.context.dmd.Reports.manage_deleteOrganizer(uid)
-        return {'success': True, 'tree': self.getTree()}
+        return DirectResponse.succeed(tree=self.getTree())
 
     @require('Manage DMD')
     def moveReports(self, uids, target):
@@ -80,7 +68,8 @@ class ReportRouter(DirectRouter):
             reportTitle = report.titleOrId()
             report.getParentNode()._delObject(reportTitle)
             targetNode._setObject(reportTitle, report)
-        return {'success': True, 'tree': self.getTree()}
+            reportNode = self._createTreeNode(report, True)
+        return DirectResponse.succeed(tree=self.getTree(), newNode=reportNode)
 
     def _createTreeNode(self, represented, leaf):
         path = represented.getDmdKey()
@@ -97,7 +86,7 @@ class ReportRouter(DirectRouter):
         return {'uid': represented.getPrimaryId(),
                 'children': [],
                 'path': path,
-                'id': represented.titleOrId(),
+                'id': represented.getPrimaryId().replace('/', '.'),
                 'uiProvider': 'report', 
                 'leaf': leaf,
                 'text': text }
@@ -105,5 +94,5 @@ class ReportRouter(DirectRouter):
     def getEligiblePacks(self, **data):
         packs = [{'name': zp.getId()} for zp in
                  self.context.dmd.ZenPackManager.packs() if zp.isDevelopment()]
-        return {'packs': packs, 'totalCount': len(packs)}
+        return DirectResponse(packs=packs, totalCount=len(packs))
 
