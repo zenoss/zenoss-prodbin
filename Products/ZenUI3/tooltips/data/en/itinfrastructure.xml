@@ -76,7 +76,17 @@
   <tooltip>
     <target>actions-menu</target>
 
-    <html><strong>Actions</strong>From this menu, you can:<ul><li><strong>Lock devices</strong> - Prevent selected devices from being updated or deleted.</li><li><strong>Reset IP</strong> - Reset the IP addresses of selected devices to the results of a DNS lookup.</li><li><strong>Reset Community</strong> - Reset the SNMP community strings of selected devices.</li><li><strong>Set Production State</strong> - Select a production state (Production, Pre-Production, Test, Maintenance, or Decommissioned) for selected devices.</li><li><strong>Set Priority</strong> - Set a priority (from Trivial to Highest) for selected devices.</li><li><strong>Set Collector</strong> - Select a collector for selected devices.</html>
+    <html>
+        <strong>Actions</strong>From this menu, you can:
+        <ul>
+            <li><strong>Lock devices</strong> - Prevent selected devices from being updated or deleted.</li>
+            <li><strong>Reset IP</strong> - Reset the IP addresses of selected devices to the results of a DNS lookup.</li>
+            <li><strong>Reset Community</strong> - Reset the SNMP community strings of selected devices.</li>
+            <li><strong>Set Production State</strong> - Select a production state (Production, Pre-Production, Test, Maintenance, or Decommissioned) for selected devices.</li>
+            <li><strong>Set Priority</strong> - Set a priority (from Trivial to Highest) for selected devices.</li>
+            <li><strong>Set Collector</strong> - Select a collector for selected devices.</li>
+        </ul>
+    </html>
   </tooltip>
 
   <tooltip>
