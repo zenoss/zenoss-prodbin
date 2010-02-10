@@ -19,7 +19,7 @@ Ext.ns('Zenoss');
 
 function initTreeDialogs(tree) {
     
-    var hidedialog = new Zenoss.HideFormDialog({
+    new Zenoss.HideFormDialog({
         id: 'addNodeDialog',
         title: _t('Add Tree Node'),
         items: tree.addNodeDialogItems,
@@ -33,7 +33,6 @@ function initTreeDialogs(tree) {
             {
                 xtype: 'HideDialogButton',
                 text: _t('Submit'),
-                dialogId: 'addNodeDialog',
                 handler: function(button, event) {
                     var type = Ext.getCmp('typeCombo').getValue();
                     var id = Ext.getCmp('idTextfield').getValue();
@@ -41,13 +40,12 @@ function initTreeDialogs(tree) {
                 }
             }, {
                 xtype: 'HideDialogButton',
-                text: _t('Cancel'),
-                dialogId: 'addNodeDialog'
+                text: _t('Cancel')
             }
         ]
     });
     
-    var msgdialog = new Zenoss.MessageDialog({
+    new Zenoss.MessageDialog({
         id: 'deleteNodeDialog',
         title: _t('Delete Tree Node'),
         message: _t('The selected node will be deleted.'),

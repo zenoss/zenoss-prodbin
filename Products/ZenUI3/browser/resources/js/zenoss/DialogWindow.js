@@ -78,13 +78,11 @@ Zenoss.MessageDialog = Ext.extend(BaseDialog, {
                 {
                     xtype: 'HideDialogButton',
                     text: _t('OK'),
-                    handler: config.okHandler,
-                    dialogId: config.id
+                    handler: config.okHandler
                 }, {
                     xtype: 'HideDialogButton',
                     text: _t('Cancel'),
-                    handler: config.cancelHandler,
-                    dialogId: config.id
+                    handler: config.cancelHandler
                 }
             ]
         });

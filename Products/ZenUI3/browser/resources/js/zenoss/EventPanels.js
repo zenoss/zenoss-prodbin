@@ -26,9 +26,9 @@ Zenoss.EventPanelSelectionModel = Ext.extend(Zenoss.ExtraHooksSelectionModel, {
     badIds: new Array(),
     initEvents: function(){
         Zenoss.EventPanelSelectionModel.superclass.initEvents.call(this);
-        this.on('beforerowselect', this.handleBeforeRowSelect, this)
-        this.on('rowselect', this.handleRowSelect, this)
-        this.on('rowdeselect', this.handleRowDeSelect, this)
+        this.on('beforerowselect', this.handleBeforeRowSelect, this);
+        this.on('rowselect', this.handleRowSelect, this);
+        this.on('rowdeselect', this.handleRowDeSelect, this);
         
     },
     handleBeforeRowSelect: function(sm, index, keepExisting, record){
@@ -48,6 +48,7 @@ Zenoss.EventPanelSelectionModel = Ext.extend(Zenoss.ExtraHooksSelectionModel, {
         }
     },
     selectEventState: function(state){
+        var start, end, record;
         start = this.grid.store.bufferRange[0];
         end = this.grid.store.bufferRange[1];
         for (var i = start; i <= end; i++) {
@@ -63,14 +64,14 @@ Zenoss.EventPanelSelectionModel = Ext.extend(Zenoss.ExtraHooksSelectionModel, {
     selectAll: function(){
     
         this.clearSelections();
-        this.selectEventState('All')
+        this.selectEventState('All');
     },
     selectNone: function(){
         this.clearSelections();
     },
     selectAck: function(){
         this.clearSelections();
-        this.selectEventState('Acknowledged')
+        this.selectEventState('Acknowledged');
     },
     selectNew: function(){
         this.clearSelections();
@@ -98,6 +99,7 @@ Zenoss.EventPanelSelectionModel = Ext.extend(Zenoss.ExtraHooksSelectionModel, {
             }
     },
     clearSelections: function(fast){
+        var start, end, record;
         if (this.isLocked()) {
             return;
         }
@@ -137,13 +139,13 @@ Zenoss.EventPanelSelectionModel = Ext.extend(Zenoss.ExtraHooksSelectionModel, {
         }
         else if (r && !selected && this.selectState) {
             if (this.selectState == 'Acknowledged') {
-                selected = r.data.eventState == 'Acknowledged'
+                selected = r.data.eventState == 'Acknowledged';
             }
             else if (this.selectState == 'Suppressed') {
-                selected = r.data.eventState == 'Suppressed'
+                selected = r.data.eventState == 'Suppressed';
             }
             else if (this.selectState == 'New') {
-                selected = r.data.eventState == 'New'
+                selected = r.data.eventState == 'New';
             }
         }
         return selected;

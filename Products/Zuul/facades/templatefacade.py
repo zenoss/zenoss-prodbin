@@ -13,6 +13,8 @@
 
 import logging
 from itertools import imap
+from Acquisition import aq_parent
+from Products.ZenUtils.Utils import prepId
 from Products.Zuul.interfaces import ICatalogTool
 from Products.Zuul.interfaces import ITemplateNode
 from Products.Zuul.interfaces import ITemplateLeaf
@@ -35,14 +37,30 @@ class TemplateFacade(ZuulFacade):
     def getTemplates(self):
         catalog = self._getCatalog('/zport/dmd/Devices')
         brains = catalog.search(types=RRDTemplate)
+        templates = imap(unbrain, brains)
         nodes = {}
-        for template in imap(unbrain, brains):
+        for template in templates:
             if template.id not in nodes:
                 nodes[template.id] = ITemplateNode(template)
             leaf = ITemplateLeaf(template)
             nodes[template.id]._addChild(leaf)
         for key in sorted(nodes.keys(), key=str.lower):
-            yield nodes[key]
+            yield nodes[key]        
+
+    def addTemplate(self, id):
+        id = prepId(id)
+        relationship = self._dmd.Devices.rrdTemplates
+        relationship._setObject(id, RRDTemplate(id))
+        template = getattr(relationship, id)
+        node = ITemplateNode(template)
+        leaf = ITemplateLeaf(template)
+        node._addChild(leaf)
+        return node
+
+    def deleteTemplate(self, uid):
+        obj = self._getObject(uid)
+        context = aq_parent(obj)
+        context._delObject(obj.id)
 
     def getDataSources(self, uid):
         catalog = self._getCatalog(uid)
@@ -62,6 +80,30 @@ class TemplateFacade(ZuulFacade):
         thresholds = imap(unbrain, brains)
         return imap(IThresholdInfo, thresholds)
 
+    def getThresholdTypes(self):
+        data = []
+        template = self._dmd.Devices.rrdTemplates.Device
+        for pythonClass, type in template.getThresholdClasses():
+            data.append({'type': type})
+        return data
+
+    def addThreshold(self, uid, thresholdType, thresholdId, dataPoints):
+        thresholdId = prepId(thresholdId)
+        template = self._getObject(uid)
+        thresholds = template.thresholds
+        for pythonClass, key in template.getThresholdClasses():
+            if key == thresholdType:
+                thresholds._setObject(thresholdId, pythonClass(thresholdId))
+                break
+        else:
+            raise Exception('Unknow threshold type: %s' % thresholdType)
+        threshold = getattr(thresholds, thresholdId)
+        def dsnames():
+            for dataPointUid in dataPoints:
+                dataPoint = self._getObject(dataPointUid)
+                yield dataPoint.name()
+        threshold.dsnames.extend(dsnames())
+
     def getGraphs(self, uid):
         catalog = self._getCatalog(uid)
         brains = catalog.search(types=GraphDefinition)
@@ -69,9 +111,13 @@ class TemplateFacade(ZuulFacade):
         return imap(IGraphInfo, graphs)
 
     def _getCatalog(self, uid):
+        obj = self._getObject(uid)
+        return ICatalogTool(obj)
+        
+    def _getObject(self, uid):
         try:
             obj = self._dmd.unrestrictedTraverse(uid)
         except Exception, e:
             args = (uid, e.__class__.__name__, e)
             raise Exception('Cannot find "%s". %s: %s' % args)
-        return ICatalogTool(obj)
+        return obj

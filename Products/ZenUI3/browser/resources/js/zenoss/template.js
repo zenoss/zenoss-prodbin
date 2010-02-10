@@ -31,8 +31,8 @@ beforeselectHandler = function(sm, node, oldNode) {
 
 updateDataSources = function(uid) {
     var panel, root;
-    panel = Ext.getCmp('center_detail_panel');
     if ( ! Ext.getCmp(dataSourcesId) ) {
+        panel = Ext.getCmp('center_detail_panel');
         panel.add({
             xtype: 'DataSourceTreeGrid',
             id: dataSourcesId,
@@ -129,6 +129,7 @@ Ext.getCmp('master_panel').add({
     id: treeId,
     title: _t('Monitoring Templates'),
     rootVisible: false,
+    router: router,
     loader: {
         directFn: router.getTemplates,
         baseAttrs: {

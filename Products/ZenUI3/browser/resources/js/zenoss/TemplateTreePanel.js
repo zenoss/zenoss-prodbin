@@ -17,7 +17,7 @@
 
 function initTreeDialogs(tree) {
 
-    new Zenoss.FormDialog({
+    new Zenoss.HideFormDialog({
         id: 'addTemplateDialog',
         title: _t('Add Monitoring Template'),
         items: {
@@ -33,17 +33,15 @@ function initTreeDialogs(tree) {
         },
         buttons: [
             {
-                xtype: 'DialogButton',
+                xtype: 'HideDialogButton',
                 text: _t('Submit'),
-                dialogId: 'addTemplateDialog',
                 handler: function(button, event) {
                     var id = Ext.getCmp('idTextfield').getValue();
                     tree.addTemplate(id);
                 }
             }, {
-                xtype: 'DialogButton',
-                text: _t('Cancel'),
-                dialogId: 'addTemplateDialog'
+                xtype: 'HideDialogButton',
+                text: _t('Cancel')
             }
         ]
     });
@@ -53,7 +51,7 @@ function initTreeDialogs(tree) {
         title: _t('Delete Tree Node'),
         message: _t('The selected node will be deleted.'),
         okHandler: function(){
-            tree.deleteSelectedNode();
+            tree.deleteTemplate();
         }
     });
 
@@ -70,6 +68,8 @@ Zenoss.TemplateTreePanel = Ext.extend(Ext.tree.TreePanel, {
 
     constructor: function(config) {
         Ext.applyIf(config, {
+            autoScroll: true,
+            containerScroll: true
         });
         Zenoss.TemplateTreePanel.superclass.constructor.call(this, config);
         initTreeDialogs(this);
@@ -86,11 +86,7 @@ Zenoss.TemplateTreePanel = Ext.extend(Ext.tree.TreePanel, {
     buttonClickHandler: function(buttonId) {
         switch(buttonId) {
             case 'addButton':
-                if (this.getRootNode().isSelected()) {
-                    Ext.getCmp('addTemplateDialog').show();
-                } else {
-                    Ext.getCmp('addDeviceClassDialog').show();
-                }
+                Ext.getCmp('addTemplateDialog').show();
                 break;
             case 'deleteButton':
                 Ext.getCmp('deleteNodeDialog').show();
@@ -101,30 +97,37 @@ Zenoss.TemplateTreePanel = Ext.extend(Ext.tree.TreePanel, {
     },
     
     addTemplate: function(id) {
-        var selectedNode, parentNode, contextUid, params, tree, type;
-        selectedNode = this.getSelectionModel().getSelectedNode();
-        if (selectedNode.leaf) {
-            parentNode = selectedNode.parentNode;
-        } else {
-            parentNode = selectedNode;
-        }
-        contextUid = parentNode.attributes.uid;
-        type = 'template';
-        params = {type: type, contextUid: contextUid, id: id};
+        var rootNode, contextUid, params, tree, type;
+        rootNode = this.getRootNode();
+        contextUid = rootNode.attributes.uid;
+        params = {contextUid: contextUid, id: id};
         tree = this;
         function callback(provider, response) {
-            var result, nodeConfig, node;
+            var result, nodeConfig, node, leaf;
             result = response.result;
             if (result.success) {
                 nodeConfig = response.result.nodeConfig;
                 node = tree.getLoader().createNode(nodeConfig);
-                parentNode.appendChild(node);
-                node.select();
+                rootNode.appendChild(node);
+                node.expand();
+                leaf = node.childNodes[0];
+                leaf.select();
             } else {
                 Ext.Msg.alert('Error', result.msg);
             }
         }
-        this.router.addNode(params, callback);
+        this.router.addTemplate(params, callback);
+    },
+
+    deleteTemplate: function() {
+        var node, params, me;
+        node = this.getSelectionModel().getSelectedNode();
+        params = {uid: node.attributes.uid};
+        me = this;
+        function callback(provider, response) {
+            me.getRootNode().reload();
+        }
+        this.router.deleteTemplate(params, callback);
     }
 
 });
