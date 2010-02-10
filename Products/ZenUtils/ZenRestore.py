@@ -84,6 +84,16 @@ class ZenRestore(ZenBackupBase):
                                default=False,
                                action='store_true',
                                help='Do not restore the events database.')
+        self.parser.add_option('--no-perfdata',
+                               dest="noPerfdata",
+                               default=False,
+                               action='store_true',
+                               help='Do not restore performance data.')
+        self.parser.add_option('--deletePreviousPerfData',
+                               dest="deletePreviousPerfData",
+                               default=False,
+                               action='store_true',
+                               help='Delete ALL existing performance data before restoring?')
         self.parser.add_option('--zenpacks',
                                dest='zenpacks',
                                default=False,
@@ -271,18 +281,25 @@ class ZenRestore(ZenBackupBase):
             else:
                 self.msg('Backup contains no ZenPacks.')
         
-        # Copy perf files
-        cmd = 'rm -rf %s' % os.path.join(zenPath(), 'perf')
-        if os.system(cmd): return -1
-        tempPerf = os.path.join(tempDir, 'perf.tar')
-        if os.path.isfile(tempPerf):
-            self.msg('Restoring performance data.')
-            cmd = 'tar Cxf %s %s' % (
-                            zenPath(),
-                            os.path.join(tempDir, 'perf.tar'))
-            if os.system(cmd): return -1
+        # Restore perf files
+        if self.options.noPerfdata:
+            self.msg('Skipping performance data.')
         else:
-            self.msg('Backup contains no perf data.')
+            tempPerf = os.path.join(tempDir, 'perf.tar')
+            if os.path.isfile(tempPerf):
+                if self.options.deletePreviousPerfData:
+                    self.msg('Removing previous performance data...')
+                    cmd = 'rm -rf %s' % os.path.join(zenPath(), 'perf')
+                    if os.system(cmd):
+                        return -1
+
+                self.msg('Restoring performance data.')
+                cmd = 'tar Cxf %s %s' % (
+                                zenPath(),
+                                os.path.join(tempDir, 'perf.tar'))
+                if os.system(cmd): return -1
+            else:
+                self.msg('Backup contains no perf data.')
 
         if self.options.noEventsDb:
             self.msg('Skipping the events database.')
