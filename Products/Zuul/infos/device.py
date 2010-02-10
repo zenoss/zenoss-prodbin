@@ -110,7 +110,7 @@ class DeviceInfo(InfoBase):
     priority = property(getPriority, setPriority)
 
     def getCollectorName(self):
-        return self.object.getPerformanceServerName()
+        return self._object.getPerformanceServerName()
 
     def setCollector(self, collector):
         self._object.setPerformanceMonitor(collector)
@@ -127,6 +127,10 @@ class DeviceInfo(InfoBase):
     @property
     def availability(self):
         return self._object.availability().availability
+
+    @property
+    def status(self):
+        return self._object.getPingStatus()<1
 
 
 class DeviceOrganizerInfo(InfoBase):

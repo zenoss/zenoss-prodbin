@@ -272,7 +272,10 @@ ul.x-tab-strip-bottom{
     background:#f0f4f5 url(../img/xtheme-zenoss/toolbar/bg.gif) repeat-x top left;
 }
 .x-toolbar.largetoolbar{
-    background-image: url(../img/xtheme-zenoss/toolbar/bg-large.gif);
+    background-color: #a6a6a6;
+    background-image: url();
+    border-top: 1px solid #b8b8b8;
+    border-bottom: 1px solid #949494;
     padding-left: 6px;
 }
 .x-toolbar.largetoolbar  table.x-btn {
@@ -501,6 +504,14 @@ ul.x-tab-strip-bottom{
     padding: 0 4px;
 	background-image:url(../img/xtheme-zenoss/toolbar/tb-sep.png);
 }
+
+.x-toolbar.largetoolbar.devdetailbar .xtb-sep{
+    height: 50px;
+    padding: 0 4px;
+    margin-top: 0px;
+	background-image:url(../img/xtheme-zenoss/toolbar/tb-sep.png);
+}
+
 .x-statusbar .x-status-text-panel{
 	border-color:#9ab #9ab #9ab #9ab;
 }

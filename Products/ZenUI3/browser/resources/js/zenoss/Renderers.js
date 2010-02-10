@@ -11,11 +11,15 @@ var rainbowTemplate = new Ext.Template(
     '<table class="eventrainbow"><tr>{cells}</tr></table>');
 rainbowTemplate.compile();
                      
-// renders events using icons for critical, error and warning
-Zenoss.render.events = function (value) {
-};
-
 Ext.apply(Zenoss.render, {
+
+    pingStatus: function(bool) {
+        return bool ? 'Up' : 'Down';
+    },
+
+    ipAddress: function(ip) {
+        return (ip instanceof String) ? ip : Zenoss.util.num2dot(ip);
+    },
 
     severity: function(sev) {
         return '<div class="severity-icon-small '+
@@ -47,7 +51,8 @@ Ext.apply(Zenoss.render, {
      * e.g. Zenoss.render.link('/zport/dmd/Devices/Server') =>
      * <a href="/zport/dmd/itinfrastructure#devices:/Devices/Server/Linux">...
      *
-     * Can also just accept a url and name for wrapping in an anchor tag.
+     * Can also just accept a url and name for wrapping in an anchor tag, by
+     * passing in null for the first argument.
      */
     link: function(uid, url, name) {
         if (!url) {
@@ -62,7 +67,7 @@ Ext.apply(Zenoss.render, {
 
     Device: function(uid, name) {
         // For now, link to the old device page
-        return Zenoss.render.link(null, uid, name);
+        return Zenoss.render.link(null, uid+'/devicedetail', name);
     },
 
     DeviceClass: function(uid, name) {

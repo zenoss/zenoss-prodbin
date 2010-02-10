@@ -324,7 +324,7 @@ Zenoss.EventRainbow = Ext.extend(Ext.Toolbar.TextItem, {
         Zenoss.EventRainbow.superclass.constructor.call(this, config);
     },
     setContext: function(uid){
-    this.directFn({uid:uid}, function(result){
+        this.directFn({uid:uid}, function(result){
             this.setText(Zenoss.render.events(result.data.events));
         }, this);
     }

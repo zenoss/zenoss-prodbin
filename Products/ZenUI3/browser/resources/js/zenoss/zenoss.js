@@ -104,10 +104,11 @@ Zenoss.PlaceholderPanel = Ext.extend(Ext.Panel, {
  */
 Zenoss.LargeToolbar = Ext.extend(Ext.Toolbar, {
     constructor: function(config) {
-        Ext.apply(config, {
+        Ext.applyIf(config, {
             cls: 'largetoolbar',
             height: 45,
-            border: false
+            border: false,
+            style:'border-top:1px solid #b8b8b8;border-bottom:1px solid #949494;'
         });
         Zenoss.LargeToolbar.superclass.constructor.apply(
             this, arguments);

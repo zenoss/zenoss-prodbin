@@ -386,3 +386,33 @@ table.eventrainbow td.warning { background-color: #fbd13d; }
 .streaming-window .x-window-body {
     background: transparent url(../img/xtheme-zenoss/window/left-right.png);
 }
+
+.largetoolbar.devdetailbar table.eventrainbow {
+    margin-top: 3px;
+}
+
+.devdetailbar .devdetailitem div {
+    text-align: center;
+    font-weight: normal;
+    margin-top: -3px;
+}
+.devdetailbar .devdetailitem div.devdetail-textitem {
+    font-size: 14px;
+    height: 30px;
+    line-height: 37px;
+}
+.devdetailbar .devdetailitem div.devdetail-labelitem {
+    font-size: 10px;
+    text-align: center;
+    text-transform: uppercase;
+}
+.devdetailbar div.devdetail-labelitem.devdetail-ipaddress {
+    margin-top: -5px;
+    text-align: left;
+    font-size: 10pt;
+}
+.devdetailbar div.devdetail-textitem.devdetail-devname {
+    margin-top: -5px;
+    font-size: 11pt;
+    font-weight: bold;
+}

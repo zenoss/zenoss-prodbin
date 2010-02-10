@@ -71,28 +71,28 @@
     template="templates/base-new.pt"
     name="dashboard"
     for="*"
-    permission="zope2.Public"
+    permission="zenoss.View"
     />
 
 <browser:page
     template="templates/base-new.pt"
     name="nocview"
     for="*"
-    permission="zope2.Public"
+    permission="zenoss.View"
     />
 
 <browser:page
     template="templates/base-new.pt"
     name="evhistory"
     for="*"
-    permission="zope2.Public"
+    permission="zenoss.View"
     />
 
 <browser:page
     template="templates/base-new.pt"
     name="notifications"
     for="*"
-    permission="zope2.Public"
+    permission="zenoss.View"
     />
 
 <browser:page
@@ -103,31 +103,38 @@
     />
 
 <browser:page
+    template="templates/devdetail.pt"
+    name="devicedetail"
+    for="Products.ZenModel.Device.Device"
+    permission="zenoss.View"
+    />
+
+<browser:page
     template="templates/process.pt"
     name="process"
     for="*"
-    permission="zope2.Public"
+    permission="zenoss.View"
     />
 
 <browser:page
     template="templates/ipservice.pt"
     name="ipservice"
     for="*"
-    permission="zope2.Public"
+    permission="zenoss.View"
     />
 
 <browser:page
     template="templates/winservice.pt"
     name="winservice"
     for="*"
-    permission="zope2.Public"
+    permission="zenoss.View"
     />
 
 <browser:page
     template="templates/reports.pt"
     name="reports"
     for="*"
-    permission="zope2.Public"
+    permission="zenoss.View"
     />
 
 <browser:page
@@ -141,14 +148,14 @@
     template="templates/template.pt"
     name="template"
     for="*"
-    permission="zope2.Public"
+    permission="zenoss.View"
     />
 
 <browser:page
     class=".command.CommandView"
     name="run_command"
     for="*"
-    permission="zope2.Public"
+    permission="zenoss.RunCommands"
     />
 
 <include package=".eventconsole"/>
