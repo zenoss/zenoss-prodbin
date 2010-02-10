@@ -131,6 +131,13 @@
     />
 
 <browser:page
+    template="templates/networkMap.pt"
+    name="networkMap"
+    for="*"
+    permission="zenoss.View"
+    />
+
+<browser:page
     template="templates/reports.pt"
     name="reports"
     for="*"
