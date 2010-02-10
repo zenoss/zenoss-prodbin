@@ -3,44 +3,45 @@
   <tooltip>
     <target>lock-updates-checkbox</target>
 
-    <html></html>
+    <html><strong>Lock from updates</strong><br />Select this option to prevent updates to the selected devices. Click <strong>Lock</strong> to save your changes.</html>
   </tooltip>
 
   <tooltip>
     <target>lock-deletion-checkbox</target>
 
-    <html></html>
+    <html><strong>Lock from deletion</strong><br />Select this option to prevent the selected devices from being deleted. Click <strong>Lock</strong> to save your changes.</html>
   </tooltip>
 
   <tooltip>
     <target>send-event-checkbox</target>
 
-    <html></html>
+    <html><strong>Send an event when an action is blocked</strong><br />Select this option to create an event when a blocked action (such as update or deletion) is attempted. Click <strong>Lock</strong> to save your changes.</html>
   </tooltip>
 
   <tooltip>
     <target>delete-button</target>
 
-    <html></html>
+    <html><strong>Remove Devices</strong>Select one or more devices, and then click to display the Remove Devices dialog.<br /><br />You can choose to remove the devices from undefined state, or delete them from the system.<br /><br />To confirm your changes, click <strong>Remove</strong>.</html>
   </tooltip>
 
   <tooltip>
     <target>remove-radio</target>
 
-    <html></html>
+    <html><strong>Just remove from undefined</strong><br />Select this option to remove selected devices from undefined state.</html>
   </tooltip>
 
   <tooltip>
     <target>delete-radio</target>
 
-    <html></html>
+    <html><strong>Delete completely</strong><br />Select this option to remove selected devices from the system.</html>
   </tooltip>
-
+<!--
   <tooltip>
     <target>Devices</target>
 
     <html></html>
   </tooltip>
+-->
 
   <tooltip>
     <target>Map</target>
@@ -51,13 +52,13 @@
   <tooltip>
     <target>zprops</target>
 
-    <html></html>
+    <html><strong>Configuration Properties</strong><br />View and edit configuration properties for the selected device class.</html>
   </tooltip>
 
   <tooltip>
     <target>templates</target>
 
-    <html></html>
+    <html><strong>Monitoring Templates</strong><br />View and edit performance templates for the selected device class.</html>
   </tooltip>
 
   <tooltip>
@@ -65,16 +66,19 @@
 
     <html></html>
   </tooltip>
+
   <tooltip>
     <target>adddevice-button</target>
 
-    <html></html>
+    <html>Click to add a device in the selected device class.</html>
   </tooltip>
+
   <tooltip>
     <target>actions-menu</target>
 
-    <html></html>
+    <html><strong>Actions</strong>From this menu, you can:<ul><li><strong>Lock devices</strong> - Prevent selected devices from being updated or deleted.</li><li><strong>Reset IP</strong> - Reset the IP addresses of selected devices to the results of a DNS lookup.</li><li><strong>Reset Community</strong> - Reset the SNMP community strings of selected devices.</li><li><strong>Set Production State</strong> - Select a production state (Production, Pre-Production, Test, Maintenance, or Decommissioned) for selected devices.</li><li><strong>Set Priority</strong> - Set a priority (from Trivial to Highest) for selected devices.</li><li><strong>Set Collector</strong> - Select a collector for selected devices.</html>
   </tooltip>
+
   <tooltip>
     <target>commands-menu</target>
 
