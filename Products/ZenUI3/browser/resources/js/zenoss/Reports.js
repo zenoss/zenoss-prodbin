@@ -55,6 +55,7 @@ function addReportOrganizer(e) {
                     text: _t('Submit'),
                     formBind: true,
                     handler: function () {
+                        var form, newrorgname;
                         form = Ext.getCmp('addrorgform').getForm();
                         newrorgname = form.findField('rorgname').getValue();
                         report_tree.addNode('organizer', newrorgname);
@@ -126,9 +127,9 @@ function addToZenPack(e) {
                     text: _t('Submit'),
                     formBind: true,
                     handler: function () {
+                        var form, chosenzenpack;
                         form = Ext.getCmp('addzenpackform');
-                        var chosenzenpack = 
-                            form.getForm().findField('zpname').getValue();
+                        chosenzenpack = form.getForm().findField('zpname').getValue();
                         addrorgtozenpack.hide();
                     }
                 }]
@@ -158,6 +159,7 @@ function initializeTreeDrop(g) {
                 uids: [data.node.attributes.uid],
                 target: target.node.attributes.uid
             }, function (cb_data) {
+                var parentNode, newNode;
                 if (cb_data.success) {
                     try {
                         tree.selModel.suspendEvents(true);
@@ -233,8 +235,9 @@ Zenoss.ReportTreePanel = Ext.extend(Zenoss.HierarchyTreePanel, {
                 tree = this;
         function callback(data) {
             if (data.success) {
-                var nodeConfig = data.newNode,
-                        node = tree.getLoader().createNode(nodeConfig);
+                var nodeConfig, node, lastIndex;
+                nodeConfig = data.newNode;
+                node = tree.getLoader().createNode(nodeConfig);
                 lastIndex = parentNode.childNodes.length - 1;
                 if ((node.leaf) || 
                         (lastIndex < 0) ||

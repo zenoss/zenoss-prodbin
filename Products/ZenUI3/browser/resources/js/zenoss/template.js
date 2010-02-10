@@ -126,21 +126,7 @@ selModel = new Ext.tree.DefaultSelectionModel({
 
 Ext.getCmp('master_panel').add({
     xtype: 'TemplateTreePanel',
-    id: treeId,
-    title: _t('Monitoring Templates'),
-    rootVisible: false,
-    router: router,
-    loader: {
-        directFn: router.getTemplates,
-        baseAttrs: {
-            singleClickExpand: true
-        }
-    },
-    selModel: selModel,
-    root: {
-        nodeType: 'async',
-        id: 'root'
-    }
+    selModel: selModel
 });
 
 footerPanel = Ext.getCmp('footer_panel');

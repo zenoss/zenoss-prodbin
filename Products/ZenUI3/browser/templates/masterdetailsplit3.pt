@@ -46,7 +46,7 @@ Ext.onReady(function(){
                 region: 'east',
                 layout: 'border',
                 defaults: {'border':false},
-                width: '25%',
+                width: '35%',
                 split: true,
                 items: [{
                     region: 'north',

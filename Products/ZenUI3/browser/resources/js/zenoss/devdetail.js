@@ -21,7 +21,7 @@ var REMOTE = Zenoss.remote.DeviceRouter,
 var comptree = {
     xtype: 'HierarchyTreePanel',
     id: 'components'
-}
+};
 
 var overview = {
     layout: 'border',
@@ -39,7 +39,7 @@ var overview = {
         collapseMode: 'mini',
         collapsed: true
     }]
-}
+};
 
 Ext.getCmp('center_panel').add({
     id: 'center_panel_container',

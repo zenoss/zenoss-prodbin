@@ -15,7 +15,12 @@
 
 (function(){
 
-function initTreeDialogs(tree) {
+var router, treeId, initTreeDialogs;
+
+router = Zenoss.remote.TemplateRouter;
+treeId = 'templateTree';
+
+initTreeDialogs = function(tree) {
 
     new Zenoss.HideFormDialog({
         id: 'addTemplateDialog',
@@ -55,7 +60,7 @@ function initTreeDialogs(tree) {
         }
     });
 
-}
+};
 
 Ext.ns('Zenoss');
 
@@ -68,19 +73,39 @@ Zenoss.TemplateTreePanel = Ext.extend(Ext.tree.TreePanel, {
 
     constructor: function(config) {
         Ext.applyIf(config, {
+            id: treeId,
+            title: _t('Monitoring Templates'),
+            rootVisible: false,
+            border: false,
             autoScroll: true,
-            containerScroll: true
+            containerScroll: true,
+            useArrows: true,
+            cls: 'x-tree-noicon',
+            loader: {
+                directFn: router.getTemplates,
+                baseAttrs: {singleClickExpand: true}
+            },
+            root: {
+                nodeType: 'async',
+                id: 'root'
+            },
+            listeners: {
+                expandnode: function(node){
+                    var container, firstTemplate;
+                    if ( node === Ext.getCmp(treeId).getRootNode() ) {
+                        container = node.childNodes[0];
+                        container.expand();
+                    } else {
+                        container = node;
+                    }
+                    firstTemplate = container.childNodes[0];
+                    firstTemplate.select();
+                }
+            }
         });
         Zenoss.TemplateTreePanel.superclass.constructor.call(this, config);
         initTreeDialogs(this);
         this.on('buttonClick', this.buttonClickHandler, this);
-        this.getRootNode().on('expand', function(node){
-            var firstChildNode, firstTemplate;
-            firstChildNode = node.childNodes[0];
-            firstChildNode.expand();
-            firstTemplate = firstChildNode.childNodes[0];
-            firstTemplate.select();
-        });
     },
     
     buttonClickHandler: function(buttonId) {
@@ -116,7 +141,7 @@ Zenoss.TemplateTreePanel = Ext.extend(Ext.tree.TreePanel, {
                 Ext.Msg.alert('Error', result.msg);
             }
         }
-        this.router.addTemplate(params, callback);
+        router.addTemplate(params, callback);
     },
 
     deleteTemplate: function() {
@@ -127,7 +152,7 @@ Zenoss.TemplateTreePanel = Ext.extend(Ext.tree.TreePanel, {
         function callback(provider, response) {
             me.getRootNode().reload();
         }
-        this.router.deleteTemplate(params, callback);
+        router.deleteTemplate(params, callback);
     }
 
 });

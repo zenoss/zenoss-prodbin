@@ -63,15 +63,12 @@ Zenoss.DeviceDetailBar = Ext.extend(Zenoss.LargeToolbar, {
         this.directFn({uid:uid}, function(result){
             this.deviditem.setText(result.data.name);
             this.deviditem.setLabel(
-                Zenoss.render.ipAddress(result.data.ipAddress)
-            );
+                Zenoss.render.ipAddress(result.data.ipAddress));
             this.eventsitem.setText(Zenoss.render.events(result.data.events));
             this.statusitem.setText(
-                Zenoss.render.pingStatus(result.data.status)
-            );
+                Zenoss.render.pingStatus(result.data.status));
             this.availabilityitem.setText(
-                Zenoss.render.availability(result.data.availability)
-            );
+                Zenoss.render.availability(result.data.availability));
             this.prodstateitem.setText(result.data.productionState);
             this.collectoritem.setText(result.data.collector);
         }, this);
