@@ -22,28 +22,7 @@ function initTreeDialogs(tree) {
     var hidedialog = new Zenoss.HideFormDialog({
         id: 'addNodeDialog',
         title: _t('Add Tree Node'),
-        items: [
-            {
-                xtype: 'combo',
-                id: 'typeCombo',
-                fieldLabel: _t('Type'),
-                displayField: 'type',
-                mode: 'local',
-                forceSelection: true,
-                triggerAction: 'all',
-                emptyText: 'Select a type...',
-                selectOnFocus: true,
-                store: new Ext.data.ArrayStore({
-                    fields: ['type'],
-                    data: [['Organizer'], ['Class']]
-                })
-            }, {
-                xtype: 'textfield',
-                id: 'idTextfield',
-                fieldLabel: _t('ID'),
-                allowBlank: false
-            }
-        ],
+        items: tree.addNodeDialogItems,
         listeners: {
             'hide': function(treeDialog) {
                 Ext.getCmp('typeCombo').setValue('');
@@ -200,6 +179,7 @@ Zenoss.HierarchyTreePanel = Ext.extend(Ext.tree.TreePanel, {
             buttonClick: buttonClickHandler
         });
         this.router = config.router;
+        this.addNodeDialogItems = config.addNodeDialogItems;
         config.loader.baseAttrs = {iconCls:'severity-icon-small clear'};
         Zenoss.HierarchyTreePanel.superclass.constructor.apply(this,
             arguments);
@@ -329,6 +309,9 @@ Zenoss.HierarchyTreePanel = Ext.extend(Ext.tree.TreePanel, {
             if (result.success) {
                 var nodeConfig = response.result.nodeConfig;
                 var node = tree.getLoader().createNode(nodeConfig);
+                // if you don't call expand on the parentNode you will get a javascript error 
+                // that does not make sense on the callback 
+                parentNode.expand();
                 parentNode.appendChild(node);
                 node.select();
             } else {

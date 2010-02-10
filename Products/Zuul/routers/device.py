@@ -12,15 +12,16 @@
 ###########################################################################
 
 from itertools import islice
-
-from Products.ZenUtils.Ext import DirectRouter, DirectResponse
+from Products.ZenUtils.Ext import DirectResponse
 from Products.ZenUtils.json import unjson
 from Products import Zuul
+from Products.Zuul.routers import TreeRouter
 
 import logging
 log = logging.getLogger('zen.Zuul')
 
-class DeviceRouter(DirectRouter):
+
+class DeviceRouter(TreeRouter):
 
     def _getFacade(self):
         return Zuul.getFacade('device')
@@ -45,7 +46,7 @@ class DeviceRouter(DirectRouter):
         process = facade.getInfo(data['uid'])
         Zuul.unmarshal(data, process)
         return DirectResponse()
-
+                
     def getDevices(self, uid=None, start=0, params=None, limit=50, sort='name',
                    dir='ASC'):
         facade = self._getFacade()

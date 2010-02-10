@@ -20,6 +20,29 @@ Ext.onReady(function(){
 Ext.ns('Zenoss', 'Zenoss.env');
 var treeId = 'processTree';
 var router = Zenoss.remote.ProcessRouter;
+// These are the fields that will display on the "Add a Node form"  (the plus on the footerbar)
+var addNodeDialogItems = [
+    {
+        xtype: 'combo',
+        id: 'typeCombo',
+        fieldLabel: _t('Type'),
+        displayField: 'type',
+        mode: 'local',
+        forceSelection: true,
+        triggerAction: 'all',
+        emptyText: 'Select a type...',
+        selectOnFocus: true,
+        store: new Ext.data.ArrayStore({
+            fields: ['type'],
+            data: [['Organizer'], ['Class']]
+        })
+    }, {
+        xtype: 'textfield',
+        id: 'idTextfield',
+        fieldLabel: _t('ID'),
+        allowBlank: false
+    }
+];
 
 new Zenoss.MessageDialog({
     id: 'dirtyDialog',
@@ -78,6 +101,7 @@ Ext.getCmp('master_panel').add({
     directFn: router.getTree,
     router: router,
     selModel: selModel,
+	addNodeDialogItems: addNodeDialogItems,
     root: {
         id: 'Processes',
         uid: '/zport/dmd/Processes'

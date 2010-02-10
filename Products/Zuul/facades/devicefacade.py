@@ -30,9 +30,13 @@ class DeviceFacade(TreeFacade):
     implements(IDeviceFacade)
 
     @property
+    def _classFactory(self):
+        return DeviceClass
+
+    @property
     def _root(self):
         return self._dmd.Devices
-
+    
     @property
     def _instanceClass(self):
         return 'Products.ZenModel.Device.Device'

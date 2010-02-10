@@ -13,18 +13,38 @@
 ###########################################################################
 */
 
+
 Ext.onReady(function(){
 
 Ext.ns('Zenoss.devices');
 
 var REMOTE = Zenoss.remote.DeviceRouter;
-
+var treeId = 'groups';
+var nodeType = 'Organizer';
+				
+// These are the fields that will display on the "Add a Node form" 
+var addNodeDialogItems = [{
+		// since they can only have organizer, we will just use a hidden field
+        xtype: 'hidden',
+        id: 'typeCombo',
+		value: nodeType
+    }, {
+        xtype: 'textfield',
+        id: 'idTextfield',
+		width: 270,
+        fieldLabel: _t('ID'),
+        allowBlank: false
+    }
+];
+	
 REMOTE.getProductionStates({}, function(d){
     Zenoss.env.PRODUCTION_STATES = d;
 });
+				
 REMOTE.getPriorities({}, function(d){
     Zenoss.env.PRIORITIES = d;
 });
+				
 REMOTE.getCollectors({}, function(d){
     var collectors = [];
     Ext.each(d, function(r){collectors.push([r]);});
@@ -45,6 +65,10 @@ function resetGrid() {
 var treesm = new Ext.tree.DefaultSelectionModel({
     listeners: {
         'selectionchange': function(sm, newnode, oldnode){
+			// set the footer_bar to bubble to new node
+			var footer = Ext.getCmp('footer_bar');
+			footer.bubbleTargetId = newnode.id;
+
             var uid = newnode.attributes.uid;
             Zenoss.util.setContext(uid, 'detail_panel', 'organizer_events', 
                                    'commands-menu');
@@ -523,6 +547,8 @@ var devtree = {
         text: 'Device Classes'
     },
     selModel: treesm,
+    router: REMOTE,
+	addNodeDialogItems: addNodeDialogItems,
     listeners: { 
         render: initializeTreeDrop, 
         filter: function(e) {
@@ -542,6 +568,8 @@ var grouptree = {
         id: 'Groups',
         uid: '/zport/dmd/Groups'
     },
+    router: REMOTE,
+	addNodeDialogItems: addNodeDialogItems,
     selectRootOnLoad: false,
     selModel: treesm,
     listeners: { render: initializeTreeDrop }
@@ -556,6 +584,8 @@ var loctree = {
         id: 'Locations',
         uid: '/zport/dmd/Locations'
     },
+	router: REMOTE,
+	addNodeDialogItems: addNodeDialogItems,
     selectRootOnLoad: false,
     selModel: treesm,
     listeners: { render: initializeTreeDrop }
@@ -721,5 +751,19 @@ Ext.getCmp('center_panel').add({
 });
 
 
+/* ***********************************************************************
+ *
+ *   footer_panel - the add/remove tree node buttons at the bottom
+ *
+ */ 
+var footerPanel = Ext.getCmp('footer_panel');
+footerPanel.removeAll();
 
+footerPanel.add({
+    xtype: 'TreeFooterBar',
+    id: 'footer_bar',
+    bubbleTargetId: treeId
 });
+
+
+}); // Ext. OnReady

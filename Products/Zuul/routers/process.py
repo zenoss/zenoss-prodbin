@@ -11,11 +11,11 @@
 #
 ###########################################################################
 
-from Products.ZenUtils.Ext import DirectRouter
 from Products import Zuul
 from Products.Zuul.decorators import require
+from Products.Zuul.routers import TreeRouter
 
-class ProcessRouter(DirectRouter):
+class ProcessRouter(TreeRouter):
 
     def _getFacade(self):
         return Zuul.getFacade('process')
@@ -39,33 +39,7 @@ class ProcessRouter(DirectRouter):
         process = facade.getInfo(data['uid'])
         Zuul.unmarshal(data, process)
         return {'success': True}
-
-    @require('Manage DMD')
-    def addNode(self, type, contextUid, id):
-        result = {}
-        try:
-            facade = self._getFacade()
-            if type.lower() == 'organizer':
-                uid = facade.addOrganizer(contextUid, id)
-            else:
-                uid = facade.addClass(contextUid, id)
-            treeNode = facade.getTree(uid)
-            result['nodeConfig'] = Zuul.marshal(treeNode)
-            result['success'] = True
-        except Exception, e:
-            result['msg'] = str(e)
-            result['success'] = False
-        return result
-
-    @require('Manage DMD')
-    def deleteNode(self, uid):
-        if uid == '/zport/dmd/Processes':
-            raise Exception('You cannot delete the root node')
-        facade = self._getFacade()
-        facade.deleteNode(uid)
-        msg = "Deleted node '%s'" % uid
-        return {'success': True, 'msg': msg}
-
+    
     def getDevices(self, uid, start=0, params=None, limit=50, sort='device',
                    dir='ASC'):
         facade = self._getFacade()
