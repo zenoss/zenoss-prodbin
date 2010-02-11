@@ -7,6 +7,9 @@
         "file": "zenoss-compiled.js",
         "isDebug": false,
         "fileIncludes": [{
+            "text": "livegrid-overrides.js",
+            "path": "resources/js/zenoss/"
+        }, {
             "text": "zenoss.js",
             "path": "resources/js/zenoss/"
         }, {

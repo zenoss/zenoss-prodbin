@@ -1711,7 +1711,7 @@ Ext.extend(Ext.ux.grid.livegrid.GridView, Ext.grid.GridView, {
             liveScrollerDom.style.display = 'none';
             return;
         } else {
-            this.scroller.setWidth(elWidth-(this.scrollOffset||0));
+            this.scroller.setWidth(elWidth-this.scrollOffset);
             liveScrollerDom.style.display = '';
         }
 
