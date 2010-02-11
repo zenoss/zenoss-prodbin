@@ -4,19 +4,16 @@
 <span metal:use-macro="here/miscmacros/macros/breadCrumbs" /> / Event History
 </tal:block>
 
-<tal:block metal:fill-slot="master_panel">
+<tal:block metal:fill-slot="master_panel_content">
 </tal:block>
 
-<tal:block metal:fill-slot="detail_panel">
+<tal:block metal:fill-slot="detail_panel_content">
 </tal:block>
 
 <tal:block metal:fill-slot="script_beforeLayout">
 <link rel="stylesheet"
     href="/zenui/js/livegrid/resources/css/ext-ux-livegrid.css"/>
-<script type="text/javascript"
-    src="/zenui/js/livegrid/livegrid-all-debug.js"></script>
 <tal:block tal:content="structure provider:jssnippets"/>
-<script src="extdirect.js"></script>
 <script>
 Ext.state.Manager.setProvider(new Ext.state.CookieProvider({
     expires: new Date(new Date().getTime()+(1000*60*60*24*30))
@@ -97,7 +94,7 @@ Ext.onReady(function(){
 
     // Make the detail panel collapsible
     detail_panel.animCollapse = false;
-    detail_panel.collapsible = true;
+    detail_panel.collapsible = false;
     detail_panel.collapsed = true;
     
     /*
@@ -252,11 +249,13 @@ Ext.onReady(function(){
                  * ClASSIFY BUTTON
                  */
                 //text: 'Classify',
+                id: 'classify-button',
                 tooltip: 'Map selected events to an event class',
                 iconCls: 'classify',
                 handler: showClassifyDialog
             },{
                 //text: 'Reopen',
+                id: 'reopen-button',
                 tooltip: 'Return selected events to the active event console',
                 iconCls: 'reopen',
                 handler: function(){
@@ -472,13 +471,6 @@ Ext.onReady(function(){
             box.setText(_t('Last updated at ') + dtext);
     };
 
-    // Add css class to collapsed splitbar element, for hidingz
-    detail_panel.on('afterLayout', function(ob) {
-        layout = ob.ownerCt.getLayout();
-        splitbar = layout[detail_panel.region].getCollapsedEl();
-        splitbar.addClass('toggle-managed-splitbar');
-    });
-
     // View to render the grid
     var yesterday = new Date();
     yesterday.setDate(yesterday.getDate() - 1);
@@ -503,7 +495,31 @@ Ext.onReady(function(){
     // Store to hold the events data
     var console_store = new Zenoss.EventStore({
         proxy: new Zenoss.ThrottlingProxy({
-            directFn:Zenoss.remote.EventsRouter.queryHistory
+            directFn:Zenoss.remote.EventsRouter.queryHistory,
+            listeners: {
+                
+                'exception': function(proxy, type, action, options,
+                response, arg){
+                    if (response.result && response.result.msg){
+                        Ext.Msg.show({
+                            title: 'Error',
+                            msg: response.result.msg,
+                            buttons: Ext.Msg.OK,
+                            minWidth: 300
+                            });
+                        }
+                    },
+                'load': function(proxy, transaction, options) {
+                    var disabled = transaction.result.disabled;
+                    var buttonIds = [
+                        'reopen-button', 
+                        'classify-button'
+                    ];
+                    Ext.each(buttonIds, function(buttonId) {
+                        var button = Ext.getCmp(buttonId);
+                        button.setDisabled(disabled);
+                    });
+                }}
         }),
         sortInfo: {field:'lastTime', direction:'DESC'},
         defaultSort: {field:'lastTime', direction:'DESC'},
@@ -513,16 +529,6 @@ Ext.onReady(function(){
 
     // Selection model
     var console_selection_model = new Zenoss.EventPanelSelectionModel();
-
-    // Pop open the event detail, depending on the number of rows selected
-    function toggleEventDetailContent(){
-        var count = console_selection_model.getCount();
-        if (count==1) {
-            showEventDetail(console_selection_model.getSelected());
-        } else {
-            wipeEventDetail();
-        }
-    }
 
     /*
      * THE GRID ITSELF!
@@ -558,13 +564,21 @@ Ext.onReady(function(){
     /*
      * DETAIL PANEL STUFF
      */
+    // Pop open the event detail, depending on the number of rows selected
+    function toggleEventDetailContent(){
+        var count = console_selection_model.getCount();
+        if (count==1) {
+            showEventDetail(console_selection_model.getSelected());
+        } else {
+            wipeEventDetail();
+        }
+    }
 
     // Pop open the event detail pane and populate it with the appropriate data
     // and switch triggers (single select repopulates detail, esc to close)
     function showEventDetail(r) {
         Ext.getCmp('dpanelcontainer').load(r.data.evid);
         grid.un('rowdblclick', toggleEventDetailContent);
-        console_selection_model.on('rowselect', toggleEventDetailContent);
         detail_panel.expand();
         esckeymap.enable();
     }
@@ -578,11 +592,12 @@ Ext.onReady(function(){
     // repopulates detail, esc no longer closes)
     function hideEventDetail() {
         detail_panel.collapse();
-        console_selection_model.un('rowselect', toggleEventDetailContent);
+    }
+    function eventDetailCollapsed(){
+        wipeEventDetail();
         grid.on('rowdblclick', toggleEventDetailContent);
         esckeymap.disable();
     }
-    
     // Finally, add the detail panel (have to do it after function defs to hook
     // up the hide callback)
     detail_panel.add({
@@ -609,7 +624,14 @@ Ext.onReady(function(){
         }]
     });
 
-
+    detail_panel.on('expand', function(ob, state) {
+        toggleEventDetailContent();    
+    });
+    
+    detail_panel.on('collapse', function(ob, state) {
+        eventDetailCollapsed()
+    });
+    
     // Hook up the "Last Updated" text
     var store = grid.getStore(),
         view = grid.getView();
@@ -618,6 +640,11 @@ Ext.onReady(function(){
 
     // Detail pane should pop open when double-click on event
     grid.on("rowdblclick", toggleEventDetailContent);
+    console_selection_model.on("rowselect", function(){
+        if(detail_panel.isVisible()){
+            toggleEventDetailContent();
+        }
+        });
 
     // When multiple events are selected, detail pane should blank
     console_selection_model.on('rangeselect', wipeEventDetail);

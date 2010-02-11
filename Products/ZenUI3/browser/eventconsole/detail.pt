@@ -6,15 +6,9 @@
             href="/zenui/css/xtheme-zenoss.css" />
         <link rel="stylesheet" type="text/css" 
             href="/zenui/css/zenoss.css" />
-        <script type="text/javascript" src="/extjs/adapters/ext/ext-base.js">
-        </script>
-        <script type="text/javascript" src="/extjs/ext-all.js"></script>
         <link rel="stylesheet"
-            href="/zenui/js/livegrid/resources/css/ext-ux-livegrid.css"/>
-        <script type="text/javascript"
-            src="/zenui/js/livegrid/livegrid-all-debug.js"></script>
-        <script type="text/javascript" src="/zenui/js/zenoss.js"></script>
-        <tal:block tal:content="structure provider:directapi"/>
+            href="/zenui/js/livegrid/resources/css/ext-ux-livegrid.css"/> 
+        <tal:block tal:content="structure provider:all-js"/>
     </head>
     <body class="zenui3">
 <!-- Template for rendering the detail pane -->

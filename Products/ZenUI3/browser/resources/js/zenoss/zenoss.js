@@ -985,7 +985,9 @@ Zenoss.DetailPanel = Ext.extend(Ext.Panel, {
     },
     setSummary: function(summary){
         var panel = Ext.getCmp('evdetail-summary');
-        panel.el.update(summary);
+        if (panel && panel.el){
+            panel.el.update(summary);
+        }
     },
     setSeverityIcon: function(severity){
         var panel = Ext.getCmp('severity-icon');
@@ -1055,7 +1057,8 @@ Zenoss.DetailPanel = Ext.extend(Ext.Panel, {
     popout: function(){
          var evid = Ext.getCmp('detail-logform-evid').getValue(),
              url = this.isHistory ? 'viewHistoryDetail' : 'viewDetail';
-         window.open(url + '?evid='+ evid, evid,
+         url = url +'?evid='+evid;
+         window.open(url, evid.replace(/-/g,'_'),
              "status=1,width=600,height=500");
     },
     bind: function(){
@@ -1065,12 +1068,14 @@ Zenoss.DetailPanel = Ext.extend(Ext.Panel, {
 
         showlink.un('click', this.showProps);
         showlink.on('click', this.showProps);
-
-        btn.un('click', this.onDetailHide);
-        btn.on('click', this.onDetailHide);
-
-        pop.un('click', this.popout, this);
-        pop.on('click', this.popout, this);
+        if (btn){
+            btn.un('click', this.onDetailHide);
+            btn.on('click', this.onDetailHide);
+        }
+        if (pop){
+            pop.un('click', this.popout, this);
+            pop.on('click', this.popout, this);
+        }
     },
     load: function(event_id){
         Zenoss.remote.EventsRouter.detail({

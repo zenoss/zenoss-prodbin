@@ -23,11 +23,11 @@
 </tal:block>
 
 <tal:block metal:fill-slot="center_panel">
-<div id="master_panel">
-    <tal:block metal:define-slot="master_panel"/>
+<div id="master_panel_content">
+    <tal:block metal:define-slot="master_panel_content"/>
 </div>
-<div id="detail_panel">
-    <tal:block metal:define-slot="detail_panel"/>
+<div id="detail_panel_content">
+    <tal:block metal:define-slot="detail_panel_content"/>
 </div>
 </tal:block>
 
@@ -47,7 +47,7 @@ Ext.onReady(function(){
         },
         items: [{
             id: 'master_panel',
-            contentEl: 'master_panel',
+            contentEl: 'master_panel_content',
             layout: 'fit',
             region: 'center',
             split: true
@@ -55,9 +55,10 @@ Ext.onReady(function(){
             split: true,
             width: '50%',
             id: 'detail_panel',
-            contentEl: 'detail_panel',
+            contentEl: 'detail_panel_content',
             region: 'east',
-            layout: 'fit'
+            layout: 'fit',
+            collapseMode: 'mini'
         }]
     }));
 });
