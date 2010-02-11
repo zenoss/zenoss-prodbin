@@ -22,20 +22,14 @@
 <include file="resources.zcml"/>
 <include file="macros.zcml"/>
 <include file="navigation.zcml"/>
+<include file="javascript.zcml"/>
+
 <!--
 <include file="screentypes.zcml"/>
 -->
 
 <browser:skin name="zenossSkin" layers="zenossNav default"/>
 <browser:defaultSkin name="zenossSkin"/>
-
-<!-- Viewlet manager for Ext.Direct API -->
-<browser:viewletManager
-    name="directapi"
-    provides=".interfaces.IExtDirectAPI"
-    class=".javascript.ExtDirectAPI"
-    permission="zope2.Public"
-    />
 
 <!-- Viewlet manager for generic snippets -->
 <browser:viewletManager
@@ -44,6 +38,15 @@
     class=".javascript.MainSnippetManager"
     permission="zope2.Public"
     />
+    
+<!-- Viewlet manager for javascript src includes -->   
+<browser:viewletManager
+    name="all-js"
+    provides=".interfaces.IJavaScriptSrcManager"
+    class=".javascript.JavaScriptSrcManager"
+    permission="zope2.Public"
+    />
+
 
 
 <!--

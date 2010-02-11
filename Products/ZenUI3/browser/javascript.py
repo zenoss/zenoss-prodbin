@@ -10,10 +10,18 @@
 # For complete information please visit: http://www.zenoss.com/oss/
 #
 ###########################################################################
+import Globals
 import zope.interface
-from interfaces import IExtDirectAPI, IMainSnippetManager
-from Products.ZenUI3.utils.javascript import JavaScriptSnippetManager
 
+from interfaces import IMainSnippetManager
+from Products.ZenUI3.utils.javascript import JavaScriptSnippetManager,\
+    JavaScriptSnippet, SCRIPT_TAG_TEMPLATE
+from Products.ZenUI3.browser.interfaces import IJavaScriptSrcViewlet,\
+    IJavaScriptBundleViewlet, IJavaScriptSrcManager
+from Products.Five.viewlet.viewlet import ViewletBase
+from Products.ZenUI3.navigation.manager import WeightOrderedViewletManager
+
+SCRIPT_TAG_SRC_TEMPLATE = '<script type="text/javascript" src="%s"></script>\n'
 
 class MainSnippetManager(JavaScriptSnippetManager):
     """
@@ -21,9 +29,70 @@ class MainSnippetManager(JavaScriptSnippetManager):
     """
     zope.interface.implements(IMainSnippetManager)
 
+class JavaScriptSrcManager(WeightOrderedViewletManager):
+    zope.interface.implements(IJavaScriptSrcManager)
+    
+class JavaScriptSrcViewlet(ViewletBase):
+    zope.interface.implements(IJavaScriptSrcViewlet)
+    path = None
 
-class ExtDirectAPI(JavaScriptSnippetManager):
-    """
-    A viewlet manager to handle Ext.Direct API definitions.
-    """
-    zope.interface.implements(IExtDirectAPI)
+    def render(self):
+        val = None
+        if self.path:
+            val = SCRIPT_TAG_SRC_TEMPLATE % self.path
+        return val
+
+class JavaScriptSrcBundleViewlet(ViewletBase):
+    zope.interface.implements(IJavaScriptBundleViewlet)
+    #space delimited string of src paths
+    paths = ''
+    def render(self):
+        vals = []
+        if self.paths:
+            for path in self.paths.split():
+                vals.append(SCRIPT_TAG_SRC_TEMPLATE % path)
+        js = ''
+        if vals:
+            js = "".join(vals)
+        return js
+    
+class ExtBaseJs(JavaScriptSrcViewlet):
+    zope.interface.implements(IJavaScriptSrcViewlet)
+    def update(self):
+        if Globals.DevelopmentMode:
+            self.path = "/extjs/adapters/ext/ext-base-debug.js"
+        else:
+            self.path = "/extjs/adapters/ext/ext-base.js"
+
+class ExtAllJs(JavaScriptSrcViewlet):
+    zope.interface.implements(IJavaScriptSrcViewlet)
+    path = None
+    def update(self):
+        if Globals.DevelopmentMode:
+            self.path = "/extjs/ext-all-debug.js"
+        else:
+            self.path = "/extjs/ext-all.js"
+
+class LiveGridJs(JavaScriptSrcViewlet):
+    zope.interface.implements(IJavaScriptSrcViewlet)
+    def update(self):
+        if Globals.DevelopmentMode:
+            self.path = "/zenui/js/livegrid/livegrid-all-debug.js"
+        else:
+            self.path = "/zenui/js/livegrid/livegrid-all.js"
+
+class FireFoxExtCompat(JavaScriptSnippet):
+    def snippet(self):
+        js ="""
+         (function() {
+            var ua = navigator.userAgent.toLowerCase();
+            if (ua.indexOf("firefox/3.6") > -1) {
+                Ext.toArray = function(a, i, j, res) {
+                    res = [];
+                    Ext.each(a, function(v) { res.push(v); });
+                    return res.slice(i || 0, j || res.length);
+                }
+            }
+        })();
+        """
+        return  SCRIPT_TAG_TEMPLATE% js

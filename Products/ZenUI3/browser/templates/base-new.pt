@@ -27,38 +27,7 @@
             href="/zenui/css/zenoss.css" />
         <link rel="stylesheet" type="text/css"
             href="/zenui/css/zenui3.css" />
-        <script type="text/javascript" src="/extjs/adapters/ext/ext-base-debug.js">
-        </script>
-        <script>
-        (function() {
-            var ua = navigator.userAgent.toLowerCase();
-            if (ua.indexOf("firefox/3.6") > -1) {
-                Ext.toArray = function(a, i, j, res) {
-                    res = [];
-                    Ext.each(a, function(v) { res.push(v); });
-                    return res.slice(i || 0, j || res.length);
-                }
-            }
-        })();
-        </script>
-        <script type="text/javascript" src="/extjs/ext-all-debug.js"></script>
-        <script type="text/javascript"
-            src="/extjs/treegrid/TreeGridSorter.js"></script> 
-        <script type="text/javascript"
-            src="/extjs/treegrid/TreeGridColumnResizer.js"></script> 
-        <script type="text/javascript"
-            src="/extjs/treegrid/TreeGridNodeUI.js"></script> 
-        <script type="text/javascript"
-            src="/extjs/treegrid/TreeGridLoader.js"></script> 
-        <script type="text/javascript"
-            src="/extjs/treegrid/TreeGridColumns.js"></script> 
-        <script type="text/javascript"
-            src="/extjs/treegrid/TreeGrid.js"></script>
-        <script type="text/javascript"
-            src="/zenui/js/livegrid/livegrid-all-debug.js"></script>
-        <script type="text/javascript" src="extdirect.js"></script>
-        <script type="text/javascript" src="zenoss-all.js"></script>
-        <script type="text/javascript" src="i18n.js"></script>
+        <tal:block tal:content="structure provider:all-js"/>
     </head>
 
     <body>

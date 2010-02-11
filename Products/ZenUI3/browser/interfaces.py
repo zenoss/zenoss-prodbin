@@ -11,13 +11,25 @@
 #
 ###########################################################################
 from Products.ZenUI3.utils.interfaces import IJavaScriptSnippetManager
+from zope.viewlet.interfaces import IViewlet, IViewletManager
 
 class IMainSnippetManager(IJavaScriptSnippetManager):
     """
     A viewlet manager to handle general javascript snippets.
     """
 
-class IExtDirectAPI(IJavaScriptSnippetManager):
+class IJavaScriptSrcManager(IViewletManager):
     """
-    A viewlet manager to handle Ext.Direct API definitions.
+    a viewlet manager to handle java script src viewlets
+    """
+
+class IJavaScriptSrcViewlet(IViewlet):
+    """
+    A viewlet that will generate java a script src file includes
+    """
+
+    
+class IJavaScriptBundleViewlet(IViewlet):
+    """
+    A viewlet that will generate a list of java script src file includes
     """

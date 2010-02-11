@@ -1,0 +1,58 @@
+<configure
+    xmlns="http://namespaces.zope.org/zope"
+    xmlns:browser="http://namespaces.zope.org/browser"
+    xmlns:five="http://namespaces.zope.org/five">
+
+<browser:viewlet
+        name="extjs-base"
+        weight="0"
+        manager=".interfaces.IJavaScriptSrcManager"
+        class=".javascript.ExtBaseJs"
+        permission="zope2.Public"
+        />
+
+<browser:viewlet
+        name="firefox-compat"
+        weight="1"
+        manager=".interfaces.IJavaScriptSrcManager"
+        class=".javascript.FireFoxExtCompat"
+        permission="zope2.Public"
+        />
+
+<browser:viewlet
+        name="extjs-all"
+        weight="2"
+        manager=".interfaces.IJavaScriptSrcManager"
+        class=".javascript.ExtAllJs"
+        permission="zope2.Public"
+        />
+
+<browser:viewlet
+        name="livegrid-all"
+        weight="3"
+        manager=".interfaces.IJavaScriptSrcManager"
+        class=".javascript.LiveGridJs"
+        permission="zope2.Public"
+        />
+        
+<browser:viewlet
+        name="js-all"
+        paths="/extjs/treegrid/TreeGridSorter.js
+               /extjs/treegrid/TreeGridColumnResizer.js
+               /extjs/treegrid/TreeGridNodeUI.js
+               /extjs/treegrid/TreeGridLoader.js
+               /extjs/treegrid/TreeGridColumns.js
+               /extjs/treegrid/TreeGridLoader.js
+               /extjs/treegrid/TreeGridColumns.js
+               /extjs/treegrid/TreeGrid.js
+               extdirect.js
+               zenoss-all.js
+               i18n.js"
+        weight="4"
+        manager=".interfaces.IJavaScriptSrcManager"
+        class=".javascript.JavaScriptSrcBundleViewlet"
+        permission="zope2.Public"
+        />
+
+
+</configure>
