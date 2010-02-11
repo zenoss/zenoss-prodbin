@@ -36,7 +36,7 @@ from Products.Zuul.interfaces import ITreeFacade, IInfo, ICatalogTool
 from Products.Zuul.interfaces import IEventInfo
 from Products.Zuul.utils import unbrain
 from Products.Zuul.tree import SearchResults
-from Products.ZenUtils.IpUtil import numbip, checkip, IpAddressError
+from Products.ZenUtils.IpUtil import numbip, checkip, IpAddressError, ensureIp
 from Products.ZenUtils.IpUtil import getSubnetBounds
 
 log = logging.getLogger('zen.Zuul')
@@ -95,7 +95,7 @@ class TreeFacade(ZuulFacade):
             if 'name' in params:
                 qs.append(MatchRegexp('name', '(?i).*%s.*' % params['name']))
             if 'ipAddress' in params:
-                ip = params['ipAddress']
+                ip = ensureIp(params['ipAddress'])
                 try:
                     checkip(ip)
                 except IpAddressError:

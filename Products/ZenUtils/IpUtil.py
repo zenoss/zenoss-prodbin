@@ -19,9 +19,7 @@ IPv4 utility functions
 
 import types
 import re
-
 from Products.ZenUtils.Exceptions import ZentinelException
-
 from twisted.names.client import lookupPointer
 
 class IpAddressError(ZentinelException): pass
@@ -400,3 +398,43 @@ def getSubnetBounds(ip):
     upper = '.'.join(octets)
     return numbip(ip), numbip(upper)
 
+def ensureIp(ip):
+    """
+    Given a partially formed IP address this will return a complete Ip address
+    with four octets with the invalid or missing entries replaced by 0
+    
+    @param ip partially formed ip (will strip out alpha characters)
+    @return valid IP address field
+    
+    >>> from Products.ZenUtils.IpUtil import ensureIp
+    >>> ensureIp('20')
+    '20.0.0.0'
+    >>> ensureIp('2000')
+    '0.0.0.0'
+    >>> ensureIp('10.175.X')
+    '10.175.0.0'
+    >>> ensureIp('10.0.1')
+    '10.0.1.0'
+    >>> 
+    """
+    # filter out the alpha characters
+    stripped = ''.join([c for c in ip if c in '1234567890.'])
+    octets = stripped.split('.')
+
+    # make sure we always have 4 
+    while (len(octets) < 4):
+        octets.append('0')
+
+    # validate each octet
+    for (idx, octet) in enumerate(octets):
+        # cast it to an integer
+        try:
+            octet = int(octet)
+        except ValueError:
+            octet = 0
+            
+        # make it 0 if not in the valid ip range
+        if not (0 < octet < 255):
+            octets[idx] = '0'
+            
+    return '.'.join(octets)

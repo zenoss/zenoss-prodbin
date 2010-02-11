@@ -32,7 +32,6 @@ Zenoss.DeviceColumnModel = Ext.extend(Ext.grid.ColumnModel, {
                 id: 'ipAddress',
                 dataIndex: 'ipAddress',
                 header: _t('IP Address'),
-                filter: {xtype: 'ipaddressfield'},
                 renderer: Zenoss.util.num2dot
             },{
                 dataIndex: 'uid',
