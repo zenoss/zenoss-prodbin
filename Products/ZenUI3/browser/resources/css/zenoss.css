@@ -21,7 +21,7 @@
  * GRID
  */
 .console-selection .x-grid3-row-selected {
-	background:#fff !important;
+    background:#fff !important;
 }
 .console-selection .x-grid3-row-alt {
     background-color: #eaf0f7;
@@ -204,8 +204,8 @@
     margin: 0 auto;
 }
 
-.status-icon-small.acknowledged { background-image: url(/zenui/img/xtheme-zenoss/icon/acknowledge-small.png)}
-.status-icon-small.suppressed { background-image: url(/zenui/img/xtheme-zenoss/icon/suppress-small.png)}
+.status-icon-small-acknowledged { background-image: url(/zenui/img/xtheme-zenoss/icon/acknowledge-small.png)}
+.status-icon-small-suppressed { background-image: url(/zenui/img/xtheme-zenoss/icon/suppress-small.png)}
 
 .full_event_props {
     padding-left: 3em;
@@ -255,7 +255,7 @@ table.proptable {
 
 .x-grid3-row-over.rowcolor,
 .x-grid3-row-selected.rowcolor {
-	background:#999 !important;
+    background:#999 !important;
 }
 
 .x-grid3-row-over.rowcolor .x-grid3-cell-inner a,
@@ -263,19 +263,19 @@ table.proptable {
     color: white;
 }
 
-.x-grid3-row.critical.acknowledged { background-color: #cd7474; }
-.x-grid3-row.error.acknowledged { background-color: #d69f87; }
-.x-grid3-row.warning.acknowledged { background-color: #e0dc95; }
-.x-grid3-row.info.acknowledged { background-color: #95a5c2; }
-.x-grid3-row.debug.acknowledged { background-color: #c8c8c8; }
-.x-grid3-row.clear.acknowledged { background-color: #82a77e; }
+.x-grid3-row.critical-acknowledged { background-color: #cd7474; }
+.x-grid3-row.error-acknowledged { background-color: #d69f87; }
+.x-grid3-row.warning-acknowledged { background-color: #e0dc95; }
+.x-grid3-row.info-acknowledged { background-color: #95a5c2; }
+.x-grid3-row.debug-acknowledged { background-color: #c8c8c8; }
+.x-grid3-row.clear-acknowledged { background-color: #82a77e; }
 
-.x-grid3-row.critical.unacknowledged { background-color: #d53a3a; }
-.x-grid3-row.error.unacknowledged { background-color: #e5763a; }
-.x-grid3-row.warning.unacknowledged { background-color: #e9e458; }
-.x-grid3-row.info.unacknowledged { background-color: #5277c6; }
-.x-grid3-row.debug.unacknowledged { background-color: #afafaf; }
-.x-grid3-row.clear.unacknowledged { background-color: #488d43; }
+.x-grid3-row.critical-unacknowledged { background-color: #d53a3a; }
+.x-grid3-row.error-unacknowledged { background-color: #e5763a; }
+.x-grid3-row.warning-unacknowledged { background-color: #e9e458; }
+.x-grid3-row.info-unacknowledged { background-color: #5277c6; }
+.x-grid3-row.debug-unacknowledged { background-color: #afafaf; }
+.x-grid3-row.clear-unacknowledged { background-color: #488d43; }
 
 .xtb-text.livegridinfopanel {
     font-size: 10px;
