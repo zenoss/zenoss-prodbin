@@ -103,6 +103,7 @@
         <browser:viewlet
             name="Devices"
             url="/zport/dmd/itinfrastructure"
+            subviews="devicedetail"
             weight="1"
             parentItem="IT Infrastructure"
             manager="..navigation.interfaces.ISecondaryNavigationMenu"
