@@ -38,7 +38,7 @@
     </script>
 </tal:block>
 
-<tal:block metal:fill-slot="center_panel">
+<tal:block metal:fill-slot="center_panel_content">
 <div id="zennetmap"> </div>
 </tal:block>
 

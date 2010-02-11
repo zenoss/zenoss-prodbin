@@ -61,7 +61,7 @@ Ext.state.Manager.setProvider(new Ext.state.CookieProvider({
 
 <tal:block metal:fill-slot="contentPane">
 
- <tal:block metal:define-slot="center_panel"/>
+ <tal:block metal:define-slot="center_panel_content"/>
 
  <tal:block metal:define-slot="script_beforeLayout"/>
 

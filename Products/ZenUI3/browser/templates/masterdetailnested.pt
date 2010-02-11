@@ -16,15 +16,15 @@
 <tal:block metal:define-macro="masterdetailnested">
 <tal:block metal:use-macro="context/page_macros/base-new">
 
-<tal:block metal:fill-slot="center_panel">
-<div id="master_panel">
-    <tal:block metal:define-slot="master_panel"/>
+<tal:block metal:fill-slot="center_panel_content">
+<div id="master_panel_content">
+    <tal:block metal:define-slot="master_panel_content"/>
 </div>
-<div id="detail_panel">
-    <tal:block metal:define-slot="detail_panel"/>
+<div id="detail_panel_content">
+    <tal:block metal:define-slot="detail_panel_content"/>
 </div>
-<div id="subdetail_panel">
-    <tal:block metal:define-slot="subdetail_panel"/>
+<div id="subdetail_panel_content">
+    <tal:block metal:define-slot="subdetail_panel_content"/>
 </div>
 </tal:block>
 
@@ -43,7 +43,7 @@ Ext.onReady(function(){
             items: [{
                 region: 'west',
                 width: 300,
-                contentEl: 'master_panel',
+                contentEl: 'master_panel_content',
                 id: 'master_panel',
                 layout: 'fit',
                 split: true
@@ -53,13 +53,13 @@ Ext.onReady(function(){
                 defaults: {border:false},
                 items: [{
                     region: 'center',
-                    contentEl: 'subdetail_panel',
+                    contentEl: 'subdetail_panel_content',
                     id: 'subdetail_panel',
                     split: true,
                     layout: 'fit'
                 },{
                     region: 'north',
-                    contentEl: 'detail_panel',
+                    contentEl: 'detail_panel_content',
                     id: 'detail_panel',
                     split: true,
                     layout: 'fit',

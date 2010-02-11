@@ -55,7 +55,7 @@
             </div>
         </div>
         <div id="center">
-            <tal:block metal:define-slot="center_panel"/>
+            <tal:block metal:define-slot="center_panel_content"/>
         </div>
         <div id="footer">
         </div>

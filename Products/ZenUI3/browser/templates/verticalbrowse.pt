@@ -16,15 +16,15 @@
 <tal:block metal:define-macro="verticalbrowse">
 <tal:block metal:use-macro="context/page_macros/base-new">
 
-<tal:block metal:fill-slot="center_panel">
-<div id="browse_1_panel">
-    <tal:block metal:define-slot="browse_1_panel"/>
+<tal:block metal:fill-slot="center_panel_content">
+<div id="browse_1_panel_content">
+    <tal:block metal:define-slot="browse_1_panel_content"/>
 </div>
-<div id="browse_2_panel">
-    <tal:block metal:define-slot="browse_2_panel"/>
+<div id="browse_2_panel_content">
+    <tal:block metal:define-slot="browse_2_panel_content"/>
 </div>
-<div id="detail_panel">
-    <tal:block metal:define-slot="detail_panel"/>
+<div id="detail_panel_content">
+    <tal:block metal:define-slot="detail_panel_content"/>
 </div>
 </tal:block>
 
@@ -43,7 +43,7 @@ Ext.onReady(function(){
             items: [{
                 region: 'west',
                 width: 250,
-                contentEl: 'browse_1_panel',
+                contentEl: 'browse_1_panel_content',
                 id: 'browse_1_panel',
                 layout: 'fit',
                 split: true
@@ -53,13 +53,13 @@ Ext.onReady(function(){
                 defaults: {border:false},
                 items: [{
                     region: 'center',
-                    contentEl: 'detail_panel',
+                    contentEl: 'detail_panel_content',
                     id: 'detail_panel',
                     split: true,
                     layout: 'fit'
                 },{
                     region: 'west',
-                    contentEl: 'browse_2_panel',
+                    contentEl: 'browse_2_panel_content',
                     id: 'browse_2_panel',
                     split: true,
                     layout: 'fit',
@@ -75,13 +75,13 @@ Ext.onReady(function(){
 <script>
 Ext.onReady(function(){
     Ext.getCmp('browse_1_panel').add(new Zenoss.PlaceholderPanel({
-        text: 'Ext.getCmp("browse_1_panel"), metal:fill-slot="browse_1_panel"'
+        text: 'Ext.getCmp("browse_1_panel"), metal:fill-slot="browse_1_panel_content"'
     }));
     Ext.getCmp('detail_panel').add(new Zenoss.PlaceholderPanel({
-        text: 'Ext.getCmp("detail_panel"), metal:fill-slot="detail_panel"'
+        text: 'Ext.getCmp("detail_panel"), metal:fill-slot="detail_panel_content"'
     }));
     Ext.getCmp('browse_2_panel').add(new Zenoss.PlaceholderPanel({
-        text: 'Ext.getCmp("browse_2_panel"), metal:fill-slot="browse_2_panel"'
+        text: 'Ext.getCmp("browse_2_panel"), metal:fill-slot="browse_2_panel_content"'
     }));
 });
 </script>

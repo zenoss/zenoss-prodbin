@@ -22,7 +22,7 @@
     </tal:block>
 </tal:block>
 
-<tal:block metal:fill-slot="center_panel">
+<tal:block metal:fill-slot="center_panel_content">
 <div id="master_panel_content">
     <tal:block metal:define-slot="master_panel_content"/>
 </div>
@@ -68,10 +68,10 @@ Ext.onReady(function(){
 <script>
 Ext.onReady(function(){
     Ext.getCmp('master_panel').add(new Zenoss.PlaceholderPanel({
-        text: 'Ext.getCmp("master_panel"), metal:fill-slot="master_panel"'
+        text: 'Ext.getCmp("master_panel"), metal:fill-slot="master_panel_content"'
     }));
     Ext.getCmp('detail_panel').add(new Zenoss.PlaceholderPanel({
-        text: 'Ext.getCmp("detail_panel"), metal:fill-slot="detail_panel"'
+        text: 'Ext.getCmp("detail_panel"), metal:fill-slot="detail_panel_content"'
     }));
 });
 </script>
