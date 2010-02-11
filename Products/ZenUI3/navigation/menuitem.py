@@ -39,7 +39,7 @@ class PrimaryNavigationMenuItem(viewlet.ViewletBase):
                                          self.__parent__)
         if sec:
             for v in sec.getViewletsByParentName(self.__name__):
-                if v.selected:
+                if requestURL.endswith(v.url):
                     return True
         return False
 
@@ -61,21 +61,12 @@ class SecondaryNavigationMenuItem(PrimaryNavigationMenuItem):
     zope.interface.implements(INavigationItem)
 
     parentItem = ""
-    subviews = ()
-
-    def update(self):
-        super(SecondaryNavigationMenuItem, self).update()
-        if isinstance(self.subviews, basestring):
-            self.subviews = [self.subviews]
 
     @property
     def selected(self):
         requestURL = self.request.getURL()
         if requestURL.endswith(self.url):
             return True
-        for url in self.subviews:
-            if requestURL.endswith(url):
-                return True
         return False
 
 
