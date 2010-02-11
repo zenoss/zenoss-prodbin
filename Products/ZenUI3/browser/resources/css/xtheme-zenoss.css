@@ -267,6 +267,11 @@ ul.x-tab-strip-bottom{
 
 /* Toolbars */
 
+/* The buttons had their tops cut off in IE (7 and 8) */
+.x-toolbar-cell {
+    padding-top:2px;
+}
+
 .x-toolbar{
     border-color:#abc;
     background:#f0f4f5 url(../img/xtheme-zenoss/toolbar/bg.gif) repeat-x top left;
