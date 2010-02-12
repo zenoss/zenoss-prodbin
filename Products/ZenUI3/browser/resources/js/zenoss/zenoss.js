@@ -448,30 +448,33 @@ Zenoss.FilterGridView = Ext.extend(Ext.ux.grid.livegrid.GridView, {
                     }
                 }
             });
-            var filter = new Ext.ComponentMgr.create(
-                config?config:{xtype:'textfield', validationDelay:500});
+            Ext.applyIf(config, {
+                validationDelay: 500,
+                validateOnBlur: false
+            });
+             
+            var filter = new Ext.ComponentMgr.create(config);
             if (this.lastOptions) {
                 var newValue = this.lastOptions[fieldid];
                 filter.setValue(newValue);
             }
             filter.setWidth('100%');
             this.filters[this.filters.length] = filter;
-            filter.liveSearchTask = new Ext.util.DelayedTask(function(){
-                this.fireEvent('filterchange', this);
-                if (this.liveSearch){
-                    this.nonDisruptiveReset();
-                }
+            
+            filter.liveSearchTask = new Ext.util.DelayedTask(function() {
+                this.validFilter('');
             }, this);
+            
             if (filter instanceof Ext.form.TextField) {
-                filter.on('keyup', function(field, e) {
-                    if(!e.isNavKeyPress()) this.liveSearchTask.delay(1000);
-                }, filter);
-            } else {
+                filter.on('valid', this.validFilter, this);
+            }
+            
+            if (filter instanceof Zenoss.MultiselectMenu) {
                 filter.on('select', function(field, e) {
-                    this.liveSearchTask.delay(1000);
+                    this.liveSearchTask.delay(500);
                 }, filter);
                 filter.on('change', function(field, e) {
-                    this.liveSearchTask.delay(1000);
+                    this.liveSearchTask.delay(500);
                 }, filter);
             }
             new Ext.Panel({
@@ -481,6 +484,12 @@ Zenoss.FilterGridView = Ext.extend(Ext.ux.grid.livegrid.GridView, {
                 renderTo: id,
                 items: filter
             });
+        }
+    },
+    validFilter: function() {
+        this.fireEvent('filterchange', this);
+        if (this.liveSearch) {
+            this.nonDisruptiveReset();
         }
     },
     updateHeaders: function() {
@@ -759,20 +768,23 @@ Zenoss.StatefulRefreshMenu = Ext.extend(Ext.menu.Menu, {
     constructor: function(config) {
         config.stateful = true;
         config.stateEvents = ['itemclick'];
-        Zenoss.StatefulRefreshMenu.superclass.constructor.apply(this,
-            arguments);
+        Zenoss.StatefulRefreshMenu.superclass.constructor.apply(this, arguments);
     },
-    getState: function(){
-        return this.trigger.interval;
+    getState: function() {
+        //returning raw value doesn't work anymore; need to wrap in object/array
+        return [this.trigger.interval];
     },
-    applyState: function(interval){
+    applyState: function(interval) {
+        //old cookie value not being in an array and we can't get the value, so
+        //default to 60
+        var savedIntveral = interval[0] || 60;
         var items = this.items.items;
-        Ext.each(items, function(item){
-            if (item.value==interval)
+        Ext.each(items, function(item) {
+            if (item.value == savedIntveral) 
                 item.setChecked(true);
         }, this);
-        this.trigger.on('afterrender', function(){
-            this.trigger.setInterval(interval);
+        this.trigger.on('afterrender', function() {
+            this.trigger.setInterval(savedIntveral);
         }, this);
     }
 });
