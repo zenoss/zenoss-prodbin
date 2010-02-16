@@ -30,18 +30,14 @@ beforeselectHandler = function(sm, node, oldNode) {
 };
 
 updateDataSources = function(uid) {
-    var panel, root;
+    var panel, treeGrid, root;
     if ( ! Ext.getCmp(dataSourcesId) ) {
         panel = Ext.getCmp('center_detail_panel');
         panel.add({
-            xtype: 'DataSourceTreeGrid',
-            id: dataSourcesId,
-            title: _t('Data Sources'),
-            loader: new Ext.ux.tree.TreeGridLoader({
-                directFn: router.getDataSources
-            })
+            xtype: 'DataSourceTreeGrid'
         });
-        root = Ext.getCmp(dataSourcesId).getRootNode();
+        treeGrid = Ext.getCmp(dataSourcesId);
+        root = treeGrid.getRootNode();
         root.setId(uid);
         panel.doLayout();
     } else {

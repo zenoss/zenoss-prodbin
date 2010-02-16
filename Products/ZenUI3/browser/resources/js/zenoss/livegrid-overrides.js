@@ -9,11 +9,14 @@ Ext.override(Ext.ux.grid.livegrid.GridView, {
         // hidden rows is the number of rows which cannot be
         // displayed and for which a scrollbar needs to be
         // rendered. This does also take clipped rows into account
-        var hiddenRows = (ds.totalLength == this.visibleRows-this.rowClipped)
-                       ? 0
-                       : Math.max(0, ds.totalLength-(this.visibleRows-this.rowClipped));
+        var hiddenRows;
+        if (ds.totalLength == this.visibleRows-this.rowClipped) {
+          hiddenRows = 0;
+        } else {
+          hiddenRows = Math.max(0, ds.totalLength-(this.visibleRows-this.rowClipped));
+        }
 
-        if (hiddenRows == 0) {
+        if (hiddenRows === 0) {
             this.scroller.setWidth(elWidth);
             liveScrollerDom.style.display = 'none';
             return;
@@ -25,11 +28,10 @@ Ext.override(Ext.ux.grid.livegrid.GridView, {
         var scrollbar = this.cm.getTotalWidth()+this.scrollOffset > elWidth;
 
         // adjust the height of the scrollbar
-        var contHeight = liveScrollerDom.parentNode.offsetHeight +
-                         ((ds.totalLength > 0 && scrollbar)
-                         ? - this.horizontalScrollOffset
-                         : 0)
-                         - this.hdHeight;
+        var contHeight = liveScrollerDom.parentNode.offsetHeight - this.hdHeight;
+        if ( ds.totalLength > 0 && scrollbar ) {
+            contHeight -= this.horizontalScrollOffset;
+        }
 
         liveScrollerDom.style.height = Math.max(contHeight, this.horizontalScrollOffset*2)+"px";
 
@@ -37,7 +39,7 @@ Ext.override(Ext.ux.grid.livegrid.GridView, {
             return;
         }
 
-        this.liveScrollerInset.style.height = (hiddenRows == 0 ? 0 : contHeight+(hiddenRows*this.rowHeight))+"px";
+        this.liveScrollerInset.style.height = (hiddenRows === 0 ? 0 : contHeight+(hiddenRows*this.rowHeight))+"px";
      }
 });       
 })(); // End local scope

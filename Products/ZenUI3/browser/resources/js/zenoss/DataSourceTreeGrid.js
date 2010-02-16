@@ -15,14 +15,22 @@
 
 (function(){
 
-var addThreshold;
+var router, dataSourcesId, addThreshold;
 
 Ext.ns('Zenoss');
 
+router = Zenoss.remote.TemplateRouter;
+dataSourcesId = 'dataSourceTreeGrid';
+
 addThreshold = function(thresholdType, thresholdId){
-    var uid, dataPoints, params, callback;
+    var uid, node, dataPoints, params, callback;
     uid = Ext.getCmp('templateTree').getSelectionModel().getSelectedNode().attributes.uid;
-    dataPoints = [Ext.getCmp('dataSourceTreeGrid').getSelectionModel().getSelectedNode().attributes.uid];
+    node = Ext.getCmp('dataSourceTreeGrid').getSelectionModel().getSelectedNode();
+    if ( node && node.isLeaf() ) {
+        dataPoints = [node.attributes.uid];
+    } else {
+        dataPoints = [];
+    }
     params = {
         uid: uid, 
         thresholdType:thresholdType, 
@@ -92,6 +100,14 @@ Zenoss.DataSourceTreeGrid = Ext.extend(Ext.ux.tree.TreeGrid, {
 
     constructor: function(config) {
         Ext.applyIf(config, {
+            border: false,
+            useArrows: true,
+            cls: 'x-tree-noicon',
+            id: dataSourcesId,
+            title: _t('Data Sources'),
+            loader: new Ext.ux.tree.TreeGridLoader({
+                directFn: router.getDataSources
+            }),
             tbar: [
                 {
                     xtype: 'button',
@@ -120,7 +136,7 @@ Zenoss.DataSourceTreeGrid = Ext.extend(Ext.ux.tree.TreeGrid, {
                 {
                     id: 'name',
                     dataIndex: 'name',
-                    header: 'Metrics by Datasource',
+                    header: 'Metrics by Data Source',
                     width: 250
                 }, {
                     dataIndex: 'source',
@@ -138,6 +154,14 @@ Zenoss.DataSourceTreeGrid = Ext.extend(Ext.ux.tree.TreeGrid, {
             ]
         });
         Zenoss.DataSourceTreeGrid.superclass.constructor.call(this, config);
+    },
+    
+    initComponent: function() {
+        Ext.ux.tree.TreeGrid.prototype.initComponent.call(this);
+        this.loader.createNode = function(attr) {
+            attr.expanded = true;
+            return Ext.ux.tree.TreeGridLoader.prototype.createNode.call(this, attr);
+        };
     }
 
 });

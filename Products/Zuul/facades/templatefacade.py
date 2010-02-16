@@ -98,11 +98,11 @@ class TemplateFacade(ZuulFacade):
         else:
             raise Exception('Unknow threshold type: %s' % thresholdType)
         threshold = getattr(thresholds, thresholdId)
-        def dsnames():
-            for dataPointUid in dataPoints:
-                dataPoint = self._getObject(dataPointUid)
-                yield dataPoint.name()
-        threshold.dsnames.extend(dsnames())
+        dsnames = []
+        for dataPointUid in dataPoints:
+            dataPoint = self._getObject(dataPointUid)
+            dsnames.append( dataPoint.name() )
+        threshold._updateProperty('dsnames', dsnames)
 
     def getGraphs(self, uid):
         catalog = self._getCatalog(uid)

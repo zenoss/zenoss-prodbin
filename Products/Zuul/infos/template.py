@@ -11,6 +11,7 @@
 #
 ###########################################################################
 
+from Acquisition import aq_parent
 from Products.Zuul.infos import InfoBase
 
 class TemplateNode(InfoBase):
@@ -45,21 +46,29 @@ class TemplateLeaf(InfoBase):
     @property
     def id(self):
         template = self._object.id
-        deviceClass = self._getDeviceClassPath('.')
-        return '%s.%s' % (template, deviceClass)
+        parent = self._getParentPath('.')
+        return '%s.%s' % (template, parent)
         
     @property
     def text(self):
-        return self._getDeviceClassPath('/')
+        return self._getParentPath('/')
 
     @property
     def leaf(self):
         return True
 
-    def _getDeviceClassPath(self, separator):
-        deviceClass = self._object.deviceClass()
-        path = deviceClass.getPrimaryPath()
-        return separator.join(path[3:])
+    def _getParentPath(self, separator):
+        obj = self._object.deviceClass()
+        if obj is None:
+            # this template is in a Device
+            obj = aq_parent(self._object)
+            path = list( obj.getPrimaryPath() )
+            # remove the "devices" relationship
+            path.pop(-2)
+        else:
+            # this template is in a DeviceClass.rrdTemplates relationship
+            path = obj.getPrimaryPath()
+        return '/' + separator.join(path[4:])
 
 class DataSourceInfo(InfoBase):
 
