@@ -220,7 +220,7 @@ class BaseZenActions(object):
 
 
     def getEventUrl(self, evid, device=None):
-        return "%s/eventFields?evid=%s" % (self.getBaseUrl(device), evid)
+        return "%s/viewDetail?evid=%s" % (self.getBaseUrl(device), evid)
 
 
     def getEventsUrl(self, device=None):

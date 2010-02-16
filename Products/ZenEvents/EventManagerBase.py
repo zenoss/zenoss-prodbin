@@ -682,7 +682,7 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
                 conn = self.connect()
                 try:
                     curs = conn.cursor()
-                    log.info(select % tuple(paramValues))
+                    log.debug(select % tuple(paramValues))
                     curs.execute(select, paramValues)
                     retdata = []
                     # iterate through the data results and convert to python
@@ -1783,7 +1783,7 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
         request = FakeRequest()
         self.manage_setEventStates(1 , evids, REQUEST=request)
         if REQUEST:
-            dest = '/zport/dmd/Events/viewEvents'
+            dest = '/zport/dmd/Events/evconsole'
             if request.get('message', ''):
                 dest += '?message=%s' % request['message']
             if not getattr(REQUEST, 'dontRedirect', False):
@@ -1798,7 +1798,7 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
         request = FakeRequest()
         self.manage_setEventStates(0 , evids, REQUEST=request)
         if REQUEST:
-            dest = '/zport/dmd/Events/viewEvents'
+            dest = '/zport/dmd/Events/evconsole'
             if request.get('message', ''):
                 dest += '?message=%s' % request['message']
             if not getattr(REQUEST, 'dontRedirect', False):
