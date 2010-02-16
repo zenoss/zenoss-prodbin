@@ -13,38 +13,40 @@
 ###########################################################################
 */
 
-
 Ext.onReady(function(){
 
 Ext.ns('Zenoss.devices');
 
+
+// page level variables
 var REMOTE = Zenoss.remote.DeviceRouter;
 var treeId = 'groups';
 var nodeType = 'Organizer';
-				
+var deleteDeviceMessage = _t('Warning! This will delete all of the devices in this group!');
+                
 // These are the fields that will display on the "Add a Node form" 
 var addNodeDialogItems = [{
-		// since they can only have organizer, we will just use a hidden field
+        // since they can only have organizer, we will just use a hidden field
         xtype: 'hidden',
         id: 'typeCombo',
-		value: nodeType
+        value: nodeType
     }, {
         xtype: 'textfield',
         id: 'idTextfield',
-		width: 270,
+        width: 270,
         fieldLabel: _t('ID'),
         allowBlank: false
     }
 ];
-	
+    
 REMOTE.getProductionStates({}, function(d){
     Zenoss.env.PRODUCTION_STATES = d;
 });
-				
+                
 REMOTE.getPriorities({}, function(d){
     Zenoss.env.PRIORITIES = d;
 });
-				
+                
 REMOTE.getCollectors({}, function(d){
     var collectors = [];
     Ext.each(d, function(r){collectors.push([r]);});
@@ -65,10 +67,20 @@ function resetGrid() {
 var treesm = new Ext.tree.DefaultSelectionModel({
     listeners: {
         'selectionchange': function(sm, newnode, oldnode){
-			// set the footer_bar to bubble to new node
-			var footer = Ext.getCmp('footer_bar');
-			footer.bubbleTargetId = newnode.id;
-
+            // set the footer_bar to bubble to new node
+            var footer = Ext.getCmp('footer_bar');
+            footer.bubbleTargetId = newnode.id;
+            
+            // Even after changing the ID I was not able to have
+            // each tree have their own instance of a deleteNodeDialog, so I
+            // modified it to allow you to change the message
+            var dialog = Ext.getCmp('deleteNodeDialog');
+            if (newnode.id.match('Device')){
+                dialog.setDeleteMessage(deleteDeviceMessage);
+            }else{
+                dialog.setDeleteMessage(null);
+            }
+            
             var uid = newnode.attributes.uid;
             Zenoss.util.setContext(uid, 'detail_panel', 'organizer_events', 
                                    'commands-menu');
@@ -491,7 +503,7 @@ Zenoss.nav.register({
         action: function(node, target){
             target.layout.setActiveItem('modifications');
         }
-	}]
+    }]
 
 });
 
@@ -540,6 +552,7 @@ var devtree = {
     xtype: 'HierarchyTreePanel',
     id: 'devices',
     searchField: true,
+    deleteMessage: _t('The selected node will be deleted'),
     directFn: REMOTE.getTree,
     root: {
         id: 'Devices',
@@ -548,7 +561,7 @@ var devtree = {
     },
     selModel: treesm,
     router: REMOTE,
-	addNodeDialogItems: addNodeDialogItems,
+    addNodeDialogItems: addNodeDialogItems,
     listeners: { 
         render: initializeTreeDrop, 
         filter: function(e) {
@@ -558,18 +571,18 @@ var devtree = {
     }
 };
 
-
 var grouptree = {
     xtype: 'HierarchyTreePanel',
     id: 'groups',
     searchField: false,
     directFn: REMOTE.getTree,
+    deleteMessage: _t('The selected node will be deleted'),
     root: {
         id: 'Groups',
         uid: '/zport/dmd/Groups'
     },
     router: REMOTE,
-	addNodeDialogItems: addNodeDialogItems,
+    addNodeDialogItems: addNodeDialogItems,
     selectRootOnLoad: false,
     selModel: treesm,
     listeners: { render: initializeTreeDrop }
@@ -584,8 +597,8 @@ var loctree = {
         id: 'Locations',
         uid: '/zport/dmd/Locations'
     },
-	router: REMOTE,
-	addNodeDialogItems: addNodeDialogItems,
+    router: REMOTE,
+    addNodeDialogItems: addNodeDialogItems,
     selectRootOnLoad: false,
     selModel: treesm,
     listeners: { render: initializeTreeDrop }
@@ -751,7 +764,7 @@ Ext.getCmp('center_panel').add({
 });
 
 
-/* ***********************************************************************
+/*
  *
  *   footer_panel - the add/remove tree node buttons at the bottom
  *

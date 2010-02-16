@@ -13,61 +13,9 @@
 ###########################################################################
 */
 
-(function(){
+(function () {
 
 Ext.ns('Zenoss');
-
-function initTreeDialogs(tree) {
-    
-    new Zenoss.HideFormDialog({
-        id: 'addNodeDialog',
-        title: _t('Add Tree Node'),
-        items: tree.addNodeDialogItems,
-        listeners: {
-            'hide': function(treeDialog) {
-                Ext.getCmp('typeCombo').setValue('');
-                Ext.getCmp('idTextfield').setValue('');
-            }
-        },
-        buttons: [
-            {
-                xtype: 'HideDialogButton',
-                text: _t('Submit'),
-                handler: function(button, event) {
-                    var type = Ext.getCmp('typeCombo').getValue();
-                    var id = Ext.getCmp('idTextfield').getValue();
-                    tree.addNode(type, id);
-                }
-            }, {
-                xtype: 'HideDialogButton',
-                text: _t('Cancel')
-            }
-        ]
-    });
-    
-    new Zenoss.MessageDialog({
-        id: 'deleteNodeDialog',
-        title: _t('Delete Tree Node'),
-        message: _t('The selected node will be deleted.'),
-        okHandler: function(){
-            tree.deleteSelectedNode();
-        }
-    });
-    
-}
-
-function buttonClickHandler(buttonId) {
-    switch(buttonId) {
-        case 'addButton':
-            Ext.getCmp('addNodeDialog').show();
-            break;
-        case 'deleteButton':
-            Ext.getCmp('deleteNodeDialog').show();
-            break;
-        default:
-            break;
-    }
-}
 
 /**
  * @class Zenoss.HierarchyTreePanel
@@ -174,14 +122,81 @@ Zenoss.HierarchyTreePanel = Ext.extend(Ext.tree.TreePanel, {
             text: _t(root.text || root.id)
         });
         config.listeners = Ext.applyIf(config.listeners || {}, {
-            buttonClick: buttonClickHandler
+            buttonClick: this.buttonClickHandler
         });
         this.router = config.router;
-        this.addNodeDialogItems = config.addNodeDialogItems;
         config.loader.baseAttrs = {iconCls:'severity-icon-small clear'};
         Zenoss.HierarchyTreePanel.superclass.constructor.apply(this,
             arguments);
-        initTreeDialogs(this);
+        this.initTreeDialogs(this, config);
+    },
+                                           
+    initTreeDialogs: function(tree, config) {
+    
+        new Zenoss.HideFormDialog({
+            id: 'addNodeDialog',
+            title: _t('Add Tree Node'),
+            items: config.addNodeDialogItems,
+            listeners: {
+                'hide': function(treeDialog) {
+                    Ext.getCmp('typeCombo').setValue('');
+                    Ext.getCmp('idTextfield').setValue('');
+                }
+            },
+            buttons: [{
+                xtype: 'HideDialogButton',
+                text: _t('Submit'),
+                handler: function(button, event) {
+                    var type = Ext.getCmp('typeCombo').getValue();
+                    var id = Ext.getCmp('idTextfield').getValue();
+                    tree.addNode(type, id);
+                }
+             }, {
+                xtype: 'HideDialogButton',
+                text: _t('Cancel')
+            }]
+        });
+        
+        var message = '<span id="deleteMessage">' + config.deleteMessage +
+            '</span>';
+        tree.deleteDialog = new Zenoss.MessageDialog({
+            id: 'deleteNodeDialog',
+            title: _t('Delete Tree Node'),
+            message: message,
+            defaultMessage:  _t('The selected node will be deleted'),
+            width:330,
+            okHandler: function(){
+                tree.deleteSelectedNode();
+            },
+            setDeleteMessage: function(msg){
+                if (msg === null) {
+                    msg = this.defaultMessage;
+                }
+                this.msg = msg;
+                var span = Ext.getDom('deleteMessage');
+                if (span){
+                    span.innerHTML = msg;
+                }
+            }
+        });
+        
+    },
+    setCorrectDeleteMessage: function() {
+        var dialog = Ext.getCmp('deleteNodeDialog');
+        dialog.setDeleteMessage(dialog.msg);
+    },
+    buttonClickHandler: function(buttonId) {
+        switch(buttonId) {
+            case 'addButton':
+                Ext.getCmp('addNodeDialog').show();
+                break;
+            case 'deleteButton':
+                Ext.getCmp('deleteNodeDialog').show();
+                this.setCorrectDeleteMessage();
+                break;
+            default:
+                break;
+        }
     },
     initEvents: function() {
         Zenoss.HierarchyTreePanel.superclass.initEvents.call(this);
@@ -307,8 +322,8 @@ Zenoss.HierarchyTreePanel = Ext.extend(Ext.tree.TreePanel, {
             if (result.success) {
                 var nodeConfig = response.result.nodeConfig;
                 var node = tree.getLoader().createNode(nodeConfig);
-                // if you don't call expand on the parentNode you will get a javascript error 
-                // that does not make sense on the callback 
+                // if you don't call expand on the parentNode you will get a 
+                // javascript error that does not make sense on the callback 
                 parentNode.expand();
                 parentNode.appendChild(node);
                 node.select();
