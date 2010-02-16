@@ -71,7 +71,7 @@ var treesm = new Ext.tree.DefaultSelectionModel({
             var footer = Ext.getCmp('footer_bar');
             footer.bubbleTargetId = newnode.id;
             
-            // Even after changing the ID I was not able to have
+            // Even after changing the ID I was not able to have 
             // each tree have their own instance of a deleteNodeDialog, so I
             // modified it to allow you to change the message
             var dialog = Ext.getCmp('deleteNodeDialog');
