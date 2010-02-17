@@ -40,7 +40,8 @@ class ComponentCommandParser(CommandParser):
         # Map datapoints by data you can find in the command output
         ifs = {}
         for dp in cmd.points:
-            points = ifs.setdefault(dp.data['componentScanValue'], {})
+            dp.component = dp.data['componentScanValue']
+            points = ifs.setdefault(dp.component, {})
             points[dp.id] = dp
 
         # split data into component blocks
