@@ -18,7 +18,7 @@ Add zEnablePassword to DeviceClass.
 import Migrate
 
 class zEnablePassword(Migrate.Step):
-    version = Migrate.Version(2, 5, 2)
+    version = Migrate.Version(2, 5, 70)
     
     def cutover(self, dmd):
         if not dmd.Devices.hasProperty('zEnablePassword'):
