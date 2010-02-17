@@ -33,7 +33,7 @@ from Products.ZenEvents.ZenEventClasses import App_Start, App_Stop, \
 
 from twisted.cred import credentials
 from twisted.internet import reactor, defer
-from twisted.internet.error import ConnectionLost
+from twisted.internet.error import ConnectionLost, ReactorNotRunning
 from twisted.spread import pb
 from twisted.python.failure import Failure
 import twisted.python.log
@@ -285,7 +285,10 @@ class PBDaemon(ZenDaemon, pb.Referenceable):
     def stop(self, ignored=''):
         def stopNow(ignored):
             if reactor.running:
-                reactor.stop()
+                try:
+                    reactor.stop()
+                except ReactorNotRunning:
+                    self.log.debug("Tried to stop reactor that was stopped")
         if reactor.running and not self.stopped:
             self.stopped = True
             if 'EventService' in self.services:
@@ -299,8 +302,8 @@ class PBDaemon(ZenDaemon, pb.Referenceable):
                 self.log.debug( "Sent a 'stop' event" )
             else:
                 self.log.debug( "No event sent as no EventService available." )
-            # but not too much time
-            reactor.callLater(1, stopNow, True) # requires bogus arg
+                # but not too much time
+                reactor.callLater(1, stopNow, True) # requires bogus arg
         else:
             self.log.debug( "stop() called when not running" )
 
