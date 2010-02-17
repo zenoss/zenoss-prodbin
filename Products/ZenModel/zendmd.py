@@ -16,6 +16,7 @@ import sys
 import os
 import code
 import atexit
+import logging
 from optparse import OptionParser
 try:
     import readline
@@ -168,6 +169,19 @@ def _customStuff():
                 else:
                     print readline.get_history_item(i)
 
+    def setLogLevel(level=10):
+        """
+        Change the logging level to allow for more insight into the
+        in-flight mechanics of Zenoss.
+
+        @parameter level: logging level at which messages display (eg logging.INFO)
+        @type level: integer
+        """
+        log = logging.getLogger()
+        log.setLevel(level)
+        for handler in log.handlers:
+            if isinstance(handler, logging.StreamHandler):
+                handler.setLevel(level)
 
     _CUSTOMSTUFF = locals()
     return _CUSTOMSTUFF
