@@ -235,31 +235,7 @@ class Migration(ZenScriptBase):
                 # Run the newer steps.
                 steps = [s for s in self.allSteps
                             if s.version > currentDbVers]
-                
-                # Ideally migrate scripts are always run using the version of
-                # the code that corresponds to the version in the migrate
-                # step.  Problems can arise when executing migrate steps
-                # using newer code than that for which they were intended.
-                # See #2924
-                if not self.options.force:
-                    earliestAppropriateVers = \
-                            self.getEarliestAppropriateStepVersion()
-                    inappropriate = [s for s in steps if
-                                        s.version < earliestAppropriateVers]
-                    if inappropriate:
-                        msg = []
-                        msg.append('The following migrate steps were not '
-                            'intended to run with the currently installed '
-                            'version of the Zenoss code.  The installed '
-                            'version is %s.' % VERSION)
-                        msg.append(
-                            'You can override this warning with the --force '
-                            'option.')
-                        for step in inappropriate:
-                            msg.append('  %s (%s)'
-                                        % (step.name(), step.version.short()))
-                        self.message('\n'.join(msg))
-                        sys.exit(-1)
+
         return steps
 
 
@@ -288,7 +264,6 @@ class Migration(ZenScriptBase):
         if not self.options.steps:
             self.message('Loading Reports')
             rl = ReportLoader(noopts=True, app=self.app)
-            rl.options.force = True
             rl.options.logseverity = self.options.logseverity + 10
             rl.setupLogging()
             rl.loadDatabase()
@@ -387,14 +362,6 @@ class Migration(ZenScriptBase):
                                         'Usually if there are no newer '
                                         'migrate steps the current steps '
                                         'are rerun.')
-        self.parser.add_option('--force',
-                                dest='force',
-                                action='store_true',
-                                default=False,
-                                help='Force version inappropriate migrate '
-                                        'steps to run.  This can happen when '
-                                        'trying to skip a minor version '
-                                        'when upgrading.')
         ZenScriptBase.buildOptions(self)
 
 
