@@ -314,6 +314,38 @@ class TestDevice(ZenModelBaseTest):
         link = dev.getPrettyLink()
         self.assert_( link.endswith( 'testTitle</a>' ) )
 
+#    def testRenameDevice(self):
+#        # OK renameDevice doesn't work in the test harness because
+#        # there is no _p_jar attribute on the create devices.
+#        # Check this test out, dude--
+#        self._assert( self.dmd._p_jar is not None )
+#        # If that fails, renameDevice is not going to work
+#        testId = 'testId'
+#        testTitle = 'testTitle'
+#        newId = 'newIdAndTitle'
+#        dev = manage_createDevice( self.dmd, testId, '/')
+#        dev.setTitle( testTitle )
+#        devClass = self.dmd.Devices
+#        device = devClass.devices._getOb( testId )
+#
+#        device.renameDevice( newId )
+#
+#        deviceOld = devClass.devices._getOb( testId )
+#        self._assert( deviceOld is None )
+#        deviceNew = devClass.devices._getOb( newId )
+#        self._assert( deviceNew is not None )
+#        self.assertEqual( newId, deviceNew.id )
+#        self.assertEqual( newId, deviceNew.title )
+
+    def testRenameDeviceDuplicateName(self):
+        testId1 = 'testId1'
+        testId2 = 'testId2'
+        dev1 = manage_createDevice(self.dmd, testId1, '/')
+        manage_createDevice(self.dmd, testId2, '/Devices')
+        self.assertRaises( DeviceExistsError,
+                           dev1.renameDevice,
+                           testId2 )
+
 class GetSnmpConnInfoTest(ZenModelBaseTest):
     
     def runTest(self):

@@ -1755,7 +1755,8 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
     security.declareProtected(ZEN_ADMIN_DEVICE, 'renameDevice')
     def renameDevice(self, newId=None, REQUEST=None):
         """
-        Rename device from the DMD
+        Rename device from the DMD.  Disallow assignment of
+        an id that already exists in the system.
 
         @permission: ZEN_ADMIN_DEVICE
         @param newId: new name
@@ -1779,6 +1780,16 @@ class Device(ManagedEntity, Commandable, Lockable, MaintenanceWindowable,
             if REQUEST:
                 REQUEST['RESPONSE'].redirect("%s/%s" % (parent.absolute_url(), oldId))
             return
+
+        device = self.dmd.Devices.findDeviceByIdExact( newId )
+        if device:
+            message = 'Device already exists with id %s' % newId
+            if REQUEST:
+                messaging.IMessageSender(self).sendToBrowser(
+                    'Device Rename Failed', message, messaging.CRITICAL)
+                return self.callZenScreen(REQUEST)
+            else:
+                raise DeviceExistsError( message, device )
 
         # side effect: self.getId() will return newId after this call
         try:
