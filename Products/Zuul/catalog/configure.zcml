@@ -54,16 +54,29 @@
     <five:implements 
         interface=".interfaces.ITreeSpanningComponent"
         class="Products.ZenModel.IpInterface.IpInterface"/>
-
+    
     <five:implements 
         interface=".interfaces.ITreeSpanningComponent"
         class="Products.ZenModel.OSProcess.OSProcess"/>
+    
+    <five:implements 
+        interface=".interfaces.IDeviceOrganizer"
+        class="Products.ZenModel.DeviceGroup.DeviceGroup"/>
+
+    <five:implements 
+        interface=".interfaces.IDeviceOrganizer"
+        class="Products.ZenModel.Location.Location"/>
+    
+    <five:implements 
+        interface=".interfaces.IDeviceOrganizer"
+        class="Products.ZenModel.System.System"/>
 
     <subscriber handler=".events.onIndexingEvent"/>
     <subscriber handler=".events.onObjectRemoved"/>
     <subscriber handler=".events.onObjectAdded"/>
     <subscriber handler=".events.onObjectMoved"/>
     <subscriber handler=".events.onTreeSpanningComponentBeforeDelete"/>
+    <subscriber handler=".events.onOrganizerBeforeDelete"/>
     <subscriber handler=".events.onTreeSpanningComponentAfterAddOrMove"/>
 
 </configure>

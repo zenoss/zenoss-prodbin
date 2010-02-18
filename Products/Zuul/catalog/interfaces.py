@@ -36,6 +36,17 @@ class ITreeSpanningComponent(Interface):
         Return the device associated with this component.
         """
 
+        
+class IDeviceOrganizer(Interface):
+    """
+    An interface that represents acollection of devices
+    """
+    
+    def devices():
+        """
+        Returns all of the devices that belong to this collection
+        """
+        
 
 class IIndexingEvent(IObjectEvent):
     """

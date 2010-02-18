@@ -17,8 +17,9 @@ from zope.component import adapter
 from zope.app.container.interfaces import IObjectAddedEvent, IObjectMovedEvent
 from zope.app.container.interfaces import IObjectRemovedEvent
 from OFS.interfaces import IObjectWillBeMovedEvent, IObjectWillBeAddedEvent
-from interfaces import IIndexingEvent, IGloballyIndexed, ITreeSpanningComponent
+from interfaces import IIndexingEvent, IGloballyIndexed, ITreeSpanningComponent, IDeviceOrganizer
 from paths import devicePathsFromComponent
+
 
 class IndexingEvent(object):
     implements(IIndexingEvent)
@@ -79,6 +80,26 @@ def onObjectMoved(ob, event):
             IObjectRemovedEvent.providedBy(event)):
         notify(IndexingEvent(ob, 'path', False))
 
+
+@adapter(IDeviceOrganizer, IObjectWillBeMovedEvent)
+def onOrganizerBeforeDelete(ob, event):
+    """
+    Before we delete the organizer we need to remove its references
+    to the devices. 
+    """
+    if not IObjectWillBeAddedEvent.providedBy(event):
+        # get the catalog
+        try:
+            catalog = ob.getPhysicalRoot().zport.global_catalog
+        except (KeyError, AttributeError):
+            # Migrate script hasn't run yet; ignore indexing
+            return
+        
+        # remove the device's path from this organizer
+        # from the indexes
+        for device in  ob.devices.objectValuesGen():
+            catalog.unindex_object_from_paths(device, [device.getPhysicalPath()])
+        
 
 @adapter(ITreeSpanningComponent, IObjectWillBeMovedEvent)
 def onTreeSpanningComponentBeforeDelete(ob, event):
