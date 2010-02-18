@@ -82,61 +82,11 @@ function deleteReportOrganizer(e) {
  */
 function addToZenPack(e) {
     if (!addrorgtozenpack) {
-        addrorgtozenpack = new Ext.Window({
-            title: _t('Add to Zen Pack'),
-            layout: 'fit',
-            autoHeight: true,
-            width: 310,
-            closeAction: 'hide',
-            plain: true,
-            items: [{
-                id: 'addzenpackform',
-                xtype: 'form',
-                monitorValid: true,
-                defaults: {width: 180},
-                autoHeight: true,
-                border: false,
-                frame: false,
-                labelWidth: 100,
-                items: [{
-                    fieldLabel: _t('Zen Pack'),
-                    name: 'zpname',
-                    xtype: 'combo',
-                    allowBlank: false,
-                    store: new Ext.data.DirectStore({
-                        id: 'myzpstore',
-                        fields: ['name'],
-                        root: 'packs',
-                        totalProperty: 'totalCount',
-                        directFn: 
-                            Zenoss.remote.ReportRouter.getEligiblePacks
-                    }),
-                    valueField: 'name', 
-                    displayField: 'name',
-                    forceSelection: true,
-                    triggerAction: 'all',
-                    selectOnFocus: true,
-                    id: 'zpcombobox'
-                }],
-                buttons: [{
-                    text: _t('Cancel'),
-                    handler: function () {
-                        addrorgtozenpack.hide();
-                    }
-                }, {
-                    text: _t('Submit'),
-                    formBind: true,
-                    handler: function () {
-                        var form, chosenzenpack;
-                        form = Ext.getCmp('addzenpackform');
-                        chosenzenpack = form.getForm().findField('zpname').getValue();
-                        addrorgtozenpack.hide();
-                    }
-                }]
-            }]
+        addrorgtozenpack = new Zenoss.AddToZenPackWindow({
+            target: treesm.getSelectedNode().attributes.uid
         });
     }
-    addrorgtozenpack.show(this);
+    addrorgtozenpack.show();
 }
 
 function initializeTreeDrop(g) {

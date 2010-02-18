@@ -90,9 +90,3 @@ class ReportRouter(DirectRouter):
                 'uiProvider': 'report', 
                 'leaf': leaf,
                 'text': text }
-
-    def getEligiblePacks(self, **data):
-        packs = [{'name': zp.getId()} for zp in
-                 self.context.dmd.ZenPackManager.packs() if zp.isDevelopment()]
-        return DirectResponse(packs=packs, totalCount=len(packs))
-

@@ -54,4 +54,11 @@
     namespace="Zenoss.remote"
     />
 
+<browser:directRouter
+    name="zenpack_router"
+    for="*"
+    class=".zenpack.ZenPackRouter"
+    namespace="Zenoss.remote"
+    />
+
 </configure>

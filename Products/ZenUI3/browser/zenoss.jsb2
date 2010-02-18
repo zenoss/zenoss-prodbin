@@ -75,6 +75,9 @@
         }, {
             "text": "DeviceDetailBar.js",
             "path": "resources/js/zenoss/"
+        }, {
+            "text": "AddToZenPackWindow.js",
+            "path": "resources/js/zenoss/"
         }]
     }],
     "resources": []

@@ -76,6 +76,11 @@
              name="service"
              />
 
+    <utility factory=".facades.ZenPackFacade"
+             provides=".interfaces.IFacade"
+             name="zenpack"
+             />
+
 <utility factory=".facades.TemplateFacade"
          provides=".interfaces.IFacade"
          name="template"

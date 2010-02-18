@@ -208,3 +208,4 @@ from processfacade import ProcessFacade
 from servicefacade import ServiceFacade
 from devicefacade import DeviceFacade
 from templatefacade import TemplateFacade
+from zenpackfacade import ZenPackFacade
