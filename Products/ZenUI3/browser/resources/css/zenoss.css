@@ -147,6 +147,7 @@
 .severity-icon.clear { background-position: -176px 0px; }
 .severity-icon.warning { background-position: -220px 0px; }
 
+
 .severity-icon-small.critical,
 .severity-icon-small.error,
 .severity-icon-small.warning,
@@ -163,12 +164,12 @@
     background-image: url(/zenui/img/xtheme-zenoss/icon/severity-sprite-reverse.png)
 }
 
-.severity-icon-small.critical { background-position: 0px  0px   }
-.severity-icon-small.error    { background-position: 0px -20px  }
-.severity-icon-small.warning  { background-position: 0px -40px  }
-.severity-icon-small.info     { background-position: 0px -60px  }
-.severity-icon-small.debug    { background-position: 0px -80px  }
-.severity-icon-small.clear    { background-position: 0px -100px }
+.severity-icon-small.critical { background-position: 0px  0px; }
+.severity-icon-small.error    { background-position: 0px -20px; }
+.severity-icon-small.warning  { background-position: 0px -40px; }
+.severity-icon-small.info     { background-position: 0px -60px; }
+.severity-icon-small.debug    { background-position: 0px -80px; }
+.severity-icon-small.clear    { background-position: 0px -100px; }
 
 .largetoolbar .severity-icon-small.critical { background-position: 2px  2px   }
 .largetoolbar .severity-icon-small.error    { background-position: 2px -18px  }
@@ -176,6 +177,27 @@
 .largetoolbar .severity-icon-small.info     { background-position: 2px -58px  }
 .largetoolbar .severity-icon-small.debug    { background-position: 2px -78px  }
 .largetoolbar .severity-icon-small.clear    { background-position: 2px -98px }
+
+/** making a copy of the styles for the tree */
+/* The !important'ss are because IE is making .xtree-node-leaf .x-tree-node-icon more specific than these classes for the Tree */
+.tree-severity-icon-small-critical,
+.tree-severity-icon-small-error,
+.tree-severity-icon-small-warning,
+.tree-severity-icon-small-info,
+.tree-severity-icon-small-debug,
+.tree-severity-icon-small-clear {
+    width: 16px !important;
+    height: 14px!important;
+    background: transparent url(/zenui/img/xtheme-zenoss/icon/severity-sprite.png) no-repeat !important;
+    margin: 0 auto;
+}
+
+.tree-severity-icon-small-critical { background-position: 0px  0px !important; }
+.tree-severity-icon-small-error    { background-position: 0px -20px!important; }
+.tree-severity-icon-small-warning  { background-position: 0px -40px!important; }
+.tree-severity-icon-small-info     { background-position: 0px -60px!important; }
+.tree-severity-icon-small-debug    { background-position: 0px -80px!important; }
+.tree-severity-icon-small-clear    { background-position: 0px -100px!important; }
 
 /**
  * FILTER GRID

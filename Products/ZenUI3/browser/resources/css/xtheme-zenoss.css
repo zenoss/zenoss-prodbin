@@ -327,6 +327,14 @@ ul.x-tab-strip-bottom{
     background-image:url(../img/xtheme-zenoss/toolbar/tb-subselect-btn-sprite.png);
 }
 
+.x-toolbar.subselect-head .x-btn-bl, .x-toolbar.subselect-head .x-btn-bc,
+.x-toolbar.subselect-head .x-btn-br,
+.x-toolbar.subselect-head .x-btn-tl, .x-toolbar.subselect-head .x-btn-tc,
+.x-toolbar.subselect-head .x-btn-tr, .x-toolbar.subselect-head .x-btn-mr, 
+.x-toolbar.subselect-head .x-btn-ml, .x-toolbar.subselect-head .x-btn-mc,{
+    background-image:url(../img/xtheme-zenoss/toolbar/tb-subselect-btn-sprite.png) !important;
+}
+
 .x-toolbar.subselect-head .x-btn.toleft .x-btn-tl i, 
 .x-toolbar.subselect-head .x-btn.toleft .x-btn-bl i, 
 .x-toolbar.subselect-head .x-btn.toleft .x-btn-ml i,
@@ -335,33 +343,34 @@ ul.x-tab-strip-bottom{
 .x-toolbar.subselect-head .x-btn.toright .x-btn-mr i {
     width: 16px;
 }
+
 .x-toolbar.subselect-head .x-btn.toleft .x-btn-tl, 
 .x-toolbar.subselect-head .x-btn.toleft .x-btn-bl, 
 .x-toolbar.subselect-head .x-btn.toleft .x-btn-ml,
 .x-toolbar.subselect-head .x-btn.toright .x-btn-tr, 
 .x-toolbar.subselect-head .x-btn.toright .x-btn-br, 
 .x-toolbar.subselect-head .x-btn.toright .x-btn-mr {
-    background-image: url(../img/xtheme-zenoss/toolbar/tb-subselect-btn-arrows.png);
+    background-image: url(../img/xtheme-zenoss/toolbar/tb-subselect-btn-arrows.png) !important;
 }
 
 .x-toolbar.subselect-head .x-btn.toright .x-btn-tr {
-    background-position: -16px 0px;
+    background-position: -16px 0px !important;
 }
 .x-toolbar.subselect-head .x-btn.toright .x-btn-br {
-    background-position: -16px -22px;
+    background-position: -16px -22px !important;
 }
 .x-toolbar.subselect-head .x-btn.toright .x-btn-mr {
-    background-position: -16px -4px;
+    background-position: -16px -4px !important;
 }
 
 .x-toolbar.subselect-head .x-btn.toleft .x-btn-tl {
-    background-position: 0 0px;
+    background-position: 0 0px !important;
 }
 .x-toolbar.subselect-head .x-btn.toleft .x-btn-bl {
-    background-position: 0 -22px;
+    background-position: 0 -22px !important;
 }
 .x-toolbar.subselect-head .x-btn.toleft .x-btn-ml {
-    background-position: 0 -4px;
+    background-position: 0 -4px !important;
 }
 
 .x-toolbar.subselect-head .x-btn-click.toright .x-btn-tr {

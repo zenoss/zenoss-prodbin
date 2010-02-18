@@ -69,7 +69,7 @@ class TreeNode(object):
                 break
         else:
             sev = 'clear'
-        return 'severity-icon-small %s' % sev
+        return 'tree-severity-icon-small-%s' % sev
 
     @property
     def children(self):
