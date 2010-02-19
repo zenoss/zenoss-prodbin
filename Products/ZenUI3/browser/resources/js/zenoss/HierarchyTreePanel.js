@@ -156,7 +156,9 @@ Zenoss.HierarchyTreePanel = Ext.extend(Ext.tree.TreePanel, {
                 text: _t('Cancel')
             }]
         });
-        
+
+        // the delete message is somewhat janky but pretty much if it is not
+        // defined in the object's config then the "DefaultMessage" will be used "
         var message = '<span id="deleteMessage">' + config.deleteMessage +
             '</span>';
         tree.deleteDialog = new Zenoss.MessageDialog({
@@ -183,6 +185,11 @@ Zenoss.HierarchyTreePanel = Ext.extend(Ext.tree.TreePanel, {
     },
     setCorrectDeleteMessage: function() {
         var dialog = Ext.getCmp('deleteNodeDialog');
+        
+        // if the delete message was not declared in the definition
+        if (Ext.isEmpty(dialog.msg)){
+            dialog.msg = dialog.defaultMessage;
+        }
         dialog.setDeleteMessage(dialog.msg);
     },
     buttonClickHandler: function(buttonId) {
