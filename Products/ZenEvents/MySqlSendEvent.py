@@ -82,7 +82,7 @@ class MySqlSendEventMixin:
             if not hasattr(event, field):
                 raise ZenEventError(
                     "Required event field %s not found" % field)
-        
+
         #FIXME - ungly hack to make sure severity is an int
         try:
             event.severity = int(event.severity)
@@ -170,7 +170,11 @@ class MySqlSendEventMixin:
         """
         insert = ""
         statusdata, detaildata = self.eventDataMaps(event)
-        log.debug("Performing action '%s' on event %s",
+        if int(event.severity) == 0:
+            log.debug("Clear event found with event data %s",
+                  statusdata)
+        else:
+            log.debug("Performing action '%s' on event %s",
                   event._action, statusdata)
         if detaildata:
             log.debug("Detail data: %s", detaildata)
@@ -184,8 +188,11 @@ class MySqlSendEventMixin:
             if int(event.severity) == 0:
                 event._action = "history"
                 clearcls = event.clearClasses()
-                if clearcls:
+                if not clearcls:
+                    log.debug("No clear classes in event -- no action taken.")
+                else:
                     rows = execute(curs, self.buildClearUpdate(event, clearcls))
+                    log.debug("%d events matched clear criteria", rows)
                     if not rows:
                         return None
                     insert = ('insert into log '
@@ -202,11 +209,14 @@ class MySqlSendEventMixin:
             if rescount != 1:
                 sql = ('select evid from %s where dedupid="%s"' % (
                         event._action, decode(self.dmd.Devices, event.dedupid)))
+                log.debug("%d events returned from insert -- selecting first match from %s.",
+                          rescount, sql)
                 execute(curs, sql)
                 rs = curs.fetchone()
                 if rs:
                     evid = rs[0]
                 else:
+                    log.debug("No matches found")
                     evid = None
         finally: self.close(conn)
         return evid
@@ -459,6 +469,7 @@ class MySqlSendEventMixin:
             w.append("%s='%s'" % (self.eventClassField, self.escape(cls))) 
         if w:
             update += " and (" + " or ".join(w) + ")"
+        log.debug("Clear command: %s", update)
         return update
 
     
