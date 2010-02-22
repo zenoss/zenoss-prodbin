@@ -76,17 +76,14 @@ var deviceInformation = {
         items: [{
             xtype: 'editabletextarea',
             name: 'description',
-            style: 'white-space:pre;',
             fieldLabel: _t('Description')
         },{
             xtype: 'editabletextarea',
             name: 'comments',
-            style: 'white-space:pre;',
             fieldLabel: _t('Comments')
         },{
             xtype: 'displayfield',
             name: 'links',
-            style: 'white-space:pre;',
             fieldLabel: _t('Links')
         }]
     }]
@@ -178,7 +175,6 @@ var overview = {
                         } else {
                             D.locking = stat + '<br/>' + D.locking.events;
                         }
-
                     }
                     if (D.hwManufacturer) {
                         D.hwManufacturer = Zenoss.render.link(D.hwManufacturer.uid);
@@ -212,6 +208,9 @@ var overview = {
             uid: UID
         },
         labelAlign: 'top',
+        defaults:{
+            anchor: Ext.isIE ? '98%' : '100%'
+        },
         items: [
             deviceInformation,
             {

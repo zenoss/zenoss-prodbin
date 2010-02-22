@@ -441,6 +441,7 @@ table.eventrainbow td.warning { background-color: #fbd13d; }
 
 .display-field {
     padding-bottom: 7px;
+    white-space: pre;
 }
 
 .editable-field {
