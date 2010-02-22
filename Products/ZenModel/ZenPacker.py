@@ -60,6 +60,11 @@ class ZenPacker(object):
                 result.append(getattr(self, name)._getOb(id))
             except AttributeError:
                 pass
+        if len(result) == 0:
+            try:
+                result.append(self.dmd.unrestrictedTraverse(id))
+            except KeyError:
+                pass
         if len(result) == 1:
             return result[0]
         raise AttributeError('Cannot find a unique %s on %s' % (id, self.id))

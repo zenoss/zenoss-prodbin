@@ -30,4 +30,4 @@ class ZenPackFacade(ZuulFacade):
         return ifilter(lambda zp: zp.isDevelopment(), zenpacks)
 
     def addToZenPack(self, topack, zenpack):
-        self._dmd.ZenPackManager.addToZenPack(topack, zenpack)
+        self._dmd.ZenPackManager.addToZenPack(ids=[topack], pack=zenpack)

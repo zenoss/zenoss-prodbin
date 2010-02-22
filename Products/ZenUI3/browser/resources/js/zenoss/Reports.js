@@ -82,10 +82,9 @@ function deleteReportOrganizer(e) {
  */
 function addToZenPack(e) {
     if (!addrorgtozenpack) {
-        addrorgtozenpack = new Zenoss.AddToZenPackWindow({
-            target: treesm.getSelectedNode().attributes.uid
-        });
+        addrorgtozenpack = new Zenoss.AddToZenPackWindow();
     }
+    addrorgtozenpack.setTarget(treesm.getSelectedNode().attributes.uid);
     addrorgtozenpack.show();
 }
 

@@ -73,7 +73,7 @@ Zenoss.AddToZenPackWindow = Ext.extend(Ext.Window, {
                         var chosenzenpack = 
                             form.getForm().findField('zpname').getValue();
                             Zenoss.remote.ZenPackRouter.addToZenPack({
-                                topack: config.target,
+                                topack: Ext.getCmp('addToZenPackWindow').target,
                                 zenpack: chosenzenpack
                             },
                             function (data) {
@@ -85,6 +85,9 @@ Zenoss.AddToZenPackWindow = Ext.extend(Ext.Window, {
             }]
         });
         Zenoss.AddToZenPackWindow.superclass.constructor.call(this, config);
+    },
+    setTarget: function (target) {
+        this.target = target;
     }
 });
 
