@@ -1264,6 +1264,23 @@ Zenoss.util.setContext = function(uid) {
         Ext.getCmp(id).setContext(uid);
     });
 };
+/**
+ * Return an array filtered by function argument; Filter function should 
+ * return true if a value should be included in the filtered result
+ * @param {Object} arr; array to be filtered
+ * @param {Object} filterFn; function used to filter
+ */
+Zenoss.util.filter = function(arr, filterFn, scope) {
+    var result =[];
+    Ext.each(arr, function(val) {
+        var include = filterFn.call(scope || this, val);
+        if (include) {
+            result.push(val);
+        }
+    });
+    return result;
+};
+
 
 /**
  * Proxy that will only allow one request to be loaded at a time.  Requests 

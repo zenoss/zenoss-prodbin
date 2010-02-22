@@ -48,6 +48,12 @@
     />
 
 <browser:directRouter
+    name="detailnav_router"
+    for="*"
+    class=".nav.DetailNavRouter"
+    namespace="Zenoss.remote"
+    />
+<browser:directRouter
     name="report_router"
     for="*"
     class=".report.ReportRouter"

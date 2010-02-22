@@ -63,8 +63,9 @@ Ext.reg('iframe', Zenoss.IFramePanel);
 
 Zenoss.ContextualIFrame = Ext.extend(Zenoss.IFramePanel, {
     contextUid: null,
+    refreshOnContextChange: false,
     setContext: function(uid) {
-        if (this.contextUid!=uid) {
+        if (this.refreshOnContextChange || this.contextUid!=uid) {
             this.contextUid = uid;
             var url = uid + '/' + this.viewName;
             this.setSrc(url);
@@ -75,22 +76,24 @@ Zenoss.ContextualIFrame = Ext.extend(Zenoss.IFramePanel, {
 Ext.reg('contextiframe', Zenoss.ContextualIFrame);
 
 
+/**
+ * Panel used for displaying old zenoss ui pages in an iframe. Set Context 
+ * should be called by page to initialze panel for viewing.
+ * 
+ * NOTE: sets a cookie named "newui"; the presence of this cookie will cause the
+ * old ui to render with out the old navigation panels and without the tabs.
+ * 
+ * @class Zenoss.BackCompatPanel
+ * @extends Zenoss.ContextualIFrame
+ */
 Zenoss.BackCompatPanel = Ext.extend(Zenoss.ContextualIFrame, {
     setContext: function(uid) {
+       
         if (this.contextUid!=uid){
             this.on('frameload', this.injectViewport, {scope:this, single:true});
         }
+        Ext.util.Cookies.set('newui', 'yes');
         Zenoss.BackCompatPanel.superclass.setContext.apply(this, arguments);
-    },
-    injectViewport: function(win) {
-        var doc = win.document,
-            script = doc.createElement('script'),
-            code = "new Ext.Viewport({layout:'fit', items:[{contentEl:'contentPane'}]}).doLayout();";
-
-        script.type = 'text/javascript';
-        script.text = code;
-
-        doc.body.appendChild(script);
     }
 });
 

@@ -85,14 +85,11 @@ var treesm = new Ext.tree.DefaultSelectionModel({
             Zenoss.util.setContext(uid, 'detail_panel', 'organizer_events', 
                                    'commands-menu');
             setDeviceButtonsDisabled(true);
-            var card = Ext.getCmp('master_panel').getComponent(0),
-                type = Zenoss.types.type(uid);
-            if (type && !Ext.isEmpty(Zenoss.nav[type])) {
-                card.navButton.show();
-                Ext.getCmp('master_panel').getComponent(1).navButton.show();
-            } else {
-                card.navButton.hide();
-            }
+            var card = Ext.getCmp('master_panel').getComponent(0);
+            //should "ask" the DetailNav if there are any details before showing
+            //the button
+            card.navButton.show();
+            Ext.getCmp('master_panel').getComponent(1).navButton.show();
         }
     }
 });
@@ -453,66 +450,12 @@ function commandMenuItemHandler(item) {
 
 function updateNavTextWithCount(node) {
     var sel = treesm.getSelectedNode();
-    if (sel) {
+    if (sel && Ext.isDefined(sel.attributes.text.count)) {
         var count = sel.attributes.text.count;
-        node.setText('<b'+'>Devices ('+count+')<'+'/b>');
+        node.setText('Devices ('+count+')');
     }
 }
 
-Zenoss.nav.register({
-    DeviceLocation: [{
-        id: 'Devices',
-        text: 'Devices',
-        action: function(node, target) {
-            target.layout.setActiveItem('device_grid');
-        },
-        listeners: {
-            render: updateNavTextWithCount
-        }
-    }, {
-        id: 'Map',
-        text: 'Map',
-        action: function(node, target) {
-            target.layout.setActiveItem('map');
-        }
-    }],
-    DeviceClass: [{
-        id: 'Devices',
-        text: 'Devices',
-        action: function(node, target) {
-            target.layout.setActiveItem('device_grid');
-        },
-        listeners: {
-            render: updateNavTextWithCount
-        }
-    },{
-        id: 'zprops',
-        text: 'Configuration Properties',
-        action: function(node, target){
-            target.layout.setActiveItem('zprops');
-        }
-    },{
-        id: 'templates',
-        text: 'Monitoring Templates',
-        action: function(node, target){
-            target.layout.setActiveItem('templates');
-        }
-
-    },{
-        id: 'administration',
-        text: 'Administration',
-        action: function(node, target){
-            target.layout.setActiveItem('administration');
-        }
-    },{
-        id: 'modifications',
-        text: 'Modifications',
-        action: function(node, target){
-            target.layout.setActiveItem('modifications');
-        }
-    }]
-
-});
 
 function initializeTreeDrop(g) {
     var dz = new Ext.tree.TreeDropZone(g, {
@@ -631,11 +574,59 @@ Ext.getCmp('center_panel').add({
             items: [devtree, grouptree, loctree],
             autoScroll: true
         },{
-            xtype: 'subselection',
+            id: 'detail_nav',
+            xtype: 'detailnav',
             text: _t('Details'),
             target: 'detail_panel',
             buttonText: _t('See All'),
-            html: 'some other stuff'
+            html: 'some other stuff',
+            listeners:{
+                navloaded: function( detailNavPanel, navConfig){
+                    if (navConfig.id != 'device_grid'){
+                        config = detailNavPanel.panelConfigMap[navConfig.id];
+                        Ext.applyIf(config, {refreshOnContextChange: true});
+                        if(config && !Ext.getCmp(config.id)){
+                            //create the panel in the center panel if needed
+                            detail_panel = Ext.getCmp('detail_panel');
+                            detail_panel.add(config);
+                            detail_panel.doLayout();
+                        }
+                    }
+                }
+            },
+            filterNav: function(navpanel, config){
+                //nav items to be excluded
+                var excluded = {'classes':true, 'events':true};
+                return !excluded[config.id];
+            },
+            onGetNavConfig: function(contextId) {
+                var deviceNav = [{
+                    id: 'device_grid',
+                    text: 'Devices',
+                    action: function(node, target) {
+                        target.layout.setActiveItem('device_grid');
+                    },
+                    listeners: {
+                        render: updateNavTextWithCount
+                    }
+                }];
+                var otherNav = [];
+                switch (Zenoss.types.type(contextId)) {
+                    case 'DeviceLocation':
+                        break;
+                    case 'DeviceClass':
+                        break;
+                    default:
+                        break;
+                }
+                return deviceNav.concat(otherNav);
+            },
+            onSelectionChange: function(detailNav, node) {
+                var detailPanel = Ext.getCmp('detail_panel');
+                var contentPanel = Ext.getCmp(node.attributes.id);
+                contentPanel.setContext(detailNav.contextId); 
+                detailPanel.layout.setActiveItem(node.attributes.id);
+            }
         }],
         listeners: {
             beforecardchange: function(me, card, index, from, fromidx) {
@@ -651,20 +642,6 @@ Ext.getCmp('center_panel').add({
                 if (index==1) {
                     var node = treesm.getSelectedNode().attributes;
                     card.card.setContext(node.uid);
-                    // Now, we'll manually preload the iframes on the other
-                    // cards. This is extremely temporary.
-                    var others = Ext.getCmp('detail_panel').items.items.slice(1);
-                    switch (Zenoss.types.type(node.uid)) {
-                        case 'DeviceLocation':
-                            others[2].setContext(node.uid);
-                            break;
-                        case 'DeviceClass':
-                            var cards = others.slice(0, 5);
-                            Ext.each(cards, function(c){c.setContext(node.uid);});
-                            break;
-                        default:
-                            break;
-                    }
                 }
             }
         }
@@ -746,26 +723,6 @@ Ext.getCmp('center_panel').add({
                     menu: {}
                 }]
             }
-        },{
-            xtype: 'backcompat',
-            viewName: 'zPropertyEdit',
-            id: 'zprops'
-        },{
-            xtype: 'backcompat',
-            viewName: 'perfConfig',
-            id: 'templates'
-        },{
-            xtype: 'contextiframe',
-            viewName: 'simpleLocationGeoMap',
-            id: 'map'
-        },{
-            xtype: 'backcompat',
-            viewName: 'viewHistory',
-            id: 'modifications'
-        },{
-            xtype: 'backcompat',
-            viewName: 'deviceManagement',
-            id: 'administration'
         }]
     }]
 });

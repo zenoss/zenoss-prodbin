@@ -43,7 +43,8 @@
             <form name="proxy_form" id="proxy_form"
                 style="position:absolute;visibility:hidden"
                 tal:attributes="action here/absolute_url_path"></form>
-            <div metal:use-macro="here/templates/macros/topPane"/>
+            <tal:block tal:condition="not:exists:request/cookies/newui">
+            <div  metal:use-macro="here/templates/macros/topPane"/>
             <div id="infoBar">
                 <div id="leftPaneToggle"></div>
                 <div metal:define-slot="breadcrumbs" id="breadCrumbPane">
@@ -53,7 +54,8 @@
             <tal:block metal:use-macro="
                 here/maintemplate-extras/macros/panetoggle"/>
             <div metal:use-macro="here/leftPane/macros/leftPane"/>
-	        <div id="rightPane">
+            </tal:block>
+            <div tal:omit-tag="exists:request/cookies/newui" id="rightPane">
                 <tal:block metal:define-slot="rightPane">
                     <div id="contentPane">
                         <tal:block metal:define-slot="contentPane">
@@ -225,9 +227,10 @@
  ====================================================== -->
 <div id="tabsPane" metal:define-macro="tabsPane"
         tal:define="ztabs python:here.zentinelTabs(template.id);
-                    tabnames python:[x['name'] for x in ztabs]">
+                    tabnames python:[x['name'] for x in ztabs];
+                    isnewui exists:request/cookies/newui">
    <table class="tabtable" cellpadding="0" cellspacing="0"
-           tal:condition="python:(ztabs and not getattr(request, 'notabs', False))">
+           tal:condition="python:(not isnewui and ztabs and not getattr(request, 'notabs', False))">
        <tr tal:define="menu_ids menu_ids |
            python:['More','Manage','Edit', 'Actions','Add','TopLevel']">
         <tal:block tal:condition="python:hasattr(here, 'getMenus')">

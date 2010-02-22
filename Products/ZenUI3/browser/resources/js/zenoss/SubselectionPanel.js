@@ -254,6 +254,147 @@ Zenoss.SubselectionPanel = Ext.extend(Ext.Panel, {
 });
 
 Ext.reg('subselection', Zenoss.SubselectionPanel);
+/**
+ * Used to manage and display detail navigation tree for a contextId
+ * 
+ * @class Zenoss.DetailNavPanel
+ * @extends Zenoss.SubselectionPanel
+ */
+Zenoss.DetailNavPanel = Ext.extend(Zenoss.SubselectionPanel,{
+    /**
+     * @cfg {function} onGetNavConfig abstract function; hook to provide more nav items
+     * @param {string} uid; item to get nav items for
+     */
+    onGetNavConfig: function(uid){ return []; },
+    /**
+     * Called when an item in detail nav is selected
+     * @param {object} this, the DetailNavPanel
+     * @param {object} the navigation node selected
+     */
+    onSelectionChange: Ext.emptFn,
+    /**
+     * Filter out from being in the detail nav; used to filter out nav nodes
+     * and the content panels. Return true if it should be kept, false otherwise
+     * @param {DetailNavPanel}
+     * @param {Object} config
+     */
+    filterNav: function(detailNav, config) {return true;},
+    /**
+     * The object id for which the detail navigation belongs to
+     */
+    contextId: null,
+    /**
+     * map of nav id to panel configuration
+     */
+    panelConfigMap: null,
+    constructor: function(config) {
+        Ext.applyIf(config, {
+            layout: 'fit',
+            border: false,
+            bodyStyle: { 'margin-top' : 10 },
+            items: [{
+                xtype:'treepanel',
+                selModel: new Ext.tree.DefaultSelectionModel({
+                    listeners: {
+                        selectionchange: function(sm, node) {
+                            if (node) {
+                                this.onSelectionChange(this, node);
+                            }
+                        },
+                        scope: this
+                    }
+                }),
+                id: 'subselecttreepanel',
+                border: false,
+                rootVisible: false,
+                root : {nodeType: 'node'}
+                }]
+        });
+        Zenoss.DetailNavPanel.superclass.constructor.call(this, config);
+    },initEvents: function() {
+        this.addEvents( 
+        /**
+         * @event navloaded
+         * Fires after the navigation has been loaded
+         * @param {DetailNavPanel} this The DetailNavPanel
+         * @param {Object} The Navigation config loaded
+         */'navloaded' );
+        Zenoss.DetailNavPanel.superclass.initEvents.call(this);
+    },
+    setContext: function(uid) {
+        //called to load the nav tree
+        this.contextId = uid;
+        this.treepanel.setRootNode([]);
+        var myCallback = function(provider, response) {
+            var panelConfigs = response.result.panelConfigs
+            var filterFn = function(val) {
+                return this.filterNav(this, val)
+            };
+            panelConfigs = Zenoss.util.filter(panelConfigs, filterFn, this);
+            panelMap = []
+            Ext.each(panelConfigs, function(val) {
+                panelMap[val.id] = val;
+            });
+            this.panelConfigMap = panelMap;
+            this.getNavConfig(uid)
+        }
+        Zenoss.remote.DetailNavRouter.getDetailPanelConfigs({
+            'uid': uid
+        }, myCallback, this)
+        
+    },
+    getNavConfig: function(uid){
+        //Direct call to get nav configs from server
+        var me = this;
+        var myCallback = function(provider, response){
+            me.setNavTree(response.result.navConfigs);
+        }
+        Zenoss.remote.DetailNavRouter.getDetailNavConfigs({
+            'uid': uid
+        }, myCallback);
+    },
+    setNavTree: function(navConfigs){
+        //get any configs registered by the page
+        var nodes = this.onGetNavConfig(this.contextId);
+        if (navConfigs){
+            var filterFn = function(val){
+                return this.filterNav(this, val)
+            };
+            var filtered = Zenoss.util.filter(navConfigs, filterFn, this);
+            nodes = nodes.concat(filtered);
+        }
+        if (nodes) {
+            Ext.each(nodes, function(node) {
+                Ext.applyIf(node, {
+                    nodeType: 'subselect'
+                });
+            });
+            var root = new Ext.tree.AsyncTreeNode({
+                children: nodes,
+                listeners: {
+                    load: function(node){
+                        var toselect = node.firstChild;
+                        if (toselect) {
+                            if (toselect.rendered) {
+                                toselect.select();
+                            } else {
+                                toselect.on('render', function(node){
+                                    node.select();
+                                });
+                            }
+                        }
+                    },
+                    scope: this
+                }
+            });
+            this.treepanel.setRootNode(root);
+            Ext.each(nodes, function(navConfig){
+                this.fireEvent('navloaded', this, navConfig);
+            }, this);
+            
+        }
+    }
+});
 
-
+Ext.reg('detailnav', Zenoss.DetailNavPanel);
 })();
