@@ -35,7 +35,7 @@ var addNodeDialogItems = [{
         id: 'idTextfield',
         width: 270,
         fieldLabel: _t('ID'),
-        allowBlank: false
+        allowBlank: false        
     }
 ];
     
@@ -119,9 +119,10 @@ function disableSendEvent() {
 }
 
 Ext.apply(Zenoss.devices, {
-    lockDevices: new Ext.Action({
+    lockDevices: new Zenoss.Action({
         text: _t('Lock Devices') + '...',
         iconCls: 'lock',
+        permission: 'Change Device',
         handler: function() {
             var win = new Zenoss.FormDialog({
                 title: _t('Lock Devices'),
@@ -167,9 +168,10 @@ Ext.apply(Zenoss.devices, {
             win.show();
         }
     }),
-    resetIP: new Ext.Action({
+    resetIP: new Zenoss.Action({
         text: _t('Reset IP'),
         iconCls: 'set',
+        permission: 'Change Device',
         handler: function(){
             Ext.Msg.show({
                 title: _t('Reset IP'),
@@ -190,9 +192,10 @@ Ext.apply(Zenoss.devices, {
             });
         }
     }),
-    resetCommunity: new Ext.Action({
+    resetCommunity: new Zenoss.Action({
         text: _t('Reset Community'),
         iconCls: 'set',
+        permission: 'Change Device',
         handler: function(){
             Ext.Msg.show({
                 title: _t('Reset Community'),
@@ -213,9 +216,10 @@ Ext.apply(Zenoss.devices, {
             });
         }
     }),
-    setProdState: new Ext.Action({
+    setProdState: new Zenoss.Action({
         text: _t('Set Production State')+'...',
         iconCls: 'set',
+        permission: 'Change Device Production State',
         handler: function(){
             var win = new Zenoss.FormDialog({
                 title: _t('Set Production State'),
@@ -258,9 +262,10 @@ Ext.apply(Zenoss.devices, {
             win.show();
         }
     }),
-    setPriority: new Ext.Action({
+    setPriority: new Zenoss.Action({
         text: _t('Set Priority')+'...',
         iconCls: 'set',
+        permission: 'Change Device',
         handler: function(){
             var win = new Zenoss.FormDialog({
                 title: _t('Set Priority'),
@@ -303,9 +308,10 @@ Ext.apply(Zenoss.devices, {
             win.show();
         }
     }),
-    setCollector: new Ext.Action({
+    setCollector: new Zenoss.Action({
         text: _t('Set Collector') + '...',
         iconCls: 'set',
+        permission: 'Change Device',
         handler: function(){
             var win = new Zenoss.FormDialog({
                 title: _t('Set Collector'),
@@ -348,10 +354,11 @@ Ext.apply(Zenoss.devices, {
             win.show();
         }
     }),
-    deleteDevices: new Ext.Action({
+    deleteDevices: new Zenoss.Action({
         //text: _t('Delete Devices'),
         iconCls: 'delete',
         id: 'delete-button',
+        permission: 'Change Device',
         handler: function(btn, e) {
             var grid = Ext.getCmp('device_grid'),
                 selnode = treesm.getSelectedNode(),

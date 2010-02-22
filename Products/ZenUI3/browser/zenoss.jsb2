@@ -13,6 +13,12 @@
             "text": "zenoss.js",
             "path": "resources/js/zenoss/"
         }, {
+            "text": "Security.js",
+            "path": "resources/js/zenoss/"
+        }, {
+            "text": "Action.js",
+            "path": "resources/js/zenoss/"
+        }, {
             "text": "Types.js",
             "path": "resources/js/zenoss/"
         }, {

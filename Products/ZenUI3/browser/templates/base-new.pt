@@ -27,7 +27,9 @@
             href="/zenui/css/zenoss.css" />
         <link rel="stylesheet" type="text/css"
             href="/zenui/css/zenui3.css" />
+        <tal:block tal:content="structure provider:js-security"/>
         <tal:block tal:content="structure provider:all-js"/>
+        
     </head>
 
     <body>

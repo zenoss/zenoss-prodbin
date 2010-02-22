@@ -23,6 +23,7 @@
 <include file="macros.zcml"/>
 <include file="navigation.zcml"/>
 <include file="javascript.zcml"/>
+<include file="security.zcml"/>
 
 <!--
 <include file="screentypes.zcml"/>
