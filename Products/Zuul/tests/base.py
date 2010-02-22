@@ -12,6 +12,10 @@
 ###########################################################################
 
 import unittest
+import zope.component
+from Products.Five import zcml
+import Products.ZenTestCase
+from zope.traversing.adapters import DefaultTraversable
 from Products.ZenTestCase.BaseTestCase import BaseTestCase
 from Products.ZenTestCase.BaseTestCase import ZenossTestCaseLayer
 from Products.ZenEvents.Event import Event
@@ -29,7 +33,9 @@ class EventTestLayer(ZenossTestCaseLayer):
 
     @classmethod
     def setUp(cls):
-        ZenossTestCaseLayer.setUp()
+        zope.component.testing.setUp(cls)
+        zope.component.provideAdapter(DefaultTraversable, (None,))
+        zcml.load_config('testing-noevent.zcml', Products.ZenTestCase)
         zodb = ZCmdBase(noopts=True)
         zem = zodb.dmd.ZenEventManager
         cls.zem = zem

@@ -39,7 +39,6 @@ class ZenScriptBase(CmdBase):
         self.db = None
         if connect:
             self.connect()
-        
 
     def connect(self):
         if not self.app:

@@ -50,6 +50,8 @@ class ZCmdBase(ZenDaemon):
 
     def __init__(self, noopts=0, app=None, keeproot=False):
         ZenDaemon.__init__(self, noopts, keeproot)
+        import Products.Five
+        Products.Five.zcml.load_config('event.zcml', Products.Five)
         self.dataroot = None
         self.app = app
         self.db = None

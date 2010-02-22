@@ -259,8 +259,6 @@ class ZenHub(ZCmdBase):
         self.worker_processes=set()
 
         ZCmdBase.__init__(self)
-        import Products
-        Products.Five.zcml.load_config('event.zcml', Products.Five)
         self.zem = self.dmd.ZenEventManager
         loadPlugins(self.dmd)
         self.services = {}
