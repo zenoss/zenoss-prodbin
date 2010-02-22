@@ -28,6 +28,9 @@
             "text": "HistoryManager.js",
             "path": "resources/js/zenoss/"
         }, {
+            "text": "Editable.js",
+            "path": "resources/js/zenoss/"
+        }, {
             "text": "DialogWindow.js",
             "path": "resources/js/zenoss/"
         }, {

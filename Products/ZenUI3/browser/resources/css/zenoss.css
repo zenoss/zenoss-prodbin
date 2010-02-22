@@ -438,3 +438,18 @@ table.eventrainbow td.warning { background-color: #fbd13d; }
     font-size: 11pt;
     font-weight: bold;
 }
+
+.display-field {
+    padding-bottom: 7px;
+}
+
+.editable-field {
+    min-height: 15px;
+}
+
+.editable-field-over {
+    background-color: lemonchiffon;
+    cursor: hand;
+    cursor: pointer;
+}
+

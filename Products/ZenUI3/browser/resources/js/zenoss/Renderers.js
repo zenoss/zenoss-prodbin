@@ -73,7 +73,7 @@ Ext.apply(Zenoss.render, {
     DeviceClass: function(uid, name) {
         var value = uid.replace(/^\/zport\/dmd\/Devices/, '');
         value = value.replace(/\/devices\/.*$/, '');
-        var url = '/zport/dmd/itinfrastructure#devices:/Devices' + value;
+        var url = '/zport/dmd/itinfrastructure#devices:.zport.dmd.Devices' + value.replace(/\//g,'.');
         if (!Ext.isString(name)) name = value;
         return Zenoss.render.link(null, url, name);
     },
@@ -81,7 +81,15 @@ Ext.apply(Zenoss.render, {
     DeviceLocation: function(uid, name) {
         var value = uid.replace(/^\/zport\/dmd\/Locations/, '');
         value = value.replace(/\/devices\/.*$/, '');
-        var url = '/zport/dmd/itinfrastructure#locs:/Locations' + value;
+        var url = '/zport/dmd/itinfrastructure#locs:.zport.dmd.Locations' + value.replace(/\//g,'.');
+        if (!Ext.isString(name)) name = value;
+        return Zenoss.render.link(null, url, name);
+    },
+
+    DeviceGroup: function(uid, name) {
+        var value = uid.replace(/^\/zport\/dmd\/Groups/, '');
+        value = value.replace(/\/devices\/.*$/, '');
+        var url = '/zport/dmd/itinfrastructure#groups:.zport.dmd.Groups' + value.replace(/\//g,'.');
         if (!Ext.isString(name)) name = value;
         return Zenoss.render.link(null, url, name);
     }

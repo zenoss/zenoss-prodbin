@@ -39,7 +39,7 @@ class ProcessRouter(TreeRouter):
         process = facade.getInfo(data['uid'])
         Zuul.unmarshal(data, process)
         return {'success': True}
-    
+
     def getDevices(self, uid, start=0, params=None, limit=50, sort='device',
                    dir='ASC'):
         facade = self._getFacade()

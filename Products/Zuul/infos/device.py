@@ -21,8 +21,7 @@ from Products.Zuul.interfaces import IDeviceInfo, IDevice, ICatalogTool
 from Products.Zuul.infos import InfoBase
 from Products.ZenModel.DeviceOrganizer import DeviceOrganizer
 from Products.ZenUtils import IpUtil
-from Products.Zuul import getFacade
-
+from Products.Zuul import getFacade, info
 
 def _organizerWhere(uid):
     """
@@ -131,6 +130,126 @@ class DeviceInfo(InfoBase):
     @property
     def status(self):
         return self._object.getPingStatus()<1
+
+    @property
+    def deviceClass(self):
+        return info(self._object.deviceClass())
+
+    @property
+    def groups(self):
+        return info(self._object.groups())
+
+    @property
+    def systems(self):
+        return info(self._object.systems())
+
+    @property
+    def location(self):
+        return info(self._object.location())
+
+    @property
+    def lastChanged(self):
+        return self._object.getLastChangeString()
+
+    @property
+    def lastCollected(self):
+        return self._object.getSnmpLastCollectionString()
+
+    def getComments(self):
+        return self._object.comments
+
+    def setComments(self, value):
+        self._object.comments = value
+
+    comments = property(getComments, setComments)
+
+    @property
+    def links(self):
+        return self._object.getExpandedLinks()
+
+    @property
+    def locking(self):
+        return {
+            'status': self._object.lockStatus(),
+            'events': self._object.lockWarning()
+        }
+
+    def getTagNumber(self):
+        return self._object.hw.tag
+
+    def setTagNumber(self, value):
+        self._object.hw.tag = value
+
+    tagNumber = property(getTagNumber, setTagNumber)
+
+    def getSerialNumber(self):
+        return self._object.hw.serialNumber
+
+    def setSerialNumber(self, value):
+        self._object.hw.serialNumber = value
+
+    serialNumber = property(getSerialNumber, setSerialNumber)
+
+    @property
+    def hwManufacturer(self):
+        if self.hwModel is not None:
+            return info(self.hwModel._object.manufacturer)
+
+    @property
+    def hwModel(self):
+        if self._object.hw:
+            return info(self._object.hw.productClass())
+
+    @property
+    def osManufacturer(self):
+        if self.osModel is not None:
+            return info(self.osModel._object.manufacturer)
+
+    @property
+    def osModel(self):
+        if self._object.os:
+            return info(self._object.os.productClass())
+
+    def getRackSlot(self):
+        return self._object.rackSlot
+
+    def setRackSlot(self, value):
+        self._object.rackSlot = value
+
+    rackSlot = property(getRackSlot, setRackSlot)
+
+    def getSnmpSysName(self):
+        return self._object.snmpSysName
+
+    def setSnmpSysName(self, value):
+        self._object.snmpSysName = value
+
+    snmpSysName = property(getSnmpSysName, setSnmpSysName)
+
+    def getSnmpContact(self):
+        return self._object.snmpContact
+
+    def setSnmpContact(self, value):
+        self._object.snmpContact = value
+
+    snmpContact = property(getSnmpContact, setSnmpContact)
+
+    def getSnmpLocation(self):
+        return self._object.snmpLocation
+
+    def setSnmpLocation(self, value):
+        self._object.snmpLocation = value
+
+    snmpLocation = property(getSnmpLocation, setSnmpLocation)
+
+    def getSnmpAgent(self):
+        return self._object.snmpAgent
+
+    def setSnmpAgent(self, value):
+        self._object.snmpAgent = value
+
+    snmpAgent = property(getSnmpAgent, setSnmpAgent)
+
 
 
 class DeviceOrganizerInfo(InfoBase):
