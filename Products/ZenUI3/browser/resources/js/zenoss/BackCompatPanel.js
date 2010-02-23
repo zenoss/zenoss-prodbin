@@ -88,10 +88,6 @@ Ext.reg('contextiframe', Zenoss.ContextualIFrame);
  */
 Zenoss.BackCompatPanel = Ext.extend(Zenoss.ContextualIFrame, {
     setContext: function(uid) {
-       
-        if (this.contextUid!=uid){
-            this.on('frameload', this.injectViewport, {scope:this, single:true});
-        }
         Ext.util.Cookies.set('newui', 'yes');
         Zenoss.BackCompatPanel.superclass.setContext.apply(this, arguments);
     }

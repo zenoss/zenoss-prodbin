@@ -596,16 +596,13 @@ Ext.getCmp('center_panel').add({
             },
             filterNav: function(navpanel, config){
                 //nav items to be excluded
-                var excluded = {'classes':true, 'events':true};
+                var excluded = {'status':true, 'classes':true, 'events':true};
                 return !excluded[config.id];
             },
             onGetNavConfig: function(contextId) {
                 var deviceNav = [{
                     id: 'device_grid',
                     text: 'Devices',
-                    action: function(node, target) {
-                        target.layout.setActiveItem('device_grid');
-                    },
                     listeners: {
                         render: updateNavTextWithCount
                     }
@@ -615,10 +612,19 @@ Ext.getCmp('center_panel').add({
                     case 'DeviceLocation':
                         break;
                     case 'DeviceClass':
+                        otherNav.push({
+                            id: 'administration',
+                            text: 'Administration'
+                        });
                         break;
                     default:
                         break;
                 }
+                otherNav.push({
+                    id: 'modifications',
+                    text: 'Modifications'
+                });
+
                 return deviceNav.concat(otherNav);
             },
             onSelectionChange: function(detailNav, node) {
@@ -723,6 +729,14 @@ Ext.getCmp('center_panel').add({
                     menu: {}
                 }]
             }
+        },{
+            xtype: 'backcompat',
+            viewName: 'viewHistory',
+            id: 'modifications'
+        },{
+            xtype: 'backcompat',
+            viewName: 'deviceManagement',
+            id: 'administration'
         }]
     }]
 });
