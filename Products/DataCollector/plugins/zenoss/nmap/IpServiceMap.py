@@ -17,8 +17,7 @@ IpServiceMap uses nmap to model the list of listening TCP ports from any
 device. It should be used when zenoss.snmp.IpServiceMap won't work due to
 IPv6 listeners or if a device has no SNMP support.
 
-This plugin should deprecate zenoss.portscan.IpServiceMap as it performs
-much better."""
+"""
 
 from Products.DataCollector.plugins.CollectorPlugin import PythonPlugin
 from Products.ZenUtils.Utils import zenPath
@@ -59,8 +58,12 @@ class IpServiceMap(PythonPlugin):
         lines = portMatch = None
         #determine grep-friendly vs. std. output
         if results.find("# Nmap") > -1:
-            line = results.split('\n')[1]
-            if line: lines = line.split(" ")
+            lines = results.split('\n')
+            if lines[1]: 
+                if 'Status:' in lines[1]:
+                    lines = lines[2].split(" ")
+                else:
+                    lines = lines[1].split(" ")
             portMatch = re.compile('^(\d+)\/open\/tcp')
         else:
             portMatch = re.compile('^(\d+)\/tcp\s+open\s+')
@@ -78,7 +81,8 @@ class IpServiceMap(PythonPlugin):
             om.setServiceClass = {'protocol': 'tcp', 'port':port}
             om.discoveryAgent = self.name()
             rm.append(om)
-        #print a message if we don't have any data at this point
-        if len(rm.maps) == 0: log.info("No services found, or Nmap output wasn't processed properly")
+
+        if len(rm.maps) == 0:
+            log.warn("No services found, or nmap output wasn't processed properly.")
         return rm
 
