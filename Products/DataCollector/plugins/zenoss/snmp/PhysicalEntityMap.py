@@ -81,6 +81,8 @@ class PhysicalEntityMap(SnmpPlugin):
     modname = "Products.ZenModel.ExpansionCard"
     relname = "cards"
     compname = "hw"
+    deviceProperties = SnmpPlugin.deviceProperties + ('getHWManufacturerName',
+                                                      'getOSManufacturerName')
 
     columns = {
                 '.1':  'index',
@@ -107,6 +109,9 @@ class PhysicalEntityMap(SnmpPlugin):
         # Process all of the cards
         Card.startCollection()
         for i,c in petable.iteritems():
+            if not c.get("manuf", "").strip():
+                c["manuf"] = getattr(device, "getHWManufacturerName", "") or \
+                             getattr(device, "getOSManufacturerName", "")
             Card(int(i), **c)
 
         # Create the maps        
