@@ -51,7 +51,10 @@ Ext.Direct.on('exception', function(e) {
         title: 'Server Exception', 
         msg:e.message,
         buttons:Ext.Msg.OK,
-        minWidth: 300
+        minWidth: 300,
+        fn: function(buttonId, text, opt) {
+            window.location.reload();
+        }
     });
 });
 

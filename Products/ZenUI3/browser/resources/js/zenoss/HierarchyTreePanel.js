@@ -72,7 +72,17 @@ Zenoss.HierarchyTreeNodeUI = Ext.extend(Ext.tree.TreeNodeUI, {
         if(this.rendered){
             this.textNode.innerHTML = this.buildNodeText(node);
         }
+    },
+    
+    getDDHandles : function(){
+        // include the child nodes of the text node as drop targets
+        var ddHandles = Zenoss.HierarchyTreeNodeUI.superclass.getDDHandles.call(this);
+        Ext.each(this.textNode.childNodes, function(childNode) {
+            ddHandles.push(childNode);
+        });
+        return ddHandles;
     }
+
 });
 
 Zenoss.HierarchyRootTreeNodeUI = Ext.extend(Zenoss.HierarchyTreeNodeUI, {

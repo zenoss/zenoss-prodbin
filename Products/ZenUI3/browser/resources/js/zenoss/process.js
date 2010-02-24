@@ -94,19 +94,60 @@ var selModel = new Ext.tree.DefaultSelectionModel({
     }
 });
 
-Ext.getCmp('master_panel').add({
-    xtype: 'HierarchyTreePanel',
-    id: treeId,
-    searchField: true,
-    directFn: router.getTree,
-    router: router,
-    selModel: selModel,
-    addNodeDialogItems: addNodeDialogItems,
-    root: {
-        id: 'Processes',
-        uid: '/zport/dmd/Processes'
+var MoveProcessCallback = Ext.extend(Object, {
+    constructor: function(tree, node) {
+        this.tree = tree;
+        this.node = node;
+        MoveProcessCallback.superclass.constructor.call(this);
+    },
+    call: function(provider, response) {
+        this.node.setId(response.result.id);
+        this.node.attributes.uid = response.result.uid;
+        this.tree.selectPath(this.node.getPath());
+        Ext.History.add(this.tree.id + Ext.History.DELIMITER + this.node.id);
     }
-}); // master_panel.add
+});
+
+var ProcessTreePanel = Ext.extend(Zenoss.HierarchyTreePanel, {
+    constructor: function(config) {
+        Ext.applyIf(config, {
+            id: treeId,
+            searchField: true,
+            directFn: router.getTree,
+            router: router,
+            selModel: selModel,
+            enableDD: true,
+            addNodeDialogItems: addNodeDialogItems,
+            dropConfig: {
+                appendOnly: true
+            },
+            listeners: {
+                nodedrop: {
+                    fn: this.onNodeDrop,
+                    scope: this
+                }
+            },
+            root: {
+                id: 'Processes',
+                uid: '/zport/dmd/Processes'
+            }
+        });
+        ProcessTreePanel.superclass.constructor.call(this, config);
+    },
+    onNodeDrop: function(dropEvent) {
+        var node, uid, target, targetUid, params, callback;
+        node = dropEvent.dropNode;
+        uid = node.attributes.uid;
+        target = dropEvent.target;
+        target.expand();
+        targetUid = target.attributes.uid;
+        params = {uid: uid, targetUid: targetUid};
+        callback = new MoveProcessCallback(this, node);
+        router.moveProcess(params, callback.call, callback);
+    }
+});
+
+Ext.getCmp('master_panel').add( new ProcessTreePanel({}) );
 
 
 /* **************************************************************************

@@ -12,8 +12,10 @@
 ###########################################################################
 
 import logging
+from Acquisition import aq_parent
 from zope.interface import implements
 from Products.ZenModel.OSProcessClass import OSProcessClass
+from Products.ZenModel.OSProcessOrganizer import OSProcessOrganizer
 from Products.Zuul.facades import TreeFacade
 from Products.Zuul.interfaces import IProcessFacade
 from Products.Zuul.interfaces import ITreeFacade
@@ -41,3 +43,26 @@ class ProcessFacade(TreeFacade):
 
     def _getSecondaryParent(self, obj):
         return obj.osProcessClass()
+
+    def moveProcess(self, uid, targetUid):
+        obj = self._getObject(uid)
+        target = self._getObject(targetUid)
+        if isinstance(obj, OSProcessClass):
+            source = obj.osProcessOrganizer()
+            source.moveOSProcessClasses(targetUid, obj.id)
+            newObj = getattr(target.osProcessClasses, obj.id)
+        elif isinstance(obj, OSProcessOrganizer):
+            source = aq_parent(obj)
+            source.moveOrganizer(targetUid, (obj.id,))
+            newObj = getattr(target, obj.id)
+        else:
+            raise Exception('Illegal type %s' % obj.__class__.__name__)
+        return newObj.getPrimaryPath()
+
+    def _getObject(self, uid):
+        try:
+            obj = self._dmd.unrestrictedTraverse(uid)
+        except Exception, e:
+            args = (uid, e.__class__.__name__, e)
+            raise Exception('Cannot find "%s". %s: %s' % args)
+        return obj
