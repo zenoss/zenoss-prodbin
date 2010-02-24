@@ -75,7 +75,7 @@
             parentItem="Events"
             manager="..navigation.interfaces.ISecondaryNavigationMenu"
             class="..navigation.menuitem.SecondaryNavigationMenuItem"
-            permission="zope2.Public"
+            permission="zenoss.ViewHistory"
             layer="zenossNav"
             />
 

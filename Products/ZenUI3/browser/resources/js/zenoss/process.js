@@ -117,7 +117,7 @@ Ext.getCmp('master_panel').add({
 
 
 // disable the monitoring fields if monitoring settings are inherited
-function  setMonitoringDisabled(disabled) {
+function setMonitoringDisabled(disabled) {
     var monitorCheckbox = Ext.getCmp('monitorCheckbox');
     var eventSeverityCombo = Ext.getCmp('eventSeverityCombo');
     monitorCheckbox.setDisabled(disabled);
@@ -152,7 +152,8 @@ function inheritedCheckboxHandler(checkbox, checked) {
 function actioncompleteHandler(form, action) {
     if (action.type == 'directload') {
         var processInfo = action.result.data;
-        Ext.getCmp('processForm').setDisabled(action.result.disabled);
+        // disabling the forms will disable all of the elements in it
+        Ext.getCmp('processForm').setDisabled(Zenoss.Security.doesNotHavePermission('Manage DMD'));
         var isRoot = processInfo.name == 'Processes';
         Ext.getCmp('nameTextField').setDisabled(isRoot);
         Ext.getCmp('inheritedCheckbox').setDisabled(isRoot);

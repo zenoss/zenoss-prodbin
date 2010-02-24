@@ -30,8 +30,7 @@ class ProcessRouter(TreeRouter):
         facade = self._getFacade()
         process = facade.getInfo(uid)
         data = Zuul.marshal(process, keys)
-        disabled = not Zuul.checkPermission('Manage DMD')
-        return {'data': data, 'disabled': disabled, 'success': True}
+        return {'data': data, 'success': True}
 
     @require('Manage DMD')
     def setInfo(self, **data):

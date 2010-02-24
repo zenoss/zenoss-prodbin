@@ -634,7 +634,7 @@ Ext.onReady(function(){
                         }
                     },
                 'load': function(proxy, transaction, options) {
-                    var disabled = transaction.result.disabled;
+                    var disabled = Zenoss.Security.doesNotHavePermission('Manage Events');
                     var buttonIds = [
                         'ack-button', 
                         'close-button',

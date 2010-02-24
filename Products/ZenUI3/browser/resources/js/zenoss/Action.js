@@ -21,7 +21,7 @@
              // if they set the permissions config property
              // and the logged in user does not have permission, hide this element
              if (config.permission){
-                 config.hidden = Zenoss.Security.doesNotHavePermission(config.permission);
+                 config.disabled = Zenoss.Security.doesNotHavePermission(config.permission);
              }
              
              // call the parent's constructor

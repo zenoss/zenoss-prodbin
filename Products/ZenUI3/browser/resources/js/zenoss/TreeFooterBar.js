@@ -32,11 +32,13 @@ Zenoss.TreeFooterBar = Ext.extend(Ext.Toolbar, {
                 {
                     id: 'addButton',
                     iconCls: 'add',
+                    disabled: Zenoss.Security.doesNotHavePermission('Manage DMD'),
                     tooltip: 'Add a child to the selected organizer',
                     handler: createClickHandler(config.bubbleTargetId)
                 }, {
                     id: 'deleteButton',
                     iconCls: 'delete',
+                    disabled: Zenoss.Security.doesNotHavePermission('Manage DMD'),
                     tooltip: 'Delete the selected node',
                     handler: createClickHandler(config.bubbleTargetId)
                 }

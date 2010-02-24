@@ -965,11 +965,13 @@ Zenoss.DetailPanel = Ext.extend(Ext.Panel, {
                     width: 300,
                     xtype: 'textfield',
                     name: 'message',
+                    hidden: Zenoss.Security.doesNotHavePermission('Manage Events'),
                     id: 'detail-logform-message'
                 },{
                     xtype: 'button',
                     type: 'submit',
                     name: 'add',
+                    hidden: Zenoss.Security.doesNotHavePermission('Manage Events'),                 
                     text: 'Add',
                     handler: function(btn, e){
                         var form = Ext.getCmp('log-container'),

@@ -162,7 +162,8 @@ Ext.onReady( function() {
         fieldLabel: _t('Name'),
         name: 'name',
         allowBlank: false,
-        width: "100%"
+        width: "100%",
+        id: 'nameTextField'
     };
 
     var descriptionTextField = {

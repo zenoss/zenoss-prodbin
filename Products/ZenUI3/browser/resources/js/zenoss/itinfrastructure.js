@@ -677,6 +677,7 @@ Ext.getCmp('center_panel').add({
                 }, '-', {
                     id: 'adddevice-button',
                     iconCls: 'adddevice',
+                    disabled: Zenoss.Security.doesNotHavePermission("Manage DMD"),
                     handler: null
                 }, Zenoss.devices.deleteDevices,
                     /*
@@ -699,6 +700,7 @@ Ext.getCmp('center_panel').add({
                 {
                     id: 'actions-menu',
                     text: _t('Actions'),
+                    disabled: Zenoss.Security.doesNotHavePermission('Change Device'),
                     menu: {
                         items: [
                             Zenoss.devices.lockDevices,
@@ -719,7 +721,7 @@ Ext.getCmp('center_panel').add({
                             menu.removeAll();
                             Ext.each(data, function(d){
                                 menu.add({
-                                    text:d.id, 
+                                    text:d.id,
                                     tooltip:d.description,
                                     handler: commandMenuItemHandler
                                 });

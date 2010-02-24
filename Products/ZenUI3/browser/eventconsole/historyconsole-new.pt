@@ -510,7 +510,7 @@ Ext.onReady(function(){
                         }
                     },
                 'load': function(proxy, transaction, options) {
-                    var disabled = transaction.result.disabled;
+                    var disabled = Zenoss.Security.doesNotHavePermission('Manage Events');
                     var buttonIds = [
                         'reopen-button', 
                         'classify-button'

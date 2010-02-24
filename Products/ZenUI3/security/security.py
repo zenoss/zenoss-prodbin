@@ -58,7 +58,7 @@ class PermissionsDeclaration(viewlet.ViewletBase):
         valid_permissions = [permission for permission in all_permissions 
                              if manager.checkPermission(permission, self.context)]
         
-        # turn the list into a diction to make it easier to look up on
+        # turn the list into a dictionary to make it easier to look up on
         # the client side (just look up the key instead of iterating)
         perms = {}
         for permission in valid_permissions:

@@ -17,7 +17,6 @@ from Products.ZenUtils.Ext import DirectRouter
 from Products.ZenUtils.extdirect.router import DirectResponse
 from Products.Zuul import getFacade
 from Products.Zuul.decorators import require
-from Products import Zuul
 from _mysql_exceptions import OperationalError
 
 class EventsRouter(DirectRouter):
@@ -34,9 +33,7 @@ class EventsRouter(DirectRouter):
                 uid = self.context
             events = self.api.query(limit, start, sort, dir, params, uid, criteria,
                                    history)
-            disabled = not Zuul.checkPermission('Manage Events')
             return {'events':events['data'], 
-                    'disabled': disabled, 
                     'totalCount': events['total'],
                     'asof': time.time() }
         except OperationalError, oe:
@@ -45,6 +42,7 @@ class EventsRouter(DirectRouter):
         except Exception, e:
             message = e.__class__.__name__ + ' ' + str(e)
             return DirectResponse.fail(message)
+        
     @require('View History')
     def queryHistory(self, limit, start, sort, dir, params):
         return self.query(limit, start, sort, dir, params, history=True)

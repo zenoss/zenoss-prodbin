@@ -48,5 +48,6 @@
      Zenoss.Security.doesNotHavePermission = function(permission) {
          return (!this.hasPermission(permission));           
      };
-        
+
+     
 }());
