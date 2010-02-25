@@ -87,6 +87,9 @@ settingsDevice setManageIp='10.10.10.77', setLocation="123 Elm Street", \
   setSystems='/mySystems', setPerformanceMonitor='remoteCollector1', \
   setHWSerialNumber="abc123456789", setGroups='/myGroup', \
   setHWProduct=('myproductName','manufacturer'), setOSProduct=('OS Name','manufacturer')
+
+# If the device or device class contains a space, then it must be quoted (either ' or ")
+"/Server/Windows/WMI/Active Directory/2008"
 """
 
     def __init__(self):
@@ -333,7 +336,7 @@ settingsDevice setManageIp='10.10.10.77', setLocation="123 Elm Street", \
                 line = line[:-1] + data[i]
                 line = re.sub(comment, '', line).strip()
 
-            if line[0] == '/': # Found an organizer
+            if line[0] == '/' or line[1] == '/': # Found an organizer
                 defaults = self.parseDeviceEntry(line, {})
                 defaults['devicePath'] = defaults['deviceName']
                 del defaults['deviceName']
@@ -357,11 +360,21 @@ settingsDevice setManageIp='10.10.10.77', setLocation="123 Elm Street", \
         @return: parsed device entry
         @rtype: dictionary
         """
-        options = None
-        if line.find(' ') > 0:
-            name, options = line.split(None, 1)
+        options = []
+        # Note: organizers and device names can have spaces in them
+        if line[0] in ["'", '"']:
+            delim = line[0]
+            eom = line.find(delim, 1)
+            if eom == -1:
+                self.log.error( "Unable to parse the entry for %s -- skipping" % name )
+                self.log.error( "Raw string: %s" % options )
+                return None
+            name = line[1:eom]
+            options = line[eom+1:]
+
         else:
-            name = line
+            options = line.split(None, 1)
+            name = options.pop(0)
 
         configs = defaults.copy()
         configs['deviceName'] = name
