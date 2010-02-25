@@ -67,6 +67,41 @@ class CollectorConfigService(HubService, ThresholdMixin):
         self._procrastinator = Procrastinate(self._pushConfig)
         self._reconfigProcrastinator = Procrastinate(self._pushReconfigure)
 
+    def _wrapFunction(self, functor, *args, **kwargs):
+        """
+        Call the functor using the arguments, and trap any unhandled exceptions.
+
+        @parameter functor: function to call
+        @type functor: method
+        @parameter args: positional arguments
+        @type args: array of arguments
+        @parameter kwargs: keyword arguments
+        @type kwargs: dictionary
+        @return: result of functor(*args, **kwargs) or None if failure
+        @rtype: result of functor
+        """
+        try:
+            return functor(*args, **kwargs)
+        except (SystemExit, KeyboardInterrupt): raise
+        except Exception, ex:
+            msg = 'Unhandled exception in zenhub service %s: %s' % (
+                      self.__class__, str(ex))
+            self.log.exception(msg)
+
+            import traceback
+            from Products.ZenEvents.ZenEventClasses import Critical
+
+            evt = dict(
+                severity=Critical,
+                component=str(self.__class__),
+                traceback=traceback.format_exc(),
+                summary=msg,
+                device=self.instance,
+                methodCall="%s(%s, %s)" % (functor.__name__, args, kwargs)
+            )
+            self.sendEvent(evt)
+        return None
+
     def update(self, object):
         """
         Called by ZenHub whenever it notices an object assigned to this
@@ -145,11 +180,11 @@ class CollectorConfigService(HubService, ThresholdMixin):
 
         deviceConfigs = []
         for device in devices:
-            deviceConfig = self._createDeviceProxy(device)
+            deviceConfig = self._wrapFunction(self._createDeviceProxy, device)
             if deviceConfig:
                 deviceConfigs.append(deviceConfig)
 
-        self._postCreateDeviceProxy(deviceConfigs)
+        self._wrapFunction(self._postCreateDeviceProxy, deviceConfigs)
         return deviceConfigs
 
     def _postCreateDeviceProxy(self, deviceConfigs):
@@ -227,9 +262,9 @@ class CollectorConfigService(HubService, ThresholdMixin):
         deferreds = []
 
         if self._filterDevice(device):
-            proxy = self._createDeviceProxy(device)
+            proxy = self._wrapFunction(self._createDeviceProxy, device)
             if proxy:
-                self._postCreateDeviceProxy([proxy])
+                self._wrapFunction(self._postCreateDeviceProxy, [proxy])
         else:
             proxy = None
 
