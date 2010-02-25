@@ -23,7 +23,10 @@ from Service import Service
 
 def manage_addWinService(context, id, description, userCreated=None, 
                          REQUEST=None):
-    """make a device"""
+    """
+    Create a WinService and add it to context. context should be a
+    device.os.winservices relationship.
+    """
     s = WinService(id)
     # Indexing is subscribed to ObjectAddedEvent, which fires
     # on _setObject, so we want to set service class first.

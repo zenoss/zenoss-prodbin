@@ -25,7 +25,7 @@ class TestWinServiceConfig(ZenModelBaseTest):
                                   "/Server/Windows",
                                   manageIp="10.0.10.1")
         dev.zWmiMonitorIgnore = False
-        winService = manage_addWinService(dev, 'wsvc', 'test service')
+        winService = manage_addWinService(dev.os.winservices, 'wsvc', 'test service')
         winService.zMonitor = True
         winService.monitor = True
         winService.startMode = 'Auto'
