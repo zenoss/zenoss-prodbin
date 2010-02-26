@@ -15,9 +15,10 @@ import transaction
 from types import ClassType
 from operator import attrgetter
 from itertools import islice
+from Acquisition import aq_base
 from zope.interface import Interface
 from Products.ZCatalog.CatalogBrains import AbstractCatalogBrain
-from Acquisition import aq_base
+from Products.ZenRelations.ZenPropertyManager import ZenPropertyManager
 
 def resolve_context(context, default=None):
     """
@@ -129,3 +130,23 @@ def dottedname(ob):
         ob = ob.__class__
     return '%s.%s' % (ob.__module__, ob.__name__)
 
+
+def getZProperties(context):
+    """
+    Given a context, this function will return all of the ZProperties that
+    are defined for this context (ignoring acquisition)
+    @returns Dictionary of the form { 'zPropertyName' : 'zPropertyValue',}
+    """
+    properties = {}
+    # make sure we actually have properties
+    if not isinstance(context, ZenPropertyManager):
+        return properties
+
+    # get all of the property ids from Devices
+    propertyIds = get_dmd().Devices.zenPropertyIds()
+    for propertyId in propertyIds:
+        # has property does not take acquisition into account by default
+        if context.hasProperty(propertyId):
+            properties[propertyId] = context.getProperty(propertyId)
+
+    return properties

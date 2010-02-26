@@ -97,7 +97,7 @@ def onOrganizerBeforeDelete(ob, event):
         
         # remove the device's path from this organizer
         # from the indexes
-        for device in  ob.devices.objectValuesGen():
+        for device in ob.devices.objectValuesGen():
             catalog.unindex_object_from_paths(device, [device.getPhysicalPath()])
         
 

@@ -13,8 +13,8 @@
 
 import unittest
 from random import shuffle
-
-from Products.Zuul.utils import LazySortableList
+from Products.ZenTestCase.BaseTestCase import BaseTestCase
+from Products.Zuul.utils import LazySortableList, getZProperties
 
 class Item(object):
     def __init__(self, num):
@@ -23,7 +23,7 @@ class Item(object):
         return '<%s>' % self.num
 
 
-class LazyListTest(unittest.TestCase):
+class UtilsTest(BaseTestCase):
     
     def test_laziness(self):
         s = range(100)
@@ -66,10 +66,39 @@ class LazyListTest(unittest.TestCase):
         l = LazySortableList(items, key=getnum, reverse=True)
         self.assertEqual(l[:], sorted(items, key=getnum, reverse=True))
         
-    
+    def test_canGetAllZProperties(self):
+        """Makes sure we are only getting the properties that are defined
+        on our object
+        """
+        testPropertyId = self.dmd.Devices.zenPropertyIds()[0]
+        properties = getZProperties(self.dmd.Devices)
+        
+        # test the results
+        self.assertTrue(isinstance(properties, dict))
+        self.assertTrue(properties.has_key(testPropertyId),
+                        'testPropertyId should be a key in the returned dictionary')
+
+    def test_canGetGroupSpecificZProperties(self):
+        """Makes sure if we override a zproperty at a level that we
+        only return that specific zProperty
+        """
+        devices = self.dmd.Devices
+        (testProperty, invariant) = getZProperties(devices).keys()[0:2]
+        
+        organizer = devices.createOrganizer('TestOrganizer')
+        organizer._setProperty(testProperty, 'testChangedProperty')
+
+        properties = getZProperties(organizer)
+        self.assertTrue(testProperty in properties.keys() ,
+                        "testProperty should be in the list because we changed it")
+                
+        self.assertFalse(invariant in properties.keys(),
+                         "invariant should NOT be in the properties because we did not change it")
+        self.assertNotEqual(devices.getProperty(testProperty), organizer.getProperty(testProperty),
+                            "Organizers property should have changed")
 
 def test_suite():
-    return unittest.TestSuite((unittest.makeSuite(LazyListTest),))
+    return unittest.TestSuite((unittest.makeSuite(UtilsTest),))
 
 
 if __name__=="__main__":

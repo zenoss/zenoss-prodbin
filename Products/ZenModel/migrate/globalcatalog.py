@@ -13,6 +13,7 @@
 
 import sys
 import Migrate
+from Products.ZCatalog.Catalog import CatalogError
 from Products.Zuul.catalog.global_catalog import createGlobalCatalog
 from Products.ZenModel.ZenModelRM import ZenModelRM
 from Products.ZenRelations.ToManyContRelationship import ToManyContRelationship
@@ -79,7 +80,8 @@ class GlobalCatalog(Migrate.Step):
             indices = zport.global_catalog.indexes()
             toreindex = []
             cat = zport.global_catalog._catalog
-
+            newColumn = False
+            
             if 'uid' not in indices:
                 cat.addIndex('uid', makeCaseSensitiveFieldIndex('uid'))
                 toreindex.append('uid')
@@ -89,13 +91,25 @@ class GlobalCatalog(Migrate.Step):
                              makeCaseSensitiveFieldIndex('ipAddress'))
                 toreindex.append('ipAddress')
 
-            if toreindex:
-                print ("Reindexing uid and ipAddress indices. "
+            # attempt to add the column if it does not exist
+            try:
+                cat.addColumn('zProperties')
+                newColumn = True
+            except CatalogError:
+                # column already exists
+                pass
+            
+            # if we have a new column or new indexes we should re-catalog
+            # everything so that all the indexes/meta-data is up to date
+            if toreindex or newColumn:
+                print ("Reindexing the Catalog. "
                        "Patience is a virtue.")
                 i=0
                 _catobj = zport.global_catalog.catalog_object
                 for b in zport.global_catalog():
-                    _catobj(b.getObject(), idxs=toreindex)
+                    # if we added an index, reindex the object, if we added a column
+                    # update the metadata
+                    _catobj(b.getObject(), idxs=toreindex, update_metadata=newColumn)
                     if not i%100:
                         sys.stdout.write('.')
                         sys.stdout.flush()

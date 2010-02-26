@@ -26,6 +26,7 @@ from Products.ZenUtils.Search import makeCaseInsensitiveFieldIndex
 from Products.ZenUtils.Search import makeCaseSensitiveKeywordIndex
 from Products.ZenModel.DeviceComponent import DeviceComponent
 from Products.ZenModel.Device import Device
+from Products.Zuul.utils import getZProperties
 
 from interfaces import IGloballyIndexed, IPathReporter, IIndexableWrapper
 
@@ -95,6 +96,16 @@ class IndexableWrapper(object):
         if getter is None:
             getter = getattr(self._context, 'getManageIp', None)
         return str(numbip(getter()))
+
+    def zProperties(self):
+        """
+        A dictionary of all the zProperties associated with this device.
+        In the form:
+          { 'zCommandTimeOut' : 180 }
+
+        This is on the metadata of the catalog
+        """
+        return getZProperties(self._context)
 
     def uid(self):
         """
@@ -217,13 +228,14 @@ def createGlobalCatalog(portal):
     cat.addIndex('path', makeMultiPathIndex('path'))
     cat.addIndex('collectors', makeCaseSensitiveKeywordIndex('collectors'))
     cat.addIndex('productKeys', makeCaseSensitiveKeywordIndex('productKeys'))
-
+        
     catalog.addColumn('id')
     catalog.addColumn('name')
     catalog.addColumn('modified')
     catalog.addColumn('monitored')
     catalog.addColumn('productionState')
     catalog.addColumn('collectors')
+    catalog.addColumn('zProperties')
 
     portal._setOb(catalog.getId(), catalog)
 
