@@ -1,0 +1,52 @@
+<tal:block metal:use-macro="here/page_macros/old-new">
+<tal:block metal:fill-slot="contentPane">
+
+<tal:block tal:define="
+tabletitle string:Changes for ${here/getId}
+                      ">
+<tal:block metal:use-macro="here/zenuimacros/macros/zentable">
+
+<!--==================== 
+Optional titlebar stuff
+
+<tal:block metal:fill-slot="menuslot">
+</tal:block>
+<tal:block metal:fill-slot="filterslot">
+</tal:block>
+
+  ====================-->
+
+<tal:block metal:fill-slot="zentablecontents">
+
+<!-- BEGIN TABLE CONTENTS -->
+    <tr>
+        <th class="tableheader" align="left">
+            Time of change
+        </th>
+        <th class="tableheader" align="left">
+            User
+        </th>
+        <th class="tableheader" align="left">
+            Description
+        </th>
+    </tr>
+    <tal:block tal:repeat="hist here/manage_change_history">
+    <tr tal:define="odd repeat/hist/odd"
+        tal:attributes="class python:odd or 'odd' or 'even'"> 
+        <td class="tablevalues"
+            tal:content="python:hist['time']">
+        </td>
+        <td class="tablevalues" tal:content="hist/user_name">
+        </td>
+        <td class="tablevalues" tal:content="hist/description">
+        </td>
+    </tr>
+    </tal:block>
+<!-- END TABLE CONTENTS -->
+
+</tal:block>
+</tal:block>
+</tal:block>
+
+</tal:block>
+</tal:block>

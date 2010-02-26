@@ -401,6 +401,10 @@ table.tabtable td.tabletitleselected  {
     border: 0px;
 }
 
+#newTabsPane table.tabtable td.tabletitleselected  {
+    height: 31px;
+}
+
 table.tabtable td.tabletitleselected div.tablinehider {
     background-color: #E0E0E0;
     height: 10px;
@@ -411,14 +415,21 @@ table.tabtable td.tabletitleselected div.tablinehider {
     width: 90%;
 }
 
+#newTabsPane table.tabtable td.tabletitleselected div.tablinehider {
+    height: 1px;
+    margin-left: 0px;
+    margin-right: 0px;
+    position: relative;
+    top: 1px;
+    width: 100%;
+}
+
 table.tabtable div.tableft {
     background: transparent url(img/tab_bg_selected.gif) no-repeat left 0px;
-    height: 32px;
 }
 
 table.tabtable div.tabright {
     background: transparent url(img/tab_bg_selected.gif) no-repeat right 0px;
-    height: 32px;
 }
 
 table.tabtable div.tabcenter {
@@ -427,6 +438,11 @@ table.tabtable div.tabcenter {
     height: 30px;
     position: relative;
     background: transparent url(img/tab_bg_selected_cont.gif) repeat-x 0px 0px; 
+}
+
+#newTabsPane table.tabtable div.tabcenter {
+    margin: -1px 17px;
+    height: 29px;
 }
 
 table.tabtable td.tabletitleselected a,

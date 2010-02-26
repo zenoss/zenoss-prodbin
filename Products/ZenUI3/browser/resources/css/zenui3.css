@@ -63,6 +63,9 @@
     background: transparent url('/zenui/img/primarynav_sprite.gif') 
         right -182px no-repeat;
 }
+#primarynav ul {
+    margin: 0em;
+}
 /**
  * SECONDARY NAVIGATION
  */
@@ -108,6 +111,9 @@
 #secondarynav li.nav-item-active .sd-right {
     background: transparent url('/zenui/img/secondarynav_sprite.png') 
         right -124px no-repeat;
+}
+#secondarynav ul {
+    margin: 0em;
 }
 
 /**

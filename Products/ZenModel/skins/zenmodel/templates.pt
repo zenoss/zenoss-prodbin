@@ -294,6 +294,76 @@
 </div>
 
 <!-- ======================================================
+    newTabsPane
+ ====================================================== -->
+<div id="newTabsPane" metal:define-macro="newTabsPane"
+        tal:define="ztabs python:here.zentinelTabs(template.id, request.getURL());
+                    tabnames python:[x['name'] for x in ztabs];">
+   <table class="tabtable" cellpadding="0" cellspacing="0"
+           tal:condition="python:(ztabs and not getattr(request, 'notabs', False))">
+       <tr tal:define="menu_ids menu_ids |
+           python:['More','Manage','Edit', 'Actions','Add','TopLevel']">
+        <tal:block tal:condition="python:hasattr(here, 'getMenus')">
+           <tal:block tal:define="hasMenus python:here.getMenus(menu_ids, here)">
+        <td class="contextmenutab" 
+            tal:condition="hasMenus">
+        <span metal:use-macro="here/zenuimacros/macros/basemenu"/>
+        </td>
+        <td class="tabtableleftcap"
+            tal:condition="not:hasMenus" >
+        <div style="margin:0;padding:0;width:21px;">&nbsp;</div>
+        </td>
+        </tal:block>
+        </tal:block>
+        <tal:block tal:condition="python:not hasattr(here, 'getMenus')">
+        <td class="tabtableleftcap">
+        <div style="margin:0;padding:0;width:21px;">&nbsp;</div>
+        </td>
+        </tal:block>
+           <td tal:repeat="tab ztabs"
+               tal:attributes="class python:tab.get('selected', None) 
+                                and 'tabletitleselected'">
+
+
+    <tal:block tal:condition="python:tab.get('selected', None)">
+    <div class="tableft">
+         <div class="tabright">
+             <div class="tabcenter">
+           <a class="tabletitle" tal:content="tab/name"
+               tal:attributes="href python:
+                   '%s/%s'% (here.absolute_url_path(),tab['action']);"
+                >TabName</a>
+             </div>
+         </div>
+     </div>
+    <div class="tablinehider"></div>
+     </tal:block>
+     <tal:block condition="python:not tab.get('selected', None)">
+           <a class="tabletitle" tal:content="tab/name"
+               tal:attributes="href python:
+                   '%s/%s'% (here.absolute_url_path(),tab['action']);"
+                >TabName</a>
+
+     </tal:block>
+
+
+           <div id="selectedtablinehider"
+       tal:condition="python:tab.get('selected',None)">
+           </div>
+
+           </td>
+        <td class='tabletitleselected'
+            tal:condition="python:False">
+           <div id="selectedtablinehider">
+            Other Page
+           </div>
+        </td>
+        <td class="tabtablecap">&nbsp;</td>
+       </tr>
+   </table>
+</div>
+
+<!-- ======================================================
      contentSeparator
  ====================================================== -->
 <tal:block metal:define-macro="contentSeparator">

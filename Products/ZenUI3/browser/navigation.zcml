@@ -188,5 +188,16 @@
         layer="zenossNav"
         />
 
+    <browser:viewlet
+        name="MIBs"
+        url="/zport/dmd/Mibs/mibOrganizerOverview"
+        weight="2"
+        parentItem="Advanced"
+        manager="..navigation.interfaces.ISecondaryNavigationMenu"
+        class="..navigation.menuitem.SecondaryNavigationMenuItem"
+        permission="zope2.Public"
+        layer="zenossNav"
+        />
+
 </configure>
 

@@ -1,4 +1,4 @@
-<tal:block metal:use-macro="here/templates/macros/page2">
+<tal:block metal:use-macro="here/page_macros/old-new">
 <tal:block metal:fill-slot="contentPane"
     tal:define="editable here/isManager">
 <form method="post" tal:attributes="action here/absolute_url_path">

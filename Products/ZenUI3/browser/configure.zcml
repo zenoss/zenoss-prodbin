@@ -141,6 +141,44 @@
     permission="zenoss.View"
     />
 
+<browser:defaultView
+    for="Products.ZenModel.MibOrganizer.MibOrganizer"
+    name="mibOrganizerOverview"
+    />
+
+<browser:page
+    template="../../ZenModel/skins/zenmodel/mibOrganizerOverview.pt"
+    name="mibOrganizerOverview"
+    for="*"
+    permission="zenoss.View"
+    />
+
+<browser:page
+    template="../../ZenModel/skins/zenmodel/viewNewHistory.pt"
+    name="viewNewHistory"
+    for="*"
+    permission="zenoss.View"
+    />
+
+<browser:defaultView
+    for="Products.ZenModel.MibModule.MibModule"
+    name="viewMibModule"
+    />
+
+<browser:page
+    template="../../ZenModel/skins/zenmodel/viewMibModule.pt"
+    name="viewMibModule"
+    for="*"
+    permission="zenoss.View"
+    />
+
+<browser:page
+    template="../../ZenModel/skins/zenmodel/editMibModule.pt"
+    name="editMibModule"
+    for="*"
+    permission="zenoss.View"
+    />
+
 <browser:page
     template="templates/reports.pt"
     name="reports"

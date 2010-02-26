@@ -1,0 +1,47 @@
+<!--
+###########################################################################
+#
+# This program is part of Zenoss Core, an open source monitoring platform.
+# Copyright (C) 2009, Zenoss Inc.
+#
+# This program is free software; you can redistribute it and/or modify it
+# under the terms of the GNU General Public License version 2 as published by
+# the Free Software Foundation.
+#
+# For complete information please visit: http://www.zenoss.com/oss/
+#
+###########################################################################
+-->
+
+<tal:block metal:define-macro="old-new">
+<tal:block metal:use-macro="context/page_macros/base-new">
+
+<tal:block metal:fill-slot="head-local">
+    <tal:block metal:use-macro="here/templates/macros/head1"/>
+</tal:block>
+
+<tal:block metal:fill-slot="center_panel_content">
+    <tal:block metal:use-macro="here/dialogmacros/macros/proxyForm"/>
+    <tal:block metal:use-macro="here/dialogmacros/macros/dialog_with_buttons"/>
+    <div id="oldContentPane" style="margin: 7px;">
+        <div metal:use-macro="here/templates/macros/newTabsPane"/>
+        <div style="background-color: #E0E0E0;
+                    border: 1px solid black;
+                    padding: 7px;">
+            <tal:block metal:define-slot="contentPane"/>
+        </div>
+    </div>
+</tal:block>
+
+<tal:block metal:fill-slot="script_layout">
+<script>
+Ext.onReady(function(){
+    Ext.getCmp('center_panel').add({
+        contentEl: 'oldContentPane'
+    });
+});
+</script>
+</tal:block>
+
+</tal:block> <!-- metal:use-macro="context/page_macros/base-new" -->
+</tal:block>

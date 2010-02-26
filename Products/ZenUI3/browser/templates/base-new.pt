@@ -29,6 +29,7 @@
             href="/zenui/css/zenui3.css" />
         <tal:block tal:content="structure provider:js-security"/>
         <tal:block tal:content="structure provider:all-js"/>
+        <tal:block metal:define-slot="head-local"/>
         
     </head>
 

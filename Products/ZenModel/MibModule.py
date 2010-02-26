@@ -64,7 +64,7 @@ class MibModule(ZenModelRM, ZenPackable):
                 },
                 { 'id'            : 'viewHistory'
                 , 'name'          : 'Modifications'
-                , 'action'        : 'viewHistory'
+                , 'action'        : 'viewNewHistory'
                 , 'permissions'   : (ZEN_VIEW_MODIFICATIONS,)
                 },
             )

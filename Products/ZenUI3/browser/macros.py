@@ -36,7 +36,9 @@ class PageTemplateMacros(BrowserView):
         'masterdetailnested': ('templates/masterdetailnested.pt',
                                'masterdetailnested'),
         'verticalbrowse':     ('templates/verticalbrowse.pt',
-                               'verticalbrowse')
+                               'verticalbrowse'),
+        'old-new':            ('templates/old-new.pt',
+                               'old-new')
     }
 
     def __getitem__(self, key):
