@@ -368,4 +368,3 @@ Zenoss.HierarchyTreePanel = Ext.extend(Ext.tree.TreePanel, {
 Ext.reg('HierarchyTreePanel', Zenoss.HierarchyTreePanel);
 
 })();
-
