@@ -46,6 +46,20 @@ class Card(object):
         self.name      = name or descr or str(self.index)
         self.snmpindex = i
 
+        # Make sure all values are in ascii'ish range (i.e. <128)
+        # These should all be ASCII, but some broken devices
+        # have '\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff'
+        self.name      = "".join(c for c in name   if ord(c) < 128)
+        self.serial    = "".join(c for c in serial if ord(c) < 128)
+        self.manuf     = "".join(c for c in manuf  if ord(c) < 128)
+        self.model     = "".join(c for c in model  if ord(c) < 128)
+
+        # Treat "Unknown" (et al) as empty strings
+        self.name      = name.lower()   != "unknown" and name   or ""
+        self.serial    = serial.lower() != "unknown" and serial or ""
+        self.manuf     = manuf.lower()  != "unknown" and manuf  or ""
+        self.model     = model.lower()  != "unknown" and model  or ""
+
         # Optional values
         self.parent    = slot >= 0 and parent or None
         self.serial    = str(serial).strip() # get rid of padding
