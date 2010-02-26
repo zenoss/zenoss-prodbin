@@ -39,12 +39,14 @@ Ext.ns('Zenoss');
 Zenoss.HierarchyTreeNodeUI = Ext.extend(Ext.tree.TreeNodeUI, {
 
     buildNodeText: function(node) {
+        // everything should be a span or a text node or it won't be picked up
+        // correctly as a drag-and-drop handle
         var b = [];
         var t = node.attributes.text;
         if (node.isLeaf()) {
             b.push(t.text);
         } else {
-            b.push('<strong>' + t.text + '</strong>');
+            b.push('<span style="font-weight: bold;">' + t.text + '</span>');
         }
         if (t.count!==undefined) {
             b.push('<span class="node-extra">(' + t.count);
@@ -75,12 +77,11 @@ Zenoss.HierarchyTreeNodeUI = Ext.extend(Ext.tree.TreeNodeUI, {
     },
     
     getDDHandles : function(){
-        // include the child nodes of the text node as drop targets
-        var ddHandles = Zenoss.HierarchyTreeNodeUI.superclass.getDDHandles.call(this);
-        Ext.each(this.textNode.childNodes, function(childNode) {
-            ddHandles.push(childNode);
-        });
-        return ddHandles;
+        // include the child span nodes of the text node as drop targets
+        var ddHandles, spans;
+        ddHandles = Zenoss.HierarchyTreeNodeUI.superclass.getDDHandles.call(this);
+        spans = Ext.query('span', this.textNode);
+        return ddHandles.concat(spans);
     }
 
 });
