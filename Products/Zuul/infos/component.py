@@ -13,27 +13,18 @@
 
 from zope.interface import implements
 from zope.component import adapts
-from Products.Zuul.interfaces import IInstanceInfo, IInstance
+from Products.Zuul.decorators import info
+from Products.Zuul.interfaces import IComponentInfo, IComponent
 from Products.Zuul.infos import InfoBase
 
 class ComponentInfo(InfoBase):
-    implements(IInstanceInfo)
-    adapts(IInstance)
-
-    def __init__(self, obj):
-        self._object = obj
+    implements(IComponentInfo)
+    adapts(IComponent)
 
     @property
-    def id(self):
-        '.'.join(self._object.getPrimaryPath())
-
-    @property
+    @info
     def device(self):
-        return self._object.device().titleOrId()
-
-    @property
-    def name(self):
-        return self._object.name()
+        return self._object.device()
 
     @property
     def monitored(self):
@@ -43,3 +34,4 @@ class ComponentInfo(InfoBase):
     def status(self):
         statusCode = self._object.getStatus()
         return self._object.convertStatus(statusCode)
+

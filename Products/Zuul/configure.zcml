@@ -22,8 +22,13 @@
         />
 
     <five:implements 
-        interface=".interfaces.IInstance"
-        class="Products.ZenModel.OSProcess.OSProcess"
+        interface=".interfaces.IComponent"
+        class="Products.ZenModel.OSComponent.OSComponent"
+        />
+
+    <five:implements 
+        interface=".interfaces.IComponent"
+        class="Products.ZenModel.HWComponent.HWComponent"
         />
 
     <five:implements 
@@ -34,11 +39,6 @@
     <five:implements 
         interface=".interfaces.IServiceEntity"
         class="Products.ZenModel.ServiceClass.ServiceClass"
-        />
-
-    <five:implements 
-        interface=".interfaces.IInstance"
-        class="Products.ZenModel.Service.Service"
         />
 
     <five:implements 
@@ -157,8 +157,8 @@
              provides=".interfaces.IUserCommandInfo"/>
 
     <adapter provides=".interfaces.IInfo"
-             for=".interfaces.IInstance"
-             factory=".infos.instance.InstanceInfo"
+             for=".interfaces.IComponent"
+             factory=".infos.component.ComponentInfo"
              />
 
     <adapter provides=".interfaces.IInfo"
@@ -184,6 +184,16 @@
     <adapter provides=".interfaces.IEventInfo"
              for=".interfaces.IEventEntity"
              factory=".infos.event.EventInfo"
+             />
+
+    <adapter provides=".interfaces.IComponentInfo"
+             for="Products.ZenModel.OSComponent.OSComponent"
+             factory=".infos.component.ComponentInfo"
+             />
+
+    <adapter provides=".interfaces.IComponentInfo"
+             for="Products.ZenModel.HWComponent.HWComponent"
+             factory=".infos.component.ComponentInfo"
              />
 
     <adapter provides=".interfaces.ICatalogTool"

@@ -13,9 +13,11 @@
 
 from itertools import imap
 from zope.interface import implements
+from Products.AdvancedQuery import Eq, Or
 from Products.Zuul.decorators import info
+from Products.Zuul.utils import unbrain
 from Products.Zuul.facades import TreeFacade
-from Products.Zuul.interfaces import IDeviceFacade
+from Products.Zuul.interfaces import IDeviceFacade, ICatalogTool
 from Products.ZenModel.DeviceOrganizer import DeviceOrganizer
 from Products.ZenModel.DeviceGroup import DeviceGroup
 from Products.ZenModel.System import System
@@ -36,7 +38,7 @@ class DeviceFacade(TreeFacade):
     @property
     def _root(self):
         return self._dmd.Devices
-    
+
     @property
     def _instanceClass(self):
         return 'Products.ZenModel.Device.Device'
@@ -61,6 +63,67 @@ class DeviceFacade(TreeFacade):
         severities = (c[0].lower() for c in zem.severityConversions)
         counts = (s[1]+s[2] for s in summary)
         return zip(severities, counts)
+
+    def _componentSearch(self, uid=None, types=(), meta_type=()):
+        if isinstance(types, basestring):
+            types = (types,)
+        defaults =['Products.ZenModel.OSComponent.OSComponent',
+                   'Products.ZenModel.HWComponent.HWComponent']
+        defaults.extend(types)
+        if isinstance(meta_type, basestring):
+            meta_type = (meta_type,)
+        query = None
+        if meta_type:
+            query = Or(*(Eq('meta_type', t) for t in meta_type))
+        cat = ICatalogTool(self._getObject(uid))
+        brains = cat.search(defaults, query=query)
+        return brains
+
+    @info
+    def getComponents(self, uid=None, types=(), meta_type=()):
+        return imap(unbrain, self._componentSearch(uid, types, meta_type))
+
+    def getComponentTree(self, uid=None, types=(), meta_type=()):
+        d = {}
+        # Build a dictionary with device/component 
+        for b in self._componentSearch(uid, types, meta_type):
+            component = b.id
+            path = b.getPath().split('/')
+            device = path[path.index('devices') + 1]
+            d.setdefault(b.meta_type, []).append(dict(device=device,
+                                                      component=component))
+        # Get count, status per meta_type
+        result = []
+        for compType in d:
+            # Number of components
+            count = len(d[compType])
+            # Severity counts
+            where = []
+            vals = []
+            for criterion in d[compType]:
+                s = []
+                # criterion is a dict
+                for k, v in criterion.iteritems():
+                    s.append('%s=%%s' % k)
+                    vals.append(v)
+                crit = ' and '.join(s)
+                where.append('(%s)' % crit)
+            zem = self._dmd.ZenEventManager
+            severities = (c[0].lower() for c in zem.severityConversions)
+            if where:
+                crit = ' or '.join(where)
+                pw = ('(%s)' % crit, vals)
+                summary = zem.getEventSummary(parameterizedWhere=pw)
+                counts = (s[1]+s[2] for s in summary)
+            else:
+                counts = [0]*5
+            for sev, count in zip(severities, counts):
+                if count:
+                    break
+            else:
+                sev = 'clear'
+            result.append({'type':compType, 'count':count, 'severity':sev})
+        return result
 
     def deleteDevices(self, uids):
         devs = imap(self._findObject, uids)

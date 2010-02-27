@@ -143,6 +143,14 @@ class IndexableWrapper(object):
         """
         return str(time.time())
 
+    def meta_type(self):
+        """
+        Object's meta_type. Mostly used for backwards compatibility.
+
+        This is a FieldIndex on the catalog and a metadata column.
+        """
+        return aq_base(self._context).meta_type
+
     def productionState(self):
         """
         Production state. Only for Devices.
@@ -157,6 +165,7 @@ class IndexableWrapper(object):
         """
         Whether or not monitored. Only for Components.
         """
+
 
 
 class ComponentWrapper(IndexableWrapper):
@@ -218,6 +227,7 @@ def createGlobalCatalog(portal):
     cat = catalog._catalog
     cat.addIndex('id', makeCaseSensitiveFieldIndex('id'))
     cat.addIndex('uid', makeCaseSensitiveFieldIndex('uid'))
+    cat.addIndex('meta_type', makeCaseSensitiveFieldIndex('meta_type'))
     cat.addIndex('name', makeCaseInsensitiveFieldIndex('name'))
     cat.addIndex('modified', makeCaseSensitiveFieldIndex('modified'))
     cat.addIndex('ipAddress', makeCaseSensitiveFieldIndex('ipAddress'))
@@ -231,6 +241,7 @@ def createGlobalCatalog(portal):
         
     catalog.addColumn('id')
     catalog.addColumn('name')
+    catalog.addColumn('meta_type')
     catalog.addColumn('modified')
     catalog.addColumn('monitored')
     catalog.addColumn('productionState')

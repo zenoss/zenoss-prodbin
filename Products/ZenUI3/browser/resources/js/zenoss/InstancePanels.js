@@ -20,7 +20,7 @@ Ext.ns('Zenoss');
 var InstanceColumnModel = Ext.extend(Ext.grid.ColumnModel, {
 
     constructor: function(config) {
-        Ext.applyIf(config, {
+        config = Ext.applyIf(config||{}, {
             defaults: {
                 menuDisabled: true
             },
@@ -28,7 +28,10 @@ var InstanceColumnModel = Ext.extend(Ext.grid.ColumnModel, {
                 id: 'device',
                 dataIndex: 'device',
                 header: _t('Device'),
-                width: 200
+                width: 200,
+                renderer: function(device, row, record){
+                    return Zenoss.render.link(device.uid);
+               }
             }, {
                 id: 'name',
                 dataIndex: 'name',
@@ -88,7 +91,7 @@ Zenoss.SimpleInstanceGridPanel = Ext.extend(Ext.ux.grid.livegrid.GridPanel, {
             border: false,
             autoExpandColumn: 'name',
             stripeRows: true,
-            cm: new InstanceColumnModel({}),
+            cm: new InstanceColumnModel(),
             store: {
                 xtype:'InstanceStore',
                 directFn: config.directFn

@@ -13,11 +13,11 @@
 
 import sys
 import Migrate
+from OFS.ObjectManager import ObjectManager
 from Products.ZCatalog.Catalog import CatalogError
 from Products.Zuul.catalog.global_catalog import createGlobalCatalog
 from Products.ZenModel.ZenModelRM import ZenModelRM
 from Products.ZenRelations.ToManyContRelationship import ToManyContRelationship
-from OFS.ObjectManager import ObjectManager
 from Products.ZenModel.Device import Device
 from Products.ZenModel.RRDTemplate import RRDTemplate
 from Products.ZenUtils.Search import makeCaseSensitiveFieldIndex
@@ -75,12 +75,11 @@ class GlobalCatalog(Migrate.Step):
                 i+=1
             print
 
-        # Add the ipAddress and/or uid indices if you already have a catalog
         else:
+            # Add the ipAddress and/or uid indices if you already have a catalog
             indices = zport.global_catalog.indexes()
             toreindex = []
             cat = zport.global_catalog._catalog
-            newColumn = False
             
             if 'uid' not in indices:
                 cat.addIndex('uid', makeCaseSensitiveFieldIndex('uid'))
@@ -91,19 +90,24 @@ class GlobalCatalog(Migrate.Step):
                              makeCaseSensitiveFieldIndex('ipAddress'))
                 toreindex.append('ipAddress')
 
-            # attempt to add the column if it does not exist
-            try:
-                cat.addColumn('zProperties')
-                newColumn = True
-            except CatalogError:
-                # column already exists
-                pass
-            
-            # if we have a new column or new indexes we should re-catalog
-            # everything so that all the indexes/meta-data is up to date
+            if 'meta_type' not in indices:
+                cat.addIndex('meta_type',
+                             makeCaseSensitiveFieldIndex('meta_type'))
+                toreindex.append('meta_type')
+
+            # attempt to add columns
+            newColumn = False
+            for column in ('zProperties', 'meta_type'):
+                try:
+                    cat.addColumn(column)
+                    newColumn = True
+                except CatalogError:
+                    # column already exists
+                    pass
+
             if toreindex or newColumn:
-                print ("Reindexing the Catalog. "
-                       "Patience is a virtue.")
+                print ("Reindexing one or more of uid/meta_type/ipAddress "
+                       "indices. Patience is a virtue.")
                 i=0
                 _catobj = zport.global_catalog.catalog_object
                 for b in zport.global_catalog():
@@ -115,9 +119,5 @@ class GlobalCatalog(Migrate.Step):
                         sys.stdout.flush()
                     i+=1
                 print
-
-
-
-
 
 GlobalCatalog()

@@ -38,6 +38,7 @@ object.
 """
 
 import AccessControl
+from itertools import imap
 from zope import component
 from zope.interface import verify
 from interfaces import IFacade, IInfo
@@ -104,16 +105,19 @@ def info(obj, adapterName=''):
     """
     Recursively adapt obj or members of obj to IInfo.
     """
+    def infoize(o):
+        return info(o, adapterName)
+
     if IInfo.providedBy(obj):
         return obj
 
     # obj is a dict, so apply to its values recursively
     elif isinstance(obj, dict):
-        return dict((k, info(obj[k], adapterName)) for k in obj)
+        return dict((k, infoize(obj[k])) for k in obj)
 
     # obj is a non-string iterable, so apply to its members recursively
     elif hasattr(obj, '__iter__'):
-        return [info(o, adapterName) for o in obj]
+        return imap(infoize, obj)
 
     # attempt to adapt; if no adapter, return obj itself
     else:
