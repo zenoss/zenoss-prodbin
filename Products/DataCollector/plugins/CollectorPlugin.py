@@ -15,7 +15,6 @@ __doc__= """Collector classes for the different methods of collecting data from 
 """
 
 import struct
-from sets import Set
 from pprint import pformat
 
 import Products.ZenUtils.IpUtil as iputil
@@ -110,12 +109,13 @@ class CollectorPlugin(object):
         """Check that all columns came back, 
         this should be everywhere #1539 -EAD
         """
-        rescols = Set(row.keys())
-        cols = Set(columns.values())
-        if rescols != cols:
+        rescols = set(row.keys())
+        cols = set(columns.values())
+        if not rescols >= cols:
             log.error("result missing columns: '%s'", 
                      ",".join(cols.difference(rescols)))
-        return rescols == cols
+            return False
+        return True
 
     def copyDataToProxy(self, device, proxy):
         """For anything monitored indirectly, copy it's status to the proxy device
