@@ -143,7 +143,7 @@ def getZProperties(context):
         return properties
 
     # get all of the property ids from Devices
-    propertyIds = get_dmd().Devices.zenPropertyIds()
+    propertyIds = context.dmd.Devices.zenPropertyIds()
     for propertyId in propertyIds:
         # has property does not take acquisition into account by default
         if context.hasProperty(propertyId):
