@@ -30,9 +30,9 @@ def removeModelerPlugin(obj, plugin_name):
     if 'zenoss.snmp.CiscoHSRP' in plugins:
         log.info("Removing zenoss.snmp.CiscoHSRP modeler plugin from %s",
             obj.titleOrId())
-
-        plugins.remove('zenoss.snmp.CiscoHSRP')
-        obj.zCollectorPlugins = plugins
+        pluginsList = list(plugins)
+        pluginsList.remove('zenoss.snmp.CiscoHSRP')
+        obj.zCollectorPlugins = tuple(pluginsList)
 
 
 class RemoveCiscoHSRP(Migrate.Step):
