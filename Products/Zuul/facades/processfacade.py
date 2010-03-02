@@ -12,6 +12,7 @@
 ###########################################################################
 
 import logging
+from itertools import izip, count
 from Acquisition import aq_parent
 from zope.interface import implements
 from Products.ZenModel.OSProcessClass import OSProcessClass
@@ -58,6 +59,23 @@ class ProcessFacade(TreeFacade):
         else:
             raise Exception('Illegal type %s' % obj.__class__.__name__)
         return newObj.getPrimaryPath()
+
+    def getSequence(self):
+        processClasses = self._dmd.Processes.getSubOSProcessClassesSorted()
+        for processClass in processClasses:
+            yield {
+                'uid': '/'.join(processClass.getPrimaryPath()),
+                'folder': processClass.getPrimaryParent().getOrganizerName(),
+                'name': processClass.name,
+                'regex': processClass.regex,
+                'monitor': processClass.zMonitor,
+                'count': processClass.count()
+            }
+
+    def setSequence(self, uids):
+        for sequence, uid in izip(count(), uids):
+            ob = self._getObject(uid)
+            ob.sequence = sequence
 
     def _getObject(self, uid):
         try:

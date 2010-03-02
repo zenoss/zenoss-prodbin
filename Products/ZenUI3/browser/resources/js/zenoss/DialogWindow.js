@@ -15,8 +15,14 @@
 
 (function(){
 
-Ext.ns('Zenoss.dialog');
+Ext.ns('Zenoss', 'Zenoss.dialog');
 
+/**
+ * @class BaseDialog
+ * @extends Ext.Window
+ * A modal dialog with Zenoss styling. Subclasses should specify a layout. 
+ * @constructor
+ */
 var BaseDialog = Ext.extend(Ext.Window, {
     constructor: function(config) {
         Ext.applyIf(config, {
@@ -36,6 +42,12 @@ function destroyWindow(button){
     button.ownerCt.ownerCt.destroy();
 }
 
+/**
+ * @class Zenoss.dialog.HideDialogButton
+ * @extends Ext.Button
+ * A button that destroys it's window.
+ * @constructor
+ */
 Zenoss.dialog.DialogButton = Ext.extend(Ext.Button, {
     constructor: function(config) {
         var h = config.handler;
@@ -50,6 +62,12 @@ function hideWindow(button){
     button.ownerCt.ownerCt.hide();
 }
 
+/**
+ * @class Zenoss.dialog.HideDialogButton
+ * @extends Ext.Button
+ * A button that hides it's window.
+ * @constructor
+ */
 Zenoss.dialog.HideDialogButton = Ext.extend(Ext.Button, {
     constructor: function(config) {
         var h = config.handler;
@@ -65,7 +83,14 @@ Zenoss.dialog.CANCEL = {
     text: _t('Cancel')
 };
 
-
+/**
+ * @class Zenoss.MessageDialog
+ * @extends BaseDialog
+ * A modal dialog window with Zenoss styling and a fit layout.  This window
+ * meant to be instantiated once per page, and hidden each time the user
+ * closes it.  Includes an OK and Cancel button.
+ * @constructor
+ */
 Zenoss.MessageDialog = Ext.extend(BaseDialog, {
     constructor: function(config) {
         Ext.applyIf(config, {
@@ -90,6 +115,14 @@ Zenoss.MessageDialog = Ext.extend(BaseDialog, {
     }
 });
 
+/**
+ * @class Zenoss.FormDialog
+ * @extends Ext.Window
+ * A modal dialog window with Zenoss styling and a form layout.  This window
+ * meant to be instantiated multiple times per page, and destroyed each time
+ * the user closes it.
+ * @constructor
+ */
 Zenoss.FormDialog = Ext.extend(Ext.Window, {
     constructor: function(config) {
         var form = new Ext.form.FormPanel({
@@ -119,6 +152,14 @@ Zenoss.FormDialog = Ext.extend(Ext.Window, {
     }
 });
 
+/**
+ * @class Zenoss.HideFormDialog
+ * @extends BaseDialog
+ * A modal dialog window with Zenoss styling and a form layout.  This window
+ * meant to be instantiated once per page, and hidden each time the user
+ * closes it.
+ * @constructor
+ */
 Zenoss.HideFormDialog = Ext.extend(BaseDialog, {
     constructor: function(config) {
         Ext.applyIf(config, {
@@ -127,6 +168,28 @@ Zenoss.HideFormDialog = Ext.extend(BaseDialog, {
             labelSeparator: ' '
         });
         Zenoss.HideFormDialog.superclass.constructor.call(this, config);
+    }
+});
+
+/**
+ * @class Zenoss.HideFitDialog
+ * @extends Ext.Window
+ * A modal dialog window with Zenoss styling and a fit layout.
+ * @constructor
+ */
+Zenoss.HideFitDialog = Ext.extend(Ext.Window, {
+    constructor: function(config) {
+        Ext.applyIf(config, {
+            layout: 'fit',
+            width: 600,
+            height: 300,
+            closeAction: 'hide',
+            plain: true,
+            buttonAlign: 'left',
+            padding: 10,
+            modal: true
+        });
+        Zenoss.HideFitDialog.superclass.constructor.call(this, config);
     }
 });
 

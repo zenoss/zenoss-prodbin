@@ -420,4 +420,96 @@ footerPanel.add({
 
 Ext.getCmp('deleteButton').setDisabled(true);
 
+Zenoss.SequenceGrid = Ext.extend(Ext.grid.GridPanel, {
+    constructor: function(config) {
+        Ext.applyIf(config, {
+            enableDragDrop: true,
+            ddGroup: 'sequenceDDGroup',
+            stripeRows: true,
+            autoScroll: true,
+            border: false,
+            layout: 'fit',
+            viewConfig: {forceFit: true},
+            store: {
+                xtype: 'directstore',
+                root: 'data',
+                autoSave: false,
+                idProperty: 'uid',
+                directFn: router.getSequence,
+                fields: ['uid', 'folder', 'name', 'regex', 'monitor', 'count']
+            },
+            columns: [
+                {dataIndex: 'folder', header: 'Folder'},
+                {dataIndex: 'name', header: 'Name'},
+                {dataIndex: 'regex', header: 'Regex'},
+                {dataIndex: 'monitor', header: 'Monitor'},
+                {dataIndex: 'count', header: 'Count'}
+            ]
+        });
+        Zenoss.SequenceGrid.superclass.constructor.call(this, config);
+    },
+    onRender: function() {
+        var grid, store;
+        grid = this;
+        store = this.getStore();
+        Zenoss.SequenceGrid.superclass.onRender.apply(this, arguments);
+        this.dropZone = new Ext.dd.DropZone(this.view.scroller.dom, {
+            ddGroup: 'sequenceDDGroup',
+            onContainerOver: function(source, event, data) {
+                return this.dropAllowed;
+            },
+            notifyDrop: function(source, event, data) {
+                var sm, rows, cindex, i, rowData;
+                sm = grid.getSelectionModel();
+                rows = sm.getSelections();
+                cindex = source.getDragData(event).rowIndex;
+                if (typeof cindex != "undefined") {
+                    for (i = 0; i < rows.length; i++) {
+                        rowData = store.getById(rows[i].id);
+                        store.remove(store.getById(rows[i].id));
+                        store.insert(cindex, rowData);
+                    }
+                    sm.selectRecords(rows);
+                }
+            }
+        });
+    }
+});
+Ext.reg('sequencegrid', Zenoss.SequenceGrid);
+
+Ext.getCmp('footer_bar').addButton({
+    id: 'sequenceButton',
+    iconCls: 'set',
+    disabled: Zenoss.Security.doesNotHavePermission('Manage DMD'),
+    tooltip: 'Sequence the process classes',
+    handler: function(button, event) {
+        if ( ! Ext.getCmp('sequenceDialog') ) {
+            new Zenoss.HideFitDialog({
+                id: 'sequenceDialog',
+                title: _t('Sequence'),
+                items: [
+                {
+                    xtype: 'sequencegrid',
+                    id: 'sequenceGrid'
+                }],
+                buttons: [{
+                    xtype: 'HideDialogButton',
+                    text: _t('Submit'),
+                    handler: function(button, event) {
+                        var records, uids;
+                        records = Ext.getCmp('sequenceGrid').getStore().getRange();
+                        uids = Ext.pluck(records, 'id');
+                        router.setSequence({'uids': uids});
+                    }
+                 }, {
+                    xtype: 'HideDialogButton',
+                    text: _t('Cancel')
+                }]
+            });
+        }
+        Ext.getCmp('sequenceGrid').getStore().load();
+        Ext.getCmp('sequenceDialog').show();
+    }
+});
+
 }); // Ext.onReady

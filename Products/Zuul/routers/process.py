@@ -65,3 +65,14 @@ class ProcessRouter(TreeRouter):
         instances = facade.getInstances(uid, start, limit, sort, dir, params)
         data = Zuul.marshal(instances)
         return {'data': data, 'success': True, 'total': instances.total}
+
+    def getSequence(self):
+        facade = self._getFacade()
+        sequence = facade.getSequence()
+        data = Zuul.marshal(sequence)
+        return {'data': data, 'success': True}
+
+    def setSequence(self, uids):
+        facade = self._getFacade()
+        facade.setSequence(uids)
+        return {'success': True}
