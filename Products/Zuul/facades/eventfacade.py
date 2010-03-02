@@ -95,13 +95,19 @@ class EventFacade(ZuulFacade):
     def _get_eventClass_url(self, evclass):
         return '/zport/dmd/Events' + evclass
 
+    def _get_deviceClass_url(self, deviceClass):
+        return '/zport/dmd/Devices' + deviceClass
+
+    def _get_deviceLocation_url(self, location):
+        return '/zport/dmd/Locations' + location
+
     def _get_orderby_clause(self, sort, dir, history):
         secondarySort = self._event_manager(history).defaultOrderby
         if not secondarySort:
             secondarySort = 'lastTime DESC'
         orderBy = "%s %s, %s" % (sort, dir, secondarySort)
         return orderBy
-
+    
     def _extract_data_from_zevent(self, zevent, fields):
         data = {}
         for field in fields:
@@ -114,23 +120,22 @@ class EventFacade(ZuulFacade):
             elif 'Time' in field:
                 value = value.rsplit('.')[0].replace('/', '-')
             elif field == 'eventClass':
-                data['eventClass_url'] = self._get_eventClass_url(value)
+                data['eventClass'] = dict(uid=self._get_eventClass_url(value), text=value)
+            elif field == 'DeviceClass':
+                data['DeviceClass'] = dict(uid=self._get_deviceClass_url(value), text=value)
             elif field == 'device':
                 url, titleOrId = self._get_device_url(value)
-                if url: data['device_url'] = url
-                if titleOrId:
-                    data['device_title'] = titleOrId
-                else:
-                    data['device_title'] = value
+                titleOrId = titleOrId or value
+                data['device'] = dict(uid=url, text=titleOrId)
+            elif field == 'Location':
+                data['Location'] = dict(uid=self._get_deviceLocation_url(value), text=value)
             elif field == 'component':
                 dev = getattr(zevent, 'device', None)
                 if dev:
                     url, titleOrId = self._get_component_url(dev, value)
-                    if url: data['component_url'] = url
-                    if titleOrId:
-                        data['component_title'] = titleOrId
-                    else:
-                        data['component_title'] = value
+                    titleOrId = titleOrId or value
+                    data['component'] = dict(uid=url, text=titleOrId)
+                    
             else:
                 value = _shortvalue
             if field not in data:

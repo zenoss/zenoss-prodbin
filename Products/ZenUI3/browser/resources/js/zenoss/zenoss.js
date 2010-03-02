@@ -160,6 +160,7 @@ Zenoss.PostRefreshHookableDataView = Ext.extend(Ext.DataView, {
             'afterrefresh');
     }
 });
+     
 Ext.extend(Zenoss.PostRefreshHookableDataView, Ext.DataView, {
     /**
      * This won't survive upgrade.
@@ -1021,6 +1022,25 @@ Zenoss.DetailPanel = Ext.extend(Ext.Panel, {
         );
     },
     update: function(event) {
+        // For the Event Detail Page, set up the page
+        // links. This is to make sure they link to the correct place
+        // when we go to the new UI
+        
+        // device_link
+        event.device_link = Zenoss.render.Device(event.device_url,
+                                                event.device_title);
+        // component_link
+        if (event.component_url) {
+            event.component_link = Zenoss.render.DeviceComponent(event.component_url,
+                                                event.component_title);
+        }else {
+            event.component_link = event.component_title;
+        }
+        
+        // eventClass_link
+        event.eventClass_link = Zenoss.render.EventClass(event.eventClass,
+                                                        event.eventClass);
+        
         var top_prop_template = new
             Ext.XTemplate.from('detail_table_template');
         var full_prop_template = new
@@ -1030,7 +1050,8 @@ Zenoss.DetailPanel = Ext.extend(Ext.Panel, {
             html = top_prop_template.applyTemplate(event),
             prophtml = full_prop_template.applyTemplate(event),
             loghtml = log_template.applyTemplate(event);
-
+        
+        
         this.setSummary(event.summary);
         this.setSeverityIcon(severity);
         Ext.getCmp('evdetail_props').el.update(html);
@@ -1174,7 +1195,7 @@ Zenoss.util.render_severity = function(sev) {
 Zenoss.util.render_status = function(stat) {
     return Zenoss.render.evstatus(stat);
 };
-
+     
 Zenoss.util.render_linkable = function(name, col, record) {
     var url = record.data[col.id + '_url'];
     var title = record.data[col.id + '_title'] || name;
@@ -1184,6 +1205,24 @@ Zenoss.util.render_linkable = function(name, col, record) {
         return title;
     }
 };
+
+
+Zenoss.util.render_device_group_link = function(name, col, record) {
+    
+    var links = record.data.DeviceGroups.split('|'),
+        returnString = "",
+        link = undefined;
+    // return a pipe-deliminated set of links to the ITInfrastructure page
+    for (var i = 0; i < links.length; i++) {
+        link = links[i];
+        if (link) {
+            returnString +=  '&nbsp;|&nbsp;' + Zenoss.render.DeviceGroup(link, link) ;
+        }
+    }
+    
+    return returnString;
+};
+
 
 Zenoss.util.base64 = {
     base64s : "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_",

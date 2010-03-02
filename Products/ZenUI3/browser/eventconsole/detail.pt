@@ -7,26 +7,42 @@
         <link rel="stylesheet" type="text/css" 
             href="/zenui/css/zenoss.css" />
         <link rel="stylesheet"
-            href="/zenui/js/livegrid/resources/css/ext-ux-livegrid.css"/> 
+            href="/zenui/js/livegrid/resources/css/ext-ux-livegrid.css"/>
+        <tal:block tal:content="structure provider:js-security"/>
         <tal:block tal:content="structure provider:all-js"/>
     </head>
     <body class="zenui3">
-<!-- Template for rendering the detail pane -->
+<!-- NOTE: Template for rendering the detail pane. This is Ext's XTemplate language. The template gets
+     rendered in Zenoss.DetailedPanel in zenoss.js
+
+     ANOTHER NOTE: This functionality is duplicated in console-new.pt. Make sure you make any changes there in
+     addition to here
+  -->
+
 <textarea class="dontexpand" style="display:none" id="detail_table_template">
 <table>
     <tr><td class="dt">Device:</td> 
-        <td><tpl if="device"><a href="{device_url}" 
-                class="resource-link">{device_title}</a></tpl></td>
-        </tr>
+        <td>
+            <tpl if="device">
+                {device_link}
+            </tpl>
+        </td>
+    </tr>
     <tr><td class="dt">Component:</td> 
-        <td><tpl if="component">
-            <a href="{component_url}" 
-                class="resource-link">{component_title}</a></tpl></td>
-        </tr>
+        <td>
+            <tpl if="component">
+                {component_link}
+            </tpl>
+        </td>
+    </tr>
     <tr><td class="dt">Event Class:</td> 
-        <td><tpl if="eventClass"><a href="{eventClass_url}"
-                class="resource-link">{eventClass}</a></tpl></td>
-        </tr>
+        <td>
+            <tpl if="eventClass">
+                {eventClass_link}
+            </tpl>
+        </td>
+    </tr>
+
     <tr><td class="dt">Status:</td> <td>{eventState}</td></tr>
     <tr><td class="dt">Start Time:</td> <td>{firstTime}</td></tr>
     <tr><td class="dt">Stop Time:</td> <td>{lastTime}</td></tr>

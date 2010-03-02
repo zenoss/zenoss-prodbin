@@ -26,27 +26,40 @@ Ext.state.Manager.setProvider(new Ext.state.CookieProvider({
 <form id="exportform" method="post" action="export">
     <input type="hidden" id="export_body" name="body"/>
 </form>
-<!-- Template for rendering the detail pane -->
+<!-- NOTE: Template for rendering the detail pane. This is Ext's XTemplate language. The template gets
+     rendered in Zenoss.DetailedPanel in zenoss.js
+
+     ANOTHER NOTE: This functionality is duplicated in detail.pt. Make sure you make any changes there in
+     addition to here
+  -->
 <textarea class="dontexpand" style="display:none" id="detail_table_template">
-<table>
-    <tr><td class="dt">Device:</td> 
-        <td><tpl if="device"><a href="{device_url}" 
-                class="resource-link">{device_title}</a></tpl></td>
+    <table>
+        <tr><td class="dt">Device:</td> 
+            <td>
+                <tpl if="device">
+                    {device_link}
+                </tpl>
+            </td>
         </tr>
-    <tr><td class="dt">Component:</td> 
-        <td><tpl if="component">
-            <a href="{component_url}" 
-                class="resource-link">{component_title}</a></tpl></td>
+        <tr><td class="dt">Component:</td> 
+            <td>
+                <tpl if="component">
+                    {component_link}
+                </tpl>
+            </td>
         </tr>
-    <tr><td class="dt">Event Class:</td> 
-        <td><tpl if="eventClass"><a href="{eventClass_url}"
-                class="resource-link">{eventClass}</a></tpl></td>
+        <tr><td class="dt">Event Class:</td> 
+            <td>
+                <tpl if="eventClass">
+                    {eventClass_link}
+                </tpl>
+            </td>
         </tr>
-    <tr><td class="dt">Status:</td> <td>{eventState}</td></tr>
-    <tr><td class="dt">Start Time:</td> <td>{firstTime}</td></tr>
-    <tr><td class="dt">Stop Time:</td> <td>{lastTime}</td></tr>
-    <tr><td class="dt">Count:</td> <td>{count}</td></tr>
-</table>
+        <tr><td class="dt">Status:</td> <td>{eventState}</td></tr>
+        <tr><td class="dt">Start Time:</td> <td>{firstTime}</td></tr>
+        <tr><td class="dt">Stop Time:</td> <td>{lastTime}</td></tr>
+        <tr><td class="dt">Count:</td> <td>{count}</td></tr>
+    </table>
 </textarea>
 <textarea class="dontexpand" style="display:none" id="log_table_template">
     <table>
@@ -152,7 +165,7 @@ Ext.onReady(function(){
                     xtype: 'textfield',
                     fieldLabel: 'Device',
                     name: 'device',
-                    allowBlank: false
+                    allowBlank: false                    
                 },{
                     xtype: 'textfield',
                     fieldLabel: 'Component',

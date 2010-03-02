@@ -30,18 +30,18 @@ COLUMN_CONFIG = {
     'device'    : dict(
         header='Device',
         filter='textfield',
-        renderer='Zenoss.util.render_linkable'),
-
+        renderer='Zenoss.render.linkFromGrid'),
+                
     'component' : dict(
         header='Component',
         filter='textfield',
-        renderer='Zenoss.util.render_linkable'),
+        renderer='Zenoss.render.linkFromGrid'),
 
     'eventClass': dict(
         header='Event Class',
         filter='textfield',
-        renderer='Zenoss.util.render_linkable'),
-
+        renderer='Zenoss.render.linkFromGrid'),
+        
     'eventKey'  : dict(
         header='Event Key',
         filter='textfield'),
@@ -182,11 +182,15 @@ COLUMN_CONFIG = {
 
     'DeviceClass': dict(
         header='Device Class',
-        filter='textfield'),
+        filter='textfield',
+        renderer='Zenoss.render.linkFromGrid'
+        ),
 
     'Location'  : dict(
         header='Location',
-        filter='textfield'),
+        filter='textfield',
+        renderer='Zenoss.render.linkFromGrid'
+        ),
 
     'Systems'   : dict(
         header='Systems',
@@ -194,7 +198,8 @@ COLUMN_CONFIG = {
 
     'DeviceGroups': dict(
         header='Groups',
-        filter='textfield'),
+        filter='textfield',
+        renderer='Zenoss.util.render_device_group_link'),
 
     'ipAddress' : dict(
         header='IP Address',

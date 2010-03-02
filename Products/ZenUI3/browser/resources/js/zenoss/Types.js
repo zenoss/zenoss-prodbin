@@ -4,7 +4,8 @@ var _tm = {
     'DeviceLocation':   ["^/zport/dmd/Locations(/[A-Z][^/]*)*/?$"],
     'DeviceGroup':      ["^/zport/dmd/Groups(/[A-Z][^/]*)*/?$"],
     'DeviceClass':      ["^/zport/dmd/Devices(/[A-Z][^/]*)*/?$"],
-    'Device':           ["^/zport/dmd/.*/devices/[^/]*/?$"]
+    'Device':           ["^/zport/dmd/.*/devices/[^/]*/?$"],
+    'EventClass':       ["^/zport/dmd/Events(/[A-Z][^/]*)*/?$"]
 };
 
 Ext.ns('Zenoss.types');

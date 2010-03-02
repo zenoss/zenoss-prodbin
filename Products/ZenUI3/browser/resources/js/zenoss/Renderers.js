@@ -65,6 +65,20 @@ Ext.apply(Zenoss.render, {
         return '<a href="'+url+'">'+name+'</a>';
     },
 
+    linkFromGrid: function(name, col, record) {
+        
+        if (typeof(record.data[col.id]) == 'object') {
+            item = record.data[col.id];
+            
+            if (item.uid) {
+                return Zenoss.render.link(item.uid, null, item.text);
+            }
+            return item.text;
+        }
+        
+        return name;
+    },
+        
     Device: function(uid, name) {
         // For now, link to the old device page
         return Zenoss.render.link(null, uid+'/devicedetail', name);
@@ -90,6 +104,20 @@ Ext.apply(Zenoss.render, {
         var value = uid.replace(/^\/zport\/dmd\/Groups/, '');
         value = value.replace(/\/devices\/.*$/, '');
         var url = '/zport/dmd/itinfrastructure#groups:.zport.dmd.Groups' + value.replace(/\//g,'.');
+        if (!Ext.isString(name)) name = value;
+        return Zenoss.render.link(null, url, name);
+    },
+
+    DeviceComponent: function(url, name) {
+        // TODO once these pages are built fix the link
+        return Zenoss.render.link(null, url, name);
+    },
+        
+    EventClass: function(uid, name) {
+        // TODO make this point to the correct place once we have the event
+        // class pages
+        var value = uid.replace(/^\/zport\/dmd\/Events/, '');
+        var url = '/zport/dmd/Events/evconsole#eventClass:.zport.dmd.Events' + value.replace(/\//g,'.');
         if (!Ext.isString(name)) name = value;
         return Zenoss.render.link(null, url, name);
     }
