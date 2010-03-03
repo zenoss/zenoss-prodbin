@@ -16,6 +16,7 @@
 <tal:block metal:use-macro="context/page_macros/masterdetailsplit3">
 
 <tal:block metal:fill-slot="script_layout">
+<script src="/zenui/js/zenoss/monitoringTemplates/threshold.js"></script>
 <script src="/zenui/js/zenoss/template.js"></script>
 </tal:block> <!-- metal:fill-slot="script_layout" -->
 

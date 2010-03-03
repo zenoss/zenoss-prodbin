@@ -56,11 +56,18 @@ class TemplateFacade(ZuulFacade):
         leaf = ITemplateLeaf(template)
         node._addChild(leaf)
         return node
-
-    def deleteTemplate(self, uid):
+    
+    def _deleteObject(self, uid):
+        """ Deletes the object by getting the parent
+        and then calling delete on the objects id.
+        @param string uid Must be a valid path
+        """
         obj = self._getObject(uid)
         context = aq_parent(obj)
         context._delObject(obj.id)
+        
+    def deleteTemplate(self, uid):
+        return self._deleteObject(uid)
 
     def getDataSources(self, uid):
         catalog = self._getCatalog(uid)
@@ -104,6 +111,12 @@ class TemplateFacade(ZuulFacade):
             dsnames.append( dataPoint.name() )
         threshold._updateProperty('dsnames', dsnames)
 
+    def removeThreshold(self, uid):
+        """Removes the threshold
+        @param string uid
+        """
+        return self._deleteObject(uid)
+    
     def getGraphs(self, uid):
         catalog = self._getCatalog(uid)
         brains = catalog.search(types=GraphDefinition)

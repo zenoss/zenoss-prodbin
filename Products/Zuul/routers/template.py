@@ -73,7 +73,15 @@ class TemplateRouter(DirectRouter):
         facade = self._getFacade()
         facade.addThreshold(uid, thresholdType, thresholdId, dataPoints)
         return {'success': True}
-        
+
+    @require('Manage DMD')
+    def removeThreshold(self, uid):
+        """Gets a list of Uids from the server, and deletes each one. 
+        """
+        facade = self._getFacade()
+        facade.removeThreshold(uid)
+        return {'success': True}
+    
     def getThresholdTypes(self, query):
         facade = self._getFacade()
         data = facade.getThresholdTypes()

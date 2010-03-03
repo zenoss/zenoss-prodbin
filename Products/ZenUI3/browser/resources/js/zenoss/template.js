@@ -22,13 +22,14 @@ var router, treeId, dataSourcesId, thresholdsId, graphsId,
 router = Zenoss.remote.TemplateRouter;
 treeId = 'templateTree';
 dataSourcesId = 'dataSourceTreeGrid';
-thresholdsId = 'thresholdGrid';
+thresholdsId = Zenoss.templates.thresholdsId;
+
 graphsId = 'graphGrid';
 
 beforeselectHandler = function(sm, node, oldNode) {
     return node.isLeaf();
 };
-
+                
 updateDataSources = function(uid) {
     var panel, treeGrid, root;
     if ( ! Ext.getCmp(dataSourcesId) ) {
@@ -50,26 +51,9 @@ updateDataSources = function(uid) {
 updateThresholds = function(uid) {
     var panel, root;
     panel = Ext.getCmp('top_detail_panel');
+    
     if ( ! Ext.getCmp(thresholdsId) ) {
-        panel.add({
-            xtype: 'grid',
-            id: thresholdsId,
-            title: _t('Thresholds'),
-            store: {
-                xtype: 'directstore',
-                directFn: router.getThresholds,
-                fields: ['name', 'type', 'dataPoints', 'severity', 'enabled']
-            },
-            colModel: new Ext.grid.ColumnModel({
-                columns: [
-                    {dataIndex: 'name', header: _t('Name')},
-                    {dataIndex: 'type', header: _t('Type')},
-                    {dataIndex: 'dataPoints', header: _t('Data Points')},
-                    {dataIndex: 'severity', header: _t('Severity')},
-                    {dataIndex: 'enabled', header: _t('Enabled')}
-                ]
-            })
-        });
+        panel.add(Zenoss.templates.thresholdDataGridConfig());
         panel.doLayout();
     }
     Ext.getCmp(thresholdsId).getStore().load({
@@ -96,7 +80,7 @@ updateGraphs = function(uid) {
                     {dataIndex: 'graphPoints', header: _t('Graph Points')},
                     {dataIndex: 'units', header: _t('Units')},
                     {dataIndex: 'height', header: _t('Height')},
-                    {dataIndex: 'width', header: _t('Width')}
+                    {dataIndex: 'width', header: _t('Width')}                    
                 ]
             })
         });
