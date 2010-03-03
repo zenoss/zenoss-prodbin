@@ -123,6 +123,11 @@ class TemplateFacade(ZuulFacade):
         graphs = imap(unbrain, brains)
         return imap(IGraphInfo, graphs)
 
+    def addDataPointToGraph(self, dataPointUid, graphUid):
+        dataPoint = self._getObject(dataPointUid)
+        graph = self._getObject(graphUid)
+        graph.manage_addDataPointGraphPoints([dataPoint.name()])
+
     def _getCatalog(self, uid):
         obj = self._getObject(uid)
         return ICatalogTool(obj)

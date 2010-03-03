@@ -87,10 +87,19 @@ class TemplateRouter(DirectRouter):
         data = facade.getThresholdTypes()
         return {'success': True, 'data': data}
 
-    def getGraphs(self, uid):
+    def getGraphs(self, uid, query=None):
         """
         Get the graphs for the RRD template identified by uid.
         """
         facade = self._getFacade()
         graphs = facade.getGraphs(uid)
         return Zuul.marshal(graphs)
+
+    @require('Manage DMD')
+    def addDataPointToGraph(self, dataPointUid, graphUid):
+        """
+        Add a datapoint to a graph.
+        """
+        facade = self._getFacade()
+        facade.addDataPointToGraph(dataPointUid, graphUid)
+        return {'success': True}

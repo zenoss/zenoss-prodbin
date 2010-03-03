@@ -15,17 +15,18 @@
 
 (function(){
 
-var router, dataSourcesId, addThreshold;
+var router, dataSourcesId, graphsId, addThreshold, addMetricToGraph;
 
 Ext.ns('Zenoss');
 
 router = Zenoss.remote.TemplateRouter;
 dataSourcesId = 'dataSourceTreeGrid';
+graphsId = 'graphGrid';
 
 addThreshold = function(thresholdType, thresholdId){
     var uid, node, dataPoints, params, callback;
     uid = Ext.getCmp('templateTree').getSelectionModel().getSelectedNode().attributes.uid;
-    node = Ext.getCmp('dataSourceTreeGrid').getSelectionModel().getSelectedNode();
+    node = Ext.getCmp(dataSourcesId).getSelectionModel().getSelectedNode();
     if ( node && node.isLeaf() ) {
         dataPoints = [node.attributes.uid];
     } else {
@@ -69,25 +70,94 @@ new Zenoss.HideFormDialog({
         }
     ],
     listeners: {
-        'hide': function(treeDialog) {
+        hide: function() {
             Ext.getCmp('thresholdTypeCombo').setValue('');
             Ext.getCmp('thresholdIdTextfield').setValue('');
         }
     },
     buttons: [
-        {
-            xtype: 'HideDialogButton',
-            text: _t('Submit'),
-            handler: function(button, event) {
-                var thresholdType, thresholdId;
-                thresholdType = Ext.getCmp('thresholdTypeCombo').getValue();
-                thresholdId = Ext.getCmp('thresholdIdTextfield').getValue();
-                addThreshold(thresholdType, thresholdId);
-            }
-        }, {
-            xtype: 'HideDialogButton',
-            text: _t('Cancel')
+    {
+        xtype: 'HideDialogButton',
+        text: _t('Submit'),
+        handler: function(button, event) {
+            var thresholdType, thresholdId;
+            thresholdType = Ext.getCmp('thresholdTypeCombo').getValue();
+            thresholdId = Ext.getCmp('thresholdIdTextfield').getValue();
+            addThreshold(thresholdType, thresholdId);
         }
+    }, {
+        xtype: 'HideDialogButton',
+        text: _t('Cancel')
+    }]
+});
+
+addMetricToGraph = function(dataPointUid, graphUid) {
+    var params, callback;
+    params = {dataPointUid: dataPointUid, graphUid: graphUid};
+    callback = function(provider, response) {
+        Ext.getCmp(graphsId).getStore().reload();
+    };
+    router.addDataPointToGraph(params, callback);
+};
+
+Zenoss.GraphStore = Ext.extend(Ext.data.DirectStore, {
+    constructor: function(config) {
+        Ext.applyIf(config, {
+            xtype: 'directstore',
+            directFn: router.getGraphs,
+            idProperty: 'uid',
+            fields: ['uid', 'name', 'graphPoints', 'units', 'height', 'width']
+        });
+        Zenoss.GraphStore.superclass.constructor.call(this, config);
+    }
+});
+Ext.reg('graphstore', Zenoss.GraphStore);
+
+new Zenoss.HideFormDialog({
+    id: 'addToGraphDialog',
+    title: _t('Add Metric to Graph'),
+    items: [
+    {
+        xtype: 'panel',
+        id: 'addToGraphMetricPanel',
+        border: false
+    }, {
+        xtype: 'combo',
+        id: 'graphCombo',
+        fieldLabel: _t('Graph'),
+        displayField: 'name',
+        valueField: 'uid',
+        forceSelection: true,
+        triggerAction: 'all',
+        emptyText: 'Select a graph...',
+        selectOnFocus: true,
+        store: {xtype: 'graphstore'},
+        listeners: {select: function(){
+            Ext.getCmp('submit').enable();
+        }}
+    }],
+    listeners: {
+        hide: function() {
+            Ext.getCmp('graphCombo').setValue('');
+        }
+    },
+    buttons: [
+    {
+        xtype: 'HideDialogButton',
+        id: 'submit',
+        text: _t('Submit'),
+        disabled: true,
+        handler: function(button, event) {
+            var node, datapointUid, graphUid;
+            node = Ext.getCmp(dataSourcesId).getSelectionModel().getSelectedNode();
+            datapointUid = node.attributes.uid;
+            graphUid = Ext.getCmp('graphCombo').getValue();
+            addMetricToGraph(datapointUid, graphUid);
+        }
+    }, {
+        xtype: 'HideDialogButton',
+        text: _t('Cancel')
+    }
     ]
 });
 
@@ -119,7 +189,24 @@ Zenoss.DataSourceTreeGrid = Ext.extend(Ext.ux.tree.TreeGrid, {
                 }, {
                     xtype: 'button',
                     iconCls: 'set',
-                    tooltip: 'Add Metric to Graph'
+                    tooltip: 'Add Metric to Graph',
+                    handler: function() {
+                        var smTemplate, templateUid, smDataSource, nodeDataSource, metricName, html;
+                        smTemplate = Ext.getCmp('templateTree').getSelectionModel();
+                        templateUid = smTemplate.getSelectedNode().attributes.uid;
+                        smDataSource = Ext.getCmp(dataSourcesId).getSelectionModel();
+                        nodeDataSource = smDataSource.getSelectedNode();
+                        if ( nodeDataSource && nodeDataSource.isLeaf() ) {
+                            metricName = nodeDataSource.attributes.name;
+                            html = '<div>Metric</div>';
+                            html += '<div>' + metricName + '</div><br/>';
+                            Ext.getCmp('addToGraphDialog').show();
+                            Ext.getCmp('addToGraphMetricPanel').body.update(html);
+                            Ext.getCmp('graphCombo').getStore().setBaseParam('uid', templateUid);
+                        } else {
+                            Ext.Msg.alert('Error', 'You must select a datapoint.');
+                        }
+                    }
                 }, {
                     xtype: 'tbseparator'
                 }, {

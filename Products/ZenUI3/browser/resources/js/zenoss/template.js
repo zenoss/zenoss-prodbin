@@ -66,23 +66,8 @@ updateGraphs = function(uid) {
     panel = Ext.getCmp('bottom_detail_panel');
     if ( ! Ext.getCmp(graphsId) ) {
         panel.add({
-            xtype: 'grid',
-            id: graphsId,
-            title: _t('Graph Definitions'),
-            store: {
-                xtype: 'directstore',
-                directFn: router.getGraphs,
-                fields: ['name', 'graphPoints', 'units', 'height', 'width']
-            },
-            colModel: new Ext.grid.ColumnModel({
-                columns: [
-                    {dataIndex: 'name', header: _t('Name')},
-                    {dataIndex: 'graphPoints', header: _t('Graph Points')},
-                    {dataIndex: 'units', header: _t('Units')},
-                    {dataIndex: 'height', header: _t('Height')},
-                    {dataIndex: 'width', header: _t('Width')}                    
-                ]
-            })
+            xtype: 'graphgrid',
+            id: graphsId
         });
         panel.doLayout();
     }

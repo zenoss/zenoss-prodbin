@@ -67,6 +67,9 @@
             "text": "DataSourceTreeGrid.js",
             "path": "resources/js/zenoss/"
         }, {
+            "text": "graph.js",
+            "path": "resources/js/zenoss/monitoringTemplates/"
+        }, {
             "text": "TreeFooterBar.js",
             "path": "resources/js/zenoss/"
         }, {
