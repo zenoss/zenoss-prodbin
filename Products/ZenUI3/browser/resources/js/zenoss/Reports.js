@@ -231,17 +231,7 @@ Zenoss.ReportTreePanel = Ext.extend(Zenoss.HierarchyTreePanel, {
     }
 });
 
-Zenoss.ReportCompatPanel = Ext.extend(Zenoss.BackCompatPanel, {
-    setContext: function (uid) {
-        if (this.contextUid != uid){
-            this.on('frameload', this.injectViewport, {scope: this, single: true});
-            this.contextUid = uid;
-            this.setSrc(uid);
-        }
-    }
-});
-
-var report_panel = new Zenoss.ReportCompatPanel({});
+var report_panel = new Zenoss.BackCompatPanel({});
 
 var treesm = new Ext.tree.DefaultSelectionModel({
     listeners: {

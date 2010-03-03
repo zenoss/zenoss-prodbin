@@ -67,7 +67,10 @@ Zenoss.ContextualIFrame = Ext.extend(Zenoss.IFramePanel, {
     setContext: function(uid) {
         if (this.refreshOnContextChange || this.contextUid!=uid) {
             this.contextUid = uid;
-            var url = uid + '/' + this.viewName;
+            var url = uid;
+            if (Ext.isDefined(this.viewName) && this.viewName != null) {
+                url = uid + '/' + this.viewName;
+            }
             this.setSrc(url);
         }
     }
