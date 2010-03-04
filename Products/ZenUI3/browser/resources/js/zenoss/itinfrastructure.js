@@ -583,11 +583,11 @@ Ext.getCmp('center_panel').add({
             listeners:{
                 navloaded: function( detailNavPanel, navConfig){
                     if (navConfig.id != 'device_grid'){
-                        config = detailNavPanel.panelConfigMap[navConfig.id];
+                        var config = detailNavPanel.panelConfigMap[navConfig.id];
                         Ext.applyIf(config, {refreshOnContextChange: true});
                         if(config && !Ext.getCmp(config.id)){
                             //create the panel in the center panel if needed
-                            detail_panel = Ext.getCmp('detail_panel');
+                            var detail_panel = Ext.getCmp('detail_panel');
                             detail_panel.add(config);
                             detail_panel.doLayout();
                         }
