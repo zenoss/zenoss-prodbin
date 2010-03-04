@@ -143,8 +143,12 @@ class MySshClient(SshClient):
     def addResult(self, command, data, code):
         "Forward the results of the command execution to the starter"
         SshClient.addResult(self, command, data, code)
-        d = self.defers.pop(command)
-        if not d.called:
+        d = self.defers.pop(command, None)
+        if d is None:
+            log.error("Internal error where deferred object not in dictionary." \
+                      " Command = '%s' Data = '%s' Code = '%s'",
+                      command, data, code)
+        elif not d.called:
             d.callback((data, code))
 
 
