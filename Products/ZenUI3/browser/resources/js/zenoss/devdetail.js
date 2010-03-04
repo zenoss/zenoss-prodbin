@@ -87,7 +87,7 @@ var deviceInformation = {
             fieldLabel: _t('Links')
         }]
     }]
-}
+};
 
 var snmpInformation = {
     xtype: 'fieldset',
@@ -106,7 +106,7 @@ var snmpInformation = {
         name: 'snmpAgent',
         fieldLabel: _t('SNMP Agent')
     }]
-}
+};
 
 var hwosInformation = {
     xtype: 'fieldset',
@@ -137,7 +137,7 @@ var hwosInformation = {
         name: 'rackSlot',
         fieldLabel: _t('Rack Slot')
     }]
-}
+};
 
 var overview = {
     id: 'device_overview',

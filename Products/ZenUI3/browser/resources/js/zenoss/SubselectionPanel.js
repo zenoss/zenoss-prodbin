@@ -326,21 +326,22 @@ Zenoss.DetailNavPanel = Ext.extend(Zenoss.SubselectionPanel,{
         this.contextId = uid;
         this.treepanel.setRootNode([]);
         var myCallback = function(provider, response) {
-            var panelConfigs = response.result.panelConfigs
+            var panelMap;
+            var panelConfigs = response.result.panelConfigs;
             var filterFn = function(val) {
-                return this.filterNav(this, val)
+                return this.filterNav(this, val);
             };
             panelConfigs = Zenoss.util.filter(panelConfigs, filterFn, this);
-            panelMap = []
+            panelMap = [];
             Ext.each(panelConfigs, function(val) {
                 panelMap[val.id] = val;
             });
             this.panelConfigMap = panelMap;
-            this.getNavConfig(uid)
-        }
+            this.getNavConfig(uid);
+        };
         Zenoss.remote.DetailNavRouter.getDetailPanelConfigs({
             'uid': uid
-        }, myCallback, this)
+        }, myCallback, this);
         
     },
     getNavConfig: function(uid){
@@ -348,7 +349,7 @@ Zenoss.DetailNavPanel = Ext.extend(Zenoss.SubselectionPanel,{
         var me = this;
         var myCallback = function(provider, response){
             me.setNavTree(response.result.navConfigs);
-        }
+        };
         Zenoss.remote.DetailNavRouter.getDetailNavConfigs({
             'uid': uid
         }, myCallback);
@@ -358,7 +359,7 @@ Zenoss.DetailNavPanel = Ext.extend(Zenoss.SubselectionPanel,{
         var nodes = this.onGetNavConfig(this.contextId);
         if (navConfigs){
             var filterFn = function(val){
-                return this.filterNav(this, val)
+                return this.filterNav(this, val);
             };
             var filtered = Zenoss.util.filter(navConfigs, filterFn, this);
             nodes = nodes.concat(filtered);

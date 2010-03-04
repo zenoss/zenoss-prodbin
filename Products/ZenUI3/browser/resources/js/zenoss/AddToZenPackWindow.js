@@ -69,6 +69,7 @@ Zenoss.AddToZenPackWindow = Ext.extend(Ext.Window, {
                     text: _t('Submit'),
                     formBind: true,
                     handler: function () {
+                        var form;
                         form = Ext.getCmp('addzenpackform');
                         var chosenzenpack = 
                             form.getForm().findField('zpname').getValue();

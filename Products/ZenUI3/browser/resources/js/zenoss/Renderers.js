@@ -66,7 +66,7 @@ Ext.apply(Zenoss.render, {
     },
 
     linkFromGrid: function(name, col, record) {
-        
+        var item;
         if (typeof(record.data[col.id]) == 'object') {
             item = record.data[col.id];
             
