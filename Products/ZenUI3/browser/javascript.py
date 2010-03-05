@@ -60,26 +60,26 @@ class ExtBaseJs(JavaScriptSrcViewlet):
     zope.interface.implements(IJavaScriptSrcViewlet)
     def update(self):
         if Globals.DevelopmentMode:
-            self.path = "/extjs/adapters/ext/ext-base-debug.js"
+            self.path = "/++resource++extjs/adapters/ext/ext-base-debug.js"
         else:
-            self.path = "/extjs/adapters/ext/ext-base.js"
+            self.path = "/++resource++extjs/adapters/ext/ext-base.js"
 
 class ExtAllJs(JavaScriptSrcViewlet):
     zope.interface.implements(IJavaScriptSrcViewlet)
     path = None
     def update(self):
         if Globals.DevelopmentMode:
-            self.path = "/extjs/ext-all-debug.js"
+            self.path = "/++resource++extjs/ext-all-debug.js"
         else:
-            self.path = "/extjs/ext-all.js"
+            self.path = "/++resource++extjs/ext-all.js"
 
 class LiveGridJs(JavaScriptSrcViewlet):
     zope.interface.implements(IJavaScriptSrcViewlet)
     def update(self):
         if Globals.DevelopmentMode:
-            self.path = "/zenui/js/livegrid/livegrid-all-debug.js"
+            self.path = "/++resource++zenui/js/livegrid/livegrid-all-debug.js"
         else:
-            self.path = "/zenui/js/livegrid/livegrid-all.js"
+            self.path = "/++resource++zenui/js/livegrid/livegrid-all.js"
 
 class FireFoxExtCompat(JavaScriptSnippet):
     def snippet(self):

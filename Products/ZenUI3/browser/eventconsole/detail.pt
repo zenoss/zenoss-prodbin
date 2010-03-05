@@ -1,13 +1,13 @@
 <html>
     <head>
         <link rel="stylesheet" type="text/css" 
-            href="/extjs/resources/css/ext-all.css" />
+            href="/++resource++extjs/resources/css/ext-all.css" />
         <link rel="stylesheet" type="text/css" 
-            href="/zenui/css/xtheme-zenoss.css" />
+            href="/++resource++zenui/css/xtheme-zenoss.css" />
         <link rel="stylesheet" type="text/css" 
-            href="/zenui/css/zenoss.css" />
+            href="/++resource++zenui/css/zenoss.css" />
         <link rel="stylesheet"
-            href="/zenui/js/livegrid/resources/css/ext-ux-livegrid.css"/>
+            href="/++resource++zenui/js/livegrid/resources/css/ext-ux-livegrid.css"/>
         <tal:block tal:content="structure provider:js-security"/>
         <tal:block tal:content="structure provider:all-js"/>
     </head>

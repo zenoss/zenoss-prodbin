@@ -16,6 +16,6 @@
 <tal:block metal:use-macro="context/page_macros/base-new">
 
 <tal:block metal:fill-slot="script_layout">
-<script src="/zenui/js/zenoss/Reports.js"></script>
+<script src="/++resource++zenui/js/zenoss/Reports.js"></script>
 </tal:block>
 </tal:block>

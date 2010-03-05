@@ -12,7 +12,7 @@
 
 <tal:block metal:fill-slot="script_beforeLayout">
 <link rel="stylesheet"
-    href="/zenui/js/livegrid/resources/css/ext-ux-livegrid.css"/>
+    href="/++resource++zenui/js/livegrid/resources/css/ext-ux-livegrid.css"/>
 <tal:block tal:content="structure provider:jssnippets"/>
 <script>
 Ext.state.Manager.setProvider(new Ext.state.CookieProvider({

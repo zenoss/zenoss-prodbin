@@ -16,7 +16,7 @@
 <tal:block metal:use-macro="context/page_macros/masterdetailsplit2">
 
     <tal:block metal:fill-slot="script_layout">
-        <script src="/zenui/js/zenoss/ipservice.js"></script>
+        <script src="/++resource++zenui/js/zenoss/ipservice.js"></script>
     </tal:block> <!-- metal:fill-slot="script_layout" -->
 
 </tal:block> <!-- metal:use-macro="context/page_macros/masterdetailsplit2" -->

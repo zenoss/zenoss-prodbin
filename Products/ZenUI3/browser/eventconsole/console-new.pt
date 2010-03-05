@@ -13,7 +13,7 @@
 
 <tal:block metal:fill-slot="script_beforeLayout">
 <link rel="stylesheet"
-    href="/zenui/js/livegrid/resources/css/ext-ux-livegrid.css"/>
+    href="/++resource++zenui/js/livegrid/resources/css/ext-ux-livegrid.css"/>
 <script>
 Ext.state.Manager.setProvider(new Ext.state.CookieProvider({
     expires: new Date(new Date().getTime()+(1000*60*60*24*30))

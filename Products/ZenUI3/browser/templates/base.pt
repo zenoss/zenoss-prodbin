@@ -24,12 +24,12 @@
 
 <tal:block metal:fill-slot="head-local">
 <link rel="stylesheet" type="text/css" 
-    href="/extjs/resources/css/ext-all.css" />
+    href="/++resource++extjs/resources/css/ext-all.css" />
 <link rel="stylesheet" type="text/css" 
-    href="/zenui/css/xtheme-zenoss.css" />
+    href="/++resource++zenui/css/xtheme-zenoss.css" />
 <link rel="stylesheet" type="text/css" 
-    href="/zenui/css/zenoss.css" />
-<script type="text/javascript" src="/extjs/adapters/ext/ext-base.js">
+    href="/++resource++zenui/css/zenoss.css" />
+<script type="text/javascript" src="/++resource++extjs/adapters/ext/ext-base.js">
 </script>
 <script>
 /*
@@ -47,9 +47,9 @@
     }
 })();
 </script>
-<script type="text/javascript" src="/extjs/ext-all.js"></script>
+<script type="text/javascript" src="/++resource++extjs/ext-all.js"></script>
 <script type="text/javascript"
-    src="/zenui/js/livegrid/livegrid-all.js"></script>
+    src="/++resource++zenui/js/livegrid/livegrid-all.js"></script>
 <script>
 Ext.state.Manager.setProvider(new Ext.state.CookieProvider({
     expires: new Date(new Date().getTime()+(1000*60*60*24*30))
