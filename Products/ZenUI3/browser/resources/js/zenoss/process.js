@@ -159,10 +159,9 @@ Ext.getCmp('master_panel').add( new ProcessTreePanel({}) );
 
 // disable the monitoring fields if monitoring settings are inherited
 function setMonitoringDisabled(disabled) {
-    var monitorCheckbox = Ext.getCmp('monitorCheckbox');
-    var eventSeverityCombo = Ext.getCmp('eventSeverityCombo');
-    monitorCheckbox.setDisabled(disabled);
-    eventSeverityCombo.setDisabled(disabled);
+    Ext.getCmp('monitorCheckbox').setDisabled(disabled);
+    Ext.getCmp('alertOnRestartCheckBox').setDisabled(disabled);
+    Ext.getCmp('eventSeverityCombo').setDisabled(disabled);
 }
 
 function inheritedCheckboxHandler(checkbox, checked) {
@@ -180,10 +179,9 @@ function inheritedCheckboxHandler(checkbox, checked) {
 
     var callback = function(provider, response) {
         var info = response.result.data;
-        var monitorCheckbox = Ext.getCmp('monitorCheckbox');
-        monitorCheckbox.setValue(info.monitor);
-        var eventSeverityCombo = Ext.getCmp('eventSeverityCombo');
-        eventSeverityCombo.setValue(info.eventSeverity);
+        Ext.getCmp('monitorCheckbox').setValue(info.monitor);
+        Ext.getCmp('alertOnRestartCheckBox').setValue(info.alertOnRestart);
+        Ext.getCmp('eventSeverityCombo').setValue(info.eventSeverity);
     };
 
     router.getInfo({uid: uid, keys: ['monitor', 'eventSeverity']}, callback);
@@ -237,6 +235,13 @@ var monitorCheckbox = {
     name: 'monitor'
 };
 
+var alertOnRestartCheckBox = {
+    xtype: 'checkbox',
+    id: 'alertOnRestartCheckBox',
+    fieldLabel: _t('Alert on Restart'),
+    name: 'alertOnRestart'
+};
+
 var eventSeverityCombo = {
     xtype: 'combo',
     id: 'eventSeverityCombo',
@@ -271,14 +276,15 @@ var monitoringFieldSet = {
     xtype: 'ColumnFieldSet',
     title: _t('Monitoring'),
     __inner_items__: [
-        {
-            items: inheritedCheckbox
-        }, {
-            items: monitorCheckbox
-        }, {
-            items: eventSeverityCombo
-        }
-    ]
+    {
+        items: inheritedCheckbox
+    }, {
+        items: monitorCheckbox
+    }, {
+        items: alertOnRestartCheckBox
+    }, {
+        items: eventSeverityCombo
+    }]
 }; // monitoringFieldSet
 
 var regexFieldSet = {
@@ -345,6 +351,7 @@ var processFormConfig = {
                 var values = Ext.applyIf(form.getValues(), {
                     isMonitoringAcquired: 'off',
                     monitor: 'off',
+                    alertOnRestart: 'off',
                     ignoreParameters: 'off'
                 });
                 // setValues makes isDirty return false

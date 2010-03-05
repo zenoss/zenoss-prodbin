@@ -94,6 +94,17 @@ class ProcessInfo(InfoBase):
 
     monitor = property(getMonitor, setMonitor)
 
+    def getAlertOnRestart(self):
+        return self._object.zAlertOnRestart
+
+    def setAlertOnRestart(self, alertOnRestart):
+        if self._object.hasProperty('zAlertOnRestart'):
+            self._object._updateProperty('zAlertOnRestart', alertOnRestart)
+        else:
+            self._object._setProperty('zAlertOnRestart', alertOnRestart)
+
+    alertOnRestart = property(getAlertOnRestart, setAlertOnRestart)
+
     def getEventSeverity(self):
         return self._object.zFailSeverity
 

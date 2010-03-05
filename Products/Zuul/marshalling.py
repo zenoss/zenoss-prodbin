@@ -138,11 +138,13 @@ class ProcessUnmarshaller(object):
 
     def unmarshal(self, data):
         for key, value in data.iteritems():
-            if key in ['monitor', 'ignoreParameters']:
+            if key in ['monitor', 'alertOnRestart', 'ignoreParameters']:
                 value = True
             setattr(self.obj, key, value)
         if 'isMonitoringAcquired' not in data:
             if 'monitor' not in data:
                 setattr(self.obj, 'monitor', False)
+            if 'alertOnRestart' not in data:
+                setattr(self.obj, 'alertOnRestart', False)
         if 'ignoreParameters' not in data:
             setattr(self.obj, 'ignoreParameters', False)
