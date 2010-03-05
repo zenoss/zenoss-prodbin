@@ -8,7 +8,7 @@ strong { font-weight: bold; }
     color: #7199c6;
     text-decoration: none;
     padding-right: 15px;
-    background: transparent url(/zenui/img/xtheme-zenoss/icon/resource-link.png)
+    background: transparent url(/++resource++zenui/img/xtheme-zenoss/icon/resource-link.png)
         right 1px no-repeat;
 }
 
@@ -47,7 +47,7 @@ strong { font-weight: bold; }
     height: 50px;
     margin-right: 2px;
     background: transparent 
-                url(/zenui/img/xtheme-zenoss/toolbar/tb-evdetail-sep.png)
+                url(/++resource++zenui/img/xtheme-zenoss/toolbar/tb-evdetail-sep.png)
                 center center no-repeat;
 }
 
@@ -57,7 +57,7 @@ strong { font-weight: bold; }
     font-size: 15px;
     font-family: helvetica,sans-serif;
     background: transparent
-        url(/zenui/img/xtheme-zenoss/toolbar/tb-evdetail-bg.png) repeat-x;
+        url(/++resource++zenui/img/xtheme-zenoss/toolbar/tb-evdetail-bg.png) repeat-x;
 }
 
 .evdetail_hd td {
@@ -71,12 +71,12 @@ strong { font-weight: bold; }
     cursor: hand;
     cursor: pointer;
     background: transparent
-                url(/zenui/img/xtheme-zenoss/icon/popout.png)
+                url(/++resource++zenui/img/xtheme-zenoss/icon/popout.png)
                 center center no-repeat;
 }
 .evdetail_close .x-panel-body {
     background: transparent
-                url(/zenui/img/xtheme-zenoss/window/close-button-dark.png)
+                url(/++resource++zenui/img/xtheme-zenoss/window/close-button-dark.png)
                 center center no-repeat;
     height: 50px;
     width: 25px;
@@ -138,7 +138,7 @@ strong { font-weight: bold; }
     margin: 0 8px;
     width: 35px;
     background: transparent 
-        url(/zenui/img/xtheme-zenoss/icon/severity-sprite-large.png) 
+        url(/++resource++zenui/img/xtheme-zenoss/icon/severity-sprite-large.png) 
         100px 100px no-repeat;
 }
 
@@ -158,12 +158,12 @@ strong { font-weight: bold; }
 .severity-icon-small.clear {
     width: 16px;
     height: 14px;
-    background: transparent url(/zenui/img/xtheme-zenoss/icon/severity-sprite.png) no-repeat;
+    background: transparent url(/++resource++zenui/img/xtheme-zenoss/icon/severity-sprite.png) no-repeat;
     margin: 0 auto;
 }
 
 .eventrainbow .severity-icon-small {
-    background-image: url(/zenui/img/xtheme-zenoss/icon/severity-sprite-reverse.png)
+    background-image: url(/++resource++zenui/img/xtheme-zenoss/icon/severity-sprite-reverse.png)
 }
 
 .severity-icon-small.critical { background-position: 0px  0px; }
@@ -190,7 +190,7 @@ strong { font-weight: bold; }
 .tree-severity-icon-small-clear {
     width: 16px !important;
     height: 14px!important;
-    background: transparent url(/zenui/img/xtheme-zenoss/icon/severity-sprite.png) no-repeat !important;
+    background: transparent url(/++resource++zenui/img/xtheme-zenoss/icon/severity-sprite.png) no-repeat !important;
     margin: 0 auto;
 }
 
@@ -228,8 +228,8 @@ strong { font-weight: bold; }
     margin: 0 auto;
 }
 
-.status-icon-small-acknowledged { background-image: url(/zenui/img/xtheme-zenoss/icon/acknowledge-small.png)}
-.status-icon-small-suppressed { background-image: url(/zenui/img/xtheme-zenoss/icon/suppress-small.png)}
+.status-icon-small-acknowledged { background-image: url(/++resource++zenui/img/xtheme-zenoss/icon/acknowledge-small.png)}
+.status-icon-small-suppressed { background-image: url(/++resource++zenui/img/xtheme-zenoss/icon/suppress-small.png)}
 
 .full_event_props {
     padding-left: 3em;
@@ -338,7 +338,7 @@ div.dialog-link a {
     height: 21px;
     border: medium none;
     background: transparent
-                url(/zenui/img/xtheme-zenoss/form/searchfield-sprite.png)
+                url(/++resource++zenui/img/xtheme-zenoss/form/searchfield-sprite.png)
                 no-repeat;
 }
 
