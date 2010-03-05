@@ -128,6 +128,7 @@ new Zenoss.HideFormDialog({
         displayField: 'name',
         valueField: 'uid',
         forceSelection: true,
+        minChars: 999, // only do an all query
         triggerAction: 'all',
         emptyText: 'Select a graph...',
         selectOnFocus: true,
@@ -136,11 +137,6 @@ new Zenoss.HideFormDialog({
             Ext.getCmp('submit').enable();
         }}
     }],
-    listeners: {
-        hide: function() {
-            Ext.getCmp('graphCombo').setValue('');
-        }
-    },
     buttons: [
     {
         xtype: 'HideDialogButton',
@@ -191,7 +187,8 @@ Zenoss.DataSourceTreeGrid = Ext.extend(Ext.ux.tree.TreeGrid, {
                     iconCls: 'set',
                     tooltip: 'Add Metric to Graph',
                     handler: function() {
-                        var smTemplate, templateUid, smDataSource, nodeDataSource, metricName, html;
+                        var smTemplate, templateUid, smDataSource, 
+                            nodeDataSource, metricName, html, combo;
                         smTemplate = Ext.getCmp('templateTree').getSelectionModel();
                         templateUid = smTemplate.getSelectedNode().attributes.uid;
                         smDataSource = Ext.getCmp(dataSourcesId).getSelectionModel();
@@ -202,7 +199,12 @@ Zenoss.DataSourceTreeGrid = Ext.extend(Ext.ux.tree.TreeGrid, {
                             html += '<div>' + metricName + '</div><br/>';
                             Ext.getCmp('addToGraphDialog').show();
                             Ext.getCmp('addToGraphMetricPanel').body.update(html);
-                            Ext.getCmp('graphCombo').getStore().setBaseParam('uid', templateUid);
+                            combo = Ext.getCmp('graphCombo');
+                            combo.clearValue();
+                            combo.getStore().setBaseParam('uid', templateUid);
+                            delete combo.lastQuery;
+                            combo.doQuery(combo.allQuery, true);
+                            Ext.getCmp('submit').disable();
                         } else {
                             Ext.Msg.alert('Error', 'You must select a datapoint.');
                         }
