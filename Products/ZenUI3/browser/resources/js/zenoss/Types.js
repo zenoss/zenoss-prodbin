@@ -5,7 +5,9 @@ var _tm = {
     'DeviceGroup':      ["^/zport/dmd/Groups(/[A-Z][^/]*)*/?$"],
     'DeviceClass':      ["^/zport/dmd/Devices(/[A-Z][^/]*)*/?$"],
     'Device':           ["^/zport/dmd/.*/devices/[^/]*/?$"],
-    'EventClass':       ["^/zport/dmd/Events(/[A-Z][^/]*)*/?$"]
+    'EventClass':       ["^/zport/dmd/Events(/[A-Z][^/]*)*/?$"],
+    'Network':          ["^/zport/dmd/Networks(/(?!ipaddresses)[^/]+)*/?$"],
+    'IpAddress':        ["^/zport/dmd/.*/ipaddresses/[^/]*/?$"]
 };
 
 Ext.ns('Zenoss.types');
@@ -19,7 +21,9 @@ Ext.apply(T, {
     getAllTypes: function() {
         var result = [];
         for (var k in T.TYPES) {
-            result.push(k);
+            if (true) {
+                result.push(k);
+            }
         }
         return result;
     }, // getAllTypes

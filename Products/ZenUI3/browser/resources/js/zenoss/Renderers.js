@@ -45,6 +45,50 @@ Ext.apply(Zenoss.render, {
         return rainbowTemplate.apply({cells: result});
     },
 
+    locking: function(obj) {
+        /*
+        * Expects an object with keys updates, deletion, events, all boolean
+        */
+        var from = [];
+        if (obj.updates) {
+            from.push('updates');
+        }
+        if (obj.deletion) {
+            from.push('deletion');
+        }
+        if (!Ext.isEmpty(from)) {
+            var l = 'Locked from ' + from.join(' and ');
+            if (obj.events) {
+                l += "<br/>Send event when blocked";
+            } else {
+                l += "<br/>Do not send event when blocked";
+            }
+            return l;
+        }
+    },
+
+    locking_icons: function(obj) {
+        /*
+        * Expects an object with keys updates, deletion, events, all boolean
+        * Returns images representing locking status.
+        */
+        var tpl = new Ext.Template(
+            '<img border="0" src="locked-{str}-icon.png"',
+            'style="vertical-align:middle"/>'),
+            result = '';
+        tpl.compile();
+        if (obj.updates) {
+            result += tpl.apply({str:'update'});
+        }
+        if (obj.deletion) {
+            result += tpl.apply({str:'delete'});
+        }
+        if (obj.events) {
+            result += tpl.apply({str:'sendevent'});
+        }
+        return result;
+    },
+
     /* 
      * Given a uid, determines the type of the object and passes rendering
      * off to the appropriate rendering function.
@@ -62,7 +106,19 @@ Ext.apply(Zenoss.render, {
                 return renderer(uid, name);
             }
         }
-        return '<a href="'+url+'">'+name+'</a>';
+        if (url && name) {
+            return '<a href="'+url+'">'+name+'</a>';
+        }
+    },
+
+    default_uid_renderer: function(uid, name) {
+        // Just straight up links to the object.
+        var parts;
+        if (!name) {
+            parts = uid.split('/');
+            name = parts[parts.length-1];
+        }
+        return Zenoss.render.link(null, uid, name);
     },
 
     linkFromGrid: function(name, col, record) {
@@ -120,6 +176,14 @@ Ext.apply(Zenoss.render, {
         var url = '/zport/dmd/Events/evconsole#eventClass:.zport.dmd.Events' + value.replace(/\//g,'.');
         if (!Ext.isString(name)) name = value;
         return Zenoss.render.link(null, url, name);
+    },
+
+    IpAddress: function(uid, name) {
+        return Zenoss.render.default_uid_renderer(uid, name);
+    },
+
+    Network: function(uid, name) {
+        return Zenoss.render.default_uid_renderer(uid, name);
     }
 
 }); // Ext.apply

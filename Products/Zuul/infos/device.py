@@ -170,8 +170,9 @@ class DeviceInfo(InfoBase):
     @property
     def locking(self):
         return {
-            'status': self._object.lockStatus(),
-            'events': self._object.lockWarning()
+            'updates': self._object.isLockedFromUpdates(),
+            'deletion': self._object.isLockedFromDeletion(),
+            'events': self._object.sendEventWhenBlocked()
         }
 
     def getTagNumber(self):

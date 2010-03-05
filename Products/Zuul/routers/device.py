@@ -32,6 +32,33 @@ class DeviceRouter(TreeRouter):
         data = Zuul.marshal(tree)
         return data['children']
 
+    def getComponents(self, uid=None, meta_type=None, keys=None, start=0, limit=50,
+                      sort='name', dir='ASC'):
+        facade = self._getFacade()
+        comps = facade.getComponents(uid, meta_type=meta_type, start=start,
+                                     limit=limit, sort=sort, dir=dir)
+        return DirectResponse(data=Zuul.marshal(comps, keys=keys))
+
+    def getComponentTree(self, uid=None, id=None):
+        if id:
+            uid=id
+        facade = self._getFacade()
+        data = facade.getComponentTree(uid)
+        result = []
+        for datum in data:
+            result.append(dict(
+                id=datum['type'],
+                path='Components/%s' % datum['type'],
+                text={
+                    'text':datum['type'],
+                    'count':datum['count'],
+                    'description':'components'
+                },
+                iconCls='tree-severity-icon-small-'+datum['severity'],
+                leaf=True
+            ))
+        return result
+
     def getInfo(self, uid, keys=None):
         facade = self._getFacade()
         process = facade.getInfo(uid)

@@ -35,3 +35,18 @@ class IComponentInfo(IInfo):
     monitored = Attribute("Is the instance monitored")
     status = Attribute("What is the status of the instance")
 
+
+class IIpInterfaceInfo(IComponentInfo):
+    """
+    Info adapter for IPInterface components.
+    """
+    ips = Attribute("IP Addresses for this interface")
+    ipAddress = Attribute("Primary IP address")
+    interfaceName = Attribute("Interface name")
+    macaddress = Attribute("MAC Address of this interface")
+    type = Attribute("Type")
+    mtu = Attribute("MTU")
+    speed = Attribute("Speed")
+    adminStatus = Attribute("Administrative status")
+    operStatus = Attribute("Operational status")
+

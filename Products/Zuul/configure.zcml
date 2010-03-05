@@ -196,6 +196,17 @@
              factory=".infos.component.ComponentInfo"
              />
 
+    <adapter provides=".interfaces.IIpInterfaceInfo"
+             for="Products.ZenModel.IpInterface.IpInterface"
+             factory=".infos.component.IpInterfaceInfo"
+             />
+
+    <adapter provides=".interfaces.INetworkInfo"
+             for="Products.ZenModel.IpNetwork.IpNetwork"
+             factory=".infos.network.NetworkInfo"
+             />
+
+
     <adapter provides=".interfaces.ICatalogTool"
              for="*"
              factory=".tree.CatalogTool"

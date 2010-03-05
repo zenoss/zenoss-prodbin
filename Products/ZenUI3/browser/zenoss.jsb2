@@ -90,6 +90,9 @@
         }, {
             "text": "AddToZenPackWindow.js",
             "path": "resources/js/zenoss/"
+        }, {
+            "text": "ComponentPanel.js",
+            "path": "resources/js/zenoss/"
         }]
     }],
     "resources": []

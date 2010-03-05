@@ -64,7 +64,9 @@ class DeviceFacade(TreeFacade):
         counts = (s[1]+s[2] for s in summary)
         return zip(severities, counts)
 
-    def _componentSearch(self, uid=None, types=(), meta_type=()):
+    def _componentSearch(self, uid=None, types=(), meta_type=(), start=0,
+                         limit=None, sort='name', dir='ASC'):
+        reverse = dir=='DESC'
         if isinstance(types, basestring):
             types = (types,)
         defaults =['Products.ZenModel.OSComponent.OSComponent',
@@ -76,12 +78,15 @@ class DeviceFacade(TreeFacade):
         if meta_type:
             query = Or(*(Eq('meta_type', t) for t in meta_type))
         cat = ICatalogTool(self._getObject(uid))
-        brains = cat.search(defaults, query=query)
+        brains = cat.search(defaults, query=query, start=start, limit=limit,
+                            orderby=sort, reverse=reverse)
         return brains
 
     @info
-    def getComponents(self, uid=None, types=(), meta_type=()):
-        return imap(unbrain, self._componentSearch(uid, types, meta_type))
+    def getComponents(self, uid=None, types=(), meta_type=(), start=0,
+                      limit=None, sort='name', dir='ASC'):
+        return imap(unbrain, self._componentSearch(uid, types, meta_type,
+                                                   start, limit, sort, dir))
 
     def getComponentTree(self, uid=None, types=(), meta_type=()):
         d = {}

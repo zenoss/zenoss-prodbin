@@ -18,11 +18,67 @@ Ext.onReady(function(){
 var REMOTE = Zenoss.remote.DeviceRouter,
     UID = Zenoss.env.device_uid;
 
+var treesm = new Ext.tree.DefaultSelectionModel({
+    listeners: {
+        selectionchange: function(sm, node) {
+            if (node) {
+                var action = node.attributes.action;
+                if (action) {
+                    var target = Ext.getCmp('detail_card_panel');
+                    action.call(node, node, target);
+                }
+            }
+        }
+    }
+});
+
+var componentTree = new Ext.tree.TreePanel({
+    cls: 'x-tree-noicon',
+    useArrows: true,
+    border: false,
+    selModel: treesm,
+    autoHeight: true,
+    autoScroll: true,
+    containerScroll: true,
+    loader: {
+        directFn: REMOTE.getComponentTree,
+        baseAttrs: {
+            uiProvider: Zenoss.HierarchyTreeNodeUI,
+            action: function(node, target) {
+                var type = node.attributes.text.text,
+                    cardId = type + 'Panel',
+                    xtype = Ext.ComponentMgr.isRegistered(cardId) ? cardId : 'panel';
+                if (!(cardId in target.items.keys)) {
+                    target.add({
+                        xtype: xtype,
+                        id: cardId
+                    });
+                    target.ownerCt.doLayout();
+                }
+                target.layout.setActiveItem(cardId);
+                target.setContext(UID);
+                Zenoss.env.TARGET = target;
+            }
+        }
+    },
+    root: {
+        listeners: {
+            // Disable selection
+            beforeclick: function(){return false;}
+        },
+        nodeType: 'async',
+        text: _t('Components'),
+        expanded: true,
+        leaf: false,
+        id:UID
+    }
+});
+
 Zenoss.nav.register({
     Device: [{
         id: 'Overview',
         nodeType: 'subselect',
-        text: 'Device Overview',
+        text: _t('Device Overview'),
         action: function(node, target){
             target.layout.setActiveItem('device_overview');
         }
@@ -168,13 +224,7 @@ var overview = {
                     });
                     D.groups = groups.join(', ') || 'None';
                     if (D.locking) {
-                        var S = D.locking.status,
-                            stat = S.slice(0,1).toUpperCase() + S.slice(1);
-                        if (stat=='Unlocked') {
-                            D.locking = 'Unlocked';
-                        } else {
-                            D.locking = stat + '<br/>' + D.locking.events;
-                        }
+                        D.locking = Zenoss.render.locking(D.locking);
                     }
                     if (D.hwManufacturer) {
                         D.hwManufacturer = Zenoss.render.link(D.hwManufacturer.uid);
@@ -260,25 +310,16 @@ Ext.getCmp('center_panel').add({
         width: 275,
         items: [{
             xtype: 'treepanel',
-            selModel: new Ext.tree.DefaultSelectionModel({
-                listeners: {
-                    selectionchange: function(sm, node) {
-                        if (node) {
-                            var action = node.attributes.action;
-                            if (action) {
-                                var target = Ext.getCmp('detail_card_panel');
-                                action.call(node, node, target);
-                            }
-                        }
-                    }
-                }
-            }),
+            selModel: treesm,
+            border: false,
+            cls: 'x-tree-noicon',
             rootVisible: false,
             root: {
                 nodeType: 'async',
                 children: Zenoss.nav.Device
             }
-        }]
+        }, componentTree
+        ]
     },{
         xtype: 'contextcardpanel',
         id: 'detail_card_panel',
