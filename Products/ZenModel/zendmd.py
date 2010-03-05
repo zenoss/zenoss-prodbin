@@ -14,6 +14,7 @@
 
 import sys
 import os
+import os.path
 import code
 import atexit
 import logging
@@ -29,11 +30,17 @@ except ImportError:
 # configuration, because it hijacks option parsing.
 parser = OptionParser()
 parser.add_option('--host',
-            dest="host",default=None,
-            help="hostname of zeo server")
+            dest="host", default=None,
+            help="Hostname of ZEO server")
 parser.add_option('--port',
-            dest="port",type="int", default=None,
-            help="port of zeo server")
+            dest="port", type="int", default=None,
+            help="Port of ZEO server")
+parser.add_option('--script',
+            dest="script", default=None,
+            help="Name of file to execute.")
+parser.add_option('--commit',
+            dest="commit", default=False, action="store_true",
+            help="Run commit() at end of script?")
 opts, args = parser.parse_args()
 
 # Zope magic ensues!
@@ -291,6 +298,16 @@ if __name__=="__main__":
     # zope.conf?
     if opts.host or opts.port:
         set_db_config(opts.host, opts.port)
+
+    if opts.script:
+        if not os.path.exists(opts.script):
+            print "Unable to open script file '%s' -- exiting" % opts.script
+            sys.exit(1)
+        execfile(opts.script, globals(), _customStuff())
+        if opts.commit:
+            from transaction import commit
+            commit()
+        sys.exit(0)
 
     _banner = ["Welcome to the Zenoss dmd command shell!\n"
              "'dmd' is bound to the DataRoot. 'zhelp()' to get a list of "
