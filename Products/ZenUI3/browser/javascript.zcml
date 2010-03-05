@@ -37,14 +37,14 @@
         
 <browser:viewlet
         name="js-all"
-        paths="/extjs/treegrid/TreeGridSorter.js
-               /extjs/treegrid/TreeGridColumnResizer.js
-               /extjs/treegrid/TreeGridNodeUI.js
-               /extjs/treegrid/TreeGridLoader.js
-               /extjs/treegrid/TreeGridColumns.js
-               /extjs/treegrid/TreeGridLoader.js
-               /extjs/treegrid/TreeGridColumns.js
-               /extjs/treegrid/TreeGrid.js
+        paths="/++resource++extjs/treegrid/TreeGridSorter.js
+               /++resource++extjs/treegrid/TreeGridColumnResizer.js
+               /++resource++extjs/treegrid/TreeGridNodeUI.js
+               /++resource++extjs/treegrid/TreeGridLoader.js
+               /++resource++extjs/treegrid/TreeGridColumns.js
+               /++resource++extjs/treegrid/TreeGridLoader.js
+               /++resource++extjs/treegrid/TreeGridColumns.js
+               /++resource++extjs/treegrid/TreeGrid.js
                extdirect.js
                zenoss-all.js
                i18n.js"
