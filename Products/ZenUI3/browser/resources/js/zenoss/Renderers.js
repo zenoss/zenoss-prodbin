@@ -164,9 +164,13 @@ Ext.apply(Zenoss.render, {
         return Zenoss.render.link(null, url, name);
     },
 
-    DeviceComponent: function(url, name) {
-        // TODO once these pages are built fix the link
-        return Zenoss.render.link(null, url, name);
+    DeviceComponent: function(name, col, record) {
+        var item = record.data[col.id];
+        if (item.uid){            
+            // TODO once these pages are built fix the link
+            return Zenoss.render.default_uid_renderer(item.uid, item.text); 
+        }
+        return item.text;
     },
         
     EventClass: function(uid, name) {
