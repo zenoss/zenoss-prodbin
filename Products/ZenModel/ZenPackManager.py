@@ -291,7 +291,7 @@ class ZenPackManager(ZenModelRM):
         self.write(out, '')
         self.write(out, 'Done installing ZenPack.')
         if REQUEST:
-            REQUEST.RESPONSE.write(footer)
+            REQUEST.RESPONSE.write(str(footer))
 
 
     def getZnetProjectOptions(self):
