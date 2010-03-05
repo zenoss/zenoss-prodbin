@@ -20,12 +20,12 @@ from zope.interface import Interface
 from Products.ZCatalog.CatalogBrains import AbstractCatalogBrain
 from Products.ZenRelations.ZenPropertyManager import ZenPropertyManager
 
-def resolve_context(context, default=None):
+def resolve_context(context, default=None, dmd=None):
     """
     Make sure that a given context is an actual object, and not a path to
     the object, by trying to traverse from the dmd if it's a string.
     """
-    dmd = get_dmd()
+    dmd = dmd or get_dmd()
     if dmd:
         if isinstance(context, basestring):
             # Should be a path to the object we want

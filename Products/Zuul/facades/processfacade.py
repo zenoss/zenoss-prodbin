@@ -77,10 +77,3 @@ class ProcessFacade(TreeFacade):
             ob = self._getObject(uid)
             ob.sequence = sequence
 
-    def _getObject(self, uid):
-        try:
-            obj = self._dmd.unrestrictedTraverse(uid)
-        except Exception, e:
-            args = (uid, e.__class__.__name__, e)
-            raise Exception('Cannot find "%s". %s: %s' % args)
-        return obj

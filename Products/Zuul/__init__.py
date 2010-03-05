@@ -39,6 +39,7 @@ object.
 
 import AccessControl
 from itertools import imap
+from OFS.ObjectManager import ObjectManager
 from zope import component
 from zope.interface import verify
 from interfaces import IFacade, IInfo
@@ -116,7 +117,7 @@ def info(obj, adapterName=''):
         return dict((k, infoize(obj[k])) for k in obj)
 
     # obj is a non-string iterable, so apply to its members recursively
-    elif hasattr(obj, '__iter__'):
+    elif hasattr(obj, '__iter__') and not isinstance(obj, ObjectManager):
         return imap(infoize, obj)
 
     # attempt to adapt; if no adapter, return obj itself

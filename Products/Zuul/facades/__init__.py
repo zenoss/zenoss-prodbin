@@ -53,6 +53,14 @@ class ZuulFacade(object):
         if dmd_factory:
             return dmd_factory()
 
+    def _getObject(self, uid):
+        try:
+            obj = self._dmd.unrestrictedTraverse(str(uid))
+        except Exception, e:
+            args = (uid, e.__class__.__name__, e)
+            raise Exception('Cannot find "%s". %s: %s' % args)
+        return obj
+
 
 class TreeFacade(ZuulFacade):
     implements(ITreeFacade)
@@ -68,18 +76,10 @@ class TreeFacade(ZuulFacade):
     def _getObject(self, uid=None):
         if not uid:
             return self._root
-        else:
-            return self._findObject(uid)
+        return super(TreeFacade, self)._getObject(uid)
 
     def _root(self):
         raise NotImplementedError
-
-    def _findObject(self, uid):
-        try:
-            return self._dmd.unrestrictedTraverse(uid)
-        except Exception:
-            logging.error('Could not find object "%s"' % uid)
-            raise
 
     def deviceCount(self, uid=None):
         cat = ICatalogTool(self._getObject(uid))
@@ -185,13 +185,13 @@ class TreeFacade(ZuulFacade):
         return zip(severities, counts)
 
     def addOrganizer(self, contextUid, id):
-        context = self._findObject(contextUid)
+        context = self._getObject(contextUid)
         organizer = aq_base(context).__class__(id)
         context._setObject(id, organizer)
         return '%s/%s' % (contextUid, id)
 
     def addClass(self, contextUid, id):
-        context = self._findObject(contextUid)
+        context = self._getObject(contextUid)
         _class = self._classFactory(id)
         relationship = getattr(context, self._classRelationship)
         checkValidId(relationship, id)
@@ -199,7 +199,7 @@ class TreeFacade(ZuulFacade):
         return '%s/%s/%s' % (contextUid, self._classRelationship, id)
 
     def deleteNode(self, uid):
-        obj = self._findObject(uid)
+        obj = self._getObject(uid)
         context = aq_parent(obj)
         context._delObject(obj.id)
 

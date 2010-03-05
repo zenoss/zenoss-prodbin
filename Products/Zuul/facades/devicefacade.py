@@ -48,7 +48,7 @@ class DeviceFacade(TreeFacade):
         # look up the where clause for the thing itself
         zem = self._dmd.ZenEventManager
         if not where:
-            ob = self._findObject(uid)
+            ob = self._getObject(uid)
             where = zem.lookupManagedEntityWhere(ob)
         where = where.replace('%', '%%')
         return where, []
@@ -131,17 +131,17 @@ class DeviceFacade(TreeFacade):
         return result
 
     def deleteDevices(self, uids):
-        devs = imap(self._findObject, uids)
+        devs = imap(self._getObject, uids)
         for dev in devs:
             dev.deleteDevice()
 
     def removeDevices(self, uids, organizer):
         # Resolve target if a path
         if isinstance(organizer, basestring):
-            organizer = self._findObject(organizer)
+            organizer = self._getObject(organizer)
         assert isinstance(organizer, DeviceOrganizer)
         organizername = organizer.getOrganizerName()
-        devs = imap(self._findObject, uids)
+        devs = imap(self._getObject, uids)
         if isinstance(organizer, DeviceGroup):
             for dev in devs:
                 names = dev.getDeviceGroupNames()
@@ -171,7 +171,7 @@ class DeviceFacade(TreeFacade):
 
     def setLockState(self, uids, deletion=False, updates=False,
                      sendEvent=False):
-        devs = imap(self._findObject, uids)
+        devs = imap(self._getObject, uids)
         for dev in devs:
             if deletion or updates:
                 if deletion:
@@ -182,15 +182,15 @@ class DeviceFacade(TreeFacade):
                 dev.unlock()
 
     def resetCommunityString(self, uid):
-        dev = self._findObject(uid)
+        dev = self._getObject(uid)
         dev.manage_snmpCommunity()
 
     def moveDevices(self, uids, target):
         # Resolve target if a path
         if isinstance(target, basestring):
-            target = self._findObject(target)
+            target = self._getObject(target)
         assert isinstance(target, DeviceOrganizer)
-        devs = (self._findObject(uid) for uid in uids)
+        devs = (self._getObject(uid) for uid in uids)
         targetname = target.getOrganizerName()
         if isinstance(target, DeviceGroup):
             for dev in devs:

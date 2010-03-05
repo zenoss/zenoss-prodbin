@@ -131,11 +131,3 @@ class TemplateFacade(ZuulFacade):
     def _getCatalog(self, uid):
         obj = self._getObject(uid)
         return ICatalogTool(obj)
-        
-    def _getObject(self, uid):
-        try:
-            obj = self._dmd.unrestrictedTraverse(uid)
-        except Exception, e:
-            args = (uid, e.__class__.__name__, e)
-            raise Exception('Cannot find "%s". %s: %s' % args)
-        return obj
