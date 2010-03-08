@@ -28,13 +28,12 @@ from itertools import imap
 from Acquisition import aq_base, aq_parent
 from OFS.ObjectManager import checkValidId
 from zope.interface import implements
-from zope.component import queryUtility
 
 from Products.AdvancedQuery import MatchRegexp, And, Or, Eq, Between
-from Products.Zuul.interfaces import IFacade, IDataRootFactory, ITreeNode
+from Products.Zuul.interfaces import IFacade, ITreeNode
 from Products.Zuul.interfaces import ITreeFacade, IInfo, ICatalogTool
 from Products.Zuul.interfaces import IEventInfo
-from Products.Zuul.utils import unbrain
+from Products.Zuul.utils import unbrain, get_dmd
 from Products.Zuul.tree import SearchResults
 from Products.ZenUtils.IpUtil import numbip, checkip, IpAddressError, ensureIp
 from Products.ZenUtils.IpUtil import getSubnetBounds
@@ -44,14 +43,18 @@ log = logging.getLogger('zen.Zuul')
 class ZuulFacade(object):
     implements(IFacade)
 
+    def __init__(self, context):
+        self.context = context
+
     @property
     def _dmd(self):
         """
         A way for facades to access the data layer
         """
-        dmd_factory = queryUtility(IDataRootFactory)
-        if dmd_factory:
-            return dmd_factory()
+        try:
+            return self.context.dmd.primaryAq()
+        except:
+            return get_dmd()
 
     def _getObject(self, uid):
         try:

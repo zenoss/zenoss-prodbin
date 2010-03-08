@@ -20,7 +20,7 @@ log = logging.getLogger('zen.ZenPackRouter')
 class ZenPackRouter(DirectRouter):
 
     def _getFacade(self):
-        return Zuul.getFacade('zenpack')
+        return Zuul.getFacade('zenpack', self.context)
 
     def getEligiblePacks(self, **data):
         devZenPacks = self._getFacade().getDevelopmentZenPacks()

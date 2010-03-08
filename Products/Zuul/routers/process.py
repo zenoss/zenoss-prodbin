@@ -18,7 +18,7 @@ from Products.Zuul.routers import TreeRouter
 class ProcessRouter(TreeRouter):
 
     def _getFacade(self):
-        return Zuul.getFacade('process')
+        return Zuul.getFacade('process', self.context)
 
     def getTree(self, id):
         facade = self._getFacade()

@@ -24,7 +24,7 @@ log = logging.getLogger('zen.Zuul')
 class DeviceRouter(TreeRouter):
 
     def _getFacade(self):
-        return Zuul.getFacade('device')
+        return Zuul.getFacade('device', self.context)
 
     def getTree(self, id):
         facade = self._getFacade()

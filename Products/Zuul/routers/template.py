@@ -18,7 +18,7 @@ from Products.Zuul.decorators import require
 class TemplateRouter(DirectRouter):
 
     def _getFacade(self):
-        return Zuul.getFacade('template')
+        return Zuul.getFacade('template', self.context)
 
     def getTemplates(self, id):
         """

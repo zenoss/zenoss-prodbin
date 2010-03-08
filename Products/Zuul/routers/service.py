@@ -17,7 +17,7 @@ from Products import Zuul
 class ServiceRouter(DirectRouter):
 
     def _getFacade(self):
-        return Zuul.getFacade('service')
+        return Zuul.getFacade('service', self.context)
 
     def getTree(self, id):
         facade = self._getFacade()

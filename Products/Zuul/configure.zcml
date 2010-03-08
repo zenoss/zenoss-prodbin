@@ -56,35 +56,41 @@
         class="Products.ZenModel.Device.Device"
         />
 
-    <utility factory=".facades.DeviceFacade"
+    <adapter factory=".facades.DeviceFacade"
              provides=".interfaces.IDeviceFacade"
              name="device"
+             for="*"
              />
 
-    <utility factory=".facades.EventFacade"
+    <adapter factory=".facades.EventFacade"
              provides=".interfaces.IEventFacade"
              name="event"
+             for="*"
              />
 
-    <utility factory=".facades.ProcessFacade"
+    <adapter factory=".facades.ProcessFacade"
              provides=".interfaces.IProcessFacade"
              name="process"
+             for="*"
              />
 
-    <utility factory=".facades.ServiceFacade"
+    <adapter factory=".facades.ServiceFacade"
              provides=".interfaces.IServiceFacade"
              name="service"
+             for="*"
              />
 
-    <utility factory=".facades.ZenPackFacade"
+    <adapter factory=".facades.ZenPackFacade"
              provides=".interfaces.IFacade"
              name="zenpack"
+             for="*"
              />
 
-<utility factory=".facades.TemplateFacade"
-         provides=".interfaces.IFacade"
-         name="template"
-         />
+    <adapter factory=".facades.TemplateFacade"
+             provides=".interfaces.IFacade"
+             name="template"
+             for="*"
+             />
 
     <utility component=".utils.get_dmd"
              provides=".interfaces.IDataRootFactory"

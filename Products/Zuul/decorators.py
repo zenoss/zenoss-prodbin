@@ -79,12 +79,13 @@ def memoize(f, *args, **kwargs):
 
 def require(permission):
     """
-    Decorator that checks if the current user has the permission.
+    Decorator that checks if the current user has the permission. Only valid on
+    IFacade objects.
     """
     @decorator
-    def wrapped_fn(f, *args, **kwargs):
-        if not Zuul.checkPermission(permission):
+    def wrapped_fn(f, self, *args, **kwargs):
+        if not Zuul.checkPermission(permission, self.context):
             args = (f.__name__, permission)
             raise Unauthorized('Calling %s requires "%s" permission.' % args)
-        return f(*args, **kwargs)
+        return f(self, *args, **kwargs)
     return wrapped_fn

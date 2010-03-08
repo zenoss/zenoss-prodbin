@@ -46,10 +46,9 @@ from interfaces import IFacade, IInfo
 from interfaces import IMarshallable
 from interfaces import IMarshaller
 from interfaces import IUnmarshaller
-from interfaces import IDataRootFactory
-from utils import safe_hasattr as hasattr
+from utils import safe_hasattr as hasattr, get_dmd
 
-def getFacade(name):
+def getFacade(name, context=None):
     """
     Get facade by name.  The names are documented in configure.zcml defined as
     utilities that provide subclasses of IFacade (all the subclasses follow
@@ -57,7 +56,9 @@ def getFacade(name):
     Component Architecture (ZCA) from the Ext Direct routers and other
     consumers of the Zuul Python API.
     """
-    return component.getUtility(IFacade, name)
+    if context is None:
+        context = get_dmd()
+    return component.getAdapter(context, IFacade, name)
 
 
 def marshal(obj, keys=None, marshallerName=''):
@@ -125,12 +126,12 @@ def info(obj, adapterName=''):
         return component.queryAdapter(obj, IInfo, adapterName, obj)
 
 
-def checkPermission(permission):
+def checkPermission(permission, context=None):
     """
-    Return true if the current user has the specified permission on dmd,
-    otherwise return false.
+    Return true if the current user has the specified permission on the given
+    context or the dmd; otherwise, return false.
     """
     manager = AccessControl.getSecurityManager()
-    dmdFactory = component.getUtility(IDataRootFactory)
-    dmd = dmdFactory()
-    return manager.checkPermission(permission, dmd)
+    context = context or get_dmd()
+    return manager.checkPermission(permission, context)
+

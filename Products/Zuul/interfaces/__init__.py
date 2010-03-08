@@ -27,6 +27,8 @@ class IFacade(Interface):
     """
     An API facade
     """
+    context = Attribute('The context of the adapter.')
+
 
 class IMarshaller(Interface):
     """
