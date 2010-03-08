@@ -190,7 +190,7 @@
 
     <browser:viewlet
         name="MIBs"
-        url="/zport/dmd/Mibs/mibOrganizerOverview"
+        url="/zport/dmd/Mibs"
         weight="2"
         parentItem="Advanced"
         manager="..navigation.interfaces.ISecondaryNavigationMenu"
