@@ -1,4 +1,4 @@
-<tal:block metal:use-macro="here/templates/macros/page2">
+<tal:block metal:use-macro="here/page_macros/old-new"> 
 <tal:block metal:fill-slot="contentPane">
 
 <form method="post" name="adminObjects" 

@@ -622,11 +622,11 @@ class UserSettings(ZenModelRM):
     security = ClassSecurityInfo()
 
     security.declareProtected('View', 'zentinelTabs')
-    def zentinelTabs(self, templateName):
+    def zentinelTabs(self, templateName, requestUrl=None):
         """Return a list of hashs that define the screen tabs for this object.
         [{'name':'Name','action':'template','selected':False},...]
         """
-        tabs = super(UserSettings, self).zentinelTabs(templateName)
+        tabs = super(UserSettings, self).zentinelTabs(templateName, requestUrl)
         # if we don't have any global roles take away edit tab
         if self.hasNoGlobalRoles():
             return tabs[:-1]

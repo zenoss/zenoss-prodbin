@@ -1,0 +1,118 @@
+<!--
+###########################################################################
+#
+# This program is part of Zenoss Core, an open source monitoring platform.
+# Copyright (C) 2010, Zenoss Inc.
+#
+# This program is free software; you can redistribute it and/or modify it
+# under the terms of the GNU General Public License version 2 as published by
+# the Free Software Foundation.
+#
+# For complete information please visit: http://www.zenoss.com/oss/
+#
+###########################################################################
+-->
+
+<configure
+    xmlns="http://namespaces.zope.org/zope"
+    xmlns:browser="http://namespaces.zope.org/browser"
+    xmlns:five="http://namespaces.zope.org/five">
+
+<browser:defaultView
+    for="Products.ZenEvents.ActionRule.ActionRule"
+    name="editActionRule"
+    />
+
+<browser:page
+    template="../../ZenEvents/skins/zenevents/editActionRule.pt"
+    name="editActionRule"
+    for="*"
+    permission="zenoss.View"
+    />
+
+<browser:page
+    template="../../ZenEvents/skins/zenevents/editActionRuleMessage.pt"
+    name="editActionRuleMessage"
+    for="*"
+    permission="zenoss.View"
+    />
+
+<browser:page
+    template="../../ZenEvents/skins/zenevents/editActionRuleSchedule.pt"
+    name="editActionRuleSchedule"
+    for="*"
+    permission="zenoss.View"
+    />
+
+<browser:defaultView
+    for="Products.ZenModel.UserSettings.UserSettings"
+    name="editUserSettings"
+    />
+
+<browser:page
+    template="../../ZenModel/skins/zenmodel/editUserSettings.pt"
+    name="editUserSettings"
+    for="*"
+    permission="zenoss.View"
+    />
+
+<browser:page
+    template="../../ZenModel/skins/zenmodel/administeredDevices.pt"
+    name="administeredDevices"
+    for="*"
+    permission="zenoss.View"
+    />
+
+<browser:page
+    template="../../ZenEvents/skins/zenevents/editEventViews.pt"
+    name="editEventViews"
+    for="*"
+    permission="zenoss.View"
+    />
+
+<browser:page
+    template="../../ZenEvents/skins/zenevents/editActionRules.pt"
+    name="editActionRules"
+    for="*"
+    permission="zenoss.View"
+    />
+
+<browser:defaultView
+    for="Products.ZenModel.MibOrganizer.MibOrganizer"
+    name="mibOrganizerOverview"
+    />
+
+<browser:page
+    template="../../ZenModel/skins/zenmodel/mibOrganizerOverview.pt"
+    name="mibOrganizerOverview"
+    for="*"
+    permission="zenoss.View"
+    />
+
+<browser:page
+    template="../../ZenModel/skins/zenmodel/viewNewHistory.pt"
+    name="viewNewHistory"
+    for="*"
+    permission="zenoss.View"
+    />
+
+<browser:defaultView
+    for="Products.ZenModel.MibModule.MibModule"
+    name="viewMibModule"
+    />
+
+<browser:page
+    template="../../ZenModel/skins/zenmodel/viewMibModule.pt"
+    name="viewMibModule"
+    for="*"
+    permission="zenoss.View"
+    />
+
+<browser:page
+    template="../../ZenModel/skins/zenmodel/editMibModule.pt"
+    name="editMibModule"
+    for="*"
+    permission="zenoss.View"
+    />
+
+</configure>

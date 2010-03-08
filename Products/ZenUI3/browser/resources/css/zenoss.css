@@ -1,3 +1,6 @@
+#header-extra a:link, #header-extra a:visited { text-decoration: none; color: white }
+#header-extra a:hover {text-decoration: underline}
+
 strong { font-weight: bold; }
 
 .zenui3 { font-family: Helvetica,sans-serif; }
