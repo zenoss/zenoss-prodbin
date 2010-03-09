@@ -41,6 +41,7 @@ class IServiceInfo(IInfo):
     description = Attribute('A description of the service')
     serviceKeys = Attribute('Keys which will match for defining services.')
     port = Attribute('The port that the service runs on')
+    count = Attribute('The number of instances.')
 
 class IServiceOrganizerInfo(IInfo):
     """

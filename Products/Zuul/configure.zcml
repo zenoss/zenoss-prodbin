@@ -16,42 +16,42 @@
 <configure xmlns="http://namespaces.zope.org/zope"
            xmlns:five="http://namespaces.zope.org/five">
 
-    <five:implements 
+    <five:implements
         interface=".interfaces.IProcessEntity"
         class="Products.ZenModel.OSProcessClass.OSProcessClass"
         />
 
-    <five:implements 
+    <five:implements
         interface=".interfaces.IComponent"
         class="Products.ZenModel.OSComponent.OSComponent"
         />
 
-    <five:implements 
+    <five:implements
         interface=".interfaces.IComponent"
         class="Products.ZenModel.HWComponent.HWComponent"
         />
 
-    <five:implements 
+    <five:implements
         interface=".interfaces.IProcessEntity"
         class="Products.ZenModel.OSProcessOrganizer.OSProcessOrganizer"
         />
 
-    <five:implements 
+    <five:implements
         interface=".interfaces.IServiceEntity"
         class="Products.ZenModel.ServiceClass.ServiceClass"
         />
 
-    <five:implements 
+    <five:implements
         interface=".interfaces.IServiceEntity"
         class="Products.ZenModel.ServiceOrganizer.ServiceOrganizer"
         />
 
-    <five:implements 
+    <five:implements
         interface=".interfaces.IEventEntity"
         class="Products.ZenEvents.ZEvent.ZEvent"
         />
 
-    <five:implements 
+    <five:implements
         interface=".interfaces.IDevice"
         class="Products.ZenModel.Device.Device"
         />
@@ -117,11 +117,11 @@
              />
 
     <!-- Tree node adapters -->
-    <adapter factory=".infos.process.ProcessNode" 
+    <adapter factory=".infos.process.ProcessNode"
              for=".interfaces.IProcessEntity"
              provides=".interfaces.IProcessNode"/>
 
-    <adapter factory=".infos.service.ServiceNode" 
+    <adapter factory=".infos.service.ServiceNode"
              for=".interfaces.IServiceEntity"
              provides=".interfaces.IServiceNode"/>
 
@@ -172,8 +172,13 @@
              />
 
     <adapter provides=".interfaces.IInfo"
-             for="Products.ZenModel.ServiceClass.ServiceClass"
+             for=".interfaces.IServiceEntity"
              factory=".infos.service.ServiceInfo"
+             />
+
+    <adapter factory=".infos.service.ServiceInfo"
+             provides=".interfaces.IServiceInfo"
+             for=".interfaces.IServiceEntity"
              />
 
     <adapter provides=".interfaces.IDeviceInfo"
@@ -221,7 +226,7 @@
              for="*"
              factory=".tree.CatalogTool"
              />
-         
+
     <include package=".routers"/>
     <include package=".catalog"/>
 

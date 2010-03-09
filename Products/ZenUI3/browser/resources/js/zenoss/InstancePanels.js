@@ -25,30 +25,32 @@ var InstanceColumnModel = Ext.extend(Ext.grid.ColumnModel, {
                 menuDisabled: true
             },
             columns: [{
-                id: 'device',
-                dataIndex: 'device',
-                header: _t('Device'),
-                width: 200,
-                renderer: function(device, row, record){
-                    return Zenoss.render.link(device.uid);
-               }
-            }, {
-                id: 'name',
-                dataIndex: 'name',
-                header: _t('Name'),
-                width: 400
-            }, {
-                id: 'monitored',
-                dataIndex: 'monitored',
-                header: _t('Monitored'),
-                width: 70,
-                sortable: true
-            }, {
-                id: 'status',
-                dataIndex: 'status',
-                header: _t('Status'),
-                width: 50
-            }]
+                    id: 'device',
+                    dataIndex: 'device',
+                    header: _t('Device'),
+                    width: 200,
+                    renderer: function(device, row, record){
+                        return Zenoss.render.link(device.uid, undefined,
+                                                  device.name);
+                   }
+                }, {
+                    id: 'name',
+                    dataIndex: 'name',
+                    header: _t('Name'),
+                    width: 400
+                }, {
+                    id: 'monitored',
+                    dataIndex: 'monitored',
+                    header: _t('Monitored'),
+                    width: 70,
+                    sortable: true
+                }, {
+                    id: 'status',
+                    dataIndex: 'status',
+                    header: _t('Status'),
+                    width: 50
+                }
+            ]
         });
         InstanceColumnModel.superclass.constructor.call(this, config);
     }
@@ -85,7 +87,7 @@ Zenoss.InstanceStore = Ext.extend(Ext.ux.grid.livegrid.Store, {
 Ext.reg('InstanceStore', Zenoss.InstanceStore);
 
 Zenoss.SimpleInstanceGridPanel = Ext.extend(Ext.ux.grid.livegrid.GridPanel, {
-    
+
     constructor: function(config) {
         Ext.applyIf(config, {
             border: false,
@@ -99,7 +101,7 @@ Zenoss.SimpleInstanceGridPanel = Ext.extend(Ext.ux.grid.livegrid.GridPanel, {
         });
         Zenoss.SimpleInstanceGridPanel.superclass.constructor.call(this, config);
     },
-    
+
     setContext: function(uid) {
         this.getStore().load({params:{uid:uid}});
     }

@@ -23,8 +23,7 @@ from Products.Zuul.interfaces import IServiceNode
 from Products.Zuul.interfaces import ICatalogTool
 from Products.ZenModel.ServiceClass import ServiceClass
 from Products.ZenModel.ServiceOrganizer import ServiceOrganizer
-from Products.ZenModel.IpService import IpService
-from Products.ZenModel.WinService import WinService
+from Products.ZenModel.Service import Service
 
 class ServiceNode(TreeNode):
     implements(IServiceNode)
@@ -40,7 +39,7 @@ class ServiceNode(TreeNode):
     def text(self):
         text = super(ServiceNode, self).text
         numInstances = ICatalogTool(self._object).count(
-            (IpService, WinService), self.uid)
+            (Service,), self.uid)
         return {
             'text': text,
             'count': numInstances,
@@ -79,4 +78,12 @@ class ServiceInfo(InfoBase):
         self._object.port = value
 
     port = property(getPort, setPort)
+
+    @property
+    def count(self):
+        numInstances = ICatalogTool(self._object).count(
+            (Service,), self.uid)
+
+        return numInstances
+
 

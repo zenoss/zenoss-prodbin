@@ -29,8 +29,8 @@ Ext.onReady( function() {
     function treeSelectHandler(tree, node) {
         // Change context
         setPanelsDisabled(false);
-        Ext.getCmp('serviceFormPanel').setContext(node.attributes.uid);
-        Ext.getCmp('serviceCardButtonPanel').setContext(node.attributes.uid);
+        Ext.getCmp('serviceForm').setContext(node.attributes.uid);
+        Ext.getCmp('serviceInstancePanel').setContext(node.attributes.uid);
     }
 
     /**
@@ -44,9 +44,9 @@ Ext.onReady( function() {
             autoScroll: true,
             directFn: Zenoss.remote.ServiceRouter.getTree,
             root: {
-                id: 'IpService',
-                uid: '/zport/dmd/Services/IpService',
-                text: 'IP Services'
+                id: 'WinService',
+                uid: '/zport/dmd/Services/WinService',
+                text: 'Windows Services'
             },
             listeners: {
                 render: function(tree){
@@ -62,30 +62,21 @@ Ext.onReady( function() {
 
     /**********************************************************************
      *
-     * CardPanel Functionality
+     * Instances Functionality
      *
      */
 
-    /**
-     * Initialize the Card Panel
-     */
-    function cardPanelInitialize() {
-        Ext.getCmp('bottom_detail_panel').add({
-            xtype: 'ContextCardButtonPanel',
-            id: 'serviceCardButtonPanel',
+    function instancePanelInitialize() {
+        var instancePanel = {
+            xtype: 'SimpleInstanceGridPanel',
+            id: 'serviceInstancePanel',
             disabled: true,
-            items: [ { xtype: 'SimpleInstanceGridPanel',
-                       buttonTitle: _t('Services'),
-                       iconCls: 'services',
-                       directFn: Zenoss.remote.ServiceRouter.getInstances
-                     },
-                     { xtype: 'SimpleEventGridPanel',
-                       buttonTitle: _t('Events'),
-                       iconCls: 'events',
-                       directFn: Zenoss.remote.ServiceRouter.getEvents
-                     }
-            ]
-        });
+            buttonTitle: _t('Services'),
+            iconCls: 'services',
+            directFn: Zenoss.remote.ServiceRouter.getInstances,
+            tbar: [ { xtype: 'tbtext', text: _t('Instances') } ]
+        }
+        Ext.getCmp('bottom_detail_panel').add(instancePanel);
     }
 
     /**********************************************************************
@@ -99,8 +90,8 @@ Ext.onReady( function() {
      * @param {boolean} disabled Whether to disable or not
      */
     function setPanelsDisabled(disabled) {
-        Ext.getCmp('serviceFormPanel').setDisabled(disabled);
-        Ext.getCmp('serviceCardButtonPanel').setDisabled(disabled);
+        Ext.getCmp('serviceForm').setDisabled(disabled);
+        Ext.getCmp('serviceInstancePanel').setDisabled(disabled);
     }
 
     /**
@@ -150,24 +141,37 @@ Ext.onReady( function() {
         selectedNode.attributes.text.text = nameTextField.getValue();
         selectedNode.setText(selectedNode.attributes.text);
         var form = Ext.getCmp('serviceForm').getForm();
-        var params = Ext.apply({id: selectedNode.id}, form.getValues());
+        var params = Ext.apply({uid: selectedNode.attributes.uid}, form.getValues());
         form.api.submit(params);
+        var values = Ext.applyIf(form.getValues(), {
+            isMonitoringAcquired: 'off',
+            monitor: 'off',
+            ignoreParameters: 'off'
+        });
+        // setValues makes isDirty return false
+        form.setValues(values);
+
     }
 
+    function resetForm(button, event) {
+        var form = Ext.getCmp('serviceForm').getForm();
+        form.reset();
+    }
     /**
      * Form definition variables
      */
     var nameTextField = {
         xtype: 'textfield',
+        id: 'nameTextField',
         fieldLabel: _t('Name'),
         name: 'name',
         allowBlank: false,
-        width: "100%",
-        id: 'nameTextField'
+        width: "100%"
     };
 
     var descriptionTextField = {
         xtype: 'textfield',
+        id: 'descriptionTextField',
         fieldLabel: _t('Description'),
         name: 'description',
         width: "100%"
@@ -178,13 +182,6 @@ Ext.onReady( function() {
         fieldLabel: _t('Service Keys'),
         name: 'serviceKeys',
 
-        width: "100%"
-    };
-
-    var portTextField = {
-        xtype: 'textfield',
-        fieldLabel: _t('Port'),
-        name: 'port',
         width: "100%"
     };
 
@@ -225,13 +222,25 @@ Ext.onReady( function() {
             {
                 items: acquiredCheckbox
             }, {
-                items: monitorCheckbox,
-                bodyStyle: 'padding-left: 15px'
+                items: monitorCheckbox
             }, {
-                items: eventSeverityCombo,
-                bodyStyle: 'padding-left: 15px'
+                items: eventSeverityCombo
             }
         ]
+    };
+
+    var saveButton = {
+        xtype: 'button',
+        id: 'saveButton',
+        text: _t('Save'),
+        handler: saveForm
+    };
+
+    var cancelButton = {
+        xtype: 'button',
+        id: 'cancelButton',
+        text: _t('Cancel'),
+        handler: resetForm
     };
 
     var formItems = {
@@ -245,7 +254,9 @@ Ext.onReady( function() {
             columnWidth: 0.5
         },
         items: [
-            {items: [nameTextField, descriptionTextField, monitoringFieldSet ]},
+            {items: [nameTextField, descriptionTextField,
+                     monitoringFieldSet, saveButton]},
+
             {items: [serviceKeysTextField]}
         ]
     };
@@ -259,55 +270,23 @@ Ext.onReady( function() {
         labelAlign: 'top',
         autoScroll: true,
         disabled: true,
+        trackResetOnLoad: true,
         api: {
             load: Zenoss.remote.ServiceRouter.getInfo,
-            submit: Zenoss.remote.ServiceRouter.submitInfo
-        },
-        tbar: [
-               {
-                   xtype: 'button',
-                   id: 'saveButton',
-                   text: _t('Save'),
-                   iconCls: 'save',
-                   handler: saveForm
-               }
-        ]
+            submit: Zenoss.remote.ServiceRouter.setInfo
+        }
     };
 
-    /**
-     * @class Zenoss.ui.Service.ServiceFormPanel
-     * @extends Ext.form.FormPanel
-     * The form panel that displays information about a service organizer
-     *  or class
-     * @constructor
-     */
-    Zenoss.ui.Service.ServiceFormPanel = Ext.extend(Ext.form.FormPanel, {
-
-        constructor: function(config) {
-            var cls;
-            config = config || {};
-            Ext.applyIf(config, formConfig);
-            cls = Zenoss.ui.Service.ServiceFormPanel;
-            cls.superclass.constructor.call(this, config);
-            //this.on('actioncomplete', actioncompleteHandler);
-        },
-
-        setContext: function(uid) {
-            this.load({ params: {uid: uid} });
-        }
-    });
-    Ext.reg('ServiceFormPanel', Zenoss.ui.Service.ServiceFormPanel);
-
     function formInitialize() {
-        var serviceForm = new Zenoss.ui.Service.ServiceFormPanel(
-                {id:'serviceFormPanel'}
-                );
+        var serviceForm = new Ext.form.FormPanel(formConfig);
+        serviceForm.setContext = function(uid) {
+                this.load({ params: {uid: uid} });
+            }.createDelegate(serviceForm);
         Ext.getCmp('top_detail_panel').add(serviceForm);
-        //serviceForm.getForm().load({params:{uid: 'Services'}});
     }
 
-    cardPanelInitialize();
-    formInitialize();
     treeInitialize();
+    formInitialize();
+    instancePanelInitialize();
 
 }); // Ext.onReady
