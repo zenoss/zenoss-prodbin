@@ -43,28 +43,36 @@
   <tooltip>
     <target>ignoreParametersCheckbox</target>
 
-    <html> Select this option to ignore command parameters when matching
+    <html><span style="font-weight: bold;">Ignore Parameters</span><br />Select this option to ignore command parameters when matching
     processes. By default, this option is disabled.</html>
   </tooltip>
 
   <tooltip>
     <target>devicesbutton</target>
 
-    <html>Click to display devices on which the selected process or processes
+    <html><span style="font-weight: bold;">Device</span><br />Click to display devices on which the selected process or processes
     are running.</html>
   </tooltip>
 
   <tooltip>
     <target>eventsbutton</target>
 
-    <html>Click to display events associated with the selected process or
+    <html><span style="font-weight: bold;">Events</span><br />Click to display events associated with the selected process or
     processes.</html>
   </tooltip>
   
+<!-- I think these are pretty much unncessary. Leaving here in case somebody disagrees.
   <tooltip>
     <target>saveButton</target>
 
-    <html>Click to save the details of this process.</html>
+    <html><span style="font-weight: bold;">Save</span><br />Click to save process details.</html>
   </tooltip>
+
+  <tooltip>
+    <target>cancelButton</target>
+
+   <html><span style="font-weight: bold;">Cancel</span><br />Click to cancel changes.</html>
+  </tooltip>
+-->
   
 </view>
