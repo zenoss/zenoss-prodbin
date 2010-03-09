@@ -334,7 +334,7 @@ Zenoss.FilterGridView = Ext.extend(Ext.ux.grid.livegrid.GridView, {
     },
     setContext: function(uid) {
         this.contextUid = uid;
-        this.updateLiveRows(this.rowIndex, true, true);
+        this.updateLiveRows(this.rowIndex, true, true, false);
     },
     onBeforeLoad: function(store, options) {
         this.applyFilterParams(options);
