@@ -217,7 +217,7 @@ class ZenCheckRRD(ZenScriptBase):
             if os.waitpid(p2.pid, 0)[1] != 0:
                 log.warn("Unable to SSH to collector %s (%s)", collector.id, host)
 
-            output = Popen(["ssh", collector,
+            output = Popen(["ssh", host,
                 "find $ZENHOME -name *.rrd -mtime -%s" % self.options.age],
                 stdout=PIPE).communicate()[0]
 
