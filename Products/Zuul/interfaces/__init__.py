@@ -64,15 +64,6 @@ class IDataRootFactory(Interface):
     """
 
 
-class IInfo(Interface):
-    """
-    A simple representation of an object that can be transformed and serialized
-    easily.
-    """
-    id = Attribute("Identifier of the represented object (usually path)")
-    name = Attribute("Name of the represented object")
-
-
 from events import *
 from process import *
 from service import *

@@ -1,0 +1,34 @@
+<!--
+###########################################################################
+#
+# This program is part of Zenoss Core, an open source monitoring platform.
+# Copyright (C) 2010, Zenoss Inc.
+#
+# This program is free software; you can redistribute it and/or modify it
+# under the terms of the GNU General Public License version 2 as published by
+# the Free Software Foundation.
+#
+# For complete information please visit: http://www.zenoss.com/oss/
+#
+###########################################################################
+-->
+
+<configure
+    xmlns="http://namespaces.zope.org/zope"
+    xmlns:browser="http://namespaces.zope.org/browser"
+    xmlns:five="http://namespaces.zope.org/five">
+
+    <browser:resourceDirectory
+        name="search"
+        directory="resources"
+        />
+        
+    <browser:viewlet
+        name="zenoss-searchbox"
+        weight="3"
+        manager="Products.ZenUI3.browser.interfaces.IJavaScriptSrcManager"
+        class=".IncludeSearchBox"
+        permission="zope2.Public"
+        />
+
+</configure>

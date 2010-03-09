@@ -24,6 +24,7 @@ from Products.ZenUtils.Search import makeMultiPathIndex
 from Products.ZenUtils.Search import makeCaseSensitiveFieldIndex
 from Products.ZenUtils.Search import makeCaseInsensitiveFieldIndex
 from Products.ZenUtils.Search import makeCaseSensitiveKeywordIndex
+from Products.ZenUtils.Search import makeCaseInsensitiveKeywordIndex
 from Products.ZenModel.DeviceComponent import DeviceComponent
 from Products.ZenModel.Device import Device
 from Products.Zuul.utils import getZProperties
@@ -165,10 +166,61 @@ class IndexableWrapper(object):
         """
         Whether or not monitored. Only for Components.
         """
+        
+    def searchUrl(self):
+        """
+        For searchables
+        """
+
+    def searchCategory(self):
+        """
+        For searchables
+        """
+
+    def searchKeywordsForChildren(self):
+        """
+        For searchables
+        """
+
+    def searchKeywords(self):
+        """
+        For searchables
+        """
+
+    def searchExcerpt(self):
+        """
+        For searchables
+        """
+
+    def searchIcon(self):
+        """
+        For searchables
+        """
 
 
+class SearchableMixin(object):
 
-class ComponentWrapper(IndexableWrapper):
+    def searchUrl(self):
+        return self._context.getPrimaryUrlPath()
+
+    def searchCategory(self):
+        return self._context.meta_type
+
+    def searchKeywordsForChildren(self):
+        return (self._context.titleOrId(),)
+
+    def searchKeywords(self):
+        o = self._context
+        return self.searchKeywordsForChildren() + (o.meta_type,)
+
+    def searchExcerpt(self):
+        return self._context.titleOrId()
+
+    def searchIcon(self):
+        return self._context.zIcon
+
+
+class ComponentWrapper(SearchableMixin,IndexableWrapper):
     adapts(DeviceComponent)
 
     def monitored(self):
@@ -179,13 +231,44 @@ class ComponentWrapper(IndexableWrapper):
     def collectors(self):
         return self._context.getCollectors()
 
+    def searchKeywordsForChildren(self):
+        o = self._context
+        return (o.titleOrId(), o.name(),
+            o.monitored() and "monitored" or "unmonitored") + \
+            ISearchableWrapper(o.device()).searchKeywordsForChildren()
 
-class DeviceWrapper(IndexableWrapper):
+    def searchExcerpt(self):
+        o = self._context
+        return '%s <span style="font-size:smaller">(%s)</span>' % (
+            o.name(), o.getParentDeviceName())
+
+
+class DeviceWrapper(SearchableMixin,IndexableWrapper):
     adapts(Device)
 
     def productionState(self):
         return str(self._context.productionState)
 
+    def searchKeywordsForChildren(self):
+        o = self._context
+        return (o.titleOrId(),
+            o.manageIp, o.hw.serialNumber, o.hw.tag, o.uptimeStr(),
+            o.getHWManufacturerName(), o.getHWProductName(),
+            o.getOSProductName(), o.getOSManufacturerName(),
+            o.getHWSerialNumber(), o.getPerformanceServerName(),
+            o.getProductionStateString(), o.getPriorityString(),
+            o.getLocationName(),
+            o.monitorDevice() and "monitored" or "unmonitored",
+            ) \
+            + tuple(o.getSystemNames()) + tuple(o.getDeviceGroupNames())
+
+    def searchExcerpt(self):
+        o = self._context
+        if o.manageIp:
+            return '%s <span style="font-size:smaller">(%s)</span>' % (
+                o.titleOrId(), o.manageIp)
+        else:
+            return o.titleOrId()
 
 class GlobalCatalog(ZCatalog):
 
@@ -238,6 +321,10 @@ def createGlobalCatalog(portal):
     cat.addIndex('path', makeMultiPathIndex('path'))
     cat.addIndex('collectors', makeCaseSensitiveKeywordIndex('collectors'))
     cat.addIndex('productKeys', makeCaseSensitiveKeywordIndex('productKeys'))
+    cat.addIndex('searchKeywords',
+        makeCaseInsensitiveKeywordIndex('searchKeywords'))
+    cat.addIndex('searchCategory',
+        makeCaseInsensitiveFieldIndex('searchCategory'))
         
     catalog.addColumn('id')
     catalog.addColumn('name')
@@ -247,6 +334,10 @@ def createGlobalCatalog(portal):
     catalog.addColumn('productionState')
     catalog.addColumn('collectors')
     catalog.addColumn('zProperties')
+    catalog.addColumn('searchUrl')
+    catalog.addColumn('searchCategory')
+    catalog.addColumn('searchIcon')
+    catalog.addColumn('searchExcerpt')
 
     portal._setOb(catalog.getId(), catalog)
 

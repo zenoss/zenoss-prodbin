@@ -77,11 +77,11 @@ class Portlet(ZenModelRM):
             self.source = f.read()
             f.close()
 
-    def getPrimaryPath(self):
+    def getPrimaryPath(self,fromNode=None):
         """
         Override the default, which doesn't account for things on zport
         """
-        return ('', 'zport') + super(Portlet, self).getPrimaryPath()
+        return ('', 'zport') + super(Portlet, self).getPrimaryPath(fromNode)
 
     def get_source(self, debug_mode=False):
         if debug_mode: self._read_source()

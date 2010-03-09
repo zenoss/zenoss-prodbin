@@ -459,3 +459,50 @@ table.eventrainbow td.warning { background-color: #fbd13d; }
     cursor: pointer;
 }
 
+table.search-result {
+    border-collapse:collapse;
+    table-layout:fixed;
+    width:360px;
+}
+
+.search-result {
+    background:#fcfcfc;
+}
+
+.search-result .search-item-selected {
+    background:#6498c8;
+    color:#fff;
+}
+
+.search-result th {
+    width:100px;
+    border-right:1px solid #ccc;
+    padding:0px 6px 0px 0px;
+    vertical-align:top;
+    text-align:right;
+    font-weight:bold;
+    font-size:10px;
+}
+
+.search-result td {
+    cursor:pointer;
+}
+
+.search-result td.icon {
+    vertical-align:top;
+    width:16px;
+    height:16px;
+}
+
+.search-result .icon img {
+    width:16px;
+    height:16px;
+}
+
+.search-result td.excerpt {
+    width:260px;
+    padding:0px 0px 0px 6px;
+    font-size:12px;
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;

@@ -107,6 +107,11 @@
              />
 
     <adapter provides=".interfaces.IMarshaller"
+             for=".interfaces.IMarshallable"
+             factory=".marshalling.Marshaller"
+             />
+
+    <adapter provides=".interfaces.IMarshaller"
              for=".interfaces.IInfo"
              factory=".marshalling.InfoMarshaller"
              />
@@ -229,5 +234,6 @@
 
     <include package=".routers"/>
     <include package=".catalog"/>
+    <include package=".search"/>
 
 </configure>

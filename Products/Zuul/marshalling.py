@@ -15,6 +15,7 @@ from zope.interface import implements
 from zope.component import adapts
 from Products.ZenUtils.json import json
 from Products import Zuul
+from Products.Zuul.interfaces import IMarshallable
 from Products.Zuul.interfaces import IMarshaller
 from Products.Zuul.interfaces import IUnmarshaller
 from Products.Zuul.interfaces import IInfo
@@ -53,13 +54,13 @@ def _marshalExplicitly(obj, keys):
     return data
 
 
-class InfoMarshaller(object):
+class Marshaller(object):
     """
     Uses a implicit mashalling if keys is None otherwise uses explicit
     marshalling.
     """
     implements(IMarshaller)
-    adapts(IInfo)
+    adapts(IMarshallable)
 
     def __init__(self, obj):
         self._obj = obj
@@ -68,12 +69,24 @@ class InfoMarshaller(object):
         if keys is None:
             data = _marshalImplicitly(self._obj)
         else:
-            # Ensure that uid makes it through
-            _keys = list(keys[:])
-            if 'uid' not in _keys:
-                _keys.append('uid')
+            _keys = set(keys[:]) | set(self.getRequiredKeys())
             data = _marshalExplicitly(self._obj, _keys)
         return data
+
+    def getRequiredKeys(self):
+        return []
+
+
+class InfoMarshaller(Marshaller):
+    """
+    Uses a implicit mashalling if keys is None otherwise uses explicit
+    marshalling.
+    """
+    adapts(IInfo)
+
+    def getRequiredKeys(self):
+        # Ensure that uid makes it through
+        return ['uid']
 
 
 class TreeNodeMarshaller(object):
