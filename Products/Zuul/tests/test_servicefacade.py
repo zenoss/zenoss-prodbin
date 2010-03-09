@@ -17,7 +17,7 @@ from Products.ZenModel.IpService import IpService
 from Products import Zuul
 from Products.Zuul.tests.base import ZuulFacadeTestCase
 from Products.ZenModel.Service import Service
-from Products.Zuul.interfaces import IInstance
+from Products.Zuul.interfaces import IComponent
 
 class ServiceFacadeTest(ZuulFacadeTestCase):
 
@@ -26,7 +26,7 @@ class ServiceFacadeTest(ZuulFacadeTestCase):
         self.facade = Zuul.getFacade('service')
 
     def test_interfaces(self):
-        verifyClass(IInstance, Service)
+        verifyClass(IComponent, Service)
 
     def test_getInstances(self):
         device = self.dmd.Devices.createInstance('foo')
@@ -43,7 +43,7 @@ class ServiceFacadeTest(ZuulFacadeTestCase):
         instanceInfos = list(self.facade.getInstances(uid))
         self.assertEqual(1, len(instanceInfos))
         instanceInfo = instanceInfos[0]
-        self.assertEqual('foo', instanceInfo.device)
+        self.assertEqual('foo', instanceInfo.device.getDevice())
         self.assertEqual('tcp_00121', instanceInfo.name)
         self.assertEqual(False, instanceInfo.monitored)
         self.assertEqual('None', instanceInfo.status)

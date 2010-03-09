@@ -19,10 +19,11 @@
 
     /****  Variable Declaration ****/
     var thresholdSelectionModel, thresholdDeleteButton,
-        router, thresholdDeleteConfig, treeId;
+        router, treeId, thresholdEditButton, MinMaxThresholdDialog;
      
     Zenoss.templates.thresholdsId = 'thresholdGrid';
     thresholdDeleteButton = 'thresholdDeleteButton';
+    thresholdEditButton = 'thesholdEditButton';
     router = Zenoss.remote.TemplateRouter;
      
     // The id of the tree on the left hand side of the screen
@@ -54,6 +55,7 @@
 
             // disable the delete button (they have to select another one to enable it)
             Ext.getCmp(thresholdDeleteButton).disable();
+            Ext.getCmp(thresholdEditButton).disable();
         };
         
         // parameters for the router request
@@ -67,7 +69,7 @@
     /**
      * Configuration Options for the Delete Threshold Dialog
      **/
-    thresholdDeleteConfig = function() {
+    function thresholdDeleteConfig(){
         // assuming there is always a selected node in the tree and the
         // threshold datagrid at this point
         var grid = Ext.getCmp(Zenoss.templates.thresholdsId),
@@ -80,7 +82,7 @@
         return {
             title: _t('Remove Threshold'),
             modal: true,
-            width:310,
+            width: 310,
             height: 130,
             items: [{
                 xtype: 'panel',
@@ -95,10 +97,53 @@
                 Zenoss.dialog.CANCEL
             ]      
         };
-    };
-
-    /**** Threshold Data Grid ****/
+    }
      
+     
+    /**** View/Edit Threshold ****/
+     
+    /**
+     * Call back from the router call to save
+     * the threshold (from the edit dialog),
+     * just reloads the threshold dialg
+     **/
+    function closeThresholdDialog(response) {
+        // update the datasource of the threshold
+        var grid = Ext.getCmp(Zenoss.templates.thresholdsId),
+            dialog = Ext.getCmp('editThresholdDialog');
+        grid.getStore().reload();
+        // hide the form
+        if (dialog) {
+            dialog.hide();
+        }
+    }
+     
+    /**
+     *@returns Zenoss.FormDialog Ext Dialog type associated with the
+     *          selected threshold type
+     **/
+    function thresholdEdit() {
+        var grid = Ext.getCmp(Zenoss.templates.thresholdsId),
+            record = grid.getSelectionModel().getSelected(),
+            config = {};
+                            
+        function displayEditDialog(response) {
+            var win;
+            config.record = response;
+            config.xtype = "EditThresholdDialog";
+            config.id = "editThresholdDialog";
+            config.saveHandler = closeThresholdDialog;
+            win = Ext.create(config);
+            win.show();
+        }
+
+        // send the request for all of the threshold's info to the server
+        router.getThresholdDetails({uid: record.id}, displayEditDialog);
+    }
+     
+     
+    /**** Threshold Data Grid ****/
+    
     /**
      * Threshold DataGrid Selection Model
      * Handles when a user clicks on a specific threshold.
@@ -106,11 +151,24 @@
     thresholdSelectionModel = new Ext.grid.RowSelectionModel ({
         singleSelect: true,
         listeners : {
-            rowselect: function (selectionModel, rowIndex,  record )  {
+            /**
+             * If they have permission and they select a row, show the
+             * edit and delete buttons
+             **/
+            rowselect: function (selectionModel, rowIndex, record ) {
                 // enable the "Delete Threshold" button
                 if (Zenoss.Security.hasPermission('Manage DMD')) {
                     Ext.getCmp(thresholdDeleteButton).enable();
+                    Ext.getCmp(thresholdEditButton).enable();
                 }
+            },
+            
+            /**
+             * When they deselect don't allow them to press the buttons
+             **/
+            rowdeselect: function(selectionModel, rowIndex, record) {
+                Ext.getCmp(thresholdDeleteButton).disable();
+                Ext.getCmp(thresholdEditButton).disable();
             }
         }
     });
@@ -119,38 +177,48 @@
      * Definition for the Thresholds datagrid. This is used in 
      * templates.js in the updateThresholds function.
      **/
-    Zenoss.templates.thresholdDataGridConfig = function() {
-        return {
-            xtype: 'grid',
-            id: Zenoss.templates.thresholdsId,
-            selModel: thresholdSelectionModel,
-            title: _t('Thresholds'),
-            store: {
-                xtype: 'directstore',
-                directFn: router.getThresholds,
-                fields: ['name', 'type', 'dataPoints', 'severity', 'enabled']
-            },
-            tbar: [{
+    Zenoss.templates.thresholdDataGrid = Ext.extend(Ext.grid.GridPanel, {
+        constructor: function(config) {
+            config = config || {};
+            Ext.apply(config, {
+                id: Zenoss.templates.thresholdsId,
+                selModel: thresholdSelectionModel,
+                title: _t('Thresholds'),
+                store: {
+                    xtype: 'directstore',
+                    directFn: router.getThresholds,
+                    fields: ['name', 'type', 'dataPoints', 'severity', 'enabled']
+                },
+                tbar: [{
                     id: thresholdDeleteButton,
                     xtype: 'button',
                     iconCls: 'delete',
                     disabled: true,
-                    tooltip: 'Delete Threshold',
+                    tooltip: _t('Delete Threshold'),
                     handler: function() {
                         // when they press delete show the Confirmation
                         var win = new Zenoss.FormDialog(thresholdDeleteConfig());
                         win.show();
                     }
-            }],
-            colModel: new Ext.grid.ColumnModel({
-                columns: [
-                    {dataIndex: 'name', header: _t('Name')},
-                    {dataIndex: 'type', header: _t('Type')},
-                    {dataIndex: 'dataPoints', header: _t('Data Points')},
-                    {dataIndex: 'severity', header: _t('Severity')},
-                    {dataIndex: 'enabled', header: _t('Enabled')}                    
-                ]
-            })
-        };
-     };
+                                       
+                }, {
+                    id: thresholdEditButton,
+                    xtype: 'button',
+                    iconCls: 'configure',
+                    disabled: true,
+                    tooltip: _t('Edit Threshold'),
+                    handler: thresholdEdit
+                }],
+                colModel: new Ext.grid.ColumnModel({
+                    columns: [
+                        {dataIndex: 'name', header: _t('Name'), width:400}
+                    ]
+                })
+            });
+            
+            Zenoss.templates.thresholdDataGrid.superclass.constructor.apply(
+                this, arguments);
+        }
+    });
+    Ext.reg('thresholddatagrid', Zenoss.templates.thresholdDataGrid);
 }());

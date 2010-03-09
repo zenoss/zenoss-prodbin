@@ -68,6 +68,30 @@ class TemplateRouter(DirectRouter):
         thresholds = facade.getThresholds(uid)
         return Zuul.marshal(thresholds)
 
+    def getThresholdDetails(self, uid):
+        """
+        Returns everything needed for the threshold dialog
+        """
+        facade = self._getFacade()
+        thresholdDetails = facade.getThresholdDetails(uid)
+        # turn the threshold into a dictionary
+        data =  Zuul.marshal(thresholdDetails)
+        return data
+
+    @require('Manage DMD')
+    def editThreshold(self, **data):
+        """
+        Responsible for taking the values from the form and applying them to the threshold
+        """
+        # this always has to be here
+        uid = data['uid']
+        del data['uid']
+        # translate enabled to a boolean
+        data['enabled'] = data.has_key('enabled')
+        facade = self._getFacade()
+        facade.editThreshold(uid, data)
+        return {'success': True}
+            
     @require('Manage DMD')
     def addThreshold(self, uid, thresholdType, thresholdId, dataPoints):
         facade = self._getFacade()

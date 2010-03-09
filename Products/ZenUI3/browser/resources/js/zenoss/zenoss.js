@@ -1325,6 +1325,33 @@ Zenoss.util.filter = function(arr, filterFn, scope) {
     return result;
 };
 
+/**
+ * This converts server side types to Ext Controls, 
+ * it first looks for specific types based on the field name
+ * and then reverts to a translation of the type.
+ * @param {string} fieldId the "name" of the field (e.g. eventClass)
+ * @param {string} type can be string, int, etc
+ * @returns {string} The "xtype" of the control
+ **/
+Zenoss.util.getExtControlType = function(fieldId, type) {
+    var customControls = {
+        'eventClass': 'EventClass',
+        'severity': 'Severity',
+        'dsnames': 'DataPointItemSelector'
+    },
+    types = {
+        'int': 'numberfield',
+        'string': 'textfield',
+        'boolean': 'checkbox'
+    };
+
+    if (customControls[fieldId]) {
+        return customControls[fieldId];
+    }
+    
+    // default to "textfield" if we don't have it set up yet"
+    return (types[type] || 'textfield');
+};
 
 /**
  * Proxy that will only allow one request to be loaded at a time.  Requests 

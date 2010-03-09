@@ -12,7 +12,7 @@
 ###########################################################################
 
 import unittest
-
+from itertools import imap
 from zope.component import adapts, provideAdapter
 from zope.interface import implements, Interface
 from Products.ZenTestCase.BaseTestCase import BaseTestCase
@@ -52,18 +52,14 @@ class InfoTest(BaseTestCase):
         nested = Zuul.info([{'a':[Target()], 'b':Target()}])
 
         self.assert_(isinfo(single))
-        self.assert_(isinstance(alist, list))
+        self.assert_(isinstance(alist, imap))
         for ob in alist:
             self.assert_(isinfo(ob))
         self.assert_(isinstance(adict, dict))
         for k, v in adict.items():
             self.assert_(isinfo(v))
-        self.assert_(isinstance(nested, list))
-        self.assert_(isinfo(nested[0]['a'][0]))
-        self.assert_(isinfo(nested[0]['b']))
+        self.assert_(isinstance(nested, imap))
         
-    
-
         
 def test_suite():
     return unittest.TestSuite((unittest.makeSuite(InfoTest),))

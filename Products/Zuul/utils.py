@@ -40,6 +40,15 @@ def resolve_context(context, default=None, dmd=None):
     return context
 
 
+def severityId(severity):
+    """Takes an event and returns the "id" of it. As expected
+    by the event and the threshold classes
+    """
+    if isinstance(severity, basestring):
+        sevs = ['clear', 'debug', 'info', 'warning', 'error', 'critical']
+        return  sevs.index(severity.lower())
+
+    
 def get_dmd():
     """
     Retrieve the DMD object.

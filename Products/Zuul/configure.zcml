@@ -149,6 +149,10 @@
              for="Products.ZenModel.ThresholdClass.ThresholdClass"
              provides=".interfaces.IThresholdInfo"/>
 
+    <adapter factory=".infos.template.MinMaxThresholdInfo"
+             for="Products.ZenModel.MinMaxThreshold.MinMaxThreshold"
+             provides=".interfaces.IMinMaxThresholdInfo"/>
+
     <adapter factory=".infos.template.GraphInfo"
              for="Products.ZenModel.GraphDefinition.GraphDefinition"
              provides=".interfaces.IGraphInfo"/>

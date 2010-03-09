@@ -73,11 +73,11 @@ class MinMaxThreshold(ThresholdClass):
     escalateCount = 0
     
     _properties = ThresholdClass._properties + (
-        {'id':'minval',        'type':'string',  'mode':'w'},
-        {'id':'maxval',        'type':'string',  'mode':'w'},
-        {'id':'eventClass',    'type':'string',  'mode':'w'},
-        {'id':'severity',      'type':'int',     'mode':'w'},
-        {'id':'escalateCount', 'type':'int',     'mode':'w'},
+        {'id':'minval',        'type':'string',  'mode':'w', 'label': 'Minimum Value'},
+        {'id':'maxval',        'type':'string',  'mode':'w', 'label': 'Maximum Value'},
+        {'id':'eventClass',    'type':'string',  'mode':'w', 'label': 'Event Class'},
+        {'id':'severity',      'type':'int',     'mode':'w', 'label': 'Severity'},
+        {'id':'escalateCount', 'type':'int',     'mode':'w', 'label': 'Escalate Count'},
         )
 
     factory_type_information = (

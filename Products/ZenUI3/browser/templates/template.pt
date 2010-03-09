@@ -16,8 +16,14 @@
 <tal:block metal:use-macro="context/page_macros/masterdetailsplit3">
 
 <tal:block metal:fill-slot="script_layout">
+
+
+<!-- Snippets is for the Event Classes Store -->
+<tal:block tal:content="structure provider:jssnippets"/>
+<script src="/++resource++zenui/js/zenoss/monitoringTemplates/EditThresholdDialog.js"></script>
 <script src="/++resource++zenui/js/zenoss/monitoringTemplates/threshold.js"></script>
 <script src="/++resource++zenui/js/zenoss/template.js"></script>
+
 </tal:block> <!-- metal:fill-slot="script_layout" -->
 
 </tal:block> <!-- metal:use-macro="context/page_macros/masterdetailsplit2" -->

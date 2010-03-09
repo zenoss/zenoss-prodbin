@@ -40,6 +40,11 @@ class IThresholdInfo(IInfo):
     Adapts ThresholdClass.
     """
 
+class IMinMaxThresholdInfo(IThresholdInfo):
+    """
+    Adapts the MinMaxThresholdClass
+    """
+    
 class IGraphInfo(IInfo):
     """
     Adapts GraphDefinition.

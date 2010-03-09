@@ -38,8 +38,8 @@ class ThresholdClass(ZenModelRM, ZenPackable):
             self.buildRelations()
 
     _properties = (
-        {'id':'dsnames', 'type':'lines', 'mode':'w'},
-        {'id':'enabled', 'type':'boolean', 'mode':'w'},
+        {'id':'dsnames', 'type':'lines', 'mode':'w', 'label': 'DataPoints'},
+        {'id':'enabled', 'type':'boolean', 'mode':'w', 'label': 'Enabled'},
         )
 
     _relations =  ZenPackable._relations + (

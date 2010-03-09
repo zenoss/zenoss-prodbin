@@ -22,7 +22,7 @@ from Products.Zuul.interfaces import IDataSourceInfo
 from Products.Zuul.interfaces import IDataPointInfo
 from Products.Zuul.interfaces import IThresholdInfo
 from Products.Zuul.interfaces import IGraphInfo
-from Products.Zuul.utils import unbrain
+from Products.Zuul.utils import unbrain, severityId
 from Products.Zuul.facades import ZuulFacade
 from Products.ZenModel.RRDTemplate import RRDTemplate
 from Products.ZenModel.RRDDataSource import RRDDataSource
@@ -86,7 +86,18 @@ class TemplateFacade(ZuulFacade):
         brains = catalog.search(types=ThresholdClass)
         thresholds = imap(unbrain, brains)
         return imap(IThresholdInfo, thresholds)
-
+    
+    def getThresholdDetails(self, uid):
+        """
+        @param String uid: the id of the threshold
+        """
+        threshold = self._getObject(uid)
+        template = threshold.rrdTemplate()
+        info = IThresholdInfo(threshold)
+        # don't show the "selected one" in the list of avaialble
+        info.allDataPoints = [point for point in template.getRRDDataPointNames() if not point in info.dataPoints]
+        return info
+    
     def getThresholdTypes(self):
         data = []
         template = self._dmd.Devices.rrdTemplates.Device
@@ -105,12 +116,41 @@ class TemplateFacade(ZuulFacade):
         else:
             raise Exception('Unknow threshold type: %s' % thresholdType)
         threshold = getattr(thresholds, thresholdId)
+        dsnames = self._translateDataPoints(dataPoints)
+        threshold._updateProperty('dsnames', dsnames)
+                                                                        
+    def _translateDataPoints(self, dataPoints):
+        """ Takes the list of datapoints from te server
+        and turns them into the proper dsnames that the
+        threshold items expects
+        @param List dataPointsUids
+        @return List proper names from the dataPoint object
+        """
         dsnames = []
         for dataPointUid in dataPoints:
             dataPoint = self._getObject(dataPointUid)
             dsnames.append( dataPoint.name() )
-        threshold._updateProperty('dsnames', dsnames)
-
+        return dsnames
+            
+    def editThreshold(self, uid, data):
+        """
+        Takes a uid of a threshold and a dictionary of
+        {property: value}. This method then attempts to apply each
+        property to the threshold. If the property doesn't
+        exit it is ignored.
+        @param String UID of the Threshold
+        @param Dictionary data 
+        @return IThresholdInfo
+        """
+        threshold = self._getObject(uid)
+        info = IThresholdInfo(threshold)
+                
+        for key in data.keys():
+            if hasattr(info, key):
+                setattr(info, key, data[key])
+                
+        return info
+        
     def removeThreshold(self, uid):
         """Removes the threshold
         @param string uid

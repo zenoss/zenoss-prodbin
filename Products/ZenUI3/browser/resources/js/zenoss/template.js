@@ -23,7 +23,6 @@ router = Zenoss.remote.TemplateRouter;
 treeId = 'templateTree';
 dataSourcesId = 'dataSourceTreeGrid';
 thresholdsId = Zenoss.templates.thresholdsId;
-
 graphsId = 'graphGrid';
 
 beforeselectHandler = function(sm, node, oldNode) {
@@ -49,11 +48,11 @@ updateDataSources = function(uid) {
 };
 
 updateThresholds = function(uid) {
-    var panel, root;
+    var panel, root, grid;
     panel = Ext.getCmp('top_detail_panel');
     
     if ( ! Ext.getCmp(thresholdsId) ) {
-        panel.add(Zenoss.templates.thresholdDataGridConfig());
+        panel.add({id: thresholdsId, xtype:'thresholddatagrid'});
         panel.doLayout();
     }
     Ext.getCmp(thresholdsId).getStore().load({

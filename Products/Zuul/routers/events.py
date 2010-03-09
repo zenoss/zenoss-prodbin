@@ -15,7 +15,7 @@ import time
 from Products.ZenUI3.browser.eventconsole.grid import column_config
 from Products.ZenUtils.Ext import DirectRouter
 from Products.ZenUtils.extdirect.router import DirectResponse
-from Products.Zuul import getFacade
+from Products.Zuul import getFacade, marshal
 from Products.Zuul.decorators import require
 from _mysql_exceptions import OperationalError
 
@@ -115,3 +115,5 @@ class EventsRouter(DirectRouter):
             uid = self.context
         return column_config(self.api.fields(uid), self.request)
 
+    def eventClasses(self):
+        return marshal(self.api.eventClasses())

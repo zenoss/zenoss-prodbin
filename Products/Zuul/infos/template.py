@@ -13,6 +13,7 @@
 
 from Acquisition import aq_parent
 from Products.Zuul.infos import InfoBase
+from Products.Zuul.utils import severityId
 
 class TemplateNode(InfoBase):
     
@@ -137,14 +138,87 @@ class ThresholdInfo(InfoBase):
     def dataPoints(self):
         return self._object.getDataPointNamesString()
 
-    @property
-    def severity(self):
+    # dsnames
+    def _setDsnames(self, value):
+        """
+        dsnames can be either a list of valid names or a comma separated string
+        """
+        if value and isinstance(value, str):
+            # strip out the empty chars (junk our ItemSelector gives us sometimes)
+            value = [name for name in value.split(',') if name]
+        self._object.dsnames = value
+        
+    def _getDsnames(self):
+        return self._object.dsnames
+        
+    dsnames = property(_getDsnames, _setDsnames)
+
+    # severity
+    def _setSeverity(self, value):
+        if isinstance(value, str):
+            value = severityId(value)
+        self._object.severity = value
+        
+    def _getSeverity(self):
         return self._object.getSeverityString()
+    
+    severity = property(_getSeverity, _setSeverity)
 
-    @property
-    def enabled(self):
+    # enabled
+    def _setEnabled(self, value):
+        self._object.enabled = value
+        
+    def _getEnabled(self):
         return self._object.enabled
+        
+    enabled = property(_getEnabled, _setEnabled)
+        
+    @property
+    def thresholdProperties(self):
+        """ A list of all the custom properties of this threshold
+        """
+        if hasattr(self._object, "_properties"):
+            return self._object._properties
+        return {}
+    
+class MinMaxThresholdInfo(ThresholdInfo):
+    
+    # minVal
+    def _setMinVal(self, value):
+        self._object.minval = value
+        
+    def _getMinVal(self):
+        return self._object.minval
+        
+    minval = property(_getMinVal, _setMinVal)
 
+    # maxval
+    def _setMaxVal(self, value):
+        self._object.maxval = value
+        
+    def _getMaxVal(self):
+        return self._object.maxval
+        
+    maxval = property(_getMaxVal, _setMaxVal)
+
+    # eventClass
+    def _setEventClass(self, value):
+        self._object.eventClass = value
+        
+    def _getEventClass(self):
+        return self._object.eventClass
+        
+    eventClass = property(_getEventClass, _setEventClass)
+        
+    # escalateCount    
+    def _setEscalateCount(self, value):
+        self._object.escalateCount = value
+        
+    def _getEscalateCount(self):
+        return self._object.escalateCount
+        
+    escalateCount = property(_getEscalateCount, _setEscalateCount)
+            
 class GraphInfo(InfoBase):
 
     def __init__(self, graph):

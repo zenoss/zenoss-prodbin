@@ -127,8 +127,10 @@ Zenoss.FormDialog = Ext.extend(Ext.Window, {
     constructor: function(config) {
         var form = new Ext.form.FormPanel({
             border: false,
+            id: config.formId,
             minWidth: 300,
             labelAlign: 'top',
+            autoScroll:true,
             labelSeparator: ' ',
             bodyStyle: {
                 'padding-left': '5%'

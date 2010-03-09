@@ -143,7 +143,7 @@ class EventFacade(ZuulFacade):
         data['evid'] = zevent.evid
         data['id'] = zevent.evid
         return data
-
+        
     def log(self, evid, message, history=False):
         zem = self._event_manager(history)
         zem.manage_addLogMessage(evid, message)

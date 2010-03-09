@@ -105,7 +105,8 @@ class ProcessFacadeTest(EventTestCase, ZuulFacadeTestCase):
         deviceInfos = list(self.facade.getDevices(uid))
         self.assertEqual(1, len(deviceInfos))
         deviceInfo = deviceInfos[0]
-        self.assertEqual('quux', deviceInfo.device)
+        
+        self.assertEqual('quux', deviceInfo.getDevice())
 
     def test_getInstances(self):
         device = self.dmd.Devices.createInstance('quux')
@@ -114,7 +115,7 @@ class ProcessFacadeTest(EventTestCase, ZuulFacadeTestCase):
         instanceInfos = list(self.facade.getInstances(uid))
         self.assertEqual(1, len(instanceInfos))
         instanceInfo = instanceInfos[0]
-        self.assertEqual('quux', instanceInfo.device)
+        self.assertEqual('quux', instanceInfo.device.getDevice())
         self.assertEqual('bar', instanceInfo.name)
         self.assertEqual(True, instanceInfo.monitored)
         self.assertEqual('Up', instanceInfo.status)
