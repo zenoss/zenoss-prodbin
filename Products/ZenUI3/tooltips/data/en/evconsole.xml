@@ -45,19 +45,25 @@
     <tt>events.</tt><i>Extension</i>.</html>
   </tooltip>
 
-  <tooltip>
+ <tooltip>
     <target>configure-button</target>
 
     <html>Configure the event console view:<br
-    /><ul><li><span style="font-weight: bold;">Show severity row
-    colors</span><br />Select to shade each event with a color
-    associated with its severity.</li><li><span style="font-weight: bold;">Clear
-    filters</span><br />Clear filter selections, returning to
-    the default list.</li><li><span style="font-weight: bold;">Save this
-    configuration</span><br />Save your custom event console by
+    /><br />
+    <ul><li><strong>Show severity row
+    colors</strong> - Select to shade each event with a color
+    associated with its severity.</li>
+    <li><strong>Enable live search</strong> - When selected,
+    live search is enabled in all search fields. De-select to 
+    disable live search.</li>
+    <li><strong>Clear filters</strong> - Clear filter selections, returning to
+    the default list.</li>
+    <li><strong>Save this
+    configuration</strong> - Save your custom event console by
     bookmarking it for quick access later.<br /><br />Watch:
     Saving a custom view</li></ul></html>
   </tooltip>
+
 
   <tooltip>
     <target>refresh-button</target>
