@@ -21,7 +21,7 @@
   <tooltip>
     <target>delete-button</target>
 
-    <html><strong>Remove Devices</strong>Select one or more devices, and then click to display the Remove Devices dialog.<br /><br />You can choose to remove the devices from undefined state, or delete them from the system.<br /><br />To confirm your changes, click <strong>Remove</strong>.</html>
+    <html><strong>Remove Devices</strong><br />Select one or more devices, and then click to display the Remove Devices dialog.<br /><br />You can choose to remove the devices from undefined state, or delete them from the system.<br /><br />To confirm your changes, click <strong>Remove</strong>.</html>
   </tooltip>
 
   <tooltip>
@@ -35,6 +35,7 @@
 
     <html><strong>Delete completely</strong><br />Select this option to remove selected devices from the system.</html>
   </tooltip>
+
 <!--
   <tooltip>
     <target>Devices</target>
@@ -43,17 +44,24 @@
   </tooltip>
 -->
 
+<!--
+
   <tooltip>
     <target>Map</target>
 
-    <html></html>
+    <html>This tooltip maps to the nav item from Locations > Details > Map. Do not use.</html>
   </tooltip>
+-->
 
+<!--
   <tooltip>
     <target>zprops</target>
 
-    <html><strong>Configuration Properties</strong><br />View and edit configuration properties for the selected device class.</html>
+    <html>This tooltip maps to Device Details > Configuration Properties. Do not use. <strong>Configuration Properties</strong><br />View and edit configuration properties for the selected device class.</html>
   </tooltip>
+-->
+
+<!--
 
   <tooltip>
     <target>templates</target>
@@ -67,23 +75,25 @@
     <html></html>
   </tooltip>
 
+-->
+
   <tooltip>
     <target>adddevice-button</target>
 
-    <html>Click to add a device in the selected device class.</html>
+    <html><strong>Add Devices</strong><br />Click to add a device in the selected device class.</html>
   </tooltip>
 
   <tooltip>
     <target>actions-menu</target>
 
     <html>
-        <strong>Actions</strong>From this menu, you can:
+        <strong>Actions</strong><br /><br />From this menu, you can:
         <ul>
             <li><strong>Lock devices</strong> - Prevent selected devices from being updated or deleted.</li>
             <li><strong>Reset IP</strong> - Reset the IP addresses of selected devices to the results of a DNS lookup.</li>
             <li><strong>Reset Community</strong> - Reset the SNMP community strings of selected devices.</li>
             <li><strong>Set Production State</strong> - Select a production state (Production, Pre-Production, Test, Maintenance, or Decommissioned) for selected devices.</li>
-            <li><strong>Set Priority</strong> - Set a priority (from Trivial to Highest) for selected devices.</li>
+            <li><strong>Set Priority</strong> - Set a priority (from Trivial to Highest) for selected devices. Setting a priority allows you to "rank" your devices, and then use those settings to control alerts.</li>
             <li><strong>Set Collector</strong> - Select a collector for selected devices.</li>
         </ul>
     </html>
@@ -92,11 +102,23 @@
   <tooltip>
     <target>commands-menu</target>
 
-    <html></html>
+    <html>Select one or more devices, and then select a command to run in the interface.</html>
   </tooltip>
   <tooltip>
     <target>productionState</target>
 
-    <html></html>
+    <html>
+       <strong>Production State</strong>Select one or more devices, and then select a production state:
+       <ul>
+            <li><strong>Production</strong> -  Devices are monitored and appear on the dashboard; remote alerts are sent.</li>
+            <li><strong>Pre-Production</strong> - Devices are monitored. They do not appear on the dashboard, and no remote alerts are sent.</li>
+            <li><strong>Test</strong> - Devices are monitored and remote alerts are sent; device information does not appear on the dashboard.</li>
+            <li><strong>Maintenance</strong> - Devices are monitored and may appear on the dashboard; no remote alerts are sent.</li>
+            <li><strong>Decommissioned</strong> - Devices are not monitored and do not appear on the dashboard; no remote alerts are sent.</li>
+       <ul>
+         
+       
+
+</html>
   </tooltip>
 </view>
