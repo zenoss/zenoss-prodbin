@@ -14,7 +14,9 @@
 import logging
 from itertools import imap
 from Acquisition import aq_parent
+from zope.interface import implements
 from Products.ZenUtils.Utils import prepId
+from Products.Zuul.interfaces import ITemplateFacade
 from Products.Zuul.interfaces import ICatalogTool
 from Products.Zuul.interfaces import ITemplateNode
 from Products.Zuul.interfaces import ITemplateLeaf
@@ -29,10 +31,13 @@ from Products.ZenModel.RRDDataSource import RRDDataSource
 from Products.ZenModel.RRDDataPoint import RRDDataPoint
 from Products.ZenModel.ThresholdClass import ThresholdClass
 from Products.ZenModel.GraphDefinition import GraphDefinition
+from Products.ZenModel.Device import Device
+from Products.ZenModel.DeviceClass import DeviceClass
 
 log = logging.getLogger('zen.TemplateFacade')
 
 class TemplateFacade(ZuulFacade):
+    implements(ITemplateFacade)
 
     def getTemplates(self):
         catalog = self._getCatalog('/zport/dmd/Devices')
@@ -168,6 +173,68 @@ class TemplateFacade(ZuulFacade):
         graph = self._getObject(graphUid)
         graph.manage_addDataPointGraphPoints([dataPoint.name()])
 
+    def getCopyTargets(self, uid, query=''):
+        template = self._getTemplate(uid)
+        catalog = ICatalogTool(self._dmd)
+        types = ['Products.ZenModel.DeviceClass.DeviceClass',
+                 'Products.ZenModel.Device.Device']
+        brains = catalog.search(types=types)
+        objs = imap(unbrain, brains)
+        def genTargets():
+            for obj in objs:
+                if isinstance(obj, Device):
+                    container = obj
+                    last = -2
+                else:
+                    container = obj.rrdTemplates
+                    last = -1
+                if template.id not in container.objectIds():
+                    organizer = '/' + '/'.join(obj.getPrimaryPath()[3:last])
+                    label = '%s in %s' % (obj.titleOrId(), organizer)
+                    if label.lower().startswith(query.lower()):
+                        uid = '/'.join(obj.getPrimaryPath())
+                        yield dict(uid=uid, label=label)
+        def byLabel(left, right):
+            return cmp(left['label'].lower(), right['label'].lower())
+        return sorted(genTargets(), byLabel)
+        
+    def copyTemplate(self, uid, targetUid):
+        template = self._getTemplate(uid)
+        target = self._getObject(targetUid)
+        marker = object()
+        source = getattr(template, 'device', marker)
+        if source is marker and isinstance(target, DeviceClass):
+            # copying to and from a DeviceClass
+            source = template.deviceClass()
+            source.manage_copyAndPasteRRDTemplates((template.id,), targetUid)
+        else:
+            if isinstance(target, DeviceClass):
+                # copying from a Device to a DeviceClass
+                container = target.rrdTemplates
+            else:
+                # copying from either to a Device
+                container = target
+            if template.id in container.objectIds():
+                msg = '"%s" already contains template "%s".'
+                args = (targetUid, template.id)
+                raise Exception(msg % args)
+            copy = template._getCopy(container)
+            container._setObject(copy.id, copy)
+
     def _getCatalog(self, uid):
         obj = self._getObject(uid)
         return ICatalogTool(obj)
+
+    def _getTemplate(self, uid):
+        obj = self._getObject(uid)
+        if not isinstance(obj, RRDTemplate):
+            raise Exception('Cannot find RRDTemplate at "%s".')
+        return obj
+
+    def _getObject(self, uid):
+        try:
+            obj = self._dmd.unrestrictedTraverse(uid)
+        except Exception, e:
+            args = (uid, e.__class__.__name__, e)
+            raise Exception('Cannot find "%s". %s: %s' % args)
+        return obj

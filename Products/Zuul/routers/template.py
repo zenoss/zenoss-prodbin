@@ -127,3 +127,21 @@ class TemplateRouter(DirectRouter):
         facade = self._getFacade()
         facade.addDataPointToGraph(dataPointUid, graphUid)
         return {'success': True}
+
+    def getCopyTargets(self, uid, query=''):
+        """
+        Get device classes and devices that do not already have a local copy
+        of the RRDTemplate uniquely identified by the uid parameter.
+        """
+        facade = self._getFacade()
+        data = Zuul.marshal( facade.getCopyTargets(uid, query) )
+        return {'success': True, 'data': data}
+
+    def copyTemplate(self, uid, targetUid):
+        """
+        Copy template to device or device class uniquely identified by
+        targetUid
+        """
+        facade = self._getFacade()
+        facade.copyTemplate(uid, targetUid)
+        return {'success': True}

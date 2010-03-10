@@ -68,8 +68,10 @@ class TemplateLeaf(InfoBase):
             path.pop(-2)
         else:
             # this template is in a DeviceClass.rrdTemplates relationship
-            path = obj.getPrimaryPath()
-        return '/' + separator.join(path[4:])
+            path = list( obj.getPrimaryPath() )
+        parts = path[4:-1]
+        parts.append(obj.titleOrId())
+        return separator + separator.join(parts)
 
 class DataSourceInfo(InfoBase):
 

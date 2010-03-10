@@ -12,6 +12,7 @@
 ###########################################################################
 
 import re
+import logging
 
 from OFS.PropertyManager import PropertyManager
 from zExceptions import BadRequest
@@ -25,6 +26,8 @@ from Exceptions import zenmarker
 iszprop = re.compile("^z[A-Z]").search
 
 from Products.ZenUtils.Utils import unused
+
+log = logging.getLogger('zen.PropertyManager')
 
 # Z_PROPERTIES is a list of (id, type, value) pairs that define all the 
 # zProperties.  The values are set on dmd.Devices in the 
@@ -299,11 +302,11 @@ class ZenPropertyManager(object, PropertyManager):
         try:
             super(ZenPropertyManager, self)._updateProperty(id, value)
         except ValueError:
+            msg = "Error Saving Property '%s'. New value '%s' is of invalid "
+            msg += "type. It should be type '%s'."
             proptype = self.getPropertyType(id)
-            self.log.error('Error Saving Property %s' % id,
-                              ("New value '%s' is of invalid type. "
-                               "It should be type '%s'") % (value, proptype)
-            )
+            args = (id, value, proptype)
+            log.error(msg % args)
 
 
     _onlystars = re.compile("^\*+$").search
