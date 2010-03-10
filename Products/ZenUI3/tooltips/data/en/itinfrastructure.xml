@@ -2,26 +2,26 @@
 <view>
   <tooltip>
     <target>lock-updates-checkbox</target>
-
-    <html><strong>Lock from updates</strong><br />Select this option to prevent updates to the selected devices. Click <strong>Lock</strong> to save your changes.</html>
+    <title>Lock from updates</title>
+    <html>Select this option to prevent updates to the selected    devices. Click <strong>Lock</strong> to save your changes.</html>
   </tooltip>
 
   <tooltip>
     <target>lock-deletion-checkbox</target>
-
-    <html><strong>Lock from deletion</strong><br />Select this option to prevent the selected devices from being deleted. Click <strong>Lock</strong> to save your changes.</html>
+    <title>Lock from deletion</title>
+    <html>Select this option to prevent the selected devices from being deleted. Click <strong>Lock</strong> to save your changes.</html>
   </tooltip>
 
   <tooltip>
     <target>send-event-checkbox</target>
-
-    <html><strong>Send an event when an action is blocked</strong><br />Select this option to create an event when a blocked action (such as update or deletion) is attempted. Click <strong>Lock</strong> to save your changes.</html>
+    <title>Send an event when an action is blocked</title>
+    <html>Select this option to create an event when a blocked action (such as update or deletion) is attempted. Click <strong>Lock</strong> to save your changes.</html>
   </tooltip>
 
   <tooltip>
     <target>delete-button</target>
-
-    <html><strong>Remove Devices</strong><br />Select one or more devices, and then click to display the Remove Devices dialog.<br /><br />You can choose to remove the devices from undefined state, or delete them from the system.<br /><br />To confirm your changes, click <strong>Remove</strong>.</html>
+    <title>Remove Devices</title>
+    <html>Select one or more devices, and then click to display the Remove Devices dialog.<br /><br />You can choose to remove the devices from undefined state, or delete them from the system.<br /><br />To confirm your changes, click <strong>Remove</strong>.</html>
   </tooltip>
 
   <tooltip>
