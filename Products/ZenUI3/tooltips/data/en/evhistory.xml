@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<view>
+  
+  <tooltip>
+    <target>classify-button</target>
+
+    <html>Map selected events to an event class</html>
+  </tooltip>
+
+  <tooltip>
+    <target>unack-button</target>
+
+    <html>Return selected events to New status</html>
+  </tooltip>
+
+   <tooltip>
+    <target>select-button</target>
+
+    <html>Select items in the list (All, None, New, Acknowledged, or
+    Suppressed).</html>
+  </tooltip>
+
+  <tooltip>
+    <target>export-button</target>
+
+    <html>Export event console data to an XML or CSV file. By default, the
+    file is named
+    <tt>events.</tt><i>Extension</i>.</html>
+  </tooltip>
+
+  <tooltip>
+    <target>configure-button</target>
+
+    <html>Configure the event console view:<br
+    /><br />
+    <ul><li><strong>Show severity row
+    colors</strong> - Select to shade each event with a color
+    associated with its severity.</li>
+    <li><strong>Enable live search</strong> - When selected,
+    live search is enabled in all search fields. De-select to 
+    disable live search.</li>
+    <li><strong>Clear filters</strong> - Clear filter selections, returning to
+    the default list.</li>
+    <li><strong>Save this
+    configuration</strong> - Save your custom event console by
+    bookmarking it for quick access later.<br /><br />Watch:
+    Saving a custom view</li></ul></html>
+  </tooltip>
+
+  <tooltip>
+    <target>refresh-button</target>
+
+    <html>Click to refresh the list of events, or select an automatic refresh
+    interval (1, 5, 10, 30, or 60 seconds).</html>
+  </tooltip>
+
+  <tooltip>
+    <target>eventState</target>
+
+    <html>Select one or more status values (New, Acknowledged, or Suppressed)
+    to filter the list of events.</html>
+  </tooltip>
+
+  <tooltip>
+    <target>severity</target>
+
+    <html>Select one or more severity levels (Critical, Error, Warning, Info,
+    Debug, or Clear) to filter the list of events.<br /><br
+    /><a href="http://community.zenoss.org/docs/DOC-3923"
+    target="_blank">Learn more about event severity
+    levels</a>.</html>
+  </tooltip>
+</view>
