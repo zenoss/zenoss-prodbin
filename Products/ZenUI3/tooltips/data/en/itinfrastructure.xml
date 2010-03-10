@@ -108,6 +108,8 @@
     <target>productionState</target>
 
     <html>
+
+       <title>Production State</title>
        <strong>Production State</strong>Select one or more devices, and then select a production state:
        <ul>
             <li><strong>Production</strong> -  Devices are monitored and appear on the dashboard; remote alerts are sent.</li>
@@ -115,7 +117,7 @@
             <li><strong>Test</strong> - Devices are monitored and remote alerts are sent; device information does not appear on the dashboard.</li>
             <li><strong>Maintenance</strong> - Devices are monitored and may appear on the dashboard; no remote alerts are sent.</li>
             <li><strong>Decommissioned</strong> - Devices are not monitored and do not appear on the dashboard; no remote alerts are sent.</li>
-       <ul>
+       </ul>
          
        
 
