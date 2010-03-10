@@ -37,6 +37,7 @@
 <script>
 Ext.onReady(function(){
     Ext.getCmp('center_panel').add({
+        autoScroll: true,
         contentEl: 'oldContentPane'
     });
 });
