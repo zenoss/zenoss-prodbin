@@ -91,6 +91,9 @@
             "text": "AddToZenPackWindow.js",
             "path": "resources/js/zenoss/"
         }, {
+            "text": "VerticalBrowse.js",
+            "path": "resources/js/zenoss/"
+        }, {
             "text": "ComponentPanel.js",
             "path": "resources/js/zenoss/"
         }, {

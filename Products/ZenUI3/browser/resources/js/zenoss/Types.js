@@ -10,9 +10,7 @@ var _tm = {
     'IpAddress':        ["^/zport/dmd/.*/ipaddresses/[^/]*/?$"]
 };
 
-Ext.ns('Zenoss.types');
-
-var T = Zenoss.types;
+var T = Ext.ns('Zenoss.types');
 
 Ext.apply(T, {
 

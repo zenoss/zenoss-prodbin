@@ -44,6 +44,10 @@ class DeviceRouter(TreeRouter):
             uid=id
         facade = self._getFacade()
         data = facade.getComponentTree(uid)
+        sevs = [c[0].lower() for c in
+                self.context.ZenEventManager.severityConversions]
+        data.sort(cmp=lambda a,b:cmp(sevs.index(a['severity']),
+                                     sevs.index(b['severity'])))
         result = []
         for datum in data:
             result.append(dict(

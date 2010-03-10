@@ -18,62 +18,6 @@ Ext.onReady(function(){
 var REMOTE = Zenoss.remote.DeviceRouter,
     UID = Zenoss.env.device_uid;
 
-var treesm = new Ext.tree.DefaultSelectionModel({
-    listeners: {
-        selectionchange: function(sm, node) {
-            if (node) {
-                var action = node.attributes.action;
-                if (action) {
-                    var target = Ext.getCmp('detail_card_panel');
-                    action.call(node, node, target);
-                }
-            }
-        }
-    }
-});
-
-var componentTree = new Ext.tree.TreePanel({
-    cls: 'x-tree-noicon',
-    useArrows: true,
-    border: false,
-    selModel: treesm,
-    autoHeight: true,
-    autoScroll: true,
-    containerScroll: true,
-    loader: {
-        directFn: REMOTE.getComponentTree,
-        baseAttrs: {
-            uiProvider: Zenoss.HierarchyTreeNodeUI,
-            action: function(node, target) {
-                var type = node.attributes.text.text,
-                    cardId = type + 'Panel',
-                    xtype = Ext.ComponentMgr.isRegistered(cardId) ? cardId : 'panel';
-                if (!(cardId in target.items.keys)) {
-                    target.add({
-                        xtype: xtype,
-                        id: cardId
-                    });
-                    target.ownerCt.doLayout();
-                }
-                target.layout.setActiveItem(cardId);
-                target.setContext(UID);
-                Zenoss.env.TARGET = target;
-            }
-        }
-    },
-    root: {
-        listeners: {
-            // Disable selection
-            beforeclick: function(){return false;}
-        },
-        nodeType: 'async',
-        text: _t('Components'),
-        expanded: true,
-        leaf: false,
-        id:UID
-    }
-});
-
 Zenoss.nav.register({
     Device: [{
         id: 'Overview',
@@ -82,13 +26,40 @@ Zenoss.nav.register({
         action: function(node, target){
             target.layout.setActiveItem('device_overview');
         }
+    },{
+        id: 'Components',
+        nodeType: 'subselect',
+        text: _t('Components'),
+        action: function(node, target) {
+            target.layout.setActiveItem('component_browser');
+        }
     }]
 });
 
-var comptree = {
-    xtype: 'HierarchyTreePanel',
-    id: 'components'
-};
+var componentBrowser = new Zenoss.component.Browser({
+    region: 'north',
+    height: 150,
+    uid: UID,
+    split: true,
+    directFn: REMOTE.getComponentTree
+});
+
+var componentCard = {
+    id: 'component_browser',
+    layout: 'border',
+    border: false,
+    items:[
+        componentBrowser,
+        {
+            xtype: 'contextcardpanel',
+            id: 'component_detail_panel',
+            split: true,
+            border: false,
+            bodyStyle: 'border-top: 1px solid gray',
+            region: 'center'
+        }
+    ]
+}
 
 var deviceInformation = {
     xtype: 'fieldset',
@@ -310,23 +281,28 @@ Ext.getCmp('center_panel').add({
         width: 275,
         items: [{
             xtype: 'treepanel',
-            selModel: treesm,
             border: false,
-            cls: 'x-tree-noicon',
+            selModel: new Ext.tree.DefaultSelectionModel({
+                listeners: {
+                    selectionchange: function(sm, node){
+                        var target = Ext.getCmp('detail_card_panel');
+                        node.attributes.action(node, target);
+                    }
+                }
+            }),
             rootVisible: false,
             root: {
                 nodeType: 'async',
                 children: Zenoss.nav.Device
             }
-        }, componentTree
-        ]
+        }]
     },{
         xtype: 'contextcardpanel',
         id: 'detail_card_panel',
         split: true,
         activeItem: 0,
         region: 'center',
-        items: overview
+        items: [overview, componentCard]
     }]
 });
 
