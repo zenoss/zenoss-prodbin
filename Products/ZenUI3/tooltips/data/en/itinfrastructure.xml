@@ -85,9 +85,13 @@
 
   <tooltip>
     <target>actions-menu</target>
+    <title>Actions</title>
+    <anchor>left</anchor>
+    <autoHide>True</autoHide>
+    <dismissDelay>0</dismissDelay>
 
     <html>
-        <strong>Actions</strong><br /><br />From this menu, you can:
+        From this menu, you can:
         <ul>
             <li><strong>Lock devices</strong> - Prevent selected devices from being updated or deleted.</li>
             <li><strong>Reset IP</strong> - Reset the IP addresses of selected devices to the results of a DNS lookup.</li>
@@ -101,6 +105,7 @@
 
   <tooltip>
     <target>commands-menu</target>
+    <anchor>left</anchor>
 
     <html>Select one or more devices, and then select a command to run in the interface.</html>
   </tooltip>

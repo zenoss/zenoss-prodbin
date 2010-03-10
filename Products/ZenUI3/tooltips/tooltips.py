@@ -27,7 +27,7 @@ _tipattrs = {
     'minWidth':int, 'maxWidth':int, 'shadow':str, 'defaultAlign':str,
     'autoRender':bool, 'quickShowInterval':int, 'frame':bool, 'hidden':bool,
     'baseCls':str, 'autoHeight':bool, 'closeAction':str, 'title':str,
-    'html':str, 'target':str, 'closable':bool
+    'html':str, 'target':str, 'closable':bool, 'anchor':str, 'autoHide':bool
 }
 
 class _TooltipCatalog(object):
@@ -68,7 +68,8 @@ class _TooltipCatalog(object):
                             name = node.tagName
                             if name in _tipattrs and _tipattrs[name]!=str:
                                 value = eval(value)
-                            value = value.replace('%26', '&')
+                            if isinstance(value, basestring):
+                                value = value.replace('%26', '&')
                             d[name] = value
                     if 'autoHide' in d:
                         d['closable'] = not d['autoHide']

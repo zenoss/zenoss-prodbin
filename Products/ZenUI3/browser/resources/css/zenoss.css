@@ -506,3 +506,17 @@ table.search-result {
     white-space:nowrap;
     overflow:hidden;
     text-overflow:ellipsis;
+}
+
+.x-tip .x-tip-mc li {
+    padding: 5px 0;
+}
+
+.x-tip-header {
+    padding-bottom: 5px;
+}
+
+.x-tip span.x-tip-header-text {
+    font-size: 13px;
+}
+

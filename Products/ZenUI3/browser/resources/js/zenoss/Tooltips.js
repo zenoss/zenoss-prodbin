@@ -15,6 +15,26 @@
 
 Zenoss.TIPS = {};
 
+/*
+* Zenoss.ToolTip
+* Causes tooltips to remain visible if the mouse is over the tip itself,
+* instead of hiding as soon as the mouse has left the target.
+*/
+Zenoss.ToolTip = Ext.extend(Ext.ToolTip, {
+   constructor: function(config) {
+       Zenoss.ToolTip.superclass.constructor.call(this, config);
+       this.on('render', this.attachHoverEvents, this);
+   },
+   attachHoverEvents: function() {
+       var el = this.getEl();
+       el.on('mouseenter', this.onMouseEnter, this);
+       el.on('mouseleave', this.onTargetOut, this);
+   },
+   onMouseEnter: function(e) {
+       this.clearTimer('hide');
+   }
+});
+
 Zenoss.registerTooltip = function(config) {
     var t, target = config.target,
         initialConfig = Ext.apply({}, config),
@@ -28,7 +48,7 @@ Zenoss.registerTooltip = function(config) {
         }
     }
     if ((t=Ext.get(target))) {
-        var tip = new Ext.ToolTip(config);
+        var tip = new Zenoss.ToolTip(config);
         Zenoss.TIPS[target] = tip;
     } else {
         Zenoss.TIPS[target] = initialConfig;

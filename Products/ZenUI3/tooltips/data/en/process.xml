@@ -9,9 +9,9 @@
   </tooltip>
 
   <tooltip>
-    <target>monitorCheckbox</target>
+    <target>monitorCheckbox</target> 
 
-    <html><span style="font-weight: bold;">Enabled</span><br />When selected,
+    <html><span style="font-weight:bold">Enabled</span><br/>When selected,
     monitoring choices are individually enabled for this node. (The node does
     not inherit monitoring choices from its parent.) To select this option,
     you must first deselect the Inherited option.</html>
