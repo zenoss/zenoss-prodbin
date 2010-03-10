@@ -18,6 +18,14 @@
   </tooltip>
 
   <tooltip>
+    <target>alertOnRestartCheckBox</target>
+
+    <html><span style="font-weight: bold;">Alert on Restart</span><br />When selected,
+    the system will send an event when the process restarts.</html>
+  </tooltip>
+    
+
+  <tooltip>
     <target>eventSeverityCombo</target>
 
     <html><span style="font-weight: bold;">Event Severity</span><br />Select an
@@ -30,11 +38,15 @@
 
     <html><span style="font-weight: bold;">Pattern</span><br />Enter text (as a
     regular expression) that the system will match to define this
-    process.<br /><br />For example, to search for the
+    process.
+
+    <!-- <br /><br />For example, to search for the
     command:<br /><br />(NEED VALID COMMAND)<br /><br
     />enter this pattern:<br /><br
     /><tt>^.*\/*httpd</tt><br /><br />interpreted
-    as:<br /><br />(DEFINE)<br /><br />More
+    as:<br /><br />(DEFINE) -->
+
+   <br /><br />More
     information about: <a
     href="http://en.wikipedia.org/wiki/Regular_expression">regular
     expressions</a></html>
@@ -61,7 +73,7 @@
     processes.</html>
   </tooltip>
   
-<!-- I think these are pretty much unncessary. Leaving here in case somebody disagrees.
+<!-- I think these are pretty much unnecessary. Leaving here in case somebody disagrees.
   <tooltip>
     <target>saveButton</target>
 
