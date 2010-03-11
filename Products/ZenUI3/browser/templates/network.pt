@@ -1,3 +1,4 @@
+<!--
 ###########################################################################
 #
 # This program is part of Zenoss Core, an open source monitoring platform.
@@ -10,17 +11,12 @@
 # For complete information please visit: http://www.zenoss.com/oss/
 #
 ###########################################################################
+-->
 
-from Products.Zuul.interfaces import IInfo, IFacade
+<tal:block metal:use-macro="context/page_macros/masterdetailsplit2">
 
-class INetworkFacade(IFacade):
-    pass
+<tal:block metal:fill-slot="script_layout">
+<script src="/++resource++zenui/js/zenoss/network.js"></script>
+</tal:block>
 
-class IIpNetworkInfo(IInfo):
-    """
-    Info wrapper for IpNetwork objects.
-    """
-    pass
-
-class IIpAddressInfo(IInfo):
-    pass
+</tal:block>

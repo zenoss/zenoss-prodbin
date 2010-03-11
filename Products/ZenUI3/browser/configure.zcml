@@ -115,6 +115,13 @@
     />
 
 <browser:page
+    template="templates/network.pt"
+    name="network"
+    for="*"
+    permission="zenoss.View"
+    />
+
+<browser:page
     template="templates/process.pt"
     name="process"
     for="*"

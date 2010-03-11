@@ -207,6 +207,7 @@ class TreeFacade(ZuulFacade):
         context._delObject(obj.id)
 
 from eventfacade import EventFacade
+from networkfacade import NetworkFacade
 from processfacade import ProcessFacade
 from servicefacade import ServiceFacade
 from devicefacade import DeviceFacade

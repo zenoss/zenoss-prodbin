@@ -68,6 +68,12 @@
              for="*"
              />
 
+    <adapter factory=".facades.NetworkFacade"
+             provides=".interfaces.INetworkFacade"
+             name="network"
+             for="*"
+             />
+
     <adapter factory=".facades.ProcessFacade"
              provides=".interfaces.IProcessFacade"
              name="process"
@@ -181,6 +187,16 @@
              for="Products.ZenModel.ServiceClass.ServiceClass"
              />
 
+    <adapter provides=".interfaces.IIpNetworkInfo"
+             for="Products.ZenModel.IpNetwork.IpNetwork"
+             factory=".infos.network.IpNetworkInfo"
+             />
+
+    <adapter provides=".interfaces.IIpAddressInfo"
+             for="Products.ZenModel.IpAddress.IpAddress"
+             factory=".infos.network.IpAddressInfo"
+             />
+
     <adapter provides=".interfaces.IDeviceInfo"
              for=".interfaces.IDevice"
              factory=".infos.device.DeviceInfo"
@@ -215,12 +231,6 @@
              for="Products.ZenModel.IpInterface.IpInterface"
              factory=".infos.component.IpInterfaceInfo"
              />
-
-    <adapter provides=".interfaces.INetworkInfo"
-             for="Products.ZenModel.IpNetwork.IpNetwork"
-             factory=".infos.network.NetworkInfo"
-             />
-
 
     <adapter provides=".interfaces.ICatalogTool"
              for="*"

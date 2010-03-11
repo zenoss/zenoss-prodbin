@@ -40,6 +40,13 @@
     />
 
 <browser:directRouter
+    name="network_router"
+    for="*"
+    class=".network.NetworkRouter"
+    namespace="Zenoss.remote"
+    />
+
+<browser:directRouter
     name="template_router"
     for="*"
     class=".template.TemplateRouter"
