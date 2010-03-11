@@ -18,30 +18,53 @@ from zope.interface import implements, Interface
 from Products.ZenTestCase.BaseTestCase import BaseTestCase
 from Products.Zuul.interfaces import IInfo
 from Products import Zuul
-
+from Products.Zuul import infos
 class ITarget(Interface):
     pass
 
+
 class Target(object):
     implements(ITarget)
+    id = "Target"
+
+    def __init__(self):
+        self.foo = "foo"
+        
+    _properties = ( 
+        {'id': 'foo', 'type':'int', 'mode':'w'},
+        {'id': 'dummyProperty', 'type':'string', 'mode':'w', 'setter': 'setValue'}
+       )
     def value(self):
         return 'value'
+    
+    def setValue(self, value):
+        self._value = 'bar'
 
-class TargetInfo(object):
+    def setDummyProperty(self, value):
+        self._dummyProperty = value
+
+    
+        
+class TargetInfo(infos.InfoBase):
     implements(IInfo)
     adapts(ITarget)
-    def __init__(self, obj):
-        self._obj = obj
+            
     @property
     def value(self):
         return self._obj.value()
+    
+    def dummyProperty(self):
+        return 'foo'
 
-
+    
 class InfoTest(BaseTestCase):
 
     def setUp(self):
         super(InfoTest, self).setUp()
         provideAdapter(TargetInfo)
+        target = Target()
+        self.info = TargetInfo(target)
+
 
     def test_Zuuldotinfo(self):
         isinfo = lambda x:isinstance(x, TargetInfo)
@@ -59,7 +82,6 @@ class InfoTest(BaseTestCase):
         for k, v in adict.items():
             self.assert_(isinfo(v))
         self.assert_(isinstance(nested, imap))
-        
         
 def test_suite():
     return unittest.TestSuite((unittest.makeSuite(InfoTest),))

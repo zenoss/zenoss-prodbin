@@ -63,7 +63,7 @@
         createComponentsFromProperties: function(record) {
             var items = [],
                 i = 2,
-                properties = record.thresholdProperties,
+                properties = record.objectProperties,
                 property,
                 item;
 

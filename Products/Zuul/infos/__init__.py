@@ -16,13 +16,36 @@ from zope.component import adapts
 from Products.ZenModel.ZenModelRM import ZenModelRM
 from Products.Zuul.interfaces import IInfo
 
+
+def ProxyProperty(propertyName):
+    """This uses a closure to make a getter and
+    setter for the property (assuming it exists).
+    """
+    def setter(self, value):
+        return setattr(self._object, propertyName, value)
+
+    def getter(self):
+        return getattr(self._object, propertyName)
+
+    return property(getter, setter)
+
+
 class InfoBase(object):
     implements(IInfo)
     adapts(ZenModelRM)
 
     def __init__(self, object):
+        super(InfoBase, self).__init__()
         self._object = object
-
+            
+    @property
+    def objectProperties(self):
+        """
+        @returns the _properties from the object that
+        this info is wrapping (ZenModel)
+        """
+        return self._object._properties
+    
     @property
     def uid(self):
         _uid = getattr(self, '_v_uid', None)

@@ -12,7 +12,7 @@
 ###########################################################################
 
 from Acquisition import aq_parent
-from Products.Zuul.infos import InfoBase
+from Products.Zuul.infos import InfoBase, ProxyProperty
 from Products.Zuul.utils import severityId
 
 class TemplateNode(InfoBase):
@@ -166,60 +166,15 @@ class ThresholdInfo(InfoBase):
     
     severity = property(_getSeverity, _setSeverity)
 
-    # enabled
-    def _setEnabled(self, value):
-        self._object.enabled = value
-        
-    def _getEnabled(self):
-        return self._object.enabled
-        
-    enabled = property(_getEnabled, _setEnabled)
-        
-    @property
-    def thresholdProperties(self):
-        """ A list of all the custom properties of this threshold
-        """
-        if hasattr(self._object, "_properties"):
-            return self._object._properties
-        return {}
+    enabled = ProxyProperty("enabled")
+
     
 class MinMaxThresholdInfo(ThresholdInfo):
+    minval = ProxyProperty("minval")
+    maxval = ProxyProperty("maxval")
+    eventClass = ProxyProperty("eventClass")
+    escalateCount = ProxyProperty("escalateCount")
     
-    # minVal
-    def _setMinVal(self, value):
-        self._object.minval = value
-        
-    def _getMinVal(self):
-        return self._object.minval
-        
-    minval = property(_getMinVal, _setMinVal)
-
-    # maxval
-    def _setMaxVal(self, value):
-        self._object.maxval = value
-        
-    def _getMaxVal(self):
-        return self._object.maxval
-        
-    maxval = property(_getMaxVal, _setMaxVal)
-
-    # eventClass
-    def _setEventClass(self, value):
-        self._object.eventClass = value
-        
-    def _getEventClass(self):
-        return self._object.eventClass
-        
-    eventClass = property(_getEventClass, _setEventClass)
-        
-    # escalateCount    
-    def _setEscalateCount(self, value):
-        self._object.escalateCount = value
-        
-    def _getEscalateCount(self):
-        return self._object.escalateCount
-        
-    escalateCount = property(_getEscalateCount, _setEscalateCount)
             
 class GraphInfo(InfoBase):
 

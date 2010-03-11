@@ -24,7 +24,7 @@ from Products.Zuul.interfaces import IDataSourceInfo
 from Products.Zuul.interfaces import IDataPointInfo
 from Products.Zuul.interfaces import IThresholdInfo
 from Products.Zuul.interfaces import IGraphInfo
-from Products.Zuul.utils import unbrain, severityId
+from Products.Zuul.utils import unbrain
 from Products.Zuul.facades import ZuulFacade
 from Products.ZenModel.RRDTemplate import RRDTemplate
 from Products.ZenModel.RRDDataSource import RRDDataSource

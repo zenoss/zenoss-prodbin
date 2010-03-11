@@ -45,7 +45,6 @@ class ServiceFacadeTest(ZuulFacadeTestCase):
         instanceInfo = instanceInfos[0]
         self.assertEqual('foo', instanceInfo.device.getDevice())
         self.assertEqual('tcp_00121', instanceInfo.name)
-        self.assertEqual(False, instanceInfo.monitored)
         self.assertEqual('None', instanceInfo.status)
 
 

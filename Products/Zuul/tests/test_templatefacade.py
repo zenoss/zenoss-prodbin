@@ -14,6 +14,7 @@
 
 import unittest
 from Products import Zuul
+from Products.Zuul.interfaces import IDataSourceInfo
 from Products.ZenTestCase.BaseTestCase import BaseTestCase
 
 class TemplateFacadeTest(BaseTestCase):
@@ -42,7 +43,19 @@ class TemplateFacadeTest(BaseTestCase):
                                  dataPoints)
         thresholds = self.facade.getThresholds(self.uid)
         return thresholds.next()
-        
+
+    def _createDummyDataSource(self):
+        """
+        Used by multiple unit tests creates a new datasource
+        from scratch
+        """
+        # need the actual template
+        template = self.template
+        dsOptions = template.getDataSourceOptions()
+        datasource = template.manage_addRRDDataSource('testDataSource',
+                                                      dsOptions[0][1])
+        return datasource
+    
     def testCanAddThreshold(self):
         """ Verify that we can add a dummy threshold
         """
@@ -69,15 +82,22 @@ class TemplateFacadeTest(BaseTestCase):
         data ={'maxval': '123', 'severity': 'Warning', 'minval': '12',
                'escalateCount': '0', 'enabled': 'on',
                'dsnames': 'sysUpTime_sysUpTime', 'eventClass': '/Perf/Snmp'};
-        
         threshold = self._createDummyThreshold()
         result = self.facade.editThreshold(threshold.id, data);
-        
+        # the values should match the data above
         self.assertEquals(result.maxval, '123');
         self.assertEquals(result.minval, '12');
         self.assertEquals(result.severity, 'Warning');
         self.assertTrue('uptime' in result.dataPoints.lower());
         
+    def testCanCreateDataSource(self):
+        """
+        Make sure we can create a DataSource, this will be used by the
+        making sure we can delete and edit datasources unit tests
+        """
+        datasource = self._createDummyDataSource()
+        self.assertTrue(datasource, "We actually created the datasource object")
+
         
 def test_suite():
     return unittest.TestSuite((unittest.makeSuite(TemplateFacadeTest),))
