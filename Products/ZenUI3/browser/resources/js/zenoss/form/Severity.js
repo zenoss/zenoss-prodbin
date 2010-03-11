@@ -22,7 +22,9 @@
              Ext.applyIf(config, {
                  fieldLabel: _t('Severity'),
                  name: 'severity',
-                 typeAhead: true,
+                 editable: false,
+                 forceSelection: true,
+                 autoSelect: true,
                  triggerAction: 'all',
                  mode: 'local',
                  // this is defined in zenoss.js so should always be present

@@ -157,8 +157,12 @@ class ThresholdInfo(InfoBase):
 
     # severity
     def _setSeverity(self, value):
-        if isinstance(value, str):
-            value = severityId(value)
+        try:
+            if isinstance(value, str):
+                value = severityId(value)
+        except ValueError:
+            # they entered junk somehow (default to info if invalid)
+            value = severityId('info')
         self._object.severity = value
         
     def _getSeverity(self):
