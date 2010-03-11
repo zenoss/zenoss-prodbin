@@ -13,19 +13,17 @@
 ###########################################################################
 */
 
-Ext.ns('Zenoss.Service');
-
 Ext.onReady( function() {
+
+    var zs = Ext.ns('Zenoss.Service.DetailGrid');
 
     /**********************************************************************
      *
      * Instances Functionality
      *
      */
-    Zenoss.Service.initDetailPanel = function() {
-        var config, instancePanel;
-
-        config = {
+    zs.initDetailPanel = function() {
+        var config = {
             xtype: 'SimpleInstanceGridPanel',
             id: 'serviceInstancePanel',
             buttonTitle: _t('Services'),
@@ -36,8 +34,6 @@ Ext.onReady( function() {
             }
         };
 
-        //instancePanel = new Zenoss.SimpleInstanceGridPanel(config);
-        instancePanel = config;
-        Ext.getCmp('bottom_detail_panel').add(instancePanel);
+        Ext.getCmp('bottom_detail_panel').add(config);
     };
 });

@@ -16,6 +16,7 @@ from itertools import imap
 from zope.interface import implements
 from Products.AdvancedQuery import MatchRegexp, And, Or, Eq, Between
 from Products.ZenModel.ServiceClass import ServiceClass
+from Products.ZenModel.ServiceOrganizer import ServiceOrganizer
 from Products.ZenModel.Service import Service
 from Products.Zuul.facades import TreeFacade
 from Products.Zuul.utils import resolve_context, unbrain
@@ -23,6 +24,7 @@ from Products.Zuul.interfaces import ITreeFacade
 from Products.Zuul.interfaces import IServiceFacade
 from Products.Zuul.interfaces import IServiceInfo, IInfo, ICatalogTool
 from Products.Zuul.tree import SearchResults
+from Acquisition import aq_base
 
 log = logging.getLogger('zen.ServiceFacade')
 
@@ -47,6 +49,19 @@ class ServiceFacade(TreeFacade):
 
     def _getSecondaryParent(self, obj):
         return obj.serviceclass()
+
+    def getParentInfo(self, uid=None):
+        obj = self._getObject(uid)
+        if isinstance(obj, ServiceClass):
+            parent = aq_base(obj.serviceorganizer())
+        elif isinstance(obj, ServiceOrganizer):
+            parent = aq_base(obj.getParentNode())
+        else:
+            parent = None
+
+        info = IInfo(parent)
+        return info
+
 
     def getList(self, limit=0, start=0, sort='name', dir='DESC',
               params=None, uid=None, criteria=()):

@@ -176,14 +176,9 @@
              factory=".infos.component.ComponentInfo"
              />
 
-    <adapter provides=".interfaces.IInfo"
-             for=".interfaces.IServiceEntity"
-             factory=".infos.service.ServiceInfo"
-             />
-
     <adapter factory=".infos.service.ServiceInfo"
              provides=".interfaces.IServiceInfo"
-             for=".interfaces.IServiceEntity"
+             for="Products.ZenModel.ServiceClass.ServiceClass"
              />
 
     <adapter provides=".interfaces.IDeviceInfo"

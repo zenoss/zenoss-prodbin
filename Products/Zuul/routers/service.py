@@ -49,6 +49,12 @@ class ServiceRouter(DirectRouter):
         disabled = not Zuul.checkPermission('Manage DMD')
         return {'data': data, 'disabled': disabled, 'success': True}
 
+    def getParentInfo(self, uid, keys=None):
+        service = self.api.getParentInfo(uid)
+        data = Zuul.marshal(service, keys)
+        disabled = not Zuul.checkPermission('Manage DMD')
+        return {'data': data, 'disabled': disabled, 'success': True}
+
     def setInfo(self, **data):
         if not Zuul.checkPermission('Manage DMD'):
             raise Exception('You do not have permission to save changes.')

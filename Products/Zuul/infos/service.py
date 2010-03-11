@@ -58,7 +58,6 @@ class ServiceNode(TreeNode):
     def leaf(self):
         return 'serviceclasses' in self.uid
 
-
 class ServiceInfo(InfoBase):
     implements(IServiceInfo)
     adapts(ServiceClass)

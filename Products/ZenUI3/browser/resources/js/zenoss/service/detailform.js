@@ -12,9 +12,6 @@
 #
 ###########################################################################
 */
-
-Ext.ns('Zenoss.Service');
-
 Ext.onReady( function() {
 
     /**********************************************************************
@@ -23,14 +20,16 @@ Ext.onReady( function() {
      *
      */
 
+    var zs = Ext.ns('Zenoss.Service.DetailForm');
+
     /**
      * Enables or disables monitoring options based on inheritance
      * @param {boolean} disabled Whether to disable or not
      */
-    function setMonitoringDisabled(disabled) {
+    zs.setMonitoringDisabled = function(disabled) {
         Ext.getCmp('monitorCheckbox').setDisabled(disabled);
         Ext.getCmp('eventSeverityCombo').setDisabled(disabled);
-    }
+    };
 
     /**
      * Handles the acquiredCheckbox check events.  If unchecked, it will
@@ -40,19 +39,10 @@ Ext.onReady( function() {
      * @param {Ext.form.Checkbox} checkbox The checkbox itself
      * @param {boolean} checked The value of the checkbox as a boolean
      */
-    function acquiredCheckboxHandler(checkbox, checked) {
-        setMonitoringDisabled(checked);
-        var router = Zenoss.remote.ServiceRouter;
-        var serviceTree = Ext.getCmp('serviceTree');
-        var selectionModel = serviceTree.getSelectionModel();
-        var selectedNode = selectionModel.getSelectedNode();
+    zs.acquiredCheckboxHandler = function(checkbox, checked) {
+        zs.setMonitoringDisabled(checked);
 
-        var uid;
-        if (checked && selectedNode.parentNode !== null) {
-            uid = selectedNode.parentNode.attributes.uid;
-        } else {
-            uid = selectedNode.attributes.uid;
-        }
+        var router = Zenoss.remote.ServiceRouter;
 
         var callback = function(provider, response) {
             var info = response.result.data;
@@ -61,9 +51,9 @@ Ext.onReady( function() {
         };
 
         router.getInfo({uid: uid, keys: ['monitor', 'eventSeverity']}, callback);
-    }
+    };
 
-    function saveForm(button, event) {
+    zs.saveForm = function(button, event) {
 
         // Submit the form.
         var form = Ext.getCmp('serviceForm').getForm();
@@ -84,18 +74,14 @@ Ext.onReady( function() {
 
         // setValues makes isDirty return false
         form.setValues(values);
+    };
 
-    }
-
-    function resetForm(button, event) {
+    zs.resetForm = function(button, event) {
         var form = Ext.getCmp('serviceForm').getForm();
         form.reset();
-    }
+    };
 
-    /**
-     * Form definition variables
-     */
-    var nameTextField = {
+    zs.nameTextField = {
         xtype: 'textfield',
         id: 'nameTextField',
         fieldLabel: _t('Name'),
@@ -104,7 +90,7 @@ Ext.onReady( function() {
         width: "100%"
     };
 
-    var descriptionTextField = {
+    zs.descriptionTextField = {
         xtype: 'textfield',
         id: 'descriptionTextField',
         fieldLabel: _t('Description'),
@@ -112,24 +98,25 @@ Ext.onReady( function() {
         width: "100%"
     };
 
-    var serviceKeysTextField = {
+    zs.serviceKeysTextField = {
         xtype: 'textarea',
+        id: 'serviceKeysTextField',
         fieldLabel: _t('Service Keys'),
         name: 'serviceKeys',
 
         width: "100%"
     };
 
-    var acquiredCheckbox = {
+    zs.acquiredCheckbox = {
         xtype: 'checkbox',
         id: 'acquiredCheckbox',
         fieldLabel: _t('Inherited'),
         name: 'isMonitoringAcquired',
-        handler: acquiredCheckboxHandler,
+        handler: zs.acquiredCheckboxHandler,
         submitValue: true
     };
 
-    var monitorCheckbox = {
+    zs.monitorCheckbox = {
         xtype: 'checkbox',
         id: 'monitorCheckbox',
         fieldLabel: _t('Enabled'),
@@ -137,7 +124,7 @@ Ext.onReady( function() {
         submitValue: true
     };
 
-    var eventSeverityCombo = {
+    zs.eventSeverityCombo = {
         xtype: 'combo',
         id: 'eventSeverityCombo',
         fieldLabel: _t('Event Severity'),
@@ -152,42 +139,35 @@ Ext.onReady( function() {
         })
     };
 
-    var portTextField = {
-        xtype: 'textfield',
-        fieldLabel: _t('Port'),
-        name: 'port',
-        width: "100%"
-    };
-
-    var monitoringFieldSet = {
+    zs.monitoringFieldSet = {
         xtype: 'ColumnFieldSet',
-        title: _t('Monitoring'),
+        title: _t('Monitoringasdf'),
         __inner_items__: [
             {
-                items: acquiredCheckbox
+                items: zs.acquiredCheckbox
             }, {
-                items: monitorCheckbox
+                items: zs.monitorCheckbox
             }, {
-                items: eventSeverityCombo
+                items: zs.eventSeverityCombo
             }
         ]
     };
 
-    var saveButton = {
+    zs.saveButton = {
         xtype: 'button',
         id: 'saveButton',
         text: _t('Save'),
-        handler: saveForm
+        handler: zs.saveForm
     };
 
-    var cancelButton = {
+    zs.cancelButton = {
         xtype: 'button',
         id: 'cancelButton',
         text: _t('Cancel'),
-        handler: resetForm
+        handler: zs.resetForm
     };
 
-    var formItems = {
+    zs.formItems = {
         layout: 'column',
         border: false,
         defaults: {
@@ -198,31 +178,32 @@ Ext.onReady( function() {
             columnWidth: 0.5
         },
         items: [
-            {items: [nameTextField, descriptionTextField, portTextField,
-                     monitoringFieldSet]},
+            {items: [zs.nameTextField, zs.descriptionTextField,
+                     zs.serviceKeysTextField]},
 
-            {items: [serviceKeysTextField]}
+            {items: [zs.monitoringFieldSet]}
         ]
     };
 
-    var formConfig = {
+    zs.formConfig = {
         xtype: 'form',
         id: 'serviceForm',
         paramsAsHash: true,
-        items: formItems,
+        items: zs.formItems,
         border: false,
         labelAlign: 'top',
         autoScroll: true,
         trackResetOnLoad: true,
-        bbar: {xtype: 'largetoolbar', items: [saveButton, cancelButton]},
+        bbar: {xtype: 'largetoolbar',
+               items: [zs.saveButton, zs.cancelButton]},
         api: {
             load: Zenoss.remote.ServiceRouter.getInfo,
             submit: Zenoss.remote.ServiceRouter.setInfo
         }
     };
 
-    Zenoss.Service.initForm = function() {
-        var serviceForm = new Ext.form.FormPanel(formConfig);
+    zs.initForm = function() {
+        var serviceForm = new Ext.form.FormPanel(zs.formConfig);
         serviceForm.setContext = function(uid) {
                 this.contextUid = uid;
                 this.load({ params: {uid: uid} });
