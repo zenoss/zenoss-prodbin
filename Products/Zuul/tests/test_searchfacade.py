@@ -30,6 +30,12 @@ class DummyParser(object):
 
 search_results = None
 
+class DummyResult:
+    def __init__(self,id,excerpt=None,category='test'):
+        self.id = id
+        self.excerpt = excerpt
+        self.category = category
+        
 class DummyProvider(object):
     implements( ISearchProvider )
     adapts( object )
@@ -40,6 +46,11 @@ class DummyProvider(object):
     def getSearchResults(self,operators,keywords):
         return search_results
 
+def createResultsFromRange( max, category='test' ):
+    ids = range(1,max+1)
+    excerpts = map(str,ids)
+    categories = [category] * len(ids)
+    return map( DummyResult, ids, excerpts, categories )
 
 class TestSearchFacade(BaseTestCase):
 
@@ -62,16 +73,25 @@ class TestSearchFacade(BaseTestCase):
     def testGetQuickSearchResults(self):
         global search_results
         facade = SearchFacade(self.dmd)
-        search_results = range(1,7)
+        search_results = createResultsFromRange(9)
         results = facade.getQuickSearchResults( "testquery" )
-        self.assert_( set(range(1,6)).issubset(set(results)) )
+        # Should only have 5 results
+        dummyIds = [result.id for result in results
+                    if isinstance(result, DummyResult)]
+        self.assertEquals( set(range(1,6)), set(dummyIds) )
 
     def testGetSearchResults(self):
         global search_results
         facade = SearchFacade(self.dmd)
-        search_results = range(1,7)
+        search_results = createResultsFromRange(7)
         results = facade.getSearchResults( "testquery" )
-        self.assert_( set(range(1,7)).issubset(set(results)) )
+        dummyIds = [result.id for result in results
+                    if isinstance(result, DummyResult)]
+        self.assertEquals( set(range(1,8)), set(dummyIds) )
+
+
+#   def testCategoryCountFilter
+#   def testSortByExcerpt
 
 def test_suite():
     from unittest import TestSuite, makeSuite
