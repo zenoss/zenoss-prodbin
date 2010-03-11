@@ -14,14 +14,14 @@
 
 import unittest
 from Products import Zuul
-from Products.Zuul.interfaces import IDataSourceInfo
+from Products.Zuul.utils import severityId
 from Products.ZenTestCase.BaseTestCase import BaseTestCase
 
 class TemplateFacadeTest(BaseTestCase):
 
     def setUp(self):
         super(TemplateFacadeTest, self).setUp()
-        self.facade = Zuul.getFacade('template')
+        self.facade = Zuul.getFacade('template', self.dmd)
         #  uid for a template
         self.uid = '/zport/dmd/Devices/rrdTemplates/test1'
         devices = self.dmd.Devices
@@ -98,6 +98,20 @@ class TemplateFacadeTest(BaseTestCase):
         datasource = self._createDummyDataSource()
         self.assertTrue(datasource, "We actually created the datasource object")
 
+    def canEditDataSource(self):
+        """
+        Make sure when we edit a datasource the values stay
+        """
+        data ={'enabled': True, 'severity': 'Warning', 'eventClass': '/Perf/Snmp'}
+        datasource = self._createDummyDataSource()
+        info = self.facade.getDataSourceDetails(datasource.absolute_url_path())
+        self.assertTrue(info, "make sure we can create an info from a datasource")
+        newInfo = self.facade.editDataSourceDetails(info.id, data)
+        # since we saved it, make sure the values stick
+        self.assertEqual(newInfo.enabled, True)
+        self.assertEqual(newInfo.Severity, severityId(data['severity']))
+        self.assertEqual(newInfo.eventClass, data['eventClass'])
+        
         
 def test_suite():
     return unittest.TestSuite((unittest.makeSuite(TemplateFacadeTest),))

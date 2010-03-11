@@ -24,7 +24,7 @@ from Products.Zuul.interfaces import IDataSourceInfo
 from Products.Zuul.interfaces import IDataPointInfo
 from Products.Zuul.interfaces import IThresholdInfo
 from Products.Zuul.interfaces import IGraphInfo
-from Products.Zuul.utils import unbrain
+from Products.Zuul.utils import unbrain, safe_hasattr as hasattr
 from Products.Zuul.facades import ZuulFacade
 from Products.ZenModel.RRDTemplate import RRDTemplate
 from Products.ZenModel.RRDDataSource import RRDDataSource
@@ -63,7 +63,8 @@ class TemplateFacade(ZuulFacade):
         return node
     
     def _deleteObject(self, uid):
-        """ Deletes the object by getting the parent
+        """
+        Deletes the object by getting the parent
         and then calling delete on the objects id.
         @param string uid Must be a valid path
         """
@@ -74,6 +75,19 @@ class TemplateFacade(ZuulFacade):
     def deleteTemplate(self, uid):
         return self._deleteObject(uid)
 
+    def _editDetails(self, info, data):
+        """
+        Will apply every property in data to the info if
+        it has that attribute
+        @param IInfoBase (or descendant)
+        @param Dictionary of the form {propertyName: propertyValue}
+        @return IInfoBase with the properties changed
+        """
+        for key in data.keys():
+            if hasattr(info, key):
+                setattr(info, key, data[key])
+        return info
+    
     def getDataSources(self, uid):
         catalog = self._getCatalog(uid)
         if isinstance(catalog.context, RRDTemplate):
@@ -86,6 +100,40 @@ class TemplateFacade(ZuulFacade):
             infos = imap(IDataPointInfo, dataPoints)
         return infos
 
+    def getDataSourceDetails(self, uid):
+        """
+        Given the unique id of the datasource we will
+        return an IDataSourceInfo (or subclass) that has the properties populated
+        @param string uid absolute id of the datasource
+        @returns IDataSourceInfo
+        """
+        obj = self._getObject(uid)
+        return IDataSourceInfo(obj)
+
+    def editDataSourceDetails(self, uid, data):
+        """
+        Given a dictionary of {property name: property value}
+        this will populate the datasource
+        """
+        info = self.getDataSourceDetails(uid)
+        return self._editDetails(info, data)
+
+    def editDataPointDetails(self, uid, data):
+        """
+        Given a dictionary of {property name: property value}
+        this will populate the datapoint
+        """
+        info = self.getDataPointDetails(uid)
+        return self._editDetails(info, data)
+    
+    def getDataPointDetails(self, uid):
+        """
+        @param string unique Identifier of a datapoint
+        @returns IDataPointInfo 
+        """
+        obj = self._getObject(uid)
+        return IDataPointInfo(obj)
+    
     def getThresholds(self, uid):
         catalog = self._getCatalog(uid)
         brains = catalog.search(types=ThresholdClass)
@@ -95,6 +143,7 @@ class TemplateFacade(ZuulFacade):
     def getThresholdDetails(self, uid):
         """
         @param String uid: the id of the threshold
+        @returns IThresholdInfo 
         """
         threshold = self._getObject(uid)
         template = threshold.rrdTemplate()
@@ -149,12 +198,8 @@ class TemplateFacade(ZuulFacade):
         """
         threshold = self._getObject(uid)
         info = IThresholdInfo(threshold)
-                
-        for key in data.keys():
-            if hasattr(info, key):
-                setattr(info, key, data[key])
-                
-        return info
+        return self._editDetails(info, data)        
+        
         
     def removeThreshold(self, uid):
         """Removes the threshold

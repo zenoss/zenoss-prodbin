@@ -25,7 +25,11 @@ def resolve_context(context, default=None, dmd=None):
     Make sure that a given context is an actual object, and not a path to
     the object, by trying to traverse from the dmd if it's a string.
     """
-    dmd = dmd or get_dmd()
+    try:
+        dmd = dmd or get_dmd()
+    except AttributeError:
+        # was not able to get the dmd
+        dmd = None
     if dmd:
         if isinstance(context, basestring):
             # Should be a path to the object we want

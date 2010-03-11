@@ -22,7 +22,7 @@ class DeviceFacadeTest(ZuulFacadeTestCase):
 
     def setUp(self):
         super(DeviceFacadeTest, self).setUp()
-        self.facade = Zuul.getFacade('device')
+        self.facade = Zuul.getFacade('device', self.dmd)
                 
     def test_interfaces(self):
         verifyClass(IDeviceInfo, DeviceInfo)

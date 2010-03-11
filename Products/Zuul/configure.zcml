@@ -145,7 +145,7 @@
     <adapter factory=".infos.template.DataSourceInfo"
              for="Products.ZenModel.RRDDataSource.RRDDataSource"
              provides=".interfaces.IDataSourceInfo"/>
-
+    
     <adapter factory=".infos.template.DataPointInfo"
              for="Products.ZenModel.RRDDataPoint.RRDDataPoint"
              provides=".interfaces.IDataPointInfo"/>

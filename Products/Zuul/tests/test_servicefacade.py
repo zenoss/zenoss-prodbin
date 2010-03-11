@@ -23,7 +23,7 @@ class ServiceFacadeTest(ZuulFacadeTestCase):
 
     def setUp(self):
         super(ServiceFacadeTest, self).setUp()
-        self.facade = Zuul.getFacade('service')
+        self.facade = Zuul.getFacade('service', self.dmd)
 
     def test_interfaces(self):
         verifyClass(IComponent, Service)

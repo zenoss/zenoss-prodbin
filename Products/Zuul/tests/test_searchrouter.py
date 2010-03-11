@@ -84,7 +84,7 @@ class TestSearchRouter(BaseTestCase):
         search_results = [
             _createDummyInfo(1)
             ]
-        router = SearchRouter()
+        router = SearchRouter(self.dmd)
         varResults = router.getLiveResults( 'query' )
         self.assertEquals( {'results':
                             [_createJSONInfo(1)] },
@@ -93,7 +93,7 @@ class TestSearchRouter(BaseTestCase):
     def testMultipleGetLiveResults(self):
         global search_results
         search_results = [ _createDummyInfo(x) for x in range(1,8)]
-        router = SearchRouter()
+        router = SearchRouter(self.dmd)
         varResults = router.getLiveResults( 'query' )
         self.assertEquals( {'results':
                             [ _createJSONInfo(y) for y in range(1,8)]},

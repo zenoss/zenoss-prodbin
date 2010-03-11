@@ -98,6 +98,16 @@ class DataSourceInfo(InfoBase):
     def type(self):
         return self._object.sourcetype
 
+    component = ProxyProperty('component')
+    eventClass = ProxyProperty('eventClass')
+    eventKey = ProxyProperty('eventKey')
+    severity = ProxyProperty('severity')
+    commandTemplate = ProxyProperty('commandTemplate')
+    cycletime = ProxyProperty('cycletime')
+    oid = ProxyProperty('oid')
+    usessh = ProxyProperty('usessh')
+    parser = ProxyProperty('parser')
+    
 class DataPointInfo(InfoBase):
 
     def __init__(self, dataPoint):

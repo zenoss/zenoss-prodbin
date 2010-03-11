@@ -18,7 +18,7 @@ from Products import Zuul
 class SearchRouter(DirectRouter):
 
     def _getFacade(self):
-        return Zuul.getFacade('search')
+        return Zuul.getFacade('search', self.context)
 
     def _addAllResultsLink(self, results):
         # HERE'S WHERE WE ADD THE LINK TO THE MAIN SEARCH PAGE

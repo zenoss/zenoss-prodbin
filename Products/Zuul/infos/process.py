@@ -33,7 +33,7 @@ class ProcessNode(TreeNode):
 
     @property
     def _evsummary(self):
-        return getFacade('process').getEventSummary(self.uid)
+        return getFacade('process', self._object).getEventSummary(self.uid)
 
     @property
     def text(self):

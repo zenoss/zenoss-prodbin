@@ -27,7 +27,7 @@ class TestEvents(EventTestCase, ZuulFacadeTestCase):
 
     def setUp(self):
         super(TestEvents, self).setUp()
-        self.svc = getFacade('event')
+        self.svc = getFacade('event', self.dmd)
 
     def getEvent(self, evid):
         try:
@@ -52,7 +52,7 @@ class TestEvents(EventTestCase, ZuulFacadeTestCase):
         verifyClass(IEventInfo, EventInfo)
 
     def test_registration(self):
-        svc = getFacade('event')
+        svc = self.svc
         self.assertEqual(svc.__class__, EventFacade)
         self.assert_(isinstance(svc._dmd, DataRoot))
 
