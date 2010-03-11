@@ -61,7 +61,6 @@ device0 comments="A simple device"
 device1 comments="A simple device", zSnmpCommunity='blue', zSnmpVer='v1'
 
 # Notes for this file:
-#  * Organizer names cannot contain spaces
 #  * Oraganizer names *must* start with '/'
 #
 /Devices/Server/Linux zSnmpPort=1543
@@ -338,8 +337,11 @@ settingsDevice setManageIp='10.10.10.77', setLocation="123 Elm Street", \
 
             if line[0] == '/' or line[1] == '/': # Found an organizer
                 defaults = self.parseDeviceEntry(line, {})
-                defaults['devicePath'] = defaults['deviceName']
-                del defaults['deviceName']
+                if defaults is None:
+                    defaults = {'devicePath':"/Discovered" }
+                else:
+                    defaults['devicePath'] = defaults['deviceName']
+                    del defaults['deviceName']
 
             else:
                 configs = self.parseDeviceEntry(line, defaults)
@@ -375,6 +377,8 @@ settingsDevice setManageIp='10.10.10.77', setLocation="123 Elm Street", \
         else:
             options = line.split(None, 1)
             name = options.pop(0)
+            if options:
+                options = options.pop(0)
 
         configs = defaults.copy()
         configs['deviceName'] = name
@@ -382,7 +386,8 @@ settingsDevice setManageIp='10.10.10.77', setLocation="123 Elm Street", \
         if options:
             try:
                 # Add a newline to allow for trailing comments
-                configs.update( eval( 'dict(' + options + '\n)' ) )
+                evalString = 'dict(' + options + '\n)'
+                configs.update(eval(evalString))
             except:
                 self.log.error( "Unable to parse the entry for %s -- skipping" % name )
                 self.log.error( "Raw string: %s" % options )
