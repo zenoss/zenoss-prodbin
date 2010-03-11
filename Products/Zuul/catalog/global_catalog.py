@@ -219,7 +219,7 @@ class ComponentWrapper(SearchableMixin,IndexableWrapper):
         o = self._context
         return (o.titleOrId(), o.name(),
             o.monitored() and "monitored" or "unmonitored") + \
-            ISearchableWrapper(o.device()).searchKeywordsForChildren()
+            IIndexableWrapper(o.device()).searchKeywordsForChildren()
 
     def searchExcerpt(self):
         o = self._context
