@@ -48,9 +48,13 @@ class DummyProvider(object):
 
 def createResultsFromRange( max, category='test' ):
     ids = range(1,max+1)
+    return createResultsFromIds(ids,category)
+
+def createResultsFromIds( ids, category='test' ):
     excerpts = map(str,ids)
     categories = [category] * len(ids)
     return map( DummyResult, ids, excerpts, categories )
+
 
 class TestSearchFacade(BaseTestCase):
 
@@ -89,9 +93,25 @@ class TestSearchFacade(BaseTestCase):
                     if isinstance(result, DummyResult)]
         self.assertEquals( set(range(1,8)), set(dummyIds) )
 
+    def testCategoryCountFilter(self):
+        global search_results
+        search_results = createResultsFromRange(8,'cat1')
+        search_results.extend( createResultsFromRange(7,'cat2') )
+        facade = SearchFacade(self.dmd)
+        results = facade.getQuickSearchResults( "testquery" )
+        cat1Ids = [result.id for result in results if result.category == 'cat1']
+        cat2Ids = [result.id for result in results if result.category == 'cat2']
+        self.assertEquals( set(range(1,6)), set(cat1Ids) )
+        self.assertEquals( set(range(1,6)), set(cat2Ids) )
 
-#   def testCategoryCountFilter
-#   def testSortByExcerpt
+    def testSortByExcerpt(self):
+        ids = [6,4,3,2,8,5,9,7,1]
+        global search_results
+        search_results = createResultsFromIds(ids)
+        facade = SearchFacade(self.dmd)
+        results = facade.getSearchResults( "testquery" )
+        resultIds = [result.id for result in results]
+        self.assertEquals( range(1,10), resultIds )
 
 def test_suite():
     from unittest import TestSuite, makeSuite
