@@ -5,7 +5,9 @@ Ext.onReady(function(){
             renderTo: 'searchbox-container',
             black: true,
             id: 'searchbox-query',
-            name: 'query'
+            fieldClass: 'searchbox-query',
+            name: 'query',
+            width: 120
         }
     );
 
@@ -32,13 +34,14 @@ Zenoss.env.search = new Ext.form.ComboBox({
         typeAhead: false,
         loadingText: 'Searching..',
         triggerAction: 'all',
-        width: 375,
+        width: 120,
         pageSize: 0,
         minChars: 3,
         hideTrigger: true,
         tpl: resultTpl,
         applyTo: Ext.get('searchbox-query'),
         listClass: 'search-result',
+        listWidth: 375,
         listeners: {
             select: function(box,record){
                 if (record.get('url') != '') {

@@ -41,27 +41,12 @@
                         <div class="bg-logo"></div>
                         <div id="primarynav">
                             <ul tal:content="structure provider:primarynav"/>
-                            <div id="header-extra" style="position: absolute;
-                                        right: 0;
-                                        margin-right: 1em;
-                                        color: #FFFFFF;
-                                        font-size: 9.5pt;
-                                        font-family: Helvetica,sans-serif;">
-                                <table>
-                                    <tr>
-                                        <td>
-                                            <div id="searchbox-container"></div>
-                                        </td>
-                                        <td>
-                                            <a tal:attributes="href here/dmd/ZenUsers/getUserSettingsUrl">
-                                                <tal:block tal:content="request/AUTHENTICATED_USER"/>
-                                            </a>
-                                        </td>
-                                        <td>
-                                            <a style="text-transform:uppercase" href="/zport/dmd/logoutUser">sign out</a>
-                                        </td>
-                                    </tr>
-                                </table>
+                            <div id="header-extra">
+                                <div id="searchbox-container"></div>
+                                <a tal:attributes="href here/dmd/ZenUsers/getUserSettingsUrl">
+                                    <tal:block tal:content="request/AUTHENTICATED_USER"/>
+                                </a>
+                                <a style="text-transform:uppercase" href="/zport/dmd/logoutUser">sign out</a>
                             </div>
                         </div>
                         <div id="secondarynav">

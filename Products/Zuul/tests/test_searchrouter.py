@@ -6,15 +6,17 @@
 
 import os.path
 from zope.component import getGlobalSiteManager
+from zope.component import adapts
 from zope.interface import implements
 
+from Products.ZenModel.DataRoot import DataRoot
 from Products.ZenTestCase.BaseTestCase import BaseTestCase
 from Products.Zuul.interfaces import IFacade
 from Products.Zuul.search.interfaces import ISearchFacade
-from Products.Zuul.search.interfaces import ISearchInfo
+from Products.Zuul.search.interfaces import ISearchResult
 from Products.Zuul.search.routers import SearchRouter
 from Products.Zuul.interfaces import IMarshaller
-from Products.Zuul.marshalling import InfoMarshaller
+from Products.Zuul.marshalling import Marshaller
 
 
 import logging
@@ -24,6 +26,10 @@ search_results = None
 
 class DummyFacade(object):
     implements( ISearchFacade )
+    adapts( DataRoot )
+    
+    def __init__(self,dmd):
+        pass
 
     def getSearchResults( self, query ):
         return search_results
@@ -32,7 +38,7 @@ class DummyFacade(object):
         return search_results
 
 class DummySearchInfo(object):
-    implements( ISearchInfo )
+    implements( ISearchResult )
 
     def __init__(self, url, category, excerpt, icon):
         self.url = url
@@ -62,17 +68,16 @@ class TestSearchRouter(BaseTestCase):
         global search_results
         BaseTestCase.setUp(self)
         search_results = None
-        self._facade = DummyFacade()
         gsm = getGlobalSiteManager()
-        gsm.registerUtility( self._facade, IFacade, 'search' )
-        gsm.registerAdapter( InfoMarshaller, (ISearchInfo,), IMarshaller )
+        gsm.registerAdapter( DummyFacade, (DataRoot,), IFacade, 'search' )
+        gsm.registerAdapter( Marshaller, (ISearchResult,), IMarshaller )
 
     def tearDown(self):
         global search_results
         search_results = None
         gsm = getGlobalSiteManager()
-        gsm.unregisterUtility( self._facade )
-        gsm.unregisterAdapter( InfoMarshaller )
+        gsm.unregisterAdapter( DummyFacade )
+        gsm.unregisterAdapter( Marshaller )
 
     def testGetLiveResults(self):
         global search_results

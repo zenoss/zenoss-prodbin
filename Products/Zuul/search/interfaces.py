@@ -53,7 +53,7 @@ class ISearchProvider(Interface):
         """
 
 
-class ISearchInfo(IMarshallable):
+class ISearchResult(IMarshallable):
     """
     Implement this interface to allow objects to appear in search results.
     """

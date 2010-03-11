@@ -167,16 +167,6 @@ class IndexableWrapper(object):
         Whether or not monitored. Only for Components.
         """
         
-    def searchUrl(self):
-        """
-        For searchables
-        """
-
-    def searchCategory(self):
-        """
-        For searchables
-        """
-
     def searchKeywordsForChildren(self):
         """
         For searchables
@@ -199,12 +189,6 @@ class IndexableWrapper(object):
 
 
 class SearchableMixin(object):
-
-    def searchUrl(self):
-        return self._context.getPrimaryUrlPath()
-
-    def searchCategory(self):
-        return self._context.meta_type
 
     def searchKeywordsForChildren(self):
         return (self._context.titleOrId(),)
@@ -323,8 +307,6 @@ def createGlobalCatalog(portal):
     cat.addIndex('productKeys', makeCaseSensitiveKeywordIndex('productKeys'))
     cat.addIndex('searchKeywords',
         makeCaseInsensitiveKeywordIndex('searchKeywords'))
-    cat.addIndex('searchCategory',
-        makeCaseInsensitiveFieldIndex('searchCategory'))
         
     catalog.addColumn('id')
     catalog.addColumn('name')
@@ -334,8 +316,6 @@ def createGlobalCatalog(portal):
     catalog.addColumn('productionState')
     catalog.addColumn('collectors')
     catalog.addColumn('zProperties')
-    catalog.addColumn('searchUrl')
-    catalog.addColumn('searchCategory')
     catalog.addColumn('searchIcon')
     catalog.addColumn('searchExcerpt')
 

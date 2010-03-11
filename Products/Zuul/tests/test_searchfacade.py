@@ -61,14 +61,14 @@ class TestSearchFacade(BaseTestCase):
 
     def testGetQuickSearchResults(self):
         global search_results
-        facade = SearchFacade()
+        facade = SearchFacade(self.dmd)
         search_results = range(1,7)
         results = facade.getQuickSearchResults( "testquery" )
         self.assert_( set(range(1,6)).issubset(set(results)) )
 
     def testGetSearchResults(self):
         global search_results
-        facade = SearchFacade()
+        facade = SearchFacade(self.dmd)
         search_results = range(1,7)
         results = facade.getSearchResults( "testquery" )
         self.assert_( set(range(1,7)).issubset(set(results)) )
