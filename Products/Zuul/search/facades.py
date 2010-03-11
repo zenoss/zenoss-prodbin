@@ -73,7 +73,24 @@ class SearchFacade(ZuulFacade):
     def _getProviders(self):
         return subscribers([self._dmd], ISearchProvider)
 
-    def _getSearchResults(self, query, maxResultsPerProvider=None):
+    def _filterResultsByCategoryCount(self, results, maxPerCategory ):
+        if maxPerCategory is None:
+            return results
+        resultCounts={}
+
+        def keepResult( result ):
+            doKeep = False
+            if result.category not in resultCounts:
+                resultCounts[result.category] = 0
+            if resultCounts[result.category] != maxPerCategory:
+                resultCounts[result.category] += 1
+                doKeep = True
+            return doKeep
+
+        return filter( keepResult, results )
+
+    def _getSearchResults(self, query, maxResultsPerProvider=None,
+                          maxResultsPerCategory=None):
         parser = self._getParser()
         parsedQuery = parser.parse( query )
         operators = parsedQuery.operators
@@ -87,13 +104,19 @@ class SearchFacade(ZuulFacade):
             else:
                 results.extend( providerResults )
 
+        results.sort( lambda x,y: cmp(x.excerpt,y.excerpt) )
+
+        if maxResultsPerCategory is not None:
+            results = self._filterResultsByCategoryCount( results,
+                                                maxResultsPerCategory )
+
         return results
 
     def getSearchResults(self, query):
         return self._getSearchResults( query )
 
     def getQuickSearchResults(self, query):
-        return self._getSearchResults(query, 5)
+        return self._getSearchResults(query, None, 5)
 
     def noProvidersPresent(self):
         subscribers = self._getProviders()

@@ -21,6 +21,7 @@ from Products.ZenRelations.ToManyContRelationship import ToManyContRelationship
 from Products.ZenModel.Device import Device
 from Products.ZenModel.RRDTemplate import RRDTemplate
 from Products.ZenUtils.Search import makeCaseSensitiveFieldIndex
+from Products.ZenUtils.Search import makeCaseInsensitiveKeywordIndex
 
 def recurse(obj):
     if isinstance(obj, ObjectManager):
@@ -95,9 +96,15 @@ class GlobalCatalog(Migrate.Step):
                              makeCaseSensitiveFieldIndex('meta_type'))
                 toreindex.append('meta_type')
 
+            if 'searchKeywords' not in indices:
+                cat.addIndex('searchKeywords',
+                             makeCaseInsensitiveKeywordIndex('searchKeywords'))
+                toreindex.append('searchKeywords')
+
             # attempt to add columns
             newColumn = False
-            for column in ('zProperties', 'meta_type'):
+            for column in ('zProperties', 'meta_type', 'searchIcon',
+                           'searchExcerpt'):
                 try:
                     cat.addColumn(column)
                     newColumn = True
