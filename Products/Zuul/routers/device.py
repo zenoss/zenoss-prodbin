@@ -16,6 +16,7 @@ from Products.ZenUtils.Ext import DirectResponse
 from Products.ZenUtils.json import unjson
 from Products import Zuul
 from Products.Zuul.routers import TreeRouter
+from Products.Zuul.form.interfaces import IFormBuilder
 
 import logging
 log = logging.getLogger('zen.Zuul')
@@ -62,6 +63,11 @@ class DeviceRouter(TreeRouter):
                 leaf=True
             ))
         return result
+
+    def getForm(self, uid):
+        info = self._getFacade().getInfo(uid)
+        form = IFormBuilder(info).render()
+        return DirectResponse(form=form)
 
     def getInfo(self, uid, keys=None):
         facade = self._getFacade()

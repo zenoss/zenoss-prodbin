@@ -230,5 +230,6 @@
     <include package=".routers"/>
     <include package=".catalog"/>
     <include package=".search"/>
+    <include package=".form"/>
 
 </configure>

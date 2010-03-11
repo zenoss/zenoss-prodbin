@@ -23,19 +23,15 @@ Zenoss.nav.register({
         id: 'Overview',
         text: _t('Overview'),
         action: function(node, target) {
-            var typeSelect = node.getOwnerTree().ownerCt.typeSelect,
-                typeNode = typeSelect.getSelectionModel().selNode,
-                type = typeNode.attributes.text.text,
-                cardId = type + 'Panel',
-                xtype = Ext.ComponentMgr.isRegistered(cardId) ? cardId : 'panel';
-            if (!(cardId in target.items.keys)) {
-                target.add({
-                    xtype: xtype,
-                    id: cardId
+            var uid = node.parentNode.id;
+            if (!(uid in target.items.keys)) {
+                Zenoss.form.getGeneratedForm(uid, function(config){
+                    target.add(Ext.apply({id:uid}, config));
+                    target.layout.setActiveItem(uid);
                 });
-                target.ownerCt.doLayout();
+            } else {
+                target.layout.setActiveItem(uid);
             }
-            target.layout.setActiveItem(cardId);
         }
     }]
 });

@@ -35,3 +35,4 @@
      });
      Ext.reg('Severity', Severity);
 }());
+

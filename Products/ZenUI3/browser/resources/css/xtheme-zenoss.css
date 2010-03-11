@@ -1510,3 +1510,19 @@ body.x-body-masked .x-window-mc, body.x-body-masked .x-window-plain .x-window-mc
 .x-grid3-filter .xtb-text{
     color:#f4f4f4;
 }
+
+.x-fieldset {
+    border: medium none;
+}
+
+.x-fieldset-header-text {
+    color: black;
+    font-size: 14px;
+    padding-left: 10px;
+}
+
+.x-fieldset-header {
+    border-bottom: 1px solid gray;
+    width: 95%;
+}
+

@@ -13,6 +13,7 @@
 
 from zope.interface import Attribute, Interface
 from Products.Zuul.interfaces import IInfo
+from Products.Zuul.form import schema
 
 
 class IComponent(Interface):
@@ -31,22 +32,33 @@ class IComponentInfo(IInfo):
     An info adapter that wraps a device component.  Examples of device
     components are OSProcesses, IPServices and WinServices.
     """
-    device = Attribute("The device associated with this component")
-    monitored = Attribute("Is the instance monitored")
-    status = Attribute("What is the status of the instance")
+    device = schema.Entity(title=u"Parent Device",
+                           description=u"The device associated with this component",
+                           readonly=True, group="Overview")
+    monitored = schema.Bool(title=u"Monitored",
+                            description=u"Is the instance monitored",
+                            group="Overview")
+    status = schema.Text(title=u"Status",
+                         description=u"Are there any active status events"
+                         u" for this component?", group="Overview",
+                         readonly=True)
 
 
 class IIpInterfaceInfo(IComponentInfo):
     """
     Info adapter for IPInterface components.
     """
-    ips = Attribute("IP Addresses for this interface")
-    ipAddress = Attribute("Primary IP address")
-    interfaceName = Attribute("Interface name")
-    macaddress = Attribute("MAC Address of this interface")
-    type = Attribute("Type")
-    mtu = Attribute("MTU")
-    speed = Attribute("Speed")
-    adminStatus = Attribute("Administrative status")
-    operStatus = Attribute("Operational status")
+    ips = Attribute('IP Addresses')
+    ipAddress = schema.Entity(title=u"IP Address",
+                              description=u"Primary IP address",
+                              group="Overview")
+    interfaceName = schema.Text(title=u"Interface Name", group="Overview")
+    macaddress = schema.Text(title=u"MAC Address", group="Overview")
+    type = schema.Text(title=u"Type", group="Details", readonly=True)
+    mtu = schema.Text(title=u"MTU", group="Details", readonly=True)
+    speed = schema.Text(title=u"Speed", group="Details", readonly=True)
+    adminStatus = schema.Text(title=u"Administrative Status", group="Details",
+                             readonly=True)
+    operStatus = schema.Text(title=u"Operational Status", group="Details",
+                             readonly=True)
 
