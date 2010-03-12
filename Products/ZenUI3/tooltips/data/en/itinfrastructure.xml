@@ -87,7 +87,6 @@
     <target>actions-menu</target>
     <title>Actions</title>
     <anchor>left</anchor>
-   
     <html>
         From this menu, you can:
         <ul>
