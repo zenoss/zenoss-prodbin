@@ -17,7 +17,7 @@ Ext.ns('Zenoss.ui.Reports');
 Ext.onReady(function () {
 
 var addrorg,
-    addrorgtozenpack;
+    addtozenpack;
 
 /*
  * Add a report class
@@ -71,21 +71,19 @@ function addReportOrganizer(e) {
 /*
  * Delete a report class
  */
-function deleteReportOrganizer(e) {
-    if (!report_tree.getSelectionModel().getSelectedNode().leaf) {
-        report_tree.deleteSelectedNode();
-    }
+function deleteNode(e) {
+    report_tree.deleteSelectedNode();
 }
 
 /*
  * add report class to zenpack
  */
 function addToZenPack(e) {
-    if (!addrorgtozenpack) {
-        addrorgtozenpack = new Zenoss.AddToZenPackWindow();
+    if (!addtozenpack) {
+        addtozenpack = new Zenoss.AddToZenPackWindow();
     }
-    addrorgtozenpack.setTarget(treesm.getSelectedNode().attributes.uid);
-    addrorgtozenpack.show();
+    addtozenpack.setTarget(treesm.getSelectedNode().attributes.uid);
+    addtozenpack.show();
 }
 
 function initializeTreeDrop(g) {
@@ -238,11 +236,9 @@ var treesm = new Ext.tree.DefaultSelectionModel({
         'selectionchange': function (sm, newnode) {
             if (newnode.attributes.leaf) {
                 report_panel.setContext(newnode.attributes.uid);
-                Ext.getCmp('add-button').disable();
-                Ext.getCmp('delete-button').disable();
+                Ext.getCmp('add-organizer-button').disable();
             } else {
-                Ext.getCmp('add-button').enable();
-                Ext.getCmp('delete-button').enable();
+                Ext.getCmp('add-organizer-button').enable();
             }
         }
     }
@@ -286,7 +282,7 @@ Ext.getCmp('center_panel').add({
 });
 
 Ext.getCmp('footer_bar').add({
-    id: 'add-button',
+    id: 'add-organizer-button',
     tooltip: _t('Add a report organizer'),
     iconCls: 'add',
     handler: addReportOrganizer
@@ -294,9 +290,9 @@ Ext.getCmp('footer_bar').add({
 
 Ext.getCmp('footer_bar').add({
     id: 'delete-button', 
-    tooltip: _t('Delete a report organizer'),
+    tooltip: _t('Delete an item'),
     iconCls: 'delete',
-    handler: deleteReportOrganizer
+    handler: deleteNode
 });
 
 Ext.getCmp('footer_bar').add({ 

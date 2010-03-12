@@ -52,10 +52,7 @@ class ReportRouter(DirectRouter):
     @require('Manage DMD')
     def deleteNode(self, uid):
         represented = self.context.dmd.restrictedTraverse(uid)
-        if not isinstance(represented, represented.getReportClass()):
-            return DirectResponse.fail('Not deleting report')
-
-        self.context.dmd.Reports.manage_deleteOrganizer(uid)
+        represented.getParentNode().zmanage_delObjects([represented.titleOrId()])
         return DirectResponse.succeed(tree=self.getTree())
 
     @require('Manage DMD')
