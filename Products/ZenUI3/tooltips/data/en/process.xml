@@ -2,42 +2,41 @@
 <view>
   <tooltip>
     <target>inheritedCheckbox</target>
-
-    <html><span style="font-weight: bold;">Inherited</span><br />By default, this
-    option is selected for all nodes below the Processes node. When selected,
+    <title>Inherited</title>
+    <anchor>left</anchor>
+    <html>By default, this option is selected for all nodes below the Processes node. When selected,
     the node will inherit monitoring choices from its parent. </html>
   </tooltip>
 
   <tooltip>
     <target>monitorCheckbox</target> 
-
-    <html><span style="font-weight:bold">Enabled</span><br/>When selected,
-    monitoring choices are individually enabled for this node. (The node does
+    <title>Enabled</title>
+    <anchor>left</anchor>
+    <html>When selected, monitoring choices are individually enabled for this node. (The node does
     not inherit monitoring choices from its parent.) To select this option,
     you must first deselect the Inherited option.</html>
   </tooltip>
 
   <tooltip>
     <target>alertOnRestartCheckBox</target>
-
-    <html><span style="font-weight: bold;">Alert on Restart</span><br />When selected,
-    the system will send an event when the process restarts.</html>
+    <title>Alert on Restart</title>
+    <anchor>left</anchor>
+    <html>When selected, the system will send an event when the process restarts.</html>
   </tooltip>
     
-
   <tooltip>
     <target>eventSeverityCombo</target>
-
-    <html><span style="font-weight: bold;">Event Severity</span><br />Select an
-    event severity (Critical, Error, Warning, Info, or Debug). This severity
+    <title>Event Severity</title>
+    <anchor>left</anchor>
+    <html>Select an event severity (Critical, Error, Warning, Info, or Debug). This severity
     level is applied to the event created when the process fails.</html>
   </tooltip>
 
   <tooltip>
     <target>regexTextField</target>
-
-    <html><span style="font-weight: bold;">Pattern</span><br />Enter text (as a
-    regular expression) that the system will match to define this
+    <title>Pattern</title>
+    <anchor>left</anchor>
+    <html>Enter text (as a regular expression) that the system will match to define this
     process.
 
     <!-- <br /><br />For example, to search for the
@@ -54,37 +53,33 @@
 
   <tooltip>
     <target>ignoreParametersCheckbox</target>
-
-    <html><span style="font-weight: bold;">Ignore Parameters</span><br />Select this option to ignore command parameters when matching
+    <title>Ignore Parameters</title>
+    <anchor>left</anchor>
+    <html>Select this option to ignore command parameters when matching
     processes. By default, this option is disabled.</html>
   </tooltip>
 
   <tooltip>
     <target>devicesbutton</target>
-
-    <html><span style="font-weight: bold;">Device</span><br />Click to display devices on which the selected process or processes
-    are running.</html>
+    <title>Device</title>
+    <html>Click to display devices on which the selected process or processes are running.</html>
   </tooltip>
 
   <tooltip>
     <target>eventsbutton</target>
-
-    <html><span style="font-weight: bold;">Events</span><br />Click to display events associated with the selected process or
-    processes.</html>
+    <title>Events</title>
+    <html>Click to display events associated with the selected process or processes.</html>
   </tooltip>
   
-<!-- I think these are pretty much unnecessary. Leaving here in case somebody disagrees.
   <tooltip>
     <target>saveButton</target>
-
-    <html><span style="font-weight: bold;">Save</span><br />Click to save process details.</html>
-  </tooltip>
+    <html>Save</html>
+    </tooltip>
 
   <tooltip>
     <target>cancelButton</target>
-
-   <html><span style="font-weight: bold;">Cancel</span><br />Click to cancel changes.</html>
+   <html>Cancel</html>
   </tooltip>
--->
+
   
 </view>
