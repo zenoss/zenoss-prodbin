@@ -65,8 +65,8 @@
 
   <tooltip>
     <target>templates</target>
-
-    <html><strong>Monitoring Templates</strong><br />View and edit performance templates for the selected device class.</html>
+    <title>Monitoring Templates</title>
+    <html>View and edit performance templates for the selected device class.</html>
   </tooltip>
 
   <tooltip>
@@ -79,17 +79,15 @@
 
   <tooltip>
     <target>adddevice-button</target>
-
-    <html><strong>Add Devices</strong><br />Click to add a device in the selected device class.</html>
+    <title>Add Devices</title>
+    <html>Click to add a device in the selected device class.</html>
   </tooltip>
 
   <tooltip>
     <target>actions-menu</target>
     <title>Actions</title>
     <anchor>left</anchor>
-    <autoHide>True</autoHide>
-    <dismissDelay>0</dismissDelay>
-
+   
     <html>
         From this menu, you can:
         <ul>
@@ -106,16 +104,13 @@
   <tooltip>
     <target>commands-menu</target>
     <anchor>left</anchor>
-
     <html>Select one or more devices, and then select a command to run in the interface.</html>
   </tooltip>
+
   <tooltip>
     <target>productionState</target>
-
-    <html>
-
-       <title>Production State</title>
-       <strong>Production State</strong>Select one or more devices, and then select a production state:
+    <title>Production State</title>
+    <html>Select one or more devices, and then select a production state:
        <ul>
             <li><strong>Production</strong> -  Devices are monitored and appear on the dashboard; remote alerts are sent.</li>
             <li><strong>Pre-Production</strong> - Devices are monitored. They do not appear on the dashboard, and no remote alerts are sent.</li>
