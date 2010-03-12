@@ -271,7 +271,7 @@ Zenoss.DetailNavPanel = Ext.extend(Zenoss.SubselectionPanel,{
      * @param {object} this, the DetailNavPanel
      * @param {object} the navigation node selected
      */
-    onSelectionChange: Ext.emptFn,
+    onSelectionChange: Ext.emptyFn,
     /**
      * Filter out from being in the detail nav; used to filter out nav nodes
      * and the content panels. Return true if it should be kept, false otherwise
@@ -283,6 +283,11 @@ Zenoss.DetailNavPanel = Ext.extend(Zenoss.SubselectionPanel,{
      * The object id for which the detail navigation belongs to
      */
     contextId: null,
+    /**
+     * Menu ids used to get non dialog menus to be used in navigation;
+     * Empty or null if no nav from old menu items is desired
+     */
+    menuIds: ['More','Manage','Edit', 'Actions','Add','TopLevel'],
     /**
      * map of nav id to panel configuration
      */
@@ -325,45 +330,41 @@ Zenoss.DetailNavPanel = Ext.extend(Zenoss.SubselectionPanel,{
         //called to load the nav tree
         this.contextId = uid;
         this.treepanel.setRootNode([]);
-        var myCallback = function(provider, response) {
-            var panelMap;
-            var panelConfigs = response.result.panelConfigs;
-            var filterFn = function(val) {
-                return this.filterNav(this, val);
-            };
-            panelConfigs = Zenoss.util.filter(panelConfigs, filterFn, this);
-            panelMap = [];
-            Ext.each(panelConfigs, function(val) {
-                panelMap[val.id] = val;
-            });
-            this.panelConfigMap = panelMap;
-            this.getNavConfig(uid);
-        };
-        Zenoss.remote.DetailNavRouter.getDetailPanelConfigs({
-            'uid': uid
-        }, myCallback, this);
-        
+        this.getNavConfig(uid);
     },
     getNavConfig: function(uid){
         //Direct call to get nav configs from server
         var me = this;
-        var myCallback = function(provider, response){
-            me.setNavTree(response.result.navConfigs);
-        };
-        Zenoss.remote.DetailNavRouter.getDetailNavConfigs({
-            'uid': uid
-        }, myCallback);
-    },
-    setNavTree: function(navConfigs){
-        //get any configs registered by the page
-        var nodes = this.onGetNavConfig(this.contextId);
-        if (navConfigs){
-            var filterFn = function(val){
+        var myCallback = function(provider, response) {
+            var detailConfigs = response.result.detailConfigs;
+            var filterFn = function(val) {
                 return this.filterNav(this, val);
             };
-            var filtered = Zenoss.util.filter(navConfigs, filterFn, this);
-            nodes = nodes.concat(filtered);
-        }
+            detailConfigs = Zenoss.util.filter(detailConfigs, filterFn, this);
+            var panelMap = [];
+            Ext.each(detailConfigs, function(val) {
+                panelMap[val.id] = val;
+            });
+            this.panelConfigMap = panelMap;
+            var nodes = this.onGetNavConfig(this.contextId);
+            if (!Ext.isDefined(nodes) || nodes === null){
+                nodes = [];
+            }
+            if (detailConfigs){
+                nodes = nodes.concat(detailConfigs);
+            }
+            this.setNavTree(nodes);
+        };
+        var args = {
+            'uid': uid
+        };
+        if (this.menuIds !== null && this.menuIds.length >= 1){
+            args['menuIds'] = this.menuIds;
+        } 
+        Zenoss.remote.DetailNavRouter.getDetailNavConfigs(args, myCallback, this);
+    },
+    setNavTree: function(nodes){
+        //get any configs registered by the page
         if (nodes) {
             Ext.each(nodes, function(node) {
                 Ext.applyIf(node, {

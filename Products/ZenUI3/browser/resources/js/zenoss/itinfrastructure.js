@@ -83,7 +83,7 @@ var treesm = new Ext.tree.DefaultSelectionModel({
             
             var uid = newnode.attributes.uid;
             Zenoss.util.setContext(uid, 'detail_panel', 'organizer_events', 
-                                   'commands-menu');
+                                   'commands-menu', 'context-configure-menu');
             setDeviceButtonsDisabled(true);
             var card = Ext.getCmp('master_panel').getComponent(0);
             //should "ask" the DetailNav if there are any details before showing
@@ -580,6 +580,7 @@ Ext.getCmp('center_panel').add({
             target: 'detail_panel',
             buttonText: _t('See All'),
             html: 'some other stuff',
+            menuIds: ['More','Add','TopLevel','Manage'],
             listeners:{
                 navloaded: function( detailNavPanel, navConfig){
                     if (navConfig.id != 'device_grid'){
@@ -612,18 +613,10 @@ Ext.getCmp('center_panel').add({
                     case 'DeviceLocation':
                         break;
                     case 'DeviceClass':
-                        otherNav.push({
-                            id: 'administration',
-                            text: 'Administration'
-                        });
                         break;
                     default:
                         break;
                 }
-                otherNav.push({
-                    id: 'modifications',
-                    text: 'Modifications'
-                });
 
                 return deviceNav.concat(otherNav);
             },
@@ -731,14 +724,6 @@ Ext.getCmp('center_panel').add({
                     menu: {}
                 }]
             }
-        },{
-            xtype: 'backcompat',
-            viewName: 'viewHistory',
-            id: 'modifications'
-        },{
-            xtype: 'backcompat',
-            viewName: 'deviceManagement',
-            id: 'administration'
         }]
     }]
 });
@@ -752,11 +737,16 @@ Ext.getCmp('center_panel').add({
 var footerPanel = Ext.getCmp('footer_panel');
 footerPanel.removeAll();
 
+
 footerPanel.add({
     xtype: 'TreeFooterBar',
     id: 'footer_bar',
     bubbleTargetId: treeId
 });
 
+var footerBar = Ext.getCmp('footer_bar');
 
+footerBar.add({
+    xtype: 'ContextConfigureMenu'
+});
 }); // Ext. OnReady

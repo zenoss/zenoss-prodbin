@@ -1,5 +1,4 @@
-<h2>Add a Device:</h2>
-<form tal:attributes="action string:/zport/dmd/DeviceLoader;" 
+<form id="addform" tal:attributes="action string:/zport/dmd/DeviceLoader;" 
         method="post" name="addDevice">
 <input type="hidden" name="zenScreenName" 
 tal:attributes="value here/absolute_url_path"/>
@@ -55,14 +54,12 @@ tal:attributes="value here/absolute_url_path"/>
 </tr>
 </table>
 <br>
-<div align="center">
-<input tal:attributes="id string:dialog_addDevice_submit;
-                        type string:submit;
-                        value string:OK"
-                        name="loadDevice:method" />
-<input tal:attributes="id string:dialog_cancel;
-                        type string:button;
-                        value string:Cancel;
-                        onclick string:$$('dialog').hide()" />
-</div>
 </form>
+<script> 
+var panel = new Zenoss.dialog.DialogFormPanel({
+    url: '/zport/dmd/DeviceLoader',
+    existingFormId: 'addform',
+    submitName: 'loadDevice:method',
+    jsonResult: false
+});
+</script>

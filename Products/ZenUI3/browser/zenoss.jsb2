@@ -114,6 +114,9 @@
         },{
             "text": "DataPointItemSelector.js",
             "path": "resources/js/zenoss/form/"
+        }, {
+            "text": "ContextMenu.js",
+            "path": "resources/js/zenoss/"
         }]
     }],
     "resources": []

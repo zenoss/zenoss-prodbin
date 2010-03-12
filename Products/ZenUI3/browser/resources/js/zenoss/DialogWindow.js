@@ -195,4 +195,111 @@ Zenoss.HideFitDialog = Ext.extend(Ext.Window, {
     }
 });
 
+/**
+ * Works in conjunction with Zenoss.dialog.DialogFormPanel. Loads a formPanel 
+ * with ID diynamic-dialog-panel and submits the form on the panel when the 
+ * submit button on this dialog is pressed. 
+ */
+Zenoss.dialog.DynamicDialog = Ext.extend(BaseDialog, {
+    initEvents: function(){
+        Zenoss.dialog.DynamicDialog.superclass.initEvents.call(this);
+        this.body.getUpdater().on('failure', function(el, response) {
+            el.update("Failed to load dialog");
+        });
+    },
+    constructor: function(config) {
+        config = Ext.applyIf(config || {}, {
+            layout: 'fit',
+            modal: true,
+            buttons: [{
+                xtype: 'DialogButton',
+                text: _t('Submit'),
+                handler: this.submitHandler.createDelegate(this)
+            }, Zenoss.dialog.CANCEL]
+        });
+        Ext.apply(config, {
+            id: 'dynamic-dialog'
+        });
+        Zenoss.dialog.DynamicDialog.superclass.constructor.call(this, config);
+    },
+    submitHandler: function(b, event){
+        var formPanel = Ext.getCmp('dynamic-dialog-panel');
+        var form = formPanel.getForm();
+        var params = {};
+        if (Ext.isDefined(formPanel.submitName) && formPanel.submitName !== null){
+            params[formPanel.submitName] = 'OK';
+        }
+        form.submit({
+            params: params,
+            success: function(form, action){
+                var msg = this.title + ' finished successfully'; 
+                Zenoss.message(msg, true);
+            }.createDelegate(this),
+            failure: function(form, action){
+                var msg = this.title + ' had errors'; 
+                Zenoss.message(msg, false);
+                }
+        });
+    }
+});
+
+/**
+ * Used to create dialogs that will be added dynamically
+ */
+Zenoss.dialog.DialogFormPanel = Ext.extend(Ext.form.FormPanel, {
+    /**
+     * whether or not the result of submitting the form associated with this 
+     * panel will return a json result. Default true
+     */
+    jsonResult: true,
+    /**
+     * extra parameter to send when submitted
+     */
+    submitName: null,
+    /**
+     * name of an existing from to be submitted; if not defined a new form 
+     * will be created.  Primarily used for backwards compatibility so existing
+     * dialog forms don't have to be entirely rewritten.
+     */
+    existingFormId: null,
+    constructor: function(config) {
+        config = config || {};
+        Ext.apply(config, {
+            border: false,
+            id: 'dynamic-dialog-panel'
+        });
+        Zenoss.dialog.DialogFormPanel.superclass.constructor.call(this, config);
+    },
+    /**
+     * private; override from base class so that a basic form can be created
+     * to point at an existing from if configured and also set a different 
+     * response reader if expected result from submit is not JSON
+     */
+    createForm: function(){
+        var config = Ext.applyIf({listeners: {}}, this.initialConfig);
+        if (!this.jsonResult) {
+            config['errorReader'] = {
+                read: function(xhr) {
+                    var success = true;
+                    //TODO scan result for exceptions/errors
+                    if (xhr.status != 200) {
+                        success = false;
+                    }
+                    return {
+                        records: [],
+                        success: success
+                    };
+                }
+            };
+        }
+        var formId = null;
+        if (this.existingFormId !== null){
+            formId = this.existingFormId;
+        }
+        return new Ext.form.BasicForm(formId, config);
+    }
+});
+
+Ext.reg('DialogFormPanel', Zenoss.dialog.DialogFormPanel);
+
 })();
