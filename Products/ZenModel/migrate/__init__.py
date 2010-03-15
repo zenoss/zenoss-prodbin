@@ -197,4 +197,5 @@ import reindexdevices
 import globalcatalog
 import zNmapPortscanOptions
 import removeCiscoHSRP
+import WinEventlogClause
 

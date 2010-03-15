@@ -133,6 +133,8 @@ True
 <property visible="True" type="int" id="zWinEventlogMinSeverity" >
 2
 </property>
+<property visible="True" type="string" id="zWinEventlogClause" >
+</property>
 <property visible="True" type="boolean" id="zWinEventlog" >
 False
 </property>

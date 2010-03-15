@@ -26,7 +26,8 @@ class EventLogConfig(CollectorConfigService):
         deviceProxyAttributes = ('zWmiMonitorIgnore',
                                  'zWinUser',
                                  'zWinPassword',
-                                 'zWinEventlogMinSeverity')
+                                 'zWinEventlogMinSeverity',
+                                 'zWinEventlogClause')
         CollectorConfigService.__init__(self, dmd, instance, deviceProxyAttributes)
 
     def _filterDevice(self, device):

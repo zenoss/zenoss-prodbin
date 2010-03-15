@@ -25,6 +25,7 @@ class WMIPlugin(CollectorPlugin):
         'zWinUser',
         'zWinPassword',
         'zWinEventlogMinSeverity',
+        'zWinEventlogClause',
     )
     
     def condition(self, device, log):

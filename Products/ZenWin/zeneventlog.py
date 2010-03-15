@@ -95,6 +95,11 @@ class ZenEventLogPreferences(object):
                           help='The number of milliseconds to wait for ' + \
                                'WMI query to respond. Overrides the ' + \
                                'server settings.')
+
+        parser.add_option('--testClause', dest='testClause',
+                          default=None,
+                          help="Override the device's zWinEventlogClause" \
+                               " with this string.")
         addNTLMv2Option(parser)
 
     def postStartup(self):
@@ -169,13 +174,6 @@ class ZenEventLogTask(ObservableMixin):
         self._devId = deviceId
         self._manageIp = self._taskConfig.manageIp
 
-        # Create the actual query that will be used based upon the template and
-        # the devices's  zWinEventlogMinSeverity zProperty. If this zProperty
-        # changes then the task will be deleted and a new one created, so it
-        # is okay to do so here in the constructor.
-        self._wmiQuery = ZenEventLogTask.EVENT_LOG_NOTIFICATION_QUERY % \
-            int(self._taskConfig.zWinEventlogMinSeverity)
-
         self._eventService = zope.component.queryUtility(IEventService)
         self._statService = zope.component.queryUtility(IStatisticsService)
         self._preferences = zope.component.queryUtility(ICollectorPreferences,
@@ -191,6 +189,20 @@ class ZenEventLogTask(ObservableMixin):
         self._queryTimeout = self._preferences.options.queryTimeout
         if not self._queryTimeout:
             self._queryTimeout = self._preferences.wmiqueryTimeout
+
+        # Create the actual query that will be used based upon the template and
+        # the devices's  zWinEventlogMinSeverity zProperty. If this zProperty
+        # changes then the task will be deleted and a new one created, so it
+        # is okay to do so here in the constructor.
+        self._wmiQuery = ZenEventLogTask.EVENT_LOG_NOTIFICATION_QUERY % \
+            int(self._taskConfig.zWinEventlogMinSeverity)
+        testClause = self._preferences.options.testClause
+        andClause = self._taskConfig.zWinEventlogClause
+        if testClause is not None:
+            if testClause.strip():
+                self._wmiQuery += " AND " + testClause
+        elif andClause and andClause.strip():
+            self._wmiQuery += " AND " + andClause
 
         self._watcher = None
         self._reset()
@@ -290,7 +302,13 @@ class ZenEventLogTask(ObservableMixin):
 
         self._reset()
 
-        summary = """
+        if 'WBEM_E_UNPARSABLE_QUERY' in err:
+            summary = """
+            There was an error found while processing the zWinEventlogClause
+            query: %s
+            """ % err
+        else:
+            summary = """
             Could not read the Windows event log (%s). Check your
             username/password settings and verify network connectivity.
             """ % err
