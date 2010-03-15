@@ -1610,7 +1610,7 @@ class EventManagerBase(ZenModelRM, ObjectCache, DbAccessBase):
         defaultFields = set(self.dmd.ZenEventManager.getFieldList())
         ignoreFields = set(['eventClass', 'count', 'clearid',
              'clearid', 'eventClassMapping', 'stateChange', 'evid',
-             'eventState', 'lastTime', 'firstTime', 'prodState', ])
+             'eventState', 'lastTime', 'dedupid', 'firstTime', 'prodState', ])
         eventDict = dict([(field, REQUEST.get(field, '')) \
                            for field in defaultFields - ignoreFields ])
 

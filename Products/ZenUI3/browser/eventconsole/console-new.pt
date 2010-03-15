@@ -196,11 +196,6 @@ Ext.onReady(function(){
                     selectOnFocus: true
                 }],
                 buttons: [{
-                    text: 'Cancel',
-                    handler: function(){
-                        addevent.hide();
-                    }
-                },{
                     text: 'Submit',
                     formBind: true,
                     handler: function(){
@@ -215,6 +210,11 @@ Ext.onReady(function(){
                                     view.rowIndex, true, true);
                             }
                         )
+                    }
+                },{
+                    text: 'Cancel',
+                    handler: function(){
+                        addevent.hide();
                     }
                 }]
             }]
@@ -258,11 +258,6 @@ Ext.onReady(function(){
                     id: 'evclass_combo'
                 }]}],
                 buttons: [{
-                    text: 'Cancel',
-                    handler: function(){
-                        win.hide();
-                    }
-                },{
                     text: 'Submit',
                     handler: function(){
                         var cb = Ext.getCmp('evclass_combo'),
@@ -295,6 +290,11 @@ Ext.onReady(function(){
                             })
                         });
                         }
+                    }
+                },{
+                    text: 'Cancel',
+                    handler: function(){
+                        win.hide();
                     }
                 }
                 ]
