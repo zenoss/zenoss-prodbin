@@ -14,7 +14,6 @@
 
 import unittest
 from Products import Zuul
-from Products.Zuul.utils import severityId
 from Products.ZenTestCase.BaseTestCase import BaseTestCase
 
 class TemplateFacadeTest(BaseTestCase):
@@ -90,7 +89,7 @@ class TemplateFacadeTest(BaseTestCase):
                'escalateCount': '0', 'enabled': 'on',
                'dsnames': 'sysUpTime_sysUpTime', 'eventClass': '/Perf/Snmp'};
         threshold = self._createDummyThreshold()
-        result = self.facade.editThreshold(threshold.id, data);
+        result = self.facade.setInfo(threshold.id, data);
         # the values should match the data above
         self.assertEquals(result.maxval, '123');
         self.assertEquals(result.minval, '12');
@@ -113,7 +112,7 @@ class TemplateFacadeTest(BaseTestCase):
         datasource = self._createDummyDataSource()
         info = self.facade.getDataSourceDetails(datasource.absolute_url_path())
         self.assertTrue(info, "make sure we can create an info from a datasource")
-        newInfo = self.facade.editDataSourceDetails(info.id, data)
+        newInfo = self.facade.setInfo(info.id, data)
         # since we saved it, make sure the values stick
         self.assertEqual(newInfo.enabled, True)
         self.assertEqual(newInfo.severity, data['severity'])
@@ -124,7 +123,7 @@ class TemplateFacadeTest(BaseTestCase):
         datapoint = self._createDummyDataPoint()
         info = self.facade.getDataPointDetails(datapoint.absolute_url_path())
         self.assertTrue(info, "make sure we got the details")
-        newInfo = self.facade.editDataPointDetails(info.id, data)
+        newInfo = self.facade.setInfo(info.id, data)
         self.assertEqual(newInfo.isrow, data['isrow'])
         self.assertEqual(newInfo.createCmd, data['createCmd'])
         self.assertEqual(newInfo.rrdmin, data['rrdmin'])
