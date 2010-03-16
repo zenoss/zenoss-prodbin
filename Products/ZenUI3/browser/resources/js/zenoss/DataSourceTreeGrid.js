@@ -328,16 +328,23 @@ function closeEditDialog(response) {
 function editDataSourceOrPoint() {
     var cmp = Ext.getCmp(dataSourcesId),
         selectedNode = cmp.getSelectionModel().getSelectedNode(),
-        attributes = selectedNode.attributes,
+        attributes,
         isDataPoint = false,
-        params = {
-            uid: attributes.uid  
-        };
+        params;
+    // make sure they selected something
+    if (!selectedNode) {
+        Ext.Msg.alert('Error', 'You must select a datasource or datapoint.');
+        return;
+    }
     
+    attributes = selectedNode.attributes;
     // find out if we are editing a datasource or a datapoint
     if (attributes.leaf) {
         isDataPoint = true;
     }
+    params = {
+        uid: attributes.uid  
+    };
 
     // callback for the router request
     function displayEditDialog(response) {
@@ -382,6 +389,11 @@ Zenoss.DataSourceTreeGrid = Ext.extend(Ext.ux.tree.TreeGrid, {
             cls: 'x-tree-noicon',
             id: dataSourcesId,
             title: _t('Data Sources'),
+            listeners: {
+                // when they doubleclick we will open up the tree and
+                // display the dialog
+                beforedblclick: editDataSourceOrPoint
+            },
             loader: new Ext.ux.tree.TreeGridLoader({
                 directFn: router.getDataSources
             }),

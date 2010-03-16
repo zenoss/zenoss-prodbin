@@ -19,6 +19,10 @@ from Acquisition import aq_base
 from zope.interface import Interface
 from Products.ZCatalog.CatalogBrains import AbstractCatalogBrain
 from Products.ZenRelations.ZenPropertyManager import ZenPropertyManager
+from zope.i18nmessageid import MessageFactory
+
+# Translations
+ZuulMessageFactory = MessageFactory('zenoss')
 
 def resolve_context(context, default=None, dmd=None):
     """

@@ -53,6 +53,7 @@ class TemplateFacadeTest(BaseTestCase):
         dsOptions = template.getDataSourceOptions()
         datasource = template.manage_addRRDDataSource('testDataSource',
                                                       dsOptions[0][1])
+        datasource.sourcetype = 'COMMAND'
         return datasource
 
     def _createDummyDataPoint(self):

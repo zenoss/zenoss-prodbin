@@ -14,7 +14,8 @@ from zope.interface import implements
 from Acquisition import aq_parent
 from Products.Zuul.infos import InfoBase, ProxyProperty
 from Products.Zuul.utils import severityId
-from Products.Zuul.interfaces.template import IDataSourceInfo, IDataPointInfo,  IMinMaxThresholdInfo, IThresholdInfo
+from Products.Zuul.interfaces.template import IRRDDataSourceInfo, IDataPointInfo, \
+    IMinMaxThresholdInfo, IThresholdInfo, ISNMPDataSourceInfo, IBasicDataSourceInfo, ICommandDataSourceInfo
 
 class TemplateNode(InfoBase):
     
@@ -74,9 +75,13 @@ class TemplateLeaf(InfoBase):
         parts.append(obj.titleOrId())
         return separator + separator.join(parts)
 
-class DataSourceInfo(InfoBase):
-    implements(IDataSourceInfo)
     
+class RRDDataSourceInfo(InfoBase):
+    implements(IRRDDataSourceInfo)
+    """
+    This is the default Schema/Info for every class that descends from RRDDataSource.
+    Most of the zenpacks descend from this.
+    """
     def __init__(self, dataSource):
         self._object = dataSource
 
@@ -95,13 +100,6 @@ class DataSourceInfo(InfoBase):
     @property
     def type(self):
         return self._object.sourcetype
-
-    @property
-    def availableParsers(self):
-        """
-        returns a list of all available parsers
-        """
-        return self._object.parsers()
     
     # severity
     def _setSeverity(self, value):
@@ -117,16 +115,84 @@ class DataSourceInfo(InfoBase):
         return self._object.getSeverityString()
     
     severity = property(_getSeverity, _setSeverity)
-
     enabled = ProxyProperty('enabled')
+    component = ProxyProperty('component')
+    eventClass = ProxyProperty('eventClass')
+    eventKey = ProxyProperty('eventKey')
+
+    
+class BasicDataSourceInfo(InfoBase):
+    implements(IBasicDataSourceInfo)
+    """
+    Not really used but SNMPDataSource and CommandDataSource both
+    share common properties so I am using this subclass
+    """
+    def __init__(self, dataSource):
+        self._object = dataSource
+
+    @property
+    def id(self):
+        return '/'.join( self._object.getPrimaryPath() )
+
+    @property
+    def name(self):
+        return self._object.getId()
+        
+    @property
+    def source(self):
+        return self._object.getDescription()
+    
+    @property
+    def type(self):
+        return self._object.sourcetype
+    
+    enabled = ProxyProperty('enabled')
+
+    
+class SNMPDataSourceInfo(BasicDataSourceInfo):
+    implements(ISNMPDataSourceInfo)
+    """
+    DataSource for SNMP (Basic DataSource with a type of 'SNMP')
+    """
+    oid = ProxyProperty('oid')
+
+    
+class CommandDataSourceInfo(BasicDataSourceInfo):
+    implements(ICommandDataSourceInfo)
+    """
+    Datasource for Commands (Basic DataSource with a type of 'COMMAND')
+    """
+    @property
+    def availableParsers(self):
+        """
+        returns a list of all available parsers
+        """
+        if hasattr(self._object, 'parsers'):
+            return self._object.parsers()
+        return []
+    
+    # severity
+    def _setSeverity(self, value):
+        try:
+            if isinstance(value, str):
+                value = severityId(value)
+        except ValueError:
+            # they entered junk somehow (default to info if invalid)
+            value = severityId('info')
+        self._object.severity = value
+        
+    def _getSeverity(self):
+        return self._object.getSeverityString()
+    
+    severity = property(_getSeverity, _setSeverity)
+    usessh = ProxyProperty('usessh')
     component = ProxyProperty('component')
     eventClass = ProxyProperty('eventClass')
     eventKey = ProxyProperty('eventKey')
     commandTemplate = ProxyProperty('commandTemplate')
     cycletime = ProxyProperty('cycletime')
-    oid = ProxyProperty('oid')
-    usessh = ProxyProperty('usessh')
     parser = ProxyProperty('parser')
+    
     
 class DataPointInfo(InfoBase):
     implements(IDataPointInfo)

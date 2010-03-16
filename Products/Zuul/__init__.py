@@ -48,6 +48,7 @@ from interfaces import IMarshaller
 from interfaces import IUnmarshaller
 from utils import safe_hasattr as hasattr, get_dmd
 
+
 def getFacade(name, context=None):
     """
     Get facade by name.  The names are documented in configure.zcml defined as

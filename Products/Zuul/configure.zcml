@@ -148,9 +148,13 @@
              for="Products.ZenModel.RRDTemplate.RRDTemplate"
              provides=".interfaces.ITemplateLeaf"/>
 
-    <adapter factory=".infos.template.DataSourceInfo"
+    <adapter factory=".infos.template.RRDDataSourceInfo"
              for="Products.ZenModel.RRDDataSource.RRDDataSource"
-             provides=".interfaces.IDataSourceInfo"/>
+             provides=".interfaces.IRRDDataSourceInfo"/>
+
+    <adapter factory=".infos.template.BasicDataSourceInfo"
+             for="Products.ZenModel.BasicDataSource.BasicDataSource"
+             provides=".interfaces.IBasicDataSourceInfo"/>
     
     <adapter factory=".infos.template.DataPointInfo"
              for="Products.ZenModel.RRDDataPoint.RRDDataPoint"
@@ -178,8 +182,8 @@
              provides=".interfaces.IUserCommandInfo"/>
     
     <adapter provides=".interfaces.IInfo"
-             for=".interfaces.IDataSourceInfo"
-             factory=".infos.template.DataSourceInfo"
+             for=".interfaces.IRRDDataSourceInfo"
+             factory=".infos.template.RRDDataSourceInfo"
              />
     
     <adapter provides=".interfaces.IInfo"

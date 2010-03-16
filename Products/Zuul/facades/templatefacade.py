@@ -16,19 +16,14 @@ from itertools import imap
 from Acquisition import aq_parent
 from zope.interface import implements
 from Products.ZenUtils.Utils import prepId
-from Products.Zuul.interfaces import ITemplateFacade
-from Products.Zuul.interfaces import ICatalogTool
-from Products.Zuul.interfaces import ITemplateNode
-from Products.Zuul.interfaces import ITemplateLeaf
-from Products.Zuul.interfaces import IDataSourceInfo
-from Products.Zuul.interfaces import IDataPointInfo
-from Products.Zuul.interfaces import IThresholdInfo
-from Products.Zuul.interfaces import IGraphInfo
-from Products.Zuul.interfaces import IInfo
+from Products.Zuul.interfaces import ITemplateFacade, ICatalogTool, ITemplateNode, IRRDDataSourceInfo, \
+    IDataPointInfo, IThresholdInfo, IGraphInfo, IInfo, ITemplateLeaf
+from Products.Zuul.infos.template import SNMPDataSourceInfo, CommandDataSourceInfo
 from Products.Zuul.utils import unbrain, safe_hasattr as hasattr
 from Products.Zuul.facades import ZuulFacade
 from Products.ZenModel.RRDTemplate import RRDTemplate
 from Products.ZenModel.RRDDataSource import RRDDataSource
+from Products.ZenModel.BasicDataSource import BasicDataSource
 from Products.ZenModel.RRDDataPoint import RRDDataPoint
 from Products.ZenModel.ThresholdClass import ThresholdClass
 from Products.ZenModel.GraphDefinition import GraphDefinition
@@ -94,13 +89,35 @@ class TemplateFacade(ZuulFacade):
         if isinstance(catalog.context, RRDTemplate):
             brains = catalog.search(types=RRDDataSource)
             dataSources = imap(unbrain, brains)
-            infos = imap(IDataSourceInfo, dataSources)
+            infos = imap(IRRDDataSourceInfo, dataSources)
         else:
             brains = catalog.search(types=RRDDataPoint)
             dataPoints = imap(unbrain, brains)
             infos = imap(IDataPointInfo, dataPoints)
         return infos
 
+    def _getDataSourceInfoFromObject(self, obj):
+        """
+        Given the obj this returns the correct info. We can not rely on
+        adapt for datasources since we need different info objects depending on
+        their type not the subclass.
+
+        This defaults to using the adapters to return the correct info if not a datasource.
+        """
+        info = None
+        # look for datasource type
+        if isinstance(obj, BasicDataSource):
+            if obj.sourcetype == 'SNMP':
+                info = SNMPDataSourceInfo(obj)
+            if obj.sourcetype == 'COMMAND':
+                info = CommandDataSourceInfo(obj)
+                
+        # use the default adapter    
+        if not info:
+            info = IInfo(obj)
+            
+        return info
+    
     def getDataSourceDetails(self, uid):
         """
         Given the unique id of the datasource we will
@@ -109,15 +126,18 @@ class TemplateFacade(ZuulFacade):
         @returns IDataSourceInfo
         """
         obj = self._getObject(uid)
-        return IDataSourceInfo(obj)
-
-
+        return self._getDataSourceInfoFromObject(obj)
+        
     def setInfo(self, uid, data):
         """
         Given a dictionary of {property name: property value}
         this will populate the datapoint
+        @param string uid unique identifier of the object we are editing
+        @param Dictionary of properties to update
+        @return IInfo with the updated properties
         """
-        info = IInfo(self._getObject(uid))
+        obj = self._getObject(uid)
+        info = self._getDataSourceInfoFromObject(obj)
         return self._editDetails(info, data)
     
     def getDataPointDetails(self, uid):

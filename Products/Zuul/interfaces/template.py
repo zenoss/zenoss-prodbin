@@ -13,6 +13,8 @@
 
 from Products.Zuul.interfaces import IInfo, IFacade
 from Products.Zuul.form import schema
+from Products.Zuul.utils import ZuulMessageFactory as _t
+
 
 class ITemplateNode(IInfo):
     """
@@ -26,45 +28,83 @@ class ITemplateLeaf(IInfo):
     spot in the device class hierarchy.
     """
 
-class IDataSourceInfo(IInfo):
+    
+class IRRDDataSourceInfo(IInfo):
     """
-    Adapts RRDDataSource.
+    Adapts RRDDatasource. This is distinct from the Basic DataSource
+    because their properties are intermingled.
+    This info exists so that if ZenPacks do not have a schema and descend from
+    RRDDatasource then they will have this schema.
+    
+    See the _properties on the RRDDatasouce ZenModel
     """
-    name = schema.Text(title=u"Name",
-                       description=u"The name of this datasource",
+    name = schema.Text(title=_t(u"Name"),
+                       description=_t(u"The name of this datasource"),
                        readonly=True)
-    type = schema.Text(title=u"Type",
+    type = schema.Text(title=_t(u"Type"),
                        readonly=True)
-    severity = schema.Text(title=u"Severity",
+    severity = schema.Text(title=_t(u"Severity"),
                            xtype="severity")
-    component = schema.Text(title=u"Component")
-    oid = schema.Text(title=u"OID")
-    eventKey = schema.Text(title=u"Event Key")
-    eventClass = schema.Text(title=u"Event Class",
+    component = schema.Text(title=_t(u"Component"))
+    eventKey = schema.Text(title=_t(u"Event Key"))
+    eventClass = schema.Text(title=_t(u"Event Class"),
                              xtype="eventclass")
-    commandTemplate = schema.TextLine(title=u"Command Template")
-    cycleTime = schema.Int(title=u"Cycle Time")
-    parser = schema.Text(title=u"Parser",
-                         xtype="parser")
-    enabled = schema.Bool(title=u"Enabled")
-    usessh = schema.Bool(title=u"Use SSH")
+    enabled = schema.Bool(title=_t(u"Enabled"))
 
+    
+class IBasicDataSourceInfo(IInfo):
+    """
+    Adapts BasicDataSource (the common properties between SNMP and COMMAND infos)
+    """
+    name = schema.Text(title=_t(u"Name"),
+                       description=_t(u"The name of this datasource"),
+                       readonly=True)
+    type = schema.Text(title=_t(u"Type"),
+                       readonly=True)
+    enabled = schema.Bool(title=_t(u"Enabled"))
+
+    
+class ICommandDataSourceInfo(IBasicDataSourceInfo):
+    """
+    Adapts basic datasource infos of type CMD
+    """
+    enabled = schema.Bool(title=_t(u"Enabled"))
+    usessh = schema.Bool(title=_t(u"Use SSH"))
+   
+    severity = schema.Text(title=_t(u"Severity"),
+                           xtype="severity")
+    component = schema.Text(title=_t(u"Component"))
+    eventKey = schema.Text(title=_t(u"Event Key"))
+    eventClass = schema.Text(title=_t(u"Event Class"),
+                             xtype="eventclass")
+    commandTemplate = schema.TextLine(title=_t(u"Command Template"))
+    cycleTime = schema.Int(title=_t(u"Cycle Time"))
+    parser = schema.Text(title=_t(u"Parser"),
+                         xtype="parser")
+
+    
+class ISNMPDataSourceInfo(IBasicDataSourceInfo):
+    """
+    Adaps a basic Datasource of type SNMP
+    """
+    oid = schema.Text(title=_t(u"OID"))
+    
     
 class IDataPointInfo(IInfo):
     """
     Adapts RRDDataPoint.
     """
-    name = schema.Text(title=u"Name",
-                       description=u"The name of this data point",
+    name = schema.Text(title=_t(u"Name"),
+                       description=_t(u"The name of this data point"),
                        readonly=True)
-    rrdtype = schema.Text(title=u"Type",
-                          description=u"The type of data point we have",
+    rrdtype = schema.Text(title=_t(u"Type"),
+                          description=_t(u"The type of data point we have"),
                           xtype="rrdtype")
-    createCmd = schema.TextLine(title=u"Create Command")
-    rrdmin = schema.Text(title=u"RRD Minimum")
-    rrdmax = schema.Text(title=u"RRD Maximum")
-    isrow = schema.Bool(title=u"Read Only")
-    alias = schema.Text(title=u"Alias",
+    createCmd = schema.TextLine(title=_t(u"Create Command"))
+    rrdmin = schema.Text(title=_t(u"RRD Minimum"))
+    rrdmax = schema.Text(title=_t(u"RRD Maximum"))
+    isrow = schema.Bool(title=_t(u"Read Only"))
+    alias = schema.Text(title=_t(u"Alias"),
                         readonly=True)
     
     
@@ -72,31 +112,34 @@ class IThresholdInfo(IInfo):
     """
     Adapts ThresholdClass.
     """
-    name = schema.Text(title=u"Name",
+    name = schema.Text(title=_t(u"Name"),
                        readonly=True, order=1)
-    type = schema.Text(title=u"Type",
+    type = schema.Text(title=_t(u"Type"),
                        readonly=True, order=2)
-    dsnames = schema.List(title=u"DataPoints",
+    dsnames = schema.List(title=_t(u"DataPoints"),
                           xtype="datapointitemselector", order=3)
-    severity = schema.Text(title=u"Severity",
+    severity = schema.Text(title=_t(u"Severity"),
                            xtype="severity", order=4)
-    enabled = schema.Bool(title=u"Enabled", order=5)
+    enabled = schema.Bool(title=_t(u"Enabled"), order=5)
+
     
 class IMinMaxThresholdInfo(IThresholdInfo):
     """
     Adapts the MinMaxThresholdClass
     """
-    minval = schema.Int(title=u"Minimum Value", order=6)
+    minval = schema.Int(title=_t(u"Minimum Value"), order=6)
     maxval = schema.Int(title=u"Maximum Value", order=7)
-    eventClass = schema.Text(title=u"Event Class",
+    eventClass = schema.Text(title=_t(u"Event Class"),
                              xtype="eventclass", order=8)
-    escalateCount = schema.Int(title=u"Escalate Count", order=9) 
+    escalateCount = schema.Int(title=_t(u"Escalate Count"), order=9) 
+
     
 class IGraphInfo(IInfo):
     """
     Adapts GraphDefinition.
     """
 
+    
 class ITemplateFacade(IFacade):
     """
     A facade for monitoring templates.

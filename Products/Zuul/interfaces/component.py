@@ -14,7 +14,7 @@
 from zope.interface import Attribute, Interface
 from Products.Zuul.interfaces import IInfo
 from Products.Zuul.form import schema
-
+from Products.Zuul.utils import ZuulMessageFactory as _t
 
 class IComponent(Interface):
     """
@@ -32,15 +32,15 @@ class IComponentInfo(IInfo):
     An info adapter that wraps a device component.  Examples of device
     components are OSProcesses, IPServices and WinServices.
     """
-    device = schema.Entity(title=u"Parent Device",
-                           description=u"The device associated with this component",
+    device = schema.Entity(title=_t(u"Parent Device"),
+                           description=_t(u"The device associated with this component"),
                            readonly=True, group="Overview")
-    monitored = schema.Bool(title=u"Monitored",
-                            description=u"Is the instance monitored",
+    monitored = schema.Bool(title=_t(u"Monitored"),
+                            description=_t(u"Is the instance monitored"),
                             group="Overview")
-    status = schema.Text(title=u"Status",
-                         description=u"Are there any active status events"
-                         u" for this component?", group="Overview",
+    status = schema.Text(title=_t(u"Status"),
+                         description=_t(u"Are there any active status events"
+                         u" for this component?"), group="Overview",
                          readonly=True)
 
 
@@ -49,16 +49,16 @@ class IIpInterfaceInfo(IComponentInfo):
     Info adapter for IPInterface components.
     """
     ips = Attribute('IP Addresses')
-    ipAddress = schema.Entity(title=u"IP Address",
-                              description=u"Primary IP address",
+    ipAddress = schema.Entity(title=_t(u"IP Address"),
+                              description=_t(u"Primary IP address"),
                               group="Overview")
-    interfaceName = schema.Text(title=u"Interface Name", group="Overview")
-    macaddress = schema.Text(title=u"MAC Address", group="Overview")
-    type = schema.Text(title=u"Type", group="Details", readonly=True)
-    mtu = schema.Text(title=u"MTU", group="Details", readonly=True)
-    speed = schema.Text(title=u"Speed", group="Details", readonly=True)
-    adminStatus = schema.Text(title=u"Administrative Status", group="Details",
+    interfaceName = schema.Text(title=_t(u"Interface Name"), group="Overview")
+    macaddress = schema.Text(title=_t(u"MAC Address"), group="Overview")
+    type = schema.Text(title=_t(u"Type"), group="Details", readonly=True)
+    mtu = schema.Text(title=_t(u"MTU"), group="Details", readonly=True)
+    speed = schema.Text(title=_t(u"Speed"), group="Details", readonly=True)
+    adminStatus = schema.Text(title=_t(u"Administrative Status"), group="Details",
                              readonly=True)
-    operStatus = schema.Text(title=u"Operational Status", group="Details",
+    operStatus = schema.Text(title=_t(u"Operational Status"), group="Details",
                              readonly=True)
 
