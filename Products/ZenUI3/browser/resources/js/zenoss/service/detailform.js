@@ -19,7 +19,7 @@ Ext.onReady( function() {
      * Service Panel Functionality
      *
      */
-
+                 
     var zs = Ext.ns('Zenoss.Service.DetailForm');
 
     /**

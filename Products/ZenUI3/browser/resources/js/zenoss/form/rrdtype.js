@@ -15,22 +15,22 @@
 
 /* package level */
 (function() {
-     var EventClass = Ext.extend(Ext.form.ComboBox, {
+     var rrdtype = Ext.extend(Ext.form.ComboBox, {
          constructor: function(config) {
+             var record = config.record;
              config = config || {};
-             if (!Zenoss.env.EVENT_CLASSES) {
-                 throw "You must include the js-snippets viewlet before you use the eventClass control";
-             }
-             Ext.applyIf(config, {
-                 fieldLabel: _t('Event Class'),
-                 name: 'eventClass',
-                 typeAhead: true,
+             Ext.apply(config, {
+                 fieldLabel: _t('RRD Type'),
+                 name: 'rrdtype',
+                 editable: false,
+                 forceSelection: true,
+                 autoSelect: true,
                  triggerAction: 'all',
                  mode: 'local',
-                 store: Zenoss.env.EVENT_CLASSES
+                 store: record.availableRRDTypes
              });
-             EventClass.superclass.constructor.apply(this, arguments);
+             rrdtype.superclass.constructor.apply(this, arguments);
          }
      });
-     Ext.reg('eventclass', EventClass);
+     Ext.reg('rrdtype', rrdtype);
 }());

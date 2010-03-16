@@ -15,22 +15,22 @@
 
 /* package level */
 (function() {
-     var EventClass = Ext.extend(Ext.form.ComboBox, {
+     var parser = Ext.extend(Ext.form.ComboBox, {
          constructor: function(config) {
+             var record = config.record;
              config = config || {};
-             if (!Zenoss.env.EVENT_CLASSES) {
-                 throw "You must include the js-snippets viewlet before you use the eventClass control";
-             }
              Ext.applyIf(config, {
-                 fieldLabel: _t('Event Class'),
-                 name: 'eventClass',
-                 typeAhead: true,
+                 fieldLabel: _t('Parser'),
+                 name: 'parser',
+                 editable: false,
+                 forceSelection: true,
+                 autoSelect: true,
                  triggerAction: 'all',
                  mode: 'local',
-                 store: Zenoss.env.EVENT_CLASSES
+                 store: record.availableParsers
              });
-             EventClass.superclass.constructor.apply(this, arguments);
+             parser.superclass.constructor.apply(this, arguments);
          }
      });
-     Ext.reg('eventclass', EventClass);
+     Ext.reg('parser', parser);
 }());

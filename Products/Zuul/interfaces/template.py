@@ -12,7 +12,7 @@
 ###########################################################################
 
 from Products.Zuul.interfaces import IInfo, IFacade
-
+from Products.Zuul.form import schema
 
 class ITemplateNode(IInfo):
     """
@@ -30,21 +30,67 @@ class IDataSourceInfo(IInfo):
     """
     Adapts RRDDataSource.
     """
+    name = schema.Text(title=u"Name",
+                       description=u"The name of this datasource",
+                       readonly=True)
+    type = schema.Text(title=u"Type",
+                       readonly=True)
+    severity = schema.Text(title=u"Severity",
+                           xtype="severity")
+    component = schema.Text(title=u"Component")
+    oid = schema.Text(title=u"OID")
+    eventKey = schema.Text(title=u"Event Key")
+    eventClass = schema.Text(title=u"Event Class",
+                             xtype="eventclass")
+    commandTemplate = schema.TextLine(title=u"Command Template")
+    cycleTime = schema.Int(title=u"Cycle Time")
+    parser = schema.Text(title=u"Parser",
+                         xtype="parser")
+    enabled = schema.Bool(title=u"Enabled")
+    usessh = schema.Bool(title=u"Use SSH")
 
+    
 class IDataPointInfo(IInfo):
     """
     Adapts RRDDataPoint.
     """
-
+    name = schema.Text(title=u"Name",
+                       description=u"The name of this data point",
+                       readonly=True)
+    rrdtype = schema.Text(title=u"Type",
+                          description=u"The type of data point we have",
+                          xtype="rrdtype")
+    createCmd = schema.TextLine(title=u"Create Command")
+    rrdmin = schema.Text(title=u"RRD Minimum")
+    rrdmax = schema.Text(title=u"RRD Maximum")
+    isrow = schema.Bool(title=u"Read Only")
+    alias = schema.Text(title=u"Alias",
+                        readonly=True)
+    
+    
 class IThresholdInfo(IInfo):
     """
     Adapts ThresholdClass.
     """
-
+    name = schema.Text(title=u"Name",
+                       readonly=True, order=1)
+    type = schema.Text(title=u"Type",
+                       readonly=True, order=2)
+    dsnames = schema.List(title=u"DataPoints",
+                          xtype="datapointitemselector", order=3)
+    severity = schema.Text(title=u"Severity",
+                           xtype="severity", order=4)
+    enabled = schema.Bool(title=u"Enabled", order=5)
+    
 class IMinMaxThresholdInfo(IThresholdInfo):
     """
     Adapts the MinMaxThresholdClass
     """
+    minval = schema.Int(title=u"Minimum Value", order=6)
+    maxval = schema.Int(title=u"Maximum Value", order=7)
+    eventClass = schema.Text(title=u"Event Class",
+                             xtype="eventclass", order=8)
+    escalateCount = schema.Int(title=u"Escalate Count", order=9) 
     
 class IGraphInfo(IInfo):
     """

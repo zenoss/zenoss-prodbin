@@ -16,8 +16,11 @@
 /* package level */
 (function() {
     Ext.namespace('Zenoss.templates');
-
-    /****  Variable Declaration ****/
+    /**********************************************************************
+     *
+     * Variable Declarations
+     *
+     */
     var thresholdSelectionModel, thresholdDeleteButton,
         router, treeId, thresholdEditButton, MinMaxThresholdDialog;
      
@@ -29,8 +32,11 @@
     // The id of the tree on the left hand side of the screen
     treeId = 'templateTree';
 
-
-    /**** Delete Thresholds ****/
+    /**********************************************************************
+     *
+     * Delete Thresholds
+     *
+     */
      
     /**
      * Calls the router to delete the selected
@@ -100,7 +106,12 @@
     }
      
      
-    /**** View/Edit Threshold ****/
+     /**********************************************************************
+     *
+     * Edit Thresholds
+     *
+     */
+
      
     /**
      * Call back from the router call to save
@@ -128,12 +139,16 @@
             config = {};
                             
         function displayEditDialog(response) {
-            var win;
-            config.record = response;
-            config.xtype = "EditThresholdDialog";
-            config.id = "editThresholdDialog";
-            config.saveHandler = closeThresholdDialog;
-            win = Ext.create(config);
+            var win = Ext.create( {
+                record: response.record,
+                items: response.form,
+                xtype: 'editdialog',
+                title: _t('Edit Threshold'),
+                directFn: router.setInfo,
+                id: 'editThresholdDialog',
+                saveHandler: closeThresholdDialog                 
+            });
+                        
             win.show();
         }
 
@@ -142,7 +157,11 @@
     }
      
      
-    /**** Threshold Data Grid ****/
+     /**********************************************************************
+     *
+     * Threshold Data Grid
+     *
+     */
     
     /**
      * Threshold DataGrid Selection Model
@@ -179,6 +198,11 @@
      **/
     Zenoss.templates.thresholdDataGrid = Ext.extend(Ext.grid.GridPanel, {
         constructor: function(config) {
+            var listeners = {};
+            // allow them to doubleclick and bring up the edit dialog
+            if (Zenoss.Security.hasPermission('Manage DMD')) {
+                listeners = { rowdblclick: thresholdEdit};
+            }
             config = config || {};
             Ext.apply(config, {
                 id: Zenoss.templates.thresholdsId,
@@ -189,6 +213,7 @@
                     directFn: router.getThresholds,
                     fields: ['name', 'type', 'dataPoints', 'severity', 'enabled']
                 },
+                listeners: listeners,
                 tbar: [{
                     id: thresholdDeleteButton,
                     xtype: 'button',
@@ -204,7 +229,7 @@
                 }, {
                     id: thresholdEditButton,
                     xtype: 'button',
-                    iconCls: 'configure',
+                    iconCls: 'edit',
                     disabled: true,
                     tooltip: _t('Edit Threshold'),
                     handler: thresholdEdit

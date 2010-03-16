@@ -176,7 +176,12 @@
     <adapter factory=".infos.command.UserCommandInfo"
              for="Products.ZenModel.UserCommand.UserCommand"
              provides=".interfaces.IUserCommandInfo"/>
-
+    
+    <adapter provides=".interfaces.IInfo"
+             for=".interfaces.IDataSourceInfo"
+             factory=".infos.template.DataSourceInfo"
+             />
+    
     <adapter provides=".interfaces.IInfo"
              for=".interfaces.IComponent"
              factory=".infos.component.ComponentInfo"
@@ -216,7 +221,8 @@
              for=".interfaces.IEventEntity"
              factory=".infos.event.EventInfo"
              />
-
+    
+             
     <adapter provides=".interfaces.IComponentInfo"
              for="Products.ZenModel.OSComponent.OSComponent"
              factory=".infos.component.ComponentInfo"

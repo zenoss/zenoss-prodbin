@@ -61,13 +61,17 @@ def _item(item):
     else:
         xtype = item['xtype']
     value = item['value']
-    if xtype=='linkfield':
+    checked = False
+    if xtype == 'linkfield':
         value = getattr(value, 'uid', value)
+    if xtype == 'checkbox':
+        checked = value
     return {
         'xtype': xtype,
         'fieldLabel': item['title'],
         'name': item['name'],
-        'value': value
+        'value': value,
+        'checked': checked
     }
 
 class FormBuilder(object):
@@ -96,9 +100,18 @@ class FormBuilder(object):
             l.sort(key=ordergetter)
         return g
 
-    def render(self):
+    def render(self, fieldsets=True):
+        if not fieldsets:
+            
+            fields = sorted(self.fields().values(), key=ordergetter)
+            form = map(_item, fields)
+            return form
+                            
+        # group the fields 
         groups = self.groups()
-        return {
+        form = {
             'items': [_fieldset(k, v) for k,v in groups.iteritems()]
         }
+        return form
+        
 

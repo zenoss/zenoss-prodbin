@@ -14,6 +14,7 @@
 from Products.ZenUtils.Ext import DirectRouter
 from Products import Zuul
 from Products.Zuul.decorators import require
+from Products.Zuul.form.interfaces import IFormBuilder
 
 class TemplateRouter(DirectRouter):
 
@@ -74,24 +75,42 @@ class TemplateRouter(DirectRouter):
         """
         facade = self._getFacade()
         thresholdDetails = facade.getThresholdDetails(uid)
+        form = IFormBuilder(thresholdDetails).render(fieldsets=False)
         # turn the threshold into a dictionary
-        data =  Zuul.marshal(thresholdDetails)
+        data =  Zuul.marshal(dict(record=thresholdDetails, form=form))
         return data
 
+    def getDataSourceDetails(self, uid):
+        """
+        Returns everything we need for the Edit DataSources Dialog
+        """
+        facade = self._getFacade()
+        details = facade.getDataSourceDetails(uid)
+        form = IFormBuilder(details).render(fieldsets=False)
+        data =  Zuul.marshal(dict(record=details, form=form))
+        return data
+
+    def getDataPointDetails(self, uid):
+        """
+        Returns everything we need for the Edit DataSources Dialog
+        """
+        facade = self._getFacade()
+        details = facade.getDataPointDetails(uid)
+        form = IFormBuilder(details).render(fieldsets=False)
+        data =  Zuul.marshal(dict(record=details, form=form))        
+        return data
+    
     @require('Manage DMD')
-    def editThreshold(self, **data):
+    def setInfo(self, **data):
         """
-        Responsible for taking the values from the form and applying them to the threshold
         """
-        # this always has to be here
         uid = data['uid']
         del data['uid']
-        # translate enabled to a boolean
         data['enabled'] = data.has_key('enabled')
         facade = self._getFacade()
-        facade.editThreshold(uid, data)
+        facade.setInfo(uid, data)
         return {'success': True}
-            
+                
     @require('Manage DMD')
     def addThreshold(self, uid, thresholdType, thresholdId, dataPoints):
         facade = self._getFacade()
@@ -113,7 +132,7 @@ class TemplateRouter(DirectRouter):
 
     def getGraphs(self, uid, query=None):
         """
-        Get the graphs for the RRD template identified by uid.
+        Get the graphs for the RRD  identified by uid.
         """
         facade = self._getFacade()
         graphs = facade.getGraphs(uid)

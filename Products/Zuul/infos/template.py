@@ -10,10 +10,11 @@
 # For complete information please visit: http://www.zenoss.com/oss/
 #
 ###########################################################################
-
+from zope.interface import implements
 from Acquisition import aq_parent
 from Products.Zuul.infos import InfoBase, ProxyProperty
 from Products.Zuul.utils import severityId
+from Products.Zuul.interfaces.template import IDataSourceInfo, IDataPointInfo,  IMinMaxThresholdInfo, IThresholdInfo
 
 class TemplateNode(InfoBase):
     
@@ -74,7 +75,8 @@ class TemplateLeaf(InfoBase):
         return separator + separator.join(parts)
 
 class DataSourceInfo(InfoBase):
-
+    implements(IDataSourceInfo)
+    
     def __init__(self, dataSource):
         self._object = dataSource
 
@@ -89,19 +91,37 @@ class DataSourceInfo(InfoBase):
     @property
     def source(self):
         return self._object.getDescription()
-
-    @property
-    def enabled(self):
-        return self._object.enabled
-
+    
     @property
     def type(self):
         return self._object.sourcetype
 
+    @property
+    def availableParsers(self):
+        """
+        returns a list of all available parsers
+        """
+        return self._object.parsers()
+    
+    # severity
+    def _setSeverity(self, value):
+        try:
+            if isinstance(value, str):
+                value = severityId(value)
+        except ValueError:
+            # they entered junk somehow (default to info if invalid)
+            value = severityId('info')
+        self._object.severity = value
+        
+    def _getSeverity(self):
+        return self._object.getSeverityString()
+    
+    severity = property(_getSeverity, _setSeverity)
+
+    enabled = ProxyProperty('enabled')
     component = ProxyProperty('component')
     eventClass = ProxyProperty('eventClass')
     eventKey = ProxyProperty('eventKey')
-    severity = ProxyProperty('severity')
     commandTemplate = ProxyProperty('commandTemplate')
     cycletime = ProxyProperty('cycletime')
     oid = ProxyProperty('oid')
@@ -109,7 +129,7 @@ class DataSourceInfo(InfoBase):
     parser = ProxyProperty('parser')
     
 class DataPointInfo(InfoBase):
-
+    implements(IDataPointInfo)
     def __init__(self, dataPoint):
         self._object = dataPoint
 
@@ -126,11 +146,27 @@ class DataPointInfo(InfoBase):
         return self._object.rrdtype
 
     @property
+    def alias(self):
+        return self._object.getAliasNames()
+    
+    @property
     def leaf(self):
         return True
 
-class ThresholdInfo(InfoBase):
+    @property
+    def availableRRDTypes(self):
+        """
+        """
+        return self._object.rrdtypes
 
+    rrdtype = ProxyProperty('rrdtype')
+    createCmd = ProxyProperty('createCmd')
+    isrow = ProxyProperty('isrow')
+    rrdmin = ProxyProperty('rrdmin')
+    rrdmax = ProxyProperty('rrdmax')
+    
+class ThresholdInfo(InfoBase):
+    implements(IThresholdInfo)
     def __init__(self, threshold):
         self._object = threshold
 
@@ -184,6 +220,7 @@ class ThresholdInfo(InfoBase):
 
     
 class MinMaxThresholdInfo(ThresholdInfo):
+    implements(IMinMaxThresholdInfo)
     minval = ProxyProperty("minval")
     maxval = ProxyProperty("maxval")
     eventClass = ProxyProperty("eventClass")
@@ -214,3 +251,4 @@ class GraphInfo(InfoBase):
     @property
     def width(self):
         return self._object.width
+    

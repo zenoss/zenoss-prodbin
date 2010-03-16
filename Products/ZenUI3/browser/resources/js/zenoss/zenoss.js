@@ -1342,9 +1342,16 @@ Zenoss.util.getExtControlType = function(fieldId, type) {
     types = {
         'int': 'numberfield',
         'string': 'textfield',
-        'boolean': 'checkbox'
+        'boolean': 'checkbox',
+        'text': 'textarea'
     };
 
+    // see if a component of this type is registered (then return it)
+    if (Ext.ComponentMgr.isRegistered(fieldId)) {
+        return fieldId;
+    }
+    
+    // check our conversions defined above     
     if (customControls[fieldId]) {
         return customControls[fieldId];
     }

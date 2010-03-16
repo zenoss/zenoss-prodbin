@@ -42,5 +42,5 @@
              DataPointItemSelector.superclass.constructor.apply(this, arguments);
          }
      });
-     Ext.reg('DataPointItemSelector', DataPointItemSelector);
+     Ext.reg('datapointitemselector', DataPointItemSelector);
 }());

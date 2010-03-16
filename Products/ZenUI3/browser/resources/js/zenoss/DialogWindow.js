@@ -129,6 +129,7 @@ Zenoss.FormDialog = Ext.extend(Ext.Window, {
             border: false,
             id: config.formId,
             minWidth: 300,
+            ref: "editForm",
             labelAlign: 'top',
             autoScroll:true,
             labelSeparator: ' ',
@@ -144,6 +145,7 @@ Zenoss.FormDialog = Ext.extend(Ext.Window, {
             html: config.html
         });
         config.items = form;
+        
         Ext.applyIf(config, {
             layout: 'fit',
             plain: true,

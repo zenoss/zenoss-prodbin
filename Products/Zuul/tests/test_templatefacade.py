@@ -55,6 +55,13 @@ class TemplateFacadeTest(BaseTestCase):
         datasource = template.manage_addRRDDataSource('testDataSource',
                                                       dsOptions[0][1])
         return datasource
+
+    def _createDummyDataPoint(self):
+        """
+        returns a newly created dummy datapoint
+        """
+        source = self._createDummyDataSource()
+        return source.manage_addRRDDataPoint('testDataPoint')
     
     def testCanAddThreshold(self):
         """ Verify that we can add a dummy threshold
@@ -98,7 +105,7 @@ class TemplateFacadeTest(BaseTestCase):
         datasource = self._createDummyDataSource()
         self.assertTrue(datasource, "We actually created the datasource object")
 
-    def canEditDataSource(self):
+    def testCanEditDataSource(self):
         """
         Make sure when we edit a datasource the values stay
         """
@@ -109,9 +116,18 @@ class TemplateFacadeTest(BaseTestCase):
         newInfo = self.facade.editDataSourceDetails(info.id, data)
         # since we saved it, make sure the values stick
         self.assertEqual(newInfo.enabled, True)
-        self.assertEqual(newInfo.Severity, severityId(data['severity']))
+        self.assertEqual(newInfo.severity, data['severity'])
         self.assertEqual(newInfo.eventClass, data['eventClass'])
         
+    def testCanEditDataPointDetails(self):
+        data = {'createCmd': 'foobar', 'rrdmin': 'foo', 'rrdmax': 'bar', 'isrow': False}
+        datapoint = self._createDummyDataPoint()
+        info = self.facade.getDataPointDetails(datapoint.absolute_url_path())
+        self.assertTrue(info, "make sure we got the details")
+        newInfo = self.facade.editDataPointDetails(info.id, data)
+        self.assertEqual(newInfo.isrow, data['isrow'])
+        self.assertEqual(newInfo.createCmd, data['createCmd'])
+        self.assertEqual(newInfo.rrdmin, data['rrdmin'])
         
 def test_suite():
     return unittest.TestSuite((unittest.makeSuite(TemplateFacadeTest),))

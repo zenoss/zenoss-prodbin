@@ -185,7 +185,12 @@ showAddToGraphDialog = function() {
         Ext.Msg.alert('Error', 'You must select a datapoint.');
     }
 };
-
+     
+/**********************************************************************
+ *
+ * Override Functionality
+ *
+ */
 override = function() {
     var node, params, callback;
     node = Ext.getCmp('templateTree').getSelectionModel().getSelectedNode();
@@ -292,6 +297,77 @@ showOverrideDialog = function() {
     Ext.getCmp('submit').disable();
 };
 
+
+/**********************************************************************
+ *
+ * Edit DataSource/DataPoint functionality
+ *
+ */
+
+/**
+ * Closes the edit dialog and updates the store of the datasources. 
+ * This is called after the router request to save the edit dialog
+ **/
+function closeEditDialog(response) {
+    var dialog = Ext.getCmp('editDataSources'),
+        grid = Ext.getCmp(dataSourcesId);
+    
+    // reload the DataSources Grid
+    grid.getRootNode().reload();
+    
+    // hide the dialog
+    if (dialog) {
+        dialog.hide();
+    }
+}
+     
+/**
+ * Event handler for editing a specific datasource or
+ * datapoint. 
+ **/
+function editDataSourceOrPoint() {
+    var cmp = Ext.getCmp(dataSourcesId),
+        selectedNode = cmp.getSelectionModel().getSelectedNode(),
+        attributes = selectedNode.attributes,
+        isDataPoint = false,
+        params = {
+            uid: attributes.uid  
+        };
+    
+    // find out if we are editing a datasource or a datapoint
+    if (attributes.leaf) {
+        isDataPoint = true;
+    }
+
+    // callback for the router request
+    function displayEditDialog(response) {
+        var win,
+        config = {};
+        config.record = response.record;
+        config.items = response.form;
+        config.xtype = "editdialog";
+        config.id = "editDataSources";
+        config.isDataPoint = isDataPoint;
+        if (isDataPoint) {
+            config.title = _t('Edit DataPoint');
+            config.directFn = router.setInfo;
+        }else{
+            config.title = _t('Edit DataSource');
+            config.directFn = router.setInfo;;
+        }
+        
+        config.saveHandler = closeEditDialog;
+        win = Ext.create(config);
+        win.show();
+    }
+    
+    // get the details
+    if (isDataPoint) {
+        router.getDataPointDetails(params, displayEditDialog);
+    }else{
+        router.getDataSourceDetails(params, displayEditDialog);
+    }
+}
 /**
  * @class Zenoss.DataSourceTreeGrid
  * @extends Ext.ux.tree.TreeGrid
@@ -328,7 +404,13 @@ Zenoss.DataSourceTreeGrid = Ext.extend(Ext.ux.tree.TreeGrid, {
                     xtype: 'button',
                     iconCls: 'devprobs',
                     tooltip: 'Add Data Source'
-                }, {
+                },{
+                    xtype: 'button',
+                    iconCls: 'edit',
+                    tooltip: 'Edit Data Source',
+                    disable: Zenoss.Security.doesNotHavePermission('Manage DMD'),
+                    handler: editDataSourceOrPoint
+                },{
                     xtype: 'button',
                     iconCls: 'adddevice',
                     tooltip: 'Override Template',
@@ -357,16 +439,8 @@ Zenoss.DataSourceTreeGrid = Ext.extend(Ext.ux.tree.TreeGrid, {
             ]
         });
         Zenoss.DataSourceTreeGrid.superclass.constructor.call(this, config);
-    },
-    
-    initComponent: function() {
-        Ext.ux.tree.TreeGrid.prototype.initComponent.call(this);
-        this.loader.createNode = function(attr) {
-            attr.expanded = true;
-            return Ext.ux.tree.TreeGridLoader.prototype.createNode.call(this, attr);
-        };
     }
-
+    
 });
 
 Ext.reg('DataSourceTreeGrid', Zenoss.DataSourceTreeGrid);

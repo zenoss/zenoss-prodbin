@@ -33,6 +33,6 @@
              Severity.superclass.constructor.apply(this, arguments);
          }
      });
-     Ext.reg('Severity', Severity);
+     Ext.reg('severity', Severity);
 }());
 

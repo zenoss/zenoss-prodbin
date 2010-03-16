@@ -40,6 +40,9 @@
             "text": "DialogWindow.js",
             "path": "resources/js/zenoss/"
         }, {
+            "text": "EditDialog.js",          
+            "path": "resources/js/zenoss/form/"      
+        },{
             "text": "HierarchyTreePanel.js",
             "path": "resources/js/zenoss/"
         }, {
@@ -117,6 +120,12 @@
         }, {
             "text": "ContextMenu.js",
             "path": "resources/js/zenoss/"
+        },{
+            "text": "parser.js",
+            "path": "resources/js/zenoss/form/"
+        },{
+            "text": "rrdtype.js",
+            "path": "resources/js/zenoss/form/"
         }]
     }],
     "resources": []

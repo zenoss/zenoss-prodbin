@@ -24,11 +24,7 @@ Zenoss.templates.GraphGrid = Ext.extend(Ext.grid.GridPanel, {
             store: {xtype: 'graphstore'},
             colModel: new Ext.grid.ColumnModel({
                 columns: [
-                    {dataIndex: 'name', header: _t('Name')},
-                    {dataIndex: 'graphPoints', header: _t('Graph Points')},
-                    {dataIndex: 'units', header: _t('Units')},
-                    {dataIndex: 'height', header: _t('Height')},
-                    {dataIndex: 'width', header: _t('Width')}
+                    {dataIndex: 'name', header: _t('Name'), width: 400}                    
                 ]
             })
         });

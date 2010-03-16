@@ -24,6 +24,7 @@ from Products.Zuul.interfaces import IDataSourceInfo
 from Products.Zuul.interfaces import IDataPointInfo
 from Products.Zuul.interfaces import IThresholdInfo
 from Products.Zuul.interfaces import IGraphInfo
+from Products.Zuul.interfaces import IInfo
 from Products.Zuul.utils import unbrain, safe_hasattr as hasattr
 from Products.Zuul.facades import ZuulFacade
 from Products.ZenModel.RRDTemplate import RRDTemplate
@@ -110,20 +111,13 @@ class TemplateFacade(ZuulFacade):
         obj = self._getObject(uid)
         return IDataSourceInfo(obj)
 
-    def editDataSourceDetails(self, uid, data):
-        """
-        Given a dictionary of {property name: property value}
-        this will populate the datasource
-        """
-        info = self.getDataSourceDetails(uid)
-        return self._editDetails(info, data)
 
-    def editDataPointDetails(self, uid, data):
+    def setInfo(self, uid, data):
         """
         Given a dictionary of {property name: property value}
         this will populate the datapoint
         """
-        info = self.getDataPointDetails(uid)
+        info = IInfo(self._getObject(uid))
         return self._editDetails(info, data)
     
     def getDataPointDetails(self, uid):
@@ -186,21 +180,6 @@ class TemplateFacade(ZuulFacade):
             dsnames.append( dataPoint.name() )
         return dsnames
             
-    def editThreshold(self, uid, data):
-        """
-        Takes a uid of a threshold and a dictionary of
-        {property: value}. This method then attempts to apply each
-        property to the threshold. If the property doesn't
-        exit it is ignored.
-        @param String UID of the Threshold
-        @param Dictionary data 
-        @return IThresholdInfo
-        """
-        threshold = self._getObject(uid)
-        info = IThresholdInfo(threshold)
-        return self._editDetails(info, data)        
-        
-        
     def removeThreshold(self, uid):
         """Removes the threshold
         @param string uid
