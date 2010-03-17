@@ -116,6 +116,32 @@ Zenoss.MessageDialog = Ext.extend(BaseDialog, {
 });
 
 /**
+ * @class Zenoss.dialog.SimpleMessageDialog
+ * @extends BaseDialog
+ * A modal dialog window with Zenoss styling and a fit layout. No buttons are
+ * included 
+ * @constructor
+ */
+Zenoss.dialog.SimpleMessageDialog = Ext.extend(BaseDialog, {
+    /**
+     * message to be displayed on dialog
+     * @param {Object} config
+     */
+    message: null,
+    constructor: function(config) {
+        Ext.applyIf(config, {
+            layout: 'fit',
+            items: {
+                border: false,
+                html: config.message
+            },
+            closeAction: 'close'
+        });
+        Zenoss.MessageDialog.superclass.constructor.call(this, config);
+    }
+});
+
+/**
  * @class Zenoss.FormDialog
  * @extends Ext.Window
  * A modal dialog window with Zenoss styling and a form layout.  This window
@@ -145,7 +171,6 @@ Zenoss.FormDialog = Ext.extend(Ext.Window, {
             html: config.html
         });
         config.items = form;
-        
         Ext.applyIf(config, {
             layout: 'fit',
             plain: true,
@@ -153,6 +178,57 @@ Zenoss.FormDialog = Ext.extend(Ext.Window, {
             buttonAlign: 'left'
         });
         Zenoss.FormDialog.superclass.constructor.call(this, config);
+    }
+});
+
+Zenoss.DirectSubmitFormDialog = Ext.extend(Ext.Window, {
+    constructor: function(config) {
+        var buttons;
+        if (config.buttons){
+            buttons = config.buttons;
+            delete config['buttons'];
+        }
+        var form = new Ext.form.FormPanel({
+            listeners: {
+                beforeDestroy: function(component){
+                    if (Ext.isDefined(component.refOwner)) {
+                        component.refOwner.destroy();
+                    }
+                }
+            },
+            api: config.api,
+            paramOrder: config.paramOrder,
+            ref: 'childPanel',
+            buttonAlign: 'left',
+            buttons: buttons,
+            border: false,
+            id: config.formId,
+            minWidth: 300,
+            labelAlign: 'top',
+            autoScroll:true,
+            labelSeparator: ' ',
+            bodyStyle: {
+                'padding-left': '5%'
+            },
+            defaults: {
+                xtype: 'textfield',
+                anchor: '85%',
+                border: false
+            },
+            items: config.items,
+            html: config.html,
+            monitorValid: config.monitorValid || false
+        });
+        config.items = form;
+        Ext.applyIf(config, {
+            autoHeight: true,
+            width: 310,
+            plain: true,
+            buttonAlign: 'left',
+            padding: 10,
+            modal: true
+        });
+        Zenoss.DirectSubmitFormDialog.superclass.constructor.call(this, config);
     }
 });
 

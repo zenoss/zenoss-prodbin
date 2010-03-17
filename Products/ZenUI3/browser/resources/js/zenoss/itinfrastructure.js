@@ -418,6 +418,137 @@ Ext.apply(Zenoss.devices, {
             });
             win.show();
         }
+    }),
+    addDevice: new Zenoss.Action({
+        text: _t('Add a Single Device') + '...',
+        id: 'addsingledevice-item',
+        permissions: 'Manage DMD',
+        handler: function(btn, e) {
+            var selnode = treesm.getSelectedNode(),
+                isclass = Zenoss.types.type(selnode.attributes.uid)=='DeviceClass',
+                grpText = selnode.attributes.text.text;
+                var win = new Zenoss.DirectSubmitFormDialog({
+                    formPanelButtons: true,
+                    formId: 'myform',
+                    monitorValid: true,
+                    title: _t('Add a Single Device'),
+                    modal: true,
+                    items: [{
+                        xtype: 'textfield',
+                        name: 'deviceName',
+                        fieldLabel: _t('Name or IP'),
+                        id: "add-device-name",
+                        allowBlank: false
+                    }, {
+                        xtype: 'combo',
+                        name: 'deviceClass',
+                        fieldLabel: _t('Device Class'),
+                        id: 'add-device_class',
+                        store: new Ext.data.DirectStore({
+                            id: 'deviceClassStore',
+                            root: 'deviceClasses',
+                            totalProperty: 'totalCount',
+                            fields: ['name'],
+                            directFn: REMOTE.getDeviceClasses
+                        }),
+                        triggerAction: 'all',
+                        selectOnFocus: true,
+                        valueField: 'name',
+                        displayField: 'name',
+                        forceSelection: true,
+                        editable: false,
+                        allowBlank: false,
+                        listeners: {
+                            'render': function(component) {
+                                var selnode = treesm.getSelectedNode();
+                                var type = Zenoss.types.type(selnode.attributes.uid);
+                                var isclass = type === 'DeviceClass';
+                                if(selnode.attributes.uid === "/zport/dmd/Devices" ){
+                                    //root node doesn't have a path attr
+                                    component.setValue('/');
+                                }
+                                else if (isclass) {
+                                    var path = selnode.attributes.path;
+                                    path = path.replace(/^Devices/,'');
+                                    component.setValue(path);
+                                }
+                            }
+                        }
+                    }, {
+                        xtype: 'combo',
+                        name: 'collector',
+                        fieldLabel: _t('Collector'),
+                        id: 'add-device-collector',
+                        mode: 'local',
+                        store: new Ext.data.ArrayStore({
+                            data: Zenoss.env.COLLECTORS,
+                            fields: ['name']
+                        }),
+                        valueField: 'name',
+                        displayField: 'name',
+                        forceSelection: true,
+                        editable: false,
+                        allowBlank: false
+                     },{
+                        xtype: 'checkbox',
+                        name: 'useAutoDiscover',
+                        fieldLabel: _t('Auto Discover'),
+                        id: 'add-device-protocol',
+                        checked: true
+                     },{
+                         xtype: 'textfield',
+                         name: 'snmpCommunity',
+                         fieldLabel:'Snmp Community'
+                     },{
+                         xtype:'numberfield',
+                         name: 'snmpPort',
+                         fieldLabel: 'Snmp Port',
+                         allowNegative: false,
+                         allowDecimals: false,
+                         maxValue: 65535
+                     }
+                    ],
+                    buttons: [{
+                        xtype: 'DialogButton',
+                        id: 'addsingledevice-submit',
+                        text: _t('Add'),
+                        formBind: true,
+                        handler: function(b) {
+                            var form = b.ownerCt.ownerCt.getForm();
+                            var opts = form.getValues();
+                            Zenoss.remote.DeviceRouter.addDevice(opts, 
+                            function(response) {
+                                var success = response.success;
+                                if (success){
+                                    var dialog = 
+                                    new Zenoss.dialog.SimpleMessageDialog({
+                                        message: 'Add Device Job submitted',
+                                        buttons: [{
+                                            xtype:'DialogButton',
+                                            text: _t('OK')
+                                        },{
+                                            xtype:'button',
+                                            text: _t('View Job Log'),
+                                            handler: function(){
+                                                var url = 
+                                                '/zport/dmd/JobManager/jobs/' +
+                                                response.jobId +'/viewlog';
+                                                window.location = url;
+                                            }
+                                        }
+                                        ]
+                                    });
+                                    dialog.show();
+                                }
+                                var jobId = response.jobId;
+                                Zenoss.message('add device submitted', success);
+                            });
+                            
+                        }
+                    }, Zenoss.dialog.CANCEL]
+                });
+            win.show();
+        }
     })
 });
 
@@ -671,7 +802,9 @@ Ext.getCmp('center_panel').add({
                     id: 'adddevice-button',
                     iconCls: 'adddevice',
                     disabled: Zenoss.Security.doesNotHavePermission("Manage DMD"),
-                    handler: null
+                    menu:{
+                        items: [Zenoss.devices.addDevice]
+                    }
                 }, Zenoss.devices.deleteDevices,
                     /*
                     id: 'add-button',

@@ -86,8 +86,8 @@ class IJobManager(Interface):
         """
         Create an instance of C{klass}, which must implement L{IJob}.
 
-        @return: A Job instance.
-        @rtype: IJob
+        @return: A JobStatus instance.
+        @rtype: IJobStatus
         """
     def getJobStatus(job):
         """

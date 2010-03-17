@@ -257,3 +257,18 @@ class DeviceRouter(TreeRouter):
     def getCollectors(self):
         return self.context.dmd.Monitors.getPerformanceMonitorNames()
 
+    def getDeviceClasses(self, **data):
+        deviceClasses = self.context.dmd.Devices.getOrganizerNames(addblank=True)
+        result = [{'name': name} for name in deviceClasses];
+        return DirectResponse(deviceClasses=result, totalCount=len(result))
+
+    def addDevice(self, deviceName, deviceClass, snmpCommunity="", snmpPort=161,
+                  useAutoDiscover= True, collector='localhost'):
+        jobStatus = self._getFacade().addDevice(deviceName, 
+                                               deviceClass, 
+                                               snmpCommunity, 
+                                               snmpPort,
+                                               useAutoDiscover,
+                                               collector)
+        return DirectResponse(jobId=jobStatus.id)
+        

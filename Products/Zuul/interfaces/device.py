@@ -163,3 +163,26 @@ class IDeviceFacade(IFacade):
         @type uids: str
         @rtype: void
         """
+
+    def addDevice(deviceName, deviceClass, snmpCommunity="", snmpPort=161,
+                  useAutoDiscover=True, collector='localhost'):
+        """
+        Add a device using the deviceName and deviceClass
+        
+        @param deviceName: host name or IP of the device
+        @type deviceName: string
+        @param deviceClass: path for device creation, e.g. /Server/Linux
+        @type deviceClass: string
+        @param snmpCommunity: snmp community to use
+        @type snmpCommunity: string
+        @param snmpPort: port to use for snmp
+        @type snmpPort: int
+        @param useAutoDiscover: Try to discover information for the device: if 
+                                false the device will be created without any 
+                                network discovery
+        @type useAutoDiscover: boolean
+        @param collector: name of the collector for the device
+        @type collector: string
+        @rtype: IJobStatus
+        
+        """

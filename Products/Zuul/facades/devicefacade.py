@@ -23,6 +23,7 @@ from Products.ZenModel.DeviceGroup import DeviceGroup
 from Products.ZenModel.System import System
 from Products.ZenModel.Location import Location
 from Products.ZenModel.DeviceClass import DeviceClass
+from Products.ZenModel.ZDeviceLoader import DeviceCreationJob
 
 
 class DeviceFacade(TreeFacade):
@@ -208,3 +209,15 @@ class DeviceFacade(TreeFacade):
         elif isinstance(target, DeviceClass):
             self._dmd.Devices.moveDevices(targetname,[dev.id for dev in devs])
 
+    def addDevice(self, deviceName, deviceClass, snmpCommunity="", snmpPort=161,
+                  useAutoDiscover=False, collector='localhost'):
+        zProps = dict(zSnmpCommunity=snmpCommunity,
+                           zSnmpPort=snmpPort)
+        discoverProtocol = useAutoDiscover and "Auto" or "none"
+        jobStatus = self._dmd.JobManager.addJob(DeviceCreationJob,
+                                               deviceName=deviceName,
+                                               devicePath=deviceClass,
+                                               performanceMonitor=collector,
+                                               discoverProto='Auto',
+                                               zProperties = zProps)
+        return jobStatus
