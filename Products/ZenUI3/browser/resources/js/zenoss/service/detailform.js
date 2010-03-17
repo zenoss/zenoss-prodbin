@@ -19,7 +19,7 @@ Ext.onReady( function() {
      * Service Panel Functionality
      *
      */
-                 
+
     var zs = Ext.ns('Zenoss.Service.DetailForm');
 
     /**
@@ -54,10 +54,13 @@ Ext.onReady( function() {
     };
 
     zs.saveForm = function(button, event) {
+        var form, values, navGridModel, navGridRecord;
 
         // Submit the form.
-        var form = Ext.getCmp('serviceForm').getForm();
-        var values = Ext.apply({uid: form.contextUid}, form.getValues());
+        form = Ext.getCmp('serviceForm').getForm();
+        values = Ext.apply({
+            uid: Ext.getCmp('serviceForm').contextUid
+        }, form.getValues());
         values = Ext.applyIf(values, {
             isMonitoringAcquired: 'off',
             monitor: 'off',
@@ -66,8 +69,8 @@ Ext.onReady( function() {
         form.api.submit(values);
 
         // Update the record in the navigation grid.
-        var navGridModel = Ext.getCmp('navGrid').getSelectionModel();
-        var navGridRecord = navGridModel.getSelected();
+        navGridModel = Ext.getCmp('navGrid').getSelectionModel();
+        navGridRecord = navGridModel.getSelected();
 
         if (navGridRecord)
         {
