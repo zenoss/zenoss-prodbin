@@ -646,7 +646,7 @@ def sendEmail(emsg, host, port=25, usetls=0, usr='', pwd=''):
     """
     import smtplib
     fromaddr = emsg['From']
-    toaddr = emsg['To'].split(', ')
+    toaddr = map(lambda x: x.strip(), emsg['To'].split(','))
     try:
         server = smtplib.SMTP(host, port)
         if usetls:
