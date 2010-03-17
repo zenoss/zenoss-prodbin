@@ -38,7 +38,7 @@
 
     <browser:viewlet
         name="Dashboard"
-        url="/zport/dmd/dashboard"
+        url="/zport/dmd/Dashboard"
         weight="0"
         manager="..navigation.interfaces.IPrimaryNavigationMenu"
         class="..navigation.menuitem.PrimaryNavigationMenuItem"

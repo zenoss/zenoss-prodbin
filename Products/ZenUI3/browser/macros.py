@@ -37,6 +37,8 @@ class PageTemplateMacros(BrowserView):
                                'masterdetailnested'),
         'verticalbrowse':     ('templates/verticalbrowse.pt',
                                'verticalbrowse'),
+        'old-new-no-tabs':    ('templates/old-new.pt',
+                               'old-new-no-tabs'),
         'old-new':            ('templates/old-new.pt',
                                'old-new')
     }

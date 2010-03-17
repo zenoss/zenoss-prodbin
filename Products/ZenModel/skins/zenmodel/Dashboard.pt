@@ -1,4 +1,4 @@
-<tal:block metal:use-macro="here/templates/macros/page1">
+<tal:block metal:use-macro="here/page_macros/old-new-no-tabs">
 <tal:block metal:fill-slot="title">Zenoss: Dashboard</tal:block>
 <tal:block metal:fill-slot="infoBar">
    <div style="float:right; padding:0px; 
@@ -21,16 +21,31 @@
 <script tal:define="settings python:here.ZenUsers.getUserSettings();
                     json settings/dashboardState | string:null"
     tal:content="string:
+    var start_time = '${here/server_time}';
     var state = '${settings/dashboardState}';
     if(state) var dashboardState = evalJSON(state);
 "></script>
 <script>
+var server_time = isoTimestamp(start_time).getTime();
+var updateTime = {
+    run: function () {
+        server_time += 1000;
+    },
+    interval: 1000
+}
+Ext.TaskMgr.start(updateTime);
+
+function getServerTimestamp() {
+    var server_now = new Date(server_time);
+    return toISOTimestamp(server_now);
+}
+
 // Initialization of dashboard portlets
 var ContainerObject;
 function initDashboardPortlets() {
     ContainerObject = new YAHOO.zenoss.portlet.PortletContainer(
         'portletContainer');
-   YAHOO.zenoss.globalPortletContainer = ContainerObject;
+    YAHOO.zenoss.globalPortletContainer = ContainerObject;
     if (dashboardState) {
         ContainerObject.restore(dashboardState);
     } else {

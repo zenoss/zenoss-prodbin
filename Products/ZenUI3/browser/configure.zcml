@@ -74,13 +74,6 @@
 
 <browser:page
     template="templates/base-new.pt"
-    name="dashboard"
-    for="*"
-    permission="zenoss.View"
-    />
-
-<browser:page
-    template="templates/base-new.pt"
     name="nocview"
     for="*"
     permission="zenoss.View"

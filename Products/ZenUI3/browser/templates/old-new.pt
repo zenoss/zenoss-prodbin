@@ -13,7 +13,7 @@
 ###########################################################################
 -->
 
-<tal:block metal:define-macro="old-new">
+<tal:block metal:define-macro="old-new-no-tabs">
 <tal:block metal:use-macro="context/page_macros/base-new">
 
 <tal:block metal:fill-slot="head-local">
@@ -24,12 +24,13 @@
     <tal:block metal:use-macro="here/dialogmacros/macros/proxyForm"/>
     <tal:block metal:use-macro="here/dialogmacros/macros/dialog_with_buttons"/>
     <div id="oldContentPane" style="margin: 7px;">
-        <div metal:use-macro="here/templates/macros/newTabsPane"/>
-        <div style="background-color: #E0E0E0;
-                    border: 1px solid black;
-                    padding: 7px;">
-            <tal:block metal:define-slot="contentPane"/>
-        </div>
+        <tal:block metal:define-slot="center_content">
+            <div style="background-color: #E0E0E0;
+                        border: 1px solid black;
+                        padding: 7px;">
+                <tal:block metal:define-slot="contentPane"/>
+            </div>
+        </tal:block>
     </div>
 </tal:block>
 
@@ -45,4 +46,20 @@ Ext.onReady(function(){
 </tal:block>
 
 </tal:block> <!-- metal:use-macro="context/page_macros/base-new" -->
+</tal:block>
+
+
+<tal:block metal:define-macro="old-new">
+<tal:block metal:use-macro="context/page_macros/old-new-no-tabs">
+
+<tal:block metal:fill-slot="center_content">
+    <div metal:use-macro="here/templates/macros/newTabsPane"/>
+    <div style="background-color: #E0E0E0;
+                border: 1px solid black;
+                padding: 7px;">
+        <tal:block metal:define-slot="contentPane"/>
+    </div>
+</tal:block>
+
+</tal:block> <!-- metal:use-macro="context/page_macros/old-new-no-tabs" -->
 </tal:block>
