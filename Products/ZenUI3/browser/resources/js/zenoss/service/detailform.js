@@ -70,7 +70,9 @@ Ext.onReady( function() {
         var navGridRecord = navGridModel.getSelected();
 
         if (navGridRecord)
+        {
             Zenoss.util.applyNotIf(navGridRecord.data, values);
+        }
 
         // setValues makes isDirty return false
         form.setValues(values);

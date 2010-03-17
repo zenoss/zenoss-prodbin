@@ -81,12 +81,12 @@ class DirectRouter(object):
         directResponses = []
         for directRequest in directRequests:
             directResponses.append(self._processDirectRequest(directRequest))
-            
+
         if len(directResponses) == 1:
             directResponses = directResponses[0]
 
         return json.dumps(directResponses, encoding='iso-8859-1')
-        
+
     def _processDirectRequest(self, directRequest):
 
         # Double-check that this request is meant for this class
@@ -118,7 +118,7 @@ class DirectRouter(object):
 
         if isinstance(data, (int, basestring)):
             data = {'id': data}
-        
+
         # Cast all keys as strings, in case of encoding or other wrinkles
         data = dict((str(k), v) for k,v in data.iteritems())
         self._data = data

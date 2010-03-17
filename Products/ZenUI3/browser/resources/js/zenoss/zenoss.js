@@ -48,7 +48,7 @@ Ext.Direct.on('event', function(e){
 
 Ext.Direct.on('exception', function(e) {
     Ext.Msg.show({
-        title: 'Server Exception', 
+        title: 'Server Exception',
         msg:e.message,
         buttons:Ext.Msg.OK,
         minWidth: 300,
@@ -160,7 +160,7 @@ Zenoss.PostRefreshHookableDataView = Ext.extend(Ext.DataView, {
             'afterrefresh');
     }
 });
-     
+
 Ext.extend(Zenoss.PostRefreshHookableDataView, Ext.DataView, {
     /**
      * This won't survive upgrade.
@@ -456,7 +456,7 @@ Zenoss.FilterGridView = Ext.extend(Ext.ux.grid.livegrid.GridView, {
                 validationDelay: 500,
                 validateOnBlur: false
             });
-             
+
             var filter = new Ext.ComponentMgr.create(config);
             if (this.lastOptions) {
                 var newValue = this.lastOptions[fieldid];
@@ -464,15 +464,15 @@ Zenoss.FilterGridView = Ext.extend(Ext.ux.grid.livegrid.GridView, {
             }
             filter.setWidth('100%');
             this.filters[this.filters.length] = filter;
-            
+
             filter.liveSearchTask = new Ext.util.DelayedTask(function() {
                 this.validFilter('');
             }, this);
-            
+
             if (filter instanceof Ext.form.TextField) {
                 filter.on('valid', this.validFilter, this);
             }
-            
+
             if (filter instanceof Zenoss.MultiselectMenu) {
                 filter.on('select', function(field, e) {
                     this.liveSearchTask.delay(500);
@@ -784,7 +784,7 @@ Zenoss.StatefulRefreshMenu = Ext.extend(Ext.menu.Menu, {
         var savedIntveral = interval[0] || 60;
         var items = this.items.items;
         Ext.each(items, function(item) {
-            if (item.value == savedIntveral) 
+            if (item.value == savedIntveral)
                 item.setChecked(true);
         }, this);
         this.trigger.on('afterrender', function() {
@@ -975,7 +975,7 @@ Zenoss.DetailPanel = Ext.extend(Ext.Panel, {
                     xtype: 'button',
                     type: 'submit',
                     name: 'add',
-                    hidden: Zenoss.Security.doesNotHavePermission('Manage Events'),                 
+                    hidden: Zenoss.Security.doesNotHavePermission('Manage Events'),
                     text: 'Add',
                     handler: function(btn, e){
                         var form = Ext.getCmp('log-container'),
@@ -1025,7 +1025,7 @@ Zenoss.DetailPanel = Ext.extend(Ext.Panel, {
         // For the Event Detail Page, set up the page
         // links. This is to make sure they link to the correct place
         // when we go to the new UI
-        
+
         // device_link
         event.device_link = Zenoss.render.Device(event.device_url,
                                                 event.device_title);
@@ -1036,11 +1036,11 @@ Zenoss.DetailPanel = Ext.extend(Ext.Panel, {
         }else {
             event.component_link = event.component_title;
         }
-        
+
         // eventClass_link
         event.eventClass_link = Zenoss.render.EventClass(event.eventClass,
                                                         event.eventClass);
-        
+
         var top_prop_template = new
             Ext.XTemplate.from('detail_table_template');
         var full_prop_template = new
@@ -1050,8 +1050,8 @@ Zenoss.DetailPanel = Ext.extend(Ext.Panel, {
             html = top_prop_template.applyTemplate(event),
             prophtml = full_prop_template.applyTemplate(event),
             loghtml = log_template.applyTemplate(event);
-        
-        
+
+
         this.setSummary(event.summary);
         this.setSeverityIcon(severity);
         Ext.getCmp('evdetail_props').el.update(html);
@@ -1195,7 +1195,7 @@ Zenoss.util.render_severity = function(sev) {
 Zenoss.util.render_status = function(stat) {
     return Zenoss.render.evstatus(stat);
 };
-     
+
 Zenoss.util.render_linkable = function(name, col, record) {
     var url = record.data[col.id + '_url'];
     var title = record.data[col.id + '_title'] || name;
@@ -1208,7 +1208,7 @@ Zenoss.util.render_linkable = function(name, col, record) {
 
 
 Zenoss.util.render_device_group_link = function(name, col, record) {
-    
+
     var links = record.data.DeviceGroups.split('|'),
         returnString = "",
         link = undefined;
@@ -1219,7 +1219,7 @@ Zenoss.util.render_device_group_link = function(name, col, record) {
             returnString +=  '&nbsp;|&nbsp;' + Zenoss.render.DeviceGroup(link, link) ;
         }
     }
-    
+
     return returnString;
 };
 
@@ -1309,7 +1309,7 @@ Zenoss.util.setContext = function(uid) {
     });
 };
 /**
- * Return an array filtered by function argument; Filter function should 
+ * Return an array filtered by function argument; Filter function should
  * return true if a value should be included in the filtered result
  * @param {Object} arr; array to be filtered
  * @param {Object} filterFn; function used to filter
@@ -1326,7 +1326,25 @@ Zenoss.util.filter = function(arr, filterFn, scope) {
 };
 
 /**
- * This converts server side types to Ext Controls, 
+ * Copies all the properties of values to orig only if they already exist.
+ * @param {Object} orig The receiver of the properties
+ * @param {Object} values The source of the properties
+ * @return {Object} returns orig
+ **/
+Zenoss.util.applyNotIf = function(orig, values) {
+    var k;
+    if (orig) {
+        for (k in values) {
+            if (k in orig) {
+                orig[k] = values[k];
+            }
+        }
+    }
+    return orig;
+};
+
+/**
+ * This converts server side types to Ext Controls,
  * it first looks for specific types based on the field name
  * and then reverts to a translation of the type.
  * @param {string} fieldId the "name" of the field (e.g. eventClass)
@@ -1355,13 +1373,13 @@ Zenoss.util.getExtControlType = function(fieldId, type) {
     if (customControls[fieldId]) {
         return customControls[fieldId];
     }
-    
+
     // default to "textfield" if we don't have it set up yet"
     return (types[type] || 'textfield');
 };
 
 /**
- * Proxy that will only allow one request to be loaded at a time.  Requests 
+ * Proxy that will only allow one request to be loaded at a time.  Requests
  * made while the proxy is already loading a previous requests will be discarded
  */
 Zenoss.ThrottlingProxy = Ext.extend(Ext.data.DirectProxy, {

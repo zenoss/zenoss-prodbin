@@ -336,7 +336,7 @@ var processFormConfig = {
             id: 'saveButton',
             text: _t('Save'),
             iconCls: 'save',
-            
+
             handler: function(button, event) {
                 var processTree = Ext.getCmp(treeId);
                 var selectionModel = processTree.getSelectionModel();

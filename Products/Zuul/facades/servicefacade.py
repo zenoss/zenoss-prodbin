@@ -14,15 +14,13 @@
 import logging
 from itertools import imap
 from zope.interface import implements
-from Products.AdvancedQuery import MatchRegexp, And, Or, Eq, Between
+from Products.AdvancedQuery import MatchRegexp, And
 from Products.ZenModel.ServiceClass import ServiceClass
 from Products.ZenModel.ServiceOrganizer import ServiceOrganizer
-from Products.ZenModel.Service import Service
 from Products.Zuul.facades import TreeFacade
-from Products.Zuul.utils import resolve_context, unbrain
-from Products.Zuul.interfaces import ITreeFacade
-from Products.Zuul.interfaces import IServiceFacade
-from Products.Zuul.interfaces import IServiceInfo, IInfo, ICatalogTool
+from Products.Zuul.utils import unbrain
+from Products.Zuul.interfaces import ITreeFacade, IServiceFacade
+from Products.Zuul.interfaces import IInfo, ICatalogTool
 from Products.Zuul.tree import SearchResults
 from Acquisition import aq_base
 
@@ -57,11 +55,10 @@ class ServiceFacade(TreeFacade):
         elif isinstance(obj, ServiceOrganizer):
             parent = aq_base(obj.getParentNode())
         else:
-            parent = None
+            raise Exception('Illegal type %s' % obj.__class__.__name__)
 
         info = IInfo(parent)
         return info
-
 
     def getList(self, limit=0, start=0, sort='name', dir='DESC',
               params=None, uid=None, criteria=()):
@@ -79,9 +76,9 @@ class ServiceFacade(TreeFacade):
             query = And(*qs)
 
         brains = cat.search("Products.ZenModel.ServiceClass.ServiceClass",
-                            start=start, limit=limit,
-                            orderby=sort, reverse=reverse, query=query)
+                            start=start, limit=limit, orderby=sort,
+                            reverse=reverse, query=query)
+
         objs = imap(unbrain, brains)
         infos = imap(IInfo, objs)
-        # convert to info objects
         return SearchResults(infos, brains.total, brains.hash_)

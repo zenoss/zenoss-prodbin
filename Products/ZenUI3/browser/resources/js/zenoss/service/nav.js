@@ -22,6 +22,114 @@ Ext.onReady( function() {
      *
      */
 
+    zs.addServiceClassDialogSubmit = function(values)
+    {
+        var grid = Ext.getCmp('navGrid'),
+            view = grid.getView(),
+            store = grid.getStore(),
+            params = {
+                type:'class',
+                contextUid: view.contextUid,
+                id: values.idTextfield,
+                posQuery: view.getFilterParams()
+        };
+
+        function callback(p, response){
+            var result = response.result;
+            if (result.success) {
+                var newRowPos = result['newIndex'];
+                store.on('load', function(){
+                    view.focusRow(newRowPos);
+                    grid.getSelectionModel().selectRow(newRowPos);},
+                    store, { single: true });
+                view.updateLiveRows(newRowPos, true, true, false);
+            } else {
+                Ext.Msg.alert('Error', result.msg);
+            }
+        }
+
+        Zenoss.remote.ServiceRouter.addNode(params, callback);
+    };
+
+    zs.deleteServiceClassDialogSubmit = function(values)
+    {
+        var grid = Ext.getCmp('navGrid'),
+            view = grid.getView(),
+            store = grid.getStore(),
+            selected = grid.getSelectionModel().getSelected();
+
+        if (selected) {
+            var params = {
+                uid: selected.data.uid
+            };
+
+            function callback(p, response){
+                var result = response.result;
+                if (result.success) {
+                    var newRowPos = view.rowIndex;
+                    store.on('load', function(){
+                        view.focusRow(newRowPos);
+                        grid.getSelectionModel().selectRow(newRowPos);},
+                        store, { single: true });
+                    view.updateLiveRows(newRowPos, true, true, false);
+                } else {
+                    Ext.Msg.alert('Error', result.msg);
+                }
+            }
+            Zenoss.remote.ServiceRouter.deleteNode(params, callback);
+        } else {
+            Ext.Msg.alert('Error', 'Must select an item in the list.');
+        }
+    };
+
+    zs.addClassDialog = new Zenoss.SmartFormDialog({
+        id: 'addServiceClassDialog',
+        title: _t('Add Service Class'),
+        items: {
+            xtype: 'textfield',
+            id: 'idTextfield',
+            fieldLabel: _t('ID'),
+            allowBlank: false
+        },
+        saveHandler: zs.addServiceClassDialogSubmit
+    });
+
+    zs.deleteClassDialog = new Zenoss.MessageDialog({
+        id: 'deleteServiceClassDialog',
+        title: _t('Delete Service Class'),
+        message: _t('The selected Service Class will be deleted.'),
+        okHandler: zs.deleteServiceClassDialogSubmit
+    });
+
+    zs.addServiceClassButtonHandler = function() {
+        zs.addClassDialog.show();
+    };
+
+    zs.deleteServiceClassButtonHandler = function() {
+        zs.deleteClassDialog.show();
+    };
+
+    zs.gridFooterBar = {
+        xtype: 'toolbar',
+        id: 'footer_bar',
+        border: false,
+        items: [
+            {
+                id: 'addButton',
+                iconCls: 'add',
+                disabled: Zenoss.Security.doesNotHavePermission('Manage DMD'),
+                tooltip: 'Add a child to the selected organizer',
+                handler: zs.addServiceClassButtonHandler
+            }, {
+                id: 'deleteButton',
+                iconCls: 'delete',
+                disabled: Zenoss.Security.doesNotHavePermission('Manage DMD'),
+                tooltip: 'Delete the selected node',
+                handler: zs.deleteServiceClassButtonHandler
+            }
+        ]
+    };
+
     // implements SelectionModel:rowselect event
     zs.navSelectHandler = function(sm, rowIndex, dataRecord) {
         var uid = dataRecord.data.uid;
@@ -99,6 +207,7 @@ Ext.onReady( function() {
         })
     };
 
+
     zs.initNav = function(initialContext) {
         var columnModel, store, config;
 
@@ -106,6 +215,8 @@ Ext.onReady( function() {
         columnModel = new Ext.grid.ColumnModel(zs.columnModelConfig);
 
         store.on('load', zs.loadHandler, store, { single: true });
+
+        Ext.getCmp('footer_panel').add(new Ext.Toolbar(zs.gridFooterBar));
 
         config = Ext.apply(zs.gridConfig, {
             store: store,

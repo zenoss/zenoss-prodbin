@@ -20,7 +20,7 @@ Ext.ns('Zenoss', 'Zenoss.dialog');
 /**
  * @class BaseDialog
  * @extends Ext.Window
- * A modal dialog with Zenoss styling. Subclasses should specify a layout. 
+ * A modal dialog with Zenoss styling. Subclasses should specify a layout.
  * @constructor
  */
 var BaseDialog = Ext.extend(Ext.Window, {
@@ -72,7 +72,7 @@ Zenoss.dialog.HideDialogButton = Ext.extend(Ext.Button, {
     constructor: function(config) {
         var h = config.handler;
         config.handler = h ? h.createSequence(hideWindow) : hideWindow;
-        Zenoss.dialog.DialogButton.superclass.constructor.call(this, config);
+        Zenoss.dialog.HideDialogButton.superclass.constructor.call(this, config);
     }
 });
 
@@ -151,7 +151,7 @@ Zenoss.dialog.SimpleMessageDialog = Ext.extend(BaseDialog, {
  */
 Zenoss.FormDialog = Ext.extend(Ext.Window, {
     constructor: function(config) {
-        var form = new Ext.form.FormPanel({
+        this.form = new Ext.form.FormPanel({
             border: false,
             id: config.formId,
             minWidth: 300,
@@ -170,7 +170,7 @@ Zenoss.FormDialog = Ext.extend(Ext.Window, {
             items: config.items,
             html: config.html
         });
-        config.items = form;
+        config.items = this.form;
         Ext.applyIf(config, {
             layout: 'fit',
             plain: true,
@@ -250,6 +250,77 @@ Zenoss.HideFormDialog = Ext.extend(BaseDialog, {
         Zenoss.HideFormDialog.superclass.constructor.call(this, config);
     }
 });
+
+/**
+ * @class Zenoss.SmartFormDialog
+ * @extends FormDialog
+ * A modal dialog window with Zenoss styling and a form layout.  This window
+ * meant to be instantiated once per page, and hidden each time the user
+ * closes it.  It smartly cleans up it's own form items when "hidden" and
+ * provides a better handler mechanism for the callback, returning an object
+ * with properties of all form values.
+ * @constructor
+ */
+
+Zenoss.SmartFormDialog = Ext.extend(Zenoss.FormDialog, {
+
+    constructor: function(config) {
+        var createSaveHandler, handleEnterKey;
+
+        createSaveHandler = function(callbackFunction) {
+            return function() {
+                var values = this.form.getForm().getFieldValues();
+                return callbackFunction(values);
+            }.createDelegate(this);
+        }.createDelegate(this);
+
+        handleEnterKey = function() {
+            var first = this.buttons[0];
+            if (first) {
+                first.handler(first);
+            }
+        }.createDelegate(this);
+
+        config.listeners = Ext.applyIf(config.listeners || {}, {
+            hide: function(me) {
+                Ext.each(me.form.getForm().items.items, function(field){
+                    field.setValue(null);
+                });
+            },
+            show: function(me) {
+                var first = me.form.getForm().items.items[0];
+                if (first)
+                {
+                    // TODO: there is currently a bug in our tooltips
+                    // that causes this to lose focus after it momentarily
+                    // gains focus.
+                    first.focus();
+                }
+            }
+        });
+        this.listeners = config.listeners;
+
+        config = Ext.applyIf(config, {
+            buttons: [{
+                xtype: 'HideDialogButton',
+                text: _t('Submit'),
+                type:'submit',
+                handler: createSaveHandler(config.saveHandler)
+             }, {
+                xtype: 'HideDialogButton',
+                text: _t('Cancel')
+            }],
+            keys: {
+                key: Ext.EventObject.ENTER,
+                handler: handleEnterKey,
+                scope: this
+            }
+        });
+
+        Zenoss.SmartFormDialog.superclass.constructor.call(this, config);
+    }
+});
+
 
 /**
  * @class Zenoss.HideFitDialog
