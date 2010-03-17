@@ -549,6 +549,17 @@ Ext.apply(Zenoss.devices, {
                 });
             win.show();
         }
+    }),
+    addMultiDevicePopUP: new Zenoss.Action({
+        text: _t('Add Multiple Devices') + '...',
+        id: 'addmultipledevices-item',
+        permission: 'Manage DMD',
+        handler: function(btn, e){
+            Ext.util.Cookies.set('newui', 'yes');
+            
+            window.open('/zport/dmd/easyAddDevice', "multi-add",
+            "menubar=0,toolbar=0,resizable=0,height=600, width=800,location=0");
+        }
     })
 });
 
@@ -803,25 +814,12 @@ Ext.getCmp('center_panel').add({
                     iconCls: 'adddevice',
                     disabled: Zenoss.Security.doesNotHavePermission("Manage DMD"),
                     menu:{
-                        items: [Zenoss.devices.addDevice]
+                        items: [
+                        Zenoss.devices.addDevice, 
+                        Zenoss.devices.addMultiDevicePopUP
+                        ]
                     }
                 }, Zenoss.devices.deleteDevices,
-                    /*
-                    id: 'add-button',
-                    iconCls: 'add'
-                },{
-                    id: 'set-button',
-                    iconCls: 'set'
-                }, '-', {
-                    id: 'import-button',
-                    iconCls: 'import'
-                },{
-                    id: 'export-button',
-                    iconCls: 'export'
-                },{
-                    id: 'configure-button',
-                    iconCls: 'configure'
-                    */
                 '->', 
                 {
                     id: 'actions-menu',
