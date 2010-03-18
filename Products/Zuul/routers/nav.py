@@ -22,14 +22,12 @@ class DetailNavRouter(DirectRouter):
         def filterFn(menu):
             return not menu.isdialog
         items = filter(filterFn, self._getMenuItems(menuIds, ob))
-        print("filtered dialogs %s" % items)
         return items
     
     def _getDialogMenuItems(self, menuIds, ob):
         def filterFn(menu):
             return menu.isdialog
         items = filter(filterFn, self._getMenuItems(menuIds, ob))
-        print("filtered dialogs %s" % items)
         return items
 
     def _getMenuItems(self, menuIds, ob):
@@ -43,7 +41,6 @@ class DetailNavRouter(DirectRouter):
             for menuItems in menus:
                 for menuItem in menuItems:
                     linkMenus.append(menuItem)
-        print ("non filtered for %s %s" % (menuIds, linkMenus))
         return linkMenus
 
     def getDetailNavConfigs(self, uid=None, menuIds=None):
