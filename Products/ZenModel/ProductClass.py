@@ -83,12 +83,12 @@ class ProductClass(ZenModelRM, ZenPackable):
                 },
                 { 'id'            : 'config'
                 , 'name'          : 'zProperties'
-                , 'action'        : 'zPropertyEdit'
+                , 'action'        : 'zPropertyEditNew'
                 , 'permissions'   : ("Manage DMD",)
                 },
                 { 'id'            : 'viewHistory'
                 , 'name'          : 'Modifications'
-                , 'action'        : 'viewHistory'
+                , 'action'        : 'viewNewHistory'
                 , 'permissions'   : (ZEN_VIEW_MODIFICATIONS,)
                 },
             )

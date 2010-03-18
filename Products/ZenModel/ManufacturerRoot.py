@@ -82,7 +82,7 @@ class ManufacturerRoot(ZenModelItem, PrimaryPathBTreeFolder2, ZenPacker):
                 },
                 { 'id'            : 'viewHistory'
                 , 'name'          : 'Modifications'
-                , 'action'        : 'viewHistory'
+                , 'action'        : 'viewNewHistory'
                 , 'permissions'   : (ZEN_VIEW_MODIFICATIONS,)
                 },
             )

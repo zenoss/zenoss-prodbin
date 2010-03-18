@@ -122,4 +122,61 @@
     permission="zenoss.View"
     />
 
+<browser:defaultView
+    for="Products.ZenModel.ManufacturerRoot.ManufacturerRoot"
+    name="viewManufacturers"
+    />
+
+<browser:page
+    template="../../ZenModel/skins/zenmodel/viewManufacturers.pt"
+    name="viewManufacturers"
+    for="*"
+    permission="zenoss.View"
+    />
+
+<browser:defaultView
+    for="Products.ZenModel.Manufacturer.Manufacturer"
+    name="viewManufacturerOverview"
+    />
+
+<browser:page
+    template="../../ZenModel/skins/zenmodel/viewManufacturerOverview.pt"
+    name="viewManufacturerOverview"
+    for="*"
+    permission="zenoss.View"
+    />
+
+<browser:page
+    template="../../ZenModel/skins/zenmodel/editManufacturer.pt"
+    name="editManufacturer"
+    for="*"
+    permission="zenoss.View"
+    />
+
+<browser:page
+    template="../../ZenModel/skins/zenmodel/zPropertyEditNew.pt"
+    name="zPropertyEditNew"
+    for="*"
+    permission="zenoss.View"
+    />
+
+<browser:defaultView
+    for="Products.ZenModel.ProductClass.ProductClass"
+    name="viewProductClassOverview"
+    />
+
+<browser:page
+    template="../../ZenModel/skins/zenmodel/viewProductClassOverview.pt"
+    name="viewProductClassOverview"
+    for="*"
+    permission="zenoss.View"
+    />
+
+<browser:page
+    template="../../ZenModel/skins/zenmodel/editProductClass.pt"
+    name="editProductClass"
+    for="*"
+    permission="zenoss.View"
+    />
+
 </configure>

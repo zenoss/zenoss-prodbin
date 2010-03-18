@@ -185,10 +185,6 @@ class Software(MEProduct):
         self._installDate.setDate(value)
 
 
-    def getDeviceLink(self, screen='deviceSoftwareDetail'):
-        return super(Software, self).getDeviceLink(screen)
-
-
     def device(self):
         """Return our Device for DeviceResultInt.
         """

@@ -105,5 +105,8 @@ class MEProduct(ManagedEntity):
         
         return result
         
+
+    def getDeviceLink(self, screen='devicedetail'):
+        return super(MEProduct, self).getDeviceLink(screen)
         
 InitializeClass(MEProduct)

@@ -81,10 +81,6 @@ class Hardware(MEProduct):
             self.productClass.addRelation(prodobj)
         else:
             self.productClass.removeRelation()
-    
-    
-    def getDeviceLink(self, screen='deviceHardwareDetail'):
-        return super(Hardware, self).getDeviceLink(screen)
 
 
 InitializeClass(Hardware)

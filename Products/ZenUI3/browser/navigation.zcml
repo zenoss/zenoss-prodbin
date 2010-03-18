@@ -167,6 +167,17 @@
             layer="zenossNav"
             />
 
+        <browser:viewlet
+            name="Manufacturers"
+            url="/zport/dmd/Manufacturers"
+            weight="7"
+            parentItem="IT Infrastructure"
+            manager="..navigation.interfaces.ISecondaryNavigationMenu"
+            class="..navigation.menuitem.SecondaryNavigationMenuItem"
+            permission="zope2.Public"
+            layer="zenossNav"
+            />
+
 
     <browser:viewlet
         name="Reports"
