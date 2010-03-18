@@ -18,7 +18,7 @@
 
 var ZF = Ext.ns('Zenoss.form');
 
-ZF.AutoFormPanel = Ext.extend(Ext.form.FormPanel, {});
+ZF.AutoFormPanel = Ext.extend(ZF.BaseDetailForm, {});
 
 Ext.reg('autoformpanel', ZF.AutoFormPanel);
 
@@ -35,8 +35,15 @@ ZF.getGeneratedForm = function(uid, callback, router) {
     router.getForm({uid:uid}, function(response){
         callback(Ext.apply({
             xtype:'autoformpanel',
+            contextUid: uid,
+            api: {
+                submit:  function(x, y, panel){
+                    var form = panel.form,
+                        values = form.getFieldValues(true /* true to select dirty only */);
+                    router.setInfo(Ext.applyIf(values, form.baseParams), Ext.emptyFn);
+                }
+            },
             border: false,
-            cls: 'autoformpanel',
             layout: 'column',
             defaults: {
                 layout: 'form',

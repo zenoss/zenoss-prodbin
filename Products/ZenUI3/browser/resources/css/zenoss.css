@@ -479,6 +479,7 @@ table.eventrainbow td.warning { background-color: #fbd13d; }
     color: white;
     font-size: 9.5pt;
     font-family: Helvetica,sans-serif;
+}
 
 .autoformpanel {
     padding: 10px;
@@ -546,3 +547,7 @@ table.search-result {
     font-size: 13px;
 }
 
+.detail-form-panel .x-panel-btns {
+    border-top: 1px solid gray;
+    background: #f5f9fd url();
+}

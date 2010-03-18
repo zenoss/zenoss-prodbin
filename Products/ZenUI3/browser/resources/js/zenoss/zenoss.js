@@ -67,6 +67,41 @@ Zenoss.message = function(msg, success) {
     }
 };
 
+/*
+* Add the ability to specify an axis for autoScroll.
+* autoScroll: true works just as before, but now can also do:
+* autoScroll: 'x'
+* autoScroll: 'y'
+*
+* Code by Tom23, http://www.extjs.com/forum/showthread.php?t=80663
+*/
+
+Ext.Element.prototype.setOverflow = function(v, axis) {
+    axis = axis ? axis.toString().toUpperCase() : '';
+    var overflowProp = 'overflow';
+    if (axis == 'X' || axis == 'Y') {
+        overflowProp += axis;
+    }
+    if(v=='auto' && Ext.isMac && Ext.isGecko2){ // work around stupid FF 2.0/Mac scroll bar bug
+        this.dom.style[overflowProp] = 'hidden';
+        (function(){this.dom.style[overflowProp] = 'auto';}).defer(1, this);
+    }else{
+        this.dom.style[overflowProp] = v;
+    }
+};
+
+Ext.override(Ext.Panel, {
+    setAutoScroll : function() {
+        if(this.rendered && this.autoScroll){
+            var el = this.body || this.el;
+            if(el){
+                el.setOverflow('auto', this.autoScroll);
+            }
+        }
+    }
+});
+
+
 /**
  * @class Zenoss.PlaceholderPanel
  * @extends Ext.Panel

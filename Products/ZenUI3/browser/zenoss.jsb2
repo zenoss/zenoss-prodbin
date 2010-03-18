@@ -52,6 +52,9 @@
             "text": "LinkField.js",
             "path": "resources/js/zenoss/form/"
         }, {
+            "text": "BaseDetailForm.js",
+            "path": "resources/js/zenoss/form/"
+        }, {
             "text": "AutoFormPanel.js",
             "path": "resources/js/zenoss/form/"
         }, {
