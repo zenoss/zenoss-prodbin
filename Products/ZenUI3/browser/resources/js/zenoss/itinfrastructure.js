@@ -557,7 +557,7 @@ Ext.apply(Zenoss.devices, {
         handler: function(btn, e){
             Ext.util.Cookies.set('newui', 'yes');
             
-            window.open('/zport/dmd/easyAddDevice', "multi-add",
+            window.open('/zport/dmd/easyAddDevice', "multi_add",
             "menubar=0,toolbar=0,resizable=0,height=600, width=800,location=0");
         }
     })
