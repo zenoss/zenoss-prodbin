@@ -15,17 +15,28 @@ import re
 import sys
 from pickle import dump, load
 from subprocess import Popen, PIPE
+import logging
+log = logging.getLogger('zen.checkRRD')
 
 import Globals
 import transaction
 from Products.ZenUtils.Utils import zenPath
 from Products.ZenUtils.ZenScriptBase import ZenScriptBase
 
-import logging
-log = logging.getLogger('zen.checkRRD')
-
 CACHE_FILE = zenPath('var', 'zencheckrrd.cache')
 rrdMatch = re.compile('DEF:[^=]+=([^:]+)').match
+
+class collectorStats:
+    def __init__(self, id, hostname):
+        self.id = id
+        self.hostname = hostname
+        self.expectedComponents = 0
+        self.stale = 0
+        self.missing = 0
+        self.orphan = 0
+        self.expectedFiles = set()
+        self.staleFiles = set()
+        self.allFiles = set()
 
 class ZenCheckRRD(ZenScriptBase):
     def __init__(self):
@@ -83,91 +94,110 @@ class ZenCheckRRD(ZenScriptBase):
             collectors = self.dmd.Monitors.Performance.objectValues(
                 spec="PerformanceConf")
 
-        expectedByCollector = self._getExpectedFiles()
-        missingOrStale_count = 0
-        orphan_count = 0
-        total_count = 0
+        collectors = [collectorStats(x.id, getattr(x, 'hostname', x.id)) \
+                        for x in collectors]
+        self._getExpectedFiles(collectors)
 
         for collector in collectors:
-            collector_missingOrStale = 0
-            collector_orphan = 0
-
-            expectedFiles = expectedByCollector.get(collector.id, None)
-            if not expectedFiles:
-                log.info("No expected files found for collector %s",
+            if len(collector.expectedFiles) == 0:
+                collector.expected = 0
+                log.debug("No expected files found for collector %s",
                     collector.id)
                 continue
 
-            total_count += len(expectedFiles)
-
-            collectorFiles = self._getCollectorFiles(collector)
+            self._getCollectorFiles(collector)
             if self.options.all:
-                for path in sorted(collectorFiles - expectedFiles):
+                for path in sorted(collector.allFiles - collector.expectedFiles):
                     outfile.write("orphaned:%s:%s\n" % (collector.id, path))
-                    collector_orphan += 1
+                    collector.orphan += 1
 
-                log.info("Found %s orphaned RRD files on %s",
-                    collector_orphan, collector.id)
-                orphan_count += collector_orphan
-
-            for path in sorted(expectedFiles - collectorFiles):
-                outfile.write("missingOrStale:%s:%s\n" % (collector.id, path))
-                collector_missingOrStale += 1
-
-            log.info("Found %s missing or stale files on %s",
-                collector_missingOrStale, collector.id)
-
-            missingOrStale_count += collector_missingOrStale
+            for path in sorted(collector.expectedFiles - collector.staleFiles):
+                if path in collector.allFiles:
+                    outfile.write("stale:%s:%s\n" % (collector.id, path))
+                    collector.stale += 1
+                else:
+                    outfile.write("missing:%s:%s\n" % (collector.id, path))
+                    collector.missing += 1
 
         outfile.close()
+        self.report(collectors)
 
-        log.info("%s out of %s RRD files are missing or stale",
-            missingOrStale_count, total_count)
 
+    def report(self, collectors):
+        totalExpectedRRDs = sum([len(x.expectedFiles) for x in collectors])
+        totalAllRRDs = sum([len(x.allFiles) for x in collectors])
+        totalMissingRRDs = sum([x.missing for x in collectors])
+        totalStaleRRDs = sum([x.stale for x in collectors])
+        #totalComponentRRDs = sum([x.expectedComponents for x in collectors])
+        #totalDeviceRRDs = totalExpectedRRDs - totalComponentRRDs
+        header = """
+                              On-disk Expected   Missing    Stale
+Collector                        RRDs     RRDs      RRDs     RRDs"""
+        delimLen = 65
         if self.options.all:
-            log.info("%s orphaned RRD files", orphan_count)
+            header += " Orphans"
+            delimLen = 75
+        print header
+        print '-' * delimLen
+    
+        collectorNames = dict(zip(map(lambda x: x.id, collectors), collectors))
+        for name in sorted(collectorNames.keys()):
+            collector = collectorNames[name]
+            expected = len(collector.expectedFiles)
+            all = len(collector.allFiles)
+            line = "%-30s %6s   %6s    %6s   %6s" % (
+                   name, all, expected, collector.missing, collector.stale)
+            if self.options.all:
+                line += " %6s" % collector.orphan
+            print line
+
+        print '-' * delimLen
+        trailer = "%-30s %6s   %6s    %6s   %6s" % (
+                   'Total', totalAllRRDs, totalExpectedRRDs,
+                   totalMissingRRDs, totalStaleRRDs)
+        if self.options.all:
+            trailer += " %6s" % sum([x.orphan for x in collectors])
+        print trailer
 
 
-    def _getExpectedFiles(self):
+    def _getExpectedFiles(self, collectors):
         rrdFiles = set()
+        componentRrdFiles = set()
 
         if self.options.pathcache and os.path.isfile(CACHE_FILE):
-            log.info("Reading list of expected RRD files from cache..")
+            log.debug("Reading list of expected RRD files from cache...")
             f = open('.rrdcheck.state', 'r')
             rrdFiles = load(f)
             f.close()
-            log.info("%s expected RRD files in the cache", len(rrdFiles))
         else:
-            log.info("Building list of expected device RRD files..")
+            log.debug("Building list of expected device RRD files..")
             for device in self.dmd.Devices.getSubDevicesGen():
                 if not device.monitorDevice(): continue
                 rrdFiles.update(self._getRRDPaths(device))
                 device._p_deactivate()
 
-            device_rrd_count = len(rrdFiles)
-            log.info("%s expected device RRD files", device_rrd_count)
-
             if not self.options.devicesonly:
-                log.info("Building list of expected component RRD files..")
+                log.debug("Building list of expected component RRD files..")
                 for component in self._getAllMonitoredComponents():
-                    rrdFiles.update(self._getRRDPaths(component))
+                    componentRrdFiles.update(self._getRRDPaths(component))
                     component._p_deactivate()
-
-                log.info("%s expected component RRD files",
-                    (len(rrdFiles) - device_rrd_count))
 
             # Dump the cache in case we want to use it next time.
             f = open('.rrdcheck.state', 'w')
             dump(rrdFiles, f)
             f.close()
 
-        expectedFiles = {}
-        for collector, path in rrdFiles:
-            if collector not in expectedFiles:
-                expectedFiles[collector] = set()
-            expectedFiles[collector].add(path)
+        collectorNames = dict(zip(map(lambda x: x.id, collectors), collectors))
+        for collectorName, path in rrdFiles:
+            collector = collectorNames.get(collectorName, None)
+            if collector:
+                collector.expectedFiles.add(path)
 
-        return expectedFiles
+        for collectorName, path in componentRrdFiles:
+            collector = collectorNames.get(collectorName, None)
+            if collector:
+                collector.expectedComponents += 1
+                collector.expectedFiles.add(path)
 
 
     def _getRRDPaths(self, ob):
@@ -200,34 +230,41 @@ class ZenCheckRRD(ZenScriptBase):
 
 
     def _getCollectorFiles(self, collector):
-        host = getattr(collector, 'hostname', collector.id)
-        log.info("Checking collector %s (%s) for fresh files",
-            collector.id, host)
+        def parseOutput(output):
+            files = set()
+            for line in ( l.strip() for l in output.split('\n') if l ):
+                files.add(line)
+            return files
 
-        if host == 'localhost':
-            output = Popen(["find %s -name *.rrd -mtime -%s" % (
-                zenPath('perf', 'Devices'), self.options.age)],
+        log.debug("Checking collector %s (%s) for RRD files",
+            collector.id, collector.hostname)
+
+        allCmd = "find %s -name *.rrd" % zenPath('perf', 'Devices')
+        staleCmd = "%s -mtime -%s" % (allCmd, self.options.age)
+
+        if collector.hostname == 'localhost':
+            allOutput = Popen([allCmd],
+                shell=True, stdout=PIPE).communicate()[0]            
+            staleOutput = Popen([staleCmd],
                 shell=True, stdout=PIPE).communicate()[0]            
         else:
             # Quick check to see if we can SSH to the collector.
             p1 = Popen(["echo", "0"], stdout=PIPE)
-            p2 = Popen(["nc", "-w", "4", host, "22"],
+            p2 = Popen(["nc", "-w", "4", collector.hostname, "22"],
                 stdin=p1.stdout, stdout=PIPE, stderr=PIPE)
 
             if os.waitpid(p2.pid, 0)[1] != 0:
-                log.warn("Unable to SSH to collector %s (%s)", collector.id, host)
+                log.warn("Unable to SSH to collector %s (%s)", 
+                         collector.id, collector.hostname)
+                return
 
-            output = Popen(["ssh", host,
-                "find $ZENHOME -name *.rrd -mtime -%s" % self.options.age],
+            allOutput = Popen(["ssh", collector.hostname, allCmd],
+                stdout=PIPE).communicate()[0]
+            staleOutput = Popen(["ssh", collector.hostname, staleCmd],
                 stdout=PIPE).communicate()[0]
 
-        files = set()
-        for line in ( l.strip() for l in output.split('\n') if l ):
-            files.add(line)
-
-        log.info("Found %s total RRD files on collector %s",
-            len(files), collector.id)
-        return files
+        collector.allFiles = parseOutput(allOutput)
+        collector.staleFiles = parseOutput(staleOutput)
 
 
 if __name__ == '__main__':
